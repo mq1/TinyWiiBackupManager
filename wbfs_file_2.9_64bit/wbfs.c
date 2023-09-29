@@ -1648,7 +1648,7 @@ void usage(char **argv)
     exit(EXIT_FAILURE);
 }
 
-int main(int argc, char *argv[])
+int _main(int argc, char *argv[])
 {
     int opt;
     int i;
