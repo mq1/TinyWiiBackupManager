@@ -11,7 +11,15 @@ description = "A simple WBFS manager"
 
 [dependencies]
 eframe = "0.23"
+egui_extras = "0.23"
+rfd = "0.12"
+anyhow = "1.0"
 sysinfo = "0.29"
+poll-promise = "0.3"
+ureq = "2.7"
+once_cell = "1.18"
+regex = "1.9"
+fs_extra = "1.3"
 
 [build-dependencies]
 cc = "1.0"
