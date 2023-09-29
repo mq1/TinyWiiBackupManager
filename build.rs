@@ -53,7 +53,7 @@ fn main() {
             .file("wbfs_file_2.9_64bit/libwbfs/rijndael.c")
             .file("wbfs_file_2.9_64bit/splits.c")
             .file("wbfs_file_2.9_64bit/libwbfs/libwbfs_win32.c")
-            .include(r"C:\Program Files\OpenSSL-Win64\include")
+            .include(r"C:\Program Files\OpenSSL\include")
             .include("wbfs_file_2.9_64bit")
             .include("wbfs_file_2.9_64bit/libwbfs")
             .define("LARGE_FILES", None)
