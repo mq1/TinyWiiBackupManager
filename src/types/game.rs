@@ -3,8 +3,6 @@
 
 use std::collections::HashMap;
 use std::fs;
-use std::fs::File;
-use std::io::{Read, Seek, SeekFrom};
 use std::path::PathBuf;
 use anyhow::{anyhow, bail, Result};
 use fs_extra::dir::get_size;
@@ -16,6 +14,7 @@ macro_rules! regex {
     }};
 }
 
+#[derive(Clone)]
 pub struct Game {
     dir: PathBuf,
     pub size: u64,

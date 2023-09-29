@@ -6,7 +6,7 @@ use poll_promise::Promise;
 use anyhow::{anyhow, Result};
 use eframe::egui;
 use eframe::egui::{FontId, RichText};
-use rfd::FileDialog;
+use rfd::{FileDialog, MessageButtons, MessageDialog, MessageDialogResult, MessageLevel};
 use crate::types::drive::Drive;
 use crate::types::game::Game;
 
@@ -33,6 +33,25 @@ impl App {
         Ok(())
     }
 
+    fn delete_games(&mut self) {
+        let res = MessageDialog::new()
+            .set_level(MessageLevel::Warning)
+            .set_title("Delete games")
+            .set_description("Are you sure you want to delete the selected games?")
+            .set_buttons(MessageButtons::YesNo)
+            .show();
+
+        if res == MessageDialogResult::Yes {
+            let games = self.games.iter().filter(|game| game.1).map(|game| game.0.clone()).collect::<Vec<_>>();
+
+            for game in games {
+                game.delete().unwrap();
+            }
+        }
+
+        self.refresh_games().unwrap();
+    }
+
     fn add_games(&mut self, ctx: &egui::Context) {
         let drive = self.current_drive.clone().unwrap();
 
@@ -46,8 +65,7 @@ impl App {
                 let (sender, promise) = Promise::new();
                 thread::spawn(move || {
                     for file in files {
-                        // TODO: error handling
-                        let _ = drive.add_game(&file);
+                        drive.add_game(&file).unwrap();
                     }
 
                     sender.send(Ok(()));
@@ -118,11 +136,19 @@ impl eframe::App for App {
 
             ui.add_space(10.0);
 
-            if ui.button("Add games").clicked() {
-                self.add_games(ctx);
-            }
+            ui.horizontal(|ui| {
+                if ui.button("Delete selected").clicked() {
+                    self.delete_games();
+                }
+
+                if ui.button("Add games").clicked() {
+                    self.add_games(ctx);
+                }
+            });
 
             ui.add_space(10.0);
+
+            ui.separator();
 
             egui_extras::TableBuilder::new(ui)
                 .striped(true)
