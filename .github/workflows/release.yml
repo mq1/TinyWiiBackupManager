@@ -1,0 +1,78 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: aarch64-apple-darwin
+      - uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args: cargo-bundle
+      - uses: actions-rs/cargo@v1
+        with:
+          command: bundle
+          args: --release
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --target aarch64-apple-darwin --release
+      - run: |
+          lipo target/release/bundle/osx/wbfs-manager-rs.app/Contents/MacOS/wbfs-manager-rs target/aarch64-apple-darwin/release/wbfs-manager-rs -create -output target/release/bundle/osx/wbfs-manager-rs.app/Contents/MacOS/wbfs-manager-rs
+          mv target/release/bundle/osx/wbfs-manager-rs.app wbfs-manager-rs-${{github.ref_name}}-macos-universal.app
+          zip -r wbfs-manager-rs-${{github.ref_name}}-macos-universal.zip wbfs-manager-rs-${{github.ref_name}}-macos-universal.app
+      - uses: softprops/action-gh-release@v1
+        with:
+          files: wbfs-manager-rs-${{github.ref_name}}-macos-universal.zip
+  build-ubuntu:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - run: |
+          sudo apt-get update -y
+          sudo apt-get install -y libclang-dev libgtk-3-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
+      - run: |
+          cp -a target/release/wbfs-manager-rs wbfs-manager-rs-${{github.ref_name}}-linux-x86_64
+          tar czf wbfs-manager-rs-${{github.ref_name}}-linux-x86_64.tar.gz wbfs-manager-rs-${{github.ref_name}}-linux-x86_64
+      - uses: softprops/action-gh-release@v1
+        with:
+          files: wbfs-manager-rs-${{github.ref_name}}-linux-x86_64.tar.gz
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
+      - run: |
+          Move-Item ./target/release/wbfs-manager-rs.exe ./wbfs-manager-rs-${{github.ref_name}}-windows-x86_64.exe
+          Compress-Archive ./wbfs-manager-rs-${{github.ref_name}}-windows-x86_64.exe wbfs-manager-rs-${{github.ref_name}}-windows-x86_64.zip
+      - uses: softprops/action-gh-release@v1
+        with:
+          files: wbfs-manager-rs-${{github.ref_name}}-windows-x86_64.zip
