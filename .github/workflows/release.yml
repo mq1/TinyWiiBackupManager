@@ -63,6 +63,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
+      - run: choco install openssl
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
