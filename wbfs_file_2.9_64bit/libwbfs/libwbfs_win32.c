@@ -21,7 +21,7 @@ typedef struct _FILE_ZERO_DATA_INFORMATION {
 
 #if defined(__CYGWIN__)
 #define _get_osfhandle get_osfhandle
-typedef long long off64_t;
+typedef int64_t off64_t;
 #endif
 
 #include "libwbfs.h"
