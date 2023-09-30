@@ -7,11 +7,6 @@
 #include <stdint.h>
 
 #define FSCTL_SET_ZERO_DATA             CTL_CODE(FILE_DEVICE_FILE_SYSTEM, 50, METHOD_BUFFERED, FILE_WRITE_DATA)
-typedef struct _FILE_ZERO_DATA_INFORMATION {
-  LARGE_INTEGER FileOffset;
-  LARGE_INTEGER BeyondFinalZero;
-} FILE_ZERO_DATA_INFORMATION, *PFILE_ZERO_DATA_INFORMATION;
-
 
 #include <stdio.h>
 #include <sys/types.h>
