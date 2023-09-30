@@ -4,6 +4,7 @@
 #include <winioctl.h>
 #include <setupapi.h>
 #include <io.h>
+#include <stdint.h>
 
 #define FSCTL_SET_ZERO_DATA             CTL_CODE(FILE_DEVICE_FILE_SYSTEM, 50, METHOD_BUFFERED, FILE_WRITE_DATA)
 typedef struct _FILE_ZERO_DATA_INFORMATION {
