@@ -1,21 +1,28 @@
 // SPDX-FileCopyrightText: 2023 Manuel Quarneti <manuel.quarneti@proton.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
+use std::sync::Mutex;
 use std::thread;
-use poll_promise::Promise;
+
 use anyhow::{anyhow, Result};
 use eframe::egui;
 use eframe::egui::{FontId, RichText};
+use once_cell::sync::Lazy;
 use rfd::{FileDialog, MessageButtons, MessageDialog, MessageDialogResult, MessageLevel};
+
 use crate::types::drive::Drive;
 use crate::types::game::Game;
+
+static ADDING_GAMES: Lazy<Mutex<bool>> = Lazy::new(|| Mutex::new(false));
+static ADDING_GAMES_PROGRESS: Lazy<Mutex<(usize, usize)>> = Lazy::new(|| Mutex::new((0, 0)));
+static ADDING_GAMES_RESULT: Lazy<Mutex<Result<()>>> = Lazy::new(|| Mutex::new(Ok(())));
+
 
 #[derive(Default)]
 pub struct App {
     drives: Vec<Drive>,
     current_drive: Option<Drive>,
     games: Vec<(Game, bool)>,
-    adding_game: Option<Promise<Result<()>>>,
 }
 
 impl App {
@@ -34,12 +41,7 @@ impl App {
     }
 
     fn delete_games(&mut self) {
-        let res = MessageDialog::new()
-            .set_level(MessageLevel::Warning)
-            .set_title("Delete games")
-            .set_description("Are you sure you want to delete the selected games?")
-            .set_buttons(MessageButtons::YesNo)
-            .show();
+        let res = MessageDialog::new().set_level(MessageLevel::Warning).set_title("Delete games").set_description("Are you sure you want to delete the selected games?").set_buttons(MessageButtons::YesNo).show();
 
         if res == MessageDialogResult::Yes {
             let games = self.games.iter().filter(|game| game.1).map(|game| game.0.clone()).collect::<Vec<_>>();
@@ -52,28 +54,25 @@ impl App {
         self.refresh_games().unwrap();
     }
 
-    fn add_games(&mut self, ctx: &egui::Context) {
+    fn add_games(&mut self) {
         let drive = self.current_drive.clone().unwrap();
 
-        let files = FileDialog::new()
-            .add_filter("WII Game", &["iso", "wbfs"])
-            .pick_files();
+        let files = FileDialog::new().add_filter("WII Game", &["iso", "wbfs"]).pick_files();
 
         if let Some(files) = files {
-            let promise = {
-                let ctx = ctx.clone();
-                let (sender, promise) = Promise::new();
-                thread::spawn(move || {
-                    for file in files {
-                        drive.add_game(&file).unwrap();
-                    }
+            thread::spawn(move || {
+                *ADDING_GAMES.lock().unwrap() = true;
 
-                    sender.send(Ok(()));
-                    ctx.request_repaint();
-                });
-                promise
-            };
-            self.adding_game = Some(promise);
+                for (i, file) in files.iter().enumerate() {
+                    *ADDING_GAMES_PROGRESS.lock().unwrap() = (i + 1, files.len());
+                    if let Err(e) = drive.add_game(file) {
+                        *ADDING_GAMES_RESULT.lock().unwrap() = Err(e);
+                        return;
+                    }
+                }
+
+                *ADDING_GAMES.lock().unwrap() = false;
+            });
         }
     }
 }
@@ -114,21 +113,16 @@ impl eframe::App for App {
                 return;
             }
 
-            if let Some(promise) = &self.adding_game {
-                match promise.ready() {
-                    Some(Ok(())) => {
-                        self.refresh_games().unwrap();
-                        self.adding_game = None;
-                    }
-                    Some(Err(e)) => {
-                        ui.heading("Error adding game");
-                        ui.label(e.to_string());
-                    }
-                    None => {
-                        ui.heading("Adding game(s)...");
-                        ui.spinner();
-                    }
+            if *ADDING_GAMES.lock().unwrap() {
+                if let Err(e) = ADDING_GAMES_RESULT.lock().unwrap().as_ref() {
+                    ui.heading("Error adding games");
+                    ui.label(e.to_string());
+                } else {
+                    let adding_games_progress = *ADDING_GAMES_PROGRESS.lock().unwrap();
+                    ui.heading(format!("Adding games ({}/{})", adding_games_progress.0, adding_games_progress.1));
+                    ui.spinner();
                 }
+
                 return;
             }
 
@@ -142,7 +136,7 @@ impl eframe::App for App {
                 }
 
                 if ui.button("Add games").clicked() {
-                    self.add_games(ctx);
+                    self.add_games();
                 }
             });
 
@@ -150,30 +144,25 @@ impl eframe::App for App {
 
             ui.separator();
 
-            egui_extras::TableBuilder::new(ui)
-                .striped(true)
-                .column(egui_extras::Column::auto_with_initial_suggestion(1000.).resizable(true))
-                .column(egui_extras::Column::remainder())
-                .header(20.0, |mut header| {
-                    header.col(|ui| {
-                        ui.label(RichText::new("Game").font(FontId::proportional(16.0)));
-                    });
-                    header.col(|ui| {
-                        ui.label(RichText::new("Size").font(FontId::proportional(16.0)));
-                    });
-                })
-                .body(|mut body| {
-                    for game in self.games.iter_mut() {
-                        body.row(20.0, |mut row| {
-                            row.col(|ui| {
-                                ui.checkbox(&mut game.1, game.0.display_title.clone());
-                            });
-                            row.col(|ui| {
-                                ui.label(format!("{:.2} GiB", game.0.size as f32 / 1073741824.));
-                            });
-                        });
-                    }
+            egui_extras::TableBuilder::new(ui).striped(true).column(egui_extras::Column::auto_with_initial_suggestion(1000.).resizable(true)).column(egui_extras::Column::remainder()).header(20.0, |mut header| {
+                header.col(|ui| {
+                    ui.label(RichText::new("Game").font(FontId::proportional(16.0)));
                 });
+                header.col(|ui| {
+                    ui.label(RichText::new("Size").font(FontId::proportional(16.0)));
+                });
+            }).body(|mut body| {
+                for game in self.games.iter_mut() {
+                    body.row(20.0, |mut row| {
+                        row.col(|ui| {
+                            ui.checkbox(&mut game.1, game.0.display_title.clone());
+                        });
+                        row.col(|ui| {
+                            ui.label(format!("{:.2} GiB", game.0.size as f32 / 1073741824.));
+                        });
+                    });
+                }
+            });
         });
     }
 }
