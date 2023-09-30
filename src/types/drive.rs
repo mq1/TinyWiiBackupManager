@@ -7,7 +7,7 @@ use std::fs::File;
 use std::io::BufWriter;
 use std::path::{Path, PathBuf};
 
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, bail, Result};
 use sysinfo::{Disk, DiskExt, System, SystemExt};
 
 use crate::types::game::Game;
@@ -93,7 +93,7 @@ impl Drive {
                     let dest = self.mount_point.join("wbfs");
                     wbfs_file::copy_wbfs_file(path, &dest)?;
                 }
-                _ => return Err(anyhow!("Invalid file extension")),
+                _ => bail!("Invalid file extension")
             }
         }
 
