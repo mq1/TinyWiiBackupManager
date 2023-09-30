@@ -66,12 +66,13 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
+          target: x86_64-pc-windows-gnu
       - uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --release
+          args: --target x86_64-pc-windows-gnu --release
       - run: |
-          Move-Item ./target/release/wbfs-manager-rs.exe ./wbfs-manager-rs-${{github.ref_name}}-windows-x86_64.exe
+          Move-Item ./target/x86_64-pc-windows-gnu/release/wbfs-manager-rs.exe ./wbfs-manager-rs-${{github.ref_name}}-windows-x86_64.exe
           Compress-Archive ./wbfs-manager-rs-${{github.ref_name}}-windows-x86_64.exe wbfs-manager-rs-${{github.ref_name}}-windows-x86_64.zip
       - uses: softprops/action-gh-release@v1
         with:
