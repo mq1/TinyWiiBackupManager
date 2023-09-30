@@ -15,7 +15,7 @@ use crate::types::game::Game;
 
 static ADDING_GAMES: Lazy<Mutex<bool>> = Lazy::new(|| Mutex::new(false));
 static ADDING_GAMES_PROGRESS: Lazy<Mutex<(usize, usize)>> = Lazy::new(|| Mutex::new((0, 0)));
-static ADDING_GAMES_RESULT: Lazy<Mutex<Result<()>>> = Lazy::new(|| Mutex::new(Ok(())));
+static ADDING_GAMES_RESULT: Lazy<Mutex<Option<Result<()>>>> = Lazy::new(|| Mutex::new(None));
 
 
 #[derive(Default)]
@@ -62,16 +62,17 @@ impl App {
         if let Some(files) = files {
             thread::spawn(move || {
                 *ADDING_GAMES.lock().unwrap() = true;
+                *ADDING_GAMES_RESULT.lock().unwrap() = None;
 
                 for (i, file) in files.iter().enumerate() {
                     *ADDING_GAMES_PROGRESS.lock().unwrap() = (i + 1, files.len());
                     if let Err(e) = drive.add_game(file) {
-                        *ADDING_GAMES_RESULT.lock().unwrap() = Err(e);
+                        *ADDING_GAMES_RESULT.lock().unwrap() = Some(Err(e));
                         return;
                     }
                 }
 
-                *ADDING_GAMES.lock().unwrap() = false;
+                *ADDING_GAMES_RESULT.lock().unwrap() = Some(Ok(()));
             });
         }
     }
@@ -114,15 +115,21 @@ impl eframe::App for App {
             }
 
             if *ADDING_GAMES.lock().unwrap() {
-                if let Err(e) = ADDING_GAMES_RESULT.lock().unwrap().as_ref() {
-                    ui.heading("Error adding games");
-                    ui.label(e.to_string());
-                } else {
-                    let adding_games_progress = *ADDING_GAMES_PROGRESS.lock().unwrap();
-                    ui.heading(format!("Adding games ({}/{})", adding_games_progress.0, adding_games_progress.1));
-                    ui.spinner();
+                match &*ADDING_GAMES_RESULT.lock().unwrap() {
+                    Some(Ok(_)) => {
+                        *ADDING_GAMES.lock().unwrap() = false;
+                        self.refresh_games().unwrap();
+                    }
+                    Some(Err(e)) => {
+                        ui.heading("Error adding games");
+                        ui.label(e.to_string());
+                    }
+                    None => {
+                        let adding_games_progress = *ADDING_GAMES_PROGRESS.lock().unwrap();
+                        ui.heading(format!("Adding games ({}/{})", adding_games_progress.0, adding_games_progress.1));
+                        ui.spinner();
+                    }
                 }
-
                 return;
             }
 
