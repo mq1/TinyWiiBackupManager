@@ -83,17 +83,18 @@ impl Drive {
     }
 
     pub fn add_game(&self, path: &Path) -> Result<()> {
-        match path.extension() {
-            Some(ext) => {
-                match ext.to_str().unwrap() {
-                    "iso" => {
-                        let dest = self.mount_point.join("wbfs");
-                        wbfs_file::conv_to_wbfs_wrapper(path.to_str().unwrap(), dest.to_str().unwrap());
-                    }
-                    _ => {}
+        if let Some(ext) = path.extension() {
+            match ext.to_str().unwrap() {
+                "iso" => {
+                    let dest = self.mount_point.join("wbfs");
+                    wbfs_file::conv_to_wbfs_wrapper(path.to_str().unwrap(), dest.to_str().unwrap());
                 }
+                "wbfs" => {
+                    let dest = self.mount_point.join("wbfs");
+                    wbfs_file::copy_wbfs_file(path, &dest)?;
+                }
+                _ => return Err(anyhow!("Invalid file extension")),
             }
-            _ => {}
         }
 
         Ok(())
