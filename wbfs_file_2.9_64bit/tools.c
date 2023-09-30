@@ -1,3 +1,4 @@
+// Copyright 2023  Manuel Quarneti  <manuel.quarneti@proton.me>
 // Copyright 2007,2008  Segher Boessenkool  <segher@kernel.crashing.org>
 // Licensed under the terms of the GNU GPL, version 2
 // http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
@@ -5,9 +6,6 @@
 #include "tools.h"
 
 #include <stddef.h>	// to accommodate certain broken versions of openssl
-#include <openssl/md5.h>
-#include <openssl/aes.h>
-#include <openssl/sha.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
@@ -61,16 +59,6 @@ void wbe64(u8 *p, u64 x)
 // crypto
 //
 
-void md5(u8 *data, u32 len, u8 *hash)
-{
-	MD5(data, len, hash);
-}
-
-void sha(u8 *data, u32 len, u8 *hash)
-{
-	SHA1(data, len, hash);
-}
-
 void get_key(const char *name, u8 *key, u32 len)
 {
 	char path[256];
@@ -88,35 +76,6 @@ void get_key(const char *name, u8 *key, u32 len)
 	if (fread(key, len, 1, fp) != 1)
 		fatal("error reading %s", name);
 	fclose(fp);
-}
-
-void aes_cbc_dec(u8 *key, u8 *iv, u8 *in, u32 len, u8 *out)
-{
-	AES_KEY aes_key;
-
-	AES_set_decrypt_key(key, 128, &aes_key);
-	AES_cbc_encrypt(in, out, len, &aes_key, iv, AES_DECRYPT);
-}
-
-void aes_cbc_enc(u8 *key, u8 *iv, u8 *in, u32 len, u8 *out)
-{
-	AES_KEY aes_key;
-
-	AES_set_encrypt_key(key, 128, &aes_key);
-	AES_cbc_encrypt(in, out, len, &aes_key, iv, AES_ENCRYPT);
-}
-
-void decrypt_title_key(u8 *tik, u8 *title_key)
-{
-	u8 common_key[16];
-	u8 iv[16];
-
-	get_key("common-key", common_key, 16);
-
-	memset(iv, 0, sizeof iv);
-	memcpy(iv, tik + 0x01dc, 8);
-	aes_cbc_dec(common_key, iv, tik + 0x01bf, 16, title_key);
-        printf("title key: %02x %02x %02x\n",title_key[0],title_key[1],title_key[2]);
 }
 
 static u8 root_key[0x204];
@@ -164,26 +123,6 @@ static u32 get_sub_len(u8 *sub)
 
 	printf("get_sub_len(): unhandled sub type %08x\n", type);
 	return 0;
-}
-
-int check_ec(u8 *ng, u8 *ap, u8 *sig, u8 *sig_hash)
-{
-	u8 ap_hash[20];
-	u8 *ng_Q, *ap_R, *ap_S;
-	u8 *ap_Q, *sig_R, *sig_S;
-
-	ng_Q = ng + 0x0108;
-	ap_R = ap + 0x04;
-	ap_S = ap + 0x22;
-
-	SHA1(ap + 0x80, 0x100, ap_hash);
-
-	ap_Q = ap + 0x0108;
-	sig_R = sig;
-	sig_S = sig + 30;
-
-	return check_ecdsa(ng_Q, ap_R, ap_S, ap_hash)
-	       && check_ecdsa(ap_Q, sig_R, sig_S, sig_hash);
 }
 
 static int check_rsa(u8 *h, u8 *sig, u8 *key, u32 n)
@@ -266,57 +205,6 @@ static u8 *find_cert_in_chain(u8 *sub, u8 *cert, u32 cert_len)
 	}
 
 	return 0;
-}
-
-int check_cert_chain(u8 *data, u32 data_len, u8 *cert, u32 cert_len)
-{
-	u8 *sig;
-	u8 *sub;
-	u32 sig_len;
-	u32 sub_len;
-	u8 h[20];
-	u8 *key_cert;
-	u8 *key;
-	int ret;
-	sig = data;
-	sig_len = get_sig_len(sig);
-	if (sig_len == 0)
-		return -1;
-	sub = data + sig_len;
-	sub_len = data_len - sig_len;
-	if (sub_len == 0)
-		return -2;
-
-	for (;;) {
-                printf(">>>>>> checking sig by %s...\n", sub);
-                if (strcmp((char*)sub, "Root") == 0) {
-			key = get_root_key();
-			sha(sub, sub_len, h);
-			if (be32(sig) != 0x10000)
-				return -8;
-			return check_rsa(h, sig + 4, key, 0x200);
-		}
-
-		key_cert = find_cert_in_chain(sub, cert, cert_len);
-		if (key_cert == 0)
-			return -3;
-
-		key = key_cert + get_sig_len(key_cert);
-
-		sha(sub, sub_len, h);
-		ret = check_hash(h, sig, key);
-		if (ret)
-			return ret;
-
-		sig = key_cert;
-		sig_len = get_sig_len(sig);
-		if (sig_len == 0)
-			return -4;
-		sub = sig + sig_len;
-		sub_len = get_sub_len(sub);
-		if (sub_len == 0)
-			return -5;
-	}
 }
 
 //
