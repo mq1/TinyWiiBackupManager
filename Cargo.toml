@@ -1,6 +1,6 @@
 [package]
 name = "wbfs-manager-rs"
-version = "0.0.1-alpha.5"
+version = "0.0.1-alpha.6"
 authors = ["Manuel Quarneti <manuel.quarneti@proton.me>"]
 edition = "2021"
 license = "GPL-2.0-only"
