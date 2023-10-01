@@ -15,33 +15,14 @@ extern "C" {
     );
 }
 
-pub fn conv_to_wbfs_wrapper(src: &str, dest: &str) {
-    let src = CString::new(src).unwrap();
-    let dest = CString::new(dest).unwrap();
-
-    unsafe {
-        conv_to_wbfs(src.as_ptr(), dest.as_ptr());
-    };
-}
-
-fn get_wbfs_id_and_title(path: &Path) -> Result<(String, String)> {
-    let mut file = File::open(&path)?;
-
-    // check if the file is a wbfs file
-    let mut magic = [0u8; 0x4];
-    file.read_exact(&mut magic)?;
-    if magic != [0x57, 0x42, 0x46, 0x53] {
-        bail!("Invalid wbfs file");
-    }
-
+fn get_id_and_title(file: &mut File) -> Result<(String, String)> {
     // read the id
-    file.seek(SeekFrom::Start(0x200))?;
     let mut id = [0u8; 0x6];
     file.read_exact(&mut id)?;
     let id = String::from_utf8(id.to_vec())?;
 
     // read the title
-    file.seek(SeekFrom::Start(0x220))?;
+    file.seek(SeekFrom::Current(0x1a))?;
     let mut title = [0u8; 0x40];
     file.read_exact(&mut title)?;
     let title = String::from_utf8(title.to_vec())?;
@@ -50,14 +31,48 @@ fn get_wbfs_id_and_title(path: &Path) -> Result<(String, String)> {
     Ok((id, title))
 }
 
-pub fn copy_wbfs_file(src: &Path, dest: &Path) -> Result<()> {
-    let (id, title) = get_wbfs_id_and_title(src)?;
-    let dest_dir = dest.join(format!("{} [{}]", title, id));
+pub fn conv_to_wbfs_wrapper(src: &Path, dest: &Path) -> Result<()> {
+    let mut file = File::open(src)?;
+    let (id, title) = get_id_and_title(&mut file)?;
 
-    if !dest_dir.exists() {
-        std::fs::create_dir(&dest_dir)?;
+    let dest_dir = Path::new(dest).join(format!("{} [{}]", title, id));
+    if dest_dir.exists() {
+        println!("Skipping {}", dest_dir.display());
+        return Ok(());
     }
 
+    let src = CString::new(src.to_string_lossy().to_string())?;
+    let dest = CString::new(dest.to_string_lossy().to_string())?;
+
+    unsafe {
+        conv_to_wbfs(src.as_ptr(), dest.as_ptr());
+    };
+
+    Ok(())
+}
+
+pub fn copy_wbfs_file(src: &Path, dest: &Path) -> Result<()> {
+    let mut file = File::open(&src)?;
+
+    // check if the file is a wbfs file
+    {
+        let mut magic = [0u8; 0x4];
+        file.read_exact(&mut magic)?;
+        if magic != [0x57, 0x42, 0x46, 0x53] {
+            bail!("Invalid wbfs file");
+        }
+    }
+
+    file.seek(SeekFrom::Start(0x200))?;
+    let (id, title) = get_id_and_title(&mut file)?;
+    let dest_dir = dest.join(format!("{} [{}]", title, id));
+
+    if dest_dir.exists() {
+        println!("Skipping {}", dest_dir.display());
+        return Ok(());
+    }
+
+    std::fs::create_dir(&dest_dir)?;
     let dest_file = dest_dir.join(&id).with_extension("wbfs");
     std::fs::copy(src, dest_file)?;
 
