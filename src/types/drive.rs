@@ -74,6 +74,12 @@ impl Drive {
         let files = fs::read_dir(wbfs_folder)?;
         let games = files.filter_map(|file| {
             let file = file.ok()?;
+
+            // check if file is a directory
+            if !file.file_type().unwrap().is_dir() {
+                return None;
+            }
+
             let dir = Game::new(file.path(), &titles).ok()?;
 
             Some(dir)
