@@ -2861,7 +2861,7 @@ dependencies = [
 
 [[package]]
 name = "wbfs-manager-rs"
-version = "0.1.0-beta"
+version = "0.1.0-beta.1"
 dependencies = [
  "anyhow",
  "cc",
