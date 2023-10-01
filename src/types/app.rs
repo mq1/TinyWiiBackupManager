@@ -151,8 +151,6 @@ impl eframe::App for App {
                 }
             });
 
-            ui.add_space(10.0);
-
             ui.separator();
 
             egui_extras::TableBuilder::new(ui).striped(true).column(egui_extras::Column::auto_with_initial_suggestion(1000.).resizable(true)).column(egui_extras::Column::remainder()).header(20.0, |mut header| {
