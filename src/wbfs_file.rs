@@ -58,14 +58,16 @@ pub fn copy_wbfs_file(src: &Path, dest: &Path) -> Result<()> {
         std::fs::create_dir(&dest_dir)?;
     }
 
-    let dest_file = dest_dir.join(src.file_name().unwrap());
+    let dest_file = dest_dir.join(&id).with_extension("wbfs");
     std::fs::copy(src, dest_file)?;
 
     // copy eventual wbf[1-3] files
     for i in 1..=3 {
-        let src = src.with_extension(format!("wbf{}", i));
+        let extension = format!("wbf{}", i);
+
+        let src = src.with_extension(&extension);
         if src.exists() {
-            let dest_file = dest_dir.join(src.file_name().unwrap());
+            let dest_file = dest_dir.join(&id).with_extension(&extension);
             std::fs::copy(src, dest_file)?;
         }
     }
