@@ -6,7 +6,7 @@ use std::thread;
 
 use anyhow::{anyhow, Result};
 use eframe::egui;
-use eframe::egui::{FontId, RichText};
+use eframe::egui::{FontId, ProgressBar, RichText};
 use once_cell::sync::Lazy;
 use rfd::{FileDialog, MessageButtons, MessageDialog, MessageDialogResult, MessageLevel};
 
@@ -127,7 +127,11 @@ impl eframe::App for App {
                     None => {
                         let adding_games_progress = *ADDING_GAMES_PROGRESS.lock().unwrap();
                         ui.heading(format!("Adding games ({}/{})", adding_games_progress.0, adding_games_progress.1));
-                        ui.spinner();
+
+                        ui.add_space(10.0);
+
+                        let progress_bar = ProgressBar::new(adding_games_progress.0 as f32 / adding_games_progress.1 as f32);
+                        ui.add(progress_bar);
                     }
                 }
                 return;
