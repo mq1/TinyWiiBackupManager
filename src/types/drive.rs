@@ -93,7 +93,7 @@ impl Drive {
             match ext.to_str().unwrap() {
                 "iso" => {
                     let dest = self.mount_point.join("wbfs");
-                    wbfs_file::conv_to_wbfs_wrapper(path.to_str().unwrap(), dest.to_str().unwrap());
+                    wbfs_file::conv_to_wbfs_wrapper(path, &dest)?;
                 }
                 "wbfs" => {
                     let dest = self.mount_point.join("wbfs");
