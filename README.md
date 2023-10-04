@@ -8,13 +8,13 @@
 
 ### Prebuilt executable (recommended)
 
-Just grab the [latest release](https://github.com/mq1/tiny-wii-backup-manager/releases/latest) for your platform
+Just grab the [latest release](https://github.com/mq1/TinyWiiBackupManager/releases/latest) for your platform
 
 ### From source
 
 ```sh
-git clone https://github.com/mq1/tiny-wii-backup-manager.git
-cd tiny-wii-backup-manager
+git clone https://github.com/mq1/TinyWiiBackupManager.git
+cd TinyWiiBackupManager
 cargo build --release
 ```
 
