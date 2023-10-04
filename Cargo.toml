@@ -4,7 +4,7 @@ version = "0.1.0-rc"
 authors = ["Manuel Quarneti <manuel.quarneti@proton.me>"]
 edition = "2021"
 license = "GPL-2.0-only"
-repository = "https://github.com/mq1/tiny-wii-backup-manager"
+repository = "https://github.com/mq1/TinyWiiBackupManager"
 description = "A simple WBFS manager"
 
 [dependencies]
