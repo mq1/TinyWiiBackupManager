@@ -33,12 +33,12 @@ jobs:
           command: build
           args: --target aarch64-apple-darwin --release
       - run: |
-          lipo target/release/bundle/osx/wbfs-manager-rs.app/Contents/MacOS/wbfs-manager-rs target/aarch64-apple-darwin/release/wbfs-manager-rs -create -output target/release/bundle/osx/wbfs-manager-rs.app/Contents/MacOS/wbfs-manager-rs
-          mv target/release/bundle/osx/wbfs-manager-rs.app wbfs-manager-rs-${{github.ref_name}}-macos-universal.app
-          zip -r wbfs-manager-rs-${{github.ref_name}}-macos-universal.zip wbfs-manager-rs-${{github.ref_name}}-macos-universal.app
+          lipo target/release/bundle/osx/TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager target/aarch64-apple-darwin/release/tiny-wii-backup-manager -create -output target/release/bundle/osx/TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager
+          mv target/release/bundle/osx/TinyWiiBackupManager.app TinyWiiBackupManager-${{github.ref_name}}-MacOS-Universal2.app
+          zip -r TinyWiiBackupManager-${{github.ref_name}}-MacOS-Universal2.zip TinyWiiBackupManager-${{github.ref_name}}-MacOS-Universal2.app
       - uses: softprops/action-gh-release@v1
         with:
-          files: wbfs-manager-rs-${{github.ref_name}}-macos-universal.zip
+          files: TinyWiiBackupManager-${{github.ref_name}}-MacOS-Universal2.zip
   build-ubuntu:
     runs-on: ubuntu-20.04
     steps:
@@ -54,11 +54,11 @@ jobs:
           command: build
           args: --release
       - run: |
-          cp -a target/release/wbfs-manager-rs wbfs-manager-rs-${{github.ref_name}}-linux-x86_64
-          tar czf wbfs-manager-rs-${{github.ref_name}}-linux-x86_64.tar.gz wbfs-manager-rs-${{github.ref_name}}-linux-x86_64
+          cp -a target/release/tiny-wii-backup-manager TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64
+          tar czf TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64-x86_64.tar.gz TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64
       - uses: softprops/action-gh-release@v1
         with:
-          files: wbfs-manager-rs-${{github.ref_name}}-linux-x86_64.tar.gz
+          files: TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64.tar.gz
   build-windows:
     runs-on: windows-latest
     steps:
@@ -72,8 +72,8 @@ jobs:
           command: build
           args: --target x86_64-pc-windows-gnu --release
       - run: |
-          Move-Item ./target/x86_64-pc-windows-gnu/release/wbfs-manager-rs.exe ./wbfs-manager-rs-${{github.ref_name}}-windows-x86_64.exe
-          Compress-Archive ./wbfs-manager-rs-${{github.ref_name}}-windows-x86_64.exe wbfs-manager-rs-${{github.ref_name}}-windows-x86_64.zip
+          Move-Item ./target/x86_64-pc-windows-gnu/release/tiny-wii-backup-manager.exe ./TinyWiiBackupManager-${{github.ref_name}}-Windows-x86_64.exe
+          Compress-Archive ./TinyWiiBackupManager-${{github.ref_name}}-Windows-x86_64.exe TinyWiiBackupManager-${{github.ref_name}}-Windows-x86_64.zip
       - uses: softprops/action-gh-release@v1
         with:
-          files: wbfs-manager-rs-${{github.ref_name}}-windows-x86_64.zip
+          files: TinyWiiBackupManager-${{github.ref_name}}-Windows-x86_64.zip

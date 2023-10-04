@@ -1,13 +1,11 @@
 [package]
-name = "wbfs-manager-rs"
-version = "0.1.0-beta.2"
+name = "tiny-wii-backup-manager"
+version = "0.1.0-rc"
 authors = ["Manuel Quarneti <manuel.quarneti@proton.me>"]
 edition = "2021"
 license = "GPL-2.0-only"
-repository = "https://github.com/mq1/wbfs-manager-rs"
+repository = "https://github.com/mq1/tiny-wii-backup-manager"
 description = "A simple WBFS manager"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 eframe = "0.23"
@@ -15,7 +13,7 @@ egui_extras = "0.23"
 rfd = "0.12"
 anyhow = "1.0"
 sysinfo = "0.29"
-ureq = "2.7"
+ureq = "2.8"
 once_cell = "1.18"
 regex = "1.9"
 fs_extra = "1.3"
@@ -24,8 +22,8 @@ fs_extra = "1.3"
 cc = "1.0"
 
 [package.metadata.bundle]
-name = "wbfs-manager-rs"
-identifier = "eu.mq1.wbfs-manager-rs"
+name = "TinyWiiBackupManager"
+identifier = "eu.mq1.TinyWiiBackupManager"
 copyright = "Copyright (c) 2023 Manuel Quarneti"
 category = "Games"
 

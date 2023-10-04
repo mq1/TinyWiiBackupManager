@@ -12,7 +12,7 @@ mod types;
 fn main() -> eframe::Result<()> {
     let native_options = eframe::NativeOptions::default();
     eframe::run_native(
-        "wbfs-manager-rs",
+        "TinyWiiBackupManager",
         native_options,
         Box::new(|cc| Box::new(App::new(cc))),
     )

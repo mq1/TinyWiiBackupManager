@@ -1,4 +1,4 @@
-<h1 align="center">🦀 wbfs-manager-rs</h1>
+<h1 align="center">🦀 TinyWiiBackupManager</h1>
 
 <img alt="screenshot" src="screenshot.png">
 
@@ -8,17 +8,17 @@
 
 ### Prebuilt executable (recommended)
 
-Just grab the [latest release](https://github.com/mq1/wbfs-manager-rs/releases/latest) for your platform
+Just grab the [latest release](https://github.com/mq1/tiny-wii-backup-manager/releases/latest) for your platform
 
 ### From source
 
 ```sh
-git clone https://github.com/mq1/wbfs-manager-rs.git
-cd wbfs-manager-rs
+git clone https://github.com/mq1/tiny-wii-backup-manager.git
+cd tiny-wii-backup-manager
 cargo build --release
 ```
 
-The executable will be located at target/release/wbfs-manager-rs
+The executable will be located at target/release/tiny-wii-backup-manager
 
 ## 💾 Setting up the drive
 

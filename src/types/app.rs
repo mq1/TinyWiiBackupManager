@@ -26,7 +26,7 @@ pub struct App {
 }
 
 impl App {
-    pub(crate) fn new(_cc: &eframe::CreationContext<'_>) -> Self {
+    pub fn new(_cc: &eframe::CreationContext<'_>) -> Self {
         Self {
             drives: Drive::list(),
             ..Default::default()
