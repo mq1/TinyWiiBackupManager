@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2023 Manuel Quarneti <manuel.quarneti@proton.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
+use std::fmt::format;
 use std::sync::Mutex;
 use std::thread;
 
@@ -83,6 +84,17 @@ impl eframe::App for App {
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
             egui::menu::bar(ui, |ui| {
                 ui.menu_button("🗄 File", |ui| {
+                    if ui.button("About").clicked() {
+                        let desc = format!("v{}\n{}\n\nCopyright (c) 2023 {}\n{} Licensed", env!("CARGO_PKG_VERSION"), env!("CARGO_PKG_DESCRIPTION"), env!("CARGO_PKG_AUTHORS"), env!("CARGO_PKG_LICENSE"));
+                        MessageDialog::new().set_title(env!("CARGO_PKG_NAME")).set_description(desc).set_buttons(MessageButtons::Ok).show();
+                    }
+
+                    if ui.button("Check for updates").clicked() {
+                        thread::spawn(|| {
+                            let _ = crate::updater::check_for_updates();
+                        });
+                    }
+
                     if ui.button("Quit").clicked() {
                         std::process::exit(0);
                     }

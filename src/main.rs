@@ -8,6 +8,7 @@ use crate::types::app::App;
 
 mod wbfs_file;
 mod types;
+mod updater;
 
 fn main() -> eframe::Result<()> {
     let native_options = eframe::NativeOptions::default();
