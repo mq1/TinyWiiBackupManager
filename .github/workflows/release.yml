@@ -55,7 +55,7 @@ jobs:
           args: --release
       - run: |
           cp -a target/release/tiny-wii-backup-manager TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64
-          tar czf TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64-x86_64.tar.gz TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64
+          tar czf TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64.tar.gz TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64
       - uses: softprops/action-gh-release@v1
         with:
           files: TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64.tar.gz
