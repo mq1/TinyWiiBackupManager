@@ -82,13 +82,13 @@ impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
             egui::menu::bar(ui, |ui| {
-                ui.menu_button("File", |ui| {
+                ui.menu_button("🗄 File", |ui| {
                     if ui.button("Quit").clicked() {
                         std::process::exit(0);
                     }
                 });
 
-                ui.menu_button("Drives", |ui| {
+                ui.menu_button("🖴 Drives", |ui| {
                     for drive in self.drives.clone().into_iter() {
                         if ui.button(drive.to_string()).clicked() {
                             self.current_drive = Some(drive);
@@ -101,16 +101,14 @@ impl eframe::App for App {
 
         if let Some(drive) = &self.current_drive {
             egui::TopBottomPanel::bottom("drive_info").show(ctx, |ui| {
-                ui.horizontal(|ui| {
-                    ui.label("Drive:");
-                    ui.label(drive.to_string());
-                });
+                ui.add_space(3.);
+                ui.label(format!("🖴 {drive}"));
             });
         }
 
         egui::CentralPanel::default().show(ctx, |ui| {
             if self.current_drive.is_none() {
-                ui.heading("          ⬆ Select a drive");
+                ui.heading("                ⬆ Select a drive");
                 return;
             }
 
@@ -137,16 +135,16 @@ impl eframe::App for App {
                 return;
             }
 
-            ui.heading("Games");
+            ui.heading("🎮 Games");
 
             ui.add_space(10.0);
 
             ui.horizontal(|ui| {
-                if ui.button("Delete selected").clicked() {
+                if ui.button("🗑 Delete selected").clicked() {
                     self.delete_games();
                 }
 
-                if ui.button("Add games").clicked() {
+                if ui.button("➕ Add games").clicked() {
                     self.add_games();
                 }
             });
@@ -155,10 +153,10 @@ impl eframe::App for App {
 
             egui_extras::TableBuilder::new(ui).striped(true).column(egui_extras::Column::auto_with_initial_suggestion(1000.).resizable(true)).column(egui_extras::Column::remainder()).header(20.0, |mut header| {
                 header.col(|ui| {
-                    ui.label(RichText::new("Game").font(FontId::proportional(16.0)));
+                    ui.label(RichText::new("🎮 Game").font(FontId::proportional(16.0)));
                 });
                 header.col(|ui| {
-                    ui.label(RichText::new("Size").font(FontId::proportional(16.0)));
+                    ui.label(RichText::new("📁 Size").font(FontId::proportional(16.0)));
                 });
             }).body(|mut body| {
                 for game in self.games.iter_mut() {
