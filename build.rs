@@ -18,6 +18,6 @@ fn main() {
         .include("wbfs_file_2.9/libwbfs")
         .define("LARGE_FILES", None)
         .define("_FILE_OFFSET_BITS", "64")
-        .opt_level(2)
+        .opt_level_str("z")
         .compile("wbfs_file")
 }
