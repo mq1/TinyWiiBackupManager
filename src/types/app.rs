@@ -89,8 +89,9 @@ impl eframe::App for App {
                     }
 
                     if ui.button("Check for updates").clicked() {
-                        thread::spawn(|| {
-                            let _ = crate::updater::check_for_updates();
+                        let ctx = ctx.clone();
+                        thread::spawn(move || {
+                            let _ = crate::updater::check_for_updates(&ctx);
                         });
                     }
 
