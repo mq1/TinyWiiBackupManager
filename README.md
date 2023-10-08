@@ -1,4 +1,4 @@
-<h1 align="center">🦀 TinyWiiBackupManager</h1>
+<h1 align="center">TinyWiiBackupManager</h1>
 
 <img alt="screenshot" src="screenshot.png">
 
