@@ -26,7 +26,6 @@ jobs:
       - uses: actions/checkout@v4
       - run: sudo apt-get update -y && sudo apt-get install -y libclang-dev libgtk-3-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
       - uses: dtolnay/rust-toolchain@stable
-      - uses: actions-rs/cargo@v1
       - run: |
           cargo build --release
           cp -a target/release/tiny-wii-backup-manager TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64
