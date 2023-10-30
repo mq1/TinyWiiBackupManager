@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - "v*.*.*"
+      - "*.*.*"
 
 permissions:
   contents: write
@@ -12,48 +12,23 @@ jobs:
   build-macos:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          target: aarch64-apple-darwin
-      - uses: actions-rs/cargo@v1
-        with:
-          command: install
-          args: cargo-bundle
-      - uses: actions-rs/cargo@v1
-        with:
-          command: bundle
-          args: --release
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --target aarch64-apple-darwin --release
-      - run: |
-          lipo target/release/bundle/osx/TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager target/aarch64-apple-darwin/release/tiny-wii-backup-manager -create -output target/release/bundle/osx/TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager
-          mv target/release/bundle/osx/TinyWiiBackupManager.app TinyWiiBackupManager-${{github.ref_name}}-MacOS-Universal2.app
-          zip -r TinyWiiBackupManager-${{github.ref_name}}-MacOS-Universal2.zip TinyWiiBackupManager-${{github.ref_name}}-MacOS-Universal2.app
+          targets: x86_64-apple-darwin,aarch64-apple-darwin
+      - run: ./build-macos.sh ${{github.ref_name}}
       - uses: softprops/action-gh-release@v1
         with:
-          files: TinyWiiBackupManager-${{github.ref_name}}-MacOS-Universal2.zip
+          files: TinyWiiBackupManager-${{github.ref_name}}-MacOS-Universal2.dmg
   build-ubuntu:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
-      - run: |
-          sudo apt-get update -y
-          sudo apt-get install -y libclang-dev libgtk-3-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update -y && sudo apt-get install -y libclang-dev libgtk-3-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
+      - uses: dtolnay/rust-toolchain@stable
       - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release
       - run: |
+          cargo build --release
           cp -a target/release/tiny-wii-backup-manager TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64
           tar czf TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64.tar.gz TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64
       - uses: softprops/action-gh-release@v1
@@ -62,16 +37,12 @@ jobs:
   build-windows:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
-          target: x86_64-pc-windows-gnu
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --target x86_64-pc-windows-gnu --release
+          targets: x86_64-pc-windows-gnu
       - run: |
+          cargo build --release --target x86_64-pc-windows-gnu
           Move-Item ./target/x86_64-pc-windows-gnu/release/tiny-wii-backup-manager.exe ./TinyWiiBackupManager-${{github.ref_name}}-Windows-x86_64.exe
           Compress-Archive ./TinyWiiBackupManager-${{github.ref_name}}-Windows-x86_64.exe TinyWiiBackupManager-${{github.ref_name}}-Windows-x86_64.zip
       - uses: softprops/action-gh-release@v1
