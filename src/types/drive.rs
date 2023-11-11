@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: 2023 Manuel Quarneti <manuel.quarneti@proton.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
-use std::{fmt, fs, io};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::BufWriter;
 use std::path::{Path, PathBuf};
+use std::{fmt, fs, io};
 
 use anyhow::{anyhow, bail, Result};
 use sysinfo::{Disk, DiskExt, System, SystemExt};
@@ -15,7 +15,7 @@ use crate::wbfs_file;
 
 const TITLES_URL: &str = "https://www.gametdb.com/titles.txt";
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Drive {
     pub name: String,
     pub total_space: String,
@@ -28,7 +28,11 @@ impl Drive {
         let mut sys = System::new();
         sys.refresh_disks_list();
 
-        sys.disks().iter().filter(|disk| disk.is_removable()).map(Self::from).collect::<Vec<_>>()
+        sys.disks()
+            .iter()
+            .filter(|disk| disk.is_removable())
+            .map(Self::from)
+            .collect::<Vec<_>>()
     }
 
     fn get_titles_map(&self) -> Result<HashMap<String, String>> {
@@ -43,8 +47,14 @@ impl Drive {
 
         for line in contents.lines() {
             let mut line = line.split('=');
-            let id = line.next().ok_or_else(|| anyhow!("Invalid titles.txt"))?.trim();
-            let title = line.next().ok_or_else(|| anyhow!("Invalid titles.txt"))?.trim();
+            let id = line
+                .next()
+                .ok_or_else(|| anyhow!("Invalid titles.txt"))?
+                .trim();
+            let title = line
+                .next()
+                .ok_or_else(|| anyhow!("Invalid titles.txt"))?
+                .trim();
             titles.insert(id.to_string(), title.to_string());
         }
 
@@ -72,18 +82,20 @@ impl Drive {
         let titles = self.get_titles_map()?;
 
         let files = fs::read_dir(wbfs_folder)?;
-        let games = files.filter_map(|file| {
-            let file = file.ok()?;
+        let games = files
+            .filter_map(|file| {
+                let file = file.ok()?;
 
-            // check if file is a directory
-            if !file.file_type().unwrap().is_dir() {
-                return None;
-            }
+                // check if file is a directory
+                if !file.file_type().unwrap().is_dir() {
+                    return None;
+                }
 
-            let dir = Game::new(file.path(), &titles).ok()?;
+                let dir = Game::new(file.path(), &titles).ok()?;
 
-            Some(dir)
-        }).collect();
+                Some(dir)
+            })
+            .collect();
 
         Ok(games)
     }
@@ -99,7 +111,7 @@ impl Drive {
                     let dest = self.mount_point.join("wbfs");
                     wbfs_file::copy_wbfs_file(path, &dest)?;
                 }
-                _ => bail!("Invalid file extension")
+                _ => bail!("Invalid file extension"),
             }
         }
 
