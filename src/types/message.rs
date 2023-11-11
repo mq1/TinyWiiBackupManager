@@ -12,4 +12,5 @@ pub enum Message {
     AddGames(Drive),
     AddingGames((Drive, Vec<PathBuf>)),
     RemoveGames,
+    CheckForUpdates,
 }
