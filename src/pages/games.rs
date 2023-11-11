@@ -1,8 +1,11 @@
 // SPDX-FileCopyrightText: 2023 Manuel Quarneti <manuel.quarneti@proton.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
-use iced::widget::{button, checkbox, horizontal_rule, scrollable, Checkbox, Column, Row, Text};
+use iced::widget::{
+    button, checkbox, horizontal_rule, scrollable, text, Checkbox, Column, Row, Text,
+};
 use iced::Element;
+use std::fmt::format;
 
 use crate::types::drive::Drive;
 use crate::types::message::Message;
@@ -34,7 +37,11 @@ pub fn view<'a>(app: &'a TinyWiiBackupManager, drive: &'a Drive) -> Element<'a, 
         .spacing(8);
 
     Column::new()
-        .push(Text::new(&drive.name).size(30))
+        .push(text(&drive.name).size(30))
+        .push(text(format!(
+            "{}/{} GiB",
+            drive.available_space, drive.total_space
+        )))
         .push(actions)
         .push(content)
         .spacing(8)
