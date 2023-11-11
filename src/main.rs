@@ -8,6 +8,7 @@ use iced::widget::{button, horizontal_space, Column, Row};
 use iced::{executor, Length};
 use iced::{Application, Command, Element, Settings, Theme};
 use rfd::FileDialog;
+use std::fs;
 
 use crate::pages::Page;
 use crate::types::drive::Drive;
@@ -75,18 +76,25 @@ impl Application for TinyWiiBackupManager {
 
                 if let Some(files) = files {
                     self.page = Page::AddingGames(files.len());
-                    return Command::perform(async move { (drive, files) }, Message::AddingGames);
+                    return self.update(Message::AddingGames((drive, files)));
                 }
             }
             Message::AddingGames((drive, mut files)) => {
-                let current_game = files.pop().unwrap();
-                drive.add_game(&current_game).unwrap();
-
                 if files.is_empty() {
                     return self.update(Message::OpenDrive);
                 }
 
                 self.page = Page::AddingGames(files.len());
+
+                return Command::perform(
+                    async move {
+                        let current_game = files.pop().unwrap();
+                        drive.add_game(&current_game).unwrap();
+
+                        (drive, files)
+                    },
+                    Message::AddingGames,
+                );
             }
             Message::RemoveGames => {
                 let games = self
@@ -97,7 +105,7 @@ impl Application for TinyWiiBackupManager {
                     .collect::<Vec<_>>();
 
                 for game in games {
-                    game.delete().unwrap();
+                    fs::remove_dir_all(&game.dir).unwrap();
                 }
 
                 return self.update(Message::OpenDrive);
