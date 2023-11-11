@@ -4,7 +4,7 @@
 // hide console window on Windows in release
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use iced::widget::{button, horizontal_space, Column, Row};
+use iced::widget::Column;
 use iced::{executor, Length};
 use iced::{Application, Command, Element, Settings, Theme};
 use rfd::FileDialog;
@@ -119,10 +119,6 @@ impl Application for TinyWiiBackupManager {
     }
 
     fn view(&self) -> Element<Self::Message> {
-        let menu_bar = Row::new()
-            .push(horizontal_space(Length::Fill))
-            .push(button("Check for updates").on_press(Message::CheckForUpdates));
-
         let content = match &self.page {
             Page::Drives => pages::drives::view(self),
             Page::Games(drive) => pages::games::view(self, &drive),
@@ -130,7 +126,6 @@ impl Application for TinyWiiBackupManager {
         };
 
         Column::new()
-            .push(menu_bar)
             .push(content)
             .width(Length::Fill)
             .height(Length::Fill)
