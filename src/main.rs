@@ -8,7 +8,6 @@ use iced::widget::{button, horizontal_space, Column, Row};
 use iced::{executor, Length};
 use iced::{Application, Command, Element, Settings, Theme};
 use rfd::FileDialog;
-use std::fs;
 
 use crate::pages::Page;
 use crate::types::drive::Drive;
@@ -105,7 +104,7 @@ impl Application for TinyWiiBackupManager {
                     .collect::<Vec<_>>();
 
                 for game in games {
-                    fs::remove_dir_all(&game.dir).unwrap();
+                    game.delete().unwrap();
                 }
 
                 return self.update(Message::OpenDrive);

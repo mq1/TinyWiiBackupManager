@@ -4,6 +4,7 @@
 use anyhow::{anyhow, bail, Result};
 use fs_extra::dir::get_size;
 use std::collections::HashMap;
+use std::fs;
 use std::path::PathBuf;
 
 macro_rules! regex {
@@ -49,5 +50,13 @@ impl Game {
             size,
             display_title,
         })
+    }
+
+    pub fn delete(&self) -> Result<()> {
+        // idk why but i need to call this twice
+        let _ = fs::remove_dir_all(&self.dir);
+        let _ = fs::remove_dir_all(&self.dir);
+
+        Ok(())
     }
 }
