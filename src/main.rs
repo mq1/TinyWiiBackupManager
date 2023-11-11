@@ -16,6 +16,7 @@ use crate::types::message::Message;
 
 mod pages;
 mod types;
+mod updater;
 mod wbfs_file;
 
 pub fn main() -> iced::Result {
@@ -109,6 +110,9 @@ impl Application for TinyWiiBackupManager {
 
                 return self.update(Message::OpenDrive);
             }
+            Message::CheckForUpdates => {
+                let _ = updater::check_for_updates();
+            }
         }
 
         Command::none()
@@ -117,7 +121,7 @@ impl Application for TinyWiiBackupManager {
     fn view(&self) -> Element<Self::Message> {
         let menu_bar = Row::new()
             .push(horizontal_space(Length::Fill))
-            .push(button("Check for updates"));
+            .push(button("Check for updates").on_press(Message::CheckForUpdates));
 
         let content = match &self.page {
             Page::Drives => pages::drives::view(self),
