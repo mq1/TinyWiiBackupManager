@@ -1,11 +1,8 @@
 // SPDX-FileCopyrightText: 2023 Manuel Quarneti <manuel.quarneti@proton.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
-use iced::widget::{
-    button, checkbox, horizontal_rule, scrollable, text, Checkbox, Column, Row, Text,
-};
+use iced::widget::{button, checkbox, horizontal_rule, scrollable, text, Checkbox, Column, Row};
 use iced::Element;
-use std::fmt::format;
 
 use crate::types::drive::Drive;
 use crate::types::message::Message;
