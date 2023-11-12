@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: 2023 Manuel Quarneti <manuel.quarneti@proton.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
+use anyhow::{anyhow, bail, Result};
+use fs_extra::dir::get_size;
 use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
-use anyhow::{anyhow, bail, Result};
-use fs_extra::dir::get_size;
 
 macro_rules! regex {
     ($re:literal $(,)?) => {{
@@ -14,9 +14,9 @@ macro_rules! regex {
     }};
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Game {
-    dir: PathBuf,
+    pub dir: PathBuf,
     pub size: u64,
     pub id: String,
     pub title: String,
@@ -36,7 +36,10 @@ impl Game {
         let title = &caps[1];
         let id = &caps[2];
 
-        let display_title = titles.get(id).ok_or_else(|| anyhow!("No title found for id {}", id))?.clone();
+        let display_title = titles
+            .get(id)
+            .ok_or_else(|| anyhow!("No title found for id {}", id))?
+            .clone();
 
         let size = get_size(&path).unwrap();
 
@@ -50,7 +53,9 @@ impl Game {
     }
 
     pub fn delete(&self) -> Result<()> {
-        fs::remove_dir_all(&self.dir)?;
+        // idk why but i need to call this twice
+        let _ = fs::remove_dir_all(&self.dir);
+        let _ = fs::remove_dir_all(&self.dir);
 
         Ok(())
     }
