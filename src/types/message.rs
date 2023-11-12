@@ -3,6 +3,7 @@
 
 use crate::types::drive::Drive;
 use std::path::PathBuf;
+use std::sync::Arc;
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -13,4 +14,5 @@ pub enum Message {
     AddingGames((Drive, Vec<PathBuf>)),
     RemoveGames,
     CheckForUpdates,
+    CheckedForUpdates(anyhow::Result<(), Arc<anyhow::Error>>),
 }
