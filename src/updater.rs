@@ -14,14 +14,13 @@ struct Release {
     tag_name: String,
 }
 
-pub fn check_for_updates() -> Result<()> {
+pub async fn check_for_updates() -> Result<()> {
     let latest_release = ureq::get(LATEST_RELEASE_URL)
         .call()?
         .into_json::<Release>()?
         .tag_name;
-    let current_version = format!("{}", env!("CARGO_PKG_VERSION"));
 
-    if current_version != latest_release {
+    if env!("CARGO_PKG_VERSION") != latest_release {
         let result = MessageDialog::new().set_title("Update available").set_description(format!("A new version of TinyWiiBackupManager is available: {}.\nDo you want to download it?", latest_release)).set_buttons(rfd::MessageButtons::YesNo).show();
 
         if result == MessageDialogResult::Yes {
