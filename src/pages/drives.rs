@@ -9,9 +9,15 @@ use crate::types::message::Message;
 use crate::TinyWiiBackupManager;
 
 pub fn view(app: &TinyWiiBackupManager) -> Element<Message> {
+    let updates_button = if app.checking_for_updates {
+        button("Checking for updates...")
+    } else {
+        button("Check for updates").on_press(Message::CheckForUpdates)
+    };
+
     let menu_bar = Row::new()
         .push(horizontal_space(Length::Fill))
-        .push(button("Check for updates").on_press(Message::CheckForUpdates));
+        .push(updates_button);
 
     let drives = Drive::list();
     let drive_picker = pick_list(drives, app.selected_drive.clone(), Message::SelectDrive);

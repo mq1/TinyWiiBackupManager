@@ -4,10 +4,12 @@
 // hide console window on Windows in release
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use iced::futures::TryFutureExt;
 use iced::widget::Column;
 use iced::{executor, Length};
 use iced::{Application, Command, Element, Settings, Theme};
-use rfd::FileDialog;
+use rfd::{FileDialog, MessageDialog};
+use std::sync::Arc;
 
 use crate::pages::Page;
 use crate::types::drive::Drive;
@@ -27,6 +29,7 @@ pub struct TinyWiiBackupManager {
     page: Page,
     selected_drive: Option<Drive>,
     games: Vec<(Game, bool)>,
+    checking_for_updates: bool,
 }
 
 impl Application for TinyWiiBackupManager {
@@ -41,6 +44,7 @@ impl Application for TinyWiiBackupManager {
                 page: Page::Drives,
                 selected_drive: None,
                 games: vec![],
+                checking_for_updates: false,
             },
             Command::none(),
         )
@@ -111,7 +115,22 @@ impl Application for TinyWiiBackupManager {
                 return self.update(Message::OpenDrive);
             }
             Message::CheckForUpdates => {
-                let _ = updater::check_for_updates();
+                self.checking_for_updates = true;
+
+                return Command::perform(
+                    updater::check_for_updates().map_err(Arc::from),
+                    Message::CheckedForUpdates,
+                );
+            }
+            Message::CheckedForUpdates(res) => {
+                self.checking_for_updates = false;
+
+                if let Err(err) = res {
+                    let _ = MessageDialog::new()
+                        .set_title("Error")
+                        .set_description(format!("{}", err))
+                        .show();
+                }
             }
         }
 
