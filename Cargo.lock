@@ -775,15 +775,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "iced_aw"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "46c51860ce7be5be6f6104c4e13b14e56662ebbd7c96c50e10069d59f8c3d892"
-dependencies = [
- "iced_widget",
-]
-
-[[package]]
 name = "iced_core"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2231,7 +2222,6 @@ dependencies = [
  "cc",
  "fs_extra",
  "iced",
- "iced_aw",
  "minreq",
  "once_cell",
  "open",
