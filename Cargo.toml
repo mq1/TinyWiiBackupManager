@@ -8,8 +8,8 @@ repository = "https://github.com/mq1/TinyWiiBackupManager"
 description = "A simple Wii Backup Manager"
 
 [dependencies]
-iced = "0.10"
-iced_aw = { version = "0.7" , features = ["modal"] }
+iced = { version = "0.10", default-features = false }
+iced_aw = { version = "0.7" , default-features = false, features = ["modal"] }
 rfd = "0.12"
 anyhow = "1.0"
 sysinfo = "0.29"
