@@ -62,12 +62,12 @@ impl Drive {
     }
 
     fn download_titles(&self) -> Result<()> {
-        let resp = ureq::get(TITLES_URL).call()?;
+        let resp = minreq::get(TITLES_URL).send()?;
 
         let path = self.mount_point.join("titles.txt");
         let file = File::create(path)?;
         let mut writer = BufWriter::new(file);
-        io::copy(&mut resp.into_reader(), &mut writer)?;
+        io::copy(&mut resp.as_bytes(), &mut writer)?;
 
         Ok(())
     }
