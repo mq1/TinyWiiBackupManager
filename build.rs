@@ -19,7 +19,5 @@ fn main() {
         .define("LARGE_FILES", None)
         .define("_FILE_OFFSET_BITS", "64")
         .opt_level_str("z")
-        .flag("-flto=thin")
-        .compiler("clang")
         .compile("wbfs_file")
 }
