@@ -2,17 +2,16 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use std::ffi::CString;
+use std::fs;
 use std::fs::File;
 use std::io::{Read, Seek, SeekFrom};
+use std::os::raw::c_char;
 use std::path::Path;
 
 use anyhow::{bail, Result};
 
 extern "C" {
-    fn conv_to_wbfs(
-        filename: *const ::std::os::raw::c_char,
-        dest_dir: *const ::std::os::raw::c_char,
-    );
+    fn conv_to_wbfs(filename: *const c_char, dest_dir: *const c_char);
 }
 
 fn get_id_and_title(file: &mut File) -> Result<(String, String)> {
@@ -52,7 +51,7 @@ pub fn conv_to_wbfs_wrapper(src: &Path, dest: &Path) -> Result<()> {
 }
 
 pub fn copy_wbfs_file(src: &Path, dest: &Path) -> Result<()> {
-    let mut file = File::open(&src)?;
+    let mut file = File::open(src)?;
 
     // check if the file is a wbfs file
     {
@@ -72,9 +71,9 @@ pub fn copy_wbfs_file(src: &Path, dest: &Path) -> Result<()> {
         return Ok(());
     }
 
-    std::fs::create_dir(&dest_dir)?;
+    fs::create_dir(&dest_dir)?;
     let dest_file = dest_dir.join(&id).with_extension("wbfs");
-    std::fs::copy(src, dest_file)?;
+    fs::copy(src, dest_file)?;
 
     // copy eventual wbf[1-3] files
     for i in 1..=3 {
