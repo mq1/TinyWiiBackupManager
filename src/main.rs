@@ -28,7 +28,7 @@ pub fn main() -> iced::Result {
 pub struct TinyWiiBackupManager {
     page: Page,
     selected_drive: Option<Drive>,
-    games: Vec<(Game, bool)>,
+    games: Option<Vec<(Game, bool)>>,
     checking_for_updates: bool,
 }
 
@@ -43,7 +43,7 @@ impl Application for TinyWiiBackupManager {
             Self {
                 page: Page::Drives,
                 selected_drive: None,
-                games: vec![],
+                games: None,
                 checking_for_updates: false,
             },
             Command::none(),
@@ -60,18 +60,27 @@ impl Application for TinyWiiBackupManager {
                 self.selected_drive = Some(drive);
             }
             Message::OpenDrive => {
-                if let Some(drive) = &self.selected_drive {
+                if let Some(drive) = self.selected_drive.clone() {
                     self.page = Page::Games(drive.clone());
-                    self.games = drive
-                        .get_games()
-                        .unwrap()
-                        .iter()
-                        .map(|g| (g.clone(), false))
-                        .collect();
+
+                    return Command::perform(
+                        async move { drive.get_games().map_err(Arc::new) },
+                        Message::GotGames,
+                    );
                 }
             }
+            Message::GotGames(res) => match res {
+                Ok(games) => {
+                    self.games = Some(games.into_iter().map(|game| (game, false)).collect());
+                }
+                Err(err) => {
+                    return self.update(Message::Error(err));
+                }
+            },
             Message::SelectGame(index, selected) => {
-                self.games[index].1 = selected;
+                if let Some(games) = self.games.as_mut() {
+                    games[index].1 = selected;
+                }
             }
             Message::AddGames(drive) => {
                 let files = FileDialog::new()
@@ -101,18 +110,19 @@ impl Application for TinyWiiBackupManager {
                 );
             }
             Message::RemoveGames => {
-                let games = self
-                    .games
-                    .iter()
-                    .filter(|(_, checked)| *checked)
-                    .map(|(game, _)| game)
-                    .collect::<Vec<_>>();
+                if let Some(games) = self.games.as_mut() {
+                    let games = games
+                        .iter()
+                        .filter(|(_, checked)| *checked)
+                        .map(|(game, _)| game)
+                        .collect::<Vec<_>>();
 
-                for game in games {
-                    game.delete().unwrap();
+                    for game in games {
+                        game.delete().unwrap();
+                    }
+
+                    return self.update(Message::OpenDrive);
                 }
-
-                return self.update(Message::OpenDrive);
             }
             Message::CheckForUpdates => {
                 self.checking_for_updates = true;
@@ -126,11 +136,14 @@ impl Application for TinyWiiBackupManager {
                 self.checking_for_updates = false;
 
                 if let Err(err) = res {
-                    let _ = MessageDialog::new()
-                        .set_title("Error")
-                        .set_description(format!("{}", err))
-                        .show();
+                    return self.update(Message::Error(err));
                 }
+            }
+            Message::Error(err) => {
+                let _ = MessageDialog::new()
+                    .set_title("Error")
+                    .set_description(format!("{}", err))
+                    .show();
             }
         }
 
