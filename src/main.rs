@@ -1,11 +1,11 @@
-// SPDX-FileCopyrightText: 2023 Manuel Quarneti <manuel.quarneti@proton.me>
+// SPDX-FileCopyrightText: 2023 Manuel Quarneti <manuelquarneti@protonmail.com>
 // SPDX-License-Identifier: GPL-2.0-only
 
 // hide console window on Windows in release
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use iced::futures::TryFutureExt;
-use iced::widget::Column;
+use iced::widget::container;
 use iced::{executor, Length};
 use iced::{Application, Command, Element, Settings, Theme};
 use rfd::{FileDialog, MessageDialog};
@@ -157,8 +157,7 @@ impl Application for TinyWiiBackupManager {
             Page::AddingGames(remaining) => pages::adding_games::view(self, *remaining),
         };
 
-        Column::new()
-            .push(content)
+        container(content)
             .width(Length::Fill)
             .height(Length::Fill)
             .into()
