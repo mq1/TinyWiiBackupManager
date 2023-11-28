@@ -15,9 +15,9 @@ struct Release {
 }
 
 pub async fn check_for_updates() -> Result<()> {
-    let latest_release = minreq::get(LATEST_RELEASE_URL)
-        .send()?
-        .json::<Release>()?
+    let latest_release = ureq::get(LATEST_RELEASE_URL)
+        .call()?
+        .into_json::<Release>()?
         .tag_name;
 
     if env!("CARGO_PKG_VERSION") != latest_release {
