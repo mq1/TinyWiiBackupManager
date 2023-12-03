@@ -11,7 +11,6 @@ use anyhow::{anyhow, bail, Result};
 use sysinfo::{Disk, DiskExt, System, SystemExt};
 
 use crate::types::game::Game;
-use crate::wbfs_file;
 
 const TITLES_URL: &str = "https://www.gametdb.com/titles.txt";
 
@@ -105,11 +104,11 @@ impl Drive {
             match ext.to_str().unwrap() {
                 "iso" => {
                     let dest = self.mount_point.join("wbfs");
-                    wbfs_file::conv_to_wbfs_wrapper(path, &dest)?;
+                    wbfs::conv_to_wbfs_wrapper(path, &dest)?;
                 }
                 "wbfs" => {
                     let dest = self.mount_point.join("wbfs");
-                    wbfs_file::copy_wbfs_file(path, &dest)?;
+                    wbfs::copy_wbfs_file(path, &dest)?;
                 }
                 _ => bail!("Invalid file extension"),
             }

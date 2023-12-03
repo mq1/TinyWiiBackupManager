@@ -2723,6 +2723,7 @@ dependencies = [
  "serde_json",
  "sysinfo",
  "ureq",
+ "wbfs",
 ]
 
 [[package]]
@@ -3092,6 +3093,15 @@ dependencies = [
  "lazy_static",
  "log",
  "pkg-config",
+]
+
+[[package]]
+name = "wbfs"
+version = "0.1.0"
+source = "git+https://github.com/mq1/wbfs-rs#65e3f86491bdfded442d11202db2cd67b4f4e36d"
+dependencies = [
+ "cc",
+ "thiserror",
 ]
 
 [[package]]
