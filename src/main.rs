@@ -8,7 +8,6 @@ mod app;
 mod pages;
 mod types;
 mod updater;
-mod wbfs_file;
 
 use app::App;
 
