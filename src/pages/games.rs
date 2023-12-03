@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2023 Manuel Quarneti <manuelquarneti@protonmail.com>
 // SPDX-License-Identifier: GPL-2.0-only
 
-use eframe::egui::{self, RichText, FontId};
+use eframe::egui::{self, FontId, RichText};
 use poll_promise::Promise;
 
 use crate::app::App;
@@ -29,31 +29,41 @@ pub fn view(ctx: &egui::Context, app: &mut App) {
             Some(Ok(games)) => {
                 ui.horizontal(|ui| {
                     if ui.button("🗑 Delete selected").clicked() {}
-    
+
                     if ui.button("➕ Add games").clicked() {}
+                });
 
-                    ui.separator();
+                ui.separator();
 
-                    egui_extras::TableBuilder::new(ui).striped(true).column(egui_extras::Column::auto_with_initial_suggestion(1000.).resizable(true)).column(egui_extras::Column::remainder()).header(20.0, |mut header| {
+                egui_extras::TableBuilder::new(ui)
+                    .striped(true)
+                    .column(
+                        egui_extras::Column::auto_with_initial_suggestion(1000.).resizable(true),
+                    )
+                    .column(egui_extras::Column::remainder())
+                    .header(20.0, |mut header| {
                         header.col(|ui| {
                             ui.label(RichText::new("🎮 Game").font(FontId::proportional(16.0)));
                         });
                         header.col(|ui| {
                             ui.label(RichText::new("📁 Size").font(FontId::proportional(16.0)));
                         });
-                    }).body(|mut body| {
+                    })
+                    .body(|mut body| {
                         for game in games {
                             body.row(20.0, |mut row| {
                                 row.col(|ui| {
                                     ui.checkbox(&mut false, game.0.display_title.clone());
                                 });
                                 row.col(|ui| {
-                                    ui.label(format!("{:.2} GiB", game.0.size as f32 / 1073741824.));
+                                    ui.label(format!(
+                                        "{:.2} GiB",
+                                        game.0.size as f32 / 1073741824.
+                                    ));
                                 });
                             });
                         }
                     });
-                });
             }
         }
     });
