@@ -15,7 +15,16 @@ pub fn view(ctx: &egui::Context, app: &mut App) {
     });
 
     egui::CentralPanel::default().show(ctx, |ui| {
-        ui.heading(&drive.name);
+        ui.horizontal(|ui| {
+            ui.heading(&drive.name);
+
+            ui.separator();
+
+            ui.label(format!(
+                "📁 {}/{} GiB",
+                drive.available_space, drive.total_space
+            ));
+        });
 
         ui.add_space(10.0);
 
@@ -68,10 +77,7 @@ pub fn view(ctx: &egui::Context, app: &mut App) {
                                     ui.checkbox(&mut game.checked, game.display_title.clone());
                                 });
                                 row.col(|ui| {
-                                    ui.label(format!(
-                                        "{:.2} GiB",
-                                        game.size as f32 / 1073741824.
-                                    ));
+                                    ui.label(format!("{:.2} GiB", game.size as f32 / 1073741824.));
                                 });
                             });
                         }
