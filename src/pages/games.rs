@@ -19,7 +19,7 @@ pub fn view(ctx: &egui::Context, app: &mut App) {
 
         ui.add_space(10.0);
 
-        match promise.ready() {
+        match promise.ready_mut() {
             None => {
                 ui.spinner();
             }
@@ -50,7 +50,7 @@ pub fn view(ctx: &egui::Context, app: &mut App) {
                         });
                     })
                     .body(|mut body| {
-                        for game in games {
+                        for game in games.iter_mut() {
                             body.row(20.0, |mut row| {
                                 row.col(|ui| {
                                     ui.checkbox(&mut game.checked, game.display_title.clone());
