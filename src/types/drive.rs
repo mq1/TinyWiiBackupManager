@@ -72,7 +72,7 @@ impl Drive {
         Ok(())
     }
 
-    pub fn get_games(&self) -> Result<Vec<(Game, bool)>> {
+    pub fn get_games(&self) -> Result<Vec<Game>> {
         let wbfs_folder = self.mount_point.join("wbfs");
         if !wbfs_folder.exists() {
             fs::create_dir_all(&wbfs_folder)?;
@@ -93,7 +93,7 @@ impl Drive {
 
                 let dir = Game::new(file.path(), &titles).ok()?;
 
-                Some((dir, false))
+                Some(dir)
             })
             .collect();
 
