@@ -14,7 +14,7 @@ pub struct App {
     pub page: Page,
     pub drives: Option<Promise<Vec<Drive>>>,
     pub current_drive: Option<Drive>,
-    pub games: Option<Promise<Result<Vec<(Game, bool)>>>>,
+    pub games: Option<Promise<Result<Vec<Game>>>>,
 }
 
 impl Default for App {

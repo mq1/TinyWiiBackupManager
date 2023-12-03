@@ -53,12 +53,12 @@ pub fn view(ctx: &egui::Context, app: &mut App) {
                         for game in games {
                             body.row(20.0, |mut row| {
                                 row.col(|ui| {
-                                    ui.checkbox(&mut false, game.0.display_title.clone());
+                                    ui.checkbox(&mut game.checked, game.display_title.clone());
                                 });
                                 row.col(|ui| {
                                     ui.label(format!(
                                         "{:.2} GiB",
-                                        game.0.size as f32 / 1073741824.
+                                        game.size as f32 / 1073741824.
                                     ));
                                 });
                             });
