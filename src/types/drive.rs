@@ -24,7 +24,7 @@ pub struct Drive {
 }
 
 impl Drive {
-    pub fn list() -> Vec<Self> {
+    pub fn get_drives() -> Vec<Self> {
         let mut sys = System::new();
         sys.refresh_disks_list();
 
@@ -72,7 +72,7 @@ impl Drive {
         Ok(())
     }
 
-    pub fn get_games(&self) -> Result<Vec<Game>> {
+    pub fn get_games(&self) -> Result<Vec<(Game, bool)>> {
         let wbfs_folder = self.mount_point.join("wbfs");
         if !wbfs_folder.exists() {
             fs::create_dir_all(&wbfs_folder)?;
@@ -93,7 +93,7 @@ impl Drive {
 
                 let dir = Game::new(file.path(), &titles).ok()?;
 
-                Some(dir)
+                Some((dir, false))
             })
             .collect();
 

@@ -1,55 +1,60 @@
 // SPDX-FileCopyrightText: 2023 Manuel Quarneti <manuelquarneti@protonmail.com>
 // SPDX-License-Identifier: GPL-2.0-only
 
-use iced::widget::{button, checkbox, column, horizontal_rule, row, scrollable, text, Checkbox};
-use iced::Element;
-use iced_aw::Spinner;
+use eframe::egui::{self, RichText, FontId};
+use poll_promise::Promise;
 
-use crate::types::drive::Drive;
-use crate::types::message::Message;
-use crate::TinyWiiBackupManager;
+use crate::app::App;
 
-pub fn view<'a>(app: &'a TinyWiiBackupManager, drive: &'a Drive) -> Element<'a, Message> {
-    let content: Element<Message> = if let Some(games) = &app.games {
-        let mut content = column![].spacing(4);
+pub fn view(ctx: &egui::Context, app: &mut App) {
+    let drive = app.current_drive.clone().unwrap();
 
-        for (i, (game, checked)) in games.iter().cloned().enumerate() {
-            let gib = game.size as f32 / 1024. / 1024. / 1024.;
-            let text = format!("{}: {} ({:.2} GiB)", game.id, game.display_title, gib);
+    let drive_cloned = drive.clone();
+    let promise = app.games.get_or_insert_with(|| {
+        Promise::spawn_thread("get_games", move || drive_cloned.get_games())
+    });
 
-            let checkbox: Checkbox<Message> = checkbox(text, checked, move |selected| {
-                Message::SelectGame(i, selected)
-            });
+    egui::CentralPanel::default().show(ctx, |ui| {
+        ui.heading(&drive.name);
 
-            content = content.push(checkbox);
+        ui.add_space(10.0);
 
-            if i < games.len() - 1 {
-                content = content.push(horizontal_rule(1));
+        match promise.ready() {
+            None => {
+                ui.spinner();
+            }
+            Some(Err(err)) => {
+                ui.label(&format!("Error: {}", err));
+            }
+            Some(Ok(games)) => {
+                ui.horizontal(|ui| {
+                    if ui.button("🗑 Delete selected").clicked() {}
+    
+                    if ui.button("➕ Add games").clicked() {}
+
+                    ui.separator();
+
+                    egui_extras::TableBuilder::new(ui).striped(true).column(egui_extras::Column::auto_with_initial_suggestion(1000.).resizable(true)).column(egui_extras::Column::remainder()).header(20.0, |mut header| {
+                        header.col(|ui| {
+                            ui.label(RichText::new("🎮 Game").font(FontId::proportional(16.0)));
+                        });
+                        header.col(|ui| {
+                            ui.label(RichText::new("📁 Size").font(FontId::proportional(16.0)));
+                        });
+                    }).body(|mut body| {
+                        for game in games {
+                            body.row(20.0, |mut row| {
+                                row.col(|ui| {
+                                    ui.checkbox(&mut false, game.0.display_title.clone());
+                                });
+                                row.col(|ui| {
+                                    ui.label(format!("{:.2} GiB", game.0.size as f32 / 1073741824.));
+                                });
+                            });
+                        }
+                    });
+                });
             }
         }
-
-        let content = scrollable(content);
-
-        let actions = row![
-            button("Add games").on_press(Message::AddGames(drive.clone())),
-            button("Remove selected games").on_press(Message::RemoveGames),
-        ]
-        .spacing(8);
-
-        column![actions, content].spacing(8).into()
-    } else {
-        Spinner::new().into()
-    };
-
-    column![
-        text(&drive.name).size(30),
-        text(format!(
-            "{}/{} GiB",
-            drive.available_space, drive.total_space
-        )),
-        content,
-    ]
-    .spacing(8)
-    .padding(8)
-    .into()
+    });
 }

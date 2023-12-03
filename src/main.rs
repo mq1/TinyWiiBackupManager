@@ -4,162 +4,23 @@
 // hide console window on Windows in release
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use iced::futures::TryFutureExt;
-use iced::widget::container;
-use iced::{executor, Length};
-use iced::{Application, Command, Element, Settings, Theme};
-use rfd::{FileDialog, MessageDialog};
-use std::sync::Arc;
-
-use crate::pages::Page;
-use crate::types::drive::Drive;
-use crate::types::game::Game;
-use crate::types::message::Message;
-
+mod app;
 mod pages;
 mod types;
 mod updater;
 mod wbfs_file;
 
-pub fn main() -> iced::Result {
-    TinyWiiBackupManager::run(Settings::default())
-}
+use app::App;
 
-pub struct TinyWiiBackupManager {
-    page: Page,
-    selected_drive: Option<Drive>,
-    games: Option<Vec<(Game, bool)>>,
-    checking_for_updates: bool,
-}
+fn main() -> eframe::Result<()> {
+    let native_options = eframe::NativeOptions::default();
+    eframe::run_native(
+        "TinyWiiBackupManager",
+        native_options,
+        Box::new(|cc| {
+            cc.egui_ctx.set_zoom_factor(1.25);
 
-impl Application for TinyWiiBackupManager {
-    type Executor = executor::Default;
-    type Message = Message;
-    type Theme = Theme;
-    type Flags = ();
-
-    fn new(_flags: ()) -> (Self, Command<Self::Message>) {
-        (
-            Self {
-                page: Page::Drives,
-                selected_drive: None,
-                games: None,
-                checking_for_updates: false,
-            },
-            Command::none(),
-        )
-    }
-
-    fn title(&self) -> String {
-        String::from("TinyWiiBackupManager")
-    }
-
-    fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
-        match message {
-            Message::SelectDrive(drive) => {
-                self.selected_drive = Some(drive);
-            }
-            Message::OpenDrive => {
-                if let Some(drive) = self.selected_drive.clone() {
-                    self.page = Page::Games(drive.clone());
-
-                    return Command::perform(
-                        async move { drive.get_games().map_err(Arc::new) },
-                        Message::GotGames,
-                    );
-                }
-            }
-            Message::GotGames(res) => match res {
-                Ok(games) => {
-                    self.games = Some(games.into_iter().map(|game| (game, false)).collect());
-                }
-                Err(err) => {
-                    return self.update(Message::Error(err));
-                }
-            },
-            Message::SelectGame(index, selected) => {
-                if let Some(games) = self.games.as_mut() {
-                    games[index].1 = selected;
-                }
-            }
-            Message::AddGames(drive) => {
-                let files = FileDialog::new()
-                    .add_filter("WII Game", &["iso", "wbfs"])
-                    .pick_files();
-
-                if let Some(files) = files {
-                    self.page = Page::AddingGames(files.len());
-                    return self.update(Message::AddingGames((drive, files)));
-                }
-            }
-            Message::AddingGames((drive, mut files)) => {
-                if files.is_empty() {
-                    return self.update(Message::OpenDrive);
-                }
-
-                self.page = Page::AddingGames(files.len());
-
-                return Command::perform(
-                    async move {
-                        let current_game = files.pop().unwrap();
-                        drive.add_game(&current_game).unwrap();
-
-                        (drive, files)
-                    },
-                    Message::AddingGames,
-                );
-            }
-            Message::RemoveGames => {
-                if let Some(games) = self.games.as_mut() {
-                    let games = games
-                        .iter()
-                        .filter(|(_, checked)| *checked)
-                        .map(|(game, _)| game)
-                        .collect::<Vec<_>>();
-
-                    for game in games {
-                        game.delete().unwrap();
-                    }
-
-                    return self.update(Message::OpenDrive);
-                }
-            }
-            Message::CheckForUpdates => {
-                self.checking_for_updates = true;
-
-                return Command::perform(
-                    updater::check_for_updates().map_err(Arc::from),
-                    Message::CheckedForUpdates,
-                );
-            }
-            Message::CheckedForUpdates(res) => {
-                self.checking_for_updates = false;
-
-                if let Err(err) = res {
-                    return self.update(Message::Error(err));
-                }
-            }
-            Message::Error(err) => {
-                let _ = MessageDialog::new()
-                    .set_title("Error")
-                    .set_description(format!("{}", err))
-                    .show();
-            }
-        }
-
-        Command::none()
-    }
-
-    fn view(&self) -> Element<Self::Message> {
-        let content = match &self.page {
-            Page::Drives => pages::drives::view(self),
-            Page::Games(drive) => pages::games::view(self, &drive),
-            Page::AddingGames(remaining) => pages::adding_games::view(self, *remaining),
-        };
-
-        container(content)
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .into()
-    }
+            Box::<App>::default()
+        }),
+    )
 }
