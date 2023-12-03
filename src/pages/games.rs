@@ -31,6 +31,18 @@ pub fn view(ctx: &egui::Context, app: &mut App) {
                     if ui.button("🗑 Delete selected").clicked() {}
 
                     if ui.button("➕ Add games").clicked() {}
+
+                    if ui.button("✅ Select all").clicked() {
+                        for game in games.iter_mut() {
+                            game.checked = true;
+                        }
+                    }
+
+                    if ui.button("❌ Deselect all").clicked() {
+                        for game in games.iter_mut() {
+                            game.checked = false;
+                        }
+                    }
                 });
 
                 ui.separator();
