@@ -124,12 +124,28 @@ pub fn view(ctx: &egui::Context, app: &mut App) {
                     })
                     .body(|mut body| {
                         for game in games.iter_mut() {
-                            body.row(20.0, |mut row| {
+                            body.row(60., |mut row| {
                                 row.col(|ui| {
-                                    ui.checkbox(&mut game.checked, game.display_title.clone());
+                                    ui.horizontal_centered(|ui| {
+                                        ui.checkbox(&mut game.checked, "");
+
+                                        let img = egui::Image::from_uri(format!(
+                                            "https://art.gametdb.com/wii/cover/EN/{}.png",
+                                            game.id
+                                        ))
+                                        .fit_to_exact_size(egui::vec2(40., 56.));
+                                        ui.add(img);
+
+                                        ui.label(game.display_title.clone());
+                                    });
                                 });
                                 row.col(|ui| {
-                                    ui.label(format!("{:.2} GiB", game.size as f32 / 1073741824.));
+                                    ui.horizontal_centered(|ui| {
+                                        ui.label(format!(
+                                            "{:.2} GiB",
+                                            game.size as f32 / 1073741824.
+                                        ));
+                                    });
                                 });
                             });
                         }
