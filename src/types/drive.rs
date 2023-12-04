@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::BufWriter;
 use std::path::{Path, PathBuf};
-use std::{fmt, fs, io};
+use std::{fs, io};
 
 use anyhow::{anyhow, bail, Result};
 use sysinfo::{Disk, DiskExt, System, SystemExt};
