@@ -8,30 +8,9 @@ use rfd::FileDialog;
 use std::thread;
 
 use crate::app::App;
+use crate::pages::Page::AddingGames;
 
 pub fn view(ctx: &egui::Context, app: &mut App) {
-    if let Some((i, total)) = *app.adding_games_progress.lock().unwrap() {
-        egui::CentralPanel::default().show(ctx, |ui| {
-            egui::Area::new("adding_games_progress")
-                .anchor(egui::Align2::CENTER_CENTER, egui::Vec2::ZERO)
-                .show(ctx, |ui| {
-                    ui.heading("Adding games");
-
-                    ui.add_space(10.0);
-                    ui.spinner();
-                    ui.add_space(10.0);
-
-                    ui.label(&format!("{}/{}", i, total));
-                });
-        });
-
-        if app.games.is_some() {
-            app.games = None;
-        }
-
-        return;
-    }
-
     let drive = app.current_drive.clone().unwrap();
 
     let drive_cloned = drive.clone();
@@ -103,6 +82,8 @@ pub fn view(ctx: &egui::Context, app: &mut App) {
                             .pick_files();
 
                         if let Some(files) = files {
+                            app.page = AddingGames;
+
                             let adding_games_progress = app.adding_games_progress.clone();
                             let drive_cloned = drive.clone();
 
@@ -111,8 +92,8 @@ pub fn view(ctx: &egui::Context, app: &mut App) {
                                     Some((0usize, files.len()));
 
                                 for (i, file) in files.iter().enumerate() {
-                                    drive_cloned.add_game(file).unwrap();
                                     adding_games_progress.lock().unwrap().unwrap().0 = i + 1;
+                                    drive_cloned.add_game(file).unwrap();
                                 }
 
                                 *adding_games_progress.lock().unwrap() = None;
