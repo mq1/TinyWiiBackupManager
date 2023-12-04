@@ -68,5 +68,3 @@ The executable will be located at target/release/tiny-wii-backup-manager
 ---
 
 ❤️ Using [GameTDB](https://www.gametdb.com/)
-
-And patches from https://git.animux.de/overlay/tree/games-util/wbfs_file/files
