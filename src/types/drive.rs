@@ -94,7 +94,11 @@ impl Drive {
 
                 Some(dir)
             })
-            .collect();
+            .collect::<Vec<_>>();
+
+        // sort games by title
+        let mut games = games;
+        games.sort_by(|a, b| a.display_title.cmp(&b.display_title));
 
         Ok(games)
     }
