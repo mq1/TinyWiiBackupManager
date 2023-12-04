@@ -35,6 +35,7 @@ impl eframe::App for App {
         match self.page {
             Page::Drives => pages::drives::view(ctx, self),
             Page::Games => pages::games::view(ctx, self),
+            Page::AddingGames => pages::adding_games::view(ctx, self),
         }
     }
 }
