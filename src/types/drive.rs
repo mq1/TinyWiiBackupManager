@@ -118,16 +118,6 @@ impl Drive {
     }
 }
 
-impl fmt::Display for Drive {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "{} ({}/{} GiB)",
-            self.name, self.available_space, self.total_space
-        )
-    }
-}
-
 impl From<&Disk> for Drive {
     fn from(disk: &Disk) -> Self {
         let name = disk.name().to_string_lossy().to_string();
