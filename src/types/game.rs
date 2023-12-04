@@ -21,6 +21,7 @@ pub struct Game {
     pub id: String,
     pub title: String,
     pub display_title: String,
+    pub checked: bool,
 }
 
 impl Game {
@@ -49,6 +50,7 @@ impl Game {
             title: title.to_owned(),
             size,
             display_title,
+            checked: false,
         })
     }
 
