@@ -10,6 +10,7 @@ description = "A simple Wii Backup Manager"
 [dependencies]
 eframe = "0.24"
 egui_extras = "0.24"
+egui-modal = "0.3"
 poll-promise = "0.3"
 wbfs = { git = "https://github.com/mq1/wbfs-rs"}
 rfd = "0.12"

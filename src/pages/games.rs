@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use eframe::egui::{self, FontId, RichText};
+use egui_modal::Modal;
 use poll_promise::Promise;
 
 use crate::app::App;
@@ -36,8 +37,29 @@ pub fn view(ctx: &egui::Context, app: &mut App) {
                 ui.label(&format!("Error: {}", err));
             }
             Some(Ok(games)) => {
+                let delete_games_dialog = Modal::new(ctx, "delete_games");
+                delete_games_dialog.show(|ui| {
+                    delete_games_dialog.title(ui, "Delete games");
+                    delete_games_dialog.frame(ui, |ui| {
+                        delete_games_dialog.body(ui, "Are you sure you want to delete the selected games?");
+                    });
+                    delete_games_dialog.buttons(ui, |ui| {
+                        delete_games_dialog.button(ui, "No");
+                        if delete_games_dialog.button(ui, "Yes").clicked() {
+                            for (i, game) in games.clone().iter().enumerate() {
+                                if game.checked {
+                                    game.delete().unwrap();
+                                    games.remove(i);
+                                }
+                            }
+                        }
+                    })
+                });
+            
                 ui.horizontal(|ui| {
-                    if ui.button("🗑 Delete selected").clicked() {}
+                    if ui.button("🗑 Delete selected").clicked() {
+                        delete_games_dialog.open();
+                    }
 
                     if ui.button("➕ Add games").clicked() {}
 
