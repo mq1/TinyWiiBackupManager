@@ -11,7 +11,6 @@ use anyhow::{anyhow, bail, Result};
 use sysinfo::{Disk, DiskExt, System, SystemExt};
 
 use crate::types::game::Game;
-use crate::wbfs_file;
 
 const TITLES_URL: &str = "https://www.gametdb.com/titles.txt";
 
@@ -24,7 +23,7 @@ pub struct Drive {
 }
 
 impl Drive {
-    pub fn list() -> Vec<Self> {
+    pub fn get_drives() -> Vec<Self> {
         let mut sys = System::new();
         sys.refresh_disks_list();
 
@@ -95,7 +94,11 @@ impl Drive {
 
                 Some(dir)
             })
-            .collect();
+            .collect::<Vec<_>>();
+
+        // sort games by title
+        let mut games = games;
+        games.sort_by(|a, b| a.display_title.cmp(&b.display_title));
 
         Ok(games)
     }
@@ -105,27 +108,17 @@ impl Drive {
             match ext.to_str().unwrap() {
                 "iso" => {
                     let dest = self.mount_point.join("wbfs");
-                    wbfs_file::conv_to_wbfs_wrapper(path, &dest)?;
+                    wbfs::conv_to_wbfs_wrapper(path, &dest)?;
                 }
                 "wbfs" => {
                     let dest = self.mount_point.join("wbfs");
-                    wbfs_file::copy_wbfs_file(path, &dest)?;
+                    wbfs::copy_wbfs_file(path, &dest)?;
                 }
                 _ => bail!("Invalid file extension"),
             }
         }
 
         Ok(())
-    }
-}
-
-impl fmt::Display for Drive {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "{} ({}/{} GiB)",
-            self.name, self.available_space, self.total_space
-        )
     }
 }
 
