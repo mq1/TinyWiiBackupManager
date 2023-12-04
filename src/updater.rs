@@ -14,7 +14,7 @@ struct Release {
     tag_name: String,
 }
 
-pub async fn check_for_updates() -> Result<()> {
+pub fn check_for_updates() -> Result<()> {
     let latest_release = ureq::get(LATEST_RELEASE_URL)
         .call()?
         .into_json::<Release>()?

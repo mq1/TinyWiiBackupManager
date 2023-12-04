@@ -7,7 +7,7 @@ use eframe::egui;
 
 pub fn view(ctx: &egui::Context, app: &mut App) {
     if let Some((i, total)) = *app.adding_games_progress.lock().unwrap() {
-        egui::CentralPanel::default().show(ctx, |ui| {
+        egui::CentralPanel::default().show(ctx, |_ui| {
             egui::Area::new("adding_games_progress")
                 .anchor(egui::Align2::CENTER_CENTER, egui::Vec2::ZERO)
                 .show(ctx, |ui| {
