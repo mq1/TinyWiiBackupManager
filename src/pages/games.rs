@@ -2,9 +2,8 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use eframe::egui::{self, FontId, RichText};
-use egui_modal::{Icon, Modal};
 use poll_promise::Promise;
-use rfd::FileDialog;
+use rfd::{FileDialog, MessageButtons, MessageDialog, MessageDialogResult};
 use std::thread;
 
 use crate::app::App;
@@ -40,29 +39,6 @@ pub fn view(ctx: &egui::Context, app: &mut App) {
                 ui.label(&format!("Error: {}", err));
             }
             Some(Ok(games)) => {
-                let delete_games_dialog = Modal::new(ctx, "delete_games");
-                delete_games_dialog.show(|ui| {
-                    delete_games_dialog.title(ui, "Delete games");
-                    delete_games_dialog.frame(ui, |ui| {
-                        delete_games_dialog.body_and_icon(
-                            ui,
-                            "Are you sure you want to delete the selected games?",
-                            Icon::Warning,
-                        );
-                    });
-                    delete_games_dialog.buttons(ui, |ui| {
-                        delete_games_dialog.button(ui, "No");
-                        if delete_games_dialog.caution_button(ui, "Yes").clicked() {
-                            for (i, game) in games.clone().iter().enumerate() {
-                                if game.checked {
-                                    game.delete().unwrap();
-                                    games.remove(i);
-                                }
-                            }
-                        }
-                    })
-                });
-
                 ui.horizontal(|ui| {
                     if ui.button("✅ Select all").clicked() {
                         for game in games.iter_mut() {
@@ -102,7 +78,20 @@ pub fn view(ctx: &egui::Context, app: &mut App) {
                     }
 
                     if ui.button("🗑 Delete selected").clicked() {
-                        delete_games_dialog.open();
+                        let res = MessageDialog::new()
+                            .set_title("Delete games")
+                            .set_description("Are you sure you want to delete the selected games?")
+                            .set_buttons(MessageButtons::YesNo)
+                            .show();
+
+                        if res == MessageDialogResult::Yes {
+                            for (i, game) in games.clone().iter().enumerate() {
+                                if game.checked {
+                                    game.delete().unwrap();
+                                    games.remove(i);
+                                }
+                            }
+                        }
                     }
                 });
 
