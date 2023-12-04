@@ -2710,7 +2710,6 @@ name = "tiny-wii-backup-manager"
 version = "0.2.5"
 dependencies = [
  "anyhow",
- "cc",
  "eframe",
  "egui_extras",
  "fs_extra",
