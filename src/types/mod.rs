@@ -3,4 +3,3 @@
 
 pub mod drive;
 pub mod game;
-pub mod message;
