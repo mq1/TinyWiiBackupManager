@@ -31,7 +31,7 @@ tee -a TinyWiiBackupManager/TinyWiiBackupManager.app/Contents/Info.plist << END
   <key>CFBundleShortVersionString</key>
   <string>$1</string>
   <key>CFBundleVersion</key>
-  <string>20231026.095229</string>
+  <string>$1</string>
   <key>CSResourcesFileMapped</key>
   <true/>
   <key>LSApplicationCategoryType</key>
