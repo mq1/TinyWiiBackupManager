@@ -2,9 +2,10 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use anyhow::Result;
-use rfd::{MessageDialog, MessageDialogResult};
+use rfd::{MessageButtons, MessageDialog, MessageDialogResult};
 use serde::Deserialize;
 
+const APP_NAME: &str = "TinyWiiBackupManager";
 const LATEST_RELEASE_URL: &str =
     "https://api.github.com/repos/mq1/TinyWiiBackupManager/releases/latest";
 const RELEASES_BASE_URL: &str = "https://github.com/mq1/TinyWiiBackupManager/releases/tag/";
@@ -21,16 +22,28 @@ pub fn check_for_updates() -> Result<()> {
         .tag_name;
 
     if env!("CARGO_PKG_VERSION") != latest_release {
-        let result = MessageDialog::new().set_title("Update available").set_description(format!("A new version of TinyWiiBackupManager is available: {}.\nDo you want to download it?", latest_release)).set_buttons(rfd::MessageButtons::YesNo).show();
+        let update_message = format!(
+            "A new version of {} is available: {}.\nDo you want to download it?",
+            APP_NAME, latest_release
+        );
+        let result = MessageDialog::new()
+            .set_title("Update available")
+            .set_description(&update_message)
+            .set_buttons(MessageButtons::YesNo)
+            .show();
 
         if result == MessageDialogResult::Yes {
-            open::that(format!("{}{}", RELEASES_BASE_URL, latest_release))?;
+            let release_url = format!("{}{}", RELEASES_BASE_URL, latest_release);
+            open::that(release_url)?;
         }
     } else {
         let _ = MessageDialog::new()
             .set_title("No updates available")
-            .set_description("You are using the latest version of TinyWiiBackupManager.")
-            .set_buttons(rfd::MessageButtons::Ok)
+            .set_description(&format!(
+                "You are using the latest version of {}.",
+                APP_NAME
+            ))
+            .set_buttons(MessageButtons::Ok)
             .show();
     }
 
