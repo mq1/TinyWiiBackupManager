@@ -15,7 +15,7 @@ struct Release {
     tag_name: String,
 }
 
-pub fn check_for_updates() -> Result<()> {
+pub fn _check_for_updates() -> Result<()> {
     let latest_release = ureq::get(LATEST_RELEASE_URL)
         .call()?
         .into_json::<Release>()?
@@ -48,4 +48,14 @@ pub fn check_for_updates() -> Result<()> {
     }
 
     Ok(())
+}
+
+pub fn check_for_updates() {
+    if let Err(err) = _check_for_updates() {
+        let _ = MessageDialog::new()
+            .set_title("Error")
+            .set_description(&format!("Error: {}", err))
+            .set_buttons(MessageButtons::Ok)
+            .show();
+    }
 }
