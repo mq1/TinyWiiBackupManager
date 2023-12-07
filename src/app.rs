@@ -53,7 +53,7 @@ impl eframe::App for App {
                     }
 
                     if ui.button("Check for updates").clicked() {
-                        check_for_updates().unwrap();
+                        check_for_updates();
                     }
 
                     if ui.button("Quit").clicked() {
