@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 use std::{fs, io};
 
 use anyhow::{anyhow, bail, Result};
-use sysinfo::{Disk, DiskExt, System, SystemExt};
+use sysinfo::{Disk, Disks};
 
 use crate::types::game::Game;
 
@@ -24,10 +24,9 @@ pub struct Drive {
 
 impl Drive {
     pub fn get_drives() -> Vec<Self> {
-        let mut sys = System::new();
-        sys.refresh_disks_list();
+        let disks = Disks::new_with_refreshed_list();
 
-        sys.disks()
+        disks
             .iter()
             .filter(|disk| disk.is_removable())
             .map(Self::from)

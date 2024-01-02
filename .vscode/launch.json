@@ -1,0 +1,45 @@
+{
+    // Usare IntelliSense per informazioni sui possibili attributi.
+    // Al passaggio del mouse vengono visualizzate le descrizioni degli attributi esistenti.
+    // Per altre informazioni, visitare: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'tiny-wii-backup-manager'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=tiny-wii-backup-manager",
+                    "--package=tiny-wii-backup-manager"
+                ],
+                "filter": {
+                    "name": "tiny-wii-backup-manager",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'tiny-wii-backup-manager'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=tiny-wii-backup-manager",
+                    "--package=tiny-wii-backup-manager"
+                ],
+                "filter": {
+                    "name": "tiny-wii-backup-manager",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}
