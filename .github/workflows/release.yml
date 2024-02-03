@@ -16,8 +16,8 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-apple-darwin,aarch64-apple-darwin
-          components: cargo-bundle
       - run: |
+          cargo install cargo-bundle
           cargo bundle --release --target x86_64-apple-darwin
           cargo build --release --target aarch64-apple-darwin
           mkdir TinyWiiBackupManager
@@ -55,8 +55,8 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-pc-windows-gnu
-          components: cargo-bundle
       - run: |
+          cargo install cargo-bundle
           cargo bundle --release --target x86_64-pc-windows-gnu
           Move-Item ./target/x86_64-pc-windows-gnu/release/bundle/windows/TinyWiiBackupManager.msi ./TinyWiiBackupManager-${{github.ref_name}}-Windows-x86_64.msi
       - uses: softprops/action-gh-release@v1
