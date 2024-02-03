@@ -1,11 +1,18 @@
 [package]
 name = "tiny-wii-backup-manager"
-version = "0.3.3"
+version = "0.3.4"
 authors = ["Manuel Quarneti <manuelquarneti@protonmail.com>"]
 edition = "2021"
 license = "GPL-2.0-only"
 repository = "https://github.com/mq1/TinyWiiBackupManager"
 description = "A simple Wii Backup Manager"
+
+[package.metadata.bundle]
+name = "TinyWiiBackupManager"
+identifier = "eu.mq1.TinyWiiBackupManager"
+icon = ["logo@2x.png"]
+copyright = "Copyright (c) 2024 Manuel Quarneti"
+category = "public.app-category.games"
 
 [dependencies]
 eframe = "0.25"
