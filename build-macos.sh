@@ -5,8 +5,13 @@ cargo build --release --target x86_64-apple-darwin
 cargo build --release --target aarch64-apple-darwin
 
 rm -rf TinyWiiBackupManager
+
 mkdir -p TinyWiiBackupManager/TinyWiiBackupManager.app/Contents/MacOS
 lipo target/x86_64-apple-darwin/release/tiny-wii-backup-manager target/aarch64-apple-darwin/release/tiny-wii-backup-manager -create -output TinyWiiBackupManager/TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager
+
+mkdir TinyWiiBackupManager/TinyWiiBackupManager.app/Resources
+cp TinyWiiBackupManager.icns TinyWiiBackupManager/TinyWiiBackupManager.app/Resources/
+
 tee -a TinyWiiBackupManager/TinyWiiBackupManager.app/Contents/Info.plist << END
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -45,6 +50,7 @@ tee -a TinyWiiBackupManager/TinyWiiBackupManager.app/Contents/Info.plist << END
 </dict>
 </plist>
 END
+
 ln -sf /Applications TinyWiiBackupManager/Applications
 
 rm -f "TinyWiiBackupManager-$1-MacOS-Universal2.dmg"
