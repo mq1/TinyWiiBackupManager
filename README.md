@@ -1,6 +1,8 @@
-<h1 align="center">TinyWiiBackupManager</h1>
-
-<img alt="screenshot" src="screenshot.png">
+<p align="center">
+    <img alt="logo" width="128" src="logo.png">
+    <h1 align="center">TinyWiiBackupManager</h1>
+    <img alt="screenshot" src="screenshot.png">
+</p>
 
 🔧 A simple WBFS manager written in Rust
 
@@ -68,3 +70,5 @@ The executable will be located at target/release/tiny-wii-backup-manager
 ---
 
 ❤️ Using [GameTDB](https://www.gametdb.com/)
+
+🤖 Logo generated with Microsoft Copilot
