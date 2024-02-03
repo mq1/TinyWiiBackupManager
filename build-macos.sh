@@ -41,7 +41,7 @@ tee -a TinyWiiBackupManager/TinyWiiBackupManager.app/Contents/Info.plist << END
   <key>NSHighResolutionCapable</key>
   <true/>
   <key>NSHumanReadableCopyright</key>
-  <string>Copyright (c) 2023 Manuel Quarneti</string>
+  <string>Copyright (c) 2024 Manuel Quarneti</string>
 </dict>
 </plist>
 END

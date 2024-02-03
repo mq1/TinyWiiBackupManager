@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2023 Manuel Quarneti <manuelquarneti@protonmail.com>
+// SPDX-FileCopyrightText: 2024 Manuel Quarneti <manuelquarneti@protonmail.com>
 // SPDX-License-Identifier: GPL-2.0-only
 
 use anyhow::Result;
@@ -39,7 +39,7 @@ impl eframe::App for App {
                 ui.menu_button("File", |ui| {
                     if ui.button("About").clicked() {
                         let desc = format!(
-                            "v{}\n{}\n\nCopyright (c) 2023 {}\n{} Licensed",
+                            "v{}\n{}\n\nCopyright (c) 2024 {}\n{} Licensed",
                             env!("CARGO_PKG_VERSION"),
                             env!("CARGO_PKG_DESCRIPTION"),
                             env!("CARGO_PKG_AUTHORS"),
