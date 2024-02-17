@@ -51,9 +51,9 @@ jobs:
         with:
           targets: x86_64-pc-windows-gnu
       - run: |
-          cargo install cargo-bundle
-          cargo bundle --release --target x86_64-pc-windows-gnu
-          Move-Item ./target/x86_64-pc-windows-gnu/release/bundle/msi/TinyWiiBackupManager.msi ./TinyWiiBackupManager-${{github.ref_name}}-Windows-x86_64.msi
+          cargo build --release --target x86_64-pc-windows-gnu
+          Move-Item ./target/x86_64-pc-windows-gnu/release/tiny-wii-backup-manager.exe ./TinyWiiBackupManager-${{github.ref_name}}-Windows-x86_64.exe
+          Compress-Archive ./TinyWiiBackupManager-${{github.ref_name}}-Windows-x86_64.exe TinyWiiBackupManager-${{github.ref_name}}-Windows-x86_64.zip
       - uses: softprops/action-gh-release@v1
         with:
-          files: TinyWiiBackupManager-${{github.ref_name}}-Windows-x86_64.msi
+          files: TinyWiiBackupManager-${{github.ref_name}}-Windows-x86_64.zip
