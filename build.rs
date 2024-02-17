@@ -1,11 +1,7 @@
-use {
-    std::{env, io},
-    winres::WindowsResource,
-};
-
-fn main() -> io::Result<()> {
-    if env::var_os("CARGO_CFG_WINDOWS").is_some() {
-        WindowsResource::new().set_icon("logo.ico").compile()?;
+fn main() {
+    if cfg!(target_os = "windows") {
+        let mut res = winres::WindowsResource::new();
+        res.set_icon("logo.ico");
+        res.compile().unwrap();
     }
-    Ok(())
 }
