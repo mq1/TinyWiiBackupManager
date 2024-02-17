@@ -38,16 +38,11 @@ jobs:
           targets: x86_64-unknown-linux-gnu,aarch64-unknown-linux-gnu
       - run: |
           cargo build --release --target x86_64-unknown-linux-gnu
-          cargo build --release --target aarch64-unknown-linux-gnu
           cp -a target/x86_64-unknown-linux-gnu/release/tiny-wii-backup-manager TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64
-          cp -a target/aarch64-unknown-linux-gnu/release/tiny-wii-backup-manager TinyWiiBackupManager-${{github.ref_name}}-Linux-aarch64
           tar czf TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64.tar.gz TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64
-          tar czf TinyWiiBackupManager-${{github.ref_name}}-Linux-aarch64.tar.gz TinyWiiBackupManager-${{github.ref_name}}-Linux-aarch64
       - uses: softprops/action-gh-release@v1
         with:
-          files: |
-            TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64.tar.gz
-            TinyWiiBackupManager-${{github.ref_name}}-Linux-aarch64.tar.gz
+          files: TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64.tar.gz
   build-windows:
     runs-on: windows-latest
     steps:
@@ -58,7 +53,7 @@ jobs:
       - run: |
           cargo install cargo-bundle
           cargo bundle --release --target x86_64-pc-windows-gnu
-          Move-Item ./target/x86_64-pc-windows-gnu/release/bundle/windows/TinyWiiBackupManager.msi ./TinyWiiBackupManager-${{github.ref_name}}-Windows-x86_64.msi
+          Move-Item ./target/x86_64-pc-windows-gnu/release/bundle/msi/TinyWiiBackupManager.msi ./TinyWiiBackupManager-${{github.ref_name}}-Windows-x86_64.msi
       - uses: softprops/action-gh-release@v1
         with:
           files: TinyWiiBackupManager-${{github.ref_name}}-Windows-x86_64.msi

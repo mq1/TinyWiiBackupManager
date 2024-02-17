@@ -1,6 +1,6 @@
 [package]
 name = "tiny-wii-backup-manager"
-version = "0.3.4"
+version = "0.3.5"
 authors = ["Manuel Quarneti <manuelquarneti@protonmail.com>"]
 edition = "2021"
 license = "GPL-2.0-only"
@@ -15,8 +15,8 @@ copyright = "Copyright (c) 2024 Manuel Quarneti"
 category = "public.app-category.games"
 
 [dependencies]
-eframe = "0.25"
-egui_extras = { version = "0.25", features = ["http", "image"] }
+eframe = "0.26"
+egui_extras = { version = "0.26", features = ["http", "image"] }
 image = { version = "0.24", features = ["png"] }
 poll-promise = "0.3"
 wbfs = { git = "https://github.com/mq1/wbfs-rs"}
