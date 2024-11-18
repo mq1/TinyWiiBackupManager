@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2024 Manuel Quarneti <manuelquarneti@protonmail.com>
+// SPDX-FileCopyrightText: 2024 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
 use anyhow::{anyhow, bail, Result};
