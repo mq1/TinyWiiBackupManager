@@ -1,14 +1,14 @@
-// SPDX-FileCopyrightText: 2024 Manuel Quarneti <manuelquarneti@protonmail.com>
+// SPDX-FileCopyrightText: 2024 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
 use crate::app::App;
 use crate::pages::Page::Games;
-use eframe::egui;
+use eframe::egui::{self, Id};
 
 pub fn view(ctx: &egui::Context, app: &mut App) {
     if let Some((i, total)) = *app.adding_games_progress.lock().unwrap() {
         egui::CentralPanel::default().show(ctx, |_ui| {
-            egui::Area::new("adding_games_progress")
+            egui::Area::new(Id::new("adding_games_progress"))
                 .anchor(egui::Align2::CENTER_CENTER, egui::Vec2::ZERO)
                 .show(ctx, |ui| {
                     ui.heading("Adding games");

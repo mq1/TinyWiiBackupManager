@@ -1,7 +1,7 @@
-// SPDX-FileCopyrightText: 2024 Manuel Quarneti <manuelquarneti@protonmail.com>
+// SPDX-FileCopyrightText: 2024 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
-use eframe::egui;
+use eframe::egui::{self, Id};
 use poll_promise::Promise;
 
 use crate::app::App;
@@ -14,7 +14,7 @@ pub fn view(ctx: &egui::Context, app: &mut App) {
         .get_or_insert_with(|| Promise::spawn_thread("get_drives", || Drive::get_drives()));
 
     egui::CentralPanel::default().show(ctx, |_ui| {
-        egui::Area::new("drives_area")
+        egui::Area::new(Id::new("drives_area"))
             .anchor(egui::Align2::CENTER_CENTER, egui::Vec2::ZERO)
             .show(ctx, |ui| {
                 ui.heading("Choose a drive");
