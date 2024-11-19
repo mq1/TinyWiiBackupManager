@@ -119,7 +119,7 @@ pub fn view(ctx: &egui::Context, app: &mut App) {
                                         ui.checkbox(&mut game.checked, "");
 
                                         let img = egui::Image::from_uri(format!(
-                                            "https://art.gametdb.com/wii/cover/EN/{}.png",
+                                            "https://art.gametdb.com/wii/cover/US/{}.png",
                                             game.id
                                         ))
                                         .fit_to_exact_size(egui::vec2(40., 56.));
