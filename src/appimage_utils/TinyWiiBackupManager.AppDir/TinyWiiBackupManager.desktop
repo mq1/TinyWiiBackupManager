@@ -4,3 +4,5 @@ Exec=tinywiibackupmanager
 Icon=tinywiibackupmanager
 Type=Application
 Categories=Utility
+Comment=Backup your Wii games!
+GenericName=Backup your Wii Games!
