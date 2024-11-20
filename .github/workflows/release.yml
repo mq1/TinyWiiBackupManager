@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v4
-      - run: sudo apt-get update -y && sudo apt-get install -y libclang-dev libgtk-3-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
+      - run: sudo apt-get update -y && sudo apt-get install -y libclang-dev libgtk-3-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev desktop-file-utils
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-unknown-linux-gnu,aarch64-unknown-linux-gnu
@@ -40,9 +40,22 @@ jobs:
           cargo build --release --target x86_64-unknown-linux-gnu
           cp -a target/x86_64-unknown-linux-gnu/release/tiny-wii-backup-manager TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64
           tar czf TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64.tar.gz TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64
+
+          cp logo@2x.png src/appimage_utils/TinyWiiBackupManager.AppDir/tinywiibackupmanager.png
+          mkdir -p src/appimage_utils/TinyWiiBackupManager.AppDir/usr/bin
+          cp TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64 src/appimage_utils/TinyWiiBackupManager.AppDir/usr/bin/TinyWiiBackupManager
+          wget https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool-x86_64.AppImage
+          mv src/appimage_utils/TinyWiiBackupManager.AppDir src/appimage_utils/TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64.AppDir
+          ARCH=x86_64 ./appimagetool-x86_64.AppImage src/appimage_utils/TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64.AppDir
+
+          mv Tiny_Wii_Backup_Manager-x86_64.AppImage TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64.AppImage
+
       - uses: softprops/action-gh-release@v1
         with:
-          files: TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64.tar.gz
+          files: |
+            TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64.tar.gz
+            TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64.AppImage
   build-windows:
     runs-on: windows-latest
     steps:
