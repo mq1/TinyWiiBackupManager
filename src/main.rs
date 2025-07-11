@@ -1,24 +1,35 @@
-// SPDX-FileCopyrightText: 2024 Manuel Quarneti <mq1@ik.me>
+// SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
-// hide console window on Windows in release
-#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-
-mod app;
-mod pages;
-mod types;
-mod updater;
-
-use app::App;
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
 fn main() -> eframe::Result {
-    let native_options = eframe::NativeOptions::default();
-    eframe::run_native(
-        "TinyWiiBackupManager",
-        native_options,
-        Box::new(|cc| {
-            egui_extras::install_image_loaders(&cc.egui_ctx);
-            Ok(Box::<App>::default())
-        }),
-    )
+    env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
+
+    if let Some(wbfs_dir) = rfd::FileDialog::new()
+        .set_title("Select WBFS Directory")
+        .pick_folder()
+    {
+        let native_options = eframe::NativeOptions {
+            viewport: egui::ViewportBuilder::default()
+                .with_inner_size([800.0, 600.0])
+                .with_icon(
+                    eframe::icon_data::from_png_bytes(&include_bytes!("../logo@2x.png")[..])
+                        .expect("Failed to load icon"),
+                ),
+            ..Default::default()
+        };
+        eframe::run_native(
+            &format!("TinyWiiBackupManager v{} - {}", env!("CARGO_PKG_VERSION"), wbfs_dir.display()),
+            native_options,
+            Box::new(|cc| {
+                egui_extras::install_image_loaders(&cc.egui_ctx);
+
+                Ok(Box::new(tiny_wii_backup_manager::App::new(cc, wbfs_dir)))
+                }
+            ),
+        )?;
+    }
+
+    Ok(())
 }
