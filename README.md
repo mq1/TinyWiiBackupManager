@@ -12,6 +12,13 @@
 
 Just grab the [latest release](https://github.com/mq1/TinyWiiBackupManager/releases/latest) for your platform
 
+## MacOS
+
+The app is not signed, you need to allow it with:
+```sh
+sudo xattr -rd com.apple.quarantine /Applications/TinyWiiBackupManager.app
+```
+
 ### From source
 
 ```sh
