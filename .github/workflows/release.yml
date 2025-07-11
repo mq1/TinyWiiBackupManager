@@ -3,14 +3,14 @@ name: Release
 on:
   push:
     tags:
-      - "*.*.*"
+      - "v*.*.*"
 
 permissions:
   contents: write
 
 jobs:
   build-macos:
-    runs-on: macos-latest
+    runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -20,6 +20,7 @@ jobs:
           cargo install cargo-bundle
           cargo bundle --release --target x86_64-apple-darwin
           cargo build --release --target aarch64-apple-darwin
+
           mkdir TinyWiiBackupManager
           mv target/x86_64-apple-darwin/release/bundle/osx/TinyWiiBackupManager.app TinyWiiBackupManager/
           lipo TinyWiiBackupManager/TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager target/aarch64-apple-darwin/release/tiny-wii-backup-manager -create -output TinyWiiBackupManager/TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager
@@ -29,44 +30,37 @@ jobs:
         with:
           files: TinyWiiBackupManager-${{github.ref_name}}-MacOS-Universal2.dmg
   build-ubuntu:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      - run: sudo apt-get update -y && sudo apt-get install -y libclang-dev libgtk-3-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev desktop-file-utils
+      - run: |
+          sudo apt-get update -y
+          sudo apt-get install -y libclang-dev libgtk-3-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-unknown-linux-gnu,aarch64-unknown-linux-gnu
       - run: |
-          cargo build --release --target x86_64-unknown-linux-gnu
-          cp -a target/x86_64-unknown-linux-gnu/release/tiny-wii-backup-manager TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64
-          tar czf TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64.tar.gz TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64
+          cargo install cargo-bundle
+          cargo bundle --release --format appimage --target x86_64-unknown-linux-gnu
+          cargo bundle --release --format appimage --target aarch64-unknown-linux-gnu
 
-          cp logo@2x.png src/appimage_utils/TinyWiiBackupManager.AppDir/tinywiibackupmanager.png
-          mkdir -p src/appimage_utils/TinyWiiBackupManager.AppDir/usr/bin
-          cp TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64 src/appimage_utils/TinyWiiBackupManager.AppDir/usr/bin/TinyWiiBackupManager
-          wget https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
-          chmod +x appimagetool-x86_64.AppImage
-          mv src/appimage_utils/TinyWiiBackupManager.AppDir src/appimage_utils/TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64.AppDir
-          ARCH=x86_64 ./appimagetool-x86_64.AppImage src/appimage_utils/TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64.AppDir
-
-          mv Tiny_Wii_Backup_Manager-x86_64.AppImage TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64.AppImage
-
+          mv target/x86_64-unknown-linux-gnu/release/bundle/appimage/TinyWiiBackupManager.AppImage TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64.AppImage
+          mv target/aarch64-unknown-linux-gnu/release/bundle/appimage/TinyWiiBackupManager.AppImage TinyWiiBackupManager-${{github.ref_name}}-Linux-aarch64.AppImage
       - uses: softprops/action-gh-release@v1
         with:
           files: |
-            TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64.tar.gz
             TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64.AppImage
+            TinyWiiBackupManager-${{github.ref_name}}-Linux-aarch64.AppImage
   build-windows:
-    runs-on: windows-latest
+    runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-pc-windows-gnu
       - run: |
-          cargo build --release --target x86_64-pc-windows-gnu
-          Move-Item ./target/x86_64-pc-windows-gnu/release/tiny-wii-backup-manager.exe ./TinyWiiBackupManager-${{github.ref_name}}-Windows-x86_64.exe
-          Compress-Archive ./TinyWiiBackupManager-${{github.ref_name}}-Windows-x86_64.exe TinyWiiBackupManager-${{github.ref_name}}-Windows-x86_64.zip
+          cargo build --release --target x86_64-pc-windows-msvc
+          Move-Item ./target/x86_64-pc-windows-msvc/release/tiny-wii-backup-manager.exe ./TinyWiiBackupManager-${{github.ref_name}}-Windows-x86_64.exe
       - uses: softprops/action-gh-release@v1
         with:
-          files: TinyWiiBackupManager-${{github.ref_name}}-Windows-x86_64.zip
+          files: TinyWiiBackupManager-${{github.ref_name}}-Windows-x86_64.exe
