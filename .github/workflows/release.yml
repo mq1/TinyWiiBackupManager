@@ -25,42 +25,42 @@ jobs:
           mv target/x86_64-apple-darwin/release/bundle/osx/TinyWiiBackupManager.app TinyWiiBackupManager/
           lipo TinyWiiBackupManager/TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager target/aarch64-apple-darwin/release/tiny-wii-backup-manager -create -output TinyWiiBackupManager/TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager
           ln -sf /Applications TinyWiiBackupManager/Applications
-          hdiutil create "TinyWiiBackupManager-${{github.ref_name}}-MacOS-Universal2.dmg" -volname TinyWiiBackupManager -fs HFS+ -srcfolder TinyWiiBackupManager -format UDZO
+          hdiutil create "TinyWiiBackupManager-${{github.ref_name}}-Universal2.dmg" -volname TinyWiiBackupManager -fs HFS+ -srcfolder TinyWiiBackupManager -format UDZO
       - uses: softprops/action-gh-release@v1
         with:
-          files: TinyWiiBackupManager-${{github.ref_name}}-MacOS-Universal2.dmg
+          files: TinyWiiBackupManager-${{github.ref_name}}-Universal2.dmg
   build-ubuntu:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      - run: |
-          sudo apt-get update -y
-          sudo apt-get install -y libclang-dev libgtk-3-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-unknown-linux-gnu,aarch64-unknown-linux-gnu
       - run: |
+          sudo apt-get update -y
+          sudo apt-get install -y libclang-dev libgtk-3-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev squashfs-tools
+
           cargo install cargo-bundle
           cargo bundle --release --format appimage --target x86_64-unknown-linux-gnu
           cargo bundle --release --format appimage --target aarch64-unknown-linux-gnu
 
-          mv target/x86_64-unknown-linux-gnu/release/bundle/appimage/TinyWiiBackupManager.AppImage TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64.AppImage
-          mv target/aarch64-unknown-linux-gnu/release/bundle/appimage/TinyWiiBackupManager.AppImage TinyWiiBackupManager-${{github.ref_name}}-Linux-aarch64.AppImage
+          mv target/x86_64-unknown-linux-gnu/release/bundle/appimage/*.AppImage TinyWiiBackupManager-${{github.ref_name}}-x86_64.AppImage
+          mv target/aarch64-unknown-linux-gnu/release/bundle/appimage/*.AppImage TinyWiiBackupManager-${{github.ref_name}}-aarch64.AppImage
       - uses: softprops/action-gh-release@v1
         with:
           files: |
-            TinyWiiBackupManager-${{github.ref_name}}-Linux-x86_64.AppImage
-            TinyWiiBackupManager-${{github.ref_name}}-Linux-aarch64.AppImage
+            TinyWiiBackupManager-${{github.ref_name}}-x86_64.AppImage
+            TinyWiiBackupManager-${{github.ref_name}}-aarch64.AppImage
   build-windows:
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
-          targets: x86_64-pc-windows-gnu
+          targets: x86_64-pc-windows-msvc
       - run: |
           cargo build --release --target x86_64-pc-windows-msvc
-          Move-Item ./target/x86_64-pc-windows-msvc/release/tiny-wii-backup-manager.exe ./TinyWiiBackupManager-${{github.ref_name}}-Windows-x86_64.exe
+          Move-Item ./target/x86_64-pc-windows-msvc/release/tiny-wii-backup-manager.exe ./TinyWiiBackupManager-${{github.ref_name}}-x86_64.exe
       - uses: softprops/action-gh-release@v1
         with:
-          files: TinyWiiBackupManager-${{github.ref_name}}-Windows-x86_64.exe
+          files: TinyWiiBackupManager-${{github.ref_name}}-x86_64.exe
