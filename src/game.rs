@@ -5,6 +5,7 @@ use std::path::PathBuf;
 
 use crate::titles::GAME_TITLES;
 
+#[derive(Clone)]
 pub struct Game {
     pub id: String,
     title: String,
