@@ -17,8 +17,6 @@ category = "Utility"
 [dependencies]
 egui = "0.32"
 eframe = "0.32"
-egui_extras = { version = "0.32", features = ["http", "image"] }
-image = { version = "0.25", features = ["png"] }
 iso2wbfs = { git = "https://github.com/mq1/iso2wbfs" }
 rfd = "0.15"
 log = "0.4"

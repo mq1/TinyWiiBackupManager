@@ -4,7 +4,7 @@
     <img alt="screenshot" src="screenshot.png">
 </p>
 
-🔧 A simple WBFS manager written in Rust
+🔧 A **simple** WBFS manager written in Rust
 
 ## ✨ Downloading
 
