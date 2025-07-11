@@ -1,35 +1,29 @@
 [package]
 name = "tiny-wii-backup-manager"
-version = "0.3.11"
+version = "1.0.0-alpha"
 authors = ["Manuel Quarneti <mq1@ik.me>"]
-edition = "2021"
+edition = "2024"
 license = "GPL-2.0-only"
 repository = "https://github.com/mq1/TinyWiiBackupManager"
 description = "A simple Wii Backup Manager"
 
 [package.metadata.bundle]
 name = "TinyWiiBackupManager"
-identifier = "eu.mq1.TinyWiiBackupManager"
+identifier = "it.mq1.TinyWiiBackupManager"
 icon = ["logo@2x.png"]
-copyright = "Copyright (c) 2024 Manuel Quarneti"
-category = "public.app-category.games"
+copyright = "Copyright (c) 2025 Manuel Quarneti"
+category = "Utility"
 
 [dependencies]
-eframe = "0.29"
-egui_extras = { version = "0.29", features = ["http", "image"] }
+egui = "0.32"
+eframe = "0.32"
+egui_extras = { version = "0.32", features = ["http", "image"] }
 image = { version = "0.25", features = ["png"] }
-poll-promise = "0.3"
-wbfs = { git = "https://github.com/mq1/wbfs-rs" }
+iso2wbfs = { git = "https://github.com/mq1/iso2wbfs" }
 rfd = "0.15"
-anyhow = "1.0"
-sysinfo = "0.32"
-ureq = { version = "2.10", features = ["json"] }
-once_cell = "1.20"
-regex = "1.11"
-fs_extra = "1.3"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-open = "5.3"
+log = "0.4"
+env_logger = "0.11"
+phf = { version = "0.12", features = ["macros"] }
 
 [build-dependencies]
 winres = "0.1"
@@ -40,3 +34,6 @@ opt-level = "z"
 lto = true
 codegen-units = 1
 panic = "abort"
+
+[profile.dev.package."*"]
+opt-level = 2
