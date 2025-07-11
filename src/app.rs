@@ -1,72 +1,102 @@
-// SPDX-FileCopyrightText: 2024 Manuel Quarneti <mq1@ik.me>
+// SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
-use anyhow::Result;
-use eframe::egui;
-use poll_promise::Promise;
-use rfd::{MessageButtons, MessageDialog};
-use std::sync::{Arc, Mutex};
+use std::path::PathBuf;
 
-use crate::pages::{self, Page};
-use crate::types::drive::Drive;
-use crate::types::game::Game;
-use crate::updater::check_for_updates;
+use crate::game::Game;
 
 pub struct App {
-    pub page: Page,
-    pub drives: Option<Promise<Vec<Drive>>>,
-    pub current_drive: Option<Drive>,
-    pub games: Option<Promise<Result<Vec<Game>>>>,
-    pub adding_games_progress: Arc<Mutex<Option<(usize, usize)>>>,
+    wbfs_dir: PathBuf,
+    games: Vec<Game>,
 }
 
-impl Default for App {
-    fn default() -> Self {
-        Self {
-            page: Page::Drives,
-            drives: None,
-            current_drive: None,
-            games: None,
-            adding_games_progress: Arc::new(Mutex::new(None)),
+impl App {
+    pub fn new(_cc: &eframe::CreationContext<'_>, wbfs_dir: PathBuf) -> Self {
+        let mut app = Self {
+            wbfs_dir,
+            games: Vec::new(),
+        };
+        app.refresh_games();
+
+        app
+    }
+
+    fn refresh_games(&mut self) {
+        // Rescan the WBFS directory for games
+        // Games are in the format "GAME TITLE [GAMEID]/"
+        self.games = std::fs::read_dir(&self.wbfs_dir)
+            .ok()
+            .into_iter()
+            .flatten()
+            .filter_map(|entry| {
+                entry.ok().and_then(|e| {
+                    let path = e.path();
+                    path.is_dir().then(|| Game::from_path(path))
+                })
+            })
+            .collect();
+    }
+
+    pub fn add_isos(&mut self) {
+        let iso_path = rfd::FileDialog::new()
+            .set_title("Select ISO File")
+            .add_filter("ISO Files", &["iso"])
+            .pick_files();
+
+        if let Some(paths) = iso_path {
+            // TODO
         }
+    }
+
+    pub fn remove_game(&mut self, game: &Game) {
+        // Remove the game from the WBFS directory
+        let confirm = rfd::MessageDialog::new()
+            .set_title("Remove Game")
+            .set_description(format!(
+                "Are you sure you want to remove {}?",
+                game.display_title
+            ))
+            .show();
+
+        if confirm == rfd::MessageDialogResult::Yes {
+            if std::fs::remove_dir_all(&game.path).is_err() {
+                rfd::MessageDialog::new()
+                    .set_title("Error")
+                    .set_description("Failed to remove the game.")
+                    .show();
+            }
+        }
+
+        self.refresh_games();
     }
 }
 
 impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
-            egui::menu::bar(ui, |ui| {
-                ui.menu_button("File", |ui| {
-                    if ui.button("About").clicked() {
-                        let desc = format!(
-                            "v{}\n{}\n\nCopyright (c) 2024 {}\n{} Licensed",
-                            env!("CARGO_PKG_VERSION"),
-                            env!("CARGO_PKG_DESCRIPTION"),
-                            env!("CARGO_PKG_AUTHORS"),
-                            env!("CARGO_PKG_LICENSE")
-                        );
-                        MessageDialog::new()
-                            .set_title(env!("CARGO_PKG_NAME"))
-                            .set_description(desc)
-                            .set_buttons(MessageButtons::Ok)
-                            .show();
-                    }
+            egui::MenuBar::new().ui(ui, |ui| {
+                ui.button("➕ Add Game")
+                    .on_hover_text("Add a new game to the WBFS directory");
 
-                    if ui.button("Check for updates").clicked() {
-                        check_for_updates();
-                    }
-
-                    if ui.button("Quit").clicked() {
-                        std::process::exit(0);
-                    }
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    ui.label(format!("{} games", self.games.len()));
                 });
             });
         });
 
-        match self.page {
-            Page::Drives => pages::drives::view(ctx, self),
-            Page::Games => pages::games::view(ctx, self),
-            Page::AddingGames => pages::adding_games::view(ctx, self),
-        }
+        egui::CentralPanel::default().show(ctx, |ui| {
+            // scrollable list of games
+            egui::ScrollArea::vertical().show(ui, |ui| {
+                for game in &self.games {
+                    ui.horizontal(|ui| {
+                        ui.label(game.display_title.clone());
+                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                            ui.button("🗑️")
+                                .on_hover_text("Remove this game from the WBFS directory");
+                        });
+                    });
+                }
+            });
+        });
     }
 }
