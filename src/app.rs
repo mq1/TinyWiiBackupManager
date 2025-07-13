@@ -218,43 +218,61 @@ impl App {
     /// Renders the main content area.
     fn ui_central_panel(&mut self, ctx: &egui::Context) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            if self.conversion_process.is_some() {
-                self.ui_conversion_progress(ui);
-            } else {
-                self.ui_game_grid(ui);
-            }
+            self.ui_game_grid(ui);
         });
     }
 
-    /// Renders the conversion progress indicator.
-    fn ui_conversion_progress(&self, ui: &mut egui::Ui) {
-        // This should always be Some if this function is called.
+    /// Renders the conversion progress modal.
+    fn ui_conversion_modal(&self, ctx: &egui::Context) {
         if let Some(process) = &self.conversion_process {
-            ui.vertical_centered(|ui| {
-                ui.add_space(ui.available_height() * 0.3); // Push content down
-                ui.heading("Converting ISOs");
-                ui.separator();
-                ui.label(&process.current_file);
-                ui.add_space(10.0);
+            // Create semi-transparent overlay to block background interaction
+            egui::Area::new("conversion_modal_background".into())
+                .order(egui::Order::Foreground)
+                .interactable(true)
+                .show(ctx, |ui| {
+                    let rect = ui.max_rect();
+                    ui.painter().rect_filled(rect, 0.0, egui::Color32::from_black_alpha(128));
+                });
 
-                if process.is_scrubbing {
-                    ui.horizontal(|ui| {
-                        ui.spinner();
-                        ui.label("Scrubbing disc...");
+            // Create centered modal window
+            let screen_rect = ctx.available_rect();
+            let center = screen_rect.center();
+            let window_size = egui::vec2(400.0, 150.0);
+            let window_rect = egui::Rect::from_center_size(center, window_size);
+            
+            egui::Area::new("conversion_modal_window".into())
+                .order(egui::Order::Tooltip) // Highest layer
+                .fixed_pos(window_rect.min)
+                .show(ctx, |ui| {
+                    egui::Frame::window(ui.style()).show(ui, |ui| {
+                        ui.set_width(window_size.x);
+                        ui.set_height(window_size.y);
+                        ui.vertical_centered(|ui| {
+                            ui.heading("Converting ISOs");
+                            ui.separator();
+                            ui.label(&process.current_file);
+                            ui.add_space(10.0);
+
+                            if process.is_scrubbing {
+                                ui.horizontal(|ui| {
+                                    ui.spinner();
+                                    ui.label("Scrubbing disc...");
+                                });
+                            } else {
+                                let progress = if process.total_blocks > 0 {
+                                    process.current_block as f32 / process.total_blocks as f32
+                                } else {
+                                    0.0
+                                };
+                                ui.add(egui::ProgressBar::new(progress).show_percentage());
+                                ui.label(format!(
+                                    "{} / {} blocks",
+                                    process.current_block, process.total_blocks
+                                ));
+                            }
+                        });
                     });
-                } else {
-                    let progress = if process.total_blocks > 0 {
-                        process.current_block as f32 / process.total_blocks as f32
-                    } else {
-                        0.0
-                    };
-                    ui.add(egui::ProgressBar::new(progress).show_percentage());
-                    ui.label(format!(
-                        "{} / {} blocks",
-                        process.current_block, process.total_blocks
-                    ));
-                }
-            });
+                });
         }
     }
 
@@ -321,8 +339,18 @@ impl eframe::App for App {
         // 1. Handle background messages first
         self.handle_conversion_messages(ctx);
 
+        // Set cursor based on conversion state
+        if self.conversion_process.is_some() {
+            ctx.set_cursor_icon(egui::CursorIcon::Wait);
+        } else {
+            ctx.set_cursor_icon(egui::CursorIcon::Default);
+        }
+
         // 2. Draw the UI panels
         self.ui_top_panel(ctx);
         self.ui_central_panel(ctx);
+        
+        // 3. Show conversion modal if needed
+        self.ui_conversion_modal(ctx);
     }
 }
