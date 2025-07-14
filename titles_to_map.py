@@ -2,62 +2,70 @@
 #
 # /// script
 # requires-python = ">=3.12"
+# dependencies = ["requests==2.32.4"]
 # ///
 #
 # SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 # SPDX-License-Identifier: GPL-2.0-only
 
+
 import os
 import sys
+import requests
 
 # --- Configuration ---
-INPUT_FILENAME = 'titles.txt'
+TITLES_URL = 'https://www.gametdb.com/titles.txt'
 OUTPUT_DIR = 'src'
 OUTPUT_FILENAME = 'titles.rs'
 # -------------------
 
 def escape_rust_string(value: str) -> str:
     """Escapes a string for use as a Rust string literal."""
-    # Escape backslashes first, then double quotes
     return value.replace('\\', '\\\\').replace('"', '\\"')
 
 def generate_rust_from_titles():
     """
-    Reads the titles.txt file and generates a Rust source file
+    Downloads the titles.txt file from GameTDB and generates a Rust source file
     with a phf::Map of the game titles.
     """
-    input_path = INPUT_FILENAME
     output_path = os.path.join(OUTPUT_DIR, OUTPUT_FILENAME)
 
-    if not os.path.exists(input_path):
-        print(f"Error: Input file '{input_path}' not found.", file=sys.stderr)
-        print("Please save the provided data as 'titles.txt' in the current directory.", file=sys.stderr)
+    print(f"Downloading titles from '{TITLES_URL}'...")
+    try:
+        # Set a valid User-Agent to prevent 403 Forbidden errors
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
+        }
+        response = requests.get(TITLES_URL, headers=headers)
+        response.raise_for_status()
+    except requests.RequestException as e:
+        print(f"Error downloading titles: {e}", file=sys.stderr)
+        if hasattr(e.response, 'status_code'):
+            print(f"HTTP Status Code: {e.response.status_code}", file=sys.stderr)
         sys.exit(1)
+
+    lines = response.text.splitlines()
+    entries = []
+    for line in lines:
+        line = line.strip()
+        # Skip empty lines, comments, or the header
+        if not line or '=' not in line or line.startswith('---') or line.startswith('TITLES ='):
+            continue
+
+        parts = line.split('=', 1)
+        if len(parts) != 2:
+            continue
+
+        game_id = parts[0].strip()
+        game_title = parts[1].strip()
+
+        if game_id and game_title:
+            entries.append((game_id, game_title))
+
+    print(f"Found {len(entries)} valid title entries.")
 
     # Ensure the output directory exists
     os.makedirs(OUTPUT_DIR, exist_ok=True)
-
-    print(f"Reading from '{input_path}'...")
-    
-    entries = []
-    with open(input_path, 'r', encoding='utf-8') as infile:
-        for line in infile:
-            line = line.strip()
-            # Skip empty lines, comments, or the header
-            if not line or '=' not in line or line.startswith('---') or line.startswith('TITLES ='):
-                continue
-
-            parts = line.split('=', 1)
-            if len(parts) != 2:
-                continue
-
-            game_id = parts[0].strip()
-            game_title = parts[1].strip()
-
-            if game_id and game_title:
-                entries.append((game_id, game_title))
-
-    print(f"Found {len(entries)} valid title entries.")
 
     print(f"Generating Rust code at '{output_path}'...")
     with open(output_path, 'w', encoding='utf-8') as outfile:
