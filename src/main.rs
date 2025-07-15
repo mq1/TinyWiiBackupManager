@@ -20,14 +20,17 @@ fn main() -> eframe::Result {
             ..Default::default()
         };
         eframe::run_native(
-            &format!("TinyWiiBackupManager v{} - {}", env!("CARGO_PKG_VERSION"), wbfs_dir.display()),
+            &format!(
+                "TinyWiiBackupManager v{} - {}",
+                env!("CARGO_PKG_VERSION"),
+                wbfs_dir.display()
+            ),
             native_options,
             Box::new(|cc| {
                 egui_extras::install_image_loaders(&cc.egui_ctx);
 
                 Ok(Box::new(tiny_wii_backup_manager::App::new(cc, wbfs_dir)))
-                }
-            ),
+            }),
         )?;
     }
 
