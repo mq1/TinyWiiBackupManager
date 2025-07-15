@@ -12,7 +12,6 @@ use egui::{ImageSource, RichText};
 // --- UI Constants ---
 const CARD_SIZE: egui::Vec2 = egui::vec2(180.0, 240.0);
 const GRID_SPACING: egui::Vec2 = egui::vec2(10.0, 10.0);
-const MODAL_SIZE: egui::Vec2 = egui::vec2(400.0, 150.0);
 
 /// Message from the conversion worker thread to the GUI thread.
 pub enum ConversionMessage {
