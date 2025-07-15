@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 mod app;
-mod titles;
 mod game;
+mod titles;
 
 pub use app::App;
