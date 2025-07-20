@@ -4,41 +4,46 @@
 use iso2wbfs::ProgressUpdate;
 use std::borrow::Cow;
 use std::path::PathBuf;
-use std::sync::mpsc;
+use std::sync::{Arc, Mutex};
 
 use crate::game::Game;
 use egui::{ImageSource, RichText};
+use poll_promise::Promise;
 
 // --- UI Constants ---
 const CARD_SIZE: egui::Vec2 = egui::vec2(180.0, 240.0);
 const GRID_SPACING: egui::Vec2 = egui::vec2(10.0, 10.0);
 
-/// Message from the conversion worker thread to the GUI thread.
-pub enum ConversionMessage {
-    /// Reports progress on a specific file.
-    Update {
-        file_path: String,
-        update: ProgressUpdate,
-    },
-    /// Reports an error for a specific file.
-    Error { file_path: String, error: String },
-    /// Signals that all files have been processed.
-    Finished,
+/// Progress state for the conversion process.
+#[derive(Clone)]
+pub struct ConversionProgress {
+    pub current_file: String,
+    pub is_scrubbing: bool,
+    pub total_blocks: u64,
+    pub current_block: u64,
+    pub error: Option<String>,
 }
 
-/// Holds the state of the background conversion process.
-struct ConversionProcess {
-    receiver: mpsc::Receiver<ConversionMessage>,
-    current_file: String,
-    is_scrubbing: bool,
-    total_blocks: u64,
-    current_block: u64,
+impl Default for ConversionProgress {
+    fn default() -> Self {
+        Self {
+            current_file: "Initializing conversion...".to_string(),
+            is_scrubbing: false,
+            total_blocks: 1,
+            current_block: 0,
+            error: None,
+        }
+    }
 }
+
+/// Result of the conversion process.
+pub type ConversionResult = Result<(), String>;
 
 pub struct App {
     wbfs_dir: PathBuf,
     games: Vec<Game>,
-    conversion_process: Option<ConversionProcess>,
+    conversion_promise: Option<Promise<ConversionResult>>,
+    conversion_progress: Arc<Mutex<ConversionProgress>>,
 }
 
 impl App {
@@ -47,7 +52,8 @@ impl App {
         let mut app = Self {
             wbfs_dir,
             games: Vec::new(),
-            conversion_process: None,
+            conversion_promise: None,
+            conversion_progress: Arc::new(Mutex::new(ConversionProgress::default())),
         };
         app.refresh_games();
         app
@@ -106,76 +112,56 @@ impl App {
 
     /// Spawns a background thread to handle ISO to WBFS conversion.
     fn spawn_conversion_worker(&mut self, paths: Vec<PathBuf>) {
-        let (sender, receiver) = mpsc::channel();
-        self.conversion_process = Some(ConversionProcess {
-            receiver,
-            current_file: "Initializing conversion...".to_string(),
-            is_scrubbing: false,
-            total_blocks: 1,
-            current_block: 0,
-        });
-
         let wbfs_dir = self.wbfs_dir.clone();
+        let progress = self.conversion_progress.clone();
 
-        std::thread::spawn(move || {
+        let promise = Promise::spawn_thread("conversion", move || {
             for path in paths {
                 let file_path_str = path.display().to_string();
-                let sender = sender.clone();
 
                 let progress_callback = |update: ProgressUpdate| {
-                    let _ = sender.send(ConversionMessage::Update {
-                        file_path: file_path_str.clone(),
-                        update,
-                    });
+                    let mut progress = progress.lock().unwrap();
+                    match update {
+                        ProgressUpdate::ScrubbingStart => progress.is_scrubbing = true,
+                        ProgressUpdate::ConversionStart { total_blocks } => {
+                            progress.is_scrubbing = false;
+                            progress.total_blocks = total_blocks;
+                            progress.current_block = 0;
+                        }
+                        ProgressUpdate::ConversionUpdate { current_block } => {
+                            progress.current_block = current_block;
+                        }
+                        ProgressUpdate::Done => {} // Single file done
+                    }
+                    progress.current_file = file_path_str.clone();
                 };
 
                 if let Err(e) = iso2wbfs::WbfsConverter::new(&path, &wbfs_dir)
                     .and_then(|mut converter| converter.convert(Some(progress_callback)))
                 {
-                    let _ = sender.send(ConversionMessage::Error {
-                        file_path: file_path_str,
-                        error: e.to_string(),
-                    });
+                    let mut progress = progress.lock().unwrap();
+                    progress.error = Some(e.to_string());
+                    return Err(e.to_string());
                 }
             }
-            let _ = sender.send(ConversionMessage::Finished);
+            Ok(())
         });
+
+        self.conversion_promise = Some(promise);
     }
 
     /// Handles incoming messages from the conversion worker thread.
     fn handle_conversion_messages(&mut self, ctx: &egui::Context) {
-        let Some(process) = &mut self.conversion_process else {
-            return;
-        };
-
-        while let Ok(msg) = process.receiver.try_recv() {
-            match msg {
-                ConversionMessage::Update { file_path, update } => {
-                    process.current_file = file_path;
-                    match update {
-                        ProgressUpdate::ScrubbingStart => process.is_scrubbing = true,
-                        ProgressUpdate::ConversionStart { total_blocks } => {
-                            process.is_scrubbing = false;
-                            process.total_blocks = total_blocks;
-                            process.current_block = 0;
-                        }
-                        ProgressUpdate::ConversionUpdate { current_block } => {
-                            process.current_block = current_block;
-                        }
-                        ProgressUpdate::Done => {} // Single file done
-                    }
-                }
-                ConversionMessage::Error { file_path, error } => {
+        if let Some(promise) = &self.conversion_promise {
+            if promise.ready().is_some() {
+                let result = self.conversion_promise.take().unwrap().block_and_take();
+                if let Err(e) = result {
                     rfd::MessageDialog::new()
                         .set_title("Conversion Error")
-                        .set_description(&format!("Failed to convert {}:\n{}", file_path, error))
+                        .set_description(&format!("Failed to convert: {}", e))
                         .show();
                 }
-                ConversionMessage::Finished => {
-                    self.conversion_process = None;
-                    self.refresh_games();
-                    break; // Stop processing after finish
-                }
+                self.refresh_games();
             }
         }
         ctx.request_repaint();
@@ -189,7 +175,7 @@ impl App {
     fn ui_top_panel(&mut self, ctx: &egui::Context) {
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
             egui::MenuBar::new().ui(ui, |ui| {
-                let is_converting = self.conversion_process.is_some();
+                let is_converting = self.conversion_promise.is_some();
 
                 // Add games button
                 ui.add_enabled_ui(!is_converting, |ui| {
@@ -219,9 +205,9 @@ impl App {
 
     /// Renders the conversion progress modal using egui::Modal
     fn ui_conversion_modal(&self, ctx: &egui::Context) {
-        let Some(process) = &self.conversion_process else {
+        if self.conversion_promise.is_none() {
             return;
-        };
+        }
 
         // Create the modal dialog
         let modal = egui::Modal::new("conversion_modal".into());
@@ -234,27 +220,28 @@ impl App {
                 ui.separator();
 
                 // Current file
-                ui.label(&process.current_file);
+                let progress = self.conversion_progress.lock().unwrap();
+                ui.label(&progress.current_file);
                 ui.add_space(10.0);
 
                 // Progress indicator
-                if process.is_scrubbing {
+                if progress.is_scrubbing {
                     ui.horizontal(|ui| {
                         ui.add_space(ui.available_width() / 3.0);
                         ui.spinner();
                         ui.label("Scrubbing disc...");
                     });
                 } else {
-                    let progress = if process.total_blocks > 0 {
-                        process.current_block as f32 / process.total_blocks as f32
+                    let progress_value = if progress.total_blocks > 0 {
+                        progress.current_block as f32 / progress.total_blocks as f32
                     } else {
                         0.0
                     };
 
-                    ui.add(egui::ProgressBar::new(progress).show_percentage());
+                    ui.add(egui::ProgressBar::new(progress_value).show_percentage());
                     ui.label(format!(
                         "{} / {} blocks",
-                        process.current_block, process.total_blocks
+                        progress.current_block, progress.total_blocks
                     ));
                 }
             });
@@ -332,7 +319,7 @@ impl eframe::App for App {
         self.handle_conversion_messages(ctx);
 
         // Update cursor based on state
-        ctx.set_cursor_icon(if self.conversion_process.is_some() {
+        ctx.set_cursor_icon(if self.conversion_promise.is_some() {
             egui::CursorIcon::Wait
         } else {
             egui::CursorIcon::Default
