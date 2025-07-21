@@ -8,7 +8,6 @@ use crate::titles::GAME_TITLES;
 #[derive(Clone)]
 pub struct Game {
     pub id: String,
-    title: String,
     pub display_title: String,
 
     // games are in the format "GAME TITLE [GAMEID]/"
@@ -40,7 +39,6 @@ impl Game {
 
         Self {
             id,
-            title,
             display_title,
             path,
         }

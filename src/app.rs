@@ -1,18 +1,15 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
+use anyhow::{Context as AnyhowContext, Result};
 use iso2wbfs::ProgressUpdate;
-use std::borrow::Cow;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
 use crate::game::Game;
-use egui::{ImageSource, RichText};
+use crate::version_check::{self, UpdateInfo};
+use egui::CentralPanel;
 use poll_promise::Promise;
-
-// --- UI Constants ---
-const CARD_SIZE: egui::Vec2 = egui::vec2(180.0, 240.0);
-const GRID_SPACING: egui::Vec2 = egui::vec2(10.0, 10.0);
 
 /// Progress state for the conversion process.
 #[derive(Clone)]
@@ -21,7 +18,6 @@ pub struct ConversionProgress {
     pub is_scrubbing: bool,
     pub total_blocks: u64,
     pub current_block: u64,
-    pub error: Option<String>,
 }
 
 impl Default for ConversionProgress {
@@ -31,29 +27,36 @@ impl Default for ConversionProgress {
             is_scrubbing: false,
             total_blocks: 1,
             current_block: 0,
-            error: None,
         }
     }
 }
 
 /// Result of the conversion process.
-pub type ConversionResult = Result<(), String>;
+pub type ConversionResult = Result<()>;
 
 pub struct App {
     wbfs_dir: PathBuf,
-    games: Vec<Game>,
-    conversion_promise: Option<Promise<ConversionResult>>,
-    conversion_progress: Arc<Mutex<ConversionProgress>>,
+    pub games: Vec<Game>,
+    pub conversion_promise: Option<Promise<ConversionResult>>,
+    pub conversion_progress: Arc<Mutex<ConversionProgress>>,
+    version_check_promise: Option<Promise<Result<Option<UpdateInfo>>>>,
+    pub version_check_result: Option<UpdateInfo>,
 }
 
 impl App {
     /// Creates a new instance of the application.
     pub fn new(_cc: &eframe::CreationContext<'_>, wbfs_dir: PathBuf) -> Self {
+        let version_check_promise = Some(Promise::spawn_thread("version_check", || {
+            version_check::check_for_new_version()
+        }));
+
         let mut app = Self {
             wbfs_dir,
             games: Vec::new(),
             conversion_promise: None,
             conversion_progress: Arc::new(Mutex::new(ConversionProgress::default())),
+            version_check_promise,
+            version_check_result: None,
         };
         app.refresh_games();
         app
@@ -115,7 +118,7 @@ impl App {
         let wbfs_dir = self.wbfs_dir.clone();
         let progress = self.conversion_progress.clone();
 
-        let promise = Promise::spawn_thread("conversion", move || {
+        let promise = Promise::spawn_thread("conversion", move || -> Result<()> {
             for path in paths {
                 let file_path_str = path.display().to_string();
 
@@ -136,13 +139,9 @@ impl App {
                     progress.current_file = file_path_str.clone();
                 };
 
-                if let Err(e) = iso2wbfs::WbfsConverter::new(&path, &wbfs_dir)
+                iso2wbfs::WbfsConverter::new(&path, &wbfs_dir)
                     .and_then(|mut converter| converter.convert(Some(progress_callback)))
-                {
-                    let mut progress = progress.lock().unwrap();
-                    progress.error = Some(e.to_string());
-                    return Err(e.to_string());
-                }
+                    .with_context(|| format!("Failed to convert {}", path.display()))?;
             }
             Ok(())
         });
@@ -167,149 +166,27 @@ impl App {
         ctx.request_repaint();
     }
 
-    // =============
-    // UI Components
-    // =============
+    // ======================
+    // Version Check Logic
+    // ======================
 
-    /// Renders the top menu bar
-    fn ui_top_panel(&mut self, ctx: &egui::Context) {
-        egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
-            egui::MenuBar::new().ui(ui, |ui| {
-                let is_converting = self.conversion_promise.is_some();
-
-                // Add games button
-                ui.add_enabled_ui(!is_converting, |ui| {
-                    if ui
-                        .button("➕ Add Game(s)")
-                        .on_hover_text("Add a new game to the WBFS directory")
-                        .clicked()
-                    {
-                        self.add_isos();
+    fn handle_version_check(&mut self) {
+        if let Some(promise) = &self.version_check_promise {
+            if let Some(result) = promise.ready() {
+                match result {
+                    Ok(Some(update_info)) => {
+                        self.version_check_result = Some(update_info.clone());
                     }
-                });
-
-                // Game counter
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                    ui.label(format!("{} games", self.games.len()));
-                });
-            });
-        });
-    }
-
-    /// Renders the main content area
-    fn ui_central_panel(&mut self, ctx: &egui::Context) {
-        egui::CentralPanel::default().show(ctx, |ui| {
-            self.ui_game_grid(ui);
-        });
-    }
-
-    /// Renders the conversion progress modal using egui::Modal
-    fn ui_conversion_modal(&self, ctx: &egui::Context) {
-        if self.conversion_promise.is_none() {
-            return;
-        }
-
-        // Create the modal dialog
-        let modal = egui::Modal::new("conversion_modal".into());
-
-        modal.show(ctx, |ui| {
-            // Create a centered area for our content
-            ui.vertical_centered(|ui| {
-                // Title
-                ui.heading("Converting ISOs");
-                ui.separator();
-
-                // Current file
-                let progress = self.conversion_progress.lock().unwrap();
-                ui.label(&progress.current_file);
-                ui.add_space(10.0);
-
-                // Progress indicator
-                if progress.is_scrubbing {
-                    ui.horizontal(|ui| {
-                        ui.add_space(ui.available_width() / 3.0);
-                        ui.spinner();
-                        ui.label("Scrubbing disc...");
-                    });
-                } else {
-                    let progress_value = if progress.total_blocks > 0 {
-                        progress.current_block as f32 / progress.total_blocks as f32
-                    } else {
-                        0.0
-                    };
-
-                    ui.add(egui::ProgressBar::new(progress_value).show_percentage());
-                    ui.label(format!(
-                        "{} / {} blocks",
-                        progress.current_block, progress.total_blocks
-                    ));
-                }
-            });
-        });
-    }
-
-    /// Renders the grid of available games
-    fn ui_game_grid(&mut self, ui: &mut egui::Ui) {
-        let mut game_index_to_remove = None;
-        let num_columns = (ui.available_width() / CARD_SIZE.x).floor() as usize;
-
-        egui::ScrollArea::vertical().show(ui, |ui| {
-            egui::Grid::new("games_grid")
-                .num_columns(num_columns)
-                .spacing(GRID_SPACING)
-                .show(ui, |ui| {
-                    // Store games in a temporary variable to avoid borrowing self
-                    let games = &self.games;
-                    for (i, game) in games.iter().enumerate() {
-                        Self::ui_game_card(ui, game, || {
-                            game_index_to_remove = Some(i);
-                        });
-
-                        if (i + 1) % num_columns == 0 {
-                            ui.end_row();
-                        }
+                    Ok(None) => {
+                        log::info!("You are running the latest version.");
                     }
-                });
-        });
-
-        if let Some(index) = game_index_to_remove {
-            let game = self.games[index].clone();
-            self.remove_game(&game);
-        }
-    }
-
-    /// Renders a single game card (now a static method)
-    fn ui_game_card(ui: &mut egui::Ui, game: &Game, on_remove: impl FnOnce()) {
-        egui::Frame::group(ui.style()).show(ui, |ui| {
-            ui.set_max_size(CARD_SIZE);
-            ui.vertical_centered(|ui| {
-                // Game cover image
-                let image_url = format!("https://art.gametdb.com/wii/cover/EN/{}.png", game.id);
-                let image_source = ImageSource::Uri(Cow::Owned(image_url));
-                let image = egui::Image::new(image_source)
-                    .max_height(140.0)
-                    .maintain_aspect_ratio(true)
-                    .show_loading_spinner(true);
-                ui.add(image);
-
-                // Game info
-                ui.add_space(5.0);
-                ui.label(RichText::new(&game.display_title).strong());
-                ui.label(
-                    RichText::new(format!("ID: {}", game.id))
-                        .monospace()
-                        .size(12.0),
-                );
-
-                // Spacer to push button to bottom
-                ui.add_space(ui.available_height() - 35.0);
-
-                // Remove button
-                if ui.button("🗑 Remove").clicked() {
-                    on_remove();
+                    Err(e) => {
+                        log::error!("Failed to check for new version: {}", e);
+                    }
                 }
-            });
-        });
+                self.version_check_promise = None;
+            }
+        }
     }
 }
 
@@ -317,6 +194,7 @@ impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         // Process background messages
         self.handle_conversion_messages(ctx);
+        self.handle_version_check();
 
         // Update cursor based on state
         ctx.set_cursor_icon(if self.conversion_promise.is_some() {
@@ -326,8 +204,11 @@ impl eframe::App for App {
         });
 
         // Render UI components
-        self.ui_top_panel(ctx);
-        self.ui_central_panel(ctx);
-        self.ui_conversion_modal(ctx);
+        crate::components::top_panel::ui_top_panel(ctx, self);
+        CentralPanel::default().show(ctx, |ui| {
+            crate::components::game_grid::ui_game_grid(ui, self);
+        });
+        crate::components::conversion_modal::ui_conversion_modal(ctx, self);
+        crate::components::update_notification_panel::ui_update_notification_panel(ctx, self);
     }
 }
