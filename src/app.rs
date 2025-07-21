@@ -6,6 +6,7 @@ use iso2wbfs::ProgressUpdate;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
+use crate::error_handling;
 use crate::game::Game;
 use crate::version_check::{self, UpdateInfo};
 use egui::CentralPanel;
@@ -70,7 +71,11 @@ impl App {
             .flatten()
             .filter_map(|entry| {
                 let path = entry.ok()?.path();
-                path.is_dir().then(|| Game::from_path(path))
+                if path.is_dir() {
+                    Game::from_path(path).ok()
+                } else {
+                    None
+                }
             })
             .collect();
     }
@@ -88,10 +93,7 @@ impl App {
 
         if confirm == rfd::MessageDialogResult::Yes {
             if let Err(e) = std::fs::remove_dir_all(&game_to_remove.path) {
-                rfd::MessageDialog::new()
-                    .set_title("Error")
-                    .set_description(format!("Failed to remove game: {}", e))
-                    .show();
+                error_handling::show_error("Error", &format!("Failed to remove game: {}", e));
             }
             self.refresh_games();
         }
@@ -155,10 +157,10 @@ impl App {
             if promise.ready().is_some() {
                 let result = self.conversion_promise.take().unwrap().block_and_take();
                 if let Err(e) = result {
-                    rfd::MessageDialog::new()
-                        .set_title("Conversion Error")
-                        .set_description(&format!("Failed to convert: {}", e))
-                        .show();
+                    error_handling::show_error(
+                        "Conversion Error",
+                        &format!("Failed to convert: {:#}", e),
+                    );
                 }
                 self.refresh_games();
             }
@@ -177,11 +179,12 @@ impl App {
                     Ok(Some(update_info)) => {
                         self.version_check_result = Some(update_info.clone());
                     }
-                    Ok(None) => {
-                        log::info!("You are running the latest version.");
-                    }
+                    Ok(None) => {}
                     Err(e) => {
-                        log::error!("Failed to check for new version: {}", e);
+                        error_handling::show_error(
+                            "Version Check Error",
+                            &format!("Failed to check for new version: {:#}", e),
+                        );
                     }
                 }
                 self.version_check_promise = None;

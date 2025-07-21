@@ -3,9 +3,9 @@
 
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
-fn main() -> eframe::Result {
-    env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
+use anyhow::{Context, Result};
 
+fn main() -> Result<()> {
     if let Some(wbfs_dir) = rfd::FileDialog::new()
         .set_title("Select WBFS Directory")
         .pick_folder()
@@ -15,7 +15,7 @@ fn main() -> eframe::Result {
                 .with_inner_size([800.0, 600.0])
                 .with_icon(
                     eframe::icon_data::from_png_bytes(&include_bytes!("../logo@2x.png")[..])
-                        .expect("Failed to load icon"),
+                        .context("Failed to load icon")?,
                 ),
             ..Default::default()
         };
@@ -31,7 +31,8 @@ fn main() -> eframe::Result {
 
                 Ok(Box::new(tiny_wii_backup_manager::App::new(cc, wbfs_dir)))
             }),
-        )?;
+        )
+        .map_err(|e| anyhow::anyhow!("Failed to run eframe: {}", e))?;
     }
 
     Ok(())

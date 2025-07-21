@@ -5,6 +5,7 @@
 
 mod app;
 mod components;
+mod error_handling;
 mod game;
 mod titles;
 mod version_check;

@@ -20,7 +20,13 @@ pub fn ui_conversion_modal(ctx: &egui::Context, app: &App) {
             ui.separator();
 
             // Current file
-            let progress = app.conversion_progress.lock().unwrap();
+            let progress = match app.conversion_progress.lock() {
+                Ok(progress) => progress,
+                Err(_) => {
+                    ui.label("Error: Could not retrieve conversion progress.");
+                    return;
+                }
+            };
             ui.label(&progress.current_file);
             ui.add_space(10.0);
 
