@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use anyhow::{Context, Result};
+use semver::Version;
 use serde::Deserialize;
 
 const CURRENT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -38,11 +39,16 @@ pub fn check_for_new_version() -> Result<Option<UpdateInfo>> {
         .read_json::<Release>()
         .context("Failed to parse release information")?;
 
-    // Naive version comparison. Assumes v-prefix and semver.
+    // Parse versions using semver
     let latest_version = release.tag_name.trim_start_matches('v');
     let current_version = CURRENT_VERSION.trim_start_matches('v');
 
-    if latest_version > current_version {
+    let latest_ver = Version::parse(latest_version)
+        .context("Failed to parse latest version from GitHub")?;
+    let current_ver = Version::parse(current_version)
+        .context("Failed to parse current version")?;
+
+    if latest_ver > current_ver {
         Ok(Some(UpdateInfo {
             version: release.tag_name,
             url: release.html_url,
