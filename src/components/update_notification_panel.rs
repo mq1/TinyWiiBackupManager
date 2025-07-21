@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use crate::app::App;
+use crate::error_handling;
 
 /// Renders the update notification panel at the bottom
 pub fn ui_update_notification_panel(ctx: &egui::Context, app: &App) {
@@ -15,7 +16,10 @@ pub fn ui_update_notification_panel(ctx: &egui::Context, app: &App) {
                 .clicked()
             {
                 if let Err(e) = webbrowser::open(&update_info.url) {
-                    log::error!("Failed to open browser: {}", e);
+                    error_handling::show_error(
+                        "Error opening browser",
+                        &format!("Failed to open browser: {}", e),
+                    );
                 }
             }
         });
