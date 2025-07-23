@@ -2,25 +2,24 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use crate::app::App;
+use eframe::egui;
 
-/// Renders the top menu bar
+/// Renders the top menu bar.
 pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
     egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
         egui::MenuBar::new().ui(ui, |ui| {
-            let is_converting = app.conversion_promise.is_some();
-
-            // Add games button
-            ui.add_enabled_ui(!is_converting, |ui| {
+            // Disable the "Add Game(s)" button while a conversion is in progress
+            ui.add_enabled_ui(app.conversion_promise.is_none(), |ui| {
                 if ui
                     .button("➕ Add Game(s)")
                     .on_hover_text("Add a new game to the WBFS directory")
                     .clicked()
                 {
-                    app.add_isos();
+                    app.add_isos(); // Trigger the ISO selection and conversion process
                 }
             });
 
-            // Game counter
+            // Display the total number of games on the right side of the menu bar
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 ui.label(format!("{} games", app.games.len()));
             });
