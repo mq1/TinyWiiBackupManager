@@ -27,7 +27,7 @@ pub struct UpdateInfo {
 pub fn check_for_new_version() -> Result<Option<UpdateInfo>> {
     // Construct the GitHub API URL for the latest release
     let repo_path = REPO_URL.trim_start_matches("https://github.com/");
-    let api_url = format!("https://api.github.com/repos/{}/releases/latest", repo_path);
+    let api_url = format!("https://api.github.com/repos/{repo_path}/releases/latest");
 
     // Send a GET request to the GitHub API
     let mut response = ureq::get(&api_url)
@@ -55,7 +55,7 @@ pub fn check_for_new_version() -> Result<Option<UpdateInfo>> {
         .context("Failed to parse current version")?;
 
     // Compare versions and return UpdateInfo if a newer version is available
-    Ok((latest_ver > current_ver).then(|| UpdateInfo {
+    Ok((latest_ver > current_ver).then_some(UpdateInfo {
         version: release.tag_name,
         url: release.html_url,
     }))

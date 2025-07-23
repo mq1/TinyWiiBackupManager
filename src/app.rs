@@ -81,7 +81,7 @@ impl App {
         {
             // Attempt to remove the directory
             if let Err(e) = std::fs::remove_dir_all(&game_to_remove.path) {
-                error_handling::show_error("Error", &format!("Failed to remove game: {}", e));
+                error_handling::show_error("Error", &format!("Failed to remove game: {e}"));
             } else {
                 // Only refresh if removal was successful
                 self.refresh_games();
@@ -154,7 +154,7 @@ impl App {
                         // Show error if conversion failed
                         error_handling::show_error(
                             "Conversion Error",
-                            &format!("Failed to convert: {:#}", e),
+                            &format!("Failed to convert: {e:#}"),
                         );
                     }
                     // Refresh the game list regardless of success/failure
@@ -184,7 +184,7 @@ impl App {
                     // Error during version check
                     error_handling::show_error(
                         "Version Check Error",
-                        &format!("Failed to check for new version: {:#}", e),
+                        &format!("Failed to check for new version: {e:#}"),
                     );
                 }
                 // Ok(None) means no update, Err(promise) means still pending.
