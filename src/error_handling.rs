@@ -6,8 +6,8 @@ use rfd::{MessageDialog, MessageLevel};
 /// Shows a standardized error dialog.
 pub fn show_error(title: &str, description: &str) {
     MessageDialog::new()
-        .set_level(MessageLevel::Error)
+        .set_level(MessageLevel::Error) // Set the dialog level to Error
         .set_title(title)
         .set_description(description)
-        .show();
+        .show(); // Display the dialog
 }
