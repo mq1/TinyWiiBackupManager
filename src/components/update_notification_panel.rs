@@ -18,7 +18,7 @@ pub fn ui_update_notification_panel(ctx: &egui::Context, app: &App) {
                 if let Err(e) = webbrowser::open(&update_info.url) {
                     error_handling::show_error(
                         "Error opening browser",
-                        &format!("Failed to open browser: {}", e),
+                        &format!("Failed to open browser: {e}"),
                     );
                 }
             }

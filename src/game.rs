@@ -41,7 +41,7 @@ impl Game {
         let title = path
             .file_stem()
             .and_then(|name| name.to_str())
-            .map(|name| name.trim_end_matches(&format!(" [{}]", id)))
+            .map(|name| name.trim_end_matches(&format!(" [{id}]")))
             .context("Failed to extract title from path")?
             .to_string();
 
@@ -49,7 +49,7 @@ impl Game {
         let display_title = GAME_TITLES
             .get(id.as_str())
             .map(|s| s.to_string())
-            .unwrap_or_else(|| format!("{} [{}]", title, id));
+            .unwrap_or_else(|| format!("{title} [{id}]"));
 
         // Return the constructed Game struct
         Ok(Self {
