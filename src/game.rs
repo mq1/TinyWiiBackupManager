@@ -47,9 +47,7 @@ impl Game {
 
         // Look up the display title in the predefined titles map, or use a fallback
         let display_title = GAME_TITLES
-            .get(id.as_str())
-            .map(|s| s.to_string())
-            .unwrap_or_else(|| format!("{title} [{id}]"));
+            .get(id.as_str()).map_or_else(|| format!("{title} [{id}]"), |s| (*s).to_string());
 
         // Return the constructed Game struct
         Ok(Self {
