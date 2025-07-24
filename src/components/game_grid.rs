@@ -13,7 +13,11 @@ const GRID_SPACING: egui::Vec2 = egui::vec2(10.0, 10.0);
 pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
     // Use Option<Arc<Game>> to store the game to be removed
     let mut game_to_remove: Option<Arc<Game>> = None;
-    let num_columns = (ui.available_width() / CARD_SIZE.x).floor() as usize;
+
+    // Safely calculate the number of columns.
+    let num_columns_f32 = (ui.available_width() / CARD_SIZE.x).floor().max(1.0);
+    // It's safe to use `unsafe` here because we've floored and clamped the value >= 1.0.
+    let num_columns = unsafe { num_columns_f32.to_int_unchecked::<usize>() };
 
     // Create a scrollable area for the game grid
     egui::ScrollArea::vertical().show(ui, |ui| {
