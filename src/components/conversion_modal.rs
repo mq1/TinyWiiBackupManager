@@ -34,12 +34,19 @@ pub fn ui_conversion_modal(ctx: &egui::Context, app: &App) {
                 });
             } else {
                 // Calculate and display conversion progress
-                let progress_value = if progress.total_blocks > 0 {
-                    progress.current_block as f32 / progress.total_blocks as f32
+                let progress_percentage = if progress.total_blocks > 0 {
+                    // Use integer arithmetic to avoid floating point precision loss warnings.
+                    let current = u128::from(progress.current_block);
+                    let total = u128::from(progress.total_blocks);
+                    u8::try_from(current * 100 / total).unwrap_or(100)
                 } else {
-                    0.0 // Avoid division by zero
+                    0
                 };
-                ui.add(egui::ProgressBar::new(progress_value).show_percentage());
+
+                ui.add(
+                    egui::ProgressBar::new(f32::from(progress_percentage) / 100.0)
+                        .show_percentage(),
+                );
                 ui.label(format!(
                     "{} / {} blocks",
                     progress.current_block, progress.total_blocks

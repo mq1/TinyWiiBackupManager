@@ -128,7 +128,7 @@ impl App {
                             ProgressUpdate::Done => {} // Single file done
                         }
                         // Update the current file being processed
-                        progress.current_file = file_path_str.clone();
+                        progress.current_file.clone_from(&file_path_str);
                     }
                     // If lock fails, we silently ignore progress updates (not ideal, but prevents panic)
                 };
