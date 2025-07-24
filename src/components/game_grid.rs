@@ -3,7 +3,7 @@
 
 use crate::{app::App, game::Game};
 use eframe::egui::{self, Image, RichText};
-use std::sync::Arc; // Import Arc
+use std::sync::Arc;
 
 // Constants for grid layout
 const CARD_SIZE: egui::Vec2 = egui::vec2(180.0, 240.0);
@@ -14,35 +14,17 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
     // Use Option<Arc<Game>> to store the game to be removed
     let mut game_to_remove: Option<Arc<Game>> = None;
 
-    // Calculate number of columns with explicit handling of float-to-int conversion
-    let columns_f32 = (ui.available_width() / CARD_SIZE.x).floor();
-    let num_columns = if columns_f32 >= 1.0 {
-        // Use try_from to handle potential truncation and sign loss explicitly
-        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-        let cols = columns_f32 as usize;
-        cols
-    } else {
-        // Fallback to 1 column if calculation results in 0 or negative value
-        1
-    };
-
     // Create a scrollable area for the game grid
     egui::ScrollArea::vertical().show(ui, |ui| {
-        egui::Grid::new("games_grid")
-            .num_columns(num_columns)
-            .spacing(GRID_SPACING)
-            .show(ui, |ui| {
-                // Iterate over games and render cards
-                for (i, game) in app.games.iter().enumerate() {
-                    // Pass a clone of the Arc to the card for removal
-                    ui_game_card(ui, game, || game_to_remove = Some(game.clone()));
-
-                    // End the grid row after the specified number of columns
-                    if (i + 1) % num_columns == 0 {
-                        ui.end_row();
-                    }
-                }
-            });
+        egui_flex::Flex::horizontal().wrap(true).gap(GRID_SPACING).show(ui, |flex| {
+            for game in app.games.iter() {
+                flex.add_ui(egui_flex::item(), |ui| {
+                    ui_game_card(ui, game, || {
+                        game_to_remove = Some(game.clone());
+                    });
+                });
+            }
+        });
     });
 
     // If a game was marked for removal, call the remove function
