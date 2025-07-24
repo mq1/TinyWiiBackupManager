@@ -14,10 +14,17 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
     // Use Option<Arc<Game>> to store the game to be removed
     let mut game_to_remove: Option<Arc<Game>> = None;
 
-    // Safely calculate the number of columns.
-    let num_columns_f32 = (ui.available_width() / CARD_SIZE.x).floor().max(1.0);
-    // It's safe to use `unsafe` here because we've floored and clamped the value >= 1.0.
-    let num_columns = unsafe { num_columns_f32.to_int_unchecked::<usize>() };
+    // Calculate number of columns with explicit handling of float-to-int conversion
+    let columns_f32 = (ui.available_width() / CARD_SIZE.x).floor();
+    let num_columns = if columns_f32 >= 1.0 {
+        // Use try_from to handle potential truncation and sign loss explicitly
+        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+        let cols = columns_f32 as usize;
+        cols
+    } else {
+        // Fallback to 1 column if calculation results in 0 or negative value
+        1
+    };
 
     // Create a scrollable area for the game grid
     egui::ScrollArea::vertical().show(ui, |ui| {

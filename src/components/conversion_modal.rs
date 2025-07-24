@@ -33,12 +33,11 @@ pub fn ui_conversion_modal(ctx: &egui::Context, app: &App) {
                     ui.label("Scrubbing disc...");
                 });
             } else {
-                // Calculate and display conversion progress
+                // Calculate progress percentage with overflow protection and safe conversion
                 let progress_percentage = if progress.total_blocks > 0 {
-                    // Use integer arithmetic to avoid floating point precision loss warnings.
-                    let current = u128::from(progress.current_block);
-                    let total = u128::from(progress.total_blocks);
-                    u8::try_from(current * 100 / total).unwrap_or(100)
+                    // Use saturating operations to prevent overflow and safely convert to u8
+                    let percentage = progress.current_block.saturating_mul(100) / progress.total_blocks;
+                    u8::try_from(percentage).unwrap_or(u8::MAX)
                 } else {
                     0
                 };
