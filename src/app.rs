@@ -64,7 +64,7 @@ impl App {
     }
 
     /// Spawns a background thread to check for application updates.
-    fn spawn_version_check(&mut self) {
+    fn spawn_version_check(&self) {
         let sender = self.inbox.sender();
 
         std::thread::spawn(move || {

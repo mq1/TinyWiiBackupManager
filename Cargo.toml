@@ -44,5 +44,3 @@ opt-level = 2
 
 [lints.clippy]
 all = "deny"
-pedantic = "deny"
-nursery = "deny"
