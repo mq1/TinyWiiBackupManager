@@ -3669,7 +3669,7 @@ dependencies = [
 
 [[package]]
 name = "tiny-wii-backup-manager"
-version = "1.0.0-beta"
+version = "1.0.0-rc"
 dependencies = [
  "anyhow",
  "eframe",
