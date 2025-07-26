@@ -9,7 +9,7 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
     egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
         egui::MenuBar::new().ui(ui, |ui| {
             // Disable the "Add Game(s)" button while a conversion is in progress
-            ui.add_enabled_ui(app.conversion_promise.is_none(), |ui| {
+            ui.add_enabled_ui(!app.conversion_in_progress, |ui| {
                 if ui
                     .button("➕ Add Game(s)")
                     .on_hover_text("Add a new game to the WBFS directory")
