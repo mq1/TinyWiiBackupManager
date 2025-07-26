@@ -3,11 +3,11 @@
 
 use rfd::{MessageDialog, MessageLevel};
 
-/// Shows a standardized error dialog.
+/// Show an error dialog with the given title and description
 pub fn show_error(title: &str, description: &str) {
     MessageDialog::new()
-        .set_level(MessageLevel::Error) // Set the dialog level to Error
+        .set_level(MessageLevel::Error)
         .set_title(title)
         .set_description(description)
-        .show(); // Display the dialog
+        .show();
 }

@@ -1,61 +1,47 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
-use anyhow::{Context, Result};
+use anyhow::Context;
 use semver::Version;
 use serde::Deserialize;
 
-// Get version and repository information from Cargo environment variables
-const CURRENT_VERSION: &str = env!("CARGO_PKG_VERSION");
-const REPO_URL: &str = env!("CARGO_PKG_REPOSITORY");
+const VERSION: &str = env!("CARGO_PKG_VERSION");
+const REPO: &str = env!("CARGO_PKG_REPOSITORY");
 
-// Struct to deserialize the GitHub release API response
 #[derive(Deserialize)]
 struct Release {
     tag_name: String,
     html_url: String,
 }
 
-/// Information about an available update.
-#[derive(Clone)]
+/// Information about an available update
+#[derive(Debug, Clone)]
 pub struct UpdateInfo {
     pub version: String,
     pub url: String,
 }
 
-/// Checks for a new version on GitHub.
-pub fn check_for_new_version() -> Result<Option<UpdateInfo>> {
-    // Construct the GitHub API URL for the latest release
-    let repo_path = REPO_URL.trim_start_matches("https://github.com/");
-    let api_url = format!("https://api.github.com/repos/{repo_path}/releases/latest");
+/// Check for a newer version on GitHub
+pub fn check_for_new_version() -> anyhow::Result<Option<UpdateInfo>> {
+    let repo = REPO.trim_start_matches("https://github.com/");
+    let url = format!("https://api.github.com/repos/{repo}/releases/latest");
+    let user_agent = format!("{}/{}", env!("CARGO_PKG_NAME"), VERSION);
 
-    // Send a GET request to the GitHub API
-    let mut response = ureq::get(&api_url)
-        .header(
-            "User-Agent",
-            &format!("{}/{}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION")),
-        )
+    let release = ureq::get(&url)
+        .header("User-Agent", &user_agent)
         .call()
-        .context("Failed to fetch latest release from GitHub")?;
-
-    // Deserialize the JSON response into a Release struct
-    let release = response
+        .context("Failed to fetch latest release")?
         .body_mut()
         .read_json::<Release>()
-        .context("Failed to parse release information")?;
+        .context("Failed to parse release info")?;
 
-    // Extract and parse version strings (removing 'v' prefix)
-    let latest_version = release.tag_name.trim_start_matches('v');
-    let current_version = CURRENT_VERSION.trim_start_matches('v');
-
-    // Parse versions using the semver crate for accurate comparison
-    let latest_ver = Version::parse(latest_version)
-        .context("Failed to parse latest version from GitHub")?;
-    let current_ver = Version::parse(current_version)
+    let latest = Version::parse(release.tag_name.trim_start_matches('v'))
+        .context("Failed to parse latest version")?;
+    
+    let current = Version::parse(VERSION.trim_start_matches('v'))
         .context("Failed to parse current version")?;
 
-    // Compare versions and return UpdateInfo if a newer version is available
-    Ok((latest_ver > current_ver).then_some(UpdateInfo {
+    Ok((latest > current).then_some(UpdateInfo {
         version: release.tag_name,
         url: release.html_url,
     }))
