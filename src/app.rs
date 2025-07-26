@@ -6,7 +6,6 @@ use std::path::PathBuf;
 use anyhow::{Context, Result};
 use eframe::egui;
 use egui_inbox::{UiInbox, UiInboxSender};
-use iso2wbfs::ProgressUpdate;
 
 use crate::{
     error_handling,
@@ -14,20 +13,11 @@ use crate::{
     version_check::{self, UpdateInfo},
 };
 
-/// Tracks the progress of the ISO conversion process.
-#[derive(Debug, Default, Clone)]
-pub struct ConversionProgress {
-    pub current_file: String,
-    pub is_scrubbing: bool,
-    pub total_blocks: u64,
-    pub current_block: u64,
-}
-
 /// Messages that can be sent from background tasks to the main thread
 #[derive(Debug)]
 enum BackgroundMessage {
-    /// Update the progress of the current conversion
-    ConversionProgress(ConversionProgress),
+    /// Signal that a single file conversion has completed
+    FileConverted,
     /// Signal that the conversion has completed (with result)
     ConversionComplete(Result<()>),
     /// Signal that the version check has completed
@@ -44,8 +34,10 @@ pub struct App {
     inbox: UiInbox<BackgroundMessage>,
     /// Whether a conversion is currently in progress
     pub conversion_in_progress: bool,
-    /// Progress of the current conversion
-    pub conversion_progress: ConversionProgress,
+    /// Total number of files to convert
+    pub total_files_to_convert: usize,
+    /// Number of files already converted
+    pub files_converted: usize,
     /// Result of the version check, if available
     pub version_check_result: Option<UpdateInfo>,
 }
@@ -55,7 +47,7 @@ impl App {
     #[must_use]
     pub fn new(_cc: &eframe::CreationContext<'_>, wbfs_dir: PathBuf) -> Self {
         let inbox = UiInbox::new();
-        
+
         // Start background tasks
         Self::spawn_version_check(inbox.sender());
 
@@ -64,7 +56,8 @@ impl App {
             games: Vec::new(),
             inbox,
             conversion_in_progress: false,
-            conversion_progress: ConversionProgress::default(),
+            total_files_to_convert: 0,
+            files_converted: 0,
             version_check_result: None,
         };
 
@@ -136,54 +129,28 @@ impl App {
         let sender = self.inbox.sender();
 
         self.conversion_in_progress = true;
-        self.conversion_progress = ConversionProgress::default();
+        self.total_files_to_convert = paths.len();
+        self.files_converted = 0;
 
         std::thread::spawn(move || {
             for path in paths {
-                let file_path = path.display().to_string();
-                
-                if let Err(e) = Self::convert_single_iso(&path, &wbfs_dir, &file_path, &sender) {
+                if let Err(e) = Self::convert_single_iso(&path, &wbfs_dir) {
                     let _ = sender.send(BackgroundMessage::ConversionComplete(Err(e)));
                     return;
                 }
+                let _ = sender.send(BackgroundMessage::FileConverted);
             }
-            
+
             let _ = sender.send(BackgroundMessage::ConversionComplete(Ok(())));
         });
     }
-    
+
     /// Converts a single ISO file to WBFS format
-    fn convert_single_iso(
-        path: &PathBuf,
-        wbfs_dir: &PathBuf,
-        file_path: &str,
-        sender: &UiInboxSender<BackgroundMessage>,
-    ) -> Result<()> {
-        let progress = ConversionProgress {
-            current_file: file_path.to_string(),
-            ..Default::default()
-        };
-        
+    fn convert_single_iso(path: &PathBuf, wbfs_dir: &PathBuf) -> Result<()> {
         let mut converter = iso2wbfs::WbfsConverter::new(path, wbfs_dir)
             .with_context(|| format!("Failed to initialize converter for {}", path.display()))?;
 
-        let sender_clone = sender.clone();
-        converter.convert(Some(move |update| {
-            let mut progress = progress.clone();
-            match update {
-                ProgressUpdate::ScrubbingStart => progress.is_scrubbing = true,
-                ProgressUpdate::ConversionStart { total_blocks } => {
-                    progress.is_scrubbing = false;
-                    progress.total_blocks = total_blocks;
-                    progress.current_block = 0;
-                }
-                ProgressUpdate::ConversionUpdate { current_block } => {
-                    progress.current_block = current_block;
-                }
-                ProgressUpdate::Done => {}
-            }
-            let _ = sender_clone.send(BackgroundMessage::ConversionProgress(progress));
-        }))?;
+        converter.convert()?;
 
         Ok(())
     }
@@ -192,10 +159,10 @@ impl App {
     fn handle_messages(&mut self, ctx: &egui::Context) {
         for msg in self.inbox.read(ctx) {
             match msg {
-                BackgroundMessage::ConversionProgress(progress) => {
-                    self.conversion_progress = progress;
+                BackgroundMessage::FileConverted => {
+                    self.files_converted += 1;
                 }
-                
+
                 BackgroundMessage::ConversionComplete(result) => {
                     self.conversion_in_progress = false;
                     match result {
@@ -203,14 +170,14 @@ impl App {
                         Err(e) => error_handling::show_error("Conversion Failed", &e.to_string()),
                     }
                 }
-                
+
                 BackgroundMessage::VersionCheckComplete(result) => {
                     self.handle_version_check_result(result);
                 }
             }
         }
     }
-    
+
     /// Handles the result of a version check
     fn handle_version_check_result(&mut self, result: Result<Option<UpdateInfo>>) {
         match result {
