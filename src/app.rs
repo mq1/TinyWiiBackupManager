@@ -75,21 +75,24 @@ impl App {
 
     /// Scans the WBFS directory and updates the list of games.
     fn refresh_games(&mut self) {
-        self.games = match std::fs::read_dir(&self.wbfs_dir) {
-            Ok(entries) => entries
-                .filter_map(Result::ok)
-                .filter_map(|entry| {
-                    let path = entry.path();
-                    path.is_dir()
-                        .then(|| Game::from_path(path))
-                        .and_then(Result::ok)
-                })
-                .collect(),
+        let entries = match std::fs::read_dir(&self.wbfs_dir) {
+            Ok(entries) => entries,
             Err(e) => {
                 error_handling::show_error("Error", &format!("Failed to read WBFS directory: {e}"));
-                Vec::new()
+                std::process::exit(1);
             }
         };
+
+        self.games = entries
+            .filter_map(|entry| {
+                let path = entry.ok()?.path();
+                if path.is_dir() {
+                    Game::from_path(path).ok()
+                } else {
+                    None
+                }
+            })
+            .collect();
     }
 
     /// Prompts the user to confirm game removal and removes it if confirmed.
