@@ -14,9 +14,9 @@ pub fn ui_conversion_modal(ctx: &egui::Context, app: &App) {
             ui.spinner();
             ui.add_space(10.0);
 
-            let progress = app.files_converted / app.total_files_to_convert;
+            let progress = app.files_converted as f32 / app.total_files_to_convert as f32;
 
-            ui.add(egui::ProgressBar::new(progress as f32).show_percentage());
+            ui.add(egui::ProgressBar::new(progress).show_percentage());
             ui.add_space(5.0);
 
             ui.label(format!(
