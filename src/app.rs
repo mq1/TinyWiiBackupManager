@@ -48,9 +48,6 @@ impl App {
     pub fn new(_cc: &eframe::CreationContext<'_>, wbfs_dir: PathBuf) -> Self {
         let inbox = UiInbox::new();
 
-        // Start background tasks
-        Self::spawn_version_check(inbox.sender());
-
         let mut app = Self {
             wbfs_dir,
             games: Vec::new(),
@@ -61,12 +58,15 @@ impl App {
             version_check_result: None,
         };
 
+        app.spawn_version_check();
         app.refresh_games();
         app
     }
 
     /// Spawns a background thread to check for application updates.
-    fn spawn_version_check(sender: UiInboxSender<BackgroundMessage>) {
+    fn spawn_version_check(&mut self) {
+        let sender = self.inbox.sender();
+
         std::thread::spawn(move || {
             let result = version_check::check_for_new_version();
             let _ = sender.send(BackgroundMessage::VersionCheckComplete(result));
