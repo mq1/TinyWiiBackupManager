@@ -11,6 +11,7 @@ use crate::{
     error_handling,
     game::Game,
     version_check::{self, UpdateInfo},
+    components
 };
 
 /// Messages that can be sent from background tasks to the main thread
@@ -33,7 +34,7 @@ pub struct App {
     /// Inbox for receiving messages from background tasks
     inbox: UiInbox<BackgroundMessage>,
     /// Whether a conversion is currently in progress
-    pub conversion_in_progress: bool,
+    pub is_converting: bool,
     /// Total number of files to convert
     pub total_files_to_convert: usize,
     /// Number of files already converted
@@ -52,7 +53,7 @@ impl App {
             wbfs_dir,
             games: Vec::new(),
             inbox,
-            conversion_in_progress: false,
+            is_converting: false,
             total_files_to_convert: 0,
             files_converted: 0,
             version_check_result: None,
@@ -131,7 +132,7 @@ impl App {
         let wbfs_dir = self.wbfs_dir.clone();
         let sender = self.inbox.sender();
 
-        self.conversion_in_progress = true;
+        self.is_converting = true;
         self.total_files_to_convert = paths.len();
         self.files_converted = 0;
 
@@ -167,7 +168,7 @@ impl App {
                 }
 
                 BackgroundMessage::ConversionComplete(result) => {
-                    self.conversion_in_progress = false;
+                    self.is_converting = false;
                     match result {
                         Ok(()) => self.refresh_games(),
                         Err(e) => error_handling::show_error("Conversion Failed", &e.to_string()),
@@ -196,31 +197,21 @@ impl App {
 
 impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        use crate::components::{
-            conversion_modal, game_grid, top_panel, update_notification_panel,
-        };
-
         self.handle_messages(ctx);
-        self.update_cursor_icon(ctx);
 
-        top_panel::ui_top_panel(ctx, self);
+        components::top_panel::ui_top_panel(ctx, self);
 
         egui::CentralPanel::default().show(ctx, |ui| {
-            game_grid::ui_game_grid(ui, self);
-            conversion_modal::ui_conversion_modal(ctx, self);
-            update_notification_panel::ui_update_notification_panel(ctx, self);
-        });
-    }
-}
+            components::game_grid::ui_game_grid(ui, self);
 
-impl App {
-    /// Updates the cursor icon based on the application state
-    fn update_cursor_icon(&self, ctx: &egui::Context) {
-        let cursor_icon = if self.conversion_in_progress {
-            egui::CursorIcon::Wait
-        } else {
-            egui::CursorIcon::Default
-        };
-        ctx.set_cursor_icon(cursor_icon);
+            if self.is_converting {
+                components::conversion_modal::ui_conversion_modal(ctx, self);
+                ctx.set_cursor_icon(egui::CursorIcon::Wait);
+            } else {
+                ctx.set_cursor_icon(egui::CursorIcon::Default);
+            }
+
+            components::update_notification_panel::ui_update_notification_panel(ctx, self);
+        });
     }
 }
