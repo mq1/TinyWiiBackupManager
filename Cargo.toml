@@ -23,7 +23,7 @@ iso2wbfs = { git = "https://github.com/mq1/iso2wbfs" }
 ureq = { version = "3.0", features = ["json"] }
 rfd = "0.15"
 phf = { version = "0.12", features = ["macros"] }
-poll-promise = "0.3"
+egui_inbox = "0.9"
 serde = { version = "1.0", features = ["derive"] }
 webbrowser = "1.0"
 anyhow = "1.0"
