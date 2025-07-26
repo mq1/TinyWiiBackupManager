@@ -1,24 +1,26 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
+use std::path::PathBuf;
+
+use anyhow::{Context, Result};
+use eframe::egui;
+use egui_inbox::{UiInbox, UiInboxSender};
+use iso2wbfs::ProgressUpdate;
+
 use crate::{
     error_handling,
     game::Game,
     version_check::{self, UpdateInfo},
 };
-use anyhow::{Context as AnyhowContext, Result};
-use eframe::egui;
-use egui_inbox::UiInbox;
-use iso2wbfs::ProgressUpdate;
-use std::path::PathBuf;
 
 /// Tracks the progress of the ISO conversion process.
 #[derive(Debug, Default, Clone)]
 pub struct ConversionProgress {
     pub current_file: String,
     pub is_scrubbing: bool,
-    pub total_blocks: u64,  // Default 0
-    pub current_block: u64, // Default 0
+    pub total_blocks: u64,
+    pub current_block: u64,
 }
 
 /// Messages that can be sent from background tasks to the main thread
@@ -32,9 +34,11 @@ enum BackgroundMessage {
     VersionCheckComplete(Result<Option<UpdateInfo>>),
 }
 
-/// Main application state.
+/// Main application state and UI controller.
 pub struct App {
+    /// Directory where WBFS files are stored
     wbfs_dir: PathBuf,
+    /// List of discovered games
     pub games: Vec<Game>,
     /// Inbox for receiving messages from background tasks
     inbox: UiInbox<BackgroundMessage>,
@@ -51,13 +55,9 @@ impl App {
     #[must_use]
     pub fn new(_cc: &eframe::CreationContext<'_>, wbfs_dir: PathBuf) -> Self {
         let inbox = UiInbox::new();
-
-        // Spawn version check in the background
-        let version_check_sender = inbox.sender();
-        std::thread::spawn(move || {
-            let result = version_check::check_for_new_version();
-            let _ = version_check_sender.send(BackgroundMessage::VersionCheckComplete(result));
-        });
+        
+        // Start background tasks
+        Self::spawn_version_check(inbox.sender());
 
         let mut app = Self {
             wbfs_dir,
@@ -68,57 +68,64 @@ impl App {
             version_check_result: None,
         };
 
-        app.refresh_games(); // Populate games on startup
+        app.refresh_games();
         app
+    }
+
+    /// Spawns a background thread to check for application updates.
+    fn spawn_version_check(sender: UiInboxSender<BackgroundMessage>) {
+        std::thread::spawn(move || {
+            let result = version_check::check_for_new_version();
+            let _ = sender.send(BackgroundMessage::VersionCheckComplete(result));
+        });
     }
 
     /// Scans the WBFS directory and updates the list of games.
     fn refresh_games(&mut self) {
-        self.games = std::fs::read_dir(&self.wbfs_dir)
-            .ok()
-            .into_iter()
-            .flatten()
-            .filter_map(|entry| {
-                entry.ok().and_then(|e| {
-                    let path = e.path();
-                    path.is_dir().then(|| Game::from_path(path).ok()).flatten()
+        self.games = match std::fs::read_dir(&self.wbfs_dir) {
+            Ok(entries) => entries
+                .filter_map(Result::ok)
+                .filter_map(|entry| {
+                    let path = entry.path();
+                    path.is_dir()
+                        .then(|| Game::from_path(path))
+                        .and_then(Result::ok)
                 })
-            })
-            .collect();
+                .collect(),
+            Err(e) => {
+                error_handling::show_error("Error", &format!("Failed to read WBFS directory: {e}"));
+                Vec::new()
+            }
+        };
     }
 
-    /// Prompts the user and removes a game from the filesystem.
+    /// Prompts the user to confirm game removal and removes it if confirmed.
     pub fn remove_game(&mut self, game_to_remove: &Game) {
-        // Use a more concise dialog creation and check result in one line
-        if rfd::MessageDialog::new()
+        let confirmed = rfd::MessageDialog::new()
             .set_title("Remove Game")
-            .set_description(format!(
-                "Are you sure you want to remove {}?",
-                game_to_remove.display_title
-            ))
+            .set_description(format!("Are you sure you want to remove {}?", game_to_remove.display_title))
             .set_buttons(rfd::MessageButtons::YesNo)
-            .show()
-            == rfd::MessageDialogResult::Yes
-        {
-            // Attempt to remove the directory
-            if let Err(e) = std::fs::remove_dir_all(&game_to_remove.path) {
-                error_handling::show_error("Error", &format!("Failed to remove game: {e}"));
-            } else {
-                // Only refresh if removal was successful
-                self.refresh_games();
-            }
+            .show() == rfd::MessageDialogResult::Yes;
+
+        if !confirmed {
+            return;
+        }
+
+        if let Err(e) = std::fs::remove_dir_all(&game_to_remove.path) {
+            error_handling::show_error("Error", &format!("Failed to remove game: {e}"));
+        } else {
+            self.refresh_games();
         }
     }
 
-    /// Opens a file dialog to select ISOs and starts the conversion process.
+    /// Opens a file dialog to select ISO files and starts the conversion process.
     pub fn add_isos(&mut self) {
-        // Use filter to check for non-empty selection
-        if let Some(paths) = rfd::FileDialog::new()
+        let paths = rfd::FileDialog::new()
             .set_title("Select ISO File(s)")
             .add_filter("ISO Files", &["iso"])
-            .pick_files()
-            .filter(|p| !p.is_empty())
-        {
+            .pick_files();
+
+        if let Some(paths) = paths.filter(|p| !p.is_empty()) {
             self.spawn_conversion_worker(paths);
         }
     }
@@ -132,82 +139,86 @@ impl App {
         self.conversion_progress = ConversionProgress::default();
 
         std::thread::spawn(move || {
-            let result = Ok(());
-
             for path in paths {
                 let file_path = path.display().to_string();
-
-                match (|| -> Result<()> {
-                    let progress = ConversionProgress {
-                        current_file: file_path,
-                        ..Default::default()
-                    };
-                    let mut converter = iso2wbfs::WbfsConverter::new(&path, &wbfs_dir)?;
-
-                    let sender_clone = sender.clone();
-                    converter.convert(Some(move |update| {
-                        let mut progress = progress.clone();
-                        match update {
-                            ProgressUpdate::ScrubbingStart => progress.is_scrubbing = true,
-                            ProgressUpdate::ConversionStart { total_blocks } => {
-                                progress.is_scrubbing = false;
-                                progress.total_blocks = total_blocks;
-                                progress.current_block = 0;
-                            }
-                            ProgressUpdate::ConversionUpdate { current_block } => {
-                                progress.current_block = current_block;
-                            }
-                            ProgressUpdate::Done => {}
-                        }
-                        let _ = sender_clone.send(BackgroundMessage::ConversionProgress(progress));
-                    }))?;
-
-                    Ok(())
-                })()
-                .with_context(|| format!("Failed to convert {}", path.display()))
-                {
-                    Ok(()) => {}
-                    Err(e) => {
-                        let _ = sender.send(BackgroundMessage::ConversionComplete(Err(e)));
-                        return;
-                    }
+                
+                if let Err(e) = Self::convert_single_iso(&path, &wbfs_dir, &file_path, &sender) {
+                    let _ = sender.send(BackgroundMessage::ConversionComplete(Err(e)));
+                    return;
                 }
             }
-
-            if let Err(e) = result {
-                let _ = sender.send(BackgroundMessage::ConversionComplete(Err(e)));
-            } else {
-                let _ = sender.send(BackgroundMessage::ConversionComplete(Ok(())));
-            }
+            
+            let _ = sender.send(BackgroundMessage::ConversionComplete(Ok(())));
         });
     }
+    
+    /// Converts a single ISO file to WBFS format
+    fn convert_single_iso(
+        path: &PathBuf,
+        wbfs_dir: &PathBuf,
+        file_path: &str,
+        sender: &UiInboxSender<BackgroundMessage>,
+    ) -> Result<()> {
+        let progress = ConversionProgress {
+            current_file: file_path.to_string(),
+            ..Default::default()
+        };
+        
+        let mut converter = iso2wbfs::WbfsConverter::new(path, wbfs_dir)
+            .with_context(|| format!("Failed to initialize converter for {}", path.display()))?;
 
-    // Process messages from background tasks
+        let sender_clone = sender.clone();
+        converter.convert(Some(move |update| {
+            let mut progress = progress.clone();
+            match update {
+                ProgressUpdate::ScrubbingStart => progress.is_scrubbing = true,
+                ProgressUpdate::ConversionStart { total_blocks } => {
+                    progress.is_scrubbing = false;
+                    progress.total_blocks = total_blocks;
+                    progress.current_block = 0;
+                }
+                ProgressUpdate::ConversionUpdate { current_block } => {
+                    progress.current_block = current_block;
+                }
+                ProgressUpdate::Done => {}
+            }
+            let _ = sender_clone.send(BackgroundMessage::ConversionProgress(progress));
+        }))?;
+
+        Ok(())
+    }
+
+    /// Processes messages received from background tasks
     fn handle_messages(&mut self, ctx: &egui::Context) {
         for msg in self.inbox.read(ctx) {
             match msg {
                 BackgroundMessage::ConversionProgress(progress) => {
                     self.conversion_progress = progress;
                 }
-
+                
                 BackgroundMessage::ConversionComplete(result) => {
                     self.conversion_in_progress = false;
                     match result {
-                        Ok(_) => self.refresh_games(),
+                        Ok(()) => self.refresh_games(),
                         Err(e) => error_handling::show_error("Conversion Failed", &e.to_string()),
                     }
                 }
-
+                
                 BackgroundMessage::VersionCheckComplete(result) => {
-                    match &result {
-                        Ok(Some(update)) => self.version_check_result = Some(update.clone()),
-                        Ok(None) => self.version_check_result = None,
-                        Err(e) => {
-                            self.version_check_result = None;
-                            error_handling::show_error("Update Check Failed", &e.to_string());
-                        }
-                    }
+                    self.handle_version_check_result(result);
                 }
+            }
+        }
+    }
+    
+    /// Handles the result of a version check
+    fn handle_version_check_result(&mut self, result: Result<Option<UpdateInfo>>) {
+        match result {
+            Ok(Some(update)) => self.version_check_result = Some(update),
+            Ok(None) => self.version_check_result = None,
+            Err(e) => {
+                self.version_check_result = None;
+                error_handling::show_error("Update Check Failed", &e.to_string());
             }
         }
     }
@@ -215,16 +226,12 @@ impl App {
 
 impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        use crate::components::*;
+        use crate::components::{
+            conversion_modal, game_grid, top_panel, update_notification_panel,
+        };
 
         self.handle_messages(ctx);
-
-        let cursor_icon = if self.conversion_in_progress {
-            egui::CursorIcon::Wait
-        } else {
-            egui::CursorIcon::Default
-        };
-        ctx.set_cursor_icon(cursor_icon);
+        self.update_cursor_icon(ctx);
 
         egui::CentralPanel::default().show(ctx, |ui| {
             top_panel::ui_top_panel(ctx, self);
@@ -232,5 +239,17 @@ impl eframe::App for App {
             conversion_modal::ui_conversion_modal(ctx, self);
             update_notification_panel::ui_update_notification_panel(ctx, self);
         });
+    }
+}
+
+impl App {
+    /// Updates the cursor icon based on the application state
+    fn update_cursor_icon(&self, ctx: &egui::Context) {
+        let cursor_icon = if self.conversion_in_progress {
+            egui::CursorIcon::Wait
+        } else {
+            egui::CursorIcon::Default
+        };
+        ctx.set_cursor_icon(cursor_icon);
     }
 }
