@@ -8,16 +8,13 @@ use eframe::egui;
 pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
     egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
         egui::MenuBar::new().ui(ui, |ui| {
-            // Disable the "Add Game(s)" button while a conversion is in progress
-            ui.add_enabled_ui(!app.conversion_in_progress, |ui| {
-                if ui
-                    .button("➕ Add Game(s)")
-                    .on_hover_text("Add a new game to the WBFS directory")
-                    .clicked()
-                {
-                    app.add_isos(); // Trigger the ISO selection and conversion process
-                }
-            });
+            let add_games_button = ui
+                .button("➕ Add Game(s)")
+                .on_hover_text("Add a new game to the WBFS directory");
+
+            if add_games_button.clicked() {
+                app.add_isos();
+            }
 
             // Display the total number of games on the right side of the menu bar
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
