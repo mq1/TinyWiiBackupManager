@@ -57,8 +57,9 @@ fn ui_game_card(ui: &mut egui::Ui, game: &Game) -> bool {
                     .size(12.0),
             );
 
-            ui.add_space(ui.available_height() - 20.0);
-            remove_clicked = ui.button("🗑 Remove").clicked();
+            ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
+                remove_clicked = ui.button("🗑 Remove").clicked();
+            });
         });
     });
 

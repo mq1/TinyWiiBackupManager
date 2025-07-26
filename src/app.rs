@@ -200,8 +200,9 @@ impl eframe::App for App {
         self.handle_messages(ctx);
         self.update_cursor_icon(ctx);
 
+        top_panel::ui_top_panel(ctx, self);
+
         egui::CentralPanel::default().show(ctx, |ui| {
-            top_panel::ui_top_panel(ctx, self);
             game_grid::ui_game_grid(ui, self);
             conversion_modal::ui_conversion_modal(ctx, self);
             update_notification_panel::ui_update_notification_panel(ctx, self);
