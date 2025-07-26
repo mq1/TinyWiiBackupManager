@@ -11,7 +11,8 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
     let mut to_remove = None;
 
     egui::ScrollArea::vertical().show(ui, |ui| {
-        let num_columns = ((ui.available_width() / CARD_SIZE.x) as usize).max(1);
+        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+        let num_columns = (ui.available_width() / CARD_SIZE.x).floor().max(1.0) as usize;
 
         egui::Grid::new("game_grid")
             .spacing(GRID_SPACING)
