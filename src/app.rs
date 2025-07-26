@@ -5,7 +5,7 @@ use std::path::PathBuf;
 
 use anyhow::{Context, Result};
 use eframe::egui;
-use egui_inbox::{UiInbox, UiInboxSender};
+use egui_inbox::UiInbox;
 
 use crate::{
     error_handling,
