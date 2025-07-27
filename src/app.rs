@@ -8,10 +8,10 @@ use eframe::egui;
 use egui_inbox::UiInbox;
 
 use crate::{
-    error_handling,
+    error_handling::show_anyhow_error,
     game::Game,
     version_check::{self, UpdateInfo},
-    components
+    components,
 };
 
 /// Messages that can be sent from background tasks to the main thread
@@ -45,8 +45,7 @@ pub struct App {
 
 impl App {
     /// Initializes the application with the specified WBFS directory.
-    #[must_use]
-    pub fn new(_cc: &eframe::CreationContext<'_>, wbfs_dir: PathBuf) -> Self {
+    pub fn new(_cc: &eframe::CreationContext<'_>, wbfs_dir: PathBuf) -> Result<Self> {
         let inbox = UiInbox::new();
 
         let mut app = Self {
@@ -60,8 +59,8 @@ impl App {
         };
 
         app.spawn_version_check();
-        app.refresh_games();
-        app
+        app.refresh_games()?;
+        Ok(app)
     }
 
     /// Spawns a background thread to check for application updates.
@@ -75,14 +74,9 @@ impl App {
     }
 
     /// Scans the WBFS directory and updates the list of games.
-    fn refresh_games(&mut self) {
-        let entries = match std::fs::read_dir(&self.wbfs_dir) {
-            Ok(entries) => entries,
-            Err(e) => {
-                error_handling::show_error("Error", &format!("Failed to read WBFS directory: {e}"));
-                std::process::exit(1);
-            }
-        };
+    fn refresh_games(&mut self) -> Result<()> {
+        let entries = std::fs::read_dir(&self.wbfs_dir)
+            .with_context(|| format!("Failed to read dir: {}", self.wbfs_dir.display()))?;
 
         self.games = entries
             .filter_map(|entry| {
@@ -94,25 +88,33 @@ impl App {
                 }
             })
             .collect();
+        Ok(())
     }
 
     /// Prompts the user to confirm game removal and removes it if confirmed.
     pub fn remove_game(&mut self, game_to_remove: &Game) {
-        let confirmed = rfd::MessageDialog::new()
+        let res = rfd::MessageDialog::new()
             .set_title("Remove Game")
             .set_description(format!("Are you sure you want to remove {}?", game_to_remove.display_title))
             .set_buttons(rfd::MessageButtons::YesNo)
-            .show() == rfd::MessageDialogResult::Yes;
+            .show();
 
-        if !confirmed {
+        if res == rfd::MessageDialogResult::No {
             return;
         }
 
-        if let Err(e) = std::fs::remove_dir_all(&game_to_remove.path) {
-            error_handling::show_error("Error", &format!("Failed to remove game: {e}"));
+        if let Err(e) = self.try_remove_game(game_to_remove) {
+            show_anyhow_error("Error", &e);
         } else {
-            self.refresh_games();
+            if let Err(e) = self.refresh_games() {
+                show_anyhow_error("Error", &e);
+            }
         }
+    }
+
+    fn try_remove_game(&mut self, game_to_remove: &Game) -> Result<()> {
+        std::fs::remove_dir_all(&game_to_remove.path)
+            .with_context(|| format!("Failed to remove game: {}", game_to_remove.path.display()))
     }
 
     /// Opens a file dialog to select ISO files and starts the conversion process.
@@ -170,8 +172,12 @@ impl App {
                 BackgroundMessage::ConversionComplete(result) => {
                     self.is_converting = false;
                     match result {
-                        Ok(()) => self.refresh_games(),
-                        Err(e) => error_handling::show_error("Conversion Failed", &e.to_string()),
+                        Ok(()) => {
+                            if let Err(e) = self.refresh_games() {
+                                show_anyhow_error("Error", &e);
+                            }
+                        }
+                        Err(e) => show_anyhow_error("Conversion Failed", &e),
                     }
                 }
 
@@ -189,7 +195,7 @@ impl App {
             Ok(None) => self.version_check_result = None,
             Err(e) => {
                 self.version_check_result = None;
-                error_handling::show_error("Update Check Failed", &e.to_string());
+                show_anyhow_error("Update Check Failed", &e);
             }
         }
     }
