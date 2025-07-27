@@ -3,35 +3,49 @@
 
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use anyhow::{Result, Context};
+use eframe::egui;
+use tiny_wii_backup_manager::error_handling::show_error;
 
-fn main() -> Result<()> {
-    let Some(wbfs_dir) = rfd::FileDialog::new()
+const WINDOW_SIZE: egui::Vec2 = egui::vec2(800.0, 600.0);
+
+fn main() {
+    let wbfs_dir = rfd::FileDialog::new()
         .set_title("Select WBFS Directory")
-        .pick_folder() else {
-            return Ok(());
-        };
+        .pick_folder();
 
-    let icon = eframe::icon_data::from_png_bytes(include_bytes!("../logo@2x.png"))
-        .context("Failed to load icon")?;
+    let Some(wbfs_dir) = wbfs_dir else {
+        show_error("Error", "Failed to select WBFS directory");
+        return;
+    };
+
+    let title = format!(
+        "TinyWiiBackupManager v{} - {}",
+        env!("CARGO_PKG_VERSION"),
+        wbfs_dir.display()
+    );
+
+    let Ok(icon) = eframe::icon_data::from_png_bytes(include_bytes!("../logo@2x.png")) else {
+        show_error("Error", "Failed to load icon");
+        return;
+    };
 
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_inner_size([800.0, 600.0])
+            .with_inner_size(WINDOW_SIZE)
             .with_icon(icon),
         ..Default::default()
     };
 
-    eframe::run_native(
-        &format!("TinyWiiBackupManager v{} - {}", 
-            env!("CARGO_PKG_VERSION"),
-            wbfs_dir.display()
-        ),
+    let res = eframe::run_native(
+        &title,
         options,
         Box::new(|cc| {
             egui_extras::install_image_loaders(&cc.egui_ctx);
             Ok(Box::new(tiny_wii_backup_manager::App::new(cc, wbfs_dir)))
         }),
-    )
-    .map_err(|e| anyhow::anyhow!("Failed to run eframe: {}", e))
+    );
+
+    if let Err(e) = res {
+        show_error("Error", &format!("Failed to run application: {e}"));
+    }
 }
