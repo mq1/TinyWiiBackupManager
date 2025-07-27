@@ -204,20 +204,25 @@ impl App {
 impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         self.handle_messages(ctx);
+        set_cursor_icon(ctx, self);
 
         components::top_panel::ui_top_panel(ctx, self);
 
         egui::CentralPanel::default().show(ctx, |ui| {
             components::game_grid::ui_game_grid(ui, self);
+            components::update_notification_panel::ui_update_notification_panel(ctx, self);
 
             if self.is_converting {
                 components::conversion_modal::ui_conversion_modal(ctx, self);
-                ctx.set_cursor_icon(egui::CursorIcon::Wait);
-            } else {
-                ctx.set_cursor_icon(egui::CursorIcon::Default);
             }
-
-            components::update_notification_panel::ui_update_notification_panel(ctx, self);
         });
+    }
+}
+
+fn set_cursor_icon(ctx: &egui::Context, app: &App) {
+    if app.is_converting {
+        ctx.set_cursor_icon(egui::CursorIcon::Wait);
+    } else {
+        ctx.set_cursor_icon(egui::CursorIcon::Default);
     }
 }
