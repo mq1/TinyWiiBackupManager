@@ -45,7 +45,7 @@ jobs:
           cargo install cargo-bundle
           cargo bundle --release --format appimage
 
-          mv target/bundle/appimage/*.AppImage TinyWiiBackupManager-${{github.ref_name}}-x86_64.AppImage
+          mv target/release/bundle/appimage/tiny-wii-backup-manager_*_x86_64.AppImage TinyWiiBackupManager-${{github.ref_name}}-x86_64.AppImage
       - uses: softprops/action-gh-release@v1
         with:
           files: TinyWiiBackupManager-${{github.ref_name}}-x86_64.AppImage
@@ -65,7 +65,7 @@ jobs:
           cargo install cargo-bundle
           cargo bundle --release --format appimage
           
-          mv target/bundle/appimage/*.AppImage TinyWiiBackupManager-${{github.ref_name}}-aarch64.AppImage
+          mv target/release/bundle/appimage/tiny-wii-backup-manager_*_aarch64.AppImage TinyWiiBackupManager-${{github.ref_name}}-aarch64.AppImage
 
       - uses: softprops/action-gh-release@v1
         with:
