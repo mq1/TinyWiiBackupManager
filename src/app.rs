@@ -117,11 +117,11 @@ impl App {
             .with_context(|| format!("Failed to remove game: {}", game_to_remove.path.display()))
     }
 
-    /// Opens a file dialog to select ISO files and starts the conversion process.
+    /// Opens a file dialog to select ISO/WBFS files and starts the conversion process.
     pub fn add_isos(&mut self) {
         let paths = rfd::FileDialog::new()
-            .set_title("Select ISO File(s)")
-            .add_filter("ISO Files", &["iso"])
+            .set_title("Select ISO/WBFS File(s)")
+            .add_filter("ISO/WBFS Files", &["iso", "ISO", "wbfs", "WBFS"])
             .pick_files();
 
         if let Some(paths) = paths.filter(|p| !p.is_empty()) {
