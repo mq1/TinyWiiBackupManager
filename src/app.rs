@@ -153,7 +153,7 @@ impl App {
 
     /// Converts a single ISO file to WBFS format
     fn convert_single_iso(path: &PathBuf, wbfs_dir: &PathBuf) -> Result<()> {
-        let mut converter = iso2wbfs::WbfsConverter::new(path, wbfs_dir)
+        let converter = iso2wbfs::WbfsConverter::new(path, wbfs_dir)
             .with_context(|| format!("Failed to initialize converter for {}", path.display()))?;
 
         converter.convert()?;
