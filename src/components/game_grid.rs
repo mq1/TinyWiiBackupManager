@@ -40,7 +40,7 @@ fn ui_game_card(ui: &mut egui::Ui, game: &Game) -> bool {
         ui.set_max_size(CARD_SIZE);
         ui.vertical_centered(|ui| {
             let image = Image::new(format!(
-                "https://art.gametdb.com/wii/cover/EN/{}.png",
+                "https://art.gametdb.com/wii/cover/US/{}.png",
                 game.id
             ))
             .max_height(140.0)

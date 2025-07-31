@@ -1,6 +1,6 @@
 [package]
 name = "tiny-wii-backup-manager"
-version = "1.0.0-rc2"
+version = "1.0.0-rc3"
 authors = ["Manuel Quarneti <mq1@ik.me>"]
 edition = "2024"
 license = "GPL-2.0-only"
@@ -17,8 +17,8 @@ category = "Utility"
 [dependencies]
 egui = "0.32"
 eframe = "0.32"
-egui_extras = { version = "0.32", features = ["all_loaders"] }
-image = { version = "0.25", features = ["png"] }
+egui_extras = { version = "0.32", features = ["image", "http"] }
+image = { version = "0.25", default-features = false, features = ["png"] }
 iso2wbfs = { git = "https://github.com/mq1/iso2wbfs", rev = "433c46290f8a124d566b6f5d57b98531fa550e9f" }
 ureq = { version = "3.0", features = ["json"] }
 rfd = "0.15"
