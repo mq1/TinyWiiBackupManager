@@ -3,15 +3,15 @@
 
 use std::path::PathBuf;
 
-use anyhow::{Context, Result};
+use anyhow::{Context, Error, Result};
 use eframe::egui;
 use egui_inbox::UiInbox;
 
 use crate::{
+    components,
     error_handling::show_anyhow_error,
     game::Game,
     version_check::{self, UpdateInfo},
-    components,
 };
 
 /// Messages that can be sent from background tasks to the main thread
@@ -95,7 +95,10 @@ impl App {
     pub fn remove_game(&mut self, game_to_remove: &Game) {
         let res = rfd::MessageDialog::new()
             .set_title("Remove Game")
-            .set_description(format!("Are you sure you want to remove {}?", game_to_remove.display_title))
+            .set_description(format!(
+                "Are you sure you want to remove {}?",
+                game_to_remove.display_title
+            ))
             .set_buttons(rfd::MessageButtons::YesNo)
             .show();
 
@@ -117,11 +120,17 @@ impl App {
             .with_context(|| format!("Failed to remove game: {}", game_to_remove.path.display()))
     }
 
-    /// Opens a file dialog to select ISO/WBFS files and starts the conversion process.
+    /// Opens a file dialog to select Wii Disc files and starts the conversion process.
     pub fn add_isos(&mut self) {
         let paths = rfd::FileDialog::new()
-            .set_title("Select ISO/WBFS File(s)")
-            .add_filter("ISO/WBFS Files", &["iso", "ISO", "wbfs", "WBFS"])
+            .set_title("Select Wii Disc File(s)")
+            .add_filter(
+                "Wii Disc",
+                &[
+                    "iso", "ISO", "wbfs", "WBFS", "wia", "WIA", "rvz", "RVZ", "ciso", "CISO",
+                    "gcz", "GCZ",
+                ],
+            )
             .pick_files();
 
         if let Some(paths) = paths.filter(|p| !p.is_empty()) {
@@ -153,12 +162,7 @@ impl App {
 
     /// Converts a single ISO file to WBFS format
     fn convert_single_iso(path: &PathBuf, wbfs_dir: &PathBuf) -> Result<()> {
-        let converter = iso2wbfs::WbfsConverter::new(path, wbfs_dir)
-            .with_context(|| format!("Failed to initialize converter for {}", path.display()))?;
-
-        converter.convert()?;
-
-        Ok(())
+        iso2wbfs::convert_to_wbfs(path, wbfs_dir).map_err(Error::from)
     }
 
     /// Processes messages received from background tasks
