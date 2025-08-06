@@ -4,7 +4,15 @@
     <img alt="screenshot" src="screenshot.png">
 </p>
 
-🔧 A **simple** WBFS manager written in Rust
+🔧 A **simple** WBFS manager written in Rust (with RVZ support!)
+
+### Supported formats (Thanks to [nod](https://github.com/encounter/nod)!)
+
+- ISO
+- WIA / RVZ
+- WBFS (+ NKit 2 lossless)
+- CISO (+ NKit 2 lossless)
+- GCZ
 
 ## ✨ Downloading
 
@@ -34,6 +42,10 @@ The executable will be located at target/release/tiny-wii-backup-manager
 The supported configuration is a MBR Drive with a single FAT32 partition.
 
 You must create a "wbfs" folder in the drive root.
+
+---
+
+Library: [iso2wbfs](https://github.com/mq1/iso2wbfs)
 
 ---
 
