@@ -1,6 +1,6 @@
 [package]
 name = "tiny-wii-backup-manager"
-version = "1.0.0-rc4"
+version = "1.0.0"
 authors = ["Manuel Quarneti <mq1@ik.me>"]
 edition = "2024"
 license = "GPL-2.0-only"
@@ -19,7 +19,7 @@ egui = "0.32"
 eframe = "0.32"
 egui_extras = { version = "0.32", features = ["image", "http"] }
 image = { version = "0.25", default-features = false, features = ["png"] }
-iso2wbfs = { git = "https://github.com/mq1/iso2wbfs", rev = "d5067c0bbb9854432265a8969f64173e57a95611" }
+iso2wbfs = { git = "https://github.com/mq1/iso2wbfs", rev = "05917fe38733b815dae5e00fb80e47f8a5dd5000" }
 ureq = { version = "3.0", features = ["json"] }
 rfd = "0.15"
 phf = { version = "0.12", features = ["macros"] }
@@ -41,6 +41,3 @@ panic = "abort"
 
 [profile.dev.package."*"]
 opt-level = 2
-
-[lints.clippy]
-all = "deny"
