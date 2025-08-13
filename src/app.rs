@@ -162,7 +162,7 @@ impl App {
 
     /// Converts a single ISO file to WBFS format
     fn convert_single_iso(path: &PathBuf, wbfs_dir: &PathBuf) -> Result<()> {
-        iso2wbfs::convert_to_wbfs(path, wbfs_dir).map_err(Error::from)
+        iso2wbfs::convert(path, wbfs_dir).map_err(Error::from)
     }
 
     /// Processes messages received from background tasks
