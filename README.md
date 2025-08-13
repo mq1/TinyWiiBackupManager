@@ -1,7 +1,6 @@
 <p align="center">
     <img alt="logo" width="128" src="logo@2x.png">
     <h1 align="center">TinyWiiBackupManager</h1>
-    <p align="center">⚠️ WIP - needs testing! ⚠️</p>
     <img alt="screenshot" src="screenshot.png">
 </p>
 
