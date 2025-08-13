@@ -4,7 +4,7 @@
     <img alt="screenshot" src="screenshot.png">
 </p>
 
-🔧 A **simple** WBFS manager written in Rust (with RVZ support!)
+🔧 A **dead simple** WBFS manager written in Rust (with RVZ support!)
 
 ### Supported formats (Thanks to [nod](https://github.com/encounter/nod)!)
 
