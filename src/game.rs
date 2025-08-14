@@ -41,4 +41,18 @@ impl Game {
             path,
         })
     }
+
+    // for gametdb images
+    // todo: add support for other regions
+    // https://wiki.dolphin-emu.org/index.php?title=GameIDs
+    pub fn get_language(&self) -> Option<&str> {
+        // the 4th character in the ID is the region code
+        self.id.chars().nth(3).and_then(|c| match c {
+            'E' => Some("US"),
+            'P' => Some("EN"),
+            'J' => Some("JA"),
+            'K' => Some("KO"),
+            _ => None,
+        })
+    }
 }
