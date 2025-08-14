@@ -3,19 +3,16 @@
 
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use eframe::egui;
+use tiny_wii_backup_manager::App;
 use tiny_wii_backup_manager::error_handling::show_anyhow_error;
 
-const WINDOW_SIZE: egui::Vec2 = egui::vec2(800.0, 600.0);
-
 fn main() -> Result<()> {
-    if let Err(e) = run() {
+    run().map_err(|e| {
         show_anyhow_error("Fatal Error", &e);
-        return Err(e);
-    }
-
-    Ok(())
+        e
+    })
 }
 
 fn run() -> Result<()> {
@@ -25,7 +22,7 @@ fn run() -> Result<()> {
         .context("Failed to pick WBFS directory")?;
 
     let title = format!(
-        "TinyWiiBackupManager v{} - {}",
+        "TWBM v{} - {}",
         env!("CARGO_PKG_VERSION"),
         wbfs_dir.display()
     );
@@ -35,7 +32,7 @@ fn run() -> Result<()> {
 
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_inner_size(WINDOW_SIZE)
+            .with_title(&title)
             .with_icon(icon),
         ..Default::default()
     };
@@ -45,7 +42,7 @@ fn run() -> Result<()> {
         options,
         Box::new(|cc| {
             egui_extras::install_image_loaders(&cc.egui_ctx);
-            match tiny_wii_backup_manager::App::new(cc, wbfs_dir) {
+            match App::new(cc, wbfs_dir) {
                 Ok(app) => Ok(Box::new(app) as Box<dyn eframe::App>),
                 Err(e) => Err(e.into()),
             }
