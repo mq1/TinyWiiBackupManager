@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
+use crate::error_handling::show_anyhow_error;
 use crate::{app::App, game::Game};
 use eframe::egui::{self, Image, RichText};
 
@@ -39,16 +40,24 @@ fn ui_game_card(ui: &mut egui::Ui, game: &Game) -> bool {
     egui::Frame::group(ui.style()).show(ui, |ui| {
         ui.set_max_size(CARD_SIZE);
         ui.vertical_centered(|ui| {
-            let image = Image::new(format!(
-                "https://art.gametdb.com/wii/cover3D/{}/{}.png",
-                game.get_language().unwrap_or("EN"),
-                game.id
-            ))
-            .max_height(140.0)
-            .maintain_aspect_ratio(true)
-            .show_loading_spinner(true);
+            match game.get_language() {
+                Ok(lang) => {
+                    let image = Image::new(format!(
+                        "https://art.gametdb.com/wii/cover3D/{}/{}.png",
+                        lang, game.id
+                    ))
+                    .max_height(140.0)
+                    .maintain_aspect_ratio(true)
+                    .show_loading_spinner(true);
 
-            ui.add(image);
+                    ui.add(image);
+                }
+                Err(e) => {
+                    show_anyhow_error("Error Loading Game Image", &e);
+                    ui.label(RichText::new("Image not available").color(egui::Color32::RED));
+                }
+            }
+
             ui.add_space(5.0);
 
             ui.label(RichText::new(&game.display_title).strong());
