@@ -3,7 +3,35 @@
 
 use crate::titles::GAME_TITLES;
 use anyhow::{Context, Result};
+use phf::phf_map;
 use std::path::PathBuf;
+
+// for gametdb images
+static REGION_TO_LANG: phf::Map<char, &'static str> = phf_map! {
+    'A' => "EN", // System Wii Channels (i.e. Mii Channel)
+    'B' => "EN", // Ufouria: The Saga (NA)
+    'D' => "DE", // Germany
+    'E' => "US", // USA
+    'F' => "FR", // France
+    'H' => "NL", // Netherlands
+    'I' => "IT", // Italy
+    'J' => "JA", // Japan
+    'K' => "KO", // Korea
+    'L' => "EN", // Japanese import to Europe, Australia and other PAL regions
+    'M' => "EN", // American import to Europe, Australia and other PAL regions
+    'N' => "US", // Japanese import to USA and other NTSC regions
+    'P' => "EN", // Europe and other PAL regions such as Australia
+    'Q' => "KO", // Japanese Virtual Console import to Korea
+    'R' => "RU", // Russia
+    'S' => "ES", // Spain
+    'T' => "KO", // American Virtual Console import to Korea
+    'U' => "EN", // Australia / Europe alternate languages
+    'V' => "EN", // Scandinavia
+    'W' => "ZH", // Republic of China (Taiwan) / Hong Kong / Macau
+    'X' => "EN", // Europe alternate languages / US special releases
+    'Y' => "EN", // Europe alternate languages / US special releases
+    'Z' => "EN", // Europe alternate languages / US special releases
+};
 
 #[derive(Clone)]
 pub struct Game {
@@ -45,14 +73,13 @@ impl Game {
     // for gametdb images
     // todo: add support for other regions
     // https://wiki.dolphin-emu.org/index.php?title=GameIDs
-    pub fn get_language(&self) -> Option<&str> {
+    pub fn get_language(&self) -> Result<&'static str> {
         // the 4th character in the ID is the region code
-        self.id.chars().nth(3).and_then(|c| match c {
-            'E' => Some("US"),
-            'P' => Some("EN"),
-            'J' => Some("JA"),
-            'K' => Some("KO"),
-            _ => None,
-        })
+        let region_code = self.id.chars().nth(3).context("No region code in ID")?;
+
+        REGION_TO_LANG
+            .get(&region_code)
+            .copied()
+            .ok_or_else(|| anyhow::anyhow!("Unknown region code: {}", region_code))
     }
 }
