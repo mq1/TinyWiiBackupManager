@@ -18,8 +18,15 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
 
             // Display the total number of games on the right side of the menu bar
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                ui.hyperlink_to("ℹ", "https://github.com/mq1/TinyWiiBackupManager/wiki")
+                ui.hyperlink_to("ℹ Wiki", "https://github.com/mq1/TinyWiiBackupManager/wiki")
                     .on_hover_text("Open the TinyWiiBackupManager wiki");
+                ui.label("•");
+                ui.label(format!(
+                    "WBFS Size: {:.2} GiB",
+                    app.wbfs_dir_size as f64 / 1024.0 / 1024.0 / 1024.0
+                ));
+                ui.label("•");
+                ui.label(format!("{} games", app.games.len()));
             });
         });
     });
