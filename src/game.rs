@@ -73,13 +73,12 @@ impl Game {
     // for gametdb images
     // todo: add support for other regions
     // https://wiki.dolphin-emu.org/index.php?title=GameIDs
-    pub fn get_language(&self) -> Result<&'static str> {
+    pub fn get_language(&self) -> Result<&&'static str> {
         // the 4th character in the ID is the region code
         let region_code = self.id.chars().nth(3).context("No region code in ID")?;
 
         REGION_TO_LANG
             .get(&region_code)
-            .copied()
             .ok_or_else(|| anyhow::anyhow!("Unknown region code: {}", region_code))
     }
 }
