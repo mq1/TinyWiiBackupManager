@@ -1862,7 +1862,7 @@ checksum = "7943c866cc5cd64cbc25b2e01621d07fa8eb2a1a23160ee81ce38704e97b8ecf"
 [[package]]
 name = "iso2wbfs"
 version = "1.0.0"
-source = "git+https://github.com/mq1/iso2wbfs?rev=05917fe38733b815dae5e00fb80e47f8a5dd5000#05917fe38733b815dae5e00fb80e47f8a5dd5000"
+source = "git+https://github.com/mq1/iso2wbfs?rev=2e3ef26482fc6704f15bf7a7410de14e0904604b#2e3ef26482fc6704f15bf7a7410de14e0904604b"
 dependencies = [
  "bitvec",
  "clap",
@@ -3550,7 +3550,7 @@ dependencies = [
 
 [[package]]
 name = "tiny-wii-backup-manager"
-version = "1.1.0"
+version = "1.1.1"
 dependencies = [
  "anyhow",
  "eframe",
