@@ -31,6 +31,8 @@ pub struct App {
     wbfs_dir: PathBuf,
     /// List of discovered games
     pub games: Vec<Game>,
+    /// WBFS dir size
+    pub wbfs_dir_size: u64,
     /// Inbox for receiving messages from background tasks
     inbox: UiInbox<BackgroundMessage>,
     /// Whether a conversion is currently in progress
@@ -51,6 +53,7 @@ impl App {
         let mut app = Self {
             wbfs_dir,
             games: Vec::new(),
+            wbfs_dir_size: 0,
             inbox,
             is_converting: false,
             total_files_to_convert: 0,
@@ -88,6 +91,11 @@ impl App {
                 }
             })
             .collect();
+
+        // get wbfs_dir_size using fs_extra
+        self.wbfs_dir_size = fs_extra::dir::get_size(&self.wbfs_dir)
+            .with_context(|| format!("Failed to get size of dir: {}", self.wbfs_dir.display()))?;
+
         Ok(())
     }
 
@@ -211,10 +219,10 @@ impl eframe::App for App {
         set_cursor_icon(ctx, self);
 
         components::top_panel::ui_top_panel(ctx, self);
+        components::bottom_panel::ui_bottom_panel(ctx, self);
 
         egui::CentralPanel::default().show(ctx, |ui| {
             components::game_grid::ui_game_grid(ui, self);
-            components::update_notification_panel::ui_update_notification_panel(ctx, self);
 
             if self.is_converting {
                 components::conversion_modal::ui_conversion_modal(ctx, self);
