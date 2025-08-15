@@ -47,12 +47,13 @@ Name=${FANCY_APP_NAME}
 Exec=${APP_NAME}
 Icon=${APP_NAME}
 Type=Application
-Categories=Utility;Game;
+Categories=Utility
 Comment=${DESCRIPTION}
 EOF
 
 echo "Setting the AppImage file icon..."
 cp "${ASSETS_DIR}/linux/icons/hicolor/256x256/apps/${APP_NAME}.png" "${APPDIR_NAME}/.DirIcon"
+cp "${ASSETS_DIR}/linux/icons/hicolor/256x256/apps/${APP_NAME}.png" "${APPDIR_NAME}/${APP_NAME}.png"
 
 # 5. Run appimagetool and place artifact in dist
 echo "Running appimagetool..."
