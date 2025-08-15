@@ -34,6 +34,7 @@ fn run() -> Result<()> {
         viewport: egui::ViewportBuilder::default()
             .with_title(&title)
             .with_icon(icon),
+        renderer: eframe::Renderer::Wgpu,
         ..Default::default()
     };
 
