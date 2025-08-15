@@ -23,7 +23,7 @@ jobs:
   #  Build Jobs: Compile the application for each platform and upload as an artifact.
   # ==================================================================================
   build-macos:
-    name: Build for macOS (Universal) with Tauri Bundler
+    name: Build for macOS (Universal2) with Tauri Bundler
     runs-on: macos-14
     steps:
       - name: Checkout repository
@@ -36,17 +36,19 @@ jobs:
 
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@v2
+        with:
+          key: macos-universal2
 
       - name: Install Tauri CLI
         run: cargo install tauri-cli --version "^2.0.0" --locked
 
-      - name: Build Universal macOS App and DMG
+      - name: Build Universal2 macOS App and DMG
         run: |
           # Build the application for both architectures
           cargo build --target x86_64-apple-darwin --release
           cargo build --target aarch64-apple-darwin --release
 
-          # Create a universal binary by combining the two architectures
+          # Create a Universal2 binary by combining the two architectures
           mkdir -p target/universal-apple-darwin/release
           lipo -create -output target/universal-apple-darwin/release/tiny-wii-backup-manager \
             target/x86_64-apple-darwin/release/tiny-wii-backup-manager \
@@ -59,7 +61,7 @@ jobs:
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
         with:
-          name: macos-universal-dmg
+          name: macos-universal2-dmg
           path: ${{ env.APP_NAME }}-${{ github.ref_name }}-MacOS-Universal2.dmg
 
   build-linux:
@@ -69,10 +71,8 @@ jobs:
       matrix:
         include:
           - arch: x86_64
-            target: x86_64-unknown-linux-gnu
             runner: ubuntu-22.04
           - arch: aarch64
-            target: aarch64-unknown-linux-gnu
             runner: ubuntu-22.04-arm
     steps:
       - name: Checkout repository
@@ -80,11 +80,11 @@ jobs:
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.target }}
 
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@v2
+        with:
+          key: linux-${{ matrix.arch }}
 
       - name: Install Tauri CLI
         run: cargo install tauri-cli --version "^2.0.0" --locked
@@ -128,6 +128,8 @@ jobs:
 
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@v2
+        with:
+          key: windows-multi-arch
 
       - name: Build Windows executables
         run: |          
