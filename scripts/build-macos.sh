@@ -10,7 +10,7 @@ PRODUCT_NAME=$(yq -r '.package.metadata.winres.ProductName' Cargo.toml)
 SHORT_NAME=$(yq -r '.package.metadata.short_name' Cargo.toml)
 VERSION=$(yq -r '.package.version' Cargo.toml)
 DESCRIPTION=$(yq -r '.package.description' Cargo.toml)
-BUNDLE_IDENTIFIER="com.github.mq1.${APP_NAME}"
+BUNDLE_IDENTIFIER="it.mq1.${PRODUCT_NAME}"
 
 DIST_DIR="./dist"
 ASSETS_DIR="./assets"
