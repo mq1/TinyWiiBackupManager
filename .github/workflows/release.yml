@@ -20,40 +20,64 @@ concurrency:
 
 jobs:
   # ==================================================================================
-  #  Build Jobs: Compile the application for each platform and upload as an artifact.
+  #  Build Jobs: Compile the application for each platform.
   # ==================================================================================
   build-macos:
-    name: Build for macOS (Universal2) with Tauri Bundler
-    runs-on: macos-14
+    name: Build for macOS (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - arch: aarch64
+            runner: macos-14
+          - arch: x86_64
+            runner: macos-14-large
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
+
+      - name: Build macOS binary
+        run: cargo build --release
+
+      - name: Upload macOS binary artifact
+        uses: actions/upload-artifact@v4
         with:
-          targets: x86_64-apple-darwin,aarch64-apple-darwin
+          name: macos-binary-${{ matrix.arch }}
+          path: target/release/tiny-wii-backup-manager
+
+  bundle-macos:
+    name: Create Universal macOS App and DMG
+    runs-on: macos-14
+    needs: build-macos
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download macOS binary artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Combine binaries into Universal2
+        run: |
+          mkdir -p target/universal-apple-darwin/release
+          lipo -create -output target/universal-apple-darwin/release/tiny-wii-backup-manager \
+            artifacts/macos-binary-x86_64/tiny-wii-backup-manager \
+            artifacts/macos-binary-aarch64/tiny-wii-backup-manager
+          chmod +x target/universal-apple-darwin/release/tiny-wii-backup-manager
 
       - name: Install Tauri CLI
         run: cargo install tauri-cli --version "^2.0.0" --locked
 
-      - name: Build Universal2 macOS App and DMG
+      - name: Bundle Universal2 macOS App into DMG
         run: |
-          # Build the application for both architectures
-          cargo build --target x86_64-apple-darwin --release
-          cargo build --target aarch64-apple-darwin --release
-
-          # Create a Universal2 binary by combining the two architectures
-          mkdir -p target/universal-apple-darwin/release
-          lipo -create -output target/universal-apple-darwin/release/tiny-wii-backup-manager \
-            target/x86_64-apple-darwin/release/tiny-wii-backup-manager \
-            target/aarch64-apple-darwin/release/tiny-wii-backup-manager
-
-          # Bundle the application into a DMG
           cargo tauri bundle --bundles dmg --target universal-apple-darwin
           mv target/universal-apple-darwin/release/bundle/dmg/*.dmg ${{ env.APP_NAME }}-${{ github.ref_name }}-MacOS-Universal2.dmg
 
-      - name: Upload macOS artifact
+      - name: Upload macOS DMG artifact
         uses: actions/upload-artifact@v4
         with:
           name: macos-universal2-dmg
@@ -155,7 +179,7 @@ jobs:
   release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
-    needs: [build-macos, build-linux, build-windows]
+    needs: [bundle-macos, build-linux, build-windows]
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
