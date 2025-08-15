@@ -8,6 +8,9 @@ repository = "https://github.com/mq1/TinyWiiBackupManager"
 description = "A dead simple Wii Backup Manager"
 build = "build.rs"
 
+[package.metadata]
+short_name = "TWBM"
+
 [package.metadata.winres]
 FileDescription = "A dead simple Wii Backup Manager"
 ProductName = "TinyWiiBackupManager"
