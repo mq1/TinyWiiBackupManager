@@ -6,7 +6,7 @@ set -e
 # --- Configuration ---
 echo "Reading configuration from Cargo.toml..."
 APP_NAME=$(yq -r '.package.name' Cargo.toml)
-FANCY_APP_NAME="TinyWiiBackupManager"
+FANCY_APP_NAME=$(yq -r '.package.metadata.winres.ProductName' Cargo.toml)
 VERSION=$(yq -r '.package.version' Cargo.toml)
 DESCRIPTION=$(yq -r '.package.description' Cargo.toml)
 
