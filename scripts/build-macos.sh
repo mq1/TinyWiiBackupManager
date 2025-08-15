@@ -6,15 +6,15 @@ set -e
 # --- Configuration ---
 echo "Reading configuration from Cargo.toml..."
 APP_NAME=$(yq -r '.package.name' Cargo.toml)
-FANCY_APP_NAME=$(yq -r '.package.metadata.winres.ProductName' Cargo.toml)
+PRODUCT_NAME=$(yq -r '.package.metadata.winres.ProductName' Cargo.toml)
+SHORT_NAME=$(yq -r '.package.metadata.short_name' Cargo.toml)
 VERSION=$(yq -r '.package.version' Cargo.toml)
 DESCRIPTION=$(yq -r '.package.description' Cargo.toml)
 BUNDLE_IDENTIFIER="com.github.mq1.${APP_NAME}"
 
-PREFIX="TWBM"
 DIST_DIR="./dist"
 ASSETS_DIR="./assets"
-APP_BUNDLE_NAME="${FANCY_APP_NAME}.app"
+APP_BUNDLE_NAME="${PRODUCT_NAME}.app"
 
 # 1. Define targets and paths
 X86_64_TARGET="x86_64-apple-darwin"
@@ -58,9 +58,9 @@ cat > "${APP_BUNDLE_NAME}/Contents/Info.plist" <<EOF
 <plist version="1.0">
 <dict>
 	<key>CFBundleName</key>
-	<string>${FANCY_APP_NAME}</string>
+	<string>${PRODUCT_NAME}</string>
 	<key>CFBundleDisplayName</key>
-	<string>${FANCY_APP_NAME}</string>
+	<string>${PRODUCT_NAME}</string>
 	<key>CFBundleIdentifier</key>
 	<string>${BUNDLE_IDENTIFIER}</string>
 	<key>CFBundleVersion</key>
@@ -83,12 +83,12 @@ EOF
 
 # 6. Create and finalize the DMG
 echo "Creating DMG..."
-FINAL_DMG_PATH="${DIST_DIR}/${PREFIX}-${VERSION}-MacOS-Universal2.dmg"
+FINAL_DMG_PATH="${DIST_DIR}/${SHORT_NAME}-${VERSION}-MacOS-Universal2.dmg"
 mkdir -p "${DIST_DIR}"
 npx --yes create-dmg "${APP_BUNDLE_NAME}" "${DIST_DIR}" --overwrite || true
 
 echo "Renaming artifact..."
-mv "${DIST_DIR}/${FANCY_APP_NAME} ${VERSION}.dmg" "${FINAL_DMG_PATH}"
+mv "${DIST_DIR}/${PRODUCT_NAME} ${VERSION}.dmg" "${FINAL_DMG_PATH}"
 
 echo "Cleaning up intermediate .app bundle..."
 rm -rf "${APP_BUNDLE_NAME}"

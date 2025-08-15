@@ -4,12 +4,12 @@ $ErrorActionPreference = "Stop"
 # --- Configuration ---
 Write-Host "Reading configuration from Cargo.toml..."
 $APP_NAME = (yq -r '.package.name' Cargo.toml)
-$FANCY_APP_NAME = (yq -r '.package.metadata.winres.ProductName' Cargo.toml)
+$PRODUCT_NAME = (yq -r '.package.metadata.winres.ProductName' Cargo.toml)
+$SHORT_NAME = (yq -r '.package.metadata.short_name' Cargo.toml)
 $VERSION = (yq -r '.package.version' Cargo.toml)
 
 $HOST_ARCH = $env:PROCESSOR_ARCHITECTURE
 
-$PREFIX = "TWBM"
 $DIST_DIR = ".\dist"
 $ASSETS_DIR = ".\assets"
 
@@ -22,8 +22,8 @@ cargo build --release
 
 # 3. Define paths
 $SOURCE_EXE = ".\target\release\$($APP_NAME).exe"
-$STAGED_EXE = ".\$($FANCY_APP_NAME).exe"
-$DEST_ZIP = "$($DIST_DIR)\$($PREFIX)-$($VERSION)-Windows-$($HOST_ARCH).zip"
+$STAGED_EXE = ".\$($PRODUCT_NAME).exe"
+$DEST_ZIP = "$($DIST_DIR)\$($SHORT_NAME)-$($VERSION)-Windows-$($HOST_ARCH).zip"
 
 # 4. Stage, archive, and clean up
 Write-Host "Staging executable with final name..."

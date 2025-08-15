@@ -6,13 +6,13 @@ set -e
 # --- Configuration ---
 echo "Reading configuration from Cargo.toml..."
 APP_NAME=$(yq -r '.package.name' Cargo.toml)
-FANCY_APP_NAME=$(yq -r '.package.metadata.winres.ProductName' Cargo.toml)
+PRODUCT_NAME=$(yq -r '.package.metadata.winres.ProductName' Cargo.toml)
+SHORT_NAME=$(yq -r '.package.metadata.short_name' Cargo.toml)
 VERSION=$(yq -r '.package.version' Cargo.toml)
 DESCRIPTION=$(yq -r '.package.description' Cargo.toml)
 
 HOST_ARCH=$(uname -m)
 
-PREFIX="TWBM"
 DIST_DIR="./dist"
 ASSETS_DIR="./assets"
 INPUT_DIR="./tmp-linux-bundle-assets"
@@ -37,7 +37,7 @@ echo "Preparing input files (.desktop and icon)..."
 # The .desktop file must be named after the binary
 cat > "${INPUT_DIR}/${APP_NAME}.desktop" <<EOF
 [Desktop Entry]
-Name=${FANCY_APP_NAME}
+Name=${PRODUCT_NAME}
 Exec=${APP_NAME}
 Icon=${APP_NAME}
 Type=Application
@@ -49,8 +49,8 @@ cp "${ASSETS_DIR}/linux/icons/hicolor/256x256/apps/${APP_NAME}.png" "${INPUT_DIR
 
 # 5. Run linuxdeploy
 echo "Running linuxdeploy..."
-./linuxdeploy-"${HOST_ARCH}".AppImage \
-    --appdir "${FANCY_APP_NAME}.AppDir" \
+./linuxdeploy-${HOST_ARCH}.AppImage \
+    --appdir "${PRODUCT_NAME}.AppDir" \
     --executable "target/release/${APP_NAME}" \
     --desktop-file "${INPUT_DIR}/${APP_NAME}.desktop" \
     --icon-file "${INPUT_DIR}/${APP_NAME}.png" \
@@ -59,7 +59,7 @@ echo "Running linuxdeploy..."
 # 6. Rename the final artifact
 echo "Renaming artifact..."
 # linuxdeploy creates a file like "AppName-arch.AppImage"
-mv "${FANCY_APP_NAME}"-*.AppImage "${DIST_DIR}/${PREFIX}-${VERSION}-Linux-${HOST_ARCH}.AppImage"
+mv "${PRODUCT_NAME}"-"*.AppImage" "${DIST_DIR}/${SHORT_NAME}-${VERSION}-Linux-${HOST_ARCH}.AppImage"
 
 # 7. Clean up intermediate files
 echo "Cleaning up intermediate files..."
@@ -69,8 +69,8 @@ echo "✅ AppImage created in ${DIST_DIR} directory"
 
 # 1. Define paths
 SOURCE_EXE="target/release/${APP_NAME}"
-STAGED_EXE="./${FANCY_APP_NAME}"
-DEST_ARCHIVE="${DIST_DIR}/${PREFIX}-${VERSION}-Linux-${HOST_ARCH}.tar.gz"
+STAGED_EXE="./${PRODUCT_NAME}"
+DEST_ARCHIVE="${DIST_DIR}/${SHORT_NAME}-${VERSION}-Linux-${HOST_ARCH}.tar.gz"
 
 # 2. Stage, archive, and clean up
 echo "Staging executable with final name..."
