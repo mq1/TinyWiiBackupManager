@@ -107,11 +107,11 @@ jobs:
           # Update package list
           sudo apt-get update -y
 
-          # Required for AppImage
-          sudo apt-get install -y squashfs-tools
+          # Required for egui
+          sudo apt-get install -y libclang-dev libgtk-3-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
 
-          # Required for eframe
-          sudo apt-get install -y libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
+          # Tauri dependencies (Tauri Bundler may require these)
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
 
       - name: Install Tauri CLI
         uses: baptiste0928/cargo-install@v3
