@@ -119,58 +119,50 @@ jobs:
             ${{ env.APP_NAME }}-${{ github.ref_name }}-Linux-${{ matrix.arch }}.tar.gz
 
   build-windows:
-    name: Build for Windows (x86_64 & aarch64)
-    runs-on: windows-2022
+    name: Build for Windows (${{ matrix.arch }}) with Tauri Bundler
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - arch: x86_64
+            runner: windows-2022
+          - arch: aarch64
+            runner: windows-11-arm
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: x86_64-pc-windows-msvc,aarch64-pc-windows-msvc
 
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@v2
         with:
-          key: windows-multi-arch
+          key: windows-${{ matrix.arch }}
 
       - name: Install Tauri CLI
         run: cargo install tauri-cli --version "^2.0.0" --locked
 
       - name: Build Windows Artifacts
         run: |
-          # Build for both architectures
-          cargo build --target x86_64-pc-windows-msvc --release
-          cargo build --target aarch64-pc-windows-msvc --release
+          # Build for the native architecture of the runner
+          cargo build --release
 
-          # --- Handle ZIP files ---
-          # Prepare and zip x86_64 binary
-          Copy-Item -Path "target/x86_64-pc-windows-msvc/release/tiny-wii-backup-manager.exe" -Destination "${{ env.APP_NAME }}-${{ github.ref_name }}-Windows-x86_64.exe"
-          Compress-Archive -Path "${{ env.APP_NAME }}-${{ github.ref_name }}-Windows-x86_64.exe" -DestinationPath "${{ env.APP_NAME }}-${{ github.ref_name }}-Windows-x86_64.zip"
+          # --- Handle ZIP file ---
+          Copy-Item -Path "target/release/tiny-wii-backup-manager.exe" -Destination "${{ env.APP_NAME }}-${{ github.ref_name }}-Windows-${{ matrix.arch }}.exe"
+          Compress-Archive -Path "${{ env.APP_NAME }}-${{ github.ref_name }}-Windows-${{ matrix.arch }}.exe" -DestinationPath "${{ env.APP_NAME }}-${{ github.ref_name }}-Windows-${{ matrix.arch }}.zip"
 
-          # Prepare and zip aarch64 binary
-          Copy-Item -Path "target/aarch64-pc-windows-msvc/release/tiny-wii-backup-manager.exe" -Destination "${{ env.APP_NAME }}-${{ github.ref_name }}-Windows-aarch64.exe"
-          Compress-Archive -Path "${{ env.APP_NAME }}-${{ github.ref_name }}-Windows-aarch64.exe" -DestinationPath "${{ env.APP_NAME }}-${{ github.ref_name }}-Windows-aarch64.zip"
-
-          # --- Handle MSI installers ---
-          # Bundle and rename x86_64 MSI
-          cargo tauri bundle --bundles msi --target x86_64-pc-windows-msvc
-          Move-Item -Path target/x86_64-pc-windows-msvc/release/bundle/msi/*.msi -Destination "${{ env.APP_NAME }}-${{ github.ref_name }}-Windows-x86_64.msi"
-
-          # Bundle and rename aarch64 MSI
-          cargo tauri bundle --bundles msi --target aarch64-pc-windows-msvc
-          Move-Item -Path target/aarch64-pc-windows-msvc/release/bundle/msi/*.msi -Destination "${{ env.APP_NAME }}-${{ github.ref_name }}-Windows-aarch64.msi"
+          # --- Handle MSI installer ---
+          cargo tauri bundle --bundles msi
+          Move-Item -Path target/release/bundle/msi/*.msi -Destination "${{ env.APP_NAME }}-${{ github.ref_name }}-Windows-${{ matrix.arch }}.msi"
 
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: windows-artifacts
+          name: windows-${{ matrix.arch }}-artifacts
           path: |
-            ${{ env.APP_NAME }}-${{ github.ref_name }}-Windows-x86_64.zip
-            ${{ env.APP_NAME }}-${{ github.ref_name }}-Windows-aarch64.zip
-            ${{ env.APP_NAME }}-${{ github.ref_name }}-Windows-x86_64.msi
-            ${{ env.APP_NAME }}-${{ github.ref_name }}-Windows-aarch64.msi
+            ${{ env.APP_NAME }}-${{ github.ref_name }}-Windows-${{ matrix.arch }}.zip
+            ${{ env.APP_NAME }}-${{ github.ref_name }}-Windows-${{ matrix.arch }}.msi
 
   # ==================================================================================
   #  Release Job: Collects all build artifacts and creates a single GitHub Release.
