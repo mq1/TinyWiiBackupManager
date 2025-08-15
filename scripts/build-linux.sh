@@ -65,10 +65,6 @@ rm -rf "${APPDIR_NAME}"
 rm "appimagetool-${HOST_ARCH}.AppImage"
 echo "✅ AppImage created in ${DIST_DIR} directory"
 
-# --- Build .tar.gz Archive ---
-echo ""
-echo "--- Building .tar.gz archive for ${APP_NAME} v${VERSION} (arch: ${HOST_ARCH}) ---"
-
 # 1. Define paths
 SOURCE_EXE="target/release/${APP_NAME}"
 STAGED_EXE="./${FANCY_APP_NAME}"
