@@ -11,7 +11,6 @@ build = "build.rs"
 [package.metadata.winres]
 FileDescription = "A dead simple Wii Backup Manager"
 ProductName = "TinyWiiBackupManager"
-ProductVersion = "1.1.5"
 OriginalFilename = "TinyWiiBackupManager.exe"
 LegalCopyright = "Copyright (c) 2025 Manuel Quarneti"
 
