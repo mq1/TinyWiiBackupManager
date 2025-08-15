@@ -12,7 +12,7 @@ build = "build.rs"
 FileDescription = "A dead simple Wii Backup Manager"
 ProductName = "TinyWiiBackupManager"
 OriginalFilename = "TinyWiiBackupManager.exe"
-LegalCopyright = "Copyright (c) 2025 Manuel Quarneti"
+LegalCopyright = "Copyright (c) 2025 Manuel Quarneti | GPL-2.0-only"
 
 [dependencies]
 egui = "0.32"
