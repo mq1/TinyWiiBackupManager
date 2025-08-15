@@ -15,55 +15,56 @@ HOST_ARCH=$(uname -m)
 PREFIX="TWBM"
 DIST_DIR="./dist"
 ASSETS_DIR="./assets"
-APPDIR_NAME="${FANCY_APP_NAME}.AppDir"
+INPUT_DIR="./tmp-linux-bundle-assets"
 
-# 1. Clean up and prepare directories
-rm -rf "${APPDIR_NAME}"
+# 1. Prepare directories
 mkdir -p "${DIST_DIR}"
+rm -rf "${INPUT_DIR}"
+mkdir -p "${INPUT_DIR}"
 
-# 2. Download appimagetool
-echo "Downloading the latest appimagetool..."
-rm -f "appimagetool-$HOST_ARCH.AppImage"
-wget "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-$HOST_ARCH.AppImage"
-chmod +x "appimagetool-$HOST_ARCH.AppImage"
+# 2. Download linuxdeploy and its AppImage plugin
+echo "Downloading linuxdeploy tools..."
+wget -c "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${HOST_ARCH}.AppImage"
+wget -c "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-${HOST_ARCH}.AppImage"
+chmod +x linuxdeploy*.AppImage
 
 # 3. Build Rust binary
 echo "Building Rust binary..."
 cargo build --release
 
-# 4. Assemble AppDir
-echo "Assembling AppDir..."
-mkdir -p "${APPDIR_NAME}/usr/bin"
-cp "target/release/${APP_NAME}" "${APPDIR_NAME}/usr/bin/"
-
-echo "Copying pre-generated icons..."
-mkdir -p "${APPDIR_NAME}/usr/share"
-cp -r "${ASSETS_DIR}/linux/icons" "${APPDIR_NAME}/usr/share/"
-
-echo "Creating desktop file..."
-cat > "${APPDIR_NAME}/${APP_NAME}.desktop" <<EOF
+# 4. Prepare input files for linuxdeploy
+echo "Preparing input files (.desktop and icon)..."
+# The .desktop file must be named after the binary
+cat > "${INPUT_DIR}/${APP_NAME}.desktop" <<EOF
 [Desktop Entry]
 Name=${FANCY_APP_NAME}
 Exec=${APP_NAME}
 Icon=${APP_NAME}
 Type=Application
-Categories=Utility
+Categories=Utility;
 Comment=${DESCRIPTION}
 EOF
+# The icon file must be named after the binary
+cp "${ASSETS_DIR}/linux/icons/hicolor/256x256/apps/${APP_NAME}.png" "${INPUT_DIR}/${APP_NAME}.png"
 
-echo "Setting the AppImage file icon..."
-cp "${ASSETS_DIR}/linux/icons/hicolor/256x256/apps/${APP_NAME}.png" "${APPDIR_NAME}/.DirIcon"
-cp "${ASSETS_DIR}/linux/icons/hicolor/256x256/apps/${APP_NAME}.png" "${APPDIR_NAME}/${APP_NAME}.png"
+# 5. Run linuxdeploy
+echo "Running linuxdeploy..."
+./linuxdeploy-"${HOST_ARCH}".AppImage \
+    --appdir "${FANCY_APP_NAME}.AppDir" \
+    --executable "target/release/${APP_NAME}" \
+    --desktop-file "${INPUT_DIR}/${APP_NAME}.desktop" \
+    --icon-file "${INPUT_DIR}/${APP_NAME}.png" \
+    --output appimage
 
-# 5. Run appimagetool and place artifact in dist
-echo "Running appimagetool..."
-./appimagetool-"${HOST_ARCH}".AppImage --comp gzip "${APPDIR_NAME}"
-mv "${APP_NAME}-${HOST_ARCH}.AppImage" "${DIST_DIR}/${PREFIX}-${VERSION}-Linux-${HOST_ARCH}.AppImage"
+# 6. Rename the final artifact
+echo "Renaming artifact..."
+# linuxdeploy creates a file like "AppName-arch.AppImage"
+mv "${FANCY_APP_NAME}"-*.AppImage "${DIST_DIR}/${PREFIX}-${VERSION}-Linux-${HOST_ARCH}.AppImage"
 
-# 6. Clean up intermediate files
+# 7. Clean up intermediate files
 echo "Cleaning up intermediate files..."
-rm -rf "${APPDIR_NAME}"
-rm "appimagetool-${HOST_ARCH}.AppImage"
+rm -rf "${INPUT_DIR}"
+rm linuxdeploy*.AppImage
 echo "✅ AppImage created in ${DIST_DIR} directory"
 
 # 1. Define paths
