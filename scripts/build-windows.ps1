@@ -13,10 +13,6 @@ $PREFIX = "TWBM"
 $DIST_DIR = ".\dist"
 $ASSETS_DIR = ".\assets"
 
-# --- Build .zip Archive ---
-Write-Host ""
-Write-Host "--- Building Windows package for $($APP_NAME) v$($VERSION) (arch: $($HOST_ARCH)) ---"
-
 # 1. Prepare directories
 New-Item -ItemType Directory -Force -Path $DIST_DIR
 

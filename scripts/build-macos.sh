@@ -16,10 +16,6 @@ DIST_DIR="./dist"
 ASSETS_DIR="./assets"
 APP_BUNDLE_NAME="${FANCY_APP_NAME}.app"
 
-# --- Build Universal 2 DMG ---
-echo ""
-echo "--- Building Universal 2 package for macOS ---"
-
 # 1. Define targets and paths
 X86_64_TARGET="x86_64-apple-darwin"
 AARCH64_TARGET="aarch64-apple-darwin"
