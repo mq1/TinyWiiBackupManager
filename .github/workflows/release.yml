@@ -34,11 +34,6 @@ jobs:
         with:
           targets: x86_64-apple-darwin,aarch64-apple-darwin
 
-      - name: Cache Cargo dependencies
-        uses: Swatinem/rust-cache@v2
-        with:
-          key: macos-universal2
-
       - name: Install Tauri CLI
         run: cargo install tauri-cli --version "^2.0.0" --locked
 
@@ -80,11 +75,6 @@ jobs:
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
-
-      - name: Cache Cargo dependencies
-        uses: Swatinem/rust-cache@v2
-        with:
-          key: linux-${{ matrix.arch }}
 
       - name: Install Tauri CLI
         run: cargo install tauri-cli --version "^2.0.0" --locked
@@ -134,11 +124,6 @@ jobs:
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
-
-      - name: Cache Cargo dependencies
-        uses: Swatinem/rust-cache@v2
-        with:
-          key: windows-${{ matrix.arch }}
 
       - name: Install Tauri CLI
         run: cargo install tauri-cli --version "^2.0.0" --locked
