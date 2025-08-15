@@ -27,7 +27,7 @@ fn run() -> Result<()> {
         wbfs_dir.display()
     );
 
-    let icon = eframe::icon_data::from_png_bytes(include_bytes!("../logo@2x.png"))
+    let icon = eframe::icon_data::from_png_bytes(include_bytes!("../logo.png"))
         .context("Failed to load icon")?;
 
     let options = eframe::NativeOptions {
