@@ -24,14 +24,14 @@ jobs:
   # ==================================================================================
   build-macos:
     name: Build for macOS (${{ matrix.arch }})
-    runs-on: ${{ matrix.runner }}
+    runs-on: macos-14
     strategy:
       matrix:
         include:
           - arch: aarch64
-            runner: macos-14
+            target: aarch64-apple-darwin
           - arch: x86_64
-            runner: macos-14-large
+            target: x86_64-apple-darwin
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -45,21 +45,23 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-${{ matrix.target }}-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
-            ${{ runner.os }}-cargo-
+            ${{ runner.os }}-cargo-${{ matrix.target }}-
 
-      - name: Install Rust toolchain
+      - name: Install Rust toolchain with target
         uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
 
       - name: Build macOS binary
-        run: cargo build --release
+        run: cargo build --target ${{ matrix.target }} --release
 
       - name: Upload macOS binary artifact
         uses: actions/upload-artifact@v4
         with:
           name: macos-binary-${{ matrix.arch }}
-          path: target/release/tiny-wii-backup-manager
+          path: target/${{ matrix.target }}/release/tiny-wii-backup-manager
 
   bundle-macos:
     name: Create Universal macOS App and DMG
@@ -78,9 +80,9 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-bundle-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
-            ${{ runner.os }}-cargo-
+            ${{ runner.os }}-cargo-bundle-
 
       - name: Download macOS binary artifacts
         uses: actions/download-artifact@v4
