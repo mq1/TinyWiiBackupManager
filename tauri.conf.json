@@ -5,7 +5,8 @@
         "active": true,
         "copyright": "Copyright (c) 2025 Manuel Quarneti | GPL-2.0-only",
         "icon": [
-            "logo@2x.png"
+            "logo.png",
+            "logo.ico"
         ],
         "category": "Utility"
     }
