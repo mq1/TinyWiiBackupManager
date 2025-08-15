@@ -8,6 +8,13 @@ on:
 permissions:
   contents: write
 
+# ==================================================================================
+#  Concurrency: Ensures only one release workflow runs at a time for a given tag.
+# ==================================================================================
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   # ==================================================================================
   #  Build Jobs: Compile the application for each platform and upload as an artifact.
@@ -27,6 +34,9 @@ jobs:
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@v2
 
+      - name: Install Tauri CLI
+        run: cargo install tauri-cli --version "^2.0.0" --locked
+
       - name: Build Universal macOS App and DMG
         run: |
           # Build the application for both architectures
@@ -40,15 +50,14 @@ jobs:
             target/aarch64-apple-darwin/release/tiny-wii-backup-manager
 
           # Bundle the application into a DMG
-          cargo install tauri-cli --version "^2.0.0" --locked
           cargo tauri bundle --bundles dmg --target universal-apple-darwin
-          mv target/universal-apple-darwin/release/bundle/dmg/*.dmg TinyWiiBackupManager-${{github.ref_name}}-Universal2.dmg
+          mv target/universal-apple-darwin/release/bundle/dmg/*.dmg TinyWiiBackupManager-${{github.ref_name}}-Universal.dmg
 
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
         with:
           name: macos-universal-dmg
-          path: TinyWiiBackupManager-${{github.ref_name}}-Universal2.dmg
+          path: TinyWiiBackupManager-${{github.ref_name}}-Universal.dmg
 
   build-linux:
     name: Build for Linux (${{ matrix.arch }}) with Tauri Bundler
@@ -74,6 +83,9 @@ jobs:
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@v2
 
+      - name: Install Tauri CLI
+        run: cargo install tauri-cli --version "^2.0.0" --locked
+
       - name: Install original Linux dependencies
         run: |
           sudo apt-get update -y
@@ -85,7 +97,6 @@ jobs:
           cargo build --release
 
           # Bundle the application into an AppImage
-          cargo install tauri-cli --version "^2.0.0" --locked
           cargo tauri bundle --bundles appimage
           mv target/release/bundle/appimage/*.AppImage TinyWiiBackupManager-${{github.ref_name}}-${{ matrix.arch }}.AppImage
 
@@ -110,13 +121,13 @@ jobs:
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@v2
 
-      - name: Build Windows executables with Tauri Bundler
+      - name: Build Windows executables
         run: |          
           cargo build --target x86_64-pc-windows-msvc --release
           cargo build --target aarch64-pc-windows-msvc --release
 
-          Move-Item ./target/x86_64-pc-windows-msvc/release/tiny-wii-backup-manager.exe ./TinyWiiBackupManager-${{github.ref_name}}-x86_64.exe
-          Move-Item ./target/aarch64-pc-windows-msvc/release/tiny-wii-backup-manager.exe ./TinyWiiBackupManager-${{github.ref_name}}-aarch64.exe
+          Move-Item ./target/x86_64-pc-windows-msvc/release/*.exe ./TinyWiiBackupManager-${{github.ref_name}}-x86_64.exe
+          Move-Item ./target/aarch64-pc-windows-msvc/release/*.exe ./TinyWiiBackupManager-${{github.ref_name}}-aarch64.exe
 
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
@@ -144,3 +155,5 @@ jobs:
         with:
           files: artifacts/**/*
           generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
