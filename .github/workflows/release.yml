@@ -104,6 +104,8 @@ jobs:
         run: |
           cargo tauri bundle --bundles dmg --target universal-apple-darwin
           mv target/universal-apple-darwin/release/bundle/dmg/*.dmg ${{ env.APP_NAME }}-${{ github.ref_name }}-MacOS-Universal2.dmg
+        env:
+          CI: false
 
       - name: Upload macOS DMG artifact
         uses: actions/upload-artifact@v4
