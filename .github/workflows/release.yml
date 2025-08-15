@@ -36,6 +36,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Cache Cargo dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
@@ -55,6 +68,19 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Cache Cargo dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
 
       - name: Download macOS binary artifacts
         uses: actions/download-artifact@v4
@@ -97,6 +123,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Cache Cargo dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
@@ -110,17 +149,10 @@ jobs:
 
       - name: Build Linux AppImage and Tarball
         run: |
-          # Build the application for the specified architecture
           cargo build --release
-
-          # Bundle the application into an AppImage
           cargo tauri bundle --bundles appimage
           mv target/release/bundle/appimage/*.AppImage ${{ env.APP_NAME }}-${{ github.ref_name }}-Linux-${{ matrix.arch }}.AppImage
-          
-          # Copy the binary to its new name
           cp target/release/tiny-wii-backup-manager "${{ env.APP_NAME }}-${{ github.ref_name }}-Linux-${{ matrix.arch }}"
-
-          # Create a compressed tarball of the renamed binary
           tar -czvf "${{ env.APP_NAME }}-${{ github.ref_name }}-Linux-${{ matrix.arch }}.tar.gz" \
             "${{ env.APP_NAME }}-${{ github.ref_name }}-Linux-${{ matrix.arch }}"
 
@@ -146,6 +178,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Cache Cargo dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
@@ -154,14 +199,9 @@ jobs:
 
       - name: Build Windows Artifacts
         run: |
-          # Build for the native architecture of the runner
           cargo build --release
-
-          # --- Handle ZIP file ---
           Copy-Item -Path "target/release/tiny-wii-backup-manager.exe" -Destination "${{ env.APP_NAME }}-${{ github.ref_name }}-Windows-${{ matrix.arch }}.exe"
           Compress-Archive -Path "${{ env.APP_NAME }}-${{ github.ref_name }}-Windows-${{ matrix.arch }}.exe" -DestinationPath "${{ env.APP_NAME }}-${{ github.ref_name }}-Windows-${{ matrix.arch }}.zip"
-
-          # --- Handle MSI installer ---
           cargo tauri bundle --bundles msi
           Move-Item -Path target/release/bundle/msi/*.msi -Destination "${{ env.APP_NAME }}-${{ github.ref_name }}-Windows-${{ matrix.arch }}.msi"
 
