@@ -34,11 +34,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update -y
-          sudo apt-get install -y yq
-
       - name: Run Linux build script
         run: ./scripts/build-linux.sh
 
@@ -83,7 +78,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: brew install yq graphicsmagick imagemagick
+        run: brew install graphicsmagick imagemagick
 
       - name: Run MacOS build script
         run: ./scripts/build-macos.sh
