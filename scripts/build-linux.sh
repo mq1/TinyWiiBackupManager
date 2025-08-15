@@ -15,22 +15,23 @@ HOST_ARCH=$(uname -m)
 PREFIX="TWBM"
 DIST_DIR="./dist"
 ASSETS_DIR="./assets"
-APPDIR_NAME="${APP_NAME}.AppDir"
-
-# Download appimagetool
-rm -f "appimagetool-$HOST_ARCH.AppImage"
-wget "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-$HOST_ARCH.AppImage"
-chmod +x "appimagetool-$HOST_ARCH.AppImage"
+APPDIR_NAME="${FANCY_APP_NAME}.AppDir"
 
 # 1. Clean up and prepare directories
 rm -rf "${APPDIR_NAME}"
 mkdir -p "${DIST_DIR}"
 
-# 2. Build Rust binary
+# 2. Download appimagetool
+echo "Downloading the latest appimagetool..."
+rm -f "appimagetool-$HOST_ARCH.AppImage"
+wget "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-$HOST_ARCH.AppImage"
+chmod +x "appimagetool-$HOST_ARCH.AppImage"
+
+# 3. Build Rust binary
 echo "Building Rust binary..."
 cargo build --release
 
-# 3. Assemble AppDir
+# 4. Assemble AppDir
 echo "Assembling AppDir..."
 mkdir -p "${APPDIR_NAME}/usr/bin"
 cp "target/release/${APP_NAME}" "${APPDIR_NAME}/usr/bin/"
@@ -40,8 +41,7 @@ mkdir -p "${APPDIR_NAME}/usr/share"
 cp -r "${ASSETS_DIR}/linux/icons" "${APPDIR_NAME}/usr/share/"
 
 echo "Creating desktop file..."
-mkdir -p "${APPDIR_NAME}/usr/share/applications"
-cat > "${APPDIR_NAME}/usr/share/applications/${APP_NAME}.desktop" <<EOF
+cat > "${APPDIR_NAME}/${APP_NAME}.desktop" <<EOF
 [Desktop Entry]
 Name=${FANCY_APP_NAME}
 Exec=${APP_NAME}
@@ -54,11 +54,15 @@ EOF
 echo "Setting the AppImage file icon..."
 cp "${ASSETS_DIR}/linux/icons/hicolor/256x256/apps/${APP_NAME}.png" "${APPDIR_NAME}/.DirIcon"
 
-# 4. Run appimagetool and place artifact in dist
+# 5. Run appimagetool and place artifact in dist
 echo "Running appimagetool..."
-./appimagetool-$HOST_ARCH.AppImage --comp gzip "${APPDIR_NAME}"
+./appimagetool-"${HOST_ARCH}".AppImage --comp gzip "${APPDIR_NAME}"
 mv "${APP_NAME}-${HOST_ARCH}.AppImage" "${DIST_DIR}/${PREFIX}-${VERSION}-Linux-${HOST_ARCH}.AppImage"
+
+# 6. Clean up intermediate files
+echo "Cleaning up intermediate files..."
 rm -rf "${APPDIR_NAME}"
+rm "appimagetool-${HOST_ARCH}.AppImage"
 echo "✅ AppImage created in ${DIST_DIR} directory"
 
 # --- Build .tar.gz Archive ---
