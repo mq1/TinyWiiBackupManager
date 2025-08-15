@@ -3,3 +3,4 @@
 /AppDir
 *.AppImage
 dist/
+tmp-linux-bundle-assets/
