@@ -22,10 +22,6 @@ rm -f "appimagetool-$HOST_ARCH.AppImage"
 wget "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-$HOST_ARCH.AppImage"
 chmod +x "appimagetool-$HOST_ARCH.AppImage"
 
-# --- Build AppImage ---
-echo ""
-echo "--- Building AppImage for ${APP_NAME} v${VERSION} (arch: ${HOST_ARCH}) ---"
-
 # 1. Clean up and prepare directories
 rm -rf "${APPDIR_NAME}"
 mkdir -p "${DIST_DIR}"
@@ -60,11 +56,10 @@ cp "${ASSETS_DIR}/linux/icons/hicolor/256x256/apps/${APP_NAME}.png" "${APPDIR_NA
 
 # 4. Run appimagetool and place artifact in dist
 echo "Running appimagetool..."
-./appimagetool-$HOST_ARCH.AppImage --comp "${APPDIR_NAME}"
+./appimagetool-$HOST_ARCH.AppImage --comp gzip "${APPDIR_NAME}"
 mv "${APP_NAME}-${HOST_ARCH}.AppImage" "${DIST_DIR}/${PREFIX}-${VERSION}-Linux-${HOST_ARCH}.AppImage"
 rm -rf "${APPDIR_NAME}"
 echo "✅ AppImage created in ${DIST_DIR} directory"
-
 
 # --- Build .tar.gz Archive ---
 echo ""
