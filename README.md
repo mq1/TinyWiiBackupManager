@@ -8,13 +8,13 @@
 
 **Supported input formats:** ISO, WIA, RVZ, WBFS, CISO, NKit
 
-## ✨ Downloading
+## ⬇️ Downloading
 
-### Prebuilt executable (recommended)
+### 🏃‍➡️ Prebuilt executable (recommended)
 
 Just grab the [latest release](https://github.com/mq1/TinyWiiBackupManager/releases/latest) for your platform
 
-#### MacOS
+### 🍎 MacOS
 
 The app is NOT notarized, you need to allow it with:
 ```sh
