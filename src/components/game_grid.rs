@@ -38,7 +38,7 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
 fn ui_game_card(ui: &mut egui::Ui, game: &Game) -> bool {
     let mut remove_clicked = false;
 
-    let card = egui::Frame::group(ui.style()).corner_radius(10.0);
+    let card = egui::Frame::group(ui.style()).corner_radius(5.0);
     card.show(ui, |ui| {
         ui.set_max_size(CARD_SIZE);
 
