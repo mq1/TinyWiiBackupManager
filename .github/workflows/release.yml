@@ -62,8 +62,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: choco install yq
+      - name: Install PSToml module
+        shell: pwsh
+        run: Install-Module -Name PSToml -Scope CurrentUser -Repository PSGallery -Force
 
       - name: Run Windows build script
         shell: pwsh
