@@ -2,11 +2,12 @@
 $ErrorActionPreference = "Stop"
 
 # --- Configuration ---
-Write-Host "Reading configuration from Cargo.toml..."
-$APP_NAME = (yq -r '.package.name' Cargo.toml)
-$PRODUCT_NAME = (yq -r '.package.metadata.winres.ProductName' Cargo.toml)
-$SHORT_NAME = (yq -r '.package.metadata.short_name' Cargo.toml)
-$VERSION = (yq -r '.package.version' Cargo.toml)
+$cargoTomlContent = Get-Content -Path Cargo.toml -Raw
+$cargoConfig = $cargoTomlContent | ConvertFrom-Toml
+$APP_NAME = $cargoConfig.package.name
+$PRODUCT_NAME = $cargoConfig.package.metadata.winres.ProductName
+$SHORT_NAME = $cargoConfig.package.metadata.short_name
+$VERSION = $cargoConfig.package.version
 
 $HOST_ARCH = $env:PROCESSOR_ARCHITECTURE
 
