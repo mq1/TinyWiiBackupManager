@@ -2,7 +2,8 @@
     <img alt="logo" width="128" src="assets/linux/256x256/tiny-wii-backup-manager.png">
     <h1 align="center">TinyWiiBackupManager</h1>
     <p align="center">A dead simple WBFS manager written in Rust (with RVZ support!)</p>
-    <p align="center">‼️ Make sure to only play your legally obtained backups, any reference to piracy is not allowed in this project ‼️</p>
+    <p align="center">‼️ Make sure to only play your legally obtained backups ‼️</p>
+    <p align="center">🏴‍☠️ This project is not associated with piracy 🏴‍☠️</p>
     <img alt="screenshot" src="screenshot.png">
 </p>
 
