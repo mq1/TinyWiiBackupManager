@@ -44,8 +44,6 @@ Type=Application
 Categories=Utility;
 Comment=${DESCRIPTION}
 EOF
-# The icon file must be named after the binary
-cp "${ASSETS_DIR}/linux/icons/hicolor/256x256/apps/${APP_NAME}.png" "${INPUT_DIR}/${APP_NAME}.png"
 
 # 5. Run linuxdeploy
 echo "Running linuxdeploy..."
@@ -53,7 +51,7 @@ echo "Running linuxdeploy..."
     --appdir "${PRODUCT_NAME}.AppDir" \
     --executable "target/release/${APP_NAME}" \
     --desktop-file "${INPUT_DIR}/${APP_NAME}.desktop" \
-    --icon-file "${INPUT_DIR}/${APP_NAME}.png" \
+    --icon-file "${ASSETS_DIR}/linux/*/*.png" \
     --output appimage
 
 # 6. Rename the final artifact

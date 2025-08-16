@@ -17,9 +17,9 @@ mkdir -p "${ASSETS_DIR}"
 # --- Linux Icon Theme Generation ---
 echo "-> Generating Linux icon theme..."
 for size in 32 48 64 128 256 512; do
-    mkdir -p "${ASSETS_DIR}/linux/icons/hicolor/${size}x${size}/apps"
+    mkdir -p "${ASSETS_DIR}/linux/${size}x${size}"
     magick "${SOURCE_ICON}" -resize "${size}x${size}" \
-        "${ASSETS_DIR}/linux/icons/hicolor/${size}x${size}/apps/${APP_NAME}.png"
+        "${ASSETS_DIR}/linux/${size}x${size}/${APP_NAME}.png"
 done
 
 # --- macOS .icns File Generation ---
@@ -28,7 +28,7 @@ echo "-> Generating macOS .icns file..."
 ICONSET_DIR="${ASSETS_DIR}/macos/${APP_NAME}.iconset"
 mkdir -p "${ICONSET_DIR}"
 
-# Use `sips` to create all the required resolutions (output is no longer silenced)
+# Use `sips` to create all the required resolutions
 sips -z 16 16     "${SOURCE_ICON}" --out "${ICONSET_DIR}/icon_16x16.png"
 sips -z 32 32     "${SOURCE_ICON}" --out "${ICONSET_DIR}/icon_16x16@2x.png"
 sips -z 32 32     "${SOURCE_ICON}" --out "${ICONSET_DIR}/icon_32x32.png"
