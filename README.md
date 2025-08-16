@@ -21,10 +21,4 @@ The app is NOT notarized, you need to allow it with:
 sudo xattr -rd com.apple.quarantine /Applications/TinyWiiBackupManager.app
 ```
 
-## Additional info [here](https://github.com/mq1/TinyWiiBackupManager/wiki)
-
-🪱 Library: [iso2wbfs](https://github.com/mq1/iso2wbfs)\
-❤️ Using [GameTDB](https://www.gametdb.com/)\
-🦀 Using [nod](https://github.com/encounter/nod)
-
-🤖 Logo generated with Microsoft Copilot
+## Additional in the [wiki](https://github.com/mq1/TinyWiiBackupManager/wiki)
