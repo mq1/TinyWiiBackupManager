@@ -12,7 +12,6 @@ $VERSION = $cargoConfig.package.version
 $HOST_ARCH = $env:PROCESSOR_ARCHITECTURE
 
 $DIST_DIR = ".\dist"
-$ASSETS_DIR = ".\assets"
 
 # 1. Prepare directories
 New-Item -ItemType Directory -Force -Path $DIST_DIR
