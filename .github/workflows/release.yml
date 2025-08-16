@@ -109,7 +109,7 @@ jobs:
           path: artifacts
 
       - name: Create version.txt
-        run: echo "${GITHUB_REF_NAME#v}" > version.txt
+        run: echo -n "${GITHUB_REF_NAME#v}" > version.txt
         env:
           GITHUB_REF_NAME: ${{ github.ref_name }}
 
