@@ -33,6 +33,7 @@ fn run() -> Result<()> {
 
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
+            .with_inner_size(egui::vec2(782.0, 600.0))
             .with_title(&title)
             .with_icon(icon),
         ..Default::default()
