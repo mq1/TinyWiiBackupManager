@@ -108,11 +108,18 @@ jobs:
         with:
           path: artifacts
 
+      - name: Create version.txt
+        run: echo "${GITHUB_REF_NAME#v}" > version.txt
+        env:
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          # The glob pattern finds all files within the downloaded artifact subdirectories
-          files: artifacts/*/*
+          # The glob pattern now includes the new version.txt file
+          files: |
+            artifacts/*/*
+            version.txt
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
