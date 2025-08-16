@@ -10,8 +10,6 @@
 
 ## ⬇️ Downloading
 
-### 🏃‍➡️ Prebuilt executable (recommended)
-
 Just grab the [latest release](https://github.com/mq1/TinyWiiBackupManager/releases/latest) for your platform
 
 ### 🍎 MacOS
