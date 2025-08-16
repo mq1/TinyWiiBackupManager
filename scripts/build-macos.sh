@@ -10,11 +10,13 @@ PRODUCT_NAME=$(yq -r '.package.metadata.winres.ProductName' Cargo.toml)
 SHORT_NAME=$(yq -r '.package.metadata.short_name' Cargo.toml)
 VERSION=$(yq -r '.package.version' Cargo.toml)
 DESCRIPTION=$(yq -r '.package.description' Cargo.toml)
+LEGAL_COPYRIGHT=$(yq -r '.package.metadata.winres.LegalCopyright' Cargo.toml)
 BUNDLE_IDENTIFIER="it.mq1.${PRODUCT_NAME}"
 
 DIST_DIR="./dist"
 ASSETS_DIR="./assets"
 APP_BUNDLE_NAME="${PRODUCT_NAME}.app"
+INFO_PLIST="${APP_BUNDLE_NAME}/Contents/Info.plist"
 
 # 1. Define targets and paths
 X86_64_TARGET="x86_64-apple-darwin"
@@ -51,35 +53,22 @@ cp "${UNIVERSAL_EXE}" "${APP_BUNDLE_NAME}/Contents/MacOS/"
 echo "Copying pre-generated .icns file..."
 cp "${ASSETS_DIR}/macos/${APP_NAME}.icns" "${APP_BUNDLE_NAME}/Contents/Resources/"
 
-echo "Creating Info.plist..."
-cat > "${APP_BUNDLE_NAME}/Contents/Info.plist" <<EOF
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-	<key>CFBundleName</key>
-	<string>${PRODUCT_NAME}</string>
-	<key>CFBundleDisplayName</key>
-	<string>${PRODUCT_NAME}</string>
-	<key>CFBundleIdentifier</key>
-	<string>${BUNDLE_IDENTIFIER}</string>
-	<key>CFBundleVersion</key>
-	<string>${VERSION}</string>
-	<key>CFBundleShortVersionString</key>
-	<string>${VERSION}</string>
-	<key>CFBundlePackageType</key>
-	<string>APPL</string>
-	<key>CFBundleExecutable</key>
-	<string>${APP_NAME}</string>
-	<key>CFBundleIconFile</key>
-	<string>${APP_NAME}</string>
-	<key>LSMinimumSystemVersion</key>
-	<string>11.0</string>
-	<key>NSHighResolutionCapable</key>
-	<true/>
-</dict>
-</plist>
-EOF
+echo "Creating Info.plist with PlistBuddy..."
+# Create a new plist file
+/usr/libexec/PlistBuddy -c "Clear" "${INFO_PLIST}" || true
+
+# Add the necessary keys and values
+/usr/libexec/PlistBuddy -c "Add :CFBundleName string '${PRODUCT_NAME}'" "${INFO_PLIST}"
+/usr/libexec/PlistBuddy -c "Add :CFBundleDisplayName string '${PRODUCT_NAME}'" "${INFO_PLIST}"
+/usr/libexec/PlistBuddy -c "Add :CFBundleIdentifier string '${BUNDLE_IDENTIFIER}'" "${INFO_PLIST}"
+/usr/libexec/PlistBuddy -c "Add :CFBundleVersion string '${VERSION}'" "${INFO_PLIST}"
+/usr/libexec/PlistBuddy -c "Add :CFBundleShortVersionString string '${VERSION}'" "${INFO_PLIST}"
+/usr/libexec/PlistBuddy -c "Add :CFBundlePackageType string 'APPL'" "${INFO_PLIST}"
+/usr/libexec/PlistBuddy -c "Add :CFBundleExecutable string '${APP_NAME}'" "${INFO_PLIST}"
+/usr/libexec/PlistBuddy -c "Add :CFBundleIconFile string '${APP_NAME}'" "${INFO_PLIST}"
+/usr/libexec/PlistBuddy -c "Add :LSMinimumSystemVersion string '11.0'" "${INFO_PLIST}"
+/usr/libexec/PlistBuddy -c "Add :NSHighResolutionCapable bool true" "${INFO_PLIST}"
+/usr/libexec/PlistBuddy -c "Add :NSHumanReadableCopyright string '${LEGAL_COPYRIGHT}'" "${INFO_PLIST}"
 
 # 6. Create and finalize the DMG
 echo "Creating DMG..."
