@@ -51,7 +51,7 @@ echo "Running linuxdeploy..."
     --appdir "${PRODUCT_NAME}.AppDir" \
     --executable "target/release/${APP_NAME}" \
     --desktop-file "${INPUT_DIR}/${APP_NAME}.desktop" \
-    --icon-file "${ASSETS_DIR}/linux/*/*.png" \
+    --icon-file "${ASSETS_DIR}/linux/*/${APP_NAME}.png" \
     --output appimage
 
 # 6. Rename the final artifact
