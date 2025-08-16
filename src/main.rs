@@ -8,6 +8,8 @@ use eframe::egui;
 use tiny_wii_backup_manager::App;
 use tiny_wii_backup_manager::error_handling::show_anyhow_error;
 
+const LOGO: &[u8] = include_bytes!("../assets/linux/256x256/tiny-wii-backup-manager.png");
+
 fn main() -> Result<()> {
     run().map_err(|e| {
         show_anyhow_error("Fatal Error", &e);
@@ -27,14 +29,12 @@ fn run() -> Result<()> {
         wbfs_dir.display()
     );
 
-    let icon = eframe::icon_data::from_png_bytes(include_bytes!("../logo.png"))
-        .context("Failed to load icon")?;
+    let icon = eframe::icon_data::from_png_bytes(LOGO).context("Failed to load icon")?;
 
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_title(&title)
             .with_icon(icon),
-        renderer: eframe::Renderer::Wgpu,
         ..Default::default()
     };
 
