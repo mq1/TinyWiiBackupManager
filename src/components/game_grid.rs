@@ -12,7 +12,8 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
     let mut to_remove = None;
 
     egui::ScrollArea::vertical().show(ui, |ui| {
-        let num_columns = ((ui.available_width() / CARD_SIZE.x) as usize).max(1);
+        let num_columns =
+            (ui.available_width() / (CARD_SIZE.x + GRID_SPACING.x * 2.)).max(1.) as usize;
 
         egui::Grid::new("game_grid")
             .spacing(GRID_SPACING)
@@ -37,8 +38,10 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
 fn ui_game_card(ui: &mut egui::Ui, game: &Game) -> bool {
     let mut remove_clicked = false;
 
-    egui::Frame::group(ui.style()).show(ui, |ui| {
+    let card = egui::Frame::group(ui.style()).corner_radius(10.0);
+    card.show(ui, |ui| {
         ui.set_max_size(CARD_SIZE);
+
         ui.vertical_centered(|ui| {
             match game.get_language() {
                 Ok(lang) => {
