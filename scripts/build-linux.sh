@@ -61,8 +61,7 @@ echo "Running linuxdeploy..."
 
 # 6. Rename the final artifact
 echo "Renaming artifact..."
-# linuxdeploy creates a file like "AppName-arch.AppImage"
-mv "${PRODUCT_NAME}"-"*.AppImage" "${DIST_DIR}/${SHORT_NAME}-${VERSION}-Linux-${HOST_ARCH}.AppImage"
+mv "${PRODUCT_NAME}-${HOST_ARCH}.AppImage" "${DIST_DIR}/${SHORT_NAME}-${VERSION}-Linux-${HOST_ARCH}.AppImage"
 
 # 7. Clean up intermediate files
 echo "Cleaning up intermediate files..."
