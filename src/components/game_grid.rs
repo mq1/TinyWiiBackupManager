@@ -5,7 +5,7 @@ use crate::error_handling::show_anyhow_error;
 use crate::{app::App, game::Game};
 use eframe::egui::{self, Image, RichText};
 
-const CARD_SIZE: egui::Vec2 = egui::vec2(180.0, 220.0);
+const CARD_SIZE: egui::Vec2 = egui::vec2(170.0, 220.0);
 const GRID_SPACING: egui::Vec2 = egui::vec2(10.0, 10.0);
 
 pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
