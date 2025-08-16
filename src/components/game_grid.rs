@@ -61,7 +61,7 @@ fn ui_game_card(ui: &mut egui::Ui, game: &Game) -> bool {
                 }
             }
 
-            ui.add_space(5.0);
+            ui.add_space(5.);
 
             ui.label(RichText::new(&game.display_title).strong());
             ui.label(
@@ -71,7 +71,15 @@ fn ui_game_card(ui: &mut egui::Ui, game: &Game) -> bool {
             );
 
             ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
-                remove_clicked = ui.button("🗑 Remove").clicked();
+                ui.horizontal(|ui| {
+                    ui.add_space(7.);
+                    ui.hyperlink_to(
+                        "🌐 GameTDB",
+                        format!("https://www.gametdb.com/Wii/{}", game.id),
+                    );
+                    ui.add_space(5.);
+                    remove_clicked = ui.button("🗑 Remove").clicked();
+                });
             });
         });
     });
