@@ -71,7 +71,7 @@ echo "✅ AppImage created in ${DIST_DIR} directory"
 
 # 1. Define paths
 SOURCE_EXE="target/release/${APP_NAME}"
-STAGED_EXE="./${PRODUCT_NAME}"
+STAGED_EXE="./${SHORT_NAME}-${VERSION}-Linux-${HOST_ARCH}"
 DEST_ARCHIVE="${DIST_DIR}/${SHORT_NAME}-${VERSION}-Linux-${HOST_ARCH}.tar.gz"
 
 # 2. Stage, archive, and clean up
