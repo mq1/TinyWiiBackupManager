@@ -5,7 +5,6 @@ $ErrorActionPreference = "Stop"
 $cargoTomlContent = Get-Content -Path Cargo.toml -Raw
 $cargoConfig = $cargoTomlContent | ConvertFrom-Toml
 $APP_NAME = $cargoConfig.package.name
-$PRODUCT_NAME = $cargoConfig.package.metadata.winres.ProductName
 $SHORT_NAME = $cargoConfig.package.metadata.short_name
 $VERSION = $cargoConfig.package.version
 
@@ -22,7 +21,7 @@ cargo build --release
 
 # 3. Define paths
 $SOURCE_EXE = ".\target\release\$($APP_NAME).exe"
-$STAGED_EXE = ".\$($PRODUCT_NAME).exe"
+$STAGED_EXE = ".\$($SHORT_NAME)-$($VERSION)-Windows-$($HOST_ARCH).exe"
 $DEST_ZIP = "$($DIST_DIR)\$($SHORT_NAME)-$($VERSION)-Windows-$($HOST_ARCH).zip"
 
 # 4. Stage, archive, and clean up
