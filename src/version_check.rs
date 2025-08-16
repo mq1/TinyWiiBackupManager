@@ -25,7 +25,7 @@ pub fn check_for_new_version() -> anyhow::Result<Option<UpdateInfo>> {
         .read_to_string()
         .context("Failed to read response body")?;
 
-    let latest = Version::parse(latest_version.trim()).context("Failed to parse latest version")?;
+    let latest = Version::parse(&latest_version).context("Failed to parse latest version")?;
     let current = Version::parse(VERSION).context("Failed to parse current version")?;
 
     Ok((latest > current).then_some(UpdateInfo {
