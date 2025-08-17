@@ -24,18 +24,13 @@ AARCH64_TARGET="aarch64-apple-darwin"
 UNIVERSAL_DIR="target/universal/release"
 UNIVERSAL_EXE="${UNIVERSAL_DIR}/${APP_NAME}"
 
-# 2. Ensure toolchains are installed
-echo "Ensuring required toolchains are installed..."
-rustup target add ${X86_64_TARGET}
-rustup target add ${AARCH64_TARGET}
-
-# 3. Build for each architecture
+# 2. Build for each architecture
 echo "Building for Intel (x86_64)..."
 cargo build --release --target ${X86_64_TARGET}
 echo "Building for Apple Silicon (aarch64)..."
 cargo build --release --target ${AARCH64_TARGET}
 
-# 4. Combine binaries with lipo
+# 3. Combine binaries with lipo
 echo "Creating Universal 2 binary with lipo..."
 mkdir -p "${UNIVERSAL_DIR}"
 lipo -create \
@@ -43,7 +38,7 @@ lipo -create \
   "target/${AARCH64_TARGET}/release/${APP_NAME}" \
   -output "${UNIVERSAL_EXE}"
 
-# 5. Assemble the .app bundle
+# 4. Assemble the .app bundle
 echo "Assembling .app bundle..."
 rm -rf "${APP_BUNDLE_NAME}"
 mkdir -p "${APP_BUNDLE_NAME}/Contents/MacOS"
@@ -70,7 +65,7 @@ echo "Creating Info.plist with PlistBuddy..."
 /usr/libexec/PlistBuddy -c "Add :NSHighResolutionCapable bool true" "${INFO_PLIST}"
 /usr/libexec/PlistBuddy -c "Add :NSHumanReadableCopyright string '${LEGAL_COPYRIGHT}'" "${INFO_PLIST}"
 
-# 6. Create and finalize the DMG
+# 5. Create and finalize the DMG
 echo "Creating DMG..."
 FINAL_DMG_PATH="${DIST_DIR}/${SHORT_NAME}-${VERSION}-MacOS-Universal2.dmg"
 mkdir -p "${DIST_DIR}"
