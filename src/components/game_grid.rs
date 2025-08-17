@@ -12,6 +12,9 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
     let mut to_remove = None;
 
     egui::ScrollArea::vertical().show(ui, |ui| {
+        // expand horizontally
+        ui.set_min_width(ui.available_width());
+
         let num_columns =
             (ui.available_width() / (CARD_SIZE.x + GRID_SPACING.x * 2.)).max(1.) as usize;
 
