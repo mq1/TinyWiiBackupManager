@@ -34,9 +34,9 @@ cargo build --release --target ${AARCH64_TARGET}
 echo "Creating Universal 2 binary with lipo..."
 mkdir -p "${UNIVERSAL_DIR}"
 lipo -create \
-  "target/${X86_64_TARGET}/release/${APP_NAME}" \
-  "target/${AARCH64_TARGET}/release/${APP_NAME}" \
-  -output "${UNIVERSAL_EXE}"
+    "target/${X86_64_TARGET}/release/${APP_NAME}" \
+    "target/${AARCH64_TARGET}/release/${APP_NAME}" \
+    -output "${UNIVERSAL_EXE}"
 
 # 4. Assemble the .app bundle
 echo "Assembling .app bundle..."
@@ -62,8 +62,12 @@ echo "Creating Info.plist with PlistBuddy..."
 /usr/libexec/PlistBuddy -c "Add :CFBundleExecutable string '${APP_NAME}'" "${INFO_PLIST}"
 /usr/libexec/PlistBuddy -c "Add :CFBundleIconFile string '${APP_NAME}'" "${INFO_PLIST}"
 /usr/libexec/PlistBuddy -c "Add :LSMinimumSystemVersion string '11.0'" "${INFO_PLIST}"
-/usr/libexec/PlistBuddy -c "Add :NSHighResolutionCapable bool true" "${INFO_PLIST}"
 /usr/libexec/PlistBuddy -c "Add :NSHumanReadableCopyright string '${LEGAL_COPYRIGHT}'" "${INFO_PLIST}"
+
+# Essential Keys for a Modern Graphical App
+/usr/libexec/PlistBuddy -c "Add :NSPrincipalClass string 'NSApplication'" "${INFO_PLIST}"
+/usr/libexec/PlistBuddy -c "Add :NSHighResolutionCapable bool true" "${INFO_PLIST}"
+/usr/libexec/PlistBuddy -c "Add :NSSupportsAutomaticGraphicsSwitching bool true" "${INFO_PLIST}"
 
 # 5. Create and finalize the DMG
 echo "Creating DMG..."
