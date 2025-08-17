@@ -28,7 +28,7 @@ enum BackgroundMessage {
 /// Main application state and UI controller.
 pub struct App {
     /// Directory where WBFS files are stored
-    wbfs_dir: PathBuf,
+    pub wbfs_dir: PathBuf,
     /// List of discovered games
     pub games: Vec<Game>,
     /// WBFS dir size
