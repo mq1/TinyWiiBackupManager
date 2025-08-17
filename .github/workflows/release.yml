@@ -37,7 +37,16 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libfuse2 libclang-dev libgtk-3-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
+          sudo apt-get install -y \
+            libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev \ # For eframe
+            libfuse2 desktop-file-utils # For LinuxDeploy
+
+          # Install LinuxDeploy
+          wget -c "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${{ matrix.arch }}.AppImage"
+          wget -c "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-${{ matrix.arch }}.AppImage"
+          chmod +x linuxdeploy*.AppImage
+          mkdir -p ~/.local/bin
+          mv linuxdeploy*.AppImage ~/.local/bin
 
       - name: Run Linux build script
         run: ./scripts/build-linux.sh
