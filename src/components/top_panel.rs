@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use crate::app::App;
+use crate::error_handling::show_anyhow_error;
+use anyhow::anyhow;
 use eframe::egui;
 
 /// Renders the top menu bar.
@@ -20,12 +22,25 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 ui.hyperlink_to("ℹ Wiki", "https://github.com/mq1/TinyWiiBackupManager/wiki")
                     .on_hover_text("Open the TinyWiiBackupManager wiki");
+
                 ui.label("•");
+
                 ui.label(format!(
-                    "WBFS Size: {:.2} GiB",
+                    "size: {:.2} GiB",
                     app.wbfs_dir_size as f64 / 1024.0 / 1024.0 / 1024.0
                 ));
+                if ui
+                    .hyperlink("WBFS")
+                    .on_hover_text("Open the WBFS directory")
+                    .clicked()
+                {
+                    if let Err(e) = open::that(&app.wbfs_dir) {
+                        show_anyhow_error("Error", &anyhow!(e));
+                    }
+                }
+
                 ui.label("•");
+
                 ui.label(format!("{} games", app.games.len()));
             });
         });
