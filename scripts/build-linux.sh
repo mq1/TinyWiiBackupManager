@@ -31,12 +31,14 @@ echo "Preparing input files (.desktop and icon)..."
 touch "${DESKTOP_FILE}"
 
 # Populate the .desktop file
-desktop-file-edit --set-entry=Name --set-value="${PRODUCT_NAME}" "${DESKTOP_FILE}"
-desktop-file-edit --set-entry=Exec --set-value="${APP_NAME}" "${DESKTOP_FILE}"
-desktop-file-edit --set-entry=Icon --set-value="${APP_NAME}" "${DESKTOP_FILE}"
-desktop-file-edit --set-entry=Type --set-value=Application "${DESKTOP_FILE}"
-desktop-file-edit --set-entry=Categories --set-value=Utility "${DESKTOP_FILE}"
-desktop-file-edit --set-entry=Comment --set-value="${DESCRIPTION}" "${DESKTOP_FILE}"
+desktop-file-edit \
+    --set-name="${PRODUCT_NAME}" \
+    --set-icon="${APP_NAME}" \
+    --add-category=Utility \
+    --set-comment="${DESCRIPTION}" \
+    --set-key=Type --set-value=Application \
+    --set-key=Exec --set-value="${APP_NAME}" \
+    "${DESKTOP_FILE}"
 
 # 4. Run linuxdeploy
 echo "Running linuxdeploy..."
