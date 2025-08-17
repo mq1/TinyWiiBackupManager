@@ -15,42 +15,35 @@ HOST_ARCH=$(uname -m)
 
 DIST_DIR="./dist"
 ASSETS_DIR="./assets"
-INPUT_DIR="./tmp-linux-bundle-assets"
+DESKTOP_FILE="./${PRODUCT_NAME}.desktop" # Define the desktop file path
 
 # 1. Prepare directories
 mkdir -p "${DIST_DIR}"
-rm -rf "${INPUT_DIR}"
-mkdir -p "${INPUT_DIR}"
 
-# 2. Download linuxdeploy and its AppImage plugin
-echo "Downloading linuxdeploy tools..."
-wget -c "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${HOST_ARCH}.AppImage"
-wget -c "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-${HOST_ARCH}.AppImage"
-chmod +x linuxdeploy*.AppImage
-
-# 3. Build Rust binary
+# 2. Build Rust binary
 echo "Building Rust binary..."
 cargo build --release
 
-# 4. Prepare input files for linuxdeploy
+# 3. Prepare input files for linuxdeploy
 echo "Preparing input files (.desktop and icon)..."
-# The .desktop file must be named after the binary
-cat > "${INPUT_DIR}/${APP_NAME}.desktop" <<EOF
-[Desktop Entry]
-Name=${PRODUCT_NAME}
-Exec=${APP_NAME}
-Icon=${APP_NAME}
-Type=Application
-Categories=Utility;
-Comment=${DESCRIPTION}
-EOF
 
-# 5. Run linuxdeploy
+# Create the .desktop file
+touch "${DESKTOP_FILE}"
+
+# Populate the .desktop file
+desktop-file-edit --set-entry=Name --set-value="${PRODUCT_NAME}" "${DESKTOP_FILE}"
+desktop-file-edit --set-entry=Exec --set-value="${APP_NAME}" "${DESKTOP_FILE}"
+desktop-file-edit --set-entry=Icon --set-value="${APP_NAME}" "${DESKTOP_FILE}"
+desktop-file-edit --set-entry=Type --set-value=Application "${DESKTOP_FILE}"
+desktop-file-edit --set-entry=Categories --set-value=Utility "${DESKTOP_FILE}"
+desktop-file-edit --set-entry=Comment --set-value="${DESCRIPTION}" "${DESKTOP_FILE}"
+
+# 4. Run linuxdeploy
 echo "Running linuxdeploy..."
-./linuxdeploy-${HOST_ARCH}.AppImage \
+linuxdeploy-${HOST_ARCH}.AppImage \
     --appdir "${PRODUCT_NAME}.AppDir" \
     --executable "target/release/${APP_NAME}" \
-    --desktop-file "${INPUT_DIR}/${APP_NAME}.desktop" \
+    --desktop-file "${DESKTOP_FILE}" \
     --icon-file "${ASSETS_DIR}/linux/32x32/${APP_NAME}.png" \
     --icon-file "${ASSETS_DIR}/linux/48x48/${APP_NAME}.png" \
     --icon-file "${ASSETS_DIR}/linux/64x64/${APP_NAME}.png" \
@@ -59,22 +52,21 @@ echo "Running linuxdeploy..."
     --icon-file "${ASSETS_DIR}/linux/512x512/${APP_NAME}.png" \
     --output appimage
 
-# 6. Rename the final artifact
+# 5. Rename the final artifact
 echo "Renaming artifact..."
 mv "${PRODUCT_NAME}-${HOST_ARCH}.AppImage" "${DIST_DIR}/${SHORT_NAME}-${VERSION}-Linux-${HOST_ARCH}.AppImage"
 
-# 7. Clean up intermediate files
+# 6. Clean up the temporary desktop file
 echo "Cleaning up intermediate files..."
-rm -rf "${INPUT_DIR}"
-rm linuxdeploy*.AppImage
+rm "${DESKTOP_FILE}"
 echo "✅ AppImage created in ${DIST_DIR} directory"
 
-# 1. Define paths
+# 7. Define paths for the tar.gz archive
 SOURCE_EXE="target/release/${APP_NAME}"
 STAGED_EXE="./${SHORT_NAME}-${VERSION}-Linux-${HOST_ARCH}"
 DEST_ARCHIVE="${DIST_DIR}/${SHORT_NAME}-${VERSION}-Linux-${HOST_ARCH}.tar.gz"
 
-# 2. Stage, archive, and clean up
+# 8. Stage, archive, and clean up the executable for the tar.gz
 echo "Staging executable with final name..."
 cp "${SOURCE_EXE}" "${STAGED_EXE}"
 chmod +x "${STAGED_EXE}"
