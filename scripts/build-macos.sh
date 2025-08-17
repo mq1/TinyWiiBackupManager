@@ -30,9 +30,9 @@ local UNIVERSAL_EXE="${UNIVERSAL_DIR}/${APP_NAME}"
 
 # 2. Build for each architecture
 echo "Building for Intel (x86_64)..."
-#cargo build --release --target ${X86_64_TARGET}
+cargo build --release --target ${X86_64_TARGET}
 echo "Building for Apple Silicon (aarch64)..."
-#cargo build --release --target ${AARCH64_TARGET}
+cargo build --release --target ${AARCH64_TARGET}
 
 # 3. Combine binaries with lipo
 echo "Creating Universal 2 binary with lipo..."
