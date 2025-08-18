@@ -12,7 +12,7 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
         egui::MenuBar::new().ui(ui, |ui| {
             let add_games_button = ui
                 .button("➕ Add Game(s)")
-                .on_hover_text("Add a new game to the WBFS directory");
+                .on_hover_text("Add one or more Discs to the wbfs directory");
 
             if add_games_button.clicked() {
                 app.add_isos();

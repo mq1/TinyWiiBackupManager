@@ -47,8 +47,10 @@ pub struct App {
     pub files_converted: usize,
     /// Result of the version check, if available
     pub version_check_result: Option<UpdateInfo>,
-    // File watcher
+    /// File watcher
     watcher: Option<notify::RecommendedWatcher>,
+    /// Whether to remove sources after conversion
+    pub remove_sources: bool,
 }
 
 impl App {
@@ -161,6 +163,7 @@ impl App {
     fn spawn_conversion_worker(&mut self, paths: Vec<PathBuf>) {
         let wbfs_dir = self.wbfs_dir.clone();
         let sender = self.inbox.sender();
+        let remove_sources = self.remove_sources;
 
         self.is_converting = true;
         self.total_files_to_convert = paths.len();
@@ -173,6 +176,14 @@ impl App {
                     return;
                 }
                 let _ = sender.send(BackgroundMessage::FileConverted);
+
+                // remove the source file
+                if remove_sources {
+                    if let Err(e) = std::fs::remove_file(&path) {
+                        let _ = sender.send(BackgroundMessage::ConversionComplete(Err(e.into())));
+                        return;
+                    }
+                }
             }
 
             let _ = sender.send(BackgroundMessage::ConversionComplete(Ok(())));
