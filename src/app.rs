@@ -29,6 +29,7 @@ enum BackgroundMessage {
 }
 
 /// Main application state and UI controller.
+#[derive(Default)]
 pub struct App {
     /// Directory where WBFS files are stored
     pub wbfs_dir: PathBuf,
@@ -47,14 +48,27 @@ pub struct App {
     /// Result of the version check, if available
     pub version_check_result: Option<UpdateInfo>,
     // File watcher
-    _watcher: notify::RecommendedWatcher,
+    watcher: Option<notify::RecommendedWatcher>,
 }
 
 impl App {
     /// Initializes the application with the specified WBFS directory.
     pub fn new(_cc: &eframe::CreationContext<'_>, wbfs_dir: PathBuf) -> Result<Self> {
-        let inbox = UiInbox::new();
-        let sender = inbox.sender();
+        let mut app = Self {
+            wbfs_dir,
+            ..Default::default()
+        };
+
+        app.spawn_wbfs_watcher()?;
+        app.spawn_version_check();
+        app.refresh_games()?;
+        Ok(app)
+    }
+
+    /// Spawns a file watcher for the WBFS directory.
+    fn spawn_wbfs_watcher(&mut self) -> Result<()> {
+        let sender = self.inbox.sender();
+        let wbfs_dir = self.wbfs_dir.clone();
 
         let mut watcher = notify::recommended_watcher(move |res| {
             if let Ok(_) = res {
@@ -62,23 +76,9 @@ impl App {
             }
         })?;
 
-        watcher.watch(&wbfs_dir, RecursiveMode::Recursive)?;
-
-        let mut app = Self {
-            wbfs_dir,
-            games: Vec::new(),
-            wbfs_dir_size: 0,
-            inbox,
-            is_converting: false,
-            total_files_to_convert: 0,
-            files_converted: 0,
-            version_check_result: None,
-            _watcher: watcher,
-        };
-
-        app.spawn_version_check();
-        app.refresh_games()?;
-        Ok(app)
+        watcher.watch(&wbfs_dir, RecursiveMode::NonRecursive)?;
+        self.watcher = Some(watcher);
+        Ok(())
     }
 
     /// Spawns a background thread to check for application updates.
