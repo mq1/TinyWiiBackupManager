@@ -211,6 +211,34 @@ impl App {
             }
         }
     }
+
+    #[cfg(target_os = "macos")]
+    /// Run dot_clean in the parent directory
+    pub fn run_dot_clean(&self) -> Result<()> {
+        let parent_dir = self
+            .wbfs_dir
+            .parent()
+            .context("Failed to get parent directory")?;
+
+        let confirm = rfd::MessageDialog::new()
+            .set_title("Run dot_clean")
+            .set_description(format!(
+                "Are you sure you want to run dot_clean in {}?",
+                parent_dir.display()
+            ))
+            .set_buttons(rfd::MessageButtons::OkCancel)
+            .show();
+
+        if confirm == rfd::MessageDialogResult::Ok {
+            std::process::Command::new("dot_clean")
+                .arg("-m")
+                .arg(parent_dir)
+                .spawn()
+                .context("Failed to run dot_clean")?;
+        }
+
+        Ok(())
+    }
 }
 
 impl eframe::App for App {

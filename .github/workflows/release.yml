@@ -39,14 +39,13 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev \ # For eframe
-            libfuse2 desktop-file-utils # For LinuxDeploy
+            libfuse2 desktop-file-utils # For AppImage
 
           # Install LinuxDeploy
           wget -c "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${{ matrix.arch }}.AppImage"
           wget -c "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-${{ matrix.arch }}.AppImage"
           chmod +x linuxdeploy*.AppImage
-          mkdir -p ~/.local/bin
-          mv linuxdeploy*.AppImage ~/.local/bin
+          sudo mv linuxdeploy*.AppImage /usr/local/bin
 
       - name: Run Linux build script
         run: ./scripts/build-linux.sh
@@ -96,9 +95,7 @@ jobs:
         run: brew install graphicsmagick imagemagick
 
       - name: Install rustup targets
-        run: |
-          rustup target add aarch64-apple-darwin
-          rustup target add x86_64-apple-darwin
+        run: rustup target add aarch64-apple-darwin x86_64-apple-darwin
 
       - name: Run MacOS build script
         run: ./scripts/build-macos.sh
