@@ -7,7 +7,7 @@ set -e
 echo "Reading configuration from Cargo.toml..."
 APP_NAME=$(yq -r '.package.name' Cargo.toml)
 PRODUCT_NAME=$(yq -r '.package.metadata.winres.ProductName' Cargo.toml)
-SHORT_NAME=$(yq -r '.package.metadata.short_name' Cargo.toml)
+SHORT_NAME=$(yq -r '.package.metadata.ShortName' Cargo.toml)
 VERSION=$(yq -r '.package.version' Cargo.toml)
 DESCRIPTION=$(yq -r '.package.description' Cargo.toml)
 

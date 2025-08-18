@@ -9,7 +9,8 @@ description = "A dead simple Wii Backup Manager"
 build = "build.rs"
 
 [package.metadata]
-short_name = "TWBM"
+ShortName = "TWBM"
+BundleIdentifier = "it.mq1.TinyWiiBackupManager"
 
 [package.metadata.winres]
 FileDescription = "A dead simple Wii Backup Manager"
