@@ -16,7 +16,7 @@ BundleIdentifier = "it.mq1.TinyWiiBackupManager"
 FileDescription = "A dead simple Wii Backup Manager"
 ProductName = "TinyWiiBackupManager"
 OriginalFilename = "TinyWiiBackupManager.exe"
-LegalCopyright = "Copyright (c) 2025 Manuel Quarneti | GPL-2.0-only"
+LegalCopyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-2.0-only."
 
 [dependencies]
 eframe = "0.32"
