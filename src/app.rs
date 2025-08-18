@@ -28,6 +28,21 @@ enum BackgroundMessage {
     DirectoryChanged,
 }
 
+/// State of the conversion process
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
+pub enum ConversionState {
+    /// No conversion is in progress
+    #[default]
+    Idle,
+    /// Conversion is in progress
+    Converting {
+        /// Total number of files to convert
+        total_files: usize,
+        /// Number of files already converted
+        files_converted: usize,
+    },
+}
+
 /// Main application state and UI controller.
 #[derive(Default)]
 pub struct App {
@@ -39,12 +54,8 @@ pub struct App {
     pub wbfs_dir_size: u64,
     /// Inbox for receiving messages from background tasks
     inbox: UiInbox<BackgroundMessage>,
-    /// Whether a conversion is currently in progress
-    pub is_converting: bool,
-    /// Total number of files to convert
-    pub total_files_to_convert: usize,
-    /// Number of files already converted
-    pub files_converted: usize,
+    /// Current state of the conversion process
+    pub conversion_state: ConversionState,
     /// Result of the version check, if available
     pub version_check_result: Option<UpdateInfo>,
     /// File watcher
@@ -165,9 +176,10 @@ impl App {
         let sender = self.inbox.sender();
         let remove_sources = self.remove_sources;
 
-        self.is_converting = true;
-        self.total_files_to_convert = paths.len();
-        self.files_converted = 0;
+        self.conversion_state = ConversionState::Converting {
+            total_files: paths.len(),
+            files_converted: 0,
+        };
 
         std::thread::spawn(move || {
             for path in paths {
@@ -200,11 +212,20 @@ impl App {
         for msg in self.inbox.read(ctx) {
             match msg {
                 BackgroundMessage::FileConverted => {
-                    self.files_converted += 1;
+                    if let ConversionState::Converting {
+                        total_files,
+                        files_converted,
+                    } = self.conversion_state
+                    {
+                        self.conversion_state = ConversionState::Converting {
+                            total_files,
+                            files_converted: files_converted + 1,
+                        };
+                    }
                 }
 
                 BackgroundMessage::ConversionComplete(result) => {
-                    self.is_converting = false;
+                    self.conversion_state = ConversionState::Idle;
                     if let Err(e) = result {
                         show_anyhow_error("Conversion Failed", &e);
                     }
@@ -266,7 +287,7 @@ impl eframe::App for App {
         egui::CentralPanel::default().show(ctx, |ui| {
             components::game_grid::ui_game_grid(ui, self);
 
-            if self.is_converting {
+            if matches!(self.conversion_state, ConversionState::Converting { .. }) {
                 components::conversion_modal::ui_conversion_modal(ctx, self);
             }
         });
@@ -274,9 +295,8 @@ impl eframe::App for App {
 }
 
 fn set_cursor_icon(ctx: &egui::Context, app: &App) {
-    if app.is_converting {
-        ctx.set_cursor_icon(egui::CursorIcon::Wait);
-    } else {
-        ctx.set_cursor_icon(egui::CursorIcon::Default);
+    match app.conversion_state {
+        ConversionState::Converting { .. } => ctx.set_cursor_icon(egui::CursorIcon::Wait),
+        _ => ctx.set_cursor_icon(egui::CursorIcon::Default),
     }
 }
