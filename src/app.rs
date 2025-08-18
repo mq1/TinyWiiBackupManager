@@ -131,10 +131,6 @@ impl App {
 
         if let Err(e) = self.try_remove_game(game_to_remove) {
             show_anyhow_error("Error", &e);
-        } else {
-            if let Err(e) = self.refresh_games() {
-                show_anyhow_error("Error", &e);
-            }
         }
     }
 
@@ -198,13 +194,8 @@ impl App {
 
                 BackgroundMessage::ConversionComplete(result) => {
                     self.is_converting = false;
-                    match result {
-                        Ok(()) => {
-                            if let Err(e) = self.refresh_games() {
-                                show_anyhow_error("Error", &e);
-                            }
-                        }
-                        Err(e) => show_anyhow_error("Conversion Failed", &e),
+                    if let Err(e) = result {
+                        show_anyhow_error("Conversion Failed", &e);
                     }
                 }
 
