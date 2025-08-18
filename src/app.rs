@@ -209,7 +209,10 @@ impl App {
                 }
 
                 BackgroundMessage::VersionCheckComplete(result) => {
-                    self.handle_version_check_result(result);
+                    // Silently ignore errors
+                    if let Ok(update) = result {
+                        self.version_check_result = update;
+                    }
                 }
 
                 BackgroundMessage::DirectoryChanged => {
@@ -217,18 +220,6 @@ impl App {
                         show_anyhow_error("Error", &e);
                     }
                 }
-            }
-        }
-    }
-
-    /// Handles the result of a version check
-    fn handle_version_check_result(&mut self, result: Result<Option<UpdateInfo>>) {
-        match result {
-            Ok(Some(update)) => self.version_check_result = Some(update),
-            Ok(None) => self.version_check_result = None,
-            Err(e) => {
-                self.version_check_result = None;
-                show_anyhow_error("Update Check Failed", &e);
             }
         }
     }
