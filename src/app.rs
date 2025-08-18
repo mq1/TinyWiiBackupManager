@@ -77,7 +77,7 @@ impl App {
     }
 
     /// Scans the WBFS directory and updates the list of games.
-    fn refresh_games(&mut self) -> Result<()> {
+    pub fn refresh_games(&mut self) -> Result<()> {
         let entries = std::fs::read_dir(&self.wbfs_dir)
             .with_context(|| format!("Failed to read dir: {}", self.wbfs_dir.display()))?;
 
