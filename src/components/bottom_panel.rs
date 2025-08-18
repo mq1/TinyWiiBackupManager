@@ -15,7 +15,7 @@ pub fn ui_bottom_panel(ctx: &egui::Context, app: &mut App) {
 
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
             ui.checkbox(&mut app.remove_sources, "💣 Remove sources")
-                .on_hover_text("⚠ Remove input files after conversion ⚠");
+                .on_hover_text("⚠ DANGER ⚠ \n\nThis will delete the input files!");
         });
     });
 }
