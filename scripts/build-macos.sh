@@ -49,27 +49,27 @@ cp "${ASSETS_DIR}/macos/${APP_NAME}.icns" "${APP_BUNDLE_NAME}/Contents/Resources
 echo "Creating Info.plist..."
 /usr/libexec/PlistBuddy -c "Clear" "${INFO_PLIST}" || true
 
-# Use a unique delimiter like ' • ', ensuring it doesn't appear in values.
+# Use a unique delimiter like ' | ', ensuring it doesn't appear in values.
 # Add plist entries
 entries=(
-    "CFBundleName • string • ${PRODUCT_NAME}"
-    "CFBundleDisplayName • string • ${PRODUCT_NAME}"
-    "CFBundleIdentifier • string • ${BUNDLE_IDENTIFIER}"
-    "CFBundleVersion • string • ${VERSION}"
-    "CFBundleShortVersionString • string • ${VERSION}"
-    "CFBundlePackageType • string • APPL"
-    "CFBundleExecutable • string • ${APP_NAME}"
-    "CFBundleIconFile • string • ${APP_NAME}"
-    "LSMinimumSystemVersion • string • 11.0"
-    "NSHumanReadableCopyright • string • ${LEGAL_COPYRIGHT}"
-    "NSPrincipalClass • string • NSApplication"
-    "NSHighResolutionCapable • bool • true"
-    "NSSupportsAutomaticGraphicsSwitching • bool • true"
+    "CFBundleName | string | ${PRODUCT_NAME}"
+    "CFBundleDisplayName | string | ${PRODUCT_NAME}"
+    "CFBundleIdentifier | string | ${BUNDLE_IDENTIFIER}"
+    "CFBundleVersion | string | ${VERSION}"
+    "CFBundleShortVersionString | string | ${VERSION}"
+    "CFBundlePackageType | string | APPL"
+    "CFBundleExecutable | string | ${APP_NAME}"
+    "CFBundleIconFile | string | ${APP_NAME}"
+    "LSMinimumSystemVersion | string | 11.0"
+    "NSHumanReadableCopyright | string | ${LEGAL_COPYRIGHT}"
+    "NSPrincipalClass | string | NSApplication"
+    "NSHighResolutionCapable | bool | true"
+    "NSSupportsAutomaticGraphicsSwitching | bool | true"
 )
 
 for entry in "${entries[@]}"; do
     # Change IFS to the unique delimiter
-    IFS=' • ' read -r key type value <<< "$entry"
+    IFS=' | ' read -r key type value <<< "$entry"
     /usr/libexec/PlistBuddy -c "Add :$key $type '$value'" "${INFO_PLIST}"
 done
 
