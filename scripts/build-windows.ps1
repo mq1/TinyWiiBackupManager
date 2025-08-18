@@ -5,7 +5,7 @@ $ErrorActionPreference = "Stop"
 $cargoTomlContent = Get-Content -Path Cargo.toml -Raw
 $cargoConfig = $cargoTomlContent | ConvertFrom-Toml
 $APP_NAME = $cargoConfig.package.name
-$SHORT_NAME = $cargoConfig.package.metadata.short_name
+$SHORT_NAME = $cargoConfig.package.metadata.ShortName
 $VERSION = $cargoConfig.package.version
 
 $HOST_ARCH = $env:PROCESSOR_ARCHITECTURE
