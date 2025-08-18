@@ -10,11 +10,6 @@ use eframe::egui;
 pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
     egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
         egui::MenuBar::new().ui(ui, |ui| {
-            let refresh_button = ui.button("🔄").on_hover_text("Refresh the game list");
-            if refresh_button.clicked() {
-                app.refresh_games();
-            }
-
             let add_games_button = ui
                 .button("➕ Add Game(s)")
                 .on_hover_text("Add a new game to the WBFS directory");

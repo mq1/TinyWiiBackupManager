@@ -6,6 +6,7 @@ use std::path::PathBuf;
 use anyhow::{Context, Error, Result};
 use eframe::egui;
 use egui_inbox::UiInbox;
+use notify::{RecursiveMode, Watcher};
 
 use crate::{
     components,
@@ -23,6 +24,8 @@ enum BackgroundMessage {
     ConversionComplete(Result<()>),
     /// Signal that the version check has completed
     VersionCheckComplete(Result<Option<UpdateInfo>>),
+    /// Signal that the directory has changed
+    DirectoryChanged,
 }
 
 /// Main application state and UI controller.
@@ -43,12 +46,23 @@ pub struct App {
     pub files_converted: usize,
     /// Result of the version check, if available
     pub version_check_result: Option<UpdateInfo>,
+    // File watcher
+    _watcher: notify::RecommendedWatcher,
 }
 
 impl App {
     /// Initializes the application with the specified WBFS directory.
     pub fn new(_cc: &eframe::CreationContext<'_>, wbfs_dir: PathBuf) -> Result<Self> {
         let inbox = UiInbox::new();
+        let sender = inbox.sender();
+
+        let mut watcher = notify::recommended_watcher(move |res| {
+            if let Ok(_) = res {
+                let _ = sender.send(BackgroundMessage::DirectoryChanged);
+            }
+        })?;
+
+        watcher.watch(&wbfs_dir, RecursiveMode::Recursive)?;
 
         let mut app = Self {
             wbfs_dir,
@@ -59,6 +73,7 @@ impl App {
             total_files_to_convert: 0,
             files_converted: 0,
             version_check_result: None,
+            _watcher: watcher,
         };
 
         app.spawn_version_check();
@@ -195,6 +210,12 @@ impl App {
 
                 BackgroundMessage::VersionCheckComplete(result) => {
                     self.handle_version_check_result(result);
+                }
+
+                BackgroundMessage::DirectoryChanged => {
+                    if let Err(e) = self.refresh_games() {
+                        show_anyhow_error("Error", &e);
+                    }
                 }
             }
         }
