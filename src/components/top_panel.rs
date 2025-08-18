@@ -18,6 +18,20 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                 app.add_isos();
             }
 
+            // dot_clean button
+            #[cfg(target_os = "macos")]
+            {
+                let btn = ui
+                    .button("👻 Clean MacOS ._ files")
+                    .on_hover_text("Run dot_clean in the wbfs parent directory");
+
+                if btn.clicked() {
+                    if let Err(e) = app.run_dot_clean() {
+                        show_anyhow_error("Error running dot_clean", &e);
+                    }
+                }
+            }
+
             // Display the total number of games on the right side of the menu bar
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 ui.hyperlink_to("ℹ Wiki", "https://github.com/mq1/TinyWiiBackupManager/wiki")
