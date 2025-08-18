@@ -14,17 +14,17 @@ pub fn ui_conversion_modal(ctx: &egui::Context, app: &App) {
             ui.spinner();
             ui.add_space(10.0);
 
-            if let ConversionState::Converting { total_files, files_converted } = app.conversion_state {
+            if let ConversionState::Converting {
+                total_files,
+                files_converted,
+            } = app.conversion_state
+            {
                 let progress = files_converted as f32 / total_files as f32;
 
                 ui.add(egui::ProgressBar::new(progress).show_percentage());
                 ui.add_space(5.0);
 
-                ui.label(format!(
-                    "File {} of {}",
-                    files_converted + 1,
-                    total_files
-                ));
+                ui.label(format!("File {} of {}", files_converted + 1, total_files));
             }
         });
     });
