@@ -40,6 +40,7 @@ pub struct Game {
     pub display_title: String,
     pub path: PathBuf,
     pub language: String,
+    pub info_url: String,
     pub image_url: String,
 }
 
@@ -77,10 +78,8 @@ impl Game {
             .unwrap_or("EN")
             .to_string();
 
-        let image_url = format!(
-            "https://art.gametdb.com/wii/cover3D/{}/{}.png",
-            language, id
-        );
+        let info_url = format!("https://www.gametdb.com/Wii/{id}");
+        let image_url = format!("https://art.gametdb.com/wii/cover3D/{language}/{id}.png");
 
         Ok(Self {
             id,
@@ -88,6 +87,7 @@ impl Game {
             display_title,
             path,
             language,
+            info_url,
             image_url,
         })
     }
