@@ -7,15 +7,15 @@
     <img alt="screenshot" src="screenshot.png">
 </p>
 
-**Supported input formats (thanks to [NOD](https://github.com/encounter/nod))**
+### 💽 Supported input formats (thanks to [NOD](https://github.com/encounter/nod))
 
-- ISO (GCM)
-- WIA / RVZ
-- WBFS (+ NKit 2 lossless)
-- CISO (+ NKit 2 lossless)
-- NFS (Wii U VC, read-only)
-- GCZ
-- TGC
+<kbd>ISO (GCM)</kbd>
+<kbd>WIA / RVZ</kbd>
+<kbd>WBFS (+ NKit 2 lossless)</kbd>
+<kbd>CISO (+ NKit 2 lossless)</kbd>
+<kbd>NFS (Wii U VC, read-only)</kbd>
+<kbd>GCZ</kbd>
+<kbd>TGC</kbd>
 
 ## ⬇️ Downloading
 
