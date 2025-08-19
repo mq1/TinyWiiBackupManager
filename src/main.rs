@@ -10,23 +10,36 @@ use tiny_wii_backup_manager::error_handling::show_anyhow_error;
 
 const LOGO: &[u8] = include_bytes!("../assets/linux/256x256/tiny-wii-backup-manager.png");
 
-fn main() -> Result<()> {
-    run().map_err(|e| {
+fn main() {
+    if let Err(e) = run() {
         show_anyhow_error("Fatal Error", &e);
-        e
-    })
+    }
 }
 
 fn run() -> Result<()> {
-    let wbfs_dir = rfd::FileDialog::new()
-        .set_title("Select WBFS Directory")
+    let mut base_dir = rfd::FileDialog::new()
+        .set_title("Select base directory (usually the root of your drive)")
         .pick_folder()
-        .context("Failed to pick WBFS directory")?;
+        .context("Failed to pick base directory")?;
+
+    let dir_name = base_dir
+        .file_name()
+        .and_then(|n| n.to_str())
+        .context("Failed to get dir name")?;
+
+    // correct base_dir if the user has picked either "wbfs" or "games" dir
+    // we only have to get the parent dir if this is the case
+    if dir_name == "wbfs" || dir_name == "games" {
+        base_dir = base_dir
+            .parent()
+            .context("Failed to get parent directory")?
+            .to_path_buf();
+    }
 
     let title = format!(
         "TWBM v{} - {}",
         env!("CARGO_PKG_VERSION"),
-        wbfs_dir.display()
+        base_dir.display()
     );
 
     let icon = eframe::icon_data::from_png_bytes(LOGO).context("Failed to load icon")?;
@@ -44,7 +57,7 @@ fn run() -> Result<()> {
         options,
         Box::new(|cc| {
             egui_extras::install_image_loaders(&cc.egui_ctx);
-            match App::new(cc, wbfs_dir) {
+            match App::new(cc, base_dir) {
                 Ok(app) => Ok(Box::new(app) as Box<dyn eframe::App>),
                 Err(e) => Err(e.into()),
             }
