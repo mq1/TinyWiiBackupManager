@@ -50,7 +50,7 @@ fn ui_game_card(ui: &mut egui::Ui, game: &Game) -> bool {
 
         ui.vertical_centered(|ui| {
             let image = Image::new(&game.image_url)
-                .max_height(140.0)
+                .max_height(128.0)
                 .maintain_aspect_ratio(true)
                 .show_loading_spinner(true);
 
@@ -59,12 +59,18 @@ fn ui_game_card(ui: &mut egui::Ui, game: &Game) -> bool {
             ui.add_space(5.);
 
             ui.label(RichText::new(&game.display_title).strong());
-            let console = if game.is_gc { "GC" } else { "Wii" };
-            ui.label(
-                RichText::new(format!("{} ID: {}", console, game.id))
-                    .monospace()
-                    .size(12.0),
-            );
+
+            // horizontal and centered
+            ui.horizontal(|ui| {
+                ui.add_space(20.);
+                let console = if game.is_gc { "🎮 GC" } else { "🎾 Wii" };
+                ui.label(RichText::new(console).strong());
+
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    ui.add_space(20.);
+                    ui.label(RichText::new(format!("ID: {}", game.id)).monospace());
+                });
+            });
 
             ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
                 ui.horizontal(|ui| {
