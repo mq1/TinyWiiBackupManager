@@ -12,7 +12,7 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
         egui::MenuBar::new().ui(ui, |ui| {
             let add_games_button = ui
                 .button("➕ Add Game(s)")
-                .on_hover_text("Add one or more Discs to the wbfs directory");
+                .on_hover_text("Add one or more games to the wbfs directory");
 
             if add_games_button.clicked() {
                 app.add_isos();
@@ -23,7 +23,7 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
             {
                 let btn = ui
                     .button("👻 Clean MacOS ._ files")
-                    .on_hover_text("Run dot_clean in the wbfs parent directory");
+                    .on_hover_text(format!("Run dot_clean in {}", app.base_dir.display()));
 
                 if btn.clicked() {
                     if let Err(e) = app.run_dot_clean() {
@@ -41,14 +41,16 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
 
                 ui.label(format!(
                     "size: {:.2} GiB",
-                    app.wbfs_dir_size as f64 / 1024.0 / 1024.0 / 1024.0
+                    app.base_dir_size as f64 / 1024.0 / 1024.0 / 1024.0
                 ));
+
+                let base_dir_name = app.base_dir.file_name().unwrap().to_string_lossy();
                 if ui
-                    .hyperlink("WBFS")
-                    .on_hover_text("Open the WBFS directory")
+                    .hyperlink(&base_dir_name)
+                    .on_hover_text(format!("Open the base directory ({})", base_dir_name))
                     .clicked()
                 {
-                    if let Err(e) = open::that(&app.wbfs_dir) {
+                    if let Err(e) = open::that(&app.base_dir) {
                         show_anyhow_error("Error", &anyhow!(e));
                     }
                 }
