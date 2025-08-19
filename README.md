@@ -7,7 +7,7 @@
     <img alt="screenshot" src="screenshot.png">
 </p>
 
-**Supported input formats (thanks to NOD)**
+**Supported input formats (thanks to [NOD](https://github.com/encounter/nod))**
 
 - ISO (GCM)
 - WIA / RVZ
