@@ -152,8 +152,8 @@ impl App {
     /// Opens a file dialog to select Wii Disc files and starts the conversion process.
     pub fn add_isos(&mut self) {
         let paths = rfd::FileDialog::new()
-            .set_title("Select Wii Disc File(s)")
-            .add_filter("Wii Disc", SUPPORTED_INPUT_EXTENSIONS)
+            .set_title("Select Wii/GC Disc File(s)")
+            .add_filter("Wii/GC Disc", SUPPORTED_INPUT_EXTENSIONS)
             .pick_files();
 
         if let Some(paths) = paths.filter(|p| !p.is_empty()) {
