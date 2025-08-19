@@ -1,13 +1,21 @@
 <p align="center">
     <img alt="logo" width="128" src="assets/linux/256x256/tiny-wii-backup-manager.png">
     <h1 align="center">TinyWiiBackupManager</h1>
-    <p align="center">A dead simple WBFS manager written in Rust (with RVZ support!)</p>
+    <p align="center">A dead simple Wii backup manager (with GameCube games support!)</p>
     <p align="center">‼️ Make sure to only play your legally obtained backups ‼️</p>
     <p align="center">🏴‍☠️ This project does NOT support piracy 🏴‍☠️</p>
     <img alt="screenshot" src="screenshot.png">
 </p>
 
-**Supported input formats:** ISO, WIA, RVZ, WBFS, CISO, NKit
+**Supported input formats (thanks to [NOD](https://github.com/encounter/nod))**
+
+- ISO (GCM)
+- WIA / RVZ
+- WBFS (+ NKit 2 lossless)
+- CISO (+ NKit 2 lossless)
+- NFS (Wii U VC, read-only)
+- GCZ
+- TGC
 
 ## ⬇️ Downloading
 

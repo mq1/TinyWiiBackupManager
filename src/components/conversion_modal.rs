@@ -7,7 +7,7 @@ use eframe::egui;
 pub fn ui_conversion_modal(ctx: &egui::Context, app: &App) {
     egui::Modal::new(egui::Id::new("conversion_modal")).show(ctx, |ui| {
         ui.vertical_centered(|ui| {
-            ui.heading("Converting ISOs");
+            ui.heading("Converting...");
             ui.separator();
             ui.add_space(10.0);
 
