@@ -139,6 +139,8 @@ impl App {
         let gc_games = self.scan_dir("games")?;
 
         self.games = [wii_games, gc_games].concat();
+        self.games
+            .sort_by(|a, b| a.display_title.cmp(&b.display_title));
 
         // get base_dir_size using fs_extra
         self.base_dir_size = fs_extra::dir::get_size(&self.base_dir)
