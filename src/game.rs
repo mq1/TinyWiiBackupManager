@@ -36,8 +36,11 @@ static REGION_TO_LANG: phf::Map<char, &'static str> = phf_map! {
 #[derive(Clone)]
 pub struct Game {
     pub id: String,
+    pub is_gc: bool,
     pub display_title: String,
     pub path: PathBuf,
+    pub language: String,
+    pub image_url: String,
 }
 
 impl Game {
@@ -53,6 +56,9 @@ impl Game {
         );
 
         let id = file_name[id_start..id_end].to_string();
+
+        let is_gc = id.chars().next() == Some('G');
+
         let title = path
             .file_stem()
             .and_then(|n| n.to_str())
@@ -63,22 +69,44 @@ impl Game {
             .get(&*id)
             .map_or_else(|| format!("{title} [{id}]"), |&s| s.into());
 
+        // the 4th character in the ID is the region code
+        let region_code = id.chars().nth(3).context("No region code in ID")?;
+        let language = REGION_TO_LANG
+            .get(&region_code)
+            .copied()
+            .unwrap_or("EN")
+            .to_string();
+
+        let image_url = format!(
+            "https://art.gametdb.com/wii/cover3D/{}/{}.png",
+            language, id
+        );
+
         Ok(Self {
             id,
+            is_gc,
             display_title,
             path,
+            language,
+            image_url,
         })
     }
 
-    // for gametdb images
-    // todo: add support for other regions
-    // https://wiki.dolphin-emu.org/index.php?title=GameIDs
-    pub fn get_language(&self) -> Result<&&'static str> {
-        // the 4th character in the ID is the region code
-        let region_code = self.id.chars().nth(3).context("No region code in ID")?;
+    pub fn remove(&self) -> Result<()> {
+        let confirm = rfd::MessageDialog::new()
+            .set_title("Remove Game")
+            .set_description(format!(
+                "Are you sure you want to remove {}?",
+                self.display_title
+            ))
+            .set_buttons(rfd::MessageButtons::YesNo)
+            .show();
 
-        REGION_TO_LANG
-            .get(&region_code)
-            .ok_or_else(|| anyhow::anyhow!("Unknown region code: {}", region_code))
+        if confirm == rfd::MessageDialogResult::No {
+            return Ok(());
+        }
+
+        std::fs::remove_dir_all(&self.path)
+            .with_context(|| format!("Failed to remove game: {}", self.path.display()))
     }
 }
