@@ -54,12 +54,15 @@ fn run() -> Result<()> {
         ..Default::default()
     };
 
+    // Check if updates should be disabled
+    let updates_enabled = std::env::var_os("TWBM_DISABLE_UPDATES").is_none();
+
     eframe::run_native(
         &title,
         options,
-        Box::new(|cc| {
+        Box::new(move |cc| {
             egui_extras::install_image_loaders(&cc.egui_ctx);
-            match App::new(cc, base_dir) {
+            match App::new(cc, base_dir, updates_enabled) {
                 Ok(app) => Ok(Box::new(app) as Box<dyn eframe::App>),
                 Err(e) => Err(e.into()),
             }
