@@ -185,7 +185,7 @@ def macos_universal2():
         [
             "npx",
             "--yes",
-            "create-dmg",
+            "create-dmg@7.0.0",
             f"{PRODUCT_NAME}.app",
             ".",
             "--overwrite",
