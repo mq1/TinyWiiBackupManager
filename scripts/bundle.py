@@ -198,7 +198,7 @@ def macos_universal2():
     )
 
     print("Cleaning up...")
-    rmtree(f"dist/{PRODUCT_NAME}.app")
+    rmtree(f"{PRODUCT_NAME}.app")
 
     print(f"✅ Created {SHORT_NAME}-{VERSION}-MacOS-Universal2.dmg in ./dist")
 
