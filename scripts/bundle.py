@@ -44,7 +44,7 @@ Exec={NAME}
     print("Creating AppImage...")
     run(
         [
-            "linuxdeploy-${arch}.AppImage",
+            f"linuxdeploy-{arch}.AppImage",
             "--appdir",
             f"{PRODUCT_NAME}.AppDir",
             "--executable",
