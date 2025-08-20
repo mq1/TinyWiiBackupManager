@@ -3,13 +3,14 @@
 
 use std::path::PathBuf;
 
-use anyhow::{Context, Result};
+use anyhow::{Context, Error, Result};
 use eframe::egui;
 use egui_inbox::UiInbox;
+use egui_suspense::EguiSuspense;
 use notify::{RecursiveMode, Watcher};
 
 use crate::{
-    components,
+    components::{self, update_notifier::UpdateInfo},
     error_handling::show_anyhow_error,
     game::Game,
 };
@@ -75,13 +76,23 @@ pub struct App {
     watcher: Option<notify::RecommendedWatcher>,
     /// Whether to remove sources after conversion
     pub remove_sources: bool,
+    /// Update checker component
+    pub update_checker: Option<EguiSuspense<Option<UpdateInfo>, Error>>,
 }
 
 impl App {
     /// Initializes the application with the specified WBFS directory.
     pub fn new(_cc: &eframe::CreationContext<'_>, base_dir: PathBuf) -> Result<Self> {
+        // Check if updates should be disabled
+        let update_checker = if std::env::var_os("TWBM_DISABLE_UPDATES").is_some() {
+            None
+        } else {
+            Some(EguiSuspense::single_try(components::update_notifier::check_for_new_version))
+        };
+
         let mut app = Self {
             base_dir,
+            update_checker,
             ..Default::default()
         };
 
@@ -112,8 +123,6 @@ impl App {
 
         Ok(())
     }
-
-    
 
     fn scan_dir(&self, dir_name: &str) -> Result<Vec<Game>> {
         let dir = self.base_dir.join(dir_name);
