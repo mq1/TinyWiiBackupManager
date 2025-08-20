@@ -3,7 +3,7 @@
 
 use anyhow::Error;
 use rfd::{MessageDialog, MessageLevel};
-use tracing::error;
+use log::error;
 
 /// Show an error dialog with the given title and description
 pub fn show_error(title: &str, description: &str) {
