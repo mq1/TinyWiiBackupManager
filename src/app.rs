@@ -92,7 +92,7 @@ impl App {
 
         app.spawn_dir_watcher()?;
         app.spawn_version_check();
-        app.refresh_games()?;
+        app.refresh_games().context("Failed to refresh games")?;
         Ok(app)
     }
 
@@ -101,7 +101,14 @@ impl App {
         let sender = self.inbox.sender();
 
         let mut watcher = notify::recommended_watcher(move |res| {
-            if let Ok(_) = res {
+            if let Ok(notify::Event {
+                kind:
+                    notify::EventKind::Modify(_)
+                    | notify::EventKind::Create(_)
+                    | notify::EventKind::Remove(_),
+                ..
+            }) = res
+            {
                 let _ = sender.send(BackgroundMessage::DirectoryChanged);
             }
         })?;
