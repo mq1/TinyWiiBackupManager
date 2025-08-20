@@ -138,9 +138,13 @@ impl App {
         }
 
         for entry in std::fs::read_dir(&dir)? {
-            let path = entry?.path();
-            if path.is_dir() {
-                games.push(Game::from_path(path)?);
+            if let Ok(entry) = entry {
+                let path = entry.path();
+                if path.is_dir() {
+                    if let Ok(game) = Game::from_path(path) {
+                        games.push(game);
+                    }
+                }
             }
         }
 
