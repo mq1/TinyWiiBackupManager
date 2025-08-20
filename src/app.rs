@@ -12,7 +12,6 @@ use crate::{
     components,
     error_handling::show_anyhow_error,
     game::Game,
-    version_check::{self, UpdateInfo},
 };
 
 // don't format
@@ -38,8 +37,6 @@ enum BackgroundMessage {
     FileConverted,
     /// Signal that the conversion has completed (with result)
     ConversionComplete(Result<()>),
-    /// Signal that the version check has completed
-    VersionCheckComplete(Result<Option<UpdateInfo>>),
     /// Signal that the directory has changed
     DirectoryChanged,
 }
@@ -74,8 +71,6 @@ pub struct App {
     inbox: UiInbox<BackgroundMessage>,
     /// Current state of the conversion process
     pub conversion_state: ConversionState,
-    /// Result of the version check, if available
-    pub version_check_result: Option<UpdateInfo>,
     /// File watcher
     watcher: Option<notify::RecommendedWatcher>,
     /// Whether to remove sources after conversion
@@ -91,7 +86,6 @@ impl App {
         };
 
         app.spawn_dir_watcher()?;
-        app.spawn_version_check();
         app.refresh_games().context("Failed to refresh games")?;
         Ok(app)
     }
@@ -119,15 +113,7 @@ impl App {
         Ok(())
     }
 
-    /// Spawns a background thread to check for application updates.
-    fn spawn_version_check(&self) {
-        let sender = self.inbox.sender();
-
-        std::thread::spawn(move || {
-            let result = version_check::check_for_new_version();
-            let _ = sender.send(BackgroundMessage::VersionCheckComplete(result));
-        });
-    }
+    
 
     fn scan_dir(&self, dir_name: &str) -> Result<Vec<Game>> {
         let dir = self.base_dir.join(dir_name);
@@ -252,13 +238,6 @@ impl App {
                     self.conversion_state = ConversionState::Idle;
                     if let Err(e) = result {
                         show_anyhow_error("Conversion Failed", &e);
-                    }
-                }
-
-                BackgroundMessage::VersionCheckComplete(result) => {
-                    // Silently ignore errors
-                    if let Ok(update) = result {
-                        self.version_check_result = update;
                     }
                 }
 
