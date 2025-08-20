@@ -7,6 +7,8 @@ use anyhow::{Context, Result, anyhow};
 use eframe::egui;
 use tiny_wii_backup_manager::App;
 use tiny_wii_backup_manager::error_handling::show_anyhow_error;
+use tracing_subscriber::EnvFilter;
+use tracing_subscriber::filter::LevelFilter;
 
 const LOGO: &[u8] = include_bytes!("../assets/linux/256x256/tiny-wii-backup-manager.png");
 
@@ -17,6 +19,18 @@ fn main() {
 }
 
 fn run() -> Result<()> {
+    // Initialize logging
+    tracing_subscriber::fmt()
+        .with_env_filter(
+            EnvFilter::builder()
+                // Default to info level
+                .with_default_directive(LevelFilter::INFO.into())
+                .from_env_lossy()
+                // This module is noisy at info level
+                .add_directive("wgpu_core::device::resource=warn".parse()?),
+        )
+        .init();
+
     let mut base_dir = rfd::FileDialog::new()
         .set_title("Select base directory (usually the root of your drive)")
         .pick_folder()
