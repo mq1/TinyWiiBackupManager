@@ -3972,6 +3972,8 @@ dependencies = [
  "rfd",
  "semver",
  "size",
+ "tracing",
+ "tracing-subscriber",
  "ureq 3.1.0",
  "winres",
 ]
