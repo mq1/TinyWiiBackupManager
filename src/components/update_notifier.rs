@@ -37,7 +37,7 @@ static UPDATE_CHECKER: OnceLock<Mutex<EguiSuspense<Option<UpdateInfo>, anyhow::E
 // --- UI Rendering ---
 
 /// Renders the update notifier UI component.
-pub fn ui(ui: &mut egui::Ui) {
+pub fn ui_update_notifier(ui: &mut egui::Ui) {
     // Get or initialize the update checker. This is cheap after the first call.
     let suspense_mutex =
         UPDATE_CHECKER.get_or_init(|| Mutex::new(EguiSuspense::single_try(check_for_new_version)));
