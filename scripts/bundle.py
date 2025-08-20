@@ -155,24 +155,24 @@ def macos_universal2():
     )
 
     print("Creating Info.plist...")
-
-    info = {
-        "CFBundleName": PRODUCT_NAME,
-        "CFBundleDisplayName": PRODUCT_NAME,
-        "CFBundleIdentifier": BUNDLE_ID,
-        "CFBundleVersion": VERSION,
-        "CFBundleShortVersionString": VERSION,
-        "CFBundlePackageType": "APPL",
-        "CFBundleExecutable": NAME,
-        "CFBundleIconFile": NAME,
-        "LSMinimumSystemVersion": "11.0",
-        "NSHumanReadableCopyright": LEGAL_COPYRIGHT,
-        "NSPrincipalClass": "NSApplication",
-        "NSHighResolutionCapable": True,
-        "NSSupportsAutomaticGraphicsSwitching": True,
-    }
-
-    plistlib.dump(info, open(f"{PRODUCT_NAME}.app/Contents/Info.plist", "wb"))
+    plistlib.dump(
+        {
+            "CFBundleName": PRODUCT_NAME,
+            "CFBundleDisplayName": PRODUCT_NAME,
+            "CFBundleIdentifier": BUNDLE_ID,
+            "CFBundleVersion": VERSION,
+            "CFBundleShortVersionString": VERSION,
+            "CFBundlePackageType": "APPL",
+            "CFBundleExecutable": NAME,
+            "CFBundleIconFile": NAME,
+            "LSMinimumSystemVersion": "11.0",
+            "NSHumanReadableCopyright": LEGAL_COPYRIGHT,
+            "NSPrincipalClass": "NSApplication",
+            "NSHighResolutionCapable": True,
+            "NSSupportsAutomaticGraphicsSwitching": True,
+        },
+        open(f"{PRODUCT_NAME}.app/Contents/Info.plist", "wb"),
+    )
 
     print("Copying assets...")
     copy(
