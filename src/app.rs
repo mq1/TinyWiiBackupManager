@@ -82,13 +82,10 @@ pub struct App {
 
 impl App {
     /// Initializes the application with the specified WBFS directory.
-    pub fn new(_cc: &eframe::CreationContext<'_>, base_dir: PathBuf) -> Result<Self> {
-        // Check if updates should be disabled
-        let update_checker = if std::env::var_os("TWBM_DISABLE_UPDATES").is_some() {
-            None
-        } else {
-            Some(EguiSuspense::single_try(components::update_notifier::check_for_new_version))
-        };
+    pub fn new(_cc: &eframe::CreationContext<'_>, base_dir: PathBuf, updates_enabled: bool) -> Result<Self> {
+        // Initialize the update checker based on the updates_enabled flag
+        let update_checker = updates_enabled
+            .then(|| EguiSuspense::single_try(components::update_notifier::check_for_new_version));
 
         let mut app = Self {
             base_dir,
