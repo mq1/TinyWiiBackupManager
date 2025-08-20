@@ -9,6 +9,7 @@ const GRID_SPACING: egui::Vec2 = egui::vec2(10.0, 10.0);
 
 pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
     let mut to_remove = None;
+    let mut to_open_info = None;
 
     egui::ScrollArea::vertical().show(ui, |ui| {
         // expand horizontally
@@ -21,8 +22,12 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
             .spacing(GRID_SPACING)
             .show(ui, |ui| {
                 for (i, game) in app.games.iter().enumerate() {
-                    if ui_game_card(ui, game) {
+                    let (should_remove, should_open_info) = ui_game_card(ui, game);
+                    if should_remove {
                         to_remove = Some(game.clone());
+                    }
+                    if should_open_info {
+                        to_open_info = Some(game.path.clone());
                     }
 
                     if (i + 1) % num_columns == 0 {
@@ -37,10 +42,15 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
             show_anyhow_error("Failed to remove game", &e);
         }
     }
+
+    if let Some(path) = to_open_info {
+        app.open_game_info(path);
+    }
 }
 
-fn ui_game_card(ui: &mut egui::Ui, game: &Game) -> bool {
+fn ui_game_card(ui: &mut egui::Ui, game: &Game) -> (bool, bool) {
     let mut remove_clicked = false;
+    let mut info_clicked = false;
 
     let card = egui::Frame::group(ui.style()).corner_radius(5.0);
     card.show(ui, |ui| {
@@ -75,12 +85,15 @@ fn ui_game_card(ui: &mut egui::Ui, game: &Game) -> bool {
                     ui.add_space(7.);
                     ui.hyperlink_to("🌐 GameTDB", &game.info_url);
                     ui.add_space(5.);
-                    remove_clicked = ui.button("🗑 Remove").clicked();
+                    info_clicked = ui.button("ℹ Info").clicked();
+                    let remove_response = ui.button("🗑");
+                    remove_clicked = remove_response.clicked();
+                    remove_response.on_hover_text("Remove Game");
                 });
                 ui.separator();
             });
         });
     });
 
-    remove_clicked
+    (remove_clicked, info_clicked)
 }
