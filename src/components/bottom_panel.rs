@@ -10,7 +10,7 @@ use eframe::egui;
 pub fn ui_bottom_panel(ctx: &egui::Context, app: &mut App) {
     egui::TopBottomPanel::bottom("bottom_panel").show(ctx, |ui| {
         ui.horizontal(|ui| {
-            ui_update_notifier(ui);
+            ui_update_notifier(ui, app);
 
             // Layout for other controls, aligned to the right.
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
