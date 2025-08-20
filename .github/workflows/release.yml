@@ -37,7 +37,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev libfuse2 desktop-file-utils
+          sudo apt-get install -y libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev libfuse2
 
           # Install LinuxDeploy
           wget -c "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${{ matrix.arch }}.AppImage"
@@ -46,7 +46,7 @@ jobs:
           sudo mv linuxdeploy*.AppImage /usr/local/bin
 
       - name: Run Linux build script
-        run: ./scripts/build-linux.sh
+        run: python3 scripts/bundle.py linux_${{ matrix.arch }}
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v4
@@ -68,13 +68,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install PSToml module
-        shell: pwsh
-        run: Install-Module -Name PSToml -Scope CurrentUser -Repository PSGallery -Force
-
       - name: Run Windows build script
-        shell: pwsh
-        run: ./scripts/build-windows.ps1
+        run: python3 scripts/bundle.py windows_${{ matrix.arch }}
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v4
@@ -96,7 +91,7 @@ jobs:
         run: rustup target add aarch64-apple-darwin x86_64-apple-darwin
 
       - name: Run MacOS build script
-        run: ./scripts/build-macos.sh
+        run: python3 scripts/bundle.py macos_universal2
 
       - name: Upload MacOS distributable
         uses: actions/upload-artifact@v4
