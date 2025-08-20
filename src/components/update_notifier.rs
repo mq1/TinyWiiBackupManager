@@ -1,12 +1,11 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
+use crate::app::App;
 use anyhow::{Context, Result, anyhow, bail};
 use const_format::formatcp;
 use eframe::egui;
-use egui_suspense::EguiSuspense;
 use semver::Version;
-use std::sync::{Mutex, OnceLock};
 
 // --- Constants ---
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -22,38 +21,20 @@ pub struct UpdateInfo {
     pub url: String,
 }
 
-// --- Static State ---
-
-/// A thread-safe, lazily-initialized component for checking for updates.
-///
-/// # Design
-/// - `OnceLock` ensures the `EguiSuspense` component is created only once.
-/// - `Mutex` provides safe interior mutability. This is required because the `.ui()` method
-///   needs a mutable reference (`&mut self`), but `get_or_init` can only provide a shared
-///   reference (`&self`). The mutex allows us to safely acquire mutable access.
-static UPDATE_CHECKER: OnceLock<Mutex<EguiSuspense<Option<UpdateInfo>, anyhow::Error>>> =
-    OnceLock::new();
-
 // --- UI Rendering ---
 
 /// Renders the update notifier UI component.
-pub fn ui_update_notifier(ui: &mut egui::Ui) {
-    // Get or initialize the update checker. This is cheap after the first call.
-    let suspense_mutex =
-        UPDATE_CHECKER.get_or_init(|| Mutex::new(EguiSuspense::single_try(check_for_new_version)));
-
-    // Lock the mutex to get mutable access. `unwrap` is acceptable here as a poisoned
-    // mutex is a non-recoverable state for this UI component.
-    let mut suspense = suspense_mutex.lock().unwrap();
-
+pub fn ui_update_notifier(ui: &mut egui::Ui, app: &mut App) {
     // Render the suspense UI. It will only draw its contents when the async task succeeds.
-    suspense.ui(ui, |ui, data, _state| {
-        if let Some(update_info) = data {
-            let update_text = format!("⚠ Update available: {}", update_info.version);
-            ui.hyperlink_to(update_text, &update_info.url)
-                .on_hover_text("Click to open the latest release page");
-        }
-    });
+    if let Some(suspense) = &mut app.update_checker {
+        suspense.ui(ui, |ui, data, _state| {
+            if let Some(update_info) = data {
+                let update_text = format!("⚠ Update available: {}", update_info.version);
+                ui.hyperlink_to(update_text, &update_info.url)
+                    .on_hover_text("Click to open the latest release page");
+            }
+        });
+    }
 }
 
 // --- Asynchronous Logic ---
@@ -62,7 +43,7 @@ pub fn ui_update_notifier(ui: &mut egui::Ui) {
 ///
 /// This function is designed to be called once by `EguiSuspense`. It uses `anyhow`
 /// for ergonomic error handling. On failure, errors are logged but not shown in the UI.
-fn check_for_new_version(cb: impl FnOnce(Result<Option<UpdateInfo>>) + Send + 'static) {
+pub fn check_for_new_version(cb: impl FnOnce(Result<Option<UpdateInfo>>) + Send + 'static) {
     let request = ehttp::Request::get(VERSION_URL);
 
     ehttp::fetch(request, move |response| {
