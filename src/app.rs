@@ -3,17 +3,17 @@
 
 use std::path::PathBuf;
 
-use anyhow::{Context, Error, Result};
-use eframe::egui;
-use egui_inbox::UiInbox;
-use notify::{RecursiveMode, Watcher};
-
 use crate::{
     components,
     error_handling::show_anyhow_error,
     game::Game,
     version_check::{self, UpdateInfo},
 };
+use anyhow::{Context, Error, Result};
+use eframe::egui;
+use egui_inbox::UiInbox;
+use notify::{RecursiveMode, Watcher};
+use tracing::warn;
 
 // don't format
 #[rustfmt::skip]
@@ -86,9 +86,10 @@ impl App {
             ..Default::default()
         };
 
-        app.spawn_dir_watcher()?;
+        app.spawn_dir_watcher()
+            .context("Failed to spawn directory watcher")?;
         app.spawn_version_check();
-        app.refresh_games()?;
+        app.refresh_games().context("Failed to refresh games")?;
         Ok(app)
     }
 
@@ -97,7 +98,14 @@ impl App {
         let sender = self.inbox.sender();
 
         let mut watcher = notify::recommended_watcher(move |res| {
-            if let Ok(_) = res {
+            if let Ok(notify::Event {
+                kind:
+                    notify::EventKind::Modify(_)
+                    | notify::EventKind::Create(_)
+                    | notify::EventKind::Remove(_),
+                ..
+            }) = res
+            {
                 let _ = sender.send(BackgroundMessage::DirectoryChanged);
             }
         })?;
@@ -135,8 +143,14 @@ impl App {
 
     /// Scans the "wbfs" and "games" directories and updates the list of games.
     pub fn refresh_games(&mut self) -> Result<()> {
-        let wii_games = self.scan_dir("wbfs")?;
-        let gc_games = self.scan_dir("games")?;
+        let wii_games = self.scan_dir("wbfs").unwrap_or_else(|e| {
+            warn!("Failed to scan 'wbfs' directory: {}", e);
+            vec![]
+        });
+        let gc_games = self.scan_dir("games").unwrap_or_else(|e| {
+            warn!("Failed to scan 'games' directory: {}", e);
+            vec![]
+        });
 
         self.games = [wii_games, gc_games].concat();
         self.games

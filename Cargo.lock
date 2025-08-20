@@ -3932,6 +3932,8 @@ dependencies = [
  "phf 0.12.1",
  "rfd",
  "semver",
+ "tracing",
+ "tracing-subscriber",
  "ureq 3.1.0",
  "winres",
 ]
