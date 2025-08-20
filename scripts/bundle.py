@@ -48,21 +48,21 @@ Exec={NAME}
             "--appdir",
             f"{PRODUCT_NAME}.AppDir",
             "--executable",
-            f"target/{arch}-unknown-linux-gnu/release/{NAME}",
+            Path("target") / f"{arch}-unknown-linux-gnu" / "release" / NAME,
             "--desktop-file",
             f"{PRODUCT_NAME}.desktop",
             "--icon-file",
-            f"assets/linux/32x32/{NAME}.png",
+            Path("assets") / "linux" / "32x32" / f"{NAME}.png",
             "--icon-file",
-            f"assets/linux/48x48/{NAME}.png",
+            Path("assets") / "linux" / "48x48" / f"{NAME}.png",
             "--icon-file",
-            f"assets/linux/64x64/{NAME}.png",
+            Path("assets") / "linux" / "64x64" / f"{NAME}.png",
             "--icon-file",
-            f"assets/linux/128x128/{NAME}.png",
+            Path("assets") / "linux" / "128x128" / f"{NAME}.png",
             "--icon-file",
-            f"assets/linux/256x256/{NAME}.png",
+            Path("assets") / "linux" / "256x256" / f"{NAME}.png",
             "--icon-file",
-            f"assets/linux/512x512/{NAME}.png",
+            Path("assets") / "linux" / "512x512" / f"{NAME}.png",
             "--output",
             "appimage",
         ],
@@ -71,7 +71,7 @@ Exec={NAME}
 
     print("Renaming AppImage...")
     Path(f"{PRODUCT_NAME}-{arch}.AppImage").rename(
-        f"dist/{SHORT_NAME}-{VERSION}-Linux-{arch}.AppImage"
+        Path("dist") / f"{SHORT_NAME}-{VERSION}-Linux-{arch}.AppImage"
     )
 
     print("Cleaning up...")
@@ -80,10 +80,10 @@ Exec={NAME}
 
     print("Creating tarball...")
     with tarfile.open(
-        f"dist/{SHORT_NAME}-{VERSION}-Linux-{arch}.tar.gz", "w:gz"
+        Path("dist") / f"{SHORT_NAME}-{VERSION}-Linux-{arch}.tar.gz", "w:gz"
     ) as tar:
         tar.add(
-            f"target/{arch}-unknown-linux-gnu/release/{NAME}",
+            Path("target") / f"{arch}-unknown-linux-gnu" / "release" / NAME,
             arcname=f"{SHORT_NAME}-{VERSION}-Linux-{arch}",
         )
 
@@ -109,10 +109,12 @@ def _windows(arch: str):
 
     print("Creating .zip...")
     with zipfile.ZipFile(
-        f"dist/{SHORT_NAME}-{VERSION}-Windows-{arch}.zip", "w", zipfile.ZIP_DEFLATED
+        Path("dist") / f"{SHORT_NAME}-{VERSION}-Windows-{arch}.zip",
+        "w",
+        zipfile.ZIP_DEFLATED,
     ) as zip:
         zip.write(
-            f"target/{arch}-pc-windows-msvc/release/{NAME}.exe",
+            Path("target") / f"{arch}-pc-windows-msvc" / "release" / f"{NAME}.exe",
             arcname=f"{SHORT_NAME}-{VERSION}-Windows-{arch}.exe",
         )
 
@@ -132,8 +134,8 @@ def macos_universal2():
 
     print("(Re-)creating .app bundle...")
     rmtree(f"{PRODUCT_NAME}.app", ignore_errors=True)
-    Path(f"{PRODUCT_NAME}.app/Contents/MacOS").mkdir(parents=True)
-    Path(f"{PRODUCT_NAME}.app/Contents/Resources").mkdir(parents=True)
+    (Path(f"{PRODUCT_NAME}.app") / "Contents" / "MacOS").mkdir(parents=True)
+    (Path(f"{PRODUCT_NAME}.app") / "Contents" / "Resources").mkdir(parents=True)
 
     print("Building for aarch64...")
     run(["cargo", "build", "--release", "--target", "aarch64-apple-darwin"], check=True)
@@ -147,37 +149,38 @@ def macos_universal2():
             "lipo",
             "-create",
             "-output",
-            f"{PRODUCT_NAME}.app/Contents/MacOS/{NAME}",
-            f"target/aarch64-apple-darwin/release/{NAME}",
-            f"target/x86_64-apple-darwin/release/{NAME}",
+            Path(f"{PRODUCT_NAME}.app") / "Contents" / "MacOS" / NAME,
+            Path("target") / "aarch64-apple-darwin" / "release" / NAME,
+            Path("target") / "x86_64-apple-darwin" / "release" / NAME,
         ],
         check=True,
     )
 
     print("Creating Info.plist...")
-    plistlib.dump(
-        {
-            "CFBundleName": PRODUCT_NAME,
-            "CFBundleDisplayName": PRODUCT_NAME,
-            "CFBundleIdentifier": BUNDLE_ID,
-            "CFBundleVersion": VERSION,
-            "CFBundleShortVersionString": VERSION,
-            "CFBundlePackageType": "APPL",
-            "CFBundleExecutable": NAME,
-            "CFBundleIconFile": NAME,
-            "LSMinimumSystemVersion": "11.0",
-            "NSHumanReadableCopyright": LEGAL_COPYRIGHT,
-            "NSPrincipalClass": "NSApplication",
-            "NSHighResolutionCapable": True,
-            "NSSupportsAutomaticGraphicsSwitching": True,
-        },
-        open(f"{PRODUCT_NAME}.app/Contents/Info.plist", "wb"),
-    )
+    with open(Path(f"{PRODUCT_NAME}.app") / "Contents" / "Info.plist", "wb") as f:
+        plistlib.dump(
+            {
+                "CFBundleName": PRODUCT_NAME,
+                "CFBundleDisplayName": PRODUCT_NAME,
+                "CFBundleIdentifier": BUNDLE_ID,
+                "CFBundleVersion": VERSION,
+                "CFBundleShortVersionString": VERSION,
+                "CFBundlePackageType": "APPL",
+                "CFBundleExecutable": NAME,
+                "CFBundleIconFile": NAME,
+                "LSMinimumSystemVersion": "11.0",
+                "NSHumanReadableCopyright": LEGAL_COPYRIGHT,
+                "NSPrincipalClass": "NSApplication",
+                "NSHighResolutionCapable": True,
+                "NSSupportsAutomaticGraphicsSwitching": True,
+            },
+            f,
+        )
 
     print("Copying assets...")
     copy(
-        f"assets/macos/{NAME}.icns",
-        f"{PRODUCT_NAME}.app/Contents/Resources/{NAME}.icns",
+        Path("assets") / "macos" / f"{NAME}.icns",
+        Path(f"{PRODUCT_NAME}.app") / "Contents" / "Resources",
     )
 
     print("Creating .dmg...")
@@ -194,7 +197,7 @@ def macos_universal2():
 
     print("Renaming .dmg...")
     Path(f"{PRODUCT_NAME} {VERSION}.dmg").rename(
-        f"dist/{SHORT_NAME}-{VERSION}-MacOS-Universal2.dmg"
+        Path("dist") / f"{SHORT_NAME}-{VERSION}-MacOS-Universal2.dmg"
     )
 
     print("Cleaning up...")
