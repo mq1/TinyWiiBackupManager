@@ -893,6 +893,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "concat-idents"
+version = "1.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f76990911f2267d837d9d0ad060aa63aaad170af40904b29461734c339030d4d"
+dependencies = [
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "concurrent-queue"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1259,6 +1269,17 @@ checksum = "8031fefc60b0170b304a8b12df0bd3531359410c3e709a2ccf33f7f58f856428"
 dependencies = [
  "egui",
  "parking_lot",
+]
+
+[[package]]
+name = "egui_suspense"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a3cebc54e1e0da71c643593d02d698a04535904c7ef018a54b0d645861174bb0"
+dependencies = [
+ "egui",
+ "egui_inbox",
+ "hello_egui_utils",
 ]
 
 [[package]]
@@ -1819,6 +1840,16 @@ name = "heck"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
+
+[[package]]
+name = "hello_egui_utils"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ea8d21d4cd2b323f7703a43fb72c0f58da649387538a96c67b02fc3967ed55dc"
+dependencies = [
+ "concat-idents",
+ "egui",
+]
 
 [[package]]
 name = "hermit-abi"
@@ -3947,12 +3978,15 @@ dependencies = [
 
 [[package]]
 name = "tiny-wii-backup-manager"
-version = "1.3.4"
+version = "1.3.3"
 dependencies = [
  "anyhow",
+ "const_format",
  "eframe",
  "egui_extras",
  "egui_inbox",
+ "egui_suspense",
+ "ehttp",
  "env_logger",
  "fs_extra",
  "image",
