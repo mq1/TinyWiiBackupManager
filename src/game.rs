@@ -3,8 +3,10 @@
 
 use crate::titles::GAME_TITLES;
 use anyhow::{Context, Result};
+use nod::read::{DiscMeta, DiscOptions, DiscReader};
 use phf::phf_map;
-use std::path::PathBuf;
+use std::fs;
+use std::path::{Path, PathBuf};
 
 // for gametdb images
 static REGION_TO_LANG: phf::Map<char, &'static str> = phf_map! {
@@ -42,6 +44,8 @@ pub struct Game {
     pub language: String,
     pub info_url: String,
     pub image_url: String,
+    pub disc_meta: Option<DiscMeta>,
+    pub size: u64,
 }
 
 impl Game {
@@ -81,6 +85,21 @@ impl Game {
         let info_url = format!("https://www.gametdb.com/Wii/{id}");
         let image_url = format!("https://art.gametdb.com/wii/cover3D/{language}/{id}.png");
 
+        // Read disc metadata
+        let disc_meta = read_disc_metadata(&path);
+
+        // Get the size of the game directory
+        let mut size = 0;
+        if let Ok(entries) = fs::read_dir(&path) {
+            for entry in entries.flatten() {
+                if let Ok(metadata) = entry.metadata() {
+                    if metadata.is_file() {
+                        size += metadata.len();
+                    }
+                }
+            }
+        }
+
         Ok(Self {
             id,
             is_gc,
@@ -89,6 +108,8 @@ impl Game {
             language,
             info_url,
             image_url,
+            disc_meta,
+            size,
         })
     }
 
@@ -106,7 +127,36 @@ impl Game {
             return Ok(());
         }
 
-        std::fs::remove_dir_all(&self.path)
+        fs::remove_dir_all(&self.path)
             .with_context(|| format!("Failed to remove game: {}", self.path.display()))
     }
+}
+
+/// Reads disc metadata from the first disc image file found in the game directory
+fn read_disc_metadata(game_dir: &Path) -> Option<DiscMeta> {
+    let disc_file = find_disc_image_file(game_dir)?;
+    match DiscReader::new(&disc_file, &DiscOptions::default()) {
+        Ok(disc) => Some(disc.meta()),
+        Err(_) => None, // Failed to read disc
+    }
+}
+
+/// Finds the first disc image file in a game directory
+fn find_disc_image_file(game_dir: &Path) -> Option<PathBuf> {
+    if let Ok(entries) = fs::read_dir(game_dir) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_file() {
+                if let Some(ext) = path.extension().and_then(|ext| ext.to_str()) {
+                    match ext.to_lowercase().as_str() {
+                        "iso" | "gcm" | "wbfs" | "wia" | "rvz" | "ciso" | "gcz" | "tgc" | "nfs" => {
+                            return Some(path);
+                        }
+                        _ => continue,
+                    }
+                }
+            }
+        }
+    }
+    None
 }
