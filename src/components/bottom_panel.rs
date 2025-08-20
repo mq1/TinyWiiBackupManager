@@ -2,115 +2,117 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use crate::app::App;
+use anyhow::{Context, Result, anyhow, bail};
 use const_format::formatcp;
 use eframe::egui;
 use egui_suspense::EguiSuspense;
 use semver::Version;
-use std::sync::OnceLock;
+use std::sync::{Mutex, OnceLock};
 
+// --- Constants ---
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 const REPO: &str = env!("CARGO_PKG_REPOSITORY");
 const VERSION_URL: &str = formatcp!("{REPO}/releases/latest/download/version.txt");
 
-/// Information about an available update
+// --- Data Structures ---
+
+/// Holds information about a newer, available version of the application.
 #[derive(Debug, Clone)]
 pub struct UpdateInfo {
     pub version: String,
     pub url: String,
 }
 
-/// Check for a newer version on GitHub using ehttp
-fn check_for_new_version(cb: impl FnOnce(Result<Option<UpdateInfo>, String>) + Send + 'static) {
-    let request = ehttp::Request::get(VERSION_URL);
-    ehttp::fetch(request, move |result: Result<ehttp::Response, String>| {
-        let response = match result {
-            Ok(response) => response,
-            Err(e) => {
-                cb(Err(e)); // Pass the error to the callback
-                return;
-            }
-        };
+// --- Static State ---
 
-        let latest_version = match String::from_utf8(response.bytes) {
-            Ok(version) => version,
-            Err(e) => {
-                cb(Err(e.to_string())); // Pass the error to the callback
-                return;
-            }
-        };
+/// A thread-safe, lazily-initialized component for checking for updates.
+///
+/// # Design
+/// - `OnceLock` ensures the `EguiSuspense` component is created only once.
+/// - `Mutex` provides safe interior mutability. This is required because the `.ui()` method
+///   needs a mutable reference (`&mut self`), but `get_or_init` can only provide a shared
+///   reference (`&self`). The mutex allows us to safely acquire mutable access.
+static UPDATE_CHECKER: OnceLock<Mutex<EguiSuspense<Option<UpdateInfo>, anyhow::Error>>> =
+    OnceLock::new();
 
-        let latest = match Version::parse(&latest_version) {
-            Ok(version) => version,
-            Err(e) => {
-                cb(Err(e.to_string())); // Pass the error to the callback
-                return;
-            }
-        };
+// --- UI Rendering ---
 
-        let current = match Version::parse(VERSION) {
-            Ok(version) => version,
-            Err(e) => {
-                cb(Err(e.to_string())); // Pass the error to the callback
-                return;
-            }
-        };
-
-        let update_info = (latest > current).then_some(UpdateInfo {
-            version: format!("v{latest}"),
-            url: format!("{REPO}/releases/tag/v{latest}"),
-        });
-
-        cb(Ok(update_info)); // Pass the result to the callback
-    });
-}
-
-// Static storage for the version check result
-static VERSION_CHECK_RESULT: OnceLock<Option<UpdateInfo>> = OnceLock::new();
-
-/// Renders the bottom panel
+/// Renders the bottom panel, which includes the update notifier and other controls.
 pub fn ui_bottom_panel(ctx: &egui::Context, app: &mut App) {
     egui::TopBottomPanel::bottom("bottom_panel").show(ctx, |ui| {
         ui.horizontal(|ui| {
-            // Check if we have already performed the version check
-            match VERSION_CHECK_RESULT.get() {
-                Some(result) => {
-                    // We have the result, display it if there's an update
-                    if let Some(update_info) = result {
-                        let update_text = format!("⚠ Update available: {}", update_info.version);
-                        ui.hyperlink_to(update_text, &update_info.url)
-                            .on_hover_text("Update to the latest version");
-                    }
-                }
-                None => {
-                    // We haven't performed the check yet, create a suspense component to do it
-                    let mut suspense = EguiSuspense::single_try(|cb| {
-                        check_for_new_version(move |result| {
-                            // Store the result for future frames
-                            let _ = VERSION_CHECK_RESULT.set(result.clone().unwrap_or(None));
-                            // Call the original callback
-                            cb(result);
-                        });
-                    });
-                    
-                    suspense.ui(ui, |ui, data, _state| {
-                        match data {
-                            Some(update_info) => {
-                                let update_text = format!("⚠ Update available: {}", update_info.version);
-                                ui.hyperlink_to(update_text, &update_info.url)
-                                    .on_hover_text("Update to the latest version");
-                            }
-                            None => {
-                                // No update available or error occurred, show nothing
-                            }
-                        }
-                    });
-                }
-            }
+            // Get or initialize the update checker. This is cheap after the first call.
+            let suspense_mutex = UPDATE_CHECKER
+                .get_or_init(|| Mutex::new(EguiSuspense::single_try(check_for_new_version)));
 
+            // Lock the mutex to get mutable access. `unwrap` is acceptable here as a poisoned
+            // mutex is a non-recoverable state for this UI component.
+            let mut suspense = suspense_mutex.lock().unwrap();
+
+            // Render the suspense UI. It will only draw its contents when the async task succeeds.
+            suspense.ui(ui, |ui, data, _state| {
+                if let Some(update_info) = data {
+                    let update_text = format!("⚠ Update available: {}", update_info.version);
+                    ui.hyperlink_to(update_text, &update_info.url)
+                        .on_hover_text("Click to open the latest release page");
+                }
+            });
+
+            // Layout for other controls, aligned to the right.
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 ui.checkbox(&mut app.remove_sources, "💣 Remove sources")
                     .on_hover_text("⚠ DANGER ⚠\n\nThis will delete the input files!");
             });
         });
+    });
+}
+
+// --- Asynchronous Logic ---
+
+/// Asynchronously checks for a newer version on GitHub.
+///
+/// This function is designed to be called once by `EguiSuspense`. It uses `anyhow`
+/// for ergonomic error handling. On failure, errors are logged but not shown in the UI.
+fn check_for_new_version(cb: impl FnOnce(Result<Option<UpdateInfo>>) + Send + 'static) {
+    let request = ehttp::Request::get(VERSION_URL);
+
+    ehttp::fetch(request, move |response| {
+        // Use an immediately-invoked closure to leverage the `?` operator.
+        let result = (|| {
+            let response = response.map_err(|e| anyhow!(e))?;
+
+            if !response.ok {
+                bail!(
+                    "HTTP request failed: {} {}",
+                    response.status,
+                    response.status_text
+                );
+            }
+
+            let latest_version_str = String::from_utf8(response.bytes)
+                .context("Failed to decode response body as UTF-8")?;
+
+            let current_version = Version::parse(VERSION)
+                .context(format!("Failed to parse current version: '{VERSION}'"))?;
+            let latest_version = Version::parse(latest_version_str.trim()).context(format!(
+                "Failed to parse latest version from server: '{latest_version_str}'"
+            ))?;
+
+            // If the latest version is greater, create the update info. Otherwise, return None.
+            let update_info = (latest_version > current_version).then_some(UpdateInfo {
+                version: format!("v{latest_version}"),
+                url: format!("{REPO}/releases/tag/v{latest_version}"),
+            });
+
+            Ok(update_info)
+        })();
+
+        // If any step in the closure failed, log the detailed error chain.
+        if let Err(e) = &result {
+            // Use `{:?}` with anyhow to get a full, multi-line error report with causes.
+            log::error!("Failed to check for updates: {:?}", e);
+        }
+
+        cb(result);
     });
 }
