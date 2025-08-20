@@ -3,7 +3,7 @@
 
 use std::path::PathBuf;
 
-use anyhow::{Context, Error, Result};
+use anyhow::{Context, Result};
 use eframe::egui;
 use egui_inbox::UiInbox;
 use notify::{RecursiveMode, Watcher};
@@ -32,6 +32,8 @@ const SUPPORTED_INPUT_EXTENSIONS: &[&str] = &[
 /// Messages that can be sent from background tasks to the main thread
 #[derive(Debug)]
 enum BackgroundMessage {
+    /// Signal for current file conversion progress
+    ConversionProgress(u64, u64),
     /// Signal that a single file conversion has completed
     FileConverted,
     /// Signal that the conversion has completed (with result)
@@ -54,6 +56,8 @@ pub enum ConversionState {
         total_files: usize,
         /// Number of files already converted
         files_converted: usize,
+        /// Current file progress (current / total)
+        current_progress: (u64, u64),
     },
 }
 
@@ -173,12 +177,15 @@ impl App {
         self.conversion_state = ConversionState::Converting {
             total_files: paths.len(),
             files_converted: 0,
+            current_progress: (0, 0),
         };
 
         std::thread::spawn(move || {
             for path in paths {
-                if let Err(e) = Self::convert_single_iso(&path, &base_dir) {
-                    let _ = sender.send(BackgroundMessage::ConversionComplete(Err(e)));
+                if let Err(e) = iso2wbfs::convert(&path, &base_dir, |progress, total| {
+                    let _ = sender.send(BackgroundMessage::ConversionProgress(progress, total));
+                }) {
+                    let _ = sender.send(BackgroundMessage::ConversionComplete(Err(e.into())));
                     return;
                 }
                 let _ = sender.send(BackgroundMessage::FileConverted);
@@ -196,24 +203,36 @@ impl App {
         });
     }
 
-    /// Converts a single ISO file to WBFS format
-    fn convert_single_iso(path: &PathBuf, base_dir: &PathBuf) -> Result<()> {
-        iso2wbfs::convert(path, base_dir).map_err(Error::from)
-    }
-
     /// Processes messages received from background tasks
     fn handle_messages(&mut self, ctx: &egui::Context) {
         for msg in self.inbox.read(ctx) {
             match msg {
+                BackgroundMessage::ConversionProgress(progress, total) => {
+                    if let ConversionState::Converting {
+                        total_files,
+                        files_converted,
+                        ..
+                    } = self.conversion_state
+                    {
+                        self.conversion_state = ConversionState::Converting {
+                            total_files,
+                            files_converted,
+                            current_progress: (progress, total),
+                        };
+                    }
+                }
+
                 BackgroundMessage::FileConverted => {
                     if let ConversionState::Converting {
                         total_files,
                         files_converted,
+                        ..
                     } = self.conversion_state
                     {
                         self.conversion_state = ConversionState::Converting {
                             total_files,
                             files_converted: files_converted + 1,
+                            current_progress: (0, 0),
                         };
                     }
                 }
