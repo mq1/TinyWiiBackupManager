@@ -5,6 +5,7 @@ use crate::app::App;
 use crate::error_handling::show_anyhow_error;
 use anyhow::anyhow;
 use eframe::egui;
+use size::Size;
 
 /// Renders the top menu bar.
 pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
@@ -39,10 +40,7 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
 
                 ui.label("•");
 
-                ui.label(format!(
-                    "size: {:.2} GiB",
-                    app.base_dir_size as f64 / 1024.0 / 1024.0 / 1024.0
-                ));
+                ui.label(format!("Size: {}", Size::from_bytes(app.base_dir_size)));
 
                 let base_dir_name = app.base_dir.file_name().unwrap().to_string_lossy();
                 if ui
