@@ -121,11 +121,10 @@ impl App {
     fn scan_dir(&self, dir_name: &str) -> Result<Vec<Game>> {
         let dir = self.base_dir.join(dir_name);
 
-        if !dir.is_dir() {
-            return Ok(Vec::new());
-        }
-
         let mut games = Vec::new();
+        if !dir.is_dir() {
+            return Ok(games);
+        }
 
         for entry in std::fs::read_dir(&dir)? {
             let path = entry?.path();
