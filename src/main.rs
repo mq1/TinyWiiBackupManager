@@ -62,11 +62,10 @@ fn run() -> Result<()> {
         options,
         Box::new(move |cc| {
             egui_extras::install_image_loaders(&cc.egui_ctx);
-            match App::new(cc, base_dir, updates_enabled) {
-                Ok(app) => Ok(Box::new(app) as Box<dyn eframe::App>),
-                Err(e) => Err(e.into()),
-            }
+            let app = App::new(cc, base_dir, updates_enabled)?;
+            Ok(Box::new(app))
         }),
     )
-    .map_err(|e| anyhow!("eframe error: {e}"))
+    .map_err(|e| anyhow!(e.to_string()))
+    .context("Failed to run app")
 }
