@@ -78,11 +78,17 @@ pub struct App {
     pub remove_sources: bool,
     /// Update checker component
     pub update_checker: Option<EguiSuspense<Option<UpdateInfo>, Error>>,
+    /// Set of game paths with open info windows
+    pub open_info_windows: Vec<PathBuf>,
 }
 
 impl App {
     /// Initializes the application with the specified WBFS directory.
-    pub fn new(_cc: &eframe::CreationContext<'_>, base_dir: PathBuf, updates_enabled: bool) -> Result<Self> {
+    pub fn new(
+        _cc: &eframe::CreationContext<'_>,
+        base_dir: PathBuf,
+        updates_enabled: bool,
+    ) -> Result<Self> {
         // Initialize the update checker based on the updates_enabled flag
         let update_checker = updates_enabled
             .then(|| EguiSuspense::single_try(components::update_notifier::check_for_new_version));
@@ -278,6 +284,13 @@ impl App {
 
         Ok(())
     }
+
+    /// Opens an info window for the specified game
+    pub fn open_game_info(&mut self, path: PathBuf) {
+        if !self.open_info_windows.contains(&path) {
+            self.open_info_windows.push(path);
+        }
+    }
 }
 
 impl eframe::App for App {
@@ -294,6 +307,16 @@ impl eframe::App for App {
             if matches!(self.conversion_state, ConversionState::Converting { .. }) {
                 components::conversion_modal::ui_conversion_modal(ctx, self);
             }
+        });
+
+        // Render info windows for opened games
+        self.open_info_windows.retain(|path| {
+            if let Some(game) = self.games.iter().find(|g| g.path == *path) {
+                let mut is_open = true;
+                components::game_info::ui_game_info_window(ctx, game, &mut is_open);
+                return is_open;
+            }
+            false
         });
     }
 }
