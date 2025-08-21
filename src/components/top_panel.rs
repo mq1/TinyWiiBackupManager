@@ -44,8 +44,8 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
 
                 let base_dir_name = app.base_dir.file_name().unwrap().to_string_lossy();
                 if ui
-                    .hyperlink(&base_dir_name)
-                    .on_hover_text(format!("Open the base directory ({})", base_dir_name))
+                    .hyperlink_to(base_dir_name.clone(), "_blank")
+                    .on_hover_text(format!("Open the base directory ({base_dir_name})"))
                     .clicked()
                 {
                     if let Err(e) = open::that(&app.base_dir) {
