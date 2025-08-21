@@ -28,8 +28,10 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
             &app.games
         } else if show_wii {
             &app.wii_games
-        } else {
+        } else if show_gc {
             &app.gc_games
+        } else {
+            return;
         };
 
         egui::Grid::new("game_grid")
