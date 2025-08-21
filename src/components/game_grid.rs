@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use crate::{app::App, error_handling::show_anyhow_error, game::Game};
-use eframe::egui::{self, Image, RichText};
+use eframe::egui::{self, Button, Image, RichText};
 
 const CARD_SIZE: egui::Vec2 = egui::vec2(170.0, 220.0);
 const GRID_SPACING: egui::Vec2 = egui::vec2(10.0, 10.0);
@@ -55,42 +55,41 @@ fn ui_game_card(ui: &mut egui::Ui, game: &Game) -> (bool, bool) {
     let card = egui::Frame::group(ui.style()).corner_radius(5.0);
     card.show(ui, |ui| {
         ui.set_max_size(CARD_SIZE);
+        ui.set_min_size(CARD_SIZE);
 
-        ui.vertical_centered(|ui| {
-            let image = Image::new(&game.image_url)
-                .max_height(128.0)
-                .maintain_aspect_ratio(true)
-                .show_loading_spinner(true);
+        ui.vertical(|ui| {
+            // Console label on the left
+            let console = if game.is_gc { "🎮 GC" } else { "🎾 Wii" };
+            ui.label(console);
 
-            ui.add(image);
+            // Centered content
+            ui.with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
+                let image = Image::new(&game.image_url)
+                    .max_height(128.0)
+                    .maintain_aspect_ratio(true)
+                    .show_loading_spinner(true);
+                ui.add(image);
 
-            ui.add_space(5.);
+                ui.add_space(5.);
 
-            ui.label(RichText::new(&game.display_title).strong());
-
-            // horizontal and centered
-            ui.horizontal(|ui| {
-                ui.add_space(20.);
-                let console = if game.is_gc { "🎮 GC" } else { "🎾 Wii" };
-                ui.label(RichText::new(console).strong());
-
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                    ui.add_space(20.);
-                    ui.label(RichText::new(format!("ID: {}", game.id)).monospace());
-                });
+                ui.label(RichText::new(&game.display_title).strong());
             });
 
-            ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
-                ui.horizontal(|ui| {
-                    ui.add_space(7.);
-                    ui.hyperlink_to("🌐 GameTDB", &game.info_url);
-                    ui.add_space(5.);
-                    info_clicked = ui.button("ℹ Info").clicked();
-                    let remove_response = ui.button("🗑");
-                    remove_clicked = remove_response.clicked();
-                    remove_response.on_hover_text("Remove Game");
+            // Spacer
+            let button_row_height = ui.style().spacing.interact_size.y;
+            let separator_and_padding = 1.0 + ui.style().spacing.item_spacing.y * 2.0;
+            let needed_height = button_row_height + separator_and_padding;
+            ui.add_space((ui.available_height() - needed_height).max(0.0));
+
+            ui.separator();
+
+            // Buttons
+            ui.horizontal(|ui| {
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    remove_clicked = ui.add(Button::new("🗑")).on_hover_text("Remove Game").clicked();
+                    let info_button = Button::new("ℹ Info").min_size(ui.available_size());
+                    info_clicked = ui.add(info_button).clicked();
                 });
-                ui.separator();
             });
         });
     });
