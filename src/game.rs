@@ -165,28 +165,27 @@ impl Game {
     pub fn load_disc_meta(&mut self) -> Option<&DiscMeta> {
         // Check if we need to load the metadata
         let should_load = matches!(self.disc_meta, DiscMetaState::NotLoaded);
-        
+
         if should_load {
             // Find the disc file first
             let disc_file_path = find_disc_image_file(&self.path);
-            
+
             let meta = disc_file_path.as_ref().and_then(|disc_file_path| {
                 DiscReader::new(disc_file_path, &DiscOptions::default())
                     .ok()
                     .map(|d| d.meta())
             });
-            
+
             self.disc_meta = match meta {
                 Some(meta) => DiscMetaState::Loaded(meta),
                 None => DiscMetaState::Failed,
             };
         }
-        
+
         // Return a reference to the metadata if available
         match &self.disc_meta {
             DiscMetaState::Loaded(meta) => Some(meta),
-            DiscMetaState::Failed => None,
-            DiscMetaState::NotLoaded => unreachable!(), // We just handled this case
+            _ => None,
         }
     }
 }
