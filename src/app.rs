@@ -127,7 +127,7 @@ impl App {
         Ok(())
     }
 
-    fn scan_dir(&self, dir_name: &str) -> Result<Vec<Game>> {
+    fn scan_dir(&self, dir_name: &str, is_gc: bool) -> Result<Vec<Game>> {
         let dir = self.base_dir.join(dir_name);
 
         let mut games = Vec::new();
@@ -139,7 +139,7 @@ impl App {
             if let Ok(entry) = entry {
                 let path = entry.path();
                 if path.is_dir() {
-                    if let Ok(game) = Game::from_path(path) {
+                    if let Ok(game) = Game::from_path(path, is_gc) {
                         games.push(game);
                     }
                 }
@@ -151,8 +151,8 @@ impl App {
 
     /// Scans the "wbfs" and "games" directories and updates the list of games.
     pub fn refresh_games(&mut self) -> Result<()> {
-        let wii_games = self.scan_dir("wbfs")?;
-        let gc_games = self.scan_dir("games")?;
+        let wii_games = self.scan_dir("wbfs", false)?;
+        let gc_games = self.scan_dir("games", true)?;
 
         self.games = [wii_games, gc_games].concat();
         self.games
