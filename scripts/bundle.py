@@ -169,7 +169,7 @@ def macos_universal2():
                 "CFBundlePackageType": "APPL",
                 "CFBundleExecutable": NAME,
                 "CFBundleIconFile": NAME,
-                "LSMinimumSystemVersion": "10.14",
+                "LSMinimumSystemVersion": "11",
                 "NSHumanReadableCopyright": LEGAL_COPYRIGHT,
                 "NSPrincipalClass": "NSApplication",
                 "NSHighResolutionCapable": True,
