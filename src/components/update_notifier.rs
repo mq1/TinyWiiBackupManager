@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
+use crate::PRODUCT_NAME;
 use crate::app::App;
 use anyhow::{Context, Result, anyhow, bail};
 use const_format::formatcp;
@@ -28,10 +29,15 @@ pub fn ui_update_notifier(ui: &mut egui::Ui, app: &mut App) {
     // Render the suspense UI. It will only draw its contents when the async task succeeds.
     if let Some(suspense) = &mut app.update_checker {
         suspense.ui(ui, |ui, data, _state| {
+            // The ui closure is only called when the suspense is in a success state
+            // For error/loading states, egui_suspense automatically handles them
             if let Some(update_info) = data {
                 let update_text = format!("⚠ Update available: {}", update_info.version);
                 ui.hyperlink_to(update_text, &update_info.url)
                     .on_hover_text("Click to open the latest release page");
+            } else {
+                // No update available - show current version
+                ui.label(format!("{PRODUCT_NAME} v{VERSION}"));
             }
         });
     }

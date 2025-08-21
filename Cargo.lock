@@ -3940,7 +3940,7 @@ dependencies = [
 
 [[package]]
 name = "tiny-wii-backup-manager"
-version = "1.4.1"
+version = "1.4.2"
 dependencies = [
  "anyhow",
  "bitflags 2.9.2",
