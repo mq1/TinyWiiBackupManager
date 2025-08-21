@@ -5,10 +5,9 @@ use eframe::egui;
 
 use crate::game::Game;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ConsoleFilter {
-    pub wii: bool,
-    pub gamecube: bool,
+    wii: bool,
+    gamecube: bool,
 }
 
 impl Default for ConsoleFilter {
