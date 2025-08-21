@@ -1,39 +1,13 @@
 use crate::game::Game;
-use eframe::egui::{self, CentralPanel, RichText, ScrollArea, TopBottomPanel};
+use eframe::egui::{self, RichText};
 use size::Size;
 
-pub fn ui_game_info_modal(ctx: &egui::Context, game: &mut Game, open: &mut bool) {
-    if !*open {
-        return;
-    }
-
-    // Load disc metadata when the modal is first opened
-    let _ = game.load_disc_meta();
-
-    let mut modal = egui::Modal::new(game.id.clone().into());
-    modal.area = modal.area.default_size([700., 550.]);
-
-    modal.show(ctx, |ui| {
-        TopBottomPanel::top("game_info_title_panel").show_inside(ui, |ui| {
-            ui.heading(&game.display_title);
-            ui.add_space(2.0);
+pub fn ui_game_info_window(ctx: &egui::Context, game: &mut Game, open: &mut bool) {
+    egui::Window::new(game.display_title.clone())
+        .open(open)
+        .show(ctx, |ui| {
+            ui_game_info_content(ui, game);
         });
-
-        TopBottomPanel::bottom("game_info_actions_panel").show_inside(ui, |ui| {
-            ui.add_space(7.0);
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                if ui.button("Close").clicked() {
-                    *open = false;
-                }
-            });
-        });
-
-        CentralPanel::default().show_inside(ui, |ui| {
-            ScrollArea::vertical().show(ui, |ui| {
-                ui_game_info_content(ui, game);
-            });
-        });
-    });
 }
 
 fn ui_game_info_content(ui: &mut egui::Ui, game: &mut Game) {
@@ -64,7 +38,7 @@ fn ui_game_info_content(ui: &mut egui::Ui, game: &mut Game) {
 
     ui.horizontal(|ui| {
         ui.label(RichText::new("📁 Path:").strong());
-        if ui.hyperlink(game.path.to_string_lossy().as_ref()).clicked() {
+        if ui.hyperlink(game.path.display()).clicked() {
             let _ = open::that(&game.path);
         }
     });
