@@ -37,6 +37,13 @@ static REGION_TO_LANG: phf::Map<char, &'static str> = phf_map! {
     'Z' => "EN", // Europe alternate languages / US special releases
 };
 
+/// Represents the console type for a game
+#[derive(Clone, Copy, PartialEq)]
+pub enum ConsoleType {
+    Wii,
+    GameCube,
+}
+
 /// Represents the state of disc metadata loading
 #[derive(Clone)]
 enum DiscMetaState {
@@ -52,7 +59,7 @@ enum DiscMetaState {
 #[derive(Clone)]
 pub struct Game {
     pub id: String,
-    pub is_gc: bool,
+    pub console: ConsoleType,
     pub title: String,
     pub display_title: String,
     pub path: PathBuf,
@@ -69,7 +76,7 @@ impl Game {
     ///
     /// The path is expected to be a directory containing the game files, with a name
     /// format like "My Game Title [GAMEID]".
-    pub fn from_path(path: PathBuf, is_gc: bool) -> Result<Self> {
+    pub fn from_path(path: PathBuf, console: ConsoleType) -> Result<Self> {
         let (id, title) = Self::parse_filename(&path)?;
 
         // Use the title from the GameTDB database if available, otherwise, fall back to the
@@ -96,7 +103,7 @@ impl Game {
 
         Ok(Self {
             id,
-            is_gc,
+            console,
             title,
             display_title,
             path,
