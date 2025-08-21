@@ -24,26 +24,31 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
 
         let ConsoleFilter { show_wii, show_gc } = app.console_filter;
 
-        let games = if show_wii && show_gc {
-            &app.games
-        } else if show_wii {
-            &app.wii_games
-        } else if show_gc {
-            &app.gc_games
-        } else {
+        // Create an iterator that filters games based on console filter
+        let filtered_games: Vec<(usize, &Game)> = app
+            .games
+            .iter()
+            .enumerate()
+            .filter(|(_, game)| {
+                (show_wii && !game.is_gc) || (show_gc && game.is_gc)
+            })
+            .collect();
+
+        if filtered_games.is_empty() && (show_wii || show_gc) {
+            ui.label("No games found.");
             return;
-        };
+        }
 
         egui::Grid::new("game_grid")
             .spacing(GRID_SPACING)
             .show(ui, |ui| {
-                for (i, game) in games.iter().enumerate() {
+                for (i, (original_index, game)) in filtered_games.iter().enumerate() {
                     let (should_remove, should_open_info) = ui_game_card(ui, game);
                     if should_remove {
-                        to_remove = Some(game.clone());
+                        to_remove = Some((*game).clone());
                     }
                     if should_open_info {
-                        to_open_info = Some(i);
+                        to_open_info = Some(*original_index);
                     }
 
                     if (i + 1) % num_columns == 0 {

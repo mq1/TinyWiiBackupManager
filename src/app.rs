@@ -66,10 +66,6 @@ pub struct App {
     pub base_dir: PathBuf,
     /// List of discovered games
     pub games: Vec<Game>,
-    /// List of discovered Wii games
-    pub wii_games: Vec<Game>,
-    /// List of discovered GC games
-    pub gc_games: Vec<Game>,
     /// WBFS dir size
     pub base_dir_size: u64,
     /// Inbox for receiving messages from background tasks
@@ -157,17 +153,13 @@ impl App {
 
     /// Scans the "wbfs" and "games" directories and updates the list of games.
     pub fn refresh_games(&mut self) -> Result<()> {
-        self.wii_games = self.scan_dir("wbfs", false)?;
-        self.gc_games = self.scan_dir("games", true)?;
-
-        // Sort both vectors
-        self.wii_games
-            .sort_by(|a, b| a.display_title.cmp(&b.display_title));
-        self.gc_games
-            .sort_by(|a, b| a.display_title.cmp(&b.display_title));
+        let wii_games = self.scan_dir("wbfs", false)?;
+        let gc_games = self.scan_dir("games", true)?;
 
         // Combine for the main games vector
-        self.games = [self.wii_games.clone(), self.gc_games.clone()].concat();
+        self.games = [wii_games, gc_games].concat();
+        
+        // Sort the combined vector
         self.games
             .sort_by(|a, b| a.display_title.cmp(&b.display_title));
 
