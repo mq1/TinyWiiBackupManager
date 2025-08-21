@@ -82,13 +82,10 @@ fn ui_game_card(ui: &mut egui::Ui, game: &Game) -> (bool, bool) {
                         let remove_response = ui.add(Button::new("🗑")).on_hover_text("Remove Game");
                         remove_clicked = remove_response.clicked();
 
-                        let info_button = Button::new("ℹ Info");
-                        info_clicked = ui
-                            .add_sized(
-                                [ui.available_width(), remove_response.rect.height()],
-                                info_button,
-                            )
-                            .clicked();
+                        let info_button = ui.add(
+                            Button::new("ℹ Info").min_size(egui::vec2(ui.available_width(), 0.0)),
+                        );
+                        info_clicked = info_button.clicked();
                     });
                 });
                 ui.separator();
