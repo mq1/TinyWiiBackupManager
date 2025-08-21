@@ -310,7 +310,7 @@ impl eframe::App for App {
 
         // Render info windows for opened games
         self.open_info_windows.retain(|path| {
-            if let Some(game) = self.games.iter().find(|g| g.path == *path) {
+            if let Some(game) = self.games.iter_mut().find(|g| g.path == *path) {
                 let mut is_open = true;
                 components::game_info::ui_game_info_modal(ctx, game, &mut is_open);
                 return is_open;

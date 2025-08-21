@@ -2,10 +2,13 @@ use crate::game::Game;
 use eframe::egui::{self, CentralPanel, RichText, ScrollArea, TopBottomPanel};
 use size::Size;
 
-pub fn ui_game_info_modal(ctx: &egui::Context, game: &Game, open: &mut bool) {
+pub fn ui_game_info_modal(ctx: &egui::Context, game: &mut Game, open: &mut bool) {
     if !*open {
         return;
     }
+
+    // Load disc metadata when the modal is first opened
+    let _ = game.load_disc_meta();
 
     let mut modal = egui::Modal::new(game.id.clone().into());
     modal.area = modal.area.default_size([700., 550.]);
@@ -33,7 +36,7 @@ pub fn ui_game_info_modal(ctx: &egui::Context, game: &Game, open: &mut bool) {
     });
 }
 
-fn ui_game_info_content(ui: &mut egui::Ui, game: &Game) {
+fn ui_game_info_content(ui: &mut egui::Ui, game: &mut Game) {
     ui.horizontal(|ui| {
         ui.label(RichText::new("📝 Title:").strong());
         ui.label(RichText::new(&game.title));
@@ -77,7 +80,7 @@ fn ui_game_info_content(ui: &mut egui::Ui, game: &Game) {
 
     ui.heading("💿 Disc Metadata");
     ui.add_space(5.0);
-    if let Some(ref meta) = game.disc_meta {
+    if let Some(ref meta) = game.load_disc_meta() {
         ui.horizontal(|ui| {
             ui.label(RichText::new("💿 Format:").strong());
             ui.label(meta.format.to_string());
@@ -121,7 +124,7 @@ fn ui_game_info_content(ui: &mut egui::Ui, game: &Game) {
     ui.heading("🔍 Integrity");
     ui.add_space(5.0);
 
-    if let Some(ref meta) = game.disc_meta {
+    if let Some(ref meta) = game.load_disc_meta() {
         let has_integrity_info = meta.crc32.is_some()
             || meta.md5.is_some()
             || meta.sha1.is_some()
