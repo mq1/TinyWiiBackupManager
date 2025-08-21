@@ -17,7 +17,7 @@ use crate::{
 
 // don't format
 #[rustfmt::skip]
-const SUPPORTED_INPUT_EXTENSIONS: &[&str] = &[
+pub const SUPPORTED_INPUT_EXTENSIONS: &[&str] = &[
     "gcm", "GCM",
     "iso", "ISO",
     "wbfs", "WBFS",
