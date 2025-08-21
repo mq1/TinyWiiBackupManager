@@ -36,7 +36,7 @@ pub fn ui_game_info_modal(ctx: &egui::Context, game: &Game, open: &mut bool) {
 fn ui_game_info_content(ui: &mut egui::Ui, game: &Game) {
     ui.horizontal(|ui| {
         ui.label(RichText::new("📝 Title:").strong());
-        ui.label(RichText::new(&game.display_title));
+        ui.label(RichText::new(&game.title));
     });
 
     ui.horizontal(|ui| {
@@ -149,7 +149,9 @@ fn ui_game_info_content(ui: &mut egui::Ui, game: &Game) {
                             .text_style(egui::TextStyle::Monospace)
                             .strong(),
                     );
-                    ui.label(RichText::new(hex::encode(md5)).text_style(egui::TextStyle::Monospace));
+                    ui.label(
+                        RichText::new(hex::encode(md5)).text_style(egui::TextStyle::Monospace),
+                    );
                 });
             }
 
@@ -160,7 +162,9 @@ fn ui_game_info_content(ui: &mut egui::Ui, game: &Game) {
                             .text_style(egui::TextStyle::Monospace)
                             .strong(),
                     );
-                    ui.label(RichText::new(hex::encode(sha1)).text_style(egui::TextStyle::Monospace));
+                    ui.label(
+                        RichText::new(hex::encode(sha1)).text_style(egui::TextStyle::Monospace),
+                    );
                 });
             }
 
