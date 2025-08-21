@@ -17,7 +17,7 @@ use crate::{
 
 // don't format
 #[rustfmt::skip]
-const SUPPORTED_INPUT_EXTENSIONS: &[&str] = &[
+pub const SUPPORTED_INPUT_EXTENSIONS: &[&str] = &[
     "gcm", "GCM",
     "iso", "ISO",
     "wbfs", "WBFS",
@@ -158,9 +158,8 @@ impl App {
         self.games
             .sort_by(|a, b| a.display_title.cmp(&b.display_title));
 
-        // get base_dir_size using fs_extra
-        self.base_dir_size = fs_extra::dir::get_size(&self.base_dir)
-            .with_context(|| format!("Failed to get size of dir: {}", self.base_dir.display()))?;
+        // sum the sizes of each game object
+        self.base_dir_size = self.games.iter().fold(0, |acc, game| acc + game.size);
 
         Ok(())
     }
@@ -311,7 +310,7 @@ impl eframe::App for App {
 
         // Render info windows for opened games
         self.open_info_windows.retain(|path| {
-            if let Some(game) = self.games.iter().find(|g| g.path == *path) {
+            if let Some(game) = self.games.iter_mut().find(|g| g.path == *path) {
                 let mut is_open = true;
                 components::game_info::ui_game_info_window(ctx, game, &mut is_open);
                 return is_open;
