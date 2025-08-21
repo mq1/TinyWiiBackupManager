@@ -158,9 +158,8 @@ impl App {
         self.games
             .sort_by(|a, b| a.display_title.cmp(&b.display_title));
 
-        // get base_dir_size using fs_extra
-        self.base_dir_size = fs_extra::dir::get_size(&self.base_dir)
-            .with_context(|| format!("Failed to get size of dir: {}", self.base_dir.display()))?;
+        // sum the sizes of each game object
+        self.base_dir_size = self.games.iter().fold(0, |acc, game| acc + game.size);
 
         Ok(())
     }
