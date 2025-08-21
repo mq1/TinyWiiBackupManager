@@ -27,7 +27,7 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
                         to_remove = Some(game.clone());
                     }
                     if should_open_info {
-                        to_open_info = Some(game.path.clone());
+                        to_open_info = Some(i);
                     }
 
                     if (i + 1) % num_columns == 0 {
@@ -43,8 +43,8 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
         }
     }
 
-    if let Some(path) = to_open_info {
-        app.open_game_info(path);
+    if let Some(index) = to_open_info {
+        app.open_game_info(index);
     }
 }
 
