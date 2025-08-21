@@ -40,6 +40,9 @@ pub fn ui_update_notifier(ui: &mut egui::Ui, app: &mut App) {
                 ui.label(format!("{PRODUCT_NAME} v{VERSION}"));
             }
         });
+    } else {
+        // No suspense - show current version
+        ui.label(format!("{PRODUCT_NAME} v{VERSION}"));
     }
 }
 
