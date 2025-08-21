@@ -12,7 +12,7 @@ use notify::{RecursiveMode, Watcher};
 use crate::{
     components::{self, console_filter::ConsoleFilter, update_notifier::UpdateInfo},
     error_handling::show_anyhow_error,
-    game::Game,
+    game::{ConsoleType, Game},
 };
 
 // don't format
@@ -129,7 +129,7 @@ impl App {
         Ok(())
     }
 
-    fn scan_dir(&self, dir_name: &str, is_gc: bool) -> Result<Vec<Game>> {
+    fn scan_dir(&self, dir_name: &str, console_type: ConsoleType) -> Result<Vec<Game>> {
         let dir = self.base_dir.join(dir_name);
 
         let mut games = Vec::new();
@@ -141,7 +141,7 @@ impl App {
             if let Ok(entry) = entry {
                 let path = entry.path();
                 if path.is_dir() {
-                    if let Ok(game) = Game::from_path(path, is_gc) {
+                    if let Ok(game) = Game::from_path(path, console_type) {
                         games.push(game);
                     }
                 }
@@ -153,12 +153,14 @@ impl App {
 
     /// Scans the "wbfs" and "games" directories and updates the list of games.
     pub fn refresh_games(&mut self) -> Result<()> {
-        let wii_games = self.scan_dir("wbfs", false)?;
-        let gc_games = self.scan_dir("games", true)?;
+        let mut wii_games = self.scan_dir("wbfs", ConsoleType::Wii)?;
+        let mut gc_games = self.scan_dir("games", ConsoleType::GameCube)?;
 
         // Combine for the main games vector
-        self.games = [wii_games, gc_games].concat();
-        
+        self.games.clear();
+        self.games.append(&mut wii_games);
+        self.games.append(&mut gc_games);
+
         // Sort the combined vector
         self.games
             .sort_by(|a, b| a.display_title.cmp(&b.display_title));
