@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use anyhow::Error;
-use rfd::{MessageDialog, MessageLevel};
 use log::error;
+use rfd::{MessageDialog, MessageLevel};
 
 /// Show an error dialog with the given title and description
 pub fn show_error(title: &str, description: &str) {

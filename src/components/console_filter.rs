@@ -3,7 +3,7 @@
 
 use eframe::egui;
 
-use crate::game::Game;
+use crate::game::{ConsoleType, Game};
 
 pub struct ConsoleFilter {
     wii: bool,
@@ -22,7 +22,10 @@ impl Default for ConsoleFilter {
 impl ConsoleFilter {
     /// Returns whether a game should be shown based on its type
     pub fn shows_game(&self, game: &Game) -> bool {
-        if game.is_gc { self.gamecube } else { self.wii }
+        match game.console {
+            ConsoleType::GameCube => self.gamecube,
+            ConsoleType::Wii => self.wii,
+        }
     }
 }
 
