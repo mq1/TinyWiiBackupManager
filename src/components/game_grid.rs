@@ -3,6 +3,7 @@
 
 use crate::{app::App, error_handling::show_anyhow_error, game::Game};
 use eframe::egui::{self, Button, Image, RichText};
+use size::Size;
 
 const CARD_SIZE: egui::Vec2 = egui::vec2(170.0, 220.0);
 const GRID_SPACING: egui::Vec2 = egui::vec2(10.0, 10.0);
@@ -58,9 +59,17 @@ fn ui_game_card(ui: &mut egui::Ui, game: &Game) -> (bool, bool) {
         ui.set_min_size(CARD_SIZE);
 
         ui.vertical(|ui| {
-            // Console label on the left
-            let console = if game.is_gc { "🎮 GC" } else { "🎾 Wii" };
-            ui.label(console);
+            // Top row with console label on the left and size label on the right
+            ui.horizontal(|ui| {
+                // Console label on the left
+                let console = if game.is_gc { "🎮 GC" } else { "🎾 Wii" };
+                ui.label(console);
+
+                // Size label on the right
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    ui.label(format!("💾 {}", Size::from_bytes(game.size)));
+                });
+            });
 
             // Centered content
             ui.with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
