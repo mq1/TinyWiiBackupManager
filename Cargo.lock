@@ -3943,7 +3943,6 @@ name = "tiny-wii-backup-manager"
 version = "1.4.2"
 dependencies = [
  "anyhow",
- "bitflags 2.9.2",
  "const_format",
  "eframe",
  "egui_extras",
