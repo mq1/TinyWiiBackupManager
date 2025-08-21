@@ -78,8 +78,8 @@ pub struct App {
     pub remove_sources: bool,
     /// Update checker component
     pub update_checker: Option<EguiSuspense<Option<UpdateInfo>, Error>>,
-    /// Set of game paths with open info windows
-    pub open_info_windows: Vec<PathBuf>,
+    /// Vector of game indices with open info windows
+    pub open_info_windows: Vec<usize>,
 }
 
 impl App {
@@ -285,9 +285,10 @@ impl App {
     }
 
     /// Opens an info window for the specified game
-    pub fn open_game_info(&mut self, path: PathBuf) {
-        if !self.open_info_windows.contains(&path) {
-            self.open_info_windows.push(path);
+    pub fn open_game_info(&mut self, index: usize) {
+        // Only add the index if it's not already in the vector
+        if !self.open_info_windows.contains(&index) {
+            self.open_info_windows.push(index);
         }
     }
 }
@@ -309,8 +310,8 @@ impl eframe::App for App {
         });
 
         // Render info windows for opened games
-        self.open_info_windows.retain(|path| {
-            if let Some(game) = self.games.iter_mut().find(|g| g.path == *path) {
+        self.open_info_windows.retain(|&index| {
+            if let Some(game) = self.games.get_mut(index) {
                 let mut is_open = true;
                 components::game_info::ui_game_info_window(ctx, game, &mut is_open);
                 return is_open;
