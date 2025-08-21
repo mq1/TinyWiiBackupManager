@@ -75,21 +75,23 @@ fn ui_game_card(ui: &mut egui::Ui, game: &Game) -> (bool, bool) {
                 ui.label(RichText::new(&game.display_title).strong());
             });
 
-            // Spacer
-            let button_row_height = ui.style().spacing.interact_size.y;
-            let separator_and_padding = 1.0 + ui.style().spacing.item_spacing.y * 2.0;
-            let needed_height = button_row_height + separator_and_padding;
-            ui.add_space((ui.available_height() - needed_height).max(0.0));
+            // Actions
+            ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
+                ui.horizontal(|ui| {
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        let remove_response = ui.add(Button::new("🗑")).on_hover_text("Remove Game");
+                        remove_clicked = remove_response.clicked();
 
-            ui.separator();
-
-            // Buttons
-            ui.horizontal(|ui| {
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                    remove_clicked = ui.add(Button::new("🗑")).on_hover_text("Remove Game").clicked();
-                    let info_button = Button::new("ℹ Info").min_size(ui.available_size());
-                    info_clicked = ui.add(info_button).clicked();
+                        let info_button = Button::new("ℹ Info");
+                        info_clicked = ui
+                            .add_sized(
+                                [ui.available_width(), remove_response.rect.height()],
+                                info_button,
+                            )
+                            .clicked();
+                    });
                 });
+                ui.separator();
             });
         });
     });
