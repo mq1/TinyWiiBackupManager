@@ -1,10 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
-use crate::{
-    app::App, components::console_filter::ConsoleFilter, error_handling::show_anyhow_error,
-    game::Game,
-};
+use crate::{app::App, error_handling::show_anyhow_error, game::Game};
 use eframe::egui::{self, Button, Image, RichText};
 use size::Size;
 
@@ -28,7 +25,7 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
             .spacing(GRID_SPACING)
             .show(ui, |ui| {
                 let mut column_index = 0;
-                
+
                 // Use the optimized filter method
                 for (original_index, game) in app.games.iter().enumerate() {
                     if filter.shows_game(game.is_gc) {
