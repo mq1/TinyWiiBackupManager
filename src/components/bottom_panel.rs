@@ -1,7 +1,10 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
-use crate::{app::App, components::update_notifier::ui_update_notifier};
+use crate::{
+    app::App,
+    components::{console_filter::ui_console_filter, update_notifier::ui_update_notifier},
+};
 use eframe::egui;
 
 // --- UI Rendering ---
@@ -16,6 +19,9 @@ pub fn ui_bottom_panel(ctx: &egui::Context, app: &mut App) {
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 ui.checkbox(&mut app.remove_sources, "💣 Remove sources")
                     .on_hover_text("⚠ DANGER ⚠\n\nThis will delete the input files!");
+
+                ui.separator();
+                ui_console_filter(ui, &mut app.console_filter);
             });
         });
     });

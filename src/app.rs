@@ -10,7 +10,7 @@ use egui_suspense::EguiSuspense;
 use notify::{RecursiveMode, Watcher};
 
 use crate::{
-    components::{self, update_notifier::UpdateInfo},
+    components::{self, console_filter::ConsoleFilter, update_notifier::UpdateInfo},
     error_handling::show_anyhow_error,
     game::Game,
 };
@@ -80,6 +80,8 @@ pub struct App {
     pub update_checker: Option<EguiSuspense<Option<UpdateInfo>, Error>>,
     /// Vector of game indices with open info windows
     pub open_info_windows: Vec<usize>,
+    /// Console filter state
+    pub console_filter: ConsoleFilter,
 }
 
 impl App {
