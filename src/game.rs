@@ -1,14 +1,16 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
+use crate::app::SUPPORTED_INPUT_EXTENSIONS;
 use crate::titles::GAME_TITLES;
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, bail};
 use nod::read::{DiscMeta, DiscOptions, DiscReader};
 use phf::phf_map;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-// for gametdb images
+// A static map to convert the region character from a game's ID to a language code
+// used by the GameTDB API for fetching cover art.
 static REGION_TO_LANG: phf::Map<char, &'static str> = phf_map! {
     'A' => "EN", // System Wii Channels (i.e. Mii Channel)
     'B' => "EN", // Ufouria: The Saga (NA)
@@ -35,6 +37,7 @@ static REGION_TO_LANG: phf::Map<char, &'static str> = phf_map! {
     'Z' => "EN", // Europe alternate languages / US special releases
 };
 
+/// Represents a single game, containing its metadata and file system information.
 #[derive(Clone)]
 pub struct Game {
     pub id: String,
@@ -49,35 +52,31 @@ pub struct Game {
     pub size: u64,
 }
 
+struct GameIdInfo {
+    id: String,
+    title: String,
+}
+
 impl Game {
+    /// Creates a new `Game` instance by parsing metadata from a given file path.
+    ///
+    /// The path is expected to be a directory containing the game files, with a name
+    /// format like "My Game Title [GAMEID]".
     pub fn from_path(path: PathBuf) -> Result<Self> {
-        let file_name = path
-            .file_name()
-            .and_then(|n| n.to_str())
-            .context("Invalid file name")?;
+        let GameIdInfo { id, title } = Self::parse_filename(&path)?;
 
-        let (id_start, id_end) = (
-            file_name.rfind('[').context("No '[' in file name")? + 1,
-            file_name.rfind(']').context("No ']' in file name")?,
-        );
+        let is_gc = id.starts_with('G');
 
-        let id = file_name[id_start..id_end].to_string();
+        // Use the title from the GameTDB database if available, otherwise, fall back to the
+        // parsed title from the file name.
+        let display_title = GAME_TITLES.get(&id).copied().unwrap_or(&title).to_string();
 
-        let is_gc = id.chars().next() == Some('G');
-
-        let title = path
-            .file_stem()
-            .and_then(|n| n.to_str())
-            .map(|n| n.trim_end_matches(&format!(" [{id}]")))
-            .context("Failed to get title")?
-            .to_string();
-
-        let display_title = GAME_TITLES
-            .get(&*id)
-            .map_or_else(|| format!("{title} [{id}]"), |&s| s.into());
-
-        // the 4th character in the ID is the region code
-        let region_code = id.chars().nth(3).context("No region code in ID")?;
+        // The 4th character in a Wii/GameCube ID represents the region.
+        // We use this to determine the language for fetching the correct cover art.
+        let region_code = id
+            .chars()
+            .nth(3)
+            .context("Game ID is missing a region code")?;
         let language = REGION_TO_LANG
             .get(&region_code)
             .copied()
@@ -87,10 +86,7 @@ impl Game {
         let info_url = format!("https://www.gametdb.com/Wii/{id}");
         let image_url = format!("https://art.gametdb.com/wii/cover3D/{language}/{id}.png");
 
-        // Read disc metadata
         let disc_meta = read_disc_metadata(&path);
-
-        // Get the size of the game directory
         let size = fs_extra::dir::get_size(&path)
             .with_context(|| format!("Failed to get size of dir: {}", path.display()))?;
 
@@ -108,17 +104,45 @@ impl Game {
         })
     }
 
+    /// Parses the game ID and title from the directory name.
+    /// Assumes a format like "Game Title [ID]".
+    fn parse_filename(path: &Path) -> Result<GameIdInfo> {
+        let file_name = path
+            .file_name()
+            .and_then(|n| n.to_str())
+            .context("Invalid file name")?;
+
+        // Find the last pair of square brackets to extract the ID
+        let Some(id_start) = file_name.rfind('[') else {
+            bail!("Could not find '[' in file name: '{}'", file_name);
+        };
+
+        let Some(id_end) = file_name.rfind(']') else {
+            bail!("Could not find ']' in file name: '{}'", file_name);
+        };
+
+        if id_start >= id_end {
+            bail!("Invalid ID format in file name: '{}'", file_name);
+        }
+
+        let id = file_name[id_start + 1..id_end].to_string();
+        let title = file_name[..id_start].trim().to_string();
+
+        Ok(GameIdInfo { id, title })
+    }
+
+    /// Prompts the user for confirmation and then permanently deletes the game's directory.
     pub fn remove(&self) -> Result<()> {
-        let confirm = rfd::MessageDialog::new()
+        let res = rfd::MessageDialog::new()
             .set_title("Remove Game")
-            .set_description(format!(
+            .set_description(&format!(
                 "Are you sure you want to remove {}?",
                 self.display_title
             ))
             .set_buttons(rfd::MessageButtons::YesNo)
             .show();
 
-        if confirm == rfd::MessageDialogResult::No {
+        if res == rfd::MessageDialogResult::No {
             return Ok(());
         }
 
@@ -127,31 +151,27 @@ impl Game {
     }
 }
 
-/// Reads disc metadata from the first disc image file found in the game directory
-fn read_disc_metadata(game_dir: &Path) -> Option<DiscMeta> {
-    let disc_file = find_disc_image_file(game_dir)?;
-    match DiscReader::new(&disc_file, &DiscOptions::default()) {
-        Ok(disc) => Some(disc.meta()),
-        Err(_) => None, // Failed to read disc
-    }
+/// Finds the first valid disc image file within a given game directory.
+fn find_disc_image_file(game_dir: &Path) -> Option<PathBuf> {
+    fs::read_dir(game_dir)
+        .ok()?
+        .flatten()
+        .map(|entry| entry.path())
+        .find(|path| {
+            path.is_file()
+                && path
+                    .extension()
+                    .and_then(|ext| ext.to_str())
+                    .map(|ext| SUPPORTED_INPUT_EXTENSIONS.contains(&ext))
+                    .unwrap_or(false)
+        })
 }
 
-/// Finds the first disc image file in a game directory
-fn find_disc_image_file(game_dir: &Path) -> Option<PathBuf> {
-    if let Ok(entries) = fs::read_dir(game_dir) {
-        for entry in entries.flatten() {
-            let path = entry.path();
-            if path.is_file() {
-                if let Some(ext) = path.extension().and_then(|ext| ext.to_str()) {
-                    match ext.to_lowercase().as_str() {
-                        "iso" | "gcm" | "wbfs" | "wia" | "rvz" | "ciso" | "gcz" | "tgc" | "nfs" => {
-                            return Some(path);
-                        }
-                        _ => continue,
-                    }
-                }
-            }
-        }
-    }
-    None
+/// Reads disc metadata from the first disc image file found in the game directory.
+/// Returns `None` if no disc image is found or if the metadata cannot be read.
+fn read_disc_metadata(game_dir: &Path) -> Option<DiscMeta> {
+    let disc_file = find_disc_image_file(game_dir)?;
+    DiscReader::new(&disc_file, &DiscOptions::default())
+        .ok()
+        .map(|d| d.meta())
 }
