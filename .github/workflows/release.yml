@@ -52,8 +52,8 @@ jobs:
           # Install FUSE (required for building AppImage)
           sudo apt-get install -y libfuse2
 
-          # Install cross-compilation tools for ARM64
-          sudo apt-get install -y gcc-aarch64-linux-gnu
+          # Install GCC (required for cross-compiling)
+          sudo apt-get install -y gcc-${{ matrix.arch }}-linux-gnu
 
           # Install LinuxDeploy
           wget -c "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage"
