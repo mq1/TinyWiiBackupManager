@@ -39,7 +39,6 @@ env_logger = "0.11"
 const_format = "0.2"
 nod = "2.0.0-alpha.3"
 hex = "0.4"
-bitflags = "2.9"
 
 [target.'cfg(windows)'.build-dependencies]
 winres = "0.1"
