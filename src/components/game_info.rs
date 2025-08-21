@@ -110,61 +110,75 @@ fn ui_game_info_content(ui: &mut egui::Ui, game: &Game) {
                 ui.label(Size::from_bytes(disc_size).to_string());
             });
         }
+    } else {
+        ui.label(RichText::new("Couldn't read disc metadata").color(ui.visuals().warn_fg_color));
+    }
 
-        ui.add_space(10.0);
-        ui.separator();
-        ui.add_space(10.0);
+    ui.add_space(10.0);
+    ui.separator();
+    ui.add_space(10.0);
 
-        ui.heading("🔍 Integrity");
-        ui.add_space(5.0);
+    ui.heading("🔍 Integrity");
+    ui.add_space(5.0);
 
-        if let Some(crc32) = meta.crc32 {
-            ui.horizontal(|ui| {
-                ui.label(
-                    RichText::new("CRC32:")
-                        .text_style(egui::TextStyle::Monospace)
-                        .strong(),
-                );
-                ui.label(
-                    RichText::new(format!("{:08x}", crc32)).text_style(egui::TextStyle::Monospace),
-                );
-            });
-        }
+    if let Some(ref meta) = game.disc_meta {
+        let has_integrity_info = meta.crc32.is_some()
+            || meta.md5.is_some()
+            || meta.sha1.is_some()
+            || meta.xxh64.is_some();
 
-        if let Some(md5) = meta.md5 {
-            ui.horizontal(|ui| {
-                ui.label(
-                    RichText::new("MD5:")
-                        .text_style(egui::TextStyle::Monospace)
-                        .strong(),
-                );
-                ui.label(RichText::new(hex::encode(md5)).text_style(egui::TextStyle::Monospace));
-            });
-        }
+        if has_integrity_info {
+            if let Some(crc32) = meta.crc32 {
+                ui.horizontal(|ui| {
+                    ui.label(
+                        RichText::new("CRC32:")
+                            .text_style(egui::TextStyle::Monospace)
+                            .strong(),
+                    );
+                    ui.label(
+                        RichText::new(format!("{:08x}", crc32))
+                            .text_style(egui::TextStyle::Monospace),
+                    );
+                });
+            }
 
-        if let Some(sha1) = meta.sha1 {
-            ui.horizontal(|ui| {
-                ui.label(
-                    RichText::new("SHA-1:")
-                        .text_style(egui::TextStyle::Monospace)
-                        .strong(),
-                );
-                ui.label(RichText::new(hex::encode(sha1)).text_style(egui::TextStyle::Monospace));
-            });
-        }
+            if let Some(md5) = meta.md5 {
+                ui.horizontal(|ui| {
+                    ui.label(
+                        RichText::new("MD5:")
+                            .text_style(egui::TextStyle::Monospace)
+                            .strong(),
+                    );
+                    ui.label(RichText::new(hex::encode(md5)).text_style(egui::TextStyle::Monospace));
+                });
+            }
 
-        if let Some(xxhash64) = meta.xxh64 {
-            ui.horizontal(|ui| {
-                ui.label(
-                    RichText::new("XXH64:")
-                        .text_style(egui::TextStyle::Monospace)
-                        .strong(),
-                );
-                ui.label(
-                    RichText::new(format!("{:016x}", xxhash64))
-                        .text_style(egui::TextStyle::Monospace),
-                );
-            });
+            if let Some(sha1) = meta.sha1 {
+                ui.horizontal(|ui| {
+                    ui.label(
+                        RichText::new("SHA-1:")
+                            .text_style(egui::TextStyle::Monospace)
+                            .strong(),
+                    );
+                    ui.label(RichText::new(hex::encode(sha1)).text_style(egui::TextStyle::Monospace));
+                });
+            }
+
+            if let Some(xxhash64) = meta.xxh64 {
+                ui.horizontal(|ui| {
+                    ui.label(
+                        RichText::new("XXH64:")
+                            .text_style(egui::TextStyle::Monospace)
+                            .strong(),
+                    );
+                    ui.label(
+                        RichText::new(format!("{:016x}", xxhash64))
+                            .text_style(egui::TextStyle::Monospace),
+                    );
+                });
+            }
+        } else {
+            ui.label("No integrity info available");
         }
     } else {
         ui.label(RichText::new("Couldn't read disc metadata").color(ui.visuals().warn_fg_color));
