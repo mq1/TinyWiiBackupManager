@@ -74,7 +74,7 @@ fn ui_game_card(ui: &mut egui::Ui, game: &Game) -> (bool, bool) {
 
                 // Size label on the right
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                    ui.label(format!("💾 {}", Size::from_bytes(game.size)));
+                    ui.label(Size::from_bytes(game.size).to_string());
                 });
             });
 
