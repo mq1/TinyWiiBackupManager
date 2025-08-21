@@ -1,7 +1,10 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
-use crate::{app::App, error_handling::show_anyhow_error, game::Game};
+use crate::{
+    app::App, components::console_filter::ConsoleFilter, error_handling::show_anyhow_error,
+    game::Game,
+};
 use eframe::egui::{self, Button, Image, RichText};
 use size::Size;
 
@@ -19,10 +22,20 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
         let num_columns =
             (ui.available_width() / (CARD_SIZE.x + GRID_SPACING.x * 2.)).max(1.) as usize;
 
+        let ConsoleFilter { show_wii, show_gc } = app.console_filter;
+
+        let games = if show_wii && show_gc {
+            &app.games
+        } else if show_wii {
+            &app.wii_games
+        } else {
+            &app.gc_games
+        };
+
         egui::Grid::new("game_grid")
             .spacing(GRID_SPACING)
             .show(ui, |ui| {
-                for (i, game) in app.games.iter().enumerate() {
+                for (i, game) in games.iter().enumerate() {
                     let (should_remove, should_open_info) = ui_game_card(ui, game);
                     if should_remove {
                         to_remove = Some(game.clone());
