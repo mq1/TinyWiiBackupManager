@@ -38,7 +38,10 @@ fn ui_game_info_content(ui: &mut egui::Ui, game: &mut Game) {
 
     ui.horizontal(|ui| {
         ui.label(RichText::new("📁 Path:").strong());
-        if ui.hyperlink(game.path.display()).clicked() {
+        if ui
+            .hyperlink_to(game.path.display().to_string(), "_blank")
+            .clicked()
+        {
             let _ = open::that(&game.path);
         }
     });
