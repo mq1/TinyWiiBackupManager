@@ -37,6 +37,17 @@ static REGION_TO_LANG: phf::Map<char, &'static str> = phf_map! {
     'Z' => "EN", // Europe alternate languages / US special releases
 };
 
+/// Represents the state of disc metadata loading
+#[derive(Clone)]
+enum DiscMetaState {
+    /// Metadata has not been loaded yet
+    NotLoaded,
+    /// Metadata was loaded successfully
+    Loaded(DiscMeta),
+    /// Metadata loading was attempted but failed
+    Failed,
+}
+
 /// Represents a single game, containing its metadata and file system information.
 #[derive(Clone)]
 pub struct Game {
@@ -48,7 +59,8 @@ pub struct Game {
     pub language: String,
     pub info_url: String,
     pub image_url: String,
-    pub disc_meta: Option<DiscMeta>,
+    /// State of disc metadata loading
+    disc_meta: DiscMetaState,
     pub size: u64,
 }
 
@@ -86,7 +98,6 @@ impl Game {
         let info_url = format!("https://www.gametdb.com/Wii/{id}");
         let image_url = format!("https://art.gametdb.com/wii/cover3D/{language}/{id}.png");
 
-        let disc_meta = read_disc_metadata(&path);
         let size = fs_extra::dir::get_size(&path)
             .with_context(|| format!("Failed to get size of dir: {}", path.display()))?;
 
@@ -99,7 +110,7 @@ impl Game {
             language,
             info_url,
             image_url,
-            disc_meta,
+            disc_meta: DiscMetaState::NotLoaded, // Will be loaded on demand
             size,
         })
     }
@@ -149,29 +160,56 @@ impl Game {
         fs::remove_dir_all(&self.path)
             .with_context(|| format!("Failed to remove game: {}", self.path.display()))
     }
+
+    /// Lazily loads disc metadata when needed
+    pub fn load_disc_meta(&mut self) -> Option<&DiscMeta> {
+        // Check if we need to load the metadata
+        let should_load = matches!(self.disc_meta, DiscMetaState::NotLoaded);
+        
+        if should_load {
+            // Find the disc file first
+            let disc_file_path = find_disc_image_file(&self.path);
+            
+            let meta = disc_file_path.as_ref().and_then(|disc_file_path| {
+                DiscReader::new(disc_file_path, &DiscOptions::default())
+                    .ok()
+                    .map(|d| d.meta())
+            });
+            
+            self.disc_meta = match meta {
+                Some(meta) => DiscMetaState::Loaded(meta),
+                None => DiscMetaState::Failed,
+            };
+        }
+        
+        // Return a reference to the metadata if available
+        match &self.disc_meta {
+            DiscMetaState::Loaded(meta) => Some(meta),
+            DiscMetaState::Failed => None,
+            DiscMetaState::NotLoaded => unreachable!(), // We just handled this case
+        }
+    }
 }
 
 /// Finds the first valid disc image file within a given game directory.
+/// Returns `None` if no disc image is found.
 fn find_disc_image_file(game_dir: &Path) -> Option<PathBuf> {
-    fs::read_dir(game_dir)
-        .ok()?
-        .flatten()
-        .map(|entry| entry.path())
-        .find(|path| {
-            path.is_file()
-                && path
-                    .extension()
-                    .and_then(|ext| ext.to_str())
-                    .map(|ext| SUPPORTED_INPUT_EXTENSIONS.contains(&ext))
-                    .unwrap_or(false)
-        })
-}
+    let entries = fs::read_dir(game_dir).ok()?;
 
-/// Reads disc metadata from the first disc image file found in the game directory.
-/// Returns `None` if no disc image is found or if the metadata cannot be read.
-fn read_disc_metadata(game_dir: &Path) -> Option<DiscMeta> {
-    let disc_file = find_disc_image_file(game_dir)?;
-    DiscReader::new(&disc_file, &DiscOptions::default())
-        .ok()
-        .map(|d| d.meta())
+    for entry in entries {
+        if let Ok(entry) = entry {
+            let path = entry.path();
+            if path.is_file() {
+                if let Some(ext) = path.extension() {
+                    if let Some(ext_str) = ext.to_str() {
+                        if SUPPORTED_INPUT_EXTENSIONS.contains(&ext_str) {
+                            return Some(path);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    None
 }
