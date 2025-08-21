@@ -44,7 +44,7 @@ Exec={NAME}
     print("Creating AppImage...")
     run(
         [
-            f"linuxdeploy-{arch}.AppImage",
+            "linuxdeploy-x86_64.AppImage",
             "--appdir",
             f"{PRODUCT_NAME}.AppDir",
             "--executable",
@@ -66,6 +66,7 @@ Exec={NAME}
             "--output",
             "appimage",
         ],
+        env={"ARCH": arch},
         check=True,
     )
 
@@ -168,7 +169,7 @@ def macos_universal2():
                 "CFBundlePackageType": "APPL",
                 "CFBundleExecutable": NAME,
                 "CFBundleIconFile": NAME,
-                "LSMinimumSystemVersion": "11.0",
+                "LSMinimumSystemVersion": "10.14",
                 "NSHumanReadableCopyright": LEGAL_COPYRIGHT,
                 "NSPrincipalClass": "NSApplication",
                 "NSHighResolutionCapable": True,

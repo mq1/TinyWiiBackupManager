@@ -22,17 +22,20 @@ jobs:
   # ==================================================================================
   build-linux:
     name: Build for Linux (${{ matrix.arch }})
-    runs-on: ${{ matrix.runner }}
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         include:
           - arch: x86_64
-            runner: ubuntu-22.04
           - arch: aarch64
-            runner: ubuntu-22.04-arm
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Setup Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          target: ${{ matrix.arch }}-unknown-linux-gnu
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -42,13 +45,21 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev libfuse2
+
+          # Install eframe dependencies
+          sudo apt-get install -y libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
+          
+          # Install FUSE (required for building AppImage)
+          sudo apt-get install -y libfuse2
+
+          # Install cross-compilation tools for ARM64
+          sudo apt-get install -y gcc-aarch64-linux-gnu
 
           # Install LinuxDeploy
-          wget -c "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${{ matrix.arch }}.AppImage"
-          wget -c "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-${{ matrix.arch }}.AppImage"
-          chmod +x linuxdeploy*.AppImage
-          sudo mv linuxdeploy*.AppImage /usr/local/bin
+          wget -c "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage"
+          wget -c "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-x86_64.AppImage"
+          chmod +x linuxdeploy-x86_64.AppImage
+          sudo mv linuxdeploy-x86_64.AppImage /usr/local/bin
 
       - name: Run Linux build script
         run: python3 scripts/bundle.py linux_${{ matrix.arch }}
@@ -61,17 +72,20 @@ jobs:
 
   build-windows:
     name: Build for Windows (${{ matrix.arch }})
-    runs-on: ${{ matrix.runner }}
+    runs-on: windows-latest
     strategy:
       matrix:
         include:
           - arch: x86_64
-            runner: windows-2022
           - arch: aarch64
-            runner: windows-11-arm
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Setup Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          target: ${{ matrix.arch }}-pc-windows-msvc
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -91,10 +105,15 @@ jobs:
 
   build-macos:
     name: Build for MacOS (Universal2)
-    runs-on: macos-14
+    runs-on: macos-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Setup Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          target: aarch64-apple-darwin,x86_64-apple-darwin
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -103,9 +122,6 @@ jobs:
 
       - name: Install dependencies
         run: brew install graphicsmagick imagemagick
-
-      - name: Install rustup targets
-        run: rustup target add aarch64-apple-darwin x86_64-apple-darwin
 
       - name: Run MacOS build script
         run: python3 scripts/bundle.py macos_universal2
