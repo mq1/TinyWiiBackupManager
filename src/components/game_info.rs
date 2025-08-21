@@ -1,4 +1,4 @@
-use crate::game::Game;
+use crate::game::{ConsoleType, Game};
 use eframe::egui::{self, RichText};
 use size::Size;
 
@@ -23,7 +23,10 @@ fn ui_game_info_content(ui: &mut egui::Ui, game: &mut Game) {
 
     ui.horizontal(|ui| {
         ui.label(RichText::new("🎮 Console:").strong());
-        ui.label(if game.is_gc { "GameCube" } else { "Wii" });
+        ui.label(match game.console {
+            ConsoleType::GameCube => "GameCube",
+            ConsoleType::Wii => "Wii",
+        });
     });
 
     ui.horizontal(|ui| {

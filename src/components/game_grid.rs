@@ -1,7 +1,11 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
-use crate::{app::App, error_handling::show_anyhow_error, game::Game};
+use crate::{
+    app::App,
+    error_handling::show_anyhow_error,
+    game::{ConsoleType, Game},
+};
 use eframe::egui::{self, Button, Image, RichText};
 use size::Size;
 
@@ -69,8 +73,10 @@ fn ui_game_card(ui: &mut egui::Ui, game: &Game) -> (bool, bool) {
             // Top row with console label on the left and size label on the right
             ui.horizontal(|ui| {
                 // Console label on the left
-                let console = if game.is_gc { "🎮 GC" } else { "🎾 Wii" };
-                ui.label(console);
+                ui.label(match game.console {
+                    ConsoleType::GameCube => "🎮 GC",
+                    ConsoleType::Wii => "🎾 Wii",
+                });
 
                 // Size label on the right
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
