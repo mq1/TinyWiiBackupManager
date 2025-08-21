@@ -310,13 +310,12 @@ impl eframe::App for App {
         });
 
         // Render info windows for opened games
-        self.open_info_windows.retain(|&index| {
-            if let Some(game) = self.games.get_mut(index) {
+        self.open_info_windows.retain_mut(|&mut index| {
+            self.games.get_mut(index).map_or(false, |game| {
                 let mut is_open = true;
                 components::game_info::ui_game_info_window(ctx, game, &mut is_open);
-                return is_open;
-            }
-            false
+                is_open
+            })
         });
     }
 }
