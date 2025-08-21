@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 pub mod bottom_panel;
+pub mod console_filter;
 pub mod conversion_modal;
 pub mod game_grid;
 pub mod game_info;

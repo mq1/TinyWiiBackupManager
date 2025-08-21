@@ -16,21 +16,33 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
         // expand horizontally
         ui.set_min_width(ui.available_width());
 
+        // Apply console filter
+        let filtered_games: Vec<(usize, &Game)> = app
+            .games
+            .iter()
+            .enumerate()
+            .filter(|(_, game)| {
+                (app.console_filter.show_wii && !game.is_gc) || 
+                (app.console_filter.show_gc && game.is_gc)
+            })
+            .collect();
+
         let num_columns =
             (ui.available_width() / (CARD_SIZE.x + GRID_SPACING.x * 2.)).max(1.) as usize;
 
         egui::Grid::new("game_grid")
             .spacing(GRID_SPACING)
             .show(ui, |ui| {
-                for (i, game) in app.games.iter().enumerate() {
+                for (i, (index, game)) in filtered_games.iter().enumerate() {
                     let (should_remove, should_open_info) = ui_game_card(ui, game);
                     if should_remove {
-                        to_remove = Some(game.clone());
+                        to_remove = Some((*game).clone());
                     }
                     if should_open_info {
-                        to_open_info = Some(i);
+                        to_open_info = Some(*index);
                     }
 
+                    // Use the filtered index for row ending calculation
                     if (i + 1) % num_columns == 0 {
                         ui.end_row();
                     }
