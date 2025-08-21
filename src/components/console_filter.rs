@@ -6,14 +6,22 @@ use eframe::egui;
 
 bitflags! {
     /// State for console type filtering using bitflags.
-    #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+    // We remove `Default` from the derive list to provide a custom implementation.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
     pub struct ConsoleFilter: u8 {
         const WII = 1 << 0;
         const GAMECUBE = 1 << 1;
-        // New flags can be added easily
-        // const SWITCH = 1 << 2;
 
+        /// A constant representing all filters being enabled.
         const ALL = Self::WII.bits() | Self::GAMECUBE.bits();
+    }
+}
+
+/// Implements the default state for ConsoleFilter.
+/// By default, all filters should be enabled.
+impl Default for ConsoleFilter {
+    fn default() -> Self {
+        Self::ALL
     }
 }
 
@@ -30,10 +38,12 @@ impl ConsoleFilter {
 
 /// Renders the console filter controls
 pub fn ui_console_filter(ui: &mut egui::Ui, filter: &mut ConsoleFilter) {
+    // Create temporary boolean representations for the checkboxes
     let mut show_wii = filter.contains(ConsoleFilter::WII);
     let mut show_gc = filter.contains(ConsoleFilter::GAMECUBE);
 
     ui.horizontal(|ui| {
+        // When a checkbox is changed, toggle the corresponding flag in the filter
         if ui.checkbox(&mut show_wii, "🎾 Show Wii").changed() {
             filter.toggle(ConsoleFilter::WII);
         }
