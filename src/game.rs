@@ -39,6 +39,7 @@ static REGION_TO_LANG: phf::Map<char, &'static str> = phf_map! {
 pub struct Game {
     pub id: String,
     pub is_gc: bool,
+    pub title: String,
     pub display_title: String,
     pub path: PathBuf,
     pub language: String,
@@ -68,7 +69,8 @@ impl Game {
             .file_stem()
             .and_then(|n| n.to_str())
             .map(|n| n.trim_end_matches(&format!(" [{id}]")))
-            .context("Failed to get title")?;
+            .context("Failed to get title")?
+            .to_string();
 
         let display_title = GAME_TITLES
             .get(&*id)
@@ -89,20 +91,13 @@ impl Game {
         let disc_meta = read_disc_metadata(&path);
 
         // Get the size of the game directory
-        let mut size = 0;
-        if let Ok(entries) = fs::read_dir(&path) {
-            for entry in entries.flatten() {
-                if let Ok(metadata) = entry.metadata() {
-                    if metadata.is_file() {
-                        size += metadata.len();
-                    }
-                }
-            }
-        }
+        let size = fs_extra::dir::get_size(&path)
+            .with_context(|| format!("Failed to get size of dir: {}", path.display()))?;
 
         Ok(Self {
             id,
             is_gc,
+            title,
             display_title,
             path,
             language,
