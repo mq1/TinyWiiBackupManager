@@ -88,7 +88,6 @@ fn ui_game_card(ui: &mut egui::Ui, game: &Game) -> (bool, bool) {
                         info_clicked = info_button.clicked();
                     });
                 });
-                ui.separator();
             });
         });
     });
