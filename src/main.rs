@@ -6,6 +6,7 @@
 use anyhow::{Context, Result, anyhow};
 use eframe::egui;
 use tiny_wii_backup_manager::App;
+use tiny_wii_backup_manager::PRODUCT_NAME;
 use tiny_wii_backup_manager::error_handling::show_anyhow_error;
 
 const LOGO: &[u8] = include_bytes!("../assets/linux/256x256/tiny-wii-backup-manager.png");
@@ -38,11 +39,7 @@ fn run() -> Result<()> {
             .to_path_buf();
     }
 
-    let title = format!(
-        "TWBM v{} - {}",
-        env!("CARGO_PKG_VERSION"),
-        base_dir.display()
-    );
+    let title = format!("{PRODUCT_NAME}: {}", base_dir.display());
 
     let icon = eframe::icon_data::from_png_bytes(LOGO).context("Failed to load icon")?;
 
