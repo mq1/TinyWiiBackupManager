@@ -64,20 +64,13 @@ pub struct Game {
     pub size: u64,
 }
 
-struct GameIdInfo {
-    id: String,
-    title: String,
-}
-
 impl Game {
     /// Creates a new `Game` instance by parsing metadata from a given file path.
     ///
     /// The path is expected to be a directory containing the game files, with a name
     /// format like "My Game Title [GAMEID]".
-    pub fn from_path(path: PathBuf) -> Result<Self> {
-        let GameIdInfo { id, title } = Self::parse_filename(&path)?;
-
-        let is_gc = id.starts_with('G');
+    pub fn from_path(path: PathBuf, is_gc: bool) -> Result<Self> {
+        let (id, title) = Self::parse_filename(&path)?;
 
         // Use the title from the GameTDB database if available, otherwise, fall back to the
         // parsed title from the file name.
@@ -117,7 +110,7 @@ impl Game {
 
     /// Parses the game ID and title from the directory name.
     /// Assumes a format like "Game Title [ID]".
-    fn parse_filename(path: &Path) -> Result<GameIdInfo> {
+    fn parse_filename(path: &Path) -> Result<(String, String)> {
         let file_name = path
             .file_name()
             .and_then(|n| n.to_str())
@@ -139,7 +132,7 @@ impl Game {
         let id = file_name[id_start + 1..id_end].to_string();
         let title = file_name[..id_start].trim().to_string();
 
-        Ok(GameIdInfo { id, title })
+        Ok((id, title))
     }
 
     /// Prompts the user for confirmation and then permanently deletes the game's directory.
