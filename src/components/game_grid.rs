@@ -27,7 +27,7 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
                 let mut column_index = 0;
 
                 for (original_index, game) in app.games.iter().enumerate() {
-                    if filter.shows_game(game.is_gc) {
+                    if filter.shows_game(game) {
                         let (should_remove, should_open_info) = ui_game_card(ui, game);
                         if should_remove {
                             to_remove = Some((*game).clone());
