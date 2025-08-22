@@ -56,7 +56,13 @@ jobs:
           chmod +x linuxdeploy-x86_64.AppImage
           sudo mv linuxdeploy-x86_64.AppImage /usr/local/bin
 
-      - name: Run Linux build script
+      - name: Build binaries in parallel
+        run: |
+          cargo build --release --target x86_64-unknown-linux-gnu &
+          cargo build --release --target aarch64-unknown-linux-gnu &
+          wait
+
+      - name: Package for Linux
         run: python3 scripts/bundle.py linux
 
       - name: Upload Linux distributables
@@ -80,7 +86,13 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
 
-      - name: Run Windows build script
+      - name: Build binaries in parallel
+        run: |
+          Start-Job -ScriptBlock { cargo build --release --target x86_64-pc-windows-msvc }
+          Start-Job -ScriptBlock { cargo build --release --target aarch64-pc-windows-msvc }
+          Get-Job | Wait-Job | Receive-Job
+
+      - name: Package for Windows
         run: python3 scripts/bundle.py windows
         env:
           PYTHONUTF8: "1"
@@ -109,7 +121,13 @@ jobs:
       - name: Install dependencies
         run: brew install graphicsmagick imagemagick
 
-      - name: Run MacOS build script
+      - name: Build binaries in parallel
+        run: |
+          cargo build --release --target aarch64-apple-darwin &
+          cargo build --release --target x86_64-apple-darwin &
+          wait
+
+      - name: Package for MacOS
         run: python3 scripts/bundle.py macos
 
       - name: Upload MacOS distributable
