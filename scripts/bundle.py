@@ -25,21 +25,39 @@ def build_cargo_targets(targets):
     """Build multiple cargo targets in parallel"""
     import concurrent.futures
 
+    print(f"Building {len(targets)} targets...")
+
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(targets)) as executor:
         futures = {
             executor.submit(
-                run, ["cargo", "build", "--release", "--target", target], check=True
+                run,
+                ["cargo", "build", "--release", "--target", target],
+                check=True,
+                capture_output=True,
+                text=True,
             ): target
             for target in targets
         }
+
+        completed = 0
+        failed = []
+
         for future in concurrent.futures.as_completed(futures):
             target = futures[future]
+            completed += 1
+
             try:
                 future.result()
-                print(f"✅ Completed build for {target}")
+                print(f"  [{completed}/{len(targets)}] ✅ {target}")
             except Exception as e:
-                print(f"❌ Failed build for {target}: {e}")
-                raise
+                print(f"  [{completed}/{len(targets)}] ❌ {target}")
+                failed.append((target, e))
+
+        if failed:
+            print("\nBuild failures:")
+            for target, error in failed:
+                print(f"  {target}: {error}")
+            raise Exception("Some builds failed")
 
 
 def linux():
