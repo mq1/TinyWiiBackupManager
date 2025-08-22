@@ -58,8 +58,8 @@ jobs:
         run: |
           mkdir dist
 
-          mv target/x86_64-unknown-linux-gnu/release/bundle/linux/*.AppImage dist/TWBM-${{ github.ref_name }}-Linux-x86_64.AppImage
-          mv target/aarch64-unknown-linux-gnu/release/bundle/linux/*.AppImage dist/TWBM-${{ github.ref_name }}-Linux-aarch64.AppImage
+          mv target/x86_64-unknown-linux-gnu/release/bundle/appimage/*.AppImage dist/TWBM-${{ github.ref_name }}-Linux-x86_64.AppImage
+          mv target/aarch64-unknown-linux-gnu/release/bundle/appimage/*.AppImage dist/TWBM-${{ github.ref_name }}-Linux-aarch64.AppImage
 
           # Also create tarballs with plain binaries
           mv target/x86_64-unknown-linux-gnu/release/tiny-wii-backup-manager TWBM-${{ github.ref_name }}-Linux-x86_64
