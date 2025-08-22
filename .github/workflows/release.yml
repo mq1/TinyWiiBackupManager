@@ -58,7 +58,6 @@ jobs:
           wget -c "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage"
           wget -c "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-x86_64.AppImage"
           chmod +x linuxdeploy*.AppImage
-          sudo mv linuxdeploy*.AppImage /usr/local/bin
 
       - name: Build binaries in parallel
         run: |
@@ -96,10 +95,11 @@ jobs:
           python-version: '3.13'
 
       - name: Build binaries in parallel
+        shell: bash
         run: |
-          Start-Job -ScriptBlock { cargo build --release --target x86_64-pc-windows-msvc }
-          Start-Job -ScriptBlock { cargo build --release --target aarch64-pc-windows-msvc }
-          Get-Job | Wait-Job | Receive-Job
+          cargo build --release --target x86_64-pc-windows-msvc &
+          cargo build --release --target aarch64-pc-windows-msvc &
+          wait
 
       - name: Package for Windows (x86_64)
         run: python3 scripts/bundle.py windows_x86_64
