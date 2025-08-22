@@ -8,9 +8,12 @@ repository = "https://github.com/mq1/TinyWiiBackupManager"
 description = "A dead simple Wii Backup Manager"
 build = "build.rs"
 
-[package.metadata]
-ShortName = "TWBM"
-BundleIdentifier = "it.mq1.TinyWiiBackupManager"
+[package.metadata.bundle]
+name = "TinyWiiBackupManager"
+identifier = "it.mq1.TinyWiiBackupManager"
+icon = ["logo@2x.png"]
+copyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-2.0-only."
+category = "Utility"
 
 [package.metadata.winres]
 FileDescription = "A dead simple Wii Backup Manager"
