@@ -2,7 +2,7 @@
 import sys
 import tomllib
 from subprocess import run
-from shutil import rmtree, copy
+from shutil import copy
 from pathlib import Path
 
 
@@ -21,18 +21,47 @@ PRODUCT_NAME = config["package"]["metadata"]["winres"]["ProductName"]
 LEGAL_COPYRIGHT = config["package"]["metadata"]["winres"]["LegalCopyright"]
 
 
-def _linux(arch: str):
+def build_cargo_targets(targets):
+    """Build multiple cargo targets in parallel"""
+    import concurrent.futures
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(targets)) as executor:
+        futures = {
+            executor.submit(
+                run, ["cargo", "build", "--release", "--target", target], check=True
+            ): target
+            for target in targets
+        }
+        for future in concurrent.futures.as_completed(futures):
+            target = futures[future]
+            try:
+                future.result()
+                print(f"✅ Completed build for {target}")
+            except Exception as e:
+                print(f"❌ Failed build for {target}: {e}")
+                raise
+
+
+def linux():
     import tarfile
+    import tempfile
 
-    print(f"Building for {arch}...")
-    run(
-        ["cargo", "build", "--release", "--target", f"{arch}-unknown-linux-gnu"],
-        check=True,
-    )
+    # Build for both architectures in parallel
+    build_cargo_targets(["x86_64-unknown-linux-gnu", "aarch64-unknown-linux-gnu"])
 
-    print("Creating desktop file...")
-    with open(f"{PRODUCT_NAME}.desktop", "w") as f:
-        f.write(f"""[Desktop Entry]
+    # Package each architecture
+    for arch in ["x86_64", "aarch64"]:
+        # Create a temporary directory for this build
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            appdir_path = temp_path / f"{PRODUCT_NAME}.AppDir"
+            desktop_path = temp_path / f"{PRODUCT_NAME}.desktop"
+
+            print(f"Packaging for {arch}...")
+
+            print("Creating desktop file...")
+            with open(desktop_path, "w") as f:
+                f.write(f"""[Desktop Entry]
 Name={PRODUCT_NAME}
 Icon={NAME}
 Categories=Utility
@@ -41,166 +70,151 @@ Type=Application
 Exec={NAME}
 """)
 
-    print("Creating AppImage...")
-    run(
-        [
-            "linuxdeploy-x86_64.AppImage",
-            "--appdir",
-            f"{PRODUCT_NAME}.AppDir",
-            "--executable",
-            Path("target") / f"{arch}-unknown-linux-gnu" / "release" / NAME,
-            "--desktop-file",
-            f"{PRODUCT_NAME}.desktop",
-            "--icon-file",
-            Path("assets") / "linux" / "32x32" / f"{NAME}.png",
-            "--icon-file",
-            Path("assets") / "linux" / "48x48" / f"{NAME}.png",
-            "--icon-file",
-            Path("assets") / "linux" / "64x64" / f"{NAME}.png",
-            "--icon-file",
-            Path("assets") / "linux" / "128x128" / f"{NAME}.png",
-            "--icon-file",
-            Path("assets") / "linux" / "256x256" / f"{NAME}.png",
-            "--icon-file",
-            Path("assets") / "linux" / "512x512" / f"{NAME}.png",
-            "--output",
-            "appimage",
-        ],
-        env={"ARCH": arch},
-        check=True,
-    )
+            print("Creating AppImage...")
+            run(
+                [
+                    "linuxdeploy-x86_64.AppImage",
+                    "--appdir",
+                    appdir_path,
+                    "--executable",
+                    Path("target") / f"{arch}-unknown-linux-gnu" / "release" / NAME,
+                    "--desktop-file",
+                    desktop_path,
+                    "--icon-file",
+                    Path("assets") / "linux" / "32x32" / f"{NAME}.png",
+                    "--icon-file",
+                    Path("assets") / "linux" / "48x48" / f"{NAME}.png",
+                    "--icon-file",
+                    Path("assets") / "linux" / "64x64" / f"{NAME}.png",
+                    "--icon-file",
+                    Path("assets") / "linux" / "128x128" / f"{NAME}.png",
+                    "--icon-file",
+                    Path("assets") / "linux" / "256x256" / f"{NAME}.png",
+                    "--icon-file",
+                    Path("assets") / "linux" / "512x512" / f"{NAME}.png",
+                    "--output",
+                    "appimage",
+                ],
+                env={"ARCH": arch},
+                check=True,
+                cwd=temp_dir,  # Run in the temporary directory
+            )
 
-    print("Renaming AppImage...")
-    Path(f"{PRODUCT_NAME}-{arch}.AppImage").rename(
-        Path("dist") / f"{SHORT_NAME}-{VERSION}-Linux-{arch}.AppImage"
-    )
+            print("Renaming AppImage...")
+            (temp_path / f"{PRODUCT_NAME}-{arch}.AppImage").rename(
+                Path("dist") / f"{SHORT_NAME}-{VERSION}-Linux-{arch}.AppImage"
+            )
 
-    print("Cleaning up...")
-    rmtree(f"{PRODUCT_NAME}.AppDir", ignore_errors=True)
-    Path(f"{PRODUCT_NAME}.desktop").unlink(missing_ok=True)
+            print("Creating tarball...")
+            with tarfile.open(
+                Path("dist") / f"{SHORT_NAME}-{VERSION}-Linux-{arch}.tar.gz", "w:gz"
+            ) as tar:
+                tar.add(
+                    Path("target") / f"{arch}-unknown-linux-gnu" / "release" / NAME,
+                    arcname=f"{SHORT_NAME}-{VERSION}-Linux-{arch}",
+                )
 
-    print("Creating tarball...")
-    with tarfile.open(
-        Path("dist") / f"{SHORT_NAME}-{VERSION}-Linux-{arch}.tar.gz", "w:gz"
-    ) as tar:
-        tar.add(
-            Path("target") / f"{arch}-unknown-linux-gnu" / "release" / NAME,
-            arcname=f"{SHORT_NAME}-{VERSION}-Linux-{arch}",
-        )
-
-    print(f"✅ Created {SHORT_NAME}-{VERSION}-Linux-{arch}.tar.gz in ./dist")
-
-
-def linux():
-    # Build for both architectures
-    for arch in ["x86_64", "aarch64"]:
-        _linux(arch)
+            print(f"✅ Created {SHORT_NAME}-{VERSION}-Linux-{arch}.tar.gz in ./dist")
 
 
 def windows():
-    # Build for both architectures
-    for arch in ["x86_64", "aarch64"]:
-        _windows(arch)
-
-
-def _windows(arch: str):
     import zipfile
 
-    print(f"Building for {arch}...")
-    run(
-        ["cargo", "build", "--release", "--target", f"{arch}-pc-windows-msvc"],
-        check=True,
-    )
+    # Build for both architectures in parallel
+    build_cargo_targets(["x86_64-pc-windows-msvc", "aarch64-pc-windows-msvc"])
 
-    print("Creating .zip...")
-    with zipfile.ZipFile(
-        Path("dist") / f"{SHORT_NAME}-{VERSION}-Windows-{arch}.zip",
-        "w",
-        zipfile.ZIP_DEFLATED,
-    ) as zip:
-        zip.write(
-            Path("target") / f"{arch}-pc-windows-msvc" / "release" / f"{NAME}.exe",
-            arcname=f"{SHORT_NAME}-{VERSION}-Windows-{arch}.exe",
-        )
+    # Package each architecture
+    for arch in ["x86_64", "aarch64"]:
+        print(f"Packaging for {arch}...")
 
-    print(f"✅ Created {SHORT_NAME}-{VERSION}-Windows-{arch}.zip in ./dist")
+        print("Creating .zip...")
+        with zipfile.ZipFile(
+            Path("dist") / f"{SHORT_NAME}-{VERSION}-Windows-{arch}.zip",
+            "w",
+            zipfile.ZIP_DEFLATED,
+        ) as zip:
+            zip.write(
+                Path("target") / f"{arch}-pc-windows-msvc" / "release" / f"{NAME}.exe",
+                arcname=f"{SHORT_NAME}-{VERSION}-Windows-{arch}.exe",
+            )
+
+        print(f"✅ Created {SHORT_NAME}-{VERSION}-Windows-{arch}.zip in ./dist")
 
 
 def macos():
     import plistlib
+    import tempfile
 
-    print("(Re-)creating .app bundle...")
-    rmtree(f"{PRODUCT_NAME}.app", ignore_errors=True)
-    (Path(f"{PRODUCT_NAME}.app") / "Contents" / "MacOS").mkdir(parents=True)
-    (Path(f"{PRODUCT_NAME}.app") / "Contents" / "Resources").mkdir(parents=True)
+    # Build for both architectures in parallel
+    build_cargo_targets(["aarch64-apple-darwin", "x86_64-apple-darwin"])
 
-    print("Building for aarch64...")
-    run(["cargo", "build", "--release", "--target", "aarch64-apple-darwin"], check=True)
+    # Create universal binary and app bundle
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_path = Path(temp_dir)
+        app_bundle_path = temp_path / f"{PRODUCT_NAME}.app"
 
-    print("Building for x86_64...")
-    run(["cargo", "build", "--release", "--target", "x86_64-apple-darwin"], check=True)
+        print("Creating .app bundle...")
+        (app_bundle_path / "Contents" / "MacOS").mkdir(parents=True)
+        (app_bundle_path / "Contents" / "Resources").mkdir(parents=True)
 
-    print("Creating universal binary...")
-    run(
-        [
-            "lipo",
-            "-create",
-            "-output",
-            Path(f"{PRODUCT_NAME}.app") / "Contents" / "MacOS" / NAME,
-            Path("target") / "aarch64-apple-darwin" / "release" / NAME,
-            Path("target") / "x86_64-apple-darwin" / "release" / NAME,
-        ],
-        check=True,
-    )
-
-    print("Creating Info.plist...")
-    with open(Path(f"{PRODUCT_NAME}.app") / "Contents" / "Info.plist", "wb") as f:
-        plistlib.dump(
-            {
-                "CFBundleName": PRODUCT_NAME,
-                "CFBundleDisplayName": PRODUCT_NAME,
-                "CFBundleIdentifier": BUNDLE_ID,
-                "CFBundleVersion": VERSION,
-                "CFBundleShortVersionString": VERSION,
-                "CFBundlePackageType": "APPL",
-                "CFBundleExecutable": NAME,
-                "CFBundleIconFile": NAME,
-                "LSMinimumSystemVersion": "11",
-                "NSHumanReadableCopyright": LEGAL_COPYRIGHT,
-                "NSPrincipalClass": "NSApplication",
-                "NSHighResolutionCapable": True,
-                "NSSupportsAutomaticGraphicsSwitching": True,
-            },
-            f,
+        print("Creating universal binary...")
+        run(
+            [
+                "lipo",
+                "-create",
+                "-output",
+                app_bundle_path / "Contents" / "MacOS" / NAME,
+                Path("target") / "aarch64-apple-darwin" / "release" / NAME,
+                Path("target") / "x86_64-apple-darwin" / "release" / NAME,
+            ],
+            check=True,
         )
 
-    print("Copying assets...")
-    copy(
-        Path("assets") / "macos" / f"{NAME}.icns",
-        Path(f"{PRODUCT_NAME}.app") / "Contents" / "Resources",
-    )
+        print("Creating Info.plist...")
+        with open(app_bundle_path / "Contents" / "Info.plist", "wb") as f:
+            plistlib.dump(
+                {
+                    "CFBundleName": PRODUCT_NAME,
+                    "CFBundleDisplayName": PRODUCT_NAME,
+                    "CFBundleIdentifier": BUNDLE_ID,
+                    "CFBundleVersion": VERSION,
+                    "CFBundleShortVersionString": VERSION,
+                    "CFBundlePackageType": "APPL",
+                    "CFBundleExecutable": NAME,
+                    "CFBundleIconFile": NAME,
+                    "LSMinimumSystemVersion": "11",
+                    "NSHumanReadableCopyright": LEGAL_COPYRIGHT,
+                    "NSPrincipalClass": "NSApplication",
+                    "NSHighResolutionCapable": True,
+                    "NSSupportsAutomaticGraphicsSwitching": True,
+                },
+                f,
+            )
 
-    print("Creating .dmg...")
-    run(
-        [
-            "npx",
-            "--yes",
-            "create-dmg@7.0.0",
-            f"{PRODUCT_NAME}.app",
-            ".",
-            "--overwrite",
-        ]
-    )
+        print("Copying assets...")
+        copy(
+            Path("assets") / "macos" / f"{NAME}.icns",
+            app_bundle_path / "Contents" / "Resources",
+        )
 
-    print("Renaming .dmg...")
-    Path(f"{PRODUCT_NAME} {VERSION}.dmg").rename(
-        Path("dist") / f"{SHORT_NAME}-{VERSION}-MacOS-Universal2.dmg"
-    )
+        print("Creating .dmg...")
+        run(
+            [
+                "npx",
+                "--yes",
+                "create-dmg@7.0.0",
+                app_bundle_path,
+                temp_path,
+                "--overwrite",
+            ]
+        )
 
-    print("Cleaning up...")
-    rmtree(f"{PRODUCT_NAME}.app")
+        print("Renaming .dmg...")
+        (temp_path / f"{PRODUCT_NAME} {VERSION}.dmg").rename(
+            Path("dist") / f"{SHORT_NAME}-{VERSION}-MacOS-Universal2.dmg"
+        )
 
-    print(f"✅ Created {SHORT_NAME}-{VERSION}-MacOS-Universal2.dmg in ./dist")
+        print(f"✅ Created {SHORT_NAME}-{VERSION}-MacOS-Universal2.dmg in ./dist")
 
 
 Path("dist").mkdir(exist_ok=True)
