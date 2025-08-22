@@ -11,6 +11,7 @@ use notify::{RecursiveMode, Watcher};
 
 use crate::{
     components::{self, console_filter::ConsoleFilter, update_notifier::UpdateInfo},
+    correct_base_dir,
     error_handling::show_anyhow_error,
     game::{ConsoleType, Game},
 };
@@ -302,6 +303,7 @@ impl App {
     pub fn change_base_dir(&mut self, new_dir: PathBuf) -> Result<()> {
         // Update the base directory
         self.base_dir = new_dir;
+        correct_base_dir(&mut self.base_dir);
 
         // Reinitialize the directory watcher
         self.watcher = None;
