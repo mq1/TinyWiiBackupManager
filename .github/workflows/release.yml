@@ -32,10 +32,8 @@ jobs:
         with:
           target: x86_64-unknown-linux-gnu,aarch64-unknown-linux-gnu
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
+      - name: Install cargo-binstall
+        uses: cargo-bins/cargo-binstall@main
 
       - name: Set up Mold
         uses: rui314/setup-mold@v1
@@ -50,26 +48,30 @@ jobs:
           # Install eframe dependencies
           sudo apt-get install -y libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
           
-          # Install FUSE (required for building AppImage)
-          sudo apt-get install -y libfuse2
+          # Install AppImage dependencies
+          sudo apt-get install -y libfuse2 squashfs-tools
 
-      - name: Install LinuxDeploy
-        run: |
-          wget -c "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage"
-          wget -c "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-x86_64.AppImage"
-          chmod +x linuxdeploy*.AppImage
+          # Install cargo-bundle
+          cargo binstall --no-confirm cargo-bundle
 
       - name: Build binaries in parallel
         run: |
-          cargo build --release --target x86_64-unknown-linux-gnu &
-          cargo build --release --target aarch64-unknown-linux-gnu &
+          cargo bundle --release --target x86_64-unknown-linux-gnu --format appimage &
+          cargo bundle --release --target aarch64-unknown-linux-gnu --format appimage &
           wait
 
-      - name: Package for Linux (x86_64)
-        run: python3 scripts/bundle.py linux_x86_64
+      - name: Package for Linux (x86_64 and aarch64)
+        run: |
+          mkdir dist
 
-      - name: Package for Linux (aarch64)
-        run: python3 scripts/bundle.py linux_aarch64
+          cp target/x86_64-unknown-linux-gnu/release/bundle/linux/TinyWiiBackupManager.AppImage dist/TWBM-${{ github.ref_name }}-Linux-x86_64.AppImage
+          cp target/aarch64-unknown-linux-gnu/release/bundle/linux/TinyWiiBackupManager.AppImage dist/TWBM-${{ github.ref_name }}-Linux-aarch64.AppImage
+
+          # Also create tarballs with plain binaries
+          cp target/x86_64-unknown-linux-gnu/release/tiny-wii-backup-manager TWBM-${{ github.ref_name }}-Linux-x86_64
+          cp target/aarch64-unknown-linux-gnu/release/tiny-wii-backup-manager TWBM-${{ github.ref_name }}-Linux-aarch64
+          tar -czf dist/TWBM-${{ github.ref_name }}-Linux-x86_64.tar.gz TWBM-${{ github.ref_name }}-Linux-x86_64
+          tar -czf dist/TWBM-${{ github.ref_name }}-Linux-aarch64.tar.gz TWBM-${{ github.ref_name }}-Linux-aarch64
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v4
@@ -89,11 +91,6 @@ jobs:
         with:
           target: x86_64-pc-windows-msvc,aarch64-pc-windows-msvc
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
-
       - name: Build binaries in parallel
         shell: bash
         run: |
@@ -101,15 +98,13 @@ jobs:
           cargo build --release --target aarch64-pc-windows-msvc &
           wait
 
-      - name: Package for Windows (x86_64)
-        run: python3 scripts/bundle.py windows_x86_64
-        env:
-          PYTHONUTF8: "1"
-
-      - name: Package for Windows (aarch64)
-        run: python3 scripts/bundle.py windows_aarch64
-        env:
-          PYTHONUTF8: "1"
+      - name: Package for Windows (x86_64 and aarch64)
+        run: |
+          New-Item -ItemType Directory -Path dist
+          Copy-Item -Path target/x86_64-pc-windows-msvc/release/tiny-wii-backup-manager -Destination TWBM-${{ github.ref_name }}-Windows-x86_64.exe
+          Copy-Item -Path target/aarch64-pc-windows-msvc/release/tiny-wii-backup-manager -Destination TWBM-${{ github.ref_name }}-Windows-aarch64.exe
+          Compress-Archive -Path TWBM-${{ github.ref_name }}-Windows-x86_64.exe -DestinationPath dist/TWBM-${{ github.ref_name }}-Windows-x86_64.zip
+          Compress-Archive -Path TWBM-${{ github.ref_name }}-Windows-aarch64.exe -DestinationPath dist/TWBM-${{ github.ref_name }}-Windows-aarch64.zip
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v4
@@ -129,22 +124,32 @@ jobs:
         with:
           target: aarch64-apple-darwin,x86_64-apple-darwin
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
+      - name: Install cargo-binstall
+        uses: cargo-bins/cargo-binstall@main
 
       - name: Install dependencies
-        run: brew install graphicsmagick imagemagick
+        run: |
+          brew install graphicsmagick imagemagick
+          cargo binstall --no-confirm cargo-bundle
 
       - name: Build binaries in parallel
         run: |
-          cargo build --release --target aarch64-apple-darwin &
+          cargo bundle --release --target aarch64-apple-darwin --format osx &
           cargo build --release --target x86_64-apple-darwin &
           wait
 
       - name: Package for MacOS (Universal2)
-        run: python3 scripts/bundle.py macos_universal2
+        run: |
+          mkdir dist
+
+          lipo \
+            -create \
+            -output target/aarch64-apple-darwin/release/bundle/osx/TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager \
+            target/aarch64-apple-darwin/release/bundle/osx/TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager \
+            target/x86_64-apple-darwin/release/tiny-wii-backup-manager
+          
+          npx --yes create-dmg target/aarch64-apple-darwin/release/bundle/osx/TinyWiiBackupManager.app . || true
+          mv *.dmg dist/TWBM-${{ github.ref_name }}-MacOS-Universal2.dmg
 
       - name: Upload MacOS distributable
         uses: actions/upload-artifact@v4
