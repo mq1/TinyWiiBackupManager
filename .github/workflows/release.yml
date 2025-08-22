@@ -32,9 +32,6 @@ jobs:
         with:
           target: x86_64-unknown-linux-gnu,aarch64-unknown-linux-gnu
 
-      - name: Set up Mold
-        uses: rui314/setup-mold@v1
-
       - name: Install dependencies
         run: |
           sudo apt-get update
