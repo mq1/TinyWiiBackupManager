@@ -91,12 +91,16 @@ Exec={NAME}
     print(f"✅ Created {SHORT_NAME}-{VERSION}-Linux-{arch}.tar.gz in ./dist")
 
 
-def linux_aarch64():
-    _linux("aarch64")
+def linux():
+    # Build for both architectures
+    for arch in ["x86_64", "aarch64"]:
+        _linux(arch)
 
 
-def linux_x86_64():
-    _linux("x86_64")
+def windows():
+    # Build for both architectures
+    for arch in ["x86_64", "aarch64"]:
+        _windows(arch)
 
 
 def _windows(arch: str):
@@ -122,15 +126,7 @@ def _windows(arch: str):
     print(f"✅ Created {SHORT_NAME}-{VERSION}-Windows-{arch}.zip in ./dist")
 
 
-def windows_x86_64():
-    _windows("x86_64")
-
-
-def windows_aarch64():
-    _windows("aarch64")
-
-
-def macos_universal2():
+def macos():
     import plistlib
 
     print("(Re-)creating .app bundle...")

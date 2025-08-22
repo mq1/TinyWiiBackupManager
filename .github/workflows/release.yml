@@ -21,13 +21,8 @@ jobs:
   #  The icon assets are checked in with the repository.
   # ==================================================================================
   build-linux:
-    name: Build for Linux (${{ matrix.arch }})
+    name: Build for Linux (x86_64 & aarch64)
     runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        include:
-          - arch: x86_64
-          - arch: aarch64
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -35,7 +30,7 @@ jobs:
       - name: Setup Rust toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          target: ${{ matrix.arch }}-unknown-linux-gnu
+          target: x86_64-unknown-linux-gnu,aarch64-unknown-linux-gnu
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -57,6 +52,8 @@ jobs:
           # Install FUSE (required for building AppImage)
           sudo apt-get install -y libfuse2
 
+      - name: Install LinuxDeploy
+        run: |
           # Install LinuxDeploy
           wget -c "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage"
           wget -c "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-x86_64.AppImage"
@@ -64,22 +61,17 @@ jobs:
           sudo mv linuxdeploy-x86_64.AppImage /usr/local/bin
 
       - name: Run Linux build script
-        run: python3 scripts/bundle.py linux_${{ matrix.arch }}
+        run: python3 scripts/bundle.py linux
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v4
         with:
-          name: linux-dist-${{ matrix.arch }}
+          name: linux-dist
           path: dist/*
 
   build-windows:
-    name: Build for Windows (${{ matrix.arch }})
+    name: Build for Windows (x86_64 & aarch64)
     runs-on: windows-latest
-    strategy:
-      matrix:
-        include:
-          - arch: x86_64
-          - arch: aarch64
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -87,7 +79,7 @@ jobs:
       - name: Setup Rust toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          target: ${{ matrix.arch }}-pc-windows-msvc
+          target: x86_64-pc-windows-msvc,aarch64-pc-windows-msvc
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -95,14 +87,14 @@ jobs:
           python-version: "3.13"
 
       - name: Run Windows build script
-        run: python3 scripts/bundle.py windows_${{ matrix.arch }}
+        run: python3 scripts/bundle.py windows
         env:
           PYTHONUTF8: "1"
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v4
         with:
-          name: windows-dist-${{ matrix.arch }}
+          name: windows-dist
           path: dist/*
 
   build-macos:
@@ -126,7 +118,7 @@ jobs:
         run: brew install graphicsmagick imagemagick
 
       - name: Run MacOS build script
-        run: python3 scripts/bundle.py macos_universal2
+        run: python3 scripts/bundle.py macos
 
       - name: Upload MacOS distributable
         uses: actions/upload-artifact@v4
