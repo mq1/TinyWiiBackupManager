@@ -1,5 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import sys
+
 import tomllib
 from subprocess import run
 from shutil import copy
@@ -95,7 +96,9 @@ Exec={NAME}
                     "--appdir",
                     appdir_path,
                     "--executable",
-                    (Path("target") / f"{arch}-unknown-linux-gnu" / "release" / NAME).resolve(),
+                    (
+                        Path("target") / f"{arch}-unknown-linux-gnu" / "release" / NAME
+                    ).resolve(),
                     "--desktop-file",
                     desktop_path,
                     "--icon-file",
