@@ -22,51 +22,9 @@ PRODUCT_NAME = config["package"]["metadata"]["winres"]["ProductName"]
 LEGAL_COPYRIGHT = config["package"]["metadata"]["winres"]["LegalCopyright"]
 
 
-def build_cargo_targets(targets):
-    """Build multiple cargo targets in parallel"""
-    import concurrent.futures
-
-    print(f"Building {len(targets)} targets...")
-
-    with concurrent.futures.ThreadPoolExecutor(max_workers=len(targets)) as executor:
-        futures = {
-            executor.submit(
-                run,
-                ["cargo", "build", "--release", "--target", target],
-                check=True,
-                capture_output=True,
-                text=True,
-            ): target
-            for target in targets
-        }
-
-        completed = 0
-        failed = []
-
-        for future in concurrent.futures.as_completed(futures):
-            target = futures[future]
-            completed += 1
-
-            try:
-                future.result()
-                print(f"  [{completed}/{len(targets)}] ✅ {target}")
-            except Exception as e:
-                print(f"  [{completed}/{len(targets)}] ❌ {target}")
-                failed.append((target, e))
-
-        if failed:
-            print("\nBuild failures:")
-            for target, error in failed:
-                print(f"  {target}: {error}")
-            raise Exception("Some builds failed")
-
-
 def linux():
     import tarfile
     import tempfile
-
-    # Build for both architectures in parallel
-    build_cargo_targets(["x86_64-unknown-linux-gnu", "aarch64-unknown-linux-gnu"])
 
     # Package each architecture
     for arch in ["x86_64", "aarch64"]:
@@ -141,9 +99,6 @@ Exec={NAME}
 def windows():
     import zipfile
 
-    # Build for both architectures in parallel
-    build_cargo_targets(["x86_64-pc-windows-msvc", "aarch64-pc-windows-msvc"])
-
     # Package each architecture
     for arch in ["x86_64", "aarch64"]:
         print(f"Packaging for {arch}...")
@@ -165,9 +120,6 @@ def windows():
 def macos():
     import plistlib
     import tempfile
-
-    # Build for both architectures in parallel
-    build_cargo_targets(["aarch64-apple-darwin", "x86_64-apple-darwin"])
 
     # Create universal binary and app bundle
     with tempfile.TemporaryDirectory() as temp_dir:
