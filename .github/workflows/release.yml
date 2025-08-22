@@ -42,8 +42,8 @@ jobs:
           # Install eframe dependencies
           sudo apt-get install -y libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
           
-          # Install AppImage dependencies
-          sudo apt-get install -y libfuse2 squashfs-tools
+          # Install appimage dependencies
+          sudo apt-get install -y squashfs-tools
 
           # Install cargo-bundle
           cargo install cargo-bundle
@@ -58,12 +58,12 @@ jobs:
         run: |
           mkdir dist
 
-          cp target/x86_64-unknown-linux-gnu/release/bundle/linux/TinyWiiBackupManager.AppImage dist/TWBM-${{ github.ref_name }}-Linux-x86_64.AppImage
-          cp target/aarch64-unknown-linux-gnu/release/bundle/linux/TinyWiiBackupManager.AppImage dist/TWBM-${{ github.ref_name }}-Linux-aarch64.AppImage
+          mv target/x86_64-unknown-linux-gnu/release/bundle/linux/*.AppImage dist/TWBM-${{ github.ref_name }}-Linux-x86_64.AppImage
+          mv target/aarch64-unknown-linux-gnu/release/bundle/linux/*.AppImage dist/TWBM-${{ github.ref_name }}-Linux-aarch64.AppImage
 
           # Also create tarballs with plain binaries
-          cp target/x86_64-unknown-linux-gnu/release/tiny-wii-backup-manager TWBM-${{ github.ref_name }}-Linux-x86_64
-          cp target/aarch64-unknown-linux-gnu/release/tiny-wii-backup-manager TWBM-${{ github.ref_name }}-Linux-aarch64
+          mv target/x86_64-unknown-linux-gnu/release/tiny-wii-backup-manager TWBM-${{ github.ref_name }}-Linux-x86_64
+          mv target/aarch64-unknown-linux-gnu/release/tiny-wii-backup-manager TWBM-${{ github.ref_name }}-Linux-aarch64
           tar -czf dist/TWBM-${{ github.ref_name }}-Linux-x86_64.tar.gz TWBM-${{ github.ref_name }}-Linux-x86_64
           tar -czf dist/TWBM-${{ github.ref_name }}-Linux-aarch64.tar.gz TWBM-${{ github.ref_name }}-Linux-aarch64
 
@@ -95,8 +95,8 @@ jobs:
       - name: Package for Windows (x86_64 and aarch64)
         run: |
           New-Item -ItemType Directory -Path dist
-          Copy-Item -Path target/x86_64-pc-windows-msvc/release/tiny-wii-backup-manager.exe -Destination TWBM-${{ github.ref_name }}-Windows-x86_64.exe
-          Copy-Item -Path target/aarch64-pc-windows-msvc/release/tiny-wii-backup-manager.exe -Destination TWBM-${{ github.ref_name }}-Windows-aarch64.exe
+          Move-Item -Path target/x86_64-pc-windows-msvc/release/tiny-wii-backup-manager.exe -Destination TWBM-${{ github.ref_name }}-Windows-x86_64.exe
+          Move-Item -Path target/aarch64-pc-windows-msvc/release/tiny-wii-backup-manager.exe -Destination TWBM-${{ github.ref_name }}-Windows-aarch64.exe
           Compress-Archive -Path TWBM-${{ github.ref_name }}-Windows-x86_64.exe -DestinationPath dist/TWBM-${{ github.ref_name }}-Windows-x86_64.zip
           Compress-Archive -Path TWBM-${{ github.ref_name }}-Windows-aarch64.exe -DestinationPath dist/TWBM-${{ github.ref_name }}-Windows-aarch64.zip
 
