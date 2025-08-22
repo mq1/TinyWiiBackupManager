@@ -7,6 +7,7 @@ use anyhow::{Context, Result, anyhow};
 use eframe::egui;
 use tiny_wii_backup_manager::App;
 use tiny_wii_backup_manager::PRODUCT_NAME;
+use tiny_wii_backup_manager::correct_base_dir;
 use tiny_wii_backup_manager::error_handling::show_anyhow_error;
 
 const LOGO: &[u8] = include_bytes!("../logo-small.png");
@@ -25,14 +26,7 @@ fn run() -> Result<()> {
         .pick_folder()
         .context("Failed to pick base directory")?;
 
-    // Correct base_dir if the user has picked either "wbfs" or "games" dir.
-    if let Some(file_name) = base_dir.file_name().and_then(|name| name.to_str()) {
-        if file_name == "wbfs" || file_name == "games" {
-            if let Some(parent) = base_dir.parent() {
-                base_dir = parent.to_path_buf();
-            }
-        }
-    }
+    correct_base_dir(&mut base_dir);
 
     let title = format!("{PRODUCT_NAME}: {}", base_dir.display());
 
