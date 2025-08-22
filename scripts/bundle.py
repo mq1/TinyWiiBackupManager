@@ -2,7 +2,7 @@
 import sys
 import tomllib
 from subprocess import run
-from shutil import copy
+from shutil import copy, rmtree
 from pathlib import Path
 
 
@@ -26,11 +26,8 @@ def linux():
 
     # Package each architecture
     for arch in ["x86_64", "aarch64"]:
-        # Create a directory for this build
-        build_dir = Path(f"linux-{arch}")
-        build_dir.mkdir(exist_ok=True)
-        appdir_path = build_dir / f"{PRODUCT_NAME}.AppDir"
-        desktop_path = build_dir / f"{PRODUCT_NAME}.desktop"
+        appdir_path = Path(f"{PRODUCT_NAME}.AppDir")
+        desktop_path = Path(f"{PRODUCT_NAME}.desktop")
 
         print(f"Packaging for {arch}...")
 
@@ -50,33 +47,32 @@ Exec={NAME}
             [
                 "linuxdeploy-x86_64.AppImage",
                 "--appdir",
-                appdir_path.name,
+                appdir_path,
                 "--executable",
-                Path("..") / "target" / f"{arch}-unknown-linux-gnu" / "release" / NAME,
+                Path("target") / f"{arch}-unknown-linux-gnu" / "release" / NAME,
                 "--desktop-file",
-                desktop_path.name,
+                desktop_path,
                 "--icon-file",
-                Path("..") / "assets" / "linux" / "32x32" / f"{NAME}.png",
+                Path("assets") / "linux" / "32x32" / f"{NAME}.png",
                 "--icon-file",
-                Path("..") / "assets" / "linux" / "48x48" / f"{NAME}.png",
+                Path("assets") / "linux" / "48x48" / f"{NAME}.png",
                 "--icon-file",
-                Path("..") / "assets" / "linux" / "64x64" / f"{NAME}.png",
+                Path("assets") / "linux" / "64x64" / f"{NAME}.png",
                 "--icon-file",
-                Path("..") / "assets" / "linux" / "128x128" / f"{NAME}.png",
+                Path("assets") / "linux" / "128x128" / f"{NAME}.png",
                 "--icon-file",
-                Path("..") / "assets" / "linux" / "256x256" / f"{NAME}.png",
+                Path("assets") / "linux" / "256x256" / f"{NAME}.png",
                 "--icon-file",
-                Path("..") / "assets" / "linux" / "512x512" / f"{NAME}.png",
+                Path("assets") / "linux" / "512x512" / f"{NAME}.png",
                 "--output",
                 "appimage",
             ],
             env={"ARCH": arch},
             check=True,
-            cwd=build_dir,  # Run in the build directory
         )
 
         print("Renaming AppImage...")
-        (build_dir / f"{PRODUCT_NAME}-{arch}.AppImage").rename(
+        Path(f"{PRODUCT_NAME}-{arch}.AppImage").rename(
             Path("dist") / f"{SHORT_NAME}-{VERSION}-Linux-{arch}.AppImage"
         )
 
@@ -88,6 +84,10 @@ Exec={NAME}
                 Path("target") / f"{arch}-unknown-linux-gnu" / "release" / NAME,
                 arcname=f"{SHORT_NAME}-{VERSION}-Linux-{arch}",
             )
+
+        print("Cleaning up junk files...")
+        rmtree(appdir_path)
+        desktop_path.unlink()
 
         print(f"✅ Created {SHORT_NAME}-{VERSION}-Linux-{arch}.tar.gz in ./dist")
 
@@ -116,12 +116,8 @@ def windows():
 def macos():
     import plistlib
 
-    # Create a directory for this build
-    build_dir = Path("macos-universal")
-    build_dir.mkdir(exist_ok=True)
-
     # Create universal binary and app bundle
-    app_bundle_path = build_dir / f"{PRODUCT_NAME}.app"
+    app_bundle_path = Path(f"{PRODUCT_NAME}.app")
 
     print("Creating .app bundle...")
     (app_bundle_path / "Contents" / "MacOS").mkdir(parents=True, exist_ok=True)
@@ -174,15 +170,18 @@ def macos():
             "--yes",
             "create-dmg@7.0.0",
             str(app_bundle_path),
-            str(build_dir),
+            ".",
             "--overwrite",
         ]
     )
 
     print("Renaming .dmg...")
-    (build_dir / f"{PRODUCT_NAME} {VERSION}.dmg").rename(
+    Path(f"{PRODUCT_NAME} {VERSION}.dmg").rename(
         Path("dist") / f"{SHORT_NAME}-{VERSION}-MacOS-Universal2.dmg"
     )
+
+    print("Cleaning up junk files...")
+    rmtree(app_bundle_path)
 
     print(f"✅ Created {SHORT_NAME}-{VERSION}-MacOS-Universal2.dmg in ./dist")
 
