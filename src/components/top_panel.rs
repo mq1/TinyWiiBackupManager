@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use crate::app::App;
+use crate::components::fake_link::fake_link;
 use crate::error_handling::show_anyhow_error;
 use anyhow::anyhow;
 use eframe::egui;
@@ -66,8 +67,7 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                     )
                     .into_owned();
 
-                if ui
-                    .hyperlink_to(&base_dir_name, "_blank")
+                if fake_link(ui, &base_dir_name)
                     .on_hover_text(format!("Open the base directory ({base_dir_name})"))
                     .clicked()
                 {

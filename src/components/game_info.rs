@@ -1,4 +1,7 @@
+use crate::components::fake_link::fake_link;
+use crate::error_handling::show_anyhow_error;
 use crate::game::{ConsoleType, Game};
+use anyhow::anyhow;
 use eframe::egui::{self, RichText};
 use size::Size;
 
@@ -41,11 +44,10 @@ fn ui_game_info_content(ui: &mut egui::Ui, game: &mut Game) {
 
     ui.horizontal(|ui| {
         ui.label(RichText::new("📁 Path:").strong());
-        if ui
-            .hyperlink_to(game.path.display().to_string(), "_blank")
-            .clicked()
-        {
-            let _ = open::that(&game.path);
+        if fake_link(ui, &game.path.display().to_string()).clicked() {
+            if let Err(e) = open::that(&game.path) {
+                show_anyhow_error("Error opening file manager", &anyhow!(e));
+            }
         }
     });
 
