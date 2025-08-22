@@ -52,7 +52,6 @@ jobs:
 
       - name: Install LinuxDeploy
         run: |
-          # Install LinuxDeploy
           wget -c "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage"
           wget -c "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-x86_64.AppImage"
           chmod +x linuxdeploy*.AppImage
