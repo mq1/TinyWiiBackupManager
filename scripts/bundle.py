@@ -23,6 +23,7 @@ LEGAL_COPYRIGHT = config["package"]["metadata"]["winres"]["LegalCopyright"]
 
 def linux():
     import tarfile
+    import configparser
 
     # Package each architecture
     for arch in ["x86_64", "aarch64"]:
@@ -32,15 +33,18 @@ def linux():
         print(f"Packaging for {arch}...")
 
         print("Creating desktop file...")
+        config = configparser.ConfigParser()
+        config.optionxform = str  # Preserve case
+        config["Desktop Entry"] = {
+            "Name": PRODUCT_NAME,
+            "Icon": NAME,
+            "Categories": "Utility",
+            "Comment": DESCRIPTION,
+            "Type": "Application",
+            "Exec": NAME,
+        }
         with open(desktop_path, "w") as f:
-            f.write(f"""[Desktop Entry]
-Name={PRODUCT_NAME}
-Icon={NAME}
-Categories=Utility
-Comment={DESCRIPTION}
-Type=Application
-Exec={NAME}
-""")
+            config.write(f, space_around_delimiters=False)
 
         print("Creating AppImage...")
         run(
@@ -84,7 +88,7 @@ Exec={NAME}
                 Path("target") / f"{arch}-unknown-linux-gnu" / "release" / NAME,
                 arcname=f"{SHORT_NAME}-{VERSION}-Linux-{arch}",
             )
-
+        
         print("Cleaning up junk files...")
         rmtree(appdir_path)
         desktop_path.unlink()
