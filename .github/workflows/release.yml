@@ -34,6 +34,8 @@ jobs:
 
       - name: Set up Python
         uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
 
       - name: Set up Mold
         uses: rui314/setup-mold@v1
@@ -62,8 +64,11 @@ jobs:
           cargo build --release --target aarch64-unknown-linux-gnu &
           wait
 
-      - name: Package for Linux
-        run: python3 scripts/bundle.py linux
+      - name: Package for Linux (x86_64)
+        run: python3 scripts/bundle.py linux_x86_64
+
+      - name: Package for Linux (aarch64)
+        run: python3 scripts/bundle.py linux_aarch64
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v4
@@ -85,6 +90,8 @@ jobs:
 
       - name: Set up Python
         uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
 
       - name: Build binaries in parallel
         run: |
@@ -92,8 +99,13 @@ jobs:
           Start-Job -ScriptBlock { cargo build --release --target aarch64-pc-windows-msvc }
           Get-Job | Wait-Job | Receive-Job
 
-      - name: Package for Windows
-        run: python3 scripts/bundle.py windows
+      - name: Package for Windows (x86_64)
+        run: python3 scripts/bundle.py windows_x86_64
+        env:
+          PYTHONUTF8: "1"
+
+      - name: Package for Windows (aarch64)
+        run: python3 scripts/bundle.py windows_aarch64
         env:
           PYTHONUTF8: "1"
 
@@ -117,6 +129,8 @@ jobs:
 
       - name: Set up Python
         uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
 
       - name: Install dependencies
         run: brew install graphicsmagick imagemagick
@@ -127,8 +141,8 @@ jobs:
           cargo build --release --target x86_64-apple-darwin &
           wait
 
-      - name: Package for MacOS
-        run: python3 scripts/bundle.py macos
+      - name: Package for MacOS (Universal2)
+        run: python3 scripts/bundle.py macos_universal2
 
       - name: Upload MacOS distributable
         uses: actions/upload-artifact@v4
