@@ -47,7 +47,7 @@ def _linux(arch):
     print("Creating AppImage...")
     run(
         [
-            "linuxdeploy-x86_64.AppImage",
+            "./linuxdeploy-x86_64.AppImage",
             "--appdir",
             appdir_path,
             "--executable",
