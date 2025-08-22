@@ -55,9 +55,19 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
 
                 ui.label(format!("Size: {}", Size::from_bytes(app.base_dir_size)));
 
-                let base_dir_name = app.base_dir.file_name().unwrap().to_string_lossy();
+                let base_dir_name = app
+                    .base_dir
+                    .file_name()
+                    .map_or_else(
+                        // Fallback if file_name() returns None
+                        || app.base_dir.to_string_lossy(),
+                        // Convert the OsStr to a string if Some
+                        |name| name.to_string_lossy(),
+                    )
+                    .into_owned();
+
                 if ui
-                    .hyperlink_to(base_dir_name.clone(), "_blank")
+                    .hyperlink_to(&base_dir_name, "_blank")
                     .on_hover_text(format!("Open the base directory ({base_dir_name})"))
                     .clicked()
                 {
