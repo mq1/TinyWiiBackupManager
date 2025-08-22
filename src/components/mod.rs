@@ -4,6 +4,7 @@
 pub mod bottom_panel;
 pub mod console_filter;
 pub mod conversion_modal;
+pub mod fake_link;
 pub mod game_grid;
 pub mod game_info;
 pub mod top_panel;
