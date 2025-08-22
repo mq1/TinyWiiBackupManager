@@ -12,6 +12,18 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
     egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
         egui::MenuBar::new().ui(ui, |ui| {
             ui.menu_button("File", |ui| {
+                // Re-pick base directory button
+                if ui.button("📁 Re-pick Base Directory").clicked() {
+                    if let Some(new_dir) = rfd::FileDialog::new()
+                        .set_title("Select New Base Directory")
+                        .pick_folder()
+                    {
+                        if let Err(e) = app.change_base_dir(new_dir) {
+                            show_anyhow_error("Error changing base directory", &e);
+                        }
+                    }
+                }
+
                 // dot_clean button
                 if cfg!(target_os = "macos") {
                     if ui
