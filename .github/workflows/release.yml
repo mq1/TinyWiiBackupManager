@@ -44,6 +44,9 @@ jobs:
         run: |
           sudo apt-get update
 
+          # Install aarch64 toolchain
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+
           # Install eframe dependencies
           sudo apt-get install -y libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
           
