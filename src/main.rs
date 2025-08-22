@@ -9,7 +9,7 @@ use tiny_wii_backup_manager::App;
 use tiny_wii_backup_manager::PRODUCT_NAME;
 use tiny_wii_backup_manager::error_handling::show_anyhow_error;
 
-const LOGO: &[u8] = include_bytes!("../assets/linux/256x256/tiny-wii-backup-manager.png");
+const LOGO: &[u8] = include_bytes!("../logo-small.png");
 
 fn main() {
     if let Err(e) = run() {
