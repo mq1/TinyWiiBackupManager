@@ -26,13 +26,12 @@ fn run() -> Result<()> {
         .context("Failed to pick base directory")?;
 
     // Correct base_dir if the user has picked either "wbfs" or "games" dir.
-    // Using `ends_with` is more robust than `file_name()` as it avoids issues
-    // with root directories on Windows (e.g., "C:\") where `file_name()` returns `None`.
-    if base_dir.ends_with("wbfs") || base_dir.ends_with("games") {
-        base_dir = base_dir
-            .parent()
-            .context("Failed to get parent directory")?
-            .to_path_buf();
+    if let Some(file_name) = base_dir.file_name().and_then(|name| name.to_str()) {
+        if file_name == "wbfs" || file_name == "games" {
+            if let Some(parent) = base_dir.parent() {
+                base_dir = parent.to_path_buf();
+            }
+        }
     }
 
     let title = format!("{PRODUCT_NAME}: {}", base_dir.display());
