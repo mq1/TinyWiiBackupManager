@@ -32,9 +32,6 @@ jobs:
         with:
           target: x86_64-unknown-linux-gnu,aarch64-unknown-linux-gnu
 
-      - name: Install cargo-binstall
-        uses: cargo-bins/cargo-binstall@main
-
       - name: Set up Mold
         uses: rui314/setup-mold@v1
 
@@ -52,7 +49,7 @@ jobs:
           sudo apt-get install -y libfuse2 squashfs-tools
 
           # Install cargo-bundle
-          cargo binstall --no-confirm cargo-bundle
+          cargo install cargo-bundle
 
       - name: Build binaries in parallel
         run: |
@@ -124,13 +121,10 @@ jobs:
         with:
           target: aarch64-apple-darwin,x86_64-apple-darwin
 
-      - name: Install cargo-binstall
-        uses: cargo-bins/cargo-binstall@main
-
       - name: Install dependencies
         run: |
           brew install graphicsmagick imagemagick
-          cargo binstall --no-confirm cargo-bundle
+          cargo install cargo-bundle
 
       - name: Build binaries in parallel
         run: |
