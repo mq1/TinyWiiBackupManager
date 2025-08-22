@@ -25,18 +25,15 @@ fn run() -> Result<()> {
         .pick_folder()
         .context("Failed to pick base directory")?;
 
-    // correct base_dir if the user has picked either "wbfs" or "games" dir
-    // we only have to get the parent dir if this is the case
-    // Note: file_name() returns None for drive roots on Windows (e.g., C:\, D:\, etc.)
-    if let Some(dir_name) = base_dir.file_name().and_then(|n| n.to_str()) {
-        if dir_name == "wbfs" || dir_name == "games" {
-            base_dir = base_dir
-                .parent()
-                .context("Failed to get parent directory")?
-                .to_path_buf();
-        }
+    // Correct base_dir if the user has picked either "wbfs" or "games" dir.
+    // Using `ends_with` is more robust than `file_name()` as it avoids issues
+    // with root directories on Windows (e.g., "C:\") where `file_name()` returns `None`.
+    if base_dir.ends_with("wbfs") || base_dir.ends_with("games") {
+        base_dir = base_dir
+            .parent()
+            .context("Failed to get parent directory")?
+            .to_path_buf();
     }
-    // If file_name() returns None (e.g., drive root on Windows), we just use the selected path as-is
 
     let title = format!("{PRODUCT_NAME}: {}", base_dir.display());
 
