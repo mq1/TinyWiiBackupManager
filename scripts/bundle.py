@@ -21,103 +21,115 @@ PRODUCT_NAME = config["package"]["metadata"]["winres"]["ProductName"]
 LEGAL_COPYRIGHT = config["package"]["metadata"]["winres"]["LegalCopyright"]
 
 
-def linux():
+def _linux(arch):
     import tarfile
     import configparser
 
-    # Package each architecture
-    for arch in ["x86_64", "aarch64"]:
-        appdir_path = Path(f"{PRODUCT_NAME}.AppDir")
-        desktop_path = Path(f"{PRODUCT_NAME}.desktop")
+    appdir_path = Path(f"{PRODUCT_NAME}.AppDir")
+    desktop_path = Path(f"{PRODUCT_NAME}.desktop")
 
-        print(f"Packaging for {arch}...")
+    print(f"Packaging for {arch}...")
 
-        print("Creating desktop file...")
-        config = configparser.ConfigParser()
-        config.optionxform = str  # Preserve case
-        config["Desktop Entry"] = {
-            "Name": PRODUCT_NAME,
-            "Icon": NAME,
-            "Categories": "Utility",
-            "Comment": DESCRIPTION,
-            "Type": "Application",
-            "Exec": NAME,
-        }
-        with open(desktop_path, "w") as f:
-            config.write(f, space_around_delimiters=False)
+    print("Creating desktop file...")
+    config = configparser.ConfigParser()
+    config.optionxform = str  # Preserve case
+    config["Desktop Entry"] = {
+        "Name": PRODUCT_NAME,
+        "Icon": NAME,
+        "Categories": "Utility",
+        "Comment": DESCRIPTION,
+        "Type": "Application",
+        "Exec": NAME,
+    }
+    with open(desktop_path, "w") as f:
+        config.write(f, space_around_delimiters=False)
 
-        print("Creating AppImage...")
-        run(
-            [
-                "linuxdeploy-x86_64.AppImage",
-                "--appdir",
-                appdir_path,
-                "--executable",
-                Path("target") / f"{arch}-unknown-linux-gnu" / "release" / NAME,
-                "--desktop-file",
-                desktop_path,
-                "--icon-file",
-                Path("assets") / "linux" / "32x32" / f"{NAME}.png",
-                "--icon-file",
-                Path("assets") / "linux" / "48x48" / f"{NAME}.png",
-                "--icon-file",
-                Path("assets") / "linux" / "64x64" / f"{NAME}.png",
-                "--icon-file",
-                Path("assets") / "linux" / "128x128" / f"{NAME}.png",
-                "--icon-file",
-                Path("assets") / "linux" / "256x256" / f"{NAME}.png",
-                "--icon-file",
-                Path("assets") / "linux" / "512x512" / f"{NAME}.png",
-                "--output",
-                "appimage",
-            ],
-            env={"ARCH": arch},
-            check=True,
+    print("Creating AppImage...")
+    run(
+        [
+            "linuxdeploy-x86_64.AppImage",
+            "--appdir",
+            appdir_path,
+            "--executable",
+            Path("target") / f"{arch}-unknown-linux-gnu" / "release" / NAME,
+            "--desktop-file",
+            desktop_path,
+            "--icon-file",
+            Path("assets") / "linux" / "32x32" / f"{NAME}.png",
+            "--icon-file",
+            Path("assets") / "linux" / "48x48" / f"{NAME}.png",
+            "--icon-file",
+            Path("assets") / "linux" / "64x64" / f"{NAME}.png",
+            "--icon-file",
+            Path("assets") / "linux" / "128x128" / f"{NAME}.png",
+            "--icon-file",
+            Path("assets") / "linux" / "256x256" / f"{NAME}.png",
+            "--icon-file",
+            Path("assets") / "linux" / "512x512" / f"{NAME}.png",
+            "--output",
+            "appimage",
+        ],
+        env={"ARCH": arch},
+        check=True,
+    )
+
+    print("Renaming AppImage...")
+    Path(f"{PRODUCT_NAME}-{arch}.AppImage").rename(
+        Path("dist") / f"{SHORT_NAME}-{VERSION}-Linux-{arch}.AppImage"
+    )
+
+    print("Creating tarball...")
+    with tarfile.open(
+        Path("dist") / f"{SHORT_NAME}-{VERSION}-Linux-{arch}.tar.gz", "w:gz"
+    ) as tar:
+        tar.add(
+            Path("target") / f"{arch}-unknown-linux-gnu" / "release" / NAME,
+            arcname=f"{SHORT_NAME}-{VERSION}-Linux-{arch}",
         )
 
-        print("Renaming AppImage...")
-        Path(f"{PRODUCT_NAME}-{arch}.AppImage").rename(
-            Path("dist") / f"{SHORT_NAME}-{VERSION}-Linux-{arch}.AppImage"
-        )
+    print("Cleaning up junk files...")
+    rmtree(appdir_path)
+    desktop_path.unlink()
 
-        print("Creating tarball...")
-        with tarfile.open(
-            Path("dist") / f"{SHORT_NAME}-{VERSION}-Linux-{arch}.tar.gz", "w:gz"
-        ) as tar:
-            tar.add(
-                Path("target") / f"{arch}-unknown-linux-gnu" / "release" / NAME,
-                arcname=f"{SHORT_NAME}-{VERSION}-Linux-{arch}",
-            )
-        
-        print("Cleaning up junk files...")
-        rmtree(appdir_path)
-        desktop_path.unlink()
-
-        print(f"✅ Created {SHORT_NAME}-{VERSION}-Linux-{arch}.tar.gz in ./dist")
+    print(f"✅ Created {SHORT_NAME}-{VERSION}-Linux-{arch}.tar.gz in ./dist")
 
 
-def windows():
+def linux_x86_64():
+    _linux("x86_64")
+
+
+def linux_aarch64():
+    _linux("aarch64")
+
+
+def _windows(arch):
     import zipfile
 
-    # Package each architecture
-    for arch in ["x86_64", "aarch64"]:
-        print(f"Packaging for {arch}...")
+    print(f"Packaging for {arch}...")
 
-        print("Creating .zip...")
-        with zipfile.ZipFile(
-            Path("dist") / f"{SHORT_NAME}-{VERSION}-Windows-{arch}.zip",
-            "w",
-            zipfile.ZIP_DEFLATED,
-        ) as zip:
-            zip.write(
-                Path("target") / f"{arch}-pc-windows-msvc" / "release" / f"{NAME}.exe",
-                arcname=f"{SHORT_NAME}-{VERSION}-Windows-{arch}.exe",
-            )
+    print("Creating .zip...")
+    with zipfile.ZipFile(
+        Path("dist") / f"{SHORT_NAME}-{VERSION}-Windows-{arch}.zip",
+        "w",
+        zipfile.ZIP_DEFLATED,
+    ) as zip:
+        zip.write(
+            Path("target") / f"{arch}-pc-windows-msvc" / "release" / f"{NAME}.exe",
+            arcname=f"{SHORT_NAME}-{VERSION}-Windows-{arch}.exe",
+        )
 
-        print(f"✅ Created {SHORT_NAME}-{VERSION}-Windows-{arch}.zip in ./dist")
+    print(f"✅ Created {SHORT_NAME}-{VERSION}-Windows-{arch}.zip in ./dist")
 
 
-def macos():
+def windows_x86_64():
+    _windows("x86_64")
+
+
+def windows_aarch64():
+    _windows("aarch64")
+
+
+def macos_universal2():
     import plistlib
 
     # Create universal binary and app bundle
