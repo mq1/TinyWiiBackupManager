@@ -268,7 +268,6 @@ impl App {
         }
     }
 
-    #[cfg(target_os = "macos")]
     /// Run dot_clean to clean up MacOS ._ files
     pub fn run_dot_clean(&self) -> Result<()> {
         let confirm = rfd::MessageDialog::new()
@@ -297,6 +296,25 @@ impl App {
         if !self.open_info_windows.contains(&index) {
             self.open_info_windows.push(index);
         }
+    }
+
+    /// Changes the base directory and refreshes the game list
+    pub fn change_base_dir(&mut self, new_dir: PathBuf) -> Result<()> {
+        // Update the base directory
+        self.base_dir = new_dir;
+
+        // Reinitialize the directory watcher
+        self.watcher = None;
+        self.spawn_dir_watcher()
+            .context("Failed to spawn directory watcher")?;
+
+        // Refresh the game list
+        self.refresh_games().context("Failed to refresh games")?;
+
+        // Clear any open info windows
+        self.open_info_windows.clear();
+
+        Ok(())
     }
 }
 
