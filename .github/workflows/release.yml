@@ -55,8 +55,8 @@ jobs:
           # Install LinuxDeploy
           wget -c "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage"
           wget -c "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-x86_64.AppImage"
-          chmod +x linuxdeploy-x86_64.AppImage
-          sudo mv linuxdeploy-x86_64.AppImage /usr/local/bin
+          chmod +x linuxdeploy*.AppImage
+          sudo mv linuxdeploy*.AppImage /usr/local/bin
 
       - name: Build binaries in parallel
         run: |
