@@ -11,26 +11,27 @@ use size::Size;
 pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
     egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
         egui::MenuBar::new().ui(ui, |ui| {
+            ui.menu_button("File", |ui| {
+                // dot_clean button
+                if cfg!(target_os = "macos") {
+                    if ui
+                        .button("👻 Clean MacOS ._ files")
+                        .on_hover_text(format!("Run dot_clean in {}", app.base_dir.display()))
+                        .clicked()
+                    {
+                        if let Err(e) = app.run_dot_clean() {
+                            show_anyhow_error("Error running dot_clean", &e);
+                        }
+                    }
+                }
+            });
+
             let add_games_button = ui
                 .button("➕ Add Game(s)")
                 .on_hover_text("Add one or more games to the wbfs directory");
 
             if add_games_button.clicked() {
                 app.add_isos();
-            }
-
-            // dot_clean button
-            #[cfg(target_os = "macos")]
-            {
-                let btn = ui
-                    .button("👻 Clean MacOS ._ files")
-                    .on_hover_text(format!("Run dot_clean in {}", app.base_dir.display()));
-
-                if btn.clicked() {
-                    if let Err(e) = app.run_dot_clean() {
-                        show_anyhow_error("Error running dot_clean", &e);
-                    }
-                }
             }
 
             // Display the total number of games on the right side of the menu bar
