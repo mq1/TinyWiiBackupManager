@@ -35,15 +35,19 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-
-          # Install aarch64 toolchain
-          sudo apt-get install -y gcc-aarch64-linux-gnu
-
-          # Install eframe dependencies
-          sudo apt-get install -y libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
-          
-          # Install appimage dependencies
-          sudo apt-get install -y squashfs-tools
+          sudo apt-get install -y \
+            # aarch64 toolchain
+            gcc-aarch64-linux-gnu \
+            \
+            # eframe dependencies
+            libxcb-render0-dev \
+            libxcb-shape0-dev \
+            libxcb-xfixes0-dev \
+            libxkbcommon-dev \
+            libssl-dev \
+            \
+            # appimage dependencies
+            squashfs-tools
 
           # Install cargo-bundle
           cargo install cargo-bundle
