@@ -48,6 +48,15 @@ jobs:
           # Install cargo-bundle
           cargo install cargo-bundle
 
+      - name: Create mksquashfs wrapper for zstd compression
+        run: |
+          sudo mv /usr/bin/mksquashfs /usr/bin/mksquashfs.original
+          sudo tee /usr/bin/mksquashfs > /dev/null <<EOF
+          #!/bin/bash
+          exec /usr/bin/mksquashfs.original "$@" -comp zstd
+          EOF
+          sudo chmod +x /usr/bin/mksquashfs
+
       - name: Build binaries in parallel
         run: |
           cargo bundle --release --target x86_64-unknown-linux-gnu --format appimage &
