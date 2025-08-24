@@ -34,8 +34,6 @@ jobs:
 
       - name: Set up mold
         uses: rui314/setup-mold@v1
-        with:
-          make-default: false
 
       - name: Install dependencies
         run: |
