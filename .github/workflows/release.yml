@@ -41,7 +41,7 @@ jobs:
 
           # Install dependencies for aarch64, eframe and appimage
           sudo apt-get install -y \
-            libc6-dev-arm64-cross \
+            gcc-aarch64-linux-gnu \
             libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev \
             squashfs-tools
 
