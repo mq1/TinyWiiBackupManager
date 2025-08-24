@@ -96,6 +96,9 @@ impl App {
         let update_checker = updates_enabled
             .then(|| EguiSuspense::single_try(components::update_notifier::check_for_new_version));
 
+        std::fs::create_dir_all(base_dir.join("wbfs"))?;
+        std::fs::create_dir_all(base_dir.join("games"))?;
+
         let mut app = Self {
             base_dir,
             update_checker,
@@ -126,6 +129,7 @@ impl App {
 
         watcher.watch(&self.base_dir.join("wbfs"), RecursiveMode::NonRecursive)?;
         watcher.watch(&self.base_dir.join("games"), RecursiveMode::NonRecursive)?;
+
         self.watcher = Some(watcher);
 
         Ok(())
