@@ -124,7 +124,8 @@ impl App {
             }
         })?;
 
-        watcher.watch(&self.base_dir, RecursiveMode::Recursive)?;
+        watcher.watch(&self.base_dir.join("wbfs"), RecursiveMode::NonRecursive)?;
+        watcher.watch(&self.base_dir.join("games"), RecursiveMode::NonRecursive)?;
         self.watcher = Some(watcher);
 
         Ok(())
