@@ -53,10 +53,20 @@ jobs:
       - name: Create mksquashfs wrapper for zstd compression
         run: |
           sudo mv /usr/bin/mksquashfs /usr/bin/mksquashfs.original
-          sudo tee /usr/bin/mksquashfs > /dev/null <<EOF
+          
+          sudo tee /usr/bin/mksquashfs > /dev/null <<'EOF'
           #!/bin/bash
-          exec /usr/bin/mksquashfs.original "$@" -comp zstd
+          
+          # Find the first option and insert -comp zstd before it
+          args=("$@")
+          
+          for ((i=0; i<${#args[@]}; i++)); do
+            if [[ "${args[i]}" == -* ]]; then
+              exec /usr/bin/mksquashfs.original "${args[@]:0:i}" -comp zstd "${args[@]:i}"
+            fi
+          done
           EOF
+          
           sudo chmod +x /usr/bin/mksquashfs
 
       - name: Build binaries in parallel
