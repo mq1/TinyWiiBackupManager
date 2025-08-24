@@ -8,17 +8,10 @@ use eframe::egui;
 use tiny_wii_backup_manager::App;
 use tiny_wii_backup_manager::PRODUCT_NAME;
 use tiny_wii_backup_manager::correct_base_dir;
-use tiny_wii_backup_manager::error_handling::show_anyhow_error;
 
 const LOGO: &[u8] = include_bytes!("../logo-small.png");
 
-fn main() {
-    if let Err(e) = run() {
-        show_anyhow_error("Fatal Error", &e);
-    }
-}
-
-fn run() -> Result<()> {
+fn main() -> Result<()> {
     env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
 
     let mut base_dir = rfd::FileDialog::new()

@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
+use crate::app::BackgroundMessage;
 use crate::{
     app::App,
-    error_handling::show_anyhow_error,
     game::{ConsoleType, Game},
 };
 use eframe::egui::{self, Button, Image, RichText};
@@ -13,6 +13,8 @@ const CARD_SIZE: egui::Vec2 = egui::vec2(170.0, 220.0);
 const GRID_SPACING: egui::Vec2 = egui::vec2(10.0, 10.0);
 
 pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
+    let sender = app.inbox.sender();
+
     let mut to_remove = None;
     let mut to_open_info = None;
 
@@ -51,7 +53,7 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
 
     if let Some(game) = to_remove {
         if let Err(e) = game.remove() {
-            show_anyhow_error("Failed to remove game", &e);
+            let _ = sender.send(BackgroundMessage::Error(e));
         }
     }
 
