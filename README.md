@@ -24,6 +24,6 @@ Just grab the [latest release](https://github.com/mq1/TinyWiiBackupManager/relea
 ### 🍎 MacOS
 
 ⚠️ The app is NOT notarized, you need to allow it:\
-🏃‍➡️ Run `sudo xattr -rd com.apple.quarantine /Applications/TinyWiiBackupManager.app` in the terminal
+🏃‍➡️ Run `xattr -rd com.apple.quarantine /Applications/TinyWiiBackupManager.app` in the terminal
 
 ## 📄 Additional info in the [wiki](https://github.com/mq1/TinyWiiBackupManager/wiki)
