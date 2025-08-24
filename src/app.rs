@@ -7,12 +7,12 @@ use anyhow::{Context, Error, Result};
 use eframe::egui;
 use egui_inbox::UiInbox;
 use egui_suspense::EguiSuspense;
+use log::error;
 use notify::{RecursiveMode, Watcher};
 
 use crate::{
     components::{self, console_filter::ConsoleFilter, update_notifier::UpdateInfo},
     correct_base_dir,
-    error_handling::show_anyhow_error,
     game::{ConsoleType, Game},
 };
 
@@ -32,7 +32,7 @@ pub const SUPPORTED_INPUT_EXTENSIONS: &[&str] = &[
 
 /// Messages that can be sent from background tasks to the main thread
 #[derive(Debug)]
-enum BackgroundMessage {
+pub enum BackgroundMessage {
     /// Signal for current file conversion progress
     ConversionProgress(u64, u64),
     /// Signal that a single file conversion has completed
@@ -41,6 +41,8 @@ enum BackgroundMessage {
     ConversionComplete(Result<()>),
     /// Signal that the directory has changed
     DirectoryChanged,
+    /// Signal that an error occurred
+    Error(Error),
 }
 
 /// State of the conversion process
@@ -70,7 +72,7 @@ pub struct App {
     /// WBFS dir size
     pub base_dir_size: u64,
     /// Inbox for receiving messages from background tasks
-    inbox: UiInbox<BackgroundMessage>,
+    pub(crate) inbox: UiInbox<BackgroundMessage>,
     /// Current state of the conversion process
     pub conversion_state: ConversionState,
     /// File watcher
@@ -83,6 +85,8 @@ pub struct App {
     pub open_info_windows: Vec<usize>,
     /// Console filter state
     pub console_filter: ConsoleFilter,
+    /// Toasts
+    pub toasts: egui_notify::Toasts,
 }
 
 impl App {
@@ -102,6 +106,15 @@ impl App {
         let mut app = Self {
             base_dir,
             update_checker,
+            toasts: egui_notify::Toasts::default()
+                .with_anchor(egui_notify::Anchor::BottomRight)
+                .with_margin(egui::Vec2::new(10.0, 32.))
+                .with_shadow(egui::Shadow {
+                    offset: [0, 0],
+                    blur: 0,
+                    spread: 1,
+                    color: egui::Color32::GRAY,
+                }),
             ..Default::default()
         };
 
@@ -226,6 +239,8 @@ impl App {
 
     /// Processes messages received from background tasks
     fn handle_messages(&mut self, ctx: &egui::Context) {
+        let sender = self.inbox.sender();
+
         for msg in self.inbox.read(ctx) {
             match msg {
                 BackgroundMessage::ConversionProgress(progress, total) => {
@@ -261,14 +276,20 @@ impl App {
                 BackgroundMessage::ConversionComplete(result) => {
                     self.conversion_state = ConversionState::Idle;
                     if let Err(e) = result {
-                        show_anyhow_error("Conversion Failed", &e);
+                        let _ = sender.send(BackgroundMessage::Error(e));
                     }
                 }
 
                 BackgroundMessage::DirectoryChanged => {
                     if let Err(e) = self.refresh_games() {
-                        show_anyhow_error("Error", &e);
+                        let _ = sender.send(BackgroundMessage::Error(e));
                     }
+                }
+
+                BackgroundMessage::Error(e) => {
+                    error!("{e:?}");
+                    let text = egui::RichText::new(e.to_string()).strong().size(16.0);
+                    self.toasts.error(text).closable(true).duration(None);
                 }
             }
         }
@@ -328,7 +349,11 @@ impl App {
 impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         self.handle_messages(ctx);
-        set_cursor_icon(ctx, self);
+
+        match self.conversion_state {
+            ConversionState::Converting { .. } => ctx.set_cursor_icon(egui::CursorIcon::Wait),
+            _ => ctx.set_cursor_icon(egui::CursorIcon::Default),
+        }
 
         components::top_panel::ui_top_panel(ctx, self);
         components::bottom_panel::ui_bottom_panel(ctx, self);
@@ -345,16 +370,11 @@ impl eframe::App for App {
         self.open_info_windows.retain_mut(|&mut index| {
             self.games.get_mut(index).map_or(false, |game| {
                 let mut is_open = true;
-                components::game_info::ui_game_info_window(ctx, game, &mut is_open);
+                components::game_info::ui_game_info_window(ctx, game, &mut is_open, self.inbox.sender());
                 is_open
             })
         });
-    }
-}
 
-fn set_cursor_icon(ctx: &egui::Context, app: &App) {
-    match app.conversion_state {
-        ConversionState::Converting { .. } => ctx.set_cursor_icon(egui::CursorIcon::Wait),
-        _ => ctx.set_cursor_icon(egui::CursorIcon::Default),
+        self.toasts.show(ctx);
     }
 }
