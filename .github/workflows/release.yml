@@ -24,8 +24,15 @@ jobs:
     name: Build for Linux (x86_64 & aarch64)
     runs-on: ubuntu-22.04
     steps:
-      - name: Checkout repository
+      - name: Checkout for x86_64
         uses: actions/checkout@v4
+        with:
+          path: build-x86_64
+
+      - name: Checkout for aarch64
+        uses: actions/checkout@v4
+        with:
+          path: build-aarch64
 
       - name: Set up Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -52,20 +59,20 @@ jobs:
 
       - name: Build binaries in parallel
         run: |
-          cargo bundle --release --target x86_64-unknown-linux-gnu --format appimage &
-          cargo bundle --release --target aarch64-unknown-linux-gnu --format appimage &
+          (cd build-x86_64 && cargo bundle --release --target x86_64-unknown-linux-gnu --format appimage) &
+          (cd build-aarch64 && cargo bundle --release --target aarch64-unknown-linux-gnu --format appimage) &
           wait
 
       - name: Package for Linux (x86_64 and aarch64)
         run: |
           mkdir dist
 
-          mv target/x86_64-unknown-linux-gnu/release/bundle/appimage/*.AppImage dist/TWBM-${{ github.ref_name }}-Linux-x86_64.AppImage
-          mv target/aarch64-unknown-linux-gnu/release/bundle/appimage/*.AppImage dist/TWBM-${{ github.ref_name }}-Linux-aarch64.AppImage
+          mv build-x86_64/target/x86_64-unknown-linux-gnu/release/bundle/appimage/*.AppImage dist/TWBM-${{ github.ref_name }}-Linux-x86_64.AppImage
+          mv build-aarch64/target/aarch64-unknown-linux-gnu/release/bundle/appimage/*.AppImage dist/TWBM-${{ github.ref_name }}-Linux-aarch64.AppImage
 
           # Also create tarballs with plain binaries
-          mv target/x86_64-unknown-linux-gnu/release/tiny-wii-backup-manager TWBM-${{ github.ref_name }}-Linux-x86_64
-          mv target/aarch64-unknown-linux-gnu/release/tiny-wii-backup-manager TWBM-${{ github.ref_name }}-Linux-aarch64
+          mv build-x86_64/target/x86_64-unknown-linux-gnu/release/tiny-wii-backup-manager TWBM-${{ github.ref_name }}-Linux-x86_64
+          mv build-aarch64/target/aarch64-unknown-linux-gnu/release/tiny-wii-backup-manager TWBM-${{ github.ref_name }}-Linux-aarch64
           tar -czf dist/TWBM-${{ github.ref_name }}-Linux-x86_64.tar.gz TWBM-${{ github.ref_name }}-Linux-x86_64
           tar -czf dist/TWBM-${{ github.ref_name }}-Linux-aarch64.tar.gz TWBM-${{ github.ref_name }}-Linux-aarch64
 
@@ -79,8 +86,15 @@ jobs:
     name: Build for Windows (x86_64 & aarch64)
     runs-on: windows-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout for x86_64
         uses: actions/checkout@v4
+        with:
+          path: build-x86_64
+
+      - name: Checkout for aarch64
+        uses: actions/checkout@v4
+        with:
+          path: build-aarch64
 
       - name: Set up Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -90,15 +104,16 @@ jobs:
       - name: Build binaries in parallel
         shell: bash
         run: |
-          cargo build --release --target x86_64-pc-windows-msvc &
-          cargo build --release --target aarch64-pc-windows-msvc &
+          (cd build-x86_64 && cargo build --release --target x86_64-pc-windows-msvc) &
+          (cd build-aarch64 && cargo build --release --target aarch64-pc-windows-msvc) &
           wait
 
       - name: Package for Windows (x86_64 and aarch64)
+        shell: pwsh
         run: |
           New-Item -ItemType Directory -Path dist
-          Move-Item -Path target/x86_64-pc-windows-msvc/release/tiny-wii-backup-manager.exe -Destination TWBM-${{ github.ref_name }}-Windows-x86_64.exe
-          Move-Item -Path target/aarch64-pc-windows-msvc/release/tiny-wii-backup-manager.exe -Destination TWBM-${{ github.ref_name }}-Windows-aarch64.exe
+          Move-Item -Path build-x86_64/target/x86_64-pc-windows-msvc/release/tiny-wii-backup-manager.exe -Destination TWBM-${{ github.ref_name }}-Windows-x86_64.exe
+          Move-Item -Path build-aarch64/target/aarch64-pc-windows-msvc/release/tiny-wii-backup-manager.exe -Destination TWBM-${{ github.ref_name }}-Windows-aarch64.exe
           Compress-Archive -Path TWBM-${{ github.ref_name }}-Windows-x86_64.exe -DestinationPath dist/TWBM-${{ github.ref_name }}-Windows-x86_64.zip
           Compress-Archive -Path TWBM-${{ github.ref_name }}-Windows-aarch64.exe -DestinationPath dist/TWBM-${{ github.ref_name }}-Windows-aarch64.zip
 
@@ -112,8 +127,15 @@ jobs:
     name: Build for MacOS (Universal2)
     runs-on: macos-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout for aarch64
         uses: actions/checkout@v4
+        with:
+          path: build-aarch64
+
+      - name: Checkout for x86_64
+        uses: actions/checkout@v4
+        with:
+          path: build-x86_64
 
       - name: Set up Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -127,8 +149,8 @@ jobs:
 
       - name: Build binaries in parallel
         run: |
-          cargo bundle --release --target aarch64-apple-darwin --format osx &
-          cargo build --release --target x86_64-apple-darwin &
+          (cd build-aarch64 && cargo bundle --release --target aarch64-apple-darwin --format osx) &
+          (cd build-x86_64 && cargo build --release --target x86_64-apple-darwin) &
           wait
 
       - name: Package for MacOS (Universal2)
@@ -137,11 +159,11 @@ jobs:
 
           lipo \
             -create \
-            -output target/aarch64-apple-darwin/release/bundle/osx/TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager \
-            target/aarch64-apple-darwin/release/bundle/osx/TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager \
-            target/x86_64-apple-darwin/release/tiny-wii-backup-manager
-          
-          npx --yes create-dmg target/aarch64-apple-darwin/release/bundle/osx/TinyWiiBackupManager.app . || true
+            -output build-aarch64/target/aarch64-apple-darwin/release/bundle/osx/TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager \
+            build-aarch64/target/aarch64-apple-darwin/release/bundle/osx/TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager \
+            build-x86_64/target/x86_64-apple-darwin/release/tiny-wii-backup-manager
+
+          npx --yes create-dmg build-aarch64/target/aarch64-apple-darwin/release/bundle/osx/TinyWiiBackupManager.app . || true
           mv *.dmg dist/TWBM-${{ github.ref_name }}-MacOS-Universal2.dmg
 
       - name: Upload MacOS distributable
