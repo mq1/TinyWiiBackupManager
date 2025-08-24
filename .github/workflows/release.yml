@@ -39,8 +39,9 @@ jobs:
         run: |
           sudo apt-get update
 
-          # Install dependencies for eframe and appimage
+          # Install dependencies for aarch64, eframe and appimage
           sudo apt-get install -y \
+            libc6-dev-arm64-cross \
             libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev \
             squashfs-tools
 

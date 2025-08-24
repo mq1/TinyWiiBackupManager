@@ -2089,8 +2089,8 @@ checksum = "7943c866cc5cd64cbc25b2e01621d07fa8eb2a1a23160ee81ce38704e97b8ecf"
 
 [[package]]
 name = "iso2wbfs"
-version = "1.2.5"
-source = "git+https://github.com/mq1/iso2wbfs?tag=v1.2.5#9c5ae9b6e3a6dbb111d8707e05b45264c70b396e"
+version = "1.2.6"
+source = "git+https://github.com/mq1/iso2wbfs?tag=v1.2.6#83c9554f8d39523449840ab1f1b43958b44cbbea"
 dependencies = [
  "bitvec",
  "bpaf",

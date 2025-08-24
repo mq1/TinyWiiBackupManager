@@ -4,7 +4,11 @@ rustflags = ["-C", "link-arg=-fuse-ld=mold"]
 
 [target.aarch64-unknown-linux-gnu]
 linker = "clang"
-rustflags = ["-C", "link-arg=-fuse-ld=mold"]
+rustflags = [
+    "-C", "link-arg=-fuse-ld=mold",
+    "-C", "link-arg=--sysroot=/usr/aarch64-linux-gnu"
+]
 
 [env]
-CC = "clang"
+CC_x86_64_unknown_linux_gnu = "clang --target=x86_64-unknown-linux-gnu"
+CC_aarch64_unknown_linux_gnu = "clang --target=aarch64-unknown-linux-gnu --sysroot=/usr/aarch64-linux-gnu"
