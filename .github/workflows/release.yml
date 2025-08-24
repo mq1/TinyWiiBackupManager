@@ -102,20 +102,21 @@ jobs:
           target: x86_64-pc-windows-msvc,aarch64-pc-windows-msvc
 
       - name: Build binaries in parallel
-        shell: bash
+        shell: pwsh
         run: |
-          (cd build-x86_64 && cargo build --release --target x86_64-pc-windows-msvc) &
-          (cd build-aarch64 && cargo build --release --target aarch64-pc-windows-msvc) &
-          wait
+          $job1 = Start-Job -ScriptBlock { cd build-x86_64; cargo build --release --target x86_64-pc-windows-msvc }
+          $job2 = Start-Job -ScriptBlock { cd build-aarch64; cargo build --release --target aarch64-pc-windows-msvc }
+          Wait-Job -Job $job1, $job2
+          Receive-Job -Job $job1, $job2
 
       - name: Package for Windows (x86_64 and aarch64)
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Path dist
-          Move-Item -Path build-x86_64/target/x86_64-pc-windows-msvc/release/tiny-wii-backup-manager.exe -Destination TWBM-${{ github.ref_name }}-Windows-x86_64.exe
-          Move-Item -Path build-aarch64/target/aarch64-pc-windows-msvc/release/tiny-wii-backup-manager.exe -Destination TWBM-${{ github.ref_name }}-Windows-aarch64.exe
-          Compress-Archive -Path TWBM-${{ github.ref_name }}-Windows-x86_64.exe -DestinationPath dist/TWBM-${{ github.ref_name }}-Windows-x86_64.zip
-          Compress-Archive -Path TWBM-${{ github.ref_name }}-Windows-aarch64.exe -DestinationPath dist/TWBM-${{ github.ref_name }}-Windows-aarch64.zip
+          Move-Item -Path "build-x86_64/target/x86_64-pc-windows-msvc/release/tiny-wii-backup-manager.exe" -Destination "TWBM-${{ github.ref_name }}-Windows-x86_64.exe"
+          Move-Item -Path "build-aarch64/target/aarch64-pc-windows-msvc/release/tiny-wii-backup-manager.exe" -Destination "TWBM-${{ github.ref_name }}-Windows-aarch64.exe"
+          Compress-Archive -Path "TWBM-${{ github.ref_name }}-Windows-x86_64.exe" -DestinationPath "dist/TWBM-${{ github.ref_name }}-Windows-x86_64.zip"
+          Compress-Archive -Path "TWBM-${{ github.ref_name }}-Windows-aarch64.exe" -DestinationPath "dist/TWBM-${{ github.ref_name }}-Windows-aarch64.zip"
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v4
