@@ -1,6 +1,6 @@
-use crate::app::BackgroundMessage;
 use crate::components::fake_link::fake_link;
 use crate::game::{ConsoleType, Game};
+use crate::messages::BackgroundMessage;
 use eframe::egui::{self, RichText};
 use size::Size;
 
