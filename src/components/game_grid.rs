@@ -51,11 +51,10 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
             });
     });
 
-    if let Some(game) = to_remove {
-        if let Err(e) = game.remove() {
+    if let Some(game) = to_remove
+        && let Err(e) = game.remove() {
             let _ = sender.send(BackgroundMessage::Error(e));
         }
-    }
 
     if let Some(index) = to_open_info {
         app.open_game_info(index);

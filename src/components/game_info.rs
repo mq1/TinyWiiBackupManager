@@ -52,11 +52,10 @@ fn ui_game_info_content(
 
     ui.horizontal(|ui| {
         ui.label(RichText::new("📁 Path:").strong());
-        if fake_link(ui, &game.path.display().to_string()).clicked() {
-            if let Err(e) = open::that(&game.path) {
+        if fake_link(ui, &game.path.display().to_string()).clicked()
+            && let Err(e) = open::that(&game.path) {
                 let _ = sender.send(BackgroundMessage::Error(anyhow::anyhow!(e)));
             }
-        }
     });
 
     ui.horizontal(|ui| {
@@ -70,7 +69,7 @@ fn ui_game_info_content(
 
     ui.heading("💿 Disc Metadata");
     ui.add_space(5.0);
-    if let Some(ref meta) = game.load_disc_meta() {
+    if let Some(meta) = game.load_disc_meta() {
         ui.horizontal(|ui| {
             ui.label(RichText::new("💿 Format:").strong());
             ui.label(meta.format.to_string());
@@ -114,7 +113,7 @@ fn ui_game_info_content(
     ui.heading("🔍 Integrity");
     ui.add_space(5.0);
 
-    if let Some(ref meta) = game.load_disc_meta() {
+    if let Some(meta) = game.load_disc_meta() {
         let has_integrity_info = meta.crc32.is_some()
             || meta.md5.is_some()
             || meta.sha1.is_some()

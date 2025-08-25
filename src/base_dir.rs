@@ -37,13 +37,11 @@ impl BaseDir {
     }
 
     fn correct(&mut self) {
-        if let Some(file_name) = self.0.file_name() {
-            if matches!(file_name.to_str(), Some("wbfs" | "games")) {
-                if let Some(parent) = self.0.parent() {
+        if let Some(file_name) = self.0.file_name()
+            && matches!(file_name.to_str(), Some("wbfs" | "games"))
+                && let Some(parent) = self.0.parent() {
                     self.0 = parent.to_path_buf();
                 }
-            }
-        }
     }
 
     fn wii_dir(&self) -> PathBuf {

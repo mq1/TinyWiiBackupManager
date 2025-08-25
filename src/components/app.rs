@@ -25,7 +25,7 @@ impl eframe::App for App {
 
         // Render info windows for opened games and remove closed ones
         self.open_info_windows.retain(|&index| {
-            self.games.get_mut(index).map_or(false, |game| {
+            self.games.get_mut(index).is_some_and(|game| {
                 let mut is_open = true;
                 components::game_info::ui_game_info_window(
                     ctx,

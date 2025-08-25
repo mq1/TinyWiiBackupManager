@@ -169,7 +169,7 @@ impl App {
         let sender = self.inbox.sender();
         std::thread::spawn(move || match update_check::check_for_new_version() {
             Ok(update_info) => sender.send(BackgroundMessage::UpdateCheckComplete(update_info)),
-            Err(e) => sender.send(BackgroundMessage::Error(e.into())),
+            Err(e) => sender.send(BackgroundMessage::Error(e)),
         });
     }
 
@@ -199,11 +199,10 @@ impl App {
                     let _ = sender.send(BackgroundMessage::FileConverted);
 
                     // remove the source file
-                    if remove_sources {
-                        if let Err(e) = std::fs::remove_file(&path) {
+                    if remove_sources
+                        && let Err(e) = std::fs::remove_file(&path) {
                             let _ = sender.send(BackgroundMessage::Error(e.into()));
                         }
-                    }
                 }
 
                 let _ = sender.send(BackgroundMessage::ConversionComplete);
