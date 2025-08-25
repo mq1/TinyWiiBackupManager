@@ -13,7 +13,7 @@ pub fn ui_bottom_panel(ctx: &egui::Context, app: &mut App) {
     egui::TopBottomPanel::bottom("bottom_panel").show(ctx, |ui| {
         ui.horizontal(|ui| {
             if let Some(update_info) = &app.update_info {
-                ui.hyperlink_to(&update_info.version, &update_info.url);
+                ui.hyperlink_to(format!("{} (new)", &update_info.version), &update_info.url);
             } else {
                 ui.label(format!("v{}", VERSION));
             }
