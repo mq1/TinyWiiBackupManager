@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
-use crate::app::SUPPORTED_INPUT_EXTENSIONS;
+use crate::SUPPORTED_INPUT_EXTENSIONS;
 use crate::titles::GAME_TITLES;
 use anyhow::{Context, Result, bail};
 use nod::read::{DiscMeta, DiscOptions, DiscReader};
