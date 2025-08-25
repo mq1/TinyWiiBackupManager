@@ -109,8 +109,8 @@ impl App {
         // Show toast to choose base dir
         top_left_toasts
             .custom(
-                "  Click on \"📄 File\" to select a Drive/Directory",
-                "⬆📄".to_string(),
+                "Click on \"📄 File\" to select a Drive/Directory    ",
+                "⬆".to_string(),
                 egui::Color32::DARK_GRAY,
             )
             .closable(false)
