@@ -11,7 +11,7 @@ pub enum BackgroundMessage {
     /// Signal that a single file conversion has completed
     FileConverted,
     /// Signal that the conversion has completed (with result)
-    ConversionComplete(anyhow::Result<()>),
+    ConversionComplete,
     /// Signal that the directory has changed
     DirectoryChanged,
     /// Signal that an error occurred
@@ -54,11 +54,8 @@ pub fn handle_messages(app: &mut App, ctx: &egui::Context) {
                 }
             }
 
-            BackgroundMessage::ConversionComplete(result) => {
+            BackgroundMessage::ConversionComplete => {
                 app.conversion_state = ConversionState::Idle;
-                if let Err(e) = result {
-                    let _ = sender.send(BackgroundMessage::Error(e));
-                }
             }
 
             BackgroundMessage::DirectoryChanged => {

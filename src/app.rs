@@ -161,44 +161,47 @@ impl App {
             .add_filter("Wii/GC Disc", SUPPORTED_INPUT_EXTENSIONS)
             .pick_files();
 
-        if let Some(paths) = paths.filter(|p| !p.is_empty()) {
+        if let Some(paths) = paths {
             self.spawn_conversion_worker(paths);
         }
     }
 
     /// Converts ISO files to WBFS in a background thread
     fn spawn_conversion_worker(&mut self, paths: Vec<PathBuf>) {
-        let base_dir = self.base_dir.clone().unwrap().path().to_path_buf();
-        let sender = self.inbox.sender();
-        let remove_sources = self.remove_sources;
+        if let Some(base_dir) = &self.base_dir {
+            let sender = self.inbox.sender();
+            let remove_sources = self.remove_sources;
 
-        self.conversion_state = ConversionState::Converting {
-            total_files: paths.len(),
-            files_converted: 0,
-            current_progress: (0, 0),
-        };
+            self.conversion_state = ConversionState::Converting {
+                total_files: paths.len(),
+                files_converted: 0,
+                current_progress: (0, 0),
+            };
 
-        std::thread::spawn(move || {
-            for path in paths {
-                if let Err(e) = iso2wbfs::convert(&path, &base_dir, |progress, total| {
-                    let _ = sender.send(BackgroundMessage::ConversionProgress(progress, total));
-                }) {
-                    let _ = sender.send(BackgroundMessage::ConversionComplete(Err(e.into())));
-                    return;
-                }
-                let _ = sender.send(BackgroundMessage::FileConverted);
+            let base_dir = base_dir.path().to_owned();
+            std::thread::spawn(move || {
+                for path in paths {
+                    let progress_callback = |progress, total| {
+                        let _ = sender.send(BackgroundMessage::ConversionProgress(progress, total));
+                    };
 
-                // remove the source file
-                if remove_sources {
-                    if let Err(e) = std::fs::remove_file(&path) {
-                        let _ = sender.send(BackgroundMessage::ConversionComplete(Err(e.into())));
-                        return;
+                    if let Err(e) = iso2wbfs::convert(&path, &base_dir, progress_callback) {
+                        let _ = sender.send(BackgroundMessage::Error(e.into()));
+                    }
+
+                    let _ = sender.send(BackgroundMessage::FileConverted);
+
+                    // remove the source file
+                    if remove_sources {
+                        if let Err(e) = std::fs::remove_file(&path) {
+                            let _ = sender.send(BackgroundMessage::Error(e.into()));
+                        }
                     }
                 }
-            }
 
-            let _ = sender.send(BackgroundMessage::ConversionComplete(Ok(())));
-        });
+                let _ = sender.send(BackgroundMessage::ConversionComplete);
+            });
+        }
     }
 
     /// Opens an info window for the specified game
