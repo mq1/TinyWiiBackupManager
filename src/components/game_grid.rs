@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
-use crate::app::BackgroundMessage;
+use crate::messages::BackgroundMessage;
 use crate::{
     app::App,
     game::{ConsoleType, Game},

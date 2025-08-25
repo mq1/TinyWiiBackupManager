@@ -3,17 +3,16 @@
 
 use std::path::PathBuf;
 
-use anyhow::{Context, Error, Result};
+use anyhow::{Error, Result};
 use eframe::egui;
 use egui_inbox::UiInbox;
 use egui_suspense::EguiSuspense;
-use log::error;
-use notify::{RecursiveMode, Watcher};
 
+use crate::base_dir::BaseDir;
+use crate::messages::{BackgroundMessage, handle_messages};
 use crate::{
     components::{self, console_filter::ConsoleFilter, update_notifier::UpdateInfo},
-    correct_base_dir,
-    game::{ConsoleType, Game},
+    game::Game,
 };
 
 // don't format
@@ -29,21 +28,6 @@ pub const SUPPORTED_INPUT_EXTENSIONS: &[&str] = &[
     "tgc", "TGC",
     "nfs", "NFS",
 ];
-
-/// Messages that can be sent from background tasks to the main thread
-#[derive(Debug)]
-pub enum BackgroundMessage {
-    /// Signal for current file conversion progress
-    ConversionProgress(u64, u64),
-    /// Signal that a single file conversion has completed
-    FileConverted,
-    /// Signal that the conversion has completed (with result)
-    ConversionComplete(Result<()>),
-    /// Signal that the directory has changed
-    DirectoryChanged,
-    /// Signal that an error occurred
-    Error(Error),
-}
 
 /// State of the conversion process
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
@@ -66,7 +50,7 @@ pub enum ConversionState {
 #[derive(Default)]
 pub struct App {
     /// Directory where the "wbfs" and "games" directories are located
-    pub base_dir: PathBuf,
+    pub base_dir: Option<BaseDir>,
     /// List of discovered games
     pub games: Vec<Game>,
     /// WBFS dir size
@@ -86,106 +70,86 @@ pub struct App {
     /// Console filter state
     pub console_filter: ConsoleFilter,
     /// Toasts
+    pub top_left_toasts: egui_notify::Toasts,
     pub toasts: egui_notify::Toasts,
 }
 
 impl App {
     /// Initializes the application with the specified WBFS directory.
-    pub fn new(
-        _cc: &eframe::CreationContext<'_>,
-        base_dir: PathBuf,
-        updates_enabled: bool,
-    ) -> Result<Self> {
-        // Initialize the update checker based on the updates_enabled flag
-        let update_checker = updates_enabled
+    pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
+        // Install image loaders
+        egui_extras::install_image_loaders(&cc.egui_ctx);
+
+        // Initialize the update checker based on the TWBM_DISABLE_UPDATES env var
+        let update_checker = std::env::var_os("TWBM_DISABLE_UPDATES")
+            .is_none()
             .then(|| EguiSuspense::single_try(components::update_notifier::check_for_new_version));
 
-        std::fs::create_dir_all(base_dir.join("wbfs"))?;
-        std::fs::create_dir_all(base_dir.join("games"))?;
+        // Pretty notifications
+        let toasts = egui_notify::Toasts::default()
+            .with_anchor(egui_notify::Anchor::BottomRight)
+            .with_margin(egui::Vec2::new(10.0, 32.))
+            .with_shadow(egui::Shadow {
+                offset: [0, 0],
+                blur: 0,
+                spread: 1,
+                color: egui::Color32::GRAY,
+            });
 
-        let mut app = Self {
-            base_dir,
+        let mut top_left_toasts = egui_notify::Toasts::default()
+            .with_anchor(egui_notify::Anchor::TopLeft)
+            .with_margin(egui::Vec2::new(10.0, 32.0))
+            .with_shadow(egui::Shadow {
+                offset: [0, 0],
+                blur: 0,
+                spread: 1,
+                color: egui::Color32::GRAY,
+            });
+
+        // Show toast to choose base dir
+        top_left_toasts
+            .custom(
+                "  Click on \"📄 File\" to select a Drive/Directory",
+                "⬆📄".to_string(),
+                egui::Color32::DARK_GRAY,
+            )
+            .closable(false)
+            .duration(None);
+
+        Self {
             update_checker,
-            toasts: egui_notify::Toasts::default()
-                .with_anchor(egui_notify::Anchor::BottomRight)
-                .with_margin(egui::Vec2::new(10.0, 32.))
-                .with_shadow(egui::Shadow {
-                    offset: [0, 0],
-                    blur: 0,
-                    spread: 1,
-                    color: egui::Color32::GRAY,
-                }),
+            top_left_toasts,
+            toasts,
             ..Default::default()
-        };
-
-        app.spawn_dir_watcher()?;
-        app.refresh_games().context("Failed to refresh games")?;
-        Ok(app)
+        }
     }
 
-    /// Spawns a file watcher for the base directory
-    fn spawn_dir_watcher(&mut self) -> Result<()> {
-        let sender = self.inbox.sender();
+    pub fn choose_base_dir(&mut self) -> Result<()> {
+        let new_dir = rfd::FileDialog::new()
+            .set_title("Select New Base Directory")
+            .pick_folder();
 
-        let mut watcher = notify::recommended_watcher(move |res| {
-            if let Ok(notify::Event {
-                kind:
-                    notify::EventKind::Modify(_)
-                    | notify::EventKind::Create(_)
-                    | notify::EventKind::Remove(_),
-                ..
-            }) = res
-            {
+        if let Some(new_dir) = new_dir {
+            let base_dir = BaseDir::new(new_dir)?;
+
+            let sender = self.inbox.sender();
+            let watcher = base_dir.get_watcher(move |_res| {
                 let _ = sender.send(BackgroundMessage::DirectoryChanged);
-            }
-        })?;
+            })?;
 
-        watcher.watch(&self.base_dir.join("wbfs"), RecursiveMode::NonRecursive)?;
-        watcher.watch(&self.base_dir.join("games"), RecursiveMode::NonRecursive)?;
+            self.watcher = Some(watcher);
+            self.base_dir = Some(base_dir);
 
-        self.watcher = Some(watcher);
+            self.refresh_games()?;
+        }
 
         Ok(())
     }
 
-    fn scan_dir(&self, dir_name: &str, console_type: ConsoleType) -> Result<Vec<Game>> {
-        let dir = self.base_dir.join(dir_name);
-
-        let mut games = Vec::new();
-        if !dir.is_dir() {
-            return Ok(games);
+    fn refresh_games(&mut self) -> Result<()> {
+        if let Some(base_dir) = &self.base_dir {
+            (self.games, self.base_dir_size) = base_dir.get_games()?;
         }
-
-        for entry in std::fs::read_dir(&dir)? {
-            if let Ok(entry) = entry {
-                let path = entry.path();
-                if path.is_dir() {
-                    if let Ok(game) = Game::from_path(path, console_type) {
-                        games.push(game);
-                    }
-                }
-            }
-        }
-
-        Ok(games)
-    }
-
-    /// Scans the "wbfs" and "games" directories and updates the list of games.
-    pub fn refresh_games(&mut self) -> Result<()> {
-        let mut wii_games = self.scan_dir("wbfs", ConsoleType::Wii)?;
-        let mut gc_games = self.scan_dir("games", ConsoleType::GameCube)?;
-
-        // Combine for the main games vector
-        self.games.clear();
-        self.games.append(&mut wii_games);
-        self.games.append(&mut gc_games);
-
-        // Sort the combined vector
-        self.games
-            .sort_by(|a, b| a.display_title.cmp(&b.display_title));
-
-        // sum the sizes of each game object
-        self.base_dir_size = self.games.iter().fold(0, |acc, game| acc + game.size);
 
         Ok(())
     }
@@ -204,7 +168,7 @@ impl App {
 
     /// Converts ISO files to WBFS in a background thread
     fn spawn_conversion_worker(&mut self, paths: Vec<PathBuf>) {
-        let base_dir = self.base_dir.clone();
+        let base_dir = self.base_dir.clone().unwrap().path().to_path_buf();
         let sender = self.inbox.sender();
         let remove_sources = self.remove_sources;
 
@@ -237,86 +201,6 @@ impl App {
         });
     }
 
-    /// Processes messages received from background tasks
-    fn handle_messages(&mut self, ctx: &egui::Context) {
-        let sender = self.inbox.sender();
-
-        for msg in self.inbox.read(ctx) {
-            match msg {
-                BackgroundMessage::ConversionProgress(progress, total) => {
-                    if let ConversionState::Converting {
-                        total_files,
-                        files_converted,
-                        ..
-                    } = self.conversion_state
-                    {
-                        self.conversion_state = ConversionState::Converting {
-                            total_files,
-                            files_converted,
-                            current_progress: (progress, total),
-                        };
-                    }
-                }
-
-                BackgroundMessage::FileConverted => {
-                    if let ConversionState::Converting {
-                        total_files,
-                        files_converted,
-                        ..
-                    } = self.conversion_state
-                    {
-                        self.conversion_state = ConversionState::Converting {
-                            total_files,
-                            files_converted: files_converted + 1,
-                            current_progress: (0, 0),
-                        };
-                    }
-                }
-
-                BackgroundMessage::ConversionComplete(result) => {
-                    self.conversion_state = ConversionState::Idle;
-                    if let Err(e) = result {
-                        let _ = sender.send(BackgroundMessage::Error(e));
-                    }
-                }
-
-                BackgroundMessage::DirectoryChanged => {
-                    if let Err(e) = self.refresh_games() {
-                        let _ = sender.send(BackgroundMessage::Error(e));
-                    }
-                }
-
-                BackgroundMessage::Error(e) => {
-                    error!("{e:?}");
-                    let text = egui::RichText::new(e.to_string()).strong().size(16.0);
-                    self.toasts.error(text).closable(true).duration(None);
-                }
-            }
-        }
-    }
-
-    /// Run dot_clean to clean up MacOS ._ files
-    pub fn run_dot_clean(&self) -> Result<()> {
-        let confirm = rfd::MessageDialog::new()
-            .set_title("Run dot_clean")
-            .set_description(format!(
-                "Are you sure you want to run dot_clean in {}?",
-                self.base_dir.display()
-            ))
-            .set_buttons(rfd::MessageButtons::OkCancel)
-            .show();
-
-        if confirm == rfd::MessageDialogResult::Ok {
-            std::process::Command::new("dot_clean")
-                .arg("-m")
-                .arg(&self.base_dir)
-                .spawn()
-                .context("Failed to run dot_clean")?;
-        }
-
-        Ok(())
-    }
-
     /// Opens an info window for the specified game
     pub fn open_game_info(&mut self, index: usize) {
         // Only add the index if it's not already in the vector
@@ -324,31 +208,11 @@ impl App {
             self.open_info_windows.push(index);
         }
     }
-
-    /// Changes the base directory and refreshes the game list
-    pub fn change_base_dir(&mut self, new_dir: PathBuf) -> Result<()> {
-        // Update the base directory
-        self.base_dir = new_dir;
-        correct_base_dir(&mut self.base_dir);
-
-        // Reinitialize the directory watcher
-        self.watcher = None;
-        self.spawn_dir_watcher()
-            .context("Failed to spawn directory watcher")?;
-
-        // Refresh the game list
-        self.refresh_games().context("Failed to refresh games")?;
-
-        // Clear any open info windows
-        self.open_info_windows.clear();
-
-        Ok(())
-    }
 }
 
 impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        self.handle_messages(ctx);
+        handle_messages(self, ctx);
 
         match self.conversion_state {
             ConversionState::Converting { .. } => ctx.set_cursor_icon(egui::CursorIcon::Wait),
@@ -370,11 +234,17 @@ impl eframe::App for App {
         self.open_info_windows.retain_mut(|&mut index| {
             self.games.get_mut(index).map_or(false, |game| {
                 let mut is_open = true;
-                components::game_info::ui_game_info_window(ctx, game, &mut is_open, self.inbox.sender());
+                components::game_info::ui_game_info_window(
+                    ctx,
+                    game,
+                    &mut is_open,
+                    self.inbox.sender(),
+                );
                 is_open
             })
         });
 
+        self.top_left_toasts.show(ctx);
         self.toasts.show(ctx);
     }
 }
