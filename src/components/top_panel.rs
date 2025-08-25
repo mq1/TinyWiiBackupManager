@@ -4,7 +4,6 @@
 use crate::app::App;
 use crate::components::fake_link::fake_link;
 use crate::messages::BackgroundMessage;
-use anyhow::anyhow;
 use eframe::egui;
 use size::Size;
 
