@@ -1,50 +1,31 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
-#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+#![warn(clippy::all, rust_2018_idioms)]
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
-use anyhow::{Context, Result, anyhow};
 use eframe::egui;
-use tiny_wii_backup_manager::App;
 use tiny_wii_backup_manager::PRODUCT_NAME;
-use tiny_wii_backup_manager::correct_base_dir;
+use tiny_wii_backup_manager::app::App;
 
 const LOGO: &[u8] = include_bytes!("../logo-small.png");
 
-fn main() -> Result<()> {
+fn main() -> eframe::Result<()> {
     env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
 
-    let mut base_dir = rfd::FileDialog::new()
-        .set_title("Select base directory (usually the root of your drive)")
-        .pick_folder()
-        .context("Failed to pick base directory")?;
-
-    correct_base_dir(&mut base_dir);
-
-    let title = format!("{PRODUCT_NAME}: {}", base_dir.display());
-
-    let icon = eframe::icon_data::from_png_bytes(LOGO).context("Failed to load icon")?;
+    let icon = eframe::icon_data::from_png_bytes(LOGO).expect("Failed to load icon");
+    let viewport = egui::ViewportBuilder::default()
+        .with_inner_size(egui::vec2(782.0, 600.0))
+        .with_icon(icon);
 
     let options = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder::default()
-            .with_inner_size(egui::vec2(782.0, 600.0))
-            .with_title(&title)
-            .with_icon(icon),
+        viewport,
         ..Default::default()
     };
 
-    // Check if updates should be disabled
-    let updates_enabled = std::env::var_os("TWBM_DISABLE_UPDATES").is_none();
-
     eframe::run_native(
-        &title,
+        PRODUCT_NAME,
         options,
-        Box::new(move |cc| {
-            egui_extras::install_image_loaders(&cc.egui_ctx);
-            let app = App::new(cc, base_dir, updates_enabled)?;
-            Ok(Box::new(app))
-        }),
+        Box::new(|cc| Ok(Box::new(App::new(cc)))),
     )
-    .map_err(|e| anyhow!(e.to_string()))
-    .context("Failed to run app")
 }
