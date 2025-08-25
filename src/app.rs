@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
+use std::collections::HashSet;
 use std::path::PathBuf;
 
 use anyhow::Result;
@@ -48,8 +49,8 @@ pub struct App {
     watcher: Option<notify::RecommendedWatcher>,
     /// Whether to remove sources after conversion
     pub remove_sources: bool,
-    /// Vector of game indices with open info windows
-    pub open_info_windows: Vec<usize>,
+    /// Set of game indices with open info windows
+    pub open_info_windows: HashSet<usize>,
     /// Console filter state
     pub console_filter: ConsoleFilter,
     /// Update info
@@ -212,9 +213,7 @@ impl App {
 
     /// Opens an info window for the specified game
     pub fn open_game_info(&mut self, index: usize) {
-        // Only add the index if it's not already in the vector
-        if !self.open_info_windows.contains(&index) {
-            self.open_info_windows.push(index);
-        }
+        // HashSet will automatically handle duplicates
+        self.open_info_windows.insert(index);
     }
 }
