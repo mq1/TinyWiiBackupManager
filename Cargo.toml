@@ -47,6 +47,7 @@ hex = "0.4"
 winres = "0.1"
 
 [profile.release]
+strip = "debuginfo"
 opt-level = 3
 lto = "fat"
 codegen-units = 1
