@@ -29,20 +29,20 @@ impl BaseDir {
         // file_name works in almost all cases
         // If it's a Windows Drive, it just returns the path
 
-        self.0
-            .file_name()
-            .and_then(|name| name.to_str())
-            .map(|s| s.to_string())
-            .unwrap_or_else(|| self.0.to_string_lossy().to_string())
+        if let Some(file_name) = self.0.file_name() {
+            file_name.to_string_lossy().to_string()
+        } else {
+            self.0.to_string_lossy().to_string()
+        }
     }
 
     fn correct(&mut self) {
-        if matches!(
-            self.0.file_name().and_then(|name| name.to_str()),
-            Some("wbfs" | "games")
-        ) && let Some(parent) = self.0.parent()
-        {
-            self.0 = parent.to_path_buf();
+        if let Some(file_name) = self.0.file_name() {
+            if matches!(file_name.to_str(), Some("wbfs" | "games")) {
+                if let Some(parent) = self.0.parent() {
+                    self.0 = parent.to_path_buf();
+                }
+            }
         }
     }
 
