@@ -1,15 +1,16 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
-use crate::app::App;
+use crate::app::{App, BackgroundMessage};
 use crate::components::fake_link::fake_link;
-use crate::error_handling::show_anyhow_error;
 use anyhow::anyhow;
 use eframe::egui;
 use size::Size;
 
 /// Renders the top menu bar.
 pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
+    let sender = app.inbox.sender();
+
     egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
         egui::MenuBar::new().ui(ui, |ui| {
             ui.menu_button("File", |ui| {
@@ -20,7 +21,7 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                         .pick_folder()
                     {
                         if let Err(e) = app.change_base_dir(new_dir) {
-                            show_anyhow_error("Error changing base directory", &e);
+                            let _ = sender.send(BackgroundMessage::Error(e));
                         }
                     }
                 }
@@ -33,7 +34,7 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                         .clicked()
                     {
                         if let Err(e) = app.run_dot_clean() {
-                            show_anyhow_error("Error running dot_clean", &e);
+                            let _ = sender.send(BackgroundMessage::Error(e));
                         }
                     }
                 }
@@ -45,6 +46,24 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
 
             if add_games_button.clicked() {
                 app.add_isos();
+            }
+
+            // Tests (only debug builds)
+            #[cfg(debug_assertions)]
+            {
+                ui.separator();
+                ui.menu_button("🛠 Tests", |ui| {
+                    if ui.button("❌ Test Error").clicked() {
+                        let _ = sender.send(BackgroundMessage::Error(anyhow!("Test error")));
+                    }
+
+                    if ui.button("❌ Test Error 2").clicked() {
+                        rfd::MessageDialog::new()
+                            .set_title("Test Error 2")
+                            .set_level(rfd::MessageLevel::Error)
+                            .show();
+                    }
+                });
             }
 
             // Display the total number of games on the right side of the menu bar
@@ -72,7 +91,7 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                     .clicked()
                 {
                     if let Err(e) = open::that(&app.base_dir) {
-                        show_anyhow_error("Error", &anyhow!(e));
+                        let _ = sender.send(BackgroundMessage::Error(anyhow!(e)));
                     }
                 }
 
