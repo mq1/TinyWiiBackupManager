@@ -23,8 +23,8 @@ impl eframe::App for App {
             }
         });
 
-        // Render info windows for opened games
-        self.open_info_windows.retain_mut(|&mut index| {
+        // Render info windows for opened games and remove closed ones
+        self.open_info_windows.retain(|&index| {
             self.games.get_mut(index).map_or(false, |game| {
                 let mut is_open = true;
                 components::game_info::ui_game_info_window(
