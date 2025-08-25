@@ -38,6 +38,7 @@ impl eframe::App for App {
         });
 
         self.top_left_toasts.show(ctx);
+        self.bottom_left_toasts.show(ctx);
         self.bottom_right_toasts.show(ctx);
     }
 }
