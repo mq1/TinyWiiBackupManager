@@ -39,9 +39,10 @@ impl BaseDir {
     fn correct(&mut self) {
         if let Some(file_name) = self.0.file_name()
             && matches!(file_name.to_str(), Some("wbfs" | "games"))
-                && let Some(parent) = self.0.parent() {
-                    self.0 = parent.to_path_buf();
-                }
+            && let Some(parent) = self.0.parent()
+        {
+            self.0 = parent.to_path_buf();
+        }
     }
 
     fn wii_dir(&self) -> PathBuf {
@@ -84,7 +85,6 @@ impl BaseDir {
     }
 
     /// Run dot_clean to clean up MacOS ._ files
-    #[cfg(target_os = "macos")]
     pub fn run_dot_clean(&self) -> Result<()> {
         std::process::Command::new("dot_clean")
             .arg("-m")
