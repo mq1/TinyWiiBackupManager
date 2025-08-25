@@ -3,31 +3,16 @@
 
 use std::path::PathBuf;
 
-use anyhow::{Error, Result};
+use anyhow::Result;
 use eframe::egui;
 use egui_inbox::UiInbox;
-use egui_suspense::EguiSuspense;
 
 use crate::base_dir::BaseDir;
-use crate::messages::{BackgroundMessage, handle_messages};
+use crate::messages::BackgroundMessage;
+use crate::update_check::UpdateInfo;
 use crate::{
-    components::{self, console_filter::ConsoleFilter, update_notifier::UpdateInfo},
-    game::Game,
+    SUPPORTED_INPUT_EXTENSIONS, components::console_filter::ConsoleFilter, game::Game, update_check,
 };
-
-// don't format
-#[rustfmt::skip]
-pub const SUPPORTED_INPUT_EXTENSIONS: &[&str] = &[
-    "gcm", "GCM",
-    "iso", "ISO",
-    "wbfs", "WBFS",
-    "wia", "WIA",
-    "rvz", "RVZ",
-    "ciso", "CISO",
-    "gcz", "GCZ",
-    "tgc", "TGC",
-    "nfs", "NFS",
-];
 
 /// State of the conversion process
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
@@ -56,22 +41,23 @@ pub struct App {
     /// WBFS dir size
     pub base_dir_size: u64,
     /// Inbox for receiving messages from background tasks
-    pub(crate) inbox: UiInbox<BackgroundMessage>,
+    pub inbox: UiInbox<BackgroundMessage>,
     /// Current state of the conversion process
     pub conversion_state: ConversionState,
     /// File watcher
     watcher: Option<notify::RecommendedWatcher>,
     /// Whether to remove sources after conversion
     pub remove_sources: bool,
-    /// Update checker component
-    pub update_checker: Option<EguiSuspense<Option<UpdateInfo>, Error>>,
     /// Vector of game indices with open info windows
     pub open_info_windows: Vec<usize>,
     /// Console filter state
     pub console_filter: ConsoleFilter,
+    /// Update info
+    pub update_info: Option<UpdateInfo>,
     /// Toasts
     pub top_left_toasts: egui_notify::Toasts,
-    pub toasts: egui_notify::Toasts,
+    pub bottom_left_toasts: egui_notify::Toasts,
+    pub bottom_right_toasts: egui_notify::Toasts,
 }
 
 impl App {
@@ -80,13 +66,8 @@ impl App {
         // Install image loaders
         egui_extras::install_image_loaders(&cc.egui_ctx);
 
-        // Initialize the update checker based on the TWBM_DISABLE_UPDATES env var
-        let update_checker = std::env::var_os("TWBM_DISABLE_UPDATES")
-            .is_none()
-            .then(|| EguiSuspense::single_try(components::update_notifier::check_for_new_version));
-
         // Pretty notifications
-        let toasts = egui_notify::Toasts::default()
+        let bottom_right_toasts = egui_notify::Toasts::default()
             .with_anchor(egui_notify::Anchor::BottomRight)
             .with_margin(egui::Vec2::new(10.0, 32.))
             .with_shadow(egui::Shadow {
@@ -106,22 +87,39 @@ impl App {
                 color: egui::Color32::GRAY,
             });
 
+        let bottom_left_toasts = egui_notify::Toasts::default()
+            .with_anchor(egui_notify::Anchor::BottomLeft)
+            .with_margin(egui::Vec2::new(10.0, 32.0))
+            .with_shadow(egui::Shadow {
+                offset: [0, 0],
+                blur: 0,
+                spread: 1,
+                color: egui::Color32::GRAY,
+            });
+
         // Show toast to choose base dir
         top_left_toasts
             .custom(
-                "  Click on \"📄 File\" to select a Drive/Directory",
-                "⬆📄".to_string(),
+                "Click on \"📄 File\" to select a Drive/Directory    ",
+                "⬆".to_string(),
                 egui::Color32::DARK_GRAY,
             )
             .closable(false)
             .duration(None);
 
-        Self {
-            update_checker,
+        let mut app = Self {
             top_left_toasts,
-            toasts,
+            bottom_left_toasts,
+            bottom_right_toasts,
             ..Default::default()
-        }
+        };
+
+        // Initialize the update checker based on the TWBM_DISABLE_UPDATES env var
+        if std::env::var_os("TWBM_DISABLE_UPDATES").is_none() {
+            app.spawn_update_checker();
+        };
+
+        app
     }
 
     pub fn choose_base_dir(&mut self) -> Result<()> {
@@ -164,6 +162,14 @@ impl App {
         if let Some(paths) = paths {
             self.spawn_conversion_worker(paths);
         }
+    }
+
+    pub fn spawn_update_checker(&mut self) {
+        let sender = self.inbox.sender();
+        std::thread::spawn(move || match update_check::check_for_new_version() {
+            Ok(update_info) => sender.send(BackgroundMessage::UpdateCheckComplete(update_info)),
+            Err(e) => sender.send(BackgroundMessage::Error(e.into())),
+        });
     }
 
     /// Converts ISO files to WBFS in a background thread
@@ -210,44 +216,5 @@ impl App {
         if !self.open_info_windows.contains(&index) {
             self.open_info_windows.push(index);
         }
-    }
-}
-
-impl eframe::App for App {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        handle_messages(self, ctx);
-
-        match self.conversion_state {
-            ConversionState::Converting { .. } => ctx.set_cursor_icon(egui::CursorIcon::Wait),
-            _ => ctx.set_cursor_icon(egui::CursorIcon::Default),
-        }
-
-        components::top_panel::ui_top_panel(ctx, self);
-        components::bottom_panel::ui_bottom_panel(ctx, self);
-
-        egui::CentralPanel::default().show(ctx, |ui| {
-            components::game_grid::ui_game_grid(ui, self);
-
-            if matches!(self.conversion_state, ConversionState::Converting { .. }) {
-                components::conversion_modal::ui_conversion_modal(ctx, self);
-            }
-        });
-
-        // Render info windows for opened games
-        self.open_info_windows.retain_mut(|&mut index| {
-            self.games.get_mut(index).map_or(false, |game| {
-                let mut is_open = true;
-                components::game_info::ui_game_info_window(
-                    ctx,
-                    game,
-                    &mut is_open,
-                    self.inbox.sender(),
-                );
-                is_open
-            })
-        });
-
-        self.top_left_toasts.show(ctx);
-        self.toasts.show(ctx);
     }
 }
