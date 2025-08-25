@@ -146,7 +146,7 @@ impl Game {
     pub fn remove(&self) -> Result<()> {
         let res = rfd::MessageDialog::new()
             .set_title("Remove Game")
-            .set_description(&format!(
+            .set_description(format!(
                 "Are you sure you want to remove {}?",
                 self.display_title
             ))
@@ -195,19 +195,14 @@ impl Game {
 fn find_disc_image_file(game_dir: &Path) -> Option<PathBuf> {
     let entries = fs::read_dir(game_dir).ok()?;
 
-    for entry in entries {
-        if let Ok(entry) = entry {
-            let path = entry.path();
-            if path.is_file() {
-                if let Some(ext) = path.extension() {
-                    if let Some(ext_str) = ext.to_str() {
-                        if SUPPORTED_INPUT_EXTENSIONS.contains(&ext_str) {
-                            return Some(path);
-                        }
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path.is_file()
+            && let Some(ext) = path.extension()
+                && let Some(ext_str) = ext.to_str()
+                    && SUPPORTED_INPUT_EXTENSIONS.contains(&ext_str) {
+                        return Some(path);
                     }
-                }
-            }
-        }
     }
 
     None
