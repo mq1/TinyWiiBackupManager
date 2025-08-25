@@ -4,6 +4,7 @@
 use crate::app::App;
 use crate::components::fake_link::fake_link;
 use crate::messages::BackgroundMessage;
+use anyhow::anyhow;
 use eframe::egui;
 use size::Size;
 
@@ -19,20 +20,22 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
 
                 // Re-pick base directory button
                 if ui.button("📁 Pick base Drive/Directory").clicked()
-                    && let Err(e) = app.choose_base_dir() {
-                        let _ = sender.send(BackgroundMessage::Error(e));
-                    }
+                    && let Err(e) = app.choose_base_dir()
+                {
+                    let _ = sender.send(BackgroundMessage::Error(e));
+                }
 
                 // dot_clean button
-                #[cfg(target_os = "macos")]
-                if let Some(base_dir) = &app.base_dir
+                if cfg!(target_os = "macos")
+                    && let Some(base_dir) = &app.base_dir
                     && ui
                         .button("👻 Clean MacOS ._ files")
                         .on_hover_text(format!("Run dot_clean in {base_dir}"))
                         .clicked()
-                        && let Err(e) = base_dir.run_dot_clean() {
-                            let _ = sender.send(BackgroundMessage::Error(e));
-                        }
+                    && let Err(e) = base_dir.run_dot_clean()
+                {
+                    let _ = sender.send(BackgroundMessage::Error(e));
+                }
             });
 
             if app.base_dir.is_some() {
@@ -46,13 +49,11 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
             }
 
             // Tests (only debug builds)
-            #[cfg(debug_assertions)]
-            {
+            if cfg!(debug_assertions) {
                 ui.label("•");
                 ui.menu_button("🛠 Tests", |ui| {
                     if ui.button("❌ Test Error").clicked() {
-                        let _ =
-                            sender.send(BackgroundMessage::Error(anyhow::anyhow!("Test error")));
+                        let _ = sender.send(BackgroundMessage::Error(anyhow!("Test error")));
                     }
 
                     if ui.button("❌ Test Error 2").clicked() {
@@ -78,9 +79,10 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                     if fake_link(ui, &base_dir_name)
                         .on_hover_text(format!("Open the base directory ({base_dir_name})"))
                         .clicked()
-                        && let Err(e) = base_dir.open() {
-                            let _ = sender.send(BackgroundMessage::Error(e));
-                        }
+                        && let Err(e) = base_dir.open()
+                    {
+                        let _ = sender.send(BackgroundMessage::Error(e));
+                    }
 
                     ui.label("•");
                 }
