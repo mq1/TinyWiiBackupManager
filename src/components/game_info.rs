@@ -1,19 +1,27 @@
+use crate::app::BackgroundMessage;
 use crate::components::fake_link::fake_link;
-use crate::error_handling::show_anyhow_error;
 use crate::game::{ConsoleType, Game};
-use anyhow::anyhow;
 use eframe::egui::{self, RichText};
 use size::Size;
 
-pub fn ui_game_info_window(ctx: &egui::Context, game: &mut Game, open: &mut bool) {
+pub fn ui_game_info_window(
+    ctx: &egui::Context,
+    game: &mut Game,
+    open: &mut bool,
+    sender: egui_inbox::UiInboxSender<BackgroundMessage>,
+) {
     egui::Window::new(game.display_title.clone())
         .open(open)
         .show(ctx, |ui| {
-            ui_game_info_content(ui, game);
+            ui_game_info_content(ui, game, sender);
         });
 }
 
-fn ui_game_info_content(ui: &mut egui::Ui, game: &mut Game) {
+fn ui_game_info_content(
+    ui: &mut egui::Ui,
+    game: &mut Game,
+    sender: egui_inbox::UiInboxSender<BackgroundMessage>,
+) {
     ui.horizontal(|ui| {
         ui.label(RichText::new("📝 Title:").strong());
         ui.label(RichText::new(&game.title));
@@ -46,7 +54,7 @@ fn ui_game_info_content(ui: &mut egui::Ui, game: &mut Game) {
         ui.label(RichText::new("📁 Path:").strong());
         if fake_link(ui, &game.path.display().to_string()).clicked() {
             if let Err(e) = open::that(&game.path) {
-                show_anyhow_error("Error opening file manager", &anyhow!(e));
+                let _ = sender.send(BackgroundMessage::Error(anyhow::anyhow!(e)));
             }
         }
     });
