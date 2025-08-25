@@ -102,12 +102,11 @@ jobs:
           target: x86_64-pc-windows-msvc,aarch64-pc-windows-msvc
 
       - name: Build binaries in parallel
-        shell: pwsh
+        shell: bash
         run: |
-          $job1 = Start-Job -ScriptBlock { cd build-x86_64; cargo build --release --target x86_64-pc-windows-msvc }
-          $job2 = Start-Job -ScriptBlock { cd build-aarch64; cargo build --release --target aarch64-pc-windows-msvc }
-          Wait-Job -Job $job1, $job2
-          Receive-Job -Job $job1, $job2
+          (cd build-x86_64 && cargo build --release --target x86_64-pc-windows-msvc) &
+          (cd build-aarch64 && cargo build --release --target aarch64-pc-windows-msvc) &
+          wait
 
       - name: Package for Windows (x86_64 and aarch64)
         shell: pwsh
