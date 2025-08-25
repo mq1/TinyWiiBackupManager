@@ -9,3 +9,17 @@ mod components;
 mod game;
 mod messages;
 mod titles;
+mod update_check;
+
+#[rustfmt::skip]
+pub const SUPPORTED_INPUT_EXTENSIONS: &[&str] = &[
+    "gcm", "GCM",
+    "iso", "ISO",
+    "wbfs", "WBFS",
+    "wia", "WIA",
+    "rvz", "RVZ",
+    "ciso", "CISO",
+    "gcz", "GCZ",
+    "tgc", "TGC",
+    "nfs", "NFS",
+];

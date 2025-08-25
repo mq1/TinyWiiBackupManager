@@ -1,4 +1,5 @@
 use crate::app::{App, ConversionState};
+use crate::update_check::UpdateInfo;
 use anyhow::Error;
 use eframe::egui;
 use log::error;
@@ -16,6 +17,8 @@ pub enum BackgroundMessage {
     DirectoryChanged,
     /// Signal that an error occurred
     Error(Error),
+    /// Signal that an update is available
+    UpdateCheckComplete(Option<UpdateInfo>),
 }
 
 /// Processes messages received from background tasks
@@ -67,7 +70,24 @@ pub fn handle_messages(app: &mut App, ctx: &egui::Context) {
             BackgroundMessage::Error(e) => {
                 error!("{e:?}");
                 let text = egui::RichText::new(e.to_string()).strong().size(16.0);
-                app.toasts.error(text).closable(true).duration(None);
+                app.bottom_right_toasts
+                    .error(text)
+                    .closable(true)
+                    .duration(None);
+            }
+
+            BackgroundMessage::UpdateCheckComplete(update_info) => {
+                if let Some(update_info) = update_info {
+                    let update_text = format!("Update available: {}    ", update_info.version);
+
+                    app.bottom_left_toasts.custom(
+                        update_text,
+                        "⬇".to_string(),
+                        egui::Color32::GRAY,
+                    );
+
+                    app.update_info = Some(update_info);
+                }
             }
         }
     }
