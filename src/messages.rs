@@ -62,9 +62,9 @@ pub fn handle_messages(app: &mut App, ctx: &egui::Context) {
             }
 
             BackgroundMessage::DirectoryChanged => {
-                //if let Err(e) = app.refresh_games() {
-                //    let _ = sender.send(BackgroundMessage::Error(e));
-                //}
+                if let Err(e) = app.refresh_games() {
+                    let _ = sender.send(BackgroundMessage::Error(e));
+                }
             }
 
             BackgroundMessage::Error(e) => {

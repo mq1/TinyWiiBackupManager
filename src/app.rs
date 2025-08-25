@@ -146,7 +146,7 @@ impl App {
         Ok(())
     }
 
-    fn refresh_games(&mut self) -> Result<()> {
+    pub fn refresh_games(&mut self) -> Result<()> {
         if let Some(base_dir) = &self.base_dir {
             (self.games, self.base_dir_size) = base_dir.get_games()?;
         }
