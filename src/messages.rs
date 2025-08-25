@@ -78,7 +78,7 @@ pub fn handle_messages(app: &mut App, ctx: &egui::Context) {
 
             BackgroundMessage::UpdateCheckComplete(update_info) => {
                 if let Some(update_info) = update_info {
-                    let update_text = format!("Update available: {}    ", update_info.version);
+                    let update_text = format!("✨Update available: {}✨    ", update_info.version);
 
                     app.bottom_left_toasts.custom(
                         update_text,
