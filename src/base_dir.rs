@@ -3,7 +3,7 @@
 
 use crate::game::{ConsoleType, Game};
 use anyhow::{Context, Result};
-use notify::{FsEventWatcher, RecursiveMode, Watcher};
+use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 use std::fmt;
 use std::path::{Path, PathBuf};
 
@@ -59,7 +59,7 @@ impl BaseDir {
         Ok(())
     }
 
-    pub fn get_watcher(&self, callback: impl notify::EventHandler) -> Result<FsEventWatcher> {
+    pub fn get_watcher(&self, callback: impl notify::EventHandler) -> Result<RecommendedWatcher> {
         let mut watcher = notify::recommended_watcher(callback)?;
 
         self.create_dirs()?;
