@@ -7,6 +7,7 @@ pub mod app;
 mod base_dir;
 mod components;
 mod convert;
+mod cover_manager;
 mod game;
 mod messages;
 mod titles;

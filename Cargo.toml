@@ -47,6 +47,7 @@ num_cpus = "1.17"
 sanitize-filename-reader-friendly = "2.3"
 serde = { version = "1.0", features = ["derive"] }
 quick-xml = { version = "0.37", features = ["serialize"] }
+reqwest = { version = "0.12", features = ["blocking", "rustls-tls"] }
 
 [build-dependencies]
 quick-xml = { version = "0.37", features = ["serialize"] }
@@ -69,6 +70,9 @@ wgpu = { version = "25", default-features = false, features = ["dx12"] }
 
 [target.'cfg(target_os = "windows")'.build-dependencies]
 winres = "0.1"
+
+[dev-dependencies]
+tempfile = "3.13"
 
 [profile.release]
 opt-level = 3

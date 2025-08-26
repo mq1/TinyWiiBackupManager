@@ -11,6 +11,7 @@ use std::sync::{
 
 use crate::base_dir::BaseDir;
 use crate::convert::verify_game;
+use crate::cover_manager::CoverManager;
 use crate::game::{CalculatedHashes, VerificationStatus};
 use crate::messages::BackgroundMessage;
 use crate::update_check::UpdateInfo;
@@ -91,6 +92,8 @@ pub struct App {
     pub bottom_right_toasts: egui_notify::Toasts,
     /// Cancellation flag for background operations
     pub operation_cancelled: Arc<AtomicBool>,
+    /// Cover manager for downloading game covers
+    pub cover_manager: Option<CoverManager>,
 }
 
 impl App {
@@ -105,12 +108,18 @@ impl App {
             bottom_left_toasts: create_toasts(egui_notify::Anchor::BottomLeft),
             bottom_right_toasts: create_toasts(egui_notify::Anchor::BottomRight),
             operation_cancelled: Arc::new(AtomicBool::new(false)),
+            cover_manager: None,
             ..Default::default()
         };
 
         // Load base dir from storage
         if let Some(storage) = cc.storage {
             app.base_dir = eframe::get_value(storage, "base_dir");
+            
+            // Initialize cover manager if we have a base directory
+            if let Some(ref base_dir) = app.base_dir {
+                app.cover_manager = Some(CoverManager::new(base_dir.path().to_path_buf()));
+            }
         }
 
         // If the base directory isn't set or no longer exists, prompt the user to select one.
@@ -173,8 +182,11 @@ impl App {
             .pick_folder();
 
         if let Some(new_dir) = new_dir {
-            let base_dir = BaseDir::new(new_dir)?;
+            let base_dir = BaseDir::new(new_dir.clone())?;
             self.base_dir = Some(base_dir);
+
+            // Initialize cover manager with the new base directory
+            self.cover_manager = Some(CoverManager::new(new_dir));
 
             self.watch_base_dir()?;
             self.refresh_games()?;
