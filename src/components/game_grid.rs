@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
+use crate::cover_manager::{CoverManager, CoverType};
 use crate::messages::BackgroundMessage;
 use crate::{
     app::App,
@@ -17,6 +18,7 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
 
     let mut to_remove = None;
     let mut to_open_info = None;
+    let mut covers_to_download = Vec::new();
 
     egui::ScrollArea::vertical().show(ui, |ui| {
         // expand horizontally
@@ -34,12 +36,15 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
 
                 for (original_index, game) in app.games.iter().enumerate() {
                     if filter.shows_game(game) {
-                        let (should_remove, should_open_info) = ui_game_card(ui, game);
+                        let (should_remove, should_open_info, should_download_cover) = ui_game_card(ui, game, &app.cover_manager);
                         if should_remove {
                             to_remove = Some((*game).clone());
                         }
                         if should_open_info {
                             to_open_info = Some(original_index);
+                        }
+                        if should_download_cover {
+                            covers_to_download.push(game.id.clone());
                         }
 
                         column_index += 1;
@@ -50,6 +55,13 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
                 }
             });
     });
+
+    // Handle cover downloads after the UI loop
+    if let Some(cover_manager) = &app.cover_manager {
+        for game_id in covers_to_download {
+            cover_manager.queue_download(game_id, CoverType::Cover3D, sender.clone());
+        }
+    }
 
     if let Some(game) = to_remove
         && let Err(e) = game.remove()
@@ -62,9 +74,10 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
     }
 }
 
-fn ui_game_card(ui: &mut egui::Ui, game: &Game) -> (bool, bool) {
+fn ui_game_card(ui: &mut egui::Ui, game: &Game, cover_manager: &Option<CoverManager>) -> (bool, bool, bool) {
     let mut remove_clicked = false;
     let mut info_clicked = false;
+    let mut should_download_cover = false;
 
     let card = egui::Frame::group(ui.style()).corner_radius(5.0);
     card.show(ui, |ui| {
@@ -105,11 +118,43 @@ fn ui_game_card(ui: &mut egui::Ui, game: &Game) -> (bool, bool) {
 
             // Centered content
             ui.with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
-                let image = Image::new(&game.image_url)
-                    .max_height(128.0)
-                    .maintain_aspect_ratio(true)
-                    .show_loading_spinner(true);
-                ui.add(image);
+                // Handle cover art
+                if let Some(cover_manager) = cover_manager {
+                    let cover_path = cover_manager.get_cover_path(&game.id, CoverType::Cover3D);
+                    
+                    if cover_path.exists() {
+                        // Show existing local cover
+                        let image = Image::new(format!("file://{}", cover_path.display()))
+                            .max_height(128.0)
+                            .maintain_aspect_ratio(true);
+                        ui.add(image);
+                    } else if cover_manager.is_downloading(&game.id, CoverType::Cover3D) {
+                        // Show placeholder while downloading
+                        ui.allocate_ui(egui::vec2(128.0, 128.0), |ui| {
+                            ui.centered_and_justified(|ui| {
+                                ui.spinner();
+                                ui.label("Downloading cover...");
+                            });
+                        });
+                    } else {
+                        // Show placeholder and mark for download
+                        ui.allocate_ui(egui::vec2(128.0, 128.0), |ui| {
+                            ui.centered_and_justified(|ui| {
+                                ui.label("📦");
+                            });
+                        });
+                        
+                        // Mark for download
+                        should_download_cover = true;
+                    }
+                } else {
+                    // No cover manager - show placeholder
+                    ui.allocate_ui(egui::vec2(128.0, 128.0), |ui| {
+                        ui.centered_and_justified(|ui| {
+                            ui.label("🎮");
+                        });
+                    });
+                }
 
                 ui.add_space(5.);
 
@@ -133,5 +178,5 @@ fn ui_game_card(ui: &mut egui::Ui, game: &Game) -> (bool, bool) {
         });
     });
 
-    (remove_clicked, info_clicked)
+    (remove_clicked, info_clicked, should_download_cover)
 }
