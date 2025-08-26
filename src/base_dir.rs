@@ -67,8 +67,8 @@ impl BaseDir {
     /// Scans the "wbfs" and "games" directories and get the list of games and the size of the base directory
     pub fn get_games(&self) -> Result<(Vec<Game>, u64)> {
         let mut games = Vec::new();
-        scan_dir(self.wii_dir(), &mut games, ConsoleType::Wii)?;
-        scan_dir(self.gc_dir(), &mut games, ConsoleType::GameCube)?;
+        scan_dir(self.wii_dir(), &mut games, ConsoleType::Wii, &self.0)?;
+        scan_dir(self.gc_dir(), &mut games, ConsoleType::GameCube, &self.0)?;
 
         // Sort the combined vector
         games.sort_by(|a, b| a.display_title.cmp(&b.display_title));
@@ -102,7 +102,12 @@ impl fmt::Display for BaseDir {
 }
 
 /// Scans a directory for games
-fn scan_dir(dir: impl AsRef<Path>, games: &mut Vec<Game>, console_type: ConsoleType) -> Result<()> {
+fn scan_dir(
+    dir: impl AsRef<Path>,
+    games: &mut Vec<Game>,
+    console_type: ConsoleType,
+    base_dir: &Path,
+) -> Result<()> {
     let dir = dir.as_ref();
 
     if !dir.is_dir() {
@@ -113,7 +118,7 @@ fn scan_dir(dir: impl AsRef<Path>, games: &mut Vec<Game>, console_type: ConsoleT
         .filter_map(Result::ok)
         .map(|entry| entry.path())
         .filter(|path| path.is_dir())
-        .filter_map(|path| Game::from_path(path, console_type).ok())
+        .filter_map(|path| Game::from_path(path, console_type, Some(base_dir)).ok())
         .for_each(|game| {
             games.push(game);
         });
