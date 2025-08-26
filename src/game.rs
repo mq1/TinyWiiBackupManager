@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use crate::SUPPORTED_INPUT_EXTENSIONS;
-use crate::titles::GAME_TITLES;
 use crate::util::redump;
 use anyhow::{Context, Result, bail};
 use filetime::FileTime;
@@ -10,6 +9,8 @@ use nod::read::{DiscMeta, DiscOptions, DiscReader};
 use phf::phf_map;
 use std::path::{Path, PathBuf};
 use std::{fs, io};
+
+include!(concat!(env!("OUT_DIR"), "/titles.rs"));
 
 // A static map to convert the region character from a game's ID to a language code
 // used by the GameTDB API for fetching cover art.

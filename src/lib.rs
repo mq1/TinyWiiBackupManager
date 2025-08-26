@@ -9,7 +9,6 @@ mod components;
 mod convert;
 mod game;
 mod messages;
-mod titles;
 mod update_check;
 mod util;
 
