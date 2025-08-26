@@ -2924,6 +2924,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "phf_codegen"
+version = "0.13.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "49aa7f9d80421bca176ca8dbfebe668cc7a2684708594ec9f3c0db0805d5d6e1"
+dependencies = [
+ "phf_generator 0.13.1",
+ "phf_shared 0.13.1",
+]
+
+[[package]]
 name = "phf_generator"
 version = "0.11.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3822,6 +3832,7 @@ dependencies = [
  "num_cpus",
  "open",
  "phf 0.13.1",
+ "phf_codegen",
  "quick-xml 0.37.5",
  "rfd",
  "sanitize-filename-reader-friendly",

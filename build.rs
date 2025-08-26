@@ -1,7 +1,7 @@
 use std::{
     env,
     fs::File,
-    io::{BufReader, BufWriter, Write},
+    io::{BufRead, BufReader, BufWriter, Write},
     mem::size_of,
     path::Path,
 };
@@ -131,9 +131,45 @@ fn compile_redump_database() {
     println!("cargo:rustc-env=REDUMP_DB_COUNT={}", entries.len());
 }
 
+fn compile_titles() {
+    // Path for the generated code snippet in the build output directory
+    let path = Path::new(&env::var("OUT_DIR").unwrap()).join("titles.rs");
+    let mut file = BufWriter::new(File::create(&path).unwrap());
+
+    // Re-run the build script if titles.txt changes
+    println!("cargo:rerun-if-changed=assets/titles.txt");
+
+    let titles_file = File::open("assets/titles.txt").expect("Could not open assets/titles.txt");
+    let reader = BufReader::new(titles_file);
+
+    let mut map_builder = phf_codegen::Map::new();
+
+    for line in reader.lines() {
+        let line = line.unwrap();
+        if let Some((game_id, game_title)) = line.split_once('=') {
+            let game_id = game_id.trim().to_string();
+            let game_title = game_title.trim().to_string();
+
+            map_builder.entry(game_id, format!("r#\"{}\"#", game_title));
+        }
+    }
+
+    // Write the generated map directly into the output file.
+    // This is not just a variable, but the full phf::phf_map! macro invocation.
+    writeln!(
+        &mut file,
+        "static GAME_TITLES: phf::Map<&'static str, &'static str> = {};",
+        map_builder.build()
+    )
+    .unwrap();
+}
+
 fn main() {
     // Compile Redump database
     compile_redump_database();
+
+    // Compile titles map
+    compile_titles();
 
     // Windows-specific icon resource
     #[cfg(windows)]
