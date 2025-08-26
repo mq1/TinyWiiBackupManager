@@ -199,10 +199,11 @@ fn find_disc_image_file(game_dir: &Path) -> Option<PathBuf> {
         let path = entry.path();
         if path.is_file()
             && let Some(ext) = path.extension()
-                && let Some(ext_str) = ext.to_str()
-                    && SUPPORTED_INPUT_EXTENSIONS.contains(&ext_str) {
-                        return Some(path);
-                    }
+            && let Some(ext_str) = ext.to_str()
+            && SUPPORTED_INPUT_EXTENSIONS.contains(&ext_str)
+        {
+            return Some(path);
+        }
     }
 
     None

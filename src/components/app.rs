@@ -41,4 +41,12 @@ impl eframe::App for App {
         self.bottom_left_toasts.show(ctx);
         self.bottom_right_toasts.show(ctx);
     }
+
+    fn save(&mut self, storage: &mut dyn eframe::Storage) {
+        // Update remove_sources in settings before saving
+        self.settings.remove_sources = self.remove_sources;
+
+        // Save settings
+        self.settings.save(storage);
+    }
 }

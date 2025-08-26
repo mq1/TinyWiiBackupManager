@@ -53,9 +53,10 @@ fn ui_game_info_content(
     ui.horizontal(|ui| {
         ui.label(RichText::new("📁 Path:").strong());
         if fake_link(ui, &game.path.display().to_string()).clicked()
-            && let Err(e) = open::that(&game.path) {
-                let _ = sender.send(BackgroundMessage::Error(anyhow::anyhow!(e)));
-            }
+            && let Err(e) = open::that(&game.path)
+        {
+            let _ = sender.send(BackgroundMessage::Error(anyhow::anyhow!(e)));
+        }
     });
 
     ui.horizontal(|ui| {

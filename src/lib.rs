@@ -8,6 +8,7 @@ mod base_dir;
 mod components;
 mod game;
 mod messages;
+mod settings;
 mod titles;
 mod update_check;
 

@@ -10,6 +10,7 @@ use egui_inbox::UiInbox;
 
 use crate::base_dir::BaseDir;
 use crate::messages::BackgroundMessage;
+use crate::settings::Settings;
 use crate::update_check::UpdateInfo;
 use crate::{
     SUPPORTED_INPUT_EXTENSIONS, components::console_filter::ConsoleFilter, game::Game, update_check,
@@ -59,6 +60,8 @@ pub struct App {
     pub top_left_toasts: egui_notify::Toasts,
     pub bottom_left_toasts: egui_notify::Toasts,
     pub bottom_right_toasts: egui_notify::Toasts,
+    /// Application settings
+    pub settings: Settings,
 }
 
 impl App {
@@ -66,6 +69,13 @@ impl App {
     pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
         // Install image loaders
         egui_extras::install_image_loaders(&cc.egui_ctx);
+
+        // Load saved settings
+        let settings = if let Some(storage) = cc.storage {
+            Settings::load(storage)
+        } else {
+            Settings::default()
+        };
 
         // Pretty notifications
         let bottom_right_toasts = egui_notify::Toasts::default()
@@ -78,7 +88,7 @@ impl App {
                 color: egui::Color32::GRAY,
             });
 
-        let mut top_left_toasts = egui_notify::Toasts::default()
+        let top_left_toasts = egui_notify::Toasts::default()
             .with_anchor(egui_notify::Anchor::TopLeft)
             .with_margin(egui::Vec2::new(10.0, 32.0))
             .with_shadow(egui::Shadow {
@@ -98,22 +108,37 @@ impl App {
                 color: egui::Color32::GRAY,
             });
 
-        // Show toast to choose base dir
-        top_left_toasts
-            .custom(
-                "Click on \"📄 File\" to select a Drive/Directory    ",
-                "⬆".to_string(),
-                egui::Color32::DARK_GRAY,
-            )
-            .closable(false)
-            .duration(None);
-
         let mut app = Self {
             top_left_toasts,
             bottom_left_toasts,
             bottom_right_toasts,
+            remove_sources: settings.remove_sources,
+            settings,
             ..Default::default()
         };
+
+        // Try to restore base directory from settings
+        if let Some(base_dir_path) = app.settings.base_dir_path.clone()
+            && base_dir_path.exists()
+            && let Err(e) = app.set_base_dir(base_dir_path)
+        {
+            app.bottom_right_toasts
+                .error(format!("Failed to load saved directory: {}", e))
+                .closable(true)
+                .duration(None);
+        }
+
+        // Only show directory selection prompt if no directory is loaded
+        if app.base_dir.is_none() {
+            app.top_left_toasts
+                .custom(
+                    "Click on \"📄 File\" to select a Drive/Directory    ",
+                    "⬆".to_string(),
+                    egui::Color32::DARK_GRAY,
+                )
+                .closable(false)
+                .duration(None);
+        }
 
         // Initialize the update checker based on the TWBM_DISABLE_UPDATES env var
         if std::env::var_os("TWBM_DISABLE_UPDATES").is_none() {
@@ -123,32 +148,42 @@ impl App {
         app
     }
 
+    /// Set up a base directory with watcher and refresh games
+    fn set_base_dir(&mut self, path: PathBuf) -> Result<()> {
+        let base_dir = BaseDir::new(path.clone())?;
+
+        let sender = self.inbox.sender();
+        let watcher = base_dir.get_watcher(move |res| {
+            if let Ok(notify::Event {
+                kind:
+                    notify::EventKind::Modify(_)
+                    | notify::EventKind::Create(_)
+                    | notify::EventKind::Remove(_),
+                ..
+            }) = res
+            {
+                let _ = sender.send(BackgroundMessage::DirectoryChanged);
+            }
+        })?;
+
+        self.watcher = Some(watcher);
+        self.base_dir = Some(base_dir);
+
+        // Save the base directory to settings
+        self.settings.base_dir_path = Some(path);
+
+        self.refresh_games()?;
+
+        Ok(())
+    }
+
     pub fn choose_base_dir(&mut self) -> Result<()> {
         let new_dir = rfd::FileDialog::new()
             .set_title("Select New Base Directory")
             .pick_folder();
 
         if let Some(new_dir) = new_dir {
-            let base_dir = BaseDir::new(new_dir)?;
-
-            let sender = self.inbox.sender();
-            let watcher = base_dir.get_watcher(move |res| {
-                if let Ok(notify::Event {
-                    kind:
-                        notify::EventKind::Modify(_)
-                        | notify::EventKind::Create(_)
-                        | notify::EventKind::Remove(_),
-                    ..
-                }) = res
-                {
-                    let _ = sender.send(BackgroundMessage::DirectoryChanged);
-                }
-            })?;
-
-            self.watcher = Some(watcher);
-            self.base_dir = Some(base_dir);
-
-            self.refresh_games()?;
+            self.set_base_dir(new_dir)?;
         }
 
         Ok(())
