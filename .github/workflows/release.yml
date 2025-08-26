@@ -49,10 +49,12 @@ jobs:
         run: |
           sudo apt-get update
 
-          # Install dependencies for aarch64, eframe and appimage
+          # Required for cross-compiling to aarch64
           if [[ "${{ matrix.target }}" == "aarch64-unknown-linux-gnu" ]]; then
             sudo apt-get install -y gcc-aarch64-linux-gnu
           fi
+          
+          # Install egui and appimage dependencies
           sudo apt-get install -y \
             libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev \
             squashfs-tools
@@ -121,12 +123,14 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Path dist
+          
           # Use sha for PR builds, ref_name for push builds
           if ("${{ github.event_name }}" -eq "pull_request") {
             $RefName = "${{ github.event.pull_request.head.sha }}"
           } else {
             $RefName = "${{ github.ref_name }}"
           }
+          
           Move-Item -Path "target/${{ matrix.target }}/${{ env.CARGO_PROFILE }}/tiny-wii-backup-manager.exe" -Destination "TWBM-${RefName}-Windows-${{ matrix.arch }}.exe"
           Compress-Archive -Path "TWBM-${RefName}-Windows-${{ matrix.arch }}.exe" -DestinationPath "dist/TWBM-${RefName}-Windows-${{ matrix.arch }}.zip"
 
@@ -171,7 +175,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: macos-binary-${{ matrix.arch }}
-          path: target/${{ matrix.target }}/${{ env.CARGO_PROFILE }}/bundle/osx/TinyWiiBackupManager.app
+          path: target/${{ matrix.target }}/${{ env.CARGO_PROFILE }}/bundle/osx/TinyWiiBackupManager.app/
 
   package-macos:
     name: Package MacOS Universal2
@@ -201,16 +205,15 @@ jobs:
             REF_NAME="${{ github.ref_name }}"
           fi
 
-          # Reconstruct app bundle from aarch64 artifacts (use this as the base)
-          mkdir -p TinyWiiBackupManager.app
-          cp -r aarch64-artifacts/Contents TinyWiiBackupManager.app/
+          # Copy aarch64 app bundle to be used as base
+          cp -r aarch64-artifacts/TinyWiiBackupManager.app .
           
           # Create universal binary using lipo
           lipo \
             -create \
             -output TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager \
-            aarch64-artifacts/Contents/MacOS/tiny-wii-backup-manager \
-            x86_64-artifacts/Contents/MacOS/tiny-wii-backup-manager
+            aarch64-artifacts/TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager \
+            x86_64-artifacts/TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager
 
           # Create DMG
           npx --yes create-dmg TinyWiiBackupManager.app . || true
