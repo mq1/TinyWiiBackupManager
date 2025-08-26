@@ -9,3 +9,4 @@ pub mod fake_link;
 pub mod game_grid;
 pub mod game_info;
 pub mod top_panel;
+pub mod verification_modal;

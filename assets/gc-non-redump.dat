@@ -1,0 +1,639 @@
+<?xml version="1.0"?>
+<datafile xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://datomatic.no-intro.org/stuff https://datomatic.no-intro.org/stuff/schema_nointro_datfile_v3.xsd">
+	<header>
+		<id>160</id>
+		<name>Non-Redump - Nintendo - Nintendo GameCube</name>
+		<description>Non-Redump - Nintendo - Nintendo GameCube</description>
+		<subset>Non-Redump</subset>
+		<version>20240904-155318</version>
+		<author>bikerspade, Gefflon, Hiccup, NovaAurora, rarenight, relax, Seventy7, togemet2</author>
+		<homepage>No-Intro</homepage>
+		<url>https://www.no-intro.org</url>
+		<clrmamepro forcenodump="required"/>
+	</header>
+	<game name="Asterix &amp; Obelix XXL (Europe) (Beta) (2004-02-25)" id="0040">
+		<description>Asterix &amp; Obelix XXL (Europe) (Beta) (2004-02-25)</description>
+		<rom name="Asterix &amp; Obelix XXL (Europe) (Beta) (2004-02-25).iso" size="1459978240" crc="488ab477" md5="6246c365f1ca90f0e60a049fdd6b6b4b" sha1="d25ee7dd8393a599ad7aab912765089a4eb2d7b6" sha256="23ed969a3bca369caabed16fe55a3297f864823e105f81e3e06430dcd4c12a2a" serial="GAGPEL"/>
+	</game>
+	<game name="ATV - Quad Power Racing 2 (Europe) (Beta) (2002-10-11)" id="0007">
+		<description>ATV - Quad Power Racing 2 (Europe) (Beta) (2002-10-11)</description>
+		<rom name="ATV - Quad Power Racing 2 (Europe) (Beta) (2002-10-11).iso" size="1459978240" crc="0f846161" md5="66510231651603ef1e5ac025ba4ac1e5" sha1="d544794ff064c22b87f1072b8874c3f833ea7060" serial="RELSAB"/>
+	</game>
+	<game name="Baldur's Gate - Dark Alliance (USA) (Beta) (2002-10-14)" id="0008">
+		<description>Baldur's Gate - Dark Alliance (USA) (Beta) (2002-10-14)</description>
+		<rom name="Baldur's Gate - Dark Alliance (USA) (Beta) (2002-10-14).iso" size="1459978240" crc="c2c80167" md5="190c448f60217f42705e78ee3a77477c" sha1="0790aafd32fe9f8c3f220859b5878444f1fcfb74" serial="GDEE71"/>
+	</game>
+	<game name="BattleBots (USA) (Proto)" id="0006">
+		<description>BattleBots (USA) (Proto)</description>
+		<rom name="BattleBots (USA) (Proto).iso" size="1459978240" crc="1f19869c" md5="ddfc8488bb5b03990ef643f87c7b06b9" sha1="ba4d305a62a1ff9f47dbe990929bbaf663930120" serial="GB8E78"/>
+	</game>
+	<game name="Biohazard 4 (Japan) (Beta) (2004-09-08)" id="0059">
+		<category>Games</category>
+		<description>Biohazard 4 (Japan) (Beta) (2004-09-08)</description>
+		<rom name="Biohazard 4 (Japan) (Beta) (2004-09-08).iso" size="1459978240" crc="ec06ecf3" md5="f74681ccdfbc43fbabf5687ff3717ccc" sha1="1090207ef2d25bcc646b9808d1a6f9bc3b96c738" sha256="dee4da6368736bd13d8130011b20c6d86d5273044deb9e1ac778c95f623bbe2a" serial="P4BJ08"/>
+	</game>
+	<game name="Biohazard 4 (Japan) (Beta) (2004-09-10)" id="0060">
+		<category>Games</category>
+		<description>Biohazard 4 (Japan) (Beta) (2004-09-10)</description>
+		<rom name="Biohazard 4 (Japan) (Beta) (2004-09-10).iso" size="1459978240" crc="5c165aaf" md5="1e4ba72f69a5ced86195a255a928d6c9" sha1="440a6b70af661e0331824fb0d1c9ca828fa956fa" sha256="bb3f4c7f18ebc7fdd70773d228532b99f189f93fd0be12b6d5cbff7ff69b45ef" serial="P4BJ08"/>
+	</game>
+	<game name="Diag Ver 3.1.1 (Japan)" id="0039">
+		<description>Diag Ver 3.1.1 (Japan)</description>
+		<rom name="Diag Ver 3.1.1 (Japan).iso" size="1459978240" crc="94c088df" md5="febff18dc6ea81c43be555cf343cacb2" sha1="29d432426b69dc8eb5483447ad4b2695f1907f82" sha256="b16667ea28cd2309d43579f58001eec667f3b2bbb1583e1b518d3328d43bd9dc" serial="060J01"/>
+	</game>
+	<game name="Disney's Hide &amp; Sneak (Japan) (Beta) (2003-12-01)" id="0009">
+		<description>Disney's Hide &amp; Sneak (Japan) (Beta) (2003-12-01)</description>
+		<rom name="Disney's Hide &amp; Sneak (Japan) (Beta) (2003-12-01).iso" size="1459978240" crc="cff85dc4" md5="ddebe2515b8196ade500d224f4ca6203" sha1="1c6b2bd340995ff0a1df48f57f86f9381ed3ebd4" serial="GAAJ08"/>
+	</game>
+	<game name="Dodger (Unknown) (Tech Demo) (Compiled)" id="0010">
+		<description>Dodger (Unknown) (Tech Demo) (Compiled)</description>
+		<rom name="Dodger (Unknown) (Tech Demo) (Compiled).iso" size="26833286" crc="6254fb97" md5="7e47e5fb2801e9d1f5bf68dc03c716a7" sha1="544f6834179ff207e9f0f4f6a9994d4543605055" serial="TESTNA"/>
+	</game>
+	<game name="Dr. Muto (Europe) (Beta) (2003-02-12)" id="0011">
+		<description>Dr. Muto (Europe) (Beta) (2003-02-12)</description>
+		<rom name="Dr. Muto (Europe) (Beta) (2003-02-12).iso" size="1459978240" crc="d442a6bf" md5="87b369b3bbd00c3fb45eadd0fcbf2d56" sha1="7d9fbe8f84d4a90edec9ca44a8bc5cc37175c070" serial="GMUP5D"/>
+	</game>
+	<game name="Freestyle Street Soccer (USA) (Beta) (2003-11-24)" id="0045">
+		<description>Freestyle Street Soccer (USA) (Beta) (2003-11-24)</description>
+		<rom name="Freestyle Street Soccer (USA) (Beta) (2003-11-24).iso" size="1459978240" crc="32ed3ebf" md5="2e1235ff71f174c45b00fd3e14da6a8f" sha1="a20a5d3f178c062e2f0fcfcf84c9b7ecdb5a0b87" sha256="e1debc8b8be1794d5eb83dd017b6db5256a04e9fa54c875f7af00728115ae51d" serial="GUVE51"/>
+	</game>
+	<game name="Gekkan Nintendo Tentou Demo 2002.4.4 (Japan)" id="0001">
+		<category>Demos</category>
+		<description>Gekkan Nintendo Tentou Demo 2002.4.4 (Japan)</description>
+		<rom name="Gekkan Nintendo Tentou Demo 2002.4.4 (Japan).iso" size="1459978240" crc="8efbb42b" md5="7fbf8c610ccfbd6719d9e60ddef23278" sha1="f44226bb6e041f40b6e6d61e3c4a8dd62abc63b5" serial="D28J01"/>
+	</game>
+	<game name="Gladius (USA) (Beta) (2003-05-21)" id="0044">
+		<description>Gladius (USA) (Beta) (2003-05-21)</description>
+		<rom name="Gladius (USA) (Beta) (2003-05-21).iso" size="1459978240" crc="87a41cc0" md5="0eb18056c445d16b059cc35f2e46d0be" sha1="4e9aa9174f80a1323dcf35d9cf5dc18ae04acf90" sha256="6ca4e23418a17bfdbe2c8846f8da8beb2f2d6c8df9ac3d2cfa45b5ce1947a7a9" serial="RELSAB"/>
+	</game>
+	<game name="Killer7 (Europe) (Disc 2) (Beta)" id="0053" cloneofid="0052">
+		<description>Killer7 (Europe) (Disc 2) (Beta)</description>
+		<rom name="Killer7 (Europe) (Disc 2) (Beta).iso" size="1459978240" crc="389e399b" md5="69793e8688b781f6ae0b86b96293cf68" sha1="73e7035acb5d9bc64b7c37d54829837ae62d1db3" sha256="29b99463507093389d62db9868f82201bb49c9e9d43f5d801c4e02c763ad9534" serial="GK7E08"/>
+	</game>
+	<game name="Killer7 (Europe) (Disc 1) (Beta)" id="0052">
+		<description>Killer7 (Europe) (Disc 1) (Beta)</description>
+		<rom name="Killer7 (Europe) (Disc 1) (Beta).iso" size="1459978240" crc="af55eef2" md5="af3fb27be289dbfbefd18ee917384e45" sha1="357bc4a71c7a494dc601f4eb245d4e1a5b9a2631" sha256="eb1b7a45766ca685c6c7381105163824b10f15d878699913c5b6976adac6b252" serial="GK7E08"/>
+	</game>
+	<game name="Killer7 (Europe) (Disc 2) (Beta) (2005-05-11)" id="0051" cloneofid="0050">
+		<description>Killer7 (Europe) (Disc 2) (Beta) (2005-05-11)</description>
+		<rom name="Killer7 (Europe) (Disc 2) (Beta) (2005-05-11).iso" size="1459978240" crc="112d7e2f" md5="9d2b347b7d0c12d71dc55ae6676efb6a" sha1="21e80bcbe7e3921ea965304cb30b743b7328843a" sha256="34b876ab39d3b9a3a8363f885ba092283b6e6b7cf51ff508b415103028e19a71" serial="GK7P08"/>
+	</game>
+	<game name="Killer7 (Europe) (Disc 1) (Beta) (2005-05-11)" id="0050">
+		<description>Killer7 (Europe) (Disc 1) (Beta) (2005-05-11)</description>
+		<rom name="Killer7 (Europe) (Disc 1) (Beta) (2005-05-11).iso" size="1459978240" crc="75ea229a" md5="f24e4954df26ffd0ae0cf9234b00fdf0" sha1="9a8d2f01aec68eb2bc94ede4fd93f04d5c99fd05" sha256="74497d7cabd356b7bba2d5112e928d039316377110d3ef24a8bf437a5c64a465" serial="GK7P08"/>
+	</game>
+	<game name="Killer7 (Japan) (Disc 2) (Beta) (2005-06-03)" id="0049" cloneofid="0048">
+		<description>Killer7 (Japan) (Disc 2) (Beta) (2005-06-03)</description>
+		<rom name="Killer7 (Japan) (Disc 2) (Beta) (2005-06-03).iso" size="1459978240" crc="c6ed714d" md5="c5630de280f0796d94574eb1efd80ec5" sha1="c8f93739e3446210b7916ba2e40405ae600dc7d4" sha256="9e32c5723f17937f2e0901f36f4d2f1fe4440cc6adc158dfe841a114e3e546de" serial="GK7J08"/>
+	</game>
+	<game name="Killer7 (Japan) (Disc 1) (Beta) (2005-06-03)" id="0048">
+		<description>Killer7 (Japan) (Disc 1) (Beta) (2005-06-03)</description>
+		<rom name="Killer7 (Japan) (Disc 1) (Beta) (2005-06-03).iso" size="1459978240" crc="949da393" md5="6a032b7c16b1d1a52aa30d1a858ea11b" sha1="490fbfe917239776ee079ab022b38ba21f41c894" sha256="8974e0729f80fc35c1afa5c12368ff9263a74f531b0665a974a3cd309a9c737b" serial="GK7J08"/>
+	</game>
+	<game name="Major League Baseball 2K6 (USA) (Beta) (2006-05-18)" id="0012">
+		<description>Major League Baseball 2K6 (USA) (Beta) (2006-05-18)</description>
+		<rom name="Major League Baseball 2K6 (USA) (Beta) (2006-05-18).iso" size="1459978240" crc="2e97a802" md5="707168f95134d4847278472b84c7657b" sha1="d18ee85aeb558bb7d357bd0fc2a6c6a4bda2467c" serial="G62ET2"/>
+	</game>
+	<game name="Metal Gear Solid - The Twin Snakes (USA) (Disc 2) (Beta)" id="0014">
+		<description>Metal Gear Solid - The Twin Snakes (USA) (Disc 2) (Beta)</description>
+		<rom name="Metal Gear Solid - The Twin Snakes (USA) (Disc 2) (Beta).iso" size="1459978240" crc="85409e81" md5="ac1181d6223c1b82596b41ddac9e40e7" sha1="523b0e82b84c91946da05a48841914df6729e747" serial="GGSEA4"/>
+	</game>
+	<game name="Metal Gear Solid - The Twin Snakes (USA) (Disc 1) (Beta)" id="0013">
+		<description>Metal Gear Solid - The Twin Snakes (USA) (Disc 1) (Beta)</description>
+		<rom name="Metal Gear Solid - The Twin Snakes (USA) (Disc 1) (Beta).iso" size="1459978240" crc="d1b33770" md5="df40a79fc8a3a98511de6e8cf38f25b2" sha1="194b887bf202a08f7392a5d0c0538d96b1b91b8b" serial="GGSEA4"/>
+	</game>
+	<game name="NDDEMO (Unknown) (v1.0.8) (Tech Demo) (Compiled)" id="0005">
+		<description>NDDEMO (Unknown) (v1.0.8) (Tech Demo) (Compiled)</description>
+		<rom name="NDDEMO (Unknown) (v1.0.8) (Tech Demo) (Compiled).iso" size="1459978240" crc="499cf1ab" md5="f57cefac05c5b34a70d904544d38bdf2" sha1="e19a4a9900323fae5a85557d3bb3e943fcc453cf" sha256="ffb2b2dbded2a9163ce69e967fa51f0a043222d0d997318118f7ffcaa1c20cad"/>
+	</game>
+	<game name="NDDEMO (Unknown) (v1.0.7) (Tech Demo) (Loose)" id="0077">
+		<description>NDDEMO (Unknown) (v1.0.7) (Tech Demo) (Loose)</description>
+		<rom name="D04.ELF" size="1706240" crc="c6702428" md5="b716f2204fbfa0a1fe2a4c71d1094fc4" sha1="879147521d122b04338b342e691ac1f5f0457773"/>
+		<rom name="demo.txt" size="8684" crc="01bef7e7" md5="74ab287fa5f15be06b32f6afe7537f0b" sha1="de59d2a7d302e73a3eea707b6b1f853ccadc6f3c"/>
+		<rom name="DOC\gdata\DEFAULT.HTM" size="644" crc="b4288c53" md5="3ab1029c74fd3805638d30a6dcef5eae" sha1="4d382adf2a14a414fc119cdf99a9f258acdd3be7"/>
+		<rom name="DOC\gdata\GRAPHIC\ALL.HTM" size="3870" crc="94ad02f9" md5="d16a5da570c342543bfeca481bd4267c" sha1="3b7d3489d3b69c86023e98f5a7c8f84d816e38b4"/>
+		<rom name="DOC\gdata\GRAPHIC\CAVE.HTM" size="5778" crc="74773934" md5="43ef885002a4ccf3b82a76b72207f85b" sha1="dd2de5659c53c7232ad3be09a3c75c3ff3dbefe8"/>
+		<rom name="DOC\gdata\GRAPHIC\CINEMA.HTM" size="4609" crc="520c8a74" md5="532069c0efc603f54059e3ffb03f5f82" sha1="fd975c7ff65e5bd6ca300368866112b709f1dc4c"/>
+		<rom name="DOC\gdata\GRAPHIC\COIN.HTM" size="3837" crc="4b625d75" md5="ec302006a76e5faf391171e78748816e" sha1="a2fd85a6ebf0f8c8b5d610796dd4f90ba764cebc"/>
+		<rom name="DOC\gdata\GRAPHIC\DOME.HTM" size="5126" crc="1603e821" md5="f9bc9c9a6b384aae68391317b0cafc80" sha1="953a88ee434556c0025a135d379546d187c8b33c"/>
+		<rom name="DOC\gdata\GRAPHIC\ENTRANCE.HTM" size="10335" crc="775b8ba2" md5="f286fa121f976dec817e8feaaf8e9a0a" sha1="bb85d3c16aed98f67921ee4c6d4c5bb10b3bd7aa"/>
+		<rom name="DOC\gdata\GRAPHIC\HANGAR.HTM" size="15610" crc="1edeafc1" md5="1a526d4ee6b7cd1790c6d30da1141172" sha1="87632c083c8aec31f4cf622def193d10583e3225"/>
+		<rom name="DOC\gdata\GRAPHIC\METAL.HTM" size="3939" crc="530d01d1" md5="0f078227df35684557ed897ed22b6e0a" sha1="6aade9ea2ca97fb7fc3c0536d57c0d7801ab72d0"/>
+		<rom name="DOC\gdata\GRAPHIC\SPIRAL.HTM" size="11346" crc="38473a21" md5="6aa90cd9f2a2bc7e1031938b84d47041" sha1="ee4346f4e337adf08479db69e78808e1709c3a5f"/>
+		<rom name="DOC\gdata\GRAPHIC\style.css" size="1160" crc="d47103dc" md5="a92befc50c6092e784aa78714f99549d" sha1="6cbfe86d10f35fb33fafea1733240c729b42bf10"/>
+		<rom name="DOC\gdata\TITLE.HTM" size="319" crc="bd0d0c1e" md5="3f620c26c61da70c91d3e6bf3b53e16f" sha1="2c9e61d155be921be17bf8ba68b15effd441f3d4"/>
+		<rom name="DOC\gdata\TOCFRAME.HTM" size="1112" crc="db716e3b" md5="737706769fc16ad8f2fedfbeff2c9fe9" sha1="0c01a8a9619d1847e8a8f9fc5c93f274c3a7c294"/>
+		<rom name="DOC\INDEX.HTM" size="660" crc="f2286caa" md5="78a6f7de67b7c15994985865bc3f2a08" sha1="41752a2cd7ce18a8c374f6d4b6bb2dfdfa9e7ac2"/>
+		<rom name="DOC\Menu.htm" size="834" crc="00cedebd" md5="21b2f47d486000924184f4bd711dbdf8" sha1="21ee8599efe92b84e5b83a968b916484578b970d"/>
+		<rom name="DOC\planning\Controls.htm" size="6363" crc="f7c590c0" md5="aae3352932e184a97f5f2658f909325e" sha1="a2de5b289cce09069793319f27a757330c12d968"/>
+		<rom name="DOC\planning\DEFAULT.HTM" size="648" crc="4cc33aa9" md5="80a6ed4a3c9ffc6fde75c5c3b791a6df" sha1="dce16c576ea556dd8094bcf6ade24e0521405ac7"/>
+		<rom name="DOC\planning\Introduction.htm" size="1931" crc="05e37b07" md5="947b619354282e98b79b1835b13740eb" sha1="5ae0b93d691e43d50df8217697b5e6dd6da01e09"/>
+		<rom name="DOC\planning\Menu.htm" size="700" crc="ffe089b5" md5="e396fea554e08356c6636e1f70357e52" sha1="6632a838b15b3441acc7875c64e0be1156d6a523"/>
+		<rom name="DOC\planning\Menus.htm" size="7909" crc="cb1925bb" md5="c47878c8e4cb05b1f4f2cd854ef7ffcb" sha1="7d59e206005c28720a205bba0e3842c9f59eb93b"/>
+		<rom name="DOC\planning\OverallFlow.htm" size="6555" crc="e96e4184" md5="5ed0a75302d155613e10c7104d84140c" sha1="ba933b693cc34f7526640c263cacc5459138f083"/>
+		<rom name="DOC\planning\PICTURE\ArrowDown.gif" size="970" crc="823f52a6" md5="3db2ec1e499a122eedaee58778fa78e0" sha1="d5b0d1ef8a33144fd5e263f4327f8a51dc0cc7e7"/>
+		<rom name="DOC\planning\PICTURE\ArrowLeft.gif" size="969" crc="c7e1b60e" md5="a0119d72ac4426d160b517efc8b5639d" sha1="258027fb7078dc6469b544ea1af2626ed5333327"/>
+		<rom name="DOC\planning\PICTURE\ArrowRight.gif" size="971" crc="08994fa2" md5="22bf30d32eff8cb929252424fda71303" sha1="e8ed809a852081d4a8ef852bb04540db47d0dc1d"/>
+		<rom name="DOC\planning\PICTURE\ArrowUp.gif" size="968" crc="b12d77d9" md5="91ddd116172f47d796c79c204a613871" sha1="cbc289c9669d073640147ed64c014947a0293e9f"/>
+		<rom name="DOC\planning\PICTURE\Door_small.PNG" size="50850" crc="83b2c93d" md5="da8e28a74bc9e56d379c7794d7743010" sha1="57ab39c3eb1d14aa2a659e4effe3627d77f648d1"/>
+		<rom name="DOC\planning\PICTURE\Door_small1.PNG" size="75420" crc="43194862" md5="c0ab0f04a499054536fe90fc80425499" sha1="55411780f0eeb80ac70fe6a70d994aa37718a776"/>
+		<rom name="DOC\planning\PICTURE\larr.gif" size="851" crc="b2d1c73f" md5="b49ed1bc708a1df7d87434091eb863cf" sha1="35d764f6fe1110427e7743254a149ba034e21618"/>
+		<rom name="DOC\planning\PICTURE\obj_kuribo.jpg" size="133818" crc="e25f08fb" md5="f17ec9665e7497a06fe2363f8631f217" sha1="73e4f0510cb5b8aed9b5175e017b3aeb0953a6d5"/>
+		<rom name="DOC\planning\PICTURE\rarr.gif" size="853" crc="dbab6b16" md5="2269b1c6e62fa42bd6d2dacf52fe151e" sha1="b8d2b96095123cd67f2a4a36a6131ca6919ed543"/>
+		<rom name="DOC\planning\PICTURE\STG_CAVE.JPG" size="237695" crc="7532e601" md5="7decce797e59d022151662800ef0f3c6" sha1="e209091fb4bc010aef6b3e3501e1f529369ea065"/>
+		<rom name="DOC\planning\PICTURE\STG_CAVE_small.jpg" size="78409" crc="73e0b3f6" md5="08a338a9d3d1776633a68c2d7e7ce8e9" sha1="45d878d5407f8fae5d1d47c8288c0b08a90f5bf9"/>
+		<rom name="DOC\planning\PICTURE\STG_CINE.JPG" size="225854" crc="229f7db9" md5="0daa691791e11926b6f232bb09c89e41" sha1="7af46244e24415a08e424457ec0cee126d437463"/>
+		<rom name="DOC\planning\PICTURE\STG_CINE_small.jpg" size="67524" crc="cc9f4bb1" md5="7a4e7b5b4df37eac4ffb2425c945ad7c" sha1="9084d500c41c62a4b25335c9832fd8b4beee75f5"/>
+		<rom name="DOC\planning\PICTURE\STG_DOME.JPG" size="421488" crc="95a8b809" md5="8366c20e4df929b61b7fc0e1b1dafecc" sha1="3f3ad87e15fa60290659decddd93a47aa00fa1f2"/>
+		<rom name="DOC\planning\PICTURE\STG_DOME_small.jpg" size="130445" crc="e5112406" md5="12cc2722af9c860eb81ca98af950c433" sha1="2097c7923840989242e60576a54421f69f3881ed"/>
+		<rom name="DOC\planning\PICTURE\STG_ENTR.JPG" size="354807" crc="e6ffacf1" md5="9cf68c45b06ea203a9ffd89e9865c48a" sha1="3749da93acc4aea954e8c93e16236d4ab1f07b2b"/>
+		<rom name="DOC\planning\PICTURE\STG_ENTR_small.jpg" size="100290" crc="8a48a395" md5="7ac5c56c50573b91479c247e77441ece" sha1="0d23e4a4b418783a1aa88e0a42f20bfacb103e8b"/>
+		<rom name="DOC\planning\PICTURE\STG_ENVE.JPG" size="182888" crc="03db1921" md5="56c16e59cbb99cc8dc904bac3a5ae177" sha1="b3e4633e634b2780cd2c1f6df408fae64bfe10d0"/>
+		<rom name="DOC\planning\PICTURE\STG_ENVE_small.jpg" size="71402" crc="842debb7" md5="74bdb50da8a74e7b8c75cb819ac44390" sha1="c1807b1830eb8ae175464152be2fa6a8a52c8c84"/>
+		<rom name="DOC\planning\PICTURE\STG_HANG.JPG" size="270402" crc="48f88319" md5="532941fd12847ed0ca8a95583e787257" sha1="6bafe2cae9dbb6cd3ea934b4e0faf5d37bd9b2f5"/>
+		<rom name="DOC\planning\PICTURE\STG_HANG_small.jpg" size="85677" crc="a4264a41" md5="93eb986830a3042d0374eeb78d26eb10" sha1="cfa9a470efac4eb470d8a9383dc134993714f875"/>
+		<rom name="DOC\planning\PICTURE\STG_MPOL.JPG" size="42903" crc="1881a62a" md5="0ad2fadd55f868e62e1fa4f4e58d93f2" sha1="827a6497cfa2694af10941137c28ce21919c6249"/>
+		<rom name="DOC\planning\PICTURE\STG_MPOL_small.jpg" size="17661" crc="0f601e36" md5="a0da7df5329b11d904841ac227d754d8" sha1="b38b7865e03b750b16889e7ed41cd83e81455a40"/>
+		<rom name="DOC\planning\PICTURE\STG_SPIL.JPG" size="347986" crc="df82e1b2" md5="608df6086dc02de245f49c02cc14f1a6" sha1="865af24af70487d16b3d6216db6c41c48601ed29"/>
+		<rom name="DOC\planning\PICTURE\STG_SPIL_small.jpg" size="114038" crc="beabf7bb" md5="d647be0ba9c40f3896b43805263a8c59" sha1="5ab5a669525796470e7395138f33ad98c3c06d9a"/>
+		<rom name="DOC\planning\TITLE.HTM" size="396" crc="49841e33" md5="1f300b5294993d03b589c49dd05532d3" sha1="28365bdca13923ceefc560de00b86acea562be3e"/>
+		<rom name="DOC\room\EXP\DOOR.HTM" size="3039" crc="992e80c9" md5="fb6c8d170ea43f97f19998eb94f465f5" sha1="2fd8dbdb8d088db7c681d4805409da481221aa7e"/>
+		<rom name="DOC\room\EXP\GIMMICK.HTM" size="2365" crc="76f365c5" md5="0a588f483c158d23eee954ac1c2954ff" sha1="3549db4903da59fc0ea63f4d0c33f360ec827ca7"/>
+		<rom name="DOC\room\EXP\light.files\Image001.gif" size="3453" crc="fa3091cf" md5="12c39dacabcfe4df801b08deb9fbd186" sha1="105eb464bb6d554cadfaf2140f6b53863264e220"/>
+		<rom name="DOC\room\EXP\LIGHT.HTM" size="1880" crc="299a07c9" md5="0c343df2108a7cc3d8b60ffe0cb721c4" sha1="d61bdf4dcd101abe7c610b86a5a912f973e6e1f2"/>
+		<rom name="DOC\room\EXP\SHADOW.HTM" size="4138" crc="6d85ae2c" md5="0c4134deef6b1bb2246aec2c21be7941" sha1="3fa5584e11aa4de4f13b56f125b63c043d9fdf7d"/>
+		<rom name="DOC\room\HEADER.HTM" size="372" crc="fc587546" md5="9d053bb2406e5513460935893df3a190" sha1="7b78bfd802eb2607f4c9bc3f43179af86e805ec8"/>
+		<rom name="DOC\room\INDEX.HTM" size="656" crc="9ad00aa8" md5="ec58d6072a7d60025148e229848e437e" sha1="babe881b9ee8b1f86279ae87b237a73d6710967d"/>
+		<rom name="DOC\room\MENU.HTM" size="1125" crc="45247c21" md5="844c2949efc2444ce01e15ccc163ece3" sha1="55e61b1031e391fc695088d5cb2187074f5e5edb"/>
+		<rom name="DOC\room\STAGE\MENU.HTM" size="1098" crc="577c30ed" md5="887b006edd6031f1a60bba91d7aad518" sha1="8ea365fee3f73fffc6461323b4a042c3741ad5df"/>
+		<rom name="DOC\room\STAGE\stg_cave.files\Image001.gif" size="6965" crc="54f07da2" md5="bd98fbf396a2947346f2d426363bc0d8" sha1="d79f606c7af1e73e6da64966b5630102d383d0d4"/>
+		<rom name="DOC\room\STAGE\stg_cave.files\IMAGE002.JPG" size="8850" crc="37d7a2f9" md5="b9f69022846887d879d681d36559a281" sha1="91f57147de8e74346d8a31ee4047e65b8f979c37"/>
+		<rom name="DOC\room\STAGE\STG_CAVE.HTM" size="8901" crc="2e6dd3bb" md5="949752c7f3762267840400f6635bdfd0" sha1="e2c244aee492b0691043f8a67253809d6343cd62"/>
+		<rom name="DOC\room\STAGE\STG_CAVE_SS.html" size="407" crc="b21ebd4b" md5="ce515294967ad8d7a3aae11898d6730a" sha1="4464688d6b6e424b5075b034292941a7a6af1cfe"/>
+		<rom name="DOC\room\STAGE\stg_cine.files\IMAGE001.JPG" size="5242" crc="5b183ae7" md5="8f4a960b799c6212ff1c1183641c9e17" sha1="aef2dabcb8177294ca2cb7d00b6acc1ba7cb3647"/>
+		<rom name="DOC\room\STAGE\stg_cine.files\IMAGE002.JPG" size="1289" crc="2616a239" md5="7b59bcb46e3cd47311384e489379f85c" sha1="51d3c0c33f011dfb8b0a6713296e59957accca9c"/>
+		<rom name="DOC\room\STAGE\stg_cine.files\IMAGE003.JPG" size="1545" crc="79913e65" md5="e9fadda5ec8964a7d2d6ff685b3d367a" sha1="8ab91db1ed53f112a0333383efb20c73ca27cded"/>
+		<rom name="DOC\room\STAGE\stg_cine.files\IMAGE004.GIF" size="3745" crc="b81b6675" md5="31371bfdf626087cca5b4288b13f44f5" sha1="993dc5041254553fdbfdaea55e4437c40a108995"/>
+		<rom name="DOC\room\STAGE\STG_CINE.HTM" size="3920" crc="01d5049f" md5="71d99f40159fbd5f605e45bda56673ed" sha1="a918c7ec65f38d508e551377c59680217e0dc5be"/>
+		<rom name="DOC\room\STAGE\STG_CINE_SS.html" size="427" crc="d475fbed" md5="e1c26afa2c20d48096e71f983e18bd06" sha1="a642704d0403a59ff5f4e4c3c21c3c27b96e700f"/>
+		<rom name="DOC\room\STAGE\STG_DOME.HTM" size="6483" crc="ddfc74f9" md5="9fdc506180a32094a8115935a181de13" sha1="2575502ff16e35c45b728237d037d32300fe8b75"/>
+		<rom name="DOC\room\STAGE\STG_DOME_SS.html" size="407" crc="526a31e1" md5="a2c682b602719af4ec7cca4728bb8445" sha1="29b5f2516c62671dc66e2b7042061d41ae16f2b9"/>
+		<rom name="DOC\room\STAGE\STG_ENTR.HTM" size="4440" crc="ef4ff74a" md5="ac5fe6dec60522d1110669835ec7ee40" sha1="987bbef894c1662fa25a30c60884ab2f64be180c"/>
+		<rom name="DOC\room\STAGE\STG_ENTR_SS.html" size="415" crc="4fd5e7f4" md5="3d93d15f64562d66dc7960b3a039cd0f" sha1="e55fed0906fdc6d98e1bc234d49751ca0e91529c"/>
+		<rom name="DOC\room\STAGE\stg_enve.files\IMAGE001.PNG" size="498153" crc="b35bfa08" md5="fac6fe6c87e7e7eb44e5519203b44dc4" sha1="056090755b4f754c0749c6d0bebbea55c8aadd63"/>
+		<rom name="DOC\room\STAGE\stg_enve.files\IMAGE002.JPG" size="23568" crc="b27b92c2" md5="ffa792d586e8dcda01d718fbd41a085d" sha1="b568205c0044c840dce849383796ded7c8864e6d"/>
+		<rom name="DOC\room\STAGE\STG_ENVE.HTM" size="2572" crc="fa11472b" md5="5be4269c04ec9cd05dd43dfc1843dd40" sha1="33bbbf3bf7a8e35f047fabcf559e3b70b95fbe17"/>
+		<rom name="DOC\room\STAGE\STG_ENVE_SS.html" size="447" crc="59df47d6" md5="8dc73651610494cb40386ae77bc3cb48" sha1="605323ca873d3abfddaab8d644da09ef02673978"/>
+		<rom name="DOC\room\STAGE\stg_hang.files\IMAGE001.PNG" size="3163" crc="3b9adc75" md5="5bab7827d04a7539a4223e82d180f4de" sha1="853646a0c6f1ca7c257c8fc301f565b58d87e99b"/>
+		<rom name="DOC\room\STAGE\stg_hang.files\IMAGE002.JPG" size="1135" crc="32a121bc" md5="7406d1af001a0cf20078d7141a3fd6e3" sha1="c3d01c7b476024e1b7133d2632de00db54b9db69"/>
+		<rom name="DOC\room\STAGE\STG_HANG.HTM" size="3003" crc="45851a27" md5="c7a2282b8dc3085c3c7697ff9297b76d" sha1="f809be31170c07be72229111313b942aeacabbbe"/>
+		<rom name="DOC\room\STAGE\STG_HANG_SS.html" size="411" crc="65049d6d" md5="d923531395750cd8299aa819ebb6f777" sha1="2aefbbd5b92734f11d32c6307dc774ba016db1dc"/>
+		<rom name="DOC\room\STAGE\STG_MPOL.HTM" size="3126" crc="af0c247f" md5="103895d97363682ace766dfdf2fc6ea1" sha1="55dbfb1e580161d362e85af57645e5add6816de5"/>
+		<rom name="DOC\room\STAGE\STG_MPOL_SS.html" size="441" crc="3c80c5fc" md5="c902a1056f97697013412d642b9a2380" sha1="4bcfa5ba2e4bc0c63554c3c1ab3d581a42951c78"/>
+		<rom name="DOC\room\STAGE\stg_spil.files\IMAGE001.JPG" size="4788" crc="f78e88dd" md5="9160828736ff45dd85f10da0e83c4228" sha1="d808d6f375370fe67f63982bf16bc50195977d3e"/>
+		<rom name="DOC\room\STAGE\stg_spil.files\IMAGE001.WMZ" size="21050" crc="5c3b3cc7" md5="75cbba464d9a5e702bc8236174788ad3" sha1="68608147f6ad3c044d9f66fa9f0584019c3a76a8"/>
+		<rom name="DOC\room\STAGE\stg_spil.files\IMAGE002.GIF" size="7035" crc="92ca709d" md5="110d062f6efd2f40bd860b1049bd1ec7" sha1="49e081a4622e3eefdb37703e3c85685ab027559d"/>
+		<rom name="DOC\room\STAGE\stg_spil.files\IMAGE002.JPG" size="1545" crc="253e48d4" md5="c6cacff4d5b36808d99a990f34fcc415" sha1="7a44ce82bc2059a4122a88346cc68379afc0591e"/>
+		<rom name="DOC\room\STAGE\stg_spil.files\IMAGE003.JPG" size="1545" crc="253e48d4" md5="c6cacff4d5b36808d99a990f34fcc415" sha1="7a44ce82bc2059a4122a88346cc68379afc0591e"/>
+		<rom name="DOC\room\STAGE\stg_spil.files\IMAGE004.JPG" size="6997" crc="2784d014" md5="79b0e5364affe0839324ba883813b94f" sha1="2f6f91fcb3a75292f7ec6df035112cd9c01702b8"/>
+		<rom name="DOC\room\STAGE\stg_spil.files\IMAGE005.JPG" size="1350" crc="98129974" md5="08f4b60c7eb1d7b7891b3711faf36466" sha1="8c72a748ad38cb7d00083d0ddbebea7aaa0e6eb9"/>
+		<rom name="DOC\room\STAGE\stg_spil.files\IMAGE006.JPG" size="1589" crc="90c97737" md5="6fdb7ded8922734c5f9fe349d572e12c" sha1="74a7f00d8904f1ce984a0486bbc1876132282cfd"/>
+		<rom name="DOC\room\STAGE\stg_spil.files\IMAGE007.JPG" size="1056" crc="a4a7f632" md5="ad4b2cb4db2695f2291d4026770623d4" sha1="e92b04f48149ae89a1fb022c9941e5c9ac6de9e1"/>
+		<rom name="DOC\room\STAGE\stg_spil.files\IMAGE008.JPG" size="1575" crc="0ea6fd2e" md5="d628be7ee7f9446e90ec3f8291d6b846" sha1="1e1b4971f849fdc8c44ce5a5a229b6b952ace192"/>
+		<rom name="DOC\room\STAGE\stg_spil.files\IMAGE009.JPG" size="1033" crc="3127d93a" md5="68381e8bbb5fcb3077df32a77717dc62" sha1="a94dc957495c9faf779031df64db45f71267f99d"/>
+		<rom name="DOC\room\STAGE\stg_spil.files\IMAGE010.JPG" size="3263" crc="dc79007c" md5="dd975127f9253e9110bb128a6e61a643" sha1="4c1d498ffce5d0abe17f0c7c2d04b586f01cb93f"/>
+		<rom name="DOC\room\STAGE\stg_spil.files\IMAGE011.JPG" size="837" crc="c5eeaae7" md5="ca3c706f60fb6587c721d3b466a3a3a6" sha1="a457282ced03e9ef874ade0e4d83213017c24f5c"/>
+		<rom name="DOC\room\STAGE\stg_spil.files\IMAGE012.JPG" size="4788" crc="f78e88dd" md5="9160828736ff45dd85f10da0e83c4228" sha1="d808d6f375370fe67f63982bf16bc50195977d3e"/>
+		<rom name="DOC\room\STAGE\stg_spil.files\IMAGE013.JPG" size="797" crc="87b751db" md5="31f3f89eba5a9b538820f70c0aafb329" sha1="815e426e183f2a8decac5803d271d8ec1ed11977"/>
+		<rom name="DOC\room\STAGE\stg_spil.files\OLEDATA.MSO" size="23134" crc="18474853" md5="b5abcf4cecb074d4dc97a245cf49e0cd" sha1="7ae2f0a30987178c4feea6bec2ab07f6b0f9f3ff"/>
+		<rom name="DOC\room\STAGE\STG_SPIL.HTM" size="5340" crc="f5ece70d" md5="501224d8837214cefd1ca8be9708efdb" sha1="ad4e101ed499f986c7a70bc8f97eff9dc9e7884c"/>
+		<rom name="DOC\room\STAGE\STG_SPIL_SS.html" size="441" crc="99459eec" md5="ea9cc778443f3043da5b696460b64722" sha1="1abaab5b529217f308014e9fec30d67585caa51a"/>
+		<rom name="DOC\TITLE.HTM" size="450" crc="93620438" md5="2a171ca8b0ba3005d4ae87fa3480f159" sha1="7772535a0fca3e5d45c58f93df68c2f1c3906d2a"/>
+		<rom name="NDROOT\ARROW.NDM" size="3779264" crc="55d16494" md5="59a30d3ae5be871408e6b00ad9547a7e" sha1="8b4ccba6e56314626b5713c7c5bd3c88f88c17ba"/>
+		<rom name="NDROOT\BIPLANE.NDM" size="114720" crc="901c97f5" md5="0b2d6bc81641dc41634453703e5749fe" sha1="d5e2ccf2540e6b775174f95dc386393a0ed0bba4"/>
+		<rom name="NDROOT\COIN.NDM" size="12640" crc="1b4c579c" md5="25a1ca13c48d16255cb9af71ef4bd62d" sha1="58bf0e7f373c06d6f3da39bfd04c97af38232adc"/>
+		<rom name="NDROOT\KURIBO.NDM" size="169280" crc="eaad03ac" md5="bc9008ddd4e01a6283652c84641ed21a" sha1="d57d4e4ca861b03cc947b40ad28ca539ca0c0033"/>
+		<rom name="NDROOT\MPOL_CAM.MCD" size="1272" crc="3d905b9e" md5="8d4bcaff9301d8fcedd920dd867f4ea5" sha1="6efaceb008b465e576d5a8dab3250f178b24e655"/>
+		<rom name="NDROOT\STG_CAVE.BGH" size="54580" crc="51022f5e" md5="0ff6644a5c9857356b8e49c3c3159fca" sha1="745f8fe13d8cbe116356dee241c2016e8ed85f75"/>
+		<rom name="NDROOT\STG_CAVE.MCD" size="1728" crc="ac4b1483" md5="fdb9b414085e3c520127bad625a0336b" sha1="cee62c2d404cda18058c4bbf5f67260c8a3fb457"/>
+		<rom name="NDROOT\STG_CAVE.NDM" size="495264" crc="22a16c94" md5="d5e158cbdc4c6fd59842d1f959e6ccb8" sha1="19f6c86fc5eaa0e77cad275797514e6a6fbca8ec"/>
+		<rom name="NDROOT\STG_CINE.BGH" size="24616" crc="73ab8c9e" md5="e988115d543f7b7c1cede6b08bab604c" sha1="04c1fb821ee99b94029f80b379290f52f1c84588"/>
+		<rom name="NDROOT\STG_CINE.MCD" size="1488" crc="9789438e" md5="800dea09b96fb6c2fefa7028b3fea222" sha1="9f4c5015bd1b02b0dc4612ca82ed5d3bcadc8e31"/>
+		<rom name="NDROOT\STG_CINE.NDM" size="255872" crc="edb601e2" md5="ef2a665e4f477a74b08a645061ac7ba6" sha1="00a963437a6689b7aed03176875ab0c75155b8bb"/>
+		<rom name="NDROOT\STG_COIN.NDM" size="1792" crc="1cb41755" md5="4f92369bbfc3bd6be0e105094b1a969d" sha1="492a46c664557042c83ad3d025c69cda0872cf26"/>
+		<rom name="NDROOT\STG_DOME.BGH" size="28816" crc="46dfc5bc" md5="aa261d2a60fa91b8dbb233aa28e2d531" sha1="69b5e2564d3f3ee7ac67909d964514f9b856ee81"/>
+		<rom name="NDROOT\STG_DOME.MCD" size="1488" crc="7a7fb7fe" md5="fac0b8aac47c18d5f54889ccf87408ed" sha1="b5aad04c49deb65914414b01c2343b7ecdd3cca6"/>
+		<rom name="NDROOT\STG_DOME.NDM" size="330784" crc="4c983fd5" md5="93889742eb2eae650e74201122873997" sha1="1f07ab5b380ece229e878e72fc0d62bc35889ac8"/>
+		<rom name="NDROOT\STG_ENTR.BGH" size="89572" crc="59602d3b" md5="866851255c58e6675a3b8e5e8f6bb35c" sha1="a6ff19ead5fac64c05c239d34db5464796630d2c"/>
+		<rom name="NDROOT\STG_ENTR.MCD" size="1704" crc="291855cf" md5="c3bb917c3d038cee38db23779cc418aa" sha1="ffec529e592a7a66e1f2402894d478253abfd3bb"/>
+		<rom name="NDROOT\STG_ENTR.NDM" size="1050720" crc="95d8bca3" md5="bd58c89a4d94eee725aedb17f25d84f8" sha1="154d02c061a3c5ebea272d44479d47039226f1fd"/>
+		<rom name="NDROOT\STG_ENVE.BGH" size="27976" crc="ad843b8a" md5="0059ba96833b88b0ac7950a2d7c20061" sha1="b458ba80e75de88e28c339f9b2135bc93d8cecf3"/>
+		<rom name="NDROOT\STG_ENVE.MCD" size="1488" crc="8f228171" md5="6b6f67f4d6453a9a423d01ed056a22e9" sha1="0ed676aa73aec969232f59adc8a94fba2ba9b738"/>
+		<rom name="NDROOT\STG_ENVE.NDM" size="151712" crc="62b7311b" md5="c89c721a9e8b64ca71947d722e4b83ff" sha1="16d84e5897a923e62cac270eca170b4bfb1b07ac"/>
+		<rom name="NDROOT\STG_HANG.BGH" size="31876" crc="f9fd7297" md5="a1ae3873a150f76811d501b6fc333653" sha1="1e87b6d514647df6fd584c6886d31be591d45198"/>
+		<rom name="NDROOT\STG_HANG.MCD" size="1344" crc="c9ffc08c" md5="6c75d3db70d437bcbab97444bc627944" sha1="c5d12a9e3113d573fe257683a85084feda502493"/>
+		<rom name="NDROOT\STG_HANG.NDM" size="489184" crc="790034e8" md5="4741a8cdd89fd6c6a96f8dc3ec03d5f7" sha1="895afce63408f1129b87d20f528c532378401e5a"/>
+		<rom name="NDROOT\STG_MPOL.BGH" size="22516" crc="661ed116" md5="c6c03ce7b6aa2cededa400bb0f2747fd" sha1="5275563f52aa92d869f3c898e364a4d24f016036"/>
+		<rom name="NDROOT\STG_MPOL.MCD" size="1248" crc="3e2513d0" md5="cc7cdef3a18a7d7a156e50cfc5f544bc" sha1="e9d7b265a3cfef0522110c4da5badc471bc7947c"/>
+		<rom name="NDROOT\STG_MPOL.NDM" size="12768" crc="0298dc6c" md5="020e8cf98b7644274fc3105f49a1fbb4" sha1="3781e9cfd623eb4ef199efcbfe1375d5493b6c99"/>
+		<rom name="NDROOT\STG_OPEN.MCD" size="360" crc="a148ee8c" md5="5f235bc1033b36e2040d3fbf3eb14044" sha1="3bd5c8415c8c46b709732023d31e173542d72bdb"/>
+		<rom name="NDROOT\STG_OPEN.NDM" size="23072" crc="e8a748f3" md5="7b5849106ae28f10c24464556f15cc4e" sha1="665aefe05a8c12731707ed03abeeb01ee2f342e5"/>
+		<rom name="NDROOT\STG_SPIL.BGH" size="81544" crc="0cfa7bb5" md5="6c17fb410b25cd901d7cc885a37f9fb2" sha1="003df4008638a5cc8133a2e717c6047ba336f8ed"/>
+		<rom name="NDROOT\STG_SPIL.MCD" size="1656" crc="5ba7fb96" md5="2c0d0f0e022b80dc12644ee7748245ca" sha1="881499e9d8a85a9a04bc04b16ed30743bef56934"/>
+		<rom name="NDROOT\STG_SPIL.NDM" size="653760" crc="79037d58" md5="d574e91d550a388978deea910d38e9fa" sha1="d52b38de856edf67baaf62bfa3d91ceb1e6b70de"/>
+		<rom name="NDROOT\STH_HANG.BGH" size="29104" crc="bff701e3" md5="20e1262f487788d9dacf0d3b44a29da5" sha1="be06f9326a0bcbccb6360ed1b4021faa0c3dd192"/>
+		<rom name="NDROOT\TEX\1_ARTHI.DTX" size="2848" crc="acf9eb6c" md5="85e4f51fe7924036abe302fc27d68f03" sha1="91d9e2a192e147cc7e0e9ad228cff1aa45167621"/>
+		<rom name="NDROOT\TEX\1_B_KA.DTX" size="43776" crc="d1631daa" md5="bbf5073772761af4e6f64c7d057e4a2a" sha1="80bc8f2e8ce2407c2b7c524fa3d0b6ff20160f6e"/>
+		<rom name="NDROOT\TEX\1_BA_TEB.DTX" size="65568" crc="118d163d" md5="4cd5217a1f31bf4b4858ebada949a22e" sha1="a265acde736664a9774d94a43f74985dff0c7ac3"/>
+		<rom name="NDROOT\TEX\1_BA_TER.DTX" size="43776" crc="66f999c3" md5="6d052739fda17b2a31482fa9c0ae7c5e" sha1="31aec9d78c40292d5e3c240700cceaf393b48303"/>
+		<rom name="NDROOT\TEX\1_BI_BA.DTX" size="21952" crc="65c55323" md5="729a311b1a8abdb8f2f8b864f0322c7c" sha1="be3a4861521f6ac79ab66cbf1f1be50d0292590d"/>
+		<rom name="NDROOT\TEX\1_BI_BI.DTX" size="21952" crc="4b2eeb73" md5="bdd01a2a8bff2715e6247fd4ba155896" sha1="c9cc5a4d961e6aba011843f3e21f0fdaf745f674"/>
+		<rom name="NDROOT\TEX\1_BI_BOD.DTX" size="11008" crc="84540a40" md5="28d912de240b4a57241bb590adc2f67a" sha1="79aa43d17986104b27725611b9b0e59a7959f557"/>
+		<rom name="NDROOT\TEX\1_BI_CHE.DTX" size="2816" crc="5b439d9c" md5="d678f64a24a250ba6d88561cca3171dc" sha1="525656772bba7467d684ac227c2d77d43e7647d5"/>
+		<rom name="NDROOT\TEX\1_BI_CO.DTX" size="448" crc="ac9e9769" md5="a294efc73148e3fc497b6af866e98adb" sha1="9f4fef232428cf7149d3478f98d279ed6575b1f2"/>
+		<rom name="NDROOT\TEX\1_BI_CO1.DTX" size="11008" crc="3d203866" md5="c43f8fa5e5763150fb425fbe5a30bd15" sha1="4e3034a41bbc1862a20aa16c912d4a0777ed5e21"/>
+		<rom name="NDROOT\TEX\1_BI_CO2.DTX" size="11008" crc="2d1029b1" md5="63263d4bcf538f1100902adde07bc344" sha1="fa83752f267f3b730a33b2db9992e2475365304e"/>
+		<rom name="NDROOT\TEX\1_BI_CO3.DTX" size="11008" crc="521507e6" md5="529a406706f6456b751cec8a60d6125b" sha1="3f41c83fccac0bab47b118ed2120cb9eb82e481c"/>
+		<rom name="NDROOT\TEX\1_BI_EN1.DTX" size="800" crc="58379126" md5="1eb0acbe1b2d992480b4f1b877bb3e9f" sha1="0d245cfc8959605e6521b0d51d9225f6eb3d4458"/>
+		<rom name="NDROOT\TEX\1_BI_EN2.DTX" size="448" crc="a3ebd3bc" md5="3849613ab1bee2eb1de4dd73d360f19d" sha1="1626c0eb8fd0b058d7ebfcc69c1e6a5995f4ae74"/>
+		<rom name="NDROOT\TEX\1_BI_EN3.DTX" size="288" crc="5d8ba6fe" md5="07c18b716ba89e10aa372ac2198e510d" sha1="18ab17897d7b25dc668d3b2e2100a2dd4e49c461"/>
+		<rom name="NDROOT\TEX\1_BI_EN4.DTX" size="288" crc="a6b4b3c5" md5="ac28b0797b3f612f963dcce6349c5be7" sha1="d776774b8a0045910b70744a838b6b642f4df54e"/>
+		<rom name="NDROOT\TEX\1_BI_GRI.DTX" size="800" crc="290811a5" md5="f118372d0f0efdf9e649a29a01afc155" sha1="7935130e0a31cc09f10e2d6239591c450d6f5de7"/>
+		<rom name="NDROOT\TEX\1_BI_HE.DTX" size="21952" crc="dde52a5e" md5="41ba88d13a76a90423906fe8207727da" sha1="e50496d1fe22b19398d1ca4a9d3beffd3117dbba"/>
+		<rom name="NDROOT\TEX\1_BI_HOI.DTX" size="5568" crc="81f6aa62" md5="cbabb5b693c069bdc69a16b1ce3310eb" sha1="58778b5e9b8e06831ac91b6df71e45479f32a527"/>
+		<rom name="NDROOT\TEX\1_BI_LI.DTX" size="1504" crc="d3e52372" md5="e5f6e205d30366f8b86396adadc4fe0a" sha1="74e804a64b600b69b12157d2b1ad0a794ced2ba7"/>
+		<rom name="NDROOT\TEX\1_BI_LI2.DTX" size="11008" crc="c197bb4b" md5="ce6ff0bbad3a6cd387a1046e44d05b56" sha1="92359676c4d580ba4259a382151e175acbed0501"/>
+		<rom name="NDROOT\TEX\1_BI_MER.DTX" size="5536" crc="edd8fb99" md5="7ce7d099eda14b8550819977f9b49cbb" sha1="930dd2e9395c3ae5e1318ea5d721e9f2eecc7432"/>
+		<rom name="NDROOT\TEX\1_BI_PUF.DTX" size="5568" crc="104e5da7" md5="c617b8fa70f1493f1e3c4e9ddb8eb543" sha1="42552ed7b25b7ca6274b461fe11cc9d5f5bde139"/>
+		<rom name="NDROOT\TEX\1_BI_STE.DTX" size="174848" crc="0909711b" md5="9a47e843f533f0c7922aba8fda1414c6" sha1="83de859856a1596733f3dbdd5107f6c5b7d3306c"/>
+		<rom name="NDROOT\TEX\1_BI_TIR.DTX" size="5568" crc="4bcf3ad8" md5="aae9dbb2b6931dccf48e55e1e454518c" sha1="5585eb68b4450cbc3274c9a0f30c5d422cfc38a2"/>
+		<rom name="NDROOT\TEX\1_BI_TU.DTX" size="43776" crc="5888f858" md5="6508c14986116a3119852c7c85d649b7" sha1="47d58d9c9daadcb592da14e9cec09b52aa1a7510"/>
+		<rom name="NDROOT\TEX\1_BI_TU2.DTX" size="21952" crc="b50b523c" md5="f55f7add8f40c76f1396db5f3a89ffd7" sha1="da83855307be7f3422187461349318072479cc3f"/>
+		<rom name="NDROOT\TEX\1_BOX.DTX" size="21920" crc="945a0455" md5="286df0bca62de816aff1a4b0b8494dbb" sha1="3123cff83681e9c0e6d6436f61214ca9e619fa24"/>
+		<rom name="NDROOT\TEX\1_CHA_1.DTX" size="5568" crc="b9d4d453" md5="3054bf26e52d22c54214049d6a8be0b5" sha1="3365b6c851576ebb3ef16002bd3f62c23719a85a"/>
+		<rom name="NDROOT\TEX\1_CHA_2.DTX" size="1472" crc="83ae9c7c" md5="2fc2528e00e3990198a15b5519ee5a74" sha1="d3f065ff2ce825c079047de7d7e5e8e97e59025f"/>
+		<rom name="NDROOT\TEX\1_CO_1.DTX" size="87488" crc="3aafee80" md5="fa42df57e634eb393063fca5d9c6ec24" sha1="05afccbfe3ebfb643821bb5934745eae8172f893"/>
+		<rom name="NDROOT\TEX\1_CO_2.DTX" size="21952" crc="6f7d1278" md5="d82ce4f88705cbbcb369bf696b2eb4a3" sha1="09f8200f5ed1c98a5bfbaf1fcb321624adc18f18"/>
+		<rom name="NDROOT\TEX\1_CO_3.DTX" size="21952" crc="28ed1aac" md5="710db88d9676e698409fe8151d0579b7" sha1="a89d1013f075b79054cfcf0205f8a460c99cae38"/>
+		<rom name="NDROOT\TEX\1_CO_4.DTX" size="87488" crc="7d92ddc3" md5="2d049c983a8613b16dbed85023223c75" sha1="eeed177275953dd07d603ce0442d5c9c8a0b9840"/>
+		<rom name="NDROOT\TEX\1_DANG.DTX" size="43776" crc="6410b109" md5="64e78e06b27622fed80da4705432357f" sha1="314fe0c35162e314d8520580b4f5fe6e47650f6a"/>
+		<rom name="NDROOT\TEX\1_DO_HA.DTX" size="21920" crc="b8751104" md5="03c34752eada463338e3a9545d38fe50" sha1="7187e495443a49054628ea03dcae2117af3fe53d"/>
+		<rom name="NDROOT\TEX\1_DOKAN.DTX" size="21952" crc="1f8eeb00" md5="5cb4279d4ed2d4d9b38186e6dfd79eb7" sha1="b4d5a876b962bfc0744a5770238acb676414e960"/>
+		<rom name="NDROOT\TEX\1_DOOR.DTX" size="43808" crc="f6f316f1" md5="fc5685a8fb3731063e7d3ffc346d02d1" sha1="f3c0606c18dddeb2799da3ec127a7509e006447a"/>
+		<rom name="NDROOT\TEX\1_DORA2.DTX" size="43776" crc="84b2ccae" md5="09fd641e7b9229621dbcb1bd86253bbc" sha1="2cf735cf54b8d61f15e28eda1b994180a4fa723f"/>
+		<rom name="NDROOT\TEX\1_DORA_T.DTX" size="21952" crc="e5c6322e" md5="0f902e49085c6327daa2feee06e95316" sha1="07fb9745860369f63393b82efb5b8ebadb869358"/>
+		<rom name="NDROOT\TEX\1_DORROT.DTX" size="2848" crc="29809e19" md5="dd1142c689ff3e3dacd423e0ea0a2669" sha1="667f1a6043300a0587604e947fd6c8cf8e8261d0"/>
+		<rom name="NDROOT\TEX\1_F_KA.DTX" size="43776" crc="20e7f5af" md5="7a916cb19937cc595e422b8356053ecc" sha1="c8135f14cb5e159b6b7706ae906fa0860876cc42"/>
+		<rom name="NDROOT\TEX\1_HA_FE.DTX" size="174848" crc="69b35868" md5="81c810f0605dcebdee604ce1c2d388cd" sha1="3df9c4ebd1fa93b323e79f4bf21a2775a9c34914"/>
+		<rom name="NDROOT\TEX\1_HASI_B.DTX" size="65568" crc="0c71aff5" md5="bbdf0712c4077194125fe291fb1f379e" sha1="8289b1a02455e75265a36a8d6155a59448cd3651"/>
+		<rom name="NDROOT\TEX\1_HASI_S.DTX" size="43776" crc="c511ac7a" md5="c8031c56a10bc3a7d5751c7cd1469562" sha1="7f37dad2c48843e399d1aecfb36f8f34271ee3ba"/>
+		<rom name="NDROOT\TEX\1_JI_LI.DTX" size="11008" crc="6a6fefda" md5="3476a1a33d2272d725721547b8e29ec6" sha1="6b520933f664ca02beb134c4f114d106dcbccbb6"/>
+		<rom name="NDROOT\TEX\1_JIGU.DTX" size="21952" crc="6c45e920" md5="fcc07325365f7eed155f19a04251721f" sha1="43854fd5078b8bbab246c788bee197f1da11b4c4"/>
+		<rom name="NDROOT\TEX\1_JIME_S.DTX" size="21952" crc="7a585eba" md5="ed5b932ca461a7d30360827e1a79b840" sha1="8d7bf69833705226e4c31e0f41d6568f57831c16"/>
+		<rom name="NDROOT\TEX\1_KA.DTX" size="21952" crc="7de83802" md5="f92bc5e5a084b276e91a36ea6d4d2f2a" sha1="698acdb70194df3a012f9262176cf2b1d88c9c33"/>
+		<rom name="NDROOT\TEX\1_KA_S.DTX" size="21952" crc="0da6e72a" md5="f8e6d7a3bd540da3b09615ce2b4c7134" sha1="a2514e400e2dbebc2d5b2431c466999420751b9e"/>
+		<rom name="NDROOT\TEX\1_KA_SA.DTX" size="21952" crc="e9961129" md5="9f9d965f8a0ad19efa3654dff0ce42ec" sha1="e247e3b8c4cabc9ea70871b12ac955af9c0162f1"/>
+		<rom name="NDROOT\TEX\1_KA_TE.DTX" size="1472" crc="629ca967" md5="b386ad293b8fb2f92d391e4d35d4ef0d" sha1="b935cdd0addc07833680cc47056eebd716543ea0"/>
+		<rom name="NDROOT\TEX\1_KA_TO.DTX" size="1472" crc="fbcf0449" md5="85b676a88656fbecedda7a9d970bc6b7" sha1="efe0d44c5700d0f01d23ddc0c4d565b317df0f12"/>
+		<rom name="NDROOT\TEX\1_KA_YO.DTX" size="11008" crc="1424928a" md5="47f9d50484d144b87f6f48d5b91d5ee4" sha1="2fd9efe530bbee51ad886bbfa1add6ef7ab92362"/>
+		<rom name="NDROOT\TEX\1_KURE.DTX" size="43776" crc="db94bab9" md5="a1a7f6c4a4af3be6396ad2f4b5638715" sha1="b04a2662c96c46bb9440d3ccf584b1deefe32db0"/>
+		<rom name="NDROOT\TEX\1_LG01.DTX" size="5536" crc="94dfaa09" md5="ae3041e30b3b091413f5a626b90fdd96" sha1="f3dc6de8e2476e037ec3c7a9b3504468c43d7d51"/>
+		<rom name="NDROOT\TEX\1_LG02.DTX" size="768" crc="e9c6c898" md5="3db1e056aaa05ac2e2a773c4daa1bf92" sha1="f466de1d9bc919eb7e8e62634ac99c96063db4a3"/>
+		<rom name="NDROOT\TEX\1_LG03.DTX" size="5536" crc="5a042475" md5="1aa689373a50ce873e98e6d0aa549476" sha1="1bad4ec0cdd7a716c685833d7e18b8bdfd481750"/>
+		<rom name="NDROOT\TEX\1_MARK.DTX" size="87456" crc="c49335c8" md5="0c1a269d568d7046f78f5ff66f0bbb90" sha1="6d82c250b45874ac4daecdc679e1a9805322c6c6"/>
+		<rom name="NDROOT\TEX\1_MARK2.DTX" size="87456" crc="75f3facd" md5="31b9477e12174e232a9ca8a730665bb5" sha1="64c77b8c5298cde42f873099ffec22348903374a"/>
+		<rom name="NDROOT\TEX\1_MEI_G.DTX" size="256" crc="09ae3af9" md5="864ce37c246d7f5488d610838df811c0" sha1="336d2fe1a9792f2dbff7991086a9e528e94741d0"/>
+		<rom name="NDROOT\TEX\1_MEISAI.DTX" size="43776" crc="35c74b8a" md5="19e996d1d45dfafcd8e5662553bf9954" sha1="9f21b4556cf63da6c6c3321b5f24fa4379e24463"/>
+		<rom name="NDROOT\TEX\1_NET.DTX" size="5536" crc="c7472f15" md5="329db586f7fe30db1a098e6a8d2a5d09" sha1="6dabd9c2b42f6d24f0f0e71de33ce23cb78fb0cd"/>
+		<rom name="NDROOT\TEX\1_PAIPU.DTX" size="21952" crc="69c57eae" md5="0d6886a3463c9ced49a87afd837889b5" sha1="c82be4aa4a702ccef8e7cecd573af5f81a432638"/>
+		<rom name="NDROOT\TEX\1_PURO.DTX" size="1504" crc="1ad29bd7" md5="69a4c331e4d63ec99522a5e7f56d9e6b" sha1="be342d9ac4a98ad5690203fdb9b2d7de3901eead"/>
+		<rom name="NDROOT\TEX\1_RA_SPC.DTX" size="8224" crc="e07670ad" md5="34081d299d106c0c6b3779153d4c79f2" sha1="3a6b2a29cf5270413aa0478033d2bbb9de3f7ec9"/>
+		<rom name="NDROOT\TEX\1_SO_KAL.DTX" size="43776" crc="3a9c9568" md5="f29d5c843d14670db63977a2deef6515" sha1="39ac6e9c39d4ef917049fae8cc8f50f8d6e20c77"/>
+		<rom name="NDROOT\TEX\1_SO_KAR.DTX" size="43776" crc="e81aac7e" md5="e16d7641154f9d3f59a9cbe68f499cdd" sha1="6fc6fa4eb31ec9d2762409eabb075b300ad06f43"/>
+		<rom name="NDROOT\TEX\1_STAR.DTX" size="5568" crc="d01befde" md5="7f5905a62b0c30035d3e2c0e25bc325f" sha1="cf70d17416d2df12700a142cb81937842f5abf49"/>
+		<rom name="NDROOT\TEX\1_TEDO.DTX" size="5568" crc="9420023f" md5="16586c557603d512d2e3851c968003fe" sha1="60b0516c62b0797e1707c44a7aecb8e2f4323d0a"/>
+		<rom name="NDROOT\TEX\1_TENJYO.DTX" size="5536" crc="8b8dce53" md5="9797849eeb102b15e7c499be38ca4123" sha1="ab3d03501651ddd1583198319a1f3017a74ef2a9"/>
+		<rom name="NDROOT\TEX\1_TOTAN.DTX" size="21952" crc="09a3e013" md5="60e2a47b601ad34ab2730e2da32e9475" sha1="fd11d878443e8ec812f4b3ec60a243fc04adf380"/>
+		<rom name="NDROOT\TEX\1_WA_F.DTX" size="43776" crc="3039a944" md5="38a11cf82901c93d5e1221df8a93cbd7" sha1="9f9a17ac90c324fe583b2e227b91d10ccec45c29"/>
+		<rom name="NDROOT\TEX\1_YUKA_Y.DTX" size="87488" crc="e5378d4c" md5="89d4eb5da2da45e36fcde8fa47afa324" sha1="4fa41964c4cae6d1f07c3cb9ea0df7656eeff887"/>
+		<rom name="NDROOT\TEX\1AT_SHAT.DTX" size="174848" crc="bf7b5ba3" md5="c2f6718f160b3751fda600c4f4d92cce" sha1="1508a14572b498c0393bfcfb7b9a1a3aa21ca651"/>
+		<rom name="NDROOT\TEX\1POLI.DTX" size="2816" crc="be939631" md5="02232df1ab69039d4d4d2e35a6f50246" sha1="e4c45a7f133c473abbf8c4f0ff234dd69a6432df"/>
+		<rom name="NDROOT\TEX\1POLIF.DTX" size="2816" crc="1b94fe77" md5="947b3cd24b31d71bdfed299c0ce711c7" sha1="024be00620f3403b6ace7b7baa64698d27921313"/>
+		<rom name="NDROOT\TEX\1POLIF2.DTX" size="416" crc="7d18d92c" md5="c70a3c01d5d31b835fc6845b81eb96d7" sha1="6be5ac071eab950418a00f4a6bea7b457ed15405"/>
+		<rom name="NDROOT\TEX\1RA_GOG.DTX" size="256" crc="630316b4" md5="0110cf84d2fea4675851c4075465eb1d" sha1="407ba6b5f2e5721596383297565d91e814683bb3"/>
+		<rom name="NDROOT\TEX\1RA_GOLD.DTX" size="43776" crc="ee29c602" md5="c1904d067bac1b34d8cb9a9c7d60e32d" sha1="89b09748c5186ac420666c3b8d7a00a99150d6f4"/>
+		<rom name="NDROOT\TEX\1RA_HA1.DTX" size="43776" crc="554348a6" md5="d24d04293653abe62536da928c1e0061" sha1="f46bc531ecb41cc9f8016347f38b9c863eb25e17"/>
+		<rom name="NDROOT\TEX\1RA_HA2.DTX" size="11008" crc="749914f6" md5="d6ff37601b1d922ebdf4209616d03b46" sha1="fc8a1bad14bb36e8e7526a8083be4508c309057f"/>
+		<rom name="NDROOT\TEX\1RA_HA2B.DTX" size="21984" crc="a7dae151" md5="157703d3ed3b740de9c7a27543fb9036" sha1="33ab714c63c10c36504e314591c1d8740112c6e1"/>
+		<rom name="NDROOT\TEX\1RA_HA3.DTX" size="11008" crc="181c613f" md5="7fb32dec672d829f5a7817eec80a4ea7" sha1="96a1f16eb70d7ec5a77c6a34d91ca05f0ec020c5"/>
+		<rom name="NDROOT\TEX\1RA_HA3B.DTX" size="16416" crc="d72aa64f" md5="31b0d9830adb6604d3af2a74b317214a" sha1="98ba7bcbed566ecb47de95a5fbab8bf359e3b138"/>
+		<rom name="NDROOT\TEX\1RA_HAB.DTX" size="65568" crc="2f2d46f9" md5="08577a4feafd605d4e56e4fcb44aba50" sha1="8a8e4a82e733593cff35c0ef06563afdd23e63cf"/>
+		<rom name="NDROOT\TEX\1RA_HASH.DTX" size="21952" crc="ad37a1bc" md5="ab5adcef95448237cde5406183549f85" sha1="50e8a4405b2ea8af3610f6682cca474a79cb43bd"/>
+		<rom name="NDROOT\TEX\1RA_JISH.DTX" size="174848" crc="5e251b22" md5="d070f3d04b4201588b0d3b7f8b195750" sha1="0642dbc8ec8aece9753e799b30f4aafa6809c76c"/>
+		<rom name="NDROOT\TEX\1RA_JYU.DTX" size="43776" crc="762d22cf" md5="194fd7c02db2ac62d40343e65a699561" sha1="5d4c5947015649cbf34d5de52b198c5ab598aa9d"/>
+		<rom name="NDROOT\TEX\1RA_KABE.DTX" size="87456" crc="ace0e372" md5="fdf8cf5d0cae376bbb6e8b9aa513c7da" sha1="5591b51ef55340f896497ec070338c8fad6b5473"/>
+		<rom name="NDROOT\TEX\1RA_KAIB.DTX" size="32800" crc="cf55706e" md5="e3b7c4cc2e30985df71c63ea217d845f" sha1="e4518a84cede8f4600dcf3c51b9d06d3cfe2af65"/>
+		<rom name="NDROOT\TEX\1RA_KAID.DTX" size="21920" crc="96270a4e" md5="c62f48cbd5e71a4bc9d69ccc43f1ad7d" sha1="f7222903bf610609d17c8aa91cf7ed447545c335"/>
+		<rom name="NDROOT\TEX\1RA_KIN.DTX" size="11008" crc="5bab59c8" md5="e216c9e647b599ca67d4db4fa45fbe63" sha1="b198aa395270100c7f4e4fa88f1e67a605e65eb3"/>
+		<rom name="NDROOT\TEX\1RA_SPC2.DTX" size="8224" crc="aa53c49c" md5="311a62acc9311d3c136953b3c2823e88" sha1="b256f0e33968d364e8973f3efb6fe66b39099306"/>
+		<rom name="NDROOT\TEX\1RA_SPC3.DTX" size="8224" crc="863c6693" md5="992c3f77b3a37082153e1602b9a558db" sha1="229e68edf45210a034ca70a33e81e7410145b01b"/>
+		<rom name="NDROOT\TEX\1RA_SPC4.DTX" size="32800" crc="c9c1e893" md5="5649587efd86e3f4afa50384c6ebadc1" sha1="6582e9c7d565732670d43bbfb680bf16cd4328c3"/>
+		<rom name="NDROOT\TEX\1RA_SPC5.DTX" size="8224" crc="8e567703" md5="05514a7cc71390067b514a9e84156bbd" sha1="10630141573602530eea6a7aa3c675ddeb245d93"/>
+		<rom name="NDROOT\TEX\1RA_SPC6.DTX" size="11008" crc="359aae18" md5="47a931669c878702ff98d10eca57a431" sha1="e6321a184a3e94f7095aa44f8ea7de89ec6cca9d"/>
+		<rom name="NDROOT\TEX\1RA_STEB.DTX" size="131104" crc="568abdbf" md5="f4adfe3fa148a351c80a960d22cdba78" sha1="6106c26869ed4ed85c985109129cb4479b0645d2"/>
+		<rom name="NDROOT\TEX\1RA_STEN.DTX" size="87456" crc="f1f094e4" md5="6d059d6f22e8e4748ef3bb340254c439" sha1="cee05ef74af5c13aed9c9f7a144acac812fa45d2"/>
+		<rom name="NDROOT\TEX\1RA_TEN.DTX" size="174848" crc="66349fad" md5="3791ab2f7fc8e1c5e07a898cc8bebe2a" sha1="4719274405d1619fa2c44f108be9d514ba5620f7"/>
+		<rom name="NDROOT\TEX\2_BLOK0.DTX" size="86048" crc="946d91c6" md5="2b327356291a3199908f01ef69f20126" sha1="5766802d9580a4502a63f6306249fd915f40580e"/>
+		<rom name="NDROOT\TEX\2_BLOK_B.DTX" size="43776" crc="60b92757" md5="0f235fc7195dcc6b24e2f1eb5b261b11" sha1="7df33befef6cc5faf72288b2c3af51656318b6af"/>
+		<rom name="NDROOT\TEX\2_BLOK_C.DTX" size="43776" crc="08f3c88d" md5="2637515a896da26a4d0dfbe7051f8cb0" sha1="f259b9c8bac0a3c002d7a76c3223f79f54f2e5d8"/>
+		<rom name="NDROOT\TEX\2_BLOK_D.DTX" size="2816" crc="9935197a" md5="267c8d73ac3fe7e38948d2a82c9bd9f9" sha1="8359fd0d0feb40c72ad12c5c82e17c63159daa9c"/>
+		<rom name="NDROOT\TEX\2_BLOK_E.DTX" size="11008" crc="ea2f6fe1" md5="e7af7b9575169002e35f202702297a0b" sha1="a88a1fd8e90250ce36932ef514022acde3e52bab"/>
+		<rom name="NDROOT\TEX\2_BLOK_G.DTX" size="43808" crc="f3690c6c" md5="4fa890bce38950bac4e35062effcf5c9" sha1="13967f03dcfce3a9530c0a872fb967f9099c4804"/>
+		<rom name="NDROOT\TEX\2_BLOK_R.DTX" size="43776" crc="12b748bb" md5="11864329995b53fe46f3a9fb34da359b" sha1="34f49ef208fd5893675537c31d7e08e21cb55bbe"/>
+		<rom name="NDROOT\TEX\2_BR012.DTX" size="43040" crc="c13b626b" md5="ac23c4dd2207ce18ce00337a9a96f13e" sha1="a2e3b0d123286d91ace35fb7034a2641e86ce64b"/>
+		<rom name="NDROOT\TEX\2_BR012B.DTX" size="43776" crc="d8433d84" md5="f37152c3029aa9f891c5c988b5637bd6" sha1="be1bde1a2971155f03924958a1bcc58181e83e8e"/>
+		<rom name="NDROOT\TEX\2_BR012C.DTX" size="43776" crc="6c08ef11" md5="a906eecbcea0f15cbe32e5d27df3f880" sha1="ee91dbece858cc5677aafe75373c81662bcbd4c6"/>
+		<rom name="NDROOT\TEX\2_BR01B.DTX" size="43552" crc="e2ce38c8" md5="ac3dc1441a2c6964136343774b303079" sha1="7f616f61ed68216c12a7f70c660e033bda866c14"/>
+		<rom name="NDROOT\TEX\2_BR_G.DTX" size="43776" crc="aa4a252e" md5="a99afda0a41f9a7ee69fe048433da705" sha1="5da3324ef11834486c821acf951bf2106408984c"/>
+		<rom name="NDROOT\TEX\2_CHAIR.DTX" size="2816" crc="136ce6f9" md5="a08723a52b2d625573ab5d9853a8a16f" sha1="05b69cd0a65bd6f75b3d715eb1c6bf0d2010f9a7"/>
+		<rom name="NDROOT\TEX\2_DOOR.DTX" size="11008" crc="80b29a24" md5="a2a119dffb7d1e5de3be02038cae5132" sha1="10127a35725a8125dacf53952da205ea2f125175"/>
+		<rom name="NDROOT\TEX\2_ENTOB2.DTX" size="349664" crc="db5cc072" md5="5351b3d39fc1cf8df527cd2bfa128f82" sha1="5c83ac4750423bda4ca08c4a6b8e7398e626818c"/>
+		<rom name="NDROOT\TEX\2_ENTOB3.DTX" size="43776" crc="2b405a39" md5="36cae6b0a6dd871c051d2a09b57728ba" sha1="8a3db7a5efd524d9fe035a103946a08b1b886aed"/>
+		<rom name="NDROOT\TEX\2_ENTOB4.DTX" size="5536" crc="502a9634" md5="3f90493aea041eee312a731ab08a7196" sha1="2a0f18f9e59f590ee607ebaa02884c2b516948c4"/>
+		<rom name="NDROOT\TEX\2_ENTOB5.DTX" size="5536" crc="3f5a40da" md5="4c194950ea6a82447a9cda011cf1e69d" sha1="8403ac5a2e135e0836ac73aff7e01240e2759178"/>
+		<rom name="NDROOT\TEX\2_GAKU.DTX" size="43776" crc="15ba0f83" md5="1ca2e5613296d3c024322e16d15d8c27" sha1="428caa39b1147fd5300dcb85af8e226b9c75f0cf"/>
+		<rom name="NDROOT\TEX\2_HASH.DTX" size="43776" crc="040b81f5" md5="76a657a81fb0cdedcf58dc9d4faec25e" sha1="cef67764e2f90206236c40b72590e7daa3730ff3"/>
+		<rom name="NDROOT\TEX\2_HATA.DTX" size="43776" crc="796e188f" md5="50bb7ce3f3265d3795b830607d0fd5a7" sha1="8b7247f24e46566cf768f7a03325042efa22c76e"/>
+		<rom name="NDROOT\TEX\2_JUTAN.DTX" size="87456" crc="f6469dc6" md5="9192a52aa462e23b6581d7609210408b" sha1="c4813436d255a1f778aea88775af2e08b0ba26db"/>
+		<rom name="NDROOT\TEX\2_KANBN.DTX" size="174848" crc="cf9abd75" md5="93374105a17459f29461b5647699512f" sha1="7a88e855c74e08bd2d3fb254d9a8f942b87bb4e2"/>
+		<rom name="NDROOT\TEX\2_KATEN.DTX" size="43040" crc="ecc592fe" md5="0e8c6220a0698db6ec2a45bd2445a4b1" sha1="760172c32637fb1b618278b23c1fd07d623db4c4"/>
+		<rom name="NDROOT\TEX\2_KATENB.DTX" size="87520" crc="a6fc493a" md5="9e8628c3911fbce3b349d14e15281c4d" sha1="296945cbe1625b0dfcbeb3412fa8ca0fdac4719f"/>
+		<rom name="NDROOT\TEX\2_MARIO.DTX" size="349664" crc="04213aff" md5="2b4cf058f7ed8430303dfee776faf60d" sha1="a2df656e07a42cdefc1824d47b5c9736e056232f"/>
+		<rom name="NDROOT\TEX\2_PIC.DTX" size="688160" crc="1ab58b14" md5="d097cd45c3a64e6a007a8c939541c4ee" sha1="bf33a865c2177f47e7592b4cc262bec6bde756c4"/>
+		<rom name="NDROOT\TEX\2_PLANT1.DTX" size="5536" crc="b6cb57c0" md5="98768ed15c5f56a86477397f407ee464" sha1="2dda0b725dc7cbf663beeba196d69c5aedc11082"/>
+		<rom name="NDROOT\TEX\2_PLANT2.DTX" size="5536" crc="71ddd916" md5="e0396c9558765b483538729851808417" sha1="94fa4df0868f115066392731f90f2c80764e2149"/>
+		<rom name="NDROOT\TEX\2_PLANT3.DTX" size="5536" crc="b803be92" md5="f3c8072d865b2a4b2f15c4aa37313b59" sha1="ef8b3860fabe525454699f8d7426715a0e8f0d94"/>
+		<rom name="NDROOT\TEX\2_PLANT4.DTX" size="5536" crc="0b936446" md5="4e4883bfe031479dcbc85c96a6ae62cc" sha1="89dffdff65a69ba14fb9ca46c911251b69d5bb5e"/>
+		<rom name="NDROOT\TEX\2_PLANT5.DTX" size="2816" crc="ff20b00b" md5="d7ff12f4e7d07f5dfb1353ad90c4026d" sha1="627f8d21047cdccb93c9c92d205581d86e7cefb0"/>
+		<rom name="NDROOT\TEX\2_PLANT6.DTX" size="5536" crc="b5c04758" md5="cae316f9c1a6bc533ba1a3c94fe2c3af" sha1="7d85b37befc4224bd976b2d438d96a629af01c2d"/>
+		<rom name="NDROOT\TEX\2_PLANT7.DTX" size="1440" crc="3866a0bc" md5="f0bbcdf3ce03943bad04aca3200ca9aa" sha1="1d33475db2f14c46a5886621e3829ae3feaa2550"/>
+		<rom name="NDROOT\TEX\2_PLANT8.DTX" size="2816" crc="66b70f1c" md5="c7c8860ba2eb8ee63b6747e89b832238" sha1="5e7788c0c7a78703307391ca7c29b0a4e4d6ef0e"/>
+		<rom name="NDROOT\TEX\2_S_EV.DTX" size="21920" crc="10493948" md5="7eedb1e10c70c0c39c37165c04482d27" sha1="5bbac9459fbb5452140e287d51c77bb73af78aa4"/>
+		<rom name="NDROOT\TEX\2_SKY.DTX" size="43776" crc="173ff893" md5="65fbea6f92e527f699358c126be94467" sha1="276388eef383e65aa8d778bb76e12e45f2d76337"/>
+		<rom name="NDROOT\TEX\2_SP_EV.DTX" size="699136" crc="ebdca46b" md5="4e080917f5cde844c5605e31edc86c0c" sha1="3323a8236bc613a3569a6602220edf3b01c6127a"/>
+		<rom name="NDROOT\TEX\2_SPACE.DTX" size="699136" crc="ed6ba0ac" md5="54be3b77324f6fa2f4770212638b6d6f" sha1="9171dd685153c4891845c99b32a9aae29f795c38"/>
+		<rom name="NDROOT\TEX\2_SPACE2.DTX" size="699136" crc="ce93d54d" md5="a887f1b06b643eb069f7b7718bd365f7" sha1="7a4595726cdd80fc987363645505e1c095797913"/>
+		<rom name="NDROOT\TEX\2_SPACE3.DTX" size="349664" crc="46b2c67a" md5="6ca022573afe745cbcc5f59181bf1d50" sha1="cd988de9d02b0a1c873b66e5a4b6c061a5cb1ebe"/>
+		<rom name="NDROOT\TEX\2_STEND.DTX" size="86048" crc="49277636" md5="2d354d9520bad225667cb1ea3147f4f0" sha1="1c66130f0a2c6ecbad9a4bcc4de1e96d3d601ff0"/>
+		<rom name="NDROOT\TEX\2_STEND2.DTX" size="86048" crc="bf9af31e" md5="e62bc52d9866e54e4c176129fc80a4a8" sha1="2bd166cdda9333d1b29b9e27a36447df440d0724"/>
+		<rom name="NDROOT\TEX\2_TENJO.DTX" size="174848" crc="ab837202" md5="b7c33ec6df02f599851eb4b00e9d3822" sha1="d19c55ead3eb39e1dbb45d5c913f0c5e7dfa6daf"/>
+		<rom name="NDROOT\TEX\2_TETU.DTX" size="43776" crc="2383d303" md5="82f896cd2a0103e8589e977ef78304f7" sha1="5a803a26247ec7bb91ecfa00fc4b903be5d5364f"/>
+		<rom name="NDROOT\TEX\2_TILE.DTX" size="174112" crc="30c47f09" md5="2cd506499375a425012f03069f070989" sha1="88b6e776c7b132bf9b07ee8444ee4f48f33da007"/>
+		<rom name="NDROOT\TEX\2_TILE2.DTX" size="43552" crc="11a10e58" md5="26b4dacbb8dbf29172783b1774eb35f6" sha1="a02dd85e33ced04f75ab0f8ff69e0906e9cc28b8"/>
+		<rom name="NDROOT\TEX\2_TILE3.DTX" size="43552" crc="a75c114a" md5="02e665541a747d0c2fd08fb952b335a7" sha1="8e811c36383964037be8acae324bb7750ed558c2"/>
+		<rom name="NDROOT\TEX\2_WOOD.DTX" size="43776" crc="fc092a82" md5="c7b6a81e6fe4720804b9656f311f5ddf" sha1="f8c5568efd0da7ea13074613c47e6cc9af687421"/>
+		<rom name="NDROOT\TEX\3_DOOR.DTX" size="43776" crc="9b483fc0" md5="a856fca4d413dd37b9235042a38503d4" sha1="f130a72232c5ee1b5cc70d777f8fabc8cabfa616"/>
+		<rom name="NDROOT\TEX\3_YUKA.DTX" size="43776" crc="9ec630b0" md5="eb08c5fa6c8dd75cc2595d408bfa3b72" sha1="4cffc2e4add7b3bc72dff08da66f5b54eba6bb23"/>
+		<rom name="NDROOT\TEX\3ALPSL.DTX" size="2796288" crc="c1b6fb09" md5="a63c4dbf20e2fa6824f588c1a19fae2a" sha1="d6b6237bcc004410218d31fe8af7879787e3d005"/>
+		<rom name="NDROOT\TEX\3ALPSR.DTX" size="2796288" crc="48a1b5e9" md5="32f505a390a3d0e874fe854453bee5fa" sha1="5ce19f8afe41de8bf3970b4576e3a174cc964e25"/>
+		<rom name="NDROOT\TEX\3B.DTX" size="2080" crc="5039ad7e" md5="c746ee99da7aae1f8f961181703b0c4e" sha1="f5eee9d0c772d63b3e95ebf5884a785c2e49aaff"/>
+		<rom name="NDROOT\TEX\3COIN01.DTX" size="16416" crc="5112514b" md5="569c969e55ebdfd4c6be4a61916beeb5" sha1="defca0014756c604472244302e9020746f5e70f4"/>
+		<rom name="NDROOT\TEX\3COINB.DTX" size="16416" crc="f5eb6fff" md5="6f606fa8e03682e8c84367f1da9736a2" sha1="110facb0ac9e739ff4a3c3a89fa3185b735fd700"/>
+		<rom name="NDROOT\TEX\3COING.DTX" size="16416" crc="b229dbe0" md5="ac0a2bf7ecafd0865a385c028424ead1" sha1="c541cf8741fc933174ac71a806685fc20c6a825e"/>
+		<rom name="NDROOT\TEX\3COINP.DTX" size="16416" crc="a7a46b80" md5="b7d3db0bdc5e859caafa3e986eb40b2e" sha1="b9e417dc3c260da20ddd225301ad7b380a595c0b"/>
+		<rom name="NDROOT\TEX\3COINR.DTX" size="16416" crc="becc45f3" md5="eddcf86a8c8c399e7548af55f6bbc572" sha1="9df5989b410b6f4d028e3c5e06badf45ba6fd2f9"/>
+		<rom name="NDROOT\TEX\3CONC.DTX" size="21952" crc="166c60fe" md5="235680de553ff9d7edc68f37c4d1f843" sha1="e59c908608c1d9fa87e1f5c8478134679a95b920"/>
+		<rom name="NDROOT\TEX\3CUBE01.DTX" size="43776" crc="2b06f588" md5="bc5c60195452b8ece42be9a6accbeaff" sha1="8f558a6e893c3edfc95552283b8a0595a2788f49"/>
+		<rom name="NDROOT\TEX\3DOKAN.DTX" size="11008" crc="edca2b3b" md5="d34317ebb47e0b349aea2f7b7a387cc0" sha1="232bad862b5dbb8acd44d3aca472871e85231954"/>
+		<rom name="NDROOT\TEX\3FLOWER2.DTX" size="21920" crc="d0a6d6f0" md5="07e5c87b51e7b24b0cd803c396ecc39c" sha1="7bb849c79830749d920484644ef81048257628c5"/>
+		<rom name="NDROOT\TEX\3FUCHI_K.DTX" size="11008" crc="7b891dfe" md5="191f320323e65372ca4148c135bba63f" sha1="da2623003fa9a3ae34f166e8f8471f9ef65a3647"/>
+		<rom name="NDROOT\TEX\3GOLD.DTX" size="2816" crc="4f77fad1" md5="38428d20bb89e53e1190eab2d663b36c" sha1="22bfe3ab1a61a05170ef3791e79d69fe73039a20"/>
+		<rom name="NDROOT\TEX\3ITA2.DTX" size="11008" crc="731ad9e1" md5="f12a911f1866b18044ef97dff1bdc101" sha1="cda9234b969f76a4ade775a5c8633e96d307bb4b"/>
+		<rom name="NDROOT\TEX\3KABE2.DTX" size="699136" crc="6126b5ff" md5="273fb1f7cc490a33d79db5e2040527da" sha1="f4f6675aad78813f86cf0cd6f4371d47a4473bb5"/>
+		<rom name="NDROOT\TEX\3KABER2.DTX" size="43776" crc="bda1d1fe" md5="eb2e3c474f52e0cbb91e21ba386f08b5" sha1="b49b9dd1905d5df5e14d54d95c26c1ec2c466524"/>
+		<rom name="NDROOT\TEX\3KIBAKO.DTX" size="43776" crc="1600c904" md5="a9355f14ad1b2c80e2c61fc13e4a37da" sha1="0c74dbfab06fced50e98fcf061dc3c879fbe7609"/>
+		<rom name="NDROOT\TEX\3KOKE128.DTX" size="43776" crc="bb52c0ce" md5="8010f12f044fa9dedfe98e1673c01c20" sha1="1cdcdba182aaa421478d652c7c04d168188b742e"/>
+		<rom name="NDROOT\TEX\3MARBLE.DTX" size="11008" crc="5c1f4998" md5="2048f57979f2c5f0ce8b69cfe6e9f4e7" sha1="cd5a707c60194df9c710dc9c0fa629f6b6b1e38d"/>
+		<rom name="NDROOT\TEX\3MARBLEA.DTX" size="87456" crc="a30ae3a2" md5="54ea4e7459ab937007d5a7d0fe460a0f" sha1="e8d6b0a54eaf4eb38d0301b9510e80eb4bba0fc5"/>
+		<rom name="NDROOT\TEX\3MARBLEG.DTX" size="11008" crc="45c9b389" md5="c7fd301b9203d123a306501230a36d83" sha1="9a9feaaeecbc3f4c8a21a0bf6381eb0d94574ed0"/>
+		<rom name="NDROOT\TEX\3MARBLEP.DTX" size="11008" crc="340b52e3" md5="01bb0b47f7d4904bb8d3fb261ca450eb" sha1="860c117362f1eead3a8127481b696272aa05339a"/>
+		<rom name="NDROOT\TEX\3POLEUE1.DTX" size="43776" crc="0cae35a0" md5="45340fc5826bcf6c1f29d233d743f5c5" sha1="937212d81991b3afaa5b4393dd39ded50c79404b"/>
+		<rom name="NDROOT\TEX\3POLEUE2.DTX" size="43776" crc="a83ecd33" md5="6cc6e7a1d67903a8d5af3321597c951c" sha1="5ef204896e42580047d850a6cfb66121c074e3b2"/>
+		<rom name="NDROOT\TEX\3POLEUEA.DTX" size="43776" crc="f0ef8cf5" md5="c47785f33d03a17f7ee416b997e7a174" sha1="a9145aea6a6fa7f7790018270e00fd2d73a56008"/>
+		<rom name="NDROOT\TEX\3POSTER.DTX" size="43776" crc="91695bca" md5="044f38b382aa02efda79af79951424ef" sha1="6cfab7d8098eb99e352257b61a0a6b2e1daff2ed"/>
+		<rom name="NDROOT\TEX\3R.DTX" size="2080" crc="9e84c69f" md5="eb6cd67fbd3ea24cf10568426173f2a2" sha1="a7169e3e1f53de81f0b3c2125f1e62f9190da700"/>
+		<rom name="NDROOT\TEX\3RED.DTX" size="11008" crc="45508d17" md5="e6b4938048b5f71d2e6b77b8298d6235" sha1="51c7b482fef054a55fd2183c1fd5779ff40222b9"/>
+		<rom name="NDROOT\TEX\3RED_T.DTX" size="11008" crc="fb2a402f" md5="733abbcd993879cb36415f0da1614134" sha1="e7a07601c830fa53b9726b8eb719ee00f61b09b3"/>
+		<rom name="NDROOT\TEX\3REDKABE.DTX" size="87520" crc="59cdec25" md5="fc1b98977e106cccd0717c9b8261333b" sha1="6a0c8f3e9805ccb1496473a6bf2224db7c443ecf"/>
+		<rom name="NDROOT\TEX\3ROAD256.DTX" size="11008" crc="8fe611ca" md5="bf0982517b127a7eaf2c3b287cfc2ac1" sha1="1ce61b1934de66700fe2dcad7d66d912399b80a2"/>
+		<rom name="NDROOT\TEX\3ROAD_B.DTX" size="174848" crc="7a6ebe75" md5="b5575a196442369b4f15dc0592dc4813" sha1="d5b814775093878349143e2b8de52743ecb574bc"/>
+		<rom name="NDROOT\TEX\3ROPE.DTX" size="256" crc="77828f54" md5="d2a9aee76b08dd55cd5e4ed9b7b8f1f4" sha1="91c7b21c3d1838df8c5ff3d2d4d336753c5986b1"/>
+		<rom name="NDROOT\TEX\3SABI2.DTX" size="5600" crc="07748667" md5="edaa8485e418cac01e6c1ac387f9ed20" sha1="388b457979fa2e5969ce14c491d469236be6d546"/>
+		<rom name="NDROOT\TEX\3SAKU3.DTX" size="2816" crc="98c2e6cb" md5="73e1201853c44d28c63311840cd7903f" sha1="72ceea50843a4bf249f2d8acc81a2c9355cbd3b9"/>
+		<rom name="NDROOT\TEX\3SHI_G.DTX" size="21920" crc="e2198c89" md5="d1b67706cdde518f519bc0fb55e4781c" sha1="1d08b47d95a5cda7e86c0719eec7e77f7e61450e"/>
+		<rom name="NDROOT\TEX\3SKYHANA.DTX" size="43776" crc="db9d78fa" md5="b14d41063cf2199c9d8d3d2b2987d8f8" sha1="b29323768a780709b16fd1b486a50f52f41dd4d1"/>
+		<rom name="NDROOT\TEX\3STARS.DTX" size="21952" crc="1079db3d" md5="23ec7ba5750cd04ed50b5df18ef87dbb" sha1="e26039d2faa3d0ffa331080b0fe8e98a14613ade"/>
+		<rom name="NDROOT\TEX\3TUCI256.DTX" size="87488" crc="76d02617" md5="4cb823450bed40e34c64f367c81691e1" sha1="f2aa68bc91cf33af08a31c4cd103a6b72738d88a"/>
+		<rom name="NDROOT\TEX\3W_WALL.DTX" size="21952" crc="2f8e0572" md5="cde7bb9ad3432fafdc7416c2e65413b4" sha1="9e48fb276c377bc13f30f5c4fd131c745e0ba480"/>
+		<rom name="NDROOT\TEX\3Y.DTX" size="2080" crc="4b6f28f2" md5="b0e55e489b27c8acaedb0f808b132e72" sha1="b0b8e605f74608d804ae44379305fa2b2e2e36c9"/>
+		<rom name="NDROOT\TEX\3YA.DTX" size="43776" crc="40a36c9e" md5="03660f834755fb96a8fe53fe9b71a213" sha1="93cab8991955d8af38d91f39f1fbba0fd833a5d8"/>
+		<rom name="NDROOT\TEX\BLACK.DTX" size="480" crc="26574d2b" md5="7374515f2e61621377910e1d1b420ff6" sha1="10c8607384d84370f102b60423d79a26bc28e8e2"/>
+		<rom name="NDROOT\TEX\CAM01.DTX" size="21920" crc="11f370f4" md5="de7a77988b8f903c3a4be6e4a217631d" sha1="38f7e0e992848f1b7d7f228189eead4c93684342"/>
+		<rom name="NDROOT\TEX\FONTY4A.DTX" size="10912" crc="31dfba7c" md5="6228c684595a932bfa9cc0e3dccf25eb" sha1="3b4953b5ed2f5ab013f410180ad0594172e2876b"/>
+		<rom name="NDROOT\TEX\MARIO00.DTX" size="32800" crc="d4542979" md5="63bb65346797adb755b3a2cfa40fe37b" sha1="12715d5bab138832f4cbb538199fa67e00f5b39e"/>
+		<rom name="NDROOT\TEX\MARIO01.DTX" size="32800" crc="da8eb86c" md5="b3b604f85590ed2259d3b19282772a21" sha1="a95bfcc547bef56c8c154e19706375951fb5c9cc"/>
+		<rom name="NDROOT\TEX\MARIO02.DTX" size="32800" crc="d568cbdf" md5="4f8d2ed3af947383a5b6c00fb5a0ba99" sha1="2fc1ad58e649ce1796b63536cea3766213f7ba2d"/>
+		<rom name="NDROOT\TEX\MARIO03.DTX" size="32800" crc="7779516b" md5="0a80510965b5fab6eb633ff311e1f5fc" sha1="3037d5214f05e447281249fcc3fe7bc8775f4338"/>
+		<rom name="NDROOT\TEX\MARIO04.DTX" size="32800" crc="62e198fd" md5="3c4826b3f5846e07197956ca3099a5ad" sha1="58a07b21000766044f05143246b9a286df9839a2"/>
+		<rom name="NDROOT\TEX\MARIO05.DTX" size="32800" crc="c8ec5326" md5="b45a3905952bc8655074bdf1b540f735" sha1="0904c7e41c8e691587cd2726be809e5012871550"/>
+		<rom name="NDROOT\TEX\MARIO06.DTX" size="32800" crc="cc705a94" md5="a05689cd4031da40d55cd66237cdcad7" sha1="4e00d146c203882aa6bea30a9eb9c8b81ea9a50f"/>
+		<rom name="NDROOT\TEX\MARIO07.DTX" size="32800" crc="b573c1f5" md5="2177f6647792d054c6a57334d5696d15" sha1="27abadfa79f2645a388cd969d067480beb7a226c"/>
+		<rom name="NDROOT\TEX\MARIO08.DTX" size="32800" crc="3718fa0e" md5="7ac3c34726dd674789c649f6efd91fd7" sha1="459d87cc009d844da5833768a801966723a92c38"/>
+		<rom name="NDROOT\TEX\MARIO09.DTX" size="32800" crc="17b43f19" md5="d1cd2b2df41cfcceaaa3fa54debb0136" sha1="2800efc6d6e8869607210efc7721f3df688e455e"/>
+		<rom name="NDROOT\TEX\MARIO10.DTX" size="32800" crc="b01ff972" md5="47cb1cf7bd7fa60299b2e1d49d5f126c" sha1="3b5bdda68e175fc7c2d34e244993b67877fd39a3"/>
+		<rom name="NDROOT\TEX\MARIO11.DTX" size="32800" crc="6808c7b0" md5="751534cc833c11c98167b411b168eb4c" sha1="b43596b993e5627e2a108a994dc267fccbc21897"/>
+		<rom name="NDROOT\TEX\MARIO12.DTX" size="32800" crc="241cc3e1" md5="3f1cd4b45db5b9bf416b5f5eaf6a3644" sha1="6d8d1ad9f23f88799c7d173e86094f2fb91aac00"/>
+		<rom name="NDROOT\TEX\MARIO13.DTX" size="32800" crc="f76f02a7" md5="90fa3f8da154cbc7ced16429ba37b75f" sha1="d228bf9da0ab4098dd52cc596372155cb6699d85"/>
+		<rom name="NDROOT\TEX\MARIO14.DTX" size="32800" crc="7c534570" md5="2850d65cabd8b9a066e80d10836d9b27" sha1="924c2975aa93fa62d44c3c09e786d7731fe17aa6"/>
+		<rom name="NDROOT\TEX\MARIO15.DTX" size="32800" crc="1e0d23a9" md5="d26b410d248670136cb4a56e4def83f9" sha1="77d39f3782dd2352cce29d74fdbbdc4023e576f0"/>
+		<rom name="NDROOT\TEX\MARIO16.DTX" size="32800" crc="1aad5e6f" md5="a62cce1dbe8ee946c00e9b75d45b45d9" sha1="a45501f9f037f85a47b2883086c03fe1ddcffef4"/>
+		<rom name="NDROOT\TEX\MARIO17.DTX" size="32800" crc="815e843a" md5="66e5ea515db980fcff45e96e13c74dd9" sha1="15ac9846e971981b7102814129c5b98b1cdb634d"/>
+		<rom name="NDROOT\TEX\MARIO18.DTX" size="32800" crc="3fb8d386" md5="9d024e85567e636c7ea17b1d82daa759" sha1="16c37f02ddff7bf6c041fffd2b43ad43b6bf0130"/>
+		<rom name="NDROOT\TEX\MARIO19.DTX" size="32800" crc="b0b72769" md5="7e46f6d10557eccd8ef0410b16b19600" sha1="22db04bb75382724e642f022fb14604fae2504a3"/>
+		<rom name="NDROOT\TEX\MARIO20.DTX" size="32800" crc="75fd7618" md5="5840148557a65a9480f5428bcb0ba4d4" sha1="b805b51070b61159d9b386e5e22f6936b965d71b"/>
+		<rom name="NDROOT\TEX\MARIO21.DTX" size="32800" crc="3bb7910a" md5="d2ec31df050e3cd19ad77b6ed4553f82" sha1="1b419d1ceac18e21c7a2e896a014dbda582af992"/>
+		<rom name="NDROOT\TEX\MARIO22.DTX" size="32800" crc="b01b861f" md5="f8dc20a026e40e42f81e37258efa7f3e" sha1="d87fdcebe0fd7b7974ef8fcf3106a28d6b911f05"/>
+		<rom name="NDROOT\TEX\MARIO23.DTX" size="32800" crc="816d9096" md5="f5da8ccd6edaf1937a1529f7d3fd523b" sha1="694e4654489115e9364dc9b97dedd6ef137f07c8"/>
+		<rom name="NDROOT\TEX\MARIO24.DTX" size="32800" crc="b245ac34" md5="89db4f56db9c6bc53f9e31ff3c630e28" sha1="9afd57df93b3b408bd1e2815f51f11e23c7b526d"/>
+		<rom name="NDROOT\TEX\MARIO25.DTX" size="32800" crc="e6a8ca93" md5="7b2a5d406dbaa9800956e1174b927b6b" sha1="2a779d99e6fef9a921b5885e048d07196c849bc1"/>
+		<rom name="NDROOT\TEX\MARIO26.DTX" size="32800" crc="04c61694" md5="a7ab5bde1be5b409d0db2a5e2d35d216" sha1="a127eab51fa89e7f84f8a7639ebbf226a2304547"/>
+		<rom name="NDROOT\TEX\MARIO27.DTX" size="32800" crc="23d585db" md5="5935d1814fde4f26f6cf644440f73828" sha1="31f5933c6d75251887c13794095de596b6db0311"/>
+		<rom name="NDROOT\TEX\MARIO28.DTX" size="32800" crc="195c3472" md5="a5f1d7d9d55c07010d5665028a47148d" sha1="a16880ad2a17470ac1cd6729497563403e110ace"/>
+		<rom name="NDROOT\TEX\MARIO29.DTX" size="32800" crc="8c919baa" md5="a02814d5672bbdc488235437809f8b2f" sha1="eb765e7451aa129dbf4496b8524b98840dd20f0c"/>
+		<rom name="NDROOT\TEX\MARIO30.DTX" size="32800" crc="de794b53" md5="59a4b8e6d2c56d1ddd22d0ce6964c714" sha1="07244137bfdc8d65a168328cf4c22340ad10936f"/>
+		<rom name="NDROOT\TEX\MARIO31.DTX" size="32800" crc="8762ca25" md5="7de79ee390f332c3cbaccefe30f92e44" sha1="e305eae8edc0dd750a583a7312176eed27743c7c"/>
+		<rom name="NDROOT\TEX\MARIO32.DTX" size="32800" crc="feb380db" md5="fb767c0d8009b731db3011e2832c7523" sha1="396d382436bc5a71af1f65e67f3183414922a1f3"/>
+		<rom name="NDROOT\TEX\MARIO33.DTX" size="32800" crc="6d53d585" md5="d80830e9fcee17d776054d3f7a5d7881" sha1="c8b3c21d4c0e795f2bd18220567aa780bc5b7641"/>
+		<rom name="NDROOT\TEX\MARIO34.DTX" size="32800" crc="764444c9" md5="7cd57837df39870fe0b86a9bc2988c97" sha1="dcdd1537ce1326766da9bb9d94deda79fc293fbd"/>
+		<rom name="NDROOT\TEX\MARIO35.DTX" size="32800" crc="98b9aaa0" md5="cf0c2aba93026310027c3ab6fbe95647" sha1="767944086800f765eafe102add90c0a08694d96e"/>
+		<rom name="NDROOT\TEX\MARIO36.DTX" size="32800" crc="87f8c103" md5="b0d6996981a309afef2da27c17b97a37" sha1="1d663b761a62669f845e781ccc1fc02f1609bfe9"/>
+		<rom name="NDROOT\TEX\MARIO37.DTX" size="32800" crc="64ec44de" md5="f4b59dd6a4cc7ae0f141438b48239f0d" sha1="55a72047b6f4060f4265f0aa72f77ef60c7ae920"/>
+		<rom name="NDROOT\TEX\MARIO38.DTX" size="32800" crc="57c6ec70" md5="abea0e05729dca8abd788e9a242efba3" sha1="ccb82c553d1e8fc2184b460a07797cc9959376a9"/>
+		<rom name="NDROOT\TEX\MARIO39.DTX" size="32800" crc="55a02e2d" md5="bb3b7c8c360216d27d0fec1128cf4045" sha1="9a0bb32185ea3fd44e35e6242c06394e9c99a8c4"/>
+		<rom name="NDROOT\TEX\MARIO40.DTX" size="32800" crc="135aae0d" md5="a34b4bf7533612a06d1205bfb2e12817" sha1="ae0c3b6e1ce706f93523b358064bbe9fa0d4354d"/>
+		<rom name="NDROOT\TEX\MARIO41.DTX" size="32800" crc="1431e837" md5="bd0f4dc8287a1a56ef9785f39ee0a610" sha1="17afc62e249134a5df7ecf6b05046fb589ffe386"/>
+		<rom name="NDROOT\TEX\MARIO42.DTX" size="32800" crc="b15ffb5f" md5="c5385c2abddc2498f4f5870d966f67c2" sha1="6e18b1699459bf2815cb82e140a47ac9a8ae2be2"/>
+		<rom name="NDROOT\TEX\MARIO43.DTX" size="32800" crc="cb0403a0" md5="15a6900e280c103ed31288f33950a87b" sha1="affb6ef50b45360eddc2fedcf906bc58fdc7e59f"/>
+		<rom name="NDROOT\TEX\MARIO44.DTX" size="32800" crc="c970b3c4" md5="503fa1f386d6221e30932b6ea02b3ae1" sha1="e1a1ee5ec0a0580ad6612ada995b0c4366ef3c03"/>
+		<rom name="NDROOT\TEX\MARIO45.DTX" size="32800" crc="7f896f1a" md5="a75fa87d52235ceefc48c434db8e79a1" sha1="d7c0e3ecb53710401e5a3ab90ffd1fd274e9b39c"/>
+		<rom name="NDROOT\TEX\MARIO46.DTX" size="32800" crc="eb1cd7bd" md5="bd0cdbc76cf943ec3be6382191e7b1ca" sha1="1077785c5a62ca396abbf62d38e898ad55103d58"/>
+		<rom name="NDROOT\TEX\MARIO47.DTX" size="32800" crc="af3d15de" md5="e16dde08e4d4199a1e4484ec9df7f39d" sha1="f9ac8d21f891bb0d8626f1a90fe45ef5324b4cf4"/>
+		<rom name="NDROOT\TEX\MARIO48.DTX" size="32800" crc="64385cf8" md5="ef25bcf56979277ab9e0287a7c52b89c" sha1="2954df32db5303bfd3960203cf218539ceb239c4"/>
+		<rom name="NDROOT\TEX\MARIO49.DTX" size="32800" crc="106c1ade" md5="a306e8a71738c928ec804499053fa5db" sha1="8dcf9c4b8950b1ff4d042eff1b6ad077b5c422d3"/>
+		<rom name="NDROOT\TEX\MARIO50.DTX" size="32800" crc="09e70f45" md5="bcb1c0b23190ea26577e5c8f4a26393f" sha1="dd1777f8a77dd1f6f3252c5fa26bfe078a4617bb"/>
+		<rom name="NDROOT\TEX\MARIO51.DTX" size="32800" crc="89d6ff46" md5="887d3482a5536c761e1457a7b720a729" sha1="8dee4f3311b84424a3e0380059e186dde75e60f3"/>
+		<rom name="NDROOT\TEX\MARIO52.DTX" size="32800" crc="fd14c2c2" md5="56272c4617fefe3199fd2717b1de72c8" sha1="d6f8312d1cbde49b22f25b54f143dc21fba10a59"/>
+		<rom name="NDROOT\TEX\MARIO53.DTX" size="32800" crc="db9aaf7d" md5="d1fca2a67a5e4ce33672cf09f6b99a2d" sha1="d93ce00e1cf29ebfa0ceeebf89fa1939aa3978e0"/>
+		<rom name="NDROOT\TEX\MARIO54.DTX" size="32800" crc="1284f17e" md5="41df13168b34cdd2d39b0c9a324246ec" sha1="786866c26b998b53bf063c04af873e2c7d659bf6"/>
+		<rom name="NDROOT\TEX\MARIO55.DTX" size="32800" crc="ee055a5b" md5="5c43b521baabe3cb65bf0eda9aa86acb" sha1="7ca5cbd63811669216afdcc013cd9f044ffe5411"/>
+		<rom name="NDROOT\TEX\MARIO56.DTX" size="32800" crc="8c0da6d7" md5="15595da7cc2687853e37f30d3a5aa5c5" sha1="ef4ddd02836cac077347ae083a84e281f11a8905"/>
+		<rom name="NDROOT\TEX\MARIO57.DTX" size="32800" crc="96bc802f" md5="14e1a153f24be58983b5468eb55c6aae" sha1="ee4375e2b5e8bdff41d5252f15ef140ea3ecbf0f"/>
+		<rom name="NDROOT\TEX\MARIO58.DTX" size="32800" crc="f05809a8" md5="b9f29da7f035b639e8e0387a43d0f545" sha1="5ce7bc0879afc55ac1d874237ed9bfbc6a1853ac"/>
+		<rom name="NDROOT\TEX\MARIO59.DTX" size="32800" crc="9a71285a" md5="06f80e9e60247d4662667292458fbf60" sha1="dd997a7a023a46192e5e8389b7508eabce345d82"/>
+		<rom name="NDROOT\TEX\MARIO60.DTX" size="32800" crc="6132be12" md5="f8cf80aa419b75ced885669244a153c8" sha1="e5e1abc26d831a0a5f2270dad0c0cb893df497ba"/>
+		<rom name="NDROOT\TEX\MARIO61.DTX" size="32800" crc="a26e54af" md5="81abac2003badb489d6558adcd1d1c2b" sha1="a75fa667750889a4625b285b788268ecd8dca6d5"/>
+		<rom name="NDROOT\TEX\MARIO62.DTX" size="32800" crc="37058c51" md5="4471ffe93d91c750b5e2e99b409def90" sha1="9e12435d3fe83e80a8ff34afb68cc547b46b8d21"/>
+		<rom name="NDROOT\TEX\MARIO63.DTX" size="32800" crc="a5cc3d9e" md5="b7e73b6d934fa66b124333b102e2f62a" sha1="e89fdc2f542ee93f181ebdb359f1ff3df46cd371"/>
+		<rom name="NDROOT\TEX\MARIO64.DTX" size="32800" crc="408df04f" md5="2049bd28f6da04ec5792d46e99561149" sha1="cb59ca4f4e5a6e79c86ab48edf31293e42e45e18"/>
+		<rom name="NDROOT\TEX\MARIO65.DTX" size="32800" crc="170104ee" md5="792d98793fce90ed5bdb157363ab083d" sha1="a2264b2f24663d057147a0937b944fe657f10cdc"/>
+		<rom name="NDROOT\TEX\MARIO66.DTX" size="32800" crc="be317919" md5="809f723c10dd9f2e4522c47fdcc98205" sha1="2b9748025aa4023b1b0e5d560e89bcd471f081a1"/>
+		<rom name="NDROOT\TEX\MARIO67.DTX" size="32800" crc="d814b43c" md5="b1a2dd84e403b27a82fb4e9a240aa81b" sha1="89ec7c78a8fc84aa5edfd93e3b7bcfb04837a0e7"/>
+		<rom name="NDROOT\TEX\MARIO68.DTX" size="32800" crc="6eadc8d4" md5="5689f77f87c36703c694336018e20581" sha1="3660daa1b0a2da8eedd70b937ec3579a377f0c69"/>
+		<rom name="NDROOT\TEX\MARIO69.DTX" size="32800" crc="85933dfe" md5="421c041855c1f3ac841d69ce1a21ad8c" sha1="9c7f38d35d28d0f8b67cbb6e1bdbdbdfa4d00705"/>
+		<rom name="NDROOT\TEX\MARIO70.DTX" size="32800" crc="af8b416d" md5="fde619a276c251bf7a0a1cd09f2ab7b4" sha1="5b5366bbcc0c13d5ec9eb5e3dae767b0118a8658"/>
+		<rom name="NDROOT\TEX\MARIO71.DTX" size="32800" crc="1c93e9a3" md5="5b0ac9ca65bd2745b8762362380ad6ad" sha1="cf1f7d482116b2e86a9d6bfbae29a10c5ca63e7f"/>
+		<rom name="NDROOT\TEX\MARIO72.DTX" size="32800" crc="93adfb0f" md5="963179a3e84c588176c9bd0bc8728f24" sha1="d8d0dfa30807eb0cb2c71c0aed0240306bc049e6"/>
+		<rom name="NDROOT\TEX\MARIO73.DTX" size="32800" crc="0e66bfe3" md5="c4cb1b06098278e2dcb8b45d1d88cd36" sha1="b90caa274b2bcb4df08f9ace0e0e35885df6afaa"/>
+		<rom name="NDROOT\TEX\MARIO74.DTX" size="32800" crc="6c60c487" md5="b0c17ddde281c52ae2570c3b6f0d18e5" sha1="c018ce791a2d3dc7779ad7e2c548930cf1f39d19"/>
+		<rom name="NDROOT\TEX\OYAJI.DTX" size="87520" crc="6805edb0" md5="3e335f145c4ef511391f5adc228a94c9" sha1="1f65779e2049ca5fff464a815a4010379eb0d553"/>
+		<rom name="NDROOT\TEX\T_HART.DTX" size="32800" crc="341c8862" md5="af9b023383517dab40918315ae3f43bc" sha1="501833e49822f7a60da3e44003a9fe5dad859a91"/>
+		<rom name="NDROOT\TEX\T_STAR.DTX" size="32800" crc="a6188aa1" md5="b9df6267492e541f9a3aba899779ce83" sha1="f4934d14c1a50dbc4f5f7207af8735265817dd7d"/>
+		<rom name="NDROOT\TEX\TITLE01.DTX" size="262176" crc="5efe7c8a" md5="35d300fac62730c61554440629416f09" sha1="6850161d52283502cd267b4a01a276c43c78589f"/>
+		<rom name="NDROOT\TEX\WHITE.DTX" size="64" crc="6e705ce3" md5="a4c60771d4a936ceba42b02226ad2941" sha1="32737a643d3ee5c3cfb577e9277c53e89dbebc57"/>
+		<rom name="NDROOT\TITLE.NDM" size="608" crc="f5d0d8d0" md5="98ef333b10d1bc5fc39221d3c7334b37" sha1="b89fcb93b3fa3c6a47f2b77cc7758ba79ff7de3f"/>
+		<rom name="NDROOT\TOUEI.NDM" size="31680" crc="d2f10112" md5="ed47dc1d6c8b96df1983795c20bd1a8d" sha1="5a0d227fd8ebc16411fa39db3f9dae7b5d83f169"/>
+		<rom name="README.TXT" size="1463" crc="e534d688" md5="b98f2b11863e342007e084e888b5bcda" sha1="4d53bcc128808e1cd732ef90aa554543bbf3c829"/>
+	</game>
+	<game name="Need for Speed - Underground (Europe) (Beta) (2003-09-10)" id="0016">
+		<description>Need for Speed - Underground (Europe) (Beta) (2003-09-10)</description>
+		<rom name="Need for Speed - Underground (Europe) (Beta) (2003-09-10).iso" size="1459978240" crc="81525825" md5="92300453ffca62c0a72586306e236d2b" sha1="df5bd053333e732d38f74b28276636bb0f2ffa44" serial="GNDP8P"/>
+	</game>
+	<game name="Need for Speed - Underground (Europe) (PZHP) [b]" id="0057">
+		<category>Games</category>
+		<description>Need for Speed - Underground (Europe) (PZHP) [b]</description>
+		<rom name="Need for Speed - Underground (Europe) (PZHP) [b].iso" size="1459978240" crc="3873b78f" md5="bb87941bef76e658dff90d98b6a1e6a2" sha1="798c8e855cdf883ca2f00558e18439155fb08815" sha256="c81a783818dff80a0c7acae42fcaf21756612fc228b4694bc1c365ff6fb66253" status="baddump" serial="PZHP69"/>
+	</game>
+	<game name="P.N.03 (USA) (Beta) (2003-05-08)" id="0017">
+		<description>P.N.03 (USA) (Beta) (2003-05-08)</description>
+		<rom name="P.N.03 (USA) (Beta) (2003-05-08).iso" size="1459978240" crc="d42d1079" md5="db71f796f73edfe35c3594fecb0da127" sha1="29fdb400f409cdf8dbd74eb136e3d13fcb3a506b" serial="GPNE08"/>
+	</game>
+	<game name="Pokemon Distributing Machine (USA) (v2.0.1) [b]" id="0075">
+		<category>Applications</category>
+		<description>Pokemon Distributing Machine (USA) (v2.0.1) [b]</description>
+		<rom name="Pokemon Distributing Machine (USA) (v2.0.1) [b].iso" size="89082112" crc="56742ba5" md5="be8fad613e66889bba049646050aeb95" sha1="25c07cff86cadcf2ef66cb357521e9e9a8b2c36a" status="baddump" serial="D58J01"/>
+	</game>
+	<game name="Pokemon Distributing Machine (USA) (v1.0.1) [b]" id="0074">
+		<category>Applications</category>
+		<description>Pokemon Distributing Machine (USA) (v1.0.1) [b]</description>
+		<rom name="Pokemon Distributing Machine (USA) (v1.0.1) [b].iso" size="80760160" crc="b230e452" md5="597699f7a6f25277dae3046f82340978" sha1="b9be90051601652aaef897847a1d0d851e720179" status="baddump" serial="GAMEA4"/>
+	</game>
+	<game name="Radio Allergy (USA) (Proto) (2007-03-23)" id="0054">
+		<description>Radio Allergy (USA) (Proto) (2007-03-23)</description>
+		<rom name="Radio Allergy (USA) (Proto) (2007-03-23).iso" size="1460305920" crc="c411f2f8" md5="92310ee5b982127300af5cec6c64c070" sha1="eb600fe129501a3e82b711fe835f398dd9223e1b" sha256="17577a3befb59e0fc57cb63eca7bd7b0eaf4e365035ed888f1f615fa17a7f9b1" serial="GLJEGG"/>
+	</game>
+	<game name="Rayman Arena (USA) (En,Fr,Es) (Beta) (2002-03-12)" id="0018">
+		<description>Rayman Arena (USA) (En,Fr,Es) (Beta) (2002-03-12)</description>
+		<rom name="Rayman Arena (USA) (En,Fr,Es) (Beta) (2002-03-12).iso" size="1459978240" crc="bb46463a" md5="826fda52ebafdc2abdaf0e0a48d63ab5" sha1="2b946a7eae2795bbe03af1418535d059ff5eee64" serial="RELSAB"/>
+	</game>
+	<game name="Resident Evil 4 (Europe) (En,Fr,De,Es,It) (Disc 1) (Beta) (2005-01-17)" id="0062">
+		<category>Games</category>
+		<description>Resident Evil 4 (Europe) (En,Fr,De,Es,It) (Disc 1) (Beta) (2005-01-17)</description>
+		<rom name="Resident Evil 4 (Europe) (En,Fr,De,Es,It) (Disc 1) (Beta) (2005-01-17).iso" size="1459978240" crc="31f5d8ad" md5="e555bd361bce9923265e677905ba8651" sha1="0c93d4bcd943eb52f29714d564cde3b619b94eea" sha256="fd26b7527b385f4a70aef8c02d54db75cb6a72dc5cb56b9b64d943e37248992e" serial="G4BP08"/>
+	</game>
+	<game name="Resident Evil 4 (USA) (Disc 1) (Beta) (2004-11-25)" id="0019">
+		<description>Resident Evil 4 (USA) (Disc 1) (Beta) (2004-11-25)</description>
+		<rom name="Resident Evil 4 (USA) (Disc 1) (Beta) (2004-11-25).iso" size="1459978240" crc="f42c8796" md5="055f195c7044aa7c8b8fc47f64d6ac02" sha1="3a0925e6e9d86f7c7533b6fab37f740d63630039" serial="G4BE08"/>
+	</game>
+	<game name="Resident Evil 4 (USA) (Disc 2) (Beta) (2004-11-25)" id="0065">
+		<category>Games</category>
+		<description>Resident Evil 4 (USA) (Disc 2) (Beta) (2004-11-25)</description>
+		<rom name="Resident Evil 4 (USA) (Disc 2) (Beta) (2004-11-25).iso" size="1459978240" crc="fba12c43" md5="6a6f1aa9d0f6137a640a4f8a2fd76186" sha1="fd2d154e30b8602c65e6b1294af3a9d63e4de0c0" sha256="118640eb02953d5a8234d3f9e27ea535e75b0346b9cf22aa764b65c3d76f1b12" serial="G4BE08"/>
+	</game>
+	<game name="Resident Evil 4 (USA) (Disc 1) (Beta) (2004-09-27)" id="0064">
+		<category>Games</category>
+		<description>Resident Evil 4 (USA) (Disc 1) (Beta) (2004-09-27)</description>
+		<rom name="Resident Evil 4 (USA) (Disc 1) (Beta) (2004-09-27).iso" size="1459978240" crc="dcca4674" md5="4dfb0d78225bd860b709ac91a8149537" sha1="b07214fd4ea31a0f4a5b2a763ee3b12ce9b84fde" sha256="8b1556450a897b99fe567e678299924abc60f363c3eacfd52ba735bef7de3a34" serial="P4BJ08"/>
+	</game>
+	<game name="Resident Evil 4 (Europe) (En,Fr,De,Es,It) (Disc 2) (Beta) (2005-01-17)" id="0063">
+		<category>Games</category>
+		<description>Resident Evil 4 (Europe) (En,Fr,De,Es,It) (Disc 2) (Beta) (2005-01-17)</description>
+		<rom name="Resident Evil 4 (Europe) (En,Fr,De,Es,It) (Disc 2) (Beta) (2005-01-17).iso" size="1459978240" crc="69ad405c" md5="c5c7e1e94b8289f7c6ee922577ab3a38" sha1="87ef90323bf8bccf06bc788ee545a079e89c986f" sha256="0af85a2360a6b5d75b871c72f499450781ecd7686de560a0e897553b30aeecb4" serial="G4BP08"/>
+	</game>
+	<game name="Resident Evil 4 (USA) (Beta) (E3 Ver.) (2004-04-13)" id="0058">
+		<category>Games</category>
+		<description>Resident Evil 4 (USA) (Beta) (E3 Ver.) (2004-04-13)</description>
+		<rom name="Resident Evil 4 (USA) (Beta) (E3 Ver.) (2004-04-13).iso" size="1459978240" crc="d752514d" md5="2442a4fe7a4fc262e3984eb25723f9dc" sha1="fe9c287aeed5d3ffe3b7110cd39326bacf2bc198" sha256="2334c5d2baab8660a2b66eb75f9f1cd6f7d7701185986960da15823cdd799df1" serial="GBIJ08"/>
+	</game>
+	<game name="Smashing Drive (USA) (Beta) (2001-11-05)" id="0020">
+		<description>Smashing Drive (USA) (Beta) (2001-11-05)</description>
+		<rom name="Smashing Drive (USA) (Beta) (2001-11-05).iso" size="1459978240" crc="a553bec9" md5="979e4ef79072f73200a8b980d26c4875" sha1="7e90e21d144bf1eafb131b33665e483e833f9bf6" serial="RELSAB"/>
+	</game>
+	<game name="Sonic Adventure 2 - Battle (USA) (Beta)" id="0022">
+		<description>Sonic Adventure 2 - Battle (USA) (Beta)</description>
+		<rom name="Sonic Adventure 2 - Battle (USA) (Beta).iso" size="1459978240" crc="9e1674e2" md5="2afc8f0732f33d24c138fe596a0dc7a7" sha1="fb1e54456a98b995de85a174f81c6675f52487b0" serial="GSNE8P"/>
+	</game>
+	<game name="Sonic Adventure 2 - Battle (Japan) (Beta) (2001-11-29)" id="0021">
+		<description>Sonic Adventure 2 - Battle (Japan) (Beta) (2001-11-29)</description>
+		<rom name="Sonic Adventure 2 - Battle (Japan) (Beta) (2001-11-29).iso" size="1459978240" crc="37188aba" md5="edd1968ec3075efce68eb8409dd73d6c" sha1="cc9c4c896c6e252d8aa791acd9ee82f5441d4463" serial="GSBJ8P"/>
+	</game>
+	<game name="Sonic Adventure DX (Japan) (Beta)" id="0023">
+		<description>Sonic Adventure DX (Japan) (Beta)</description>
+		<rom name="Sonic Adventure DX (Japan) (Beta).iso" size="1459978240" crc="55314c4d" md5="8459bdd0dc20003830481ed00dbae626" sha1="b8fa7d16a87ad40e0b2410b199a664f0249c6afe" serial="RELSAB"/>
+	</game>
+	<game name="Sonic Adventure DX - Director's Cut (USA) (Beta)" id="0024">
+		<description>Sonic Adventure DX - Director's Cut (USA) (Beta)</description>
+		<rom name="Sonic Adventure DX - Director's Cut (USA) (Beta).iso" size="1459978240" crc="dd918ad1" md5="169f373fa74d5a3c0329c405a0c4faae" sha1="7f46e13e4ac513485f116e7db7bc1a9f8f89da53" serial="GASE8P"/>
+	</game>
+	<game name="Sonic Heroes (USA) (Beta) (2003-10-08)" id="0025">
+		<description>Sonic Heroes (USA) (Beta) (2003-10-08)</description>
+		<rom name="Sonic Heroes (USA) (Beta) (2003-10-08).iso" size="1459978240" crc="9570b84d" md5="4f55e21beb2a25db24c827a056c84139" sha1="c6892effec697920cd68d034b47321f1821c9b23" serial="G9SE8P"/>
+	</game>
+	<game name="Sonic Heroes (USA) (Beta) (2003-11-18)" id="0026">
+		<description>Sonic Heroes (USA) (Beta) (2003-11-18)</description>
+		<rom name="Sonic Heroes (USA) (Beta) (2003-11-18).iso" size="1459978240" crc="82d09071" md5="dce6283ecb5197762da0badd6fdc2fb4" sha1="52567253ea9773fb2c0e127a39f65b4d5ab192e3" serial="G9SE8P"/>
+	</game>
+	<game name="Sonic Heroes (USA) (Beta) (E3)" id="0028">
+		<description>Sonic Heroes (USA) (Beta) (E3)</description>
+		<rom name="Sonic Heroes (USA) (Beta) (E3).iso" size="1459978240" crc="141d0a04" md5="6f47a1f910139e173822541b12fa58c6" sha1="2674576afb57b265967d6558630e4cb1ff8292d2" serial="RELSAB"/>
+	</game>
+	<game name="Sonic Mega Collection (USA) (Beta) (2005-08-15)" id="0030">
+		<description>Sonic Mega Collection (USA) (Beta) (2005-08-15)</description>
+		<rom name="Sonic Mega Collection (USA) (Beta) (2005-08-15).iso" size="1459978240" crc="c90a1327" md5="43189d9775654254951e5f75cfaa2c40" sha1="05753b27506560ca070c87a88a4f54b79cd4aeaa" serial="GSOE8P"/>
+	</game>
+	<game name="Super Mario Sunshine (World) (En,Ja,Fr,De,Es,It) (Super Mario 3D All-Stars)" id="0037">
+		<description>Super Mario Sunshine (World) (En,Ja,Fr,De,Es,It) (Super Mario 3D All-Stars)</description>
+		<rom name="Super Mario Sunshine (World) (En,Ja,Fr,De,Es,It) (Super Mario 3D All-Stars).iso" size="404324352" crc="f968261a" md5="1bb45c2ffb0360d3d8d8eb87c6771a2f" sha1="651af1295d6874102b276a264b0da37ab38303f7" sha256="c79005cd08ecd4b537a86993a1d39bfc7d89f30bedcc4115feded81a8e8c1576" status="verified" serial="GMSP01"/>
+	</game>
+	<game name="WWE Day of Reckoning 2 (Europe) (Beta)" id="0055">
+		<description>WWE Day of Reckoning 2 (Europe) (Beta)</description>
+		<rom name="WWE Day of Reckoning 2 (Europe) (Beta).iso" size="1459978240" crc="4e7543ec" md5="824208bb158d6bc814f40a5ad6a9beb2" sha1="ea4994e0c28b40e2eff13f1e348f2732fd4fcd95" sha256="b39d88430b3c85b7e83e0bf4e37eef7297f83f70d6d7ff1db3cd046d8b1b3a5a" serial="GWPP78"/>
+	</game>
+	<game name="XGIII - Extreme G Racing (Europe) (Beta) (2002-02-19) [b]" id="0056">
+		<description>XGIII - Extreme G Racing (Europe) (Beta) (2002-02-19) [b]</description>
+		<rom name="XGIII - Extreme G Racing (Europe) (Beta) (2002-02-19) [b].iso" size="648282112" crc="395187d3" md5="1773392ef7bacfe5dc6b1b7bbc464a79" sha1="6d468f79b26c885594ddba19fd416e8a4a2750cf" sha256="467211b5a9d6c0102c468cfc58afcd9473eed36e21f64c397b68b364555ca733" status="baddump" serial="G3EP51"/>
+	</game>
+	<game name="Zapper (USA) (Beta) (2002-09-12)" id="0033">
+		<description>Zapper (USA) (Beta) (2002-09-12)</description>
+		<rom name="Zapper (USA) (Beta) (2002-09-12).iso" size="1459978240" crc="bc256fcd" md5="1c56b175220a034440af33b9d9fd06b8" sha1="0b1ae97ef9d83917f309564246f244c81eec20c1" serial="GZPE70"/>
+	</game>
+</datafile>
