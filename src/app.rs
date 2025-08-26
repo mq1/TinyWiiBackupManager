@@ -132,8 +132,17 @@ impl App {
             let base_dir = BaseDir::new(new_dir)?;
 
             let sender = self.inbox.sender();
-            let watcher = base_dir.get_watcher(move |_res| {
-                let _ = sender.send(BackgroundMessage::DirectoryChanged);
+            let watcher = base_dir.get_watcher(move |res| {
+                if let Ok(notify::Event {
+                    kind:
+                        notify::EventKind::Modify(_)
+                        | notify::EventKind::Create(_)
+                        | notify::EventKind::Remove(_),
+                    ..
+                }) = res
+                {
+                    let _ = sender.send(BackgroundMessage::DirectoryChanged);
+                }
             })?;
 
             self.watcher = Some(watcher);
@@ -199,10 +208,9 @@ impl App {
                     let _ = sender.send(BackgroundMessage::FileConverted);
 
                     // remove the source file
-                    if remove_sources
-                        && let Err(e) = std::fs::remove_file(&path) {
-                            let _ = sender.send(BackgroundMessage::Error(e.into()));
-                        }
+                    if remove_sources && let Err(e) = std::fs::remove_file(&path) {
+                        let _ = sender.send(BackgroundMessage::Error(e.into()));
+                    }
                 }
 
                 let _ = sender.send(BackgroundMessage::ConversionComplete);
