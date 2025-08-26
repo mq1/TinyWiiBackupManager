@@ -222,11 +222,7 @@ pub fn handle_messages(app: &mut App, ctx: &egui::Context) {
 
             BackgroundMessage::Error(e) => {
                 error!("{e:?}");
-                let text = egui::RichText::new(e.to_string()).strong().size(16.0);
-                app.bottom_right_toasts
-                    .error(text)
-                    .closable(true)
-                    .duration(None);
+                app.bottom_right_toasts.error(e.to_string());
             }
 
             BackgroundMessage::UpdateCheckComplete(update_info) => {
