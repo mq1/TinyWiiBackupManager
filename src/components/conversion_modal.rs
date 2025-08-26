@@ -2,11 +2,13 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use crate::app::{App, ConversionState};
+use crate::messages::BackgroundMessage;
 use eframe::egui;
 use size::Size;
 
 pub fn ui_conversion_modal(ctx: &egui::Context, app: &App) {
     egui::Modal::new(egui::Id::new("conversion_modal")).show(ctx, |ui| {
+        ui.set_min_width(400.0);
         ui.vertical_centered(|ui| {
             ui.heading("Converting...");
             ui.separator();
@@ -35,6 +37,13 @@ pub fn ui_conversion_modal(ctx: &egui::Context, app: &App) {
                     Size::from_bytes(current_progress),
                     Size::from_bytes(total)
                 ));
+
+                ui.add_space(10.0);
+
+                // Cancel button
+                if ui.button("Cancel").clicked() {
+                    let _ = app.inbox.sender().send(BackgroundMessage::CancelOperation);
+                }
             }
         });
     });
