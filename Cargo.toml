@@ -46,7 +46,8 @@ hex = "0.4"
 eframe = { version = "0.32", default-features = false, features = ["accesskit", "default_fonts", "glow"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
-eframe = { version = "0.32", default-features = false, features = ["accesskit", "default_fonts", "glow", "wayland", "x11"] }
+# Use default features so we get winit/default features (mainly wayland-csd-adwaita)
+eframe = { version = "0.32", default-features = true }
 
 # glow doesn't always work on windows (ex. on VMs and old hardware)
 [target.'cfg(target_os = "windows")'.dependencies]
