@@ -1,35 +1,65 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
+use std::fs;
 use std::path::PathBuf;
+use std::sync::{
+    Arc,
+    atomic::{AtomicBool, Ordering},
+};
 
+use crate::base_dir::BaseDir;
+use crate::convert::verify_game;
+use crate::game::{CalculatedHashes, VerificationStatus};
+use crate::messages::BackgroundMessage;
+use crate::update_check::UpdateInfo;
+use crate::{
+    SUPPORTED_INPUT_EXTENSIONS, components::console_filter::ConsoleFilter, convert, game::Game,
+    update_check,
+};
 use anyhow::Result;
 use eframe::egui;
 use egui_inbox::UiInbox;
 
-use crate::base_dir::BaseDir;
-use crate::messages::BackgroundMessage;
-use crate::update_check::UpdateInfo;
-use crate::{
-    SUPPORTED_INPUT_EXTENSIONS, components::console_filter::ConsoleFilter, game::Game, update_check,
-};
+/// Type of background operation
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum OperationType {
+    Converting,
+    Verifying,
+}
 
-/// State of the conversion process
-#[derive(Debug, Clone, Copy, PartialEq, Default)]
-pub enum ConversionState {
-    /// No conversion is in progress
+/// Unified state for background operations (conversion and verification)
+#[derive(Debug, Clone, PartialEq, Default)]
+pub enum OperationState {
+    /// No operation is in progress
     #[default]
     Idle,
-    /// Conversion is in progress
-    Converting {
-        /// Total number of files to convert
-        total_files: usize,
-        /// Number of files already converted
-        files_converted: usize,
-        /// Current file progress (current / total)
+    /// Operation is in progress
+    InProgress {
+        /// Type of operation
+        operation: OperationType,
+        /// Total number of items to process
+        total_items: usize,
+        /// Number of items already completed
+        items_completed: usize,
+        /// Current item being processed (for display)
+        current_item: String,
+        /// Current item progress (current / total)
         current_progress: (u64, u64),
+        /// Items that passed (for verification only)
+        items_passed: usize,
+        /// Items that failed (for verification only)
+        items_failed: usize,
     },
+}
+
+/// Result of a background operation
+#[derive(Debug)]
+pub enum OperationResult {
+    ConversionComplete(CalculatedHashes),
+    VerificationComplete(VerificationStatus),
+    Error(anyhow::Error),
 }
 
 /// Main application state and UI controller.
@@ -43,8 +73,8 @@ pub struct App {
     pub base_dir_size: u64,
     /// Inbox for receiving messages from background tasks
     pub inbox: UiInbox<BackgroundMessage>,
-    /// Current state of the conversion process
-    pub conversion_state: ConversionState,
+    /// Current state of background operations
+    pub operation_state: OperationState,
     /// File watcher
     watcher: Option<notify::RecommendedWatcher>,
     /// Whether to remove sources after conversion
@@ -59,6 +89,8 @@ pub struct App {
     pub top_left_toasts: egui_notify::Toasts,
     pub bottom_left_toasts: egui_notify::Toasts,
     pub bottom_right_toasts: egui_notify::Toasts,
+    /// Cancellation flag for background operations
+    pub operation_cancelled: Arc<AtomicBool>,
 }
 
 impl App {
@@ -72,6 +104,7 @@ impl App {
             top_left_toasts: create_toasts(egui_notify::Anchor::TopLeft),
             bottom_left_toasts: create_toasts(egui_notify::Anchor::BottomLeft),
             bottom_right_toasts: create_toasts(egui_notify::Anchor::BottomRight),
+            operation_cancelled: Arc::new(AtomicBool::new(false)),
             ..Default::default()
         };
 
@@ -152,7 +185,28 @@ impl App {
 
     pub fn refresh_games(&mut self) -> Result<()> {
         if let Some(base_dir) = &self.base_dir {
+            // Save existing verification data
+            let mut verification_cache = HashMap::new();
+            for game in &self.games {
+                if let Some(ref data) = game.verification_data {
+                    verification_cache.insert(game.path.clone(), data.clone());
+                }
+            }
+
+            // Load new games
             (self.games, self.base_dir_size) = base_dir.get_games()?;
+
+            // Restore verification data and check if still valid
+            for game in &mut self.games {
+                if let Some(data) = verification_cache.get(&game.path)
+                    && game.size == data.verified_size
+                    && let Some(current_mtime) = game.get_latest_mtime()
+                    && current_mtime == data.verified_mtime
+                {
+                    // Files haven't changed, restore verification
+                    game.verification_data = Some(data.clone());
+                }
+            }
         }
 
         Ok(())
@@ -183,33 +237,68 @@ impl App {
         if let Some(base_dir) = &self.base_dir {
             let sender = self.inbox.sender();
             let remove_sources = self.remove_sources;
+            let cancelled = Arc::clone(&self.operation_cancelled);
 
-            self.conversion_state = ConversionState::Converting {
-                total_files: paths.len(),
-                files_converted: 0,
+            // Reset cancellation flag
+            self.operation_cancelled.store(false, Ordering::Relaxed);
+
+            self.operation_state = OperationState::InProgress {
+                operation: OperationType::Converting,
+                total_items: paths.len(),
+                items_completed: 0,
+                current_item: String::new(),
                 current_progress: (0, 0),
+                items_passed: 0,
+                items_failed: 0,
             };
 
             let base_dir = base_dir.path().to_owned();
             std::thread::spawn(move || {
-                for path in paths {
-                    let progress_callback = |progress, total| {
-                        let _ = sender.send(BackgroundMessage::ConversionProgress(progress, total));
-                    };
-
-                    if let Err(e) = iso2wbfs::convert(&path, &base_dir, progress_callback) {
-                        let _ = sender.send(BackgroundMessage::Error(e.into()));
+                for (i, path) in paths.iter().enumerate() {
+                    // Check for cancellation before starting each file
+                    if cancelled.load(Ordering::Relaxed) {
+                        break;
                     }
 
-                    let _ = sender.send(BackgroundMessage::FileConverted);
+                    // Send the file name we're about to convert
+                    if let Some(file_name) = path.file_name() {
+                        let _ = sender.send(BackgroundMessage::OperationStartItem(
+                            i,
+                            file_name.to_string_lossy().to_string(),
+                        ));
+                    }
 
-                    // remove the source file
-                    if remove_sources && let Err(e) = std::fs::remove_file(&path) {
+                    let mut success = false;
+                    let (game_path, result) = match convert::convert_game(
+                        path,
+                        &base_dir,
+                        sender.clone(),
+                        Arc::clone(&cancelled),
+                    ) {
+                        Ok((game_dir, calculated_hashes)) => {
+                            success = true;
+                            (
+                                game_dir,
+                                OperationResult::ConversionComplete(calculated_hashes),
+                            )
+                        }
+                        Err(e) => (base_dir.clone(), OperationResult::Error(e)),
+                    };
+
+                    // Send completion message for this file
+                    let _ =
+                        sender.send(BackgroundMessage::OperationItemComplete(game_path, result));
+
+                    // Remove the source file if requested
+                    if success
+                        && remove_sources
+                        && let Err(e) = fs::remove_file(path)
+                    {
                         let _ = sender.send(BackgroundMessage::Error(e.into()));
                     }
                 }
 
-                let _ = sender.send(BackgroundMessage::ConversionComplete);
+                let _ = sender.send(BackgroundMessage::OperationComplete);
             });
         }
     }
@@ -218,6 +307,76 @@ impl App {
     pub fn open_game_info(&mut self, index: usize) {
         // HashSet will automatically handle duplicates
         self.open_info_windows.insert(index);
+    }
+
+    /// Spawn a verification task for multiple games
+    pub fn spawn_verification(&mut self, games: Vec<Box<Game>>) {
+        let sender = self.inbox.sender();
+        let cancelled = Arc::clone(&self.operation_cancelled);
+
+        // Reset cancellation flag
+        self.operation_cancelled.store(false, Ordering::Relaxed);
+
+        // Set the operation state
+        self.operation_state = OperationState::InProgress {
+            operation: OperationType::Verifying,
+            total_items: games.len(),
+            items_completed: 0,
+            current_item: String::new(),
+            current_progress: (0, 0),
+            items_passed: 0,
+            items_failed: 0,
+        };
+
+        std::thread::spawn(move || {
+            for (i, game) in games.into_iter().enumerate() {
+                // Check for cancellation
+                if cancelled.load(Ordering::Relaxed) {
+                    break;
+                }
+
+                // Send the game name we're about to verify
+                let _ = sender.send(BackgroundMessage::OperationStartItem(
+                    i,
+                    game.display_title.clone(),
+                ));
+
+                let game_path = game.path.clone();
+                let result = match verify_game(game, sender.clone(), Arc::clone(&cancelled)) {
+                    Ok(verification_status) => {
+                        OperationResult::VerificationComplete(verification_status)
+                    }
+                    Err(e) => OperationResult::Error(e),
+                };
+
+                // Send completion message for this game
+                let _ = sender.send(BackgroundMessage::OperationItemComplete(game_path, result));
+            }
+
+            // Send final completion message
+            let _ = sender.send(BackgroundMessage::OperationComplete);
+        });
+    }
+
+    /// Start verifying all unverified games
+    pub fn start_verify_all(&mut self) {
+        // Collect all games that need verification
+        let mut games_to_verify: Vec<Box<Game>> = Vec::new();
+        for game in &self.games {
+            if !matches!(
+                game.get_verification_status(),
+                VerificationStatus::FullyVerified(_, _)
+            ) {
+                games_to_verify.push(Box::new(game.clone()));
+            }
+        }
+
+        if games_to_verify.is_empty() {
+            return;
+        }
+
+        // Start batch verification
+        self.spawn_verification(games_to_verify);
     }
 }
 

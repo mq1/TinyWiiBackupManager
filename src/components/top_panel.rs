@@ -3,6 +3,7 @@
 
 use crate::app::App;
 use crate::components::fake_link::fake_link;
+use crate::game::VerificationStatus;
 use crate::messages::BackgroundMessage;
 use anyhow::anyhow;
 use eframe::egui;
@@ -45,6 +46,26 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
 
                 if add_games_button.clicked() {
                     app.add_isos();
+                }
+
+                // Verify All button - disable if all games are verified
+                let has_unverified = app.games.iter().any(|g| {
+                    !matches!(
+                        g.get_verification_status(),
+                        VerificationStatus::FullyVerified(_, _)
+                    )
+                });
+
+                let verify_all_button = ui
+                    .add_enabled(has_unverified, egui::Button::new("🔍 Verify All"))
+                    .on_hover_text(if has_unverified {
+                        "Verify integrity of all games"
+                    } else {
+                        "All games are already verified"
+                    });
+
+                if verify_all_button.clicked() {
+                    app.start_verify_all();
                 }
             }
 
