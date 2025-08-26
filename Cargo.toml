@@ -48,6 +48,7 @@ eframe = { version = "0.32", default-features = false, features = ["accesskit", 
 [target.'cfg(target_os = "linux")'.dependencies]
 eframe = { version = "0.32", default-features = false, features = ["accesskit", "default_fonts", "glow", "wayland", "x11"] }
 
+# glow doesn't always work on windows (ex. on VMs and old hardware)
 [target.'cfg(target_os = "windows")'.dependencies]
 eframe = { version = "0.32", default-features = false, features = ["accesskit", "default_fonts", "wgpu"] }
 wgpu = { version = "25", default-features = false, features = ["dx12"] }
