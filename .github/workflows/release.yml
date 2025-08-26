@@ -66,11 +66,18 @@ jobs:
         run: |
           mkdir dist
 
-          mv target/${{ matrix.target }}/${{ env.CARGO_PROFILE }}/bundle/appimage/*.AppImage dist/TWBM-${{ github.ref_name }}-Linux-${{ matrix.arch }}.AppImage
+          # Use sha for PR builds, ref_name for push builds
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            REF_NAME="${{ github.event.pull_request.head.sha }}"
+          else
+            REF_NAME="${{ github.ref_name }}"
+          fi
+
+          mv target/${{ matrix.target }}/${{ env.CARGO_PROFILE }}/bundle/appimage/*.AppImage dist/TWBM-${REF_NAME}-Linux-${{ matrix.arch }}.AppImage
 
           # Also create tarball with plain binary
-          mv target/${{ matrix.target }}/${{ env.CARGO_PROFILE }}/tiny-wii-backup-manager TWBM-${{ github.ref_name }}-Linux-${{ matrix.arch }}
-          tar -czf dist/TWBM-${{ github.ref_name }}-Linux-${{ matrix.arch }}.tar.gz TWBM-${{ github.ref_name }}-Linux-${{ matrix.arch }}
+          mv target/${{ matrix.target }}/${{ env.CARGO_PROFILE }}/tiny-wii-backup-manager TWBM-${REF_NAME}-Linux-${{ matrix.arch }}
+          tar -czf dist/TWBM-${REF_NAME}-Linux-${{ matrix.arch }}.tar.gz TWBM-${REF_NAME}-Linux-${{ matrix.arch }}
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v4
@@ -109,8 +116,14 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Path dist
-          Move-Item -Path "target/${{ matrix.target }}/${{ env.CARGO_PROFILE }}/tiny-wii-backup-manager.exe" -Destination "TWBM-${{ github.ref_name }}-Windows-${{ matrix.arch }}.exe"
-          Compress-Archive -Path "TWBM-${{ github.ref_name }}-Windows-${{ matrix.arch }}.exe" -DestinationPath "dist/TWBM-${{ github.ref_name }}-Windows-${{ matrix.arch }}.zip"
+          # Use sha for PR builds, ref_name for push builds
+          if ("${{ github.event_name }}" -eq "pull_request") {
+            $RefName = "${{ github.event.pull_request.head.sha }}"
+          } else {
+            $RefName = "${{ github.ref_name }}"
+          }
+          Move-Item -Path "target/${{ matrix.target }}/${{ env.CARGO_PROFILE }}/tiny-wii-backup-manager.exe" -Destination "TWBM-${RefName}-Windows-${{ matrix.arch }}.exe"
+          Compress-Archive -Path "TWBM-${RefName}-Windows-${{ matrix.arch }}.exe" -DestinationPath "dist/TWBM-${RefName}-Windows-${{ matrix.arch }}.zip"
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v4
@@ -176,6 +189,13 @@ jobs:
         run: |
           mkdir dist
 
+          # Use sha for PR builds, ref_name for push builds
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            REF_NAME="${{ github.event.pull_request.head.sha }}"
+          else
+            REF_NAME="${{ github.ref_name }}"
+          fi
+
           # Reconstruct app bundle from aarch64 artifacts (use this as the base)
           mkdir -p TinyWiiBackupManager.app
           cp -r aarch64-artifacts/Contents TinyWiiBackupManager.app/
@@ -189,7 +209,7 @@ jobs:
 
           # Create DMG
           npx --yes create-dmg TinyWiiBackupManager.app . || true
-          mv *.dmg dist/TWBM-${{ github.ref_name }}-MacOS-Universal2.dmg
+          mv *.dmg dist/TWBM-${REF_NAME}-MacOS-Universal2.dmg
 
       - name: Upload MacOS distributable
         uses: actions/upload-artifact@v4
