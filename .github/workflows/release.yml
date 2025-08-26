@@ -228,7 +228,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: macos-dist
-          path: TWBM-${REF_NAME}-MacOS-Universal2.dmg
+          path: TWBM-*-MacOS-Universal2.dmg
 
   # ==================================================================================
   #  Release Job: Collects all artifacts and creates a single GitHub Release.
