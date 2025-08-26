@@ -24,6 +24,7 @@ LegalCopyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-2.0-only
 [dependencies]
 eframe = { version = "0.32", features = ["wgpu"] }
 egui-notify = "0.20"
+egui_extras = { version = "0.32", features = ["http", "image"] }
 egui_inbox = "0.9"
 image = { version = "0.25", default-features = false, features = ["png"] }
 ureq = "3.1"
@@ -46,8 +47,11 @@ hex = "0.4"
 winres = "0.1"
 
 [profile.release]
-strip = "debuginfo"
 opt-level = 3
+
+[profile.release-lto]
+inherits = "release"
+strip = "debuginfo"
 lto = "fat"
 codegen-units = 1
 panic = "abort"
