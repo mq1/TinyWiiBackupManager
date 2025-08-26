@@ -1,4 +1,4 @@
-use crate::app::{App, ConversionState, VerificationState};
+use crate::app::{App, OperationState};
 use crate::components;
 use crate::messages::handle_messages;
 use eframe::egui;
@@ -7,10 +7,8 @@ impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         handle_messages(self, ctx);
 
-        match (&self.conversion_state, &self.verification_state) {
-            (ConversionState::Converting { .. }, _) | (_, VerificationState::Verifying { .. }) => {
-                ctx.set_cursor_icon(egui::CursorIcon::Wait)
-            }
+        match self.operation_state {
+            OperationState::InProgress { .. } => ctx.set_cursor_icon(egui::CursorIcon::Wait),
             _ => ctx.set_cursor_icon(egui::CursorIcon::Default),
         }
 
@@ -20,12 +18,8 @@ impl eframe::App for App {
         egui::CentralPanel::default().show(ctx, |ui| {
             components::game_grid::ui_game_grid(ui, self);
 
-            if matches!(self.conversion_state, ConversionState::Converting { .. }) {
-                components::conversion_modal::ui_conversion_modal(ctx, self);
-            }
-
-            if matches!(self.verification_state, VerificationState::Verifying { .. }) {
-                components::verification_modal::ui_verification_modal(ctx, self);
+            if matches!(self.operation_state, OperationState::InProgress { .. }) {
+                components::operation_modal::ui_operation_modal(ctx, self);
             }
         });
 

@@ -65,6 +65,32 @@ pub struct CalculatedHashes {
     pub xxh64: Option<u64>,
 }
 
+impl CalculatedHashes {
+    /// Convert these calculated hashes into a verification status by checking against the Redump database
+    pub fn into_verification_status(self) -> VerificationStatus {
+        if let Some(crc32) = self.crc32 {
+            if let Some(redump_entry) = redump::find_by_crc32(crc32) {
+                // Check if SHA1 also matches
+                if self.sha1.is_some_and(|sha| sha == redump_entry.sha1) {
+                    VerificationStatus::FullyVerified(redump_entry, self)
+                } else {
+                    VerificationStatus::Failed(
+                        format!(
+                            "Partial match: {} (CRC32 matches, file differs - likely NKit v1)",
+                            redump_entry.name
+                        ),
+                        Some(self),
+                    )
+                }
+            } else {
+                VerificationStatus::Failed("Not in Redump database".to_string(), Some(self))
+            }
+        } else {
+            VerificationStatus::Failed("Failed to calculate hashes".to_string(), None)
+        }
+    }
+}
+
 /// Represents the verification status of a game
 #[derive(Clone, Debug)]
 pub enum VerificationStatus {

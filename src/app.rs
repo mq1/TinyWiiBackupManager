@@ -2,65 +2,64 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use std::collections::{HashMap, HashSet};
+use std::fs;
 use std::path::PathBuf;
 use std::sync::{
     Arc,
     atomic::{AtomicBool, Ordering},
 };
 
+use crate::base_dir::BaseDir;
+use crate::convert::verify_game;
+use crate::game::{CalculatedHashes, VerificationStatus};
+use crate::messages::BackgroundMessage;
+use crate::update_check::UpdateInfo;
+use crate::{
+    SUPPORTED_INPUT_EXTENSIONS, components::console_filter::ConsoleFilter, convert, game::Game,
+    update_check,
+};
 use anyhow::Result;
 use eframe::egui;
 use egui_inbox::UiInbox;
 
-use crate::base_dir::BaseDir;
-use crate::convert::verify_game;
-use crate::game::VerificationStatus;
-use crate::messages::BackgroundMessage;
-use crate::update_check::UpdateInfo;
-use crate::{
-    SUPPORTED_INPUT_EXTENSIONS, components::console_filter::ConsoleFilter, game::Game, update_check,
-};
+/// Type of background operation
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum OperationType {
+    Converting,
+    Verifying,
+}
 
-/// State of the conversion process
-#[derive(Debug, Clone, Copy, PartialEq, Default)]
-pub enum ConversionState {
-    /// No conversion is in progress
+/// Unified state for background operations (conversion and verification)
+#[derive(Debug, Clone, PartialEq, Default)]
+pub enum OperationState {
+    /// No operation is in progress
     #[default]
     Idle,
-    /// Conversion is in progress
-    Converting {
-        /// Total number of files to convert
-        total_files: usize,
-        /// Number of files already converted
-        files_converted: usize,
-        /// Current file progress (current / total)
+    /// Operation is in progress
+    InProgress {
+        /// Type of operation
+        operation: OperationType,
+        /// Total number of items to process
+        total_items: usize,
+        /// Number of items already completed
+        items_completed: usize,
+        /// Current item being processed (for display)
+        current_item: String,
+        /// Current item progress (current / total)
         current_progress: (u64, u64),
+        /// Items that passed (for verification only)
+        items_passed: usize,
+        /// Items that failed (for verification only)
+        items_failed: usize,
     },
 }
 
-/// State of the verification process
-#[derive(Debug, Clone, PartialEq, Default)]
-pub enum VerificationState {
-    /// No verification is in progress
-    #[default]
-    Idle,
-    /// Verification is in progress
-    Verifying {
-        /// Path of the game being verified
-        game_path: PathBuf,
-        /// Current progress (current / total)
-        progress: (u64, u64),
-        /// Queue of remaining games to verify
-        queue: Vec<PathBuf>,
-        /// Total games to verify (for overall progress)
-        total_games: usize,
-        /// Games already processed
-        games_verified: usize,
-        /// Games that passed verification
-        games_passed: usize,
-        /// Games that failed verification
-        games_failed: usize,
-    },
+/// Result of a background operation
+#[derive(Debug)]
+pub enum OperationResult {
+    ConversionComplete(CalculatedHashes),
+    VerificationComplete(VerificationStatus),
+    Error(anyhow::Error),
 }
 
 /// Main application state and UI controller.
@@ -74,10 +73,8 @@ pub struct App {
     pub base_dir_size: u64,
     /// Inbox for receiving messages from background tasks
     pub inbox: UiInbox<BackgroundMessage>,
-    /// Current state of the conversion process
-    pub conversion_state: ConversionState,
-    /// Current state of the verification process
-    pub verification_state: VerificationState,
+    /// Current state of background operations
+    pub operation_state: OperationState,
     /// File watcher
     watcher: Option<notify::RecommendedWatcher>,
     /// Whether to remove sources after conversion
@@ -249,44 +246,63 @@ impl App {
             // Reset cancellation flag
             self.operation_cancelled.store(false, Ordering::Relaxed);
 
-            self.conversion_state = ConversionState::Converting {
-                total_files: paths.len(),
-                files_converted: 0,
+            self.operation_state = OperationState::InProgress {
+                operation: OperationType::Converting,
+                total_items: paths.len(),
+                items_completed: 0,
+                current_item: String::new(),
                 current_progress: (0, 0),
+                items_passed: 0,
+                items_failed: 0,
             };
 
             let base_dir = base_dir.path().to_owned();
             std::thread::spawn(move || {
-                for path in paths {
+                for (i, path) in paths.iter().enumerate() {
                     // Check for cancellation before starting each file
                     if cancelled.load(Ordering::Relaxed) {
-                        let _ = sender.send(BackgroundMessage::ConversionComplete);
-                        return;
+                        break;
                     }
 
-                    let progress_callback = |progress, total| {
-                        let _ = sender.send(BackgroundMessage::ConversionProgress(progress, total));
+                    // Send the file name we're about to convert
+                    if let Some(file_name) = path.file_name() {
+                        let _ = sender.send(BackgroundMessage::OperationStartItem(
+                            i,
+                            file_name.to_string_lossy().to_string(),
+                        ));
+                    }
+
+                    let mut success = false;
+                    let (game_path, result) = match convert::convert_game(
+                        path,
+                        &base_dir,
+                        sender.clone(),
+                        Arc::clone(&cancelled),
+                    ) {
+                        Ok((game_dir, calculated_hashes)) => {
+                            success = true;
+                            (
+                                game_dir,
+                                OperationResult::ConversionComplete(calculated_hashes),
+                            )
+                        }
+                        Err(e) => (base_dir.clone(), OperationResult::Error(e)),
                     };
 
-                    if let Err(e) = iso2wbfs::convert(&path, &base_dir, progress_callback) {
-                        let _ = sender.send(BackgroundMessage::Error(e.into()));
-                    }
+                    // Send completion message for this file
+                    let _ =
+                        sender.send(BackgroundMessage::OperationItemComplete(game_path, result));
 
-                    // Check if conversion was cancelled after completing this file
-                    if cancelled.load(Ordering::Relaxed) {
-                        let _ = sender.send(BackgroundMessage::ConversionComplete);
-                        return;
-                    }
-
-                    let _ = sender.send(BackgroundMessage::FileConverted);
-
-                    // remove the source file
-                    if remove_sources && let Err(e) = std::fs::remove_file(&path) {
+                    // Remove the source file if requested
+                    if success
+                        && remove_sources
+                        && let Err(e) = fs::remove_file(path)
+                    {
                         let _ = sender.send(BackgroundMessage::Error(e.into()));
                     }
                 }
 
-                let _ = sender.send(BackgroundMessage::ConversionComplete);
+                let _ = sender.send(BackgroundMessage::OperationComplete);
             });
         }
     }
@@ -297,62 +313,73 @@ impl App {
         self.open_info_windows.insert(index);
     }
 
-    /// Spawn a verification task for a game
-    pub fn spawn_verification(&mut self, game: Box<Game>) {
-        let game_path = game.path.clone();
+    /// Spawn a verification task for multiple games
+    pub fn spawn_verification(&mut self, games: Vec<Box<Game>>) {
         let sender = self.inbox.sender();
         let cancelled = Arc::clone(&self.operation_cancelled);
 
         // Reset cancellation flag
         self.operation_cancelled.store(false, Ordering::Relaxed);
 
+        // Set the operation state
+        self.operation_state = OperationState::InProgress {
+            operation: OperationType::Verifying,
+            total_items: games.len(),
+            items_completed: 0,
+            current_item: String::new(),
+            current_progress: (0, 0),
+            items_passed: 0,
+            items_failed: 0,
+        };
+
         std::thread::spawn(move || {
-            let result = verify_game(game, sender.clone(), cancelled);
-            let _ = sender.send(BackgroundMessage::VerificationComplete(game_path, result));
+            for (i, game) in games.into_iter().enumerate() {
+                // Check for cancellation
+                if cancelled.load(Ordering::Relaxed) {
+                    break;
+                }
+
+                // Send the game name we're about to verify
+                let _ = sender.send(BackgroundMessage::OperationStartItem(
+                    i,
+                    game.display_title.clone(),
+                ));
+
+                let game_path = game.path.clone();
+                let result = match verify_game(game, sender.clone(), Arc::clone(&cancelled)) {
+                    Ok(verification_status) => {
+                        OperationResult::VerificationComplete(verification_status)
+                    }
+                    Err(e) => OperationResult::Error(e),
+                };
+
+                // Send completion message for this game
+                let _ = sender.send(BackgroundMessage::OperationItemComplete(game_path, result));
+            }
+
+            // Send final completion message
+            let _ = sender.send(BackgroundMessage::OperationComplete);
         });
     }
 
     /// Start verifying all unverified games
     pub fn start_verify_all(&mut self) {
         // Collect all games that need verification
-        let mut queue: Vec<PathBuf> = Vec::new();
+        let mut games_to_verify: Vec<Box<Game>> = Vec::new();
         for game in &self.games {
             if !matches!(
                 game.get_verification_status(),
                 VerificationStatus::FullyVerified(_, _)
             ) {
-                queue.push(game.path.clone());
+                games_to_verify.push(Box::new(game.clone()));
             }
         }
 
-        if queue.is_empty() {
+        if games_to_verify.is_empty() {
             return;
         }
 
-        let total_games = queue.len();
-
-        // Start verification of the first game
-        if let Some(first_path) = queue.first()
-            && let Some(game) = self
-                .games
-                .iter()
-                .find(|g| &g.path == first_path)
-                .map(|g| Box::new(g.clone()))
-        {
-            let mut remaining_queue = queue.clone();
-            remaining_queue.remove(0);
-
-            self.verification_state = VerificationState::Verifying {
-                game_path: first_path.clone(),
-                progress: (0, 0),
-                queue: remaining_queue,
-                total_games,
-                games_verified: 0,
-                games_passed: 0,
-                games_failed: 0,
-            };
-
-            self.spawn_verification(game);
-        }
+        // Start batch verification
+        self.spawn_verification(games_to_verify);
     }
 }
