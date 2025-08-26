@@ -16,7 +16,6 @@ impl BaseDir {
 
         let mut base_dir = Self(path);
         base_dir.correct();
-        base_dir.create_dirs()?;
         Ok(base_dir)
     }
 
@@ -53,18 +52,9 @@ impl BaseDir {
         self.0.join("games")
     }
 
-    fn create_dirs(&self) -> Result<()> {
-        std::fs::create_dir_all(self.wii_dir())?;
-        std::fs::create_dir_all(self.gc_dir())?;
-        Ok(())
-    }
-
     pub fn get_watcher(&self, callback: impl notify::EventHandler) -> Result<RecommendedWatcher> {
         let mut watcher = notify::recommended_watcher(callback)?;
-
-        self.create_dirs()?;
-        watcher.watch(&self.wii_dir(), RecursiveMode::NonRecursive)?;
-        watcher.watch(&self.gc_dir(), RecursiveMode::NonRecursive)?;
+        watcher.watch(&self.0, RecursiveMode::Recursive)?;
 
         Ok(watcher)
     }
