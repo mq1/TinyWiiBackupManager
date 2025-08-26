@@ -263,14 +263,27 @@ pub fn handle_messages(app: &mut App, ctx: &egui::Context) {
                 // The actual "cancelled" message will be shown when the thread reports completion
             }
 
-            BackgroundMessage::CoverDownloaded { game_id, cover_type, path: _ } => {
+            BackgroundMessage::CoverDownloaded {
+                game_id,
+                cover_type,
+                path: _,
+            } => {
                 // Cover downloaded successfully - UI will automatically refresh and show the cover
                 log::debug!("Cover downloaded for {} ({:?})", game_id, cover_type);
             }
 
-            BackgroundMessage::CoverDownloadFailed { game_id, cover_type, error } => {
+            BackgroundMessage::CoverDownloadFailed {
+                game_id,
+                cover_type,
+                error,
+            } => {
                 // Cover download failed - log the error but don't show toast (too noisy)
-                log::debug!("Cover download failed for {} ({:?}): {}", game_id, cover_type, error);
+                log::debug!(
+                    "Cover download failed for {} ({:?}): {}",
+                    game_id,
+                    cover_type,
+                    error
+                );
             }
         }
     }

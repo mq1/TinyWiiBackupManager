@@ -142,7 +142,7 @@ impl CoverManager {
 
         thread::spawn(move || {
             let result = Self::download_cover(&base_dir, &game_id, cover_type);
-            
+
             // Remove from downloading set
             downloading
                 .lock()
@@ -171,13 +171,11 @@ impl CoverManager {
     }
 
     /// Download a cover from GameTDB API (blocking operation)
-    fn download_cover(
-        base_dir: &Path,
-        game_id: &str,
-        cover_type: CoverType,
-    ) -> Result<PathBuf> {
+    fn download_cover(base_dir: &Path, game_id: &str, cover_type: CoverType) -> Result<PathBuf> {
         // Determine language from game ID region
-        let region_char = game_id.chars().nth(3)
+        let region_char = game_id
+            .chars()
+            .nth(3)
             .context("Game ID too short to determine region")?;
         let language = REGION_TO_LANG.get(&region_char).unwrap_or(&"EN");
 
@@ -194,24 +192,20 @@ impl CoverManager {
             .join("apps/usbloader_gx")
             .join(cover_type.subdirectory())
             .join(format!("{}.png", game_id));
-        
+
         if let Some(parent) = target_path.parent() {
-            std::fs::create_dir_all(parent)
-                .context("Failed to create cover directory")?;
+            std::fs::create_dir_all(parent).context("Failed to create cover directory")?;
         }
 
         // Download the cover
         log::debug!("Downloading cover from: {}", url);
-        let response = reqwest::blocking::get(&url)
-            .context("Failed to send HTTP request")?;
+        let response = reqwest::blocking::get(&url).context("Failed to send HTTP request")?;
 
         if response.status().is_success() {
-            let bytes = response.bytes()
-                .context("Failed to read response body")?;
-            
-            std::fs::write(&target_path, bytes)
-                .context("Failed to write cover file")?;
-            
+            let bytes = response.bytes().context("Failed to read response body")?;
+
+            std::fs::write(&target_path, bytes).context("Failed to write cover file")?;
+
             log::info!("Downloaded cover: {:?}", target_path);
             Ok(target_path)
         } else {
@@ -256,7 +250,9 @@ mod tests {
         let path = manager.get_cover_path("RMGE01", CoverType::Cover2D);
         assert_eq!(
             path,
-            temp_dir.path().join("apps/usbloader_gx/images/2D/RMGE01.png")
+            temp_dir
+                .path()
+                .join("apps/usbloader_gx/images/2D/RMGE01.png")
         );
     }
 

@@ -115,7 +115,7 @@ impl App {
         // Load base dir from storage
         if let Some(storage) = cc.storage {
             app.base_dir = eframe::get_value(storage, "base_dir");
-            
+
             // Initialize cover manager if we have a base directory
             if let Some(ref base_dir) = app.base_dir {
                 app.cover_manager = Some(CoverManager::new(base_dir.path().to_path_buf()));
