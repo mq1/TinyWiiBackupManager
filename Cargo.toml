@@ -22,7 +22,7 @@ OriginalFilename = "TinyWiiBackupManager.exe"
 LegalCopyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-2.0-only."
 
 [dependencies]
-eframe = { version = "0.32", features = ["wgpu"] }
+eframe = { version = "0.32", default-features = false, features = ["accesskit", "default_fonts", "wayland", "wgpu", "x11"] }
 egui_extras = { version = "0.32", features = ["image", "http"] }
 egui-notify = "0.20"
 egui_inbox = "0.9"
@@ -43,10 +43,16 @@ const_format = "0.2"
 nod = "2.0.0-alpha.3"
 hex = "0.4"
 
-[target.'cfg(macos)'.dependencies]
+[target.'cfg(target_os = "macos")'.dependencies]
 wgpu = { version = "25", default-features = false, features = ["metal"] }
 
-[target.'cfg(windows)'.build-dependencies]
+[target.'cfg(target_os = "linux")'.dependencies]
+wgpu = { version = "25", default-features = false, features = ["gles"] }
+
+[target.'cfg(target_os = "windows")'.dependencies]
+wgpu = { version = "25", default-features = false, features = ["dx12"] }
+
+[target.'cfg(target_os = "windows")'.build-dependencies]
 winres = "0.1"
 
 [profile.release]
