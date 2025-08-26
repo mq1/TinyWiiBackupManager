@@ -4,6 +4,9 @@ on:
   push:
   pull_request:
 
+env:
+  CARGO_PROFILE: release-lto
+
 permissions:
   contents: write
 
@@ -13,23 +16,28 @@ jobs:
   #  The icon assets are checked in with the repository.
   # ==================================================================================
   build-linux:
-    name: Build for Linux (x86_64 & aarch64)
+    name: Build for Linux
     runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            arch: x86_64
+          - target: aarch64-unknown-linux-gnu
+            arch: aarch64
     steps:
-      - name: Checkout for x86_64
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          path: build-x86_64
 
-      - name: Checkout for aarch64
-        uses: actions/checkout@v4
+      - name: Cache Rust workspace
+        uses: Swatinem/rust-cache@v2
         with:
-          path: build-aarch64
+          key: ${{ matrix.target }}
 
       - name: Set up Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          target: x86_64-unknown-linux-gnu,aarch64-unknown-linux-gnu
+          target: ${{ matrix.target }}
 
       - name: Set up mold
         uses: rui314/setup-mold@v1
@@ -41,121 +49,146 @@ jobs:
           sudo apt-get update
 
           # Install dependencies for aarch64, eframe and appimage
+          if [[ "${{ matrix.target }}" == "aarch64-unknown-linux-gnu" ]]; then
+            sudo apt-get install -y gcc-aarch64-linux-gnu
+          fi
           sudo apt-get install -y \
-            gcc-aarch64-linux-gnu \
             libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev \
             squashfs-tools
 
           # Install cargo-bundle
           cargo install cargo-bundle
 
-      - name: Build binaries in parallel
-        run: |
-          (cd build-x86_64 && cargo bundle --release --target x86_64-unknown-linux-gnu --format appimage) &
-          (cd build-aarch64 && cargo bundle --release --target aarch64-unknown-linux-gnu --format appimage) &
-          wait
+      - name: Build binary
+        run: cargo bundle --profile ${{ env.CARGO_PROFILE }} --target ${{ matrix.target }} --format appimage
 
-      - name: Package for Linux (x86_64 and aarch64)
+      - name: Package for Linux
         run: |
           mkdir dist
 
-          mv build-x86_64/target/x86_64-unknown-linux-gnu/release/bundle/appimage/*.AppImage dist/TWBM-${{ github.ref_name }}-Linux-x86_64.AppImage
-          mv build-aarch64/target/aarch64-unknown-linux-gnu/release/bundle/appimage/*.AppImage dist/TWBM-${{ github.ref_name }}-Linux-aarch64.AppImage
+          mv target/${{ matrix.target }}/${{ env.CARGO_PROFILE }}/bundle/appimage/*.AppImage dist/TWBM-${{ github.ref_name }}-Linux-${{ matrix.arch }}.AppImage
 
-          # Also create tarballs with plain binaries
-          mv build-x86_64/target/x86_64-unknown-linux-gnu/release/tiny-wii-backup-manager TWBM-${{ github.ref_name }}-Linux-x86_64
-          mv build-aarch64/target/aarch64-unknown-linux-gnu/release/tiny-wii-backup-manager TWBM-${{ github.ref_name }}-Linux-aarch64
-          tar -czf dist/TWBM-${{ github.ref_name }}-Linux-x86_64.tar.gz TWBM-${{ github.ref_name }}-Linux-x86_64
-          tar -czf dist/TWBM-${{ github.ref_name }}-Linux-aarch64.tar.gz TWBM-${{ github.ref_name }}-Linux-aarch64
+          # Also create tarball with plain binary
+          mv target/${{ matrix.target }}/${{ env.CARGO_PROFILE }}/tiny-wii-backup-manager TWBM-${{ github.ref_name }}-Linux-${{ matrix.arch }}
+          tar -czf dist/TWBM-${{ github.ref_name }}-Linux-${{ matrix.arch }}.tar.gz TWBM-${{ github.ref_name }}-Linux-${{ matrix.arch }}
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v4
         with:
-          name: linux-dist
+          name: linux-dist-${{ matrix.arch }}
           path: dist/*
 
   build-windows:
-    name: Build for Windows (x86_64 & aarch64)
+    name: Build for Windows
     runs-on: windows-latest
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-pc-windows-msvc
+            arch: x86_64
+          - target: aarch64-pc-windows-msvc
+            arch: aarch64
     steps:
-      - name: Checkout for x86_64
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          path: build-x86_64
 
-      - name: Checkout for aarch64
-        uses: actions/checkout@v4
+      - name: Cache Rust workspace
+        uses: Swatinem/rust-cache@v2
         with:
-          path: build-aarch64
+          key: ${{ matrix.target }}
 
       - name: Set up Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          target: x86_64-pc-windows-msvc,aarch64-pc-windows-msvc
+          target: ${{ matrix.target }}
 
-      - name: Build binaries in parallel
-        shell: bash
-        run: |
-          (cd build-x86_64 && cargo build --release --target x86_64-pc-windows-msvc) &
-          (cd build-aarch64 && cargo build --release --target aarch64-pc-windows-msvc) &
-          wait
+      - name: Build binary
+        run: cargo build --profile ${{ env.CARGO_PROFILE }} --target ${{ matrix.target }}
 
-      - name: Package for Windows (x86_64 and aarch64)
+      - name: Package for Windows
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Path dist
-          Move-Item -Path "build-x86_64/target/x86_64-pc-windows-msvc/release/tiny-wii-backup-manager.exe" -Destination "TWBM-${{ github.ref_name }}-Windows-x86_64.exe"
-          Move-Item -Path "build-aarch64/target/aarch64-pc-windows-msvc/release/tiny-wii-backup-manager.exe" -Destination "TWBM-${{ github.ref_name }}-Windows-aarch64.exe"
-          Compress-Archive -Path "TWBM-${{ github.ref_name }}-Windows-x86_64.exe" -DestinationPath "dist/TWBM-${{ github.ref_name }}-Windows-x86_64.zip"
-          Compress-Archive -Path "TWBM-${{ github.ref_name }}-Windows-aarch64.exe" -DestinationPath "dist/TWBM-${{ github.ref_name }}-Windows-aarch64.zip"
+          Move-Item -Path "target/${{ matrix.target }}/${{ env.CARGO_PROFILE }}/tiny-wii-backup-manager.exe" -Destination "TWBM-${{ github.ref_name }}-Windows-${{ matrix.arch }}.exe"
+          Compress-Archive -Path "TWBM-${{ github.ref_name }}-Windows-${{ matrix.arch }}.exe" -DestinationPath "dist/TWBM-${{ github.ref_name }}-Windows-${{ matrix.arch }}.zip"
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v4
         with:
-          name: windows-dist
+          name: windows-dist-${{ matrix.arch }}
           path: dist/*
 
   build-macos:
-    name: Build for MacOS (Universal2)
+    name: Build for MacOS
     runs-on: macos-latest
+    strategy:
+      matrix:
+        include:
+          - target: aarch64-apple-darwin
+            arch: aarch64
+          - target: x86_64-apple-darwin
+            arch: x86_64
     steps:
-      - name: Checkout for aarch64
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          path: build-aarch64
 
-      - name: Checkout for x86_64
-        uses: actions/checkout@v4
+      - name: Cache Rust workspace
+        uses: Swatinem/rust-cache@v2
         with:
-          path: build-x86_64
+          key: ${{ matrix.target }}
 
       - name: Set up Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          target: aarch64-apple-darwin,x86_64-apple-darwin
+          target: ${{ matrix.target }}
 
       - name: Install dependencies
         run: |
-          brew install graphicsmagick imagemagick
-          cargo install cargo-bundle
+          brew install graphicsmagick imagemagick cargo-bundle
 
-      - name: Build binaries in parallel
-        run: |
-          (cd build-aarch64 && cargo bundle --release --target aarch64-apple-darwin --format osx) &
-          (cd build-x86_64 && cargo build --release --target x86_64-apple-darwin) &
-          wait
+      - name: Build binary
+        run: cargo bundle --profile ${{ env.CARGO_PROFILE }} --target ${{ matrix.target }} --format osx
 
-      - name: Package for MacOS (Universal2)
+      - name: Upload MacOS binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-binary-${{ matrix.arch }}
+          path: target/${{ matrix.target }}/${{ env.CARGO_PROFILE }}/bundle/osx/TinyWiiBackupManager.app
+
+  package-macos:
+    name: Package MacOS Universal2
+    runs-on: macos-latest
+    needs: build-macos
+    steps:
+      - name: Download aarch64 binary
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-binary-aarch64
+          path: aarch64-artifacts
+
+      - name: Download x86_64 binary
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-binary-x86_64
+          path: x86_64-artifacts
+
+      - name: Create Universal2 app and DMG
         run: |
           mkdir dist
 
+          # Reconstruct app bundle from aarch64 artifacts (use this as the base)
+          mkdir -p TinyWiiBackupManager.app
+          cp -r aarch64-artifacts/Contents TinyWiiBackupManager.app/
+          
+          # Create universal binary using lipo
           lipo \
             -create \
-            -output build-aarch64/target/aarch64-apple-darwin/release/bundle/osx/TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager \
-            build-aarch64/target/aarch64-apple-darwin/release/bundle/osx/TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager \
-            build-x86_64/target/x86_64-apple-darwin/release/tiny-wii-backup-manager
+            -output TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager \
+            aarch64-artifacts/Contents/MacOS/tiny-wii-backup-manager \
+            x86_64-artifacts/Contents/MacOS/tiny-wii-backup-manager
 
-          npx --yes create-dmg build-aarch64/target/aarch64-apple-darwin/release/bundle/osx/TinyWiiBackupManager.app . || true
+          # Create DMG
+          npx --yes create-dmg TinyWiiBackupManager.app . || true
           mv *.dmg dist/TWBM-${{ github.ref_name }}-MacOS-Universal2.dmg
 
       - name: Upload MacOS distributable
@@ -171,7 +204,7 @@ jobs:
     name: Create GitHub Release
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
-    needs: [ build-linux, build-windows, build-macos ]
+    needs: [ build-linux, build-windows, package-macos ]
     steps:
       - name: Download all distributables
         uses: actions/download-artifact@v4
