@@ -29,6 +29,8 @@ pub enum BackgroundMessage {
     StartSingleVerification(Box<Game>),
     /// Signal to cancel ongoing operation
     CancelOperation,
+    /// Signal that GameTDB database download completed
+    GameTDBDownloadComplete,
 }
 
 /// Processes messages received from background tasks
@@ -248,6 +250,19 @@ pub fn handle_messages(app: &mut App, ctx: &egui::Context) {
                 // Set cancellation flag - the thread will detect this and exit
                 app.operation_cancelled.store(true, Ordering::Relaxed);
                 // The actual "cancelled" message will be shown when the thread reports completion
+            }
+
+            BackgroundMessage::GameTDBDownloadComplete => {
+                // Clear the cached GameTDB instance to force reload
+                crate::util::gametdb::clear_cache();
+
+                // Refresh games to reload titles from the new database
+                if let Err(e) = app.refresh_games() {
+                    let _ = sender.send(BackgroundMessage::Error(e));
+                } else {
+                    app.top_left_toasts
+                        .success("GameTDB database downloaded successfully!");
+                }
             }
         }
     }

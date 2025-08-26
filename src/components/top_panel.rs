@@ -79,7 +79,7 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                         .clicked()
                         && let Some(cover_manager) = &app.cover_manager
                     {
-                        if let Err(e) = cover_manager.download_database() {
+                        if let Err(e) = cover_manager.download_database(sender.clone()) {
                             let _ = sender.send(BackgroundMessage::Error(e));
                         } else {
                             app.top_left_toasts
