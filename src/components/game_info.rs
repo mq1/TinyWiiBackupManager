@@ -302,6 +302,9 @@ fn ui_game_info_content(
 
     // Add Verify button
     if ui.button("🔍 Verify Disc").clicked() {
-        let _ = sender.send(BackgroundMessage::StartVerification(Box::new(game.clone())));
+        // Send a message to start verification of this single game
+        let _ = sender.send(BackgroundMessage::StartSingleVerification(Box::new(
+            game.clone(),
+        )));
     }
 }
