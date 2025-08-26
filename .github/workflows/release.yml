@@ -19,6 +19,7 @@ jobs:
     name: Build for Linux
     runs-on: ubuntu-22.04
     strategy:
+      fail-fast: false
       matrix:
         include:
           - target: x86_64-unknown-linux-gnu
@@ -61,7 +62,9 @@ jobs:
           brew install cargo-bundle
 
       - name: Build binary
-        run: cargo bundle --profile ${{ env.CARGO_PROFILE }} --target ${{ matrix.target }} --format appimage
+        run: |
+          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+          cargo bundle --profile ${{ env.CARGO_PROFILE }} --target ${{ matrix.target }} --format appimage
 
       - name: Package for Linux
         run: |
@@ -90,6 +93,7 @@ jobs:
     name: Build for Windows
     runs-on: windows-latest
     strategy:
+      fail-fast: false
       matrix:
         include:
           - target: x86_64-pc-windows-msvc
@@ -136,6 +140,7 @@ jobs:
     name: Build for MacOS
     runs-on: macos-latest
     strategy:
+      fail-fast: false
       matrix:
         include:
           - target: aarch64-apple-darwin
