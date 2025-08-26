@@ -166,7 +166,7 @@ jobs:
           target: ${{ matrix.target }}
 
       - name: Install dependencies
-        run: brew install graphicsmagick imagemagick cargo-bundle
+        run: brew install cargo-bundle
 
       - name: Build binary
         run: cargo bundle --profile ${{ env.CARGO_PROFILE }} --target ${{ matrix.target }} --format osx
@@ -182,6 +182,9 @@ jobs:
     runs-on: macos-latest
     needs: build-macos
     steps:
+      - name: Install dependencies
+        run: brew install graphicsmagick imagemagick
+
       - name: Download aarch64 binary
         uses: actions/download-artifact@v4
         with:
