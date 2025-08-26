@@ -57,8 +57,11 @@ wgpu = { version = "25", default-features = false, features = ["dx12"] }
 winres = "0.1"
 
 [profile.release]
-strip = "debuginfo"
 opt-level = 3
+
+[profile.release-lto]
+inherits = "release"
+strip = "debuginfo"
 lto = "fat"
 codegen-units = 1
 panic = "abort"
