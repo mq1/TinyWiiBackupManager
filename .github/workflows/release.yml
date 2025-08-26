@@ -55,10 +55,12 @@ jobs:
             squashfs-tools
 
           # Install cargo-bundle
-          cargo install cargo-bundle
+          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+          brew install cargo-bundle
 
       - name: Build binaries in parallel
         run: |
+          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
           (cd build-x86_64 && cargo bundle --release --target x86_64-unknown-linux-gnu --format appimage) &
           (cd build-aarch64 && cargo bundle --release --target aarch64-unknown-linux-gnu --format appimage) &
           wait
@@ -143,9 +145,7 @@ jobs:
           target: aarch64-apple-darwin,x86_64-apple-darwin
 
       - name: Install dependencies
-        run: |
-          brew install graphicsmagick imagemagick
-          cargo install cargo-bundle
+        run: brew install graphicsmagick imagemagick cargo-bundle
 
       - name: Build binaries in parallel
         run: |
