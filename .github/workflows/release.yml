@@ -57,7 +57,8 @@ jobs:
             squashfs-tools
 
           # Install cargo-bundle
-          cargo install cargo-bundle
+          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+          brew install cargo-bundle
 
       - name: Build binary
         run: cargo bundle --profile ${{ env.CARGO_PROFILE }} --target ${{ matrix.target }} --format appimage
@@ -156,8 +157,7 @@ jobs:
           target: ${{ matrix.target }}
 
       - name: Install dependencies
-        run: |
-          brew install graphicsmagick imagemagick cargo-bundle
+        run: brew install graphicsmagick imagemagick cargo-bundle
 
       - name: Build binary
         run: cargo bundle --profile ${{ env.CARGO_PROFILE }} --target ${{ matrix.target }} --format osx
