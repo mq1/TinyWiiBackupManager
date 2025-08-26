@@ -36,7 +36,8 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
 
                 for (original_index, game) in app.games.iter().enumerate() {
                     if filter.shows_game(game) {
-                        let (should_remove, should_open_info, should_download_cover) = ui_game_card(ui, game, &app.cover_manager);
+                        let (should_remove, should_open_info, should_download_cover) =
+                            ui_game_card(ui, game, &app.cover_manager);
                         if should_remove {
                             to_remove = Some((*game).clone());
                         }
@@ -74,7 +75,11 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
     }
 }
 
-fn ui_game_card(ui: &mut egui::Ui, game: &Game, cover_manager: &Option<CoverManager>) -> (bool, bool, bool) {
+fn ui_game_card(
+    ui: &mut egui::Ui,
+    game: &Game,
+    cover_manager: &Option<CoverManager>,
+) -> (bool, bool, bool) {
     let mut remove_clicked = false;
     let mut info_clicked = false;
     let mut should_download_cover = false;
@@ -121,7 +126,7 @@ fn ui_game_card(ui: &mut egui::Ui, game: &Game, cover_manager: &Option<CoverMana
                 // Handle cover art
                 if let Some(cover_manager) = cover_manager {
                     let cover_path = cover_manager.get_cover_path(&game.id, CoverType::Cover3D);
-                    
+
                     if cover_path.exists() {
                         // Show existing local cover
                         let image = Image::new(format!("file://{}", cover_path.display()))
@@ -143,7 +148,7 @@ fn ui_game_card(ui: &mut egui::Ui, game: &Game, cover_manager: &Option<CoverMana
                                 ui.label("📦");
                             });
                         });
-                        
+
                         // Mark for download
                         should_download_cover = true;
                     }
