@@ -4,10 +4,11 @@
 use crate::game::{ConsoleType, Game};
 use anyhow::{Context, Result};
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
+use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::path::{Path, PathBuf};
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct BaseDir(PathBuf);
 
 impl BaseDir {
@@ -42,6 +43,10 @@ impl BaseDir {
         {
             self.0 = parent.to_path_buf();
         }
+    }
+
+    pub fn exists(&self) -> bool {
+        self.0.exists()
     }
 
     fn wii_dir(&self) -> PathBuf {

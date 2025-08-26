@@ -67,39 +67,42 @@ impl App {
         // Install image loaders
         egui_extras::install_image_loaders(&cc.egui_ctx);
 
-        // Pretty notifications
-        let bottom_right_toasts = egui_notify::Toasts::default()
-            .with_anchor(egui_notify::Anchor::BottomRight)
-            .with_margin(egui::Vec2::new(10.0, 32.))
-            .with_shadow(egui::Shadow {
-                offset: [0, 0],
-                blur: 0,
-                spread: 1,
-                color: egui::Color32::GRAY,
-            });
+        // Initialize app and toasts
+        let mut app = Self {
+            top_left_toasts: create_toasts(egui_notify::Anchor::TopLeft),
+            bottom_left_toasts: create_toasts(egui_notify::Anchor::BottomLeft),
+            bottom_right_toasts: create_toasts(egui_notify::Anchor::BottomRight),
+            ..Default::default()
+        };
 
-        let mut top_left_toasts = egui_notify::Toasts::default()
-            .with_anchor(egui_notify::Anchor::TopLeft)
-            .with_margin(egui::Vec2::new(10.0, 32.0))
-            .with_shadow(egui::Shadow {
-                offset: [0, 0],
-                blur: 0,
-                spread: 1,
-                color: egui::Color32::GRAY,
-            });
+        // Load base dir from storage
+        if let Some(storage) = cc.storage {
+            app.base_dir = eframe::get_value(storage, "base_dir");
+        }
 
-        let bottom_left_toasts = egui_notify::Toasts::default()
-            .with_anchor(egui_notify::Anchor::BottomLeft)
-            .with_margin(egui::Vec2::new(10.0, 32.0))
-            .with_shadow(egui::Shadow {
-                offset: [0, 0],
-                blur: 0,
-                spread: 1,
-                color: egui::Color32::GRAY,
-            });
+        // If the base directory isn't set or no longer exists, prompt the user to select one.
+        if app.base_dir.as_ref().is_none_or(|dir| !dir.exists()) {
+            app.prompt_for_base_directory();
+        }
 
-        // Show toast to choose base dir
-        top_left_toasts
+        // Initialize the update checker based on the TWBM_DISABLE_UPDATES env var
+        if std::env::var_os("TWBM_DISABLE_UPDATES").is_none() {
+            app.spawn_update_checker();
+        };
+
+        let sender = app.inbox.sender();
+        if let Err(e) = app.watch_base_dir() {
+            let _ = sender.send(BackgroundMessage::Error(e));
+        }
+        if let Err(e) = app.refresh_games() {
+            let _ = sender.send(BackgroundMessage::Error(e));
+        }
+
+        app
+    }
+
+    fn prompt_for_base_directory(&mut self) {
+        self.top_left_toasts
             .custom(
                 "Click on \"📄 File\" to select a Drive/Directory    ",
                 "⬆".to_string(),
@@ -107,30 +110,10 @@ impl App {
             )
             .closable(false)
             .duration(None);
-
-        let mut app = Self {
-            top_left_toasts,
-            bottom_left_toasts,
-            bottom_right_toasts,
-            ..Default::default()
-        };
-
-        // Initialize the update checker based on the TWBM_DISABLE_UPDATES env var
-        if std::env::var_os("TWBM_DISABLE_UPDATES").is_none() {
-            app.spawn_update_checker();
-        };
-
-        app
     }
 
-    pub fn choose_base_dir(&mut self) -> Result<()> {
-        let new_dir = rfd::FileDialog::new()
-            .set_title("Select New Base Directory")
-            .pick_folder();
-
-        if let Some(new_dir) = new_dir {
-            let base_dir = BaseDir::new(new_dir)?;
-
+    fn watch_base_dir(&mut self) -> Result<()> {
+        if let Some(base_dir) = &self.base_dir {
             let sender = self.inbox.sender();
             let watcher = base_dir.get_watcher(move |res| {
                 if let Ok(notify::Event {
@@ -146,8 +129,21 @@ impl App {
             })?;
 
             self.watcher = Some(watcher);
+        }
+
+        Ok(())
+    }
+
+    pub fn choose_base_dir(&mut self) -> Result<()> {
+        let new_dir = rfd::FileDialog::new()
+            .set_title("Select New Base Directory")
+            .pick_folder();
+
+        if let Some(new_dir) = new_dir {
+            let base_dir = BaseDir::new(new_dir)?;
             self.base_dir = Some(base_dir);
 
+            self.watch_base_dir()?;
             self.refresh_games()?;
         }
 
@@ -223,4 +219,17 @@ impl App {
         // HashSet will automatically handle duplicates
         self.open_info_windows.insert(index);
     }
+}
+
+/// Helper function to create a styled `Toasts` instance for a specific screen corner.
+fn create_toasts(anchor: egui_notify::Anchor) -> egui_notify::Toasts {
+    egui_notify::Toasts::default()
+        .with_anchor(anchor)
+        .with_margin(egui::vec2(10.0, 32.0))
+        .with_shadow(egui::Shadow {
+            offset: [0, 0],
+            blur: 0,
+            spread: 1,
+            color: egui::Color32::GRAY,
+        })
 }
