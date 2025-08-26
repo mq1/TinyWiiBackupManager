@@ -179,7 +179,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: macos-app-${{ matrix.arch }}
-          path: target/${{ matrix.target }}/${{ env.CARGO_PROFILE }}/bundle/osx/TinyWiiBackupManager.app/
+          path: target/${{ matrix.target }}/${{ env.CARGO_PROFILE }}/bundle/osx/TinyWiiBackupManager.app
 
   package-macos:
     name: Package MacOS Universal2
@@ -193,13 +193,13 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: macos-app-aarch64
-          path: aarch64_app
+          path: aarch64.app
 
       - name: Download x86_64 app bundle
         uses: actions/download-artifact@v4
         with:
           name: macos-app-x86_64
-          path: x86_64_app
+          path: x86_64.app
 
       - name: Create Universal2 app and DMG
         run: |
@@ -213,18 +213,18 @@ jobs:
           fi
           
           # Copy the aarch64 app to use as a template for our final universal app
-          cp -R aarch64_app/TinyWiiBackupManager.app .
+          cp -R aarch64.app ./TinyWiiBackupManager.app
           
           # Create the universal binary using lipo, referencing the predictable downloaded paths
           lipo \
             -create \
             -output ./TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager \
-            aarch64_app/TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager \
-            x86_64_app/TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager
+            aarch64.app/Contents/MacOS/tiny-wii-backup-manager \
+            x86_64.app/Contents/MacOS/tiny-wii-backup-manager
 
           # Create DMG
           npx --yes create-dmg TinyWiiBackupManager.app . || true
-          mv "TinyWiiBackupManager*.dmg" "dist/TWBM-${REF_NAME}-MacOS-Universal2.dmg"
+          mv TinyWiiBackupManager*.dmg dist/TWBM-${REF_NAME}-MacOS-Universal2.dmg
 
       - name: Upload MacOS distributable
         uses: actions/upload-artifact@v4
