@@ -6,10 +6,12 @@ pub const PRODUCT_NAME: &str = "TinyWiiBackupManager";
 pub mod app;
 mod base_dir;
 mod components;
+mod convert;
 mod game;
 mod messages;
 mod titles;
 mod update_check;
+mod util;
 
 #[rustfmt::skip]
 pub const SUPPORTED_INPUT_EXTENSIONS: &[&str] = &[

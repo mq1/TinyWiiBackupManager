@@ -41,6 +41,17 @@ env_logger = "0.11"
 const_format = "0.2"
 nod = "2.0.0-alpha.3"
 hex = "0.4"
+zstd = "0.13"
+zerocopy = { version = "0.8", features = ["derive"] }
+num_cpus = "1.16"
+filetime = "0.2"
+
+[build-dependencies]
+quick-xml = { version = "0.37", features = ["serialize"] }
+serde = { version = "1.0", features = ["derive"] }
+hex = { version = "0.4", features = ["serde"] }
+zstd = "0.13"
+zerocopy = { version = "0.8", features = ["derive"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 eframe = { version = "0.32", default-features = false, features = ["accesskit", "default_fonts", "glow"] }
