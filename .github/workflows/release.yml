@@ -203,6 +203,8 @@ jobs:
 
       - name: Create Universal2 app and DMG
         run: |
+          mkdir dist
+          
           # Use sha for PR builds, ref_name for push builds
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             REF_NAME="${{ github.event.pull_request.head.sha }}"
@@ -222,13 +224,13 @@ jobs:
 
           # Create DMG
           npx --yes create-dmg TinyWiiBackupManager.app . || true
-          mv TinyWiiBackupManager*.dmg "TWBM-${REF_NAME}-MacOS-Universal2.dmg"
+          mv "TinyWiiBackupManager*.dmg" "dist/TWBM-${REF_NAME}-MacOS-Universal2.dmg"
 
       - name: Upload MacOS distributable
         uses: actions/upload-artifact@v4
         with:
           name: macos-dist
-          path: TWBM-*-MacOS-Universal2.dmg
+          path: dist/*
 
   # ==================================================================================
   #  Release Job: Collects all artifacts and creates a single GitHub Release.
