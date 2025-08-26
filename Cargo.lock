@@ -3817,7 +3817,6 @@ dependencies = [
  "log",
  "nod",
  "notify",
- "num_cpus",
  "open",
  "phf 0.13.1",
  "quick-xml 0.37.5",

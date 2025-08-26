@@ -43,7 +43,6 @@ nod = "2.0.0-alpha.3"
 hex = "0.4"
 zstd = "0.13"
 zerocopy = { version = "0.8", features = ["derive"] }
-num_cpus = "1.16"
 filetime = "0.2"
 
 [build-dependencies]
