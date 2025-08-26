@@ -43,6 +43,9 @@ const_format = "0.2"
 nod = "2.0.0-alpha.3"
 hex = "0.4"
 
+[target.'cfg(macos)'.dependencies]
+wgpu = { version = "25", default-features = false, features = ["metal"] }
+
 [target.'cfg(windows)'.build-dependencies]
 winres = "0.1"
 

@@ -3806,6 +3806,7 @@ dependencies = [
  "semver",
  "size",
  "ureq 3.1.0",
+ "wgpu",
  "winres",
 ]
 
