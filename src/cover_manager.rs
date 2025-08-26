@@ -4,6 +4,8 @@
 use crate::util::regions::REGION_TO_LANG;
 use anyhow::{Context, Result};
 use std::collections::HashSet;
+use std::fs::File;
+use std::io::BufReader;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 use std::{fs, thread};
@@ -125,6 +127,84 @@ impl CoverManager {
                 }
             }
         });
+    }
+
+    /// Download covers for multiple games
+    pub fn download_all_covers(&self, game_ids: Vec<String>, cover_type: CoverType) {
+        for game_id in game_ids {
+            self.queue_download(game_id, cover_type);
+        }
+    }
+
+    /// Download the GameTDB database (wiitdb.xml) in a background thread
+    pub fn download_database(&self) -> Result<()> {
+        let base_dir = self.base_dir.clone();
+
+        thread::spawn(move || match Self::download_database_blocking(&base_dir) {
+            Ok(path) => {
+                log::info!("Successfully downloaded GameTDB database to {:?}", path);
+            }
+            Err(e) => {
+                log::error!("Failed to download GameTDB database: {}", e);
+            }
+        });
+
+        Ok(())
+    }
+
+    /// Download the GameTDB database (blocking operation)
+    fn download_database_blocking(base_dir: &Path) -> Result<PathBuf> {
+        log::info!("Downloading GameTDB database from https://www.gametdb.com/wiitdb.zip");
+
+        // Download the zip file
+        let response = reqwest::blocking::get("https://www.gametdb.com/wiitdb.zip")
+            .context("Failed to download wiitdb.zip")?;
+
+        if !response.status().is_success() {
+            anyhow::bail!("HTTP error downloading wiitdb.zip: {}", response.status());
+        }
+
+        let bytes = response
+            .bytes()
+            .context("Failed to read wiitdb.zip response")?;
+
+        // Create temporary file for the zip
+        let temp_zip = base_dir.join("wiitdb_temp.zip");
+        fs::write(&temp_zip, bytes).context("Failed to write temporary zip file")?;
+
+        // Create target directory
+        let target_dir = base_dir.join("apps/usbloader_gx");
+        fs::create_dir_all(&target_dir).context("Failed to create usbloader_gx directory")?;
+
+        // Extract the zip file
+        let file = File::open(&temp_zip).context("Failed to open temporary zip file")?;
+        let mut archive =
+            zip::ZipArchive::new(BufReader::new(file)).context("Failed to read zip archive")?;
+
+        // Look for wiitdb.xml in the archive
+        for i in 0..archive.len() {
+            let mut file = archive.by_index(i).context("Failed to access zip entry")?;
+            let name = file.name();
+
+            // Only extract wiitdb.xml
+            if name == "wiitdb.xml" || name.ends_with("/wiitdb.xml") {
+                let target_path = target_dir.join("wiitdb.xml");
+                let mut outfile =
+                    File::create(&target_path).context("Failed to create wiitdb.xml")?;
+                std::io::copy(&mut file, &mut outfile).context("Failed to extract wiitdb.xml")?;
+                log::info!("Extracted wiitdb.xml to {:?}", target_path);
+
+                // Clean up temporary zip file
+                fs::remove_file(&temp_zip).ok();
+
+                return Ok(target_path);
+            }
+        }
+
+        // Clean up temporary zip file
+        fs::remove_file(&temp_zip).ok();
+
+        anyhow::bail!("wiitdb.xml not found in downloaded archive")
     }
 
     /// Download a cover from GameTDB API (blocking operation)

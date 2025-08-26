@@ -3,6 +3,7 @@
 
 use crate::app::App;
 use crate::components::fake_link::fake_link;
+use crate::cover_manager::CoverType;
 use crate::game::VerificationStatus;
 use crate::messages::BackgroundMessage;
 use anyhow::anyhow;
@@ -67,6 +68,80 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                 if verify_all_button.clicked() {
                     app.start_verify_all();
                 }
+
+                // GameTDB menu
+                ui.label("•");
+                ui.menu_button("🎮 GameTDB", |ui| {
+                    // Download database option
+                    if ui
+                        .button("📥 Download GameTDB Database")
+                        .on_hover_text("Download the latest wiitdb.xml database from GameTDB")
+                        .clicked()
+                        && let Some(cover_manager) = &app.cover_manager
+                    {
+                        if let Err(e) = cover_manager.download_database() {
+                            let _ = sender.send(BackgroundMessage::Error(e));
+                        } else {
+                            app.top_left_toasts
+                                .info("Downloading GameTDB database in background...");
+                        }
+                    }
+
+                    ui.separator();
+
+                    // Download all covers options
+                    if ui
+                        .button("📥 Download All 3D Covers")
+                        .on_hover_text("Download 3D covers for all games")
+                        .clicked()
+                        && let Some(cover_manager) = &app.cover_manager
+                    {
+                        let game_ids: Vec<String> =
+                            app.games.iter().map(|g| g.id.clone()).collect();
+                        cover_manager.download_all_covers(game_ids, CoverType::Cover3D);
+                        app.top_left_toasts
+                            .info("Downloading covers in background...");
+                    }
+
+                    if ui
+                        .button("📥 Download All 2D Covers")
+                        .on_hover_text("Download 2D covers for all games")
+                        .clicked()
+                        && let Some(cover_manager) = &app.cover_manager
+                    {
+                        let game_ids: Vec<String> =
+                            app.games.iter().map(|g| g.id.clone()).collect();
+                        cover_manager.download_all_covers(game_ids, CoverType::Cover2D);
+                        app.top_left_toasts
+                            .info("Downloading covers in background...");
+                    }
+
+                    if ui
+                        .button("📥 Download All Full Covers")
+                        .on_hover_text("Download full covers for all games")
+                        .clicked()
+                        && let Some(cover_manager) = &app.cover_manager
+                    {
+                        let game_ids: Vec<String> =
+                            app.games.iter().map(|g| g.id.clone()).collect();
+                        cover_manager.download_all_covers(game_ids, CoverType::CoverFull);
+                        app.top_left_toasts
+                            .info("Downloading covers in background...");
+                    }
+
+                    if ui
+                        .button("📥 Download All Disc Art")
+                        .on_hover_text("Download disc art for all games")
+                        .clicked()
+                        && let Some(cover_manager) = &app.cover_manager
+                    {
+                        let game_ids: Vec<String> =
+                            app.games.iter().map(|g| g.id.clone()).collect();
+                        cover_manager.download_all_covers(game_ids, CoverType::Disc);
+                        app.top_left_toasts
+                            .info("Downloading covers in background...");
+                    }
+                });
             }
 
             // Tests (only debug builds)
