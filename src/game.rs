@@ -3,11 +3,13 @@
 
 use crate::SUPPORTED_INPUT_EXTENSIONS;
 use crate::titles::GAME_TITLES;
+use crate::util::redump;
 use anyhow::{Context, Result, bail};
+use filetime::FileTime;
 use nod::read::{DiscMeta, DiscOptions, DiscReader};
 use phf::phf_map;
-use std::fs;
 use std::path::{Path, PathBuf};
+use std::{fs, io};
 
 // A static map to convert the region character from a game's ID to a language code
 // used by the GameTDB API for fetching cover art.
@@ -38,14 +40,14 @@ static REGION_TO_LANG: phf::Map<char, &'static str> = phf_map! {
 };
 
 /// Represents the console type for a game
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum ConsoleType {
     Wii,
     GameCube,
 }
 
 /// Represents the state of disc metadata loading
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 enum DiscMetaState {
     /// Metadata has not been loaded yet
     NotLoaded,
@@ -55,8 +57,65 @@ enum DiscMetaState {
     Failed,
 }
 
+/// Calculated hashes from a full verification
+#[derive(Clone, Debug)]
+pub struct CalculatedHashes {
+    pub crc32: Option<u32>,
+    pub sha1: Option<[u8; 20]>,
+    pub xxh64: Option<u64>,
+}
+
+impl CalculatedHashes {
+    /// Convert these calculated hashes into a verification status by checking against the Redump database
+    pub fn into_verification_status(self) -> VerificationStatus {
+        if let Some(crc32) = self.crc32 {
+            if let Some(redump_entry) = redump::find_by_crc32(crc32) {
+                // Check if SHA1 also matches
+                if self.sha1.is_some_and(|sha| sha == redump_entry.sha1) {
+                    VerificationStatus::FullyVerified(redump_entry, self)
+                } else {
+                    VerificationStatus::Failed(
+                        format!(
+                            "Partial match: {} (CRC32 matches, file differs - likely NKit v1)",
+                            redump_entry.name
+                        ),
+                        Some(self),
+                    )
+                }
+            } else {
+                VerificationStatus::Failed("Not in Redump database".to_string(), Some(self))
+            }
+        } else {
+            VerificationStatus::Failed("Failed to calculate hashes".to_string(), None)
+        }
+    }
+}
+
+/// Represents the verification status of a game
+#[derive(Clone, Debug)]
+pub enum VerificationStatus {
+    /// Not yet verified
+    NotVerified,
+    /// Has embedded hashes that match Redump (quick check)
+    EmbeddedMatch(redump::GameResult),
+    /// Fully verified and matches Redump
+    FullyVerified(redump::GameResult, CalculatedHashes),
+    /// Verification failed or doesn't match Redump
+    Failed(String, Option<CalculatedHashes>),
+}
+
+/// Tracks verification status along with the file state when it was verified
+#[derive(Clone, Debug)]
+pub struct VerificationData {
+    pub status: VerificationStatus,
+    /// Size of directory when verified
+    pub verified_size: u64,
+    /// Latest modification time when verified
+    pub verified_mtime: FileTime,
+}
+
 /// Represents a single game, containing its metadata and file system information.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Game {
     pub id: String,
     pub console: ConsoleType,
@@ -69,6 +128,8 @@ pub struct Game {
     /// State of disc metadata loading
     disc_meta: DiscMetaState,
     pub size: u64,
+    /// Verification data (status + file state when verified)
+    pub verification_data: Option<VerificationData>,
 }
 
 impl Game {
@@ -112,6 +173,7 @@ impl Game {
             image_url,
             disc_meta: DiscMetaState::NotLoaded, // Will be loaded on demand
             size,
+            verification_data: None,
         })
     }
 
@@ -177,7 +239,13 @@ impl Game {
             });
 
             self.disc_meta = match meta {
-                Some(meta) => DiscMetaState::Loaded(meta),
+                Some(meta) => {
+                    // Check embedded hashes against Redump if not already verified
+                    if self.verification_data.is_none() {
+                        self.check_embedded_hashes(&meta);
+                    }
+                    DiscMetaState::Loaded(meta)
+                }
                 None => DiscMetaState::Failed,
             };
         }
@@ -187,6 +255,62 @@ impl Game {
             DiscMetaState::Loaded(meta) => Some(meta),
             _ => None,
         }
+    }
+
+    /// Check embedded hashes against Redump database
+    fn check_embedded_hashes(&mut self, meta: &DiscMeta) {
+        if let Some(crc32) = meta.crc32 {
+            if let Some(redump_entry) = redump::find_by_crc32(crc32) {
+                // Check if other hashes match too
+                if meta.sha1.is_none_or(|sha| sha == redump_entry.sha1) {
+                    self.set_verification_status(VerificationStatus::EmbeddedMatch(redump_entry));
+                } else {
+                    // CRC32 matches but SHA1 doesn't - likely an NKit v1 scrubbed disc
+                    self.set_verification_status(VerificationStatus::Failed(
+                        format!(
+                            "Partial match: {} (CRC32 matches, file differs - likely NKit v1)",
+                            redump_entry.name
+                        ),
+                        None,
+                    ));
+                }
+            } else {
+                // Has embedded hashes but not in Redump database
+                self.set_verification_status(VerificationStatus::Failed(
+                    "Embedded hashes not found in Redump database".to_string(),
+                    None,
+                ));
+            }
+        }
+    }
+
+    /// Get the disc file path for this game
+    pub fn get_disc_file_path(&self) -> Option<PathBuf> {
+        find_disc_image_file(&self.path)
+    }
+
+    /// Get the latest modification time of any file in the game directory
+    pub fn get_latest_mtime(&self) -> Option<FileTime> {
+        get_latest_mtime(&self.path)
+    }
+
+    /// Get the current verification status
+    pub fn get_verification_status(&self) -> &VerificationStatus {
+        if let Some(ref data) = self.verification_data {
+            &data.status
+        } else {
+            &VerificationStatus::NotVerified
+        }
+    }
+
+    /// Update verification status with current file state
+    pub fn set_verification_status(&mut self, status: VerificationStatus) {
+        let mtime = self.get_latest_mtime().unwrap_or_else(FileTime::zero);
+        self.verification_data = Some(VerificationData {
+            status,
+            verified_size: self.size,
+            verified_mtime: mtime,
+        });
     }
 }
 
@@ -199,11 +323,42 @@ fn find_disc_image_file(game_dir: &Path) -> Option<PathBuf> {
         let path = entry.path();
         if path.is_file()
             && let Some(ext) = path.extension()
-                && let Some(ext_str) = ext.to_str()
-                    && SUPPORTED_INPUT_EXTENSIONS.contains(&ext_str) {
-                        return Some(path);
-                    }
+            && let Some(ext_str) = ext.to_str()
+            && SUPPORTED_INPUT_EXTENSIONS.contains(&ext_str)
+        {
+            return Some(path);
+        }
     }
 
     None
+}
+
+/// Get the latest modification time of any file in a directory (recursively)
+fn get_latest_mtime(dir: &Path) -> Option<FileTime> {
+    let mut latest = FileTime::zero();
+
+    fn visit_dir(dir: &Path, latest: &mut FileTime) -> io::Result<()> {
+        for entry in fs::read_dir(dir)? {
+            let entry = entry?;
+            let metadata = entry.metadata()?;
+            let mtime = FileTime::from_last_modification_time(&metadata);
+
+            if mtime > *latest {
+                *latest = mtime;
+            }
+
+            if entry.path().is_dir() {
+                visit_dir(&entry.path(), latest)?;
+            }
+        }
+        Ok(())
+    }
+
+    visit_dir(dir, &mut latest).ok()?;
+
+    if latest == FileTime::zero() {
+        None
+    } else {
+        Some(latest)
+    }
 }

@@ -4,7 +4,7 @@
 use crate::messages::BackgroundMessage;
 use crate::{
     app::App,
-    game::{ConsoleType, Game},
+    game::{ConsoleType, Game, VerificationStatus},
 };
 use eframe::egui::{self, Button, Image, RichText};
 use size::Size;
@@ -52,9 +52,10 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
     });
 
     if let Some(game) = to_remove
-        && let Err(e) = game.remove() {
-            let _ = sender.send(BackgroundMessage::Error(e));
-        }
+        && let Err(e) = game.remove()
+    {
+        let _ = sender.send(BackgroundMessage::Error(e));
+    }
 
     if let Some(index) = to_open_info {
         app.open_game_info(index);
@@ -78,6 +79,23 @@ fn ui_game_card(ui: &mut egui::Ui, game: &Game) -> (bool, bool) {
                     ConsoleType::GameCube => "🎮 GC",
                     ConsoleType::Wii => "🎾 Wii",
                 });
+
+                // Verification status icon
+                match game.get_verification_status() {
+                    VerificationStatus::EmbeddedMatch(game) => {
+                        ui.label(RichText::new("⚡").color(egui::Color32::from_rgb(255, 200, 0)))
+                            .on_hover_text(format!("Embedded hashes match: {}", game.name));
+                    }
+                    VerificationStatus::FullyVerified(game, _) => {
+                        ui.label(RichText::new("✅").color(egui::Color32::DARK_GREEN))
+                            .on_hover_text(format!("Fully verified: {}", game.name));
+                    }
+                    VerificationStatus::Failed(message, _) => {
+                        ui.label(RichText::new("❌").color(egui::Color32::DARK_RED))
+                            .on_hover_text(message);
+                    }
+                    _ => {}
+                }
 
                 // Size label on the right
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
