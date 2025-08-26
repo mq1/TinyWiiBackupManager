@@ -171,11 +171,17 @@ jobs:
       - name: Build binary
         run: cargo bundle --profile ${{ env.CARGO_PROFILE }} --target ${{ matrix.target }} --format osx
 
+      - name: Archive MacOS binary
+        run: |
+          ditto -c -k --sequesterRsrc --keepParent \
+            "target/${{ matrix.target }}/${{ env.CARGO_PROFILE }}/bundle/osx/TinyWiiBackupManager.app" \
+            "TinyWiiBackupManager.app.zip"
+
       - name: Upload MacOS binary
         uses: actions/upload-artifact@v4
         with:
           name: macos-binary-${{ matrix.arch }}
-          path: target/${{ matrix.target }}/${{ env.CARGO_PROFILE }}/bundle/osx/TinyWiiBackupManager.app
+          path: TinyWiiBackupManager.app.zip
 
   package-macos:
     name: Package MacOS Universal2
@@ -196,6 +202,11 @@ jobs:
         with:
           name: macos-binary-x86_64
           path: x86_64-artifacts
+
+      - name: Unzip MacOS binaries
+        run: |
+          unzip aarch64-artifacts/TinyWiiBackupManager.app.zip -d aarch64-artifacts
+          unzip x86_64-artifacts/TinyWiiBackupManager.app.zip -d x86_64-artifacts
 
       - name: Create Universal2 app and DMG
         run: |
