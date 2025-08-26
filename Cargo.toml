@@ -1,6 +1,6 @@
 [package]
 name = "tiny-wii-backup-manager"
-version = "1.5.2"
+version = "1.5.3"
 authors = ["Manuel Quarneti <mq1@ik.me>"]
 edition = "2024"
 license = "GPL-2.0-only"
@@ -45,9 +45,9 @@ hex = "0.4"
 [target.'cfg(target_os = "macos")'.dependencies]
 eframe = { version = "0.32", default-features = false, features = ["accesskit", "default_fonts", "glow"] }
 
-[target.'cfg(target_os = "linux")'.dependencies]
 # Use default features so we get winit/default features (mainly wayland-csd-adwaita)
-eframe = { version = "0.32", default-features = true }
+[target.'cfg(target_os = "linux")'.dependencies]
+eframe = "0.32"
 
 # glow doesn't always work on windows (ex. on VMs and old hardware)
 [target.'cfg(target_os = "windows")'.dependencies]
