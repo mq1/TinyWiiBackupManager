@@ -2,8 +2,8 @@ use crate::game::{CalculatedHashes, Game, VerificationStatus};
 use crate::messages::BackgroundMessage;
 use crate::util::redump;
 use anyhow::Result;
-use nod::read::{DiscOptions, DiscReader};
-use nod::write::{DiscWriter, DiscWriterWeight, FormatOptions, ProcessOptions};
+use nod::read::{DiscOptions, DiscReader, PartitionEncryption};
+use nod::write::{DiscWriter, FormatOptions, ProcessOptions};
 use std::io;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -19,17 +19,15 @@ pub fn verify_game(
         .ok_or_else(|| anyhow::anyhow!("No disc image found"))?;
 
     // Open the disc
-    let disc = DiscReader::new(&disc_path, &DiscOptions::default())?;
+    let disc = DiscReader::new(
+        &disc_path,
+        &DiscOptions {
+            partition_encryption: PartitionEncryption::Original,
+            preloader_threads: 1,
+        },
+    )?;
     let disc_writer = DiscWriter::new(disc, &FormatOptions::default())?;
     let total = disc_writer.progress_bound();
-
-    // Determine thread count based on weight
-    let cpus = num_cpus::get();
-    let processor_threads = match disc_writer.weight() {
-        DiscWriterWeight::Light => 0,
-        DiscWriterWeight::Medium => cpus / 2,
-        DiscWriterWeight::Heavy => cpus,
-    };
 
     // Process the disc to calculate hashes
     let finalization = disc_writer.process(
@@ -46,7 +44,7 @@ pub fn verify_game(
             Ok(())
         },
         &ProcessOptions {
-            processor_threads,
+            processor_threads: 0,
             digest_crc32: true,
             digest_md5: false, // MD5 is slow, skip it
             digest_sha1: true,
