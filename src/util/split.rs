@@ -87,7 +87,7 @@ impl SplitWriter {
         }
         #[cfg(not(unix))]
         {
-            use std::io::{Read, Seek, SeekFrom};
+            use std::io::{Seek, SeekFrom};
             file.seek(SeekFrom::Start(offset_in_split))?;
             file.write_all(buf)
         }
