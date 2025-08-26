@@ -88,17 +88,12 @@ impl GameTDB {
         for game in db.games {
             let id = game.id.clone();
 
-            // Insert with full ID
+            // Insert with full ID (either 4 or 6 characters)
             games.insert(id.clone(), game.clone());
 
-            // Also insert with 6-char ID for compatibility
-            if id.len() >= 6 {
-                let id6 = id[..6].to_string();
-                games.entry(id6).or_insert_with(|| game.clone());
-            }
-
-            // Also insert with 4-char ID for compatibility
-            if id.len() >= 4 {
+            // For 6-char IDs, also index by first 4 characters for compatibility
+            // This allows looking up games by their 4-char disc ID
+            if id.len() == 6 {
                 let id4 = id[..4].to_string();
                 games.entry(id4).or_insert(game);
             }
@@ -146,13 +141,13 @@ impl GameTDB {
     }
 
     pub fn get_game(&self, id: &str) -> Option<&GameEntry> {
-        // Try full ID first
+        // Try exact match first
         self.games.get(id).or_else(|| {
-            // Try first 6 characters
-            if id.len() >= 6 {
+            // If ID is longer than 6, try first 6 characters
+            if id.len() > 6 {
                 self.games.get(&id[..6])
-            } else if id.len() >= 4 {
-                // Try first 4 characters
+            } else if id.len() > 4 {
+                // If ID is 5 characters, try first 4
                 self.games.get(&id[..4])
             } else {
                 None
