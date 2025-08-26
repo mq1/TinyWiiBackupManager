@@ -209,39 +209,35 @@ jobs:
 
       - name: Unzip MacOS binaries
         run: |
-          unzip aarch64-artifacts/TinyWiiBackupManager.app.zip -d aarch64-artifacts
-          unzip x86_64-artifacts/TinyWiiBackupManager.app.zip -d x86_64-artifacts
+          mkdir -p aarch64 x86_64
+          unzip aarch64-artifacts/TinyWiiBackupManager.app.zip -d aarch64/
+          unzip x86_64-artifacts/TinyWiiBackupManager.app.zip -d x86_64/
 
       - name: Create Universal2 app and DMG
         run: |
-          mkdir dist
-
           # Use sha for PR builds, ref_name for push builds
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             REF_NAME="${{ github.event.pull_request.head.sha }}"
           else
             REF_NAME="${{ github.ref_name }}"
           fi
-
-          # Copy aarch64 app bundle to be used as base
-          cp -r aarch64-artifacts/TinyWiiBackupManager.app .
           
           # Create universal binary using lipo
           lipo \
             -create \
-            -output TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager \
-            aarch64-artifacts/TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager \
-            x86_64-artifacts/TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager
+            -output aarch64/TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager \
+            aarch64/TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager \
+            x86_64/TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager
 
           # Create DMG
-          npx --yes create-dmg TinyWiiBackupManager.app . || true
-          mv *.dmg dist/TWBM-${REF_NAME}-MacOS-Universal2.dmg
+          npx --yes create-dmg aarch64/TinyWiiBackupManager.app . || true
+          mv *.dmg TWBM-${REF_NAME}-MacOS-Universal2.dmg
 
       - name: Upload MacOS distributable
         uses: actions/upload-artifact@v4
         with:
           name: macos-dist
-          path: dist/*
+          path: TWBM-${REF_NAME}-MacOS-Universal2.dmg
 
   # ==================================================================================
   #  Release Job: Collects all artifacts and creates a single GitHub Release.
@@ -256,7 +252,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: artifacts
-          pattern: '*-dist*' # This pattern will match all final distributable artifacts
+          pattern: '*dist*' # This pattern will match all final distributable artifacts
           merge-multiple: true # This places all matching artifacts into a single 'artifacts' directory
 
       - name: Create version.txt
