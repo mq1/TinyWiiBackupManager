@@ -209,8 +209,8 @@ jobs:
 
       - name: Unzip MacOS binaries
         run: |
-          mkdir -p aarch64 x86_64
-          unzip aarch64-artifacts/TinyWiiBackupManager.app.zip -d aarch64/
+          mkdir x86_64
+          unzip aarch64-artifacts/TinyWiiBackupManager.app.zip
           unzip x86_64-artifacts/TinyWiiBackupManager.app.zip -d x86_64/
 
       - name: Create Universal2 app and DMG
@@ -225,13 +225,13 @@ jobs:
           # Create universal binary using lipo
           lipo \
             -create \
-            -output aarch64/TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager \
-            aarch64/TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager \
+            -output TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager \
+            TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager \
             x86_64/TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager
 
           # Create DMG
-          npx --yes create-dmg aarch64/TinyWiiBackupManager.app . || true
-          mv *.dmg TWBM-${REF_NAME}-MacOS-Universal2.dmg
+          npx --yes create-dmg TinyWiiBackupManager.app . || true
+          mv "TinyWiiBackupManager*.dmg" "TWBM-${REF_NAME}-MacOS-Universal2.dmg"
 
       - name: Upload MacOS distributable
         uses: actions/upload-artifact@v4
