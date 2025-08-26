@@ -60,7 +60,7 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
     // Handle cover downloads after the UI loop
     if let Some(cover_manager) = &app.cover_manager {
         for game_id in covers_to_download {
-            cover_manager.queue_download(game_id, CoverType::Cover3D, sender.clone());
+            cover_manager.queue_download(game_id, CoverType::Cover3D);
         }
     }
 
