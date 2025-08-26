@@ -56,18 +56,11 @@ pub fn ui_operation_modal(ctx: &egui::Context, app: &App) {
 
                 let (current, total) = current_progress;
                 if *total > 0 {
-                    // Calculate progress based on operation type
-                    let progress_ratio =
-                        if *total_items > 1 && operation == &OperationType::Converting {
-                            // For multi-file conversion, show combined progress
-                            let base_progress = *items_completed as f32 / *total_items as f32;
-                            let current_file_progress =
-                                (*current as f32 / *total as f32) / *total_items as f32;
-                            base_progress + current_file_progress
-                        } else {
-                            // For single item or verification, show current progress
-                            *current as f32 / *total as f32
-                        };
+                    // Calculate combined progress
+                    let base_progress = *items_completed as f32 / *total_items as f32;
+                    let current_item_progress =
+                        (*current as f32 / *total as f32) / *total_items as f32;
+                    let progress_ratio = base_progress + current_item_progress;
 
                     ui.add(egui::ProgressBar::new(progress_ratio).show_percentage());
                     ui.add_space(5.0);
