@@ -3,7 +3,7 @@
 
 use crate::SUPPORTED_INPUT_EXTENSIONS;
 use crate::titles::GAME_TITLES;
-use crate::util::redump;
+use crate::util::{gametdb::GameTDB, redump};
 use anyhow::{Context, Result, bail};
 use filetime::FileTime;
 use nod::read::{DiscMeta, DiscOptions, DiscReader};
@@ -137,12 +137,23 @@ impl Game {
     ///
     /// The path is expected to be a directory containing the game files, with a name
     /// format like "My Game Title [GAMEID]".
-    pub fn from_path(path: PathBuf, console: ConsoleType) -> Result<Self> {
+    pub fn from_path(path: PathBuf, console: ConsoleType, base_dir: Option<&Path>) -> Result<Self> {
         let (id, title) = Self::parse_filename(&path)?;
 
-        // Use the title from the GameTDB database if available, otherwise, fall back to the
-        // parsed title from the file name.
-        let display_title = GAME_TITLES.get(&id).copied().unwrap_or(&title).to_string();
+        // Try GameTDB first, then fall back to built-in titles, then the parsed title
+        let display_title = if let Some(base_dir) = base_dir {
+            if let Some(gametdb) = GameTDB::load_from_base_dir(base_dir) {
+                if let Some(gametdb_title) = gametdb.get_title(&id, None) {
+                    gametdb_title
+                } else {
+                    GAME_TITLES.get(&id).copied().unwrap_or(&title).to_string()
+                }
+            } else {
+                GAME_TITLES.get(&id).copied().unwrap_or(&title).to_string()
+            }
+        } else {
+            GAME_TITLES.get(&id).copied().unwrap_or(&title).to_string()
+        };
 
         // The 4th character in a Wii/GameCube ID represents the region.
         // We use this to determine the language for fetching the correct cover art.
