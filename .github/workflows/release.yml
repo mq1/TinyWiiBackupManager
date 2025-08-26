@@ -177,7 +177,7 @@ jobs:
 
       - name: Archive MacOS binary
         run: |
-          ditto -c -k --sequesterRsrc --keepParent \
+          ditto -c -k --sequesterRsrc \
             "target/${{ matrix.target }}/${{ env.CARGO_PROFILE }}/bundle/osx/TinyWiiBackupManager.app" \
             "TinyWiiBackupManager.app.zip"
 
