@@ -1,14 +1,17 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
+use crate::messages::BackgroundMessage;
 use crate::util::regions::REGION_TO_LANG;
 use anyhow::{Context, Result};
+use egui_inbox::UiInboxSender;
 use std::collections::HashSet;
 use std::fs::File;
-use std::io::BufReader;
+use std::io::{BufReader, Write};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 use std::{fs, thread};
+use tempfile::NamedTempFile;
 
 /// Types of cover art available from GameTDB
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -137,15 +140,17 @@ impl CoverManager {
     }
 
     /// Download the GameTDB database (wiitdb.xml) in a background thread
-    pub fn download_database(&self) -> Result<()> {
+    pub fn download_database(&self, sender: UiInboxSender<BackgroundMessage>) -> Result<()> {
         let base_dir = self.base_dir.clone();
 
         thread::spawn(move || match Self::download_database_blocking(&base_dir) {
             Ok(path) => {
                 log::info!("Successfully downloaded GameTDB database to {:?}", path);
+                let _ = sender.send(BackgroundMessage::GameTDBDownloadComplete);
             }
             Err(e) => {
                 log::error!("Failed to download GameTDB database: {}", e);
+                let _ = sender.send(BackgroundMessage::Error(e));
             }
         });
 
@@ -156,7 +161,10 @@ impl CoverManager {
     fn download_database_blocking(base_dir: &Path) -> Result<PathBuf> {
         log::info!("Downloading GameTDB database from https://www.gametdb.com/wiitdb.zip");
 
-        // Download the zip file
+        // Download the zip file to a temporary file
+        let mut temp_zip =
+            NamedTempFile::new().context("Failed to create temporary file for zip")?;
+
         let response = reqwest::blocking::get("https://www.gametdb.com/wiitdb.zip")
             .context("Failed to download wiitdb.zip")?;
 
@@ -168,16 +176,19 @@ impl CoverManager {
             .bytes()
             .context("Failed to read wiitdb.zip response")?;
 
-        // Create temporary file for the zip
-        let temp_zip = base_dir.join("wiitdb_temp.zip");
-        fs::write(&temp_zip, bytes).context("Failed to write temporary zip file")?;
+        temp_zip
+            .write_all(&bytes)
+            .context("Failed to write temporary zip file")?;
+        temp_zip
+            .flush()
+            .context("Failed to flush temporary zip file")?;
 
         // Create target directory
         let target_dir = base_dir.join("apps/usbloader_gx");
         fs::create_dir_all(&target_dir).context("Failed to create usbloader_gx directory")?;
 
         // Extract the zip file
-        let file = File::open(&temp_zip).context("Failed to open temporary zip file")?;
+        let file = File::open(temp_zip.path()).context("Failed to open temporary zip file")?;
         let mut archive =
             zip::ZipArchive::new(BufReader::new(file)).context("Failed to read zip archive")?;
 
@@ -188,21 +199,19 @@ impl CoverManager {
 
             // Only extract wiitdb.xml
             if name == "wiitdb.xml" || name.ends_with("/wiitdb.xml") {
+                // Extract directly to the target location
                 let target_path = target_dir.join("wiitdb.xml");
-                let mut outfile =
-                    File::create(&target_path).context("Failed to create wiitdb.xml")?;
-                std::io::copy(&mut file, &mut outfile).context("Failed to extract wiitdb.xml")?;
-                log::info!("Extracted wiitdb.xml to {:?}", target_path);
+                let mut outfile = File::create(&target_path)
+                    .context("Failed to create wiitdb.xml")?;
+                std::io::copy(&mut file, &mut outfile)
+                    .context("Failed to extract wiitdb.xml")?;
+                outfile.flush()
+                    .context("Failed to flush wiitdb.xml")?;
 
-                // Clean up temporary zip file
-                fs::remove_file(&temp_zip).ok();
-
+                log::info!("Successfully installed wiitdb.xml to {:?}", target_path);
                 return Ok(target_path);
             }
         }
-
-        // Clean up temporary zip file
-        fs::remove_file(&temp_zip).ok();
 
         anyhow::bail!("wiitdb.xml not found in downloaded archive")
     }
@@ -224,6 +233,26 @@ impl CoverManager {
             game_id
         );
 
+        // Download the cover to a temporary file
+        log::debug!("Downloading cover from: {}", url);
+        let response = reqwest::blocking::get(&url).context("Failed to send HTTP request")?;
+
+        if !response.status().is_success() {
+            anyhow::bail!("HTTP error: {}", response.status());
+        }
+
+        let bytes = response.bytes().context("Failed to read response body")?;
+
+        // Write to temporary file first
+        let mut temp_file =
+            NamedTempFile::new().context("Failed to create temporary file for cover")?;
+        temp_file
+            .write_all(&bytes)
+            .context("Failed to write cover to temporary file")?;
+        temp_file
+            .flush()
+            .context("Failed to flush temporary file")?;
+
         // Create target directory structure
         let target_path = base_dir
             .join("apps/usbloader_gx")
@@ -234,20 +263,13 @@ impl CoverManager {
             fs::create_dir_all(parent).context("Failed to create cover directory")?;
         }
 
-        // Download the cover
-        log::debug!("Downloading cover from: {}", url);
-        let response = reqwest::blocking::get(&url).context("Failed to send HTTP request")?;
+        // Copy to final location (safer than persist for cross-filesystem)
+        fs::copy(temp_file.path(), &target_path)
+            .context("Failed to copy cover to final location")?;
+        // temp_file will be automatically cleaned up when dropped
 
-        if response.status().is_success() {
-            let bytes = response.bytes().context("Failed to read response body")?;
-
-            fs::write(&target_path, bytes).context("Failed to write cover file")?;
-
-            log::info!("Downloaded cover: {:?}", target_path);
-            Ok(target_path)
-        } else {
-            anyhow::bail!("HTTP error: {}", response.status());
-        }
+        log::info!("Downloaded cover: {:?}", target_path);
+        Ok(target_path)
     }
 }
 

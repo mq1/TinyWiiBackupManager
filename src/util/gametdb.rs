@@ -4,9 +4,9 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::BufReader;
 use std::path::Path;
-use std::sync::OnceLock;
+use std::sync::Mutex;
 
-static GAMETDB_INSTANCE: OnceLock<Option<GameTDB>> = OnceLock::new();
+static GAMETDB_INSTANCE: Mutex<Option<Option<GameTDB>>> = Mutex::new(None);
 
 #[derive(Debug, Deserialize)]
 struct WiiTDBFile {
@@ -65,9 +65,16 @@ pub struct LocaleInfo {
     pub synopsis: Option<String>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct GameTDB {
     games: HashMap<String, GameEntry>,
+}
+
+/// Clear the cached GameTDB instance to force reload on next access
+pub fn clear_cache() {
+    let mut cache = GAMETDB_INSTANCE.lock().unwrap();
+    *cache = None;
+    log::info!("GameTDB cache cleared");
 }
 
 impl GameTDB {
@@ -101,27 +108,41 @@ impl GameTDB {
         Ok(Self { games })
     }
 
-    pub fn load_from_base_dir(base_dir: &Path) -> Option<&'static Self> {
-        GAMETDB_INSTANCE
-            .get_or_init(|| {
-                let wiitdb_path = base_dir.join("apps/usbloader_gx/wiitdb.xml");
-                if wiitdb_path.exists() {
-                    match Self::load(&wiitdb_path) {
-                        Ok(db) => {
-                            log::info!("GameTDB loaded successfully from {:?}", wiitdb_path);
-                            Some(db)
-                        }
-                        Err(e) => {
-                            log::error!("Failed to load GameTDB: {}", e);
-                            None
-                        }
-                    }
-                } else {
-                    log::debug!("GameTDB not found at {:?}", wiitdb_path);
+    pub fn load_from_base_dir(base_dir: &Path) -> Option<Box<Self>> {
+        let mut cache = GAMETDB_INSTANCE.lock().unwrap();
+
+        // If already cached, return a clone
+        if let Some(ref cached) = *cache {
+            return cached.as_ref().map(|db| {
+                Box::new(Self {
+                    games: db.games.clone(),
+                })
+            });
+        }
+
+        // Try to load from file
+        let wiitdb_path = base_dir.join("apps/usbloader_gx/wiitdb.xml");
+        let result = if wiitdb_path.exists() {
+            match Self::load(&wiitdb_path) {
+                Ok(db) => {
+                    log::info!("GameTDB loaded successfully from {:?}", wiitdb_path);
+                    Some(db)
+                }
+                Err(e) => {
+                    log::error!("Failed to load GameTDB: {}", e);
                     None
                 }
-            })
-            .as_ref()
+            }
+        } else {
+            log::debug!("GameTDB not found at {:?}", wiitdb_path);
+            None
+        };
+
+        // Cache the result
+        *cache = Some(result.clone());
+
+        // Return the result
+        result.map(Box::new)
     }
 
     pub fn get_game(&self, id: &str) -> Option<&GameEntry> {
