@@ -1,4 +1,5 @@
 use crate::app::{App, OperationResult, OperationState, OperationType};
+use crate::cover_manager::CoverType;
 use crate::game::{Game, VerificationStatus};
 use crate::update_check::UpdateInfo;
 use anyhow::Error;
@@ -29,6 +30,18 @@ pub enum BackgroundMessage {
     StartSingleVerification(Box<Game>),
     /// Signal to cancel ongoing operation
     CancelOperation,
+    /// Signal that a cover has been downloaded
+    CoverDownloaded {
+        game_id: String,
+        cover_type: CoverType,
+        path: PathBuf,
+    },
+    /// Signal that a cover download failed
+    CoverDownloadFailed {
+        game_id: String,
+        cover_type: CoverType,
+        error: String,
+    },
 }
 
 /// Processes messages received from background tasks
@@ -248,6 +261,16 @@ pub fn handle_messages(app: &mut App, ctx: &egui::Context) {
                 // Set cancellation flag - the thread will detect this and exit
                 app.operation_cancelled.store(true, Ordering::Relaxed);
                 // The actual "cancelled" message will be shown when the thread reports completion
+            }
+
+            BackgroundMessage::CoverDownloaded { game_id, cover_type, path: _ } => {
+                // Cover downloaded successfully - UI will automatically refresh and show the cover
+                log::debug!("Cover downloaded for {} ({:?})", game_id, cover_type);
+            }
+
+            BackgroundMessage::CoverDownloadFailed { game_id, cover_type, error } => {
+                // Cover download failed - log the error but don't show toast (too noisy)
+                log::debug!("Cover download failed for {} ({:?}): {}", game_id, cover_type, error);
             }
         }
     }
