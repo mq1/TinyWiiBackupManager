@@ -175,17 +175,11 @@ jobs:
       - name: Build binary
         run: cargo bundle --profile ${{ env.CARGO_PROFILE }} --target ${{ matrix.target }} --format osx
 
-      - name: Archive MacOS binary
-        run: |
-          ditto -c -k --sequesterRsrc \
-            "target/${{ matrix.target }}/${{ env.CARGO_PROFILE }}/bundle/osx/TinyWiiBackupManager.app" \
-            "TinyWiiBackupManager.app.zip"
-
-      - name: Upload MacOS binary
+      - name: Upload MacOS application bundle
         uses: actions/upload-artifact@v4
         with:
-          name: macos-binary-${{ matrix.arch }}
-          path: TinyWiiBackupManager.app.zip
+          name: macos-app-${{ matrix.arch }}
+          path: target/${{ matrix.target }}/${{ env.CARGO_PROFILE }}/bundle/osx/TinyWiiBackupManager.app
 
   package-macos:
     name: Package MacOS Universal2
@@ -195,23 +189,17 @@ jobs:
       - name: Install dependencies
         run: brew install graphicsmagick imagemagick
 
-      - name: Download aarch64 binary
+      - name: Download aarch64 app bundle
         uses: actions/download-artifact@v4
         with:
-          name: macos-binary-aarch64
-          path: aarch64-artifacts
+          name: macos-app-aarch64
+          path: aarch64_app
 
-      - name: Download x86_64 binary
+      - name: Download x86_64 app bundle
         uses: actions/download-artifact@v4
         with:
-          name: macos-binary-x86_64
-          path: x86_64-artifacts
-
-      - name: Unzip MacOS binaries
-        run: |
-          mkdir x86_64
-          unzip aarch64-artifacts/TinyWiiBackupManager.app.zip
-          unzip x86_64-artifacts/TinyWiiBackupManager.app.zip -d x86_64/
+          name: macos-app-x86_64
+          path: x86_64_app
 
       - name: Create Universal2 app and DMG
         run: |
@@ -222,16 +210,19 @@ jobs:
             REF_NAME="${{ github.ref_name }}"
           fi
           
-          # Create universal binary using lipo
+          # Copy the aarch64 app to use as a template for our final universal app
+          cp -R aarch64_app/TinyWiiBackupManager.app .
+          
+          # Create the universal binary using lipo, referencing the predictable downloaded paths
           lipo \
             -create \
-            -output TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager \
-            TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager \
-            x86_64/TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager
+            -output ./TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager \
+            aarch64_app/TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager \
+            x86_64_app/TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager
 
           # Create DMG
           npx --yes create-dmg TinyWiiBackupManager.app . || true
-          mv "TinyWiiBackupManager*.dmg" "TWBM-${REF_NAME}-MacOS-Universal2.dmg"
+          mv TinyWiiBackupManager*.dmg "TWBM-${REF_NAME}-MacOS-Universal2.dmg"
 
       - name: Upload MacOS distributable
         uses: actions/upload-artifact@v4
