@@ -268,21 +268,18 @@ impl App {
                         ));
                     }
 
-                    let mut success = false;
-                    let (game_path, result) = match convert::convert_game(
+                    let (game_path, result, success) = match convert::convert_game(
                         path,
                         &base_dir,
                         sender.clone(),
                         Arc::clone(&cancelled),
                     ) {
-                        Ok((game_dir, calculated_hashes)) => {
-                            success = true;
-                            (
-                                game_dir,
-                                OperationResult::ConversionComplete(calculated_hashes),
-                            )
-                        }
-                        Err(e) => (base_dir.clone(), OperationResult::Error(e)),
+                        Ok((game_dir, calculated_hashes)) => (
+                            game_dir,
+                            OperationResult::ConversionComplete(calculated_hashes),
+                            true,
+                        ),
+                        Err(e) => (base_dir.clone(), OperationResult::Error(e), false),
                     };
 
                     // Send completion message for this file
