@@ -1,42 +1,12 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
-use crate::messages::BackgroundMessage;
+use crate::util::regions::REGION_TO_LANG;
 use anyhow::{Context, Result};
-use egui_inbox::UiInboxSender;
-use phf::phf_map;
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
-use std::thread;
-
-// A static map to convert the region character from a game's ID to a language code
-// used by the GameTDB API for fetching cover art.
-static REGION_TO_LANG: phf::Map<char, &'static str> = phf_map! {
-    'A' => "EN", // System Wii Channels (i.e. Mii Channel)
-    'B' => "EN", // Ufouria: The Saga (NA)
-    'D' => "DE", // Germany
-    'E' => "US", // USA
-    'F' => "FR", // France
-    'H' => "NL", // Netherlands
-    'I' => "IT", // Italy
-    'J' => "JA", // Japan
-    'K' => "KO", // Korea
-    'L' => "EN", // Japanese import to Europe, Australia and other PAL regions
-    'M' => "EN", // American import to Europe, Australia and other PAL regions
-    'N' => "US", // Japanese import to USA and other NTSC regions
-    'P' => "EN", // Europe and other PAL regions such as Australia
-    'Q' => "KO", // Japanese Virtual Console import to Korea
-    'R' => "RU", // Russia
-    'S' => "ES", // Spain
-    'T' => "KO", // American Virtual Console import to Korea
-    'U' => "EN", // Australia / Europe alternate languages
-    'V' => "EN", // Scandinavia
-    'W' => "ZH", // Republic of China (Taiwan) / Hong Kong / Macau
-    'X' => "EN", // Europe alternate languages / US special releases
-    'Y' => "EN", // Europe alternate languages / US special releases
-    'Z' => "EN", // Europe alternate languages / US special releases
-};
+use std::{fs, thread};
 
 /// Types of cover art available from GameTDB
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -111,12 +81,7 @@ impl CoverManager {
     }
 
     /// Queue a cover download in a background thread
-    pub fn queue_download(
-        &self,
-        game_id: String,
-        cover_type: CoverType,
-        sender: UiInboxSender<BackgroundMessage>,
-    ) {
+    pub fn queue_download(&self, game_id: String, cover_type: CoverType) {
         // Check if already downloading
         {
             let mut downloading = self.downloading.lock().unwrap();
@@ -149,22 +114,14 @@ impl CoverManager {
                 .unwrap()
                 .remove(&(game_id.clone(), cover_type));
 
-            // Send result to UI
+            // Log result
             match result {
                 Ok(path) => {
-                    let _ = sender.send(BackgroundMessage::CoverDownloaded {
-                        game_id,
-                        cover_type,
-                        path,
-                    });
+                    log::info!("Downloaded cover for {} to {:?}", game_id, path);
                 }
                 Err(e) => {
+                    // Log as debug since cover download failures are not critical
                     log::debug!("Failed to download cover for {}: {}", game_id, e);
-                    let _ = sender.send(BackgroundMessage::CoverDownloadFailed {
-                        game_id,
-                        cover_type,
-                        error: e.to_string(),
-                    });
                 }
             }
         });
@@ -194,7 +151,7 @@ impl CoverManager {
             .join(format!("{}.png", game_id));
 
         if let Some(parent) = target_path.parent() {
-            std::fs::create_dir_all(parent).context("Failed to create cover directory")?;
+            fs::create_dir_all(parent).context("Failed to create cover directory")?;
         }
 
         // Download the cover
@@ -204,7 +161,7 @@ impl CoverManager {
         if response.status().is_success() {
             let bytes = response.bytes().context("Failed to read response body")?;
 
-            std::fs::write(&target_path, bytes).context("Failed to write cover file")?;
+            fs::write(&target_path, bytes).context("Failed to write cover file")?;
 
             log::info!("Downloaded cover: {:?}", target_path);
             Ok(target_path)
