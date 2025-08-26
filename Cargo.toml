@@ -1,6 +1,6 @@
 [package]
 name = "tiny-wii-backup-manager"
-version = "1.5.0"
+version = "1.5.2"
 authors = ["Manuel Quarneti <mq1@ik.me>"]
 edition = "2024"
 license = "GPL-2.0-only"
@@ -22,13 +22,13 @@ OriginalFilename = "TinyWiiBackupManager.exe"
 LegalCopyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-2.0-only."
 
 [dependencies]
-eframe = { version = "0.32", features = ["wgpu"] }
+egui_extras = { version = "0.32", features = ["image", "http"] }
 egui-notify = "0.20"
 egui_extras = { version = "0.32", features = ["http", "image"] }
 egui_inbox = "0.9"
 image = { version = "0.25", default-features = false, features = ["png"] }
 ureq = "3.1"
-iso2wbfs = { git = "https://github.com/mq1/iso2wbfs", tag = "v1.2.6" }
+iso2wbfs = { git = "https://github.com/mq1/iso2wbfs", tag = "v1.2.7" }
 rfd = "0.15"
 phf = { version = "0.13", features = ["macros"] }
 anyhow = "1.0"
@@ -43,7 +43,18 @@ const_format = "0.2"
 nod = "2.0.0-alpha.3"
 hex = "0.4"
 
-[target.'cfg(windows)'.build-dependencies]
+[target.'cfg(target_os = "macos")'.dependencies]
+eframe = { version = "0.32", default-features = false, features = ["accesskit", "default_fonts", "glow"] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+eframe = { version = "0.32", default-features = false, features = ["accesskit", "default_fonts", "glow", "wayland", "x11"] }
+
+# glow doesn't always work on windows (ex. on VMs and old hardware)
+[target.'cfg(target_os = "windows")'.dependencies]
+eframe = { version = "0.32", default-features = false, features = ["accesskit", "default_fonts", "wgpu"] }
+wgpu = { version = "25", default-features = false, features = ["dx12"] }
+
+[target.'cfg(target_os = "windows")'.build-dependencies]
 winres = "0.1"
 
 [profile.release]
