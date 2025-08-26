@@ -28,7 +28,7 @@ egui-notify = "0.20"
 egui_inbox = "0.9"
 image = { version = "0.25", default-features = false, features = ["png"] }
 ureq = "3.1"
-iso2wbfs = { git = "https://github.com/mq1/iso2wbfs", tag = "v1.2.6" }
+iso2wbfs = { git = "https://github.com/mq1/iso2wbfs", tag = "v1.2.7" }
 rfd = "0.15"
 phf = { version = "0.13", features = ["macros"] }
 anyhow = "1.0"
