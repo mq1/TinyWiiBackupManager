@@ -1,7 +1,7 @@
 use crate::app::{App, ConversionState};
 use crate::components;
 use crate::messages::handle_messages;
-use eframe::egui;
+use eframe::{Storage, egui};
 
 impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
@@ -40,5 +40,15 @@ impl eframe::App for App {
         self.top_left_toasts.show(ctx);
         self.bottom_left_toasts.show(ctx);
         self.bottom_right_toasts.show(ctx);
+    }
+
+    fn save(&mut self, storage: &mut dyn Storage) {
+        if let Some(base_dir) = &self.base_dir {
+            eframe::set_value(storage, "base_dir", base_dir);
+        }
+    }
+
+    fn persist_egui_memory(&self) -> bool {
+        false
     }
 }

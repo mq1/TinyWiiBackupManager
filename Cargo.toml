@@ -41,17 +41,18 @@ env_logger = "0.11"
 const_format = "0.2"
 nod = "2.0.0-alpha.3"
 hex = "0.4"
+serde = { version = "1.0", features = ["derive"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
-eframe = { version = "0.32", default-features = false, features = ["accesskit", "default_fonts", "glow"] }
+eframe = { version = "0.32", default-features = false, features = ["accesskit", "default_fonts", "glow", "persistence"] }
 
 # Use default features so we get winit/default features (mainly wayland-csd-adwaita)
 [target.'cfg(target_os = "linux")'.dependencies]
-eframe = "0.32"
+eframe = { version = "0.32", features = ["persistence"] }
 
 # glow doesn't always work on windows (ex. on VMs and old hardware)
 [target.'cfg(target_os = "windows")'.dependencies]
-eframe = { version = "0.32", default-features = false, features = ["accesskit", "default_fonts", "wgpu"] }
+eframe = { version = "0.32", default-features = false, features = ["accesskit", "default_fonts", "wgpu", "persistence"] }
 wgpu = { version = "25", default-features = false, features = ["dx12"] }
 
 [target.'cfg(target_os = "windows")'.build-dependencies]
