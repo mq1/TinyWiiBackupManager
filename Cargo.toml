@@ -46,6 +46,7 @@ filetime = "0.2"
 num_cpus = "1.17"
 sanitize-filename-reader-friendly = "2.3"
 serde = { version = "1.0", features = ["derive"] }
+quick-xml = { version = "0.37", features = ["serialize"] }
 
 [build-dependencies]
 quick-xml = { version = "0.37", features = ["serialize"] }
