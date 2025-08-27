@@ -25,6 +25,8 @@ pub struct ConvertConfig {
 pub struct ConvertResult {
     pub converted: usize,
     pub failed: Vec<(PathBuf, anyhow::Error)>,
+    /// Map of output paths to their calculated hashes during conversion
+    pub hashes: Vec<(PathBuf, CalculatedHashes)>,
 }
 
 pub fn start_convert(waker: Waker, config: ConvertConfig) -> JobState {
@@ -43,6 +45,7 @@ fn convert_games(
 ) -> Result<Box<ConvertResult>> {
     let mut converted = 0;
     let mut failed = Vec::<(PathBuf, anyhow::Error)>::new();
+    let mut hashes = Vec::new();
 
     let total = config.paths.len() as u32;
 
@@ -69,9 +72,12 @@ fn convert_games(
             &context,
             &cancel,
         ) {
-            Ok((game_path, _calculated_hashes)) => {
+            Ok((game_path, calculated_hashes)) => {
                 converted += 1;
                 info!("Converted {} to {:?}", file_name, game_path);
+
+                // Store the hashes for the converted game
+                hashes.push((game_path.clone(), calculated_hashes));
 
                 // Remove source if requested
                 if config.remove_sources
@@ -110,7 +116,11 @@ fn convert_games(
     // Ignore cancellation at this point, just update status
     let _ = update_status_with_bytes(&context, final_status, total, total, 1, 1, None, &cancel);
 
-    Ok(Box::new(ConvertResult { converted, failed }))
+    Ok(Box::new(ConvertResult {
+        converted,
+        failed,
+        hashes,
+    }))
 }
 
 /// Convert a single game disc image to WBFS/CISO format
