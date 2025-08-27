@@ -58,6 +58,9 @@ impl eframe::App for App {
             })
         });
 
+        // Render jobs window if open
+        components::jobs::jobs_window(ctx, &mut self.show_jobs_window, &mut self.jobs);
+
         self.top_left_toasts.show(ctx);
         self.bottom_left_toasts.show(ctx);
         self.bottom_right_toasts.show(ctx);
