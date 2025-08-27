@@ -89,8 +89,7 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                                 config,
                             )
                         });
-                        app.bottom_right_toasts
-                            .info("Updating GameTDB database...");
+                        app.bottom_right_toasts.info("Updating GameTDB database...");
                     }
 
                     ui.separator();
