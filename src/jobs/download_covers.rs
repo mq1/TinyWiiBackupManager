@@ -127,7 +127,7 @@ fn download_with_retries(base_dir: &Path, game_id: &str, cover_type: CoverType) 
             Err(e) if e.to_string().contains("404") || e.to_string().contains("Not Found") => {
                 return Err(e); // Don't retry 404s
             }
-            Err(e) if attempts < 3 => {
+            Err(_e) if attempts < 3 => {
                 std::thread::sleep(Duration::from_secs(1 << attempts));
                 attempts += 1;
             }
