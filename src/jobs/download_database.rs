@@ -47,7 +47,7 @@ fn download_database(
         Ok(path) => {
             update_status(
                 &context,
-                "GameTDB database downloaded successfully".to_string(),
+                "GameTDB database updated successfully".to_string(),
                 2,
                 2,
                 &cancel,
