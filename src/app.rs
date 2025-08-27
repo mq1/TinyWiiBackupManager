@@ -97,6 +97,8 @@ pub struct App {
     pub cover_manager: Option<CoverManager>,
     /// Job queue for background tasks
     pub jobs: JobQueue,
+    /// Whether the jobs window is open
+    pub show_jobs_window: bool,
 }
 
 impl App {
