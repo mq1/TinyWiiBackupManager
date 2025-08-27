@@ -18,7 +18,6 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
 
     let mut to_remove = None;
     let mut to_open_info = None;
-    let mut covers_to_download = Vec::new();
 
     egui::ScrollArea::vertical().show(ui, |ui| {
         // expand horizontally
@@ -36,16 +35,13 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
 
                 for (original_index, game) in app.games.iter().enumerate() {
                     if filter.shows_game(game) {
-                        let (should_remove, should_open_info, should_download_cover) =
+                        let (should_remove, should_open_info) =
                             ui_game_card(ui, game, &app.cover_manager);
                         if should_remove {
                             to_remove = Some((*game).clone());
                         }
                         if should_open_info {
                             to_open_info = Some(original_index);
-                        }
-                        if should_download_cover {
-                            covers_to_download.push(game.id.clone());
                         }
 
                         column_index += 1;
@@ -57,12 +53,7 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
             });
     });
 
-    // Handle cover downloads after the UI loop
-    if let Some(cover_manager) = &app.cover_manager {
-        for game_id in covers_to_download {
-            cover_manager.queue_download(game_id, CoverType::Cover3D);
-        }
-    }
+    // Cover downloads are now handled via the GameTDB menu
 
     if let Some(game) = to_remove
         && let Err(e) = game.remove()
@@ -79,10 +70,9 @@ fn ui_game_card(
     ui: &mut egui::Ui,
     game: &Game,
     cover_manager: &Option<CoverManager>,
-) -> (bool, bool, bool) {
+) -> (bool, bool) {
     let mut remove_clicked = false;
     let mut info_clicked = false;
-    let mut should_download_cover = false;
 
     let card = egui::Frame::group(ui.style()).corner_radius(5.0);
     card.show(ui, |ui| {
@@ -133,24 +123,13 @@ fn ui_game_card(
                             .max_height(128.0)
                             .maintain_aspect_ratio(true);
                         ui.add(image);
-                    } else if cover_manager.is_downloading(&game.id, CoverType::Cover3D) {
-                        // Show placeholder while downloading
-                        ui.allocate_ui(egui::vec2(128.0, 128.0), |ui| {
-                            ui.centered_and_justified(|ui| {
-                                ui.spinner();
-                                ui.label("Downloading cover...");
-                            });
-                        });
                     } else {
-                        // Show placeholder and mark for download
+                        // Show placeholder - covers can be downloaded via the GameTDB menu
                         ui.allocate_ui(egui::vec2(128.0, 128.0), |ui| {
                             ui.centered_and_justified(|ui| {
                                 ui.label("📦");
                             });
                         });
-
-                        // Mark for download
-                        should_download_cover = true;
                     }
                 } else {
                     // No cover manager - show placeholder
@@ -183,5 +162,5 @@ fn ui_game_card(
         });
     });
 
-    (remove_clicked, info_clicked, should_download_cover)
+    (remove_clicked, info_clicked)
 }

@@ -13,6 +13,7 @@ use crate::base_dir::BaseDir;
 use crate::convert::verify_game;
 use crate::cover_manager::CoverManager;
 use crate::game::{CalculatedHashes, VerificationStatus};
+use crate::jobs::JobQueue;
 use crate::messages::BackgroundMessage;
 use crate::update_check::UpdateInfo;
 use crate::{
@@ -94,6 +95,8 @@ pub struct App {
     pub operation_cancelled: Arc<AtomicBool>,
     /// Cover manager for downloading game covers
     pub cover_manager: Option<CoverManager>,
+    /// Job queue for background tasks
+    pub jobs: JobQueue,
 }
 
 impl App {
@@ -386,6 +389,63 @@ impl App {
 
         // Start batch verification
         self.spawn_verification(games_to_verify);
+    }
+
+    /// Handle download covers job result
+    pub fn handle_download_covers_result(
+        &mut self,
+        res: &crate::jobs::download_covers::DownloadCoversResult,
+        ctx: &egui::Context,
+    ) {
+        let msg = if res.failed > 0 {
+            format!(
+                "Downloaded {} covers, {} skipped, {} failed",
+                res.downloaded, res.skipped, res.failed
+            )
+        } else if res.skipped > 0 {
+            format!(
+                "Downloaded {} covers, {} skipped",
+                res.downloaded, res.skipped
+            )
+        } else {
+            format!("Downloaded {} covers", res.downloaded)
+        };
+
+        if res.failed > 0 {
+            self.top_left_toasts.warning(msg);
+            // Mark failed IDs to avoid retrying 404s
+            if let Some(cover_manager) = &self.cover_manager {
+                cover_manager.mark_failed(res.failed_ids.clone(), res.cover_type);
+            }
+        } else {
+            self.top_left_toasts.success(msg);
+        }
+
+        // Request repaint to show new covers
+        ctx.request_repaint();
+    }
+
+    /// Handle download database job result
+    pub fn handle_download_database_result(
+        &mut self,
+        res: &crate::jobs::download_database::DownloadDatabaseResult,
+    ) {
+        if res.success {
+            // Clear the cached GameTDB instance to force reload
+            crate::util::gametdb::clear_cache();
+
+            // Refresh games to reload titles from the new database
+            if let Err(e) = self.refresh_games() {
+                self.bottom_right_toasts
+                    .error(format!("Failed to refresh games: {}", e));
+            } else {
+                self.top_left_toasts
+                    .success("GameTDB database downloaded successfully!");
+            }
+        } else {
+            self.top_left_toasts
+                .error("Failed to download GameTDB database");
+        }
     }
 }
 
