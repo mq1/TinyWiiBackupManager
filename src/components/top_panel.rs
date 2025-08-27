@@ -96,145 +96,10 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                     ui.separator();
 
                     // Download all covers options
-                    if ui
-                        .button("📥 Download All 3D Covers")
-                        .on_hover_text("Download 3D covers for all games")
-                        .clicked()
-                        && let Some(cover_manager) = &app.cover_manager
-                    {
-                        let game_ids: Vec<String> = app
-                            .games
-                            .iter()
-                            .map(|g| g.id.clone())
-                            .filter(|id| !cover_manager.has_cover(id, CoverType::Cover3D))
-                            .filter(|id| !cover_manager.is_failed(id, CoverType::Cover3D))
-                            .collect();
-
-                        if game_ids.is_empty() {
-                            app.bottom_right_toasts
-                                .info("All 3D covers already downloaded.");
-                        } else {
-                            let num_covers = game_ids.len();
-                            let config = download_covers::DownloadCoversConfig {
-                                base_dir: cover_manager.base_dir().clone(),
-                                cover_type: CoverType::Cover3D,
-                                game_ids,
-                            };
-                            app.jobs.push_once(Job::DownloadCovers, || {
-                                download_covers::start_download_covers(
-                                    egui_waker::egui_waker(ctx),
-                                    config,
-                                )
-                            });
-                            app.bottom_right_toasts
-                                .info(format!("Downloading 3D covers for {num_covers} games..."));
-                        }
-                    }
-
-                    if ui
-                        .button("📥 Download All 2D Covers")
-                        .on_hover_text("Download 2D covers for all games")
-                        .clicked()
-                        && let Some(cover_manager) = &app.cover_manager
-                    {
-                        let game_ids: Vec<String> = app
-                            .games
-                            .iter()
-                            .map(|g| g.id.clone())
-                            .filter(|id| !cover_manager.has_cover(id, CoverType::Cover2D))
-                            .filter(|id| !cover_manager.is_failed(id, CoverType::Cover2D))
-                            .collect();
-
-                        if game_ids.is_empty() {
-                            app.bottom_right_toasts
-                                .info("All 2D covers already downloaded.");
-                        } else {
-                            let num_covers = game_ids.len();
-                            let config = download_covers::DownloadCoversConfig {
-                                base_dir: cover_manager.base_dir().clone(),
-                                cover_type: CoverType::Cover2D,
-                                game_ids,
-                            };
-                            app.jobs.push_once(Job::DownloadCovers, || {
-                                download_covers::start_download_covers(
-                                    egui_waker::egui_waker(ctx),
-                                    config,
-                                )
-                            });
-                            app.bottom_right_toasts
-                                .info(format!("Downloading 2D covers for {num_covers} games..."));
-                        }
-                    }
-
-                    if ui
-                        .button("📥 Download All Full Covers")
-                        .on_hover_text("Download full covers for all games")
-                        .clicked()
-                        && let Some(cover_manager) = &app.cover_manager
-                    {
-                        let game_ids: Vec<String> = app
-                            .games
-                            .iter()
-                            .map(|g| g.id.clone())
-                            .filter(|id| !cover_manager.has_cover(id, CoverType::CoverFull))
-                            .filter(|id| !cover_manager.is_failed(id, CoverType::CoverFull))
-                            .collect();
-
-                        if game_ids.is_empty() {
-                            app.bottom_right_toasts
-                                .info("All full covers already downloaded.");
-                        } else {
-                            let num_covers = game_ids.len();
-                            let config = download_covers::DownloadCoversConfig {
-                                base_dir: cover_manager.base_dir().clone(),
-                                cover_type: CoverType::CoverFull,
-                                game_ids,
-                            };
-                            app.jobs.push_once(Job::DownloadCovers, || {
-                                download_covers::start_download_covers(
-                                    egui_waker::egui_waker(ctx),
-                                    config,
-                                )
-                            });
-                            app.bottom_right_toasts
-                                .info(format!("Downloading full covers for {num_covers} games..."));
-                        }
-                    }
-
-                    if ui
-                        .button("📥 Download All Disc Art")
-                        .on_hover_text("Download disc art for all games")
-                        .clicked()
-                        && let Some(cover_manager) = &app.cover_manager
-                    {
-                        let game_ids: Vec<String> = app
-                            .games
-                            .iter()
-                            .map(|g| g.id.clone())
-                            .filter(|id| !cover_manager.has_cover(id, CoverType::Disc))
-                            .filter(|id| !cover_manager.is_failed(id, CoverType::Disc))
-                            .collect();
-
-                        if game_ids.is_empty() {
-                            app.bottom_right_toasts
-                                .info("All disc art already downloaded.");
-                        } else {
-                            let num_covers = game_ids.len();
-                            let config = download_covers::DownloadCoversConfig {
-                                base_dir: cover_manager.base_dir().clone(),
-                                cover_type: CoverType::Disc,
-                                game_ids,
-                            };
-                            app.jobs.push_once(Job::DownloadCovers, || {
-                                download_covers::start_download_covers(
-                                    egui_waker::egui_waker(ctx),
-                                    config,
-                                )
-                            });
-                            app.bottom_right_toasts
-                                .info(format!("Downloading disc art for {num_covers} games..."));
-                        }
-                    }
+                    download_covers_ui(ui, ctx, app, CoverType::Cover3D);
+                    download_covers_ui(ui, ctx, app, CoverType::Cover2D);
+                    download_covers_ui(ui, ctx, app, CoverType::CoverFull);
+                    download_covers_ui(ui, ctx, app, CoverType::Disc);
                 });
             }
 
@@ -285,4 +150,52 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
             });
         });
     });
+}
+
+/// Helper function to handle downloading covers of a specific type
+fn download_covers_ui(
+    ui: &mut egui::Ui,
+    ctx: &egui::Context,
+    app: &mut App,
+    cover_type: CoverType,
+) {
+    let cover_type_name = match cover_type {
+        CoverType::Cover3D => "3D covers",
+        CoverType::Cover2D => "2D covers",
+        CoverType::CoverFull => "full covers",
+        CoverType::Disc => "disc art",
+    };
+    if ui
+        .button(format!("📥 Download all {cover_type_name}"))
+        .on_hover_text(format!("Download {cover_type_name} for all games"))
+        .clicked()
+        && let Some(cover_manager) = &app.cover_manager
+    {
+        let game_ids: Vec<String> = app
+            .games
+            .iter()
+            .map(|g| g.id.clone())
+            .filter(|id| !cover_manager.has_cover(id, cover_type))
+            .filter(|id| !cover_manager.is_failed(id, cover_type))
+            .collect();
+
+        if game_ids.is_empty() {
+            app.bottom_right_toasts
+                .info(format!("All {} already downloaded.", cover_type_name));
+        } else {
+            let num_covers = game_ids.len();
+            let config = download_covers::DownloadCoversConfig {
+                base_dir: cover_manager.base_dir().clone(),
+                cover_type,
+                game_ids,
+            };
+            app.jobs.push_once(Job::DownloadCovers, || {
+                download_covers::start_download_covers(egui_waker::egui_waker(ctx), config)
+            });
+            app.bottom_right_toasts.info(format!(
+                "Downloading {} for {} games...",
+                cover_type_name, num_covers
+            ));
+        }
+    }
 }
