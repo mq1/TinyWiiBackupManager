@@ -6,8 +6,6 @@ use anyhow::Result;
 use nod::read::{DiscOptions, DiscReader, PartitionEncryption};
 use nod::write::{DiscWriter, FormatOptions, ProcessOptions};
 use std::io;
-use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::Receiver;
 use std::task::Waker;
 
@@ -41,14 +39,14 @@ fn verify_games(
     let mut verified = 0;
     let mut passed = 0;
     let mut failed = 0;
+    let mut was_cancelled = false;
 
     let total = config.games.len() as u32;
-    let cancelled = Arc::new(AtomicBool::new(false));
 
     for (idx, game) in config.games.into_iter().enumerate() {
         // Check for cancellation
         if should_cancel(&cancel) {
-            cancelled.store(true, Ordering::Relaxed);
+            was_cancelled = true;
             break;
         }
 
@@ -62,7 +60,6 @@ fn verify_games(
             game_name.clone(),
             &context,
             &cancel,
-            Arc::clone(&cancelled),
         ) {
             Ok(status) => {
                 verified += 1;
@@ -84,7 +81,7 @@ fn verify_games(
             Err(e) => {
                 // Check if it was cancelled
                 if e.to_string().contains("Cancelled") {
-                    cancelled.store(true, Ordering::Relaxed);
+                    was_cancelled = true;
                     break;
                 }
                 failed += 1;
@@ -94,7 +91,7 @@ fn verify_games(
     }
 
     // Final status
-    let final_status = if cancelled.load(Ordering::Relaxed) {
+    let final_status = if was_cancelled {
         format!(
             "Verification cancelled ({} completed, {} passed, {} failed)",
             verified, passed, failed
@@ -126,7 +123,6 @@ fn verify_game(
     game_name: String,
     context: &JobContext,
     cancel: &Receiver<()>,
-    cancelled: Arc<AtomicBool>,
 ) -> Result<VerificationStatus> {
     let disc_path = game
         .get_disc_file_path()
@@ -146,15 +142,7 @@ fn verify_game(
     // Process the disc to calculate hashes
     let finalization = disc_writer.process(
         |_data, pos, _| {
-            // Check for cancellation
-            if cancelled.load(Ordering::Relaxed) {
-                return Err(io::Error::new(
-                    io::ErrorKind::Interrupted,
-                    "Operation cancelled by user",
-                ));
-            }
-
-            // Send progress updates
+            // Send progress updates (this will check for cancellation)
             update_status_with_bytes(
                 context,
                 format!("Verifying {}", game_name),
