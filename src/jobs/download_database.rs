@@ -1,5 +1,5 @@
 use super::{Job, JobContext, JobResult, JobState, start_job, update_status};
-use crate::util::download::download_with_progress;
+use crate::util::download::{download_with_progress, download_with_retries};
 use anyhow::{Context, Result};
 use log::{error, info};
 use std::fs::{self, File};
@@ -40,7 +40,9 @@ fn download_database(
 ) -> Result<Box<DownloadDatabaseResult>> {
     update_status(&context, STATUS_MESSAGE.to_string(), 0, 1, &cancel)?;
 
-    match download_and_extract_database(&config.base_dir, &context, &cancel) {
+    match download_with_retries(3, || {
+        download_and_extract_database(&config.base_dir, &context, &cancel)
+    }) {
         Ok(path) => {
             info!("GameTDB database updated successfully at: {:?}", path);
             update_status(

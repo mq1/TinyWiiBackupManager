@@ -1,7 +1,10 @@
 use crate::jobs::{JobContext, update_status_with_bytes};
 use anyhow::{Context, Result};
+use log::warn;
 use std::io::{Read, Write};
 use std::sync::mpsc::Receiver;
+use std::thread::sleep;
+use std::time::Duration;
 use ureq::Body;
 use ureq::http::Response;
 
@@ -61,6 +64,26 @@ pub fn download_with_progress<W: Write>(
     }
     out.flush()?;
     Ok(())
+}
+
+/// Attempts to execute the provided closure up to `max_attempts` times, with
+/// exponential backoff between attempts. If the closure returns an error,
+/// it will be retried unless the error is a 404 Not Found error.
+pub fn download_with_retries<T>(max_attempts: u32, mut cb: impl FnMut() -> Result<T>) -> Result<T> {
+    let mut attempts = 0;
+    loop {
+        match cb() {
+            Ok(v) => return Ok(v),
+            // Retry on all errors except 404 Not Found, up to max_attempts
+            Err(e) if is_404_error(&e) || attempts >= max_attempts => return Err(e),
+            Err(e) => {
+                let duration = Duration::from_secs(1 << attempts);
+                warn!("Download failed: {e:#}. Retrying in {:.1?}...", duration);
+                sleep(duration);
+                attempts += 1;
+            }
+        }
+    }
 }
 
 /// Checks if the given error is an HTTP 404 Not Found error.
