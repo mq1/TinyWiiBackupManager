@@ -1,4 +1,6 @@
+use anyhow::Result;
 use std::{
+    io,
     sync::{
         Arc, RwLock,
         atomic::{AtomicUsize, Ordering},
@@ -7,8 +9,6 @@ use std::{
     task::Waker,
     thread::JoinHandle,
 };
-
-use anyhow::Result;
 
 pub mod convert;
 pub mod download_covers;
@@ -34,7 +34,7 @@ pub static JOB_ID: AtomicUsize = AtomicUsize::new(0);
 #[derive(Default)]
 pub struct JobQueue {
     pub jobs: Vec<JobState>,
-    pub results: Vec<JobResult>,
+    pub results: Vec<(JobResult, JobStatus)>,
 }
 
 impl JobQueue {
@@ -78,7 +78,7 @@ impl JobQueue {
     pub fn active_count(&self) -> usize {
         self.jobs
             .iter()
-            .filter(|j| j.handle.as_ref().map_or(false, |h| !h.is_finished()))
+            .filter(|j| j.handle.as_ref().is_some_and(|h| !h.is_finished()))
             .count()
     }
 
@@ -131,7 +131,15 @@ impl JobQueue {
                         JobResult::None => {
                             // Job context contains the error
                         }
-                        _ => results.push(result),
+                        _ => {
+                            let status = job
+                                .context
+                                .status
+                                .read()
+                                .map(|l| l.clone())
+                                .unwrap_or_else(|_| JobStatus::default());
+                            results.push((result, status));
+                        }
                     }
                 }
                 Err(err) => {
@@ -188,6 +196,20 @@ pub struct JobStatus {
     pub current_item_name: Option<String>,
     pub status: String,
     pub error: Option<anyhow::Error>,
+}
+
+impl Clone for JobStatus {
+    fn clone(&self) -> Self {
+        Self {
+            title: self.title.clone(),
+            progress_percent: self.progress_percent,
+            progress_items: self.progress_items,
+            progress_bytes: self.progress_bytes,
+            current_item_name: self.current_item_name.clone(),
+            status: self.status.clone(),
+            error: None, // Errors are not cloned
+        }
+    }
 }
 
 pub enum JobResult {
@@ -259,8 +281,7 @@ pub fn update_status(
         0.0
     };
     if should_cancel(cancel) {
-        w.status = "Cancelled".to_string();
-        return Err(anyhow::Error::msg("Cancelled"));
+        return Err(io::Error::new(io::ErrorKind::Interrupted, "Cancelled").into());
     } else {
         w.status = status;
     }
@@ -276,6 +297,7 @@ pub fn should_cancel(rx: &Receiver<()>) -> bool {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn update_status_with_bytes(
     context: &JobContext,
     status: String,
@@ -310,11 +332,21 @@ pub fn update_status_with_bytes(
     w.progress_percent = base_progress + item_progress;
 
     if should_cancel(cancel) {
-        w.status = "Cancelled".to_string();
-        return Err(anyhow::Error::msg("Cancelled"));
+        return Err(io::Error::new(io::ErrorKind::Interrupted, "Cancelled").into());
     }
 
     drop(w);
     context.waker.wake_by_ref();
     Ok(())
+}
+
+pub fn is_cancelled_error(e: &anyhow::Error) -> bool {
+    for cause in e.chain() {
+        if let Some(io_err) = cause.downcast_ref::<io::Error>()
+            && io_err.kind() == io::ErrorKind::Interrupted
+        {
+            return true;
+        }
+    }
+    false
 }

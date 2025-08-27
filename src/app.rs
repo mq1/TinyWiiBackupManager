@@ -7,13 +7,25 @@ use std::path::PathBuf;
 use crate::base_dir::BaseDir;
 use crate::cover_manager::CoverManager;
 use crate::game::{Game, VerificationStatus};
-use crate::jobs::JobQueue;
+use crate::jobs::convert::ConvertResult;
+use crate::jobs::convert::{ConvertConfig, start_convert};
+use crate::jobs::download_covers::DownloadCoversResult;
+use crate::jobs::download_database::DownloadDatabaseResult;
+use crate::jobs::egui_waker::egui_waker;
+use crate::jobs::verify::VerifyResult;
+use crate::jobs::verify::{VerifyConfig, start_verify};
+use crate::jobs::{Job, JobQueue};
 use crate::messages::BackgroundMessage;
+use crate::toasts::{create_toasts, error_toast};
 use crate::update_check::UpdateInfo;
-use crate::{SUPPORTED_INPUT_EXTENSIONS, components::console_filter::ConsoleFilter, update_check};
+use crate::util::gametdb;
+use crate::{
+    SUPPORTED_INPUT_EXTENSIONS, components::console_filter::ConsoleFilter, jobs, update_check,
+};
 use anyhow::Result;
 use eframe::egui;
 use egui_inbox::UiInbox;
+use jobs::JobStatus;
 
 /// Main application state and UI controller.
 #[derive(Default)]
@@ -201,18 +213,16 @@ impl App {
     /// Converts ISO files to WBFS using the job system
     fn spawn_conversion_worker(&mut self, paths: Vec<PathBuf>) {
         if let Some(base_dir) = &self.base_dir {
-            use crate::jobs::convert::{ConvertConfig, start_convert};
-            use crate::jobs::egui_waker::egui_waker;
-
-            let config = ConvertConfig {
-                base_dir: base_dir.path().to_owned(),
-                paths,
-                remove_sources: self.remove_sources,
-            };
-
-            let waker = egui_waker(&self.ctx);
-            let job = start_convert(waker, config);
-            self.jobs.push(job);
+            self.jobs.push_once(Job::Convert, || {
+                start_convert(
+                    egui_waker(&self.ctx),
+                    ConvertConfig {
+                        base_dir: base_dir.path().to_owned(),
+                        paths,
+                        remove_sources: self.remove_sources,
+                    },
+                )
+            });
         }
     }
 
@@ -223,31 +233,28 @@ impl App {
     }
 
     /// Spawn a verification task for multiple games using the job system
-    pub fn spawn_verification(&mut self, games: Vec<Box<Game>>) {
-        use crate::jobs::egui_waker::egui_waker;
-        use crate::jobs::verify::{VerifyConfig, start_verify};
-
-        let config = VerifyConfig { games };
-
-        let waker = egui_waker(&self.ctx);
-        let job = start_verify(waker, config);
-        self.jobs.push(job);
+    pub fn spawn_verification(&mut self, games: Vec<Game>) {
+        self.jobs.push_once(Job::Verify, || {
+            start_verify(egui_waker(&self.ctx), VerifyConfig { games })
+        });
     }
 
     /// Start verifying all unverified games
     pub fn start_verify_all(&mut self) {
         // Collect all games that need verification
-        let mut games_to_verify: Vec<Box<Game>> = Vec::new();
+        let mut games_to_verify: Vec<Game> = Vec::new();
         for game in &self.games {
             if !matches!(
                 game.get_verification_status(),
                 VerificationStatus::FullyVerified(_, _)
             ) {
-                games_to_verify.push(Box::new(game.clone()));
+                games_to_verify.push(game.clone());
             }
         }
 
         if games_to_verify.is_empty() {
+            self.bottom_right_toasts
+                .info("All games are already verified");
             return;
         }
 
@@ -256,109 +263,63 @@ impl App {
     }
 
     /// Handle download covers job result
-    pub fn handle_download_covers_result(
-        &mut self,
-        res: &crate::jobs::download_covers::DownloadCoversResult,
-        ctx: &egui::Context,
-    ) {
-        let msg = if res.failed > 0 {
-            format!(
-                "Downloaded {} covers, {} skipped, {} failed",
-                res.downloaded, res.skipped, res.failed
-            )
-        } else if res.skipped > 0 {
-            format!(
-                "Downloaded {} covers, {} skipped",
-                res.downloaded, res.skipped
-            )
-        } else {
-            format!("Downloaded {} covers", res.downloaded)
-        };
-
+    pub fn handle_download_covers_result(&mut self, status: JobStatus, res: DownloadCoversResult) {
         if res.failed > 0 {
-            self.top_left_toasts.warning(msg);
+            self.bottom_right_toasts.warning(status.status);
             // Mark failed IDs to avoid retrying 404s
             if let Some(cover_manager) = &self.cover_manager {
                 cover_manager.mark_failed(res.failed_ids.clone(), res.cover_type);
             }
         } else {
-            self.top_left_toasts.success(msg);
+            self.bottom_right_toasts.success(status.status);
         }
-
-        // Request repaint to show new covers
-        ctx.request_repaint();
     }
 
     /// Handle convert job result
-    pub fn handle_convert_result(&mut self, res: &crate::jobs::convert::ConvertResult) {
-        if res.failed > 0 {
-            self.top_left_toasts.warning(format!(
-                "Conversion complete: {} succeeded, {} failed",
-                res.converted, res.failed
-            ));
+    pub fn handle_convert_result(&mut self, status: JobStatus, res: ConvertResult) {
+        if res.failed.is_empty() {
+            self.bottom_right_toasts.success(status.status);
         } else {
-            self.top_left_toasts.success(format!(
-                "Converted {} file{} successfully",
-                res.converted,
-                if res.converted == 1 { "" } else { "s" }
-            ));
+            for (failed_path, e) in &res.failed {
+                self.bottom_right_toasts.add(error_toast(
+                    &format!("Failed to convert {}", failed_path.display()),
+                    e,
+                ));
+            }
+            self.bottom_right_toasts.warning(status.status);
         }
 
         // Refresh the game list to show new converted games
-        if let Some(_base_dir) = &self.base_dir {
-            let _ = self.refresh_games();
+        if let Err(e) = self.refresh_games() {
+            self.bottom_right_toasts
+                .add(error_toast("Failed to refresh games", &e));
         }
     }
 
-    /// Handle verify job result  
-    pub fn handle_verify_result(&mut self, res: &crate::jobs::verify::VerifyResult) {
-        let msg = format!(
-            "Verification complete: {} verified ({} passed, {} failed)",
-            res.verified, res.passed, res.failed
-        );
-
+    /// Handle verify job result
+    pub fn handle_verify_result(&mut self, status: JobStatus, res: VerifyResult) {
         if res.failed > 0 {
-            self.top_left_toasts.warning(msg);
+            self.bottom_right_toasts.warning(status.status);
         } else {
-            self.top_left_toasts.success(msg);
+            self.bottom_right_toasts.success(status.status);
         }
-
-        // Games are already updated during verification, just need to repaint
     }
 
     /// Handle download database job result
     pub fn handle_download_database_result(
         &mut self,
-        res: &crate::jobs::download_database::DownloadDatabaseResult,
+        status: JobStatus,
+        _res: DownloadDatabaseResult,
     ) {
-        if res.success {
-            // Clear the cached GameTDB instance to force reload
-            crate::util::gametdb::clear_cache();
+        // Clear the cached GameTDB instance to force reload
+        gametdb::clear_cache();
 
-            // Refresh games to reload titles from the new database
-            if let Err(e) = self.refresh_games() {
-                self.bottom_right_toasts
-                    .error(format!("Failed to refresh games: {}", e));
-            } else {
-                self.top_left_toasts
-                    .success("GameTDB database downloaded successfully!");
-            }
+        // Refresh games to reload titles from the new database
+        if let Err(e) = self.refresh_games() {
+            self.bottom_right_toasts
+                .add(error_toast("Failed to refresh games", &e));
         } else {
-            self.top_left_toasts
-                .error("Failed to download GameTDB database");
+            self.bottom_right_toasts.success(status.status);
         }
     }
-}
-
-/// Helper function to create a styled `Toasts` instance for a specific screen corner.
-fn create_toasts(anchor: egui_notify::Anchor) -> egui_notify::Toasts {
-    egui_notify::Toasts::default()
-        .with_anchor(anchor)
-        .with_margin(egui::vec2(10.0, 32.0))
-        .with_shadow(egui::Shadow {
-            offset: [0, 0],
-            blur: 0,
-            spread: 1,
-            color: egui::Color32::GRAY,
-        })
 }

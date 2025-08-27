@@ -1,6 +1,8 @@
 use super::{Job, JobContext, JobResult, JobState, start_job, update_status};
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, bail};
+use log::{error, info};
 use std::fs::{self, File};
+use std::io;
 use std::io::{BufReader, Write};
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::Receiver;
@@ -12,14 +14,13 @@ pub struct DownloadDatabaseConfig {
 }
 
 pub struct DownloadDatabaseResult {
-    pub success: bool,
     pub path: Option<PathBuf>,
 }
 
 pub fn start_download_database(waker: Waker, config: DownloadDatabaseConfig) -> JobState {
     start_job(
         waker,
-        "Download GameTDB Database",
+        "Update GameTDB database",
         Job::DownloadDatabase,
         move |context, cancel| {
             download_database(context, cancel, config).map(JobResult::DownloadDatabase)
@@ -44,46 +45,41 @@ fn download_database(
     // Download logic
     match download_database_blocking(&config.base_dir) {
         Ok(path) => {
-            update_status(&context, "Complete".to_string(), 2, 2, &cancel)?;
-            Ok(Box::new(DownloadDatabaseResult {
-                success: true,
-                path: Some(path),
-            }))
+            update_status(
+                &context,
+                "GameTDB database downloaded successfully".to_string(),
+                2,
+                2,
+                &cancel,
+            )?;
+            Ok(Box::new(DownloadDatabaseResult { path: Some(path) }))
         }
         Err(e) => {
-            log::error!("Failed to download GameTDB database: {}", e);
+            error!("Failed to download GameTDB database: {}", e);
             Err(e)
         }
     }
 }
 
 fn download_database_blocking(base_dir: &Path) -> Result<PathBuf> {
-    log::info!("Downloading GameTDB database from https://www.gametdb.com/wiitdb.zip");
+    info!("Downloading GameTDB database from https://www.gametdb.com/wiitdb.zip");
 
     // Download the zip file to a temporary file
     let mut temp_zip = NamedTempFile::new().context("Failed to create temporary file for zip")?;
-
-    let response = reqwest::blocking::get("https://www.gametdb.com/wiitdb.zip")
+    let mut response = reqwest::blocking::get("https://www.gametdb.com/wiitdb.zip")
         .context("Failed to download wiitdb.zip")?;
-
     if !response.status().is_success() {
-        anyhow::bail!("HTTP error downloading wiitdb.zip: {}", response.status());
+        bail!("HTTP error downloading wiitdb.zip: {}", response.status());
     }
-
-    let bytes = response
-        .bytes()
-        .context("Failed to read wiitdb.zip response")?;
-
-    temp_zip
-        .write_all(&bytes)
-        .context("Failed to write temporary zip file")?;
+    io::copy(&mut response, &mut temp_zip).context("Failed to download wiitdb.zip")?;
+    drop(response);
     temp_zip
         .flush()
         .context("Failed to flush temporary zip file")?;
 
     // Create target directory
     let target_dir = base_dir.join("apps/usbloader_gx");
-    fs::create_dir_all(&target_dir).context("Failed to create usbloader_gx directory")?;
+    fs::create_dir_all(&target_dir).context("Failed to create apps/usbloader_gx directory")?;
 
     // Extract the zip file
     let file = File::open(temp_zip.path()).context("Failed to open temporary zip file")?;
@@ -100,13 +96,13 @@ fn download_database_blocking(base_dir: &Path) -> Result<PathBuf> {
             // Extract directly to the target location
             let target_path = target_dir.join("wiitdb.xml");
             let mut outfile = File::create(&target_path).context("Failed to create wiitdb.xml")?;
-            std::io::copy(&mut file, &mut outfile).context("Failed to extract wiitdb.xml")?;
+            io::copy(&mut file, &mut outfile).context("Failed to extract wiitdb.xml")?;
             outfile.flush().context("Failed to flush wiitdb.xml")?;
 
-            log::info!("Successfully installed wiitdb.xml to {:?}", target_path);
+            info!("Successfully downloaded wiitdb.xml to {:?}", target_path);
             return Ok(target_path);
         }
     }
 
-    anyhow::bail!("wiitdb.xml not found in downloaded archive")
+    bail!("wiitdb.xml not found in downloaded archive")
 }

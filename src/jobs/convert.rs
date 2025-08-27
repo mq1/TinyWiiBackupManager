@@ -1,10 +1,11 @@
 use super::{
-    Job, JobContext, JobResult, JobState, should_cancel, start_job, update_status_with_bytes,
+    Job, JobContext, JobResult, JobState, is_cancelled_error, should_cancel, start_job,
+    update_status_with_bytes,
 };
 use crate::game::CalculatedHashes;
 use crate::util::split::SplitWriter;
 use anyhow::{Result, bail};
-use log::info;
+use log::{info, warn};
 use nod::common::Format;
 use nod::read::{DiscOptions, DiscReader, PartitionEncryption};
 use nod::write::{DiscWriter, FormatOptions, ProcessOptions};
@@ -23,20 +24,16 @@ pub struct ConvertConfig {
 
 pub struct ConvertResult {
     pub converted: usize,
-    pub failed: usize,
-    pub failed_paths: Vec<PathBuf>,
+    pub failed: Vec<(PathBuf, anyhow::Error)>,
 }
 
 pub fn start_convert(waker: Waker, config: ConvertConfig) -> JobState {
-    let title = format!(
-        "Convert {} file{}",
-        config.paths.len(),
-        if config.paths.len() == 1 { "" } else { "s" }
-    );
-
-    start_job(waker, &title, Job::Convert, move |context, cancel| {
-        convert_games(context, cancel, config).map(JobResult::Convert)
-    })
+    start_job(
+        waker,
+        "Convert games",
+        Job::Convert,
+        move |context, cancel| convert_games(context, cancel, config).map(JobResult::Convert),
+    )
 }
 
 fn convert_games(
@@ -45,16 +42,13 @@ fn convert_games(
     config: ConvertConfig,
 ) -> Result<Box<ConvertResult>> {
     let mut converted = 0;
-    let mut failed = 0;
-    let mut failed_paths = Vec::new();
-    let mut was_cancelled = false;
+    let mut failed = Vec::<(PathBuf, anyhow::Error)>::new();
 
     let total = config.paths.len() as u32;
 
     for (idx, path) in config.paths.iter().enumerate() {
         // Check for cancellation
         if should_cancel(&cancel) {
-            was_cancelled = true;
             break;
         }
 
@@ -77,46 +71,46 @@ fn convert_games(
         ) {
             Ok((game_path, _calculated_hashes)) => {
                 converted += 1;
-                log::info!("Converted {} to {:?}", file_name, game_path);
+                info!("Converted {} to {:?}", file_name, game_path);
 
                 // Remove source if requested
-                if config.remove_sources {
-                    if let Err(e) = fs::remove_file(path) {
-                        log::warn!("Failed to remove source file {}: {}", path.display(), e);
-                    }
+                if config.remove_sources
+                    && let Err(e) = fs::remove_file(path)
+                {
+                    warn!("Failed to remove source file {}: {}", path.display(), e);
                 }
             }
             Err(e) => {
                 // Check if it was cancelled
-                if e.to_string().contains("Cancelled") {
-                    was_cancelled = true;
+                if is_cancelled_error(&e) {
                     break;
                 }
-                failed += 1;
-                failed_paths.push(path.clone());
-                log::warn!("Failed to convert {}: {}", path.display(), e);
+                warn!("Failed to convert {}: {}", path.display(), e);
+                failed.push((path.clone(), e));
             }
         }
     }
 
     // Final status
-    let final_status = if was_cancelled {
-        format!("Conversion cancelled ({} completed)", converted)
-    } else {
+    let final_status = if failed.is_empty() {
         format!(
             "Converted {} file{}",
             converted,
             if converted == 1 { "" } else { "s" }
         )
+    } else {
+        format!(
+            "Converted {} file{} ({} failed)",
+            converted,
+            if converted == 1 { "" } else { "s" },
+            failed.len()
+        )
     };
 
+    // Ignore cancellation at this point, just update status
     let _ = update_status_with_bytes(&context, final_status, total, total, 1, 1, None, &cancel);
 
-    Ok(Box::new(ConvertResult {
-        converted,
-        failed,
-        failed_paths,
-    }))
+    Ok(Box::new(ConvertResult { converted, failed }))
 }
 
 /// Convert a single game disc image to WBFS/CISO format

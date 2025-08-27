@@ -28,10 +28,10 @@ pub fn ui_bottom_panel(ctx: &egui::Context, app: &mut App) {
 
                 // Show jobs menu UI
                 ui.separator();
-                ui.label("Jobs:");
                 if crate::components::jobs::jobs_menu_ui(ui, &mut app.jobs) {
                     app.show_jobs_window = true;
                 }
+                ui.label("Jobs:");
             });
         });
     });

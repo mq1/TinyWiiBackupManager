@@ -1,8 +1,10 @@
 use super::{
-    Job, JobContext, JobResult, JobState, should_cancel, start_job, update_status_with_bytes,
+    Job, JobContext, JobResult, JobState, is_cancelled_error, should_cancel, start_job,
+    update_status_with_bytes,
 };
 use crate::game::{CalculatedHashes, Game, VerificationStatus};
 use anyhow::Result;
+use log::warn;
 use nod::read::{DiscOptions, DiscReader, PartitionEncryption};
 use nod::write::{DiscWriter, FormatOptions, ProcessOptions};
 use std::io;
@@ -10,7 +12,7 @@ use std::sync::mpsc::Receiver;
 use std::task::Waker;
 
 pub struct VerifyConfig {
-    pub games: Vec<Box<Game>>,
+    pub games: Vec<Game>,
 }
 
 pub struct VerifyResult {
@@ -20,15 +22,12 @@ pub struct VerifyResult {
 }
 
 pub fn start_verify(waker: Waker, config: VerifyConfig) -> JobState {
-    let title = format!(
-        "Verify {} game{}",
-        config.games.len(),
-        if config.games.len() == 1 { "" } else { "s" }
-    );
-
-    start_job(waker, &title, Job::Verify, move |context, cancel| {
-        verify_games(context, cancel, config).map(JobResult::Verify)
-    })
+    start_job(
+        waker,
+        "Verify games",
+        Job::Verify,
+        move |context, cancel| verify_games(context, cancel, config).map(JobResult::Verify),
+    )
 }
 
 fn verify_games(
@@ -39,14 +38,12 @@ fn verify_games(
     let mut verified = 0;
     let mut passed = 0;
     let mut failed = 0;
-    let mut was_cancelled = false;
 
     let total = config.games.len() as u32;
 
     for (idx, game) in config.games.into_iter().enumerate() {
         // Check for cancellation
         if should_cancel(&cancel) {
-            was_cancelled = true;
             break;
         }
 
@@ -67,36 +64,26 @@ fn verify_games(
                     VerificationStatus::FullyVerified(_, _)
                     | VerificationStatus::EmbeddedMatch(_) => {
                         passed += 1;
-                        log::info!("{} verification: PASSED", game_name);
                     }
                     VerificationStatus::Failed(_, _) => {
                         failed += 1;
-                        log::warn!("{} verification: FAILED", game_name);
                     }
-                    VerificationStatus::NotVerified => {
-                        log::info!("{} verification: NOT VERIFIED", game_name);
-                    }
+                    VerificationStatus::NotVerified => {}
                 }
             }
             Err(e) => {
                 // Check if it was cancelled
-                if e.to_string().contains("Cancelled") {
-                    was_cancelled = true;
+                if is_cancelled_error(&e) {
                     break;
                 }
                 failed += 1;
-                log::warn!("Failed to verify {}: {}", game_name, e);
+                warn!("Failed to verify {}: {}", game_name, e);
             }
         }
     }
 
     // Final status
-    let final_status = if was_cancelled {
-        format!(
-            "Verification cancelled ({} completed, {} passed, {} failed)",
-            verified, passed, failed
-        )
-    } else {
+    let final_status = if failed > 0 {
         format!(
             "Verified {} game{} ({} passed, {} failed)",
             verified,
@@ -104,8 +91,15 @@ fn verify_games(
             passed,
             failed
         )
+    } else {
+        format!(
+            "Verified {} game{}",
+            verified,
+            if verified == 1 { "" } else { "s" }
+        )
     };
 
+    // Ignore cancellation at this point, just update status
     let _ = update_status_with_bytes(&context, final_status, total, total, 1, 1, None, &cancel);
 
     Ok(Box::new(VerifyResult {
