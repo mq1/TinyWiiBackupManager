@@ -11,6 +11,7 @@ impl eframe::App for App {
         let results = std::mem::take(&mut self.jobs.results);
         for (result, status) in results {
             match result {
+                JobResult::CheckUpdate(res) => self.handle_check_update_result(status, *res),
                 JobResult::DownloadCovers(res) => self.handle_download_covers_result(status, *res),
                 JobResult::DownloadDatabase(res) => {
                     self.handle_download_database_result(status, *res)
