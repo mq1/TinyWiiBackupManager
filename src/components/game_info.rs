@@ -153,7 +153,7 @@ fn ui_game_info_content(
 
     // Check verification status and show calculated hashes if available
     let (hashes, redump) = match verification_status {
-        VerificationStatus::FullyVerified(r, h) => (Some(h), Some(r.clone())),
+        VerificationStatus::FullyVerified(r, h) => (Some(h), Some(r)),
         VerificationStatus::Failed(_, Some(h)) => {
             // Try to find redump entry for partial matches
             let redump = h.crc32.and_then(redump::find_by_crc32);

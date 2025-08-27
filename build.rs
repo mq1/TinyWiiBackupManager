@@ -7,6 +7,22 @@ use std::{
     path::Path,
 };
 
+/// Formats a hex string like "A1B2C3" into a byte array string like "0xA1, 0xB2, 0x0C3".
+fn hex_to_bytes_str(hex_str: &str) -> String {
+    hex_str
+        .as_bytes()
+        .chunks(2)
+        .fold(String::new(), |mut acc, chunk| {
+            // Append the "0x" prefix and the two hex characters.
+            acc.push_str("0x");
+            acc.push(chunk[0] as char);
+            acc.push(chunk[1] as char);
+
+            acc.push_str(", ");
+            acc
+        })
+}
+
 fn compile_redump_database() {
     #[derive(Clone, Debug, Deserialize)]
     struct DatFile {
@@ -68,26 +84,11 @@ fn compile_redump_database() {
             }
             let rom = &game.roms[0];
 
-            // Format MD5 hex string directly into byte array format
-            let md5_bytes_str = rom
-                .md5
-                .as_bytes()
-                .chunks(2)
-                .map(|chunk| format!("0x{}{}", chunk[0] as char, chunk[1] as char))
-                .collect::<Vec<_>>()
-                .join(", ");
-
-            // Format SHA1 hex string directly into byte array format
-            let sha1_bytes_str = rom
-                .sha1
-                .as_bytes()
-                .chunks(2)
-                .map(|chunk| format!("0x{}{}", chunk[0] as char, chunk[1] as char))
-                .collect::<Vec<_>>()
-                .join(", ");
-
             // Parse CRC32 hex string into u32
             let key = u32::from_str_radix(&rom.crc32, 16).expect("Failed to parse CRC32 as hex");
+
+            let md5_bytes_str = hex_to_bytes_str(&rom.md5);
+            let sha1_bytes_str = hex_to_bytes_str(&rom.sha1);
 
             let value = format!(
                 "GameResult {{ name: r#\"{}\"#, crc32: {}, md5: [{}], sha1: [{}] }}",
