@@ -71,7 +71,6 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                 }
 
                 // GameTDB menu
-                ui.label("•");
                 ui.menu_button("🎮 GameTDB", |ui| {
                     // Download database option
                     if ui
