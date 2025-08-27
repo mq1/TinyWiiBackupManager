@@ -44,7 +44,7 @@ impl CalculatedHashes {
             if let Some(redump_entry) = redump::find_by_crc32(crc32) {
                 // Check if SHA1 also matches
                 if self.sha1.is_some_and(|sha| sha == redump_entry.sha1) {
-                    VerificationStatus::FullyVerified(redump_entry, self)
+                    VerificationStatus::FullyVerified(redump_entry.clone(), self)
                 } else {
                     VerificationStatus::Failed(
                         format!(
@@ -241,7 +241,7 @@ impl Game {
             if let Some(redump_entry) = redump::find_by_crc32(crc32) {
                 // Check if other hashes match too
                 if meta.sha1.is_none_or(|sha| sha == redump_entry.sha1) {
-                    self.set_verification_status(VerificationStatus::EmbeddedMatch(redump_entry));
+                    self.set_verification_status(VerificationStatus::EmbeddedMatch(redump_entry.clone()));
                 } else {
                     // CRC32 matches but SHA1 doesn't - likely an NKit v1 scrubbed disc
                     self.set_verification_status(VerificationStatus::Failed(
