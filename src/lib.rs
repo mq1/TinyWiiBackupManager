@@ -11,6 +11,7 @@ mod game;
 mod jobs;
 mod messages;
 mod titles;
+mod toasts;
 mod update_check;
 mod util;
 
