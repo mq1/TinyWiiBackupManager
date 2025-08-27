@@ -1,6 +1,6 @@
 use super::{Job, JobContext, JobResult, JobState, start_job, update_status};
 use crate::cover_manager::CoverType;
-use crate::util::regions::REGION_TO_LANG;
+use crate::util::regions::Region;
 use anyhow::{Context, Result, bail};
 use log::{debug, info, warn};
 use std::io::Write;
@@ -141,17 +141,13 @@ fn download_with_retries(base_dir: &Path, game_id: &str, cover_type: CoverType) 
 
 fn download_single_cover(base_dir: &Path, game_id: &str, cover_type: CoverType) -> Result<()> {
     // Determine language from game ID region
-    let region_char = game_id
-        .chars()
-        .nth(3)
-        .context("Game ID too short to determine region")?;
-    let language = REGION_TO_LANG.get(&region_char).unwrap_or(&"EN");
+    let lang = Region::from_id(game_id).to_lang();
 
     // Construct GameTDB API URL
     let url = format!(
         "https://art.gametdb.com/wii/{}/{}/{}.png",
         cover_type.api_endpoint(),
-        language,
+        lang,
         game_id
     );
 
