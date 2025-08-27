@@ -1,5 +1,6 @@
 use crate::jobs::{JobQueue, JobStatus};
 use eframe::egui::{self, ProgressBar, RichText, Widget};
+use size::Size;
 use std::cmp::Ordering;
 
 pub fn jobs_ui(ui: &mut egui::Ui, jobs: &mut JobQueue) {
@@ -28,7 +29,19 @@ pub fn jobs_ui(ui: &mut egui::Ui, jobs: &mut JobQueue) {
             }
         });
         let mut bar = ProgressBar::new(status.progress_percent);
-        if let Some(items) = &status.progress_items {
+        if let Some(bytes) = status.progress_bytes {
+            let mut text = format!(
+                "{} / {}",
+                Size::from_bytes(bytes[0]),
+                Size::from_bytes(bytes[1])
+            );
+            if let Some(items) = status.progress_items
+                && items[1] > 1
+            {
+                text.push_str(&format!(" ({} / {})", items[0], items[1]));
+            }
+            bar = bar.text(text);
+        } else if let Some(items) = status.progress_items {
             bar = bar.text(format!("{} / {}", items[0], items[1]));
         }
         bar.ui(ui);

@@ -1,14 +1,15 @@
 use super::{Job, JobContext, JobResult, JobState, start_job, update_status};
 use crate::cover_manager::CoverType;
+use crate::util::download::{download_with_progress, is_404_error};
 use crate::util::regions::Region;
-use anyhow::{Context, Result, bail};
+use anyhow::{Context, Result};
 use log::{debug, info, warn};
-use std::io::Write;
+use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::Receiver;
 use std::task::Waker;
+use std::thread::sleep;
 use std::time::Duration;
-use std::{fs, io};
 use tempfile::NamedTempFile;
 
 pub struct DownloadCoversConfig {
@@ -55,15 +56,15 @@ fn download_covers(
     let mut failed = 0;
     let mut failed_ids = Vec::new();
 
-    let total = config.game_ids.len() as u32;
-
+    let total_items = config.game_ids.len() as u32;
     for (idx, game_id) in config.game_ids.iter().enumerate() {
         // Update status and check for cancellation
+        let current_item = idx as u32;
         update_status(
             &context,
             format!("Downloading cover for {}", game_id),
-            idx as u32,
-            total,
+            current_item,
+            total_items,
             &cancel,
         )?;
 
@@ -80,7 +81,15 @@ fn download_covers(
         }
 
         // Download with retries
-        match download_with_retries(&config.base_dir, game_id, config.cover_type) {
+        match download_with_retries(
+            &config.base_dir,
+            game_id,
+            config.cover_type,
+            current_item,
+            total_items,
+            &context,
+            &cancel,
+        ) {
             Ok(_) => {
                 downloaded += 1;
                 info!(
@@ -89,14 +98,14 @@ fn download_covers(
                     game_id
                 );
             }
-            Err(e) if e.to_string().contains("404") || e.to_string().contains("Not Found") => {
+            Err(e) if is_404_error(&e) => {
                 failed += 1;
                 failed_ids.push(game_id.clone());
-                debug!("Cover not found for {}: {}", game_id, e);
+                warn!("Cover not found for {}: {:#}", game_id, e);
             }
             Err(e) => {
                 failed += 1;
-                warn!("Failed to download {} cover: {}", game_id, e);
+                warn!("Failed to download {} cover: {:#}", game_id, e);
             }
         }
     }
@@ -108,8 +117,8 @@ fn download_covers(
             "Downloaded {} covers ({} skipped, {} failed)",
             downloaded, skipped, failed
         ),
-        total,
-        total,
+        total_items,
+        total_items,
         &cancel,
     )?;
 
@@ -122,16 +131,32 @@ fn download_covers(
     }))
 }
 
-fn download_with_retries(base_dir: &Path, game_id: &str, cover_type: CoverType) -> Result<()> {
+fn download_with_retries(
+    base_dir: &Path,
+    game_id: &str,
+    cover_type: CoverType,
+    current_item: u32,
+    total_items: u32,
+    context: &JobContext,
+    cancel: &Receiver<()>,
+) -> Result<()> {
     let mut attempts = 0;
     loop {
-        match download_single_cover(base_dir, game_id, cover_type) {
+        match download_single_cover(
+            base_dir,
+            game_id,
+            cover_type,
+            current_item,
+            total_items,
+            context,
+            cancel,
+        ) {
             Ok(_) => return Ok(()),
-            Err(e) if e.to_string().contains("404") || e.to_string().contains("Not Found") => {
+            Err(e) if is_404_error(&e) => {
                 return Err(e); // Don't retry 404s
             }
             Err(_) if attempts < 3 => {
-                std::thread::sleep(Duration::from_secs(1 << attempts));
+                sleep(Duration::from_secs(1 << attempts));
                 attempts += 1;
             }
             Err(e) => return Err(e),
@@ -139,7 +164,15 @@ fn download_with_retries(base_dir: &Path, game_id: &str, cover_type: CoverType) 
     }
 }
 
-fn download_single_cover(base_dir: &Path, game_id: &str, cover_type: CoverType) -> Result<()> {
+fn download_single_cover(
+    base_dir: &Path,
+    game_id: &str,
+    cover_type: CoverType,
+    current_item: u32,
+    total_items: u32,
+    context: &JobContext,
+    cancel: &Receiver<()>,
+) -> Result<()> {
     // Determine language from game ID region
     let lang = Region::from_id(game_id).to_lang();
 
@@ -152,29 +185,22 @@ fn download_single_cover(base_dir: &Path, game_id: &str, cover_type: CoverType) 
     );
 
     // Download the cover to a temporary file
-    debug!("Downloading cover from: {}", url);
-    let mut response = ureq::get(&url)
+    debug!("Downloading cover from {url}");
+    let response = ureq::get(&url)
         .call()
         .context("Failed to send HTTP request")?;
-
-    if !response.status().is_success() {
-        if response.status() == 404 {
-            bail!("404 Not Found");
-        } else {
-            bail!("HTTP error: {}", response.status());
-        }
-    }
-
-    // Write to temporary file first
     let mut temp_file =
         NamedTempFile::new().context("Failed to create temporary file for cover")?;
-
-    io::copy(&mut response.body_mut().as_reader(), &mut temp_file)
-        .context("Failed to copy cover to temporary file")?;
-
-    temp_file
-        .flush()
-        .context("Failed to flush temporary file")?;
+    download_with_progress(
+        response,
+        &mut temp_file,
+        format!("Downloading cover for {game_id}"),
+        Some(game_id.to_string()),
+        current_item,
+        total_items,
+        context,
+        cancel,
+    )?;
 
     // Create target directory structure
     let target_path = base_dir
