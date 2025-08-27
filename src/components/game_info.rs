@@ -43,7 +43,7 @@ fn ui_game_info_content(
 
     ui.horizontal(|ui| {
         ui.label(RichText::new("🌍 Region:").strong());
-        ui.label(&game.language);
+        ui.label(game.region.to_name());
     });
 
     ui.horizontal(|ui| {
