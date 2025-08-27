@@ -40,8 +40,6 @@ env_logger = "0.11"
 const_format = "0.2"
 nod = "2.0.0-alpha.3"
 hex = "0.4"
-zstd = "0.13"
-zerocopy = { version = "0.8", features = ["derive"] }
 filetime = "0.2"
 num_cpus = "1.17"
 sanitize-filename-reader-friendly = "2.3"
@@ -51,11 +49,8 @@ zip = { version = "4.5", default-features = false, features = ["deflate-flate2-z
 tempfile = "3.13"
 
 [build-dependencies]
-quick-xml = { version = "0.37", features = ["serialize"] }
+quick-xml = { version = "0.38", features = ["serialize"] }
 serde = { version = "1.0", features = ["derive"] }
-hex = { version = "0.4", features = ["serde"] }
-zstd = "0.13"
-zerocopy = { version = "0.8", features = ["derive"] }
 phf_codegen = "0.13"
 
 [target.'cfg(target_os = "macos")'.dependencies]
