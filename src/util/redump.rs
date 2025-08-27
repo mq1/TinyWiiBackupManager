@@ -1,9 +1,9 @@
-use std::{str, sync::OnceLock};
-use zerocopy::{FromBytes, FromZeros, Immutable, IntoBytes, KnownLayout};
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug)]
+/// Game result from Redump database lookup
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct GameResult {
-    pub name: String,
+    pub name: &'static str,
     pub crc32: u32,
     pub md5: [u8; 16],
     pub sha1: [u8; 20],
@@ -31,75 +31,15 @@ impl GameResult {
     }
 }
 
+// Include the generated PHF map
+include!(concat!(env!("OUT_DIR"), "/redump.rs"));
+
+/// Find a game by its CRC32 checksum
 pub fn find_by_crc32(crc32: u32) -> Option<GameResult> {
-    let data = loaded_data();
-    let (header, remaining) = Header::ref_from_prefix(data).ok()?;
-    assert_eq!(header.entry_size as usize, size_of::<GameEntry>());
-
-    let entries_size = header.entry_count as usize * size_of::<GameEntry>();
-    let (entries_buf, string_table) = remaining.split_at(entries_size);
-    let entries = <[GameEntry]>::ref_from_bytes(entries_buf).ok()?;
-
-    // Binary search by CRC32
-    let index = entries
-        .binary_search_by_key(&crc32, |entry| entry.crc32)
-        .ok()?;
-
-    // Parse the entry
-    let entry = &entries[index];
-    let offset = entry.string_table_offset as usize;
-    let name_size = u32::from_le_bytes([
-        string_table[offset],
-        string_table[offset + 1],
-        string_table[offset + 2],
-        string_table[offset + 3],
-    ]) as usize;
-    let name = str::from_utf8(&string_table[offset + 4..offset + 4 + name_size])
-        .unwrap()
-        .to_string();
-
-    Some(GameResult {
-        name,
-        crc32: entry.crc32,
-        md5: entry.md5,
-        sha1: entry.sha1,
-    })
+    REDUMP_DB.get(&crc32).cloned()
 }
 
-const BUILTIN: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/parsed-dats.bin"));
-static LOADED: OnceLock<Box<[u8]>> = OnceLock::new();
-
-fn loaded_data() -> &'static [u8] {
-    LOADED
-        .get_or_init(|| {
-            let size = zstd::zstd_safe::get_frame_content_size(BUILTIN)
-                .unwrap()
-                .unwrap() as usize;
-            let mut out = <[u8]>::new_box_zeroed_with_elems(size).unwrap();
-            let out_size = zstd::bulk::Decompressor::new()
-                .unwrap()
-                .decompress_to_buffer(BUILTIN, out.as_mut())
-                .unwrap();
-            debug_assert_eq!(out_size, size);
-            out
-        })
-        .as_ref()
-}
-
-// Keep in sync with build.rs
-#[derive(Clone, Debug, IntoBytes, FromBytes, Immutable, KnownLayout)]
-#[repr(C, align(4))]
-struct Header {
-    entry_count: u32,
-    entry_size: u32,
-}
-
-// Keep in sync with build.rs
-#[derive(Clone, Debug, IntoBytes, FromBytes, Immutable, KnownLayout)]
-#[repr(C, align(4))]
-struct GameEntry {
-    crc32: u32,
-    string_table_offset: u32,
-    md5: [u8; 16],
-    sha1: [u8; 20],
+/// Get the path to a game's redump page
+pub fn get_redump_url(crc32: u32) -> Option<String> {
+    find_by_crc32(crc32).map(|_| format!("http://redump.org/disc/{}", crc32))
 }
