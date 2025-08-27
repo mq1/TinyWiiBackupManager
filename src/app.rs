@@ -7,25 +7,21 @@ use std::path::PathBuf;
 use crate::base_dir::BaseDir;
 use crate::cover_manager::CoverManager;
 use crate::game::{Game, VerificationStatus};
-use crate::jobs::convert::ConvertResult;
-use crate::jobs::convert::{ConvertConfig, start_convert};
+use crate::jobs::check_update::{CheckUpdateConfig, CheckUpdateResult, start_check_update};
+use crate::jobs::convert::{ConvertConfig, ConvertResult, start_convert};
 use crate::jobs::download_covers::DownloadCoversResult;
 use crate::jobs::download_database::DownloadDatabaseResult;
 use crate::jobs::egui_waker::egui_waker;
-use crate::jobs::verify::VerifyResult;
-use crate::jobs::verify::{VerifyConfig, start_verify};
-use crate::jobs::{Job, JobQueue};
+use crate::jobs::verify::{VerifyConfig, VerifyResult, start_verify};
+use crate::jobs::{Job, JobQueue, JobStatus};
 use crate::messages::BackgroundMessage;
 use crate::toasts::{create_toasts, error_toast};
 use crate::update_check::UpdateInfo;
 use crate::util::gametdb;
-use crate::{
-    SUPPORTED_INPUT_EXTENSIONS, components::console_filter::ConsoleFilter, jobs, update_check,
-};
+use crate::{SUPPORTED_INPUT_EXTENSIONS, components::console_filter::ConsoleFilter};
 use anyhow::Result;
 use eframe::egui;
 use egui_inbox::UiInbox;
-use jobs::JobStatus;
 
 /// Main application state and UI controller.
 #[derive(Default)]
@@ -96,7 +92,7 @@ impl App {
         // Initialize the update checker based on the TWBM_DISABLE_UPDATES env var
         if std::env::var_os("TWBM_DISABLE_UPDATES").is_none() {
             app.spawn_update_checker();
-        };
+        }
 
         let sender = app.inbox.sender();
         if let Err(e) = app.watch_base_dir() {
@@ -203,10 +199,8 @@ impl App {
     }
 
     pub fn spawn_update_checker(&mut self) {
-        let sender = self.inbox.sender();
-        std::thread::spawn(move || match update_check::check_for_new_version() {
-            Ok(update_info) => sender.send(BackgroundMessage::UpdateCheckComplete(update_info)),
-            Err(e) => sender.send(BackgroundMessage::Error(e)),
+        self.jobs.push_once(Job::CheckUpdate, || {
+            start_check_update(egui_waker(&self.ctx), CheckUpdateConfig {})
         });
     }
 
@@ -335,6 +329,20 @@ impl App {
                 .add(error_toast("Failed to refresh games", &e));
         } else {
             self.bottom_right_toasts.success(status.status);
+        }
+    }
+
+    /// Handle check update job result
+    pub fn handle_check_update_result(&mut self, _status: JobStatus, res: CheckUpdateResult) {
+        if res.update_available
+            && let (Some(version), Some(url)) = (res.version, res.url)
+        {
+            let update_text = format!("✨Update available: {}✨    ", version);
+
+            self.bottom_left_toasts
+                .custom(update_text, "⬇".to_string(), egui::Color32::GRAY);
+
+            self.update_info = Some(UpdateInfo { version, url });
         }
     }
 }
