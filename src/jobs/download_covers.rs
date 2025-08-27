@@ -2,6 +2,7 @@ use super::{Job, JobContext, JobResult, JobState, start_job, update_status};
 use crate::cover_manager::CoverType;
 use crate::util::regions::REGION_TO_LANG;
 use anyhow::{Context, Result};
+use log::{debug, info, warn};
 use std::fs;
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -26,8 +27,7 @@ pub struct DownloadCoversResult {
 
 pub fn start_download_covers(waker: Waker, config: DownloadCoversConfig) -> JobState {
     let title = format!(
-        "Download {} {} covers",
-        config.game_ids.len(),
+        "Download {} covers",
         match config.cover_type {
             CoverType::Cover3D => "3D",
             CoverType::Cover2D => "2D",
@@ -83,7 +83,7 @@ fn download_covers(
         match download_with_retries(&config.base_dir, game_id, config.cover_type) {
             Ok(_) => {
                 downloaded += 1;
-                log::info!(
+                info!(
                     "Downloaded {} cover for {}",
                     config.cover_type.name(),
                     game_id
@@ -92,11 +92,11 @@ fn download_covers(
             Err(e) if e.to_string().contains("404") || e.to_string().contains("Not Found") => {
                 failed += 1;
                 failed_ids.push(game_id.clone());
-                log::debug!("Cover not found for {}: {}", game_id, e);
+                debug!("Cover not found for {}: {}", game_id, e);
             }
             Err(e) => {
                 failed += 1;
-                log::warn!("Failed to download {} cover: {}", game_id, e);
+                warn!("Failed to download {} cover: {}", game_id, e);
             }
         }
     }
@@ -104,7 +104,10 @@ fn download_covers(
     // Final status
     update_status(
         &context,
-        format!("Downloaded {} covers", downloaded),
+        format!(
+            "Downloaded {} covers ({} skipped, {} failed)",
+            downloaded, skipped, failed
+        ),
         total,
         total,
         &cancel,
@@ -127,7 +130,7 @@ fn download_with_retries(base_dir: &Path, game_id: &str, cover_type: CoverType) 
             Err(e) if e.to_string().contains("404") || e.to_string().contains("Not Found") => {
                 return Err(e); // Don't retry 404s
             }
-            Err(_e) if attempts < 3 => {
+            Err(_) if attempts < 3 => {
                 std::thread::sleep(Duration::from_secs(1 << attempts));
                 attempts += 1;
             }
@@ -153,7 +156,7 @@ fn download_single_cover(base_dir: &Path, game_id: &str, cover_type: CoverType) 
     );
 
     // Download the cover to a temporary file
-    log::debug!("Downloading cover from: {}", url);
+    debug!("Downloading cover from: {}", url);
     let response = reqwest::blocking::get(&url).context("Failed to send HTTP request")?;
 
     if !response.status().is_success() {

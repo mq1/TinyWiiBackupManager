@@ -89,8 +89,8 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                                 config,
                             )
                         });
-                        app.top_left_toasts
-                            .info("Downloading GameTDB database in background...");
+                        app.bottom_right_toasts
+                            .info("Downloading GameTDB database...");
                     }
 
                     ui.separator();
@@ -110,7 +110,11 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                             .filter(|id| !cover_manager.is_failed(id, CoverType::Cover3D))
                             .collect();
 
-                        if !game_ids.is_empty() {
+                        if game_ids.is_empty() {
+                            app.bottom_right_toasts
+                                .info("All 3D covers already downloaded.");
+                        } else {
+                            let num_covers = game_ids.len();
                             let config = download_covers::DownloadCoversConfig {
                                 base_dir: cover_manager.base_dir().clone(),
                                 cover_type: CoverType::Cover3D,
@@ -122,8 +126,8 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                                     config,
                                 )
                             });
-                            app.top_left_toasts
-                                .info("Downloading covers in background...");
+                            app.bottom_right_toasts
+                                .info(format!("Downloading 3D covers for {num_covers} games..."));
                         }
                     }
 
@@ -141,7 +145,11 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                             .filter(|id| !cover_manager.is_failed(id, CoverType::Cover2D))
                             .collect();
 
-                        if !game_ids.is_empty() {
+                        if game_ids.is_empty() {
+                            app.bottom_right_toasts
+                                .info("All 2D covers already downloaded.");
+                        } else {
+                            let num_covers = game_ids.len();
                             let config = download_covers::DownloadCoversConfig {
                                 base_dir: cover_manager.base_dir().clone(),
                                 cover_type: CoverType::Cover2D,
@@ -153,8 +161,8 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                                     config,
                                 )
                             });
-                            app.top_left_toasts
-                                .info("Downloading covers in background...");
+                            app.bottom_right_toasts
+                                .info(format!("Downloading 2D covers for {num_covers} games..."));
                         }
                     }
 
@@ -172,7 +180,11 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                             .filter(|id| !cover_manager.is_failed(id, CoverType::CoverFull))
                             .collect();
 
-                        if !game_ids.is_empty() {
+                        if game_ids.is_empty() {
+                            app.bottom_right_toasts
+                                .info("All full covers already downloaded.");
+                        } else {
+                            let num_covers = game_ids.len();
                             let config = download_covers::DownloadCoversConfig {
                                 base_dir: cover_manager.base_dir().clone(),
                                 cover_type: CoverType::CoverFull,
@@ -184,8 +196,8 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                                     config,
                                 )
                             });
-                            app.top_left_toasts
-                                .info("Downloading covers in background...");
+                            app.bottom_right_toasts
+                                .info(format!("Downloading full covers for {num_covers} games..."));
                         }
                     }
 
@@ -203,7 +215,11 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                             .filter(|id| !cover_manager.is_failed(id, CoverType::Disc))
                             .collect();
 
-                        if !game_ids.is_empty() {
+                        if game_ids.is_empty() {
+                            app.bottom_right_toasts
+                                .info("All disc art already downloaded.");
+                        } else {
+                            let num_covers = game_ids.len();
                             let config = download_covers::DownloadCoversConfig {
                                 base_dir: cover_manager.base_dir().clone(),
                                 cover_type: CoverType::Disc,
@@ -215,8 +231,8 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                                     config,
                                 )
                             });
-                            app.top_left_toasts
-                                .info("Downloading covers in background...");
+                            app.bottom_right_toasts
+                                .info(format!("Downloading disc art for {num_covers} games..."));
                         }
                     }
                 });
@@ -227,7 +243,11 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                 ui.label("•");
                 ui.menu_button("🛠 Tests", |ui| {
                     if ui.button("❌ Test Error").clicked() {
-                        let _ = sender.send(BackgroundMessage::Error(anyhow!("Test error")));
+                        let _ = sender.send(BackgroundMessage::Error(
+                            anyhow!("Test error")
+                                .context("Doing something")
+                                .context("In ui_top_panel"),
+                        ));
                     }
 
                     if ui.button("❌ Test Error 2").clicked() {
