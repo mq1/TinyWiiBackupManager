@@ -2,13 +2,14 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use crate::SUPPORTED_INPUT_EXTENSIONS;
-use crate::titles::GAME_TITLES;
 use crate::util::{gametdb::GameTDB, redump, regions::REGION_TO_LANG};
 use anyhow::{Context, Result, bail};
 use filetime::FileTime;
 use nod::read::{DiscMeta, DiscOptions, DiscReader};
 use std::path::{Path, PathBuf};
 use std::{fs, io};
+
+include!(concat!(env!("OUT_DIR"), "/titles.rs"));
 
 /// Represents the console type for a game
 #[derive(Clone, Copy, Debug, PartialEq)]
