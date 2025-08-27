@@ -174,7 +174,7 @@ fn ui_game_info_content(
                         .strong(),
                 );
                 let hash_text = format!("{:08x}", crc32);
-                let hash_color = if let Some(ref r) = redump {
+                let hash_color = if let Some(r) = redump {
                     if r.crc32 == crc32 {
                         egui::Color32::DARK_GREEN
                     } else {
@@ -198,7 +198,7 @@ fn ui_game_info_content(
                         .strong(),
                 );
                 let hash_text = hex::encode(sha1);
-                let hash_color = if let Some(ref r) = redump {
+                let hash_color = if let Some(r) = redump {
                     if r.sha1 == sha1 {
                         egui::Color32::DARK_GREEN
                     } else {

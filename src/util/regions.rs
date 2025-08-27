@@ -70,11 +70,11 @@ impl Region {
         Self(id.chars().nth(3).unwrap_or('E'))
     }
 
-    pub fn to_lang(&self) -> &'static str {
+    pub fn to_lang(self) -> &'static str {
         REGION_TO_LANG.get(&self.0).unwrap_or(&"EN")
     }
 
-    pub fn to_name(&self) -> &'static str {
+    pub fn to_name(self) -> &'static str {
         REGION_MAP.get(&self.0).unwrap_or(&"Unknown")
     }
 }
