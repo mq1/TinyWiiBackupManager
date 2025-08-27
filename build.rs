@@ -1,69 +1,61 @@
+use serde::Deserialize;
 use std::{
+    collections::HashMap,
     env,
     fs::File,
     io::{BufRead, BufReader, BufWriter, Write},
-    mem::size_of,
     path::Path,
 };
 
-use hex::deserialize as deserialize_hex;
-use serde::Deserialize;
-use zerocopy::{Immutable, IntoBytes, KnownLayout};
+/// Formats a hex string like "A1B2C3" into a byte array string like "0xA1, 0xB2, 0x0C3".
+fn hex_to_bytes_str(hex_str: &str) -> String {
+    hex_str
+        .as_bytes()
+        .chunks(2)
+        .fold(String::new(), |mut acc, chunk| {
+            // Append the "0x" prefix and the two hex characters.
+            acc.push_str("0x");
+            acc.push(chunk[0] as char);
+            acc.push(chunk[1] as char);
 
-// Keep in sync with src/util/redump.rs
-#[derive(Clone, Debug, IntoBytes, Immutable, KnownLayout)]
-#[repr(C, align(4))]
-struct Header {
-    entry_count: u32,
-    entry_size: u32,
-}
-
-// Keep in sync with src/util/redump.rs
-#[derive(Clone, Debug, IntoBytes, Immutable, KnownLayout)]
-#[repr(C, align(4))]
-struct GameEntry {
-    crc32: u32,
-    string_table_offset: u32,
-    md5: [u8; 16],
-    sha1: [u8; 20],
-}
-
-#[derive(Clone, Debug, Deserialize)]
-struct DatFile {
-    #[serde(rename = "game")]
-    games: Vec<DatGame>,
-}
-
-#[derive(Clone, Debug, Deserialize)]
-struct DatGame {
-    #[serde(rename = "@name")]
-    name: String,
-    #[serde(rename = "rom")]
-    roms: Vec<DatGameRom>,
-}
-
-#[derive(Clone, Debug, Deserialize)]
-struct DatGameRom {
-    #[serde(rename = "@size")]
-    #[allow(dead_code)]
-    size: u64,
-    #[serde(rename = "@crc", deserialize_with = "deserialize_hex")]
-    crc32: [u8; 4],
-    #[serde(rename = "@md5", deserialize_with = "deserialize_hex")]
-    md5: [u8; 16],
-    #[serde(rename = "@sha1", deserialize_with = "deserialize_hex")]
-    sha1: [u8; 20],
+            acc.push_str(", ");
+            acc
+        })
 }
 
 fn compile_redump_database() {
-    let out_dir = env::var("OUT_DIR").unwrap();
-    let dest_path = Path::new(&out_dir).join("parsed-dats.bin");
-    let out_file = File::create(dest_path).expect("Failed to open out file");
-    let mut out = zstd::Encoder::new(BufWriter::new(out_file), zstd::zstd_safe::max_c_level())
-        .expect("Failed to create zstd encoder");
+    #[derive(Clone, Debug, Deserialize)]
+    struct DatFile {
+        #[serde(rename = "game")]
+        games: Vec<DatGame>,
+    }
 
-    // Parse dat files
-    let mut entries = Vec::<(GameEntry, String)>::new();
+    #[derive(Clone, Debug, Deserialize)]
+    struct DatGame {
+        #[serde(rename = "@name")]
+        name: String,
+        #[serde(rename = "rom")]
+        roms: Vec<DatGameRom>,
+    }
+
+    #[derive(Clone, Debug, Deserialize)]
+    struct DatGameRom {
+        #[serde(rename = "@size")]
+        #[allow(dead_code)]
+        size: u64,
+        #[serde(rename = "@crc")]
+        crc32: String,
+        #[serde(rename = "@md5")]
+        md5: String,
+        #[serde(rename = "@sha1")]
+        sha1: String,
+    }
+
+    // Path for the generated code snippet in the build output directory
+    let path = Path::new(&env::var("OUT_DIR").unwrap()).join("redump.rs");
+    let mut file = BufWriter::new(File::create(&path).unwrap());
+
+    // Re-run the build script if any of the dat files change
     for path in [
         "assets/gc-non-redump.dat",
         "assets/gc-npdp.dat",
@@ -71,64 +63,57 @@ fn compile_redump_database() {
         "assets/wii-redump.dat",
     ] {
         println!("cargo:rustc-rerun-if-changed={}", path);
+    }
+
+    // Use a HashMap to handle duplicates (last entry wins)
+    let mut entries = HashMap::new();
+
+    // Parse dat files and collect all entries
+    for path in [
+        "assets/gc-non-redump.dat",
+        "assets/gc-npdp.dat",
+        "assets/gc-redump.dat",
+        "assets/wii-redump.dat",
+    ] {
         let file = BufReader::new(File::open(path).expect("Failed to open dat file"));
         let dat: DatFile = quick_xml::de::from_reader(file).expect("Failed to parse dat file");
-        entries.extend(dat.games.into_iter().filter_map(|game| {
+
+        for game in dat.games {
             if game.roms.len() != 1 {
-                return None;
+                continue;
             }
             let rom = &game.roms[0];
-            Some((
-                GameEntry {
-                    string_table_offset: 0,
-                    crc32: u32::from_be_bytes(rom.crc32),
-                    md5: rom.md5,
-                    sha1: rom.sha1,
-                },
-                game.name,
-            ))
-        }));
+
+            // Parse CRC32 hex string into u32
+            let key = u32::from_str_radix(&rom.crc32, 16).expect("Failed to parse CRC32 as hex");
+
+            let md5_bytes_str = hex_to_bytes_str(&rom.md5);
+            let sha1_bytes_str = hex_to_bytes_str(&rom.sha1);
+
+            let value = format!(
+                "GameResult {{ name: r#\"{}\"#, crc32: {}, md5: [{}], sha1: [{}] }}",
+                game.name, key, md5_bytes_str, sha1_bytes_str
+            );
+
+            // Insert or update the entry (later files will override earlier ones)
+            entries.insert(key, value);
+        }
     }
 
-    // Sort by CRC32
-    entries.sort_by_key(|(entry, _)| entry.crc32);
-
-    // Calculate total size and store in zstd header
-    let entries_size = entries.len() * size_of::<GameEntry>();
-    let string_table_size = entries
-        .iter()
-        .map(|(_, name)| name.len() + 4)
-        .sum::<usize>();
-    let total_size = size_of::<Header>() + entries_size + string_table_size;
-    out.set_pledged_src_size(Some(total_size as u64)).unwrap();
-    out.include_contentsize(true).unwrap();
-
-    // Write game entries
-    let header = Header {
-        entry_count: entries.len() as u32,
-        entry_size: size_of::<GameEntry>() as u32,
-    };
-    out.write_all(header.as_bytes()).unwrap();
-    let mut string_table_offset = 0u32;
-    for (entry, name) in &mut entries {
-        entry.string_table_offset = string_table_offset;
-        out.write_all(entry.as_bytes()).unwrap();
-        string_table_offset += name.len() as u32 + 4;
+    // Build the PHF map from the deduplicated entries
+    let mut map_builder = phf_codegen::Map::new();
+    for (crc32, value) in entries {
+        map_builder.entry(crc32, value);
     }
 
-    // Write string table
-    for (_, name) in &entries {
-        out.write_all(&(name.len() as u32).to_le_bytes()).unwrap();
-        out.write_all(name.as_bytes()).unwrap();
-    }
-
-    // Finalize
-    out.finish()
-        .expect("Failed to finish zstd encoder")
-        .flush()
-        .expect("Failed to flush output file");
-
-    println!("cargo:rustc-env=REDUMP_DB_COUNT={}", entries.len());
+    // Write the generated map directly into the output file.
+    // This is not just a variable, but the full phf::phf_map! macro invocation.
+    writeln!(
+        &mut file,
+        "static REDUMP_DB: phf::Map<u32, GameResult> = {};",
+        map_builder.build()
+    )
+    .unwrap();
 }
 
 fn compile_titles() {

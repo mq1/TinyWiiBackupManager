@@ -25,6 +25,13 @@ pub fn ui_bottom_panel(ctx: &egui::Context, app: &mut App) {
 
                 ui.separator();
                 ui_console_filter(ui, &mut app.console_filter);
+
+                // Show jobs menu UI
+                ui.separator();
+                if crate::components::jobs::jobs_menu_ui(ui, &mut app.jobs) {
+                    app.show_jobs_window = true;
+                }
+                ui.label("Jobs:");
             });
         });
     });

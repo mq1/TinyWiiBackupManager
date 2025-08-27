@@ -2,43 +2,15 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use crate::SUPPORTED_INPUT_EXTENSIONS;
-use crate::util::redump;
+use crate::util::regions::Region;
+use crate::util::{gametdb::GameTDB, redump};
 use anyhow::{Context, Result, bail};
 use filetime::FileTime;
 use nod::read::{DiscMeta, DiscOptions, DiscReader};
-use phf::phf_map;
 use std::path::{Path, PathBuf};
 use std::{fs, io};
 
 include!(concat!(env!("OUT_DIR"), "/titles.rs"));
-
-// A static map to convert the region character from a game's ID to a language code
-// used by the GameTDB API for fetching cover art.
-static REGION_TO_LANG: phf::Map<char, &'static str> = phf_map! {
-    'A' => "EN", // System Wii Channels (i.e. Mii Channel)
-    'B' => "EN", // Ufouria: The Saga (NA)
-    'D' => "DE", // Germany
-    'E' => "US", // USA
-    'F' => "FR", // France
-    'H' => "NL", // Netherlands
-    'I' => "IT", // Italy
-    'J' => "JA", // Japan
-    'K' => "KO", // Korea
-    'L' => "EN", // Japanese import to Europe, Australia and other PAL regions
-    'M' => "EN", // American import to Europe, Australia and other PAL regions
-    'N' => "US", // Japanese import to USA and other NTSC regions
-    'P' => "EN", // Europe and other PAL regions such as Australia
-    'Q' => "KO", // Japanese Virtual Console import to Korea
-    'R' => "RU", // Russia
-    'S' => "ES", // Spain
-    'T' => "KO", // American Virtual Console import to Korea
-    'U' => "EN", // Australia / Europe alternate languages
-    'V' => "EN", // Scandinavia
-    'W' => "ZH", // Republic of China (Taiwan) / Hong Kong / Macau
-    'X' => "EN", // Europe alternate languages / US special releases
-    'Y' => "EN", // Europe alternate languages / US special releases
-    'Z' => "EN", // Europe alternate languages / US special releases
-};
 
 /// Represents the console type for a game
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -73,7 +45,7 @@ impl CalculatedHashes {
             if let Some(redump_entry) = redump::find_by_crc32(crc32) {
                 // Check if SHA1 also matches
                 if self.sha1.is_some_and(|sha| sha == redump_entry.sha1) {
-                    VerificationStatus::FullyVerified(redump_entry, self)
+                    VerificationStatus::FullyVerified(redump_entry.clone(), self)
                 } else {
                     VerificationStatus::Failed(
                         format!(
@@ -123,7 +95,7 @@ pub struct Game {
     pub title: String,
     pub display_title: String,
     pub path: PathBuf,
-    pub language: String,
+    pub region: Region,
     pub info_url: String,
     pub image_url: String,
     /// State of disc metadata loading
@@ -138,27 +110,24 @@ impl Game {
     ///
     /// The path is expected to be a directory containing the game files, with a name
     /// format like "My Game Title [GAMEID]".
-    pub fn from_path(path: PathBuf, console: ConsoleType) -> Result<Self> {
+    pub fn from_path(path: PathBuf, console: ConsoleType, base_dir: Option<&Path>) -> Result<Self> {
         let (id, title) = Self::parse_filename(&path)?;
 
-        // Use the title from the GameTDB database if available, otherwise, fall back to the
-        // parsed title from the file name.
-        let display_title = GAME_TITLES.get(&id).copied().unwrap_or(&title).to_string();
+        // Try GameTDB first, then fall back to built-in titles, then the parsed title
+        let display_title = if let Some(base_dir) = base_dir
+            && let Some(gametdb) = GameTDB::load_from_base_dir(base_dir)
+            && let Some(gametdb_title) = gametdb.get_title(&id, None)
+        {
+            gametdb_title
+        } else {
+            GAME_TITLES.get(&id).copied().unwrap_or(&title).to_string()
+        };
 
-        // The 4th character in a Wii/GameCube ID represents the region.
-        // We use this to determine the language for fetching the correct cover art.
-        let region_code = id
-            .chars()
-            .nth(3)
-            .context("Game ID is missing a region code")?;
-        let language = REGION_TO_LANG
-            .get(&region_code)
-            .copied()
-            .unwrap_or("EN")
-            .to_string();
+        let region = Region::from_id(&id);
+        let lang = region.to_lang();
 
         let info_url = format!("https://www.gametdb.com/Wii/{id}");
-        let image_url = format!("https://art.gametdb.com/wii/cover3D/{language}/{id}.png");
+        let image_url = format!("https://art.gametdb.com/wii/cover3D/{lang}/{id}.png");
 
         let size = fs_extra::dir::get_size(&path)
             .with_context(|| format!("Failed to get size of dir: {}", path.display()))?;
@@ -169,7 +138,7 @@ impl Game {
             title,
             display_title,
             path,
-            language,
+            region,
             info_url,
             image_url,
             disc_meta: DiscMetaState::NotLoaded, // Will be loaded on demand
@@ -264,7 +233,9 @@ impl Game {
             if let Some(redump_entry) = redump::find_by_crc32(crc32) {
                 // Check if other hashes match too
                 if meta.sha1.is_none_or(|sha| sha == redump_entry.sha1) {
-                    self.set_verification_status(VerificationStatus::EmbeddedMatch(redump_entry));
+                    self.set_verification_status(VerificationStatus::EmbeddedMatch(
+                        redump_entry.clone(),
+                    ));
                 } else {
                     // CRC32 matches but SHA1 doesn't - likely an NKit v1 scrubbed disc
                     self.set_verification_status(VerificationStatus::Failed(
