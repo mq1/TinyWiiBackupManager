@@ -1,4 +1,5 @@
 use anyhow::Result;
+use log::{debug, error, info};
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::fs::File;
@@ -84,12 +85,12 @@ pub struct GameTDB {
 pub fn clear_cache() {
     let mut cache = GAMETDB_INSTANCE.lock().unwrap();
     *cache = CacheState::NotLoaded;
-    log::info!("GameTDB cache cleared");
+    info!("GameTDB cache cleared");
 }
 
 impl GameTDB {
     pub fn load(path: &Path) -> Result<Self> {
-        log::info!("Loading GameTDB from: {:?}", path);
+        info!("Loading GameTDB from: {:?}", path);
 
         let file = BufReader::new(File::open(path)?);
         let db: WiiTDBFile = quick_xml::de::from_reader(file)?;
@@ -109,7 +110,7 @@ impl GameTDB {
             }
         }
 
-        log::info!("Loaded {} unique game IDs from GameTDB", games.len());
+        info!("Loaded {} unique game IDs from GameTDB", games.len());
         Ok(Self { games })
     }
 
@@ -131,19 +132,19 @@ impl GameTDB {
                 if wiitdb_path.exists() {
                     match Self::load(&wiitdb_path) {
                         Ok(db) => {
-                            log::info!("GameTDB loaded successfully from {:?}", wiitdb_path);
+                            info!("GameTDB loaded successfully from {:?}", wiitdb_path);
                             let arc_db = Arc::new(db);
                             *cache = CacheState::Loaded(Arc::clone(&arc_db));
                             Some(arc_db)
                         }
                         Err(e) => {
-                            log::error!("Failed to load GameTDB: {}", e);
+                            error!("Failed to load GameTDB: {}", e);
                             *cache = CacheState::Failed;
                             None
                         }
                     }
                 } else {
-                    log::debug!("GameTDB not found at {:?}", wiitdb_path);
+                    debug!("GameTDB not found at {:?}", wiitdb_path);
                     *cache = CacheState::Failed;
                     None
                 }
@@ -273,15 +274,10 @@ impl GameTDB {
             .filter(|g| g.id.len() == 6) // Count only full IDs
             .count()
     }
-
-    #[allow(dead_code)] // May be useful for testing or future hot-reload features
-    pub fn clear_cache() {
-        // This would only be used in tests or when reloading
-        // Since we use OnceLock, we can't actually clear it in production
-        // But this is here for API completeness
-    }
 }
 
+// All tests require a wiitdb.xml file in the project root (https://www.gametdb.com/wiitdb.zip)
+// The file is very large and not included in the repository, so these tests are ignored by default.
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -292,6 +288,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_load_wiitdb() {
         let path = get_test_wiitdb_path();
         if !path.exists() {
@@ -308,6 +305,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_get_game_by_id() {
         let path = get_test_wiitdb_path();
         if !path.exists() {
@@ -327,6 +325,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_get_game_with_partial_id() {
         let path = get_test_wiitdb_path();
         if !path.exists() {
@@ -346,6 +345,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_get_title() {
         let path = get_test_wiitdb_path();
         if !path.exists() {
@@ -372,6 +372,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_get_synopsis() {
         let path = get_test_wiitdb_path();
         if !path.exists() {
@@ -390,6 +391,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_game_metadata() {
         let path = get_test_wiitdb_path();
         if !path.exists() {
@@ -414,6 +416,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_multiple_locales() {
         let path = get_test_wiitdb_path();
         if !path.exists() {
@@ -434,6 +437,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_rating_info() {
         let path = get_test_wiitdb_path();
         if !path.exists() {
@@ -452,6 +456,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_nonexistent_game() {
         let path = get_test_wiitdb_path();
         if !path.exists() {
@@ -472,6 +477,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_additional_metadata() {
         let path = get_test_wiitdb_path();
         if !path.exists() {
