@@ -10,7 +10,6 @@ use ureq::http::Response;
 
 /// Reads from an HTTP response body in chunks, writing to the provided output writer,
 /// while updating the job context with download progress.
-#[allow(clippy::too_many_arguments)]
 pub fn download_with_progress<W: Write>(
     response: Response<Body>,
     out: &mut W,
@@ -69,10 +68,13 @@ pub fn download_with_progress<W: Write>(
 /// Attempts to execute the provided closure up to `max_attempts` times, with
 /// exponential backoff between attempts. If the closure returns an error,
 /// it will be retried unless the error is a 404 Not Found error.
-pub fn download_with_retries<T>(max_attempts: u32, mut cb: impl FnMut() -> Result<T>) -> Result<T> {
+pub fn download_with_retries<T>(
+    max_attempts: u32,
+    mut cb: impl FnMut(u32) -> Result<T>,
+) -> Result<T> {
     let mut attempts = 0;
     loop {
-        match cb() {
+        match cb(attempts) {
             Ok(v) => return Ok(v),
             // Retry on all errors except 404 Not Found, up to max_attempts
             Err(e) if is_404_error(&e) || attempts >= max_attempts => return Err(e),

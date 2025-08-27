@@ -79,13 +79,14 @@ fn download_covers(
         }
 
         // Download with retries
-        match download_with_retries(3, || {
+        match download_with_retries(3, |attempt| {
             download_single_cover(
                 &config.base_dir,
                 game_id,
                 config.cover_type,
                 current_item,
                 total_items,
+                attempt,
                 &context,
                 &cancel,
             )
@@ -137,6 +138,7 @@ fn download_single_cover(
     cover_type: CoverType,
     current_item: u32,
     total_items: u32,
+    attempt: u32,
     context: &JobContext,
     cancel: &Receiver<()>,
 ) -> Result<()> {
@@ -158,10 +160,14 @@ fn download_single_cover(
         .context("Failed to send HTTP request")?;
     let mut temp_file =
         NamedTempFile::new().context("Failed to create temporary file for cover")?;
+    let mut status = format!("Downloading cover for {game_id}");
+    if attempt > 0 {
+        status += &format!(" (attempt {})", attempt + 1);
+    }
     download_with_progress(
         response,
         &mut temp_file,
-        format!("Downloading cover for {game_id}"),
+        status,
         Some(game_id.to_string()),
         current_item,
         total_items,

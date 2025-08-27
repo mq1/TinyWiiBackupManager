@@ -40,8 +40,8 @@ fn download_database(
 ) -> Result<Box<DownloadDatabaseResult>> {
     update_status(&context, STATUS_MESSAGE.to_string(), 0, 1, &cancel)?;
 
-    match download_with_retries(3, || {
-        download_and_extract_database(&config.base_dir, &context, &cancel)
+    match download_with_retries(3, |attempt| {
+        download_and_extract_database(&config.base_dir, attempt, &context, &cancel)
     }) {
         Ok(path) => {
             info!("GameTDB database updated successfully at: {:?}", path);
@@ -65,6 +65,7 @@ fn download_database(
 /// Handles the blocking logic of downloading and extracting the database.
 fn download_and_extract_database(
     base_dir: &Path,
+    attempt: u32,
     context: &JobContext,
     cancel: &Receiver<()>,
 ) -> Result<PathBuf> {
@@ -86,10 +87,14 @@ fn download_and_extract_database(
     } else {
         Vec::new()
     };
+    let mut status = STATUS_MESSAGE.to_string();
+    if attempt > 0 {
+        status += &format!(" (attempt {})", attempt + 1);
+    }
     download_with_progress(
         response,
         &mut buffer,
-        STATUS_MESSAGE.to_string(),
+        status,
         Some("wiitdb.zip".to_string()),
         0,
         1,
