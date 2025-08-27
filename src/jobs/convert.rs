@@ -12,8 +12,6 @@ use sanitize_filename_reader_friendly::sanitize;
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
-use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::Receiver;
 use std::task::Waker;
 
@@ -49,14 +47,14 @@ fn convert_games(
     let mut converted = 0;
     let mut failed = 0;
     let mut failed_paths = Vec::new();
+    let mut was_cancelled = false;
 
     let total = config.paths.len() as u32;
-    let cancelled = Arc::new(AtomicBool::new(false));
 
     for (idx, path) in config.paths.iter().enumerate() {
         // Check for cancellation
         if should_cancel(&cancel) {
-            cancelled.store(true, Ordering::Relaxed);
+            was_cancelled = true;
             break;
         }
 
@@ -76,7 +74,6 @@ fn convert_games(
             file_name.clone(),
             &context,
             &cancel,
-            Arc::clone(&cancelled),
         ) {
             Ok((game_path, _calculated_hashes)) => {
                 converted += 1;
@@ -92,7 +89,7 @@ fn convert_games(
             Err(e) => {
                 // Check if it was cancelled
                 if e.to_string().contains("Cancelled") {
-                    cancelled.store(true, Ordering::Relaxed);
+                    was_cancelled = true;
                     break;
                 }
                 failed += 1;
@@ -103,7 +100,7 @@ fn convert_games(
     }
 
     // Final status
-    let final_status = if cancelled.load(Ordering::Relaxed) {
+    let final_status = if was_cancelled {
         format!("Conversion cancelled ({} completed)", converted)
     } else {
         format!(
@@ -131,7 +128,6 @@ fn convert_game(
     file_name: String,
     context: &JobContext,
     cancel: &Receiver<()>,
-    cancelled: Arc<AtomicBool>,
 ) -> Result<(PathBuf, CalculatedHashes)> {
     info!("Opening disc image: {}", input_path.display());
 
@@ -198,16 +194,10 @@ fn convert_game(
 
     let finalization = disc_writer.process(
         |data, progress, total| {
-            // Check for cancellation
-            if cancelled.load(Ordering::Relaxed) {
-                return Err(io::Error::new(
-                    io::ErrorKind::Interrupted,
-                    "Operation cancelled by user",
-                ));
-            }
+            // Check for cancellation via should_cancel check in update_status_with_bytes
             split_writer.write_all(data.as_ref())?;
 
-            // Send progress updates
+            // Send progress updates (this will check for cancellation)
             update_status_with_bytes(
                 context,
                 format!("Converting {}", file_name),
