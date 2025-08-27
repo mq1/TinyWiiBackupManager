@@ -4,9 +4,9 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::BufReader;
 use std::path::Path;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
-static GAMETDB_INSTANCE: Mutex<Option<Option<GameTDB>>> = Mutex::new(None);
+static GAMETDB_INSTANCE: Mutex<Option<Option<Arc<GameTDB>>>> = Mutex::new(None);
 
 #[derive(Debug, Deserialize)]
 struct WiiTDBFile {
@@ -103,16 +103,12 @@ impl GameTDB {
         Ok(Self { games })
     }
 
-    pub fn load_from_base_dir(base_dir: &Path) -> Option<Box<Self>> {
+    pub fn load_from_base_dir(base_dir: &Path) -> Option<Arc<Self>> {
         let mut cache = GAMETDB_INSTANCE.lock().unwrap();
 
-        // If already cached, return a clone
+        // If already cached, return a clone of the Arc
         if let Some(ref cached) = *cache {
-            return cached.as_ref().map(|db| {
-                Box::new(Self {
-                    games: db.games.clone(),
-                })
-            });
+            return cached.as_ref().map(Arc::clone);
         }
 
         // Try to load from file
@@ -121,7 +117,7 @@ impl GameTDB {
             match Self::load(&wiitdb_path) {
                 Ok(db) => {
                     log::info!("GameTDB loaded successfully from {:?}", wiitdb_path);
-                    Some(db)
+                    Some(Arc::new(db))
                 }
                 Err(e) => {
                     log::error!("Failed to load GameTDB: {}", e);
@@ -137,7 +133,7 @@ impl GameTDB {
         *cache = Some(result.clone());
 
         // Return the result
-        result.map(Box::new)
+        result
     }
 
     pub fn get_game(&self, id: &str) -> Option<&GameEntry> {

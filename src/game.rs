@@ -112,16 +112,11 @@ impl Game {
         let (id, title) = Self::parse_filename(&path)?;
 
         // Try GameTDB first, then fall back to built-in titles, then the parsed title
-        let display_title = if let Some(base_dir) = base_dir {
-            if let Some(gametdb) = GameTDB::load_from_base_dir(base_dir) {
-                if let Some(gametdb_title) = gametdb.get_title(&id, None) {
-                    gametdb_title
-                } else {
-                    GAME_TITLES.get(&id).copied().unwrap_or(&title).to_string()
-                }
-            } else {
-                GAME_TITLES.get(&id).copied().unwrap_or(&title).to_string()
-            }
+        let display_title = if let Some(base_dir) = base_dir
+            && let Some(gametdb) = GameTDB::load_from_base_dir(base_dir)
+            && let Some(gametdb_title) = gametdb.get_title(&id, None)
+        {
+            gametdb_title
         } else {
             GAME_TITLES.get(&id).copied().unwrap_or(&title).to_string()
         };

@@ -53,8 +53,6 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
             });
     });
 
-    // Cover downloads are now handled via the GameTDB menu
-
     if let Some(game) = to_remove
         && let Err(e) = game.remove()
     {
@@ -116,7 +114,6 @@ fn ui_game_card(
                 // Handle cover art
                 if let Some(cover_manager) = cover_manager {
                     let cover_path = cover_manager.get_cover_path(&game.id, CoverType::Cover3D);
-
                     if cover_path.exists() {
                         // Show existing local cover
                         let image = Image::new(format!("file://{}", cover_path.display()))
@@ -124,7 +121,7 @@ fn ui_game_card(
                             .maintain_aspect_ratio(true);
                         ui.add(image);
                     } else {
-                        // Show placeholder - covers can be downloaded via the GameTDB menu
+                        // Show placeholder
                         ui.allocate_ui(egui::vec2(128.0, 128.0), |ui| {
                             ui.centered_and_justified(|ui| {
                                 ui.label("📦");
