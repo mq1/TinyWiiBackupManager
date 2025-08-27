@@ -6,7 +6,17 @@ use std::io::BufReader;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 
-static GAMETDB_INSTANCE: Mutex<Option<Option<Arc<GameTDB>>>> = Mutex::new(None);
+/// Cache state for GameTDB instance
+enum CacheState {
+    /// Not yet attempted to load
+    NotLoaded,
+    /// Successfully loaded and cached
+    Loaded(Arc<GameTDB>),
+    /// Attempted to load but failed (file doesn't exist or parse error)
+    Failed,
+}
+
+static GAMETDB_INSTANCE: Mutex<CacheState> = Mutex::new(CacheState::NotLoaded);
 
 #[derive(Debug, Deserialize)]
 struct WiiTDBFile {
@@ -73,7 +83,7 @@ pub struct GameTDB {
 /// Clear the cached GameTDB instance to force reload on next access
 pub fn clear_cache() {
     let mut cache = GAMETDB_INSTANCE.lock().unwrap();
-    *cache = None;
+    *cache = CacheState::NotLoaded;
     log::info!("GameTDB cache cleared");
 }
 
@@ -106,34 +116,39 @@ impl GameTDB {
     pub fn load_from_base_dir(base_dir: &Path) -> Option<Arc<Self>> {
         let mut cache = GAMETDB_INSTANCE.lock().unwrap();
 
-        // If already cached, return a clone of the Arc
-        if let Some(ref cached) = *cache {
-            return cached.as_ref().map(Arc::clone);
-        }
-
-        // Try to load from file
-        let wiitdb_path = base_dir.join("apps/usbloader_gx/wiitdb.xml");
-        let result = if wiitdb_path.exists() {
-            match Self::load(&wiitdb_path) {
-                Ok(db) => {
-                    log::info!("GameTDB loaded successfully from {:?}", wiitdb_path);
-                    Some(Arc::new(db))
-                }
-                Err(e) => {
-                    log::error!("Failed to load GameTDB: {}", e);
+        match &*cache {
+            CacheState::Loaded(db) => {
+                // Already loaded, return a clone of the Arc
+                Some(Arc::clone(db))
+            }
+            CacheState::Failed => {
+                // Previously failed to load, don't try again
+                None
+            }
+            CacheState::NotLoaded => {
+                // First attempt to load
+                let wiitdb_path = base_dir.join("apps/usbloader_gx/wiitdb.xml");
+                if wiitdb_path.exists() {
+                    match Self::load(&wiitdb_path) {
+                        Ok(db) => {
+                            log::info!("GameTDB loaded successfully from {:?}", wiitdb_path);
+                            let arc_db = Arc::new(db);
+                            *cache = CacheState::Loaded(Arc::clone(&arc_db));
+                            Some(arc_db)
+                        }
+                        Err(e) => {
+                            log::error!("Failed to load GameTDB: {}", e);
+                            *cache = CacheState::Failed;
+                            None
+                        }
+                    }
+                } else {
+                    log::debug!("GameTDB not found at {:?}", wiitdb_path);
+                    *cache = CacheState::Failed;
                     None
                 }
             }
-        } else {
-            log::debug!("GameTDB not found at {:?}", wiitdb_path);
-            None
-        };
-
-        // Cache the result
-        *cache = Some(result.clone());
-
-        // Return the result
-        result
+        }
     }
 
     pub fn get_game(&self, id: &str) -> Option<&GameEntry> {
