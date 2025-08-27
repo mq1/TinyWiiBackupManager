@@ -1,5 +1,8 @@
 use serde::{Deserialize, Serialize};
 
+// Include the generated PHF map
+include!(concat!(env!("OUT_DIR"), "/redump.rs"));
+
 /// Game result from Redump database lookup
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct GameResult {
@@ -31,15 +34,7 @@ impl GameResult {
     }
 }
 
-// Include the generated PHF map
-include!(concat!(env!("OUT_DIR"), "/redump.rs"));
-
 /// Find a game by its CRC32 checksum
 pub fn find_by_crc32(crc32: u32) -> Option<GameResult> {
     REDUMP_DB.get(&crc32).cloned()
-}
-
-/// Get the path to a game's redump page
-pub fn get_redump_url(crc32: u32) -> Option<String> {
-    find_by_crc32(crc32).map(|_| format!("http://redump.org/disc/{}", crc32))
 }
