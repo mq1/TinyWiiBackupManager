@@ -8,6 +8,7 @@ use log::warn;
 use nod::read::{DiscOptions, DiscReader, PartitionEncryption};
 use nod::write::{DiscWriter, FormatOptions, ProcessOptions};
 use std::io;
+use std::path::PathBuf;
 use std::sync::mpsc::Receiver;
 use std::task::Waker;
 
@@ -19,6 +20,8 @@ pub struct VerifyResult {
     pub verified: usize,
     pub passed: usize,
     pub failed: usize,
+    /// Map of game paths to their verification statuses
+    pub results: Vec<(PathBuf, VerificationStatus)>,
 }
 
 pub fn start_verify(waker: Waker, config: VerifyConfig) -> JobState {
@@ -38,6 +41,7 @@ fn verify_games(
     let mut verified = 0;
     let mut passed = 0;
     let mut failed = 0;
+    let mut results = Vec::new();
 
     let total = config.games.len() as u32;
 
@@ -60,7 +64,7 @@ fn verify_games(
         ) {
             Ok(status) => {
                 verified += 1;
-                match status {
+                match &status {
                     VerificationStatus::FullyVerified(_, _)
                     | VerificationStatus::EmbeddedMatch(_) => {
                         passed += 1;
@@ -70,6 +74,8 @@ fn verify_games(
                     }
                     VerificationStatus::NotVerified => {}
                 }
+                // Store the result for this game
+                results.push((game.path.clone(), status));
             }
             Err(e) => {
                 // Check if it was cancelled
@@ -78,6 +84,11 @@ fn verify_games(
                 }
                 failed += 1;
                 warn!("Failed to verify {}: {}", game_name, e);
+                // Store failure result
+                results.push((
+                    game.path.clone(),
+                    VerificationStatus::Failed(format!("Verification error: {}", e), None),
+                ));
             }
         }
     }
@@ -106,6 +117,7 @@ fn verify_games(
         verified,
         passed,
         failed,
+        results,
     }))
 }
 

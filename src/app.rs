@@ -294,10 +294,25 @@ impl App {
             self.bottom_right_toasts
                 .add(error_toast("Failed to refresh games", &e));
         }
+
+        // Apply calculated hashes to the newly converted games
+        for (game_path, calculated_hashes) in res.hashes {
+            if let Some(game) = self.games.iter_mut().find(|g| g.path == game_path) {
+                game.set_verification_status(calculated_hashes.into_verification_status());
+                break;
+            }
+        }
     }
 
     /// Handle verify job result
     pub fn handle_verify_result(&mut self, status: JobStatus, res: VerifyResult) {
+        // Apply verification statuses to the games
+        for (game_path, verification_status) in res.results {
+            if let Some(game) = self.games.iter_mut().find(|g| g.path == game_path) {
+                game.set_verification_status(verification_status);
+            }
+        }
+
         if res.failed > 0 {
             self.bottom_right_toasts.warning(status.status);
         } else {
