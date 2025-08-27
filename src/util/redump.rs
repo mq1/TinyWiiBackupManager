@@ -35,6 +35,6 @@ impl GameResult {
 }
 
 /// Find a game by its CRC32 checksum
-pub fn find_by_crc32(crc32: u32) -> Option<GameResult> {
-    REDUMP_DB.get(&crc32).cloned()
+pub fn find_by_crc32(crc32: u32) -> Option<&'static GameResult> {
+    REDUMP_DB.get(&crc32)
 }
