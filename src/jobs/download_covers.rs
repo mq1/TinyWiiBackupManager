@@ -1,7 +1,7 @@
 use super::{Job, JobContext, JobResult, JobState, start_job, update_status};
 use crate::cover_manager::CoverType;
 use crate::util::regions::REGION_TO_LANG;
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, bail};
 use log::{debug, info, warn};
 use std::fs;
 use std::io::Write;
@@ -61,7 +61,7 @@ fn download_covers(
         // Update status and check for cancellation
         update_status(
             &context,
-            format!("Downloading {} cover", game_id),
+            format!("Downloading cover for {}", game_id),
             idx as u32,
             total,
             &cancel,
@@ -161,9 +161,9 @@ fn download_single_cover(base_dir: &Path, game_id: &str, cover_type: CoverType) 
 
     if !response.status().is_success() {
         if response.status() == 404 {
-            anyhow::bail!("404 Not Found");
+            bail!("404 Not Found");
         } else {
-            anyhow::bail!("HTTP error: {}", response.status());
+            bail!("HTTP error: {}", response.status());
         }
     }
 

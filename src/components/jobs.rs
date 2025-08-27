@@ -3,14 +3,9 @@ use eframe::egui::{self, ProgressBar, RichText, Widget};
 use std::cmp::Ordering;
 
 pub fn jobs_ui(ui: &mut egui::Ui, jobs: &mut JobQueue) {
-    ui.horizontal(|ui| {
-        if ui.button("Clear finished").clicked() {
-            jobs.clear_finished();
-        }
-        if ui.button("Clear errors").clicked() {
-            jobs.clear_errored();
-        }
-    });
+    if ui.button("Clear").clicked() {
+        jobs.clear_errored();
+    }
 
     let mut remove_job: Option<usize> = None;
     let mut any_jobs = false;

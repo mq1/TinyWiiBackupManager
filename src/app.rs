@@ -210,7 +210,7 @@ impl App {
         });
     }
 
-    /// Converts ISO files to WBFS using the job system
+    /// Converts ISO files to WBFS
     fn spawn_conversion_worker(&mut self, paths: Vec<PathBuf>) {
         if let Some(base_dir) = &self.base_dir {
             self.jobs.push_once(Job::Convert, || {
@@ -232,7 +232,7 @@ impl App {
         self.open_info_windows.insert(index);
     }
 
-    /// Spawn a verification task for multiple games using the job system
+    /// Spawn a verification task for multiple games
     pub fn spawn_verification(&mut self, games: Vec<Game>) {
         self.jobs.push_once(Job::Verify, || {
             start_verify(egui_waker(&self.ctx), VerifyConfig { games })

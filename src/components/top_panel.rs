@@ -75,7 +75,7 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                 ui.menu_button("🎮 GameTDB", |ui| {
                     // Download database option
                     if ui
-                        .button("📥 Download GameTDB Database")
+                        .button("📥 Update GameTDB Database")
                         .on_hover_text("Download the latest wiitdb.xml database from GameTDB")
                         .clicked()
                         && let Some(cover_manager) = &app.cover_manager
@@ -90,7 +90,7 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                             )
                         });
                         app.bottom_right_toasts
-                            .info("Downloading GameTDB database...");
+                            .info("Updating GameTDB database...");
                     }
 
                     ui.separator();
