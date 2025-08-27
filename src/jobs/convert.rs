@@ -1,5 +1,7 @@
-use crate::game::{CalculatedHashes, Game, VerificationStatus};
-use crate::messages::BackgroundMessage;
+use super::{
+    Job, JobContext, JobResult, JobState, should_cancel, start_job, update_status_with_bytes,
+};
+use crate::game::CalculatedHashes;
 use crate::util::split::SplitWriter;
 use anyhow::{Result, bail};
 use log::info;
@@ -7,22 +9,128 @@ use nod::common::Format;
 use nod::read::{DiscOptions, DiscReader, PartitionEncryption};
 use nod::write::{DiscWriter, FormatOptions, ProcessOptions};
 use sanitize_filename_reader_friendly::sanitize;
+use std::fs;
+use std::io;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::{fs, io};
+use std::sync::mpsc::Receiver;
+use std::task::Waker;
 
-/// Public entry point for the conversion process.
-///
-/// # Arguments
-/// * `input_path` - Path to the source Wii or GameCube disc image.
-/// * `output_dir` - Path to the directory where output files will be created.
-/// * `sender` - Channel sender for progress updates.
-/// * `cancelled` - Atomic flag to signal cancellation of the operation.
-pub fn convert_game(
+pub struct ConvertConfig {
+    pub base_dir: PathBuf,
+    pub paths: Vec<PathBuf>,
+    pub remove_sources: bool,
+}
+
+pub struct ConvertResult {
+    pub converted: usize,
+    pub failed: usize,
+    pub failed_paths: Vec<PathBuf>,
+}
+
+pub fn start_convert(waker: Waker, config: ConvertConfig) -> JobState {
+    let title = format!(
+        "Convert {} file{}",
+        config.paths.len(),
+        if config.paths.len() == 1 { "" } else { "s" }
+    );
+
+    start_job(waker, &title, Job::Convert, move |context, cancel| {
+        convert_games(context, cancel, config).map(JobResult::Convert)
+    })
+}
+
+fn convert_games(
+    context: JobContext,
+    cancel: Receiver<()>,
+    config: ConvertConfig,
+) -> Result<Box<ConvertResult>> {
+    let mut converted = 0;
+    let mut failed = 0;
+    let mut failed_paths = Vec::new();
+
+    let total = config.paths.len() as u32;
+    let cancelled = Arc::new(AtomicBool::new(false));
+
+    for (idx, path) in config.paths.iter().enumerate() {
+        // Check for cancellation
+        if should_cancel(&cancel) {
+            cancelled.store(true, Ordering::Relaxed);
+            break;
+        }
+
+        // Update status with current file
+        let file_name = path
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("unknown")
+            .to_string();
+
+        // Perform the conversion
+        match convert_game(
+            path,
+            &config.base_dir,
+            idx as u32,
+            total,
+            file_name.clone(),
+            &context,
+            &cancel,
+            Arc::clone(&cancelled),
+        ) {
+            Ok((game_path, _calculated_hashes)) => {
+                converted += 1;
+                log::info!("Converted {} to {:?}", file_name, game_path);
+
+                // Remove source if requested
+                if config.remove_sources {
+                    if let Err(e) = fs::remove_file(path) {
+                        log::warn!("Failed to remove source file {}: {}", path.display(), e);
+                    }
+                }
+            }
+            Err(e) => {
+                // Check if it was cancelled
+                if e.to_string().contains("Cancelled") {
+                    cancelled.store(true, Ordering::Relaxed);
+                    break;
+                }
+                failed += 1;
+                failed_paths.push(path.clone());
+                log::warn!("Failed to convert {}: {}", path.display(), e);
+            }
+        }
+    }
+
+    // Final status
+    let final_status = if cancelled.load(Ordering::Relaxed) {
+        format!("Conversion cancelled ({} completed)", converted)
+    } else {
+        format!(
+            "Converted {} file{}",
+            converted,
+            if converted == 1 { "" } else { "s" }
+        )
+    };
+
+    let _ = update_status_with_bytes(&context, final_status, total, total, 1, 1, None, &cancel);
+
+    Ok(Box::new(ConvertResult {
+        converted,
+        failed,
+        failed_paths,
+    }))
+}
+
+/// Convert a single game disc image to WBFS/CISO format
+fn convert_game(
     input_path: &Path,
     output_dir: &Path,
-    sender: egui_inbox::UiInboxSender<BackgroundMessage>,
+    current_idx: u32,
+    total_items: u32,
+    file_name: String,
+    context: &JobContext,
+    cancel: &Receiver<()>,
     cancelled: Arc<AtomicBool>,
 ) -> Result<(PathBuf, CalculatedHashes)> {
     info!("Opening disc image: {}", input_path.display());
@@ -98,8 +206,20 @@ pub fn convert_game(
                 ));
             }
             split_writer.write_all(data.as_ref())?;
+
             // Send progress updates
-            let _ = sender.send(BackgroundMessage::OperationProgress(progress, total));
+            update_status_with_bytes(
+                context,
+                format!("Converting {}", file_name),
+                current_idx,
+                total_items,
+                progress,
+                total,
+                Some(file_name.clone()),
+                cancel,
+            )
+            .map_err(|_| io::Error::new(io::ErrorKind::Interrupted, "Cancelled"))?;
+
             Ok(())
         },
         &process_options,
@@ -121,59 +241,4 @@ pub fn convert_game(
 
     info!("Conversion complete!");
     Ok((game_output_dir, calculated))
-}
-
-/// Verify a single game's integrity by processing the entire disc
-pub fn verify_game(
-    game: Box<Game>,
-    sender: egui_inbox::UiInboxSender<BackgroundMessage>,
-    cancelled: Arc<AtomicBool>,
-) -> Result<VerificationStatus> {
-    let disc_path = game
-        .get_disc_file_path()
-        .ok_or_else(|| anyhow::anyhow!("No disc image found"))?;
-
-    // Open the disc
-    let disc = DiscReader::new(
-        &disc_path,
-        &DiscOptions {
-            partition_encryption: PartitionEncryption::Original,
-            preloader_threads: 1,
-        },
-    )?;
-    let disc_writer = DiscWriter::new(disc, &FormatOptions::default())?;
-    let total = disc_writer.progress_bound();
-
-    // Process the disc to calculate hashes
-    let finalization = disc_writer.process(
-        |_data, pos, _| {
-            // Check for cancellation
-            if cancelled.load(Ordering::Relaxed) {
-                return Err(io::Error::new(
-                    io::ErrorKind::Interrupted,
-                    "Operation cancelled by user",
-                ));
-            }
-            // Send progress updates
-            let _ = sender.send(BackgroundMessage::OperationProgress(pos, total));
-            Ok(())
-        },
-        &ProcessOptions {
-            processor_threads: 0,
-            digest_crc32: true,
-            digest_md5: false, // MD5 is slow, skip it
-            digest_sha1: true,
-            digest_xxh64: true,
-        },
-    )?;
-
-    // Store calculated hashes
-    let calculated = CalculatedHashes {
-        crc32: finalization.crc32,
-        sha1: finalization.sha1,
-        xxh64: finalization.xxh64,
-    };
-
-    // Check against Redump database using the shared logic
-    Ok(calculated.into_verification_status())
 }

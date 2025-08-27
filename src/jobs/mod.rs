@@ -10,17 +10,23 @@ use std::{
 
 use anyhow::Result;
 
+pub mod convert;
 pub mod download_covers;
 pub mod download_database;
 pub mod egui_waker;
+pub mod verify;
 
+use convert::ConvertResult;
 use download_covers::DownloadCoversResult;
 use download_database::DownloadDatabaseResult;
+use verify::VerifyResult;
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum Job {
     DownloadCovers,
     DownloadDatabase,
+    Convert,
+    Verify,
 }
 
 pub static JOB_ID: AtomicUsize = AtomicUsize::new(0);
@@ -51,6 +57,11 @@ impl JobQueue {
         self.jobs
             .iter()
             .any(|j| j.kind == kind && j.handle.is_some())
+    }
+
+    /// Gets the first job of the given kind.
+    pub fn get_job_by_kind(&self, kind: Job) -> Option<&JobState> {
+        self.jobs.iter().find(|j| j.kind == kind)
     }
 
     /// Returns whether any job is running.
@@ -140,6 +151,8 @@ impl JobQueue {
                             title: "Error".to_string(),
                             progress_percent: 0.0,
                             progress_items: None,
+                            progress_bytes: None,
+                            current_item_name: None,
                             status: String::new(),
                             error: Some(err),
                         }));
@@ -171,6 +184,8 @@ pub struct JobStatus {
     pub title: String,
     pub progress_percent: f32,
     pub progress_items: Option<[u32; 2]>,
+    pub progress_bytes: Option<[u64; 2]>,
+    pub current_item_name: Option<String>,
     pub status: String,
     pub error: Option<anyhow::Error>,
 }
@@ -179,6 +194,8 @@ pub enum JobResult {
     None,
     DownloadCovers(Box<DownloadCoversResult>),
     DownloadDatabase(Box<DownloadDatabaseResult>),
+    Convert(Box<ConvertResult>),
+    Verify(Box<VerifyResult>),
 }
 
 pub fn start_job(
@@ -191,6 +208,8 @@ pub fn start_job(
         title: title.to_string(),
         progress_percent: 0.0,
         progress_items: None,
+        progress_bytes: None,
+        current_item_name: None,
         status: String::new(),
         error: None,
     }));
@@ -255,4 +274,47 @@ pub fn should_cancel(rx: &Receiver<()>) -> bool {
         Ok(_) | Err(TryRecvError::Disconnected) => true,
         Err(_) => false,
     }
+}
+
+pub fn update_status_with_bytes(
+    context: &JobContext,
+    status: String,
+    current_item: u32,
+    total_items: u32,
+    current_bytes: u64,
+    total_bytes: u64,
+    item_name: Option<String>,
+    cancel: &Receiver<()>,
+) -> Result<()> {
+    let mut w = context
+        .status
+        .write()
+        .map_err(|_| anyhow::Error::msg("Failed to lock job status"))?;
+
+    w.status = status;
+    w.progress_items = Some([current_item, total_items]);
+    w.progress_bytes = if total_bytes > 0 {
+        Some([current_bytes, total_bytes])
+    } else {
+        None
+    };
+    w.current_item_name = item_name;
+
+    // Calculate combined progress
+    let base_progress = current_item as f32 / total_items.max(1) as f32;
+    let item_progress = if total_bytes > 0 {
+        (current_bytes as f32 / total_bytes as f32) / total_items.max(1) as f32
+    } else {
+        0.0
+    };
+    w.progress_percent = base_progress + item_progress;
+
+    if should_cancel(cancel) {
+        w.status = "Cancelled".to_string();
+        return Err(anyhow::Error::msg("Cancelled"));
+    }
+
+    drop(w);
+    context.waker.wake_by_ref();
+    Ok(())
 }
