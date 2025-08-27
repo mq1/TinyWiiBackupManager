@@ -16,6 +16,16 @@ pub enum CoverType {
 }
 
 impl CoverType {
+    /// Get the human-readable name for this cover type
+    pub fn name(&self) -> &'static str {
+        match self {
+            CoverType::Cover3D => "3D",
+            CoverType::Cover2D => "2D",
+            CoverType::CoverFull => "full",
+            CoverType::Disc => "disc",
+        }
+    }
+
     /// Get the subdirectory name for this cover type in USB Loader GX structure
     pub fn subdirectory(&self) -> &'static str {
         match self {

@@ -1,6 +1,6 @@
 use super::{Job, JobContext, JobResult, JobState, start_job, update_status};
 use crate::cover_manager::CoverType;
-use crate::util::download::{download_with_progress, is_404_error};
+use crate::util::download::{download_with_progress, download_with_retries, is_404_error};
 use crate::util::regions::Region;
 use anyhow::{Context, Result};
 use log::{debug, info, warn};
@@ -8,8 +8,6 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::Receiver;
 use std::task::Waker;
-use std::thread::sleep;
-use std::time::Duration;
 use tempfile::NamedTempFile;
 
 pub struct DownloadCoversConfig {
@@ -81,15 +79,17 @@ fn download_covers(
         }
 
         // Download with retries
-        match download_with_retries(
-            &config.base_dir,
-            game_id,
-            config.cover_type,
-            current_item,
-            total_items,
-            &context,
-            &cancel,
-        ) {
+        match download_with_retries(3, || {
+            download_single_cover(
+                &config.base_dir,
+                game_id,
+                config.cover_type,
+                current_item,
+                total_items,
+                &context,
+                &cancel,
+            )
+        }) {
             Ok(_) => {
                 downloaded += 1;
                 info!(
@@ -129,39 +129,6 @@ fn download_covers(
         failed_ids,
         cover_type: config.cover_type,
     }))
-}
-
-fn download_with_retries(
-    base_dir: &Path,
-    game_id: &str,
-    cover_type: CoverType,
-    current_item: u32,
-    total_items: u32,
-    context: &JobContext,
-    cancel: &Receiver<()>,
-) -> Result<()> {
-    let mut attempts = 0;
-    loop {
-        match download_single_cover(
-            base_dir,
-            game_id,
-            cover_type,
-            current_item,
-            total_items,
-            context,
-            cancel,
-        ) {
-            Ok(_) => return Ok(()),
-            Err(e) if is_404_error(&e) => {
-                return Err(e); // Don't retry 404s
-            }
-            Err(_) if attempts < 3 => {
-                sleep(Duration::from_secs(1 << attempts));
-                attempts += 1;
-            }
-            Err(e) => return Err(e),
-        }
-    }
 }
 
 fn download_single_cover(
@@ -217,15 +184,4 @@ fn download_single_cover(
     // temp_file will be automatically cleaned up when dropped
 
     Ok(())
-}
-
-impl CoverType {
-    pub fn name(&self) -> &'static str {
-        match self {
-            CoverType::Cover3D => "3D",
-            CoverType::Cover2D => "2D",
-            CoverType::CoverFull => "full",
-            CoverType::Disc => "disc",
-        }
-    }
 }
