@@ -1,13 +1,14 @@
 use super::{Job, JobContext, JobResult, JobState, start_job, update_status};
-use anyhow::{Context, Result, bail};
+use anyhow::{Context, Result};
 use log::{error, info};
 use std::fs::{self, File};
 use std::io;
-use std::io::{BufReader, Write};
+use std::io::{Cursor, Read};
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::Receiver;
 use std::task::Waker;
-use tempfile::NamedTempFile;
+
+const DOWNLOAD_URL: &str = "https://www.gametdb.com/wiitdb.zip";
 
 pub struct DownloadDatabaseConfig {
     pub base_dir: PathBuf,
@@ -17,6 +18,7 @@ pub struct DownloadDatabaseResult {
     pub path: Option<PathBuf>,
 }
 
+/// Starts the job to download the GameTDB database.
 pub fn start_download_database(waker: Waker, config: DownloadDatabaseConfig) -> JobState {
     start_job(
         waker,
@@ -28,23 +30,25 @@ pub fn start_download_database(waker: Waker, config: DownloadDatabaseConfig) -> 
     )
 }
 
+/// Orchestrates the database download and extraction process.
 fn download_database(
     context: JobContext,
     cancel: Receiver<()>,
     config: DownloadDatabaseConfig,
 ) -> Result<Box<DownloadDatabaseResult>> {
-    // Update status
     update_status(
         &context,
-        "Downloading wiitdb.zip".to_string(),
+        "Downloading wiitdb.zip...".to_string(),
         0,
         2,
         &cancel,
     )?;
 
-    // Download logic
-    match download_database_blocking(&config.base_dir) {
+    let result = download_and_extract_database(&config.base_dir);
+
+    match result {
         Ok(path) => {
+            info!("GameTDB database updated successfully at: {:?}", path);
             update_status(
                 &context,
                 "GameTDB database updated successfully".to_string(),
@@ -55,56 +59,50 @@ fn download_database(
             Ok(Box::new(DownloadDatabaseResult { path: Some(path) }))
         }
         Err(e) => {
-            error!("Failed to download GameTDB database: {}", e);
+            error!("Failed to download GameTDB database: {:?}", e);
+            // Propagate the error to the job runner.
             Err(e)
         }
     }
 }
 
-fn download_database_blocking(base_dir: &Path) -> Result<PathBuf> {
-    info!("Downloading GameTDB database from https://www.gametdb.com/wiitdb.zip");
+/// Handles the blocking logic of downloading and extracting the database.
+fn download_and_extract_database(base_dir: &Path) -> Result<PathBuf> {
+    info!("Downloading GameTDB database from {}", DOWNLOAD_URL);
 
-    // Download the zip file to a temporary file
-    let mut temp_zip = NamedTempFile::new().context("Failed to create temporary file for zip")?;
-    let mut response = ureq::get("https://www.gametdb.com/wiitdb.zip")
-        .call()
-        .context("Failed to download wiitdb.zip")?;
-    if !response.status().is_success() {
-        bail!("HTTP error downloading wiitdb.zip: {}", response.status());
-    }
-    io::copy(&mut response.body_mut().as_reader(), &mut temp_zip)
-        .context("Failed to download wiitdb.zip")?;
-    drop(response);
-    temp_zip
-        .flush()
-        .context("Failed to flush temporary zip file")?;
-
-    // Create target directory
+    // Create the target directory.
     let target_dir = base_dir.join("apps/usbloader_gx");
-    fs::create_dir_all(&target_dir).context("Failed to create apps/usbloader_gx directory")?;
+    fs::create_dir_all(&target_dir)
+        .with_context(|| format!("Failed to create directory at: {:?}", target_dir))?;
 
-    // Extract the zip file
-    let file = File::open(temp_zip.path()).context("Failed to open temporary zip file")?;
+    // Perform the download request.
+    let response = ureq::get(DOWNLOAD_URL)
+        .call()
+        .with_context(|| format!("Failed to download from {}", DOWNLOAD_URL))?;
+
+    // Make a buffer from the response body and create a cursor.
+    let (_, body) = response.into_parts();
+    let mut buffer = Vec::new();
+    body.into_reader().read_to_end(&mut buffer)?;
+    let cursor = Cursor::new(buffer);
+
+    // Create a zip archive from the cursor.
     let mut archive =
-        zip::ZipArchive::new(BufReader::new(file)).context("Failed to read zip archive")?;
+        zip::ZipArchive::new(cursor).with_context(|| "Failed to create zip archive from cursor")?;
 
-    // Look for wiitdb.xml in the archive
-    for i in 0..archive.len() {
-        let mut file = archive.by_index(i).context("Failed to access zip entry")?;
-        let name = file.name();
+    // Look for wiitdb.xml and extract it.
+    let mut zip_file = archive
+        .by_name("wiitdb.xml")
+        .context("Could not find 'wiitdb.xml' in the downloaded archive")?;
 
-        // Only extract wiitdb.xml
-        if name == "wiitdb.xml" || name.ends_with("/wiitdb.xml") {
-            // Extract directly to the target location
-            let target_path = target_dir.join("wiitdb.xml");
-            let mut outfile = File::create(&target_path).context("Failed to create wiitdb.xml")?;
-            io::copy(&mut file, &mut outfile).context("Failed to extract wiitdb.xml")?;
-            outfile.flush().context("Failed to flush wiitdb.xml")?;
+    let target_path = target_dir.join("wiitdb.xml");
+    let mut outfile = File::create(&target_path)
+        .with_context(|| format!("Failed to create output file at: {:?}", target_path))?;
 
-            info!("Successfully downloaded wiitdb.xml to {:?}", target_path);
-            return Ok(target_path);
-        }
-    }
+    io::copy(&mut zip_file, &mut outfile)
+        .with_context(|| format!("Failed to extract 'wiitdb.xml' to {:?}", target_path))?;
 
-    bail!("wiitdb.xml not found in downloaded archive")
+    info!("Successfully extracted wiitdb.xml to {:?}", target_path);
+
+    Ok(target_path)
 }
