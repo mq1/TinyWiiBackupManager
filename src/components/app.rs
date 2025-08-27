@@ -1,10 +1,31 @@
 use crate::app::{App, OperationState};
 use crate::components;
+use crate::jobs::JobResult;
 use crate::messages::handle_messages;
 use eframe::{Storage, egui};
 
 impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        // Process job results
+        self.jobs.collect_results();
+
+        // Take results out to avoid borrow checker issues
+        let results = std::mem::take(&mut self.jobs.results);
+        for result in results {
+            match result {
+                JobResult::DownloadCovers(res) => {
+                    self.handle_download_covers_result(&res, ctx);
+                }
+                JobResult::DownloadDatabase(res) => {
+                    self.handle_download_database_result(&res);
+                }
+                _ => {
+                    // Put back unhandled results
+                    self.jobs.results.push(result);
+                }
+            }
+        }
+
         handle_messages(self, ctx);
 
         match self.operation_state {

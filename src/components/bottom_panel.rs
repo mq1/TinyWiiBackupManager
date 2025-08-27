@@ -25,6 +25,34 @@ pub fn ui_bottom_panel(ctx: &egui::Context, app: &mut App) {
 
                 ui.separator();
                 ui_console_filter(ui, &mut app.console_filter);
+
+                // Show active jobs count
+                let active_count = app.jobs.active_count();
+                if active_count > 0 {
+                    ui.separator();
+
+                    // Show job count with progress
+                    let job_text = format!(
+                        "⚙ {} job{}",
+                        active_count,
+                        if active_count == 1 { "" } else { "s" }
+                    );
+
+                    // Show first job's progress as tooltip
+                    if let Some(job) = app.jobs.jobs.first() {
+                        if let Ok(status) = job.context.status.read() {
+                            let mut tooltip = status.status.clone();
+                            if let Some([current, total]) = status.progress_items {
+                                tooltip.push_str(&format!(" ({}/{})", current, total));
+                            }
+                            ui.label(job_text).on_hover_text(tooltip);
+                        } else {
+                            ui.label(job_text);
+                        }
+                    } else {
+                        ui.label(job_text);
+                    }
+                }
             });
         });
     });

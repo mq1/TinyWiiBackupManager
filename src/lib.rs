@@ -9,6 +9,7 @@ mod components;
 mod convert;
 mod cover_manager;
 mod game;
+mod jobs;
 mod messages;
 mod titles;
 mod update_check;

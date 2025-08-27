@@ -5,6 +5,7 @@ use crate::app::App;
 use crate::components::fake_link::fake_link;
 use crate::cover_manager::CoverType;
 use crate::game::VerificationStatus;
+use crate::jobs::{Job, download_covers, download_database, egui_waker};
 use crate::messages::BackgroundMessage;
 use anyhow::anyhow;
 use eframe::egui;
@@ -79,12 +80,17 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                         .clicked()
                         && let Some(cover_manager) = &app.cover_manager
                     {
-                        if let Err(e) = cover_manager.download_database(sender.clone()) {
-                            let _ = sender.send(BackgroundMessage::Error(e));
-                        } else {
-                            app.top_left_toasts
-                                .info("Downloading GameTDB database in background...");
-                        }
+                        let config = download_database::DownloadDatabaseConfig {
+                            base_dir: cover_manager.base_dir().clone(),
+                        };
+                        app.jobs.push_once(Job::DownloadDatabase, || {
+                            download_database::start_download_database(
+                                egui_waker::egui_waker(ctx),
+                                config,
+                            )
+                        });
+                        app.top_left_toasts
+                            .info("Downloading GameTDB database in background...");
                     }
 
                     ui.separator();
@@ -96,11 +102,29 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                         .clicked()
                         && let Some(cover_manager) = &app.cover_manager
                     {
-                        let game_ids: Vec<String> =
-                            app.games.iter().map(|g| g.id.clone()).collect();
-                        cover_manager.download_all_covers(game_ids, CoverType::Cover3D);
-                        app.top_left_toasts
-                            .info("Downloading covers in background...");
+                        let game_ids: Vec<String> = app
+                            .games
+                            .iter()
+                            .map(|g| g.id.clone())
+                            .filter(|id| !cover_manager.has_cover(id, CoverType::Cover3D))
+                            .filter(|id| !cover_manager.is_failed(id, CoverType::Cover3D))
+                            .collect();
+
+                        if !game_ids.is_empty() {
+                            let config = download_covers::DownloadCoversConfig {
+                                base_dir: cover_manager.base_dir().clone(),
+                                cover_type: CoverType::Cover3D,
+                                game_ids,
+                            };
+                            app.jobs.push_once(Job::DownloadCovers, || {
+                                download_covers::start_download_covers(
+                                    egui_waker::egui_waker(ctx),
+                                    config,
+                                )
+                            });
+                            app.top_left_toasts
+                                .info("Downloading covers in background...");
+                        }
                     }
 
                     if ui
@@ -109,11 +133,29 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                         .clicked()
                         && let Some(cover_manager) = &app.cover_manager
                     {
-                        let game_ids: Vec<String> =
-                            app.games.iter().map(|g| g.id.clone()).collect();
-                        cover_manager.download_all_covers(game_ids, CoverType::Cover2D);
-                        app.top_left_toasts
-                            .info("Downloading covers in background...");
+                        let game_ids: Vec<String> = app
+                            .games
+                            .iter()
+                            .map(|g| g.id.clone())
+                            .filter(|id| !cover_manager.has_cover(id, CoverType::Cover2D))
+                            .filter(|id| !cover_manager.is_failed(id, CoverType::Cover2D))
+                            .collect();
+
+                        if !game_ids.is_empty() {
+                            let config = download_covers::DownloadCoversConfig {
+                                base_dir: cover_manager.base_dir().clone(),
+                                cover_type: CoverType::Cover2D,
+                                game_ids,
+                            };
+                            app.jobs.push_once(Job::DownloadCovers, || {
+                                download_covers::start_download_covers(
+                                    egui_waker::egui_waker(ctx),
+                                    config,
+                                )
+                            });
+                            app.top_left_toasts
+                                .info("Downloading covers in background...");
+                        }
                     }
 
                     if ui
@@ -122,11 +164,29 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                         .clicked()
                         && let Some(cover_manager) = &app.cover_manager
                     {
-                        let game_ids: Vec<String> =
-                            app.games.iter().map(|g| g.id.clone()).collect();
-                        cover_manager.download_all_covers(game_ids, CoverType::CoverFull);
-                        app.top_left_toasts
-                            .info("Downloading covers in background...");
+                        let game_ids: Vec<String> = app
+                            .games
+                            .iter()
+                            .map(|g| g.id.clone())
+                            .filter(|id| !cover_manager.has_cover(id, CoverType::CoverFull))
+                            .filter(|id| !cover_manager.is_failed(id, CoverType::CoverFull))
+                            .collect();
+
+                        if !game_ids.is_empty() {
+                            let config = download_covers::DownloadCoversConfig {
+                                base_dir: cover_manager.base_dir().clone(),
+                                cover_type: CoverType::CoverFull,
+                                game_ids,
+                            };
+                            app.jobs.push_once(Job::DownloadCovers, || {
+                                download_covers::start_download_covers(
+                                    egui_waker::egui_waker(ctx),
+                                    config,
+                                )
+                            });
+                            app.top_left_toasts
+                                .info("Downloading covers in background...");
+                        }
                     }
 
                     if ui
@@ -135,11 +195,29 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                         .clicked()
                         && let Some(cover_manager) = &app.cover_manager
                     {
-                        let game_ids: Vec<String> =
-                            app.games.iter().map(|g| g.id.clone()).collect();
-                        cover_manager.download_all_covers(game_ids, CoverType::Disc);
-                        app.top_left_toasts
-                            .info("Downloading covers in background...");
+                        let game_ids: Vec<String> = app
+                            .games
+                            .iter()
+                            .map(|g| g.id.clone())
+                            .filter(|id| !cover_manager.has_cover(id, CoverType::Disc))
+                            .filter(|id| !cover_manager.is_failed(id, CoverType::Disc))
+                            .collect();
+
+                        if !game_ids.is_empty() {
+                            let config = download_covers::DownloadCoversConfig {
+                                base_dir: cover_manager.base_dir().clone(),
+                                cover_type: CoverType::Disc,
+                                game_ids,
+                            };
+                            app.jobs.push_once(Job::DownloadCovers, || {
+                                download_covers::start_download_covers(
+                                    egui_waker::egui_waker(ctx),
+                                    config,
+                                )
+                            });
+                            app.top_left_toasts
+                                .info("Downloading covers in background...");
+                        }
                     }
                 });
             }
