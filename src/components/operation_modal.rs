@@ -60,14 +60,12 @@ pub fn ui_operation_modal(ctx: &egui::Context, app: &mut App) {
                 ui.add_space(5.0);
             }
 
-            ui.spinner();
             ui.add_space(10.0);
 
             if let Some([current, total]) = status.progress_bytes {
                 if total > 0 {
                     // Use the pre-calculated progress from the job
                     ui.add(egui::ProgressBar::new(status.progress_percent).show_percentage());
-                    ui.add_space(5.0);
 
                     ui.label(format!(
                         "Progress: {} / {}",
