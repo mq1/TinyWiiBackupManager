@@ -10,12 +10,14 @@ use std::{
     thread::JoinHandle,
 };
 
+pub mod check_update;
 pub mod convert;
 pub mod download_covers;
 pub mod download_database;
 pub mod egui_waker;
 pub mod verify;
 
+use check_update::CheckUpdateResult;
 use convert::ConvertResult;
 use download_covers::DownloadCoversResult;
 use download_database::DownloadDatabaseResult;
@@ -23,6 +25,7 @@ use verify::VerifyResult;
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum Job {
+    CheckUpdate,
     DownloadCovers,
     DownloadDatabase,
     Convert,
@@ -214,6 +217,7 @@ impl Clone for JobStatus {
 
 pub enum JobResult {
     None,
+    CheckUpdate(Box<CheckUpdateResult>),
     DownloadCovers(Box<DownloadCoversResult>),
     DownloadDatabase(Box<DownloadDatabaseResult>),
     Convert(Box<ConvertResult>),
