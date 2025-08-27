@@ -66,12 +66,14 @@ fn download_database_blocking(base_dir: &Path) -> Result<PathBuf> {
 
     // Download the zip file to a temporary file
     let mut temp_zip = NamedTempFile::new().context("Failed to create temporary file for zip")?;
-    let mut response = reqwest::blocking::get("https://www.gametdb.com/wiitdb.zip")
+    let mut response = ureq::get("https://www.gametdb.com/wiitdb.zip")
+        .call()
         .context("Failed to download wiitdb.zip")?;
     if !response.status().is_success() {
         bail!("HTTP error downloading wiitdb.zip: {}", response.status());
     }
-    io::copy(&mut response, &mut temp_zip).context("Failed to download wiitdb.zip")?;
+    io::copy(&mut response.body_mut().as_reader(), &mut temp_zip)
+        .context("Failed to download wiitdb.zip")?;
     drop(response);
     temp_zip
         .flush()

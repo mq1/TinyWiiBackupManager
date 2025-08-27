@@ -3,12 +3,12 @@ use crate::cover_manager::CoverType;
 use crate::util::regions::REGION_TO_LANG;
 use anyhow::{Context, Result, bail};
 use log::{debug, info, warn};
-use std::fs;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::Receiver;
 use std::task::Waker;
 use std::time::Duration;
+use std::{fs, io};
 use tempfile::NamedTempFile;
 
 pub struct DownloadCoversConfig {
@@ -157,7 +157,9 @@ fn download_single_cover(base_dir: &Path, game_id: &str, cover_type: CoverType) 
 
     // Download the cover to a temporary file
     debug!("Downloading cover from: {}", url);
-    let response = reqwest::blocking::get(&url).context("Failed to send HTTP request")?;
+    let mut response = ureq::get(&url)
+        .call()
+        .context("Failed to send HTTP request")?;
 
     if !response.status().is_success() {
         if response.status() == 404 {
@@ -167,14 +169,13 @@ fn download_single_cover(base_dir: &Path, game_id: &str, cover_type: CoverType) 
         }
     }
 
-    let bytes = response.bytes().context("Failed to read response body")?;
-
     // Write to temporary file first
     let mut temp_file =
         NamedTempFile::new().context("Failed to create temporary file for cover")?;
-    temp_file
-        .write_all(&bytes)
-        .context("Failed to write cover to temporary file")?;
+
+    io::copy(&mut response.body_mut().as_reader(), &mut temp_file)
+        .context("Failed to copy cover to temporary file")?;
+
     temp_file
         .flush()
         .context("Failed to flush temporary file")?;
