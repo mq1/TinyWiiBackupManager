@@ -43,7 +43,7 @@ fn ui_game_info_content(
 
     ui.horizontal(|ui| {
         ui.label(RichText::new("🌍 Region:").strong());
-        ui.label(&game.language);
+        ui.label(game.region.to_name());
     });
 
     ui.horizontal(|ui| {
@@ -153,7 +153,7 @@ fn ui_game_info_content(
 
     // Check verification status and show calculated hashes if available
     let (hashes, redump) = match verification_status {
-        VerificationStatus::FullyVerified(r, h) => (Some(h), Some(r.clone())),
+        VerificationStatus::FullyVerified(r, h) => (Some(h), Some(r)),
         VerificationStatus::Failed(_, Some(h)) => {
             // Try to find redump entry for partial matches
             let redump = h.crc32.and_then(redump::find_by_crc32);
@@ -174,7 +174,7 @@ fn ui_game_info_content(
                         .strong(),
                 );
                 let hash_text = format!("{:08x}", crc32);
-                let hash_color = if let Some(ref r) = redump {
+                let hash_color = if let Some(r) = redump {
                     if r.crc32 == crc32 {
                         egui::Color32::DARK_GREEN
                     } else {
@@ -198,7 +198,7 @@ fn ui_game_info_content(
                         .strong(),
                 );
                 let hash_text = hex::encode(sha1);
-                let hash_color = if let Some(ref r) = redump {
+                let hash_color = if let Some(r) = redump {
                     if r.sha1 == sha1 {
                         egui::Color32::DARK_GREEN
                     } else {

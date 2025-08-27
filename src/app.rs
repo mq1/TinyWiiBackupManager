@@ -2,65 +2,30 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use std::collections::{HashMap, HashSet};
-use std::fs;
 use std::path::PathBuf;
-use std::sync::{
-    Arc,
-    atomic::{AtomicBool, Ordering},
-};
 
 use crate::base_dir::BaseDir;
-use crate::convert::verify_game;
-use crate::game::{CalculatedHashes, VerificationStatus};
+use crate::cover_manager::CoverManager;
+use crate::game::{Game, VerificationStatus};
+use crate::jobs::convert::ConvertResult;
+use crate::jobs::convert::{ConvertConfig, start_convert};
+use crate::jobs::download_covers::DownloadCoversResult;
+use crate::jobs::download_database::DownloadDatabaseResult;
+use crate::jobs::egui_waker::egui_waker;
+use crate::jobs::verify::VerifyResult;
+use crate::jobs::verify::{VerifyConfig, start_verify};
+use crate::jobs::{Job, JobQueue};
 use crate::messages::BackgroundMessage;
+use crate::toasts::{create_toasts, error_toast};
 use crate::update_check::UpdateInfo;
+use crate::util::gametdb;
 use crate::{
-    SUPPORTED_INPUT_EXTENSIONS, components::console_filter::ConsoleFilter, convert, game::Game,
-    update_check,
+    SUPPORTED_INPUT_EXTENSIONS, components::console_filter::ConsoleFilter, jobs, update_check,
 };
 use anyhow::Result;
 use eframe::egui;
 use egui_inbox::UiInbox;
-
-/// Type of background operation
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum OperationType {
-    Converting,
-    Verifying,
-}
-
-/// Unified state for background operations (conversion and verification)
-#[derive(Debug, Clone, PartialEq, Default)]
-pub enum OperationState {
-    /// No operation is in progress
-    #[default]
-    Idle,
-    /// Operation is in progress
-    InProgress {
-        /// Type of operation
-        operation: OperationType,
-        /// Total number of items to process
-        total_items: usize,
-        /// Number of items already completed
-        items_completed: usize,
-        /// Current item being processed (for display)
-        current_item: String,
-        /// Current item progress (current / total)
-        current_progress: (u64, u64),
-        /// Items that passed (for verification only)
-        items_passed: usize,
-        /// Items that failed (for verification only)
-        items_failed: usize,
-    },
-}
-
-/// Result of a background operation
-#[derive(Debug)]
-pub enum OperationResult {
-    ConversionComplete(CalculatedHashes),
-    VerificationComplete(VerificationStatus),
-    Error(anyhow::Error),
-}
+use jobs::JobStatus;
 
 /// Main application state and UI controller.
 #[derive(Default)]
@@ -73,8 +38,6 @@ pub struct App {
     pub base_dir_size: u64,
     /// Inbox for receiving messages from background tasks
     pub inbox: UiInbox<BackgroundMessage>,
-    /// Current state of background operations
-    pub operation_state: OperationState,
     /// File watcher
     watcher: Option<notify::RecommendedWatcher>,
     /// Whether to remove sources after conversion
@@ -89,8 +52,14 @@ pub struct App {
     pub top_left_toasts: egui_notify::Toasts,
     pub bottom_left_toasts: egui_notify::Toasts,
     pub bottom_right_toasts: egui_notify::Toasts,
-    /// Cancellation flag for background operations
-    pub operation_cancelled: Arc<AtomicBool>,
+    /// Cover manager for downloading game covers
+    pub cover_manager: Option<CoverManager>,
+    /// Job queue for background tasks
+    pub jobs: JobQueue,
+    /// Whether the jobs window is open
+    pub show_jobs_window: bool,
+    /// Egui context for waking the UI
+    pub ctx: egui::Context,
 }
 
 impl App {
@@ -104,13 +73,19 @@ impl App {
             top_left_toasts: create_toasts(egui_notify::Anchor::TopLeft),
             bottom_left_toasts: create_toasts(egui_notify::Anchor::BottomLeft),
             bottom_right_toasts: create_toasts(egui_notify::Anchor::BottomRight),
-            operation_cancelled: Arc::new(AtomicBool::new(false)),
+            cover_manager: None,
+            ctx: cc.egui_ctx.clone(),
             ..Default::default()
         };
 
         // Load base dir from storage
         if let Some(storage) = cc.storage {
             app.base_dir = eframe::get_value(storage, "base_dir");
+
+            // Initialize cover manager if we have a base directory
+            if let Some(ref base_dir) = app.base_dir {
+                app.cover_manager = Some(CoverManager::new(base_dir.path().to_path_buf()));
+            }
         }
 
         // If the base directory isn't set or no longer exists, prompt the user to select one.
@@ -173,8 +148,11 @@ impl App {
             .pick_folder();
 
         if let Some(new_dir) = new_dir {
-            let base_dir = BaseDir::new(new_dir)?;
+            let base_dir = BaseDir::new(new_dir.clone())?;
             self.base_dir = Some(base_dir);
+
+            // Initialize cover manager with the new base directory
+            self.cover_manager = Some(CoverManager::new(new_dir));
 
             self.watch_base_dir()?;
             self.refresh_games()?;
@@ -232,73 +210,18 @@ impl App {
         });
     }
 
-    /// Converts ISO files to WBFS in a background thread
+    /// Converts ISO files to WBFS
     fn spawn_conversion_worker(&mut self, paths: Vec<PathBuf>) {
         if let Some(base_dir) = &self.base_dir {
-            let sender = self.inbox.sender();
-            let remove_sources = self.remove_sources;
-            let cancelled = Arc::clone(&self.operation_cancelled);
-
-            // Reset cancellation flag
-            self.operation_cancelled.store(false, Ordering::Relaxed);
-
-            self.operation_state = OperationState::InProgress {
-                operation: OperationType::Converting,
-                total_items: paths.len(),
-                items_completed: 0,
-                current_item: String::new(),
-                current_progress: (0, 0),
-                items_passed: 0,
-                items_failed: 0,
-            };
-
-            let base_dir = base_dir.path().to_owned();
-            std::thread::spawn(move || {
-                for (i, path) in paths.iter().enumerate() {
-                    // Check for cancellation before starting each file
-                    if cancelled.load(Ordering::Relaxed) {
-                        break;
-                    }
-
-                    // Send the file name we're about to convert
-                    if let Some(file_name) = path.file_name() {
-                        let _ = sender.send(BackgroundMessage::OperationStartItem(
-                            i,
-                            file_name.to_string_lossy().to_string(),
-                        ));
-                    }
-
-                    let mut success = false;
-                    let (game_path, result) = match convert::convert_game(
-                        path,
-                        &base_dir,
-                        sender.clone(),
-                        Arc::clone(&cancelled),
-                    ) {
-                        Ok((game_dir, calculated_hashes)) => {
-                            success = true;
-                            (
-                                game_dir,
-                                OperationResult::ConversionComplete(calculated_hashes),
-                            )
-                        }
-                        Err(e) => (base_dir.clone(), OperationResult::Error(e)),
-                    };
-
-                    // Send completion message for this file
-                    let _ =
-                        sender.send(BackgroundMessage::OperationItemComplete(game_path, result));
-
-                    // Remove the source file if requested
-                    if success
-                        && remove_sources
-                        && let Err(e) = fs::remove_file(path)
-                    {
-                        let _ = sender.send(BackgroundMessage::Error(e.into()));
-                    }
-                }
-
-                let _ = sender.send(BackgroundMessage::OperationComplete);
+            self.jobs.push_once(Job::Convert, || {
+                start_convert(
+                    egui_waker(&self.ctx),
+                    ConvertConfig {
+                        base_dir: base_dir.path().to_owned(),
+                        paths,
+                        remove_sources: self.remove_sources,
+                    },
+                )
             });
         }
     }
@@ -310,85 +233,108 @@ impl App {
     }
 
     /// Spawn a verification task for multiple games
-    pub fn spawn_verification(&mut self, games: Vec<Box<Game>>) {
-        let sender = self.inbox.sender();
-        let cancelled = Arc::clone(&self.operation_cancelled);
-
-        // Reset cancellation flag
-        self.operation_cancelled.store(false, Ordering::Relaxed);
-
-        // Set the operation state
-        self.operation_state = OperationState::InProgress {
-            operation: OperationType::Verifying,
-            total_items: games.len(),
-            items_completed: 0,
-            current_item: String::new(),
-            current_progress: (0, 0),
-            items_passed: 0,
-            items_failed: 0,
-        };
-
-        std::thread::spawn(move || {
-            for (i, game) in games.into_iter().enumerate() {
-                // Check for cancellation
-                if cancelled.load(Ordering::Relaxed) {
-                    break;
-                }
-
-                // Send the game name we're about to verify
-                let _ = sender.send(BackgroundMessage::OperationStartItem(
-                    i,
-                    game.display_title.clone(),
-                ));
-
-                let game_path = game.path.clone();
-                let result = match verify_game(game, sender.clone(), Arc::clone(&cancelled)) {
-                    Ok(verification_status) => {
-                        OperationResult::VerificationComplete(verification_status)
-                    }
-                    Err(e) => OperationResult::Error(e),
-                };
-
-                // Send completion message for this game
-                let _ = sender.send(BackgroundMessage::OperationItemComplete(game_path, result));
-            }
-
-            // Send final completion message
-            let _ = sender.send(BackgroundMessage::OperationComplete);
+    pub fn spawn_verification(&mut self, games: Vec<Game>) {
+        self.jobs.push_once(Job::Verify, || {
+            start_verify(egui_waker(&self.ctx), VerifyConfig { games })
         });
     }
 
     /// Start verifying all unverified games
     pub fn start_verify_all(&mut self) {
         // Collect all games that need verification
-        let mut games_to_verify: Vec<Box<Game>> = Vec::new();
+        let mut games_to_verify: Vec<Game> = Vec::new();
         for game in &self.games {
             if !matches!(
                 game.get_verification_status(),
                 VerificationStatus::FullyVerified(_, _)
             ) {
-                games_to_verify.push(Box::new(game.clone()));
+                games_to_verify.push(game.clone());
             }
         }
 
         if games_to_verify.is_empty() {
+            self.bottom_right_toasts
+                .info("All games are already verified");
             return;
         }
 
         // Start batch verification
         self.spawn_verification(games_to_verify);
     }
-}
 
-/// Helper function to create a styled `Toasts` instance for a specific screen corner.
-fn create_toasts(anchor: egui_notify::Anchor) -> egui_notify::Toasts {
-    egui_notify::Toasts::default()
-        .with_anchor(anchor)
-        .with_margin(egui::vec2(10.0, 32.0))
-        .with_shadow(egui::Shadow {
-            offset: [0, 0],
-            blur: 0,
-            spread: 1,
-            color: egui::Color32::GRAY,
-        })
+    /// Handle download covers job result
+    pub fn handle_download_covers_result(&mut self, status: JobStatus, res: DownloadCoversResult) {
+        if res.failed > 0 {
+            self.bottom_right_toasts.warning(status.status);
+            // Mark failed IDs to avoid retrying 404s
+            if let Some(cover_manager) = &self.cover_manager {
+                cover_manager.mark_failed(res.failed_ids.clone(), res.cover_type);
+            }
+        } else {
+            self.bottom_right_toasts.success(status.status);
+        }
+    }
+
+    /// Handle convert job result
+    pub fn handle_convert_result(&mut self, status: JobStatus, res: ConvertResult) {
+        if res.failed.is_empty() {
+            self.bottom_right_toasts.success(status.status);
+        } else {
+            for (failed_path, e) in &res.failed {
+                self.bottom_right_toasts.add(error_toast(
+                    &format!("Failed to convert {}", failed_path.display()),
+                    e,
+                ));
+            }
+            self.bottom_right_toasts.warning(status.status);
+        }
+
+        // Refresh the game list to show new converted games
+        if let Err(e) = self.refresh_games() {
+            self.bottom_right_toasts
+                .add(error_toast("Failed to refresh games", &e));
+        }
+
+        // Apply calculated hashes to the newly converted games
+        for (game_path, calculated_hashes) in res.hashes {
+            if let Some(game) = self.games.iter_mut().find(|g| g.path == game_path) {
+                game.set_verification_status(calculated_hashes.into_verification_status());
+                break;
+            }
+        }
+    }
+
+    /// Handle verify job result
+    pub fn handle_verify_result(&mut self, status: JobStatus, res: VerifyResult) {
+        // Apply verification statuses to the games
+        for (game_path, verification_status) in res.results {
+            if let Some(game) = self.games.iter_mut().find(|g| g.path == game_path) {
+                game.set_verification_status(verification_status);
+            }
+        }
+
+        if res.failed > 0 {
+            self.bottom_right_toasts.warning(status.status);
+        } else {
+            self.bottom_right_toasts.success(status.status);
+        }
+    }
+
+    /// Handle download database job result
+    pub fn handle_download_database_result(
+        &mut self,
+        status: JobStatus,
+        _res: DownloadDatabaseResult,
+    ) {
+        // Clear the cached GameTDB instance to force reload
+        gametdb::clear_cache();
+
+        // Refresh games to reload titles from the new database
+        if let Err(e) = self.refresh_games() {
+            self.bottom_right_toasts
+                .add(error_toast("Failed to refresh games", &e));
+        } else {
+            self.bottom_right_toasts.success(status.status);
+        }
+    }
 }

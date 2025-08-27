@@ -1,15 +1,34 @@
-use crate::app::{App, OperationState};
+use crate::app::App;
 use crate::components;
+use crate::jobs::{Job, JobResult};
 use crate::messages::handle_messages;
 use eframe::{Storage, egui};
 
 impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        // Process job results
+        self.jobs.collect_results();
+        let results = std::mem::take(&mut self.jobs.results);
+        for (result, status) in results {
+            match result {
+                JobResult::DownloadCovers(res) => self.handle_download_covers_result(status, *res),
+                JobResult::DownloadDatabase(res) => {
+                    self.handle_download_database_result(status, *res)
+                }
+                JobResult::Convert(res) => self.handle_convert_result(status, *res),
+                JobResult::Verify(res) => self.handle_verify_result(status, *res),
+                // Put back unhandled results
+                _ => self.jobs.results.push((result, status)),
+            }
+        }
+
         handle_messages(self, ctx);
 
-        match self.operation_state {
-            OperationState::InProgress { .. } => ctx.set_cursor_icon(egui::CursorIcon::Wait),
-            _ => ctx.set_cursor_icon(egui::CursorIcon::Default),
+        // Set cursor icon based on active jobs
+        if self.jobs.is_running(Job::Convert) || self.jobs.is_running(Job::Verify) {
+            ctx.set_cursor_icon(egui::CursorIcon::Wait);
+        } else {
+            ctx.set_cursor_icon(egui::CursorIcon::Default);
         }
 
         components::top_panel::ui_top_panel(ctx, self);
@@ -18,9 +37,8 @@ impl eframe::App for App {
         egui::CentralPanel::default().show(ctx, |ui| {
             components::game_grid::ui_game_grid(ui, self);
 
-            if matches!(self.operation_state, OperationState::InProgress { .. }) {
-                components::operation_modal::ui_operation_modal(ctx, self);
-            }
+            // Show operation modal if convert or verify job is running
+            components::operation_modal::ui_operation_modal(ctx, self);
         });
 
         // Render info windows for opened games and remove closed ones
@@ -36,6 +54,9 @@ impl eframe::App for App {
                 is_open
             })
         });
+
+        // Render jobs window if open
+        components::jobs::jobs_window(ctx, &mut self.show_jobs_window, &mut self.jobs);
 
         self.top_left_toasts.show(ctx);
         self.bottom_left_toasts.show(ctx);
