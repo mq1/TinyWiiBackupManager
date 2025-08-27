@@ -297,7 +297,6 @@ pub fn should_cancel(rx: &Receiver<()>) -> bool {
     }
 }
 
-#[allow(clippy::too_many_arguments)]
 pub fn update_status_with_bytes(
     context: &JobContext,
     status: String,
