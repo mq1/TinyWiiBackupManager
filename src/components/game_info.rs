@@ -2,7 +2,7 @@ use crate::components::fake_link::fake_link;
 use crate::game::{ConsoleType, Game};
 use crate::messages::BackgroundMessage;
 use anyhow::anyhow;
-use eframe::egui::{self, RichText};
+use eframe::egui::{self, Id, RichText};
 use size::Size;
 
 pub fn ui_game_info_window(
@@ -11,7 +11,8 @@ pub fn ui_game_info_window(
     open: &mut bool,
     sender: egui_inbox::UiInboxSender<BackgroundMessage>,
 ) {
-    egui::Window::new(game.display_title.clone())
+    egui::Window::new(&game.display_title)
+        .id(Id::new(game.id.clone()))
         .open(open)
         .show(ctx, |ui| {
             ui_game_info_content(ui, game, sender);
@@ -30,7 +31,7 @@ fn ui_game_info_content(
 
     ui.horizontal(|ui| {
         ui.label(RichText::new("🆔 Game ID:").strong());
-        ui.label(RichText::new(&game.id).monospace());
+        ui.label(RichText::new(game.id.iter().collect::<String>()).monospace());
     });
 
     ui.horizontal(|ui| {
@@ -39,11 +40,6 @@ fn ui_game_info_content(
             ConsoleType::GameCube => "GameCube",
             ConsoleType::Wii => "Wii",
         });
-    });
-
-    ui.horizontal(|ui| {
-        ui.label(RichText::new("🌍 Region:").strong());
-        ui.label(game.region.to_name());
     });
 
     ui.horizontal(|ui| {
@@ -64,6 +60,13 @@ fn ui_game_info_content(
         ui.label(RichText::new("🌐 GameTDB:").strong());
         ui.hyperlink(&game.info_url);
     });
+
+    if let Some(info) = &game.info {
+        ui.horizontal(|ui| {
+            ui.label(RichText::new("🌍 Region:").strong());
+            ui.label(info.region);
+        });
+    }
 
     ui.add_space(10.0);
     ui.separator();
