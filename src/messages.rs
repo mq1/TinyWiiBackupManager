@@ -1,47 +1,59 @@
+// SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-2.0-only
+
 use crate::app::App;
-use crate::game::Game;
-use crate::toasts::error_toast;
+use crate::components;
+use crate::update_check::UpdateInfo;
 use anyhow::Error;
 use eframe::egui;
-use log::error;
+use log::{error, info};
 
 /// Messages that can be sent from background tasks to the main thread
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum BackgroundMessage {
-    /// Signal that the directory has changed
-    DirectoryChanged,
     /// Signal that an error occurred
-    Error(Error),
-    /// Signal to start verification of a single game
-    StartSingleVerification(Box<Game>),
+    Error(String),
+    /// Informational message
+    Info(String),
+    /// Signal that the base directory has changed
+    DirectoryChanged,
+    /// Signal that update checking has completed
+    GotUpdate(Option<UpdateInfo>),
+}
+
+/// Implement the From trait to automatically convert anyhow::Error into our message.
+impl From<Error> for BackgroundMessage {
+    fn from(e: Error) -> Self {
+        // We use {:?} to get a detailed, often multi-line, representation.
+        BackgroundMessage::Error(format!("{e:?}"))
+    }
 }
 
 /// Processes messages received from background tasks
 pub fn handle_messages(app: &mut App, ctx: &egui::Context) {
     let sender = app.inbox.sender();
 
-    let mut refreshed = false;
     for msg in app.inbox.read(ctx) {
         match msg {
             BackgroundMessage::DirectoryChanged => {
-                // Only refresh once per batch of messages
-                if refreshed {
-                    continue;
-                }
-                refreshed = true;
                 if let Err(e) = app.refresh_games() {
-                    let _ = sender.send(BackgroundMessage::Error(e));
+                    let _ = sender.send(e.into());
                 }
             }
 
             BackgroundMessage::Error(e) => {
-                error!("{e:?}");
-                app.bottom_right_toasts.add(error_toast("", &e));
+                error!("{e}");
+                components::toasts::show_error_toast(app, &e);
             }
 
-            BackgroundMessage::StartSingleVerification(game) => {
-                // Start verification of a single game
-                app.spawn_verification(vec![*game]);
+            BackgroundMessage::Info(e) => {
+                info!("{e}");
+                components::toasts::show_info_toast(app, &e);
+            }
+
+            BackgroundMessage::GotUpdate(update) => {
+                components::toasts::show_update_toast(app, &update);
+                app.update_info = update;
             }
         }
     }

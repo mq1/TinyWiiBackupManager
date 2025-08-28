@@ -5,8 +5,8 @@ use crate::game::{ConsoleType, Game};
 use anyhow::{Context, Result};
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 use serde::{Deserialize, Serialize};
-use std::fmt;
 use std::path::{Path, PathBuf};
+use std::{fmt, fs, io};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct BaseDir(PathBuf);
@@ -57,6 +57,10 @@ impl BaseDir {
         self.0.join("games")
     }
 
+    pub fn usbloadergx_dir(&self) -> PathBuf {
+        self.0.join("apps").join("usbloader_gx")
+    }
+
     pub fn get_watcher(&self, callback: impl notify::EventHandler) -> Result<RecommendedWatcher> {
         let mut watcher = notify::recommended_watcher(callback)?;
         watcher.watch(&self.0, RecursiveMode::Recursive)?;
@@ -67,8 +71,8 @@ impl BaseDir {
     /// Scans the "wbfs" and "games" directories and get the list of games and the size of the base directory
     pub fn get_games(&self) -> Result<(Vec<Game>, u64)> {
         let mut games = Vec::new();
-        scan_dir(self.wii_dir(), &mut games, ConsoleType::Wii, &self.0)?;
-        scan_dir(self.gc_dir(), &mut games, ConsoleType::GameCube, &self.0)?;
+        scan_dir(self.wii_dir(), &mut games, ConsoleType::Wii)?;
+        scan_dir(self.gc_dir(), &mut games, ConsoleType::GameCube)?;
 
         // Sort the combined vector
         games.sort_by(|a, b| a.display_title.cmp(&b.display_title));
@@ -93,6 +97,20 @@ impl BaseDir {
     pub fn open(&self) -> Result<()> {
         open::that(&self.0).map_err(anyhow::Error::from)
     }
+
+    pub fn download_file(&self, url: &str, dir: impl AsRef<Path>, filename: &str) -> Result<()> {
+        let dir = self.0.join(dir);
+        fs::create_dir_all(&dir)?;
+
+        let file_path = dir.join(filename);
+        let mut file = fs::File::create(&file_path)?;
+
+        let response = ureq::get(url).call()?;
+        let (_, body) = response.into_parts();
+        io::copy(&mut body.into_reader(), &mut file)?;
+
+        Ok(())
+    }
 }
 
 impl fmt::Display for BaseDir {
@@ -102,23 +120,18 @@ impl fmt::Display for BaseDir {
 }
 
 /// Scans a directory for games
-fn scan_dir(
-    dir: impl AsRef<Path>,
-    games: &mut Vec<Game>,
-    console_type: ConsoleType,
-    base_dir: &Path,
-) -> Result<()> {
+fn scan_dir(dir: impl AsRef<Path>, games: &mut Vec<Game>, console_type: ConsoleType) -> Result<()> {
     let dir = dir.as_ref();
 
     if !dir.is_dir() {
         return Ok(());
     }
 
-    std::fs::read_dir(dir)?
+    fs::read_dir(dir)?
         .filter_map(Result::ok)
         .map(|entry| entry.path())
         .filter(|path| path.is_dir())
-        .filter_map(|path| Game::from_path(path, console_type, Some(base_dir)).ok())
+        .filter_map(|path| Game::from_path(path, console_type).ok())
         .for_each(|game| {
             games.push(game);
         });
