@@ -26,9 +26,7 @@ pub fn show_error_toast(app: &mut App, msg: &str) {
 }
 
 pub fn show_info_toast(app: &mut App, msg: &str) {
-    app.bottom_right_toasts
-        .info(msg)
-        .duration(Some(Duration::from_secs(10)));
+    app.bottom_right_toasts.info(msg);
 }
 
 pub fn show_update_toast(app: &mut App, update: &Option<UpdateInfo>) {
