@@ -42,7 +42,7 @@ enum DiscMetaState {
 /// Represents a single game, containing its metadata and file system information.
 #[derive(Clone)]
 pub struct Game {
-    pub id: [char; 6],
+    pub id: u64,
     pub title: String,
     pub path: PathBuf,
     pub size: u64,
@@ -52,6 +52,14 @@ pub struct Game {
     pub info_url: String,
     pub image_url: String,
     disc_meta: DiscMetaState,
+}
+
+/// Converts a string slice (up to 8 chars) into a u64.
+///
+/// It effectively treats the string's bytes as a big-endian integer.
+/// For example, "ABCD" becomes 0x41424344.
+fn game_id_to_u64(id: &str) -> u64 {
+    id.bytes().fold(0, |acc, byte| (acc << 8) | u64::from(byte))
 }
 
 impl Game {
@@ -79,7 +87,7 @@ impl Game {
             .ok_or_else(|| anyhow!("Could not find game title in directory name: {dir_name}"))?
             .as_str();
 
-        let id: [char; 6] = std::array::from_fn(|i| id_str.chars().nth(i).unwrap_or('\0'));
+        let id = game_id_to_u64(id_str);
 
         let info = GAMES.get(&id).cloned().cloned();
 
