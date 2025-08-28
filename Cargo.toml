@@ -78,3 +78,9 @@ panic = "abort"
 
 [profile.dev.package."*"]
 opt-level = 2
+
+[profile.dev.build-override]
+opt-level = 2
+
+[profile.release.build-override]
+opt-level = 2

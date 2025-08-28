@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use crate::INPUT_EXTENSIONS_PATTERN;
-use crate::region::Region;
 use anyhow::{Context, Result, anyhow};
 use glob::glob;
 use lazy_regex::{Lazy, Regex, lazy_regex};
@@ -10,9 +9,17 @@ use nod::read::{DiscMeta, DiscOptions, DiscReader};
 use std::fs;
 use std::path::PathBuf;
 
-include!(concat!(env!("OUT_DIR"), "/titles.rs"));
+include!(concat!(env!("OUT_DIR"), "/wiitdb_data.rs"));
 
 static GAME_DIR_RE: Lazy<Regex> = lazy_regex!(r"^(.*)\[(.*)\]$");
+
+/// Data from WiiTDB XML
+#[derive(Debug, Clone, Copy)]
+pub struct GameInfo {
+    pub name: &'static str,
+    pub region: &'static str, // TODO: Make this an enum
+    pub languages: &'static [&'static str],
+}
 
 /// Represents the console type for a game
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -35,15 +42,15 @@ enum DiscMetaState {
 /// Represents a single game, containing its metadata and file system information.
 #[derive(Clone)]
 pub struct Game {
-    pub id: String,
-    pub console: ConsoleType,
+    pub id: [char; 6],
     pub title: String,
-    pub display_title: String,
     pub path: PathBuf,
-    pub region: Region,
+    pub size: u64,
+    pub console: ConsoleType,
+    pub info: Option<GameInfo>,
+    pub display_title: String,
     pub info_url: String,
     pub image_url: String,
-    pub size: u64,
     disc_meta: DiscMetaState,
 }
 
@@ -53,39 +60,53 @@ impl Game {
     /// The path is expected to be a directory containing the game files, with a name
     /// format like "My Game Title [GAMEID]".
     pub fn from_path(path: PathBuf, console: ConsoleType) -> Result<Self> {
-        let dir_name = path.file_name().unwrap().to_string_lossy();
+        let dir_name = path
+            .file_name()
+            .ok_or_else(|| anyhow!("Invalid game directory name: {}", path.display()))?
+            .to_string_lossy();
 
         let caps = GAME_DIR_RE
             .captures(&dir_name)
             .ok_or_else(|| anyhow!("Invalid game directory name: {dir_name}"))?;
 
-        let id = caps.get(2).unwrap().as_str().to_string();
-        let title = caps.get(1).unwrap().as_str().to_string();
+        let id_str = caps
+            .get(2)
+            .ok_or_else(|| anyhow!("Could not find game ID in directory name: {dir_name}"))?
+            .as_str();
 
-        // Use the title from the GameTDB database if available, otherwise, fall back to the
-        // parsed title from the file name.
-        let display_title = GAME_TITLES.get(&id).copied().unwrap_or(&title).to_string();
+        let title = caps
+            .get(1)
+            .ok_or_else(|| anyhow!("Could not find game title in directory name: {dir_name}"))?
+            .as_str();
 
-        let region = Region::from_id(&id);
-        let lang = region.to_lang();
+        let id: [char; 6] = std::array::from_fn(|i| id_str.chars().nth(i).unwrap_or('\0'));
 
-        let info_url = format!("https://www.gametdb.com/Wii/{id}");
-        let image_url = format!("https://art.gametdb.com/wii/cover3D/{lang}/{id}.png");
+        let info = GAMES.get(&id).cloned().cloned();
 
         let size = fs_extra::dir::get_size(&path)
             .with_context(|| format!("Failed to get size of dir: {}", path.display()))?;
 
+        let display_title = info.as_ref().map(|i| i.name).unwrap_or_else(|| title);
+
+        let language = info
+            .as_ref()
+            .map(|i| i.languages.first().cloned().unwrap_or("EN"))
+            .unwrap_or("EN");
+
+        let info_url = format!("https://www.gametdb.com/Wii/{id_str}");
+        let image_url = format!("https://art.gametdb.com/wii/cover3D/{language}/{id_str}.png");
+
         Ok(Self {
             id,
             console,
-            title,
-            display_title,
-            path,
-            region,
+            title: title.to_string(),
+            path: path.clone(),
+            size,
+            info,
+            disc_meta: DiscMetaState::NotLoaded,
+            display_title: display_title.to_string(),
             info_url,
             image_url,
-            size,
-            disc_meta: DiscMetaState::NotLoaded,
         })
     }
 
