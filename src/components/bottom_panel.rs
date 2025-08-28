@@ -6,8 +6,6 @@ use eframe::egui;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
-// --- UI Rendering ---
-
 /// Renders the bottom panel, which includes the update notifier and other controls.
 pub fn ui_bottom_panel(ctx: &egui::Context, app: &mut App) {
     egui::TopBottomPanel::bottom("bottom_panel").show(ctx, |ui| {
@@ -26,12 +24,15 @@ pub fn ui_bottom_panel(ctx: &egui::Context, app: &mut App) {
                 ui.separator();
                 ui_console_filter(ui, &mut app.console_filter);
 
-                // Show jobs menu UI
-                ui.separator();
-                if crate::components::jobs::jobs_menu_ui(ui, &mut app.jobs) {
-                    app.show_jobs_window = true;
+                // Show running tasks count
+                if !app.task_processor.is_idle() {
+                    ui.separator();
+                    ui.label(format!(
+                        "{} tasks running",
+                        app.task_processor.pending_tasks()
+                    ));
+                    ui.spinner();
                 }
-                ui.label("Jobs:");
             });
         });
     });

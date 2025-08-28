@@ -22,6 +22,7 @@ OriginalFilename = "TinyWiiBackupManager.exe"
 LegalCopyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-2.0-only."
 
 [dependencies]
+iso2wbfs = { git = "https://github.com/mq1/iso2wbfs", tag = "v1.2.7" }
 egui_extras = { version = "0.32", features = ["image", "file"] }
 egui-notify = "0.20"
 egui_inbox = "0.9"
@@ -37,32 +38,29 @@ notify = "8.2"
 size = "0.5"
 log = "0.4"
 env_logger = "0.11"
-const_format = "0.2"
+const_format = { version = "0.2", features = ["rust_1_64"] }
+glob = "0.3"
 nod = "2.0.0-alpha.3"
 hex = "0.4"
-filetime = "0.2"
-num_cpus = "1.17"
-sanitize-filename-reader-friendly = "2.3"
 serde = { version = "1.0", features = ["derive"] }
 quick-xml = { version = "0.38", features = ["serialize"] }
 zip = { version = "4.5", default-features = false, features = ["deflate-flate2-zlib-rs"] }
 tempfile = "3.13"
+flume = "0.11"
+lazy-regex = { version = "3.4", default-features = false, features = ["lite"] }
+const-str = "0.6"
 
 [build-dependencies]
 quick-xml = { version = "0.38", features = ["serialize"] }
 serde = { version = "1.0", features = ["derive"] }
 phf_codegen = "0.13"
 
-[target.'cfg(target_os = "macos")'.dependencies]
-eframe = { version = "0.32", default-features = false, features = ["accesskit", "default_fonts", "glow", "persistence"] }
-
-# Use default features so we get winit/default features (mainly wayland-csd-adwaita)
-[target.'cfg(target_os = "linux")'.dependencies]
+[target.'cfg(not(target_os = "windows"))'.dependencies]
 eframe = { version = "0.32", features = ["persistence"] }
 
 # glow doesn't always work on windows (ex. on VMs and old hardware)
 [target.'cfg(target_os = "windows")'.dependencies]
-eframe = { version = "0.32", default-features = false, features = ["accesskit", "default_fonts", "wgpu", "persistence"] }
+eframe = { version = "0.32", features = ["wgpu", "persistence"] }
 wgpu = { version = "25", default-features = false, features = ["dx12"] }
 
 [target.'cfg(target_os = "windows")'.build-dependencies]

@@ -3,10 +3,7 @@
 
 use crate::app::App;
 use crate::components::fake_link::fake_link;
-use crate::cover_manager::CoverType;
-use crate::game::VerificationStatus;
-use crate::jobs::{Job, download_covers, download_database, egui_waker};
-use crate::messages::BackgroundMessage;
+use crate::wiitdb::spawn_download_database_task;
 use anyhow::anyhow;
 use eframe::egui;
 use size::Size;
@@ -25,7 +22,7 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                 if ui.button("📁 Pick base Drive/Directory").clicked()
                     && let Err(e) = app.choose_base_dir()
                 {
-                    let _ = sender.send(BackgroundMessage::Error(e));
+                    let _ = sender.send(e.into());
                 }
 
                 // dot_clean button
@@ -37,7 +34,7 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                         .clicked()
                     && let Err(e) = base_dir.run_dot_clean()
                 {
-                    let _ = sender.send(BackgroundMessage::Error(e));
+                    let _ = sender.send(e.into());
                 }
             });
 
@@ -50,26 +47,6 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                     app.add_isos();
                 }
 
-                // Verify All button - disable if all games are verified
-                let has_unverified = app.games.iter().any(|g| {
-                    !matches!(
-                        g.get_verification_status(),
-                        VerificationStatus::FullyVerified(_, _)
-                    )
-                });
-
-                let verify_all_button = ui
-                    .add_enabled(has_unverified, egui::Button::new("🔍 Verify All"))
-                    .on_hover_text(if has_unverified {
-                        "Verify integrity of all games"
-                    } else {
-                        "All games are already verified"
-                    });
-
-                if verify_all_button.clicked() {
-                    app.start_verify_all();
-                }
-
                 // GameTDB menu
                 ui.menu_button("🎮 GameTDB", |ui| {
                     // Download database option
@@ -77,27 +54,9 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                         .button("📥 Update GameTDB Database")
                         .on_hover_text("Download the latest wiitdb.xml database from GameTDB")
                         .clicked()
-                        && let Some(cover_manager) = &app.cover_manager
                     {
-                        let config = download_database::DownloadDatabaseConfig {
-                            base_dir: cover_manager.base_dir().clone(),
-                        };
-                        app.jobs.push_once(Job::DownloadDatabase, || {
-                            download_database::start_download_database(
-                                egui_waker::egui_waker(ctx),
-                                config,
-                            )
-                        });
-                        app.bottom_right_toasts.info("Updating GameTDB database...");
+                        spawn_download_database_task(&app);
                     }
-
-                    ui.separator();
-
-                    // Download all covers options
-                    download_covers_ui(ui, ctx, app, CoverType::Cover3D);
-                    download_covers_ui(ui, ctx, app, CoverType::Cover2D);
-                    download_covers_ui(ui, ctx, app, CoverType::CoverFull);
-                    download_covers_ui(ui, ctx, app, CoverType::Disc);
                 });
             }
 
@@ -106,19 +65,13 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                 ui.label("•");
                 ui.menu_button("🛠 Tests", |ui| {
                     if ui.button("❌ Test Error").clicked() {
-                        let _ = sender.send(BackgroundMessage::Error(
+                        let _ = sender.send(
                             anyhow!("Test error")
                                 .context("Doing something")
-                                .context("In ui_top_panel"),
-                        ));
-                    }
-
-                    if ui.button("❌ Test Error 2").clicked() {
-                        rfd::MessageDialog::new()
-                            .set_title("Test Error 2")
-                            .set_level(rfd::MessageLevel::Error)
-                            .show();
-                    }
+                                .context("In ui_top_panel")
+                                .into(),
+                        );
+                    };
                 });
             }
 
@@ -138,7 +91,7 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                         .clicked()
                         && let Err(e) = base_dir.open()
                     {
-                        let _ = sender.send(BackgroundMessage::Error(e));
+                        let _ = sender.send(e.into());
                     }
 
                     ui.label("•");
@@ -148,52 +101,4 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
             });
         });
     });
-}
-
-/// Helper function to handle downloading covers of a specific type
-fn download_covers_ui(
-    ui: &mut egui::Ui,
-    ctx: &egui::Context,
-    app: &mut App,
-    cover_type: CoverType,
-) {
-    let cover_type_name = match cover_type {
-        CoverType::Cover3D => "3D covers",
-        CoverType::Cover2D => "2D covers",
-        CoverType::CoverFull => "full covers",
-        CoverType::Disc => "disc art",
-    };
-    if ui
-        .button(format!("📥 Download all {cover_type_name}"))
-        .on_hover_text(format!("Download {cover_type_name} for all games"))
-        .clicked()
-        && let Some(cover_manager) = &app.cover_manager
-    {
-        let game_ids: Vec<String> = app
-            .games
-            .iter()
-            .map(|g| g.id.clone())
-            .filter(|id| !cover_manager.has_cover(id, cover_type))
-            .filter(|id| !cover_manager.is_failed(id, cover_type))
-            .collect();
-
-        if game_ids.is_empty() {
-            app.bottom_right_toasts
-                .info(format!("All {} already downloaded.", cover_type_name));
-        } else {
-            let num_covers = game_ids.len();
-            let config = download_covers::DownloadCoversConfig {
-                base_dir: cover_manager.base_dir().clone(),
-                cover_type,
-                game_ids,
-            };
-            app.jobs.push_once(Job::DownloadCovers, || {
-                download_covers::start_download_covers(egui_waker::egui_waker(ctx), config)
-            });
-            app.bottom_right_toasts.info(format!(
-                "Downloading {} for {} games...",
-                cover_type_name, num_covers
-            ));
-        }
-    }
 }
