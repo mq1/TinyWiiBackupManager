@@ -176,12 +176,16 @@ fn compile_wiitdb_xml() {
 
         let region = format!("Region::{}", game.region.to_upper_camel_case());
 
+        // if language is empty, skip game
+        if game.languages.is_empty() {
+            continue;
+        }
+
         // build languages list string
         let languages = game
             .languages
             .split(',')
-            .filter(|s| !s.is_empty())
-            .map(|lang| format!("\"{}\"", lang))
+            .map(|lang| format!("Language::{}", lang))
             .collect::<Vec<_>>()
             .join(",");
 
