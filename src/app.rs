@@ -187,7 +187,6 @@ impl App {
 
                     iso2wbfs::convert(&path, base_dir.path(), callback)?;
 
-                    let _ = ui_sender.send(BackgroundMessage::UpdateStatus(String::new()));
                     let _ = ui_sender.send(BackgroundMessage::DirectoryChanged);
                     let _ = ui_sender.send(BackgroundMessage::Info(format!(
                         "Converted {}",

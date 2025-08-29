@@ -4005,7 +4005,6 @@ dependencies = [
  "serde",
  "size",
  "strum 0.27.2",
- "tempfile",
  "ureq",
  "winres",
  "zip",

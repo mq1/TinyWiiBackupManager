@@ -30,7 +30,9 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
         egui::Grid::new("game_grid")
             .spacing(GRID_SPACING)
             .show(ui, |ui| {
-                for (i, game) in app.games.iter_mut().enumerate() {
+                let games = app.games.iter_mut();
+
+                for (i, game) in games.enumerate() {
                     if filter.shows_game(&game) {
                         ui_game_card(ui, &mut app.inbox.sender(), game, &cover_dir);
                     }
@@ -40,7 +42,12 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
                     }
 
                     // game info window
-                    ui_game_info_window(ui.ctx(), game, app.inbox.sender());
+                    ui_game_info_window(
+                        ui.ctx(),
+                        game,
+                        &mut app.inbox.sender(),
+                        &app.task_processor,
+                    );
                 }
             });
     });
