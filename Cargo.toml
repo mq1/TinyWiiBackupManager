@@ -48,6 +48,7 @@ flume = "0.11"
 lazy-regex = { version = "3.4", default-features = false, features = ["lite"] }
 const-str = "0.6"
 strum = { version = "0.27", features = ["derive"] }
+ron = "0.11"
 
 [build-dependencies]
 quick-xml = { version = "0.38", features = ["serialize"] }
