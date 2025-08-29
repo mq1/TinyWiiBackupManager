@@ -19,6 +19,8 @@ pub enum BackgroundMessage {
     DirectoryChanged,
     /// Signal that update checking has completed
     GotUpdate(Option<UpdateInfo>),
+    /// Signal that a new cover has been downloaded
+    NewCover(String),
 }
 
 /// Implement the From trait to automatically convert anyhow::Error into our message.
@@ -53,6 +55,15 @@ pub fn handle_messages(app: &mut App, ctx: &egui::Context) {
             BackgroundMessage::GotUpdate(update) => {
                 components::toasts::show_update_toast(app, &update);
                 app.update_info = update;
+            }
+
+            BackgroundMessage::NewCover(id) => {
+                let msg = format!("Downloaded cover for {}", id);
+                let _ = sender.send(BackgroundMessage::Info(msg));
+
+                // we need to refresh the image cache
+                // we can forget only the image that changed with ctx.forget_image(uri) but this works fine
+                ctx.forget_all_images();
             }
         }
     }
