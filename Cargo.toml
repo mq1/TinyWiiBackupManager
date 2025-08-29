@@ -48,11 +48,13 @@ tempfile = "3.13"
 flume = "0.11"
 lazy-regex = { version = "3.4", default-features = false, features = ["lite"] }
 const-str = "0.6"
+strum = { version = "0.27", features = ["derive"] }
 
 [build-dependencies]
 quick-xml = { version = "0.38", features = ["serialize"] }
 serde = { version = "1.0", features = ["derive"] }
 phf_codegen = "0.13"
+heck = "0.5"
 
 [target.'cfg(not(target_os = "windows"))'.dependencies]
 eframe = { version = "0.32", features = ["persistence"] }

@@ -64,7 +64,7 @@ fn ui_game_info_content(
     if let Some(info) = &game.info {
         ui.horizontal(|ui| {
             ui.label(RichText::new("🌍 Region:").strong());
-            ui.label(info.region);
+            ui.label(info.region.as_ref());
         });
     }
 
