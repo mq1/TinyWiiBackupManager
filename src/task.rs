@@ -31,6 +31,9 @@ impl TaskProcessor {
                 if let Err(e) = task(ui_sender_clone.clone()) {
                     let _ = ui_sender_clone.send(e.into());
                 }
+
+                // clear the status message
+                let _ = ui_sender_clone.send(BackgroundMessage::UpdateStatus(String::new()));
             }
         });
 
