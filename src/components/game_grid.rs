@@ -7,6 +7,7 @@ use crate::{
 };
 use eframe::egui::{self, Button, Image, RichText};
 use size::Size;
+use std::path::PathBuf;
 
 const CARD_SIZE: egui::Vec2 = egui::vec2(170.0, 220.0);
 const GRID_SPACING: egui::Vec2 = egui::vec2(10.0, 10.0);
@@ -16,6 +17,13 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
 
     let mut to_remove = None;
     let mut to_open_info = None;
+
+    let cover_dir = app
+        .base_dir
+        .as_ref()
+        .unwrap()
+        .usbloadergx_dir()
+        .join("images");
 
     egui::ScrollArea::vertical().show(ui, |ui| {
         // expand horizontally
@@ -33,7 +41,7 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
 
                 for (original_index, game) in app.games.iter().enumerate() {
                     if filter.shows_game(game) {
-                        let (should_remove, should_open_info) = ui_game_card(ui, game);
+                        let (should_remove, should_open_info) = ui_game_card(ui, game, &cover_dir);
                         if should_remove {
                             to_remove = Some((*game).clone());
                         }
@@ -61,7 +69,7 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
     }
 }
 
-fn ui_game_card(ui: &mut egui::Ui, game: &Game) -> (bool, bool) {
+fn ui_game_card(ui: &mut egui::Ui, game: &Game, cover_dir: &PathBuf) -> (bool, bool) {
     let mut remove_clicked = false;
     let mut info_clicked = false;
 
@@ -87,11 +95,17 @@ fn ui_game_card(ui: &mut egui::Ui, game: &Game) -> (bool, bool) {
 
             // Centered content
             ui.with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
-                //let image = Image::new(&game.image_url)
-                //    .max_height(128.0)
-                //    .maintain_aspect_ratio(true)
-                //    .show_loading_spinner(true);
-                //ui.add(image);
+                let image = Image::new(format!(
+                    "file://{}",
+                    cover_dir
+                        .join(&game.id_str)
+                        .with_extension("png")
+                        .to_string_lossy()
+                ))
+                .max_height(128.0)
+                .maintain_aspect_ratio(true)
+                .show_loading_spinner(true);
+                ui.add(image);
 
                 ui.add_space(5.);
 
