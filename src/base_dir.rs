@@ -100,9 +100,13 @@ impl BaseDir {
 
     pub fn download_file(&self, url: &str, dir: impl AsRef<Path>, filename: &str) -> Result<()> {
         let dir = self.0.join(dir);
-        fs::create_dir_all(&dir)?;
-
         let file_path = dir.join(filename);
+
+        if file_path.exists() {
+            return Ok(());
+        }
+
+        fs::create_dir_all(&dir)?;
         let mut file = fs::File::create(&file_path)?;
 
         let response = ureq::get(url).call()?;
