@@ -44,7 +44,6 @@ enum DiscMetaState {
 #[derive(Clone)]
 pub struct Game {
     pub id: u64,
-    pub id_str: String,
     pub title: String,
     pub path: PathBuf,
     pub size: u64,
@@ -108,7 +107,6 @@ impl Game {
 
         Ok(Self {
             id,
-            id_str: id_str.to_string(),
             console,
             title: title.to_string(),
             path: path.clone(),
@@ -119,6 +117,11 @@ impl Game {
             info_url,
             image_url,
         })
+    }
+
+    // Inverse of game_id_to_u64
+    pub fn id_display(&self) -> String {
+        unsafe { String::from_utf8_unchecked(self.id.to_be_bytes().to_vec()) }
     }
 
     /// Prompts the user for confirmation and then permanently deletes the game's directory.
