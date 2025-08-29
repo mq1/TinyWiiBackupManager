@@ -19,6 +19,7 @@ pub struct GameInfo {
     pub name: &'static str,
     pub region: &'static str, // TODO: Make this an enum
     pub languages: &'static [&'static str],
+    pub crc_list: &'static [u32],
 }
 
 /// Represents the console type for a game
@@ -43,6 +44,7 @@ enum DiscMetaState {
 #[derive(Clone)]
 pub struct Game {
     pub id: u64,
+    pub id_str: String,
     pub title: String,
     pub path: PathBuf,
     pub size: u64,
@@ -106,6 +108,7 @@ impl Game {
 
         Ok(Self {
             id,
+            id_str: id_str.to_string(),
             console,
             title: title.to_string(),
             path: path.clone(),
