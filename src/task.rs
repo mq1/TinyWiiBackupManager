@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use crate::messages::BackgroundMessage;
-use anyhow::Result;
+use anyhow::{Result, anyhow};
 use egui_inbox::UiInboxSender;
 use flume::{Sender, unbounded};
 use std::thread;
@@ -47,13 +47,9 @@ impl TaskProcessor {
         F: FnOnce(UiInboxSender<BackgroundMessage>) -> Result<()> + Send + 'static,
     {
         // The `task_closure` is boxed and sent to the worker.
-        if self.task_sender.send(Box::new(task_closure)).is_err() {
-            let msg = BackgroundMessage::Error(
-                "Failed to queue task: The task receiver was dropped.".to_string(),
-            );
-            // If sending fails, it's because the receiver is gone.
-            // The background thread likely panicked.
-            let _ = self.ui_sender.send(msg);
+        if let Err(e) = self.task_sender.send(Box::new(task_closure)) {
+            let e = anyhow!("{e}:?").context("Failed to queue task");
+            let _ = self.ui_sender.send(e.into());
         }
     }
 
