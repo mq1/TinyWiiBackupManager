@@ -18,12 +18,7 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
     let mut to_remove = None;
     let mut to_open_info = None;
 
-    let cover_dir = app
-        .base_dir
-        .as_ref()
-        .unwrap()
-        .usbloadergx_dir()
-        .join("images");
+    let cover_dir = app.base_dir.as_ref().unwrap().cover_dir();
 
     egui::ScrollArea::vertical().show(ui, |ui| {
         // expand horizontally
