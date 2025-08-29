@@ -62,7 +62,6 @@ eframe = { version = "0.32", features = ["persistence"] }
 # glow doesn't always work on windows (ex. on VMs and old hardware)
 [target.'cfg(target_os = "windows")'.dependencies]
 eframe = { version = "0.32", features = ["wgpu", "persistence"] }
-wgpu = { version = "25", default-features = false, features = ["dx12"] }
 
 [target.'cfg(target_os = "windows")'.build-dependencies]
 winres = "0.1"

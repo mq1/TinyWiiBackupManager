@@ -4007,7 +4007,6 @@ dependencies = [
  "strum 0.27.2",
  "tempfile",
  "ureq",
- "wgpu",
  "winres",
  "zip",
 ]
