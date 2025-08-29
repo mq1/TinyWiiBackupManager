@@ -2,13 +2,14 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use crate::SUPPORTED_INPUT_EXTENSIONS;
+use crate::base_dir::BaseDir;
 use anyhow::{Context, Result, anyhow};
 use lazy_regex::{Lazy, Regex, lazy_regex};
 use nod::read::{DiscMeta, DiscOptions, DiscReader};
-use std::cell::OnceCell;
 use std::fs;
 use std::path::PathBuf;
 use std::sync::Arc;
+use std::sync::OnceLock;
 use strum::{AsRefStr, Display};
 
 include!(concat!(env!("OUT_DIR"), "/wiitdb_data.rs"));
@@ -51,8 +52,7 @@ pub struct Game {
     pub info: Option<GameInfo>,
     pub display_title: String,
     pub info_url: String,
-    pub image_url: String,
-    disc_meta: Arc<OnceCell<Result<DiscMeta>>>,
+    disc_meta: Arc<OnceLock<Result<DiscMeta>>>,
 }
 
 /// Converts a string slice (up to 8 chars) into a u64.
@@ -97,13 +97,7 @@ impl Game {
 
         let display_title = info.as_ref().map(|i| i.name).unwrap_or(title);
 
-        let language = info
-            .as_ref()
-            .and_then(|i| i.languages.first().cloned())
-            .unwrap_or(Language::EN);
-
         let info_url = format!("https://www.gametdb.com/Wii/{id_str}");
-        let image_url = format!("https://art.gametdb.com/wii/cover3D/{language}/{id_str}.png");
 
         Ok(Self {
             id,
@@ -114,10 +108,9 @@ impl Game {
             size,
             info,
             // Initialize with a placeholder that will be filled on first access
-            disc_meta: Arc::new(OnceCell::new()),
+            disc_meta: Arc::new(OnceLock::new()),
             display_title: display_title.to_string(),
             info_url,
-            image_url,
         })
     }
 
@@ -176,10 +169,24 @@ impl Game {
     /// - `Ok(&DiscMeta)` if metadata was successfully loaded.
     /// - `Err(&anyhow::Error)` if no disc image file was found or an error occurred during reading.
     pub fn load_disc_meta(&self) -> &Result<DiscMeta> {
+        // Use get_or_init with a closure that computes the value if not already set
         self.disc_meta.get_or_init(|| {
             let file = self.find_disc_image_file()?;
             let reader = DiscReader::new(&file, &DiscOptions::default())?;
             Ok(reader.meta())
         })
+    }
+
+    pub fn download_cover(&self, base_dir: BaseDir) -> Result<()> {
+        let language = self
+            .info
+            .as_ref()
+            .and_then(|i| i.languages.first())
+            .unwrap_or(&Language::EN);
+
+        let id = &self.id_str;
+
+        let url = format!("https://art.gametdb.com/wii/cover3D/{language}/{id}.png");
+        base_dir.download_file(&url, "apps/usbloader_gx/images", &format!("{id}.png"))
     }
 }
