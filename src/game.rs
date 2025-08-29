@@ -76,7 +76,7 @@ pub struct Game {
     pub display_title: String,
     pub info_url: String,
     pub image_url: String,
-    disc_meta: Arc<OnceCell<Option<DiscMeta>>>,
+    disc_meta: Arc<OnceCell<Result<DiscMeta>>>,
 }
 
 /// Converts a string slice (up to 8 chars) into a u64.
@@ -137,6 +137,7 @@ impl Game {
             path: path.clone(),
             size,
             info,
+            // Initialize with a placeholder that will be filled on first access
             disc_meta: Arc::new(OnceCell::new()),
             display_title: display_title.to_string(),
             info_url,
@@ -163,39 +164,46 @@ impl Game {
         Ok(())
     }
 
-    fn find_disc_image_file(&self) -> Option<PathBuf> {
-        // Read the directory entries, returning None if an error occurs.
-        fs::read_dir(&self.path).ok().and_then(|entries| {
-            // Iterate over the directory entries, looking for the first match.
-            entries.filter_map(Result::ok).find_map(|entry| {
-                let path = entry.path();
-                // Check if the entry is a file.
-                if path.is_file() {
-                    // Check if the file's extension is in the supported list.
-                    let extension = path.extension()?.to_str()?;
-                    if SUPPORTED_INPUT_EXTENSIONS.contains(&extension) {
-                        Some(path)
-                    } else {
-                        None
-                    }
-                } else {
-                    None
-                }
-            })
-        })
+    fn find_disc_image_file(&self) -> Result<PathBuf> {
+        // Read the directory entries, returning an error if it fails
+        let entries = fs::read_dir(&self.path)
+            .with_context(|| format!("Failed to read directory: {}", self.path.display()))?;
+
+        // Iterate over the directory entries, looking for the first match
+        for entry in entries {
+            let entry = entry.context("Failed to read directory entry")?;
+            let path = entry.path();
+
+            // Skip if not a file
+            if !path.is_file() {
+                continue;
+            }
+
+            // Check if the file's extension is in the supported list
+            if let Some(ext) = path.extension()
+                && let Some(ext_str) = ext.to_str()
+                && SUPPORTED_INPUT_EXTENSIONS.contains(&ext_str)
+            {
+                return Ok(path);
+            }
+        }
+
+        Err(anyhow!(
+            "No supported disc image file found in: {}",
+            self.path.display()
+        ))
     }
 
-    /// Lazily loads disc metadata when needed
-    pub fn load_disc_meta(&self) -> Option<&DiscMeta> {
-        self.disc_meta
-            .get_or_init(|| {
-                // Find the disc file first
-                self.find_disc_image_file().and_then(|disc_file_path| {
-                    DiscReader::new(&disc_file_path, &DiscOptions::default())
-                        .ok()
-                        .map(|d| d.meta())
-                })
-            })
-            .as_ref()
+    /// Lazily loads disc metadata when needed.
+    ///
+    /// Returns:
+    /// - `Ok(&DiscMeta)` if metadata was successfully loaded.
+    /// - `Err(&anyhow::Error)` if no disc image file was found or an error occurred during reading.
+    pub fn load_disc_meta(&self) -> &Result<DiscMeta> {
+        self.disc_meta.get_or_init(|| {
+            let file = self.find_disc_image_file()?;
+            let reader = DiscReader::new(&file, &DiscOptions::default())?;
+            Ok(reader.meta())
+        })
     }
 }
