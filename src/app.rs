@@ -95,19 +95,11 @@ impl App {
     fn watch_base_dir(&mut self) -> Result<()> {
         if let Some(base_dir) = &self.base_dir {
             let sender = self.inbox.sender();
-            let watcher = base_dir.get_watcher(move |res| {
-                if let Ok(notify::Event {
-                    kind:
-                        notify::EventKind::Modify(_)
-                        | notify::EventKind::Create(_)
-                        | notify::EventKind::Remove(_),
-                    ..
-                }) = res
-                {
-                    let _ = sender.send(BackgroundMessage::DirectoryChanged);
-                }
-            })?;
+            let callback = move || {
+                let _ = sender.send(BackgroundMessage::DirectoryChanged);
+            };
 
+            let watcher = base_dir.get_watcher(callback)?;
             self.watcher = Some(watcher);
         }
 

@@ -65,9 +65,27 @@ impl BaseDir {
         self.usbloadergx_dir().join("images")
     }
 
-    pub fn get_watcher(&self, callback: impl notify::EventHandler) -> Result<RecommendedWatcher> {
-        let mut watcher = notify::recommended_watcher(callback)?;
-        watcher.watch(&self.0, RecursiveMode::Recursive)?;
+    pub fn get_watcher(&self, callback: impl Fn() + Send + 'static) -> Result<RecommendedWatcher> {
+        let handler = move |res| {
+            if let Ok(notify::Event {
+                kind:
+                    notify::EventKind::Modify(_)
+                    | notify::EventKind::Create(_)
+                    | notify::EventKind::Remove(_),
+                ..
+            }) = res
+            {
+                callback();
+            }
+        };
+
+        let mut watcher = notify::recommended_watcher(handler)?;
+
+        fs::create_dir_all(&self.wii_dir())?;
+        watcher.watch(&self.wii_dir(), RecursiveMode::NonRecursive)?;
+
+        fs::create_dir_all(&self.gc_dir())?;
+        watcher.watch(&self.gc_dir(), RecursiveMode::NonRecursive)?;
 
         Ok(watcher)
     }
