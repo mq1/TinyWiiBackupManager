@@ -24,15 +24,14 @@ pub fn ui_bottom_panel(ctx: &egui::Context, app: &mut App) {
                 ui.separator();
                 ui_console_filter(ui, &mut app.console_filter);
 
-                // Show running tasks count
+                // Show spinner if there are running tasks
                 if !app.task_processor.is_idle() {
                     ui.separator();
-                    ui.label(format!(
-                        "{} tasks running",
-                        app.task_processor.pending_tasks()
-                    ));
                     ui.spinner();
                 }
+
+                // Show status
+                ui.label(&app.status);
             });
         });
     });
