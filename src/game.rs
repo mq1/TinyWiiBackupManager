@@ -6,8 +6,10 @@ use anyhow::{Context, Result, anyhow};
 use glob::glob;
 use lazy_regex::{Lazy, Regex, lazy_regex};
 use nod::read::{DiscMeta, DiscOptions, DiscReader};
+use std::cell::OnceCell;
 use std::fs;
 use std::path::PathBuf;
+use std::sync::Arc;
 
 include!(concat!(env!("OUT_DIR"), "/wiitdb_data.rs"));
 
@@ -29,17 +31,6 @@ pub enum ConsoleType {
     GameCube,
 }
 
-/// Represents the state of disc metadata loading
-#[derive(Clone)]
-enum DiscMetaState {
-    /// Metadata has not been loaded yet
-    NotLoaded,
-    /// Metadata was loaded successfully
-    Loaded(DiscMeta),
-    /// Metadata loading was attempted but failed
-    Failed,
-}
-
 /// Represents a single game, containing its metadata and file system information.
 #[derive(Clone)]
 pub struct Game {
@@ -52,7 +43,7 @@ pub struct Game {
     pub display_title: String,
     pub info_url: String,
     pub image_url: String,
-    disc_meta: DiscMetaState,
+    disc_meta: Arc<OnceCell<Option<DiscMeta>>>,
 }
 
 /// Converts a string slice (up to 8 chars) into a u64.
@@ -95,11 +86,11 @@ impl Game {
         let size = fs_extra::dir::get_size(&path)
             .with_context(|| format!("Failed to get size of dir: {}", path.display()))?;
 
-        let display_title = info.as_ref().map(|i| i.name).unwrap_or_else(|| title);
+        let display_title = info.as_ref().map(|i| i.name).unwrap_or(title);
 
         let language = info
             .as_ref()
-            .map(|i| i.languages.first().cloned().unwrap_or("EN"))
+            .and_then(|i| i.languages.first().cloned())
             .unwrap_or("EN");
 
         let info_url = format!("https://www.gametdb.com/Wii/{id_str}");
@@ -112,7 +103,7 @@ impl Game {
             path: path.clone(),
             size,
             info,
-            disc_meta: DiscMetaState::NotLoaded,
+            disc_meta: Arc::new(OnceCell::new()),
             display_title: display_title.to_string(),
             info_url,
             image_url,
@@ -121,7 +112,16 @@ impl Game {
 
     // Inverse of game_id_to_u64
     pub fn id_display(&self) -> String {
-        unsafe { String::from_utf8_unchecked(self.id.to_be_bytes().to_vec()) }
+        // This is safe because the ID is generated from a string of ASCII characters.
+        String::from_utf8(
+            self.id
+                .to_be_bytes()
+                .iter()
+                .filter(|&&b| b != 0)
+                .cloned()
+                .collect(),
+        )
+        .unwrap_or_default()
     }
 
     /// Prompts the user for confirmation and then permanently deletes the game's directory.
@@ -150,34 +150,20 @@ impl Game {
         glob(&pattern)
             .ok()
             .and_then(|mut entries| entries.next())
-            .map(|entry| entry.unwrap().into())
+            .and_then(|entry| entry.ok())
     }
 
     /// Lazily loads disc metadata when needed
-    pub fn load_disc_meta(&mut self) -> Option<&DiscMeta> {
-        // Check if we need to load the metadata
-        let should_load = matches!(self.disc_meta, DiscMetaState::NotLoaded);
-
-        if should_load {
-            // Find the disc file first
-            let disc_file_path = self.find_disc_image_file();
-
-            let meta = disc_file_path.as_ref().and_then(|disc_file_path| {
-                DiscReader::new(disc_file_path, &DiscOptions::default())
-                    .ok()
-                    .map(|d| d.meta())
-            });
-
-            self.disc_meta = match meta {
-                Some(meta) => DiscMetaState::Loaded(meta),
-                None => DiscMetaState::Failed,
-            };
-        }
-
-        // Return a reference to the metadata if available
-        match &self.disc_meta {
-            DiscMetaState::Loaded(meta) => Some(meta),
-            _ => None,
-        }
+    pub fn load_disc_meta(&self) -> Option<&DiscMeta> {
+        self.disc_meta
+            .get_or_init(|| {
+                // Find the disc file first
+                self.find_disc_image_file().and_then(|disc_file_path| {
+                    DiscReader::new(&disc_file_path, &DiscOptions::default())
+                        .ok()
+                        .map(|d| d.meta())
+                })
+            })
+            .as_ref()
     }
 }
