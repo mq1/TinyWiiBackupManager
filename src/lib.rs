@@ -29,8 +29,5 @@ const UPPER_STR: &str = map_ascii_case!(Case::Upper, LOWER_STR);
 // 3. Join the lower and upper strings together
 const ALL_EXTENSIONS: &str = concatcp!(LOWER_STR, ",", UPPER_STR);
 
-// 4. Construct the final pattern for glob matching
-pub const INPUT_EXTENSIONS_PATTERN: &str = concatcp!("*.{", ALL_EXTENSIONS, "}");
-
-// 5. Split the string into an array of strings
+// 4. Split the string into an array of strings
 pub const SUPPORTED_INPUT_EXTENSIONS: &[&str] = &str_split!(ALL_EXTENSIONS, ",");
