@@ -8,9 +8,6 @@ on:
       - 'v*'
   pull_request:
 
-env:
-  CARGO_PROFILE: release-lto
-
 permissions:
   contents: write
 
@@ -70,7 +67,7 @@ jobs:
       - name: Build binary
         run: |
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-          cargo bundle --profile ${{ env.CARGO_PROFILE }} --target ${{ matrix.target }} --format appimage
+          cargo bundle --release --target ${{ matrix.target }} --format appimage
 
       - name: Package for Linux
         run: |
@@ -83,10 +80,10 @@ jobs:
             REF_NAME="${{ github.ref_name }}"
           fi
 
-          mv target/${{ matrix.target }}/${{ env.CARGO_PROFILE }}/bundle/appimage/*.AppImage dist/TWBM-${REF_NAME}-Linux-${{ matrix.arch }}.AppImage
+          mv target/${{ matrix.target }}/release/bundle/appimage/*.AppImage dist/TWBM-${REF_NAME}-Linux-${{ matrix.arch }}.AppImage
 
           # Also create tarball with plain binary
-          mv target/${{ matrix.target }}/${{ env.CARGO_PROFILE }}/tiny-wii-backup-manager TWBM-${REF_NAME}-Linux-${{ matrix.arch }}
+          mv target/${{ matrix.target }}/release/tiny-wii-backup-manager TWBM-${REF_NAME}-Linux-${{ matrix.arch }}
           tar -czf dist/TWBM-${REF_NAME}-Linux-${{ matrix.arch }}.tar.gz TWBM-${REF_NAME}-Linux-${{ matrix.arch }}
 
       - name: Upload Linux distributables
@@ -121,7 +118,7 @@ jobs:
           target: ${{ matrix.target }}
 
       - name: Build binary
-        run: cargo build --profile ${{ env.CARGO_PROFILE }} --target ${{ matrix.target }}
+        run: cargo build --release --target ${{ matrix.target }}
 
       - name: Package for Windows
         shell: pwsh
@@ -135,7 +132,7 @@ jobs:
             $RefName = "${{ github.ref_name }}"
           }
           
-          Move-Item -Path "target/${{ matrix.target }}/${{ env.CARGO_PROFILE }}/tiny-wii-backup-manager.exe" -Destination "TWBM-${RefName}-Windows-${{ matrix.arch }}.exe"
+          Move-Item -Path "target/${{ matrix.target }}/release/tiny-wii-backup-manager.exe" -Destination "TWBM-${RefName}-Windows-${{ matrix.arch }}.exe"
           Compress-Archive -Path "TWBM-${RefName}-Windows-${{ matrix.arch }}.exe" -DestinationPath "dist/TWBM-${RefName}-Windows-${{ matrix.arch }}.zip"
 
       - name: Upload Windows distributables
@@ -173,13 +170,13 @@ jobs:
         run: brew install cargo-bundle
 
       - name: Build binary
-        run: cargo bundle --profile ${{ env.CARGO_PROFILE }} --target ${{ matrix.target }} --format osx
+        run: cargo bundle --release --target ${{ matrix.target }} --format osx
 
       - name: Upload MacOS application bundle
         uses: actions/upload-artifact@v4
         with:
           name: macos-app-${{ matrix.arch }}
-          path: target/${{ matrix.target }}/${{ env.CARGO_PROFILE }}/bundle/osx
+          path: target/${{ matrix.target }}/release/bundle/osx
 
   package-macos:
     name: Package MacOS Universal2

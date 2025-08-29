@@ -69,9 +69,6 @@ winres = "0.1"
 
 [profile.release]
 opt-level = 3
-
-[profile.release-lto]
-inherits = "release"
 strip = "debuginfo"
 lto = "fat"
 codegen-units = 1
