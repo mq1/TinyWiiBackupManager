@@ -3,6 +3,7 @@
 
 #![allow(dead_code)]
 
+use heck::ToUpperCamelCase;
 use serde::Deserialize;
 use std::{
     env,
@@ -168,12 +169,19 @@ fn compile_wiitdb_xml() {
     for game in data.games {
         let id = game_id_to_u64(&game.id);
 
+        // if region not found, skip game
+        if game.region.is_empty() {
+            continue;
+        }
+
+        let region = format!("Region::{}", game.region.to_upper_camel_case());
+
         // build languages list string
         let languages = game
             .languages
             .split(',')
             .filter(|s| !s.is_empty())
-            .map(|lang| format!("r#\"{}\"#", lang))
+            .map(|lang| format!("\"{}\"", lang))
             .collect::<Vec<_>>()
             .join(",");
 
@@ -188,8 +196,8 @@ fn compile_wiitdb_xml() {
         map_builder.entry(
             id,
             format!(
-                "&GameInfo {{ name: r#\"{}\"#, region: \"{}\", languages: &[{}], crc_list: &[{}] }}",
-                game.name, game.region, languages, crc_list
+                "&GameInfo {{ name: r#\"{}\"#, region: {}, languages: &[{}], crc_list: &[{}] }}",
+                game.name, region, languages, crc_list
             ),
         );
     }
