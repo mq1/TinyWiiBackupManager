@@ -49,16 +49,20 @@ impl BaseDir {
         self.0.exists()
     }
 
-    fn wii_dir(&self) -> PathBuf {
+    pub fn wii_dir(&self) -> PathBuf {
         self.0.join("wbfs")
     }
 
-    fn gc_dir(&self) -> PathBuf {
+    pub fn gc_dir(&self) -> PathBuf {
         self.0.join("games")
     }
 
     pub fn usbloadergx_dir(&self) -> PathBuf {
         self.0.join("apps").join("usbloader_gx")
+    }
+
+    pub fn cover_dir(&self) -> PathBuf {
+        self.usbloadergx_dir().join("images")
     }
 
     pub fn get_watcher(&self, callback: impl notify::EventHandler) -> Result<RecommendedWatcher> {
@@ -98,8 +102,13 @@ impl BaseDir {
         open::that(&self.0).map_err(anyhow::Error::from)
     }
 
-    pub fn download_file(&self, url: &str, dir: impl AsRef<Path>, filename: &str) -> Result<()> {
-        let dir = self.0.join(dir);
+    pub fn download_file(
+        &self,
+        url: &str,
+        rel_dir: impl AsRef<Path>,
+        filename: &str,
+    ) -> Result<()> {
+        let dir = self.0.join(rel_dir);
         let file_path = dir.join(filename);
 
         if file_path.exists() {
