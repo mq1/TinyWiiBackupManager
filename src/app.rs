@@ -133,8 +133,7 @@ impl App {
 
                 self.task_processor.spawn_task(move |ui_sender| {
                     if game.download_cover(base_dir)? {
-                        let msg = format!("Downloaded cover for {}", game.id_str);
-                        let _ = ui_sender.send(BackgroundMessage::Info(msg));
+                        let _ = ui_sender.send(BackgroundMessage::NewCover(game.id_str));
                     }
                     Ok(())
                 });
