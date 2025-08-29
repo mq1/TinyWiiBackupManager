@@ -33,6 +33,8 @@ pub struct App {
     pub top_left_toasts: egui_notify::Toasts,
     pub bottom_left_toasts: egui_notify::Toasts,
     pub bottom_right_toasts: egui_notify::Toasts,
+    /// Status
+    pub status: String,
     /// Task processor
     pub task_processor: TaskProcessor,
 }
@@ -69,6 +71,7 @@ impl App {
             console_filter: ConsoleFilter::default(),
             update_info: None,
             watcher: None,
+            status: String::new(),
         };
 
         // If the base directory isn't set or no longer exists, prompt the user to select one.
@@ -153,18 +156,28 @@ impl App {
         if let Some(paths) = paths
             && let Some(base_dir) = &self.base_dir
         {
+            let base_dir = base_dir.clone();
+            let remove_sources = self.remove_sources;
+
             for path in paths {
                 let base_dir = base_dir.clone();
-                let remove_sources = self.remove_sources;
 
                 self.task_processor.spawn_task(move |ui_sender| {
-                    let _ = ui_sender.send(BackgroundMessage::Info(format!(
-                        "Converting {}",
-                        path.display()
-                    )));
+                    let file_name = path.file_name().unwrap().to_str().unwrap();
+                    let file_name_fixed = file_name.chars().take(25).collect::<String>();
 
-                    iso2wbfs::convert(&path, base_dir.path(), |_, _| {})?;
+                    let cloned_ui_sender = ui_sender.clone();
+                    let callback = move |current, total| {
+                        let percentage = current as f32 / total as f32 * 100.0;
+                        let status =
+                            format!("Converting {file_name_fixed}... ({percentage:02.0}%)");
 
+                        let _ = cloned_ui_sender.send(BackgroundMessage::UpdateStatus(status));
+                    };
+
+                    iso2wbfs::convert(&path, base_dir.path(), callback)?;
+
+                    let _ = ui_sender.send(BackgroundMessage::UpdateStatus(String::new()));
                     let _ = ui_sender.send(BackgroundMessage::DirectoryChanged);
                     let _ = ui_sender.send(BackgroundMessage::Info(format!(
                         "Converted {}",
