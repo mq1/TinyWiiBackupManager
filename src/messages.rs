@@ -21,6 +21,8 @@ pub enum BackgroundMessage {
     GotUpdate(Option<UpdateInfo>),
     /// Signal that a new cover has been downloaded
     NewCover(String),
+    /// Signal that the status has changed
+    UpdateStatus(String),
 }
 
 /// Implement the From trait to automatically convert anyhow::Error into our message.
@@ -64,6 +66,10 @@ pub fn handle_messages(app: &mut App, ctx: &egui::Context) {
                 // we need to refresh the image cache
                 // we can forget only the image that changed with ctx.forget_image(uri) but this works fine
                 ctx.forget_all_images();
+            }
+
+            BackgroundMessage::UpdateStatus(status) => {
+                app.status = status;
             }
         }
     }
