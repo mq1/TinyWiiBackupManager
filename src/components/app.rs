@@ -14,20 +14,6 @@ impl eframe::App for App {
             components::game_grid::ui_game_grid(ui, self);
         });
 
-        // Render info windows for opened games and remove closed ones
-        self.open_info_windows.retain(|&index| {
-            self.games.get_mut(index).is_some_and(|game| {
-                let mut is_open = true;
-                components::game_info::ui_game_info_window(
-                    ctx,
-                    game,
-                    &mut is_open,
-                    self.inbox.sender(),
-                );
-                is_open
-            })
-        });
-
         self.top_left_toasts.show(ctx);
         self.bottom_left_toasts.show(ctx);
         self.bottom_right_toasts.show(ctx);

@@ -1,11 +1,14 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
+use crate::components::game_info::ui_game_info_window;
+use crate::messages::BackgroundMessage;
 use crate::{
     app::App,
     game::{ConsoleType, Game},
 };
 use eframe::egui::{self, Button, Image, RichText};
+use egui_inbox::UiInboxSender;
 use size::Size;
 use std::path::PathBuf;
 
@@ -13,11 +16,6 @@ const CARD_SIZE: egui::Vec2 = egui::vec2(170.0, 220.0);
 const GRID_SPACING: egui::Vec2 = egui::vec2(10.0, 10.0);
 
 pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
-    let sender = app.inbox.sender();
-
-    let mut to_remove = None;
-    let mut to_open_info = None;
-
     let cover_dir = app.base_dir.as_ref().unwrap().cover_dir();
 
     egui::ScrollArea::vertical().show(ui, |ui| {
@@ -32,42 +30,28 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
         egui::Grid::new("game_grid")
             .spacing(GRID_SPACING)
             .show(ui, |ui| {
-                let mut column_index = 0;
-
-                for (original_index, game) in app.games.iter().enumerate() {
-                    if filter.shows_game(game) {
-                        let (should_remove, should_open_info) = ui_game_card(ui, game, &cover_dir);
-                        if should_remove {
-                            to_remove = Some((*game).clone());
-                        }
-                        if should_open_info {
-                            to_open_info = Some(original_index);
-                        }
-
-                        column_index += 1;
-                        if column_index % num_columns == 0 {
-                            ui.end_row();
-                        }
+                for (i, game) in app.games.iter_mut().enumerate() {
+                    if filter.shows_game(&game) {
+                        ui_game_card(ui, &mut app.inbox.sender(), game, &cover_dir);
                     }
+
+                    if (i + 1) % num_columns == 0 {
+                        ui.end_row();
+                    }
+
+                    // game info window
+                    ui_game_info_window(ui.ctx(), game, app.inbox.sender());
                 }
             });
     });
-
-    if let Some(game) = to_remove
-        && let Err(e) = game.remove()
-    {
-        let _ = sender.send(e.into());
-    }
-
-    if let Some(index) = to_open_info {
-        app.open_game_info(index);
-    }
 }
 
-fn ui_game_card(ui: &mut egui::Ui, game: &Game, cover_dir: &PathBuf) -> (bool, bool) {
-    let mut remove_clicked = false;
-    let mut info_clicked = false;
-
+fn ui_game_card(
+    ui: &mut egui::Ui,
+    sender: &mut UiInboxSender<BackgroundMessage>,
+    game: &mut Game,
+    cover_dir: &PathBuf,
+) {
     let card = egui::Frame::group(ui.style()).corner_radius(5.0);
     card.show(ui, |ui| {
         ui.set_max_size(CARD_SIZE);
@@ -111,18 +95,26 @@ fn ui_game_card(ui: &mut egui::Ui, game: &Game, cover_dir: &PathBuf) -> (bool, b
             ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
                 ui.horizontal(|ui| {
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                        let remove_response = ui.add(Button::new("🗑")).on_hover_text("Remove Game");
-                        remove_clicked = remove_response.clicked();
+                        if ui
+                            .add(Button::new("🗑"))
+                            .on_hover_text("Remove Game")
+                            .clicked()
+                        {
+                            if let Err(e) = game.remove() {
+                                let _ = sender.send(e.into());
+                            }
+                        }
 
                         let info_button = ui.add(
                             Button::new("ℹ Info").min_size(egui::vec2(ui.available_width(), 0.0)),
                         );
-                        info_clicked = info_button.clicked();
+
+                        if info_button.clicked() {
+                            game.toggle_info();
+                        }
                     });
                 });
             });
         });
     });
-
-    (remove_clicked, info_clicked)
 }
