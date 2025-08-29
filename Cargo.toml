@@ -56,10 +56,11 @@ serde = { version = "1.0", features = ["derive"] }
 phf_codegen = "0.13"
 heck = "0.5"
 
-[target.'cfg(not(target_os = "windows"))'.dependencies]
+# Linux and macOS use the default eframe backend
+[target.'cfg(any(target_os = "linux", target_os = "macos"))'.dependencies]
 eframe = { version = "0.32", features = ["persistence"] }
 
-# glow doesn't always work on windows (ex. on VMs and old hardware)
+# Windows uses WGPU backend for better compatibility
 [target.'cfg(target_os = "windows")'.dependencies]
 eframe = { version = "0.32", features = ["wgpu", "persistence"] }
 
