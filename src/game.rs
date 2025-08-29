@@ -3,7 +3,6 @@
 
 use crate::SUPPORTED_INPUT_EXTENSIONS;
 use anyhow::{Context, Result, anyhow};
-use glob::{Pattern, glob};
 use lazy_regex::{Lazy, Regex, lazy_regex};
 use nod::read::{DiscMeta, DiscOptions, DiscReader};
 use std::cell::OnceCell;
@@ -132,17 +131,24 @@ impl Game {
     }
 
     fn find_disc_image_file(&self) -> Option<PathBuf> {
-        let escaped_base_path = Pattern::escape(&self.path.to_string_lossy());
-
-        // Use find_map to iterate and return the first successful match
-        SUPPORTED_INPUT_EXTENSIONS.iter().find_map(|ext| {
-            let pattern = format!("{escaped_base_path}/*.{ext}");
-
-            // We only care about the first file that matches this specific pattern
-            glob(&pattern)
-                .ok()
-                .and_then(|mut entries| entries.next())
-                .and_then(|entry| entry.ok())
+        // Read the directory entries, returning None if an error occurs.
+        fs::read_dir(&self.path).ok().and_then(|entries| {
+            // Iterate over the directory entries, looking for the first match.
+            entries.filter_map(Result::ok).find_map(|entry| {
+                let path = entry.path();
+                // Check if the entry is a file.
+                if path.is_file() {
+                    // Check if the file's extension is in the supported list.
+                    let extension = path.extension()?.to_str()?;
+                    if SUPPORTED_INPUT_EXTENSIONS.contains(&extension) {
+                        Some(path)
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            })
         })
     }
 
