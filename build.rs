@@ -168,8 +168,14 @@ fn compile_wiitdb_xml() {
     for game in data.games {
         let id = game_id_to_u64(&game.id);
 
-        // prepend " and append " to the languages string and replace , with ","
-        let languages = format!("\"{}\"", game.languages.replace(",", "\",\""));
+        // build languages list string
+        let languages = game
+            .languages
+            .split(',')
+            .filter(|s| !s.is_empty())
+            .map(|lang| format!("r#\"{}\"#", lang))
+            .collect::<Vec<_>>()
+            .join(",");
 
         // prepend 0x to each crc and join with commas. None crcs are skipped.
         let crc_list = game
