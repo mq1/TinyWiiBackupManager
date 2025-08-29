@@ -169,6 +169,8 @@ fn compile_wiitdb_xml() {
     for game in data.games {
         let id = game_id_to_u64(&game.id);
 
+        let name = format!("\"{}\"", game.name);
+
         // if region not found, skip game
         if game.region.is_empty() {
             continue;
@@ -182,28 +184,31 @@ fn compile_wiitdb_xml() {
         }
 
         // build languages list string
-        let languages = game
-            .languages
-            .split(',')
-            .map(|lang| format!("Language::{}", lang))
-            .collect::<Vec<_>>()
-            .join(",");
+        let languages = format!(
+            "&[{}]",
+            game.languages
+                .split(',')
+                .map(|lang| format!("Language::{}", lang))
+                .collect::<Vec<_>>()
+                .join(",")
+        );
 
         // Parse CRCs. Invalid CRCs are skipped.
-        let crc_list = game
-            .roms
-            .into_iter()
-            .filter_map(|rom| rom.crc)
-            .filter_map(|crc| u32::from_str_radix(&crc, 16).ok())
-            .map(|crc| crc.to_string())
-            .collect::<Vec<_>>()
-            .join(",");
+        let crc_list = format!(
+            "&[{}]",
+            game.roms
+                .into_iter()
+                .filter_map(|rom| rom.crc)
+                .filter_map(|crc| u32::from_str_radix(&crc, 16).ok())
+                .map(|crc| crc.to_string())
+                .collect::<Vec<_>>()
+                .join(",")
+        );
 
         map_builder.entry(
             id,
             format!(
-                "&GameInfo {{ name: r#\"{}\"#, region: {}, languages: &[{}], crc_list: &[{}] }}",
-                game.name, region, languages, crc_list
+                "&GameInfo {{ name: {name}, region: {region}, languages: {languages}, crc_list: {crc_list} }}",
             ),
         );
     }
