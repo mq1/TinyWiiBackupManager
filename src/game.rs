@@ -3,6 +3,8 @@
 
 use crate::SUPPORTED_INPUT_EXTENSIONS;
 use crate::base_dir::BaseDir;
+use crate::messages::BackgroundMessage;
+use crate::task::TaskProcessor;
 use anyhow::{Context, Result, anyhow};
 use lazy_regex::{Lazy, Regex, lazy_regex};
 use nod::read::{DiscMeta, DiscOptions, DiscReader};
@@ -197,5 +199,27 @@ impl Game {
 
     pub fn toggle_info(&mut self) {
         self.info_opened = !self.info_opened;
+    }
+
+    // TODO: use nod's built-in verification
+    fn verify(&mut self) -> Result<()> {
+        Err(anyhow!("Game not verified"))
+    }
+
+    pub fn spawn_verify_task(&self, task_processor: &TaskProcessor) {
+        let mut self_clone = self.clone();
+
+        task_processor.spawn_task(move |ui_sender| {
+            let _ = ui_sender.send(BackgroundMessage::UpdateStatus(format!(
+                "Verifying {}...",
+                self_clone.display_title
+            )));
+            self_clone.verify()?;
+
+            let title = self_clone.display_title.clone();
+            let _ = ui_sender.send(BackgroundMessage::Info(format!("{title} is verified")));
+
+            Ok(())
+        });
     }
 }
