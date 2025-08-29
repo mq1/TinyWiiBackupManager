@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
-use crate::INPUT_EXTENSIONS_PATTERN;
+use crate::SUPPORTED_INPUT_EXTENSIONS;
 use anyhow::{Context, Result, anyhow};
-use glob::glob;
+use glob::{Pattern, glob};
 use lazy_regex::{Lazy, Regex, lazy_regex};
 use nod::read::{DiscMeta, DiscOptions, DiscReader};
 use std::cell::OnceCell;
@@ -144,13 +144,18 @@ impl Game {
     }
 
     fn find_disc_image_file(&self) -> Option<PathBuf> {
-        let binding = self.path.join(INPUT_EXTENSIONS_PATTERN);
-        let pattern = binding.to_string_lossy();
+        let escaped_base_path = Pattern::escape(&self.path.to_string_lossy());
 
-        glob(&pattern)
-            .ok()
-            .and_then(|mut entries| entries.next())
-            .and_then(|entry| entry.ok())
+        // Use find_map to iterate and return the first successful match
+        SUPPORTED_INPUT_EXTENSIONS.iter().find_map(|ext| {
+            let pattern = format!("{escaped_base_path}/*.{ext}");
+
+            // We only care about the first file that matches this specific pattern
+            glob(&pattern)
+                .ok()
+                .and_then(|mut entries| entries.next())
+                .and_then(|entry| entry.ok())
+        })
     }
 
     /// Lazily loads disc metadata when needed
