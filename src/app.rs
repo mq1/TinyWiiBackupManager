@@ -1,8 +1,6 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
-use std::collections::HashSet;
-
 use crate::base_dir::BaseDir;
 use crate::components::toasts;
 use crate::game::Game;
@@ -27,8 +25,6 @@ pub struct App {
     watcher: Option<notify::RecommendedWatcher>,
     /// Whether to remove sources after conversion
     pub remove_sources: bool,
-    /// Set of game indices with open info windows
-    pub open_info_windows: HashSet<usize>,
     /// Console filter state
     pub console_filter: ConsoleFilter,
     /// Update info
@@ -70,7 +66,6 @@ impl App {
             games: Vec::new(),
             base_dir_size: 0,
             remove_sources: false,
-            open_info_windows: HashSet::new(),
             console_filter: ConsoleFilter::default(),
             update_info: None,
             watcher: None,
@@ -194,10 +189,5 @@ impl App {
                 });
             }
         }
-    }
-
-    /// Opens an info window for the specified game
-    pub fn open_game_info(&mut self, index: usize) {
-        self.open_info_windows.insert(index);
     }
 }
