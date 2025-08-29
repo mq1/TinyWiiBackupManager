@@ -8,7 +8,7 @@ use crate::messages::BackgroundMessage;
 use crate::task::TaskProcessor;
 use crate::update_check::{UpdateInfo, spawn_check_for_new_version_task};
 use crate::{SUPPORTED_INPUT_EXTENSIONS, components::console_filter::ConsoleFilter};
-use anyhow::Result;
+use anyhow::{Result, anyhow};
 use egui_inbox::UiInbox;
 
 /// Main application state and UI controller.
@@ -159,18 +159,28 @@ impl App {
             let base_dir = base_dir.clone();
             let remove_sources = self.remove_sources;
 
-            for path in paths {
+            let count = paths.len();
+            for (i, path) in paths.into_iter().enumerate() {
                 let base_dir = base_dir.clone();
 
                 self.task_processor.spawn_task(move |ui_sender| {
-                    let file_name = path.file_name().unwrap().to_str().unwrap();
-                    let file_name_fixed = file_name.chars().take(25).collect::<String>();
+                    let file_name = path
+                        .file_name()
+                        .ok_or(anyhow!("Invalid path"))?
+                        .to_str()
+                        .ok_or(anyhow!("Invalid path"))?;
+
+                    let truncated_file_name = file_name.chars().take(20).collect::<String>();
 
                     let cloned_ui_sender = ui_sender.clone();
                     let callback = move |current, total| {
-                        let percentage = current as f32 / total as f32 * 100.0;
-                        let status =
-                            format!("Converting {file_name_fixed}... ({percentage:02.0}%)");
+                        let status = format!(
+                            "📄➡🖴  {}... {:02.0}% ({}/{})",
+                            &truncated_file_name,
+                            current as f32 / total as f32 * 100.0,
+                            i + 1,
+                            count,
+                        );
 
                         let _ = cloned_ui_sender.send(BackgroundMessage::UpdateStatus(status));
                     };
