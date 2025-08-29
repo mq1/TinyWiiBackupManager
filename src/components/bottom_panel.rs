@@ -10,11 +10,20 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub fn ui_bottom_panel(ctx: &egui::Context, app: &mut App) {
     egui::TopBottomPanel::bottom("bottom_panel").show(ctx, |ui| {
         ui.horizontal(|ui| {
-            if let Some(update_info) = &app.update_info {
-                ui.hyperlink_to(format!("{} (new)", &update_info.version), &update_info.url);
+            if app.task_processor.is_idle() && app.status.is_empty() {
+                // Show version and update notifier if app is idle
+                if let Some(update_info) = &app.update_info {
+                    ui.hyperlink_to(format!("{} (new)", &update_info.version), &update_info.url);
+                } else {
+                    ui.label(format!("v{}", VERSION));
+                }
             } else {
-                ui.label(format!("v{}", VERSION));
+                // Show spinner if there are running tasks
+                ui.spinner();
             }
+
+            // Show status
+            ui.label(&app.status);
 
             // Layout for other controls, aligned to the right.
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
@@ -23,16 +32,6 @@ pub fn ui_bottom_panel(ctx: &egui::Context, app: &mut App) {
 
                 ui.separator();
                 ui_console_filter(ui, &mut app.console_filter);
-
-                ui.separator();
-
-                // Show status
-                ui.label(&app.status);
-
-                // Show spinner if there are running tasks
-                if !app.task_processor.is_idle() {
-                    ui.spinner();
-                }
             });
         });
     });
