@@ -9,16 +9,27 @@ use std::cell::OnceCell;
 use std::fs;
 use std::path::PathBuf;
 use std::sync::Arc;
+use strum::AsRefStr;
 
 include!(concat!(env!("OUT_DIR"), "/wiitdb_data.rs"));
 
 static GAME_DIR_RE: Lazy<Regex> = lazy_regex!(r"^(.*)\[(.*)\]$");
 
+#[derive(Debug, Clone, Copy, AsRefStr)]
+pub enum Region {
+    NtscJ,
+    NtscU,
+    NtscK,
+    NtscT,
+    Pal,
+    PalR,
+}
+
 /// Data from WiiTDB XML
 #[derive(Debug, Clone, Copy)]
 pub struct GameInfo {
     pub name: &'static str,
-    pub region: &'static str, // TODO: Make this an enum
+    pub region: Region,
     pub languages: &'static [&'static str],
     pub crc_list: &'static [u32],
 }
