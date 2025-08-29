@@ -87,11 +87,11 @@ fn ui_game_card(ui: &mut egui::Ui, game: &Game) -> (bool, bool) {
 
             // Centered content
             ui.with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
-                let image = Image::new(&game.image_url)
-                    .max_height(128.0)
-                    .maintain_aspect_ratio(true)
-                    .show_loading_spinner(true);
-                ui.add(image);
+                //let image = Image::new(&game.image_url)
+                //    .max_height(128.0)
+                //    .maintain_aspect_ratio(true)
+                //    .show_loading_spinner(true);
+                //ui.add(image);
 
                 ui.add_space(5.);
 
