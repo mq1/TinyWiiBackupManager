@@ -31,7 +31,7 @@ fn ui_game_info_content(
 
     ui.horizontal(|ui| {
         ui.label(RichText::new("🆔 Game ID:").strong());
-        ui.label(RichText::new(game.id.iter().collect::<String>()).monospace());
+        ui.label(RichText::new(&game.id_str).monospace());
     });
 
     ui.horizontal(|ui| {
