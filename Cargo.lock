@@ -1100,7 +1100,7 @@ dependencies = [
  "pollster",
  "profiling",
  "raw-window-handle",
- "ron",
+ "ron 0.10.1",
  "serde",
  "static_assertions",
  "wasm-bindgen",
@@ -1127,7 +1127,7 @@ dependencies = [
  "log",
  "nohash-hasher",
  "profiling",
- "ron",
+ "ron 0.10.1",
  "serde",
  "smallvec",
  "unicode-segmentation",
@@ -3477,6 +3477,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "ron"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "db09040cc89e461f1a265139777a2bde7f8d8c67c4936f700c63ce3e2904d468"
+dependencies = [
+ "base64",
+ "bitflags 2.9.3",
+ "serde",
+ "serde_derive",
+ "unicode-ident",
+]
+
+[[package]]
 name = "rustc-hash"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4001,6 +4014,7 @@ dependencies = [
  "phf_codegen",
  "quick-xml 0.38.3",
  "rfd",
+ "ron 0.11.0",
  "semver",
  "serde",
  "size",
