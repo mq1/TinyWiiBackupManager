@@ -8,20 +8,22 @@ use size::Size;
 pub fn ui_game_info_window(
     ctx: &egui::Context,
     game: &mut Game,
-    open: &mut bool,
     sender: egui_inbox::UiInboxSender<BackgroundMessage>,
 ) {
-    egui::Window::new(&game.display_title)
+    let window_title = game.display_title.clone();
+    let game_clone = game.clone();
+
+    egui::Window::new(&window_title)
         .id(Id::new(game.id.clone()))
-        .open(open)
+        .open(&mut game.info_opened)
         .show(ctx, |ui| {
-            ui_game_info_content(ui, game, sender);
+            ui_game_info_content(ui, game_clone, sender);
         });
 }
 
 fn ui_game_info_content(
     ui: &mut egui::Ui,
-    game: &mut Game,
+    game: Game,
     sender: egui_inbox::UiInboxSender<BackgroundMessage>,
 ) {
     ui.horizontal(|ui| {

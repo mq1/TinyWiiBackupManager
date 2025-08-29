@@ -52,6 +52,7 @@ pub struct Game {
     pub info: Option<GameInfo>,
     pub display_title: String,
     pub info_url: String,
+    pub info_opened: bool,
     disc_meta: Arc<OnceLock<Result<DiscMeta>>>,
 }
 
@@ -111,6 +112,7 @@ impl Game {
             disc_meta: Arc::new(OnceLock::new()),
             display_title: display_title.to_string(),
             info_url,
+            info_opened: false,
         })
     }
 
@@ -191,5 +193,9 @@ impl Game {
 
         let url = format!("https://art.gametdb.com/wii/cover3D/{locale}/{id}.png");
         base_dir.download_file(&url, "apps/usbloader_gx/images", &format!("{id}.png"))
+    }
+
+    pub fn toggle_info(&mut self) {
+        self.info_opened = !self.info_opened;
     }
 }
