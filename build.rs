@@ -189,11 +189,13 @@ fn compile_wiitdb_xml() {
             .collect::<Vec<_>>()
             .join(",");
 
-        // prepend 0x to each crc and join with commas. None crcs are skipped.
+        // Parse CRCs. Invalid CRCs are skipped.
         let crc_list = game
             .roms
             .into_iter()
-            .filter_map(|rom| rom.crc.map(|crc| format!("0x{}u32", crc.trim())))
+            .filter_map(|rom| rom.crc)
+            .filter_map(|crc| u32::from_str_radix(&crc, 16).ok())
+            .map(|crc| crc.to_string())
             .collect::<Vec<_>>()
             .join(",");
 
