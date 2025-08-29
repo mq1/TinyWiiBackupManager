@@ -140,11 +140,10 @@ impl App {
                 let base_dir = base_dir.clone();
 
                 self.task_processor.spawn_task(move |ui_sender| {
-                    let _ = ui_sender.send(BackgroundMessage::Info(format!(
-                        "Downloading cover for {}",
-                        game.id_str
-                    )));
-                    game.download_cover(base_dir)?;
+                    if game.download_cover(base_dir)? {
+                        let msg = format!("Downloaded cover for {}", game.id_str);
+                        let _ = ui_sender.send(BackgroundMessage::Info(msg));
+                    }
                     Ok(())
                 });
             }

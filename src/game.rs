@@ -179,7 +179,7 @@ impl Game {
         })
     }
 
-    pub fn download_cover(&self, base_dir: BaseDir) -> Result<()> {
+    pub fn download_cover(&self, base_dir: BaseDir) -> Result<bool> {
         // temp fix for NTSC-U
         let locale = if let Some(info) = self.info
             && matches!(info.region, Region::NtscU)

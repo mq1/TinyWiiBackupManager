@@ -107,12 +107,12 @@ impl BaseDir {
         url: &str,
         rel_dir: impl AsRef<Path>,
         filename: &str,
-    ) -> Result<()> {
+    ) -> Result<bool> {
         let dir = self.0.join(rel_dir);
         let file_path = dir.join(filename);
 
         if file_path.exists() {
-            return Ok(());
+            return Ok(false);
         }
 
         fs::create_dir_all(&dir)?;
@@ -122,7 +122,7 @@ impl BaseDir {
         let (_, body) = response.into_parts();
         io::copy(&mut body.into_reader(), &mut file)?;
 
-        Ok(())
+        Ok(true)
     }
 }
 
