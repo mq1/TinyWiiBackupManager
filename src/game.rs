@@ -5,9 +5,11 @@ use crate::SUPPORTED_INPUT_EXTENSIONS;
 use crate::base_dir::BaseDir;
 use crate::messages::BackgroundMessage;
 use crate::task::TaskProcessor;
-use anyhow::{Context, Result, anyhow};
+use anyhow::{Context, Result, anyhow, bail};
 use lazy_regex::{Lazy, Regex, lazy_regex};
-use nod::read::{DiscMeta, DiscOptions, DiscReader};
+use nod::read::{DiscMeta, DiscOptions, DiscReader, PartitionEncryption};
+use nod::write::{DiscWriter, FormatOptions, ProcessOptions};
+use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -40,6 +42,11 @@ pub struct GameInfo {
 pub enum ConsoleType {
     Wii,
     GameCube,
+}
+
+#[derive(Default, Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct TwbmMeta {
+    crc32: Option<u32>,
 }
 
 /// Represents a single game, containing its metadata and file system information.
@@ -110,7 +117,6 @@ impl Game {
             path: path.clone(),
             size,
             info,
-            // Initialize with a placeholder that will be filled on first access
             disc_meta: Arc::new(OnceLock::new()),
             display_title: display_title.to_string(),
             info_url,
@@ -181,6 +187,29 @@ impl Game {
         })
     }
 
+    pub fn load_twbm_meta(&self) -> Result<TwbmMeta> {
+        let path = self.path.join(".twbm.ron");
+        if path.exists() {
+            let raw = fs::read_to_string(&path)
+                .with_context(|| format!("Failed to read twbm meta file: {}", path.display()))?;
+            let meta = ron::from_str(&raw)
+                .with_context(|| format!("Failed to parse twbm meta file: {}", path.display()))?;
+            Ok(meta)
+        } else {
+            Err(anyhow!("Twbm meta file not found: {}", path.display()))
+        }
+    }
+
+    pub fn save_twbm_meta(&self, meta: &TwbmMeta) -> Result<()> {
+        let path = self.path.join(".twbm.ron");
+
+        let raw = ron::to_string(meta)
+            .with_context(|| format!("Failed to serialize twbm meta file: {}", path.display()))?;
+
+        fs::write(&path, raw)
+            .with_context(|| format!("Failed to write twbm meta file: {}", path.display()))
+    }
+
     pub fn download_cover(&self, base_dir: BaseDir) -> Result<bool> {
         // temp fix for NTSC-U
         let locale = if let Some(info) = self.info
@@ -201,23 +230,56 @@ impl Game {
         self.info_opened = !self.info_opened;
     }
 
-    // TODO: use nod's built-in verification
-    fn verify(&mut self) -> Result<()> {
-        Err(anyhow!("Game not verified"))
-    }
-
     pub fn spawn_verify_task(&self, task_processor: &TaskProcessor) {
-        let mut self_clone = self.clone();
+        let id = self.id;
+        let disc_path = self.find_disc_image_file();
+        let display_title = self.display_title.clone();
+        let game_clone = self.clone();
 
         task_processor.spawn_task(move |ui_sender| {
-            let _ = ui_sender.send(BackgroundMessage::UpdateStatus(format!(
-                "Verifying {}...",
-                self_clone.display_title
-            )));
-            self_clone.verify()?;
+            let disc_path = disc_path?;
 
-            let title = self_clone.display_title.clone();
-            let _ = ui_sender.send(BackgroundMessage::Info(format!("{title} is verified")));
+            let _ = ui_sender.send(BackgroundMessage::UpdateStatus(format!(
+                "Verifying {display_title}..."
+            )));
+
+            // Open the disc
+            let disc = DiscReader::new(
+                &disc_path,
+                &DiscOptions {
+                    partition_encryption: PartitionEncryption::Original,
+                    preloader_threads: 1,
+                },
+            )?;
+            let disc_writer = DiscWriter::new(disc, &FormatOptions::default())?;
+
+            // Process the disc to calculate hashes
+            let finalization = disc_writer.process(
+                |_, _, _| Ok(()),
+                &ProcessOptions {
+                    digest_crc32: true,
+                    ..Default::default()
+                },
+            )?;
+
+            // check if the calculated hashes match the expected values
+            let game_info = GAMES.get(&id).ok_or(anyhow!("Could not find game"))?;
+            let crc32 = finalization
+                .crc32
+                .ok_or(anyhow!("Could not calculate CRC32"))?;
+
+            // Load the current meta, update the crc32, and save it.
+            let mut meta = game_clone.load_twbm_meta().unwrap_or_default();
+            meta.crc32 = Some(crc32);
+            game_clone.save_twbm_meta(&meta)?;
+
+            if !game_info.crc_list.contains(&crc32) {
+                bail!("CRC crc32 does not match");
+            }
+
+            let _ = ui_sender.send(BackgroundMessage::Info(format!(
+                "{display_title} is verified"
+            )));
 
             Ok(())
         });
