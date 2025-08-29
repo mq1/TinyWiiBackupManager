@@ -9,13 +9,13 @@ use std::cell::OnceCell;
 use std::fs;
 use std::path::PathBuf;
 use std::sync::Arc;
-use strum::AsRefStr;
+use strum::{AsRefStr, Display};
 
 include!(concat!(env!("OUT_DIR"), "/wiitdb_data.rs"));
 
 static GAME_DIR_RE: Lazy<Regex> = lazy_regex!(r"^(.*)\[(.*)\]$");
 
-#[derive(Debug, Clone, Copy, AsRefStr)]
+#[derive(Debug, Clone, Copy, AsRefStr, Display)]
 pub enum Region {
     NtscJ,
     NtscU,
@@ -25,12 +25,34 @@ pub enum Region {
     PalR,
 }
 
+#[derive(Debug, Clone, Copy, AsRefStr, Display)]
+pub enum Language {
+    EN,
+    FR,
+    DE,
+    ES,
+    IT,
+    JA,
+    NL,
+    SE,
+    DK,
+    NO,
+    KO,
+    PT,
+    ZHTW,
+    ZHCN,
+    FI,
+    TR,
+    GR,
+    RU,
+}
+
 /// Data from WiiTDB XML
 #[derive(Debug, Clone, Copy)]
 pub struct GameInfo {
     pub name: &'static str,
     pub region: Region,
-    pub languages: &'static [&'static str],
+    pub languages: &'static [Language],
     pub crc_list: &'static [u32],
 }
 
@@ -102,7 +124,7 @@ impl Game {
         let language = info
             .as_ref()
             .and_then(|i| i.languages.first().cloned())
-            .unwrap_or("EN");
+            .unwrap_or(Language::EN);
 
         let info_url = format!("https://www.gametdb.com/Wii/{id_str}");
         let image_url = format!("https://art.gametdb.com/wii/cover3D/{language}/{id_str}.png");
