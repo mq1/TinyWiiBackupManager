@@ -24,8 +24,7 @@ pub enum BackgroundMessage {
 /// Implement the From trait to automatically convert anyhow::Error into our message.
 impl From<Error> for BackgroundMessage {
     fn from(e: Error) -> Self {
-        // We use {:?} to get a detailed, often multi-line, representation.
-        BackgroundMessage::Error(format!("{e:?}"))
+        BackgroundMessage::Error(format!("{e}"))
     }
 }
 
