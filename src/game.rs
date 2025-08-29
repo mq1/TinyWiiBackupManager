@@ -178,15 +178,18 @@ impl Game {
     }
 
     pub fn download_cover(&self, base_dir: BaseDir) -> Result<()> {
-        let language = self
-            .info
-            .as_ref()
-            .and_then(|i| i.languages.first())
-            .unwrap_or(&Language::EN);
+        // temp fix for NTSC-U
+        let locale = if let Some(info) = self.info
+            && matches!(info.region, Region::NtscU)
+        {
+            "US"
+        } else {
+            "EN"
+        };
 
         let id = &self.id_str;
 
-        let url = format!("https://art.gametdb.com/wii/cover3D/{language}/{id}.png");
+        let url = format!("https://art.gametdb.com/wii/cover3D/{locale}/{id}.png");
         base_dir.download_file(&url, "apps/usbloader_gx/images", &format!("{id}.png"))
     }
 }
