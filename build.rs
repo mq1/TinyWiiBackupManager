@@ -18,83 +18,6 @@ struct Datafile {
     pub games: Vec<Game>,
 }
 
-// <WiiTDB> element
-#[derive(Debug, Deserialize)]
-struct WiiTdb {
-    #[serde(rename = "@games")]
-    pub games: i64,
-    #[serde(rename = "@version")]
-    pub version: i64,
-}
-
-// <companies> element
-#[derive(Debug, Deserialize)]
-struct Companies {
-    #[serde(rename = "company")]
-    pub company_list: Vec<Company>,
-}
-
-// <company> element
-#[derive(Debug, Deserialize)]
-struct Company {
-    #[serde(rename = "@code")]
-    pub code: String, // NMTOKEN
-    #[serde(rename = "@name")]
-    pub name: String,
-}
-
-// <genres> element
-#[derive(Debug, Deserialize)]
-struct Genres {
-    #[serde(rename = "maingenre")]
-    pub main_genre_list: Vec<MainGenre>,
-}
-
-// <maingenre> element
-#[derive(Debug, Deserialize)]
-struct MainGenre {
-    #[serde(rename = "@name")]
-    pub name: String, // NCName
-    #[serde(rename = "loc")]
-    pub locs: Vec<Loc>,
-    #[serde(rename = "subgenre")]
-    pub sub_genres: Vec<SubGenre>,
-}
-
-// <subgenre> element
-#[derive(Debug, Deserialize)]
-struct SubGenre {
-    #[serde(rename = "@name")]
-    pub name: String,
-    #[serde(rename = "loc")]
-    pub locs: Vec<Loc>,
-}
-
-// <descriptors> element
-#[derive(Debug, Deserialize)]
-struct Descriptors {
-    #[serde(rename = "descr")]
-    pub descr_list: Vec<Descr>,
-}
-
-// <descr> element
-#[derive(Debug, Deserialize)]
-struct Descr {
-    #[serde(rename = "@name")]
-    pub name: String,
-    #[serde(rename = "loc")]
-    pub locs: Vec<Loc>,
-}
-
-// Reusable <loc> element from <define name="loc">
-#[derive(Debug, Deserialize)]
-struct Loc {
-    #[serde(rename = "@lang")]
-    pub lang: String, // NCName
-    #[serde(rename = "$text")]
-    pub text: String,
-}
-
 // <game> element
 #[derive(Debug, Deserialize)]
 struct Game {
@@ -248,11 +171,19 @@ fn compile_wiitdb_xml() {
         // replace , with ","
         let languages = game.languages.replace(",", "\",\"");
 
+        // prepend 0x to each crc and join with commas. None crcs are skipped.
+        let crc_list = game
+            .roms
+            .into_iter()
+            .filter_map(|rom| rom.crc.map(|crc| format!("0x{}u32", crc.trim())))
+            .collect::<Vec<_>>()
+            .join(",");
+
         map_builder.entry(
             id,
             format!(
-                "&GameInfo {{ name: r#\"{}\"#, region: \"{}\", languages: &[\"{}\"] }}",
-                game.name, game.region, languages
+                "&GameInfo {{ name: r#\"{}\"#, region: \"{}\", languages: &[\"{}\"], crc_list: &[{}] }}",
+                game.name, game.region, languages, crc_list
             ),
         );
     }
