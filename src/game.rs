@@ -15,37 +15,13 @@ include!(concat!(env!("OUT_DIR"), "/wiitdb_data.rs"));
 
 static GAME_DIR_RE: Lazy<Regex> = lazy_regex!(r"^(.*)\[(.*)\]$");
 
+#[rustfmt::skip]
 #[derive(Debug, Clone, Copy, AsRefStr, Display)]
-pub enum Region {
-    NtscJ,
-    NtscU,
-    NtscK,
-    NtscT,
-    Pal,
-    PalR,
-}
+pub enum Region { NtscJ, NtscU, NtscK, NtscT, Pal, PalR }
 
+#[rustfmt::skip]
 #[derive(Debug, Clone, Copy, AsRefStr, Display)]
-pub enum Language {
-    EN,
-    FR,
-    DE,
-    ES,
-    IT,
-    JA,
-    NL,
-    SE,
-    DK,
-    NO,
-    KO,
-    PT,
-    ZHTW,
-    ZHCN,
-    FI,
-    TR,
-    GR,
-    RU,
-}
+pub enum Language { EN, FR, DE, ES, IT, JA, NL, SE, DK, NO, KO, PT, ZHTW, ZHCN, FI, TR, GR, RU }
 
 /// Data from WiiTDB XML
 #[derive(Debug, Clone, Copy)]
