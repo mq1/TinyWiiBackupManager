@@ -5,14 +5,14 @@ use crate::SUPPORTED_INPUT_EXTENSIONS;
 use crate::base_dir::BaseDir;
 use crate::messages::BackgroundMessage;
 use crate::task::TaskProcessor;
-use anyhow::{Context, Result, anyhow, bail};
+use anyhow::{Context, Result, anyhow};
 use lazy_regex::{Lazy, Regex, lazy_regex};
 use nod::read::{DiscMeta, DiscOptions, DiscReader, PartitionEncryption};
 use nod::write::{DiscWriter, FormatOptions, ProcessOptions};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
-use std::sync::{Arc, OnceLock, RwLock};
+use std::sync::{Arc, OnceLock};
 use strum::{AsRefStr, Display};
 
 include!(concat!(env!("OUT_DIR"), "/wiitdb_data.rs"));
@@ -62,8 +62,8 @@ pub struct Game {
     pub display_title: String,
     pub info_url: String,
     pub info_opened: bool,
+    pub is_verified: bool,
     disc_meta: Arc<OnceLock<Result<DiscMeta>>>,
-    is_verified_cache: Arc<RwLock<Option<bool>>>,
 }
 
 /// Converts a string slice (up to 8 chars) into a u64.
@@ -110,6 +110,16 @@ impl Game {
 
         let info_url = format!("https://www.gametdb.com/Wii/{id_str}");
 
+        // Load twbm meta
+        let twbm_meta = fs::read_to_string(path.join(".twbm.ron")).unwrap_or_default();
+        let twbm_meta = ron::from_str::<TwbmMeta>(&twbm_meta).unwrap_or_default();
+
+        // Verify the game by cross-referencing WiiTDB
+        let is_verified = matches!(
+            (twbm_meta.crc32, GAMES.get(&id)),
+            (Some(crc32), Some(game)) if game.crc_list.contains(&crc32)
+        );
+
         Ok(Self {
             id,
             id_str: id_str.to_string(),
@@ -122,7 +132,7 @@ impl Game {
             display_title: display_title.to_string(),
             info_url,
             info_opened: false,
-            is_verified_cache: Arc::new(RwLock::new(None)),
+            is_verified,
         })
     }
 
@@ -189,19 +199,6 @@ impl Game {
         })
     }
 
-    pub fn load_twbm_meta(&self) -> Result<TwbmMeta> {
-        let path = self.path.join(".twbm.ron");
-        if path.exists() {
-            let raw = fs::read_to_string(&path)
-                .with_context(|| format!("Failed to read twbm meta file: {}", path.display()))?;
-            let meta = ron::from_str(&raw)
-                .with_context(|| format!("Failed to parse twbm meta file: {}", path.display()))?;
-            Ok(meta)
-        } else {
-            Err(anyhow!("Twbm meta file not found: {}", path.display()))
-        }
-    }
-
     pub fn save_twbm_meta(&self, meta: &TwbmMeta) -> Result<()> {
         let path = self.path.join(".twbm.ron");
 
@@ -238,7 +235,6 @@ impl Game {
         total_files: usize,
         task_processor: &TaskProcessor,
     ) {
-        let id = self.id;
         let disc_path = self.find_disc_image_file();
         let display_title = self.display_title.clone();
         let game_clone = self.clone();
@@ -278,73 +274,34 @@ impl Game {
                 },
             )?;
 
-            // check if the calculated hashes match the expected values
-            let game_info = GAMES.get(&id).ok_or(anyhow!("Could not find game"))?;
             let crc32 = finalization
                 .crc32
-                .ok_or(anyhow!("Could not calculate CRC32"))?;
+                .ok_or(anyhow!("Failed to calculate CRC32"))?;
 
-            // Load the current meta, update the crc32, and save it.
-            let mut meta = game_clone.load_twbm_meta().unwrap_or_default();
-            meta.crc32 = Some(crc32);
+            // We can overwrite the meta file for now (we only store the CRC32)
+            let meta = TwbmMeta { crc32: Some(crc32) };
             game_clone.save_twbm_meta(&meta)?;
-
-            // Update the cache to reflect the new state.
-            *game_clone.is_verified_cache.write().unwrap() = Some(true);
-
-            if !game_info.crc_list.contains(&crc32) {
-                bail!("CRC crc32 does not match");
-            }
 
             let _ = ui_sender.send(BackgroundMessage::Info(format!(
                 "{display_title} is verified"
             )));
 
+            // Refresh the game list
+            let _ = ui_sender.send(BackgroundMessage::DirectoryChanged);
+
             Ok(())
         });
     }
 
-    pub fn is_verified(&self) -> Result<bool> {
-        // First, check the cache with a read lock.
-        let read_guard = self
-            .is_verified_cache
-            .read()
-            .map_err(|e| anyhow!("Failed to acquire read lock: {e}"))?;
-
-        if let Some(verified) = *read_guard {
-            return Ok(verified);
-        }
-        drop(read_guard);
-
-        // If the cache is empty, acquire a write lock.
-        let mut write_guard = self
-            .is_verified_cache
-            .write()
-            .map_err(|e| anyhow!("Failed to acquire write lock: {e}"))?;
-
-        // Check again in case another thread populated it while we waited.
-        if let Some(verified) = *write_guard {
-            return Ok(verified);
-        }
-
-        // The cache is empty and we have the lock. Load meta, propagating real errors.
-        let meta = self.load_twbm_meta().unwrap_or_default();
-        let verified = meta.crc32.is_some();
-
-        // Store the result in the cache and return it.
-        *write_guard = Some(verified);
-        Ok(verified)
-    }
-
     /// Removes the .twbm file and the cache
     pub fn remove_meta(&self) -> Result<()> {
-        self.is_verified_cache
-            .write()
-            .map_err(|e| anyhow!("Failed to acquire write lock: {e}"))?
-            .take();
-
         let path = self.path.join(".twbm.ron");
-        fs::remove_file(&path)
-            .with_context(|| format!("Failed to remove twbm meta file: {}", path.display()))
+
+        if path.exists() {
+            fs::remove_file(&path)
+                .with_context(|| format!("Failed to remove twbm meta file: {}", path.display()))?;
+        };
+
+        Ok(())
     }
 }

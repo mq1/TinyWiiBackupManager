@@ -77,7 +77,7 @@ fn ui_game_card(
                 });
 
                 // Verified label on the left
-                if let Ok(true) = game.is_verified() {
+                if game.is_verified {
                     ui.colored_label(egui::Color32::DARK_GREEN, "✅")
                         .on_hover_text("✅ crc32 Verified");
                 }
