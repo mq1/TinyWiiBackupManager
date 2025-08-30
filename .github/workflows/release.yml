@@ -1,16 +1,12 @@
 name: Release
 
 on:
-  # Trigger the workflow on pushes to tags like v1.0, v2.1.0, etc.
   push:
+    branches:
+      - main
     tags:
       - 'v*'
-
-  # Trigger the workflow on pull requests to run checks
   pull_request:
-
-  # Allow the workflow to be triggered manually from the Actions tab
-  workflow_dispatch:
 
 permissions:
   contents: write
