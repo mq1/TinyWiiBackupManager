@@ -26,7 +26,11 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                 }
 
                 // Remove metadata button
-                if ui.button("🗑 Remove All .twbm Metadata").clicked() {
+                if ui
+                    .button("🗑 Remove All TWBM Metadata")
+                    .on_hover_text("Currently removes hashes.txt files")
+                    .clicked()
+                {
                     app.remove_all_meta();
                 }
 
