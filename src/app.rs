@@ -146,6 +146,28 @@ impl App {
         Ok(())
     }
 
+    pub fn download_all_covers(&mut self) {
+        if let Some(base_dir) = &self.base_dir {
+            for game in self.games.iter() {
+                let game = game.clone();
+                let base_dir = base_dir.clone();
+
+                self.task_processor.spawn_task(move |ui_sender| {
+                    let _ = ui_sender.send(BackgroundMessage::UpdateStatus(Some(format!(
+                        "Downloading covers for {}",
+                        game.display_title
+                    ))));
+
+                    if game.download_all_covers(base_dir)? {
+                        let msg = format!("Downloaded covers for {}", game.display_title);
+                        let _ = ui_sender.send(BackgroundMessage::Info(msg));
+                    }
+                    Ok(())
+                });
+            }
+        }
+    }
+
     /// Opens a file dialog to select Wii Disc files and starts the conversion process.
     pub fn add_isos(&mut self) {
         let paths = rfd::FileDialog::new()
