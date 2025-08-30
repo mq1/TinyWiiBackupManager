@@ -3,6 +3,7 @@
 
 use crate::components::game_info::ui_game_info_window;
 use crate::messages::BackgroundMessage;
+use crate::task::TaskProcessor;
 use crate::{
     app::App,
     game::{ConsoleType, Game},
@@ -34,7 +35,13 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
 
                 for (i, game) in games.enumerate() {
                     if filter.shows_game(game) {
-                        ui_game_card(ui, &mut app.inbox.sender(), game, &cover_dir);
+                        ui_game_card(
+                            ui,
+                            &mut app.inbox.sender(),
+                            &app.task_processor,
+                            game,
+                            &cover_dir,
+                        );
                     }
 
                     if (i + 1) % num_columns == 0 {
@@ -42,12 +49,7 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
                     }
 
                     // game info window
-                    ui_game_info_window(
-                        ui.ctx(),
-                        game,
-                        &mut app.inbox.sender(),
-                        &app.task_processor,
-                    );
+                    ui_game_info_window(ui.ctx(), game, &mut app.inbox.sender());
                 }
             });
     });
@@ -56,6 +58,7 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
 fn ui_game_card(
     ui: &mut egui::Ui,
     sender: &mut UiInboxSender<BackgroundMessage>,
+    task_processor: &TaskProcessor,
     game: &mut Game,
     cover_dir: &Path,
 ) {
@@ -115,6 +118,15 @@ fn ui_game_card(
                             && let Err(e) = game.remove()
                         {
                             let _ = sender.send(e.into());
+                        }
+
+                        // Verify crc32 button
+                        if ui
+                            .add(Button::new("🔎"))
+                            .on_hover_text("Verify crc32")
+                            .clicked()
+                        {
+                            game.spawn_verify_task(0, 1, task_processor);
                         }
 
                         let info_button = ui.add(
