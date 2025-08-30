@@ -203,4 +203,11 @@ impl App {
             }
         }
     }
+
+    pub fn verify_all(&mut self) {
+        let count = self.games.len();
+        for (i, game) in self.games.iter().enumerate() {
+            game.spawn_verify_task(i, count, &self.task_processor);
+        }
+    }
 }

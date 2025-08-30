@@ -47,6 +47,10 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                     app.add_isos();
                 }
 
+                if ui.button("🔎 Verify all").clicked() {
+                    app.verify_all();
+                }
+
                 // GameTDB menu
                 ui.menu_button("🎮 GameTDB", |ui| {
                     // Download database option
