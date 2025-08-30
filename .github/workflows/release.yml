@@ -67,7 +67,7 @@ jobs:
       - name: Build binary
         run: |
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-          cargo bundle --release --target ${{ matrix.target }} --format appimage
+          cargo bundle --release --locked --target ${{ matrix.target }} --format appimage
 
       - name: Package for Linux
         run: |
@@ -118,7 +118,7 @@ jobs:
           target: ${{ matrix.target }}
 
       - name: Build binary
-        run: cargo build --release --target ${{ matrix.target }}
+        run: cargo build --release --locked --target ${{ matrix.target }}
 
       - name: Package for Windows
         shell: pwsh
@@ -170,7 +170,7 @@ jobs:
         run: brew install cargo-bundle
 
       - name: Build binary
-        run: cargo bundle --release --target ${{ matrix.target }} --format osx
+        run: cargo bundle --release --locked --target ${{ matrix.target }} --format osx
 
       - name: Upload MacOS application bundle
         uses: actions/upload-artifact@v4
