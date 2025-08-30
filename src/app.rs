@@ -11,6 +11,8 @@ use crate::{SUPPORTED_INPUT_EXTENSIONS, components::console_filter::ConsoleFilte
 use anyhow::{Result, anyhow};
 use egui_inbox::UiInbox;
 
+const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
+
 /// Main application state and UI controller.
 pub struct App {
     /// Directory where the "wbfs" and "games" directories are located
@@ -53,9 +55,18 @@ impl App {
         let task_processor = TaskProcessor::new(ui_sender);
 
         // Load base dir from storage
-        let base_dir = cc
-            .storage
-            .and_then(|storage| eframe::get_value(storage, "base_dir"));
+        let base_dir = cc.storage.and_then(|storage| {
+            let base_dir = eframe::get_value(storage, "base_dir")?;
+
+            // MacOS shows many popups if the app version changes,
+            // so we discard the storage if the version doesn't match
+            if cfg!(target_os = "macos") {
+                let version: String = eframe::get_value(storage, "app_version")?;
+                (version == APP_VERSION).then_some(base_dir)
+            } else {
+                Some(base_dir)
+            }
+        });
 
         // Initialize app and toasts
         let mut app = Self {
