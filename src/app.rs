@@ -210,4 +210,19 @@ impl App {
             game.spawn_verify_task(i, count, &self.task_processor);
         }
     }
+
+    pub fn remove_all_meta(&mut self) {
+        let games = self.games.clone();
+
+        self.task_processor.spawn_task(move |ui_sender| {
+            for game in games.iter() {
+                game.remove_meta()?;
+            }
+
+            let msg = format!("Removed metadata for {} games", games.len());
+            let _ = ui_sender.send(BackgroundMessage::Info(msg));
+            let _ = ui_sender.send(BackgroundMessage::DirectoryChanged);
+            Ok(())
+        });
+    }
 }

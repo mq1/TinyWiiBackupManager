@@ -335,4 +335,16 @@ impl Game {
         *write_guard = Some(verified);
         Ok(verified)
     }
+
+    /// Removes the .twbm file and the cache
+    pub fn remove_meta(&self) -> Result<()> {
+        self.is_verified_cache
+            .write()
+            .map_err(|e| anyhow!("Failed to acquire write lock: {e}"))?
+            .take();
+
+        let path = self.path.join(".twbm.ron");
+        fs::remove_file(&path)
+            .with_context(|| format!("Failed to remove twbm meta file: {}", path.display()))
+    }
 }
