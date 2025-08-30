@@ -141,10 +141,23 @@ fn ui_game_info_content(
                     RichText::new(format!("{:08x}", crc32)).text_style(egui::TextStyle::Monospace),
                 );
 
-                // check if crc32 matches
-                if game.is_verified {
-                    ui.colored_label(egui::Color32::DARK_GREEN, "✅")
-                        .on_hover_text("✅ crc32 Verified");
+                // check if the embedded crc32 hash is valid
+                if game.check_crc(crc32) {
+                    ui.colored_label(egui::Color32::YELLOW, "✅")
+                        .on_hover_text("⚡ Embedded crc32 is a valid hash");
+                } else {
+                    ui.colored_label(egui::Color32::DARK_RED, "❌")
+                        .on_hover_text("❌ Embedded crc32 is not a valid hash");
+                }
+
+                if let Some(is_verified) = game.is_verified {
+                    if is_verified {
+                        ui.colored_label(egui::Color32::DARK_GREEN, "✅")
+                            .on_hover_text("✅ crc32 Verified");
+                    } else {
+                        ui.colored_label(egui::Color32::DARK_RED, "❌")
+                            .on_hover_text("❌ crc32 hash doesn't match, game may be corrupted");
+                    }
                 }
             });
         }

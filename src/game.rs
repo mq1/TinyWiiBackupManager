@@ -58,7 +58,7 @@ pub struct Game {
     pub display_title: String,
     pub info_url: String,
     pub info_opened: bool,
-    pub is_verified: bool,
+    pub is_verified: Option<bool>,
     disc_meta: Arc<OnceLock<Result<DiscMeta>>>,
 }
 
@@ -116,13 +116,13 @@ impl Game {
         }
 
         // Verify the game by cross-referencing WiiTDB
-        let is_verified = if let Some(info) = info
-            && let Some(crc32) = hashes.crc32
-        {
-            info.crc_list.contains(&crc32)
-        } else {
-            false
-        };
+        let is_verified = hashes.crc32.map(|crc32| {
+            if let Some(info) = info {
+                info.crc_list.contains(&crc32)
+            } else {
+                false
+            }
+        });
 
         Ok(Self {
             id,
@@ -341,5 +341,12 @@ impl Game {
         };
 
         Ok(())
+    }
+
+    pub fn check_crc(&self, crc: u32) -> bool {
+        GAMES
+            .get(&self.id)
+            .map(|g| g.crc_list.contains(&crc))
+            .unwrap_or(false)
     }
 }
