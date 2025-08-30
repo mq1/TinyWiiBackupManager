@@ -1,6 +1,6 @@
 [package]
 name = "tiny-wii-backup-manager"
-version = "2.0.0-alpha.2"
+version = "2.0.0-alpha.3"
 authors = ["Manuel Quarneti <mq1@ik.me>"]
 edition = "2024"
 license = "GPL-2.0-only"
@@ -11,7 +11,6 @@ build = "build.rs"
 [package.metadata.bundle]
 name = "TinyWiiBackupManager"
 identifier = "it.mq1.TinyWiiBackupManager"
-version = "2.0.0"
 icon = ["logo@2x.png"]
 copyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-2.0-only."
 category = "Utility"
@@ -19,7 +18,6 @@ category = "Utility"
 [package.metadata.winres]
 FileDescription = "A dead simple Wii Backup Manager"
 ProductName = "TinyWiiBackupManager"
-ProductVersion = "2.0.0"
 OriginalFilename = "TinyWiiBackupManager.exe"
 LegalCopyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-2.0-only."
 
