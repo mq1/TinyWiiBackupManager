@@ -5,8 +5,7 @@ use crate::SUPPORTED_INPUT_EXTENSIONS;
 use crate::base_dir::BaseDir;
 use crate::messages::BackgroundMessage;
 use crate::task::TaskProcessor;
-use anyhow::{Context, Result, anyhow};
-use lazy_regex::{Lazy, Regex, lazy_regex};
+use anyhow::{Context, Result, anyhow, bail};
 use nod::read::{DiscMeta, DiscOptions, DiscReader, PartitionEncryption};
 use nod::write::{DiscWriter, FormatOptions, ProcessOptions};
 use std::fs;
@@ -15,8 +14,6 @@ use std::sync::{Arc, OnceLock};
 use strum::{AsRefStr, Display};
 
 include!(concat!(env!("OUT_DIR"), "/wiitdb_data.rs"));
-
-static GAME_DIR_RE: Lazy<Regex> = lazy_regex!(r"^(.*)\[(.*)\]$");
 
 #[rustfmt::skip]
 #[derive(Debug, Clone, Copy, AsRefStr, Display)]
@@ -84,19 +81,17 @@ impl Game {
             .ok_or_else(|| anyhow!("Invalid game directory name: {}", path.display()))?
             .to_string_lossy();
 
-        let caps = GAME_DIR_RE
-            .captures(&dir_name)
-            .ok_or_else(|| anyhow!("Invalid game directory name: {dir_name}"))?;
+        // Find the positions of the brackets to extract the title and ID
+        let Some(id_start) = dir_name.rfind('[') else {
+            bail!("Could not find '[' in file name: '{}'", dir_name);
+        };
 
-        let id_str = caps
-            .get(2)
-            .ok_or_else(|| anyhow!("Could not find game ID in directory name: {dir_name}"))?
-            .as_str();
+        let Some(id_end) = dir_name.rfind(']') else {
+            bail!("Could not find ']' in file name: '{}'", dir_name);
+        };
 
-        let title = caps
-            .get(1)
-            .ok_or_else(|| anyhow!("Could not find game title in directory name: {dir_name}"))?
-            .as_str();
+        let title = &dir_name[..id_start].trim_end();
+        let id_str = &dir_name[id_start + 1..id_end];
 
         let id = game_id_to_u64(id_str);
 
@@ -114,9 +109,10 @@ impl Game {
         let mut hashes = Hashes::default();
         for line in hashes_str.lines() {
             if let Some((key, value)) = line.split_once('=')
-                && key.trim() == "crc32" {
-                    hashes.crc32 = u32::from_str_radix(value.trim(), 16).ok();
-                }
+                && key.trim() == "crc32"
+            {
+                hashes.crc32 = u32::from_str_radix(value.trim(), 16).ok();
+            }
         }
 
         // Verify the game by cross-referencing WiiTDB
