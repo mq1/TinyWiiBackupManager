@@ -10,7 +10,7 @@ use crate::{
 use eframe::egui::{self, Button, Image, RichText};
 use egui_inbox::UiInboxSender;
 use size::Size;
-use std::path::PathBuf;
+use std::path::Path;
 
 const CARD_SIZE: egui::Vec2 = egui::vec2(170.0, 220.0);
 const GRID_SPACING: egui::Vec2 = egui::vec2(10.0, 10.0);
@@ -33,7 +33,7 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
                 let games = app.games.iter_mut();
 
                 for (i, game) in games.enumerate() {
-                    if filter.shows_game(&game) {
+                    if filter.shows_game(game) {
                         ui_game_card(ui, &mut app.inbox.sender(), game, &cover_dir);
                     }
 
@@ -57,7 +57,7 @@ fn ui_game_card(
     ui: &mut egui::Ui,
     sender: &mut UiInboxSender<BackgroundMessage>,
     game: &mut Game,
-    cover_dir: &PathBuf,
+    cover_dir: &Path,
 ) {
     let card = egui::Frame::group(ui.style()).corner_radius(5.0);
     card.show(ui, |ui| {
@@ -72,6 +72,12 @@ fn ui_game_card(
                     ConsoleType::GameCube => "🎮 GC",
                     ConsoleType::Wii => "🎾 Wii",
                 });
+
+                // Verified label on the left
+                if let Ok(true) = game.is_verified() {
+                    let text = RichText::new("✅").color(egui::Color32::DARK_GREEN);
+                    ui.label(text).on_hover_text("crc32 Verified");
+                }
 
                 // Size label on the right
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
@@ -106,10 +112,9 @@ fn ui_game_card(
                             .add(Button::new("🗑"))
                             .on_hover_text("Remove Game")
                             .clicked()
+                            && let Err(e) = game.remove()
                         {
-                            if let Err(e) = game.remove() {
-                                let _ = sender.send(e.into());
-                            }
+                            let _ = sender.send(e.into());
                         }
 
                         let info_button = ui.add(
