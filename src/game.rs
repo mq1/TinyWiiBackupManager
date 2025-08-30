@@ -237,6 +237,39 @@ impl Game {
         base_dir.download_file(&url, "apps/usbloader_gx/images", &format!("{id}.png"))
     }
 
+    /// Returns true if at least one cover was downloaded.
+    pub fn download_all_covers(&self, base_dir: BaseDir) -> Result<bool> {
+        let id = &self.id_str;
+
+        // temp fix for NTSC-U
+        let locale = if let Some(info) = self.info
+            && matches!(info.region, Region::NtscU)
+        {
+            "US"
+        } else {
+            "EN"
+        };
+
+        // Cover3D is already downloaded (automatically)
+
+        // Cover2D
+        let url = format!("https://art.gametdb.com/wii/cover/{locale}/{id}.png");
+        let cover =
+            base_dir.download_file(&url, "apps/usbloader_gx/images/2D", &format!("{id}.png"))?;
+
+        // CoverFull
+        let url = format!("https://art.gametdb.com/wii/coverfull/{locale}/{id}.png");
+        let full =
+            base_dir.download_file(&url, "apps/usbloader_gx/images/full", &format!("{id}.png"))?;
+
+        // Disc
+        let url = format!("https://art.gametdb.com/wii/disc/{locale}/{id}.png");
+        let disc =
+            base_dir.download_file(&url, "apps/usbloader_gx/images/disc", &format!("{id}.png"))?;
+
+        Ok(cover || full || disc)
+    }
+
     pub fn toggle_info(&mut self) {
         self.info_opened = !self.info_opened;
     }

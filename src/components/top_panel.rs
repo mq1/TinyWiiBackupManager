@@ -68,13 +68,22 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
 
                 // GameTDB menu
                 ui.menu_button("🎮 GameTDB", |ui| {
-                    // Download database option
+                    // Download database button
                     if ui
                         .button("📥 Update GameTDB Database")
                         .on_hover_text("Download the latest wiitdb.xml database from GameTDB")
                         .clicked()
                     {
                         spawn_download_database_task(app);
+                    }
+
+                    // Download covers option
+                    if ui
+                        .button("📥 Download Covers")
+                        .on_hover_text("Download all covers for all games")
+                        .clicked()
+                    {
+                        app.download_all_covers();
                     }
                 });
             }
