@@ -67,7 +67,8 @@ jobs:
       - name: Build binary
         run: |
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-          cargo bundle --release --locked --target ${{ matrix.target }} --format appimage
+          cargo build --release --locked --target ${{ matrix.target }}
+          cargo bundle --release --target ${{ matrix.target }} --format appimage
 
       - name: Package for Linux
         run: |
@@ -170,7 +171,9 @@ jobs:
         run: brew install cargo-bundle
 
       - name: Build binary
-        run: cargo bundle --release --locked --target ${{ matrix.target }} --format osx
+        run: |
+          cargo build --release --locked --target ${{ matrix.target }}
+          cargo bundle --release --target ${{ matrix.target }} --format osx
 
       - name: Upload MacOS application bundle
         uses: actions/upload-artifact@v4
@@ -218,6 +221,9 @@ jobs:
             -output ./TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager \
             aarch64_app/TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager \
             x86_64_app/TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager
+          
+          # Make the app executable
+          chmod +x ./TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager
 
           # Create DMG
           npx --yes create-dmg TinyWiiBackupManager.app . || true
