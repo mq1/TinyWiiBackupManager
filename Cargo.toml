@@ -1,6 +1,6 @@
 [package]
 name = "tiny-wii-backup-manager"
-version = "2.0.0-alpha.3"
+version = "2.0.0-alpha.4"
 authors = ["Manuel Quarneti <mq1@ik.me>"]
 edition = "2024"
 license = "GPL-2.0-only"
@@ -27,7 +27,7 @@ egui_extras = { version = "0.32", features = ["image", "file"] }
 image = { version = "0.25", default-features = false, features = ["png"] }
 egui-notify = "0.20"
 egui_inbox = "0.9"
-ureq = "3.1"
+ureq = { version = "3.1", default-features = false, features = ["rustls"] }
 rfd = "0.15"
 phf = { version = "0.13", features = ["macros"] }
 anyhow = "1.0"
@@ -42,8 +42,7 @@ const_format = { version = "0.2", features = ["rust_1_64"] }
 nod = "2.0.0-alpha.3"
 hex = "0.4"
 serde = { version = "1.0", features = ["derive"] }
-quick-xml = { version = "0.38", features = ["serialize"] }
-zip = { version = "4.5", default-features = false, features = ["deflate-flate2-zlib-rs"] }
+zip = { version = "4.5", default-features = false, features = ["deflate"] }
 lazy-regex = { version = "3.4", default-features = false, features = ["lite"] }
 const-str = "0.6"
 strum = { version = "0.27", features = ["derive"] }
