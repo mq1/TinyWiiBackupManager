@@ -11,6 +11,7 @@ use nod::read::{DiscMeta, DiscOptions, DiscReader, PartitionEncryption};
 use nod::write::{DiscWriter, FormatOptions, ProcessOptions};
 use serde::{Deserialize, Serialize};
 use std::fs;
+use std::io::{BufRead, BufReader};
 use std::path::PathBuf;
 use std::sync::{Arc, OnceLock};
 use strum::{AsRefStr, Display};
@@ -45,7 +46,7 @@ pub enum ConsoleType {
 }
 
 #[derive(Default, Debug, Clone, Copy, Serialize, Deserialize)]
-pub struct TwbmMeta {
+pub struct Hashes {
     crc32: Option<u32>,
 }
 
@@ -110,13 +111,29 @@ impl Game {
 
         let info_url = format!("https://www.gametdb.com/Wii/{id_str}");
 
-        // Load twbm meta
-        let twbm_meta = fs::read_to_string(path.join(".twbm.ron")).unwrap_or_default();
-        let twbm_meta = ron::from_str::<TwbmMeta>(&twbm_meta).unwrap_or_default();
+        // Load hashes
+        let hashes = {
+            let mut hashes = Hashes::default();
+            if let Ok(file) = fs::File::open(path.join("hashes.txt")) {
+                let reader = BufReader::new(file);
+                for line in reader.lines() {
+                    if let Ok(line) = line {
+                        if let Some((key, value)) = line.split_once('=') {
+                            if key.trim() == "crc32" {
+                                if let Ok(crc) = u32::from_str_radix(value.trim(), 16) {
+                                    hashes.crc32 = Some(crc);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            hashes
+        };
 
         // Verify the game by cross-referencing WiiTDB
         let is_verified = matches!(
-            (twbm_meta.crc32, GAMES.get(&id)),
+            (hashes.crc32, GAMES.get(&id)),
             (Some(crc32), Some(game)) if game.crc_list.contains(&crc32)
         );
 
@@ -199,14 +216,15 @@ impl Game {
         })
     }
 
-    pub fn save_twbm_meta(&self, meta: &TwbmMeta) -> Result<()> {
-        let path = self.path.join(".twbm.ron");
+    pub fn save_hashes(&self, hashes: &Hashes) -> Result<()> {
+        let path = self.path.join("hashes.txt");
+        let mut content = String::new();
+        if let Some(crc32) = hashes.crc32 {
+            content.push_str(&format!("crc32 = {:X}", crc32));
+        }
 
-        let raw = ron::to_string(meta)
-            .with_context(|| format!("Failed to serialize twbm meta file: {}", path.display()))?;
-
-        fs::write(&path, raw)
-            .with_context(|| format!("Failed to write twbm meta file: {}", path.display()))
+        fs::write(&path, content)
+            .with_context(|| format!("Failed to write hashes file: {}", path.display()))
     }
 
     pub fn download_cover(&self, base_dir: BaseDir) -> Result<bool> {
@@ -278,9 +296,9 @@ impl Game {
                 .crc32
                 .ok_or(anyhow!("Failed to calculate CRC32"))?;
 
-            // We can overwrite the meta file for now (we only store the CRC32)
-            let meta = TwbmMeta { crc32: Some(crc32) };
-            game_clone.save_twbm_meta(&meta)?;
+            // We can overwrite the hashes file for now (we only store the CRC32)
+            let hashes = Hashes { crc32: Some(crc32) };
+            game_clone.save_hashes(&hashes)?;
 
             let _ = ui_sender.send(BackgroundMessage::Info(format!(
                 "{display_title} is verified"
@@ -293,13 +311,13 @@ impl Game {
         });
     }
 
-    /// Removes the .twbm file and the cache
+    /// Removes the hashes.txt file
     pub fn remove_meta(&self) -> Result<()> {
-        let path = self.path.join(".twbm.ron");
+        let path = self.path.join("hashes.txt");
 
         if path.exists() {
             fs::remove_file(&path)
-                .with_context(|| format!("Failed to remove twbm meta file: {}", path.display()))?;
+                .with_context(|| format!("Failed to remove hashes file: {}", path.display()))?;
         };
 
         Ok(())
