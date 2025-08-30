@@ -6,12 +6,12 @@ use crate::base_dir::BaseDir;
 use crate::messages::BackgroundMessage;
 use crate::task::TaskProcessor;
 use anyhow::{Context, Result, anyhow};
+use configparser::ini::Ini;
 use lazy_regex::{Lazy, Regex, lazy_regex};
 use nod::read::{DiscMeta, DiscOptions, DiscReader, PartitionEncryption};
 use nod::write::{DiscWriter, FormatOptions, ProcessOptions};
 use serde::{Deserialize, Serialize};
 use std::fs;
-use std::io::{BufRead, BufReader};
 use std::path::PathBuf;
 use std::sync::{Arc, OnceLock};
 use strum::{AsRefStr, Display};
@@ -114,17 +114,11 @@ impl Game {
         // Load hashes
         let hashes = {
             let mut hashes = Hashes::default();
-            if let Ok(file) = fs::File::open(path.join("hashes.txt")) {
-                let reader = BufReader::new(file);
-                for line in reader.lines() {
-                    if let Ok(line) = line {
-                        if let Some((key, value)) = line.split_once('=') {
-                            if key.trim() == "crc32" {
-                                if let Ok(crc) = u32::from_str_radix(value.trim(), 16) {
-                                    hashes.crc32 = Some(crc);
-                                }
-                            }
-                        }
+            let mut config = Ini::new();
+            if config.load(path.join("hashes.txt")).is_ok() {
+                if let Some(crc_str) = config.get("default", "crc32") {
+                    if let Ok(crc) = u32::from_str_radix(&crc_str, 16) {
+                        hashes.crc32 = Some(crc);
                     }
                 }
             }
@@ -218,12 +212,12 @@ impl Game {
 
     pub fn save_hashes(&self, hashes: &Hashes) -> Result<()> {
         let path = self.path.join("hashes.txt");
-        let mut content = String::new();
+        let mut config = Ini::new();
         if let Some(crc32) = hashes.crc32 {
-            content.push_str(&format!("crc32 = {:X}", crc32));
+            config.set("default", "crc32", Some(format!("{:X}", crc32)));
         }
-
-        fs::write(&path, content)
+        config
+            .write(&path)
             .with_context(|| format!("Failed to write hashes file: {}", path.display()))
     }
 

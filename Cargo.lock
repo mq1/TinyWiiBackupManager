@@ -845,6 +845,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "configparser"
+version = "3.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e57e3272f0190c3f1584272d613719ba5fc7df7f4942fe542e63d949cf3a649b"
+
+[[package]]
 name = "const-str"
 version = "0.6.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3941,6 +3947,7 @@ name = "tiny-wii-backup-manager"
 version = "1.5.3"
 dependencies = [
  "anyhow",
+ "configparser",
  "const-str",
  "const_format",
  "eframe",
