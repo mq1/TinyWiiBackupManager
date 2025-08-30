@@ -1,6 +1,6 @@
 [package]
 name = "tiny-wii-backup-manager"
-version = "2.0.0-alpha"
+version = "2.0.0-alpha.1"
 authors = ["Manuel Quarneti <mq1@ik.me>"]
 edition = "2024"
 license = "GPL-2.0-only"
@@ -48,6 +48,7 @@ lazy-regex = { version = "3.4", default-features = false, features = ["lite"] }
 const-str = "0.6"
 strum = { version = "0.27", features = ["derive"] }
 serde_ini = "0.2"
+egui-theme-switch = "0.4"
 
 [build-dependencies]
 quick-xml = { version = "0.38", features = ["serialize"] }
