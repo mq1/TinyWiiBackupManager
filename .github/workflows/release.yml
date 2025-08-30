@@ -38,11 +38,33 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Cache Rust workspace
-        uses: Swatinem/rust-cache@v2
+      - name: Cache Cargo directories
+        uses: actions/cache@v4
         with:
-          shared-key: ${{ runner.os }}-${{ env.TARGET_TRIPLE }}
-          prefix-key: v2-rust
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ env.TARGET_TRIPLE }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ env.TARGET_TRIPLE }}-cargo-
+
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@main
+
+      - name: Get brew cache directory
+        id: brew-cache
+        run: echo "dir=$(brew --cache)" >> $GITHUB_OUTPUT
+
+      - name: Cache Brew downloads
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.brew-cache.outputs.dir }}
+          key: ${{ runner.os }}-brew-${{ hashFiles('**/release.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-brew-
 
       - name: Set up Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -64,12 +86,10 @@ jobs:
             squashfs-tools ${{ matrix.additional_packages }}
 
           # Install cargo-bundle
-          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
           brew install cargo-bundle
 
       - name: Build binary
         run: |
-          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
           cargo build --release --locked --target ${{ env.TARGET_TRIPLE }}
           cargo bundle --release --target ${{ env.TARGET_TRIPLE }} --format appimage
 
@@ -104,11 +124,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Cache Rust workspace
-        uses: Swatinem/rust-cache@v2
+      - name: Cache Cargo directories
+        uses: actions/cache@v4
         with:
-          shared-key: ${{ runner.os }}-${{ env.TARGET_TRIPLE }}
-          prefix-key: v2-rust
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ env.TARGET_TRIPLE }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ env.TARGET_TRIPLE }}-cargo-
 
       - name: Set up Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -148,11 +175,30 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Cache Rust workspace
-        uses: Swatinem/rust-cache@v2
+      - name: Cache Cargo directories
+        uses: actions/cache@v4
         with:
-          shared-key: ${{ runner.os }}-${{ env.TARGET_TRIPLE }}
-          prefix-key: v2-rust
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ env.TARGET_TRIPLE }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ env.TARGET_TRIPLE }}-cargo-
+
+      - name: Get brew cache directory
+        id: brew-cache
+        run: echo "dir=$(brew --cache)" >> $GITHUB_OUTPUT
+
+      - name: Cache Brew downloads
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.brew-cache.outputs.dir }}
+          key: ${{ runner.os }}-brew-${{ hashFiles('**/release.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-brew-
 
       - name: Set up Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -187,6 +233,18 @@ jobs:
     env:
       FILENAME: TWBM-${{ github.ref_name }}-MacOS-Universal2
     steps:
+      - name: Get brew cache directory
+        id: brew-cache
+        run: echo "dir=$(brew --cache)" >> $GITHUB_OUTPUT
+
+      - name: Cache Brew downloads
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.brew-cache.outputs.dir }}
+          key: ${{ runner.os }}-brew-${{ hashFiles('**/release.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-brew-
+
       - name: Install dependencies
         run: brew install graphicsmagick imagemagick
 
