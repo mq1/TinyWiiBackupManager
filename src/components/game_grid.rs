@@ -77,13 +77,22 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
                         ConsoleType::Wii => "🎾 Wii",
                     });
 
+                    // Embedded verified label on the left
+                    if let Some(true) = game.is_embedded_verified {
+                        ui.colored_label(egui::Color32::GOLD, "✅")
+                            .on_hover_text("✅ Embedded crc32 is valid");
+                    } else if let Some(false) = game.is_embedded_verified {
+                        ui.colored_label(egui::Color32::DARK_RED, "❌")
+                            .on_hover_text("❌ Embedded crc32 is not valid, game may be corrupted");
+                    }
+
                     // Verified label on the left
                     if let Some(true) = game.is_verified {
                         ui.colored_label(egui::Color32::DARK_GREEN, "✅")
-                            .on_hover_text("✅ crc32 Verified");
+                            .on_hover_text("✅ crc32 is valid");
                     } else if let Some(false) = game.is_verified {
                         ui.colored_label(egui::Color32::DARK_RED, "❌")
-                            .on_hover_text("❌ crc32 hash doesn't match, game may be corrupted");
+                            .on_hover_text("❌ crc32 is not valid, game may be corrupted");
                     }
 
                     // Size label on the right
