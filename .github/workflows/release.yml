@@ -23,12 +23,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - target: x86_64-unknown-linux-gnu
-            arch: x86_64
+          - arch: x86_64
             additional_packages: ""
-          - target: aarch64-unknown-linux-gnu
-            arch: aarch64
+          - arch: aarch64
             additional_packages: gcc-aarch64-linux-gnu
+    env:
+      TARGET_TRIPLE: ${{ matrix.arch }}-unknown-linux-gnu
+      FILENAME: TWBM-${{ github.ref_name }}-Linux-${{ matrix.arch }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -36,12 +37,12 @@ jobs:
       - name: Cache Rust workspace
         uses: Swatinem/rust-cache@v2
         with:
-          key: ${{ matrix.target }}
+          key: ${{ env.TARGET_TRIPLE }}
 
       - name: Set up Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          target: ${{ matrix.target }}
+          target: ${{ env.TARGET_TRIPLE }}
 
       - name: Set up mold
         uses: rui314/setup-mold@v1
@@ -64,25 +65,17 @@ jobs:
       - name: Build binary
         run: |
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-          cargo build --release --locked --target ${{ matrix.target }}
-          cargo bundle --release --target ${{ matrix.target }} --format appimage
+          cargo build --release --locked --target ${{ env.TARGET_TRIPLE }}
+          cargo bundle --release --target ${{ env.TARGET_TRIPLE }} --format appimage
 
       - name: Package for Linux
         run: |
           mkdir dist
-
-          # Use sha for PR builds, ref_name for push builds
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            REF_NAME="${{ github.event.pull_request.head.sha }}"
-          else
-            REF_NAME="${{ github.ref_name }}"
-          fi
-
-          mv target/${{ matrix.target }}/release/bundle/appimage/*.AppImage dist/TWBM-${REF_NAME}-Linux-${{ matrix.arch }}.AppImage
+          mv target/${{ env.TARGET_TRIPLE }}/release/bundle/appimage/*.AppImage "dist/${{ env.FILENAME }}.AppImage"
 
           # Also create tarball with plain binary
-          mv target/${{ matrix.target }}/release/tiny-wii-backup-manager TWBM-${REF_NAME}-Linux-${{ matrix.arch }}
-          tar -czf dist/TWBM-${REF_NAME}-Linux-${{ matrix.arch }}.tar.gz TWBM-${REF_NAME}-Linux-${{ matrix.arch }}
+          mv target/${{ env.TARGET_TRIPLE }}/release/tiny-wii-backup-manager "${{ env.FILENAME }}"
+          tar -czf "dist/${{ env.FILENAME }}.tar.gz" "${{ env.FILENAME }}"
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v4
@@ -97,10 +90,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - target: x86_64-pc-windows-msvc
-            arch: x86_64
-          - target: aarch64-pc-windows-msvc
-            arch: aarch64
+          - arch: x86_64
+          - arch: aarch64
+    env:
+      TARGET_TRIPLE: ${{ matrix.arch }}-pc-windows-msvc
+      FILENAME: TWBM-${{ github.ref_name }}-Windows-${{ matrix.arch }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -108,30 +102,22 @@ jobs:
       - name: Cache Rust workspace
         uses: Swatinem/rust-cache@v2
         with:
-          key: ${{ matrix.target }}
+          key: ${{ env.TARGET_TRIPLE }}
 
       - name: Set up Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          target: ${{ matrix.target }}
+          target: ${{ env.TARGET_TRIPLE }}
 
       - name: Build binary
-        run: cargo build --release --locked --target ${{ matrix.target }}
+        run: cargo build --release --locked --target ${{ env.TARGET_TRIPLE }}
 
       - name: Package for Windows
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Path dist
-          
-          # Use sha for PR builds, ref_name for push builds
-          if ("${{ github.event_name }}" -eq "pull_request") {
-            $RefName = "${{ github.event.pull_request.head.sha }}"
-          } else {
-            $RefName = "${{ github.ref_name }}"
-          }
-          
-          Move-Item -Path "target/${{ matrix.target }}/release/tiny-wii-backup-manager.exe" -Destination "TWBM-${RefName}-Windows-${{ matrix.arch }}.exe"
-          Compress-Archive -Path "TWBM-${RefName}-Windows-${{ matrix.arch }}.exe" -DestinationPath "dist/TWBM-${RefName}-Windows-${{ matrix.arch }}.zip"
+          Move-Item -Path "target/${{ env.TARGET_TRIPLE }}/release/tiny-wii-backup-manager.exe" -Destination "${{ env.FILENAME }}.exe"
+          Compress-Archive -Path "${{ env.FILENAME }}.exe" -DestinationPath "dist/${{ env.FILENAME }}.zip"
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v4
@@ -146,10 +132,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - target: aarch64-apple-darwin
-            arch: aarch64
-          - target: x86_64-apple-darwin
-            arch: x86_64
+          - arch: aarch64
+          - arch: x86_64
+    env:
+      TARGET_TRIPLE: ${{ matrix.arch }}-apple-darwin
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -157,31 +143,33 @@ jobs:
       - name: Cache Rust workspace
         uses: Swatinem/rust-cache@v2
         with:
-          key: ${{ matrix.target }}
+          key: ${{ env.TARGET_TRIPLE }}
 
       - name: Set up Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          target: ${{ matrix.target }}
+          target: ${{ env.TARGET_TRIPLE }}
 
       - name: Install dependencies
         run: brew install cargo-bundle
 
       - name: Build binary
         run: |
-          cargo build --release --locked --target ${{ matrix.target }}
-          cargo bundle --release --target ${{ matrix.target }} --format osx
+          cargo build --release --locked --target ${{ env.TARGET_TRIPLE }}
+          cargo bundle --release --target ${{ env.TARGET_TRIPLE }} --format osx
 
       - name: Upload MacOS application bundle
         uses: actions/upload-artifact@v4
         with:
           name: macos-app-${{ matrix.arch }}
-          path: target/${{ matrix.target }}/release/bundle/osx
+          path: target/${{ env.TARGET_TRIPLE }}/release/bundle/osx
 
   package-macos:
     name: Package MacOS Universal2
     runs-on: macos-latest
     needs: build-macos
+    env:
+      FILENAME: TWBM-${{ github.ref_name }}-MacOS-Universal2
     steps:
       - name: Install dependencies
         run: brew install graphicsmagick imagemagick
@@ -202,13 +190,6 @@ jobs:
         run: |
           mkdir dist
           
-          # Use sha for PR builds, ref_name for push builds
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            REF_NAME="${{ github.event.pull_request.head.sha }}"
-          else
-            REF_NAME="${{ github.ref_name }}"
-          fi
-          
           # Copy the aarch64 app to use as a template for our final universal app
           cp -R aarch64_app/TinyWiiBackupManager.app .
           
@@ -224,7 +205,7 @@ jobs:
 
           # Create DMG
           npx --yes create-dmg TinyWiiBackupManager.app . || true
-          mv TinyWiiBackupManager*.dmg dist/TWBM-${REF_NAME}-MacOS-Universal2.dmg
+          mv TinyWiiBackupManager*.dmg "dist/${{ env.FILENAME }}.dmg"
 
       - name: Upload MacOS distributable
         uses: actions/upload-artifact@v4
