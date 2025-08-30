@@ -1,6 +1,6 @@
 [package]
 name = "tiny-wii-backup-manager"
-version = "2.0.0-alpha.3"
+version = "2.0.0-alpha"
 authors = ["Manuel Quarneti <mq1@ik.me>"]
 edition = "2024"
 license = "GPL-2.0-only"
@@ -62,7 +62,8 @@ eframe = { version = "0.32", features = ["persistence"] }
 
 # Windows uses WGPU backend for better compatibility
 [target.'cfg(target_os = "windows")'.dependencies]
-eframe = { version = "0.32", features = ["wgpu", "persistence"] }
+eframe = { version = "0.32", default-features = false, features = ["accesskit", "default_fonts", "wgpu"] }
+wgpu = { version = "25", default-features = false, features = ["dx12"] }
 
 [target.'cfg(target_os = "windows")'.build-dependencies]
 winres = "0.1"
