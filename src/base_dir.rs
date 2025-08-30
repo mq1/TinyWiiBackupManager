@@ -81,10 +81,10 @@ impl BaseDir {
 
         let mut watcher = notify::recommended_watcher(handler)?;
 
-        fs::create_dir_all(&self.wii_dir())?;
+        fs::create_dir_all(self.wii_dir())?;
         watcher.watch(&self.wii_dir(), RecursiveMode::NonRecursive)?;
 
-        fs::create_dir_all(&self.gc_dir())?;
+        fs::create_dir_all(self.gc_dir())?;
         watcher.watch(&self.gc_dir(), RecursiveMode::NonRecursive)?;
 
         Ok(watcher)

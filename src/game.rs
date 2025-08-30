@@ -12,8 +12,7 @@ use nod::write::{DiscWriter, FormatOptions, ProcessOptions};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
-use std::sync::Arc;
-use std::sync::OnceLock;
+use std::sync::{Arc, OnceLock, RwLock};
 use strum::{AsRefStr, Display};
 
 include!(concat!(env!("OUT_DIR"), "/wiitdb_data.rs"));
@@ -25,6 +24,7 @@ static GAME_DIR_RE: Lazy<Regex> = lazy_regex!(r"^(.*)\[(.*)\]$");
 pub enum Region { NtscJ, NtscU, NtscK, NtscT, Pal, PalR }
 
 #[rustfmt::skip]
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Debug, Clone, Copy, AsRefStr, Display)]
 pub enum Language { EN, FR, DE, ES, IT, JA, NL, SE, DK, NO, KO, PT, ZHTW, ZHCN, FI, TR, GR, RU }
 
@@ -63,6 +63,7 @@ pub struct Game {
     pub info_url: String,
     pub info_opened: bool,
     disc_meta: Arc<OnceLock<Result<DiscMeta>>>,
+    is_verified_cache: Arc<RwLock<Option<bool>>>,
 }
 
 /// Converts a string slice (up to 8 chars) into a u64.
@@ -121,6 +122,7 @@ impl Game {
             display_title: display_title.to_string(),
             info_url,
             info_opened: false,
+            is_verified_cache: Arc::new(RwLock::new(None)),
         })
     }
 
@@ -273,6 +275,9 @@ impl Game {
             meta.crc32 = Some(crc32);
             game_clone.save_twbm_meta(&meta)?;
 
+            // Update the cache to reflect the new state.
+            *game_clone.is_verified_cache.write().unwrap() = Some(true);
+
             if !game_info.crc_list.contains(&crc32) {
                 bail!("CRC crc32 does not match");
             }
@@ -283,5 +288,37 @@ impl Game {
 
             Ok(())
         });
+    }
+
+    pub fn is_verified(&self) -> Result<bool> {
+        // First, check the cache with a read lock.
+        let read_guard = self
+            .is_verified_cache
+            .read()
+            .map_err(|e| anyhow!("Failed to acquire read lock: {e}"))?;
+
+        if let Some(verified) = *read_guard {
+            return Ok(verified);
+        }
+        drop(read_guard);
+
+        // If the cache is empty, acquire a write lock.
+        let mut write_guard = self
+            .is_verified_cache
+            .write()
+            .map_err(|e| anyhow!("Failed to acquire write lock: {e}"))?;
+
+        // Check again in case another thread populated it while we waited.
+        if let Some(verified) = *write_guard {
+            return Ok(verified);
+        }
+
+        // The cache is empty and we have the lock. Load meta, propagating real errors.
+        let meta = self.load_twbm_meta().unwrap_or_default();
+        let verified = meta.crc32.is_some();
+
+        // Store the result in the cache and return it.
+        *write_guard = Some(verified);
+        Ok(verified)
     }
 }
