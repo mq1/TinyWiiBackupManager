@@ -77,7 +77,7 @@ fn ui_game_info_content(
 
     ui.heading("💿 Disc Metadata");
     ui.add_space(5.0);
-    if let Ok(meta) = game.load_disc_meta() {
+    if let Ok(meta) = game.disc_meta.as_ref() {
         ui.horizontal(|ui| {
             ui.label(RichText::new("💿 Format:").strong());
             ui.label(meta.format.to_string());
@@ -121,7 +121,7 @@ fn ui_game_info_content(
     ui.heading("🔍 Integrity Metadata");
     ui.add_space(5.0);
 
-    if let Ok(meta) = game.load_disc_meta() {
+    if let Ok(meta) = game.disc_meta.as_ref() {
         // if all are None, show a message
         if meta.crc32.is_none() && meta.md5.is_none() && meta.sha1.is_none() && meta.xxh64.is_none()
         {
@@ -142,21 +142,23 @@ fn ui_game_info_content(
                 );
 
                 // check if the embedded crc32 hash is valid
-                if game.check_crc(crc32) {
-                    ui.colored_label(egui::Color32::YELLOW, "✅")
-                        .on_hover_text("⚡ Embedded crc32 is a valid hash");
-                } else {
-                    ui.colored_label(egui::Color32::DARK_RED, "❌")
-                        .on_hover_text("❌ Embedded crc32 is not a valid hash");
+                if let Some(is_verified) = game.is_embedded_verified {
+                    if is_verified {
+                        ui.colored_label(egui::Color32::GOLD, "✅")
+                            .on_hover_text("✅ Embedded crc32 is valid");
+                    } else {
+                        ui.colored_label(egui::Color32::DARK_RED, "❌")
+                            .on_hover_text("❌ Embedded crc32 is not valid, game may be corrupted");
+                    }
                 }
 
                 if let Some(is_verified) = game.is_verified {
                     if is_verified {
                         ui.colored_label(egui::Color32::DARK_GREEN, "✅")
-                            .on_hover_text("✅ crc32 Verified");
+                            .on_hover_text("✅ crc32 is valid");
                     } else {
                         ui.colored_label(egui::Color32::DARK_RED, "❌")
-                            .on_hover_text("❌ crc32 hash doesn't match, game may be corrupted");
+                            .on_hover_text("❌ crc32 is not valid, game may be corrupted");
                     }
                 }
             });

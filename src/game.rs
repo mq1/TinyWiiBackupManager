@@ -10,7 +10,7 @@ use nod::read::{DiscMeta, DiscOptions, DiscReader, PartitionEncryption};
 use nod::write::{DiscWriter, FormatOptions, ProcessOptions};
 use std::fs;
 use std::path::PathBuf;
-use std::sync::{Arc, OnceLock};
+use std::sync::Arc;
 use strum::{AsRefStr, Display};
 
 include!(concat!(env!("OUT_DIR"), "/wiitdb_data.rs"));
@@ -59,7 +59,8 @@ pub struct Game {
     pub info_url: String,
     pub info_opened: bool,
     pub is_verified: Option<bool>,
-    disc_meta: Arc<OnceLock<Result<DiscMeta>>>,
+    pub is_embedded_verified: Option<bool>,
+    pub disc_meta: Arc<Result<DiscMeta>>,
 }
 
 /// Converts a string slice (up to 8 chars) into a u64.
@@ -68,6 +69,36 @@ pub struct Game {
 /// For example, "ABCD" becomes 0x41424344.
 fn game_id_to_u64(id: &str) -> u64 {
     id.bytes().fold(0, |acc, byte| (acc << 8) | u64::from(byte))
+}
+
+fn find_disc_image_file(path: &PathBuf) -> Result<PathBuf> {
+    // Read the directory entries, returning an error if it fails
+    let entries = fs::read_dir(path)
+        .with_context(|| format!("Failed to read directory: {}", path.display()))?;
+
+    // Iterate over the directory entries, looking for the first match
+    for entry in entries {
+        let entry = entry.context("Failed to read directory entry")?;
+        let path = entry.path();
+
+        // Skip if not a file
+        if !path.is_file() {
+            continue;
+        }
+
+        // Check if the file's extension is in the supported list
+        if let Some(ext) = path.extension()
+            && let Some(ext_str) = ext.to_str()
+            && SUPPORTED_INPUT_EXTENSIONS.contains(&ext_str)
+        {
+            return Ok(path);
+        }
+    }
+
+    Err(anyhow!(
+        "No supported disc image file found in: {}",
+        path.display()
+    ))
 }
 
 impl Game {
@@ -115,14 +146,37 @@ impl Game {
             }
         }
 
-        // Verify the game by cross-referencing WiiTDB
-        let is_verified = hashes.crc32.map(|crc32| {
+        // Verify the game by cross-referencing WiiTDB from hashes.txt
+        let is_verified = if let Some(crc32) = hashes.crc32 {
             if let Some(info) = info {
-                info.crc_list.contains(&crc32)
+                Some(info.crc_list.contains(&crc32))
             } else {
-                false
+                None
             }
-        });
+        } else {
+            None
+        };
+
+        let disc_meta_result = {
+            let file = find_disc_image_file(&path)?;
+            let reader = DiscReader::new(&file, &DiscOptions::default())?;
+            Ok(reader.meta())
+        };
+
+        // Verify the game using the embedded CRC from the disc metadata
+        let is_embedded_verified = if let Ok(meta) = &disc_meta_result {
+            if let Some(crc32) = meta.crc32 {
+                if let Some(info) = info {
+                    Some(info.crc_list.contains(&crc32))
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        } else {
+            None
+        };
 
         Ok(Self {
             id,
@@ -132,11 +186,12 @@ impl Game {
             path: path.clone(),
             size,
             info,
-            disc_meta: Arc::new(OnceLock::new()),
+            disc_meta: Arc::new(disc_meta_result),
             display_title: display_title.to_string(),
             info_url,
             info_opened: false,
             is_verified,
+            is_embedded_verified,
         })
     }
 
@@ -157,50 +212,6 @@ impl Game {
         }
 
         Ok(())
-    }
-
-    fn find_disc_image_file(&self) -> Result<PathBuf> {
-        // Read the directory entries, returning an error if it fails
-        let entries = fs::read_dir(&self.path)
-            .with_context(|| format!("Failed to read directory: {}", self.path.display()))?;
-
-        // Iterate over the directory entries, looking for the first match
-        for entry in entries {
-            let entry = entry.context("Failed to read directory entry")?;
-            let path = entry.path();
-
-            // Skip if not a file
-            if !path.is_file() {
-                continue;
-            }
-
-            // Check if the file's extension is in the supported list
-            if let Some(ext) = path.extension()
-                && let Some(ext_str) = ext.to_str()
-                && SUPPORTED_INPUT_EXTENSIONS.contains(&ext_str)
-            {
-                return Ok(path);
-            }
-        }
-
-        Err(anyhow!(
-            "No supported disc image file found in: {}",
-            self.path.display()
-        ))
-    }
-
-    /// Lazily loads disc metadata when needed.
-    ///
-    /// Returns:
-    /// - `Ok(&DiscMeta)` if metadata was successfully loaded.
-    /// - `Err(&anyhow::Error)` if no disc image file was found or an error occurred during reading.
-    pub fn load_disc_meta(&self) -> &Result<DiscMeta> {
-        // Use get_or_init with a closure that computes the value if not already set
-        self.disc_meta.get_or_init(|| {
-            let file = self.find_disc_image_file()?;
-            let reader = DiscReader::new(&file, &DiscOptions::default())?;
-            Ok(reader.meta())
-        })
     }
 
     pub fn save_hashes(&self, hashes: &Hashes) -> Result<()> {
@@ -274,7 +285,7 @@ impl Game {
         total_files: usize,
         task_processor: &TaskProcessor,
     ) {
-        let disc_path = self.find_disc_image_file();
+        let disc_path = find_disc_image_file(&self.path);
         let display_title = self.display_title.clone();
         let game_clone = self.clone();
 
@@ -341,12 +352,5 @@ impl Game {
         };
 
         Ok(())
-    }
-
-    pub fn check_crc(&self, crc: u32) -> bool {
-        GAMES
-            .get(&self.id)
-            .map(|g| g.crc_list.contains(&crc))
-            .unwrap_or(false)
     }
 }
