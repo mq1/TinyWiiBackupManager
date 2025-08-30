@@ -289,7 +289,7 @@ impl Game {
 
             // Create the Hashes struct with the crc32 value formatted as a hex string
             let hashes = Hashes {
-                crc32: Some(format!("{:X}", crc32)),
+                crc32: Some(format!("{:x}", crc32)),
             };
             game_clone.save_hashes(&hashes)?;
 
