@@ -42,7 +42,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
         with:
           shared-key: ${{ runner.os }}-${{ env.TARGET_TRIPLE }}
-          prefix-key: v1-rust
+          prefix-key: v2-rust
 
       - name: Set up Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -108,7 +108,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
         with:
           shared-key: ${{ runner.os }}-${{ env.TARGET_TRIPLE }}
-          prefix-key: v1-rust
+          prefix-key: v2-rust
 
       - name: Set up Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -152,7 +152,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
         with:
           shared-key: ${{ runner.os }}-${{ env.TARGET_TRIPLE }}
-          prefix-key: v1-rust
+          prefix-key: v2-rust
 
       - name: Set up Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
