@@ -3,6 +3,8 @@ use crate::components;
 use crate::messages::handle_messages;
 use eframe::{Storage, egui};
 
+const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
+
 impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         handle_messages(self, ctx);
@@ -20,6 +22,8 @@ impl eframe::App for App {
     }
 
     fn save(&mut self, storage: &mut dyn Storage) {
+        eframe::set_value(storage, "app_version", &APP_VERSION);
+
         if let Some(base_dir) = &self.base_dir {
             eframe::set_value(storage, "base_dir", base_dir);
         }
