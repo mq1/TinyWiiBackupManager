@@ -1,6 +1,6 @@
 [package]
 name = "tiny-wii-backup-manager"
-version = "2.0.0-alpha.4"
+version = "2.0.0-alpha.5"
 authors = ["Manuel Quarneti <mq1@ik.me>"]
 edition = "2024"
 license = "GPL-2.0-only"
@@ -23,7 +23,7 @@ LegalCopyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-2.0-only
 
 [dependencies]
 iso2wbfs = { git = "https://github.com/mq1/iso2wbfs", tag = "v1.2.7" }
-egui_extras = { version = "0.32", features = ["image", "file"] }
+egui_extras = { version = "0.32", default-features = false, features = ["image", "file"] }
 image = { version = "0.25", default-features = false, features = ["png"] }
 egui-notify = "0.20"
 egui_inbox = "0.9"
@@ -37,13 +37,12 @@ open = "5.3"
 notify = "8.2"
 size = "0.5"
 log = "0.4"
-env_logger = "0.11"
+env_logger = { version = "0.11", default-features = false, features = ["auto-color", "humantime"] }
 const_format = { version = "0.2", features = ["rust_1_64"] }
 nod = "2.0.0-alpha.3"
 hex = "0.4"
 serde = { version = "1.0", features = ["derive"] }
 zip = { version = "4.5", default-features = false, features = ["deflate"] }
-lazy-regex = { version = "3.4", default-features = false, features = ["lite"] }
 const-str = "0.6"
 strum = { version = "0.27", features = ["derive"] }
 egui-theme-switch = "0.4"
