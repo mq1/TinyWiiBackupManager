@@ -124,10 +124,13 @@ impl Game {
             .and_then(|s| u32::from_str_radix(s, 16).ok());
 
         // Verify the game by cross-referencing WiiTDB
-        let is_verified = matches!(
-            (crc32_u32, GAMES.get(&id)),
-            (Some(crc32), Some(game)) if game.crc_list.contains(&crc32)
-        );
+        let is_verified = if let Some(info) = info
+            && let Some(crc32) = crc32_u32
+        {
+            info.crc_list.contains(&crc32)
+        } else {
+            false
+        };
 
         Ok(Self {
             id,
