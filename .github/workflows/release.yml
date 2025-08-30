@@ -37,7 +37,8 @@ jobs:
       - name: Cache Rust workspace
         uses: Swatinem/rust-cache@v2
         with:
-          key: ${{ env.TARGET_TRIPLE }}
+          shared-key: ${{ runner.os }}-${{ env.TARGET_TRIPLE }}
+          prefix-key: v1-rust
 
       - name: Set up Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -102,7 +103,8 @@ jobs:
       - name: Cache Rust workspace
         uses: Swatinem/rust-cache@v2
         with:
-          key: ${{ env.TARGET_TRIPLE }}
+          shared-key: ${{ runner.os }}-${{ env.TARGET_TRIPLE }}
+          prefix-key: v1-rust
 
       - name: Set up Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -145,7 +147,8 @@ jobs:
       - name: Cache Rust workspace
         uses: Swatinem/rust-cache@v2
         with:
-          key: ${{ env.TARGET_TRIPLE }}
+          shared-key: ${{ runner.os }}-${{ env.TARGET_TRIPLE }}
+          prefix-key: v1-rust
 
       - name: Set up Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
