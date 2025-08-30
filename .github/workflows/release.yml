@@ -166,20 +166,19 @@ jobs:
     env:
       FILENAME: TWBM-${{ github.ref_name }}-MacOS-Universal2
     steps:
-      - name: Get Date for Cache Key
-        id: get-date
-        run: echo "date=$(date -u +'%Y-W%U')" >> $GITHUB_OUTPUT
+      - name: Get current week
+        id: date
+        run: echo "week=$(date +%Y-W%U)" >> $GITHUB_OUTPUT
 
-      - name: Get brew cache directory
-        id: brew-cache
-        run: echo "dir=$(brew --cache)" >> $GITHUB_OUTPUT
-
-      - name: Cache Brew downloads
+      - name: Cache Homebrew
         uses: actions/cache@v4
         with:
-          path: ${{ steps.brew-cache.outputs.dir }}
-          key: ${{ runner.os }}-brew-${{ steps.get-date.outputs.date }}
-          restore-keys: ${{ runner.os }}-brew-
+          path: |
+            /opt/homebrew
+            ~/Library/Caches/Homebrew
+          key: ${{ runner.os }}-aarch64-brew-${{ steps.date.outputs.week }}
+          restore-keys: |
+            ${{ runner.os }}-aarch64-brew-
 
       - name: Install dependencies
         run: brew install graphicsmagick imagemagick
