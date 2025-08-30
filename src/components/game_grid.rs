@@ -78,9 +78,12 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
                     });
 
                     // Verified label on the left
-                    if game.is_verified {
+                    if let Some(true) = game.is_verified {
                         ui.colored_label(egui::Color32::DARK_GREEN, "✅")
                             .on_hover_text("✅ crc32 Verified");
+                    } else if let Some(false) = game.is_verified {
+                        ui.colored_label(egui::Color32::DARK_RED, "❌")
+                            .on_hover_text("❌ crc32 hash doesn't match, game may be corrupted");
                     }
 
                     // Size label on the right
