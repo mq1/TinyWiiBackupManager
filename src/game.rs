@@ -241,9 +241,8 @@ impl Game {
         task_processor.spawn_task(move |ui_sender| {
             let disc_path = disc_path?;
 
-            let _ = ui_sender.send(BackgroundMessage::UpdateStatus(format!(
-                "Verifying {display_title}..."
-            )));
+            let msg = format!("Verifying {display_title}...");
+            let _ = ui_sender.send(BackgroundMessage::UpdateStatus(Some(msg)));
 
             // Open the disc
             let disc = DiscReader::new(
