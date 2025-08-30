@@ -136,6 +136,8 @@ jobs:
           - arch: x86_64
     env:
       TARGET_TRIPLE: ${{ matrix.arch }}-apple-darwin
+      APP_PATH: target/${{ matrix.arch }}-apple-darwin/release/bundle/osx/TinyWiiBackupManager.app
+      ARCHIVE_NAME: macos-app.zip
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -158,11 +160,18 @@ jobs:
           cargo build --release --locked --target ${{ env.TARGET_TRIPLE }}
           cargo bundle --release --target ${{ env.TARGET_TRIPLE }} --format osx
 
+      - name: Archive the application bundle using ditto
+        run: >
+          ditto
+          -c -k --sequesterRsrc --keepParent
+          "${{ env.APP_PATH }}"
+          "${{ env.ARCHIVE_NAME }}"
+
       - name: Upload MacOS application bundle
         uses: actions/upload-artifact@v4
         with:
           name: macos-app-${{ matrix.arch }}
-          path: target/${{ env.TARGET_TRIPLE }}/release/bundle/osx
+          path: ${{ env.ARCHIVE_NAME }}
 
   package-macos:
     name: Package MacOS Universal2
@@ -186,6 +195,11 @@ jobs:
           name: macos-app-x86_64
           path: x86_64_app
 
+      - name: Extract application bundles
+        run: |
+          unzip aarch64_app/macos-app.zip -d aarch64_app/
+          unzip x86_64_app/macos-app.zip -d x86_64_app/
+
       - name: Create Universal2 app and DMG
         run: |
           mkdir dist
@@ -194,15 +208,13 @@ jobs:
           cp -R aarch64_app/TinyWiiBackupManager.app .
           
           # Create the universal binary using lipo, referencing the predictable downloaded paths
+          # All file attributes and permissions are preserved by ditto/unzip.
           lipo \
             -create \
             -output ./TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager \
             aarch64_app/TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager \
             x86_64_app/TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager
           
-          # Make the app executable
-          chmod +x ./TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager
-
           # Create DMG
           npx --yes create-dmg TinyWiiBackupManager.app . || true
           mv TinyWiiBackupManager*.dmg "dist/${{ env.FILENAME }}.dmg"
