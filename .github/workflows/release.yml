@@ -47,21 +47,6 @@ jobs:
           restore-keys: |
             ${{ env.TARGET_TRIPLE }}-cargo-
 
-      - name: Set up Homebrew
-        uses: Homebrew/actions/setup-homebrew@main
-
-      - name: Get brew cache directory
-        id: brew-cache
-        run: echo "dir=$(brew --cache)" >> $GITHUB_OUTPUT
-
-      - name: Cache Brew downloads
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.brew-cache.outputs.dir }}
-          key: ${{ runner.os }}-brew-${{ hashFiles('**/release.yml') }}
-          restore-keys: |
-            ${{ runner.os }}-brew-
-
       - name: Set up Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
@@ -82,7 +67,7 @@ jobs:
             squashfs-tools ${{ matrix.additional_packages }}
 
           # Install cargo-bundle
-          brew install cargo-bundle
+          cargo install cargo-bundle
 
       - name: Build binary
         run: |
@@ -184,25 +169,13 @@ jobs:
           restore-keys: |
             ${{ env.TARGET_TRIPLE }}-cargo-
 
-      - name: Get brew cache directory
-        id: brew-cache
-        run: echo "dir=$(brew --cache)" >> $GITHUB_OUTPUT
-
-      - name: Cache Brew downloads
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.brew-cache.outputs.dir }}
-          key: ${{ runner.os }}-brew-${{ hashFiles('**/release.yml') }}
-          restore-keys: |
-            ${{ runner.os }}-brew-
-
       - name: Set up Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           target: ${{ env.TARGET_TRIPLE }}
 
       - name: Install dependencies
-        run: brew install cargo-bundle
+        run: cargo install cargo-bundle
 
       - name: Build binary
         run: |
@@ -229,6 +202,10 @@ jobs:
     env:
       FILENAME: TWBM-${{ github.ref_name }}-MacOS-Universal2
     steps:
+      - name: Get Date for Cache Key
+        id: get-date
+        run: echo "date=$(date -u +'%Y-W%U')" >> $GITHUB_OUTPUT
+
       - name: Get brew cache directory
         id: brew-cache
         run: echo "dir=$(brew --cache)" >> $GITHUB_OUTPUT
@@ -237,7 +214,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ steps.brew-cache.outputs.dir }}
-          key: ${{ runner.os }}-brew-${{ hashFiles('**/release.yml') }}
+          key: ${{ runner.os }}-brew-${{ steps.get-date.outputs.date }}
           restore-keys: |
             ${{ runner.os }}-brew-
 
