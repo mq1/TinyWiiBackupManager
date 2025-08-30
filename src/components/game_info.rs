@@ -17,7 +17,7 @@ pub fn ui_game_info_window(
     let game_clone = game.clone();
 
     egui::Window::new(&window_title)
-        .id(Id::new(game.id.clone()))
+        .id(Id::new(game.id))
         .open(&mut game.info_opened)
         .show(ctx, |ui| {
             ui_game_info_content(ui, game_clone, sender, task_processor);

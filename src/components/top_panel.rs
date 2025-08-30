@@ -55,7 +55,7 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                         .on_hover_text("Download the latest wiitdb.xml database from GameTDB")
                         .clicked()
                     {
-                        spawn_download_database_task(&app);
+                        spawn_download_database_task(app);
                     }
                 });
             }
