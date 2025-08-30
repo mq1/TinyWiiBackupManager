@@ -78,8 +78,8 @@ fn ui_game_card(
 
                 // Verified label on the left
                 if let Ok(true) = game.is_verified() {
-                    let text = RichText::new("✅").color(egui::Color32::DARK_GREEN);
-                    ui.label(text).on_hover_text("crc32 Verified");
+                    ui.colored_label(egui::Color32::DARK_GREEN, "✅")
+                        .on_hover_text("✅ crc32 Verified");
                 }
 
                 // Size label on the right

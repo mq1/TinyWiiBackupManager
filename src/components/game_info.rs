@@ -118,7 +118,7 @@ fn ui_game_info_content(
     ui.separator();
     ui.add_space(10.0);
 
-    ui.heading("🔍 Integrity");
+    ui.heading("🔍 Integrity Metadata");
     ui.add_space(5.0);
 
     if let Ok(meta) = game.load_disc_meta() {
@@ -140,6 +140,12 @@ fn ui_game_info_content(
                 ui.label(
                     RichText::new(format!("{:08x}", crc32)).text_style(egui::TextStyle::Monospace),
                 );
+
+                // check if crc32 matches
+                if let Ok(true) = game.is_verified() {
+                    ui.colored_label(egui::Color32::DARK_GREEN, "✅")
+                        .on_hover_text("✅ crc32 Verified");
+                }
             });
         }
 
