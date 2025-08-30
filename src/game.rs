@@ -241,9 +241,6 @@ impl Game {
         task_processor.spawn_task(move |ui_sender| {
             let disc_path = disc_path?;
 
-            let msg = format!("Verifying {display_title}...");
-            let _ = ui_sender.send(BackgroundMessage::UpdateStatus(Some(msg)));
-
             // Open the disc
             let disc = DiscReader::new(
                 &disc_path,
@@ -254,9 +251,19 @@ impl Game {
             )?;
             let disc_writer = DiscWriter::new(disc, &FormatOptions::default())?;
 
+            let display_title_truncated = display_title.chars().take(20).collect::<String>();
+
             // Process the disc to calculate hashes
             let finalization = disc_writer.process(
-                |_, _, _| Ok(()),
+                |_, done, total| {
+                    let msg = format!(
+                        "🔎 {display_title_truncated}... {:02.0}%",
+                        done as f32 / total as f32 * 100.0
+                    );
+                    let _ = ui_sender.send(BackgroundMessage::UpdateStatus(Some(msg)));
+
+                    Ok(())
+                },
                 &ProcessOptions {
                     digest_crc32: true,
                     ..Default::default()
