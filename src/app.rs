@@ -56,15 +56,17 @@ impl App {
 
         // Load base dir from storage
         let base_dir = cc.storage.and_then(|storage| {
-            let base_dir = eframe::get_value(storage, "base_dir")?;
+            let dir = eframe::get_value::<BaseDir>(storage, "base_dir");
+            let version = eframe::get_value::<String>(storage, "app_version");
 
-            // MacOS shows many popups if the app version changes,
-            // so we discard the storage if the version doesn't match
+            // On macOS, only keep dir if version matches (to avoid popups)
             if cfg!(target_os = "macos") {
-                let version: String = eframe::get_value(storage, "app_version")?;
-                (version == APP_VERSION).then_some(base_dir)
+                match version {
+                    Some(v) if v == APP_VERSION => dir,
+                    _ => None,
+                }
             } else {
-                Some(base_dir)
+                dir
             }
         });
 
