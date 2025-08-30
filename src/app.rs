@@ -34,7 +34,7 @@ pub struct App {
     pub bottom_left_toasts: egui_notify::Toasts,
     pub bottom_right_toasts: egui_notify::Toasts,
     /// Status
-    pub status: String,
+    pub task_status: Option<String>,
     /// Task processor
     pub task_processor: TaskProcessor,
 }
@@ -71,7 +71,7 @@ impl App {
             console_filter: ConsoleFilter::default(),
             update_info: None,
             watcher: None,
-            status: String::new(),
+            task_status: None,
         };
 
         // If the base directory isn't set or no longer exists, prompt the user to select one.
@@ -182,7 +182,8 @@ impl App {
                             count,
                         );
 
-                        let _ = cloned_ui_sender.send(BackgroundMessage::UpdateStatus(status));
+                        let _ =
+                            cloned_ui_sender.send(BackgroundMessage::UpdateStatus(Some(status)));
                     };
 
                     iso2wbfs::convert(&path, base_dir.path(), callback)?;
