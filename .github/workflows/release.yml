@@ -25,8 +25,10 @@ jobs:
         include:
           - target: x86_64-unknown-linux-gnu
             arch: x86_64
+            additional_packages: ""
           - target: aarch64-unknown-linux-gnu
             arch: aarch64
+            additional_packages: gcc-aarch64-linux-gnu
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -49,16 +51,11 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-
-          # Required for cross-compiling to aarch64
-          if [[ "${{ matrix.target }}" == "aarch64-unknown-linux-gnu" ]]; then
-            sudo apt-get install -y gcc-aarch64-linux-gnu
-          fi
           
           # Install egui and appimage dependencies
           sudo apt-get install -y \
             libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev \
-            squashfs-tools
+            squashfs-tools ${{ matrix.additional_packages }}
 
           # Install cargo-bundle
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
