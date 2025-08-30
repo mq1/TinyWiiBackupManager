@@ -22,7 +22,7 @@ pub enum BackgroundMessage {
     /// Signal that a new cover has been downloaded
     NewCover(String),
     /// Signal that the status has changed
-    UpdateStatus(String),
+    UpdateStatus(Option<String>),
 }
 
 /// Implement the From trait to automatically convert anyhow::Error into our message.
@@ -69,7 +69,7 @@ pub fn handle_messages(app: &mut App, ctx: &egui::Context) {
             }
 
             BackgroundMessage::UpdateStatus(status) => {
-                app.status = status;
+                app.task_status = status;
             }
         }
     }
