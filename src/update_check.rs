@@ -1,13 +1,15 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
+use crate::app::App;
+use crate::messages::BackgroundMessage;
 use anyhow::{Context, Result};
-use const_format::formatcp;
+use const_format::concatcp;
 use semver::Version;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 const REPO: &str = env!("CARGO_PKG_REPOSITORY");
-const VERSION_URL: &str = formatcp!("{REPO}/releases/latest/download/version.txt");
+const VERSION_URL: &str = concatcp!(REPO, "/releases/latest/download/version.txt");
 
 /// Holds information about a newer, available version of the application.
 #[derive(Debug, Clone)]
@@ -40,4 +42,12 @@ pub fn check_for_new_version() -> Result<Option<UpdateInfo>> {
     } else {
         Ok(None)
     }
+}
+
+pub fn spawn_check_for_new_version_task(app: &App) {
+    app.task_processor.spawn_task(move |ui_sender| {
+        let update_info = check_for_new_version()?;
+        let _ = ui_sender.send(BackgroundMessage::GotUpdate(update_info));
+        Ok(())
+    });
 }

@@ -6,16 +6,20 @@ use eframe::egui;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
-// --- UI Rendering ---
-
 /// Renders the bottom panel, which includes the update notifier and other controls.
 pub fn ui_bottom_panel(ctx: &egui::Context, app: &mut App) {
     egui::TopBottomPanel::bottom("bottom_panel").show(ctx, |ui| {
         ui.horizontal(|ui| {
-            if let Some(update_info) = &app.update_info {
-                ui.hyperlink_to(format!("{} (new)", &update_info.version), &update_info.url);
+            if let Some(status) = &app.task_status {
+                ui.spinner();
+                ui.label(status);
             } else {
-                ui.label(format!("v{}", VERSION));
+                // Show version and update notifier if app is idle
+                if let Some(update_info) = &app.update_info {
+                    ui.hyperlink_to(format!("{} (new)", &update_info.version), &update_info.url);
+                } else {
+                    ui.label(format!("v{}", VERSION));
+                }
             }
 
             // Layout for other controls, aligned to the right.
@@ -25,13 +29,6 @@ pub fn ui_bottom_panel(ctx: &egui::Context, app: &mut App) {
 
                 ui.separator();
                 ui_console_filter(ui, &mut app.console_filter);
-
-                // Show jobs menu UI
-                ui.separator();
-                if crate::components::jobs::jobs_menu_ui(ui, &mut app.jobs) {
-                    app.show_jobs_window = true;
-                }
-                ui.label("Jobs:");
             });
         });
     });
