@@ -3406,12 +3406,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "19b30a45b0cd0bcca8037f3d0dc3421eaf95327a17cad11964fb8179b4fc4832"
 
 [[package]]
-name = "result"
-version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "194d8e591e405d1eecf28819740abed6d719d1a2db87fc0bcdedee9a26d55560"
-
-[[package]]
 name = "rfd"
 version = "0.15.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3617,17 +3611,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
-]
-
-[[package]]
-name = "serde_ini"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eb236687e2bb073a7521c021949be944641e671b8505a94069ca37b656c81139"
-dependencies = [
- "result",
- "serde",
- "void",
 ]
 
 [[package]]
@@ -3964,7 +3947,7 @@ dependencies = [
 
 [[package]]
 name = "tiny-wii-backup-manager"
-version = "2.0.0-alpha"
+version = "2.0.0-alpha.1"
 dependencies = [
  "anyhow",
  "const-str",
@@ -3991,7 +3974,6 @@ dependencies = [
  "rfd",
  "semver",
  "serde",
- "serde_ini",
  "size",
  "strum 0.27.2",
  "ureq",
@@ -4206,12 +4188,6 @@ name = "version_check"
 version = "0.9.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
-
-[[package]]
-name = "void"
-version = "1.0.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6a02e4885ed3bc0f2de90ea6dd45ebcbb66dacffe03547fadbb0eeae2770887d"
 
 [[package]]
 name = "walkdir"
