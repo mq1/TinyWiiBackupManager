@@ -9,7 +9,6 @@ use anyhow::{Context, Result, anyhow};
 use lazy_regex::{Lazy, Regex, lazy_regex};
 use nod::read::{DiscMeta, DiscOptions, DiscReader, PartitionEncryption};
 use nod::write::{DiscWriter, FormatOptions, ProcessOptions};
-use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
 use std::sync::{Arc, OnceLock};
@@ -44,12 +43,9 @@ pub enum ConsoleType {
     GameCube,
 }
 
-// Using the "default" section for a clean key=value format
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
-#[serde(rename = "default")]
+#[derive(Default, Debug, Clone)]
 pub struct Hashes {
-    // Storing as a string to easily handle the hex format with serde
-    crc32: Option<String>,
+    crc32: Option<u32>,
 }
 
 /// Represents a single game, containing its metadata and file system information.
@@ -113,19 +109,19 @@ impl Game {
 
         let info_url = format!("https://www.gametdb.com/Wii/{id_str}");
 
-        // Load hashes using serde and serde_ini
+        // Manually parse hashes
         let hashes_str = fs::read_to_string(path.join("hashes.txt")).unwrap_or_default();
-        let hashes: Hashes = serde_ini::from_str(&hashes_str).unwrap_or_default();
-
-        // Parse the hex string to a u32 for verification
-        let crc32_u32 = hashes
-            .crc32
-            .as_ref()
-            .and_then(|s| u32::from_str_radix(s, 16).ok());
+        let mut hashes = Hashes::default();
+        for line in hashes_str.lines() {
+            if let Some((key, value)) = line.split_once('=')
+                && key.trim() == "crc32" {
+                    hashes.crc32 = u32::from_str_radix(value.trim(), 16).ok();
+                }
+        }
 
         // Verify the game by cross-referencing WiiTDB
         let is_verified = if let Some(info) = info
-            && let Some(crc32) = crc32_u32
+            && let Some(crc32) = hashes.crc32
         {
             info.crc_list.contains(&crc32)
         } else {
@@ -213,11 +209,13 @@ impl Game {
 
     pub fn save_hashes(&self, hashes: &Hashes) -> Result<()> {
         let path = self.path.join("hashes.txt");
+        let mut content = String::new();
 
-        let raw = serde_ini::to_string(hashes)
-            .with_context(|| format!("Failed to serialize hashes: {}", path.display()))?;
+        if let Some(crc32) = hashes.crc32 {
+            content.push_str(&format!("crc32 = {:x}\n", crc32));
+        }
 
-        fs::write(&path, raw)
+        fs::write(&path, content)
             .with_context(|| format!("Failed to write hashes file: {}", path.display()))
     }
 
@@ -323,10 +321,7 @@ impl Game {
                 .crc32
                 .ok_or(anyhow!("Failed to calculate CRC32"))?;
 
-            // Create the Hashes struct with the crc32 value formatted as a hex string
-            let hashes = Hashes {
-                crc32: Some(format!("{:x}", crc32)),
-            };
+            let hashes = Hashes { crc32: Some(crc32) };
             game_clone.save_hashes(&hashes)?;
 
             let _ = ui_sender.send(BackgroundMessage::Info(format!(
