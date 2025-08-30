@@ -187,6 +187,6 @@ fn ui_game_info_content(
 
     ui.separator();
     if ui.button("🔍 Verify Disc").clicked() {
-        game.spawn_verify_task(task_processor);
+        game.spawn_verify_task(0, 1, task_processor);
     }
 }

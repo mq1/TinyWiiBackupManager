@@ -232,7 +232,12 @@ impl Game {
         self.info_opened = !self.info_opened;
     }
 
-    pub fn spawn_verify_task(&self, task_processor: &TaskProcessor) {
+    pub fn spawn_verify_task(
+        &self,
+        current_index: usize,
+        total_files: usize,
+        task_processor: &TaskProcessor,
+    ) {
         let id = self.id;
         let disc_path = self.find_disc_image_file();
         let display_title = self.display_title.clone();
@@ -257,8 +262,11 @@ impl Game {
             let finalization = disc_writer.process(
                 |_, done, total| {
                     let msg = format!(
-                        "🔎 {display_title_truncated}... {:02.0}%",
-                        done as f32 / total as f32 * 100.0
+                        "🔎 {}... {:02.0}% ({}/{})",
+                        display_title_truncated,
+                        done as f32 / total as f32 * 100.0,
+                        current_index + 1,
+                        total_files
                     );
                     let _ = ui_sender.send(BackgroundMessage::UpdateStatus(Some(msg)));
 
