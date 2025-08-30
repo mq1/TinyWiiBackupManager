@@ -166,19 +166,17 @@ jobs:
     env:
       FILENAME: TWBM-${{ github.ref_name }}-MacOS-Universal2
     steps:
-      - name: Get current week
-        id: date
-        run: echo "week=$(date +%Y-W%U)" >> $GITHUB_OUTPUT
+      - name: Get week of the year
+        id: week
+        run: echo "week_of_year=$(date -u +'%Y-%U')" >> $GITHUB_OUTPUT
 
-      - name: Cache Homebrew
+      - name: Cache Homebrew packages
         uses: actions/cache@v4
         with:
-          path: |
-            /opt/homebrew
-            ~/Library/Caches/Homebrew
-          key: ${{ runner.os }}-aarch64-brew-${{ steps.date.outputs.week }}
+          path: ~/Library/Caches/Homebrew/downloads
+          key: ${{ runner.os }}-brew-${{ steps.week.outputs.week_of_year }}
           restore-keys: |
-            ${{ runner.os }}-aarch64-brew-
+            ${{ runner.os }}-brew-
 
       - name: Install dependencies
         run: brew install graphicsmagick imagemagick
