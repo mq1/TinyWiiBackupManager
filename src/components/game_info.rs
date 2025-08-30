@@ -1,27 +1,31 @@
 use crate::components::fake_link::fake_link;
-use crate::game::{ConsoleType, Game, VerificationStatus};
+use crate::game::{ConsoleType, Game};
 use crate::messages::BackgroundMessage;
-use crate::util::redump;
-use eframe::egui::{self, RichText};
+use anyhow::anyhow;
+use eframe::egui::{self, Id, RichText};
+use egui_inbox::UiInboxSender;
 use size::Size;
 
 pub fn ui_game_info_window(
     ctx: &egui::Context,
     game: &mut Game,
-    open: &mut bool,
-    sender: egui_inbox::UiInboxSender<BackgroundMessage>,
+    sender: &mut UiInboxSender<BackgroundMessage>,
 ) {
-    egui::Window::new(game.display_title.clone())
-        .open(open)
+    let window_title = game.display_title.clone();
+    let game_clone = game.clone();
+
+    egui::Window::new(&window_title)
+        .id(Id::new(game.id))
+        .open(&mut game.info_opened)
         .show(ctx, |ui| {
-            ui_game_info_content(ui, game, sender);
+            ui_game_info_content(ui, game_clone, sender);
         });
 }
 
 fn ui_game_info_content(
     ui: &mut egui::Ui,
-    game: &mut Game,
-    sender: egui_inbox::UiInboxSender<BackgroundMessage>,
+    game: Game,
+    sender: &mut UiInboxSender<BackgroundMessage>,
 ) {
     ui.horizontal(|ui| {
         ui.label(RichText::new("📝 Title:").strong());
@@ -30,7 +34,7 @@ fn ui_game_info_content(
 
     ui.horizontal(|ui| {
         ui.label(RichText::new("🆔 Game ID:").strong());
-        ui.label(RichText::new(&game.id).monospace());
+        ui.label(RichText::new(&game.id_str).monospace());
     });
 
     ui.horizontal(|ui| {
@@ -39,11 +43,6 @@ fn ui_game_info_content(
             ConsoleType::GameCube => "GameCube",
             ConsoleType::Wii => "Wii",
         });
-    });
-
-    ui.horizontal(|ui| {
-        ui.label(RichText::new("🌍 Region:").strong());
-        ui.label(game.region.to_name());
     });
 
     ui.horizontal(|ui| {
@@ -56,7 +55,7 @@ fn ui_game_info_content(
         if fake_link(ui, &game.path.display().to_string()).clicked()
             && let Err(e) = open::that(&game.path)
         {
-            let _ = sender.send(BackgroundMessage::Error(anyhow::anyhow!(e)));
+            let _ = sender.send(anyhow!(e).into());
         }
     });
 
@@ -65,13 +64,20 @@ fn ui_game_info_content(
         ui.hyperlink(&game.info_url);
     });
 
+    if let Some(info) = &game.info {
+        ui.horizontal(|ui| {
+            ui.label(RichText::new("🌍 Region:").strong());
+            ui.label(info.region.as_ref());
+        });
+    }
+
     ui.add_space(10.0);
     ui.separator();
     ui.add_space(10.0);
 
     ui.heading("💿 Disc Metadata");
     ui.add_space(5.0);
-    if let Some(meta) = game.load_disc_meta() {
+    if let Ok(meta) = game.load_disc_meta() {
         ui.horizontal(|ui| {
             ui.label(RichText::new("💿 Format:").strong());
             ui.label(meta.format.to_string());
@@ -112,199 +118,73 @@ fn ui_game_info_content(
     ui.separator();
     ui.add_space(10.0);
 
-    ui.heading("🔍 Integrity");
+    ui.heading("🔍 Integrity Metadata");
     ui.add_space(5.0);
 
-    // Show Redump status
-    let verification_status = game.get_verification_status();
-    match verification_status {
-        VerificationStatus::EmbeddedMatch(redump) => {
-            ui.horizontal(|ui| {
-                ui.label(RichText::new("📀 Redump:").strong());
-                ui.colored_label(
-                    egui::Color32::from_rgb(255, 200, 0),
-                    format!("{} ⚡", redump.name),
-                );
-            });
-            ui.label(RichText::new("Embedded hashes match").italics());
+    if let Ok(meta) = game.load_disc_meta() {
+        // if all are None, show a message
+        if meta.crc32.is_none() && meta.md5.is_none() && meta.sha1.is_none() && meta.xxh64.is_none()
+        {
+            ui.label(
+                RichText::new("No integrity info available").color(ui.visuals().warn_fg_color),
+            );
         }
-        VerificationStatus::FullyVerified(redump, _) => {
-            ui.horizontal(|ui| {
-                ui.label(RichText::new("📀 Redump:").strong());
-                ui.colored_label(egui::Color32::DARK_GREEN, format!("{} ✅", redump.name));
-            });
-            ui.label(RichText::new("Fully verified").italics());
-        }
-        VerificationStatus::Failed(msg, _) => {
-            ui.horizontal(|ui| {
-                ui.label(RichText::new("📀 Redump:").strong());
-                ui.colored_label(egui::Color32::DARK_RED, format!("{} ❌", msg));
-            });
-        }
-        VerificationStatus::NotVerified => {
-            ui.horizontal(|ui| {
-                ui.label(RichText::new("📀 Redump:").strong());
-                ui.label("Not checked");
-            });
-        }
-    }
 
-    ui.add_space(5.0);
-
-    // Check verification status and show calculated hashes if available
-    let (hashes, redump) = match verification_status {
-        VerificationStatus::FullyVerified(r, h) => (Some(h), Some(r)),
-        VerificationStatus::Failed(_, Some(h)) => {
-            // Try to find redump entry for partial matches
-            let redump = h.crc32.and_then(redump::find_by_crc32);
-            (Some(h), redump)
-        }
-        _ => (None, None),
-    };
-
-    if let Some(hashes) = hashes {
-        // Show calculated hashes with color coding
-        ui.label(RichText::new("Calculated hashes:").strong());
-
-        if let Some(crc32) = hashes.crc32 {
+        if let Some(crc32) = meta.crc32 {
             ui.horizontal(|ui| {
                 ui.label(
-                    RichText::new("  CRC32:")
+                    RichText::new("CRC32:")
                         .text_style(egui::TextStyle::Monospace)
                         .strong(),
                 );
-                let hash_text = format!("{:08x}", crc32);
-                let hash_color = if let Some(r) = redump {
-                    if r.crc32 == crc32 {
-                        egui::Color32::DARK_GREEN
-                    } else {
-                        egui::Color32::DARK_RED
-                    }
-                } else {
-                    ui.visuals().text_color()
-                };
-                ui.colored_label(
-                    hash_color,
-                    RichText::new(hash_text).text_style(egui::TextStyle::Monospace),
+                ui.label(
+                    RichText::new(format!("{:08x}", crc32)).text_style(egui::TextStyle::Monospace),
                 );
+
+                // check if crc32 matches
+                if game.is_verified {
+                    ui.colored_label(egui::Color32::DARK_GREEN, "✅")
+                        .on_hover_text("✅ crc32 Verified");
+                }
             });
         }
 
-        if let Some(sha1) = hashes.sha1 {
+        if let Some(md5) = meta.md5 {
             ui.horizontal(|ui| {
                 ui.label(
-                    RichText::new("  SHA-1:")
+                    RichText::new("MD5:")
                         .text_style(egui::TextStyle::Monospace)
                         .strong(),
                 );
-                let hash_text = hex::encode(sha1);
-                let hash_color = if let Some(r) = redump {
-                    if r.sha1 == sha1 {
-                        egui::Color32::DARK_GREEN
-                    } else {
-                        egui::Color32::DARK_RED
-                    }
-                } else {
-                    ui.visuals().text_color()
-                };
-                ui.colored_label(
-                    hash_color,
-                    RichText::new(hash_text).text_style(egui::TextStyle::Monospace),
-                );
+                ui.label(RichText::new(hex::encode(md5)).text_style(egui::TextStyle::Monospace));
             });
         }
 
-        if let Some(xxhash64) = hashes.xxh64 {
+        if let Some(sha1) = meta.sha1 {
             ui.horizontal(|ui| {
                 ui.label(
-                    RichText::new("  XXH64:")
+                    RichText::new("SHA-1:")
                         .text_style(egui::TextStyle::Monospace)
                         .strong(),
                 );
-                // XXH64 is not in Redump, so no color coding
+                ui.label(RichText::new(hex::encode(sha1)).text_style(egui::TextStyle::Monospace));
+            });
+        }
+
+        if let Some(xxhash64) = meta.xxh64 {
+            ui.horizontal(|ui| {
+                ui.label(
+                    RichText::new("XXH64:")
+                        .text_style(egui::TextStyle::Monospace)
+                        .strong(),
+                );
                 ui.label(
                     RichText::new(format!("{:016x}", xxhash64))
                         .text_style(egui::TextStyle::Monospace),
                 );
             });
         }
-    } else if let Some(meta) = game.load_disc_meta() {
-        // Show embedded hashes if available
-        let has_integrity_info = meta.crc32.is_some()
-            || meta.md5.is_some()
-            || meta.sha1.is_some()
-            || meta.xxh64.is_some();
-
-        if has_integrity_info {
-            ui.label(RichText::new("Embedded hashes:").strong());
-
-            if let Some(crc32) = meta.crc32 {
-                ui.horizontal(|ui| {
-                    ui.label(
-                        RichText::new("  CRC32:")
-                            .text_style(egui::TextStyle::Monospace)
-                            .strong(),
-                    );
-                    ui.label(
-                        RichText::new(format!("{:08x}", crc32))
-                            .text_style(egui::TextStyle::Monospace),
-                    );
-                });
-            }
-
-            if let Some(md5) = meta.md5 {
-                ui.horizontal(|ui| {
-                    ui.label(
-                        RichText::new("  MD5:")
-                            .text_style(egui::TextStyle::Monospace)
-                            .strong(),
-                    );
-                    ui.label(
-                        RichText::new(hex::encode(md5)).text_style(egui::TextStyle::Monospace),
-                    );
-                });
-            }
-
-            if let Some(sha1) = meta.sha1 {
-                ui.horizontal(|ui| {
-                    ui.label(
-                        RichText::new("  SHA-1:")
-                            .text_style(egui::TextStyle::Monospace)
-                            .strong(),
-                    );
-                    ui.label(
-                        RichText::new(hex::encode(sha1)).text_style(egui::TextStyle::Monospace),
-                    );
-                });
-            }
-
-            if let Some(xxhash64) = meta.xxh64 {
-                ui.horizontal(|ui| {
-                    ui.label(
-                        RichText::new("  XXH64:")
-                            .text_style(egui::TextStyle::Monospace)
-                            .strong(),
-                    );
-                    ui.label(
-                        RichText::new(format!("{:016x}", xxhash64))
-                            .text_style(egui::TextStyle::Monospace),
-                    );
-                });
-            }
-        } else {
-            ui.label("No embedded integrity info available");
-        }
     } else {
-        ui.label("No integrity info available");
-    }
-
-    ui.add_space(10.0);
-
-    // Add Verify button
-    if ui.button("🔍 Verify Disc").clicked() {
-        // Send a message to start verification of this single game
-        let _ = sender.send(BackgroundMessage::StartSingleVerification(Box::new(
-            game.clone(),
-        )));
+        ui.label(RichText::new("Couldn't read disc metadata").color(ui.visuals().warn_fg_color));
     }
 }

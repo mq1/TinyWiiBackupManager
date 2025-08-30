@@ -1,160 +1,231 @@
+// SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-2.0-only
+
+#![allow(dead_code)]
+
+use heck::ToUpperCamelCase;
 use serde::Deserialize;
 use std::{
-    collections::HashMap,
     env,
     fs::File,
-    io::{BufRead, BufReader, BufWriter, Write},
+    io::{BufReader, BufWriter, Write},
     path::Path,
 };
 
-/// Formats a hex string like "A1B2C3" into a byte array string like "0xA1, 0xB2, 0x0C3".
-fn hex_to_bytes_str(hex_str: &str) -> String {
-    hex_str
-        .as_bytes()
-        .chunks(2)
-        .fold(String::new(), |mut acc, chunk| {
-            // Append the "0x" prefix and the two hex characters.
-            acc.push_str("0x");
-            acc.push(chunk[0] as char);
-            acc.push(chunk[1] as char);
-
-            acc.push_str(", ");
-            acc
-        })
+// Top-level root element <datafile>
+#[derive(Debug, Deserialize)]
+struct Datafile {
+    #[serde(rename = "game")]
+    pub games: Vec<Game>,
 }
 
-fn compile_redump_database() {
-    #[derive(Clone, Debug, Deserialize)]
-    struct DatFile {
-        #[serde(rename = "game")]
-        games: Vec<DatGame>,
-    }
+// <game> element
+#[derive(Debug, Deserialize)]
+struct Game {
+    #[serde(rename = "@name")]
+    pub name: String,
 
-    #[derive(Clone, Debug, Deserialize)]
-    struct DatGame {
-        #[serde(rename = "@name")]
-        name: String,
-        #[serde(rename = "rom")]
-        roms: Vec<DatGameRom>,
-    }
+    pub id: String, // NMTOKEN
+    pub r#type: String,
+    pub region: String,
+    pub languages: String,
 
-    #[derive(Clone, Debug, Deserialize)]
-    struct DatGameRom {
-        #[serde(rename = "@size")]
-        #[allow(dead_code)]
-        size: u64,
-        #[serde(rename = "@crc")]
-        crc32: String,
-        #[serde(rename = "@md5")]
-        md5: String,
-        #[serde(rename = "@sha1")]
-        sha1: String,
-    }
+    #[serde(rename = "locale", default)] // default handles zeroOrMore
+    pub locales: Vec<Locale>,
 
+    pub developer: Option<String>,
+    pub publisher: String,
+    pub date: Date,
+    pub genre: Option<String>,
+    pub rating: Rating,
+
+    #[serde(rename = "wi-fi")]
+    pub wifi: Wifi,
+
+    pub input: Input,
+    pub save: Option<Save>,
+
+    #[serde(rename = "rom")]
+    pub roms: Vec<Rom>,
+
+    pub case: Option<Case>,
+}
+
+// <locale> element
+#[derive(Debug, Deserialize)]
+struct Locale {
+    #[serde(rename = "@lang")]
+    pub lang: String, // NCName
+    pub title: String,
+    pub synopsis: String,
+}
+
+// <date> element
+#[derive(Debug, Deserialize)]
+struct Date {
+    #[serde(rename = "@day")]
+    pub day: String,
+    #[serde(rename = "@month")]
+    pub month: String,
+    #[serde(rename = "@year")]
+    pub year: String,
+}
+
+// <rating> element
+#[derive(Debug, Deserialize)]
+struct Rating {
+    #[serde(rename = "@type")]
+    pub r#type: String,
+    #[serde(rename = "@value")]
+    pub value: String,
+    #[serde(rename = "descriptor", default)] // default handles zeroOrMore
+    pub descriptors: Vec<String>,
+}
+
+// <wi-fi> element
+#[derive(Debug, Deserialize)]
+struct Wifi {
+    #[serde(rename = "@players")]
+    pub players: i64,
+    #[serde(rename = "feature", default)] // default handles zeroOrMore
+    pub features: Vec<String>, // NCName
+}
+
+// <input> element
+#[derive(Debug, Deserialize)]
+struct Input {
+    #[serde(rename = "@players")]
+    pub players: i64,
+    #[serde(rename = "control", default)] // default handles zeroOrMore
+    pub controls: Vec<Control>,
+}
+
+// <control> element
+#[derive(Debug, Deserialize)]
+struct Control {
+    #[serde(rename = "@required")]
+    pub required: bool,
+    #[serde(rename = "@type")]
+    pub r#type: String,
+}
+
+// <save> element
+#[derive(Debug, Deserialize)]
+struct Save {
+    #[serde(rename = "@blocks")]
+    pub blocks: i64,
+    #[serde(rename = "@copy")]
+    pub copy: Option<bool>,
+    #[serde(rename = "@move")]
+    pub r#move: Option<bool>,
+}
+
+// <rom> element
+#[derive(Debug, Deserialize)]
+struct Rom {
+    #[serde(rename = "@crc")]
+    pub crc: Option<String>, // NMTOKEN
+    #[serde(rename = "@md5")]
+    pub md5: Option<String>, // NMTOKEN
+    #[serde(rename = "@name")]
+    pub name: Option<String>,
+    #[serde(rename = "@sha1")]
+    pub sha1: Option<String>,
+    #[serde(rename = "@size")]
+    pub size: Option<i64>,
+    #[serde(rename = "@version")]
+    pub version: String,
+}
+
+// <case> element
+#[derive(Debug, Deserialize)]
+struct Case {
+    #[serde(rename = "@color")]
+    pub color: Option<String>,
+    #[serde(rename = "@versions")]
+    pub versions: Option<i64>,
+}
+
+/// Converts a string slice (up to 8 chars) into a u64.
+///
+/// It effectively treats the string's bytes as a big-endian integer.
+/// For example, "ABCD" becomes 0x41424344.
+fn game_id_to_u64(id: &str) -> u64 {
+    id.bytes().fold(0, |acc, byte| (acc << 8) | u64::from(byte))
+}
+
+fn compile_wiitdb_xml() {
     // Path for the generated code snippet in the build output directory
-    let path = Path::new(&env::var("OUT_DIR").unwrap()).join("redump.rs");
+    let path = Path::new(&env::var("OUT_DIR").unwrap()).join("wiitdb_data.rs");
     let mut file = BufWriter::new(File::create(&path).unwrap());
 
-    // Re-run the build script if any of the dat files change
-    for path in [
-        "assets/gc-non-redump.dat",
-        "assets/gc-npdp.dat",
-        "assets/gc-redump.dat",
-        "assets/wii-redump.dat",
-    ] {
-        println!("cargo:rustc-rerun-if-changed={}", path);
-    }
+    // Re-run the build script if wiitdb.xml changes
+    println!("cargo:rerun-if-changed=assets/wiitdb.xml");
 
-    // Use a HashMap to handle duplicates (last entry wins)
-    let mut entries = HashMap::new();
+    let xml = BufReader::new(File::open("assets/wiitdb.xml").expect("Failed to open wiitdb.xml"));
+    let data: Datafile = quick_xml::de::from_reader(xml).expect("Failed to parse wiitdb.xml");
 
-    // Parse dat files and collect all entries
-    for path in [
-        "assets/gc-non-redump.dat",
-        "assets/gc-npdp.dat",
-        "assets/gc-redump.dat",
-        "assets/wii-redump.dat",
-    ] {
-        let file = BufReader::new(File::open(path).expect("Failed to open dat file"));
-        let dat: DatFile = quick_xml::de::from_reader(file).expect("Failed to parse dat file");
-
-        for game in dat.games {
-            if game.roms.len() != 1 {
-                continue;
-            }
-            let rom = &game.roms[0];
-
-            // Parse CRC32 hex string into u32
-            let key = u32::from_str_radix(&rom.crc32, 16).expect("Failed to parse CRC32 as hex");
-
-            let md5_bytes_str = hex_to_bytes_str(&rom.md5);
-            let sha1_bytes_str = hex_to_bytes_str(&rom.sha1);
-
-            let value = format!(
-                "GameResult {{ name: r#\"{}\"#, crc32: {}, md5: [{}], sha1: [{}] }}",
-                game.name, key, md5_bytes_str, sha1_bytes_str
-            );
-
-            // Insert or update the entry (later files will override earlier ones)
-            entries.insert(key, value);
-        }
-    }
-
-    // Build the PHF map from the deduplicated entries
     let mut map_builder = phf_codegen::Map::new();
-    for (crc32, value) in entries {
-        map_builder.entry(crc32, value);
+    for game in data.games {
+        let id = game_id_to_u64(&game.id);
+
+        let name = format!("\"{}\"", game.name);
+
+        // if region not found, skip game
+        if game.region.is_empty() {
+            continue;
+        }
+
+        let region = format!("Region::{}", game.region.to_upper_camel_case());
+
+        // if language is empty, skip game
+        if game.languages.is_empty() {
+            continue;
+        }
+
+        // build languages list string
+        let languages = format!(
+            "&[{}]",
+            game.languages
+                .split(',')
+                .map(|lang| format!("Language::{}", lang))
+                .collect::<Vec<_>>()
+                .join(",")
+        );
+
+        // Parse CRCs. Invalid CRCs are skipped.
+        let crc_list = format!(
+            "&[{}]",
+            game.roms
+                .into_iter()
+                .filter_map(|rom| rom.crc)
+                .filter_map(|crc| u32::from_str_radix(&crc, 16).ok())
+                .map(|crc| crc.to_string())
+                .collect::<Vec<_>>()
+                .join(",")
+        );
+
+        map_builder.entry(
+            id,
+            format!(
+                "&GameInfo {{ name: {name}, region: {region}, languages: {languages}, crc_list: {crc_list} }}",
+            ),
+        );
     }
 
     // Write the generated map directly into the output file.
     // This is not just a variable, but the full phf::phf_map! macro invocation.
     writeln!(
         &mut file,
-        "static REDUMP_DB: phf::Map<u32, GameResult> = {};",
-        map_builder.build()
-    )
-    .unwrap();
-}
-
-fn compile_titles() {
-    // Path for the generated code snippet in the build output directory
-    let path = Path::new(&env::var("OUT_DIR").unwrap()).join("titles.rs");
-    let mut file = BufWriter::new(File::create(&path).unwrap());
-
-    // Re-run the build script if titles.txt changes
-    println!("cargo:rerun-if-changed=assets/titles.txt");
-
-    let titles_file = File::open("assets/titles.txt").expect("Could not open assets/titles.txt");
-    let reader = BufReader::new(titles_file);
-
-    let mut map_builder = phf_codegen::Map::new();
-
-    for line in reader.lines() {
-        let line = line.unwrap();
-        if let Some((game_id, game_title)) = line.split_once('=') {
-            let game_id = game_id.trim().to_string();
-            let game_title = game_title.trim().to_string();
-
-            map_builder.entry(game_id, format!("r#\"{}\"#", game_title));
-        }
-    }
-
-    // Write the generated map directly into the output file.
-    // This is not just a variable, but the full phf::phf_map! macro invocation.
-    writeln!(
-        &mut file,
-        "static GAME_TITLES: phf::Map<&'static str, &'static str> = {};",
+        "static GAMES: phf::Map<u64, &'static GameInfo> = {};",
         map_builder.build()
     )
     .unwrap();
 }
 
 fn main() {
-    // Compile Redump database
-    compile_redump_database();
-
-    // Compile titles map
-    compile_titles();
+    // Compile wiitdb.xml
+    compile_wiitdb_xml();
 
     // Windows-specific icon resource
     #[cfg(windows)]
