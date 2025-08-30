@@ -1,7 +1,6 @@
 use crate::components::fake_link::fake_link;
 use crate::game::{ConsoleType, Game};
 use crate::messages::BackgroundMessage;
-use crate::task::TaskProcessor;
 use anyhow::anyhow;
 use eframe::egui::{self, Id, RichText};
 use egui_inbox::UiInboxSender;
@@ -11,7 +10,6 @@ pub fn ui_game_info_window(
     ctx: &egui::Context,
     game: &mut Game,
     sender: &mut UiInboxSender<BackgroundMessage>,
-    task_processor: &TaskProcessor,
 ) {
     let window_title = game.display_title.clone();
     let game_clone = game.clone();
@@ -20,7 +18,7 @@ pub fn ui_game_info_window(
         .id(Id::new(game.id))
         .open(&mut game.info_opened)
         .show(ctx, |ui| {
-            ui_game_info_content(ui, game_clone, sender, task_processor);
+            ui_game_info_content(ui, game_clone, sender);
         });
 }
 
@@ -28,7 +26,6 @@ fn ui_game_info_content(
     ui: &mut egui::Ui,
     game: Game,
     sender: &mut UiInboxSender<BackgroundMessage>,
-    task_processor: &TaskProcessor,
 ) {
     ui.horizontal(|ui| {
         ui.label(RichText::new("📝 Title:").strong());
@@ -183,10 +180,5 @@ fn ui_game_info_content(
         }
     } else {
         ui.label(RichText::new("Couldn't read disc metadata").color(ui.visuals().warn_fg_color));
-    }
-
-    ui.separator();
-    if ui.button("🔍 Verify Disc").clicked() {
-        game.spawn_verify_task(0, 1, task_processor);
     }
 }
