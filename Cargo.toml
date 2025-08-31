@@ -27,7 +27,7 @@ egui_extras = { version = "0.32", default-features = false, features = ["image",
 image = { version = "0.25", default-features = false, features = ["png"] }
 egui-notify = "0.20"
 egui_inbox = "0.9"
-ureq = { version = "3.1", default-features = false, features = ["rustls"] }
+minreq = { version = "2.14", features = ["https-native"] }
 rfd = "0.15"
 phf = { version = "0.13", features = ["macros"] }
 anyhow = "1.0"
