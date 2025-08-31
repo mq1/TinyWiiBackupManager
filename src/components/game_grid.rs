@@ -79,10 +79,10 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
 
                     // Embedded verified label on the left
                     if let Some(true) = game.is_embedded_verified {
-                        ui.colored_label(egui::Color32::GOLD, "✅")
+                        ui.colored_label(egui::Color32::DARK_GREEN, "⚡")
                             .on_hover_text("✅ Embedded crc32 is valid");
                     } else if let Some(false) = game.is_embedded_verified {
-                        ui.colored_label(egui::Color32::DARK_RED, "❌")
+                        ui.colored_label(egui::Color32::DARK_RED, "⚡")
                             .on_hover_text("❌ Embedded crc32 is not valid, game may be corrupted");
                     }
 

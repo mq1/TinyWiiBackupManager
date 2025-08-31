@@ -26,15 +26,6 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                     let _ = sender.send(e.into());
                 }
 
-                // Remove metadata button
-                if ui
-                    .button("🗑 Remove All TWBM Metadata")
-                    .on_hover_text("Currently removes hashes.txt files")
-                    .clicked()
-                {
-                    app.remove_all_meta();
-                }
-
                 // dot_clean button
                 if cfg!(target_os = "macos")
                     && let Some(base_dir) = &app.base_dir
