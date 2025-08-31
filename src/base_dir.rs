@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use crate::game::{ConsoleType, Game};
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, bail};
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
@@ -133,10 +133,15 @@ impl BaseDir {
             return Ok(false);
         }
 
+        let response = minreq::get(url).send()?;
+
+        if response.status_code != 200 {
+            bail!("Failed to download file: {}", response.status_code);
+        }
+
         fs::create_dir_all(&dir)?;
         let mut file = fs::File::create(&file_path)?;
 
-        let response = minreq::get(url).send()?;
         io::copy(&mut response.as_bytes(), &mut file)?;
 
         Ok(true)
