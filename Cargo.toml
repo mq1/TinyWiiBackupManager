@@ -48,6 +48,7 @@ const-str = "0.6"
 strum = { version = "0.27", features = ["derive"] }
 egui-theme-switch = "0.4"
 minreq = { version = "2.14", features = ["https-native"] }
+dashmap = "6.1"
 
 # Linux and macOS use the default eframe backend
 [target.'cfg(any(target_os = "linux", target_os = "macos"))'.dependencies]
