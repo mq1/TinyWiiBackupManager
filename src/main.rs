@@ -11,18 +11,6 @@ use tracing_core::{Level, LevelFilter};
 
 const LOGO: &[u8] = include_bytes!("../logo-small.png");
 
-// Helper function to parse a string into a tracing::Level
-fn parse_level_from_str(s: &str) -> Option<Level> {
-    match s.to_ascii_lowercase().as_str() {
-        "error" => Some(Level::ERROR),
-        "warn" => Some(Level::WARN),
-        "info" => Some(Level::INFO),
-        "debug" => Some(Level::DEBUG),
-        "trace" => Some(Level::TRACE),
-        _ => None,
-    }
-}
-
 fn main() -> eframe::Result<()> {
     let level = match std::env::var("RUST_LOG")
         .unwrap_or_default()
