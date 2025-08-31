@@ -8,6 +8,7 @@ repository = "https://github.com/mq1/TinyWiiBackupManager"
 description = "A dead simple Wii Backup Manager"
 build = "build.rs"
 
+
 [package.metadata.bundle]
 name = "TinyWiiBackupManager"
 identifier = "it.mq1.TinyWiiBackupManager"
@@ -20,6 +21,7 @@ FileDescription = "A dead simple Wii Backup Manager"
 ProductName = "TinyWiiBackupManager"
 OriginalFilename = "TinyWiiBackupManager.exe"
 LegalCopyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-2.0-only."
+
 
 [dependencies]
 iso2wbfs = { git = "https://github.com/mq1/iso2wbfs", tag = "v1.2.7" }
@@ -45,6 +47,7 @@ zip = { version = "4.5", default-features = false, features = ["deflate"] }
 const-str = "0.6"
 strum = { version = "0.27", features = ["derive"] }
 egui-theme-switch = "0.4"
+minreq = { version = "2.14", features = ["https-native"] }
 
 # Linux and macOS use the default eframe backend
 [target.'cfg(any(target_os = "linux", target_os = "macos"))'.dependencies]
@@ -54,13 +57,6 @@ eframe = { version = "0.32", features = ["persistence"] }
 [target.'cfg(target_os = "windows")'.dependencies]
 eframe = { version = "0.32", default-features = false, features = ["accesskit", "default_fonts", "wgpu", "persistence"] }
 wgpu = { version = "25", default-features = false, features = ["dx12"] }
-
-# On aarch64 Linux, use minreq with https feature for now so github ci can build it
-[target.'cfg(all(target_os = "linux", target_arch = "aarch64"))'.dependencies]
-minreq = { version = "2.14", features = ["https"] }
-
-[target.'cfg(not(all(target_os = "linux", target_arch = "aarch64")))'.dependencies]
-minreq = { version = "2.14", features = ["https-native"] }
 
 
 [build-dependencies]
