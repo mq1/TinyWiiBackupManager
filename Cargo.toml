@@ -46,6 +46,15 @@ const-str = "0.6"
 strum = { version = "0.27", features = ["derive"] }
 egui-theme-switch = "0.4"
 
+# Linux and macOS use the default eframe backend
+[target.'cfg(any(target_os = "linux", target_os = "macos"))'.dependencies]
+eframe = { version = "0.32", features = ["persistence"] }
+
+# Windows uses WGPU backend for better compatibility
+[target.'cfg(target_os = "windows")'.dependencies]
+eframe = { version = "0.32", default-features = false, features = ["accesskit", "default_fonts", "wgpu", "persistence"] }
+wgpu = { version = "25", default-features = false, features = ["dx12"] }
+
 # On aarch64 Linux, use minreq with https feature for now so github ci can build it
 [target.'cfg(all(target_os = "linux", target_arch = "aarch64"))'.dependencies]
 minreq = { version = "2.14", features = ["https"] }
@@ -60,17 +69,9 @@ serde = { version = "1.0", features = ["derive"] }
 phf_codegen = "0.13"
 heck = "0.5"
 
-# Linux and macOS use the default eframe backend
-[target.'cfg(any(target_os = "linux", target_os = "macos"))'.dependencies]
-eframe = { version = "0.32", features = ["persistence"] }
-
-# Windows uses WGPU backend for better compatibility
-[target.'cfg(target_os = "windows")'.dependencies]
-eframe = { version = "0.32", default-features = false, features = ["accesskit", "default_fonts", "wgpu", "persistence"] }
-wgpu = { version = "25", default-features = false, features = ["dx12"] }
-
 [target.'cfg(target_os = "windows")'.build-dependencies]
 winres = "0.1"
+
 
 [profile.release]
 opt-level = 3
