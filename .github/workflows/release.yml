@@ -56,23 +56,18 @@ jobs:
           # Install cargo-bundle
           cargo install cargo-bundle
 
-      - name: Install cross
-        if: matrix.arch == 'aarch64'
-        run: cargo install cross --git https://github.com/cross-rs/cross
-
       - name: Build binary
         if: matrix.arch == 'x86_64'
         run: |
           cargo build --release --locked --target ${{ env.TARGET_TRIPLE }}
-          cargo bundle --release --target ${{ env.TARGET_TRIPLE }} --format appimage
 
       - name: Build binary
         if: matrix.arch == 'aarch64'
         run: |
-          cross build --release --locked --target ${{ env.TARGET_TRIPLE }}
-          cross bundle --release --target ${{ env.TARGET_TRIPLE }} --format appimage
-        env:
-          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
+          docker run --rm -it -v $(pwd):/io -w /io ghcr.io/rust-cross/cargo-zigbuild cargo zigbuild --release --locked --target ${{ env.TARGET_TRIPLE }}
+
+      - name: Bundle binary
+        run: cargo bundle --release --target ${{ env.TARGET_TRIPLE }} --format appimage
 
       - name: Package for Linux
         run: |
