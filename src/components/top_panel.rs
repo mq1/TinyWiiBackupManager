@@ -60,7 +60,7 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                 ui.menu_button("🎮 GameTDB", |ui| {
                     // Download database button
                     if ui
-                        .button("📥 Update GameTDB Database")
+                        .button("📥 Download wiitdb.xml")
                         .on_hover_text("Download the latest wiitdb.xml database from GameTDB")
                         .clicked()
                     {
