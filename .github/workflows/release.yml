@@ -229,7 +229,7 @@ jobs:
           merge-multiple: true # This places all matching artifacts into a single 'artifacts' directory
 
       - name: Create version.txt (only if not an alpha or beta)
-        if: !contains(github.ref_name, 'alpha') && !contains(github.ref_name, 'beta')
+        if: "!contains(github.ref, 'alpha') && !contains(github.ref, 'beta')"
         run: echo -n "${GITHUB_REF_NAME#v}" > version.txt
         env:
           GITHUB_REF_NAME: ${{ github.ref_name }}
