@@ -169,18 +169,6 @@ jobs:
       # Use the full expression to correctly handle PRs vs. tags/branches
       FILENAME: TWBM-${{ github.head_ref || github.ref_name }}-MacOS-Universal2
     steps:
-      - name: Get week of the year
-        id: week
-        run: echo "week_of_year=$(date -u +'%Y-%U')" >> $GITHUB_OUTPUT
-
-      - name: Cache Homebrew packages
-        uses: actions/cache@v4
-        with:
-          path: ~/Library/Caches/Homebrew/downloads
-          key: ${{ runner.os }}-brew-${{ steps.week.outputs.week_of_year }}
-          restore-keys: |
-            ${{ runner.os }}-brew-
-
       - name: Install dependencies
         run: brew install graphicsmagick imagemagick
 
