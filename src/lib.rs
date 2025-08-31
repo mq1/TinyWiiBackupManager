@@ -9,7 +9,6 @@ pub const PRODUCT_NAME: &str = "TinyWiiBackupManager";
 pub mod app;
 mod base_dir;
 mod components;
-pub mod fmtlayer;
 mod game;
 mod messages;
 mod task;
