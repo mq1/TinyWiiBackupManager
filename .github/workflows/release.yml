@@ -39,10 +39,8 @@ jobs:
           target: ${{ env.TARGET_TRIPLE }}
           cache-key: ${{ env.TARGET_TRIPLE }}
 
-      - name: Set up mold
-        uses: rui314/setup-mold@v1
-        with:
-          make-default: false
+      - name: Set up zig
+        uses: mlugg/setup-zig@v2
 
       - name: Install dependencies
         run: |
@@ -53,18 +51,12 @@ jobs:
             libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev \
             squashfs-tools
 
-          # Install cargo-bundle
-          cargo install cargo-bundle
+          # Install cargo-bundle and cargo-zigbuild
+          cargo install --locked cargo-bundle
+          cargo install --locked cargo-zigbuild
 
       - name: Build binary
-        if: matrix.arch == 'x86_64'
-        run: |
-          cargo build --release --locked --target ${{ env.TARGET_TRIPLE }}
-
-      - name: Build binary
-        if: matrix.arch == 'aarch64'
-        run: |
-          docker run --rm -it -v $(pwd):/io -w /io ghcr.io/rust-cross/cargo-zigbuild cargo zigbuild --release --locked --target ${{ env.TARGET_TRIPLE }}
+        run: cargo zigbuild --release --locked --target ${{ env.TARGET_TRIPLE }}
 
       - name: Bundle binary
         run: cargo bundle --release --target ${{ env.TARGET_TRIPLE }} --format appimage
