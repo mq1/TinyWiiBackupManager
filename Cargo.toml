@@ -30,7 +30,7 @@ image = { version = "0.25", default-features = false, features = ["png"] }
 egui-notify = "0.20"
 egui_inbox = "0.9"
 rfd = "0.15"
-phf = { version = "0.13", features = ["macros"] }
+phf = { version = "0.13", default-features = false }
 anyhow = "1.0"
 semver = "1.0"
 fs_extra = "1.3"
