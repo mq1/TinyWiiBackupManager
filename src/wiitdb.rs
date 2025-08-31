@@ -19,19 +19,11 @@ fn download_and_extract_database(base_dir: &BaseDir) -> Result<()> {
         .with_context(|| format!("Failed to create directory at: {target_dir:?}"))?;
 
     // Perform the download request.
-    let response = ureq::get(DOWNLOAD_URL)
-        .call()
+    let response = minreq::get(DOWNLOAD_URL)
+        .send()
         .with_context(|| format!("Failed to download from {DOWNLOAD_URL}"))?;
 
-    let (_, body) = response.into_parts();
-
-    // Create an in-memory buffer.
-    let content_len = body.content_length();
-    let mut buffer = Vec::with_capacity(content_len.unwrap_or(0) as usize);
-
-    // Copy the response body into the buffer.
-    io::copy(&mut body.into_reader(), &mut buffer)
-        .context("Failed to copy response body into buffer")?;
+    let buffer = response.as_bytes();
 
     // Create a cursor in memory.
     let cursor = Cursor::new(buffer);
@@ -58,9 +50,9 @@ pub fn spawn_download_database_task(app: &App) {
     let base_dir = app.base_dir.clone();
     app.task_processor.spawn_task(move |ui_sender| {
         // Send an initial message to the UI.
-        let _ = ui_sender.send(BackgroundMessage::Info(
+        let _ = ui_sender.send(BackgroundMessage::UpdateStatus(Some(
             "Downloading wiitdb.zip...".to_string(),
-        ));
+        )));
 
         let base_dir = base_dir.ok_or_else(|| anyhow!("Base directory is not set"))?;
 
