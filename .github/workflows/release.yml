@@ -11,6 +11,12 @@ on:
 permissions:
   contents: write
 
+# Use a sanitized ref name for constructing file paths to avoid issues with slashes in PR refs.
+# For pull requests, this uses the head ref (e.g., "my-feature-branch").
+# For other events like tag pushes, it uses the ref name (e.g., "v1.2.3").
+env:
+  REF_FOR_FILENAME: ${{ github.head_ref || github.ref_name }}
+
 jobs:
   # ==================================================================================
   #  Build & Bundle Jobs: Run the platform-specific build scripts.
@@ -29,7 +35,7 @@ jobs:
             additional_packages: gcc-aarch64-linux-gnu
     env:
       TARGET_TRIPLE: ${{ matrix.arch }}-unknown-linux-gnu
-      FILENAME: TWBM-${{ github.ref_name }}-Linux-${{ matrix.arch }}
+      FILENAME: TWBM-${{ env.REF_FOR_FILENAME }}-Linux-${{ matrix.arch }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -88,7 +94,7 @@ jobs:
           - arch: aarch64
     env:
       TARGET_TRIPLE: ${{ matrix.arch }}-pc-windows-msvc
-      FILENAME: TWBM-${{ github.ref_name }}-Windows-${{ matrix.arch }}
+      FILENAME: TWBM-${{ env.REF_FOR_FILENAME }}-Windows-${{ matrix.arch }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -164,7 +170,7 @@ jobs:
     runs-on: macos-latest
     needs: build-macos
     env:
-      FILENAME: TWBM-${{ github.ref_name }}-MacOS-Universal2
+      FILENAME: TWBM-${{ env.REF_FOR_FILENAME }}-MacOS-Universal2
     steps:
       - name: Get week of the year
         id: week
