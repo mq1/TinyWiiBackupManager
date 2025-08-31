@@ -205,7 +205,7 @@ impl App {
                         .to_str()
                         .ok_or(anyhow!("Invalid path"))?;
 
-                    let truncated_file_name = file_name.chars().take(20).collect::<String>();
+                    let truncated_file_name = file_name.chars().take(30).collect::<String>();
 
                     let cloned_ui_sender = ui_sender.clone();
                     let callback = move |current, total| {
