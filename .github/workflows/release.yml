@@ -46,9 +46,17 @@ jobs:
         with:
           make-default: false
 
-      - name: Add aarch64 support
+      - name: Setup cross-compilation for ARM64
         if: matrix.arch == 'aarch64'
-        run: sudo dpkg --add-architecture arm64
+        run: |
+          # Add the arm64 architecture
+          sudo dpkg --add-architecture arm64
+          
+          # Add the Ubuntu Ports repository for arm64 packages
+          echo "deb [arch=arm64] https://ports.ubuntu.com/ubuntu-ports $(lsb_release -cs) main restricted universe multiverse" | sudo tee /etc/apt/sources.list.d/arm64.list
+          echo "deb [arch=arm64] https://ports.ubuntu.com/ubuntu-ports $(lsb_release -cs)-updates main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list.d/arm64.list
+          echo "deb [arch=arm64] https://ports.ubuntu.com/ubuntu-ports $(lsb_release -cs)-backports main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list.d/arm64.list
+          echo "deb [arch=arm64] https://ports.ubuntu.com/ubuntu-ports $(lsb_release -cs)-security main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list.d/arm64.list
 
       - name: Install dependencies
         run: |
@@ -66,6 +74,8 @@ jobs:
         run: |
           cargo build --release --locked --target ${{ env.TARGET_TRIPLE }}
           cargo bundle --release --target ${{ env.TARGET_TRIPLE }} --format appimage
+        env:
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
 
       - name: Package for Linux
         run: |
