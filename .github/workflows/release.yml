@@ -18,13 +18,15 @@ jobs:
   # ==================================================================================
   build-linux:
     name: Build for Linux
-    runs-on: ubuntu-22.04
+    runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - arch: x86_64
+            runner: ubuntu-22.04
           - arch: aarch64
+            runner: ubuntu-22.04-arm64
     env:
       TARGET_TRIPLE: ${{ matrix.arch }}-unknown-linux-gnu
       # Use the full expression to correctly handle PRs vs. tags/branches
@@ -39,8 +41,8 @@ jobs:
           target: ${{ env.TARGET_TRIPLE }}
           cache-key: ${{ env.TARGET_TRIPLE }}
 
-      - name: Set up zig
-        uses: mlugg/setup-zig@v2
+      - name: Set up mold
+        uses: rui314/setup-mold@v1
 
       - name: Install dependencies
         run: |
@@ -51,15 +53,13 @@ jobs:
             libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev \
             squashfs-tools
 
-          # Install cargo-bundle and cargo-zigbuild
+          # Install cargo-bundle
           cargo install --locked cargo-bundle
-          cargo install --locked cargo-zigbuild
 
-      - name: Build binary
-        run: cargo zigbuild --release --locked --target ${{ env.TARGET_TRIPLE }}
-
-      - name: Bundle binary
-        run: cargo bundle --release --target ${{ env.TARGET_TRIPLE }} --format appimage
+      - name: Build and package binary
+        run: |
+          cargo build --release --locked --target ${{ env.TARGET_TRIPLE }}
+          cargo bundle --release --target ${{ env.TARGET_TRIPLE }} --format appimage
 
       - name: Package for Linux
         run: |
