@@ -28,8 +28,4 @@ impl eframe::App for App {
             eframe::set_value(storage, "base_dir", base_dir);
         }
     }
-
-    fn persist_egui_memory(&self) -> bool {
-        false
-    }
 }
