@@ -277,7 +277,7 @@ impl Game {
             )?;
             let disc_writer = DiscWriter::new(disc, &FormatOptions::default())?;
 
-            let display_title_truncated = display_title.chars().take(20).collect::<String>();
+            let display_title_truncated = display_title.chars().take(30).collect::<String>();
 
             // Process the disc to calculate hashes
             let finalization = disc_writer.process(
