@@ -290,4 +290,38 @@ impl Game {
             Ok(())
         });
     }
+
+    pub fn spawn_archive_task(&self, task_processor: &TaskProcessor) {
+        let path_clone = self.path.clone();
+        let display_title = self.display_title.clone();
+        let display_title_truncated = display_title.chars().take(30).collect::<String>();
+
+        let output_path = rfd::FileDialog::new()
+            .set_title("Select Output Directory")
+            .pick_folder();
+
+        if let Some(output_path) = output_path {
+            task_processor.spawn_task(move |ui_sender| {
+                let input_file = find_disc_image_file(&path_clone)?;
+
+                let output_file = output_path.join(format!("{}.rvz", display_title));
+
+                iso2wbfs::archive(&input_file, &output_file, |progress, total| {
+                    let msg = format!(
+                        "Archiving {}... {:02.0}%",
+                        display_title_truncated,
+                        progress as f32 / total as f32 * 100.0,
+                    );
+                    let _ = ui_sender.send(BackgroundMessage::UpdateStatus(Some(msg)));
+                })?;
+
+                let _ = ui_sender.send(BackgroundMessage::Info(format!(
+                    "Archived {}",
+                    output_file.display()
+                )));
+
+                Ok(())
+            });
+        }
+    }
 }
