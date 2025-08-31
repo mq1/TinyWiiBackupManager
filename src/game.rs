@@ -8,12 +8,22 @@ use crate::task::TaskProcessor;
 use anyhow::{Context, Result, anyhow, bail};
 use nod::read::{DiscMeta, DiscOptions, DiscReader, PartitionEncryption};
 use nod::write::{DiscWriter, FormatOptions, ProcessOptions};
+use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex, MutexGuard, OnceLock};
 use strum::{AsRefStr, Display};
 
 include!(concat!(env!("OUT_DIR"), "/wiitdb_data.rs"));
+
+static HASH_CACHE: OnceLock<Mutex<HashMap<u64, u32>>> = OnceLock::new();
+
+fn lock_hash_cache() -> MutexGuard<'static, HashMap<u64, u32>> {
+    HASH_CACHE
+        .get_or_init(|| Mutex::new(HashMap::new()))
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner())
+}
 
 #[rustfmt::skip]
 #[derive(Debug, Clone, Copy, AsRefStr, Display)]
@@ -38,11 +48,6 @@ pub struct GameInfo {
 pub enum ConsoleType {
     Wii,
     GameCube,
-}
-
-#[derive(Default, Debug, Clone)]
-pub struct Hashes {
-    crc32: Option<u32>,
 }
 
 /// Represents a single game, containing its metadata and file system information.
@@ -135,24 +140,11 @@ impl Game {
 
         let info_url = format!("https://www.gametdb.com/Wii/{id_str}");
 
-        // Manually parse hashes
-        let hashes_str = fs::read_to_string(path.join("hashes.txt")).unwrap_or_default();
-        let mut hashes = Hashes::default();
-        for line in hashes_str.lines() {
-            if let Some((key, value)) = line.split_once('=')
-                && key.trim() == "crc32"
-            {
-                hashes.crc32 = u32::from_str_radix(value.trim(), 16).ok();
-            }
-        }
+        let cached_crc32 = lock_hash_cache().get(&id).copied();
 
-        // Verify the game by cross-referencing WiiTDB from hashes.txt
-        let is_verified = if let Some(crc32) = hashes.crc32 {
-            if let Some(info) = info {
-                Some(info.crc_list.contains(&crc32))
-            } else {
-                None
-            }
+        // Verify the game by cross-referencing WiiTDB from the hash cache
+        let is_verified = if let Some(crc32) = cached_crc32 {
+            info.map(|info| info.crc_list.contains(&crc32))
         } else {
             None
         };
@@ -166,11 +158,7 @@ impl Game {
         // Verify the game using the embedded CRC from the disc metadata
         let is_embedded_verified = if let Ok(meta) = &disc_meta_result {
             if let Some(crc32) = meta.crc32 {
-                if let Some(info) = info {
-                    Some(info.crc_list.contains(&crc32))
-                } else {
-                    None
-                }
+                info.map(|info| info.crc_list.contains(&crc32))
             } else {
                 None
             }
@@ -214,16 +202,8 @@ impl Game {
         Ok(())
     }
 
-    pub fn save_hashes(&self, hashes: &Hashes) -> Result<()> {
-        let path = self.path.join("hashes.txt");
-        let mut content = String::new();
-
-        if let Some(crc32) = hashes.crc32 {
-            content.push_str(&format!("crc32 = {:x}\n", crc32));
-        }
-
-        fs::write(&path, content)
-            .with_context(|| format!("Failed to write hashes file: {}", path.display()))
+    pub fn save_crc32_to_cache(&self, crc32: u32) {
+        lock_hash_cache().insert(self.id, crc32);
     }
 
     pub fn download_cover(&self, base_dir: BaseDir) -> Result<bool> {
@@ -290,6 +270,14 @@ impl Game {
         let game_clone = self.clone();
 
         task_processor.spawn_task(move |ui_sender| {
+            if lock_hash_cache().contains_key(&game_clone.id) {
+                let _ = ui_sender.send(BackgroundMessage::Info(format!(
+                    "{} is already verified (from cache)",
+                    display_title
+                )));
+                return Ok(());
+            }
+
             let disc_path = disc_path?;
 
             // Open the disc
@@ -328,8 +316,7 @@ impl Game {
                 .crc32
                 .ok_or(anyhow!("Failed to calculate CRC32"))?;
 
-            let hashes = Hashes { crc32: Some(crc32) };
-            game_clone.save_hashes(&hashes)?;
+            game_clone.save_crc32_to_cache(crc32);
 
             let _ = ui_sender.send(BackgroundMessage::Info(format!(
                 "{display_title} is verified"
@@ -340,17 +327,5 @@ impl Game {
 
             Ok(())
         });
-    }
-
-    /// Removes the hashes.txt file
-    pub fn remove_meta(&self) -> Result<()> {
-        let path = self.path.join("hashes.txt");
-
-        if path.exists() {
-            fs::remove_file(&path)
-                .with_context(|| format!("Failed to remove hashes file: {}", path.display()))?;
-        };
-
-        Ok(())
     }
 }
