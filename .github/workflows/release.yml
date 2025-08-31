@@ -26,7 +26,7 @@ jobs:
           - arch: x86_64
             additional_packages: ""
           - arch: aarch64
-            additional_packages: gcc-aarch64-linux-gnu
+            additional_packages: gcc-aarch64-linux-gnu libssl-dev:arm64
     env:
       TARGET_TRIPLE: ${{ matrix.arch }}-unknown-linux-gnu
       # Use the full expression to correctly handle PRs vs. tags/branches
