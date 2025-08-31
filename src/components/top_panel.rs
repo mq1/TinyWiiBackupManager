@@ -48,15 +48,13 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                     app.add_isos();
                 }
 
-                ui.add_enabled_ui(app.task_status.is_none(), |ui| {
-                    if ui
-                        .button("🔎 Verify all")
-                        .on_hover_text("Verify all games in the wbfs and games directories")
-                        .clicked()
-                    {
-                        app.verify_all();
-                    }
-                });
+                if ui
+                    .button("🔎 Verify all")
+                    .on_hover_text("Verify all games in the wbfs and games directories")
+                    .clicked()
+                {
+                    app.verify_all();
+                }
 
                 // GameTDB menu
                 ui.menu_button("🎮 GameTDB", |ui| {
