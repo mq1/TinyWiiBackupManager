@@ -151,12 +151,15 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
                                 game.spawn_archive_task(task_processor);
                             }
 
-                            let info_button = ui.add(
-                                Button::new("ℹ Info")
-                                    .min_size(egui::vec2(ui.available_width(), 0.0)),
-                            );
-
-                            if info_button.clicked() {
+                            // Info button
+                            if ui
+                                .add(
+                                    Button::new("ℹ Info")
+                                        .min_size(egui::vec2(ui.available_width(), 0.0)),
+                                )
+                                .on_hover_text("Show Game Info")
+                                .clicked()
+                            {
                                 game.toggle_info();
                             }
                         });
