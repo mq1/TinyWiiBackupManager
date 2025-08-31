@@ -24,9 +24,7 @@ jobs:
       matrix:
         include:
           - arch: x86_64
-            additional_packages: libssl-dev
           - arch: aarch64
-            additional_packages: gcc-aarch64-linux-gnu libssl-dev:arm64
     env:
       TARGET_TRIPLE: ${{ matrix.arch }}-unknown-linux-gnu
       # Use the full expression to correctly handle PRs vs. tags/branches
@@ -46,37 +44,33 @@ jobs:
         with:
           make-default: false
 
-      - name: Setup cross-compilation for ARM64
-        if: matrix.arch == 'aarch64'
-        run: |
-          # Fix sources.list to specify architectures properly
-          sudo sed -i 's/^deb /deb [arch=amd64] /' /etc/apt/sources.list
-          
-          # Add ARM64 ports repository with HTTPS
-          echo "deb [arch=arm64] https://ports.ubuntu.com/ubuntu-ports jammy main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list
-          echo "deb [arch=arm64] https://ports.ubuntu.com/ubuntu-ports jammy-updates main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list
-          echo "deb [arch=arm64] https://ports.ubuntu.com/ubuntu-ports jammy-backports main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list
-          echo "deb [arch=arm64] https://ports.ubuntu.com/ubuntu-ports jammy-security main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list
-
-          # Add ARM64 architecture
-          sudo dpkg --add-architecture arm64
-
       - name: Install dependencies
         run: |
           sudo apt-get update
           
           # Install egui and appimage dependencies
           sudo apt-get install -y \
-            libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev \
-            squashfs-tools ${{ matrix.additional_packages }}
+            libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev \
+            squashfs-tools
 
           # Install cargo-bundle
           cargo install cargo-bundle
 
+      - name: Install cross
+        if: matrix.arch == 'aarch64'
+        run: cargo install cross --git https://github.com/cross-rs/cross
+
       - name: Build binary
+        if: matrix.arch == 'x86_64'
         run: |
           cargo build --release --locked --target ${{ env.TARGET_TRIPLE }}
           cargo bundle --release --target ${{ env.TARGET_TRIPLE }} --format appimage
+
+      - name: Build binary
+        if: matrix.arch == 'aarch64'
+        run: |
+          cross build --release --locked --target ${{ env.TARGET_TRIPLE }}
+          cross bundle --release --target ${{ env.TARGET_TRIPLE }} --format appimage
         env:
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
 
