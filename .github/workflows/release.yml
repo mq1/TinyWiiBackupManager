@@ -24,7 +24,7 @@ jobs:
       matrix:
         include:
           - arch: x86_64
-            additional_packages: ""
+            additional_packages: libssl-dev
           - arch: aarch64
             additional_packages: gcc-aarch64-linux-gnu libssl-dev:arm64
     env:
@@ -49,14 +49,17 @@ jobs:
       - name: Setup cross-compilation for ARM64
         if: matrix.arch == 'aarch64'
         run: |
-          # Add the arm64 architecture
-          sudo dpkg --add-architecture arm64
+          # Fix sources.list to specify architectures properly
+          sudo sed -i 's/^deb /deb [arch=amd64] /' /etc/apt/sources.list
           
-          # Add the Ubuntu Ports repository for arm64 packages
-          echo "deb [arch=arm64] https://ports.ubuntu.com/ubuntu-ports $(lsb_release -cs) main restricted universe multiverse" | sudo tee /etc/apt/sources.list.d/arm64.list
-          echo "deb [arch=arm64] https://ports.ubuntu.com/ubuntu-ports $(lsb_release -cs)-updates main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list.d/arm64.list
-          echo "deb [arch=arm64] https://ports.ubuntu.com/ubuntu-ports $(lsb_release -cs)-backports main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list.d/arm64.list
-          echo "deb [arch=arm64] https://ports.ubuntu.com/ubuntu-ports $(lsb_release -cs)-security main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list.d/arm64.list
+          # Add ARM64 ports repository with HTTPS
+          echo "deb [arch=arm64] https://ports.ubuntu.com/ubuntu-ports jammy main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list
+          echo "deb [arch=arm64] https://ports.ubuntu.com/ubuntu-ports jammy-updates main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list
+          echo "deb [arch=arm64] https://ports.ubuntu.com/ubuntu-ports jammy-backports main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list
+          echo "deb [arch=arm64] https://ports.ubuntu.com/ubuntu-ports jammy-security main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list
+
+          # Add ARM64 architecture
+          sudo dpkg --add-architecture arm64
 
       - name: Install dependencies
         run: |
@@ -64,7 +67,7 @@ jobs:
           
           # Install egui and appimage dependencies
           sudo apt-get install -y \
-            libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev \
+            libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev \
             squashfs-tools ${{ matrix.additional_packages }}
 
           # Install cargo-bundle
