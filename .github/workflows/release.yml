@@ -26,7 +26,7 @@ jobs:
           - arch: x86_64
             runner: ubuntu-22.04
           - arch: aarch64
-            runner: ubuntu-22.04-arm64
+            runner: ubuntu-22.04-arm
     env:
       TARGET_TRIPLE: ${{ matrix.arch }}-unknown-linux-gnu
       # Use the full expression to correctly handle PRs vs. tags/branches
