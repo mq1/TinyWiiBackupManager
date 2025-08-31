@@ -27,7 +27,6 @@ egui_extras = { version = "0.32", default-features = false, features = ["image",
 image = { version = "0.25", default-features = false, features = ["png"] }
 egui-notify = "0.20"
 egui_inbox = "0.9"
-minreq = { version = "2.14", features = ["https-native"] }
 rfd = "0.15"
 phf = { version = "0.13", features = ["macros"] }
 anyhow = "1.0"
@@ -46,6 +45,14 @@ zip = { version = "4.5", default-features = false, features = ["deflate"] }
 const-str = "0.6"
 strum = { version = "0.27", features = ["derive"] }
 egui-theme-switch = "0.4"
+
+# On aarch64 Linux, use minreq with https feature for now so github ci can build it
+[target.'cfg(all(target_os = "linux", target_arch = "aarch64"))'.dependencies]
+minreq = { version = "2.14", features = ["https"] }
+
+[target.'cfg(not(all(target_os = "linux", target_arch = "aarch64")))'.dependencies]
+minreq = { version = "2.14", features = ["https-native"] }
+
 
 [build-dependencies]
 quick-xml = { version = "0.38", features = ["serialize"] }
