@@ -3,7 +3,6 @@
 
 use crate::{app::App, components::console_filter::ui_console_filter};
 use eframe::egui;
-use egui_theme_switch::global_theme_switch;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -25,14 +24,12 @@ pub fn ui_bottom_panel(ctx: &egui::Context, app: &mut App) {
 
             // Layout for other controls, aligned to the right.
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                global_theme_switch(ui);
-
-                ui.checkbox(&mut app.remove_sources, "💣 Remove sources")
-                    .on_hover_text("⚠ DANGER ⚠\n\nThis will delete the input files!");
+                ui_console_filter(ui, &mut app.console_filter);
 
                 ui.separator();
 
-                ui_console_filter(ui, &mut app.console_filter);
+                ui.checkbox(&mut app.remove_sources, "💣 Remove sources")
+                    .on_hover_text("⚠ DANGER ⚠\n\nThis will delete the input files!");
             });
         });
     });
