@@ -6,6 +6,7 @@ use crate::components::fake_link::fake_link;
 use crate::wiitdb::spawn_download_database_task;
 use anyhow::anyhow;
 use eframe::egui;
+use egui_theme_switch::global_theme_switch;
 use size::Size;
 
 /// Renders the top menu bar.
@@ -108,10 +109,12 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                 ui.hyperlink_to("ℹ", "https://github.com/mq1/TinyWiiBackupManager/wiki")
                     .on_hover_text("Open the TinyWiiBackupManager wiki");
 
-                ui.label("•");
+                global_theme_switch(ui);
 
                 if let Some(base_dir) = &app.base_dir {
-                    ui.label(format!("Size: {}", Size::from_bytes(app.base_dir_size)));
+                    ui.label("•");
+
+                    ui.label(format!("({})", Size::from_bytes(app.base_dir_size)));
 
                     let base_dir_name = base_dir.name();
                     if fake_link(ui, &base_dir_name)
@@ -121,11 +124,12 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                     {
                         let _ = sender.send(e.into());
                     }
-
-                    ui.label("•");
                 }
 
-                ui.label(format!("{} games", app.games.len()));
+                // Show game count if the base_dir is some
+                if app.base_dir.is_some() {
+                    ui.label(format!("{} games in", app.games.len()));
+                }
             });
         });
     });
