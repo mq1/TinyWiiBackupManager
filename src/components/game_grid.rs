@@ -145,7 +145,7 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
                             // Archive button
                             if ui
                                 .add(Button::new("📦"))
-                                .on_hover_text("Archive Game to a zstd-19 compressed .rvz")
+                                .on_hover_text("Archive Game to a zstd-19 compressed RVZ")
                                 .clicked()
                             {
                                 game.spawn_archive_task(task_processor);
