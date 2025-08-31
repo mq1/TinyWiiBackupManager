@@ -1919,8 +1919,8 @@ dependencies = [
 
 [[package]]
 name = "iso2wbfs"
-version = "2.0.0"
-source = "git+https://github.com/mq1/iso2wbfs?tag=v2.0.0#77e1e42daf2f07dc307ee89014ac4c62aa101234"
+version = "2.1.0"
+source = "git+https://github.com/mq1/iso2wbfs?tag=v2.1.0#2e20c5401d4768fdc160168fe94aa4754aedb4ec"
 dependencies = [
  "anyhow",
  "nod",
@@ -3811,7 +3811,7 @@ dependencies = [
 
 [[package]]
 name = "tiny-wii-backup-manager"
-version = "2.0.0-beta.3"
+version = "2.0.0-rc.1"
 dependencies = [
  "anyhow",
  "const-str",
