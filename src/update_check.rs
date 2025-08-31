@@ -20,11 +20,12 @@ pub struct UpdateInfo {
 
 /// Checks for a newer version of the application.
 pub fn check_for_new_version() -> Result<Option<UpdateInfo>> {
-    let latest_version_str = ureq::get(VERSION_URL)
-        .call()
-        .context("Failed to fetch version")?
-        .body_mut()
-        .read_to_string()
+    let response = minreq::get(VERSION_URL)
+        .send()
+        .context("Failed to fetch version")?;
+
+    let latest_version_str = response
+        .as_str()
         .context("Failed to decode response body as UTF-8")?;
 
     let latest_version = Version::parse(latest_version_str.trim()).context(format!(

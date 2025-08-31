@@ -136,9 +136,8 @@ impl BaseDir {
         fs::create_dir_all(&dir)?;
         let mut file = fs::File::create(&file_path)?;
 
-        let response = ureq::get(url).call()?;
-        let (_, body) = response.into_parts();
-        io::copy(&mut body.into_reader(), &mut file)?;
+        let response = minreq::get(url).send()?;
+        io::copy(&mut response.as_bytes(), &mut file)?;
 
         Ok(true)
     }
