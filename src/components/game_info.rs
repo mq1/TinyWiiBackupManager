@@ -144,10 +144,10 @@ fn ui_game_info_content(
                 // check if the embedded crc32 hash is valid
                 if let Some(is_verified) = game.is_embedded_verified {
                     if is_verified {
-                        ui.colored_label(egui::Color32::GOLD, "✅")
+                        ui.colored_label(egui::Color32::DARK_GREEN, "⚡")
                             .on_hover_text("✅ Embedded crc32 is valid");
                     } else {
-                        ui.colored_label(egui::Color32::DARK_RED, "❌")
+                        ui.colored_label(egui::Color32::DARK_RED, "⚡")
                             .on_hover_text("❌ Embedded crc32 is not valid, game may be corrupted");
                     }
                 }
