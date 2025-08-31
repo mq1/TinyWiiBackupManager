@@ -6,24 +6,17 @@ use crate::base_dir::BaseDir;
 use crate::messages::BackgroundMessage;
 use crate::task::TaskProcessor;
 use anyhow::{Context, Result, anyhow, bail};
+use dashmap::DashMap;
 use nod::read::{DiscMeta, DiscOptions, DiscReader, PartitionEncryption};
 use nod::write::{DiscWriter, FormatOptions, ProcessOptions};
-use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
-use std::sync::{Arc, Mutex, MutexGuard, OnceLock};
+use std::sync::{Arc, LazyLock};
 use strum::{AsRefStr, Display};
 
 include!(concat!(env!("OUT_DIR"), "/wiitdb_data.rs"));
 
-static HASH_CACHE: OnceLock<Mutex<HashMap<u64, u32>>> = OnceLock::new();
-
-fn lock_hash_cache() -> MutexGuard<'static, HashMap<u64, u32>> {
-    HASH_CACHE
-        .get_or_init(|| Mutex::new(HashMap::new()))
-        .lock()
-        .unwrap_or_else(|poisoned| poisoned.into_inner())
-}
+static HASH_CACHE: LazyLock<DashMap<u64, u32>> = LazyLock::new(|| DashMap::new());
 
 #[rustfmt::skip]
 #[derive(Debug, Clone, Copy, AsRefStr, Display)]
@@ -140,10 +133,8 @@ impl Game {
 
         let info_url = format!("https://www.gametdb.com/Wii/{id_str}");
 
-        let cached_crc32 = lock_hash_cache().get(&id).copied();
-
         // Verify the game by cross-referencing WiiTDB from the hash cache
-        let is_verified = if let Some(crc32) = cached_crc32 {
+        let is_verified = if let Some(crc32) = HASH_CACHE.get(&id) {
             info.map(|info| info.crc_list.contains(&crc32))
         } else {
             None
@@ -200,10 +191,6 @@ impl Game {
         }
 
         Ok(())
-    }
-
-    pub fn save_crc32_to_cache(&self, crc32: u32) {
-        lock_hash_cache().insert(self.id, crc32);
     }
 
     pub fn download_cover(&self, base_dir: BaseDir) -> Result<bool> {
@@ -270,7 +257,7 @@ impl Game {
         let game_clone = self.clone();
 
         task_processor.spawn_task(move |ui_sender| {
-            if lock_hash_cache().contains_key(&game_clone.id) {
+            if HASH_CACHE.contains_key(&game_clone.id) {
                 let _ = ui_sender.send(BackgroundMessage::Info(format!(
                     "{} is already verified (from cache)",
                     display_title
@@ -316,7 +303,7 @@ impl Game {
                 .crc32
                 .ok_or(anyhow!("Failed to calculate CRC32"))?;
 
-            game_clone.save_crc32_to_cache(crc32);
+            HASH_CACHE.insert(game_clone.id, crc32);
 
             let _ = ui_sender.send(BackgroundMessage::Info(format!(
                 "{display_title} is verified"
