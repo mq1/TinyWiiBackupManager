@@ -7,8 +7,7 @@ use crate::messages::BackgroundMessage;
 use crate::task::TaskProcessor;
 use anyhow::{Context, Result, anyhow, bail};
 use dashmap::DashMap;
-use nod::read::{DiscMeta, DiscOptions, DiscReader, PartitionEncryption};
-use nod::write::{DiscWriter, FormatOptions, ProcessOptions};
+use nod::read::{DiscMeta, DiscOptions, DiscReader};
 use std::fs;
 use std::path::PathBuf;
 use std::sync::{Arc, LazyLock};
@@ -252,12 +251,13 @@ impl Game {
         total_files: usize,
         task_processor: &TaskProcessor,
     ) {
-        let disc_path = find_disc_image_file(&self.path);
+        let path_clone = self.path.clone();
         let display_title = self.display_title.clone();
-        let game_clone = self.clone();
+        let display_title_truncated = display_title.chars().take(30).collect::<String>();
+        let disc_id = self.id;
 
         task_processor.spawn_task(move |ui_sender| {
-            if HASH_CACHE.contains_key(&game_clone.id) {
+            if HASH_CACHE.contains_key(&disc_id) {
                 let _ = ui_sender.send(BackgroundMessage::Info(format!(
                     "{} is already verified (from cache)",
                     display_title
@@ -265,45 +265,20 @@ impl Game {
                 return Ok(());
             }
 
-            let disc_path = disc_path?;
+            let disc_path = find_disc_image_file(&path_clone)?;
 
-            // Open the disc
-            let disc = DiscReader::new(
-                &disc_path,
-                &DiscOptions {
-                    partition_encryption: PartitionEncryption::Original,
-                    preloader_threads: 1,
-                },
-            )?;
-            let disc_writer = DiscWriter::new(disc, &FormatOptions::default())?;
+            let crc32 = iso2wbfs::crc32(&disc_path, |progress, total| {
+                let msg = format!(
+                    "🔎 {}... {:02.0}% ({}/{})",
+                    display_title_truncated,
+                    progress as f32 / total as f32 * 100.0,
+                    current_index + 1,
+                    total_files
+                );
+                let _ = ui_sender.send(BackgroundMessage::UpdateStatus(Some(msg)));
+            })?;
 
-            let display_title_truncated = display_title.chars().take(30).collect::<String>();
-
-            // Process the disc to calculate hashes
-            let finalization = disc_writer.process(
-                |_, done, total| {
-                    let msg = format!(
-                        "🔎 {}... {:02.0}% ({}/{})",
-                        display_title_truncated,
-                        done as f32 / total as f32 * 100.0,
-                        current_index + 1,
-                        total_files
-                    );
-                    let _ = ui_sender.send(BackgroundMessage::UpdateStatus(Some(msg)));
-
-                    Ok(())
-                },
-                &ProcessOptions {
-                    digest_crc32: true,
-                    ..Default::default()
-                },
-            )?;
-
-            let crc32 = finalization
-                .crc32
-                .ok_or(anyhow!("Failed to calculate CRC32"))?;
-
-            HASH_CACHE.insert(game_clone.id, crc32);
+            HASH_CACHE.insert(disc_id, crc32);
 
             let _ = ui_sender.send(BackgroundMessage::Info(format!(
                 "{display_title} is verified"
