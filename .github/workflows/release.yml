@@ -139,7 +139,7 @@ jobs:
           cache-key: ${{ env.TARGET_TRIPLE }}
 
       - name: Install dependencies
-        run: cargo install cargo-bundle
+        run: cargo install --locked cargo-bundle
 
       - name: Build binary
         run: |
