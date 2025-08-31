@@ -38,7 +38,7 @@ open = "5.3"
 notify = "8.2"
 size = "0.5"
 tracing = "0.1"
-tracing-subscriber = "0.3"
+tracing-subscriber = "0.3" # env-filter pulls in the heavy regex, and we don't want that
 tracing-core = "0.1"
 const_format = { version = "0.2", features = ["rust_1_64"] }
 nod = "2.0.0-alpha.3"
