@@ -14,12 +14,22 @@ use std::sync::{Arc, LazyLock};
 use strum::{AsRefStr, Display};
 
 include!(concat!(env!("OUT_DIR"), "/wiitdb_data.rs"));
-
 static HASH_CACHE: LazyLock<DashMap<u64, u32>> = LazyLock::new(|| DashMap::new());
 
 #[rustfmt::skip]
 #[derive(Debug, Clone, Copy, AsRefStr, Display)]
 pub enum Region { NtscJ, NtscU, NtscK, NtscT, Pal, PalR }
+
+fn get_locale(region: Region) -> &'static str {
+    match region {
+        Region::NtscJ => "JA",
+        Region::NtscU => "US",
+        Region::NtscK => "KO",
+        Region::NtscT => "ZHTW",
+        Region::Pal => "EN",
+        Region::PalR => "EN",
+    }
+}
 
 #[rustfmt::skip]
 #[allow(clippy::upper_case_acronyms)]
@@ -193,11 +203,8 @@ impl Game {
     }
 
     pub fn download_cover(&self, base_dir: BaseDir) -> Result<bool> {
-        // temp fix for NTSC-U
-        let locale = if let Some(info) = self.info
-            && matches!(info.region, Region::NtscU)
-        {
-            "US"
+        let locale = if let Some(info) = self.info {
+            get_locale(info.region)
         } else {
             "EN"
         };
@@ -212,11 +219,8 @@ impl Game {
     pub fn download_all_covers(&self, base_dir: BaseDir) -> Result<bool> {
         let id = &self.id_str;
 
-        // temp fix for NTSC-U
-        let locale = if let Some(info) = self.info
-            && matches!(info.region, Region::NtscU)
-        {
-            "US"
+        let locale = if let Some(info) = self.info {
+            get_locale(info.region)
         } else {
             "EN"
         };
