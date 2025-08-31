@@ -7,11 +7,15 @@
 use eframe::egui;
 use tiny_wii_backup_manager::PRODUCT_NAME;
 use tiny_wii_backup_manager::app::App;
+use tracing_subscriber::EnvFilter;
 
 const LOGO: &[u8] = include_bytes!("../logo-small.png");
 
 fn main() -> eframe::Result<()> {
-    env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
+    // Initialize tracing with environment filter
+    tracing_subscriber::fmt()
+        .with_env_filter(EnvFilter::from_default_env())
+        .init();
 
     let icon = eframe::icon_data::from_png_bytes(LOGO).expect("Failed to load icon");
     let viewport = egui::ViewportBuilder::default()

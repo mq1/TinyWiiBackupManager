@@ -6,7 +6,7 @@ use crate::components;
 use crate::update_check::UpdateInfo;
 use anyhow::Error;
 use eframe::egui;
-use log::{error, info};
+use tracing::{error, info};
 use std::sync::Arc;
 
 /// Messages that can be sent from background tasks to the main thread
