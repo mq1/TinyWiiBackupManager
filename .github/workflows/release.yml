@@ -160,8 +160,8 @@ jobs:
           lipo \
             -create \
             -output target/universal2-apple-darwin/release/tiny-wii-backup-manager \
-            macos-bin-aarch64/release/tiny-wii-backup-manager \
-            macos-bin-x86_64/release/tiny-wii-backup-manager
+            macos-bin-aarch64/tiny-wii-backup-manager \
+            macos-bin-x86_64/tiny-wii-backup-manager
           
           # Set correct binary permissions
           chmod 755 target/universal2-apple-darwin/release/tiny-wii-backup-manager
