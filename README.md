@@ -25,14 +25,12 @@
 Get the latest version from the **[Releases page](https://github.com/mq1/TinyWiiBackupManager/releases/latest)**.
 Choose the file for your operating system:
 
-| OS          | File Type(s)                                             |
-|-------------|----------------------------------------------------------|
-| **Windows** | `setup.exe` (installer) or `win-portable.zip` (portable) |
-| **macOS**   | `.dmg`                                                   |
-| **Linux**   | `.AppImage`                                              |
+- **Windows**: `setup.exe` (installer) or `win-portable.zip` (portable)
+- **macOS**: `.dmg`
+- **Linux**: `.AppImage`
 
-> ### 🍏 macOS post-installation
-> ⚠️ **The app is NOT notarized** — you must allow it manually after installing by running this command in Terminal:
+> ### 🍏 macOS post-installation (The app is NOT notarized)
+> you must allow it manually after installing by running this command in Terminal:
 >
 > ```bash
 > xattr -rd com.apple.quarantine /Applications/TinyWiiBackupManager.app
