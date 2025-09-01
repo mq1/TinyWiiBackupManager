@@ -55,7 +55,7 @@ jobs:
       - name: Build and package binary
         run: |
           cargo build --release --locked --target ${{ matrix.target }}
-          cargo packager --release --target ${{ matrix.target }} --format appimage
+          cargo packager --release --target ${{ matrix.target }} --formats appimage
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v4
@@ -89,7 +89,7 @@ jobs:
       - name: Build and package binary
         run: |
           cargo build --release --locked --target ${{ matrix.target }}
-          cargo packager --release --target ${{ matrix.target }} --format nsis
+          cargo packager --release --target ${{ matrix.target }} --formats nsis
 
       - name: Distribute also a portable zip
         shell: pwsh
@@ -166,7 +166,7 @@ jobs:
           chmod 755 target/universal2-apple-darwin/release/tiny-wii-backup-manager
           
           # Create DMG with cargo-packager
-          cargo packager --release --target universal2-apple-darwin
+          cargo packager --release --target universal2-apple-darwin --formats dmg
 
       - name: Upload MacOS distributable
         uses: actions/upload-artifact@v4
