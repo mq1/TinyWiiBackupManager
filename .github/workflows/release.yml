@@ -186,9 +186,13 @@ jobs:
       - name: Download distributables
         uses: actions/download-artifact@v4
         with:
-          path: artifacts
+          path: dist
           pattern: '*dist*' # This pattern will match all final distributable artifacts
           merge-multiple: true # This places all matching artifacts into a single 'artifacts' directory
+
+      - name: Rename distributables to TWBM
+        run: |
+          rename 's/TinyWiiBackupManager/TWBM/; s/tiny-wii-backup-manager/TWBM/' dist/*
 
       - name: Create version.txt
         run: echo -n "${GITHUB_REF_NAME#v}" > version.txt
@@ -199,7 +203,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            artifacts/*
+            dist/*
             version.txt
           generate_release_notes: true
           prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') }}
