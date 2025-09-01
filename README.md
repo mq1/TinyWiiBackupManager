@@ -1,36 +1,59 @@
 <p align="center">
-    <img alt="logo" width="128" src="logo-small.png">
-    <h1 align="center">TinyWiiBackupManager</h1>
-    <p align="center">A dead simple Wii backup manager</p>
-    <p align="center">‼️ Make sure to only play your legally obtained backups ‼️</p>
-    <p align="center">🏴‍☠️ This project does NOT support piracy 🏴‍☠️</p>
-    <img alt="screenshot" src="screenshot.png">
+  <img alt="TinyWiiBackupManager Logo" width="128" src="logo-small.png">
 </p>
 
-### 💽 Supported input formats (thanks to [NOD](https://github.com/encounter/nod))
+<h1 align="center">TinyWiiBackupManager</h1>
 
-<kbd>ISO (GCM)</kbd>
-<kbd>WIA / RVZ</kbd>
-<kbd>WBFS (+ NKit 2 lossless)</kbd>
-<kbd>CISO (+ NKit 2 lossless)</kbd>
-<kbd>NFS (Wii U VC, read-only)</kbd>
-<kbd>GCZ</kbd>
-<kbd>TGC</kbd>
+<p align="center">
+  <strong>A dead-simple Wii backup manager</strong>
+  <br>
+  ‼️ <strong>Only use with legally obtained backups</strong> ‼️<br>
+  🏴‍☠️ <strong>This project does NOT support piracy</strong> 🏴‍☠️
+</p>
 
-## ⬇️ Downloading
+<p align="center">
+  <img alt="App Screenshot" src="screenshot.png">
+</p>
 
-You can download the latest version for your platform from the **[latest releases page
-](https://github.com/mq1/TinyWiiBackupManager/releases/latest)**.
+---
 
-Find the file that corresponds to your operating system:
+## ✨ Features
 
-- **Windows:** Download the `setup.exe` or the `win-portable.zip` file.
-- **MacOS:** Download the `.dmg` file.
-- **Linux:** Download the `.AppImage` file.
+- Lightweight and fast — no unnecessary bloat.
+- Simple, intuitive interface.
+- Cross-platform support (Windows, macOS, Linux).
+- Powered by [NOD](https://github.com/encounter/nod) for broad format compatibility (even RVZ‼️).
 
-### 🍎 Special instructions for MacOS
+---
 
-⚠️ The app is NOT notarized, you need to allow it after installing:\
-🏃‍➡️ Run `xattr -rd com.apple.quarantine /Applications/TinyWiiBackupManager.app` in the terminal.
+## ⬇️ Download
 
-## 📄 Additional info in the [wiki](https://github.com/mq1/TinyWiiBackupManager/wiki)
+Get the latest version from the **[Releases page](https://github.com/mq1/TinyWiiBackupManager/releases/latest)**.
+
+Choose the file for your operating system:
+
+| OS          | File Type(s)                                             |
+|-------------|----------------------------------------------------------|
+| **Windows** | `setup.exe` (installer) or `win-portable.zip` (portable) |
+| **macOS**   | `.dmg`                                                   |
+| **Linux**   | `.AppImage`                                              |
+
+---
+
+## 🍎 macOS Instructions
+
+⚠️ **The app is NOT notarized** — you must allow it manually after installing.
+
+Run this command in Terminal:
+
+```bash
+xattr -rd com.apple.quarantine /Applications/TinyWiiBackupManager.app
+```
+
+## 📄 Additional Info
+
+For useful tips, check out the [Wiki](https://github.com/mq1/TinyWiiBackupManager/wiki)
+
+<br>
+
+<p align="center"> Made with ❤️ for the Wii homebrew community </p>
