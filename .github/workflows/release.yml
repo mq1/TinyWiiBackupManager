@@ -190,13 +190,6 @@ jobs:
           pattern: '*dist*' # This pattern will match all final distributable artifacts
           merge-multiple: true # This places all matching artifacts into a single 'dist' directory
 
-      - name: Rename distributables to TWBM
-        run: |
-          for file in dist/*; do
-            newname=$(basename "$file" | sed 's/TinyWiiBackupManager/TWBM/; s/tiny-wii-backup-manager/TWBM/')
-            mv "$file" "dist/$newname"
-          done
-
       - name: Create version.txt
         run: echo -n "${GITHUB_REF_NAME#v}" > version.txt
         env:
@@ -209,6 +202,6 @@ jobs:
             dist/*
             version.txt
           generate_release_notes: true
-          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') }}
+          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
