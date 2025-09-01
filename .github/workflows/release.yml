@@ -192,7 +192,10 @@ jobs:
 
       - name: Rename distributables to TWBM
         run: |
-          rename 's/TinyWiiBackupManager/TWBM/; s/tiny-wii-backup-manager/TWBM/' dist/*
+          for file in dist/*; do
+            newname=$(basename "$file" | sed 's/TinyWiiBackupManager/TWBM/; s/tiny-wii-backup-manager/TWBM/')
+            mv "$file" "dist/$newname"
+          done
 
       - name: Create version.txt
         run: echo -n "${GITHUB_REF_NAME#v}" > version.txt
