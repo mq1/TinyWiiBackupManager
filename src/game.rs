@@ -25,9 +25,9 @@ fn get_locale(region: Region) -> &'static str {
         Region::NtscJ => "JA",
         Region::NtscU => "US",
         Region::NtscK => "KO",
-        Region::NtscT => "ZHTW",
+        Region::NtscT => "ZH",
         Region::Pal => "EN",
-        Region::PalR => "EN",
+        Region::PalR => "RU",
     }
 }
 
