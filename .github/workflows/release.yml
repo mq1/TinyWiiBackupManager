@@ -188,7 +188,7 @@ jobs:
         with:
           path: dist
           pattern: '*dist*' # This pattern will match all final distributable artifacts
-          merge-multiple: true # This places all matching artifacts into a single 'artifacts' directory
+          merge-multiple: true # This places all matching artifacts into a single 'dist' directory
 
       - name: Rename distributables to TWBM
         run: |
