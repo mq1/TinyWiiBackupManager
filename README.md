@@ -50,10 +50,13 @@ Run this command in Terminal:
 xattr -rd com.apple.quarantine /Applications/TinyWiiBackupManager.app
 ```
 
+---
+
 ## 📄 Additional Info
 
 For useful tips, check out the [Wiki](https://github.com/mq1/TinyWiiBackupManager/wiki)
 
+<br>
 <br>
 
 <p align="center"> Made with ❤️ for the Wii homebrew community </p>
