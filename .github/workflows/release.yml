@@ -23,12 +23,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - arch: x86_64
+          - target: x86_64-unknown-linux-gnu
             runner: ubuntu-22.04
-          - arch: aarch64
+          - target: aarch64-unknown-linux-gnu
             runner: ubuntu-22.04-arm
-    env:
-      TARGET_TRIPLE: ${{ matrix.arch }}-unknown-linux-gnu
 
     steps:
       - name: Checkout
@@ -37,8 +35,8 @@ jobs:
       - name: Set up Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          target: ${{ env.TARGET_TRIPLE }}
-          cache-key: ${{ env.TARGET_TRIPLE }}
+          target: ${{ matrix.target }}
+          cache-key: ${{ matrix.target }}
 
       - name: Set up mold
         uses: rui314/setup-mold@v1
@@ -56,13 +54,13 @@ jobs:
 
       - name: Build and package binary
         run: |
-          cargo build --release --locked --target ${{ env.TARGET_TRIPLE }}
-          cargo packager --release --target ${{ env.TARGET_TRIPLE }} --format appimage
+          cargo build --release --locked --target ${{ matrix.target }}
+          cargo packager --release --target ${{ matrix.target }} --format appimage
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v4
         with:
-          name: linux-dist-${{ matrix.arch }}
+          name: dist-${{ matrix.target }}
           path: dist/*
 
   build-windows:
@@ -72,10 +70,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - arch: x86_64
-          - arch: aarch64
-    env:
-      TARGET_TRIPLE: ${{ matrix.arch }}-pc-windows-msvc
+          - target: x86_64-pc-windows-msvc
+          - target: aarch64-pc-windows-msvc
 
     steps:
       - name: Checkout
@@ -84,28 +80,28 @@ jobs:
       - name: Set up Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          target: ${{ env.TARGET_TRIPLE }}
-          cache-key: ${{ env.TARGET_TRIPLE }}
+          target: ${{ matrix.target }}
+          cache-key: ${{ matrix.target }}
 
       - name: Install dependencies
         run: cargo install --locked cargo-packager
 
       - name: Build and package binary
         run: |
-          cargo build --release --locked --target ${{ env.TARGET_TRIPLE }}
-          cargo packager --release --target ${{ env.TARGET_TRIPLE }} --format nsis
+          cargo build --release --locked --target ${{ matrix.target }}
+          cargo packager --release --target ${{ matrix.target }} --format nsis
 
       - name: Distribute also a portable zip
         shell: pwsh
         run: |
           $APP_NAME = (Get-ChildItem dist/*.exe | Select-Object -First 1).BaseName
-          Move-Item -Path "target/${{ env.TARGET_TRIPLE }}/release/tiny-wii-backup-manager.exe" -Destination "${APP_NAME}.exe"
+          Move-Item -Path "target/${{ matrix.target }}/release/tiny-wii-backup-manager.exe" -Destination "${APP_NAME}.exe"
           Compress-Archive -Path "${APP_NAME}.exe" -DestinationPath "dist/${APP_NAME}_WindowsPortable.zip"
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v4
         with:
-          name: windows-dist-${{ matrix.arch }}
+          name: dist-${{ matrix.target }}
           path: dist/*
 
   build-macos:
@@ -115,10 +111,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - arch: aarch64
-          - arch: x86_64
-    env:
-      TARGET_TRIPLE: ${{ matrix.arch }}-apple-darwin
+          - target: aarch64-apple-darwin
+          - target: x86_64-apple-darwin
 
     steps:
       - name: Checkout
@@ -127,17 +121,17 @@ jobs:
       - name: Set up Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          target: ${{ env.TARGET_TRIPLE }}
-          cache-key: ${{ env.TARGET_TRIPLE }}
+          target: ${{ matrix.target }}
+          cache-key: ${{ matrix.target }}
 
       - name: Build binary
-        run: cargo build --release --locked --target ${{ env.TARGET_TRIPLE }}
+        run: cargo build --release --locked --target ${{ matrix.target }}
 
       - name: Upload MacOS binary
         uses: actions/upload-artifact@v4
         with:
-          name: macos-binary-${{ matrix.arch }}
-          path: target/${{ env.TARGET_TRIPLE }}/release/tiny-wii-backup-manager
+          name: bin-${{ matrix.target }}
+          path: target/${{ matrix.target }}/release/tiny-wii-backup-manager
 
   package-macos:
     name: Package MacOS Universal2
@@ -156,7 +150,7 @@ jobs:
       - name: Download MacOS binaries
         uses: actions/download-artifact@v4
         with:
-          pattern: 'macos-binary-*'
+          pattern: 'macos-bin-*'
 
       - name: Create Universal2 app and DMG
         run: |
@@ -166,8 +160,7 @@ jobs:
           lipo \
             -create \
             -output target/universal2-apple-darwin/release/tiny-wii-backup-manager \
-            macos-binary-aarch64/tiny-wii-backup-manager \
-            macos-binary-x86_64/tiny-wii-backup-manager
+            macos-bin-*/tiny-wii-backup-manager
           
           # Set correct binary permissions
           chmod 755 target/universal2-apple-darwin/release/tiny-wii-backup-manager
