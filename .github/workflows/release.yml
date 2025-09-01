@@ -29,8 +29,7 @@ jobs:
             runner: ubuntu-22.04-arm
     env:
       TARGET_TRIPLE: ${{ matrix.arch }}-unknown-linux-gnu
-      # Use the full expression to correctly handle PRs vs. tags/branches
-      FILENAME: TWBM-${{ github.head_ref || github.ref_name }}-Linux-${{ matrix.arch }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -48,27 +47,28 @@ jobs:
         run: |
           sudo apt-get update
           
-          # Install egui and appimage dependencies
+          # Install dependencies for eframe
           sudo apt-get install -y \
-            libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev \
-            squashfs-tools
+            libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
 
-          # Install cargo-bundle
-          cargo install --locked cargo-bundle
+          # Install cargo-packager
+          cargo install --locked cargo-packager
 
       - name: Build and package binary
         run: |
           cargo build --release --locked --target ${{ env.TARGET_TRIPLE }}
-          cargo bundle --release --target ${{ env.TARGET_TRIPLE }} --format appimage
+          cargo packager --release --target ${{ env.TARGET_TRIPLE }} --format appimage
 
-      - name: Package for Linux
+      - name: Create the tarball and rename the AppImage
         run: |
-          mkdir dist
-          mv target/${{ env.TARGET_TRIPLE }}/release/bundle/appimage/*.AppImage "dist/${{ env.FILENAME }}.AppImage"
+          APP_NAME=$(basename dist/*.AppImage .AppImage)
+          DIST_NAME=$(echo $APP_NAME | sed 's/TinyWiiBackupManager/TWBM/' | sed 's/${{ matrix.arch }}/Linux-${{ matrix.arch }}/')
 
-          # Also create tarball with plain binary
-          mv target/${{ env.TARGET_TRIPLE }}/release/tiny-wii-backup-manager "${{ env.FILENAME }}"
-          tar -czf "dist/${{ env.FILENAME }}.tar.gz" "${{ env.FILENAME }}"
+          mv target/${{ env.TARGET_TRIPLE }}/release/tiny-wii-backup-manager $DIST_NAME
+          tar -czf dist/${DIST_NAME}.tar.gz $DIST_NAME
+
+          # Rename the AppImage
+          mv dist/${APP_NAME}.AppImage dist/${DIST_NAME}.AppImage
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v4
@@ -126,8 +126,7 @@ jobs:
           - arch: x86_64
     env:
       TARGET_TRIPLE: ${{ matrix.arch }}-apple-darwin
-      APP_PATH: target/${{ matrix.arch }}-apple-darwin/release/bundle/osx/TinyWiiBackupManager.app
-      ARCHIVE_NAME: macos-app.zip
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -138,73 +137,55 @@ jobs:
           target: ${{ env.TARGET_TRIPLE }}
           cache-key: ${{ env.TARGET_TRIPLE }}
 
-      - name: Install dependencies
-        run: cargo install --locked cargo-bundle
-
       - name: Build binary
-        run: |
-          cargo build --release --locked --target ${{ env.TARGET_TRIPLE }}
-          cargo bundle --release --target ${{ env.TARGET_TRIPLE }} --format osx
+        run: cargo build --release --locked --target ${{ env.TARGET_TRIPLE }}
 
-      - name: Archive the application bundle using ditto
-        run: >
-          ditto
-          -c -k --sequesterRsrc --keepParent
-          "${{ env.APP_PATH }}"
-          "${{ env.ARCHIVE_NAME }}"
-
-      - name: Upload MacOS application bundle
+      - name: Upload MacOS binary
         uses: actions/upload-artifact@v4
         with:
-          name: macos-app-${{ matrix.arch }}
-          path: ${{ env.ARCHIVE_NAME }}
+          name: macos-binary-${{ matrix.arch }}
+          path: target/${{ env.TARGET_TRIPLE }}/release/tiny-wii-backup-manager
 
   package-macos:
     name: Package MacOS Universal2
     runs-on: macos-latest
     needs: build-macos
-    env:
-      # Use the full expression to correctly handle PRs vs. tags/branches
-      FILENAME: TWBM-${{ github.head_ref || github.ref_name }}-MacOS-Universal2
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
       - name: Install dependencies
-        run: brew install graphicsmagick imagemagick
+        run: cargo install --locked cargo-packager
 
-      - name: Download aarch64 app bundle
+      - name: Download MacOS binaries
         uses: actions/download-artifact@v4
         with:
-          name: macos-app-aarch64
-          path: aarch64_app
-
-      - name: Download x86_64 app bundle
-        uses: actions/download-artifact@v4
-        with:
-          name: macos-app-x86_64
-          path: x86_64_app
-
-      - name: Extract application bundles
-        run: |
-          unzip aarch64_app/macos-app.zip -d aarch64_app/
-          unzip x86_64_app/macos-app.zip -d x86_64_app/
+          pattern: 'macos-binary-*'
 
       - name: Create Universal2 app and DMG
         run: |
-          mkdir dist
+          mkdir -p target/release
           
-          # Copy the aarch64 app to use as a template for our final universal app
-          cp -R aarch64_app/TinyWiiBackupManager.app .
-          
-          # Create the universal binary using lipo, referencing the predictable downloaded paths
-          # All file attributes and permissions are preserved by ditto/unzip.
+          # Create the universal binary using lipo
           lipo \
             -create \
-            -output ./TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager \
-            aarch64_app/TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager \
-            x86_64_app/TinyWiiBackupManager.app/Contents/MacOS/tiny-wii-backup-manager
+            -output target/release/tiny-wii-backup-manager \
+            macos-binary-aarch64/tiny-wii-backup-manager \
+            macos-binary-x86_64/tiny-wii-backup-manager
           
-          # Create DMG
-          npx --yes create-dmg TinyWiiBackupManager.app . || true
-          mv TinyWiiBackupManager*.dmg "dist/${{ env.FILENAME }}.dmg"
+          # Set correct binary permissions
+          chmod 755 target/release/tiny-wii-backup-manager
+          
+          # Create DMG with cargo-packager
+          cargo packager --release
+          
+          # Rename the DMG
+          OLD_NAME=$(basename dist/*.dmg)
+          NEW_NAME=$(echo $OLD_NAME | sed 's/TinyWiiBackupManager/TWBM/' | sed 's/aarch64/MacOS-Universal2/')
+          mv dist/$OLD_NAME dist/$NEW_NAME
 
       - name: Upload MacOS distributable
         uses: actions/upload-artifact@v4
@@ -228,7 +209,7 @@ jobs:
           pattern: '*dist*' # This pattern will match all final distributable artifacts
           merge-multiple: true # This places all matching artifacts into a single 'artifacts' directory
 
-      - name: Create version.txt (only if not an alpha or beta)
+      - name: Create version.txt
         run: echo -n "${GITHUB_REF_NAME#v}" > version.txt
         env:
           GITHUB_REF_NAME: ${{ github.ref_name }}
