@@ -31,7 +31,7 @@ fn main() -> eframe::Result<()> {
 
     let icon = eframe::icon_data::from_png_bytes(LOGO).expect("Failed to load icon");
     let viewport = egui::ViewportBuilder::default()
-        .with_inner_size(egui::vec2(782.0, 600.0))
+        .with_inner_size(egui::vec2(800.0, 600.0))
         .with_icon(icon);
 
     let options = eframe::NativeOptions {
