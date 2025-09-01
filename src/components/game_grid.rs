@@ -13,8 +13,9 @@ use egui_inbox::UiInboxSender;
 use size::Size;
 use std::path::Path;
 
-const CARD_SIZE: egui::Vec2 = egui::vec2(170.0, 220.0);
-const GRID_SPACING: egui::Vec2 = egui::vec2(10.0, 10.0);
+const CARD_WIDTH: f32 = 188.5;
+const CARD_HEIGHT: f32 = 220.0;
+const GRID_SPACING: f32 = 10.0;
 
 pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
     if let Some(base_dir) = &app.base_dir {
@@ -25,12 +26,14 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
             ui.set_min_width(ui.available_width());
 
             let num_columns =
-                (ui.available_width() / (CARD_SIZE.x + GRID_SPACING.x * 2.)).max(1.) as usize;
+                (ui.available_width() / (CARD_WIDTH + GRID_SPACING / 2.)).max(1.) as usize;
 
             let filter = &app.console_filter;
 
             egui::Grid::new("game_grid")
-                .spacing(GRID_SPACING)
+                .min_col_width(CARD_WIDTH)
+                .min_row_height(CARD_HEIGHT)
+                .spacing(egui::Vec2::splat(GRID_SPACING))
                 .show(ui, |ui| {
                     let games = app.games.iter_mut();
 
@@ -65,9 +68,6 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
     ) {
         let card = egui::Frame::group(ui.style()).corner_radius(5.0);
         card.show(ui, |ui| {
-            ui.set_max_size(CARD_SIZE);
-            ui.set_min_size(CARD_SIZE);
-
             ui.vertical(|ui| {
                 // Top row with console label on the left and size label on the right
                 ui.horizontal(|ui| {
@@ -117,7 +117,9 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
 
                     ui.add_space(5.);
 
-                    ui.label(RichText::new(&game.display_title).strong());
+                    let label =
+                        egui::Label::new(RichText::new(&game.display_title).strong()).truncate();
+                    ui.add(label);
                 });
 
                 // Actions
