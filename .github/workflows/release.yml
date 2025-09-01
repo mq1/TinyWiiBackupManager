@@ -76,8 +76,7 @@ jobs:
           - arch: aarch64
     env:
       TARGET_TRIPLE: ${{ matrix.arch }}-pc-windows-msvc
-      # Use the full expression to correctly handle PRs vs. tags/branches
-      FILENAME: TWBM-${{ github.head_ref || github.ref_name }}-Windows-${{ matrix.arch }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
