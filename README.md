@@ -19,8 +19,8 @@
 
 ## ⬇️ Downloading
 
-You can download the latest version for your platform from the [**latest releases page
-**](https://github.com/mq1/TinyWiiBackupManager/releases/latest).
+You can download the latest version for your platform from the **[latest releases page
+](https://github.com/mq1/TinyWiiBackupManager/releases/latest)**.
 
 Find the file that corresponds to your operating system:
 
