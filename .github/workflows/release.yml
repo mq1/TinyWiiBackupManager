@@ -94,9 +94,9 @@ jobs:
       - name: Distribute also a portable zip
         shell: pwsh
         run: |
-          $APP_NAME = (Get-ChildItem dist/*.exe | Select-Object -First 1).BaseName
+          $APP_NAME = ((Get-ChildItem dist/*.exe | Select-Object -First 1).BaseName).Replace('-setup','')
           Move-Item -Path "target/${{ matrix.target }}/release/tiny-wii-backup-manager.exe" -Destination "${APP_NAME}.exe"
-          Compress-Archive -Path "${APP_NAME}.exe" -DestinationPath "dist/${APP_NAME}_WindowsPortable.zip"
+          Compress-Archive -Path "${APP_NAME}.exe" -DestinationPath "dist/${APP_NAME}-win-portable.zip"
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v4
