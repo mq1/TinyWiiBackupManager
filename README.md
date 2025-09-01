@@ -29,8 +29,8 @@ Choose the file for your operating system:
 - **macOS**: `.dmg`
 - **Linux**: `.AppImage`
 
-> ### 🍏 macOS post-installation (The app is NOT notarized)
-> you must allow it manually after installing by running this command in Terminal:
+> #### 🍏 macOS post-installation (the app is NOT notarized)
+> ➡️ you must allow it manually after installing by running this command in Terminal:
 >
 > ```bash
 > xattr -rd com.apple.quarantine /Applications/TinyWiiBackupManager.app
