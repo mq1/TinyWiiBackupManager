@@ -150,7 +150,7 @@ jobs:
       - name: Download MacOS binaries
         uses: actions/download-artifact@v4
         with:
-          pattern: 'macos-bin-*'
+          pattern: '*darwin*'
 
       - name: Create Universal2 app and DMG
         run: |
@@ -160,8 +160,7 @@ jobs:
           lipo \
             -create \
             -output target/universal2-apple-darwin/release/tiny-wii-backup-manager \
-            macos-bin-aarch64/tiny-wii-backup-manager \
-            macos-bin-x86_64/tiny-wii-backup-manager
+            bin-*-apple-darwin/tiny-wii-backup-manager
           
           # Set correct binary permissions
           chmod 755 target/universal2-apple-darwin/release/tiny-wii-backup-manager
