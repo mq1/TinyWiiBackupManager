@@ -5,8 +5,6 @@
 <h1 align="center">TinyWiiBackupManager</h1>
 
 <p align="center">
-  <strong>A dead-simple Wii backup manager</strong>
-  <br>
   ‼️ <strong>Only use with legally obtained backups</strong> ‼️<br>
   🏴‍☠️ <strong>This project does NOT support piracy</strong> 🏴‍☠️
 </p>
