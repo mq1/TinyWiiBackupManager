@@ -275,14 +275,16 @@ impl App {
         }
     }
 
-    pub fn verify_all(&mut self) {
+    pub fn total_integrity_check(&mut self) {
         for game in &self.games {
-            game.spawn_verify_task(&self.task_processor);
+            game.spawn_integrity_check_task(&self.task_processor);
         }
 
         // Show a final message and increment the task counter
         self.task_processor.spawn_task(move |ui_sender| {
-            let _ = ui_sender.send(BackgroundMessage::Info("All games verified".to_string()));
+            let _ = ui_sender.send(BackgroundMessage::Info(
+                "All games integrity check completed".to_string(),
+            ));
             Ok(())
         });
     }
