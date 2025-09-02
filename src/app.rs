@@ -171,6 +171,13 @@ impl App {
                 });
             }
         }
+
+        self.task_processor.spawn_task(|ui_sender| {
+            let _ = ui_sender.send(BackgroundMessage::Info(
+                "Downloaded covers for all games".to_string(),
+            ));
+            Ok(())
+        });
     }
 
     pub fn download_all_covers(&mut self) {
@@ -192,6 +199,14 @@ impl App {
                     Ok(())
                 });
             }
+
+            // Send a final message to the UI and increment the task counter
+            self.task_processor.spawn_task(|ui_sender| {
+                let _ = ui_sender.send(BackgroundMessage::Info(
+                    "Downloaded covers for all games".to_string(),
+                ));
+                Ok(())
+            });
         }
     }
 
@@ -252,6 +267,7 @@ impl App {
                 });
             }
 
+            // Trigger the cover download and increment the task counter
             self.task_processor.spawn_task(move |ui_sender| {
                 let _ = ui_sender.send(BackgroundMessage::TriggerDownloadCovers);
                 Ok(())
@@ -263,5 +279,11 @@ impl App {
         for game in &self.games {
             game.spawn_verify_task(&self.task_processor);
         }
+
+        // Show a final message and increment the task counter
+        self.task_processor.spawn_task(move |ui_sender| {
+            let _ = ui_sender.send(BackgroundMessage::Info("All games verified".to_string()));
+            Ok(())
+        });
     }
 }
