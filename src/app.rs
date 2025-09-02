@@ -37,7 +37,7 @@ pub struct App {
     pub bottom_left_toasts: egui_notify::Toasts,
     pub bottom_right_toasts: egui_notify::Toasts,
     /// Status
-    pub task_status: Option<String>,
+    pub task_status: String,
     /// Task processor
     pub task_processor: TaskProcessor,
     /// Settings
@@ -94,7 +94,7 @@ impl App {
             console_filter: ConsoleFilter::default(),
             update_info: None,
             watcher: None,
-            task_status: None,
+            task_status: String::new(),
             settings,
             settings_window_open: false,
         };
@@ -153,22 +153,31 @@ impl App {
     pub fn refresh_games(&mut self) -> Result<()> {
         if let Some(base_dir) = &self.base_dir {
             (self.games, self.base_dir_size) = base_dir.get_games()?;
+        }
 
-            // Download covers for all games in the background
-            for game in self.games.iter() {
-                let game = game.clone();
+        Ok(())
+    }
+
+    pub fn download_covers(&mut self) {
+        if let Some(base_dir) = &self.base_dir {
+            for game in self.games.clone() {
                 let base_dir = base_dir.clone();
 
                 self.task_processor.spawn_task(move |ui_sender| {
-                    if game.download_cover(base_dir)? {
-                        let _ = ui_sender.send(BackgroundMessage::NewCover(game.id_str));
+                    if game.download_cover(&base_dir)? {
+                        let _ = ui_sender.send(BackgroundMessage::NewCover(game));
                     }
                     Ok(())
                 });
             }
         }
 
-        Ok(())
+        self.task_processor.spawn_task(|ui_sender| {
+            let _ = ui_sender.send(BackgroundMessage::Info(
+                "Downloaded covers for all games".to_string(),
+            ));
+            Ok(())
+        });
     }
 
     pub fn download_all_covers(&mut self) {
@@ -178,10 +187,10 @@ impl App {
                 let base_dir = base_dir.clone();
 
                 self.task_processor.spawn_task(move |ui_sender| {
-                    let _ = ui_sender.send(BackgroundMessage::UpdateStatus(Some(format!(
+                    let _ = ui_sender.send(BackgroundMessage::UpdateStatus(format!(
                         "Downloading covers for {}",
                         game.display_title
-                    ))));
+                    )));
 
                     if game.download_all_covers(base_dir)? {
                         let msg = format!("Downloaded covers for {}", game.display_title);
@@ -190,6 +199,14 @@ impl App {
                     Ok(())
                 });
             }
+
+            // Send a final message to the UI and increment the task counter
+            self.task_processor.spawn_task(|ui_sender| {
+                let _ = ui_sender.send(BackgroundMessage::Info(
+                    "Downloaded covers for all games".to_string(),
+                ));
+                Ok(())
+            });
         }
     }
 
@@ -212,8 +229,7 @@ impl App {
             let base_dir = base_dir.clone();
             let remove_sources = self.remove_sources;
 
-            let count = paths.len();
-            for (i, path) in paths.into_iter().enumerate() {
+            for path in paths {
                 let base_dir = base_dir.clone();
                 let wii_output_format = wii_output_format.clone();
 
@@ -224,20 +240,15 @@ impl App {
                         .to_str()
                         .ok_or(anyhow!("Invalid path"))?;
 
-                    let truncated_file_name = file_name.chars().take(30).collect::<String>();
-
                     let cloned_ui_sender = ui_sender.clone();
                     let callback = move |current, total| {
                         let status = format!(
-                            "📄➡🖴  {}... {:02.0}% ({}/{})",
-                            &truncated_file_name,
+                            "📄➡🖴  {:02.0}%  {}",
                             current as f32 / total as f32 * 100.0,
-                            i + 1,
-                            count,
+                            &file_name,
                         );
 
-                        let _ =
-                            cloned_ui_sender.send(BackgroundMessage::UpdateStatus(Some(status)));
+                        let _ = cloned_ui_sender.send(BackgroundMessage::UpdateStatus(status));
                     };
 
                     iso2wbfs::convert(&path, base_dir.path(), wii_output_format, callback)?;
@@ -255,13 +266,24 @@ impl App {
                     Ok(())
                 });
             }
+
+            // Trigger the cover download and increment the task counter
+            self.task_processor.spawn_task(move |ui_sender| {
+                let _ = ui_sender.send(BackgroundMessage::TriggerDownloadCovers);
+                Ok(())
+            })
         }
     }
 
     pub fn verify_all(&mut self) {
-        let count = self.games.len();
-        for (i, game) in self.games.iter().enumerate() {
-            game.spawn_verify_task(i, count, &self.task_processor);
+        for game in &self.games {
+            game.spawn_verify_task(&self.task_processor);
         }
+
+        // Show a final message and increment the task counter
+        self.task_processor.spawn_task(move |ui_sender| {
+            let _ = ui_sender.send(BackgroundMessage::Info("All games verified".to_string()));
+            Ok(())
+        });
     }
 }

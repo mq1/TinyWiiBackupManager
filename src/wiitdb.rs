@@ -50,9 +50,9 @@ pub fn spawn_download_database_task(app: &App) {
     let base_dir = app.base_dir.clone();
     app.task_processor.spawn_task(move |ui_sender| {
         // Send an initial message to the UI.
-        let _ = ui_sender.send(BackgroundMessage::UpdateStatus(Some(
+        let _ = ui_sender.send(BackgroundMessage::UpdateStatus(
             "Downloading wiitdb.zip...".to_string(),
-        )));
+        ));
 
         let base_dir = base_dir.ok_or_else(|| anyhow!("Base directory is not set"))?;
 
