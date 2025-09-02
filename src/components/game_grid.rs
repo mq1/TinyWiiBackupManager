@@ -103,16 +103,10 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
 
                 // Centered content
                 ui.with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
-                    let image = Image::new(format!(
-                        "file://{}",
-                        cover_dir
-                            .join(&game.id_str)
-                            .with_extension("png")
-                            .to_string_lossy()
-                    ))
-                    .max_height(128.0)
-                    .maintain_aspect_ratio(true)
-                    .show_loading_spinner(true);
+                    let image = Image::new(game.get_local_cover_uri(cover_dir))
+                        .max_height(128.0)
+                        .maintain_aspect_ratio(true)
+                        .show_loading_spinner(true);
                     ui.add(image);
 
                     ui.add_space(5.);
@@ -141,7 +135,13 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
                                 .on_hover_text("Verify crc32")
                                 .clicked()
                             {
-                                game.spawn_verify_task(0, 1, task_processor);
+                                game.spawn_verify_task(task_processor);
+
+                                // Does nothing, but increments the task counter
+                                task_processor.spawn_task(move |ui_sender| {
+                                    let _ = ui_sender.send(BackgroundMessage::ClearStatus);
+                                    Ok(())
+                                });
                             }
 
                             // Archive button
@@ -151,6 +151,12 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
                                 .clicked()
                             {
                                 game.spawn_archive_task(task_processor);
+
+                                // Does nothing, but increments the task counter
+                                task_processor.spawn_task(move |ui_sender| {
+                                    let _ = ui_sender.send(BackgroundMessage::ClearStatus);
+                                    Ok(())
+                                });
                             }
 
                             // Info button
