@@ -10,12 +10,14 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub fn ui_bottom_panel(ctx: &egui::Context, app: &mut App) {
     egui::TopBottomPanel::bottom("bottom_panel").show(ctx, |ui| {
         ui.horizontal(|ui| {
-            if let Some(status) = &app.task_status {
+            let count = app.task_processor.tasks_count();
+
+            if count > 0 {
                 // show number of tasks in queue
-                ui.label(app.task_processor.tasks_count().to_string());
+                ui.label(count.to_string());
                 ui.spinner();
 
-                ui.label(status);
+                ui.label(&app.task_status);
             } else {
                 // Show version and update notifier if app is idle
                 if let Some(update_info) = &app.update_info {

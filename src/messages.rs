@@ -24,7 +24,9 @@ pub enum BackgroundMessage {
     /// Signal that a new cover has been downloaded
     NewCover(Game),
     /// Signal that the status has changed
-    UpdateStatus(Option<String>),
+    UpdateStatus(String),
+    /// Signal that the status should be cleared
+    ClearStatus,
     /// Signal that covers should be downloaded
     TriggerDownloadCovers,
 }
@@ -73,6 +75,10 @@ pub fn handle_messages(app: &mut App, ctx: &egui::Context) {
 
             BackgroundMessage::UpdateStatus(status) => {
                 app.task_status = status;
+            }
+
+            BackgroundMessage::ClearStatus => {
+                app.task_status.clear();
             }
 
             BackgroundMessage::TriggerDownloadCovers => {
