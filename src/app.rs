@@ -153,22 +153,24 @@ impl App {
     pub fn refresh_games(&mut self) -> Result<()> {
         if let Some(base_dir) = &self.base_dir {
             (self.games, self.base_dir_size) = base_dir.get_games()?;
+        }
 
-            // Download covers for all games in the background
-            for game in self.games.iter() {
-                let game = game.clone();
+        Ok(())
+    }
+
+    pub fn download_covers(&mut self) {
+        if let Some(base_dir) = &self.base_dir {
+            for game in self.games.clone() {
                 let base_dir = base_dir.clone();
 
                 self.task_processor.spawn_task(move |ui_sender| {
-                    if game.download_cover(base_dir)? {
-                        let _ = ui_sender.send(BackgroundMessage::NewCover(game.id_str));
+                    if game.download_cover(&base_dir)? {
+                        let _ = ui_sender.send(BackgroundMessage::NewCover(game));
                     }
                     Ok(())
                 });
             }
         }
-
-        Ok(())
     }
 
     pub fn download_all_covers(&mut self) {
@@ -250,6 +252,11 @@ impl App {
                     Ok(())
                 });
             }
+
+            self.task_processor.spawn_task(move |ui_sender| {
+                let _ = ui_sender.send(BackgroundMessage::TriggerDownloadCovers);
+                Ok(())
+            })
         }
     }
 
