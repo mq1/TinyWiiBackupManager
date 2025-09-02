@@ -11,5 +11,5 @@ jobs:
     steps:
       - uses: vedantmgoyal9/winget-releaser@main
         with:
-          identifier: it.mq1.TinyWiiBackupManager
+          identifier: mq1.TinyWiiBackupManager
           token: ${{ secrets.WINGET_TOKEN }}
