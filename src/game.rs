@@ -232,7 +232,8 @@ impl Game {
             "EN"
         };
 
-        // Cover3D is already downloaded (automatically)
+        // Cover3D
+        let cover3d = self.download_cover(&base_dir)?;
 
         // Cover2D
         let url = format!("https://art.gametdb.com/wii/cover/{locale}/{id}.png");
@@ -255,7 +256,7 @@ impl Game {
         let disc =
             base_dir.download_file(&url, "apps/usbloader_gx/images/disc", &format!("{id}.png"))?;
 
-        Ok(cover || full || disc)
+        Ok(cover3d || cover || full || disc)
     }
 
     pub fn toggle_info(&mut self) {
