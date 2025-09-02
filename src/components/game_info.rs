@@ -1,4 +1,5 @@
 use crate::components::fake_link::fake_link;
+use crate::components::game_checks::ui_game_checks;
 use crate::game::{ConsoleType, Game};
 use crate::messages::BackgroundMessage;
 use anyhow::anyhow;
@@ -141,26 +142,7 @@ fn ui_game_info_content(
                     RichText::new(format!("{:08x}", crc32)).text_style(egui::TextStyle::Monospace),
                 );
 
-                // check if the embedded crc32 hash is valid
-                if let Some(is_verified) = game.is_embedded_verified {
-                    if is_verified {
-                        ui.colored_label(egui::Color32::DARK_GREEN, "⚡")
-                            .on_hover_text("✅ Embedded crc32 is valid");
-                    } else {
-                        ui.colored_label(egui::Color32::DARK_RED, "⚡")
-                            .on_hover_text("❌ Embedded crc32 is not valid, game may be corrupted");
-                    }
-                }
-
-                if let Some(is_verified) = game.is_verified {
-                    if is_verified {
-                        ui.colored_label(egui::Color32::DARK_GREEN, "✅")
-                            .on_hover_text("✅ crc32 is valid");
-                    } else {
-                        ui.colored_label(egui::Color32::DARK_RED, "❌")
-                            .on_hover_text("❌ crc32 is not valid, game may be corrupted");
-                    }
-                }
+                ui_game_checks(ui, &game);
             });
         }
 
