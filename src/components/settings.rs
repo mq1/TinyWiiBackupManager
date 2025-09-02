@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use crate::app::App;
-use crate::settings::OutputFormat;
+use crate::settings::WiiOutputFormat;
 use eframe::egui;
 use egui_theme_switch::global_theme_switch;
 use strum::IntoEnumIterator;
@@ -13,11 +13,11 @@ pub fn ui_settings_window(ctx: &egui::Context, app: &mut App) {
         .show(ctx, |ui| {
             ui.add_space(10.0);
 
-            ui.heading("📤 Output Format");
+            ui.heading("📤 Wii Output Format");
             ui.add_space(10.0);
 
-            for format in OutputFormat::iter() {
-                ui.radio_value(&mut app.settings.output_format, format, format.as_ref());
+            for format in WiiOutputFormat::iter() {
+                ui.radio_value(&mut app.settings.wii_output_format, format, format.as_ref());
             }
 
             ui.add_space(10.0);

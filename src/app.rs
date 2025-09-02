@@ -5,7 +5,7 @@ use crate::base_dir::BaseDir;
 use crate::components::toasts;
 use crate::game::Game;
 use crate::messages::BackgroundMessage;
-use crate::settings::Settings;
+use crate::settings::{Settings, WiiOutputFormat};
 use crate::task::TaskProcessor;
 use crate::update_check::{UpdateInfo, spawn_check_for_new_version_task};
 use crate::{SUPPORTED_INPUT_EXTENSIONS, components::console_filter::ConsoleFilter};
@@ -200,6 +200,12 @@ impl App {
             .add_filter("Wii/GC Disc", SUPPORTED_INPUT_EXTENSIONS)
             .pick_files();
 
+        let wii_output_format = match self.settings.wii_output_format {
+            WiiOutputFormat::WbfsAuto => iso2wbfs::WiiOutputFormat::WbfsAuto,
+            WiiOutputFormat::WbfsFixed => iso2wbfs::WiiOutputFormat::WbfsFixed,
+            WiiOutputFormat::Iso => iso2wbfs::WiiOutputFormat::Iso,
+        };
+
         if let Some(paths) = paths
             && let Some(base_dir) = &self.base_dir
         {
@@ -209,6 +215,7 @@ impl App {
             let count = paths.len();
             for (i, path) in paths.into_iter().enumerate() {
                 let base_dir = base_dir.clone();
+                let wii_output_format = wii_output_format.clone();
 
                 self.task_processor.spawn_task(move |ui_sender| {
                     let file_name = path
@@ -233,7 +240,7 @@ impl App {
                             cloned_ui_sender.send(BackgroundMessage::UpdateStatus(Some(status)));
                     };
 
-                    iso2wbfs::convert(&path, base_dir.path(), callback)?;
+                    iso2wbfs::convert(&path, base_dir.path(), wii_output_format, callback)?;
 
                     let _ = ui_sender.send(BackgroundMessage::DirectoryChanged);
                     let _ = ui_sender.send(BackgroundMessage::Info(format!(
