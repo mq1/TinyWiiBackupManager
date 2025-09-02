@@ -9,7 +9,7 @@ use anyhow::{Context, Result, anyhow, bail};
 use dashmap::DashMap;
 use nod::read::{DiscMeta, DiscOptions, DiscReader};
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::{Arc, LazyLock};
 use strum::{AsRefStr, Display};
 
@@ -53,7 +53,7 @@ pub enum ConsoleType {
 }
 
 /// Represents a single game, containing its metadata and file system information.
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Game {
     pub id: u64,
     pub id_str: String,
@@ -202,7 +202,14 @@ impl Game {
         Ok(())
     }
 
-    pub fn download_cover(&self, base_dir: BaseDir) -> Result<bool> {
+    pub fn get_local_cover_uri(&self, images_dir: impl AsRef<Path>) -> String {
+        let path = images_dir.as_ref().to_owned();
+        let file = path.join(&self.id_str).with_extension("png");
+
+        format!("file://{}", file.display())
+    }
+
+    pub fn download_cover(&self, base_dir: &BaseDir) -> Result<bool> {
         let locale = if let Some(info) = self.info {
             get_locale(info.region)
         } else {

@@ -103,16 +103,10 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
 
                 // Centered content
                 ui.with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
-                    let image = Image::new(format!(
-                        "file://{}",
-                        cover_dir
-                            .join(&game.id_str)
-                            .with_extension("png")
-                            .to_string_lossy()
-                    ))
-                    .max_height(128.0)
-                    .maintain_aspect_ratio(true)
-                    .show_loading_spinner(true);
+                    let image = Image::new(game.get_local_cover_uri(cover_dir))
+                        .max_height(128.0)
+                        .maintain_aspect_ratio(true)
+                        .show_loading_spinner(true);
                     ui.add(image);
 
                     ui.add_space(5.);
