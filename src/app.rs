@@ -37,7 +37,7 @@ pub struct App {
     pub bottom_left_toasts: egui_notify::Toasts,
     pub bottom_right_toasts: egui_notify::Toasts,
     /// Status
-    pub task_status: Option<String>,
+    pub task_status: String,
     /// Task processor
     pub task_processor: TaskProcessor,
     /// Settings
@@ -94,7 +94,7 @@ impl App {
             console_filter: ConsoleFilter::default(),
             update_info: None,
             watcher: None,
-            task_status: None,
+            task_status: String::new(),
             settings,
             settings_window_open: false,
         };
@@ -180,10 +180,10 @@ impl App {
                 let base_dir = base_dir.clone();
 
                 self.task_processor.spawn_task(move |ui_sender| {
-                    let _ = ui_sender.send(BackgroundMessage::UpdateStatus(Some(format!(
+                    let _ = ui_sender.send(BackgroundMessage::UpdateStatus(format!(
                         "Downloading covers for {}",
                         game.display_title
-                    ))));
+                    )));
 
                     if game.download_all_covers(base_dir)? {
                         let msg = format!("Downloaded covers for {}", game.display_title);
@@ -233,8 +233,7 @@ impl App {
                             &file_name,
                         );
 
-                        let _ =
-                            cloned_ui_sender.send(BackgroundMessage::UpdateStatus(Some(status)));
+                        let _ = cloned_ui_sender.send(BackgroundMessage::UpdateStatus(status));
                     };
 
                     iso2wbfs::convert(&path, base_dir.path(), wii_output_format, callback)?;

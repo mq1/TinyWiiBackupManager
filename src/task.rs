@@ -26,16 +26,13 @@ impl TaskProcessor {
         thread::spawn(move || {
             // This loop will run until the sender side of the channel is dropped.
             while let Ok(task) = task_receiver.recv() {
-                // Set the status message to Some to show the spinner
-                let _ = ui_sender_clone.send(BackgroundMessage::UpdateStatus(Some("".to_string())));
-
                 // Execute the task with its own clone of the sender and send any resulting error to the UI.
                 if let Err(e) = task(ui_sender_clone.clone()) {
                     let _ = ui_sender_clone.send(e.into());
                 }
 
                 // clear the status message
-                let _ = ui_sender_clone.send(BackgroundMessage::UpdateStatus(None));
+                let _ = ui_sender_clone.send(BackgroundMessage::ClearStatus);
             }
         });
 

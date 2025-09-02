@@ -278,7 +278,7 @@ impl Game {
                     progress as f32 / total as f32 * 100.0,
                     &display_title
                 );
-                let _ = ui_sender.send(BackgroundMessage::UpdateStatus(Some(msg)));
+                let _ = ui_sender.send(BackgroundMessage::UpdateStatus(msg));
             })?;
 
             HASH_CACHE.insert(disc_id, crc32);
@@ -316,7 +316,7 @@ impl Game {
                             progress as f32 / total as f32 * 100.0,
                             &display_title,
                         );
-                        let _ = ui_sender.send(BackgroundMessage::UpdateStatus(Some(msg)));
+                        let _ = ui_sender.send(BackgroundMessage::UpdateStatus(msg));
                     },
                 )?;
 
