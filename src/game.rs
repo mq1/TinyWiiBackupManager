@@ -65,8 +65,8 @@ pub struct Game {
     pub display_title: String,
     pub info_url: String,
     pub info_opened: bool,
+    pub is_corrupt: Option<bool>,
     pub is_verified: Option<bool>,
-    pub is_embedded_verified: Option<bool>,
     pub disc_meta: Arc<Result<DiscMeta>>,
 }
 
@@ -142,13 +142,6 @@ impl Game {
 
         let info_url = format!("https://www.gametdb.com/Wii/{id_str}");
 
-        // Verify the game by cross-referencing WiiTDB from the hash cache
-        let is_verified = if let Some(crc32) = HASH_CACHE.get(&id) {
-            info.map(|info| info.crc_list.contains(&crc32))
-        } else {
-            None
-        };
-
         let disc_meta_result = {
             let file = find_disc_image_file(&path)?;
             let reader = DiscReader::new(&file, &DiscOptions::default())?;
@@ -156,14 +149,24 @@ impl Game {
         };
 
         // Verify the game using the embedded CRC from the disc metadata
-        let is_embedded_verified = if let Ok(meta) = &disc_meta_result {
-            if let Some(crc32) = meta.crc32 {
-                info.map(|info| info.crc_list.contains(&crc32))
-            } else {
-                None
-            }
-        } else {
-            None
+        // This verifies if the game is a good redump dump
+        let is_verified = match &disc_meta_result {
+            Ok(meta) => match meta.crc32 {
+                Some(crc32) => info.map(|i| i.crc_list.contains(&crc32)),
+                None => None,
+            },
+            Err(_) => None,
+        };
+
+        // Check if the game is corrupt
+        // If the metadata is not found, cross-reference Redump
+        let calculated_crc32 = HASH_CACHE.get(&id).map(|h| *h.value());
+        let is_corrupt = match calculated_crc32 {
+            Some(calculated) => match &disc_meta_result {
+                Ok(meta) => meta.crc32.map(|stored| calculated != stored),
+                Err(_) => info.map(|info| !info.crc_list.contains(&calculated)),
+            },
+            None => None,
         };
 
         Ok(Self {
@@ -178,8 +181,8 @@ impl Game {
             display_title: display_title.to_string(),
             info_url,
             info_opened: false,
+            is_corrupt,
             is_verified,
-            is_embedded_verified,
         })
     }
 
@@ -232,7 +235,8 @@ impl Game {
             "EN"
         };
 
-        // Cover3D is already downloaded (automatically)
+        // Cover3D
+        let cover3d = self.download_cover(&base_dir)?;
 
         // Cover2D
         let url = format!("https://art.gametdb.com/wii/cover/{locale}/{id}.png");
@@ -244,19 +248,26 @@ impl Game {
         let full =
             base_dir.download_file(&url, "apps/usbloader_gx/images/full", &format!("{id}.png"))?;
 
+        // CoverFull for WiiFlow lite
+        let full_path = base_dir.cover_dir().join("full").join(format!("{id}.png"));
+        let dest = base_dir.wiiflow_cover_dir().join(format!("{id}.png"));
+        if full_path.exists() && !dest.exists() {
+            fs::copy(&full_path, &dest)?;
+        }
+
         // Disc
         let url = format!("https://art.gametdb.com/wii/disc/{locale}/{id}.png");
         let disc =
             base_dir.download_file(&url, "apps/usbloader_gx/images/disc", &format!("{id}.png"))?;
 
-        Ok(cover || full || disc)
+        Ok(cover3d || cover || full || disc)
     }
 
     pub fn toggle_info(&mut self) {
         self.info_opened = !self.info_opened;
     }
 
-    pub fn spawn_verify_task(&self, task_processor: &TaskProcessor) {
+    pub fn spawn_integrity_check_task(&self, task_processor: &TaskProcessor) {
         let path_clone = self.path.clone();
         let display_title = self.display_title.clone();
         let disc_id = self.id;
@@ -264,7 +275,7 @@ impl Game {
         task_processor.spawn_task(move |ui_sender| {
             if HASH_CACHE.contains_key(&disc_id) {
                 let _ = ui_sender.send(BackgroundMessage::Info(format!(
-                    "{} is already verified (from cache)",
+                    "{} integrity check is already completed and cached",
                     display_title
                 )));
                 return Ok(());
@@ -284,7 +295,7 @@ impl Game {
             HASH_CACHE.insert(disc_id, crc32);
 
             let _ = ui_sender.send(BackgroundMessage::Info(format!(
-                "{display_title} is verified"
+                "{display_title} integrity check completed"
             )));
 
             // Refresh the game list

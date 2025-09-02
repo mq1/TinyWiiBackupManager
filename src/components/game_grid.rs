@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
+use crate::components::game_checks::ui_game_checks;
 use crate::components::game_info::ui_game_info_window;
 use crate::messages::BackgroundMessage;
 use crate::task::TaskProcessor;
@@ -77,23 +78,8 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
                         ConsoleType::Wii => "🎾 Wii",
                     });
 
-                    // Embedded verified label on the left
-                    if let Some(true) = game.is_embedded_verified {
-                        ui.colored_label(egui::Color32::DARK_GREEN, "⚡")
-                            .on_hover_text("✅ Embedded crc32 is valid");
-                    } else if let Some(false) = game.is_embedded_verified {
-                        ui.colored_label(egui::Color32::DARK_RED, "⚡")
-                            .on_hover_text("❌ Embedded crc32 is not valid, game may be corrupted");
-                    }
-
-                    // Verified label on the left
-                    if let Some(true) = game.is_verified {
-                        ui.colored_label(egui::Color32::DARK_GREEN, "✅")
-                            .on_hover_text("✅ crc32 is valid");
-                    } else if let Some(false) = game.is_verified {
-                        ui.colored_label(egui::Color32::DARK_RED, "❌")
-                            .on_hover_text("❌ crc32 is not valid, game may be corrupted");
-                    }
+                    // Game checks on the left
+                    ui_game_checks(ui, game);
 
                     // Size label on the right
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
@@ -129,13 +115,13 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
                                 let _ = sender.send(e.into());
                             }
 
-                            // Verify crc32 button
+                            // Integrity check button
                             if ui
                                 .add(Button::new("🔎"))
-                                .on_hover_text("Verify crc32")
+                                .on_hover_text("Integrity Check")
                                 .clicked()
                             {
-                                game.spawn_verify_task(task_processor);
+                                game.spawn_integrity_check_task(task_processor);
 
                                 // Does nothing, but increments the task counter
                                 task_processor.spawn_task(move |ui_sender| {
