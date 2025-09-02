@@ -770,9 +770,9 @@ dependencies = [
 
 [[package]]
 name = "const-str"
-version = "0.6.4"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "451d0640545a0553814b4c646eb549343561618838e9b42495f466131fe3ad49"
+checksum = "f4d34b8f066904ed7cfa4a6f9ee96c3214aa998cb44b69ca20bd2054f47402ed"
 
 [[package]]
 name = "const_format"
@@ -1938,13 +1938,14 @@ dependencies = [
 
 [[package]]
 name = "iso2wbfs"
-version = "2.1.0"
-source = "git+https://github.com/mq1/iso2wbfs?tag=v2.1.0#2e20c5401d4768fdc160168fe94aa4754aedb4ec"
+version = "2.2.2"
+source = "git+https://github.com/mq1/iso2wbfs?tag=v2.2.2#25df696748c81ef0a1aac5b1f0eceee4896e0630"
 dependencies = [
  "anyhow",
  "nod",
  "num_cpus",
  "sanitize-filename-reader-friendly",
+ "tempfile",
  "tracing",
 ]
 
