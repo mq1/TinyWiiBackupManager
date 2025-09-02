@@ -2,7 +2,8 @@ name: Publish to WinGet
 
 on:
   release:
-    types: [ released ]
+    types: [ published ]
+  workflow_dispatch:
 
 jobs:
   publish:
