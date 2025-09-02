@@ -249,15 +249,9 @@ impl Game {
         self.info_opened = !self.info_opened;
     }
 
-    pub fn spawn_verify_task(
-        &self,
-        current_index: usize,
-        total_files: usize,
-        task_processor: &TaskProcessor,
-    ) {
+    pub fn spawn_verify_task(&self, task_processor: &TaskProcessor) {
         let path_clone = self.path.clone();
         let display_title = self.display_title.clone();
-        let display_title_truncated = display_title.chars().take(30).collect::<String>();
         let disc_id = self.id;
 
         task_processor.spawn_task(move |ui_sender| {
@@ -273,11 +267,9 @@ impl Game {
 
             let crc32 = iso2wbfs::crc32(&disc_path, |progress, total| {
                 let msg = format!(
-                    "🔎 {}... {:02.0}% ({}/{})",
-                    display_title_truncated,
+                    "🔎  {:02.0}%  {}",
                     progress as f32 / total as f32 * 100.0,
-                    current_index + 1,
-                    total_files
+                    &display_title
                 );
                 let _ = ui_sender.send(BackgroundMessage::UpdateStatus(Some(msg)));
             })?;
@@ -298,7 +290,6 @@ impl Game {
     pub fn spawn_archive_task(&self, task_processor: &TaskProcessor) {
         let path_clone = self.path.clone();
         let display_title = self.display_title.clone();
-        let display_title_truncated = display_title.chars().take(30).collect::<String>();
 
         let output_dir = rfd::FileDialog::new()
             .set_title("Select Output Directory")
@@ -311,12 +302,12 @@ impl Game {
                 let output_path = iso2wbfs::archive(
                     &input_file,
                     &output_dir,
-                    &display_title_truncated,
+                    &display_title,
                     |progress, total| {
                         let msg = format!(
-                            "Archiving {}... {:02.0}%",
-                            display_title_truncated,
+                            "🖴➡📄  {:02.0}%  {}... ",
                             progress as f32 / total as f32 * 100.0,
+                            &display_title,
                         );
                         let _ = ui_sender.send(BackgroundMessage::UpdateStatus(Some(msg)));
                     },
