@@ -3,11 +3,12 @@
 
 use crate::app::App;
 use crate::components;
+use crate::game::Game;
 use crate::update_check::UpdateInfo;
 use anyhow::Error;
 use eframe::egui;
-use tracing::{error, info};
 use std::sync::Arc;
+use tracing::{error, info};
 
 /// Messages that can be sent from background tasks to the main thread
 #[derive(Debug, Clone)]
@@ -21,9 +22,11 @@ pub enum BackgroundMessage {
     /// Signal that update checking has completed
     GotUpdate(Option<UpdateInfo>),
     /// Signal that a new cover has been downloaded
-    NewCover(String),
+    NewCover(Game),
     /// Signal that the status has changed
     UpdateStatus(Option<String>),
+    /// Signal that covers should be downloaded
+    TriggerDownloadCovers,
 }
 
 /// Implement the From trait to automatically convert anyhow::Error into our message.
@@ -61,17 +64,19 @@ pub fn handle_messages(app: &mut App, ctx: &egui::Context) {
                 app.update_info = update;
             }
 
-            BackgroundMessage::NewCover(id) => {
-                let msg = format!("Downloaded cover for {}", id);
-                let _ = sender.send(BackgroundMessage::Info(msg));
-
-                // we need to refresh the image cache
-                // we can forget only the image that changed with ctx.forget_image(uri) but this works fine
-                ctx.forget_all_images();
+            BackgroundMessage::NewCover(game) => {
+                if let Some(base_dir) = &app.base_dir {
+                    let uri = game.get_local_cover_uri(base_dir.cover_dir());
+                    ctx.forget_image(&uri);
+                }
             }
 
             BackgroundMessage::UpdateStatus(status) => {
                 app.task_status = status;
+            }
+
+            BackgroundMessage::TriggerDownloadCovers => {
+                app.download_covers();
             }
         }
     }
