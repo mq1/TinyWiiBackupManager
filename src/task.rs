@@ -4,7 +4,6 @@
 use crate::messages::BackgroundMessage;
 use anyhow::{Result, anyhow};
 use egui_inbox::UiInboxSender;
-use std::sync::mpsc;
 use std::thread;
 
 /// The Task is a boxed, sendable closure that takes a UiInboxSender and returns a Result.
@@ -14,13 +13,13 @@ type Task = Box<dyn FnOnce(UiInboxSender<BackgroundMessage>) -> Result<()> + Sen
 #[derive(Clone)]
 pub struct TaskProcessor {
     ui_sender: UiInboxSender<BackgroundMessage>,
-    task_sender: mpsc::Sender<Task>,
+    task_sender: flume::Sender<Task>,
 }
 
 impl TaskProcessor {
     /// Creates a new TaskProcessor and spawns its background worker thread.
     pub fn new(ui_sender: UiInboxSender<BackgroundMessage>) -> Self {
-        let (task_sender, task_receiver) = mpsc::channel::<Task>();
+        let (task_sender, task_receiver) = flume::unbounded::<Task>();
         let ui_sender_clone = ui_sender.clone();
 
         // Spawn a background OS thread to process tasks sequentially.
@@ -57,5 +56,10 @@ impl TaskProcessor {
             let e = anyhow!(e.to_string()).context("Failed to queue task");
             let _ = self.ui_sender.send(e.into());
         }
+    }
+
+    /// Returns the number of tasks currently in the queue.
+    pub fn tasks_count(&self) -> usize {
+        self.task_sender.len()
     }
 }
