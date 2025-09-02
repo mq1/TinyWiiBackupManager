@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumIter};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, AsRefStr, EnumIter, Copy)]
-pub enum OutputFormat {
+pub enum WiiOutputFormat {
     #[default]
     #[strum(serialize = "✨ WBFS Auto Split (recommended)")]
     WbfsAuto,
@@ -17,5 +17,5 @@ pub enum OutputFormat {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Settings {
-    pub output_format: OutputFormat,
+    pub wii_output_format: WiiOutputFormat,
 }
