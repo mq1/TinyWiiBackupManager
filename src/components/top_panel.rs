@@ -48,11 +48,11 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                 }
 
                 if ui
-                    .button("🔎 Verify all")
-                    .on_hover_text("Verify all games in the wbfs and games directories")
+                    .button("🔎 Integrity check")
+                    .on_hover_text("Check the integrity of all games")
                     .clicked()
                 {
-                    app.verify_all();
+                    app.total_integrity_check();
                 }
 
                 // GameTDB menu
