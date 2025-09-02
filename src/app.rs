@@ -5,6 +5,7 @@ use crate::base_dir::BaseDir;
 use crate::components::toasts;
 use crate::game::Game;
 use crate::messages::BackgroundMessage;
+use crate::settings::Settings;
 use crate::task::TaskProcessor;
 use crate::update_check::{UpdateInfo, spawn_check_for_new_version_task};
 use crate::{SUPPORTED_INPUT_EXTENSIONS, components::console_filter::ConsoleFilter};
@@ -39,6 +40,9 @@ pub struct App {
     pub task_status: Option<String>,
     /// Task processor
     pub task_processor: TaskProcessor,
+    /// Settings
+    pub settings: Settings,
+    pub settings_window_open: bool,
 }
 
 impl App {
@@ -70,6 +74,12 @@ impl App {
             }
         });
 
+        // Load settings from storage
+        let settings = cc
+            .storage
+            .and_then(|storage| eframe::get_value::<Settings>(storage, "settings"))
+            .unwrap_or_default();
+
         // Initialize app and toasts
         let mut app = Self {
             top_left_toasts: toasts::create_toasts(egui_notify::Anchor::TopLeft),
@@ -85,6 +95,8 @@ impl App {
             update_info: None,
             watcher: None,
             task_status: None,
+            settings,
+            settings_window_open: false,
         };
 
         // If the base directory isn't set or no longer exists, prompt the user to select one.
