@@ -14,7 +14,7 @@ pub fn ui_bottom_panel(ctx: &egui::Context, app: &mut App) {
 
             if count > 0 {
                 // show number of tasks in queue
-                ui.label(count.to_string());
+                ui.label(format!("{} tasks queued", count));
                 ui.spinner();
 
                 ui.label(&app.task_status);
