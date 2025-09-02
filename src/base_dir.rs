@@ -61,8 +61,16 @@ impl BaseDir {
         self.0.join("apps").join("usbloader_gx")
     }
 
+    pub fn wiiflow_dir(&self) -> PathBuf {
+        self.0.join("wiiflow")
+    }
+
     pub fn cover_dir(&self) -> PathBuf {
         self.usbloadergx_dir().join("images")
+    }
+
+    pub fn wiiflow_cover_dir(&self) -> PathBuf {
+        self.wiiflow_dir().join("boxcovers")
     }
 
     pub fn get_watcher(&self, callback: impl Fn() + Send + 'static) -> Result<RecommendedWatcher> {
