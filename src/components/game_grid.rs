@@ -136,6 +136,12 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
                                 .clicked()
                             {
                                 game.spawn_verify_task(task_processor);
+
+                                // Does nothing, but increments the task counter
+                                task_processor.spawn_task(move |ui_sender| {
+                                    let _ = ui_sender.send(BackgroundMessage::ClearStatus);
+                                    Ok(())
+                                });
                             }
 
                             // Archive button
@@ -145,6 +151,12 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
                                 .clicked()
                             {
                                 game.spawn_archive_task(task_processor);
+
+                                // Does nothing, but increments the task counter
+                                task_processor.spawn_task(move |ui_sender| {
+                                    let _ = ui_sender.send(BackgroundMessage::ClearStatus);
+                                    Ok(())
+                                });
                             }
 
                             // Info button
