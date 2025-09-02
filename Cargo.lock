@@ -3908,7 +3908,6 @@ dependencies = [
  "tracing",
  "tracing-core",
  "tracing-subscriber",
- "wgpu",
  "winres",
  "zip",
 ]
