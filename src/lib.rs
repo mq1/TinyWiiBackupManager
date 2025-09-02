@@ -11,6 +11,7 @@ mod base_dir;
 mod components;
 mod game;
 mod messages;
+mod settings;
 mod task;
 mod update_check;
 mod wiitdb;

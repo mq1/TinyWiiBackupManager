@@ -7,5 +7,6 @@ pub mod console_filter;
 pub mod fake_link;
 pub mod game_grid;
 pub mod game_info;
+pub mod settings;
 pub mod toasts;
 pub mod top_panel;
