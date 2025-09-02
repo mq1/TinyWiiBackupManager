@@ -11,7 +11,10 @@ pub fn ui_bottom_panel(ctx: &egui::Context, app: &mut App) {
     egui::TopBottomPanel::bottom("bottom_panel").show(ctx, |ui| {
         ui.horizontal(|ui| {
             if let Some(status) = &app.task_status {
+                // show number of tasks in queue
+                ui.label(app.task_processor.tasks_count().to_string());
                 ui.spinner();
+
                 ui.label(status);
             } else {
                 // Show version and update notifier if app is idle

@@ -212,8 +212,7 @@ impl App {
             let base_dir = base_dir.clone();
             let remove_sources = self.remove_sources;
 
-            let count = paths.len();
-            for (i, path) in paths.into_iter().enumerate() {
+            for path in paths {
                 let base_dir = base_dir.clone();
                 let wii_output_format = wii_output_format.clone();
 
@@ -224,16 +223,12 @@ impl App {
                         .to_str()
                         .ok_or(anyhow!("Invalid path"))?;
 
-                    let truncated_file_name = file_name.chars().take(30).collect::<String>();
-
                     let cloned_ui_sender = ui_sender.clone();
                     let callback = move |current, total| {
                         let status = format!(
-                            "📄➡🖴  {}... {:02.0}% ({}/{})",
-                            &truncated_file_name,
+                            "📄➡🖴  {:02.0}%  {}",
                             current as f32 / total as f32 * 100.0,
-                            i + 1,
-                            count,
+                            &file_name,
                         );
 
                         let _ =
@@ -259,9 +254,8 @@ impl App {
     }
 
     pub fn verify_all(&mut self) {
-        let count = self.games.len();
-        for (i, game) in self.games.iter().enumerate() {
-            game.spawn_verify_task(i, count, &self.task_processor);
+        for game in &self.games {
+            game.spawn_verify_task(&self.task_processor);
         }
     }
 }

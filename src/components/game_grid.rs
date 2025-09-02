@@ -141,7 +141,7 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
                                 .on_hover_text("Verify crc32")
                                 .clicked()
                             {
-                                game.spawn_verify_task(0, 1, task_processor);
+                                game.spawn_verify_task(task_processor);
                             }
 
                             // Archive button
