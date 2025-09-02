@@ -16,6 +16,8 @@ impl eframe::App for App {
             components::game_grid::ui_game_grid(ui, self);
         });
 
+        components::settings::ui_settings_window(ctx, self);
+
         self.top_left_toasts.show(ctx);
         self.bottom_left_toasts.show(ctx);
         self.bottom_right_toasts.show(ctx);
@@ -23,6 +25,7 @@ impl eframe::App for App {
 
     fn save(&mut self, storage: &mut dyn Storage) {
         eframe::set_value(storage, "app_version", &APP_VERSION);
+        eframe::set_value(storage, "settings", &self.settings);
 
         if let Some(base_dir) = &self.base_dir {
             eframe::set_value(storage, "base_dir", base_dir);

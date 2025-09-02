@@ -6,7 +6,6 @@ use crate::components::fake_link::fake_link;
 use crate::wiitdb::spawn_download_database_task;
 use anyhow::anyhow;
 use eframe::egui;
-use egui_theme_switch::global_theme_switch;
 use size::Size;
 
 /// Renders the top menu bar.
@@ -98,7 +97,9 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                 ui.hyperlink_to("ℹ", "https://github.com/mq1/TinyWiiBackupManager/wiki")
                     .on_hover_text("Open the TinyWiiBackupManager wiki");
 
-                global_theme_switch(ui);
+                if ui.button("⚙").clicked() {
+                    app.settings_window_open = !app.settings_window_open;
+                }
 
                 if let Some(base_dir) = &app.base_dir {
                     ui.label("•");
