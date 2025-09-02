@@ -25,7 +25,7 @@ LegalCopyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-2.0-only
 
 
 [dependencies]
-iso2wbfs = { git = "https://github.com/mq1/iso2wbfs", tag = "v2.1.0" }
+iso2wbfs = { git = "https://github.com/mq1/iso2wbfs", tag = "v2.2.2" }
 egui_extras = { version = "0.32", default-features = false, features = ["image", "file"] }
 image = { version = "0.25", default-features = false, features = ["png"] }
 egui-notify = "0.20"
@@ -46,7 +46,7 @@ nod = "2.0.0-alpha.3"
 hex = "0.4"
 serde = { version = "1.0", features = ["derive"] }
 zip = { version = "4.6", default-features = false, features = ["deflate"] }
-const-str = "0.6"
+const-str = "0.7"
 strum = { version = "0.27", features = ["derive"] }
 egui-theme-switch = "0.4"
 minreq = { version = "2.14", features = ["https-native"] }
