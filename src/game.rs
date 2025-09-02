@@ -244,6 +244,12 @@ impl Game {
         let full =
             base_dir.download_file(&url, "apps/usbloader_gx/images/full", &format!("{id}.png"))?;
 
+        // CoverFull for WiiFlow lite
+        fs::copy(
+            base_dir.cover_dir().join("full").join(format!("{id}.png")),
+            base_dir.wiiflow_cover_dir().join(format!("{id}.png")),
+        )?;
+
         // Disc
         let url = format!("https://art.gametdb.com/wii/disc/{locale}/{id}.png");
         let disc =
