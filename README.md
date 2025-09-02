@@ -43,4 +43,4 @@ For useful tips, check out the [Wiki](https://github.com/mq1/TinyWiiBackupManage
 <br>
 <br>
 
-<p align="center"> Made with ❤️ for the Wii homebrew community </p>
+<p align="center"> Made with 🤍🩷🩵🤎🖤❤️🧡💛💚💙💜 for the Wii homebrew community </p>
