@@ -232,7 +232,8 @@ impl Game {
             "EN"
         };
 
-        // Cover3D is already downloaded (automatically)
+        // Cover3D
+        let cover3d = self.download_cover(&base_dir)?;
 
         // Cover2D
         let url = format!("https://art.gametdb.com/wii/cover/{locale}/{id}.png");
@@ -244,12 +245,19 @@ impl Game {
         let full =
             base_dir.download_file(&url, "apps/usbloader_gx/images/full", &format!("{id}.png"))?;
 
+        // CoverFull for WiiFlow lite
+        let full_path = base_dir.cover_dir().join("full").join(format!("{id}.png"));
+        let dest = base_dir.wiiflow_cover_dir().join(format!("{id}.png"));
+        if full_path.exists() && !dest.exists() {
+            fs::copy(&full_path, &dest)?;
+        }
+
         // Disc
         let url = format!("https://art.gametdb.com/wii/disc/{locale}/{id}.png");
         let disc =
             base_dir.download_file(&url, "apps/usbloader_gx/images/disc", &format!("{id}.png"))?;
 
-        Ok(cover || full || disc)
+        Ok(cover3d || cover || full || disc)
     }
 
     pub fn toggle_info(&mut self) {
