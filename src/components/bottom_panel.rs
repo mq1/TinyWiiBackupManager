@@ -3,6 +3,7 @@
 
 use crate::{app::App, components::console_filter::ui_console_filter};
 use eframe::egui;
+use eframe::egui::Label;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -17,7 +18,7 @@ pub fn ui_bottom_panel(ctx: &egui::Context, app: &mut App) {
                 ui.label(format!("{} tasks queued", count));
                 ui.spinner();
 
-                ui.label(&app.task_status);
+                ui.add(Label::new(&app.task_status).truncate());
             } else {
                 // Show version and update notifier if app is idle
                 if let Some(update_info) = &app.update_info {
