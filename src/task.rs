@@ -26,6 +26,9 @@ impl TaskProcessor {
         thread::spawn(move || {
             // This loop will run until the sender side of the channel is dropped.
             while let Ok(task) = task_receiver.recv() {
+                // show that a task is running
+                let _ = ui_sender_clone.send(BackgroundMessage::UpdateStatus(String::new()));
+
                 // Execute the task with its own clone of the sender and send any resulting error to the UI.
                 if let Err(e) = task(ui_sender_clone.clone()) {
                     let _ = ui_sender_clone.send(e.into());
