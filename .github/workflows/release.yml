@@ -51,13 +51,10 @@ jobs:
           sudo apt-get install -y \
             libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
 
-          # Install cargo-packager
-          cargo install --locked cargo-packager
-
       - name: Build and package binary
         run: |
           cargo build --release --locked --target ${{ matrix.target }}
-          cargo packager --release --target ${{ matrix.target }} --formats appimage
+          cargo run -p cargo-packager -- --release --target ${{ matrix.target }} --formats appimage
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v4
@@ -85,13 +82,10 @@ jobs:
           target: ${{ matrix.target }}
           cache-key: ${{ matrix.target }}
 
-      - name: Install dependencies
-        run: cargo install --locked cargo-packager
-
       - name: Build and package binary
         run: |
           cargo build --release --locked --target ${{ matrix.target }}
-          cargo packager --release --target ${{ matrix.target }} --formats nsis
+          cargo run -p cargo-packager -- --release --target ${{ matrix.target }} --formats nsis
 
       - name: Distribute also a portable zip
         shell: pwsh
@@ -146,9 +140,6 @@ jobs:
       - name: Set up Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
 
-      - name: Install dependencies
-        run: cargo install --locked cargo-packager
-
       - name: Download MacOS binaries
         uses: actions/download-artifact@v4
         with:
@@ -168,7 +159,7 @@ jobs:
           chmod 755 target/universal2-apple-darwin/release/tiny-wii-backup-manager
           
           # Create DMG with cargo-packager
-          cargo packager --release --target universal2-apple-darwin --formats dmg
+          cargo run -p cargo-packager -- --release --target universal2-apple-darwin --formats dmg
 
       - name: Upload MacOS distributable
         uses: actions/upload-artifact@v4

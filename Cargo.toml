@@ -73,6 +73,10 @@ heck = "0.5"
 winres = "0.1"
 
 
+[dev-dependencies]
+cargo-packager = "0.11"
+
+
 [profile.release]
 opt-level = 3          # Highest optimization level for speed
 lto = "fat"            # Full Link Time Optimization across crates
