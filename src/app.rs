@@ -37,7 +37,7 @@ pub struct App {
     pub bottom_left_toasts: egui_notify::Toasts,
     pub bottom_right_toasts: egui_notify::Toasts,
     /// Status
-    pub task_status: String,
+    pub task_status: Option<String>,
     /// Task processor
     pub task_processor: TaskProcessor,
     /// Settings
@@ -94,7 +94,7 @@ impl App {
             console_filter: ConsoleFilter::default(),
             update_info: None,
             watcher: None,
-            task_status: String::new(),
+            task_status: None,
             settings,
             settings_window_open: false,
         };
@@ -171,13 +171,6 @@ impl App {
                 });
             }
         }
-
-        self.task_processor.spawn_task(|ui_sender| {
-            let _ = ui_sender.send(BackgroundMessage::Info(
-                "Downloaded covers for all games".to_string(),
-            ));
-            Ok(())
-        });
     }
 
     pub fn download_all_covers(&mut self) {
@@ -199,14 +192,6 @@ impl App {
                     Ok(())
                 });
             }
-
-            // Send a final message to the UI and increment the task counter
-            self.task_processor.spawn_task(|ui_sender| {
-                let _ = ui_sender.send(BackgroundMessage::Info(
-                    "Downloaded covers for all games".to_string(),
-                ));
-                Ok(())
-            });
         }
     }
 
@@ -267,7 +252,7 @@ impl App {
                 });
             }
 
-            // Trigger the cover download and increment the task counter
+            // Trigger the cover download
             self.task_processor.spawn_task(move |ui_sender| {
                 let _ = ui_sender.send(BackgroundMessage::TriggerDownloadCovers);
                 Ok(())
@@ -279,13 +264,5 @@ impl App {
         for game in &self.games {
             game.spawn_integrity_check_task(&self.task_processor);
         }
-
-        // Show a final message and increment the task counter
-        self.task_processor.spawn_task(move |ui_sender| {
-            let _ = ui_sender.send(BackgroundMessage::Info(
-                "All games integrity check completed".to_string(),
-            ));
-            Ok(())
-        });
     }
 }

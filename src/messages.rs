@@ -74,11 +74,11 @@ pub fn handle_messages(app: &mut App, ctx: &egui::Context) {
             }
 
             BackgroundMessage::UpdateStatus(status) => {
-                app.task_status = status;
+                app.task_status = Some(status);
             }
 
             BackgroundMessage::ClearStatus => {
-                app.task_status.clear();
+                app.task_status.take();
             }
 
             BackgroundMessage::TriggerDownloadCovers => {

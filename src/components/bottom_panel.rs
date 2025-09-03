@@ -11,16 +11,24 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub fn ui_bottom_panel(ctx: &egui::Context, app: &mut App) {
     egui::TopBottomPanel::bottom("bottom_panel").show(ctx, |ui| {
         ui.horizontal(|ui| {
-            let count = app.task_processor.tasks_count();
-
-            if count > 0 {
-                // show number of tasks in queue
-                ui.label(format!("{} tasks queued", count));
+            // If the app is busy, show the number of tasks in queue and a spinner
+            if let Some(status) = &app.task_status {
                 ui.spinner();
 
-                ui.add(Label::new(&app.task_status).truncate());
-            } else {
-                // Show version and update notifier if app is idle
+                // show number of tasks
+                let queued = app.task_processor.tasks_count();
+                ui.label(format!(
+                    "{} task{}",
+                    queued + 1,
+                    if queued > 0 { "s" } else { "" }
+                ));
+
+                ui.separator();
+
+                ui.add(Label::new(status).truncate());
+            }
+            // If the app is idle, show the update notifier and version
+            else {
                 if let Some(update_info) = &app.update_info {
                     ui.hyperlink_to(format!("{} (new)", &update_info.version), &update_info.url);
                 } else {
