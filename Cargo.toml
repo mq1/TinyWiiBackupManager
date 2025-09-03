@@ -60,7 +60,7 @@ eframe = { version = "0.32", features = ["persistence"] }
 # Windows uses WGPU backend for better compatibility
 [target.'cfg(target_os = "windows")'.dependencies]
 eframe = { version = "0.32", default-features = false, features = ["accesskit", "default_fonts", "wgpu", "persistence"] }
-wgpu = { version = "25", default-features = false, features = ["dx12", "gles"] }
+wgpu = { version = "25", default-features = false, features = ["dx12"] }
 
 
 [build-dependencies]
