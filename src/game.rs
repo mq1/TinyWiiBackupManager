@@ -250,7 +250,9 @@ impl Game {
 
         // CoverFull for WiiFlow lite
         let full_path = base_dir.cover_dir().join("full").join(format!("{id}.png"));
-        let dest = base_dir.wiiflow_cover_dir().join(format!("{id}.png"));
+        let wiiflow_cover_dir = base_dir.wiiflow_cover_dir();
+        fs::create_dir_all(&wiiflow_cover_dir)?;
+        let dest = wiiflow_cover_dir.join(format!("{id}.png"));
         if full_path.exists() && !dest.exists() {
             fs::copy(&full_path, &dest)?;
         }
