@@ -1,6 +1,6 @@
-use crate::components::fake_link::fake_link;
-use crate::components::game_checks::ui_game_checks;
 use crate::game::{ConsoleType, Game};
+use crate::gui::fake_link::fake_link;
+use crate::gui::game_checks::ui_game_checks;
 use crate::messages::BackgroundMessage;
 use anyhow::anyhow;
 use eframe::egui::{self, Id, RichText};
@@ -78,7 +78,7 @@ fn ui_game_info_content(
 
     ui.heading("💿 Disc Metadata");
     ui.add_space(5.0);
-    if let Ok(meta) = game.disc_meta.as_ref() {
+    if let Some(meta) = &game.disc_meta {
         ui.horizontal(|ui| {
             ui.label(RichText::new("💿 Format:").strong());
             ui.label(meta.format.to_string());
@@ -122,7 +122,7 @@ fn ui_game_info_content(
     ui.heading("🔍 Integrity Metadata");
     ui.add_space(5.0);
 
-    if let Ok(meta) = game.disc_meta.as_ref() {
+    if let Some(meta) = &game.disc_meta {
         // if all are None, show a message
         if meta.crc32.is_none() && meta.md5.is_none() && meta.sha1.is_none() && meta.xxh64.is_none()
         {

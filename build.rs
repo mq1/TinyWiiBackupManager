@@ -167,7 +167,8 @@ fn compile_wiitdb_xml() {
 
     let mut map_builder = phf_codegen::Map::new();
     for game in data.games {
-        let id = game_id_to_u64(&game.id);
+        let mut id = [0u8; 6];
+        id[..game.id.len()].copy_from_slice(game.id.as_bytes());
 
         let name = format!("\"{}\"", game.name);
 
@@ -217,7 +218,7 @@ fn compile_wiitdb_xml() {
     // This is not just a variable, but the full phf::phf_map! macro invocation.
     writeln!(
         &mut file,
-        "static GAMES: phf::Map<u64, &'static GameInfo> = {};",
+        "static GAMES: phf::Map<[u8; 6], &'static GameInfo> = {};",
         map_builder.build()
     )
     .unwrap();
