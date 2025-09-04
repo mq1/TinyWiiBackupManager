@@ -76,21 +76,6 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                 });
             }
 
-            // Tests (only debug builds)
-            if cfg!(debug_assertions) {
-                ui.label("•");
-                ui.menu_button("🛠 Tests", |ui| {
-                    if ui.button("❌ Test Error").clicked() {
-                        let _ = sender.send(
-                            anyhow!("Test error")
-                                .context("Doing something")
-                                .context("In ui_top_panel")
-                                .into(),
-                        );
-                    };
-                });
-            }
-
             // Display the total number of games on the right side of the menu bar
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 ui.hyperlink_to("ℹ", "https://github.com/mq1/TinyWiiBackupManager/wiki")
