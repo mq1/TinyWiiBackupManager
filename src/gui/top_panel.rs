@@ -2,9 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use crate::app::App;
-use crate::components::fake_link::fake_link;
-use crate::wiitdb::spawn_download_database_task;
-use anyhow::anyhow;
+use crate::gui::fake_link::fake_link;
 use eframe::egui;
 use size::Size;
 
@@ -63,7 +61,7 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                         .on_hover_text("Download the latest wiitdb.xml database from GameTDB")
                         .clicked()
                     {
-                        spawn_download_database_task(app);
+                        app.spawn_download_database_task();
                     }
 
                     // Download covers option
@@ -74,21 +72,6 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                     {
                         app.download_all_covers();
                     }
-                });
-            }
-
-            // Tests (only debug builds)
-            if cfg!(debug_assertions) {
-                ui.label("•");
-                ui.menu_button("🛠 Tests", |ui| {
-                    if ui.button("❌ Test Error").clicked() {
-                        let _ = sender.send(
-                            anyhow!("Test error")
-                                .context("Doing something")
-                                .context("In ui_top_panel")
-                                .into(),
-                        );
-                    };
                 });
             }
 

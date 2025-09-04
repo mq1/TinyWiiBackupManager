@@ -49,7 +49,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8bfae7c152994a31dc7d99b8eeac7784a919f71d1b306f4b83217e110fd3824c"
 dependencies = [
  "accesskit",
- "hashbrown 0.15.5",
+ "hashbrown",
 ]
 
 [[package]]
@@ -60,7 +60,7 @@ checksum = "692dd318ff8a7a0ffda67271c4bd10cf32249656f4e49390db0b26ca92b095f2"
 dependencies = [
  "accesskit",
  "accesskit_consumer",
- "hashbrown 0.15.5",
+ "hashbrown",
  "objc2 0.5.2",
  "objc2-app-kit 0.2.2",
  "objc2-foundation 0.2.2",
@@ -92,7 +92,7 @@ checksum = "70a042b62c9c05bf7b616f015515c17d2813f3ba89978d6f4fc369735d60700a"
 dependencies = [
  "accesskit",
  "accesskit_consumer",
- "hashbrown 0.15.5",
+ "hashbrown",
  "static_assertions",
  "windows 0.61.3",
  "windows-core 0.61.2",
@@ -900,20 +900,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f27ae1dd37df86211c42e150270f82743308803d90a6f6e6651cd730d5e1732f"
 
 [[package]]
-name = "dashmap"
-version = "6.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5041cc499144891f3790297212f32a74fb938e5136a14943f338ef9e0ae276cf"
-dependencies = [
- "cfg-if",
- "crossbeam-utils",
- "hashbrown 0.14.5",
- "lock_api",
- "once_cell",
- "parking_lot_core",
-]
-
-[[package]]
 name = "derive_arbitrary"
 version = "1.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1696,7 +1682,7 @@ checksum = "b89c83349105e3732062a895becfc71a8f921bb71ecbbdd8ff99263e3b53a0ca"
 dependencies = [
  "bitflags 2.9.3",
  "gpu-descriptor-types",
- "hashbrown 0.15.5",
+ "hashbrown",
 ]
 
 [[package]]
@@ -1718,12 +1704,6 @@ dependencies = [
  "crunchy",
  "num-traits",
 ]
-
-[[package]]
-name = "hashbrown"
-version = "0.14.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e5274423e17b7c9fc20b6e7e208532f9b19825d82dfd615708b70edd83df41f1"
 
 [[package]]
 name = "hashbrown"
@@ -1915,7 +1895,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f2481980430f9f78649238835720ddccc57e52df14ffce1c6f37391d61b563e9"
 dependencies = [
  "equivalent",
- "hashbrown 0.15.5",
+ "hashbrown",
 ]
 
 [[package]]
@@ -1965,19 +1945,6 @@ checksum = "173609498df190136aa7dea1a91db051746d339e18476eed5ca40521f02d7aa5"
 dependencies = [
  "is-docker",
  "once_cell",
-]
-
-[[package]]
-name = "iso2wbfs"
-version = "2.2.2"
-source = "git+https://github.com/mq1/iso2wbfs?tag=v2.2.2#25df696748c81ef0a1aac5b1f0eceee4896e0630"
-dependencies = [
- "anyhow",
- "nod",
- "num_cpus",
- "sanitize-filename-reader-friendly",
- "tempfile",
- "tracing",
 ]
 
 [[package]]
@@ -2203,7 +2170,7 @@ version = "0.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "86ea4e65087ff52f3862caff188d489f1fab49a0cb09e01b2e3f1a617b10aaed"
 dependencies = [
- "hashbrown 0.15.5",
+ "hashbrown",
 ]
 
 [[package]]
@@ -2336,7 +2303,7 @@ dependencies = [
  "cfg_aliases",
  "codespan-reporting",
  "half",
- "hashbrown 0.15.5",
+ "hashbrown",
  "hexf-parse",
  "indexmap",
  "log",
@@ -3881,7 +3848,6 @@ dependencies = [
  "anyhow",
  "const-str",
  "const_format",
- "dashmap",
  "eframe",
  "egui-notify",
  "egui-theme-switch",
@@ -3892,22 +3858,25 @@ dependencies = [
  "heck",
  "hex",
  "image",
- "iso2wbfs",
  "minreq",
  "nod",
  "notify",
+ "num_cpus",
  "open",
  "phf 0.13.1",
  "phf_codegen",
  "quick-xml 0.38.3",
  "rfd",
+ "sanitize-filename-reader-friendly",
  "semver",
  "serde",
  "size",
  "strum 0.27.2",
+ "tempfile",
  "tracing",
  "tracing-core",
  "tracing-subscriber",
+ "walkdir",
  "wgpu",
  "winres",
  "zip",
@@ -4367,7 +4336,7 @@ dependencies = [
  "bitflags 2.9.3",
  "cfg_aliases",
  "document-features",
- "hashbrown 0.15.5",
+ "hashbrown",
  "js-sys",
  "log",
  "naga",
@@ -4397,7 +4366,7 @@ dependencies = [
  "bitflags 2.9.3",
  "cfg_aliases",
  "document-features",
- "hashbrown 0.15.5",
+ "hashbrown",
  "indexmap",
  "log",
  "naga",
@@ -4464,7 +4433,7 @@ dependencies = [
  "gpu-alloc",
  "gpu-allocator",
  "gpu-descriptor",
- "hashbrown 0.15.5",
+ "hashbrown",
  "js-sys",
  "khronos-egl",
  "libc",
