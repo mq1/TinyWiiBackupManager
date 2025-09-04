@@ -14,7 +14,7 @@ use std::path::Path;
 
 fn fallback_md5(path: impl AsRef<Path>) -> Result<[u8; 16]> {
     let mut file = File::open(path)?;
-    file.seek(SeekFrom::Start(0x2EC))?;
+    file.seek(SeekFrom::Start(0x2F0))?; // 0x2EC (MD5#) + 4
     let mut buffer = [0; 16];
     file.read_exact(&mut buffer)?;
     Ok(buffer)
