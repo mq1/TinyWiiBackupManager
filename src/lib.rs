@@ -10,5 +10,4 @@ mod gui;
 mod messages;
 mod settings;
 mod task;
-mod update_check;
 mod util;
