@@ -120,8 +120,8 @@ impl Game {
 
         // Check if the game is corrupt
         // If the metadata is not found, cross-reference Redump
-        let is_corrupt = if let Some(hashes) = util::checksum::cache_get(game.id)
-            && let Some(crc32) = hashes.into_iter().filter_map(|h| h.get_crc32()).next()
+        let is_corrupt = if let Some(finalization) = util::checksum::cache_get(game.id)
+            && let Some(crc32) = finalization.crc32
             && let Some(info) = info
         {
             Some(!info.crc_list.contains(&crc32))
