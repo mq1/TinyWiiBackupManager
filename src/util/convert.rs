@@ -156,7 +156,7 @@ pub fn convert(
             preloader_threads,
         },
     )
-    .with_context(|| format!("Failed to read disc image: {input_path:?}"))?;
+    .with_context(|| format!("Failed to read disc image: {}", input_path.display()))?;
 
     let header = disc.header();
     let game_id = header.game_id_str();
@@ -184,8 +184,9 @@ pub fn convert(
             (false, WiiOutputFormat::Iso) => bail!("Can't create ISO file on this platform"),
         };
 
-        fs::create_dir_all(&game_output_dir)
-            .with_context(|| format!("Failed to create directory: {game_output_dir:?}"))?;
+        fs::create_dir_all(&game_output_dir).with_context(|| {
+            format!("Failed to create directory: {}", game_output_dir.display())
+        })?;
 
         let base_path = game_output_dir.join(game_id);
 
@@ -234,8 +235,9 @@ pub fn convert(
             nod::util::buf_copy(&mut disc, &mut out_file).context("Failed to copy data")?;
         }
     } else if header.is_gamecube() {
-        fs::create_dir_all(&game_output_dir)
-            .with_context(|| format!("Failed to create directory: {game_output_dir:?}"))?;
+        fs::create_dir_all(&game_output_dir).with_context(|| {
+            format!("Failed to create directory: {}", game_output_dir.display())
+        })?;
 
         let iso_filename = match header.disc_num {
             0 => "game.iso".to_string(),
@@ -243,8 +245,12 @@ pub fn convert(
         };
         let output_iso_path = game_output_dir.join(iso_filename);
 
-        let mut out_file = File::create(&output_iso_path)
-            .with_context(|| format!("Failed to create output file: {output_iso_path:?}",))?;
+        let mut out_file = File::create(&output_iso_path).with_context(|| {
+            format!(
+                "Failed to create output file: {}",
+                output_iso_path.display()
+            )
+        })?;
 
         let format_options = FormatOptions::new(Format::Ciso);
         let disc_writer =

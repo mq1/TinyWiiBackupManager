@@ -215,7 +215,10 @@ impl App {
 
                 self.task_processor.spawn_task(move |ui_sender| {
                     let cloned_ui_sender = ui_sender.clone();
-                    let file_name = path.file_name();
+                    let file_name = path
+                        .file_name()
+                        .and_then(|name| name.to_str())
+                        .unwrap_or("");
 
                     util::convert::convert(
                         &path,
@@ -223,7 +226,7 @@ impl App {
                         wii_output_format,
                         move |current, total| {
                             let status = format!(
-                                "📄➡🖴  {:02.0}%  {:?}",
+                                "📄➡🖴  {:02.0}%  {}",
                                 current as f32 / total as f32 * 100.0,
                                 file_name
                             );
@@ -234,7 +237,7 @@ impl App {
 
                     let _ = ui_sender.send(BackgroundMessage::DirectoryChanged);
                     let _ =
-                        ui_sender.send(BackgroundMessage::Info(format!("Converted {file_name:?}")));
+                        ui_sender.send(BackgroundMessage::Info(format!("Converted {file_name}")));
 
                     if remove_sources {
                         std::fs::remove_file(&path)?;

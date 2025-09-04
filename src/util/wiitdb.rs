@@ -14,7 +14,7 @@ pub fn download_and_extract_database(base_dir: &BaseDir) -> Result<()> {
     // Create the target directory.
     let target_dir = base_dir.usbloadergx_dir();
     fs::create_dir_all(&target_dir)
-        .with_context(|| format!("Failed to create directory at: {target_dir:?}"))?;
+        .with_context(|| format!("Failed to create directory at: {}", target_dir.display()))?;
 
     // Perform the download request.
     let response = minreq::get(DOWNLOAD_URL)
@@ -37,9 +37,13 @@ pub fn download_and_extract_database(base_dir: &BaseDir) -> Result<()> {
     // Extract the wiitdb.xml file to the target directory.
     let target_path = target_dir.join("wiitdb.xml");
     let mut outfile = File::create(&target_path)
-        .with_context(|| format!("Failed to create output file at: {target_path:?}"))?;
-    io::copy(&mut zipped_file, &mut outfile)
-        .with_context(|| format!("Failed to extract 'wiitdb.xml' to {target_path:?}"))?;
+        .with_context(|| format!("Failed to create output file at: {}", target_path.display()))?;
+    io::copy(&mut zipped_file, &mut outfile).with_context(|| {
+        format!(
+            "Failed to extract 'wiitdb.xml' to {}",
+            target_path.display()
+        )
+    })?;
 
     Ok(())
 }

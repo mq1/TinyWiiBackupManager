@@ -79,7 +79,7 @@ impl Game {
         let path = path.as_ref();
 
         let size = fs_extra::dir::get_size(&path)
-            .with_context(|| format!("Failed to get size of dir: {path:?}"))?;
+            .with_context(|| format!("Failed to get size of dir: {}", path.display()))?;
 
         let mut game = Self {
             path: path.to_path_buf(),
@@ -266,7 +266,9 @@ impl Game {
                 })?;
 
                 let _ = ui_sender.send(BackgroundMessage::Info(format!(
-                    "{display_title} archived to {out_path:?}",
+                    "{} archived to {}",
+                    display_title,
+                    out_path.display()
                 )));
 
                 Ok(())
