@@ -20,9 +20,11 @@ fn fallback_md5(path: impl AsRef<Path>) -> Result<[u8; 16]> {
     Ok(buffer)
 }
 
-pub fn read_meta(game: &Game) -> Result<DiscMeta> {
+pub fn read_header_and_meta(game: &Game) -> Result<(DiscHeader, DiscMeta)> {
     let path = find_disc(game)?;
     let reader = DiscReader::new(&path, &DiscOptions::default())?;
+
+    let header = reader.header().clone();
     let mut meta = reader.meta();
 
     // If the .wbfs file was created by Wii Backup Manager, the MD5 is stored at 0x2EC
@@ -30,13 +32,5 @@ pub fn read_meta(game: &Game) -> Result<DiscMeta> {
         meta.md5 = fallback_md5(path).ok()
     }
 
-    Ok(meta)
-}
-
-pub fn read_header(game: &Game) -> Result<DiscHeader> {
-    let path = find_disc(game)?;
-    let reader = DiscReader::new(&path, &DiscOptions::default())?;
-    let header = reader.header().clone();
-
-    Ok(header)
+    Ok((header, meta))
 }
