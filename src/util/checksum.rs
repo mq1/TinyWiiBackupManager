@@ -10,6 +10,7 @@ use nod::write::{DiscWriter, FormatOptions, ProcessOptions};
 use std::collections::HashMap;
 use std::sync::{LazyLock, Mutex};
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Hash {
     CRC32(u32),
@@ -40,6 +41,7 @@ pub fn cache_get(key: [u8; 6]) -> Option<Vec<Hash>> {
     HASH_CACHE.lock().ok()?.get(&key).cloned()
 }
 
+#[allow(unused)]
 fn cache_remove(key: [u8; 6]) -> Option<Vec<Hash>> {
     HASH_CACHE.lock().ok()?.remove(&key)
 }
