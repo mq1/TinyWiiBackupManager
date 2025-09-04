@@ -7,7 +7,7 @@ use crate::gui::toasts;
 use crate::messages::BackgroundMessage;
 use crate::settings::Settings;
 use crate::task::TaskProcessor;
-use crate::update_check::{UpdateInfo, spawn_check_for_new_version_task};
+use crate::util::update_check::{UpdateInfo, check_for_new_version};
 use crate::util::ext::SUPPORTED_INPUT_EXTENSIONS;
 use crate::{gui::console_filter::ConsoleFilter, util};
 use anyhow::{Context, Result};
@@ -107,7 +107,7 @@ impl App {
 
         // Initialize the update checker based on the TWBM_DISABLE_UPDATES env var
         if std::env::var_os("TWBM_DISABLE_UPDATES").is_none() {
-            spawn_check_for_new_version_task(&app);
+            app.spawn_check_for_new_version_task();
         }
 
         let sender = app.inbox.sender();
@@ -283,5 +283,13 @@ impl App {
                 Ok(())
             });
         }
+    }
+
+    pub fn spawn_check_for_new_version_task(&self) {
+        self.task_processor.spawn_task(move |ui_sender| {
+            let update_info = check_for_new_version()?;
+            let _ = ui_sender.send(BackgroundMessage::GotUpdate(update_info));
+            Ok(())
+        });
     }
 }
