@@ -3,7 +3,7 @@
 
 use crate::game::Game;
 use crate::util::fs::find_disc;
-use anyhow::Result;
+use anyhow::{bail, Result};
 use nod::common::Format;
 use nod::disc::DiscHeader;
 use nod::read::DiscMeta;
@@ -14,10 +14,20 @@ use std::path::Path;
 
 fn fallback_md5(path: impl AsRef<Path>) -> Result<[u8; 16]> {
     let mut file = File::open(path)?;
-    file.seek(SeekFrom::Start(0x2F0))?; // 0x2EC (MD5#) + 4
-    let mut buffer = [0; 16];
-    file.read_exact(&mut buffer)?;
-    Ok(buffer)
+
+    // Verify if 0x2EC is "MD5#" (0x4d 0x44 0x35 0x23)
+    file.seek(SeekFrom::Start(0x2EC))?;
+    let mut magic = [0; 4];
+    file.read_exact(&mut magic)?;
+    if magic != [0x4d, 0x44, 0x35, 0x23] {
+        bail!("Invalid md5 magic");
+    }
+    
+    // Read the MD5
+    let mut md5 = [0; 16];
+    file.read_exact(&mut md5)?;
+
+    Ok(md5)
 }
 
 pub fn read_header_and_meta(game: &Game) -> Result<(DiscHeader, DiscMeta)> {
