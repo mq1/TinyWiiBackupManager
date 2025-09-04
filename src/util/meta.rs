@@ -4,7 +4,6 @@
 use crate::game::Game;
 use crate::util::fs::find_disc;
 use anyhow::{bail, Result};
-use nod::common::Format;
 use nod::disc::DiscHeader;
 use nod::read::DiscMeta;
 use nod::read::{DiscOptions, DiscReader};
@@ -12,6 +11,11 @@ use std::fs::File;
 use std::io::{Read, Seek, SeekFrom};
 use std::path::Path;
 
+/// Reads the MD5 from the .wbfs file at 0x2EC
+///
+/// This is for Wii Backup Manager compatibility
+/// Draft, I don't know how to verify the wbm md5 yet
+#[allow(dead_code)]
 fn fallback_md5(path: impl AsRef<Path>) -> Result<[u8; 16]> {
     let mut file = File::open(path)?;
 
@@ -35,12 +39,13 @@ pub fn read_header_and_meta(game: &Game) -> Result<(DiscHeader, DiscMeta)> {
     let reader = DiscReader::new(&path, &DiscOptions::default())?;
 
     let header = reader.header().clone();
+
+    #[allow(unused_mut)]
     let mut meta = reader.meta();
 
-    // If the .wbfs file was created by Wii Backup Manager, the MD5 is stored at 0x2EC
-    if let Ok(md5) = fallback_md5(&path) {
-        meta.md5 = Some(md5);
-    }
+    //if meta.md5.is_none() && let Ok(md5) = fallback_md5(&path) {
+    //    meta.md5 = Some(md5);
+    //}
 
     Ok((header, meta))
 }

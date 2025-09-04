@@ -6,44 +6,26 @@ use crate::util::concurrency::get_threads_num;
 use crate::util::fs::find_disc;
 use anyhow::{Context, Result};
 use nod::read::{DiscOptions, DiscReader, PartitionEncryption};
-use nod::write::{DiscWriter, FormatOptions, ProcessOptions};
+use nod::write::{DiscFinalization, DiscWriter, FormatOptions, ProcessOptions};
 use std::collections::{HashMap, HashSet};
 use std::sync::{LazyLock, Mutex};
 
-#[allow(dead_code)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Hash {
-    CRC32(u32),
-    MD5([u8; 16]),
-    SHA1([u8; 20]),
-    XXH64(u64),
-}
-
-impl Hash {
-    pub fn get_crc32(&self) -> Option<u32> {
-        match self {
-            Hash::CRC32(crc32) => Some(*crc32),
-            _ => None,
-        }
-    }
-}
-
-static HASH_CACHE: LazyLock<Mutex<HashMap<[u8; 6], Vec<Hash>>>> =
+static HASH_CACHE: LazyLock<Mutex<HashMap<[u8; 6], DiscFinalization>>> =
     LazyLock::new(|| Mutex::new(HashMap::new()));
 
-fn cache_insert(key: [u8; 6], val: Hash) {
+fn cache_insert(id: [u8; 6], finalization: DiscFinalization) {
     if let Ok(mut map) = HASH_CACHE.lock() {
-        map.entry(key).or_default().push(val);
+        map.insert(id, finalization);
     }
 }
 
-pub fn cache_get(key: [u8; 6]) -> Option<Vec<Hash>> {
-    HASH_CACHE.lock().ok()?.get(&key).cloned()
+pub fn cache_get(id: [u8; 6]) -> Option<DiscFinalization> {
+    HASH_CACHE.lock().ok()?.get(&id).cloned()
 }
 
-#[allow(unused)]
-fn cache_remove(key: [u8; 6]) -> Option<Vec<Hash>> {
-    HASH_CACHE.lock().ok()?.remove(&key)
+#[allow(dead_code)]
+fn cache_remove(id: [u8; 6]) -> Option<DiscFinalization> {
+    HASH_CACHE.lock().ok()?.remove(&id)
 }
 
 /// Syncs the cache with the games
@@ -89,32 +71,14 @@ pub fn all(game: &Game, mut progress_callback: impl FnMut(u64, u64)) -> Result<b
             &ProcessOptions {
                 processor_threads,
                 digest_crc32: true,
-                digest_md5: true,
+                digest_md5: false,
                 digest_sha1: false,
                 digest_xxh64: false,
             },
         )
         .context("Failed to process disc for checksum calculation")?;
 
-    let crc32 = finalization
-        .crc32
-        .context("Failed to calculate CRC32 checksum")?;
-    cache_insert(game.id, Hash::CRC32(crc32));
-
-    let md5 = finalization
-        .md5
-        .context("Failed to calculate MD5 checksum")?;
-    cache_insert(game.id, Hash::MD5(md5));
-
-    //let sha1 = finalization
-    //    .sha1
-    //    .context("Failed to calculate SHA1 checksum")?;
-    //cache_insert(game.id, Hash::SHA1(sha1));
-
-    //let xxh64 = finalization
-    //    .xxh64
-    //    .context("Failed to calculate XXH64 checksum")?;
-    //cache_insert(game.id, Hash::XXH64(xxh64));
+    cache_insert(game.id, finalization);
 
     Ok(false)
 }
