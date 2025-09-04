@@ -1,5 +1,5 @@
 use crate::app::App;
-use crate::components;
+use crate::gui;
 use crate::messages::handle_messages;
 use eframe::{Storage, egui};
 
@@ -9,14 +9,14 @@ impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         handle_messages(self, ctx);
 
-        components::top_panel::ui_top_panel(ctx, self);
-        components::bottom_panel::ui_bottom_panel(ctx, self);
+        gui::top_panel::ui_top_panel(ctx, self);
+        gui::bottom_panel::ui_bottom_panel(ctx, self);
 
         egui::CentralPanel::default().show(ctx, |ui| {
-            components::game_grid::ui_game_grid(ui, self);
+            gui::game_grid::ui_game_grid(ui, self);
         });
 
-        components::settings::ui_settings_window(ctx, self);
+        gui::settings::ui_settings_window(ctx, self);
 
         self.top_left_toasts.show(ctx);
         self.bottom_left_toasts.show(ctx);
