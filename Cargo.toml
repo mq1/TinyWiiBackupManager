@@ -25,7 +25,6 @@ LegalCopyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-2.0-only
 
 
 [dependencies]
-iso2wbfs = { git = "https://github.com/mq1/iso2wbfs", tag = "v2.2.2" }
 egui_extras = { version = "0.32", default-features = false, features = ["image", "file"] }
 image = { version = "0.25", default-features = false, features = ["png"] }
 egui-notify = "0.20"
@@ -50,8 +49,11 @@ const-str = "0.7"
 strum = { version = "0.27", features = ["derive"] }
 egui-theme-switch = "0.4"
 minreq = { version = "2.14", features = ["https-native"] }
-dashmap = "6.1"
 flume = "0.11"
+tempfile = "3.21"
+walkdir = "2.5"
+num_cpus = "1.17"
+sanitize-filename-reader-friendly = "2.3"
 
 # Linux and macOS use the default eframe backend
 [target.'cfg(any(target_os = "linux", target_os = "macos"))'.dependencies]
