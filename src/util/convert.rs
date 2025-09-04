@@ -7,7 +7,7 @@
 
 use crate::settings::WiiOutputFormat;
 use crate::util::concurrency::get_threads_num;
-use crate::util::fs::{can_write_over_4gb, find_disc};
+use crate::util::fs::can_write_over_4gb;
 use anyhow::{Context, Result, bail};
 use nod::common::Format;
 use nod::read::{DiscOptions, DiscReader, PartitionEncryption};
@@ -16,7 +16,7 @@ use sanitize_filename_reader_friendly::sanitize;
 use std::fs::{self, File, OpenOptions};
 use std::io::{self, Seek, SeekFrom, Write};
 use std::path::{Path, PathBuf};
-use tracing::{debug, instrument, trace};
+use tracing::{debug, trace};
 
 /// The fixed split size for output files: 4 GiB - 32 KiB.
 const FIXED_SPLIT_SIZE: u64 = (4 * 1024 * 1024 * 1024) - (32 * 1024);

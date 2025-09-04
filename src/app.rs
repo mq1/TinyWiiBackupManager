@@ -5,12 +5,12 @@ use crate::base_dir::BaseDir;
 use crate::game::Game;
 use crate::gui::toasts;
 use crate::messages::BackgroundMessage;
-use crate::settings::{Settings, WiiOutputFormat};
+use crate::settings::Settings;
 use crate::task::TaskProcessor;
 use crate::update_check::{UpdateInfo, spawn_check_for_new_version_task};
 use crate::util::ext::SUPPORTED_INPUT_EXTENSIONS;
 use crate::{gui::console_filter::ConsoleFilter, util};
-use anyhow::{Context, Result, anyhow};
+use anyhow::{Context, Result};
 use egui_inbox::UiInbox;
 
 const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
