@@ -7,7 +7,7 @@ use crate::util::fs::find_disc;
 use anyhow::{Context, Result};
 use nod::read::{DiscOptions, DiscReader, PartitionEncryption};
 use nod::write::{DiscWriter, FormatOptions, ProcessOptions};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::{LazyLock, Mutex};
 
 #[allow(dead_code)]
@@ -44,6 +44,19 @@ pub fn cache_get(key: [u8; 6]) -> Option<Vec<Hash>> {
 #[allow(unused)]
 fn cache_remove(key: [u8; 6]) -> Option<Vec<Hash>> {
     HASH_CACHE.lock().ok()?.remove(&key)
+}
+
+/// Syncs the cache with the games
+/// Removes games that are not in the list
+/// So the cache only contains games that are in the list
+pub fn sync_games(games: &[Game]) {
+    if let Ok(mut cache) = HASH_CACHE.lock() {
+        // Get the set of game IDs we want to keep
+        let game_ids: HashSet<_> = games.iter().map(|g| g.id).collect();
+        
+        // Remove all entries that aren't in our current games list
+        cache.retain(|id, _| game_ids.contains(id));
+    }
 }
 
 /// Returns true if the checksum was already cached, false if it was calculated now
