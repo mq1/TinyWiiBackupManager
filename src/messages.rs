@@ -4,7 +4,7 @@
 use crate::app::App;
 use crate::game::Game;
 use crate::gui;
-use crate::update_check::UpdateInfo;
+use crate::util::update_check::UpdateInfo;
 use anyhow::Error;
 use eframe::egui;
 use std::sync::Arc;
