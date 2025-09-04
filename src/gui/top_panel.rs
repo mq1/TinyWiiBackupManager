@@ -3,7 +3,6 @@
 
 use crate::app::App;
 use crate::gui::fake_link::fake_link;
-use anyhow::anyhow;
 use eframe::egui;
 use size::Size;
 
