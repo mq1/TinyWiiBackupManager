@@ -32,10 +32,10 @@ pub fn game(
             preloader_threads,
         },
     )
-    .with_context(|| format!("Failed to read disc image: {input_path:?}"))?;
+    .with_context(|| format!("Failed to read disc image: {}", input_path.display()))?;
 
     let mut output_file = File::create(&output_path)
-        .with_context(|| format!("Failed to create output file: {output_path:?}"))?;
+        .with_context(|| format!("Failed to create output file: {}", output_path.display()))?;
 
     let options = FormatOptions {
         format: Format::Rvz,
