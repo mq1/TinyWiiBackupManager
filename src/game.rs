@@ -67,7 +67,7 @@ pub struct Game {
     pub info_opened: bool,
     pub is_corrupt: Option<bool>,
     pub is_verified: Option<bool>,
-    pub disc_meta: Option<DiscMeta>,
+    pub disc_meta: DiscMeta,
 }
 
 impl Game {
@@ -88,19 +88,15 @@ impl Game {
             ..Default::default()
         };
 
-        let header = util::meta::read_header(&game)?;
+        let (header, meta) = util::meta::read_header_and_meta(&game)?;
 
+        game.disc_meta = meta;
         game.id = header.game_id;
-        let id_str = header.game_id_str().to_string();
-        let info_url = format!("https://www.gametdb.com/Wii/{id_str}");
-        game.info_url = info_url;
-
-        game.id_str = id_str;
-
+        game.id_str = header.game_id_str().to_string();
         game.title = header.game_title_str().to_string();
 
-        let meta = util::meta::read_meta(&game).ok();
-        game.disc_meta = meta;
+        let info_url = format!("https://www.gametdb.com/Wii/{}", game.id_str);
+        game.info_url = info_url;
 
         let info = GAMES.get(&game.id).cloned().cloned();
 
@@ -111,12 +107,9 @@ impl Game {
         };
         game.display_title = display_title;
 
-        let disc_meta = util::meta::read_meta(&game).ok();
-
         // Verify the game using the embedded CRC from the disc metadata
         // This verifies if the game is a good redump dump
-        let is_verified = if let Some(meta) = disc_meta
-            && let Some(crc32) = meta.crc32
+        let is_verified = if let Some(crc32) = game.disc_meta.crc32
             && let Some(info) = info
         {
             Some(info.crc_list.contains(&crc32))
