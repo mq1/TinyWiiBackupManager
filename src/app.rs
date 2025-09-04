@@ -156,6 +156,8 @@ impl App {
             (self.games, self.base_dir_size) = base_dir.get_games()?;
         }
 
+        util::checksum::sync_games(&self.games);
+
         Ok(())
     }
 
