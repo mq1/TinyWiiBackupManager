@@ -5,10 +5,7 @@ use crate::gui::game_checks::ui_game_checks;
 use crate::gui::game_info::ui_game_info_window;
 use crate::messages::BackgroundMessage;
 use crate::task::TaskProcessor;
-use crate::{
-    app::App,
-    game::{ConsoleType, Game},
-};
+use crate::{app::App, game::Game};
 use eframe::egui::{self, Button, Image, RichText};
 use egui_inbox::UiInboxSender;
 use size::Size;

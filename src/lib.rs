@@ -1,9 +1,6 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
-use const_format::{Case, concatcp, map_ascii_case, str_split};
-use const_str::join;
-
 pub const PRODUCT_NAME: &str = "TinyWiiBackupManager";
 
 pub mod app;
