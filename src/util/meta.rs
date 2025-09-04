@@ -22,7 +22,7 @@ fn fallback_md5(path: impl AsRef<Path>) -> Result<[u8; 16]> {
     if magic != [0x4d, 0x44, 0x35, 0x23] {
         bail!("Invalid md5 magic");
     }
-    
+
     // Read the MD5
     let mut md5 = [0; 16];
     file.read_exact(&mut md5)?;
@@ -38,8 +38,8 @@ pub fn read_header_and_meta(game: &Game) -> Result<(DiscHeader, DiscMeta)> {
     let mut meta = reader.meta();
 
     // If the .wbfs file was created by Wii Backup Manager, the MD5 is stored at 0x2EC
-    if meta.md5.is_none() && meta.format == Format::Wbfs && !meta.lossless {
-        meta.md5 = fallback_md5(path).ok()
+    if let Ok(md5) = fallback_md5(&path) {
+        meta.md5 = Some(md5);
     }
 
     Ok((header, meta))
