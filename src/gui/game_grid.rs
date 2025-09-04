@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
-use crate::components::game_checks::ui_game_checks;
-use crate::components::game_info::ui_game_info_window;
+use crate::gui::game_checks::ui_game_checks;
+use crate::gui::game_info::ui_game_info_window;
 use crate::messages::BackgroundMessage;
 use crate::task::TaskProcessor;
 use crate::{
@@ -73,10 +73,7 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
                 // Top row with console label on the left and size label on the right
                 ui.horizontal(|ui| {
                     // Console label on the left
-                    ui.label(match game.console {
-                        ConsoleType::GameCube => "🎮 GC",
-                        ConsoleType::Wii => "🎾 Wii",
-                    });
+                    ui.label(game.console.as_ref());
 
                     // Game checks on the left
                     ui_game_checks(ui, game);

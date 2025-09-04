@@ -2,8 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use crate::app::App;
-use crate::components::fake_link::fake_link;
-use crate::wiitdb::spawn_download_database_task;
+use crate::gui::fake_link::fake_link;
 use anyhow::anyhow;
 use eframe::egui;
 use size::Size;
@@ -63,7 +62,7 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                         .on_hover_text("Download the latest wiitdb.xml database from GameTDB")
                         .clicked()
                     {
-                        spawn_download_database_task(app);
+                        app.spawn_download_database_task();
                     }
 
                     // Download covers option

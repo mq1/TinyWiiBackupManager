@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use crate::app::App;
-use crate::components;
 use crate::game::Game;
+use crate::gui;
 use crate::update_check::UpdateInfo;
 use anyhow::Error;
 use eframe::egui;
@@ -53,16 +53,16 @@ pub fn handle_messages(app: &mut App, ctx: &egui::Context) {
             BackgroundMessage::Error(e) => {
                 error!("{e:?}");
                 let msg = format!("{e:#}");
-                components::toasts::show_error_toast(app, &msg);
+                gui::toasts::show_error_toast(app, &msg);
             }
 
             BackgroundMessage::Info(msg) => {
                 info!("{msg}");
-                components::toasts::show_info_toast(app, &msg);
+                gui::toasts::show_info_toast(app, &msg);
             }
 
             BackgroundMessage::GotUpdate(update) => {
-                components::toasts::show_update_toast(app, &update);
+                gui::toasts::show_update_toast(app, &update);
                 app.update_info = update;
             }
 

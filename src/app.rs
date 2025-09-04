@@ -2,14 +2,15 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use crate::base_dir::BaseDir;
-use crate::components::toasts;
 use crate::game::Game;
+use crate::gui::toasts;
 use crate::messages::BackgroundMessage;
 use crate::settings::{Settings, WiiOutputFormat};
 use crate::task::TaskProcessor;
 use crate::update_check::{UpdateInfo, spawn_check_for_new_version_task};
-use crate::{SUPPORTED_INPUT_EXTENSIONS, components::console_filter::ConsoleFilter};
-use anyhow::{Result, anyhow};
+use crate::util::ext::SUPPORTED_INPUT_EXTENSIONS;
+use crate::{gui::console_filter::ConsoleFilter, util};
+use anyhow::{Context, Result, anyhow};
 use egui_inbox::UiInbox;
 
 const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -202,12 +203,6 @@ impl App {
             .add_filter("Wii/GC Disc", SUPPORTED_INPUT_EXTENSIONS)
             .pick_files();
 
-        let wii_output_format = match self.settings.wii_output_format {
-            WiiOutputFormat::WbfsAuto => iso2wbfs::WiiOutputFormat::WbfsAuto,
-            WiiOutputFormat::WbfsFixed => iso2wbfs::WiiOutputFormat::WbfsFixed,
-            WiiOutputFormat::Iso => iso2wbfs::WiiOutputFormat::Iso,
-        };
-
         if let Some(paths) = paths
             && let Some(base_dir) = &self.base_dir
         {
@@ -216,33 +211,30 @@ impl App {
 
             for path in paths {
                 let base_dir = base_dir.clone();
-                let wii_output_format = wii_output_format.clone();
+                let wii_output_format = self.settings.wii_output_format;
 
                 self.task_processor.spawn_task(move |ui_sender| {
-                    let file_name = path
-                        .file_name()
-                        .ok_or(anyhow!("Invalid path"))?
-                        .to_str()
-                        .ok_or(anyhow!("Invalid path"))?;
-
                     let cloned_ui_sender = ui_sender.clone();
-                    let callback = move |current, total| {
-                        let status = format!(
-                            "📄➡🖴  {:02.0}%  {}",
-                            current as f32 / total as f32 * 100.0,
-                            &file_name,
-                        );
+                    let file_name = path.file_name();
 
-                        let _ = cloned_ui_sender.send(BackgroundMessage::UpdateStatus(status));
-                    };
+                    util::convert::convert(
+                        &path,
+                        base_dir.path(),
+                        wii_output_format,
+                        move |current, total| {
+                            let status = format!(
+                                "📄➡🖴  {:02.0}%  {:?}",
+                                current as f32 / total as f32 * 100.0,
+                                file_name
+                            );
 
-                    iso2wbfs::convert(&path, base_dir.path(), wii_output_format, callback)?;
+                            let _ = cloned_ui_sender.send(BackgroundMessage::UpdateStatus(status));
+                        },
+                    )?;
 
                     let _ = ui_sender.send(BackgroundMessage::DirectoryChanged);
-                    let _ = ui_sender.send(BackgroundMessage::Info(format!(
-                        "Converted {}",
-                        path.display()
-                    )));
+                    let _ =
+                        ui_sender.send(BackgroundMessage::Info(format!("Converted {file_name:?}")));
 
                     if remove_sources {
                         std::fs::remove_file(&path)?;
@@ -263,6 +255,28 @@ impl App {
     pub fn total_integrity_check(&mut self) {
         for game in &self.games {
             game.spawn_integrity_check_task(&self.task_processor);
+        }
+    }
+
+    pub fn spawn_download_database_task(&self) {
+        if let Some(base_dir) = &self.base_dir {
+            let base_dir = base_dir.clone();
+
+            self.task_processor.spawn_task(move |ui_sender| {
+                // Send an initial message to the UI.
+                let _ = ui_sender.send(BackgroundMessage::UpdateStatus(
+                    "Downloading wiitdb.zip...".to_string(),
+                ));
+
+                util::wiitdb::download_and_extract_database(&base_dir)
+                    .context("Failed to download and extract the database")?;
+
+                let _ = ui_sender.send(BackgroundMessage::Info(
+                    "wiitdb.zip downloaded and extracted successfully.".to_string(),
+                ));
+
+                Ok(())
+            });
         }
     }
 }
