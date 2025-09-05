@@ -30,6 +30,7 @@ pub fn game(
         &DiscOptions {
             partition_encryption: PartitionEncryption::Original,
             preloader_threads,
+            strip_partitions: vec![],
         },
     )
     .with_context(|| format!("Failed to read disc image: {}", input_path.display()))?;
