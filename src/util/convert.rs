@@ -16,7 +16,7 @@ use sanitize_filename_reader_friendly::sanitize;
 use std::fs::{self, File};
 use std::io::{Seek, Write};
 use std::path::Path;
-use crate::util::split_file::SplitWbfsFile;
+use crate::util::split::SplitWbfsFile;
 
 /// The fixed split size for output files: 4 GiB - 32 KiB.
 const FIXED_SPLIT_SIZE: usize = (4 * 1024 * 1024 * 1024) - (32 * 1024);
