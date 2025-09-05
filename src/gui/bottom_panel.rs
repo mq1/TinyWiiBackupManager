@@ -3,7 +3,6 @@
 
 use crate::{app::App, gui::console_filter::ui_console_filter};
 use eframe::egui;
-use eframe::egui::Label;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -25,7 +24,10 @@ pub fn ui_bottom_panel(ctx: &egui::Context, app: &mut App) {
 
                 ui.separator();
 
-                ui.add(Label::new(status).truncate());
+                // Label::new(status).truncate() does not truncate the text for some reason
+                let truncated = status.chars().take(50).collect::<String>();
+                let dots = if status.len() > 50 { "..." } else { "" };
+                ui.label(format!("{truncated}{dots}"));
             }
             // If the app is idle, show the update notifier and version
             else {
