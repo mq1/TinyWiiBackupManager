@@ -2402,8 +2402,7 @@ dependencies = [
 [[package]]
 name = "nod"
 version = "2.0.0-alpha.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b69efaa8c558a5c61b0935d3819abe65555abf10676020a5a95ea2601c1e2c04"
+source = "git+https://github.com/mq1/nod.git?branch=strip-partitions#3155542f4600eb4602c1f16d6251bdf571b7e6d5"
 dependencies = [
  "adler",
  "aes",
