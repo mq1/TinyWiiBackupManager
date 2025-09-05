@@ -10,3 +10,4 @@ mod fs;
 pub mod meta;
 pub mod wiitdb;
 pub mod update_check;
+mod split;

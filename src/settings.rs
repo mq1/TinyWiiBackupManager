@@ -15,7 +15,19 @@ pub enum WiiOutputFormat {
     Iso,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, AsRefStr, EnumIter, Copy)]
+pub enum StripPartitions {
+    #[default]
+    #[strum(serialize = "🛡 Keep all partitions (passes redump verification)")]
+    No,
+    #[strum(serialize = "🗑 Remove the update partition (safe but fails redump verification)")]
+    Update,
+    #[strum(serialize = "⚠ Remove everything but the game partition (breaks some games and fails redump verification)")]
+    All,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Settings {
     pub wii_output_format: WiiOutputFormat,
+    pub strip_partitions: StripPartitions,
 }
