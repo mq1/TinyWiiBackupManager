@@ -13,129 +13,14 @@ use nod::common::Format;
 use nod::read::{DiscOptions, DiscReader, PartitionEncryption};
 use nod::write::{DiscWriter, FormatOptions, ProcessOptions};
 use sanitize_filename_reader_friendly::sanitize;
-use std::fs::{self, File, OpenOptions};
-use std::io::{self, Seek, SeekFrom, Write};
-use std::path::{Path, PathBuf};
-use tracing::{debug, trace};
+use std::fs::{self, File};
+use std::io::{Seek, Write};
+use std::path::Path;
+use crate::util::split::SplitWbfsFile;
 
 /// The fixed split size for output files: 4 GiB - 32 KiB.
-const FIXED_SPLIT_SIZE: u64 = (4 * 1024 * 1024 * 1024) - (32 * 1024);
-
-/// Manages writing data across multiple split files for WBFS.
-struct SplitWriter {
-    base_path: PathBuf,
-    split_size: u64,
-    files: Vec<Option<File>>,
-    total_written: u64,
-}
-
-impl SplitWriter {
-    /// Creates a new `SplitWriter`.
-    /// The `base_path` should not include an extension.
-    fn new(base_path: &Path, split_size: u64) -> Self {
-        Self {
-            base_path: base_path.to_path_buf(),
-            split_size,
-            files: Vec::new(),
-            total_written: 0,
-        }
-    }
-
-    /// Generates the filename for a given split index. This is an internal helper.
-    /// index 0 -> .wbfs
-    /// index 1 -> .wbf1
-    /// ...
-    fn get_filename(&self, index: usize) -> PathBuf {
-        let ext = match index {
-            0 => "wbfs",
-            n => &format!("wbf{n}"),
-        };
-        self.base_path.with_extension(ext)
-    }
-
-    /// Writes a buffer of data sequentially.
-    fn write_all(&mut self, mut buf: &[u8]) -> io::Result<()> {
-        trace!(
-            bytes = buf.len(),
-            offset = self.total_written,
-            "Writing data sequentially"
-        );
-        let split_size = self.split_size; // Avoid borrow checker issue.
-        while !buf.is_empty() {
-            let split_index = (self.total_written / split_size) as usize;
-            let offset_in_split = self.total_written % split_size;
-
-            let file = self.get_file(split_index)?;
-
-            let bytes_to_write = (split_size - offset_in_split).min(buf.len() as u64) as usize;
-            file.write_all(&buf[..bytes_to_write])?;
-
-            buf = &buf[bytes_to_write..];
-            self.total_written += bytes_to_write as u64;
-        }
-        Ok(())
-    }
-
-    /// Writes a buffer of data at a specific absolute offset.
-    fn write_all_at(&mut self, offset: u64, buf: &[u8]) -> io::Result<()> {
-        trace!(bytes = buf.len(), offset, "Writing data at absolute offset");
-        let split_index = (offset / self.split_size) as usize;
-        let offset_in_split = offset % self.split_size;
-
-        let file = self.get_file(split_index)?;
-        file.seek(SeekFrom::Start(offset_in_split))?;
-        file.write_all(buf)
-    }
-
-    /// Opens (or gets a handle to) the file for a given split index.
-    fn get_file(&mut self, index: usize) -> io::Result<&mut File> {
-        if index >= self.files.len() {
-            self.files.resize_with(index + 1, || None);
-        }
-
-        if self.files[index].is_none() {
-            let filename = self.get_filename(index);
-            debug!(path = %filename.display(), "Opening split file for writing");
-            let file = OpenOptions::new()
-                .write(true)
-                .create(true)
-                .truncate(true)
-                .open(&filename)?;
-            self.files[index] = Some(file);
-        }
-
-        Ok(self.files[index].as_mut().unwrap())
-    }
-
-    /// Truncates the files to match the final total size.
-    fn finalize(&mut self) -> io::Result<()> {
-        let mut remaining_size = self.total_written;
-        debug!(
-            final_size = self.total_written,
-            "Finalizing WBFS files. Truncating..."
-        );
-
-        for i in 0..self.files.len() {
-            let filename = self.get_filename(i);
-            if remaining_size > 0 {
-                if let Some(file) = self.files[i].as_mut() {
-                    let size_for_this_file = remaining_size.min(self.split_size);
-                    trace!(
-                        path = %filename.display(),
-                        size = size_for_this_file,
-                        "Truncating file"
-                    );
-                    file.set_len(size_for_this_file)?;
-                    remaining_size -= size_for_this_file;
-                }
-            } else if filename.exists() {
-                trace!(path = %filename.display(), "Removing unused split file");
-                fs::remove_file(&filename)?;
-            }
-        }
-        Ok(())
-    }
-}
+const FIXED_SPLIT_SIZE: usize = (4 * 1024 * 1024 * 1024) - (32 * 1024);
+const NO_SPLIT_SIZE: usize = usize::MAX;
 
 /// Returns true if the game is already present in the output directory.
 pub fn convert(
@@ -177,16 +62,16 @@ pub fn convert(
         return Ok(true);
     }
 
+    fs::create_dir_all(&game_output_dir).with_context(|| {
+        format!("Failed to create directory: {}", game_output_dir.display())
+    })?;
+
     if header.is_wii() {
         let split_size = match (can_write_over_4gb(output_dir), wii_output_format) {
-            (true, WiiOutputFormat::WbfsAuto | WiiOutputFormat::Iso) => u64::MAX,
+            (true, WiiOutputFormat::WbfsAuto | WiiOutputFormat::Iso) => NO_SPLIT_SIZE,
             (_, WiiOutputFormat::WbfsFixed | WiiOutputFormat::WbfsAuto) => FIXED_SPLIT_SIZE,
             (false, WiiOutputFormat::Iso) => bail!("Can't create ISO file on this platform"),
         };
-
-        fs::create_dir_all(&game_output_dir).with_context(|| {
-            format!("Failed to create directory: {}", game_output_dir.display())
-        })?;
 
         let base_path = game_output_dir.join(game_id);
 
@@ -194,7 +79,7 @@ pub fn convert(
             wii_output_format,
             WiiOutputFormat::WbfsAuto | WiiOutputFormat::WbfsFixed
         ) {
-            let mut split_writer = SplitWriter::new(&base_path, split_size);
+            let mut writer = SplitWbfsFile::new(&base_path, split_size)?;
             let format_options = FormatOptions::new(Format::Wbfs);
             let disc_writer = DiscWriter::new(disc, &format_options)
                 .context("Failed to initialize WBFS writer")?;
@@ -210,9 +95,7 @@ pub fn convert(
             let finalization = disc_writer
                 .process(
                     |data, progress, total| {
-                        if !data.is_empty() {
-                            split_writer.write_all(data.as_ref())?;
-                        }
+                        writer.write(&data)?;
                         progress_callback(progress, total);
                         Ok(())
                     },
@@ -221,24 +104,14 @@ pub fn convert(
                 .context("Failed to process disc for WBFS conversion")?;
 
             if !finalization.header.is_empty() {
-                split_writer
-                    .write_all_at(0, finalization.header.as_ref())
-                    .context("Failed to write final WBFS header")?;
+                writer.write_to_start(&finalization.header).context("Failed to write header")?;
             }
-
-            split_writer
-                .finalize()
-                .context("Failed to finalize split writer")?;
         } else {
             let out_path = base_path.with_extension("iso");
             let mut out_file = File::create(&out_path).context("Failed to create output file")?;
             nod::util::buf_copy(&mut disc, &mut out_file).context("Failed to copy data")?;
         }
     } else if header.is_gamecube() {
-        fs::create_dir_all(&game_output_dir).with_context(|| {
-            format!("Failed to create directory: {}", game_output_dir.display())
-        })?;
-
         let iso_filename = match header.disc_num {
             0 => "game.iso".to_string(),
             n => format!("disc{}.iso", n + 1),
@@ -267,9 +140,7 @@ pub fn convert(
         let finalization = disc_writer
             .process(
                 |data, progress, total| {
-                    if !data.is_empty() {
-                        out_file.write_all(data.as_ref())?;
-                    }
+                    out_file.write_all(&data)?;
                     progress_callback(progress, total);
                     Ok(())
                 },
@@ -280,10 +151,9 @@ pub fn convert(
         if !finalization.header.is_empty() {
             out_file.rewind().context("Failed to rewind output file")?;
             out_file
-                .write_all(finalization.header.as_ref())
+                .write_all(&finalization.header)
                 .context("Failed to write final CISO header")?;
         }
-        out_file.flush().context("Failed to flush output file")?;
     }
 
     Ok(false)
