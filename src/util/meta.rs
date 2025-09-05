@@ -10,6 +10,7 @@ use nod::read::{DiscOptions, DiscReader};
 use std::fs::File;
 use std::io::{Read, Seek, SeekFrom};
 use std::path::Path;
+use nod::common::PartitionInfo;
 
 /// Reads the MD5 from the .wbfs file at 0x2EC
 ///
@@ -34,7 +35,7 @@ fn fallback_md5(path: impl AsRef<Path>) -> Result<[u8; 16]> {
     Ok(md5)
 }
 
-pub fn read_header_and_meta(game: &Game) -> Result<(DiscHeader, DiscMeta)> {
+pub fn read_header_and_meta_and_partitions(game: &Game) -> Result<(DiscHeader, DiscMeta, Vec<PartitionInfo>)> {
     let path = find_disc(game)?;
     let reader = DiscReader::new(&path, &DiscOptions::default())?;
 
@@ -47,5 +48,7 @@ pub fn read_header_and_meta(game: &Game) -> Result<(DiscHeader, DiscMeta)> {
     //    meta.md5 = Some(md5);
     //}
 
-    Ok((header, meta))
+    let partitions = reader.partitions().to_vec();
+
+    Ok((header, meta, partitions))
 }

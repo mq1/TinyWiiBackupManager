@@ -5,11 +5,11 @@
 //! default behavior of `wbfs_file v2.9` for Wii and creating NKit-compatible
 //! scrubbed ISOs for GameCube.
 
-use crate::settings::WiiOutputFormat;
+use crate::settings::{StripPartitions, WiiOutputFormat};
 use crate::util::concurrency::get_threads_num;
 use crate::util::fs::can_write_over_4gb;
 use anyhow::{Context, Result, bail};
-use nod::common::Format;
+use nod::common::{Format, PartitionKind};
 use nod::read::{DiscOptions, DiscReader, PartitionEncryption};
 use nod::write::{DiscWriter, FormatOptions, ProcessOptions};
 use sanitize_filename_reader_friendly::sanitize;
@@ -27,6 +27,7 @@ pub fn convert(
     input_path: impl AsRef<Path>,
     output_dir: impl AsRef<Path>,
     wii_output_format: WiiOutputFormat,
+    strip: StripPartitions,
     mut progress_callback: impl FnMut(u64, u64),
 ) -> Result<bool> {
     let input_path = input_path.as_ref();
@@ -39,9 +40,32 @@ pub fn convert(
         &DiscOptions {
             partition_encryption: PartitionEncryption::Original,
             preloader_threads,
+            strip_partitions: vec![],
         },
-    )
-    .with_context(|| format!("Failed to read disc image: {}", input_path.display()))?;
+    ).with_context(|| format!("Failed to read disc image: {}", input_path.display()))?;
+
+    let to_strip = match strip {
+        StripPartitions::No => vec![],
+        StripPartitions::Update => disc.partitions().iter()
+            .filter(|p| p.kind == PartitionKind::Update)
+            .map(|p| p.index)
+            .collect(),
+        StripPartitions::All => disc.partitions().iter()
+            .filter(|p| p.kind != PartitionKind::Data)
+            .map(|p| p.index)
+            .collect(),
+    };
+
+    if !to_strip.is_empty() {
+        disc = DiscReader::new(
+            &input_path,
+            &DiscOptions {
+                partition_encryption: PartitionEncryption::Original,
+                preloader_threads,
+                strip_partitions: to_strip,
+            },
+        ).with_context(|| format!("Failed to read disc image: {}", input_path.display()))?;
+    }
 
     let header = disc.header();
     let game_id = header.game_id_str();
