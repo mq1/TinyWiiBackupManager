@@ -30,7 +30,6 @@ image = { version = "0.25", default-features = false, features = ["png"] }
 egui-notify = "0.20"
 egui_inbox = "0.9"
 rfd = "0.15"
-phf = { version = "0.13", default-features = false }
 anyhow = "1.0"
 semver = "1.0"
 fs_extra = "1.3"
@@ -44,7 +43,7 @@ const_format = { version = "0.2", features = ["rust_1_64"] }
 nod = "2.0.0-alpha.3"
 hex = "0.4"
 serde = { version = "1.0", features = ["derive"] }
-zip = { version = "4.6", default-features = false, features = ["deflate"] }
+zip = { version = "5.0", default-features = false, features = ["deflate"] }
 const-str = "0.7"
 strum = { version = "0.27", features = ["derive"] }
 egui-theme-switch = "0.4"
@@ -54,6 +53,9 @@ tempfile = "3.21"
 walkdir = "2.5"
 num_cpus = "1.17"
 sanitize-filename-reader-friendly = "2.3"
+quick-xml = { version = "0.38", features = ["serialize"] }
+time = { version = "0.3", features = ["parsing", "serde"] }
+phf = { version = "0.13", features = ["macros"] }
 
 # Linux and macOS use the default eframe backend
 [target.'cfg(any(target_os = "linux", target_os = "macos"))'.dependencies]

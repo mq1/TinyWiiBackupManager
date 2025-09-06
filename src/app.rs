@@ -7,16 +7,26 @@ use crate::gui::toasts;
 use crate::messages::BackgroundMessage;
 use crate::settings::Settings;
 use crate::task::TaskProcessor;
-use crate::util::update_check::{UpdateInfo, check_for_new_version};
 use crate::util::ext::SUPPORTED_INPUT_EXTENSIONS;
+use crate::util::update_check::{UpdateInfo, check_for_new_version};
+use crate::util::wiiapps::WiiApp;
 use crate::{gui::console_filter::ConsoleFilter, util};
 use anyhow::{Context, Result};
+use eframe::egui;
 use egui_inbox::UiInbox;
 
 const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum View {
+    Games,
+    WiiApps,
+}
+
 /// Main application state and UI controller.
 pub struct App {
+    /// Current view
+    pub view: View,
     /// Directory where the "wbfs" and "games" directories are located
     pub base_dir: Option<BaseDir>,
     /// List of discovered games
@@ -29,12 +39,14 @@ pub struct App {
     watcher: Option<notify::RecommendedWatcher>,
     /// Whether to remove sources after conversion
     pub remove_sources: bool,
+    /// Whether to remove sources after conversion
+    pub remove_sources_wiiapps: bool,
     /// Console filter state
     pub console_filter: ConsoleFilter,
     /// Update info
     pub update_info: Option<UpdateInfo>,
     /// Toasts
-    pub top_left_toasts: egui_notify::Toasts,
+    pub top_right_toasts: egui_notify::Toasts,
     pub bottom_left_toasts: egui_notify::Toasts,
     pub bottom_right_toasts: egui_notify::Toasts,
     /// Status
@@ -44,6 +56,8 @@ pub struct App {
     /// Settings
     pub settings: Settings,
     pub settings_window_open: bool,
+    /// List of discovered apps
+    pub wiiapps: Vec<WiiApp>,
 }
 
 impl App {
@@ -83,7 +97,9 @@ impl App {
 
         // Initialize app and toasts
         let mut app = Self {
-            top_left_toasts: toasts::create_toasts(egui_notify::Anchor::TopLeft),
+            view: View::Games,
+            top_right_toasts: toasts::create_toasts(egui_notify::Anchor::TopRight)
+                .with_margin(egui::vec2(49.0, 36.0)),
             bottom_left_toasts: toasts::create_toasts(egui_notify::Anchor::BottomLeft),
             bottom_right_toasts: toasts::create_toasts(egui_notify::Anchor::BottomRight),
             inbox,
@@ -92,12 +108,14 @@ impl App {
             games: Vec::new(),
             base_dir_size: 0,
             remove_sources: false,
+            remove_sources_wiiapps: false,
             console_filter: ConsoleFilter::default(),
             update_info: None,
             watcher: None,
             task_status: None,
             settings,
             settings_window_open: false,
+            wiiapps: Vec::new(),
         };
 
         // If the base directory isn't set or no longer exists, prompt the user to select one.
@@ -115,6 +133,9 @@ impl App {
             let _ = sender.send(e.into());
         }
         if let Err(e) = app.refresh_games() {
+            let _ = sender.send(e.into());
+        }
+        if let Err(e) = app.refresh_wiiapps() {
             let _ = sender.send(e.into());
         }
 
@@ -153,10 +174,19 @@ impl App {
 
     pub fn refresh_games(&mut self) -> Result<()> {
         if let Some(base_dir) = &self.base_dir {
-            (self.games, self.base_dir_size) = base_dir.get_games()?;
+            self.games = base_dir.get_games()?;
+            self.base_dir_size = base_dir.size()?;
+            util::checksum::sync_games(&self.games);
         }
 
-        util::checksum::sync_games(&self.games);
+        Ok(())
+    }
+
+    pub fn refresh_wiiapps(&mut self) -> Result<()> {
+        if let Some(base_dir) = &self.base_dir {
+            self.wiiapps = util::wiiapps::get_installed(base_dir)?;
+            self.base_dir_size = base_dir.size()?;
+        }
 
         Ok(())
     }
@@ -208,7 +238,6 @@ impl App {
         if let Some(paths) = paths
             && let Some(base_dir) = &self.base_dir
         {
-            let base_dir = base_dir.clone();
             let remove_sources = self.remove_sources;
 
             for path in paths {
@@ -256,6 +285,38 @@ impl App {
                 let _ = ui_sender.send(BackgroundMessage::TriggerDownloadCovers);
                 Ok(())
             })
+        }
+    }
+
+    pub fn add_wiiapps(&mut self) {
+        let paths = rfd::FileDialog::new()
+            .set_title("Select Wii App(s)")
+            .add_filter("Wii App", &["zip", "ZIP"])
+            .pick_files();
+
+        if let Some(paths) = paths
+            && let Some(base_dir) = &self.base_dir
+        {
+            let remove_sources = self.remove_sources_wiiapps;
+
+            for path in paths {
+                let base_dir = base_dir.clone();
+
+                self.task_processor.spawn_task(move |ui_sender| {
+                    let _ = ui_sender.send(BackgroundMessage::UpdateStatus(format!(
+                        "Adding Wii App: {}",
+                        path.file_name().unwrap().to_str().unwrap()
+                    )));
+
+                    base_dir.add_zip(&path)?;
+
+                    if remove_sources {
+                        std::fs::remove_file(&path)?;
+                    }
+
+                    Ok(())
+                });
+            }
         }
     }
 

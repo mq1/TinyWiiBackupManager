@@ -42,12 +42,8 @@ pub fn show_update_toast(app: &mut App, update: &Option<UpdateInfo>) {
 }
 
 pub fn prompt_for_base_directory(app: &mut App) {
-    app.top_left_toasts
-        .custom(
-            "Click on \"📄 File\" to select a Drive/Directory    ",
-            "⬆".to_string(),
-            egui::Color32::GRAY,
-        )
+    app.top_right_toasts
+        .info("Click on \"☰\" to select a Drive/Directory  ⬆")
         .closable(false)
         .duration(None);
 }
