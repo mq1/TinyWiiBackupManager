@@ -5,6 +5,14 @@ use crate::game::Game;
 use eframe::egui;
 
 pub fn ui_game_checks(ui: &mut egui::Ui, game: &Game) {
+    // Stripped label
+    if game.is_stripped {
+        ui.label("✂")
+            .on_hover_text("✂ Game is stripped");
+
+        return;
+    }
+
     // Verified label
     match game.is_verified {
         Some(true) => {
