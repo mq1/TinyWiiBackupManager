@@ -18,11 +18,11 @@ pub enum WiiOutputFormat {
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, AsRefStr, EnumIter, Copy)]
 pub enum StripPartitions {
     #[default]
-    #[strum(serialize = "🛡 Keep all partitions (passes redump verification)")]
+    #[strum(serialize = "🛡 Keep all (recommended)")]
     No,
-    #[strum(serialize = "🗑 Remove the update partition (safe but fails redump verification)")]
+    #[strum(serialize = "🗑 Remove Update (integrity check disabled)")]
     Update,
-    #[strum(serialize = "⚠ Remove everything but the game partition (breaks some games and fails redump verification)")]
+    #[strum(serialize = "⚠ Remove all but Game (integrity check disabled, not recommended)")]
     All,
 }
 
