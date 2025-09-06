@@ -54,6 +54,7 @@ tempfile = "3.21"
 walkdir = "2.5"
 num_cpus = "1.17"
 sanitize-filename-reader-friendly = "2.3"
+quick-xml = { version = "0.38", features = ["serialize"] }
 
 # Linux and macOS use the default eframe backend
 [target.'cfg(any(target_os = "linux", target_os = "macos"))'.dependencies]

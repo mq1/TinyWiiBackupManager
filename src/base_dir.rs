@@ -103,7 +103,7 @@ impl BaseDir {
     }
 
     /// Scans the "wbfs" and "games" directories and get the list of games and the size of the base directory
-    pub fn get_games(&self) -> Result<(Vec<Game>, u64)> {
+    pub fn get_games(&self) -> Result<Vec<Game>> {
         let mut games = Vec::new();
         scan_dir(self.wii_dir(), &mut games, ConsoleType::Wii)?;
         scan_dir(self.gc_dir(), &mut games, ConsoleType::GameCube)?;
@@ -111,10 +111,11 @@ impl BaseDir {
         // Sort the combined vector
         games.sort_by(|a, b| a.display_title.cmp(&b.display_title));
 
-        // sum the sizes of each game object
-        let base_dir_size = games.iter().fold(0, |acc, game| acc + game.size);
+        Ok(games)
+    }
 
-        Ok((games, base_dir_size))
+    pub fn size(&self) -> fs_extra::error::Result<u64> {
+        fs_extra::dir::get_size(&self.0)
     }
 
     /// Run dot_clean to clean up MacOS ._ files
