@@ -2,14 +2,26 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use crate::base_dir::BaseDir;
-use anyhow::{Result, anyhow, bail};
+use anyhow::{Result, bail};
+use serde::Deserialize;
 use std::fs;
 use std::path::PathBuf;
 
-pub struct WiiApp {
+#[derive(Deserialize)]
+pub struct WiiAppMeta {
     pub name: String,
+    pub coder: String,
+    pub version: String,
+    pub release_date: String,
+    pub short_description: String,
+    pub long_description: String,
+}
+
+pub struct WiiApp {
     pub path: PathBuf,
     pub size: u64,
+    pub icon_uri: String,
+    pub meta: WiiAppMeta,
 }
 
 impl WiiApp {
@@ -18,15 +30,20 @@ impl WiiApp {
             bail!("Path is not a directory");
         }
 
-        let name = path
-            .file_name()
-            .ok_or(anyhow!("Invalid path"))?
-            .to_string_lossy()
-            .to_string();
-
         let size = fs_extra::dir::get_size(&path)?;
 
-        Ok(Self { name, path, size })
+        let icon_uri = format!("file://{}", path.join("icon.png").display());
+
+        let meta_path = path.join("meta.xml");
+        let meta_file = fs::read_to_string(meta_path)?;
+        let meta = quick_xml::de::from_str(&meta_file)?;
+
+        Ok(Self {
+            path,
+            size,
+            icon_uri,
+            meta,
+        })
     }
 }
 

@@ -4,6 +4,7 @@ use crate::messages::handle_messages;
 use eframe::egui::ViewportCommand;
 use eframe::{Storage, egui};
 use size::Size;
+use std::fmt::format;
 
 const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -13,12 +14,20 @@ impl eframe::App for App {
 
         // Update window title
         let dir_text = if let Some(base_dir) = &self.base_dir {
-            format!(
-                " • {} games in {} ({})",
-                self.games.len(),
-                base_dir.name(),
-                Size::from_bytes(self.base_dir_size)
-            )
+            match self.view {
+                View::Games => format!(
+                    " • {} games in {} ({})",
+                    self.games.len(),
+                    base_dir.name(),
+                    Size::from_bytes(self.base_dir_size)
+                ),
+                View::WiiApps => format!(
+                    "• {} apps in {} ({})",
+                    self.wiiapps.len(),
+                    base_dir.name(),
+                    Size::from_bytes(self.base_dir_size)
+                ),
+            }
         } else {
             String::new()
         };
