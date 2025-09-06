@@ -169,10 +169,10 @@ impl App {
 
     pub fn refresh_games(&mut self) -> Result<()> {
         if let Some(base_dir) = &self.base_dir {
-            (self.games, self.base_dir_size) = base_dir.get_games()?;
+            self.games = base_dir.get_games()?;
+            self.base_dir_size = base_dir.size()?;
+            util::checksum::sync_games(&self.games);
         }
-
-        util::checksum::sync_games(&self.games);
 
         Ok(())
     }
@@ -180,6 +180,7 @@ impl App {
     pub fn refresh_wiiapps(&mut self) -> Result<()> {
         if let Some(base_dir) = &self.base_dir {
             self.wiiapps = util::wiiapps::get_installed(base_dir)?;
+            self.base_dir_size = base_dir.size()?;
         }
 
         Ok(())

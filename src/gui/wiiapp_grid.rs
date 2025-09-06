@@ -10,7 +10,7 @@ use egui_inbox::UiInboxSender;
 use size::Size;
 
 const CARD_WIDTH: f32 = 188.5;
-const CARD_HEIGHT: f32 = 220.0;
+const CARD_HEIGHT: f32 = 200.0;
 const GRID_SPACING: f32 = 10.0;
 
 pub fn ui_app_grid(ui: &mut egui::Ui, app: &mut App) {
@@ -57,16 +57,16 @@ fn ui_app_card(
 
             // Centered content
             ui.with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
-                let image = Image::from_bytes("placeholder", &[])
-                    .max_height(128.0)
+                let image = Image::from_uri(&wiiapp.icon_uri)
                     .maintain_aspect_ratio(true)
                     .show_loading_spinner(true);
                 ui.add(image);
 
                 ui.add_space(5.);
 
-                let label = egui::Label::new(RichText::new(&wiiapp.name).strong()).truncate();
-                ui.add(label);
+                ui.add(egui::Label::new(RichText::new(&wiiapp.meta.name).strong()).truncate());
+                ui.add(egui::Label::new(format!("🔢 v{}", &wiiapp.meta.version)).truncate());
+                ui.add(egui::Label::new(format!("👸 by {}", &wiiapp.meta.coder)).truncate());
             });
 
             // Actions
