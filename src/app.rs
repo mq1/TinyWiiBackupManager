@@ -7,16 +7,24 @@ use crate::gui::toasts;
 use crate::messages::BackgroundMessage;
 use crate::settings::Settings;
 use crate::task::TaskProcessor;
-use crate::util::update_check::{UpdateInfo, check_for_new_version};
 use crate::util::ext::SUPPORTED_INPUT_EXTENSIONS;
+use crate::util::update_check::{UpdateInfo, check_for_new_version};
 use crate::{gui::console_filter::ConsoleFilter, util};
 use anyhow::{Context, Result};
 use egui_inbox::UiInbox;
 
 const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum View {
+    Games,
+    Apps,
+}
+
 /// Main application state and UI controller.
 pub struct App {
+    /// Current view
+    pub view: View,
     /// Directory where the "wbfs" and "games" directories are located
     pub base_dir: Option<BaseDir>,
     /// List of discovered games
@@ -83,6 +91,7 @@ impl App {
 
         // Initialize app and toasts
         let mut app = Self {
+            view: View::Games,
             top_left_toasts: toasts::create_toasts(egui_notify::Anchor::TopLeft),
             bottom_left_toasts: toasts::create_toasts(egui_notify::Anchor::BottomLeft),
             bottom_right_toasts: toasts::create_toasts(egui_notify::Anchor::BottomRight),
