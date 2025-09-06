@@ -94,10 +94,12 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                             }
                         } else if app.view == View::WiiApps {
                             let add_apps_button = ui
-                                .button("⬇ Add App(s)")
-                                .on_hover_text("Add one or more apps to the apps directory");
+                                .button("➕ Add App(s)")
+                                .on_hover_text("Add one or more (.zip) apps to the apps directory");
 
-                            if add_apps_button.clicked() {}
+                            if add_apps_button.clicked() {
+                                app.add_wiiapps();
+                            }
                         }
                     }
                 });

@@ -43,7 +43,7 @@ const_format = { version = "0.2", features = ["rust_1_64"] }
 nod = "2.0.0-alpha.3"
 hex = "0.4"
 serde = { version = "1.0", features = ["derive"] }
-zip = { version = "4.6", default-features = false, features = ["deflate"] }
+zip = { version = "5.0", default-features = false, features = ["deflate"] }
 const-str = "0.7"
 strum = { version = "0.27", features = ["derive"] }
 egui-theme-switch = "0.4"
