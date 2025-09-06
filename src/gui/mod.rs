@@ -4,6 +4,7 @@
 pub mod app;
 pub mod bottom_panel;
 pub mod console_filter;
+mod devs;
 pub mod fake_link;
 pub mod game_checks;
 pub mod game_grid;
@@ -11,3 +12,6 @@ pub mod game_info;
 pub mod settings;
 pub mod toasts;
 pub mod top_panel;
+pub mod wiiapp_grid;
+pub mod wiiapp_info;
+pub mod wiiapps;
