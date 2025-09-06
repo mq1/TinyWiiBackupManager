@@ -99,46 +99,33 @@ fn ui_game_card(
             // Actions
             ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
                 ui.horizontal(|ui| {
-                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                        if ui
-                            .add(Button::new("🗑"))
-                            .on_hover_text("Remove Game")
-                            .clicked()
-                            && let Err(e) = game.remove()
-                        {
-                            let _ = sender.send(e.into());
-                        }
+                    ui.add_space(32.);
 
-                        // Integrity check button
-                        if ui
-                            .add(Button::new("🔎"))
-                            .on_hover_text("Integrity Check")
-                            .clicked()
-                        {
-                            game.spawn_integrity_check_task(task_processor);
-                        }
+                    // Info button
+                    if ui.button("ℹ").on_hover_text("Show Game Info").clicked() {
+                        game.toggle_info();
+                    }
 
-                        // Archive button
-                        if ui
-                            .add(Button::new("📦"))
-                            .on_hover_text("Archive Game to a zstd-19 compressed RVZ")
-                            .clicked()
-                        {
-                            game.spawn_archive_task(task_processor);
-                        }
+                    // Archive button
+                    if ui
+                        .button("📦")
+                        .on_hover_text("Archive Game to a zstd-19 compressed RVZ")
+                        .clicked()
+                    {
+                        game.spawn_archive_task(task_processor);
+                    }
 
-                        // Info button
-                        if ui
-                            .add(
-                                Button::new("ℹ Info")
-                                    .min_size(egui::vec2(ui.available_width(), 0.0)),
-                            )
-                            .on_hover_text("Show Game Info")
-                            .clicked()
-                        {
-                            game.toggle_info();
-                        }
-                    });
+                    // Integrity check button
+                    if ui.button("🔎").on_hover_text("Integrity Check").clicked() {
+                        game.spawn_integrity_check_task(task_processor);
+                    }
+
+                    // Remove button
+                    if ui.button("🗑").on_hover_text("Remove Game").clicked()
+                        && let Err(e) = game.remove()
+                    {
+                        let _ = sender.send(e.into());
+                    }
                 });
             });
         });
