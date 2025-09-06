@@ -11,3 +11,4 @@ pub mod game_info;
 pub mod settings;
 pub mod toasts;
 pub mod top_panel;
+mod apps;
