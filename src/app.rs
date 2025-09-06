@@ -214,6 +214,7 @@ impl App {
             for path in paths {
                 let base_dir = base_dir.clone();
                 let wii_output_format = self.settings.wii_output_format;
+                let strip_partitions = self.settings.strip_partitions;
 
                 self.task_processor.spawn_task(move |ui_sender| {
                     let cloned_ui_sender = ui_sender.clone();
@@ -226,6 +227,7 @@ impl App {
                         &path,
                         base_dir.path(),
                         wii_output_format,
+                        strip_partitions,
                         move |current, total| {
                             let status = format!(
                                 "📄➡🖴  {:02.0}%  {}",

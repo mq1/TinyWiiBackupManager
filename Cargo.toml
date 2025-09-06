@@ -59,7 +59,7 @@ sanitize-filename-reader-friendly = "2.3"
 [target.'cfg(any(target_os = "linux", target_os = "macos"))'.dependencies]
 eframe = { version = "0.32", features = ["persistence"] }
 
-# Windows uses WGPU backend for better compatibility
+# Windows uses dx12 to enable software rendering (WARP) as a fallback
 [target.'cfg(target_os = "windows")'.dependencies]
 eframe = { version = "0.32", default-features = false, features = ["accesskit", "default_fonts", "wgpu", "persistence"] }
 wgpu = { version = "25", default-features = false, features = ["dx12"] }
