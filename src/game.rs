@@ -9,6 +9,7 @@ use anyhow::{Context, Result};
 use nod::read::DiscMeta;
 use std::fs;
 use std::path::{Path, PathBuf};
+use nod::common::PartitionInfo;
 use strum::{AsRefStr, Display};
 
 include!(concat!(env!("OUT_DIR"), "/wiitdb_data.rs"));
@@ -68,6 +69,8 @@ pub struct Game {
     pub is_corrupt: Option<bool>,
     pub is_verified: Option<bool>,
     pub disc_meta: DiscMeta,
+    pub partitions: Vec<PartitionInfo>,
+    pub is_stripped: bool,
 }
 
 impl Game {
@@ -88,7 +91,7 @@ impl Game {
             ..Default::default()
         };
 
-        let (header, meta) = util::meta::read_header_and_meta(&game)?;
+        let (header, meta, partitions) = util::meta::read_header_and_meta_and_partitions(&game)?;
 
         game.disc_meta = meta;
         game.id = header.game_id;
@@ -97,6 +100,9 @@ impl Game {
 
         let info_url = format!("https://www.gametdb.com/Wii/{}", game.id_str);
         game.info_url = info_url;
+
+        game.is_stripped = partitions.iter().any(|p| p.data_size() == 0);
+        game.partitions = partitions;
 
         let info = GAMES.get(&game.id).cloned().cloned();
 
