@@ -25,7 +25,7 @@ pub fn ui_settings_window(ctx: &egui::Context, app: &mut App) {
             ui.separator();
             ui.add_space(10.0);
 
-            ui.heading("✂ Strip Partitions to save space (WBFS only)");
+            ui.heading("✂ Strip Partitions on WBFS (Experimental)");
             ui.add_space(10.0);
 
             for format in StripPartitions::iter() {

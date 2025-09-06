@@ -5,7 +5,6 @@ use crate::messages::BackgroundMessage;
 use anyhow::anyhow;
 use eframe::egui::{self, Id, RichText};
 use egui_inbox::UiInboxSender;
-use nod::disc::SECTOR_SIZE;
 use size::Size;
 
 pub fn ui_game_info_window(
