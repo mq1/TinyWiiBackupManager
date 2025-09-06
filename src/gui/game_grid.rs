@@ -82,7 +82,7 @@ fn ui_game_card(
             });
 
             // Centered content
-            ui.with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
+            ui.vertical_centered_justified(|ui| {
                 let image = Image::new(game.get_local_cover_uri(cover_dir))
                     .max_height(128.0)
                     .maintain_aspect_ratio(true)
@@ -94,11 +94,12 @@ fn ui_game_card(
                 let label =
                     egui::Label::new(RichText::new(&game.display_title).strong()).truncate();
                 ui.add(label);
-            });
 
-            // Actions
-            ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
+                ui.add_space(10.);
+
                 ui.horizontal(|ui| {
+                    // We center the buttons manually
+                    // We could use egui_flex, but it's overkill for this simple case
                     ui.add_space(32.);
 
                     // Info button
