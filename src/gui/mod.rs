@@ -11,4 +11,5 @@ pub mod game_info;
 pub mod settings;
 pub mod toasts;
 pub mod top_panel;
-mod apps;
+pub mod wiiapp_grid;
+pub mod wiiapps;

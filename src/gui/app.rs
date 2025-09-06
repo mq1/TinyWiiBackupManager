@@ -32,7 +32,7 @@ impl eframe::App for App {
 
         egui::CentralPanel::default().show(ctx, |ui| match self.view {
             View::Games => gui::game_grid::ui_game_grid(ui, self),
-            View::Apps => gui::apps::ui_apps(ui, self),
+            View::WiiApps => gui::wiiapps::ui_apps(ui, self),
         });
 
         gui::settings::ui_settings_window(ctx, self);
