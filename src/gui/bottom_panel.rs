@@ -49,7 +49,10 @@ pub fn ui_bottom_panel(ctx: &egui::Context, app: &mut App) {
                         ui.checkbox(&mut app.remove_sources, "💣 Remove sources")
                             .on_hover_text("⚠ DANGER ⚠\n\nThis will delete the input files!");
                     }
-                    View::WiiApps => {}
+                    View::WiiApps => {
+                        ui.checkbox(&mut app.remove_sources_wiiapps, "💣 Remove sources (.zip)")
+                            .on_hover_text("⚠ DANGER ⚠\n\nThis will delete the input files!");
+                    }
                 },
             );
         });

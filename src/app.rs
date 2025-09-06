@@ -38,6 +38,8 @@ pub struct App {
     watcher: Option<notify::RecommendedWatcher>,
     /// Whether to remove sources after conversion
     pub remove_sources: bool,
+    /// Whether to remove sources after conversion
+    pub remove_sources_wiiapps: bool,
     /// Console filter state
     pub console_filter: ConsoleFilter,
     /// Update info
@@ -104,6 +106,7 @@ impl App {
             games: Vec::new(),
             base_dir_size: 0,
             remove_sources: false,
+            remove_sources_wiiapps: false,
             console_filter: ConsoleFilter::default(),
             update_info: None,
             watcher: None,
@@ -233,7 +236,6 @@ impl App {
         if let Some(paths) = paths
             && let Some(base_dir) = &self.base_dir
         {
-            let base_dir = base_dir.clone();
             let remove_sources = self.remove_sources;
 
             for path in paths {
@@ -281,6 +283,38 @@ impl App {
                 let _ = ui_sender.send(BackgroundMessage::TriggerDownloadCovers);
                 Ok(())
             })
+        }
+    }
+
+    pub fn add_wiiapps(&mut self) {
+        let paths = rfd::FileDialog::new()
+            .set_title("Select Wii App(s)")
+            .add_filter("Wii App", &["zip", "ZIP"])
+            .pick_files();
+
+        if let Some(paths) = paths
+            && let Some(base_dir) = &self.base_dir
+        {
+            let remove_sources = self.remove_sources_wiiapps;
+
+            for path in paths {
+                let base_dir = base_dir.clone();
+
+                self.task_processor.spawn_task(move |ui_sender| {
+                    let _ = ui_sender.send(BackgroundMessage::UpdateStatus(format!(
+                        "Adding Wii App: {}",
+                        path.file_name().unwrap().to_str().unwrap()
+                    )));
+
+                    base_dir.add_zip(&path)?;
+
+                    if remove_sources {
+                        std::fs::remove_file(&path)?;
+                    }
+
+                    Ok(())
+                });
+            }
         }
     }
 

@@ -5,8 +5,11 @@ use crate::game::{ConsoleType, Game};
 use anyhow::{Context, Result, bail};
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 use serde::{Deserialize, Serialize};
+use std::fs::File;
+use std::io::BufReader;
 use std::path::{Path, PathBuf};
 use std::{fmt, fs, io};
+use zip::ZipArchive;
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct BaseDir(PathBuf);
@@ -161,6 +164,15 @@ impl BaseDir {
         io::copy(&mut response.as_bytes(), &mut file)?;
 
         Ok(true)
+    }
+
+    pub fn add_zip(&self, path: impl AsRef<Path>) -> Result<()> {
+        let file = File::open(path)?;
+        let reader = BufReader::new(file);
+        let mut archive = ZipArchive::new(reader)?;
+        archive.extract(&self.0)?;
+
+        Ok(())
     }
 }
 
