@@ -5,7 +5,6 @@ use crate::app::App;
 use crate::gui::devs::DEVELOPERS;
 use crate::gui::wiiapp_info::ui_wiiapp_info_window;
 use crate::messages::BackgroundMessage;
-use crate::task::TaskProcessor;
 use crate::util::wiiapps::WiiApp;
 use eframe::egui::{self, Image, RichText};
 use egui_inbox::UiInboxSender;
