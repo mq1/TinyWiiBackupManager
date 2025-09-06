@@ -6,10 +6,10 @@ use crate::messages::BackgroundMessage;
 use crate::task::TaskProcessor;
 use crate::util;
 use anyhow::{Context, Result};
+use nod::common::PartitionInfo;
 use nod::read::DiscMeta;
 use std::fs;
 use std::path::{Path, PathBuf};
-use nod::common::PartitionInfo;
 use strum::{AsRefStr, Display};
 
 include!(concat!(env!("OUT_DIR"), "/wiitdb_data.rs"));
@@ -105,6 +105,7 @@ impl Game {
         game.partitions = partitions;
 
         let info = GAMES.get(&game.id).cloned().cloned();
+        game.info = info;
 
         let display_title = if let Some(info) = info {
             info.name.to_string()
