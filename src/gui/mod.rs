@@ -4,6 +4,7 @@
 pub mod app;
 pub mod bottom_panel;
 pub mod console_filter;
+mod devs;
 pub mod fake_link;
 pub mod game_checks;
 pub mod game_grid;
