@@ -1,13 +1,13 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
+use nod::common::PartitionInfo;
+use nod::disc::SECTOR_SIZE;
+use nod::read::{DiscReader, DiscStream};
 use std::cmp::{max, min};
 use std::io;
 use std::io::{Read, Seek, SeekFrom};
 use std::ops::Range;
-use nod::common::PartitionInfo;
-use nod::disc::SECTOR_SIZE;
-use nod::read::{DiscReader, DiscStream};
 
 #[derive(Clone)]
 pub struct FilterDiscReader {
@@ -17,17 +17,24 @@ pub struct FilterDiscReader {
 
 impl FilterDiscReader {
     pub fn new(reader: DiscReader, strip_partitions: &Vec<PartitionInfo>) -> Self {
-        let strip_ranges = strip_partitions.iter().flat_map(|partition| {
-            let partition_start = partition.start_sector as u64 * SECTOR_SIZE as u64;
-            let data_start = partition.data_start_sector as u64 * SECTOR_SIZE as u64;
+        let strip_ranges = strip_partitions
+            .iter()
+            .flat_map(|partition| {
+                let partition_start = partition.start_sector as u64 * SECTOR_SIZE as u64;
+                let data_start = partition.data_start_sector as u64 * SECTOR_SIZE as u64;
 
-            [
-                (partition_start + 0x2BC)..(partition_start + 0x2C0), // data_size
-                data_start..(data_start + partition.data_size()) // data
-            ]
-        }).collect();
+                [
+                    (partition_start + 0x2B8)..(partition_start + 0x2BC), // data_off
+                    (partition_start + 0x2BC)..(partition_start + 0x2C0), // data_size
+                    data_start..(data_start + partition.data_size()),     // data
+                ]
+            })
+            .collect();
 
-        Self { reader, strip_ranges }
+        Self {
+            reader,
+            strip_ranges,
+        }
     }
 }
 
@@ -36,7 +43,9 @@ impl DiscStream for FilterDiscReader {
         let read_range = offset..(offset + buf.len() as u64);
 
         // Find strip ranges relevant to this read request.
-        let relevant_strips: Vec<_> = self.strip_ranges.iter()
+        let relevant_strips: Vec<_> = self
+            .strip_ranges
+            .iter()
             .filter(|strip| strip.start < read_range.end && strip.end > read_range.start)
             .collect();
 
@@ -47,7 +56,10 @@ impl DiscStream for FilterDiscReader {
         }
 
         // Fast path: Read is fully contained within a strip range, fill buffer with zeros.
-        if relevant_strips.iter().any(|strip| strip.start <= read_range.start && strip.end >= read_range.end) {
+        if relevant_strips
+            .iter()
+            .any(|strip| strip.start <= read_range.start && strip.end >= read_range.end)
+        {
             buf.fill(0);
             return Ok(());
         }
