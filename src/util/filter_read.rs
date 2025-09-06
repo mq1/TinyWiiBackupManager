@@ -17,77 +17,61 @@ pub struct FilterDiscReader {
 
 impl FilterDiscReader {
     pub fn new(reader: DiscReader, strip_partitions: &Vec<PartitionInfo>) -> Self {
-        let mut ranges = Vec::new();
+        let mut strip_ranges = Vec::new();
 
         for partition in strip_partitions {
-            if partition.data_size() == 0 {
-                continue;
-            }
-
             let partition_start = partition.start_sector as u64 * SECTOR_SIZE as u64;
 
-            // Range to zero out `data_off` in the header
-            let offset_data_off = partition_start + 0x2B8;
-            ranges.push(offset_data_off..(offset_data_off + 4));
+            strip_ranges.push((partition_start + 0x2B8)..(partition_start + 0x2BC)); // data_off
+            strip_ranges.push((partition_start + 0x2BC)..(partition_start + 0x2C0)); // data_size
 
-            // Range to zero out `data_size` in the header
-            let offset_data_size = partition_start + 0x2BC;
-            ranges.push(offset_data_size..(offset_data_size + 4));
-
-            // Range to zero out the actual partition data
             let data_start = partition.data_start_sector as u64 * SECTOR_SIZE as u64;
             let data_end = data_start + partition.data_size();
-
-            if data_start < data_end {
-                ranges.push(data_start..data_end);
-            }
+            strip_ranges.push(data_start..data_end);
         }
 
-        Self {
-            reader,
-            strip_ranges: ranges,
-        }
+        Self { reader, strip_ranges }
     }
 }
 
 impl DiscStream for FilterDiscReader {
     fn read_exact_at(&mut self, buf: &mut [u8], offset: u64) -> io::Result<()> {
-        // --- STEP 1: Always read the real data from the disc first ---
-        // This fills the buffer with the original data. We will now "patch" it.
-        self.reader.seek(SeekFrom::Start(offset))?;
-        self.reader.read_exact(buf)?;
+        let read_range = offset..(offset + buf.len() as u64);
 
-        // If there is nothing to strip, we are done.
-        if self.strip_ranges.is_empty() {
+        // Find strip ranges relevant to this read request.
+        let relevant_strips: Vec<_> = self.strip_ranges.iter()
+            .filter(|strip| strip.start < read_range.end && strip.end > read_range.start)
+            .collect();
+
+        // Fast path: No overlap, read directly from the disc.
+        if relevant_strips.is_empty() {
+            self.reader.seek(SeekFrom::Start(offset))?;
+            return self.reader.read_exact(buf);
+        }
+
+        // Fast path: Read is fully contained within a strip range, fill buffer with zeros.
+        if relevant_strips.iter().any(|strip| strip.start <= read_range.start && strip.end >= read_range.end) {
+            buf.fill(0);
             return Ok(());
         }
 
-        // --- STEP 2: Zero out the parts of the buffer that overlap ---
-        let read_len = buf.len() as u64;
-        let read_range = offset..(offset + read_len);
+        // Fallback for partial overlaps: read from disc, then patch the buffer.
+        self.reader.seek(SeekFrom::Start(offset))?;
+        self.reader.read_exact(buf)?;
 
-        for strip_range in &self.strip_ranges {
-            // Calculate the exact overlap between the read request and the range to strip.
+        for strip_range in relevant_strips {
             let overlap_start = max(read_range.start, strip_range.start);
             let overlap_end = min(read_range.end, strip_range.end);
 
-            // If a real overlap exists...
-            if overlap_start < overlap_end {
-                // ...translate the absolute offsets into indices relative to the buffer...
-                let start_in_buf = (overlap_start - offset) as usize;
-                let end_in_buf = (overlap_end - offset) as usize;
-
-                // ...and zero out only that specific slice of the buffer.
-                buf[start_in_buf..end_in_buf].fill(0);
-            }
+            let start_in_buf = (overlap_start - offset) as usize;
+            let end_in_buf = (overlap_end - offset) as usize;
+            buf[start_in_buf..end_in_buf].fill(0);
         }
 
         Ok(())
     }
 
     fn stream_len(&mut self) -> io::Result<u64> {
-        // A virtual reader must ALWAYS report the original disc size.
-        // Otherwise, callers may think valid data at high offsets is out of bounds.
         Ok(self.reader.disc_size())
     }
 }
