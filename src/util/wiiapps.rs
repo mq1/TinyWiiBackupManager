@@ -65,6 +65,23 @@ impl WiiApp {
     pub fn toggle_info(&mut self) {
         self.info_opened = !self.info_opened;
     }
+
+    pub fn remove(&self) -> Result<()> {
+        if rfd::MessageDialog::new()
+            .set_title(format!("Remove {}", self.meta.name))
+            .set_description(format!(
+                "Are you sure you want to remove {}?",
+                self.meta.name
+            ))
+            .set_buttons(rfd::MessageButtons::OkCancel)
+            .show()
+            == rfd::MessageDialogResult::Ok
+        {
+            fs::remove_dir_all(&self.path)?;
+        }
+
+        Ok(())
+    }
 }
 
 pub fn get_installed(base_dir: &BaseDir) -> Result<Vec<WiiApp>> {
