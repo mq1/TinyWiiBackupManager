@@ -3,16 +3,29 @@
 
 use crate::base_dir::BaseDir;
 use anyhow::{Result, bail};
-use serde::Deserialize;
+use serde::{Deserialize, Deserializer};
 use std::fs;
 use std::path::PathBuf;
+use time::{Date, PrimitiveDateTime, format_description};
+
+fn parse_date_only<'de, D>(deserializer: D) -> Result<Date, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let s = String::deserialize(deserializer)?;
+    let fmt = format_description::parse("[year][month][day][hour][minute][second]")
+        .map_err(serde::de::Error::custom)?;
+    let pdt = PrimitiveDateTime::parse(&s, &fmt).map_err(serde::de::Error::custom)?;
+    Ok(pdt.date())
+}
 
 #[derive(Clone, Deserialize)]
 pub struct WiiAppMeta {
     pub name: String,
     pub coder: String,
     pub version: String,
-    pub release_date: String,
+    #[serde(deserialize_with = "parse_date_only")]
+    pub release_date: Date,
     pub short_description: String,
     pub long_description: String,
 }
