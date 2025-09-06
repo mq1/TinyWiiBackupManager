@@ -45,7 +45,7 @@ impl eframe::App for App {
 
         gui::settings::ui_settings_window(ctx, self);
 
-        self.top_left_toasts.show(ctx);
+        self.top_right_toasts.show(ctx);
         self.bottom_left_toasts.show(ctx);
         self.bottom_right_toasts.show(ctx);
     }
