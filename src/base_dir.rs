@@ -49,6 +49,10 @@ impl BaseDir {
         self.0.exists()
     }
 
+    pub fn apps_dir(&self) -> PathBuf {
+        self.0.join("apps")
+    }
+
     pub fn wii_dir(&self) -> PathBuf {
         self.0.join("wbfs")
     }

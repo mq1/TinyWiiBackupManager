@@ -16,7 +16,7 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
             ui.horizontal(|ui| {
                 // nav
                 ui.selectable_value(&mut app.view, View::Games, "Games");
-                ui.selectable_value(&mut app.view, View::Apps, "Apps");
+                ui.selectable_value(&mut app.view, View::WiiApps, "Apps");
 
                 // Display the total number of games on the right side of the menu bar
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
