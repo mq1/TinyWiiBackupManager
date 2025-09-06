@@ -99,6 +99,9 @@ impl BaseDir {
         fs::create_dir_all(self.gc_dir())?;
         watcher.watch(&self.gc_dir(), RecursiveMode::NonRecursive)?;
 
+        fs::create_dir_all(self.apps_dir())?;
+        watcher.watch(&self.apps_dir(), RecursiveMode::NonRecursive)?;
+
         Ok(watcher)
     }
 
