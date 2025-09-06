@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use crate::app::App;
+use crate::gui::devs::DEVELOPERS;
 use crate::gui::wiiapp_info::ui_wiiapp_info_window;
 use crate::messages::BackgroundMessage;
 use crate::task::TaskProcessor;
@@ -11,7 +12,7 @@ use egui_inbox::UiInboxSender;
 use size::Size;
 
 const CARD_WIDTH: f32 = 188.5;
-const CARD_HEIGHT: f32 = 200.0;
+const CARD_HEIGHT: f32 = 190.0;
 const GRID_SPACING: f32 = 10.0;
 
 pub fn ui_wiiapp_grid(ui: &mut egui::Ui, app: &mut App) {
@@ -73,7 +74,11 @@ fn ui_wiiapp_card(
 
                 ui.add(egui::Label::new(RichText::new(&wiiapp.meta.name).strong()).truncate());
                 ui.add(egui::Label::new(format!("🔢 v{}", &wiiapp.meta.version)).truncate());
-                ui.add(egui::Label::new(format!("👸 by {}", &wiiapp.meta.coder)).truncate());
+
+                let avatar = DEVELOPERS.get(&wiiapp.meta.coder).unwrap_or(&'👸');
+                ui.add(
+                    egui::Label::new(format!("{} by {}", avatar, &wiiapp.meta.coder)).truncate(),
+                );
             });
 
             // Actions
