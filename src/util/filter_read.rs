@@ -26,8 +26,8 @@ impl FilterDiscReader {
             strip_ranges.push((partition_start + 0x2BC)..(partition_start + 0x2C0)); // data_size
 
             let data_start = partition.data_start_sector as u64 * SECTOR_SIZE as u64;
-            let data_end = data_start + partition.data_size();
-            strip_ranges.push(data_start..data_end);
+
+            strip_ranges.push(data_start..(data_start + partition.data_size()));
         }
 
         Self { reader, strip_ranges }
