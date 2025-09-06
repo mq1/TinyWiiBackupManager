@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use crate::app::App;
+use crate::gui::wiiapp_info::ui_wiiapp_info_window;
 use crate::messages::BackgroundMessage;
 use crate::task::TaskProcessor;
 use crate::util::wiiapps::WiiApp;
@@ -13,7 +14,7 @@ const CARD_WIDTH: f32 = 188.5;
 const CARD_HEIGHT: f32 = 200.0;
 const GRID_SPACING: f32 = 10.0;
 
-pub fn ui_app_grid(ui: &mut egui::Ui, app: &mut App) {
+pub fn ui_wiiapp_grid(ui: &mut egui::Ui, app: &mut App) {
     let wiiapps = &mut app.wiiapps;
 
     if !wiiapps.is_empty() {
@@ -30,7 +31,13 @@ pub fn ui_app_grid(ui: &mut egui::Ui, app: &mut App) {
                 .show(ui, |ui| {
                     for row in wiiapps.chunks_mut(num_columns) {
                         for wiiapp in row {
-                            ui_app_card(ui, &mut app.inbox.sender(), &app.task_processor, wiiapp);
+                            ui_wiiapp_card(
+                                ui,
+                                &mut app.inbox.sender(),
+                                &app.task_processor,
+                                wiiapp,
+                            );
+                            ui_wiiapp_info_window(ui.ctx(), wiiapp, &mut app.inbox.sender());
                         }
                         ui.end_row();
                     }
@@ -39,7 +46,7 @@ pub fn ui_app_grid(ui: &mut egui::Ui, app: &mut App) {
     }
 }
 
-fn ui_app_card(
+fn ui_wiiapp_card(
     ui: &mut egui::Ui,
     sender: &mut UiInboxSender<BackgroundMessage>,
     task_processor: &TaskProcessor,
@@ -75,20 +82,12 @@ fn ui_app_card(
                     ui.add_space(32.);
 
                     // Info button
-                    if ui.button("ℹ").on_hover_text("Show Game Info").clicked() {}
-
-                    // Archive button
-                    if ui
-                        .button("📦")
-                        .on_hover_text("Archive Game to a zstd-19 compressed RVZ")
-                        .clicked()
-                    {}
-
-                    // Integrity check button
-                    if ui.button("🔎").on_hover_text("Integrity Check").clicked() {}
+                    if ui.button("ℹ").on_hover_text("Show App Info").clicked() {
+                        wiiapp.toggle_info();
+                    }
 
                     // Remove button
-                    if ui.button("🗑").on_hover_text("Remove Game").clicked() {}
+                    if ui.button("🗑").on_hover_text("Remove App").clicked() {}
                 });
             });
         });

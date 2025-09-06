@@ -7,7 +7,7 @@ use serde::Deserialize;
 use std::fs;
 use std::path::PathBuf;
 
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 pub struct WiiAppMeta {
     pub name: String,
     pub coder: String,
@@ -17,11 +17,13 @@ pub struct WiiAppMeta {
     pub long_description: String,
 }
 
+#[derive(Clone)]
 pub struct WiiApp {
     pub path: PathBuf,
     pub size: u64,
     pub icon_uri: String,
     pub meta: WiiAppMeta,
+    pub info_opened: bool,
 }
 
 impl WiiApp {
@@ -43,7 +45,12 @@ impl WiiApp {
             size,
             icon_uri,
             meta,
+            info_opened: false,
         })
+    }
+
+    pub fn toggle_info(&mut self) {
+        self.info_opened = !self.info_opened;
     }
 }
 
