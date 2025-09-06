@@ -5,6 +5,7 @@ use crate::messages::BackgroundMessage;
 use anyhow::anyhow;
 use eframe::egui::{self, Id, RichText};
 use egui_inbox::UiInboxSender;
+use nod::disc::SECTOR_SIZE;
 use size::Size;
 
 pub fn ui_game_info_window(
@@ -174,6 +175,23 @@ fn ui_game_info_content(
             ui.label(
                 RichText::new(format!("{:016x}", xxhash64)).text_style(egui::TextStyle::Monospace),
             );
+        });
+    }
+
+    ui.add_space(10.0);
+    ui.separator();
+    ui.add_space(10.0);
+
+    ui.heading("💾 Partitions");
+    ui.add_space(5.0);
+
+    for partition in &game.partitions {
+        ui.horizontal(|ui| {
+            ui.label(format!("{}", partition.index));
+            ui.label(format!("{}", partition.kind));
+
+            let size = Size::from_bytes(partition.data_end_sector as usize * SECTOR_SIZE - partition.data_start_sector as usize * SECTOR_SIZE);
+            ui.label(format!("{}", size));
         });
     }
 }
