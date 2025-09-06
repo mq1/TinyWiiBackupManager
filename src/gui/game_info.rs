@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-2.0-only
+
 use crate::game::{ConsoleType, Game};
 use crate::gui::fake_link::fake_link;
 use crate::gui::game_checks::ui_game_checks;
