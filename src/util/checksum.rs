@@ -55,7 +55,6 @@ pub fn all(game: &Game, mut progress_callback: impl FnMut(u64, u64)) -> Result<b
         &DiscOptions {
             partition_encryption: PartitionEncryption::Original,
             preloader_threads,
-            strip_partitions: vec![],
         },
     )
     .with_context(|| format!("Failed to read disc image: {}", input_path.display()))?;

@@ -16,6 +16,7 @@ use sanitize_filename_reader_friendly::sanitize;
 use std::fs::{self, File};
 use std::io::{Seek, Write};
 use std::path::Path;
+use crate::util::filter_read::FilterDiscReader;
 use crate::util::split::SplitWbfsFile;
 
 /// The fixed split size for output files: 4 GiB - 32 KiB.
@@ -35,37 +36,25 @@ pub fn convert(
 
     let (preloader_threads, processor_threads) = get_threads_num();
 
-    let mut disc = DiscReader::new(
-        &input_path,
-        &DiscOptions {
-            partition_encryption: PartitionEncryption::Original,
-            preloader_threads,
-            strip_partitions: vec![],
-        },
-    ).with_context(|| format!("Failed to read disc image: {}", input_path.display()))?;
+    let disc_opts = DiscOptions {
+        partition_encryption: PartitionEncryption::Original,
+        preloader_threads,
+    };
 
-    let to_strip = match strip {
+    let mut disc = DiscReader::new(&input_path, &disc_opts)
+        .with_context(|| format!("Failed to read disc image: {}", input_path.display()))?;
+
+    let strip_partitions = match strip {
         StripPartitions::No => vec![],
         StripPartitions::Update => disc.partitions().iter()
             .filter(|p| p.kind == PartitionKind::Update)
-            .map(|p| p.index)
+            .cloned()
             .collect(),
         StripPartitions::All => disc.partitions().iter()
             .filter(|p| p.kind != PartitionKind::Data)
-            .map(|p| p.index)
+            .cloned()
             .collect(),
     };
-
-    if !to_strip.is_empty() {
-        disc = DiscReader::new(
-            &input_path,
-            &DiscOptions {
-                partition_encryption: PartitionEncryption::Original,
-                preloader_threads,
-                strip_partitions: to_strip,
-            },
-        ).with_context(|| format!("Failed to read disc image: {}", input_path.display()))?;
-    }
 
     let header = disc.header();
     let game_id = header.game_id_str();
@@ -105,6 +94,12 @@ pub fn convert(
         ) {
             let mut writer = SplitWbfsFile::new(&base_path, split_size)?;
             let format_options = FormatOptions::new(Format::Wbfs);
+
+            if !strip_partitions.is_empty() {
+                let reader = FilterDiscReader::new(disc, &strip_partitions);
+                disc = DiscReader::new_stream(Box::new(reader), &disc_opts)?;
+            }
+
             let disc_writer = DiscWriter::new(disc, &format_options)
                 .context("Failed to initialize WBFS writer")?;
 
