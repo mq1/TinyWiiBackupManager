@@ -12,6 +12,7 @@ use crate::util::update_check::{UpdateInfo, check_for_new_version};
 use crate::util::wiiapps::WiiApp;
 use crate::{gui::console_filter::ConsoleFilter, util};
 use anyhow::{Context, Result};
+use eframe::egui;
 use egui_inbox::UiInbox;
 
 const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -45,7 +46,7 @@ pub struct App {
     /// Update info
     pub update_info: Option<UpdateInfo>,
     /// Toasts
-    pub top_left_toasts: egui_notify::Toasts,
+    pub top_right_toasts: egui_notify::Toasts,
     pub bottom_left_toasts: egui_notify::Toasts,
     pub bottom_right_toasts: egui_notify::Toasts,
     /// Status
@@ -97,7 +98,8 @@ impl App {
         // Initialize app and toasts
         let mut app = Self {
             view: View::Games,
-            top_left_toasts: toasts::create_toasts(egui_notify::Anchor::TopLeft),
+            top_right_toasts: toasts::create_toasts(egui_notify::Anchor::TopRight)
+                .with_margin(egui::vec2(49.0, 36.0)),
             bottom_left_toasts: toasts::create_toasts(egui_notify::Anchor::BottomLeft),
             bottom_right_toasts: toasts::create_toasts(egui_notify::Anchor::BottomRight),
             inbox,

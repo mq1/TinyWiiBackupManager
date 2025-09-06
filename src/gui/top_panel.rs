@@ -29,7 +29,7 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
 
                     ui.menu_button("☰", |ui| {
                         // remove hint toast
-                        app.top_left_toasts.dismiss_all_toasts();
+                        app.top_right_toasts.dismiss_all_toasts();
 
                         // Re-pick base directory button
                         if ui.button("📁 Pick base Drive/Directory").clicked()
@@ -41,22 +41,31 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                         ui.separator();
 
                         // dot_clean button
-                        if cfg!(target_os = "macos")
-                            && let Some(base_dir) = &app.base_dir
-                            && ui
-                                .button("👻 Clean MacOS ._ files")
-                                .on_hover_text(format!("Run dot_clean in {base_dir}"))
-                                .clicked()
-                            && let Err(e) = base_dir.run_dot_clean()
-                        {
-                            let _ = sender.send(e.into());
+                        if cfg!(target_os = "macos") {
+                            let mut btn = ui.add_enabled(
+                                app.base_dir.is_some(),
+                                egui::Button::new("👻 Clean MacOS ._ files"),
+                            );
+
+                            if let Some(base_dir) = &app.base_dir {
+                                btn = btn.on_hover_text(format!("Run dot_clean in {base_dir}"));
+
+                                if btn.clicked()
+                                    && let Err(e) = base_dir.run_dot_clean()
+                                {
+                                    let _ = sender.send(e.into());
+                                }
+                            }
                         }
 
                         ui.separator();
 
                         // Download database button
                         if ui
-                            .button("📥 Download wiitdb.xml")
+                            .add_enabled(
+                                app.base_dir.is_some(),
+                                egui::Button::new("📥 Download wiitdb.xml"),
+                            )
                             .on_hover_text("Download the latest wiitdb.xml database from GameTDB")
                             .clicked()
                         {
@@ -65,7 +74,10 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
 
                         // Download covers option
                         if ui
-                            .button("📥 Download Covers")
+                            .add_enabled(
+                                !app.games.is_empty(),
+                                egui::Button::new("📥 Download Covers"),
+                            )
                             .on_hover_text("Download all covers for all games")
                             .clicked()
                         {
@@ -75,7 +87,10 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                         ui.separator();
 
                         if ui
-                            .button("🔎 Integrity check (all games)")
+                            .add_enabled(
+                                !app.games.is_empty(),
+                                egui::Button::new("🔎 Integrity check (all games)"),
+                            )
                             .on_hover_text("Check the integrity of all games")
                             .clicked()
                         {
