@@ -32,12 +32,7 @@ pub fn ui_wiiapp_grid(ui: &mut egui::Ui, app: &mut App) {
                 .show(ui, |ui| {
                     for row in wiiapps.chunks_mut(num_columns) {
                         for wiiapp in row {
-                            ui_wiiapp_card(
-                                ui,
-                                &mut app.inbox.sender(),
-                                &app.task_processor,
-                                wiiapp,
-                            );
+                            ui_wiiapp_card(ui, &mut app.inbox.sender(), wiiapp);
                             ui_wiiapp_info_window(ui.ctx(), wiiapp, &mut app.inbox.sender());
                         }
                         ui.end_row();
@@ -50,7 +45,6 @@ pub fn ui_wiiapp_grid(ui: &mut egui::Ui, app: &mut App) {
 fn ui_wiiapp_card(
     ui: &mut egui::Ui,
     sender: &mut UiInboxSender<BackgroundMessage>,
-    task_processor: &TaskProcessor,
     wiiapp: &mut WiiApp,
 ) {
     let card = egui::Frame::group(ui.style()).corner_radius(5.0);
@@ -92,7 +86,11 @@ fn ui_wiiapp_card(
                     }
 
                     // Remove button
-                    if ui.button("🗑").on_hover_text("Remove App").clicked() {}
+                    if ui.button("🗑").on_hover_text("Remove App").clicked() {
+                        if let Err(e) = wiiapp.remove() {
+                            let _ = sender.send(e.into());
+                        }
+                    }
                 });
             });
         });
