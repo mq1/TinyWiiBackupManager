@@ -17,18 +17,15 @@ pub struct FilterDiscReader {
 
 impl FilterDiscReader {
     pub fn new(reader: DiscReader, strip_partitions: &Vec<PartitionInfo>) -> Self {
-        let mut strip_ranges = Vec::new();
-
-        for partition in strip_partitions {
+        let strip_ranges = strip_partitions.iter().flat_map(|partition| {
             let partition_start = partition.start_sector as u64 * SECTOR_SIZE as u64;
-
-            strip_ranges.push((partition_start + 0x2B8)..(partition_start + 0x2BC)); // data_off
-            strip_ranges.push((partition_start + 0x2BC)..(partition_start + 0x2C0)); // data_size
-
             let data_start = partition.data_start_sector as u64 * SECTOR_SIZE as u64;
 
-            strip_ranges.push(data_start..(data_start + partition.data_size()));
-        }
+            [
+                (partition_start + 0x2BC)..(partition_start + 0x2C0), // data_size
+                data_start..(data_start + partition.data_size()) // data
+            ]
+        }).collect();
 
         Self { reader, strip_ranges }
     }
