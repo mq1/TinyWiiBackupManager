@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
+use crate::app::View;
 use crate::{app::App, gui::console_filter::ui_console_filter};
 use eframe::egui;
 
@@ -39,14 +40,21 @@ pub fn ui_bottom_panel(ctx: &egui::Context, app: &mut App) {
             }
 
             // Layout for other controls, aligned to the right.
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                ui_console_filter(ui, &mut app.console_filter);
-
-                ui.separator();
-
-                ui.checkbox(&mut app.remove_sources, "💣 Remove sources")
-                    .on_hover_text("⚠ DANGER ⚠\n\nThis will delete the input files!");
-            });
+            ui.with_layout(
+                egui::Layout::right_to_left(egui::Align::Center),
+                |ui| match app.view {
+                    View::Games => {
+                        ui_console_filter(ui, &mut app.console_filter);
+                        ui.separator();
+                        ui.checkbox(&mut app.remove_sources, "💣 Remove sources")
+                            .on_hover_text("⚠ DANGER ⚠\n\nThis will delete the input files!");
+                    }
+                    View::WiiApps => {
+                        ui.checkbox(&mut app.remove_sources_wiiapps, "💣 Remove sources (.zip)")
+                            .on_hover_text("⚠ DANGER ⚠\n\nThis will delete the input files!");
+                    }
+                },
+            );
         });
     });
 }

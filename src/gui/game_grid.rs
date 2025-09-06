@@ -6,7 +6,7 @@ use crate::gui::game_info::ui_game_info_window;
 use crate::messages::BackgroundMessage;
 use crate::task::TaskProcessor;
 use crate::{app::App, game::Game};
-use eframe::egui::{self, Button, Image, RichText};
+use eframe::egui::{self, Image, RichText};
 use egui_inbox::UiInboxSender;
 use size::Size;
 use std::path::Path;
@@ -82,7 +82,7 @@ fn ui_game_card(
             });
 
             // Centered content
-            ui.with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
+            ui.vertical_centered_justified(|ui| {
                 let image = Image::new(game.get_local_cover_uri(cover_dir))
                     .max_height(128.0)
                     .maintain_aspect_ratio(true)
@@ -94,51 +94,39 @@ fn ui_game_card(
                 let label =
                     egui::Label::new(RichText::new(&game.display_title).strong()).truncate();
                 ui.add(label);
-            });
 
-            // Actions
-            ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
+                ui.add_space(10.);
+
                 ui.horizontal(|ui| {
-                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                        if ui
-                            .add(Button::new("🗑"))
-                            .on_hover_text("Remove Game")
-                            .clicked()
-                            && let Err(e) = game.remove()
-                        {
-                            let _ = sender.send(e.into());
-                        }
+                    // We center the buttons manually
+                    // We could use egui_flex, but it's overkill for this simple case
+                    ui.add_space(32.);
 
-                        // Integrity check button
-                        if ui
-                            .add(Button::new("🔎"))
-                            .on_hover_text("Integrity Check")
-                            .clicked()
-                        {
-                            game.spawn_integrity_check_task(task_processor);
-                        }
+                    // Info button
+                    if ui.button("ℹ").on_hover_text("Show Game Info").clicked() {
+                        game.toggle_info();
+                    }
 
-                        // Archive button
-                        if ui
-                            .add(Button::new("📦"))
-                            .on_hover_text("Archive Game to a zstd-19 compressed RVZ")
-                            .clicked()
-                        {
-                            game.spawn_archive_task(task_processor);
-                        }
+                    // Archive button
+                    if ui
+                        .button("📦")
+                        .on_hover_text("Archive Game to a zstd-19 compressed RVZ")
+                        .clicked()
+                    {
+                        game.spawn_archive_task(task_processor);
+                    }
 
-                        // Info button
-                        if ui
-                            .add(
-                                Button::new("ℹ Info")
-                                    .min_size(egui::vec2(ui.available_width(), 0.0)),
-                            )
-                            .on_hover_text("Show Game Info")
-                            .clicked()
-                        {
-                            game.toggle_info();
-                        }
-                    });
+                    // Integrity check button
+                    if ui.button("🔎").on_hover_text("Integrity Check").clicked() {
+                        game.spawn_integrity_check_task(task_processor);
+                    }
+
+                    // Remove button
+                    if ui.button("🗑").on_hover_text("Remove Game").clicked()
+                        && let Err(e) = game.remove()
+                    {
+                        let _ = sender.send(e.into());
+                    }
                 });
             });
         });

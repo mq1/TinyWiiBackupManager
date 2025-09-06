@@ -48,6 +48,9 @@ pub fn handle_messages(app: &mut App, ctx: &egui::Context) {
                 if let Err(e) = app.refresh_games() {
                     let _ = sender.send(e.into());
                 }
+                if let Err(e) = app.refresh_wiiapps() {
+                    let _ = sender.send(e.into());
+                }
             }
 
             BackgroundMessage::Error(e) => {

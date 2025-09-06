@@ -5,8 +5,11 @@ use crate::game::{ConsoleType, Game};
 use anyhow::{Context, Result, bail};
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 use serde::{Deserialize, Serialize};
+use std::fs::File;
+use std::io::BufReader;
 use std::path::{Path, PathBuf};
 use std::{fmt, fs, io};
+use zip::ZipArchive;
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct BaseDir(PathBuf);
@@ -47,6 +50,10 @@ impl BaseDir {
 
     pub fn exists(&self) -> bool {
         self.0.exists()
+    }
+
+    pub fn apps_dir(&self) -> PathBuf {
+        self.0.join("apps")
     }
 
     pub fn wii_dir(&self) -> PathBuf {
@@ -95,11 +102,14 @@ impl BaseDir {
         fs::create_dir_all(self.gc_dir())?;
         watcher.watch(&self.gc_dir(), RecursiveMode::NonRecursive)?;
 
+        fs::create_dir_all(self.apps_dir())?;
+        watcher.watch(&self.apps_dir(), RecursiveMode::NonRecursive)?;
+
         Ok(watcher)
     }
 
     /// Scans the "wbfs" and "games" directories and get the list of games and the size of the base directory
-    pub fn get_games(&self) -> Result<(Vec<Game>, u64)> {
+    pub fn get_games(&self) -> Result<Vec<Game>> {
         let mut games = Vec::new();
         scan_dir(self.wii_dir(), &mut games, ConsoleType::Wii)?;
         scan_dir(self.gc_dir(), &mut games, ConsoleType::GameCube)?;
@@ -107,10 +117,11 @@ impl BaseDir {
         // Sort the combined vector
         games.sort_by(|a, b| a.display_title.cmp(&b.display_title));
 
-        // sum the sizes of each game object
-        let base_dir_size = games.iter().fold(0, |acc, game| acc + game.size);
+        Ok(games)
+    }
 
-        Ok((games, base_dir_size))
+    pub fn size(&self) -> fs_extra::error::Result<u64> {
+        fs_extra::dir::get_size(&self.0)
     }
 
     /// Run dot_clean to clean up MacOS ._ files
@@ -153,6 +164,15 @@ impl BaseDir {
         io::copy(&mut response.as_bytes(), &mut file)?;
 
         Ok(true)
+    }
+
+    pub fn add_zip(&self, path: impl AsRef<Path>) -> Result<()> {
+        let file = File::open(path)?;
+        let reader = BufReader::new(file);
+        let mut archive = ZipArchive::new(reader)?;
+        archive.extract(&self.0)?;
+
+        Ok(())
     }
 }
 
