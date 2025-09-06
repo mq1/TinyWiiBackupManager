@@ -9,6 +9,7 @@ use crate::settings::Settings;
 use crate::task::TaskProcessor;
 use crate::util::ext::SUPPORTED_INPUT_EXTENSIONS;
 use crate::util::update_check::{UpdateInfo, check_for_new_version};
+use crate::util::wiiapps::WiiApp;
 use crate::{gui::console_filter::ConsoleFilter, util};
 use anyhow::{Context, Result};
 use egui_inbox::UiInbox;
@@ -18,7 +19,7 @@ const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum View {
     Games,
-    Apps,
+    WiiApps,
 }
 
 /// Main application state and UI controller.
@@ -52,6 +53,8 @@ pub struct App {
     /// Settings
     pub settings: Settings,
     pub settings_window_open: bool,
+    /// List of discovered apps
+    pub wiiapps: Vec<WiiApp>,
 }
 
 impl App {
@@ -107,6 +110,7 @@ impl App {
             task_status: None,
             settings,
             settings_window_open: false,
+            wiiapps: Vec::new(),
         };
 
         // If the base directory isn't set or no longer exists, prompt the user to select one.
@@ -124,6 +128,9 @@ impl App {
             let _ = sender.send(e.into());
         }
         if let Err(e) = app.refresh_games() {
+            let _ = sender.send(e.into());
+        }
+        if let Err(e) = app.refresh_wiiapps() {
             let _ = sender.send(e.into());
         }
 
@@ -166,6 +173,14 @@ impl App {
         }
 
         util::checksum::sync_games(&self.games);
+
+        Ok(())
+    }
+
+    pub fn refresh_wiiapps(&mut self) -> Result<()> {
+        if let Some(base_dir) = &self.base_dir {
+            self.wiiapps = util::wiiapps::get_installed(base_dir)?;
+        }
 
         Ok(())
     }

@@ -49,7 +49,7 @@ pub fn ui_bottom_panel(ctx: &egui::Context, app: &mut App) {
                         ui.checkbox(&mut app.remove_sources, "💣 Remove sources")
                             .on_hover_text("⚠ DANGER ⚠\n\nThis will delete the input files!");
                     }
-                    View::Apps => {}
+                    View::WiiApps => {}
                 },
             );
         });
