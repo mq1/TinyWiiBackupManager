@@ -63,7 +63,7 @@ fn ui_wiiapp_card(
             });
 
             // Centered content
-            ui.with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
+            ui.vertical_centered_justified(|ui| {
                 let image = Image::from_uri(&wiiapp.icon_uri)
                     .maintain_aspect_ratio(true)
                     .show_loading_spinner(true);
@@ -79,7 +79,7 @@ fn ui_wiiapp_card(
             // Actions
             ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
                 ui.horizontal(|ui| {
-                    ui.add_space(32.);
+                    ui.add_space(64.);
 
                     // Info button
                     if ui.button("ℹ").on_hover_text("Show App Info").clicked() {

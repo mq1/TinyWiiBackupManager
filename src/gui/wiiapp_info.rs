@@ -38,6 +38,11 @@ fn ui_wiiapp_info_content(
     });
 
     ui.horizontal(|ui| {
+        ui.label(RichText::new("📅 Release Date:").strong());
+        ui.label(&wiiapp.meta.release_date.to_string());
+    });
+
+    ui.horizontal(|ui| {
         ui.label(RichText::new("👸 Coder:").strong());
         ui.label(&wiiapp.meta.coder);
     });
