@@ -83,7 +83,7 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                         }
                     });
 
-                    if app.base_dir.is_some() {
+                    if app.base_dir.is_some() && app.view == View::Games {
                         let add_games_button = ui
                             .button("➕ Add Game(s)")
                             .on_hover_text("Add one or more games to the wbfs directory");
