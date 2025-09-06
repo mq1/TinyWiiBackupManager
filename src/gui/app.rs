@@ -4,7 +4,6 @@ use crate::messages::handle_messages;
 use eframe::egui::ViewportCommand;
 use eframe::{Storage, egui};
 use size::Size;
-use std::fmt::format;
 
 const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -22,7 +21,7 @@ impl eframe::App for App {
                     Size::from_bytes(self.base_dir_size)
                 ),
                 View::WiiApps => format!(
-                    "• {} apps in {} ({})",
+                    " • {} apps in {} ({})",
                     self.wiiapps.len(),
                     base_dir.name(),
                     Size::from_bytes(self.base_dir_size)
