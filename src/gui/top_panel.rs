@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use crate::app::{App, View};
+use crate::gui::wiiload::ui_wiiload;
 use eframe::egui;
+use eframe::egui::PopupCloseBehavior;
 
 /// Renders the top menu bar.
 pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
@@ -108,6 +110,13 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                                 app.add_isos();
                             }
                         } else if app.view == View::WiiApps {
+                            let btn = ui.button("📮 Wiiload");
+                            let popup = egui::Popup::from_toggle_button_response(&btn)
+                                .close_behavior(PopupCloseBehavior::CloseOnClickOutside);
+                            popup.show(|ui| {
+                                ui_wiiload(ui, app);
+                            });
+
                             let add_apps_button = ui
                                 .button("➕ Add App(s)")
                                 .on_hover_text("Add one or more (.zip) apps to the apps directory");
