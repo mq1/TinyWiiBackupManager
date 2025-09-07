@@ -146,14 +146,6 @@ struct Case {
     pub versions: Option<i64>,
 }
 
-/// Converts a string slice (up to 8 chars) into a u64.
-///
-/// It effectively treats the string's bytes as a big-endian integer.
-/// For example, "ABCD" becomes 0x41424344.
-fn game_id_to_u64(id: &str) -> u64 {
-    id.bytes().fold(0, |acc, byte| (acc << 8) | u64::from(byte))
-}
-
 fn compile_wiitdb_xml() {
     // Path for the generated code snippet in the build output directory
     let path = Path::new(&env::var("OUT_DIR").unwrap()).join("wiitdb_data.rs");
@@ -168,7 +160,8 @@ fn compile_wiitdb_xml() {
     let mut map_builder = phf_codegen::Map::new();
     for game in data.games {
         let mut id = [0u8; 6];
-        id[..game.id.len()].copy_from_slice(game.id.as_bytes());
+        let id_bytes = game.id.as_bytes();
+        id[..id_bytes.len()].copy_from_slice(&id_bytes);
 
         let name = format!("\"{}\"", game.name);
 
