@@ -73,13 +73,11 @@ fn create_app_zip(source_archive: &mut ZipArchive<File>, app_dir_name: &str) -> 
         .map(|s| s.to_string())
         .collect();
 
-    let mut app_dir_prefix = app_dir_name
-        .rsplit_once('/')
-        .ok_or(anyhow!("Failed to get app directory prefix"))?
-        .0
-        .to_string();
-
-    app_dir_prefix.push('/');
+    let app_dir_prefix = if let Some(parent) = app_dir_name.rsplit_once('/') {
+        format!("{}/", parent.0)
+    } else {
+        "".to_string()
+    };
 
     for file_name in &relevant_files {
         let mut file = source_archive.by_name(file_name)?;
