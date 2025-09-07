@@ -100,6 +100,16 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                         }
                     });
 
+                    if app.view == View::WiiApps {
+                        let btn = ui.button("📮 Wiiload");
+                        let popup = egui::Popup::from_toggle_button_response(&btn)
+                            .close_behavior(PopupCloseBehavior::CloseOnClickOutside);
+                        popup.show(|ui| {
+                            app.top_right_toasts.dismiss_all_toasts();
+                            ui_wiiload(ui, app);
+                        });
+                    }
+
                     if app.base_dir.is_some() {
                         if app.view == View::Games {
                             let add_games_button = ui
@@ -110,13 +120,6 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                                 app.add_isos();
                             }
                         } else if app.view == View::WiiApps {
-                            let btn = ui.button("📮 Wiiload");
-                            let popup = egui::Popup::from_toggle_button_response(&btn)
-                                .close_behavior(PopupCloseBehavior::CloseOnClickOutside);
-                            popup.show(|ui| {
-                                ui_wiiload(ui, app);
-                            });
-
                             let add_apps_button = ui
                                 .button("➕ Add App(s)")
                                 .on_hover_text("Add one or more (.zip) apps to the apps directory");
