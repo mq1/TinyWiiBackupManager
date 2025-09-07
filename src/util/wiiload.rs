@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
+use anyhow::Result;
 use anyhow::anyhow;
-use anyhow::{Result, bail};
 use flate2::Compression;
 use flate2::write::ZlibEncoder;
 use std::fs::File;
@@ -64,13 +64,22 @@ fn get_app_name(archive: &mut ZipArchive<File>) -> Result<String> {
         .0
         .to_string();
 
-    let name = if parent.contains('/') {
-        parent.rsplit_once('/').unwrap().1.to_string()
-    } else {
-        parent
-    };
+    match parent.rsplit_once('/') {
+        Some((_, name)) => Ok(name.to_string()),
+        None => Ok(parent),
+    }
+}
 
-    Ok(name)
+fn get_app_prefix(archive: &mut ZipArchive<File>) -> Result<String> {
+    let boot_dol_path = archive
+        .file_names()
+        .find(|name| name.ends_with("boot.dol"))
+        .ok_or(anyhow!("No boot.dol found in archive"))?;
+
+    match boot_dol_path.rsplit_once('/') {
+        Some((parent, _)) => Ok(format!("{parent}/")),
+        None => Ok("".to_string()),
+    }
 }
 
 fn create_app_zip(source_archive: &mut ZipArchive<File>, app_name: &str) -> Result<Vec<u8>> {
@@ -80,21 +89,20 @@ fn create_app_zip(source_archive: &mut ZipArchive<File>, app_name: &str) -> Resu
     // Configure options for storing files without compression
     let options = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Stored);
 
+    let app_prefix = get_app_prefix(source_archive).unwrap_or("".to_string());
+
     for i in 0..source_archive.len() {
         let mut file = source_archive.by_index(i)?;
-        let file_name = file.name();
+        let file_path = file.name();
 
-        // we only copy boot.dol, icon.png and meta.xml
-        if file_name.ends_with("boot.dol")
-            || file_name.ends_with("icon.png")
-            || file_name.ends_with("meta.xml")
-        {
-            let file_name = Path::new(file_name)
-                .file_name()
-                .unwrap_or(file_name.as_ref())
-                .to_string_lossy();
+        // Skip directory entries
+        if file_path.ends_with('/') {
+            continue;
+        }
 
-            let new_name = format!("{app_name}/{file_name}");
+        // we skip everything that is not in the app directory
+        if let Some(new_path) = file_path.strip_prefix(&app_prefix) {
+            let new_name = format!("{app_name}/{new_path}");
             new_zip.start_file(new_name, options)?;
             io::copy(&mut file, &mut new_zip)?;
         }
