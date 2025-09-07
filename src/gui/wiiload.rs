@@ -3,7 +3,7 @@
 
 use crate::app::App;
 use crate::messages::BackgroundMessage;
-use crate::util::wiiapps::wiiload_push;
+use crate::util;
 use eframe::egui;
 
 pub fn ui_wiiload(ui: &mut egui::Ui, app: &mut App) {
@@ -28,7 +28,7 @@ pub fn ui_wiiload(ui: &mut egui::Ui, app: &mut App) {
                         path.display()
                     )));
 
-                    wiiload_push(&path, &wii_ip)?;
+                    util::wiiload::push(&path, &wii_ip)?;
 
                     let _ = ui_sender.send(BackgroundMessage::Info(format!(
                         "Uploaded {}",

@@ -12,4 +12,5 @@ pub mod meta;
 mod split;
 pub mod update_check;
 pub mod wiiapps;
+pub mod wiiload;
 pub mod wiitdb;
