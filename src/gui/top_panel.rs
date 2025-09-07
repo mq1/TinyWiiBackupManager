@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use crate::app::{App, View};
+use crate::gui::wiiload::ui_wiiload;
 use eframe::egui;
+use eframe::egui::PopupCloseBehavior;
 
 /// Renders the top menu bar.
 pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
@@ -38,10 +40,10 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                             let _ = sender.send(e.into());
                         }
 
-                        ui.separator();
-
                         // dot_clean button
                         if cfg!(target_os = "macos") {
+                            ui.separator();
+
                             let mut btn = ui.add_enabled(
                                 app.base_dir.is_some(),
                                 egui::Button::new("👻 Clean MacOS ._ files"),
@@ -97,6 +99,16 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                             app.total_integrity_check();
                         }
                     });
+
+                    if app.view == View::WiiApps {
+                        let btn = ui.button("📮 Wiiload");
+                        let popup = egui::Popup::from_toggle_button_response(&btn)
+                            .close_behavior(PopupCloseBehavior::CloseOnClickOutside);
+                        popup.show(|ui| {
+                            app.top_right_toasts.dismiss_all_toasts();
+                            ui_wiiload(ui, app);
+                        });
+                    }
 
                     if app.base_dir.is_some() {
                         if app.view == View::Games {

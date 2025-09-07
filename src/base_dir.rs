@@ -170,7 +170,15 @@ impl BaseDir {
         let file = File::open(path)?;
         let reader = BufReader::new(file);
         let mut archive = ZipArchive::new(reader)?;
-        archive.extract(&self.0)?;
+
+        // we check if in the zip there is an "apps" directory
+        // if so, we extract it to the base directory
+        // otherwise, we extract the zip to the apps directory
+        if archive.file_names().any(|n| n.starts_with("apps/")) {
+            archive.extract(&self.0)?;
+        } else {
+            archive.extract(&self.0.join("apps"))?;
+        }
 
         Ok(())
     }
