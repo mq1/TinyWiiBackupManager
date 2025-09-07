@@ -15,10 +15,23 @@
 
 ## ✨ Features
 
-- Lightweight and fast — no unnecessary bloat.
-- Simple, intuitive interface.
-- Cross-platform support (Windows, macOS, Linux).
-- Powered by [NOD](https://github.com/encounter/nod) for broad format compatibility (even RVZ‼).
+- **General:**
+    - Lightweight and fast.
+    - Simple, intuitive interface with light and dark themes.
+    - Cross-platform (Windows, macOS, Linux; AMD64, ARM64)
+- **Game Management:**
+    - Grid view with cover art for your game library.
+    - Add games in various formats, powered by [NOD](https://github.com/encounter/nod).
+    - Convert games to WBFS or ISO format.
+    - Automatic .wbfs splitting.
+    - Partition stripping (experimental).
+    - Archive games to space-saving RVZ format (using zstd-19).
+    - Perform integrity checks to verify game data.
+    - Download game covers and `wiitdb.xml` database from GameTDB.
+- **Wii Homebrew Management:**
+    - Manage your Wii homebrew apps in a dedicated view.
+    - Add apps from `.zip` archives.
+    - Send apps to your Wii directly via Wiiload.
 
 ## ⬇️ Download
 
