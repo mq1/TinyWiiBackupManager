@@ -56,6 +56,8 @@ sanitize-filename-reader-friendly = "2.3"
 quick-xml = { version = "0.38", features = ["serialize"] }
 time = { version = "0.3", features = ["parsing", "serde"] }
 phf = { version = "0.13", features = ["macros"] }
+zip-extensions = { version = "0.8", default-features = false }
+flate2 = "1.1"
 
 # Linux and macOS use the default eframe backend
 [target.'cfg(any(target_os = "linux", target_os = "macos"))'.dependencies]
