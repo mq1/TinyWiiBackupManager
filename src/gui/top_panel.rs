@@ -40,10 +40,10 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                             let _ = sender.send(e.into());
                         }
 
-                        ui.separator();
-
                         // dot_clean button
                         if cfg!(target_os = "macos") {
+                            ui.separator();
+
                             let mut btn = ui.add_enabled(
                                 app.base_dir.is_some(),
                                 egui::Button::new("👻 Clean MacOS ._ files"),
