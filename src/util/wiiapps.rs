@@ -7,7 +7,7 @@ use flate2::Compression;
 use flate2::write::ZlibEncoder;
 use serde::{Deserialize, Deserializer};
 use std::fs::File;
-use std::io::{BufReader, Write};
+use std::io::{BufReader, Seek, Write};
 use std::net::{TcpStream, ToSocketAddrs};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
@@ -118,7 +118,14 @@ pub fn wiiload_push(source_zip: impl AsRef<Path>, wii_ip: &str) -> Result<()> {
 
     // Extract only from the "apps" root folder
     let source_dir = tempdir()?;
-    source_archive.extract_unwrapped_root_dir(&source_dir, |root| root == Path::new("apps"))?;
+    source_archive.extract(&source_dir)?;
+
+    // If the "apps" folder is present, cd into it
+    let source_dir = if source_dir.path().join("apps").exists() {
+        source_dir.path().join("apps")
+    } else {
+        source_dir.path().to_path_buf()
+    };
 
     // Find first app directory
     let app_dir = fs::read_dir(&source_dir)?
@@ -141,11 +148,12 @@ pub fn wiiload_push(source_zip: impl AsRef<Path>, wii_ip: &str) -> Result<()> {
     let zipped_app_len = zipped_app.as_file().metadata()?.len() as u32;
 
     // Create a second tempfile for the zlib-compressed data
-    let compressed_app = tempfile::tempfile()?;
+    let mut compressed_app = tempfile::tempfile()?;
     {
         let mut encoder = ZlibEncoder::new(&compressed_app, Compression::default());
         io::copy(&mut zipped_app, &mut encoder)?;
         encoder.finish()?;
+        compressed_app.rewind()?;
     }
 
     let compressed_len = compressed_app.metadata()?.len() as u32;
