@@ -15,3 +15,4 @@ pub mod top_panel;
 pub mod wiiapp_grid;
 pub mod wiiapp_info;
 pub mod wiiapps;
+pub mod wiiload;
