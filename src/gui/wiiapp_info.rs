@@ -60,4 +60,9 @@ fn ui_wiiapp_info_content(
             let _ = sender.send(anyhow!(e).into());
         }
     });
+
+    ui.horizontal(|ui| {
+        ui.label(RichText::new("🌐 View on OSCWii:").strong());
+        ui.hyperlink(&wiiapp.oscwii);
+    });
 }
