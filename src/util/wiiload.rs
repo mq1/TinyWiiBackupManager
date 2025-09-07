@@ -20,6 +20,7 @@ const WIILOAD_PORT: u16 = 4299;
 const WIILOAD_ARGS: &[u8] = b"app.zip\0";
 const WIILOAD_ARGS_LEN: &[u8] = &[0, 8];
 const WIILOAD_TIMEOUT: Duration = Duration::from_secs(10);
+const WIILOAD_CHUNK_SIZE: usize = 1024 * 1024;
 
 pub fn push(source_zip: impl AsRef<Path>, wii_ip: &str) -> Result<()> {
     let source_zip_name = source_zip
@@ -143,8 +144,10 @@ fn send_to_wii(
     stream.write_all(&compressed_len.to_be_bytes())?;
     stream.write_all(&uncompressed_len.to_be_bytes())?;
 
-    // Send the compressed data
-    stream.write_all(compressed_data)?;
+    // Send the compressed data in chunks
+    for chunk in compressed_data.chunks(WIILOAD_CHUNK_SIZE) {
+        stream.write_all(chunk)?;
+    }
 
     // Send arguments
     stream.write_all(WIILOAD_ARGS)?;
