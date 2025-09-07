@@ -30,4 +30,10 @@ pub enum StripPartitions {
 pub struct Settings {
     pub wii_output_format: WiiOutputFormat,
     pub strip_partitions: StripPartitions,
+    #[serde(default = "default_wii_ip")]
+    pub wii_ip: String,
+}
+
+fn default_wii_ip() -> String {
+    "192.168.1.100".to_string()
 }

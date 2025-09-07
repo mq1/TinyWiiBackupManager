@@ -7,7 +7,7 @@ use flate2::Compression;
 use flate2::write::ZlibEncoder;
 use serde::{Deserialize, Deserializer};
 use std::fs::File;
-use std::io::{BufReader, Read, Write};
+use std::io::{BufReader, Write};
 use std::net::TcpStream;
 use std::path::{Path, PathBuf};
 use std::{fs, io};

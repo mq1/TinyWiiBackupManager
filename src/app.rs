@@ -58,6 +58,7 @@ pub struct App {
     pub settings_window_open: bool,
     /// List of discovered apps
     pub wiiapps: Vec<WiiApp>,
+    pub wiiload_window_open: bool,
 }
 
 impl App {
@@ -116,6 +117,7 @@ impl App {
             settings,
             settings_window_open: false,
             wiiapps: Vec::new(),
+            wiiload_window_open: false,
         };
 
         // If the base directory isn't set or no longer exists, prompt the user to select one.

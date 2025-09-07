@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-2.0-only
+
 use crate::app::{App, View};
 use crate::gui;
 use crate::messages::handle_messages;
