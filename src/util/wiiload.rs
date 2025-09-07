@@ -58,10 +58,6 @@ fn get_app_name(archive: &mut ZipArchive<File>) -> Result<String> {
         .find(|name| name.ends_with("boot.dol"))
         .ok_or(anyhow!("No boot.dol found in archive"))?;
 
-    if boot_dol_path == "boot.dol" {
-        bail!("boot.dol is not in an app directory");
-    }
-
     let parent = boot_dol_path
         .rsplit_once('/')
         .ok_or(anyhow!("Failed to get parent directory"))?
