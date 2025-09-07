@@ -3,10 +3,18 @@
 
 use crate::base_dir::BaseDir;
 use anyhow::{Result, anyhow, bail};
+use flate2::Compression;
+use flate2::write::ZlibEncoder;
 use serde::{Deserialize, Deserializer};
-use std::fs;
-use std::path::PathBuf;
+use std::fs::File;
+use std::io::{BufReader, Read, Write};
+use std::net::TcpStream;
+use std::path::{Path, PathBuf};
+use std::{fs, io};
+use tempfile::{NamedTempFile, tempdir};
 use time::{Date, PrimitiveDateTime, format_description};
+use zip::ZipArchive;
+use zip_extensions::zip_create_from_directory;
 
 fn parse_date_only<'de, D>(deserializer: D) -> Result<Date, D::Error>
 where
@@ -100,4 +108,64 @@ pub fn get_installed(base_dir: &BaseDir) -> Result<Vec<WiiApp>> {
         .collect();
 
     Ok(apps)
+}
+
+pub fn wiiload_push(source_zip: impl AsRef<Path>, wii_ip: &str) -> Result<()> {
+    // Open the source zip file
+    let source_zip = File::open(&source_zip)?;
+    let mut source_archive = ZipArchive::new(source_zip)?;
+
+    // Extract only from the "apps" root folder
+    let source_dir = tempdir()?;
+    source_archive.extract_unwrapped_root_dir(&source_dir, |root| root == Path::new("apps"))?;
+
+    // Find first app directory
+    let app_dir = fs::read_dir(&source_dir)?
+        .filter_map(Result::ok)
+        .find(|entry| entry.file_type().map_or(false, |ft| ft.is_dir()))
+        .ok_or_else(|| anyhow!("No app folder found"))?
+        .path();
+
+    let app_name = app_dir
+        .file_name()
+        .and_then(|n| n.to_str())
+        .ok_or_else(|| anyhow!("Invalid app name"))?;
+
+    let out_name = format!("{app_name}.zip");
+    let args = format!("{out_name}\0");
+
+    // Create a temporary zip file containing only that app folder
+    let mut zipped_app = NamedTempFile::new()?;
+    zip_create_from_directory(&zipped_app.path().to_path_buf(), &app_dir)?;
+    let zipped_app_len = zipped_app.as_file().metadata()?.len() as u32;
+
+    // Create a second tempfile for the zlib-compressed data
+    let compressed_app = tempfile::tempfile()?;
+    {
+        let mut encoder = ZlibEncoder::new(&compressed_app, Compression::default());
+        io::copy(&mut zipped_app, &mut encoder)?;
+        encoder.finish()?;
+    }
+
+    let compressed_len = compressed_app.metadata()?.len() as u32;
+
+    // Connect to the Wii on port 4299
+    let mut stream = TcpStream::connect((wii_ip, 4299))?;
+
+    // Send Wiiload header
+    stream.write_all(b"HAXX")?;
+    stream.write_all(&[0])?; // major
+    stream.write_all(&[5])?; // minor
+    stream.write_all(&(args.len() as u16).to_be_bytes())?;
+    stream.write_all(&compressed_len.to_be_bytes())?;
+    stream.write_all(&zipped_app_len.to_be_bytes())?;
+
+    // Stream the compressed file in chunks of 128 KB
+    let mut zlib_file = BufReader::with_capacity(128 * 1024, compressed_app);
+    io::copy(&mut zlib_file, &mut stream)?;
+
+    // Send arguments
+    stream.write_all(args.as_bytes())?;
+
+    Ok(())
 }
