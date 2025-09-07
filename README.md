@@ -16,12 +16,12 @@
 ## ✨ Features
 
 - **General:**
-    - Lightweight and fast.
+    - Lightweight and fast (no Electron!).
     - Simple, intuitive interface with light and dark themes.
-    - Cross-platform (Windows, macOS, Linux; AMD64, ARM64)
+    - Cross-platform (Windows, macOS, Linux; AMD64, ARM64).
 - **Game Management:**
     - Grid view with cover art for your game library.
-    - Add games in various formats, powered by [NOD](https://github.com/encounter/nod).
+    - Support for .iso, .rvz and all major formats, thanks to [NOD](https://github.com/encounter/nod).
     - Convert games to WBFS or ISO format.
     - Automatic .wbfs splitting.
     - Partition stripping (experimental).
