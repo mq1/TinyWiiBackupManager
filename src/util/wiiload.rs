@@ -3,8 +3,6 @@
 
 use anyhow::Result;
 use anyhow::anyhow;
-use flate2::Compression;
-use flate2::write::ZlibEncoder;
 use std::fs::File;
 use std::io::{self, Write};
 use std::net::{TcpStream, ToSocketAddrs};
@@ -30,22 +28,17 @@ pub fn push(source_zip: impl AsRef<Path>, wii_ip: &str) -> Result<()> {
         .to_string();
 
     // Open the source zip file
-    let source_zip = File::open(&source_zip)?;
-    let mut source_archive = ZipArchive::new(source_zip)?;
+    let source_zip_file = File::open(&source_zip)?;
+    let mut source_archive = ZipArchive::new(source_zip_file)?;
 
     // Find the app directory containing boot.dol
     let app_name = get_app_name(&mut source_archive).unwrap_or(source_zip_name);
 
-    // Create a new zip in memory with the app directory
+    // Create a new zip in memory with the app directory, using Deflate compression
     let zipped_app = create_app_zip(&mut source_archive, &app_name)?;
-    let zipped_app_len = zipped_app.len() as u32;
-
-    // Compress the app zip
-    let compressed_app = compress_data(&zipped_app)?;
-    let compressed_len = compressed_app.len() as u32;
 
     // Connect to the Wii and send the data
-    send_to_wii(wii_ip, &compressed_app, compressed_len, zipped_app_len)?;
+    send_to_wii(wii_ip, &zipped_app)?;
 
     Ok(())
 }
@@ -84,8 +77,8 @@ fn create_app_zip(source_archive: &mut ZipArchive<File>, app_name: &str) -> Resu
     let mut zipped_app = Vec::new();
     let mut new_zip = ZipWriter::new(io::Cursor::new(&mut zipped_app));
 
-    // Configure options for storing files without compression
-    let options = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Stored);
+    // Configure options for storing files with Deflate compression
+    let options = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
 
     let app_prefix = get_app_prefix(source_archive).unwrap_or("".to_string());
 
@@ -110,20 +103,7 @@ fn create_app_zip(source_archive: &mut ZipArchive<File>, app_name: &str) -> Resu
     Ok(zipped_app)
 }
 
-fn compress_data(data: &[u8]) -> Result<Vec<u8>> {
-    let mut compressed = Vec::new();
-    let mut encoder = ZlibEncoder::new(&mut compressed, Compression::default());
-    encoder.write_all(data)?;
-    encoder.finish()?;
-    Ok(compressed)
-}
-
-fn send_to_wii(
-    wii_ip: &str,
-    compressed_data: &[u8],
-    compressed_len: u32,
-    uncompressed_len: u32,
-) -> Result<()> {
+fn send_to_wii(wii_ip: &str, compressed_data: &[u8]) -> Result<()> {
     // Connect to the Wii
     let addr = (wii_ip, WIILOAD_PORT)
         .to_socket_addrs()?
@@ -137,8 +117,8 @@ fn send_to_wii(
     // Send Wiiload header
     stream.write_all(WIILOAD_MAGIC)?;
     stream.write_all(WIILOAD_VER_LEN)?;
-    stream.write_all(&compressed_len.to_be_bytes())?;
-    stream.write_all(&uncompressed_len.to_be_bytes())?;
+    stream.write_all(&compressed_data.len().to_be_bytes())?;
+    stream.write_all(&[0u8; 4])?; // signal that the data is already compressed
 
     // Send the compressed data in chunks
     for chunk in compressed_data.chunks(WIILOAD_CHUNK_SIZE) {
