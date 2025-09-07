@@ -6,7 +6,7 @@ use anyhow::anyhow;
 use flate2::Compression;
 use flate2::write::ZlibEncoder;
 use std::fs::File;
-use std::io::{self, BufReader, Write};
+use std::io::{self, Write};
 use std::net::{TcpStream, ToSocketAddrs};
 use std::path::Path;
 use std::time::Duration;
@@ -20,7 +20,6 @@ const WIILOAD_PORT: u16 = 4299;
 const WIILOAD_ARGS: &[u8] = b"app.zip\0";
 const WIILOAD_ARGS_LEN: &[u8] = &[0, 8];
 const WIILOAD_TIMEOUT: Duration = Duration::from_secs(10);
-const WIILOAD_BUF_SIZE: usize = 128 * 1024;
 
 pub fn push(source_zip: impl AsRef<Path>, wii_ip: &str) -> Result<()> {
     let source_zip_name = source_zip
@@ -145,8 +144,7 @@ fn send_to_wii(
     stream.write_all(&uncompressed_len.to_be_bytes())?;
 
     // Send the compressed data
-    let mut reader = BufReader::with_capacity(WIILOAD_BUF_SIZE, compressed_data);
-    io::copy(&mut reader, &mut stream)?;
+    stream.write_all(compressed_data)?;
 
     // Send arguments
     stream.write_all(WIILOAD_ARGS)?;
