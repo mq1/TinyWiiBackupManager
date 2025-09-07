@@ -4,9 +4,8 @@
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumIter};
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, AsRefStr, EnumIter, Copy)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, AsRefStr, EnumIter, Copy)]
 pub enum WiiOutputFormat {
-    #[default]
     #[strum(serialize = "✨ WBFS Auto Split (recommended)")]
     WbfsAuto,
     #[strum(serialize = "📏 WBFS Fixed 4GB-32KB Split Size")]
@@ -15,9 +14,8 @@ pub enum WiiOutputFormat {
     Iso,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, AsRefStr, EnumIter, Copy)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, AsRefStr, EnumIter, Copy)]
 pub enum StripPartitions {
-    #[default]
     #[strum(serialize = "🛡 Keep all (recommended)")]
     No,
     #[strum(serialize = "🗑 Remove Update (integrity check disabled)")]
@@ -26,8 +24,19 @@ pub enum StripPartitions {
     All,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Settings {
     pub wii_output_format: WiiOutputFormat,
     pub strip_partitions: StripPartitions,
+    pub wii_ip: String,
+}
+
+impl Default for Settings {
+    fn default() -> Self {
+        Self {
+            wii_output_format: WiiOutputFormat::WbfsAuto,
+            strip_partitions: StripPartitions::No,
+            wii_ip: "192.168.1.100".to_string(),
+        }
+    }
 }

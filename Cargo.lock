@@ -3909,7 +3909,7 @@ dependencies = [
 
 [[package]]
 name = "tiny-wii-backup-manager"
-version = "2.2.0"
+version = "2.2.1"
 dependencies = [
  "anyhow",
  "const-str",
@@ -3919,6 +3919,7 @@ dependencies = [
  "egui-theme-switch",
  "egui_extras",
  "egui_inbox",
+ "flate2",
  "flume",
  "fs_extra",
  "heck",
@@ -3946,7 +3947,8 @@ dependencies = [
  "walkdir",
  "wgpu",
  "winres",
- "zip",
+ "zip 5.0.0",
+ "zip-extensions",
 ]
 
 [[package]]
@@ -5317,6 +5319,18 @@ dependencies = [
 
 [[package]]
 name = "zip"
+version = "3.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "12598812502ed0105f607f941c386f43d441e00148fce9dec3ca5ffb0bde9308"
+dependencies = [
+ "arbitrary",
+ "crc32fast",
+ "indexmap",
+ "memchr",
+]
+
+[[package]]
+name = "zip"
 version = "5.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b9fdfa5f34b5980f2c21b3a2c68c09ade4debddc7be52c51056695effc73a08c"
@@ -5327,6 +5341,15 @@ dependencies = [
  "indexmap",
  "memchr",
  "zopfli",
+]
+
+[[package]]
+name = "zip-extensions"
+version = "0.8.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9f105becb0a5da773e655775dd05fee454ca1475bcc980ec9d940a02f42cee40"
+dependencies = [
+ "zip 3.0.0",
 ]
 
 [[package]]
