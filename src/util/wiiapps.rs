@@ -7,7 +7,7 @@ use flate2::Compression;
 use flate2::write::ZlibEncoder;
 use serde::{Deserialize, Deserializer};
 use std::fs::File;
-use std::io::{BufReader, Seek, Write};
+use std::io::{BufReader, Cursor, Seek, Write};
 use std::net::{TcpStream, ToSocketAddrs};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
@@ -147,16 +147,16 @@ pub fn wiiload_push(source_zip: impl AsRef<Path>, wii_ip: &str) -> Result<()> {
     zip_create_from_directory(&zipped_app.path().to_path_buf(), &app_dir)?;
     let zipped_app_len = zipped_app.as_file().metadata()?.len() as u32;
 
-    // Create a second tempfile for the zlib-compressed data
-    let mut compressed_app = tempfile::tempfile()?;
-    {
-        let mut encoder = ZlibEncoder::new(&compressed_app, Compression::default());
-        io::copy(&mut zipped_app, &mut encoder)?;
-        encoder.finish()?;
-        compressed_app.rewind()?;
-    }
+    // zlib-compressed data
+    let mut compressed_app = Vec::<u8>::new();
+    let mut cursor = Cursor::new(&mut compressed_app);
+    let mut encoder = ZlibEncoder::new(&mut cursor, Compression::default());
+    io::copy(&mut zipped_app, &mut encoder)?;
+    encoder.flush()?;
+    encoder.finish()?;
 
-    let compressed_len = compressed_app.metadata()?.len() as u32;
+    let compressed_len = cursor.position() as u32;
+    cursor.rewind()?;
 
     // Connect to the Wii on port 4299
     let addr = (wii_ip, 4299)
@@ -177,8 +177,8 @@ pub fn wiiload_push(source_zip: impl AsRef<Path>, wii_ip: &str) -> Result<()> {
     stream.write_all(&zipped_app_len.to_be_bytes())?;
 
     // Stream the compressed file in chunks of 128 KB
-    let mut zlib_file = BufReader::with_capacity(128 * 1024, compressed_app);
-    io::copy(&mut zlib_file, &mut stream)?;
+    let mut reader = BufReader::with_capacity(128 * 1024, cursor);
+    io::copy(&mut reader, &mut stream)?;
 
     // Send arguments
     stream.write_all(args.as_bytes())?;
