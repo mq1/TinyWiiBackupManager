@@ -20,7 +20,7 @@ const WIILOAD_PORT: u16 = 4299;
 const WIILOAD_ARGS: &[u8] = b"app.zip\0";
 const WIILOAD_ARGS_LEN: &[u8] = &[0, 8];
 const WIILOAD_TIMEOUT: Duration = Duration::from_secs(10);
-const WIILOAD_CHUNK_SIZE: usize = 1024 * 1024;
+const WIILOAD_CHUNK_SIZE: usize = 128 * 1024;
 
 pub fn push(source_zip: impl AsRef<Path>, wii_ip: &str) -> Result<()> {
     let source_zip_name = source_zip
