@@ -2,13 +2,13 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use anyhow::Result;
-use anyhow::{anyhow, bail};
+use anyhow::anyhow;
 use flate2::Compression;
 use flate2::write::ZlibEncoder;
 use std::fs::File;
-use std::io::{self, Write};
+use std::io::{self, BufReader, Write};
 use std::net::{TcpStream, ToSocketAddrs};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::time::Duration;
 use zip::write::SimpleFileOptions;
 use zip::{ZipArchive, ZipWriter};
@@ -20,6 +20,7 @@ const WIILOAD_PORT: u16 = 4299;
 const WIILOAD_ARGS: &[u8] = b"app.zip\0";
 const WIILOAD_ARGS_LEN: &[u8] = &[0, 8];
 const WIILOAD_TIMEOUT: Duration = Duration::from_secs(10);
+const WIILOAD_BUF_SIZE: usize = 128 * 1024;
 
 pub fn push(source_zip: impl AsRef<Path>, wii_ip: &str) -> Result<()> {
     // Open the source zip file
@@ -72,16 +73,19 @@ fn create_app_zip(source_archive: &mut ZipArchive<File>, app_dir_name: &str) -> 
         .map(|s| s.to_string())
         .collect();
 
-    let app_dir_prefix = app_dir_name
+    let mut app_dir_prefix = app_dir_name
         .rsplit_once('/')
         .ok_or(anyhow!("Failed to get app directory prefix"))?
-        .0;
+        .0
+        .to_string();
+
+    app_dir_prefix.push('/');
 
     for file_name in &relevant_files {
         let mut file = source_archive.by_name(file_name)?;
 
         let new_name = file_name
-            .strip_prefix(app_dir_prefix)
+            .strip_prefix(&app_dir_prefix)
             .ok_or(anyhow!("Failed to strip prefix"))?;
 
         new_zip.start_file(new_name, options)?;
@@ -126,7 +130,8 @@ fn send_to_wii(
     stream.write_all(&uncompressed_len.to_be_bytes())?;
 
     // Send the compressed data
-    stream.write_all(compressed_data)?;
+    let mut reader = BufReader::with_capacity(WIILOAD_BUF_SIZE, compressed_data);
+    io::copy(&mut reader, &mut stream)?;
 
     // Send arguments
     stream.write_all(WIILOAD_ARGS)?;
