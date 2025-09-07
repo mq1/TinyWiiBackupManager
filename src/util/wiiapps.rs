@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use crate::base_dir::BaseDir;
-use anyhow::{Result, bail};
+use anyhow::{Result, anyhow, bail};
 use serde::{Deserialize, Deserializer};
 use std::fs;
 use std::path::PathBuf;
@@ -37,6 +37,7 @@ pub struct WiiApp {
     pub icon_uri: String,
     pub meta: WiiAppMeta,
     pub info_opened: bool,
+    pub oscwii: String,
 }
 
 impl WiiApp {
@@ -53,12 +54,19 @@ impl WiiApp {
         let meta_file = fs::read_to_string(meta_path)?;
         let meta = quick_xml::de::from_str(&meta_file)?;
 
+        let file_name = path.file_name().ok_or(anyhow!("Failed to get file name"))?;
+        let oscwii = format!(
+            "https://oscwii.org/library/app/{}",
+            file_name.to_string_lossy()
+        );
+
         Ok(Self {
             path,
             size,
             icon_uri,
             meta,
             info_opened: false,
+            oscwii,
         })
     }
 
