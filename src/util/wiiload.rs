@@ -25,6 +25,7 @@ const WIILOAD_BUF_SIZE: usize = 128 * 1024;
 pub fn push(source_zip: impl AsRef<Path>, wii_ip: &str) -> Result<()> {
     let source_zip_name = source_zip
         .as_ref()
+        .with_extension("")
         .file_name()
         .ok_or(anyhow!("Failed to get file name"))?
         .to_string_lossy()
