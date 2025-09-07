@@ -18,16 +18,18 @@ impl eframe::App for App {
         let dir_text = if let Some(base_dir) = &self.base_dir {
             match self.view {
                 View::Games => format!(
-                    " • {} games in {} ({})",
+                    " • {} games in {} ({}/{})",
                     self.games.len(),
                     base_dir.name(),
-                    Size::from_bytes(self.base_dir_size)
+                    Size::from_bytes(self.used_space),
+                    Size::from_bytes(self.total_space),
                 ),
                 View::WiiApps => format!(
-                    " • {} apps in {} ({})",
+                    " • {} apps in {} ({}/{})",
                     self.wiiapps.len(),
                     base_dir.name(),
-                    Size::from_bytes(self.base_dir_size)
+                    Size::from_bytes(self.used_space),
+                    Size::from_bytes(self.total_space),
                 ),
             }
         } else {

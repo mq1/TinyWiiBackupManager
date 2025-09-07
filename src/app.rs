@@ -31,8 +31,9 @@ pub struct App {
     pub base_dir: Option<BaseDir>,
     /// List of discovered games
     pub games: Vec<Game>,
-    /// WBFS dir size
-    pub base_dir_size: u64,
+    /// fs
+    pub used_space: u64,
+    pub total_space: u64,
     /// Inbox for receiving messages from background tasks
     pub inbox: UiInbox<BackgroundMessage>,
     /// File watcher
@@ -107,7 +108,8 @@ impl App {
             task_processor,
             base_dir,
             games: Vec::new(),
-            base_dir_size: 0,
+            used_space: 0,
+            total_space: 0,
             remove_sources: false,
             remove_sources_wiiapps: false,
             console_filter: ConsoleFilter::default(),
@@ -140,6 +142,9 @@ impl App {
         if let Err(e) = app.refresh_wiiapps() {
             let _ = sender.send(e.into());
         }
+        if let Err(e) = app.refresh_fs() {
+            let _ = sender.send(e.into());
+        }
 
         app
     }
@@ -169,6 +174,19 @@ impl App {
 
             self.watch_base_dir()?;
             self.refresh_games()?;
+            self.refresh_wiiapps()?;
+            self.refresh_fs()?;
+        }
+
+        Ok(())
+    }
+
+    pub fn refresh_fs(&mut self) -> Result<()> {
+        if let Some(base_dir) = &self.base_dir {
+            let free_space = fs2::free_space(base_dir.path())?;
+            let total_space = fs2::total_space(base_dir.path())?;
+            self.used_space = total_space - free_space;
+            self.total_space = total_space;
         }
 
         Ok(())
@@ -177,7 +195,6 @@ impl App {
     pub fn refresh_games(&mut self) -> Result<()> {
         if let Some(base_dir) = &self.base_dir {
             self.games = base_dir.get_games()?;
-            self.base_dir_size = base_dir.size()?;
             util::checksum::sync_games(&self.games);
         }
 
@@ -187,7 +204,6 @@ impl App {
     pub fn refresh_wiiapps(&mut self) -> Result<()> {
         if let Some(base_dir) = &self.base_dir {
             self.wiiapps = util::wiiapps::get_installed(base_dir)?;
-            self.base_dir_size = base_dir.size()?;
         }
 
         Ok(())
