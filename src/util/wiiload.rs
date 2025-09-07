@@ -78,7 +78,9 @@ fn create_app_zip(source_archive: &mut ZipArchive<File>, app_name: &str) -> Resu
     let mut new_zip = ZipWriter::new(io::Cursor::new(&mut zipped_app));
 
     // Configure options for storing files with Deflate compression
-    let options = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
+    let options = SimpleFileOptions::default()
+        .compression_method(zip::CompressionMethod::Deflated)
+        .compression_level(Some(9));
 
     let app_prefix = get_app_prefix(source_archive).unwrap_or("".to_string());
 
