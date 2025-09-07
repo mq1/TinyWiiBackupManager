@@ -14,8 +14,9 @@ use zip::write::SimpleFileOptions;
 use zip::{ZipArchive, ZipWriter};
 
 const WIILOAD_PORT: u16 = 4299;
-const WIILOAD_MAGIC: &[u8] = &[b'H', b'A', b'X', b'X', 0, 5, 0, 8]; // 8 is app.zip\0 len
+const WIILOAD_MAGIC: &[u8] = b"HAXX";
 const WIILOAD_ARGS: &[u8] = b"app.zip\0";
+const WIILOAD_VER_LEN: &[u8] = &[0, 5, 0, 8]; // 8 is app.zip\0 len
 const WIILOAD_TIMEOUT: Duration = Duration::from_secs(10);
 const WIILOAD_CHUNK_SIZE: usize = 4 * 1024;
 
@@ -135,6 +136,7 @@ fn send_to_wii(
 
     // Send Wiiload header
     stream.write_all(WIILOAD_MAGIC)?;
+    stream.write_all(WIILOAD_VER_LEN)?;
     stream.write_all(&compressed_len.to_be_bytes())?;
     stream.write_all(&uncompressed_len.to_be_bytes())?;
 
