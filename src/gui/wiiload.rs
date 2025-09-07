@@ -8,10 +8,12 @@ use eframe::egui;
 
 pub fn ui_wiiload(ui: &mut egui::Ui, app: &mut App) {
     ui.horizontal(|ui| {
+        ui.set_max_width(150.0);
+
         ui.label("Wii IP");
         ui.text_edit_singleline(&mut app.settings.wii_ip);
 
-        if ui.button("⬆ Upload .zip").clicked() {
+        if ui.button("⬆ Send .zip").clicked() {
             let res = rfd::FileDialog::new()
                 .set_title("Select Wii App")
                 .add_filter("Wii App", &["zip", "ZIP"])
