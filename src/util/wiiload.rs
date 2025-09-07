@@ -117,7 +117,7 @@ fn send_to_wii(wii_ip: &str, compressed_data: &[u8]) -> Result<()> {
     // Send Wiiload header
     stream.write_all(WIILOAD_MAGIC)?;
     stream.write_all(WIILOAD_VER_LEN)?;
-    stream.write_all(&compressed_data.len().to_be_bytes())?;
+    stream.write_all(&(compressed_data.len() as u32).to_be_bytes())?;
     stream.write_all(&[0u8; 4])?; // signal that the data is already compressed
 
     // Send the compressed data in chunks
