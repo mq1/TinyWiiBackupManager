@@ -120,10 +120,6 @@ impl BaseDir {
         Ok(games)
     }
 
-    pub fn size(&self) -> fs_extra::error::Result<u64> {
-        fs_extra::dir::get_size(&self.0)
-    }
-
     /// Run dot_clean to clean up MacOS ._ files
     pub fn run_dot_clean(&self) -> Result<()> {
         std::process::Command::new("dot_clean")
