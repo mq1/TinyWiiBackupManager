@@ -3,10 +3,9 @@
 
 use std::fs::{File, OpenOptions};
 use std::io;
+use std::io::Seek;
 use std::io::{BufWriter, Write};
 use std::path::{Path, PathBuf};
-use std::io::Seek;
-
 
 pub struct SplitWbfsFile {
     base_path: PathBuf,
@@ -37,7 +36,9 @@ impl SplitWbfsFile {
         if self.current_size + data.len() > self.max_size {
             self.current_part += 1;
 
-            let new_path = self.base_path.with_extension(format!("wbf{}", self.current_part));
+            let new_path = self
+                .base_path
+                .with_extension(format!("wbf{}", self.current_part));
             let new_file = File::create(&new_path)?;
             let new_writer = BufWriter::new(new_file);
             self.writer = new_writer;
@@ -52,14 +53,14 @@ impl SplitWbfsFile {
 
     pub fn write_to_start(&mut self, data: &[u8]) -> Result<(), io::Error> {
         // Open the initial .wbfs file for writing at the start
-        let initial_path = self.base_path.with_extension("wbfs");
-        let mut initial_file = OpenOptions::new()
-            .write(true)
-            .open(&initial_path)?;
+        let first_path = self.base_path.with_extension("wbfs");
+        let first_file = OpenOptions::new().write(true).open(&first_path)?;
+
+        self.writer = BufWriter::new(first_file);
 
         // Seek to the beginning and write the data
-        initial_file.rewind()?;
-        initial_file.write_all(data)?;
+        self.writer.rewind()?;
+        self.writer.write_all(data)?;
 
         Ok(())
     }
