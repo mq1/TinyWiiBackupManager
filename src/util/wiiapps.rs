@@ -8,8 +8,9 @@ use flate2::write::ZlibEncoder;
 use serde::{Deserialize, Deserializer};
 use std::fs::File;
 use std::io::{BufReader, Write};
-use std::net::TcpStream;
+use std::net::{TcpStream, ToSocketAddrs};
 use std::path::{Path, PathBuf};
+use std::time::Duration;
 use std::{fs, io};
 use tempfile::{NamedTempFile, tempdir};
 use time::{Date, PrimitiveDateTime, format_description};
@@ -150,7 +151,14 @@ pub fn wiiload_push(source_zip: impl AsRef<Path>, wii_ip: &str) -> Result<()> {
     let compressed_len = compressed_app.metadata()?.len() as u32;
 
     // Connect to the Wii on port 4299
-    let mut stream = TcpStream::connect((wii_ip, 4299))?;
+    let addr = (wii_ip, 4299)
+        .to_socket_addrs()?
+        .next()
+        .ok_or(anyhow!("Failed to resolve Wii IP"))?;
+
+    let mut stream = TcpStream::connect_timeout(&addr, Duration::from_secs(10))?;
+    stream.set_read_timeout(Some(Duration::from_secs(10)))?;
+    stream.set_write_timeout(Some(Duration::from_secs(10)))?;
 
     // Send Wiiload header
     stream.write_all(b"HAXX")?;
