@@ -23,7 +23,6 @@
 
 ### 🎮 **Game Management**
 
-- **Grid View** — Browse games with cover art display
 - **Format Support** — .iso, .rvz and major formats via [NOD](https://github.com/encounter/nod)
 - **Automatic Splitting** — .wbfs file splitting when needed
 - **Partition Stripping** — Remove unused partitions (experimental)
