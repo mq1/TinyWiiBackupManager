@@ -32,7 +32,6 @@
 
 ### 🛠️ **Wii Homebrew Management**
 
-- **Homebrew View** — Manage Wii homebrew applications
 - **ZIP Import** — Add apps from `.zip` archives
 - **Wiiload Transfer** — Send apps directly to Wii via network
 
