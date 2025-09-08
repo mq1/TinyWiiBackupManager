@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
+use crate::USER_AGENT;
 use crate::game::{ConsoleType, Game};
 use anyhow::{Context, Result, bail};
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
@@ -148,7 +149,9 @@ impl BaseDir {
             return Ok(false);
         }
 
-        let response = minreq::get(url).send()?;
+        let response = minreq::get(url)
+            .with_header("User-Agent", USER_AGENT)
+            .send()?;
 
         if response.status_code != 200 {
             bail!("Failed to download file: {}", response.status_code);
