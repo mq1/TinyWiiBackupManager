@@ -96,6 +96,10 @@ pub fn handle_messages(app: &mut App, ctx: &egui::Context) {
 
             BackgroundMessage::GotNewAppCache(cache) => {
                 app.oscwii_apps = cache;
+
+                if let Err(e) = app.refresh_wiiapps() {
+                    let _ = sender.send(e.into());
+                }
             }
         }
     }
