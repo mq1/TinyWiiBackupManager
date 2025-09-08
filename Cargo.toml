@@ -47,7 +47,7 @@ zip = { version = "5.0", default-features = false, features = ["deflate-flate2"]
 const-str = "0.7"
 strum = { version = "0.27", features = ["derive"] }
 egui-theme-switch = "0.4"
-minreq = { version = "2.14", features = ["https-native"] }
+minreq = { version = "2.14", features = ["https-native", "json-using-serde"] }
 flume = "0.11"
 tempfile = "3.21"
 walkdir = "2.5"
