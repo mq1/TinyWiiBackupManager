@@ -29,7 +29,7 @@
 - **Partition Stripping** — Remove unused partitions (experimental)
 - **Game Archiving** — Archive games using RVZ+zstd-19
 - **Integrity Checks** — Verify game data for corruption
-- **Cover Downloads** — Fetch covers and `wiitdb.xml` from GameTDB
+- **GameTDB** — Fetch covers and `wiitdb.xml` from GameTDB
 
 ### 🛠️ **Wii Homebrew Management**
 
