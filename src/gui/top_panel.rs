@@ -121,11 +121,19 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                             }
                         } else if app.view == View::WiiApps {
                             let add_apps_button = ui
-                                .button("➕ Add App(s)")
+                                .button("➕ Add .zip")
                                 .on_hover_text("Add one or more (.zip) apps to the apps directory");
 
                             if add_apps_button.clicked() {
                                 app.add_wiiapps();
+                            }
+
+                            let download_app_button = ui
+                                .button("📥 Open Shop Channel")
+                                .on_hover_text("Download apps from OSCWii.org");
+
+                            if download_app_button.clicked() {
+                                app.oscwii_window_open = !app.oscwii_window_open;
                             }
                         }
                     }
