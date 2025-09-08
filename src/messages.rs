@@ -4,6 +4,7 @@
 use crate::app::App;
 use crate::game::Game;
 use crate::gui;
+use crate::util::oscwii;
 use crate::util::update_check::UpdateInfo;
 use anyhow::Error;
 use eframe::egui;
@@ -29,6 +30,8 @@ pub enum BackgroundMessage {
     ClearStatus,
     /// Signal that covers should be downloaded
     TriggerDownloadCovers,
+    /// Signal that the OSCWii app list has to be updated
+    GotNewAppCache(oscwii::AppCache),
 }
 
 /// Implement the From trait to automatically convert anyhow::Error into our message.
@@ -89,6 +92,10 @@ pub fn handle_messages(app: &mut App, ctx: &egui::Context) {
 
             BackgroundMessage::TriggerDownloadCovers => {
                 app.download_covers();
+            }
+
+            BackgroundMessage::GotNewAppCache(cache) => {
+                app.oscwii_apps = cache;
             }
         }
     }
