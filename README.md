@@ -15,23 +15,27 @@
 
 ## ✨ Features
 
-- **General:**
-    - Lightweight and fast (no Electron!).
-    - Simple, intuitive interface with light and dark themes.
-    - Cross-platform (Windows, macOS, Linux; AMD64, ARM64).
-- **Game Management:**
-    - Grid view with cover art for your game library.
-    - Support for .iso, .rvz and all major formats, thanks to [NOD](https://github.com/encounter/nod).
-    - Convert games to WBFS or ISO format.
-    - Automatic .wbfs splitting.
-    - Partition stripping (experimental).
-    - Archive games to space-saving RVZ format (using zstd-19).
-    - Perform integrity checks to verify game data.
-    - Download game covers and `wiitdb.xml` database from GameTDB.
-- **Wii Homebrew Management:**
-    - Manage your Wii homebrew apps in a dedicated view.
-    - Add apps from `.zip` archives.
-    - Send apps to your Wii directly via Wiiload.
+### 🚀 **General**
+
+- **Lightweight & Fast** — No Electron!!
+- **Clean Interface** — Simple design with light and dark themes
+- **Cross-Platform** — Windows, macOS, Linux (AMD64, ARM64)
+
+### 🎮 **Game Management**
+
+- **Grid View** — Browse games with cover art display
+- **Format Support** — .iso, .rvz and major formats via [NOD](https://github.com/encounter/nod)
+- **Automatic Splitting** — .wbfs file splitting when needed
+- **Partition Stripping** — Remove unused partitions (experimental)
+- **RVZ Compression** — Archive games using zstd-19 compression
+- **Integrity Checks** — Verify game data for corruption
+- **Cover Downloads** — Fetch covers and `wiitdb.xml` from GameTDB
+
+### 🛠️ **Wii Homebrew Management**
+
+- **Homebrew View** — Manage Wii homebrew applications
+- **ZIP Import** — Add apps from `.zip` archives
+- **Wiiload Transfer** — Send apps directly to Wii via network
 
 ## ⬇️ Download
 
