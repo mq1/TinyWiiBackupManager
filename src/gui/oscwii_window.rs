@@ -3,6 +3,7 @@
 
 use crate::app::App;
 use eframe::egui;
+use eframe::egui::RichText;
 
 pub fn ui_oscwii_window(ctx: &egui::Context, app: &mut App) {
     egui::Window::new("📥 Open Shop Channel")
@@ -13,25 +14,32 @@ pub fn ui_oscwii_window(ctx: &egui::Context, app: &mut App) {
                 ui.text_edit_singleline(&mut app.oscwii_filter);
             });
 
+            ui.separator();
+
             egui::ScrollArea::vertical().show(ui, |ui| {
-                for wiiapp in app.oscwii_apps.apps.iter().filter(|wiiapp| {
-                    wiiapp
-                        .name
-                        .to_lowercase()
-                        .contains(&app.oscwii_filter.to_lowercase())
-                }) {
-                    ui.separator();
+                ui.set_min_width(ui.available_width());
 
-                    ui.horizontal(|ui| {
-                        ui.label(&wiiapp.name);
-                        ui.label(&wiiapp.version);
+                egui::Grid::new("oscwii_apps")
+                    .striped(true)
+                    .start_row(1)
+                    .show(ui, |ui| {
+                        ui.label(RichText::new("Info").strong());
+                        ui.label(RichText::new("Name").strong());
+                        ui.label(RichText::new("Download").strong());
+                        ui.end_row();
 
-                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                            ui.add_space(15.);
-                            ui.button("⬇")
-                        });
+                        for wiiapp in app.oscwii_apps.apps.iter().filter(|wiiapp| {
+                            wiiapp
+                                .name
+                                .to_lowercase()
+                                .contains(&app.oscwii_filter.to_lowercase())
+                        }) {
+                            ui.hyperlink("ℹ");
+                            ui.label(&wiiapp.name);
+                            let _ = ui.button(format!("⬇ v{}", wiiapp.version));
+                            ui.end_row();
+                        }
                     });
-                }
             });
         });
 }
