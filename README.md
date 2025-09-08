@@ -27,7 +27,7 @@
 - **Format Support** — .iso, .rvz and major formats via [NOD](https://github.com/encounter/nod)
 - **Automatic Splitting** — .wbfs file splitting when needed
 - **Partition Stripping** — Remove unused partitions (experimental)
-- **RVZ Compression** — Archive games using zstd-19 compression
+- **Game Archiving** — Archive games using RVZ+zstd-19
 - **Integrity Checks** — Verify game data for corruption
 - **Cover Downloads** — Fetch covers and `wiitdb.xml` from GameTDB
 
