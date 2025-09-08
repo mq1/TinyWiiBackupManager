@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
+use crate::USER_AGENT;
 use crate::base_dir::BaseDir;
 use anyhow::{Context, Result};
 use std::fs::{self, File};
@@ -18,6 +19,7 @@ pub fn download_and_extract_database(base_dir: &BaseDir) -> Result<()> {
 
     // Perform the download request.
     let response = minreq::get(DOWNLOAD_URL)
+        .with_header("User-Agent", USER_AGENT)
         .send()
         .with_context(|| format!("Failed to download from {DOWNLOAD_URL}"))?;
 
