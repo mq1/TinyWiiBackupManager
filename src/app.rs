@@ -15,12 +15,15 @@ use crate::{gui::console_filter::ConsoleFilter, util};
 use anyhow::{Context, Result};
 use eframe::egui;
 use egui_inbox::UiInbox;
+use strum::AsRefStr;
 
 const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, AsRefStr)]
 pub enum View {
+    #[strum(serialize = "🎮 Games")]
     Games,
+    #[strum(serialize = "⭐ Apps")]
     WiiApps,
 }
 
