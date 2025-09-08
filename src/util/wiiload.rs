@@ -6,8 +6,10 @@ use anyhow::anyhow;
 use std::fs::File;
 use std::io::{self, Write};
 use std::net::{TcpStream, ToSocketAddrs};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::time::Duration;
+use tempfile::TempDir;
+use walkdir::WalkDir;
 use zip::write::SimpleFileOptions;
 use zip::{ZipArchive, ZipWriter};
 
@@ -27,15 +29,17 @@ pub fn push(source_zip: impl AsRef<Path>, wii_ip: &str) -> Result<()> {
         .to_string_lossy()
         .to_string();
 
-    // Open the source zip file
+    // Extract to temporary directory
+    let temp_dir = TempDir::new()?;
     let source_zip_file = File::open(&source_zip)?;
-    let mut source_archive = ZipArchive::new(source_zip_file)?;
+    let mut archive = ZipArchive::new(source_zip_file)?;
+    archive.extract(&temp_dir)?;
 
     // Find the app directory containing boot.dol
-    let app_name = get_app_name(&mut source_archive).unwrap_or(source_zip_name);
+    let (app_dir, app_name) = find_app_directory(&temp_dir, &source_zip_name)?;
 
-    // Create a new zip in memory with the app directory, using Deflate compression
-    let zipped_app = create_app_zip(&mut source_archive, &app_name)?;
+    // Create new zip from the app directory
+    let zipped_app = create_app_zip_from_dir(&app_dir, &app_name)?;
 
     // Connect to the Wii and send the data
     send_to_wii(wii_ip, &zipped_app)?;
@@ -43,66 +47,56 @@ pub fn push(source_zip: impl AsRef<Path>, wii_ip: &str) -> Result<()> {
     Ok(())
 }
 
-fn get_app_name(archive: &mut ZipArchive<File>) -> Result<String> {
-    let boot_dol_path = archive
-        .file_names()
-        .find(|name| name.ends_with("boot.dol"))
+fn find_app_directory(temp_dir: &TempDir, fallback_name: &str) -> Result<(PathBuf, String)> {
+    let boot_dol = WalkDir::new(temp_dir)
+        .into_iter()
+        .filter_map(|e| e.ok())
+        .find(|e| e.file_name() == "boot.dol")
         .ok_or(anyhow!("No boot.dol found in archive"))?;
 
-    let parent = boot_dol_path
-        .rsplit_once('/')
-        .ok_or(anyhow!("Failed to get parent directory"))?
-        .0
-        .to_string();
+    let parent = boot_dol
+        .path()
+        .parent()
+        .ok_or(anyhow!("Unable to find boot.dol parent dir"))?;
 
-    match parent.rsplit_once('/') {
-        Some((_, name)) => Ok(name.to_string()),
-        None => Ok(parent),
+    if parent == temp_dir.path() {
+        return Ok((parent.to_path_buf(), fallback_name.to_string()));
     }
+
+    let app_name = parent
+        .file_name()
+        .ok_or(anyhow!("Unable to find app name"))?
+        .to_string_lossy();
+
+    Ok((parent.to_path_buf(), app_name.to_string()))
 }
 
-fn get_app_prefix(archive: &mut ZipArchive<File>) -> Result<String> {
-    let boot_dol_path = archive
-        .file_names()
-        .find(|name| name.ends_with("boot.dol"))
-        .ok_or(anyhow!("No boot.dol found in archive"))?;
+fn create_app_zip_from_dir(app_dir: &Path, app_name: &str) -> Result<Vec<u8>> {
+    let mut buffer = Vec::new();
+    let mut cursor = io::Cursor::new(&mut buffer);
+    let mut zip = ZipWriter::new(&mut cursor);
 
-    match boot_dol_path.rsplit_once('/') {
-        Some((parent, _)) => Ok(format!("{parent}/")),
-        None => Ok("".to_string()),
-    }
-}
-
-fn create_app_zip(source_archive: &mut ZipArchive<File>, app_name: &str) -> Result<Vec<u8>> {
-    let mut zipped_app = Vec::new();
-    let mut new_zip = ZipWriter::new(io::Cursor::new(&mut zipped_app));
-
-    // Configure options for storing files with Deflate compression
     let options = SimpleFileOptions::default()
         .compression_method(zip::CompressionMethod::Deflated)
         .compression_level(Some(9));
 
-    let app_prefix = get_app_prefix(source_archive).unwrap_or("".to_string());
+    // Walk through the app directory and add all files
+    for entry in WalkDir::new(app_dir)
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|e| e.file_type().is_file())
+    {
+        let path = entry.path();
+        let rel_path = path.strip_prefix(app_dir)?;
+        let rel_path = format!("{}/{}", app_name, rel_path.display());
 
-    for i in 0..source_archive.len() {
-        let mut file = source_archive.by_index(i)?;
-        let file_path = file.name();
-
-        // Skip directory entries
-        if file_path.ends_with('/') {
-            continue;
-        }
-
-        // we skip everything that is not in the app directory
-        if let Some(new_path) = file_path.strip_prefix(&app_prefix) {
-            let new_name = format!("{app_name}/{new_path}");
-            new_zip.start_file(new_name, options)?;
-            io::copy(&mut file, &mut new_zip)?;
-        }
+        let mut file = File::open(path)?;
+        zip.start_file(rel_path, options)?;
+        io::copy(&mut file, &mut zip)?;
     }
 
-    new_zip.finish()?;
-    Ok(zipped_app)
+    zip.finish()?;
+    Ok(buffer)
 }
 
 fn send_to_wii(wii_ip: &str, compressed_data: &[u8]) -> Result<()> {
