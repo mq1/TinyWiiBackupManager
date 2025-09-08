@@ -108,6 +108,14 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                             app.top_right_toasts.dismiss_all_toasts();
                             ui_wiiload(ui, app);
                         });
+
+                        let download_app_button = ui
+                            .button("📥 Open Shop Channel")
+                            .on_hover_text("Download apps from OSCWii.org");
+
+                        if download_app_button.clicked() {
+                            app.oscwii_window_open = !app.oscwii_window_open;
+                        }
                     }
 
                     if app.base_dir.is_some() {
@@ -126,14 +134,6 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
 
                             if add_apps_button.clicked() {
                                 app.add_wiiapps();
-                            }
-
-                            let download_app_button = ui
-                                .button("📥 Open Shop Channel")
-                                .on_hover_text("Download apps from OSCWii.org");
-
-                            if download_app_button.clicked() {
-                                app.oscwii_window_open = !app.oscwii_window_open;
                             }
                         }
                     }
