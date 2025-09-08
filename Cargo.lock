@@ -3909,7 +3909,7 @@ dependencies = [
 
 [[package]]
 name = "tiny-wii-backup-manager"
-version = "2.3.2"
+version = "2.3.3"
 dependencies = [
  "anyhow",
  "const-str",
