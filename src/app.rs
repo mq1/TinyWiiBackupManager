@@ -63,6 +63,8 @@ pub struct App {
     pub wiiload_window_open: bool,
     /// oscwii contents cache
     pub oscwii_apps: oscwii::AppCache,
+    pub oscwii_window_open: bool,
+    pub oscwii_filter: String,
 }
 
 impl App {
@@ -130,6 +132,8 @@ impl App {
             wiiapps: Vec::new(),
             wiiload_window_open: false,
             oscwii_apps,
+            oscwii_window_open: false,
+            oscwii_filter: String::new(),
         };
 
         // If the base directory isn't set or no longer exists, prompt the user to select one.

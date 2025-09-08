@@ -49,6 +49,7 @@ impl eframe::App for App {
         });
 
         gui::settings::ui_settings_window(ctx, self);
+        gui::oscwii_window::ui_oscwii_window(ctx, self);
 
         self.top_right_toasts.show(ctx);
         self.bottom_left_toasts.show(ctx);

@@ -9,6 +9,7 @@ pub mod fake_link;
 pub mod game_checks;
 pub mod game_grid;
 pub mod game_info;
+mod oscwii_window;
 pub mod settings;
 pub mod toasts;
 pub mod top_panel;
