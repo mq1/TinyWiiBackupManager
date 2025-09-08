@@ -218,7 +218,7 @@ impl App {
 
     pub fn refresh_wiiapps(&mut self) -> Result<()> {
         if let Some(base_dir) = &self.base_dir {
-            self.wiiapps = util::wiiapps::get_installed(base_dir)?;
+            self.wiiapps = util::wiiapps::get_installed(base_dir, &self.oscwii_apps)?;
         }
 
         Ok(())

@@ -50,6 +50,13 @@ fn ui_wiiapp_card(
     card.show(ui, |ui| {
         ui.vertical(|ui| {
             ui.horizontal(|ui| {
+                // show if an app needs to be updated
+                if let Some(oscwii_app) = &wiiapp.oscwii_app {
+                    if wiiapp.meta.version != oscwii_app.version {
+                        ui.hyperlink_to(format!("{} (new)", oscwii_app.version), &wiiapp.oscwii);
+                    }
+                }
+
                 // Size label on the right
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     ui.label(Size::from_bytes(wiiapp.size).to_string());
