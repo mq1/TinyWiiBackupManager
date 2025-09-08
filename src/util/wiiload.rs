@@ -85,12 +85,12 @@ fn create_app_zip_from_dir(app_dir: &Path, app_name: &str) -> Result<Vec<u8>> {
         .into_iter()
         .filter_map(Result::ok)
         .filter(|e| e.file_type().is_file())
+        .map(|e| e.path().to_path_buf())
     {
-        let path = entry.path();
-        let rel_path = path.strip_prefix(app_dir)?;
+        let rel_path = entry.strip_prefix(app_dir)?;
         let rel_path = format!("{}/{}", app_name, rel_path.display());
 
-        let mut file = File::open(path)?;
+        let mut file = File::open(entry)?;
         zip.start_file(rel_path, options)?;
         io::copy(&mut file, &mut zip)?;
     }
