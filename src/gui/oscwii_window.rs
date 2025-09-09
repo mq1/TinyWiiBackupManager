@@ -33,6 +33,7 @@ pub fn ui_oscwii_window(ctx: &egui::Context, app: &mut App) {
                     .start_row(1)
                     .show(ui, |ui| {
                         ui.label(RichText::new("⭐ App").strong());
+                        ui.label(RichText::new("👸 Author").strong());
                         ui.label(RichText::new("📥 Download").strong());
                         ui.label(RichText::new("📮 Wiiload").strong());
                         ui.end_row();
@@ -45,11 +46,17 @@ pub fn ui_oscwii_window(ctx: &egui::Context, app: &mut App) {
                             ui.hyperlink_to(
                                 &wiiapp.name,
                                 format!("https://oscwii.org/library/app/{}", wiiapp.slug),
-                            );
+                            )
+                            .on_hover_text(&wiiapp.description.short);
+
+                            ui.label(&wiiapp.author);
+
                             if app.base_dir.is_some() {
                                 let _ = ui.button(format!("⬇ {}", wiiapp.version));
                             }
+
                             let _ = ui.button(format!("⬆ {}", wiiapp.version));
+
                             ui.end_row();
                         }
                     });
