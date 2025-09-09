@@ -27,6 +27,7 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
 
                     if ui.button("⚙").clicked() {
                         app.settings_window_open = !app.settings_window_open;
+                        app.top_right_toasts.dismiss_all_toasts();
                     }
 
                     ui.menu_button("☰", |ui| {
@@ -114,6 +115,7 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                             .on_hover_text("Download apps from OSCWii.org");
 
                         if download_app_button.clicked() {
+                            app.top_right_toasts.dismiss_all_toasts();
                             app.oscwii_window_open = !app.oscwii_window_open;
                         }
                     }

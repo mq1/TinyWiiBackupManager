@@ -13,6 +13,7 @@ pub fn ui_oscwii_window(ctx: &egui::Context, app: &mut App) {
         .auto_sized()
         .collapsible(false)
         .movable(false)
+        .default_pos(egui::Pos2::new(0., 0.))
         .show(ctx, |ui| {
             ui.set_width(ctx.screen_rect().width() - 14.);
             ui.set_height(ctx.screen_rect().height() - 69.5);
@@ -39,7 +40,9 @@ pub fn ui_oscwii_window(ctx: &egui::Context, app: &mut App) {
                     .show(ui, |ui| {
                         ui.label(RichText::new("⭐ App").strong());
                         ui.label(RichText::new("👸 Author").strong());
-                        ui.label(RichText::new("📥 Download").strong());
+                        if app.base_dir.is_some() {
+                            ui.label(RichText::new("📥 Download").strong());
+                        }
                         ui.label(RichText::new("📮 Wiiload").strong());
                         ui.end_row();
 
