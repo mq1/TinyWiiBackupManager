@@ -167,7 +167,7 @@ jobs:
           chmod 755 target/universal2-apple-darwin/release/TinyWiiBackupManager
           
           # Create DMG with cargo-packager
-          cargo packager --release --locked --target universal2-apple-darwin --formats dmg
+          cargo packager --release --target universal2-apple-darwin --formats dmg
 
       - name: Upload MacOS distributable
         uses: actions/upload-artifact@v4
