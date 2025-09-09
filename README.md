@@ -35,6 +35,7 @@
 
 - **Apps View** — Manage Wii homebrew applications
 - **ZIP Import** — Add apps from `.zip` archives
+- **OSCWii** — Download apps from the Open Shop Channel
 - **Wiiload Transfer** — Send apps directly to Wii via network
 
 ## ⬇️ Download
