@@ -73,7 +73,7 @@ minreq = { version = "2.14", features = ["https-rustls", "json-using-serde"] }
 eframe = { version = "0.32", features = ["persistence"] }
 
 # Windows uses dx12 to enable software rendering (WARP) as a fallback
-[target.'cfg(any(target = "x86_64-pc-windows-msvc", target = "x86_64-pc-windows-aarch64"))'.dependencies]
+[target.'cfg(any(target = "x86_64-pc-windows-msvc", target = "aarch64-pc-windows-msvc"))'.dependencies]
 eframe = { version = "0.32", default-features = false, features = ["accesskit", "default_fonts", "wgpu", "persistence"] }
 wgpu = { version = "25", default-features = false, features = ["dx12"] }
 
