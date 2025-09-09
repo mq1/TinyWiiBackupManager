@@ -15,6 +15,3 @@ linker = "rust-lld.exe"
 
 [target.aarch64-pc-windows-msvc]
 linker = "rust-lld.exe"
-
-[target.i686-win7-windows-gnu]
-linker = "i686-w64-mingw32-gcc"
