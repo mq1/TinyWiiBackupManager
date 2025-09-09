@@ -15,7 +15,7 @@ pub fn ui_settings_window(ctx: &egui::Context, app: &mut App) {
         .movable(false)
         .show(ctx, |ui| {
             ui.set_width(ctx.screen_rect().width() - 14.);
-            ui.set_height(ctx.screen_rect().height() - 48.);
+            ui.set_height(ctx.screen_rect().height() - 69.); // nice
 
             ui.add_space(10.0);
 
