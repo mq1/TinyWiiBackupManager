@@ -9,9 +9,14 @@ use strum::IntoEnumIterator;
 
 pub fn ui_settings_window(ctx: &egui::Context, app: &mut App) {
     egui::Window::new("⚙ Settings")
-        .default_width(600.0)
         .open(&mut app.settings_window_open)
+        .auto_sized()
+        .collapsible(false)
+        .movable(false)
         .show(ctx, |ui| {
+            ui.set_width(ctx.screen_rect().width() - 14.);
+            ui.set_height(ctx.screen_rect().height() - 48.);
+
             ui.add_space(10.0);
 
             ui.heading("📤 Wii Output Format");
