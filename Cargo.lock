@@ -337,7 +337,7 @@ dependencies = [
  "futures-lite",
  "parking",
  "polling",
- "rustix 1.1.1",
+ "rustix 1.1.2",
  "slab",
  "windows-sys 0.60.2",
 ]
@@ -379,7 +379,7 @@ dependencies = [
  "cfg-if",
  "event-listener",
  "futures-lite",
- "rustix 1.1.1",
+ "rustix 1.1.2",
 ]
 
 [[package]]
@@ -405,7 +405,7 @@ dependencies = [
  "cfg-if",
  "futures-core",
  "futures-io",
- "rustix 1.1.1",
+ "rustix 1.1.2",
  "signal-hook-registry",
  "slab",
  "windows-sys 0.60.2",
@@ -1290,7 +1290,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.60.2",
+ "windows-sys 0.61.0",
 ]
 
 [[package]]
@@ -1544,7 +1544,7 @@ version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fc257fdb4038301ce4b9cd1b3b51704509692bb3ff716a410cbd07925d9dae55"
 dependencies = [
- "rustix 1.1.1",
+ "rustix 1.1.2",
  "windows-targets 0.52.6",
 ]
 
@@ -2148,12 +2148,6 @@ checksum = "d26c52dbd32dccf2d10cac7725f8eae5296885fb5703b261f7d0a0739ec807ab"
 
 [[package]]
 name = "linux-raw-sys"
-version = "0.9.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cd945864f07fe9f5371a27ad7b52a172b4b499999f1d97574c9fa68373937e12"
-
-[[package]]
-name = "linux-raw-sys"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "df1d3c3b53da64cf5760482273a98e575c651a67eec7f77df96b5b642de8f039"
@@ -2188,9 +2182,9 @@ checksum = "34080505efa8e45a4b816c349525ebe327ceaa8559756f0356cba97ef3bf7432"
 
 [[package]]
 name = "lru"
-version = "0.16.0"
+version = "0.16.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "86ea4e65087ff52f3862caff188d489f1fab49a0cb09e01b2e3f1a617b10aaed"
+checksum = "bfe949189f46fabb938b3a9a0be30fdd93fd8a09260da863399a8cf3db756ec8"
 dependencies = [
  "hashbrown",
 ]
@@ -3143,7 +3137,7 @@ dependencies = [
  "concurrent-queue",
  "hermit-abi",
  "pin-project-lite",
- "rustix 1.1.1",
+ "rustix 1.1.2",
  "windows-sys 0.60.2",
 ]
 
@@ -3440,16 +3434,15 @@ dependencies = [
 
 [[package]]
 name = "rustix"
-version = "1.1.1"
+version = "1.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9621e389a110cae094269936383d69b869492f03e5c1ed2d575a53c029d4441d"
+checksum = "cd15f8a2c5551a84d56efdc1cd049089e409ac19a3072d5037a17fd70719ff3e"
 dependencies = [
  "bitflags 2.9.4",
  "errno",
  "libc",
  "linux-raw-sys 0.11.0",
- "linux-raw-sys 0.9.4",
- "windows-sys 0.60.2",
+ "windows-sys 0.61.0",
 ]
 
 [[package]]
@@ -3851,15 +3844,15 @@ dependencies = [
 
 [[package]]
 name = "tempfile"
-version = "3.21.0"
+version = "3.22.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "15b61f8f20e3a6f7e0649d825294eaf317edce30f82cf6026e7e4cb9222a7d1e"
+checksum = "84fa4d11fadde498443cca10fd3ac23c951f0dc59e080e9f4b93d4df4e4eea53"
 dependencies = [
  "fastrand",
  "getrandom 0.3.3",
  "once_cell",
- "rustix 1.1.1",
- "windows-sys 0.60.2",
+ "rustix 1.1.2",
+ "windows-sys 0.61.0",
 ]
 
 [[package]]
@@ -4340,7 +4333,7 @@ checksum = "673a33c33048a5ade91a6b139580fa174e19fb0d23f396dca9fa15f2e1e49b35"
 dependencies = [
  "cc",
  "downcast-rs",
- "rustix 1.1.1",
+ "rustix 1.1.2",
  "scoped-tls",
  "smallvec",
  "wayland-sys",
@@ -4353,7 +4346,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c66a47e840dc20793f2264eb4b3e4ecb4b75d91c0dd4af04b456128e0bdd449d"
 dependencies = [
  "bitflags 2.9.4",
- "rustix 1.1.1",
+ "rustix 1.1.2",
  "wayland-backend",
  "wayland-scanner",
 ]
@@ -4375,7 +4368,7 @@ version = "0.31.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "447ccc440a881271b19e9989f75726d60faa09b95b0200a9b7eb5cc47c3eeb29"
 dependencies = [
- "rustix 1.1.1",
+ "rustix 1.1.2",
  "wayland-client",
  "xcursor",
 ]
@@ -4658,7 +4651,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.60.2",
+ "windows-sys 0.61.0",
 ]
 
 [[package]]
@@ -5183,7 +5176,7 @@ dependencies = [
  "libc",
  "libloading",
  "once_cell",
- "rustix 1.1.1",
+ "rustix 1.1.2",
  "x11rb-protocol",
 ]
 
