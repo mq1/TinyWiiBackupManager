@@ -76,7 +76,7 @@ wgpu = { version = "25", default-features = false, features = ["dx12"] }
 # Someone asked for this
 [target.'cfg(all(windows, target_arch = "x86"))'.dependencies]
 eframe = { version = "0.32", features = ["persistence"] }
-minreq = { version = "2.14", features = ["https-rustls-probe", "json-using-serde"] }
+minreq = { version = "2.14", features = ["https-rustls", "json-using-serde"] }
 
 
 [build-dependencies]
