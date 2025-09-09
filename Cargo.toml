@@ -8,6 +8,10 @@ repository = "https://github.com/mq1/TinyWiiBackupManager"
 description = "A dead simple Wii Backup Manager"
 build = "build.rs"
 
+[[bin]]
+name = "TinyWiiBackupManager"
+path = "src/main.rs"
+
 [package.metadata.packager]
 product-name = "TinyWiiBackupManager"
 identifier = "it.mq1.TinyWiiBackupManager"
