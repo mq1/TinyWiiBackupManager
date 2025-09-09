@@ -188,6 +188,7 @@ jobs:
         with:
           toolchain: nightly
           components: rust-src
+          cache-key: x86_64-win7-windows-msvc
 
       - name: Build binary
         run: cargo +nightly build -Z build-std=std,panic_abort --target x86_64-win7-windows-msvc --release --bin TinyWiiBackupManager
