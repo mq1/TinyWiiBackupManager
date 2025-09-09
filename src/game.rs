@@ -49,7 +49,7 @@ pub enum ConsoleType {
     #[default]
     #[strum(serialize = "🎾 Wii")]
     Wii,
-    #[strum(serialize = "🎮 GC")]
+    #[strum(serialize = "🎲 GC")]
     GameCube,
 }
 

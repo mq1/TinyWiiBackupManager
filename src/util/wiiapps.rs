@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use crate::base_dir::BaseDir;
+use crate::util::oscwii;
+use crate::util::oscwii::AppCache;
 use anyhow::{Result, anyhow, bail};
 use serde::{Deserialize, Deserializer};
 use std::fs;
@@ -38,10 +40,11 @@ pub struct WiiApp {
     pub meta: WiiAppMeta,
     pub info_opened: bool,
     pub oscwii: String,
+    pub oscwii_app: Option<oscwii::App>,
 }
 
 impl WiiApp {
-    pub fn from_path(path: PathBuf) -> Result<Self> {
+    pub fn from_path(path: PathBuf, app_cache: &AppCache) -> Result<Self> {
         if !path.is_dir() {
             bail!("Path is not a directory");
         }
@@ -60,6 +63,12 @@ impl WiiApp {
             file_name.to_string_lossy()
         );
 
+        let oscwii_app = app_cache
+            .apps
+            .iter()
+            .find(|app| app.slug == file_name.to_string_lossy())
+            .cloned();
+
         Ok(Self {
             path,
             size,
@@ -67,6 +76,7 @@ impl WiiApp {
             meta,
             info_opened: false,
             oscwii,
+            oscwii_app,
         })
     }
 
@@ -92,11 +102,11 @@ impl WiiApp {
     }
 }
 
-pub fn get_installed(base_dir: &BaseDir) -> Result<Vec<WiiApp>> {
+pub fn get_installed(base_dir: &BaseDir, app_cache: &AppCache) -> Result<Vec<WiiApp>> {
     let apps = fs::read_dir(base_dir.apps_dir())?
         .filter_map(Result::ok)
         .map(|entry| entry.path())
-        .filter_map(|path| WiiApp::from_path(path).ok())
+        .filter_map(|path| WiiApp::from_path(path, app_cache).ok())
         .collect();
 
     Ok(apps)
