@@ -95,9 +95,8 @@ jobs:
       - name: Distribute also a portable zip
         shell: pwsh
         run: |
-          $APP_NAME = ((Get-ChildItem dist/*.exe | Select-Object -First 1).BaseName).Replace('-setup','')
-          Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "${APP_NAME}.exe"
-          Compress-Archive -Path "${APP_NAME}.exe" -DestinationPath "dist/${APP_NAME}-win-portable.zip"
+          Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager.exe"
+          Compress-Archive -Path "TinyWiiBackupManager.exe" -DestinationPath "dist/TinyWiiBackupManager_${{ github.ref_name }}_${{ matrix.target }}.zip"
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v4
@@ -193,17 +192,12 @@ jobs:
       - name: Build binary
         run: cargo +nightly build -Z build-std=std,panic_abort --target x86_64-win7-windows-msvc --release --bin TinyWiiBackupManager
 
-      - name: Show target folder structure (tree style)
-        shell: pwsh
-        run: |
-          Get-ChildItem target -Recurse | Format-List FullName
-
       - name: Package binary as zip
         shell: pwsh
         run: |
           New-Item -Path ./dist -ItemType Directory
-          Move-Item -Path "target/x86_64-win7-windows-msvc/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager_${{ github.ref_name }}.exe"
-          Compress-Archive -Path "TinyWiiBackupManager_${{ github.ref_name }}.exe" -DestinationPath "dist/TinyWiiBackupManager_${{ github.ref_name }}-win-legacy.zip"
+          Move-Item -Path "target/x86_64-win7-windows-msvc/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager.exe"
+          Compress-Archive -Path "TinyWiiBackupManager.exe" -DestinationPath "dist/TinyWiiBackupManager_${{ github.ref_name }}_x86_64-win7-windows-msvc.zip"
 
       - name: Upload Windows distributable
         uses: actions/upload-artifact@v4
