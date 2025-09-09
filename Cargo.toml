@@ -61,7 +61,7 @@ time = { version = "0.3", features = ["parsing", "serde", "macros"] }
 phf = { version = "0.13", features = ["macros"] }
 fs2 = "0.4"
 
-[target.'cfg(any(target_arch = "x86_64", target_arch = "aarch64"))']
+[target.'cfg(any(target_arch = "x86_64", target_arch = "aarch64"))'.dependencies]
 minreq = { version = "2.14", features = ["https-native", "json-using-serde"] }
 
 # Linux and macOS use the default eframe backend
