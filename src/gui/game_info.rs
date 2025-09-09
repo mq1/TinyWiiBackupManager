@@ -93,7 +93,7 @@ fn ui_game_info_content(
 
     if let Some(block_size) = game.disc_meta.block_size {
         ui.horizontal(|ui| {
-            ui.label(RichText::new("🧱 Block size:").strong());
+            ui.label(RichText::new("📏 Block size:").strong());
             ui.label(Size::from_bytes(block_size).to_string());
         });
     }
