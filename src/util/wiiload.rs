@@ -1,10 +1,11 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
+use crate::USER_AGENT;
 use anyhow::anyhow;
 use anyhow::{Result, bail};
 use std::fs::File;
-use std::io::{self, Cursor, Write};
+use std::io::{self, Cursor, Read, Seek, Write};
 use std::net::{SocketAddr, TcpStream, ToSocketAddrs};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
@@ -40,7 +41,32 @@ pub fn push(source_zip: impl AsRef<Path>, wii_ip: &str) -> Result<()> {
     Ok(())
 }
 
-fn find_app_dir(archive: &mut ZipArchive<File>) -> Result<PathBuf> {
+pub fn push_url(url: &str, wii_ip: &str) -> Result<()> {
+    let addr = (wii_ip, WIILOAD_PORT)
+        .to_socket_addrs()?
+        .next()
+        .ok_or(anyhow!("Failed to resolve Wii IP: {wii_ip}"))?;
+
+    let response = minreq::get(url)
+        .with_header("User-Agent", USER_AGENT)
+        .send()?;
+
+    let cursor = Cursor::new(response.as_bytes());
+    let mut archive = ZipArchive::new(cursor)?;
+
+    // Find the dir containing boot.dol or boot.elf
+    let app_dir = find_app_dir(&mut archive)?;
+
+    // Create new zip in memory
+    let zipped_app = recreate_zip(&mut archive, &app_dir)?;
+
+    // Connect to the Wii and send the data
+    send_to_wii(&addr, &zipped_app)?;
+
+    Ok(())
+}
+
+fn find_app_dir(archive: &mut ZipArchive<impl Read + Seek>) -> Result<PathBuf> {
     for i in 0..archive.len() {
         let file = archive.by_index(i)?;
         let path = file.mangled_name();
@@ -56,7 +82,7 @@ fn find_app_dir(archive: &mut ZipArchive<File>) -> Result<PathBuf> {
     bail!("No app directory found in zip");
 }
 
-fn recreate_zip(archive: &mut ZipArchive<File>, app_dir: &Path) -> Result<Vec<u8>> {
+fn recreate_zip(archive: &mut ZipArchive<impl Read + Seek>, app_dir: &Path) -> Result<Vec<u8>> {
     let mut buffer = Vec::new();
     let mut cursor = Cursor::new(&mut buffer);
     let mut writer = ZipWriter::new(&mut cursor);
