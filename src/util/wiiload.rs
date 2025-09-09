@@ -108,9 +108,12 @@ fn recreate_zip(
         // only add files that are in the app directory
         if path.starts_with(app_dir) {
             let rel_path = path.strip_prefix(app_dir)?;
-            let final_path = Path::new(&app_name).join(rel_path);
+            let final_path = Path::new(&app_name)
+                .join(rel_path)
+                .to_string_lossy()
+                .replace(std::path::MAIN_SEPARATOR, "/");
 
-            writer.start_file(final_path.display(), options)?;
+            writer.start_file(final_path, options)?;
             io::copy(&mut file, &mut writer)?;
         } else {
             excluded_files.push(path.to_string_lossy().to_string());
