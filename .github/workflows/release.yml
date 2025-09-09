@@ -55,8 +55,8 @@ jobs:
 
       - name: Build and package binary
         run: |
-          cargo build --release --locked --target ${{ matrix.target }}
-          cargo packager --release --target ${{ matrix.target }} --formats appimage
+          cargo build --release --locked --target ${{ matrix.target }} --bin TinyWiiBackupManager
+          cargo packager --release --target ${{ matrix.target }} --bin TinyWiiBackupManager --formats appimage
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v4
@@ -89,14 +89,14 @@ jobs:
 
       - name: Build and package binary
         run: |
-          cargo build --release --locked --target ${{ matrix.target }}
-          cargo packager --release --target ${{ matrix.target }} --formats nsis
+          cargo build --release --locked --target ${{ matrix.target }} --bin TinyWiiBackupManager
+          cargo packager --release --target ${{ matrix.target }} --bin TinyWiiBackupManager --formats nsis
 
       - name: Distribute also a portable zip
         shell: pwsh
         run: |
           $APP_NAME = ((Get-ChildItem dist/*.exe | Select-Object -First 1).BaseName).Replace('-setup','')
-          Move-Item -Path "target/${{ matrix.target }}/release/tiny-wii-backup-manager.exe" -Destination "${APP_NAME}.exe"
+          Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "${APP_NAME}.exe"
           Compress-Archive -Path "${APP_NAME}.exe" -DestinationPath "dist/${APP_NAME}-win-portable.zip"
 
       - name: Upload Windows distributables
@@ -126,13 +126,13 @@ jobs:
           cache-key: ${{ matrix.target }}
 
       - name: Build binary
-        run: cargo build --release --locked --target ${{ matrix.target }}
+        run: cargo build --release --locked --target ${{ matrix.target }} --bin TinyWiiBackupManager
 
       - name: Upload MacOS binary
         uses: actions/upload-artifact@v4
         with:
           name: bin-${{ matrix.target }}
-          path: target/${{ matrix.target }}/release/tiny-wii-backup-manager
+          path: target/${{ matrix.target }}/release/TinyWiiBackupManager
 
   package-macos:
     name: Package MacOS Universal2
@@ -160,14 +160,14 @@ jobs:
           # Create the universal binary using lipo
           lipo \
             -create \
-            -output target/universal2-apple-darwin/release/tiny-wii-backup-manager \
-            bin-*-apple-darwin/tiny-wii-backup-manager
+            -output target/universal2-apple-darwin/release/TinyWiiBackupManager \
+            bin-*-apple-darwin/TinyWiiBackupManager
           
           # Set correct binary permissions
-          chmod 755 target/universal2-apple-darwin/release/tiny-wii-backup-manager
+          chmod 755 target/universal2-apple-darwin/release/TinyWiiBackupManager
           
           # Create DMG with cargo-packager
-          cargo packager --release --target universal2-apple-darwin --formats dmg
+          cargo packager --release --target universal2-apple-darwin --bin TinyWiiBackupManager --formats dmg
 
       - name: Upload MacOS distributable
         uses: actions/upload-artifact@v4
