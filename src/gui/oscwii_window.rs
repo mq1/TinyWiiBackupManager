@@ -121,10 +121,19 @@ pub fn ui_oscwii_window(ctx: &egui::Context, app: &mut App) {
                                         let _ = ui_sender.send(BackgroundMessage::UpdateStatus(
                                             format!("Uploading {wiiapp_name}"),
                                         ));
-                                        util::wiiload::push_url(&url, &wii_ip)?;
-                                        let _ = ui_sender.send(BackgroundMessage::Info(format!(
-                                            "Uploaded {wiiapp_name}"
-                                        )));
+
+                                        let excluded_files =
+                                            util::wiiload::push_url(&url, &wii_ip)?;
+
+                                        let mut msg = format!("Uploaded {wiiapp_name}");
+                                        if !excluded_files.is_empty() {
+                                            msg += "\n\nThe following files may need to be manually transferred:";
+                                            for file in excluded_files {
+                                                msg += &format!("\n• {file}");
+                                            }
+                                        }
+
+                                        let _ = ui_sender.send(BackgroundMessage::Info(msg));
                                         Ok(())
                                     });
                                 }
