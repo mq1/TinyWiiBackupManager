@@ -8,18 +8,22 @@ use crate::messages::BackgroundMessage;
 use crate::settings::Settings;
 use crate::task::TaskProcessor;
 use crate::util::ext::SUPPORTED_INPUT_EXTENSIONS;
+use crate::util::oscwii;
 use crate::util::update_check::{UpdateInfo, check_for_new_version};
 use crate::util::wiiapps::WiiApp;
 use crate::{gui::console_filter::ConsoleFilter, util};
 use anyhow::{Context, Result};
 use eframe::egui;
 use egui_inbox::UiInbox;
+use strum::AsRefStr;
 
 const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, AsRefStr)]
 pub enum View {
+    #[strum(serialize = "🎮 Games")]
     Games,
+    #[strum(serialize = "⭐ Apps")]
     WiiApps,
 }
 
@@ -60,6 +64,10 @@ pub struct App {
     /// List of discovered apps
     pub wiiapps: Vec<WiiApp>,
     pub wiiload_window_open: bool,
+    /// oscwii contents cache
+    pub oscwii_apps: oscwii::AppCache,
+    pub oscwii_window_open: bool,
+    pub oscwii_filter: String,
 }
 
 impl App {
@@ -97,6 +105,12 @@ impl App {
             .and_then(|storage| eframe::get_value::<Settings>(storage, "settings"))
             .unwrap_or_default();
 
+        // Load oscwii cache from storage
+        let oscwii_apps = cc
+            .storage
+            .and_then(|storage| eframe::get_value::<oscwii::AppCache>(storage, "oscwii_contents"))
+            .unwrap_or_default();
+
         // Initialize app and toasts
         let mut app = Self {
             view: View::Games,
@@ -120,6 +134,9 @@ impl App {
             settings_window_open: false,
             wiiapps: Vec::new(),
             wiiload_window_open: false,
+            oscwii_apps,
+            oscwii_window_open: false,
+            oscwii_filter: String::new(),
         };
 
         // If the base directory isn't set or no longer exists, prompt the user to select one.
@@ -130,6 +147,11 @@ impl App {
         // Initialize the update checker based on the TWBM_DISABLE_UPDATES env var
         if std::env::var_os("TWBM_DISABLE_UPDATES").is_none() {
             app.spawn_check_for_new_version_task();
+        }
+
+        // Initialize the OSCWii app list
+        if app.oscwii_apps.needs_update() {
+            app.spawn_update_apps_task();
         }
 
         let sender = app.inbox.sender();
@@ -203,7 +225,7 @@ impl App {
 
     pub fn refresh_wiiapps(&mut self) -> Result<()> {
         if let Some(base_dir) = &self.base_dir {
-            self.wiiapps = util::wiiapps::get_installed(base_dir)?;
+            self.wiiapps = util::wiiapps::get_installed(base_dir, &self.oscwii_apps)?;
         }
 
         Ok(())
@@ -370,6 +392,23 @@ impl App {
         self.task_processor.spawn_task(move |ui_sender| {
             let update_info = check_for_new_version()?;
             let _ = ui_sender.send(BackgroundMessage::GotUpdate(update_info));
+            Ok(())
+        });
+    }
+
+    pub fn spawn_update_apps_task(&self) {
+        self.task_processor.spawn_task(move |ui_sender| {
+            let _ = ui_sender.send(BackgroundMessage::UpdateStatus(
+                "Updating OSCWii contents...".to_string(),
+            ));
+
+            let new_cache = oscwii::AppCache::new()?;
+            let _ = ui_sender.send(BackgroundMessage::GotNewAppCache(new_cache));
+
+            let _ = ui_sender.send(BackgroundMessage::Info(
+                "OSCWii contents cached successfully.".to_string(),
+            ));
+
             Ok(())
         });
     }

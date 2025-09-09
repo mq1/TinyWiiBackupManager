@@ -1,15 +1,14 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
-use anyhow::Result;
+use crate::USER_AGENT;
 use anyhow::anyhow;
+use anyhow::{Result, bail};
 use std::fs::File;
-use std::io::{self, Write};
-use std::net::{TcpStream, ToSocketAddrs};
+use std::io::{self, Cursor, Read, Seek, Write};
+use std::net::{SocketAddr, TcpStream, ToSocketAddrs};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
-use tempfile::TempDir;
-use walkdir::WalkDir;
 use zip::write::SimpleFileOptions;
 use zip::{ZipArchive, ZipWriter};
 
@@ -21,91 +20,103 @@ const WIILOAD_TIMEOUT: Duration = Duration::from_secs(10);
 const WIILOAD_CHUNK_SIZE: usize = 4 * 1024;
 
 pub fn push(source_zip: impl AsRef<Path>, wii_ip: &str) -> Result<()> {
-    let source_zip_name = source_zip
-        .as_ref()
-        .with_extension("")
-        .file_name()
-        .ok_or(anyhow!("Failed to get file name"))?
-        .to_string_lossy()
-        .to_string();
+    let addr = (wii_ip, WIILOAD_PORT)
+        .to_socket_addrs()?
+        .next()
+        .ok_or(anyhow!("Failed to resolve Wii IP: {wii_ip}"))?;
 
-    // Extract to temporary directory
-    let temp_dir = TempDir::new()?;
+    // Open the source zip file
     let source_zip_file = File::open(&source_zip)?;
     let mut archive = ZipArchive::new(source_zip_file)?;
-    archive.extract(&temp_dir)?;
 
-    // Find the app directory containing boot.dol
-    let (app_dir, app_name) = find_app_directory(&temp_dir, &source_zip_name)?;
+    // Find the dir containing boot.dol or boot.elf
+    let app_dir = find_app_dir(&mut archive)?;
 
-    // Create new zip from the app directory
-    let zipped_app = create_app_zip_from_dir(&app_dir, &app_name)?;
+    // Create new zip in memory
+    let zipped_app = recreate_zip(&mut archive, &app_dir)?;
 
     // Connect to the Wii and send the data
-    send_to_wii(wii_ip, &zipped_app)?;
+    send_to_wii(&addr, &zipped_app)?;
 
     Ok(())
 }
 
-fn find_app_directory(temp_dir: &TempDir, fallback_name: &str) -> Result<(PathBuf, String)> {
-    let boot_dol = WalkDir::new(temp_dir)
-        .into_iter()
-        .filter_map(|e| e.ok())
-        .find(|e| e.file_name() == "boot.dol")
-        .ok_or(anyhow!("No boot.dol found in archive"))?;
+pub fn push_url(url: &str, wii_ip: &str) -> Result<()> {
+    let addr = (wii_ip, WIILOAD_PORT)
+        .to_socket_addrs()?
+        .next()
+        .ok_or(anyhow!("Failed to resolve Wii IP: {wii_ip}"))?;
 
-    let parent = boot_dol
-        .path()
-        .parent()
-        .ok_or(anyhow!("Unable to find boot.dol parent dir"))?;
+    let response = minreq::get(url)
+        .with_header("User-Agent", USER_AGENT)
+        .send()?;
 
-    if parent == temp_dir.path() {
-        return Ok((parent.to_path_buf(), fallback_name.to_string()));
-    }
+    let cursor = Cursor::new(response.as_bytes());
+    let mut archive = ZipArchive::new(cursor)?;
 
-    let app_name = parent
-        .file_name()
-        .ok_or(anyhow!("Unable to find app name"))?
-        .to_string_lossy();
+    // Find the dir containing boot.dol or boot.elf
+    let app_dir = find_app_dir(&mut archive)?;
 
-    Ok((parent.to_path_buf(), app_name.to_string()))
+    // Create new zip in memory
+    let zipped_app = recreate_zip(&mut archive, &app_dir)?;
+
+    // Connect to the Wii and send the data
+    send_to_wii(&addr, &zipped_app)?;
+
+    Ok(())
 }
 
-fn create_app_zip_from_dir(app_dir: &Path, app_name: &str) -> Result<Vec<u8>> {
+fn find_app_dir(archive: &mut ZipArchive<impl Read + Seek>) -> Result<PathBuf> {
+    for i in 0..archive.len() {
+        let file = archive.by_index(i)?;
+        let path = file.mangled_name();
+
+        if let Some(file_name) = path.file_name()
+            && (file_name == "boot.dol" || file_name == "boot.elf")
+            && let Some(parent) = path.parent()
+        {
+            return Ok(parent.to_path_buf());
+        }
+    }
+
+    bail!("No app directory found in zip");
+}
+
+fn recreate_zip(archive: &mut ZipArchive<impl Read + Seek>, app_dir: &Path) -> Result<Vec<u8>> {
     let mut buffer = Vec::new();
-    let mut cursor = io::Cursor::new(&mut buffer);
-    let mut zip = ZipWriter::new(&mut cursor);
+    let mut cursor = Cursor::new(&mut buffer);
+    let mut writer = ZipWriter::new(&mut cursor);
+
+    let app_name = app_dir
+        .file_name()
+        .ok_or(anyhow!("No app name found"))?
+        .to_string_lossy()
+        .to_string();
 
     let options = SimpleFileOptions::default()
         .compression_method(zip::CompressionMethod::Deflated)
         .compression_level(Some(9));
 
-    // Walk through the app directory and add all files
-    for entry in WalkDir::new(app_dir)
-        .into_iter()
-        .filter_map(Result::ok)
-        .filter(|e| e.file_type().is_file())
-        .map(|e| e.path().to_path_buf())
-    {
-        let rel_path = entry.strip_prefix(app_dir)?;
-        let rel_path = format!("{}/{}", app_name, rel_path.display());
+    for i in 0..archive.len() {
+        let mut file = archive.by_index(i)?;
+        let path = file.mangled_name();
 
-        let mut file = File::open(entry)?;
-        zip.start_file(rel_path, options)?;
-        io::copy(&mut file, &mut zip)?;
+        // only add files that are in the app directory
+        if path.starts_with(app_dir) {
+            let rel_path = path.strip_prefix(app_dir)?;
+            let final_path = Path::new(&app_name).join(rel_path);
+
+            writer.start_file(final_path.display(), options)?;
+            io::copy(&mut file, &mut writer)?;
+        }
     }
 
-    zip.finish()?;
+    writer.finish()?;
     Ok(buffer)
 }
 
-fn send_to_wii(wii_ip: &str, compressed_data: &[u8]) -> Result<()> {
+fn send_to_wii(addr: &SocketAddr, compressed_data: &[u8]) -> Result<()> {
     // Connect to the Wii
-    let addr = (wii_ip, WIILOAD_PORT)
-        .to_socket_addrs()?
-        .next()
-        .ok_or(anyhow!("Failed to resolve Wii IP: {}", wii_ip))?;
-
     let mut stream = TcpStream::connect_timeout(&addr, WIILOAD_TIMEOUT)?;
     stream.set_read_timeout(Some(WIILOAD_TIMEOUT))?;
     stream.set_write_timeout(Some(WIILOAD_TIMEOUT))?;
@@ -125,6 +136,5 @@ fn send_to_wii(wii_ip: &str, compressed_data: &[u8]) -> Result<()> {
     stream.write_all(WIILOAD_ARGS)?;
 
     stream.flush()?;
-
     Ok(())
 }

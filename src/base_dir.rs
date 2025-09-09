@@ -11,6 +11,7 @@ use std::io::BufReader;
 use std::path::{Path, PathBuf};
 use std::{fmt, fs, io};
 use zip::ZipArchive;
+use zip::result::ZipResult;
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct BaseDir(PathBuf);
@@ -158,26 +159,41 @@ impl BaseDir {
         }
 
         fs::create_dir_all(&dir)?;
-        let mut file = fs::File::create(&file_path)?;
+        let mut file = File::create(&file_path)?;
 
         io::copy(&mut response.as_bytes(), &mut file)?;
 
         Ok(true)
     }
 
+    /// we check if in the zip there is an "apps" directory
+    /// if so, we extract it to the base directory
+    /// otherwise, we extract the zip to the apps directory
+    fn extract_app(&self, archive: &mut ZipArchive<impl io::Read + io::Seek>) -> ZipResult<()> {
+        if archive.file_names().any(|n| n.starts_with("apps/")) {
+            archive.extract(&self.0)
+        } else {
+            archive.extract(&self.0.join("apps"))
+        }
+    }
+
     pub fn add_zip(&self, path: impl AsRef<Path>) -> Result<()> {
         let file = File::open(path)?;
         let reader = BufReader::new(file);
         let mut archive = ZipArchive::new(reader)?;
+        self.extract_app(&mut archive)?;
 
-        // we check if in the zip there is an "apps" directory
-        // if so, we extract it to the base directory
-        // otherwise, we extract the zip to the apps directory
-        if archive.file_names().any(|n| n.starts_with("apps/")) {
-            archive.extract(&self.0)?;
-        } else {
-            archive.extract(&self.0.join("apps"))?;
-        }
+        Ok(())
+    }
+
+    pub fn add_zip_from_url(&self, url: &str) -> Result<()> {
+        let response = minreq::get(url)
+            .with_header("User-Agent", USER_AGENT)
+            .send()?;
+
+        let cursor = io::Cursor::new(response.as_bytes());
+        let mut archive = ZipArchive::new(cursor)?;
+        self.extract_app(&mut archive)?;
 
         Ok(())
     }

@@ -49,6 +49,7 @@ impl eframe::App for App {
         });
 
         gui::settings::ui_settings_window(ctx, self);
+        gui::oscwii_window::ui_oscwii_window(ctx, self);
 
         self.top_right_toasts.show(ctx);
         self.bottom_left_toasts.show(ctx);
@@ -58,6 +59,7 @@ impl eframe::App for App {
     fn save(&mut self, storage: &mut dyn Storage) {
         eframe::set_value(storage, "app_version", &APP_VERSION);
         eframe::set_value(storage, "settings", &self.settings);
+        eframe::set_value(storage, "oscwii_contents", &self.oscwii_apps);
 
         if let Some(base_dir) = &self.base_dir {
             eframe::set_value(storage, "base_dir", base_dir);
