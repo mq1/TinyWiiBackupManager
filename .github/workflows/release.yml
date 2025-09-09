@@ -193,6 +193,11 @@ jobs:
       - name: Build binary
         run: cargo +nightly build -Z build-std=std,panic_abort --target x86_64-win7-windows-msvc --release --bin TinyWiiBackupManager
 
+      - name: Show target folder structure (tree style)
+        shell: pwsh
+        run: |
+          Get-ChildItem target -Recurse | Format-List FullName
+
       - name: Package binary as zip
         shell: pwsh
         run: |
