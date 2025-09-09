@@ -95,9 +95,8 @@ jobs:
       - name: Distribute also a portable zip
         shell: pwsh
         run: |
-          $APP_NAME = ((Get-ChildItem dist/*.exe | Select-Object -First 1).BaseName).Replace('-setup','')
-          Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "${APP_NAME}.exe"
-          Compress-Archive -Path "${APP_NAME}.exe" -DestinationPath "dist/${APP_NAME}-win-portable.zip"
+          Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager.exe"
+          Compress-Archive -Path "TinyWiiBackupManager.exe" -DestinationPath "dist/TinyWiiBackupManager_${{ github.ref_name }}_${{ matrix.target }}.zip"
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v4
@@ -179,7 +178,7 @@ jobs:
 
   build-windows-legacy:
     name: Build for Windows (legacy)
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -189,20 +188,17 @@ jobs:
         with:
           toolchain: nightly
           components: rust-src
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-mingw-w64-i686
+          cache-key: x86_64-win7-windows-msvc
 
       - name: Build binary
-        run: cargo +nightly build -Z build-std=std,panic_abort --target i686-win7-windows-gnu --release --bin TinyWiiBackupManager
+        run: cargo +nightly build -Z build-std=std,panic_abort --target x86_64-win7-windows-msvc --release --bin TinyWiiBackupManager
 
       - name: Package binary as zip
+        shell: pwsh
         run: |
-          mkdir dist
-          mv target/i686-win7-windows-gnu/release/TinyWiiBackupManager.exe TinyWiiBackupManager_${{ github.ref_name }}.exe
-          zip dist/TinyWiiBackupManager_${{ github.ref_name }}-win-legacy.zip TinyWiiBackupManager_${{ github.ref_name }}.exe
+          New-Item -Path ./dist -ItemType Directory
+          Move-Item -Path "target/x86_64-win7-windows-msvc/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager.exe"
+          Compress-Archive -Path "TinyWiiBackupManager.exe" -DestinationPath "dist/TinyWiiBackupManager_${{ github.ref_name }}_x86_64-win7-windows-msvc.zip"
 
       - name: Upload Windows distributable
         uses: actions/upload-artifact@v4
