@@ -264,6 +264,11 @@ impl App {
                     }
                     Ok(())
                 });
+
+                self.task_processor.spawn_task(move |ui_sender| {
+                    let _ = ui_sender.send(BackgroundMessage::DirectoryChanged);
+                    Ok(())
+                });
             }
         }
     }
