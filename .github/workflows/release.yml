@@ -73,7 +73,7 @@ jobs:
         include:
           - target: x86_64-pc-windows-msvc
           - target: aarch64-pc-windows-msvc
-          - target: i686-win7-windows-msvc
+          - target: i686-win7-windows-gnu
 
     steps:
       - name: Checkout
