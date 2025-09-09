@@ -13,6 +13,7 @@ pub fn ui_settings_window(ctx: &egui::Context, app: &mut App) {
         .auto_sized()
         .collapsible(false)
         .movable(false)
+        .default_pos(egui::Pos2::new(0., 0.))
         .show(ctx, |ui| {
             ui.set_width(ctx.screen_rect().width() - 14.);
             ui.set_height(ctx.screen_rect().height() - 71.);
