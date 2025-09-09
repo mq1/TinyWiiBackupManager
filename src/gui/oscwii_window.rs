@@ -46,24 +46,24 @@ pub fn ui_oscwii_window(ctx: &egui::Context, app: &mut App) {
             TableBuilder::new(ui)
                 .striped(true)
                 .column(Column::exact(150.))
-                .column(Column::exact(150.))
-                .column(Column::exact(150.))
+                .column(Column::exact(100.))
+                .column(Column::exact(100.))
                 .column(Column::remainder())
                 .header(20.0, |mut header| {
                     header.col(|ui| {
                         ui.heading("⭐ App");
                     });
                     header.col(|ui| {
+                        ui.heading("🏷 Version");
+                    });
+                    header.col(|ui| {
                         ui.heading("👸 Author");
                     });
                     header.col(|ui| {
-                        ui.heading("📥 Download");
-                    });
-                    header.col(|ui| {
-                        ui.heading("📮 Wiiload");
+                        ui.heading("📥 Actions");
                     });
                 })
-                .body(|mut body| {
+                .body(|body| {
                     body.rows(20., filtered_apps.len(), |mut row| {
                         let wiiapp = filtered_apps[row.index()];
 
@@ -76,54 +76,59 @@ pub fn ui_oscwii_window(ctx: &egui::Context, app: &mut App) {
                             .on_hover_text(&wiiapp.description.short);
                         });
 
+                        // Cell for the version
+                        row.col(|ui| {
+                            ui.label(&wiiapp.version);
+                        });
+
                         // Cell for the author
                         row.col(|ui| {
                             ui.label(&wiiapp.author);
                         });
 
-                        // Cell for download (conditional)
+                        // Cell for download/upload buttons
                         row.col(|ui| {
-                            if let Some(base_dir) = &app.base_dir {
-                                if ui.button(format!("⬇ {}", wiiapp.version)).clicked() {
-                                    let zip_url = &wiiapp.assets.archive.url;
-                                    let base_dir = base_dir.clone();
-                                    let zip_url = zip_url.clone();
+                            ui.horizontal(|ui| {
+                                if let Some(base_dir) = &app.base_dir {
+                                    if ui.button("⬇ Download").clicked() {
+                                        let zip_url = &wiiapp.assets.archive.url;
+                                        let base_dir = base_dir.clone();
+                                        let zip_url = zip_url.clone();
+                                        let wiiapp_name = wiiapp.name.clone();
+
+                                        app.task_processor.spawn_task(move |ui_sender| {
+                                            let _ =
+                                                ui_sender.send(BackgroundMessage::UpdateStatus(
+                                                    format!("Downloading {wiiapp_name}"),
+                                                ));
+                                            base_dir.add_zip_from_url(&zip_url)?;
+                                            let _ = ui_sender.send(BackgroundMessage::Info(
+                                                format!("Downloaded {wiiapp_name}"),
+                                            ));
+                                            Ok(())
+                                        });
+                                    }
+                                } else {
+                                    ui.add_enabled(false, egui::Button::new("Base dir not set"));
+                                }
+
+                                if ui.button("⬆ Wiiload").clicked() {
+                                    let wii_ip = app.settings.wii_ip.clone();
+                                    let url = wiiapp.assets.archive.url.clone();
                                     let wiiapp_name = wiiapp.name.clone();
 
                                     app.task_processor.spawn_task(move |ui_sender| {
                                         let _ = ui_sender.send(BackgroundMessage::UpdateStatus(
-                                            format!("Downloading {wiiapp_name}"),
+                                            format!("Uploading {wiiapp_name}"),
                                         ));
-                                        base_dir.add_zip_from_url(&zip_url)?;
+                                        util::wiiload::push_url(&url, &wii_ip)?;
                                         let _ = ui_sender.send(BackgroundMessage::Info(format!(
-                                            "Downloaded {wiiapp_name}"
+                                            "Uploaded {wiiapp_name}"
                                         )));
                                         Ok(())
                                     });
                                 }
-                            } else {
-                                ui.label("Base directory not set");
-                            }
-                        });
-
-                        // Cell for Wiiload
-                        row.col(|ui| {
-                            if ui.button(format!("⬆ {}", wiiapp.version)).clicked() {
-                                let wii_ip = app.settings.wii_ip.clone();
-                                let url = wiiapp.assets.archive.url.clone();
-                                let wiiapp_name = wiiapp.name.clone();
-
-                                app.task_processor.spawn_task(move |ui_sender| {
-                                    let _ = ui_sender.send(BackgroundMessage::UpdateStatus(
-                                        format!("Uploading {wiiapp_name}"),
-                                    ));
-                                    util::wiiload::push_url(&url, &wii_ip)?;
-                                    let _ = ui_sender.send(BackgroundMessage::Info(format!(
-                                        "Uploaded {wiiapp_name}"
-                                    )));
-                                    Ok(())
-                                });
-                            }
+                            });
                         });
                     });
                 });
