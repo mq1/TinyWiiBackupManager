@@ -8,10 +8,19 @@ use eframe::egui::RichText;
 pub fn ui_oscwii_window(ctx: &egui::Context, app: &mut App) {
     egui::Window::new("🏪 Open Shop Channel")
         .open(&mut app.oscwii_window_open)
+        .auto_sized()
+        .collapsible(false)
+        .movable(false)
         .show(ctx, |ui| {
+            ui.set_width(ctx.screen_rect().width() - 14.);
+            ui.set_height(ctx.screen_rect().height() - 48.);
+
             ui.horizontal(|ui| {
                 ui.label("Filter 🔎");
-                ui.text_edit_singleline(&mut app.oscwii_filter);
+
+                let edit = egui::TextEdit::singleline(&mut app.oscwii_filter)
+                    .desired_width(ui.available_width());
+                ui.add(edit);
             });
 
             ui.separator();
@@ -28,11 +37,10 @@ pub fn ui_oscwii_window(ctx: &egui::Context, app: &mut App) {
                         ui.label(RichText::new("📮 Wiiload").strong());
                         ui.end_row();
 
+                        let filter = app.oscwii_filter.to_lowercase();
                         for wiiapp in app.oscwii_apps.apps.iter().filter(|wiiapp| {
-                            wiiapp
-                                .name
-                                .to_lowercase()
-                                .contains(&app.oscwii_filter.to_lowercase())
+                            wiiapp.name.to_lowercase().contains(&filter)
+                                || wiiapp.slug.to_lowercase().contains(&filter)
                         }) {
                             ui.hyperlink_to(
                                 &wiiapp.name,
