@@ -11,10 +11,15 @@ on:
 permissions:
   contents: write
 
+# Global environment variable available to all jobs in this workflow.
+# - For pull requests, it uses 'PR-123'.
+# - For pushes, it uses the branch or tag name (e.g., 'main' or 'v1.2.0').
+env:
+  VERSION_NAME: ${{ github.event_name == 'pull_request' && format('PR-{0}', github.event.pull_request.number) || github.ref_name }}
+
 jobs:
   # ==================================================================================
   #  Build & Bundle Jobs: Run the platform-specific build scripts.
-  #  The icon assets are checked in with the repository.
   # ==================================================================================
   build-linux:
     name: Build for Linux
@@ -98,7 +103,7 @@ jobs:
         shell: pwsh
         run: |
           Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager.exe"
-          Compress-Archive -Path "TinyWiiBackupManager.exe" -DestinationPath "dist/TinyWiiBackupManager_${{ github.ref_name }}_${{ matrix.arch }}-win-portable.zip"
+          Compress-Archive -Path "TinyWiiBackupManager.exe" -DestinationPath "dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_${{ matrix.arch }}-win-portable.zip"
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v4
@@ -200,7 +205,7 @@ jobs:
         run: |
           New-Item -Path ./dist -ItemType Directory
           Move-Item -Path "target/x86_64-win7-windows-msvc/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager.exe"
-          Compress-Archive -Path "TinyWiiBackupManager.exe" -DestinationPath "dist/TinyWiiBackupManager_${{ github.ref_name }}_x64-win7-portable.zip"
+          Compress-Archive -Path "TinyWiiBackupManager.exe" -DestinationPath "dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_x64-win7-portable.zip"
 
       - name: Upload Windows distributable
         uses: actions/upload-artifact@v4
