@@ -15,7 +15,7 @@ pub fn ui_settings_window(ctx: &egui::Context, app: &mut App) {
         .movable(false)
         .show(ctx, |ui| {
             ui.set_width(ctx.screen_rect().width() - 14.);
-            ui.set_height(ctx.screen_rect().height() - 69.); // nice
+            ui.set_height(ctx.screen_rect().height() - 71.);
 
             ui.add_space(10.0);
 
@@ -37,13 +37,11 @@ pub fn ui_settings_window(ctx: &egui::Context, app: &mut App) {
                 ui.radio_value(&mut app.settings.strip_partitions, format, format.as_ref());
             }
 
-            ui.add_space(10.0);
-            ui.separator();
-            ui.add_space(10.0);
-
-            ui.horizontal(|ui| {
-                ui.label("🎨 Theme");
-                global_theme_switch(ui);
+            ui.with_layout(egui::Layout::bottom_up(egui::Align::RIGHT), |ui| {
+                ui.horizontal(|ui| {
+                    global_theme_switch(ui);
+                });
+                ui.separator();
             });
         });
 }

@@ -3,8 +3,9 @@
 
 use crate::app::App;
 use crate::messages::BackgroundMessage;
+use crate::util;
 use eframe::egui;
-use eframe::egui::RichText;
+use eframe::egui::{RichText, TextEdit};
 
 pub fn ui_oscwii_window(ctx: &egui::Context, app: &mut App) {
     egui::Window::new("🏪 Open Shop Channel")
@@ -14,14 +15,17 @@ pub fn ui_oscwii_window(ctx: &egui::Context, app: &mut App) {
         .movable(false)
         .show(ctx, |ui| {
             ui.set_width(ctx.screen_rect().width() - 14.);
-            ui.set_height(ctx.screen_rect().height() - 69.); // nice
+            ui.set_height(ctx.screen_rect().height() - 69.5);
 
             ui.horizontal(|ui| {
-                ui.label("Filter 🔎");
+                ui.label("🔎 Filter");
+                ui.add(TextEdit::singleline(&mut app.oscwii_filter).hint_text("Type something"));
 
-                let edit = egui::TextEdit::singleline(&mut app.oscwii_filter)
-                    .desired_width(ui.available_width());
-                ui.add(edit);
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    ui.set_max_width(150.0);
+                    ui.text_edit_singleline(&mut app.settings.wii_ip);
+                    ui.label("🔢 Wii IP");
+                });
             });
 
             ui.separator();
@@ -75,7 +79,25 @@ pub fn ui_oscwii_window(ctx: &egui::Context, app: &mut App) {
                                 });
                             }
 
-                            let _ = ui.button(format!("⬆ {}", wiiapp.version));
+                            if ui.button(format!("⬆ {}", wiiapp.version)).clicked() {
+                                let wii_ip = app.settings.wii_ip.clone();
+                                let url = wiiapp.assets.archive.url.clone();
+                                let wiiapp_name = wiiapp.name.clone();
+
+                                app.task_processor.spawn_task(move |ui_sender| {
+                                    let _ = ui_sender.send(BackgroundMessage::UpdateStatus(
+                                        format!("Uploading {wiiapp_name}"),
+                                    ));
+
+                                    util::wiiload::push_url(&url, &wii_ip)?;
+
+                                    let _ = ui_sender.send(BackgroundMessage::Info(format!(
+                                        "Uploaded {wiiapp_name}"
+                                    )));
+
+                                    Ok(())
+                                });
+                            };
 
                             ui.end_row();
                         }
