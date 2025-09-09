@@ -2,22 +2,26 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use crate::app::App;
+use crate::base_dir::BaseDir;
 use crate::gui::devs::DEVELOPERS;
 use crate::gui::wiiapp_info::ui_wiiapp_info_window;
 use crate::messages::BackgroundMessage;
+use crate::task::TaskProcessor;
 use crate::util::wiiapps::WiiApp;
 use eframe::egui::{self, Image, RichText};
 use egui_inbox::UiInboxSender;
 use size::Size;
 
 const CARD_WIDTH: f32 = 188.5;
-const CARD_HEIGHT: f32 = 190.0;
+const CARD_HEIGHT: f32 = 180.0;
 const GRID_SPACING: f32 = 10.0;
 
 pub fn ui_wiiapp_grid(ui: &mut egui::Ui, app: &mut App) {
     let wiiapps = &mut app.wiiapps;
 
-    if !wiiapps.is_empty() {
+    if !wiiapps.is_empty()
+        && let Some(base_dir) = &app.base_dir
+    {
         egui::ScrollArea::vertical().show(ui, |ui| {
             ui.set_min_width(ui.available_width());
 
@@ -31,7 +35,13 @@ pub fn ui_wiiapp_grid(ui: &mut egui::Ui, app: &mut App) {
                 .show(ui, |ui| {
                     for row in wiiapps.chunks_mut(num_columns) {
                         for wiiapp in row {
-                            ui_wiiapp_card(ui, &mut app.inbox.sender(), wiiapp);
+                            ui_wiiapp_card(
+                                ui,
+                                &mut app.inbox.sender(),
+                                wiiapp,
+                                &base_dir,
+                                &app.task_processor,
+                            );
                             ui_wiiapp_info_window(ui.ctx(), wiiapp, &mut app.inbox.sender());
                         }
                         ui.end_row();
@@ -45,17 +55,14 @@ fn ui_wiiapp_card(
     ui: &mut egui::Ui,
     sender: &mut UiInboxSender<BackgroundMessage>,
     wiiapp: &mut WiiApp,
+    base_dir: &BaseDir,
+    task_processor: &TaskProcessor,
 ) {
     let card = egui::Frame::group(ui.style()).corner_radius(5.0);
     card.show(ui, |ui| {
         ui.vertical(|ui| {
             ui.horizontal(|ui| {
-                // show if an app needs to be updated
-                if let Some(oscwii_app) = &wiiapp.oscwii_app {
-                    if wiiapp.meta.version != oscwii_app.version {
-                        ui.hyperlink_to(format!("{} (new)", oscwii_app.version), &wiiapp.oscwii);
-                    }
-                }
+                ui.label(format!("🏷 {}", &wiiapp.meta.version));
 
                 // Size label on the right
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
@@ -73,7 +80,6 @@ fn ui_wiiapp_card(
                 ui.add_space(5.);
 
                 ui.add(egui::Label::new(RichText::new(&wiiapp.meta.name).strong()).truncate());
-                ui.add(egui::Label::new(format!("🔢 v{}", &wiiapp.meta.version)).truncate());
 
                 let avatar = DEVELOPERS.get(&wiiapp.meta.coder).unwrap_or(&'👸');
                 ui.add(
@@ -84,8 +90,6 @@ fn ui_wiiapp_card(
             // Actions
             ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
                 ui.horizontal(|ui| {
-                    ui.add_space(64.);
-
                     // Info button
                     if ui.button("ℹ").on_hover_text("Show App Info").clicked() {
                         wiiapp.toggle_info();
@@ -96,6 +100,44 @@ fn ui_wiiapp_card(
                         if let Err(e) = wiiapp.remove() {
                             let _ = sender.send(e.into());
                         }
+                    }
+
+                    // Update button
+                    if let Some(oscwii) = &wiiapp.oscwii_app
+                        && oscwii.version != wiiapp.meta.version
+                    {
+                        if ui
+                            .add(
+                                egui::Button::new(format!("⬆ {}", oscwii.version))
+                                    .min_size(egui::vec2(ui.available_width(), 0.0)),
+                            )
+                            .clicked()
+                        {
+                            let app_name = wiiapp.meta.name.clone();
+                            let zip_url = oscwii.assets.archive.url.clone();
+                            let base_dir = base_dir.clone();
+
+                            task_processor.spawn_task(move |ui_sender| {
+                                let _ = ui_sender.send(BackgroundMessage::UpdateStatus(format!(
+                                    "Updating {app_name}",
+                                )));
+
+                                base_dir.add_zip_from_url(&zip_url)?;
+
+                                let _ = ui_sender
+                                    .send(BackgroundMessage::Info(format!("Updated {app_name}")));
+
+                                let _ = ui_sender.send(BackgroundMessage::DirectoryChanged);
+
+                                Ok(())
+                            });
+                        };
+                    } else {
+                        ui.add_enabled(
+                            false,
+                            egui::Button::new("Up to date")
+                                .min_size(egui::vec2(ui.available_width(), 0.0)),
+                        );
                     }
                 });
             });
