@@ -19,7 +19,7 @@ const WIILOAD_VER_LEN: &[u8] = &[0, 5, 0, 8]; // 8 is app.zip\0 len
 const WIILOAD_TIMEOUT: Duration = Duration::from_secs(10);
 const WIILOAD_CHUNK_SIZE: usize = 4 * 1024;
 
-pub fn push(source_zip: impl AsRef<Path>, wii_ip: &str) -> Result<()> {
+pub fn push(source_zip: impl AsRef<Path>, wii_ip: &str) -> Result<Vec<String>> {
     let addr = (wii_ip, WIILOAD_PORT)
         .to_socket_addrs()?
         .next()
@@ -33,15 +33,15 @@ pub fn push(source_zip: impl AsRef<Path>, wii_ip: &str) -> Result<()> {
     let app_dir = find_app_dir(&mut archive)?;
 
     // Create new zip in memory
-    let zipped_app = recreate_zip(&mut archive, &app_dir)?;
+    let (zipped_app, excluded_files) = recreate_zip(&mut archive, &app_dir)?;
 
     // Connect to the Wii and send the data
     send_to_wii(&addr, &zipped_app)?;
 
-    Ok(())
+    Ok(excluded_files)
 }
 
-pub fn push_url(url: &str, wii_ip: &str) -> Result<()> {
+pub fn push_url(url: &str, wii_ip: &str) -> Result<Vec<String>> {
     let addr = (wii_ip, WIILOAD_PORT)
         .to_socket_addrs()?
         .next()
@@ -58,12 +58,12 @@ pub fn push_url(url: &str, wii_ip: &str) -> Result<()> {
     let app_dir = find_app_dir(&mut archive)?;
 
     // Create new zip in memory
-    let zipped_app = recreate_zip(&mut archive, &app_dir)?;
+    let (zipped_app, excluded_files) = recreate_zip(&mut archive, &app_dir)?;
 
     // Connect to the Wii and send the data
     send_to_wii(&addr, &zipped_app)?;
 
-    Ok(())
+    Ok(excluded_files)
 }
 
 fn find_app_dir(archive: &mut ZipArchive<impl Read + Seek>) -> Result<PathBuf> {
@@ -82,10 +82,14 @@ fn find_app_dir(archive: &mut ZipArchive<impl Read + Seek>) -> Result<PathBuf> {
     bail!("No app directory found in zip");
 }
 
-fn recreate_zip(archive: &mut ZipArchive<impl Read + Seek>, app_dir: &Path) -> Result<Vec<u8>> {
+fn recreate_zip(
+    archive: &mut ZipArchive<impl Read + Seek>,
+    app_dir: &Path,
+) -> Result<(Vec<u8>, Vec<String>)> {
     let mut buffer = Vec::new();
     let mut cursor = Cursor::new(&mut buffer);
     let mut writer = ZipWriter::new(&mut cursor);
+    let mut excluded_files = Vec::new();
 
     let app_name = app_dir
         .file_name()
@@ -108,11 +112,13 @@ fn recreate_zip(archive: &mut ZipArchive<impl Read + Seek>, app_dir: &Path) -> R
 
             writer.start_file(final_path.display(), options)?;
             io::copy(&mut file, &mut writer)?;
+        } else {
+            excluded_files.push(path.to_string_lossy().to_string());
         }
     }
 
     writer.finish()?;
-    Ok(buffer)
+    Ok((buffer, excluded_files))
 }
 
 fn send_to_wii(addr: &SocketAddr, compressed_data: &[u8]) -> Result<()> {

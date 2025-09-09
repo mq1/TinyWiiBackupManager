@@ -28,12 +28,17 @@ pub fn ui_wiiload(ui: &mut egui::Ui, app: &mut App) {
                         path.display()
                     )));
 
-                    util::wiiload::push(&path, &wii_ip)?;
+                    let excluded_files = util::wiiload::push(&path, &wii_ip)?;
 
-                    let _ = ui_sender.send(BackgroundMessage::Info(format!(
-                        "Uploaded {}",
-                        path.display()
-                    )));
+                    let mut msg = format!("Uploaded {}", path.display());
+                    if !excluded_files.is_empty() {
+                        msg += "\n\nThe following files may need to be manually transferred:";
+                        for file in excluded_files {
+                            msg += &format!("\n• {file}");
+                        }
+                    }
+
+                    let _ = ui_sender.send(BackgroundMessage::Info(msg));
 
                     Ok(())
                 });
