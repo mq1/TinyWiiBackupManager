@@ -42,7 +42,7 @@
 Get the latest version from the **[Releases page](https://github.com/mq1/TinyWiiBackupManager/releases/latest)**.
 Choose the file for your operating system:
 
-- **Windows**: `setup.exe` (installer) or `.zip` (portable)
+- **Windows**: `setup.exe` (installer) or `win-portable.zip` (portable)
 - **macOS**: `.dmg`
 - **Linux**: `.AppImage`
 
@@ -54,7 +54,7 @@ Choose the file for your operating system:
 > ```
 
 > #### 🪟 Windows Legacy (7-8-8.1)
-> Someone requested a build, so x86_64-win7-windows-msvc.zip is provided\
+> Someone requested a build, so a win7-portable.zip is provided.\
 > However, it is not officially supported and may not work.
 
 ## 📄 Additional Info
