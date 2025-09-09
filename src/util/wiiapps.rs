@@ -8,17 +8,17 @@ use anyhow::{Result, anyhow, bail};
 use serde::{Deserialize, Deserializer};
 use std::fs;
 use std::path::PathBuf;
-use time::{Date, PrimitiveDateTime, format_description};
+use time::format_description::BorrowedFormatItem;
+use time::{Date, macros::format_description};
+
+const FORMAT: &[BorrowedFormatItem] = format_description!("[year][month][day]");
 
 fn parse_date_only<'de, D>(deserializer: D) -> Result<Date, D::Error>
 where
     D: Deserializer<'de>,
 {
     let s = String::deserialize(deserializer)?;
-    let fmt = format_description::parse("[year][month][day][hour][minute][second]")
-        .map_err(serde::de::Error::custom)?;
-    let pdt = PrimitiveDateTime::parse(&s, &fmt).map_err(serde::de::Error::custom)?;
-    Ok(pdt.date())
+    Date::parse(&s[..8], FORMAT).map_err(serde::de::Error::custom)
 }
 
 #[derive(Clone, Deserialize)]
