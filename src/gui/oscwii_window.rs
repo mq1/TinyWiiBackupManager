@@ -5,7 +5,8 @@ use crate::app::App;
 use crate::messages::BackgroundMessage;
 use crate::util;
 use eframe::egui;
-use eframe::egui::{RichText, TextEdit};
+use eframe::egui::TextEdit;
+use egui_extras::{Column, TableBuilder};
 
 pub fn ui_oscwii_window(ctx: &egui::Context, app: &mut App) {
     egui::Window::new("🏪 Open Shop Channel")
@@ -16,7 +17,7 @@ pub fn ui_oscwii_window(ctx: &egui::Context, app: &mut App) {
         .default_pos(egui::Pos2::new(0., 0.))
         .show(ctx, |ui| {
             ui.set_width(ctx.screen_rect().width() - 14.);
-            ui.set_height(ctx.screen_rect().height() - 69.5);
+            ui.set_height(ctx.screen_rect().height() - 69.);
 
             ui.horizontal(|ui| {
                 ui.label("🔎 Filter");
@@ -31,57 +32,82 @@ pub fn ui_oscwii_window(ctx: &egui::Context, app: &mut App) {
 
             ui.separator();
 
-            egui::ScrollArea::vertical().show(ui, |ui| {
-                ui.set_min_width(ui.available_width());
+            let filter = app.oscwii_filter.to_lowercase();
+            let filtered_apps = app
+                .oscwii_apps
+                .apps
+                .iter()
+                .filter(|wiiapp| {
+                    wiiapp.name.to_lowercase().contains(&filter)
+                        || wiiapp.slug.to_lowercase().contains(&filter)
+                })
+                .collect::<Vec<_>>();
 
-                egui::Grid::new("oscwii_apps")
-                    .striped(true)
-                    .start_row(1)
-                    .show(ui, |ui| {
-                        ui.label(RichText::new("⭐ App").strong());
-                        ui.label(RichText::new("👸 Author").strong());
-                        if app.base_dir.is_some() {
-                            ui.label(RichText::new("📥 Download").strong());
-                        }
-                        ui.label(RichText::new("📮 Wiiload").strong());
-                        ui.end_row();
+            TableBuilder::new(ui)
+                .striped(true)
+                .column(Column::exact(150.))
+                .column(Column::exact(150.))
+                .column(Column::exact(150.))
+                .column(Column::remainder())
+                .header(20.0, |mut header| {
+                    header.col(|ui| {
+                        ui.heading("⭐ App");
+                    });
+                    header.col(|ui| {
+                        ui.heading("👸 Author");
+                    });
+                    header.col(|ui| {
+                        ui.heading("📥 Download");
+                    });
+                    header.col(|ui| {
+                        ui.heading("📮 Wiiload");
+                    });
+                })
+                .body(|mut body| {
+                    body.rows(20., filtered_apps.len(), |mut row| {
+                        let wiiapp = filtered_apps[row.index()];
 
-                        let filter = app.oscwii_filter.to_lowercase();
-                        for wiiapp in app.oscwii_apps.apps.iter().filter(|wiiapp| {
-                            wiiapp.name.to_lowercase().contains(&filter)
-                                || wiiapp.slug.to_lowercase().contains(&filter)
-                        }) {
+                        // Cell for the app name
+                        row.col(|ui| {
                             ui.hyperlink_to(
                                 &wiiapp.name,
                                 format!("https://oscwii.org/library/app/{}", wiiapp.slug),
                             )
                             .on_hover_text(&wiiapp.description.short);
+                        });
 
+                        // Cell for the author
+                        row.col(|ui| {
                             ui.label(&wiiapp.author);
+                        });
 
-                            if let Some(base_dir) = &app.base_dir
-                                && ui.button(format!("⬇ {}", wiiapp.version)).clicked()
-                            {
-                                let zip_url = &wiiapp.assets.archive.url;
-                                let base_dir = base_dir.clone();
-                                let zip_url = zip_url.clone();
-                                let wiiapp_name = wiiapp.name.clone();
+                        // Cell for download (conditional)
+                        row.col(|ui| {
+                            if let Some(base_dir) = &app.base_dir {
+                                if ui.button(format!("⬇ {}", wiiapp.version)).clicked() {
+                                    let zip_url = &wiiapp.assets.archive.url;
+                                    let base_dir = base_dir.clone();
+                                    let zip_url = zip_url.clone();
+                                    let wiiapp_name = wiiapp.name.clone();
 
-                                app.task_processor.spawn_task(move |ui_sender| {
-                                    let _ = ui_sender.send(BackgroundMessage::UpdateStatus(
-                                        format!("Downloading {wiiapp_name}"),
-                                    ));
-
-                                    base_dir.add_zip_from_url(&zip_url)?;
-
-                                    let _ = ui_sender.send(BackgroundMessage::Info(format!(
-                                        "Downloaded {wiiapp_name}"
-                                    )));
-
-                                    Ok(())
-                                });
+                                    app.task_processor.spawn_task(move |ui_sender| {
+                                        let _ = ui_sender.send(BackgroundMessage::UpdateStatus(
+                                            format!("Downloading {wiiapp_name}"),
+                                        ));
+                                        base_dir.add_zip_from_url(&zip_url)?;
+                                        let _ = ui_sender.send(BackgroundMessage::Info(format!(
+                                            "Downloaded {wiiapp_name}"
+                                        )));
+                                        Ok(())
+                                    });
+                                }
+                            } else {
+                                ui.label("Base directory not set");
                             }
+                        });
 
+                        // Cell for Wiiload
+                        row.col(|ui| {
                             if ui.button(format!("⬆ {}", wiiapp.version)).clicked() {
                                 let wii_ip = app.settings.wii_ip.clone();
                                 let url = wiiapp.assets.archive.url.clone();
@@ -91,20 +117,15 @@ pub fn ui_oscwii_window(ctx: &egui::Context, app: &mut App) {
                                     let _ = ui_sender.send(BackgroundMessage::UpdateStatus(
                                         format!("Uploading {wiiapp_name}"),
                                     ));
-
                                     util::wiiload::push_url(&url, &wii_ip)?;
-
                                     let _ = ui_sender.send(BackgroundMessage::Info(format!(
                                         "Uploaded {wiiapp_name}"
                                     )));
-
                                     Ok(())
                                 });
-                            };
-
-                            ui.end_row();
-                        }
+                            }
+                        });
                     });
-            });
+                });
         });
 }
