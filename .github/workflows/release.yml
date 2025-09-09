@@ -191,13 +191,13 @@ jobs:
           components: rust-src
 
       - name: Build binary
-        run: cargo +nightly build -Z build-std=std,panic_abort --target i686-win7-windows-msvc --release --bin TinyWiiBackupManager
+        run: cargo +nightly build -Z build-std=std,panic_abort --target x86_64-win7-windows-msvc --release --bin TinyWiiBackupManager
 
       - name: Package binary as zip
         shell: pwsh
         run: |
           New-Item -Path ./dist -ItemType Directory
-          Move-Item -Path "target/i686-win7-windows-msvc/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager_${{ github.ref_name }}.exe"
+          Move-Item -Path "target/x86_64-win7-windows-msvc/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager_${{ github.ref_name }}.exe"
           Compress-Archive -Path "TinyWiiBackupManager_${{ github.ref_name }}.exe" -DestinationPath "dist/TinyWiiBackupManager_${{ github.ref_name }}-win-legacy.zip"
 
       - name: Upload Windows distributable
