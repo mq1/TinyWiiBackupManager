@@ -179,7 +179,7 @@ jobs:
 
   build-windows-legacy:
     name: Build for Windows (legacy)
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -190,19 +190,15 @@ jobs:
           toolchain: nightly
           components: rust-src
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-mingw-w64-i686
-
       - name: Build binary
-        run: cargo +nightly build -Z build-std=std,panic_abort --target i686-win7-windows-gnu --release --bin TinyWiiBackupManager
+        run: cargo +nightly build -Z build-std=std,panic_abort --target i686-win7-windows-msvc --release --bin TinyWiiBackupManager
 
       - name: Package binary as zip
+        shell: pwsh
         run: |
-          mkdir dist
-          mv target/i686-win7-windows-gnu/release/TinyWiiBackupManager.exe TinyWiiBackupManager_${{ github.ref_name }}.exe
-          zip dist/TinyWiiBackupManager_${{ github.ref_name }}-win-legacy.zip TinyWiiBackupManager_${{ github.ref_name }}.exe
+          New-Item -Path ./dist -ItemType Directory
+          Move-Item -Path "target/i686-win7-windows-msvc/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager_${{ github.ref_name }}.exe"
+          Compress-Archive -Path "TinyWiiBackupManager_${{ github.ref_name }}.exe" -DestinationPath "dist/TinyWiiBackupManager_${{ github.ref_name }}-win-legacy.zip"
 
       - name: Upload Windows distributable
         uses: actions/upload-artifact@v4
