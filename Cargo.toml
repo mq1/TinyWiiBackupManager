@@ -13,6 +13,7 @@ name = "TinyWiiBackupManager"
 path = "src/main.rs"
 
 [package.metadata.packager]
+binaries = [{ path = "TinyWiiBackupManager", main = true }]
 product-name = "TinyWiiBackupManager"
 identifier = "it.mq1.TinyWiiBackupManager"
 icons = ["logo@2x.png"]
