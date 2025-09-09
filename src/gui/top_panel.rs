@@ -17,8 +17,8 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
 
             ui.horizontal(|ui| {
                 // nav
-                ui.selectable_value(&mut app.view, View::Games, "Games");
-                ui.selectable_value(&mut app.view, View::WiiApps, "Apps");
+                ui.selectable_value(&mut app.view, View::Games, View::Games.as_ref());
+                ui.selectable_value(&mut app.view, View::WiiApps, View::WiiApps.as_ref());
 
                 // Display the total number of games on the right side of the menu bar
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
@@ -108,6 +108,14 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                             app.top_right_toasts.dismiss_all_toasts();
                             ui_wiiload(ui, app);
                         });
+
+                        let download_app_button = ui
+                            .button("🏪 Open Shop Channel")
+                            .on_hover_text("Download apps from OSCWii.org");
+
+                        if download_app_button.clicked() {
+                            app.oscwii_window_open = !app.oscwii_window_open;
+                        }
                     }
 
                     if app.base_dir.is_some() {
@@ -121,7 +129,7 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                             }
                         } else if app.view == View::WiiApps {
                             let add_apps_button = ui
-                                .button("➕ Add App(s)")
+                                .button("➕ Add .zip")
                                 .on_hover_text("Add one or more (.zip) apps to the apps directory");
 
                             if add_apps_button.clicked() {

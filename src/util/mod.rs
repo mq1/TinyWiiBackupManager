@@ -9,6 +9,7 @@ pub mod ext;
 mod filter_read;
 mod fs;
 pub mod meta;
+pub mod oscwii;
 mod split;
 pub mod update_check;
 pub mod wiiapps;
