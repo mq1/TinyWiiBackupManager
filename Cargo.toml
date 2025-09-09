@@ -51,7 +51,6 @@ zip = { version = "5.0", default-features = false, features = ["deflate-flate2"]
 const-str = "0.7"
 strum = { version = "0.27", features = ["derive"] }
 egui-theme-switch = "0.4"
-minreq = { version = "2.14", features = ["https-native", "json-using-serde"] }
 flume = "0.11"
 tempfile = "3.21"
 walkdir = "2.5"
@@ -62,14 +61,22 @@ time = { version = "0.3", features = ["parsing", "serde", "macros"] }
 phf = { version = "0.13", features = ["macros"] }
 fs2 = "0.4"
 
+[target.'cfg(target_pointer_width = "64")']
+minreq = { version = "2.14", features = ["https-native", "json-using-serde"] }
+
 # Linux and macOS use the default eframe backend
 [target.'cfg(any(target_os = "linux", target_os = "macos"))'.dependencies]
 eframe = { version = "0.32", features = ["persistence"] }
 
 # Windows uses dx12 to enable software rendering (WARP) as a fallback
-[target.'cfg(target_os = "windows")'.dependencies]
+[target.'cfg(all(windows, target_pointer_width = "64"))'.dependencies]
 eframe = { version = "0.32", default-features = false, features = ["accesskit", "default_fonts", "wgpu", "persistence"] }
 wgpu = { version = "25", default-features = false, features = ["dx12"] }
+
+# Someone asked for this
+[target.'cfg(all(windows, target_pointer_width = "32"))'.dependencies]
+eframe = { version = "0.32", features = ["persistence"] }
+minreq = { version = "2.14", features = ["https-bundled-probe", "json-using-serde"] }
 
 
 [build-dependencies]
