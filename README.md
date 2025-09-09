@@ -54,7 +54,7 @@ Choose the file for your operating system:
 > ```
 
 > #### 🪟 Windows Legacy (7-8-8.1)
-> Someone requested a build, so x86_64-win7-windows-msvc.zip is provided
+> Someone requested a build, so x86_64-win7-windows-msvc.zip is provided\
 > However, it is not officially supported and may not work.
 
 ## 📄 Additional Info
