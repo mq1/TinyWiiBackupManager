@@ -89,6 +89,7 @@ jobs:
     env:
       RUSTC_BOOTSTRAP: ${{ matrix.bootstrap }}
       ZIP_NAME: ${{ matrix.bootstrap == 0 && 'portable' || 'legacy' }}
+      EXTRA_ARGS: ${{ matrix.bootstrap == 1 && '-Z build-std=std,panic_abort' || '' }}
     
     steps:
       - name: Checkout
@@ -97,7 +98,7 @@ jobs:
       - name: Set up Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          target: ${{ matrix.target != 'i686-win7-windows-msvc' && matrix.target || 'x86_64-pc-windows-msvc' }}
+          target: ${{ matrix.bootstrap == 0 && matrix.target || 'x86_64-pc-windows-msvc' }}
           cache-key: ${{ matrix.target }}
           components: ${{ matrix.bootstrap == 1 && 'rust-src' || '' }}
 
@@ -106,7 +107,7 @@ jobs:
         if: matrix.bootstrap == 0
 
       - name: Build binary
-        run: cargo build --release --locked --target ${{ matrix.target }} --bin TinyWiiBackupManager
+        run: cargo build ${{ env.EXTRA_ARGS }} --release --locked --target ${{ matrix.target }} --bin TinyWiiBackupManager
 
       - name: Package binary as installer
         run: cargo packager --release --target ${{ matrix.target }} --formats nsis
