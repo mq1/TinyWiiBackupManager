@@ -195,17 +195,17 @@ jobs:
         with:
           toolchain: nightly
           components: rust-src
-          cache-key: x86_64-win7-windows-msvc
+          cache-key: i686-win7-windows-msvc
 
       - name: Build binary
-        run: cargo +nightly build -Z build-std=std,panic_abort --target x86_64-win7-windows-msvc --release --bin TinyWiiBackupManager
+        run: cargo +nightly build -Z build-std=std,panic_abort --target i686-win7-windows-msvc --release --bin TinyWiiBackupManager
 
       - name: Package binary as zip
         shell: pwsh
         run: |
           New-Item -Path ./dist -ItemType Directory
-          Move-Item -Path "target/x86_64-win7-windows-msvc/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager.exe"
-          Compress-Archive -Path "TinyWiiBackupManager.exe" -DestinationPath "dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_x64-win7-portable.zip"
+          Move-Item -Path "target/i686-win7-windows-msvc/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager.exe"
+          Compress-Archive -Path "TinyWiiBackupManager.exe" -DestinationPath "dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_x86-win7-portable.zip"
 
       - name: Upload Windows distributable
         uses: actions/upload-artifact@v4

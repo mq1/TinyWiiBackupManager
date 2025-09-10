@@ -10,13 +10,13 @@ use std::path::{Path, PathBuf};
 pub struct SplitWbfsFile {
     base_path: PathBuf,
     writer: BufWriter<File>,
-    current_size: usize,
-    max_size: usize,
+    current_size: u64,
+    max_size: u64,
     current_part: u8,
 }
 
 impl SplitWbfsFile {
-    pub fn new(base_path: impl AsRef<Path>, max_size: usize) -> Result<Self, io::Error> {
+    pub fn new(base_path: impl AsRef<Path>, max_size: u64) -> Result<Self, io::Error> {
         let base_path = base_path.as_ref().to_path_buf();
         let first_file = base_path.with_extension("wbfs");
         let current_file = File::create(&first_file)?;
@@ -33,7 +33,7 @@ impl SplitWbfsFile {
 
     pub fn write(&mut self, data: &[u8]) -> Result<(), io::Error> {
         // Split if needed
-        if self.current_size + data.len() > self.max_size {
+        if self.current_size + data.len() as u64 > self.max_size {
             self.current_part += 1;
 
             let new_path = self
@@ -47,7 +47,7 @@ impl SplitWbfsFile {
         }
 
         self.writer.write_all(data)?;
-        self.current_size += data.len();
+        self.current_size += data.len() as u64;
         Ok(())
     }
 
