@@ -7,7 +7,9 @@
 
 use crate::settings::{StripPartitions, WiiOutputFormat};
 use crate::util::concurrency::get_threads_num;
+use crate::util::filter_read::FilterDiscReader;
 use crate::util::fs::can_write_over_4gb;
+use crate::util::split::SplitWbfsFile;
 use anyhow::{Context, Result, bail};
 use nod::common::{Format, PartitionKind};
 use nod::read::{DiscOptions, DiscReader, PartitionEncryption};
@@ -16,12 +18,10 @@ use sanitize_filename_reader_friendly::sanitize;
 use std::fs::{self, File};
 use std::io::{Seek, Write};
 use std::path::Path;
-use crate::util::filter_read::FilterDiscReader;
-use crate::util::split::SplitWbfsFile;
 
 /// The fixed split size for output files: 4 GiB - 32 KiB.
-const FIXED_SPLIT_SIZE: usize = (4 * 1024 * 1024 * 1024) - (32 * 1024);
-const NO_SPLIT_SIZE: usize = usize::MAX;
+const FIXED_SPLIT_SIZE: u64 = (4 * 1024 * 1024 * 1024) - (32 * 1024);
+const NO_SPLIT_SIZE: u64 = u64::MAX;
 
 /// Returns true if the game is already present in the output directory.
 pub fn convert(
@@ -46,11 +46,15 @@ pub fn convert(
 
     let strip_partitions = match strip {
         StripPartitions::No => vec![],
-        StripPartitions::Update => disc.partitions().iter()
+        StripPartitions::Update => disc
+            .partitions()
+            .iter()
             .filter(|p| p.kind == PartitionKind::Update)
             .cloned()
             .collect(),
-        StripPartitions::All => disc.partitions().iter()
+        StripPartitions::All => disc
+            .partitions()
+            .iter()
             .filter(|p| p.kind != PartitionKind::Data)
             .cloned()
             .collect(),
@@ -75,9 +79,8 @@ pub fn convert(
         return Ok(true);
     }
 
-    fs::create_dir_all(&game_output_dir).with_context(|| {
-        format!("Failed to create directory: {}", game_output_dir.display())
-    })?;
+    fs::create_dir_all(&game_output_dir)
+        .with_context(|| format!("Failed to create directory: {}", game_output_dir.display()))?;
 
     if header.is_wii() {
         let split_size = match (can_write_over_4gb(output_dir), wii_output_format) {
@@ -123,7 +126,9 @@ pub fn convert(
                 .context("Failed to process disc for WBFS conversion")?;
 
             if !finalization.header.is_empty() {
-                writer.write_to_start(&finalization.header).context("Failed to write header")?;
+                writer
+                    .write_to_start(&finalization.header)
+                    .context("Failed to write header")?;
             }
         } else {
             let out_path = base_path.with_extension("iso");
