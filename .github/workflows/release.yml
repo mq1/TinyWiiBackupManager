@@ -109,6 +109,10 @@ jobs:
       - name: Build binary
         run: cargo build ${{ env.EXTRA_ARGS }} --release --locked --target ${{ matrix.target }} --bin TinyWiiBackupManager
 
+      - name: Make dist directory
+        shell: pwsh
+        run: New-Item -Path "dist" -ItemType "directory"
+
       - name: Package binary as installer
         run: cargo packager --release --target ${{ matrix.target }} --formats nsis
         if: matrix.bootstrap == 0
@@ -116,7 +120,6 @@ jobs:
       - name: Distribute also a portable zip
         shell: pwsh
         run: |
-          New-Item -Path "dist" -ItemType "directory"
           Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager.exe"
           Compress-Archive -Path "TinyWiiBackupManager.exe" -DestinationPath "dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_${{ matrix.arch }}-win-${{ env.ZIP_NAME }}.zip"
 
