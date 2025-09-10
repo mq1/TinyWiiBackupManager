@@ -82,7 +82,7 @@ jobs:
           - target: aarch64-pc-windows-msvc
             arch: arm64
             bootstrap: 0
-          - target: i686-pc-windows-msvc
+          - target: i686-win7-windows-msvc
             arch: x86
             bootstrap: 1
 
@@ -115,6 +115,7 @@ jobs:
       - name: Distribute also a portable zip
         shell: pwsh
         run: |
+          New-Item -Path "dist" -ItemType "directory"
           Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager.exe"
           Compress-Archive -Path "TinyWiiBackupManager.exe" -DestinationPath "dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_${{ matrix.arch }}-win-${{ env.ZIP_NAME }}.zip"
 
