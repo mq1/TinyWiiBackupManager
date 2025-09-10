@@ -8,8 +8,8 @@ use crate::util::oscwii;
 use crate::util::update_check::UpdateInfo;
 use anyhow::Error;
 use eframe::egui;
+use log::{error, info};
 use std::sync::Arc;
-use tracing::{error, info};
 
 /// Messages that can be sent from background tasks to the main thread
 #[derive(Debug, Clone)]
