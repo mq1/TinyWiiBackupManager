@@ -54,7 +54,7 @@ Choose the file for your operating system:
 > xattr -rd com.apple.quarantine /Applications/TinyWiiBackupManager.app
 > ```
 
-> #### 🪟 Windows Legacy (7-8-8.1)
+> #### 🪟 Windows Legacy (32bit, win7-8-8.1)
 > Someone requested a build, so a win7-portable.zip is provided.\
 > However, it is not officially supported and may not work.
 
