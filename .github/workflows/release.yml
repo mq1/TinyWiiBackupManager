@@ -205,7 +205,7 @@ jobs:
         run: |
           New-Item -Path ./dist -ItemType Directory
           Move-Item -Path "target/i686-win7-windows-msvc/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager.exe"
-          Compress-Archive -Path "TinyWiiBackupManager.exe" -DestinationPath "dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_x86-win7-portable.zip"
+          Compress-Archive -Path "TinyWiiBackupManager.exe" -DestinationPath "dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_x86-win-legacy.zip"
 
       - name: Upload Windows distributable
         uses: actions/upload-artifact@v4
