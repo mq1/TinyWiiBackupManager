@@ -281,10 +281,12 @@ impl App {
         {
             let remove_sources = self.remove_sources;
 
-            for path in paths {
+            let last_index = paths.len() - 1;
+            for (i, path) in paths.into_iter().enumerate() {
                 let base_dir = base_dir.clone();
                 let wii_output_format = self.settings.wii_output_format;
                 let strip_partitions = self.settings.strip_partitions;
+                let is_last = i == last_index;
 
                 self.task_processor.spawn_task(move |ui_sender| {
                     let cloned_ui_sender = ui_sender.clone();
@@ -293,7 +295,7 @@ impl App {
                         .and_then(|name| name.to_str())
                         .unwrap_or("");
 
-                    util::convert::convert(
+                    let already_there = util::convert::convert(
                         &path,
                         base_dir.path(),
                         wii_output_format,
@@ -309,23 +311,23 @@ impl App {
                         },
                     )?;
 
-                    let _ = ui_sender.send(BackgroundMessage::DirectoryChanged);
-                    let _ =
-                        ui_sender.send(BackgroundMessage::Info(format!("Converted {file_name}")));
+                    if !already_there {
+                        let _ = ui_sender.send(BackgroundMessage::DirectoryChanged);
+                        let _ = ui_sender
+                            .send(BackgroundMessage::Info(format!("Converted {file_name}")));
+                    }
 
                     if remove_sources {
                         std::fs::remove_file(&path)?;
                     }
 
+                    if is_last {
+                        let _ = ui_sender.send(BackgroundMessage::TriggerDownloadCovers);
+                    }
+
                     Ok(())
                 });
             }
-
-            // Trigger the cover download
-            self.task_processor.spawn_task(move |ui_sender| {
-                let _ = ui_sender.send(BackgroundMessage::TriggerDownloadCovers);
-                Ok(())
-            })
         }
     }
 
