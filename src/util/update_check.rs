@@ -37,8 +37,8 @@ pub fn check_for_new_version() -> Result<Option<UpdateInfo>> {
 
     if latest_version > current_version {
         Ok(Some(UpdateInfo {
-            version: format!("v{latest_version}"),
-            url: format!("{REPO}/releases/tag/v{latest_version}"),
+            version: latest_version.to_string(),
+            url: format!("{REPO}/releases/tag/{latest_version}"),
         }))
     } else {
         Ok(None)

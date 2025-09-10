@@ -33,7 +33,7 @@ pub fn ui_bottom_panel(ctx: &egui::Context, app: &mut App) {
             // If the app is idle, show the update notifier and version
             else {
                 if let Some(update_info) = &app.update_info {
-                    ui.hyperlink_to(format!("{} (new)", &update_info.version), &update_info.url);
+                    ui.hyperlink_to(format!("v{} (new)", &update_info.version), &update_info.url);
                 } else {
                     ui.label(format!("v{}", VERSION));
                 }
