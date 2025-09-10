@@ -261,12 +261,8 @@ impl App {
                     if game.download_all_covers(base_dir)? {
                         let msg = format!("Downloaded covers for {}", game.display_title);
                         let _ = ui_sender.send(BackgroundMessage::Info(msg));
+                        let _ = ui_sender.send(BackgroundMessage::NewCover(game));
                     }
-                    Ok(())
-                });
-
-                self.task_processor.spawn_task(move |ui_sender| {
-                    let _ = ui_sender.send(BackgroundMessage::DirectoryChanged);
                     Ok(())
                 });
             }
