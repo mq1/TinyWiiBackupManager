@@ -7,27 +7,11 @@
 use eframe::egui;
 use tiny_wii_backup_manager::PRODUCT_NAME;
 use tiny_wii_backup_manager::app::App;
-use tracing_core::{Level, LevelFilter};
 
 const LOGO: &[u8] = include_bytes!("../logo-small.png");
 
 fn main() -> eframe::Result<()> {
-    let level = match std::env::var("RUST_LOG")
-        .unwrap_or_default()
-        .to_ascii_lowercase()
-        .as_str()
-    {
-        "error" => Level::ERROR,
-        "warn" => Level::WARN,
-        "info" => Level::INFO,
-        "debug" => Level::DEBUG,
-        "trace" => Level::TRACE,
-        _ => Level::INFO,
-    };
-
-    tracing_subscriber::fmt()
-        .with_max_level(LevelFilter::from_level(level))
-        .init();
+    env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
 
     let icon = eframe::icon_data::from_png_bytes(LOGO).expect("Failed to load icon");
     let viewport = egui::ViewportBuilder::default()
