@@ -1,16 +1,14 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
-use crate::game::Game;
 use crate::util::fs::find_disc;
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 use nod::disc::DiscHeader;
 use nod::read::DiscMeta;
 use nod::read::{DiscOptions, DiscReader};
 use std::fs::File;
 use std::io::{Read, Seek, SeekFrom};
 use std::path::Path;
-use nod::common::PartitionInfo;
 
 /// Reads the MD5 from the .wbfs file at 0x2EC
 ///
@@ -35,8 +33,8 @@ fn fallback_md5(path: impl AsRef<Path>) -> Result<[u8; 16]> {
     Ok(md5)
 }
 
-pub fn read_header_and_meta_and_partitions(game: &Game) -> Result<(DiscHeader, DiscMeta, Vec<PartitionInfo>)> {
-    let path = find_disc(game)?;
+pub fn read_header_and_meta(game_dir: impl AsRef<Path>) -> Result<(DiscHeader, DiscMeta)> {
+    let path = find_disc(game_dir)?;
     let reader = DiscReader::new(&path, &DiscOptions::default())?;
 
     let header = reader.header().clone();
@@ -48,7 +46,5 @@ pub fn read_header_and_meta_and_partitions(game: &Game) -> Result<(DiscHeader, D
     //    meta.md5 = Some(md5);
     //}
 
-    let partitions = reader.partitions().to_vec();
-
-    Ok((header, meta, partitions))
+    Ok((header, meta))
 }
