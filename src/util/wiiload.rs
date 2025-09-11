@@ -4,6 +4,7 @@
 use crate::USER_AGENT;
 use anyhow::anyhow;
 use anyhow::{Result, bail};
+use path_slash::PathBufExt;
 use std::fs::File;
 use std::io::{self, Cursor, Read, Seek, Write};
 use std::net::{SocketAddr, TcpStream, ToSocketAddrs};
@@ -108,12 +109,9 @@ fn recreate_zip(
         // only add files that are in the app directory
         if path.starts_with(app_dir) {
             let rel_path = path.strip_prefix(app_dir)?;
-            let final_path = Path::new(&app_name)
-                .join(rel_path)
-                .to_string_lossy()
-                .replace(std::path::MAIN_SEPARATOR, "/");
+            let final_path = Path::new(&app_name).join(rel_path);
 
-            writer.start_file(final_path, options)?;
+            writer.start_file(final_path.to_slash_lossy(), options)?;
             io::copy(&mut file, &mut writer)?;
         } else {
             excluded_files.push(path.to_string_lossy().to_string());

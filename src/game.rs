@@ -8,6 +8,7 @@ use crate::util;
 use anyhow::{Context, Result};
 use nod::common::PartitionInfo;
 use nod::read::DiscMeta;
+use path_slash::PathBufExt;
 use std::fs;
 use std::path::{Path, PathBuf};
 use strum::{AsRefStr, Display};
@@ -163,7 +164,7 @@ impl Game {
         let path = images_dir.as_ref().to_owned();
         let file = path.join(&self.id_str).with_extension("png");
 
-        format!("file://{}", file.display())
+        format!("file://{}", file.to_slash_lossy())
     }
 
     pub fn download_cover(&self, base_dir: &BaseDir) -> Result<bool> {
