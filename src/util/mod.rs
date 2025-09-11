@@ -6,7 +6,6 @@ pub mod checksum;
 pub mod concurrency;
 pub mod convert;
 pub mod ext;
-mod filter_read;
 mod fs;
 pub mod meta;
 pub mod oscwii;
