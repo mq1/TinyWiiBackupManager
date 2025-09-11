@@ -4,8 +4,8 @@
 use crate::app::{App, View};
 use crate::gui;
 use crate::messages::handle_messages;
-use eframe::egui::ViewportCommand;
 use eframe::{Storage, egui};
+use egui::ViewportCommand;
 use size::Size;
 
 const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -48,8 +48,14 @@ impl eframe::App for App {
             View::WiiApps => gui::wiiapps::ui_apps(ui, self),
         });
 
-        gui::settings::ui_settings_window(ctx, self);
-        gui::oscwii_window::ui_oscwii_window(ctx, self);
+        let mut subwin_rect = ctx.screen_rect();
+        subwin_rect.set_top(subwin_rect.top() + 5.);
+        subwin_rect.set_left(subwin_rect.left() + 5.);
+        subwin_rect.set_width(subwin_rect.width() - 18.);
+        subwin_rect.set_height(subwin_rect.height() - 76.);
+
+        gui::settings::ui_settings_window(ctx, self, subwin_rect);
+        gui::oscwii_window::ui_oscwii_window(ctx, self, subwin_rect);
 
         self.top_right_toasts.show(ctx);
         self.bottom_left_toasts.show(ctx);

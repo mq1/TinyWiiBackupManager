@@ -3,21 +3,18 @@
 
 use crate::app::App;
 use crate::settings::{StripPartitions, WiiOutputFormat};
-use eframe::egui;
+use eframe::egui::{self, Rect};
 use egui_theme_switch::global_theme_switch;
 use strum::IntoEnumIterator;
 
-pub fn ui_settings_window(ctx: &egui::Context, app: &mut App) {
+pub fn ui_settings_window(ctx: &egui::Context, app: &mut App, rect: Rect) {
     egui::Window::new("⚙ Settings")
         .open(&mut app.settings_window_open)
         .auto_sized()
         .collapsible(false)
         .movable(false)
-        .default_pos(egui::Pos2::new(0., 0.))
+        .fixed_rect(rect)
         .show(ctx, |ui| {
-            ui.set_width(ctx.screen_rect().width() - 14.);
-            ui.set_height(ctx.screen_rect().height() - 71.);
-
             ui.add_space(10.0);
 
             ui.heading("📤 Wii Output Format");
