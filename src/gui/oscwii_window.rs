@@ -4,21 +4,17 @@
 use crate::app::App;
 use crate::messages::BackgroundMessage;
 use crate::util;
-use eframe::egui;
-use eframe::egui::TextEdit;
+use eframe::egui::{self, Rect, TextEdit};
 use egui_extras::{Column, TableBuilder};
 
-pub fn ui_oscwii_window(ctx: &egui::Context, app: &mut App) {
+pub fn ui_oscwii_window(ctx: &egui::Context, app: &mut App, rect: Rect) {
     egui::Window::new("🏪 Open Shop Channel")
         .open(&mut app.oscwii_window_open)
         .auto_sized()
         .collapsible(false)
         .movable(false)
-        .default_pos(egui::Pos2::new(0., 0.))
+        .fixed_rect(rect)
         .show(ctx, |ui| {
-            ui.set_width(ctx.screen_rect().width() - 14.);
-            ui.set_height(ctx.screen_rect().height() - 69.);
-
             ui.horizontal(|ui| {
                 ui.label("🔎 Filter");
                 ui.add(TextEdit::singleline(&mut app.oscwii_filter).hint_text("Type something"));
