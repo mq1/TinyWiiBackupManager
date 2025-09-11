@@ -18,7 +18,7 @@ pub fn game(
     output_dir: impl AsRef<Path>,
     mut progress_callback: impl FnMut(u64, u64),
 ) -> Result<PathBuf> {
-    let input_path = find_disc(game)?;
+    let input_path = find_disc(&game.path)?;
 
     let title = sanitize(&game.display_title);
     let output_path = output_dir.as_ref().join(format!("{title}.rvz"));
