@@ -2525,8 +2525,7 @@ dependencies = [
 [[package]]
 name = "nod"
 version = "2.0.0-alpha.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b69efaa8c558a5c61b0935d3819abe65555abf10676020a5a95ea2601c1e2c04"
+source = "git+https://github.com/mq1/nod?branch=strip-wbfs#c219afaaff57ea626b0fca53fc026371f7d1c0ef"
 dependencies = [
  "adler",
  "aes",
