@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
-use crate::game::Game;
 use crate::util::ext::SUPPORTED_INPUT_EXTENSIONS;
 use anyhow::{Result, bail};
 use std::io::{Seek, SeekFrom, Write};
@@ -28,8 +27,8 @@ pub fn can_write_over_4gb(path: impl AsRef<Path>) -> bool {
     result.is_ok()
 }
 
-pub fn find_disc(game: &Game) -> Result<PathBuf> {
-    for entry in WalkDir::new(&game.path).into_iter().filter_map(|e| e.ok()) {
+pub fn find_disc(game_dir: impl AsRef<Path>) -> Result<PathBuf> {
+    for entry in WalkDir::new(game_dir).into_iter().filter_map(|e| e.ok()) {
         let path = entry.path();
 
         if let Some(extension) = path.extension().and_then(|ext| ext.to_str())

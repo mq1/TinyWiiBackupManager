@@ -7,7 +7,6 @@
 
 use crate::settings::{StripPartitions, WiiOutputFormat};
 use crate::util::concurrency::get_threads_num;
-use crate::util::filter_read::FilterDiscReader;
 use crate::util::fs::can_write_over_4gb;
 use crate::util::split::SplitWbfsFile;
 use anyhow::{Context, Result, bail};
@@ -44,20 +43,33 @@ pub fn convert(
     let mut disc = DiscReader::new(&input_path, &disc_opts)
         .with_context(|| format!("Failed to read disc image: {}", input_path.display()))?;
 
-    let strip_partitions = match strip {
-        StripPartitions::No => vec![],
-        StripPartitions::Update => disc
-            .partitions()
-            .iter()
-            .filter(|p| p.kind == PartitionKind::Update)
-            .cloned()
-            .collect(),
-        StripPartitions::All => disc
-            .partitions()
-            .iter()
-            .filter(|p| p.kind != PartitionKind::Data)
-            .cloned()
-            .collect(),
+    let mut strip_mask = [false; 64];
+    match strip {
+        StripPartitions::No => {}
+        StripPartitions::Update => {
+            for p in disc
+                .partitions()
+                .iter()
+                .filter(|p| p.kind == PartitionKind::Update)
+            {
+                strip_mask[p.index] = true;
+            }
+        }
+        StripPartitions::All => {
+            for p in disc
+                .partitions()
+                .iter()
+                .filter(|p| p.kind != PartitionKind::Data)
+            {
+                strip_mask[p.index] = true;
+            }
+        }
+    }
+
+    let format = if strip_mask.iter().all(|&b| !b) {
+        Format::Wbfs
+    } else {
+        Format::StrippedWbfs(strip_mask)
     };
 
     let header = disc.header();
@@ -96,12 +108,7 @@ pub fn convert(
             WiiOutputFormat::WbfsAuto | WiiOutputFormat::WbfsFixed
         ) {
             let mut writer = SplitWbfsFile::new(&base_path, split_size)?;
-            let format_options = FormatOptions::new(Format::Wbfs);
-
-            if !strip_partitions.is_empty() {
-                let reader = FilterDiscReader::new(disc, &strip_partitions);
-                disc = DiscReader::new_stream(Box::new(reader), &disc_opts)?;
-            }
+            let format_options = FormatOptions::new(format);
 
             let disc_writer = DiscWriter::new(disc, &format_options)
                 .context("Failed to initialize WBFS writer")?;

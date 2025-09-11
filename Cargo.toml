@@ -43,7 +43,7 @@ size = "0.5"
 log = "0.4"
 env_logger = { version = "0.11", default-features = false, features = ["auto-color", "humantime"] }
 const_format = { version = "0.2", features = ["rust_1_64"] }
-nod = "2.0.0-alpha.3"
+nod = { git = "https://github.com/mq1/nod", branch = "strip-wbfs" }
 hex = "0.4"
 serde = { version = "1.0", features = ["derive"] }
 zip = { version = "5.0", default-features = false, features = ["deflate-flate2"] }
