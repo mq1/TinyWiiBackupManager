@@ -5,6 +5,7 @@ use crate::base_dir::BaseDir;
 use crate::util::oscwii;
 use crate::util::oscwii::AppCache;
 use anyhow::{Result, anyhow, bail};
+use path_slash::PathBufExt;
 use serde::{Deserialize, Deserializer};
 use std::fs;
 use std::path::PathBuf;
@@ -51,7 +52,8 @@ impl WiiApp {
 
         let size = fs_extra::dir::get_size(&path)?;
 
-        let icon_uri = format!("file://{}", path.join("icon.png").display());
+        let icon_path = path.join("icon.png");
+        let icon_uri = format!("file://{}", icon_path.to_slash_lossy());
 
         let meta_path = path.join("meta.xml");
         let meta_file = fs::read_to_string(meta_path)?;
