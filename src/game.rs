@@ -163,9 +163,8 @@ impl Game {
     pub fn get_local_cover_uri(&self, images_dir: impl AsRef<Path>) -> String {
         let path = images_dir.as_ref().to_owned();
         let file = path.join(&self.id_str).with_extension("png");
-        let slashed = file.to_slash_lossy();
 
-        format!("file://{slashed}")
+        format!("file://{}", file.to_slash_lossy())
     }
 
     pub fn download_cover(&self, base_dir: &BaseDir) -> Result<bool> {
