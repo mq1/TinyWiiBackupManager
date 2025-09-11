@@ -5,14 +5,6 @@ use crate::game::Game;
 use eframe::egui;
 
 pub fn ui_game_checks(ui: &mut egui::Ui, game: &Game) {
-    // Stripped label
-    if game.is_stripped {
-        ui.label("✂")
-            .on_hover_text("✂ Game is stripped");
-
-        return;
-    }
-
     // Verified label
     match game.is_verified {
         Some(true) => {
@@ -32,8 +24,8 @@ pub fn ui_game_checks(ui: &mut egui::Ui, game: &Game) {
     // Corrupt label
     match game.is_corrupt {
         Some(true) => {
-            ui.colored_label(egui::Color32::DARK_RED, "💔")
-                .on_hover_text("💔 Game is corrupt");
+            ui.colored_label(egui::Color32::DARK_RED, "❓")
+                .on_hover_text("❓ Hashes don't match: the game has been altered\n\nIt can indicate that a partition has been stripped or a potential data corruption");
         }
         Some(false) => {
             ui.label("💖").on_hover_text("💖 Game is intact");

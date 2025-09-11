@@ -35,7 +35,7 @@ pub fn sync_games(games: &[Game]) {
     if let Ok(mut cache) = HASH_CACHE.lock() {
         // Get the set of game IDs we want to keep
         let game_ids: HashSet<_> = games.iter().map(|g| g.id).collect();
-        
+
         // Remove all entries that aren't in our current games list
         cache.retain(|id, _| game_ids.contains(id));
     }
@@ -47,7 +47,7 @@ pub fn all(game: &Game, mut progress_callback: impl FnMut(u64, u64)) -> Result<b
         return Ok(true);
     }
 
-    let input_path = find_disc(&game)?;
+    let input_path = find_disc(&game.path)?;
     let (preloader_threads, processor_threads) = get_threads_num();
 
     let disc = DiscReader::new(
