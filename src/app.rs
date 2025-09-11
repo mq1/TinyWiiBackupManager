@@ -12,7 +12,7 @@ use crate::util::oscwii;
 use crate::util::update_check::{UpdateInfo, check_for_new_version};
 use crate::util::wiiapps::WiiApp;
 use crate::{gui::console_filter::ConsoleFilter, util};
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, anyhow};
 use eframe::egui;
 use egui_inbox::UiInbox;
 use strum::AsRefStr;
@@ -346,9 +346,13 @@ impl App {
                 let base_dir = base_dir.clone();
 
                 self.task_processor.spawn_task(move |ui_sender| {
+                    let file_name = path
+                        .file_name()
+                        .ok_or(anyhow!("No file name"))?
+                        .to_string_lossy();
+
                     let _ = ui_sender.send(BackgroundMessage::UpdateStatus(format!(
-                        "Adding Wii App: {}",
-                        path.file_name().unwrap().to_str().unwrap()
+                        "Adding Wii App: {file_name}"
                     )));
 
                     base_dir.add_zip(&path)?;
