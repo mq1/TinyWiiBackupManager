@@ -8,6 +8,7 @@ use crate::util;
 use anyhow::{Context, Result};
 use nod::common::PartitionInfo;
 use nod::read::DiscMeta;
+use path_slash::PathBufExt;
 use std::fs;
 use std::path::{Path, PathBuf};
 use strum::{AsRefStr, Display};
@@ -162,8 +163,9 @@ impl Game {
     pub fn get_local_cover_uri(&self, images_dir: impl AsRef<Path>) -> String {
         let path = images_dir.as_ref().to_owned();
         let file = path.join(&self.id_str).with_extension("png");
+        let slashed = file.to_slash_lossy();
 
-        format!("file://{}", file.display())
+        format!("file://{slashed}")
     }
 
     pub fn download_cover(&self, base_dir: &BaseDir) -> Result<bool> {
