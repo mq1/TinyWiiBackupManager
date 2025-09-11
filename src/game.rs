@@ -6,7 +6,6 @@ use crate::messages::BackgroundMessage;
 use crate::task::TaskProcessor;
 use crate::util;
 use anyhow::{Context, Result};
-use nod::common::PartitionInfo;
 use nod::read::DiscMeta;
 use path_slash::PathBufExt;
 use std::fs;
@@ -45,9 +44,8 @@ pub struct GameInfo {
 }
 
 /// Represents the console type for a game
-#[derive(Clone, Copy, Debug, PartialEq, Default, AsRefStr)]
+#[derive(Clone, Copy, Debug, PartialEq, AsRefStr)]
 pub enum ConsoleType {
-    #[default]
     #[strum(serialize = "🎾 Wii")]
     Wii,
     #[strum(serialize = "🎲 GC")]
@@ -55,7 +53,7 @@ pub enum ConsoleType {
 }
 
 /// Represents a single game, containing its metadata and file system information.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Game {
     pub id: [u8; 6],
     pub id_str: String,
@@ -67,11 +65,9 @@ pub struct Game {
     pub display_title: String,
     pub info_url: String,
     pub info_opened: bool,
-    pub is_corrupt: Option<bool>,
     pub is_verified: Option<bool>,
+    pub is_corrupt: Option<bool>,
     pub disc_meta: DiscMeta,
-    pub partitions: Vec<PartitionInfo>,
-    pub is_stripped: bool,
 }
 
 impl Game {
@@ -80,55 +76,27 @@ impl Game {
     /// The path is expected to be a directory containing the game files, with a name
     /// format like "My Game Title [GAMEID]".
     pub fn from_path(path: impl AsRef<Path>, console: ConsoleType) -> Result<Self> {
-        let path = path.as_ref();
+        let (header, meta) = util::meta::read_header_and_meta(&path)?;
 
-        let size = fs_extra::dir::get_size(&path)
-            .with_context(|| format!("Failed to get size of dir: {}", path.display()))?;
+        let info = GAMES.get(&header.game_id).cloned().cloned();
 
-        let mut game = Self {
-            path: path.to_path_buf(),
-            console,
-            size,
-            ..Default::default()
-        };
-
-        let (header, meta, partitions) = util::meta::read_header_and_meta_and_partitions(&game)?;
-
-        game.disc_meta = meta;
-        game.id = header.game_id;
-        game.id_str = header.game_id_str().to_string();
-        game.title = header.game_title_str().to_string();
-
-        let info_url = format!("https://www.gametdb.com/Wii/{}", game.id_str);
-        game.info_url = info_url;
-
-        game.is_stripped = partitions.iter().any(|p| p.data_size() == 0);
-        game.partitions = partitions;
-
-        let info = GAMES.get(&game.id).cloned().cloned();
-        game.info = info;
-
-        let display_title = if let Some(info) = info {
-            info.name.to_string()
-        } else {
-            game.title.clone()
-        };
-        game.display_title = display_title;
+        let display_title = info
+            .and_then(|info| Some(info.name))
+            .unwrap_or(header.game_title_str());
 
         // Verify the game using the embedded CRC from the disc metadata
         // This verifies if the game is a good redump dump
-        let is_verified = if let Some(crc32) = game.disc_meta.crc32
+        let is_verified = if let Some(crc32) = meta.crc32
             && let Some(info) = info
         {
             Some(info.crc_list.contains(&crc32))
         } else {
             None
         };
-        game.is_verified = is_verified;
 
         // Check if the game is corrupt
         // If the metadata is not found, cross-reference Redump
-        let is_corrupt = if let Some(finalization) = util::checksum::cache_get(game.id)
+        let is_corrupt = if let Some(finalization) = util::checksum::cache_get(header.game_id)
             && let Some(crc32) = finalization.crc32
             && let Some(info) = info
         {
@@ -136,9 +104,22 @@ impl Game {
         } else {
             None
         };
-        game.is_corrupt = is_corrupt;
 
-        Ok(game)
+        Ok(Self {
+            id: header.game_id,
+            id_str: header.game_id_str().to_string(),
+            title: header.game_title_str().to_string(),
+            path: path.as_ref().to_path_buf(),
+            size: fs_extra::dir::get_size(path)?,
+            console,
+            info,
+            display_title: display_title.to_string(),
+            info_url: format!("https://www.gametdb.com/Wii/{}", header.game_title_str()),
+            info_opened: false,
+            is_verified,
+            is_corrupt,
+            disc_meta: meta,
+        })
     }
 
     /// Prompts the user for confirmation and then permanently deletes the game's directory.
