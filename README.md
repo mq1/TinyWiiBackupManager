@@ -55,7 +55,7 @@ Choose the file for your operating system:
 > ```
 
 > #### 🪟 Windows Legacy (32bit, win7-8-8.1)
-> Someone requested a build, so a portable win7.exe is provided.\
+> Someone requested a build, so a win7-portable.exe is provided.\
 > However, it is not officially supported and may not work.
 
 ## 📄 Additional Info
