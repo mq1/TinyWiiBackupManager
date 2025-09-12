@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use crate::game::Game;
+use crate::settings::ArchiveFormat;
 use crate::util::concurrency::get_threads_num;
 use crate::util::fs::find_disc;
 use anyhow::{Context, Result};
@@ -16,12 +17,16 @@ use std::path::{Path, PathBuf};
 pub fn game(
     game: &Game,
     output_dir: impl AsRef<Path>,
+    archive_format: ArchiveFormat,
     mut progress_callback: impl FnMut(u64, u64),
 ) -> Result<PathBuf> {
     let input_path = find_disc(&game.path)?;
 
     let title = sanitize(&game.display_title);
-    let output_path = output_dir.as_ref().join(format!("{title}.rvz"));
+    let output_path = output_dir
+        .as_ref()
+        .join(title)
+        .with_extension(archive_format.extension());
 
     let (preloader_threads, processor_threads) = get_threads_num();
 
@@ -37,13 +42,20 @@ pub fn game(
     let mut output_file = File::create(&output_path)
         .with_context(|| format!("Failed to create output file: {}", output_path.display()))?;
 
-    let options = FormatOptions {
-        format: Format::Rvz,
-        compression: Compression::Zstandard(19),
-        block_size: Format::Rvz.default_block_size(),
+    let options = match archive_format {
+        ArchiveFormat::Rvz => FormatOptions {
+            format: Format::Rvz,
+            compression: Compression::Zstandard(19),
+            block_size: Format::Rvz.default_block_size(),
+        },
+        ArchiveFormat::Iso => FormatOptions {
+            format: Format::Iso,
+            compression: Compression::None,
+            block_size: Format::Iso.default_block_size(),
+        },
     };
 
-    let writer = DiscWriter::new(disc, &options).context("Failed to initialize RVZ writer")?;
+    let writer = DiscWriter::new(disc, &options).context("Failed to initialize DiscWriter")?;
 
     let process_options = ProcessOptions {
         processor_threads,
@@ -62,15 +74,17 @@ pub fn game(
             },
             &process_options,
         )
-        .context("Failed to process disc for RVZ archival")?;
+        .context("Failed to process disc for archival")?;
 
     if !finalization.header.is_empty() {
-        output_file.rewind().context("Failed to rewind RVZ file")?;
+        output_file
+            .rewind()
+            .context("Failed to rewind output file")?;
         output_file
             .write_all(finalization.header.as_ref())
-            .context("Failed to write final RVZ header")?;
+            .context("Failed to write final disc header")?;
     }
-    output_file.flush().context("Failed to flush RVZ file")?;
+    output_file.flush().context("Failed to flush output file")?;
 
     Ok(output_path)
 }
