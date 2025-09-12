@@ -1,6 +1,6 @@
 [package]
 name = "tiny-wii-backup-manager"
-version = "2.4.6"
+version = "2.4.7"
 authors = ["Manuel Quarneti <mq1@ik.me>"]
 edition = "2024"
 license = "GPL-2.0-only"
@@ -15,7 +15,7 @@ path = "src/main.rs"
 [package.metadata.packager]
 product-name = "TinyWiiBackupManager"
 identifier = "it.mq1.TinyWiiBackupManager"
-icons = ["logo@2x.png"]
+icons = ["logo@2x.png", "logo-small.png"]
 copyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-2.0-only."
 category = "Utility"
 out_dir = "dist"
