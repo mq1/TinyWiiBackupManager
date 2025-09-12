@@ -3,6 +3,7 @@
 
 use crate::base_dir::BaseDir;
 use crate::messages::BackgroundMessage;
+use crate::settings::ArchiveFormat;
 use crate::task::TaskProcessor;
 use crate::util;
 use anyhow::{Context, Result};
@@ -234,7 +235,11 @@ impl Game {
         });
     }
 
-    pub fn spawn_archive_task(&self, task_processor: &TaskProcessor) {
+    pub fn spawn_archive_task(
+        &self,
+        task_processor: &TaskProcessor,
+        archive_format: ArchiveFormat,
+    ) {
         let output_dir = rfd::FileDialog::new()
             .set_title("Select Output Directory")
             .pick_folder();
@@ -245,14 +250,15 @@ impl Game {
             task_processor.spawn_task(move |ui_sender| {
                 let display_title = &game.display_title;
 
-                let out_path = util::archive::game(&game, &output_dir, |progress, total| {
-                    let msg = format!(
-                        "🖴➡📄  {:02.0}%  {}... ",
-                        progress as f32 / total as f32 * 100.0,
-                        display_title,
-                    );
-                    let _ = ui_sender.send(BackgroundMessage::UpdateStatus(msg));
-                })?;
+                let out_path =
+                    util::archive::game(&game, &output_dir, archive_format, |progress, total| {
+                        let msg = format!(
+                            "🖴➡📄  {:02.0}%  {}... ",
+                            progress as f32 / total as f32 * 100.0,
+                            display_title,
+                        );
+                        let _ = ui_sender.send(BackgroundMessage::UpdateStatus(msg));
+                    })?;
 
                 let _ = ui_sender.send(BackgroundMessage::Info(format!(
                     "{} archived to {}",
