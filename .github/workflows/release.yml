@@ -86,7 +86,7 @@ jobs:
 
     env:
       RUSTC_BOOTSTRAP: ${{ matrix.bootstrap }}
-      PORTABLE_NAME: ${{ matrix.bootstrap == 0 && 'portable' || 'win7' }}
+      PORTABLE_NAME: ${{ matrix.bootstrap == 0 && 'portable' || 'win7-portable' }}
       EXTRA_ARGS: ${{ matrix.bootstrap == 1 && '-Z build-std=std,panic_abort' || '' }}
     
     steps:
