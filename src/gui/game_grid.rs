@@ -4,6 +4,7 @@
 use crate::gui::game_checks::ui_game_checks;
 use crate::gui::game_info::ui_game_info_window;
 use crate::messages::BackgroundMessage;
+use crate::settings::ArchiveFormat;
 use crate::task::TaskProcessor;
 use crate::{app::App, game::Game};
 use eframe::egui::{self, Image, RichText};
@@ -47,6 +48,7 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
                                 &app.task_processor,
                                 game,
                                 &cover_dir,
+                                app.settings.archive_format,
                             );
                             ui_game_info_window(ui.ctx(), game, &mut app.inbox.sender());
                         }
@@ -63,6 +65,7 @@ fn ui_game_card(
     task_processor: &TaskProcessor,
     game: &mut Game,
     cover_dir: &Path,
+    archive_format: ArchiveFormat,
 ) {
     let card = egui::Frame::group(ui.style()).corner_radius(5.0);
     card.show(ui, |ui| {
@@ -113,7 +116,7 @@ fn ui_game_card(
                         .on_hover_text("Archive Game to a zstd-19 compressed RVZ")
                         .clicked()
                     {
-                        game.spawn_archive_task(task_processor);
+                        game.spawn_archive_task(task_processor, archive_format);
                     }
 
                     // Integrity check button
