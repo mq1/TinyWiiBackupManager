@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use crate::app::App;
-use crate::settings::{StripPartitions, WiiOutputFormat};
+use crate::settings::{ArchiveFormat, StripPartitions, WiiOutputFormat};
 use eframe::egui::{self, Rect};
 use egui_theme_switch::global_theme_switch;
 use strum::IntoEnumIterator;
@@ -14,6 +14,7 @@ pub fn ui_settings_window(ctx: &egui::Context, app: &mut App, rect: Rect) {
         .collapsible(false)
         .movable(false)
         .fixed_rect(rect)
+        .vscroll(true)
         .show(ctx, |ui| {
             ui.add_space(10.0);
 
@@ -33,6 +34,17 @@ pub fn ui_settings_window(ctx: &egui::Context, app: &mut App, rect: Rect) {
 
             for format in StripPartitions::iter() {
                 ui.radio_value(&mut app.settings.strip_partitions, format, format.as_ref());
+            }
+
+            ui.add_space(10.0);
+            ui.separator();
+            ui.add_space(10.0);
+
+            ui.heading("📦 Archive Format");
+            ui.add_space(10.0);
+
+            for format in ArchiveFormat::iter() {
+                ui.radio_value(&mut app.settings.archive_format, format, format.as_ref());
             }
 
             ui.with_layout(egui::Layout::bottom_up(egui::Align::RIGHT), |ui| {
