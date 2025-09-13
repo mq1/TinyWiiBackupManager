@@ -1,5 +1,5 @@
 <p align="center">
-  <img alt="TinyWiiBackupManager Logo" width="128" src="logo-small.png">
+  <img alt="TinyWiiBackupManager Logo" width="128" src="assets/logo-small.png">
 </p>
 
 <h1 align="center">TinyWiiBackupManager</h1>
@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <img alt="App Screenshot" src="screenshot.png">
+  <img alt="App Screenshot" src="assets/screenshot.png">
 </p>
 
 ## ✨ Features
