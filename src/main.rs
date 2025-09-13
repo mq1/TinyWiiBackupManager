@@ -8,7 +8,7 @@ use eframe::egui;
 use tiny_wii_backup_manager::PRODUCT_NAME;
 use tiny_wii_backup_manager::app::App;
 
-const LOGO: &[u8] = include_bytes!("../logo-small.png");
+const LOGO: &[u8] = include_bytes!("../assets/logo-small.png");
 
 fn main() -> eframe::Result<()> {
     env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
