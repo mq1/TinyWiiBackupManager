@@ -25,7 +25,7 @@ pub fn ui_game_checks(ui: &mut egui::Ui, game: &Game) {
     match game.is_corrupt {
         Some(true) => {
             ui.colored_label(egui::Color32::DARK_RED, "❓")
-                .on_hover_text("❓ Hashes don't match: the game has been altered\n\nIt can indicate that a partition has been stripped or a potential data corruption");
+                .on_hover_text("❓ Hashes don't match: the game has been altered\n\nIt can indicate that a partition has been removed or a potential data corruption");
         }
         Some(false) => {
             ui.label("💖").on_hover_text("💖 Game is intact");
