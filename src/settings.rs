@@ -31,21 +31,11 @@ impl ArchiveFormat {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, AsRefStr, EnumIter, Copy)]
-pub enum StripPartitions {
-    #[strum(serialize = "🛡 Keep all (recommended)")]
-    No,
-    #[strum(serialize = "🗑 Remove Update (integrity check disabled)")]
-    Update,
-    #[strum(serialize = "⚠ Remove all but Game (integrity check disabled, not recommended)")]
-    All,
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Settings {
     pub wii_output_format: WiiOutputFormat,
     pub archive_format: ArchiveFormat,
-    pub strip_partitions: StripPartitions,
+    pub remove_update_partition: bool,
     pub wii_ip: String,
 }
 
@@ -54,7 +44,7 @@ impl Default for Settings {
         Self {
             wii_output_format: WiiOutputFormat::WbfsAuto,
             archive_format: ArchiveFormat::Rvz,
-            strip_partitions: StripPartitions::No,
+            remove_update_partition: false,
             wii_ip: "192.168.1.100".to_string(),
         }
     }

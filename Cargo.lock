@@ -2525,7 +2525,7 @@ dependencies = [
 [[package]]
 name = "nod"
 version = "2.0.0-alpha.3"
-source = "git+https://github.com/mq1/nod?branch=strip-wbfs#42725c60f815adc8f8bd9acf82e8efad504dff83"
+source = "git+https://github.com/mq1/nod?branch=strip-wbfs#5e17e7063ede1ef50d9cf493ef887f7a92045310"
 dependencies = [
  "adler",
  "aes",
