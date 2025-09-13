@@ -60,27 +60,17 @@ time = { version = "0.3", features = ["parsing", "serde", "macros"] }
 phf = { version = "0.13", features = ["macros"] }
 fs2 = "0.4"
 path-slash = "0.2"
-
-# Windows uses dx12 to enable software rendering (WARP) as a fallback
-[target.x86_64-pc-windows-msvc.dependencies]
-minreq = { version = "2.14", features = ["https-native", "json-using-serde"] }
-eframe = { version = "0.32", default-features = false, features = ["accesskit", "default_fonts", "wgpu", "persistence"] }
-wgpu = { version = "25", default-features = false, features = ["dx12"] }
-
-# Windows uses dx12 to enable software rendering (WARP) as a fallback
-[target.aarch64-pc-windows-msvc.dependencies]
-minreq = { version = "2.14", features = ["https-native", "json-using-serde"] }
-eframe = { version = "0.32", default-features = false, features = ["accesskit", "default_fonts", "wgpu", "persistence"] }
-wgpu = { version = "25", default-features = false, features = ["dx12"] }
-
-# Someone asked for this
-[target.i686-win7-windows-msvc.dependencies]
-minreq = { version = "2.14", features = ["https-rustls", "json-using-serde"] }
+minreq = { version = "2.14", features = ["https-rustls-probe", "json-using-serde"] }
 eframe = { version = "0.32", features = ["persistence"] }
 
-[target.'cfg(unix)'.dependencies]
+# Windows uses dx12 to enable software rendering (WARP) as a fallback
+[target.'cfg(all(windows, any(target_arch = "x64", target_arch = "aarch64")))'.dependencies]
 minreq = { version = "2.14", features = ["https-native", "json-using-serde"] }
-eframe = { version = "0.32", features = ["persistence"] }
+eframe = { version = "0.32", default-features = false, features = ["accesskit", "default_fonts", "wgpu", "persistence"] }
+wgpu = { version = "*", default-features = false, features = ["dx12"] }
+
+[target.'cfg(macos)'.dependencies]
+minreq = { version = "2.14", features = ["https-native", "json-using-serde"] }
 
 
 [build-dependencies]
