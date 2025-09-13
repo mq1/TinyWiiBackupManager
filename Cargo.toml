@@ -67,7 +67,7 @@ eframe = { version = "0.32", features = ["persistence"] }
 [target.'cfg(all(windows, any(target_arch = "x86_64", target_arch = "aarch64")))'.dependencies]
 minreq = { version = "2.14", features = ["https-native", "json-using-serde"] }
 eframe = { version = "0.32", default-features = false, features = ["accesskit", "default_fonts", "wgpu", "persistence"] }
-wgpu = { version = "*", default-features = false, features = ["dx12"] }
+wgpu = { version = "25", default-features = false, features = ["dx12"] }
 
 [target.'cfg(macos)'.dependencies]
 minreq = { version = "2.14", features = ["https-native", "json-using-serde"] }
