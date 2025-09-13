@@ -63,6 +63,7 @@ pub fn game(
         digest_md5: false,
         digest_sha1: true,
         digest_xxh64: true,
+        scrub_update_partition: false,
     };
 
     let finalization = writer

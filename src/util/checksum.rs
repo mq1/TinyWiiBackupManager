@@ -74,6 +74,7 @@ pub fn all(game: &Game, mut progress_callback: impl FnMut(u64, u64)) -> Result<b
                 digest_md5: false,
                 digest_sha1: false,
                 digest_xxh64: false,
+                scrub_update_partition: false,
             },
         )
         .context("Failed to process disc for checksum calculation")?;
