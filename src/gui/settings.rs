@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use crate::app::App;
-use crate::settings::{ArchiveFormat, StripPartitions, WiiOutputFormat};
+use crate::settings::{ArchiveFormat, WiiOutputFormat};
 use eframe::egui::{self, Rect};
 use egui_theme_switch::global_theme_switch;
 use strum::IntoEnumIterator;
@@ -29,12 +29,19 @@ pub fn ui_settings_window(ctx: &egui::Context, app: &mut App, rect: Rect) {
             ui.separator();
             ui.add_space(10.0);
 
-            ui.heading("✂ Strip Partitions on WBFS (Experimental)");
+            ui.heading("🗑 Remove Update Partition on WBFS (experimental)");
             ui.add_space(10.0);
 
-            for format in StripPartitions::iter() {
-                ui.radio_value(&mut app.settings.strip_partitions, format, format.as_ref());
-            }
+            ui.radio_value(
+                &mut app.settings.remove_update_partition,
+                false,
+                "🛡 No (recommended)",
+            );
+            ui.radio_value(
+                &mut app.settings.remove_update_partition,
+                true,
+                "💣 Yes (integrity check disabled)",
+            );
 
             ui.add_space(10.0);
             ui.separator();
