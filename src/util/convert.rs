@@ -5,12 +5,12 @@
 //! default behavior of `wbfs_file v2.9` for Wii and creating NKit-compatible
 //! scrubbed ISOs for GameCube.
 
-use crate::settings::{StripPartitions, WiiOutputFormat};
+use crate::settings::WiiOutputFormat;
 use crate::util::concurrency::get_threads_num;
 use crate::util::fs::can_write_over_4gb;
 use crate::util::split::SplitWbfsFile;
 use anyhow::{Context, Result, bail};
-use nod::common::{Format, PartitionKind};
+use nod::common::Format;
 use nod::read::{DiscOptions, DiscReader, PartitionEncryption};
 use nod::write::{DiscWriter, FormatOptions, ProcessOptions};
 use sanitize_filename_reader_friendly::sanitize;
@@ -27,7 +27,7 @@ pub fn convert(
     input_path: impl AsRef<Path>,
     output_dir: impl AsRef<Path>,
     wii_output_format: WiiOutputFormat,
-    strip: StripPartitions,
+    remove_update_partition: bool,
     mut progress_callback: impl FnMut(u64, u64),
 ) -> Result<bool> {
     let input_path = input_path.as_ref();
@@ -42,35 +42,6 @@ pub fn convert(
 
     let mut disc = DiscReader::new(&input_path, &disc_opts)
         .with_context(|| format!("Failed to read disc image: {}", input_path.display()))?;
-
-    let mut strip_mask = [false; 64];
-    match strip {
-        StripPartitions::No => {}
-        StripPartitions::Update => {
-            for p in disc
-                .partitions()
-                .iter()
-                .filter(|p| p.kind == PartitionKind::Update)
-            {
-                strip_mask[p.index] = true;
-            }
-        }
-        StripPartitions::All => {
-            for p in disc
-                .partitions()
-                .iter()
-                .filter(|p| p.kind != PartitionKind::Data)
-            {
-                strip_mask[p.index] = true;
-            }
-        }
-    }
-
-    let format = if strip_mask.iter().all(|&b| !b) {
-        Format::Wbfs
-    } else {
-        Format::StrippedWbfs(strip_mask)
-    };
 
     let header = disc.header();
     let game_id = header.game_id_str();
@@ -108,7 +79,7 @@ pub fn convert(
             WiiOutputFormat::WbfsAuto | WiiOutputFormat::WbfsFixed
         ) {
             let mut writer = SplitWbfsFile::new(&base_path, split_size)?;
-            let format_options = FormatOptions::new(format);
+            let format_options = FormatOptions::new(Format::Wbfs);
 
             let disc_writer = DiscWriter::new(disc, &format_options)
                 .context("Failed to initialize WBFS writer")?;
@@ -119,6 +90,7 @@ pub fn convert(
                 digest_md5: false,
                 digest_sha1: true,
                 digest_xxh64: true,
+                scrub_update_partition: remove_update_partition,
             };
 
             let finalization = disc_writer
@@ -166,6 +138,7 @@ pub fn convert(
             digest_md5: false,
             digest_sha1: true,
             digest_xxh64: true,
+            scrub_update_partition: false,
         };
 
         let finalization = disc_writer

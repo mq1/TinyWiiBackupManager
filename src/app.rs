@@ -285,7 +285,7 @@ impl App {
             for (i, path) in paths.into_iter().enumerate() {
                 let base_dir = base_dir.clone();
                 let wii_output_format = self.settings.wii_output_format;
-                let strip_partitions = self.settings.strip_partitions;
+                let remove_update_partition = self.settings.remove_update_partition;
                 let is_last = i == last_index;
 
                 self.task_processor.spawn_task(move |ui_sender| {
@@ -299,7 +299,7 @@ impl App {
                         &path,
                         base_dir.path(),
                         wii_output_format,
-                        strip_partitions,
+                        remove_update_partition,
                         move |current, total| {
                             let status = format!(
                                 "📄➡🖴  {:02.0}%  {}",
