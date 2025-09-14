@@ -1,0 +1,8 @@
+[Desktop Entry]
+Categories=Utility;
+Comment=A dead simple Wii Backup Manager
+Exec=TinyWiiBackupManager
+Icon=it.mq1.TinyWiiBackupManager
+Name=TinyWiiBackupManager
+Terminal=false
+Type=Application
