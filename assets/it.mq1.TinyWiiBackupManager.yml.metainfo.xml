@@ -54,7 +54,9 @@
     <url type="vcs-browser">https://github.com/mq1/TinyWiiBackupManager</url>
     <screenshots>
         <screenshot type="default">
-            <image>https://github.com/mq1/TinyWiiBackupManager/blob/main/screenshot.png?raw=true</image>
+            <image>
+                https://raw.githubusercontent.com/mq1/TinyWiiBackupManager/32946f9296b604815918fe7bcf1ac6ef99f51165/assets/screenshot.png
+            </image>
             <caption>TinyWiiBackupManager screenshot</caption>
         </screenshot>
     </screenshots>
