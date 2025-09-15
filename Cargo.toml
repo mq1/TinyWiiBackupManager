@@ -29,7 +29,10 @@ LegalCopyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-2.0-only
 
 
 [dependencies]
-egui_extras = { version = "0.32", default-features = false, features = ["image", "file"] }
+egui_extras = { version = "0.32", default-features = false, features = [
+    "image",
+    "file",
+] }
 image = { version = "0.25", default-features = false, features = ["png"] }
 egui-notify = "0.20"
 egui_inbox = "0.9"
@@ -41,12 +44,17 @@ open = "5.3"
 notify = "8.2"
 size = "0.5"
 log = "0.4"
-env_logger = { version = "0.11", default-features = false, features = ["auto-color", "humantime"] }
+env_logger = { version = "0.11", default-features = false, features = [
+    "auto-color",
+    "humantime",
+] }
 const_format = { version = "0.2", features = ["rust_1_64"] }
 nod = { git = "https://github.com/mq1/nod", branch = "strip-wbfs" }
 hex = "0.4"
 serde = { version = "1.0", features = ["derive"] }
-zip = { version = "5.0", default-features = false, features = ["deflate-flate2"] }
+zip = { version = "5.0", default-features = false, features = [
+    "deflate-flate2",
+] }
 const-str = "0.7"
 strum = { version = "0.27", features = ["derive"] }
 egui-theme-switch = "0.4"
@@ -64,7 +72,12 @@ path-slash = "0.2"
 # Windows uses dx12 to enable software rendering (WARP) as a fallback
 [target.'cfg(all(windows, any(target_arch = "x86_64", target_arch = "aarch64")))'.dependencies]
 minreq = { version = "2.14", features = ["https-native", "json-using-serde"] }
-eframe = { version = "0.32", default-features = false, features = ["accesskit", "default_fonts", "wgpu", "persistence"] }
+eframe = { version = "0.32", default-features = false, features = [
+    "accesskit",
+    "default_fonts",
+    "wgpu",
+    "persistence",
+] }
 wgpu = { version = "25", default-features = false, features = ["dx12"] }
 
 # Someone asked for this
@@ -77,7 +90,10 @@ minreq = { version = "2.14", features = ["https-native", "json-using-serde"] }
 eframe = { version = "0.32", features = ["persistence"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
-minreq = { version = "2.14", features = ["https-rustls-probe", "json-using-serde"] }
+minreq = { version = "2.14", features = [
+    "https-rustls-probe",
+    "json-using-serde",
+] }
 eframe = { version = "0.32", features = ["persistence"] }
 
 
@@ -92,12 +108,12 @@ winres = "0.1"
 
 
 [profile.release]
-opt-level = 3          # Highest optimization level for speed
-lto = "fat"            # Full Link Time Optimization across crates
-codegen-units = 1      # Single codegen unit for best cross-function inlining
-strip = "debuginfo"    # Strip everything except debug info (Rust 1.70+)
-panic = "abort"        # Smaller & faster by removing unwinding code
-debug = 1              # Minimal debug info (enough for backtraces & profiling)
+opt-level = 'z'     # Highest optimization level for size
+lto = "fat"         # Full Link Time Optimization across crates
+codegen-units = 1   # Single codegen unit for best cross-function inlining
+strip = "debuginfo" # Strip everything except debug info (Rust 1.70+)
+panic = "abort"     # Smaller & faster by removing unwinding code
+debug = 1           # Minimal debug info (enough for backtraces & profiling)
 
 [profile.dev.package."*"]
 opt-level = 2
@@ -107,3 +123,6 @@ opt-level = 2
 
 [profile.release.build-override]
 opt-level = 2
+
+[profile.release.package.nod]
+opt-level = 3
