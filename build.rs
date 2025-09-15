@@ -3,13 +3,13 @@
 
 #![allow(dead_code)]
 
-use heck::ToUpperCamelCase;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::{
+    collections::HashMap,
     env,
-    fs::File,
-    io::{BufReader, BufWriter, Write},
-    path::Path,
+    fs::{self, File},
+    io::BufReader,
+    path::{Path, PathBuf},
 };
 
 // Top-level root element <datafile>
@@ -146,78 +146,88 @@ struct Case {
     pub versions: Option<i64>,
 }
 
+#[rustfmt::skip]
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all(deserialize = "UPPERCASE"))]
+enum Language { En, Fr, De, Es, It, Ja, Nl, Se, Dk, No, Ko, Pt, Zhtw, Zhcn, Fi, Tr, Gr, Ru }
+
+#[rustfmt::skip]
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all(deserialize = "SCREAMING-KEBAB-CASE"))]
+enum Region { NtscJ, NtscU, NtscK, NtscT, Pal, PalR }
+
+#[rustfmt::skip]
+#[derive(Serialize)]
+struct GameInfo {
+    name: String,
+    region: Region,
+    languages: Vec<Language>,
+    crc_list: Vec<u32>,
+}
+
 fn compile_wiitdb_xml() {
-    // Path for the generated code snippet in the build output directory
-    let path = Path::new(&env::var("OUT_DIR").unwrap()).join("wiitdb_data.rs");
-    let mut file = BufWriter::new(File::create(&path).unwrap());
-
-    // Re-run the build script if wiitdb.xml changes
-    println!("cargo:rerun-if-changed=assets/wiitdb.xml");
-
     let xml = BufReader::new(File::open("assets/wiitdb.xml").expect("Failed to open wiitdb.xml"));
     let data: Datafile = quick_xml::de::from_reader(xml).expect("Failed to parse wiitdb.xml");
 
-    let mut map_builder = phf_codegen::Map::new();
+    let mut map = HashMap::new();
     for game in data.games {
         let mut id = [0u8; 6];
         let id_bytes = game.id.as_bytes();
         id[..id_bytes.len()].copy_from_slice(&id_bytes);
 
-        let name = format!("\"{}\"", game.name);
+        let name = game.name.trim().to_string();
 
-        // if region not found, skip game
-        if game.region.is_empty() {
+        // skip invalid games
+        if id.iter().all(|&b| b == 0)
+            || game.region.is_empty()
+            || game.languages.is_empty()
+            || name.is_empty()
+            || game.roms.is_empty()
+        {
             continue;
         }
 
-        let region = format!("Region::{}", game.region.to_upper_camel_case());
+        let region = serde_plain::from_str::<Region>(&game.region).unwrap();
 
-        // if language is empty, skip game
-        if game.languages.is_empty() {
-            continue;
-        }
+        let languages = game
+            .languages
+            .split(',')
+            .map(|s| serde_plain::from_str::<Language>(s).unwrap())
+            .collect::<Vec<_>>();
 
-        // build languages list string
-        let languages = format!(
-            "&[{}]",
-            game.languages
-                .split(',')
-                .map(|lang| format!("Language::{}", lang))
-                .collect::<Vec<_>>()
-                .join(",")
-        );
+        let crc_list = game
+            .roms
+            .iter()
+            .filter_map(|r| r.crc.clone())
+            .filter_map(|crc| u32::from_str_radix(&crc, 16).ok())
+            .collect::<Vec<_>>();
 
-        // Parse CRCs. Invalid CRCs are skipped.
-        let crc_list = format!(
-            "&[{}]",
-            game.roms
-                .into_iter()
-                .filter_map(|rom| rom.crc)
-                .filter_map(|crc| u32::from_str_radix(&crc, 16).ok())
-                .map(|crc| crc.to_string())
-                .collect::<Vec<_>>()
-                .join(",")
-        );
-
-        map_builder.entry(
+        map.insert(
             id,
-            format!(
-                "&GameInfo {{ name: {name}, region: {region}, languages: {languages}, crc_list: {crc_list} }}",
-            ),
+            GameInfo {
+                name,
+                region,
+                languages,
+                crc_list,
+            },
         );
     }
 
-    // Write the generated map directly into the output file.
-    // This is not just a variable, but the full phf::phf_map! macro invocation.
-    writeln!(
-        &mut file,
-        "static GAMES: phf::Map<[u8; 6], &'static GameInfo> = {};",
-        map_builder.build()
-    )
-    .unwrap();
+    let encoded = postcard::to_allocvec(&map).expect("Postcard serialization failed");
+    let compressed = zstd::bulk::compress(&encoded, 19).expect("Zstd compression failed");
+    let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
+    let dest_path = out_dir.join("wiitdb.bin.zst");
+    fs::write(&dest_path, compressed).expect("Failed to write compressed data");
+
+    let metadata = format!("pub const DECOMPRESSED_SIZE: usize = {};", encoded.len());
+    let metadata_path = Path::new(&out_dir).join("metadata.rs");
+    fs::write(&metadata_path, metadata).unwrap();
 }
 
 fn main() {
+    // Re-run the build script if wiitdb.xml changes
+    println!("cargo:rerun-if-changed=assets/wiitdb.xml");
+
     // Compile wiitdb.xml
     compile_wiitdb_xml();
 
