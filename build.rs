@@ -9,7 +9,7 @@ use std::{
     env,
     fs::{self, File},
     io::BufReader,
-    path::PathBuf,
+    path::{Path, PathBuf},
 };
 
 // Top-level root element <datafile>
@@ -214,10 +214,14 @@ fn compile_wiitdb_xml() {
     }
 
     let encoded = postcard::to_stdvec(&map).expect("Postcard serialization failed");
-    let compressed = zstd::encode_all(&encoded[..], 19).expect("Zstd compression failed");
+    let compressed = zstd::bulk::compress(&encoded, 19).expect("Zstd compression failed");
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
     let dest_path = out_dir.join("wiitdb.bin.zst");
     fs::write(&dest_path, compressed).expect("Failed to write compressed data");
+
+    let metadata = format!("pub const DECOMPRESSED_SIZE: usize = {};", encoded.len());
+    let metadata_path = Path::new(&out_dir).join("metadata.rs");
+    fs::write(&metadata_path, metadata).unwrap();
 }
 
 fn main() {
