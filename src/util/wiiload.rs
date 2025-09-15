@@ -48,11 +48,13 @@ pub fn push_url(url: &str, wii_ip: &str) -> Result<Vec<String>> {
         .next()
         .ok_or(anyhow!("Failed to resolve Wii IP: {wii_ip}"))?;
 
-    let response = minreq::get(url)
-        .with_header("User-Agent", USER_AGENT)
-        .send()?;
+    let buffer = ureq::get(url)
+        .header("User-Agent", USER_AGENT)
+        .call()?
+        .body_mut()
+        .read_to_vec()?;
 
-    let cursor = Cursor::new(response.as_bytes());
+    let cursor = Cursor::new(buffer);
     let mut archive = ZipArchive::new(cursor)?;
 
     // Find the dir containing boot.dol or boot.elf
