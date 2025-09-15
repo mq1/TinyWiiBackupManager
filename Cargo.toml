@@ -102,14 +102,14 @@ strip = "debuginfo" # Strip everything except debug info (Rust 1.70+)
 panic = "abort"     # Smaller & faster by removing unwinding code
 debug = 1           # Minimal debug info (enough for backtraces & profiling)
 
-[profile.dev.package."*"]
-opt-level = 2
-
 [profile.dev.build-override]
 opt-level = 2
 
 [profile.release.build-override]
 opt-level = 2
+
+[profile.dev.package.nod]
+opt-level = 3
 
 [profile.release.package.nod]
 opt-level = 3
