@@ -133,13 +133,7 @@ opt-level = 3
 [profile.release.package.liblzma-sys]
 opt-level = 3
 
-[profile.release.package.md5]
-opt-level = 3
-
 [profile.release.package.miniz_oxide]
-opt-level = 3
-
-[profile.release.package.openssl]
 opt-level = 3
 
 [profile.release.package.sha1]
@@ -152,4 +146,7 @@ opt-level = 3
 opt-level = 3
 
 [profile.release.package.zstd-safe]
+opt-level = 3
+
+[profile.release.package.flate2]
 opt-level = 3
