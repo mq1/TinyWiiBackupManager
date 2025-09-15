@@ -9,14 +9,25 @@ use crate::util;
 use anyhow::{Context, Result};
 use nod::read::DiscMeta;
 use path_slash::PathBufExt;
+use serde::Deserialize;
+use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::sync::LazyLock;
 use strum::{AsRefStr, Display};
 
-include!(concat!(env!("OUT_DIR"), "/wiitdb_data.rs"));
+static WIITDB: LazyLock<HashMap<[u8; 6], GameInfo>> = LazyLock::new(|| {
+    let compressed: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/wiitdb.bin.zst"));
+    let decompressed = zstd::decode_all(compressed).expect("failed to decompress");
+    postcard::from_bytes(&decompressed).expect("failed to deserialize")
+});
 
 #[rustfmt::skip]
-#[derive(Debug, Clone, Copy, AsRefStr, Display)]
+#[derive(Deserialize, Debug, Clone, Copy, AsRefStr, Display)]
+pub enum Language { En, Fr, De, Es, It, Ja, Nl, Se, Dk, No, Ko, Pt, Zhtw, Zhcn, Fi, Tr, Gr, Ru }
+
+#[rustfmt::skip]
+#[derive(Deserialize, Debug, Clone, Copy, AsRefStr, Display)]
 pub enum Region { NtscJ, NtscU, NtscK, NtscT, Pal, PalR }
 
 fn get_locale(region: Region) -> &'static str {
@@ -30,18 +41,13 @@ fn get_locale(region: Region) -> &'static str {
     }
 }
 
-#[rustfmt::skip]
-#[allow(clippy::upper_case_acronyms)]
-#[derive(Debug, Clone, Copy, AsRefStr, Display)]
-pub enum Language { EN, FR, DE, ES, IT, JA, NL, SE, DK, NO, KO, PT, ZHTW, ZHCN, FI, TR, GR, RU }
-
 /// Data from WiiTDB XML
-#[derive(Debug, Clone, Copy)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct GameInfo {
-    pub name: &'static str,
+    pub name: String,
     pub region: Region,
-    pub languages: &'static [Language],
-    pub crc_list: &'static [u32],
+    pub languages: Vec<Language>,
+    pub crc_list: Vec<u32>,
 }
 
 /// Represents the console type for a game
@@ -79,11 +85,11 @@ impl Game {
     pub fn from_path(path: impl AsRef<Path>, console: ConsoleType) -> Result<Self> {
         let (header, meta) = util::meta::read_header_and_meta(&path)?;
 
-        let info = GAMES.get(&header.game_id).cloned().cloned();
+        let info = WIITDB.get(&header.game_id);
 
         let display_title = info
-            .and_then(|info| Some(info.name))
-            .unwrap_or(header.game_title_str());
+            .and_then(|info| Some(info.name.clone()))
+            .unwrap_or(header.game_title_str().to_string());
 
         // Verify the game using the embedded CRC from the disc metadata
         // This verifies if the game is a good redump dump
@@ -113,7 +119,7 @@ impl Game {
             path: path.as_ref().to_path_buf(),
             size: fs_extra::dir::get_size(path)?,
             console,
-            info,
+            info: info.cloned(),
             display_title: display_title.to_string(),
             info_url: format!("https://www.gametdb.com/Wii/{}", header.game_title_str()),
             info_opened: false,
@@ -150,7 +156,7 @@ impl Game {
     }
 
     pub fn download_cover(&self, base_dir: &BaseDir) -> Result<bool> {
-        let locale = if let Some(info) = self.info {
+        let locale = if let Some(info) = &self.info {
             get_locale(info.region)
         } else {
             "EN"
@@ -166,7 +172,7 @@ impl Game {
     pub fn download_all_covers(&self, base_dir: BaseDir) -> Result<bool> {
         let id = &self.id_str;
 
-        let locale = if let Some(info) = self.info {
+        let locale = if let Some(info) = &self.info {
             get_locale(info.region)
         } else {
             "EN"
