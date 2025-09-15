@@ -213,7 +213,7 @@ fn compile_wiitdb_xml() {
         );
     }
 
-    let encoded = postcard::to_stdvec(&map).expect("Postcard serialization failed");
+    let encoded = postcard::to_allocvec(&map).expect("Postcard serialization failed");
     let compressed = zstd::bulk::compress(&encoded, 19).expect("Zstd compression failed");
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
     let dest_path = out_dir.join("wiitdb.bin.zst");
