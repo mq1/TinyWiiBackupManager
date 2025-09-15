@@ -26,10 +26,11 @@ impl Default for AppCache {
 
 impl AppCache {
     pub fn new() -> Result<AppCache> {
-        let apps = minreq::get(CONTENTS_URL)
-            .with_header("User-Agent", USER_AGENT)
-            .send()?
-            .json()?;
+        let apps = ureq::get(CONTENTS_URL)
+            .header("User-Agent", USER_AGENT)
+            .call()?
+            .body_mut()
+            .read_json()?;
 
         let last_update = UtcDateTime::now();
 

@@ -10,6 +10,7 @@ use std::fs::File;
 use std::io::BufReader;
 use std::path::{Path, PathBuf};
 use std::{fmt, fs, io};
+use ureq::http::StatusCode;
 use zip::ZipArchive;
 use zip::result::ZipResult;
 
@@ -150,18 +151,18 @@ impl BaseDir {
             return Ok(false);
         }
 
-        let response = minreq::get(url)
-            .with_header("User-Agent", USER_AGENT)
-            .send()?;
+        let response = ureq::get(url).header("User-Agent", USER_AGENT).call()?;
 
-        if response.status_code != 200 {
-            bail!("Failed to download file: {}", response.status_code);
+        if response.status() != StatusCode::OK {
+            bail!("Failed to download file: {}", response.status());
         }
+
+        let (_, body) = response.into_parts();
+        let mut reader = body.into_reader();
 
         fs::create_dir_all(&dir)?;
         let mut file = File::create(&file_path)?;
-
-        io::copy(&mut response.as_bytes(), &mut file)?;
+        io::copy(&mut reader, &mut file)?;
 
         Ok(true)
     }
@@ -187,11 +188,10 @@ impl BaseDir {
     }
 
     pub fn add_zip_from_url(&self, url: &str) -> Result<()> {
-        let response = minreq::get(url)
-            .with_header("User-Agent", USER_AGENT)
-            .send()?;
+        let mut response = ureq::get(url).header("User-Agent", USER_AGENT).call()?;
 
-        let cursor = io::Cursor::new(response.as_bytes());
+        let buffer = response.body_mut().read_to_vec()?;
+        let cursor = io::Cursor::new(buffer);
         let mut archive = ZipArchive::new(cursor)?;
         self.extract_app(&mut archive)?;
 

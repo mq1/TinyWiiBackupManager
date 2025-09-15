@@ -18,12 +18,12 @@ pub fn download_and_extract_database(base_dir: &BaseDir) -> Result<()> {
         .with_context(|| format!("Failed to create directory at: {}", target_dir.display()))?;
 
     // Perform the download request.
-    let response = minreq::get(DOWNLOAD_URL)
-        .with_header("User-Agent", USER_AGENT)
-        .send()
+    let mut response = ureq::get(DOWNLOAD_URL)
+        .header("User-Agent", USER_AGENT)
+        .call()
         .with_context(|| format!("Failed to download from {DOWNLOAD_URL}"))?;
 
-    let buffer = response.as_bytes();
+    let buffer = response.body_mut().read_to_vec()?;
 
     // Create a cursor in memory.
     let cursor = Cursor::new(buffer);
