@@ -99,9 +99,55 @@ winres = "0.1"
 
 
 [profile.release]
-opt-level = 3       # Highest optimization level for speed
+opt-level = 'z'     # Highest optimization level for size
 lto = "fat"         # Full Link Time Optimization across crates
 codegen-units = 1   # Single codegen unit for best cross-function inlining
 strip = "debuginfo" # Strip everything except debug info (Rust 1.70+)
 panic = "abort"     # Smaller & faster by removing unwinding code
 debug = 1           # Minimal debug info (enough for backtraces & profiling)
+
+
+[profile.release.package.nod]
+opt-level = 3
+
+[profile.release.package.adler]
+opt-level = 3
+
+[profile.release.package.aes]
+opt-level = 3
+
+[profile.release.package.bzip2]
+opt-level = 3
+
+[profile.release.package.cbc]
+opt-level = 3
+
+[profile.release.package.crc32fast]
+opt-level = 3
+
+[profile.release.package.digest]
+opt-level = 3
+
+[profile.release.package.liblzma]
+opt-level = 3
+
+[profile.release.package.liblzma-sys]
+opt-level = 3
+
+[profile.release.package.miniz_oxide]
+opt-level = 3
+
+[profile.release.package.sha1]
+opt-level = 3
+
+[profile.release.package.xxhash-rust]
+opt-level = 3
+
+[profile.release.package.zstd]
+opt-level = 3
+
+[profile.release.package.zstd-safe]
+opt-level = 3
+
+[profile.release.package.flate2]
+opt-level = 3
