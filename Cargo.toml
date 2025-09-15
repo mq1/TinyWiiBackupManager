@@ -29,6 +29,7 @@ LegalCopyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-2.0-only
 
 
 [dependencies]
+eframe = { version = "0.32", features = ["persistence"] }
 egui_extras = { version = "0.32", default-features = false, features = [
     "image",
     "file",
@@ -71,19 +72,6 @@ path-slash = "0.2"
 ureq = { version = "3.1", features = ["json"] }
 postcard = "1.1"
 zstd = "0.13"
-
-[target.'cfg(not(all(target_os = "windows", any(target_arch = "x86_64", target_arch = "aarch64"))))'.dependencies]
-eframe = { version = "0.32", features = ["persistence"] }
-
-# Windows uses dx12 to enable software rendering (WARP) as a fallback
-[target.'cfg(all(target_os = "windows", any(target_arch = "x86_64", target_arch = "aarch64")))'.dependencies]
-eframe = { version = "0.32", default-features = false, features = [
-    "accesskit",
-    "default_fonts",
-    "wgpu",
-    "persistence",
-] }
-wgpu = { version = "25", default-features = false, features = ["dx12"] }
 
 
 [build-dependencies]
