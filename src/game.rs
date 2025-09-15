@@ -18,10 +18,15 @@ use strum::{AsRefStr, Display};
 
 include!(concat!(env!("OUT_DIR"), "/metadata.rs"));
 
+const WIITDB_BYTES: &'static [u8] = include_bytes!(concat!(env!("OUT_DIR"), "/wiitdb.bin.zst"));
+
 static WIITDB: LazyLock<HashMap<[u8; 6], GameInfo>> = LazyLock::new(|| {
-    let compressed = include_bytes!(concat!(env!("OUT_DIR"), "/wiitdb.bin.zst"));
-    let decompressed =
-        zstd::bulk::decompress(compressed, DECOMPRESSED_SIZE).expect("failed to decompress");
+    let decompressed: [u8; DECOMPRESSED_SIZE] =
+        zstd::bulk::decompress(WIITDB_BYTES, DECOMPRESSED_SIZE)
+            .expect("failed to decompress")
+            .try_into()
+            .expect("failed to transmute array");
+
     postcard::from_bytes(&decompressed).expect("failed to deserialize")
 });
 
