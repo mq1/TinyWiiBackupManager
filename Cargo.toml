@@ -68,7 +68,7 @@ time = { version = "0.3", features = ["parsing", "serde", "macros"] }
 phf = { version = "0.13", features = ["macros"] }
 fs2 = "0.4"
 path-slash = "0.2"
-postcard = { version = "1.1", features = ["use-std"] }
+postcard = "1.1"
 zstd = "0.13"
 
 # Windows uses dx12 to enable software rendering (WARP) as a fallback
