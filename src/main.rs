@@ -10,7 +10,7 @@ use tiny_wii_backup_manager::app::App;
 
 const LOGO: &[u8] = include_bytes!("../assets/logo-small.png");
 
-fn main() -> eframe::Result<()> {
+fn main() {
     env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
 
     let icon = eframe::icon_data::from_png_bytes(LOGO).expect("Failed to load icon");
@@ -23,9 +23,14 @@ fn main() -> eframe::Result<()> {
         ..Default::default()
     };
 
-    eframe::run_native(
+    if let Err(e) = eframe::run_native(
         PRODUCT_NAME,
         options,
         Box::new(|cc| Ok(Box::new(App::new(cc)))),
-    )
+    ) {
+        let _ = rfd::MessageDialog::new()
+            .set_title("Error")
+            .set_description(format!("Error: {e:?}"))
+            .show();
+    }
 }
