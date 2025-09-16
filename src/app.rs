@@ -12,10 +12,11 @@ use crate::util::oscwii;
 use crate::util::update_check::{UpdateInfo, check_for_new_version};
 use crate::util::wiiapps::WiiApp;
 use crate::{gui::console_filter::ConsoleFilter, util};
-use anyhow::{Context, Result, anyhow};
+use anyhow::{Context, Result, anyhow, bail};
 use eframe::egui;
 use egui_inbox::UiInbox;
 use strum::AsRefStr;
+use sysinfo::Disks;
 
 const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -205,10 +206,19 @@ impl App {
 
     pub fn refresh_fs(&mut self) -> Result<()> {
         if let Some(base_dir) = &self.base_dir {
-            let free_space = fs2::free_space(base_dir.path())?;
-            let total_space = fs2::total_space(base_dir.path())?;
-            self.used_space = total_space - free_space;
-            self.total_space = total_space;
+            let disks = Disks::new_with_refreshed_list();
+            let path = base_dir.path();
+
+            if let Some(disk) = disks
+                .list()
+                .iter()
+                .find(|d| path.starts_with(d.mount_point()))
+            {
+                self.total_space = disk.total_space();
+                self.used_space = self.total_space - disk.available_space();
+            } else {
+                bail!("Could not find base directory in list of mounted disks");
+            }
         }
 
         Ok(())
