@@ -46,7 +46,8 @@ Get the latest version from the **[Releases page](https://github.com/mq1/TinyWii
 
 > #### 🪟 Windows
 > ➡️ Download the `setup.exe` (installer) or the `win-portable.zip` (portable)\
-> 🐌 Windows Legacy (32bit, win7-8-8.1): `win7-portable.zip`
+> 📦 Or run `winget install mq1.TinyWiiBackupManager`\
+> 🐌 On Windows Legacy (32bit, win7-8-8.1): `win7-portable.zip`
 
 > #### 🍏 macOS Universal (Intel + Apple Silicon)
 > ➡️ Download the `.dmg`\
