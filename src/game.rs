@@ -19,11 +19,10 @@ include!(concat!(env!("OUT_DIR"), "/metadata.rs"));
 
 const WIITDB_BYTES: &'static [u8] = include_bytes!(concat!(env!("OUT_DIR"), "/wiitdb.bin.zst"));
 
-static WIITDB: LazyLock<Box<[GameInfo]>> = LazyLock::new(|| {
-    let mut buffer = [0; DECOMPRESSED_SIZE];
-    zstd::bulk::decompress_to_buffer(WIITDB_BYTES, &mut buffer).expect("failed to decompress");
-    let vec = postcard::from_bytes::<Vec<GameInfo>>(&buffer).expect("failed to deserialize");
-    vec.into_boxed_slice()
+static WIITDB: LazyLock<Vec<GameInfo>> = LazyLock::new(|| {
+    let buffer =
+        zstd::bulk::decompress(WIITDB_BYTES, DECOMPRESSED_SIZE).expect("failed to decompress");
+    postcard::from_bytes(&buffer).expect("failed to deserialize")
 });
 
 fn lookup(id: &[u8; 6]) -> Option<&GameInfo> {
