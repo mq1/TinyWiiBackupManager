@@ -25,11 +25,9 @@ static DECOMPRESSED: LazyLock<Vec<u8>> = LazyLock::new(|| {
 static WIITDB: LazyLock<&'static [ArchivedGameInfo; WIITDB_LEN]> =
     LazyLock::new(|| unsafe { rkyv::access_unchecked(&DECOMPRESSED[..]) });
 
-fn lookup(id: &[u8; 6]) -> Option<&ArchivedGameInfo> {
-    WIITDB
-        .binary_search_by(|game| game.id.cmp(id))
-        .ok()
-        .map(|idx| &WIITDB[idx])
+fn lookup(id: &[u8; 6]) -> Option<GameInfo> {
+    let index = WIITDB.binary_search_by(|game| game.id.cmp(id)).ok()?;
+    rkyv::deserialize::<GameInfo, rancor::Error>(&WIITDB[index]).ok()
 }
 
 #[rustfmt::skip]
@@ -96,10 +94,7 @@ impl Game {
     pub fn from_path(path: impl AsRef<Path>, console: ConsoleType) -> Result<Self> {
         let (header, meta) = util::meta::read_header_and_meta(&path)?;
 
-        let info = lookup(&header.game_id).map(|info| {
-            rkyv::deserialize::<GameInfo, rancor::Error>(info)
-                .expect("failed to deserialize game info")
-        });
+        let info = lookup(&header.game_id);
 
         let display_title = info
             .as_ref()
