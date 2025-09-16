@@ -5,7 +5,6 @@
 
 use serde::{Deserialize, Serialize};
 use std::{
-    collections::HashMap,
     env,
     fs::{self, File},
     io::BufReader,
@@ -159,6 +158,7 @@ enum Region { NtscJ, NtscU, NtscK, NtscT, Pal, PalR }
 #[rustfmt::skip]
 #[derive(Serialize)]
 struct GameInfo {
+    id: [u8; 6],
     name: String,
     region: Region,
     languages: Vec<Language>,
@@ -169,7 +169,7 @@ fn compile_wiitdb_xml() {
     let xml = BufReader::new(File::open("assets/wiitdb.xml").expect("Failed to open wiitdb.xml"));
     let data: Datafile = quick_xml::de::from_reader(xml).expect("Failed to parse wiitdb.xml");
 
-    let mut map = HashMap::new();
+    let mut entries = Vec::new();
     for game in data.games {
         let mut id = [0u8; 6];
         let id_bytes = game.id.as_bytes();
@@ -202,24 +202,25 @@ fn compile_wiitdb_xml() {
             .filter_map(|crc| u32::from_str_radix(&crc, 16).ok())
             .collect::<Vec<_>>();
 
-        map.insert(
+        entries.push(GameInfo {
             id,
-            GameInfo {
-                name,
-                region,
-                languages,
-                crc_list,
-            },
-        );
+            name,
+            region,
+            languages,
+            crc_list,
+        });
     }
 
-    let encoded = postcard::to_allocvec(&map).expect("Postcard serialization failed");
+    // Sort by ID to enable binary search
+    entries.sort_by(|a, b| a.id.cmp(&b.id));
+
+    let encoded = postcard::to_allocvec(&entries).expect("Postcard serialization failed");
     let compressed = zstd::bulk::compress(&encoded, 19).expect("Zstd compression failed");
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
     let dest_path = out_dir.join("wiitdb.bin.zst");
     fs::write(&dest_path, compressed).expect("Failed to write compressed data");
 
-    let metadata = format!("pub const DECOMPRESSED_SIZE: usize = {};", encoded.len());
+    let metadata = format!("const DECOMPRESSED_SIZE: usize = {};", encoded.len());
     let metadata_path = Path::new(&out_dir).join("metadata.rs");
     fs::write(&metadata_path, metadata).unwrap();
 }
