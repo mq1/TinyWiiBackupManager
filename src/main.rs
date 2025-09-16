@@ -89,9 +89,9 @@ fn run(options: eframe::NativeOptions) -> Result<()> {
 
                 return Ok(());
             }
-        } else {
-            bail!("{e:?}");
         }
+
+        bail!("{e:?}");
     }
 
     Ok(())
