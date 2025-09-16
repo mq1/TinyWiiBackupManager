@@ -195,7 +195,7 @@ jobs:
           create-dmg --no-code-sign dist/TinyWiiBackupManager.app
 
           # Rename DMG
-          mv "TinyWiiBackupManager*.dmg" dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_universal.dmg
+          mv TinyWiiBackupManager*.dmg dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_universal.dmg
 
           # Remove app bundle
           rm -rf dist/TinyWiiBackupManager.app
