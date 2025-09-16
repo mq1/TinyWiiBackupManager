@@ -10,7 +10,6 @@ use anyhow::{Context, Result};
 use nod::read::DiscMeta;
 use path_slash::PathBufExt;
 use serde::Deserialize;
-use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::LazyLock;
@@ -20,11 +19,18 @@ include!(concat!(env!("OUT_DIR"), "/metadata.rs"));
 
 const WIITDB_BYTES: &'static [u8] = include_bytes!(concat!(env!("OUT_DIR"), "/wiitdb.bin.zst"));
 
-static WIITDB: LazyLock<HashMap<[u8; 6], GameInfo>> = LazyLock::new(|| {
-    let mut buffer = [0; DECOMPRESSED_SIZE];
-    zstd::bulk::decompress_to_buffer(WIITDB_BYTES, &mut buffer).expect("failed to decompress");
+static WIITDB: LazyLock<Vec<GameInfo>> = LazyLock::new(|| {
+    let buffer =
+        zstd::bulk::decompress(WIITDB_BYTES, DECOMPRESSED_SIZE).expect("failed to decompress");
     postcard::from_bytes(&buffer).expect("failed to deserialize")
 });
+
+fn lookup(id: &[u8; 6]) -> Option<&GameInfo> {
+    WIITDB
+        .binary_search_by(|game| game.id.cmp(id))
+        .ok()
+        .map(|idx| &WIITDB[idx])
+}
 
 #[rustfmt::skip]
 #[derive(Deserialize, Debug, Clone, Copy, AsRefStr, Display)]
@@ -48,6 +54,7 @@ fn get_locale(region: Region) -> &'static str {
 /// Data from WiiTDB XML
 #[derive(Deserialize, Debug, Clone)]
 pub struct GameInfo {
+    pub id: [u8; 6],
     pub name: String,
     pub region: Region,
     pub languages: Vec<Language>,
@@ -89,7 +96,7 @@ impl Game {
     pub fn from_path(path: impl AsRef<Path>, console: ConsoleType) -> Result<Self> {
         let (header, meta) = util::meta::read_header_and_meta(&path)?;
 
-        let info = WIITDB.get(&header.game_id);
+        let info = lookup(&header.game_id);
 
         let display_title = info
             .and_then(|info| Some(info.name.clone()))
