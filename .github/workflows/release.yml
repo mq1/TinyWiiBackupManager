@@ -157,8 +157,6 @@ jobs:
     name: Package MacOS Universal
     runs-on: macos-latest
     needs: build-macos
-    env:
-      CI: "true"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
