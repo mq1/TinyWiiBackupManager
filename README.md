@@ -15,8 +15,6 @@
 
 ## ✨ Features
 
-### 🚀 **General**
-
 - **Lightweight & Fast** — No Electron!!
 - **Clean Interface** — Simple design with light and dark themes
 - **Cross-Platform** — Windows 10+, macOS 11+, Linux (AMD64, ARM64)
