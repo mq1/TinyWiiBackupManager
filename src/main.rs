@@ -13,7 +13,7 @@ use tiny_wii_backup_manager::{PRODUCT_NAME, USER_AGENT};
 const LOGO: &[u8] = include_bytes!("../assets/logo-small.png");
 
 #[cfg(target_arch = "aarch64")]
-const OPENGL_URL: &str = "https://github.com/mq1/TinyWiiBackupManager/raw/refs/heads/win-gl/assets/mesa-llvmpipe-arm64-25.2.2/opengl32.dll.zst";
+const OPENGL_URL: &str = "https://github.com/mq1/TinyWiiBackupManager/raw/refs/tags/2.4.9/assets/mesa-llvmpipe-arm64-25.2.2/opengl32.dll.zst";
 
 #[cfg(target_arch = "aarch64")]
 const BYTE_COUNT: usize = 13404131;
@@ -22,7 +22,7 @@ const BYTE_COUNT: usize = 13404131;
 const DECOMPRESSED_SIZE: usize = 48907264;
 
 #[cfg(target_arch = "x86_64")]
-const OPENGL_URL: &str = "https://github.com/mq1/TinyWiiBackupManager/raw/refs/heads/win-gl/assets/mesa-llvmpipe-x64-25.2.2/opengl32.dll.zst";
+const OPENGL_URL: &str = "https://github.com/mq1/TinyWiiBackupManager/raw/refs/tags/2.4.9/assets/mesa-llvmpipe-x64-25.2.2/opengl32.dll.zst";
 
 #[cfg(target_arch = "x86_64")]
 const BYTE_COUNT: usize = 15945611;
@@ -31,7 +31,7 @@ const BYTE_COUNT: usize = 15945611;
 const DECOMPRESSED_SIZE: usize = 54465024;
 
 #[cfg(target_arch = "x86")]
-const OPENGL_URL: &str = "https://github.com/mq1/TinyWiiBackupManager/raw/refs/heads/win-gl/assets/mesa-llvmpipe-x86-25.2.2/opengl32.dll.zst";
+const OPENGL_URL: &str = "https://github.com/mq1/TinyWiiBackupManager/raw/refs/tags/2.4.9/assets/mesa-llvmpipe-x86-25.2.2/opengl32.dll.zst";
 
 #[cfg(target_arch = "x86")]
 const BYTE_COUNT: usize = 13320437;
