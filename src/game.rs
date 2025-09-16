@@ -9,7 +9,7 @@ use crate::util;
 use anyhow::{Context, Result};
 use nod::read::DiscMeta;
 use path_slash::PathBufExt;
-use serde::Deserialize;
+use rkyv::{Archive, Deserialize, rancor};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::LazyLock;
@@ -17,15 +17,15 @@ use strum::{AsRefStr, Display};
 
 include!(concat!(env!("OUT_DIR"), "/metadata.rs"));
 
-const WIITDB_BYTES: &'static [u8] = include_bytes!(concat!(env!("OUT_DIR"), "/wiitdb.bin.zst"));
-
-static WIITDB: LazyLock<Vec<GameInfo>> = LazyLock::new(|| {
-    let buffer =
-        zstd::bulk::decompress(WIITDB_BYTES, DECOMPRESSED_SIZE).expect("failed to decompress");
-    postcard::from_bytes(&buffer).expect("failed to deserialize")
+static DECOMPRESSED: LazyLock<Vec<u8>> = LazyLock::new(|| {
+    let bytes = include_bytes!(concat!(env!("OUT_DIR"), "/wiitdb.bin.zst"));
+    zstd::bulk::decompress(bytes, WIITDB_SIZE).expect("failed to decompress")
 });
 
-fn lookup(id: &[u8; 6]) -> Option<&GameInfo> {
+static WIITDB: LazyLock<&'static [ArchivedGameInfo; WIITDB_LEN]> =
+    LazyLock::new(|| unsafe { rkyv::access_unchecked(&DECOMPRESSED[..]) });
+
+fn lookup(id: &[u8; 6]) -> Option<&ArchivedGameInfo> {
     WIITDB
         .binary_search_by(|game| game.id.cmp(id))
         .ok()
@@ -33,11 +33,11 @@ fn lookup(id: &[u8; 6]) -> Option<&GameInfo> {
 }
 
 #[rustfmt::skip]
-#[derive(Deserialize, Debug, Clone, Copy, AsRefStr, Display)]
+#[derive(Deserialize, Archive, Debug, Clone, Copy, AsRefStr, Display)]
 pub enum Language { En, Fr, De, Es, It, Ja, Nl, Se, Dk, No, Ko, Pt, Zhtw, Zhcn, Fi, Tr, Gr, Ru }
 
 #[rustfmt::skip]
-#[derive(Deserialize, Debug, Clone, Copy, AsRefStr, Display)]
+#[derive(Deserialize, Archive, Debug, Clone, Copy, AsRefStr, Display)]
 pub enum Region { NtscJ, NtscU, NtscK, NtscT, Pal, PalR }
 
 fn get_locale(region: Region) -> &'static str {
@@ -52,7 +52,7 @@ fn get_locale(region: Region) -> &'static str {
 }
 
 /// Data from WiiTDB XML
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Archive, Debug, Clone)]
 pub struct GameInfo {
     pub id: [u8; 6],
     pub name: String,
@@ -96,16 +96,20 @@ impl Game {
     pub fn from_path(path: impl AsRef<Path>, console: ConsoleType) -> Result<Self> {
         let (header, meta) = util::meta::read_header_and_meta(&path)?;
 
-        let info = lookup(&header.game_id);
+        let info = lookup(&header.game_id).map(|info| {
+            rkyv::deserialize::<GameInfo, rancor::Error>(info)
+                .expect("failed to deserialize game info")
+        });
 
         let display_title = info
-            .and_then(|info| Some(info.name.clone()))
+            .as_ref()
+            .and_then(|info| Some(info.name.to_string()))
             .unwrap_or(header.game_title_str().to_string());
 
         // Verify the game using the embedded CRC from the disc metadata
         // This verifies if the game is a good redump dump
         let is_verified = if let Some(crc32) = meta.crc32
-            && let Some(info) = info
+            && let Some(info) = &info
         {
             Some(info.crc_list.contains(&crc32))
         } else {
@@ -116,7 +120,7 @@ impl Game {
         // If the metadata is not found, cross-reference Redump
         let is_corrupt = if let Some(finalization) = util::checksum::cache_get(header.game_id)
             && let Some(crc32) = finalization.crc32
-            && let Some(info) = info
+            && let Some(info) = &info
         {
             Some(!info.crc_list.contains(&crc32))
         } else {
@@ -130,7 +134,7 @@ impl Game {
             path: path.as_ref().to_path_buf(),
             size: fs_extra::dir::get_size(path)?,
             console,
-            info: info.cloned(),
+            info,
             display_title: display_title.to_string(),
             info_url: format!("https://www.gametdb.com/Wii/{}", header.game_title_str()),
             info_opened: false,

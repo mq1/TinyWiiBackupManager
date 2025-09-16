@@ -3,7 +3,8 @@
 
 #![allow(dead_code)]
 
-use serde::{Deserialize, Serialize};
+use rkyv::{Archive, Serialize, rancor};
+use serde::Deserialize;
 use std::{
     env,
     fs::{self, File},
@@ -146,17 +147,20 @@ struct Case {
 }
 
 #[rustfmt::skip]
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Archive)]
 #[serde(rename_all(deserialize = "UPPERCASE"))]
+#[repr(u8)]
 enum Language { En, Fr, De, Es, It, Ja, Nl, Se, Dk, No, Ko, Pt, Zhtw, Zhcn, Fi, Tr, Gr, Ru }
 
 #[rustfmt::skip]
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Archive)]
 #[serde(rename_all(deserialize = "SCREAMING-KEBAB-CASE"))]
+#[repr(u8)]
 enum Region { NtscJ, NtscU, NtscK, NtscT, Pal, PalR }
 
 #[rustfmt::skip]
-#[derive(Serialize)]
+#[derive(Serialize, Archive)]
+#[repr(C)]
 struct GameInfo {
     id: [u8; 6],
     name: String,
@@ -214,13 +218,17 @@ fn compile_wiitdb_xml() {
     // Sort by ID to enable binary search
     entries.sort_by(|a, b| a.id.cmp(&b.id));
 
-    let encoded = postcard::to_allocvec(&entries).expect("Postcard serialization failed");
-    let compressed = zstd::bulk::compress(&encoded, 19).expect("Zstd compression failed");
+    let serialized = rkyv::to_bytes::<rancor::Error>(&entries).expect("Rkyv serialization failed");
+    let compressed = zstd::bulk::compress(&serialized, 19).expect("Zstd compression failed");
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
     let dest_path = out_dir.join("wiitdb.bin.zst");
     fs::write(&dest_path, compressed).expect("Failed to write compressed data");
 
-    let metadata = format!("const DECOMPRESSED_SIZE: usize = {};", encoded.len());
+    let metadata = format!(
+        "const WIITDB_SIZE: usize = {};const WIITDB_LEN: usize = {};",
+        serialized.len(),
+        entries.len()
+    );
     let metadata_path = Path::new(&out_dir).join("metadata.rs");
     fs::write(&metadata_path, metadata).unwrap();
 }
