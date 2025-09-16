@@ -4,10 +4,9 @@
 #![warn(clippy::all, rust_2018_idioms)]
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
-use std::{fs, io};
-
-use anyhow::Result;
+use anyhow::{Result, bail};
 use eframe::egui;
+use std::{fs, io};
 use tiny_wii_backup_manager::app::App;
 use tiny_wii_backup_manager::{PRODUCT_NAME, USER_AGENT};
 
@@ -63,6 +62,34 @@ fn download_opengl() -> Result<()> {
     Ok(())
 }
 
+fn run(options: eframe::NativeOptions) -> Result<()> {
+    if let Err(e) = eframe::run_native(
+        PRODUCT_NAME,
+        options.clone(),
+        Box::new(|cc| Ok(Box::new(App::new(cc)))),
+    ) {
+        if matches!(e, eframe::Error::OpenGL(_)) && cfg!(windows) {
+            let confirm = rfd::MessageDialog::new()
+                .set_title("Error")
+                .set_description("Failed to initialize OpenGL. Either update your graphics driver or press 'Ok' to download opengl32.dll (llvmpipe)")
+                .set_buttons(rfd::MessageButtons::OkCancel)
+                .set_level(rfd::MessageLevel::Error)
+                .show();
+
+            if confirm == rfd::MessageDialogResult::Ok {
+                download_opengl()?;
+                run(options)?;
+            }
+
+            return Ok(());
+        } else {
+            bail!("{e:?}");
+        }
+    }
+
+    Ok(())
+}
+
 fn main() {
     env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
 
@@ -76,36 +103,13 @@ fn main() {
         ..Default::default()
     };
 
-    if let Err(e) = eframe::run_native(
-        PRODUCT_NAME,
-        options,
-        Box::new(|cc| Ok(Box::new(App::new(cc)))),
-    ) {
-        if matches!(e, eframe::Error::OpenGL(_)) && cfg!(windows) {
-            let confirm = rfd::MessageDialog::new()
-                .set_title("Error")
-                .set_description("Failed to initialize OpenGL. Either update your graphics driver or press 'Ok' to download opengl32.dll (llvmpipe)")
-                .set_buttons(rfd::MessageButtons::OkCancel)
-                .set_level(rfd::MessageLevel::Error)
-                .show();
+    if let Err(e) = run(options) {
+        let _ = rfd::MessageDialog::new()
+            .set_title("Error")
+            .set_description(format!("Error: {e:?}"))
+            .set_level(rfd::MessageLevel::Error)
+            .show();
 
-            if confirm == rfd::MessageDialogResult::Ok {
-                if let Err(e) = download_opengl() {
-                    let _ = rfd::MessageDialog::new()
-                        .set_title("Error")
-                        .set_description(format!("Error: {e:?}"))
-                        .set_level(rfd::MessageLevel::Error)
-                        .show();
-                } else {
-                    main();
-                }
-            }
-        } else {
-            let _ = rfd::MessageDialog::new()
-                .set_title("Error")
-                .set_description(format!("Error: {e:?}"))
-                .set_level(rfd::MessageLevel::Error)
-                .show();
-        }
+        std::process::exit(1);
     }
 }
