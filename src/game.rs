@@ -23,12 +23,7 @@ static WIITDB: LazyLock<Box<[GameInfo; GAME_COUNT]>> = LazyLock::new(|| {
     let mut buffer = [0; DECOMPRESSED_SIZE];
     zstd::bulk::decompress_to_buffer(WIITDB_BYTES, &mut buffer).expect("failed to decompress");
     let vec = postcard::from_bytes::<Vec<GameInfo>>(&buffer).expect("failed to deserialize");
-    let len = vec.len();
-
-    Box::new(vec.try_into().expect(&format!(
-        "invalid game count: expected {}, got {}",
-        GAME_COUNT, len
-    )))
+    Box::new(vec.try_into().expect("failed to convert to array"))
 });
 
 fn lookup(id: &[u8; 6]) -> Option<&GameInfo> {
