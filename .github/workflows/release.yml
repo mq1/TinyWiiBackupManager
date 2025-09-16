@@ -197,13 +197,16 @@ jobs:
           create-dmg --no-code-sign dist/TinyWiiBackupManager.app
 
           # Rename DMG
-          mv "TinyWiiBackupManager*.dmg" TinyWiiBackupManager_${{ env.VERSION_NAME }}_universal.dmg
+          mv "TinyWiiBackupManager*.dmg" dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_universal.dmg
+
+          # Remove app bundle
+          rm -rf dist/TinyWiiBackupManager.app
 
       - name: Upload MacOS distributable
         uses: actions/upload-artifact@v4
         with:
           name: macos-dist
-          path: TinyWiiBackupManager_${{ env.VERSION_NAME }}_universal.dmg
+          path: dist/*
 
   # ==================================================================================
   #  Release Job: Collects all artifacts and creates a single GitHub Release.
