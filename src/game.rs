@@ -10,7 +10,6 @@ use anyhow::{Context, Result};
 use nod::read::DiscMeta;
 use path_slash::PathBufExt;
 use serde::Deserialize;
-use smallvec::SmallVec;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::LazyLock;
@@ -20,10 +19,11 @@ include!(concat!(env!("OUT_DIR"), "/metadata.rs"));
 
 const WIITDB_BYTES: &'static [u8] = include_bytes!(concat!(env!("OUT_DIR"), "/wiitdb.bin.zst"));
 
-static WIITDB: LazyLock<SmallVec<[GameInfo; GAME_COUNT]>> = LazyLock::new(|| {
+static WIITDB: LazyLock<Box<[GameInfo; GAME_COUNT]>> = LazyLock::new(|| {
     let mut buffer = [0; DECOMPRESSED_SIZE];
     zstd::bulk::decompress_to_buffer(WIITDB_BYTES, &mut buffer).expect("failed to decompress");
-    postcard::from_bytes(&buffer).expect("failed to deserialize")
+    let vec = postcard::from_bytes::<Vec<GameInfo>>(&buffer).expect("failed to deserialize");
+    Box::new(vec.try_into().expect("failed to convert to array"))
 });
 
 fn lookup(id: &[u8; 6]) -> Option<&GameInfo> {
