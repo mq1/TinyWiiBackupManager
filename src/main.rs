@@ -86,6 +86,7 @@ fn main() {
                 .set_title("Error")
                 .set_description("Failed to initialize OpenGL. Either update your graphics driver or press 'Ok' to download opengl32.dll (llvmpipe)")
                 .set_buttons(rfd::MessageButtons::OkCancel)
+                .set_level(rfd::MessageLevel::Error)
                 .show();
 
             if confirm == rfd::MessageDialogResult::Ok {
@@ -93,6 +94,7 @@ fn main() {
                     let _ = rfd::MessageDialog::new()
                         .set_title("Error")
                         .set_description(format!("Error: {e:?}"))
+                        .set_level(rfd::MessageLevel::Error)
                         .show();
                 } else {
                     main();
@@ -102,6 +104,7 @@ fn main() {
             let _ = rfd::MessageDialog::new()
                 .set_title("Error")
                 .set_description(format!("Error: {e:?}"))
+                .set_level(rfd::MessageLevel::Error)
                 .show();
         }
     }
