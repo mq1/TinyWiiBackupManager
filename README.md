@@ -42,7 +42,7 @@
 |----------|------------------|
 | 🐧 **Linux** | ⬇️ Download the `.AppImage`<br>📦 Or look for TinyWiiBackupManager on **Flathub** |
 | 🪟 **Windows** | ⬇️ Download the `setup.exe` (installer) or the `win-portable.zip` (portable)<br>📦 Or run `winget install mq1.TinyWiiBackupManager`<br>🐌 On Windows Legacy (32bit, win7-8-8.1): `win7-portable.zip` |
-| 🍏 **macOS** | ⬇️ Download the `.dmg`<br>⚠️ The app is not notarized<br>➡️ You must allow it manually after installing by running this command in Terminal:<br>➡️ `xattr -rd com.apple.quarantine /Applications/TinyWiiBackupManager.app` |
+| 🍏 **macOS** | ⬇️ Download the `.dmg`<br>⚠️ The app is not notarized<br>⚠️ You must allow it manually after installing by running this command in Terminal:<br>➡️ `xattr -rd com.apple.quarantine /Applications/TinyWiiBackupManager.app` |
 
 ## 📄 Additional Info
 
