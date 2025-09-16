@@ -83,7 +83,7 @@ jobs:
 
     env:
       RUSTC_BOOTSTRAP: ${{ matrix.bootstrap }}
-      PORTABLE_NAME: ${{ matrix.bootstrap == 0 && 'portable' || 'win7-portable' }}
+      PORTABLE_NAME: ${{ matrix.bootstrap == 0 && 'win-portable' || 'win7-portable' }}
       EXTRA_ARGS: ${{ matrix.bootstrap == 1 && '-Z build-std=std,panic_abort' || '' }}
     
     steps:
@@ -112,9 +112,11 @@ jobs:
         run: cargo packager --release --target ${{ matrix.target }} --formats nsis
         if: matrix.bootstrap == 0
 
-      - name: Distribute also the plain exe
+      - name: Distribute also the portable exe as zip
         shell: pwsh
-        run: Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_${{ matrix.arch }}-${{ env.PORTABLE_NAME }}.exe"
+        run: |
+          Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager_${{ env.VERSION_NAME }}_${{ matrix.arch }}-${{ env.PORTABLE_NAME }}.exe"
+          7z a -tzip -mx=9 "dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_${{ matrix.arch }}-${{ env.PORTABLE_NAME }}.zip" "TinyWiiBackupManager_${{ env.VERSION_NAME }}_${{ matrix.arch }}-${{ env.PORTABLE_NAME }}.exe"
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v4
