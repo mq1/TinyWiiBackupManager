@@ -65,7 +65,7 @@ fn download_opengl() -> Result<()> {
 fn run(options: eframe::NativeOptions) -> Result<()> {
     if let Err(e) = eframe::run_native(
         PRODUCT_NAME,
-        options.clone(),
+        options,
         Box::new(|cc| Ok(Box::new(App::new(cc)))),
     ) {
         if matches!(e, eframe::Error::OpenGL(_)) && cfg!(windows) {
@@ -78,10 +78,17 @@ fn run(options: eframe::NativeOptions) -> Result<()> {
 
             if confirm == rfd::MessageDialogResult::Ok {
                 download_opengl()?;
-                run(options)?;
-            }
 
-            return Ok(());
+                let _ = rfd::MessageDialog::new()
+                    .set_title("Success")
+                    .set_description(
+                        "opengl32.dll downloaded successfully, please restart the application",
+                    )
+                    .set_level(rfd::MessageLevel::Info)
+                    .show();
+
+                return Ok(());
+            }
         } else {
             bail!("{e:?}");
         }
