@@ -6,10 +6,9 @@
 
 use anyhow::{Result, bail};
 use eframe::egui;
-use log::info;
 use std::{fs, io};
 use tiny_wii_backup_manager::app::App;
-use tiny_wii_backup_manager::game::lookup;
+use tiny_wii_backup_manager::game::WIITDB;
 use tiny_wii_backup_manager::{PRODUCT_NAME, USER_AGENT};
 
 const LOGO: &[u8] = include_bytes!("../assets/logo-small.png");
@@ -104,7 +103,7 @@ fn main() {
 
     // pre-decompress WIITDB
     std::thread::spawn(|| {
-        let _game = lookup(&[0; 6]);
+        let _ = &*WIITDB;
     });
 
     let icon = eframe::icon_data::from_png_bytes(LOGO).expect("Failed to load icon");
