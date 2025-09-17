@@ -32,8 +32,6 @@ pub enum BackgroundMessage {
     TriggerDownloadCovers,
     /// Signal that the OSCWii app list has to be updated
     GotNewAppCache(oscwii::AppCache),
-    /// Signal that the game list has to be updated
-    GotNewGameList(Vec<Game>),
 }
 
 /// Implement the From trait to automatically convert anyhow::Error into our message.
@@ -102,10 +100,6 @@ pub fn handle_messages(app: &mut App, ctx: &egui::Context) {
                 if let Err(e) = app.refresh_wiiapps() {
                     let _ = sender.send(e.into());
                 }
-            }
-
-            BackgroundMessage::GotNewGameList(games) => {
-                app.games = games;
             }
         }
     }
