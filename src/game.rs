@@ -123,7 +123,7 @@ impl Game {
             size: fs_extra::dir::get_size(path)?,
             console,
             info,
-            display_title: display_title.to_string(),
+            display_title,
             info_url,
             info_opened: false,
             is_verified: None,
