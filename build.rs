@@ -222,11 +222,7 @@ fn compile_wiitdb_xml() {
     let dest_path = out_dir.join("wiitdb.bin.zst");
     fs::write(&dest_path, compressed).expect("Failed to write compressed data");
 
-    let metadata = format!(
-        "const WIITDB_SIZE: usize = {};const WIITDB_LEN: usize = {};",
-        serialized.len(),
-        entries.len()
-    );
+    let metadata = format!("const WIITDB_SIZE: usize = {};", serialized.len());
     let metadata_path = Path::new(&out_dir).join("metadata.rs");
     fs::write(&metadata_path, metadata).unwrap();
 }

@@ -10,6 +10,7 @@ use crate::util::fs::dir_to_title_id;
 use anyhow::{Context, Error, Result};
 use nod::read::DiscMeta;
 use path_slash::PathBufExt;
+use rkyv::vec::ArchivedVec;
 use rkyv::{Archive, Deserialize, rancor};
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -23,7 +24,7 @@ static DECOMPRESSED: LazyLock<Vec<u8>> = LazyLock::new(|| {
     zstd::bulk::decompress(bytes, WIITDB_SIZE).expect("failed to decompress")
 });
 
-static WIITDB: LazyLock<&'static [ArchivedGameInfo; WIITDB_LEN]> =
+static WIITDB: LazyLock<&ArchivedVec<ArchivedGameInfo>> =
     LazyLock::new(|| unsafe { rkyv::access_unchecked(&DECOMPRESSED[..]) });
 
 fn lookup(id: &[u8; 6]) -> Option<GameInfo> {
