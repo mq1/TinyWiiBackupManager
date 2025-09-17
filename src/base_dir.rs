@@ -216,7 +216,6 @@ fn scan_dir(dir: impl AsRef<Path>, games: &mut Vec<Game>, console_type: ConsoleT
     fs::read_dir(dir)?
         .filter_map(Result::ok)
         .map(|entry| entry.path())
-        .filter(|path| path.is_dir())
         .filter_map(|path| Game::from_path(path, console_type).ok())
         .for_each(|game| {
             games.push(game);

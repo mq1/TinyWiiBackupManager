@@ -79,10 +79,9 @@ impl App {
 
         // Initialize inbox
         let inbox = UiInbox::new();
-        let ui_sender = inbox.sender();
 
         // Initialize task processor
-        let task_processor = TaskProcessor::new(ui_sender);
+        let task_processor = TaskProcessor::new(inbox.sender());
 
         // Load base dir from storage
         let base_dir = cc.storage.and_then(|storage| {
