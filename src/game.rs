@@ -7,13 +7,13 @@ use crate::settings::ArchiveFormat;
 use crate::task::TaskProcessor;
 use crate::util;
 use crate::util::fs::dir_to_title_id;
-use anyhow::{Context, Result};
+use anyhow::{Context, Error, Result};
 use nod::read::DiscMeta;
 use path_slash::PathBufExt;
 use rkyv::{Archive, Deserialize, rancor};
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::sync::LazyLock;
+use std::sync::{Arc, LazyLock};
 use strum::{AsRefStr, Display};
 
 include!(concat!(env!("OUT_DIR"), "/metadata.rs"));
@@ -84,7 +84,7 @@ pub struct Game {
     pub info_opened: bool,
     pub is_verified: Option<bool>,
     pub is_corrupt: Option<bool>,
-    pub disc_meta: Option<DiscMeta>,
+    pub disc_meta: Option<Result<DiscMeta, Arc<Error>>>,
 }
 
 impl Game {
@@ -132,12 +132,13 @@ impl Game {
         })
     }
 
-    pub fn refresh_meta(&mut self) -> Result<()> {
-        let meta = util::meta::read_meta(&self.path)?;
+    pub fn refresh_meta(&mut self) {
+        let meta = util::meta::read_meta(&self.path);
 
         // Verify the game using the embedded CRC from the disc metadata
         // This verifies if the game is a good redump dump
-        let is_verified = if let Some(crc32) = meta.crc32
+        let is_verified = if let Ok(meta) = &meta
+            && let Some(crc32) = &meta.crc32
             && let Some(info) = &self.info
         {
             Some(info.crc_list.contains(&crc32))
@@ -145,10 +146,8 @@ impl Game {
             None
         };
 
-        self.disc_meta = Some(meta);
+        self.disc_meta = Some(meta.map_err(Arc::from));
         self.is_verified = is_verified;
-
-        Ok(())
     }
 
     /// Prompts the user for confirmation and then permanently deletes the game's directory.

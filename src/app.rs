@@ -57,9 +57,8 @@ pub struct App {
     pub bottom_right_toasts: egui_notify::Toasts,
     /// Status
     pub task_status: Option<String>,
-    /// Task processors
+    /// Task processor
     pub task_processor: TaskProcessor,
-    pub light_task_processor: TaskProcessor,
     /// Settings
     pub settings: Settings,
     pub settings_window_open: bool,
@@ -83,7 +82,6 @@ impl App {
 
         // Initialize task processor
         let task_processor = TaskProcessor::new(inbox.sender());
-        let light_task_processor = TaskProcessor::new(inbox.sender());
 
         // Load base dir from storage
         let base_dir = cc.storage.and_then(|storage| {
@@ -122,7 +120,6 @@ impl App {
             bottom_right_toasts: toasts::create_toasts(egui_notify::Anchor::BottomRight),
             inbox,
             task_processor,
-            light_task_processor,
             base_dir,
             games: Vec::new(),
             used_space: 0,
@@ -230,18 +227,6 @@ impl App {
         if let Some(base_dir) = &self.base_dir {
             self.games = base_dir.get_games()?;
             util::checksum::sync_games(&self.games);
-
-            let mut games = self.games.clone();
-            self.light_task_processor.spawn_task(move |ui_sender| {
-                for game in games.iter_mut() {
-                    if let Err(e) = game.refresh_meta() {
-                        let _ = ui_sender.send(e.into());
-                    }
-                }
-
-                let _ = ui_sender.send(BackgroundMessage::GotNewGameList(games));
-                Ok(())
-            });
         }
 
         Ok(())
@@ -420,7 +405,7 @@ impl App {
     }
 
     pub fn spawn_check_for_new_version_task(&self) {
-        self.light_task_processor.spawn_task(move |ui_sender| {
+        self.task_processor.spawn_task(move |ui_sender| {
             let update_info = check_for_new_version()?;
             let _ = ui_sender.send(BackgroundMessage::GotUpdate(update_info));
             Ok(())
