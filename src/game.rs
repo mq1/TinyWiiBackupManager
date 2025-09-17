@@ -24,10 +24,10 @@ static DECOMPRESSED: LazyLock<Vec<u8>> = LazyLock::new(|| {
     zstd::bulk::decompress(bytes, WIITDB_SIZE).expect("failed to decompress")
 });
 
-static WIITDB: LazyLock<&ArchivedVec<ArchivedGameInfo>> =
+pub static WIITDB: LazyLock<&ArchivedVec<ArchivedGameInfo>> =
     LazyLock::new(|| unsafe { rkyv::access_unchecked(&DECOMPRESSED[..]) });
 
-pub fn lookup(id: &[u8; 6]) -> Option<GameInfo> {
+fn lookup(id: &[u8; 6]) -> Option<GameInfo> {
     let index = WIITDB.binary_search_by(|game| game.id.cmp(id)).ok()?;
     rkyv::deserialize::<GameInfo, rancor::Error>(&WIITDB[index]).ok()
 }
