@@ -6,6 +6,7 @@ use crate::messages::BackgroundMessage;
 use crate::settings::ArchiveFormat;
 use crate::task::TaskProcessor;
 use crate::util;
+use crate::util::fs::dir_to_title_id;
 use anyhow::{Context, Result};
 use nod::read::DiscMeta;
 use path_slash::PathBufExt;
@@ -83,7 +84,7 @@ pub struct Game {
     pub info_opened: bool,
     pub is_verified: Option<bool>,
     pub is_corrupt: Option<bool>,
-    pub disc_meta: DiscMeta,
+    pub disc_meta: Option<DiscMeta>,
 }
 
 impl Game {
@@ -92,28 +93,18 @@ impl Game {
     /// The path is expected to be a directory containing the game files, with a name
     /// format like "My Game Title [GAMEID]".
     pub fn from_path(path: impl AsRef<Path>, console: ConsoleType) -> Result<Self> {
-        let (header, meta) = util::meta::read_header_and_meta(&path)?;
+        let (title, id, id_str) = dir_to_title_id(&path)?;
 
-        let info = lookup(&header.game_id);
+        let info = lookup(&id);
 
         let display_title = info
             .as_ref()
             .and_then(|info| Some(info.name.to_string()))
-            .unwrap_or(header.game_title_str().to_string());
-
-        // Verify the game using the embedded CRC from the disc metadata
-        // This verifies if the game is a good redump dump
-        let is_verified = if let Some(crc32) = meta.crc32
-            && let Some(info) = &info
-        {
-            Some(info.crc_list.contains(&crc32))
-        } else {
-            None
-        };
+            .unwrap_or(title.clone());
 
         // Check if the game is corrupt
         // If the metadata is not found, cross-reference Redump
-        let is_corrupt = if let Some(finalization) = util::checksum::cache_get(header.game_id)
+        let is_corrupt = if let Some(finalization) = util::checksum::cache_get(id)
             && let Some(crc32) = finalization.crc32
             && let Some(info) = &info
         {
@@ -122,21 +113,42 @@ impl Game {
             None
         };
 
+        let info_url = format!("https://www.gametdb.com/Wii/{id_str}");
+
         Ok(Self {
-            id: header.game_id,
-            id_str: header.game_id_str().to_string(),
-            title: header.game_title_str().to_string(),
+            id,
+            id_str,
+            title,
             path: path.as_ref().to_path_buf(),
             size: fs_extra::dir::get_size(path)?,
             console,
             info,
             display_title: display_title.to_string(),
-            info_url: format!("https://www.gametdb.com/Wii/{}", header.game_title_str()),
+            info_url,
             info_opened: false,
-            is_verified,
+            is_verified: None,
             is_corrupt,
-            disc_meta: meta,
+            disc_meta: None,
         })
+    }
+
+    pub fn refresh_meta(&mut self) -> Result<()> {
+        let meta = util::meta::read_meta(&self.path)?;
+
+        // Verify the game using the embedded CRC from the disc metadata
+        // This verifies if the game is a good redump dump
+        let is_verified = if let Some(crc32) = meta.crc32
+            && let Some(info) = &self.info
+        {
+            Some(info.crc_list.contains(&crc32))
+        } else {
+            None
+        };
+
+        self.disc_meta = Some(meta);
+        self.is_verified = is_verified;
+
+        Ok(())
     }
 
     /// Prompts the user for confirmation and then permanently deletes the game's directory.
