@@ -8,7 +8,7 @@ pub const USER_AGENT: &str = concatcp!(PRODUCT_NAME, "/", env!("CARGO_PKG_VERSIO
 
 pub mod app;
 mod base_dir;
-mod game;
+pub mod game;
 mod gui;
 mod messages;
 mod settings;
