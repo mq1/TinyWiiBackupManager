@@ -3,7 +3,6 @@
 
 use crate::util::fs::find_disc;
 use anyhow::{Result, bail};
-use nod::disc::DiscHeader;
 use nod::read::DiscMeta;
 use nod::read::{DiscOptions, DiscReader};
 use std::fs::File;
@@ -33,11 +32,9 @@ fn fallback_md5(path: impl AsRef<Path>) -> Result<[u8; 16]> {
     Ok(md5)
 }
 
-pub fn read_header_and_meta(game_dir: impl AsRef<Path>) -> Result<(DiscHeader, DiscMeta)> {
+pub fn read_meta(game_dir: impl AsRef<Path>) -> Result<DiscMeta> {
     let path = find_disc(game_dir)?;
     let reader = DiscReader::new(&path, &DiscOptions::default())?;
-
-    let header = reader.header().clone();
 
     #[allow(unused_mut)]
     let mut meta = reader.meta();
@@ -46,5 +43,5 @@ pub fn read_header_and_meta(game_dir: impl AsRef<Path>) -> Result<(DiscHeader, D
     //    meta.md5 = Some(md5);
     //}
 
-    Ok((header, meta))
+    Ok(meta)
 }
