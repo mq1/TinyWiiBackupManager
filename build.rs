@@ -149,18 +149,15 @@ struct Case {
 #[rustfmt::skip]
 #[derive(Serialize, Deserialize, Archive)]
 #[serde(rename_all(deserialize = "UPPERCASE"))]
-#[repr(u8)]
 enum Language { En, Fr, De, Es, It, Ja, Nl, Se, Dk, No, Ko, Pt, Zhtw, Zhcn, Fi, Tr, Gr, Ru }
 
 #[rustfmt::skip]
 #[derive(Serialize, Deserialize, Archive)]
 #[serde(rename_all(deserialize = "SCREAMING-KEBAB-CASE"))]
-#[repr(u8)]
 enum Region { NtscJ, NtscU, NtscK, NtscT, Pal, PalR }
 
 #[rustfmt::skip]
 #[derive(Serialize, Archive)]
-#[repr(C)]
 struct GameInfo {
     id: [u8; 6],
     name: String,
@@ -176,13 +173,14 @@ fn compile_wiitdb_xml() {
     let mut entries = Vec::new();
     for game in data.games {
         let mut id = [0u8; 6];
-        let id_bytes = game.id.as_bytes();
-        id[..id_bytes.len()].copy_from_slice(&id_bytes);
+        let bytes = game.id.as_bytes();
+        let len = bytes.len().min(6);
+        id[..len].copy_from_slice(&bytes[..len]);
 
         let name = game.name.trim().to_string();
 
         // skip invalid games
-        if id.iter().all(|&b| b == 0)
+        if id.is_empty()
             || game.region.is_empty()
             || game.languages.is_empty()
             || name.is_empty()
@@ -224,11 +222,7 @@ fn compile_wiitdb_xml() {
     let dest_path = out_dir.join("wiitdb.bin.zst");
     fs::write(&dest_path, compressed).expect("Failed to write compressed data");
 
-    let metadata = format!(
-        "const WIITDB_SIZE: usize = {};const WIITDB_LEN: usize = {};",
-        serialized.len(),
-        entries.len()
-    );
+    let metadata = format!("const WIITDB_SIZE: usize = {};", serialized.len());
     let metadata_path = Path::new(&out_dir).join("metadata.rs");
     fs::write(&metadata_path, metadata).unwrap();
 }
