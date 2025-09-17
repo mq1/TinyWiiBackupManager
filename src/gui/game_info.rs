@@ -16,6 +16,11 @@ pub fn ui_game_info_window(
     sender: &mut UiInboxSender<BackgroundMessage>,
 ) {
     let window_title = game.display_title.clone();
+
+    if game.disc_meta.is_none() {
+        game.refresh_meta();
+    }
+
     let game_clone = game.clone();
 
     egui::Window::new(&window_title)
@@ -75,7 +80,9 @@ fn ui_game_info_content(
         });
     }
 
-    if let Some(meta) = &game.disc_meta {
+    if let Some(meta) = &game.disc_meta
+        && let Ok(meta) = &meta
+    {
         ui.add_space(10.0);
         ui.separator();
         ui.add_space(10.0);
