@@ -99,12 +99,13 @@ fn run(options: eframe::NativeOptions) -> Result<()> {
 }
 
 fn main() {
-    env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
-
     // pre-decompress WIITDB
     std::thread::spawn(|| {
         let _ = &*WIITDB;
     });
+
+    // Log to stderr (if you run with `RUST_LOG=debug`).
+    env_logger::init();
 
     let icon = eframe::icon_data::from_png_bytes(LOGO).expect("Failed to load icon");
     let viewport = egui::ViewportBuilder::default()
