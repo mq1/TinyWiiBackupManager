@@ -6,13 +6,15 @@ use crate::messages::BackgroundMessage;
 use crate::settings::ArchiveFormat;
 use crate::task::TaskProcessor;
 use crate::util;
-use anyhow::{Context, Result};
+use crate::util::fs::dir_to_title_id;
+use anyhow::{Context, Error, Result};
 use nod::read::DiscMeta;
 use path_slash::PathBufExt;
+use rkyv::vec::ArchivedVec;
 use rkyv::{Archive, Deserialize, rancor};
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::sync::LazyLock;
+use std::sync::{Arc, LazyLock};
 use strum::{AsRefStr, Display};
 
 include!(concat!(env!("OUT_DIR"), "/metadata.rs"));
@@ -22,7 +24,7 @@ static DECOMPRESSED: LazyLock<Vec<u8>> = LazyLock::new(|| {
     zstd::bulk::decompress(bytes, WIITDB_SIZE).expect("failed to decompress")
 });
 
-static WIITDB: LazyLock<&'static [ArchivedGameInfo; WIITDB_LEN]> =
+static WIITDB: LazyLock<&ArchivedVec<ArchivedGameInfo>> =
     LazyLock::new(|| unsafe { rkyv::access_unchecked(&DECOMPRESSED[..]) });
 
 fn lookup(id: &[u8; 6]) -> Option<GameInfo> {
@@ -72,7 +74,6 @@ pub enum ConsoleType {
 #[derive(Debug, Clone)]
 pub struct Game {
     pub id: [u8; 6],
-    pub id_str: String,
     pub title: String,
     pub path: PathBuf,
     pub size: u64,
@@ -83,7 +84,7 @@ pub struct Game {
     pub info_opened: bool,
     pub is_verified: Option<bool>,
     pub is_corrupt: Option<bool>,
-    pub disc_meta: DiscMeta,
+    pub disc_meta: Option<Result<DiscMeta, Arc<Error>>>,
 }
 
 impl Game {
@@ -92,28 +93,18 @@ impl Game {
     /// The path is expected to be a directory containing the game files, with a name
     /// format like "My Game Title [GAMEID]".
     pub fn from_path(path: impl AsRef<Path>, console: ConsoleType) -> Result<Self> {
-        let (header, meta) = util::meta::read_header_and_meta(&path)?;
+        let (title, id, id_str) = dir_to_title_id(&path)?;
 
-        let info = lookup(&header.game_id);
+        let info = lookup(&id);
 
         let display_title = info
             .as_ref()
             .and_then(|info| Some(info.name.to_string()))
-            .unwrap_or(header.game_title_str().to_string());
-
-        // Verify the game using the embedded CRC from the disc metadata
-        // This verifies if the game is a good redump dump
-        let is_verified = if let Some(crc32) = meta.crc32
-            && let Some(info) = &info
-        {
-            Some(info.crc_list.contains(&crc32))
-        } else {
-            None
-        };
+            .unwrap_or(title.clone());
 
         // Check if the game is corrupt
         // If the metadata is not found, cross-reference Redump
-        let is_corrupt = if let Some(finalization) = util::checksum::cache_get(header.game_id)
+        let is_corrupt = if let Some(finalization) = util::checksum::cache_get(id)
             && let Some(crc32) = finalization.crc32
             && let Some(info) = &info
         {
@@ -122,21 +113,44 @@ impl Game {
             None
         };
 
+        let info_url = format!("https://www.gametdb.com/Wii/{id_str}");
+
         Ok(Self {
-            id: header.game_id,
-            id_str: header.game_id_str().to_string(),
-            title: header.game_title_str().to_string(),
+            id,
+            title,
             path: path.as_ref().to_path_buf(),
             size: fs_extra::dir::get_size(path)?,
             console,
             info,
-            display_title: display_title.to_string(),
-            info_url: format!("https://www.gametdb.com/Wii/{}", header.game_title_str()),
+            display_title,
+            info_url,
             info_opened: false,
-            is_verified,
+            is_verified: None,
             is_corrupt,
-            disc_meta: meta,
+            disc_meta: None,
         })
+    }
+
+    pub fn id_str(&self) -> &str {
+        std::str::from_utf8(&self.id).unwrap_or("")
+    }
+
+    pub fn refresh_meta(&mut self) {
+        let meta = util::meta::read_meta(&self.path);
+
+        // Verify the game using the embedded CRC from the disc metadata
+        // This verifies if the game is a good redump dump
+        let is_verified = if let Ok(meta) = &meta
+            && let Some(crc32) = &meta.crc32
+            && let Some(info) = &self.info
+        {
+            Some(info.crc_list.contains(&crc32))
+        } else {
+            None
+        };
+
+        self.disc_meta = Some(meta.map_err(Arc::from));
+        self.is_verified = is_verified;
     }
 
     /// Prompts the user for confirmation and then permanently deletes the game's directory.
@@ -160,7 +174,7 @@ impl Game {
 
     pub fn get_local_cover_uri(&self, images_dir: impl AsRef<Path>) -> String {
         let path = images_dir.as_ref().to_owned();
-        let file = path.join(&self.id_str).with_extension("png");
+        let file = path.join(self.id_str()).with_extension("png");
 
         format!("file://{}", file.to_slash_lossy())
     }
@@ -172,7 +186,7 @@ impl Game {
             "EN"
         };
 
-        let id = &self.id_str;
+        let id = self.id_str();
 
         let url = format!("https://art.gametdb.com/wii/cover3D/{locale}/{id}.png");
         base_dir.download_file(&url, "apps/usbloader_gx/images", &format!("{id}.png"))
@@ -180,7 +194,7 @@ impl Game {
 
     /// Returns true if at least one cover was downloaded.
     pub fn download_all_covers(&self, base_dir: BaseDir) -> Result<bool> {
-        let id = &self.id_str;
+        let id = self.id_str();
 
         let locale = if let Some(info) = &self.info {
             get_locale(info.region)
