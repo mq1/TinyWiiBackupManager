@@ -17,7 +17,7 @@ pub fn ui_game_info_window(
 ) {
     let window_title = game.display_title.clone();
 
-    if game.disc_meta.is_none() {
+    if game.info_opened && game.disc_meta.is_none() {
         game.refresh_meta();
     }
 
@@ -43,7 +43,7 @@ fn ui_game_info_content(
 
     ui.horizontal(|ui| {
         ui.label(RichText::new("🆔 Game ID:").strong());
-        ui.label(RichText::new(&game.id_str).monospace());
+        ui.label(RichText::new(game.id_str()).monospace());
     });
 
     ui.horizontal(|ui| {
