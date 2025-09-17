@@ -73,7 +73,6 @@ pub enum ConsoleType {
 #[derive(Debug, Clone)]
 pub struct Game {
     pub id: [u8; 6],
-    pub id_str: String,
     pub title: String,
     pub path: PathBuf,
     pub size: u64,
@@ -117,7 +116,6 @@ impl Game {
 
         Ok(Self {
             id,
-            id_str,
             title,
             path: path.as_ref().to_path_buf(),
             size: fs_extra::dir::get_size(path)?,
@@ -130,6 +128,10 @@ impl Game {
             is_corrupt,
             disc_meta: None,
         })
+    }
+
+    pub fn id_str(&self) -> &str {
+        std::str::from_utf8(&self.id).unwrap_or("")
     }
 
     pub fn refresh_meta(&mut self) {
@@ -171,7 +173,7 @@ impl Game {
 
     pub fn get_local_cover_uri(&self, images_dir: impl AsRef<Path>) -> String {
         let path = images_dir.as_ref().to_owned();
-        let file = path.join(&self.id_str).with_extension("png");
+        let file = path.join(self.id_str()).with_extension("png");
 
         format!("file://{}", file.to_slash_lossy())
     }
@@ -183,7 +185,7 @@ impl Game {
             "EN"
         };
 
-        let id = &self.id_str;
+        let id = self.id_str();
 
         let url = format!("https://art.gametdb.com/wii/cover3D/{locale}/{id}.png");
         base_dir.download_file(&url, "apps/usbloader_gx/images", &format!("{id}.png"))
@@ -191,7 +193,7 @@ impl Game {
 
     /// Returns true if at least one cover was downloaded.
     pub fn download_all_covers(&self, base_dir: BaseDir) -> Result<bool> {
-        let id = &self.id_str;
+        let id = self.id_str();
 
         let locale = if let Some(info) = &self.info {
             get_locale(info.region)

@@ -71,8 +71,9 @@ pub fn dir_to_title_id(path: impl AsRef<Path>) -> Result<(String, [u8; 6], Strin
     let id_str = &dir_name[id_start + 1..id_end];
 
     let mut id = [0u8; 6];
-    let id_bytes = id_str.as_bytes();
-    id[..id_bytes.len()].copy_from_slice(&id_bytes);
+    let bytes = id_str.as_bytes();
+    let len = bytes.len().min(6);
+    id[..len].copy_from_slice(&bytes[..len]);
 
     Ok((title, id, id_str.to_string()))
 }
