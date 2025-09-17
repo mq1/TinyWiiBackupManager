@@ -6,8 +6,10 @@
 
 use anyhow::{Result, bail};
 use eframe::egui;
+use log::info;
 use std::{fs, io};
 use tiny_wii_backup_manager::app::App;
+use tiny_wii_backup_manager::game::lookup;
 use tiny_wii_backup_manager::{PRODUCT_NAME, USER_AGENT};
 
 const LOGO: &[u8] = include_bytes!("../assets/logo-small.png");
@@ -99,6 +101,11 @@ fn run(options: eframe::NativeOptions) -> Result<()> {
 
 fn main() {
     env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
+
+    // pre-decompress WIITDB
+    std::thread::spawn(|| {
+        let _game = lookup(&[0; 6]);
+    });
 
     let icon = eframe::icon_data::from_png_bytes(LOGO).expect("Failed to load icon");
     let viewport = egui::ViewportBuilder::default()
