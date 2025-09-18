@@ -8,7 +8,7 @@ use anyhow::{Result, bail};
 use eframe::egui;
 use std::{fs, io};
 use tiny_wii_backup_manager::app::App;
-use tiny_wii_backup_manager::game::WIITDB;
+use tiny_wii_backup_manager::game::DECOMPRESSED;
 use tiny_wii_backup_manager::{PRODUCT_NAME, USER_AGENT};
 
 const LOGO: &[u8] = include_bytes!("../assets/logo-small.png");
@@ -101,7 +101,7 @@ fn run(options: eframe::NativeOptions) -> Result<()> {
 fn main() {
     // pre-decompress WIITDB
     std::thread::spawn(|| {
-        let _ = &*WIITDB;
+        let _ = &*DECOMPRESSED;
     });
 
     // Log to stderr (if you run with `RUST_LOG=debug`).

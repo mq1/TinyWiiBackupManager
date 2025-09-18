@@ -19,17 +19,15 @@ use strum::{AsRefStr, Display};
 
 include!(concat!(env!("OUT_DIR"), "/metadata.rs"));
 
-static DECOMPRESSED: LazyLock<Vec<u8>> = LazyLock::new(|| {
+pub static DECOMPRESSED: LazyLock<Vec<u8>> = LazyLock::new(|| {
     let bytes = include_bytes!(concat!(env!("OUT_DIR"), "/wiitdb.bin.zst"));
     zstd::bulk::decompress(bytes, WIITDB_SIZE).expect("failed to decompress")
 });
 
-pub static WIITDB: LazyLock<&ArchivedVec<ArchivedGameInfo>> =
-    LazyLock::new(|| unsafe { rkyv::access_unchecked(&DECOMPRESSED[..]) });
-
 fn lookup(id: &[u8; 6]) -> Option<GameInfo> {
-    let index = WIITDB.binary_search_by(|game| game.id.cmp(id)).ok()?;
-    rkyv::deserialize::<GameInfo, rancor::Error>(&WIITDB[index]).ok()
+    let archived = unsafe { rkyv::access_unchecked::<ArchivedVec<ArchivedGameInfo>>(&DECOMPRESSED[..]) };
+    let index = archived.binary_search_by(|game| game.id.cmp(id)).ok()?;
+    rkyv::deserialize::<GameInfo, rancor::Error>(&archived[index]).ok()
 }
 
 #[rustfmt::skip]
