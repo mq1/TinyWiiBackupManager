@@ -19,9 +19,12 @@ use strum::{AsRefStr, Display};
 
 include!(concat!(env!("OUT_DIR"), "/metadata.rs"));
 
-pub static DECOMPRESSED: LazyLock<Vec<u8>> = LazyLock::new(|| {
+pub static DECOMPRESSED: LazyLock<Box<[u8; WIITDB_SIZE]>> = LazyLock::new(|| {
     let bytes = include_bytes!(concat!(env!("OUT_DIR"), "/wiitdb.bin.zst"));
-    zstd::bulk::decompress(bytes, WIITDB_SIZE).expect("failed to decompress")
+    let mut buffer = Box::new([0u8; WIITDB_SIZE]);
+    zstd::bulk::decompress_to_buffer(bytes, buffer.as_mut()).expect("failed to decompress");
+
+    buffer
 });
 
 fn lookup(id: &[u8; 6]) -> Option<GameInfo> {
