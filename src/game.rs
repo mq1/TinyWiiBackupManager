@@ -27,7 +27,7 @@ pub static DECOMPRESSED: LazyLock<Vec<u8>> = LazyLock::new(|| {
 fn lookup(id: &[u8; 6]) -> Option<GameInfo> {
     let archived = unsafe { rkyv::access_unchecked::<ArchivedVec<ArchivedGameInfo>>(&DECOMPRESSED[..]) };
     let index = archived.binary_search_by_key(id, |game| game.id).ok()?;
-    rkyv::deserialize::<GameInfo, rancor::Error>(&archived[index]).ok()
+    rkyv::deserialize::<_, rancor::Error>(&archived[index]).ok()
 }
 
 #[rustfmt::skip]
