@@ -216,6 +216,7 @@ fn compile_wiitdb_xml() {
     // Sort by ID to enable binary search
     entries.sort_by_key(|game| game.id);
 
+    let entries = entries.into_boxed_slice();
     let serialized = rkyv::to_bytes::<rancor::Error>(&entries).expect("Rkyv serialization failed");
     let compressed = zstd::bulk::compress(&serialized, 19).expect("Zstd compression failed");
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
