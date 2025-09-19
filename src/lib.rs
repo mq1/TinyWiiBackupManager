@@ -1,15 +1,16 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
+use const_format::concatcp;
 use std::convert::Into;
 use std::sync::LazyLock;
 use std::time::Duration;
-use const_format::concatcp;
 use ureq::Agent;
 use ureq::tls::{TlsConfig, TlsProvider};
 
 pub mod app;
 mod base_dir;
+mod fonts;
 pub mod game;
 mod gui;
 mod messages;
@@ -17,20 +18,31 @@ mod settings;
 mod task;
 mod util;
 
-
 pub const PRODUCT_NAME: &str = "TinyWiiBackupManager";
 const USER_AGENT: &str = concatcp!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 
-#[cfg(any(target_os = "macos", all(target_os = "windows", any(target_arch = "x86_64", target_arch = "aarch64"))))]
+#[cfg(any(
+    target_os = "macos",
+    all(
+        target_os = "windows",
+        any(target_arch = "x86_64", target_arch = "aarch64")
+    )
+))]
 const TLS_PROVIDER: TlsProvider = TlsProvider::NativeTls;
-#[cfg(not(any(target_os = "macos", all(target_os = "windows", any(target_arch = "x86_64", target_arch = "aarch64")))))]
+#[cfg(not(any(
+    target_os = "macos",
+    all(
+        target_os = "windows",
+        any(target_arch = "x86_64", target_arch = "aarch64")
+    )
+)))]
 const TLS_PROVIDER: TlsProvider = TlsProvider::Rustls;
 
-pub static AGENT: LazyLock<Agent> = LazyLock::new(||
+pub static AGENT: LazyLock<Agent> = LazyLock::new(|| {
     Agent::config_builder()
         .tls_config(TlsConfig::builder().provider(TLS_PROVIDER).build())
         .timeout_global(Some(Duration::from_secs(10)))
         .user_agent(USER_AGENT)
         .build()
         .into()
-);
+});

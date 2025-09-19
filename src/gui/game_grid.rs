@@ -73,7 +73,7 @@ fn ui_game_card(
             // Top row with console label on the left and size label on the right
             ui.horizontal(|ui| {
                 // Console label on the left
-                ui.label(game.console.as_ref());
+                ui.label(format!("{} {}", game.console.icon(), game.console));
 
                 // Game checks on the left
                 ui_game_checks(ui, game);
@@ -106,13 +106,17 @@ fn ui_game_card(
                     ui.add_space(32.);
 
                     // Info button
-                    if ui.button("ℹ").on_hover_text("Show Game Info").clicked() {
+                    if ui
+                        .button(egui_phosphor::regular::INFO)
+                        .on_hover_text("Show Game Info")
+                        .clicked()
+                    {
                         game.toggle_info();
                     }
 
                     // Archive button
                     if ui
-                        .button("📦")
+                        .button(egui_phosphor::regular::PACKAGE)
                         .on_hover_text("Archive Game to a zstd-19 compressed RVZ")
                         .clicked()
                     {
@@ -120,12 +124,19 @@ fn ui_game_card(
                     }
 
                     // Integrity check button
-                    if ui.button("🔎").on_hover_text("Integrity Check").clicked() {
+                    if ui
+                        .button(egui_phosphor::regular::MAGNIFYING_GLASS)
+                        .on_hover_text("Integrity Check")
+                        .clicked()
+                    {
                         game.spawn_integrity_check_task(task_processor);
                     }
 
                     // Remove button
-                    if ui.button("🗑").on_hover_text("Remove Game").clicked()
+                    if ui
+                        .button(egui_phosphor::regular::TRASH)
+                        .on_hover_text("Remove Game")
+                        .clicked()
                         && let Err(e) = game.remove()
                     {
                         let _ = sender.send(e.into());
