@@ -6,6 +6,7 @@ use std::sync::LazyLock;
 use std::time::Duration;
 use const_format::concatcp;
 use ureq::Agent;
+use ureq::tls::{TlsConfig, TlsProvider};
 
 pub mod app;
 mod base_dir;
@@ -18,10 +19,18 @@ mod util;
 
 
 pub const PRODUCT_NAME: &str = "TinyWiiBackupManager";
+const USER_AGENT: &str = concatcp!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
+
+#[cfg(any(target_os = "macos", all(target_os = "windows", any(target_arch = "x86_64", target_arch = "aarch64"))))]
+const TLS_PROVIDER: TlsProvider = TlsProvider::NativeTls;
+#[cfg(not(any(target_os = "macos", all(target_os = "windows", any(target_arch = "x86_64", target_arch = "aarch64")))))]
+const TLS_PROVIDER: TlsProvider = TlsProvider::Rustls;
+
 pub static AGENT: LazyLock<Agent> = LazyLock::new(||
     Agent::config_builder()
+        .tls_config(TlsConfig::builder().provider(TLS_PROVIDER).build())
         .timeout_global(Some(Duration::from_secs(10)))
-        .user_agent(concatcp!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION")))
+        .user_agent(USER_AGENT)
         .build()
         .into()
 );
