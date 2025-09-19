@@ -37,17 +37,29 @@ fn ui_game_info_content(
     sender: &mut UiInboxSender<BackgroundMessage>,
 ) {
     ui.horizontal(|ui| {
-        ui.label(RichText::new("📝 Title:").strong());
+        ui.label(RichText::new(format!("{} Title:", egui_phosphor::regular::NOTE)).strong());
         ui.label(RichText::new(&game.title));
     });
 
     ui.horizontal(|ui| {
-        ui.label(RichText::new("🆔 Game ID:").strong());
+        ui.label(
+            RichText::new(format!(
+                "{} Game ID:",
+                egui_phosphor::regular::IDENTIFICATION_CARD
+            ))
+            .strong(),
+        );
         ui.label(RichText::new(game.id_str()).monospace());
     });
 
     ui.horizontal(|ui| {
-        ui.label(RichText::new("🎮 Console:").strong());
+        ui.label(
+            RichText::new(format!(
+                "{} Console:",
+                egui_phosphor::regular::GAME_CONTROLLER
+            ))
+            .strong(),
+        );
         ui.label(match game.console {
             ConsoleType::GameCube => "GameCube",
             ConsoleType::Wii => "Wii",
@@ -55,12 +67,18 @@ fn ui_game_info_content(
     });
 
     ui.horizontal(|ui| {
-        ui.label(RichText::new("💾 Size on disk:").strong());
+        ui.label(
+            RichText::new(format!(
+                "{} Size on disk:",
+                egui_phosphor::regular::HARD_DRIVE
+            ))
+            .strong(),
+        );
         ui.label(Size::from_bytes(game.size).to_string());
     });
 
     ui.horizontal(|ui| {
-        ui.label(RichText::new("📁 Path:").strong());
+        ui.label(RichText::new(format!("{} Path:", egui_phosphor::regular::FOLDER)).strong());
         if fake_link(ui, &game.path.display().to_string()).clicked()
             && let Err(e) = open::that(&game.path)
         {
@@ -69,13 +87,13 @@ fn ui_game_info_content(
     });
 
     ui.horizontal(|ui| {
-        ui.label(RichText::new("🌐 GameTDB:").strong());
+        ui.label(RichText::new(format!("{} GameTDB:", egui_phosphor::regular::LINK)).strong());
         ui.hyperlink(&game.info_url);
     });
 
     if let Some(info) = &game.info {
         ui.horizontal(|ui| {
-            ui.label(RichText::new("🌍 Region:").strong());
+            ui.label(RichText::new(format!("{} Region:", egui_phosphor::regular::GLOBE)).strong());
             ui.label(info.region.as_ref());
         });
     }
@@ -87,27 +105,37 @@ fn ui_game_info_content(
         ui.separator();
         ui.add_space(10.0);
 
-        ui.heading("💿 Disc Metadata");
+        ui.heading(format!(
+            "{} Disc Metadata",
+            egui_phosphor::regular::FLOPPY_DISK
+        ));
         ui.add_space(5.0);
         ui.horizontal(|ui| {
-            ui.label(RichText::new("💿 Format:").strong());
+            ui.label(RichText::new(format!("{} Format:", egui_phosphor::regular::DISC)).strong());
             ui.label(meta.format.to_string());
         });
 
         ui.horizontal(|ui| {
-            ui.label(RichText::new("📦 Compression:").strong());
+            ui.label(
+                RichText::new(format!("{} Compression:", egui_phosphor::regular::PACKAGE)).strong(),
+            );
             ui.label(meta.compression.to_string());
         });
 
         if let Some(block_size) = meta.block_size {
             ui.horizontal(|ui| {
-                ui.label(RichText::new("📏 Block size:").strong());
+                ui.label(
+                    RichText::new(format!("{} Block size:", egui_phosphor::regular::RULER))
+                        .strong(),
+                );
                 ui.label(Size::from_bytes(block_size).to_string());
             });
         }
 
         ui.horizontal(|ui| {
-            ui.label(RichText::new("✅ Lossless:").strong());
+            ui.label(
+                RichText::new(format!("{} Lossless:", egui_phosphor::regular::CHECK)).strong(),
+            );
             if meta.lossless {
                 ui.colored_label(egui::Color32::DARK_GREEN, "Yes");
             } else {
@@ -117,7 +145,13 @@ fn ui_game_info_content(
 
         if let Some(disc_size) = meta.disc_size {
             ui.horizontal(|ui| {
-                ui.label(RichText::new("💾 Original size:").strong());
+                ui.label(
+                    RichText::new(format!(
+                        "{} Original size:",
+                        egui_phosphor::regular::FLOPPY_DISK
+                    ))
+                    .strong(),
+                );
                 ui.label(Size::from_bytes(disc_size).to_string());
             });
         }
@@ -126,7 +160,10 @@ fn ui_game_info_content(
         ui.separator();
         ui.add_space(10.0);
 
-        ui.heading("🔍 Integrity Metadata");
+        ui.heading(format!(
+            "{} Integrity Metadata",
+            egui_phosphor::regular::MAGNIFYING_GLASS
+        ));
         ui.add_space(5.0);
 
         if let Some(crc32) = meta.crc32 {

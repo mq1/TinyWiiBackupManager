@@ -62,7 +62,11 @@ fn ui_wiiapp_card(
     card.show(ui, |ui| {
         ui.vertical(|ui| {
             ui.horizontal(|ui| {
-                ui.label(format!("🏷 {}", &wiiapp.meta.version));
+                ui.label(format!(
+                    "{} {}",
+                    egui_phosphor::regular::TAG,
+                    &wiiapp.meta.version
+                ));
 
                 // Size label on the right
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
@@ -81,7 +85,9 @@ fn ui_wiiapp_card(
 
                 ui.add(egui::Label::new(RichText::new(&wiiapp.meta.name).strong()).truncate());
 
-                let avatar = DEVELOPERS.get(&wiiapp.meta.coder).unwrap_or(&'👸');
+                let avatar = DEVELOPERS
+                    .get(&wiiapp.meta.coder)
+                    .unwrap_or(&egui_phosphor::regular::USER);
                 ui.add(
                     egui::Label::new(format!("{} by {}", avatar, &wiiapp.meta.coder)).truncate(),
                 );
@@ -91,12 +97,20 @@ fn ui_wiiapp_card(
             ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
                 ui.horizontal(|ui| {
                     // Info button
-                    if ui.button("ℹ").on_hover_text("Show App Info").clicked() {
+                    if ui
+                        .button(egui_phosphor::regular::INFO)
+                        .on_hover_text("Show App Info")
+                        .clicked()
+                    {
                         wiiapp.toggle_info();
                     }
 
                     // Remove button
-                    if ui.button("🗑").on_hover_text("Remove App").clicked() {
+                    if ui
+                        .button(egui_phosphor::regular::TRASH)
+                        .on_hover_text("Remove App")
+                        .clicked()
+                    {
                         if let Err(e) = wiiapp.remove() {
                             let _ = sender.send(e.into());
                         }
@@ -108,8 +122,12 @@ fn ui_wiiapp_card(
                     {
                         if ui
                             .add(
-                                egui::Button::new(format!("⬆ {}", oscwii.version))
-                                    .min_size(egui::vec2(ui.available_width(), 0.0)),
+                                egui::Button::new(format!(
+                                    "{} {}",
+                                    egui_phosphor::regular::ARROW_UP,
+                                    oscwii.version
+                                ))
+                                .min_size(egui::vec2(ui.available_width(), 0.0)),
                             )
                             .clicked()
                         {

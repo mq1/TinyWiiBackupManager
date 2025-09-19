@@ -29,7 +29,15 @@ LegalCopyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-2.0-only
 
 
 [dependencies]
-eframe = { version = "0.32", features = ["persistence"] }
+eframe = { version = "0.32", default-features = false, features = [
+    "accesskit",
+    "glow",
+    "persistence",
+    "wayland",
+    "x11"
+] }
+egui-winit = { version = "0.32", default-features = true }
+egui-phosphor = "0.10"
 egui_extras = { version = "0.32", default-features = false, features = [
     "image",
     "file",
