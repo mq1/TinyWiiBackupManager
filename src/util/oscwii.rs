@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
-use crate::USER_AGENT;
+use crate::AGENT;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -26,8 +26,7 @@ impl Default for AppCache {
 
 impl AppCache {
     pub fn new() -> Result<AppCache> {
-        let apps = ureq::get(CONTENTS_URL)
-            .header("User-Agent", USER_AGENT)
+        let apps = AGENT.get(CONTENTS_URL)
             .call()?
             .body_mut()
             .read_json()?;

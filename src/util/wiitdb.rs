@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
-use crate::USER_AGENT;
+use crate::AGENT;
 use crate::base_dir::BaseDir;
 use anyhow::{Context, Result};
 use std::fs::{self, File};
@@ -18,8 +18,7 @@ pub fn download_and_extract_database(base_dir: &BaseDir) -> Result<()> {
         .with_context(|| format!("Failed to create directory at: {}", target_dir.display()))?;
 
     // Perform the download request.
-    let mut response = ureq::get(DOWNLOAD_URL)
-        .header("User-Agent", USER_AGENT)
+    let mut response = AGENT.get(DOWNLOAD_URL)
         .call()
         .with_context(|| format!("Failed to download from {DOWNLOAD_URL}"))?;
 
