@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
-use crate::USER_AGENT;
+use crate::AGENT;
 use anyhow::anyhow;
 use anyhow::{Result, bail};
 use path_slash::PathBufExt;
@@ -48,8 +48,7 @@ pub fn push_url(url: &str, wii_ip: &str) -> Result<Vec<String>> {
         .next()
         .ok_or(anyhow!("Failed to resolve Wii IP: {wii_ip}"))?;
 
-    let buffer = ureq::get(url)
-        .header("User-Agent", USER_AGENT)
+    let buffer = AGENT.get(url)
         .call()?
         .body_mut()
         .read_to_vec()?;

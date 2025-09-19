@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
-use crate::USER_AGENT;
 use crate::game::{ConsoleType, Game};
 use anyhow::{Context, Result, bail};
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
@@ -13,6 +12,7 @@ use std::{fmt, fs, io};
 use ureq::http::StatusCode;
 use zip::ZipArchive;
 use zip::result::ZipResult;
+use crate::AGENT;
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct BaseDir(PathBuf);
@@ -151,7 +151,7 @@ impl BaseDir {
             return Ok(false);
         }
 
-        let response = ureq::get(url).header("User-Agent", USER_AGENT).call()?;
+        let response = AGENT.get(url).call()?;
 
         if response.status() != StatusCode::OK {
             bail!("Failed to download file: {}", response.status());
@@ -188,7 +188,7 @@ impl BaseDir {
     }
 
     pub fn add_zip_from_url(&self, url: &str) -> Result<()> {
-        let mut response = ureq::get(url).header("User-Agent", USER_AGENT).call()?;
+        let mut response = AGENT.get(url).call()?;
 
         let buffer = response.body_mut().read_to_vec()?;
         let cursor = io::Cursor::new(buffer);
