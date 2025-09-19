@@ -10,11 +10,11 @@ use crate::util::fs::dir_to_title_id;
 use anyhow::{Context, Error, Result};
 use nod::read::DiscMeta;
 use path_slash::PathBufExt;
+use rkyv::boxed::ArchivedBox;
 use rkyv::{Archive, Deserialize, rancor};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, LazyLock};
-use rkyv::boxed::ArchivedBox;
 use strum::{AsRefStr, Display};
 
 include!(concat!(env!("OUT_DIR"), "/metadata.rs"));
@@ -28,7 +28,8 @@ pub static DECOMPRESSED: LazyLock<Box<[u8; WIITDB_SIZE]>> = LazyLock::new(|| {
 });
 
 fn lookup(id: &[u8; 6]) -> Option<GameInfo> {
-    let archived = unsafe { rkyv::access_unchecked::<ArchivedBox<[ArchivedGameInfo]>>(&DECOMPRESSED[..]) };
+    let archived =
+        unsafe { rkyv::access_unchecked::<ArchivedBox<[ArchivedGameInfo]>>(&DECOMPRESSED[..]) };
     let index = archived.binary_search_by_key(id, |game| game.id).ok()?;
     rkyv::deserialize::<_, rancor::Error>(&archived[index]).ok()
 }
@@ -63,12 +64,20 @@ pub struct GameInfo {
 }
 
 /// Represents the console type for a game
-#[derive(Clone, Copy, Debug, PartialEq, AsRefStr)]
+#[derive(Clone, Copy, Debug, PartialEq, AsRefStr, Display)]
 pub enum ConsoleType {
-    #[strum(serialize = "🎾 Wii")]
     Wii,
-    #[strum(serialize = "🎲 GC")]
+    #[strum(serialize = "GC")]
     GameCube,
+}
+
+impl ConsoleType {
+    pub fn icon(&self) -> &'static str {
+        match self {
+            ConsoleType::Wii => egui_phosphor::regular::RACQUET,
+            ConsoleType::GameCube => egui_phosphor::regular::DICE_SIX,
+        }
+    }
 }
 
 /// Represents a single game, containing its metadata and file system information.

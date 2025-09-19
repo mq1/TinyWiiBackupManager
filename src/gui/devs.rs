@@ -5,6 +5,6 @@ use phf::phf_map;
 
 /// Map of developers to their emojis
 /// If you want to add yourself, open a PR or an issue :)
-pub static DEVELOPERS: phf::Map<&'static str, char> = phf_map! {
-    "blackb0x" => '💫'
+pub static DEVELOPERS: phf::Map<&'static str, &'static str> = phf_map! {
+    "blackb0x" => egui_phosphor::regular::MAGIC_WAND
 };

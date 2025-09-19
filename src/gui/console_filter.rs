@@ -32,7 +32,17 @@ impl ConsoleFilter {
 /// Renders the console filter controls
 pub fn ui_console_filter(ui: &mut egui::Ui, filter: &mut ConsoleFilter) {
     ui.horizontal(|ui| {
-        ui.checkbox(&mut filter.wii, "🎾 Show Wii");
-        ui.checkbox(&mut filter.gamecube, "🎮 Show GC");
+        ui.checkbox(
+            &mut filter.wii,
+            format!("{} Show {}", ConsoleType::Wii.icon(), ConsoleType::Wii),
+        );
+        ui.checkbox(
+            &mut filter.gamecube,
+            format!(
+                "{} Show {}",
+                ConsoleType::GameCube.icon(),
+                ConsoleType::GameCube
+            ),
+        );
     });
 }

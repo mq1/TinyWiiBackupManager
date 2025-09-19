@@ -11,20 +11,17 @@ use crate::util::ext::SUPPORTED_INPUT_EXTENSIONS;
 use crate::util::oscwii;
 use crate::util::update_check::{UpdateInfo, check_for_new_version};
 use crate::util::wiiapps::WiiApp;
-use crate::{gui::console_filter::ConsoleFilter, util};
+use crate::{fonts, gui::console_filter::ConsoleFilter, util};
 use anyhow::{Context, Result, anyhow, bail};
 use eframe::egui;
 use egui_inbox::UiInbox;
-use strum::AsRefStr;
 use sysinfo::Disks;
 
 const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, AsRefStr)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum View {
-    #[strum(serialize = "🎮 Games")]
     Games,
-    #[strum(serialize = "⭐ Apps")]
     WiiApps,
 }
 
@@ -76,6 +73,9 @@ impl App {
     pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
         // Install image loaders
         egui_extras::install_image_loaders(&cc.egui_ctx);
+
+        // Install system fonts
+        fonts::load_system_font(&cc.egui_ctx);
 
         // Initialize inbox
         let inbox = UiInbox::new();

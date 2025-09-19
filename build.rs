@@ -6,9 +6,7 @@
 use rkyv::{Archive, Serialize, rancor};
 use serde::Deserialize;
 use std::{
-    env,
-    fs::{self, File},
-    io::BufReader,
+    env, fs,
     path::{Path, PathBuf},
 };
 
@@ -167,8 +165,8 @@ struct GameInfo {
 }
 
 fn compile_wiitdb_xml() {
-    let xml = BufReader::new(File::open("assets/wiitdb.xml").expect("Failed to open wiitdb.xml"));
-    let data: Datafile = quick_xml::de::from_reader(xml).expect("Failed to parse wiitdb.xml");
+    let xml = fs::read_to_string("assets/wiitdb.xml").expect("Failed to read wiitdb.xml");
+    let data: Datafile = quick_xml::de::from_str(&xml).expect("Failed to parse wiitdb.xml");
 
     let mut entries = Vec::new();
     for game in data.games {
