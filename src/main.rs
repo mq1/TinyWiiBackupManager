@@ -9,7 +9,7 @@ use eframe::egui;
 use std::{fs, io};
 use tiny_wii_backup_manager::app::App;
 use tiny_wii_backup_manager::game::DECOMPRESSED;
-use tiny_wii_backup_manager::{PRODUCT_NAME, USER_AGENT};
+use tiny_wii_backup_manager::{AGENT, PRODUCT_NAME};
 
 const LOGO: &[u8] = include_bytes!("../assets/logo-small.png");
 
@@ -41,8 +41,7 @@ const BYTE_COUNT: usize = 13320437;
 const DECOMPRESSED_SIZE: usize = 45937664;
 
 fn download_opengl() -> Result<()> {
-    let resp = ureq::get(OPENGL_URL)
-        .header("User-Agent", USER_AGENT)
+    let resp = AGENT.get(OPENGL_URL)
         .call()?;
 
     let mut buffer = Vec::with_capacity(BYTE_COUNT);

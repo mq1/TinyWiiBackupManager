@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
-use crate::USER_AGENT;
+use crate::AGENT;
 use anyhow::{Context, Result};
 use const_format::concatcp;
 use semver::Version;
@@ -19,8 +19,7 @@ pub struct UpdateInfo {
 
 /// Checks for a newer version of the application.
 pub fn check_for_new_version() -> Result<Option<UpdateInfo>> {
-    let latest_version_str = ureq::get(VERSION_URL)
-        .header("User-Agent", USER_AGENT)
+    let latest_version_str = AGENT.get(VERSION_URL)
         .call()
         .context("Failed to fetch version")?
         .body_mut()
