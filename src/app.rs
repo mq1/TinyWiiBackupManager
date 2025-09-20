@@ -11,20 +11,17 @@ use crate::util::ext::SUPPORTED_INPUT_EXTENSIONS;
 use crate::util::oscwii;
 use crate::util::update_check::{UpdateInfo, check_for_new_version};
 use crate::util::wiiapps::WiiApp;
-use crate::{gui::console_filter::ConsoleFilter, util};
+use crate::{fonts, gui::console_filter::ConsoleFilter, util};
 use anyhow::{Context, Result, anyhow, bail};
 use eframe::egui;
 use egui_inbox::UiInbox;
-use strum::AsRefStr;
 use sysinfo::Disks;
 
 const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, AsRefStr)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum View {
-    #[strum(serialize = "🎮 Games")]
     Games,
-    #[strum(serialize = "⭐ Apps")]
     WiiApps,
 }
 
@@ -77,6 +74,9 @@ impl App {
         // Install image loaders
         egui_extras::install_image_loaders(&cc.egui_ctx);
 
+        // Install system fonts
+        let _ = fonts::load_system_font(&cc.egui_ctx);
+
         // Initialize inbox
         let inbox = UiInbox::new();
 
@@ -115,7 +115,7 @@ impl App {
         let mut app = Self {
             view: View::Games,
             top_right_toasts: toasts::create_toasts(egui_notify::Anchor::TopRight)
-                .with_margin(egui::vec2(49.0, 36.0)),
+                .with_margin(egui::vec2(51.0, 36.0)),
             bottom_left_toasts: toasts::create_toasts(egui_notify::Anchor::BottomLeft),
             bottom_right_toasts: toasts::create_toasts(egui_notify::Anchor::BottomRight),
             inbox,
@@ -311,7 +311,10 @@ impl App {
                         remove_update_partition,
                         move |current, total| {
                             let status = format!(
-                                "📄➡🖴  {:02.0}%  {}",
+                                "{}{}{}  {:02.0}%  {}",
+                                egui_phosphor::regular::FILE,
+                                egui_phosphor::regular::ARROW_RIGHT,
+                                egui_phosphor::regular::HARD_DRIVE,
                                 current as f32 / total as f32 * 100.0,
                                 file_name
                             );

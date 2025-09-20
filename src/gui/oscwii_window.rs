@@ -8,7 +8,7 @@ use eframe::egui::{self, Rect, TextEdit};
 use egui_extras::{Column, TableBuilder};
 
 pub fn ui_oscwii_window(ctx: &egui::Context, app: &mut App, rect: Rect) {
-    egui::Window::new("🏪 Open Shop Channel")
+    egui::Window::new(format!("{} Open Shop Channel", egui_phosphor::regular::STOREFRONT))
         .open(&mut app.oscwii_window_open)
         .auto_sized()
         .collapsible(false)
@@ -16,13 +16,13 @@ pub fn ui_oscwii_window(ctx: &egui::Context, app: &mut App, rect: Rect) {
         .fixed_rect(rect)
         .show(ctx, |ui| {
             ui.horizontal(|ui| {
-                ui.label("🔎 Filter");
+                ui.label(format!("{} Filter", egui_phosphor::regular::MAGNIFYING_GLASS));
                 ui.add(TextEdit::singleline(&mut app.oscwii_filter).hint_text("Type something"));
 
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     ui.set_max_width(150.0);
                     ui.text_edit_singleline(&mut app.settings.wii_ip);
-                    ui.label("🔢 Wii IP");
+                    ui.label(format!("{} Wii IP", egui_phosphor::regular::WIFI_HIGH));
                 });
             });
 
@@ -47,16 +47,16 @@ pub fn ui_oscwii_window(ctx: &egui::Context, app: &mut App, rect: Rect) {
                 .column(Column::remainder())
                 .header(20.0, |mut header| {
                     header.col(|ui| {
-                        ui.heading("⭐ App");
+                        ui.heading(format!("{} App", egui_phosphor::regular::STAR));
                     });
                     header.col(|ui| {
-                        ui.heading("🏷 Version");
+                        ui.heading(format!("{} Version", egui_phosphor::regular::TAG));
                     });
                     header.col(|ui| {
-                        ui.heading("👸 Author");
+                        ui.heading(format!("{} Author", egui_phosphor::regular::USER));
                     });
                     header.col(|ui| {
-                        ui.heading("📥 Actions");
+                        ui.heading(format!("{} Actions", egui_phosphor::regular::PACKAGE));
                     });
                 })
                 .body(|body| {
@@ -86,7 +86,7 @@ pub fn ui_oscwii_window(ctx: &egui::Context, app: &mut App, rect: Rect) {
                         row.col(|ui| {
                             ui.horizontal(|ui| {
                                 if let Some(base_dir) = &app.base_dir {
-                                    if ui.button("⬇ Download").clicked() {
+                                    if ui.button(format!("{} Download", egui_phosphor::regular::ARROW_DOWN)).clicked() {
                                         let zip_url = &wiiapp.assets.archive.url;
                                         let base_dir = base_dir.clone();
                                         let zip_url = zip_url.clone();
@@ -108,7 +108,7 @@ pub fn ui_oscwii_window(ctx: &egui::Context, app: &mut App, rect: Rect) {
                                     ui.add_enabled(false, egui::Button::new("Base dir not set"));
                                 }
 
-                                if ui.button("⬆ Wiiload").clicked() {
+                                if ui.button(format!("{} Wiiload", egui_phosphor::regular::ARROW_UP)).clicked() {
                                     let wii_ip = app.settings.wii_ip.clone();
                                     let url = wiiapp.assets.archive.url.clone();
                                     let wiiapp_name = wiiapp.name.clone();

@@ -46,12 +46,26 @@ pub fn ui_bottom_panel(ctx: &egui::Context, app: &mut App) {
                     View::Games => {
                         ui_console_filter(ui, &mut app.console_filter);
                         ui.separator();
-                        ui.checkbox(&mut app.remove_sources, "💣 Remove sources")
-                            .on_hover_text("⚠ DANGER ⚠\n\nThis will delete the input files!");
+                        ui.checkbox(
+                            &mut app.remove_sources,
+                            format!("{} Remove sources", egui_phosphor::regular::BOMB),
+                        )
+                        .on_hover_text(format!(
+                            "{} DANGER {}\n\nThis will delete the input files!",
+                            egui_phosphor::regular::WARNING,
+                            egui_phosphor::regular::WARNING
+                        ));
                     }
                     View::WiiApps => {
-                        ui.checkbox(&mut app.remove_sources_wiiapps, "💣 Remove sources (.zip)")
-                            .on_hover_text("⚠ DANGER ⚠\n\nThis will delete the input files!");
+                        ui.checkbox(
+                            &mut app.remove_sources_wiiapps,
+                            format!("{} Remove sources (.zip)", egui_phosphor::regular::BOMB),
+                        )
+                        .on_hover_text(format!(
+                            "{} DANGER {}\n\nThis will delete the input files!",
+                            egui_phosphor::regular::WARNING,
+                            egui_phosphor::regular::WARNING
+                        ));
                     }
                 },
             );
