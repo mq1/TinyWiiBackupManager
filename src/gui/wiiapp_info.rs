@@ -33,27 +33,39 @@ fn ui_wiiapp_info_content(
     ui.separator();
 
     ui.horizontal(|ui| {
-        ui.label(RichText::new("🔢 Version:").strong());
+        ui.label(RichText::new(format!("{} Version:", egui_phosphor::regular::TAG)).strong());
         ui.label(&wiiapp.meta.version);
     });
 
     ui.horizontal(|ui| {
-        ui.label(RichText::new("📅 Release Date:").strong());
+        ui.label(
+            RichText::new(format!(
+                "{} Release Date:",
+                egui_phosphor::regular::CALENDAR
+            ))
+            .strong(),
+        );
         ui.label(&wiiapp.meta.release_date.to_string());
     });
 
     ui.horizontal(|ui| {
-        ui.label(RichText::new("👸 Coder:").strong());
+        ui.label(RichText::new(format!("{} Coder:", egui_phosphor::regular::USER)).strong());
         ui.label(&wiiapp.meta.coder);
     });
 
     ui.horizontal(|ui| {
-        ui.label(RichText::new("💾 Size on disk:").strong());
+        ui.label(
+            RichText::new(format!(
+                "{} Size on disk:",
+                egui_phosphor::regular::HARD_DRIVE
+            ))
+            .strong(),
+        );
         ui.label(Size::from_bytes(wiiapp.size).to_string());
     });
 
     ui.horizontal(|ui| {
-        ui.label(RichText::new("📁 Path:").strong());
+        ui.label(RichText::new(format!("{} Path:", egui_phosphor::regular::FOLDER)).strong());
         if fake_link(ui, &wiiapp.path.display().to_string()).clicked()
             && let Err(e) = open::that(&wiiapp.path)
         {
@@ -62,7 +74,9 @@ fn ui_wiiapp_info_content(
     });
 
     ui.horizontal(|ui| {
-        ui.label(RichText::new("🌐 View on OSCWii:").strong());
+        ui.label(
+            RichText::new(format!("{} View on OSCWii:", egui_phosphor::regular::LINK)).strong(),
+        );
         ui.hyperlink(&wiiapp.oscwii);
     });
 }
