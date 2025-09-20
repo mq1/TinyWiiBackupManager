@@ -1,6 +1,6 @@
 [package]
 name = "tiny-wii-backup-manager"
-version = "2.4.12"
+version = "2.4.13"
 authors = ["Manuel Quarneti <mq1@ik.me>"]
 edition = "2024"
 license = "GPL-2.0-only"
@@ -83,7 +83,7 @@ rkyv = { version = "0.8", default-features = false, features = ["std"] }
 zstd = "0.13"
 
 [target.'cfg(any(target_os = "macos", all(target_os = "windows", any(target_arch = "x86_64", target_arch = "aarch64"))))'.dependencies]
-ureq = { version = "3.1", default-features = false, features = ["native-tls", "json"] }
+ureq = { version = "3.1", default-features = false, features = ["native-tls", "platform-verifier", "json"] }
 
 [target.'cfg(not(any(target_os = "macos", all(target_os = "windows", any(target_arch = "x86_64", target_arch = "aarch64")))))'.dependencies]
 ureq = { version = "3.1", default-features = false, features = ["rustls", "json"] }
