@@ -1,6 +1,6 @@
 [package]
 name = "tiny-wii-backup-manager"
-version = "2.4.11"
+version = "2.4.12"
 authors = ["Manuel Quarneti <mq1@ik.me>"]
 edition = "2024"
 license = "GPL-2.0-only"
@@ -37,6 +37,7 @@ eframe = { version = "0.32", default-features = false, features = [
     "x11"
 ] }
 egui-winit = { version = "0.32", default-features = true }
+winit = { version = "0.30", default-features = true }
 fontdb = "0.23"
 egui-phosphor = "0.10.0"
 egui_extras = { version = "0.32", default-features = false, features = [
