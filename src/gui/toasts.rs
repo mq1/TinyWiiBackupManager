@@ -21,20 +21,33 @@ pub fn create_toasts(anchor: egui_notify::Anchor) -> egui_notify::Toasts {
 
 pub fn show_error_toast(app: &mut App, msg: &str) {
     app.bottom_right_toasts
-        .error(msg)
+        .custom(
+            msg,
+            egui_phosphor::regular::WARNING.to_string(),
+            egui::Color32::RED,
+        )
         .duration(Some(Duration::from_secs(10)));
 }
 
 pub fn show_info_toast(app: &mut App, msg: &str) {
-    app.bottom_right_toasts.info(msg);
+    app.bottom_right_toasts.custom(
+        msg,
+        egui_phosphor::regular::INFO.to_string(),
+        egui::Color32::LIGHT_BLUE,
+    );
 }
 
 pub fn show_update_toast(app: &mut App, update: &Option<UpdateInfo>) {
     if let Some(update) = update {
         app.bottom_left_toasts
             .custom(
-                format!("✨Update available: {}✨    ", update.version),
-                "⬇".to_string(),
+                format!(
+                    "{} Update available: {} {}    ",
+                    egui_phosphor::regular::SPARKLE,
+                    update.version,
+                    egui_phosphor::regular::SPARKLE
+                ),
+                egui_phosphor::regular::ARROW_DOWN.to_string(),
                 egui::Color32::GRAY,
             )
             .duration(Some(Duration::from_secs(10)));
@@ -43,7 +56,15 @@ pub fn show_update_toast(app: &mut App, update: &Option<UpdateInfo>) {
 
 pub fn prompt_for_base_directory(app: &mut App) {
     app.top_right_toasts
-        .info("Click on \"☰\" to select a Drive/Directory  ⬆")
+        .custom(
+            format!(
+                "Click on \"{}\" to select a Drive/Directory {}",
+                egui_phosphor::regular::LIST,
+                egui_phosphor::regular::ARROW_UP
+            ),
+            egui_phosphor::regular::INFO.to_string(),
+            egui::Color32::LIGHT_BLUE,
+        )
         .closable(false)
         .duration(None);
 }
