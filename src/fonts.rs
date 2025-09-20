@@ -10,6 +10,8 @@ use fontdb::{Database, Family, Query, Source};
 use std::fs;
 use std::sync::Arc;
 
+include!(concat!(env!("OUT_DIR"), "/phosphor_meta.rs"));
+
 pub fn load_system_font(ctx: &Context) -> Result<()> {
     let mut fonts = FontDefinitions::default();
 
@@ -43,9 +45,16 @@ pub fn load_system_font(ctx: &Context) -> Result<()> {
         }
     }
 
-    egui_phosphor::add_to_fonts(&mut fonts, egui_phosphor::Variant::Regular);
+    let phosphor = include_bytes!(concat!(env!("OUT_DIR"), "/Phosphor.ttf.zst"));
+    let phosphor = zstd::bulk::decompress(phosphor, PHOSPHOR_SIZE).expect("Failed to decompress");
+    fonts.font_data.insert(
+        "phosphor".to_string(),
+        Arc::from(FontData::from_owned(phosphor)),
+    );
+    if let Some(vec) = fonts.families.get_mut(&FontFamily::Proportional) {
+        vec.push("phosphor".to_string());
+    }
 
     ctx.set_fonts(fonts);
-
     Ok(())
 }
