@@ -1,42 +1,51 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
+use anyhow::{Result, bail};
 use eframe::{
     egui::{Context, FontData, FontDefinitions},
     epaint::FontFamily,
 };
+use fontdb::{Database, Family, Query, Source};
 use std::fs;
 use std::sync::Arc;
 
-const FONT_PATHS: &[&str] = &[
-    "/System/Library/Fonts/Supplemental/Arial.ttf",
-    "C:\\Windows\\Fonts\\segoeui.ttf",
-];
-
-pub fn load_system_font(ctx: &Context) {
+pub fn load_system_font(ctx: &Context) -> Result<()> {
     let mut fonts = FontDefinitions::default();
 
-    for (i, font_path) in FONT_PATHS.iter().enumerate() {
-        if let Ok(bytes) = fs::read(font_path) {
-            fonts
-                .font_data
-                .insert(i.to_string(), Arc::from(FontData::from_owned(bytes)));
+    // Create a font database and load system fonts into it
+    let mut db = Database::new();
+    db.load_system_fonts();
 
-            fonts
-                .families
-                .get_mut(&FontFamily::Proportional)
-                .unwrap()
-                .push(i.to_string());
+    // Query for a sans-serif font
+    let query = Query {
+        families: &[Family::SansSerif],
+        ..Default::default()
+    };
 
-            fonts
-                .families
-                .get_mut(&FontFamily::Monospace)
-                .unwrap()
-                .push(i.to_string());
+    // Find the best match
+    if let Some(id) = db.query(&query) {
+        if let Some((source, _)) = db.face_source(id) {
+            let buffer = match source {
+                Source::Binary(data) => data.as_ref().as_ref().to_vec(),
+                Source::File(path) => fs::read(path)?,
+                _ => bail!("Unsupported font source"),
+            };
+
+            fonts.font_data.insert(
+                "system".to_string(),
+                Arc::from(FontData::from_owned(buffer)),
+            );
+
+            if let Some(vec) = fonts.families.get_mut(&FontFamily::Proportional) {
+                vec.push("system".to_string());
+            }
         }
     }
 
     egui_phosphor::add_to_fonts(&mut fonts, egui_phosphor::Variant::Regular);
 
     ctx.set_fonts(fonts);
+
+    Ok(())
 }
