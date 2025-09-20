@@ -6,9 +6,7 @@
 use rkyv::{Archive, Serialize, rancor};
 use serde::Deserialize;
 use std::{
-    env,
-    fs::{self, File},
-    io::BufReader,
+    env, fs,
     path::{Path, PathBuf},
 };
 
@@ -167,8 +165,8 @@ struct GameInfo {
 }
 
 fn compile_wiitdb_xml() {
-    let xml = BufReader::new(File::open("assets/wiitdb.xml").expect("Failed to open wiitdb.xml"));
-    let data: Datafile = quick_xml::de::from_reader(xml).expect("Failed to parse wiitdb.xml");
+    let xml = fs::read_to_string("assets/wiitdb.xml").expect("Failed to read wiitdb.xml");
+    let data: Datafile = quick_xml::de::from_str(&xml).expect("Failed to parse wiitdb.xml");
 
     let mut entries = Vec::new();
     for game in data.games {
@@ -225,15 +223,29 @@ fn compile_wiitdb_xml() {
 
     let metadata = format!("const WIITDB_SIZE: usize = {};", serialized.len());
     let metadata_path = Path::new(&out_dir).join("metadata.rs");
-    fs::write(&metadata_path, metadata).unwrap();
+    fs::write(&metadata_path, metadata).expect("Failed to write metadata");
+}
+
+fn compress_phosphor() {
+    let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
+    let dest_path = out_dir.join("Phosphor.ttf.zst");
+    let bytes = fs::read("assets/Phosphor.ttf").expect("Failed to read Phosphor.ttf");
+    let compressed = zstd::bulk::compress(&bytes, 19).expect("Zstd compression failed");
+    fs::write(&dest_path, compressed).expect("Failed to write compressed data");
+
+    let metadata = format!("const PHOSPHOR_SIZE: usize = {};", bytes.len());
+    let metadata_path = Path::new(&out_dir).join("phosphor_meta.rs");
+    fs::write(&metadata_path, metadata).expect("Failed to write metadata");
 }
 
 fn main() {
-    // Re-run the build script if wiitdb.xml changes
-    println!("cargo:rerun-if-changed=assets/wiitdb.xml");
-
     // Compile wiitdb.xml
     compile_wiitdb_xml();
+    println!("cargo:rerun-if-changed=assets/wiitdb.xml");
+
+    // Compress Phosphor.ttf
+    compress_phosphor();
+    println!("cargo:rerun-if-changed=assets/Phosphor.ttf");
 
     // Windows-specific icon resource
     #[cfg(windows)]
