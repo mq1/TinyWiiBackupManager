@@ -15,7 +15,7 @@ use rkyv::{Archive, Deserialize, rancor};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, LazyLock};
-use strum::Display;
+use strum::{AsRefStr, Display};
 
 include!(concat!(env!("OUT_DIR"), "/metadata.rs"));
 
@@ -35,11 +35,11 @@ fn lookup(id: &[u8; 6]) -> Option<GameInfo> {
 }
 
 #[rustfmt::skip]
-#[derive(Deserialize, Archive, Debug, Clone, Copy, Display)]
+#[derive(Deserialize, Archive, Debug, Clone, Copy, AsRefStr, Display)]
 pub enum Language { En, Fr, De, Es, It, Ja, Nl, Se, Dk, No, Ko, Pt, Zhtw, Zhcn, Fi, Tr, Gr, Ru }
 
 #[rustfmt::skip]
-#[derive(Deserialize, Archive, Debug, Clone, Copy, Display)]
+#[derive(Deserialize, Archive, Debug, Clone, Copy, AsRefStr, Display)]
 pub enum Region { NtscJ, NtscU, NtscK, NtscT, Pal, PalR }
 
 fn get_locale(region: Region) -> &'static str {
