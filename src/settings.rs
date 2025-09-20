@@ -2,23 +2,23 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 use serde::{Deserialize, Serialize};
-use strum::{AsRefStr, EnumIter};
+use strum::Display;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, AsRefStr, EnumIter, Copy)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Display, Copy)]
 pub enum WiiOutputFormat {
-    #[strum(serialize = "✨ WBFS Auto Split (recommended)")]
+    #[strum(serialize = "WBFS Auto Split (recommended)")]
     WbfsAuto,
-    #[strum(serialize = "📏 WBFS Fixed 4GB-32KB Split Size")]
+    #[strum(serialize = "WBFS Fixed 4GB-32KB Split Size")]
     WbfsFixed,
-    #[strum(serialize = "💿 ISO (very large)")]
+    #[strum(serialize = "ISO (very large)")]
     Iso,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, AsRefStr, EnumIter, Copy)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Display, Copy)]
 pub enum ArchiveFormat {
-    #[strum(serialize = "📦 RVZ zstd-19 (recommended)")]
+    #[strum(serialize = "RVZ zstd-19 (recommended)")]
     Rvz,
-    #[strum(serialize = "💿 ISO (very large)")]
+    #[strum(serialize = "ISO (very large)")]
     Iso,
 }
 
