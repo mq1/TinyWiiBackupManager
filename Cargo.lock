@@ -3322,9 +3322,9 @@ dependencies = [
 
 [[package]]
 name = "pxfm"
-version = "0.1.23"
+version = "0.1.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f55f4fedc84ed39cb7a489322318976425e42a147e2be79d8f878e2884f94e84"
+checksum = "83f9b339b02259ada5c0f4a389b7fb472f933aa17ce176fd2ad98f28bb401fde"
 dependencies = [
  "num-traits",
 ]
@@ -4157,7 +4157,7 @@ dependencies = [
 
 [[package]]
 name = "tiny-wii-backup-manager"
-version = "2.4.11"
+version = "2.4.12"
 dependencies = [
  "anyhow",
  "const-str",
@@ -4196,6 +4196,7 @@ dependencies = [
  "time",
  "ureq",
  "walkdir",
+ "winit",
  "winres",
  "zip",
  "zstd",
