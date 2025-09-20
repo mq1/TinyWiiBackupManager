@@ -75,7 +75,7 @@ impl App {
         egui_extras::install_image_loaders(&cc.egui_ctx);
 
         // Install system fonts
-        fonts::load_system_font(&cc.egui_ctx);
+        let _ = fonts::load_system_font(&cc.egui_ctx);
 
         // Initialize inbox
         let inbox = UiInbox::new();

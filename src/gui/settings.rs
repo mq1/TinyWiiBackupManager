@@ -5,10 +5,9 @@ use crate::app::App;
 use crate::settings::{ArchiveFormat, WiiOutputFormat};
 use eframe::egui::{self, Rect};
 use egui_theme_switch::global_theme_switch;
-use strum::IntoEnumIterator;
 
 pub fn ui_settings_window(ctx: &egui::Context, app: &mut App, rect: Rect) {
-    egui::Window::new("⚙ Settings")
+    egui::Window::new(format!("{} Settings", egui_phosphor::regular::GEAR))
         .open(&mut app.settings_window_open)
         .auto_sized()
         .collapsible(false)
@@ -18,41 +17,83 @@ pub fn ui_settings_window(ctx: &egui::Context, app: &mut App, rect: Rect) {
         .show(ctx, |ui| {
             ui.add_space(10.0);
 
-            ui.heading("📤 Wii Output Format");
+            ui.heading(format!(
+                "{} Wii Output Format",
+                egui_phosphor::regular::FILE_ARCHIVE
+            ));
             ui.add_space(10.0);
 
-            for format in WiiOutputFormat::iter() {
-                ui.radio_value(&mut app.settings.wii_output_format, format, format.as_ref());
-            }
+            ui.radio_value(
+                &mut app.settings.wii_output_format,
+                WiiOutputFormat::WbfsAuto,
+                format!(
+                    "{} {}",
+                    egui_phosphor::regular::SPARKLE,
+                    WiiOutputFormat::WbfsAuto
+                ),
+            );
+
+            ui.radio_value(
+                &mut app.settings.wii_output_format,
+                WiiOutputFormat::WbfsFixed,
+                format!(
+                    "{} {}",
+                    egui_phosphor::regular::RULER,
+                    WiiOutputFormat::WbfsFixed
+                ),
+            );
+
+            ui.radio_value(
+                &mut app.settings.wii_output_format,
+                WiiOutputFormat::Iso,
+                format!("{} {}", egui_phosphor::regular::DISC, WiiOutputFormat::Iso),
+            );
 
             ui.add_space(10.0);
             ui.separator();
             ui.add_space(10.0);
 
-            ui.heading("🗑 Remove Update Partition on WBFS (experimental)");
+            ui.heading(format!(
+                "{} Remove Update Partition on WBFS (experimental)",
+                egui_phosphor::regular::SCISSORS
+            ));
             ui.add_space(10.0);
 
             ui.radio_value(
                 &mut app.settings.remove_update_partition,
                 false,
-                "🛡 No (recommended)",
+                format!("{} No (recommended)", egui_phosphor::regular::SHIELD),
             );
             ui.radio_value(
                 &mut app.settings.remove_update_partition,
                 true,
-                "💣 Yes (integrity check disabled)",
+                format!(
+                    "{} Yes (integrity check won't work)",
+                    egui_phosphor::regular::BOMB
+                ),
             );
 
             ui.add_space(10.0);
             ui.separator();
             ui.add_space(10.0);
 
-            ui.heading("📦 Archive Format");
+            ui.heading(format!(
+                "{} Archive Format",
+                egui_phosphor::regular::PACKAGE
+            ));
             ui.add_space(10.0);
 
-            for format in ArchiveFormat::iter() {
-                ui.radio_value(&mut app.settings.archive_format, format, format.as_ref());
-            }
+            ui.radio_value(
+                &mut app.settings.archive_format,
+                ArchiveFormat::Rvz,
+                format!("{} {}", egui_phosphor::regular::PACKAGE, ArchiveFormat::Rvz),
+            );
+
+            ui.radio_value(
+                &mut app.settings.archive_format,
+                ArchiveFormat::Iso,
+                format!("{} {}", egui_phosphor::regular::DISC, ArchiveFormat::Iso),
+            );
 
             ui.with_layout(egui::Layout::bottom_up(egui::Align::RIGHT), |ui| {
                 ui.horizontal(|ui| {
