@@ -46,7 +46,7 @@ pub fn load_system_font(ctx: &Context) -> Result<()> {
     }
 
     let phosphor = include_bytes!(concat!(env!("OUT_DIR"), "/Phosphor.ttf.zst"));
-    let phosphor = zstd::bulk::decompress(phosphor, PHOSPHOR_SIZE).expect("Failed to decompress");
+    let phosphor = zstd::bulk::decompress(phosphor, PHOSPHOR_SIZE)?;
     fonts.font_data.insert(
         "phosphor".to_string(),
         Arc::from(FontData::from_owned(phosphor)),
