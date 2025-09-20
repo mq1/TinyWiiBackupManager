@@ -26,15 +26,19 @@ pub fn show_error_toast(app: &mut App, msg: &str) {
             egui_phosphor::regular::WARNING.to_string(),
             egui::Color32::RED,
         )
+        .closable(false)
         .duration(Some(Duration::from_secs(10)));
 }
 
 pub fn show_info_toast(app: &mut App, msg: &str) {
-    app.bottom_right_toasts.custom(
-        msg,
-        egui_phosphor::regular::INFO.to_string(),
-        egui::Color32::LIGHT_BLUE,
-    );
+    app.bottom_right_toasts
+        .custom(
+            msg,
+            egui_phosphor::regular::INFO.to_string(),
+            egui::Color32::LIGHT_BLUE,
+        )
+        .closable(false)
+        .duration(Some(Duration::from_secs(10)));
 }
 
 pub fn show_update_toast(app: &mut App, update: &Option<UpdateInfo>) {
@@ -50,6 +54,7 @@ pub fn show_update_toast(app: &mut App, update: &Option<UpdateInfo>) {
                 egui_phosphor::regular::ARROW_DOWN.to_string(),
                 egui::Color32::GRAY,
             )
+            .closable(false)
             .duration(Some(Duration::from_secs(10)));
     }
 }
