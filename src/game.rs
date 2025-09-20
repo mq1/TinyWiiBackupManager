@@ -15,7 +15,7 @@ use rkyv::{Archive, Deserialize, rancor};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, LazyLock};
-use strum::{AsRefStr, Display};
+use strum::Display;
 
 include!(concat!(env!("OUT_DIR"), "/metadata.rs"));
 
@@ -35,11 +35,11 @@ fn lookup(id: &[u8; 6]) -> Option<GameInfo> {
 }
 
 #[rustfmt::skip]
-#[derive(Deserialize, Archive, Debug, Clone, Copy, AsRefStr, Display)]
+#[derive(Deserialize, Archive, Debug, Clone, Copy, Display)]
 pub enum Language { En, Fr, De, Es, It, Ja, Nl, Se, Dk, No, Ko, Pt, Zhtw, Zhcn, Fi, Tr, Gr, Ru }
 
 #[rustfmt::skip]
-#[derive(Deserialize, Archive, Debug, Clone, Copy, AsRefStr, Display)]
+#[derive(Deserialize, Archive, Debug, Clone, Copy, Display)]
 pub enum Region { NtscJ, NtscU, NtscK, NtscT, Pal, PalR }
 
 fn get_locale(region: Region) -> &'static str {
@@ -64,7 +64,7 @@ pub struct GameInfo {
 }
 
 /// Represents the console type for a game
-#[derive(Clone, Copy, Debug, PartialEq, AsRefStr, Display)]
+#[derive(Clone, Copy, Debug, PartialEq, Display)]
 pub enum ConsoleType {
     Wii,
     #[strum(serialize = "GC")]
@@ -254,7 +254,8 @@ impl Game {
 
             let already_cached = util::checksum::all(&game, |progress, total| {
                 let msg = format!(
-                    "🔎  {:02.0}%  {}",
+                    "{}  {:02.0}%  {}",
+                    egui_phosphor::regular::MAGNIFYING_GLASS,
                     progress as f32 / total as f32 * 100.0,
                     &display_title
                 );
@@ -293,7 +294,10 @@ impl Game {
                 let out_path =
                     util::archive::game(&game, &output_dir, archive_format, |progress, total| {
                         let msg = format!(
-                            "🖴➡📄  {:02.0}%  {}... ",
+                            "{}{}{}  {:02.0}%  {}... ",
+                            egui_phosphor::regular::HARD_DRIVE,
+                            egui_phosphor::regular::ARROW_RIGHT,
+                            egui_phosphor::regular::FILE,
                             progress as f32 / total as f32 * 100.0,
                             display_title,
                         );
