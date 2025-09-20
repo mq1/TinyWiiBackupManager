@@ -17,25 +17,41 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
 
             ui.horizontal(|ui| {
                 // nav
-                ui.selectable_value(&mut app.view, View::Games, View::Games.as_ref());
-                ui.selectable_value(&mut app.view, View::WiiApps, View::WiiApps.as_ref());
+                ui.selectable_value(
+                    &mut app.view,
+                    View::Games,
+                    format!("{} Games", egui_phosphor::regular::GAME_CONTROLLER),
+                );
+                ui.selectable_value(
+                    &mut app.view,
+                    View::WiiApps,
+                    format!("{} Apps", egui_phosphor::regular::STAR),
+                );
 
                 // Display the total number of games on the right side of the menu bar
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                    ui.hyperlink_to("ℹ", "https://github.com/mq1/TinyWiiBackupManager/wiki")
-                        .on_hover_text("Open the TinyWiiBackupManager wiki");
+                    ui.hyperlink_to(
+                        egui_phosphor::regular::INFO,
+                        "https://github.com/mq1/TinyWiiBackupManager/wiki",
+                    )
+                    .on_hover_text("Open the TinyWiiBackupManager wiki");
 
-                    if ui.button("⚙").clicked() {
+                    if ui.button(egui_phosphor::regular::GEAR).clicked() {
                         app.settings_window_open = !app.settings_window_open;
                         app.top_right_toasts.dismiss_all_toasts();
                     }
 
-                    ui.menu_button("☰", |ui| {
+                    ui.menu_button(egui_phosphor::regular::LIST, |ui| {
                         // remove hint toast
                         app.top_right_toasts.dismiss_all_toasts();
 
                         // Re-pick base directory button
-                        if ui.button("📁 Pick base Drive/Directory").clicked()
+                        if ui
+                            .button(format!(
+                                "{} Pick base Drive/Directory",
+                                egui_phosphor::regular::FOLDER
+                            ))
+                            .clicked()
                             && let Err(e) = app.choose_base_dir()
                         {
                             let _ = sender.send(e.into());
@@ -47,7 +63,10 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
 
                             let mut btn = ui.add_enabled(
                                 app.base_dir.is_some(),
-                                egui::Button::new("👻 Clean MacOS ._ files"),
+                                egui::Button::new(format!(
+                                    "{} Clean MacOS ._ files",
+                                    egui_phosphor::regular::GHOST
+                                )),
                             );
 
                             if let Some(base_dir) = &app.base_dir {
@@ -67,7 +86,10 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                         if ui
                             .add_enabled(
                                 app.base_dir.is_some(),
-                                egui::Button::new("📥 Download wiitdb.xml"),
+                                egui::Button::new(format!(
+                                    "{} Download wiitdb.xml",
+                                    egui_phosphor::regular::DOWNLOAD_SIMPLE
+                                )),
                             )
                             .on_hover_text("Download the latest wiitdb.xml database from GameTDB")
                             .clicked()
@@ -79,7 +101,10 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                         if ui
                             .add_enabled(
                                 !app.games.is_empty(),
-                                egui::Button::new("📥 Download Covers"),
+                                egui::Button::new(format!(
+                                    "{} Download Covers",
+                                    egui_phosphor::regular::DOWNLOAD_SIMPLE
+                                )),
                             )
                             .on_hover_text("Download all covers for all games")
                             .clicked()
@@ -92,7 +117,10 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                         if ui
                             .add_enabled(
                                 !app.games.is_empty(),
-                                egui::Button::new("🔎 Integrity check (all games)"),
+                                egui::Button::new(format!(
+                                    "{} Integrity check (all games)",
+                                    egui_phosphor::regular::MAGNIFYING_GLASS
+                                )),
                             )
                             .on_hover_text("Check the integrity of all games")
                             .clicked()
@@ -102,7 +130,7 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                     });
 
                     if app.view == View::WiiApps {
-                        let btn = ui.button("📮 Wiiload");
+                        let btn = ui.button(format!("{} Wiiload", egui_phosphor::regular::MAILBOX));
                         let popup = egui::Popup::from_toggle_button_response(&btn)
                             .close_behavior(PopupCloseBehavior::CloseOnClickOutside);
                         popup.show(|ui| {
@@ -111,7 +139,10 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                         });
 
                         let download_app_button = ui
-                            .button("🏪 Open Shop Channel")
+                            .button(format!(
+                                "{} Open Shop Channel",
+                                egui_phosphor::regular::STOREFRONT
+                            ))
                             .on_hover_text("Download apps from OSCWii.org");
 
                         if download_app_button.clicked() {
@@ -123,7 +154,10 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                     if app.base_dir.is_some() {
                         if app.view == View::Games {
                             let add_games_button = ui
-                                .button("➕ Add Game(s)")
+                                .button(format!(
+                                    "{} Add Game(s)",
+                                    egui_phosphor::regular::PLUS_CIRCLE
+                                ))
                                 .on_hover_text("Add one or more games to the wbfs directory");
 
                             if add_games_button.clicked() {
@@ -131,7 +165,7 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                             }
                         } else if app.view == View::WiiApps {
                             let add_apps_button = ui
-                                .button("➕ Add .zip")
+                                .button(format!("{} Add .zip", egui_phosphor::regular::PLUS_CIRCLE))
                                 .on_hover_text("Add one or more (.zip) apps to the apps directory");
 
                             if add_apps_button.clicked() {
