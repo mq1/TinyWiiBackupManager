@@ -3,7 +3,7 @@
 
 use crate::app::App;
 use crate::base_dir::BaseDir;
-use crate::gui::devs::DEVELOPERS;
+use crate::gui::devs::get_developer_icon;
 use crate::gui::wiiapp_info::ui_wiiapp_info_window;
 use crate::messages::BackgroundMessage;
 use crate::task::TaskProcessor;
@@ -85,9 +85,7 @@ fn ui_wiiapp_card(
 
                 ui.add(egui::Label::new(RichText::new(&wiiapp.meta.name).strong()).truncate());
 
-                let avatar = DEVELOPERS
-                    .get(&wiiapp.meta.coder)
-                    .unwrap_or(&egui_phosphor::regular::USER);
+                let avatar = get_developer_icon(&wiiapp.meta.coder);
                 ui.add(
                     egui::Label::new(format!("{} by {}", avatar, &wiiapp.meta.coder)).truncate(),
                 );
