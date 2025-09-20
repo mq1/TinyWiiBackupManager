@@ -311,7 +311,10 @@ impl App {
                         remove_update_partition,
                         move |current, total| {
                             let status = format!(
-                                "📄➡🖴  {:02.0}%  {}",
+                                "{}{}{}  {:02.0}%  {}",
+                                egui_phosphor::regular::FILE,
+                                egui_phosphor::regular::ARROW_RIGHT,
+                                egui_phosphor::regular::HARD_DRIVE,
                                 current as f32 / total as f32 * 100.0,
                                 file_name
                             );
