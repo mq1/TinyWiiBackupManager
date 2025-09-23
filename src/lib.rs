@@ -18,7 +18,6 @@ mod settings;
 mod task;
 mod util;
 
-pub const PRODUCT_NAME: &str = "TinyWiiBackupManager";
 const USER_AGENT: &str = concatcp!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 
 #[cfg(any(

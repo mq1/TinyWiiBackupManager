@@ -8,6 +8,10 @@ repository = "https://github.com/mq1/TinyWiiBackupManager"
 description = "A dead simple Wii Backup Manager"
 
 
+[lints.rust]
+non_snake_case = "allow"
+
+
 [package.metadata.packager]
 product-name = "TinyWiiBackupManager"
 identifier = "it.mq1.TinyWiiBackupManager"
