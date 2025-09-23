@@ -2,14 +2,15 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 #![warn(clippy::all, rust_2018_idioms)]
+#![allow(non_snake_case)]
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
+use TinyWiiBackupManager::app::App;
+use TinyWiiBackupManager::game::DECOMPRESSED;
+use TinyWiiBackupManager::{AGENT, PRODUCT_NAME};
 use anyhow::{Result, bail};
 use eframe::egui;
 use std::{fs, io};
-use tiny_wii_backup_manager::app::App;
-use tiny_wii_backup_manager::game::DECOMPRESSED;
-use tiny_wii_backup_manager::{AGENT, PRODUCT_NAME};
 
 const LOGO: &[u8] = include_bytes!("../assets/logo-small.png");
 
@@ -41,8 +42,7 @@ const BYTE_COUNT: usize = 13320437;
 const DECOMPRESSED_SIZE: usize = 45937664;
 
 fn download_opengl() -> Result<()> {
-    let resp = AGENT.get(OPENGL_URL)
-        .call()?;
+    let resp = AGENT.get(OPENGL_URL).call()?;
 
     let mut buffer = Vec::with_capacity(BYTE_COUNT);
 
