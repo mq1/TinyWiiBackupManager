@@ -3,6 +3,53 @@
 version = 4
 
 [[package]]
+name = "TinyWiiBackupManager"
+version = "2.4.14"
+dependencies = [
+ "anyhow",
+ "const-str",
+ "const_format",
+ "eframe",
+ "egui-notify",
+ "egui-phosphor",
+ "egui-theme-switch",
+ "egui-winit",
+ "egui_extras",
+ "egui_inbox",
+ "env_logger",
+ "flume",
+ "fontdb",
+ "fs_extra",
+ "hex",
+ "image",
+ "log",
+ "nod",
+ "notify",
+ "num_cpus",
+ "open",
+ "path-slash",
+ "phf 0.13.1",
+ "quick-xml 0.38.3",
+ "rfd",
+ "rkyv",
+ "sanitize-filename-reader-friendly",
+ "semver",
+ "serde",
+ "serde_plain",
+ "size",
+ "strum 0.27.2",
+ "sysinfo",
+ "tempfile",
+ "time",
+ "ureq",
+ "walkdir",
+ "winit",
+ "winres",
+ "zip",
+ "zstd",
+]
+
+[[package]]
 name = "ab_glyph"
 version = "0.2.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4205,53 +4252,6 @@ dependencies = [
  "arrayref",
  "bytemuck",
  "strict-num",
-]
-
-[[package]]
-name = "tiny-wii-backup-manager"
-version = "2.4.14"
-dependencies = [
- "anyhow",
- "const-str",
- "const_format",
- "eframe",
- "egui-notify",
- "egui-phosphor",
- "egui-theme-switch",
- "egui-winit",
- "egui_extras",
- "egui_inbox",
- "env_logger",
- "flume",
- "fontdb",
- "fs_extra",
- "hex",
- "image",
- "log",
- "nod",
- "notify",
- "num_cpus",
- "open",
- "path-slash",
- "phf 0.13.1",
- "quick-xml 0.38.3",
- "rfd",
- "rkyv",
- "sanitize-filename-reader-friendly",
- "semver",
- "serde",
- "serde_plain",
- "size",
- "strum 0.27.2",
- "sysinfo",
- "tempfile",
- "time",
- "ureq",
- "walkdir",
- "winit",
- "winres",
- "zip",
- "zstd",
 ]
 
 [[package]]
