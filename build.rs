@@ -243,10 +243,6 @@ fn main() {
     compile_wiitdb_xml();
     println!("cargo:rerun-if-changed=assets/wiitdb.xml");
 
-    // Compress Phosphor.ttf
-    compress_phosphor();
-    println!("cargo:rerun-if-changed=assets/Phosphor.ttf");
-
     // Windows-specific icon resource
     #[cfg(windows)]
     {
