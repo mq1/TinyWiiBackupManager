@@ -1,16 +1,12 @@
 [package]
-name = "tiny-wii-backup-manager"
+name = "TinyWiiBackupManager"
 version = "2.4.14"
 authors = ["Manuel Quarneti <mq1@ik.me>"]
 edition = "2024"
 license = "GPL-2.0-only"
 repository = "https://github.com/mq1/TinyWiiBackupManager"
 description = "A dead simple Wii Backup Manager"
-build = "build.rs"
 
-[[bin]]
-name = "TinyWiiBackupManager"
-path = "src/main.rs"
 
 [package.metadata.packager]
 product-name = "TinyWiiBackupManager"

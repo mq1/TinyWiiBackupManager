@@ -55,7 +55,7 @@ jobs:
 
       - name: Build and package binary
         run: |
-          cargo build --release --locked --target ${{ matrix.target }} --bin TinyWiiBackupManager
+          cargo build --release --locked --target ${{ matrix.target }}
           cargo packager --release --target ${{ matrix.target }} --formats appimage
 
       - name: Upload Linux distributables
@@ -102,7 +102,7 @@ jobs:
         if: matrix.bootstrap == 0
 
       - name: Build binary
-        run: cargo build ${{ env.EXTRA_ARGS }} --release --locked --target ${{ matrix.target }} --bin TinyWiiBackupManager
+        run: cargo build ${{ env.EXTRA_ARGS }} --release --locked --target ${{ matrix.target }}
 
       - name: Make dist directory
         shell: pwsh
@@ -145,7 +145,7 @@ jobs:
           cache-key: ${{ matrix.target }}
 
       - name: Build binary
-        run: cargo build --release --locked --target ${{ matrix.target }} --bin TinyWiiBackupManager
+        run: cargo build --release --locked --target ${{ matrix.target }}
 
       - name: Upload MacOS binary
         uses: actions/upload-artifact@v4
