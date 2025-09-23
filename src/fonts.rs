@@ -70,18 +70,8 @@ pub fn load_system_font(ctx: &Context) -> Result<()> {
         }
     }
 
-    let phosphor = include_bytes!(concat!(env!("OUT_DIR"), "/Phosphor.ttf.zst"));
-    let phosphor = zstd::bulk::decompress(phosphor, PHOSPHOR_SIZE)?;
-    fonts.font_data.insert(
-        "phosphor".to_string(),
-        Arc::from(FontData::from_owned(phosphor)),
-    );
-    if let Some(vec) = fonts.families.get_mut(&FontFamily::Proportional) {
-        vec.push("phosphor".to_string());
-    }
-    if let Some(vec) = fonts.families.get_mut(&FontFamily::Monospace) {
-        vec.push("phosphor".to_string());
-    }
+    // Add Phosphor icons
+    egui_phosphor::add_to_fonts(&mut fonts, egui_phosphor::Variant::Regular);
 
     ctx.set_fonts(fonts);
     Ok(())
