@@ -34,7 +34,7 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                         egui_phosphor::regular::INFO,
                         "https://github.com/mq1/TinyWiiBackupManager/wiki",
                     )
-                    .on_hover_text("Open the TinyWiiBackupManager wiki");
+                    .on_hover_text(format!("Open the {} wiki", env!("CARGO_PKG_NAME")));
 
                     if ui.button(egui_phosphor::regular::GEAR).clicked() {
                         app.settings_window_open = !app.settings_window_open;

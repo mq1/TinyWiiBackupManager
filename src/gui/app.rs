@@ -37,7 +37,9 @@ impl eframe::App for App {
         };
 
         ctx.send_viewport_cmd(ViewportCommand::Title(format!(
-            "TinyWiiBackupManager{dir_text}"
+            "{}{}",
+            env!("CARGO_PKG_NAME"),
+            dir_text
         )));
 
         gui::top_panel::ui_top_panel(ctx, self);
