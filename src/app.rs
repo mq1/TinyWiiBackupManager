@@ -38,8 +38,6 @@ pub struct App {
     pub total_space: u64,
     /// Inbox for receiving messages from background tasks
     pub inbox: UiInbox<BackgroundMessage>,
-    /// File watcher
-    watcher: Option<notify::RecommendedWatcher>,
     /// Whether to remove sources after conversion
     pub remove_sources: bool,
     /// Whether to remove sources after conversion
@@ -128,7 +126,6 @@ impl App {
             remove_sources_wiiapps: false,
             console_filter: ConsoleFilter::default(),
             update_info: None,
-            watcher: None,
             task_status: None,
             settings,
             settings_window_open: false,
@@ -155,9 +152,6 @@ impl App {
         }
 
         let sender = app.inbox.sender();
-        if let Err(e) = app.watch_base_dir() {
-            let _ = sender.send(e.into());
-        }
         if let Err(e) = app.refresh_games() {
             let _ = sender.send(e.into());
         }
@@ -171,20 +165,6 @@ impl App {
         app
     }
 
-    fn watch_base_dir(&mut self) -> Result<()> {
-        if let Some(base_dir) = &self.base_dir {
-            let sender = self.inbox.sender();
-            let callback = move || {
-                let _ = sender.send(BackgroundMessage::DirectoryChanged);
-            };
-
-            let watcher = base_dir.get_watcher(callback)?;
-            self.watcher = Some(watcher);
-        }
-
-        Ok(())
-    }
-
     pub fn choose_base_dir(&mut self) -> Result<()> {
         let new_dir = rfd::FileDialog::new()
             .set_title("Select New Base Directory")
@@ -194,7 +174,6 @@ impl App {
             let base_dir = BaseDir::new(new_dir)?;
             self.base_dir = Some(base_dir);
 
-            self.watch_base_dir()?;
             self.refresh_games()?;
             self.refresh_wiiapps()?;
             self.refresh_fs()?;

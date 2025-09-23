@@ -7,6 +7,8 @@ license = "GPL-2.0-only"
 repository = "https://github.com/mq1/TinyWiiBackupManager"
 description = "A dead simple Wii Backup Manager"
 
+[lints.rust]
+non_snake_case = "allow"
 
 [package.metadata.packager]
 product-name = "TinyWiiBackupManager"
@@ -48,7 +50,6 @@ anyhow = "1.0"
 semver = "1.0"
 fs_extra = "1.3"
 open = "5.3"
-notify = "8.2"
 size = "0.5"
 log = "0.4"
 env_logger = { version = "0.11", default-features = false, features = [

@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
+use crate::AGENT;
 use crate::game::{ConsoleType, Game};
 use anyhow::{Context, Result, bail};
-use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::BufReader;
@@ -12,7 +12,6 @@ use std::{fmt, fs, io};
 use ureq::http::StatusCode;
 use zip::ZipArchive;
 use zip::result::ZipResult;
-use crate::AGENT;
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct BaseDir(PathBuf);
@@ -81,34 +80,6 @@ impl BaseDir {
 
     pub fn wiiflow_cover_dir(&self) -> PathBuf {
         self.wiiflow_dir().join("boxcovers")
-    }
-
-    pub fn get_watcher(&self, callback: impl Fn() + Send + 'static) -> Result<RecommendedWatcher> {
-        let handler = move |res| {
-            if let Ok(notify::Event {
-                kind:
-                    notify::EventKind::Modify(_)
-                    | notify::EventKind::Create(_)
-                    | notify::EventKind::Remove(_),
-                ..
-            }) = res
-            {
-                callback();
-            }
-        };
-
-        let mut watcher = notify::recommended_watcher(handler)?;
-
-        fs::create_dir_all(self.wii_dir())?;
-        watcher.watch(&self.wii_dir(), RecursiveMode::NonRecursive)?;
-
-        fs::create_dir_all(self.gc_dir())?;
-        watcher.watch(&self.gc_dir(), RecursiveMode::NonRecursive)?;
-
-        fs::create_dir_all(self.apps_dir())?;
-        watcher.watch(&self.apps_dir(), RecursiveMode::NonRecursive)?;
-
-        Ok(watcher)
     }
 
     /// Scans the "wbfs" and "games" directories and get the list of games and the size of the base directory
