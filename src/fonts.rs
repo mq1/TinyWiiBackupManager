@@ -10,8 +10,6 @@ use fontdb::{Database, Family, Query, Source};
 use std::fs;
 use std::sync::Arc;
 
-include!(concat!(env!("OUT_DIR"), "/phosphor_meta.rs"));
-
 pub fn load_system_font(ctx: &Context) -> Result<()> {
     let mut fonts = FontDefinitions::default();
 
