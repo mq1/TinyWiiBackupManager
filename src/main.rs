@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 #![warn(clippy::all, rust_2018_idioms)]
-#![allow(non_snake_case)]
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
 use TinyWiiBackupManager::app::App;
