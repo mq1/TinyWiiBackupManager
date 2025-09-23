@@ -27,9 +27,8 @@ pub fn ui_settings_window(ctx: &egui::Context, app: &mut App, rect: Rect) {
                 &mut app.settings.wii_output_format,
                 WiiOutputFormat::WbfsAuto,
                 format!(
-                    "{} {}",
+                    "{} WBFS Auto Split (recommended)",
                     egui_phosphor::regular::SPARKLE,
-                    WiiOutputFormat::WbfsAuto
                 ),
             );
 
@@ -37,16 +36,15 @@ pub fn ui_settings_window(ctx: &egui::Context, app: &mut App, rect: Rect) {
                 &mut app.settings.wii_output_format,
                 WiiOutputFormat::WbfsFixed,
                 format!(
-                    "{} {}",
+                    "{} WBFS Fixed 4GB-32KB Split Size",
                     egui_phosphor::regular::RULER,
-                    WiiOutputFormat::WbfsFixed
                 ),
             );
 
             ui.radio_value(
                 &mut app.settings.wii_output_format,
                 WiiOutputFormat::Iso,
-                format!("{} {}", egui_phosphor::regular::DISC, WiiOutputFormat::Iso),
+                format!("{} ISO (very large)", egui_phosphor::regular::DISC),
             );
 
             ui.add_space(10.0);
@@ -86,13 +84,16 @@ pub fn ui_settings_window(ctx: &egui::Context, app: &mut App, rect: Rect) {
             ui.radio_value(
                 &mut app.settings.archive_format,
                 ArchiveFormat::Rvz,
-                format!("{} {}", egui_phosphor::regular::PACKAGE, ArchiveFormat::Rvz),
+                format!(
+                    "{} RVZ zstd-19 (recommended)",
+                    egui_phosphor::regular::PACKAGE
+                ),
             );
 
             ui.radio_value(
                 &mut app.settings.archive_format,
                 ArchiveFormat::Iso,
-                format!("{} {}", egui_phosphor::regular::DISC, ArchiveFormat::Iso),
+                format!("{} ISO (very large)", egui_phosphor::regular::DISC),
             );
 
             ui.with_layout(egui::Layout::bottom_up(egui::Align::RIGHT), |ui| {
