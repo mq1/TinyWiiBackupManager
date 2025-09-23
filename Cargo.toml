@@ -29,15 +29,6 @@ LegalCopyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-2.0-only
 
 
 [dependencies]
-eframe = { version = "0.32", default-features = false, features = [
-    "accesskit",
-    "glow",
-    "persistence",
-    "wayland",
-    "x11"
-] }
-egui-winit = { version = "0.32", default-features = true }
-winit = { version = "0.30", default-features = true }
 fontdb = "0.23"
 egui-phosphor = "0.10.0"
 egui_extras = { version = "0.32", default-features = false, features = [
@@ -63,7 +54,7 @@ const_format = { version = "0.2", features = ["rust_1_64"] }
 nod = { git = "https://github.com/mq1/nod", branch = "strip-wbfs" }
 hex = "0.4"
 serde = { version = "1.0", features = ["derive"] }
-zip = { version = "5.0", default-features = false, features = [
+zip = { version = "5.1", default-features = false, features = [
     "deflate-flate2",
 ] }
 const-str = "0.7"
@@ -81,6 +72,42 @@ sysinfo = "0.37"
 path-slash = "0.2"
 rkyv = { version = "0.8", default-features = false, features = ["std"] }
 zstd = "0.13"
+
+
+[target.'cfg(all(target_os = "windows", any(target_arch = "x86_64", target_arch = "aarch64")))'.dependencies]
+eframe = { version = "0.32", default-features = false, features = [
+    "accesskit",
+    "wgpu",
+    "persistence",
+] }
+wgpu = { version = "25", default-features = false, features = ["dx12"] }
+
+[target.'cfg(all(target_os = "windows", target_arch = "x86"))'.dependencies]
+eframe = { version = "0.32", default-features = false, features = [
+    "accesskit",
+    "glow",
+    "persistence",
+] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+eframe = { version = "0.32", default-features = false, features = [
+    "accesskit",
+    "glow",
+    "persistence",
+    "wayland",
+    "x11",
+] }
+winit = { version = "0.30", default-features = true }
+
+
+[target.'cfg(target_os = "macos")'.dependencies]
+eframe = { version = "0.32", default-features = false, features = [
+    "accesskit",
+    "glow", # We'll switch to wgpu when macOS drops OpenGL
+    "persistence",
+] }
+# wgpu = { version = "25", default-features = false, features = ["metal"] }
+
 
 [target.'cfg(any(target_os = "macos", all(target_os = "windows", any(target_arch = "x86_64", target_arch = "aarch64"))))'.dependencies]
 ureq = { version = "3.1", default-features = false, features = ["native-tls", "platform-verifier", "json"] }
