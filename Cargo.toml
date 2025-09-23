@@ -7,9 +7,8 @@ license = "GPL-2.0-only"
 repository = "https://github.com/mq1/TinyWiiBackupManager"
 description = "A dead simple Wii Backup Manager"
 
-[build]
-rustflags = ["-A", "non_snake_case"]
-
+[lints.rust]
+non_snake_case = "allow"
 
 [package.metadata.packager]
 product-name = "TinyWiiBackupManager"
