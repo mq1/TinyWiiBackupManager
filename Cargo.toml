@@ -58,7 +58,6 @@ zip = { version = "5.1", default-features = false, features = [
     "deflate-flate2",
 ] }
 const-str = "0.7"
-strum = { version = "0.27", features = ["derive"] }
 egui-theme-switch = "0.4"
 flume = "0.11"
 tempfile = "3.23"
