@@ -12,10 +12,9 @@ use nod::read::DiscMeta;
 use path_slash::PathBufExt;
 use rkyv::boxed::ArchivedBox;
 use rkyv::{Archive, Deserialize, rancor};
-use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, LazyLock};
-use strum::{AsRefStr, Display};
+use std::{fmt, fs};
 
 include!(concat!(env!("OUT_DIR"), "/metadata.rs"));
 
@@ -35,12 +34,50 @@ fn lookup(id: &[u8; 6]) -> Option<GameInfo> {
 }
 
 #[rustfmt::skip]
-#[derive(Deserialize, Archive, Debug, Clone, Copy, AsRefStr, Display)]
+#[derive(Deserialize, Archive, Debug, Clone, Copy)]
 pub enum Language { En, Fr, De, Es, It, Ja, Nl, Se, Dk, No, Ko, Pt, Zhtw, Zhcn, Fi, Tr, Gr, Ru }
 
+impl fmt::Display for Language {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Language::En => write!(f, "English"),
+            Language::Fr => write!(f, "French"),
+            Language::De => write!(f, "German"),
+            Language::Es => write!(f, "Spanish"),
+            Language::It => write!(f, "Italian"),
+            Language::Ja => write!(f, "Japanese"),
+            Language::Nl => write!(f, "Dutch"),
+            Language::Se => write!(f, "Swedish"),
+            Language::Dk => write!(f, "Danish"),
+            Language::No => write!(f, "Norwegian"),
+            Language::Ko => write!(f, "Korean"),
+            Language::Pt => write!(f, "Portuguese"),
+            Language::Zhtw => write!(f, "Mandarin (Taiwan)"),
+            Language::Zhcn => write!(f, "Mandarin (China)"),
+            Language::Fi => write!(f, "Finnish"),
+            Language::Tr => write!(f, "Turkish"),
+            Language::Gr => write!(f, "Greek"),
+            Language::Ru => write!(f, "Russian"),
+        }
+    }
+}
+
 #[rustfmt::skip]
-#[derive(Deserialize, Archive, Debug, Clone, Copy, AsRefStr, Display)]
+#[derive(Deserialize, Archive, Debug, Clone, Copy)]
 pub enum Region { NtscJ, NtscU, NtscK, NtscT, Pal, PalR }
+
+impl fmt::Display for Region {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Region::NtscJ => write!(f, "NTSC-J (Japan)"),
+            Region::NtscU => write!(f, "NTSC-U (USA)"),
+            Region::NtscK => write!(f, "NTSC-K (South Korea)"),
+            Region::NtscT => write!(f, "NTSC-T (Taiwan)"),
+            Region::Pal => write!(f, "PAL (Europe)"),
+            Region::PalR => write!(f, "PAL-R (Russia)"),
+        }
+    }
+}
 
 fn get_locale(region: Region) -> &'static str {
     match region {
@@ -64,11 +101,17 @@ pub struct GameInfo {
 }
 
 /// Represents the console type for a game
-#[derive(Clone, Copy, Debug, PartialEq, Display)]
-pub enum ConsoleType {
-    Wii,
-    #[strum(serialize = "GC")]
-    GameCube,
+#[rustfmt::skip]
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum ConsoleType { Wii, GameCube }
+
+impl fmt::Display for ConsoleType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ConsoleType::Wii => write!(f, "Wii"),
+            ConsoleType::GameCube => write!(f, "GC"),
+        }
+    }
 }
 
 impl ConsoleType {

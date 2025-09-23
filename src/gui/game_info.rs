@@ -94,7 +94,7 @@ fn ui_game_info_content(
     if let Some(info) = &game.info {
         ui.horizontal(|ui| {
             ui.label(RichText::new(format!("{} Region:", egui_phosphor::regular::GLOBE)).strong());
-            ui.label(info.region.as_ref());
+            ui.label(info.region.to_string());
         });
     }
 
