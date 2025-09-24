@@ -34,6 +34,7 @@ egui-phosphor = "0.10.0"
 egui_extras = { version = "0.32", default-features = false, features = [
     "image",
     "file",
+    "svg"
 ] }
 image = { version = "0.25", default-features = false, features = ["png"] }
 egui-notify = "0.20"
