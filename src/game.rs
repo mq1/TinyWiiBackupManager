@@ -44,7 +44,6 @@ pub struct Game {
     pub size: u64,
     pub console: ConsoleType,
     pub info: Option<GameInfo>,
-    pub display_title: String,
     pub info_url: String,
     pub info_opened: bool,
     pub is_verified: Option<bool>,
@@ -62,10 +61,10 @@ impl Game {
 
         let info = lookup(&id);
 
-        let display_title = info
+        let title = info
             .as_ref()
-            .and_then(|info| Some(info.name.to_string()))
-            .unwrap_or(title.clone());
+            .map(|info| info.title.clone())
+            .unwrap_or(title);
 
         // Check if the game is corrupt
         // If the metadata is not found, cross-reference Redump
@@ -87,7 +86,6 @@ impl Game {
             size: fs_extra::dir::get_size(path)?,
             console,
             info,
-            display_title,
             info_url,
             info_opened: false,
             is_verified: None,
@@ -122,10 +120,7 @@ impl Game {
     pub fn remove(&self) -> Result<()> {
         let res = rfd::MessageDialog::new()
             .set_title("Remove Game")
-            .set_description(format!(
-                "Are you sure you want to remove {}?",
-                self.display_title
-            ))
+            .set_description(format!("Are you sure you want to remove {}?", self.title))
             .set_buttons(rfd::MessageButtons::YesNo)
             .show();
 
@@ -205,23 +200,20 @@ impl Game {
 
     pub fn spawn_integrity_check_task(&self, task_processor: &TaskProcessor) {
         let game = self.clone();
-
         task_processor.spawn_task(move |ui_sender| {
-            let display_title = &game.display_title;
-
             let already_cached = util::checksum::all(&game, |progress, total| {
                 let msg = format!(
                     "{}  {:02.0}%  {}",
                     egui_phosphor::regular::MAGNIFYING_GLASS,
                     progress as f32 / total as f32 * 100.0,
-                    &display_title
+                    game.title,
                 );
                 let _ = ui_sender.send(BackgroundMessage::UpdateStatus(msg));
             })?;
 
             let msg = match already_cached {
-                true => format!("{display_title} hashes are already cached"),
-                false => format!("{display_title} integrity check completed and cached"),
+                true => format!("{} hashes are already cached", game.title),
+                false => format!("{} integrity check completed and cached", game.title),
             };
 
             let _ = ui_sender.send(BackgroundMessage::Info(msg));
@@ -244,10 +236,7 @@ impl Game {
 
         if let Some(output_dir) = output_dir {
             let game = self.clone();
-
             task_processor.spawn_task(move |ui_sender| {
-                let display_title = &game.display_title;
-
                 let out_path =
                     util::archive::game(&game, &output_dir, archive_format, |progress, total| {
                         let msg = format!(
@@ -256,14 +245,14 @@ impl Game {
                             egui_phosphor::regular::ARROW_RIGHT,
                             egui_phosphor::regular::FILE,
                             progress as f32 / total as f32 * 100.0,
-                            display_title,
+                            game.title,
                         );
                         let _ = ui_sender.send(BackgroundMessage::UpdateStatus(msg));
                     })?;
 
                 let _ = ui_sender.send(BackgroundMessage::Info(format!(
                     "{} archived to {}",
-                    display_title,
+                    game.title,
                     out_path.display()
                 )));
 
