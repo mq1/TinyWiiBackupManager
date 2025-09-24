@@ -6,7 +6,7 @@ use crate::gui::fake_link::fake_link;
 use crate::gui::game_checks::ui_game_checks;
 use crate::messages::BackgroundMessage;
 use anyhow::anyhow;
-use eframe::egui::{self, Id, RichText};
+use eframe::egui::{self, Id, Image, RichText};
 use egui_inbox::UiInboxSender;
 use size::Size;
 
@@ -93,6 +93,15 @@ fn ui_game_info_content(
         ui.horizontal(|ui| {
             ui.label(RichText::new(format!("{} Region:", egui_phosphor::regular::GLOBE)).strong());
             ui.label(info.region.to_string());
+        });
+
+        ui.horizontal(|ui| {
+            ui.label(
+                RichText::new(format!("{} Languages:", egui_phosphor::regular::FLAG)).strong(),
+            );
+            for lang in &info.languages {
+                ui.add(Image::new(lang.flag()).max_width(20.0));
+            }
         });
     }
 
