@@ -7,43 +7,48 @@ use crate::messages::BackgroundMessage;
 use crate::settings::ArchiveFormat;
 use crate::task::TaskProcessor;
 use crate::{app::App, game::Game};
-use eframe::egui::{self, Image, RichText};
+use eframe::egui::{self, Button, Image, RichText};
 use egui_inbox::UiInboxSender;
 use size::Size;
+use std::cmp::max;
 use std::path::Path;
 
-const CARD_WIDTH: f32 = 188.5;
-const CARD_HEIGHT: f32 = 220.0;
-const GRID_SPACING: f32 = 10.0;
+const MIN_CARD_WIDTH: f32 = 150.0;
+const CARD_HEIGHT: f32 = 200.0;
+const CARD_PADDING: f32 = 5.0;
 
 pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
     if let Some(base_dir) = &app.base_dir {
         let cover_dir = base_dir.cover_dir();
 
         egui::ScrollArea::vertical().show(ui, |ui| {
-            ui.set_min_width(ui.available_width());
+            let available_width = ui.available_width();
+            ui.set_width(available_width);
 
-            let num_columns =
-                (ui.available_width() / (CARD_WIDTH + GRID_SPACING / 2.)).max(1.) as usize;
+            // We don't want to divide by zero, don't we?
+            let num_columns = max(
+                1,
+                (available_width / (MIN_CARD_WIDTH + CARD_PADDING * 2.)) as usize,
+            );
 
-            let filter = &app.console_filter;
+            // Calculate the width of each card
+            let card_width = (available_width / num_columns as f32) - CARD_PADDING * 4.5;
 
             // Pre-filter visible games
             let mut visible_games: Vec<_> = app
                 .games
                 .iter_mut()
-                .filter(|g| filter.shows_game(g))
+                .filter(|g| app.console_filter.shows_game(g))
                 .collect();
 
             egui::Grid::new("game_grid")
-                .min_col_width(CARD_WIDTH)
-                .min_row_height(CARD_HEIGHT)
-                .spacing(egui::Vec2::splat(GRID_SPACING))
+                .spacing(egui::Vec2::splat(CARD_PADDING * 2.))
                 .show(ui, |ui| {
                     for row in visible_games.chunks_mut(num_columns) {
                         for game in row {
                             ui_game_card(
                                 ui,
+                                card_width,
                                 &mut app.inbox.sender(),
                                 &app.task_processor,
                                 game,
@@ -61,6 +66,7 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
 
 fn ui_game_card(
     ui: &mut egui::Ui,
+    card_width: f32,
     sender: &mut UiInboxSender<BackgroundMessage>,
     task_processor: &TaskProcessor,
     game: &mut Game,
@@ -68,7 +74,11 @@ fn ui_game_card(
     archive_format: ArchiveFormat,
 ) {
     let card = egui::Frame::group(ui.style()).corner_radius(5.0);
+
     card.show(ui, |ui| {
+        ui.set_height(CARD_HEIGHT);
+        ui.set_width(card_width);
+
         ui.vertical(|ui| {
             // Top row with console label on the left and size label on the right
             ui.horizontal(|ui| {
@@ -99,27 +109,15 @@ fn ui_game_card(
 
                 ui.add_space(10.);
 
-                ui.horizontal(|ui| {
-                    // We center the buttons manually
-                    // We could use egui_flex, but it's overkill for this simple case
-                    ui.add_space(32.);
-
-                    // Info button
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    // Remove button
                     if ui
-                        .button(egui_phosphor::regular::INFO)
-                        .on_hover_text("Show Game Info")
+                        .button(egui_phosphor::regular::TRASH)
+                        .on_hover_text("Remove Game")
                         .clicked()
+                        && let Err(e) = game.remove()
                     {
-                        game.toggle_info();
-                    }
-
-                    // Archive button
-                    if ui
-                        .button(egui_phosphor::regular::PACKAGE)
-                        .on_hover_text("Archive Game to a zstd-19 compressed RVZ")
-                        .clicked()
-                    {
-                        game.spawn_archive_task(task_processor, archive_format);
+                        let _ = sender.send(e.into());
                     }
 
                     // Integrity check button
@@ -131,14 +129,25 @@ fn ui_game_card(
                         game.spawn_integrity_check_task(task_processor);
                     }
 
-                    // Remove button
+                    // Archive button
                     if ui
-                        .button(egui_phosphor::regular::TRASH)
-                        .on_hover_text("Remove Game")
+                        .button(egui_phosphor::regular::PACKAGE)
+                        .on_hover_text("Archive Game to a zstd-19 compressed RVZ")
                         .clicked()
-                        && let Err(e) = game.remove()
                     {
-                        let _ = sender.send(e.into());
+                        game.spawn_archive_task(task_processor, archive_format);
+                    }
+
+                    // Info button
+                    if ui
+                        .add(
+                            Button::new(format!("{} Info", egui_phosphor::regular::INFO))
+                                .min_size(egui::vec2(ui.available_width(), 0.0)),
+                        )
+                        .on_hover_text("Show Game Information")
+                        .clicked()
+                    {
+                        game.toggle_info();
                     }
                 });
             });
