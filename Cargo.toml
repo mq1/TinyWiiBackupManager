@@ -1,6 +1,6 @@
 [package]
 name = "TinyWiiBackupManager"
-version = "2.4.14"
+version = "2.4.15"
 authors = ["Manuel Quarneti <mq1@ik.me>"]
 edition = "2024"
 license = "GPL-2.0-only"
@@ -84,12 +84,14 @@ eframe = { version = "0.32", default-features = false, features = [
 ] }
 wgpu = { version = "25", default-features = false, features = ["dx12"] }
 
+
 [target.'cfg(all(target_os = "windows", target_arch = "x86"))'.dependencies]
 eframe = { version = "0.32", default-features = false, features = [
     "accesskit",
     "glow",
     "persistence",
 ] }
+
 
 [target.'cfg(target_os = "linux")'.dependencies]
 eframe = { version = "0.32", default-features = false, features = [
