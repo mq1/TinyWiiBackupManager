@@ -15,32 +15,31 @@ impl eframe::App for App {
         handle_messages(self, ctx);
 
         // Update window title
-        let dir_text = if let Some(base_dir) = &self.base_dir {
+        let title = if let Some(base_dir) = &self.base_dir {
             match self.view {
                 View::Games => format!(
-                    " • {} games in {} ({}/{})",
+                    "{} • {} Games in {} ({}/{})",
+                    env!("CARGO_PKG_NAME"),
                     self.games.len(),
                     base_dir.name(),
                     Size::from_bytes(self.used_space),
                     Size::from_bytes(self.total_space),
                 ),
                 View::WiiApps => format!(
-                    " • {} apps in {} ({}/{})",
+                    "{} • {} Gpps in {} ({}/{})",
+                    env!("CARGO_PKG_NAME"),
                     self.wiiapps.len(),
                     base_dir.name(),
                     Size::from_bytes(self.used_space),
                     Size::from_bytes(self.total_space),
                 ),
+                View::Settings => format!("{} • Settings", env!("CARGO_PKG_NAME")),
             }
         } else {
-            String::new()
+            env!("CARGO_PKG_NAME").to_string()
         };
 
-        ctx.send_viewport_cmd(ViewportCommand::Title(format!(
-            "{}{}",
-            env!("CARGO_PKG_NAME"),
-            dir_text
-        )));
+        ctx.send_viewport_cmd(ViewportCommand::Title(title));
 
         gui::top_panel::ui_top_panel(ctx, self);
         gui::bottom_panel::ui_bottom_panel(ctx, self);
@@ -48,6 +47,7 @@ impl eframe::App for App {
         egui::CentralPanel::default().show(ctx, |ui| match self.view {
             View::Games => gui::game_grid::ui_game_grid(ui, self),
             View::WiiApps => gui::wiiapps::ui_apps(ui, self),
+            View::Settings => gui::settings::ui_settings(ui, self),
         });
 
         let mut subwin_rect = ctx.screen_rect();
@@ -56,7 +56,6 @@ impl eframe::App for App {
         subwin_rect.set_width(subwin_rect.width() - 18.);
         subwin_rect.set_height(subwin_rect.height() - 76.);
 
-        gui::settings::ui_settings_window(ctx, self, subwin_rect);
         gui::oscwii_window::ui_oscwii_window(ctx, self, subwin_rect);
 
         self.top_right_toasts.show(ctx);
