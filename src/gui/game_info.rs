@@ -15,15 +15,13 @@ pub fn ui_game_info_window(
     game: &mut Game,
     sender: &mut UiInboxSender<BackgroundMessage>,
 ) {
-    let window_title = game.display_title.clone();
-
     if game.info_opened && game.disc_meta.is_none() {
         game.refresh_meta();
     }
 
     let game_clone = game.clone();
 
-    egui::Window::new(&window_title)
+    egui::Window::new(&game.title)
         .id(Id::new(game.id))
         .open(&mut game.info_opened)
         .show(ctx, |ui| {

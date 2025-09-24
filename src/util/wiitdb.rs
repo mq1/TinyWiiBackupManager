@@ -90,7 +90,7 @@ pub enum Region {
 /// Data from WiiTDB XML
 #[derive(Deserialize, Archive, Debug, Clone)]
 pub struct GameInfo {
-    pub name: String,
+    pub title: String,
     pub region: Region,
     pub languages: Vec<Language>,
     pub crc_list: Vec<u32>,

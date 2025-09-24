@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
+use crate::AGENT;
 use crate::game::{ConsoleType, Game};
 use anyhow::{Context, Result, bail};
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
@@ -12,7 +13,6 @@ use std::{fmt, fs, io};
 use ureq::http::StatusCode;
 use zip::ZipArchive;
 use zip::result::ZipResult;
-use crate::AGENT;
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct BaseDir(PathBuf);
@@ -118,7 +118,7 @@ impl BaseDir {
         scan_dir(self.gc_dir(), &mut games, ConsoleType::GameCube)?;
 
         // Sort the combined vector
-        games.sort_by(|a, b| a.display_title.cmp(&b.display_title));
+        games.sort_by_key(|game| game.title.clone());
 
         Ok(games)
     }
