@@ -38,8 +38,12 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                 )
                 .on_hover_text("Download apps from OSCWii.org");
 
-                ui.selectable_value(&mut app.view, View::Settings, egui_phosphor::regular::GEAR)
-                    .on_hover_text(format!("Open the {} settings", env!("CARGO_PKG_NAME")));
+                ui.selectable_value(
+                    &mut app.view,
+                    View::Settings,
+                    format!("{} Settings", egui_phosphor::regular::GEAR),
+                )
+                .on_hover_text(format!("Open the {} settings", env!("CARGO_PKG_NAME")));
 
                 // Display the total number of games on the right side of the menu bar
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
