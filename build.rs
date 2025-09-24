@@ -157,7 +157,6 @@ enum Region { NtscJ, NtscU, NtscK, NtscT, Pal, PalR }
 #[rustfmt::skip]
 #[derive(Serialize, Archive)]
 struct GameInfo {
-    id: [u8; 6],
     name: String,
     region: Region,
     languages: Vec<Language>,
@@ -202,17 +201,19 @@ fn compile_wiitdb_xml() {
             .filter_map(|crc| u32::from_str_radix(&crc, 16).ok())
             .collect::<Vec<_>>();
 
-        entries.push(GameInfo {
+        entries.push((
             id,
-            name,
-            region,
-            languages,
-            crc_list,
-        });
+            GameInfo {
+                name,
+                region,
+                languages,
+                crc_list,
+            },
+        ));
     }
 
     // Sort by ID to enable binary search
-    entries.sort_by_key(|game| game.id);
+    entries.sort_by_key(|game| game.0);
 
     let entries = entries.into_boxed_slice();
     let serialized = rkyv::to_bytes::<rancor::Error>(&entries).expect("Rkyv serialization failed");
@@ -223,18 +224,6 @@ fn compile_wiitdb_xml() {
 
     let metadata = format!("const WIITDB_SIZE: usize = {};", serialized.len());
     let metadata_path = Path::new(&out_dir).join("metadata.rs");
-    fs::write(&metadata_path, metadata).expect("Failed to write metadata");
-}
-
-fn compress_phosphor() {
-    let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
-    let dest_path = out_dir.join("Phosphor.ttf.zst");
-    let bytes = fs::read("assets/Phosphor.ttf").expect("Failed to read Phosphor.ttf");
-    let compressed = zstd::bulk::compress(&bytes, 19).expect("Zstd compression failed");
-    fs::write(&dest_path, compressed).expect("Failed to write compressed data");
-
-    let metadata = format!("const PHOSPHOR_SIZE: usize = {};", bytes.len());
-    let metadata_path = Path::new(&out_dir).join("phosphor_meta.rs");
     fs::write(&metadata_path, metadata).expect("Failed to write metadata");
 }
 

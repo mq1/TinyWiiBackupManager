@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
-use eframe::egui;
-
 use crate::game::{ConsoleType, Game};
+use eframe::egui;
+use strum::{EnumMessage, IntoEnumIterator};
 
 pub struct ConsoleFilter {
     wii: bool,
@@ -32,17 +32,11 @@ impl ConsoleFilter {
 /// Renders the console filter controls
 pub fn ui_console_filter(ui: &mut egui::Ui, filter: &mut ConsoleFilter) {
     ui.horizontal(|ui| {
-        ui.checkbox(
-            &mut filter.wii,
-            format!("{} Show {}", ConsoleType::Wii.icon(), ConsoleType::Wii),
-        );
-        ui.checkbox(
-            &mut filter.gamecube,
-            format!(
-                "{} Show {}",
-                ConsoleType::GameCube.icon(),
-                ConsoleType::GameCube
-            ),
-        );
+        for console_type in ConsoleType::iter() {
+            ui.checkbox(
+                &mut filter.wii,
+                format!("{} Show {}", console_type.icon(), console_type),
+            );
+        }
     });
 }

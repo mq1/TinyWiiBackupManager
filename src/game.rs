@@ -7,115 +7,27 @@ use crate::settings::ArchiveFormat;
 use crate::task::TaskProcessor;
 use crate::util;
 use crate::util::fs::dir_to_title_id;
+use crate::util::wiitdb::{GameInfo, lookup};
 use anyhow::{Context, Error, Result};
 use nod::read::DiscMeta;
 use path_slash::PathBufExt;
-use rkyv::boxed::ArchivedBox;
-use rkyv::{Archive, Deserialize, rancor};
+use std::fs;
 use std::path::{Path, PathBuf};
-use std::sync::{Arc, LazyLock};
-use std::{fmt, fs};
-
-include!(concat!(env!("OUT_DIR"), "/metadata.rs"));
-
-pub static DECOMPRESSED: LazyLock<Box<[u8; WIITDB_SIZE]>> = LazyLock::new(|| {
-    let bytes = include_bytes!(concat!(env!("OUT_DIR"), "/wiitdb.bin.zst"));
-    let mut buffer = Box::new([0u8; WIITDB_SIZE]);
-    zstd::bulk::decompress_to_buffer(bytes, buffer.as_mut()).expect("failed to decompress");
-
-    buffer
-});
-
-fn lookup(id: &[u8; 6]) -> Option<GameInfo> {
-    let archived =
-        unsafe { rkyv::access_unchecked::<ArchivedBox<[ArchivedGameInfo]>>(&DECOMPRESSED[..]) };
-    let index = archived.binary_search_by_key(id, |game| game.id).ok()?;
-    rkyv::deserialize::<_, rancor::Error>(&archived[index]).ok()
-}
-
-#[rustfmt::skip]
-#[derive(Deserialize, Archive, Debug, Clone, Copy)]
-pub enum Language { En, Fr, De, Es, It, Ja, Nl, Se, Dk, No, Ko, Pt, Zhtw, Zhcn, Fi, Tr, Gr, Ru }
-
-impl fmt::Display for Language {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Language::En => write!(f, "English"),
-            Language::Fr => write!(f, "French"),
-            Language::De => write!(f, "German"),
-            Language::Es => write!(f, "Spanish"),
-            Language::It => write!(f, "Italian"),
-            Language::Ja => write!(f, "Japanese"),
-            Language::Nl => write!(f, "Dutch"),
-            Language::Se => write!(f, "Swedish"),
-            Language::Dk => write!(f, "Danish"),
-            Language::No => write!(f, "Norwegian"),
-            Language::Ko => write!(f, "Korean"),
-            Language::Pt => write!(f, "Portuguese"),
-            Language::Zhtw => write!(f, "Mandarin (Taiwan)"),
-            Language::Zhcn => write!(f, "Mandarin (China)"),
-            Language::Fi => write!(f, "Finnish"),
-            Language::Tr => write!(f, "Turkish"),
-            Language::Gr => write!(f, "Greek"),
-            Language::Ru => write!(f, "Russian"),
-        }
-    }
-}
-
-#[rustfmt::skip]
-#[derive(Deserialize, Archive, Debug, Clone, Copy)]
-pub enum Region { NtscJ, NtscU, NtscK, NtscT, Pal, PalR }
-
-impl fmt::Display for Region {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Region::NtscJ => write!(f, "NTSC-J (Japan)"),
-            Region::NtscU => write!(f, "NTSC-U (USA)"),
-            Region::NtscK => write!(f, "NTSC-K (South Korea)"),
-            Region::NtscT => write!(f, "NTSC-T (Taiwan)"),
-            Region::Pal => write!(f, "PAL (Europe)"),
-            Region::PalR => write!(f, "PAL-R (Russia)"),
-        }
-    }
-}
-
-fn get_locale(region: Region) -> &'static str {
-    match region {
-        Region::NtscJ => "JA",
-        Region::NtscU => "US",
-        Region::NtscK => "KO",
-        Region::NtscT => "ZH",
-        Region::Pal => "EN",
-        Region::PalR => "RU",
-    }
-}
-
-/// Data from WiiTDB XML
-#[derive(Deserialize, Archive, Debug, Clone)]
-pub struct GameInfo {
-    pub id: [u8; 6],
-    pub name: String,
-    pub region: Region,
-    pub languages: Vec<Language>,
-    pub crc_list: Vec<u32>,
-}
+use std::sync::Arc;
+use strum::EnumMessage;
+use strum_macros::{AsRefStr, Display, EnumIter, IntoStaticStr};
 
 /// Represents the console type for a game
-#[rustfmt::skip]
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub enum ConsoleType { Wii, GameCube }
-
-impl fmt::Display for ConsoleType {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            ConsoleType::Wii => write!(f, "Wii"),
-            ConsoleType::GameCube => write!(f, "GC"),
-        }
-    }
+#[derive(Clone, Copy, Debug, PartialEq, Display, AsRefStr, IntoStaticStr, EnumIter)]
+pub enum ConsoleType {
+    #[strum(serialize = "Wii")]
+    Wii,
+    #[strum(serialize = "GC")]
+    GameCube,
 }
 
 impl ConsoleType {
-    pub fn icon(&self) -> &'static str {
+    pub fn icon(&self) -> &str {
         match self {
             ConsoleType::Wii => egui_phosphor::regular::RACQUET,
             ConsoleType::GameCube => egui_phosphor::regular::DICE_SIX,
@@ -233,11 +145,12 @@ impl Game {
     }
 
     pub fn download_cover(&self, base_dir: &BaseDir) -> Result<bool> {
-        let locale = if let Some(info) = &self.info {
-            get_locale(info.region)
-        } else {
-            "EN"
-        };
+        let locale = self
+            .info
+            .as_ref()
+            .map(|info| info.region.get_message())
+            .flatten()
+            .unwrap_or("EN");
 
         let id = self.id_str();
 
@@ -249,11 +162,12 @@ impl Game {
     pub fn download_all_covers(&self, base_dir: BaseDir) -> Result<bool> {
         let id = self.id_str();
 
-        let locale = if let Some(info) = &self.info {
-            get_locale(info.region)
-        } else {
-            "EN"
-        };
+        let locale = self
+            .info
+            .as_ref()
+            .map(|info| info.region.get_message())
+            .flatten()
+            .unwrap_or("EN");
 
         // Cover3D
         let cover3d = self.download_cover(&base_dir)?;
