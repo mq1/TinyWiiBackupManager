@@ -7,7 +7,7 @@ use crate::messages::BackgroundMessage;
 use crate::settings::ArchiveFormat;
 use crate::task::TaskProcessor;
 use crate::{app::App, game::Game};
-use eframe::egui::{self, Image, RichText};
+use eframe::egui::{self, Button, Image, RichText};
 use egui_inbox::UiInboxSender;
 use size::Size;
 use std::cmp::max;
@@ -109,27 +109,15 @@ fn ui_game_card(
 
                 ui.add_space(10.);
 
-                ui.horizontal(|ui| {
-                    // We center the buttons manually
-                    // We could use egui_flex, but it's overkill for this simple case
-                    ui.add_space(32.);
-
-                    // Info button
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    // Remove button
                     if ui
-                        .button(egui_phosphor::regular::INFO)
-                        .on_hover_text("Show Game Info")
+                        .button(egui_phosphor::regular::TRASH)
+                        .on_hover_text("Remove Game")
                         .clicked()
+                        && let Err(e) = game.remove()
                     {
-                        game.toggle_info();
-                    }
-
-                    // Archive button
-                    if ui
-                        .button(egui_phosphor::regular::PACKAGE)
-                        .on_hover_text("Archive Game to a zstd-19 compressed RVZ")
-                        .clicked()
-                    {
-                        game.spawn_archive_task(task_processor, archive_format);
+                        let _ = sender.send(e.into());
                     }
 
                     // Integrity check button
@@ -141,14 +129,25 @@ fn ui_game_card(
                         game.spawn_integrity_check_task(task_processor);
                     }
 
-                    // Remove button
+                    // Archive button
                     if ui
-                        .button(egui_phosphor::regular::TRASH)
-                        .on_hover_text("Remove Game")
+                        .button(egui_phosphor::regular::PACKAGE)
+                        .on_hover_text("Archive Game to a zstd-19 compressed RVZ")
                         .clicked()
-                        && let Err(e) = game.remove()
                     {
-                        let _ = sender.send(e.into());
+                        game.spawn_archive_task(task_processor, archive_format);
+                    }
+
+                    // Info button
+                    if ui
+                        .add(
+                            Button::new(format!("{} Info", egui_phosphor::regular::INFO))
+                                .min_size(egui::vec2(ui.available_width(), 0.0)),
+                        )
+                        .on_hover_text("Show Game Information")
+                        .clicked()
+                    {
+                        game.toggle_info();
                     }
                 });
             });
