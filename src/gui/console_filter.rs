@@ -3,7 +3,7 @@
 
 use crate::game::{ConsoleType, Game};
 use eframe::egui;
-use strum::{EnumMessage, IntoEnumIterator};
+use strum::IntoEnumIterator;
 
 pub struct ConsoleFilter {
     wii: bool,
