@@ -19,11 +19,12 @@ use sysinfo::Disks;
 
 const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum View {
     Games,
     WiiApps,
     Settings,
+    OSCWii,
 }
 
 /// Main application state and UI controller.
@@ -59,13 +60,10 @@ pub struct App {
     pub task_processor: TaskProcessor,
     /// Settings
     pub settings: Settings,
-    pub settings_window_open: bool,
     /// List of discovered apps
     pub wiiapps: Vec<WiiApp>,
-    pub wiiload_window_open: bool,
     /// oscwii contents cache
     pub oscwii_apps: oscwii::AppCache,
-    pub oscwii_window_open: bool,
     pub oscwii_filter: String,
 }
 
@@ -132,11 +130,8 @@ impl App {
             watcher: None,
             task_status: None,
             settings,
-            settings_window_open: false,
             wiiapps: Vec::new(),
-            wiiload_window_open: false,
             oscwii_apps,
-            oscwii_window_open: false,
             oscwii_filter: String::new(),
         };
 
