@@ -114,7 +114,7 @@ impl App {
         let mut app = Self {
             view: View::Games,
             top_right_toasts: toasts::create_toasts(egui_notify::Anchor::TopRight)
-                .with_margin(egui::vec2(51.0, 36.0)),
+                .with_margin(egui::vec2(22.0, 36.0)),
             bottom_left_toasts: toasts::create_toasts(egui_notify::Anchor::BottomLeft),
             bottom_right_toasts: toasts::create_toasts(egui_notify::Anchor::BottomRight),
             inbox,
