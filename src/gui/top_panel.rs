@@ -36,10 +36,11 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                     )
                     .on_hover_text(format!("Open the {} wiki", env!("CARGO_PKG_NAME")));
 
-                    if ui.button(egui_phosphor::regular::GEAR).clicked() {
-                        app.settings_window_open = !app.settings_window_open;
-                        app.top_right_toasts.dismiss_all_toasts();
-                    }
+                    ui.selectable_value(
+                        &mut app.view,
+                        View::Settings,
+                        egui_phosphor::regular::GEAR,
+                    );
 
                     ui.menu_button(egui_phosphor::regular::LIST, |ui| {
                         // remove hint toast
