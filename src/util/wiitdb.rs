@@ -4,6 +4,7 @@
 use crate::AGENT;
 use crate::base_dir::BaseDir;
 use anyhow::{Context, Result};
+use eframe::egui::{ImageSource, include_image};
 use rkyv::boxed::ArchivedBox;
 use rkyv::{Archive, Deserialize, rancor};
 use std::fs::{self, File};
@@ -69,6 +70,31 @@ pub enum Language {
     Gr,
     #[strum(serialize = "Russian")]
     Ru,
+}
+
+impl Language {
+    pub fn flag(&self) -> ImageSource<'_> {
+        match self {
+            Language::En => include_image!("../../assets/flag-icons/en.svg"),
+            Language::Fr => include_image!("../../assets/flag-icons/fr.svg"),
+            Language::De => include_image!("../../assets/flag-icons/de.svg"),
+            Language::Es => include_image!("../../assets/flag-icons/es.svg"),
+            Language::It => include_image!("../../assets/flag-icons/it.svg"),
+            Language::Ja => include_image!("../../assets/flag-icons/ja.svg"),
+            Language::Nl => include_image!("../../assets/flag-icons/nl.svg"),
+            Language::Se => include_image!("../../assets/flag-icons/se.svg"),
+            Language::Dk => include_image!("../../assets/flag-icons/dk.svg"),
+            Language::No => include_image!("../../assets/flag-icons/no.svg"),
+            Language::Ko => include_image!("../../assets/flag-icons/ko.svg"),
+            Language::Pt => include_image!("../../assets/flag-icons/pt.svg"),
+            Language::Zhtw => include_image!("../../assets/flag-icons/zhtw.svg"),
+            Language::Zhcn => include_image!("../../assets/flag-icons/zhcn.svg"),
+            Language::Fi => include_image!("../../assets/flag-icons/fi.svg"),
+            Language::Tr => include_image!("../../assets/flag-icons/tr.svg"),
+            Language::Gr => include_image!("../../assets/flag-icons/gr.svg"),
+            Language::Ru => include_image!("../../assets/flag-icons/ru.svg"),
+        }
+    }
 }
 
 #[derive(Deserialize, Archive, Debug, Clone, Copy, IntoStaticStr, Display, EnumMessage)]
