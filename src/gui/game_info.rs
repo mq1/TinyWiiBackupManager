@@ -6,7 +6,7 @@ use crate::gui::fake_link::fake_link;
 use crate::gui::game_checks::ui_game_checks;
 use crate::messages::BackgroundMessage;
 use anyhow::anyhow;
-use eframe::egui::{self, Id, RichText};
+use eframe::egui::{self, Id, Image, RichText};
 use egui_inbox::UiInboxSender;
 use size::Size;
 
@@ -15,15 +15,13 @@ pub fn ui_game_info_window(
     game: &mut Game,
     sender: &mut UiInboxSender<BackgroundMessage>,
 ) {
-    let window_title = game.display_title.clone();
-
     if game.info_opened && game.disc_meta.is_none() {
         game.refresh_meta();
     }
 
     let game_clone = game.clone();
 
-    egui::Window::new(&window_title)
+    egui::Window::new(&game.title)
         .id(Id::new(game.id))
         .open(&mut game.info_opened)
         .show(ctx, |ui| {
@@ -95,6 +93,15 @@ fn ui_game_info_content(
         ui.horizontal(|ui| {
             ui.label(RichText::new(format!("{} Region:", egui_phosphor::regular::GLOBE)).strong());
             ui.label(info.region.to_string());
+        });
+
+        ui.horizontal(|ui| {
+            ui.label(
+                RichText::new(format!("{} Languages:", egui_phosphor::regular::FLAG)).strong(),
+            );
+            for lang in &info.languages {
+                ui.add(Image::new(lang.flag()).max_width(20.0));
+            }
         });
     }
 

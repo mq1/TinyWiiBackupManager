@@ -157,7 +157,7 @@ enum Region { NtscJ, NtscU, NtscK, NtscT, Pal, PalR }
 #[rustfmt::skip]
 #[derive(Serialize, Archive)]
 struct GameInfo {
-    name: String,
+    title: String,
     region: Region,
     languages: Vec<Language>,
     crc_list: Vec<u32>,
@@ -174,18 +174,17 @@ fn compile_wiitdb_xml() {
         let len = bytes.len().min(6);
         id[..len].copy_from_slice(&bytes[..len]);
 
-        let name = game.name.trim().to_string();
-
         // skip invalid games
         if id.is_empty()
+            || game.locales.is_empty()
             || game.region.is_empty()
             || game.languages.is_empty()
-            || name.is_empty()
             || game.roms.is_empty()
         {
             continue;
         }
 
+        let title = game.locales[0].title.clone();
         let region = serde_plain::from_str::<Region>(&game.region).unwrap();
 
         let languages = game
@@ -204,7 +203,7 @@ fn compile_wiitdb_xml() {
         entries.push((
             id,
             GameInfo {
-                name,
+                title,
                 region,
                 languages,
                 crc_list,

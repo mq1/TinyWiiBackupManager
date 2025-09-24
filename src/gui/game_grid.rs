@@ -94,8 +94,7 @@ fn ui_game_card(
 
                 ui.add_space(5.);
 
-                let label =
-                    egui::Label::new(RichText::new(&game.display_title).strong()).truncate();
+                let label = egui::Label::new(RichText::new(&game.title).strong()).truncate();
                 ui.add(label);
 
                 ui.add_space(10.);
