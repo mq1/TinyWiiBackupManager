@@ -23,6 +23,7 @@ const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub enum View {
     Games,
     WiiApps,
+    Settings,
 }
 
 /// Main application state and UI controller.
