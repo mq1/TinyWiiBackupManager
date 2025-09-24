@@ -22,7 +22,7 @@ pub fn game(
 ) -> Result<PathBuf> {
     let input_path = find_disc(&game.path)?;
 
-    let title = sanitize(&game.display_title);
+    let title = sanitize(&game.title);
     let output_path = output_dir
         .as_ref()
         .join(title)
