@@ -21,12 +21,25 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                     &mut app.view,
                     View::Games,
                     format!("{} Games", egui_phosphor::regular::GAME_CONTROLLER),
-                );
+                )
+                .on_hover_text("View your Wii games");
+
                 ui.selectable_value(
                     &mut app.view,
                     View::WiiApps,
                     format!("{} Apps", egui_phosphor::regular::STAR),
-                );
+                )
+                .on_hover_text("View your Homebrew Channel apps");
+
+                ui.selectable_value(
+                    &mut app.view,
+                    View::OSCWii,
+                    format!("{} OSCWii", egui_phosphor::regular::STOREFRONT),
+                )
+                .on_hover_text("Download apps from OSCWii.org");
+
+                ui.selectable_value(&mut app.view, View::Settings, egui_phosphor::regular::GEAR)
+                    .on_hover_text(format!("Open the {} settings", env!("CARGO_PKG_NAME")));
 
                 // Display the total number of games on the right side of the menu bar
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
@@ -35,12 +48,6 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                         "https://github.com/mq1/TinyWiiBackupManager/wiki",
                     )
                     .on_hover_text(format!("Open the {} wiki", env!("CARGO_PKG_NAME")));
-
-                    ui.selectable_value(
-                        &mut app.view,
-                        View::Settings,
-                        egui_phosphor::regular::GEAR,
-                    );
 
                     ui.menu_button(egui_phosphor::regular::LIST, |ui| {
                         // remove hint toast
@@ -138,18 +145,6 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                             app.top_right_toasts.dismiss_all_toasts();
                             ui_wiiload(ui, app);
                         });
-
-                        let download_app_button = ui
-                            .button(format!(
-                                "{} Open Shop Channel",
-                                egui_phosphor::regular::STOREFRONT
-                            ))
-                            .on_hover_text("Download apps from OSCWii.org");
-
-                        if download_app_button.clicked() {
-                            app.top_right_toasts.dismiss_all_toasts();
-                            app.oscwii_window_open = !app.oscwii_window_open;
-                        }
                     }
 
                     if app.base_dir.is_some() {
