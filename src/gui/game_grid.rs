@@ -10,40 +10,45 @@ use crate::{app::App, game::Game};
 use eframe::egui::{self, Image, RichText};
 use egui_inbox::UiInboxSender;
 use size::Size;
+use std::cmp::max;
 use std::path::Path;
 
-const CARD_WIDTH: f32 = 188.5;
-const CARD_HEIGHT: f32 = 220.0;
-const GRID_SPACING: f32 = 10.0;
+const MIN_CARD_WIDTH: f32 = 150.0;
+const CARD_HEIGHT: f32 = 200.0;
+const CARD_PADDING: f32 = 5.0;
 
 pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
     if let Some(base_dir) = &app.base_dir {
         let cover_dir = base_dir.cover_dir();
 
         egui::ScrollArea::vertical().show(ui, |ui| {
-            ui.set_min_width(ui.available_width());
+            let available_width = ui.available_width();
+            ui.set_width(available_width);
 
-            let num_columns =
-                (ui.available_width() / (CARD_WIDTH + GRID_SPACING / 2.)).max(1.) as usize;
+            // We don't want to divide by zero, don't we?
+            let num_columns = max(
+                1,
+                (available_width / (MIN_CARD_WIDTH + CARD_PADDING * 2.)) as usize,
+            );
 
-            let filter = &app.console_filter;
+            // Calculate the width of each card
+            let card_width = (available_width / num_columns as f32) - CARD_PADDING * 4.5;
 
             // Pre-filter visible games
             let mut visible_games: Vec<_> = app
                 .games
                 .iter_mut()
-                .filter(|g| filter.shows_game(g))
+                .filter(|g| app.console_filter.shows_game(g))
                 .collect();
 
             egui::Grid::new("game_grid")
-                .min_col_width(CARD_WIDTH)
-                .min_row_height(CARD_HEIGHT)
-                .spacing(egui::Vec2::splat(GRID_SPACING))
+                .spacing(egui::Vec2::splat(CARD_PADDING * 2.))
                 .show(ui, |ui| {
                     for row in visible_games.chunks_mut(num_columns) {
                         for game in row {
                             ui_game_card(
                                 ui,
+                                card_width,
                                 &mut app.inbox.sender(),
                                 &app.task_processor,
                                 game,
@@ -61,6 +66,7 @@ pub fn ui_game_grid(ui: &mut egui::Ui, app: &mut App) {
 
 fn ui_game_card(
     ui: &mut egui::Ui,
+    card_width: f32,
     sender: &mut UiInboxSender<BackgroundMessage>,
     task_processor: &TaskProcessor,
     game: &mut Game,
@@ -68,7 +74,11 @@ fn ui_game_card(
     archive_format: ArchiveFormat,
 ) {
     let card = egui::Frame::group(ui.style()).corner_radius(5.0);
+
     card.show(ui, |ui| {
+        ui.set_height(CARD_HEIGHT);
+        ui.set_width(card_width);
+
         ui.vertical(|ui| {
             // Top row with console label on the left and size label on the right
             ui.horizontal(|ui| {
