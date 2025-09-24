@@ -16,7 +16,7 @@ mod gui;
 mod messages;
 mod settings;
 mod task;
-mod util;
+pub mod util;
 
 const USER_AGENT: &str = concatcp!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 

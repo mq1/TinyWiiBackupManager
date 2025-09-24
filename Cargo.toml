@@ -71,6 +71,8 @@ sysinfo = "0.37"
 path-slash = "0.2"
 rkyv = { version = "0.8", default-features = false, features = ["std"] }
 zstd = "0.13"
+strum = "0.27"
+strum_macros = "0.27"
 
 
 [target.'cfg(all(target_os = "windows", any(target_arch = "x86_64", target_arch = "aarch64")))'.dependencies]

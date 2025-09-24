@@ -5,7 +5,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
 use TinyWiiBackupManager::app::App;
-use TinyWiiBackupManager::game::DECOMPRESSED;
+use TinyWiiBackupManager::util::wiitdb::WIITDB;
 use eframe::egui;
 
 const LOGO: &[u8] = include_bytes!("../assets/logo-small.png");
@@ -13,7 +13,7 @@ const LOGO: &[u8] = include_bytes!("../assets/logo-small.png");
 fn main() {
     // pre-decompress WIITDB
     std::thread::spawn(|| {
-        let _ = &*DECOMPRESSED;
+        let _ = &*WIITDB;
     });
 
     // Log to stderr (if you run with `RUST_LOG=debug`).
