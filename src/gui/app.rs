@@ -26,7 +26,7 @@ impl eframe::App for App {
                     Size::from_bytes(self.total_space),
                 ),
                 View::WiiApps => format!(
-                    "{} • {} Gpps in {} ({}/{})",
+                    "{} • {} Apps in {} ({}/{})",
                     env!("CARGO_PKG_NAME"),
                     self.wiiapps.len(),
                     base_dir.name(),
