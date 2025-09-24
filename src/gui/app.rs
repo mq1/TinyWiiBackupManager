@@ -34,6 +34,7 @@ impl eframe::App for App {
                     Size::from_bytes(self.total_space),
                 ),
                 View::Settings => format!("{} • Settings", env!("CARGO_PKG_NAME")),
+                View::OSCWii => format!("{} • Open Shop Channel", env!("CARGO_PKG_NAME")),
             }
         } else {
             env!("CARGO_PKG_NAME").to_string()
@@ -48,15 +49,8 @@ impl eframe::App for App {
             View::Games => gui::game_grid::ui_game_grid(ui, self),
             View::WiiApps => gui::wiiapps::ui_apps(ui, self),
             View::Settings => gui::settings::ui_settings(ui, self),
+            View::OSCWii => gui::oscwii::ui_oscwii(ui, self),
         });
-
-        let mut subwin_rect = ctx.screen_rect();
-        subwin_rect.set_top(subwin_rect.top() + 5.);
-        subwin_rect.set_left(subwin_rect.left() + 5.);
-        subwin_rect.set_width(subwin_rect.width() - 18.);
-        subwin_rect.set_height(subwin_rect.height() - 76.);
-
-        gui::oscwii_window::ui_oscwii_window(ctx, self, subwin_rect);
 
         self.top_right_toasts.show(ctx);
         self.bottom_left_toasts.show(ctx);
