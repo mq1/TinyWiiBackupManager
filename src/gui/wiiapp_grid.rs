@@ -12,9 +12,9 @@ use eframe::egui::{self, Image, RichText};
 use egui_inbox::UiInboxSender;
 use size::Size;
 
-const CARD_WIDTH: f32 = 188.5;
-const CARD_HEIGHT: f32 = 180.0;
-const GRID_SPACING: f32 = 10.0;
+const MIN_CARD_WIDTH: f32 = 150.0;
+const CARD_HEIGHT: f32 = 150.0;
+const CARD_PADDING: f32 = 5.0;
 
 pub fn ui_wiiapp_grid(ui: &mut egui::Ui, app: &mut App) {
     let wiiapps = &mut app.wiiapps;
@@ -23,20 +23,26 @@ pub fn ui_wiiapp_grid(ui: &mut egui::Ui, app: &mut App) {
         && let Some(base_dir) = &app.base_dir
     {
         egui::ScrollArea::vertical().show(ui, |ui| {
-            ui.set_min_width(ui.available_width());
+            let available_width = ui.available_width();
+            ui.set_width(available_width);
 
-            let num_columns =
-                (ui.available_width() / (CARD_WIDTH + GRID_SPACING / 2.)).max(1.) as usize;
+            // We don't want to divide by zero
+            let num_columns = std::cmp::max(
+                1,
+                (available_width / (MIN_CARD_WIDTH + CARD_PADDING * 2.)) as usize,
+            );
+
+            // Calculate the width of each card
+            let card_width = (available_width / num_columns as f32) - CARD_PADDING * 4.5;
 
             egui::Grid::new("app_grid")
-                .min_col_width(CARD_WIDTH)
-                .min_row_height(CARD_HEIGHT)
-                .spacing(egui::Vec2::splat(GRID_SPACING))
+                .spacing(egui::Vec2::splat(CARD_PADDING * 2.))
                 .show(ui, |ui| {
                     for row in wiiapps.chunks_mut(num_columns) {
                         for wiiapp in row {
                             ui_wiiapp_card(
                                 ui,
+                                card_width,
                                 &mut app.inbox.sender(),
                                 wiiapp,
                                 &base_dir,
@@ -53,6 +59,7 @@ pub fn ui_wiiapp_grid(ui: &mut egui::Ui, app: &mut App) {
 
 fn ui_wiiapp_card(
     ui: &mut egui::Ui,
+    card_width: f32,
     sender: &mut UiInboxSender<BackgroundMessage>,
     wiiapp: &mut WiiApp,
     base_dir: &BaseDir,
@@ -60,6 +67,8 @@ fn ui_wiiapp_card(
 ) {
     let card = egui::Frame::group(ui.style()).corner_radius(5.0);
     card.show(ui, |ui| {
+        ui.set_height(CARD_HEIGHT);
+        ui.set_width(card_width);
         ui.vertical(|ui| {
             ui.horizontal(|ui| {
                 ui.label(format!(
@@ -77,6 +86,7 @@ fn ui_wiiapp_card(
             // Centered content
             ui.vertical_centered_justified(|ui| {
                 let image = Image::from_uri(&wiiapp.icon_uri)
+                    .max_width(128.0)
                     .maintain_aspect_ratio(true)
                     .show_loading_spinner(true);
                 ui.add(image);
