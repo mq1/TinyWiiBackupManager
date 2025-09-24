@@ -40,35 +40,31 @@ pub fn ui_bottom_panel(ctx: &egui::Context, app: &mut App) {
             }
 
             // Layout for other controls, aligned to the right.
-            ui.with_layout(
-                egui::Layout::right_to_left(egui::Align::Center),
-                |ui| match app.view {
-                    View::Games => {
-                        ui_console_filter(ui, &mut app.console_filter);
-                        ui.separator();
-                        ui.checkbox(
-                            &mut app.remove_sources,
-                            format!("{} Remove sources", egui_phosphor::regular::BOMB),
-                        )
-                        .on_hover_text(format!(
-                            "{} DANGER {}\n\nThis will delete the input files!",
-                            egui_phosphor::regular::WARNING,
-                            egui_phosphor::regular::WARNING
-                        ));
-                    }
-                    View::WiiApps => {
-                        ui.checkbox(
-                            &mut app.remove_sources_wiiapps,
-                            format!("{} Remove sources (.zip)", egui_phosphor::regular::BOMB),
-                        )
-                        .on_hover_text(format!(
-                            "{} DANGER {}\n\nThis will delete the input files!",
-                            egui_phosphor::regular::WARNING,
-                            egui_phosphor::regular::WARNING
-                        ));
-                    }
-                },
-            );
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                if app.view == View::Games {
+                    ui_console_filter(ui, &mut app.console_filter);
+                    ui.separator();
+                    ui.checkbox(
+                        &mut app.remove_sources,
+                        format!("{} Remove sources", egui_phosphor::regular::BOMB),
+                    )
+                    .on_hover_text(format!(
+                        "{} DANGER {}\n\nThis will delete the input files!",
+                        egui_phosphor::regular::WARNING,
+                        egui_phosphor::regular::WARNING
+                    ));
+                } else if app.view == View::WiiApps {
+                    ui.checkbox(
+                        &mut app.remove_sources_wiiapps,
+                        format!("{} Remove sources (.zip)", egui_phosphor::regular::BOMB),
+                    )
+                    .on_hover_text(format!(
+                        "{} DANGER {}\n\nThis will delete the input files!",
+                        egui_phosphor::regular::WARNING,
+                        egui_phosphor::regular::WARNING
+                    ));
+                }
+            });
         });
     });
 }
