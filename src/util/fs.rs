@@ -39,7 +39,7 @@ pub fn find_disc(game_dir: impl AsRef<Path>) -> Result<PathBuf> {
             .unwrap_or_default();
 
         if !file_name.starts_with(".")
-            && path.is_dir()
+            && path.is_file()
             && SUPPORTED_INPUT_EXTENSIONS.contains(&extension)
             && !file_name.ends_with(".part1.iso")
             && !file_name.ends_with(".part2.iso")
