@@ -9,14 +9,6 @@ use egui_extras::{Column, TableBuilder};
 
 pub fn ui_oscwii(ui: &mut egui::Ui, app: &mut App) {
     ui.group(|ui| {
-        ui.heading(format!(
-            "{} Open Shop Channel",
-            egui_phosphor::regular::STOREFRONT
-        ));
-        ui.separator();
-
-        ui.add_space(10.0);
-
         ui.horizontal(|ui| {
             ui.label(format!(
                 "{} Filter",
