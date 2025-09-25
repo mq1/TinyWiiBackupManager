@@ -1,6 +1,6 @@
 [package]
 name = "TinyWiiBackupManager"
-version = "2.5.1"
+version = "2.5.2"
 authors = ["Manuel Quarneti <mq1@ik.me>"]
 edition = "2024"
 license = "GPL-2.0-only"
