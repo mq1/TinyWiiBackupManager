@@ -4,11 +4,11 @@
 #![warn(clippy::all, rust_2018_idioms)]
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
+use std::sync::Arc;
+
 use TinyWiiBackupManager::app::App;
 use TinyWiiBackupManager::util::wiitdb::WIITDB;
-use eframe::egui;
-
-const LOGO: &[u8] = include_bytes!("../assets/logo-small.png");
+use eframe::egui::{self, ViewportBuilder};
 
 fn main() {
     // pre-decompress WIITDB
@@ -19,10 +19,18 @@ fn main() {
     // Log to stderr (if you run with `RUST_LOG=debug`).
     env_logger::init();
 
-    let icon = eframe::icon_data::from_png_bytes(LOGO).expect("Failed to load icon");
-    let viewport = egui::ViewportBuilder::default()
-        .with_inner_size(egui::vec2(800.0, 600.0))
-        .with_icon(icon);
+    #[cfg(not(target_os = "macos"))]
+    let icon = eframe::icon_data::from_png_bytes(include_bytes!("../assets/logo-small.png"))
+        .expect("Failed to load icon");
+
+    #[cfg(target_os = "macos")]
+    let icon = egui::IconData::default();
+
+    let viewport = ViewportBuilder {
+        inner_size: Some(egui::vec2(800.0, 600.0)),
+        icon: Some(Arc::new(icon)),
+        ..Default::default()
+    };
 
     let options = eframe::NativeOptions {
         viewport,
