@@ -101,9 +101,9 @@ pub fn dir_to_title_id(path: impl AsRef<Path>) -> Result<(String, [u8; 6], Strin
 /// MultiFileReader presents several files as a single, concatenated, read-only stream.
 /// - Read: reads across file boundaries seamlessly.
 /// - Seek: seeks relative to start/current/end across the logical concatenated file.
-///         Seeking beyond end is allowed (like File); subsequent reads return 0.
+///   Seeking beyond end is allowed (like File); subsequent reads return 0.
 /// - Clone: clones share the file list and lengths but have independent cursors.
-///          Clones do not share OS handles; files are (re)opened lazily as needed.
+///   Clones do not share OS handles; files are (re)opened lazily as needed.
 #[derive(Debug)]
 pub struct MultiFileReader {
     // Shared, immutable metadata
