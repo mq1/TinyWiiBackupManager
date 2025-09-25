@@ -4,7 +4,7 @@
 use crate::game::Game;
 use crate::settings::ArchiveFormat;
 use crate::util::concurrency::get_threads_num;
-use crate::util::fs::find_disc;
+use crate::util::fs::{MultiFileReader, find_discs};
 use anyhow::{Context, Result};
 use nod::common::{Compression, Format};
 use nod::read::{DiscOptions, DiscReader, PartitionEncryption};
@@ -20,7 +20,7 @@ pub fn game(
     archive_format: ArchiveFormat,
     mut progress_callback: impl FnMut(u64, u64),
 ) -> Result<PathBuf> {
-    let input_path = find_disc(&game.path)?;
+    let input_paths = find_discs(&game.path)?;
 
     let title = sanitize(&game.title);
     let output_path = output_dir
@@ -30,14 +30,14 @@ pub fn game(
 
     let (preloader_threads, processor_threads) = get_threads_num();
 
-    let disc = DiscReader::new(
-        &input_path,
+    let disc = DiscReader::new_from_cloneable_read(
+        MultiFileReader::new(input_paths)?,
         &DiscOptions {
             partition_encryption: PartitionEncryption::Original,
             preloader_threads,
         },
     )
-    .with_context(|| format!("Failed to read disc image: {}", input_path.display()))?;
+    .context("Failed to initialize DiscReader")?;
 
     let mut output_file = File::create(&output_path)
         .with_context(|| format!("Failed to create output file: {}", output_path.display()))?;
