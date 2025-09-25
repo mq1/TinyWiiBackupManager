@@ -7,7 +7,7 @@
 
 use crate::settings::WiiOutputFormat;
 use crate::util::concurrency::get_threads_num;
-use crate::util::fs::can_write_over_4gb;
+use crate::util::fs::{MultiFileReader, can_write_over_4gb, to_multipart};
 use crate::util::split::SplitWbfsFile;
 use anyhow::{Context, Result, bail};
 use nod::common::Format;
@@ -30,7 +30,8 @@ pub fn convert(
     remove_update_partition: bool,
     mut progress_callback: impl FnMut(u64, u64),
 ) -> Result<bool> {
-    let input_path = input_path.as_ref();
+    let input_paths = to_multipart(input_path)?;
+    let reader = MultiFileReader::new(input_paths)?;
     let output_dir = output_dir.as_ref();
 
     let (preloader_threads, processor_threads) = get_threads_num();
@@ -40,8 +41,8 @@ pub fn convert(
         preloader_threads,
     };
 
-    let mut disc = DiscReader::new(input_path, &disc_opts)
-        .with_context(|| format!("Failed to read disc image: {}", input_path.display()))?;
+    let mut disc = DiscReader::new_from_cloneable_read(reader, &disc_opts)
+        .context("Failed to initialize DiscReader")?;
 
     let header = disc.header();
     let game_id = header.game_id_str();

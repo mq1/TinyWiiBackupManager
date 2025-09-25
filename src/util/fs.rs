@@ -29,36 +29,51 @@ pub fn can_write_over_4gb(path: impl AsRef<Path>) -> bool {
     result.is_ok()
 }
 
-pub fn find_discs(game_dir: impl AsRef<Path>) -> Result<Vec<PathBuf>> {
-    let mut discs = fs::read_dir(game_dir)?
-        .filter_map(Result::ok)
-        .map(|entry| entry.path())
-        .filter(|path| path.is_file())
-        .filter(|path| {
-            // Skip hidden files
-            !path
-                .file_name()
-                .unwrap_or_default()
-                .to_string_lossy()
-                .starts_with(".")
-        })
-        .filter(|path| {
-            // Skip non-discs
-            SUPPORTED_INPUT_EXTENSIONS.contains(
-                &path
-                    .extension()
-                    .and_then(|ext| ext.to_str())
-                    .unwrap_or_default(),
-            )
-        })
-        .collect::<Vec<_>>();
+pub fn find_disc(game_dir: impl AsRef<Path>) -> Result<PathBuf> {
+    for entry in fs::read_dir(game_dir)?.filter_map(Result::ok) {
+        let path = entry.path();
+        let file_name = path.file_name().unwrap_or_default().to_string_lossy();
+        let extension = path
+            .extension()
+            .and_then(|ext| ext.to_str())
+            .unwrap_or_default();
 
-    discs.sort();
-
-    match discs.len() {
-        0 => bail!("No disc found in game directory"),
-        _ => Ok(discs),
+        if !file_name.starts_with(".")
+            && path.is_dir()
+            && SUPPORTED_INPUT_EXTENSIONS.contains(&extension)
+        {
+            return Ok(path);
+        }
     }
+
+    bail!("No disc found in game directory")
+}
+
+pub fn to_multipart<P: AsRef<Path>>(file_path: P) -> Result<Vec<PathBuf>> {
+    let f1 = file_path
+        .as_ref()
+        .file_name()
+        .ok_or(anyhow!("No file name"))?
+        .to_string_lossy();
+
+    let mut paths = vec![file_path.as_ref().to_path_buf()];
+
+    if !f1.contains(".part0.") {
+        return Ok(paths);
+    }
+
+    let parent = file_path.as_ref().parent().ok_or(anyhow!("No parent"))?;
+    for i in 1..4 {
+        let i_file_name = f1.replace(".part0.", &format!(".part{i}."));
+        let path = parent.join(i_file_name);
+        if path.exists() {
+            paths.push(path);
+        } else {
+            break;
+        }
+    }
+
+    Ok(paths)
 }
 
 /// Converts a dir name (Game Title [123456])

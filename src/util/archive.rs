@@ -4,7 +4,7 @@
 use crate::game::Game;
 use crate::settings::ArchiveFormat;
 use crate::util::concurrency::get_threads_num;
-use crate::util::fs::{MultiFileReader, find_discs};
+use crate::util::fs::{MultiFileReader, find_disc, to_multipart};
 use anyhow::{Context, Result};
 use nod::common::{Compression, Format};
 use nod::read::{DiscOptions, DiscReader, PartitionEncryption};
@@ -20,7 +20,8 @@ pub fn game(
     archive_format: ArchiveFormat,
     mut progress_callback: impl FnMut(u64, u64),
 ) -> Result<PathBuf> {
-    let input_paths = find_discs(&game.path)?;
+    let input_path = find_disc(&game.path)?;
+    let input_paths = to_multipart(input_path)?;
 
     let title = sanitize(&game.title);
     let output_path = output_dir
