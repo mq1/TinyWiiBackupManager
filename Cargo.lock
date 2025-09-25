@@ -42,7 +42,6 @@ dependencies = [
  "tempfile",
  "time",
  "ureq",
- "walkdir",
  "wgpu",
  "winit",
  "winres",
