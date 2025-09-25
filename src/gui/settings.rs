@@ -9,11 +9,6 @@ use egui_theme_switch::global_theme_switch;
 
 pub fn ui_settings(ui: &mut egui::Ui, app: &mut App) {
     ui.group(|ui| {
-        ui.heading(format!("{} Settings", egui_phosphor::regular::GEAR));
-        ui.separator();
-
-        ui.add_space(10.0);
-
         ui.label(
             RichText::new(format!(
                 "{} Wii Output Format",
