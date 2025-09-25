@@ -24,8 +24,8 @@ pub fn load_system_font(ctx: &Context) -> Result<()> {
     };
 
     // Find the best match
-    if let Some(id) = db.query(&query) {
-        if let Some((source, _)) = db.face_source(id) {
+    if let Some(id) = db.query(&query)
+        && let Some((source, _)) = db.face_source(id) {
             let buffer = match source {
                 Source::Binary(data) => data.as_ref().as_ref().to_vec(),
                 Source::File(path) => fs::read(path)?,
@@ -41,7 +41,6 @@ pub fn load_system_font(ctx: &Context) -> Result<()> {
                 vec.push("system".to_string());
             }
         }
-    }
 
     // Query for a monospace font
     let query = Query {
@@ -49,8 +48,8 @@ pub fn load_system_font(ctx: &Context) -> Result<()> {
         ..Default::default()
     };
 
-    if let Some(id) = db.query(&query) {
-        if let Some((source, _)) = db.face_source(id) {
+    if let Some(id) = db.query(&query)
+        && let Some((source, _)) = db.face_source(id) {
             let buffer = match source {
                 Source::Binary(data) => data.as_ref().as_ref().to_vec(),
                 Source::File(path) => fs::read(path)?,
@@ -66,7 +65,6 @@ pub fn load_system_font(ctx: &Context) -> Result<()> {
                 vec.push("system_monospace".to_string());
             }
         }
-    }
 
     // Add Phosphor icons
     egui_phosphor::add_to_fonts(&mut fonts, egui_phosphor::Variant::Regular);

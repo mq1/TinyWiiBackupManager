@@ -125,7 +125,7 @@ fn recreate_zip(
 
 fn send_to_wii(addr: &SocketAddr, compressed_data: &[u8]) -> Result<()> {
     // Connect to the Wii
-    let mut stream = TcpStream::connect_timeout(&addr, WIILOAD_TIMEOUT)?;
+    let mut stream = TcpStream::connect_timeout(addr, WIILOAD_TIMEOUT)?;
     stream.set_read_timeout(Some(WIILOAD_TIMEOUT))?;
     stream.set_write_timeout(Some(WIILOAD_TIMEOUT))?;
 

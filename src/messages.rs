@@ -23,7 +23,7 @@ pub enum BackgroundMessage {
     /// Signal that update checking has completed
     GotUpdate(Option<UpdateInfo>),
     /// Signal that a new cover has been downloaded
-    NewCover(Game),
+    NewCover(Box<Game>),
     /// Signal that the status has changed
     UpdateStatus(String),
     /// Signal that the status should be cleared

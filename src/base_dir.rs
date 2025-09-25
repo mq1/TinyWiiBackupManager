@@ -174,7 +174,7 @@ impl BaseDir {
         if archive.file_names().any(|n| n.starts_with("apps/")) {
             archive.extract(&self.0)
         } else {
-            archive.extract(&self.0.join("apps"))
+            archive.extract(self.0.join("apps"))
         }
     }
 

@@ -45,7 +45,7 @@ pub fn ui_wiiapp_grid(ui: &mut egui::Ui, app: &mut App) {
                                 card_width,
                                 &mut app.inbox.sender(),
                                 wiiapp,
-                                &base_dir,
+                                base_dir,
                                 &app.task_processor,
                             );
                             ui_wiiapp_info_window(ui.ctx(), wiiapp, &mut app.inbox.sender());
@@ -118,11 +118,9 @@ fn ui_wiiapp_card(
                         .button(egui_phosphor::regular::TRASH)
                         .on_hover_text("Remove App")
                         .clicked()
-                    {
-                        if let Err(e) = wiiapp.remove() {
+                        && let Err(e) = wiiapp.remove() {
                             let _ = sender.send(e.into());
                         }
-                    }
 
                     // Update button
                     if let Some(oscwii) = &wiiapp.oscwii_app

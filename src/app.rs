@@ -243,7 +243,7 @@ impl App {
 
                 self.task_processor.spawn_task(move |ui_sender| {
                     if game.download_cover(&base_dir)? {
-                        let _ = ui_sender.send(BackgroundMessage::NewCover(game));
+                        let _ = ui_sender.send(BackgroundMessage::NewCover(Box::new(game)));
                     }
                     Ok(())
                 });
@@ -266,7 +266,7 @@ impl App {
                     if game.download_all_covers(base_dir)? {
                         let msg = format!("Downloaded covers for {}", game.title);
                         let _ = ui_sender.send(BackgroundMessage::Info(msg));
-                        let _ = ui_sender.send(BackgroundMessage::NewCover(game));
+                        let _ = ui_sender.send(BackgroundMessage::NewCover(Box::new(game)));
                     }
                     Ok(())
                 });

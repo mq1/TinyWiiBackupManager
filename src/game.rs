@@ -107,7 +107,7 @@ impl Game {
             && let Some(crc32) = &meta.crc32
             && let Some(info) = &self.info
         {
-            Some(info.crc_list.contains(&crc32))
+            Some(info.crc_list.contains(crc32))
         } else {
             None
         };
@@ -143,8 +143,7 @@ impl Game {
         let locale = self
             .info
             .as_ref()
-            .map(|info| info.region.get_message())
-            .flatten()
+            .and_then(|info| info.region.get_message())
             .unwrap_or("EN");
 
         let id = self.id_str();
@@ -160,8 +159,7 @@ impl Game {
         let locale = self
             .info
             .as_ref()
-            .map(|info| info.region.get_message())
-            .flatten()
+            .and_then(|info| info.region.get_message())
             .unwrap_or("EN");
 
         // Cover3D
