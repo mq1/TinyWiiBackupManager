@@ -45,7 +45,7 @@ fn ui_wiiapp_info_content(
             ))
             .strong(),
         );
-        ui.label(&wiiapp.meta.release_date.to_string());
+        ui.label(wiiapp.meta.release_date.to_string());
     });
 
     ui.horizontal(|ui| {

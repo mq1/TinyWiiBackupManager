@@ -31,12 +31,10 @@ pub fn ui_bottom_panel(ctx: &egui::Context, app: &mut App) {
                 ui.label(format!("{truncated}{dots}"));
             }
             // If the app is idle, show the update notifier and version
-            else {
-                if let Some(update_info) = &app.update_info {
-                    ui.hyperlink_to(format!("v{} (new)", &update_info.version), &update_info.url);
-                } else {
-                    ui.label(format!("v{}", VERSION));
-                }
+            else if let Some(update_info) = &app.update_info {
+                ui.hyperlink_to(format!("v{} (new)", &update_info.version), &update_info.url);
+            } else {
+                ui.label(format!("v{}", VERSION));
             }
 
             // Layout for other controls, aligned to the right.

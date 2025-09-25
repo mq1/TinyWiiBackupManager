@@ -40,7 +40,7 @@ pub fn convert(
         preloader_threads,
     };
 
-    let mut disc = DiscReader::new(&input_path, &disc_opts)
+    let mut disc = DiscReader::new(input_path, &disc_opts)
         .with_context(|| format!("Failed to read disc image: {}", input_path.display()))?;
 
     let header = disc.header();
