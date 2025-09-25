@@ -59,7 +59,7 @@ pub fn convert(
     };
 
     // If the game is already present, return true.
-    if game_output_dir.exists() {
+    if game_output_dir.exists() && header.is_wii() {
         return Ok(true);
     }
 
@@ -121,6 +121,10 @@ pub fn convert(
             n => format!("disc{}.iso", n + 1),
         };
         let output_iso_path = game_output_dir.join(iso_filename);
+
+        if output_iso_path.exists() {
+            return Ok(true);
+        }
 
         let mut out_file = File::create(&output_iso_path).with_context(|| {
             format!(
