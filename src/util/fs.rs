@@ -52,27 +52,36 @@ pub fn find_disc(game_dir: impl AsRef<Path>) -> Result<PathBuf> {
     bail!("No disc found in game directory")
 }
 
-pub fn to_multipart<P: AsRef<Path>>(file_path: P) -> Result<Vec<PathBuf>> {
+pub fn to_multipart(file_path: impl AsRef<Path>) -> Result<Vec<PathBuf>> {
     let f1 = file_path
         .as_ref()
         .file_name()
         .ok_or(anyhow!("No file name"))?
         .to_string_lossy();
 
+    let parent = file_path.as_ref().parent().ok_or(anyhow!("No parent"))?;
+
     let mut paths = vec![file_path.as_ref().to_path_buf()];
 
-    if !f1.contains(".part0.") {
-        return Ok(paths);
-    }
-
-    let parent = file_path.as_ref().parent().ok_or(anyhow!("No parent"))?;
-    for i in 1..4 {
-        let i_file_name = f1.replace(".part0.", &format!(".part{i}."));
-        let path = parent.join(i_file_name);
-        if path.exists() {
-            paths.push(path);
-        } else {
-            break;
+    if f1.ends_with(".part0.iso") {
+        for i in 1..4 {
+            let i_file_name = f1.replace(".part0.", &format!(".part{i}."));
+            let path = parent.join(i_file_name);
+            if path.exists() {
+                paths.push(path);
+            } else {
+                break;
+            }
+        }
+    } else if f1.ends_with(".wbfs") {
+        for i in 1..4 {
+            let i_file_name = f1.replace(".wbfs", &format!(".wbf{i}"));
+            let path = parent.join(i_file_name);
+            if path.exists() {
+                paths.push(path);
+            } else {
+                break;
+            }
         }
     }
 
