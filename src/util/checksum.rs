@@ -3,7 +3,7 @@
 
 use crate::game::Game;
 use crate::util::concurrency::get_threads_num;
-use crate::util::fs::find_disc;
+use crate::util::fs::{MultiFileReader, find_discs};
 use anyhow::{Context, Result};
 use nod::read::{DiscOptions, DiscReader, PartitionEncryption};
 use nod::write::{DiscFinalization, DiscWriter, FormatOptions, ProcessOptions};
@@ -47,17 +47,17 @@ pub fn all(game: &Game, mut progress_callback: impl FnMut(u64, u64)) -> Result<b
         return Ok(true);
     }
 
-    let input_path = find_disc(&game.path)?;
+    let input_paths = find_discs(&game.path)?;
     let (preloader_threads, processor_threads) = get_threads_num();
 
-    let disc = DiscReader::new(
-        &input_path,
+    let disc = DiscReader::new_from_cloneable_read(
+        MultiFileReader::new(input_paths)?,
         &DiscOptions {
             partition_encryption: PartitionEncryption::Original,
             preloader_threads,
         },
     )
-    .with_context(|| format!("Failed to read disc image: {}", input_path.display()))?;
+    .context("Failed to initialize DiscReader")?;
 
     let disc_writer = DiscWriter::new(disc, &FormatOptions::default())
         .context("Failed to initialize disc writer")?;
