@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
-use crate::util::fs::find_disc;
+use crate::util::fs::find_discs;
 use anyhow::{Result, bail};
 use nod::read::DiscMeta;
 use nod::read::{DiscOptions, DiscReader};
@@ -33,8 +33,8 @@ fn fallback_md5(path: impl AsRef<Path>) -> Result<[u8; 16]> {
 }
 
 pub fn read_meta(game_dir: impl AsRef<Path>) -> Result<DiscMeta> {
-    let path = find_disc(game_dir)?;
-    let reader = DiscReader::new(&path, &DiscOptions::default())?;
+    let path = &find_discs(game_dir)?[0];
+    let reader = DiscReader::new(path, &DiscOptions::default())?;
 
     #[allow(unused_mut)]
     let mut meta = reader.meta();
