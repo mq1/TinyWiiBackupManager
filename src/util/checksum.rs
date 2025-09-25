@@ -3,7 +3,7 @@
 
 use crate::game::Game;
 use crate::util::concurrency::get_threads_num;
-use crate::util::fs::{MultiFileReader, find_discs};
+use crate::util::fs::{MultiFileReader, find_disc, to_multipart};
 use anyhow::{Context, Result};
 use nod::read::{DiscOptions, DiscReader, PartitionEncryption};
 use nod::write::{DiscFinalization, DiscWriter, FormatOptions, ProcessOptions};
@@ -47,7 +47,9 @@ pub fn all(game: &Game, mut progress_callback: impl FnMut(u64, u64)) -> Result<b
         return Ok(true);
     }
 
-    let input_paths = find_discs(&game.path)?;
+    let input_path = find_disc(&game.path)?;
+    let input_paths = to_multipart(input_path)?;
+
     let (preloader_threads, processor_threads) = get_threads_num();
 
     let disc = DiscReader::new_from_cloneable_read(

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-2.0-only
 
-use crate::util::fs::find_discs;
+use crate::util::fs::{MultiFileReader, find_disc, to_multipart};
 use anyhow::{Result, bail};
 use nod::read::DiscMeta;
 use nod::read::{DiscOptions, DiscReader};
@@ -33,11 +33,14 @@ fn fallback_md5(path: impl AsRef<Path>) -> Result<[u8; 16]> {
 }
 
 pub fn read_meta(game_dir: impl AsRef<Path>) -> Result<DiscMeta> {
-    let path = &find_discs(game_dir)?[0];
-    let reader = DiscReader::new(path, &DiscOptions::default())?;
+    let path = find_disc(game_dir)?;
+    let paths = to_multipart(&path)?;
+    let reader = MultiFileReader::new(paths)?;
+
+    let disc = DiscReader::new_from_cloneable_read(reader, &DiscOptions::default())?;
 
     #[allow(unused_mut)]
-    let mut meta = reader.meta();
+    let mut meta = disc.meta();
 
     //if meta.md5.is_none() && let Ok(md5) = fallback_md5(&path) {
     //    meta.md5 = Some(md5);

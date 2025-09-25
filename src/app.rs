@@ -284,6 +284,19 @@ impl App {
         if let Some(paths) = paths
             && let Some(base_dir) = &self.base_dir
         {
+            let mut paths = paths.clone();
+
+            // remove additional parts (we'll get 'em later)
+            paths.retain(|path| {
+                let name = path.file_name().unwrap_or_default().to_string_lossy();
+                !name.ends_with(".part1.iso")
+                    && !name.ends_with(".part2.iso")
+                    && !name.ends_with(".part3.iso")
+                    && !name.ends_with(".wbf1")
+                    && !name.ends_with(".wbf2")
+                    && !name.ends_with(".wbf3")
+            });
+
             let remove_sources = self.remove_sources;
 
             let last_index = paths.len() - 1;
