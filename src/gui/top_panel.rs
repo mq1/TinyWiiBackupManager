@@ -34,9 +34,9 @@ pub fn ui_top_panel(ctx: &egui::Context, app: &mut App) {
                 ui.selectable_value(
                     &mut app.view,
                     View::OSCWii,
-                    format!("{} OpenShopChannel", egui_phosphor::regular::STOREFRONT),
+                    format!("{} OSCWii", egui_phosphor::regular::STOREFRONT),
                 )
-                .on_hover_text("Download apps from OSCWii.org");
+                .on_hover_text("Download apps from OSCWii.org (Open Shop Channel)");
 
                 ui.selectable_value(
                     &mut app.view,
