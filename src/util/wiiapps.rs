@@ -14,12 +14,22 @@ use time::{Date, macros::format_description};
 
 const FORMAT: &[BorrowedFormatItem] = format_description!("[year][month][day]");
 
-fn parse_date_only<'de, D>(deserializer: D) -> Result<Date, D::Error>
+fn parse_date_only<'de, D>(deserializer: D) -> Result<String, D::Error>
 where
     D: Deserializer<'de>,
 {
-    let s = String::deserialize(deserializer)?;
-    Date::parse(&s[..8], FORMAT).map_err(serde::de::Error::custom)
+    let str = String::deserialize(deserializer)?;
+    let substr = str.chars().take(8).collect::<String>();
+
+    if substr.len() < 8 {
+        return Ok("Unknown".to_string());
+    }
+
+    if let Ok(date) = Date::parse(&substr, FORMAT) {
+        Ok(date.to_string())
+    } else {
+        Ok("Unknown".to_string())
+    }
 }
 
 #[derive(Clone, Deserialize)]
@@ -28,7 +38,7 @@ pub struct WiiAppMeta {
     pub coder: String,
     pub version: String,
     #[serde(deserialize_with = "parse_date_only")]
-    pub release_date: Date,
+    pub release_date: String,
     pub short_description: String,
     pub long_description: String,
 }
