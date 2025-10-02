@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { ScrollView, Vertical } from "@material";
+import { ScrollView, Vertical, MaterialStyleMetrics } from "@material";
 import { Game } from "common.slint";
 import { GameCardBackground, GameCardButtons } from "game_card.slint";
 
@@ -15,7 +15,8 @@ export component GameGrid inherits ScrollView {
     property <int> rows: (games.length / columns).ceil();
 
     horizontal-stretch: 1;
-    viewport_height: rows * card_h;
+    vertical-stretch: 1;
+    viewport_height: rows * card_h + MaterialStyleMetrics.padding_8;
 
     Vertical {
         Rectangle {
