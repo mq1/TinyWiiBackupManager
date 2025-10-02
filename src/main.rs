@@ -71,7 +71,7 @@ fn run() -> Result<()> {
     app.on_choose_mount_point(move || {
         if let Some(dir) = rfd::FileDialog::new().pick_folder() {
             if let Err(e) = config::update(|config| {
-                config.mount_point = dir.clone();
+                config.mount_point.clone_from(&dir);
             }) {
                 show_err(&e);
             }
