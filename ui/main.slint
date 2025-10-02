@@ -1,0 +1,60 @@
+// SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { IconButton, Vertical } from "@material";
+import { SideBar } from "sidebar.slint";
+import { GameGrid } from "game_grid.slint";
+import { Game, HbcApp } from "common.slint";
+import { HbcAppGrid } from "hbc_app_grid.slint";
+import { SettingsPage } from "settings.slint";
+
+export * from "common.slint";
+
+export component MainWindow inherits Window {
+    in property <string> app_name: "";
+    in-out property <string> dir_name: "";
+    in property <bool> is_macos: false;
+    in-out property <int> current_index: 0;
+    in property <[Game]> games;
+    in property <[HbcApp]> hbc_apps;
+
+    callback choose_mount_point();
+
+    preferred-width: 800px;
+    preferred-height: 600px;
+    title: app_name + " • Games" + (dir_name.is_empty ? "" : " • " + dir_name);
+
+    HorizontalLayout {
+        SideBar {
+            current_index <=> current_index;
+            is_macos: is_macos;
+            choose_mount_point => {
+                choose_mount_point();
+            }
+            set-window-title(title) => {
+                root.title = app_name + title;
+            }
+        }
+
+        Vertical {
+            if current_index == 0 && !dir_name.is-empty: GameGrid {
+                games: games;
+            }
+
+            if current_index == 1 && !dir_name.is-empty: HbcAppGrid {
+                apps: hbc_apps;
+            }
+
+            if current_index == 3: SettingsPage { }
+
+            if dir_name.is-empty: Vertical {
+                alignment: end;
+
+                Text {
+                    text: "⬅  Choose a drive or directory";
+                    font-size: 18px;
+                }
+            }
+        }
+    }
+}

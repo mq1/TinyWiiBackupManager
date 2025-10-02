@@ -1,0 +1,5 @@
+{
+    "slint.libraryPaths": {
+        "material": "./material-1.0/material.slint"
+    }
+}

@@ -1,0 +1,29 @@
+// SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { OutlinedCard, ScrollView } from "@material";
+import { HbcApp } from "common.slint";
+import { HbcAppCard } from "hbc_app_card.slint";
+
+export component HbcAppGrid inherits Rectangle {
+    in property <[HbcApp]> apps;
+
+    property <length> card_w: 176px;
+    property <length> card_h: 200px;
+
+    property <int> columns: (self.width / card_w).floor();
+    property <int> rows: (apps.length / columns).ceil();
+
+    ScrollView {
+        horizontal-stretch: 1;
+        viewport_height: rows * card_h;
+
+        for app[index] in apps: HbcAppCard {
+            x: mod(index, columns) * card_w;
+            y: (index / columns).floor() * card_h;
+            width: card_w;
+            height: card_h;
+            app: app;
+        }
+    }
+}

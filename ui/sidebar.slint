@@ -1,0 +1,106 @@
+// SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { NavigationRail, PopupMenu, IconButton, Horizontal, MaterialPalette, Vertical, FloatingActionButton, FABStyle } from "@material";
+
+export component SideBar inherits VerticalLayout {
+    in-out property <int> current_index: 0;
+    in property <bool> is_macos: false;
+    callback set_window_title(string);
+    callback choose_mount_point();
+
+    Rectangle {
+        width: 80px;
+        background: MaterialPalette.surface;
+        z: 1.0;
+
+        Vertical {
+            padding: 12px;
+
+            if current_index == 0: FloatingActionButton {
+                icon: @image-url("../mdi/plus.svg");
+                tooltip: "Add Game(s)";
+                style: FABStyle.standard;
+                z: 2.0;
+            }
+
+            if current_index == 1: FloatingActionButton {
+                icon: @image-url("../mdi/plus.svg");
+                tooltip: "Add App(s)";
+                style: FABStyle.standard;
+                z: 2.0;
+            }
+
+            if current_index == 1: FloatingActionButton {
+                icon: @image-url("../mdi/upload-network.svg");
+                tooltip: "Wiiload";
+                style: FABStyle.standard;
+                z: 1.9;
+            }
+        }
+    }
+
+    NavigationRail {
+        width: 80px;
+        alignment: center;
+        current-index <=> current_index;
+
+        items: [
+            { icon: @image-url("../mdi/controller.svg"), text: "Games" },
+            { icon: @image-url("../mdi/star.svg"), text: "Apps" },
+            { icon: @image-url("../mdi/storefront.svg"), text: "OSCWii" },
+            { icon: @image-url("../mdi/cog.svg"), text: "Settings" }
+        ];
+
+        index-changed(i) => {
+            if i == 0 {
+                set_window_title(" • Games");
+            }
+            if i == 1 {
+                set_window_title(" • Apps");
+            }
+            if i == 2 {
+                set_window_title(" • OSCWii");
+            }
+            if i == 3 {
+                set_window_title(" • Settings");
+            }
+        }
+    }
+
+    Rectangle {
+        width: 80px;
+        background: MaterialPalette.surface;
+
+        Horizontal {
+            menu_button := IconButton {
+                icon: @image-url("../mdi/menu.svg");
+                clicked => {
+                    menu.show();
+                }
+            }
+
+            menu := PopupMenu {
+                x: menu_button.x + menu_button.width / 2;
+                y: menu_button.y + menu_button.height / 2;
+                items: [
+                    {
+                        icon: @image-url("../mdi/harddisk.svg"),
+                        text: "Choose base dir",
+                        enabled: true,
+                    },
+                    {
+                        icon: @image-url("../mdi/ghost.svg"),
+                        text: "dot_clean (macOS only)",
+                        enabled: is_macos,
+                    }
+                ];
+                activated(i) => {
+                    if i == 0 {
+                        choose_mount_point();
+                    }
+                }
+            }
+        }
+    }
+}
