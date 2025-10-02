@@ -41,8 +41,7 @@ fn refresh_games(handle: &MainWindow) {
     let games_res = games::list();
 
     if let Ok(games) = games_res {
-        let games = VecModel::from(games);
-        handle.set_games(ModelRc::from(Rc::new(games)));
+        handle.set_games(ModelRc::from(Rc::new(VecModel::from(games))));
     } else if let Err(e) = games_res {
         show_err(&e.context("Failed to list games"));
     }
@@ -52,8 +51,7 @@ fn refresh_hbc_apps(handle: &MainWindow) {
     let hbc_apps_res = hbc_apps::list();
 
     if let Ok(hbc_apps) = hbc_apps_res {
-        let hbc_apps = VecModel::from(hbc_apps);
-        handle.set_hbc_apps(ModelRc::from(Rc::new(hbc_apps)));
+        handle.set_hbc_apps(ModelRc::from(Rc::new(VecModel::from(hbc_apps))));
     } else if let Err(e) = hbc_apps_res {
         show_err(&e.context("Failed to list hbc apps"));
     }
