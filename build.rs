@@ -1,13 +1,12 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
-// SPDX-License-Identifier: GPL-2.0-only
+// SPDX-License-Identifier: GPL-3.0-only
 
 #![allow(dead_code)]
 
 use rkyv::{Archive, Serialize, rancor};
 use serde::Deserialize;
 use std::{
-    env, fs,
-    path::{Path, PathBuf},
+    collections::HashMap, env, fs, path::{Path, PathBuf}
 };
 
 // Top-level root element <datafile>
@@ -226,16 +225,18 @@ fn compile_wiitdb_xml() {
     fs::write(&metadata_path, metadata).expect("Failed to write metadata");
 }
 
+
 fn main() {
     // Compile wiitdb.xml
     compile_wiitdb_xml();
     println!("cargo:rerun-if-changed=assets/wiitdb.xml");
 
-    // Windows-specific icon resource
-    #[cfg(windows)]
-    {
-        let mut res = winres::WindowsResource::new();
-        res.set_icon("assets/logo.ico");
-        res.compile().unwrap();
-    }
+    let config = slint_build::CompilerConfiguration::new().with_library_paths(
+        HashMap::from([(
+            "material".to_string(),
+            Path::new(&std::env::var_os("CARGO_MANIFEST_DIR").unwrap())
+                .join("material-1.0/material.slint"),
+        )]),
+    );
+    slint_build::compile_with_config("ui/main.slint", config).unwrap();
 }

@@ -1,193 +1,50 @@
 [package]
 name = "TinyWiiBackupManager"
-version = "2.5.3"
-authors = ["Manuel Quarneti <mq1@ik.me>"]
+version = "3.0.0"
 edition = "2024"
-license = "GPL-2.0-only"
+authors = ["Manuel Quarneti <mq1@ik.me>"]
+license = "GPL-3.0-only"
 repository = "https://github.com/mq1/TinyWiiBackupManager"
 description = "A dead simple Wii Backup Manager"
 
-
-[lints.rust]
-non_snake_case = "allow"
-
-
-[package.metadata.packager]
-product-name = "TinyWiiBackupManager"
-identifier = "it.mq1.TinyWiiBackupManager"
-icons = ["assets/logo@2x.png", "assets/logo-small.png"]
-copyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-2.0-only."
-category = "Utility"
-out_dir = "dist"
-
-
-[package.metadata.winres]
-FileDescription = "A dead simple Wii Backup Manager"
-ProductName = "TinyWiiBackupManager"
-OriginalFilename = "TinyWiiBackupManager.exe"
-LegalCopyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-2.0-only."
-
-
 [dependencies]
-fontdb = "0.23"
-egui-phosphor = "0.10.0"
-egui_extras = { version = "0.32", default-features = false, features = [
-  "image",
-  "file",
-  "svg",
-] }
-image = { version = "0.25", default-features = false, features = ["png"] }
-egui-notify = "0.20"
-egui_inbox = "0.9"
+slint = "1.13"
 rfd = "0.15"
-anyhow = "1.0"
-semver = "1.0"
-fs_extra = "1.3"
-open = "5.3"
-notify = "8.2"
-size = "0.5"
-log = "0.4"
-env_logger = { version = "0.11", default-features = false, features = [
-  "auto-color",
-  "humantime",
-] }
-const_format = { version = "0.2", features = ["rust_1_64"] }
-nod = { git = "https://github.com/mq1/nod", branch = "strip-wbfs" }
-hex = "0.4"
 serde = { version = "1.0", features = ["derive"] }
-zip = { version = "5.1", default-features = false, features = [
-  "deflate-flate2",
-] }
-const-str = "0.7"
-egui-theme-switch = "0.4"
-flume = "0.11"
-tempfile = "3.23"
-num_cpus = "1.17"
-sanitize-filename-reader-friendly = "2.3"
-quick-xml = { version = "0.38", features = ["serialize"] }
-time = { version = "0.3", features = ["parsing", "serde", "macros"] }
-phf = { version = "0.13", features = ["macros"] }
-sysinfo = "0.37"
-path-slash = "0.2"
+serde_json = "1.0"
+directories = "6.0"
+anyhow = "1.0"
+fs_extra = "1.3"
+size = "0.5"
 rkyv = { version = "0.8", default-features = false, features = ["std"] }
 zstd = "0.13"
 strum = "0.27"
 strum_macros = "0.27"
-
-
-[target.'cfg(all(target_os = "windows", any(target_arch = "x86_64", target_arch = "aarch64")))'.dependencies]
-eframe = { version = "0.32", default-features = false, features = [
-  "accesskit",
-  "wgpu",
-  "persistence",
+zip = { version = "5.1", default-features = false, features = [
+    "deflate-flate2",
 ] }
-wgpu = { version = "25", default-features = false, features = ["dx12"] }
-
-
-[target.'cfg(all(target_os = "windows", target_arch = "x86"))'.dependencies]
-eframe = { version = "0.32", default-features = false, features = [
-  "accesskit",
-  "glow",
-  "persistence",
-] }
-
-
-[target.'cfg(target_os = "linux")'.dependencies]
-eframe = { version = "0.32", default-features = false, features = [
-  "accesskit",
-  "glow",
-  "persistence",
-  "wayland",
-  "x11",
-] }
-winit = { version = "0.30", default-features = true }
-
-
-[target.'cfg(target_os = "macos")'.dependencies]
-eframe = { version = "0.32", default-features = false, features = [
-  "accesskit",
-  "wgpu",
-  "persistence",
-] }
-wgpu = { version = "25", default-features = false, features = ["metal"] }
-
+quick-xml = { version = "0.38", features = ["serialize"] }
 
 [target.'cfg(any(target_os = "macos", all(target_os = "windows", any(target_arch = "x86_64", target_arch = "aarch64"))))'.dependencies]
 ureq = { version = "3.1", default-features = false, features = [
-  "native-tls",
-  "platform-verifier",
-  "json",
+    "native-tls",
+    "platform-verifier",
+    "json",
 ] }
 
 [target.'cfg(not(any(target_os = "macos", all(target_os = "windows", any(target_arch = "x86_64", target_arch = "aarch64")))))'.dependencies]
 ureq = { version = "3.1", default-features = false, features = [
-  "rustls",
-  "json",
+    "rustls",
+    "json",
 ] }
 
-
 [build-dependencies]
+slint-build = "1.13"
 quick-xml = { version = "0.38", features = ["serialize"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_plain = "1.0"
 rkyv = { version = "0.8", default-features = false, features = ["alloc"] }
 zstd = "0.13"
 
-
-[target.'cfg(target_os = "windows")'.build-dependencies]
-winres = "0.1"
-
-
-[profile.release]
-opt-level = 'z'     # Highest optimization level for size
-lto = "fat"         # Full Link Time Optimization across crates
-codegen-units = 1   # Single codegen unit for best cross-function inlining
-strip = "debuginfo" # Strip everything except debug info (Rust 1.70+)
-panic = "abort"     # Smaller & faster by removing unwinding code
-debug = 1           # Minimal debug info (enough for backtraces & profiling)
-
-
-[profile.release.package.nod]
-opt-level = 3
-
-[profile.release.package.adler]
-opt-level = 3
-
-[profile.release.package.aes]
-opt-level = 3
-
-[profile.release.package.bzip2]
-opt-level = 3
-
-[profile.release.package.cbc]
-opt-level = 3
-
-[profile.release.package.crc32fast]
-opt-level = 3
-
-[profile.release.package.digest]
-opt-level = 3
-
-[profile.release.package.liblzma]
-opt-level = 3
-
-[profile.release.package.liblzma-sys]
-opt-level = 3
-
-[profile.release.package.miniz_oxide]
-opt-level = 3
-
-[profile.release.package.sha1]
-opt-level = 3
-
-[profile.release.package.xxhash-rust]
-opt-level = 3
-
-[profile.release.package.zstd]
-opt-level = 3
-
-[profile.release.package.zstd-safe]
-opt-level = 3
-
-[profile.release.package.flate2]
-opt-level = 3
+[lints.rust]
+non_snake_case = "allow"

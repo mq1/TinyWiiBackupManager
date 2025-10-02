@@ -1,0 +1,31 @@
+// SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { ElevatedCard, Vertical, Horizontal } from "@material";
+import { HbcApp } from "common.slint";
+
+export component HbcAppCard inherits VerticalLayout {
+    in property <HbcApp> app;
+
+    padding: 5px;
+
+    ElevatedCard {
+        Vertical {
+            Horizontal {
+                alignment: end;
+                Text {
+                    text: app.size;
+                }
+            }
+
+            Image {
+                source: app.image;
+            }
+
+            Text {
+                horizontal-alignment: center;
+                text: app.name;
+            }
+        }
+    }
+}

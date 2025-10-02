@@ -1,0 +1,35 @@
+// SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { ScrollView } from "@material";
+import { Game } from "common.slint";
+import { GameCardBackground, GameCardButtons } from "game_card.slint";
+
+export component GameGrid inherits Rectangle {
+    in property <[Game]> games;
+
+    property <length> card_w: 176px;
+    property <length> card_h: 200px;
+
+    property <int> columns: (self.width / card_w).floor();
+    property <int> rows: (games.length / columns).ceil();
+
+    ScrollView {
+        horizontal-stretch: 1;
+        viewport_height: rows * card_h;
+
+        for game[index] in games: GameCardBackground {
+            x: mod(index, columns) * card_w;
+            y: (index / columns).floor() * card_h;
+            width: card_w;
+            height: card_h;
+            game: game;
+        }
+
+        for game[index] in games: GameCardButtons {
+            x: mod(index, columns) * card_w;
+            y: (index / columns).floor() * card_h + (card_h - 42px);
+            width: card_w;
+        }
+    }
+}

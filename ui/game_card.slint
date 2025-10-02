@@ -1,0 +1,74 @@
+// SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { Vertical, Horizontal, IconButton, ElevatedCard } from "@material";
+import { Game, Console } from "common.slint";
+
+export component GameCardBackground inherits Vertical {
+    in property <Game> game;
+
+    ElevatedCard {
+        Vertical {
+            Horizontal {
+                alignment: space-between;
+                if game.console == Console.Wii: Text {
+                    text: "Wii";
+                }
+
+                if game.console == Console.GameCube: Text {
+                    text: "GC";
+                }
+
+                if game.console == Console.Unknown: Text {
+                    text: "???";
+                }
+
+                Text {
+                    text: game.size;
+                }
+            }
+
+            Image {
+                source: game.image;
+            }
+
+            Text {
+                horizontal-alignment: center;
+                text: game.display-title;
+            }
+
+            Rectangle {
+                height: 30px;
+            }
+        }
+    }
+}
+
+export component GameCardButtons inherits Horizontal {
+    alignment: center;
+    height: 34px;
+
+    IconButton {
+        icon: @image-url("../mdi/information.svg");
+        tooltip: "Game Information";
+        inline: true;
+    }
+
+    IconButton {
+        icon: @image-url("../mdi/check-all.svg");
+        tooltip: "Verify hashes";
+        inline: true;
+    }
+
+    IconButton {
+        icon: @image-url("../mdi/package-down.svg");
+        tooltip: "Archive game to rvz";
+        inline: true;
+    }
+
+    IconButton {
+        icon: @image-url("../mdi/trash-can.svg");
+        tooltip: "Delete game";
+        inline: true;
+    }
+}
