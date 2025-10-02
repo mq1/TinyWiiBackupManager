@@ -1,0 +1,31 @@
+// SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+export enum Console {
+    Wii,
+    GameCube,
+    Unknown,
+}
+
+export struct Game {
+    id: string,
+    title: string,
+    display_title: string,
+    path: string,
+    image: image,
+    size: string,
+    console: Console,
+}
+
+export struct HbcApp {
+    slug: string,
+    name: string,
+    coder: string,
+    version: string,
+    release_date: string,
+    short_description: string,
+    long_description: string,
+    path: string,
+    image: image,
+    size: string,
+}

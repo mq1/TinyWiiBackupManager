@@ -1,53 +1,100 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
-// SPDX-License-Identifier: GPL-2.0-only
+// SPDX-License-Identifier: GPL-3.0-only
 
-#![warn(clippy::all, rust_2018_idioms)]
-#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
+// Don't show windows terminal
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::sync::Arc;
+pub mod config;
+pub mod games;
+pub mod hbc_apps;
+pub mod http;
+pub mod wiitdb;
 
-use TinyWiiBackupManager::app::App;
-use TinyWiiBackupManager::util::wiitdb::WIITDB;
-use eframe::egui::{self, ViewportBuilder};
+use anyhow::{Error, Result, anyhow};
+use rfd::{MessageDialog, MessageLevel};
+use slint::{ModelRc, ToSharedString, VecModel};
+use std::rc::Rc;
 
-fn main() {
-    // pre-decompress WIITDB
-    std::thread::spawn(|| {
-        let _ = &*WIITDB;
+slint::include_modules!();
+
+fn show_err(e: Error) {
+    let _ = MessageDialog::new()
+        .set_level(MessageLevel::Error)
+        .set_title("Error")
+        .set_description(e.to_string())
+        .show();
+}
+
+fn refresh_dir_name(handle: &MainWindow) {
+    let config = config::get();
+    let dir_name = config
+        .mount_point
+        .file_name()
+        .unwrap_or(config.mount_point.as_os_str())
+        .to_str()
+        .unwrap_or_default();
+
+    handle.set_dir_name(dir_name.to_shared_string());
+}
+
+fn refresh_games(handle: &MainWindow) {
+    let games_res = games::list();
+
+    if let Ok(games) = games_res {
+        let games = VecModel::from(games);
+        handle.set_games(ModelRc::from(Rc::new(games)));
+    } else if let Err(e) = games_res {
+        show_err(e.context("Failed to list games"));
+    }
+}
+
+fn refresh_hbc_apps(handle: &MainWindow) {
+    let hbc_apps_res = hbc_apps::list();
+
+    if let Ok(hbc_apps) = hbc_apps_res {
+        let hbc_apps = VecModel::from(hbc_apps);
+        handle.set_hbc_apps(ModelRc::from(Rc::new(hbc_apps)));
+    } else if let Err(e) = hbc_apps_res {
+        show_err(e.context("Failed to list hbc apps"));
+    }
+}
+
+fn run() -> Result<()> {
+    let app = MainWindow::new()?;
+
+    app.set_app_name(env!("CARGO_PKG_NAME").to_shared_string() + " v" + env!("CARGO_PKG_VERSION"));
+    app.set_is_macos(cfg!(target_os = "macos"));
+
+    refresh_dir_name(&app);
+    refresh_games(&app);
+    refresh_hbc_apps(&app);
+
+    let weak = app.as_weak();
+    app.on_choose_mount_point(move || {
+        if let Some(dir) = rfd::FileDialog::new().pick_folder() {
+            if let Err(e) = config::update(|config| {
+                config.mount_point = dir.clone();
+            }) {
+                show_err(e);
+            }
+
+            if let Some(handle) = weak.upgrade() {
+                refresh_dir_name(&handle);
+                refresh_games(&handle);
+                refresh_hbc_apps(&handle);
+            } else {
+                show_err(anyhow!("Failed to upgrade weak reference"));
+            }
+        }
     });
 
-    // Log to stderr (if you run with `RUST_LOG=debug`).
-    env_logger::init();
+    app.run()?;
+    Ok(())
+}
 
-    #[cfg(not(target_os = "macos"))]
-    let icon = eframe::icon_data::from_png_bytes(include_bytes!("../assets/logo-small.png"))
-        .expect("Failed to load icon");
-
-    #[cfg(target_os = "macos")]
-    let icon = egui::IconData::default();
-
-    let viewport = ViewportBuilder {
-        inner_size: Some(egui::vec2(800.0, 600.0)),
-        icon: Some(Arc::new(icon)),
-        ..Default::default()
-    };
-
-    let options = eframe::NativeOptions {
-        viewport,
-        ..Default::default()
-    };
-
-    if let Err(e) = eframe::run_native(
-        env!("CARGO_PKG_NAME"),
-        options,
-        Box::new(|cc| Ok(Box::new(App::new(cc)))),
-    ) {
-        let _ = rfd::MessageDialog::new()
-            .set_title("Error")
-            .set_description(format!("Error: {e:?}"))
-            .set_level(rfd::MessageLevel::Error)
-            .show();
-
+fn main() {
+    if let Err(e) = run() {
+        show_err(e);
         std::process::exit(1);
     }
 }

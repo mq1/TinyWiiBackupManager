@@ -1,0 +1,125 @@
+// SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { Vertical, RadioButton, Horizontal, HorizontalDivider } from "@material";
+
+export component SettingsPage inherits Vertical {
+    alignment: start;
+
+    Text {
+        text: "Wii Output Format";
+        font-size: 20px;
+    }
+
+    Horizontal {
+        alignment: start;
+        spacing: 16px;
+
+        RadioButton {
+            height: 14px;
+            width: 14px;
+        }
+
+        Text {
+            text: "WBFS Auto Split (recommended)";
+        }
+    }
+
+    Horizontal {
+        alignment: start;
+        spacing: 16px;
+
+        RadioButton {
+            height: 14px;
+            width: 14px;
+        }
+
+        Text {
+            text: "WBFS Fixed 4GB-32KB Split Size";
+        }
+    }
+
+    Horizontal {
+        alignment: start;
+        spacing: 16px;
+
+        RadioButton {
+            height: 14px;
+            width: 14px;
+        }
+
+        Text {
+            text: "WBFS Fixed 4GB-64KB Split Size";
+        }
+    }
+
+    HorizontalDivider { }
+
+    Text {
+        text: "Remove Update Partition on WBFS (experimental)";
+        font-size: 20px;
+    }
+
+    Horizontal {
+        alignment: start;
+        spacing: 16px;
+
+        RadioButton {
+            height: 14px;
+            width: 14px;
+        }
+
+        Text {
+            text: "No (recommended)";
+        }
+    }
+
+    Horizontal {
+        alignment: start;
+        spacing: 16px;
+
+        RadioButton {
+            height: 14px;
+            width: 14px;
+        }
+
+        Text {
+            text: "Yes (integrity check won't work)";
+        }
+    }
+
+    HorizontalDivider { }
+
+    Text {
+        text: "Archive Format";
+        font-size: 20px;
+    }
+
+    Horizontal {
+        alignment: start;
+        spacing: 16px;
+
+        RadioButton {
+            height: 14px;
+            width: 14px;
+        }
+
+        Text {
+            text: "RVZ zstd-19 (recommended)";
+        }
+    }
+
+    Horizontal {
+        alignment: start;
+        spacing: 16px;
+
+        RadioButton {
+            height: 14px;
+            width: 14px;
+        }
+
+        Text {
+            text: "ISO (very large)";
+        }
+    }
+}
