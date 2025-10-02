@@ -17,7 +17,7 @@ use std::rc::Rc;
 
 slint::include_modules!();
 
-fn show_err(e: Error) {
+fn show_err(e: &Error) {
     let _ = MessageDialog::new()
         .set_level(MessageLevel::Error)
         .set_title("Error")
@@ -44,7 +44,7 @@ fn refresh_games(handle: &MainWindow) {
         let games = VecModel::from(games);
         handle.set_games(ModelRc::from(Rc::new(games)));
     } else if let Err(e) = games_res {
-        show_err(e.context("Failed to list games"));
+        show_err(&e.context("Failed to list games"));
     }
 }
 
@@ -55,7 +55,7 @@ fn refresh_hbc_apps(handle: &MainWindow) {
         let hbc_apps = VecModel::from(hbc_apps);
         handle.set_hbc_apps(ModelRc::from(Rc::new(hbc_apps)));
     } else if let Err(e) = hbc_apps_res {
-        show_err(e.context("Failed to list hbc apps"));
+        show_err(&e.context("Failed to list hbc apps"));
     }
 }
 
@@ -75,7 +75,7 @@ fn run() -> Result<()> {
             if let Err(e) = config::update(|config| {
                 config.mount_point = dir.clone();
             }) {
-                show_err(e);
+                show_err(&e);
             }
 
             if let Some(handle) = weak.upgrade() {
@@ -83,7 +83,7 @@ fn run() -> Result<()> {
                 refresh_games(&handle);
                 refresh_hbc_apps(&handle);
             } else {
-                show_err(anyhow!("Failed to upgrade weak reference"));
+                show_err(&anyhow!("Failed to upgrade weak reference"));
             }
         }
     });
@@ -92,9 +92,9 @@ fn run() -> Result<()> {
     Ok(())
 }
 
-fn main() {
-    if let Err(e) = run() {
-        show_err(e);
-        std::process::exit(1);
-    }
+fn main() -> Result<()> {
+    run().map_err(|e| {
+        show_err(&e);
+        e
+    })
 }
