@@ -6,6 +6,7 @@ import { NavigationRail, PopupMenu, IconButton, Horizontal, MaterialPalette, Ver
 export component SideBar inherits VerticalLayout {
     in-out property <int> current_index: 0;
     in property <bool> is_macos: false;
+    in property <int> game_count: 0;
     callback set_window_title(string);
     callback choose_mount_point();
 
@@ -54,7 +55,7 @@ export component SideBar inherits VerticalLayout {
 
         index-changed(i) => {
             if i == 0 {
-                set_window_title(" • Games");
+                set_window_title(" • " + game_count + " Games");
             }
             if i == 1 {
                 set_window_title(" • Apps");

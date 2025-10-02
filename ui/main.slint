@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { IconButton, Vertical } from "@material";
+import { IconButton, Vertical, MaterialText } from "@material";
 import { SideBar } from "sidebar.slint";
 import { GameGrid } from "game_grid.slint";
 import { Game, HbcApp } from "common.slint";
@@ -22,21 +22,22 @@ export component MainWindow inherits Window {
 
     preferred-width: 800px;
     preferred-height: 600px;
-    title: app_name + " • Games" + (dir_name.is_empty ? "" : " • " + dir_name);
+    title: app_name + " • " + games.length + " Games" + (dir_name.is_empty ? "" : " • " + dir_name);
 
     HorizontalLayout {
         SideBar {
             current_index <=> current_index;
             is_macos: is_macos;
+            game_count: games.length;
             choose_mount_point => {
                 choose_mount_point();
             }
             set-window-title(title) => {
-                root.title = app_name + title;
+                root.title = app_name + title + (dir_name.is_empty ? "" : " • " + dir_name);
             }
         }
 
-        Vertical {
+        VerticalLayout {
             if current_index == 0 && !dir_name.is-empty: GameGrid {
                 games: games;
             }
@@ -50,7 +51,7 @@ export component MainWindow inherits Window {
             if dir_name.is-empty: Vertical {
                 alignment: end;
 
-                Text {
+                MaterialText {
                     text: "⬅  Choose a drive or directory";
                     font-size: 18px;
                 }
