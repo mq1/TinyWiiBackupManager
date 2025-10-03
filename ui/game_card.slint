@@ -49,6 +49,7 @@ export component GameCardButtons inherits Horizontal {
     alignment: center;
     height: 34px;
     callback open_game_info();
+    callback open_game_dir();
 
     IconButton {
         icon: @image-url("../mdi/information.svg");
@@ -60,20 +61,29 @@ export component GameCardButtons inherits Horizontal {
     }
 
     IconButton {
+        icon: @image-url("../mdi/folder-open.svg");
+        tooltip: "Open Game Directory";
+        inline: true;
+        clicked => {
+            open_game_dir();
+        }
+    }
+
+    IconButton {
         icon: @image-url("../mdi/check-all.svg");
-        tooltip: "Verify hashes";
+        tooltip: "Verify Hashes";
         inline: true;
     }
 
     IconButton {
         icon: @image-url("../mdi/package-down.svg");
-        tooltip: "Archive game to rvz";
+        tooltip: "Archive Game to rvz";
         inline: true;
     }
 
     IconButton {
         icon: @image-url("../mdi/trash-can.svg");
-        tooltip: "Delete game";
+        tooltip: "Delete Game";
         inline: true;
     }
 }

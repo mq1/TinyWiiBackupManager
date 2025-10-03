@@ -149,6 +149,12 @@ fn run() -> Result<()> {
         }
     });
 
+    app.on_open_game_dir(move |path| {
+        if let Err(e) = open::that(path) {
+            show_err(&e.into());
+        }
+    });
+
     app.run()?;
     Ok(())
 }

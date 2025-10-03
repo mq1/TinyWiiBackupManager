@@ -21,6 +21,7 @@ export component MainWindow inherits Window {
 
     callback choose_mount_point();
     callback open_game_info(string);
+    callback open_game_dir(string);
 
     preferred-width: 800px;
     preferred-height: 600px;
@@ -44,6 +45,9 @@ export component MainWindow inherits Window {
                 games: games;
                 open_game_info(id) => {
                     open_game_info(id);
+                }
+                open_game_dir(path) => {
+                    open_game_dir(path);
                 }
             }
 
