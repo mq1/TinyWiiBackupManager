@@ -143,6 +143,12 @@ fn run() -> Result<()> {
         }
     });
 
+    app.on_open_game_info(move |id| {
+        if let Err(e) = open::that(format!("https://www.gametdb.com/Wii/{id}")) {
+            show_err(&e.into());
+        }
+    });
+
     app.run()?;
     Ok(())
 }
