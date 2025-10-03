@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{Console, Game, config, wiitdb};
-use anyhow::{Result, bail};
+use anyhow::Result;
 use size::Size;
 use slint::{Image, ToSharedString};
 use std::fs;
@@ -11,22 +11,21 @@ use std::path::PathBuf;
 pub fn list() -> Result<Vec<Game>> {
     let mount_point = config::get().mount_point;
     if mount_point.as_os_str().is_empty() {
-        bail!("No base directory set");
+        return Ok(vec![]);
     }
 
     let game_dirs = [mount_point.join("wbfs"), mount_point.join("games")];
 
-    // First, attempt to read all directories. The `collect` will short-circuit
-    // and return the first I/O error encountered.
+    // Create dirs
+    game_dirs.iter().try_for_each(fs::create_dir_all)?;
+
     let mut games = game_dirs
-        .into_iter()
+        .iter()
         .map(fs::read_dir)
-        .collect::<Result<Vec<_>, _>>()? // Propagate any I/O error
+        .collect::<Result<Vec<_>, _>>()?
         .into_iter()
-        .flatten() // Flatten the Vec<ReadDir> into an iterator of DirEntry
-        .filter_map(Result::ok)
-        .map(|dir| dir.path())
-        .filter_map(Game::from_dir)
+        .flat_map(|rd| rd.filter_map(Result::ok))
+        .filter_map(|entry| Game::from_dir(entry.path()))
         .collect::<Vec<_>>();
 
     games.sort_by(|a, b| a.display_title.cmp(&b.display_title));
