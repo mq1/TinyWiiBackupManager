@@ -29,7 +29,7 @@ pub fn list() -> Result<Vec<Game>> {
         .filter_map(Game::from_dir)
         .collect::<Vec<_>>();
 
-    games.sort_by(|a, b| a.title.cmp(&b.title));
+    games.sort_by(|a, b| a.display_title.cmp(&b.display_title));
 
     Ok(games)
 }
