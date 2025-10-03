@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use serde::{Deserialize, Serialize};
 use std::{
     fs,
@@ -19,10 +19,15 @@ pub struct Config {
     pub mount_point: PathBuf,
     pub remove_sources_games: bool,
     pub remove_sources_apps: bool,
+    pub scrub_update_partition: bool,
 }
 
 pub fn init() -> Result<()> {
-    let data_dir = PROJ.get().ok_or(anyhow!("PROJ not initialized"))?.data_dir();
+    let data_dir = PROJ
+        .get()
+        .ok_or(anyhow!("PROJ not initialized"))?
+        .data_dir();
+
     fs::create_dir_all(data_dir)?;
     let path = data_dir.join("config.json");
 
@@ -73,3 +78,4 @@ pub fn update(mutate: impl Fn(&mut Config)) -> Result<()> {
     mutate(&mut config);
     set(config)
 }
+
