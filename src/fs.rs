@@ -5,7 +5,7 @@ use size::Size;
 use std::path::Path;
 use sysinfo::Disks;
 
-fn get_disk_usage(path: &Path) -> String {
+pub fn get_disk_usage(path: &Path) -> String {
     let disks = Disks::new_with_refreshed_list();
 
     disks
