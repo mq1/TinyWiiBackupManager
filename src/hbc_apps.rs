@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{HbcApp, config};
-use anyhow::{Result, bail};
+use anyhow::Result;
 use serde::Deserialize;
 use size::Size;
 use slint::{Image, ToSharedString};
@@ -67,7 +67,7 @@ impl HbcApp {
 pub fn list() -> Result<Vec<HbcApp>> {
     let mount_point = config::get().mount_point;
     if mount_point.as_os_str().is_empty() {
-        bail!("No base directory set");
+        return Ok(vec![]);
     }
 
     let apps_dir = mount_point.join("apps");

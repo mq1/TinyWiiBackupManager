@@ -12,14 +12,16 @@ pub mod http;
 pub mod wiitdb;
 
 use anyhow::{Error, Result, anyhow};
-use notify::{RecursiveMode, Watcher};
+use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 use rfd::{MessageDialog, MessageLevel};
 use slint::{ModelRc, ToSharedString, VecModel};
-use std::rc::Rc;
+use std::{rc::Rc, sync::Mutex};
 
 use crate::fs::get_disk_usage;
 
 slint::include_modules!();
+
+static WATCHER: Mutex<Option<RecommendedWatcher>> = Mutex::new(None);
 
 fn show_err(e: &Error) {
     let _ = MessageDialog::new()
@@ -30,11 +32,11 @@ fn show_err(e: &Error) {
 }
 
 fn refresh_dir_name(handle: &MainWindow) {
-    let config = config::get();
-    let dir_name = config
-        .mount_point
+    let mount_point = config::get().mount_point;
+
+    let dir_name = mount_point
         .file_name()
-        .unwrap_or(config.mount_point.as_os_str())
+        .unwrap_or(mount_point.as_os_str())
         .to_str()
         .unwrap_or_default();
 
@@ -43,9 +45,6 @@ fn refresh_dir_name(handle: &MainWindow) {
 
 fn refresh_disk_usage(handle: &MainWindow) {
     let path = config::get().mount_point;
-    if path.as_os_str().is_empty() {
-        return;
-    }
 
     let usage = get_disk_usage(&path);
     handle.set_disk_usage(usage.to_shared_string());
@@ -99,7 +98,11 @@ fn watch(handle: &MainWindow) {
         let mut watcher = res?;
         watcher.watch(&mount_point.join("wbfs"), RecursiveMode::NonRecursive)?;
         watcher.watch(&mount_point.join("games"), RecursiveMode::NonRecursive)?;
-        watcher.watch(&mount_point.join("apps"), RecursiveMode::NonRecursive)
+        watcher.watch(&mount_point.join("apps"), RecursiveMode::NonRecursive)?;
+
+        WATCHER.lock()?.replace(watcher);
+
+        Ok(())
     })() {
         show_err(&e.into());
     }
@@ -132,6 +135,7 @@ fn run() -> Result<()> {
                 refresh_games(&handle);
                 refresh_hbc_apps(&handle);
                 refresh_disk_usage(&handle);
+                watch(&handle);
             } else {
                 show_err(&anyhow!("Failed to upgrade weak reference"));
             }
