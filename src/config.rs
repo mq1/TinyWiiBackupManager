@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use anyhow::{Result, anyhow};
-use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
 use std::{
     fs,
@@ -10,11 +9,10 @@ use std::{
     sync::{LazyLock, Mutex},
 };
 
-static CONFIG_PATH: LazyLock<PathBuf> = LazyLock::new(|| {
-    let proj = ProjectDirs::from("it", "mq1", env!("CARGO_PKG_NAME"))
-        .expect("Failed to get project directory");
+use crate::PROJ;
 
-    let data_dir = proj.data_dir();
+static CONFIG_PATH: LazyLock<PathBuf> = LazyLock::new(|| {
+    let data_dir = PROJ.data_dir();
     let _ = fs::create_dir_all(data_dir);
 
     data_dir.join("config.json")
