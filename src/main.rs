@@ -143,7 +143,5 @@ fn run() -> Result<()> {
 }
 
 fn main() -> Result<()> {
-    run().inspect_err(|e| {
-        show_err(e);
-    })
+    run().inspect_err(show_err)
 }
