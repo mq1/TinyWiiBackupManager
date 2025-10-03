@@ -90,6 +90,7 @@ fn watch(handle: &MainWindow) {
             let _ = weak.upgrade_in_event_loop(|handle| {
                 refresh_games(&handle);
                 refresh_hbc_apps(&handle);
+                refresh_disk_usage(&handle);
             });
         }
     });
