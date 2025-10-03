@@ -53,7 +53,7 @@ impl Game {
         let console = match dir.parent()?.file_name()?.to_str()? {
             "wbfs" => Console::Wii,
             "games" => Console::GameCube,
-            _ => return None, // Not in a valid console directory
+            _ => Console::Unknown,
         };
 
         // Look up game info from the WiiTDB database
