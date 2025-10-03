@@ -48,12 +48,6 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt-get update
-          
-          # Install dependencies for eframe
-          sudo apt-get install -y libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
-
-          # Install cargo-packager
           cargo install cargo-packager --version ^0.11 --locked
 
       - name: Build and package binary
