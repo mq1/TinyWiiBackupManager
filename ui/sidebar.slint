@@ -7,8 +7,10 @@ export component SideBar inherits VerticalLayout {
     in-out property <int> current_index: 0;
     in property <bool> is_macos: false;
     in property <int> game_count: 0;
+
     callback set_window_title(string);
     callback choose_mount_point();
+    callback add_games();
 
     Rectangle {
         width: 80px;
@@ -23,6 +25,9 @@ export component SideBar inherits VerticalLayout {
                 tooltip: "Add Game(s)";
                 style: FABStyle.standard;
                 z: 2.0;
+                clicked => {
+                    add_games();
+                }
             }
 
             if current_index == 1: FloatingActionButton {

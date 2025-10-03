@@ -26,7 +26,7 @@ pub fn get_disk_usage(path: &Path) -> String {
 }
 
 /// Returns `true` if we can create a file >4 GiB in this directory
-pub fn can_write_over_4gb(path: impl AsRef<Path>) -> bool {
+pub fn can_write_over_4gb(path: &Path) -> bool {
     let result = (|| {
         // Create a temp file in the target directory
         let mut tmp = NamedTempFile::new_in(path)?;

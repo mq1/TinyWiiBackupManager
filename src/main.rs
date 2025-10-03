@@ -4,6 +4,8 @@
 // Don't show windows terminal
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+pub mod add_games;
+pub mod concurrency;
 pub mod config;
 pub mod fs;
 pub mod games;
@@ -166,6 +168,12 @@ fn run() -> Result<()> {
     app.on_open_game_dir(move |path| {
         if let Err(e) = open::that(path) {
             show_err(&e.into());
+        }
+    });
+
+    app.on_add_games(|| {
+        if let Err(e) = add_games::add_games() {
+            show_err(&e);
         }
     });
 
