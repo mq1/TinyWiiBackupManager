@@ -40,6 +40,7 @@ zip = { version = "5.1", default-features = false, features = [
 quick-xml = { version = "0.38", features = ["serialize"] }
 sysinfo = "0.37"
 notify = "8.2"
+open = "5.3"
 
 [target.'cfg(any(target_os = "macos", all(target_os = "windows", any(target_arch = "x86_64", target_arch = "aarch64"))))'.dependencies]
 ureq = { version = "3.1", default-features = false, features = [

@@ -48,11 +48,15 @@ export component GameCardBackground inherits Vertical {
 export component GameCardButtons inherits Horizontal {
     alignment: center;
     height: 34px;
+    callback open_game_info();
 
     IconButton {
         icon: @image-url("../mdi/information.svg");
         tooltip: "Game Information";
         inline: true;
+        clicked => {
+            open_game_info();
+        }
     }
 
     IconButton {
