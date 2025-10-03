@@ -9,17 +9,25 @@ pub mod fs;
 pub mod games;
 pub mod hbc_apps;
 pub mod http;
+pub mod titles;
 pub mod wiitdb;
 
+use crate::fs::get_disk_usage;
 use anyhow::{Error, Result, anyhow};
+use directories::ProjectDirs;
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 use rfd::{MessageDialog, MessageLevel};
 use slint::{ModelRc, ToSharedString, VecModel};
-use std::{rc::Rc, sync::Mutex};
-
-use crate::fs::get_disk_usage;
+use std::{
+    rc::Rc,
+    sync::{LazyLock, Mutex},
+};
 
 slint::include_modules!();
+
+pub static PROJ: LazyLock<ProjectDirs> = LazyLock::new(|| {
+    ProjectDirs::from("it", "mq1", env!("CARGO_PKG_NAME")).expect("Failed to get project directory")
+});
 
 static WATCHER: Mutex<Option<RecommendedWatcher>> = Mutex::new(None);
 
