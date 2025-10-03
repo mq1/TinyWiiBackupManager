@@ -85,12 +85,13 @@ fn watch(handle: &MainWindow) {
                 | notify::EventKind::Remove(_),
             ..
         }) = res
-        {
-            let _ = weak.upgrade_in_event_loop(|handle| {
+            && let Err(e) = weak.upgrade_in_event_loop(|handle| {
                 refresh_games(&handle);
                 refresh_hbc_apps(&handle);
                 refresh_disk_usage(&handle);
-            });
+            })
+        {
+            show_err(&e.into());
         }
     });
 
