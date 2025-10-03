@@ -12,7 +12,7 @@ pub mod http;
 pub mod titles;
 pub mod wiitdb;
 
-use crate::fs::get_disk_usage;
+use crate::{fs::get_disk_usage, titles::Titles};
 use anyhow::{Error, Result, anyhow};
 use directories::ProjectDirs;
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
@@ -30,6 +30,7 @@ pub static PROJ: LazyLock<ProjectDirs> = LazyLock::new(|| {
 });
 
 static WATCHER: Mutex<Option<RecommendedWatcher>> = Mutex::new(None);
+pub static TITLES: Mutex<Option<Titles>> = Mutex::new(None);
 
 fn show_err(e: &Error) {
     let _ = MessageDialog::new()
@@ -119,6 +120,12 @@ fn watch(handle: &MainWindow) {
 
 fn run() -> Result<()> {
     let app = MainWindow::new()?;
+
+    let titles = Titles::get()?;
+    TITLES
+        .lock()
+        .map_err(|_| anyhow!("Failed to lock titles"))?
+        .replace(titles);
 
     app.set_app_name(env!("CARGO_PKG_NAME").to_shared_string() + " v" + env!("CARGO_PKG_VERSION"));
     app.set_is_macos(cfg!(target_os = "macos"));

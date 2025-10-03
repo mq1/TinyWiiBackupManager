@@ -3,10 +3,8 @@
 
 use anyhow::Result;
 
-use crate::{PROJ, http::AGENT, show_err};
-use std::{fs, sync::LazyLock};
-
-type Index = Box<[([u8; 6], String)]>;
+use crate::{PROJ, http::AGENT};
+use std::fs;
 
 const DOWNLOAD_URL: &str = "https://www.gametdb.com/wiitdb.txt";
 
@@ -19,10 +17,12 @@ fn id_to_bytes(id: &str) -> [u8; 6] {
     id_bytes
 }
 
-static TITLES_CACHE: LazyLock<Index> = LazyLock::new(|| {
-    let res = || -> Result<Index> {
+pub struct Titles(Box<[([u8; 6], String)]>);
+
+impl Titles {
+    pub fn get() -> Result<Titles> {
         let data_dir = PROJ.data_dir();
-        let _ = fs::create_dir_all(data_dir);
+        fs::create_dir_all(data_dir)?;
 
         let path = data_dir.join("titles.txt");
         if !path.exists() {
@@ -40,23 +40,13 @@ static TITLES_CACHE: LazyLock<Index> = LazyLock::new(|| {
         // We sort it now so we can binary search
         titles.sort_by_key(|(id, _)| *id);
 
-        Ok(titles.into_boxed_slice())
-    }();
-
-    match res {
-        Ok(slice) => slice,
-        Err(e) => {
-            show_err(&e);
-            Box::new([])
-        }
+        let index = titles.into_boxed_slice();
+        Ok(Titles(index))
     }
-});
 
-pub fn get_title(id: &str) -> Option<String> {
-    let id_bytes = id_to_bytes(id);
-    let index = TITLES_CACHE
-        .binary_search_by_key(&id_bytes, |(id, _)| *id)
-        .ok()?;
-
-    Some(TITLES_CACHE[index].1.clone())
+    pub fn get_title(&self, id: &str) -> Option<String> {
+        let id_bytes = id_to_bytes(id);
+        let index = self.0.binary_search_by_key(&id_bytes, |(id, _)| *id).ok()?;
+        Some(self.0[index].1.clone())
+    }
 }
