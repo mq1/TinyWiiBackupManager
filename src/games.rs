@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{Console, Game, config, wiitdb};
+use crate::{Console, Game, config, titles};
 use anyhow::Result;
 use size::Size;
 use slint::{Image, ToSharedString};
@@ -55,15 +55,7 @@ impl Game {
             _ => Console::Unknown,
         };
 
-        // Look up game info from the WiiTDB database
-        let mut id_bytes = [0u8; 6];
-        let bytes = id.as_bytes();
-        let len = bytes.len().min(6);
-        id_bytes[..len].copy_from_slice(&bytes[..len]);
-        let info = wiitdb::lookup(&id_bytes);
-
-        // Use the database title if available, otherwise fall back to the parsed title
-        let display_title = info.map_or_else(|| title.to_string(), |info| info.title);
+        let display_title = titles::get_title(id).unwrap_or_else(|| title.to_string());
 
         // Get the directory size
         let size = Size::from_bytes(fs_extra::dir::get_size(&dir).unwrap_or(0));
