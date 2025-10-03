@@ -7,6 +7,20 @@ license = "GPL-3.0-only"
 repository = "https://github.com/mq1/TinyWiiBackupManager"
 description = "A dead simple Wii Backup Manager"
 
+[package.metadata.packager]
+product-name = "TinyWiiBackupManager"
+identifier = "it.mq1.TinyWiiBackupManager"
+icons = ["assets/logo@2x.png", "assets/logo-small.png"]
+copyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-2.0-only."
+category = "Utility"
+out_dir = "dist"
+
+[package.metadata.winres]
+FileDescription = "A dead simple Wii Backup Manager"
+ProductName = "TinyWiiBackupManager"
+OriginalFilename = "TinyWiiBackupManager.exe"
+LegalCopyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-2.0-only."
+
 [dependencies]
 slint = "1.13"
 rfd = "0.15"
