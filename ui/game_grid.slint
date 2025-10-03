@@ -14,6 +14,8 @@ export component GameGrid inherits ScrollView {
     property <int> columns: (self.width / card_w).floor();
     property <int> rows: (games.length / columns).ceil();
 
+    callback open_game_info(string);
+
     horizontal-stretch: 1;
     vertical-stretch: 1;
     viewport_height: rows * card_h + MaterialStyleMetrics.padding_8;
@@ -32,6 +34,9 @@ export component GameGrid inherits ScrollView {
                 x: mod(index, columns) * card_w;
                 y: (index / columns).floor() * card_h + (card_h - 42px);
                 width: card_w;
+                open_game_info => {
+                    open_game_info(game.id);
+                }
             }
         }
     }
