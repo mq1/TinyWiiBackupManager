@@ -21,21 +21,22 @@ zstd = "0.13"
 strum = "0.27"
 strum_macros = "0.27"
 zip = { version = "5.1", default-features = false, features = [
-    "deflate-flate2",
+  "deflate-flate2",
 ] }
 quick-xml = { version = "0.38", features = ["serialize"] }
+sysinfo = "0.37"
 
 [target.'cfg(any(target_os = "macos", all(target_os = "windows", any(target_arch = "x86_64", target_arch = "aarch64"))))'.dependencies]
 ureq = { version = "3.1", default-features = false, features = [
-    "native-tls",
-    "platform-verifier",
-    "json",
+  "native-tls",
+  "platform-verifier",
+  "json",
 ] }
 
 [target.'cfg(not(any(target_os = "macos", all(target_os = "windows", any(target_arch = "x86_64", target_arch = "aarch64")))))'.dependencies]
 ureq = { version = "3.1", default-features = false, features = [
-    "rustls",
-    "json",
+  "rustls",
+  "json",
 ] }
 
 [build-dependencies]
