@@ -21,6 +21,7 @@ dependencies = [
  "strum",
  "strum_macros",
  "sysinfo",
+ "tempfile",
  "ureq",
  "winres",
  "zip",
