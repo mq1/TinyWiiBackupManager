@@ -5,6 +5,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 pub mod config;
+pub mod fs;
 pub mod games;
 pub mod hbc_apps;
 pub mod http;
@@ -91,8 +92,7 @@ fn run() -> Result<()> {
 }
 
 fn main() -> Result<()> {
-    run().map_err(|e| {
-        show_err(&e);
-        e
+    run().inspect_err(|e| {
+        show_err(e);
     })
 }
