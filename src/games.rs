@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{Console, Game, TITLES, config};
+use crate::{Console, Game, config, titles};
 use anyhow::Result;
 use size::Size;
 use slint::{Image, ToSharedString};
@@ -55,12 +55,7 @@ impl Game {
             _ => Console::Unknown,
         };
 
-        let display_title = TITLES
-            .lock()
-            .ok()?
-            .as_ref()
-            .and_then(|titles| titles.get_title(id))
-            .unwrap_or(title.to_string());
+        let display_title = titles::get_title(id).unwrap_or(title.to_string());
 
         // Get the directory size
         let size = Size::from_bytes(fs_extra::dir::get_size(&dir).unwrap_or(0));
