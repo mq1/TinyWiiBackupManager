@@ -12,9 +12,12 @@ pub mod http;
 pub mod wiitdb;
 
 use anyhow::{Error, Result, anyhow};
+use notify::{RecursiveMode, Watcher};
 use rfd::{MessageDialog, MessageLevel};
 use slint::{ModelRc, ToSharedString, VecModel};
 use std::rc::Rc;
+
+use crate::fs::get_disk_usage;
 
 slint::include_modules!();
 
@@ -38,6 +41,16 @@ fn refresh_dir_name(handle: &MainWindow) {
     handle.set_dir_name(dir_name.to_shared_string());
 }
 
+fn refresh_disk_usage(handle: &MainWindow) {
+    let path = config::get().mount_point;
+    if path.as_os_str().is_empty() {
+        return;
+    }
+
+    let usage = get_disk_usage(&path);
+    handle.set_disk_usage(usage.to_shared_string());
+}
+
 fn refresh_games(handle: &MainWindow) {
     let games_res = games::list();
 
@@ -58,6 +71,39 @@ fn refresh_hbc_apps(handle: &MainWindow) {
     }
 }
 
+fn watch(handle: &MainWindow) {
+    let mount_point = config::get().mount_point;
+    if mount_point.as_os_str().is_empty() {
+        return;
+    }
+
+    let weak = handle.as_weak();
+    let res = notify::recommended_watcher(move |res| {
+        if let Ok(notify::Event {
+            kind:
+                notify::EventKind::Modify(_)
+                | notify::EventKind::Create(_)
+                | notify::EventKind::Remove(_),
+            ..
+        }) = res
+        {
+            let _ = weak.upgrade_in_event_loop(|handle| {
+                refresh_games(&handle);
+                refresh_hbc_apps(&handle);
+            });
+        }
+    });
+
+    if let Err(e) = (|| -> notify::Result<()> {
+        let mut watcher = res?;
+        watcher.watch(&mount_point.join("wbfs"), RecursiveMode::NonRecursive)?;
+        watcher.watch(&mount_point.join("games"), RecursiveMode::NonRecursive)?;
+        watcher.watch(&mount_point.join("apps"), RecursiveMode::NonRecursive)
+    })() {
+        show_err(&e.into());
+    }
+}
+
 fn run() -> Result<()> {
     let app = MainWindow::new()?;
 
@@ -67,6 +113,9 @@ fn run() -> Result<()> {
     refresh_dir_name(&app);
     refresh_games(&app);
     refresh_hbc_apps(&app);
+    refresh_disk_usage(&app);
+
+    watch(&app);
 
     let weak = app.as_weak();
     app.on_choose_mount_point(move || {
@@ -81,6 +130,7 @@ fn run() -> Result<()> {
                 refresh_dir_name(&handle);
                 refresh_games(&handle);
                 refresh_hbc_apps(&handle);
+                refresh_disk_usage(&handle);
             } else {
                 show_err(&anyhow!("Failed to upgrade weak reference"));
             }

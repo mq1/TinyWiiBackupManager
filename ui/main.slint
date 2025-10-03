@@ -13,6 +13,7 @@ export * from "common.slint";
 export component MainWindow inherits Window {
     in property <string> app_name: "";
     in-out property <string> dir_name: "";
+    in property <string> disk_usage: "";
     in property <bool> is_macos: false;
     in-out property <int> current_index: 0;
     in property <[Game]> games;
@@ -22,7 +23,7 @@ export component MainWindow inherits Window {
 
     preferred-width: 800px;
     preferred-height: 600px;
-    title: app_name + " • " + games.length + " Games" + (dir_name.is_empty ? "" : " • " + dir_name);
+    title: app_name + " • " + games.length + " Games" + (dir_name.is_empty ? "" : " • " + dir_name + " (" + disk_usage + ")");
 
     HorizontalLayout {
         SideBar {
@@ -33,7 +34,7 @@ export component MainWindow inherits Window {
                 choose_mount_point();
             }
             set-window-title(title) => {
-                root.title = app_name + title + (dir_name.is_empty ? "" : " • " + dir_name);
+                root.title = app_name + title + (dir_name.is_empty ? "" : " • " + dir_name + " (" + disk_usage + ")");
             }
         }
 
