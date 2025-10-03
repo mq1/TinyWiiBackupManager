@@ -12,7 +12,7 @@ pub mod http;
 pub mod titles;
 pub mod wiitdb;
 
-use crate::{fs::get_disk_usage, titles::Titles};
+use crate::fs::get_disk_usage;
 use anyhow::{Error, Result, anyhow};
 use directories::ProjectDirs;
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
@@ -20,17 +20,13 @@ use rfd::{MessageDialog, MessageLevel};
 use slint::{ModelRc, ToSharedString, VecModel};
 use std::{
     rc::Rc,
-    sync::{LazyLock, Mutex},
+    sync::{Mutex, OnceLock},
 };
 
 slint::include_modules!();
 
-pub static PROJ: LazyLock<ProjectDirs> = LazyLock::new(|| {
-    ProjectDirs::from("it", "mq1", env!("CARGO_PKG_NAME")).expect("Failed to get project directory")
-});
-
+pub static PROJ: OnceLock<ProjectDirs> = OnceLock::new();
 static WATCHER: Mutex<Option<RecommendedWatcher>> = Mutex::new(None);
-pub static TITLES: Mutex<Option<Titles>> = Mutex::new(None);
 
 fn show_err(e: &Error) {
     let _ = MessageDialog::new()
@@ -121,11 +117,14 @@ fn watch(handle: &MainWindow) {
 fn run() -> Result<()> {
     let app = MainWindow::new()?;
 
-    let titles = Titles::get()?;
-    TITLES
-        .lock()
-        .map_err(|_| anyhow!("Failed to lock titles"))?
-        .replace(titles);
+    let proj = ProjectDirs::from("it", "mq1", env!("CARGO_PKG_NAME"))
+        .ok_or(anyhow!("Failed to get project dirs"))?;
+
+    PROJ.set(proj)
+        .map_err(|_| anyhow!("Failed to set project dirs"))?;
+
+    config::init()?;
+    titles::init()?;
 
     app.set_app_name(env!("CARGO_PKG_NAME").to_shared_string() + " v" + env!("CARGO_PKG_VERSION"));
     app.set_is_macos(cfg!(target_os = "macos"));
