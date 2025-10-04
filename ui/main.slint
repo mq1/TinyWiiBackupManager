@@ -4,7 +4,7 @@
 import { IconButton, Vertical, MaterialText } from "@material";
 import { SideBar } from "sidebar.slint";
 import { GameGrid } from "game_grid.slint";
-import { Game, HbcApp } from "common.slint";
+import { Game, HbcApp, WiiOutputFormat, ArchiveFormat } from "common.slint";
 import { HbcAppGrid } from "hbc_app_grid.slint";
 import { SettingsPage } from "settings.slint";
 
@@ -23,6 +23,9 @@ export component MainWindow inherits Window {
     callback open_game_info(string);
     callback open_game_dir(string);
     callback add_games();
+    callback wii_output_format_changed(WiiOutputFormat);
+    callback archive_format_changed(ArchiveFormat);
+    callback remove_update_partition_changed(bool);
 
     preferred-width: 800px;
     preferred-height: 600px;
