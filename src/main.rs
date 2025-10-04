@@ -4,11 +4,10 @@
 #![warn(clippy::all, rust_2018_idioms)]
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
-use std::sync::Arc;
-
 use TinyWiiBackupManager::app::App;
 use TinyWiiBackupManager::util::wiitdb::WIITDB;
 use eframe::egui::{self, ViewportBuilder};
+use std::sync::Arc;
 
 fn main() {
     // pre-decompress WIITDB
