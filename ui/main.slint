@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { IconButton, Vertical, MaterialText } from "@material";
+import { IconButton, Vertical, MaterialText, SnackBar } from "@material";
 import { SideBar } from "sidebar.slint";
 import { GameGrid } from "game_grid.slint";
 import { Game, HbcApp, WiiOutputFormat, ArchiveFormat } from "common.slint";
@@ -18,14 +18,24 @@ export component MainWindow inherits Window {
     in-out property <int> current_index: 0;
     in property <[Game]> games;
     in property <[HbcApp]> hbc_apps;
+    in-out property <string> status;
 
     callback choose_mount_point();
     callback open_game_info(string);
     callback open_game_dir(string);
+    callback remove_game(string);
     callback add_games();
     callback wii_output_format_changed(WiiOutputFormat);
     callback archive_format_changed(ArchiveFormat);
     callback remove_update_partition_changed(bool);
+
+    public function show_status() {
+        sb.show();
+    }
+
+    public function hide_status() {
+        sb.close();
+    }
 
     preferred-width: 800px;
     preferred-height: 600px;
@@ -56,6 +66,9 @@ export component MainWindow inherits Window {
                 open_game_dir(path) => {
                     open_game_dir(path);
                 }
+                remove_game(path) => {
+                    remove_game(path);
+                }
             }
 
             if current_index == 1 && !dir_name.is-empty: HbcAppGrid {
@@ -73,6 +86,10 @@ export component MainWindow inherits Window {
                     font-size: 18px;
                 }
             }
+        }
+
+        sb := SnackBar {
+            text: status;
         }
     }
 }
