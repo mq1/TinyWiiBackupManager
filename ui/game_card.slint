@@ -11,9 +11,22 @@ export component GameCardBackground inherits Vertical {
     ElevatedCard {
         Vertical {
             Horizontal {
-                alignment: space-between;
+                spacing: 4px;
+
+                if game.console == Console.Wii: Image {
+                    source: @image-url("../mdi/tennis.svg");
+                    height: 14px;
+                    width: 14px;
+                }
+
                 if game.console == Console.Wii: MaterialText {
                     text: "Wii";
+                }
+
+                if game.console == Console.GameCube: Image {
+                    source: @image-url("../mdi/cube-outline.svg");
+                    height: 14px;
+                    width: 14px;
                 }
 
                 if game.console == Console.GameCube: MaterialText {
@@ -22,6 +35,10 @@ export component GameCardBackground inherits Vertical {
 
                 if game.console == Console.Unknown: MaterialText {
                     text: "???";
+                }
+
+                Rectangle {
+                    horizontal-stretch: 1;
                 }
 
                 MaterialText {
