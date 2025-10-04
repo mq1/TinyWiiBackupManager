@@ -102,7 +102,7 @@ fn watch(handle: &MainWindow) {
         }
     });
 
-    if let Err(e) = (|| -> notify::Result<()> {
+    || -> notify::Result<()> {
         let mut watcher = res?;
         watcher.watch(&mount_point.join("wbfs"), RecursiveMode::NonRecursive)?;
         watcher.watch(&mount_point.join("games"), RecursiveMode::NonRecursive)?;
@@ -111,9 +111,10 @@ fn watch(handle: &MainWindow) {
         WATCHER.lock()?.replace(watcher);
 
         Ok(())
-    })() {
-        show_err(&e.into());
-    }
+    }()
+    .map_err(Into::into)
+    .inspect_err(show_err)
+    .ok();
 }
 
 fn run() -> Result<()> {
@@ -141,11 +142,11 @@ fn run() -> Result<()> {
     let weak = app.as_weak();
     app.on_choose_mount_point(move || {
         if let Some(dir) = rfd::FileDialog::new().pick_folder() {
-            if let Err(e) = config::update(|config| {
+            config::update(|config| {
                 config.mount_point.clone_from(&dir);
-            }) {
-                show_err(&e);
-            }
+            })
+            .inspect_err(show_err)
+            .ok();
 
             if let Some(handle) = weak.upgrade() {
                 refresh_dir_name(&handle);
@@ -160,21 +161,45 @@ fn run() -> Result<()> {
     });
 
     app.on_open_game_info(move |id| {
-        if let Err(e) = open::that(format!("https://www.gametdb.com/Wii/{id}")) {
-            show_err(&e.into());
-        }
+        open::that(format!("https://www.gametdb.com/Wii/{id}"))
+            .map_err(Into::into)
+            .inspect_err(show_err)
+            .ok();
     });
 
     app.on_open_game_dir(move |path| {
-        if let Err(e) = open::that(path) {
-            show_err(&e.into());
-        }
+        open::that(path)
+            .map_err(Into::into)
+            .inspect_err(show_err)
+            .ok();
     });
 
     app.on_add_games(|| {
-        if let Err(e) = add_games::add_games() {
-            show_err(&e);
-        }
+        add_games::add_games().inspect_err(show_err).ok();
+    });
+
+    app.on_wii_output_format_changed(|format| {
+        config::update(|config| {
+            config.wii_output_format = format;
+        })
+        .inspect_err(show_err)
+        .ok();
+    });
+
+    app.on_archive_format_changed(|format| {
+        config::update(|config| {
+            config.archive_format = format;
+        })
+        .inspect_err(show_err)
+        .ok();
+    });
+
+    app.on_remove_update_partition_changed(|enabled| {
+        config::update(|config| {
+            config.scrub_update_partition = enabled;
+        })
+        .inspect_err(show_err)
+        .ok();
     });
 
     app.run()?;

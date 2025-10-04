@@ -9,17 +9,43 @@ use std::{
     sync::{Mutex, OnceLock},
 };
 
-use crate::PROJ;
+use crate::{ArchiveFormat, PROJ, WiiOutputFormat};
 
 static CONFIG_PATH: OnceLock<PathBuf> = OnceLock::new();
 static CONFIG_CACHE: OnceLock<Mutex<Config>> = OnceLock::new();
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+impl ArchiveFormat {
+    pub fn extension(&self) -> &'static str {
+        match self {
+            ArchiveFormat::Rvz => "rvz",
+            ArchiveFormat::Iso => "iso",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
     pub mount_point: PathBuf,
     pub remove_sources_games: bool,
     pub remove_sources_apps: bool,
     pub scrub_update_partition: bool,
+    pub wii_output_format: WiiOutputFormat,
+    pub archive_format: ArchiveFormat,
+    pub wii_ip: String,
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            mount_point: PathBuf::new(),
+            remove_sources_games: false,
+            remove_sources_apps: false,
+            scrub_update_partition: false,
+            wii_output_format: WiiOutputFormat::WbfsAuto,
+            archive_format: ArchiveFormat::Rvz,
+            wii_ip: "192.168.1.100".to_string(),
+        }
+    }
 }
 
 pub fn init() -> Result<()> {
@@ -78,4 +104,3 @@ pub fn update(mutate: impl Fn(&mut Config)) -> Result<()> {
     mutate(&mut config);
     set(config)
 }
-
