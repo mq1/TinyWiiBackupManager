@@ -57,24 +57,16 @@ fn refresh_disk_usage(handle: &MainWindow) {
     handle.set_disk_usage(usage.to_shared_string());
 }
 
-fn refresh_games(handle: &MainWindow) {
-    let games_res = games::list();
-
-    if let Ok(games) = games_res {
-        handle.set_games(ModelRc::from(Rc::new(VecModel::from(games))));
-    } else if let Err(e) = games_res {
-        show_err(&e.context("Failed to list games"));
-    }
+fn refresh_games(handle: &MainWindow) -> Result<()> {
+    let games = games::list()?;
+    handle.set_games(ModelRc::from(Rc::new(VecModel::from(games))));
+    Ok(())
 }
 
-fn refresh_hbc_apps(handle: &MainWindow) {
-    let hbc_apps_res = hbc_apps::list();
-
-    if let Ok(hbc_apps) = hbc_apps_res {
-        handle.set_hbc_apps(ModelRc::from(Rc::new(VecModel::from(hbc_apps))));
-    } else if let Err(e) = hbc_apps_res {
-        show_err(&e.context("Failed to list hbc apps"));
-    }
+fn refresh_hbc_apps(handle: &MainWindow) -> Result<()> {
+    let hbc_apps = hbc_apps::list()?;
+    handle.set_hbc_apps(ModelRc::from(Rc::new(VecModel::from(hbc_apps))));
+    Ok(())
 }
 
 fn watch(handle: &MainWindow) -> Result<()> {
@@ -94,8 +86,8 @@ fn watch(handle: &MainWindow) -> Result<()> {
         }) = res
         {
             weak.upgrade_in_event_loop(|handle| {
-                refresh_games(&handle);
-                refresh_hbc_apps(&handle);
+                refresh_games(&handle).inspect_err(show_err).ok();
+                refresh_hbc_apps(&handle).inspect_err(show_err).ok();
                 refresh_disk_usage(&handle);
             })
             .map_err(Into::into)
@@ -132,8 +124,8 @@ fn run() -> Result<()> {
     app.set_is_macos(cfg!(target_os = "macos"));
 
     refresh_dir_name(&app);
-    refresh_games(&app);
-    refresh_hbc_apps(&app);
+    refresh_games(&app)?;
+    refresh_hbc_apps(&app)?;
     refresh_disk_usage(&app);
 
     watch(&app)?;
@@ -149,8 +141,8 @@ fn run() -> Result<()> {
 
             if let Some(handle) = weak.upgrade() {
                 refresh_dir_name(&handle);
-                refresh_games(&handle);
-                refresh_hbc_apps(&handle);
+                refresh_games(&handle).inspect_err(show_err).ok();
+                refresh_hbc_apps(&handle).inspect_err(show_err).ok();
                 refresh_disk_usage(&handle);
                 watch(&handle).inspect_err(show_err).ok();
             } else {
