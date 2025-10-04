@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { ScrollView, Vertical, MaterialStyleMetrics } from "@material";
+import { ScrollView, Vertical } from "@material";
 import { Game } from "common.slint";
 import { GameCardBackground, GameCardButtons } from "game_card.slint";
 
@@ -16,10 +16,11 @@ export component GameGrid inherits ScrollView {
 
     callback open_game_info(string);
     callback open_game_dir(string);
+    callback remove_game(string);
 
     horizontal-stretch: 1;
     vertical-stretch: 1;
-    viewport_height: rows * card_h + MaterialStyleMetrics.padding_8;
+    viewport_height: rows * card_h + 8px;
 
     Vertical {
         Rectangle {
@@ -40,6 +41,9 @@ export component GameGrid inherits ScrollView {
                 }
                 open_game_dir => {
                     open_game_dir(game.path);
+                }
+                remove_game => {
+                    remove_game(game.path);
                 }
             }
         }

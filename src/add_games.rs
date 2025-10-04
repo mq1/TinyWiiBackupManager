@@ -6,7 +6,7 @@ use std::{
     io::{BufWriter, Seek, Write},
 };
 
-use crate::{concurrency::get_threads_num, config};
+use crate::{MainWindow, concurrency::get_threads_num, config};
 use anyhow::{Result, anyhow, bail};
 use nod::{
     common::Format,
@@ -14,8 +14,9 @@ use nod::{
     write::{DiscWriter, FormatOptions, ProcessOptions},
 };
 use rfd::FileDialog;
+use slint::{ToSharedString, Weak};
 
-pub fn add_games() -> Result<()> {
+pub fn add_games(weak: Weak<MainWindow>) -> Result<()> {
     let config = config::get();
 
     let mount_point = config.mount_point;
@@ -44,17 +45,23 @@ pub fn add_games() -> Result<()> {
         scrub_update_partition: config.scrub_update_partition,
     };
 
-    for path in paths {
+    let len = paths.len();
+
+    let _ = weak.upgrade_in_event_loop(|handle| {
+        handle.invoke_show_status();
+    });
+
+    for (i, path) in paths.iter().enumerate() {
         let disc = DiscReader::new(path, &disc_opts)?;
+
         let header = disc.header().clone();
+        let title = header.game_title_str();
+        let id = header.game_id_str();
+        let is_wii = header.is_wii();
 
         let dir_path = mount_point
-            .join(if header.is_wii() { "wbfs" } else { "games" })
-            .join(format!(
-                "{} [{}]",
-                header.game_title_str(),
-                header.game_id_str()
-            ));
+            .join(if is_wii { "wbfs" } else { "games" })
+            .join(format!("{title} [{id}]"));
 
         if dir_path.exists() {
             continue;
@@ -63,15 +70,28 @@ pub fn add_games() -> Result<()> {
         fs::create_dir_all(&dir_path)?;
 
         let path = dir_path
-            .join(header.game_id_str())
-            .with_extension(if header.is_wii() { "wbfs" } else { "iso" });
+            .join(id)
+            .with_extension(if is_wii { "wbfs" } else { "iso" });
 
         let mut out = BufWriter::new(File::create(&path)?);
 
         let writer = DiscWriter::new(disc, &FormatOptions::new(Format::Wbfs))?;
         let finalization = writer.process(
-            |data, _progress, _total| {
+            |data, progress, total| {
                 out.write_all(&data)?;
+
+                let status = format!(
+                    "Adding {}  {:02.0}%  ({}/{})",
+                    title,
+                    progress as f32 / total as f32 * 100.0,
+                    i + 1,
+                    len
+                );
+
+                let _ = weak.upgrade_in_event_loop(move |handle| {
+                    handle.set_status(status.to_shared_string());
+                });
+
                 Ok(())
             },
             &process_opts,
@@ -82,6 +102,10 @@ pub fn add_games() -> Result<()> {
             out.write_all(&finalization.header)?;
         }
     }
+
+    let _ = weak.upgrade_in_event_loop(|handle| {
+        handle.invoke_hide_status();
+    });
 
     Ok(())
 }

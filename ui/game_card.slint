@@ -1,12 +1,12 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { Vertical, Horizontal, IconButton, ElevatedCard, MaterialText, MaterialStyleMetrics } from "@material";
+import { Vertical, Horizontal, IconButton, ElevatedCard, MaterialText } from "@material";
 import { Game, Console } from "common.slint";
 
 export component GameCardBackground inherits Vertical {
     in property <Game> game;
-    padding: MaterialStyleMetrics.padding_4;
+    padding: 4px;
 
     ElevatedCard {
         Vertical {
@@ -67,6 +67,7 @@ export component GameCardButtons inherits Horizontal {
     height: 34px;
     callback open_game_info();
     callback open_game_dir();
+    callback remove_game();
 
     IconButton {
         icon: @image-url("../mdi/information.svg");
@@ -102,5 +103,8 @@ export component GameCardButtons inherits Horizontal {
         icon: @image-url("../mdi/trash-can.svg");
         tooltip: "Delete Game";
         inline: true;
+        clicked => {
+            remove_game();
+        }
     }
 }
