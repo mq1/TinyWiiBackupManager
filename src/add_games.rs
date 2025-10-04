@@ -46,11 +46,6 @@ pub fn add_games(weak: Weak<MainWindow>) -> Result<()> {
     };
 
     let len = paths.len();
-
-    let _ = weak.upgrade_in_event_loop(|handle| {
-        handle.invoke_show_status();
-    });
-
     for (i, path) in paths.iter().enumerate() {
         let disc = DiscReader::new(path, &disc_opts)?;
 
@@ -103,8 +98,8 @@ pub fn add_games(weak: Weak<MainWindow>) -> Result<()> {
         }
     }
 
-    let _ = weak.upgrade_in_event_loop(|handle| {
-        handle.invoke_hide_status();
+    let _ = weak.upgrade_in_event_loop(move |handle| {
+        handle.set_status("".to_shared_string());
     });
 
     Ok(())
