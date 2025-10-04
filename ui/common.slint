@@ -7,6 +7,19 @@ export enum Console {
     Unknown,
 }
 
+@rust-attr(derive(serde::Serialize, serde::Deserialize))
+export enum WiiOutputFormat {
+    WbfsAuto,
+    WbfsFixed,
+    Iso,
+}
+
+@rust-attr(derive(serde::Serialize, serde::Deserialize))
+export enum ArchiveFormat {
+    Rvz,
+    Iso,
+}
+
 export struct Game {
     id: string,
     title: string,

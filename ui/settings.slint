@@ -2,9 +2,17 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import { Vertical, RadioButton, Horizontal, HorizontalDivider, MaterialText } from "@material";
+import { WiiOutputFormat, ArchiveFormat } from "common.slint";
 
 export component SettingsPage inherits Vertical {
     alignment: start;
+    in-out property <WiiOutputFormat> wii_output_format;
+    in-out property <ArchiveFormat> archive_format;
+    in-out property <bool> remove_update_partition;
+
+    callback wii_output_format_changed(WiiOutputFormat);
+    callback archive_format_changed(ArchiveFormat);
+    callback remove_update_partition_changed(bool);
 
     MaterialText {
         text: "Wii Output Format";
@@ -18,6 +26,11 @@ export component SettingsPage inherits Vertical {
         RadioButton {
             height: 14px;
             width: 14px;
+            checked: wii_output_format == WiiOutputFormat.WbfsAuto;
+            clicked => {
+                wii_output_format = WiiOutputFormat.WbfsAuto;
+                wii_output_format_changed(WiiOutputFormat.WbfsAuto);
+            }
         }
 
         MaterialText {
@@ -32,6 +45,11 @@ export component SettingsPage inherits Vertical {
         RadioButton {
             height: 14px;
             width: 14px;
+            checked: wii_output_format == WiiOutputFormat.WbfsFixed;
+            clicked => {
+                wii_output_format = WiiOutputFormat.WbfsFixed;
+                wii_output_format_changed(WiiOutputFormat.WbfsFixed);
+            }
         }
 
         MaterialText {
@@ -46,10 +64,15 @@ export component SettingsPage inherits Vertical {
         RadioButton {
             height: 14px;
             width: 14px;
+            checked: wii_output_format == WiiOutputFormat.Iso;
+            clicked => {
+                wii_output_format = WiiOutputFormat.Iso;
+                wii_output_format_changed(WiiOutputFormat.Iso);
+            }
         }
 
         MaterialText {
-            text: "WBFS Fixed 4GB-64KB Split Size";
+            text: "Iso (very large)";
         }
     }
 
@@ -67,6 +90,11 @@ export component SettingsPage inherits Vertical {
         RadioButton {
             height: 14px;
             width: 14px;
+            checked: !remove_update_partition;
+            clicked => {
+                remove_update_partition = false;
+                remove_update_partition_changed(false);
+            }
         }
 
         MaterialText {
@@ -81,6 +109,11 @@ export component SettingsPage inherits Vertical {
         RadioButton {
             height: 14px;
             width: 14px;
+            checked: remove_update_partition;
+            clicked => {
+                remove_update_partition = true;
+                remove_update_partition_changed(true);
+            }
         }
 
         MaterialText {
@@ -102,6 +135,11 @@ export component SettingsPage inherits Vertical {
         RadioButton {
             height: 14px;
             width: 14px;
+            checked: archive_format == ArchiveFormat.Rvz;
+            clicked => {
+                archive_format = ArchiveFormat.Rvz;
+                archive_format_changed(ArchiveFormat.Rvz);
+            }
         }
 
         MaterialText {
@@ -116,6 +154,11 @@ export component SettingsPage inherits Vertical {
         RadioButton {
             height: 14px;
             width: 14px;
+            checked: archive_format == ArchiveFormat.Iso;
+            clicked => {
+                archive_format = ArchiveFormat.Iso;
+                archive_format_changed(ArchiveFormat.Iso);
+            }
         }
 
         MaterialText {
