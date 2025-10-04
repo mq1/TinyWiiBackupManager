@@ -18,7 +18,7 @@ use crate::fs::get_disk_usage;
 use anyhow::{Error, Result, anyhow};
 use directories::ProjectDirs;
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
-use rfd::{MessageDialog, MessageLevel};
+use rfd::{MessageButtons, MessageDialog, MessageDialogResult, MessageLevel};
 use slint::{ModelRc, ToSharedString, VecModel};
 use std::{
     rc::Rc,
@@ -165,8 +165,12 @@ fn run() -> Result<()> {
             .ok();
     });
 
-    app.on_add_games(|| {
-        add_games::add_games().inspect_err(show_err).ok();
+    let weak = app.as_weak();
+    app.on_add_games(move || {
+        let weak = weak.clone();
+        std::thread::spawn(move || {
+            add_games::add_games(weak).inspect_err(show_err).ok();
+        });
     });
 
     app.on_wii_output_format_changed(|format| {
@@ -191,6 +195,22 @@ fn run() -> Result<()> {
         })
         .inspect_err(show_err)
         .ok();
+    });
+
+    app.on_remove_game(|path| {
+        if MessageDialog::new()
+            .set_title("Remove Game")
+            .set_description(format!("Are you sure you want to remove {path} ?"))
+            .set_level(MessageLevel::Warning)
+            .set_buttons(MessageButtons::YesNo)
+            .show()
+            == MessageDialogResult::Yes
+        {
+            std::fs::remove_dir_all(path)
+                .map_err(Into::into)
+                .inspect_err(show_err)
+                .ok();
+        }
     });
 
     app.run()?;
