@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { IconButton, Vertical, MaterialText, SnackBar } from "@material";
+import { IconButton, Vertical, MaterialText, Modal, ElevatedCard } from "@material";
 import { SideBar } from "sidebar.slint";
 import { GameGrid } from "game_grid.slint";
 import { Game, HbcApp, WiiOutputFormat, ArchiveFormat } from "common.slint";
@@ -28,14 +28,6 @@ export component MainWindow inherits Window {
     callback wii_output_format_changed(WiiOutputFormat);
     callback archive_format_changed(ArchiveFormat);
     callback remove_update_partition_changed(bool);
-
-    public function show_status() {
-        sb.show();
-    }
-
-    public function hide_status() {
-        sb.close();
-    }
 
     preferred-width: 800px;
     preferred-height: 600px;
@@ -87,9 +79,21 @@ export component MainWindow inherits Window {
                 }
             }
         }
+    }
 
-        sb := SnackBar {
-            text: status;
+    if !status.is_empty: Modal {
+        width: root.width;
+        height: root.height;
+
+        ElevatedCard {
+            width: root.width / 2;
+            height: root.height / 2;
+            x: (root.width - self.width) / 2;
+            y: (root.height - self.height) / 2;
+
+            MaterialText {
+                text: status;
+            }
         }
     }
 }
