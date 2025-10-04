@@ -77,14 +77,14 @@ fn refresh_hbc_apps(handle: &MainWindow) {
     }
 }
 
-fn watch(handle: &MainWindow) {
+fn watch(handle: &MainWindow) -> Result<()> {
     let mount_point = config::get().mount_point;
     if mount_point.as_os_str().is_empty() {
-        return;
+        return Ok(());
     }
 
     let weak = handle.as_weak();
-    let res = notify::recommended_watcher(move |res| {
+    let mut watcher = notify::recommended_watcher(move |res| {
         if let Ok(notify::Event {
             kind:
                 notify::EventKind::Modify(_)
@@ -92,29 +92,28 @@ fn watch(handle: &MainWindow) {
                 | notify::EventKind::Remove(_),
             ..
         }) = res
-            && let Err(e) = weak.upgrade_in_event_loop(|handle| {
+        {
+            weak.upgrade_in_event_loop(|handle| {
                 refresh_games(&handle);
                 refresh_hbc_apps(&handle);
                 refresh_disk_usage(&handle);
             })
-        {
-            show_err(&e.into());
+            .map_err(Into::into)
+            .inspect_err(show_err)
+            .ok();
         }
-    });
+    })?;
 
-    || -> notify::Result<()> {
-        let mut watcher = res?;
-        watcher.watch(&mount_point.join("wbfs"), RecursiveMode::NonRecursive)?;
-        watcher.watch(&mount_point.join("games"), RecursiveMode::NonRecursive)?;
-        watcher.watch(&mount_point.join("apps"), RecursiveMode::NonRecursive)?;
+    watcher.watch(&mount_point.join("wbfs"), RecursiveMode::NonRecursive)?;
+    watcher.watch(&mount_point.join("games"), RecursiveMode::NonRecursive)?;
+    watcher.watch(&mount_point.join("apps"), RecursiveMode::NonRecursive)?;
 
-        WATCHER.lock()?.replace(watcher);
+    WATCHER
+        .lock()
+        .map_err(|_| anyhow!("Mutex poisoned"))?
+        .replace(watcher);
 
-        Ok(())
-    }()
-    .map_err(Into::into)
-    .inspect_err(show_err)
-    .ok();
+    Ok(())
 }
 
 fn run() -> Result<()> {
@@ -137,7 +136,7 @@ fn run() -> Result<()> {
     refresh_hbc_apps(&app);
     refresh_disk_usage(&app);
 
-    watch(&app);
+    watch(&app)?;
 
     let weak = app.as_weak();
     app.on_choose_mount_point(move || {
@@ -153,7 +152,7 @@ fn run() -> Result<()> {
                 refresh_games(&handle);
                 refresh_hbc_apps(&handle);
                 refresh_disk_usage(&handle);
-                watch(&handle);
+                watch(&handle).inspect_err(show_err).ok();
             } else {
                 show_err(&anyhow!("Failed to upgrade weak reference"));
             }
