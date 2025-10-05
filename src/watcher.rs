@@ -4,10 +4,19 @@
 use crate::{MainWindow, config, refresh_disk_usage, refresh_games, refresh_hbc_apps, show_err};
 use anyhow::{Result, anyhow};
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
-use slint::ComponentHandle;
+use slint::{ComponentHandle, Weak};
 use std::sync::Mutex;
 
 static WATCHER: Mutex<Option<RecommendedWatcher>> = Mutex::new(None);
+
+fn refresh_all(weak: &Weak<MainWindow>) -> Result<()> {
+    let handle = weak.upgrade().ok_or(anyhow!("Failed to upgrade"))?;
+
+    refresh_games(&handle)?;
+    refresh_hbc_apps(&handle)?;
+    refresh_disk_usage(&handle);
+    Ok(())
+}
 
 pub fn init(handle: &MainWindow) -> Result<()> {
     let mount_point = config::get().mount_point;
@@ -25,13 +34,7 @@ pub fn init(handle: &MainWindow) -> Result<()> {
             ..
         }) = res
         {
-            weak.upgrade_in_event_loop(|handle| {
-                refresh_games(&handle).err().map(show_err);
-                refresh_hbc_apps(&handle).err().map(show_err);
-                refresh_disk_usage(&handle);
-            })
-            .err()
-            .map(show_err);
+            refresh_all(&weak).err().map(show_err);
         }
     })?;
 
