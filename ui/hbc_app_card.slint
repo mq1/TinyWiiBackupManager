@@ -1,19 +1,18 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { ElevatedCard, Vertical, Horizontal } from "@material";
+import { ElevatedCard, Vertical, Horizontal, IconButton, MaterialText } from "@material";
 import { HbcApp } from "common.slint";
 
 export component HbcAppCard inherits VerticalLayout {
     in property <HbcApp> app;
-
-    padding: 5px;
+    padding: 4px;
 
     ElevatedCard {
         Vertical {
             Horizontal {
                 alignment: end;
-                Text {
+                MaterialText {
                     text: app.size;
                 }
             }
@@ -22,10 +21,49 @@ export component HbcAppCard inherits VerticalLayout {
                 source: app.image;
             }
 
-            Text {
+            MaterialText {
                 horizontal-alignment: center;
                 text: app.name;
             }
+
+            Rectangle {
+                height: 30px;
+            }
+        }
+    }
+}
+
+export component HbcAppCardButtons inherits Horizontal {
+    alignment: center;
+    height: 34px;
+    callback open_app_info();
+    callback open_app_dir();
+    callback remove_app();
+
+    IconButton {
+        icon: @image-url("../mdi/information.svg");
+        tooltip: "App Information";
+        inline: true;
+        clicked => {
+            open_app_info();
+        }
+    }
+
+    IconButton {
+        icon: @image-url("../mdi/folder-open.svg");
+        tooltip: "Open App Directory";
+        inline: true;
+        clicked => {
+            open_app_dir();
+        }
+    }
+
+    IconButton {
+        icon: @image-url("../mdi/trash-can.svg");
+        tooltip: "Delete App";
+        inline: true;
+        clicked => {
+            remove_app();
         }
     }
 }

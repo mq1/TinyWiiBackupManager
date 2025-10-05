@@ -153,9 +153,9 @@ fn run() -> Result<()> {
         }
     });
 
-    app.on_remove_game(|path| {
+    app.on_remove_dir(|path| {
         if MessageDialog::new()
-            .set_title("Remove Game")
+            .set_title("Remove Directory")
             .set_description(format!("Are you sure you want to remove {path} ?"))
             .set_level(MessageLevel::Warning)
             .set_buttons(MessageButtons::YesNo)

@@ -1,29 +1,50 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { OutlinedCard, ScrollView } from "@material";
+import { ScrollView, Vertical } from "@material";
 import { HbcApp } from "common.slint";
-import { HbcAppCard } from "hbc_app_card.slint";
+import { HbcAppCard, HbcAppCardButtons } from "hbc_app_card.slint";
 
-export component HbcAppGrid inherits Rectangle {
+export component HbcAppGrid inherits ScrollView {
     in property <[HbcApp]> apps;
 
     property <length> card_w: 176px;
-    property <length> card_h: 200px;
+    property <length> card_h: 230px;
 
     property <int> columns: (self.width / card_w).floor();
     property <int> rows: (apps.length / columns).ceil();
 
-    ScrollView {
-        horizontal-stretch: 1;
-        viewport_height: rows * card_h;
+    callback open_url(string);
+    callback remove_dir(string);
 
-        for app[index] in apps: HbcAppCard {
-            x: mod(index, columns) * card_w;
-            y: (index / columns).floor() * card_h;
-            width: card_w;
-            height: card_h;
-            app: app;
+    horizontal-stretch: 1;
+    vertical-stretch: 1;
+    viewport_height: rows * card_h + 8px;
+
+    Vertical {
+        Rectangle {
+            for app[index] in apps: HbcAppCard {
+                x: mod(index, columns) * card_w;
+                y: (index / columns).floor() * card_h;
+                width: card_w;
+                height: card_h;
+                app: app;
+            }
+
+            for app[index] in apps: HbcAppCardButtons {
+                x: mod(index, columns) * card_w;
+                y: (index / columns).floor() * card_h + (card_h - 42px);
+                width: card_w;
+                open_app_info => {
+                    open_url("https://oscwii.org/library/app/" + app.slug);
+                }
+                open_app_dir => {
+                    open_url(app.path);
+                }
+                remove_app => {
+                    remove_dir(app.path);
+                }
+            }
         }
     }
 }
