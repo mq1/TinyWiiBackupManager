@@ -204,7 +204,7 @@ fn run() -> Result<()> {
         }
     });
 
-    app.on_get_tasks_count(tasks::get_tasks_count);
+    app.on_get_tasks_count(tasks::count);
 
     app.run()?;
     Ok(())
