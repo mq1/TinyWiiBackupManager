@@ -7,6 +7,7 @@ import { GameGrid } from "game_grid.slint";
 import { Game, HbcApp, WiiOutputFormat, ArchiveFormat, TaskType } from "common.slint";
 import { HbcAppGrid } from "hbc_app_grid.slint";
 import { SettingsPage } from "settings.slint";
+import { Status } from "status.slint";
 
 export * from "common.slint";
 
@@ -20,6 +21,7 @@ export component MainWindow inherits Window {
     in property <[HbcApp]> hbc_apps;
     in property <string> status;
     in property <TaskType> task_type: TaskType.Unknown;
+    in property <int> task_count;
 
     callback choose_mount_point();
     callback open_game_info(string);
@@ -80,23 +82,7 @@ export component MainWindow inherits Window {
                 }
             }
 
-            if !status.is-empty: Rectangle {
-                background: MaterialPalette.surface;
-
-                Horizontal {
-                    alignment: start;
-
-                    CircularProgressIndicator {
-                        indeterminate: true;
-                        height: 14px;
-                        width: 14px;
-                    }
-
-                    MaterialText {
-                        text: status;
-                    }
-                }
-            }
+            if !status.is-empty: Status { }
         }
     }
 }
