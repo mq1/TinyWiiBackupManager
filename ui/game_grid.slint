@@ -3,7 +3,7 @@
 
 import { ScrollView, Vertical } from "@material";
 import { Game } from "common.slint";
-import { GameCardBackground, GameCardButtons } from "game_card.slint";
+import { GameCard, GameCardButtons } from "game_card.slint";
 
 export component GameGrid inherits ScrollView {
     in property <[Game]> games;
@@ -15,7 +15,7 @@ export component GameGrid inherits ScrollView {
     property <int> rows: (games.length / columns).ceil();
 
     callback open_url(string);
-    callback remove_game(string);
+    callback remove_dir(string);
 
     horizontal-stretch: 1;
     vertical-stretch: 1;
@@ -23,7 +23,7 @@ export component GameGrid inherits ScrollView {
 
     Vertical {
         Rectangle {
-            for game[index] in games: GameCardBackground {
+            for game[index] in games: GameCard {
                 x: mod(index, columns) * card_w;
                 y: (index / columns).floor() * card_h;
                 width: card_w;
@@ -42,7 +42,7 @@ export component GameGrid inherits ScrollView {
                     open_url(game.path);
                 }
                 remove_game => {
-                    remove_game(game.path);
+                    remove_dir(game.path);
                 }
             }
         }
