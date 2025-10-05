@@ -4,7 +4,7 @@
 import { IconButton, Vertical, MaterialText, ElevatedCard, MaterialPalette, Horizontal, CircularProgressIndicator } from "@material";
 import { SideBar } from "sidebar.slint";
 import { GameGrid } from "game_grid.slint";
-import { Game, HbcApp, WiiOutputFormat, ArchiveFormat } from "common.slint";
+import { Game, HbcApp, WiiOutputFormat, ArchiveFormat, TaskType } from "common.slint";
 import { HbcAppGrid } from "hbc_app_grid.slint";
 import { SettingsPage } from "settings.slint";
 
@@ -18,7 +18,8 @@ export component MainWindow inherits Window {
     in-out property <int> current_index: 0;
     in property <[Game]> games;
     in property <[HbcApp]> hbc_apps;
-    in-out property <string> status;
+    in property <string> status;
+    in property <TaskType> task_type: TaskType.Unknown;
 
     callback choose_mount_point();
     callback open_game_info(string);
