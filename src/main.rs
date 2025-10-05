@@ -4,25 +4,25 @@
 // Don't show windows terminal
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-pub mod add_games;
-pub mod concurrency;
 pub mod config;
-pub mod fs;
+pub mod convert;
+pub mod extensions;
 pub mod games;
 pub mod hbc_apps;
 pub mod http;
 pub mod tasks;
 pub mod titles;
 pub mod updater;
+pub mod util;
 pub mod watcher;
 pub mod wiitdb;
 
-use crate::fs::get_disk_usage;
+use crate::util::get_disk_usage;
 use anyhow::{Result, anyhow};
 use directories::ProjectDirs;
 use rfd::{MessageButtons, MessageDialog, MessageDialogResult, MessageLevel};
 use slint::{ModelRc, ToSharedString, VecModel};
-use std::{fmt::Display, rc::Rc, sync::OnceLock};
+use std::{fmt::Display, fs, rc::Rc, sync::OnceLock};
 
 slint::include_modules!();
 
@@ -124,7 +124,7 @@ fn run() -> Result<()> {
     });
 
     app.on_add_games(|| {
-        if let Err(e) = add_games::add_games() {
+        if let Err(e) = convert::add_games() {
             show_err(e);
         }
     });
@@ -161,7 +161,7 @@ fn run() -> Result<()> {
             .set_buttons(MessageButtons::YesNo)
             .show()
             == MessageDialogResult::Yes
-            && let Err(e) = std::fs::remove_dir_all(path)
+            && let Err(e) = fs::remove_dir_all(path)
         {
             show_err(e);
         }

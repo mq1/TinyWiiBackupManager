@@ -1,12 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{
-    fs::{self, File},
-    io::{BufWriter, Seek, Write},
-};
-
-use crate::{TaskType, concurrency::get_threads_num, config, tasks};
+use crate::{TaskType, WiiOutputFormat, config, tasks, util};
 use anyhow::{Result, anyhow, bail};
 use nod::{
     common::Format,
@@ -15,11 +10,34 @@ use nod::{
 };
 use rfd::FileDialog;
 use slint::ToSharedString;
+use std::{
+    fs::{self, File},
+    io::{BufWriter, Seek, Write},
+};
+
+fn get_process_opts() -> ProcessOptions {
+    let scrub_update_partition = config::get().scrub_update_partition;
+    let (_, processor_threads) = util::get_threads_num();
+
+    ProcessOptions {
+        processor_threads,
+        digest_crc32: true,
+        digest_md5: false, // too slow
+        digest_sha1: true,
+        digest_xxh64: true,
+        scrub_update_partition,
+    }
+}
+
+fn get_output_format_opts() -> FormatOptions {
+    match config::get().wii_output_format {
+        WiiOutputFormat::WbfsAuto | WiiOutputFormat::WbfsFixed => FormatOptions::new(Format::Wbfs),
+        WiiOutputFormat::Iso => FormatOptions::new(Format::Iso),
+    }
+}
 
 pub fn add_games() -> Result<()> {
-    let config = config::get();
-
-    let mount_point = config.mount_point;
+    let mount_point = config::get().mount_point;
     if mount_point.as_os_str().is_empty() {
         bail!("No mount point selected");
     }
@@ -29,21 +47,14 @@ pub fn add_games() -> Result<()> {
         .pick_files()
         .ok_or(anyhow!("No Games Selected"))?;
 
-    let (preloader_threads, processor_threads) = get_threads_num();
+    let (preloader_threads, _) = util::get_threads_num();
 
     let disc_opts = DiscOptions {
         partition_encryption: PartitionEncryption::Original,
         preloader_threads,
     };
 
-    let process_opts = ProcessOptions {
-        processor_threads,
-        digest_crc32: true,
-        digest_md5: false,
-        digest_sha1: true,
-        digest_xxh64: true,
-        scrub_update_partition: config.scrub_update_partition,
-    };
+    let process_opts = get_process_opts();
 
     for path in paths {
         let disc_opts = disc_opts.clone();
@@ -78,7 +89,8 @@ pub fn add_games() -> Result<()> {
 
             let mut out = BufWriter::new(File::create(&path)?);
 
-            let writer = DiscWriter::new(disc, &FormatOptions::new(Format::Wbfs))?;
+            let out_opts = get_output_format_opts();
+            let writer = DiscWriter::new(disc, &out_opts)?;
             let finalization = writer.process(
                 |data, progress, total| {
                     out.write_all(&data)?;
