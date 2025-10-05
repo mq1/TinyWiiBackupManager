@@ -15,7 +15,7 @@ pub mod tasks;
 pub mod titles;
 pub mod wiitdb;
 
-use crate::fs::get_disk_usage;
+use crate::{fs::get_disk_usage, tasks::TASK_PROCESSOR};
 use anyhow::{Result, anyhow};
 use directories::ProjectDirs;
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
@@ -121,6 +121,11 @@ fn run() -> Result<()> {
     config::init()?;
     titles::init()?;
 
+    // Initialize task processor/queue
+    TASK_PROCESSOR
+        .set(tasks::TaskProcessor::new(app.as_weak()))
+        .map_err(|_| anyhow!("Failed to initialize task processor"))?;
+
     app.set_app_name(env!("CARGO_PKG_NAME").to_shared_string() + " v" + env!("CARGO_PKG_VERSION"));
     app.set_is_macos(cfg!(target_os = "macos"));
 
@@ -162,12 +167,8 @@ fn run() -> Result<()> {
         open::that(path).err().map(show_err);
     });
 
-    let weak = app.as_weak();
     app.on_add_games(move || {
-        let weak = weak.clone();
-        std::thread::spawn(move || {
-            add_games::add_games(weak).err().map(show_err);
-        });
+        add_games::add_games().err().map(show_err);
     });
 
     app.on_wii_output_format_changed(|format| {

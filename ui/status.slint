@@ -1,0 +1,40 @@
+// SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { Horizontal, CircularProgressIndicator, MaterialText, MaterialPalette, VerticalDivider } from "@material";
+import { TaskType } from "common.slint";
+
+export component Status inherits Rectangle {
+    background: MaterialPalette.surface;
+
+    in property <string> status;
+    in property <TaskType> task_type: TaskType.Unknown;
+    in property <int> task_count;
+
+    Horizontal {
+        alignment: start;
+
+        CircularProgressIndicator {
+            indeterminate: true;
+            height: 14px;
+            width: 14px;
+        }
+
+        MaterialText {
+            text: task_count + " tasks in queue";
+        }
+
+        VerticalDivider { }
+
+        if task_type == TaskType.Converting: Image {
+            source: @image-url("../mdi/package-up.svg");
+            colorize: MaterialPalette.on_background;
+            height: 14px;
+            width: 14px;
+        }
+
+        MaterialText {
+            text: status;
+        }
+    }
+}

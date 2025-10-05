@@ -6,7 +6,7 @@ use std::{
     io::{BufWriter, Seek, Write},
 };
 
-use crate::{MainWindow, concurrency::get_threads_num, config};
+use crate::{TaskType, concurrency::get_threads_num, config, tasks::TASK_PROCESSOR};
 use anyhow::{Result, anyhow, bail};
 use nod::{
     common::Format,
@@ -14,9 +14,9 @@ use nod::{
     write::{DiscWriter, FormatOptions, ProcessOptions},
 };
 use rfd::FileDialog;
-use slint::{ToSharedString, Weak};
+use slint::ToSharedString;
 
-pub fn add_games(weak: Weak<MainWindow>) -> Result<()> {
+pub fn add_games() -> Result<()> {
     let config = config::get();
 
     let mount_point = config.mount_point;
@@ -45,62 +45,69 @@ pub fn add_games(weak: Weak<MainWindow>) -> Result<()> {
         scrub_update_partition: config.scrub_update_partition,
     };
 
-    let len = paths.len();
-    for (i, path) in paths.iter().enumerate() {
-        let disc = DiscReader::new(path, &disc_opts)?;
+    for path in paths {
+        TASK_PROCESSOR.get().map(|task_processor| {
+            let disc_opts = disc_opts.clone();
+            let process_opts = process_opts.clone();
+            let mount_point = mount_point.clone();
 
-        let header = disc.header().clone();
-        let title = header.game_title_str();
-        let id = header.game_id_str();
-        let is_wii = header.is_wii();
-
-        let dir_path = mount_point
-            .join(if is_wii { "wbfs" } else { "games" })
-            .join(format!("{title} [{id}]"));
-
-        if dir_path.exists() {
-            continue;
-        }
-
-        fs::create_dir_all(&dir_path)?;
-
-        let path = dir_path
-            .join(id)
-            .with_extension(if is_wii { "wbfs" } else { "iso" });
-
-        let mut out = BufWriter::new(File::create(&path)?);
-
-        let writer = DiscWriter::new(disc, &FormatOptions::new(Format::Wbfs))?;
-        let finalization = writer.process(
-            |data, progress, total| {
-                out.write_all(&data)?;
-
-                let status = format!(
-                    "Adding {}  {:02.0}%  ({}/{})",
-                    title,
-                    progress as f32 / total as f32 * 100.0,
-                    i + 1,
-                    len
-                );
-
+            task_processor.spawn_task(Box::new(move |weak| {
                 let _ = weak.upgrade_in_event_loop(move |handle| {
-                    handle.set_status(status.to_shared_string());
+                    handle.set_task_type(TaskType::Converting);
                 });
 
+                let disc = DiscReader::new(path, &disc_opts)?;
+
+                let header = disc.header().clone();
+                let title = header.game_title_str();
+                let id = header.game_id_str();
+                let is_wii = header.is_wii();
+
+                let dir_path = mount_point
+                    .join(if is_wii { "wbfs" } else { "games" })
+                    .join(format!("{title} [{id}]"));
+
+                if dir_path.exists() {
+                    return Ok(());
+                }
+
+                fs::create_dir_all(&dir_path)?;
+
+                let path = dir_path
+                    .join(id)
+                    .with_extension(if is_wii { "wbfs" } else { "iso" });
+
+                let mut out = BufWriter::new(File::create(&path)?);
+
+                let writer = DiscWriter::new(disc, &FormatOptions::new(Format::Wbfs))?;
+                let finalization = writer.process(
+                    |data, progress, total| {
+                        out.write_all(&data)?;
+
+                        let status = format!(
+                            "Adding {}  {:02.0}%",
+                            title,
+                            progress as f32 / total as f32 * 100.0,
+                        );
+
+                        let _ = weak.upgrade_in_event_loop(move |handle| {
+                            handle.set_status(status.to_shared_string());
+                        });
+
+                        Ok(())
+                    },
+                    &process_opts,
+                )?;
+
+                if !finalization.header.is_empty() {
+                    out.rewind()?;
+                    out.write_all(&finalization.header)?;
+                }
+
                 Ok(())
-            },
-            &process_opts,
-        )?;
-
-        if !finalization.header.is_empty() {
-            out.rewind()?;
-            out.write_all(&finalization.header)?;
-        }
+            }));
+        });
     }
-
-    let _ = weak.upgrade_in_event_loop(move |handle| {
-        handle.set_status("".to_shared_string());
-    });
 
     Ok(())
 }
