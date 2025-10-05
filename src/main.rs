@@ -13,24 +13,19 @@ pub mod hbc_apps;
 pub mod http;
 pub mod tasks;
 pub mod titles;
+pub mod watcher;
 pub mod wiitdb;
 
 use crate::fs::get_disk_usage;
 use anyhow::{Result, anyhow};
 use directories::ProjectDirs;
-use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 use rfd::{MessageButtons, MessageDialog, MessageDialogResult, MessageLevel};
 use slint::{ModelRc, ToSharedString, VecModel};
-use std::{
-    fmt::Display,
-    rc::Rc,
-    sync::{Mutex, OnceLock},
-};
+use std::{fmt::Display, rc::Rc, sync::OnceLock};
 
 slint::include_modules!();
 
 pub static PROJ: OnceLock<ProjectDirs> = OnceLock::new();
-static WATCHER: Mutex<Option<RecommendedWatcher>> = Mutex::new(None);
 
 fn show_err(e: impl Display) {
     let _ = MessageDialog::new()
@@ -71,44 +66,6 @@ fn refresh_hbc_apps(handle: &MainWindow) -> Result<()> {
     Ok(())
 }
 
-fn watch(handle: &MainWindow) -> Result<()> {
-    let mount_point = config::get().mount_point;
-    if mount_point.as_os_str().is_empty() {
-        return Ok(());
-    }
-
-    let weak = handle.as_weak();
-    let mut watcher = notify::recommended_watcher(move |res| {
-        if let Ok(notify::Event {
-            kind:
-                notify::EventKind::Modify(_)
-                | notify::EventKind::Create(_)
-                | notify::EventKind::Remove(_),
-            ..
-        }) = res
-        {
-            weak.upgrade_in_event_loop(|handle| {
-                refresh_games(&handle).err().map(show_err);
-                refresh_hbc_apps(&handle).err().map(show_err);
-                refresh_disk_usage(&handle);
-            })
-            .err()
-            .map(show_err);
-        }
-    })?;
-
-    watcher.watch(&mount_point.join("wbfs"), RecursiveMode::NonRecursive)?;
-    watcher.watch(&mount_point.join("games"), RecursiveMode::NonRecursive)?;
-    watcher.watch(&mount_point.join("apps"), RecursiveMode::NonRecursive)?;
-
-    WATCHER
-        .lock()
-        .map_err(|_| anyhow!("Mutex poisoned"))?
-        .replace(watcher);
-
-    Ok(())
-}
-
 fn run() -> Result<()> {
     let app = MainWindow::new()?;
 
@@ -130,7 +87,7 @@ fn run() -> Result<()> {
     refresh_hbc_apps(&app)?;
     refresh_disk_usage(&app);
 
-    watch(&app)?;
+    watcher::init(&app)?;
 
     let weak = app.as_weak();
     app.on_choose_mount_point(move || {
@@ -146,24 +103,24 @@ fn run() -> Result<()> {
                 refresh_games(&handle).err().map(show_err);
                 refresh_hbc_apps(&handle).err().map(show_err);
                 refresh_disk_usage(&handle);
-                watch(&handle).err().map(show_err);
+                watcher::init(&handle).err().map(show_err);
             } else {
                 show_err(&anyhow!("Failed to upgrade weak reference"));
             }
         }
     });
 
-    app.on_open_game_info(move |id| {
+    app.on_open_game_info(|id| {
         open::that(format!("https://www.gametdb.com/Wii/{id}"))
             .err()
             .map(show_err);
     });
 
-    app.on_open_game_dir(move |path| {
+    app.on_open_game_dir(|path| {
         open::that(path).err().map(show_err);
     });
 
-    app.on_add_games(move || {
+    app.on_add_games(|| {
         add_games::add_games().err().map(show_err);
     });
 
