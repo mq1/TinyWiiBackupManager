@@ -32,6 +32,8 @@ export component MainWindow inherits Window {
     callback archive_format_changed(ArchiveFormat);
     callback remove_update_partition_changed(bool);
 
+    pure callback get_tasks_count() -> int;
+
     preferred-width: 800px;
     preferred-height: 600px;
     title: app_name + " • " + games.length + " Games" + (dir_name.is_empty ? "" : " • " + dir_name + " (" + disk_usage + ")");
@@ -82,7 +84,9 @@ export component MainWindow inherits Window {
                 }
             }
 
-            if !status.is-empty: Status { }
+            if !status.is-empty: Status {
+                get_tasks_count => get_tasks_count();
+            }
         }
     }
 }
