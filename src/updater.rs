@@ -11,7 +11,7 @@ const VERSION_URL: &str = concat!(
 );
 
 pub fn check() -> Result<()> {
-    tasks::spawn(Box::new(|weak| {
+    tasks::spawn(|weak| {
         let latest_version = AGENT
             .get(VERSION_URL)
             .call()
@@ -40,5 +40,5 @@ pub fn check() -> Result<()> {
         }
 
         Ok(())
-    }))
+    })
 }
