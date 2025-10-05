@@ -98,7 +98,8 @@ export component MainWindow inherits Window {
         width: root.width;
         text: "Update available!";
         action_text: "⬇ Download v" + update_info.version;
-        has_close_button: true;
+        has_close_button: false;
+        close-policy: PopupClosePolicy.close-on-click;
         action_clicked() => {
             open_url(update_info.url);
         }
