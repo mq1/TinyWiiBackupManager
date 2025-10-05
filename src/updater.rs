@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{UpdateInfo, http::AGENT, show_err, tasks};
-use anyhow::Context;
+use crate::{UpdateInfo, http::AGENT, tasks};
+use anyhow::{Context, Result};
 use slint::ToSharedString;
 
 const VERSION_URL: &str = concat!(
@@ -10,8 +10,8 @@ const VERSION_URL: &str = concat!(
     "/releases/latest/download/version.txt"
 );
 
-pub fn check() {
-    if let Err(e) = tasks::spawn(Box::new(|weak| {
+pub fn check() -> Result<()> {
+    tasks::spawn(Box::new(|weak| {
         let latest_version = AGENT
             .get(VERSION_URL)
             .call()
@@ -40,7 +40,5 @@ pub fn check() {
         }
 
         Ok(())
-    })) {
-        show_err(e);
-    }
+    }))
 }
