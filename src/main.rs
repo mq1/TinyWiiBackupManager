@@ -13,6 +13,7 @@ pub mod hbc_apps;
 pub mod http;
 pub mod tasks;
 pub mod titles;
+pub mod updater;
 pub mod watcher;
 pub mod wiitdb;
 
@@ -110,14 +111,8 @@ fn run() -> Result<()> {
         }
     });
 
-    app.on_open_game_info(|id| {
-        open::that(format!("https://www.gametdb.com/Wii/{id}"))
-            .err()
-            .map(show_err);
-    });
-
-    app.on_open_game_dir(|path| {
-        open::that(path).err().map(show_err);
+    app.on_open_url(|url| {
+        open::that(url).err().map(show_err);
     });
 
     app.on_add_games(|| {
@@ -162,6 +157,10 @@ fn run() -> Result<()> {
     });
 
     app.on_get_tasks_count(tasks::count);
+
+    if std::env::var_os("TWBM_DISABLE_UPDATES").is_none() {
+        updater::spawn_task();
+    }
 
     app.run()?;
     Ok(())

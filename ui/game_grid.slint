@@ -14,8 +14,7 @@ export component GameGrid inherits ScrollView {
     property <int> columns: (self.width / card_w).floor();
     property <int> rows: (games.length / columns).ceil();
 
-    callback open_game_info(string);
-    callback open_game_dir(string);
+    callback open_url(string);
     callback remove_game(string);
 
     horizontal-stretch: 1;
@@ -37,10 +36,10 @@ export component GameGrid inherits ScrollView {
                 y: (index / columns).floor() * card_h + (card_h - 42px);
                 width: card_w;
                 open_game_info => {
-                    open_game_info(game.id);
+                    open_url("https://www.gametdb.com/Wii/" + game.id);
                 }
                 open_game_dir => {
-                    open_game_dir(game.path);
+                    open_url(game.path);
                 }
                 remove_game => {
                     remove_game(game.path);
