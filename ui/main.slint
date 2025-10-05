@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { IconButton, Vertical, MaterialText, ElevatedCard, MaterialPalette, Horizontal, CircularProgressIndicator } from "@material";
+import { IconButton, Vertical, MaterialText, ElevatedCard, MaterialPalette, Horizontal, CircularProgressIndicator, SnackBar } from "@material";
 import { SideBar } from "sidebar.slint";
 import { GameGrid } from "game_grid.slint";
-import { Game, HbcApp, WiiOutputFormat, ArchiveFormat, TaskType } from "common.slint";
+import { Game, HbcApp, WiiOutputFormat, ArchiveFormat, TaskType, UpdateInfo } from "common.slint";
 import { HbcAppGrid } from "hbc_app_grid.slint";
 import { SettingsPage } from "settings.slint";
 import { Status } from "status.slint";
@@ -22,10 +22,10 @@ export component MainWindow inherits Window {
     in property <string> status;
     in property <TaskType> task_type: TaskType.Unknown;
     in property <int> task_count;
+    in property <UpdateInfo> update_info;
 
     callback choose_mount_point();
-    callback open_game_info(string);
-    callback open_game_dir(string);
+    callback open_url(string);
     callback remove_game(string);
     callback add_games();
     callback wii_output_format_changed(WiiOutputFormat);
@@ -33,6 +33,10 @@ export component MainWindow inherits Window {
     callback remove_update_partition_changed(bool);
 
     pure callback get_tasks_count() -> int;
+
+    public function show_update() {
+        sb.show();
+    }
 
     preferred-width: 800px;
     preferred-height: 600px;
@@ -57,11 +61,8 @@ export component MainWindow inherits Window {
         VerticalLayout {
             if current_index == 0 && !dir_name.is-empty: GameGrid {
                 games: games;
-                open_game_info(id) => {
-                    open_game_info(id);
-                }
-                open_game_dir(path) => {
-                    open_game_dir(path);
+                open_url(url) => {
+                    open_url(url);
                 }
                 remove_game(path) => {
                     remove_game(path);
@@ -89,6 +90,17 @@ export component MainWindow inherits Window {
                 task_type: task_type;
                 get_tasks_count => get_tasks_count();
             }
+        }
+    }
+
+    sb := SnackBar {
+        height: root.height;
+        width: root.width;
+        text: "Update available!";
+        action_text: "⬇ Download v" + update_info.version;
+        has_close_button: true;
+        action_clicked() => {
+            open_url(update_info.url);
         }
     }
 }
