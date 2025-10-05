@@ -12,6 +12,11 @@ export component Status inherits Rectangle {
 
     pure callback get_tasks_count() -> int;
 
+    function tasks_count_str() -> string {
+        let count = get_tasks_count();
+        return count == 1 ? "1 task" : count + " tasks";
+    }
+
     Horizontal {
         alignment: start;
 
@@ -22,7 +27,7 @@ export component Status inherits Rectangle {
         }
 
         MaterialText {
-            text: get_tasks_count() + " tasks in queue";
+            text: tasks_count_str() + " in queue";
         }
 
         VerticalDivider { }

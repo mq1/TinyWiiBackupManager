@@ -85,6 +85,8 @@ export component MainWindow inherits Window {
             }
 
             if !status.is-empty: Status {
+                status: status;
+                task_type: task_type;
                 get_tasks_count => get_tasks_count();
             }
         }

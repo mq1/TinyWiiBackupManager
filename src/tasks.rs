@@ -9,7 +9,7 @@ use std::{sync::OnceLock, thread};
 pub type TaskClosure = Box<dyn FnOnce(&Weak<MainWindow>) -> Result<()> + Send + Sync + 'static>;
 
 /// A task processor that runs tasks sequentially using a channel-based queue.
-pub static TASK_PROCESSOR: OnceLock<crossbeam_channel::Sender<TaskClosure>> = OnceLock::new();
+static TASK_PROCESSOR: OnceLock<crossbeam_channel::Sender<TaskClosure>> = OnceLock::new();
 
 /// Creates a new TaskProcessor and spawns its background worker thread.
 pub fn init(weak: Weak<MainWindow>) -> Result<()> {
