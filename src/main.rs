@@ -161,15 +161,18 @@ fn run() -> Result<()> {
             .set_buttons(MessageButtons::YesNo)
             .show()
             == MessageDialogResult::Yes
-            && let Err(e) = std::fs::remove_dir_all(path) {
-                show_err(e);
-            }
+            && let Err(e) = std::fs::remove_dir_all(path)
+        {
+            show_err(e);
+        }
     });
 
     app.on_get_tasks_count(tasks::count);
 
-    if std::env::var_os("TWBM_DISABLE_UPDATES").is_none() {
-        updater::check();
+    if std::env::var_os("TWBM_DISABLE_UPDATES").is_none()
+        && let Err(e) = updater::check()
+    {
+        show_err(e);
     }
 
     app.run()?;
