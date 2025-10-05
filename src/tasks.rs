@@ -33,7 +33,7 @@ pub fn init(weak: Weak<MainWindow>) -> Result<()> {
         .map_err(|_| anyhow!("Failed to initialize task processor"))
 }
 
-pub fn spawn_task(task: TaskClosure) {
+pub fn spawn(task: TaskClosure) {
     TASK_PROCESSOR
         .get()
         .map(|processor| processor.send(task))
@@ -42,7 +42,7 @@ pub fn spawn_task(task: TaskClosure) {
         .map(show_err);
 }
 
-pub fn get_tasks_count() -> i32 {
+pub fn count() -> i32 {
     TASK_PROCESSOR
         .get()
         .map(|processor| processor.len() as i32 + 1)
