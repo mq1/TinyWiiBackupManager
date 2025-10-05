@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { Vertical, Horizontal, IconButton, ElevatedCard, MaterialText } from "@material";
+import { Vertical, Horizontal, IconButton, ElevatedCard, MaterialText, MaterialPalette } from "@material";
 import { Game, Console } from "common.slint";
 
 export component GameCardBackground inherits Vertical {
@@ -15,6 +15,7 @@ export component GameCardBackground inherits Vertical {
 
                 if game.console == Console.Wii: Image {
                     source: @image-url("../mdi/tennis.svg");
+                    colorize: MaterialPalette.on_background;
                     height: 14px;
                     width: 14px;
                 }
@@ -25,6 +26,7 @@ export component GameCardBackground inherits Vertical {
 
                 if game.console == Console.GameCube: Image {
                     source: @image-url("../mdi/cube-outline.svg");
+                    colorize: MaterialPalette.on_background;
                     height: 14px;
                     width: 14px;
                 }
