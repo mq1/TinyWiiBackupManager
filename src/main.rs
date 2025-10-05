@@ -11,16 +11,18 @@ pub mod fs;
 pub mod games;
 pub mod hbc_apps;
 pub mod http;
+pub mod tasks;
 pub mod titles;
 pub mod wiitdb;
 
 use crate::fs::get_disk_usage;
-use anyhow::{Error, Result, anyhow};
+use anyhow::{Result, anyhow};
 use directories::ProjectDirs;
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 use rfd::{MessageButtons, MessageDialog, MessageDialogResult, MessageLevel};
 use slint::{ModelRc, ToSharedString, VecModel};
 use std::{
+    fmt::Display,
     rc::Rc,
     sync::{Mutex, OnceLock},
 };
@@ -30,7 +32,7 @@ slint::include_modules!();
 pub static PROJ: OnceLock<ProjectDirs> = OnceLock::new();
 static WATCHER: Mutex<Option<RecommendedWatcher>> = Mutex::new(None);
 
-fn show_err(e: &Error) {
+fn show_err(e: impl Display) {
     let _ = MessageDialog::new()
         .set_level(MessageLevel::Error)
         .set_title("Error")
@@ -86,13 +88,12 @@ fn watch(handle: &MainWindow) -> Result<()> {
         }) = res
         {
             weak.upgrade_in_event_loop(|handle| {
-                refresh_games(&handle).inspect_err(show_err).ok();
-                refresh_hbc_apps(&handle).inspect_err(show_err).ok();
+                refresh_games(&handle).err().map(show_err);
+                refresh_hbc_apps(&handle).err().map(show_err);
                 refresh_disk_usage(&handle);
             })
-            .map_err(Into::into)
-            .inspect_err(show_err)
-            .ok();
+            .err()
+            .map(show_err);
         }
     })?;
 
@@ -136,15 +137,15 @@ fn run() -> Result<()> {
             config::update(|config| {
                 config.mount_point.clone_from(&dir);
             })
-            .inspect_err(show_err)
-            .ok();
+            .err()
+            .map(show_err);
 
             if let Some(handle) = weak.upgrade() {
                 refresh_dir_name(&handle);
-                refresh_games(&handle).inspect_err(show_err).ok();
-                refresh_hbc_apps(&handle).inspect_err(show_err).ok();
+                refresh_games(&handle).err().map(show_err);
+                refresh_hbc_apps(&handle).err().map(show_err);
                 refresh_disk_usage(&handle);
-                watch(&handle).inspect_err(show_err).ok();
+                watch(&handle).err().map(show_err);
             } else {
                 show_err(&anyhow!("Failed to upgrade weak reference"));
             }
@@ -153,23 +154,19 @@ fn run() -> Result<()> {
 
     app.on_open_game_info(move |id| {
         open::that(format!("https://www.gametdb.com/Wii/{id}"))
-            .map_err(Into::into)
-            .inspect_err(show_err)
-            .ok();
+            .err()
+            .map(show_err);
     });
 
     app.on_open_game_dir(move |path| {
-        open::that(path)
-            .map_err(Into::into)
-            .inspect_err(show_err)
-            .ok();
+        open::that(path).err().map(show_err);
     });
 
     let weak = app.as_weak();
     app.on_add_games(move || {
         let weak = weak.clone();
         std::thread::spawn(move || {
-            add_games::add_games(weak).inspect_err(show_err).ok();
+            add_games::add_games(weak).err().map(show_err);
         });
     });
 
@@ -177,24 +174,24 @@ fn run() -> Result<()> {
         config::update(|config| {
             config.wii_output_format = format;
         })
-        .inspect_err(show_err)
-        .ok();
+        .err()
+        .map(show_err);
     });
 
     app.on_archive_format_changed(|format| {
         config::update(|config| {
             config.archive_format = format;
         })
-        .inspect_err(show_err)
-        .ok();
+        .err()
+        .map(show_err);
     });
 
     app.on_remove_update_partition_changed(|enabled| {
         config::update(|config| {
             config.scrub_update_partition = enabled;
         })
-        .inspect_err(show_err)
-        .ok();
+        .err()
+        .map(show_err);
     });
 
     app.on_remove_game(|path| {
@@ -206,10 +203,7 @@ fn run() -> Result<()> {
             .show()
             == MessageDialogResult::Yes
         {
-            std::fs::remove_dir_all(path)
-                .map_err(Into::into)
-                .inspect_err(show_err)
-                .ok();
+            std::fs::remove_dir_all(path).err().map(show_err);
         }
     });
 
@@ -218,5 +212,5 @@ fn run() -> Result<()> {
 }
 
 fn main() -> Result<()> {
-    run().inspect_err(show_err)
+    run().inspect_err(|e| show_err(e))
 }
