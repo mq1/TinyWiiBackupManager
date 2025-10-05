@@ -104,7 +104,7 @@ pub fn add_games() -> Result<()> {
             }
 
             Ok(())
-        }));
+        }))?;
     }
 
     Ok(())

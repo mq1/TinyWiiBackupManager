@@ -18,7 +18,9 @@ pub fn init(weak: Weak<MainWindow>) -> Result<()> {
     thread::spawn(move || {
         while let Ok(task) = task_receiver.recv() {
             // Execute the task
-            task(&weak).err().map(show_err);
+            if let Err(e) = task(&weak) {
+                show_err(e);
+            }
 
             // Clear the status message
             let _ = weak.upgrade_in_event_loop(|handle| {
@@ -30,16 +32,17 @@ pub fn init(weak: Weak<MainWindow>) -> Result<()> {
 
     TASK_PROCESSOR
         .set(task_sender)
-        .map_err(|_| anyhow!("Failed to initialize task processor"))
+        .map_err(|_| anyhow!("Failed to initialize TASK_PROCESSOR"))
 }
 
-pub fn spawn(task: TaskClosure) {
-    TASK_PROCESSOR
+pub fn spawn(task: TaskClosure) -> Result<()> {
+    let processor = TASK_PROCESSOR
         .get()
-        .map(|processor| processor.send(task))
-        .ok_or("Failed to spawn task")
-        .err()
-        .map(show_err);
+        .ok_or(anyhow!("TASK_PROCESSOR not initialized"))?;
+
+    processor
+        .send(task)
+        .map_err(|_| anyhow!("Failed to spawn task"))
 }
 
 pub fn count() -> i32 {
