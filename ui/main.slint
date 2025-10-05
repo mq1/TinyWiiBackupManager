@@ -26,7 +26,7 @@ export component MainWindow inherits Window {
 
     callback choose_mount_point();
     callback open_url(string);
-    callback remove_game(string);
+    callback remove_dir(string);
     callback add_games();
     callback wii_output_format_changed(WiiOutputFormat);
     callback archive_format_changed(ArchiveFormat);
@@ -64,13 +64,19 @@ export component MainWindow inherits Window {
                 open_url(url) => {
                     open_url(url);
                 }
-                remove_game(path) => {
-                    remove_game(path);
+                remove_dir(path) => {
+                    remove_dir(path);
                 }
             }
 
             if current_index == 1 && !dir_name.is-empty: HbcAppGrid {
                 apps: hbc_apps;
+                open_url(url) => {
+                    open_url(url);
+                }
+                remove_dir(path) => {
+                    remove_dir(path);
+                }
             }
 
             if current_index == 3: SettingsPage { }
