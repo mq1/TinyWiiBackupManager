@@ -9,7 +9,8 @@ export component Status inherits Rectangle {
 
     in property <string> status;
     in property <TaskType> task_type: TaskType.Unknown;
-    in property <int> task_count;
+
+    pure callback get_tasks_count() -> int;
 
     Horizontal {
         alignment: start;
@@ -21,7 +22,7 @@ export component Status inherits Rectangle {
         }
 
         MaterialText {
-            text: task_count + " tasks in queue";
+            text: get_tasks_count() + " tasks in queue";
         }
 
         VerticalDivider { }

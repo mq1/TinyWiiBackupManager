@@ -15,7 +15,7 @@ pub mod tasks;
 pub mod titles;
 pub mod wiitdb;
 
-use crate::{fs::get_disk_usage, tasks::TASK_PROCESSOR};
+use crate::fs::get_disk_usage;
 use anyhow::{Result, anyhow};
 use directories::ProjectDirs;
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
@@ -120,11 +120,7 @@ fn run() -> Result<()> {
 
     config::init()?;
     titles::init()?;
-
-    // Initialize task processor/queue
-    TASK_PROCESSOR
-        .set(tasks::TaskProcessor::new(app.as_weak()))
-        .map_err(|_| anyhow!("Failed to initialize task processor"))?;
+    tasks::init(app.as_weak())?;
 
     app.set_app_name(env!("CARGO_PKG_NAME").to_shared_string() + " v" + env!("CARGO_PKG_VERSION"));
     app.set_is_macos(cfg!(target_os = "macos"));
@@ -207,6 +203,8 @@ fn run() -> Result<()> {
             std::fs::remove_dir_all(path).err().map(show_err);
         }
     });
+
+    app.on_get_tasks_count(tasks::get_tasks_count);
 
     app.run()?;
     Ok(())
