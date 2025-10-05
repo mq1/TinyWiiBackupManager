@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { IconButton, Vertical, MaterialText, Modal, ElevatedCard } from "@material";
+import { IconButton, Vertical, MaterialText, ElevatedCard, MaterialPalette, Horizontal, CircularProgressIndicator } from "@material";
 import { SideBar } from "sidebar.slint";
 import { GameGrid } from "game_grid.slint";
 import { Game, HbcApp, WiiOutputFormat, ArchiveFormat } from "common.slint";
@@ -69,7 +69,7 @@ export component MainWindow inherits Window {
 
             if current_index == 3: SettingsPage { }
 
-            if dir_name.is-empty: Vertical {
+            if dir_name.is-empty && status.is-empty: Vertical {
                 alignment: end;
                 padding-bottom: 16px;
 
@@ -78,21 +78,23 @@ export component MainWindow inherits Window {
                     font-size: 18px;
                 }
             }
-        }
-    }
 
-    if !status.is_empty: Modal {
-        width: root.width;
-        height: root.height;
+            if !status.is-empty: Rectangle {
+                background: MaterialPalette.surface;
 
-        ElevatedCard {
-            width: root.width / 2;
-            height: root.height / 2;
-            x: (root.width - self.width) / 2;
-            y: (root.height - self.height) / 2;
+                Horizontal {
+                    alignment: start;
 
-            MaterialText {
-                text: status;
+                    CircularProgressIndicator {
+                        indeterminate: true;
+                        height: 14px;
+                        width: 14px;
+                    }
+
+                    MaterialText {
+                        text: status;
+                    }
+                }
             }
         }
     }
