@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { ElevatedCard, Vertical, Horizontal, IconButton, MaterialText } from "@material";
+import { ElevatedCard, Vertical, Horizontal, IconButton, MaterialText, Dialog, HorizontalDivider } from "@material";
 import { HbcApp } from "common.slint";
 
 export component HbcAppCard inherits VerticalLayout {
@@ -36,6 +36,7 @@ export component HbcAppCard inherits VerticalLayout {
 export component HbcAppCardButtons inherits Horizontal {
     alignment: center;
     height: 34px;
+
     callback open_app_info();
     callback open_app_dir();
     callback remove_app();
@@ -64,6 +65,99 @@ export component HbcAppCardButtons inherits Horizontal {
         inline: true;
         clicked => {
             remove_app();
+        }
+    }
+}
+
+export component HbcAppInfo inherits Dialog {
+    in property <HbcApp> app;
+    title: app.name;
+    default-action-text: "Close";
+
+    default_action_clicked => {
+        self.close();
+    }
+
+    Vertical {
+        width: root.width * 0.75;
+
+        Horizontal {
+            alignment: start;
+
+            MaterialText {
+                text: "Coder: ";
+            }
+
+            MaterialText {
+                text: app.coder;
+            }
+        }
+
+        Horizontal {
+            alignment: start;
+
+            MaterialText {
+                text: "Version: ";
+            }
+
+            MaterialText {
+                text: app.version;
+            }
+        }
+
+        Horizontal {
+            alignment: start;
+
+            MaterialText {
+                text: "Release Date: ";
+            }
+
+            MaterialText {
+                text: app.release-date;
+            }
+        }
+
+        Horizontal {
+            alignment: start;
+
+            MaterialText {
+                text: "Short Description: ";
+            }
+
+            MaterialText {
+                text: app.short-description;
+            }
+        }
+
+        Horizontal {
+            alignment: start;
+
+            MaterialText {
+                text: "Size: ";
+            }
+
+            MaterialText {
+                text: app.size;
+            }
+        }
+
+        Horizontal {
+            alignment: start;
+
+            MaterialText {
+                text: "Path: ";
+            }
+
+            MaterialText {
+                text: app.path;
+            }
+        }
+
+        HorizontalDivider { }
+
+        MaterialText {
+            text: app.long-description;
+            wrap: TextWrap.char-wrap;
         }
     }
 }

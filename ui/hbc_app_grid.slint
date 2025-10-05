@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { ScrollView, Vertical } from "@material";
+import { ScrollView, Vertical, Horizontal, MaterialText, Dialog } from "@material";
+import { HbcAppCard, HbcAppCardButtons, HbcAppInfo } from "hbc_app_card.slint";
 import { HbcApp } from "common.slint";
-import { HbcAppCard, HbcAppCardButtons } from "hbc_app_card.slint";
 
 export component HbcAppGrid inherits ScrollView {
     in property <[HbcApp]> apps;
@@ -16,6 +16,7 @@ export component HbcAppGrid inherits ScrollView {
 
     callback open_url(string);
     callback remove_dir(string);
+    callback open_app_info(HbcApp);
 
     horizontal-stretch: 1;
     vertical-stretch: 1;
@@ -36,7 +37,7 @@ export component HbcAppGrid inherits ScrollView {
                 y: (index / columns).floor() * card_h + (card_h - 42px);
                 width: card_w;
                 open_app_info => {
-                    open_url("https://oscwii.org/library/app/" + app.slug);
+                    open_app_info(app);
                 }
                 open_app_dir => {
                     open_url(app.path);
