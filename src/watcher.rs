@@ -33,9 +33,9 @@ pub fn init(handle: &MainWindow) -> Result<()> {
                 | notify::EventKind::Remove(_),
             ..
         }) = res
-        {
-            refresh_all(&weak).err().map(show_err);
-        }
+            && let Err(e) = refresh_all(&weak) {
+                show_err(e);
+            }
     })?;
 
     watcher.watch(&mount_point.join("wbfs"), RecursiveMode::NonRecursive)?;

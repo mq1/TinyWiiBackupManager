@@ -93,54 +93,64 @@ fn run() -> Result<()> {
     let weak = app.as_weak();
     app.on_choose_mount_point(move || {
         if let Some(dir) = rfd::FileDialog::new().pick_folder() {
-            config::update(|config| {
+            if let Err(e) = config::update(|config| {
                 config.mount_point.clone_from(&dir);
-            })
-            .err()
-            .map(show_err);
+            }) {
+                show_err(e);
+            }
 
             if let Some(handle) = weak.upgrade() {
                 refresh_dir_name(&handle);
-                refresh_games(&handle).err().map(show_err);
-                refresh_hbc_apps(&handle).err().map(show_err);
+                if let Err(e) = refresh_games(&handle) {
+                    show_err(e);
+                }
+                if let Err(e) = refresh_hbc_apps(&handle) {
+                    show_err(e);
+                }
                 refresh_disk_usage(&handle);
-                watcher::init(&handle).err().map(show_err);
+                if let Err(e) = watcher::init(&handle) {
+                    show_err(e);
+                }
             } else {
-                show_err(&anyhow!("Failed to upgrade weak reference"));
+                show_err(anyhow!("Failed to upgrade weak reference"));
             }
         }
     });
 
     app.on_open_url(|url| {
-        open::that(url).err().map(show_err);
+        if let Err(e) = open::that(url) {
+            show_err(e);
+        }
     });
 
     app.on_add_games(|| {
-        add_games::add_games().err().map(show_err);
+        if let Err(e) = add_games::add_games() {
+            show_err(e);
+        }
     });
 
     app.on_wii_output_format_changed(|format| {
-        config::update(|config| {
+        if let Err(e) = config::update(|config| {
             config.wii_output_format = format;
-        })
-        .err()
-        .map(show_err);
+        }) {
+            show_err(e);
+        }
     });
 
     app.on_archive_format_changed(|format| {
-        config::update(|config| {
+        if let Err(e) = config::update(|config| {
             config.archive_format = format;
-        })
-        .err()
-        .map(show_err);
+        }) {
+            show_err(e);
+        }
     });
 
     app.on_remove_update_partition_changed(|enabled| {
-        config::update(|config| {
+        if let Err(e) = config::update(|config| {
             config.scrub_update_partition = enabled;
-        })
-        .err()
-        .map(show_err);
+        }) {
+            show_err(e);
+        }
     });
 
     app.on_remove_game(|path| {
@@ -151,15 +161,15 @@ fn run() -> Result<()> {
             .set_buttons(MessageButtons::YesNo)
             .show()
             == MessageDialogResult::Yes
-        {
-            std::fs::remove_dir_all(path).err().map(show_err);
-        }
+            && let Err(e) = std::fs::remove_dir_all(path) {
+                show_err(e);
+            }
     });
 
     app.on_get_tasks_count(tasks::count);
 
     if std::env::var_os("TWBM_DISABLE_UPDATES").is_none() {
-        updater::spawn_task();
+        updater::check();
     }
 
     app.run()?;
