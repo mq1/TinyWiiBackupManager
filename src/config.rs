@@ -14,15 +14,6 @@ use crate::{ArchiveFormat, PROJ, WiiOutputFormat};
 static CONFIG_PATH: OnceLock<PathBuf> = OnceLock::new();
 static CONFIG_CACHE: OnceLock<Mutex<Config>> = OnceLock::new();
 
-impl ArchiveFormat {
-    pub fn extension(&self) -> &'static str {
-        match self {
-            ArchiveFormat::Rvz => "rvz",
-            ArchiveFormat::Iso => "iso",
-        }
-    }
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
     pub mount_point: PathBuf,
