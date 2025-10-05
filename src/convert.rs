@@ -1,7 +1,11 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{TaskType, WiiOutputFormat, config, tasks, util};
+use crate::{
+    TaskType, WiiOutputFormat, config,
+    extensions::{SUPPORTED_INPUT_EXTENSIONS, get_convert_extension},
+    tasks, util,
+};
 use anyhow::{Result, anyhow, bail};
 use nod::{
     common::Format,
@@ -14,6 +18,15 @@ use std::{
     fs::{self, File},
     io::{BufWriter, Seek, Write},
 };
+
+fn get_disc_opts() -> DiscOptions {
+    let (preloader_threads, _) = util::get_threads_num();
+
+    DiscOptions {
+        partition_encryption: PartitionEncryption::Original,
+        preloader_threads,
+    }
+}
 
 fn get_process_opts() -> ProcessOptions {
     let scrub_update_partition = config::get().scrub_update_partition;
@@ -43,22 +56,13 @@ pub fn add_games() -> Result<()> {
     }
 
     let paths = FileDialog::new()
-        .add_filter("Nintendo Optical Disc", &["iso", "rvz"])
+        .add_filter("Nintendo Optical Disc", SUPPORTED_INPUT_EXTENSIONS)
         .pick_files()
         .ok_or(anyhow!("No Games Selected"))?;
 
-    let (preloader_threads, _) = util::get_threads_num();
-
-    let disc_opts = DiscOptions {
-        partition_encryption: PartitionEncryption::Original,
-        preloader_threads,
-    };
-
-    let process_opts = get_process_opts();
-
     for path in paths {
-        let disc_opts = disc_opts.clone();
-        let process_opts = process_opts.clone();
+        let disc_opts = get_disc_opts();
+        let process_opts = get_process_opts();
         let mount_point = mount_point.clone();
 
         tasks::spawn(move |weak| {
@@ -85,7 +89,7 @@ pub fn add_games() -> Result<()> {
 
             let path = dir_path
                 .join(id)
-                .with_extension(if is_wii { "wbfs" } else { "iso" });
+                .with_extension(get_convert_extension(is_wii));
 
             let mut out = BufWriter::new(File::create(&path)?);
 

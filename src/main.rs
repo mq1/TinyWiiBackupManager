@@ -112,7 +112,7 @@ fn run() -> Result<()> {
                     show_err(e);
                 }
             } else {
-                show_err(anyhow!("Failed to upgrade weak reference"));
+                show_err("Failed to upgrade weak reference");
             }
         }
     });
