@@ -6,17 +6,17 @@ use anyhow::{Result, anyhow};
 use slint::{ToSharedString, Weak};
 use std::{sync::OnceLock, thread};
 
-pub type TaskClosure = Box<dyn FnOnce(&Weak<MainWindow>) -> Result<()> + Send>;
+pub type BoxedTask = Box<dyn FnOnce(&Weak<MainWindow>) -> Result<()> + Send>;
 
 /// A task processor that runs tasks sequentially using a channel-based queue.
-static TASK_PROCESSOR: OnceLock<crossbeam_channel::Sender<TaskClosure>> = OnceLock::new();
+static TASK_PROCESSOR: OnceLock<crossbeam_channel::Sender<BoxedTask>> = OnceLock::new();
 
 /// Creates a new TaskProcessor and spawns its background worker thread.
 pub fn init(weak: Weak<MainWindow>) -> Result<()> {
-    let (task_sender, task_receiver) = crossbeam_channel::unbounded::<TaskClosure>();
+    let (sender, receiver) = crossbeam_channel::unbounded::<BoxedTask>();
 
     thread::spawn(move || {
-        while let Ok(task) = task_receiver.recv() {
+        while let Ok(task) = receiver.recv() {
             // Execute the task
             if let Err(e) = task(&weak) {
                 show_err(e);
@@ -31,20 +31,17 @@ pub fn init(weak: Weak<MainWindow>) -> Result<()> {
     });
 
     TASK_PROCESSOR
-        .set(task_sender)
+        .set(sender)
         .map_err(|_| anyhow!("Failed to initialize TASK_PROCESSOR"))
 }
 
-pub fn spawn<F>(task: F) -> Result<()>
-where
-    F: FnOnce(&Weak<MainWindow>) -> Result<()> + Send + 'static,
-{
+pub fn spawn(task: BoxedTask) -> Result<()> {
     let processor = TASK_PROCESSOR
         .get()
         .ok_or(anyhow!("TASK_PROCESSOR not initialized"))?;
 
     processor
-        .send(Box::new(task))
+        .send(task)
         .map_err(|_| anyhow!("Failed to spawn task"))
 }
 
