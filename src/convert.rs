@@ -15,12 +15,13 @@ use nod::{
     read::{DiscOptions, DiscReader, PartitionEncryption},
     write::{DiscWriter, FormatOptions, ProcessOptions},
 };
+use parking_lot::RwLock;
 use rfd::FileDialog;
 use slint::ToSharedString;
+use std::sync::Arc;
 use std::{
     fs::{self, File},
     io::{BufWriter, Seek, Write},
-    sync::{Arc, RwLock},
 };
 
 fn get_disc_opts() -> DiscOptions {
@@ -54,7 +55,7 @@ fn get_output_format_opts(config: &Config) -> FormatOptions {
 }
 
 pub fn add_games(config: &Arc<RwLock<Config>>, task_processor: &Arc<TaskProcessor>) -> Result<()> {
-    let config = config.read().map_err(|_| anyhow!("Mutex poisoned"))?;
+    let config = config.read();
 
     let mount_point = &config.mount_point;
     if mount_point.as_os_str().is_empty() {
