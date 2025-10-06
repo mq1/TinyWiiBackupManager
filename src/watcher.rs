@@ -45,9 +45,7 @@ pub fn init_watcher(
         }
     })?;
 
-    watcher.watch(&mount_point.join("wbfs"), RecursiveMode::NonRecursive)?;
-    watcher.watch(&mount_point.join("games"), RecursiveMode::NonRecursive)?;
-    watcher.watch(&mount_point.join("apps"), RecursiveMode::NonRecursive)?;
+    watcher.watch(mount_point, RecursiveMode::Recursive)?;
 
     Ok(watcher)
 }
