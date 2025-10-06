@@ -1,11 +1,13 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { Vertical, RadioButton, Horizontal, HorizontalDivider, MaterialText } from "@material";
+import { Vertical, RadioButton, Horizontal, HorizontalDivider, MaterialText, ElevatedButton } from "@material";
 import { WiiOutputFormat, ArchiveFormat } from "common.slint";
+import { FilledIconButton } from "../material-1.0/ui/components/filled_icon_button.slint";
 
 export component SettingsPage inherits Vertical {
     alignment: start;
+
     in-out property <WiiOutputFormat> wii_output_format;
     in-out property <ArchiveFormat> archive_format;
     in-out property <bool> remove_update_partition;
@@ -13,6 +15,7 @@ export component SettingsPage inherits Vertical {
     callback wii_output_format_changed(WiiOutputFormat);
     callback archive_format_changed(ArchiveFormat);
     callback remove_update_partition_changed(bool);
+    callback open_data_dir();
 
     MaterialText {
         text: "Wii Output Format";
@@ -163,6 +166,20 @@ export component SettingsPage inherits Vertical {
 
         MaterialText {
             text: "ISO (very large)";
+        }
+    }
+
+    Rectangle {
+        vertical-stretch: 1;
+    }
+
+    Horizontal {
+        alignment: end;
+
+        ElevatedButton {
+            text: "Open Data Directory";
+            icon: @image-url("../mdi/folder-open.svg");
+            clicked => open_data_dir();
         }
     }
 }
