@@ -4,6 +4,7 @@
 use crate::{
     TaskType, WiiOutputFormat,
     config::Config,
+    covers::download_covers,
     extensions::{SUPPORTED_INPUT_EXTENSIONS, get_convert_extension},
     tasks::TaskProcessor,
     util,
@@ -128,6 +129,8 @@ pub fn add_games(config: &Arc<Mutex<Config>>, task_processor: &Arc<TaskProcessor
             Ok(())
         }))?;
     }
+
+    download_covers(&mount_point, task_processor)?;
 
     Ok(())
 }
