@@ -20,6 +20,7 @@ pub mod wiitdb;
 
 use anyhow::{Result, anyhow};
 use directories::ProjectDirs;
+use notify::RecommendedWatcher;
 use rfd::{FileDialog, MessageButtons, MessageDialog, MessageDialogResult, MessageLevel};
 use slint::{ModelRc, ToSharedString, VecModel, Weak};
 use std::{
@@ -30,7 +31,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use crate::{config::Config, tasks::TaskProcessor, titles::Titles, watcher::MyWatcher};
+use crate::{config::Config, tasks::TaskProcessor, titles::Titles, watcher::init_watcher};
 
 slint::include_modules!();
 
@@ -74,7 +75,7 @@ fn choose_mount_point(
     weak: &Weak<MainWindow>,
     config: &Arc<Mutex<Config>>,
     titles: &Arc<Titles>,
-    watcher: &Arc<Mutex<MyWatcher>>,
+    watcher: &Arc<Mutex<RecommendedWatcher>>,
 ) -> Result<()> {
     let handle = weak.upgrade().ok_or(anyhow!("Failed to upgrade weak"))?;
     let mut config = config.lock().map_err(|_| anyhow!("Mutex poisoned"))?;
@@ -91,7 +92,7 @@ fn choose_mount_point(
     refresh_hbc_apps(&handle, &config.mount_point)?;
     refresh_disk_usage(&handle, &config.mount_point);
 
-    let new_watcher = MyWatcher::init(weak.clone(), &config.mount_point, titles)?;
+    let new_watcher = init_watcher(weak.clone(), &config.mount_point, titles)?;
     *watcher.lock().map_err(|_| anyhow!("Mutex poisoned"))? = new_watcher;
 
     Ok(())
@@ -116,7 +117,7 @@ fn run() -> Result<()> {
         .map_err(|_| anyhow!("Mutex poisoned"))?
         .mount_point;
 
-    let watcher = Arc::new(Mutex::new(MyWatcher::init(
+    let watcher = Arc::new(Mutex::new(init_watcher(
         app.as_weak(),
         mount_point,
         &titles,
