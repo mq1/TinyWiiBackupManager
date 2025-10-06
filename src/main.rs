@@ -20,7 +20,7 @@ pub mod wiitdb;
 use crate::util::get_disk_usage;
 use anyhow::{Result, anyhow};
 use directories::ProjectDirs;
-use rfd::{MessageButtons, MessageDialog, MessageDialogResult, MessageLevel};
+use rfd::{FileDialog, MessageButtons, MessageDialog, MessageDialogResult, MessageLevel};
 use slint::{ModelRc, ToSharedString, VecModel};
 use std::{fmt::Display, fs, rc::Rc, sync::OnceLock};
 
@@ -66,6 +66,22 @@ fn refresh_hbc_apps(handle: &MainWindow) -> Result<()> {
     Ok(())
 }
 
+fn choose_mount_point(handle: &MainWindow) -> Result<()> {
+    let dir = FileDialog::new()
+        .pick_folder()
+        .ok_or(anyhow!("No directory selected"))?;
+
+    config::update(|config| {
+        config.mount_point.clone_from(&dir);
+    })?;
+
+    refresh_dir_name(handle);
+    refresh_games(handle)?;
+    refresh_hbc_apps(handle)?;
+    refresh_disk_usage(handle);
+    watcher::init(handle)
+}
+
 fn run() -> Result<()> {
     let app = MainWindow::new()?;
 
@@ -86,33 +102,16 @@ fn run() -> Result<()> {
     refresh_games(&app)?;
     refresh_hbc_apps(&app)?;
     refresh_disk_usage(&app);
-
     watcher::init(&app)?;
 
     let weak = app.as_weak();
     app.on_choose_mount_point(move || {
-        if let Some(dir) = rfd::FileDialog::new().pick_folder() {
-            if let Err(e) = config::update(|config| {
-                config.mount_point.clone_from(&dir);
-            }) {
+        if let Some(weak) = weak.upgrade() {
+            if let Err(e) = choose_mount_point(&weak) {
                 show_err(e);
             }
-
-            if let Some(handle) = weak.upgrade() {
-                refresh_dir_name(&handle);
-                if let Err(e) = refresh_games(&handle) {
-                    show_err(e);
-                }
-                if let Err(e) = refresh_hbc_apps(&handle) {
-                    show_err(e);
-                }
-                refresh_disk_usage(&handle);
-                if let Err(e) = watcher::init(&handle) {
-                    show_err(e);
-                }
-            } else {
-                show_err("Failed to upgrade weak reference");
-            }
+        } else {
+            show_err("Failed to upgrade weak reference");
         }
     });
 
