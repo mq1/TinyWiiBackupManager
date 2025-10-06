@@ -18,20 +18,14 @@ pub mod util;
 pub mod watcher;
 pub mod wiitdb;
 
+use crate::{config::Config, tasks::TaskProcessor, titles::Titles, watcher::init_watcher};
 use anyhow::{Result, anyhow};
 use directories::ProjectDirs;
 use notify::RecommendedWatcher;
+use parking_lot::{Mutex, RwLock};
 use rfd::{FileDialog, MessageButtons, MessageDialog, MessageDialogResult, MessageLevel};
 use slint::{ModelRc, ToSharedString, VecModel, Weak};
-use std::{
-    fmt::Display,
-    fs,
-    path::Path,
-    rc::Rc,
-    sync::{Arc, Mutex, RwLock},
-};
-
-use crate::{config::Config, tasks::TaskProcessor, titles::Titles, watcher::init_watcher};
+use std::{fmt::Display, fs, path::Path, rc::Rc, sync::Arc};
 
 slint::include_modules!();
 
@@ -78,7 +72,7 @@ fn choose_mount_point(
     watcher: &Arc<Mutex<RecommendedWatcher>>,
 ) -> Result<()> {
     let handle = weak.upgrade().ok_or(anyhow!("Failed to upgrade weak"))?;
-    let mut config = config.write().map_err(|_| anyhow!("Mutex poisoned"))?;
+    let mut config = config.write();
 
     let dir = FileDialog::new()
         .pick_folder()
@@ -93,7 +87,7 @@ fn choose_mount_point(
     refresh_disk_usage(&handle, &config.mount_point);
 
     let new_watcher = init_watcher(weak.clone(), &config.mount_point, titles)?;
-    *watcher.lock().map_err(|_| anyhow!("Mutex poisoned"))? = new_watcher;
+    *watcher.lock() = new_watcher;
 
     Ok(())
 }
@@ -112,10 +106,7 @@ fn run() -> Result<()> {
     app.set_app_name(env!("CARGO_PKG_NAME").to_shared_string() + " v" + env!("CARGO_PKG_VERSION"));
     app.set_is_macos(cfg!(target_os = "macos"));
 
-    let mount_point = &config
-        .read()
-        .map_err(|_| anyhow!("RwLock poisoned"))?
-        .mount_point;
+    let mount_point = &config.read().mount_point;
 
     let watcher = Arc::new(Mutex::new(init_watcher(
         app.as_weak(),
@@ -154,40 +145,31 @@ fn run() -> Result<()> {
 
     let config_clone = config.clone();
     app.on_wii_output_format_changed(move |format| {
-        if let Ok(mut config) = config_clone.write() {
-            config.wii_output_format = format;
+        let mut config = config_clone.write();
+        config.wii_output_format = format;
 
-            if let Err(e) = config.save() {
-                show_err(e);
-            }
-        } else {
-            show_err(anyhow!("RwLock poisoned"));
+        if let Err(e) = config.save() {
+            show_err(e);
         }
     });
 
     let config_clone = config.clone();
     app.on_archive_format_changed(move |format| {
-        if let Ok(mut config) = config_clone.write() {
-            config.archive_format = format;
+        let mut config = config_clone.write();
+        config.archive_format = format;
 
-            if let Err(e) = config.save() {
-                show_err(e);
-            }
-        } else {
-            show_err(anyhow!("RwLock poisoned"));
+        if let Err(e) = config.save() {
+            show_err(e);
         }
     });
 
     let config_clone = config.clone();
     app.on_remove_update_partition_changed(move |enabled| {
-        if let Ok(mut config) = config_clone.write() {
-            config.scrub_update_partition = enabled;
+        let mut config = config_clone.write();
+        config.scrub_update_partition = enabled;
 
-            if let Err(e) = config.save() {
-                show_err(e);
-            }
-        } else {
-            show_err(anyhow!("RwLock poisoned"));
+        if let Err(e) = config.save() {
+            show_err(e);
         }
     });
 
