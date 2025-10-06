@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { ElevatedCard, Vertical, Horizontal, IconButton, MaterialText, Dialog, HorizontalDivider } from "@material";
+import { ElevatedCard, Vertical, Horizontal, IconButton, MaterialText, Dialog, HorizontalDivider, ScrollView } from "@material";
 import { HbcApp } from "common.slint";
 
 export component HbcAppCard inherits VerticalLayout {
@@ -78,86 +78,97 @@ export component HbcAppInfo inherits Dialog {
         self.close();
     }
 
-    Vertical {
+    ScrollView {
         width: root.width * 0.75;
+        height: root.height / 2;
 
-        Horizontal {
-            alignment: start;
+        VerticalLayout {
+            spacing: 4px;
 
-            MaterialText {
-                text: "Coder: ";
+            Horizontal {
+                alignment: start;
+                padding: 4px;
+
+                MaterialText {
+                    text: "Coder: ";
+                }
+
+                MaterialText {
+                    text: app.coder;
+                }
             }
 
-            MaterialText {
-                text: app.coder;
-            }
-        }
+            Horizontal {
+                alignment: start;
+                padding: 4px;
 
-        Horizontal {
-            alignment: start;
+                MaterialText {
+                    text: "Version: ";
+                }
 
-            MaterialText {
-                text: "Version: ";
-            }
-
-            MaterialText {
-                text: app.version;
-            }
-        }
-
-        Horizontal {
-            alignment: start;
-
-            MaterialText {
-                text: "Release Date: ";
+                MaterialText {
+                    text: app.version;
+                }
             }
 
-            MaterialText {
-                text: app.release-date;
-            }
-        }
+            Horizontal {
+                alignment: start;
+                padding: 4px;
 
-        Horizontal {
-            alignment: start;
+                MaterialText {
+                    text: "Release Date: ";
+                }
 
-            MaterialText {
-                text: "Short Description: ";
-            }
-
-            MaterialText {
-                text: app.short-description;
-            }
-        }
-
-        Horizontal {
-            alignment: start;
-
-            MaterialText {
-                text: "Size: ";
+                MaterialText {
+                    text: app.release-date;
+                }
             }
 
-            MaterialText {
-                text: app.size;
+            Horizontal {
+                alignment: start;
+                padding: 4px;
+
+                MaterialText {
+                    text: "Short Description: ";
+                }
+
+                MaterialText {
+                    text: app.short-description;
+                }
             }
-        }
 
-        Horizontal {
-            alignment: start;
+            Horizontal {
+                alignment: start;
+                padding: 4px;
 
-            MaterialText {
-                text: "Path: ";
+                MaterialText {
+                    text: "Size: ";
+                }
+
+                MaterialText {
+                    text: app.size;
+                }
             }
 
-            MaterialText {
-                text: app.path;
+            Horizontal {
+                alignment: start;
+                padding: 4px;
+
+                MaterialText {
+                    text: "Path: ";
+                }
+
+                MaterialText {
+                    text: app.path;
+                }
             }
-        }
 
-        HorizontalDivider { }
+            HorizontalDivider { }
 
-        MaterialText {
-            text: app.long-description;
-            wrap: TextWrap.char-wrap;
+            MaterialText {
+                text: app.long-description;
+                wrap: TextWrap.char-wrap;
+            }
         }
     }
 }
