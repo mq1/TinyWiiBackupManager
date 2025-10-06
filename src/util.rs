@@ -1,20 +1,21 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::config;
+use anyhow::{Result, bail};
 use size::Size;
-use std::{
-    io::{Seek, SeekFrom, Write},
-    path::Path,
-};
+use std::io::{Seek, SeekFrom, Write};
 use sysinfo::Disks;
 use tempfile::NamedTempFile;
 
-pub fn get_disk_usage(path: &Path) -> String {
+pub fn get_disk_usage() -> Option<String> {
+    let mount_point = config::get().mount_point;
+
     let disks = Disks::new_with_refreshed_list();
 
     disks
         .iter()
-        .filter(|disk| path.starts_with(disk.mount_point()))
+        .filter(|disk| mount_point.starts_with(disk.mount_point()))
         .max_by_key(|disk| disk.mount_point().as_os_str().len())
         .map(|disk| {
             let total = disk.total_space();
@@ -22,26 +23,26 @@ pub fn get_disk_usage(path: &Path) -> String {
 
             format!("{}/{}", Size::from_bytes(used), Size::from_bytes(total))
         })
-        .unwrap_or_default()
 }
 
-/// Returns `true` if we can create a file >4 GiB in this directory
-pub fn can_write_over_4gb(path: &Path) -> bool {
-    let result = (|| {
-        // Create a temp file in the target directory
-        let mut tmp = NamedTempFile::new_in(path)?;
+/// Returns Ok if we can create a file >4 GiB in this directory
+pub fn can_write_over_4gb() -> Result<()> {
+    let mount_point = config::get().mount_point;
+    if mount_point.as_os_str().is_empty() {
+        bail!("No mount point selected");
+    }
 
-        // Seek to 4 GiB
-        tmp.as_file_mut()
-            .seek(SeekFrom::Start(4 * 1024 * 1024 * 1024))?;
+    // Create a temp file in the target directory
+    let mut tmp = NamedTempFile::new_in(mount_point)?;
 
-        // Write a single byte
-        tmp.as_file_mut().write_all(&[0])?;
+    // Seek to 4 GiB
+    tmp.as_file_mut()
+        .seek(SeekFrom::Start(4 * 1024 * 1024 * 1024))?;
 
-        Ok::<_, std::io::Error>(())
-    })();
+    // Write a single byte
+    tmp.as_file_mut().write_all(&[0])?;
 
-    result.is_ok()
+    Ok(())
 }
 
 pub fn get_threads_num() -> (usize, usize) {

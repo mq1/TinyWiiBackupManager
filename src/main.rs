@@ -49,10 +49,9 @@ fn refresh_dir_name(handle: &MainWindow) {
 }
 
 fn refresh_disk_usage(handle: &MainWindow) {
-    let path = config::get().mount_point;
-
-    let usage = get_disk_usage(&path);
-    handle.set_disk_usage(usage.to_shared_string());
+    if let Some(usage) = get_disk_usage() {
+        handle.set_disk_usage(usage.to_shared_string());
+    }
 }
 
 fn refresh_games(handle: &MainWindow) -> Result<()> {
