@@ -90,7 +90,7 @@ fn set(config: Config) -> Result<()> {
     Ok(())
 }
 
-pub fn update(mutate: impl Fn(&mut Config)) -> Result<()> {
+pub fn update(mutate: impl FnOnce(&mut Config)) -> Result<()> {
     let mut config = get();
     mutate(&mut config);
     set(config)

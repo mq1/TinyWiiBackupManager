@@ -17,7 +17,6 @@ pub mod util;
 pub mod watcher;
 pub mod wiitdb;
 
-use crate::util::get_disk_usage;
 use anyhow::{Result, anyhow};
 use directories::ProjectDirs;
 use rfd::{FileDialog, MessageButtons, MessageDialog, MessageDialogResult, MessageLevel};
@@ -49,7 +48,7 @@ fn refresh_dir_name(handle: &MainWindow) {
 }
 
 fn refresh_disk_usage(handle: &MainWindow) {
-    if let Some(usage) = get_disk_usage() {
+    if let Some(usage) = util::get_disk_usage() {
         handle.set_disk_usage(usage.to_shared_string());
     }
 }
@@ -72,7 +71,7 @@ fn choose_mount_point(handle: &MainWindow) -> Result<()> {
         .ok_or(anyhow!("No directory selected"))?;
 
     config::update(|config| {
-        config.mount_point.clone_from(&dir);
+        config.mount_point = dir;
     })?;
 
     refresh_dir_name(handle);

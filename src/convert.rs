@@ -65,7 +65,7 @@ pub fn add_games() -> Result<()> {
         let process_opts = get_process_opts();
         let mount_point = mount_point.clone();
 
-        tasks::spawn(move |weak| {
+        tasks::spawn(Box::new(move |weak| {
             let _ = weak.upgrade_in_event_loop(move |handle| {
                 handle.set_task_type(TaskType::Converting);
             });
@@ -120,7 +120,7 @@ pub fn add_games() -> Result<()> {
             }
 
             Ok(())
-        })?;
+        }))?;
     }
 
     Ok(())
