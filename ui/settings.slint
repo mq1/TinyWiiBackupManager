@@ -1,12 +1,13 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { Vertical, RadioButton, Horizontal, HorizontalDivider, MaterialText, ElevatedButton } from "@material";
+import { Vertical, RadioButton, Horizontal, HorizontalDivider, MaterialText, ElevatedButton, Icon } from "@material";
 import { WiiOutputFormat, ArchiveFormat } from "common.slint";
 import { FilledIconButton } from "../material-1.0/ui/components/filled_icon_button.slint";
 
 export component SettingsPage inherits Vertical {
     padding: 16px;
+    spacing: 4px;
 
     in-out property <WiiOutputFormat> wii_output_format;
     in-out property <ArchiveFormat> archive_format;
@@ -17,9 +18,18 @@ export component SettingsPage inherits Vertical {
     callback remove_update_partition_changed(bool);
     callback open_data_dir();
 
-    MaterialText {
-        text: "Wii Output Format";
-        font-size: 20px;
+    Horizontal {
+        alignment: start;
+        padding-left: 6px;
+
+        Icon {
+            source: @image-url("../mdi/package-up.svg");
+        }
+
+        MaterialText {
+            text: "Wii Output Format";
+            font-size: 18px;
+        }
     }
 
     Horizontal {
@@ -81,9 +91,18 @@ export component SettingsPage inherits Vertical {
 
     HorizontalDivider { }
 
-    MaterialText {
-        text: "Remove Update Partition on WBFS (experimental)";
-        font-size: 20px;
+    Horizontal {
+        alignment: start;
+        padding-left: 6px;
+
+        Icon {
+            source: @image-url("../mdi/trash-can.svg");
+        }
+
+        MaterialText {
+            text: "Remove Update Partition on WBFS (experimental)";
+            font-size: 18px;
+        }
     }
 
     Horizontal {
@@ -126,9 +145,18 @@ export component SettingsPage inherits Vertical {
 
     HorizontalDivider { }
 
-    MaterialText {
-        text: "Archive Format";
-        font-size: 20px;
+    Horizontal {
+        alignment: start;
+        padding-left: 6px;
+
+        Icon {
+            source: @image-url("../mdi/package-down.svg");
+        }
+
+        MaterialText {
+            text: "Archive Format";
+            font-size: 18px;
+        }
     }
 
     Horizontal {
