@@ -9,46 +9,45 @@ use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 use slint::Weak;
 use std::{path::Path, sync::Arc};
 
-#[allow(dead_code)]
-pub struct MyWatcher(RecommendedWatcher);
-
-impl MyWatcher {
-    pub fn init(weak: Weak<MainWindow>, mount_point: &Path, titles: &Arc<Titles>) -> Result<Self> {
-        if mount_point.as_os_str().is_empty() {
-            bail!("No mount point selected");
-        }
-
-        let path = mount_point.to_path_buf();
-        let titles = titles.clone();
-
-        let mut watcher = notify::recommended_watcher(move |res| {
-            if let Ok(notify::Event {
-                kind:
-                    notify::EventKind::Modify(_)
-                    | notify::EventKind::Create(_)
-                    | notify::EventKind::Remove(_),
-                ..
-            }) = res
-            {
-                let path = path.clone();
-                let titles = titles.clone();
-
-                let _ = weak.upgrade_in_event_loop(move |handle| {
-                    if let Err(e) = refresh_games(&handle, &path, &titles) {
-                        show_err(e);
-                    }
-                    if let Err(e) = refresh_hbc_apps(&handle, &path) {
-                        show_err(e);
-                    }
-                    refresh_disk_usage(&handle, &path);
-                });
-            }
-        })?;
-
-        watcher.watch(&mount_point.join("wbfs"), RecursiveMode::NonRecursive)?;
-        watcher.watch(&mount_point.join("games"), RecursiveMode::NonRecursive)?;
-        watcher.watch(&mount_point.join("apps"), RecursiveMode::NonRecursive)?;
-
-        Ok(Self(watcher))
+pub fn init_watcher(
+    weak: Weak<MainWindow>,
+    mount_point: &Path,
+    titles: &Arc<Titles>,
+) -> Result<RecommendedWatcher> {
+    if mount_point.as_os_str().is_empty() {
+        bail!("No mount point selected");
     }
+
+    let path = mount_point.to_path_buf();
+    let titles = titles.clone();
+
+    let mut watcher = notify::recommended_watcher(move |res| {
+        if let Ok(notify::Event {
+            kind:
+                notify::EventKind::Modify(_)
+                | notify::EventKind::Create(_)
+                | notify::EventKind::Remove(_),
+            ..
+        }) = res
+        {
+            let path = path.clone();
+            let titles = titles.clone();
+
+            let _ = weak.upgrade_in_event_loop(move |handle| {
+                if let Err(e) = refresh_games(&handle, &path, &titles) {
+                    show_err(e);
+                }
+                if let Err(e) = refresh_hbc_apps(&handle, &path) {
+                    show_err(e);
+                }
+                refresh_disk_usage(&handle, &path);
+            });
+        }
+    })?;
+
+    watcher.watch(&mount_point.join("wbfs"), RecursiveMode::NonRecursive)?;
+    watcher.watch(&mount_point.join("games"), RecursiveMode::NonRecursive)?;
+    watcher.watch(&mount_point.join("apps"), RecursiveMode::NonRecursive)?;
+
+    Ok(watcher)
 }
