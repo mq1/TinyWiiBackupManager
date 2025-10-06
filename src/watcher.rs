@@ -1,51 +1,53 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{MainWindow, config, refresh_disk_usage, refresh_games, refresh_hbc_apps, show_err};
-use anyhow::{Result, anyhow};
+use crate::{
+    MainWindow, refresh_disk_usage, refresh_games, refresh_hbc_apps, show_err, titles::Titles,
+};
+use anyhow::{Result, bail};
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
-use slint::{ComponentHandle, Weak};
-use std::sync::Mutex;
+use slint::Weak;
+use std::{path::Path, sync::Arc};
 
-static WATCHER: Mutex<Option<RecommendedWatcher>> = Mutex::new(None);
+pub struct MyWatcher(RecommendedWatcher);
 
-fn refresh_all(weak: &Weak<MainWindow>) -> Result<()> {
-    let handle = weak.upgrade().ok_or(anyhow!("Failed to upgrade"))?;
+impl MyWatcher {
+    pub fn init(weak: Weak<MainWindow>, mount_point: &Path, titles: &Arc<Titles>) -> Result<Self> {
+        if mount_point.as_os_str().is_empty() {
+            bail!("No mount point selected");
+        }
 
-    refresh_games(&handle)?;
-    refresh_hbc_apps(&handle)?;
-    refresh_disk_usage(&handle);
-    Ok(())
-}
+        let path = mount_point.to_path_buf();
+        let titles = titles.clone();
 
-pub fn init(handle: &MainWindow) -> Result<()> {
-    let mount_point = config::get().mount_point;
-    if mount_point.as_os_str().is_empty() {
-        return Ok(());
-    }
+        let mut watcher = notify::recommended_watcher(move |res| {
+            if let Ok(notify::Event {
+                kind:
+                    notify::EventKind::Modify(_)
+                    | notify::EventKind::Create(_)
+                    | notify::EventKind::Remove(_),
+                ..
+            }) = res
+            {
+                let path = path.clone();
+                let titles = titles.clone();
 
-    let weak = handle.as_weak();
-    let mut watcher = notify::recommended_watcher(move |res| {
-        if let Ok(notify::Event {
-            kind:
-                notify::EventKind::Modify(_)
-                | notify::EventKind::Create(_)
-                | notify::EventKind::Remove(_),
-            ..
-        }) = res
-            && let Err(e) = refresh_all(&weak) {
-                show_err(e);
+                let _ = weak.upgrade_in_event_loop(move |handle| {
+                    if let Err(e) = refresh_games(&handle, &path, &titles) {
+                        show_err(e);
+                    }
+                    if let Err(e) = refresh_hbc_apps(&handle, &path) {
+                        show_err(e);
+                    }
+                    refresh_disk_usage(&handle, &path);
+                });
             }
-    })?;
+        })?;
 
-    watcher.watch(&mount_point.join("wbfs"), RecursiveMode::NonRecursive)?;
-    watcher.watch(&mount_point.join("games"), RecursiveMode::NonRecursive)?;
-    watcher.watch(&mount_point.join("apps"), RecursiveMode::NonRecursive)?;
+        watcher.watch(&mount_point.join("wbfs"), RecursiveMode::NonRecursive)?;
+        watcher.watch(&mount_point.join("games"), RecursiveMode::NonRecursive)?;
+        watcher.watch(&mount_point.join("apps"), RecursiveMode::NonRecursive)?;
 
-    WATCHER
-        .lock()
-        .map_err(|_| anyhow!("Mutex poisoned"))?
-        .replace(watcher);
-
-    Ok(())
+        Ok(Self(watcher))
+    }
 }
