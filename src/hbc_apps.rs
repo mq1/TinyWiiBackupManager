@@ -1,12 +1,15 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{HbcApp, config};
+use crate::HbcApp;
 use anyhow::Result;
 use serde::Deserialize;
 use size::Size;
 use slint::{Image, ToSharedString};
-use std::{fs, path::PathBuf};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct HbcAppMeta {
@@ -64,8 +67,7 @@ impl HbcApp {
     }
 }
 
-pub fn list() -> Result<Vec<HbcApp>> {
-    let mount_point = config::get().mount_point;
+pub fn list(mount_point: &Path) -> Result<Vec<HbcApp>> {
     if mount_point.as_os_str().is_empty() {
         return Ok(vec![]);
     }

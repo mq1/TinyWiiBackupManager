@@ -2,9 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    TaskType, WiiOutputFormat, config,
+    TaskType, WiiOutputFormat,
+    config::Config,
     extensions::{SUPPORTED_INPUT_EXTENSIONS, get_convert_extension},
-    tasks, util,
+    tasks::TaskProcessor,
+    util,
 };
 use anyhow::{Result, anyhow, bail};
 use nod::{
@@ -17,6 +19,7 @@ use slint::ToSharedString;
 use std::{
     fs::{self, File},
     io::{BufWriter, Seek, Write},
+    sync::{Arc, Mutex},
 };
 
 fn get_disc_opts() -> DiscOptions {
@@ -28,8 +31,8 @@ fn get_disc_opts() -> DiscOptions {
     }
 }
 
-fn get_process_opts() -> ProcessOptions {
-    let scrub_update_partition = config::get().scrub_update_partition;
+fn get_process_opts(config: &Config) -> ProcessOptions {
+    let scrub_update_partition = config.scrub_update_partition;
     let (_, processor_threads) = util::get_threads_num();
 
     ProcessOptions {
@@ -42,15 +45,17 @@ fn get_process_opts() -> ProcessOptions {
     }
 }
 
-fn get_output_format_opts() -> FormatOptions {
-    match config::get().wii_output_format {
+fn get_output_format_opts(config: &Config) -> FormatOptions {
+    match config.wii_output_format {
         WiiOutputFormat::WbfsAuto | WiiOutputFormat::WbfsFixed => FormatOptions::new(Format::Wbfs),
         WiiOutputFormat::Iso => FormatOptions::new(Format::Iso),
     }
 }
 
-pub fn add_games() -> Result<()> {
-    let mount_point = config::get().mount_point;
+pub fn add_games(config: &Arc<Mutex<Config>>, task_processor: &Arc<TaskProcessor>) -> Result<()> {
+    let config = config.lock().map_err(|_| anyhow!("Mutex poisoned"))?;
+
+    let mount_point = &config.mount_point;
     if mount_point.as_os_str().is_empty() {
         bail!("No mount point selected");
     }
@@ -62,10 +67,11 @@ pub fn add_games() -> Result<()> {
 
     for path in paths {
         let disc_opts = get_disc_opts();
-        let process_opts = get_process_opts();
+        let process_opts = get_process_opts(&config);
         let mount_point = mount_point.clone();
+        let config = config.clone();
 
-        tasks::spawn(Box::new(move |weak| {
+        task_processor.spawn(Box::new(move |weak| {
             let _ = weak.upgrade_in_event_loop(move |handle| {
                 handle.set_task_type(TaskType::Converting);
             });
@@ -89,11 +95,11 @@ pub fn add_games() -> Result<()> {
 
             let path = dir_path
                 .join(id)
-                .with_extension(get_convert_extension(is_wii));
+                .with_extension(get_convert_extension(&config, is_wii));
 
             let mut out = BufWriter::new(File::create(&path)?);
 
-            let out_opts = get_output_format_opts();
+            let out_opts = get_output_format_opts(&config);
             let writer = DiscWriter::new(disc, &out_opts)?;
             let finalization = writer.process(
                 |data, progress, total| {

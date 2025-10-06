@@ -7,7 +7,6 @@
 pub mod config;
 pub mod convert;
 pub mod covers;
-pub mod dirs;
 pub mod extensions;
 pub mod games;
 pub mod hbc_apps;
@@ -20,9 +19,18 @@ pub mod watcher;
 pub mod wiitdb;
 
 use anyhow::{Result, anyhow};
+use directories::ProjectDirs;
 use rfd::{FileDialog, MessageButtons, MessageDialog, MessageDialogResult, MessageLevel};
-use slint::{ModelRc, ToSharedString, VecModel};
-use std::{fmt::Display, fs, rc::Rc};
+use slint::{ModelRc, ToSharedString, VecModel, Weak};
+use std::{
+    fmt::Display,
+    fs,
+    path::Path,
+    rc::Rc,
+    sync::{Arc, Mutex},
+};
+
+use crate::{config::Config, tasks::TaskProcessor, titles::Titles, watcher::MyWatcher};
 
 slint::include_modules!();
 
@@ -34,9 +42,7 @@ fn show_err(e: impl Display) {
         .show();
 }
 
-fn refresh_dir_name(handle: &MainWindow) {
-    let mount_point = config::get().mount_point;
-
+fn refresh_dir_name(handle: &MainWindow, mount_point: &Path) {
     let dir_name = mount_point
         .file_name()
         .unwrap_or(mount_point.as_os_str())
@@ -46,65 +52,88 @@ fn refresh_dir_name(handle: &MainWindow) {
     handle.set_dir_name(dir_name.to_shared_string());
 }
 
-fn refresh_disk_usage(handle: &MainWindow) {
-    if let Some(usage) = util::get_disk_usage() {
+fn refresh_disk_usage(handle: &MainWindow, mount_point: &Path) {
+    if let Some(usage) = util::get_disk_usage(mount_point) {
         handle.set_disk_usage(usage.to_shared_string());
     }
 }
 
-fn refresh_games(handle: &MainWindow) -> Result<()> {
-    let games = games::list()?;
+fn refresh_games(handle: &MainWindow, mount_point: &Path, titles: &Arc<Titles>) -> Result<()> {
+    let games = games::list(mount_point, titles)?;
     handle.set_games(ModelRc::from(Rc::new(VecModel::from(games))));
     Ok(())
 }
 
-fn refresh_hbc_apps(handle: &MainWindow) -> Result<()> {
-    let hbc_apps = hbc_apps::list()?;
+fn refresh_hbc_apps(handle: &MainWindow, mount_point: &Path) -> Result<()> {
+    let hbc_apps = hbc_apps::list(mount_point)?;
     handle.set_hbc_apps(ModelRc::from(Rc::new(VecModel::from(hbc_apps))));
     Ok(())
 }
 
-fn choose_mount_point(handle: &MainWindow) -> Result<()> {
+fn choose_mount_point(
+    weak: &Weak<MainWindow>,
+    config: &Arc<Mutex<Config>>,
+    titles: &Arc<Titles>,
+    watcher: &Arc<Mutex<MyWatcher>>,
+) -> Result<()> {
+    let handle = weak.upgrade().ok_or(anyhow!("Failed to upgrade weak"))?;
+    let mut config = config.lock().map_err(|_| anyhow!("Mutex poisoned"))?;
+
     let dir = FileDialog::new()
         .pick_folder()
         .ok_or(anyhow!("No directory selected"))?;
 
-    config::update(|config| {
-        config.mount_point = dir;
-    })?;
+    config.mount_point = dir;
+    config.save()?;
 
-    refresh_dir_name(handle);
-    refresh_games(handle)?;
-    refresh_hbc_apps(handle)?;
-    refresh_disk_usage(handle);
-    watcher::init(handle)
+    refresh_dir_name(&handle, &config.mount_point);
+    refresh_games(&handle, &config.mount_point, titles)?;
+    refresh_hbc_apps(&handle, &config.mount_point)?;
+    refresh_disk_usage(&handle, &config.mount_point);
+
+    let new_watcher = MyWatcher::init(weak.clone(), &config.mount_point, titles)?;
+    *watcher.lock().map_err(|_| anyhow!("Mutex poisoned"))? = new_watcher;
+
+    Ok(())
 }
 
 fn run() -> Result<()> {
-    let app = MainWindow::new()?;
+    let proj = ProjectDirs::from("it", "mq1", env!("CARGO_PKG_NAME"))
+        .ok_or(anyhow!("Failed to get project dirs"))?;
+    let data_dir = proj.data_dir().to_path_buf();
+    fs::create_dir_all(&data_dir)?;
 
-    dirs::init()?;
-    config::init()?;
-    titles::init()?;
-    tasks::init(app.as_weak())?;
+    let app = MainWindow::new()?;
+    let config = Arc::new(Mutex::new(Config::load(&data_dir)));
+    let titles = Arc::new(Titles::load(&data_dir)?);
+    let task_processor = Arc::new(TaskProcessor::init(app.as_weak())?);
 
     app.set_app_name(env!("CARGO_PKG_NAME").to_shared_string() + " v" + env!("CARGO_PKG_VERSION"));
     app.set_is_macos(cfg!(target_os = "macos"));
 
-    refresh_dir_name(&app);
-    refresh_games(&app)?;
-    refresh_hbc_apps(&app)?;
-    refresh_disk_usage(&app);
-    watcher::init(&app)?;
+    let mount_point = &config
+        .lock()
+        .map_err(|_| anyhow!("Mutex poisoned"))?
+        .mount_point;
+
+    let watcher = Arc::new(Mutex::new(MyWatcher::init(
+        app.as_weak(),
+        mount_point,
+        &titles,
+    )?));
+
+    refresh_dir_name(&app, mount_point);
+    refresh_games(&app, mount_point, &titles)?;
+    refresh_hbc_apps(&app, &mount_point)?;
+    refresh_disk_usage(&app, &mount_point);
 
     let weak = app.as_weak();
+    let config_clone = config.clone();
+    let titles_clone = titles.clone();
+    let watcher_clone = watcher.clone();
     app.on_choose_mount_point(move || {
-        if let Some(weak) = weak.upgrade() {
-            if let Err(e) = choose_mount_point(&weak) {
-                show_err(e);
-            }
-        } else {
-            show_err("Failed to upgrade weak reference");
+        if let Err(e) = choose_mount_point(&weak, &config_clone, &titles_clone, &watcher_clone) {
+            show_err(e);
         }
     });
 
@@ -114,33 +143,44 @@ fn run() -> Result<()> {
         }
     });
 
-    app.on_add_games(|| {
-        if let Err(e) = convert::add_games() {
+    let config_clone = config.clone();
+    let task_processor_clone = task_processor.clone();
+    app.on_add_games(move || {
+        if let Err(e) = convert::add_games(&config_clone, &task_processor_clone) {
             show_err(e);
         }
     });
 
-    app.on_wii_output_format_changed(|format| {
-        if let Err(e) = config::update(|config| {
+    let config_clone = config.clone();
+    app.on_wii_output_format_changed(move |format| {
+        if let Ok(mut config) = config_clone.lock() {
             config.wii_output_format = format;
-        }) {
-            show_err(e);
+
+            if let Err(e) = config.save() {
+                show_err(e);
+            }
         }
     });
 
-    app.on_archive_format_changed(|format| {
-        if let Err(e) = config::update(|config| {
+    let config_clone = config.clone();
+    app.on_archive_format_changed(move |format| {
+        if let Ok(mut config) = config_clone.lock() {
             config.archive_format = format;
-        }) {
-            show_err(e);
+
+            if let Err(e) = config.save() {
+                show_err(e);
+            }
         }
     });
 
-    app.on_remove_update_partition_changed(|enabled| {
-        if let Err(e) = config::update(|config| {
+    let config_clone = config.clone();
+    app.on_remove_update_partition_changed(move |enabled| {
+        if let Ok(mut config) = config_clone.lock() {
             config.scrub_update_partition = enabled;
-        }) {
-            show_err(e);
+
+            if let Err(e) = config.save() {
+                show_err(e);
+            }
         }
     });
 
@@ -158,10 +198,11 @@ fn run() -> Result<()> {
         }
     });
 
-    app.on_get_tasks_count(tasks::count);
+    let task_processor_clone = task_processor.clone();
+    app.on_get_tasks_count(move || task_processor_clone.count());
 
     if std::env::var_os("TWBM_DISABLE_UPDATES").is_none()
-        && let Err(e) = updater::check()
+        && let Err(e) = updater::check(&task_processor)
     {
         show_err(e);
     }
