@@ -26,6 +26,27 @@ export component Status inherits Rectangle {
             width: 14px;
         }
 
+        if task_type == TaskType.Archiving: Image {
+            source: @image-url("../mdi/package-down.svg");
+            colorize: MaterialPalette.on_background;
+            height: 14px;
+            width: 14px;
+        }
+
+        if task_type == TaskType.DownloadingCovers: Image {
+            source: @image-url("../mdi/file-image-plus.svg");
+            colorize: MaterialPalette.on_background;
+            height: 14px;
+            width: 14px;
+        }
+
+        if task_type == TaskType.CheckingForUpdates: Image {
+            source: @image-url("../mdi/refresh.svg");
+            colorize: MaterialPalette.on_background;
+            height: 14px;
+            width: 14px;
+        }
+
         MaterialText {
             text: status;
         }
