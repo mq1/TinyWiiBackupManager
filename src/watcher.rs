@@ -9,6 +9,7 @@ use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 use slint::Weak;
 use std::{path::Path, sync::Arc};
 
+#[allow(dead_code)]
 pub struct MyWatcher(RecommendedWatcher);
 
 impl MyWatcher {
