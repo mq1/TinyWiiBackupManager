@@ -4,15 +4,16 @@
 use crate::{MainWindow, TaskType, show_err};
 use anyhow::{Result, anyhow};
 use slint::{ToSharedString, Weak};
+use std::sync::mpsc;
 use std::thread;
 
 pub type BoxedTask = Box<dyn FnOnce(&Weak<MainWindow>) -> Result<()> + Send>;
 
-pub struct TaskProcessor(crossbeam_channel::Sender<BoxedTask>);
+pub struct TaskProcessor(mpsc::Sender<BoxedTask>);
 
 impl TaskProcessor {
     pub fn init(weak: Weak<MainWindow>) -> Result<Self> {
-        let (sender, receiver) = crossbeam_channel::unbounded::<BoxedTask>();
+        let (sender, receiver) = mpsc::channel::<BoxedTask>();
 
         thread::spawn(move || {
             while let Ok(task) = receiver.recv() {
@@ -36,9 +37,5 @@ impl TaskProcessor {
         self.0
             .send(task)
             .map_err(|_| anyhow!("Failed to send task"))
-    }
-
-    pub fn pending(&self) -> i32 {
-        self.0.len() as i32
     }
 }
