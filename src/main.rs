@@ -205,9 +205,6 @@ fn run() -> Result<()> {
         }
     });
 
-    let task_processor_clone = task_processor.clone();
-    app.on_get_pending_tasks(move || task_processor_clone.pending());
-
     if std::env::var_os("TWBM_DISABLE_UPDATES").is_none()
         && let Err(e) = updater::check(&task_processor)
     {
