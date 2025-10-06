@@ -28,7 +28,7 @@ use std::{
     fs,
     path::Path,
     rc::Rc,
-    sync::{Arc, Mutex},
+    sync::{Arc, Mutex, RwLock},
 };
 
 use crate::{config::Config, tasks::TaskProcessor, titles::Titles, watcher::init_watcher};
@@ -73,12 +73,12 @@ fn refresh_hbc_apps(handle: &MainWindow, mount_point: &Path) -> Result<()> {
 
 fn choose_mount_point(
     weak: &Weak<MainWindow>,
-    config: &Arc<Mutex<Config>>,
+    config: &Arc<RwLock<Config>>,
     titles: &Arc<Titles>,
     watcher: &Arc<Mutex<RecommendedWatcher>>,
 ) -> Result<()> {
     let handle = weak.upgrade().ok_or(anyhow!("Failed to upgrade weak"))?;
-    let mut config = config.lock().map_err(|_| anyhow!("Mutex poisoned"))?;
+    let mut config = config.write().map_err(|_| anyhow!("Mutex poisoned"))?;
 
     let dir = FileDialog::new()
         .pick_folder()
@@ -105,7 +105,7 @@ fn run() -> Result<()> {
     fs::create_dir_all(&data_dir)?;
 
     let app = MainWindow::new()?;
-    let config = Arc::new(Mutex::new(Config::load(&data_dir)));
+    let config = Arc::new(RwLock::new(Config::load(&data_dir)));
     let titles = Arc::new(Titles::load(&data_dir)?);
     let task_processor = Arc::new(TaskProcessor::init(app.as_weak())?);
 
@@ -113,8 +113,8 @@ fn run() -> Result<()> {
     app.set_is_macos(cfg!(target_os = "macos"));
 
     let mount_point = &config
-        .lock()
-        .map_err(|_| anyhow!("Mutex poisoned"))?
+        .read()
+        .map_err(|_| anyhow!("RwLock poisoned"))?
         .mount_point;
 
     let watcher = Arc::new(Mutex::new(init_watcher(
@@ -154,34 +154,40 @@ fn run() -> Result<()> {
 
     let config_clone = config.clone();
     app.on_wii_output_format_changed(move |format| {
-        if let Ok(mut config) = config_clone.lock() {
+        if let Ok(mut config) = config_clone.write() {
             config.wii_output_format = format;
 
             if let Err(e) = config.save() {
                 show_err(e);
             }
+        } else {
+            show_err(anyhow!("RwLock poisoned"));
         }
     });
 
     let config_clone = config.clone();
     app.on_archive_format_changed(move |format| {
-        if let Ok(mut config) = config_clone.lock() {
+        if let Ok(mut config) = config_clone.write() {
             config.archive_format = format;
 
             if let Err(e) = config.save() {
                 show_err(e);
             }
+        } else {
+            show_err(anyhow!("RwLock poisoned"));
         }
     });
 
     let config_clone = config.clone();
     app.on_remove_update_partition_changed(move |enabled| {
-        if let Ok(mut config) = config_clone.lock() {
+        if let Ok(mut config) = config_clone.write() {
             config.scrub_update_partition = enabled;
 
             if let Err(e) = config.save() {
                 show_err(e);
             }
+        } else {
+            show_err(anyhow!("RwLock poisoned"));
         }
     });
 
