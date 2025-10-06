@@ -3,8 +3,10 @@
 
 use crate::{ArchiveFormat, WiiOutputFormat, config};
 
+#[rustfmt::skip]
 pub const SUPPORTED_INPUT_EXTENSIONS: &[&str] = &[
     "gcm", "iso", "wbfs", "wia", "rvz", "ciso", "gcz", "tgc", "nfs",
+    "GCM", "ISO", "WBFS", "WIA", "RVZ", "CISO", "GCS", "TGC", "NFS",
 ];
 
 impl ArchiveFormat {
