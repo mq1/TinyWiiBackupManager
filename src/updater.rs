@@ -1,17 +1,18 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{TaskType, UpdateInfo, http::AGENT, tasks};
+use crate::{TaskType, UpdateInfo, http::AGENT, tasks::TaskProcessor};
 use anyhow::{Context, Result};
 use slint::ToSharedString;
+use std::sync::Arc;
 
 const VERSION_URL: &str = concat!(
     env!("CARGO_PKG_REPOSITORY"),
     "/releases/latest/download/version.txt"
 );
 
-pub fn check() -> Result<()> {
-    tasks::spawn(Box::new(|weak| {
+pub fn check(task_processor: &Arc<TaskProcessor>) -> Result<()> {
+    task_processor.spawn(Box::new(|weak| {
         weak.upgrade_in_event_loop(|handle| {
             handle.set_status("Checking for updates...".to_shared_string());
             handle.set_task_type(TaskType::CheckingForUpdates);

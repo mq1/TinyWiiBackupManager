@@ -1,15 +1,19 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::config;
 use anyhow::{Result, bail};
 use size::Size;
-use std::io::{Seek, SeekFrom, Write};
+use std::{
+    io::{Seek, SeekFrom, Write},
+    path::Path,
+};
 use sysinfo::Disks;
 use tempfile::NamedTempFile;
 
-pub fn get_disk_usage() -> Option<String> {
-    let mount_point = config::get().mount_point;
+pub fn get_disk_usage(mount_point: &Path) -> Option<String> {
+    if mount_point.as_os_str().is_empty() {
+        return None;
+    }
 
     let disks = Disks::new_with_refreshed_list();
 
@@ -26,8 +30,7 @@ pub fn get_disk_usage() -> Option<String> {
 }
 
 /// Returns Ok if we can create a file >4 GiB in this directory
-pub fn can_write_over_4gb() -> Result<()> {
-    let mount_point = config::get().mount_point;
+pub fn can_write_over_4gb(mount_point: &Path) -> Result<()> {
     if mount_point.as_os_str().is_empty() {
         bail!("No mount point selected");
     }

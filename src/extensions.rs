@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{ArchiveFormat, WiiOutputFormat, config};
+use crate::{ArchiveFormat, WiiOutputFormat, config::Config};
 
 #[rustfmt::skip]
 pub const SUPPORTED_INPUT_EXTENSIONS: &[&str] = &[
@@ -27,9 +27,9 @@ impl WiiOutputFormat {
     }
 }
 
-pub fn get_convert_extension(is_wii: bool) -> &'static str {
+pub fn get_convert_extension(config: &Config, is_wii: bool) -> &'static str {
     if is_wii {
-        config::get().wii_output_format.extension()
+        config.wii_output_format.extension()
     } else {
         "iso"
     }

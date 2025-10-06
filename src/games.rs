@@ -1,15 +1,16 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{Console, Game, config, titles};
+use crate::titles::Titles;
+use crate::{Console, Game};
 use anyhow::Result;
 use size::Size;
 use slint::{Image, ToSharedString};
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
-pub fn list() -> Result<Vec<Game>> {
-    let mount_point = config::get().mount_point;
+pub fn list(mount_point: &Path, titles: &Arc<Titles>) -> Result<Vec<Game>> {
     if mount_point.as_os_str().is_empty() {
         return Ok(vec![]);
     }
@@ -25,7 +26,7 @@ pub fn list() -> Result<Vec<Game>> {
         .collect::<Result<Vec<_>, _>>()?
         .into_iter()
         .flat_map(|rd| rd.filter_map(Result::ok))
-        .filter_map(|entry| Game::from_dir(entry.path()))
+        .filter_map(|entry| Game::from_dir(entry.path(), titles))
         .collect::<Vec<_>>();
 
     games.sort_by(|a, b| a.display_title.cmp(&b.display_title));
@@ -34,7 +35,7 @@ pub fn list() -> Result<Vec<Game>> {
 }
 
 impl Game {
-    pub fn from_dir(dir: PathBuf) -> Option<Game> {
+    pub fn from_dir(dir: PathBuf, titles: &Titles) -> Option<Game> {
         // Ensure the path is a directory and not hidden
         if !dir.is_dir() {
             return None;
@@ -55,7 +56,7 @@ impl Game {
             _ => Console::Unknown,
         };
 
-        let display_title = titles::get_title(id).unwrap_or(title.to_string());
+        let display_title = titles.get(id).unwrap_or(title.to_string());
 
         // Get the directory size
         let size = Size::from_bytes(fs_extra::dir::get_size(&dir).unwrap_or(0));
