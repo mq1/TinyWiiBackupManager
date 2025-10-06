@@ -6,6 +6,7 @@ use crate::{
     config::Config,
     covers::download_cover3d,
     extensions::{SUPPORTED_INPUT_EXTENSIONS, get_convert_extension},
+    show_err,
     tasks::TaskProcessor,
     util,
 };
