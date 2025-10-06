@@ -6,6 +6,7 @@
 
 pub mod config;
 pub mod convert;
+pub mod dirs;
 pub mod extensions;
 pub mod games;
 pub mod hbc_apps;
@@ -18,14 +19,11 @@ pub mod watcher;
 pub mod wiitdb;
 
 use anyhow::{Result, anyhow};
-use directories::ProjectDirs;
 use rfd::{FileDialog, MessageButtons, MessageDialog, MessageDialogResult, MessageLevel};
 use slint::{ModelRc, ToSharedString, VecModel};
-use std::{fmt::Display, fs, rc::Rc, sync::OnceLock};
+use std::{fmt::Display, fs, rc::Rc};
 
 slint::include_modules!();
-
-pub static PROJ: OnceLock<ProjectDirs> = OnceLock::new();
 
 fn show_err(e: impl Display) {
     let _ = MessageDialog::new()
@@ -84,12 +82,7 @@ fn choose_mount_point(handle: &MainWindow) -> Result<()> {
 fn run() -> Result<()> {
     let app = MainWindow::new()?;
 
-    let proj = ProjectDirs::from("it", "mq1", env!("CARGO_PKG_NAME"))
-        .ok_or(anyhow!("Failed to get project dirs"))?;
-
-    PROJ.set(proj)
-        .map_err(|_| anyhow!("Failed to set project dirs"))?;
-
+    dirs::init()?;
     config::init()?;
     titles::init()?;
     tasks::init(app.as_weak())?;
