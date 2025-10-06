@@ -22,25 +22,28 @@ fn get_lang(id: &str) -> &'static str {
 pub fn download_covers() -> Result<()> {
     let games = games::list()?;
 
+    let images_dir = config::get()
+        .mount_point
+        .join("apps")
+        .join("usbloader_gx")
+        .join("images");
+
+    fs::create_dir_all(&images_dir)?;
+
     for game in games {
+        let path = images_dir.join(&game.id).with_extension("png");
+
         tasks::spawn(Box::new(move |weak| {
             weak.upgrade_in_event_loop(move |handle| {
                 handle.set_task_type(TaskType::DownloadingCovers);
             })?;
 
-            let id = game.id;
-            let lang = get_lang(&id);
-
-            let path = config::get()
-                .mount_point
-                .join("apps")
-                .join("usbloader_gx")
-                .join("images")
-                .join(&id)
-                .with_extension("png");
-
             if !path.exists() {
-                let url = format!("https://art.gametdb.com/wii/cover3D/{lang}/{id}.png");
+                let url = format!(
+                    "https://art.gametdb.com/wii/cover3D/{}/{}.png",
+                    get_lang(&game.id),
+                    &game.id
+                );
                 let bytes = AGENT.get(&url).call()?.body_mut().read_to_vec()?;
                 fs::write(&path, bytes)?;
             }
