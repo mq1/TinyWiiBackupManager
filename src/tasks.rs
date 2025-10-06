@@ -38,7 +38,7 @@ impl TaskProcessor {
             .map_err(|_| anyhow!("Failed to send task"))
     }
 
-    pub fn count(&self) -> i32 {
-        self.0.len() as i32 + 1
+    pub fn pending(&self) -> i32 {
+        self.0.len() as i32
     }
 }

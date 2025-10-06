@@ -4,7 +4,7 @@
 use crate::{
     TaskType, WiiOutputFormat,
     config::Config,
-    covers::download_covers,
+    covers::download_cover3d,
     extensions::{SUPPORTED_INPUT_EXTENSIONS, get_convert_extension},
     tasks::TaskProcessor,
     util,
@@ -66,7 +66,8 @@ pub fn add_games(config: &Arc<RwLock<Config>>, task_processor: &Arc<TaskProcesso
         .pick_files()
         .ok_or(anyhow!("No Games Selected"))?;
 
-    for path in paths {
+    let len = paths.len();
+    for (i, path) in paths.into_iter().enumerate() {
         let disc_opts = get_disc_opts();
         let process_opts = get_process_opts(&config);
         let mount_point = mount_point.clone();
@@ -80,7 +81,7 @@ pub fn add_games(config: &Arc<RwLock<Config>>, task_processor: &Arc<TaskProcesso
             let disc = DiscReader::new(path, &disc_opts)?;
 
             let header = disc.header().clone();
-            let title = header.game_title_str();
+            let title = header.game_title_str().to_string();
             let id = header.game_id_str();
             let is_wii = header.is_wii();
 
@@ -107,9 +108,11 @@ pub fn add_games(config: &Arc<RwLock<Config>>, task_processor: &Arc<TaskProcesso
                     out.write_all(&data)?;
 
                     let status = format!(
-                        "Adding {}  {:02.0}%",
+                        "Adding {}  {:02.0}%  ({}/{})",
                         title,
                         progress as f32 / total as f32 * 100.0,
+                        i + 1,
+                        len
                     );
 
                     let _ = weak.upgrade_in_event_loop(move |handle| {
@@ -126,11 +129,17 @@ pub fn add_games(config: &Arc<RwLock<Config>>, task_processor: &Arc<TaskProcesso
                 out.write_all(&finalization.header)?;
             }
 
+            out.flush()?;
+
+            weak.upgrade_in_event_loop(move |handle| {
+                handle.set_status(format!("Downloading Cover for {}", &title).to_shared_string());
+                handle.set_task_type(TaskType::DownloadingCovers);
+            })?;
+            download_cover3d(&id, &mount_point)?;
+
             Ok(())
         }))?;
     }
-
-    download_covers(&mount_point, task_processor)?;
 
     Ok(())
 }
