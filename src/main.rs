@@ -6,6 +6,7 @@
 
 pub mod config;
 pub mod convert;
+pub mod covers;
 pub mod dirs;
 pub mod extensions;
 pub mod games;
