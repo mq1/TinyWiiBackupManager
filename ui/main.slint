@@ -33,6 +33,7 @@ export component MainWindow inherits Window {
     callback wii_output_format_changed(WiiOutputFormat);
     callback archive_format_changed(ArchiveFormat);
     callback remove_update_partition_changed(bool);
+    callback open_data_dir();
 
     pure callback get_tasks_count() -> int;
 
@@ -85,7 +86,9 @@ export component MainWindow inherits Window {
                 }
             }
 
-            if current_index == 3: SettingsPage { }
+            if current_index == 3: SettingsPage {
+                open_data_dir => open_data_dir();
+            }
 
             if dir_name.is-empty && status.is-empty: Vertical {
                 alignment: end;
