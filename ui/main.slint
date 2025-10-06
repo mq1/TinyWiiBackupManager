@@ -35,8 +35,6 @@ export component MainWindow inherits Window {
     callback remove_update_partition_changed(bool);
     callback open_data_dir();
 
-    pure callback get_pending_tasks() -> int;
-
     public function show_update() {
         sb.show();
     }
@@ -103,7 +101,6 @@ export component MainWindow inherits Window {
             if !status.is-empty: Status {
                 status: status;
                 task_type: task_type;
-                get_pending_tasks => get_pending_tasks();
             }
         }
     }

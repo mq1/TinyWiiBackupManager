@@ -10,20 +10,6 @@ export component Status inherits Rectangle {
     in property <string> status;
     in property <TaskType> task_type: TaskType.Unknown;
 
-    pure callback get_pending_tasks() -> int;
-
-    function tasks_count_str() -> string {
-        let count = get_pending_tasks();
-
-        if count == 0 {
-            return "";
-        }
-        if count == 1 {
-            return "1 pending task";
-        }
-        return count + " pending tasks";
-    }
-
     Horizontal {
         alignment: start;
 
@@ -32,12 +18,6 @@ export component Status inherits Rectangle {
             height: 14px;
             width: 14px;
         }
-
-        MaterialText {
-            text: tasks_count_str();
-        }
-
-        VerticalDivider { }
 
         if task_type == TaskType.Converting: Image {
             source: @image-url("../mdi/package-up.svg");
