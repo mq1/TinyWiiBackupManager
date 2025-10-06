@@ -130,13 +130,15 @@ pub fn add_games(config: &Arc<RwLock<Config>>, task_processor: &Arc<TaskProcesso
                 out.write_all(&finalization.header)?;
             }
 
-            out.flush()?;
-
             weak.upgrade_in_event_loop(move |handle| {
                 handle.set_status(format!("Downloading Cover for {}", &title).to_shared_string());
                 handle.set_task_type(TaskType::DownloadingCovers);
             })?;
-            download_cover3d(&id, &mount_point)?;
+
+            // Fail safe
+            if let Err(e) = download_cover3d(&id, &mount_point) {
+                show_err(e);
+            }
 
             Ok(())
         }))?;
