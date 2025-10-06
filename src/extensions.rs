@@ -3,7 +3,7 @@
 
 use crate::{ArchiveFormat, WiiOutputFormat, config};
 
-pub const SUPPORTED_INPUT_EXTENSIONS: &'static [&'static str] = &[
+pub const SUPPORTED_INPUT_EXTENSIONS: &[&str] = &[
     "gcm", "iso", "wbfs", "wia", "rvz", "ciso", "gcz", "tgc", "nfs",
 ];
 
