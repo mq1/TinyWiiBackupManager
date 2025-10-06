@@ -9,7 +9,7 @@ use std::{
     sync::{Mutex, OnceLock},
 };
 
-use crate::{ArchiveFormat, PROJ, WiiOutputFormat};
+use crate::{ArchiveFormat, WiiOutputFormat, dirs};
 
 static CONFIG_PATH: OnceLock<PathBuf> = OnceLock::new();
 static CONFIG_CACHE: OnceLock<Mutex<Config>> = OnceLock::new();
@@ -40,20 +40,16 @@ impl Default for Config {
 }
 
 pub fn init() -> Result<()> {
-    let data_dir = PROJ
-        .get()
-        .ok_or(anyhow!("PROJ not initialized"))?
-        .data_dir();
+    let data_dir = dirs::data_dir()?;
 
-    fs::create_dir_all(data_dir)?;
     let path = data_dir.join("config.json");
-
     let bytes = fs::read(&path).unwrap_or_default();
     let config: Config = serde_json::from_slice(&bytes).unwrap_or_default();
 
     CONFIG_PATH
         .set(path)
         .map_err(|_| anyhow!("Failed to set CONFIG_PATH"))?;
+
     CONFIG_CACHE
         .set(Mutex::new(config))
         .map_err(|_| anyhow!("Failed to set CONFIG_CACHE"))?;

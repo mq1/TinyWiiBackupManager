@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{PROJ, http::AGENT};
+use crate::{dirs, http::AGENT};
 use anyhow::{Result, anyhow};
 use std::{fs, sync::OnceLock};
 
@@ -21,12 +21,7 @@ fn id_to_bytes(id: &str) -> [u8; 6] {
 }
 
 pub fn init() -> Result<()> {
-    let data_dir = PROJ
-        .get()
-        .ok_or(anyhow!("Failed to get project dirs"))?
-        .data_dir();
-
-    fs::create_dir_all(data_dir)?;
+    let data_dir = dirs::data_dir()?;
 
     let path = data_dir.join("titles.txt");
     if !path.exists() {
