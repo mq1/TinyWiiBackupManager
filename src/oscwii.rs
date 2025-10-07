@@ -31,9 +31,9 @@ impl Apps {
         let file_time = fs::metadata(&path)?.modified()?;
 
         // get difference
-        let elapsed = file_time.elapsed().unwrap_or(Duration::from_secs(DAY));
+        let elapsed = file_time.elapsed()?;
 
-        if elapsed >= Duration::from_secs(DAY) {
+        if elapsed > Duration::from_secs(DAY) {
             bail!("oscwii.json is too old");
         }
 
