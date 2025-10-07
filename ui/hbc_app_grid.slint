@@ -32,7 +32,7 @@ export component HbcAppGrid inherits ScrollView {
             placeholder-text: "Search...";
             edited(text) => {
                 filter = text;
-                update_filter(text);
+                update_filter(text.to-lowercase());
             }
         }
 
