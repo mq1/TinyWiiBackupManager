@@ -7,9 +7,11 @@ use anyhow::Result;
 use slint::ToSharedString;
 use zip::ZipArchive;
 
-use crate::{TaskType, tasks::TaskProcessor};
+use crate::{TaskType, config::Config, tasks::TaskProcessor};
 
-pub fn install_apps(mount_point: &Path, task_processor: &Arc<TaskProcessor>) -> Result<()> {
+pub fn install_apps(data_dir: &Path, task_processor: &Arc<TaskProcessor>) -> Result<()> {
+    let config = Config::load(data_dir);
+
     let paths = rfd::FileDialog::new()
         .set_title("Select Wii HBC App(s)")
         .add_filter("Wii App", &["zip", "ZIP"])
@@ -17,7 +19,7 @@ pub fn install_apps(mount_point: &Path, task_processor: &Arc<TaskProcessor>) -> 
 
     if let Some(paths) = paths {
         for path in paths {
-            let mount_point = mount_point.to_path_buf();
+            let mount_point = config.mount_point.clone();
             task_processor.spawn(Box::new(move |weak| {
                 let status = format!("Installing {}...", path.display());
                 weak.upgrade_in_event_loop(move |handle| {

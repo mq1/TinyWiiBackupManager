@@ -192,8 +192,17 @@ fn run() -> Result<()> {
         }
     });
 
+    let data_dir_clone = data_dir.clone();
     app.on_open_data_dir(move || {
-        if let Err(e) = open::that(&data_dir) {
+        if let Err(e) = open::that(&data_dir_clone) {
+            show_err(e);
+        }
+    });
+
+    let data_dir_clone = data_dir.clone();
+    let task_processor_clone = task_processor.clone();
+    app.on_add_apps(move || {
+        if let Err(e) = install::install_apps(&data_dir_clone, &task_processor_clone) {
             show_err(e);
         }
     });
