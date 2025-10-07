@@ -75,5 +75,15 @@ debug = 1           # Minimal debug info (enough for backtraces & profiling)
 [profile.dev.package."*"]
 opt-level = 3
 
+# Optimize large crates for size
+[profile.release.package.i-slint-core]
+opt-level = 'z'
+
+[profile.release.package.usvg]
+opt-level = 'z'
+
+[profile.release.package.rustybuzz]
+opt-level = 'z'
+
 [lints.rust]
 non_snake_case = "allow"
