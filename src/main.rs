@@ -25,11 +25,16 @@ use crate::{tasks::TaskProcessor, titles::Titles, watcher::init_watcher};
 use anyhow::{Result, anyhow};
 use directories::ProjectDirs;
 use notify::RecommendedWatcher;
-use parking_lot::Mutex;
 use path_slash::PathBufExt;
 use rfd::{FileDialog, MessageButtons, MessageDialog, MessageDialogResult, MessageLevel};
 use slint::{ModelRc, ToSharedString, VecModel, Weak};
-use std::{fmt::Display, fs, path::Path, rc::Rc, sync::Arc};
+use std::{
+    fmt::Display,
+    fs,
+    path::Path,
+    rc::Rc,
+    sync::{Arc, Mutex},
+};
 
 slint::include_modules!();
 
@@ -91,7 +96,8 @@ fn choose_mount_point(
     refresh_disk_usage(&handle, &dir);
 
     let new_watcher = init_watcher(weak.clone(), &dir, titles)?;
-    *watcher.lock() = new_watcher;
+    let mut guard = watcher.lock().map_err(|_| anyhow!("Mutex poisoned"))?;
+    *guard = new_watcher;
 
     Ok(())
 }
