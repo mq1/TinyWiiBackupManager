@@ -11,6 +11,7 @@ pub mod extensions;
 pub mod games;
 pub mod hbc_apps;
 pub mod http;
+pub mod install;
 pub mod tasks;
 pub mod titles;
 pub mod updater;
