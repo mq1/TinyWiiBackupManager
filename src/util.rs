@@ -32,7 +32,7 @@ pub fn get_disk_usage(mount_point: &Path) -> Option<String> {
 /// Returns Ok if we can create a file >4 GiB in this directory
 pub fn can_write_over_4gb(mount_point: &Path) -> Result<()> {
     if mount_point.as_os_str().is_empty() {
-        bail!("No mount point selected");
+        bail!("Fat32 check failed: No mount point selected");
     }
 
     // Create a temp file in the target directory

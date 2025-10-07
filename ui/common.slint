@@ -9,8 +9,13 @@ export enum Console {
 
 @rust-attr(derive(serde::Serialize, serde::Deserialize))
 export enum WiiOutputFormat {
-    WbfsAuto,
-    WbfsFixed,
+    Wbfs,
+    Iso,
+}
+
+@rust-attr(derive(serde::Serialize, serde::Deserialize))
+export enum GcOutputFormat {
+    Ciso,
     Iso,
 }
 
