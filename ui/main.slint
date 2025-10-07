@@ -30,6 +30,7 @@ export component MainWindow inherits Window {
     callback open_url(string);
     callback remove_dir(string);
     callback add_games();
+    callback add_apps();
     callback wii_output_format_changed(WiiOutputFormat);
     callback archive_format_changed(ArchiveFormat);
     callback remove_update_partition_changed(bool);
@@ -54,6 +55,9 @@ export component MainWindow inherits Window {
             }
             add_games => {
                 add_games();
+            }
+            add_apps => {
+                add_apps();
             }
             open-url(url) => {
                 open_url(url);
