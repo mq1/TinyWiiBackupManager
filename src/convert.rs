@@ -113,11 +113,7 @@ pub fn add_games(config: &Arc<ArcSwap<Config>>, task_processor: &Arc<TaskProcess
                 WiiOutputFormat::Iso => base_path.with_extension("part1.iso"),
             };
 
-            let mut out2 = if must_split {
-                Some(BufWriter::new(File::create(&path2)?))
-            } else {
-                None
-            };
+            let mut out2 = None;
 
             let writer = DiscWriter::new(disc, &out_opts)?;
             let finalization = writer.process(
@@ -126,11 +122,9 @@ pub fn add_games(config: &Arc<ArcSwap<Config>>, task_processor: &Arc<TaskProcess
                     let pos = out1.stream_position()?;
 
                     // write data to out1, or overflow to out2
-                    if must_split
-                        && pos > SPLIT_SIZE
-                        && let Some(out2) = &mut out2
-                    {
-                        out2.write_all(&data)?;
+                    if must_split && pos > SPLIT_SIZE {
+                        out2.get_or_insert(BufWriter::new(File::create(&path2)?))
+                            .write_all(&data)?;
                     } else {
                         out1.write_all(&data)?;
                     }
