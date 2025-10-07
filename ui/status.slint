@@ -21,7 +21,7 @@ export component Status inherits Rectangle {
         }
 
         MaterialText {
-            text: task_count + " Tasks";
+            text: task_count + " Task" + (task_count != 1 ? "s" : "");
         }
 
         VerticalDivider { }
