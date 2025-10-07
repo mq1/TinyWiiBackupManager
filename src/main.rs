@@ -200,6 +200,12 @@ fn run() -> Result<()> {
         }
     });
 
+    app.on_open_data_dir(move || {
+        if let Err(e) = open::that(&data_dir) {
+            show_err(e);
+        }
+    });
+
     if std::env::var_os("TWBM_DISABLE_UPDATES").is_none()
         && let Err(e) = updater::check(&task_processor)
     {
