@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { ElevatedCard, Vertical, Horizontal, IconButton, MaterialText, Dialog, HorizontalDivider, ScrollView } from "@material";
+import { ElevatedCard, Vertical, Horizontal, IconButton, MaterialText, Dialog, HorizontalDivider, ScrollView, Icon } from "@material";
 import { OscWiiApp } from "common.slint";
 
 export component OscWiiAppCard inherits VerticalLayout {
@@ -10,6 +10,8 @@ export component OscWiiAppCard inherits VerticalLayout {
 
     ElevatedCard {
         Vertical {
+            spacing: 4px;
+
             MaterialText {
                 horizontal-alignment: center;
                 text: app.name;
@@ -18,8 +20,60 @@ export component OscWiiAppCard inherits VerticalLayout {
 
             HorizontalDivider { }
 
-            MaterialText {
-                text: app.author;
+            Rectangle {
+                vertical-stretch: 1;
+            }
+
+            Horizontal {
+                padding: 4px;
+
+                Icon {
+                    source: @image-url("../mdi/account.svg");
+                }
+
+                MaterialText {
+                    text: app.author;
+                }
+            }
+
+            Horizontal {
+                padding: 4px;
+
+                Icon {
+                    source: @image-url("../mdi/tag.svg");
+                }
+
+                MaterialText {
+                    text: app.version;
+                }
+            }
+
+            Horizontal {
+                padding: 4px;
+
+                Icon {
+                    source: @image-url("../mdi/calendar.svg");
+                }
+
+                MaterialText {
+                    text: app.release-date;
+                }
+            }
+
+            Horizontal {
+                padding: 4px;
+
+                Icon {
+                    source: @image-url("../mdi/scale.svg");
+                }
+
+                MaterialText {
+                    text: app.size;
+                }
+            }
+
+            Rectangle {
+                vertical-stretch: 1;
             }
 
             Rectangle {
