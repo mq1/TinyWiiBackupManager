@@ -127,11 +127,6 @@ pub fn add_games(config: &Arc<RwLock<Config>>, task_processor: &Arc<TaskProcesso
                 out.rewind()?;
                 out.write_all(&finalization.header)?;
             }
-
-            weak.upgrade_in_event_loop(move |handle| {
-                handle.set_status(format!("Downloading Cover for {}", &title).to_shared_string());
-                handle.set_task_type(TaskType::DownloadingCovers);
-            })?;
         }
 
         Ok(())
