@@ -18,6 +18,7 @@ export component Wiiload inherits Dialog {
         placeholder-text: "192.168.1.100";
         text: config.wii_ip;
         leading_icon: @image-url("../mdi/ip-network.svg");
+        width: 300px;
         edited(text) => {
             config.wii_ip = text;
         }
