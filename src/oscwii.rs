@@ -17,14 +17,19 @@ impl Apps {
     pub fn load(data_dir: &Path) -> Result<Self> {
         let path = data_dir.join("oscwii.json");
 
-        if let Ok(apps) = Self::load_cache(&path) {
-            Ok(apps)
+        let mut apps = if let Ok(apps) = Self::load_cache(&path) {
+            apps
         } else {
             let bytes = AGENT.get(CONTENTS_URL).call()?.body_mut().read_to_vec()?;
             fs::write(&path, &bytes)?;
             let apps = serde_json::from_slice(&bytes)?;
-            Ok(Self(apps))
-        }
+            Self(apps)
+        };
+
+        // Sort by name
+        apps.0.sort_by(|a, b| a.name.cmp(&b.name));
+
+        Ok(apps)
     }
 
     fn load_cache(path: &Path) -> Result<Self> {
@@ -41,7 +46,7 @@ impl Apps {
         let bytes = fs::read(&path)?;
         let apps = serde_json::from_slice(&bytes)?;
 
-        Ok(apps)
+        Ok(Self(apps))
     }
 
     pub fn get_model(&self) -> ModelRc<OscWiiApp> {
