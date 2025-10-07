@@ -3,7 +3,7 @@
 
 use crate::{MainWindow, TaskType, show_err};
 use anyhow::{Result, anyhow};
-use slint::{ToSharedString, Weak};
+use slint::{SharedString, Weak};
 use std::sync::mpsc;
 use std::thread;
 
@@ -17,15 +17,21 @@ impl TaskProcessor {
 
         thread::spawn(move || {
             while let Ok(task) = receiver.recv() {
+                // Increment the task count
+                let _ = weak.upgrade_in_event_loop(|handle| {
+                    handle.set_task_count(handle.get_task_count() + 1);
+                });
+
                 // Execute the task
                 if let Err(e) = task(&weak) {
                     show_err(e);
                 }
 
-                // Clear the status message
+                // Cleanup
                 let _ = weak.upgrade_in_event_loop(|handle| {
-                    handle.set_status("".to_shared_string());
+                    handle.set_status(SharedString::new());
                     handle.set_task_type(TaskType::Unknown);
+                    handle.set_task_count(handle.get_task_count() - 1);
                 });
             }
         });

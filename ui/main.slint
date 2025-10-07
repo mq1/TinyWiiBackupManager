@@ -20,9 +20,9 @@ export component MainWindow inherits Window {
     in-out property <int> current_index: 0;
     in property <[Game]> games;
     in property <[HbcApp]> hbc_apps;
-    in property <string> status;
+    in property <string> status: "";
     in property <TaskType> task_type: TaskType.Unknown;
-    in property <int> task_count;
+    in-out property <int> task_count: 0;
     in property <UpdateInfo> update_info;
     out property <HbcApp> current_app;
 
@@ -98,9 +98,10 @@ export component MainWindow inherits Window {
                 }
             }
 
-            if !status.is-empty: Status {
+            if task_count > 0: Status {
                 status: status;
                 task_type: task_type;
+                task_count: task_count;
             }
         }
     }
