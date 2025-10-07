@@ -12,10 +12,12 @@ export component SettingsPage inherits Vertical {
     in-out property <WiiOutputFormat> wii_output_format;
     in-out property <ArchiveFormat> archive_format;
     in-out property <bool> remove_update_partition;
+    in-out property <bool> always_split;
 
     callback wii_output_format_changed(WiiOutputFormat);
     callback archive_format_changed(ArchiveFormat);
     callback remove_update_partition_changed(bool);
+    callback always_split_changed(bool);
     callback open_data_dir();
 
     Horizontal {
@@ -39,34 +41,15 @@ export component SettingsPage inherits Vertical {
         RadioButton {
             height: 14px;
             width: 14px;
-            checked: wii_output_format == WiiOutputFormat.WbfsAuto;
+            checked: wii_output_format == WiiOutputFormat.Wbfs;
             clicked => {
-                wii_output_format = WiiOutputFormat.WbfsAuto;
-                wii_output_format_changed(WiiOutputFormat.WbfsAuto);
+                wii_output_format = WiiOutputFormat.Wbfs;
+                wii_output_format_changed(WiiOutputFormat.Wbfs);
             }
         }
 
         MaterialText {
-            text: "WBFS Auto Split (recommended)";
-        }
-    }
-
-    Horizontal {
-        alignment: start;
-        spacing: 16px;
-
-        RadioButton {
-            height: 14px;
-            width: 14px;
-            checked: wii_output_format == WiiOutputFormat.WbfsFixed;
-            clicked => {
-                wii_output_format = WiiOutputFormat.WbfsFixed;
-                wii_output_format_changed(WiiOutputFormat.WbfsFixed);
-            }
-        }
-
-        MaterialText {
-            text: "WBFS Fixed 4GB-32KB Split Size";
+            text: "WBFS (recommended)";
         }
     }
 
@@ -86,6 +69,60 @@ export component SettingsPage inherits Vertical {
 
         MaterialText {
             text: "Iso (very large)";
+        }
+    }
+
+    HorizontalDivider { }
+
+    Horizontal {
+        alignment: start;
+        padding-left: 6px;
+
+        Icon {
+            source: @image-url("../mdi/format-page-split.svg");
+        }
+
+        MaterialText {
+            text: "Split Output";
+            font-size: 18px;
+        }
+    }
+
+    Horizontal {
+        alignment: start;
+        spacing: 16px;
+
+        RadioButton {
+            height: 14px;
+            width: 14px;
+            checked: !always_split;
+            clicked => {
+                always_split = false;
+                always_split_changed(false);
+            }
+        }
+
+        MaterialText {
+            text: "Only when needed (recommended)";
+        }
+    }
+
+    Horizontal {
+        alignment: start;
+        spacing: 16px;
+
+        RadioButton {
+            height: 14px;
+            width: 14px;
+            checked: always_split;
+            clicked => {
+                always_split = true;
+                always_split_changed(true);
+            }
+        }
+
+        MaterialText {
+            text: "Always 4GB-32KB";
         }
     }
 

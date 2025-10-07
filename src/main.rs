@@ -69,7 +69,7 @@ fn choose_mount_point(
     weak: &Weak<MainWindow>,
     config: &Arc<RwLock<Config>>,
     titles: &Arc<Titles>,
-    watcher: &Arc<Mutex<RecommendedWatcher>>,
+    watcher: &Arc<Mutex<Option<RecommendedWatcher>>>,
 ) -> Result<()> {
     let handle = weak.upgrade().ok_or(anyhow!("Failed to upgrade weak"))?;
     let mut config = config.write();
@@ -167,6 +167,16 @@ fn run() -> Result<()> {
     app.on_remove_update_partition_changed(move |enabled| {
         let mut config = config_clone.write();
         config.scrub_update_partition = enabled;
+
+        if let Err(e) = config.save() {
+            show_err(e);
+        }
+    });
+
+    let config_clone = config.clone();
+    app.on_always_split_changed(move |enabled| {
+        let mut config = config_clone.write();
+        config.always_split = enabled;
 
         if let Err(e) = config.save() {
             show_err(e);
