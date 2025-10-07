@@ -17,13 +17,15 @@ pub mod titles;
 pub mod updater;
 pub mod util;
 pub mod watcher;
+pub mod wiiload;
 pub mod wiitdb;
 
-use crate::{config::Config, tasks::TaskProcessor, titles::Titles, watcher::init_watcher};
+use crate::{tasks::TaskProcessor, titles::Titles, watcher::init_watcher};
 use anyhow::{Result, anyhow};
 use directories::ProjectDirs;
 use notify::RecommendedWatcher;
 use parking_lot::Mutex;
+use path_slash::PathBufExt;
 use rfd::{FileDialog, MessageButtons, MessageDialog, MessageDialogResult, MessageLevel};
 use slint::{ModelRc, ToSharedString, VecModel, Weak};
 use std::{fmt::Display, fs, path::Path, rc::Rc, sync::Arc};
@@ -79,15 +81,15 @@ fn choose_mount_point(
         .ok_or(anyhow!("No directory selected"))?;
 
     let mut config = Config::load(data_dir);
-    config.mount_point = dir;
-    config.save()?;
+    config.mount_point = dir.to_slash_lossy().to_shared_string();
+    config.save(data_dir)?;
 
-    refresh_dir_name(&handle, &config.mount_point);
-    refresh_games(&handle, &config.mount_point, titles)?;
-    refresh_hbc_apps(&handle, &config.mount_point)?;
-    refresh_disk_usage(&handle, &config.mount_point);
+    refresh_dir_name(&handle, &dir);
+    refresh_games(&handle, &dir, titles)?;
+    refresh_hbc_apps(&handle, &dir)?;
+    refresh_disk_usage(&handle, &dir);
 
-    let new_watcher = init_watcher(weak.clone(), &config.mount_point, titles)?;
+    let new_watcher = init_watcher(weak.clone(), &dir, titles)?;
     *watcher.lock() = new_watcher;
 
     Ok(())
@@ -101,6 +103,7 @@ fn run() -> Result<()> {
 
     let app = MainWindow::new()?;
     let config = Config::load(&data_dir);
+    let mount_point = Path::new(&config.mount_point);
     let titles = Arc::new(Titles::load(&data_dir)?);
     let task_processor = Arc::new(TaskProcessor::init(app.as_weak())?);
 
@@ -109,14 +112,14 @@ fn run() -> Result<()> {
 
     let watcher = Arc::new(Mutex::new(init_watcher(
         app.as_weak(),
-        &config.mount_point,
+        mount_point,
         &titles,
     )?));
 
-    refresh_dir_name(&app, &config.mount_point);
-    refresh_games(&app, &config.mount_point, &titles)?;
-    refresh_hbc_apps(&app, &config.mount_point)?;
-    refresh_disk_usage(&app, &config.mount_point);
+    refresh_dir_name(&app, mount_point);
+    refresh_games(&app, mount_point, &titles)?;
+    refresh_hbc_apps(&app, mount_point)?;
+    refresh_disk_usage(&app, mount_point);
 
     let weak = app.as_weak();
     let titles_clone = titles.clone();
@@ -143,37 +146,8 @@ fn run() -> Result<()> {
     });
 
     let data_dir_clone = data_dir.clone();
-    app.on_wii_output_format_changed(move |format| {
-        let mut config = Config::load(&data_dir_clone);
-        config.wii_output_format = format;
-        if let Err(e) = config.save() {
-            show_err(e);
-        }
-    });
-
-    let data_dir_clone = data_dir.clone();
-    app.on_archive_format_changed(move |format| {
-        let mut config = Config::load(&data_dir_clone);
-        config.archive_format = format;
-        if let Err(e) = config.save() {
-            show_err(e);
-        }
-    });
-
-    let data_dir_clone = data_dir.clone();
-    app.on_remove_update_partition_changed(move |enabled| {
-        let mut config = Config::load(&data_dir_clone);
-        config.scrub_update_partition = enabled;
-        if let Err(e) = config.save() {
-            show_err(e);
-        }
-    });
-
-    let data_dir_clone = data_dir.clone();
-    app.on_always_split_changed(move |enabled| {
-        let mut config = Config::load(&data_dir_clone);
-        config.always_split = enabled;
-        if let Err(e) = config.save() {
+    app.on_update_config(move |new_config| {
+        if let Err(e) = new_config.save(&data_dir_clone) {
             show_err(e);
         }
     });
@@ -204,6 +178,18 @@ fn run() -> Result<()> {
     app.on_add_apps(move || {
         if let Err(e) = install::install_apps(&data_dir_clone, &task_processor_clone) {
             show_err(e);
+        }
+    });
+
+    app.on_push_zip(|wii_ip| {
+        if let Some(path) = FileDialog::new()
+            .set_title("Select Wii HBC App")
+            .add_filter("Wii App", &["zip", "ZIP"])
+            .pick_file()
+        {
+            if let Err(e) = wiiload::push(&path, &wii_ip) {
+                show_err(e);
+            }
         }
     });
 
