@@ -4,12 +4,13 @@
 import { IconButton, Vertical, MaterialText, ElevatedCard, MaterialPalette, Horizontal, CircularProgressIndicator, SnackBar } from "@material";
 import { SideBar } from "sidebar.slint";
 import { GameGrid } from "game_grid.slint";
-import { Game, HbcApp, WiiOutputFormat, ArchiveFormat, TaskType, UpdateInfo, Config } from "common.slint";
+import { Game, HbcApp, WiiOutputFormat, ArchiveFormat, TaskType, UpdateInfo, Config, OscWiiApp } from "common.slint";
 import { HbcAppGrid } from "hbc_app_grid.slint";
 import { SettingsPage } from "settings.slint";
 import { Status } from "status.slint";
 import { HbcAppInfo } from "hbc_app_card.slint";
 import { Wiiload } from "wiiload.slint";
+import { OscWiiAppGrid } from "oscwii_app_grid.slint";
 
 export * from "common.slint";
 
@@ -36,6 +37,8 @@ export component MainWindow inherits Window {
     callback open_data_dir();
     callback update_config(Config);
     callback push_zip(string);
+
+    pure callback get_oscwii_apps() -> [OscWiiApp];
 
     preferred-width: 800px;
     preferred-height: 600px;
@@ -89,6 +92,13 @@ export component MainWindow inherits Window {
                 }
                 remove_dir(path) => {
                     remove_dir(path);
+                }
+            }
+
+            if current_index == 2: OscWiiAppGrid {
+                apps: get_oscwii_apps();
+                open_url(url) => {
+                    open_url(url);
                 }
             }
 
