@@ -7,17 +7,14 @@ use slint::ToSharedString;
 use std::{
     fs::{self, File},
     io::BufReader,
-    path::{Path, PathBuf},
+    path::PathBuf,
     sync::Arc,
 };
 use zip::ZipArchive;
 
-pub fn install_apps(
-    data_dir: &Path,
-    task_processor: &Arc<TaskProcessor>,
-    remove_sources: bool,
-) -> Result<()> {
-    let config = Config::load(data_dir);
+pub fn install_apps(config: &Config, task_processor: &Arc<TaskProcessor>) -> Result<()> {
+    let remove_sources = config.remove_sources_apps;
+    let mount_point = PathBuf::from(&config.mount_point);
 
     let paths = rfd::FileDialog::new()
         .set_title("Select Wii HBC App(s)")
@@ -28,8 +25,6 @@ pub fn install_apps(
         task_processor.spawn(Box::new(move |weak| {
             for path in paths {
                 {
-                    let mount_point = PathBuf::from(&config.mount_point);
-
                     let status = format!("Installing {}...", path.display());
                     weak.upgrade_in_event_loop(move |handle| {
                         handle.set_status(status.to_shared_string());
