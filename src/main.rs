@@ -11,7 +11,7 @@ pub mod extensions;
 pub mod games;
 pub mod hbc_apps;
 pub mod http;
-pub mod install;
+pub mod install_apps;
 pub mod oscwii;
 pub mod tasks;
 pub mod titles;
@@ -150,8 +150,8 @@ fn run() -> Result<()> {
 
     let data_dir_clone = data_dir.clone();
     let task_processor_clone = task_processor.clone();
-    app.on_add_games(move || {
-        if let Err(e) = convert::add_games(&data_dir_clone, &task_processor_clone) {
+    app.on_add_games(move |remove_sources| {
+        if let Err(e) = convert::add_games(&data_dir_clone, &task_processor_clone, remove_sources) {
             show_err(e);
         }
     });
@@ -186,8 +186,10 @@ fn run() -> Result<()> {
 
     let data_dir_clone = data_dir.clone();
     let task_processor_clone = task_processor.clone();
-    app.on_add_apps(move || {
-        if let Err(e) = install::install_apps(&data_dir_clone, &task_processor_clone) {
+    app.on_add_apps(move |remove_sources| {
+        if let Err(e) =
+            install_apps::install_apps(&data_dir_clone, &task_processor_clone, remove_sources)
+        {
             show_err(e);
         }
     });
@@ -266,7 +268,8 @@ fn run() -> Result<()> {
             }
 
             let filter = filter.to_lowercase();
-            let filtered = games.filter(move |game| game.display_title.to_lowercase().contains(&*filter));
+            let filtered =
+                games.filter(move |game| game.display_title.to_lowercase().contains(&*filter));
             handle.set_filtered_games(ModelRc::from(Rc::new(filtered)));
         } else {
             show_err(anyhow!("Failed to upgrade main window"));

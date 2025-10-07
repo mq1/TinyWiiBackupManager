@@ -55,7 +55,11 @@ fn get_output_format_opts(config: &Config) -> FormatOptions {
     }
 }
 
-pub fn add_games(data_dir: &Path, task_processor: &Arc<TaskProcessor>) -> Result<()> {
+pub fn add_games(
+    data_dir: &Path,
+    task_processor: &Arc<TaskProcessor>,
+    remove_sources: bool,
+) -> Result<()> {
     let config = Config::load(data_dir);
     if config.mount_point.is_empty() {
         bail!("Conversion Failed: No mount point selected");
@@ -81,74 +85,80 @@ pub fn add_games(data_dir: &Path, task_processor: &Arc<TaskProcessor>) -> Result
 
         let len = paths.len();
         for (i, path) in paths.into_iter().enumerate() {
-            let disc = DiscReader::new(path, &disc_opts)?;
+            {
+                let disc = DiscReader::new(&path, &disc_opts)?;
 
-            let header = disc.header().clone();
-            let title = header.game_title_str().to_string();
-            let id = header.game_id_str();
-            let is_wii = header.is_wii();
+                let header = disc.header().clone();
+                let title = header.game_title_str().to_string();
+                let id = header.game_id_str();
+                let is_wii = header.is_wii();
 
-            let dir_path = mount_point_clone
-                .join(if is_wii { "wbfs" } else { "games" })
-                .join(format!("{title} [{id}]"));
+                let dir_path = mount_point_clone
+                    .join(if is_wii { "wbfs" } else { "games" })
+                    .join(format!("{title} [{id}]"));
 
-            if dir_path.exists() {
-                return Ok(());
+                if dir_path.exists() {
+                    return Ok(());
+                }
+
+                fs::create_dir_all(&dir_path)?;
+
+                let base_path = dir_path.join(id);
+
+                let path1 = match (wii_output_format, must_split) {
+                    (WiiOutputFormat::Wbfs, _) => base_path.with_extension("wbfs"),
+                    (WiiOutputFormat::Iso, true) => base_path.with_extension("part0.iso"),
+                    (WiiOutputFormat::Iso, false) => base_path.with_extension("iso"),
+                };
+
+                let mut out1 = BufWriter::new(File::create(&path1)?);
+
+                let path2 = match wii_output_format {
+                    WiiOutputFormat::Wbfs => base_path.with_extension("wbf1"),
+                    WiiOutputFormat::Iso => base_path.with_extension("part1.iso"),
+                };
+
+                let mut out2 = None;
+
+                let writer = DiscWriter::new(disc, &out_opts)?;
+                let finalization = writer.process(
+                    |data, progress, total| {
+                        // get position
+                        let pos = out1.stream_position()?;
+
+                        // write data to out1, or overflow to out2
+                        if must_split && pos > SPLIT_SIZE {
+                            out2.get_or_insert(BufWriter::new(File::create(&path2)?))
+                                .write_all(&data)?;
+                        } else {
+                            out1.write_all(&data)?;
+                        }
+
+                        let status = format!(
+                            "Adding {}  {:02.0}%  ({}/{})",
+                            title,
+                            progress as f32 / total as f32 * 100.0,
+                            i + 1,
+                            len
+                        );
+
+                        let _ = weak.upgrade_in_event_loop(move |handle| {
+                            handle.set_status(status.to_shared_string());
+                        });
+
+                        Ok(())
+                    },
+                    &process_opts,
+                )?;
+
+                if !finalization.header.is_empty() {
+                    out1.rewind()?;
+                    out1.write_all(&finalization.header)?;
+                }
             }
 
-            fs::create_dir_all(&dir_path)?;
-
-            let base_path = dir_path.join(id);
-
-            let path1 = match (wii_output_format, must_split) {
-                (WiiOutputFormat::Wbfs, _) => base_path.with_extension("wbfs"),
-                (WiiOutputFormat::Iso, true) => base_path.with_extension("part0.iso"),
-                (WiiOutputFormat::Iso, false) => base_path.with_extension("iso"),
-            };
-
-            let mut out1 = BufWriter::new(File::create(&path1)?);
-
-            let path2 = match wii_output_format {
-                WiiOutputFormat::Wbfs => base_path.with_extension("wbf1"),
-                WiiOutputFormat::Iso => base_path.with_extension("part1.iso"),
-            };
-
-            let mut out2 = None;
-
-            let writer = DiscWriter::new(disc, &out_opts)?;
-            let finalization = writer.process(
-                |data, progress, total| {
-                    // get position
-                    let pos = out1.stream_position()?;
-
-                    // write data to out1, or overflow to out2
-                    if must_split && pos > SPLIT_SIZE {
-                        out2.get_or_insert(BufWriter::new(File::create(&path2)?))
-                            .write_all(&data)?;
-                    } else {
-                        out1.write_all(&data)?;
-                    }
-
-                    let status = format!(
-                        "Adding {}  {:02.0}%  ({}/{})",
-                        title,
-                        progress as f32 / total as f32 * 100.0,
-                        i + 1,
-                        len
-                    );
-
-                    let _ = weak.upgrade_in_event_loop(move |handle| {
-                        handle.set_status(status.to_shared_string());
-                    });
-
-                    Ok(())
-                },
-                &process_opts,
-            )?;
-
-            if !finalization.header.is_empty() {
-                out1.rewind()?;
-                out1.write_all(&finalization.header)?;
+            if remove_sources {
+                fs::remove_file(&path)?;
             }
         }
 
