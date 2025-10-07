@@ -7,7 +7,6 @@ use serde::Deserialize;
 use std::{fs, path::Path, time::Duration};
 
 const CONTENTS_URL: &str = "https://hbb1.oscwii.org/api/v4/contents";
-const DAY: u64 = 60 * 60 * 24;
 
 #[derive(Debug, Clone, Deserialize, Default)]
 pub struct Apps(pub Vec<App>);
@@ -33,7 +32,7 @@ impl Apps {
         // get difference
         let elapsed = file_time.elapsed()?;
 
-        if elapsed > Duration::from_secs(DAY) {
+        if elapsed > Duration::from_secs(60 * 60 * 24) {
             bail!("oscwii.json is too old");
         }
 
