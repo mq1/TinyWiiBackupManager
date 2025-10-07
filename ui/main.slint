@@ -36,8 +36,8 @@ export component MainWindow inherits Window {
     callback choose_mount_point();
     callback open_url(string);
     callback remove_dir(string);
-    callback add_games();
-    callback add_apps();
+    callback add_games(bool);
+    callback add_apps(bool);
     callback open_data_dir();
     callback update_config(Config);
     callback push_zip(string);
@@ -64,10 +64,10 @@ export component MainWindow inherits Window {
                 root.title = app_name + title + (dir_name.is_empty ? "" : " • " + dir_name + " (" + disk_usage + ")");
             }
             add_games => {
-                add_games();
+                add_games(config.remove-sources-games);
             }
             add_apps => {
-                add_apps();
+                add_apps(config.remove-sources-apps);
             }
             open-url(url) => {
                 open_url(url);
