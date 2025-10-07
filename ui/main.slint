@@ -4,11 +4,12 @@
 import { IconButton, Vertical, MaterialText, ElevatedCard, MaterialPalette, Horizontal, CircularProgressIndicator, SnackBar } from "@material";
 import { SideBar } from "sidebar.slint";
 import { GameGrid } from "game_grid.slint";
-import { Game, HbcApp, WiiOutputFormat, ArchiveFormat, TaskType, UpdateInfo } from "common.slint";
+import { Game, HbcApp, WiiOutputFormat, ArchiveFormat, TaskType, UpdateInfo, Config } from "common.slint";
 import { HbcAppGrid } from "hbc_app_grid.slint";
 import { SettingsPage } from "settings.slint";
 import { Status } from "status.slint";
 import { HbcAppInfo } from "hbc_app_card.slint";
+import { Wiiload } from "wiiload.slint";
 
 export * from "common.slint";
 
@@ -25,17 +26,16 @@ export component MainWindow inherits Window {
     in-out property <int> task_count: 0;
     in property <UpdateInfo> update_info;
     out property <HbcApp> current_app;
+    in-out property <Config> config;
 
     callback choose_mount_point();
     callback open_url(string);
     callback remove_dir(string);
     callback add_games();
     callback add_apps();
-    callback wii_output_format_changed(WiiOutputFormat);
-    callback archive_format_changed(ArchiveFormat);
-    callback remove_update_partition_changed(bool);
-    callback always_split_changed(bool);
     callback open_data_dir();
+    callback update_config(Config);
+    callback push_zip(string);
 
     preferred-width: 800px;
     preferred-height: 600px;
@@ -90,17 +90,9 @@ export component MainWindow inherits Window {
             }
 
             if current_index == 3: SettingsPage {
-                wii_output_format_changed(wii_output_format) => {
-                    wii_output_format_changed(wii_output_format);
-                }
-                archive_format_changed(archive_format) => {
-                    archive_format_changed(archive_format);
-                }
-                remove_update_partition_changed(remove_update_partition) => {
-                    remove_update_partition_changed(remove_update_partition);
-                }
-                always_split_changed(always_split) => {
-                    always_split_changed(always_split);
+                config <=> config;
+                update_config() => {
+                    update_config(config);
                 }
                 open_data_dir => open_data_dir();
             }
@@ -127,5 +119,17 @@ export component MainWindow inherits Window {
         width: root.width;
         height: root.height;
         app: current_app;
+    }
+
+    wiiload := Wiiload {
+        width: root.width;
+        height: root.height;
+        config <=> config;
+        update_config() => {
+            update_config(config);
+        }
+        push_zip => {
+            push_zip(config.wii-ip);
+        }
     }
 }

@@ -1,0 +1,31 @@
+// SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { Dialog, Vertical, TextField } from "@material";
+import { Config } from "common.slint";
+
+export component Wiiload inherits Dialog {
+    in-out property <Config> config;
+
+    callback update_config();
+    callback push_zip();
+
+    title: "Wiiload";
+    default-action-text: "Send .zip";
+
+    TextField {
+        label: "Your Wii IP";
+        placeholder-text: "192.168.1.100";
+        text: config.wii_ip;
+        leading_icon: @image-url("../mdi/ip-network.svg");
+        edited(text) => {
+            config.wii_ip = text;
+        }
+    }
+
+    default_action_clicked => {
+        update_config();
+        push_zip();
+        self.close();
+    }
+}

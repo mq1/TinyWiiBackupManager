@@ -25,6 +25,18 @@ export enum ArchiveFormat {
     Iso,
 }
 
+@rust-attr(derive(serde::Serialize, serde::Deserialize))
+export struct Config {
+    mount_point: string,
+    remove_sources_games: bool,
+    remove_sources_apps: bool,
+    scrub_update_partition: bool,
+    wii_output_format: WiiOutputFormat,
+    archive_format: ArchiveFormat,
+    always_split: bool,
+    wii_ip: string,
+}
+
 export struct Game {
     id: string,
     title: string,
