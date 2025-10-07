@@ -4,7 +4,7 @@
 use crate::{
     MainWindow, refresh_disk_usage, refresh_games, refresh_hbc_apps, show_err, titles::Titles,
 };
-use anyhow::{Result, bail};
+use anyhow::Result;
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 use slint::Weak;
 use std::{path::Path, sync::Arc};
@@ -13,9 +13,9 @@ pub fn init_watcher(
     weak: Weak<MainWindow>,
     mount_point: &Path,
     titles: &Arc<Titles>,
-) -> Result<RecommendedWatcher> {
+) -> Result<Option<RecommendedWatcher>> {
     if mount_point.as_os_str().is_empty() {
-        bail!("No mount point selected");
+        return Ok(None);
     }
 
     let path = mount_point.to_path_buf();
@@ -47,5 +47,5 @@ pub fn init_watcher(
 
     watcher.watch(mount_point, RecursiveMode::Recursive)?;
 
-    Ok(watcher)
+    Ok(Some(watcher))
 }

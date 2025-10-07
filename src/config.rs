@@ -21,6 +21,7 @@ pub struct Config {
     pub scrub_update_partition: bool,
     pub wii_output_format: WiiOutputFormat,
     pub archive_format: ArchiveFormat,
+    pub always_split: bool,
     pub wii_ip: String,
 }
 
@@ -32,8 +33,9 @@ impl Default for Config {
             remove_sources_games: false,
             remove_sources_apps: false,
             scrub_update_partition: false,
-            wii_output_format: WiiOutputFormat::WbfsAuto,
+            wii_output_format: WiiOutputFormat::Wbfs,
             archive_format: ArchiveFormat::Rvz,
+            always_split: false,
             wii_ip: "192.168.1.100".to_string(),
         }
     }

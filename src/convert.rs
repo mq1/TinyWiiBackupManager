@@ -5,9 +5,9 @@ use crate::{
     TaskType, WiiOutputFormat,
     config::Config,
     covers::download_covers,
-    extensions::{SUPPORTED_INPUT_EXTENSIONS, get_convert_extension},
+    extensions::SUPPORTED_INPUT_EXTENSIONS,
     tasks::TaskProcessor,
-    util,
+    util::{self, can_write_over_4gb},
 };
 use anyhow::{Result, anyhow, bail};
 use nod::{
@@ -23,6 +23,8 @@ use std::{
     fs::{self, File},
     io::{BufWriter, Seek, Write},
 };
+
+const SPLIT_SIZE: u64 = 4 * 1024 * 1024 * 1024 - 32 * 1024;
 
 fn get_disc_opts() -> DiscOptions {
     let (preloader_threads, _) = util::get_threads_num();
@@ -49,7 +51,7 @@ fn get_process_opts(config: &Config) -> ProcessOptions {
 
 fn get_output_format_opts(config: &Config) -> FormatOptions {
     match config.wii_output_format {
-        WiiOutputFormat::WbfsAuto | WiiOutputFormat::WbfsFixed => FormatOptions::new(Format::Wbfs),
+        WiiOutputFormat::Wbfs => FormatOptions::new(Format::Wbfs),
         WiiOutputFormat::Iso => FormatOptions::new(Format::Iso),
     }
 }
@@ -60,9 +62,10 @@ pub fn add_games(config: &Arc<RwLock<Config>>, task_processor: &Arc<TaskProcesso
     let disc_opts = get_disc_opts();
     let process_opts = get_process_opts(&config);
     let out_opts = get_output_format_opts(&config);
+    let must_split = config.always_split || can_write_over_4gb(&config.mount_point).is_err();
 
     if config.mount_point.as_os_str().is_empty() {
-        bail!("No mount point selected");
+        bail!("Conversion Failed: No mount point selected");
     }
 
     let paths = FileDialog::new()
@@ -95,16 +98,42 @@ pub fn add_games(config: &Arc<RwLock<Config>>, task_processor: &Arc<TaskProcesso
 
             fs::create_dir_all(&dir_path)?;
 
-            let path = dir_path
-                .join(id)
-                .with_extension(get_convert_extension(wii_output_format, is_wii));
+            let base_path = dir_path.join(id);
 
-            let mut out = BufWriter::new(File::create(&path)?);
+            let path1 = match (wii_output_format, must_split) {
+                (WiiOutputFormat::Wbfs, _) => base_path.with_extension("wbfs"),
+                (WiiOutputFormat::Iso, true) => base_path.with_extension("part0.iso"),
+                (WiiOutputFormat::Iso, false) => base_path.with_extension("iso"),
+            };
+
+            let mut out1 = BufWriter::new(File::create(&path1)?);
+
+            let path2 = match wii_output_format {
+                WiiOutputFormat::Wbfs => base_path.with_extension("wbf1"),
+                WiiOutputFormat::Iso => base_path.with_extension("part1.iso"),
+            };
+
+            let mut out2 = if must_split {
+                Some(BufWriter::new(File::create(&path2)?))
+            } else {
+                None
+            };
 
             let writer = DiscWriter::new(disc, &out_opts)?;
             let finalization = writer.process(
                 |data, progress, total| {
-                    out.write_all(&data)?;
+                    // get position
+                    let pos = out1.stream_position()?;
+
+                    // write data to out1, or overflow to out2
+                    if must_split
+                        && pos > SPLIT_SIZE
+                        && let Some(out2) = &mut out2
+                    {
+                        out2.write_all(&data)?;
+                    } else {
+                        out1.write_all(&data)?;
+                    }
 
                     let status = format!(
                         "Adding {}  {:02.0}%  ({}/{})",
@@ -124,8 +153,8 @@ pub fn add_games(config: &Arc<RwLock<Config>>, task_processor: &Arc<TaskProcesso
             )?;
 
             if !finalization.header.is_empty() {
-                out.rewind()?;
-                out.write_all(&finalization.header)?;
+                out1.rewind()?;
+                out1.write_all(&finalization.header)?;
             }
         }
 
