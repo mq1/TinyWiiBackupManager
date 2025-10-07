@@ -1,12 +1,13 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { ScrollView, Vertical, Horizontal, MaterialText, Dialog } from "@material";
+import { ScrollView, Vertical, Horizontal, MaterialText, Dialog, TextField } from "@material";
 import { OscWiiAppCard, OscWiiAppCardButtons } from "oscwii_app_card.slint";
 import { OscWiiApp } from "common.slint";
 
 export component OscWiiAppGrid inherits ScrollView {
     in property <[OscWiiApp]> apps;
+    out property <string> filter: "";
 
     property <length> card_w: 176px;
     property <length> card_h: 230px;
@@ -17,12 +18,23 @@ export component OscWiiAppGrid inherits ScrollView {
     callback open_url(string);
     callback download_oscwii(string);
     callback push_oscwii(string);
+    callback update_filter(string);
 
     horizontal-stretch: 1;
     vertical-stretch: 1;
-    viewport_height: rows * card_h + 8px;
+    viewport_height: rows * card_h + 56px + 16px;
 
     Vertical {
+        TextField {
+            height: 56px;
+            label: "Filter";
+            placeholder-text: "Search...";
+            edited(text) => {
+                filter = text;
+                update_filter(text);
+            }
+        }
+
         Rectangle {
             for app[index] in apps: OscWiiAppCard {
                 x: mod(index, columns) * card_w;
