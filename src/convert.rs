@@ -10,7 +10,6 @@ use crate::{
     util::{self, can_write_over_4gb},
 };
 use anyhow::{Result, anyhow, bail};
-use arc_swap::ArcSwap;
 use nod::{
     common::Format,
     read::{DiscOptions, DiscReader, PartitionEncryption},
@@ -21,6 +20,7 @@ use slint::ToSharedString;
 use std::{
     fs::{self, File},
     io::{BufWriter, Seek, Write},
+    path::Path,
     sync::Arc,
 };
 
@@ -56,8 +56,9 @@ fn get_output_format_opts(config: &Config) -> FormatOptions {
     }
 }
 
-pub fn add_games(config: &Arc<ArcSwap<Config>>, task_processor: &Arc<TaskProcessor>) -> Result<()> {
-    let config = config.load();
+pub fn add_games(data_dir: &Path, task_processor: &Arc<TaskProcessor>) -> Result<()> {
+    let config = Config::load(data_dir);
+
     let wii_output_format = config.wii_output_format;
     let disc_opts = get_disc_opts();
     let process_opts = get_process_opts(&config);
