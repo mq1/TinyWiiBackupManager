@@ -42,7 +42,6 @@ open = "5.3"
 tempfile = "3.23"
 nod = { git = "https://github.com/mq1/nod", branch = "strip-wbfs" }
 num_cpus = "1.17"
-parking_lot = "0.12"
 semver = "1.0"
 path-slash = "0.2"
 
