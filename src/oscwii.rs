@@ -1,10 +1,11 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::http::AGENT;
+use crate::{OscWiiApp, http::AGENT};
 use anyhow::{Result, bail};
 use serde::Deserialize;
-use std::{fs, path::Path, time::Duration};
+use slint::{ModelRc, ToSharedString, VecModel};
+use std::{fs, path::Path, rc::Rc, time::Duration};
 
 const CONTENTS_URL: &str = "https://hbb1.oscwii.org/api/v4/contents";
 
@@ -21,7 +22,7 @@ impl Apps {
             let bytes = AGENT.get(CONTENTS_URL).call()?.body_mut().read_to_vec()?;
             fs::write(&path, &bytes)?;
             let apps = serde_json::from_slice(&bytes)?;
-            Ok(apps)
+            Ok(Self(apps))
         }
     }
 
@@ -40,6 +41,26 @@ impl Apps {
         let apps = serde_json::from_slice(&bytes)?;
 
         Ok(apps)
+    }
+
+    pub fn get_model(&self) -> ModelRc<OscWiiApp> {
+        let list = self
+            .0
+            .iter()
+            .map(OscWiiApp::from_app)
+            .collect::<VecModel<_>>();
+
+        ModelRc::from(Rc::new(list))
+    }
+}
+
+impl OscWiiApp {
+    fn from_app(app: &App) -> Self {
+        Self {
+            slug: app.slug.to_shared_string(),
+            name: app.name.to_shared_string(),
+            author: app.author.to_shared_string(),
+        }
     }
 }
 

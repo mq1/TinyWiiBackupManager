@@ -1,0 +1,51 @@
+// SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { ScrollView, Vertical, Horizontal, MaterialText, Dialog } from "@material";
+import { OscWiiAppCard, OscWiiAppCardButtons } from "oscwii_app_card.slint";
+import { OscWiiApp } from "common.slint";
+
+export component OscWiiAppGrid inherits ScrollView {
+    in property <[OscWiiApp]> apps;
+
+    property <length> card_w: 176px;
+    property <length> card_h: 230px;
+
+    property <int> columns: (self.width / card_w).floor();
+    property <int> rows: (apps.length / columns).ceil();
+
+    callback open_url(string);
+    callback download_oscwii(string);
+    callback push_oscwii(string);
+
+    horizontal-stretch: 1;
+    vertical-stretch: 1;
+    viewport_height: rows * card_h + 8px;
+
+    Vertical {
+        Rectangle {
+            for app[index] in apps: OscWiiAppCard {
+                x: mod(index, columns) * card_w;
+                y: (index / columns).floor() * card_h;
+                width: card_w;
+                height: card_h;
+                app: app;
+            }
+
+            for app[index] in apps: OscWiiAppCardButtons {
+                x: mod(index, columns) * card_w;
+                y: (index / columns).floor() * card_h + (card_h - 42px);
+                width: card_w;
+                open_oscwii_info => {
+                    open_url("https://oscwii.org/library/app/" + app.slug);
+                }
+                download_oscwii => {
+                    download_oscwii(app.slug);
+                }
+                push_oscwii => {
+                    push_oscwii(app.slug);
+                }
+            }
+        }
+    }
+}

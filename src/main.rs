@@ -194,6 +194,15 @@ fn run() -> Result<()> {
         }
     });
 
+    let data_dir_clone = data_dir.clone();
+    app.on_get_oscwii_apps(move || match oscwii::Apps::load(&data_dir_clone) {
+        Ok(apps) => apps.get_model(),
+        Err(e) => {
+            show_err(e);
+            ModelRc::new(VecModel::from(Vec::new()))
+        }
+    });
+
     if std::env::var_os("TWBM_DISABLE_UPDATES").is_none()
         && let Err(e) = updater::check(&task_processor)
     {
