@@ -5,7 +5,10 @@ use crate::{
     MainWindow, refresh_disk_usage, refresh_games, refresh_hbc_apps, show_err, titles::Titles,
 };
 use anyhow::Result;
-use notify::{RecommendedWatcher, RecursiveMode, Watcher};
+use notify::{
+    Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher,
+    event::{CreateKind, ModifyKind, RemoveKind, RenameMode},
+};
 use slint::Weak;
 use std::{path::Path, sync::Arc};
 
@@ -21,14 +24,14 @@ pub fn init_watcher(
     let path = mount_point.to_path_buf();
     let titles = titles.clone();
 
-    let mut watcher = notify::recommended_watcher(move |res| {
-        if let Ok(notify::Event {
-            kind:
-                notify::EventKind::Modify(_)
-                | notify::EventKind::Create(_)
-                | notify::EventKind::Remove(_),
-            ..
-        }) = res
+    let mut watcher = notify::recommended_watcher(move |res: Result<Event, _>| {
+        if let Ok(event) = res
+            && matches!(
+                event.kind,
+                EventKind::Create(CreateKind::Folder)
+                    | EventKind::Modify(ModifyKind::Name(RenameMode::Any))
+                    | EventKind::Remove(RemoveKind::Folder)
+            )
         {
             let path = path.clone();
             let titles = titles.clone();
