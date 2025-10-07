@@ -21,7 +21,7 @@ pub mod watcher;
 pub mod wiiload;
 pub mod wiitdb;
 
-use crate::{tasks::TaskProcessor, titles::Titles, watcher::init_watcher};
+use crate::{oscwii::Apps, tasks::TaskProcessor, titles::Titles, watcher::init_watcher};
 use anyhow::{Result, anyhow};
 use directories::ProjectDirs;
 use notify::RecommendedWatcher;
@@ -205,21 +205,16 @@ fn run() -> Result<()> {
     });
 
     let data_dir_clone = data_dir.clone();
-    let weak = app.as_weak();
-    app.on_update_oscwii_apps(move || {
-        let res = oscwii::Apps::load(&data_dir_clone);
-
-        if let Err(e) = res {
-            show_err(e);
-        } else if let Ok(apps) = res {
-            let model = apps.get_model();
-
-            if let Some(handle) = weak.upgrade() {
-                handle.set_oscwii_apps(model);
-            } else {
-                show_err(anyhow!("Failed to upgrade main window"));
+    app.on_load_oscwii_apps(move || {
+        let apps = match oscwii::Apps::load(&data_dir_clone) {
+            Ok(apps) => apps,
+            Err(e) => {
+                show_err(e);
+                Apps::empty()
             }
-        }
+        };
+
+        apps.get_model()
     });
 
     app.on_update_filtered_oscwii_apps(move |apps, filter| {
