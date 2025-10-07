@@ -222,7 +222,6 @@ fn run() -> Result<()> {
             return apps;
         }
 
-        let filter = filter.to_lowercase();
         let filtered = apps.filter(move |app| app.name.to_lowercase().contains(&*filter));
 
         ModelRc::from(Rc::new(filtered))
@@ -233,7 +232,6 @@ fn run() -> Result<()> {
             return apps;
         }
 
-        let filter = filter.to_lowercase();
         let filtered = apps.filter(move |app| app.name.to_lowercase().contains(&*filter));
 
         ModelRc::from(Rc::new(filtered))
@@ -244,7 +242,6 @@ fn run() -> Result<()> {
             return games;
         }
 
-        let filter = filter.to_lowercase();
         let filtered =
             games.filter(move |game| game.display_title.to_lowercase().contains(&*filter));
 
