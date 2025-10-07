@@ -20,9 +20,10 @@ pub mod wiitdb;
 
 use crate::{config::Config, tasks::TaskProcessor, titles::Titles, watcher::init_watcher};
 use anyhow::{Result, anyhow};
+use arc_swap::ArcSwap;
 use directories::ProjectDirs;
 use notify::RecommendedWatcher;
-use parking_lot::{Mutex, RwLock};
+use parking_lot::Mutex;
 use rfd::{FileDialog, MessageButtons, MessageDialog, MessageDialogResult, MessageLevel};
 use slint::{ModelRc, ToSharedString, VecModel, Weak};
 use std::{fmt::Display, fs, path::Path, rc::Rc, sync::Arc};
@@ -67,26 +68,28 @@ fn refresh_hbc_apps(handle: &MainWindow, mount_point: &Path) -> Result<()> {
 
 fn choose_mount_point(
     weak: &Weak<MainWindow>,
-    config: &Arc<RwLock<Config>>,
+    config: &Arc<ArcSwap<Config>>,
     titles: &Arc<Titles>,
     watcher: &Arc<Mutex<Option<RecommendedWatcher>>>,
 ) -> Result<()> {
     let handle = weak.upgrade().ok_or(anyhow!("Failed to upgrade weak"))?;
-    let mut config = config.write();
 
     let dir = FileDialog::new()
         .pick_folder()
         .ok_or(anyhow!("No directory selected"))?;
 
-    config.mount_point = dir;
-    config.save()?;
+    let mut new_config = (**config.load()).clone();
+    new_config.mount_point = dir;
+    new_config.save()?;
+    config.store(Arc::new(new_config));
 
-    refresh_dir_name(&handle, &config.mount_point);
-    refresh_games(&handle, &config.mount_point, titles)?;
-    refresh_hbc_apps(&handle, &config.mount_point)?;
-    refresh_disk_usage(&handle, &config.mount_point);
+    let config_guard = config.load();
+    refresh_dir_name(&handle, &config_guard.mount_point);
+    refresh_games(&handle, &config_guard.mount_point, titles)?;
+    refresh_hbc_apps(&handle, &config_guard.mount_point)?;
+    refresh_disk_usage(&handle, &config_guard.mount_point);
 
-    let new_watcher = init_watcher(weak.clone(), &config.mount_point, titles)?;
+    let new_watcher = init_watcher(weak.clone(), &config_guard.mount_point, titles)?;
     *watcher.lock() = new_watcher;
 
     Ok(())
@@ -99,14 +102,14 @@ fn run() -> Result<()> {
     fs::create_dir_all(&data_dir)?;
 
     let app = MainWindow::new()?;
-    let config = Arc::new(RwLock::new(Config::load(&data_dir)));
+    let config = Arc::new(ArcSwap::from_pointee(Config::load(&data_dir)));
     let titles = Arc::new(Titles::load(&data_dir)?);
     let task_processor = Arc::new(TaskProcessor::init(app.as_weak())?);
 
     app.set_app_name(env!("CARGO_PKG_NAME").to_shared_string() + " v" + env!("CARGO_PKG_VERSION"));
     app.set_is_macos(cfg!(target_os = "macos"));
 
-    let mount_point = &config.read().mount_point;
+    let mount_point = &config.load().mount_point;
 
     let watcher = Arc::new(Mutex::new(init_watcher(
         app.as_weak(),
@@ -116,8 +119,8 @@ fn run() -> Result<()> {
 
     refresh_dir_name(&app, mount_point);
     refresh_games(&app, mount_point, &titles)?;
-    refresh_hbc_apps(&app, &mount_point)?;
-    refresh_disk_usage(&app, &mount_point);
+    refresh_hbc_apps(&app, mount_point)?;
+    refresh_disk_usage(&app, mount_point);
 
     let weak = app.as_weak();
     let config_clone = config.clone();
@@ -145,42 +148,42 @@ fn run() -> Result<()> {
 
     let config_clone = config.clone();
     app.on_wii_output_format_changed(move |format| {
-        let mut config = config_clone.write();
-        config.wii_output_format = format;
-
-        if let Err(e) = config.save() {
+        let mut new_config = (**config_clone.load()).clone();
+        new_config.wii_output_format = format;
+        if let Err(e) = new_config.save() {
             show_err(e);
         }
+        config_clone.store(Arc::new(new_config));
     });
 
     let config_clone = config.clone();
     app.on_archive_format_changed(move |format| {
-        let mut config = config_clone.write();
-        config.archive_format = format;
-
-        if let Err(e) = config.save() {
+        let mut new_config = (**config_clone.load()).clone();
+        new_config.archive_format = format;
+        if let Err(e) = new_config.save() {
             show_err(e);
         }
+        config_clone.store(Arc::new(new_config));
     });
 
     let config_clone = config.clone();
     app.on_remove_update_partition_changed(move |enabled| {
-        let mut config = config_clone.write();
-        config.scrub_update_partition = enabled;
-
-        if let Err(e) = config.save() {
+        let mut new_config = (**config_clone.load()).clone();
+        new_config.scrub_update_partition = enabled;
+        if let Err(e) = new_config.save() {
             show_err(e);
         }
+        config_clone.store(Arc::new(new_config));
     });
 
     let config_clone = config.clone();
     app.on_always_split_changed(move |enabled| {
-        let mut config = config_clone.write();
-        config.always_split = enabled;
-
-        if let Err(e) = config.save() {
+        let mut new_config = (**config_clone.load()).clone();
+        new_config.always_split = enabled;
+        if let Err(e) = new_config.save() {
             show_err(e);
         }
+        config_clone.store(Arc::new(new_config));
     });
 
     app.on_remove_dir(|path| {
