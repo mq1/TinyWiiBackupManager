@@ -16,6 +16,7 @@ dependencies = [
  "parking_lot",
  "quick-xml 0.38.3",
  "rfd",
+ "semver",
  "serde",
  "serde_json",
  "size",
