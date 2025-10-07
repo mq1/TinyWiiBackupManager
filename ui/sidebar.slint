@@ -15,6 +15,7 @@ export component SideBar inherits VerticalLayout {
     callback add_games();
     callback add_apps();
     callback open_url(string);
+    callback open_wiiload();
 
     Rectangle {
         width: 80px;
@@ -49,6 +50,9 @@ export component SideBar inherits VerticalLayout {
                 tooltip: "Wiiload";
                 style: FABStyle.standard;
                 z: 1.9;
+                clicked => {
+                    open_wiiload();
+                }
             }
         }
     }
