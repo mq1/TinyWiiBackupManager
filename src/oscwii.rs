@@ -4,6 +4,7 @@
 use crate::{OscWiiApp, http::AGENT};
 use anyhow::{Result, bail};
 use serde::Deserialize;
+use size::Size;
 use slint::{ModelRc, ToSharedString, VecModel};
 use std::{fs, path::Path, rc::Rc, time::Duration};
 
@@ -56,10 +57,15 @@ impl Apps {
 
 impl OscWiiApp {
     fn from_app(app: &App) -> Self {
+        let size = Size::from_bytes(app.uncompressed_size);
+
         Self {
             slug: app.slug.to_shared_string(),
             name: app.name.to_shared_string(),
             author: app.author.to_shared_string(),
+            version: app.version.to_shared_string(),
+            release_date: app.release_date.to_shared_string(),
+            size: size.to_shared_string(),
         }
     }
 }
