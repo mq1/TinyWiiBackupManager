@@ -93,6 +93,7 @@ fn choose_mount_point(
     let mut config = Config::load(data_dir);
     config.mount_point = dir.to_slash_lossy().to_shared_string();
     config.save(data_dir)?;
+    handle.set_config(config);
 
     refresh_dir_name(&handle, &dir);
     refresh_games(&handle, &dir, titles)?;
@@ -131,6 +132,7 @@ fn run() -> Result<()> {
     refresh_games(&app, mount_point, &titles)?;
     refresh_hbc_apps(&app, mount_point)?;
     refresh_disk_usage(&app, mount_point);
+    app.set_config(config);
 
     let weak = app.as_weak();
     let titles_clone = titles.clone();
