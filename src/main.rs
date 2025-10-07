@@ -69,6 +69,7 @@ fn choose_mount_point(
     weak: &Weak<MainWindow>,
     titles: &Arc<Titles>,
     watcher: &Arc<Mutex<Option<RecommendedWatcher>>>,
+    data_dir: &Path,
 ) -> Result<()> {
     let handle = weak.upgrade().ok_or(anyhow!("Failed to upgrade weak"))?;
 
@@ -76,7 +77,7 @@ fn choose_mount_point(
         .pick_folder()
         .ok_or(anyhow!("No directory selected"))?;
 
-    let mut config = Config::load(&dir);
+    let mut config = Config::load(data_dir);
     config.mount_point = dir;
     config.save()?;
 
@@ -119,8 +120,9 @@ fn run() -> Result<()> {
     let weak = app.as_weak();
     let titles_clone = titles.clone();
     let watcher_clone = watcher.clone();
+    let data_dir_clone = data_dir.clone();
     app.on_choose_mount_point(move || {
-        if let Err(e) = choose_mount_point(&weak, &titles_clone, &watcher_clone) {
+        if let Err(e) = choose_mount_point(&weak, &titles_clone, &watcher_clone, &data_dir_clone) {
             show_err(e);
         }
     });
