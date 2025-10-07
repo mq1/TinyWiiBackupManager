@@ -1,16 +1,19 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { NavigationRail, PopupMenu, IconButton, Horizontal, MaterialPalette, Vertical, FloatingActionButton, FABStyle } from "@material";
+import { NavigationRail, PopupMenu, IconButton, MaterialPalette, Vertical, FloatingActionButton, FABStyle } from "@material";
+import { UpdateInfo } from "common.slint";
 
 export component SideBar inherits VerticalLayout {
     in-out property <int> current_index: 0;
     in property <bool> is_macos: false;
     in property <int> game_count: 0;
+    in property <UpdateInfo> update_info;
 
     callback set_window_title(string);
     callback choose_mount_point();
     callback add_games();
+    callback open_url(string);
 
     Rectangle {
         width: 80px;
@@ -78,7 +81,16 @@ export component SideBar inherits VerticalLayout {
         width: 80px;
         background: MaterialPalette.surface;
 
-        Horizontal {
+        Vertical {
+            if !update_info.version.is-empty: IconButton {
+                z: 2.0;
+                icon: @image-url("../mdi/bell-plus.svg");
+                tooltip: "Update\navailable!\nv" + update_info.version;
+                clicked => {
+                    open_url(update_info.url);
+                }
+            }
+
             menu_button := IconButton {
                 icon: @image-url("../mdi/menu.svg");
                 clicked => {

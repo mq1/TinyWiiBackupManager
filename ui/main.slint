@@ -35,10 +35,6 @@ export component MainWindow inherits Window {
     callback remove_update_partition_changed(bool);
     callback open_data_dir();
 
-    public function show_update() {
-        sb.show();
-    }
-
     preferred-width: 800px;
     preferred-height: 600px;
     title: app_name + " • " + games.length + " Games" + (dir_name.is_empty ? "" : " • " + dir_name + " (" + disk_usage + ")");
@@ -48,6 +44,7 @@ export component MainWindow inherits Window {
             current_index <=> current_index;
             is_macos: is_macos;
             game_count: games.length;
+            update_info: update_info;
             choose_mount_point => {
                 choose_mount_point();
             }
@@ -56,6 +53,9 @@ export component MainWindow inherits Window {
             }
             add_games => {
                 add_games();
+            }
+            open-url(url) => {
+                open_url(url);
             }
         }
 
@@ -110,17 +110,5 @@ export component MainWindow inherits Window {
         width: root.width;
         height: root.height;
         app: current_app;
-    }
-
-    sb := SnackBar {
-        height: root.height;
-        width: root.width;
-        text: "Update available!";
-        action_text: "⬇ Download v" + update_info.version;
-        has_close_button: false;
-        close-policy: PopupClosePolicy.close-on-click;
-        action_clicked() => {
-            open_url(update_info.url);
-        }
     }
 }
