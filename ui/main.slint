@@ -21,7 +21,9 @@ export component MainWindow inherits Window {
     in property <bool> is_macos: false;
     in-out property <int> current_index: 0;
     in property <[Game]> games;
+    in property <[Game]> filtered_games: [];
     in property <[HbcApp]> hbc_apps;
+    in property <[HbcApp]> filtered_hbc_apps: [];
     in property <string> status: "";
     in property <TaskType> task_type: TaskType.Unknown;
     in-out property <int> task_count: 0;
@@ -41,6 +43,8 @@ export component MainWindow inherits Window {
     callback push_zip(string);
     callback update_oscwii_apps();
     callback update_filtered_oscwii_apps(string);
+    callback update_filtered_hbc_apps(string);
+    callback update_filtered_games(string);
 
     preferred-width: 800px;
     preferred-height: 600px;
@@ -81,17 +85,20 @@ export component MainWindow inherits Window {
 
         VerticalLayout {
             if current_index == 0 && !dir_name.is-empty: GameGrid {
-                games: games;
+                games: filtered_games;
                 open_url(url) => {
                     open_url(url);
                 }
                 remove_dir(path) => {
                     remove_dir(path);
                 }
+                update_filter(filter) => {
+                    update_filtered_games(filter);
+                }
             }
 
             if current_index == 1 && !dir_name.is-empty: HbcAppGrid {
-                apps: hbc_apps;
+                apps: filtered_hbc_apps;
                 open_app_info(app) => {
                     current_app = app;
                     app_info.show();
@@ -101,6 +108,9 @@ export component MainWindow inherits Window {
                 }
                 remove_dir(path) => {
                     remove_dir(path);
+                }
+                update_filter(filter) => {
+                    update_filtered_hbc_apps(filter);
                 }
             }
 

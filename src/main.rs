@@ -64,13 +64,17 @@ fn refresh_disk_usage(handle: &MainWindow, mount_point: &Path) {
 
 fn refresh_games(handle: &MainWindow, mount_point: &Path, titles: &Arc<Titles>) -> Result<()> {
     let games = games::list(mount_point, titles)?;
-    handle.set_games(ModelRc::from(Rc::new(VecModel::from(games))));
+    let games_model = ModelRc::from(Rc::new(VecModel::from(games)));
+    handle.set_games(games_model.clone());
+    handle.set_filtered_games(games_model); // Also update the filtered list
     Ok(())
 }
 
 fn refresh_hbc_apps(handle: &MainWindow, mount_point: &Path) -> Result<()> {
     let hbc_apps = hbc_apps::list(mount_point)?;
-    handle.set_hbc_apps(ModelRc::from(Rc::new(VecModel::from(hbc_apps))));
+    let hbc_apps_model = ModelRc::from(Rc::new(VecModel::from(hbc_apps)));
+    handle.set_hbc_apps(hbc_apps_model.clone());
+    handle.set_filtered_hbc_apps(hbc_apps_model); // Also update the filtered list
     Ok(())
 }
 
@@ -230,6 +234,40 @@ fn run() -> Result<()> {
             let filter = filter.to_lowercase();
             let filtered = apps.filter(move |app| app.name.to_lowercase().contains(&*filter));
             handle.set_filtered_oscwii_apps(ModelRc::from(Rc::new(filtered)));
+        } else {
+            show_err(anyhow!("Failed to upgrade main window"));
+        }
+    });
+
+    let weak = app.as_weak();
+    app.on_update_filtered_hbc_apps(move |filter| {
+        if let Some(handle) = weak.upgrade() {
+            let apps = handle.get_hbc_apps();
+            if filter.is_empty() {
+                handle.set_filtered_hbc_apps(apps);
+                return;
+            }
+
+            let filter = filter.to_lowercase();
+            let filtered = apps.filter(move |app| app.name.to_lowercase().contains(&*filter));
+            handle.set_filtered_hbc_apps(ModelRc::from(Rc::new(filtered)));
+        } else {
+            show_err(anyhow!("Failed to upgrade main window"));
+        }
+    });
+
+    let weak = app.as_weak();
+    app.on_update_filtered_games(move |filter| {
+        if let Some(handle) = weak.upgrade() {
+            let games = handle.get_games();
+            if filter.is_empty() {
+                handle.set_filtered_games(games);
+                return;
+            }
+
+            let filter = filter.to_lowercase();
+            let filtered = games.filter(move |game| game.display_title.to_lowercase().contains(&*filter));
+            handle.set_filtered_games(ModelRc::from(Rc::new(filtered)));
         } else {
             show_err(anyhow!("Failed to upgrade main window"));
         }
