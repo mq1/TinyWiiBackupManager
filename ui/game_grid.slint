@@ -1,12 +1,13 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { ScrollView, Vertical } from "@material";
+import { ScrollView, Vertical, TextField } from "@material";
 import { Game } from "common.slint";
 import { GameCard, GameCardButtons } from "game_card.slint";
 
 export component GameGrid inherits ScrollView {
     in property <[Game]> games;
+    out property <string> filter: "";
 
     property <length> card_w: 176px;
     property <length> card_h: 230px;
@@ -16,12 +17,24 @@ export component GameGrid inherits ScrollView {
 
     callback open_url(string);
     callback remove_dir(string);
+    callback update_filter(string);
 
     horizontal-stretch: 1;
     vertical-stretch: 1;
-    viewport_height: rows * card_h + 8px;
+    viewport_height: rows * card_h + 56px + 16px;
 
     Vertical {
+        TextField {
+            height: 56px;
+            leading_icon: @image-url("../mdi/magnify.svg");
+            label: "Filter";
+            placeholder-text: "Search...";
+            edited(text) => {
+                filter = text;
+                update_filter(text);
+            }
+        }
+
         Rectangle {
             for game[index] in games: GameCard {
                 x: mod(index, columns) * card_w;
