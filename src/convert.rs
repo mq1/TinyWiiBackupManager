@@ -4,9 +4,8 @@
 use crate::{
     TaskType, WiiOutputFormat,
     config::Config,
-    covers::download_cover3d,
+    covers::download_covers,
     extensions::{SUPPORTED_INPUT_EXTENSIONS, get_convert_extension},
-    show_err,
     tasks::TaskProcessor,
     util,
 };
@@ -57,9 +56,12 @@ fn get_output_format_opts(config: &Config) -> FormatOptions {
 
 pub fn add_games(config: &Arc<RwLock<Config>>, task_processor: &Arc<TaskProcessor>) -> Result<()> {
     let config = config.read();
+    let wii_output_format = config.wii_output_format;
+    let disc_opts = get_disc_opts();
+    let process_opts = get_process_opts(&config);
+    let out_opts = get_output_format_opts(&config);
 
-    let mount_point = &config.mount_point;
-    if mount_point.as_os_str().is_empty() {
+    if config.mount_point.as_os_str().is_empty() {
         bail!("No mount point selected");
     }
 
@@ -68,18 +70,14 @@ pub fn add_games(config: &Arc<RwLock<Config>>, task_processor: &Arc<TaskProcesso
         .pick_files()
         .ok_or(anyhow!("No Games Selected"))?;
 
-    let len = paths.len();
-    for (i, path) in paths.into_iter().enumerate() {
-        let disc_opts = get_disc_opts();
-        let process_opts = get_process_opts(&config);
-        let mount_point = mount_point.clone();
-        let config = config.clone();
+    let mount_point_clone = config.mount_point.clone();
+    task_processor.spawn(Box::new(move |weak| {
+        weak.upgrade_in_event_loop(|handle| {
+            handle.set_task_type(TaskType::Converting);
+        })?;
 
-        task_processor.spawn(Box::new(move |weak| {
-            let _ = weak.upgrade_in_event_loop(move |handle| {
-                handle.set_task_type(TaskType::Converting);
-            });
-
+        let len = paths.len();
+        for (i, path) in paths.into_iter().enumerate() {
             let disc = DiscReader::new(path, &disc_opts)?;
 
             let header = disc.header().clone();
@@ -87,7 +85,7 @@ pub fn add_games(config: &Arc<RwLock<Config>>, task_processor: &Arc<TaskProcesso
             let id = header.game_id_str();
             let is_wii = header.is_wii();
 
-            let dir_path = mount_point
+            let dir_path = mount_point_clone
                 .join(if is_wii { "wbfs" } else { "games" })
                 .join(format!("{title} [{id}]"));
 
@@ -99,11 +97,10 @@ pub fn add_games(config: &Arc<RwLock<Config>>, task_processor: &Arc<TaskProcesso
 
             let path = dir_path
                 .join(id)
-                .with_extension(get_convert_extension(&config, is_wii));
+                .with_extension(get_convert_extension(wii_output_format, is_wii));
 
             let mut out = BufWriter::new(File::create(&path)?);
 
-            let out_opts = get_output_format_opts(&config);
             let writer = DiscWriter::new(disc, &out_opts)?;
             let finalization = writer.process(
                 |data, progress, total| {
@@ -135,15 +132,21 @@ pub fn add_games(config: &Arc<RwLock<Config>>, task_processor: &Arc<TaskProcesso
                 handle.set_status(format!("Downloading Cover for {}", &title).to_shared_string());
                 handle.set_task_type(TaskType::DownloadingCovers);
             })?;
+        }
 
-            // Fail safe
-            if let Err(e) = download_cover3d(&id, &mount_point) {
-                show_err(e);
-            }
+        Ok(())
+    }))?;
 
-            Ok(())
-        }))?;
-    }
+    // Download covers (ignores errors)
+    let mount_point_clone = config.mount_point.clone();
+    task_processor.spawn(Box::new(move |weak| {
+        weak.upgrade_in_event_loop(|handle| {
+            handle.set_task_type(TaskType::DownloadingCovers);
+            handle.set_status("Downloading Missing Covers...".to_shared_string());
+        })?;
+
+        download_covers(&mount_point_clone)
+    }))?;
 
     Ok(())
 }
