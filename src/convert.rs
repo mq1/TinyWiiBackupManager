@@ -10,18 +10,18 @@ use crate::{
     util::{self, can_write_over_4gb},
 };
 use anyhow::{Result, anyhow, bail};
+use arc_swap::ArcSwap;
 use nod::{
     common::Format,
     read::{DiscOptions, DiscReader, PartitionEncryption},
     write::{DiscWriter, FormatOptions, ProcessOptions},
 };
-use parking_lot::RwLock;
 use rfd::FileDialog;
 use slint::ToSharedString;
-use std::sync::Arc;
 use std::{
     fs::{self, File},
     io::{BufWriter, Seek, Write},
+    sync::Arc,
 };
 
 const SPLIT_SIZE: u64 = 4 * 1024 * 1024 * 1024 - 32 * 1024;
@@ -56,8 +56,8 @@ fn get_output_format_opts(config: &Config) -> FormatOptions {
     }
 }
 
-pub fn add_games(config: &Arc<RwLock<Config>>, task_processor: &Arc<TaskProcessor>) -> Result<()> {
-    let config = config.read();
+pub fn add_games(config: &Arc<ArcSwap<Config>>, task_processor: &Arc<TaskProcessor>) -> Result<()> {
+    let config = config.load();
     let wii_output_format = config.wii_output_format;
     let disc_opts = get_disc_opts();
     let process_opts = get_process_opts(&config);
