@@ -201,11 +201,37 @@ fn run() -> Result<()> {
     });
 
     let data_dir_clone = data_dir.clone();
-    app.on_get_oscwii_apps(move || match oscwii::Apps::load(&data_dir_clone) {
-        Ok(apps) => apps.get_model(),
-        Err(e) => {
+    let weak = app.as_weak();
+    app.on_update_oscwii_apps(move || {
+        let res = oscwii::Apps::load(&data_dir_clone);
+
+        if let Err(e) = res {
             show_err(e);
-            ModelRc::new(VecModel::from(Vec::new()))
+        } else if let Ok(apps) = res {
+            let model = apps.get_model();
+
+            if let Some(handle) = weak.upgrade() {
+                handle.set_oscwii_apps(model);
+            } else {
+                show_err(anyhow!("Failed to upgrade main window"));
+            }
+        }
+    });
+
+    let weak = app.as_weak();
+    app.on_update_filtered_oscwii_apps(move |filter| {
+        if let Some(handle) = weak.upgrade() {
+            let apps = handle.get_oscwii_apps();
+            if filter.is_empty() {
+                handle.set_filtered_oscwii_apps(apps);
+                return;
+            }
+
+            let filter = filter.to_lowercase();
+            let filtered = apps.filter(move |app| app.name.to_lowercase().contains(&*filter));
+            handle.set_filtered_oscwii_apps(ModelRc::from(Rc::new(filtered)));
+        } else {
+            show_err(anyhow!("Failed to upgrade main window"));
         }
     });
 

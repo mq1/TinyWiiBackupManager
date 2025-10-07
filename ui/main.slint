@@ -28,6 +28,8 @@ export component MainWindow inherits Window {
     in property <UpdateInfo> update_info;
     out property <HbcApp> current_app;
     in-out property <Config> config;
+    in property <[OscWiiApp]> oscwii_apps: [];
+    in property <[OscWiiApp]> filtered_oscwii_apps: [];
 
     callback choose_mount_point();
     callback open_url(string);
@@ -37,8 +39,8 @@ export component MainWindow inherits Window {
     callback open_data_dir();
     callback update_config(Config);
     callback push_zip(string);
-
-    pure callback get_oscwii_apps() -> [OscWiiApp];
+    callback update_oscwii_apps();
+    callback update_filtered_oscwii_apps(string);
 
     preferred-width: 800px;
     preferred-height: 600px;
@@ -49,6 +51,7 @@ export component MainWindow inherits Window {
             current_index <=> current_index;
             is_macos: is_macos;
             game_count: games.length;
+            app_count: hbc_apps.length;
             update_info: update_info;
             choose_mount_point => {
                 choose_mount_point();
@@ -67,6 +70,12 @@ export component MainWindow inherits Window {
             }
             open-wiiload => {
                 wiiload.show();
+            }
+            update_oscwii_apps => {
+                if oscwii_apps.length == 0 {
+                    update_oscwii_apps();
+                    update_filtered_oscwii_apps("");
+                }
             }
         }
 
@@ -96,9 +105,12 @@ export component MainWindow inherits Window {
             }
 
             if current_index == 2: OscWiiAppGrid {
-                apps: get_oscwii_apps();
+                apps: filtered_oscwii_apps;
                 open_url(url) => {
                     open_url(url);
+                }
+                update_filter(filter) => {
+                    update_filtered_oscwii_apps(filter);
                 }
             }
 

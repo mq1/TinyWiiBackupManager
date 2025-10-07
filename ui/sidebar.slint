@@ -8,6 +8,7 @@ export component SideBar inherits VerticalLayout {
     in-out property <int> current_index: 0;
     in property <bool> is_macos: false;
     in property <int> game_count: 0;
+    in property <int> app_count: 0;
     in property <UpdateInfo> update_info;
 
     callback set_window_title(string);
@@ -16,6 +17,7 @@ export component SideBar inherits VerticalLayout {
     callback add_apps();
     callback open_url(string);
     callback open_wiiload();
+    callback update_oscwii_apps();
 
     Rectangle {
         width: 80px;
@@ -74,10 +76,11 @@ export component SideBar inherits VerticalLayout {
                 set_window_title(" • " + game_count + " Games");
             }
             if i == 1 {
-                set_window_title(" • Apps");
+                set_window_title(" • " + app_count + " Apps");
             }
             if i == 2 {
                 set_window_title(" • OSCWii");
+                update_oscwii_apps();
             }
             if i == 3 {
                 set_window_title(" • Settings");
