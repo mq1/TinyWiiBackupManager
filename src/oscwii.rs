@@ -53,6 +53,10 @@ impl Apps {
 
         ModelRc::from(Rc::new(list))
     }
+
+    pub fn empty() -> Self {
+        Self(vec![])
+    }
 }
 
 impl OscWiiApp {
