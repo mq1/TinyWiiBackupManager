@@ -19,7 +19,7 @@ use slint::ToSharedString;
 use std::{
     fs::{self, File},
     io::{BufWriter, Seek, Write},
-    path::{Path, PathBuf},
+    path::PathBuf,
     sync::Arc,
 };
 
@@ -55,16 +55,12 @@ fn get_output_format_opts(config: &Config) -> FormatOptions {
     }
 }
 
-pub fn add_games(
-    data_dir: &Path,
-    task_processor: &Arc<TaskProcessor>,
-    remove_sources: bool,
-) -> Result<()> {
-    let config = Config::load(data_dir);
+pub fn add_games(config: &Config, task_processor: &Arc<TaskProcessor>) -> Result<()> {
     if config.mount_point.is_empty() {
         bail!("Conversion Failed: No mount point selected");
     }
 
+    let remove_sources = config.remove_sources_games;
     let mount_point = PathBuf::from(&config.mount_point);
     let wii_output_format = config.wii_output_format;
     let disc_opts = get_disc_opts();

@@ -150,10 +150,9 @@ fn run() -> Result<()> {
         }
     });
 
-    let data_dir_clone = data_dir.clone();
     let task_processor_clone = task_processor.clone();
-    app.on_add_games(move |remove_sources| {
-        if let Err(e) = convert::add_games(&data_dir_clone, &task_processor_clone, remove_sources) {
+    app.on_add_games(move |config| {
+        if let Err(e) = convert::add_games(&config, &task_processor_clone) {
             show_err(e);
         }
     });
@@ -186,12 +185,9 @@ fn run() -> Result<()> {
         }
     });
 
-    let data_dir_clone = data_dir.clone();
     let task_processor_clone = task_processor.clone();
-    app.on_add_apps(move |remove_sources| {
-        if let Err(e) =
-            install_apps::install_apps(&data_dir_clone, &task_processor_clone, remove_sources)
-        {
+    app.on_add_apps(move |config| {
+        if let Err(e) = install_apps::install_apps(&config, &task_processor_clone) {
             show_err(e);
         }
     });
@@ -226,56 +222,38 @@ fn run() -> Result<()> {
         }
     });
 
-    let weak = app.as_weak();
-    app.on_update_filtered_oscwii_apps(move |filter| {
-        if let Some(handle) = weak.upgrade() {
-            let apps = handle.get_oscwii_apps();
-            if filter.is_empty() {
-                handle.set_filtered_oscwii_apps(apps);
-                return;
-            }
-
-            let filter = filter.to_lowercase();
-            let filtered = apps.filter(move |app| app.name.to_lowercase().contains(&*filter));
-            handle.set_filtered_oscwii_apps(ModelRc::from(Rc::new(filtered)));
-        } else {
-            show_err(anyhow!("Failed to upgrade main window"));
+    app.on_update_filtered_oscwii_apps(move |apps, filter| {
+        if filter.is_empty() {
+            return apps;
         }
+
+        let filter = filter.to_lowercase();
+        let filtered = apps.filter(move |app| app.name.to_lowercase().contains(&*filter));
+
+        ModelRc::from(Rc::new(filtered))
     });
 
-    let weak = app.as_weak();
-    app.on_update_filtered_hbc_apps(move |filter| {
-        if let Some(handle) = weak.upgrade() {
-            let apps = handle.get_hbc_apps();
-            if filter.is_empty() {
-                handle.set_filtered_hbc_apps(apps);
-                return;
-            }
-
-            let filter = filter.to_lowercase();
-            let filtered = apps.filter(move |app| app.name.to_lowercase().contains(&*filter));
-            handle.set_filtered_hbc_apps(ModelRc::from(Rc::new(filtered)));
-        } else {
-            show_err(anyhow!("Failed to upgrade main window"));
+    app.on_update_filtered_hbc_apps(move |apps, filter| {
+        if filter.is_empty() {
+            return apps;
         }
+
+        let filter = filter.to_lowercase();
+        let filtered = apps.filter(move |app| app.name.to_lowercase().contains(&*filter));
+
+        ModelRc::from(Rc::new(filtered))
     });
 
-    let weak = app.as_weak();
-    app.on_update_filtered_games(move |filter| {
-        if let Some(handle) = weak.upgrade() {
-            let games = handle.get_games();
-            if filter.is_empty() {
-                handle.set_filtered_games(games);
-                return;
-            }
-
-            let filter = filter.to_lowercase();
-            let filtered =
-                games.filter(move |game| game.display_title.to_lowercase().contains(&*filter));
-            handle.set_filtered_games(ModelRc::from(Rc::new(filtered)));
-        } else {
-            show_err(anyhow!("Failed to upgrade main window"));
+    app.on_update_filtered_games(move |games, filter| {
+        if filter.is_empty() {
+            return games;
         }
+
+        let filter = filter.to_lowercase();
+        let filtered =
+            games.filter(move |game| game.display_title.to_lowercase().contains(&*filter));
+
+        ModelRc::from(Rc::new(filtered))
     });
 
     if std::env::var_os("TWBM_DISABLE_UPDATES").is_none()
