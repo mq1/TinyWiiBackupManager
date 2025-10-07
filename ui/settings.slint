@@ -2,22 +2,16 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import { Vertical, RadioButton, Horizontal, HorizontalDivider, MaterialText, ElevatedButton, Icon } from "@material";
-import { WiiOutputFormat, ArchiveFormat } from "common.slint";
+import { Config, WiiOutputFormat, ArchiveFormat } from "common.slint";
 import { FilledIconButton } from "../material-1.0/ui/components/filled_icon_button.slint";
 
 export component SettingsPage inherits Vertical {
     padding: 16px;
     spacing: 4px;
 
-    in-out property <WiiOutputFormat> wii_output_format;
-    in-out property <ArchiveFormat> archive_format;
-    in-out property <bool> remove_update_partition;
-    in-out property <bool> always_split;
+    in-out property <Config> config;
 
-    callback wii_output_format_changed(WiiOutputFormat);
-    callback archive_format_changed(ArchiveFormat);
-    callback remove_update_partition_changed(bool);
-    callback always_split_changed(bool);
+    callback update_config();
     callback open_data_dir();
 
     Horizontal {
@@ -41,10 +35,10 @@ export component SettingsPage inherits Vertical {
         RadioButton {
             height: 14px;
             width: 14px;
-            checked: wii_output_format == WiiOutputFormat.Wbfs;
+            checked: config.wii-output-format == WiiOutputFormat.Wbfs;
             clicked => {
-                wii_output_format = WiiOutputFormat.Wbfs;
-                wii_output_format_changed(WiiOutputFormat.Wbfs);
+                config.wii-output-format = WiiOutputFormat.Wbfs;
+                update_config();
             }
         }
 
@@ -60,10 +54,10 @@ export component SettingsPage inherits Vertical {
         RadioButton {
             height: 14px;
             width: 14px;
-            checked: wii_output_format == WiiOutputFormat.Iso;
+            checked: config.wii-output-format == WiiOutputFormat.Iso;
             clicked => {
-                wii_output_format = WiiOutputFormat.Iso;
-                wii_output_format_changed(WiiOutputFormat.Iso);
+                config.wii-output-format = WiiOutputFormat.Iso;
+                update_config();
             }
         }
 
@@ -95,10 +89,10 @@ export component SettingsPage inherits Vertical {
         RadioButton {
             height: 14px;
             width: 14px;
-            checked: !always_split;
+            checked: !config.always-split;
             clicked => {
-                always_split = false;
-                always_split_changed(false);
+                config.always-split = false;
+                update_config();
             }
         }
 
@@ -114,10 +108,10 @@ export component SettingsPage inherits Vertical {
         RadioButton {
             height: 14px;
             width: 14px;
-            checked: always_split;
+            checked: config.always-split;
             clicked => {
-                always_split = true;
-                always_split_changed(true);
+                config.always-split = true;
+                update_config();
             }
         }
 
@@ -149,10 +143,10 @@ export component SettingsPage inherits Vertical {
         RadioButton {
             height: 14px;
             width: 14px;
-            checked: !remove_update_partition;
+            checked: !config.scrub-update-partition;
             clicked => {
-                remove_update_partition = false;
-                remove_update_partition_changed(false);
+                config.scrub-update-partition = false;
+                update_config();
             }
         }
 
@@ -168,10 +162,10 @@ export component SettingsPage inherits Vertical {
         RadioButton {
             height: 14px;
             width: 14px;
-            checked: remove_update_partition;
+            checked: config.scrub-update-partition;
             clicked => {
-                remove_update_partition = true;
-                remove_update_partition_changed(true);
+                config.scrub-update-partition = true;
+                update_config();
             }
         }
 
@@ -203,10 +197,10 @@ export component SettingsPage inherits Vertical {
         RadioButton {
             height: 14px;
             width: 14px;
-            checked: archive_format == ArchiveFormat.Rvz;
+            checked: config.archive-format == ArchiveFormat.Rvz;
             clicked => {
-                archive_format = ArchiveFormat.Rvz;
-                archive_format_changed(ArchiveFormat.Rvz);
+                config.archive-format = ArchiveFormat.Rvz;
+                update_config();
             }
         }
 
@@ -222,10 +216,10 @@ export component SettingsPage inherits Vertical {
         RadioButton {
             height: 14px;
             width: 14px;
-            checked: archive_format == ArchiveFormat.Iso;
+            checked: config.archive-format == ArchiveFormat.Iso;
             clicked => {
-                archive_format = ArchiveFormat.Iso;
-                archive_format_changed(ArchiveFormat.Iso);
+                config.archive-format = ArchiveFormat.Iso;
+                update_config();
             }
         }
 

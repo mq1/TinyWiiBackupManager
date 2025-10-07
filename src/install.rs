@@ -1,13 +1,16 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{fs::File, io::BufReader, path::Path, sync::Arc};
-
+use crate::{Config, TaskType, tasks::TaskProcessor};
 use anyhow::Result;
 use slint::ToSharedString;
+use std::{
+    fs::File,
+    io::BufReader,
+    path::{Path, PathBuf},
+    sync::Arc,
+};
 use zip::ZipArchive;
-
-use crate::{TaskType, config::Config, tasks::TaskProcessor};
 
 pub fn install_apps(data_dir: &Path, task_processor: &Arc<TaskProcessor>) -> Result<()> {
     let config = Config::load(data_dir);
@@ -19,7 +22,8 @@ pub fn install_apps(data_dir: &Path, task_processor: &Arc<TaskProcessor>) -> Res
 
     if let Some(paths) = paths {
         for path in paths {
-            let mount_point = config.mount_point.clone();
+            let mount_point = PathBuf::from(&config.mount_point);
+
             task_processor.spawn(Box::new(move |weak| {
                 let status = format!("Installing {}...", path.display());
                 weak.upgrade_in_event_loop(move |handle| {

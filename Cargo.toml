@@ -22,7 +22,7 @@ OriginalFilename = "TinyWiiBackupManager.exe"
 LegalCopyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-3.0-only."
 
 [dependencies]
-slint = "1.13"
+slint = { version = "1.13", features = ["serde"] }
 rfd = "0.15"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
@@ -44,6 +44,7 @@ nod = { git = "https://github.com/mq1/nod", branch = "strip-wbfs" }
 num_cpus = "1.17"
 parking_lot = "0.12"
 semver = "1.0"
+path-slash = "0.2"
 
 [target.'cfg(any(target_os = "macos", all(target_os = "windows", any(target_arch = "x86_64", target_arch = "aarch64"))))'.dependencies]
 ureq = { version = "3.1", default-features = false, features = [

@@ -2,8 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    TaskType, WiiOutputFormat,
-    config::Config,
+    Config, TaskType, WiiOutputFormat,
     covers::download_covers,
     extensions::SUPPORTED_INPUT_EXTENSIONS,
     tasks::TaskProcessor,
@@ -20,7 +19,7 @@ use slint::ToSharedString;
 use std::{
     fs::{self, File},
     io::{BufWriter, Seek, Write},
-    path::Path,
+    path::{Path, PathBuf},
     sync::Arc,
 };
 
@@ -58,23 +57,23 @@ fn get_output_format_opts(config: &Config) -> FormatOptions {
 
 pub fn add_games(data_dir: &Path, task_processor: &Arc<TaskProcessor>) -> Result<()> {
     let config = Config::load(data_dir);
+    if config.mount_point.is_empty() {
+        bail!("Conversion Failed: No mount point selected");
+    }
 
+    let mount_point = PathBuf::from(&config.mount_point);
     let wii_output_format = config.wii_output_format;
     let disc_opts = get_disc_opts();
     let process_opts = get_process_opts(&config);
     let out_opts = get_output_format_opts(&config);
-    let must_split = config.always_split || can_write_over_4gb(&config.mount_point).is_err();
-
-    if config.mount_point.as_os_str().is_empty() {
-        bail!("Conversion Failed: No mount point selected");
-    }
+    let must_split = config.always_split || can_write_over_4gb(&mount_point).is_err();
 
     let paths = FileDialog::new()
         .add_filter("Nintendo Optical Disc", SUPPORTED_INPUT_EXTENSIONS)
         .pick_files()
         .ok_or(anyhow!("No Games Selected"))?;
 
-    let mount_point_clone = config.mount_point.clone();
+    let mount_point_clone = mount_point.clone();
     task_processor.spawn(Box::new(move |weak| {
         weak.upgrade_in_event_loop(|handle| {
             handle.set_task_type(TaskType::Converting);
@@ -157,7 +156,7 @@ pub fn add_games(data_dir: &Path, task_processor: &Arc<TaskProcessor>) -> Result
     }))?;
 
     // Download covers (ignores errors)
-    let mount_point_clone = config.mount_point.clone();
+    let mount_point_clone = mount_point.clone();
     task_processor.spawn(Box::new(move |weak| {
         weak.upgrade_in_event_loop(|handle| {
             handle.set_task_type(TaskType::DownloadingCovers);
