@@ -4,9 +4,11 @@
 // Don't show windows terminal
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+pub mod archive;
 pub mod config;
 pub mod convert;
 pub mod covers;
+pub mod double_reader;
 pub mod extensions;
 pub mod games;
 pub mod hbc_apps;
@@ -196,9 +198,10 @@ fn run() -> Result<()> {
             .set_title("Select Wii HBC App")
             .add_filter("Wii App", &["zip", "ZIP"])
             .pick_file()
-            && let Err(e) = wiiload::push(&path, &wii_ip) {
-                show_err(e);
-            }
+            && let Err(e) = wiiload::push(&path, &wii_ip)
+        {
+            show_err(e);
+        }
     });
 
     let data_dir_clone = data_dir.clone();
@@ -275,6 +278,14 @@ fn run() -> Result<()> {
             wii_ip.to_string(),
             &task_processor_clone,
         ) {
+            show_err(e);
+        }
+    });
+
+    let task_processor_clone = task_processor.clone();
+    app.on_archive_game(move |path, config| {
+        if let Err(e) = archive::archive_game(PathBuf::from(&path), &config, &task_processor_clone)
+        {
             show_err(e);
         }
     });
