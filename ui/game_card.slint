@@ -1,46 +1,57 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { Vertical, Horizontal, IconButton, ElevatedCard, MaterialText, MaterialPalette } from "@material";
+import { Vertical, Horizontal, IconButton, ElevatedCard, MaterialText, MaterialPalette, VerticalDivider } from "@material";
 import { Game, Console } from "common.slint";
 
-export component GameCard inherits Vertical {
+component ConsoleLabel inherits HorizontalLayout {
+    in property <Console> console;
+    alignment: start;
+
+    if console == Console.Wii: Image {
+        vertical-alignment: center;
+        colorize: MaterialPalette.on_surface;
+        source: @image-url("../mdi/tennis.svg");
+        height: 18px;
+        width: 18px;
+    }
+
+    if console == Console.Wii: MaterialText {
+        vertical-alignment: center;
+        text: " Wii";
+    }
+
+    if console == Console.GameCube: Image {
+        vertical-alignment: center;
+        colorize: MaterialPalette.on_surface;
+        source: @image-url("../mdi/cube-outline.svg");
+        height: 18px;
+        width: 18px;
+    }
+
+    if console == Console.GameCube: MaterialText {
+        vertical-alignment: center;
+        text: " GC";
+    }
+
+    if console == Console.Unknown: MaterialText {
+        vertical-alignment: center;
+        text: "???";
+    }
+}
+
+export component GameCard inherits VerticalLayout {
     in property <Game> game;
+    in property <bool> is_li;
     padding: 4px;
 
     ElevatedCard {
-        Vertical {
+        if !is_li: Vertical {
             Horizontal {
-                spacing: 4px;
+                alignment: space-between;
 
-                if game.console == Console.Wii: Image {
-                    source: @image-url("../mdi/tennis.svg");
-                    colorize: MaterialPalette.on_background;
-                    height: 14px;
-                    width: 14px;
-                }
-
-                if game.console == Console.Wii: MaterialText {
-                    text: "Wii";
-                }
-
-                if game.console == Console.GameCube: Image {
-                    source: @image-url("../mdi/cube-outline.svg");
-                    colorize: MaterialPalette.on_background;
-                    height: 14px;
-                    width: 14px;
-                }
-
-                if game.console == Console.GameCube: MaterialText {
-                    text: "GC";
-                }
-
-                if game.console == Console.Unknown: MaterialText {
-                    text: "???";
-                }
-
-                Rectangle {
-                    horizontal-stretch: 1;
+                ConsoleLabel {
+                    console: game.console;
                 }
 
                 MaterialText {
@@ -61,11 +72,33 @@ export component GameCard inherits Vertical {
                 height: 30px;
             }
         }
+
+        if is_li: Horizontal {
+            alignment: start;
+            spacing: 16px;
+            padding-left: 12px;
+            padding-right: 12px;
+
+            MaterialText {
+                text: game.display-title;
+            }
+
+            VerticalDivider { }
+
+            ConsoleLabel {
+                console: game.console;
+            }
+
+            VerticalDivider { }
+
+            MaterialText {
+                text: game.size;
+            }
+        }
     }
 }
 
 export component GameCardButtons inherits Horizontal {
-    alignment: center;
     height: 34px;
 
     callback open_game_info();
