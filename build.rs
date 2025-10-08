@@ -1,14 +1,17 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{collections::HashMap, path::Path};
+use std::{collections::HashMap, env::var, path::Path};
 
 fn main() {
-    let config = slint_build::CompilerConfiguration::new().with_library_paths(HashMap::from([(
-        "material".to_string(),
-        Path::new(&std::env::var_os("CARGO_MANIFEST_DIR").unwrap())
-            .join("material-1.0/material.slint"),
-    )]));
+    let manifest_dir = var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR env var not set");
+
+    let material_path = Path::new(&manifest_dir).join("material-1.0/material.slint");
+
+    let mut library_paths = HashMap::new();
+    library_paths.insert("material".to_string(), material_path);
+
+    let config = slint_build::CompilerConfiguration::new().with_library_paths(library_paths);
     slint_build::compile_with_config("ui/main.slint", config).unwrap();
 
     // Windows-specific icon resource
