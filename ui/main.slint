@@ -50,6 +50,7 @@ export component MainWindow inherits Window {
     callback update_filtered_games([Game], string) -> [Game];
     callback dot_clean(string);
     callback download_oscwii(string, string);
+    callback download_wiitdb(string);
 
     preferred-width: 800px;
     preferred-height: 600px;
@@ -85,6 +86,9 @@ export component MainWindow inherits Window {
                     oscwii_apps = load_oscwii_apps();
                     filtered_oscwii_apps = oscwii_apps;
                 }
+            }
+            download_wiitdb => {
+                download_wiitdb(config.mount-point);
             }
             dot_clean => {
                 dot_clean(config.mount-point);

@@ -47,6 +47,10 @@ export component Status inherits Rectangle {
             source: @image-url("../mdi/folder-download.svg");
         }
 
+        if task_type == TaskType.DownloadingFile: Icon {
+            source: @image-url("../mdi/file-download.svg");
+        }
+
         MaterialText {
             vertical-alignment: center;
             text: status;
