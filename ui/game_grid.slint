@@ -2,13 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import { ScrollView, Vertical, TextField, SegmentedButton, Horizontal } from "@material";
-import { Game } from "common.slint";
+import { Game, ArchiveFormat } from "common.slint";
 import { GameCard, GameCardButtons } from "game_card.slint";
 
 export component GameGrid inherits ScrollView {
     in property <[Game]> games;
     out property <string> filter: "";
     property <bool> as_list: false;
+    in property <ArchiveFormat> archive_format;
 
     property <length> card_w: as_list ? self.width - 16px : 176px;
     property <length> card_h: as_list ? 42px : 230px;
@@ -69,6 +70,7 @@ export component GameGrid inherits ScrollView {
                 width: card_w;
                 alignment: as_list ? end : center;
                 padding-right: as_list ? 16px : 4px;
+                archive_format: archive_format;
                 open_game_info => {
                     open_url("https://www.gametdb.com/Wii/" + game.id);
                 }
