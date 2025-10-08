@@ -635,9 +635,9 @@ dependencies = [
 
 [[package]]
 name = "block-padding"
-version = "0.4.1"
+version = "0.4.0-rc.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "41d28ed5f5f65056148fd25e1a596b5b6d9e772270abf9a9085d7cbfbf26c563"
+checksum = "7e59c1aab3e6c5e56afe1b7e8650be9b5a791cb997bdea449194ae62e4bf8c73"
 dependencies = [
  "hybrid-array",
 ]
@@ -2643,9 +2643,9 @@ dependencies = [
 
 [[package]]
 name = "inout"
-version = "0.2.1"
+version = "0.2.0-rc.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c7357b6e7aa75618c7864ebd0634b115a7218b0615f4cb1df33ac3eca23943d4"
+checksum = "1603f76010ff924b616c8f44815a42eb10fb0b93d308b41deaa8da6d4251fd4b"
 dependencies = [
  "block-padding",
  "hybrid-array",
@@ -3229,11 +3229,12 @@ dependencies = [
 [[package]]
 name = "nod"
 version = "2.0.0-alpha.3"
-source = "git+https://github.com/mq1/nod?branch=strip-wbfs#4d3dab29ba5fab58e53c6be50f913f38caacea3c"
+source = "git+https://github.com/mq1/nod?branch=strip-wbfs#da1948b9d9dd1ae0b1fe2ddbdd7ab2ac756dfc84"
 dependencies = [
  "adler",
  "aes",
  "base16ct",
+ "block-padding",
  "bytes",
  "bzip2",
  "cbc",
