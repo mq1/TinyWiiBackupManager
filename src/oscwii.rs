@@ -15,7 +15,7 @@ pub struct Apps(pub Vec<App>);
 
 impl Apps {
     pub fn load(data_dir: &Path) -> Result<Self> {
-        let path = data_dir.join("oscwii.json");
+        let path = data_dir.join("oscwii-cache.json");
 
         let mut apps = if let Ok(apps) = Self::load_cache(&path) {
             apps
@@ -40,7 +40,7 @@ impl Apps {
         let elapsed = file_time.elapsed()?;
 
         if elapsed > Duration::from_secs(60 * 60 * 24) {
-            bail!("oscwii.json is too old");
+            bail!("oscwii-cache.json is too old");
         }
 
         let bytes = fs::read(&path)?;
