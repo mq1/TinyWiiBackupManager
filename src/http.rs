@@ -3,7 +3,6 @@
 
 use std::convert::Into;
 use std::sync::LazyLock;
-use std::time::Duration;
 use ureq::Agent;
 use ureq::tls::{RootCerts, TlsConfig, TlsProvider};
 
@@ -53,7 +52,7 @@ pub static AGENT: LazyLock<Agent> = LazyLock::new(|| {
                 .root_certs(ROOT_CERTS)
                 .build(),
         )
-        .timeout_global(Some(Duration::from_secs(10)))
+        //.timeout_global(Some(Duration::from_secs(30)))
         .user_agent(USER_AGENT)
         .build()
         .into()

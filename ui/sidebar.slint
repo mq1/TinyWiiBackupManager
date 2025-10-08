@@ -19,6 +19,7 @@ export component SideBar inherits VerticalLayout {
     callback open_wiiload();
     callback update_oscwii_apps();
     callback dot_clean();
+    callback download_wiitdb();
 
     Rectangle {
         width: 80px;
@@ -121,6 +122,11 @@ export component SideBar inherits VerticalLayout {
                         enabled: true,
                     },
                     {
+                        icon: @image-url("../mdi/file-download.svg"),
+                        text: "Download wiitdb.xml",
+                        enabled: true,
+                    },
+                    {
                         icon: @image-url("../mdi/ghost.svg"),
                         text: "dot_clean (macOS only)",
                         enabled: is_macos,
@@ -131,6 +137,9 @@ export component SideBar inherits VerticalLayout {
                         choose_mount_point();
                     }
                     if i == 1 {
+                        download_wiitdb();
+                    }
+                    if i == 2 {
                         dot_clean();
                     }
                     self.close();
