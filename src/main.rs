@@ -93,7 +93,10 @@ fn choose_mount_point(
         .ok_or(anyhow!("No directory selected"))?;
 
     let mut config = Config::load(data_dir);
-    config.mount_point = dir.to_slash_lossy().to_shared_string();
+    config.mount_point = dir
+        .to_slash()
+        .ok_or(anyhow!("Invalid path"))?
+        .to_shared_string();
     config.save(data_dir)?;
     handle.set_config(config);
 
@@ -118,7 +121,10 @@ fn run() -> Result<()> {
     let app = MainWindow::new()?;
     let mut config = Config::load(&data_dir);
     if let Some(path) = std::env::args().nth(1) {
-        config.mount_point = PathBuf::from(path).to_slash_lossy().to_shared_string();
+        config.mount_point = PathBuf::from(path)
+            .to_slash()
+            .ok_or(anyhow!("Invalid path"))?
+            .to_shared_string();
     }
     let mount_point = Path::new(&config.mount_point);
     let titles = Arc::new(Titles::load(&data_dir)?);
