@@ -123,6 +123,7 @@ pub fn add_app_from_url(
         let status = format!("Downloading {}...", url);
         weak.upgrade_in_event_loop(move |handle| {
             handle.set_status(status.to_shared_string());
+            handle.set_task_type(TaskType::DownloadingFolder);
         })?;
 
         let mut response = AGENT.get(url).call()?;
