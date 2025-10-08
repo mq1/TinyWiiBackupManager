@@ -309,7 +309,7 @@ fn run() -> Result<()> {
 
     let task_processor_clone = task_processor.clone();
     app.on_verify_game(move |path| {
-        if let Err(e) = verify::verify_game(&Path::new(&path), &task_processor_clone) {
+        if let Err(e) = verify::verify_game(Path::new(&path), &task_processor_clone) {
             show_err(e);
         }
     });
