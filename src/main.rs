@@ -116,7 +116,10 @@ fn run() -> Result<()> {
     fs::create_dir_all(&data_dir)?;
 
     let app = MainWindow::new()?;
-    let config = Config::load(&data_dir);
+    let mut config = Config::load(&data_dir);
+    if let Some(path) = std::env::args().nth(1) {
+        config.mount_point = PathBuf::from(path).to_slash_lossy().to_shared_string();
+    }
     let mount_point = Path::new(&config.mount_point);
     let titles = Arc::new(Titles::load(&data_dir)?);
     let task_processor = Arc::new(TaskProcessor::init(app.as_weak())?);
