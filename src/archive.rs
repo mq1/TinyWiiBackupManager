@@ -4,7 +4,7 @@
 use crate::{
     ArchiveFormat, Config, TaskType,
     convert::{get_disc_opts, get_process_opts},
-    double_reader::{DoubleReader, get_first_file, get_second_file},
+    overflow_reader::{OverflowReader, get_main_file, get_overflow_file},
     tasks::TaskProcessor,
 };
 use anyhow::{Result, anyhow};
@@ -27,7 +27,7 @@ pub fn archive_game(
     config: &Config,
     task_processor: &Arc<TaskProcessor>,
 ) -> Result<()> {
-    let path = get_first_file(&game_dir).ok_or(anyhow!("No disc found"))?;
+    let path = get_main_file(&game_dir).ok_or(anyhow!("No disc found"))?;
 
     let dest_dir = FileDialog::new()
         .set_title("Select destination directory")
@@ -42,7 +42,7 @@ pub fn archive_game(
         .to_string();
 
     // Look for file overflows
-    let second = get_second_file(&path);
+    let overflow = get_overflow_file(&path);
 
     let out_path = dest_dir
         .join(&base_name)
@@ -70,9 +70,8 @@ pub fn archive_game(
             handle.set_task_type(TaskType::Archiving);
         })?;
 
-        let disc = if let Some(second) = second {
-            let reader = DoubleReader::new(&path, &second)?;
-
+        let disc = if let Some(overflow) = overflow {
+            let reader = OverflowReader::new(&path, &overflow)?;
             DiscReader::new_stream(Box::new(reader), &get_disc_opts())?
         } else {
             DiscReader::new(&path, &get_disc_opts())?
