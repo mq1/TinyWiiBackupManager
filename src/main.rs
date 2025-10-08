@@ -18,6 +18,7 @@ pub mod tasks;
 pub mod titles;
 pub mod updater;
 pub mod util;
+pub mod verify;
 pub mod watcher;
 pub mod wiiload;
 pub mod wiitdb;
@@ -293,6 +294,13 @@ fn run() -> Result<()> {
     let task_processor_clone = task_processor.clone();
     app.on_download_wiitdb(move |mount_point| {
         if let Err(e) = wiitdb::download(PathBuf::from(&mount_point), &task_processor_clone) {
+            show_err(e);
+        }
+    });
+
+    let task_processor_clone = task_processor.clone();
+    app.on_verify_game(move |path| {
+        if let Err(e) = verify::verify_game(&Path::new(&path), &task_processor_clone) {
             show_err(e);
         }
     });

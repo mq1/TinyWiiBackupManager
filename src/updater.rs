@@ -51,6 +51,6 @@ pub fn check(task_processor: &Arc<TaskProcessor>) -> Result<()> {
             })?;
         }
 
-        Ok(())
+        Ok(String::new())
     }))
 }

@@ -67,10 +67,12 @@ export component GameCard inherits Vertical {
 export component GameCardButtons inherits Horizontal {
     alignment: center;
     height: 34px;
+
     callback open_game_info();
     callback open_game_dir();
     callback remove_game();
     callback archive_game();
+    callback verify_game();
 
     IconButton {
         icon: @image-url("../mdi/information.svg");
@@ -94,6 +96,9 @@ export component GameCardButtons inherits Horizontal {
         icon: @image-url("../mdi/check-all.svg");
         tooltip: "Verify Hashes";
         inline: true;
+        clicked => {
+            verify_game();
+        }
     }
 
     IconButton {

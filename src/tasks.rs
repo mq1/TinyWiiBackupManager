@@ -3,11 +3,12 @@
 
 use crate::{MainWindow, TaskType, show_err};
 use anyhow::{Result, anyhow};
+use rfd::{MessageDialog, MessageLevel};
 use slint::{SharedString, Weak};
 use std::sync::mpsc;
 use std::thread;
 
-pub type BoxedTask = Box<dyn FnOnce(&Weak<MainWindow>) -> Result<()> + Send>;
+pub type BoxedTask = Box<dyn FnOnce(&Weak<MainWindow>) -> Result<String> + Send>;
 
 pub struct TaskProcessor(mpsc::Sender<BoxedTask>);
 
@@ -22,9 +23,20 @@ impl TaskProcessor {
                     handle.set_task_count(handle.get_task_count() + 1);
                 });
 
-                // Execute the task
-                if let Err(e) = task(&weak) {
-                    show_err(e);
+                // Execute the task and show the optional message
+                match task(&weak) {
+                    Ok(msg) => {
+                        if !msg.is_empty() {
+                            let _ = MessageDialog::new()
+                                .set_level(MessageLevel::Info)
+                                .set_title("Info")
+                                .set_description(msg)
+                                .show();
+                        }
+                    }
+                    Err(e) => {
+                        show_err(e);
+                    }
                 }
 
                 // Cleanup
