@@ -45,6 +45,7 @@ export component MainWindow inherits Window {
     callback update_filtered_oscwii_apps([OscWiiApp], string) -> [OscWiiApp];
     callback update_filtered_hbc_apps([HbcApp], string) -> [HbcApp];
     callback update_filtered_games([Game], string) -> [Game];
+    callback dot_clean(string);
 
     preferred-width: 800px;
     preferred-height: 600px;
@@ -80,6 +81,9 @@ export component MainWindow inherits Window {
                     oscwii_apps = load_oscwii_apps();
                     filtered_oscwii_apps = oscwii_apps;
                 }
+            }
+            dot_clean => {
+                dot_clean(config.mount-point);
             }
         }
 
@@ -137,7 +141,7 @@ export component MainWindow inherits Window {
                 padding-bottom: 16px;
 
                 MaterialText {
-                    text: "⬅  Choose a drive or directory";
+                    text: "⬅  Choose a Drive or Directory";
                     font-size: 18px;
                 }
             }
