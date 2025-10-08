@@ -1,22 +1,16 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { ElevatedCard, Vertical, Horizontal, IconButton, MaterialText, Dialog, HorizontalDivider, ScrollView } from "@material";
+import { ElevatedCard, Vertical, Horizontal, IconButton, MaterialText, Dialog, HorizontalDivider, ScrollView, VerticalDivider, Icon } from "@material";
 import { HbcApp } from "common.slint";
 
 export component HbcAppCard inherits VerticalLayout {
     in property <HbcApp> app;
+    in property <bool> is_li;
     padding: 4px;
 
     ElevatedCard {
-        Vertical {
-            Horizontal {
-                alignment: end;
-                MaterialText {
-                    text: app.size;
-                }
-            }
-
+        if !is_li: Vertical {
             Image {
                 source: app.image;
             }
@@ -26,15 +20,106 @@ export component HbcAppCard inherits VerticalLayout {
                 text: app.name;
             }
 
+            HorizontalDivider { }
+
+            Rectangle {
+                vertical-stretch: 1;
+            }
+
+            Horizontal {
+                padding: 4px;
+
+                Icon {
+                    source: @image-url("../mdi/account.svg");
+                }
+
+                MaterialText {
+                    text: app.coder;
+                }
+            }
+
+            Horizontal {
+                padding: 4px;
+
+                Icon {
+                    source: @image-url("../mdi/tag.svg");
+                }
+
+                MaterialText {
+                    text: app.version;
+                }
+            }
+
+            Horizontal {
+                padding: 4px;
+
+                Icon {
+                    source: @image-url("../mdi/calendar.svg");
+                }
+
+                MaterialText {
+                    text: app.release-date;
+                }
+            }
+
+            Horizontal {
+                padding: 4px;
+
+                Icon {
+                    source: @image-url("../mdi/scale.svg");
+                }
+
+                MaterialText {
+                    text: app.size;
+                }
+            }
+
+            Rectangle {
+                vertical-stretch: 1;
+            }
+
             Rectangle {
                 height: 30px;
+            }
+        }
+
+        if is_li: Horizontal {
+            alignment: start;
+            spacing: 16px;
+            padding-left: 12px;
+            padding-right: 12px;
+
+            MaterialText {
+                vertical-alignment: center;
+                text: app.name;
+            }
+
+            VerticalDivider { }
+
+            Icon {
+                source: @image-url("../mdi/account.svg");
+            }
+
+            MaterialText {
+                vertical-alignment: center;
+                text: app.coder;
+            }
+
+            VerticalDivider { }
+
+            Icon {
+                source: @image-url("../mdi/scale.svg");
+            }
+
+            MaterialText {
+                vertical-alignment: center;
+                text: app.size;
             }
         }
     }
 }
 
 export component HbcAppCardButtons inherits Horizontal {
-    alignment: center;
     height: 34px;
 
     callback open_app_info();

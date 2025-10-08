@@ -1,19 +1,21 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { ScrollView, Vertical, TextField } from "@material";
-import { Game } from "common.slint";
+import { ScrollView, Vertical, TextField, SegmentedButton, Horizontal } from "@material";
+import { Game, ArchiveFormat } from "common.slint";
 import { GameCard, GameCardButtons } from "game_card.slint";
 
 export component GameGrid inherits ScrollView {
     in property <[Game]> games;
     out property <string> filter: "";
+    property <bool> as_list: false;
+    in property <ArchiveFormat> archive_format;
 
-    property <length> card_w: 176px;
-    property <length> card_h: 230px;
+    property <length> card_w: as_list ? self.width - 16px : 176px;
+    property <length> card_h: as_list ? 42px : 230px;
 
-    property <int> columns: (self.width / card_w).floor();
-    property <int> rows: (games.length / columns).ceil();
+    property <int> columns: as_list ? 1 : (self.width / card_w).floor();
+    property <int> rows: as_list ? games.length : (games.length / columns).ceil();
 
     callback open_url(string);
     callback remove_dir(string);
@@ -26,14 +28,29 @@ export component GameGrid inherits ScrollView {
     viewport_height: rows * card_h + 56px + 16px;
 
     Vertical {
-        TextField {
-            height: 56px;
-            leading_icon: @image-url("../mdi/magnify.svg");
-            label: "Filter";
-            placeholder-text: "Search...";
-            edited(text) => {
-                filter = text;
-                update_filter(text.to-lowercase());
+        Horizontal {
+            TextField {
+                height: 56px;
+                leading_icon: @image-url("../mdi/magnify.svg");
+                label: "Filter";
+                placeholder-text: "Search...";
+                edited(text) => {
+                    filter = text;
+                    update_filter(text.to-lowercase());
+                }
+            }
+
+            SegmentedButton {
+                height: 56px;
+
+                items: [
+                    { text: "As List", icon: @image-url("../mdi/view-list.svg") },
+                    { text: "As Grid", icon: @image-url("../mdi/view-grid.svg") }
+                ];
+                current_index: as_list ? 0 : 1;
+                index_changed(index) => {
+                    as_list = index == 0;
+                }
             }
         }
 
@@ -41,6 +58,7 @@ export component GameGrid inherits ScrollView {
             for game[index] in games: GameCard {
                 x: mod(index, columns) * card_w;
                 y: (index / columns).floor() * card_h;
+                is_li: as_list;
                 width: card_w;
                 height: card_h;
                 game: game;
@@ -48,8 +66,11 @@ export component GameGrid inherits ScrollView {
 
             for game[index] in games: GameCardButtons {
                 x: mod(index, columns) * card_w;
-                y: (index / columns).floor() * card_h + (card_h - 42px);
+                y: (index / columns).floor() * card_h + (card_h - 38px);
                 width: card_w;
+                alignment: as_list ? end : center;
+                padding-right: as_list ? 16px : 4px;
+                archive_format: archive_format;
                 open_game_info => {
                     open_url("https://www.gametdb.com/Wii/" + game.id);
                 }
