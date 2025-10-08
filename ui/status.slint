@@ -51,6 +51,10 @@ export component Status inherits Rectangle {
             source: @image-url("../mdi/file-download.svg");
         }
 
+        if task_type == TaskType.VerifyingGame: Icon {
+            source: @image-url("../mdi/check-all.svg");
+        }
+
         MaterialText {
             vertical-alignment: center;
             text: status;

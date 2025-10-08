@@ -51,6 +51,7 @@ export component MainWindow inherits Window {
     callback dot_clean(string);
     callback download_oscwii(string, string);
     callback download_wiitdb(string);
+    callback verify_game(string);
 
     preferred-width: 800px;
     preferred-height: 600px;
@@ -109,6 +110,9 @@ export component MainWindow inherits Window {
                 }
                 archive_game(path) => {
                     archive_game(path, config);
+                }
+                verify_game(path) => {
+                    verify_game(path);
                 }
             }
 

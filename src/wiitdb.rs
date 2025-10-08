@@ -5,7 +5,6 @@ use crate::TaskType;
 use crate::http::AGENT;
 use crate::tasks::TaskProcessor;
 use anyhow::Result;
-use rfd::{MessageDialog, MessageLevel};
 use slint::ToSharedString;
 use std::fs::{self, OpenOptions};
 use std::io::{self, BufWriter, Cursor};
@@ -52,12 +51,6 @@ pub fn download(mount_point: PathBuf, task_processor: &Arc<TaskProcessor>) -> Re
         let mut writer = BufWriter::new(target_file);
         io::copy(&mut zipped_file, &mut writer)?;
 
-        let _ = MessageDialog::new()
-            .set_title("Success")
-            .set_description("wiitdb.xml downloaded successfully")
-            .set_level(MessageLevel::Info)
-            .show();
-
-        Ok(())
+        Ok("wiitbd.xml downloaded successfully".to_string())
     }))
 }

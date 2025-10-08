@@ -120,20 +120,20 @@ pub fn add_app_from_url(
     task_processor: &Arc<TaskProcessor>,
 ) -> Result<()> {
     task_processor.spawn(Box::new(move |weak| {
-        let status = format!("Downloading {}...", url);
+        let status = format!("Downloading {}...", &url);
         weak.upgrade_in_event_loop(move |handle| {
             handle.set_status(status.to_shared_string());
             handle.set_task_type(TaskType::DownloadingFolder);
         })?;
 
-        let mut response = AGENT.get(url).call()?;
+        let mut response = AGENT.get(&url).call()?;
 
         let buffer = response.body_mut().read_to_vec()?;
         let cursor = Cursor::new(buffer);
         let mut archive = ZipArchive::new(cursor)?;
         extract_app(&mount_point, &mut archive)?;
 
-        Ok(())
+        Ok(format!("Downloaded {}", url))
     }))
 }
 
@@ -149,7 +149,7 @@ pub fn add_apps(config: &Config, task_processor: &Arc<TaskProcessor>) -> Result<
 
     if let Some(paths) = paths {
         task_processor.spawn(Box::new(move |weak| {
-            for path in paths {
+            for path in paths.iter() {
                 {
                     let status = format!("Installing {}...", path.display());
                     weak.upgrade_in_event_loop(move |handle| {
@@ -157,7 +157,7 @@ pub fn add_apps(config: &Config, task_processor: &Arc<TaskProcessor>) -> Result<
                         handle.set_task_type(TaskType::InstallingApps);
                     })?;
 
-                    install_zip(&mount_point, &path)?;
+                    install_zip(&mount_point, path)?;
                 }
 
                 if remove_sources {
@@ -165,7 +165,7 @@ pub fn add_apps(config: &Config, task_processor: &Arc<TaskProcessor>) -> Result<
                 }
             }
 
-            Ok(())
+            Ok(format!("Installed {} app(s)", paths.len()))
         }))?;
     }
 
