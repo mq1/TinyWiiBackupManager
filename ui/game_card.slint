@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import { Vertical, Horizontal, IconButton, ElevatedCard, MaterialText, MaterialPalette, VerticalDivider, Icon } from "@material";
-import { Game, Console } from "common.slint";
+import { Game, Console, ArchiveFormat } from "common.slint";
 
 component ConsoleLabel inherits HorizontalLayout {
     in property <Console> console;
@@ -106,6 +106,7 @@ export component GameCard inherits VerticalLayout {
 
 export component GameCardButtons inherits Horizontal {
     height: 34px;
+    in property <ArchiveFormat> archive_format;
 
     callback open_game_info();
     callback open_game_dir();
@@ -142,7 +143,7 @@ export component GameCardButtons inherits Horizontal {
 
     IconButton {
         icon: @image-url("../mdi/package-down.svg");
-        tooltip: "Archive Game to rvz";
+        tooltip: "Archive Game to " + (archive_format == ArchiveFormat.Rvz ? "RVZ" : "ISO");
         inline: true;
         clicked => {
             archive_game();
