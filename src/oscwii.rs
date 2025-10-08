@@ -75,6 +75,7 @@ impl OscWiiApp {
             version: app.version.to_shared_string(),
             release_date: app.release_date.to_shared_string(),
             size: size.to_shared_string(),
+            zip_url: app.assets.archive.url.to_shared_string(),
         }
     }
 }
