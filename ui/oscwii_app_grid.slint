@@ -17,7 +17,7 @@ export component OscWiiAppGrid inherits ScrollView {
 
     callback open_url(string);
     callback download_oscwii(string);
-    callback push_oscwii(string);
+    callback push_oscwii(OscWiiApp);
     callback update_filter(string);
 
     horizontal-stretch: 1;
@@ -56,7 +56,7 @@ export component OscWiiAppGrid inherits ScrollView {
                     download_oscwii(app.zip-url);
                 }
                 push_oscwii => {
-                    push_oscwii(app.slug);
+                    push_oscwii(app);
                 }
             }
         }

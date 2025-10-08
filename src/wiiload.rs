@@ -1,14 +1,19 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::TaskType;
 use crate::http::AGENT;
+use crate::tasks::TaskProcessor;
 use anyhow::anyhow;
 use anyhow::{Result, bail};
 use path_slash::PathBufExt;
+use rfd::{MessageDialog, MessageLevel};
+use slint::ToSharedString;
 use std::fs::File;
 use std::io::{self, Cursor, Read, Seek, Write};
 use std::net::{SocketAddr, TcpStream, ToSocketAddrs};
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 use std::time::Duration;
 use zip::write::SimpleFileOptions;
 use zip::{ZipArchive, ZipWriter};
@@ -42,27 +47,41 @@ pub fn push(source_zip: &Path, wii_ip: &str) -> Result<Vec<String>> {
     Ok(excluded_files)
 }
 
-pub fn push_url(url: &str, wii_ip: &str) -> Result<Vec<String>> {
-    let addr = (wii_ip, WIILOAD_PORT)
-        .to_socket_addrs()?
-        .next()
-        .ok_or(anyhow!("Failed to resolve Wii IP: {wii_ip}"))?;
+pub fn push_url(url: String, wii_ip: String, task_processor: &Arc<TaskProcessor>) -> Result<()> {
+    task_processor.spawn(Box::new(move |weak| {
+        let status = format!("Downloading {}...", url);
+        weak.upgrade_in_event_loop(move |handle| {
+            handle.set_status(status.to_shared_string());
+            handle.set_task_type(TaskType::DownloadingFolder);
+        })?;
 
-    let buffer = AGENT.get(url).call()?.body_mut().read_to_vec()?;
+        let addr = (wii_ip.as_str(), WIILOAD_PORT)
+            .to_socket_addrs()?
+            .next()
+            .ok_or(anyhow!("Failed to resolve Wii IP: {}", &wii_ip))?;
 
-    let cursor = Cursor::new(buffer);
-    let mut archive = ZipArchive::new(cursor)?;
+        let buffer = AGENT.get(url).call()?.body_mut().read_to_vec()?;
 
-    // Find the dir containing boot.dol or boot.elf
-    let app_dir = find_app_dir(&mut archive)?;
+        let cursor = Cursor::new(buffer);
+        let mut archive = ZipArchive::new(cursor)?;
 
-    // Create new zip in memory
-    let (zipped_app, excluded_files) = recreate_zip(&mut archive, &app_dir)?;
+        // Find the dir containing boot.dol or boot.elf
+        let app_dir = find_app_dir(&mut archive)?;
 
-    // Connect to the Wii and send the data
-    send_to_wii(&addr, &zipped_app)?;
+        // Create new zip in memory
+        let (zipped_app, excluded_files) = recreate_zip(&mut archive, &app_dir)?;
 
-    Ok(excluded_files)
+        // Connect to the Wii and send the data
+        send_to_wii(&addr, &zipped_app)?;
+
+        let _ = MessageDialog::new()
+            .set_level(MessageLevel::Info)
+            .set_title("Wiiload Push Complete")
+            .set_description(format!("Excluded files: {}", excluded_files.join(", ")))
+            .show();
+
+        Ok(())
+    }))
 }
 
 fn find_app_dir(archive: &mut ZipArchive<impl Read + Seek>) -> Result<PathBuf> {
