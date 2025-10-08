@@ -314,6 +314,15 @@ fn run() -> Result<()> {
         }
     });
 
+    let task_processor_clone = task_processor.clone();
+    app.on_download_all_covers(move |mount_point| {
+        if let Err(e) =
+            covers::download_all_covers(PathBuf::from(&mount_point), &task_processor_clone)
+        {
+            show_err(e);
+        }
+    });
+
     if std::env::var_os("TWBM_DISABLE_UPDATES").is_none()
         && let Err(e) = updater::check(&task_processor)
     {
