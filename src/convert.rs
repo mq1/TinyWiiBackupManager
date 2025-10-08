@@ -64,8 +64,8 @@ pub fn add_games(config: &Config, task_processor: &Arc<TaskProcessor>) -> Result
     let mount_point = PathBuf::from(&config.mount_point);
     let wii_output_format = config.wii_output_format;
     let disc_opts = get_disc_opts();
-    let process_opts = get_process_opts(&config);
-    let out_opts = get_output_format_opts(&config);
+    let process_opts = get_process_opts(config);
+    let out_opts = get_output_format_opts(config);
     let must_split = config.always_split || can_write_over_4gb(&mount_point).is_err();
 
     let paths = FileDialog::new()

@@ -196,11 +196,9 @@ fn run() -> Result<()> {
             .set_title("Select Wii HBC App")
             .add_filter("Wii App", &["zip", "ZIP"])
             .pick_file()
-        {
-            if let Err(e) = wiiload::push(&path, &wii_ip) {
+            && let Err(e) = wiiload::push(&path, &wii_ip) {
                 show_err(e);
             }
-        }
     });
 
     let data_dir_clone = data_dir.clone();
