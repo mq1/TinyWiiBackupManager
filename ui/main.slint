@@ -32,6 +32,7 @@ export component MainWindow inherits Window {
     in-out property <Config> config;
     in-out property <[OscWiiApp]> oscwii_apps: [];
     in-out property <[OscWiiApp]> filtered_oscwii_apps: [];
+    property <OscWiiApp> pushing_oscwii;
 
     callback choose_mount_point();
     callback open_url(string);
@@ -41,6 +42,7 @@ export component MainWindow inherits Window {
     callback open_data_dir();
     callback update_config(Config);
     callback push_zip(string);
+    callback push_oscwii(string, string);
     callback load_oscwii_apps() -> [OscWiiApp];
     callback update_filtered_oscwii_apps([OscWiiApp], string) -> [OscWiiApp];
     callback update_filtered_hbc_apps([HbcApp], string) -> [HbcApp];
@@ -130,6 +132,10 @@ export component MainWindow inherits Window {
                 download_oscwii(url) => {
                     download_oscwii(config.mount-point, url);
                 }
+                push_oscwii(app) => {
+                    pushing_oscwii = app;
+                    oscwii_wiiload.show();
+                }
             }
 
             if current_index == 3: SettingsPage {
@@ -173,6 +179,20 @@ export component MainWindow inherits Window {
         }
         push_zip => {
             push_zip(config.wii-ip);
+        }
+    }
+
+    oscwii_wiiload := Wiiload {
+        width: root.width;
+        height: root.height;
+        config <=> config;
+        title: "Sending " + pushing_oscwii.name;
+        default_action_text: "Sending";
+        update_config() => {
+            update_config(config);
+        }
+        push_zip => {
+            push_oscwii(pushing_oscwii.zip-url, config.wii-ip);
         }
     }
 }

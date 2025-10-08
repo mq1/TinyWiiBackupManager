@@ -270,6 +270,17 @@ fn run() -> Result<()> {
         }
     });
 
+    let task_processor_clone = task_processor.clone();
+    app.on_push_oscwii(move |zip_url, wii_ip| {
+        if let Err(e) = wiiload::push_url(
+            zip_url.to_string(),
+            wii_ip.to_string(),
+            &task_processor_clone,
+        ) {
+            show_err(e);
+        }
+    });
+
     if std::env::var_os("TWBM_DISABLE_UPDATES").is_none()
         && let Err(e) = updater::check(&task_processor)
     {
