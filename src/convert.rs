@@ -25,7 +25,7 @@ use std::{
 
 const SPLIT_SIZE: u64 = 4 * 1024 * 1024 * 1024 - 32 * 1024;
 
-fn get_disc_opts() -> DiscOptions {
+pub fn get_disc_opts() -> DiscOptions {
     let (preloader_threads, _) = util::get_threads_num();
 
     DiscOptions {
@@ -34,7 +34,7 @@ fn get_disc_opts() -> DiscOptions {
     }
 }
 
-fn get_process_opts(config: &Config) -> ProcessOptions {
+pub fn get_process_opts(config: &Config) -> ProcessOptions {
     let scrub_update_partition = config.scrub_update_partition;
     let (_, processor_threads) = util::get_threads_num();
 

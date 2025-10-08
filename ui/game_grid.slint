@@ -18,6 +18,7 @@ export component GameGrid inherits ScrollView {
     callback open_url(string);
     callback remove_dir(string);
     callback update_filter(string);
+    callback archive_game(string);
 
     horizontal-stretch: 1;
     vertical-stretch: 1;
@@ -56,6 +57,9 @@ export component GameGrid inherits ScrollView {
                 }
                 remove_game => {
                     remove_dir(game.path);
+                }
+                archive_game => {
+                    archive_game(game.path);
                 }
             }
         }

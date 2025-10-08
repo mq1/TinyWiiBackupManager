@@ -70,6 +70,7 @@ export component GameCardButtons inherits Horizontal {
     callback open_game_info();
     callback open_game_dir();
     callback remove_game();
+    callback archive_game();
 
     IconButton {
         icon: @image-url("../mdi/information.svg");
@@ -99,6 +100,9 @@ export component GameCardButtons inherits Horizontal {
         icon: @image-url("../mdi/package-down.svg");
         tooltip: "Archive Game to rvz";
         inline: true;
+        clicked => {
+            archive_game();
+        }
     }
 
     IconButton {

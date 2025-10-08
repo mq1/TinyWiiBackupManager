@@ -21,6 +21,7 @@ export component Status inherits Rectangle {
         }
 
         MaterialText {
+            vertical-alignment: center;
             text: task_count + " Task" + (task_count != 1 ? "s" : "");
         }
 
@@ -47,6 +48,7 @@ export component Status inherits Rectangle {
         }
 
         MaterialText {
+            vertical-alignment: center;
             text: status;
         }
     }
