@@ -53,7 +53,7 @@ export component OscWiiAppGrid inherits ScrollView {
                     open_url("https://oscwii.org/library/app/" + app.slug);
                 }
                 download_oscwii => {
-                    download_oscwii(app.slug);
+                    download_oscwii(app.zip-url);
                 }
                 push_oscwii => {
                     push_oscwii(app.slug);
