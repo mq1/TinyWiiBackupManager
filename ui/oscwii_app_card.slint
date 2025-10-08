@@ -1,21 +1,19 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { ElevatedCard, Vertical, Horizontal, IconButton, MaterialText, Dialog, HorizontalDivider, ScrollView, Icon } from "@material";
+import { ElevatedCard, Vertical, Horizontal, IconButton, MaterialText, Dialog, HorizontalDivider, ScrollView, Icon, VerticalDivider } from "@material";
 import { OscWiiApp } from "common.slint";
 
 export component OscWiiAppCard inherits VerticalLayout {
     in property <OscWiiApp> app;
+    in property <bool> is_li;
     padding: 4px;
 
     ElevatedCard {
-        Vertical {
-            spacing: 4px;
-
+        if !is_li: Vertical {
             MaterialText {
                 horizontal-alignment: center;
                 text: app.name;
-                font-size: 18px;
             }
 
             HorizontalDivider { }
@@ -80,11 +78,44 @@ export component OscWiiAppCard inherits VerticalLayout {
                 height: 30px;
             }
         }
+
+        if is_li: Horizontal {
+            alignment: start;
+            spacing: 16px;
+            padding-left: 12px;
+            padding-right: 12px;
+
+            MaterialText {
+                vertical-alignment: center;
+                text: app.name;
+            }
+
+            VerticalDivider { }
+
+            Icon {
+                source: @image-url("../mdi/account.svg");
+            }
+
+            MaterialText {
+                vertical-alignment: center;
+                text: app.author;
+            }
+
+            VerticalDivider { }
+
+            Icon {
+                source: @image-url("../mdi/scale.svg");
+            }
+
+            MaterialText {
+                vertical-alignment: center;
+                text: app.size;
+            }
+        }
     }
 }
 
 export component OscWiiAppCardButtons inherits Horizontal {
-    alignment: center;
     height: 34px;
 
     callback open_oscwii_info();
