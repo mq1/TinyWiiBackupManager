@@ -1,11 +1,12 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use anyhow::{Result, bail};
+use anyhow::{Context, Result, bail};
 use size::Size;
 use std::{
     io::{Seek, SeekFrom, Write},
     path::Path,
+    process::Command,
 };
 use sysinfo::Disks;
 use tempfile::NamedTempFile;
@@ -62,4 +63,14 @@ pub fn get_threads_num() -> (usize, usize) {
     let processor_threads = cpus - preloader_threads;
 
     (preloader_threads, processor_threads)
+}
+
+pub fn run_dot_clean(mount_point: &str) -> Result<()> {
+    Command::new("dot_clean")
+        .arg("-m")
+        .arg(mount_point)
+        .status()
+        .context("Failed to run dot_clean")?;
+
+    Ok(())
 }

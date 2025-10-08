@@ -248,6 +248,18 @@ fn run() -> Result<()> {
         ModelRc::from(Rc::new(filtered))
     });
 
+    app.on_dot_clean(|mount_point| {
+        if let Err(e) = util::run_dot_clean(&mount_point) {
+            show_err(e);
+        } else {
+            let _ = MessageDialog::new()
+                .set_title("Success")
+                .set_description("dot_clean completed successfully")
+                .set_level(MessageLevel::Info)
+                .show();
+        }
+    });
+
     if std::env::var_os("TWBM_DISABLE_UPDATES").is_none()
         && let Err(e) = updater::check(&task_processor)
     {

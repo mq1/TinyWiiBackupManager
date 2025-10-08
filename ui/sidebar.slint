@@ -18,6 +18,7 @@ export component SideBar inherits VerticalLayout {
     callback open_url(string);
     callback open_wiiload();
     callback update_oscwii_apps();
+    callback dot_clean();
 
     Rectangle {
         width: 80px;
@@ -116,7 +117,7 @@ export component SideBar inherits VerticalLayout {
                 items: [
                     {
                         icon: @image-url("../mdi/harddisk.svg"),
-                        text: "Choose base dir",
+                        text: "Choose Drive/Directory",
                         enabled: true,
                     },
                     {
@@ -128,6 +129,9 @@ export component SideBar inherits VerticalLayout {
                 activated(i) => {
                     if i == 0 {
                         choose_mount_point();
+                    }
+                    if i == 1 {
+                        dot_clean();
                     }
                     self.close();
                 }
