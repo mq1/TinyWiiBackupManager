@@ -103,6 +103,7 @@ export component MainWindow inherits Window {
         VerticalLayout {
             if current_index == 0 && !dir_name.is-empty: GameGrid {
                 games: filtered_games;
+                archive_format: config.archive-format;
                 open_url(url) => {
                     open_url(url);
                 }
