@@ -5,6 +5,7 @@ use crate::{
     Config, TaskType, WiiOutputFormat,
     covers::download_covers,
     extensions::SUPPORTED_INPUT_EXTENSIONS,
+    overflow_reader::{OverflowReader, get_overflow_file},
     tasks::TaskProcessor,
     util::{self, can_write_over_4gb},
 };
@@ -48,10 +49,11 @@ pub fn get_process_opts(config: &Config) -> ProcessOptions {
     }
 }
 
-fn get_output_format_opts(config: &Config) -> FormatOptions {
-    match config.wii_output_format {
-        WiiOutputFormat::Wbfs => FormatOptions::new(Format::Wbfs),
-        WiiOutputFormat::Iso => FormatOptions::new(Format::Iso),
+fn get_output_format_opts(wii_output_format: WiiOutputFormat, is_wii: bool) -> FormatOptions {
+    match (wii_output_format, is_wii) {
+        (WiiOutputFormat::Wbfs, true) => FormatOptions::new(Format::Wbfs),
+        (WiiOutputFormat::Iso, true) => FormatOptions::new(Format::Iso),
+        (_, false) => FormatOptions::new(Format::Ciso),
     }
 }
 
@@ -65,10 +67,9 @@ pub fn add_games(config: &Config, task_processor: &Arc<TaskProcessor>) -> Result
     let wii_output_format = config.wii_output_format;
     let disc_opts = get_disc_opts();
     let process_opts = get_process_opts(config);
-    let out_opts = get_output_format_opts(config);
     let must_split = config.always_split || can_write_over_4gb(&mount_point).is_err();
 
-    let paths = FileDialog::new()
+    let mut paths = FileDialog::new()
         .add_filter("Nintendo Optical Disc", SUPPORTED_INPUT_EXTENSIONS)
         .pick_files()
         .ok_or(anyhow!("No Games Selected"))?;
@@ -79,10 +80,19 @@ pub fn add_games(config: &Config, task_processor: &Arc<TaskProcessor>) -> Result
             handle.set_task_type(TaskType::Converting);
         })?;
 
+        // We'll get those later with get_overflow_file
+        paths.retain(|path| !path.ends_with(".part1.iso"));
+
         let len = paths.len();
         for (i, path) in paths.into_iter().enumerate() {
             {
-                let disc = DiscReader::new(&path, &disc_opts)?;
+                let overflow_file = get_overflow_file(&path);
+                let disc = if let Some(overflow_file) = overflow_file {
+                    let reader = OverflowReader::new(&path, &overflow_file)?;
+                    DiscReader::new_stream(Box::new(reader), &disc_opts)?
+                } else {
+                    DiscReader::new(&path, &disc_opts)?
+                };
 
                 let header = disc.header().clone();
                 let title = header.game_title_str().to_string();
@@ -93,19 +103,21 @@ pub fn add_games(config: &Config, task_processor: &Arc<TaskProcessor>) -> Result
                     .join(if is_wii { "wbfs" } else { "games" })
                     .join(format!("{title} [{id}]"));
 
-                if dir_path.exists() {
+                let base_path = dir_path.join(id);
+
+                let path1 = match (is_wii, wii_output_format, must_split, header.disc_num) {
+                    (true, WiiOutputFormat::Wbfs, _, _) => base_path.with_extension("wbfs"),
+                    (true, WiiOutputFormat::Iso, true, _) => base_path.with_extension("part0.iso"),
+                    (true, WiiOutputFormat::Iso, false, _) => base_path.with_extension("iso"),
+                    (false, _, _, 0) => dir_path.join("game.iso"),
+                    (false, _, _, n) => dir_path.join(format!("disc{n}.iso")),
+                };
+
+                if path1.exists() {
                     continue;
                 }
 
                 fs::create_dir_all(&dir_path)?;
-
-                let base_path = dir_path.join(id);
-
-                let path1 = match (wii_output_format, must_split) {
-                    (WiiOutputFormat::Wbfs, _) => base_path.with_extension("wbfs"),
-                    (WiiOutputFormat::Iso, true) => base_path.with_extension("part0.iso"),
-                    (WiiOutputFormat::Iso, false) => base_path.with_extension("iso"),
-                };
 
                 let mut out1 = BufWriter::new(File::create(&path1)?);
 
@@ -114,18 +126,23 @@ pub fn add_games(config: &Config, task_processor: &Arc<TaskProcessor>) -> Result
                     WiiOutputFormat::Iso => base_path.with_extension("part1.iso"),
                 };
 
-                let mut out2 = None;
+                let mut out2: Option<BufWriter<File>> = None;
 
+                let out_opts = get_output_format_opts(wii_output_format, is_wii);
                 let writer = DiscWriter::new(disc, &out_opts)?;
+
                 let finalization = writer.process(
                     |data, progress, total| {
                         // get position
                         let pos = out1.stream_position()?;
 
                         // write data to out1, or overflow to out2
-                        if must_split && pos > SPLIT_SIZE {
-                            out2.get_or_insert(BufWriter::new(File::create(&path2)?))
-                                .write_all(&data)?;
+                        if let Some(out2) = out2.as_mut() {
+                            out2.write_all(&data)?;
+                        } else if is_wii && must_split && pos + data.len() as u64 > SPLIT_SIZE {
+                            let mut writer = BufWriter::new(File::create(&path2)?);
+                            writer.write_all(&data)?;
+                            out2 = Some(writer);
                         } else {
                             out1.write_all(&data)?;
                         }
