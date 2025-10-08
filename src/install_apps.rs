@@ -15,6 +15,7 @@ use zip::ZipArchive;
 pub fn install_apps(config: &Config, task_processor: &Arc<TaskProcessor>) -> Result<()> {
     let remove_sources = config.remove_sources_apps;
     let mount_point = PathBuf::from(&config.mount_point);
+    fs::create_dir_all(mount_point.join("apps"))?;
 
     let paths = rfd::FileDialog::new()
         .set_title("Select Wii HBC App(s)")
