@@ -122,9 +122,13 @@ fn recreate_zip(
         // only add files that are in the app directory
         if path.starts_with(app_dir) {
             let rel_path = path.strip_prefix(app_dir)?;
-            let final_path = Path::new(&app_name).join(rel_path);
+            let final_path = Path::new(&app_name)
+                .join(rel_path)
+                .to_slash()
+                .ok_or(anyhow!("Invalid path"))?
+                .to_string();
 
-            writer.start_file(final_path.to_slash_lossy(), options)?;
+            writer.start_file(final_path, options)?;
             io::copy(&mut file, &mut writer)?;
         } else {
             excluded_files.push(path.to_string_lossy().to_string());
