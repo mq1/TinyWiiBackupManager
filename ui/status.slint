@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { Horizontal, CircularProgressIndicator, MaterialText, MaterialPalette, VerticalDivider } from "@material";
+import { Horizontal, CircularProgressIndicator, MaterialText, MaterialPalette, VerticalDivider, Icon } from "@material";
 import { TaskType } from "common.slint";
 
 export component Status inherits Rectangle {
@@ -16,8 +16,8 @@ export component Status inherits Rectangle {
 
         CircularProgressIndicator {
             indeterminate: true;
-            height: 14px;
-            width: 14px;
+            height: 18px;
+            width: 18px;
         }
 
         MaterialText {
@@ -26,32 +26,24 @@ export component Status inherits Rectangle {
 
         VerticalDivider { }
 
-        if task_type == TaskType.Converting: Image {
+        if task_type == TaskType.Converting: Icon {
             source: @image-url("../mdi/package-up.svg");
-            colorize: MaterialPalette.on_background;
-            height: 14px;
-            width: 14px;
         }
 
-        if task_type == TaskType.Archiving: Image {
+        if task_type == TaskType.Archiving: Icon {
             source: @image-url("../mdi/package-down.svg");
-            colorize: MaterialPalette.on_background;
-            height: 14px;
-            width: 14px;
         }
 
-        if task_type == TaskType.DownloadingCovers: Image {
+        if task_type == TaskType.DownloadingCovers: Icon {
             source: @image-url("../mdi/file-image-plus.svg");
-            colorize: MaterialPalette.on_background;
-            height: 14px;
-            width: 14px;
         }
 
-        if task_type == TaskType.CheckingForUpdates: Image {
+        if task_type == TaskType.CheckingForUpdates: Icon {
             source: @image-url("../mdi/refresh.svg");
-            colorize: MaterialPalette.on_background;
-            height: 14px;
-            width: 14px;
+        }
+
+        if task_type == TaskType.DownloadingFolder: Icon {
+            source: @image-url("../mdi/folder-download.svg");
         }
 
         MaterialText {

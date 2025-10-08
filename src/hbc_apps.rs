@@ -1,15 +1,18 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::HbcApp;
+use crate::{Config, HbcApp, TaskType, http::AGENT, tasks::TaskProcessor};
 use anyhow::Result;
 use serde::Deserialize;
 use size::Size;
 use slint::{Image, ToSharedString};
 use std::{
-    fs,
+    fs::{self, File},
+    io::{self, BufReader, Cursor},
     path::{Path, PathBuf},
+    sync::Arc,
 };
+use zip::{ZipArchive, result::ZipResult};
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct HbcAppMeta {
@@ -86,4 +89,84 @@ pub fn list(mount_point: &Path) -> Result<Vec<HbcApp>> {
     apps.sort_by(|a, b| a.name.cmp(&b.name));
 
     Ok(apps)
+}
+
+/// we check if in the zip there is an "apps" directory
+/// if so, we extract it to the base directory
+/// otherwise, we extract the zip to the apps directory
+fn extract_app(
+    mount_point: &Path,
+    archive: &mut ZipArchive<impl io::Read + io::Seek>,
+) -> ZipResult<()> {
+    if archive.file_names().any(|n| n.starts_with("apps/")) {
+        archive.extract(mount_point)
+    } else {
+        archive.extract(mount_point.join("apps"))
+    }
+}
+
+fn install_zip(mount_point: &Path, path: &Path) -> Result<()> {
+    let file = File::open(path)?;
+    let reader = BufReader::new(file);
+    let mut archive = ZipArchive::new(reader)?;
+    extract_app(mount_point, &mut archive)?;
+
+    Ok(())
+}
+
+pub fn add_app_from_url(
+    mount_point: PathBuf,
+    url: String,
+    task_processor: &Arc<TaskProcessor>,
+) -> Result<()> {
+    task_processor.spawn(Box::new(move |weak| {
+        let status = format!("Downloading {}...", url);
+        weak.upgrade_in_event_loop(move |handle| {
+            handle.set_status(status.to_shared_string());
+        })?;
+
+        let mut response = AGENT.get(url).call()?;
+
+        let buffer = response.body_mut().read_to_vec()?;
+        let cursor = Cursor::new(buffer);
+        let mut archive = ZipArchive::new(cursor)?;
+        extract_app(&mount_point, &mut archive)?;
+
+        Ok(())
+    }))
+}
+
+pub fn add_apps(config: &Config, task_processor: &Arc<TaskProcessor>) -> Result<()> {
+    let remove_sources = config.remove_sources_apps;
+    let mount_point = PathBuf::from(&config.mount_point);
+    fs::create_dir_all(mount_point.join("apps"))?;
+
+    let paths = rfd::FileDialog::new()
+        .set_title("Select Wii HBC App(s)")
+        .add_filter("Wii App", &["zip", "ZIP"])
+        .pick_files();
+
+    if let Some(paths) = paths {
+        task_processor.spawn(Box::new(move |weak| {
+            for path in paths {
+                {
+                    let status = format!("Installing {}...", path.display());
+                    weak.upgrade_in_event_loop(move |handle| {
+                        handle.set_status(status.to_shared_string());
+                        handle.set_task_type(TaskType::InstallingApps);
+                    })?;
+
+                    install_zip(&mount_point, &path)?;
+                }
+
+                if remove_sources {
+                    fs::remove_file(path)?;
+                }
+            }
+
+            Ok(())
+        }))?;
+    }
+
+    Ok(())
 }

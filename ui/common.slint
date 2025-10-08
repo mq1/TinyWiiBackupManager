@@ -66,6 +66,7 @@ export enum TaskType {
     CheckingForUpdates,
     DownloadingCovers,
     InstallingApps,
+    DownloadingFolder,
     Unknown,
 }
 
@@ -81,4 +82,5 @@ export struct OscWiiApp {
     version: string,
     release_date: string,
     size: string,
+    zip_url: string,
 }

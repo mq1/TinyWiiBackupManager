@@ -11,7 +11,6 @@ pub mod extensions;
 pub mod games;
 pub mod hbc_apps;
 pub mod http;
-pub mod install_apps;
 pub mod oscwii;
 pub mod tasks;
 pub mod titles;
@@ -31,7 +30,7 @@ use slint::{ModelRc, ToSharedString, VecModel, Weak};
 use std::{
     fmt::Display,
     fs,
-    path::Path,
+    path::{Path, PathBuf},
     rc::Rc,
     sync::{Arc, Mutex},
 };
@@ -187,7 +186,7 @@ fn run() -> Result<()> {
 
     let task_processor_clone = task_processor.clone();
     app.on_add_apps(move |config| {
-        if let Err(e) = install_apps::install_apps(&config, &task_processor_clone) {
+        if let Err(e) = hbc_apps::add_apps(&config, &task_processor_clone) {
             show_err(e);
         }
     });
@@ -257,6 +256,17 @@ fn run() -> Result<()> {
                 .set_description("dot_clean completed successfully")
                 .set_level(MessageLevel::Info)
                 .show();
+        }
+    });
+
+    let task_processor_clone = task_processor.clone();
+    app.on_download_oscwii(move |mount_point, zip_url| {
+        if let Err(e) = hbc_apps::add_app_from_url(
+            PathBuf::from(&mount_point),
+            zip_url.to_string(),
+            &task_processor_clone,
+        ) {
+            show_err(e);
         }
     });
 
