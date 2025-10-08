@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { Vertical, Horizontal, IconButton, ElevatedCard, MaterialText, MaterialPalette, VerticalDivider } from "@material";
+import { Vertical, Horizontal, IconButton, ElevatedCard, MaterialText, MaterialPalette, VerticalDivider, Icon } from "@material";
 import { Game, Console } from "common.slint";
 
 component ConsoleLabel inherits HorizontalLayout {
@@ -80,6 +80,7 @@ export component GameCard inherits VerticalLayout {
             padding-right: 12px;
 
             MaterialText {
+                vertical-alignment: center;
                 text: game.display-title;
             }
 
@@ -91,7 +92,12 @@ export component GameCard inherits VerticalLayout {
 
             VerticalDivider { }
 
+            Icon {
+                source: @image-url("../mdi/scale.svg");
+            }
+
             MaterialText {
+                vertical-alignment: center;
                 text: game.size;
             }
         }
