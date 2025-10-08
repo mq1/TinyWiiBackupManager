@@ -34,7 +34,7 @@ impl Apps {
 
     fn load_cache(path: &Path) -> Result<Self> {
         // get file time
-        let file_time = fs::metadata(&path)?.modified()?;
+        let file_time = fs::metadata(path)?.modified()?;
 
         // get difference
         let elapsed = file_time.elapsed()?;
@@ -43,7 +43,7 @@ impl Apps {
             bail!("oscwii-cache.json is too old");
         }
 
-        let bytes = fs::read(&path)?;
+        let bytes = fs::read(path)?;
         let apps = serde_json::from_slice(&bytes)?;
 
         Ok(Self(apps))
