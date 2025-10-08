@@ -47,6 +47,7 @@ pub fn download(mount_point: PathBuf, task_processor: &Arc<TaskProcessor>) -> Re
         let target_file = OpenOptions::new()
             .write(true)
             .create(true)
+            .truncate(true)
             .open(&target_path)?;
         let mut writer = BufWriter::new(target_file);
         io::copy(&mut zipped_file, &mut writer)?;
