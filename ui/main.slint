@@ -52,6 +52,7 @@ export component MainWindow inherits Window {
     callback download_oscwii(string, string);
     callback download_wiitdb(string);
     callback verify_game(string);
+    callback download_all_covers(string);
 
     preferred-width: 800px;
     preferred-height: 600px;
@@ -90,6 +91,9 @@ export component MainWindow inherits Window {
             }
             download_wiitdb => {
                 download_wiitdb(config.mount-point);
+            }
+            download_all_covers => {
+                download_all_covers(config.mount-point);
             }
             dot_clean => {
                 dot_clean(config.mount-point);

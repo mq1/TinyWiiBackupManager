@@ -162,17 +162,5 @@ pub fn add_games(config: &Config, task_processor: &Arc<TaskProcessor>) -> Result
     }))?;
 
     // Download covers (ignores errors)
-    let mount_point_clone = mount_point.clone();
-    task_processor.spawn(Box::new(move |weak| {
-        weak.upgrade_in_event_loop(|handle| {
-            handle.set_task_type(TaskType::DownloadingCovers);
-            handle.set_status("Downloading Missing Covers...".to_shared_string());
-        })?;
-
-        download_covers(&mount_point_clone)?;
-
-        Ok("Downloaded Covers".to_string())
-    }))?;
-
-    Ok(())
+    download_covers(mount_point, task_processor)
 }
