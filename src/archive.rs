@@ -104,6 +104,6 @@ pub fn archive_game(
             output_file.write_all(finalization.header.as_ref())?;
         }
 
-        Ok(())
+        Ok(format!("Archived to {}", out_path.display()))
     }))
 }

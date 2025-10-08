@@ -7,7 +7,6 @@ use crate::tasks::TaskProcessor;
 use anyhow::anyhow;
 use anyhow::{Result, bail};
 use path_slash::PathBufExt;
-use rfd::{MessageDialog, MessageLevel};
 use slint::ToSharedString;
 use std::fs::File;
 use std::io::{self, Cursor, Read, Seek, Write};
@@ -74,13 +73,10 @@ pub fn push_url(url: String, wii_ip: String, task_processor: &Arc<TaskProcessor>
         // Connect to the Wii and send the data
         send_to_wii(&addr, &zipped_app)?;
 
-        let _ = MessageDialog::new()
-            .set_level(MessageLevel::Info)
-            .set_title("Wiiload Push Complete")
-            .set_description(format!("Excluded files: {}", excluded_files.join(", ")))
-            .show();
-
-        Ok(())
+        Ok(format!(
+            "Wiiload push complete\nExcluded files: {}",
+            excluded_files.join(", ")
+        ))
     }))
 }
 

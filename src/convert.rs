@@ -94,7 +94,7 @@ pub fn add_games(config: &Config, task_processor: &Arc<TaskProcessor>) -> Result
                     .join(format!("{title} [{id}]"));
 
                 if dir_path.exists() {
-                    return Ok(());
+                    continue;
                 }
 
                 fs::create_dir_all(&dir_path)?;
@@ -158,7 +158,7 @@ pub fn add_games(config: &Config, task_processor: &Arc<TaskProcessor>) -> Result
             }
         }
 
-        Ok(())
+        Ok(format!("Added {} Games", len))
     }))?;
 
     // Download covers (ignores errors)
@@ -169,7 +169,9 @@ pub fn add_games(config: &Config, task_processor: &Arc<TaskProcessor>) -> Result
             handle.set_status("Downloading Missing Covers...".to_shared_string());
         })?;
 
-        download_covers(&mount_point_clone)
+        download_covers(&mount_point_clone)?;
+
+        Ok("Downloaded Covers".to_string())
     }))?;
 
     Ok(())
