@@ -38,7 +38,7 @@ export component MainWindow inherits Window {
     callback open_url(string);
     callback remove_dir(string);
     callback add_games(Config);
-    callback archive_game(string, Config);
+    callback archive_game(Game, Config);
     callback add_apps(Config);
     callback open_data_dir();
     callback update_config(Config);
@@ -51,7 +51,7 @@ export component MainWindow inherits Window {
     callback dot_clean(string);
     callback download_oscwii(string, string);
     callback download_wiitdb(string);
-    callback verify_game(string);
+    callback verify_game(Game);
     callback download_all_covers(string);
 
     public function reset_filters() {
@@ -110,10 +110,10 @@ export component MainWindow inherits Window {
                     filtered_games = update_filtered_games(games, filter);
                 }
                 archive_game(game) => {
-                    archive_game(game.path, config);
+                    archive_game(game, config);
                 }
                 verify_game(game) => {
-                    verify_game(game.path);
+                    verify_game(game);
                 }
                 update_config => {
                     update_config(config);
