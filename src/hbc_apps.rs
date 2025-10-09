@@ -58,6 +58,7 @@ impl HbcApp {
         Self {
             slug: slug.to_shared_string(),
             name: meta.name.trim().to_shared_string(),
+            name_lower: meta.name.trim().to_lowercase().to_shared_string(),
             coder: meta.coder.to_shared_string(),
             version: meta.version.to_shared_string(),
             release_date: meta.release_date.to_shared_string(),
@@ -78,15 +79,12 @@ pub fn list(mount_point: &Path) -> Result<Vec<HbcApp>> {
     let apps_dir = mount_point.join("apps");
     fs::create_dir_all(&apps_dir)?;
 
-    let mut apps = fs::read_dir(&apps_dir)?
+    let apps = fs::read_dir(&apps_dir)?
         .filter_map(Result::ok)
         .map(|entry| entry.path())
         .filter(|path| path.is_dir())
         .map(HbcApp::from_path)
         .collect::<Vec<_>>();
-
-    // Sort by name
-    apps.sort_by(|a, b| a.name.cmp(&b.name));
 
     Ok(apps)
 }
