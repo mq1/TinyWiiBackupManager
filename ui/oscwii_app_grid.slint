@@ -52,8 +52,8 @@ export component OscWiiAppGrid inherits VerticalLayout {
                 height: 37px;
 
                 items: [
-                    { icon: @image-url("../mdi/view-grid.svg") },
-                    { icon: @image-url("../mdi/view-list.svg") }
+                    { icon: @image-url("../mdi/view-list.svg") },
+                    { icon: @image-url("../mdi/view-grid.svg") }
                 ];
                 current_index: config.as_list ? 0 : 1;
                 index_changed(index) => {
