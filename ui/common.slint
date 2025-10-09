@@ -42,6 +42,7 @@ export struct Game {
     id: string,
     title: string,
     display_title: string,
+    display_title_lower: string,
     path: string,
     image: image,
     size: string,
@@ -51,6 +52,7 @@ export struct Game {
 export struct HbcApp {
     slug: string,
     name: string,
+    name_lower: string,
     coder: string,
     version: string,
     release_date: string,
@@ -81,6 +83,7 @@ export struct UpdateInfo {
 export struct OscWiiApp {
     slug: string,
     name: string,
+    name_lower: string,
     author: string,
     version: string,
     release_date: string,
