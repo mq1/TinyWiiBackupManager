@@ -20,8 +20,8 @@ component HbcAppCard inherits Rectangle {
     callback open_app_dir();
     callback remove_app();
 
-    width: 177px;
-    height: 230px;
+    width: 164px;
+    height: 200px;
     background: MaterialPalette.surface;
     border-color: MaterialPalette.outline_variant;
     border-radius: 12px;
@@ -39,7 +39,7 @@ component HbcAppCard inherits Rectangle {
             text: app.name;
         }
 
-        HorizontalDivider {}
+        HorizontalDivider { }
 
         Rectangle {
             vertical-stretch: 1;
@@ -66,18 +66,6 @@ component HbcAppCard inherits Rectangle {
 
             MaterialText {
                 text: app.version;
-            }
-        }
-
-        Horizontal {
-            padding: 4px;
-
-            Icon {
-                source: @image-url("../mdi/calendar.svg");
-            }
-
-            MaterialText {
-                text: app.release-date;
             }
         }
 
