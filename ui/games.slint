@@ -48,8 +48,8 @@ export component GamesPage inherits VerticalLayout {
                 height: 37px;
 
                 items: [
-                    { icon: @image-url("../mdi/view-grid.svg") },
-                    { icon: @image-url("../mdi/view-list.svg") }
+                    { icon: @image-url("../mdi/view-list.svg") },
+                    { icon: @image-url("../mdi/view-grid.svg") }
                 ];
                 current_index: config.as_list ? 0 : 1;
                 index_changed(index) => {
@@ -70,7 +70,7 @@ export component GamesPage inherits VerticalLayout {
         }
     }
 
-    if config.as_list: GameGrid {
+    if !config.as_list: GameGrid {
         games: games;
         archive_format: config.archive_format;
         open_game_info(game) => open_game_info(game);
@@ -80,7 +80,7 @@ export component GamesPage inherits VerticalLayout {
         verify_game(game) => verify_game(game);
     }
 
-    if !config.as_list: GameList {
+    if config.as_list: GameList {
         games: games;
         archive_format: config.archive_format;
         open_game_info(game) => open_game_info(game);
