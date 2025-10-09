@@ -19,9 +19,11 @@ export component SideBar inherits VerticalLayout {
     callback download_wiitdb();
     callback download_all_covers();
 
+    padding-top: -44px + 12px; // 44px NavigationRail top padding
+
     NavigationRail {
         width: 80px;
-        alignment: center;
+        alignment: start;
         current-index <=> current_index;
 
         items: [
