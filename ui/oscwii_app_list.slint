@@ -1,0 +1,125 @@
+// SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { ScrollView, Vertical, Horizontal, Icon, MaterialPalette, MaterialText, HorizontalDivider, IconButton } from "@material";
+import { OscWiiApp } from "common.slint";
+
+export component OscWiiAppList inherits ScrollView {
+    in property <[OscWiiApp]> apps;
+
+    callback open_oscwii_info(OscWiiApp);
+    callback download_oscwii(OscWiiApp);
+    callback push_oscwii(OscWiiApp);
+
+    Horizontal {
+        Vertical {
+            for app in apps: Vertical {
+                HorizontalLayout {
+                    spacing: 4px;
+                    padding-left: -22px;
+                    Icon { }
+
+                    MaterialText {
+                        text: app.name;
+                    }
+                }
+
+                HorizontalDivider { }
+            }
+        }
+
+        Vertical {
+            for app in apps: Vertical {
+                HorizontalLayout {
+                    spacing: 4px;
+                    Icon {
+                        source: @image-url("../mdi/account.svg");
+                    }
+
+                    MaterialText {
+                        vertical-alignment: center;
+                        text: app.author;
+                    }
+                }
+
+                HorizontalDivider { }
+            }
+        }
+
+        Vertical {
+            for app in apps: Vertical {
+                HorizontalLayout {
+                    spacing: 4px;
+                    Icon {
+                        source: @image-url("../mdi/tag.svg");
+                    }
+
+                    MaterialText {
+                        vertical-alignment: center;
+                        text: app.version;
+                    }
+                }
+
+                HorizontalDivider { }
+            }
+        }
+
+        Vertical {
+            for app in apps: Vertical {
+                HorizontalLayout {
+                    spacing: 4px;
+                    Icon {
+                        source: @image-url("../mdi/scale.svg");
+                    }
+
+                    MaterialText {
+                        vertical-alignment: center;
+                        text: app.size;
+                    }
+                }
+
+                HorizontalDivider { }
+            }
+        }
+
+        Vertical {
+            for app in apps: Vertical {
+                HorizontalLayout {
+                    spacing: 4px;
+
+                    padding-left: -22px;
+                    Icon { }
+
+                    IconButton {
+                        icon: @image-url("../mdi/information.svg");
+                        tooltip: "App Information";
+                        inline: true;
+                        clicked => {
+                            open_oscwii_info(app);
+                        }
+                    }
+
+                    IconButton {
+                        icon: @image-url("../mdi/download.svg");
+                        tooltip: "Download";
+                        inline: true;
+                        clicked => {
+                            download_oscwii(app);
+                        }
+                    }
+
+                    IconButton {
+                        icon: @image-url("../mdi/upload-network.svg");
+                        tooltip: "Wiiload";
+                        inline: true;
+                        clicked => {
+                            push_oscwii(app);
+                        }
+                    }
+                }
+
+                HorizontalDivider { }
+            }
+        }
+    }
+}

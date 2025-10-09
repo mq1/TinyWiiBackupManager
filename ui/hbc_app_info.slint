@@ -1,0 +1,109 @@
+// SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { Dialog, ScrollView, Horizontal, MaterialText, HorizontalDivider } from "@material";
+import { HbcApp } from "common.slint";
+
+export component HbcAppInfo inherits Dialog {
+    in property <HbcApp> app;
+    title: app.name;
+    default-action-text: "Close";
+
+    default_action_clicked => {
+        self.close();
+    }
+
+    ScrollView {
+        width: root.width * 0.75;
+        height: root.height / 2;
+
+        VerticalLayout {
+            spacing: 4px;
+
+            Horizontal {
+                alignment: start;
+                padding: 4px;
+
+                MaterialText {
+                    text: "Coder: ";
+                }
+
+                MaterialText {
+                    text: app.coder;
+                }
+            }
+
+            Horizontal {
+                alignment: start;
+                padding: 4px;
+
+                MaterialText {
+                    text: "Version: ";
+                }
+
+                MaterialText {
+                    text: app.version;
+                }
+            }
+
+            Horizontal {
+                alignment: start;
+                padding: 4px;
+
+                MaterialText {
+                    text: "Release Date: ";
+                }
+
+                MaterialText {
+                    text: app.release-date;
+                }
+            }
+
+            Horizontal {
+                alignment: start;
+                padding: 4px;
+
+                MaterialText {
+                    text: "Short Description: ";
+                }
+
+                MaterialText {
+                    text: app.short-description;
+                }
+            }
+
+            Horizontal {
+                alignment: start;
+                padding: 4px;
+
+                MaterialText {
+                    text: "Size: ";
+                }
+
+                MaterialText {
+                    text: app.size;
+                }
+            }
+
+            Horizontal {
+                alignment: start;
+                padding: 4px;
+
+                MaterialText {
+                    text: "Path: ";
+                }
+
+                MaterialText {
+                    text: app.path;
+                }
+            }
+
+            HorizontalDivider { }
+
+            MaterialText {
+                text: app.long-description;
+                wrap: TextWrap.char-wrap;
+            }
+        }
+    }
+}

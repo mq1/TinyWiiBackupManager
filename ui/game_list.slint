@@ -1,0 +1,160 @@
+// SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { ScrollView, Vertical, Horizontal, Icon, MaterialPalette, MaterialText, HorizontalDivider, IconButton } from "@material";
+import { LineEdit } from "std-widgets.slint";
+import { Game, Config, Console, ArchiveFormat } from "common.slint";
+
+export component GameList inherits ScrollView {
+    in property <[Game]> games;
+    in property <ArchiveFormat> archive_format;
+
+    callback open_game_info(Game);
+    callback open_game_dir(Game);
+    callback remove_game(Game);
+    callback archive_game(Game);
+    callback verify_game(Game);
+
+    Horizontal {
+        Vertical {
+            for game in games: Vertical {
+                HorizontalLayout {
+                    spacing: 4px;
+
+                    padding-left: -22px;
+                    Icon { }
+
+                    MaterialText {
+                        text: game.display-title;
+                    }
+                }
+
+                HorizontalDivider { }
+            }
+        }
+
+        Vertical {
+            for game in games: Vertical {
+                HorizontalLayout {
+                    spacing: 4px;
+
+                    Icon {
+                        source: @image-url("../mdi/tag.svg");
+                    }
+
+                    MaterialText {
+                        vertical-alignment: center;
+                        text: game.id;
+                    }
+                }
+
+                HorizontalDivider { }
+            }
+        }
+
+        Vertical {
+            for game in games: Vertical {
+                HorizontalLayout {
+                    spacing: 4px;
+
+                    if game.console == Console.Wii: Icon {
+                        source: @image-url("../mdi/tennis.svg");
+                    }
+
+                    if game.console == Console.GameCube: Icon {
+                        source: @image-url("../mdi/cube-outline.svg");
+                    }
+
+                    if game.console == Console.Wii: MaterialText {
+                        vertical-alignment: center;
+                        text: "Wii";
+                    }
+
+                    if game.console == Console.GameCube: MaterialText {
+                        vertical-alignment: center;
+                        text: "GC";
+                    }
+                }
+
+                HorizontalDivider { }
+            }
+        }
+
+        Vertical {
+            for game in games: Vertical {
+                HorizontalLayout {
+                    spacing: 4px;
+
+                    Icon {
+                        source: @image-url("../mdi/scale.svg");
+                    }
+
+                    MaterialText {
+                        vertical-alignment: center;
+                        text: game.size;
+                    }
+                }
+
+                HorizontalDivider { }
+            }
+        }
+
+        Vertical {
+            for game in games: Vertical {
+                HorizontalLayout {
+                    spacing: 4px;
+
+                    padding-left: -22px;
+                    Icon { }
+
+                    IconButton {
+                        icon: @image-url("../mdi/information.svg");
+                        tooltip: "Game Information";
+                        inline: true;
+                        clicked => {
+                            open_game_info(game);
+                        }
+                    }
+
+                    IconButton {
+                        icon: @image-url("../mdi/folder-open.svg");
+                        tooltip: "Open Game Directory";
+                        inline: true;
+                        clicked => {
+                            open_game_dir(game);
+                        }
+                    }
+
+                    IconButton {
+                        icon: @image-url("../mdi/check-all.svg");
+                        tooltip: "Verify Hashes";
+                        inline: true;
+                        clicked => {
+                            verify_game(game);
+                        }
+                    }
+
+                    IconButton {
+                        icon: @image-url("../mdi/package-down.svg");
+                        tooltip: "Archive Game to " + (archive_format == ArchiveFormat.Rvz ? "RVZ" : "ISO");
+                        inline: true;
+                        clicked => {
+                            archive_game(game);
+                        }
+                    }
+
+                    IconButton {
+                        icon: @image-url("../mdi/trash-can.svg");
+                        tooltip: "Delete Game";
+                        inline: true;
+                        clicked => {
+                            remove_game(game);
+                        }
+                    }
+                }
+
+                HorizontalDivider { }
+            }
+        }
+    }
+}

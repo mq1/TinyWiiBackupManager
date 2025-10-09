@@ -3,14 +3,14 @@
 
 import { IconButton, Vertical, MaterialText, ElevatedCard, MaterialPalette, Horizontal, CircularProgressIndicator, SnackBar } from "@material";
 import { SideBar } from "sidebar.slint";
-import { GameGrid } from "game_grid.slint";
+import { GamesPage } from "games.slint";
 import { Game, HbcApp, WiiOutputFormat, ArchiveFormat, TaskType, UpdateInfo, Config, OscWiiApp } from "common.slint";
-import { HbcAppGrid } from "hbc_app_grid.slint";
+import { HbcAppsPage } from "hbc_apps.slint";
 import { SettingsPage } from "settings.slint";
 import { Status } from "status.slint";
-import { HbcAppInfo } from "hbc_app_card.slint";
+import { HbcAppInfo } from "hbc_app_info.slint";
 import { Wiiload } from "wiiload.slint";
-import { OscWiiAppGrid } from "oscwii_app_grid.slint";
+import { OscWiiAppsPage } from "oscwii_apps.slint";
 
 export * from "common.slint";
 
@@ -38,7 +38,7 @@ export component MainWindow inherits Window {
     callback open_url(string);
     callback remove_dir(string);
     callback add_games(Config);
-    callback archive_game(string, Config);
+    callback archive_game(Game, Config);
     callback add_apps(Config);
     callback open_data_dir();
     callback update_config(Config);
@@ -51,8 +51,13 @@ export component MainWindow inherits Window {
     callback dot_clean(string);
     callback download_oscwii(string, string);
     callback download_wiitdb(string);
-    callback verify_game(string);
+    callback verify_game(Game);
     callback download_all_covers(string);
+
+    public function reset_filters() {
+        filtered_games = update_filtered_games(games, "");
+        filtered_hbc_apps = update_filtered_hbc_apps(hbc_apps, "");
+    }
 
     preferred-width: 800px;
     preferred-height: 600px;
@@ -77,7 +82,7 @@ export component MainWindow inherits Window {
             update_oscwii_apps => {
                 if oscwii_apps.length == 0 {
                     oscwii_apps = load_oscwii_apps();
-                    filtered_oscwii_apps = oscwii_apps;
+                    filtered_oscwii_apps = update_filtered_oscwii_apps(oscwii_apps, "");
                 }
             }
             download_wiitdb => {
@@ -92,23 +97,23 @@ export component MainWindow inherits Window {
         }
 
         VerticalLayout {
-            if current_index == 0 && !dir_name.is-empty: GameGrid {
+            if current_index == 0 && !dir_name.is-empty: GamesPage {
                 games: filtered_games;
                 config <=> config;
-                open_url(url) => {
-                    open_url(url);
+                open_game_info(game) => {
+                    open_url("https://www.gametdb.com/Wii/" + game.id);
                 }
-                remove_dir(path) => {
-                    remove_dir(path);
+                remove_game(game) => {
+                    remove_dir(game.path);
                 }
                 update_filter(filter) => {
                     filtered_games = update_filtered_games(games, filter);
                 }
-                archive_game(path) => {
-                    archive_game(path, config);
+                archive_game(game) => {
+                    archive_game(game, config);
                 }
-                verify_game(path) => {
-                    verify_game(path);
+                verify_game(game) => {
+                    verify_game(game);
                 }
                 update_config => {
                     update_config(config);
@@ -118,18 +123,18 @@ export component MainWindow inherits Window {
                 }
             }
 
-            if current_index == 1 && !dir_name.is-empty: HbcAppGrid {
+            if current_index == 1 && !dir_name.is-empty: HbcAppsPage {
                 apps: filtered_hbc_apps;
                 config <=> config;
                 open_app_info(app) => {
                     current_app = app;
                     app_info.show();
                 }
-                open_url(url) => {
-                    open_url(url);
+                open_app_dir(app) => {
+                    open_url(app.path);
                 }
-                remove_dir(path) => {
-                    remove_dir(path);
+                remove_app(app) => {
+                    remove_dir(app.path);
                 }
                 update_filter(filter) => {
                     filtered_hbc_apps = update_filtered_hbc_apps(hbc_apps, filter);
@@ -145,17 +150,17 @@ export component MainWindow inherits Window {
                 }
             }
 
-            if current_index == 2: OscWiiAppGrid {
+            if current_index == 2: OscWiiAppsPage {
                 apps: filtered_oscwii_apps;
                 config <=> config;
-                open_url(url) => {
-                    open_url(url);
+                open_oscwii_info(app) => {
+                    open_url("https://oscwii.org/library/app/" + app.slug);
                 }
                 update_filter(filter) => {
                     filtered_oscwii_apps = update_filtered_oscwii_apps(oscwii_apps, filter);
                 }
-                download_oscwii(url) => {
-                    download_oscwii(config.mount-point, url);
+                download_oscwii(app) => {
+                    download_oscwii(config.mount-point, app.zip-url);
                 }
                 push_oscwii(app) => {
                     pushing_oscwii = app;
