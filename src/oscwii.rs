@@ -17,7 +17,7 @@ impl Apps {
     pub fn load(data_dir: &Path) -> Result<Self> {
         let path = data_dir.join("oscwii-cache.json");
 
-        let mut apps = if let Ok(apps) = Self::load_cache(&path) {
+        let apps = if let Ok(apps) = Self::load_cache(&path) {
             apps
         } else {
             let bytes = AGENT.get(CONTENTS_URL).call()?.body_mut().read_to_vec()?;
@@ -25,9 +25,6 @@ impl Apps {
             let apps = serde_json::from_slice(&bytes)?;
             Self(apps)
         };
-
-        // Sort by name
-        apps.0.sort_by(|a, b| a.name.cmp(&b.name));
 
         Ok(apps)
     }
@@ -71,6 +68,7 @@ impl OscWiiApp {
         Self {
             slug: app.slug.to_shared_string(),
             name: app.name.to_shared_string(),
+            name_lower: app.name.to_lowercase().to_shared_string(),
             author: app.author.to_shared_string(),
             version: app.version.to_shared_string(),
             release_date: app.release_date.to_shared_string(),

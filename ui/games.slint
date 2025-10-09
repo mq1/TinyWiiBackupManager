@@ -1,0 +1,91 @@
+// SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { ScrollView, Vertical, SegmentedButton, Horizontal, Icon, MaterialPalette, FilledIconButton } from "@material";
+import { LineEdit } from "std-widgets.slint";
+import { Game, Config } from "common.slint";
+import { GameGrid } from "game_grid.slint";
+import { GameList } from "game_list.slint";
+
+export component GamesPage inherits VerticalLayout {
+    in property <[Game]> games;
+    out property <string> filter: "";
+    in-out property <Config> config;
+
+    callback add_games();
+    callback update_filter(string);
+    callback update_config();
+    callback open_game_info(Game);
+    callback open_game_dir(Game);
+    callback remove_game(Game);
+    callback archive_game(Game);
+    callback verify_game(Game);
+
+    Rectangle {
+        background: MaterialPalette.surface_variant;
+        z: 2.0;
+
+        Horizontal {
+            VerticalLayout {
+                alignment: center;
+                Icon {
+                    source: @image-url("../mdi/magnify.svg");
+                }
+            }
+
+            LineEdit {
+                height: 37px;
+                placeholder-text: "Search...";
+                text: filter;
+                edited(text) => {
+                    filter = text;
+                    update_filter(text.to-lowercase());
+                }
+            }
+
+            SegmentedButton {
+                height: 37px;
+
+                items: [
+                    { icon: @image-url("../mdi/view-list.svg") },
+                    { icon: @image-url("../mdi/view-grid.svg") }
+                ];
+                current_index: config.as_list ? 0 : 1;
+                index_changed(index) => {
+                    config.as_list = index == 0;
+                    update_config();
+                }
+            }
+
+            FilledIconButton {
+                height: 37px;
+                width: 37px;
+                icon: @image-url("../mdi/plus.svg");
+                tooltip: "Add Games      ";
+                clicked => {
+                    add_games();
+                }
+            }
+        }
+    }
+
+    if !config.as_list: GameGrid {
+        games: games;
+        archive_format: config.archive_format;
+        open_game_info(game) => open_game_info(game);
+        open_game_dir(game) => open_game_dir(game);
+        remove_game(game) => remove_game(game);
+        archive_game(game) => archive_game(game);
+        verify_game(game) => verify_game(game);
+    }
+
+    if config.as_list: GameList {
+        games: games;
+        archive_format: config.archive_format;
+        open_game_info(game) => open_game_info(game);
+        open_game_dir(game) => open_game_dir(game);
+        remove_game(game) => remove_game(game);
+        archive_game(game) => archive_game(game);
+        verify_game(game) => verify_game(game);
+    }
+}

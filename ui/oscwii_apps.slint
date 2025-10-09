@@ -1,0 +1,72 @@
+// SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { SegmentedButton, Horizontal, Icon, MaterialPalette } from "@material";
+import { LineEdit } from "std-widgets.slint";
+import { OscWiiApp, Config } from "common.slint";
+import { OscWiiAppGrid } from "oscwii_app_grid.slint";
+import { OscWiiAppList } from "oscwii_app_list.slint";
+
+export component OscWiiAppsPage inherits VerticalLayout {
+    in property <[OscWiiApp]> apps;
+    out property <string> filter: "";
+    in-out property <Config> config;
+
+    callback update_filter(string);
+    callback update_config();
+    callback open_oscwii_info(OscWiiApp);
+    callback download_oscwii(OscWiiApp);
+    callback push_oscwii(OscWiiApp);
+
+    Rectangle {
+        background: MaterialPalette.surface_variant;
+        z: 2.0;
+
+        Horizontal {
+            VerticalLayout {
+                alignment: center;
+                Icon {
+                    source: @image-url("../mdi/magnify.svg");
+                }
+            }
+
+            LineEdit {
+                height: 37px;
+                placeholder-text: "Search...";
+                text: filter;
+                edited(text) => {
+                    filter = text;
+                    update_filter(text.to-lowercase());
+                }
+            }
+
+            SegmentedButton {
+                height: 37px;
+
+                items: [
+                    { icon: @image-url("../mdi/view-list.svg") },
+                    { icon: @image-url("../mdi/view-grid.svg") }
+                ];
+                current_index: config.as_list ? 0 : 1;
+                index_changed(index) => {
+                    config.as_list = index == 0;
+                    update_config();
+                }
+            }
+        }
+    }
+
+    if !config.as_list: OscWiiAppGrid {
+        apps: apps;
+        open_oscwii_info(app) => open_oscwii_info(app);
+        download_oscwii(app) => download_oscwii(app);
+        push_oscwii(app) => push_oscwii(app);
+    }
+
+    if config.as_list: OscWiiAppList {
+        apps: apps;
+        open_oscwii_info(app) => open_oscwii_info(app);
+        download_oscwii(app) => download_oscwii(app);
+        push_oscwii(app) => push_oscwii(app);
+    }
+}
