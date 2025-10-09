@@ -5,12 +5,12 @@ import { IconButton, Vertical, MaterialText, ElevatedCard, MaterialPalette, Hori
 import { SideBar } from "sidebar.slint";
 import { GamesPage } from "games.slint";
 import { Game, HbcApp, WiiOutputFormat, ArchiveFormat, TaskType, UpdateInfo, Config, OscWiiApp } from "common.slint";
-import { HbcAppGrid } from "hbc_app_grid.slint";
+import { HbcAppsPage } from "hbc_apps.slint";
 import { SettingsPage } from "settings.slint";
 import { Status } from "status.slint";
-import { HbcAppInfo } from "hbc_app_card.slint";
+import { HbcAppInfo } from "hbc_app_info.slint";
 import { Wiiload } from "wiiload.slint";
-import { OscWiiAppGrid } from "oscwii_app_grid.slint";
+import { OscWiiAppsPage } from "oscwii_apps.slint";
 
 export * from "common.slint";
 
@@ -123,18 +123,18 @@ export component MainWindow inherits Window {
                 }
             }
 
-            if current_index == 1 && !dir_name.is-empty: HbcAppGrid {
+            if current_index == 1 && !dir_name.is-empty: HbcAppsPage {
                 apps: filtered_hbc_apps;
                 config <=> config;
                 open_app_info(app) => {
                     current_app = app;
                     app_info.show();
                 }
-                open_url(url) => {
-                    open_url(url);
+                open_app_dir(app) => {
+                    open_url(app.path);
                 }
-                remove_dir(path) => {
-                    remove_dir(path);
+                remove_app(app) => {
+                    remove_dir(app.path);
                 }
                 update_filter(filter) => {
                     filtered_hbc_apps = update_filtered_hbc_apps(hbc_apps, filter);
@@ -150,17 +150,17 @@ export component MainWindow inherits Window {
                 }
             }
 
-            if current_index == 2: OscWiiAppGrid {
+            if current_index == 2: OscWiiAppsPage {
                 apps: filtered_oscwii_apps;
                 config <=> config;
-                open_url(url) => {
-                    open_url(url);
+                open_oscwii_info(app) => {
+                    open_url("https://oscwii.org/library/app/" + app.slug);
                 }
                 update_filter(filter) => {
                     filtered_oscwii_apps = update_filtered_oscwii_apps(oscwii_apps, filter);
                 }
-                download_oscwii(url) => {
-                    download_oscwii(config.mount-point, url);
+                download_oscwii(app) => {
+                    download_oscwii(config.mount-point, app.zip-url);
                 }
                 push_oscwii(app) => {
                     pushing_oscwii = app;
