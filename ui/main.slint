@@ -3,7 +3,7 @@
 
 import { IconButton, Vertical, MaterialText, ElevatedCard, MaterialPalette, Horizontal, CircularProgressIndicator, SnackBar } from "@material";
 import { SideBar } from "sidebar.slint";
-import { GameGrid } from "game_grid.slint";
+import { GamesPage } from "games.slint";
 import { Game, HbcApp, WiiOutputFormat, ArchiveFormat, TaskType, UpdateInfo, Config, OscWiiApp } from "common.slint";
 import { HbcAppGrid } from "hbc_app_grid.slint";
 import { SettingsPage } from "settings.slint";
@@ -97,23 +97,23 @@ export component MainWindow inherits Window {
         }
 
         VerticalLayout {
-            if current_index == 0 && !dir_name.is-empty: GameGrid {
+            if current_index == 0 && !dir_name.is-empty: GamesPage {
                 games: filtered_games;
                 config <=> config;
-                open_url(url) => {
-                    open_url(url);
+                open_game_info(game) => {
+                    open_url("https://www.gametdb.com/Wii/" + game.id);
                 }
-                remove_dir(path) => {
-                    remove_dir(path);
+                remove_game(game) => {
+                    remove_dir(game.path);
                 }
                 update_filter(filter) => {
                     filtered_games = update_filtered_games(games, filter);
                 }
-                archive_game(path) => {
-                    archive_game(path, config);
+                archive_game(game) => {
+                    archive_game(game.path, config);
                 }
-                verify_game(path) => {
-                    verify_game(path);
+                verify_game(game) => {
+                    verify_game(game.path);
                 }
                 update_config => {
                     update_config(config);
