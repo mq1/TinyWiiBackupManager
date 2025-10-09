@@ -25,6 +25,8 @@ component GameCard inherits Rectangle {
     visible: !game.id.is-empty;
 
     Vertical {
+        alignment: space-between;
+
         Horizontal {
             if game.console == Console.Wii: Icon {
                 source: @image-url("../mdi/tennis.svg");
@@ -61,10 +63,6 @@ component GameCard inherits Rectangle {
         MaterialText {
             horizontal-alignment: center;
             text: game.title;
-        }
-
-        Rectangle {
-            vertical-stretch: 1;
         }
 
         Horizontal {

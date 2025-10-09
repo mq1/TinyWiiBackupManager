@@ -30,6 +30,8 @@ component HbcAppCard inherits Rectangle {
     visible: !app.slug.is-empty;
 
     Vertical {
+        alignment: space-between;
+
         Horizontal {
             alignment: end;
 
@@ -46,10 +48,6 @@ component HbcAppCard inherits Rectangle {
         MaterialText {
             horizontal-alignment: center;
             text: app.name;
-        }
-
-        Rectangle {
-            vertical-stretch: 1;
         }
 
         Horizontal {

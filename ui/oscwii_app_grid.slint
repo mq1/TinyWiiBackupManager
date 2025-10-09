@@ -30,16 +30,14 @@ component OscWiiAppCard inherits Rectangle {
     visible: !app.slug.is-empty;
 
     Vertical {
+        alignment: space-between;
+
         MaterialText {
             horizontal-alignment: center;
             text: app.name;
         }
 
         HorizontalDivider { }
-
-        Rectangle {
-            vertical-stretch: 1;
-        }
 
         Horizontal {
             padding: 4px;
@@ -75,10 +73,6 @@ component OscWiiAppCard inherits Rectangle {
             MaterialText {
                 text: app.size;
             }
-        }
-
-        Rectangle {
-            vertical-stretch: 1;
         }
 
         Horizontal {
