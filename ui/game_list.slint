@@ -18,8 +18,16 @@ export component GameList inherits ScrollView {
     Horizontal {
         Vertical {
             for game in games: Vertical {
-                MaterialText {
-                    text: game.display-title;
+                HorizontalLayout {
+                    spacing: 4px;
+
+                    Icon {
+                        source: @image-url("../mdi/controller.svg");
+                    }
+
+                    MaterialText {
+                        text: game.display-title;
+                    }
                 }
 
                 HorizontalDivider { }
@@ -96,6 +104,9 @@ export component GameList inherits ScrollView {
             for game in games: Vertical {
                 HorizontalLayout {
                     spacing: 4px;
+
+                    padding-left: -22px;
+                    Icon { }
 
                     IconButton {
                         icon: @image-url("../mdi/information.svg");
