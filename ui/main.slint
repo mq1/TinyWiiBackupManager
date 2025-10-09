@@ -11,6 +11,7 @@ import { Status } from "status.slint";
 import { HbcAppInfo } from "hbc_app_info.slint";
 import { Wiiload } from "wiiload.slint";
 import { OscWiiAppsPage } from "oscwii_apps.slint";
+import { GameInfo } from "game_info.slint";
 
 export * from "common.slint";
 
@@ -29,6 +30,7 @@ export component MainWindow inherits Window {
     in-out property <int> task_count: 0;
     in property <UpdateInfo> update_info;
     out property <HbcApp> current_app;
+    out property <Game> current_game;
     in-out property <Config> config;
     in-out property <[OscWiiApp]> oscwii_apps: [];
     in-out property <[OscWiiApp]> filtered_oscwii_apps: [];
@@ -101,7 +103,8 @@ export component MainWindow inherits Window {
                 games: filtered_games;
                 config <=> config;
                 open_game_info(game) => {
-                    open_url("https://www.gametdb.com/Wii/" + game.id);
+                    current_game = game;
+                    game_info.show();
                 }
                 remove_game(game) => {
                     remove_dir(game.path);
@@ -201,6 +204,15 @@ export component MainWindow inherits Window {
         width: root.width;
         height: root.height;
         app: current_app;
+    }
+
+    game_info := GameInfo {
+        width: root.width;
+        height: root.height;
+        game: current_game;
+        open_url(url) => {
+            open_url(url);
+        }
     }
 
     wiiload := Wiiload {
