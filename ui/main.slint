@@ -12,13 +12,9 @@ import { HbcAppInfo } from "hbc_app_card.slint";
 import { Wiiload } from "wiiload.slint";
 import { OscWiiAppGrid } from "oscwii_app_grid.slint";
 
-import "../assets/Roboto-Regular.ttf";
-
 export * from "common.slint";
 
 export component MainWindow inherits Window {
-    default-font-family: "Roboto";
-
     in property <string> app_name: "";
     in-out property <string> dir_name: "";
     in property <string> disk_usage: "";
