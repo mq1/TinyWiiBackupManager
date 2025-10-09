@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { IconButton, Vertical, MaterialText, ElevatedCard, MaterialPalette, Horizontal, CircularProgressIndicator, SnackBar } from "@material";
+import { IconButton, Vertical, MaterialText, ElevatedCard, MaterialPalette, Horizontal, CircularProgressIndicator, SnackBar, Icon } from "@material";
 import { SideBar } from "sidebar.slint";
 import { GamesPage } from "games.slint";
 import { Game, HbcApp, WiiOutputFormat, ArchiveFormat, TaskType, UpdateInfo, Config, OscWiiApp } from "common.slint";
@@ -182,13 +182,25 @@ export component MainWindow inherits Window {
                 open_data_dir => open_data_dir();
             }
 
-            if dir_name.is-empty && status.is-empty: Vertical {
-                alignment: end;
-                padding-bottom: 16px;
+            if (current_index == 0 || current_index == 1) && dir_name.is-empty && status.is-empty: VerticalLayout {
+                alignment: center;
 
-                MaterialText {
-                    text: "⬅  Choose a Drive or Directory";
-                    font-size: 18px;
+                Horizontal {
+                    alignment: center;
+
+                    MaterialText {
+                        vertical-alignment: center;
+                        text: "Click on";
+                    }
+
+                    Icon {
+                        source: @image-url("../mdi/harddisk.svg");
+                    }
+
+                    MaterialText {
+                        vertical-alignment: center;
+                        text: "to choose a Drive or Directory";
+                    }
                 }
             }
 

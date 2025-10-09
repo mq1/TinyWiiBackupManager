@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { NavigationRail, PopupMenu, IconButton, MaterialPalette, Vertical, FloatingActionButton, FABStyle } from "@material";
+import { NavigationRail, MaterialPalette, Vertical, TonalIconButton, ToolTip } from "@material";
 import { UpdateInfo } from "common.slint";
 
 export component SideBar inherits VerticalLayout {
@@ -55,9 +55,7 @@ export component SideBar inherits VerticalLayout {
         background: MaterialPalette.surface;
 
         Vertical {
-            padding-bottom: 16px;
-
-            if !update_info.version.is-empty: IconButton {
+            if !update_info.version.is-empty: TonalIconButton {
                 z: 2.0;
                 icon: @image-url("../mdi/bell-plus.svg");
                 tooltip: "Update\navailable!\nv" + update_info.version;
@@ -66,62 +64,47 @@ export component SideBar inherits VerticalLayout {
                 }
             }
 
-            IconButton {
-                icon: @image-url("../mdi/information.svg");
+            TonalIconButton {
+                icon: @image-url("../mdi/harddisk.svg");
                 z: 1.9;
-                tooltip: "Wiki";
+                tooltip: "Choose\nDrive/Directory";
+                clicked => {
+                    choose_mount_point();
+                }
+            }
+
+            TonalIconButton {
+                icon: @image-url("../mdi/file-download.svg");
+                z: 1.8;
+                tooltip: "Download\nwiitdb.xml";
+                clicked => {
+                    download_wiitdb();
+                }
+            }
+
+            TonalIconButton {
+                icon: @image-url("../mdi/image-multiple.svg");
+                z: 1.7;
+                tooltip: "Download\nall Covers";
+                clicked => {
+                    download_all_covers();
+                }
+            }
+
+            if is_macos: TonalIconButton {
+                icon: @image-url("../mdi/ghost.svg");
+                z: 1.6;
+                tooltip: "Run dot_clean";
+                clicked => {
+                    dot_clean();
+                }
+            }
+
+            TonalIconButton {
+                icon: @image-url("../mdi/information.svg");
+                z: 1.5;
                 clicked => {
                     open_url("https://github.com/mq1/TinyWiiBackupManager/wiki");
-                }
-            }
-
-            menu_button := IconButton {
-                icon: @image-url("../mdi/menu.svg");
-                clicked => {
-                    menu.show();
-                }
-            }
-
-            menu := PopupMenu {
-                x: menu_button.x + menu_button.width / 2;
-                y: menu_button.y + menu_button.height / 2;
-                width: 250px;
-                items: [
-                    {
-                        icon: @image-url("../mdi/harddisk.svg"),
-                        text: "Choose Drive/Directory",
-                        enabled: true,
-                    },
-                    {
-                        icon: @image-url("../mdi/file-download.svg"),
-                        text: "Download wiitdb.xml",
-                        enabled: true,
-                    },
-                    {
-                        icon: @image-url("../mdi/image-multiple.svg"),
-                        text: "Download all Covers",
-                        enabled: true,
-                    },
-                    {
-                        icon: @image-url("../mdi/ghost.svg"),
-                        text: "dot_clean (macOS only)",
-                        enabled: is_macos,
-                    }
-                ];
-                activated(i) => {
-                    if i == 0 {
-                        choose_mount_point();
-                    }
-                    if i == 1 {
-                        download_wiitdb();
-                    }
-                    if i == 2 {
-                        download_all_covers();
-                    }
-                    if i == 3 {
-                        dot_clean();
-                    }
-                    self.close();
                 }
             }
         }
