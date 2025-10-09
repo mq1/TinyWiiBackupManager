@@ -1,16 +1,17 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { ScrollView, Vertical, TextField, SegmentedButton, Horizontal } from "@material";
+import { ScrollView, Vertical, SegmentedButton, Horizontal, Icon, MaterialPalette, FilledIconButton } from "@material";
+import { LineEdit } from "std-widgets.slint";
 import { Game, Config } from "common.slint";
 import { GameCard, GameCardButtons } from "game_card.slint";
 
-export component GameGrid inherits ScrollView {
+export component GameGrid inherits VerticalLayout {
     in property <[Game]> games;
     out property <string> filter: "";
     in-out property <Config> config;
 
-    property <length> card_w: config.as_list ? self.width - 16px : 176px;
+    property <length> card_w: config.as_list ? self.width - 12px : 177px;
     property <length> card_h: config.as_list ? 42px : 230px;
 
     property <int> columns: config.as_list ? 1 : (self.width / card_w).floor();
@@ -22,18 +23,27 @@ export component GameGrid inherits ScrollView {
     callback archive_game(string);
     callback verify_game(string);
     callback update_config();
+    callback add_games();
 
     horizontal-stretch: 1;
     vertical-stretch: 1;
-    viewport_height: rows * card_h + 56px + 32px;
 
-    Vertical {
+    Rectangle {
+        background: MaterialPalette.surface_variant;
+        z: 2.0;
+
         Horizontal {
-            TextField {
-                height: 56px;
-                leading_icon: @image-url("../mdi/magnify.svg");
-                label: "Filter";
+            VerticalLayout {
+                alignment: center;
+                Icon {
+                    source: @image-url("../mdi/magnify.svg");
+                }
+            }
+
+            LineEdit {
+                height: 37px;
                 placeholder-text: "Search...";
+                text: filter;
                 edited(text) => {
                     filter = text;
                     update_filter(text.to-lowercase());
@@ -41,11 +51,11 @@ export component GameGrid inherits ScrollView {
             }
 
             SegmentedButton {
-                height: 56px;
+                height: 37px;
 
                 items: [
-                    { text: "As List", icon: @image-url("../mdi/view-list.svg") },
-                    { text: "As Grid", icon: @image-url("../mdi/view-grid.svg") }
+                    { icon: @image-url("../mdi/view-list.svg") },
+                    { icon: @image-url("../mdi/view-grid.svg") }
                 ];
                 current_index: config.as_list ? 0 : 1;
                 index_changed(index) => {
@@ -53,12 +63,26 @@ export component GameGrid inherits ScrollView {
                     update_config();
                 }
             }
+
+            FilledIconButton {
+                height: 37px;
+                width: 37px;
+                icon: @image-url("../mdi/plus.svg");
+                tooltip: "Add Games      ";
+                clicked => {
+                    add_games();
+                }
+            }
         }
+    }
+
+    ScrollView {
+        viewport_height: rows * card_h + 4px;
 
         Rectangle {
             for game[index] in games: GameCard {
-                x: mod(index, columns) * card_w;
-                y: (index / columns).floor() * card_h;
+                x: mod(index, columns) * card_w + 4px;
+                y: (index / columns).floor() * card_h + 4px;
                 is_li: config.as_list;
                 width: card_w;
                 height: card_h;
@@ -66,8 +90,8 @@ export component GameGrid inherits ScrollView {
             }
 
             for game[index] in games: GameCardButtons {
-                x: mod(index, columns) * card_w;
-                y: (index / columns).floor() * card_h + (card_h - 38px);
+                x: mod(index, columns) * card_w + 4px;
+                y: (index / columns).floor() * card_h + (card_h - (config.as-list ? 38px : 42px)) + 4px;
                 width: card_w;
                 alignment: config.as_list ? end : center;
                 padding-right: config.as_list ? 16px : 4px;
