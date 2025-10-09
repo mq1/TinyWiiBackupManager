@@ -82,7 +82,7 @@ export component MainWindow inherits Window {
             update_oscwii_apps => {
                 if oscwii_apps.length == 0 {
                     oscwii_apps = load_oscwii_apps();
-                    update_filtered_oscwii_apps(oscwii_apps, "");
+                    filtered_oscwii_apps = update_filtered_oscwii_apps(oscwii_apps, "");
                 }
             }
             download_wiitdb => {
