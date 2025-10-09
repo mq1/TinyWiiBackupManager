@@ -1,16 +1,17 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { ScrollView, Vertical, Horizontal, MaterialText, Dialog, TextField, SegmentedButton } from "@material";
+import { ScrollView, Vertical, Horizontal, MaterialText, Dialog, TextField, SegmentedButton, Icon, FilledIconButton, MaterialPalette } from "@material";
+import { LineEdit } from "std-widgets.slint";
 import { HbcAppCard, HbcAppCardButtons, HbcAppInfo } from "hbc_app_card.slint";
 import { HbcApp, Config } from "common.slint";
 
-export component HbcAppGrid inherits ScrollView {
+export component HbcAppGrid inherits VerticalLayout {
     in property <[HbcApp]> apps;
     out property <string> filter: "";
     in-out property <Config> config;
 
-    property <length> card_w: config.as_list ? self.width - 16px : 176px;
+    property <length> card_w: config.as_list ? self.width - 12px : 177px;
     property <length> card_h: config.as_list ? 42px : 230px;
 
     property <int> columns: config.as_list ? 1 : (self.width / card_w).floor();
@@ -21,18 +22,28 @@ export component HbcAppGrid inherits ScrollView {
     callback open_app_info(HbcApp);
     callback update_filter(string);
     callback update_config();
+    callback add_apps();
+    callback open_wiiload();
 
     horizontal-stretch: 1;
     vertical-stretch: 1;
-    viewport_height: rows * card_h + 56px + 32px;
 
-    Vertical {
+    Rectangle {
+        background: MaterialPalette.surface_variant;
+        z: 2.0;
+
         Horizontal {
-            TextField {
-                height: 56px;
-                leading_icon: @image-url("../mdi/magnify.svg");
-                label: "Filter";
+            VerticalLayout {
+                alignment: center;
+                Icon {
+                    source: @image-url("../mdi/magnify.svg");
+                }
+            }
+
+            LineEdit {
+                height: 37px;
                 placeholder-text: "Search...";
+                text: filter;
                 edited(text) => {
                     filter = text;
                     update_filter(text.to-lowercase());
@@ -40,11 +51,11 @@ export component HbcAppGrid inherits ScrollView {
             }
 
             SegmentedButton {
-                height: 56px;
+                height: 37px;
 
                 items: [
-                    { text: "As List", icon: @image-url("../mdi/view-list.svg") },
-                    { text: "As Grid", icon: @image-url("../mdi/view-grid.svg") }
+                    { icon: @image-url("../mdi/view-list.svg") },
+                    { icon: @image-url("../mdi/view-grid.svg") }
                 ];
                 current_index: config.as_list ? 0 : 1;
                 index_changed(index) => {
@@ -52,12 +63,36 @@ export component HbcAppGrid inherits ScrollView {
                     update_config();
                 }
             }
+
+            FilledIconButton {
+                height: 37px;
+                width: 37px;
+                tooltip: "Add Apps";
+                icon: @image-url("../mdi/plus.svg");
+                clicked => {
+                    add_apps();
+                }
+            }
+
+            FilledIconButton {
+                height: 37px;
+                width: 37px;
+                tooltip: "WiiLoad";
+                icon: @image-url("../mdi/upload-network.svg");
+                clicked => {
+                    open_wiiload();
+                }
+            }
         }
+    }
+
+    ScrollView {
+        viewport_height: rows * card_h + 4px;
 
         Rectangle {
             for app[index] in apps: HbcAppCard {
-                x: mod(index, columns) * card_w;
-                y: (index / columns).floor() * card_h;
+                x: mod(index, columns) * card_w + 4px;
+                y: (index / columns).floor() * card_h + 4px;
                 is_li: config.as_list;
                 width: card_w;
                 height: card_h;
@@ -65,8 +100,8 @@ export component HbcAppGrid inherits ScrollView {
             }
 
             for app[index] in apps: HbcAppCardButtons {
-                x: mod(index, columns) * card_w;
-                y: (index / columns).floor() * card_h + (card_h - 38px);
+                x: mod(index, columns) * card_w + 4px;
+                y: (index / columns).floor() * card_h + (card_h - (config.as-list ? 38px : 42px)) + 4px;
                 width: card_w;
                 alignment: config.as_list ? end : center;
                 padding-right: config.as_list ? 16px : 4px;
