@@ -75,17 +75,8 @@ export component MainWindow inherits Window {
             set-window-title(title) => {
                 root.title = app_name + title + (dir_name.is_empty ? "" : " • " + dir_name + " (" + disk_usage + ")");
             }
-            add_games => {
-                add_games(config);
-            }
-            add_apps => {
-                add_apps(config);
-            }
             open-url(url) => {
                 open_url(url);
-            }
-            open-wiiload => {
-                wiiload.show();
             }
             update_oscwii_apps => {
                 if oscwii_apps.length == 0 {
@@ -126,6 +117,9 @@ export component MainWindow inherits Window {
                 update_config => {
                     update_config(config);
                 }
+                add_games => {
+                    add_games(config);
+                }
             }
 
             if current_index == 1 && !dir_name.is-empty: HbcAppGrid {
@@ -146,6 +140,12 @@ export component MainWindow inherits Window {
                 }
                 update_config => {
                     update_config(config);
+                }
+                add_apps => {
+                    add_apps(config);
+                }
+                open-wiiload => {
+                    wiiload.show();
                 }
             }
 
