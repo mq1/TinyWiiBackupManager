@@ -54,6 +54,11 @@ export component MainWindow inherits Window {
     callback verify_game(string);
     callback download_all_covers(string);
 
+    public function reset_filters() {
+        filtered_games = update_filtered_games(games, "");
+        filtered_hbc_apps = update_filtered_hbc_apps(hbc_apps, "");
+    }
+
     preferred-width: 800px;
     preferred-height: 600px;
     title: app_name + " • " + games.length + " Games" + (dir_name.is_empty ? "" : " • " + dir_name + " (" + disk_usage + ")");
@@ -77,7 +82,7 @@ export component MainWindow inherits Window {
             update_oscwii_apps => {
                 if oscwii_apps.length == 0 {
                     oscwii_apps = load_oscwii_apps();
-                    filtered_oscwii_apps = oscwii_apps;
+                    update_filtered_oscwii_apps(oscwii_apps, "");
                 }
             }
             download_wiitdb => {

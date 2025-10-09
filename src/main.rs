@@ -68,7 +68,6 @@ fn refresh_games(handle: &MainWindow, mount_point: &Path, titles: &Arc<Titles>) 
     let games = games::list(mount_point, titles)?;
     let games_model = ModelRc::from(Rc::new(VecModel::from(games)));
     handle.set_games(games_model.clone());
-    handle.set_filtered_games(games_model); // Also update the filtered list
     Ok(())
 }
 
@@ -76,7 +75,6 @@ fn refresh_hbc_apps(handle: &MainWindow, mount_point: &Path) -> Result<()> {
     let hbc_apps = hbc_apps::list(mount_point)?;
     let hbc_apps_model = ModelRc::from(Rc::new(VecModel::from(hbc_apps)));
     handle.set_hbc_apps(hbc_apps_model.clone());
-    handle.set_filtered_hbc_apps(hbc_apps_model); // Also update the filtered list
     Ok(())
 }
 
@@ -104,6 +102,7 @@ fn choose_mount_point(
     refresh_games(&handle, &dir, titles)?;
     refresh_hbc_apps(&handle, &dir)?;
     refresh_disk_usage(&handle, &dir);
+    handle.invoke_reset_filters();
 
     let new_watcher = init_watcher(weak.clone(), &dir, titles)?;
     let mut guard = watcher.lock().map_err(|_| anyhow!("Mutex poisoned"))?;
@@ -239,31 +238,39 @@ fn run() -> Result<()> {
 
     app.on_update_filtered_oscwii_apps(move |apps, filter| {
         if filter.is_empty() {
-            return apps;
+            let sorted = apps.sort_by(|a, b| a.name_lower.cmp(&b.name_lower));
+            return ModelRc::from(Rc::new(sorted));
         }
 
-        let filtered = apps.filter(move |app| app.name.to_lowercase().contains(&*filter));
+        let filtered = apps
+            .filter(move |app| app.name_lower.contains(&*filter))
+            .sort_by(|a, b| a.name_lower.cmp(&b.name_lower));
 
         ModelRc::from(Rc::new(filtered))
     });
 
     app.on_update_filtered_hbc_apps(move |apps, filter| {
         if filter.is_empty() {
-            return apps;
+            let sorted = apps.sort_by(|a, b| a.name_lower.cmp(&b.name_lower));
+            return ModelRc::from(Rc::new(sorted));
         }
 
-        let filtered = apps.filter(move |app| app.name.to_lowercase().contains(&*filter));
+        let filtered = apps
+            .filter(move |app| app.name_lower.contains(&*filter))
+            .sort_by(|a, b| a.name_lower.cmp(&b.name_lower));
 
         ModelRc::from(Rc::new(filtered))
     });
 
     app.on_update_filtered_games(move |games, filter| {
         if filter.is_empty() {
-            return games;
+            let sorted = games.sort_by(|a, b| a.display_title_lower.cmp(&b.display_title_lower));
+            return ModelRc::from(Rc::new(sorted));
         }
 
-        let filtered =
-            games.filter(move |game| game.display_title.to_lowercase().contains(&*filter));
+        let filtered = games
+            .filter(move |game| game.display_title_lower.contains(&*filter))
+            .sort_by(|a, b| a.display_title_lower.cmp(&b.display_title_lower));
 
         ModelRc::from(Rc::new(filtered))
     });
@@ -339,6 +346,7 @@ fn run() -> Result<()> {
         show_err(e);
     }
 
+    app.invoke_reset_filters();
     app.run()?;
     Ok(())
 }
