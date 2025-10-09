@@ -2,15 +2,28 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import { Dialog, ScrollView, Vertical, MaterialText, HorizontalDivider } from "@material";
-import { HbcApp } from "common.slint";
+import { Game } from "common.slint";
 
-export component HbcAppInfo inherits Dialog {
-    in property <HbcApp> app;
-    title: app.name;
+export component GameInfo inherits Dialog {
+    in property <Game> game;
+    title: game.display-title;
     default-action-text: "Close";
+
+    actions: ["GameTDB Page", "Game Directory"];
+
+    callback open_url(string);
 
     default_action_clicked => {
         self.close();
+    }
+
+    action-clicked(i) => {
+        if i == 0 {
+            open_url("https://www.gametdb.com/Wii/" + game.id);
+        }
+        if i == 1 {
+            open_url(game.path);
+        }
     }
 
     ScrollView {
@@ -24,23 +37,11 @@ export component HbcAppInfo inherits Dialog {
                 alignment: start;
 
                 MaterialText {
-                    text: "Coder: ";
+                    text: "Title: ";
                 }
 
                 MaterialText {
-                    text: app.coder;
-                }
-            }
-
-            HorizontalLayout {
-                alignment: start;
-
-                MaterialText {
-                    text: "Version: ";
-                }
-
-                MaterialText {
-                    text: app.version;
+                    text: game.display-title;
                 }
             }
 
@@ -48,11 +49,11 @@ export component HbcAppInfo inherits Dialog {
                 alignment: start;
 
                 MaterialText {
-                    text: "Release Date: ";
+                    text: "Embedded Title: ";
                 }
 
                 MaterialText {
-                    text: app.release-date;
+                    text: game.title;
                 }
             }
 
@@ -60,11 +61,11 @@ export component HbcAppInfo inherits Dialog {
                 alignment: start;
 
                 MaterialText {
-                    text: "Short Description: ";
+                    text: "ID: ";
                 }
 
                 MaterialText {
-                    text: app.short-description;
+                    text: game.id;
                 }
             }
 
@@ -76,7 +77,7 @@ export component HbcAppInfo inherits Dialog {
                 }
 
                 MaterialText {
-                    text: app.size;
+                    text: game.size;
                 }
             }
 
@@ -84,19 +85,12 @@ export component HbcAppInfo inherits Dialog {
                 alignment: start;
 
                 MaterialText {
-                    text: "Path: ";
+                    text: "Path:";
                 }
 
                 MaterialText {
-                    text: app.path;
+                    text: game.path;
                 }
-            }
-
-            HorizontalDivider { }
-
-            MaterialText {
-                text: app.long-description;
-                wrap: TextWrap.char-wrap;
             }
         }
     }
