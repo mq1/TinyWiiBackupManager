@@ -310,8 +310,9 @@ fn run() -> Result<()> {
     });
 
     let task_processor_clone = task_processor.clone();
-    app.on_archive_game(move |path, config| {
-        if let Err(e) = archive::archive_game(PathBuf::from(&path), &config, &task_processor_clone)
+    app.on_archive_game(move |game, config| {
+        if let Err(e) =
+            archive::archive_game(PathBuf::from(&game.path), &config, &task_processor_clone)
         {
             show_err(e);
         }
@@ -325,8 +326,8 @@ fn run() -> Result<()> {
     });
 
     let task_processor_clone = task_processor.clone();
-    app.on_verify_game(move |path| {
-        if let Err(e) = verify::verify_game(Path::new(&path), &task_processor_clone) {
+    app.on_verify_game(move |game| {
+        if let Err(e) = verify::verify_game(Path::new(&game.path), &task_processor_clone) {
             show_err(e);
         }
     });
