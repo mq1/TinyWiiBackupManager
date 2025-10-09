@@ -30,6 +30,15 @@ component HbcAppCard inherits Rectangle {
     visible: !app.slug.is-empty;
 
     Vertical {
+        Horizontal {
+            alignment: end;
+
+            MaterialText {
+                vertical-alignment: center;
+                text: app.size;
+            }
+        }
+
         Image {
             source: app.image;
         }
@@ -37,48 +46,6 @@ component HbcAppCard inherits Rectangle {
         MaterialText {
             horizontal-alignment: center;
             text: app.name;
-        }
-
-        HorizontalDivider { }
-
-        Rectangle {
-            vertical-stretch: 1;
-        }
-
-        Horizontal {
-            padding: 4px;
-
-            Icon {
-                source: @image-url("../mdi/account.svg");
-            }
-
-            MaterialText {
-                text: app.coder;
-            }
-        }
-
-        Horizontal {
-            padding: 4px;
-
-            Icon {
-                source: @image-url("../mdi/tag.svg");
-            }
-
-            MaterialText {
-                text: app.version;
-            }
-        }
-
-        Horizontal {
-            padding: 4px;
-
-            Icon {
-                source: @image-url("../mdi/scale.svg");
-            }
-
-            MaterialText {
-                text: app.size;
-            }
         }
 
         Rectangle {
