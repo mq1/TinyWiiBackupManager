@@ -63,6 +63,10 @@ component GameCard inherits Rectangle {
             text: game.title;
         }
 
+        Rectangle {
+            vertical-stretch: 1;
+        }
+
         Horizontal {
             IconButton {
                 icon: @image-url("../mdi/information.svg");
