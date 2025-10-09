@@ -29,7 +29,7 @@ use directories::ProjectDirs;
 use notify::RecommendedWatcher;
 use path_slash::PathBufExt;
 use rfd::{FileDialog, MessageButtons, MessageDialog, MessageDialogResult, MessageLevel};
-use slint::{ModelRc, ToSharedString, VecModel, Weak};
+use slint::{ModelRc, SharedString, ToSharedString, VecModel, Weak};
 use std::{
     fmt::Display,
     fs,
@@ -120,12 +120,22 @@ fn run() -> Result<()> {
 
     let app = MainWindow::new()?;
     let mut config = Config::load(&data_dir);
+
+    // If the mount point doesn't exist, erase it
+    if !matches!(fs::exists(&config.mount_point), Ok(true)) {
+        config.mount_point = SharedString::new();
+        config.save(&data_dir)?;
+    }
+
+    // Load the mount point from the first argument
     if let Some(path) = std::env::args().nth(1) {
         config.mount_point = PathBuf::from(path)
             .to_slash()
             .ok_or(anyhow!("Invalid path"))?
             .to_shared_string();
+        config.save(&data_dir)?;
     }
+
     let mount_point = Path::new(&config.mount_point);
     let titles = Arc::new(Titles::load(&data_dir)?);
     let task_processor = Arc::new(TaskProcessor::init(app.as_weak())?);
