@@ -13,58 +13,17 @@ export component SideBar inherits VerticalLayout {
 
     callback set_window_title(string);
     callback choose_mount_point();
-    callback add_games();
-    callback add_apps();
     callback open_url(string);
-    callback open_wiiload();
     callback update_oscwii_apps();
     callback dot_clean();
     callback download_wiitdb();
     callback download_all_covers();
 
-    Rectangle {
-        width: 80px;
-        background: MaterialPalette.surface;
-        z: 1.0;
-
-        Vertical {
-            padding: 12px;
-
-            if current_index == 0: FloatingActionButton {
-                icon: @image-url("../mdi/plus.svg");
-                tooltip: "Add Game(s)";
-                style: FABStyle.standard;
-                z: 2.0;
-                clicked => {
-                    add_games();
-                }
-            }
-
-            if current_index == 1: FloatingActionButton {
-                icon: @image-url("../mdi/plus.svg");
-                tooltip: "Add App(s)";
-                style: FABStyle.standard;
-                z: 2.0;
-                clicked => {
-                    add_apps();
-                }
-            }
-
-            if current_index == 1: FloatingActionButton {
-                icon: @image-url("../mdi/upload-network.svg");
-                tooltip: "Wiiload";
-                style: FABStyle.standard;
-                z: 1.9;
-                clicked => {
-                    open_wiiload();
-                }
-            }
-        }
-    }
+    padding-top: -44px + 12px; // 44px NavigationRail top padding
 
     NavigationRail {
         width: 80px;
-        alignment: center;
+        alignment: start;
         current-index <=> current_index;
 
         items: [
@@ -96,6 +55,8 @@ export component SideBar inherits VerticalLayout {
         background: MaterialPalette.surface;
 
         Vertical {
+            padding-bottom: 16px;
+
             if !update_info.version.is-empty: IconButton {
                 z: 2.0;
                 icon: @image-url("../mdi/bell-plus.svg");
