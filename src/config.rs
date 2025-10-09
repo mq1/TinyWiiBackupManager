@@ -20,6 +20,7 @@ impl Config {
             archive_format: ArchiveFormat::Rvz,
             always_split: false,
             wii_ip: "192.168.1.100".to_shared_string(),
+            as_list: false,
         })
     }
 

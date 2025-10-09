@@ -3,23 +3,24 @@
 
 import { ScrollView, Vertical, Horizontal, MaterialText, Dialog, TextField, SegmentedButton } from "@material";
 import { HbcAppCard, HbcAppCardButtons, HbcAppInfo } from "hbc_app_card.slint";
-import { HbcApp } from "common.slint";
+import { HbcApp, Config } from "common.slint";
 
 export component HbcAppGrid inherits ScrollView {
     in property <[HbcApp]> apps;
     out property <string> filter: "";
-    property <bool> as_list: false;
+    in-out property <Config> config;
 
-    property <length> card_w: as_list ? self.width - 16px : 176px;
-    property <length> card_h: as_list ? 42px : 230px;
+    property <length> card_w: config.as_list ? self.width - 16px : 176px;
+    property <length> card_h: config.as_list ? 42px : 230px;
 
-    property <int> columns: as_list ? 1 : (self.width / card_w).floor();
-    property <int> rows: as_list ? apps.length : (apps.length / columns).ceil();
+    property <int> columns: config.as_list ? 1 : (self.width / card_w).floor();
+    property <int> rows: config.as_list ? apps.length : (apps.length / columns).ceil();
 
     callback open_url(string);
     callback remove_dir(string);
     callback open_app_info(HbcApp);
     callback update_filter(string);
+    callback update_config();
 
     horizontal-stretch: 1;
     vertical-stretch: 1;
@@ -45,9 +46,10 @@ export component HbcAppGrid inherits ScrollView {
                     { text: "As List", icon: @image-url("../mdi/view-list.svg") },
                     { text: "As Grid", icon: @image-url("../mdi/view-grid.svg") }
                 ];
-                current_index: as_list ? 0 : 1;
+                current_index: config.as_list ? 0 : 1;
                 index_changed(index) => {
-                    as_list = index == 0;
+                    config.as_list = index == 0;
+                    update_config();
                 }
             }
         }
@@ -56,7 +58,7 @@ export component HbcAppGrid inherits ScrollView {
             for app[index] in apps: HbcAppCard {
                 x: mod(index, columns) * card_w;
                 y: (index / columns).floor() * card_h;
-                is_li: as_list;
+                is_li: config.as_list;
                 width: card_w;
                 height: card_h;
                 app: app;
@@ -66,8 +68,8 @@ export component HbcAppGrid inherits ScrollView {
                 x: mod(index, columns) * card_w;
                 y: (index / columns).floor() * card_h + (card_h - 38px);
                 width: card_w;
-                alignment: as_list ? end : center;
-                padding-right: as_list ? 16px : 4px;
+                alignment: config.as_list ? end : center;
+                padding-right: config.as_list ? 16px : 4px;
                 open_app_info => {
                     open_app_info(app);
                 }

@@ -2,26 +2,26 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import { ScrollView, Vertical, TextField, SegmentedButton, Horizontal } from "@material";
-import { Game, ArchiveFormat } from "common.slint";
+import { Game, Config } from "common.slint";
 import { GameCard, GameCardButtons } from "game_card.slint";
 
 export component GameGrid inherits ScrollView {
     in property <[Game]> games;
     out property <string> filter: "";
-    property <bool> as_list: false;
-    in property <ArchiveFormat> archive_format;
+    in-out property <Config> config;
 
-    property <length> card_w: as_list ? self.width - 16px : 176px;
-    property <length> card_h: as_list ? 42px : 230px;
+    property <length> card_w: config.as_list ? self.width - 16px : 176px;
+    property <length> card_h: config.as_list ? 42px : 230px;
 
-    property <int> columns: as_list ? 1 : (self.width / card_w).floor();
-    property <int> rows: as_list ? games.length : (games.length / columns).ceil();
+    property <int> columns: config.as_list ? 1 : (self.width / card_w).floor();
+    property <int> rows: config.as_list ? games.length : (games.length / columns).ceil();
 
     callback open_url(string);
     callback remove_dir(string);
     callback update_filter(string);
     callback archive_game(string);
     callback verify_game(string);
+    callback update_config();
 
     horizontal-stretch: 1;
     vertical-stretch: 1;
@@ -47,9 +47,10 @@ export component GameGrid inherits ScrollView {
                     { text: "As List", icon: @image-url("../mdi/view-list.svg") },
                     { text: "As Grid", icon: @image-url("../mdi/view-grid.svg") }
                 ];
-                current_index: as_list ? 0 : 1;
+                current_index: config.as_list ? 0 : 1;
                 index_changed(index) => {
-                    as_list = index == 0;
+                    config.as_list = index == 0;
+                    update_config();
                 }
             }
         }
@@ -58,7 +59,7 @@ export component GameGrid inherits ScrollView {
             for game[index] in games: GameCard {
                 x: mod(index, columns) * card_w;
                 y: (index / columns).floor() * card_h;
-                is_li: as_list;
+                is_li: config.as_list;
                 width: card_w;
                 height: card_h;
                 game: game;
@@ -68,9 +69,9 @@ export component GameGrid inherits ScrollView {
                 x: mod(index, columns) * card_w;
                 y: (index / columns).floor() * card_h + (card_h - 38px);
                 width: card_w;
-                alignment: as_list ? end : center;
-                padding-right: as_list ? 16px : 4px;
-                archive_format: archive_format;
+                alignment: config.as_list ? end : center;
+                padding-right: config.as_list ? 16px : 4px;
+                archive_format: config.archive_format;
                 open_game_info => {
                     open_url("https://www.gametdb.com/Wii/" + game.id);
                 }
