@@ -1,116 +1,148 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { ScrollView, Vertical, SegmentedButton, Horizontal, Icon, MaterialPalette, FilledIconButton } from "@material";
+import { ScrollView, Vertical, Horizontal, Icon, MaterialText, IconButton, MaterialPalette } from "@material";
 import { LineEdit } from "std-widgets.slint";
-import { Game, Config } from "common.slint";
-import { GameCard, GameCardButtons } from "game_card.slint";
+import { Game, Config, Console, ArchiveFormat } from "common.slint";
 
-export component GameGrid inherits VerticalLayout {
-    in property <[Game]> games;
-    out property <string> filter: "";
-    in-out property <Config> config;
+component GameCard inherits Rectangle {
+    in property <Game> game;
+    in property <ArchiveFormat> archive_format;
 
-    property <length> card_w: config.as_list ? self.width - 12px : 177px;
-    property <length> card_h: config.as_list ? 42px : 230px;
+    callback open_game_info();
+    callback open_game_dir();
+    callback remove_game();
+    callback archive_game();
+    callback verify_game();
 
-    property <int> columns: config.as_list ? 1 : (self.width / card_w).floor();
-    property <int> rows: config.as_list ? games.length : (games.length / columns).ceil();
+    width: 164px;
+    height: 200px;
+    background: MaterialPalette.surface;
+    border-color: MaterialPalette.outline_variant;
+    border-radius: 12px;
+    border-width: 1px;
 
-    callback open_url(string);
-    callback remove_dir(string);
-    callback update_filter(string);
-    callback archive_game(string);
-    callback verify_game(string);
-    callback update_config();
-    callback add_games();
+    visible: !game.id.is-empty;
 
-    horizontal-stretch: 1;
-    vertical-stretch: 1;
+    Vertical {
+        Horizontal {
+            if game.console == Console.Wii: Icon {
+                source: @image-url("../mdi/tennis.svg");
+            }
 
-    Rectangle {
-        background: MaterialPalette.surface_variant;
-        z: 2.0;
+            if game.console == Console.Wii: MaterialText {
+                vertical-alignment: center;
+                text: "Wii";
+            }
+
+            if game.console == Console.GameCube: Icon {
+                source: @image-url("../mdi/cube-outline.svg");
+            }
+
+            if game.console == Console.GameCube: MaterialText {
+                vertical-alignment: center;
+                text: "GC";
+            }
+
+            Rectangle {
+                horizontal-stretch: 1;
+            }
+
+            MaterialText {
+                vertical-alignment: center;
+                text: game.size;
+            }
+        }
+
+        Image {
+            source: game.image;
+        }
+
+        MaterialText {
+            horizontal-alignment: center;
+            text: game.title;
+        }
 
         Horizontal {
-            VerticalLayout {
-                alignment: center;
-                Icon {
-                    source: @image-url("../mdi/magnify.svg");
-                }
-            }
-
-            LineEdit {
-                height: 37px;
-                placeholder-text: "Search...";
-                text: filter;
-                edited(text) => {
-                    filter = text;
-                    update_filter(text.to-lowercase());
-                }
-            }
-
-            SegmentedButton {
-                height: 37px;
-
-                items: [
-                    { icon: @image-url("../mdi/view-list.svg") },
-                    { icon: @image-url("../mdi/view-grid.svg") }
-                ];
-                current_index: config.as_list ? 0 : 1;
-                index_changed(index) => {
-                    config.as_list = index == 0;
-                    update_config();
-                }
-            }
-
-            FilledIconButton {
-                height: 37px;
-                width: 37px;
-                icon: @image-url("../mdi/plus.svg");
-                tooltip: "Add Games      ";
+            IconButton {
+                icon: @image-url("../mdi/information.svg");
+                tooltip: "Game Information";
+                inline: true;
                 clicked => {
-                    add_games();
+                    open_game_info();
+                }
+            }
+
+            IconButton {
+                icon: @image-url("../mdi/folder-open.svg");
+                tooltip: "Open Game Directory";
+                inline: true;
+                clicked => {
+                    open_game_dir();
+                }
+            }
+
+            IconButton {
+                icon: @image-url("../mdi/check-all.svg");
+                tooltip: "Verify Hashes";
+                inline: true;
+                clicked => {
+                    verify_game();
+                }
+            }
+
+            IconButton {
+                icon: @image-url("../mdi/package-down.svg");
+                tooltip: "Archive Game to " + (archive_format == ArchiveFormat.Rvz ? "RVZ" : "ISO");
+                inline: true;
+                clicked => {
+                    archive_game();
+                }
+            }
+
+            IconButton {
+                icon: @image-url("../mdi/trash-can.svg");
+                tooltip: "Delete Game";
+                inline: true;
+                clicked => {
+                    remove_game();
                 }
             }
         }
     }
+}
 
-    ScrollView {
-        viewport_height: rows * card_h + 4px;
+export component GameGrid inherits ScrollView {
+    in property <[Game]> games;
+    in property <ArchiveFormat> archive_format;
 
-        Rectangle {
-            for game[index] in games: GameCard {
-                x: mod(index, columns) * card_w + 4px;
-                y: (index / columns).floor() * card_h + 4px;
-                is_li: config.as_list;
-                width: card_w;
-                height: card_h;
-                game: game;
-            }
+    private property <int> cols: max(1, self.width / 180px);
+    private property <int> rows: ceil(games.length / cols);
 
-            for game[index] in games: GameCardButtons {
-                x: mod(index, columns) * card_w + 4px;
-                y: (index / columns).floor() * card_h + (card_h - (config.as-list ? 38px : 42px)) + 4px;
-                width: card_w;
-                alignment: config.as_list ? end : center;
-                padding-right: config.as_list ? 16px : 4px;
-                archive_format: config.archive_format;
-                open_game_info => {
-                    open_url("https://www.gametdb.com/Wii/" + game.id);
-                }
-                open_game_dir => {
-                    open_url(game.path);
-                }
-                remove_game => {
-                    remove_dir(game.path);
-                }
-                archive_game => {
-                    archive_game(game.path);
-                }
-                verify_game => {
-                    verify_game(game.path);
-                }
+    callback open_game_info(Game);
+    callback open_game_dir(Game);
+    callback remove_game(Game);
+    callback archive_game(Game);
+    callback verify_game(Game);
+
+    // Disable horizontal scrolling
+    viewport_width: self.width - 8px;
+
+    VerticalLayout {
+        spacing: 20px; // we leave some space for the tooltips
+        padding: 20px;
+
+        for i in rows: HorizontalLayout {
+            spacing: 8px;
+
+            for j in cols: GameCard {
+                game: games[i * cols + j];
+                archive_format: archive_format;
+                open_game_info => open_game_info(games[i * cols + j]);
+                open_game_dir => open_game_dir(games[i * cols + j]);
+                remove_game => remove_game(games[i * cols + j]);
+                archive_game => archive_game(games[i * cols + j]);
+                verify_game => verify_game(games[i * cols + j]);
             }
         }
     }
