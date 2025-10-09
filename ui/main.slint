@@ -103,7 +103,7 @@ export component MainWindow inherits Window {
         VerticalLayout {
             if current_index == 0 && !dir_name.is-empty: GameGrid {
                 games: filtered_games;
-                archive_format: config.archive-format;
+                config <=> config;
                 open_url(url) => {
                     open_url(url);
                 }
@@ -119,10 +119,14 @@ export component MainWindow inherits Window {
                 verify_game(path) => {
                     verify_game(path);
                 }
+                update_config => {
+                    update_config(config);
+                }
             }
 
             if current_index == 1 && !dir_name.is-empty: HbcAppGrid {
                 apps: filtered_hbc_apps;
+                config <=> config;
                 open_app_info(app) => {
                     current_app = app;
                     app_info.show();
@@ -136,10 +140,14 @@ export component MainWindow inherits Window {
                 update_filter(filter) => {
                     filtered_hbc_apps = update_filtered_hbc_apps(hbc_apps, filter);
                 }
+                update_config => {
+                    update_config(config);
+                }
             }
 
             if current_index == 2: OscWiiAppGrid {
                 apps: filtered_oscwii_apps;
+                config <=> config;
                 open_url(url) => {
                     open_url(url);
                 }
@@ -152,6 +160,9 @@ export component MainWindow inherits Window {
                 push_oscwii(app) => {
                     pushing_oscwii = app;
                     oscwii_wiiload.show();
+                }
+                update_config => {
+                    update_config(config);
                 }
             }
 
