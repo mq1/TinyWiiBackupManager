@@ -1,0 +1,94 @@
+// SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { SegmentedButton, Horizontal, Icon, MaterialPalette, FilledIconButton } from "@material";
+import { LineEdit } from "std-widgets.slint";
+import { HbcApp, Config } from "common.slint";
+import { HbcAppGrid } from "hbc_app_grid.slint";
+import { HbcAppList } from "hbc_app_list.slint";
+
+export component HbcAppsPage inherits VerticalLayout {
+    in property <[HbcApp]> apps;
+    out property <string> filter: "";
+    in-out property <Config> config;
+
+    callback add_apps();
+    callback update_filter(string);
+    callback update_config();
+    callback open_app_info(HbcApp);
+    callback open_app_dir(HbcApp);
+    callback remove_app(HbcApp);
+    callback open_wiiload();
+
+    Rectangle {
+        background: MaterialPalette.surface_variant;
+        z: 2.0;
+
+        Horizontal {
+            VerticalLayout {
+                alignment: center;
+                Icon {
+                    source: @image-url("../mdi/magnify.svg");
+                }
+            }
+
+            LineEdit {
+                height: 37px;
+                placeholder-text: "Search...";
+                text: filter;
+                edited(text) => {
+                    filter = text;
+                    update_filter(text.to-lowercase());
+                }
+            }
+
+            SegmentedButton {
+                height: 37px;
+
+                items: [
+                    { icon: @image-url("../mdi/view-list.svg") },
+                    { icon: @image-url("../mdi/view-grid.svg") }
+                ];
+                current_index: config.as_list ? 0 : 1;
+                index_changed(index) => {
+                    config.as_list = index == 0;
+                    update_config();
+                }
+            }
+
+            FilledIconButton {
+                height: 37px;
+                width: 37px;
+                tooltip: "Add Apps";
+                icon: @image-url("../mdi/plus.svg");
+                clicked => {
+                    add_apps();
+                }
+            }
+
+            FilledIconButton {
+                height: 37px;
+                width: 37px;
+                tooltip: "WiiLoad";
+                icon: @image-url("../mdi/upload-network.svg");
+                clicked => {
+                    open_wiiload();
+                }
+            }
+        }
+    }
+
+    if !config.as_list: HbcAppGrid {
+        apps: apps;
+        open_app_info(app) => open_app_info(app);
+        open_app_dir(app) => open_app_dir(app);
+        remove_app(app) => remove_app(app);
+    }
+
+    if config.as_list: HbcAppList {
+        apps: apps;
+        open_app_info(app) => open_app_info(app);
+        open_app_dir(app) => open_app_dir(app);
+        remove_app(app) => remove_app(app);
+    }
+}
