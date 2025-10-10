@@ -85,12 +85,12 @@ export component OscWiiAppsPage inherits VerticalLayout {
 
             MaterialText {
                 vertical-alignment: center;
-                text: "Wiiload IP:";
+                text: "Wii IP:";
             }
 
             LineEdit {
                 height: 36px;
-                width: 150px;
+                width: 160px;
                 text: config.wii-ip;
                 edited(text) => {
                     config.wii-ip = text;
