@@ -44,7 +44,7 @@ export component MainWindow inherits Window {
     callback add_apps(Config);
     callback open_data_dir();
     callback update_config(Config);
-    callback push_zip(string);
+    callback push_file(string);
     callback push_oscwii(string, string);
     callback load_oscwii_apps() -> [OscWiiApp];
     callback update_filtered_oscwii_apps([OscWiiApp], string) -> [OscWiiApp];
@@ -234,8 +234,8 @@ export component MainWindow inherits Window {
         update_config() => {
             update_config(config);
         }
-        push_zip => {
-            push_zip(config.wii-ip);
+        push_file => {
+            push_file(config.wii-ip);
         }
     }
 
@@ -248,7 +248,7 @@ export component MainWindow inherits Window {
         update_config() => {
             update_config(config);
         }
-        push_zip => {
+        push_file => {
             push_oscwii(pushing_oscwii.zip-url, config.wii-ip);
         }
     }
