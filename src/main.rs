@@ -212,13 +212,9 @@ fn run() -> Result<()> {
         }
     });
 
-    app.on_push_zip(|wii_ip| {
-        if let Some(path) = FileDialog::new()
-            .set_title("Select Wii HBC App")
-            .add_filter("Wii App", &["zip", "ZIP"])
-            .pick_file()
-            && let Err(e) = wiiload::push(&path, &wii_ip)
-        {
+    let task_processor_clone = task_processor.clone();
+    app.on_push_file(move |wii_ip| {
+        if let Err(e) = wiiload::push_file(&wii_ip, &task_processor_clone) {
             show_err(e);
         }
     });
@@ -300,7 +296,7 @@ fn run() -> Result<()> {
 
     let task_processor_clone = task_processor.clone();
     app.on_push_oscwii(move |zip_url, wii_ip| {
-        if let Err(e) = wiiload::push_url(
+        if let Err(e) = wiiload::push_oscwii(
             zip_url.to_string(),
             wii_ip.to_string(),
             &task_processor_clone,

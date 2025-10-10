@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { SegmentedButton, Horizontal, Icon, MaterialPalette } from "@material";
+import { SegmentedButton, Horizontal, Icon, MaterialPalette, MaterialText } from "@material";
 import { LineEdit } from "std-widgets.slint";
 import { OscWiiApp, Config } from "common.slint";
 import { OscWiiAppGrid } from "oscwii_app_grid.slint";
@@ -51,6 +51,27 @@ export component OscWiiAppsPage inherits VerticalLayout {
                 index_changed(index) => {
                     config.as_list = index == 0;
                     update_config();
+                }
+            }
+
+            VerticalLayout {
+                padding-left: 32px;
+                alignment: center;
+                Icon {
+                    source: @image-url("../mdi/upload-network.svg");
+                }
+            }
+
+            MaterialText {
+                vertical-alignment: center;
+                text: "Wiiload IP:";
+            }
+
+            LineEdit {
+                width: 120px;
+                text: config.wii-ip;
+                edited(text) => {
+                    config.wii-ip = text;
                 }
             }
         }
