@@ -166,8 +166,8 @@ export component MainWindow inherits Window {
                     download_oscwii(config.mount-point, app.zip-url);
                 }
                 push_oscwii(app) => {
-                    pushing_oscwii = app;
-                    oscwii_wiiload.show();
+                    push_oscwii(app.zip-url, config.wii-ip);
+                    update_config(config);
                 }
                 update_config => {
                     update_config(config);
@@ -231,25 +231,9 @@ export component MainWindow inherits Window {
         width: root.width;
         height: root.height;
         config <=> config;
-        update_config() => {
-            update_config(config);
-        }
         push_file => {
             push_file(config.wii-ip);
-        }
-    }
-
-    oscwii_wiiload := Wiiload {
-        width: root.width;
-        height: root.height;
-        config <=> config;
-        title: "Sending " + pushing_oscwii.name;
-        default_action_text: "Sending";
-        update_config() => {
             update_config(config);
-        }
-        push_file => {
-            push_oscwii(pushing_oscwii.zip-url, config.wii-ip);
         }
     }
 }

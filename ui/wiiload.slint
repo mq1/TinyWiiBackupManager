@@ -7,7 +7,6 @@ import { Config } from "common.slint";
 export component Wiiload inherits Dialog {
     in-out property <Config> config;
 
-    callback update_config();
     callback push_file();
 
     title: "Wiiload";
@@ -25,7 +24,6 @@ export component Wiiload inherits Dialog {
     }
 
     default_action_clicked => {
-        update_config();
         push_file();
         self.close();
     }
