@@ -77,6 +77,7 @@ impl Game {
             display_title: display_title.to_shared_string(),
             display_title_lower: display_title.to_lowercase().to_shared_string(),
             size: size.to_shared_string(),
+            size_mib: (size.bytes() / 1024 / 1024) as i32,
             image,
             console,
         })

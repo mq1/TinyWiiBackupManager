@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { ScrollView, Vertical, SegmentedButton, Horizontal, Icon, MaterialPalette, FilledIconButton } from "@material";
+import { ScrollView, Vertical, Horizontal, Icon, MaterialPalette, FilledIconButton, IconButton } from "@material";
 import { LineEdit } from "std-widgets.slint";
 import { Game, Config } from "common.slint";
 import { GameGrid } from "game_grid.slint";
@@ -20,6 +20,7 @@ export component GamesPage inherits VerticalLayout {
     callback remove_game(Game);
     callback archive_game(Game);
     callback verify_game(Game);
+    callback trigger_sort(string);
 
     Rectangle {
         background: MaterialPalette.surface_variant;
@@ -43,17 +44,63 @@ export component GamesPage inherits VerticalLayout {
                 }
             }
 
-            SegmentedButton {
+            Rectangle {
                 height: 37px;
+                border-color: MaterialPalette.outline_variant;
+                border-width: 1px;
+                border-radius: 12px;
 
-                items: [
-                    { icon: @image-url("../mdi/view-list.svg") },
-                    { icon: @image-url("../mdi/view-grid.svg") }
-                ];
-                current_index: config.as_list ? 0 : 1;
-                index_changed(index) => {
-                    config.as_list = index == 0;
-                    update_config();
+                HorizontalLayout {
+                    IconButton {
+                        checked: !config.sort_by_size;
+                        icon: @image-url("../mdi/sort-alphabetical-ascending.svg");
+                        tooltip: "Sort by Name";
+                        clicked => {
+                            config.sort-by-size = false;
+                            update_config();
+                            trigger_sort(filter);
+                        }
+                    }
+
+                    IconButton {
+                        checked: config.sort_by_size;
+                        icon: @image-url("../mdi/sort-ascending.svg");
+                        tooltip: "Sort by Size";
+                        clicked => {
+                            config.sort-by-size = true;
+                            update_config();
+                            trigger_sort(filter);
+                        }
+                    }
+                }
+            }
+
+            Rectangle {
+                height: 37px;
+                border-color: MaterialPalette.outline_variant;
+                border-width: 1px;
+                border-radius: 12px;
+
+                HorizontalLayout {
+                    IconButton {
+                        checked: !config.as_list;
+                        icon: @image-url("../mdi/view-grid.svg");
+                        tooltip: "Grid view";
+                        clicked => {
+                            config.as_list = false;
+                            update_config();
+                        }
+                    }
+
+                    IconButton {
+                        checked: config.as_list;
+                        icon: @image-url("../mdi/view-list.svg");
+                        tooltip: "List view";
+                        clicked => {
+                            config.as_list = true;
+                            update_config();
+                        }
+                    }
                 }
             }
 

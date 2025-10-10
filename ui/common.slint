@@ -36,6 +36,7 @@ export struct Config {
     always_split: bool,
     wii_ip: string,
     as_list: bool,
+    sort_by_size: bool,
 }
 
 export struct Game {
@@ -46,6 +47,7 @@ export struct Game {
     path: string,
     image: image,
     size: string,
+    size_mib: int,
     console: Console,
 }
 
@@ -61,6 +63,7 @@ export struct HbcApp {
     path: string,
     image: image,
     size: string,
+    size_mib: int,
 }
 
 export enum TaskType {
