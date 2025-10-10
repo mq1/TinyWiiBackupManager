@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { Horizontal, Icon, IconButton, FilledButton, FilledIconButton, MaterialPalette, VerticalDivider } from "@material";
+import { Horizontal, Icon, IconButton, FilledButton, FilledIconButton, MaterialPalette } from "@material";
 import { LineEdit } from "std-widgets.slint";
 import { HbcApp, Config, ViewAs, SortBy } from "common.slint";
 import { HbcAppGrid } from "hbc_app_grid.slint";
@@ -26,10 +26,8 @@ export component HbcAppsPage inherits VerticalLayout {
         z: 2.0;
 
         Horizontal {
-            padding: 6px;
-
             VerticalLayout {
-                padding-left: 2px;
+                padding-left: 4px;
                 alignment: center;
                 Icon {
                     source: @image-url("../mdi/magnify.svg");
@@ -46,82 +44,89 @@ export component HbcAppsPage inherits VerticalLayout {
                 }
             }
 
-            VerticalDivider { }
-
             VerticalLayout {
                 alignment: center;
-                IconButton {
-                    checked: config.sort-by == SortBy.NameAscending || config.sort-by == SortBy.NameDescending;
-                    icon: config.sort-by == SortBy.NameAscending || config.sort-by == SortBy.SizeAscending || config.sort-by == SortBy.SizeDescending ? @image-url("../mdi/sort-alphabetical-ascending.svg") : @image-url("../mdi/sort-alphabetical-descending.svg");
-                    tooltip: "Sort by Name";
-                    inline: true;
-                    clicked => {
-                        if config.sort-by == SortBy.NameAscending {
-                            config.sort-by = SortBy.NameDescending;
-                        } else if config.sort-by == SortBy.NameDescending {
-                            config.sort-by = SortBy.NameAscending;
-                        } else if config.sort-by == SortBy.SizeAscending || config.sort-by == SortBy.SizeDescending {
-                            config.sort-by = SortBy.NameAscending;
+
+                Rectangle {
+                    border-color: MaterialPalette.outline_variant;
+                    border-radius: 12px;
+                    border-width: 1px;
+
+                    Horizontal {
+                        IconButton {
+                            checked: config.sort-by == SortBy.NameAscending || config.sort-by == SortBy.NameDescending;
+                            icon: config.sort-by == SortBy.NameAscending || config.sort-by == SortBy.SizeAscending || config.sort-by == SortBy.SizeDescending ? @image-url("../mdi/sort-alphabetical-ascending.svg") : @image-url("../mdi/sort-alphabetical-descending.svg");
+                            tooltip: "Sort by Name";
+                            inline: true;
+                            clicked => {
+                                if config.sort-by == SortBy.NameAscending {
+                                    config.sort-by = SortBy.NameDescending;
+                                } else if config.sort-by == SortBy.NameDescending {
+                                    config.sort-by = SortBy.NameAscending;
+                                } else if config.sort-by == SortBy.SizeAscending || config.sort-by == SortBy.SizeDescending {
+                                    config.sort-by = SortBy.NameAscending;
+                                }
+                                update_config();
+                                trigger_sort(filter);
+                            }
                         }
-                        update_config();
-                        trigger_sort(filter);
-                    }
-                }
-            }
 
-            VerticalLayout {
-                alignment: center;
-                IconButton {
-                    checked: config.sort-by == SortBy.SizeAscending || config.sort-by == SortBy.SizeDescending;
-                    icon: config.sort-by == SortBy.SizeAscending || config.sort-by == SortBy.NameAscending || config.sort-by == SortBy.NameDescending ? @image-url("../mdi/sort-ascending.svg") : @image-url("../mdi/sort-descending.svg");
-                    tooltip: "Sort by Size";
-                    inline: true;
-                    clicked => {
-                        if config.sort-by == SortBy.SizeAscending {
-                            config.sort-by = SortBy.SizeDescending;
-                        } else if config.sort-by == SortBy.SizeDescending {
-                            config.sort-by = SortBy.SizeAscending;
-                        } else if config.sort-by == SortBy.NameAscending || config.sort-by == SortBy.NameDescending {
-                            config.sort-by = SortBy.SizeAscending;
+                        IconButton {
+                            checked: config.sort-by == SortBy.SizeAscending || config.sort-by == SortBy.SizeDescending;
+                            icon: config.sort-by == SortBy.SizeAscending || config.sort-by == SortBy.NameAscending || config.sort-by == SortBy.NameDescending ? @image-url("../mdi/sort-ascending.svg") : @image-url("../mdi/sort-descending.svg");
+                            tooltip: "Sort by Size";
+                            inline: true;
+                            clicked => {
+                                if config.sort-by == SortBy.SizeAscending {
+                                    config.sort-by = SortBy.SizeDescending;
+                                } else if config.sort-by == SortBy.SizeDescending {
+                                    config.sort-by = SortBy.SizeAscending;
+                                } else if config.sort-by == SortBy.NameAscending || config.sort-by == SortBy.NameDescending {
+                                    config.sort-by = SortBy.SizeAscending;
+                                }
+                                update_config();
+                                trigger_sort(filter);
+                            }
                         }
-                        update_config();
-                        trigger_sort(filter);
-                    }
-                }
-            }
-
-            VerticalDivider { }
-
-            VerticalLayout {
-                alignment: center;
-
-                IconButton {
-                    checked: config.view-as == ViewAs.Grid;
-                    icon: @image-url("../mdi/view-grid.svg");
-                    tooltip: "Grid view";
-                    inline: true;
-                    clicked => {
-                        config.view-as = ViewAs.Grid;
-                        update_config();
                     }
                 }
             }
 
             VerticalLayout {
                 alignment: center;
-                IconButton {
-                    checked: config.view-as == ViewAs.List;
-                    icon: @image-url("../mdi/view-list.svg");
-                    tooltip: "List view";
-                    inline: true;
-                    clicked => {
-                        config.view-as = ViewAs.List;
-                        update_config();
+
+                Rectangle {
+                    border-color: MaterialPalette.outline_variant;
+                    border-radius: 12px;
+                    border-width: 1px;
+
+                    Horizontal {
+                        alignment: center;
+
+                        IconButton {
+                            checked: config.view-as == ViewAs.Grid;
+                            icon: @image-url("../mdi/view-grid.svg");
+                            tooltip: "Grid view";
+                            inline: true;
+                            clicked => {
+                                config.view-as = ViewAs.Grid;
+                                update_config();
+                            }
+                        }
+
+                        IconButton {
+                            checked: config.view-as == ViewAs.List;
+                            icon: @image-url("../mdi/view-list.svg");
+                            tooltip: "List view";
+                            inline: true;
+                            clicked => {
+                                config.view-as = ViewAs.List;
+                                update_config();
+                            }
+                        }
                     }
                 }
             }
-
-            VerticalDivider { }
 
             FilledButton {
                 height: 36px;
