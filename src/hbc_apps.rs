@@ -67,6 +67,7 @@ impl HbcApp {
             path: path.to_str().unwrap_or_default().to_shared_string(),
             image: image.unwrap_or_default(),
             size: size.to_shared_string(),
+            size_mib: (size.bytes() / 1024 / 1024) as i32,
         }
     }
 }
@@ -79,12 +80,14 @@ pub fn list(mount_point: &Path) -> Result<Vec<HbcApp>> {
     let apps_dir = mount_point.join("apps");
     fs::create_dir_all(&apps_dir)?;
 
-    let apps = fs::read_dir(&apps_dir)?
+    let mut apps = fs::read_dir(&apps_dir)?
         .filter_map(Result::ok)
         .map(|entry| entry.path())
         .filter(|path| path.is_dir())
         .map(HbcApp::from_path)
         .collect::<Vec<_>>();
+
+    apps.sort_by(|a, b| a.name_lower.cmp(&b.name_lower));
 
     Ok(apps)
 }

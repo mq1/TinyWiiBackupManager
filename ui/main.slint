@@ -21,9 +21,9 @@ export component MainWindow inherits Window {
     in property <string> disk_usage: "";
     in property <bool> is_macos: false;
     in-out property <int> current_index: 0;
-    in property <[Game]> games;
+    in-out property <[Game]> games;
     in-out property <[Game]> filtered_games: [];
-    in property <[HbcApp]> hbc_apps;
+    in-out property <[HbcApp]> hbc_apps;
     in-out property <[HbcApp]> filtered_hbc_apps: [];
     in property <string> status: "";
     in property <TaskType> task_type: TaskType.Unknown;
@@ -55,10 +55,17 @@ export component MainWindow inherits Window {
     callback download_wiitdb(string);
     callback verify_game(Game);
     callback download_all_covers(string);
+    callback sort_games(Config, [Game]) -> [Game];
+    callback sort_hbc_apps(Config, [HbcApp]) -> [HbcApp];
 
     public function reset_filters() {
         filtered_games = update_filtered_games(games, "");
         filtered_hbc_apps = update_filtered_hbc_apps(hbc_apps, "");
+    }
+
+    public function reset_sorting() {
+        games = sort_games(config, games);
+        hbc_apps = sort_hbc_apps(config, hbc_apps);
     }
 
     preferred-width: 800px;
@@ -124,6 +131,12 @@ export component MainWindow inherits Window {
                 add_games => {
                     add_games(config);
                 }
+                trigger_sort(filter) => {
+                    games = sort_games(config, games);
+                    filtered_games = update_filtered_games(games, filter);
+                    hbc_apps = sort_hbc_apps(config, hbc_apps);
+                    filtered_hbc_apps = update_filtered_hbc_apps(hbc_apps, filter);
+                }
             }
 
             if current_index == 1 && !dir_name.is-empty: HbcAppsPage {
@@ -150,6 +163,12 @@ export component MainWindow inherits Window {
                 }
                 open-wiiload => {
                     wiiload.show();
+                }
+                trigger_sort(filter) => {
+                    games = sort_games(config, games);
+                    filtered_games = update_filtered_games(games, filter);
+                    hbc_apps = sort_hbc_apps(config, hbc_apps);
+                    filtered_hbc_apps = update_filtered_hbc_apps(hbc_apps, filter);
                 }
             }
 
