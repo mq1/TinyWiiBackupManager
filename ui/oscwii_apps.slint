@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { SegmentedButton, Horizontal, Icon, MaterialPalette, MaterialText } from "@material";
+import { IconButton, Horizontal, Icon, MaterialPalette, MaterialText } from "@material";
 import { LineEdit } from "std-widgets.slint";
 import { OscWiiApp, Config } from "common.slint";
 import { OscWiiAppGrid } from "oscwii_app_grid.slint";
@@ -40,17 +40,32 @@ export component OscWiiAppsPage inherits VerticalLayout {
                 }
             }
 
-            SegmentedButton {
+            Rectangle {
                 height: 37px;
+                border-color: MaterialPalette.outline_variant;
+                border-width: 1px;
+                border-radius: 12px;
 
-                items: [
-                    { icon: @image-url("../mdi/view-list.svg") },
-                    { icon: @image-url("../mdi/view-grid.svg") }
-                ];
-                current_index: config.as_list ? 0 : 1;
-                index_changed(index) => {
-                    config.as_list = index == 0;
-                    update_config();
+                HorizontalLayout {
+                    IconButton {
+                        checked: !config.as_list;
+                        icon: @image-url("../mdi/view-grid.svg");
+                        tooltip: "Grid view";
+                        clicked => {
+                            config.as_list = false;
+                            update_config();
+                        }
+                    }
+
+                    IconButton {
+                        checked: config.as_list;
+                        icon: @image-url("../mdi/view-list.svg");
+                        tooltip: "List view";
+                        clicked => {
+                            config.as_list = true;
+                            update_config();
+                        }
+                    }
                 }
             }
 
