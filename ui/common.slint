@@ -26,6 +26,20 @@ export enum ArchiveFormat {
 }
 
 @rust-attr(derive(serde::Serialize, serde::Deserialize))
+export enum ViewAs {
+    Grid,
+    List,
+}
+
+@rust-attr(derive(serde::Serialize, serde::Deserialize))
+export enum SortBy {
+    NameAscending,
+    NameDescending,
+    SizeAscending,
+    SizeDescending,
+}
+
+@rust-attr(derive(serde::Serialize, serde::Deserialize))
 export struct Config {
     mount_point: string,
     remove_sources_games: bool,
@@ -35,8 +49,8 @@ export struct Config {
     archive_format: ArchiveFormat,
     always_split: bool,
     wii_ip: string,
-    as_list: bool,
-    sort_by_size: bool,
+    view_as: ViewAs,
+    sort_by: SortBy,
 }
 
 export struct Game {
@@ -93,9 +107,4 @@ export struct OscWiiApp {
     release_date: string,
     size: string,
     zip_url: string,
-}
-
-export enum SortBy {
-    Name,
-    Size,
 }

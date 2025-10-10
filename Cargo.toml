@@ -71,5 +71,8 @@ codegen-units = 1
 strip = true
 panic = "abort"
 
+[profile.dev.package."*"]
+opt-level = 3
+
 [lints.rust]
 non_snake_case = "allow"

@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { IconButton, Horizontal, Icon, MaterialPalette, MaterialText } from "@material";
+import { IconButton, Horizontal, Icon, MaterialPalette, MaterialText, VerticalDivider } from "@material";
 import { LineEdit } from "std-widgets.slint";
-import { OscWiiApp, Config } from "common.slint";
+import { OscWiiApp, Config, ViewAs } from "common.slint";
 import { OscWiiAppGrid } from "oscwii_app_grid.slint";
 import { OscWiiAppList } from "oscwii_app_list.slint";
 
@@ -19,11 +19,14 @@ export component OscWiiAppsPage inherits VerticalLayout {
     callback push_oscwii(OscWiiApp);
 
     Rectangle {
-        background: MaterialPalette.surface_variant;
+        background: MaterialPalette.surface_container;
         z: 2.0;
 
         Horizontal {
+            padding: 6px;
+
             VerticalLayout {
+                padding-left: 2px;
                 alignment: center;
                 Icon {
                     source: @image-url("../mdi/magnify.svg");
@@ -31,7 +34,7 @@ export component OscWiiAppsPage inherits VerticalLayout {
             }
 
             LineEdit {
-                height: 37px;
+                height: 36px;
                 placeholder-text: "Search...";
                 text: filter;
                 edited(text) => {
@@ -40,37 +43,40 @@ export component OscWiiAppsPage inherits VerticalLayout {
                 }
             }
 
-            Rectangle {
-                height: 37px;
-                border-color: MaterialPalette.outline_variant;
-                border-width: 1px;
-                border-radius: 12px;
+            VerticalDivider { }
 
-                HorizontalLayout {
-                    IconButton {
-                        checked: !config.as_list;
-                        icon: @image-url("../mdi/view-grid.svg");
-                        tooltip: "Grid view";
-                        clicked => {
-                            config.as_list = false;
-                            update_config();
-                        }
-                    }
+            VerticalLayout {
+                alignment: center;
 
-                    IconButton {
-                        checked: config.as_list;
-                        icon: @image-url("../mdi/view-list.svg");
-                        tooltip: "List view";
-                        clicked => {
-                            config.as_list = true;
-                            update_config();
-                        }
+                IconButton {
+                    checked: config.view-as == ViewAs.Grid;
+                    icon: @image-url("../mdi/view-grid.svg");
+                    tooltip: "Grid view";
+                    inline: true;
+                    clicked => {
+                        config.view-as = ViewAs.Grid;
+                        update_config();
                     }
                 }
             }
 
             VerticalLayout {
-                padding-left: 32px;
+                alignment: center;
+                IconButton {
+                    checked: config.view-as == ViewAs.List;
+                    icon: @image-url("../mdi/view-list.svg");
+                    tooltip: "List view";
+                    inline: true;
+                    clicked => {
+                        config.view-as = ViewAs.List;
+                        update_config();
+                    }
+                }
+            }
+
+            VerticalDivider { }
+
+            VerticalLayout {
                 alignment: center;
                 Icon {
                     source: @image-url("../mdi/upload-network.svg");
@@ -83,7 +89,8 @@ export component OscWiiAppsPage inherits VerticalLayout {
             }
 
             LineEdit {
-                width: 120px;
+                height: 36px;
+                width: 150px;
                 text: config.wii-ip;
                 edited(text) => {
                     config.wii-ip = text;
@@ -92,14 +99,14 @@ export component OscWiiAppsPage inherits VerticalLayout {
         }
     }
 
-    if !config.as_list: OscWiiAppGrid {
+    if config.view-as == ViewAs.Grid: OscWiiAppGrid {
         apps: apps;
         open_oscwii_info(app) => open_oscwii_info(app);
         download_oscwii(app) => download_oscwii(app);
         push_oscwii(app) => push_oscwii(app);
     }
 
-    if config.as_list: OscWiiAppList {
+    if config.view-as == ViewAs.List: OscWiiAppList {
         apps: apps;
         open_oscwii_info(app) => open_oscwii_info(app);
         download_oscwii(app) => download_oscwii(app);
