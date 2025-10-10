@@ -23,10 +23,8 @@ export component OscWiiAppsPage inherits VerticalLayout {
         z: 2.0;
 
         Horizontal {
-            padding: 6px;
-
             VerticalLayout {
-                padding-left: 2px;
+                padding-left: 4px;
                 alignment: center;
                 Icon {
                     source: @image-url("../mdi/magnify.svg");
@@ -43,33 +41,38 @@ export component OscWiiAppsPage inherits VerticalLayout {
                 }
             }
 
-            VerticalDivider { }
-
             VerticalLayout {
                 alignment: center;
 
-                IconButton {
-                    checked: config.view-as == ViewAs.Grid;
-                    icon: @image-url("../mdi/view-grid.svg");
-                    tooltip: "Grid view";
-                    inline: true;
-                    clicked => {
-                        config.view-as = ViewAs.Grid;
-                        update_config();
-                    }
-                }
-            }
+                Rectangle {
+                    border-color: MaterialPalette.outline_variant;
+                    border-radius: 12px;
+                    border-width: 1px;
 
-            VerticalLayout {
-                alignment: center;
-                IconButton {
-                    checked: config.view-as == ViewAs.List;
-                    icon: @image-url("../mdi/view-list.svg");
-                    tooltip: "List view";
-                    inline: true;
-                    clicked => {
-                        config.view-as = ViewAs.List;
-                        update_config();
+                    Horizontal {
+                        alignment: center;
+
+                        IconButton {
+                            checked: config.view-as == ViewAs.Grid;
+                            icon: @image-url("../mdi/view-grid.svg");
+                            tooltip: "Grid view";
+                            inline: true;
+                            clicked => {
+                                config.view-as = ViewAs.Grid;
+                                update_config();
+                            }
+                        }
+
+                        IconButton {
+                            checked: config.view-as == ViewAs.List;
+                            icon: @image-url("../mdi/view-list.svg");
+                            tooltip: "List view";
+                            inline: true;
+                            clicked => {
+                                config.view-as = ViewAs.List;
+                                update_config();
+                            }
+                        }
                     }
                 }
             }
