@@ -102,6 +102,7 @@ fn choose_mount_point(
     refresh_games(&handle, &dir, titles)?;
     refresh_hbc_apps(&handle, &dir)?;
     refresh_disk_usage(&handle, &dir);
+    handle.invoke_reset_sorting();
     handle.invoke_reset_filters();
 
     let new_watcher = init_watcher(weak.clone(), &dir, titles)?;
@@ -234,41 +235,52 @@ fn run() -> Result<()> {
 
     app.on_update_filtered_oscwii_apps(move |apps, filter| {
         if filter.is_empty() {
-            let sorted = apps.sort_by(|a, b| a.name_lower.cmp(&b.name_lower));
-            return ModelRc::from(Rc::new(sorted));
+            return apps;
         }
 
-        let filtered = apps
-            .filter(move |app| app.name_lower.contains(&*filter))
-            .sort_by(|a, b| a.name_lower.cmp(&b.name_lower));
+        let filtered = apps.filter(move |app| app.name_lower.contains(&*filter));
 
         ModelRc::from(Rc::new(filtered))
     });
 
     app.on_update_filtered_hbc_apps(move |apps, filter| {
         if filter.is_empty() {
-            let sorted = apps.sort_by(|a, b| a.name_lower.cmp(&b.name_lower));
-            return ModelRc::from(Rc::new(sorted));
+            return apps;
         }
 
-        let filtered = apps
-            .filter(move |app| app.name_lower.contains(&*filter))
-            .sort_by(|a, b| a.name_lower.cmp(&b.name_lower));
+        let filtered = apps.filter(move |app| app.name_lower.contains(&*filter));
 
         ModelRc::from(Rc::new(filtered))
     });
 
     app.on_update_filtered_games(move |games, filter| {
         if filter.is_empty() {
-            let sorted = games.sort_by(|a, b| a.display_title_lower.cmp(&b.display_title_lower));
-            return ModelRc::from(Rc::new(sorted));
+            return games;
         }
 
-        let filtered = games
-            .filter(move |game| game.display_title_lower.contains(&*filter))
-            .sort_by(|a, b| a.display_title_lower.cmp(&b.display_title_lower));
+        let filtered = games.filter(move |game| game.display_title_lower.contains(&*filter));
 
         ModelRc::from(Rc::new(filtered))
+    });
+
+    app.on_sort_games(|config, games| {
+        if config.sort_by_size {
+            let sorted = games.sort_by(|a, b| a.size_mib.cmp(&b.size_mib));
+            ModelRc::from(Rc::new(sorted))
+        } else {
+            let sorted = games.sort_by(|a, b| a.display_title_lower.cmp(&b.display_title_lower));
+            ModelRc::from(Rc::new(sorted))
+        }
+    });
+
+    app.on_sort_hbc_apps(|config, hbc_apps| {
+        if config.sort_by_size {
+            let sorted = hbc_apps.sort_by(|a, b| a.size_mib.cmp(&b.size_mib));
+            ModelRc::from(Rc::new(sorted))
+        } else {
+            let sorted = hbc_apps.sort_by(|a, b| a.name_lower.cmp(&b.name_lower));
+            ModelRc::from(Rc::new(sorted))
+        }
     });
 
     app.on_dot_clean(|mount_point| {
@@ -343,6 +355,7 @@ fn run() -> Result<()> {
         show_err(e);
     }
 
+    app.invoke_reset_sorting();
     app.invoke_reset_filters();
     app.run()?;
     Ok(())
