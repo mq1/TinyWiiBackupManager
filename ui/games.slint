@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { ScrollView, Vertical, Horizontal, Icon, MaterialPalette, FilledIconButton, IconButton } from "@material";
+import { ScrollView, Vertical, Horizontal, Icon, MaterialPalette, FilledIconButton, IconButton, VerticalDivider } from "@material";
 import { LineEdit } from "std-widgets.slint";
-import { Game, Config } from "common.slint";
+import { Game, Config, ViewAs, SortBy } from "common.slint";
 import { GameGrid } from "game_grid.slint";
 import { GameList } from "game_list.slint";
 
@@ -23,11 +23,14 @@ export component GamesPage inherits VerticalLayout {
     callback trigger_sort(string);
 
     Rectangle {
-        background: MaterialPalette.surface_variant;
+        background: MaterialPalette.surface_container;
         z: 2.0;
 
         Horizontal {
+            padding: 6px;
+
             VerticalLayout {
+                padding-left: 2px;
                 alignment: center;
                 Icon {
                     source: @image-url("../mdi/magnify.svg");
@@ -35,7 +38,7 @@ export component GamesPage inherits VerticalLayout {
             }
 
             LineEdit {
-                height: 37px;
+                height: 36px;
                 placeholder-text: "Search...";
                 text: filter;
                 edited(text) => {
@@ -44,69 +47,86 @@ export component GamesPage inherits VerticalLayout {
                 }
             }
 
-            Rectangle {
-                height: 37px;
-                border-color: MaterialPalette.outline_variant;
-                border-width: 1px;
-                border-radius: 12px;
+            VerticalDivider { }
 
-                HorizontalLayout {
-                    IconButton {
-                        checked: !config.sort_by_size;
-                        icon: @image-url("../mdi/sort-alphabetical-ascending.svg");
-                        tooltip: "Sort by Name";
-                        clicked => {
-                            config.sort-by-size = false;
-                            update_config();
-                            trigger_sort(filter);
+            VerticalLayout {
+                alignment: center;
+                IconButton {
+                    checked: config.sort-by == SortBy.NameAscending || config.sort-by == SortBy.NameDescending;
+                    icon: config.sort-by == SortBy.NameAscending || config.sort-by == SortBy.SizeAscending || config.sort-by == SortBy.SizeDescending ? @image-url("../mdi/sort-alphabetical-ascending.svg") : @image-url("../mdi/sort-alphabetical-descending.svg");
+                    tooltip: "Sort by Name";
+                    inline: true;
+                    clicked => {
+                        if config.sort-by == SortBy.NameAscending {
+                            config.sort-by = SortBy.NameDescending;
+                        } else if config.sort-by == SortBy.NameDescending {
+                            config.sort-by = SortBy.NameAscending;
+                        } else if config.sort-by == SortBy.SizeAscending || config.sort-by == SortBy.SizeDescending {
+                            config.sort-by = SortBy.NameAscending;
                         }
-                    }
-
-                    IconButton {
-                        checked: config.sort_by_size;
-                        icon: @image-url("../mdi/sort-ascending.svg");
-                        tooltip: "Sort by Size";
-                        clicked => {
-                            config.sort-by-size = true;
-                            update_config();
-                            trigger_sort(filter);
-                        }
+                        update_config();
+                        trigger_sort(filter);
                     }
                 }
             }
 
-            Rectangle {
-                height: 37px;
-                border-color: MaterialPalette.outline_variant;
-                border-width: 1px;
-                border-radius: 12px;
-
-                HorizontalLayout {
-                    IconButton {
-                        checked: !config.as_list;
-                        icon: @image-url("../mdi/view-grid.svg");
-                        tooltip: "Grid view";
-                        clicked => {
-                            config.as_list = false;
-                            update_config();
+            VerticalLayout {
+                alignment: center;
+                IconButton {
+                    checked: config.sort-by == SortBy.SizeAscending || config.sort-by == SortBy.SizeDescending;
+                    icon: config.sort-by == SortBy.SizeAscending || config.sort-by == SortBy.NameAscending || config.sort-by == SortBy.NameDescending ? @image-url("../mdi/sort-ascending.svg") : @image-url("../mdi/sort-descending.svg");
+                    tooltip: "Sort by Size";
+                    inline: true;
+                    clicked => {
+                        if config.sort-by == SortBy.SizeAscending {
+                            config.sort-by = SortBy.SizeDescending;
+                        } else if config.sort-by == SortBy.SizeDescending {
+                            config.sort-by = SortBy.SizeAscending;
+                        } else if config.sort-by == SortBy.NameAscending || config.sort-by == SortBy.NameDescending {
+                            config.sort-by = SortBy.SizeAscending;
                         }
-                    }
-
-                    IconButton {
-                        checked: config.as_list;
-                        icon: @image-url("../mdi/view-list.svg");
-                        tooltip: "List view";
-                        clicked => {
-                            config.as_list = true;
-                            update_config();
-                        }
+                        update_config();
+                        trigger_sort(filter);
                     }
                 }
             }
+
+            VerticalDivider { }
+
+            VerticalLayout {
+                alignment: center;
+
+                IconButton {
+                    checked: config.view-as == ViewAs.Grid;
+                    icon: @image-url("../mdi/view-grid.svg");
+                    tooltip: "Grid view";
+                    inline: true;
+                    clicked => {
+                        config.view-as = ViewAs.Grid;
+                        update_config();
+                    }
+                }
+            }
+
+            VerticalLayout {
+                alignment: center;
+                IconButton {
+                    checked: config.view-as == ViewAs.List;
+                    icon: @image-url("../mdi/view-list.svg");
+                    tooltip: "List view";
+                    inline: true;
+                    clicked => {
+                        config.view-as = ViewAs.List;
+                        update_config();
+                    }
+                }
+            }
+
+            VerticalDivider { }
 
             FilledIconButton {
-                height: 37px;
-                width: 37px;
+                height: 36px;
+                width: 36px;
                 icon: @image-url("../mdi/plus.svg");
                 tooltip: "Add Games      ";
                 clicked => {
@@ -116,7 +136,7 @@ export component GamesPage inherits VerticalLayout {
         }
     }
 
-    if !config.as_list: GameGrid {
+    if config.view-as == ViewAs.Grid: GameGrid {
         games: games;
         archive_format: config.archive_format;
         open_game_info(game) => open_game_info(game);
@@ -126,7 +146,7 @@ export component GamesPage inherits VerticalLayout {
         verify_game(game) => verify_game(game);
     }
 
-    if config.as_list: GameList {
+    if config.view-as == ViewAs.List: GameList {
         games: games;
         archive_format: config.archive_format;
         open_game_info(game) => open_game_info(game);
