@@ -55,17 +55,17 @@ export component MainWindow inherits Window {
     callback download_wiitdb(string);
     callback verify_game(Game);
     callback download_all_covers(string);
-    callback sort_games(Config, [Game]) -> [Game];
-    callback sort_hbc_apps(Config, [HbcApp]) -> [HbcApp];
+    callback sort(Config, [Game], [HbcApp]) -> { a: [Game], b: [HbcApp] };
 
     public function reset_filters() {
         filtered_games = update_filtered_games(games, "");
         filtered_hbc_apps = update_filtered_hbc_apps(hbc_apps, "");
     }
 
-    public function reset_sorting() {
-        games = sort_games(config, games);
-        hbc_apps = sort_hbc_apps(config, hbc_apps);
+    public function apply_sorting() {
+        let all = sort(config, games, hbc_apps);
+        games = all.a;
+        hbc_apps = all.b;
     }
 
     preferred-width: 800px;
@@ -132,10 +132,8 @@ export component MainWindow inherits Window {
                     add_games(config);
                 }
                 trigger_sort(filter) => {
-                    games = sort_games(config, games);
+                    apply_sorting();
                     filtered_games = update_filtered_games(games, filter);
-                    hbc_apps = sort_hbc_apps(config, hbc_apps);
-                    filtered_hbc_apps = update_filtered_hbc_apps(hbc_apps, filter);
                 }
             }
 
@@ -165,9 +163,7 @@ export component MainWindow inherits Window {
                     wiiload.show();
                 }
                 trigger_sort(filter) => {
-                    games = sort_games(config, games);
-                    filtered_games = update_filtered_games(games, filter);
-                    hbc_apps = sort_hbc_apps(config, hbc_apps);
+                    apply_sorting();
                     filtered_hbc_apps = update_filtered_hbc_apps(hbc_apps, filter);
                 }
             }

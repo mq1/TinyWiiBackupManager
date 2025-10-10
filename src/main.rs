@@ -102,7 +102,7 @@ fn choose_mount_point(
     refresh_games(&handle, &dir, titles)?;
     refresh_hbc_apps(&handle, &dir)?;
     refresh_disk_usage(&handle, &dir);
-    handle.invoke_reset_sorting();
+    handle.invoke_apply_sorting();
     handle.invoke_reset_filters();
 
     let new_watcher = init_watcher(weak.clone(), &dir, titles)?;
@@ -263,24 +263,31 @@ fn run() -> Result<()> {
         ModelRc::from(Rc::new(filtered))
     });
 
-    app.on_sort_games(|config, games| {
-        if config.sort_by_size {
-            let sorted = games.sort_by(|a, b| a.size_mib.cmp(&b.size_mib));
-            ModelRc::from(Rc::new(sorted))
-        } else {
-            let sorted = games.sort_by(|a, b| a.display_title_lower.cmp(&b.display_title_lower));
-            ModelRc::from(Rc::new(sorted))
-        }
-    });
-
-    app.on_sort_hbc_apps(|config, hbc_apps| {
-        if config.sort_by_size {
-            let sorted = hbc_apps.sort_by(|a, b| a.size_mib.cmp(&b.size_mib));
-            ModelRc::from(Rc::new(sorted))
-        } else {
-            let sorted = hbc_apps.sort_by(|a, b| a.name_lower.cmp(&b.name_lower));
-            ModelRc::from(Rc::new(sorted))
-        }
+    app.on_sort(|config, games, apps| match config.sort_by {
+        SortBy::NameAscending => (
+            ModelRc::from(Rc::new(
+                games.sort_by(|a, b| a.display_title_lower.cmp(&b.display_title_lower)),
+            )),
+            ModelRc::from(Rc::new(
+                apps.sort_by(|a, b| a.name_lower.cmp(&b.name_lower)),
+            )),
+        ),
+        SortBy::NameDescending => (
+            ModelRc::from(Rc::new(
+                games.sort_by(|a, b| b.display_title_lower.cmp(&a.display_title_lower)),
+            )),
+            ModelRc::from(Rc::new(
+                apps.sort_by(|a, b| b.name_lower.cmp(&a.name_lower)),
+            )),
+        ),
+        SortBy::SizeAscending => (
+            ModelRc::from(Rc::new(games.sort_by(|a, b| a.size_mib.cmp(&b.size_mib)))),
+            ModelRc::from(Rc::new(apps.sort_by(|a, b| a.size_mib.cmp(&b.size_mib)))),
+        ),
+        SortBy::SizeDescending => (
+            ModelRc::from(Rc::new(games.sort_by(|a, b| b.size_mib.cmp(&a.size_mib)))),
+            ModelRc::from(Rc::new(apps.sort_by(|a, b| b.size_mib.cmp(&a.size_mib)))),
+        ),
     });
 
     app.on_dot_clean(|mount_point| {
@@ -355,7 +362,7 @@ fn run() -> Result<()> {
         show_err(e);
     }
 
-    app.invoke_reset_sorting();
+    app.invoke_apply_sorting();
     app.invoke_reset_filters();
     app.run()?;
     Ok(())
