@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { SegmentedButton, Horizontal, Icon, MaterialPalette, FilledIconButton } from "@material";
+import { SegmentedButton, Horizontal, Icon, MaterialPalette, FilledIconButton, FilledButton } from "@material";
 import { LineEdit } from "std-widgets.slint";
 import { HbcApp, Config } from "common.slint";
 import { HbcAppGrid } from "hbc_app_grid.slint";
@@ -66,10 +66,9 @@ export component HbcAppsPage inherits VerticalLayout {
                 }
             }
 
-            FilledIconButton {
+            FilledButton {
                 height: 37px;
-                width: 37px;
-                tooltip: "WiiLoad";
+                text: "WiiLoad";
                 icon: @image-url("../mdi/upload-network.svg");
                 clicked => {
                     open_wiiload();
