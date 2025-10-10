@@ -55,6 +55,10 @@ export component Status inherits Rectangle {
             source: @image-url("../mdi/check-all.svg");
         }
 
+        if task_type == TaskType.Wiiload: Icon {
+            source: @image-url("../mdi/upload-network.svg");
+        }
+
         MaterialText {
             vertical-alignment: center;
             text: status;
