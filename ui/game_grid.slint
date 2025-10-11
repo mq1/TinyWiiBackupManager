@@ -113,7 +113,7 @@ export component GameGrid inherits ScrollView {
 
     private property <int> cols: max(1, self.width / 180px);
     private property <int> rows: ceil(games.length / cols);
-    viewport_height: 16px + rows * 216px;
+    viewport_height: 32px + rows * 208px;
 
     callback open_disc_info(Game);
     callback open_game_dir(Game);
@@ -121,16 +121,16 @@ export component GameGrid inherits ScrollView {
     callback archive_game(Game);
     callback verify_game(Game);
 
-    for game[i] in games: GameCard {
-        x: 16px + mod(i, cols) * 174px;
-        y: 16px + floor(i / cols) * 216px;
+    for i in games.length: GameCard {
+        x: 16px + mod((games.length - 1 - i), cols) * 174px;
+        y: 16px + floor((games.length - 1 - i) / cols) * 208px;
 
-        game: game;
+        game: games[games.length - 1 - i];
         archive_format: archive_format;
-        open_disc_info => open_disc_info(game);
-        open_game_dir => open_game_dir(game);
-        remove_game => remove_game(game);
-        archive_game => archive_game(game);
-        verify_game => verify_game(game);
+        open_disc_info => open_disc_info(games[games.length - 1 - i]);
+        open_game_dir => open_game_dir(games[games.length - 1 - i]);
+        remove_game => remove_game(games[games.length - 1 - i]);
+        archive_game => archive_game(games[games.length - 1 - i]);
+        verify_game => verify_game(games[games.length - 1 - i]);
     }
 }
