@@ -29,7 +29,7 @@ jobs:
       matrix:
         include:
           - target: x86_64-unknown-linux-gnu
-            runner: ubuntu-22.04
+            runner: ubuntu-24.04
           - target: aarch64-unknown-linux-gnu
             runner: ubuntu-24.04-arm
 
@@ -63,7 +63,7 @@ jobs:
 
   build-windows:
     name: Build for Windows
-    runs-on: windows-latest
+    runs-on: windows-2025
     strategy:
       fail-fast: false
       matrix:
@@ -126,7 +126,7 @@ jobs:
 
   build-macos:
     name: Build for MacOS
-    runs-on: macos-latest
+    runs-on: macos-26
     strategy:
       fail-fast: false
       matrix:
@@ -158,7 +158,7 @@ jobs:
 
   package-macos:
     name: Package MacOS Universal
-    runs-on: macos-latest
+    runs-on: macos-26
     needs: build-macos
     steps:
       - name: Checkout
@@ -215,7 +215,7 @@ jobs:
   release:
     name: Create GitHub Release
     if: startsWith(github.ref, 'refs/tags/')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [ build-linux, build-windows, package-macos ]
     steps:
       - name: Download distributables
@@ -243,7 +243,7 @@ jobs:
   winget:
     needs: [ release ]
     name: Publish to WinGet
-    runs-on: windows-latest
+    runs-on: windows-2025
     steps:
       - uses: vedantmgoyal9/winget-releaser@main
         with:
