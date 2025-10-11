@@ -1,16 +1,25 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { Dialog, ScrollView, Vertical, MaterialText, HorizontalDivider } from "@material";
+import { Dialog, ScrollView, Vertical, MaterialText, HorizontalDivider, Icon } from "@material";
 import { HbcApp } from "common.slint";
 
 export component HbcAppInfo inherits Dialog {
     in property <HbcApp> app;
     title: app.name;
     default-action-text: "Close";
+    actions: ["App Directory"];
+
+    callback open_url(string);
 
     default_action_clicked => {
         self.close();
+    }
+
+    action-clicked(i) => {
+        if i == 0 {
+            open_url(app.path);
+        }
     }
 
     ScrollView {
@@ -22,72 +31,114 @@ export component HbcAppInfo inherits Dialog {
 
             HorizontalLayout {
                 alignment: start;
+                spacing: 4px;
 
-                MaterialText {
-                    text: "Coder: ";
+                Icon {
+                    source: @image-url("../mdi/account.svg");
                 }
 
                 MaterialText {
+                    vertical-alignment: center;
+                    text: "Coder:";
+                }
+
+                MaterialText {
+                    vertical-alignment: center;
                     text: app.coder;
                 }
             }
 
             HorizontalLayout {
                 alignment: start;
+                spacing: 4px;
 
-                MaterialText {
-                    text: "Version: ";
+                Icon {
+                    source: @image-url("../mdi/tag.svg");
                 }
 
                 MaterialText {
+                    vertical-alignment: center;
+                    text: "Version:";
+                }
+
+                MaterialText {
+                    vertical-alignment: center;
                     text: app.version;
                 }
             }
 
             HorizontalLayout {
                 alignment: start;
+                spacing: 4px;
 
-                MaterialText {
-                    text: "Release Date: ";
+                Icon {
+                    source: @image-url("../mdi/calendar.svg");
                 }
 
                 MaterialText {
+                    vertical-alignment: center;
+                    text: "Release Date:";
+                }
+
+                MaterialText {
+                    vertical-alignment: center;
                     text: app.release-date;
                 }
             }
 
             HorizontalLayout {
                 alignment: start;
+                spacing: 4px;
 
-                MaterialText {
-                    text: "Short Description: ";
+                Icon {
+                    source: @image-url("../mdi/text-box.svg");
                 }
 
                 MaterialText {
+                    vertical-alignment: center;
+                    text: "Short Description:";
+                }
+
+                MaterialText {
+                    vertical-alignment: center;
                     text: app.short-description;
                 }
             }
 
             HorizontalLayout {
                 alignment: start;
+                spacing: 4px;
 
-                MaterialText {
-                    text: "Size: ";
+                Icon {
+                    source: @image-url("../mdi/scale.svg");
                 }
 
                 MaterialText {
+                    vertical-alignment: center;
+                    text: "Size:";
+                }
+
+                MaterialText {
+                    vertical-alignment: center;
                     text: app.size;
                 }
             }
 
             HorizontalLayout {
                 alignment: start;
+                spacing: 4px;
 
-                MaterialText {
-                    text: "Path: ";
+                Icon {
+                    source: @image-url("../mdi/folder.svg");
                 }
 
                 MaterialText {
+                    vertical-alignment: center;
+                    text: "Path:";
+                }
+
+                MaterialText {
+                    vertical-alignment: center;
                     text: app.path;
                 }
             }

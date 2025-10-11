@@ -17,7 +17,6 @@ component HbcAppCard inherits Rectangle {
     in property <HbcApp> app;
 
     callback open_app_info();
-    callback open_app_dir();
     callback remove_app();
 
     width: 164px;
@@ -63,15 +62,6 @@ component HbcAppCard inherits Rectangle {
             }
 
             IconButton {
-                icon: @image-url("../mdi/folder-open.svg");
-                tooltip: "Open App Directory";
-                inline: true;
-                clicked => {
-                    open_app_dir();
-                }
-            }
-
-            IconButton {
                 icon: @image-url("../mdi/trash-can.svg");
                 tooltip: "Delete App";
                 inline: true;
@@ -90,7 +80,6 @@ export component HbcAppGrid inherits ScrollView {
     private property <int> rows: ceil(apps.length / cols);
 
     callback open_app_info(HbcApp);
-    callback open_app_dir(HbcApp);
     callback remove_app(HbcApp);
 
     // Disable horizontal scrolling
@@ -106,7 +95,6 @@ export component HbcAppGrid inherits ScrollView {
             for j in cols: HbcAppCard {
                 app: apps[i * cols + j];
                 open_app_info => open_app_info(apps[i * cols + j]);
-                open_app_dir => open_app_dir(apps[i * cols + j]);
                 remove_app => remove_app(apps[i * cols + j]);
             }
         }
