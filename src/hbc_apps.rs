@@ -58,6 +58,7 @@ impl HbcApp {
         Self {
             slug: slug.to_shared_string(),
             name: meta.name.trim().to_shared_string(),
+            name_lower: meta.name.trim().to_lowercase().to_shared_string(),
             coder: meta.coder.to_shared_string(),
             version: meta.version.to_shared_string(),
             release_date: meta.release_date.to_shared_string(),
@@ -66,6 +67,7 @@ impl HbcApp {
             path: path.to_str().unwrap_or_default().to_shared_string(),
             image: image.unwrap_or_default(),
             size: size.to_shared_string(),
+            size_mib: (size.bytes() / 1024 / 1024) as i32,
         }
     }
 }
@@ -85,8 +87,7 @@ pub fn list(mount_point: &Path) -> Result<Vec<HbcApp>> {
         .map(HbcApp::from_path)
         .collect::<Vec<_>>();
 
-    // Sort by name
-    apps.sort_by(|a, b| a.name.cmp(&b.name));
+    apps.sort_by(|a, b| a.name_lower.cmp(&b.name_lower));
 
     Ok(apps)
 }

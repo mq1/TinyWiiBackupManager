@@ -103,15 +103,15 @@ pub fn add_games(config: &Config, task_processor: &Arc<TaskProcessor>) -> Result
                     .join(if is_wii { "wbfs" } else { "games" })
                     .join(format!("{title} [{id}]"));
 
-                let base_path = dir_path.join(id);
-
-                let path1 = match (is_wii, wii_output_format, must_split, header.disc_num) {
-                    (true, WiiOutputFormat::Wbfs, _, _) => base_path.with_extension("wbfs"),
-                    (true, WiiOutputFormat::Iso, true, _) => base_path.with_extension("part0.iso"),
-                    (true, WiiOutputFormat::Iso, false, _) => base_path.with_extension("iso"),
-                    (false, _, _, 0) => dir_path.join("game.iso"),
-                    (false, _, _, n) => dir_path.join(format!("disc{n}.iso")),
+                let file_name1 = match (is_wii, wii_output_format, must_split, header.disc_num) {
+                    (true, WiiOutputFormat::Wbfs, _, _) => &format!("{id}.wbfs"),
+                    (true, WiiOutputFormat::Iso, true, _) => &format!("{id}.part0.iso"),
+                    (true, WiiOutputFormat::Iso, false, _) => &format!("{id}.iso"),
+                    (false, _, _, 0) => "game.iso",
+                    (false, _, _, n) => &format!("disc{n}.iso"),
                 };
+
+                let path1 = dir_path.join(file_name1);
 
                 if path1.exists() {
                     continue;
@@ -121,11 +121,11 @@ pub fn add_games(config: &Config, task_processor: &Arc<TaskProcessor>) -> Result
 
                 let mut out1 = BufWriter::new(File::create(&path1)?);
 
-                let path2 = match wii_output_format {
-                    WiiOutputFormat::Wbfs => base_path.with_extension("wbf1"),
-                    WiiOutputFormat::Iso => base_path.with_extension("part1.iso"),
+                let file_name2 = match wii_output_format {
+                    WiiOutputFormat::Wbfs => &format!("{id}.wbf1"),
+                    WiiOutputFormat::Iso => &format!("{id}.part1.iso"),
                 };
-
+                let path2 = dir_path.join(file_name2);
                 let mut out2: Option<BufWriter<File>> = None;
 
                 let out_opts = get_output_format_opts(wii_output_format, is_wii);

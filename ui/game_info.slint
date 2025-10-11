@@ -1,0 +1,97 @@
+// SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { Dialog, ScrollView, Vertical, MaterialText, HorizontalDivider } from "@material";
+import { Game } from "common.slint";
+
+export component GameInfo inherits Dialog {
+    in property <Game> game;
+    title: game.display-title;
+    default-action-text: "Close";
+
+    actions: ["GameTDB Page", "Game Directory"];
+
+    callback open_url(string);
+
+    default_action_clicked => {
+        self.close();
+    }
+
+    action-clicked(i) => {
+        if i == 0 {
+            open_url("https://www.gametdb.com/Wii/" + game.id);
+        }
+        if i == 1 {
+            open_url(game.path);
+        }
+    }
+
+    ScrollView {
+        width: root.width * 0.75;
+        height: root.height / 2;
+
+        Vertical {
+            alignment: start;
+
+            HorizontalLayout {
+                alignment: start;
+
+                MaterialText {
+                    text: "Title: ";
+                }
+
+                MaterialText {
+                    text: game.display-title;
+                }
+            }
+
+            HorizontalLayout {
+                alignment: start;
+
+                MaterialText {
+                    text: "Embedded Title: ";
+                }
+
+                MaterialText {
+                    text: game.title;
+                }
+            }
+
+            HorizontalLayout {
+                alignment: start;
+
+                MaterialText {
+                    text: "ID: ";
+                }
+
+                MaterialText {
+                    text: game.id;
+                }
+            }
+
+            HorizontalLayout {
+                alignment: start;
+
+                MaterialText {
+                    text: "Size: ";
+                }
+
+                MaterialText {
+                    text: game.size;
+                }
+            }
+
+            HorizontalLayout {
+                alignment: start;
+
+                MaterialText {
+                    text: "Path: ";
+                }
+
+                MaterialText {
+                    text: game.path;
+                }
+            }
+        }
+    }
+}

@@ -26,6 +26,20 @@ export enum ArchiveFormat {
 }
 
 @rust-attr(derive(serde::Serialize, serde::Deserialize))
+export enum ViewAs {
+    Grid,
+    List,
+}
+
+@rust-attr(derive(serde::Serialize, serde::Deserialize))
+export enum SortBy {
+    NameAscending,
+    NameDescending,
+    SizeAscending,
+    SizeDescending,
+}
+
+@rust-attr(derive(serde::Serialize, serde::Deserialize))
 export struct Config {
     mount_point: string,
     remove_sources_games: bool,
@@ -35,21 +49,26 @@ export struct Config {
     archive_format: ArchiveFormat,
     always_split: bool,
     wii_ip: string,
+    view_as: ViewAs,
+    sort_by: SortBy,
 }
 
 export struct Game {
     id: string,
     title: string,
     display_title: string,
+    display_title_lower: string,
     path: string,
     image: image,
     size: string,
+    size_mib: int,
     console: Console,
 }
 
 export struct HbcApp {
     slug: string,
     name: string,
+    name_lower: string,
     coder: string,
     version: string,
     release_date: string,
@@ -58,6 +77,7 @@ export struct HbcApp {
     path: string,
     image: image,
     size: string,
+    size_mib: int,
 }
 
 export enum TaskType {
@@ -69,6 +89,7 @@ export enum TaskType {
     DownloadingFolder,
     DownloadingFile,
     VerifyingGame,
+    Wiiload,
     Unknown,
 }
 
@@ -80,6 +101,7 @@ export struct UpdateInfo {
 export struct OscWiiApp {
     slug: string,
     name: string,
+    name_lower: string,
     author: string,
     version: string,
     release_date: string,

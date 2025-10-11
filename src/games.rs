@@ -20,7 +20,7 @@ pub fn list(mount_point: &Path, titles: &Arc<Titles>) -> Result<Vec<Game>> {
     // Create dirs
     game_dirs.iter().try_for_each(fs::create_dir_all)?;
 
-    let mut games = game_dirs
+    let games = game_dirs
         .iter()
         .map(fs::read_dir)
         .collect::<Result<Vec<_>, _>>()?
@@ -28,8 +28,6 @@ pub fn list(mount_point: &Path, titles: &Arc<Titles>) -> Result<Vec<Game>> {
         .flat_map(|rd| rd.filter_map(Result::ok))
         .filter_map(|entry| Game::from_dir(entry.path(), titles))
         .collect::<Vec<_>>();
-
-    games.sort_by(|a, b| a.display_title.cmp(&b.display_title));
 
     Ok(games)
 }
@@ -77,7 +75,9 @@ impl Game {
             id: id.to_shared_string(),
             title: title.to_shared_string(),
             display_title: display_title.to_shared_string(),
+            display_title_lower: display_title.to_lowercase().to_shared_string(),
             size: size.to_shared_string(),
+            size_mib: (size.bytes() / 1024 / 1024) as i32,
             image,
             console,
         })

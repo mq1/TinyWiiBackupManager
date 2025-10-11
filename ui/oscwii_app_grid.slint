@@ -1,63 +1,138 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { ScrollView, Vertical, Horizontal, MaterialText, Dialog, TextField } from "@material";
-import { OscWiiAppCard, OscWiiAppCardButtons } from "oscwii_app_card.slint";
+import {
+    Vertical,
+    Horizontal,
+    IconButton,
+    MaterialText,
+    HorizontalDivider,
+    Icon,
+    MaterialPalette,
+    ScrollView
+} from "@material";
 import { OscWiiApp } from "common.slint";
 
-export component OscWiiAppGrid inherits ScrollView {
-    in property <[OscWiiApp]> apps;
-    out property <string> filter: "";
+component OscWiiAppCard inherits Rectangle {
+    in property <OscWiiApp> app;
 
-    property <length> card_w: 176px;
-    property <length> card_h: 230px;
+    callback open_oscwii_info();
+    callback download_oscwii();
+    callback push_oscwii();
 
-    property <int> columns: (self.width / card_w).floor();
-    property <int> rows: (apps.length / columns).ceil();
+    width: 164px;
+    height: 200px;
+    background: MaterialPalette.surface;
+    border-color: MaterialPalette.outline_variant;
+    border-radius: 12px;
+    border-width: 1px;
 
-    callback open_url(string);
-    callback download_oscwii(string);
-    callback push_oscwii(OscWiiApp);
-    callback update_filter(string);
-
-    horizontal-stretch: 1;
-    vertical-stretch: 1;
-    viewport_height: rows * card_h + 56px + 16px;
+    visible: !app.slug.is-empty;
 
     Vertical {
-        TextField {
-            height: 56px;
-            leading_icon: @image-url("../mdi/magnify.svg");
-            label: "Filter";
-            placeholder-text: "Search...";
-            edited(text) => {
-                filter = text;
-                update_filter(text.to-lowercase());
+        alignment: space-between;
+
+        MaterialText {
+            horizontal-alignment: center;
+            text: app.name;
+        }
+
+        HorizontalDivider { }
+
+        Horizontal {
+            padding: 4px;
+
+            Icon {
+                source: @image-url("../mdi/account.svg");
+            }
+
+            MaterialText {
+                text: app.author;
             }
         }
 
-        Rectangle {
-            for app[index] in apps: OscWiiAppCard {
-                x: mod(index, columns) * card_w;
-                y: (index / columns).floor() * card_h;
-                width: card_w;
-                height: card_h;
-                app: app;
+        Horizontal {
+            padding: 4px;
+
+            Icon {
+                source: @image-url("../mdi/tag.svg");
             }
 
-            for app[index] in apps: OscWiiAppCardButtons {
-                x: mod(index, columns) * card_w;
-                y: (index / columns).floor() * card_h + (card_h - 42px);
-                width: card_w;
-                open_oscwii_info => {
-                    open_url("https://oscwii.org/library/app/" + app.slug);
+            MaterialText {
+                text: app.version;
+            }
+        }
+
+        Horizontal {
+            padding: 4px;
+
+            Icon {
+                source: @image-url("../mdi/scale.svg");
+            }
+
+            MaterialText {
+                text: app.size;
+            }
+        }
+
+        Horizontal {
+            alignment: center;
+
+            IconButton {
+                icon: @image-url("../mdi/information.svg");
+                tooltip: "App Information";
+                inline: true;
+                clicked => {
+                    open_oscwii_info();
                 }
-                download_oscwii => {
-                    download_oscwii(app.zip-url);
+            }
+
+            IconButton {
+                icon: @image-url("../mdi/download.svg");
+                tooltip: "Download";
+                inline: true;
+                clicked => {
+                    download_oscwii();
                 }
-                push_oscwii => {
-                    push_oscwii(app);
+            }
+
+            IconButton {
+                icon: @image-url("../mdi/upload-network.svg");
+                tooltip: "Wiiload";
+                inline: true;
+                clicked => {
+                    push_oscwii();
                 }
+            }
+        }
+    }
+}
+
+export component OscWiiAppGrid inherits ScrollView {
+    in property <[OscWiiApp]> apps;
+
+    private property <int> cols: max(1, self.width / 180px);
+    private property <int> rows: ceil(apps.length / cols);
+
+    callback open_oscwii_info(OscWiiApp);
+    callback download_oscwii(OscWiiApp);
+    callback push_oscwii(OscWiiApp);
+
+    // Disable horizontal scrolling
+    viewport_width: self.width - 8px;
+
+    VerticalLayout {
+        spacing: 20px; // we leave some space for the tooltips
+        padding: 20px;
+
+        for i in rows: HorizontalLayout {
+            spacing: 8px;
+
+            for j in cols: OscWiiAppCard {
+                app: apps[i * cols + j];
+                open_oscwii_info => open_oscwii_info(apps[i * cols + j]);
+                download_oscwii => download_oscwii(apps[i * cols + j]);
+                push_oscwii => push_oscwii(apps[i * cols + j]);
             }
         }
     }
