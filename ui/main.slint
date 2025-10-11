@@ -153,9 +153,6 @@ export component MainWindow inherits Window {
                 open_app_info(app) => {
                     open_app_info_dialog(app);
                 }
-                open_app_dir(app) => {
-                    open_url(app.path);
-                }
                 remove_app(app) => {
                     remove_dir(app.path);
                 }
@@ -248,6 +245,9 @@ export component MainWindow inherits Window {
         width: root.width;
         height: root.height;
         app: app_info_app;
+        open_url(url) => {
+            open_url(url);
+        }
     }
 
     disc_info := DiscInfoDialog {

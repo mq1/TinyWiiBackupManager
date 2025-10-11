@@ -8,7 +8,6 @@ export component HbcAppList inherits ScrollView {
     in property <[HbcApp]> apps;
 
     callback open_app_info(HbcApp);
-    callback open_app_dir(HbcApp);
     callback remove_app(HbcApp);
 
     Horizontal {
@@ -98,15 +97,6 @@ export component HbcAppList inherits ScrollView {
                         inline: true;
                         clicked => {
                             open_app_info(app);
-                        }
-                    }
-
-                    IconButton {
-                        icon: @image-url("../mdi/folder-open.svg");
-                        tooltip: "Open App Directory";
-                        inline: true;
-                        clicked => {
-                            open_app_dir(app);
                         }
                     }
 
