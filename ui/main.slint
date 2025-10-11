@@ -122,9 +122,6 @@ export component MainWindow inherits Window {
                 archive_game(game) => {
                     archive_game(game, config);
                 }
-                verify_game(game) => {
-                    verify_game(game);
-                }
                 update_config => {
                     update_config(config);
                 }
@@ -247,6 +244,9 @@ export component MainWindow inherits Window {
         game: current_game;
         open_url(url) => {
             open_url(url);
+        }
+        verify_game => {
+            verify_game(current_game);
         }
     }
 
