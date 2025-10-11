@@ -113,19 +113,19 @@ export component OscWiiAppGrid inherits ScrollView {
 
     private property <int> cols: max(1, self.width / 180px);
     private property <int> rows: ceil(apps.length / cols);
-    viewport_height: 16px + rows * 216px;
+    viewport_height: 32px + rows * 208px;
 
     callback open_oscwii_info(OscWiiApp);
     callback download_oscwii(OscWiiApp);
     callback push_oscwii(OscWiiApp);
 
-    for app[i] in apps: OscWiiAppCard {
-        x: 16px + mod(i, cols) * 174px;
-        y: 16px + floor(i / cols) * 216px;
+    for i in apps.length: OscWiiAppCard {
+        x: 16px + mod((apps.length - 1 - i), cols) * 174px;
+        y: 16px + floor((apps.length - 1 - i) / cols) * 208px;
 
-        app: app;
-        open_oscwii_info => open_oscwii_info(app);
-        download_oscwii => download_oscwii(app);
-        push_oscwii => push_oscwii(app);
+        app: apps[apps.length - 1 - i];
+        open_oscwii_info => open_oscwii_info(apps[apps.length - 1 - i]);
+        download_oscwii => download_oscwii(apps[apps.length - 1 - i]);
+        push_oscwii => push_oscwii(apps[apps.length - 1 - i]);
     }
 }
