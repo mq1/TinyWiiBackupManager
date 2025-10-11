@@ -1,73 +1,8 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { ElevatedCard, Vertical, Horizontal, IconButton, MaterialText, Dialog, HorizontalDivider, ScrollView } from "@material";
+import { Dialog, ScrollView, Vertical, MaterialText, HorizontalDivider } from "@material";
 import { HbcApp } from "common.slint";
-
-export component HbcAppCard inherits VerticalLayout {
-    in property <HbcApp> app;
-    padding: 4px;
-
-    ElevatedCard {
-        Vertical {
-            Horizontal {
-                alignment: end;
-                MaterialText {
-                    text: app.size;
-                }
-            }
-
-            Image {
-                source: app.image;
-            }
-
-            MaterialText {
-                horizontal-alignment: center;
-                text: app.name;
-            }
-
-            Rectangle {
-                height: 30px;
-            }
-        }
-    }
-}
-
-export component HbcAppCardButtons inherits Horizontal {
-    alignment: center;
-    height: 34px;
-
-    callback open_app_info();
-    callback open_app_dir();
-    callback remove_app();
-
-    IconButton {
-        icon: @image-url("../mdi/information.svg");
-        tooltip: "App Information";
-        inline: true;
-        clicked => {
-            open_app_info();
-        }
-    }
-
-    IconButton {
-        icon: @image-url("../mdi/folder-open.svg");
-        tooltip: "Open App Directory";
-        inline: true;
-        clicked => {
-            open_app_dir();
-        }
-    }
-
-    IconButton {
-        icon: @image-url("../mdi/trash-can.svg");
-        tooltip: "Delete App";
-        inline: true;
-        clicked => {
-            remove_app();
-        }
-    }
-}
 
 export component HbcAppInfo inherits Dialog {
     in property <HbcApp> app;
@@ -82,12 +17,11 @@ export component HbcAppInfo inherits Dialog {
         width: root.width * 0.75;
         height: root.height / 2;
 
-        VerticalLayout {
-            spacing: 4px;
+        Vertical {
+            alignment: start;
 
-            Horizontal {
+            HorizontalLayout {
                 alignment: start;
-                padding: 4px;
 
                 MaterialText {
                     text: "Coder: ";
@@ -98,9 +32,8 @@ export component HbcAppInfo inherits Dialog {
                 }
             }
 
-            Horizontal {
+            HorizontalLayout {
                 alignment: start;
-                padding: 4px;
 
                 MaterialText {
                     text: "Version: ";
@@ -111,9 +44,8 @@ export component HbcAppInfo inherits Dialog {
                 }
             }
 
-            Horizontal {
+            HorizontalLayout {
                 alignment: start;
-                padding: 4px;
 
                 MaterialText {
                     text: "Release Date: ";
@@ -124,9 +56,8 @@ export component HbcAppInfo inherits Dialog {
                 }
             }
 
-            Horizontal {
+            HorizontalLayout {
                 alignment: start;
-                padding: 4px;
 
                 MaterialText {
                     text: "Short Description: ";
@@ -137,9 +68,8 @@ export component HbcAppInfo inherits Dialog {
                 }
             }
 
-            Horizontal {
+            HorizontalLayout {
                 alignment: start;
-                padding: 4px;
 
                 MaterialText {
                     text: "Size: ";
@@ -150,9 +80,8 @@ export component HbcAppInfo inherits Dialog {
                 }
             }
 
-            Horizontal {
+            HorizontalLayout {
                 alignment: start;
-                padding: 4px;
 
                 MaterialText {
                     text: "Path: ";

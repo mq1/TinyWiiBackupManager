@@ -1,16 +1,17 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { IconButton, Vertical, MaterialText, ElevatedCard, MaterialPalette, Horizontal, CircularProgressIndicator, SnackBar } from "@material";
+import { IconButton, Vertical, MaterialText, ElevatedCard, MaterialPalette, Horizontal, CircularProgressIndicator, SnackBar, Icon } from "@material";
 import { SideBar } from "sidebar.slint";
-import { GameGrid } from "game_grid.slint";
+import { GamesPage } from "games.slint";
 import { Game, HbcApp, WiiOutputFormat, ArchiveFormat, TaskType, UpdateInfo, Config, OscWiiApp } from "common.slint";
-import { HbcAppGrid } from "hbc_app_grid.slint";
+import { HbcAppsPage } from "hbc_apps.slint";
 import { SettingsPage } from "settings.slint";
 import { Status } from "status.slint";
-import { HbcAppInfo } from "hbc_app_card.slint";
+import { HbcAppInfo } from "hbc_app_info.slint";
 import { Wiiload } from "wiiload.slint";
-import { OscWiiAppGrid } from "oscwii_app_grid.slint";
+import { OscWiiAppsPage } from "oscwii_apps.slint";
+import { GameInfo } from "game_info.slint";
 
 export * from "common.slint";
 
@@ -20,15 +21,16 @@ export component MainWindow inherits Window {
     in property <string> disk_usage: "";
     in property <bool> is_macos: false;
     in-out property <int> current_index: 0;
-    in property <[Game]> games;
+    in-out property <[Game]> games;
     in-out property <[Game]> filtered_games: [];
-    in property <[HbcApp]> hbc_apps;
+    in-out property <[HbcApp]> hbc_apps;
     in-out property <[HbcApp]> filtered_hbc_apps: [];
     in property <string> status: "";
     in property <TaskType> task_type: TaskType.Unknown;
     in-out property <int> task_count: 0;
     in property <UpdateInfo> update_info;
     out property <HbcApp> current_app;
+    out property <Game> current_game;
     in-out property <Config> config;
     in-out property <[OscWiiApp]> oscwii_apps: [];
     in-out property <[OscWiiApp]> filtered_oscwii_apps: [];
@@ -38,11 +40,11 @@ export component MainWindow inherits Window {
     callback open_url(string);
     callback remove_dir(string);
     callback add_games(Config);
-    callback archive_game(string, Config);
+    callback archive_game(Game, Config);
     callback add_apps(Config);
     callback open_data_dir();
     callback update_config(Config);
-    callback push_zip(string);
+    callback push_file(string);
     callback push_oscwii(string, string);
     callback load_oscwii_apps() -> [OscWiiApp];
     callback update_filtered_oscwii_apps([OscWiiApp], string) -> [OscWiiApp];
@@ -51,8 +53,20 @@ export component MainWindow inherits Window {
     callback dot_clean(string);
     callback download_oscwii(string, string);
     callback download_wiitdb(string);
-    callback verify_game(string);
+    callback verify_game(Game);
     callback download_all_covers(string);
+    callback sort(Config, [Game], [HbcApp]) -> { a: [Game], b: [HbcApp] };
+
+    public function reset_filters() {
+        filtered_games = update_filtered_games(games, "");
+        filtered_hbc_apps = update_filtered_hbc_apps(hbc_apps, "");
+    }
+
+    public function apply_sorting() {
+        let all = sort(config, games, hbc_apps);
+        games = all.a;
+        hbc_apps = all.b;
+    }
 
     preferred-width: 800px;
     preferred-height: 600px;
@@ -71,22 +85,13 @@ export component MainWindow inherits Window {
             set-window-title(title) => {
                 root.title = app_name + title + (dir_name.is_empty ? "" : " • " + dir_name + " (" + disk_usage + ")");
             }
-            add_games => {
-                add_games(config);
-            }
-            add_apps => {
-                add_apps(config);
-            }
             open-url(url) => {
                 open_url(url);
-            }
-            open-wiiload => {
-                wiiload.show();
             }
             update_oscwii_apps => {
                 if oscwii_apps.length == 0 {
                     oscwii_apps = load_oscwii_apps();
-                    filtered_oscwii_apps = oscwii_apps;
+                    filtered_oscwii_apps = update_filtered_oscwii_apps(oscwii_apps, "");
                 }
             }
             download_wiitdb => {
@@ -101,56 +106,86 @@ export component MainWindow inherits Window {
         }
 
         VerticalLayout {
-            if current_index == 0 && !dir_name.is-empty: GameGrid {
+            if current_index == 0 && !dir_name.is-empty: GamesPage {
                 games: filtered_games;
-                open_url(url) => {
-                    open_url(url);
+                config <=> config;
+                open_game_info(game) => {
+                    current_game = game;
+                    game_info.show();
                 }
-                remove_dir(path) => {
-                    remove_dir(path);
+                remove_game(game) => {
+                    remove_dir(game.path);
                 }
                 update_filter(filter) => {
                     filtered_games = update_filtered_games(games, filter);
                 }
-                archive_game(path) => {
-                    archive_game(path, config);
+                archive_game(game) => {
+                    archive_game(game, config);
                 }
-                verify_game(path) => {
-                    verify_game(path);
+                verify_game(game) => {
+                    verify_game(game);
+                }
+                update_config => {
+                    update_config(config);
+                }
+                add_games => {
+                    add_games(config);
+                }
+                trigger_sort(filter) => {
+                    apply_sorting();
+                    filtered_games = update_filtered_games(games, filter);
                 }
             }
 
-            if current_index == 1 && !dir_name.is-empty: HbcAppGrid {
+            if current_index == 1 && !dir_name.is-empty: HbcAppsPage {
                 apps: filtered_hbc_apps;
+                config <=> config;
                 open_app_info(app) => {
                     current_app = app;
                     app_info.show();
                 }
-                open_url(url) => {
-                    open_url(url);
+                open_app_dir(app) => {
+                    open_url(app.path);
                 }
-                remove_dir(path) => {
-                    remove_dir(path);
+                remove_app(app) => {
+                    remove_dir(app.path);
                 }
                 update_filter(filter) => {
                     filtered_hbc_apps = update_filtered_hbc_apps(hbc_apps, filter);
                 }
+                update_config => {
+                    update_config(config);
+                }
+                add_apps => {
+                    add_apps(config);
+                }
+                open-wiiload => {
+                    wiiload.show();
+                }
+                trigger_sort(filter) => {
+                    apply_sorting();
+                    filtered_hbc_apps = update_filtered_hbc_apps(hbc_apps, filter);
+                }
             }
 
-            if current_index == 2: OscWiiAppGrid {
+            if current_index == 2: OscWiiAppsPage {
                 apps: filtered_oscwii_apps;
-                open_url(url) => {
-                    open_url(url);
+                config <=> config;
+                open_oscwii_info(app) => {
+                    open_url("https://oscwii.org/library/app/" + app.slug);
                 }
                 update_filter(filter) => {
                     filtered_oscwii_apps = update_filtered_oscwii_apps(oscwii_apps, filter);
                 }
-                download_oscwii(url) => {
-                    download_oscwii(config.mount-point, url);
+                download_oscwii(app) => {
+                    download_oscwii(config.mount-point, app.zip-url);
                 }
                 push_oscwii(app) => {
-                    pushing_oscwii = app;
-                    oscwii_wiiload.show();
+                    push_oscwii(app.zip-url, config.wii-ip);
+                    update_config(config);
+                }
+                update_config => {
+                    update_config(config);
                 }
             }
 
@@ -162,13 +197,25 @@ export component MainWindow inherits Window {
                 open_data_dir => open_data_dir();
             }
 
-            if dir_name.is-empty && status.is-empty: Vertical {
-                alignment: end;
-                padding-bottom: 16px;
+            if (current_index == 0 || current_index == 1) && dir_name.is-empty: VerticalLayout {
+                alignment: center;
 
-                MaterialText {
-                    text: "⬅  Choose a Drive or Directory";
-                    font-size: 18px;
+                Horizontal {
+                    alignment: center;
+
+                    MaterialText {
+                        vertical-alignment: center;
+                        text: "Click on";
+                    }
+
+                    Icon {
+                        source: @image-url("../mdi/harddisk.svg");
+                    }
+
+                    MaterialText {
+                        vertical-alignment: center;
+                        text: "to choose a Drive or Directory";
+                    }
                 }
             }
 
@@ -186,29 +233,22 @@ export component MainWindow inherits Window {
         app: current_app;
     }
 
+    game_info := GameInfo {
+        width: root.width;
+        height: root.height;
+        game: current_game;
+        open_url(url) => {
+            open_url(url);
+        }
+    }
+
     wiiload := Wiiload {
         width: root.width;
         height: root.height;
         config <=> config;
-        update_config() => {
+        push_file => {
+            push_file(config.wii-ip);
             update_config(config);
-        }
-        push_zip => {
-            push_zip(config.wii-ip);
-        }
-    }
-
-    oscwii_wiiload := Wiiload {
-        width: root.width;
-        height: root.height;
-        config <=> config;
-        title: "Sending " + pushing_oscwii.name;
-        default_action_text: "Sending";
-        update_config() => {
-            update_config(config);
-        }
-        push_zip => {
-            push_oscwii(pushing_oscwii.zip-url, config.wii-ip);
         }
     }
 }

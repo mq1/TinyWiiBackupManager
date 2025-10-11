@@ -11,7 +11,9 @@ fn main() {
     let mut library_paths = HashMap::new();
     library_paths.insert("material".to_string(), material_path);
 
-    let config = slint_build::CompilerConfiguration::new().with_library_paths(library_paths);
+    let config = slint_build::CompilerConfiguration::new()
+        .with_library_paths(library_paths)
+        .with_style("material".into());
     slint_build::compile_with_config("ui/main.slint", config).unwrap();
 
     // Windows-specific icon resource

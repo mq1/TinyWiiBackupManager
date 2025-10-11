@@ -29,7 +29,7 @@ use directories::ProjectDirs;
 use notify::RecommendedWatcher;
 use path_slash::PathBufExt;
 use rfd::{FileDialog, MessageButtons, MessageDialog, MessageDialogResult, MessageLevel};
-use slint::{ModelRc, ToSharedString, VecModel, Weak};
+use slint::{ModelRc, SharedString, ToSharedString, VecModel, Weak};
 use std::{
     fmt::Display,
     fs,
@@ -68,7 +68,6 @@ fn refresh_games(handle: &MainWindow, mount_point: &Path, titles: &Arc<Titles>) 
     let games = games::list(mount_point, titles)?;
     let games_model = ModelRc::from(Rc::new(VecModel::from(games)));
     handle.set_games(games_model.clone());
-    handle.set_filtered_games(games_model); // Also update the filtered list
     Ok(())
 }
 
@@ -76,7 +75,6 @@ fn refresh_hbc_apps(handle: &MainWindow, mount_point: &Path) -> Result<()> {
     let hbc_apps = hbc_apps::list(mount_point)?;
     let hbc_apps_model = ModelRc::from(Rc::new(VecModel::from(hbc_apps)));
     handle.set_hbc_apps(hbc_apps_model.clone());
-    handle.set_filtered_hbc_apps(hbc_apps_model); // Also update the filtered list
     Ok(())
 }
 
@@ -104,6 +102,8 @@ fn choose_mount_point(
     refresh_games(&handle, &dir, titles)?;
     refresh_hbc_apps(&handle, &dir)?;
     refresh_disk_usage(&handle, &dir);
+    handle.invoke_apply_sorting();
+    handle.invoke_reset_filters();
 
     let new_watcher = init_watcher(weak.clone(), &dir, titles)?;
     let mut guard = watcher.lock().map_err(|_| anyhow!("Mutex poisoned"))?;
@@ -120,12 +120,22 @@ fn run() -> Result<()> {
 
     let app = MainWindow::new()?;
     let mut config = Config::load(&data_dir);
+
+    // If the mount point doesn't exist, erase it
+    if !matches!(fs::exists(&config.mount_point), Ok(true)) {
+        config.mount_point = SharedString::new();
+        config.save(&data_dir)?;
+    }
+
+    // Load the mount point from the first argument
     if let Some(path) = std::env::args().nth(1) {
         config.mount_point = PathBuf::from(path)
             .to_slash()
             .ok_or(anyhow!("Invalid path"))?
             .to_shared_string();
+        config.save(&data_dir)?;
     }
+
     let mount_point = Path::new(&config.mount_point);
     let titles = Arc::new(Titles::load(&data_dir)?);
     let task_processor = Arc::new(TaskProcessor::init(app.as_weak())?);
@@ -203,13 +213,9 @@ fn run() -> Result<()> {
         }
     });
 
-    app.on_push_zip(|wii_ip| {
-        if let Some(path) = FileDialog::new()
-            .set_title("Select Wii HBC App")
-            .add_filter("Wii App", &["zip", "ZIP"])
-            .pick_file()
-            && let Err(e) = wiiload::push(&path, &wii_ip)
-        {
+    let task_processor_clone = task_processor.clone();
+    app.on_push_file(move |wii_ip| {
+        if let Err(e) = wiiload::push_file(&wii_ip, &task_processor_clone) {
             show_err(e);
         }
     });
@@ -232,7 +238,7 @@ fn run() -> Result<()> {
             return apps;
         }
 
-        let filtered = apps.filter(move |app| app.name.to_lowercase().contains(&*filter));
+        let filtered = apps.filter(move |app| app.name_lower.contains(&*filter));
 
         ModelRc::from(Rc::new(filtered))
     });
@@ -242,7 +248,7 @@ fn run() -> Result<()> {
             return apps;
         }
 
-        let filtered = apps.filter(move |app| app.name.to_lowercase().contains(&*filter));
+        let filtered = apps.filter(move |app| app.name_lower.contains(&*filter));
 
         ModelRc::from(Rc::new(filtered))
     });
@@ -252,10 +258,36 @@ fn run() -> Result<()> {
             return games;
         }
 
-        let filtered =
-            games.filter(move |game| game.display_title.to_lowercase().contains(&*filter));
+        let filtered = games.filter(move |game| game.display_title_lower.contains(&*filter));
 
         ModelRc::from(Rc::new(filtered))
+    });
+
+    app.on_sort(|config, games, apps| match config.sort_by {
+        SortBy::NameAscending => (
+            ModelRc::from(Rc::new(
+                games.sort_by(|a, b| a.display_title_lower.cmp(&b.display_title_lower)),
+            )),
+            ModelRc::from(Rc::new(
+                apps.sort_by(|a, b| a.name_lower.cmp(&b.name_lower)),
+            )),
+        ),
+        SortBy::NameDescending => (
+            ModelRc::from(Rc::new(
+                games.sort_by(|a, b| b.display_title_lower.cmp(&a.display_title_lower)),
+            )),
+            ModelRc::from(Rc::new(
+                apps.sort_by(|a, b| b.name_lower.cmp(&a.name_lower)),
+            )),
+        ),
+        SortBy::SizeAscending => (
+            ModelRc::from(Rc::new(games.sort_by(|a, b| a.size_mib.cmp(&b.size_mib)))),
+            ModelRc::from(Rc::new(apps.sort_by(|a, b| a.size_mib.cmp(&b.size_mib)))),
+        ),
+        SortBy::SizeDescending => (
+            ModelRc::from(Rc::new(games.sort_by(|a, b| b.size_mib.cmp(&a.size_mib)))),
+            ModelRc::from(Rc::new(apps.sort_by(|a, b| b.size_mib.cmp(&a.size_mib)))),
+        ),
     });
 
     app.on_dot_clean(|mount_point| {
@@ -283,7 +315,7 @@ fn run() -> Result<()> {
 
     let task_processor_clone = task_processor.clone();
     app.on_push_oscwii(move |zip_url, wii_ip| {
-        if let Err(e) = wiiload::push_url(
+        if let Err(e) = wiiload::push_oscwii(
             zip_url.to_string(),
             wii_ip.to_string(),
             &task_processor_clone,
@@ -293,8 +325,9 @@ fn run() -> Result<()> {
     });
 
     let task_processor_clone = task_processor.clone();
-    app.on_archive_game(move |path, config| {
-        if let Err(e) = archive::archive_game(PathBuf::from(&path), &config, &task_processor_clone)
+    app.on_archive_game(move |game, config| {
+        if let Err(e) =
+            archive::archive_game(PathBuf::from(&game.path), &config, &task_processor_clone)
         {
             show_err(e);
         }
@@ -308,8 +341,8 @@ fn run() -> Result<()> {
     });
 
     let task_processor_clone = task_processor.clone();
-    app.on_verify_game(move |path| {
-        if let Err(e) = verify::verify_game(Path::new(&path), &task_processor_clone) {
+    app.on_verify_game(move |game| {
+        if let Err(e) = verify::verify_game(Path::new(&game.path), &task_processor_clone) {
             show_err(e);
         }
     });
@@ -329,6 +362,8 @@ fn run() -> Result<()> {
         show_err(e);
     }
 
+    app.invoke_apply_sorting();
+    app.invoke_reset_filters();
     app.run()?;
     Ok(())
 }

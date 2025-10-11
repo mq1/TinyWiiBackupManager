@@ -7,11 +7,10 @@ import { Config } from "common.slint";
 export component Wiiload inherits Dialog {
     in-out property <Config> config;
 
-    callback update_config();
-    callback push_zip();
+    callback push_file();
 
     title: "Wiiload";
-    default-action-text: "Send .zip";
+    default-action-text: "Send .zip/.dol/.elf";
 
     TextField {
         label: "Your Wii IP";
@@ -25,8 +24,7 @@ export component Wiiload inherits Dialog {
     }
 
     default_action_clicked => {
-        update_config();
-        push_zip();
+        push_file();
         self.close();
     }
 }
