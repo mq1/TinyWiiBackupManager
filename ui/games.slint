@@ -1,0 +1,163 @@
+// SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { ScrollView, Vertical, Horizontal, Icon, MaterialPalette, FilledIconButton, IconButton } from "@material";
+import { LineEdit } from "std-widgets.slint";
+import { Game, Config, ViewAs, SortBy } from "common.slint";
+import { GameGrid } from "game_grid.slint";
+import { GameList } from "game_list.slint";
+
+export component GamesPage inherits VerticalLayout {
+    in property <[Game]> games;
+    out property <string> filter: "";
+    in-out property <Config> config;
+
+    callback add_games();
+    callback update_filter(string);
+    callback update_config();
+    callback open_game_info(Game);
+    callback open_game_dir(Game);
+    callback remove_game(Game);
+    callback archive_game(Game);
+    callback verify_game(Game);
+    callback trigger_sort(string);
+
+    Rectangle {
+        background: MaterialPalette.surface_container;
+        z: 2.0;
+
+        Horizontal {
+            VerticalLayout {
+                padding-left: 4px;
+                alignment: center;
+                Icon {
+                    source: @image-url("../mdi/magnify.svg");
+                }
+            }
+
+            LineEdit {
+                height: 36px;
+                placeholder-text: "Search...";
+                text: filter;
+                edited(text) => {
+                    filter = text;
+                    update_filter(text.to-lowercase());
+                }
+            }
+
+            VerticalLayout {
+                alignment: center;
+
+                Rectangle {
+                    border-color: MaterialPalette.outline_variant;
+                    border-radius: 12px;
+                    border-width: 1px;
+
+                    Horizontal {
+                        IconButton {
+                            checked: config.sort-by == SortBy.NameAscending || config.sort-by == SortBy.NameDescending;
+                            icon: config.sort-by == SortBy.NameAscending || config.sort-by == SortBy.SizeAscending || config.sort-by == SortBy.SizeDescending ? @image-url("../mdi/sort-alphabetical-ascending.svg") : @image-url("../mdi/sort-alphabetical-descending.svg");
+                            tooltip: "Sort by Name";
+                            inline: true;
+                            clicked => {
+                                if config.sort-by == SortBy.NameAscending {
+                                    config.sort-by = SortBy.NameDescending;
+                                } else if config.sort-by == SortBy.NameDescending {
+                                    config.sort-by = SortBy.NameAscending;
+                                } else if config.sort-by == SortBy.SizeAscending || config.sort-by == SortBy.SizeDescending {
+                                    config.sort-by = SortBy.NameAscending;
+                                }
+                                update_config();
+                                trigger_sort(filter);
+                            }
+                        }
+
+                        IconButton {
+                            checked: config.sort-by == SortBy.SizeAscending || config.sort-by == SortBy.SizeDescending;
+                            icon: config.sort-by == SortBy.SizeAscending || config.sort-by == SortBy.NameAscending || config.sort-by == SortBy.NameDescending ? @image-url("../mdi/sort-ascending.svg") : @image-url("../mdi/sort-descending.svg");
+                            tooltip: "Sort by Size";
+                            inline: true;
+                            clicked => {
+                                if config.sort-by == SortBy.SizeAscending {
+                                    config.sort-by = SortBy.SizeDescending;
+                                } else if config.sort-by == SortBy.SizeDescending {
+                                    config.sort-by = SortBy.SizeAscending;
+                                } else if config.sort-by == SortBy.NameAscending || config.sort-by == SortBy.NameDescending {
+                                    config.sort-by = SortBy.SizeAscending;
+                                }
+                                update_config();
+                                trigger_sort(filter);
+                            }
+                        }
+                    }
+                }
+            }
+
+            VerticalLayout {
+                alignment: center;
+
+                Rectangle {
+                    border-color: MaterialPalette.outline_variant;
+                    border-radius: 12px;
+                    border-width: 1px;
+
+                    Horizontal {
+                        alignment: center;
+
+                        IconButton {
+                            checked: config.view-as == ViewAs.Grid;
+                            icon: @image-url("../mdi/view-grid.svg");
+                            tooltip: "Grid view";
+                            inline: true;
+                            clicked => {
+                                config.view-as = ViewAs.Grid;
+                                update_config();
+                            }
+                        }
+
+                        IconButton {
+                            checked: config.view-as == ViewAs.List;
+                            icon: @image-url("../mdi/view-list.svg");
+                            tooltip: "List view";
+                            inline: true;
+                            clicked => {
+                                config.view-as = ViewAs.List;
+                                update_config();
+                            }
+                        }
+                    }
+                }
+            }
+
+            FilledIconButton {
+                height: 36px;
+                width: 36px;
+                icon: @image-url("../mdi/plus.svg");
+                tooltip: "Add Games      ";
+                clicked => {
+                    add_games();
+                }
+            }
+        }
+    }
+
+    if config.view-as == ViewAs.Grid: GameGrid {
+        games: games;
+        archive_format: config.archive_format;
+        open_game_info(game) => open_game_info(game);
+        open_game_dir(game) => open_game_dir(game);
+        remove_game(game) => remove_game(game);
+        archive_game(game) => archive_game(game);
+        verify_game(game) => verify_game(game);
+    }
+
+    if config.view-as == ViewAs.List: GameList {
+        games: games;
+        archive_format: config.archive_format;
+        open_game_info(game) => open_game_info(game);
+        open_game_dir(game) => open_game_dir(game);
+        remove_game(game) => remove_game(game);
+        archive_game(game) => archive_game(game);
+        verify_game(game) => verify_game(game);
+    }
+}

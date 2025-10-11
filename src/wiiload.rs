@@ -7,8 +7,9 @@ use crate::tasks::TaskProcessor;
 use anyhow::anyhow;
 use anyhow::{Result, bail};
 use path_slash::PathBufExt;
+use rfd::FileDialog;
 use slint::ToSharedString;
-use std::fs::File;
+use std::fs::{self, File};
 use std::io::{self, Cursor, Read, Seek, Write};
 use std::net::{SocketAddr, TcpStream, ToSocketAddrs};
 use std::path::{Path, PathBuf};
@@ -19,36 +20,74 @@ use zip::{ZipArchive, ZipWriter};
 
 const WIILOAD_PORT: u16 = 4299;
 const WIILOAD_MAGIC: &[u8] = b"HAXX";
-const WIILOAD_ARGS: &[u8] = b"app.zip\0";
-const WIILOAD_VER_LEN: &[u8] = &[0, 5, 0, 8]; // 8 is app.zip\0 len
 const WIILOAD_TIMEOUT: Duration = Duration::from_secs(10);
 const WIILOAD_CHUNK_SIZE: usize = 4 * 1024;
 
-pub fn push(source_zip: &Path, wii_ip: &str) -> Result<Vec<String>> {
+pub fn push_file(wii_ip: &str, task_processor: &Arc<TaskProcessor>) -> Result<()> {
     let addr = (wii_ip, WIILOAD_PORT)
         .to_socket_addrs()?
         .next()
         .ok_or(anyhow!("Failed to resolve Wii IP: {wii_ip}"))?;
 
-    // Open the source zip file
-    let source_zip_file = File::open(source_zip)?;
-    let mut archive = ZipArchive::new(source_zip_file)?;
+    if let Some(source) = FileDialog::new()
+        .set_title("Select Wii HBC App")
+        .add_filter("Wii App", &["zip", "dol", "elf"])
+        .pick_file()
+    {
+        let file_name = source
+            .file_name()
+            .ok_or(anyhow!("No file name found"))?
+            .to_str()
+            .ok_or(anyhow!("Invalid file name"))?
+            .to_string();
 
-    // Find the dir containing boot.dol or boot.elf
-    let app_dir = find_app_dir(&mut archive)?;
+        task_processor.spawn(Box::new(move |weak| {
+            let status = format!("Uploading {}...", file_name);
+            weak.upgrade_in_event_loop(move |handle| {
+                handle.set_status(status.to_shared_string());
+                handle.set_task_type(TaskType::Wiiload);
+            })?;
 
-    // Create new zip in memory
-    let (zipped_app, excluded_files) = recreate_zip(&mut archive, &app_dir)?;
+            if file_name.ends_with(".zip") {
+                // Open the source file
+                let source_zip_file = File::open(source)?;
+                let mut archive = ZipArchive::new(source_zip_file)?;
 
-    // Connect to the Wii and send the data
-    send_to_wii(&addr, &zipped_app)?;
+                // Find the dir containing boot.dol or boot.elf
+                let app_dir = find_app_dir(&mut archive)?;
 
-    Ok(excluded_files)
+                // Create new zip in memory (with deflate -9 compression)
+                let (zipped_app, excluded_files) = recreate_zip(&mut archive, &app_dir)?;
+
+                let final_msg = format!(
+                    "Uploaded {} (excluded files: {})",
+                    &file_name,
+                    excluded_files.join(", ")
+                );
+
+                // Connect to the Wii and send the data
+                send_to_wii(&addr, &zipped_app, file_name)?;
+
+                Ok(final_msg)
+            } else {
+                let bytes = fs::read(source)?;
+                let final_msg = format!("Uploaded {}", &file_name);
+                send_to_wii(&addr, &bytes, file_name)?;
+                Ok(final_msg)
+            }
+        }))
+    } else {
+        Ok(())
+    }
 }
 
-pub fn push_url(url: String, wii_ip: String, task_processor: &Arc<TaskProcessor>) -> Result<()> {
+pub fn push_oscwii(
+    zip_url: String,
+    wii_ip: String,
+    task_processor: &Arc<TaskProcessor>,
+) -> Result<()> {
     task_processor.spawn(Box::new(move |weak| {
-        let status = format!("Downloading {}...", url);
+        let status = format!("Downloading {}...", zip_url);
         weak.upgrade_in_event_loop(move |handle| {
             handle.set_status(status.to_shared_string());
             handle.set_task_type(TaskType::DownloadingFolder);
@@ -59,7 +98,7 @@ pub fn push_url(url: String, wii_ip: String, task_processor: &Arc<TaskProcessor>
             .next()
             .ok_or(anyhow!("Failed to resolve Wii IP: {}", &wii_ip))?;
 
-        let buffer = AGENT.get(url).call()?.body_mut().read_to_vec()?;
+        let buffer = AGENT.get(zip_url).call()?.body_mut().read_to_vec()?;
 
         let cursor = Cursor::new(buffer);
         let mut archive = ZipArchive::new(cursor)?;
@@ -67,11 +106,11 @@ pub fn push_url(url: String, wii_ip: String, task_processor: &Arc<TaskProcessor>
         // Find the dir containing boot.dol or boot.elf
         let app_dir = find_app_dir(&mut archive)?;
 
-        // Create new zip in memory
+        // Create new zip in memory (with deflate -9 compression)
         let (zipped_app, excluded_files) = recreate_zip(&mut archive, &app_dir)?;
 
         // Connect to the Wii and send the data
-        send_to_wii(&addr, &zipped_app)?;
+        send_to_wii(&addr, &zipped_app, "app.zip".to_string())?;
 
         Ok(format!(
             "Wiiload push complete\nExcluded files: {}",
@@ -139,7 +178,9 @@ fn recreate_zip(
     Ok((buffer, excluded_files))
 }
 
-fn send_to_wii(addr: &SocketAddr, compressed_data: &[u8]) -> Result<()> {
+fn send_to_wii(addr: &SocketAddr, compressed_data: &[u8], mut file_name: String) -> Result<()> {
+    file_name = file_name + "\0";
+
     // Connect to the Wii
     let mut stream = TcpStream::connect_timeout(addr, WIILOAD_TIMEOUT)?;
     stream.set_read_timeout(Some(WIILOAD_TIMEOUT))?;
@@ -147,17 +188,17 @@ fn send_to_wii(addr: &SocketAddr, compressed_data: &[u8]) -> Result<()> {
 
     // Send Wiiload header
     stream.write_all(WIILOAD_MAGIC)?;
-    stream.write_all(WIILOAD_VER_LEN)?;
+    stream.write_all(&[0, 5, 0, file_name.len() as u8])?;
     stream.write_all(&(compressed_data.len() as u32).to_be_bytes())?;
-    stream.write_all(&[0u8; 4])?; // signal that the data is already compressed
+    stream.write_all(&[0u8; 4])?; // signal that the data is not compressed
 
-    // Send the compressed data in chunks
+    // Send the data in chunks
     for chunk in compressed_data.chunks(WIILOAD_CHUNK_SIZE) {
         stream.write_all(chunk)?;
     }
 
     // Send arguments
-    stream.write_all(WIILOAD_ARGS)?;
+    stream.write_all(file_name.as_bytes())?;
 
     stream.flush()?;
     Ok(())
