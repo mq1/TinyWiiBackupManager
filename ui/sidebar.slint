@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { NavigationRail, MaterialPalette, Vertical, TonalIconButton, IconButton, ToolTip } from "@material";
+import { NavigationRail, MaterialPalette, Vertical, TonalIconButton, IconButton, ToolTip, PopupMenu } from "@material";
 import { UpdateInfo } from "common.slint";
 
 export component SideBar inherits VerticalLayout {
@@ -54,67 +54,74 @@ export component SideBar inherits VerticalLayout {
         width: 80px;
         background: MaterialPalette.surface;
 
-        HorizontalLayout {
-            alignment: center;
+        Vertical {
+            padding-bottom: 16px;
 
-            Vertical {
-                if !update_info.version.is-empty: TonalIconButton {
-                    width: self.height;
-                    z: 2.0;
-                    icon: @image-url("../mdi/bell-plus.svg");
-                    tooltip: "Update\navailable!\nv" + update_info.version;
-                    clicked => {
-                        open_url(update_info.url);
-                    }
+            if !update_info.version.is-empty: IconButton {
+                z: 2.0;
+                icon: @image-url("../mdi/bell-plus.svg");
+                tooltip: "Update\navailable!\nv" + update_info.version;
+                clicked => {
+                    open_url(update_info.url);
                 }
+            }
 
-                TonalIconButton {
-                    width: self.height;
-                    z: 1.9;
-                    icon: @image-url("../mdi/harddisk.svg");
-                    tooltip: "Choose\nDrive/Directory";
-                    clicked => {
+            IconButton {
+                icon: @image-url("../mdi/information.svg");
+                z: 1.9;
+                tooltip: "Wiki";
+                clicked => {
+                    open_url("https://github.com/mq1/TinyWiiBackupManager/wiki");
+                }
+            }
+
+            menu_button := IconButton {
+                icon: @image-url("../mdi/menu.svg");
+                clicked => {
+                    menu.show();
+                }
+            }
+
+            menu := PopupMenu {
+                x: menu_button.x + menu_button.width;
+                y: menu_button.y;
+                width: 250px;
+                items: [
+                    {
+                        icon: @image-url("../mdi/harddisk.svg"),
+                        text: "Choose Drive/Directory",
+                        enabled: true,
+                    },
+                    {
+                        icon: @image-url("../mdi/file-download.svg"),
+                        text: "Download wiitdb.xml",
+                        enabled: true,
+                    },
+                    {
+                        icon: @image-url("../mdi/image-multiple.svg"),
+                        text: "Download all Covers",
+                        enabled: true,
+                    },
+                    {
+                        icon: @image-url("../mdi/ghost.svg"),
+                        text: "dot_clean (macOS only)",
+                        enabled: is_macos,
+                    }
+                ];
+                activated(i) => {
+                    if i == 0 {
                         choose_mount_point();
                     }
-                }
-
-                TonalIconButton {
-                    z: 1.8;
-                    width: self.height;
-                    icon: @image-url("../mdi/file-download.svg");
-                    tooltip: "Download\nwiitdb.xml";
-                    clicked => {
+                    if i == 1 {
                         download_wiitdb();
                     }
-                }
-
-                TonalIconButton {
-                    z: 1.7;
-                    width: self.height;
-                    icon: @image-url("../mdi/image-multiple.svg");
-                    tooltip: "Download\nall Covers";
-                    clicked => {
+                    if i == 2 {
                         download_all_covers();
                     }
-                }
-
-                if is_macos: TonalIconButton {
-                    z: 1.6;
-                    width: self.height;
-                    icon: @image-url("../mdi/ghost.svg");
-                    tooltip: "Run dot_clean";
-                    clicked => {
+                    if i == 3 {
                         dot_clean();
                     }
-                }
-
-                IconButton {
-                    z: 1.5;
-                    width: self.height;
-                    icon: @image-url("../mdi/information.svg");
-                    clicked => {
-                        open_url("https://github.com/mq1/TinyWiiBackupManager/wiki");
-                    }
+                    self.close();
                 }
             }
         }
