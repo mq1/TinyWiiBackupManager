@@ -78,17 +78,17 @@ export component HbcAppGrid inherits ScrollView {
 
     private property <int> cols: max(1, self.width / 180px);
     private property <int> rows: ceil(apps.length / cols);
-    viewport_height: 16px + rows * 216px;
+    viewport_height: 32px + rows * 208px;
 
     callback open_app_info(HbcApp);
     callback remove_app(HbcApp);
 
-    for app[i] in apps: HbcAppCard {
-        x: 16px + mod(i, cols) * 174px;
-        y: 16px + floor(i / cols) * 216px;
+    for i in apps.length: HbcAppCard {
+        x: 16px + mod((apps.length - 1 - i), cols) * 174px;
+        y: 16px + floor((apps.length - 1 - i) / cols) * 208px;
 
-        app: app;
-        open_app_info => open_app_info(app);
-        remove_app => remove_app(app);
+        app: apps[apps.length - 1 - i];
+        open_app_info => open_app_info(apps[apps.length - 1 - i]);
+        remove_app => remove_app(apps[apps.length - 1 - i]);
     }
 }
