@@ -342,8 +342,8 @@ fn run() -> Result<()> {
     });
 
     let task_processor_clone = task_processor.clone();
-    app.on_verify_game(move |game| {
-        if let Err(e) = verify::verify_game(Path::new(&game.path), &task_processor_clone) {
+    app.on_verify_game(move |game_dir| {
+        if let Err(e) = verify::verify_game(Path::new(&game_dir), &task_processor_clone) {
             show_err(e);
         }
     });
@@ -354,6 +354,17 @@ fn run() -> Result<()> {
             covers::download_all_covers(PathBuf::from(&mount_point), &task_processor_clone)
         {
             show_err(e);
+        }
+    });
+
+    app.on_get_disc_info(move |mount_point| {
+        let res = disc_info::get_disc_info(Path::new(&mount_point));
+        match res {
+            Ok(info) => info,
+            Err(e) => {
+                show_err(e);
+                DiscInfo::default()
+            }
         }
     });
 

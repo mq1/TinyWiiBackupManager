@@ -37,8 +37,13 @@ pub fn get_region_display(id: [u8; 6]) -> &'static str {
     }
 }
 
-pub fn disc_info(game_dir: &Path) -> Result<DiscInfo> {
+pub fn get_disc_info(game_dir: &Path) -> Result<DiscInfo> {
     let path = get_main_file(&game_dir).ok_or(anyhow!("No disc found"))?;
+    let game_dir = game_dir
+        .to_str()
+        .ok_or(anyhow!("Invalid path"))?
+        .to_shared_string();
+
     let disc = DiscReader::new(&path, &get_disc_opts())?;
 
     // Header
@@ -100,6 +105,7 @@ pub fn disc_info(game_dir: &Path) -> Result<DiscInfo> {
         .collect::<VecModel<_>>();
 
     Ok(DiscInfo {
+        game_dir,
         game_id,
         game_title,
         is_gamecube,
