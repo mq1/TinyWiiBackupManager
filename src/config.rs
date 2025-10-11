@@ -62,7 +62,7 @@ impl Config {
             .get("wii_ip")
             .and_then(|v| v.as_str())
             .map(ToSharedString::to_shared_string)
-            .unwrap_or_else(SharedString::default);
+            .unwrap_or_else("192.168.1.100".to_shared_string());
 
         let wii_output_format = values
             .get("wii_output_format")
