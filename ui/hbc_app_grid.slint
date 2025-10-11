@@ -19,7 +19,7 @@ component HbcAppCard inherits Rectangle {
     callback open_app_info();
     callback remove_app();
 
-    width: 164px;
+    width: 166px;
     height: 200px;
     background: MaterialPalette.surface;
     border-color: MaterialPalette.outline_variant;
@@ -78,25 +78,17 @@ export component HbcAppGrid inherits ScrollView {
 
     private property <int> cols: max(1, self.width / 180px);
     private property <int> rows: ceil(apps.length / cols);
+    viewport_height: 16px + rows * 216px;
 
     callback open_app_info(HbcApp);
     callback remove_app(HbcApp);
 
-    // Disable horizontal scrolling
-    viewport_width: self.width - 8px;
+    for app[i] in apps: HbcAppCard {
+        x: 16px + mod(i, cols) * 174px;
+        y: 16px + floor(i / cols) * 216px;
 
-    VerticalLayout {
-        spacing: 20px; // we leave some space for the tooltips
-        padding: 20px;
-
-        for i in rows: HorizontalLayout {
-            spacing: 8px;
-
-            for j in cols: HbcAppCard {
-                app: apps[i * cols + j];
-                open_app_info => open_app_info(apps[i * cols + j]);
-                remove_app => remove_app(apps[i * cols + j]);
-            }
-        }
+        app: app;
+        open_app_info => open_app_info(app);
+        remove_app => remove_app(app);
     }
 }
