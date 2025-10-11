@@ -4,14 +4,14 @@
 import { IconButton, Vertical, MaterialText, ElevatedCard, MaterialPalette, Horizontal, CircularProgressIndicator, SnackBar, Icon } from "@material";
 import { SideBar } from "sidebar.slint";
 import { GamesPage } from "games.slint";
-import { Game, HbcApp, WiiOutputFormat, ArchiveFormat, TaskType, UpdateInfo, Config, OscWiiApp } from "common.slint";
+import { Game, HbcApp, WiiOutputFormat, ArchiveFormat, TaskType, UpdateInfo, Config, OscWiiApp, DiscInfo } from "common.slint";
 import { HbcAppsPage } from "hbc_apps.slint";
 import { SettingsPage } from "settings.slint";
 import { Status } from "status.slint";
 import { HbcAppInfo } from "hbc_app_info.slint";
 import { Wiiload } from "wiiload.slint";
 import { OscWiiAppsPage } from "oscwii_apps.slint";
-import { GameInfo } from "game_info.slint";
+import { DiscInfoDialog } from "disc_info.slint";
 
 export * from "common.slint";
 
@@ -29,8 +29,6 @@ export component MainWindow inherits Window {
     in property <TaskType> task_type: TaskType.Unknown;
     in-out property <int> task_count: 0;
     in property <UpdateInfo> update_info;
-    out property <HbcApp> current_app;
-    out property <Game> current_game;
     in-out property <Config> config;
     in-out property <[OscWiiApp]> oscwii_apps: [];
     in-out property <[OscWiiApp]> filtered_oscwii_apps: [];
@@ -53,9 +51,10 @@ export component MainWindow inherits Window {
     callback dot_clean(string);
     callback download_oscwii(string, string);
     callback download_wiitdb(string);
-    callback verify_game(Game);
+    callback verify_game(string);
     callback download_all_covers(string);
     callback sort(Config, [Game], [HbcApp]) -> { a: [Game], b: [HbcApp] };
+    callback get_disc_info(string) -> DiscInfo;
 
     public function reset_filters() {
         filtered_games = update_filtered_games(games, "");
@@ -66,6 +65,21 @@ export component MainWindow inherits Window {
         let all = sort(config, games, hbc_apps);
         games = all.a;
         hbc_apps = all.b;
+    }
+
+    property <string> disc_info_title;
+    property <DiscInfo> disc_info_info;
+    function open_disc_info_dialog(game: Game) {
+        let info = get_disc_info(game.path);
+        disc_info_title = game.display-title;
+        disc_info_info = info;
+        disc_info.show();
+    }
+
+    property <HbcApp> app_info_app;
+    function open_app_info_dialog(app: HbcApp) {
+        app_info_app = app;
+        app_info.show();
     }
 
     preferred-width: 800px;
@@ -109,9 +123,8 @@ export component MainWindow inherits Window {
             if current_index == 0 && !dir_name.is-empty: GamesPage {
                 games: filtered_games;
                 config <=> config;
-                open_game_info(game) => {
-                    current_game = game;
-                    game_info.show();
+                open_disc_info(game) => {
+                    open_disc_info_dialog(game);
                 }
                 remove_game(game) => {
                     remove_dir(game.path);
@@ -138,8 +151,7 @@ export component MainWindow inherits Window {
                 apps: filtered_hbc_apps;
                 config <=> config;
                 open_app_info(app) => {
-                    current_app = app;
-                    app_info.show();
+                    open_app_info_dialog(app);
                 }
                 open_app_dir(app) => {
                     open_url(app.path);
@@ -235,18 +247,19 @@ export component MainWindow inherits Window {
     app_info := HbcAppInfo {
         width: root.width;
         height: root.height;
-        app: current_app;
+        app: app_info_app;
     }
 
-    game_info := GameInfo {
+    disc_info := DiscInfoDialog {
         width: root.width;
         height: root.height;
-        game: current_game;
+        title: disc_info_title;
+        info: disc_info_info;
         open_url(url) => {
             open_url(url);
         }
-        verify_game => {
-            verify_game(current_game);
+        verify_game(path) => {
+            verify_game(path);
         }
     }
 

@@ -9,7 +9,7 @@ export component GameList inherits ScrollView {
     in property <[Game]> games;
     in property <ArchiveFormat> archive_format;
 
-    callback open_game_info(Game);
+    callback open_disc_info(Game);
     callback open_game_dir(Game);
     callback remove_game(Game);
     callback archive_game(Game);
@@ -110,10 +110,10 @@ export component GameList inherits ScrollView {
 
                     IconButton {
                         icon: @image-url("../mdi/information.svg");
-                        tooltip: "Game Information";
+                        tooltip: "Disc Info";
                         inline: true;
                         clicked => {
-                            open_game_info(game);
+                            open_disc_info(game);
                         }
                     }
 
