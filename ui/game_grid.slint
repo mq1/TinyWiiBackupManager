@@ -15,7 +15,7 @@ component GameCard inherits Rectangle {
     callback archive_game();
     callback verify_game();
 
-    width: 164px;
+    width: 166px;
     height: 200px;
     background: MaterialPalette.surface;
     border-color: MaterialPalette.outline_variant;
@@ -113,6 +113,7 @@ export component GameGrid inherits ScrollView {
 
     private property <int> cols: max(1, self.width / 180px);
     private property <int> rows: ceil(games.length / cols);
+    viewport_height: 16px + rows * 216px;
 
     callback open_disc_info(Game);
     callback open_game_dir(Game);
@@ -120,25 +121,16 @@ export component GameGrid inherits ScrollView {
     callback archive_game(Game);
     callback verify_game(Game);
 
-    // Disable horizontal scrolling
-    viewport_width: self.width - 8px;
+    for game[i] in games: GameCard {
+        x: 16px + mod(i, cols) * 174px;
+        y: 16px + floor(i / cols) * 216px;
 
-    VerticalLayout {
-        spacing: 20px; // we leave some space for the tooltips
-        padding: 20px;
-
-        for i in rows: HorizontalLayout {
-            spacing: 8px;
-
-            for j in cols: GameCard {
-                game: games[i * cols + j];
-                archive_format: archive_format;
-                open_disc_info => open_disc_info(games[i * cols + j]);
-                open_game_dir => open_game_dir(games[i * cols + j]);
-                remove_game => remove_game(games[i * cols + j]);
-                archive_game => archive_game(games[i * cols + j]);
-                verify_game => verify_game(games[i * cols + j]);
-            }
-        }
+        game: game;
+        archive_format: archive_format;
+        open_disc_info => open_disc_info(game);
+        open_game_dir => open_game_dir(game);
+        remove_game => remove_game(game);
+        archive_game => archive_game(game);
+        verify_game => verify_game(game);
     }
 }

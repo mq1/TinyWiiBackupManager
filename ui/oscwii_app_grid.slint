@@ -20,7 +20,7 @@ component OscWiiAppCard inherits Rectangle {
     callback download_oscwii();
     callback push_oscwii();
 
-    width: 164px;
+    width: 166px;
     height: 200px;
     background: MaterialPalette.surface;
     border-color: MaterialPalette.outline_variant;
@@ -113,27 +113,19 @@ export component OscWiiAppGrid inherits ScrollView {
 
     private property <int> cols: max(1, self.width / 180px);
     private property <int> rows: ceil(apps.length / cols);
+    viewport_height: 16px + rows * 216px;
 
     callback open_oscwii_info(OscWiiApp);
     callback download_oscwii(OscWiiApp);
     callback push_oscwii(OscWiiApp);
 
-    // Disable horizontal scrolling
-    viewport_width: self.width - 8px;
+    for app[i] in apps: OscWiiAppCard {
+        x: 16px + mod(i, cols) * 174px;
+        y: 16px + floor(i / cols) * 216px;
 
-    VerticalLayout {
-        spacing: 20px; // we leave some space for the tooltips
-        padding: 20px;
-
-        for i in rows: HorizontalLayout {
-            spacing: 8px;
-
-            for j in cols: OscWiiAppCard {
-                app: apps[i * cols + j];
-                open_oscwii_info => open_oscwii_info(apps[i * cols + j]);
-                download_oscwii => download_oscwii(apps[i * cols + j]);
-                push_oscwii => push_oscwii(apps[i * cols + j]);
-            }
-        }
+        app: app;
+        open_oscwii_info => open_oscwii_info(app);
+        download_oscwii => download_oscwii(app);
+        push_oscwii => push_oscwii(app);
     }
 }
