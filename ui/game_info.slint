@@ -9,9 +9,10 @@ export component GameInfo inherits Dialog {
     title: game.display-title;
     default-action-text: "Close";
 
-    actions: ["GameTDB Page", "Game Directory"];
+    actions: ["Verify Hash", "GameTDB Page", "Game Directory"];
 
     callback open_url(string);
+    callback verify_game();
 
     default_action_clicked => {
         self.close();
@@ -19,9 +20,12 @@ export component GameInfo inherits Dialog {
 
     action-clicked(i) => {
         if i == 0 {
-            open_url("https://www.gametdb.com/Wii/" + game.id);
+            verify_game();
         }
         if i == 1 {
+            open_url("https://www.gametdb.com/Wii/" + game.id);
+        }
+        if i == 2 {
             open_url(game.path);
         }
     }

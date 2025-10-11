@@ -102,6 +102,7 @@ export component GameList inherits ScrollView {
         Vertical {
             for game in games: Vertical {
                 HorizontalLayout {
+                    alignment: center;
                     spacing: 4px;
 
                     padding-left: -22px;
@@ -122,15 +123,6 @@ export component GameList inherits ScrollView {
                         inline: true;
                         clicked => {
                             open_game_dir(game);
-                        }
-                    }
-
-                    IconButton {
-                        icon: @image-url("../mdi/check-all.svg");
-                        tooltip: "Verify Hashes";
-                        inline: true;
-                        clicked => {
-                            verify_game(game);
                         }
                     }
 
