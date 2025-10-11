@@ -9,7 +9,7 @@ component GameCard inherits Rectangle {
     in property <Game> game;
     in property <ArchiveFormat> archive_format;
 
-    callback open_game_info();
+    callback open_disc_info();
     callback open_game_dir();
     callback remove_game();
     callback archive_game();
@@ -66,12 +66,14 @@ component GameCard inherits Rectangle {
         }
 
         Horizontal {
+            alignment: center;
+
             IconButton {
                 icon: @image-url("../mdi/information.svg");
-                tooltip: "Game Information";
+                tooltip: "Disc Info";
                 inline: true;
                 clicked => {
-                    open_game_info();
+                    open_disc_info();
                 }
             }
 
@@ -81,15 +83,6 @@ component GameCard inherits Rectangle {
                 inline: true;
                 clicked => {
                     open_game_dir();
-                }
-            }
-
-            IconButton {
-                icon: @image-url("../mdi/check-all.svg");
-                tooltip: "Verify Hashes";
-                inline: true;
-                clicked => {
-                    verify_game();
                 }
             }
 
@@ -121,7 +114,7 @@ export component GameGrid inherits ScrollView {
     private property <int> cols: max(1, self.width / 180px);
     private property <int> rows: ceil(games.length / cols);
 
-    callback open_game_info(Game);
+    callback open_disc_info(Game);
     callback open_game_dir(Game);
     callback remove_game(Game);
     callback archive_game(Game);
@@ -140,7 +133,7 @@ export component GameGrid inherits ScrollView {
             for j in cols: GameCard {
                 game: games[i * cols + j];
                 archive_format: archive_format;
-                open_game_info => open_game_info(games[i * cols + j]);
+                open_disc_info => open_disc_info(games[i * cols + j]);
                 open_game_dir => open_game_dir(games[i * cols + j]);
                 remove_game => remove_game(games[i * cols + j]);
                 archive_game => archive_game(games[i * cols + j]);
