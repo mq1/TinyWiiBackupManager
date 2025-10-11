@@ -4,11 +4,12 @@ version = 4
 
 [[package]]
 name = "TinyWiiBackupManager"
-version = "3.0.0-beta.5"
+version = "3.0.0-beta.6"
 dependencies = [
  "anyhow",
  "directories",
  "fs_extra",
+ "hex",
  "nod",
  "notify",
  "num_cpus",

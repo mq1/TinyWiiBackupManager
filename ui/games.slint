@@ -15,11 +15,10 @@ export component GamesPage inherits VerticalLayout {
     callback add_games();
     callback update_filter(string);
     callback update_config();
-    callback open_game_info(Game);
+    callback open_disc_info(Game);
     callback open_game_dir(Game);
     callback remove_game(Game);
     callback archive_game(Game);
-    callback verify_game(Game);
     callback trigger_sort(string);
 
     Rectangle {
@@ -144,20 +143,18 @@ export component GamesPage inherits VerticalLayout {
     if config.view-as == ViewAs.Grid: GameGrid {
         games: games;
         archive_format: config.archive_format;
-        open_game_info(game) => open_game_info(game);
+        open_disc_info(game) => open_disc_info(game);
         open_game_dir(game) => open_game_dir(game);
         remove_game(game) => remove_game(game);
         archive_game(game) => archive_game(game);
-        verify_game(game) => verify_game(game);
     }
 
     if config.view-as == ViewAs.List: GameList {
         games: games;
         archive_format: config.archive_format;
-        open_game_info(game) => open_game_info(game);
+        open_disc_info(game) => open_disc_info(game);
         open_game_dir(game) => open_game_dir(game);
         remove_game(game) => remove_game(game);
         archive_game(game) => archive_game(game);
-        verify_game(game) => verify_game(game);
     }
 }
