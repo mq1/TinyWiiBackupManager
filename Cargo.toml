@@ -44,6 +44,7 @@ nod = { git = "https://github.com/mq1/nod", branch = "strip-wbfs" }
 num_cpus = "1.17"
 semver = "1.0"
 path-slash = "0.2"
+hex = "0.4"
 
 [target.'cfg(any(target_os = "macos", all(target_os = "windows", any(target_arch = "x86_64", target_arch = "aarch64"))))'.dependencies]
 ureq = { version = "3.1", default-features = false, features = [

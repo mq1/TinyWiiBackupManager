@@ -8,6 +8,7 @@ pub mod archive;
 pub mod config;
 pub mod convert;
 pub mod covers;
+pub mod disc_info;
 pub mod extensions;
 pub mod games;
 pub mod hbc_apps;
