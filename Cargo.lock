@@ -9,6 +9,7 @@ dependencies = [
  "anyhow",
  "directories",
  "fs_extra",
+ "hex",
  "nod",
  "notify",
  "num_cpus",
