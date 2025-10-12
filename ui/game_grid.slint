@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { ScrollView, Vertical, Horizontal, Icon, MaterialText, IconButton, MaterialPalette } from "@material";
+import { ScrollView, Icon, MaterialText, IconButton, MaterialPalette, HorizontalDivider } from "@material";
 import { LineEdit } from "std-widgets.slint";
 import { Game, Config, Console, ArchiveFormat } from "common.slint";
 
@@ -16,92 +16,108 @@ component GameCard inherits Rectangle {
     callback verify_game();
 
     width: 166px;
-    height: 200px;
+    height: 16px + 14px + 8px + 96px + 8px + 14px + 16px + 1px + 4px + 18px + 8px;
     background: MaterialPalette.surface;
     border-color: MaterialPalette.outline_variant;
     border-radius: 12px;
     border-width: 1px;
 
-    visible: !game.id.is-empty;
+    if game.console == Console.Wii: Icon {
+        x: 16px;
+        y: 16px;
+        width: 14px;
+        height: 14px;
+        source: @image-url("../mdi/tennis.svg");
+    }
 
-    Vertical {
-        alignment: space-between;
+    if game.console == Console.Wii: MaterialText {
+        x: 16px + 14px + 4px;
+        y: 16px;
+        text: "Wii";
+    }
 
-        Horizontal {
-            if game.console == Console.Wii: Icon {
-                source: @image-url("../mdi/tennis.svg");
-            }
+    if game.console == Console.GameCube: Icon {
+        x: 16px;
+        y: 16px;
+        width: 14px;
+        height: 14px;
+        source: @image-url("../mdi/cube-outline.svg");
+    }
 
-            if game.console == Console.Wii: MaterialText {
-                vertical-alignment: center;
-                text: "Wii";
-            }
+    if game.console == Console.GameCube: MaterialText {
+        x: 16px + 14px + 4px;
+        y: 16px;
+        text: "GC";
+    }
 
-            if game.console == Console.GameCube: Icon {
-                source: @image-url("../mdi/cube-outline.svg");
-            }
+    MaterialText {
+        x: parent.width - self.width - 16px;
+        y: 16px;
+        text: game.size;
+    }
 
-            if game.console == Console.GameCube: MaterialText {
-                vertical-alignment: center;
-                text: "GC";
-            }
+    Image {
+        y: 16px + 14px + 8px;
+        height: 96px;
+        source: game.image;
+    }
 
-            Rectangle {
-                horizontal-stretch: 1;
-            }
+    MaterialText {
+        x: 16px;
+        y: 16px + 14px + 8px + 96px + 8px;
+        width: parent.width - 32px;
+        horizontal-alignment: center;
+        text: game.display-title;
+    }
 
-            MaterialText {
-                vertical-alignment: center;
-                text: game.size;
+    HorizontalDivider {
+        x: 16px;
+        y: 16px + 14px + 8px + 96px + 8px + 14px + 16px;
+        width: parent.width - 32px;
+    }
+
+    Rectangle {
+        y: 16px + 14px + 8px + 96px + 8px + 14px + 16px + 1px + 4px;
+        x: parent.width / 2 - (18px + 4px + 18px + 4px + 18px + 4px + 18px) / 2;
+        height: 18px;
+
+        IconButton {
+            x: 0px;
+            icon: @image-url("../mdi/information.svg");
+            tooltip: "Disc Info";
+            inline: true;
+            clicked => {
+                open_disc_info();
             }
         }
 
-        Image {
-            source: game.image;
+        IconButton {
+            x: 18px + 4px;
+            icon: @image-url("../mdi/folder-open.svg");
+            tooltip: "Open Game Directory";
+            inline: true;
+            clicked => {
+                open_game_dir();
+            }
         }
 
-        MaterialText {
-            horizontal-alignment: center;
-            text: game.display-title;
+        IconButton {
+            x: 18px + 4px + 18px + 4px;
+            icon: @image-url("../mdi/package-down.svg");
+            tooltip: "Archive Game to " + (archive_format == ArchiveFormat.Rvz ? "RVZ" : "ISO");
+            inline: true;
+            clicked => {
+                archive_game();
+            }
         }
 
-        Horizontal {
-            alignment: center;
-
-            IconButton {
-                icon: @image-url("../mdi/information.svg");
-                tooltip: "Disc Info";
-                inline: true;
-                clicked => {
-                    open_disc_info();
-                }
-            }
-
-            IconButton {
-                icon: @image-url("../mdi/folder-open.svg");
-                tooltip: "Open Game Directory";
-                inline: true;
-                clicked => {
-                    open_game_dir();
-                }
-            }
-
-            IconButton {
-                icon: @image-url("../mdi/package-down.svg");
-                tooltip: "Archive Game to " + (archive_format == ArchiveFormat.Rvz ? "RVZ" : "ISO");
-                inline: true;
-                clicked => {
-                    archive_game();
-                }
-            }
-
-            IconButton {
-                icon: @image-url("../mdi/trash-can.svg");
-                tooltip: "Delete Game";
-                inline: true;
-                clicked => {
-                    remove_game();
-                }
+        IconButton {
+            x: 18px + 4px + 18px + 4px + 18px + 4px;
+            icon: @image-url("../mdi/trash-can.svg");
+            tooltip: "Delete Game";
+            inline: true;
+            clicked => {
+                remove_game();
             }
         }
     }
@@ -123,7 +139,7 @@ export component GameGrid inherits ScrollView {
 
     for i in games.length: GameCard {
         x: 16px + mod((games.length - 1 - i), cols) * 174px;
-        y: 16px + floor((games.length - 1 - i) / cols) * 208px;
+        y: 16px + floor((games.length - 1 - i) / cols) * (16px + 14px + 8px + 96px + 8px + 14px + 16px + 1px + 4px + 18px + 8px + 8px);
 
         game: games[games.length - 1 - i];
         archive_format: archive_format;
