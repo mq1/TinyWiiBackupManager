@@ -12,8 +12,9 @@ export component SettingsPage inherits Vertical {
 
     ElevatedCard {
         ScrollView {
-            Vertical {
+            vertical_scrollbar_policy: ScrollBarPolicy.always-on;
 
+            Vertical {
                 Horizontal {
                     alignment: start;
                     padding-left: 6px;
