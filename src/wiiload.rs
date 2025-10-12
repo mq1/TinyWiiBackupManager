@@ -75,17 +75,13 @@ pub fn push_file(wii_ip: &str, task_processor: &Arc<TaskProcessor>) -> Result<()
                 send_to_wii(&addr, &bytes, file_name)?;
                 Ok(final_msg)
             }
-        }))
-    } else {
-        Ok(())
+        }));
     }
+
+    Ok(())
 }
 
-pub fn push_oscwii(
-    zip_url: String,
-    wii_ip: String,
-    task_processor: &Arc<TaskProcessor>,
-) -> Result<()> {
+pub fn push_oscwii(zip_url: String, wii_ip: String, task_processor: &Arc<TaskProcessor>) {
     task_processor.spawn(Box::new(move |weak| {
         let status = format!("Downloading {}...", zip_url);
         weak.upgrade_in_event_loop(move |handle| {
@@ -116,7 +112,7 @@ pub fn push_oscwii(
             "Wiiload push complete\nExcluded files: {}",
             excluded_files.join(", ")
         ))
-    }))
+    }));
 }
 
 fn find_app_dir(archive: &mut ZipArchive<impl Read + Seek>) -> Result<PathBuf> {

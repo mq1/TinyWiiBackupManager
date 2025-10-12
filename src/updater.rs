@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{TaskType, UpdateInfo, http::AGENT, tasks::TaskProcessor};
-use anyhow::{Context, Result};
+use anyhow::Context;
 use semver::Version;
 use slint::ToSharedString;
 use std::sync::{Arc, LazyLock};
@@ -16,7 +16,7 @@ static CURRENT_VERSION: LazyLock<Version> = LazyLock::new(|| {
     Version::parse(env!("CARGO_PKG_VERSION")).expect("Failed to parse current version")
 });
 
-pub fn check(task_processor: &Arc<TaskProcessor>) -> Result<()> {
+pub fn check(task_processor: &Arc<TaskProcessor>) {
     task_processor.spawn(Box::new(|weak| {
         weak.upgrade_in_event_loop(|handle| {
             handle.set_status("Checking for updates...".to_shared_string());
@@ -52,5 +52,5 @@ pub fn check(task_processor: &Arc<TaskProcessor>) -> Result<()> {
         }
 
         Ok(String::new())
-    }))
+    }));
 }
