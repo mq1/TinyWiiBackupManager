@@ -8,13 +8,12 @@ rustflags = ["-Clink-arg=-fuse-ld=lld"]
 
 [target.x86_64-pc-windows-msvc]
 linker = "rust-lld.exe"
-
-# Increase default stack size to avoid running out of stack
-# space in debug builds. The size matches Linux's default.
 rustflags = ["-C", "link-arg=/STACK:8000000"]
+
 [target.aarch64-pc-windows-msvc]
 linker = "rust-lld.exe"
+rustflags = ["-C", "link-arg=/STACK:8000000"]
 
-# Increase default stack size to avoid running out of stack
-# space in debug builds. The size matches Linux's default.
+[target.i686-win7-windows-gnu]
+linker = "gcc-mingw-w64-i686"
 rustflags = ["-C", "link-arg=/STACK:8000000"]
