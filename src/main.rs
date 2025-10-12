@@ -20,13 +20,11 @@ pub mod titles;
 pub mod updater;
 pub mod util;
 pub mod verify;
-pub mod watcher;
 pub mod wiiload;
 pub mod wiitdb;
 
-use crate::{tasks::TaskProcessor, titles::Titles, watcher::init_watcher};
+use crate::{tasks::TaskProcessor, titles::Titles};
 use anyhow::{Result, anyhow};
-use notify::RecommendedWatcher;
 use path_slash::PathBufExt;
 use rfd::{FileDialog, MessageButtons, MessageDialog, MessageDialogResult, MessageLevel};
 use slint::{ModelRc, SharedString, ToSharedString, VecModel, Weak};
@@ -35,7 +33,7 @@ use std::{
     fs,
     path::{Path, PathBuf},
     rc::Rc,
-    sync::{Arc, Mutex},
+    sync::Arc,
 };
 
 slint::include_modules!();
@@ -81,7 +79,6 @@ fn refresh_hbc_apps(handle: &MainWindow, mount_point: &Path) -> Result<()> {
 fn choose_mount_point(
     weak: &Weak<MainWindow>,
     titles: &Arc<Titles>,
-    watcher: &Arc<Mutex<Option<RecommendedWatcher>>>,
     data_dir: &Path,
 ) -> Result<()> {
     let handle = weak.upgrade().ok_or(anyhow!("Failed to upgrade weak"))?;
@@ -104,10 +101,6 @@ fn choose_mount_point(
     refresh_disk_usage(&handle, &dir);
     handle.invoke_apply_sorting();
     handle.invoke_reset_filters();
-
-    let new_watcher = init_watcher(weak.clone(), &dir, titles)?;
-    let mut guard = watcher.lock().map_err(|_| anyhow!("Mutex poisoned"))?;
-    *guard = new_watcher;
 
     Ok(())
 }
@@ -141,12 +134,6 @@ fn run() -> Result<()> {
     app.set_app_name(env!("CARGO_PKG_NAME").to_shared_string() + " v" + env!("CARGO_PKG_VERSION"));
     app.set_is_macos(cfg!(target_os = "macos"));
 
-    let watcher = Arc::new(Mutex::new(init_watcher(
-        app.as_weak(),
-        mount_point,
-        &titles,
-    )?));
-
     refresh_dir_name(&app, mount_point);
     refresh_games(&app, mount_point, &titles)?;
     refresh_hbc_apps(&app, mount_point)?;
@@ -155,10 +142,9 @@ fn run() -> Result<()> {
 
     let weak = app.as_weak();
     let titles_clone = titles.clone();
-    let watcher_clone = watcher.clone();
     let data_dir_clone = data_dir.clone();
     app.on_choose_mount_point(move || {
-        if let Err(e) = choose_mount_point(&weak, &titles_clone, &watcher_clone, &data_dir_clone) {
+        if let Err(e) = choose_mount_point(&weak, &titles_clone, &data_dir_clone) {
             show_err(e);
         }
     });
@@ -342,6 +328,23 @@ fn run() -> Result<()> {
         }
     });
 
+    let titles_clone = titles.clone();
+    let weak = app.as_weak();
+    app.on_refresh(move |mount_point| {
+        let mount_point = Path::new(&mount_point);
+        if let Some(handle) = weak.upgrade() {
+            if let Err(e) = refresh_games(&handle, mount_point, &titles_clone) {
+                show_err(e);
+            }
+            if let Err(e) = refresh_hbc_apps(&handle, mount_point) {
+                show_err(e);
+            }
+            refresh_disk_usage(&handle, mount_point);
+        } else {
+            show_err(anyhow!("Failed to upgrade weak"));
+        }
+    });
+
     if std::env::var_os("TWBM_DISABLE_UPDATES").is_none() {
         updater::check(&task_processor);
     }
@@ -358,7 +361,9 @@ fn run() -> Result<()> {
 fn get_data_dir() -> Result<PathBuf> {
     // For portable builds, use a directory next to the executable
     let exe_path = std::env::current_exe()?;
-    let exe_dir = exe_path.parent().ok_or(anyhow!("Could not get executable directory"))?;
+    let exe_dir = exe_path
+        .parent()
+        .ok_or(anyhow!("Could not get executable directory"))?;
     let data_dir = exe_dir.join("TinyWiiBackupManager-data");
     Ok(data_dir)
 }

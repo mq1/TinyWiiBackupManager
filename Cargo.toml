@@ -37,7 +37,6 @@ zip = { version = "6.0", default-features = false, features = [
 ] }
 quick-xml = { version = "0.38", features = ["serialize"] }
 sysinfo = "0.37"
-notify = "8.2"
 open = "5.3"
 tempfile = "3.23"
 nod = { git = "https://github.com/mq1/nod", branch = "strip-wbfs" }
