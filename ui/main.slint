@@ -44,7 +44,6 @@ export component MainWindow inherits Window {
     callback update_config(Config);
     callback push_file(string);
     callback push_oscwii(string, string);
-    callback load_oscwii_apps() -> [OscWiiApp];
     callback update_filtered_oscwii_apps([OscWiiApp], string) -> [OscWiiApp];
     callback update_filtered_hbc_apps([HbcApp], string) -> [HbcApp];
     callback update_filtered_games([Game], string) -> [Game];
@@ -101,12 +100,6 @@ export component MainWindow inherits Window {
             }
             open-url(url) => {
                 open_url(url);
-            }
-            update_oscwii_apps => {
-                if oscwii_apps.length == 0 {
-                    oscwii_apps = load_oscwii_apps();
-                    filtered_oscwii_apps = update_filtered_oscwii_apps(oscwii_apps, "");
-                }
             }
             download_wiitdb => {
                 download_wiitdb(config.mount-point);

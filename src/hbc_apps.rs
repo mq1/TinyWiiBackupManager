@@ -115,11 +115,7 @@ fn install_zip(mount_point: &Path, path: &Path) -> Result<()> {
     Ok(())
 }
 
-pub fn add_app_from_url(
-    mount_point: PathBuf,
-    url: String,
-    task_processor: &Arc<TaskProcessor>,
-) -> Result<()> {
+pub fn add_app_from_url(mount_point: PathBuf, url: String, task_processor: &Arc<TaskProcessor>) {
     task_processor.spawn(Box::new(move |weak| {
         let status = format!("Downloading {}...", &url);
         weak.upgrade_in_event_loop(move |handle| {
@@ -135,7 +131,7 @@ pub fn add_app_from_url(
         extract_app(&mount_point, &mut archive)?;
 
         Ok(format!("Downloaded {}", url))
-    }))
+    }));
 }
 
 pub fn add_apps(config: &Config, task_processor: &Arc<TaskProcessor>) -> Result<()> {
@@ -167,7 +163,7 @@ pub fn add_apps(config: &Config, task_processor: &Arc<TaskProcessor>) -> Result<
             }
 
             Ok(format!("Installed {} app(s)", paths.len()))
-        }))?;
+        }));
     }
 
     Ok(())

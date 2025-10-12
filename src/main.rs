@@ -24,7 +24,7 @@ pub mod watcher;
 pub mod wiiload;
 pub mod wiitdb;
 
-use crate::{oscwii::Apps, tasks::TaskProcessor, titles::Titles, watcher::init_watcher};
+use crate::{tasks::TaskProcessor, titles::Titles, watcher::init_watcher};
 use anyhow::{Result, anyhow};
 use directories::ProjectDirs;
 use notify::RecommendedWatcher;
@@ -139,7 +139,7 @@ fn run() -> Result<()> {
 
     let mount_point = Path::new(&config.mount_point);
     let titles = Arc::new(Titles::load(&data_dir)?);
-    let task_processor = Arc::new(TaskProcessor::init(app.as_weak())?);
+    let task_processor = Arc::new(TaskProcessor::init(app.as_weak()));
 
     app.set_app_name(env!("CARGO_PKG_NAME").to_shared_string() + " v" + env!("CARGO_PKG_VERSION"));
     app.set_is_macos(cfg!(target_os = "macos"));
@@ -221,19 +221,6 @@ fn run() -> Result<()> {
         }
     });
 
-    let data_dir_clone = data_dir.clone();
-    app.on_load_oscwii_apps(move || {
-        let apps = match oscwii::Apps::load(&data_dir_clone) {
-            Ok(apps) => apps,
-            Err(e) => {
-                show_err(e);
-                Apps::empty()
-            }
-        };
-
-        apps.get_model()
-    });
-
     app.on_update_filtered_oscwii_apps(move |apps, filter| {
         if filter.is_empty() {
             return apps;
@@ -305,24 +292,20 @@ fn run() -> Result<()> {
 
     let task_processor_clone = task_processor.clone();
     app.on_download_oscwii(move |mount_point, zip_url| {
-        if let Err(e) = hbc_apps::add_app_from_url(
+        hbc_apps::add_app_from_url(
             PathBuf::from(&mount_point),
             zip_url.to_string(),
             &task_processor_clone,
-        ) {
-            show_err(e);
-        }
+        );
     });
 
     let task_processor_clone = task_processor.clone();
     app.on_push_oscwii(move |zip_url, wii_ip| {
-        if let Err(e) = wiiload::push_oscwii(
+        wiiload::push_oscwii(
             zip_url.to_string(),
             wii_ip.to_string(),
             &task_processor_clone,
-        ) {
-            show_err(e);
-        }
+        );
     });
 
     let task_processor_clone = task_processor.clone();
@@ -336,9 +319,7 @@ fn run() -> Result<()> {
 
     let task_processor_clone = task_processor.clone();
     app.on_download_wiitdb(move |mount_point| {
-        if let Err(e) = wiitdb::download(PathBuf::from(&mount_point), &task_processor_clone) {
-            show_err(e);
-        }
+        wiitdb::download(PathBuf::from(&mount_point), &task_processor_clone);
     });
 
     let task_processor_clone = task_processor.clone();
@@ -350,11 +331,7 @@ fn run() -> Result<()> {
 
     let task_processor_clone = task_processor.clone();
     app.on_download_all_covers(move |mount_point| {
-        if let Err(e) =
-            covers::download_all_covers(PathBuf::from(&mount_point), &task_processor_clone)
-        {
-            show_err(e);
-        }
+        covers::download_all_covers(PathBuf::from(&mount_point), &task_processor_clone);
     });
 
     app.on_get_disc_info(move |mount_point| {
@@ -368,11 +345,11 @@ fn run() -> Result<()> {
         }
     });
 
-    if std::env::var_os("TWBM_DISABLE_UPDATES").is_none()
-        && let Err(e) = updater::check(&task_processor)
-    {
-        show_err(e);
+    if std::env::var_os("TWBM_DISABLE_UPDATES").is_none() {
+        updater::check(&task_processor);
     }
+
+    oscwii::load_oscwii_apps(&data_dir, &task_processor);
 
     app.invoke_apply_sorting();
     app.invoke_reset_filters();
