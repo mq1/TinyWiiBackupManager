@@ -115,9 +115,10 @@ fn install_zip(mount_point: &Path, path: &Path) -> Result<()> {
     Ok(())
 }
 
-pub fn add_app_from_url(mount_point_str: &str, url: String, task_processor: &Arc<TaskProcessor>) {
+pub fn add_app_from_url(mount_point_str: &str, url: &str, task_processor: &Arc<TaskProcessor>) {
     let mount_point = PathBuf::from(mount_point_str);
     let mount_point_str = mount_point_str.to_shared_string();
+    let url = url.to_string();
 
     task_processor.spawn(Box::new(move |weak| {
         let status = format!("Downloading {}...", &url);
