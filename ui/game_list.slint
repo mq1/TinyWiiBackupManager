@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { ScrollView, Vertical, Horizontal, Icon, MaterialPalette, MaterialText, HorizontalDivider, IconButton } from "@material";
+import { ScrollView, Horizontal, Icon, MaterialPalette, MaterialText, HorizontalDivider, IconButton } from "@material";
 import { LineEdit } from "std-widgets.slint";
 import { Game, Config, Console, ArchiveFormat } from "common.slint";
 
@@ -15,137 +15,139 @@ export component GameList inherits ScrollView {
     callback archive_game(Game);
     callback verify_game(Game);
 
+    viewport_height: (4px + 18px + 4px) * games.length + 36px;
+
+    // Draw the horizontal separator lines
+    for i in games.length - 1: HorizontalDivider {
+        x: 8px;
+        y: (4px + 18px + 4px) * (i + 1) + 3px;
+        width: parent.width - 16px;
+    }
+
     Horizontal {
-        Vertical {
-            for game in games: Vertical {
-                HorizontalLayout {
-                    spacing: 4px;
+        Rectangle {
+            horizontal-stretch: 2;
 
-                    padding-left: -22px;
-                    Icon { }
-
-                    MaterialText {
-                        text: game.display-title;
-                    }
-                }
-
-                HorizontalDivider { }
+            for game[i] in games: MaterialText {
+                x: 0px;
+                y: (4px + 18px + 4px) * i + 2px;
+                text: game.display-title;
+                width: parent.width;
             }
         }
 
-        Vertical {
-            for game in games: Vertical {
-                HorizontalLayout {
-                    spacing: 4px;
+        Rectangle {
+            horizontal-stretch: 1;
 
-                    Icon {
-                        source: @image-url("../mdi/tag.svg");
-                    }
+            for i in games.length: Icon {
+                x: 0px;
+                y: (4px + 18px + 4px) * i + 2px;
+                height: 14px;
+                width: 14px;
+                source: @image-url("../mdi/tag.svg");
+            }
 
-                    MaterialText {
-                        vertical-alignment: center;
-                        text: game.id;
-                    }
-                }
-
-                HorizontalDivider { }
+            for game[i] in games: MaterialText {
+                x: 14px + 4px;
+                y: (4px + 18px + 4px) * i + 2px;
+                text: game.id;
+                width: parent.width - 14px - 4px;
             }
         }
 
-        Vertical {
-            for game in games: Vertical {
-                HorizontalLayout {
-                    spacing: 4px;
+        Rectangle {
+            horizontal-stretch: 1;
 
-                    if game.console == Console.Wii: Icon {
-                        source: @image-url("../mdi/tennis.svg");
-                    }
+            for game[i] in games: Icon {
+                x: 0px;
+                y: (4px + 18px + 4px) * i + 2px;
+                height: 14px;
+                width: 14px;
+                source: game.console == Console.GameCube ? @image-url("../mdi/cube-outline.svg") : @image-url("../mdi/tennis.svg");
+            }
 
-                    if game.console == Console.GameCube: Icon {
-                        source: @image-url("../mdi/cube-outline.svg");
-                    }
-
-                    if game.console == Console.Wii: MaterialText {
-                        vertical-alignment: center;
-                        text: "Wii";
-                    }
-
-                    if game.console == Console.GameCube: MaterialText {
-                        vertical-alignment: center;
-                        text: "GC";
-                    }
-                }
-
-                HorizontalDivider { }
+            for game[i] in games: MaterialText {
+                x: 14px + 4px;
+                y: (4px + 18px + 4px) * i + 2px;
+                text: game.console == Console.GameCube ? "GC" : "Wii";
+                width: parent.width - 14px - 4px;
             }
         }
 
-        Vertical {
-            for game in games: Vertical {
-                HorizontalLayout {
-                    spacing: 4px;
+        Rectangle {
+            horizontal-stretch: 1;
 
-                    Icon {
-                        source: @image-url("../mdi/scale.svg");
-                    }
+            for i in games.length: Icon {
+                x: 0px;
+                y: (4px + 18px + 4px) * i + 2px;
+                height: 14px;
+                width: 14px;
+                source: @image-url("../mdi/scale.svg");
+            }
 
-                    MaterialText {
-                        vertical-alignment: center;
-                        text: game.size;
-                    }
-                }
-
-                HorizontalDivider { }
+            for game[i] in games: MaterialText {
+                x: 14px + 4px;
+                y: (4px + 18px + 4px) * i + 2px;
+                text: game.size;
+                width: parent.width - 14px - 4px;
             }
         }
 
-        Vertical {
-            for game in games: Vertical {
-                HorizontalLayout {
-                    alignment: center;
-                    spacing: 4px;
+        // We draw bottom to top to preserve the tooltips
+        Rectangle {
+            horizontal-stretch: 1;
+            width: 18px + 4px + 18px + 4px + 18px + 4px + 18px;
 
-                    padding-left: -22px;
-                    Icon { }
-
-                    IconButton {
-                        icon: @image-url("../mdi/information.svg");
-                        tooltip: "Disc Info";
-                        inline: true;
-                        clicked => {
-                            open_disc_info(game);
-                        }
-                    }
-
-                    IconButton {
-                        icon: @image-url("../mdi/folder-open.svg");
-                        tooltip: "Open Game Directory";
-                        inline: true;
-                        clicked => {
-                            open_game_dir(game);
-                        }
-                    }
-
-                    IconButton {
-                        icon: @image-url("../mdi/package-down.svg");
-                        tooltip: "Archive Game to " + (archive_format == ArchiveFormat.Rvz ? "RVZ" : "ISO");
-                        inline: true;
-                        clicked => {
-                            archive_game(game);
-                        }
-                    }
-
-                    IconButton {
-                        icon: @image-url("../mdi/trash-can.svg");
-                        tooltip: "Delete Game";
-                        inline: true;
-                        clicked => {
-                            remove_game(game);
-                        }
-                    }
+            for i in games.length: IconButton {
+                x: 0px;
+                y: (4px + 18px + 4px) * (games.length - i - 1);
+                height: 18px;
+                width: 18px;
+                icon: @image-url("../mdi/information.svg");
+                tooltip: "Disc Info";
+                inline: true;
+                clicked => {
+                    open_disc_info(games[games.length - i - 1]);
                 }
+            }
 
-                HorizontalDivider { }
+            for i in games.length: IconButton {
+                x: 18px + 4px;
+                y: (4px + 18px + 4px) * (games.length - i - 1);
+                height: 18px;
+                width: 18px;
+                icon: @image-url("../mdi/folder-open.svg");
+                tooltip: "Open Game Directory";
+                inline: true;
+                clicked => {
+                    open_game_dir(games[games.length - i - 1]);
+                }
+            }
+
+            for i in games.length: IconButton {
+                x: 18px + 4px + 18px + 4px;
+                y: (4px + 18px + 4px) * (games.length - i - 1);
+                height: 18px;
+                width: 18px;
+                icon: @image-url("../mdi/package-down.svg");
+                tooltip: "Archive Game to " + (archive_format == ArchiveFormat.Rvz ? "RVZ" : "ISO");
+                inline: true;
+                clicked => {
+                    archive_game(games[games.length - i - 1]);
+                }
+            }
+
+            for i in games.length: IconButton {
+                x: 18px + 4px + 18px + 4px + 18px + 4px;
+                y: (4px + 18px + 4px) * (games.length - i - 1);
+                height: 18px;
+                width: 18px;
+                icon: @image-url("../mdi/trash-can.svg");
+                tooltip: "Remove Game";
+                inline: true;
+                clicked => {
+                    remove_game(games[games.length - i - 1]);
+                }
             }
         }
     }
