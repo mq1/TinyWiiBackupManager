@@ -1,9 +1,8 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { Vertical, RadioButton, Horizontal, HorizontalDivider, MaterialText, ElevatedButton, Icon, ScrollView, ElevatedCard } from "@material";
+import { Vertical, RadioButton, Horizontal, HorizontalDivider, MaterialText, ElevatedButton, Icon, ScrollView, ElevatedCard, FilledIconButton } from "@material";
 import { Config, WiiOutputFormat, ArchiveFormat } from "common.slint";
-import { FilledIconButton } from "../material-1.0/ui/components/filled_icon_button.slint";
 
 export component SettingsPage inherits Vertical {
     in-out property <Config> config;
