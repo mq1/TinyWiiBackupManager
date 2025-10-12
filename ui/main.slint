@@ -85,6 +85,7 @@ export component MainWindow inherits Window {
     preferred-width: 800px;
     preferred-height: 600px;
     title: app_name + " • " + games.length + " Games" + (dir_name.is_empty ? "" : " • " + dir_name + " (" + disk_usage + ")");
+    icon: @image-url("../assets/logo-small.png");
 
     HorizontalLayout {
         SideBar {
