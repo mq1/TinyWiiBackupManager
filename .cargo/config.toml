@@ -15,5 +15,8 @@ linker = "rust-lld.exe"
 rustflags = ["-C", "link-arg=/STACK:8000000"]
 
 [target.i686-win7-windows-gnu]
-linker = "gcc-mingw-w64-i686"
+linker = "i686-w64-mingw32-gcc"
 rustflags = ["-C", "link-arg=/STACK:8000000"]
+
+[env]
+CC_i686-win7-windows-gnu = "i686-w64-mingw32-gcc"
