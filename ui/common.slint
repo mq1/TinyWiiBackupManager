@@ -7,31 +7,26 @@ export enum Console {
     Unknown,
 }
 
-@rust-attr(derive(serde::Serialize, serde::Deserialize))
 export enum WiiOutputFormat {
     Wbfs,
     Iso,
 }
 
-@rust-attr(derive(serde::Serialize, serde::Deserialize))
 export enum GcOutputFormat {
     Ciso,
     Iso,
 }
 
-@rust-attr(derive(serde::Serialize, serde::Deserialize))
 export enum ArchiveFormat {
     Rvz,
     Iso,
 }
 
-@rust-attr(derive(serde::Serialize, serde::Deserialize))
 export enum ViewAs {
     Grid,
     List,
 }
 
-@rust-attr(derive(serde::Serialize, serde::Deserialize))
 export enum SortBy {
     NameAscending,
     NameDescending,
@@ -39,7 +34,6 @@ export enum SortBy {
     SizeDescending,
 }
 
-@rust-attr(derive(serde::Serialize, serde::Deserialize))
 export struct Config {
     mount_point: string,
     remove_sources_games: bool,
