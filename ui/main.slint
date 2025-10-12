@@ -52,6 +52,7 @@ export component MainWindow inherits Window {
     callback download_wiitdb(string);
     callback verify_game(string);
     callback download_all_covers(string);
+    callback refresh(string);
     callback sort(Config, [Game], [HbcApp]) -> { a: [Game], b: [HbcApp] };
     callback get_disc_info(string) -> DiscInfo;
 
@@ -138,6 +139,9 @@ export component MainWindow inherits Window {
                     apply_sorting();
                     filtered_games = update_filtered_games(games, filter);
                 }
+                refresh => {
+                    refresh(config.mount-point);
+                }
             }
 
             if current_index == 1 && !dir_name.is-empty: HbcAppsPage {
@@ -164,6 +168,9 @@ export component MainWindow inherits Window {
                 trigger_sort(filter) => {
                     apply_sorting();
                     filtered_hbc_apps = update_filtered_hbc_apps(hbc_apps, filter);
+                }
+                refresh => {
+                    refresh(config.mount-point);
                 }
             }
 
