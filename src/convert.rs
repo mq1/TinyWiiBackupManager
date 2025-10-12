@@ -176,8 +176,10 @@ pub fn add_games(config: &Config, task_processor: &Arc<TaskProcessor>) -> Result
         }
 
         Ok(format!("Added {} Games", len))
-    }))?;
+    }));
 
     // Download covers (ignores errors)
-    download_covers(mount_point, task_processor)
+    download_covers(mount_point, task_processor);
+
+    Ok(())
 }

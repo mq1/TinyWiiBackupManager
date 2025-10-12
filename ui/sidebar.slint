@@ -14,7 +14,6 @@ export component SideBar inherits VerticalLayout {
     callback set_window_title(string);
     callback choose_mount_point();
     callback open_url(string);
-    callback update_oscwii_apps();
     callback dot_clean();
     callback download_wiitdb();
     callback download_all_covers();
@@ -42,7 +41,6 @@ export component SideBar inherits VerticalLayout {
             }
             if i == 2 {
                 set_window_title(" • OSCWii");
-                update_oscwii_apps();
             }
             if i == 3 {
                 set_window_title(" • Settings");

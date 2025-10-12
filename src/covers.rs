@@ -124,7 +124,7 @@ fn download_disc_cover(id: &str, mount_point: &Path) -> Result<()> {
 }
 
 // Fail safe, ignores errors, no popup notification
-pub fn download_covers(mount_point: PathBuf, task_processor: &Arc<TaskProcessor>) -> Result<()> {
+pub fn download_covers(mount_point: PathBuf, task_processor: &Arc<TaskProcessor>) {
     task_processor.spawn(Box::new(move |weak| {
         weak.upgrade_in_event_loop(move |handle| {
             handle.set_status("Downloading covers...".to_shared_string());
@@ -144,13 +144,10 @@ pub fn download_covers(mount_point: PathBuf, task_processor: &Arc<TaskProcessor>
         }
 
         Ok(String::new())
-    }))
+    }));
 }
 
-pub fn download_all_covers(
-    mount_point: PathBuf,
-    task_processor: &Arc<TaskProcessor>,
-) -> Result<()> {
+pub fn download_all_covers(mount_point: PathBuf, task_processor: &Arc<TaskProcessor>) {
     task_processor.spawn(Box::new(move |weak| {
         weak.upgrade_in_event_loop(move |handle| {
             handle.set_status("Downloading covers...".to_shared_string());
@@ -173,5 +170,5 @@ pub fn download_all_covers(
         }
 
         Ok("Covers downloaded".to_string())
-    }))
+    }));
 }

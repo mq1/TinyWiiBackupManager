@@ -4,7 +4,6 @@
 use crate::TaskType;
 use crate::http::AGENT;
 use crate::tasks::TaskProcessor;
-use anyhow::Result;
 use slint::ToSharedString;
 use std::fs::{self, OpenOptions};
 use std::io::{self, BufWriter, Cursor};
@@ -15,7 +14,7 @@ use zip::ZipArchive;
 const DOWNLOAD_URL: &str = "https://www.gametdb.com/wiitdb.zip";
 
 /// Handles the blocking logic of downloading and extracting the database.
-pub fn download(mount_point: PathBuf, task_processor: &Arc<TaskProcessor>) -> Result<()> {
+pub fn download(mount_point: PathBuf, task_processor: &Arc<TaskProcessor>) {
     task_processor.spawn(Box::new(move |weak| {
         weak.upgrade_in_event_loop(move |handle| {
             handle.set_status("Downloading wiitdb.xml...".to_shared_string());
@@ -53,5 +52,5 @@ pub fn download(mount_point: PathBuf, task_processor: &Arc<TaskProcessor>) -> Re
         io::copy(&mut zipped_file, &mut writer)?;
 
         Ok("wiitbd.xml downloaded successfully".to_string())
-    }))
+    }));
 }

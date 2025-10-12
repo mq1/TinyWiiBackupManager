@@ -105,5 +105,7 @@ pub fn archive_game(
         }
 
         Ok(format!("Archived to {}", out_path.display()))
-    }))
+    }));
+
+    Ok(())
 }
