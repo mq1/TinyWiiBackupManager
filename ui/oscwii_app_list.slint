@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { ScrollView, Vertical, Horizontal, Icon, MaterialPalette, MaterialText, HorizontalDivider, IconButton } from "@material";
+import { ScrollView, Horizontal, Icon, MaterialPalette, MaterialText, HorizontalDivider, IconButton } from "@material";
 import { OscWiiApp } from "common.slint";
 
 export component OscWiiAppList inherits ScrollView {
@@ -11,115 +11,122 @@ export component OscWiiAppList inherits ScrollView {
     callback download_oscwii(OscWiiApp);
     callback push_oscwii(OscWiiApp);
 
+    viewport_height: (4px + 18px + 4px) * apps.length + 36px;
+
+    // Draw the horizontal separator lines
+    for i in apps.length - 1: HorizontalDivider {
+        x: 8px;
+        y: (4px + 18px + 4px) * (i + 1) + 3px;
+        width: parent.width - 16px;
+    }
+
     Horizontal {
-        Vertical {
-            for app in apps: Vertical {
-                HorizontalLayout {
-                    spacing: 4px;
-                    padding-left: -22px;
-                    Icon { }
+        Rectangle {
+            horizontal-stretch: 2;
 
-                    MaterialText {
-                        text: app.name;
-                    }
-                }
-
-                HorizontalDivider { }
+            for app[i] in apps: MaterialText {
+                x: 0px;
+                y: (4px + 18px + 4px) * i + 2px;
+                text: app.name;
             }
         }
 
-        Vertical {
-            for app in apps: Vertical {
-                HorizontalLayout {
-                    spacing: 4px;
-                    Icon {
-                        source: @image-url("../mdi/account.svg");
-                    }
+        Rectangle {
+            horizontal-stretch: 1;
 
-                    MaterialText {
-                        vertical-alignment: center;
-                        text: app.author;
-                    }
-                }
+            for i in apps.length: Icon {
+                x: 0px;
+                y: (4px + 18px + 4px) * i + 2px;
+                height: 14px;
+                width: 14px;
+                source: @image-url("../mdi/account.svg");
+            }
 
-                HorizontalDivider { }
+            for app[i] in apps: MaterialText {
+                x: 14px + 4px;
+                y: (4px + 18px + 4px) * i + 2px;
+                text: app.author;
             }
         }
 
-        Vertical {
-            for app in apps: Vertical {
-                HorizontalLayout {
-                    spacing: 4px;
-                    Icon {
-                        source: @image-url("../mdi/tag.svg");
-                    }
+        Rectangle {
+            horizontal-stretch: 1;
 
-                    MaterialText {
-                        vertical-alignment: center;
-                        text: app.version;
-                    }
-                }
+            for i in apps.length: Icon {
+                x: 0px;
+                y: (4px + 18px + 4px) * i + 2px;
+                height: 14px;
+                width: 14px;
+                source: @image-url("../mdi/tag.svg");
+            }
 
-                HorizontalDivider { }
+            for app[i] in apps: MaterialText {
+                x: 14px + 4px;
+                y: (4px + 18px + 4px) * i + 2px;
+                text: app.version;
             }
         }
 
-        Vertical {
-            for app in apps: Vertical {
-                HorizontalLayout {
-                    spacing: 4px;
-                    Icon {
-                        source: @image-url("../mdi/scale.svg");
-                    }
+        Rectangle {
+            horizontal-stretch: 1;
 
-                    MaterialText {
-                        vertical-alignment: center;
-                        text: app.size;
-                    }
-                }
+            for i in apps.length: Icon {
+                x: 0px;
+                y: (4px + 18px + 4px) * i + 2px;
+                height: 14px;
+                width: 14px;
+                source: @image-url("../mdi/scale.svg");
+            }
 
-                HorizontalDivider { }
+            for app[i] in apps: MaterialText {
+                x: 14px + 4px;
+                y: (4px + 18px + 4px) * i + 2px;
+                text: app.size;
             }
         }
 
-        Vertical {
-            for app in apps: Vertical {
-                HorizontalLayout {
-                    alignment: center;
-                    spacing: 4px;
+        // We draw bottom to top to preserve the tooltips
+        Rectangle {
+            horizontal-stretch: 1;
+            width: 18px + 4px + 18px + 4px + 18px;
 
-                    padding-left: -22px;
-                    Icon { }
-
-                    IconButton {
-                        icon: @image-url("../mdi/information.svg");
-                        tooltip: "App Information";
-                        inline: true;
-                        clicked => {
-                            open_oscwii_info(app);
-                        }
-                    }
-
-                    IconButton {
-                        icon: @image-url("../mdi/download.svg");
-                        tooltip: "Download";
-                        inline: true;
-                        clicked => {
-                            download_oscwii(app);
-                        }
-                    }
-
-                    IconButton {
-                        icon: @image-url("../mdi/upload-network.svg");
-                        tooltip: "Wiiload";
-                        inline: true;
-                        clicked => {
-                            push_oscwii(app);
-                        }
-                    }
+            for i in apps.length: IconButton {
+                x: 0px;
+                y: (4px + 18px + 4px) * (apps.length - i - 1);
+                height: 18px;
+                width: 18px;
+                icon: @image-url("../mdi/information.svg");
+                tooltip: "App Information";
+                inline: true;
+                clicked => {
+                    open_oscwii_info(apps[apps.length - i - 1]);
                 }
+            }
 
-                HorizontalDivider { }
+            for i in apps.length: IconButton {
+                x: 18px + 4px;
+                y: (4px + 18px + 4px) * (apps.length - i - 1);
+                height: 18px;
+                width: 18px;
+                icon: @image-url("../mdi/download.svg");
+                tooltip: "Download";
+                inline: true;
+                clicked => {
+                    download_oscwii(apps[apps.length - i - 1]);
+                }
+            }
+
+            for i in apps.length: IconButton {
+                x: 18px + 4px + 18px + 4px;
+                y: (4px + 18px + 4px) * (apps.length - i - 1);
+                height: 18px;
+                width: 18px;
+                icon: @image-url("../mdi/upload-network.svg");
+                tooltip: "Wiiload";
+                inline: true;
+                clicked => {
+                    push_oscwii(apps[apps.length - i - 1]);
+                }
             }
         }
     }
