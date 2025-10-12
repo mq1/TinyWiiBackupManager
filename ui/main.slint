@@ -123,6 +123,7 @@ export component MainWindow inherits Window {
                 }
                 remove_game(game) => {
                     remove_dir(game.path);
+                    refresh(config.mount-point);
                 }
                 update_filter(filter) => {
                     filtered_games = update_filtered_games(games, filter);
@@ -153,6 +154,7 @@ export component MainWindow inherits Window {
                 }
                 remove_app(app) => {
                     remove_dir(app.path);
+                    refresh(config.mount-point);
                 }
                 update_filter(filter) => {
                     filtered_hbc_apps = update_filtered_hbc_apps(hbc_apps, filter);

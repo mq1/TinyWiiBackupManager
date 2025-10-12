@@ -115,7 +115,10 @@ fn install_zip(mount_point: &Path, path: &Path) -> Result<()> {
     Ok(())
 }
 
-pub fn add_app_from_url(mount_point: PathBuf, url: String, task_processor: &Arc<TaskProcessor>) {
+pub fn add_app_from_url(mount_point_str: &str, url: String, task_processor: &Arc<TaskProcessor>) {
+    let mount_point = PathBuf::from(mount_point_str);
+    let mount_point_str = mount_point_str.to_shared_string();
+
     task_processor.spawn(Box::new(move |weak| {
         let status = format!("Downloading {}...", &url);
         weak.upgrade_in_event_loop(move |handle| {
@@ -130,6 +133,10 @@ pub fn add_app_from_url(mount_point: PathBuf, url: String, task_processor: &Arc<
         let mut archive = ZipArchive::new(cursor)?;
         extract_app(&mount_point, &mut archive)?;
 
+        weak.upgrade_in_event_loop(move |handle| {
+            handle.invoke_refresh(mount_point_str);
+        })?;
+
         Ok(format!("Downloaded {}", url))
     }));
 }
@@ -137,6 +144,7 @@ pub fn add_app_from_url(mount_point: PathBuf, url: String, task_processor: &Arc<
 pub fn add_apps(config: &Config, task_processor: &Arc<TaskProcessor>) -> Result<()> {
     let remove_sources = config.remove_sources_apps;
     let mount_point = PathBuf::from(&config.mount_point);
+    let mount_point_str = config.mount_point.to_shared_string();
     fs::create_dir_all(mount_point.join("apps"))?;
 
     let paths = rfd::FileDialog::new()
@@ -161,6 +169,10 @@ pub fn add_apps(config: &Config, task_processor: &Arc<TaskProcessor>) -> Result<
                     fs::remove_file(path)?;
                 }
             }
+
+            weak.upgrade_in_event_loop(move |handle| {
+                handle.invoke_refresh(mount_point_str);
+            })?;
 
             Ok(format!("Installed {} app(s)", paths.len()))
         }));
