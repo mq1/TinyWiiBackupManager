@@ -45,13 +45,12 @@ pub fn load_oscwii_apps(data_dir: &Path, task_processor: &Arc<TaskProcessor>) {
 
         weak.upgrade_in_event_loop(move |handle| {
             let apps = cache
-                .into_iter()
-                .map(|app| OscWiiApp::from_app(&app, &icons_dir))
+                .iter()
+                .map(|app| OscWiiApp::from_app(app, &icons_dir))
                 .collect::<VecModel<_>>();
 
             let model = ModelRc::from(Rc::new(apps));
-            handle.set_oscwii_apps(model.clone());
-            handle.set_filtered_oscwii_apps(model);
+            handle.set_oscwii_apps(model);
         })?;
 
         Ok(String::new())

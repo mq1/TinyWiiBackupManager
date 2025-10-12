@@ -8,15 +8,15 @@ import { OscWiiAppGrid } from "oscwii_app_grid.slint";
 import { OscWiiAppList } from "oscwii_app_list.slint";
 
 export component OscWiiAppsPage inherits VerticalLayout {
-    in property <[OscWiiApp]> apps;
-    out property <string> filter: "";
+    private property <string> filter: "";
     in-out property <Config> config;
 
-    callback update_filter(string);
     callback update_config();
     callback open_oscwii_info(OscWiiApp);
     callback download_oscwii(OscWiiApp);
     callback push_oscwii(OscWiiApp);
+
+    pure callback get_apps(string) -> [OscWiiApp];
 
     Rectangle {
         background: MaterialPalette.surface_container;
@@ -34,11 +34,7 @@ export component OscWiiAppsPage inherits VerticalLayout {
             LineEdit {
                 height: 36px;
                 placeholder-text: "Search...";
-                text: filter;
-                edited(text) => {
-                    filter = text;
-                    update_filter(text.to-lowercase());
-                }
+                text <=> filter;
             }
 
             VerticalLayout {
@@ -103,14 +99,14 @@ export component OscWiiAppsPage inherits VerticalLayout {
     }
 
     if config.view-as == ViewAs.Grid: OscWiiAppGrid {
-        apps: apps;
+        apps: get_apps(filter.to-lowercase());
         open_oscwii_info(app) => open_oscwii_info(app);
         download_oscwii(app) => download_oscwii(app);
         push_oscwii(app) => push_oscwii(app);
     }
 
     if config.view-as == ViewAs.List: OscWiiAppList {
-        apps: apps;
+        apps: get_apps(filter.to-lowercase());
         open_oscwii_info(app) => open_oscwii_info(app);
         download_oscwii(app) => download_oscwii(app);
         push_oscwii(app) => push_oscwii(app);
