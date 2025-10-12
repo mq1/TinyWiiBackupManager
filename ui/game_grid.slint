@@ -129,7 +129,7 @@ export component GameGrid inherits ScrollView {
 
     private property <int> cols: max(1, self.width / 180px);
     private property <int> rows: ceil(games.length / cols);
-    viewport_height: 32px + rows * 208px;
+    viewport_height: 36px + rows * (16px + 14px + 8px + 96px + 8px + 14px + 16px + 1px + 4px + 18px + 8px + 8px);
 
     callback open_disc_info(Game);
     callback open_game_dir(Game);
