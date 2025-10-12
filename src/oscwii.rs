@@ -1,69 +1,102 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{OscWiiApp, http::AGENT};
+use crate::{OscWiiApp, TaskType, http::AGENT, tasks::TaskProcessor};
 use anyhow::{Result, bail};
 use serde::Deserialize;
 use size::Size;
-use slint::{ModelRc, ToSharedString, VecModel};
-use std::{fs, path::Path, rc::Rc, time::Duration};
+use slint::{Image, ModelRc, ToSharedString, VecModel};
+use std::{fs, path::Path, rc::Rc, sync::Arc, time::Duration};
 
 const CONTENTS_URL: &str = "https://hbb1.oscwii.org/api/v4/contents";
 
-#[derive(Debug, Clone, Deserialize, Default)]
-pub struct Apps(pub Vec<App>);
+pub fn load_oscwii_apps(data_dir: &Path, task_processor: &Arc<TaskProcessor>) {
+    let cache_path = data_dir.join("oscwii-cache.json");
+    let icons_dir = data_dir.join("oscwii-icons");
 
-impl Apps {
-    pub fn load(data_dir: &Path) -> Result<Self> {
-        let path = data_dir.join("oscwii-cache.json");
+    task_processor.spawn(Box::new(move |weak| {
+        let status = "Loading OSCWii Apps...".to_shared_string();
+        weak.upgrade_in_event_loop(move |handle| {
+            handle.set_status(status);
+            handle.set_task_type(TaskType::DownloadingFile);
+        })?;
 
-        let apps = if let Ok(apps) = Self::load_cache(&path) {
-            apps
-        } else {
-            let bytes = AGENT.get(CONTENTS_URL).call()?.body_mut().read_to_vec()?;
-            fs::write(&path, &bytes)?;
-            let apps = serde_json::from_slice(&bytes)?;
-            Self(apps)
+        let cache = match load_cache(&cache_path) {
+            Ok(cache) => cache,
+            Err(_) => {
+                let bytes = AGENT.get(CONTENTS_URL).call()?.body_mut().read_to_vec()?;
+                fs::write(&cache_path, &bytes)?;
+                serde_json::from_slice(&bytes)?
+            }
         };
 
-        Ok(apps)
-    }
+        fs::create_dir_all(&icons_dir)?;
+        let len = cache.len();
+        for (i, app) in cache.iter().enumerate() {
+            let status =
+                format!("Downloading OSCWii App icons... {}/{}", i + 1, len).to_shared_string();
+            weak.upgrade_in_event_loop(move |handle| {
+                handle.set_status(status);
+                handle.set_task_type(TaskType::DownloadingCovers);
+            })?;
 
-    fn load_cache(path: &Path) -> Result<Self> {
-        // get file time
-        let file_time = fs::metadata(path)?.modified()?;
-
-        // get difference
-        let elapsed = file_time.elapsed()?;
-
-        if elapsed > Duration::from_secs(60 * 60 * 24) {
-            bail!("oscwii-cache.json is too old");
+            let _ = download_icon(app, &icons_dir);
         }
 
-        let bytes = fs::read(path)?;
-        let apps = serde_json::from_slice(&bytes)?;
+        weak.upgrade_in_event_loop(move |handle| {
+            let apps = cache
+                .into_iter()
+                .map(|app| OscWiiApp::from_app(&app, &icons_dir))
+                .collect::<VecModel<_>>();
 
-        Ok(Self(apps))
+            let model = ModelRc::from(Rc::new(apps));
+            handle.set_oscwii_apps(model.clone());
+            handle.set_filtered_oscwii_apps(model);
+        })?;
+
+        Ok(String::new())
+    }));
+}
+
+fn load_cache(path: &Path) -> Result<Vec<App>> {
+    // get file time
+    let file_time = fs::metadata(path)?.modified()?;
+
+    // get difference
+    let elapsed = file_time.elapsed()?;
+
+    if elapsed > Duration::from_secs(60 * 60 * 24) {
+        bail!("oscwii-cache.json is too old");
     }
 
-    pub fn get_model(&self) -> ModelRc<OscWiiApp> {
-        let list = self
-            .0
-            .iter()
-            .map(OscWiiApp::from_app)
-            .collect::<VecModel<_>>();
+    let bytes = fs::read(path)?;
+    let apps = serde_json::from_slice(&bytes)?;
 
-        ModelRc::from(Rc::new(list))
+    Ok(apps)
+}
+
+fn download_icon(app: &App, icons_dir: &Path) -> Result<()> {
+    let icon_path = icons_dir.join(&app.slug).with_extension("png");
+
+    if icon_path.exists() {
+        return Ok(());
     }
 
-    pub fn empty() -> Self {
-        Self(vec![])
-    }
+    let icon = AGENT
+        .get(&app.assets.icon.url)
+        .call()?
+        .body_mut()
+        .read_to_vec()?;
+
+    fs::write(&icon_path, &icon)?;
+
+    Ok(())
 }
 
 impl OscWiiApp {
-    fn from_app(app: &App) -> Self {
+    fn from_app(app: &App, icons_dir: &Path) -> Self {
         let size = Size::from_bytes(app.uncompressed_size);
+        let icon_path = icons_dir.join(&app.slug).with_extension("png");
 
         Self {
             slug: app.slug.to_shared_string(),
@@ -74,6 +107,7 @@ impl OscWiiApp {
             release_date: app.release_date.to_shared_string(),
             size: size.to_shared_string(),
             zip_url: app.assets.archive.url.to_shared_string(),
+            icon: Image::load_from_path(&icon_path).unwrap_or_default(),
         }
     }
 }

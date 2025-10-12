@@ -89,5 +89,7 @@ pub fn verify_game(game_dir: &Path, task_processor: &Arc<TaskProcessor>) -> Resu
         } else {
             Err(anyhow!("Didn't find XXH64 hashes"))
         }
-    }))
+    }));
+
+    Ok(())
 }
