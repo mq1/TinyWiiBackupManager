@@ -32,6 +32,7 @@ export component GameList inherits ScrollView {
                 x: 0px;
                 y: (4px + 18px + 4px) * i + 2px;
                 text: game.display-title;
+                width: parent.width;
             }
         }
 
@@ -50,6 +51,7 @@ export component GameList inherits ScrollView {
                 x: 14px + 4px;
                 y: (4px + 18px + 4px) * i + 2px;
                 text: game.id;
+                width: parent.width - 14px - 4px;
             }
         }
 
@@ -68,6 +70,7 @@ export component GameList inherits ScrollView {
                 x: 14px + 4px;
                 y: (4px + 18px + 4px) * i + 2px;
                 text: game.console == Console.GameCube ? "GC" : "Wii";
+                width: parent.width - 14px - 4px;
             }
         }
 
@@ -86,6 +89,7 @@ export component GameList inherits ScrollView {
                 x: 14px + 4px;
                 y: (4px + 18px + 4px) * i + 2px;
                 text: game.size;
+                width: parent.width - 14px - 4px;
             }
         }
 

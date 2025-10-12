@@ -28,6 +28,7 @@ export component OscWiiAppList inherits ScrollView {
                 x: 0px;
                 y: (4px + 18px + 4px) * i + 2px;
                 text: app.name;
+                width: parent.width;
             }
         }
 
@@ -46,6 +47,7 @@ export component OscWiiAppList inherits ScrollView {
                 x: 14px + 4px;
                 y: (4px + 18px + 4px) * i + 2px;
                 text: app.author;
+                width: parent.width - 14px - 4px;
             }
         }
 
@@ -64,6 +66,7 @@ export component OscWiiAppList inherits ScrollView {
                 x: 14px + 4px;
                 y: (4px + 18px + 4px) * i + 2px;
                 text: app.version;
+                width: parent.width - 14px - 4px;
             }
         }
 
@@ -82,6 +85,7 @@ export component OscWiiAppList inherits ScrollView {
                 x: 14px + 4px;
                 y: (4px + 18px + 4px) * i + 2px;
                 text: app.size;
+                width: parent.width - 14px - 4px;
             }
         }
 
