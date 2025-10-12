@@ -26,7 +26,6 @@ pub mod wiitdb;
 
 use crate::{tasks::TaskProcessor, titles::Titles, watcher::init_watcher};
 use anyhow::{Result, anyhow};
-use directories::ProjectDirs;
 use notify::RecommendedWatcher;
 use path_slash::PathBufExt;
 use rfd::{FileDialog, MessageButtons, MessageDialog, MessageDialogResult, MessageLevel};
@@ -114,9 +113,7 @@ fn choose_mount_point(
 }
 
 fn run() -> Result<()> {
-    let proj = ProjectDirs::from("it", "mq1", env!("CARGO_PKG_NAME"))
-        .ok_or(anyhow!("Failed to get project dirs"))?;
-    let data_dir = proj.data_dir().to_path_buf();
+    let data_dir = get_data_dir()?;
     fs::create_dir_all(&data_dir)?;
 
     let app = MainWindow::new()?;
@@ -355,6 +352,23 @@ fn run() -> Result<()> {
     app.invoke_reset_filters();
     app.run()?;
     Ok(())
+}
+
+#[cfg(feature = "portable")]
+fn get_data_dir() -> Result<PathBuf> {
+    // For portable builds, use a directory next to the executable
+    let exe_path = std::env::current_exe()?;
+    let exe_dir = exe_path.parent().ok_or(anyhow!("Could not get executable directory"))?;
+    let data_dir = exe_dir.join("TinyWiiBackupManager-data");
+    Ok(data_dir)
+}
+
+#[cfg(not(feature = "portable"))]
+fn get_data_dir() -> Result<PathBuf> {
+    // For standard builds, use the system's app data directory
+    let proj = directories::ProjectDirs::from("it", "mq1", env!("CARGO_PKG_NAME"))
+        .ok_or(anyhow!("Failed to get project dirs"))?;
+    Ok(proj.data_dir().to_path_buf())
 }
 
 fn main() -> Result<()> {
