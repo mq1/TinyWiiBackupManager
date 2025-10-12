@@ -16,6 +16,7 @@ export component GameList inherits ScrollView {
     callback verify_game(Game);
 
     viewport_height: (4px + 18px + 4px) * games.length + 36px;
+    vertical_scrollbar_policy: ScrollBarPolicy.always-on;
 
     // Draw the horizontal separator lines
     for i in games.length - 1: HorizontalDivider {
