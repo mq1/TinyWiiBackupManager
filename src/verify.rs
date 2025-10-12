@@ -17,7 +17,9 @@ use size::Size;
 use slint::ToSharedString;
 use std::{path::Path, sync::Arc};
 
-pub fn verify_game(game_dir: &Path, task_processor: &Arc<TaskProcessor>) -> Result<()> {
+pub fn verify_game(game_dir_str: &str, task_processor: &Arc<TaskProcessor>) -> Result<()> {
+    let game_dir = Path::new(game_dir_str);
+
     let dir_name = game_dir
         .file_name()
         .ok_or(anyhow!("Failed to get game name"))?
