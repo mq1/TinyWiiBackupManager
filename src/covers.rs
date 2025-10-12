@@ -124,7 +124,10 @@ fn download_disc_cover(id: &str, mount_point: &Path) -> Result<()> {
 }
 
 // Fail safe, ignores errors, no popup notification
-pub fn download_covers(mount_point: PathBuf, task_processor: &Arc<TaskProcessor>) {
+pub fn download_covers(mount_point_str: &str, task_processor: &Arc<TaskProcessor>) {
+    let mount_point = PathBuf::from(mount_point_str);
+    let mount_point_str = mount_point_str.to_shared_string();
+
     task_processor.spawn(Box::new(move |weak| {
         weak.upgrade_in_event_loop(move |handle| {
             handle.set_status("Downloading covers...".to_shared_string());
@@ -143,11 +146,18 @@ pub fn download_covers(mount_point: PathBuf, task_processor: &Arc<TaskProcessor>
             let _ = download_cover3d(&game.id, &mount_point);
         }
 
+        weak.upgrade_in_event_loop(move |handle| {
+            handle.invoke_refresh(mount_point_str);
+        })?;
+
         Ok(String::new())
     }));
 }
 
-pub fn download_all_covers(mount_point: PathBuf, task_processor: &Arc<TaskProcessor>) {
+pub fn download_all_covers(mount_point_str: &str, task_processor: &Arc<TaskProcessor>) {
+    let mount_point = PathBuf::from(mount_point_str);
+    let mount_point_str = mount_point_str.to_shared_string();
+
     task_processor.spawn(Box::new(move |weak| {
         weak.upgrade_in_event_loop(move |handle| {
             handle.set_status("Downloading covers...".to_shared_string());
@@ -168,6 +178,10 @@ pub fn download_all_covers(mount_point: PathBuf, task_processor: &Arc<TaskProces
             let _ = download_coverfull(&game.id, &mount_point);
             let _ = download_disc_cover(&game.id, &mount_point);
         }
+
+        weak.upgrade_in_event_loop(move |handle| {
+            handle.invoke_refresh(mount_point_str);
+        })?;
 
         Ok("Covers downloaded".to_string())
     }));

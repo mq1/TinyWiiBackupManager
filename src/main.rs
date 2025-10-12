@@ -275,11 +275,7 @@ fn run() -> Result<()> {
 
     let task_processor_clone = task_processor.clone();
     app.on_download_oscwii(move |mount_point, zip_url| {
-        hbc_apps::add_app_from_url(
-            PathBuf::from(&mount_point),
-            zip_url.to_string(),
-            &task_processor_clone,
-        );
+        hbc_apps::add_app_from_url(&mount_point, zip_url.to_string(), &task_processor_clone);
     });
 
     let task_processor_clone = task_processor.clone();
@@ -314,7 +310,7 @@ fn run() -> Result<()> {
 
     let task_processor_clone = task_processor.clone();
     app.on_download_all_covers(move |mount_point| {
-        covers::download_all_covers(PathBuf::from(&mount_point), &task_processor_clone);
+        covers::download_all_covers(&mount_point, &task_processor_clone);
     });
 
     app.on_get_disc_info(move |mount_point| {

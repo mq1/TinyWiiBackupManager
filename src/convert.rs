@@ -64,6 +64,7 @@ pub fn add_games(config: &Config, task_processor: &Arc<TaskProcessor>) -> Result
 
     let remove_sources = config.remove_sources_games;
     let mount_point = PathBuf::from(&config.mount_point);
+    let mount_point_str = config.mount_point.to_shared_string();
     let wii_output_format = config.wii_output_format;
     let disc_opts = get_disc_opts();
     let process_opts = get_process_opts(config);
@@ -173,13 +174,18 @@ pub fn add_games(config: &Config, task_processor: &Arc<TaskProcessor>) -> Result
             if remove_sources {
                 fs::remove_file(&path)?;
             }
+
+            let mount_point_str = mount_point_str.clone();
+            let _ = weak.upgrade_in_event_loop(move |handle| {
+                handle.invoke_refresh(mount_point_str);
+            });
         }
 
         Ok(format!("Added {} Games", len))
     }));
 
     // Download covers (ignores errors)
-    download_covers(mount_point, task_processor);
+    download_covers(&config.mount_point, task_processor);
 
     Ok(())
 }
