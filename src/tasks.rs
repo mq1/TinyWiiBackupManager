@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{MainWindow, TaskType, show_err};
-use anyhow::{Result, anyhow};
+use anyhow::Result;
 use rfd::{MessageDialog, MessageLevel};
 use slint::{SharedString, Weak};
 use std::sync::mpsc;
@@ -13,7 +13,7 @@ pub type BoxedTask = Box<dyn FnOnce(&Weak<MainWindow>) -> Result<String> + Send>
 pub struct TaskProcessor(mpsc::Sender<BoxedTask>);
 
 impl TaskProcessor {
-    pub fn init(weak: Weak<MainWindow>) -> Result<Self> {
+    pub fn init(weak: Weak<MainWindow>) -> Self {
         let (sender, receiver) = mpsc::channel::<BoxedTask>();
 
         thread::spawn(move || {
@@ -48,12 +48,12 @@ impl TaskProcessor {
             }
         });
 
-        Ok(Self(sender))
+        Self(sender)
     }
 
-    pub fn spawn(&self, task: BoxedTask) -> Result<()> {
-        self.0
-            .send(task)
-            .map_err(|_| anyhow!("Failed to send task"))
+    pub fn spawn(&self, task: BoxedTask) {
+        if let Err(e) = self.0.send(task) {
+            show_err(e)
+        }
     }
 }
