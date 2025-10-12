@@ -8,12 +8,10 @@ import { GameGrid } from "game_grid.slint";
 import { GameList } from "game_list.slint";
 
 export component GamesPage inherits VerticalLayout {
-    in property <[Game]> games;
-    out property <string> filter: "";
+    private property <string> filter: "";
     in-out property <Config> config;
 
     callback add_games();
-    callback update_filter(string);
     callback update_config();
     callback open_disc_info(Game);
     callback open_game_dir(Game);
@@ -21,6 +19,8 @@ export component GamesPage inherits VerticalLayout {
     callback archive_game(Game);
     callback trigger_sort(string);
     callback refresh();
+
+    pure callback get_games(string) -> [Game];
 
     Rectangle {
         background: MaterialPalette.surface_container;
@@ -38,11 +38,7 @@ export component GamesPage inherits VerticalLayout {
             LineEdit {
                 height: 36px;
                 placeholder-text: "Search...";
-                text: filter;
-                edited(text) => {
-                    filter = text;
-                    update_filter(text.to-lowercase());
-                }
+                text <=> filter;
             }
 
             VerticalLayout {
@@ -152,7 +148,7 @@ export component GamesPage inherits VerticalLayout {
     }
 
     if config.view-as == ViewAs.Grid: GameGrid {
-        games: games;
+        games: get_games(filter.to-lowercase());
         archive_format: config.archive_format;
         open_disc_info(game) => open_disc_info(game);
         open_game_dir(game) => open_game_dir(game);
@@ -161,7 +157,7 @@ export component GamesPage inherits VerticalLayout {
     }
 
     if config.view-as == ViewAs.List: GameList {
-        games: games;
+        games: get_games(filter.to-lowercase());
         archive_format: config.archive_format;
         open_disc_info(game) => open_disc_info(game);
         open_game_dir(game) => open_game_dir(game);

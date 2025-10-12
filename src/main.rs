@@ -100,7 +100,6 @@ fn choose_mount_point(
     refresh_hbc_apps(&handle, &dir)?;
     refresh_disk_usage(&handle, &dir);
     handle.invoke_apply_sorting();
-    handle.invoke_reset_filters();
 
     Ok(())
 }
@@ -204,7 +203,7 @@ fn run() -> Result<()> {
         }
     });
 
-    app.on_update_filtered_oscwii_apps(move |apps, filter| {
+    app.on_get_filtered_oscwii_apps(move |apps, filter| {
         if filter.is_empty() {
             return apps;
         }
@@ -214,7 +213,7 @@ fn run() -> Result<()> {
         ModelRc::from(Rc::new(filtered))
     });
 
-    app.on_update_filtered_hbc_apps(move |apps, filter| {
+    app.on_get_filtered_hbc_apps(move |apps, filter| {
         if filter.is_empty() {
             return apps;
         }
@@ -224,7 +223,7 @@ fn run() -> Result<()> {
         ModelRc::from(Rc::new(filtered))
     });
 
-    app.on_update_filtered_games(move |games, filter| {
+    app.on_get_filtered_games(move |games, filter| {
         if filter.is_empty() {
             return games;
         }
@@ -336,7 +335,6 @@ fn run() -> Result<()> {
             refresh_disk_usage(&handle, mount_point);
 
             handle.invoke_apply_sorting();
-            handle.invoke_reset_filters();
         } else {
             show_err(anyhow!("Failed to upgrade weak"));
         }
@@ -349,7 +347,6 @@ fn run() -> Result<()> {
     oscwii::load_oscwii_apps(&data_dir, &task_processor);
 
     app.invoke_apply_sorting();
-    app.invoke_reset_filters();
     app.run()?;
     Ok(())
 }
