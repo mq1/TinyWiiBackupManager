@@ -18,16 +18,17 @@ use slint::ToSharedString;
 use std::{
     fs::File,
     io::{BufWriter, Seek, Write},
-    path::PathBuf,
+    path::Path,
     sync::Arc,
 };
 
 pub fn archive_game(
-    game_dir: PathBuf,
+    game_dir: &str,
     config: &Config,
     task_processor: &Arc<TaskProcessor>,
 ) -> Result<()> {
-    let path = get_main_file(&game_dir).ok_or(anyhow!("No disc found"))?;
+    let game_dir = Path::new(game_dir);
+    let path = get_main_file(game_dir).ok_or(anyhow!("No disc found"))?;
 
     let dest_dir = FileDialog::new()
         .set_title("Select destination directory")

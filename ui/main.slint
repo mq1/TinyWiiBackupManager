@@ -38,7 +38,7 @@ export component MainWindow inherits Window {
     callback open_url(string);
     callback remove_dir(string);
     callback add_games(Config);
-    callback archive_game(Game, Config);
+    callback archive_game(string, Config);
     callback add_apps(Config);
     callback open_data_dir();
     callback update_config(Config);
@@ -129,7 +129,7 @@ export component MainWindow inherits Window {
                     filtered_games = update_filtered_games(games, filter);
                 }
                 archive_game(game) => {
-                    archive_game(game, config);
+                    archive_game(game.path, config);
                 }
                 update_config => {
                     update_config(config);

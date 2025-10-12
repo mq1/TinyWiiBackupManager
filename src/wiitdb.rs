@@ -4,26 +4,29 @@
 use crate::TaskType;
 use crate::http::AGENT;
 use crate::tasks::TaskProcessor;
+use anyhow::Result;
 use slint::ToSharedString;
 use std::fs::{self, OpenOptions};
 use std::io::{self, BufWriter, Cursor};
-use std::path::PathBuf;
+use std::path::Path;
 use std::sync::Arc;
 use zip::ZipArchive;
 
 const DOWNLOAD_URL: &str = "https://www.gametdb.com/wiitdb.zip";
 
 /// Handles the blocking logic of downloading and extracting the database.
-pub fn download(mount_point: PathBuf, task_processor: &Arc<TaskProcessor>) {
+pub fn download(mount_point_str: &str, task_processor: &Arc<TaskProcessor>) -> Result<()> {
+    let mount_point = Path::new(mount_point_str);
+
+    // Create the target directory.
+    let target_dir = mount_point.join("apps").join("usbloader_gx");
+    fs::create_dir_all(&target_dir)?;
+
     task_processor.spawn(Box::new(move |weak| {
         weak.upgrade_in_event_loop(move |handle| {
             handle.set_status("Downloading wiitdb.xml...".to_shared_string());
             handle.set_task_type(TaskType::DownloadingFile);
         })?;
-
-        // Create the target directory.
-        let target_dir = mount_point.join("apps").join("usbloader_gx");
-        fs::create_dir_all(&target_dir)?;
 
         // Perform the download request.
         let mut response = AGENT.get(DOWNLOAD_URL).call()?;
@@ -53,4 +56,6 @@ pub fn download(mount_point: PathBuf, task_processor: &Arc<TaskProcessor>) {
 
         Ok("wiitbd.xml downloaded successfully".to_string())
     }));
+
+    Ok(())
 }
