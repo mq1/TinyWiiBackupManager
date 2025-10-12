@@ -340,6 +340,9 @@ fn run() -> Result<()> {
                 show_err(e);
             }
             refresh_disk_usage(&handle, mount_point);
+
+            handle.invoke_apply_sorting();
+            handle.invoke_reset_filters();
         } else {
             show_err(anyhow!("Failed to upgrade weak"));
         }
