@@ -81,18 +81,20 @@ pub fn push_file(wii_ip: &str, task_processor: &Arc<TaskProcessor>) -> Result<()
     Ok(())
 }
 
-pub fn push_oscwii(zip_url: String, wii_ip: String, task_processor: &Arc<TaskProcessor>) {
+pub fn push_oscwii(zip_url: &str, wii_ip: &str, task_processor: &Arc<TaskProcessor>) -> Result<()> {
+    let addr = (wii_ip, WIILOAD_PORT)
+        .to_socket_addrs()?
+        .next()
+        .ok_or(anyhow!("Failed to resolve Wii IP: {}", &wii_ip))?;
+
+    let zip_url = zip_url.to_string();
+
     task_processor.spawn(Box::new(move |weak| {
         let status = format!("Downloading {}...", zip_url);
         weak.upgrade_in_event_loop(move |handle| {
             handle.set_status(status.to_shared_string());
             handle.set_task_type(TaskType::DownloadingFolder);
         })?;
-
-        let addr = (wii_ip.as_str(), WIILOAD_PORT)
-            .to_socket_addrs()?
-            .next()
-            .ok_or(anyhow!("Failed to resolve Wii IP: {}", &wii_ip))?;
 
         let buffer = AGENT.get(zip_url).call()?.body_mut().read_to_vec()?;
 
@@ -113,6 +115,8 @@ pub fn push_oscwii(zip_url: String, wii_ip: String, task_processor: &Arc<TaskPro
             excluded_files.join(", ")
         ))
     }));
+
+    Ok(())
 }
 
 fn find_app_dir(archive: &mut ZipArchive<impl Read + Seek>) -> Result<PathBuf> {

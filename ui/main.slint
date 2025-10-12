@@ -31,22 +31,18 @@ export component MainWindow inherits Window {
     in property <UpdateInfo> update_info;
     in-out property <Config> config;
     in-out property <[OscWiiApp]> oscwii_apps: [];
-    in-out property <[OscWiiApp]> filtered_oscwii_apps: [];
     property <OscWiiApp> pushing_oscwii;
 
     callback choose_mount_point();
     callback open_url(string);
     callback remove_dir(string);
     callback add_games(Config);
-    callback archive_game(Game, Config);
+    callback archive_game(string, Config);
     callback add_apps(Config);
     callback open_data_dir();
     callback update_config(Config);
     callback push_file(string);
     callback push_oscwii(string, string);
-    callback update_filtered_oscwii_apps([OscWiiApp], string) -> [OscWiiApp];
-    callback update_filtered_hbc_apps([HbcApp], string) -> [HbcApp];
-    callback update_filtered_games([Game], string) -> [Game];
     callback dot_clean(string);
     callback download_oscwii(string, string);
     callback download_wiitdb(string);
@@ -56,10 +52,9 @@ export component MainWindow inherits Window {
     callback sort(Config, [Game], [HbcApp]) -> { a: [Game], b: [HbcApp] };
     callback get_disc_info(string) -> DiscInfo;
 
-    public function reset_filters() {
-        filtered_games = update_filtered_games(games, "");
-        filtered_hbc_apps = update_filtered_hbc_apps(hbc_apps, "");
-    }
+    pure callback get_filtered_games([Game], string) -> [Game];
+    pure callback get_filtered_hbc_apps([HbcApp], string) -> [HbcApp];
+    pure callback get_filtered_oscwii_apps([OscWiiApp], string) -> [OscWiiApp];
 
     public function apply_sorting() {
         let all = sort(config, games, hbc_apps);
@@ -116,8 +111,8 @@ export component MainWindow inherits Window {
 
         VerticalLayout {
             if current_index == 0 && !dir_name.is-empty: GamesPage {
-                games: filtered_games;
                 config <=> config;
+                get_games(filter) => get_filtered_games(games, filter);
                 open_disc_info(game) => {
                     open_disc_info_dialog(game);
                 }
@@ -125,11 +120,8 @@ export component MainWindow inherits Window {
                     remove_dir(game.path);
                     refresh(config.mount-point);
                 }
-                update_filter(filter) => {
-                    filtered_games = update_filtered_games(games, filter);
-                }
                 archive_game(game) => {
-                    archive_game(game, config);
+                    archive_game(game.path, config);
                 }
                 update_config => {
                     update_config(config);
@@ -139,7 +131,6 @@ export component MainWindow inherits Window {
                 }
                 trigger_sort(filter) => {
                     apply_sorting();
-                    filtered_games = update_filtered_games(games, filter);
                 }
                 refresh => {
                     refresh(config.mount-point);
@@ -147,17 +138,14 @@ export component MainWindow inherits Window {
             }
 
             if current_index == 1 && !dir_name.is-empty: HbcAppsPage {
-                apps: filtered_hbc_apps;
                 config <=> config;
+                get_apps(filter) => get_filtered_hbc_apps(hbc_apps, filter);
                 open_app_info(app) => {
                     open_app_info_dialog(app);
                 }
                 remove_app(app) => {
                     remove_dir(app.path);
                     refresh(config.mount-point);
-                }
-                update_filter(filter) => {
-                    filtered_hbc_apps = update_filtered_hbc_apps(hbc_apps, filter);
                 }
                 update_config => {
                     update_config(config);
@@ -170,7 +158,6 @@ export component MainWindow inherits Window {
                 }
                 trigger_sort(filter) => {
                     apply_sorting();
-                    filtered_hbc_apps = update_filtered_hbc_apps(hbc_apps, filter);
                 }
                 refresh => {
                     refresh(config.mount-point);
@@ -178,14 +165,11 @@ export component MainWindow inherits Window {
             }
 
             if current_index == 2: OscWiiAppsPage {
-                apps: filtered_oscwii_apps;
                 config <=> config;
                 open_oscwii_info(app) => {
                     open_url("https://oscwii.org/library/app/" + app.slug);
                 }
-                update_filter(filter) => {
-                    filtered_oscwii_apps = update_filtered_oscwii_apps(oscwii_apps, filter);
-                }
+                get_apps(filter) => get_filtered_oscwii_apps(oscwii_apps, filter);
                 download_oscwii(app) => {
                     download_oscwii(config.mount-point, app.zip-url);
                 }

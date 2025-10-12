@@ -37,7 +37,9 @@ pub fn get_region_display(id: [u8; 6]) -> &'static str {
     }
 }
 
-pub fn get_disc_info(game_dir: &Path) -> Result<DiscInfo> {
+pub fn get_disc_info(game_dir_str: &str) -> Result<DiscInfo> {
+    let game_dir = Path::new(game_dir_str);
+
     let path = get_main_file(&game_dir).ok_or(anyhow!("No disc found"))?;
     let game_dir = game_dir
         .to_str()

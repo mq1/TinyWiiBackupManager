@@ -100,7 +100,6 @@ fn choose_mount_point(
     refresh_hbc_apps(&handle, &dir)?;
     refresh_disk_usage(&handle, &dir);
     handle.invoke_apply_sorting();
-    handle.invoke_reset_filters();
 
     Ok(())
 }
@@ -204,7 +203,7 @@ fn run() -> Result<()> {
         }
     });
 
-    app.on_update_filtered_oscwii_apps(move |apps, filter| {
+    app.on_get_filtered_oscwii_apps(move |apps, filter| {
         if filter.is_empty() {
             return apps;
         }
@@ -214,7 +213,7 @@ fn run() -> Result<()> {
         ModelRc::from(Rc::new(filtered))
     });
 
-    app.on_update_filtered_hbc_apps(move |apps, filter| {
+    app.on_get_filtered_hbc_apps(move |apps, filter| {
         if filter.is_empty() {
             return apps;
         }
@@ -224,7 +223,7 @@ fn run() -> Result<()> {
         ModelRc::from(Rc::new(filtered))
     });
 
-    app.on_update_filtered_games(move |games, filter| {
+    app.on_get_filtered_games(move |games, filter| {
         if filter.is_empty() {
             return games;
         }
@@ -275,35 +274,33 @@ fn run() -> Result<()> {
 
     let task_processor_clone = task_processor.clone();
     app.on_download_oscwii(move |mount_point, zip_url| {
-        hbc_apps::add_app_from_url(&mount_point, zip_url.to_string(), &task_processor_clone);
+        hbc_apps::add_app_from_url(&mount_point, &zip_url, &task_processor_clone);
     });
 
     let task_processor_clone = task_processor.clone();
     app.on_push_oscwii(move |zip_url, wii_ip| {
-        wiiload::push_oscwii(
-            zip_url.to_string(),
-            wii_ip.to_string(),
-            &task_processor_clone,
-        );
+        if let Err(e) = wiiload::push_oscwii(&zip_url, &wii_ip, &task_processor_clone) {
+            show_err(e);
+        }
     });
 
     let task_processor_clone = task_processor.clone();
-    app.on_archive_game(move |game, config| {
-        if let Err(e) =
-            archive::archive_game(PathBuf::from(&game.path), &config, &task_processor_clone)
-        {
+    app.on_archive_game(move |game_dir, config| {
+        if let Err(e) = archive::archive_game(&game_dir, &config, &task_processor_clone) {
             show_err(e);
         }
     });
 
     let task_processor_clone = task_processor.clone();
     app.on_download_wiitdb(move |mount_point| {
-        wiitdb::download(PathBuf::from(&mount_point), &task_processor_clone);
+        if let Err(e) = wiitdb::download(&mount_point, &task_processor_clone) {
+            show_err(e);
+        }
     });
 
     let task_processor_clone = task_processor.clone();
     app.on_verify_game(move |game_dir| {
-        if let Err(e) = verify::verify_game(Path::new(&game_dir), &task_processor_clone) {
+        if let Err(e) = verify::verify_game(&game_dir, &task_processor_clone) {
             show_err(e);
         }
     });
@@ -314,7 +311,7 @@ fn run() -> Result<()> {
     });
 
     app.on_get_disc_info(move |mount_point| {
-        let res = disc_info::get_disc_info(Path::new(&mount_point));
+        let res = disc_info::get_disc_info(&mount_point);
         match res {
             Ok(info) => info,
             Err(e) => {
@@ -338,7 +335,6 @@ fn run() -> Result<()> {
             refresh_disk_usage(&handle, mount_point);
 
             handle.invoke_apply_sorting();
-            handle.invoke_reset_filters();
         } else {
             show_err(anyhow!("Failed to upgrade weak"));
         }
@@ -351,7 +347,6 @@ fn run() -> Result<()> {
     oscwii::load_oscwii_apps(&data_dir, &task_processor);
 
     app.invoke_apply_sorting();
-    app.invoke_reset_filters();
     app.run()?;
     Ok(())
 }
