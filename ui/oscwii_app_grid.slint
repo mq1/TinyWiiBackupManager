@@ -21,88 +21,72 @@ component OscWiiAppCard inherits Rectangle {
     callback push_oscwii();
 
     width: 166px;
-    height: 200px;
+    height: 16px + 14px + 8px + 96px + 8px + 14px + 16px + 1px + 4px + 18px + 8px;
     background: MaterialPalette.surface;
     border-color: MaterialPalette.outline_variant;
     border-radius: 12px;
     border-width: 1px;
 
-    visible: !app.slug.is-empty;
+    MaterialText {
+        x: parent.width - self.width - 16px;
+        y: 16px;
+        text: app.size;
+    }
 
-    Vertical {
-        alignment: space-between;
+    Image {
+        x: 16px;
+        y: 16px + 14px + 8px;
+        height: 96px;
+        width: parent.width - 32px;
+        image-fit: contain;
+    }
 
-        MaterialText {
-            horizontal-alignment: center;
-            text: app.name;
-        }
+    MaterialText {
+        x: 16px;
+        y: 16px + 14px + 8px + 96px + 8px;
+        width: parent.width - 32px;
+        horizontal-alignment: center;
+        text: app.name;
+    }
 
-        HorizontalDivider { }
+    HorizontalDivider {
+        x: 16px;
+        y: 16px + 14px + 8px + 96px + 8px + 14px + 16px;
+        width: parent.width - 32px;
+    }
 
-        Horizontal {
-            padding: 4px;
+    Rectangle {
+        y: 16px + 14px + 8px + 96px + 8px + 14px + 16px + 1px + 4px;
+        x: parent.width / 2 - (18px + 4px + 18px + 4px + 18px) / 2;
+        height: 18px;
 
-            Icon {
-                source: @image-url("../mdi/account.svg");
-            }
-
-            MaterialText {
-                text: app.author;
-            }
-        }
-
-        Horizontal {
-            padding: 4px;
-
-            Icon {
-                source: @image-url("../mdi/tag.svg");
-            }
-
-            MaterialText {
-                text: app.version;
-            }
-        }
-
-        Horizontal {
-            padding: 4px;
-
-            Icon {
-                source: @image-url("../mdi/scale.svg");
-            }
-
-            MaterialText {
-                text: app.size;
+        IconButton {
+            x: 0px;
+            icon: @image-url("../mdi/information.svg");
+            tooltip: "App Information";
+            inline: true;
+            clicked => {
+                open_oscwii_info();
             }
         }
 
-        Horizontal {
-            alignment: center;
-
-            IconButton {
-                icon: @image-url("../mdi/information.svg");
-                tooltip: "App Information";
-                inline: true;
-                clicked => {
-                    open_oscwii_info();
-                }
+        IconButton {
+            x: 18px + 4px;
+            icon: @image-url("../mdi/download.svg");
+            tooltip: "Download";
+            inline: true;
+            clicked => {
+                download_oscwii();
             }
+        }
 
-            IconButton {
-                icon: @image-url("../mdi/download.svg");
-                tooltip: "Download";
-                inline: true;
-                clicked => {
-                    download_oscwii();
-                }
-            }
-
-            IconButton {
-                icon: @image-url("../mdi/upload-network.svg");
-                tooltip: "Wiiload";
-                inline: true;
-                clicked => {
-                    push_oscwii();
-                }
+        IconButton {
+            x: 18px + 4px + 18px + 4px;
+            icon: @image-url("../mdi/upload-network.svg");
+            tooltip: "Wiiload";
+            inline: true;
+            clicked => {
+                push_oscwii();
             }
         }
     }
@@ -121,7 +105,7 @@ export component OscWiiAppGrid inherits ScrollView {
 
     for i in apps.length: OscWiiAppCard {
         x: 16px + mod((apps.length - 1 - i), cols) * 174px;
-        y: 16px + floor((apps.length - 1 - i) / cols) * 208px;
+        y: 16px + floor((apps.length - 1 - i) / cols) * (16px + 14px + 8px + 96px + 8px + 14px + 16px + 1px + 4px + 18px + 8px + 8px);
 
         app: apps[apps.length - 1 - i];
         open_oscwii_info => open_oscwii_info(apps[apps.length - 1 - i]);
