@@ -112,8 +112,6 @@ jobs:
             arch: x64
           - target: aarch64-pc-windows-msvc
             arch: arm64
-          - target: i686-win7-windows-msvc
-            arch: x86
 
     steps:
       - name: Checkout
@@ -150,8 +148,6 @@ jobs:
   build-win7:
     name: Build for Windows 7
     runs-on: ubuntu-24.04
-    env: 
-      RUSTC_BOOTSTRAP: 1
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -172,6 +168,8 @@ jobs:
       
       - name: Build binary
         run: cargo build -Z build-std=std,panic_abort --release --locked --target i686-win7-windows-gnu --features portable --no-default-features
+        env: 
+          RUSTC_BOOTSTRAP: 1
       
       - name: Package binary as zip
         run: |
