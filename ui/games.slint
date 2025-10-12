@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { ScrollView, Vertical, Horizontal, Icon, MaterialPalette, FilledIconButton, IconButton } from "@material";
+import { ScrollView, Vertical, Horizontal, Icon, MaterialPalette, FilledIconButton, IconButton, TonalIconButton } from "@material";
 import { LineEdit } from "std-widgets.slint";
 import { Game, Config, ViewAs, SortBy } from "common.slint";
 import { GameGrid } from "game_grid.slint";
@@ -20,6 +20,7 @@ export component GamesPage inherits VerticalLayout {
     callback remove_game(Game);
     callback archive_game(Game);
     callback trigger_sort(string);
+    callback refresh();
 
     Rectangle {
         background: MaterialPalette.surface_container;
@@ -125,6 +126,16 @@ export component GamesPage inherits VerticalLayout {
                             }
                         }
                     }
+                }
+            }
+
+            TonalIconButton {
+                height: 36px;
+                width: 36px;
+                icon: @image-url("../mdi/refresh.svg");
+                tooltip: "Refresh";
+                clicked => {
+                    refresh();
                 }
             }
 
