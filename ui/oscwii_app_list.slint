@@ -12,6 +12,7 @@ export component OscWiiAppList inherits ScrollView {
     callback push_oscwii(OscWiiApp);
 
     viewport_height: (4px + 18px + 4px) * apps.length + 36px;
+    vertical_scrollbar_policy: ScrollBarPolicy.always-on;
 
     // Draw the horizontal separator lines
     for i in apps.length - 1: HorizontalDivider {
