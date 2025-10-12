@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { Horizontal, Icon, IconButton, FilledButton, FilledIconButton, MaterialPalette } from "@material";
+import { Horizontal, Icon, IconButton, TonalButton, FilledIconButton, MaterialPalette, TonalIconButton } from "@material";
 import { LineEdit } from "std-widgets.slint";
 import { HbcApp, Config, ViewAs, SortBy } from "common.slint";
 import { HbcAppGrid } from "hbc_app_grid.slint";
@@ -20,6 +20,7 @@ export component HbcAppsPage inherits VerticalLayout {
     callback remove_app(HbcApp);
     callback open_wiiload();
     callback trigger_sort(string);
+    callback refresh();
 
     Rectangle {
         background: MaterialPalette.surface_container;
@@ -128,12 +129,22 @@ export component HbcAppsPage inherits VerticalLayout {
                 }
             }
 
-            FilledButton {
+            TonalButton {
                 height: 36px;
                 text: "WiiLoad";
                 icon: @image-url("../mdi/upload-network.svg");
                 clicked => {
                     open_wiiload();
+                }
+            }
+
+            TonalIconButton {
+                height: 36px;
+                width: 36px;
+                icon: @image-url("../mdi/refresh.svg");
+                tooltip: "Refresh";
+                clicked => {
+                    refresh();
                 }
             }
 
