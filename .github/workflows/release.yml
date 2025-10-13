@@ -164,7 +164,7 @@ jobs:
       - name: Install dependencies for cross-compilation
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcc-mingw-w64-i686
+          sudo apt-get install -y mingw-w64 gcc-mingw-w64-i686
       
       - name: Build binary
         run: cargo build -Z build-std=std,panic_abort --release --locked --target i686-win7-windows-gnu --features portable --no-default-features
@@ -180,7 +180,7 @@ jobs:
       - name: Upload Windows 7 distributable
         uses: actions/upload-artifact@v4
         with:
-          name: dist-win7
+          name: dist-i686-win7-windows
           path: dist/*
 
   build-macos:
