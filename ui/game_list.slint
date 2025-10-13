@@ -10,7 +10,6 @@ export component GameList inherits ScrollView {
     in property <ArchiveFormat> archive_format;
 
     callback open_disc_info(Game);
-    callback open_game_dir(Game);
     callback remove_game(Game);
     callback archive_game(Game);
     callback verify_game(Game);
@@ -97,7 +96,7 @@ export component GameList inherits ScrollView {
         // We draw bottom to top to preserve the tooltips
         Rectangle {
             horizontal-stretch: 1;
-            width: 18px + 4px + 18px + 4px + 18px + 4px + 18px;
+            width: 18px + 4px + 18px + 4px + 18px;
 
             for i in games.length: Rectangle {
                 x: 0px;
@@ -121,19 +120,6 @@ export component GameList inherits ScrollView {
                     y: 0px;
                     height: 18px;
                     width: 18px;
-                    icon: @image-url("../mdi/folder-open.svg");
-                    tooltip: "Open Game Directory ";
-                    inline: true;
-                    clicked => {
-                        open_game_dir(games[games.length - i - 1]);
-                    }
-                }
-
-                IconButton {
-                    x: 18px + 4px + 18px + 4px;
-                    y: 0px;
-                    height: 18px;
-                    width: 18px;
                     icon: @image-url("../mdi/package-down.svg");
                     tooltip: "Archive Game to " + (archive_format == ArchiveFormat.Rvz ? "RVZ" : "ISO") + "               ";
                     inline: true;
@@ -143,7 +129,7 @@ export component GameList inherits ScrollView {
                 }
 
                 IconButton {
-                    x: 18px + 4px + 18px + 4px + 18px + 4px;
+                    x: 18px + 4px + 18px + 4px;
                     y: 0px;
                     height: 18px;
                     width: 18px;
