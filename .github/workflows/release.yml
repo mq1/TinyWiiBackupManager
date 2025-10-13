@@ -129,13 +129,10 @@ jobs:
       - name: Build binary with portable feature
         run: cargo build --release --locked --target ${{ matrix.target }} --features portable --no-default-features
 
-      - name: Make dist directory
-        shell: pwsh
-        run: New-Item -Path "dist" -ItemType "directory"
-
       - name: Package portable binary as zip
         shell: pwsh
         run: |
+          run: New-Item -Path "dist" -ItemType "directory"
           Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager_${{ env.VERSION_NAME }}_${{ matrix.arch }}-win-portable.exe"
           7z a -tzip -mx=9 "dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_${{ matrix.arch }}-win-portable.zip" "TinyWiiBackupManager_${{ env.VERSION_NAME }}_${{ matrix.arch }}-win-portable.exe"
 
@@ -147,7 +144,7 @@ jobs:
   
   build-win7:
     name: Build for Windows 7
-    runs-on: ubuntu-24.04
+    runs-on: windows-2025
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -159,28 +156,24 @@ jobs:
         with:
           toolchain: 1.90.0
           components: "rust-src"
-          cache-key: i686-win7-windows-gnu
-
-      - name: Install dependencies for cross-compilation
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y mingw-w64 gcc-mingw-w64-i686
+          cache-key: i686-win7-windows-msvc
       
       - name: Build binary
-        run: cargo build -Z build-std=std,panic_abort --release --locked --target i686-win7-windows-gnu --features portable --no-default-features
+        run: cargo build -Z build-std=std,panic_abort --release --locked --target i686-win7-windows-msvc --features portable --no-default-features
         env: 
           RUSTC_BOOTSTRAP: 1
       
       - name: Package binary as zip
+        shell: pwsh
         run: |
-          mkdir dist
-          mv target/i686-win7-windows-gnu/release/TinyWiiBackupManager.exe TinyWiiBackupManager_${{ env.VERSION_NAME }}_x86-win7.exe
-          zip -9 dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_x86-win7.zip TinyWiiBackupManager_${{ env.VERSION_NAME }}_x86-win7.exe
+          New-Item -Path "dist" -ItemType "directory"
+          Move-Item -Path "target/i686-win7-windows-msvc/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager_${{ env.VERSION_NAME }}_i686-win7.exe"
+          7z a -tzip -mx=9 "dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_i686-win7.zip" "TinyWiiBackupManager_${{ env.VERSION_NAME }}_i686-win7.exe"
       
       - name: Upload Windows 7 distributable
         uses: actions/upload-artifact@v4
         with:
-          name: dist-i686-win7-windows
+          name: dist-i686-win7-windows-msvc
           path: dist/*
 
   build-macos:
