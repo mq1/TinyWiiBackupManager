@@ -86,7 +86,6 @@ export component HbcAppGrid inherits ScrollView {
     private property <int> cols: max(1, self.width / 180px);
     private property <int> rows: ceil(apps.length / cols);
     viewport_height: 36px + rows * (16px + 14px + 8px + 96px + 8px + 14px + 16px + 1px + 4px + 18px + 8px + 8px);
-    vertical_scrollbar_policy: ScrollBarPolicy.always-on;
 
     callback open_app_info(HbcApp);
     callback remove_app(HbcApp);
