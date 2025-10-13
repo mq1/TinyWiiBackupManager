@@ -16,25 +16,22 @@
 ## ✨ Features
 
 - **Lightweight & Fast** — No Electron!!
-- **Clean Interface** — Simple design with light and dark themes
-- **Cross-Platform** — Windows 10+, macOS 11+, Linux (AMD64, ARM64)
+- **Cross-Platform** — Windows 7+, macOS 11+, Linux | (AMD64, ARM64)
 
 ### 🎮 **Game Management**
 
-- **Grid View** — Browse games with cover art display
 - **Format Support** — .iso, .rvz and major formats via [NOD](https://github.com/encounter/nod)
 - **Automatic Splitting** — .wbfs file splitting when needed
-- **Partition Stripping** — Remove unused partitions (experimental)
+- **Partition Stripping** — Remove the update partition to save space
 - **Game Archiving** — Archive games using RVZ+zstd-19
 - **Integrity Checks** — Verify game data for corruption
 - **GameTDB** — Fetch covers and `wiitdb.xml` from GameTDB
 
 ### 🛠️ **Wii Homebrew Management**
 
-- **Apps View** — Manage Wii homebrew applications
-- **ZIP Import** — Add apps from `.zip` archives
+- **Apps** — Manage Wii homebrew applications
 - **OSCWii** — Download apps from the Open Shop Channel
-- **Wiiload Transfer** — Send apps directly to Wii via network
+- **Wiiload** — Send apps directly to Wii via network
 
 ## ⬇️ Download
 
