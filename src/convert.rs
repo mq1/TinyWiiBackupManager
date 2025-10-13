@@ -39,13 +39,24 @@ pub fn get_disc_opts() -> DiscOptions {
 pub fn get_process_opts(scrub_update_partition: bool) -> ProcessOptions {
     let (_, processor_threads) = util::get_threads_num();
 
-    ProcessOptions {
-        processor_threads,
-        digest_crc32: true,
-        digest_md5: false, // too slow
-        digest_sha1: true,
-        digest_xxh64: true,
-        scrub_update_partition,
+    if scrub_update_partition {
+        ProcessOptions {
+            processor_threads,
+            digest_crc32: false,
+            digest_md5: false,
+            digest_sha1: false,
+            digest_xxh64: false,
+            scrub_update_partition,
+        }
+    } else {
+        ProcessOptions {
+            processor_threads,
+            digest_crc32: true,
+            digest_md5: false, // too slow
+            digest_sha1: true,
+            digest_xxh64: true,
+            scrub_update_partition,
+        }
     }
 }
 
