@@ -1,0 +1,16 @@
+name: Publish to WinGet
+
+on:
+  release:
+    types: [ released ]
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: windows-2025
+    steps:
+      - uses: vedantmgoyal9/winget-releaser@main
+        with:
+          identifier: mq1.TinyWiiBackupManager
+          token: ${{ secrets.WINGET_TOKEN }}
+          installers-regex: '\.exe$'
