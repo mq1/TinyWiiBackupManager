@@ -132,7 +132,7 @@ jobs:
       - name: Package portable binary as zip
         shell: pwsh
         run: |
-          run: New-Item -Path "dist" -ItemType "directory"
+          New-Item -Path "dist" -ItemType "directory"
           Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager_${{ env.VERSION_NAME }}_${{ matrix.arch }}-win-portable.exe"
           7z a -tzip -mx=9 "dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_${{ matrix.arch }}-win-portable.zip" "TinyWiiBackupManager_${{ env.VERSION_NAME }}_${{ matrix.arch }}-win-portable.exe"
 
