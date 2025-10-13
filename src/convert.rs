@@ -39,13 +39,24 @@ pub fn get_disc_opts() -> DiscOptions {
 pub fn get_process_opts(scrub_update_partition: bool) -> ProcessOptions {
     let (_, processor_threads) = util::get_threads_num();
 
-    ProcessOptions {
-        processor_threads,
-        digest_crc32: true,
-        digest_md5: false, // too slow
-        digest_sha1: true,
-        digest_xxh64: true,
-        scrub_update_partition,
+    if scrub_update_partition {
+        ProcessOptions {
+            processor_threads,
+            digest_crc32: false,
+            digest_md5: false,
+            digest_sha1: false,
+            digest_xxh64: false,
+            scrub_update_partition,
+        }
+    } else {
+        ProcessOptions {
+            processor_threads,
+            digest_crc32: true,
+            digest_md5: false, // too slow
+            digest_sha1: true,
+            digest_xxh64: true,
+            scrub_update_partition,
+        }
     }
 }
 
@@ -68,7 +79,6 @@ pub fn add_games(config: &Config, task_processor: &Arc<TaskProcessor>) -> Result
     let wii_output_format = config.wii_output_format;
     let disc_opts = get_disc_opts();
     let scrub_update_partition = config.scrub_update_partition;
-    let process_opts = get_process_opts(scrub_update_partition);
     let must_split = config.always_split || can_write_over_4gb(&mount_point).is_err();
 
     let mut paths = FileDialog::new()
@@ -137,6 +147,10 @@ pub fn add_games(config: &Config, task_processor: &Arc<TaskProcessor>) -> Result
 
                 let out_opts = get_output_format_opts(wii_output_format, is_wii);
                 let writer = DiscWriter::new(disc, &out_opts)?;
+
+                let process_opts = get_process_opts(
+                    scrub_update_partition && is_wii && wii_output_format == WiiOutputFormat::Wbfs,
+                );
 
                 let finalization = writer.process(
                     |data, progress, total| {
