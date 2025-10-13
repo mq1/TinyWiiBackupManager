@@ -16,6 +16,7 @@ rustflags = ["-C", "link-arg=/STACK:8000000"]
 
 [target.i686-win7-windows-gnu]
 linker = "i686-w64-mingw32-gcc"
+ar = "i686-w64-mingw32-gcc-ar"
 rustflags = ["-C", "link-arg=/STACK:8000000", "-C", "panic=abort"]
 
 [env]
