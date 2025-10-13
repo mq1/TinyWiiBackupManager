@@ -16,7 +16,7 @@
 ## ✨ Features
 
 - **Lightweight & Fast** — No Electron!!
-- **Cross-Platform** — Windows 7+, macOS 11+, Linux | (AMD64, ARM64)
+- **Cross-Platform** — Windows 7+, macOS 11+, Linux (AMD64, ARM64)
 
 ### 🎮 **Game Management**
 
