@@ -2,96 +2,131 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    TaskType,
-    convert::get_disc_opts,
+    MainWindow, TaskType,
+    convert::{get_disc_opts, get_process_opts},
     overflow_reader::{OverflowReader, get_main_file, get_overflow_file},
     tasks::TaskProcessor,
-    util,
 };
-use anyhow::{Result, anyhow};
+use anyhow::{Result, anyhow, bail};
 use nod::{
-    read::DiscReader,
-    write::{DiscWriter, FormatOptions, ProcessOptions},
+    common::Format,
+    read::{DiscMeta, DiscReader},
+    write::{DiscFinalization, DiscWriter, FormatOptions},
 };
 use size::Size;
-use slint::ToSharedString;
-use std::{path::Path, sync::Arc};
+use slint::{ToSharedString, Weak};
+use std::{
+    path::{Path, PathBuf},
+    sync::Arc,
+};
+
+pub const NKIT_ADDR: u64 = 0x10000;
+pub const NKIT_LEN: usize = 68;
 
 pub fn verify_game(game_dir_str: &str, task_processor: &Arc<TaskProcessor>) -> Result<()> {
-    let game_dir = Path::new(game_dir_str);
+    let game_dir = PathBuf::from(game_dir_str);
 
-    let dir_name = game_dir
+    task_processor.spawn(Box::new(move |weak| {
+        weak.upgrade_in_event_loop(move |handle| {
+            handle.set_task_type(TaskType::VerifyingGame);
+        })?;
+
+        let embedded = get_embedded_hashes(&game_dir)?;
+        let finalization = calc_hashes(&game_dir, weak)?.0;
+
+        if let Some(crc32) = finalization.crc32
+            && let Some(embedded_crc32) = embedded.crc32
+        {
+            if crc32 != embedded_crc32 {
+                bail!("CRC32 mismatch");
+            }
+        }
+
+        if let Some(md5) = finalization.md5
+            && let Some(embedded_md5) = embedded.md5
+        {
+            if md5 != embedded_md5 {
+                bail!("MD5 mismatch");
+            }
+        }
+
+        if let Some(sha1) = finalization.sha1
+            && let Some(embedded_sha1) = embedded.sha1
+        {
+            if sha1 != embedded_sha1 {
+                bail!("SHA1 mismatch");
+            }
+        }
+
+        if let Some(xxh64) = finalization.xxh64
+            && let Some(embedded_xxh64) = embedded.xxh64
+        {
+            if xxh64 != embedded_xxh64 {
+                bail!("XXH64 mismatch");
+            }
+        }
+
+        Ok("No mismatch occurred".to_string())
+    }));
+
+    Ok(())
+}
+
+fn get_embedded_hashes(game_dir: &Path) -> Result<DiscMeta> {
+    let path = get_main_file(game_dir).ok_or(anyhow!("No disc found"))?;
+    let disc = DiscReader::new(&path, &get_disc_opts())?;
+    let meta = disc.meta();
+    Ok(meta)
+}
+
+// Also returns the nkit header bytes
+pub fn calc_hashes(
+    game_dir: &Path,
+    weak: &Weak<MainWindow>,
+) -> Result<(DiscFinalization, Box<[u8; 68]>)> {
+    let game_dir_name = game_dir
         .file_name()
-        .ok_or(anyhow!("Failed to get game name"))?
+        .ok_or(anyhow!("Failed to get disc name"))?
         .to_str()
-        .ok_or(anyhow!("Failed to get game name"))?
+        .ok_or(anyhow!("Failed to get disc name"))?
         .to_string();
 
     let path = get_main_file(game_dir).ok_or(anyhow!("No disc found"))?;
     let overflow = get_overflow_file(&path);
 
-    let (_, processor_threads) = util::get_threads_num();
+    let disc = if let Some(overflow) = overflow {
+        let reader = OverflowReader::new(&path, &overflow)?;
+        DiscReader::new_stream(Box::new(reader), &get_disc_opts())?
+    } else {
+        DiscReader::new(&path, &get_disc_opts())?
+    };
 
-    task_processor.spawn(Box::new(move |weak| {
-        let status = format!("Verifying {}...", &dir_name);
-        weak.upgrade_in_event_loop(move |handle| {
-            handle.set_status(status.to_shared_string());
-            handle.set_task_type(TaskType::VerifyingGame);
-        })?;
+    let disc_writer = DiscWriter::new(disc, &FormatOptions::new(Format::Wbfs))?;
 
-        let disc = if let Some(overflow) = overflow {
-            let reader = OverflowReader::new(&path, &overflow)?;
-            DiscReader::new_stream(Box::new(reader), &get_disc_opts())?
-        } else {
-            DiscReader::new(&path, &get_disc_opts())?
-        };
+    let mut nkit_header = Box::new([0u8; NKIT_LEN]);
 
-        let original_xxh64 = disc.meta().xxh64;
+    let finalization = disc_writer.process(
+        |bytes, progress, total| {
+            let status = format!(
+                "Hashing {}... ({}/{})",
+                &game_dir_name,
+                Size::from_bytes(progress),
+                Size::from_bytes(total)
+            );
 
-        let disc_writer = DiscWriter::new(disc, &FormatOptions::default())?;
+            let _ = weak.upgrade_in_event_loop(move |handle| {
+                handle.set_status(status.to_shared_string());
+            });
 
-        let finalization = disc_writer.process(
-            |_, progress, total| {
-                let dir_name = dir_name.clone();
-                let _ = weak.upgrade_in_event_loop(move |handle| {
-                    let status = format!(
-                        "Verifying {}... ({}/{})",
-                        &dir_name,
-                        Size::from_bytes(progress),
-                        Size::from_bytes(total)
-                    );
-                    handle.set_status(status.to_shared_string());
-                });
-
-                Ok(())
-            },
-            &ProcessOptions {
-                processor_threads,
-                digest_crc32: false,
-                digest_md5: false,
-                digest_sha1: false,
-                digest_xxh64: true,
-                scrub_update_partition: false,
-            },
-        )?;
-
-        if let Some(original_xxh64) = original_xxh64
-            && let Some(xxh64) = finalization.xxh64
-        {
-            if original_xxh64 == xxh64 {
-                Ok(format!("{} XXH64 matches!", &dir_name))
-            } else {
-                let msg = format!(
-                    "{} XXH64 doesn't match!\nExpected: {:x}\nActual: {:x}\n\nThe game has been altered!\n\nThis can also happen if a game partition was removed",
-                    &dir_name, original_xxh64, xxh64
-                );
-
-                Err(anyhow!(msg))
+            // check if we're at the nkit header
+            if progress == NKIT_ADDR {
+                nkit_header.copy_from_slice(&bytes);
             }
-        } else {
-            Err(anyhow!("Didn't find XXH64 hashes"))
-        }
-    }));
 
-    Ok(())
+            Ok(())
+        },
+        &get_process_opts(false),
+    )?;
+
+    Ok((finalization, nkit_header))
 }

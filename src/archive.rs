@@ -49,7 +49,7 @@ pub fn archive_game(
         .join(&base_name)
         .with_extension(config.archive_format.extension());
 
-    let process_opts = get_process_opts(config);
+    let process_opts = get_process_opts(false);
 
     let format_opts = match config.archive_format {
         ArchiveFormat::Rvz => FormatOptions {
