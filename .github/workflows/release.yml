@@ -271,7 +271,7 @@ jobs:
     name: Create GitHub Release
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-24.04
-    needs: [ build-linux, build-windows-setup, build-windows-portable, package-macos ]
+    needs: [ build-linux, build-windows-setup, build-windows-portable, package-macos, build-win7 ]
     steps:
       - name: Download distributables
         uses: actions/download-artifact@v4
