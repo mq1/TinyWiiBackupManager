@@ -167,8 +167,8 @@ jobs:
         shell: pwsh
         run: |
           New-Item -Path "dist" -ItemType "directory"
-          Move-Item -Path "target/i686-win7-windows-msvc/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager_${{ env.VERSION_NAME }}_i686-win7.exe"
-          7z a -tzip -mx=9 "dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_i686-win7.zip" "TinyWiiBackupManager_${{ env.VERSION_NAME }}_i686-win7.exe"
+          Move-Item -Path "target/i686-win7-windows-msvc/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager_${{ env.VERSION_NAME }}_x86-win7.exe"
+          7z a -tzip -mx=9 "dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_x86-win7.zip" "TinyWiiBackupManager_${{ env.VERSION_NAME }}_x86-win7.exe"
       
       - name: Upload Windows 7 distributable
         uses: actions/upload-artifact@v4
