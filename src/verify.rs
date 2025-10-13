@@ -120,7 +120,8 @@ pub fn calc_hashes(
 
             // check if we're at the nkit header
             if progress == NKIT_ADDR {
-                nkit_header.copy_from_slice(&bytes);
+                let len = bytes.len().min(NKIT_LEN);
+                nkit_header[..len].copy_from_slice(&bytes[..len]);
             }
 
             Ok(())
