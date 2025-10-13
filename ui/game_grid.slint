@@ -10,7 +10,6 @@ component GameCard inherits Rectangle {
     in property <ArchiveFormat> archive_format;
 
     callback open_disc_info();
-    callback open_game_dir();
     callback remove_game();
     callback archive_game();
     callback verify_game();
@@ -78,7 +77,7 @@ component GameCard inherits Rectangle {
 
     Rectangle {
         y: 16px + 14px + 8px + 96px + 8px + 14px + 16px + 1px + 4px;
-        x: parent.width / 2 - (18px + 4px + 18px + 4px + 18px + 4px + 18px) / 2;
+        x: parent.width / 2 - (18px + 4px + 18px + 4px + 18px) / 2;
         height: 18px;
 
         IconButton {
@@ -93,16 +92,6 @@ component GameCard inherits Rectangle {
 
         IconButton {
             x: 18px + 4px;
-            icon: @image-url("../mdi/folder-open.svg");
-            tooltip: "Open Game Directory";
-            inline: true;
-            clicked => {
-                open_game_dir();
-            }
-        }
-
-        IconButton {
-            x: 18px + 4px + 18px + 4px;
             icon: @image-url("../mdi/package-down.svg");
             tooltip: "Archive Game to " + (archive_format == ArchiveFormat.Rvz ? "RVZ" : "ISO");
             inline: true;
@@ -112,7 +101,7 @@ component GameCard inherits Rectangle {
         }
 
         IconButton {
-            x: 18px + 4px + 18px + 4px + 18px + 4px;
+            x: 18px + 4px + 18px + 4px;
             icon: @image-url("../mdi/trash-can.svg");
             tooltip: "Delete Game";
             inline: true;
@@ -133,7 +122,6 @@ export component GameGrid inherits ScrollView {
     vertical_scrollbar_policy: ScrollBarPolicy.always-on;
 
     callback open_disc_info(Game);
-    callback open_game_dir(Game);
     callback remove_game(Game);
     callback archive_game(Game);
     callback verify_game(Game);
@@ -145,7 +133,6 @@ export component GameGrid inherits ScrollView {
         game: games[games.length - 1 - i];
         archive_format: archive_format;
         open_disc_info => open_disc_info(games[games.length - 1 - i]);
-        open_game_dir => open_game_dir(games[games.length - 1 - i]);
         remove_game => remove_game(games[games.length - 1 - i]);
         archive_game => archive_game(games[games.length - 1 - i]);
         verify_game => verify_game(games[games.length - 1 - i]);
