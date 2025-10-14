@@ -25,7 +25,7 @@ use std::{
 pub fn archive_game(
     game_dir: &str,
     config: &Config,
-    task_processor: &Arc<TaskProcessor>,
+    task_processor: Arc<TaskProcessor>,
 ) -> Result<()> {
     let game_dir = Path::new(game_dir);
     let path = get_main_file(game_dir).ok_or(anyhow!("No disc found"))?;
