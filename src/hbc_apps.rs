@@ -52,7 +52,14 @@ impl HbcApp {
         let size = Size::from_bytes(size);
 
         let image_path = path.join("icon.png");
-        let image = Image::load_from_path(&image_path);
+        let image = if image_path.exists()
+            && let Ok(image) = Image::load_from_path(&image_path)
+        {
+            image
+        } else {
+            Image::load_from_svg_data(include_bytes!("../mdi/image-frame.svg"))
+                .expect("Failed to load default icon")
+        };
 
         Self {
             slug: slug.to_shared_string(),
@@ -64,7 +71,7 @@ impl HbcApp {
             short_description: meta.short_description.to_shared_string(),
             long_description: meta.long_description.to_shared_string(),
             path: path.to_str().unwrap_or_default().to_shared_string(),
-            image: image.unwrap_or_default(),
+            image,
             size: size.to_shared_string(),
             size_mib: (size.bytes() / 1024 / 1024) as i32,
         }
