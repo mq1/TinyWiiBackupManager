@@ -1,8 +1,9 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { Vertical, RadioButton, Horizontal, HorizontalDivider, MaterialText, ElevatedButton, Icon, ScrollView, ElevatedCard, FilledIconButton } from "@material";
+import { Vertical, RadioButton, Horizontal, HorizontalDivider, MaterialText, ElevatedButton, Icon, ElevatedCard, FilledIconButton } from "@material";
 import { Config, WiiOutputFormat, ArchiveFormat } from "common.slint";
+import { MyScrollView } from "scroll_view.slint";
 
 export component SettingsPage inherits Vertical {
     in-out property <Config> config;
@@ -11,7 +12,7 @@ export component SettingsPage inherits Vertical {
     callback open_data_dir();
 
     ElevatedCard {
-        ScrollView {
+        MyScrollView {
             Vertical {
                 Horizontal {
                     alignment: start;

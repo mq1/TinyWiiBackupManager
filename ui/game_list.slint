@@ -1,11 +1,12 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { ScrollView, Horizontal, Icon, MaterialPalette, MaterialText, HorizontalDivider, IconButton } from "@material";
+import {Horizontal, Icon, MaterialPalette, MaterialText, HorizontalDivider, IconButton } from "@material";
 import { LineEdit } from "std-widgets.slint";
 import { Game, Config, Console, ArchiveFormat } from "common.slint";
+import { MyScrollView } from "scroll_view.slint";
 
-export component GameList inherits ScrollView {
+export component GameList inherits MyScrollView {
     in property <[Game]> games;
     in property <ArchiveFormat> archive_format;
 

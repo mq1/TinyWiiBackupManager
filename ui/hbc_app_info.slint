@@ -1,8 +1,9 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { Dialog, ScrollView, Vertical, MaterialText, HorizontalDivider, Icon } from "@material";
+import { Dialog, Vertical, MaterialText, HorizontalDivider, Icon } from "@material";
 import { HbcApp } from "common.slint";
+import { MyScrollView } from "scroll_view.slint";
 
 export component HbcAppInfo inherits Dialog {
     in property <HbcApp> app;
@@ -22,7 +23,7 @@ export component HbcAppInfo inherits Dialog {
         }
     }
 
-    ScrollView {
+    MyScrollView {
         width: root.width * 0.75;
         height: root.height / 2;
 

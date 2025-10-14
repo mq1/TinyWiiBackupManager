@@ -7,9 +7,10 @@ import {
     HorizontalDivider,
     Icon,
     MaterialPalette,
-    ScrollView
 } from "@material";
 import { HbcApp } from "common.slint";
+import { MyScrollView } from "scroll_view.slint";
+
 
 component HbcAppCard inherits Rectangle {
     in property <HbcApp> app;
@@ -80,7 +81,7 @@ component HbcAppCard inherits Rectangle {
     }
 }
 
-export component HbcAppGrid inherits ScrollView {
+export component HbcAppGrid inherits MyScrollView {
     in property <[HbcApp]> apps;
 
     private property <int> cols: max(1, self.width / 180px);
