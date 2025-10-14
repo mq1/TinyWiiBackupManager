@@ -952,7 +952,7 @@ dependencies = [
 [[package]]
 name = "const-field-offset"
 version = "0.1.5"
-source = "git+https://github.com/mq1/slint?branch=femtovg-dpi#1d4e9f561798932762ceec55e5546466ef09f5a6"
+source = "git+https://github.com/mq1/slint?rev=3251818#325181896ecdb0e322c19a5620a72ad7e7d12025"
 dependencies = [
  "const-field-offset-macro",
  "field-offset",
@@ -961,7 +961,7 @@ dependencies = [
 [[package]]
 name = "const-field-offset-macro"
 version = "0.1.5"
-source = "git+https://github.com/mq1/slint?branch=femtovg-dpi#1d4e9f561798932762ceec55e5546466ef09f5a6"
+source = "git+https://github.com/mq1/slint?rev=3251818#325181896ecdb0e322c19a5620a72ad7e7d12025"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1581,9 +1581,9 @@ dependencies = [
 
 [[package]]
 name = "femtovg"
-version = "0.17.0"
+version = "0.19.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "deda049f5a6dc3152b23263f72c575847f6aa0ace0045299d151f36af7aca136"
+checksum = "be5d925785ad33d7b0ae2b445d9f157c3ab42ff3c515fff0b46d53d4a86c43c5"
 dependencies = [
  "bitflags 2.9.4",
  "bytemuck",
@@ -1591,11 +1591,13 @@ dependencies = [
  "glow",
  "image",
  "imgref",
+ "itertools 0.14.0",
  "log",
  "lru",
  "rgb",
  "rustybuzz",
  "slotmap",
+ "ttf-parser 0.25.1",
  "unicode-bidi",
  "unicode-segmentation",
  "wasm-bindgen",
@@ -2109,7 +2111,7 @@ dependencies = [
 [[package]]
 name = "i-slint-backend-linuxkms"
 version = "1.13.1"
-source = "git+https://github.com/mq1/slint?branch=femtovg-dpi#1d4e9f561798932762ceec55e5546466ef09f5a6"
+source = "git+https://github.com/mq1/slint?rev=3251818#325181896ecdb0e322c19a5620a72ad7e7d12025"
 dependencies = [
  "bytemuck",
  "calloop 0.14.3",
@@ -2129,7 +2131,7 @@ dependencies = [
 [[package]]
 name = "i-slint-backend-selector"
 version = "1.13.1"
-source = "git+https://github.com/mq1/slint?branch=femtovg-dpi#1d4e9f561798932762ceec55e5546466ef09f5a6"
+source = "git+https://github.com/mq1/slint?rev=3251818#325181896ecdb0e322c19a5620a72ad7e7d12025"
 dependencies = [
  "cfg-if",
  "i-slint-backend-linuxkms",
@@ -2142,7 +2144,7 @@ dependencies = [
 [[package]]
 name = "i-slint-backend-winit"
 version = "1.13.1"
-source = "git+https://github.com/mq1/slint?branch=femtovg-dpi#1d4e9f561798932762ceec55e5546466ef09f5a6"
+source = "git+https://github.com/mq1/slint?rev=3251818#325181896ecdb0e322c19a5620a72ad7e7d12025"
 dependencies = [
  "accesskit",
  "accesskit_winit",
@@ -2181,7 +2183,7 @@ dependencies = [
 [[package]]
 name = "i-slint-common"
 version = "1.13.1"
-source = "git+https://github.com/mq1/slint?branch=femtovg-dpi#1d4e9f561798932762ceec55e5546466ef09f5a6"
+source = "git+https://github.com/mq1/slint?rev=3251818#325181896ecdb0e322c19a5620a72ad7e7d12025"
 dependencies = [
  "cfg-if",
  "derive_more",
@@ -2193,7 +2195,7 @@ dependencies = [
 [[package]]
 name = "i-slint-compiler"
 version = "1.13.1"
-source = "git+https://github.com/mq1/slint?branch=femtovg-dpi#1d4e9f561798932762ceec55e5546466ef09f5a6"
+source = "git+https://github.com/mq1/slint?rev=3251818#325181896ecdb0e322c19a5620a72ad7e7d12025"
 dependencies = [
  "by_address",
  "codemap",
@@ -2222,7 +2224,7 @@ dependencies = [
 [[package]]
 name = "i-slint-core"
 version = "1.13.1"
-source = "git+https://github.com/mq1/slint?branch=femtovg-dpi#1d4e9f561798932762ceec55e5546466ef09f5a6"
+source = "git+https://github.com/mq1/slint?rev=3251818#325181896ecdb0e322c19a5620a72ad7e7d12025"
 dependencies = [
  "auto_enums",
  "bitflags 2.9.4",
@@ -2268,7 +2270,7 @@ dependencies = [
 [[package]]
 name = "i-slint-core-macros"
 version = "1.13.1"
-source = "git+https://github.com/mq1/slint?branch=femtovg-dpi#1d4e9f561798932762ceec55e5546466ef09f5a6"
+source = "git+https://github.com/mq1/slint?rev=3251818#325181896ecdb0e322c19a5620a72ad7e7d12025"
 dependencies = [
  "quote",
  "serde_json",
@@ -2278,7 +2280,7 @@ dependencies = [
 [[package]]
 name = "i-slint-renderer-femtovg"
 version = "1.13.1"
-source = "git+https://github.com/mq1/slint?branch=femtovg-dpi#1d4e9f561798932762ceec55e5546466ef09f5a6"
+source = "git+https://github.com/mq1/slint?rev=3251818#325181896ecdb0e322c19a5620a72ad7e7d12025"
 dependencies = [
  "cfg-if",
  "const-field-offset",
@@ -2307,7 +2309,7 @@ dependencies = [
 [[package]]
 name = "i-slint-renderer-skia"
 version = "1.13.1"
-source = "git+https://github.com/mq1/slint?branch=femtovg-dpi#1d4e9f561798932762ceec55e5546466ef09f5a6"
+source = "git+https://github.com/mq1/slint?rev=3251818#325181896ecdb0e322c19a5620a72ad7e7d12025"
 dependencies = [
  "bytemuck",
  "cfg-if",
@@ -4754,7 +4756,7 @@ checksum = "7a2ae44ef20feb57a68b23d846850f861394c2e02dc425a50098ae8c90267589"
 [[package]]
 name = "slint"
 version = "1.13.1"
-source = "git+https://github.com/mq1/slint?branch=femtovg-dpi#1d4e9f561798932762ceec55e5546466ef09f5a6"
+source = "git+https://github.com/mq1/slint?rev=3251818#325181896ecdb0e322c19a5620a72ad7e7d12025"
 dependencies = [
  "const-field-offset",
  "i-slint-backend-selector",
@@ -4772,7 +4774,7 @@ dependencies = [
 [[package]]
 name = "slint-build"
 version = "1.13.1"
-source = "git+https://github.com/mq1/slint?branch=femtovg-dpi#1d4e9f561798932762ceec55e5546466ef09f5a6"
+source = "git+https://github.com/mq1/slint?rev=3251818#325181896ecdb0e322c19a5620a72ad7e7d12025"
 dependencies = [
  "derive_more",
  "i-slint-compiler",
@@ -4783,7 +4785,7 @@ dependencies = [
 [[package]]
 name = "slint-macros"
 version = "1.13.1"
-source = "git+https://github.com/mq1/slint?branch=femtovg-dpi#1d4e9f561798932762ceec55e5546466ef09f5a6"
+source = "git+https://github.com/mq1/slint?rev=3251818#325181896ecdb0e322c19a5620a72ad7e7d12025"
 dependencies = [
  "i-slint-compiler",
  "proc-macro2",
@@ -5581,7 +5583,7 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 [[package]]
 name = "vtable"
 version = "0.3.0"
-source = "git+https://github.com/mq1/slint?branch=femtovg-dpi#1d4e9f561798932762ceec55e5546466ef09f5a6"
+source = "git+https://github.com/mq1/slint?rev=3251818#325181896ecdb0e322c19a5620a72ad7e7d12025"
 dependencies = [
  "const-field-offset",
  "portable-atomic",
@@ -5592,7 +5594,7 @@ dependencies = [
 [[package]]
 name = "vtable-macro"
 version = "0.3.0"
-source = "git+https://github.com/mq1/slint?branch=femtovg-dpi#1d4e9f561798932762ceec55e5546466ef09f5a6"
+source = "git+https://github.com/mq1/slint?rev=3251818#325181896ecdb0e322c19a5620a72ad7e7d12025"
 dependencies = [
  "proc-macro2",
  "quote",
