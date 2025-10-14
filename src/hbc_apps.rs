@@ -1,16 +1,15 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{Config, HbcApp, TaskType, http::AGENT, tasks::TaskProcessor};
-use anyhow::Result;
+use crate::{Config, HbcApp, MainWindow, TaskType, http::AGENT};
+use anyhow::{Result, bail};
 use serde::Deserialize;
 use size::Size;
-use slint::{Image, ToSharedString};
+use slint::{Image, ToSharedString, Weak};
 use std::{
     fs::{self, File},
     io::{self, BufReader, Cursor},
     path::{Path, PathBuf},
-    sync::Arc,
 };
 use zip::{ZipArchive, result::ZipResult};
 
@@ -115,39 +114,37 @@ fn install_zip(mount_point: &Path, path: &Path) -> Result<()> {
     Ok(())
 }
 
-pub fn add_app_from_url(mount_point_str: &str, url: &str, task_processor: Arc<TaskProcessor>) {
+pub fn add_app_from_url(mount_point_str: &str, url: &str, weak: &Weak<MainWindow>) -> Result<()> {
     let mount_point = PathBuf::from(mount_point_str);
     let mount_point_str = mount_point_str.to_shared_string();
     let url = url.to_string();
 
-    task_processor.spawn(Box::new(move |weak| {
-        let status = format!("Downloading {}...", &url);
-        weak.upgrade_in_event_loop(move |handle| {
-            handle.set_status(status.to_shared_string());
-            handle.set_task_type(TaskType::DownloadingFolder);
-        })?;
+    let status = format!("Downloading {}...", &url);
+    weak.upgrade_in_event_loop(move |handle| {
+        handle.set_status(status.to_shared_string());
+        handle.set_task_type(TaskType::DownloadingFolder);
+    })?;
 
-        let mut response = AGENT.get(&url).call()?;
+    let mut response = AGENT.get(&url).call()?;
 
-        let buffer = response
-            .body_mut()
-            .with_config()
-            .limit(50 * 1024 * 1024) // 50MB
-            .read_to_vec()?;
+    let buffer = response
+        .body_mut()
+        .with_config()
+        .limit(50 * 1024 * 1024) // 50MB
+        .read_to_vec()?;
 
-        let cursor = Cursor::new(buffer);
-        let mut archive = ZipArchive::new(cursor)?;
-        extract_app(&mount_point, &mut archive)?;
+    let cursor = Cursor::new(buffer);
+    let mut archive = ZipArchive::new(cursor)?;
+    extract_app(&mount_point, &mut archive)?;
 
-        weak.upgrade_in_event_loop(move |handle| {
-            handle.invoke_refresh(mount_point_str);
-        })?;
+    weak.upgrade_in_event_loop(move |handle| {
+        handle.invoke_refresh(mount_point_str);
+    })?;
 
-        Ok(format!("Downloaded {}", url))
-    }));
+    Ok(())
 }
 
-pub fn add_apps(config: &Config, task_processor: Arc<TaskProcessor>) -> Result<()> {
+pub fn add_apps(config: &Config, weak: &Weak<MainWindow>) -> Result<()> {
     let remove_sources = config.remove_sources_apps;
     let mount_point = PathBuf::from(&config.mount_point);
     let mount_point_str = config.mount_point.to_shared_string();
@@ -159,30 +156,28 @@ pub fn add_apps(config: &Config, task_processor: Arc<TaskProcessor>) -> Result<(
         .pick_files();
 
     if let Some(paths) = paths {
-        task_processor.spawn(Box::new(move |weak| {
-            for path in paths.iter() {
-                {
-                    let status = format!("Installing {}...", path.display());
-                    weak.upgrade_in_event_loop(move |handle| {
-                        handle.set_status(status.to_shared_string());
-                        handle.set_task_type(TaskType::InstallingApps);
-                    })?;
+        for path in paths.iter() {
+            {
+                let status = format!("Installing {}...", path.display());
+                weak.upgrade_in_event_loop(move |handle| {
+                    handle.set_status(status.to_shared_string());
+                    handle.set_task_type(TaskType::InstallingApps);
+                })?;
 
-                    install_zip(&mount_point, path)?;
-                }
-
-                if remove_sources {
-                    fs::remove_file(path)?;
-                }
+                install_zip(&mount_point, path)?;
             }
 
-            weak.upgrade_in_event_loop(move |handle| {
-                handle.invoke_refresh(mount_point_str);
-            })?;
+            if remove_sources {
+                fs::remove_file(path)?;
+            }
+        }
 
-            Ok(format!("Installed {} app(s)", paths.len()))
-        }));
+        weak.upgrade_in_event_loop(move |handle| {
+            handle.invoke_refresh(mount_point_str);
+        })?;
+
+        Ok(())
+    } else {
+        bail!("No files selected");
     }
-
-    Ok(())
 }

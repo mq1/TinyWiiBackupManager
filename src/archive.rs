@@ -2,10 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    ArchiveFormat, Config, TaskType,
+    ArchiveFormat, Config, MainWindow, TaskType,
     convert::{get_disc_opts, get_process_opts},
     overflow_reader::{OverflowReader, get_main_file, get_overflow_file},
-    tasks::TaskProcessor,
 };
 use anyhow::{Result, anyhow};
 use nod::{
@@ -14,19 +13,14 @@ use nod::{
     write::{DiscWriter, FormatOptions},
 };
 use rfd::FileDialog;
-use slint::ToSharedString;
+use slint::{ToSharedString, Weak};
 use std::{
     fs::File,
     io::{BufWriter, Seek, Write},
     path::Path,
-    sync::Arc,
 };
 
-pub fn archive_game(
-    game_dir: &str,
-    config: &Config,
-    task_processor: Arc<TaskProcessor>,
-) -> Result<()> {
+pub fn archive_game(game_dir: &str, config: &Config, weak: &Weak<MainWindow>) -> Result<()> {
     let game_dir = Path::new(game_dir);
     let path = get_main_file(game_dir).ok_or(anyhow!("No disc found"))?;
 
@@ -64,49 +58,45 @@ pub fn archive_game(
         },
     };
 
-    task_processor.spawn(Box::new(move |weak| {
-        let status = format!("Archiving {}...", path.display());
-        weak.upgrade_in_event_loop(move |handle| {
-            handle.set_status(status.to_shared_string());
-            handle.set_task_type(TaskType::Archiving);
-        })?;
+    let status = format!("Archiving {}...", path.display());
+    weak.upgrade_in_event_loop(move |handle| {
+        handle.set_status(status.to_shared_string());
+        handle.set_task_type(TaskType::Archiving);
+    })?;
 
-        let disc = if let Some(overflow) = overflow {
-            let reader = OverflowReader::new(&path, &overflow)?;
-            DiscReader::new_stream(Box::new(reader), &get_disc_opts())?
-        } else {
-            DiscReader::new(&path, &get_disc_opts())?
-        };
+    let disc = if let Some(overflow) = overflow {
+        let reader = OverflowReader::new(&path, &overflow)?;
+        DiscReader::new_stream(Box::new(reader), &get_disc_opts())?
+    } else {
+        DiscReader::new(&path, &get_disc_opts())?
+    };
 
-        let mut output_file = BufWriter::new(File::create(&out_path)?);
-        let writer = DiscWriter::new(disc, &format_opts)?;
+    let mut output_file = BufWriter::new(File::create(&out_path)?);
+    let writer = DiscWriter::new(disc, &format_opts)?;
 
-        let finalization = writer.process(
-            |data, progress, total| {
-                output_file.write_all(&data)?;
+    let finalization = writer.process(
+        |data, progress, total| {
+            output_file.write_all(&data)?;
 
-                let status = format!(
-                    "Archiving {}  {:02.0}%",
-                    base_name,
-                    progress as f32 / total as f32 * 100.0
-                );
+            let status = format!(
+                "Archiving {}  {:02.0}%",
+                base_name,
+                progress as f32 / total as f32 * 100.0
+            );
 
-                let _ = weak.upgrade_in_event_loop(move |handle| {
-                    handle.set_status(status.to_shared_string());
-                });
+            let _ = weak.upgrade_in_event_loop(move |handle| {
+                handle.set_status(status.to_shared_string());
+            });
 
-                Ok(())
-            },
-            &process_opts,
-        )?;
+            Ok(())
+        },
+        &process_opts,
+    )?;
 
-        if !finalization.header.is_empty() {
-            output_file.rewind()?;
-            output_file.write_all(finalization.header.as_ref())?;
-        }
-
-        Ok(format!("Archived to {}", out_path.display()))
-    }));
+    if !finalization.header.is_empty() {
+        output_file.rewind()?;
+        output_file.write_all(finalization.header.as_ref())?;
+    }
 
     Ok(())
 }

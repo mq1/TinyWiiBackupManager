@@ -1,15 +1,11 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{TaskType, http::AGENT, tasks::TaskProcessor};
+use crate::{MainWindow, TaskType, http::AGENT};
 use anyhow::Result;
 use parking_lot::Mutex;
-use slint::ToSharedString;
-use std::{
-    fs,
-    path::{Path, PathBuf},
-    sync::Arc,
-};
+use slint::{ToSharedString, Weak};
+use std::{fs, path::Path, sync::Arc};
 
 const DOWNLOAD_URL: &str = "https://www.gametdb.com/wiitdb.txt";
 
@@ -62,23 +58,21 @@ fn id_to_bytes(id: &str) -> [u8; 6] {
 }
 
 pub fn load_titles(
-    data_dir: PathBuf,
-    task_processor: Arc<TaskProcessor>,
+    data_dir: &Path,
+    weak: &Weak<MainWindow>,
     titles: Arc<Mutex<Titles>>,
-) {
-    task_processor.spawn(Box::new(move |weak| {
-        weak.upgrade_in_event_loop(move |handle| {
-            handle.set_status("Loading titles...".to_shared_string());
-            handle.set_task_type(TaskType::DownloadingFile);
-        })?;
+) -> Result<()> {
+    weak.upgrade_in_event_loop(move |handle| {
+        handle.set_status("Loading titles...".to_shared_string());
+        handle.set_task_type(TaskType::DownloadingFile);
+    })?;
 
-        *titles.lock() = Titles::load(&data_dir)?;
+    *titles.lock() = Titles::load(data_dir)?;
 
-        weak.upgrade_in_event_loop(move |handle| {
-            let mount_point = handle.get_config().mount_point.to_shared_string();
-            handle.invoke_refresh(mount_point);
-        })?;
+    weak.upgrade_in_event_loop(move |handle| {
+        let mount_point = handle.get_config().mount_point.to_shared_string();
+        handle.invoke_refresh(mount_point);
+    })?;
 
-        Ok(String::new())
-    }));
+    Ok(())
 }
