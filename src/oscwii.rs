@@ -10,7 +10,7 @@ use std::{fs, path::Path, rc::Rc, sync::Arc, time::Duration};
 
 const CONTENTS_URL: &str = "https://hbb1.oscwii.org/api/v4/contents";
 
-pub fn load_oscwii_apps(data_dir: &Path, task_processor: &Arc<TaskProcessor>) {
+pub fn load_oscwii_apps(data_dir: &Path, task_processor: Arc<TaskProcessor>) {
     let cache_path = data_dir.join("oscwii-cache.json");
     let icons_dir = data_dir.join("oscwii-icons");
 

@@ -1,12 +1,19 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::http::AGENT;
+use crate::{TaskType, http::AGENT, tasks::TaskProcessor};
 use anyhow::Result;
-use std::{fs, path::Path};
+use parking_lot::Mutex;
+use slint::ToSharedString;
+use std::{
+    fs,
+    path::{Path, PathBuf},
+    sync::Arc,
+};
 
 const DOWNLOAD_URL: &str = "https://www.gametdb.com/wiitdb.txt";
 
+#[derive(Debug)]
 pub struct Titles(Box<[([u8; 6], String)]>);
 
 impl Titles {
@@ -52,4 +59,26 @@ fn id_to_bytes(id: &str) -> [u8; 6] {
     id_bytes[..len].copy_from_slice(&bytes[..len]);
 
     id_bytes
+}
+
+pub fn load_titles(
+    data_dir: PathBuf,
+    task_processor: Arc<TaskProcessor>,
+    titles: Arc<Mutex<Titles>>,
+) {
+    task_processor.spawn(Box::new(move |weak| {
+        weak.upgrade_in_event_loop(move |handle| {
+            handle.set_status("Loading titles...".to_shared_string());
+            handle.set_task_type(TaskType::DownloadingFile);
+        })?;
+
+        *titles.lock() = Titles::load(&data_dir)?;
+
+        weak.upgrade_in_event_loop(move |handle| {
+            let mount_point = handle.get_config().mount_point.to_shared_string();
+            handle.invoke_refresh(mount_point);
+        })?;
+
+        Ok(String::new())
+    }));
 }
