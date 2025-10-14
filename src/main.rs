@@ -15,7 +15,7 @@ pub mod hbc_apps;
 pub mod http;
 pub mod oscwii;
 pub mod overflow_reader;
-pub mod tasks;
+mod tasks;
 pub mod titles;
 pub mod updater;
 pub mod util;
@@ -27,10 +27,9 @@ use crate::{tasks::TaskProcessor, titles::Titles};
 use anyhow::{Result, anyhow};
 use parking_lot::Mutex;
 use path_slash::PathBufExt;
-use rfd::{FileDialog, MessageButtons, MessageDialog, MessageDialogResult, MessageLevel};
+use rfd::{FileDialog, MessageDialog, MessageLevel};
 use slint::{ModelRc, SharedString, ToSharedString, VecModel, Weak};
 use std::{
-    fmt::Display,
     fs,
     path::{Path, PathBuf},
     rc::Rc,
@@ -38,14 +37,6 @@ use std::{
 };
 
 slint::include_modules!();
-
-fn show_err(e: impl Display) {
-    let _ = MessageDialog::new()
-        .set_level(MessageLevel::Error)
-        .set_title("Error")
-        .set_description(e.to_string())
-        .show();
-}
 
 fn refresh_dir_name(handle: &MainWindow, mount_point: &Path) {
     let dir_name = mount_point
@@ -144,68 +135,83 @@ fn run() -> Result<()> {
     refresh_disk_usage(&app, mount_point);
     app.set_config(config);
 
-    let weak = app.as_weak();
     let titles_clone = titles.clone();
     let data_dir_clone = data_dir.clone();
+    let task_processor_clone = task_processor.clone();
     app.on_choose_mount_point(move || {
-        if let Err(e) = choose_mount_point(&weak, titles_clone.clone(), &data_dir_clone) {
-            show_err(e);
-        }
+        let titles_clone = titles_clone.clone();
+        let data_dir_clone = data_dir_clone.clone();
+
+        task_processor_clone.run_now(Box::new(move |weak| {
+            choose_mount_point(weak, titles_clone, &data_dir_clone)?;
+            Ok(String::new())
+        }));
     });
 
-    app.on_open_url(|url| {
-        if let Err(e) = open::that(url) {
-            show_err(e);
-        }
+    let task_processor_clone = task_processor.clone();
+    app.on_open_url(move |url| {
+        task_processor_clone.run_now(Box::new(move |_| {
+            open::that(url)?;
+            Ok(String::new())
+        }));
     });
 
     let task_processor_clone = task_processor.clone();
     app.on_add_games(move |config| {
-        if let Err(e) = convert::add_games(&config, task_processor_clone.clone()) {
-            show_err(e);
-        }
+        task_processor_clone.spawn(Box::new(move |weak| {
+            convert::add_games(&config, weak)?;
+            Ok(String::new())
+        }));
     });
 
+    let task_processor_clone = task_processor.clone();
     let data_dir_clone = data_dir.clone();
     app.on_update_config(move |new_config| {
-        if let Err(e) = new_config.save(&data_dir_clone) {
-            show_err(e);
-        }
+        let data_dir_clone = data_dir_clone.clone();
+
+        task_processor_clone.run_now(Box::new(move |_| {
+            new_config.save(&data_dir_clone)?;
+            Ok(String::new())
+        }));
     });
 
-    app.on_remove_dir(|path| {
-        if MessageDialog::new()
-            .set_title("Remove Directory")
-            .set_description(format!("Are you sure you want to remove {path} ?"))
-            .set_level(MessageLevel::Warning)
-            .set_buttons(MessageButtons::YesNo)
-            .show()
-            == MessageDialogResult::Yes
-            && let Err(e) = fs::remove_dir_all(path)
-        {
-            show_err(e);
-        }
+    let task_processor_clone = task_processor.clone();
+    app.on_remove_dir(move |path| {
+        task_processor_clone.run_now(Box::new(move |_| {
+            fs::remove_dir_all(&path)?;
+            Ok(String::new())
+        }));
     });
 
     let data_dir_clone = data_dir.clone();
+    let task_processor_clone = task_processor.clone();
     app.on_open_data_dir(move || {
-        if let Err(e) = open::that(&data_dir_clone) {
-            show_err(e);
-        }
+        let data_dir_clone = data_dir_clone.clone();
+
+        task_processor_clone.run_now(Box::new(move |_| {
+            open::that(&data_dir_clone)?;
+            Ok(String::new())
+        }));
     });
 
     let task_processor_clone = task_processor.clone();
     app.on_add_apps(move |config| {
-        if let Err(e) = hbc_apps::add_apps(&config, task_processor_clone.clone()) {
-            show_err(e);
-        }
+        task_processor_clone.spawn(Box::new(move |weak| {
+            hbc_apps::add_apps(&config, weak)?;
+            Ok(String::new())
+        }));
     });
 
     let task_processor_clone = task_processor.clone();
     app.on_push_file(move |wii_ip| {
-        if let Err(e) = wiiload::push_file(&wii_ip, task_processor_clone.clone()) {
-            show_err(e);
-        }
+        task_processor_clone.spawn(Box::new(move |weak| {
+            let excluded_files = wiiload::push_file(&wii_ip, weak)?;
+            let mut msg = "Push successful.".to_string();
+            if !excluded_files.is_empty() {
+                msg.push_str(&format!("\nExcluded files: {}", excluded_files.join(", ")));
+            }
+            Ok(msg)
+        }));
     });
 
     app.on_get_filtered_oscwii_apps(move |apps, filter| {
@@ -265,92 +271,108 @@ fn run() -> Result<()> {
         ),
     });
 
-    app.on_dot_clean(|mount_point| {
-        if let Err(e) = util::run_dot_clean(&mount_point) {
-            show_err(e);
-        } else {
-            let _ = MessageDialog::new()
-                .set_title("Success")
-                .set_description("dot_clean completed successfully")
-                .set_level(MessageLevel::Info)
-                .show();
-        }
+    let task_processor_clone = task_processor.clone();
+    app.on_dot_clean(move |mount_point| {
+        task_processor_clone.run_now(Box::new(move |_| {
+            util::run_dot_clean(&mount_point)?;
+            Ok("dot_clean completed successfully".to_string())
+        }));
     });
 
     let task_processor_clone = task_processor.clone();
     app.on_download_oscwii(move |mount_point, zip_url| {
-        hbc_apps::add_app_from_url(&mount_point, &zip_url, task_processor_clone.clone());
+        task_processor_clone.spawn(Box::new(move |weak| {
+            hbc_apps::add_app_from_url(&mount_point, &zip_url, weak)?;
+            Ok("App downloaded successfully".to_string())
+        }));
     });
 
     let task_processor_clone = task_processor.clone();
     app.on_push_oscwii(move |zip_url, wii_ip| {
-        if let Err(e) = wiiload::push_oscwii(&zip_url, &wii_ip, task_processor_clone.clone()) {
-            show_err(e);
-        }
+        task_processor_clone.spawn(Box::new(move |weak| {
+            let excluded_files = wiiload::push_oscwii(&zip_url, &wii_ip, weak)?;
+            let mut msg = "Push successful.".to_string();
+            if !excluded_files.is_empty() {
+                msg.push_str(&format!("\nExcluded files: {}", excluded_files.join(", ")));
+            }
+            Ok(msg)
+        }));
     });
 
     let task_processor_clone = task_processor.clone();
     app.on_archive_game(move |game_dir, config| {
-        if let Err(e) = archive::archive_game(&game_dir, &config, task_processor_clone.clone()) {
-            show_err(e);
-        }
+        task_processor_clone.spawn(Box::new(move |weak| {
+            archive::archive_game(&game_dir, &config, weak)?;
+            Ok("Archiving completed successfully".to_string())
+        }));
     });
 
     let task_processor_clone = task_processor.clone();
     app.on_download_wiitdb(move |mount_point| {
-        if let Err(e) = wiitdb::download(&mount_point, task_processor_clone.clone()) {
-            show_err(e);
-        }
+        task_processor_clone.spawn(Box::new(move |weak| {
+            wiitdb::download(&mount_point, weak)?;
+            Ok("wiitdb.xml downloaded successfully".to_string())
+        }));
     });
 
     let task_processor_clone = task_processor.clone();
     app.on_verify_game(move |game_dir| {
-        if let Err(e) = verify::verify_game(&game_dir, task_processor_clone.clone()) {
-            show_err(e);
-        }
+        task_processor_clone.spawn(Box::new(move |weak| {
+            verify::verify_game(&game_dir, weak)?;
+            Ok("Verification completed successfully".to_string())
+        }));
     });
 
     let task_processor_clone = task_processor.clone();
     app.on_download_all_covers(move |mount_point| {
-        covers::download_all_covers(&mount_point, task_processor_clone.clone());
+        task_processor_clone.spawn(Box::new(move |weak| {
+            covers::download_all_covers(&mount_point, weak)?;
+            Ok("Covers downloaded successfully".to_string())
+        }));
     });
 
     app.on_get_disc_info(move |mount_point| {
-        let res = disc_info::get_disc_info(&mount_point);
-        match res {
-            Ok(info) => info,
-            Err(e) => {
-                show_err(e);
-                DiscInfo::default()
-            }
-        }
+        disc_info::get_disc_info(&mount_point).unwrap_or_default()
     });
 
     let titles_clone = titles.clone();
-    let weak = app.as_weak();
+    let task_processor_clone = task_processor.clone();
     app.on_refresh(move |mount_point| {
-        let mount_point = Path::new(&mount_point);
-        if let Some(handle) = weak.upgrade() {
-            if let Err(e) = refresh_games(&handle, mount_point, titles_clone.clone()) {
-                show_err(e);
-            }
-            if let Err(e) = refresh_hbc_apps(&handle, mount_point) {
-                show_err(e);
-            }
-            refresh_disk_usage(&handle, mount_point);
+        let titles_clone = titles_clone.clone();
 
+        task_processor_clone.run_now(Box::new(move |weak| {
+            let mount_point = Path::new(&mount_point);
+
+            let handle = weak
+                .upgrade()
+                .ok_or(anyhow!("Could not upgrade weak handle"))?;
+
+            refresh_games(&handle, mount_point, titles_clone)?;
+            refresh_hbc_apps(&handle, mount_point)?;
+            refresh_disk_usage(&handle, mount_point);
             handle.invoke_apply_sorting();
-        } else {
-            show_err(anyhow!("Failed to upgrade weak"));
-        }
+
+            Ok(String::new())
+        }));
     });
 
     if std::env::var_os("TWBM_DISABLE_UPDATES").is_none() {
-        updater::check(task_processor.clone());
+        task_processor.spawn(Box::new(move |weak| {
+            updater::check(weak)?;
+            Ok(String::new())
+        }));
     }
 
-    titles::load_titles(data_dir.clone(), task_processor.clone(), titles.clone());
-    oscwii::load_oscwii_apps(&data_dir, task_processor);
+    let data_dir_clone = data_dir.clone();
+    task_processor.spawn(Box::new(move |weak| {
+        titles::load_titles(&data_dir_clone, weak, titles)?;
+        Ok(String::new())
+    }));
+
+    task_processor.spawn(Box::new(move |weak| {
+        oscwii::load_oscwii_apps(&data_dir, weak)?;
+        Ok(String::new())
+    }));
 
     app.invoke_apply_sorting();
     app.run()?;
@@ -377,5 +399,15 @@ fn get_data_dir() -> Result<PathBuf> {
 }
 
 fn main() -> Result<()> {
-    run().inspect_err(|e| show_err(e))
+    if let Err(e) = run() {
+        let _ = MessageDialog::new()
+            .set_level(MessageLevel::Error)
+            .set_title("Error")
+            .set_description(e.to_string())
+            .show();
+
+        return Err(e);
+    }
+
+    Ok(())
 }
