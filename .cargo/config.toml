@@ -4,6 +4,5 @@ rustflags = ["-C", "link-arg=/STACK:8000000"]
 [target.aarch64-pc-windows-msvc]
 rustflags = ["-C", "link-arg=/STACK:8000000"]
 
-[target.i686-win7-windows-gnu]
-linker = "rust-lld.exe"
+[target.i686-win7-windows-msvc]
 rustflags = ["-C", "link-arg=/STACK:8000000"]
