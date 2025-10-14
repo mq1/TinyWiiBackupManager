@@ -1,10 +1,11 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { ScrollView, Horizontal, Icon, MaterialPalette, MaterialText, HorizontalDivider, IconButton } from "@material";
+import { Horizontal, Icon, MaterialPalette, MaterialText, HorizontalDivider, IconButton } from "@material";
 import { OscWiiApp } from "common.slint";
+import { MyScrollView } from "scroll_view.slint";
 
-export component OscWiiAppList inherits ScrollView {
+export component OscWiiAppList inherits MyScrollView {
     in property <[OscWiiApp]> apps;
 
     callback open_oscwii_info(OscWiiApp);

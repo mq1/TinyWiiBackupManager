@@ -9,9 +9,9 @@ import {
     HorizontalDivider,
     Icon,
     MaterialPalette,
-    ScrollView
 } from "@material";
 import { OscWiiApp } from "common.slint";
+import { MyScrollView } from "scroll_view.slint";
 
 component OscWiiAppCard inherits Rectangle {
     in property <OscWiiApp> app;
@@ -93,7 +93,7 @@ component OscWiiAppCard inherits Rectangle {
     }
 }
 
-export component OscWiiAppGrid inherits ScrollView {
+export component OscWiiAppGrid inherits MyScrollView {
     in property <[OscWiiApp]> apps;
 
     private property <int> cols: max(1, self.width / 180px);
