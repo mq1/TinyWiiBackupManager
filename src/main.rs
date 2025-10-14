@@ -125,6 +125,7 @@ fn run() -> Result<()> {
     let mount_point = Path::new(&config.mount_point);
     let titles = Arc::new(Mutex::new(Titles::empty()));
     let task_processor = Arc::new(TaskProcessor::init(app.as_weak()));
+    let lazy_task_processor = Arc::new(TaskProcessor::init(app.as_weak()));
 
     app.set_app_name(env!("CARGO_PKG_NAME").to_shared_string() + " v" + env!("CARGO_PKG_VERSION"));
     app.set_is_macos(cfg!(target_os = "macos"));
@@ -356,20 +357,20 @@ fn run() -> Result<()> {
         }));
     });
 
+    let data_dir_clone = data_dir.clone();
+    lazy_task_processor.spawn(Box::new(move |weak| {
+        titles::load_titles(&data_dir_clone, weak, titles)?;
+        Ok(String::new())
+    }));
+
     if std::env::var_os("TWBM_DISABLE_UPDATES").is_none() {
-        task_processor.spawn(Box::new(move |weak| {
+        lazy_task_processor.spawn(Box::new(move |weak| {
             updater::check(weak)?;
             Ok(String::new())
         }));
     }
 
-    let data_dir_clone = data_dir.clone();
-    task_processor.spawn(Box::new(move |weak| {
-        titles::load_titles(&data_dir_clone, weak, titles)?;
-        Ok(String::new())
-    }));
-
-    task_processor.spawn(Box::new(move |weak| {
+    lazy_task_processor.spawn(Box::new(move |weak| {
         oscwii::load_oscwii_apps(&data_dir, weak)?;
         Ok(String::new())
     }));
