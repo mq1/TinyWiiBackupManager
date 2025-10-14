@@ -22,7 +22,7 @@ OriginalFilename = "TinyWiiBackupManager.exe"
 LegalCopyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-3.0-only."
 
 [dependencies]
-slint = { git = "https://github.com/mq1/slint", branch = "femtovg-dpi", default-features = false, features = [
+slint = { git = "https://github.com/mq1/slint", rev = "3251818", default-features = false, features = [
   "compat-1-2",
   "std",
   "accessibility",
@@ -71,7 +71,7 @@ ureq = { version = "3.1", default-features = false, features = [
 ] }
 
 [build-dependencies]
-slint-build = { git = "https://github.com/mq1/slint", branch = "femtovg-dpi" }
+slint-build = { git = "https://github.com/mq1/slint", rev = "3251818" }
 
 [target.'cfg(target_os = "windows")'.build-dependencies]
 winres = "0.1"
