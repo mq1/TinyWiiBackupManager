@@ -235,12 +235,21 @@ fn run() -> Result<()> {
         ModelRc::from(Rc::new(filtered))
     });
 
-    app.on_get_filtered_games(move |games, filter| {
-        if filter.is_empty() {
-            return games;
+    app.on_get_filtered_games(move |games, filter, show_wii, show_gc| {
+        if !show_wii && !show_gc {
+            return ModelRc::from(Rc::new(VecModel::from_slice(&[])));
         }
 
-        let filtered = games.filter(move |game| game.display_title_lower.contains(&*filter));
+        let filtered = games.filter(move |game| {
+            (show_wii && game.console == Console::Wii)
+                || (show_gc && game.console == Console::GameCube)
+        });
+
+        if filter.is_empty() {
+            return ModelRc::from(Rc::new(filtered));
+        }
+
+        let filtered = filtered.filter(move |game| game.display_title_lower.contains(&*filter));
 
         ModelRc::from(Rc::new(filtered))
     });
