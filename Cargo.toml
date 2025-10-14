@@ -25,7 +25,6 @@ LegalCopyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-3.0-only
 slint = { git = "https://github.com/mq1/slint", branch = "femtovg-dpi", default-features = false, features = [
   "compat-1-2",
   "std",
-  "serde",
   "accessibility",
   "backend-winit",
   "renderer-femtovg",
@@ -83,8 +82,15 @@ codegen-units = 1
 strip = true
 panic = "abort"
 
+[profile.dev]
+opt-level = 0
+split-debuginfo = "unpacked"
+
 [profile.dev.package."*"]
-opt-level = 2
+opt-level = 3
+
+[profile.dev.build-override]
+opt-level = 3
 
 [lints.rust]
 non_snake_case = "allow"

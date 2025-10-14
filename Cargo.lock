@@ -2252,7 +2252,6 @@ dependencies = [
  "rustybuzz",
  "scoped-tls-hkt",
  "scopeguard",
- "serde",
  "slab",
  "strum",
  "sys-locale",
