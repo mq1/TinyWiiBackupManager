@@ -70,7 +70,15 @@ impl Game {
             .join("images")
             .join(id)
             .with_extension("png");
-        let image = Image::load_from_path(&image_path).unwrap_or_default();
+
+        let image = if image_path.exists()
+            && let Ok(image) = Image::load_from_path(&image_path)
+        {
+            image
+        } else {
+            Image::load_from_svg_data(include_bytes!("../mdi/image-frame.svg"))
+                .expect("Failed to load default icon")
+        };
 
         // Construct the Game object
         Some(Game {
