@@ -48,6 +48,8 @@ jobs:
 
       - name: Install dependencies
         run: |
+          sudo apt-get update
+          sudo apt-get install -y libfreetype6-dev libfontconfig1-dev
           cargo install cargo-packager --version ^0.11 --locked
 
       - name: Build and package binary
