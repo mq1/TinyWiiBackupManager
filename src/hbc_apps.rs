@@ -129,7 +129,12 @@ pub fn add_app_from_url(mount_point_str: &str, url: &str, task_processor: &Arc<T
 
         let mut response = AGENT.get(&url).call()?;
 
-        let buffer = response.body_mut().read_to_vec()?;
+        let buffer = response
+            .body_mut()
+            .with_config()
+            .limit(50 * 1024 * 1024) // 50MB
+            .read_to_vec()?;
+
         let cursor = Cursor::new(buffer);
         let mut archive = ZipArchive::new(cursor)?;
         extract_app(&mount_point, &mut archive)?;
