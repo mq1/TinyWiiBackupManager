@@ -1,9 +1,10 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { ScrollView, Icon, MaterialText, IconButton, MaterialPalette, HorizontalDivider } from "@material";
+import { Icon, MaterialText, IconButton, MaterialPalette, HorizontalDivider } from "@material";
 import { LineEdit } from "std-widgets.slint";
 import { Game, Config, Console, ArchiveFormat } from "common.slint";
+import { MyScrollView } from "scroll_view.slint";
 
 component GameCard inherits Rectangle {
     in property <Game> game;
@@ -112,7 +113,7 @@ component GameCard inherits Rectangle {
     }
 }
 
-export component GameGrid inherits ScrollView {
+export component GameGrid inherits MyScrollView {
     in property <[Game]> games;
     in property <ArchiveFormat> archive_format;
 

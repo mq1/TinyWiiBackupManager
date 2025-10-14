@@ -1,10 +1,11 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { ScrollView, Horizontal, Icon, MaterialPalette, MaterialText, HorizontalDivider, IconButton } from "@material";
+import { Horizontal, Icon, MaterialPalette, MaterialText, HorizontalDivider, IconButton } from "@material";
 import { HbcApp } from "common.slint";
+import { MyScrollView } from "scroll_view.slint";
 
-export component HbcAppList inherits ScrollView {
+export component HbcAppList inherits MyScrollView {
     in property <[HbcApp]> apps;
 
     callback open_app_info(HbcApp);
