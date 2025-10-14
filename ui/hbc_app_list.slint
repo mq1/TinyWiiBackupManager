@@ -15,7 +15,7 @@ export component HbcAppList inherits MyScrollView {
 
     // Draw the horizontal separator lines
     for i in apps.length - 1: HorizontalDivider {
-        x: 8px;
+        x: 4px + 8px;
         y: (4px + 18px + 4px) * (i + 1) + 3px;
         width: parent.width - 16px;
     }
@@ -25,7 +25,7 @@ export component HbcAppList inherits MyScrollView {
             horizontal-stretch: 2;
 
             for app[i] in apps: MaterialText {
-                x: 0px;
+                x: 4px;
                 y: (4px + 18px + 4px) * i + 2px;
                 text: app.name;
                 width: parent.width;
@@ -104,7 +104,7 @@ export component HbcAppList inherits MyScrollView {
                     height: 18px;
                     width: 18px;
                     icon: @image-url("../mdi/information.svg");
-                    tooltip: "App Information    ";
+                    tooltip: "App Information      ";
                     inline: true;
                     clicked => {
                         open_app_info(apps[apps.length - i - 1]);
@@ -117,7 +117,7 @@ export component HbcAppList inherits MyScrollView {
                     height: 18px;
                     width: 18px;
                     icon: @image-url("../mdi/trash-can.svg");
-                    tooltip: "Delete App          ";
+                    tooltip: "Delete App           ";
                     inline: true;
                     clicked => {
                         remove_app(apps[apps.length - i - 1]);

@@ -99,6 +99,7 @@ export component OscWiiAppsPage inherits VerticalLayout {
     }
 
     if config.view-as == ViewAs.Grid: OscWiiAppGrid {
+        x: -4px;
         apps: get_apps(filter.to-lowercase());
         open_oscwii_info(app) => open_oscwii_info(app);
         download_oscwii(app) => download_oscwii(app);
@@ -106,6 +107,7 @@ export component OscWiiAppsPage inherits VerticalLayout {
     }
 
     if config.view-as == ViewAs.List: OscWiiAppList {
+        x: -4px;
         apps: get_apps(filter.to-lowercase());
         open_oscwii_info(app) => open_oscwii_info(app);
         download_oscwii(app) => download_oscwii(app);

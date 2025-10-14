@@ -19,7 +19,7 @@ export component GameList inherits MyScrollView {
 
     // Draw the horizontal separator lines
     for i in games.length - 1: HorizontalDivider {
-        x: 8px;
+        x: 4px + 8px;
         y: (4px + 18px + 4px) * (i + 1) + 3px;
         width: parent.width - 16px;
     }
@@ -29,7 +29,7 @@ export component GameList inherits MyScrollView {
             horizontal-stretch: 2;
 
             for game[i] in games: MaterialText {
-                x: 0px;
+                x: 4px;
                 y: (4px + 18px + 4px) * i + 2px;
                 text: game.display-title;
                 width: parent.width;
@@ -121,7 +121,7 @@ export component GameList inherits MyScrollView {
                     height: 18px;
                     width: 18px;
                     icon: @image-url("../mdi/package-down.svg");
-                    tooltip: "Archive Game to " + (archive_format == ArchiveFormat.Rvz ? "RVZ" : "ISO") + "               ";
+                    tooltip: "Archive Game to " + (archive_format == ArchiveFormat.Rvz ? "RVZ" : "ISO") + "                ";
                     inline: true;
                     clicked => {
                         archive_game(games[games.length - i - 1]);
@@ -134,7 +134,7 @@ export component GameList inherits MyScrollView {
                     height: 18px;
                     width: 18px;
                     icon: @image-url("../mdi/trash-can.svg");
-                    tooltip: "Remove Game                 ";
+                    tooltip: "Remove Game                  ";
                     inline: true;
                     clicked => {
                         remove_game(games[games.length - i - 1]);

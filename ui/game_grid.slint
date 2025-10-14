@@ -127,7 +127,7 @@ export component GameGrid inherits MyScrollView {
     callback verify_game(Game);
 
     for i in games.length: GameCard {
-        x: 16px + mod((games.length - 1 - i), cols) * 174px;
+        x: 4px + 16px + mod((games.length - 1 - i), cols) * 174px;
         y: 16px + floor((games.length - 1 - i) / cols) * (16px + 14px + 8px + 96px + 8px + 14px + 16px + 1px + 4px + 18px + 8px + 8px);
 
         game: games[games.length - 1 - i];

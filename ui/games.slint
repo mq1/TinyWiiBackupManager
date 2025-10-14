@@ -24,7 +24,7 @@ export component GamesPage inherits VerticalLayout {
 
     pure callback get_games(string, bool, bool) -> [Game];
 
-    Rectangle {
+    top_bar := Rectangle {
         background: MaterialPalette.surface_container;
         z: 2.0;
 
@@ -184,6 +184,7 @@ export component GamesPage inherits VerticalLayout {
     }
 
     if config.view-as == ViewAs.Grid: GameGrid {
+        x: -4px;
         games: get_games(filter.to-lowercase(), show_wii, show_gc);
         archive_format: config.archive_format;
         open_disc_info(game) => open_disc_info(game);
@@ -192,6 +193,7 @@ export component GamesPage inherits VerticalLayout {
     }
 
     if config.view-as == ViewAs.List: GameList {
+        x: -4px;
         games: get_games(filter.to-lowercase(), show_wii, show_gc);
         archive_format: config.archive_format;
         open_disc_info(game) => open_disc_info(game);
