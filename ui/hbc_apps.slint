@@ -157,12 +157,14 @@ export component HbcAppsPage inherits VerticalLayout {
     }
 
     if config.view-as == ViewAs.Grid: HbcAppGrid {
+        x: -4px;
         apps: get_apps(filter.to-lowercase());
         open_app_info(app) => open_app_info(app);
         remove_app(app) => remove_app(app);
     }
 
     if config.view-as == ViewAs.List: HbcAppList {
+        x: -4px;
         apps: get_apps(filter.to-lowercase());
         open_app_info(app) => open_app_info(app);
         remove_app(app) => remove_app(app);

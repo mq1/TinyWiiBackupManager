@@ -16,7 +16,7 @@ export component OscWiiAppList inherits MyScrollView {
 
     // Draw the horizontal separator lines
     for i in apps.length - 1: HorizontalDivider {
-        x: 8px;
+        x: 4px + 8px;
         y: (4px + 18px + 4px) * (i + 1) + 3px;
         width: parent.width - 16px;
     }
@@ -26,7 +26,7 @@ export component OscWiiAppList inherits MyScrollView {
             horizontal-stretch: 2;
 
             for app[i] in apps: MaterialText {
-                x: 0px;
+                x: 4px;
                 y: (4px + 18px + 4px) * i + 2px;
                 text: app.name;
                 width: parent.width;
@@ -131,7 +131,7 @@ export component OscWiiAppList inherits MyScrollView {
                     height: 18px;
                     width: 18px;
                     icon: @image-url("../mdi/upload-network.svg");
-                    tooltip: "Wiiload    ";
+                    tooltip: "Wiiload      ";
                     inline: true;
                     clicked => {
                         push_oscwii(apps[apps.length - i - 1]);
