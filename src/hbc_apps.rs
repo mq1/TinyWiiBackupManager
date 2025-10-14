@@ -8,10 +8,10 @@ use size::Size;
 use slint::{Image, ToSharedString, Weak};
 use std::{
     fs::{self, File},
-    io::{self, BufReader, Cursor},
+    io::{BufReader, Cursor},
     path::{Path, PathBuf},
 };
-use zip::{ZipArchive, result::ZipResult};
+use zip::ZipArchive;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct HbcAppMeta {
@@ -98,23 +98,11 @@ pub fn list(mount_point: &Path) -> Result<Vec<HbcApp>> {
     Ok(apps)
 }
 
-/// we check if in the zip there is an "apps" directory
-/// if so, we extract it to the base directory
-/// otherwise, we extract the zip to the apps directory
-fn extract_app(
-    mount_point: &Path,
-    archive: &mut ZipArchive<impl io::Read + io::Seek>,
-) -> ZipResult<()> {
-    archive.extract_unwrapped_root_dir(mount_point, |path| {
-        path.file_name().and_then(|s| s.to_str()) == Some("apps")
-    })
-}
-
 fn install_zip(mount_point: &Path, path: &Path) -> Result<()> {
     let file = File::open(path)?;
     let reader = BufReader::new(file);
     let mut archive = ZipArchive::new(reader)?;
-    extract_app(mount_point, &mut archive)?;
+    archive.extract(mount_point)?;
 
     Ok(())
 }
@@ -140,7 +128,7 @@ pub fn add_app_from_url(mount_point_str: &str, url: &str, weak: &Weak<MainWindow
 
     let cursor = Cursor::new(buffer);
     let mut archive = ZipArchive::new(cursor)?;
-    extract_app(&mount_point, &mut archive)?;
+    archive.extract(mount_point)?;
 
     weak.upgrade_in_event_loop(move |handle| {
         handle.invoke_refresh(mount_point_str);
