@@ -4,7 +4,7 @@
 use crate::{ArchiveFormat, Config, SortBy, ViewAs, WiiOutputFormat};
 use anyhow::Result;
 use serde_json::{Map, Value, json};
-use slint::{SharedString, ToSharedString};
+use slint::ToSharedString;
 use std::{fs, path::Path};
 
 impl Config {
@@ -29,7 +29,7 @@ impl Config {
             .get("mount_point")
             .and_then(|v| v.as_str())
             .map(ToSharedString::to_shared_string)
-            .unwrap_or_else(SharedString::default);
+            .unwrap_or_default();
 
         let remove_sources_apps = values
             .get("remove_sources_apps")

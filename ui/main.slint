@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { IconButton, Vertical, MaterialText, ElevatedCard, MaterialPalette, Horizontal, CircularProgressIndicator, SnackBar, Icon } from "@material";
+import { IconButton, Vertical, MaterialText, ElevatedCard, MaterialPalette, Horizontal, CircularProgressIndicator, SnackBar, Icon, Dialog } from "@material";
 import { SideBar } from "sidebar.slint";
 import { GamesPage } from "games.slint";
 import { Game, HbcApp, WiiOutputFormat, ArchiveFormat, TaskType, UpdateInfo, Config, OscWiiApp, DiscInfo } from "common.slint";
@@ -32,6 +32,8 @@ export component MainWindow inherits Window {
     in-out property <Config> config;
     in-out property <[OscWiiApp]> oscwii_apps: [];
     property <OscWiiApp> pushing_oscwii;
+    property <{msg: string, is_err: bool}> dialog_msg;
+    property <string> removing_dir;
 
     callback choose_mount_point();
     callback open_url(string);
@@ -117,8 +119,8 @@ export component MainWindow inherits Window {
                     open_disc_info_dialog(game);
                 }
                 remove_game(game) => {
-                    remove_dir(game.path);
-                    refresh(config.mount-point);
+                    removing_dir = game.path;
+                    remove_dir_dialog.show();
                 }
                 archive_game(game) => {
                     archive_game(game.path, config);
@@ -144,8 +146,8 @@ export component MainWindow inherits Window {
                     open_app_info_dialog(app);
                 }
                 remove_app(app) => {
-                    remove_dir(app.path);
-                    refresh(config.mount-point);
+                    removing_dir = app.path;
+                    remove_dir_dialog.show();
                 }
                 update_config => {
                     update_config(config);
@@ -257,6 +259,68 @@ export component MainWindow inherits Window {
         push_file => {
             push_file(config.wii-ip);
             update_config(config);
+        }
+    }
+
+    msg_dialog := Dialog {
+        width: root.width;
+        height: root.height;
+        title: dialog_msg.is-err ? "Error" : "Info";
+        icon: dialog_msg.is-err ? @image-url("../mdi/alert.svg") : @image-url("../mdi/information.svg");
+        default_action_text: "Close";
+
+        default_action_clicked => {
+            self.close();
+        }
+
+        MaterialText {
+            width: self.preferred-width;
+            text: dialog_msg.msg;
+        }
+    }
+
+    public function show_error(msg: string) {
+        if !msg.is-empty {
+            dialog_msg.is-err = true;
+            dialog_msg.msg = msg;
+            msg_dialog.show();
+        }
+    }
+
+    public function show_info(msg: string) {
+        if !msg.is-empty {
+            dialog_msg.is-err = false;
+            dialog_msg.msg = msg;
+            msg_dialog.show();
+        }
+    }
+
+    remove_dir_dialog := Dialog {
+        width: root.width;
+        height: root.height;
+        title: "Remove Directory?";
+        icon: @image-url("../mdi/alert.svg");
+        default_action_text: "Yes";
+        actions: ["No"];
+
+        default_action_clicked => {
+            self.close();
+            remove_dir(removing_dir);
+            refresh(config.mount-point);
+        }
+
+        action_clicked(i) => {
+            if i == 0 {
+                self.close();
+            }
+        }
+
+        MaterialText {
+            width: self.preferred-width;
+
+            vertical-alignment: center;
+            horizontal-alignment: center;
+            text: "Are you sure you want to remove " + removing_dir + "?";
         }
     }
 }
