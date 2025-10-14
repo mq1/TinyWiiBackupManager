@@ -96,7 +96,13 @@ pub fn push_oscwii(zip_url: &str, wii_ip: &str, task_processor: &Arc<TaskProcess
             handle.set_task_type(TaskType::DownloadingFolder);
         })?;
 
-        let buffer = AGENT.get(zip_url).call()?.body_mut().read_to_vec()?;
+        let buffer = AGENT
+            .get(zip_url)
+            .call()?
+            .body_mut()
+            .with_config()
+            .limit(50 * 1024 * 1024) // 50MB
+            .read_to_vec()?;
 
         let cursor = Cursor::new(buffer);
         let mut archive = ZipArchive::new(cursor)?;
