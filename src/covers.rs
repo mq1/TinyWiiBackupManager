@@ -3,6 +3,7 @@
 
 use crate::{TaskType, games, http::AGENT, tasks::TaskProcessor, titles::Titles};
 use anyhow::Result;
+use parking_lot::Mutex;
 use slint::ToSharedString;
 use std::{
     fs,
@@ -124,7 +125,7 @@ fn download_disc_cover(id: &str, mount_point: &Path) -> Result<()> {
 }
 
 // Fail safe, ignores errors, no popup notification
-pub fn download_covers(mount_point_str: &str, task_processor: &Arc<TaskProcessor>) {
+pub fn download_covers(mount_point_str: &str, task_processor: Arc<TaskProcessor>) {
     let mount_point = PathBuf::from(mount_point_str);
     let mount_point_str = mount_point_str.to_shared_string();
 
@@ -134,8 +135,8 @@ pub fn download_covers(mount_point_str: &str, task_processor: &Arc<TaskProcessor
             handle.set_task_type(TaskType::DownloadingCovers);
         })?;
 
-        let empty_titles = Arc::new(Titles::empty());
-        let games = games::list(&mount_point, &empty_titles)?;
+        let empty_titles = Arc::new(Mutex::new(Titles::empty()));
+        let games = games::list(&mount_point, empty_titles)?;
         let len = games.len();
         for (i, game) in games.iter().enumerate() {
             weak.upgrade_in_event_loop(move |handle| {
@@ -154,7 +155,7 @@ pub fn download_covers(mount_point_str: &str, task_processor: &Arc<TaskProcessor
     }));
 }
 
-pub fn download_all_covers(mount_point_str: &str, task_processor: &Arc<TaskProcessor>) {
+pub fn download_all_covers(mount_point_str: &str, task_processor: Arc<TaskProcessor>) {
     let mount_point = PathBuf::from(mount_point_str);
     let mount_point_str = mount_point_str.to_shared_string();
 
@@ -164,8 +165,8 @@ pub fn download_all_covers(mount_point_str: &str, task_processor: &Arc<TaskProce
             handle.set_task_type(TaskType::DownloadingCovers);
         })?;
 
-        let empty_titles = Arc::new(Titles::empty());
-        let games = games::list(&mount_point, &empty_titles)?;
+        let empty_titles = Arc::new(Mutex::new(Titles::empty()));
+        let games = games::list(&mount_point, empty_titles)?;
         let len = games.len();
         for (i, game) in games.iter().enumerate() {
             weak.upgrade_in_event_loop(move |handle| {

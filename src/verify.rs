@@ -23,7 +23,7 @@ use std::{
 pub const NKIT_ADDR: u64 = 0x10000;
 pub const NKIT_LEN: usize = 68;
 
-pub fn verify_game(game_dir_str: &str, task_processor: &Arc<TaskProcessor>) -> Result<()> {
+pub fn verify_game(game_dir_str: &str, task_processor: Arc<TaskProcessor>) -> Result<()> {
     let game_dir = PathBuf::from(game_dir_str);
 
     task_processor.spawn(Box::new(move |weak| {
