@@ -15,7 +15,7 @@ use zip::ZipArchive;
 const DOWNLOAD_URL: &str = "https://www.gametdb.com/wiitdb.zip";
 
 /// Handles the blocking logic of downloading and extracting the database.
-pub fn download(mount_point_str: &str, task_processor: &Arc<TaskProcessor>) -> Result<()> {
+pub fn download(mount_point_str: &str, task_processor: Arc<TaskProcessor>) -> Result<()> {
     let mount_point = Path::new(mount_point_str);
 
     // Create the target directory.

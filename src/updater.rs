@@ -16,7 +16,7 @@ static CURRENT_VERSION: LazyLock<Version> = LazyLock::new(|| {
     Version::parse(env!("CARGO_PKG_VERSION")).expect("Failed to parse current version")
 });
 
-pub fn check(task_processor: &Arc<TaskProcessor>) {
+pub fn check(task_processor: Arc<TaskProcessor>) {
     task_processor.spawn(Box::new(|weak| {
         weak.upgrade_in_event_loop(|handle| {
             handle.set_status("Checking for updates...".to_shared_string());

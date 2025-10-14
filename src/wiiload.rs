@@ -23,7 +23,7 @@ const WIILOAD_MAGIC: &[u8] = b"HAXX";
 const WIILOAD_TIMEOUT: Duration = Duration::from_secs(10);
 const WIILOAD_CHUNK_SIZE: usize = 4 * 1024;
 
-pub fn push_file(wii_ip: &str, task_processor: &Arc<TaskProcessor>) -> Result<()> {
+pub fn push_file(wii_ip: &str, task_processor: Arc<TaskProcessor>) -> Result<()> {
     let addr = (wii_ip, WIILOAD_PORT)
         .to_socket_addrs()?
         .next()
@@ -81,7 +81,7 @@ pub fn push_file(wii_ip: &str, task_processor: &Arc<TaskProcessor>) -> Result<()
     Ok(())
 }
 
-pub fn push_oscwii(zip_url: &str, wii_ip: &str, task_processor: &Arc<TaskProcessor>) -> Result<()> {
+pub fn push_oscwii(zip_url: &str, wii_ip: &str, task_processor: Arc<TaskProcessor>) -> Result<()> {
     let addr = (wii_ip, WIILOAD_PORT)
         .to_socket_addrs()?
         .next()
