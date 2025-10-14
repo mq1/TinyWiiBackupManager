@@ -51,6 +51,7 @@ num_cpus = "1.17"
 semver = "1.0"
 path-slash = "0.2"
 hex = "0.4"
+parking_lot = "0.12"
 
 [features]
 default = ["directories"]
@@ -84,12 +85,9 @@ panic = "abort"
 
 [profile.dev]
 opt-level = 0
-split-debuginfo = "unpacked"
+debug = false
 
 [profile.dev.package."*"]
-opt-level = 3
-
-[profile.dev.build-override]
 opt-level = 3
 
 [lints.rust]

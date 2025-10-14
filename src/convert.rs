@@ -68,7 +68,7 @@ fn get_output_format_opts(wii_output_format: WiiOutputFormat, is_wii: bool) -> F
     }
 }
 
-pub fn add_games(config: &Config, task_processor: &Arc<TaskProcessor>) -> Result<()> {
+pub fn add_games(config: &Config, task_processor: Arc<TaskProcessor>) -> Result<()> {
     if config.mount_point.is_empty() {
         bail!("Conversion Failed: No mount point selected");
     }

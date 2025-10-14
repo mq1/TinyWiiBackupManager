@@ -115,7 +115,7 @@ fn install_zip(mount_point: &Path, path: &Path) -> Result<()> {
     Ok(())
 }
 
-pub fn add_app_from_url(mount_point_str: &str, url: &str, task_processor: &Arc<TaskProcessor>) {
+pub fn add_app_from_url(mount_point_str: &str, url: &str, task_processor: Arc<TaskProcessor>) {
     let mount_point = PathBuf::from(mount_point_str);
     let mount_point_str = mount_point_str.to_shared_string();
     let url = url.to_string();
@@ -147,7 +147,7 @@ pub fn add_app_from_url(mount_point_str: &str, url: &str, task_processor: &Arc<T
     }));
 }
 
-pub fn add_apps(config: &Config, task_processor: &Arc<TaskProcessor>) -> Result<()> {
+pub fn add_apps(config: &Config, task_processor: Arc<TaskProcessor>) -> Result<()> {
     let remove_sources = config.remove_sources_apps;
     let mount_point = PathBuf::from(&config.mount_point);
     let mount_point_str = config.mount_point.to_shared_string();

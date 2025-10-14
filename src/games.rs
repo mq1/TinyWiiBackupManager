@@ -4,13 +4,14 @@
 use crate::titles::Titles;
 use crate::{Console, Game};
 use anyhow::Result;
+use parking_lot::Mutex;
 use size::Size;
 use slint::{Image, ToSharedString};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-pub fn list(mount_point: &Path, titles: &Arc<Titles>) -> Result<Vec<Game>> {
+pub fn list(mount_point: &Path, titles: Arc<Mutex<Titles>>) -> Result<Vec<Game>> {
     if mount_point.as_os_str().is_empty() {
         return Ok(vec![]);
     }
@@ -20,13 +21,15 @@ pub fn list(mount_point: &Path, titles: &Arc<Titles>) -> Result<Vec<Game>> {
     // Create dirs
     game_dirs.iter().try_for_each(fs::create_dir_all)?;
 
+    let titles = titles.lock();
+
     let games = game_dirs
         .iter()
         .map(fs::read_dir)
         .collect::<Result<Vec<_>, _>>()?
         .into_iter()
         .flat_map(|rd| rd.filter_map(Result::ok))
-        .filter_map(|entry| Game::from_dir(entry.path(), titles))
+        .filter_map(|entry| Game::from_dir(entry.path(), &titles))
         .collect::<Vec<_>>();
 
     Ok(games)

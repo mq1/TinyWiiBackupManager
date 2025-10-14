@@ -25,6 +25,7 @@ pub mod wiitdb;
 
 use crate::{tasks::TaskProcessor, titles::Titles};
 use anyhow::{Result, anyhow};
+use parking_lot::Mutex;
 use path_slash::PathBufExt;
 use rfd::{FileDialog, MessageButtons, MessageDialog, MessageDialogResult, MessageLevel};
 use slint::{ModelRc, SharedString, ToSharedString, VecModel, Weak};
@@ -62,7 +63,11 @@ fn refresh_disk_usage(handle: &MainWindow, mount_point: &Path) {
     }
 }
 
-fn refresh_games(handle: &MainWindow, mount_point: &Path, titles: &Arc<Titles>) -> Result<()> {
+fn refresh_games(
+    handle: &MainWindow,
+    mount_point: &Path,
+    titles: Arc<Mutex<Titles>>,
+) -> Result<()> {
     let games = games::list(mount_point, titles)?;
     let games_model = ModelRc::from(Rc::new(VecModel::from(games)));
     handle.set_games(games_model.clone());
@@ -78,7 +83,7 @@ fn refresh_hbc_apps(handle: &MainWindow, mount_point: &Path) -> Result<()> {
 
 fn choose_mount_point(
     weak: &Weak<MainWindow>,
-    titles: &Arc<Titles>,
+    titles: Arc<Mutex<Titles>>,
     data_dir: &Path,
 ) -> Result<()> {
     let handle = weak.upgrade().ok_or(anyhow!("Failed to upgrade weak"))?;
@@ -127,14 +132,14 @@ fn run() -> Result<()> {
     }
 
     let mount_point = Path::new(&config.mount_point);
-    let titles = Arc::new(Titles::load(&data_dir)?);
+    let titles = Arc::new(Mutex::new(Titles::empty()));
     let task_processor = Arc::new(TaskProcessor::init(app.as_weak()));
 
     app.set_app_name(env!("CARGO_PKG_NAME").to_shared_string() + " v" + env!("CARGO_PKG_VERSION"));
     app.set_is_macos(cfg!(target_os = "macos"));
 
     refresh_dir_name(&app, mount_point);
-    refresh_games(&app, mount_point, &titles)?;
+    refresh_games(&app, mount_point, titles.clone())?;
     refresh_hbc_apps(&app, mount_point)?;
     refresh_disk_usage(&app, mount_point);
     app.set_config(config);
@@ -143,7 +148,7 @@ fn run() -> Result<()> {
     let titles_clone = titles.clone();
     let data_dir_clone = data_dir.clone();
     app.on_choose_mount_point(move || {
-        if let Err(e) = choose_mount_point(&weak, &titles_clone, &data_dir_clone) {
+        if let Err(e) = choose_mount_point(&weak, titles_clone.clone(), &data_dir_clone) {
             show_err(e);
         }
     });
@@ -156,7 +161,7 @@ fn run() -> Result<()> {
 
     let task_processor_clone = task_processor.clone();
     app.on_add_games(move |config| {
-        if let Err(e) = convert::add_games(&config, &task_processor_clone) {
+        if let Err(e) = convert::add_games(&config, task_processor_clone.clone()) {
             show_err(e);
         }
     });
@@ -191,14 +196,14 @@ fn run() -> Result<()> {
 
     let task_processor_clone = task_processor.clone();
     app.on_add_apps(move |config| {
-        if let Err(e) = hbc_apps::add_apps(&config, &task_processor_clone) {
+        if let Err(e) = hbc_apps::add_apps(&config, task_processor_clone.clone()) {
             show_err(e);
         }
     });
 
     let task_processor_clone = task_processor.clone();
     app.on_push_file(move |wii_ip| {
-        if let Err(e) = wiiload::push_file(&wii_ip, &task_processor_clone) {
+        if let Err(e) = wiiload::push_file(&wii_ip, task_processor_clone.clone()) {
             show_err(e);
         }
     });
@@ -274,40 +279,40 @@ fn run() -> Result<()> {
 
     let task_processor_clone = task_processor.clone();
     app.on_download_oscwii(move |mount_point, zip_url| {
-        hbc_apps::add_app_from_url(&mount_point, &zip_url, &task_processor_clone);
+        hbc_apps::add_app_from_url(&mount_point, &zip_url, task_processor_clone.clone());
     });
 
     let task_processor_clone = task_processor.clone();
     app.on_push_oscwii(move |zip_url, wii_ip| {
-        if let Err(e) = wiiload::push_oscwii(&zip_url, &wii_ip, &task_processor_clone) {
+        if let Err(e) = wiiload::push_oscwii(&zip_url, &wii_ip, task_processor_clone.clone()) {
             show_err(e);
         }
     });
 
     let task_processor_clone = task_processor.clone();
     app.on_archive_game(move |game_dir, config| {
-        if let Err(e) = archive::archive_game(&game_dir, &config, &task_processor_clone) {
+        if let Err(e) = archive::archive_game(&game_dir, &config, task_processor_clone.clone()) {
             show_err(e);
         }
     });
 
     let task_processor_clone = task_processor.clone();
     app.on_download_wiitdb(move |mount_point| {
-        if let Err(e) = wiitdb::download(&mount_point, &task_processor_clone) {
+        if let Err(e) = wiitdb::download(&mount_point, task_processor_clone.clone()) {
             show_err(e);
         }
     });
 
     let task_processor_clone = task_processor.clone();
     app.on_verify_game(move |game_dir| {
-        if let Err(e) = verify::verify_game(&game_dir, &task_processor_clone) {
+        if let Err(e) = verify::verify_game(&game_dir, task_processor_clone.clone()) {
             show_err(e);
         }
     });
 
     let task_processor_clone = task_processor.clone();
     app.on_download_all_covers(move |mount_point| {
-        covers::download_all_covers(&mount_point, &task_processor_clone);
+        covers::download_all_covers(&mount_point, task_processor_clone.clone());
     });
 
     app.on_get_disc_info(move |mount_point| {
@@ -326,7 +331,7 @@ fn run() -> Result<()> {
     app.on_refresh(move |mount_point| {
         let mount_point = Path::new(&mount_point);
         if let Some(handle) = weak.upgrade() {
-            if let Err(e) = refresh_games(&handle, mount_point, &titles_clone) {
+            if let Err(e) = refresh_games(&handle, mount_point, titles_clone.clone()) {
                 show_err(e);
             }
             if let Err(e) = refresh_hbc_apps(&handle, mount_point) {
@@ -341,10 +346,11 @@ fn run() -> Result<()> {
     });
 
     if std::env::var_os("TWBM_DISABLE_UPDATES").is_none() {
-        updater::check(&task_processor);
+        updater::check(task_processor.clone());
     }
 
-    oscwii::load_oscwii_apps(&data_dir, &task_processor);
+    titles::load_titles(data_dir.clone(), task_processor.clone(), titles.clone());
+    oscwii::load_oscwii_apps(&data_dir, task_processor);
 
     app.invoke_apply_sorting();
     app.run()?;
