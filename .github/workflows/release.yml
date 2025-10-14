@@ -159,6 +159,7 @@ jobs:
           toolchain: 1.90.0
           components: "rust-src"
           cache-key: i686-win7-windows-msvc
+          cache-all-crates: true
       
       - name: Build binary
         run: cargo build -Z build-std=std,panic_abort --release --locked --target i686-win7-windows-msvc --features portable --no-default-features
