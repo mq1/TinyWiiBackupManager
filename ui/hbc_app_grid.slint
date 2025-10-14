@@ -92,7 +92,7 @@ export component HbcAppGrid inherits MyScrollView {
     callback remove_app(HbcApp);
 
     for i in apps.length: HbcAppCard {
-        x: 16px + mod((apps.length - 1 - i), cols) * 174px;
+        x: 4px + 16px + mod((apps.length - 1 - i), cols) * 174px;
         y: 16px + floor((apps.length - 1 - i) / cols) * (16px + 14px + 8px + 96px + 8px + 14px + 16px + 1px + 4px + 18px + 8px + 8px);
 
         app: apps[apps.length - 1 - i];
