@@ -8,40 +8,16 @@ use ureq::tls::{RootCerts, TlsConfig, TlsProvider};
 
 const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 
-#[cfg(any(
-    target_os = "macos",
-    all(
-        target_os = "windows",
-        any(target_arch = "x86_64", target_arch = "aarch64")
-    )
-))]
+#[cfg(feature = "native-tls")]
 const TLS_PROVIDER: TlsProvider = TlsProvider::NativeTls;
 
-#[cfg(any(
-    target_os = "macos",
-    all(
-        target_os = "windows",
-        any(target_arch = "x86_64", target_arch = "aarch64")
-    )
-))]
+#[cfg(feature = "native-tls")]
 const ROOT_CERTS: RootCerts = RootCerts::PlatformVerifier;
 
-#[cfg(not(any(
-    target_os = "macos",
-    all(
-        target_os = "windows",
-        any(target_arch = "x86_64", target_arch = "aarch64")
-    )
-)))]
+#[cfg(feature = "bundled-tls")]
 const TLS_PROVIDER: TlsProvider = TlsProvider::Rustls;
 
-#[cfg(not(any(
-    target_os = "macos",
-    all(
-        target_os = "windows",
-        any(target_arch = "x86_64", target_arch = "aarch64")
-    )
-)))]
+#[cfg(feature = "bundled-tls")]
 const ROOT_CERTS: RootCerts = RootCerts::WebPki;
 
 pub static AGENT: LazyLock<Agent> = LazyLock::new(|| {

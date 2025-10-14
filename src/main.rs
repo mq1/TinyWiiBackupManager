@@ -389,7 +389,7 @@ fn run() -> Result<()> {
     Ok(())
 }
 
-#[cfg(feature = "portable")]
+#[cfg(not(feature = "app-dir"))]
 fn get_data_dir() -> Result<PathBuf> {
     // For portable builds, use a directory next to the executable
     let exe_path = std::env::current_exe()?;
@@ -400,7 +400,7 @@ fn get_data_dir() -> Result<PathBuf> {
     Ok(data_dir)
 }
 
-#[cfg(not(feature = "portable"))]
+#[cfg(feature = "app-dir")]
 fn get_data_dir() -> Result<PathBuf> {
     // For standard builds, use the system's app data directory
     let proj = directories::ProjectDirs::from("it", "mq1", env!("CARGO_PKG_NAME"))

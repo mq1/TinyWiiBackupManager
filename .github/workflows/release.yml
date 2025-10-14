@@ -46,7 +46,7 @@ jobs:
           target: ${{ matrix.target }}
           cache-key: ${{ matrix.target }}
 
-      - name: Install dependencies
+      - name: Install dependencies (skia and bundler)
         run: |
           sudo apt-get update
           sudo apt-get install -y libfreetype6-dev libfontconfig1-dev
@@ -92,7 +92,7 @@ jobs:
         run: cargo install cargo-packager --version ^0.11 --locked
 
       - name: Build binary
-        run: cargo build --release --locked --target ${{ matrix.target }}
+        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "app-dir skia native-tls"
 
       - name: Package binary as installer
         run: cargo packager --release --target ${{ matrix.target }} --formats nsis
@@ -129,7 +129,7 @@ jobs:
           cache-key: ${{ matrix.target }}
 
       - name: Build binary with portable feature
-        run: cargo build --release --locked --target ${{ matrix.target }} --features portable --no-default-features
+        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "skia native-tls"
 
       - name: Package portable binary as zip
         shell: pwsh
@@ -162,7 +162,7 @@ jobs:
           cache-all-crates: true
       
       - name: Build binary
-        run: cargo build -Z build-std=std,panic_abort --release --locked --target i686-win7-windows-msvc --features portable --no-default-features
+        run: cargo build -Z build-std=std,panic_abort --release --locked --target i686-win7-windows-msvc --no-default-features --features bundled-tls
         env: 
           RUSTC_BOOTSTRAP: 1
       
@@ -203,7 +203,7 @@ jobs:
           cache-key: ${{ matrix.target }}
 
       - name: Build binary
-        run: cargo build --release --locked --target ${{ matrix.target }}
+        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "app-dir skia native-tls"
 
       - name: Upload MacOS binary
         uses: actions/upload-artifact@v4
