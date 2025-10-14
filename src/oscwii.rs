@@ -93,7 +93,16 @@ fn download_icon(app: &App, icons_dir: &Path) -> Result<()> {
 impl OscWiiApp {
     fn from_app(app: &App, icons_dir: &Path) -> Self {
         let size = Size::from_bytes(app.uncompressed_size);
+
         let icon_path = icons_dir.join(&app.slug).with_extension("png");
+        let icon = if icon_path.exists()
+            && let Ok(icon) = Image::load_from_path(&icon_path)
+        {
+            icon
+        } else {
+            Image::load_from_svg_data(include_bytes!("../mdi/image-frame.svg"))
+                .expect("Failed to load default icon")
+        };
 
         Self {
             slug: app.slug.to_shared_string(),
@@ -104,7 +113,7 @@ impl OscWiiApp {
             release_date: app.release_date.to_shared_string(),
             size: size.to_shared_string(),
             zip_url: app.assets.archive.url.to_shared_string(),
-            icon: Image::load_from_path(&icon_path).unwrap_or_default(),
+            icon,
         }
     }
 }

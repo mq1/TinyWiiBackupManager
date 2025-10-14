@@ -9,6 +9,8 @@ import { GameList } from "game_list.slint";
 
 export component GamesPage inherits VerticalLayout {
     private property <string> filter: "";
+    private property <bool> show_wii: true;
+    private property <bool> show_gc: true;
     in-out property <Config> config;
 
     callback add_games();
@@ -20,7 +22,7 @@ export component GamesPage inherits VerticalLayout {
     callback trigger_sort(string);
     callback refresh();
 
-    pure callback get_games(string) -> [Game];
+    pure callback get_games(string, bool, bool) -> [Game];
 
     Rectangle {
         background: MaterialPalette.surface_container;
@@ -39,6 +41,40 @@ export component GamesPage inherits VerticalLayout {
                 height: 36px;
                 placeholder-text: "Search...";
                 text <=> filter;
+            }
+
+            VerticalLayout {
+                alignment: center;
+
+                Rectangle {
+                    border-color: MaterialPalette.outline_variant;
+                    border-radius: 12px;
+                    border-width: 1px;
+
+                    Horizontal {
+                        alignment: center;
+
+                        IconButton {
+                            checked: show_wii;
+                            icon: @image-url("../mdi/tennis.svg");
+                            tooltip: "Show Wii";
+                            inline: true;
+                            clicked => {
+                                show_wii = !show_wii;
+                            }
+                        }
+
+                        IconButton {
+                            checked: show_gc;
+                            icon: @image-url("../mdi/cube-outline.svg");
+                            tooltip: "Show GC";
+                            inline: true;
+                            clicked => {
+                                show_gc = !show_gc;
+                            }
+                        }
+                    }
+                }
             }
 
             VerticalLayout {
@@ -148,7 +184,7 @@ export component GamesPage inherits VerticalLayout {
     }
 
     if config.view-as == ViewAs.Grid: GameGrid {
-        games: get_games(filter.to-lowercase());
+        games: get_games(filter.to-lowercase(), show_wii, show_gc);
         archive_format: config.archive_format;
         open_disc_info(game) => open_disc_info(game);
         remove_game(game) => remove_game(game);
@@ -156,7 +192,7 @@ export component GamesPage inherits VerticalLayout {
     }
 
     if config.view-as == ViewAs.List: GameList {
-        games: get_games(filter.to-lowercase());
+        games: get_games(filter.to-lowercase(), show_wii, show_gc);
         archive_format: config.archive_format;
         open_disc_info(game) => open_disc_info(game);
         remove_game(game) => remove_game(game);
