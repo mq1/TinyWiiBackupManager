@@ -5,4 +5,5 @@ rustflags = ["-C", "link-arg=/STACK:8000000"]
 rustflags = ["-C", "link-arg=/STACK:8000000"]
 
 [target.i686-win7-windows-gnu]
+linker = "rust-lld.exe"
 rustflags = ["-C", "link-arg=/STACK:8000000"]
