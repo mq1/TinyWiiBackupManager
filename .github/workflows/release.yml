@@ -297,3 +297,14 @@ jobs:
           prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  winget:
+    needs: [ release ]
+    name: Publish to WinGet
+    runs-on: windows-2025
+    steps:
+      - uses: vedantmgoyal9/winget-releaser@main
+        with:
+          identifier: mq1.TinyWiiBackupManager
+          token: ${{ secrets.WINGET_TOKEN }}
+          installers-regex: '\.exe$'
