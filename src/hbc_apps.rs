@@ -105,11 +105,9 @@ fn extract_app(
     mount_point: &Path,
     archive: &mut ZipArchive<impl io::Read + io::Seek>,
 ) -> ZipResult<()> {
-    if archive.file_names().any(|n| n.starts_with("apps/")) {
-        archive.extract(mount_point)
-    } else {
-        archive.extract(mount_point.join("apps"))
-    }
+    archive.extract_unwrapped_root_dir(mount_point, |path| {
+        path.file_name().and_then(|s| s.to_str()) == Some("apps")
+    })
 }
 
 fn install_zip(mount_point: &Path, path: &Path) -> Result<()> {
