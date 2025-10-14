@@ -54,7 +54,7 @@ export component MainWindow inherits Window {
     callback sort(Config, [Game], [HbcApp]) -> { a: [Game], b: [HbcApp] };
     callback get_disc_info(string) -> DiscInfo;
 
-    pure callback get_filtered_games([Game], string) -> [Game];
+    pure callback get_filtered_games([Game], string, bool, bool) -> [Game];
     pure callback get_filtered_hbc_apps([HbcApp], string) -> [HbcApp];
     pure callback get_filtered_oscwii_apps([OscWiiApp], string) -> [OscWiiApp];
 
@@ -114,7 +114,7 @@ export component MainWindow inherits Window {
         VerticalLayout {
             if current_index == 0 && !dir_name.is-empty: GamesPage {
                 config <=> config;
-                get_games(filter) => get_filtered_games(games, filter);
+                get_games(filter, show_wii, show_gc) => get_filtered_games(games, filter, show_wii, show_gc);
                 open_disc_info(game) => {
                     open_disc_info_dialog(game);
                 }
