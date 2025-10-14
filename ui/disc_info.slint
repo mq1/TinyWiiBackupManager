@@ -9,6 +9,7 @@ export component DiscInfoDialog inherits Dialog {
     in property <string> display_title;
     in property <DiscInfo> info;
     title: display_title;
+    icon: @image-url("../mdi/information.svg");
     default-action-text: "Close";
 
     actions: ["Verify Hash", "GameTDB Page", "Game Directory"];
