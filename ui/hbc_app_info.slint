@@ -8,6 +8,7 @@ import { MyScrollView } from "scroll_view.slint";
 export component HbcAppInfo inherits Dialog {
     in property <HbcApp> app;
     title: app.name;
+    icon: @image-url("../mdi/information.svg");
     default-action-text: "Close";
     actions: ["App Directory"];
 
