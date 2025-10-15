@@ -46,16 +46,24 @@ jobs:
           target: ${{ matrix.target }}
           cache-key: ${{ matrix.target }}
 
-      - name: Install dependencies (skia and bundler)
+      - name: Set up Mold
+        uses: rui314/setup-mold@v1
+        with:
+          make-default: false
+
+      - name: Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libfreetype6-dev libfontconfig1-dev
           cargo install cargo-packager --version ^0.11 --locked
 
       - name: Build and package binary
         run: |
           cargo build --release --locked --target ${{ matrix.target }}
           cargo packager --release --target ${{ matrix.target }} --formats appimage
+        env:
+          CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: "clang"
+          CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: "-C link-arg=-fuse-ld=/usr/local/bin/mold"
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: "clang"
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_RUSTFLAGS: "-C link-arg=-fuse-ld=/usr/local/bin/mold"
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v4
@@ -92,7 +100,7 @@ jobs:
         run: cargo install cargo-packager --version ^0.11 --locked
 
       - name: Build binary
-        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "app-dir skia native-tls"
+        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "app-dir native-tls"
 
       - name: Package binary as installer
         run: cargo packager --release --target ${{ matrix.target }} --formats nsis
@@ -129,7 +137,7 @@ jobs:
           cache-key: ${{ matrix.target }}
 
       - name: Build binary with portable feature
-        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "skia native-tls"
+        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features native-tls
 
       - name: Package portable binary as zip
         shell: pwsh
@@ -202,7 +210,7 @@ jobs:
           cache-key: ${{ matrix.target }}
 
       - name: Build binary
-        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "app-dir skia native-tls"
+        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "app-dir native-tls"
 
       - name: Upload MacOS binary
         uses: actions/upload-artifact@v4

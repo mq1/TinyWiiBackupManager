@@ -121,7 +121,7 @@ export component GameList inherits MyScrollView {
                     height: 18px;
                     width: 18px;
                     icon: @image-url("../mdi/package-down.svg");
-                    tooltip: "Archive Game to " + (archive_format == ArchiveFormat.Rvz ? "RVZ" : "ISO") + "                ";
+                    tooltip: "Archive Game to " + (archive_format == ArchiveFormat.Rvz ? "RVZ" : "ISO") + "\u{2001}\u{2001}\u{2001}.";
                     inline: true;
                     clicked => {
                         archive_game(games[games.length - i - 1]);
@@ -134,7 +134,7 @@ export component GameList inherits MyScrollView {
                     height: 18px;
                     width: 18px;
                     icon: @image-url("../mdi/trash-can.svg");
-                    tooltip: "Remove Game                  ";
+                    tooltip: "Remove Game" + "\u{2001}\u{2001}\u{2001}\u{2001}.";
                     inline: true;
                     clicked => {
                         remove_game(games[games.length - i - 1]);
