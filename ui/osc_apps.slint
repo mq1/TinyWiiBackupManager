@@ -3,21 +3,21 @@
 
 import { IconButton, Horizontal, Icon, MaterialPalette, MaterialText, VerticalDivider } from "@material";
 import { LineEdit } from "std-widgets.slint";
-import { OscWiiApp, Config, ViewAs } from "common.slint";
-import { OscWiiAppGrid } from "oscwii_app_grid.slint";
-import { OscWiiAppList } from "oscwii_app_list.slint";
+import { OscApp, Config, ViewAs } from "common.slint";
+import { OscAppGrid } from "osc_app_grid.slint";
+import { OscAppList } from "osc_app_list.slint";
 
-export component OscWiiAppsPage inherits VerticalLayout {
+export component OscAppsPage inherits VerticalLayout {
     private property <string> filter: "";
-    in property <string> oscwii_load_status: "";
+    in property <string> osc_load_status: "";
     in-out property <Config> config;
 
     callback update_config();
-    callback open_oscwii_info(OscWiiApp);
-    callback download_oscwii(OscWiiApp);
-    callback push_oscwii(OscWiiApp);
+    callback open_osc_info(OscApp);
+    callback download_osc(OscApp);
+    callback push_osc(OscApp);
 
-    pure callback get_apps(string) -> [OscWiiApp];
+    pure callback get_apps(string) -> [OscApp];
 
     Rectangle {
         background: MaterialPalette.surface_container;
@@ -99,31 +99,31 @@ export component OscWiiAppsPage inherits VerticalLayout {
         }
     }
 
-    if !oscwii_load_status.is-empty: VerticalLayout {
+    if !osc_load_status.is-empty: VerticalLayout {
         alignment: center;
 
         HorizontalLayout {
             alignment: center;
 
             MaterialText {
-                text: oscwii_load_status;
+                text: osc_load_status;
             }
         }
     }
 
-    if oscwii_load_status.is-empty && config.view-as == ViewAs.Grid: OscWiiAppGrid {
+    if osc_load_status.is-empty && config.view-as == ViewAs.Grid: OscAppGrid {
         x: -4px;
         apps: get_apps(filter.to-lowercase());
-        open_oscwii_info(app) => open_oscwii_info(app);
-        download_oscwii(app) => download_oscwii(app);
-        push_oscwii(app) => push_oscwii(app);
+        open_osc_info(app) => open_osc_info(app);
+        download_osc(app) => download_osc(app);
+        push_osc(app) => push_osc(app);
     }
 
-    if oscwii_load_status.is-empty && config.view-as == ViewAs.List: OscWiiAppList {
+    if osc_load_status.is-empty && config.view-as == ViewAs.List: OscAppList {
         x: -4px;
         apps: get_apps(filter.to-lowercase());
-        open_oscwii_info(app) => open_oscwii_info(app);
-        download_oscwii(app) => download_oscwii(app);
-        push_oscwii(app) => push_oscwii(app);
+        open_osc_info(app) => open_osc_info(app);
+        download_osc(app) => download_osc(app);
+        push_osc(app) => push_osc(app);
     }
 }

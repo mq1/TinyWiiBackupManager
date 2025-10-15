@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { Horizontal, Icon, IconButton, TonalButton, FilledIconButton, MaterialPalette, TonalIconButton, Dialog, MaterialText } from "@material";
+import { Horizontal, Icon, IconButton, FilledIconButton, MaterialPalette, TonalIconButton, Dialog, MaterialText } from "@material";
 import { LineEdit } from "std-widgets.slint";
 import { HbcApp, Config, ViewAs, SortBy } from "common.slint";
 import { HbcAppGrid } from "hbc_app_grid.slint";
@@ -126,10 +126,11 @@ export component HbcAppsPage inherits VerticalLayout {
                 }
             }
 
-            TonalButton {
+            TonalIconButton {
                 height: 36px;
-                text: "WiiLoad";
+                width: 36px;
                 icon: @image-url("../mdi/upload-network.svg");
+                tooltip: "Wiiload";
                 clicked => {
                     open_wiiload();
                 }

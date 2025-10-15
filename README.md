@@ -16,7 +16,7 @@
 ## ✨ Features
 
 - **Lightweight & Fast** — No Electron!!
-- **Cross-Platform** — Windows 7+ (x86, x64, arm64), macOS 11+ (Universal x64+arm64), Linux (x64, arm64)
+- **Cross-Platform** — Windows 7+ (x86, x64, arm64), macOS 11+ (Universal), Linux (x64, arm64)
 
 ### 🎮 **Game Management**
 
@@ -30,7 +30,7 @@
 ### 🛠️ **Wii Homebrew Management**
 
 - **Apps** — Manage Wii homebrew applications
-- **OSCWii** — Download apps from the Open Shop Channel
+- **OSC** — Download apps from the Open Shop Channel
 - **Wiiload** — Send apps directly to Wii via network
 
 ## ⬇️ Download

@@ -4,13 +4,13 @@
 import { IconButton, Vertical, MaterialText, ElevatedCard, MaterialPalette, Horizontal, CircularProgressIndicator, SnackBar, Icon, Dialog } from "@material";
 import { SideBar } from "sidebar.slint";
 import { GamesPage } from "games.slint";
-import { Game, HbcApp, WiiOutputFormat, ArchiveFormat, TaskType, UpdateInfo, Config, OscWiiApp, DiscInfo } from "common.slint";
+import { Game, HbcApp, WiiOutputFormat, ArchiveFormat, TaskType, UpdateInfo, Config, OscApp, DiscInfo } from "common.slint";
 import { HbcAppsPage } from "hbc_apps.slint";
 import { SettingsPage } from "settings.slint";
 import { Status } from "status.slint";
 import { HbcAppInfo } from "hbc_app_info.slint";
 import { Wiiload } from "wiiload.slint";
-import { OscWiiAppsPage } from "oscwii_apps.slint";
+import { OscAppsPage } from "osc_apps.slint";
 import { DiscInfoDialog } from "disc_info.slint";
 
 //import "../assets/Roboto-VariableFont_wdth,wght.ttf";
@@ -28,13 +28,13 @@ export component MainWindow inherits Window {
     in-out property <[HbcApp]> hbc_apps;
     in-out property <[HbcApp]> filtered_hbc_apps: [];
     in property <string> status: "";
-    in property <string> oscwii_load_status: "";
+    in property <string> osc_load_status: "";
     in property <TaskType> task_type: TaskType.Unknown;
     in-out property <int> task_count: 0;
     in property <UpdateInfo> update_info;
     in-out property <Config> config;
-    in-out property <[OscWiiApp]> oscwii_apps: [];
-    property <OscWiiApp> pushing_oscwii;
+    in-out property <[OscApp]> osc_apps: [];
+    property <OscApp> pushing_osc;
     property <{msg: string, is_err: bool}> dialog_msg;
 
     callback choose_mount_point(Config);
@@ -46,9 +46,9 @@ export component MainWindow inherits Window {
     callback open_data_dir();
     callback update_config(Config);
     callback push_file(string);
-    callback push_oscwii(string, string);
+    callback push_osc(string, string);
     callback dot_clean(string);
-    callback download_oscwii(string, string);
+    callback download_osc(string, string);
     callback download_wiitdb(string);
     callback verify_game(string);
     callback download_all_covers(string);
@@ -59,7 +59,7 @@ export component MainWindow inherits Window {
     pure callback list_hbc_apps(string) -> [HbcApp];
     pure callback get_filtered_games([Game], string, bool, bool) -> [Game];
     pure callback get_filtered_hbc_apps([HbcApp], string) -> [HbcApp];
-    pure callback get_filtered_oscwii_apps([OscWiiApp], string) -> [OscWiiApp];
+    pure callback get_filtered_osc_apps([OscApp], string) -> [OscApp];
     pure callback get_filename(string) -> string;
     pure callback get_disk_usage(string) -> string;
 
@@ -92,7 +92,7 @@ export component MainWindow inherits Window {
             return app_name + " • " + hbc_apps_len + " Apps" + (mount_point.is_empty ? "" : " • " + get_filename(mount_point) + " (" + disk_usage + ")");
         }
         if view == 2 {
-            return app_name + " • OSCWii" + (mount_point.is_empty ? "" : " • " + get_filename(mount_point) + " (" + disk_usage + ")");
+            return app_name + " • OSC" + (mount_point.is_empty ? "" : " • " + get_filename(mount_point) + " (" + disk_usage + ")");
         }
         if view == 3 {
             return app_name + " • Settings" + (mount_point.is_empty ? "" : " • " + get_filename(mount_point) + " (" + disk_usage + ")");
@@ -205,18 +205,18 @@ export component MainWindow inherits Window {
                 }
             }
 
-            if current_index == 2: OscWiiAppsPage {
+            if current_index == 2: OscAppsPage {
                 config <=> config;
-                oscwii_load_status: oscwii_load_status;
-                open_oscwii_info(app) => {
-                    open_url("https://oscwii.org/library/app/" + app.slug);
+                osc_load_status: osc_load_status;
+                open_osc_info(app) => {
+                    open_url("https://osc.org/library/app/" + app.slug);
                 }
-                get_apps(filter) => get_filtered_oscwii_apps(oscwii_apps, filter);
-                download_oscwii(app) => {
-                    download_oscwii(config.mount-point, app.zip-url);
+                get_apps(filter) => get_filtered_osc_apps(osc_apps, filter);
+                download_osc(app) => {
+                    download_osc(config.mount-point, app.zip-url);
                 }
-                push_oscwii(app) => {
-                    push_oscwii(app.zip-url, config.wii-ip);
+                push_osc(app) => {
+                    push_osc(app.zip-url, config.wii-ip);
                     update_config(config);
                 }
                 update_config => {
