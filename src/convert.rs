@@ -13,7 +13,7 @@ use anyhow::{Result, anyhow, bail};
 use nod::{
     common::Format,
     read::{DiscOptions, DiscReader, PartitionEncryption},
-    write::{DiscWriter, FormatOptions, ProcessOptions},
+    write::{DiscWriter, FormatOptions, ProcessOptions, ScrubLevel},
 };
 use rfd::FileDialog;
 use sanitize_filename::sanitize;
@@ -38,6 +38,11 @@ pub fn get_disc_opts() -> DiscOptions {
 pub fn get_process_opts(scrub_update_partition: bool) -> ProcessOptions {
     let (_, processor_threads) = util::get_threads_num();
 
+    let scrub = match scrub_update_partition {
+        true => ScrubLevel::UpdatePartition,
+        false => ScrubLevel::None,
+    };
+
     if scrub_update_partition {
         ProcessOptions {
             processor_threads,
@@ -45,7 +50,7 @@ pub fn get_process_opts(scrub_update_partition: bool) -> ProcessOptions {
             digest_md5: false,
             digest_sha1: false,
             digest_xxh64: false,
-            scrub_update_partition,
+            scrub,
         }
     } else {
         ProcessOptions {
@@ -54,7 +59,7 @@ pub fn get_process_opts(scrub_update_partition: bool) -> ProcessOptions {
             digest_md5: false, // too slow
             digest_sha1: true,
             digest_xxh64: true,
-            scrub_update_partition,
+            scrub,
         }
     }
 }
