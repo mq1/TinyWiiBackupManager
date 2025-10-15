@@ -26,7 +26,6 @@ pub mod wiitdb;
 use crate::{tasks::TaskProcessor, titles::Titles};
 use anyhow::{Result, anyhow};
 use parking_lot::Mutex;
-use path_slash::PathBufExt;
 use rfd::{FileDialog, MessageDialog, MessageLevel};
 use slint::{ModelRc, SharedString, ToSharedString, VecModel, Weak};
 use std::{
@@ -85,7 +84,7 @@ fn choose_mount_point(
 
     let mut config = Config::load(data_dir);
     config.mount_point = dir
-        .to_slash()
+        .to_str()
         .ok_or(anyhow!("Invalid path"))?
         .to_shared_string();
     config.save(data_dir)?;
@@ -116,7 +115,7 @@ fn run() -> Result<()> {
     // Load the mount point from the first argument
     if let Some(path) = std::env::args().nth(1) {
         config.mount_point = PathBuf::from(path)
-            .to_slash()
+            .to_str()
             .ok_or(anyhow!("Invalid path"))?
             .to_shared_string();
         config.save(&data_dir)?;
