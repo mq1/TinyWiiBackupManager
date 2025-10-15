@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { Horizontal, Icon, IconButton, TonalButton, FilledIconButton, MaterialPalette, TonalIconButton } from "@material";
+import { Horizontal, Icon, IconButton, TonalButton, FilledIconButton, MaterialPalette, TonalIconButton, Dialog, MaterialText } from "@material";
 import { LineEdit } from "std-widgets.slint";
 import { HbcApp, Config, ViewAs, SortBy } from "common.slint";
 import { HbcAppGrid } from "hbc_app_grid.slint";
@@ -10,15 +10,16 @@ import { HbcAppList } from "hbc_app_list.slint";
 export component HbcAppsPage inherits VerticalLayout {
     private property <string> filter: "";
     in-out property <Config> config;
+    property <HbcApp> removing_app;
 
     callback add_apps();
     callback update_config();
     callback open_app_info(HbcApp);
     callback open_app_dir(HbcApp);
-    callback remove_app(HbcApp);
+    callback remove_dir(string);
     callback open_wiiload();
     callback trigger_sort(string);
-    callback refresh();
+    callback refresh_apps();
 
     pure callback get_apps(string) -> [HbcApp];
 
@@ -140,7 +141,7 @@ export component HbcAppsPage inherits VerticalLayout {
                 icon: @image-url("../mdi/refresh.svg");
                 tooltip: "Refresh";
                 clicked => {
-                    refresh();
+                    refresh_apps();
                 }
             }
 
@@ -160,13 +161,48 @@ export component HbcAppsPage inherits VerticalLayout {
         x: -4px;
         apps: get_apps(filter.to-lowercase());
         open_app_info(app) => open_app_info(app);
-        remove_app(app) => remove_app(app);
+        remove_app(app) => {
+            removing_app = app;
+            remove_app_dialog.show();
+        }
     }
 
     if config.view-as == ViewAs.List: HbcAppList {
         x: -4px;
         apps: get_apps(filter.to-lowercase());
         open_app_info(app) => open_app_info(app);
-        remove_app(app) => remove_app(app);
+        remove_app(app) => {
+            removing_app = app;
+            remove_app_dialog.show();
+        }
+    }
+
+    remove_app_dialog := Dialog {
+        width: root.width;
+        height: root.height;
+        title: "Do you want to remove this App?";
+        icon: @image-url("../mdi/alert.svg");
+        default_action_text: "Yes";
+        actions: ["No"];
+
+        default_action_clicked => {
+            self.close();
+            remove_dir(removing_app.path);
+            refresh_apps();
+        }
+
+        action_clicked(i) => {
+            if i == 0 {
+                self.close();
+            }
+        }
+
+        MaterialText {
+            width: self.preferred-width;
+
+            vertical-alignment: center;
+            horizontal-alignment: center;
+            text: "Are you sure you want to remove " + removing_app.name + "?";
+        }
     }
 }
