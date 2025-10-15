@@ -15,16 +15,18 @@ pub struct TaskProcessor {
 }
 
 impl TaskProcessor {
-    pub fn init(weak: Weak<MainWindow>) -> Self {
+    pub fn init(weak: Weak<MainWindow>, increment_count: bool) -> Self {
         let (sender, receiver) = mpsc::channel::<BoxedTask>();
 
         let weak_clone = weak.clone();
         thread::spawn(move || {
             while let Ok(task) = receiver.recv() {
                 // Increment the task count
-                let _ = weak_clone.upgrade_in_event_loop(|handle| {
-                    handle.set_task_count(handle.get_task_count() + 1);
-                });
+                if increment_count {
+                    let _ = weak_clone.upgrade_in_event_loop(|handle| {
+                        handle.set_task_count(handle.get_task_count() + 1);
+                    });
+                }
 
                 // Execute the task and show the optional message
                 let res = task(&weak_clone);
@@ -34,10 +36,13 @@ impl TaskProcessor {
                 });
 
                 // Cleanup
-                let _ = weak_clone.upgrade_in_event_loop(|handle| {
+                let _ = weak_clone.upgrade_in_event_loop(move |handle| {
                     handle.set_status(SharedString::new());
                     handle.set_task_type(TaskType::Unknown);
-                    handle.set_task_count(handle.get_task_count() - 1);
+
+                    if increment_count {
+                        handle.set_task_count(handle.get_task_count() - 1);
+                    }
                 });
             }
         });
@@ -47,9 +52,10 @@ impl TaskProcessor {
 
     pub fn spawn(&self, task: BoxedTask) {
         if let Err(e) = self.sender.send(task)
-            && let Some(handle) = self.weak.upgrade() {
-                handle.invoke_show_error(e.to_shared_string());
-            }
+            && let Some(handle) = self.weak.upgrade()
+        {
+            handle.invoke_show_error(e.to_shared_string());
+        }
     }
 
     pub fn run_now(&self, task: BoxedTask) {

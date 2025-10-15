@@ -46,8 +46,8 @@ fn run() -> Result<()> {
     fs::create_dir_all(&data_dir)?;
 
     let titles = Arc::new(Mutex::new(Titles::empty()));
-    let task_processor = Arc::new(TaskProcessor::init(app.as_weak()));
-    let lazy_task_processor = Arc::new(TaskProcessor::init(app.as_weak()));
+    let task_processor = Arc::new(TaskProcessor::init(app.as_weak(), true));
+    let lazy_task_processor = Arc::new(TaskProcessor::init(app.as_weak(), false));
 
     let data_dir_clone = data_dir.clone();
     let task_processor_clone = task_processor.clone();
