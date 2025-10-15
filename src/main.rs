@@ -73,6 +73,7 @@ fn run() -> Result<()> {
                 .upgrade()
                 .ok_or(anyhow!("Failed to upgrade weak reference"))?;
 
+            handle.set_config(config);
             handle.invoke_refresh_games();
             handle.invoke_refresh_hbc_apps();
             handle.invoke_refresh_disk_usage();
