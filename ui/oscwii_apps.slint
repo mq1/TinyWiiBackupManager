@@ -9,6 +9,7 @@ import { OscWiiAppList } from "oscwii_app_list.slint";
 
 export component OscWiiAppsPage inherits VerticalLayout {
     private property <string> filter: "";
+    in property <string> oscwii_load_status: "";
     in-out property <Config> config;
 
     callback update_config();
@@ -98,7 +99,19 @@ export component OscWiiAppsPage inherits VerticalLayout {
         }
     }
 
-    if config.view-as == ViewAs.Grid: OscWiiAppGrid {
+    if !oscwii_load_status.is-empty: VerticalLayout {
+        alignment: center;
+
+        HorizontalLayout {
+            alignment: center;
+
+            MaterialText {
+                text: oscwii_load_status;
+            }
+        }
+    }
+
+    if oscwii_load_status.is-empty && config.view-as == ViewAs.Grid: OscWiiAppGrid {
         x: -4px;
         apps: get_apps(filter.to-lowercase());
         open_oscwii_info(app) => open_oscwii_info(app);
@@ -106,7 +119,7 @@ export component OscWiiAppsPage inherits VerticalLayout {
         push_oscwii(app) => push_oscwii(app);
     }
 
-    if config.view-as == ViewAs.List: OscWiiAppList {
+    if oscwii_load_status.is-empty && config.view-as == ViewAs.List: OscWiiAppList {
         x: -4px;
         apps: get_apps(filter.to-lowercase());
         open_oscwii_info(app) => open_oscwii_info(app);
