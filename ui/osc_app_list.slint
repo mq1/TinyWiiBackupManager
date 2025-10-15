@@ -2,15 +2,15 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import { Horizontal, Icon, MaterialPalette, MaterialText, HorizontalDivider, IconButton } from "@material";
-import { OscWiiApp } from "common.slint";
+import { OscApp } from "common.slint";
 import { MyScrollView } from "scroll_view.slint";
 
-export component OscWiiAppList inherits MyScrollView {
-    in property <[OscWiiApp]> apps;
+export component OscAppList inherits MyScrollView {
+    in property <[OscApp]> apps;
 
-    callback open_oscwii_info(OscWiiApp);
-    callback download_oscwii(OscWiiApp);
-    callback push_oscwii(OscWiiApp);
+    callback open_osc_info(OscApp);
+    callback download_osc(OscApp);
+    callback push_osc(OscApp);
 
     viewport_height: (4px + 18px + 4px) * apps.length + 36px;
 
@@ -108,7 +108,7 @@ export component OscWiiAppList inherits MyScrollView {
                     tooltip: "App Information";
                     inline: true;
                     clicked => {
-                        open_oscwii_info(apps[apps.length - i - 1]);
+                        open_osc_info(apps[apps.length - i - 1]);
                     }
                 }
 
@@ -121,7 +121,7 @@ export component OscWiiAppList inherits MyScrollView {
                     tooltip: "Download";
                     inline: true;
                     clicked => {
-                        download_oscwii(apps[apps.length - i - 1]);
+                        download_osc(apps[apps.length - i - 1]);
                     }
                 }
 
@@ -134,7 +134,7 @@ export component OscWiiAppList inherits MyScrollView {
                     tooltip: "Wiiload" + "\u{2001}.";
                     inline: true;
                     clicked => {
-                        push_oscwii(apps[apps.length - i - 1]);
+                        push_osc(apps[apps.length - i - 1]);
                     }
                 }
             }
