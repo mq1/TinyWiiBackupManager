@@ -24,10 +24,10 @@ pub mod wiiload;
 pub mod wiitdb;
 
 use crate::{tasks::TaskProcessor, titles::Titles};
-use anyhow::{Result, anyhow};
+use anyhow::{Context, Result, anyhow};
 use parking_lot::Mutex;
 use rfd::{FileDialog, MessageDialog, MessageLevel};
-use slint::{ModelRc, SharedString, ToSharedString, VecModel, Weak};
+use slint::{ModelRc, SharedString, ToSharedString, VecModel};
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -37,115 +37,61 @@ use std::{
 
 slint::include_modules!();
 
-fn refresh_dir_name(handle: &MainWindow, mount_point: &Path) {
-    let dir_name = mount_point
-        .file_name()
-        .unwrap_or(mount_point.as_os_str())
-        .to_str()
-        .unwrap_or_default();
-
-    handle.set_dir_name(dir_name.to_shared_string());
-}
-
-fn refresh_disk_usage(handle: &MainWindow, mount_point: &Path) {
-    if let Some(usage) = util::get_disk_usage(mount_point) {
-        handle.set_disk_usage(usage.to_shared_string());
-    }
-}
-
-fn refresh_games(
-    handle: &MainWindow,
-    mount_point: &Path,
-    titles: Arc<Mutex<Titles>>,
-) -> Result<()> {
-    let games = games::list(mount_point, titles)?;
-    let games_model = ModelRc::from(Rc::new(VecModel::from(games)));
-    handle.set_games(games_model.clone());
-    Ok(())
-}
-
-fn refresh_hbc_apps(handle: &MainWindow, mount_point: &Path) -> Result<()> {
-    let hbc_apps = hbc_apps::list(mount_point)?;
-    let hbc_apps_model = ModelRc::from(Rc::new(VecModel::from(hbc_apps)));
-    handle.set_hbc_apps(hbc_apps_model.clone());
-    Ok(())
-}
-
-fn choose_mount_point(
-    weak: &Weak<MainWindow>,
-    titles: Arc<Mutex<Titles>>,
-    data_dir: &Path,
-) -> Result<()> {
-    let handle = weak.upgrade().ok_or(anyhow!("Failed to upgrade weak"))?;
-
-    let dir = FileDialog::new()
-        .pick_folder()
-        .ok_or(anyhow!("No directory selected"))?;
-
-    let mut config = Config::load(data_dir);
-    config.mount_point = dir
-        .to_str()
-        .ok_or(anyhow!("Invalid path"))?
-        .to_shared_string();
-    config.save(data_dir)?;
-    handle.set_config(config);
-
-    refresh_dir_name(&handle, &dir);
-    refresh_games(&handle, &dir, titles)?;
-    refresh_hbc_apps(&handle, &dir)?;
-    refresh_disk_usage(&handle, &dir);
-    handle.invoke_apply_sorting();
-
-    Ok(())
-}
-
 fn run() -> Result<()> {
+    let app = MainWindow::new()?;
+    app.set_app_name(env!("CARGO_PKG_NAME").to_shared_string() + " v" + env!("CARGO_PKG_VERSION"));
+    app.set_is_macos(cfg!(target_os = "macos"));
+
     let data_dir = get_data_dir()?;
     fs::create_dir_all(&data_dir)?;
 
-    let app = MainWindow::new()?;
-    let mut config = Config::load(&data_dir);
-
-    // If the mount point doesn't exist, erase it
-    if !matches!(fs::exists(&config.mount_point), Ok(true)) {
-        config.mount_point = SharedString::new();
-        config.save(&data_dir)?;
-    }
-
-    // Load the mount point from the first argument
-    if let Some(path) = std::env::args().nth(1) {
-        config.mount_point = PathBuf::from(path)
-            .to_str()
-            .ok_or(anyhow!("Invalid path"))?
-            .to_shared_string();
-        config.save(&data_dir)?;
-    }
-
-    let mount_point = Path::new(&config.mount_point);
     let titles = Arc::new(Mutex::new(Titles::empty()));
     let task_processor = Arc::new(TaskProcessor::init(app.as_weak()));
     let lazy_task_processor = Arc::new(TaskProcessor::init(app.as_weak()));
 
-    app.set_app_name(env!("CARGO_PKG_NAME").to_shared_string() + " v" + env!("CARGO_PKG_VERSION"));
-    app.set_is_macos(cfg!(target_os = "macos"));
-
-    refresh_dir_name(&app, mount_point);
-    refresh_games(&app, mount_point, titles.clone())?;
-    refresh_hbc_apps(&app, mount_point)?;
-    refresh_disk_usage(&app, mount_point);
-    app.set_config(config);
-
-    let titles_clone = titles.clone();
     let data_dir_clone = data_dir.clone();
     let task_processor_clone = task_processor.clone();
-    app.on_choose_mount_point(move || {
-        let titles_clone = titles_clone.clone();
+    app.on_choose_mount_point(move |mut config| {
         let data_dir_clone = data_dir_clone.clone();
 
         task_processor_clone.run_now(Box::new(move |weak| {
-            choose_mount_point(weak, titles_clone, &data_dir_clone)?;
+            let dir = FileDialog::new()
+                .pick_folder()
+                .ok_or(anyhow!("Failed to pick folder"))?
+                .canonicalize()
+                .context("Failed to get canonical path")?;
+
+            let dir_str = dir
+                .to_str()
+                .ok_or(anyhow!("Failed to convert path to string"))?
+                .to_string();
+
+            config.mount_point = dir_str.to_shared_string();
+            config.save(&data_dir_clone)?;
+
+            let handle = weak
+                .upgrade()
+                .ok_or(anyhow!("Failed to upgrade weak reference"))?;
+
+            handle.invoke_refresh_dir_name();
+            handle.invoke_refresh_games();
+            handle.invoke_refresh_hbc_apps();
+            handle.invoke_refresh_disk_usage();
+            handle.invoke_apply_sorting();
+
             Ok(String::new())
         }));
+    });
+
+    app.on_get_filename(move |path| {
+        let path = Path::new(&path);
+
+        let filename = path
+            .file_name()
+            .unwrap_or(path.as_os_str())
+            .to_string_lossy();
+
+        filename.to_shared_string()
     });
 
     let task_processor_clone = task_processor.clone();
@@ -345,28 +291,52 @@ fn run() -> Result<()> {
     });
 
     let titles_clone = titles.clone();
-    let task_processor_clone = task_processor.clone();
-    app.on_refresh(move |mount_point| {
-        let titles_clone = titles_clone.clone();
-
-        task_processor_clone.run_now(Box::new(move |weak| {
-            let mount_point = Path::new(&mount_point);
-
-            let handle = weak
-                .upgrade()
-                .ok_or(anyhow!("Could not upgrade weak handle"))?;
-
-            refresh_games(&handle, mount_point, titles_clone)?;
-            refresh_hbc_apps(&handle, mount_point)?;
-            refresh_disk_usage(&handle, mount_point);
-            handle.invoke_apply_sorting();
-
-            Ok(String::new())
-        }));
+    app.on_list_games(move |mount_point| {
+        let mount_point = Path::new(&mount_point);
+        let list = games::list(mount_point, &titles_clone).unwrap_or_default();
+        ModelRc::from(Rc::new(VecModel::from(list)))
     });
 
+    app.on_list_hbc_apps(move |mount_point| {
+        let mount_point = Path::new(&mount_point);
+        let list = hbc_apps::list(mount_point).unwrap_or_default();
+        ModelRc::from(Rc::new(VecModel::from(list)))
+    });
+
+    app.on_get_disk_usage(move |mount_point| {
+        let mount_point = Path::new(&mount_point);
+        util::get_disk_usage(mount_point)
+            .unwrap_or_default()
+            .to_shared_string()
+    });
+
+    let mut config = Config::load(&data_dir);
+
+    // If the mount point doesn't exist, erase it
+    if !fs::exists(&config.mount_point).unwrap_or(false) {
+        config.mount_point = SharedString::new();
+        config.save(&data_dir)?;
+    }
+
+    // Load the mount point from the first argument
+    if let Some(path) = std::env::args().nth(1)
+        && let Ok(path) = PathBuf::from(path).canonicalize()
+        && let Some(path_str) = path.to_str()
+        && path.exists()
+    {
+        config.mount_point = path_str.to_shared_string();
+        config.save(&data_dir)?;
+    }
+
+    app.set_config(config);
+
+    app.invoke_refresh_dir_name();
+    app.invoke_refresh_hbc_apps();
+    app.invoke_apply_sorting();
+    app.invoke_refresh_disk_usage();
+
     let data_dir_clone = data_dir.clone();
-    lazy_task_processor.spawn(Box::new(move |weak| {
+    task_processor.spawn(Box::new(move |weak| {
         titles::load_titles(&data_dir_clone, weak, titles)?;
         Ok(String::new())
     }));
@@ -383,7 +353,6 @@ fn run() -> Result<()> {
         Ok(String::new())
     }));
 
-    app.invoke_apply_sorting();
     app.run()?;
     Ok(())
 }
