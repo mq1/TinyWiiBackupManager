@@ -1,21 +1,21 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{MainWindow, OscWiiApp, http::AGENT};
+use crate::{MainWindow, OscApp, http::AGENT};
 use anyhow::{Result, bail};
 use serde::Deserialize;
 use size::Size;
 use slint::{Image, ModelRc, SharedString, ToSharedString, VecModel, Weak};
 use std::{fs, path::Path, rc::Rc, time::Duration};
 
-const CONTENTS_URL: &str = "https://hbb1.oscwii.org/api/v4/contents";
+const CONTENTS_URL: &str = "https://hbb1.osc.org/api/v4/contents";
 
-pub fn load_oscwii_apps(data_dir: &Path, weak: &Weak<MainWindow>) -> Result<()> {
-    let cache_path = data_dir.join("oscwii-cache.json");
-    let icons_dir = data_dir.join("oscwii-icons");
+pub fn load_osc_apps(data_dir: &Path, weak: &Weak<MainWindow>) -> Result<()> {
+    let cache_path = data_dir.join("osc-cache.json");
+    let icons_dir = data_dir.join("osc-icons");
 
     weak.upgrade_in_event_loop(|handle| {
-        handle.set_oscwii_load_status("Loading OSCWii Apps...".to_shared_string());
+        handle.set_osc_load_status("Loading OSC Apps...".to_shared_string());
     })?;
 
     let cache = match load_cache(&cache_path) {
@@ -30,11 +30,10 @@ pub fn load_oscwii_apps(data_dir: &Path, weak: &Weak<MainWindow>) -> Result<()> 
     fs::create_dir_all(&icons_dir)?;
     let len = cache.len();
     for (i, app) in cache.iter().enumerate() {
-        let status =
-            format!("Downloading OSCWii App icons... {}/{}", i + 1, len).to_shared_string();
+        let status = format!("Downloading OSC App icons... {}/{}", i + 1, len).to_shared_string();
 
         weak.upgrade_in_event_loop(move |handle| {
-            handle.set_oscwii_load_status(status);
+            handle.set_osc_load_status(status);
         })?;
 
         let _ = download_icon(app, &icons_dir);
@@ -43,12 +42,12 @@ pub fn load_oscwii_apps(data_dir: &Path, weak: &Weak<MainWindow>) -> Result<()> 
     weak.upgrade_in_event_loop(move |handle| {
         let apps = cache
             .iter()
-            .map(|app| OscWiiApp::from_app(app, &icons_dir))
+            .map(|app| OscApp::from_app(app, &icons_dir))
             .collect::<VecModel<_>>();
 
         let model = ModelRc::from(Rc::new(apps));
-        handle.set_oscwii_apps(model);
-        handle.set_oscwii_load_status(SharedString::new());
+        handle.set_osc_apps(model);
+        handle.set_osc_load_status(SharedString::new());
     })?;
 
     Ok(())
@@ -62,7 +61,7 @@ fn load_cache(path: &Path) -> Result<Vec<App>> {
     let elapsed = file_time.elapsed()?;
 
     if elapsed > Duration::from_secs(60 * 60 * 24) {
-        bail!("oscwii-cache.json is too old");
+        bail!("osc-cache.json is too old");
     }
 
     let bytes = fs::read(path)?;
@@ -89,7 +88,7 @@ fn download_icon(app: &App, icons_dir: &Path) -> Result<()> {
     Ok(())
 }
 
-impl OscWiiApp {
+impl OscApp {
     fn from_app(app: &App, icons_dir: &Path) -> Self {
         let size = Size::from_bytes(app.uncompressed_size);
 
