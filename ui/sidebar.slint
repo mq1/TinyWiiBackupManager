@@ -11,7 +11,6 @@ export component SideBar inherits VerticalLayout {
     in property <int> app_count: 0;
     in property <UpdateInfo> update_info;
 
-    callback set_window_title(string);
     callback choose_mount_point();
     callback open_url(string);
     callback dot_clean();
@@ -31,21 +30,6 @@ export component SideBar inherits VerticalLayout {
             { icon: @image-url("../mdi/storefront.svg"), text: "OSCWii" },
             { icon: @image-url("../mdi/cog.svg"), text: "Settings" }
         ];
-
-        index-changed(i) => {
-            if i == 0 {
-                set_window_title(" • " + game_count + " Games");
-            }
-            if i == 1 {
-                set_window_title(" • " + app_count + " Apps");
-            }
-            if i == 2 {
-                set_window_title(" • OSCWii");
-            }
-            if i == 3 {
-                set_window_title(" • Settings");
-            }
-        }
     }
 
     Rectangle {
