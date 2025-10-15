@@ -13,6 +13,9 @@ import { Wiiload } from "wiiload.slint";
 import { OscWiiAppsPage } from "oscwii_apps.slint";
 import { DiscInfoDialog } from "disc_info.slint";
 
+import "../assets/Roboto-VariableFont_wdth,wght.ttf";
+//import "../assets/Roboto-Regular.ttf";
+
 export * from "common.slint";
 
 export component MainWindow inherits Window {
@@ -83,6 +86,7 @@ export component MainWindow inherits Window {
     preferred-height: 600px;
     title: app_name + " • " + games.length + " Games" + (dir_name.is_empty ? "" : " • " + dir_name + " (" + disk_usage + ")");
     icon: @image-url("../assets/logo-small.png");
+    default-font-family: "Roboto";
 
     HorizontalLayout {
         SideBar {
