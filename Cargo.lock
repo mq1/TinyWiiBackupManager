@@ -17,6 +17,7 @@ dependencies = [
  "path-slash",
  "quick-xml 0.38.3",
  "rfd",
+ "sanitize-filename",
  "semver",
  "serde",
  "serde_json",
@@ -4544,6 +4545,12 @@ checksum = "93fc1dc3aaa9bfed95e02e6eadabb4baf7e3078b0bd1b4d7b6b0b68378900502"
 dependencies = [
  "winapi-util",
 ]
+
+[[package]]
+name = "sanitize-filename"
+version = "0.7.0-beta"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "889fe19c32b4d5d42e588152757b960d1a5fca06303a583bcf3f9c920b8b1fc7"
 
 [[package]]
 name = "schannel"
