@@ -20,7 +20,6 @@ export * from "common.slint";
 
 export component MainWindow inherits Window {
     in property <string> app_name: "";
-    property <string> dir_name: "";
     property <string> disk_usage: "";
     in property <bool> is_macos: false;
     in-out property <int> current_index: 0;
@@ -85,8 +84,20 @@ export component MainWindow inherits Window {
         app_info.show();
     }
 
-    public function refresh_dir_name() {
-        dir_name = get_filename(config.mount-point);
+    pure function get_title(view: int, mount_point: string, games_len: int, hbc_apps_len: int, disk_usage: string) -> string {
+        if view == 0 {
+            return app_name + " • " + games_len + " Games" + (mount_point.is_empty ? "" : " • " + get_filename(mount_point) + " (" + disk_usage + ")");
+        }
+        if view == 1 {
+            return app_name + " • " + hbc_apps_len + " Apps" + (mount_point.is_empty ? "" : " • " + get_filename(mount_point) + " (" + disk_usage + ")");
+        }
+        if view == 2 {
+            return app_name + " • OSCWii" + (mount_point.is_empty ? "" : " • " + get_filename(mount_point) + " (" + disk_usage + ")");
+        }
+        if view == 3 {
+            return app_name + " • Settings" + (mount_point.is_empty ? "" : " • " + get_filename(mount_point) + " (" + disk_usage + ")");
+        }
+        ""
     }
 
     public function refresh_games() {
@@ -103,7 +114,7 @@ export component MainWindow inherits Window {
 
     preferred-width: 800px;
     preferred-height: 600px;
-    title: app_name + " • " + games.length + " Games" + (dir_name.is_empty ? "" : " • " + dir_name + " (" + disk_usage + ")");
+    title: get_title(current_index, config.mount-point, games.length, hbc_apps.length, disk_usage);
     icon: @image-url("../assets/logo-small.png");
     default-font-family: "Roboto";
 
@@ -116,9 +127,6 @@ export component MainWindow inherits Window {
             update_info: update_info;
             choose_mount_point => {
                 choose_mount_point(config);
-            }
-            set-window-title(title) => {
-                root.title = app_name + title + (dir_name.is_empty ? "" : " • " + dir_name + " (" + disk_usage + ")");
             }
             open-url(url) => {
                 open_url(url);
@@ -135,7 +143,7 @@ export component MainWindow inherits Window {
         }
 
         VerticalLayout {
-            if current_index == 0 && !dir_name.is-empty: GamesPage {
+            if current_index == 0 && !config.mount-point.is-empty: GamesPage {
                 config <=> config;
                 get_games(filter, show_wii, show_gc) => get_filtered_games(games, filter, show_wii, show_gc);
                 open_disc_info(game) => {
@@ -166,7 +174,7 @@ export component MainWindow inherits Window {
                 }
             }
 
-            if current_index == 1 && !dir_name.is-empty: HbcAppsPage {
+            if current_index == 1 && !config.mount-point.is-empty: HbcAppsPage {
                 config <=> config;
                 get_apps(filter) => get_filtered_hbc_apps(hbc_apps, filter);
                 open_app_info(app) => {
@@ -224,7 +232,7 @@ export component MainWindow inherits Window {
                 open_data_dir => open_data_dir();
             }
 
-            if (current_index == 0 || current_index == 1) && dir_name.is-empty: VerticalLayout {
+            if (current_index == 0 || current_index == 1) && config.mount-point.is-empty: VerticalLayout {
                 alignment: center;
 
                 Horizontal {
