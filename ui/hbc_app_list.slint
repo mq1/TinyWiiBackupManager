@@ -104,7 +104,7 @@ export component HbcAppList inherits MyScrollView {
                     height: 18px;
                     width: 18px;
                     icon: @image-url("../mdi/information.svg");
-                    tooltip: "App Information      ";
+                    tooltip: "App Information" + "\u{2001}.";
                     inline: true;
                     clicked => {
                         open_app_info(apps[apps.length - i - 1]);
@@ -117,7 +117,7 @@ export component HbcAppList inherits MyScrollView {
                     height: 18px;
                     width: 18px;
                     icon: @image-url("../mdi/trash-can.svg");
-                    tooltip: "Delete App           ";
+                    tooltip: "Delete App" + "\u{2001}\u{2001}.";
                     inline: true;
                     clicked => {
                         remove_app(apps[apps.length - i - 1]);
