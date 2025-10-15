@@ -127,7 +127,6 @@ fn download_disc_cover(id: &str, mount_point: &Path) -> Result<()> {
 // Fail safe, ignores errors, no popup notification
 pub fn download_covers(mount_point_str: &str, weak: &Weak<MainWindow>) -> Result<()> {
     let mount_point = PathBuf::from(mount_point_str);
-    let mount_point_str = mount_point_str.to_shared_string();
 
     weak.upgrade_in_event_loop(move |handle| {
         handle.set_status("Downloading covers...".to_shared_string());
@@ -135,7 +134,7 @@ pub fn download_covers(mount_point_str: &str, weak: &Weak<MainWindow>) -> Result
     })?;
 
     let empty_titles = Arc::new(Mutex::new(Titles::empty()));
-    let games = games::list(&mount_point, empty_titles)?;
+    let games = games::list(&mount_point, &empty_titles)?;
     let len = games.len();
     for (i, game) in games.iter().enumerate() {
         weak.upgrade_in_event_loop(move |handle| {
@@ -147,7 +146,8 @@ pub fn download_covers(mount_point_str: &str, weak: &Weak<MainWindow>) -> Result
     }
 
     weak.upgrade_in_event_loop(move |handle| {
-        handle.invoke_refresh(mount_point_str);
+        handle.invoke_refresh_games();
+        handle.invoke_apply_sorting();
     })?;
 
     Ok(())
@@ -155,7 +155,6 @@ pub fn download_covers(mount_point_str: &str, weak: &Weak<MainWindow>) -> Result
 
 pub fn download_all_covers(mount_point_str: &str, weak: &Weak<MainWindow>) -> Result<()> {
     let mount_point = PathBuf::from(mount_point_str);
-    let mount_point_str = mount_point_str.to_shared_string();
 
     weak.upgrade_in_event_loop(move |handle| {
         handle.set_status("Downloading covers...".to_shared_string());
@@ -163,7 +162,7 @@ pub fn download_all_covers(mount_point_str: &str, weak: &Weak<MainWindow>) -> Re
     })?;
 
     let empty_titles = Arc::new(Mutex::new(Titles::empty()));
-    let games = games::list(&mount_point, empty_titles)?;
+    let games = games::list(&mount_point, &empty_titles)?;
     let len = games.len();
     for (i, game) in games.iter().enumerate() {
         weak.upgrade_in_event_loop(move |handle| {
@@ -178,7 +177,8 @@ pub fn download_all_covers(mount_point_str: &str, weak: &Weak<MainWindow>) -> Re
     }
 
     weak.upgrade_in_event_loop(move |handle| {
-        handle.invoke_refresh(mount_point_str);
+        handle.invoke_refresh_games();
+        handle.invoke_apply_sorting();
     })?;
 
     Ok(())

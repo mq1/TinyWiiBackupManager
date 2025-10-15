@@ -109,7 +109,6 @@ fn install_zip(mount_point: &Path, path: &Path) -> Result<()> {
 
 pub fn add_app_from_url(mount_point_str: &str, url: &str, weak: &Weak<MainWindow>) -> Result<()> {
     let mount_point = PathBuf::from(mount_point_str);
-    let mount_point_str = mount_point_str.to_shared_string();
     let url = url.to_string();
 
     let status = format!("Downloading {}...", &url);
@@ -131,7 +130,7 @@ pub fn add_app_from_url(mount_point_str: &str, url: &str, weak: &Weak<MainWindow
     archive.extract(mount_point)?;
 
     weak.upgrade_in_event_loop(move |handle| {
-        handle.invoke_refresh(mount_point_str);
+        handle.invoke_refresh_hbc_apps();
     })?;
 
     Ok(())
@@ -140,7 +139,6 @@ pub fn add_app_from_url(mount_point_str: &str, url: &str, weak: &Weak<MainWindow
 pub fn add_apps(config: &Config, weak: &Weak<MainWindow>) -> Result<()> {
     let remove_sources = config.remove_sources_apps;
     let mount_point = PathBuf::from(&config.mount_point);
-    let mount_point_str = config.mount_point.to_shared_string();
     fs::create_dir_all(mount_point.join("apps"))?;
 
     let paths = rfd::FileDialog::new()
@@ -166,7 +164,7 @@ pub fn add_apps(config: &Config, weak: &Weak<MainWindow>) -> Result<()> {
         }
 
         weak.upgrade_in_event_loop(move |handle| {
-            handle.invoke_refresh(mount_point_str);
+            handle.invoke_refresh_hbc_apps();
         })?;
 
         Ok(())

@@ -74,7 +74,6 @@ pub fn add_games(config: &Config, weak: &Weak<MainWindow>) -> Result<()> {
 
     let remove_sources = config.remove_sources_games;
     let mount_point = PathBuf::from(&config.mount_point);
-    let mount_point_str = config.mount_point.to_shared_string();
     let wii_output_format = config.wii_output_format;
     let disc_opts = get_disc_opts();
     let scrub_update_partition = config.scrub_update_partition;
@@ -201,9 +200,10 @@ pub fn add_games(config: &Config, weak: &Weak<MainWindow>) -> Result<()> {
             fs::remove_file(&path)?;
         }
 
-        let mount_point_str = mount_point_str.clone();
         let _ = weak.upgrade_in_event_loop(move |handle| {
-            handle.invoke_refresh(mount_point_str);
+            handle.invoke_refresh_games();
+            handle.invoke_refresh_disk_usage();
+            handle.invoke_apply_sorting();
         });
     }
 

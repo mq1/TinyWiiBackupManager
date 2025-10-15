@@ -20,8 +20,8 @@ export * from "common.slint";
 
 export component MainWindow inherits Window {
     in property <string> app_name: "";
-    in-out property <string> dir_name: "";
-    in property <string> disk_usage: "";
+    property <string> dir_name: "";
+    property <string> disk_usage: "";
     in property <bool> is_macos: false;
     in-out property <int> current_index: 0;
     in-out property <[Game]> games;
@@ -36,9 +36,8 @@ export component MainWindow inherits Window {
     in-out property <[OscWiiApp]> oscwii_apps: [];
     property <OscWiiApp> pushing_oscwii;
     property <{msg: string, is_err: bool}> dialog_msg;
-    property <string> removing_dir;
 
-    callback choose_mount_point();
+    callback choose_mount_point(Config);
     callback open_url(string);
     callback remove_dir(string);
     callback add_games(Config);
@@ -53,13 +52,16 @@ export component MainWindow inherits Window {
     callback download_wiitdb(string);
     callback verify_game(string);
     callback download_all_covers(string);
-    callback refresh(string);
     callback sort(Config, [Game], [HbcApp]) -> { a: [Game], b: [HbcApp] };
     callback get_disc_info(string) -> DiscInfo;
 
+    pure callback list_games(string) -> [Game];
+    pure callback list_hbc_apps(string) -> [HbcApp];
     pure callback get_filtered_games([Game], string, bool, bool) -> [Game];
     pure callback get_filtered_hbc_apps([HbcApp], string) -> [HbcApp];
     pure callback get_filtered_oscwii_apps([OscWiiApp], string) -> [OscWiiApp];
+    pure callback get_filename(string) -> string;
+    pure callback get_disk_usage(string) -> string;
 
     public function apply_sorting() {
         let all = sort(config, games, hbc_apps);
@@ -82,6 +84,22 @@ export component MainWindow inherits Window {
         app_info.show();
     }
 
+    public function refresh_dir_name() {
+        dir_name = get_filename(config.mount-point);
+    }
+
+    public function refresh_games() {
+        games = list_games(config.mount-point);
+    }
+
+    public function refresh_hbc_apps() {
+        hbc_apps = list_hbc_apps(config.mount-point);
+    }
+
+    public function refresh_disk_usage() {
+        disk_usage = get_disk_usage(config.mount-point);
+    }
+
     preferred-width: 800px;
     preferred-height: 600px;
     title: app_name + " • " + games.length + " Games" + (dir_name.is_empty ? "" : " • " + dir_name + " (" + disk_usage + ")");
@@ -96,7 +114,7 @@ export component MainWindow inherits Window {
             app_count: hbc_apps.length;
             update_info: update_info;
             choose_mount_point => {
-                choose_mount_point();
+                choose_mount_point(config);
             }
             set-window-title(title) => {
                 root.title = app_name + title + (dir_name.is_empty ? "" : " • " + dir_name + " (" + disk_usage + ")");
@@ -122,9 +140,11 @@ export component MainWindow inherits Window {
                 open_disc_info(game) => {
                     open_disc_info_dialog(game);
                 }
-                remove_game(game) => {
-                    removing_dir = game.path;
-                    remove_dir_dialog.show();
+                remove_dir(path) => {
+                    remove_dir(path);
+                    refresh_games();
+                    apply_sorting();
+                    refresh_disk_usage();
                 }
                 archive_game(game) => {
                     archive_game(game.path, config);
@@ -138,8 +158,10 @@ export component MainWindow inherits Window {
                 trigger_sort(filter) => {
                     apply_sorting();
                 }
-                refresh => {
-                    refresh(config.mount-point);
+                refresh_games => {
+                    refresh_games();
+                    apply_sorting();
+                    refresh_disk_usage();
                 }
             }
 
@@ -149,9 +171,11 @@ export component MainWindow inherits Window {
                 open_app_info(app) => {
                     open_app_info_dialog(app);
                 }
-                remove_app(app) => {
-                    removing_dir = app.path;
-                    remove_dir_dialog.show();
+                remove_dir(path) => {
+                    remove_dir(path);
+                    refresh_hbc_apps();
+                    apply_sorting();
+                    refresh_disk_usage();
                 }
                 update_config => {
                     update_config(config);
@@ -165,8 +189,10 @@ export component MainWindow inherits Window {
                 trigger_sort(filter) => {
                     apply_sorting();
                 }
-                refresh => {
-                    refresh(config.mount-point);
+                refresh_apps => {
+                    refresh_hbc_apps();
+                    apply_sorting();
+                    refresh_disk_usage();
                 }
             }
 
@@ -296,35 +322,6 @@ export component MainWindow inherits Window {
             dialog_msg.is-err = false;
             dialog_msg.msg = msg;
             msg_dialog.show();
-        }
-    }
-
-    remove_dir_dialog := Dialog {
-        width: root.width;
-        height: root.height;
-        title: "Remove Directory?";
-        icon: @image-url("../mdi/alert.svg");
-        default_action_text: "Yes";
-        actions: ["No"];
-
-        default_action_clicked => {
-            self.close();
-            remove_dir(removing_dir);
-            refresh(config.mount-point);
-        }
-
-        action_clicked(i) => {
-            if i == 0 {
-                self.close();
-            }
-        }
-
-        MaterialText {
-            width: self.preferred-width;
-
-            vertical-alignment: center;
-            horizontal-alignment: center;
-            text: "Are you sure you want to remove " + removing_dir + "?";
         }
     }
 }
