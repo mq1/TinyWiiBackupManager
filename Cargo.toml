@@ -55,10 +55,8 @@ parking_lot = "0.12"
 sanitize-filename = "0.7.0-beta"
 
 [features]
-default = ["app-dir", "skia", "bundled-tls"]
+default = ["app-dir", "bundled-tls"]
 app-dir = ["dep:directories"]
-femtovg = ["slint/renderer-femtovg"]
-skia = ["slint/renderer-skia-opengl"]
 bundled-tls = ["ureq/rustls"]
 native-tls = ["ureq/native-tls", "ureq/platform-verifier"]
 
