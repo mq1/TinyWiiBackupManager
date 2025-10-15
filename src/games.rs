@@ -11,7 +11,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-pub fn list(mount_point: &Path, titles: Arc<Mutex<Titles>>) -> Result<Vec<Game>> {
+pub fn list(mount_point: &Path, titles: &Arc<Mutex<Titles>>) -> Result<Vec<Game>> {
     if mount_point.as_os_str().is_empty() {
         return Ok(vec![]);
     }

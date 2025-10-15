@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { Vertical, Horizontal, Icon, MaterialPalette, FilledIconButton, IconButton, TonalIconButton } from "@material";
+import { Vertical, Horizontal, Icon, MaterialPalette, FilledIconButton, IconButton, TonalIconButton, Dialog, MaterialText } from "@material";
 import { LineEdit } from "std-widgets.slint";
 import { Game, Config, ViewAs, SortBy } from "common.slint";
 import { GameGrid } from "game_grid.slint";
@@ -12,15 +12,16 @@ export component GamesPage inherits VerticalLayout {
     private property <bool> show_wii: true;
     private property <bool> show_gc: true;
     in-out property <Config> config;
+    property <Game> removing_game;
 
     callback add_games();
     callback update_config();
     callback open_disc_info(Game);
     callback open_game_dir(Game);
-    callback remove_game(Game);
     callback archive_game(Game);
     callback trigger_sort(string);
-    callback refresh();
+    callback refresh_games();
+    callback remove_dir(string);
 
     pure callback get_games(string, bool, bool) -> [Game];
 
@@ -167,7 +168,7 @@ export component GamesPage inherits VerticalLayout {
                 icon: @image-url("../mdi/refresh.svg");
                 tooltip: "Refresh";
                 clicked => {
-                    refresh();
+                    refresh_games();
                 }
             }
 
@@ -188,7 +189,10 @@ export component GamesPage inherits VerticalLayout {
         games: get_games(filter.to-lowercase(), show_wii, show_gc);
         archive_format: config.archive_format;
         open_disc_info(game) => open_disc_info(game);
-        remove_game(game) => remove_game(game);
+        remove_game(game) => {
+            removing_game = game;
+            remove_game_dialog.show();
+        }
         archive_game(game) => archive_game(game);
     }
 
@@ -197,7 +201,39 @@ export component GamesPage inherits VerticalLayout {
         games: get_games(filter.to-lowercase(), show_wii, show_gc);
         archive_format: config.archive_format;
         open_disc_info(game) => open_disc_info(game);
-        remove_game(game) => remove_game(game);
+        remove_game(game) => {
+            removing_game = game;
+            remove_game_dialog.show();
+        }
         archive_game(game) => archive_game(game);
+    }
+
+    remove_game_dialog := Dialog {
+        width: root.width;
+        height: root.height;
+        title: "Do you want to remove this Game?";
+        icon: @image-url("../mdi/alert.svg");
+        default_action_text: "Yes";
+        actions: ["No"];
+
+        default_action_clicked => {
+            self.close();
+            remove_dir(removing_game.path);
+            refresh_games();
+        }
+
+        action_clicked(i) => {
+            if i == 0 {
+                self.close();
+            }
+        }
+
+        MaterialText {
+            width: self.preferred-width;
+
+            vertical-alignment: center;
+            horizontal-alignment: center;
+            text: "Are you sure you want to remove " + removing_game.display-title + "?";
+        }
     }
 }
