@@ -70,8 +70,8 @@ pub fn load_titles(
     *titles.lock() = Titles::load(data_dir)?;
 
     weak.upgrade_in_event_loop(move |handle| {
-        let mount_point = handle.get_config().mount_point.to_shared_string();
-        handle.invoke_refresh(mount_point);
+        handle.invoke_refresh_games();
+        handle.invoke_apply_sorting();
     })?;
 
     Ok(())
