@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{MainWindow, OscWiiApp, TaskType, http::AGENT};
+use crate::{MainWindow, OscWiiApp, http::AGENT};
 use anyhow::{Result, bail};
 use serde::Deserialize;
 use size::Size;
-use slint::{Image, ModelRc, ToSharedString, VecModel, Weak};
+use slint::{Image, ModelRc, SharedString, ToSharedString, VecModel, Weak};
 use std::{fs, path::Path, rc::Rc, time::Duration};
 
 const CONTENTS_URL: &str = "https://hbb1.oscwii.org/api/v4/contents";
@@ -14,10 +14,8 @@ pub fn load_oscwii_apps(data_dir: &Path, weak: &Weak<MainWindow>) -> Result<()> 
     let cache_path = data_dir.join("oscwii-cache.json");
     let icons_dir = data_dir.join("oscwii-icons");
 
-    let status = "Loading OSCWii Apps...".to_shared_string();
-    weak.upgrade_in_event_loop(move |handle| {
-        handle.set_status(status);
-        handle.set_task_type(TaskType::DownloadingFile);
+    weak.upgrade_in_event_loop(|handle| {
+        handle.set_oscwii_load_status("Loading OSCWii Apps...".to_shared_string());
     })?;
 
     let cache = match load_cache(&cache_path) {
@@ -34,9 +32,9 @@ pub fn load_oscwii_apps(data_dir: &Path, weak: &Weak<MainWindow>) -> Result<()> 
     for (i, app) in cache.iter().enumerate() {
         let status =
             format!("Downloading OSCWii App icons... {}/{}", i + 1, len).to_shared_string();
+
         weak.upgrade_in_event_loop(move |handle| {
-            handle.set_status(status);
-            handle.set_task_type(TaskType::DownloadingCovers);
+            handle.set_oscwii_load_status(status);
         })?;
 
         let _ = download_icon(app, &icons_dir);
@@ -50,6 +48,7 @@ pub fn load_oscwii_apps(data_dir: &Path, weak: &Weak<MainWindow>) -> Result<()> 
 
         let model = ModelRc::from(Rc::new(apps));
         handle.set_oscwii_apps(model);
+        handle.set_oscwii_load_status(SharedString::new());
     })?;
 
     Ok(())
