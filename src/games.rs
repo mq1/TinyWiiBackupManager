@@ -57,7 +57,7 @@ impl Game {
             _ => Console::Unknown,
         };
 
-        let display_title = titles.get(id).unwrap_or(title.to_string());
+        let display_title = titles.get(id).unwrap_or(title.to_shared_string());
 
         // Get the directory size
         let size = Size::from_bytes(fs_extra::dir::get_size(&dir).unwrap_or(0));
@@ -84,7 +84,6 @@ impl Game {
         Some(Game {
             path: dir.to_str()?.to_shared_string(),
             id: id.to_shared_string(),
-            title: title.to_shared_string(),
             display_title: display_title.to_shared_string(),
             display_title_lower: display_title.to_lowercase().to_shared_string(),
             size: size.to_shared_string(),
