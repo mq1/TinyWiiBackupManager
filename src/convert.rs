@@ -16,6 +16,7 @@ use nod::{
     write::{DiscWriter, FormatOptions, ProcessOptions},
 };
 use rfd::FileDialog;
+use sanitize_filename::sanitize;
 use slint::{ToSharedString, Weak};
 use std::{
     fs::{self, File, OpenOptions},
@@ -106,7 +107,7 @@ pub fn add_games(config: &Config, weak: &Weak<MainWindow>) -> Result<()> {
 
         let dir_path = mount_point_clone
             .join(if is_wii { "wbfs" } else { "games" })
-            .join(format!("{title} [{id}]"));
+            .join(format!("{} [{}]", sanitize(&title), id));
 
         let file_name1 = match (is_wii, wii_output_format, must_split, disc_num) {
             (true, WiiOutputFormat::Wbfs, _, _) => &format!("{id}.wbfs"),
