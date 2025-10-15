@@ -13,7 +13,7 @@ pub mod extensions;
 pub mod games;
 pub mod hbc_apps;
 pub mod http;
-pub mod oscwii;
+pub mod osc;
 pub mod overflow_reader;
 mod tasks;
 pub mod titles;
@@ -160,7 +160,7 @@ fn run() -> Result<()> {
         }));
     });
 
-    app.on_get_filtered_oscwii_apps(move |apps, filter| {
+    app.on_get_filtered_osc_apps(move |apps, filter| {
         if filter.is_empty() {
             return apps;
         }
@@ -235,7 +235,7 @@ fn run() -> Result<()> {
     });
 
     let task_processor_clone = task_processor.clone();
-    app.on_download_oscwii(move |mount_point, zip_url| {
+    app.on_download_osc(move |mount_point, zip_url| {
         task_processor_clone.spawn(Box::new(move |weak| {
             hbc_apps::add_app_from_url(&mount_point, &zip_url, weak)?;
             Ok("App downloaded successfully".to_string())
@@ -243,9 +243,9 @@ fn run() -> Result<()> {
     });
 
     let task_processor_clone = task_processor.clone();
-    app.on_push_oscwii(move |zip_url, wii_ip| {
+    app.on_push_osc(move |zip_url, wii_ip| {
         task_processor_clone.spawn(Box::new(move |weak| {
-            let excluded_files = wiiload::push_oscwii(&zip_url, &wii_ip, weak)?;
+            let excluded_files = wiiload::push_osc(&zip_url, &wii_ip, weak)?;
             let mut msg = "Push successful.".to_string();
             if !excluded_files.is_empty() {
                 msg.push_str(&format!("\nExcluded files: {}", excluded_files.join(", ")));
@@ -348,7 +348,7 @@ fn run() -> Result<()> {
     }
 
     lazy_task_processor.spawn(Box::new(move |weak| {
-        oscwii::load_oscwii_apps(&data_dir, weak)?;
+        osc::load_osc_apps(&data_dir, weak)?;
         Ok(String::new())
     }));
 
