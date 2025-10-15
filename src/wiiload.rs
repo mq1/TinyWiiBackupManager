@@ -70,7 +70,7 @@ pub fn push_file(wii_ip: &str, weak: &Weak<MainWindow>) -> Result<Vec<String>> {
     }
 }
 
-pub fn push_oscwii(zip_url: &str, wii_ip: &str, weak: &Weak<MainWindow>) -> Result<Vec<String>> {
+pub fn push_osc(zip_url: &str, wii_ip: &str, weak: &Weak<MainWindow>) -> Result<Vec<String>> {
     let addr = (wii_ip, WIILOAD_PORT)
         .to_socket_addrs()?
         .next()

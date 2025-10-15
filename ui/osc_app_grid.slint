@@ -10,15 +10,15 @@ import {
     Icon,
     MaterialPalette,
 } from "@material";
-import { OscWiiApp } from "common.slint";
+import { OscApp } from "common.slint";
 import { MyScrollView } from "scroll_view.slint";
 
-component OscWiiAppCard inherits Rectangle {
-    in property <OscWiiApp> app;
+component OscAppCard inherits Rectangle {
+    in property <OscApp> app;
 
-    callback open_oscwii_info();
-    callback download_oscwii();
-    callback push_oscwii();
+    callback open_osc_info();
+    callback download_osc();
+    callback push_osc();
 
     width: 166px;
     height: 16px + 14px + 8px + 96px + 8px + 14px + 16px + 1px + 4px + 18px + 8px;
@@ -67,7 +67,7 @@ component OscWiiAppCard inherits Rectangle {
             tooltip: "App Information";
             inline: true;
             clicked => {
-                open_oscwii_info();
+                open_osc_info();
             }
         }
 
@@ -77,7 +77,7 @@ component OscWiiAppCard inherits Rectangle {
             tooltip: "Download";
             inline: true;
             clicked => {
-                download_oscwii();
+                download_osc();
             }
         }
 
@@ -87,30 +87,30 @@ component OscWiiAppCard inherits Rectangle {
             tooltip: "Wiiload";
             inline: true;
             clicked => {
-                push_oscwii();
+                push_osc();
             }
         }
     }
 }
 
-export component OscWiiAppGrid inherits MyScrollView {
-    in property <[OscWiiApp]> apps;
+export component OscAppGrid inherits MyScrollView {
+    in property <[OscApp]> apps;
 
     private property <int> cols: max(1, self.width / 180px);
     private property <int> rows: ceil(apps.length / cols);
     viewport_height: 36px + rows * (16px + 14px + 8px + 96px + 8px + 14px + 16px + 1px + 4px + 18px + 8px + 8px);
 
-    callback open_oscwii_info(OscWiiApp);
-    callback download_oscwii(OscWiiApp);
-    callback push_oscwii(OscWiiApp);
+    callback open_osc_info(OscApp);
+    callback download_osc(OscApp);
+    callback push_osc(OscApp);
 
-    for i in apps.length: OscWiiAppCard {
+    for i in apps.length: OscAppCard {
         x: 4px + 16px + mod((apps.length - 1 - i), cols) * 174px;
         y: 16px + floor((apps.length - 1 - i) / cols) * (16px + 14px + 8px + 96px + 8px + 14px + 16px + 1px + 4px + 18px + 8px + 8px);
 
         app: apps[apps.length - 1 - i];
-        open_oscwii_info => open_oscwii_info(apps[apps.length - 1 - i]);
-        download_oscwii => download_oscwii(apps[apps.length - 1 - i]);
-        push_oscwii => push_oscwii(apps[apps.length - 1 - i]);
+        open_osc_info => open_osc_info(apps[apps.length - 1 - i]);
+        download_osc => download_osc(apps[apps.length - 1 - i]);
+        push_osc => push_osc(apps[apps.length - 1 - i]);
     }
 }
