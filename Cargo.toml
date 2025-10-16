@@ -46,7 +46,7 @@ quick-xml = { version = "0.38", features = ["serialize"] }
 sysinfo = "0.37"
 open = "5.3"
 tempfile = "3.23"
-nod = { git = "https://github.com/encounter/nod" }
+nod = "2.0.0-alpha.4"
 num_cpus = "1.17"
 semver = "1.0"
 path-slash = "0.2"

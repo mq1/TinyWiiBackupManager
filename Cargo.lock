@@ -730,9 +730,9 @@ checksum = "d71b6127be86fdcfddb610f7182ac57211d4b18a3e9c82eb2d17662f2227ad6a"
 
 [[package]]
 name = "bzip2"
-version = "0.6.0"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bea8dcd42434048e4f7a304411d9273a411f647446c1234a65ce0554923f4cff"
+checksum = "f3a53fac24f34a81bc9954b5d6cfce0c21e18ec6959f44f56e8e90e4bb7c346c"
 dependencies = [
  "bzip2-sys",
  "libbz2-rs-sys",
@@ -3011,8 +3011,9 @@ dependencies = [
 
 [[package]]
 name = "nod"
-version = "2.0.0-alpha.3"
-source = "git+https://github.com/encounter/nod#5f3ea3c960b57442593b5cade2566de375e1a2e1"
+version = "2.0.0-alpha.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3a34b1987a43c535675ddd346523e70827646081caef9b1c2e74e0351a34e3cc"
 dependencies = [
  "adler2",
  "aes",
