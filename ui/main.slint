@@ -4,7 +4,7 @@
 import { IconButton, Vertical, MaterialText, ElevatedCard, MaterialPalette, Horizontal, CircularProgressIndicator, SnackBar, Icon, Dialog } from "@material";
 import { SideBar } from "sidebar.slint";
 import { GamesPage } from "games.slint";
-import { Game, HbcApp, WiiOutputFormat, ArchiveFormat, TaskType, UpdateInfo, Config, OscApp, DiscInfo } from "common.slint";
+import { Game, HbcApp, WiiOutputFormat, ArchiveFormat, TaskType, UpdateInfo, Config, OscApp, DiscInfo, Console } from "common.slint";
 import { HbcAppsPage } from "hbc_apps.slint";
 import { SettingsPage } from "settings.slint";
 import { Status } from "status.slint";
@@ -36,6 +36,7 @@ export component MainWindow inherits Window {
     in-out property <[OscApp]> osc_apps: [];
     property <OscApp> pushing_osc;
     property <{msg: string, is_err: bool}> dialog_msg;
+    in property <bool> got_redump_db: false;
 
     callback choose_mount_point(Config);
     callback open_url(string);
@@ -46,9 +47,9 @@ export component MainWindow inherits Window {
     callback open_data_dir();
     callback update_config(Config);
     callback push_file(string);
-    callback push_osc(string, string);
+    callback push_osc(string, int, string);
     callback dot_clean(string);
-    callback download_osc(string, string);
+    callback download_osc(string, string, int);
     callback download_wiitdb(string);
     callback verify_game(string);
     callback download_all_covers(string);
@@ -62,6 +63,7 @@ export component MainWindow inherits Window {
     pure callback get_filtered_osc_apps([OscApp], string) -> [OscApp];
     pure callback get_filename(string) -> string;
     pure callback get_disk_usage(string) -> string;
+    pure callback sha1_lookup(string, bool) -> bool;
 
     public function apply_sorting() {
         let all = sort(config, games, hbc_apps);
@@ -213,10 +215,10 @@ export component MainWindow inherits Window {
                 }
                 get_apps(filter) => get_filtered_osc_apps(osc_apps, filter);
                 download_osc(app) => {
-                    download_osc(config.mount-point, app.zip-url);
+                    download_osc(config.mount-point, app.zip-url, app.zip-size);
                 }
                 push_osc(app) => {
-                    push_osc(app.zip-url, config.wii-ip);
+                    push_osc(app.zip-url, app.zip-size, config.wii-ip);
                     update_config(config);
                 }
                 update_config => {
@@ -284,11 +286,15 @@ export component MainWindow inherits Window {
         height: root.height;
         title: disc_info_title;
         info: disc_info_info;
+        got_redump_db: got_redump_db;
         open_url(url) => {
             open_url(url);
         }
         verify_game(path) => {
             verify_game(path);
+        }
+        sha1_lookup => {
+            sha1_lookup(disc_info_info.sha1, disc_info_info.is-wii);
         }
     }
 
