@@ -8,7 +8,7 @@ use size::Size;
 use slint::{Image, ModelRc, SharedString, ToSharedString, VecModel, Weak};
 use std::{fs, path::Path, rc::Rc, time::Duration};
 
-const CONTENTS_URL: &str = "https://hbb1.osc.org/api/v4/contents";
+const CONTENTS_URL: &str = "https://hbb1.oscwii.org/api/v4/contents";
 
 pub fn load_osc_apps(data_dir: &Path, weak: &Weak<MainWindow>) -> Result<()> {
     let cache_path = data_dir.join("osc-cache.json");
