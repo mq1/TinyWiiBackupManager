@@ -5,7 +5,7 @@ use crate::{ArchiveFormat, Config, SortBy, ViewAs, WiiOutputFormat};
 use anyhow::Result;
 use serde_json::{Map, Value, json};
 use slint::ToSharedString;
-use std::{fs, path::Path};
+use std::{fmt, fs, path::Path, str::FromStr};
 
 impl Config {
     pub fn load(data_dir: &Path) -> Self {
@@ -22,7 +22,7 @@ impl Config {
         let archive_format = values
             .get("archive_format")
             .and_then(|v| v.as_str())
-            .and_then(ArchiveFormat::from_str)
+            .and_then(|v| ArchiveFormat::from_str(v).ok())
             .unwrap_or(ArchiveFormat::Rvz);
 
         let mount_point = values
@@ -49,13 +49,13 @@ impl Config {
         let sort_by = values
             .get("sort_by")
             .and_then(|v| v.as_str())
-            .and_then(SortBy::from_str)
+            .and_then(|v| SortBy::from_str(v).ok())
             .unwrap_or(SortBy::NameAscending);
 
         let view_as = values
             .get("view_as")
             .and_then(|v| v.as_str())
-            .and_then(ViewAs::from_str)
+            .and_then(|v| ViewAs::from_str(v).ok())
             .unwrap_or(ViewAs::Grid);
 
         let wii_ip = values
@@ -67,7 +67,7 @@ impl Config {
         let wii_output_format = values
             .get("wii_output_format")
             .and_then(|v| v.as_str())
-            .and_then(WiiOutputFormat::from_str)
+            .and_then(|v| WiiOutputFormat::from_str(v).ok())
             .unwrap_or(WiiOutputFormat::Wbfs);
 
         Config {
@@ -89,15 +89,15 @@ impl Config {
 
         let values = json!({
             "always_split": self.always_split,
-            "archive_format": self.archive_format.as_str(),
+            "archive_format": self.archive_format.to_string(),
             "mount_point": self.mount_point.as_str(),
             "remove_sources_apps": self.remove_sources_apps,
             "remove_sources_games": self.remove_sources_games,
             "scrub_update_partition": self.scrub_update_partition,
-            "sort_by": self.sort_by.as_str(),
-            "view_as": self.view_as.as_str(),
+            "sort_by": self.sort_by.to_string(),
+            "view_as": self.view_as.to_string(),
             "wii_ip": self.wii_ip.as_str(),
-            "wii_output_format": self.wii_output_format.as_str(),
+            "wii_output_format": self.wii_output_format.to_string(),
         });
 
         let bytes = serde_json::to_vec(&values)?;
@@ -107,74 +107,90 @@ impl Config {
     }
 }
 
-impl ArchiveFormat {
-    pub fn as_str(&self) -> &'static str {
+impl fmt::Display for ArchiveFormat {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            ArchiveFormat::Rvz => "rvz",
-            ArchiveFormat::Iso => "iso",
-        }
-    }
-
-    pub fn from_str(s: &str) -> Option<ArchiveFormat> {
-        match s {
-            "rvz" => Some(ArchiveFormat::Rvz),
-            "iso" => Some(ArchiveFormat::Iso),
-            _ => None,
+            ArchiveFormat::Rvz => write!(f, "rvz"),
+            ArchiveFormat::Iso => write!(f, "iso"),
         }
     }
 }
 
-impl SortBy {
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            SortBy::NameAscending => "name_ascending",
-            SortBy::NameDescending => "name_descending",
-            SortBy::SizeAscending => "size_ascending",
-            SortBy::SizeDescending => "size_descending",
-        }
-    }
+impl FromStr for ArchiveFormat {
+    type Err = ();
 
-    pub fn from_str(s: &str) -> Option<SortBy> {
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "name_ascending" => Some(SortBy::NameAscending),
-            "name_descending" => Some(SortBy::NameDescending),
-            "size_ascending" => Some(SortBy::SizeAscending),
-            "size_descending" => Some(SortBy::SizeDescending),
-            _ => None,
+            "rvz" => Ok(ArchiveFormat::Rvz),
+            "iso" => Ok(ArchiveFormat::Iso),
+            _ => Err(()),
         }
     }
 }
 
-impl ViewAs {
-    pub fn as_str(&self) -> &'static str {
+impl fmt::Display for SortBy {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            ViewAs::Grid => "grid",
-            ViewAs::List => "list",
-        }
-    }
-
-    pub fn from_str(s: &str) -> Option<ViewAs> {
-        match s {
-            "grid" => Some(ViewAs::Grid),
-            "list" => Some(ViewAs::List),
-            _ => None,
+            SortBy::NameAscending => write!(f, "name_ascending"),
+            SortBy::NameDescending => write!(f, "name_descending"),
+            SortBy::SizeAscending => write!(f, "size_ascending"),
+            SortBy::SizeDescending => write!(f, "size_descending"),
         }
     }
 }
 
-impl WiiOutputFormat {
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            WiiOutputFormat::Wbfs => "wbfs",
-            WiiOutputFormat::Iso => "iso",
+impl FromStr for SortBy {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "name_ascending" => Ok(SortBy::NameAscending),
+            "name_descending" => Ok(SortBy::NameDescending),
+            "size_ascending" => Ok(SortBy::SizeAscending),
+            "size_descending" => Ok(SortBy::SizeDescending),
+            _ => Err(()),
         }
     }
+}
 
-    pub fn from_str(s: &str) -> Option<WiiOutputFormat> {
+impl fmt::Display for ViewAs {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ViewAs::Grid => write!(f, "grid"),
+            ViewAs::List => write!(f, "list"),
+        }
+    }
+}
+
+impl FromStr for ViewAs {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "wbfs" => Some(WiiOutputFormat::Wbfs),
-            "iso" => Some(WiiOutputFormat::Iso),
-            _ => None,
+            "grid" => Ok(ViewAs::Grid),
+            "list" => Ok(ViewAs::List),
+            _ => Err(()),
+        }
+    }
+}
+
+impl fmt::Display for WiiOutputFormat {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            WiiOutputFormat::Wbfs => write!(f, "wbfs"),
+            WiiOutputFormat::Iso => write!(f, "iso"),
+        }
+    }
+}
+
+impl FromStr for WiiOutputFormat {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "wbfs" => Ok(WiiOutputFormat::Wbfs),
+            "iso" => Ok(WiiOutputFormat::Iso),
+            _ => Err(()),
         }
     }
 }

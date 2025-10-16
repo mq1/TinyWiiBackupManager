@@ -31,27 +31,31 @@ pub fn verify_game(game_dir_str: &str, weak: &Weak<MainWindow>) -> Result<()> {
 
     if let Some(crc32) = finalization.crc32
         && let Some(embedded_crc32) = embedded.crc32
-        && crc32 != embedded_crc32 {
-            bail!("CRC32 mismatch");
-        }
+        && crc32 != embedded_crc32
+    {
+        bail!("CRC32 mismatch");
+    }
 
     if let Some(md5) = finalization.md5
         && let Some(embedded_md5) = embedded.md5
-        && md5 != embedded_md5 {
-            bail!("MD5 mismatch");
-        }
+        && md5 != embedded_md5
+    {
+        bail!("MD5 mismatch");
+    }
 
     if let Some(sha1) = finalization.sha1
         && let Some(embedded_sha1) = embedded.sha1
-        && sha1 != embedded_sha1 {
-            bail!("SHA1 mismatch");
-        }
+        && sha1 != embedded_sha1
+    {
+        bail!("SHA1 mismatch");
+    }
 
     if let Some(xxh64) = finalization.xxh64
         && let Some(embedded_xxh64) = embedded.xxh64
-        && xxh64 != embedded_xxh64 {
-            bail!("XXH64 mismatch");
-        }
+        && xxh64 != embedded_xxh64
+    {
+        bail!("XXH64 mismatch");
+    }
 
     Ok(())
 }
