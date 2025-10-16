@@ -70,27 +70,28 @@ pub fn push_file(wii_ip: &str, weak: &Weak<MainWindow>) -> Result<Vec<String>> {
     }
 }
 
-pub fn push_osc(zip_url: &str, wii_ip: &str, weak: &Weak<MainWindow>) -> Result<Vec<String>> {
+pub fn push_osc(
+    zip_url: &str,
+    zip_size: usize,
+    wii_ip: &str,
+    weak: &Weak<MainWindow>,
+) -> Result<Vec<String>> {
     let addr = (wii_ip, WIILOAD_PORT)
         .to_socket_addrs()?
         .next()
         .ok_or(anyhow!("Failed to resolve Wii IP: {}", &wii_ip))?;
 
-    let zip_url = zip_url.to_string();
+    let url = zip_url.to_string();
 
-    let status = format!("Downloading {}...", zip_url);
+    let status = format!("Downloading {}...", url);
     weak.upgrade_in_event_loop(move |handle| {
         handle.set_status(status.to_shared_string());
         handle.set_task_type(TaskType::DownloadingFolder);
     })?;
 
-    let buffer = AGENT
-        .get(zip_url)
-        .call()?
-        .body_mut()
-        .with_config()
-        .limit(50 * 1024 * 1024) // 50MB
-        .read_to_vec()?;
+    let (_, body) = AGENT.get(&url).call()?.into_parts();
+    let mut buffer = Vec::with_capacity(zip_size);
+    body.into_reader().read_to_end(&mut buffer)?;
 
     let cursor = Cursor::new(buffer);
     let mut archive = ZipArchive::new(cursor)?;

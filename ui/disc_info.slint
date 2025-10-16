@@ -8,6 +8,8 @@ import { DiscInfo } from "common.slint";
 export component DiscInfoDialog inherits Dialog {
     in property <string> display_title;
     in property <DiscInfo> info;
+    in property <bool> got_redump_db: false;
+
     title: display_title;
     icon: @image-url("../mdi/information.svg");
     default-action-text: "Close";
@@ -16,6 +18,7 @@ export component DiscInfoDialog inherits Dialog {
 
     callback open_url(string);
     callback verify_game(string);
+    pure callback sha1_lookup() -> bool;
 
     default_action_clicked => {
         self.close();
@@ -404,6 +407,27 @@ export component DiscInfoDialog inherits Dialog {
                 MaterialText {
                     vertical-alignment: center;
                     text: info.xxh64;
+                }
+            }
+
+            if got_redump_db: HorizontalDivider { }
+
+            if got_redump_db: HorizontalLayout {
+                alignment: start;
+                spacing: 4px;
+
+                Icon {
+                    source: @image-url("../mdi/check-all.svg");
+                }
+
+                MaterialText {
+                    vertical-alignment: center;
+                    text: "Redump DB:";
+                }
+
+                MaterialText {
+                    vertical-alignment: center;
+                    text: sha1_lookup() ? "Verified" : "Invalid";
                 }
             }
         }
