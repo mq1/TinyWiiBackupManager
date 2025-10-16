@@ -140,7 +140,6 @@ fn check_for_scrubbed_update_partition(disc: &mut DiscReader) -> Result<()> {
     let mut buf = [0u8; 8192]; // 8KB buffer
     loop {
         let n = partition_reader.read(&mut buf)?;
-        println!("{}", hex::encode(&buf[..n]));
 
         if n == 0 {
             return Ok(());
