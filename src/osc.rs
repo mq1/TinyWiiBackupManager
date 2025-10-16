@@ -6,7 +6,7 @@ use anyhow::{Result, bail};
 use serde::Deserialize;
 use size::Size;
 use slint::{Image, ModelRc, SharedString, ToSharedString, VecModel, Weak};
-use std::{fs, path::Path, rc::Rc, time::Duration};
+use std::{fs, io::Read, path::Path, rc::Rc, time::Duration};
 
 const CONTENTS_URL: &str = "https://hbb1.oscwii.org/api/v4/contents";
 
@@ -77,11 +77,9 @@ fn download_icon(app: &App, icons_dir: &Path) -> Result<()> {
         return Ok(());
     }
 
-    let icon = AGENT
-        .get(&app.assets.icon.url)
-        .call()?
-        .body_mut()
-        .read_to_vec()?;
+    let (_, body) = AGENT.get(&app.assets.icon.url).call()?.into_parts();
+    let mut icon = Vec::with_capacity(app.assets.icon.size as usize);
+    body.into_reader().read_to_end(&mut icon)?;
 
     fs::write(&icon_path, &icon)?;
 
@@ -114,6 +112,7 @@ impl OscApp {
             release_date: app.release_date.to_shared_string(),
             size: size.to_shared_string(),
             zip_url: app.assets.archive.url.to_shared_string(),
+            zip_size: app.assets.archive.size as i32,
             icon,
             search_str,
         }
@@ -125,59 +124,20 @@ pub struct App {
     pub slug: String,
     pub name: String,
     pub author: String,
-    pub authors: Vec<String>,
-    pub category: String,
-    pub contributors: Vec<String>,
-    pub description: Description,
     pub assets: Assets,
-    pub flags: Vec<String>,
-    pub package_type: String,
-    pub peripherals: Vec<String>,
     pub release_date: u64,
-    pub shop: Shop,
-    pub subdirectories: Vec<String>,
-    pub supported_platforms: Vec<String>,
     pub uncompressed_size: u64,
     pub version: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]
-pub struct Description {
-    pub short: String,
-    pub long: String,
-}
-
-#[derive(Debug, Clone, Deserialize)]
 pub struct Assets {
     pub icon: Asset,
-    pub archive: AssetWithHash,
-    pub binary: AssetWithHash,
-    pub meta: MetaAsset,
+    pub archive: Asset,
 }
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Asset {
     pub url: String,
     pub size: u64,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-pub struct AssetWithHash {
-    pub url: String,
-    pub hash: String,
-    pub size: u64,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-pub struct MetaAsset {
-    pub url: String,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-pub struct Shop {
-    pub contents_size: u64,
-    pub title_id: String,
-    pub inodes: u32,
-    pub title_version: u32,
-    pub tmd_size: u32,
 }
