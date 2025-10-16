@@ -50,18 +50,17 @@ export struct Config {
 export struct Game {
     id: string,
     display_title: string,
-    display_title_lower: string,
     path: string,
     image: image,
     size: string,
     size_mib: int,
     console: Console,
+    search_str: string,
 }
 
 export struct HbcApp {
     slug: string,
     name: string,
-    name_lower: string,
     coder: string,
     version: string,
     release_date: string,
@@ -71,6 +70,7 @@ export struct HbcApp {
     image: image,
     size: string,
     size_mib: int,
+    search_str: string,
 }
 
 export enum TaskType {
@@ -94,13 +94,13 @@ export struct UpdateInfo {
 export struct OscApp {
     slug: string,
     name: string,
-    name_lower: string,
     author: string,
     version: string,
     release_date: string,
     size: string,
     zip_url: string,
     icon: image,
+    search_str: string,
 }
 
 export struct PartitionInfo {
