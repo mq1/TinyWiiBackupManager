@@ -2,17 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{DiscInfo, convert::get_disc_opts, overflow_reader::get_main_file};
-use anyhow::{Result, anyhow, bail};
-use nod::{
-    common::PartitionKind,
-    read::{DiscReader, PartitionOptions},
-};
+use anyhow::{Result, anyhow};
+use nod::read::DiscReader;
 use size::Size;
 use slint::ToSharedString;
-use std::{
-    io::{Read, Seek},
-    path::Path,
-};
+use std::path::Path;
 
 pub fn get_region_display(id: [u8; 6]) -> &'static str {
     match id[3] {
@@ -52,7 +46,7 @@ pub fn get_disc_info(game_dir_str: &str) -> Result<DiscInfo> {
         .ok_or(anyhow!("Invalid path"))?
         .to_shared_string();
 
-    let mut disc = DiscReader::new(&path, &get_disc_opts())?;
+    let disc = DiscReader::new(&path, &get_disc_opts())?;
 
     // Header
     let header = disc.header();
@@ -96,8 +90,6 @@ pub fn get_disc_info(game_dir_str: &str) -> Result<DiscInfo> {
         .map(|hash| format!("{:08x}", hash).to_shared_string())
         .unwrap_or("Unknown".to_shared_string());
 
-    let scrubbed_update_partition = check_for_scrubbed_update_partition(&mut disc).is_ok();
-
     Ok(DiscInfo {
         game_dir,
         game_id,
@@ -118,34 +110,5 @@ pub fn get_disc_info(game_dir_str: &str) -> Result<DiscInfo> {
         md5,
         sha1,
         xxh64,
-        scrubbed_update_partition,
     })
-}
-
-fn check_for_scrubbed_update_partition(disc: &mut DiscReader) -> Result<()> {
-    let update_partition = disc
-        .partitions()
-        .iter()
-        .find(|p| matches!(p.kind, PartitionKind::Update))
-        .ok_or(anyhow!("No update partition found"))?;
-
-    let mut partition_reader = disc.open_partition(
-        update_partition.index,
-        &PartitionOptions {
-            validate_hashes: false,
-        },
-    )?;
-    partition_reader.seek_relative(update_partition.header.data_off() as i64)?;
-
-    let mut buf = [0u8; 8192]; // 8KB buffer
-    loop {
-        let n = partition_reader.read(&mut buf)?;
-
-        if n == 0 {
-            return Ok(());
-        }
-        if buf[..n].iter().any(|&b| b != 0) {
-            bail!("Update partition is not scrubbed");
-        }
-    }
 }
