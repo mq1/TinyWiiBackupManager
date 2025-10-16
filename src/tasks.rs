@@ -15,14 +15,14 @@ pub struct TaskProcessor {
 }
 
 impl TaskProcessor {
-    pub fn init(weak: Weak<MainWindow>, increment_count: bool) -> Self {
+    pub fn init(weak: Weak<MainWindow>, hidden: bool) -> Self {
         let (sender, receiver) = mpsc::channel::<BoxedTask>();
 
         let weak_clone = weak.clone();
         thread::spawn(move || {
             while let Ok(task) = receiver.recv() {
                 // Increment the task count
-                if increment_count {
+                if !hidden {
                     let _ = weak_clone.upgrade_in_event_loop(|handle| {
                         handle.set_task_count(handle.get_task_count() + 1);
                     });
@@ -36,14 +36,13 @@ impl TaskProcessor {
                 });
 
                 // Cleanup
-                let _ = weak_clone.upgrade_in_event_loop(move |handle| {
-                    handle.set_status(SharedString::new());
-                    handle.set_task_type(TaskType::Unknown);
-
-                    if increment_count {
+                if !hidden {
+                    let _ = weak_clone.upgrade_in_event_loop(move |handle| {
+                        handle.set_status(SharedString::new());
+                        handle.set_task_type(TaskType::Unknown);
                         handle.set_task_count(handle.get_task_count() - 1);
-                    }
-                });
+                    });
+                }
             }
         });
 
