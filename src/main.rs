@@ -4,24 +4,25 @@
 // Don't show windows terminal
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-pub mod archive;
-pub mod config;
-pub mod convert;
-pub mod covers;
-pub mod disc_info;
-pub mod extensions;
-pub mod games;
-pub mod hbc_apps;
-pub mod http;
-pub mod osc;
-pub mod overflow_reader;
+mod archive;
+mod config;
+mod convert;
+mod covers;
+mod disc_info;
+mod extensions;
+mod games;
+mod hbc_apps;
+mod http;
+mod osc;
+mod overflow_reader;
+mod redump;
 mod tasks;
-pub mod titles;
-pub mod updater;
-pub mod util;
-pub mod verify;
-pub mod wiiload;
-pub mod wiitdb;
+mod titles;
+mod updater;
+mod util;
+mod verify;
+mod wiiload;
+mod wiitdb;
 
 use crate::{tasks::TaskProcessor, titles::Titles};
 use anyhow::{Context, Result, anyhow};
@@ -231,17 +232,17 @@ fn run() -> Result<()> {
     });
 
     let task_processor_clone = task_processor.clone();
-    app.on_download_osc(move |mount_point, zip_url| {
+    app.on_download_osc(move |mount_point, zip_url, zip_size| {
         task_processor_clone.spawn(Box::new(move |weak| {
-            hbc_apps::add_app_from_url(&mount_point, &zip_url, weak)?;
+            hbc_apps::add_app_from_url(&mount_point, &zip_url, zip_size as usize, weak)?;
             Ok("App downloaded successfully".to_string())
         }));
     });
 
     let task_processor_clone = task_processor.clone();
-    app.on_push_osc(move |zip_url, wii_ip| {
+    app.on_push_osc(move |zip_url, zip_size, wii_ip| {
         task_processor_clone.spawn(Box::new(move |weak| {
-            let excluded_files = wiiload::push_osc(&zip_url, &wii_ip, weak)?;
+            let excluded_files = wiiload::push_osc(&zip_url, zip_size as usize, &wii_ip, weak)?;
             let mut msg = "Push successful.".to_string();
             if !excluded_files.is_empty() {
                 msg.push_str(&format!("\nExcluded files: {}", excluded_files.join(", ")));
@@ -306,6 +307,11 @@ fn run() -> Result<()> {
             .to_shared_string()
     });
 
+    let data_dir_clone = data_dir.clone();
+    app.on_sha1_lookup(move |game_sha1, is_wii| {
+        redump::is_sha1_known(&data_dir_clone, &game_sha1, is_wii).unwrap_or(false)
+    });
+
     let mut config = Config::load(&data_dir);
 
     // If the mount point doesn't exist, erase it
@@ -342,6 +348,12 @@ fn run() -> Result<()> {
             Ok(String::new())
         }));
     }
+
+    let data_dir_clone = data_dir.clone();
+    lazy_task_processor.spawn(Box::new(move |weak| {
+        redump::download_all(&data_dir_clone, weak)?;
+        Ok(String::new())
+    }));
 
     lazy_task_processor.spawn(Box::new(move |weak| {
         osc::load_osc_apps(&data_dir, weak)?;
