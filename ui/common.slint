@@ -12,11 +12,6 @@ export enum WiiOutputFormat {
     Iso,
 }
 
-export enum GcOutputFormat {
-    Ciso,
-    Iso,
-}
-
 export enum ArchiveFormat {
     Rvz,
     Iso,
@@ -134,7 +129,4 @@ export struct DiscInfo {
     md5: string,
     sha1: string,
     xxh64: string,
-
-    // Partitions
-    scrubbed_update_partition: bool,
 }
