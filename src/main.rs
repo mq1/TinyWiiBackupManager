@@ -165,7 +165,7 @@ fn run() -> Result<()> {
             return apps;
         }
 
-        let filtered = apps.filter(move |app| app.name_lower.contains(&*filter));
+        let filtered = apps.filter(move |app| app.search_str.contains(&*filter));
 
         ModelRc::from(Rc::new(filtered))
     });
@@ -175,7 +175,7 @@ fn run() -> Result<()> {
             return apps;
         }
 
-        let filtered = apps.filter(move |app| app.name_lower.contains(&*filter));
+        let filtered = apps.filter(move |app| app.search_str.contains(&*filter));
 
         ModelRc::from(Rc::new(filtered))
     });
@@ -194,7 +194,7 @@ fn run() -> Result<()> {
             return ModelRc::from(Rc::new(filtered));
         }
 
-        let filtered = filtered.filter(move |game| game.display_title_lower.contains(&*filter));
+        let filtered = filtered.filter(move |game| game.search_str.contains(&*filter));
 
         ModelRc::from(Rc::new(filtered))
     });
@@ -202,19 +202,15 @@ fn run() -> Result<()> {
     app.on_sort(|config, games, apps| match config.sort_by {
         SortBy::NameAscending => (
             ModelRc::from(Rc::new(
-                games.sort_by(|a, b| a.display_title_lower.cmp(&b.display_title_lower)),
+                games.sort_by(|a, b| a.display_title.cmp(&b.display_title)),
             )),
-            ModelRc::from(Rc::new(
-                apps.sort_by(|a, b| a.name_lower.cmp(&b.name_lower)),
-            )),
+            ModelRc::from(Rc::new(apps.sort_by(|a, b| a.name.cmp(&b.name)))),
         ),
         SortBy::NameDescending => (
             ModelRc::from(Rc::new(
-                games.sort_by(|a, b| b.display_title_lower.cmp(&a.display_title_lower)),
+                games.sort_by(|a, b| b.display_title.cmp(&a.display_title)),
             )),
-            ModelRc::from(Rc::new(
-                apps.sort_by(|a, b| b.name_lower.cmp(&a.name_lower)),
-            )),
+            ModelRc::from(Rc::new(apps.sort_by(|a, b| b.name.cmp(&a.name)))),
         ),
         SortBy::SizeAscending => (
             ModelRc::from(Rc::new(games.sort_by(|a, b| a.size_mib.cmp(&b.size_mib)))),

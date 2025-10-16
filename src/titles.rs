@@ -4,7 +4,7 @@
 use crate::{MainWindow, TaskType, http::AGENT};
 use anyhow::Result;
 use parking_lot::Mutex;
-use slint::{SharedString, ToSharedString, Weak};
+use slint::{ToSharedString, Weak};
 use std::{fs, path::Path, sync::Arc};
 
 const DOWNLOAD_URL: &str = "https://www.gametdb.com/wiitdb.txt";
@@ -39,10 +39,10 @@ impl Titles {
         Ok(Titles(titles.into_boxed_slice()))
     }
 
-    pub fn get(&self, id: &str) -> Option<SharedString> {
+    pub fn get(&self, id: &str) -> Option<&str> {
         let id_bytes = id_to_bytes(id);
         let index = self.0.binary_search_by_key(&id_bytes, |(id, _)| *id).ok()?;
-        let title = self.0[index].1.to_shared_string();
+        let title = &self.0[index].1;
 
         Some(title)
     }
