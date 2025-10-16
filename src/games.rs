@@ -36,7 +36,7 @@ pub fn list(mount_point: &Path, titles: &Arc<Mutex<Titles>>) -> Result<Vec<Game>
 }
 
 impl Game {
-    pub fn from_dir(dir: PathBuf, titles: &Titles) -> Option<Game> {
+    pub fn from_dir(dir: PathBuf, titles: &Titles) -> Option<Self> {
         // Ensure the path is a directory and not hidden
         if !dir.is_dir() {
             return None;
@@ -57,7 +57,7 @@ impl Game {
             _ => Console::Unknown,
         };
 
-        let display_title = titles.get(id).unwrap_or(title.to_shared_string());
+        let display_title = titles.get(id).unwrap_or(title);
 
         // Get the directory size
         let size = Size::from_bytes(fs_extra::dir::get_size(&dir).unwrap_or(0));
@@ -80,16 +80,20 @@ impl Game {
                 .expect("Failed to load default icon")
         };
 
+        let search_str = (display_title.to_string() + id)
+            .to_lowercase()
+            .to_shared_string();
+
         // Construct the Game object
-        Some(Game {
+        Some(Self {
             path: dir.to_str()?.to_shared_string(),
             id: id.to_shared_string(),
             display_title: display_title.to_shared_string(),
-            display_title_lower: display_title.to_lowercase().to_shared_string(),
             size: size.to_shared_string(),
             size_mib: (size.bytes() / 1024 / 1024) as i32,
             image,
             console,
+            search_str,
         })
     }
 }

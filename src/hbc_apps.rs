@@ -61,10 +61,11 @@ impl HbcApp {
                 .expect("Failed to load default icon")
         };
 
+        let search_str = (meta.name.clone() + slug).to_lowercase().to_shared_string();
+
         Self {
             slug: slug.to_shared_string(),
             name: meta.name.trim().to_shared_string(),
-            name_lower: meta.name.trim().to_lowercase().to_shared_string(),
             coder: meta.coder.to_shared_string(),
             version: meta.version.to_shared_string(),
             release_date: meta.release_date.to_shared_string(),
@@ -74,6 +75,7 @@ impl HbcApp {
             image,
             size: size.to_shared_string(),
             size_mib: (size.bytes() / 1024 / 1024) as i32,
+            search_str,
         }
     }
 }
@@ -93,7 +95,7 @@ pub fn list(mount_point: &Path) -> Result<Vec<HbcApp>> {
         .map(HbcApp::from_path)
         .collect::<Vec<_>>();
 
-    apps.sort_by(|a, b| a.name_lower.cmp(&b.name_lower));
+    apps.sort_by(|a, b| a.name.cmp(&b.name));
 
     Ok(apps)
 }
