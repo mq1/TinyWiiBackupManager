@@ -7,7 +7,6 @@ use crate::{
     extensions::SUPPORTED_INPUT_EXTENSIONS,
     overflow_reader::{OverflowReader, get_overflow_file},
     util::{self, can_write_over_4gb},
-    verify::{NKIT_ADDR, calc_hashes},
 };
 use anyhow::{Result, anyhow, bail};
 use nod::{
@@ -19,8 +18,8 @@ use rfd::FileDialog;
 use sanitize_filename::sanitize;
 use slint::{ToSharedString, Weak};
 use std::{
-    fs::{self, File, OpenOptions},
-    io::{BufWriter, Seek, SeekFrom, Write},
+    fs::{self, File},
+    io::{BufWriter, Seek, Write},
     path::PathBuf,
 };
 
@@ -38,19 +37,14 @@ pub fn get_disc_opts() -> DiscOptions {
 pub fn get_process_opts(scrub_update_partition: bool) -> ProcessOptions {
     let (_, processor_threads) = util::get_threads_num();
 
-    let scrub = match scrub_update_partition {
-        true => ScrubLevel::UpdatePartition,
-        false => ScrubLevel::None,
-    };
-
     if scrub_update_partition {
         ProcessOptions {
             processor_threads,
-            digest_crc32: false,
-            digest_md5: false,
-            digest_sha1: false,
-            digest_xxh64: false,
-            scrub,
+            digest_crc32: true,
+            digest_md5: false, // too slow
+            digest_sha1: true,
+            digest_xxh64: true,
+            scrub: ScrubLevel::UpdatePartition,
         }
     } else {
         ProcessOptions {
@@ -59,7 +53,7 @@ pub fn get_process_opts(scrub_update_partition: bool) -> ProcessOptions {
             digest_md5: false, // too slow
             digest_sha1: true,
             digest_xxh64: true,
-            scrub,
+            scrub: ScrubLevel::None,
         }
     }
 }
@@ -191,14 +185,6 @@ pub fn add_games(config: &Config, weak: &Weak<MainWindow>) -> Result<()> {
                 out1.rewind()?;
                 out1.write_all(&finalization.header)?;
             }
-        }
-
-        // Recalculate hashes if scrubbing
-        if scrub_update_partition && is_wii && wii_output_format == WiiOutputFormat::Wbfs {
-            let nkit = calc_hashes(&dir_path, weak)?.1;
-            let mut out1 = OpenOptions::new().write(true).open(&path1)?;
-            out1.seek(SeekFrom::Start(NKIT_ADDR))?;
-            out1.write_all(&nkit[..])?;
         }
 
         if remove_sources {
