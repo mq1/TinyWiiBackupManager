@@ -102,16 +102,20 @@ impl OscApp {
                 .expect("Failed to load default icon")
         };
 
+        let search_str = (app.name.clone() + &app.slug)
+            .to_lowercase()
+            .to_shared_string();
+
         Self {
             slug: app.slug.to_shared_string(),
             name: app.name.to_shared_string(),
-            name_lower: app.name.to_lowercase().to_shared_string(),
             author: app.author.to_shared_string(),
             version: app.version.to_shared_string(),
             release_date: app.release_date.to_shared_string(),
             size: size.to_shared_string(),
             zip_url: app.assets.archive.url.to_shared_string(),
             icon,
+            search_str,
         }
     }
 }
