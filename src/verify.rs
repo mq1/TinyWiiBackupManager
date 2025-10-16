@@ -29,28 +29,44 @@ pub fn verify_game(game_dir_str: &str, weak: &Weak<MainWindow>) -> Result<()> {
         && let Some(embedded_crc32) = embedded.crc32
         && crc32 != embedded_crc32
     {
-        bail!("CRC32 mismatch");
+        bail!(
+            "CRC32 mismatch, expected: {:x}, found: {:x}\n\nThis is expected if the Update partition has been removed",
+            embedded_crc32,
+            crc32
+        );
     }
 
     if let Some(md5) = finalization.md5
         && let Some(embedded_md5) = embedded.md5
         && md5 != embedded_md5
     {
-        bail!("MD5 mismatch");
+        bail!(
+            "MD5 mismatch, expected: {}, found: {}\n\nThis is expected if the Update partition has been removed",
+            hex::encode(embedded_md5),
+            hex::encode(md5)
+        );
     }
 
     if let Some(sha1) = finalization.sha1
         && let Some(embedded_sha1) = embedded.sha1
         && sha1 != embedded_sha1
     {
-        bail!("SHA1 mismatch");
+        bail!(
+            "SHA1 mismatch, expected: {}, found: {}\n\nThis is expected if the Update partition has been removed",
+            hex::encode(embedded_sha1),
+            hex::encode(sha1)
+        );
     }
 
     if let Some(xxh64) = finalization.xxh64
         && let Some(embedded_xxh64) = embedded.xxh64
         && xxh64 != embedded_xxh64
     {
-        bail!("XXH64 mismatch");
+        bail!(
+            "XXH64 mismatch, expected: {:x}, found: {:x}\n\nThis is expected if the Update partition has been removed",
+            embedded_xxh64,
+            xxh64
+        );
     }
 
     Ok(())
