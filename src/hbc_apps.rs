@@ -8,7 +8,7 @@ use size::Size;
 use slint::{Image, ToSharedString, Weak};
 use std::{
     fs::{self, File},
-    io::{BufReader, Cursor},
+    io::{BufReader, Cursor, Read},
     path::{Path, PathBuf},
 };
 use zip::ZipArchive;
@@ -109,9 +109,14 @@ fn install_zip(mount_point: &Path, path: &Path) -> Result<()> {
     Ok(())
 }
 
-pub fn add_app_from_url(mount_point_str: &str, url: &str, weak: &Weak<MainWindow>) -> Result<()> {
+pub fn add_app_from_url(
+    mount_point_str: &str,
+    zip_url: &str,
+    zip_size: usize,
+    weak: &Weak<MainWindow>,
+) -> Result<()> {
     let mount_point = PathBuf::from(mount_point_str);
-    let url = url.to_string();
+    let url = zip_url.to_string();
 
     let status = format!("Downloading {}...", &url);
     weak.upgrade_in_event_loop(move |handle| {
@@ -119,13 +124,9 @@ pub fn add_app_from_url(mount_point_str: &str, url: &str, weak: &Weak<MainWindow
         handle.set_task_type(TaskType::DownloadingFolder);
     })?;
 
-    let mut response = AGENT.get(&url).call()?;
-
-    let buffer = response
-        .body_mut()
-        .with_config()
-        .limit(50 * 1024 * 1024) // 50MB
-        .read_to_vec()?;
+    let (_, body) = AGENT.get(&url).call()?.into_parts();
+    let mut buffer = Vec::with_capacity(zip_size);
+    body.into_reader().read_to_end(&mut buffer)?;
 
     let cursor = Cursor::new(buffer);
     let mut archive = ZipArchive::new(cursor)?;
