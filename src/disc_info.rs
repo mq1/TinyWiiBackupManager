@@ -1,12 +1,12 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{DiscInfo, PartitionInfo, convert::get_disc_opts, overflow_reader::get_main_file};
+use crate::{DiscInfo, convert::get_disc_opts, overflow_reader::get_main_file};
 use anyhow::{Result, anyhow};
-use nod::{disc::SECTOR_SIZE, read::DiscReader};
+use nod::read::DiscReader;
 use size::Size;
-use slint::{ModelRc, ToSharedString, VecModel};
-use std::{path::Path, rc::Rc};
+use slint::ToSharedString;
+use std::path::Path;
 
 pub fn get_region_display(id: [u8; 6]) -> &'static str {
     match id[3] {
@@ -90,22 +90,6 @@ pub fn get_disc_info(game_dir_str: &str) -> Result<DiscInfo> {
         .map(|hash| format!("{:08x}", hash).to_shared_string())
         .unwrap_or("Unknown".to_shared_string());
 
-    let partitions = disc
-        .partitions()
-        .iter()
-        .enumerate()
-        .map(|(i, p)| {
-            let diff = p.data_end_sector - p.start_sector;
-            let size = diff as usize * SECTOR_SIZE;
-
-            PartitionInfo {
-                index: i as i32,
-                kind: p.kind.to_shared_string(),
-                size: Size::from_bytes(size).to_shared_string(),
-            }
-        })
-        .collect::<VecModel<_>>();
-
     Ok(DiscInfo {
         game_dir,
         game_id,
@@ -126,6 +110,5 @@ pub fn get_disc_info(game_dir_str: &str) -> Result<DiscInfo> {
         md5,
         sha1,
         xxh64,
-        partitions: ModelRc::from(Rc::new(partitions)),
     })
 }
