@@ -334,6 +334,27 @@ export component DiscInfoDialog inherits Dialog {
                 spacing: 4px;
 
                 Icon {
+                    source: @image-url("../mdi/trash-can.svg");
+                }
+
+                MaterialText {
+                    vertical-alignment: center;
+                    text: "Scrubbed Update Partition:";
+                }
+
+                MaterialText {
+                    vertical-alignment: center;
+                    text: info.scrubbed-update-partition ? "Yes" : "No";
+                }
+            }
+
+            HorizontalDivider { }
+
+            HorizontalLayout {
+                alignment: start;
+                spacing: 4px;
+
+                Icon {
                     source: @image-url("../mdi/file-check.svg");
                 }
 

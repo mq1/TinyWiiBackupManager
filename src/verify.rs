@@ -8,16 +8,12 @@ use crate::{
 };
 use anyhow::{Result, anyhow, bail};
 use nod::{
-    common::Format,
     read::{DiscMeta, DiscReader},
     write::{DiscFinalization, DiscWriter, FormatOptions},
 };
 use size::Size;
 use slint::{ToSharedString, Weak};
 use std::path::{Path, PathBuf};
-
-pub const NKIT_ADDR: u64 = 0x10000;
-pub const NKIT_LEN: usize = 68;
 
 pub fn verify_game(game_dir_str: &str, weak: &Weak<MainWindow>) -> Result<()> {
     let game_dir = PathBuf::from(game_dir_str);
@@ -27,7 +23,7 @@ pub fn verify_game(game_dir_str: &str, weak: &Weak<MainWindow>) -> Result<()> {
     })?;
 
     let embedded = get_embedded_hashes(&game_dir)?;
-    let finalization = calc_hashes(&game_dir, weak)?.0;
+    let finalization = calc_hashes(&game_dir, weak)?;
 
     if let Some(crc32) = finalization.crc32
         && let Some(embedded_crc32) = embedded.crc32
@@ -67,11 +63,7 @@ fn get_embedded_hashes(game_dir: &Path) -> Result<DiscMeta> {
     Ok(meta)
 }
 
-// Also returns the nkit header bytes
-pub fn calc_hashes(
-    game_dir: &Path,
-    weak: &Weak<MainWindow>,
-) -> Result<(DiscFinalization, Box<[u8; 68]>)> {
+pub fn calc_hashes(game_dir: &Path, weak: &Weak<MainWindow>) -> Result<DiscFinalization> {
     let game_dir_name = game_dir
         .file_name()
         .ok_or(anyhow!("Failed to get disc name"))?
@@ -89,12 +81,10 @@ pub fn calc_hashes(
         DiscReader::new(&path, &get_disc_opts())?
     };
 
-    let disc_writer = DiscWriter::new(disc, &FormatOptions::new(Format::Wbfs))?;
-
-    let mut nkit_header = Box::new([0u8; NKIT_LEN]);
+    let disc_writer = DiscWriter::new(disc, &FormatOptions::default())?;
 
     let finalization = disc_writer.process(
-        |bytes, progress, total| {
+        |_, progress, total| {
             let status = format!(
                 "Hashing {}... ({}/{})",
                 &game_dir_name,
@@ -106,16 +96,10 @@ pub fn calc_hashes(
                 handle.set_status(status.to_shared_string());
             });
 
-            // check if we're at the nkit header
-            if progress == NKIT_ADDR {
-                let len = bytes.len().min(NKIT_LEN);
-                nkit_header[..len].copy_from_slice(&bytes[..len]);
-            }
-
             Ok(())
         },
         &get_process_opts(false),
     )?;
 
-    Ok((finalization, nkit_header))
+    Ok(finalization)
 }
