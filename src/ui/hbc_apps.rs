@@ -27,7 +27,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 .num_columns(cols)
                 .spacing(Vec2::splat(8.))
                 .show(ui, |ui| {
-                    for row in app.filtered_hbc_apps.chunks(cols) {
+                    for row in app.filtered_hbc_apps.lock().chunks(cols) {
                         for hbc_app in row {
                             view_hbc_app_card(
                                 ui,

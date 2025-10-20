@@ -27,7 +27,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 .num_columns(cols)
                 .spacing(Vec2::splat(8.))
                 .show(ui, |ui| {
-                    for row in app.filtered_games.chunks(cols) {
+                    for row in app.filtered_games.lock().chunks(cols) {
                         for game in row {
                             view_game_card(ui, game, &mut app.removing_game, &mut app.disc_info);
                         }
