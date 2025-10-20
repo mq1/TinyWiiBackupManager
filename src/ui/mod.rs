@@ -4,6 +4,8 @@
 mod choose_mount_point_dialog;
 mod disc_info;
 mod games;
+mod games_grid;
+mod games_list;
 mod hbc_apps;
 mod nav;
 mod osc;

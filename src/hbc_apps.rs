@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, http::AGENT};
+use crate::{app::App, config::SortBy, http::AGENT};
 use anyhow::Result;
 use path_slash::PathBufExt;
 use serde::Deserialize;
@@ -167,15 +167,34 @@ pub fn spawn_install_apps_task(app: &mut App, paths: Vec<PathBuf>) {
     });
 }
 
+pub fn sort(hbc_apps: &mut Vec<HbcApp>, sort_by: &SortBy) {
+    match sort_by {
+        SortBy::NameAscending => {
+            hbc_apps.sort_by(|a, b| a.name.cmp(&b.name));
+        }
+        SortBy::NameDescending => {
+            hbc_apps.sort_by(|a, b| b.name.cmp(&a.name));
+        }
+        SortBy::SizeAscending => {
+            hbc_apps.sort_by(|a, b| a.size.cmp(&b.size));
+        }
+        SortBy::SizeDescending => {
+            hbc_apps.sort_by(|a, b| b.size.cmp(&a.size));
+        }
+    }
+}
+
 pub fn spawn_get_hbc_apps_task(app: &App) {
     let mount_point = app.config.contents.mount_point.clone();
     let hbc_apps = app.hbc_apps.clone();
     let filtered_hbc_apps = app.filtered_hbc_apps.clone();
+    let sort_by = app.config.contents.sort_by.clone();
 
     app.task_processor.spawn(move |status, toasts| {
         *status.lock() = "🎮 Loading HBC Apps...".to_string();
 
-        let new_hbc_apps = list(&mount_point)?;
+        let mut new_hbc_apps = list(&mount_point)?;
+        sort(&mut new_hbc_apps, &sort_by);
         *hbc_apps.lock() = new_hbc_apps.clone();
         *filtered_hbc_apps.lock() = new_hbc_apps;
 

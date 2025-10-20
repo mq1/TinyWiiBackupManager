@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::app::App;
+use crate::config::SortBy;
 use crate::titles::Titles;
 use anyhow::Result;
 use anyhow::anyhow;
@@ -172,17 +173,36 @@ impl AsRef<str> for GameID {
     }
 }
 
+pub fn sort(games: &mut Vec<Game>, sort_by: &SortBy) {
+    match sort_by {
+        SortBy::NameAscending => {
+            games.sort_by(|a, b| a.display_title.cmp(&b.display_title));
+        }
+        SortBy::NameDescending => {
+            games.sort_by(|a, b| b.display_title.cmp(&a.display_title));
+        }
+        SortBy::SizeAscending => {
+            games.sort_by(|a, b| a.size.cmp(&b.size));
+        }
+        SortBy::SizeDescending => {
+            games.sort_by(|a, b| b.size.cmp(&a.size));
+        }
+    }
+}
+
 pub fn spawn_get_games_task(app: &App) {
     let mount_point = app.config.contents.mount_point.clone();
     let titles = app.titles.clone();
     let games = app.games.clone();
     let pending_update_title = app.pending_update_title.clone();
     let filtered_games = app.filtered_games.clone();
+    let sort_by = app.config.contents.sort_by.clone();
 
     app.task_processor.spawn(move |status, toasts| {
         *status.lock() = "🎮 Loading games...".to_string();
 
-        let new_games = list(&mount_point, &titles.lock())?;
+        let mut new_games = list(&mount_point, &titles.lock())?;
+        sort(&mut new_games, &sort_by);
         *games.lock() = new_games.clone();
         *filtered_games.lock() = new_games;
 
