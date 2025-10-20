@@ -65,4 +65,5 @@ pub enum BackgroundMessage {
     GotUpdateInfo(UpdateInfo),
     GotTitles(Titles),
     GotOscApps(Vec<OscApp>),
+    GotRedumpDb,
 }
