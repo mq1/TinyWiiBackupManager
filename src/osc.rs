@@ -1,11 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    app::App,
-    http::AGENT,
-    tasks::{BackgroundMessage, TaskProcessor},
-};
+use crate::{app::App, http::AGENT, tasks::BackgroundMessage};
 use anyhow::{Result, bail};
 use path_slash::PathExt;
 use serde::{Deserialize, Deserializer};
@@ -14,51 +10,50 @@ use std::{fs, io::Read, path::Path, time::Duration};
 
 const CONTENTS_URL: &str = "https://hbb1.oscwii.org/api/v4/contents";
 
-pub fn spawn_load_osc_apps_task(app: &mut App) {
+pub fn spawn_load_osc_apps_task(app: &App) {
     let cache_path = app.data_dir.join("osc-cache.json");
     let icons_dir = app.data_dir.join("osc-icons");
 
-    let task_processor = TaskProcessor::init();
-    task_processor.spawn(move |msg_sender| {
-        msg_sender.send(BackgroundMessage::UpdateOscStatus(
-            "📓 Downloading OSC Meta...".to_string(),
-        ))?;
+    if let Some(task_processor) = &app.osc_task_processor {
+        task_processor.spawn(move |msg_sender| {
+            msg_sender.send(BackgroundMessage::UpdateOscStatus(
+                "📓 Downloading OSC Meta...".to_string(),
+            ))?;
 
-        let cache = match load_cache(&cache_path) {
-            Ok(cache) => cache,
-            Err(_) => {
-                let bytes = AGENT.get(CONTENTS_URL).call()?.body_mut().read_to_vec()?;
-                fs::write(&cache_path, &bytes)?;
-                serde_json::from_slice(&bytes)?
+            let cache = match load_cache(&cache_path) {
+                Ok(cache) => cache,
+                Err(_) => {
+                    let bytes = AGENT.get(CONTENTS_URL).call()?.body_mut().read_to_vec()?;
+                    fs::write(&cache_path, &bytes)?;
+                    serde_json::from_slice(&bytes)?
+                }
+            };
+
+            fs::create_dir_all(&icons_dir)?;
+            let len = cache.len();
+            for (i, meta) in cache.iter().enumerate() {
+                msg_sender.send(BackgroundMessage::UpdateOscStatus(format!(
+                    "📥 Downloading OSC App icons... {}/{}",
+                    i + 1,
+                    len
+                )))?;
+
+                let _ = download_icon(meta, &icons_dir);
             }
-        };
 
-        fs::create_dir_all(&icons_dir)?;
-        let len = cache.len();
-        for (i, meta) in cache.iter().enumerate() {
-            msg_sender.send(BackgroundMessage::UpdateOscStatus(format!(
-                "📥 Downloading OSC App icons... {}/{}",
-                i + 1,
-                len
-            )))?;
+            let apps = cache
+                .into_iter()
+                .filter_map(|meta| OscApp::from_meta(meta, &icons_dir))
+                .collect::<Vec<_>>();
 
-            let _ = download_icon(meta, &icons_dir);
-        }
+            msg_sender.send(BackgroundMessage::GotOscApps(apps))?;
+            msg_sender.send(BackgroundMessage::NotifyInfo(
+                "📓 OSC Apps loaded".to_string(),
+            ))?;
 
-        let apps = cache
-            .into_iter()
-            .filter_map(|meta| OscApp::from_meta(meta, &icons_dir))
-            .collect::<Vec<_>>();
-
-        msg_sender.send(BackgroundMessage::GotOscApps(apps))?;
-        msg_sender.send(BackgroundMessage::NotifyInfo(
-            "📓 OSC Apps loaded".to_string(),
-        ))?;
-
-        Ok(())
-    });
-
-    app.osc_task_processor = Some(task_processor);
+            Ok(())
+        });
+    }
 }
 
 fn load_cache(path: &Path) -> Result<Vec<OscAppMeta>> {
