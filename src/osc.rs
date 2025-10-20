@@ -1,11 +1,10 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{MainWindow, OscApp, http::AGENT};
+use crate::http::AGENT;
 use anyhow::{Result, bail};
 use serde::Deserialize;
 use size::Size;
-use slint::{Image, ModelRc, SharedString, ToSharedString, VecModel, Weak};
 use std::{fs, io::Read, path::Path, rc::Rc, time::Duration};
 
 const CONTENTS_URL: &str = "https://hbb1.oscwii.org/api/v4/contents";
