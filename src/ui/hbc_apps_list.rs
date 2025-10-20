@@ -28,10 +28,10 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
             for hbc_app in app.filtered_hbc_apps.iter() {
                 body.row(20., |mut row| {
                     row.col(|ui| {
-                        ui.label(&hbc_app.name);
+                        ui.label(&hbc_app.meta.name);
                     });
                     row.col(|ui| {
-                        ui.label(&hbc_app.version);
+                        ui.label(&hbc_app.meta.version);
                     });
                     row.col(|ui| {
                         ui.label(hbc_app.size.to_string());
