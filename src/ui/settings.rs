@@ -9,7 +9,7 @@ use eframe::egui;
 use egui_theme_switch::ThemeSwitch;
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
-    egui::CentralPanel::default().show(&ctx, |ui| {
+    egui::CentralPanel::default().show(ctx, |ui| {
         egui::ScrollArea::vertical().show(ui, |ui| {
             ui.heading("💿 Wii Output Format");
 
@@ -20,10 +20,9 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     "WBFS (recommended)",
                 )
                 .changed()
+                && let Err(e) = app.config.write()
             {
-                if let Err(e) = app.config.write() {
-                    app.toasts.error(e.to_string());
-                }
+                app.toasts.error(e.to_string());
             }
 
             if ui
@@ -33,10 +32,9 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     "ISO (very large)",
                 )
                 .changed()
+                && let Err(e) = app.config.write()
             {
-                if let Err(e) = app.config.write() {
-                    app.toasts.error(e.to_string());
-                }
+                app.toasts.error(e.to_string());
             }
 
             ui.separator();
@@ -50,10 +48,9 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     "Only when needed (recommended)",
                 )
                 .changed()
+                && let Err(e) = app.config.write()
             {
-                if let Err(e) = app.config.write() {
-                    app.toasts.error(e.to_string());
-                }
+                app.toasts.error(e.to_string());
             }
 
             if ui
@@ -63,10 +60,9 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     "Always 4GB-32KB",
                 )
                 .changed()
+                && let Err(e) = app.config.write()
             {
-                if let Err(e) = app.config.write() {
-                    app.toasts.error(e.to_string());
-                }
+                app.toasts.error(e.to_string());
             }
 
             ui.separator();
@@ -80,10 +76,9 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     "No (recommended)",
                 )
                 .changed()
+                && let Err(e) = app.config.write()
             {
-                if let Err(e) = app.config.write() {
-                    app.toasts.error(e.to_string());
-                }
+                app.toasts.error(e.to_string());
             }
 
             if ui
@@ -93,10 +88,9 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     "Yes (saves some space)",
                 )
                 .changed()
+                && let Err(e) = app.config.write()
             {
-                if let Err(e) = app.config.write() {
-                    app.toasts.error(e.to_string());
-                }
+                app.toasts.error(e.to_string());
             }
 
             ui.separator();
@@ -110,10 +104,9 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     "RVZ (recommended)",
                 )
                 .changed()
+                && let Err(e) = app.config.write()
             {
-                if let Err(e) = app.config.write() {
-                    app.toasts.error(e.to_string());
-                }
+                app.toasts.error(e.to_string());
             }
 
             if ui
@@ -123,10 +116,9 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     "ISO (very large)",
                 )
                 .changed()
+                && let Err(e) = app.config.write()
             {
-                if let Err(e) = app.config.write() {
-                    app.toasts.error(e.to_string());
-                }
+                app.toasts.error(e.to_string());
             }
 
             ui.separator();
@@ -140,19 +132,17 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     "No (recommended)",
                 )
                 .changed()
+                && let Err(e) = app.config.write()
             {
-                if let Err(e) = app.config.write() {
-                    app.toasts.error(e.to_string());
-                }
+                app.toasts.error(e.to_string());
             }
 
             if ui
                 .radio_value(&mut app.config.contents.remove_sources_games, true, "Yes")
                 .changed()
+                && let Err(e) = app.config.write()
             {
-                if let Err(e) = app.config.write() {
-                    app.toasts.error(e.to_string());
-                }
+                app.toasts.error(e.to_string());
             }
 
             ui.separator();
@@ -166,19 +156,17 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     "No (recommended)",
                 )
                 .changed()
+                && let Err(e) = app.config.write()
             {
-                if let Err(e) = app.config.write() {
-                    app.toasts.error(e.to_string());
-                }
+                app.toasts.error(e.to_string());
             }
 
             if ui
                 .radio_value(&mut app.config.contents.remove_sources_apps, true, "Yes")
                 .changed()
+                && let Err(e) = app.config.write()
             {
-                if let Err(e) = app.config.write() {
-                    app.toasts.error(e.to_string());
-                }
+                app.toasts.error(e.to_string());
             }
         });
 

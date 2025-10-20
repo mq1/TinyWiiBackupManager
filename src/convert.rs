@@ -60,7 +60,7 @@ fn get_output_format_opts(wii_output_format: WiiOutputFormat, is_wii: bool) -> F
 pub fn spawn_add_games_task(app: &App, mut paths: Vec<PathBuf>) {
     let remove_sources = app.config.contents.remove_sources_games;
     let mount_point_clone = app.config.contents.mount_point.clone();
-    let wii_output_format = app.config.contents.wii_output_format.clone();
+    let wii_output_format = app.config.contents.wii_output_format;
     let disc_opts = get_disc_opts();
     let scrub_update_partition = app.config.contents.scrub_update_partition;
     let must_split =

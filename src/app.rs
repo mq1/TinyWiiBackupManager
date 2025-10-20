@@ -175,7 +175,7 @@ impl App {
             }
         }
 
-        covers::spawn_download_covers_task(&self);
+        covers::spawn_download_covers_task(self);
     }
 
     pub fn refresh_hbc_apps(&mut self) {

@@ -44,14 +44,12 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                                     Some(DiscInfo::from_game_dir(&game.path).unwrap_or_default());
                             }
                             // Archive button
-                            if ui
-                                .button("📦")
+                            ui.button("📦")
                                 .on_hover_text("Archive Game to a zstd-19 compressed RVZ")
-                                .clicked()
-                            {}
+                                .clicked();
 
                             // Integrity check button
-                            if ui.button("☑").on_hover_text("Integrity Check").clicked() {}
+                            ui.button("☑").on_hover_text("Integrity Check").clicked();
 
                             // Remove button
                             if ui.button("🗑").on_hover_text("Remove Game").clicked() {

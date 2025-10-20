@@ -21,7 +21,7 @@ pub fn list(mount_point: &Path, titles: &Option<Titles>) -> Result<Vec<Game>> {
         }
 
         for entry in fs::read_dir(&dir)?.filter_map(Result::ok) {
-            if let Ok(game) = Game::from_dir(entry.path(), &titles, &mount_point) {
+            if let Ok(game) = Game::from_dir(entry.path(), titles, mount_point) {
                 games.push(game);
             }
         }

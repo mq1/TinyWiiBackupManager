@@ -6,7 +6,7 @@ use crossbeam_channel::{Receiver, Sender, unbounded};
 use parking_lot::Mutex;
 use std::{sync::Arc, thread};
 
-use crate::{games::Game, hbc_apps::HbcApp, titles::Titles, updater::UpdateInfo};
+use crate::{titles::Titles, updater::UpdateInfo};
 
 pub type BoxedTask =
     Box<dyn FnOnce(&Arc<Mutex<String>>, &Sender<BackgroundMessage>) -> Result<()> + Send>;
