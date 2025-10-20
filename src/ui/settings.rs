@@ -183,6 +183,12 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                         app.toasts.error(e.to_string());
                     }
                 }
+
+                if ui.button("📂 Open Data Dir").clicked() {
+                    if let Err(e) = open::that(&app.data_dir) {
+                        app.toasts.error(e.to_string());
+                    }
+                }
             });
         });
     });

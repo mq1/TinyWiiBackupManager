@@ -69,7 +69,7 @@ pub fn spawn_add_games_task(app: &App, mut paths: Vec<PathBuf>) {
     // We'll get those later with get_overflow_file
     paths.retain(|path| !path.ends_with(".part1.iso"));
 
-    app.task_processor.spawn(move |status, msg_sender| {
+    app.task_processor.spawn(move |msg_sender| {
         let len = paths.len();
         for (i, path) in paths.into_iter().enumerate() {
             let (title, id, is_wii, disc_num) = {
@@ -143,13 +143,15 @@ pub fn spawn_add_games_task(app: &App, mut paths: Vec<PathBuf>) {
                             out1.write_all(&data)?;
                         }
 
-                        *status.lock() = format!(
-                            "🎮 Adding {}  {:02.0}%  ({}/{})",
-                            title,
-                            progress as f32 / total as f32 * 100.0,
-                            i + 1,
-                            len
-                        );
+                        msg_sender
+                            .send(BackgroundMessage::UpdateStatus(format!(
+                                "🎮 Adding {}  {:02.0}%  ({}/{})",
+                                title,
+                                progress as f32 / total as f32 * 100.0,
+                                i + 1,
+                                len
+                            )))
+                            .map_err(|e| std::io::Error::other(e.to_string()))?;
 
                         Ok(())
                     },

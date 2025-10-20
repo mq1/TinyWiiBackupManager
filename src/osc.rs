@@ -19,8 +19,10 @@ pub fn spawn_load_osc_apps_task(app: &mut App) {
     let icons_dir = app.data_dir.join("osc-icons");
 
     let task_processor = TaskProcessor::init();
-    task_processor.spawn(move |status, msg_sender| {
-        *status.lock() = "📓 Loading OSC Apps...".to_string();
+    task_processor.spawn(move |msg_sender| {
+        msg_sender.send(BackgroundMessage::UpdateOscStatus(
+            "📓 Downloading OSC Meta...".to_string(),
+        ))?;
 
         let cache = match load_cache(&cache_path) {
             Ok(cache) => cache,
@@ -34,7 +36,11 @@ pub fn spawn_load_osc_apps_task(app: &mut App) {
         fs::create_dir_all(&icons_dir)?;
         let len = cache.len();
         for (i, meta) in cache.iter().enumerate() {
-            *status.lock() = format!("📥 Downloading OSC App icons... {}/{}", i + 1, len);
+            msg_sender.send(BackgroundMessage::UpdateOscStatus(format!(
+                "📥 Downloading OSC App icons... {}/{}",
+                i + 1,
+                len
+            )))?;
 
             let _ = download_icon(meta, &icons_dir);
         }

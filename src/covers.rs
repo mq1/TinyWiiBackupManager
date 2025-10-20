@@ -110,12 +110,18 @@ pub fn spawn_download_covers_task(app: &App) {
     let mount_point = app.config.contents.mount_point.clone();
     let games = app.games.clone();
 
-    app.task_processor.spawn(move |status, msg_sender| {
-        *status.lock() = "🖻 Downloading covers...".to_string();
+    app.task_processor.spawn(move |msg_sender| {
+        msg_sender.send(BackgroundMessage::UpdateStatus(
+            "🖻 Downloading covers...".to_string(),
+        ))?;
 
         let len = games.len();
         for (i, game) in games.iter().enumerate() {
-            *status.lock() = format!("🖻 Downloading covers... ({}/{})", i + 1, len);
+            msg_sender.send(BackgroundMessage::UpdateStatus(format!(
+                "🖻 Downloading covers... ({}/{})",
+                i + 1,
+                len
+            )))?;
             let _ = download_cover3d(&game.id, &mount_point);
         }
 
@@ -133,12 +139,18 @@ pub fn spawn_download_all_covers_task(app: &App) {
     let mount_point = app.config.contents.mount_point.clone();
     let games = app.games.clone();
 
-    app.task_processor.spawn(move |status, msg_sender| {
-        *status.lock() = "🖻 Downloading covers...".to_string();
+    app.task_processor.spawn(move |msg_sender| {
+        msg_sender.send(BackgroundMessage::UpdateStatus(
+            "🖻 Downloading covers...".to_string(),
+        ))?;
 
         let len = games.len();
         for (i, game) in games.iter().enumerate() {
-            *status.lock() = format!("🖻 Downloading covers... ({}/{})", i + 1, len);
+            msg_sender.send(BackgroundMessage::UpdateStatus(format!(
+                "🖻 Downloading covers... ({}/{})",
+                i + 1,
+                len
+            )))?;
 
             let _ = download_cover3d(&game.id, &mount_point);
             let _ = download_cover2d(&game.id, &mount_point);

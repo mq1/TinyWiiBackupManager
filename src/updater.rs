@@ -52,8 +52,10 @@ impl UpdateInfo {
 }
 
 pub fn spawn_check_update_task(app: &App) {
-    app.task_processor.spawn(move |status, msg_sender| {
-        *status.lock() = "✈ Checking for updates...".to_string();
+    app.task_processor.spawn(move |msg_sender| {
+        msg_sender.send(BackgroundMessage::UpdateStatus(
+            "✈ Checking for updates...".to_string(),
+        ))?;
 
         let update_info = check()?;
 
