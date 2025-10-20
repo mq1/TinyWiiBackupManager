@@ -10,6 +10,7 @@ use crate::{
     titles::Titles,
     ui,
     updater::{self, UpdateInfo},
+    util,
 };
 use eframe::egui;
 use egui_file_dialog::FileDialog;
@@ -252,18 +253,20 @@ impl App {
     pub fn update_title(&self, ctx: &egui::Context) {
         let title = match self.current_view {
             ui::View::Games => format!(
-                "{} v{} • {} Games in {}",
+                "{} v{} • {} Games • {} {}",
                 env!("CARGO_PKG_NAME"),
                 env!("CARGO_PKG_VERSION"),
                 self.games.lock().len(),
-                self.config.contents.mount_point.display()
+                self.config.get_drive_name(),
+                util::get_disk_usage(&self.config.contents.mount_point).unwrap_or_default()
             ),
             ui::View::HbcApps => format!(
-                "{} v{} • {} Apps in {}",
+                "{} v{} • {} Apps • {} {}",
                 env!("CARGO_PKG_NAME"),
                 env!("CARGO_PKG_VERSION"),
                 self.hbc_apps.lock().len(),
-                self.config.contents.mount_point.display()
+                self.config.get_drive_name(),
+                util::get_disk_usage(&self.config.contents.mount_point).unwrap_or_default()
             ),
             ui::View::Osc => format!(
                 "{} v{} • OSC",
