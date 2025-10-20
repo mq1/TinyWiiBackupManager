@@ -1,69 +1,56 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{MainWindow, TaskType};
 use anyhow::Result;
-use slint::{SharedString, ToSharedString, Weak};
-use std::sync::mpsc;
-use std::thread;
+use crossbeam_channel::{Sender, unbounded};
+use egui_notify::Toasts;
+use parking_lot::Mutex;
+use std::{sync::Arc, thread};
 
-pub type BoxedTask = Box<dyn FnOnce(&Weak<MainWindow>) -> Result<String> + Send>;
+pub type BoxedTask = Box<dyn FnOnce(Arc<Mutex<String>>, Arc<Mutex<Toasts>>) -> Result<()> + Send>;
 
 pub struct TaskProcessor {
-    sender: mpsc::Sender<BoxedTask>,
-    weak: Weak<MainWindow>,
+    task_sender: Sender<BoxedTask>,
+    pub status: Arc<Mutex<String>>,
+    toasts: Arc<Mutex<Toasts>>,
 }
 
 impl TaskProcessor {
-    pub fn init(weak: Weak<MainWindow>, hidden: bool) -> Self {
-        let (sender, receiver) = mpsc::channel::<BoxedTask>();
+    pub fn init(toasts: Arc<Mutex<Toasts>>) -> Self {
+        let (task_sender, task_receiver) = unbounded::<BoxedTask>();
 
-        let weak_clone = weak.clone();
+        let status = Arc::new(Mutex::new(String::new()));
+
+        let status_clone = status.clone();
+        let toasts_clone = toasts.clone();
         thread::spawn(move || {
-            while let Ok(task) = receiver.recv() {
-                // Increment the task count
-                if !hidden {
-                    let _ = weak_clone.upgrade_in_event_loop(|handle| {
-                        handle.set_task_count(handle.get_task_count() + 1);
-                    });
+            while let Ok(task) = task_receiver.recv() {
+                if let Err(e) = task(status_clone.clone(), toasts_clone.clone()) {
+                    toasts_clone.lock().error(e.to_string());
                 }
 
-                // Execute the task and show the optional message
-                let res = task(&weak_clone);
-                let _ = weak_clone.upgrade_in_event_loop(|handle| match res {
-                    Ok(msg) => handle.invoke_show_info(msg.to_shared_string()),
-                    Err(e) => handle.invoke_show_error(e.to_shared_string()),
-                });
-
-                // Cleanup
-                if !hidden {
-                    let _ = weak_clone.upgrade_in_event_loop(move |handle| {
-                        handle.set_status(SharedString::new());
-                        handle.set_task_type(TaskType::Unknown);
-                        handle.set_task_count(handle.get_task_count() - 1);
-                    });
-                }
+                // Clean up
+                status_clone.lock().clear();
             }
         });
 
-        Self { sender, weak }
-    }
-
-    pub fn spawn(&self, task: BoxedTask) {
-        if let Err(e) = self.sender.send(task)
-            && let Some(handle) = self.weak.upgrade()
-        {
-            handle.invoke_show_error(e.to_shared_string());
+        Self {
+            task_sender,
+            status,
+            toasts,
         }
     }
 
-    pub fn run_now(&self, task: BoxedTask) {
-        let res = task(&self.weak);
-        if let Some(handle) = self.weak.upgrade() {
-            match res {
-                Ok(msg) => handle.invoke_show_info(msg.to_shared_string()),
-                Err(e) => handle.invoke_show_error(e.to_shared_string()),
-            }
+    pub fn spawn<F>(&self, task: F)
+    where
+        F: FnOnce(Arc<Mutex<String>>, Arc<Mutex<Toasts>>) -> Result<()> + Send + 'static,
+    {
+        if let Err(e) = self.task_sender.send(Box::new(task)) {
+            self.toasts.lock().error(e.to_string());
         }
+    }
+
+    pub fn pending(&self) -> usize {
+        self.task_sender.len()
     }
 }

@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{Config, HbcApp, MainWindow, TaskType, http::AGENT};
-use anyhow::{Result, bail};
+use crate::{app::App, http::AGENT};
+use anyhow::Result;
+use path_slash::PathBufExt;
 use serde::Deserialize;
 use size::Size;
-use slint::{Image, ToSharedString, Weak};
 use std::{
     fs::{self, File},
     io::{BufReader, Cursor, Read},
@@ -36,13 +36,28 @@ impl Default for HbcAppMeta {
     }
 }
 
+pub struct HbcApp {
+    pub slug: String,
+    pub name: String,
+    pub coder: String,
+    pub version: String,
+    pub release_date: String,
+    pub short_description: String,
+    pub long_description: String,
+    pub image_uri: String,
+    pub size: Size,
+    pub path: PathBuf,
+    pub search_str: String,
+}
+
 impl HbcApp {
     pub fn from_path(path: PathBuf) -> Self {
         let slug = path
             .file_name()
             .unwrap_or_default()
             .to_str()
-            .unwrap_or_default();
+            .unwrap_or_default()
+            .to_string();
 
         let meta_path = path.join("meta").with_extension("xml");
         let meta = fs::read_to_string(&meta_path).unwrap_or_default();
@@ -52,30 +67,22 @@ impl HbcApp {
         let size = Size::from_bytes(size);
 
         let image_path = path.join("icon.png");
-        let image = if image_path.exists()
-            && let Ok(image) = Image::load_from_path(&image_path)
-        {
-            image
-        } else {
-            Image::load_from_svg_data(include_bytes!("../mdi/image-frame.svg"))
-                .expect("Failed to load default icon")
-        };
+        let image_uri = format!("file://{}", image_path.to_slash_lossy());
 
-        let search_str = (meta.name.clone() + slug).to_lowercase().to_shared_string();
+        let search_str = (meta.name.clone() + &slug).to_lowercase();
 
         Self {
-            slug: slug.to_shared_string(),
-            name: meta.name.trim().to_shared_string(),
-            coder: meta.coder.to_shared_string(),
-            version: meta.version.to_shared_string(),
-            release_date: meta.release_date.to_shared_string(),
-            short_description: meta.short_description.to_shared_string(),
-            long_description: meta.long_description.to_shared_string(),
-            path: path.to_str().unwrap_or_default().to_shared_string(),
-            image,
-            size: size.to_shared_string(),
-            size_mib: (size.bytes() / 1024 / 1024) as i32,
+            slug,
+            name: meta.name.trim().to_string(),
+            coder: meta.coder,
+            version: meta.version,
+            release_date: meta.release_date,
+            short_description: meta.short_description,
+            long_description: meta.long_description,
+            path,
+            size,
             search_str,
+            image_uri,
         }
     }
 }
@@ -109,69 +116,52 @@ fn install_zip(mount_point: &Path, path: &Path) -> Result<()> {
     Ok(())
 }
 
-pub fn add_app_from_url(
-    mount_point_str: &str,
-    zip_url: &str,
+pub fn spawn_install_app_from_url_task(
+    zip_url: String,
     zip_size: usize,
-    weak: &Weak<MainWindow>,
+    app: &mut App,
 ) -> Result<()> {
-    let mount_point = PathBuf::from(mount_point_str);
-    let url = zip_url.to_string();
+    let mount_point = app.config.contents.mount_point.clone();
 
-    let status = format!("Downloading {}...", &url);
-    weak.upgrade_in_event_loop(move |handle| {
-        handle.set_status(status.to_shared_string());
-        handle.set_task_type(TaskType::DownloadingFolder);
-    })?;
+    app.task_processor.spawn(move |status, toasts| {
+        *status.lock() = format!("📥 Downloading {}...", &zip_url);
 
-    let (_, body) = AGENT.get(&url).call()?.into_parts();
-    let mut buffer = Vec::with_capacity(zip_size);
-    body.into_reader().read_to_end(&mut buffer)?;
+        let (_, body) = AGENT.get(&zip_url).call()?.into_parts();
+        let mut buffer = Vec::with_capacity(zip_size);
+        body.into_reader().read_to_end(&mut buffer)?;
 
-    let cursor = Cursor::new(buffer);
-    let mut archive = ZipArchive::new(cursor)?;
-    archive.extract(mount_point)?;
+        let cursor = Cursor::new(buffer);
+        let mut archive = ZipArchive::new(cursor)?;
+        archive.extract(mount_point)?;
 
-    weak.upgrade_in_event_loop(move |handle| {
-        handle.invoke_refresh_hbc_apps();
-    })?;
+        toasts.lock().info("📥 App installed".to_string());
+
+        Ok(())
+    });
 
     Ok(())
 }
 
-pub fn add_apps(config: &Config, weak: &Weak<MainWindow>) -> Result<()> {
-    let remove_sources = config.remove_sources_apps;
-    let mount_point = PathBuf::from(&config.mount_point);
-    fs::create_dir_all(mount_point.join("apps"))?;
+pub fn spawn_install_apps_task(app: &mut App, paths: Vec<PathBuf>) {
+    let remove_sources = app.config.contents.remove_sources_apps;
+    let mount_point = app.config.contents.mount_point.clone();
 
-    let paths = rfd::FileDialog::new()
-        .set_title("Select Wii HBC App(s)")
-        .add_filter("Wii App", &["zip", "ZIP"])
-        .pick_files();
+    app.task_processor.spawn(move |status, toasts| {
+        *status.lock() = "🖴 Installing apps...".to_string();
 
-    if let Some(paths) = paths {
-        for path in paths.iter() {
-            {
-                let status = format!("Installing {}...", path.display());
-                weak.upgrade_in_event_loop(move |handle| {
-                    handle.set_status(status.to_shared_string());
-                    handle.set_task_type(TaskType::InstallingApps);
-                })?;
-
-                install_zip(&mount_point, path)?;
-            }
+        for path in &paths {
+            *status.lock() = format!("🖴 Installing {}...", path.display());
+            install_zip(&mount_point, path)?;
 
             if remove_sources {
                 fs::remove_file(path)?;
             }
+
+            toasts
+                .lock()
+                .info(format!("🖴 Installed {}", path.display()));
         }
 
-        weak.upgrade_in_event_loop(move |handle| {
-            handle.invoke_refresh_hbc_apps();
-        })?;
-
         Ok(())
-    } else {
-        bail!("No files selected");
-    }
+    });
 }

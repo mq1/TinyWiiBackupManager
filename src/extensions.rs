@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::ArchiveFormat;
+use std::path::Path;
 
 #[rustfmt::skip]
 pub const SUPPORTED_INPUT_EXTENSIONS: &[&str] = &[
@@ -9,11 +9,11 @@ pub const SUPPORTED_INPUT_EXTENSIONS: &[&str] = &[
     "GCM", "ISO", "WBFS", "WIA", "RVZ", "CISO", "GCS", "TGC", "NFS",
 ];
 
-impl ArchiveFormat {
-    pub fn extension(self) -> &'static str {
-        match self {
-            ArchiveFormat::Rvz => "rvz",
-            ArchiveFormat::Iso => "iso",
-        }
-    }
+pub fn get_filter() -> Box<fn(&Path) -> bool> {
+    Box::new(|path: &Path| {
+        path.extension()
+            .and_then(|ext| ext.to_str())
+            .map(|ext| SUPPORTED_INPUT_EXTENSIONS.contains(&ext))
+            .unwrap_or(false)
+    })
 }

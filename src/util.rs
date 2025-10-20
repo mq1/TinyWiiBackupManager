@@ -65,7 +65,7 @@ pub fn get_threads_num() -> (usize, usize) {
     (preloader_threads, processor_threads)
 }
 
-pub fn run_dot_clean(mount_point: &str) -> Result<()> {
+pub fn run_dot_clean(mount_point: &Path) -> Result<()> {
     Command::new("dot_clean")
         .arg("-m")
         .arg(mount_point)
