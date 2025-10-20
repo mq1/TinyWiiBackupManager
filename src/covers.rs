@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    games::{self, GameID},
+    app::App,
+    games::{self, Game, GameID},
     http::AGENT,
     tasks::TaskProcessor,
 };
@@ -115,15 +116,15 @@ fn download_disc_cover(id: &GameID, mount_point: &Path) -> Result<()> {
 }
 
 // Fail safe, ignores errors, no popup notification
-pub fn spawn_download_covers_task(
-    mount_point: PathBuf,
-    task_processor: &TaskProcessor,
-    should_refresh_images: Arc<Mutex<bool>>,
-) {
-    task_processor.spawn(move |status, toasts| {
+pub fn spawn_download_covers_task(app: &App) {
+    let mount_point = app.config.contents.mount_point.clone();
+    let games = app.games.clone();
+    let pending_refresh_images = app.pending_refresh_images.clone();
+
+    app.task_processor.spawn(move |status, toasts| {
         *status.lock() = "🖻 Downloading covers...".to_string();
 
-        let games = games::list(&mount_point, &None)?;
+        let games = games.lock();
         let len = games.len();
         for (i, game) in games.iter().enumerate() {
             *status.lock() = format!("🖻 Downloading covers... ({}/{})", i + 1, len);
@@ -131,7 +132,7 @@ pub fn spawn_download_covers_task(
         }
 
         toasts.lock().info("🖻 Covers downloaded".to_string());
-        *should_refresh_images.lock() = true;
+        *pending_refresh_images.lock() = true;
 
         Ok(())
     });
@@ -140,12 +141,13 @@ pub fn spawn_download_covers_task(
 pub fn spawn_download_all_covers_task(
     mount_point: PathBuf,
     task_processor: &TaskProcessor,
-    should_refresh_images: Arc<Mutex<bool>>,
+    games: Arc<Mutex<Vec<Game>>>,
+    pending_refresh_images: Arc<Mutex<bool>>,
 ) {
     task_processor.spawn(move |status, toasts| {
         *status.lock() = "🖻 Downloading covers...".to_string();
 
-        let games = games::list(&mount_point, &None)?;
+        let games = games.lock();
         let len = games.len();
         for (i, game) in games.iter().enumerate() {
             *status.lock() = format!("🖻 Downloading covers... ({}/{})", i + 1, len);
@@ -157,7 +159,7 @@ pub fn spawn_download_all_covers_task(
         }
 
         toasts.lock().info("🖻 Covers downloaded".to_string());
-        *should_refresh_images.lock() = true;
+        *pending_refresh_images.lock() = true;
 
         Ok(())
     });
