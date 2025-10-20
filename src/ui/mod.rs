@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+mod choose_games_dialog;
 mod choose_mount_point_dialog;
 mod disc_info;
 mod games;

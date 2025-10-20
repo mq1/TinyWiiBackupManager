@@ -4,6 +4,7 @@
 use crate::{
     config::Config,
     disc_info::DiscInfo,
+    extensions,
     games::{self, Game},
     hbc_apps::{self, HbcApp},
     tasks::TaskProcessor,
@@ -41,6 +42,7 @@ pub struct App {
     pub filtered_hbc_apps: Arc<Mutex<Vec<HbcApp>>>,
     pub task_processor: TaskProcessor,
     pub choose_mount_point: FileDialog,
+    pub choose_games: FileDialog,
     pub toasts: Arc<Mutex<Toasts>>,
 
     // Pending actions to perform after the UI has been updated
@@ -81,6 +83,10 @@ impl App {
             removing_game: None,
             task_processor,
             choose_mount_point: FileDialog::new().as_modal(true),
+            choose_games: FileDialog::new().as_modal(true).add_file_filter_extensions(
+                "Nintendo Optical Disc",
+                extensions::SUPPORTED_INPUT_EXTENSIONS.to_vec(),
+            ),
             toasts,
             hbc_app_search: String::new(),
             hbc_apps: Arc::new(Mutex::new(Vec::new())),

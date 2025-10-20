@@ -4,7 +4,7 @@
 use crate::{app::App, games};
 use eframe::egui;
 
-pub fn view(ctx: &egui::Context, app: &mut App) {
+pub fn update(ctx: &egui::Context, app: &mut App) {
     app.choose_mount_point.update(ctx);
 
     if let Some(path) = app.choose_mount_point.take_picked() {
