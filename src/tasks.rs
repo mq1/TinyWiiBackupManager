@@ -58,6 +58,7 @@ pub enum BackgroundMessage {
     NotifyError(String),
     UpdateStatus(String),
     ClearStatus,
+    ClearOscStatus,
     UpdateOscStatus(String),
     TriggerRefreshImages,
     TriggerRefreshGames,
