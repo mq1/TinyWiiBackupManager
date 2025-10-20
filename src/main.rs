@@ -64,8 +64,6 @@ fn main() -> Result<()> {
     redump::spawn_download_all_task(&app);
     osc::spawn_load_osc_apps_task(&app);
 
-    app.refresh_hbc_apps();
-
     // -------------
     // Initialize UI
 
@@ -84,7 +82,7 @@ fn main() -> Result<()> {
     };
 
     eframe::run_native(
-        env!("CARGO_PKG_NAME"),
+        &(env!("CARGO_PKG_NAME").to_string() + " v" + env!("CARGO_PKG_VERSION")),
         native_options,
         Box::new(|cc| {
             install_image_loaders(&cc.egui_ctx);
@@ -99,6 +97,8 @@ fn main() -> Result<()> {
 
                 style.spacing.button_padding = vec2(5., 2.5);
             });
+
+            app.refresh_hbc_apps(&cc.egui_ctx);
 
             Ok(Box::new(app))
         }),
