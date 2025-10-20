@@ -119,7 +119,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     }
                 });
 
-                if let Some(update_info) = app.update_info.lock().as_ref() {
+                if let Some(update_info) = &app.update_info {
                     if ui
                         .add_sized(
                             Vec2::splat(40.),
@@ -128,7 +128,9 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                         .on_hover_text(update_info.to_string())
                         .clicked()
                     {
-                        let _ = update_info.open_url();
+                        if let Err(e) = update_info.open_url() {
+                            app.toasts.error(e.to_string());
+                        }
                     }
                 }
             });

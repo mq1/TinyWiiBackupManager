@@ -1,13 +1,13 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, games::GameID, http::AGENT};
+use crate::{app::App, games::GameID, http::AGENT, tasks::BackgroundMessage};
 use anyhow::Result;
 use std::{fs, path::Path};
 
 const DOWNLOAD_URL: &str = "https://www.gametdb.com/wiitdb.txt";
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Titles(Box<[(GameID, String)]>);
 
 impl Titles {
@@ -47,14 +47,15 @@ impl Titles {
 
 pub fn spawn_get_titles_task(app: &App) {
     let data_dir = app.data_dir.clone();
-    let titles = app.titles.clone();
 
-    app.task_processor.spawn(move |status, toasts| {
+    app.task_processor.spawn(move |status, msg_sender| {
         *status.lock() = "📓 Loading titles...".to_string();
 
-        let new_titles = Titles::load(&data_dir)?;
-        *titles.lock() = Some(new_titles);
-        toasts.lock().info("📓 Titles loaded".to_string());
+        let titles = Titles::load(&data_dir)?;
+        msg_sender.send(BackgroundMessage::GotTitles(titles))?;
+        msg_sender.send(BackgroundMessage::NotifyInfo(
+            "📓 Titles loaded".to_string(),
+        ))?;
 
         Ok(())
     });

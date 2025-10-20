@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, games};
+use crate::app::App;
 use eframe::egui;
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
@@ -9,11 +9,11 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
     if let Some(path) = app.choose_mount_point.take_picked() {
         app.config.contents.mount_point = path;
-
-        games::spawn_get_games_task(app);
+        app.refresh_games();
+        app.refresh_hbc_apps();
 
         if let Err(e) = app.config.write() {
-            app.toasts.lock().error(e.to_string());
+            app.toasts.error(e.to_string());
         }
     }
 }

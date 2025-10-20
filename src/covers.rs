@@ -1,19 +1,9 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    app::App,
-    games::{self, Game, GameID},
-    http::AGENT,
-    tasks::TaskProcessor,
-};
+use crate::{app::App, games::GameID, http::AGENT, tasks::BackgroundMessage};
 use anyhow::Result;
-use parking_lot::Mutex;
-use std::{
-    fs,
-    path::{Path, PathBuf},
-    sync::Arc,
-};
+use std::{fs, path::Path};
 
 fn download_cover3d(id: &GameID, mount_point: &Path) -> Result<()> {
     let images_dir = mount_point.join("apps").join("usbloader_gx").join("images");
@@ -119,35 +109,33 @@ fn download_disc_cover(id: &GameID, mount_point: &Path) -> Result<()> {
 pub fn spawn_download_covers_task(app: &App) {
     let mount_point = app.config.contents.mount_point.clone();
     let games = app.games.clone();
-    let pending_refresh_images = app.pending_refresh_images.clone();
 
-    app.task_processor.spawn(move |status, toasts| {
+    app.task_processor.spawn(move |status, msg_sender| {
         *status.lock() = "🖻 Downloading covers...".to_string();
 
-        let games = games.lock();
         let len = games.len();
         for (i, game) in games.iter().enumerate() {
             *status.lock() = format!("🖻 Downloading covers... ({}/{})", i + 1, len);
             let _ = download_cover3d(&game.id, &mount_point);
         }
 
-        toasts.lock().info("🖻 Covers downloaded".to_string());
-        *pending_refresh_images.lock() = true;
+        msg_sender.send(BackgroundMessage::TriggerRefreshImages)?;
+
+        msg_sender.send(BackgroundMessage::NotifyInfo(
+            "🖻 Covers downloaded".to_string(),
+        ))?;
 
         Ok(())
     });
 }
 
-pub fn spawn_download_all_covers_task(
-    mount_point: PathBuf,
-    task_processor: &TaskProcessor,
-    games: Arc<Mutex<Vec<Game>>>,
-    pending_refresh_images: Arc<Mutex<bool>>,
-) {
-    task_processor.spawn(move |status, toasts| {
+pub fn spawn_download_all_covers_task(app: &App) {
+    let mount_point = app.config.contents.mount_point.clone();
+    let games = app.games.clone();
+
+    app.task_processor.spawn(move |status, msg_sender| {
         *status.lock() = "🖻 Downloading covers...".to_string();
 
-        let games = games.lock();
         let len = games.len();
         for (i, game) in games.iter().enumerate() {
             *status.lock() = format!("🖻 Downloading covers... ({}/{})", i + 1, len);
@@ -158,8 +146,11 @@ pub fn spawn_download_all_covers_task(
             let _ = download_disc_cover(&game.id, &mount_point);
         }
 
-        toasts.lock().info("🖻 Covers downloaded".to_string());
-        *pending_refresh_images.lock() = true;
+        msg_sender.send(BackgroundMessage::TriggerRefreshImages)?;
+
+        msg_sender.send(BackgroundMessage::NotifyInfo(
+            "🖻 Covers downloaded".to_string(),
+        ))?;
 
         Ok(())
     });

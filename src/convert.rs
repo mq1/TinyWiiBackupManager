@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    Config,
+    app::App,
     config::WiiOutputFormat,
     overflow_reader::{OverflowReader, get_overflow_file},
-    tasks::TaskProcessor,
+    tasks::BackgroundMessage,
     util::{self, can_write_over_4gb},
 };
 use nod::{
@@ -57,23 +57,19 @@ fn get_output_format_opts(wii_output_format: WiiOutputFormat, is_wii: bool) -> F
     }
 }
 
-pub fn spawn_add_games_task(
-    config: &Config,
-    mut paths: Vec<PathBuf>,
-    task_processor: &TaskProcessor,
-) {
-    let remove_sources = config.contents.remove_sources_games;
-    let mount_point_clone = config.contents.mount_point.clone();
-    let wii_output_format = config.contents.wii_output_format.clone();
+pub fn spawn_add_games_task(app: &App, mut paths: Vec<PathBuf>) {
+    let remove_sources = app.config.contents.remove_sources_games;
+    let mount_point_clone = app.config.contents.mount_point.clone();
+    let wii_output_format = app.config.contents.wii_output_format.clone();
     let disc_opts = get_disc_opts();
-    let scrub_update_partition = config.contents.scrub_update_partition;
+    let scrub_update_partition = app.config.contents.scrub_update_partition;
     let must_split =
-        config.contents.always_split || can_write_over_4gb(&mount_point_clone).is_err();
+        app.config.contents.always_split || can_write_over_4gb(&mount_point_clone).is_err();
 
     // We'll get those later with get_overflow_file
     paths.retain(|path| !path.ends_with(".part1.iso"));
 
-    task_processor.spawn(move |status, toasts| {
+    app.task_processor.spawn(move |status, msg_sender| {
         let len = paths.len();
         for (i, path) in paths.into_iter().enumerate() {
             let (title, id, is_wii, disc_num) = {
@@ -170,7 +166,8 @@ pub fn spawn_add_games_task(
                 fs::remove_file(&path)?;
             }
 
-            toasts.lock().info(format!("🎮 Added {}", title));
+            msg_sender.send(BackgroundMessage::NotifyInfo(format!("🎮 Added {}", title)))?;
+            msg_sender.send(BackgroundMessage::TriggerRefreshGames)?;
         }
 
         Ok(())

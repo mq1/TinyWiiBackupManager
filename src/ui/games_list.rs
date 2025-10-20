@@ -25,7 +25,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
             });
         })
         .body(|mut body| {
-            for game in app.filtered_games.lock().iter() {
+            for game in app.filtered_games.iter() {
                 body.row(20., |mut row| {
                     row.col(|ui| {
                         ui.label(&game.display_title);

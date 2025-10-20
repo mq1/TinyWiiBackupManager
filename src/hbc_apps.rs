@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, config::SortBy, http::AGENT};
+use crate::{app::App, config::SortBy, http::AGENT, tasks::BackgroundMessage};
 use anyhow::Result;
 use path_slash::PathBufExt;
 use serde::Deserialize;
@@ -117,14 +117,10 @@ fn install_zip(mount_point: &Path, path: &Path) -> Result<()> {
     Ok(())
 }
 
-pub fn spawn_install_app_from_url_task(
-    zip_url: String,
-    zip_size: usize,
-    app: &mut App,
-) -> Result<()> {
+pub fn spawn_install_app_from_url_task(zip_url: String, zip_size: usize, app: &App) -> Result<()> {
     let mount_point = app.config.contents.mount_point.clone();
 
-    app.task_processor.spawn(move |status, toasts| {
+    app.task_processor.spawn(move |status, msg_sender| {
         *status.lock() = format!("📥 Downloading {}...", &zip_url);
 
         let (_, body) = AGENT.get(&zip_url).call()?.into_parts();
@@ -135,7 +131,12 @@ pub fn spawn_install_app_from_url_task(
         let mut archive = ZipArchive::new(cursor)?;
         archive.extract(mount_point)?;
 
-        toasts.lock().info("📥 App installed".to_string());
+        msg_sender.send(BackgroundMessage::TriggerRefreshHbcApps)?;
+
+        msg_sender.send(BackgroundMessage::NotifyInfo(format!(
+            "📥 {} Downloaded",
+            &zip_url
+        )))?;
 
         Ok(())
     });
@@ -143,11 +144,11 @@ pub fn spawn_install_app_from_url_task(
     Ok(())
 }
 
-pub fn spawn_install_apps_task(app: &mut App, paths: Vec<PathBuf>) {
+pub fn spawn_install_apps_task(app: &App, paths: Vec<PathBuf>) {
     let remove_sources = app.config.contents.remove_sources_apps;
     let mount_point = app.config.contents.mount_point.clone();
 
-    app.task_processor.spawn(move |status, toasts| {
+    app.task_processor.spawn(move |status, msg_sender| {
         *status.lock() = "🖴 Installing apps...".to_string();
 
         for path in &paths {
@@ -158,9 +159,12 @@ pub fn spawn_install_apps_task(app: &mut App, paths: Vec<PathBuf>) {
                 fs::remove_file(path)?;
             }
 
-            toasts
-                .lock()
-                .info(format!("🖴 Installed {}", path.display()));
+            msg_sender.send(BackgroundMessage::TriggerRefreshHbcApps)?;
+
+            msg_sender.send(BackgroundMessage::NotifyInfo(format!(
+                "🖴 Installed {}",
+                path.display()
+            )))?;
         }
 
         Ok(())
@@ -182,24 +186,4 @@ pub fn sort(hbc_apps: &mut Vec<HbcApp>, sort_by: &SortBy) {
             hbc_apps.sort_by(|a, b| b.size.cmp(&a.size));
         }
     }
-}
-
-pub fn spawn_get_hbc_apps_task(app: &App) {
-    let mount_point = app.config.contents.mount_point.clone();
-    let hbc_apps = app.hbc_apps.clone();
-    let filtered_hbc_apps = app.filtered_hbc_apps.clone();
-    let sort_by = app.config.contents.sort_by.clone();
-
-    app.task_processor.spawn(move |status, toasts| {
-        *status.lock() = "🎮 Loading HBC Apps...".to_string();
-
-        let mut new_hbc_apps = list(&mount_point)?;
-        sort(&mut new_hbc_apps, &sort_by);
-        *hbc_apps.lock() = new_hbc_apps.clone();
-        *filtered_hbc_apps.lock() = new_hbc_apps;
-
-        toasts.lock().info("🎮 HBC Apps loaded".to_string());
-
-        Ok(())
-    });
 }

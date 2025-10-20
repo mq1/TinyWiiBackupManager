@@ -24,7 +24,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 if ui.button("🗑 Remove").clicked() {
                     if let Err(e) = fs::remove_dir_all(&game.path) {
-                        app.toasts.lock().error(e.to_string());
+                        app.toasts.error(e.to_string());
                     }
                     close = true;
                 }
