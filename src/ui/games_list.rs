@@ -12,10 +12,10 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
         .column(Column::remainder())
         .header(20.0, |mut header| {
             header.col(|ui| {
-                ui.heading("🎮 Game");
+                ui.heading("🏷 Game");
             });
             header.col(|ui| {
-                ui.heading("🕹 Console");
+                ui.heading("🎮 Console");
             });
         })
         .body(|mut body| {
