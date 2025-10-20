@@ -4,7 +4,7 @@
 use crate::{
     config::{Config, SortBy},
     disc_info::DiscInfo,
-    games::{self, Game},
+    games::Game,
     hbc_apps::HbcApp,
     tasks::TaskProcessor,
     titles::Titles,
