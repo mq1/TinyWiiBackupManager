@@ -3,6 +3,7 @@
 
 use crate::app::App;
 use crate::http::AGENT;
+use crate::tasks::BackgroundMessage;
 use std::fs::{self, OpenOptions};
 use std::io::{self, BufWriter, Cursor, Read};
 use zip::ZipArchive;
@@ -13,7 +14,7 @@ const DOWNLOAD_URL: &str = "https://www.gametdb.com/wiitdb.zip";
 pub fn spawn_download_task(app: &App) {
     let mount_point = app.config.contents.mount_point.clone();
 
-    app.task_processor.spawn(move |status, toasts| {
+    app.task_processor.spawn(move |status, msg_sender| {
         *status.lock() = "📥 Downloading wiitdb.xml...".to_string();
 
         // Create the target directory.
@@ -42,9 +43,9 @@ pub fn spawn_download_task(app: &App) {
         let mut writer = BufWriter::new(target_file);
         io::copy(&mut zipped_file, &mut writer)?;
 
-        toasts
-            .lock()
-            .info("📥 wiitdb.xml Downloaded Successfully".to_string());
+        msg_sender.send(BackgroundMessage::NotifyInfo(
+            "📥 wiitdb.xml Downloaded Successfully".to_string(),
+        ))?;
 
         Ok(())
     });

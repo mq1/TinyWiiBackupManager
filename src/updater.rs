@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, http::AGENT};
+use crate::{app::App, http::AGENT, tasks::BackgroundMessage};
 use anyhow::{Context, Result};
 use semver::Version;
 use std::fmt;
@@ -52,18 +52,15 @@ impl UpdateInfo {
 }
 
 pub fn spawn_check_update_task(app: &App) {
-    let update_info = app.update_info.clone();
-
-    app.task_processor.spawn(move |status, toasts| {
+    app.task_processor.spawn(move |status, msg_sender| {
         *status.lock() = "✈ Checking for updates...".to_string();
 
-        let new_update_info = check()?;
+        let update_info = check()?;
 
-        if let Some(update_info) = &new_update_info {
-            toasts.lock().info(update_info.to_string());
+        if let Some(update_info) = update_info {
+            msg_sender.send(BackgroundMessage::NotifyInfo(update_info.to_string()));
+            msg_sender.send(BackgroundMessage::GotUpdateInfo(update_info))?;
         }
-
-        *update_info.lock() = new_update_info;
 
         Ok(())
     });
