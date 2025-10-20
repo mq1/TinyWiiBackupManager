@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    config::{Config, SortBy},
+    config::Config,
     disc_info::DiscInfo,
-    games::Game,
-    hbc_apps::HbcApp,
+    games::{self, Game},
+    hbc_apps::{self, HbcApp},
     tasks::TaskProcessor,
     titles::Titles,
     ui,
@@ -134,47 +134,8 @@ impl App {
     }
 
     pub fn apply_sorting(&mut self) {
-        match self.config.contents.sort_by {
-            SortBy::NameAscending => {
-                self.filtered_games
-                    .lock()
-                    .sort_by(|a, b| a.display_title.cmp(&b.display_title));
-
-                self.filtered_hbc_apps
-                    .lock()
-                    .sort_by(|a, b| a.name.cmp(&b.name));
-            }
-
-            SortBy::NameDescending => {
-                self.filtered_games
-                    .lock()
-                    .sort_by(|a, b| b.display_title.cmp(&a.display_title));
-
-                self.filtered_hbc_apps
-                    .lock()
-                    .sort_by(|a, b| b.name.cmp(&a.name));
-            }
-
-            SortBy::SizeAscending => {
-                self.filtered_games
-                    .lock()
-                    .sort_by(|a, b| a.size.cmp(&b.size));
-
-                self.filtered_hbc_apps
-                    .lock()
-                    .sort_by(|a, b| a.size.cmp(&b.size));
-            }
-
-            SortBy::SizeDescending => {
-                self.filtered_games
-                    .lock()
-                    .sort_by(|a, b| b.size.cmp(&a.size));
-
-                self.filtered_hbc_apps
-                    .lock()
-                    .sort_by(|a, b| b.size.cmp(&a.size));
-            }
-        }
+        games::sort(&mut self.games.lock(), &self.config.contents.sort_by);
+        hbc_apps::sort(&mut self.hbc_apps.lock(), &self.config.contents.sort_by);
     }
 
     pub fn update_title(&self, ctx: &egui::Context) {
