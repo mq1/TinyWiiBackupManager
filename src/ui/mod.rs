@@ -15,6 +15,7 @@ mod hbc_apps_list;
 mod nav;
 mod osc;
 mod remove_game;
+mod remove_hbc_app;
 pub mod root;
 mod settings;
 mod status;
