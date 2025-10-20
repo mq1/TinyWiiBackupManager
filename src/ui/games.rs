@@ -10,7 +10,7 @@ use crate::{
 use eframe::egui::{self, Margin, Vec2};
 
 const CARD_WIDTH: f32 = 153.5;
-const CARD_HEIGHT: f32 = 185.;
+const CARD_HEIGHT: f32 = 186.;
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
     egui::CentralPanel::default().show(&ctx, |ui| {
