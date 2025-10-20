@@ -8,7 +8,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
     egui::SidePanel::left("nav")
         .resizable(false)
         .exact_width(57.)
-        .show(&ctx, |ui| {
+        .show(ctx, |ui| {
             ui.add_space(6.);
 
             if ui
@@ -123,27 +123,24 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                         if ui
                             .button(egui::RichText::new("👻 Run dot_clean").size(15.))
                             .clicked()
+                            && let Err(e) = util::run_dot_clean(&app.config.contents.mount_point)
                         {
-                            if let Err(e) = util::run_dot_clean(&app.config.contents.mount_point) {
-                                app.toasts.error(e.to_string());
-                            }
+                            app.toasts.error(e.to_string());
                         }
                     }
                 });
 
-                if let Some(update_info) = &app.update_info {
-                    if ui
+                if let Some(update_info) = &app.update_info
+                    && ui
                         .add_sized(
                             Vec2::splat(40.),
                             egui::Button::new(egui::RichText::new("🔔").size(26.)),
                         )
                         .on_hover_text(update_info.to_string())
                         .clicked()
-                    {
-                        if let Err(e) = update_info.open_url() {
-                            app.toasts.error(e.to_string());
-                        }
-                    }
+                    && let Err(e) = update_info.open_url()
+                {
+                    app.toasts.error(e.to_string());
                 }
             });
         });

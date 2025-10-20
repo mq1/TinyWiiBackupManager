@@ -4,7 +4,7 @@
 use eframe::egui;
 
 pub fn view(ctx: &egui::Context) {
-    egui::CentralPanel::default().show(&ctx, |ui| {
+    egui::CentralPanel::default().show(ctx, |ui| {
         ui.heading("Open Shop Channel");
     });
 }
