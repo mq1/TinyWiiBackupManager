@@ -8,6 +8,7 @@ use crate::{
     extensions,
     games::{self, Game},
     hbc_apps::{self, HbcApp},
+    osc::OscApp,
     tasks::{BackgroundMessage, TaskProcessor},
     titles::Titles,
     ui,
@@ -38,10 +39,12 @@ pub struct App {
     pub hbc_apps: Vec<HbcApp>,
     pub filtered_hbc_apps: Vec<HbcApp>,
     pub task_processor: TaskProcessor,
+    pub osc_task_processor: Option<TaskProcessor>,
     pub choose_mount_point: FileDialog,
     pub choose_games: FileDialog,
     pub choose_hbc_apps: FileDialog,
     pub toasts: Toasts,
+    pub osc_apps: Option<Vec<OscApp>>,
 }
 
 impl App {
@@ -70,6 +73,7 @@ impl App {
             disc_info: None,
             removing_game: None,
             task_processor: TaskProcessor::init(),
+            osc_task_processor: None,
             choose_mount_point: FileDialog::new().as_modal(true),
             choose_games: FileDialog::new()
                 .as_modal(true)
@@ -88,6 +92,7 @@ impl App {
             filtered_hbc_apps: Vec::new(),
             removing_hbc_app: None,
             hbc_app_info: None,
+            osc_apps: None,
         }
     }
 
@@ -228,6 +233,12 @@ impl eframe::App for App {
                 BackgroundMessage::GotTitles(titles) => {
                     self.titles = Some(titles);
                     self.refresh_games();
+                }
+                BackgroundMessage::GotOscApps(osc_apps) => {
+                    self.osc_apps = Some(osc_apps);
+
+                    // Drop the task processor
+                    self.osc_task_processor.take();
                 }
             }
         }

@@ -13,6 +13,7 @@ mod extensions;
 mod games;
 mod hbc_apps;
 mod http;
+mod osc;
 mod overflow_reader;
 mod tasks;
 mod titles;
@@ -59,6 +60,7 @@ fn main() -> Result<()> {
 
     titles::spawn_get_titles_task(&app); // this loads games when finished
     updater::spawn_check_update_task(&app);
+    osc::spawn_load_osc_apps_task(&mut app);
 
     app.refresh_hbc_apps();
 
