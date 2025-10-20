@@ -83,10 +83,13 @@ impl App {
             removing_game: None,
             task_processor,
             choose_mount_point: FileDialog::new().as_modal(true),
-            choose_games: FileDialog::new().as_modal(true).add_file_filter_extensions(
-                "Nintendo Optical Disc",
-                extensions::SUPPORTED_INPUT_EXTENSIONS.to_vec(),
-            ),
+            choose_games: FileDialog::new()
+                .as_modal(true)
+                .add_file_filter_extensions(
+                    "Nintendo Optical Disc",
+                    extensions::SUPPORTED_INPUT_EXTENSIONS.to_vec(),
+                )
+                .default_file_filter("Nintendo Optical Disc"),
             toasts,
             hbc_app_search: String::new(),
             hbc_apps: Arc::new(Mutex::new(Vec::new())),
