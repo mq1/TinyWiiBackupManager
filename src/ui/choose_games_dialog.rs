@@ -8,6 +8,6 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
     app.choose_games.update(ctx);
 
     if let Some(paths) = app.choose_games.take_picked_multiple() {
-        convert::spawn_add_games_task(&app, paths);
+        convert::spawn_add_games_task(app, paths);
     }
 }

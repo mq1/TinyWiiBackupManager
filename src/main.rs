@@ -21,7 +21,7 @@ mod updater;
 mod util;
 mod wiitdb;
 
-use crate::{app::App, config::Config};
+use crate::app::App;
 use anyhow::{Result, anyhow};
 use eframe::{
     NativeOptions,

@@ -9,7 +9,7 @@ use crate::{
 use eframe::egui::{self, Vec2};
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
-    egui::CentralPanel::default().show(&ctx, |ui| {
+    egui::CentralPanel::default().show(ctx, |ui| {
         if app.config.contents.mount_point.as_os_str().is_empty() {
             ui.label("Click on ☰ ⏵ 🖴 to choose a Drive or Directory");
             return;

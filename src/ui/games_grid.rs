@@ -70,14 +70,12 @@ fn view_game_card(
                 }
 
                 // Integrity check button
-                if ui.button("☑").on_hover_text("Integrity Check").clicked() {}
+                ui.button("☑").on_hover_text("Integrity Check").clicked();
 
                 // Archive button
-                if ui
-                    .button("📦")
+                ui.button("📦")
                     .on_hover_text("Archive Game to a zstd-19 compressed RVZ")
-                    .clicked()
-                {}
+                    .clicked();
 
                 // Info button
                 if ui
