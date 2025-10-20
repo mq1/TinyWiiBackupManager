@@ -252,19 +252,29 @@ impl App {
     pub fn update_title(&self, ctx: &egui::Context) {
         let title = match self.current_view {
             ui::View::Games => format!(
-                "{} • {} Games in {}",
+                "{} v{} • {} Games in {}",
                 env!("CARGO_PKG_NAME"),
+                env!("CARGO_PKG_VERSION"),
                 self.games.lock().len(),
                 self.config.contents.mount_point.display()
             ),
             ui::View::HbcApps => format!(
-                "{} • {} HBC apps in {}",
+                "{} v{} • {} Apps in {}",
                 env!("CARGO_PKG_NAME"),
+                env!("CARGO_PKG_VERSION"),
                 self.hbc_apps.lock().len(),
                 self.config.contents.mount_point.display()
             ),
-            ui::View::Osc => format!("{} • OSC", env!("CARGO_PKG_NAME")),
-            ui::View::Settings => format!("{} • Settings", env!("CARGO_PKG_NAME")),
+            ui::View::Osc => format!(
+                "{} v{} • OSC",
+                env!("CARGO_PKG_NAME"),
+                env!("CARGO_PKG_VERSION")
+            ),
+            ui::View::Settings => format!(
+                "{} v{} • Settings",
+                env!("CARGO_PKG_NAME"),
+                env!("CARGO_PKG_VERSION")
+            ),
         };
 
         ctx.send_viewport_cmd(egui::ViewportCommand::Title(title));
