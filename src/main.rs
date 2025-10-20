@@ -25,7 +25,7 @@ use crate::{app::App, config::Config};
 use anyhow::{Result, anyhow};
 use eframe::{
     NativeOptions,
-    egui::{self, ViewportBuilder},
+    egui::{self, CornerRadius, ViewportBuilder},
 };
 use egui_extras::install_image_loaders;
 use std::{fs, path::PathBuf};
@@ -52,7 +52,7 @@ fn get_data_dir() -> Result<PathBuf> {
 fn main() -> Result<()> {
     let data_dir = get_data_dir()?;
     fs::create_dir_all(&data_dir)?;
-    let mut app = App::new(&data_dir);
+    let app = App::new(&data_dir);
 
     // ----------------
     // Initialize tasks
@@ -79,11 +79,23 @@ fn main() -> Result<()> {
         ..Default::default()
     };
 
-    eframe::run_simple_native(env!("CARGO_PKG_NAME"), native_options, move |ctx, _| {
-        install_image_loaders(ctx);
-        ui::root::update(ctx, &mut app);
-        app.apply_pending(ctx);
-    })
+    eframe::run_native(
+        env!("CARGO_PKG_NAME"),
+        native_options,
+        Box::new(|cc| {
+            install_image_loaders(&cc.egui_ctx);
+
+            cc.egui_ctx.all_styles_mut(|style| {
+                style.visuals.widgets.active.corner_radius = CornerRadius::same(10);
+                style.visuals.widgets.hovered.corner_radius = CornerRadius::same(10);
+                style.visuals.widgets.inactive.corner_radius = CornerRadius::same(10);
+                style.visuals.widgets.noninteractive.corner_radius = CornerRadius::same(10);
+                style.visuals.widgets.open.corner_radius = CornerRadius::same(10);
+            });
+
+            Ok(Box::new(app))
+        }),
+    )
     .expect("Failed to run app");
 
     Ok(())
