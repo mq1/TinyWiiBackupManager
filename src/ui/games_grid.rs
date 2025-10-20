@@ -32,7 +32,7 @@ fn view_game_card(
     ui: &mut egui::Ui,
     game: &Game,
     removing_game: &mut Option<Game>,
-    disc_info: &mut Option<DiscInfo>,
+    disc_info: &mut Option<(String, DiscInfo)>,
 ) {
     ui.group(|ui| {
         ui.set_height(CARD_HEIGHT);
@@ -70,7 +70,7 @@ fn view_game_card(
                 }
 
                 // Integrity check button
-                ui.button("☑").on_hover_text("Integrity Check").clicked();
+                ui.button("✅").on_hover_text("Integrity Check").clicked();
 
                 // Archive button
                 ui.button("📦")
@@ -82,10 +82,11 @@ fn view_game_card(
                     .add(
                         egui::Button::new("ℹ Info").min_size(egui::vec2(ui.available_width(), 0.0)),
                     )
-                    .on_hover_text("Show Game Information")
+                    .on_hover_text("Show Disc Information")
                     .clicked()
                 {
-                    *disc_info = Some(DiscInfo::from_game_dir(&game.path).unwrap_or_default());
+                    let info = DiscInfo::from_game_dir(&game.path).unwrap_or_default();
+                    *disc_info = Some((game.display_title.clone(), info));
                 }
             });
         });

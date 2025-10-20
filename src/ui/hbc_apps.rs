@@ -1,7 +1,11 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, config::{SortBy, ViewAs}, ui::{hbc_apps_grid, hbc_apps_list}};
+use crate::{
+    app::App,
+    config::{SortBy, ViewAs},
+    ui::{hbc_apps_grid, hbc_apps_list},
+};
 use eframe::egui::{self, Vec2};
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
