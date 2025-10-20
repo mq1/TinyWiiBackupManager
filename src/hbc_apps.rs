@@ -36,6 +36,7 @@ impl Default for HbcAppMeta {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct HbcApp {
     pub slug: String,
     pub name: String,

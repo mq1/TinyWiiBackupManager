@@ -5,6 +5,7 @@ use crate::{
     config::{Config, SortBy},
     disc_info::DiscInfo,
     games::{self, Game},
+    hbc_apps::{self, HbcApp},
     tasks::TaskProcessor,
     titles::Titles,
     ui,
@@ -32,6 +33,11 @@ pub struct App {
     pub titles: Arc<Mutex<Option<Titles>>>,
     pub disc_info: Option<DiscInfo>,
     pub removing_game: Option<Game>,
+    pub removing_hbc_app: Option<HbcApp>,
+    pub hbc_app_info: Option<HbcApp>,
+    pub hbc_app_search: String,
+    pub hbc_apps: Arc<Mutex<Vec<HbcApp>>>,
+    pub filtered_hbc_apps: Vec<HbcApp>,
     pub task_processor: TaskProcessor,
     pub choose_mount_point: FileDialog,
     pub toasts: Arc<Mutex<Toasts>>,
@@ -39,6 +45,7 @@ pub struct App {
     // Pending actions to perform after the UI has been updated
     pub pending_refresh_images: Arc<Mutex<bool>>,
     pub pending_reset_filtered_games: Arc<Mutex<bool>>,
+    pub pending_reset_filtered_hbc_apps: Arc<Mutex<bool>>,
 }
 
 impl App {
@@ -75,8 +82,14 @@ impl App {
             task_processor,
             choose_mount_point: FileDialog::new().as_modal(true),
             toasts,
+            hbc_app_search: String::new(),
+            hbc_apps: Arc::new(Mutex::new(Vec::new())),
+            filtered_hbc_apps: Vec::new(),
+            removing_hbc_app: None,
+            hbc_app_info: None,
             pending_refresh_images: Arc::new(Mutex::new(false)),
             pending_reset_filtered_games: Arc::new(Mutex::new(false)),
+            pending_reset_filtered_hbc_apps: Arc::new(Mutex::new(false)),
         }
     }
 
@@ -99,18 +112,35 @@ impl App {
         let mount_point = self.config.contents.mount_point.clone();
         let titles = self.titles.clone();
         let games = self.games.clone();
-        let pending_refresh_images = self.pending_refresh_images.clone();
         let pending_reset_filtered_games = self.pending_reset_filtered_games.clone();
 
         self.task_processor.spawn(move |status, toasts| {
             *status.lock() = "🎮 Loading games...".to_string();
 
             let new_games = games::list(&mount_point, &titles.lock())?;
-            *games.lock() = new_games.clone();
+            *games.lock() = new_games;
             toasts.lock().info("🎮 Games loaded".to_string());
 
-            *pending_refresh_images.lock() = true;
             *pending_reset_filtered_games.lock() = true;
+
+            Ok(())
+        });
+    }
+
+    pub fn spawn_get_hbc_apps_task(&self) {
+        let mount_point = self.config.contents.mount_point.clone();
+        let hbc_apps = self.hbc_apps.clone();
+        let pending_reset_filtered_hbc_apps = self.pending_reset_filtered_hbc_apps.clone();
+
+        self.task_processor.spawn(move |status, toasts| {
+            *status.lock() = "🎮 Loading HBC apps...".to_string();
+
+            let new_hbc_apps = hbc_apps::list(&mount_point)?;
+            *hbc_apps.lock() = new_hbc_apps;
+
+            toasts.lock().info("🎮 HBC apps loaded".to_string());
+
+            *pending_reset_filtered_hbc_apps.lock() = true;
 
             Ok(())
         });
@@ -157,17 +187,44 @@ impl App {
             .retain(|game| game.search_str.contains(&game_search));
     }
 
+    pub fn update_filtered_hbc_apps(&mut self) {
+        let hbc_app_search = self.hbc_app_search.to_lowercase();
+        self.filtered_hbc_apps = self
+            .hbc_apps
+            .lock()
+            .iter()
+            .filter(|hbc_app| hbc_app.search_str.contains(&hbc_app_search))
+            .cloned()
+            .collect();
+    }
+
     pub fn apply_sorting(&mut self) {
         match self.config.contents.sort_by {
-            SortBy::NameAscending => self
-                .filtered_games
-                .sort_by(|a, b| a.display_title.cmp(&b.display_title)),
-            SortBy::NameDescending => self
-                .filtered_games
-                .sort_by(|a, b| b.display_title.cmp(&a.display_title)),
+            SortBy::NameAscending => {
+                self.filtered_games
+                    .sort_by(|a, b| a.display_title.cmp(&b.display_title));
 
-            SortBy::SizeAscending => self.filtered_games.sort_by(|a, b| a.size.cmp(&b.size)),
-            SortBy::SizeDescending => self.filtered_games.sort_by(|a, b| b.size.cmp(&a.size)),
+                self.filtered_hbc_apps.sort_by(|a, b| a.name.cmp(&b.name));
+            }
+
+            SortBy::NameDescending => {
+                self.filtered_games
+                    .sort_by(|a, b| b.display_title.cmp(&a.display_title));
+
+                self.filtered_hbc_apps.sort_by(|a, b| b.name.cmp(&a.name));
+            }
+
+            SortBy::SizeAscending => {
+                self.filtered_games.sort_by(|a, b| a.size.cmp(&b.size));
+
+                self.filtered_hbc_apps.sort_by(|a, b| a.size.cmp(&b.size));
+            }
+
+            SortBy::SizeDescending => {
+                self.filtered_games.sort_by(|a, b| b.size.cmp(&a.size));
+
+                self.filtered_hbc_apps.sort_by(|a, b| b.size.cmp(&a.size));
+            }
         }
     }
 
@@ -176,6 +233,12 @@ impl App {
         if *pending_reset_filtered_games {
             self.filtered_games = self.games.lock().clone();
             *pending_reset_filtered_games = false;
+        }
+
+        let mut pending_reset_filtered_hbc_apps = self.pending_reset_filtered_hbc_apps.lock();
+        if *pending_reset_filtered_hbc_apps {
+            self.filtered_hbc_apps = self.hbc_apps.lock().clone();
+            *pending_reset_filtered_hbc_apps = false;
         }
 
         let mut pending_refresh_images = self.pending_refresh_images.lock();

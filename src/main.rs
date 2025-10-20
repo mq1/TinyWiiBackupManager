@@ -58,6 +58,7 @@ fn main() -> Result<()> {
 
     app.spawn_get_titles_task();
     app.spawn_get_games_task();
+    app.spawn_get_hbc_apps_task();
     app.spawn_check_update_task();
 
     // -------------
