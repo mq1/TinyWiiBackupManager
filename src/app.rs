@@ -45,6 +45,8 @@ pub struct App {
     pub choose_hbc_apps: FileDialog,
     pub toasts: Toasts,
     pub osc_apps: Option<Vec<OscApp>>,
+    pub status: String,
+    pub osc_status: String,
 }
 
 impl App {
@@ -93,6 +95,8 @@ impl App {
             removing_hbc_app: None,
             hbc_app_info: None,
             osc_apps: None,
+            status: String::new(),
+            osc_status: String::new(),
         }
     }
 
@@ -218,6 +222,12 @@ impl eframe::App for App {
                 BackgroundMessage::NotifyError(string) => {
                     self.toasts.error(string);
                 }
+                BackgroundMessage::UpdateStatus(string) => {
+                    self.status = string;
+                }
+                BackgroundMessage::ClearStatus => {
+                    self.status.clear();
+                }
                 BackgroundMessage::TriggerRefreshImages => {
                     ctx.forget_all_images();
                 }
@@ -234,13 +244,33 @@ impl eframe::App for App {
                     self.titles = Some(titles);
                     self.refresh_games();
                 }
-                BackgroundMessage::GotOscApps(osc_apps) => {
-                    self.osc_apps = Some(osc_apps);
+                BackgroundMessage::UpdateOscStatus(_) | BackgroundMessage::GotOscApps(_) => {}
+            }
 
-                    // Drop the task processor
-                    self.osc_task_processor.take();
+            ctx.request_repaint();
+        }
+
+        // Osc task processor
+        let mut drop_task_processor = false;
+        if let Some(osc_task_processor) = &self.osc_task_processor {
+            while let Ok(msg) = osc_task_processor.msg_receiver.try_recv() {
+                match msg {
+                    BackgroundMessage::UpdateOscStatus(string) => {
+                        self.osc_status = string;
+                    }
+                    BackgroundMessage::GotOscApps(osc_apps) => {
+                        self.osc_apps = Some(osc_apps);
+                        drop_task_processor = true;
+                    }
+                    _ => {}
                 }
             }
+
+            ctx.request_repaint();
+        }
+
+        if drop_task_processor {
+            self.osc_task_processor = None;
         }
     }
 }

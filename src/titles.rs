@@ -48,8 +48,10 @@ impl Titles {
 pub fn spawn_get_titles_task(app: &App) {
     let data_dir = app.data_dir.clone();
 
-    app.task_processor.spawn(move |status, msg_sender| {
-        *status.lock() = "📓 Loading titles...".to_string();
+    app.task_processor.spawn(move |msg_sender| {
+        msg_sender.send(BackgroundMessage::UpdateStatus(
+            "📓 Loading titles...".to_string(),
+        ))?;
 
         let titles = Titles::load(&data_dir)?;
         msg_sender.send(BackgroundMessage::GotTitles(titles))?;

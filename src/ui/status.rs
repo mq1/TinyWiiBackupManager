@@ -5,9 +5,7 @@ use crate::app::App;
 use eframe::egui;
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
-    let status = app.task_processor.status.lock();
-
-    if status.is_empty() {
+    if app.status.is_empty() {
         return;
     }
 
@@ -22,7 +20,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
             ui.separator();
 
-            ui.label(&*status);
+            ui.label(&app.status);
         });
     });
 }
