@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{http::AGENT, tasks::TaskProcessor};
+use crate::{app::App, http::AGENT, tasks::TaskProcessor};
 use anyhow::{Context, Result};
 use parking_lot::Mutex;
 use semver::Version;
@@ -50,4 +50,22 @@ impl UpdateInfo {
         open::that(&url)?;
         Ok(())
     }
+}
+
+pub fn spawn_check_update_task(app: &App) {
+    let update_info = app.update_info.clone();
+
+    app.task_processor.spawn(move |status, toasts| {
+        *status.lock() = "✈ Checking for updates...".to_string();
+
+        let new_update_info = check()?;
+
+        if let Some(update_info) = &new_update_info {
+            toasts.lock().info(update_info.to_string());
+        }
+
+        *update_info.lock() = new_update_info;
+
+        Ok(())
+    });
 }

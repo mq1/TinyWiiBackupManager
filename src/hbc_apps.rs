@@ -166,3 +166,21 @@ pub fn spawn_install_apps_task(app: &mut App, paths: Vec<PathBuf>) {
         Ok(())
     });
 }
+
+pub fn spawn_get_hbc_apps_task(app: &App) {
+    let mount_point = app.config.contents.mount_point.clone();
+    let hbc_apps = app.hbc_apps.clone();
+    let filtered_hbc_apps = app.filtered_hbc_apps.clone();
+
+    app.task_processor.spawn(move |status, toasts| {
+        *status.lock() = "🎮 Loading HBC apps...".to_string();
+
+        let new_hbc_apps = list(&mount_point)?;
+        *hbc_apps.lock() = new_hbc_apps.clone();
+        *filtered_hbc_apps.lock() = new_hbc_apps;
+
+        toasts.lock().info("🎮 HBC apps loaded".to_string());
+
+        Ok(())
+    });
+}

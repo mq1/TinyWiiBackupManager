@@ -56,10 +56,10 @@ fn main() -> Result<()> {
     // ----------------
     // Initialize tasks
 
-    app.spawn_get_titles_task();
-    app.spawn_get_games_task();
-    app.spawn_get_hbc_apps_task();
-    app.spawn_check_update_task();
+    titles::spawn_get_titles_task(&app);
+    games::spawn_get_games_task(&app);
+    hbc_apps::spawn_get_hbc_apps_task(&app);
+    updater::spawn_check_update_task(&app);
 
     // -------------
     // Initialize UI
