@@ -5,11 +5,11 @@ use crate::{
     config::{Config, SortBy},
     disc_info::DiscInfo,
     games::{self, Game},
-    hbc_apps::{self, HbcApp},
+    hbc_apps::HbcApp,
     tasks::TaskProcessor,
     titles::Titles,
     ui,
-    updater::{self, UpdateInfo},
+    updater::UpdateInfo,
     util,
 };
 use eframe::egui;
@@ -90,79 +90,6 @@ impl App {
             pending_refresh_images: Arc::new(Mutex::new(false)),
             pending_update_title: Arc::new(Mutex::new(false)),
         }
-    }
-
-    pub fn spawn_get_titles_task(&self) {
-        let data_dir = self.data_dir.clone();
-        let titles = self.titles.clone();
-
-        self.task_processor.spawn(move |status, toasts| {
-            *status.lock() = "📓 Loading titles...".to_string();
-
-            let new_titles = Titles::load(&data_dir)?;
-            *titles.lock() = Some(new_titles);
-            toasts.lock().info("📓 Titles loaded".to_string());
-
-            Ok(())
-        });
-    }
-
-    pub fn spawn_get_games_task(&self) {
-        let mount_point = self.config.contents.mount_point.clone();
-        let titles = self.titles.clone();
-        let games = self.games.clone();
-        let pending_update_title = self.pending_update_title.clone();
-        let filtered_games = self.filtered_games.clone();
-
-        self.task_processor.spawn(move |status, toasts| {
-            *status.lock() = "🎮 Loading games...".to_string();
-
-            let new_games = games::list(&mount_point, &titles.lock())?;
-            *games.lock() = new_games.clone();
-            *filtered_games.lock() = new_games;
-
-            toasts.lock().info("🎮 Games loaded".to_string());
-
-            *pending_update_title.lock() = true;
-
-            Ok(())
-        });
-    }
-
-    pub fn spawn_get_hbc_apps_task(&self) {
-        let mount_point = self.config.contents.mount_point.clone();
-        let hbc_apps = self.hbc_apps.clone();
-        let filtered_hbc_apps = self.filtered_hbc_apps.clone();
-
-        self.task_processor.spawn(move |status, toasts| {
-            *status.lock() = "🎮 Loading HBC apps...".to_string();
-
-            let new_hbc_apps = hbc_apps::list(&mount_point)?;
-            *hbc_apps.lock() = new_hbc_apps.clone();
-            *filtered_hbc_apps.lock() = new_hbc_apps;
-
-            toasts.lock().info("🎮 HBC apps loaded".to_string());
-
-            Ok(())
-        });
-    }
-
-    pub fn spawn_check_update_task(&self) {
-        let update_info = self.update_info.clone();
-
-        self.task_processor.spawn(move |status, toasts| {
-            *status.lock() = "✈ Checking for updates...".to_string();
-
-            let new_update_info = updater::check()?;
-
-            if let Some(update_info) = &new_update_info {
-                toasts.lock().info(update_info.to_string());
-            }
-
-            *update_info.lock() = new_update_info;
-
-            Ok(())
-        });
     }
 
     pub fn update_filtered_games(&mut self) {

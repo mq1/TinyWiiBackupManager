@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::app::App;
 use crate::titles::Titles;
 use anyhow::Result;
 use anyhow::anyhow;
@@ -169,4 +170,26 @@ impl AsRef<str> for GameID {
     fn as_ref(&self) -> &str {
         unsafe { std::str::from_utf8_unchecked(&self.0) }
     }
+}
+
+pub fn spawn_get_games_task(app: &App) {
+    let mount_point = app.config.contents.mount_point.clone();
+    let titles = app.titles.clone();
+    let games = app.games.clone();
+    let pending_update_title = app.pending_update_title.clone();
+    let filtered_games = app.filtered_games.clone();
+
+    app.task_processor.spawn(move |status, toasts| {
+        *status.lock() = "🎮 Loading games...".to_string();
+
+        let new_games = list(&mount_point, &titles.lock())?;
+        *games.lock() = new_games.clone();
+        *filtered_games.lock() = new_games;
+
+        toasts.lock().info("🎮 Games loaded".to_string());
+
+        *pending_update_title.lock() = true;
+
+        Ok(())
+    });
 }
