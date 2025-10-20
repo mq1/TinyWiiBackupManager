@@ -144,7 +144,9 @@ impl App {
 
     pub fn apply_sorting(&mut self) {
         games::sort(&mut self.games.lock(), &self.config.contents.sort_by);
+        self.update_filtered_games();
         hbc_apps::sort(&mut self.hbc_apps.lock(), &self.config.contents.sort_by);
+        self.update_filtered_hbc_apps();
     }
 
     pub fn update_title(&self, ctx: &egui::Context) {
