@@ -12,15 +12,17 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
     }
 
     egui::TopBottomPanel::bottom("status").show(ctx, |ui| {
-        ui.spinner();
+        ui.horizontal_centered(|ui| {
+            ui.spinner();
 
-        let pending = app.task_processor.pending();
-        if pending > 0 {
-            ui.label(format!("{pending} Pending Tasks"));
-        }
+            let pending = app.task_processor.pending();
+            if pending > 0 {
+                ui.label(format!("{pending} Pending Tasks"));
+            }
 
-        ui.separator();
+            ui.separator();
 
-        ui.label(&*status);
+            ui.label(&*status);
+        });
     });
 }

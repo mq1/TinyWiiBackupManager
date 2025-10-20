@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, ui};
+use crate::{app::App, ui, wiitdb};
 use eframe::egui::{self, Vec2};
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
@@ -102,7 +102,13 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
                     ui.separator();
 
-                    let _ = ui.button(egui::RichText::new("📥 Download wiitdb.xml").size(15.));
+                    if ui
+                        .button(egui::RichText::new("📥 Download wiitdb.xml").size(15.))
+                        .clicked()
+                    {
+                        wiitdb::spawn_download_task(app);
+                    }
+
                     ui.separator();
 
                     let _ = ui.button(egui::RichText::new("📥 Download all covers").size(15.));

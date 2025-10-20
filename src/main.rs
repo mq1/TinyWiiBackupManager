@@ -19,6 +19,7 @@ mod titles;
 mod ui;
 mod updater;
 mod util;
+mod wiitdb;
 
 use crate::{app::App, config::Config};
 use anyhow::{Result, anyhow};
