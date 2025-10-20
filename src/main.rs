@@ -86,11 +86,11 @@ fn main() -> Result<()> {
             install_image_loaders(&cc.egui_ctx);
 
             cc.egui_ctx.all_styles_mut(|style| {
-                style.visuals.widgets.active.corner_radius = CornerRadius::same(8);
-                style.visuals.widgets.hovered.corner_radius = CornerRadius::same(8);
-                style.visuals.widgets.inactive.corner_radius = CornerRadius::same(8);
+                style.visuals.widgets.active.corner_radius = CornerRadius::same(30);
+                style.visuals.widgets.hovered.corner_radius = CornerRadius::same(30);
+                style.visuals.widgets.inactive.corner_radius = CornerRadius::same(30);
                 style.visuals.widgets.noninteractive.corner_radius = CornerRadius::same(8);
-                style.visuals.widgets.open.corner_radius = CornerRadius::same(8);
+                style.visuals.widgets.open.corner_radius = CornerRadius::same(30);
             });
 
             Ok(Box::new(app))
