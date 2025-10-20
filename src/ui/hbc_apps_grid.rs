@@ -46,7 +46,7 @@ fn view_hbc_app_card(
         ui.vertical_centered(|ui| {
             // Top row with version on the left and size label on the right
             ui.horizontal(|ui| {
-                ui.add(egui::Label::new(&hbc_app.version).truncate());
+                ui.add(egui::Label::new(&hbc_app.meta.version).truncate());
 
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     ui.label(hbc_app.size.to_string());
@@ -60,7 +60,7 @@ fn view_hbc_app_card(
 
             ui.add_space(10.);
 
-            ui.add(egui::Label::new(&hbc_app.name).truncate());
+            ui.add(egui::Label::new(&hbc_app.meta.name).truncate());
 
             ui.add_space(10.);
 
