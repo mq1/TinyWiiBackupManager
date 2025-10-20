@@ -3,6 +3,7 @@
 
 use crate::{
     config::Config,
+    covers,
     disc_info::DiscInfo,
     extensions,
     games::{self, Game},
@@ -173,6 +174,8 @@ impl App {
                 self.toasts.error(e.to_string());
             }
         }
+
+        covers::spawn_download_covers_task(&self);
     }
 
     pub fn refresh_hbc_apps(&mut self) {
