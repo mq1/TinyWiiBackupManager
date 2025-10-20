@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, ui, wiitdb};
+use crate::{app::App, covers, ui, util, wiitdb};
 use eframe::egui::{self, Vec2};
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
@@ -111,11 +111,23 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
                     ui.separator();
 
-                    let _ = ui.button(egui::RichText::new("📥 Download all covers").size(15.));
+                    if ui
+                        .button(egui::RichText::new("📥 Download all covers").size(15.))
+                        .clicked()
+                    {
+                        covers::spawn_download_all_covers_task(app);
+                    }
 
                     if cfg!(target_os = "macos") {
                         ui.separator();
-                        let _ = ui.button(egui::RichText::new("👻 Run dot_clean").size(15.));
+                        if ui
+                            .button(egui::RichText::new("👻 Run dot_clean").size(15.))
+                            .clicked()
+                        {
+                            if let Err(e) = util::run_dot_clean(&app.config.contents.mount_point) {
+                                app.toasts.error(e.to_string());
+                            }
+                        }
                     }
                 });
 
