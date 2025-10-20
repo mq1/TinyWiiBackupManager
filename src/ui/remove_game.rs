@@ -44,6 +44,6 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
     }
 
     if refresh {
-        app.refresh_games();
+        app.refresh_games(ctx);
     }
 }

@@ -44,6 +44,6 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
     }
 
     if refresh {
-        app.refresh_hbc_apps();
+        app.refresh_hbc_apps(ctx);
     }
 }

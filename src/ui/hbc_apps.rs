@@ -15,7 +15,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
             return;
         }
 
-        view_top_bar(ui, app);
+        view_top_bar(ui, app, ctx);
         ui.add_space(10.);
 
         match app.config.contents.view_as {
@@ -25,7 +25,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
     });
 }
 
-fn view_top_bar(ui: &mut egui::Ui, app: &mut App) {
+fn view_top_bar(ui: &mut egui::Ui, app: &mut App, ctx: &egui::Context) {
     ui.horizontal(move |ui| {
         ui.group(|ui| {
             ui.label(egui::RichText::new("🔎").size(15.5));
@@ -62,7 +62,7 @@ fn view_top_bar(ui: &mut egui::Ui, app: &mut App) {
                 .on_hover_text("Refresh Apps")
                 .clicked()
             {
-                app.refresh_hbc_apps();
+                app.refresh_hbc_apps(ctx);
             }
 
             ui.add_space(10.);
