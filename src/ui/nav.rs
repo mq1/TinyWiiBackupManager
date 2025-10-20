@@ -22,7 +22,8 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 .on_hover_text("View your Wii games")
                 .clicked()
             {
-                app.current_view = ui::View::Games
+                app.current_view = ui::View::Games;
+                app.update_title(ctx);
             }
 
             if ui
@@ -37,6 +38,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 .clicked()
             {
                 app.current_view = ui::View::HbcApps;
+                app.update_title(ctx);
             }
 
             if ui
@@ -51,6 +53,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 .clicked()
             {
                 app.current_view = ui::View::Osc;
+                app.update_title(ctx);
             }
 
             if ui
@@ -65,6 +68,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 .clicked()
             {
                 app.current_view = ui::View::Settings;
+                app.update_title(ctx);
             }
 
             ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {

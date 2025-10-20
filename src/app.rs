@@ -26,7 +26,7 @@ pub struct App {
     pub config: Config,
     pub update_info: Arc<Mutex<Option<UpdateInfo>>>,
     pub games: Arc<Mutex<Vec<Game>>>,
-    pub filtered_games: Vec<Game>,
+    pub filtered_games: Arc<Mutex<Vec<Game>>>,
     pub game_search: String,
     pub show_wii: bool,
     pub show_gc: bool,
@@ -37,15 +37,14 @@ pub struct App {
     pub hbc_app_info: Option<HbcApp>,
     pub hbc_app_search: String,
     pub hbc_apps: Arc<Mutex<Vec<HbcApp>>>,
-    pub filtered_hbc_apps: Vec<HbcApp>,
+    pub filtered_hbc_apps: Arc<Mutex<Vec<HbcApp>>>,
     pub task_processor: TaskProcessor,
     pub choose_mount_point: FileDialog,
     pub toasts: Arc<Mutex<Toasts>>,
 
     // Pending actions to perform after the UI has been updated
     pub pending_refresh_images: Arc<Mutex<bool>>,
-    pub pending_reset_filtered_games: Arc<Mutex<bool>>,
-    pub pending_reset_filtered_hbc_apps: Arc<Mutex<bool>>,
+    pub pending_update_title: Arc<Mutex<bool>>,
 }
 
 impl App {
@@ -72,7 +71,7 @@ impl App {
             config,
             update_info: Arc::new(Mutex::new(None)),
             games: Arc::new(Mutex::new(Vec::new())),
-            filtered_games: Vec::new(),
+            filtered_games: Arc::new(Mutex::new(Vec::new())),
             game_search: String::new(),
             show_wii: true,
             show_gc: true,
@@ -84,12 +83,11 @@ impl App {
             toasts,
             hbc_app_search: String::new(),
             hbc_apps: Arc::new(Mutex::new(Vec::new())),
-            filtered_hbc_apps: Vec::new(),
+            filtered_hbc_apps: Arc::new(Mutex::new(Vec::new())),
             removing_hbc_app: None,
             hbc_app_info: None,
             pending_refresh_images: Arc::new(Mutex::new(false)),
-            pending_reset_filtered_games: Arc::new(Mutex::new(false)),
-            pending_reset_filtered_hbc_apps: Arc::new(Mutex::new(false)),
+            pending_update_title: Arc::new(Mutex::new(false)),
         }
     }
 
@@ -112,16 +110,19 @@ impl App {
         let mount_point = self.config.contents.mount_point.clone();
         let titles = self.titles.clone();
         let games = self.games.clone();
-        let pending_reset_filtered_games = self.pending_reset_filtered_games.clone();
+        let pending_update_title = self.pending_update_title.clone();
+        let filtered_games = self.filtered_games.clone();
 
         self.task_processor.spawn(move |status, toasts| {
             *status.lock() = "🎮 Loading games...".to_string();
 
             let new_games = games::list(&mount_point, &titles.lock())?;
-            *games.lock() = new_games;
+            *games.lock() = new_games.clone();
+            *filtered_games.lock() = new_games;
+
             toasts.lock().info("🎮 Games loaded".to_string());
 
-            *pending_reset_filtered_games.lock() = true;
+            *pending_update_title.lock() = true;
 
             Ok(())
         });
@@ -130,17 +131,16 @@ impl App {
     pub fn spawn_get_hbc_apps_task(&self) {
         let mount_point = self.config.contents.mount_point.clone();
         let hbc_apps = self.hbc_apps.clone();
-        let pending_reset_filtered_hbc_apps = self.pending_reset_filtered_hbc_apps.clone();
+        let filtered_hbc_apps = self.filtered_hbc_apps.clone();
 
         self.task_processor.spawn(move |status, toasts| {
             *status.lock() = "🎮 Loading HBC apps...".to_string();
 
             let new_hbc_apps = hbc_apps::list(&mount_point)?;
-            *hbc_apps.lock() = new_hbc_apps;
+            *hbc_apps.lock() = new_hbc_apps.clone();
+            *filtered_hbc_apps.lock() = new_hbc_apps;
 
             toasts.lock().info("🎮 HBC apps loaded".to_string());
-
-            *pending_reset_filtered_hbc_apps.lock() = true;
 
             Ok(())
         });
@@ -165,12 +165,14 @@ impl App {
     }
 
     pub fn update_filtered_games(&mut self) {
+        let mut filtered_games = self.filtered_games.lock();
+
         if !self.show_wii && !self.show_gc {
-            self.filtered_games.clear();
+            filtered_games.clear();
             return;
         }
 
-        self.filtered_games = self
+        *filtered_games = self
             .games
             .lock()
             .iter()
@@ -183,13 +185,18 @@ impl App {
         }
 
         let game_search = self.game_search.to_lowercase();
-        self.filtered_games
-            .retain(|game| game.search_str.contains(&game_search));
+        filtered_games.retain(|game| game.search_str.contains(&game_search));
     }
 
     pub fn update_filtered_hbc_apps(&mut self) {
+        let mut filtered_hbc_apps = self.filtered_hbc_apps.lock();
+
+        if self.hbc_app_search.is_empty() {
+            return;
+        }
+
         let hbc_app_search = self.hbc_app_search.to_lowercase();
-        self.filtered_hbc_apps = self
+        *filtered_hbc_apps = self
             .hbc_apps
             .lock()
             .iter()
@@ -202,43 +209,72 @@ impl App {
         match self.config.contents.sort_by {
             SortBy::NameAscending => {
                 self.filtered_games
+                    .lock()
                     .sort_by(|a, b| a.display_title.cmp(&b.display_title));
 
-                self.filtered_hbc_apps.sort_by(|a, b| a.name.cmp(&b.name));
+                self.filtered_hbc_apps
+                    .lock()
+                    .sort_by(|a, b| a.name.cmp(&b.name));
             }
 
             SortBy::NameDescending => {
                 self.filtered_games
+                    .lock()
                     .sort_by(|a, b| b.display_title.cmp(&a.display_title));
 
-                self.filtered_hbc_apps.sort_by(|a, b| b.name.cmp(&a.name));
+                self.filtered_hbc_apps
+                    .lock()
+                    .sort_by(|a, b| b.name.cmp(&a.name));
             }
 
             SortBy::SizeAscending => {
-                self.filtered_games.sort_by(|a, b| a.size.cmp(&b.size));
+                self.filtered_games
+                    .lock()
+                    .sort_by(|a, b| a.size.cmp(&b.size));
 
-                self.filtered_hbc_apps.sort_by(|a, b| a.size.cmp(&b.size));
+                self.filtered_hbc_apps
+                    .lock()
+                    .sort_by(|a, b| a.size.cmp(&b.size));
             }
 
             SortBy::SizeDescending => {
-                self.filtered_games.sort_by(|a, b| b.size.cmp(&a.size));
+                self.filtered_games
+                    .lock()
+                    .sort_by(|a, b| b.size.cmp(&a.size));
 
-                self.filtered_hbc_apps.sort_by(|a, b| b.size.cmp(&a.size));
+                self.filtered_hbc_apps
+                    .lock()
+                    .sort_by(|a, b| b.size.cmp(&a.size));
             }
         }
     }
 
-    pub fn apply_pending(&mut self, ctx: &egui::Context) {
-        let mut pending_reset_filtered_games = self.pending_reset_filtered_games.lock();
-        if *pending_reset_filtered_games {
-            self.filtered_games = self.games.lock().clone();
-            *pending_reset_filtered_games = false;
-        }
+    pub fn update_title(&self, ctx: &egui::Context) {
+        let title = match self.current_view {
+            ui::View::Games => format!(
+                "{} • {} Games in {}",
+                env!("CARGO_PKG_NAME"),
+                self.games.lock().len(),
+                self.config.contents.mount_point.display()
+            ),
+            ui::View::HbcApps => format!(
+                "{} • {} HBC apps in {}",
+                env!("CARGO_PKG_NAME"),
+                self.hbc_apps.lock().len(),
+                self.config.contents.mount_point.display()
+            ),
+            ui::View::Osc => format!("{} • OSC", env!("CARGO_PKG_NAME")),
+            ui::View::Settings => format!("{} • Settings", env!("CARGO_PKG_NAME")),
+        };
 
-        let mut pending_reset_filtered_hbc_apps = self.pending_reset_filtered_hbc_apps.lock();
-        if *pending_reset_filtered_hbc_apps {
-            self.filtered_hbc_apps = self.hbc_apps.lock().clone();
-            *pending_reset_filtered_hbc_apps = false;
+        ctx.send_viewport_cmd(egui::ViewportCommand::Title(title));
+    }
+
+    pub fn apply_pending(&mut self, ctx: &egui::Context) {
+        let mut pending_update_title = self.pending_update_title.lock();
+        if *pending_update_title {
+            self.update_title(ctx);
+            *pending_update_title = false;
         }
 
         let mut pending_refresh_images = self.pending_refresh_images.lock();
