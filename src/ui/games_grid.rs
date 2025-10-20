@@ -4,14 +4,14 @@
 use crate::{app::App, disc_info::DiscInfo, games::Game};
 use eframe::egui::{self, Vec2};
 
-const CARD_WIDTH: f32 = 152.5;
-const CARD_HEIGHT: f32 = 186.;
+const CARD_WIDTH: f32 = 161.5;
+const CARD_HEIGHT: f32 = 188.;
 
 pub fn update(ui: &mut egui::Ui, app: &mut App) {
     egui::ScrollArea::vertical().show(ui, |ui| {
         let available_width = ui.available_width();
         ui.set_width(available_width);
-        let cols = (available_width / (CARD_WIDTH + 28.)).floor() as usize;
+        let cols = (available_width / (CARD_WIDTH + 20.)).floor() as usize;
 
         egui::Grid::new("games")
             .num_columns(cols)
@@ -39,12 +39,8 @@ fn view_game_card(
         ui.set_width(CARD_WIDTH);
 
         ui.vertical_centered(|ui| {
-            ui.add_space(3.);
-
             // Top row with console label on the left and size label on the right
             ui.horizontal(|ui| {
-                ui.add_space(3.);
-
                 // Console label on the left
                 ui.label(if game.is_wii { "🎾 Wii" } else { "🎲 GC" });
 
@@ -52,8 +48,6 @@ fn view_game_card(
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     ui.label(game.size.to_string());
                 });
-
-                ui.add_space(1.);
             });
 
             ui.add_space(10.);
