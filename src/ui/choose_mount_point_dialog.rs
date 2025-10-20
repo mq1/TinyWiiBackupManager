@@ -9,8 +9,8 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
     if let Some(path) = app.choose_mount_point.take_picked() {
         app.config.contents.mount_point = path;
-        app.refresh_games();
-        app.refresh_hbc_apps();
+        app.refresh_games(ctx);
+        app.refresh_hbc_apps(ctx);
 
         if let Err(e) = app.config.write() {
             app.toasts.error(e.to_string());

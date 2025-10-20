@@ -173,7 +173,7 @@ impl App {
         ctx.send_viewport_cmd(egui::ViewportCommand::Title(title));
     }
 
-    pub fn refresh_games(&mut self) {
+    pub fn refresh_games(&mut self, ctx: &egui::Context) {
         let res = games::list(&self.config.contents.mount_point, &self.titles);
         match res {
             Ok(games) => {
@@ -186,10 +186,11 @@ impl App {
             }
         }
 
+        self.update_title(ctx);
         covers::spawn_download_covers_task(self);
     }
 
-    pub fn refresh_hbc_apps(&mut self) {
+    pub fn refresh_hbc_apps(&mut self, ctx: &egui::Context) {
         let res = hbc_apps::list(&self.config.contents.mount_point);
         match res {
             Ok(hbc_apps) => {
@@ -201,6 +202,8 @@ impl App {
                 self.toasts.error(e.to_string());
             }
         }
+
+        self.update_title(ctx);
     }
 
     pub fn apply_sorting(&mut self) {
@@ -231,17 +234,17 @@ impl App {
                 ctx.forget_all_images();
             }
             BackgroundMessage::TriggerRefreshGames => {
-                self.refresh_games();
+                self.refresh_games(ctx);
             }
             BackgroundMessage::TriggerRefreshHbcApps => {
-                self.refresh_hbc_apps();
+                self.refresh_hbc_apps(ctx);
             }
             BackgroundMessage::GotUpdateInfo(update_info) => {
                 self.update_info = Some(update_info);
             }
             BackgroundMessage::GotTitles(titles) => {
                 self.titles = Some(titles);
-                self.refresh_games();
+                self.refresh_games(ctx);
             }
             BackgroundMessage::UpdateOscStatus(string) => {
                 self.osc_status = string;
