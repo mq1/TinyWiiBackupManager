@@ -17,150 +17,80 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
             egui::ScrollArea::vertical()
                 .max_height(ui.available_height())
                 .show(ui, |ui| {
-                    ui.vertical(|ui| {
-                        // Path
-                        ui.horizontal(|ui| {
-                            ui.label("📁");
-                            ui.label("Path:");
-                            ui.label(info.game_dir.to_str().unwrap_or_default());
-                        });
+                    // Path
+                    ui.label("📁 Path: ".to_string() + info.game_dir.to_str().unwrap_or("Unknown"));
 
-                        ui.separator();
+                    ui.separator();
 
-                        // Game ID
-                        ui.horizontal(|ui| {
-                            ui.label("🏷");
-                            ui.label("ID:");
-                            ui.label(info.game_id.as_ref());
-                        });
+                    // Game ID
+                    ui.label("🏷 ID: ".to_string() + info.game_id.as_ref());
 
-                        // Embedded Title
-                        ui.horizontal(|ui| {
-                            ui.label("✏");
-                            ui.label("Embedded Title:");
-                            ui.label(&info.game_title);
-                        });
+                    // Embedded Title
+                    ui.label("✏ Embedded Title: ".to_string() + &info.game_title);
 
-                        // Is Wii
-                        ui.horizontal(|ui| {
-                            ui.label("🎾");
-                            ui.label("Is Wii:");
-                            ui.label(if info.is_wii { "Yes" } else { "No" });
-                        });
+                    // Is Wii
+                    ui.label("🎾 Is Wii: ".to_string() + if info.is_wii { "Yes" } else { "No" });
 
-                        // Is GameCube
-                        ui.horizontal(|ui| {
-                            ui.label("🎲");
-                            ui.label("Is GameCube:");
-                            ui.label(if info.is_gamecube { "Yes" } else { "No" });
-                        });
+                    // Is GameCube
+                    ui.label(
+                        "🎲 Is GameCube: ".to_string()
+                            + if info.is_gamecube { "Yes" } else { "No" },
+                    );
 
-                        // Disc Number
-                        ui.horizontal(|ui| {
-                            ui.label("🔢");
-                            ui.label("Disc Number:");
-                            ui.label(info.disc_num.to_string());
-                        });
+                    // Disc Number
+                    ui.label(format!("🔢 Disc Number: {}", &info.disc_num));
 
-                        // Disc Version
-                        ui.horizontal(|ui| {
-                            ui.label("🏷");
-                            ui.label("Disc Version:");
-                            ui.label(info.disc_version.to_string());
-                        });
+                    // Disc Version
+                    ui.label(format!("🏷 Disc Version: {}", &info.disc_version));
 
-                        // Region
-                        ui.horizontal(|ui| {
-                            ui.label("🌍");
-                            ui.label("Region:");
-                            ui.label(info.game_id.get_region_display());
-                        });
+                    // Region
+                    ui.label("🌍 Region: ".to_string() + info.game_id.get_region_display());
 
-                        ui.separator();
+                    ui.separator();
 
-                        // Format
-                        ui.horizontal(|ui| {
-                            ui.label("💿");
-                            ui.label("Format:");
-                            ui.label(info.format.to_string());
-                        });
+                    // Format
+                    ui.label(format!("💿 Format: {}", &info.format));
 
-                        // Compression
-                        ui.horizontal(|ui| {
-                            ui.label("⬌");
-                            ui.label("Compression:");
-                            ui.label(info.compression.to_string());
-                        });
+                    // Compression
+                    ui.label(format!("⬌ Compression: {}", &info.compression));
 
-                        // Block Size
-                        ui.horizontal(|ui| {
-                            ui.label("📏");
-                            ui.label("Block Size:");
-                            ui.label(info.block_size.to_string());
-                        });
+                    // Block Size
+                    ui.label(format!("📏 Block Size: {}", &info.block_size));
 
-                        // Decrypted
-                        ui.horizontal(|ui| {
-                            ui.label("🔒");
-                            ui.label("Decrypted:");
-                            ui.label(if info.decrypted { "Yes" } else { "No" });
-                        });
+                    // Decrypted
+                    ui.label(
+                        "🔒 Decrypted: ".to_string() + if info.decrypted { "Yes" } else { "No" },
+                    );
 
-                        // Needs Hash Recovery
-                        ui.horizontal(|ui| {
-                            ui.label("⚠");
-                            ui.label("Needs Hash Recovery:");
-                            ui.label(if info.needs_hash_recovery {
+                    // Needs Hash Recovery
+                    ui.label(
+                        "⚠ Needs Hash Recovery: ".to_string()
+                            + if info.needs_hash_recovery {
                                 "Yes"
                             } else {
                                 "No"
-                            });
-                        });
+                            },
+                    );
 
-                        // Lossless
-                        ui.horizontal(|ui| {
-                            ui.label("☑");
-                            ui.label("Lossless:");
-                            ui.label(if info.lossless { "Yes" } else { "No" });
-                        });
+                    // Lossless
+                    ui.label("☑ Lossless: ".to_string() + if info.lossless { "Yes" } else { "No" });
 
-                        // Disc Size
-                        ui.horizontal(|ui| {
-                            ui.label("⚖");
-                            ui.label("Disc Size:");
-                            ui.label(info.disc_size.to_string());
-                        });
+                    // Disc Size
+                    ui.label(format!("⚖ Disc Size: {}", &info.disc_size));
 
-                        ui.separator();
+                    ui.separator();
 
-                        // CRC32
-                        ui.horizontal(|ui| {
-                            ui.label("☑");
-                            ui.label("CRC32:");
-                            ui.label(&info.crc32);
-                        });
+                    // CRC32
+                    ui.label("☑ CRC32: ".to_string() + &info.crc32);
 
-                        // MD5
-                        ui.horizontal(|ui| {
-                            ui.label("☑");
-                            ui.label("MD5:");
-                            ui.label(&info.md5);
-                        });
+                    // MD5
+                    ui.label("☑ MD5: ".to_string() + &info.md5);
 
-                        // SHA1
-                        ui.horizontal(|ui| {
-                            ui.label("☑");
-                            ui.label("SHA1:");
-                            ui.label(&info.sha1);
-                        });
+                    // SHA1
+                    ui.label("☑ SHA1: ".to_string() + &info.sha1);
 
-                        // XXH64
-                        ui.horizontal(|ui| {
-                            ui.label("☑");
-                            ui.label("XXH64:");
-                            ui.label(&info.xxh64);
-                        });
-                    });
+                    // XXH64
+                    ui.label("☑ XXH64: ".to_string() + &info.xxh64);
                 });
 
             ui.add_space(10.);
@@ -170,10 +100,10 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     close = true;
                 }
 
-                if ui.button("📁 Open Directory").clicked() {
-                    if let Err(e) = open::that(&info.game_dir) {
-                        app.toasts.error(e.to_string());
-                    }
+                if ui.button("📁 Open Directory").clicked()
+                    && let Err(e) = open::that(&info.game_dir)
+                {
+                    app.toasts.error(e.to_string());
                 }
             })
         });
