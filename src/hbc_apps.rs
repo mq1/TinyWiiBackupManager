@@ -14,6 +14,7 @@ use std::{
 use zip::ZipArchive;
 
 #[derive(Debug, Clone, Deserialize)]
+#[serde(default)]
 pub struct HbcAppMeta {
     pub name: String,
     pub coder: String,
@@ -38,13 +39,7 @@ impl Default for HbcAppMeta {
 
 #[derive(Debug, Clone)]
 pub struct HbcApp {
-    pub slug: String,
-    pub name: String,
-    pub coder: String,
-    pub version: String,
-    pub release_date: String,
-    pub short_description: String,
-    pub long_description: String,
+    pub meta: HbcAppMeta,
     pub image_uri: String,
     pub size: Size,
     pub path: PathBuf,
@@ -73,13 +68,7 @@ impl HbcApp {
         let search_str = (meta.name.clone() + &slug).to_lowercase();
 
         Self {
-            slug,
-            name: meta.name.trim().to_string(),
-            coder: meta.coder,
-            version: meta.version,
-            release_date: meta.release_date,
-            short_description: meta.short_description,
-            long_description: meta.long_description,
+            meta,
             path,
             size,
             search_str,
@@ -103,7 +92,7 @@ pub fn list(mount_point: &Path) -> Result<Vec<HbcApp>> {
         .map(HbcApp::from_path)
         .collect::<Vec<_>>();
 
-    apps.sort_by(|a, b| a.name.cmp(&b.name));
+    apps.sort_by(|a, b| a.meta.name.cmp(&b.meta.name));
 
     Ok(apps)
 }
@@ -174,10 +163,10 @@ pub fn spawn_install_apps_task(app: &App, paths: Vec<PathBuf>) {
 pub fn sort(hbc_apps: &mut Vec<HbcApp>, sort_by: &SortBy) {
     match sort_by {
         SortBy::NameAscending => {
-            hbc_apps.sort_by(|a, b| a.name.cmp(&b.name));
+            hbc_apps.sort_by(|a, b| a.meta.name.cmp(&b.meta.name));
         }
         SortBy::NameDescending => {
-            hbc_apps.sort_by(|a, b| b.name.cmp(&a.name));
+            hbc_apps.sort_by(|a, b| b.meta.name.cmp(&a.meta.name));
         }
         SortBy::SizeAscending => {
             hbc_apps.sort_by(|a, b| a.size.cmp(&b.size));

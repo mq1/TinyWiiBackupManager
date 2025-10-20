@@ -8,6 +8,7 @@ mod disc_info;
 mod games;
 mod games_grid;
 mod games_list;
+mod hbc_app_info;
 mod hbc_apps;
 mod hbc_apps_grid;
 mod hbc_apps_list;
