@@ -1,11 +1,10 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, http::AGENT, tasks::TaskProcessor};
+use crate::{app::App, http::AGENT};
 use anyhow::{Context, Result};
-use parking_lot::Mutex;
 use semver::Version;
-use std::{fmt, sync::Arc};
+use std::fmt;
 
 const VERSION_URL: &str = concat!(
     env!("CARGO_PKG_REPOSITORY"),
