@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, config::SortBy, ui::hbc_apps_grid};
+use crate::{app::App, config::{SortBy, ViewAs}, ui::{hbc_apps_grid, hbc_apps_list}};
 use eframe::egui::{self, Vec2};
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
@@ -13,7 +13,11 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
         view_top_bar(ui, app);
         ui.add_space(10.);
-        hbc_apps_grid::update(ui, app);
+
+        match app.config.contents.view_as {
+            ViewAs::Grid => hbc_apps_grid::update(ui, app),
+            ViewAs::List => hbc_apps_list::update(ui, app),
+        }
     });
 }
 
@@ -58,6 +62,30 @@ fn view_top_bar(ui: &mut egui::Ui, app: &mut App) {
             }
 
             ui.add_space(10.);
+
+            ui.group(|ui| {
+                if ui
+                    .selectable_label(app.config.contents.view_as == ViewAs::List, "☰")
+                    .on_hover_text("View as List")
+                    .clicked()
+                {
+                    app.config.contents.view_as = ViewAs::List;
+                    if let Err(e) = app.config.write() {
+                        app.toasts.error(e.to_string());
+                    }
+                }
+
+                if ui
+                    .selectable_label(app.config.contents.view_as == ViewAs::Grid, "")
+                    .on_hover_text("View as Grid")
+                    .clicked()
+                {
+                    app.config.contents.view_as = ViewAs::Grid;
+                    if let Err(e) = app.config.write() {
+                        app.toasts.error(e.to_string());
+                    }
+                }
+            });
 
             ui.group(|ui| {
                 if ui
