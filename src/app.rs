@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    config::Config,
+    config::{Config, SortBy},
     disc_info::DiscInfo,
     games::{self, Game},
     tasks::TaskProcessor,
@@ -25,8 +25,10 @@ pub struct App {
     pub config: Config,
     pub update_info: Arc<Mutex<Option<UpdateInfo>>>,
     pub games: Arc<Mutex<Vec<Game>>>,
-    pub shown_games: Arc<Mutex<Vec<Game>>>,
+    pub filtered_games: Vec<Game>,
     pub game_search: String,
+    pub show_wii: bool,
+    pub show_gc: bool,
     pub titles: Arc<Mutex<Option<Titles>>>,
     pub disc_info: Option<DiscInfo>,
     pub removing_game: Option<Game>,
@@ -36,6 +38,7 @@ pub struct App {
 
     // Pending actions to perform after the UI has been updated
     pub pending_refresh_images: Arc<Mutex<bool>>,
+    pub pending_reset_filtered_games: Arc<Mutex<bool>>,
 }
 
 impl App {
@@ -62,8 +65,10 @@ impl App {
             config,
             update_info: Arc::new(Mutex::new(None)),
             games: Arc::new(Mutex::new(Vec::new())),
-            shown_games: Arc::new(Mutex::new(Vec::new())),
+            filtered_games: Vec::new(),
             game_search: String::new(),
+            show_wii: true,
+            show_gc: true,
             titles: Arc::new(Mutex::new(None)),
             disc_info: None,
             removing_game: None,
@@ -71,6 +76,7 @@ impl App {
             choose_mount_point: FileDialog::new().as_modal(true),
             toasts,
             pending_refresh_images: Arc::new(Mutex::new(false)),
+            pending_reset_filtered_games: Arc::new(Mutex::new(false)),
         }
     }
 
@@ -93,19 +99,18 @@ impl App {
         let mount_point = self.config.contents.mount_point.clone();
         let titles = self.titles.clone();
         let games = self.games.clone();
-        let shown_games = self.shown_games.clone();
         let pending_refresh_images = self.pending_refresh_images.clone();
+        let pending_reset_filtered_games = self.pending_reset_filtered_games.clone();
 
         self.task_processor.spawn(move |status, toasts| {
             *status.lock() = "🎮 Loading games...".to_string();
 
             let new_games = games::list(&mount_point, &titles.lock())?;
             *games.lock() = new_games.clone();
-            *shown_games.lock() = new_games;
-
             toasts.lock().info("🎮 Games loaded".to_string());
 
             *pending_refresh_images.lock() = true;
+            *pending_reset_filtered_games.lock() = true;
 
             Ok(())
         });
@@ -129,7 +134,50 @@ impl App {
         });
     }
 
+    pub fn update_filtered_games(&mut self) {
+        if !self.show_wii && !self.show_gc {
+            self.filtered_games.clear();
+            return;
+        }
+
+        self.filtered_games = self
+            .games
+            .lock()
+            .iter()
+            .filter(|game| (self.show_wii && game.is_wii) || (self.show_gc && !game.is_wii))
+            .cloned()
+            .collect();
+
+        if self.game_search.is_empty() {
+            return;
+        }
+
+        let game_search = self.game_search.to_lowercase();
+        self.filtered_games
+            .retain(|game| game.search_str.contains(&game_search));
+    }
+
+    pub fn apply_sorting(&mut self) {
+        match self.config.contents.sort_by {
+            SortBy::NameAscending => self
+                .filtered_games
+                .sort_by(|a, b| a.display_title.cmp(&b.display_title)),
+            SortBy::NameDescending => self
+                .filtered_games
+                .sort_by(|a, b| b.display_title.cmp(&a.display_title)),
+
+            SortBy::SizeAscending => self.filtered_games.sort_by(|a, b| a.size.cmp(&b.size)),
+            SortBy::SizeDescending => self.filtered_games.sort_by(|a, b| b.size.cmp(&a.size)),
+        }
+    }
+
     pub fn apply_pending(&mut self, ctx: &egui::Context) {
+        let mut pending_reset_filtered_games = self.pending_reset_filtered_games.lock();
+        if *pending_reset_filtered_games {
+            self.filtered_games = self.games.lock().clone();
+            *pending_reset_filtered_games = false;
+        }
+
         let mut pending_refresh_images = self.pending_refresh_images.lock();
         if *pending_refresh_images {
             ctx.forget_all_images();
