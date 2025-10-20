@@ -50,7 +50,9 @@ fn view_top_bar(ui: &mut egui::Ui, app: &mut App) {
 
             if ui
                 .add(
-                    egui::TextEdit::singleline(&mut app.hbc_app_search).hint_text("Search by Name"),
+                    egui::TextEdit::singleline(&mut app.hbc_app_search)
+                        .desired_width(200.)
+                        .hint_text("Search by Name"),
                 )
                 .changed()
             {
@@ -66,7 +68,9 @@ fn view_top_bar(ui: &mut egui::Ui, app: &mut App) {
                 )
                 .on_hover_text("Add Apps")
                 .clicked()
-            {}
+            {
+                app.choose_hbc_apps.pick_multiple();
+            }
 
             if ui
                 .add_sized(

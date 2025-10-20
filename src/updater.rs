@@ -58,7 +58,7 @@ pub fn spawn_check_update_task(app: &App) {
         let update_info = check()?;
 
         if let Some(update_info) = update_info {
-            msg_sender.send(BackgroundMessage::NotifyInfo(update_info.to_string()));
+            msg_sender.send(BackgroundMessage::NotifyInfo(update_info.to_string()))?;
             msg_sender.send(BackgroundMessage::GotUpdateInfo(update_info))?;
         }
 

@@ -62,11 +62,8 @@ pub enum BackgroundMessage {
     NotifyInfo(String),
     NotifyError(String),
     TriggerRefreshImages,
-    TriggerRefreshTitle,
     TriggerRefreshGames,
     TriggerRefreshHbcApps,
     GotUpdateInfo(UpdateInfo),
     GotTitles(Titles),
-    GotGames(Vec<Game>),
-    GotHbcApps(Vec<HbcApp>),
 }
