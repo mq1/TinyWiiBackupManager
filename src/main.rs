@@ -25,7 +25,7 @@ use crate::{app::App, config::Config};
 use anyhow::{Result, anyhow};
 use eframe::{
     NativeOptions,
-    egui::{self, CornerRadius, ViewportBuilder},
+    egui::{self, CornerRadius, ViewportBuilder, vec2},
 };
 use egui_extras::install_image_loaders;
 use std::{fs, path::PathBuf};
@@ -91,6 +91,8 @@ fn main() -> Result<()> {
                 style.visuals.widgets.inactive.corner_radius = CornerRadius::same(30);
                 style.visuals.widgets.noninteractive.corner_radius = CornerRadius::same(8);
                 style.visuals.widgets.open.corner_radius = CornerRadius::same(30);
+
+                style.spacing.button_padding = vec2(5., 2.5);
             });
 
             Ok(Box::new(app))
