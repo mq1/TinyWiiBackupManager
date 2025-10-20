@@ -84,6 +84,7 @@ fn main() -> Result<()> {
         native_options,
         Box::new(|cc| {
             install_image_loaders(&cc.egui_ctx);
+            cc.egui_ctx.set_theme(app.config.contents.theme_preference);
 
             cc.egui_ctx.all_styles_mut(|style| {
                 style.visuals.widgets.active.corner_radius = CornerRadius::same(30);

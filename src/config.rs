@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use anyhow::Result;
+use eframe::egui::ThemePreference;
 use serde::{Deserialize, Serialize};
 use std::{
     fs,
@@ -62,6 +63,7 @@ pub struct Contents {
     pub view_as: ViewAs,
     pub wii_ip: String,
     pub wii_output_format: WiiOutputFormat,
+    pub theme_preference: ThemePreference,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
