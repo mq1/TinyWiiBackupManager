@@ -109,8 +109,11 @@ fn install_zip(mount_point: &Path, path: &Path) -> Result<()> {
 pub fn spawn_install_app_from_url_task(zip_url: String, zip_size: usize, app: &App) -> Result<()> {
     let mount_point = app.config.contents.mount_point.clone();
 
-    app.task_processor.spawn(move |status, msg_sender| {
-        *status.lock() = format!("📥 Downloading {}...", &zip_url);
+    app.task_processor.spawn(move |msg_sender| {
+        msg_sender.send(BackgroundMessage::UpdateStatus(format!(
+            "📥 Downloading {}...",
+            &zip_url
+        )))?;
 
         let (_, body) = AGENT.get(&zip_url).call()?.into_parts();
         let mut buffer = Vec::with_capacity(zip_size);
@@ -137,11 +140,16 @@ pub fn spawn_install_apps_task(app: &App, paths: Vec<PathBuf>) {
     let remove_sources = app.config.contents.remove_sources_apps;
     let mount_point = app.config.contents.mount_point.clone();
 
-    app.task_processor.spawn(move |status, msg_sender| {
-        *status.lock() = "🖴 Installing apps...".to_string();
+    app.task_processor.spawn(move |msg_sender| {
+        msg_sender.send(BackgroundMessage::UpdateStatus(
+            "🖴 Installing apps...".to_string(),
+        ))?;
 
         for path in &paths {
-            *status.lock() = format!("🖴 Installing {}...", path.display());
+            msg_sender.send(BackgroundMessage::UpdateStatus(format!(
+                "🖴 Installing {}...",
+                path.display()
+            )))?;
             install_zip(&mount_point, path)?;
 
             if remove_sources {

@@ -14,8 +14,10 @@ const DOWNLOAD_URL: &str = "https://www.gametdb.com/wiitdb.zip";
 pub fn spawn_download_task(app: &App) {
     let mount_point = app.config.contents.mount_point.clone();
 
-    app.task_processor.spawn(move |status, msg_sender| {
-        *status.lock() = "📥 Downloading wiitdb.xml...".to_string();
+    app.task_processor.spawn(move |msg_sender| {
+        msg_sender.send(BackgroundMessage::UpdateStatus(
+            "📥 Downloading wiitdb.xml...".to_string(),
+        ))?;
 
         // Create the target directory.
         let target_dir = mount_point.join("apps").join("usbloader_gx");

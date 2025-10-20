@@ -4,48 +4,44 @@
 use crate::{osc::OscApp, titles::Titles, updater::UpdateInfo};
 use anyhow::Result;
 use crossbeam_channel::{Receiver, Sender, unbounded};
-use parking_lot::Mutex;
-use std::{sync::Arc, thread};
+use std::thread;
 
-pub type BoxedTask =
-    Box<dyn FnOnce(&Arc<Mutex<String>>, &Sender<BackgroundMessage>) -> Result<()> + Send>;
+pub type BoxedTask = Box<dyn FnOnce(&Sender<BackgroundMessage>) -> Result<()> + Send>;
 
 pub struct TaskProcessor {
     task_sender: Sender<BoxedTask>,
     pub msg_receiver: Receiver<BackgroundMessage>,
-    pub status: Arc<Mutex<String>>,
 }
 
 impl TaskProcessor {
     pub fn init() -> Self {
         let (task_sender, task_receiver) = unbounded::<BoxedTask>();
         let (msg_sender, msg_receiver) = unbounded::<BackgroundMessage>();
-        let status = Arc::new(Mutex::new(String::new()));
 
-        let status_clone = status.clone();
         thread::spawn(move || {
             while let Ok(task) = task_receiver.recv() {
-                if let Err(e) = task(&status_clone, &msg_sender) {
+                if let Err(e) = task(&msg_sender) {
                     msg_sender
                         .send(BackgroundMessage::NotifyError(e.to_string()))
                         .expect("Failed to send message");
                 }
 
-                // Clean up
-                status_clone.lock().clear();
+                // Cleanup
+                msg_sender
+                    .send(BackgroundMessage::ClearStatus)
+                    .expect("Failed to send message");
             }
         });
 
         Self {
             task_sender,
             msg_receiver,
-            status,
         }
     }
 
     pub fn spawn<F>(&self, task: F)
     where
-        F: FnOnce(&Arc<Mutex<String>>, &Sender<BackgroundMessage>) -> Result<()> + Send + 'static,
+        F: FnOnce(&Sender<BackgroundMessage>) -> Result<()> + Send + 'static,
     {
         self.task_sender
             .send(Box::new(task))
@@ -60,6 +56,9 @@ impl TaskProcessor {
 pub enum BackgroundMessage {
     NotifyInfo(String),
     NotifyError(String),
+    UpdateStatus(String),
+    ClearStatus,
+    UpdateOscStatus(String),
     TriggerRefreshImages,
     TriggerRefreshGames,
     TriggerRefreshHbcApps,
