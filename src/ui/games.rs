@@ -1,7 +1,12 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, config::SortBy, disc_info::DiscInfo, games::Game};
+use crate::{
+    app::App,
+    config::SortBy,
+    disc_info::DiscInfo,
+    games::{self, Game},
+};
 use eframe::egui::{self, Margin, Vec2};
 
 const CARD_WIDTH: f32 = 153.5;
@@ -53,6 +58,14 @@ fn view_top_bar(ui: &mut egui::Ui, app: &mut App) {
 
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
             ui.add_space(5.);
+
+            if ui.button("✚ Add Games").clicked() {}
+
+            if ui.button("⟳").on_hover_text("Refresh Games").clicked() {
+                games::spawn_get_games_task(app);
+            }
+
+            ui.separator();
 
             if ui
                 .selectable_label(
