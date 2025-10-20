@@ -14,46 +14,45 @@ pub fn spawn_load_osc_apps_task(app: &App) {
     let cache_path = app.data_dir.join("osc-cache.json");
     let icons_dir = app.data_dir.join("osc-icons");
 
-    if let Some(task_processor) = &app.osc_task_processor {
-        task_processor.spawn(move |msg_sender| {
-            msg_sender.send(BackgroundMessage::UpdateOscStatus(
-                "📓 Downloading OSC Meta...".to_string(),
-            ))?;
+    app.secondary_task_processor.spawn(move |msg_sender| {
+        msg_sender.send(BackgroundMessage::UpdateOscStatus(
+            "📓 Downloading OSC Meta...".to_string(),
+        ))?;
 
-            let cache = match load_cache(&cache_path) {
-                Ok(cache) => cache,
-                Err(_) => {
-                    let bytes = AGENT.get(CONTENTS_URL).call()?.body_mut().read_to_vec()?;
-                    fs::write(&cache_path, &bytes)?;
-                    serde_json::from_slice(&bytes)?
-                }
-            };
-
-            fs::create_dir_all(&icons_dir)?;
-            let len = cache.len();
-            for (i, meta) in cache.iter().enumerate() {
-                msg_sender.send(BackgroundMessage::UpdateOscStatus(format!(
-                    "📥 Downloading OSC App icons... {}/{}",
-                    i + 1,
-                    len
-                )))?;
-
-                let _ = download_icon(meta, &icons_dir);
+        let cache = match load_cache(&cache_path) {
+            Ok(cache) => cache,
+            Err(_) => {
+                let bytes = AGENT.get(CONTENTS_URL).call()?.body_mut().read_to_vec()?;
+                fs::write(&cache_path, &bytes)?;
+                serde_json::from_slice(&bytes)?
             }
+        };
 
-            let apps = cache
-                .into_iter()
-                .filter_map(|meta| OscApp::from_meta(meta, &icons_dir))
-                .collect::<Vec<_>>();
+        fs::create_dir_all(&icons_dir)?;
+        let len = cache.len();
+        for (i, meta) in cache.iter().enumerate() {
+            msg_sender.send(BackgroundMessage::UpdateOscStatus(format!(
+                "📥 Downloading OSC App icons... {}/{}",
+                i + 1,
+                len
+            )))?;
 
-            msg_sender.send(BackgroundMessage::GotOscApps(apps))?;
-            msg_sender.send(BackgroundMessage::NotifyInfo(
-                "📓 OSC Apps loaded".to_string(),
-            ))?;
+            let _ = download_icon(meta, &icons_dir);
+        }
 
-            Ok(())
-        });
-    }
+        let apps = cache
+            .into_iter()
+            .filter_map(|meta| OscApp::from_meta(meta, &icons_dir))
+            .collect::<Vec<_>>();
+
+        msg_sender.send(BackgroundMessage::GotOscApps(apps))?;
+        msg_sender.send(BackgroundMessage::NotifyInfo(
+            "📓 OSC Apps loaded".to_string(),
+        ))?;
+        msg_sender.send(BackgroundMessage::ClearOscStatus)?;
+
+        Ok(())
+    });
 }
 
 fn load_cache(path: &Path) -> Result<Vec<OscAppMeta>> {

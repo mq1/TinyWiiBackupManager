@@ -39,7 +39,7 @@ pub struct App {
     pub hbc_apps: Vec<HbcApp>,
     pub filtered_hbc_apps: Vec<HbcApp>,
     pub task_processor: TaskProcessor,
-    pub osc_task_processor: Option<TaskProcessor>,
+    pub secondary_task_processor: TaskProcessor,
     pub choose_mount_point: FileDialog,
     pub choose_games: FileDialog,
     pub choose_hbc_apps: FileDialog,
@@ -76,7 +76,7 @@ impl App {
             disc_info: None,
             removing_game: None,
             task_processor: TaskProcessor::init(),
-            osc_task_processor: Some(TaskProcessor::init()),
+            secondary_task_processor: TaskProcessor::init(),
             choose_mount_point: FileDialog::new().as_modal(true),
             choose_games: FileDialog::new()
                 .as_modal(true)
@@ -211,8 +211,6 @@ impl App {
     }
 
     fn process_msg(&mut self, ctx: &egui::Context, msg: BackgroundMessage) {
-        let mut drop_osc_task_processor = false;
-
         match msg {
             BackgroundMessage::NotifyInfo(string) => {
                 self.toasts.info(string);
@@ -225,6 +223,9 @@ impl App {
             }
             BackgroundMessage::ClearStatus => {
                 self.status.clear();
+            }
+            BackgroundMessage::ClearOscStatus => {
+                self.osc_status.clear();
             }
             BackgroundMessage::TriggerRefreshImages => {
                 ctx.forget_all_images();
@@ -247,15 +248,10 @@ impl App {
             }
             BackgroundMessage::GotOscApps(osc_apps) => {
                 self.osc_apps = Some(osc_apps);
-                drop_osc_task_processor = true;
             }
             BackgroundMessage::GotRedumpDb => {
                 self.got_redump_db = true;
             }
-        }
-
-        if drop_osc_task_processor {
-            self.osc_task_processor = None;
         }
     }
 }
@@ -270,19 +266,9 @@ impl eframe::App for App {
             ctx.request_repaint();
         }
 
-        // Osc task processor
-        if self.osc_task_processor.is_some() {
-            let msg_receiver = self
-                .osc_task_processor
-                .as_ref()
-                .unwrap()
-                .msg_receiver
-                .clone();
-
-            while let Ok(msg) = msg_receiver.try_recv() {
-                self.process_msg(ctx, msg);
-                ctx.request_repaint();
-            }
+        while let Ok(msg) = self.secondary_task_processor.msg_receiver.try_recv() {
+            self.process_msg(ctx, msg);
+            ctx.request_repaint();
         }
     }
 }

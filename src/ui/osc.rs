@@ -6,8 +6,9 @@ use eframe::egui;
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
     egui::CentralPanel::default().show(ctx, |ui| {
-        if app.osc_task_processor.is_some() {
+        if !app.osc_status.is_empty() {
             ui.heading(&app.osc_status);
+            return;
         }
     });
 }
