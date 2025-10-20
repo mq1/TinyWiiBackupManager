@@ -30,7 +30,7 @@ pub struct App {
     pub show_wii: bool,
     pub show_gc: bool,
     pub titles: Option<Titles>,
-    pub disc_info: Option<DiscInfo>,
+    pub disc_info: Option<(String, DiscInfo)>,
     pub removing_game: Option<Game>,
     pub removing_hbc_app: Option<HbcApp>,
     pub hbc_app_info: Option<HbcApp>,

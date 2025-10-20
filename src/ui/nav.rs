@@ -82,7 +82,9 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     .on_hover_text("Wiki")
                     .clicked()
                 {
-                    let _ = open::that(env!("CARGO_PKG_HOMEPAGE"));
+                    if let Err(e) = open::that(env!("CARGO_PKG_HOMEPAGE")) {
+                        app.toasts.error(e.to_string());
+                    }
                 }
 
                 egui::Popup::menu(

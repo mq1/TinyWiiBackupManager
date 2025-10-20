@@ -39,9 +39,13 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                     row.col(|ui| {
                         ui.horizontal(|ui| {
                             // Info button
-                            if ui.button("ℹ").on_hover_text("Show Game Info").clicked() {
-                                app.disc_info =
-                                    Some(DiscInfo::from_game_dir(&game.path).unwrap_or_default());
+                            if ui
+                                .button("ℹ")
+                                .on_hover_text("Show Disc Information")
+                                .clicked()
+                            {
+                                let info = DiscInfo::from_game_dir(&game.path).unwrap_or_default();
+                                app.disc_info = Some((game.display_title.clone(), info));
                             }
                             // Archive button
                             ui.button("📦")
@@ -49,7 +53,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                                 .clicked();
 
                             // Integrity check button
-                            ui.button("☑").on_hover_text("Integrity Check").clicked();
+                            ui.button("✅").on_hover_text("Integrity Check").clicked();
 
                             // Remove button
                             if ui.button("🗑").on_hover_text("Remove Game").clicked() {
