@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{convert::get_disc_opts, games::GameID, overflow_reader::get_main_file};
+use crate::{convert::get_disc_opts, games::GameID, overflow_reader::get_main_file, redump};
 use anyhow::{Result, anyhow};
 use nod::{
     common::{Compression, Format},
@@ -30,10 +30,11 @@ pub struct DiscInfo {
     pub md5: String,
     pub sha1: String,
     pub xxh64: String,
+    pub redump_status: String,
 }
 
 impl DiscInfo {
-    pub fn from_game_dir(game_dir: &Path) -> Result<DiscInfo> {
+    pub fn from_game_dir(game_dir: &Path, data_dir: &Path) -> Result<DiscInfo> {
         let path = get_main_file(game_dir).ok_or(anyhow!("No disc found"))?;
 
         let disc = DiscReader::new(&path, &get_disc_opts())?;
@@ -75,6 +76,11 @@ impl DiscInfo {
             .map(|hash| format!("{:08x}", hash).to_string())
             .unwrap_or("Unknown".to_string());
 
+        let redump_status = redump::is_sha1_known(data_dir, &sha1, is_wii)
+            .map(|present| if present { "Verified" } else { "Not verified" })
+            .unwrap_or("Unknown")
+            .to_string();
+
         Ok(Self {
             game_dir: game_dir.to_path_buf(),
             game_id,
@@ -94,6 +100,7 @@ impl DiscInfo {
             md5,
             sha1,
             xxh64,
+            redump_status,
         })
     }
 }

@@ -91,6 +91,11 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
                     // XXH64
                     ui.label("☑ XXH64: ".to_string() + &info.xxh64);
+
+                    ui.separator();
+
+                    // Redump Verified
+                    ui.label("🎯 Redump: ".to_string() + &info.redump_status);
                 });
 
             ui.add_space(10.);

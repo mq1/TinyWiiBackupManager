@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::path::Path;
+
 use crate::{app::App, disc_info::DiscInfo, games::Game};
 use eframe::egui::{self, Vec2};
 
@@ -19,7 +21,13 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
             .show(ui, |ui| {
                 for row in app.filtered_games.chunks(cols) {
                     for game in row {
-                        view_game_card(ui, game, &mut app.removing_game, &mut app.disc_info);
+                        view_game_card(
+                            ui,
+                            game,
+                            &mut app.removing_game,
+                            &mut app.disc_info,
+                            &app.data_dir,
+                        );
                     }
 
                     ui.end_row();
@@ -33,6 +41,7 @@ fn view_game_card(
     game: &Game,
     removing_game: &mut Option<Game>,
     disc_info: &mut Option<(String, DiscInfo)>,
+    data_dir: &Path,
 ) {
     ui.group(|ui| {
         ui.set_height(CARD_HEIGHT);
@@ -85,7 +94,7 @@ fn view_game_card(
                     .on_hover_text("Show Disc Information")
                     .clicked()
                 {
-                    let info = DiscInfo::from_game_dir(&game.path).unwrap_or_default();
+                    let info = DiscInfo::from_game_dir(&game.path, &data_dir).unwrap_or_default();
                     *disc_info = Some((game.display_title.clone(), info));
                 }
             });

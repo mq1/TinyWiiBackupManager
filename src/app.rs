@@ -47,6 +47,7 @@ pub struct App {
     pub osc_apps: Option<Vec<OscApp>>,
     pub status: String,
     pub osc_status: String,
+    pub got_redump_db: bool,
 }
 
 impl App {
@@ -75,7 +76,7 @@ impl App {
             disc_info: None,
             removing_game: None,
             task_processor: TaskProcessor::init(),
-            osc_task_processor: None,
+            osc_task_processor: Some(TaskProcessor::init()),
             choose_mount_point: FileDialog::new().as_modal(true),
             choose_games: FileDialog::new()
                 .as_modal(true)
@@ -97,6 +98,7 @@ impl App {
             osc_apps: None,
             status: String::new(),
             osc_status: String::new(),
+            got_redump_db: false,
         }
     }
 
@@ -244,7 +246,9 @@ impl eframe::App for App {
                     self.titles = Some(titles);
                     self.refresh_games();
                 }
-                BackgroundMessage::UpdateOscStatus(_) | BackgroundMessage::GotOscApps(_) => {}
+                BackgroundMessage::UpdateOscStatus(_)
+                | BackgroundMessage::GotOscApps(_)
+                | BackgroundMessage::GotRedumpDb => {}
             }
 
             ctx.request_repaint();
@@ -258,9 +262,15 @@ impl eframe::App for App {
                     BackgroundMessage::UpdateOscStatus(string) => {
                         self.osc_status = string;
                     }
+                    BackgroundMessage::NotifyInfo(string) => {
+                        self.toasts.info(string);
+                    }
                     BackgroundMessage::GotOscApps(osc_apps) => {
                         self.osc_apps = Some(osc_apps);
                         drop_task_processor = true;
+                    }
+                    BackgroundMessage::GotRedumpDb => {
+                        self.got_redump_db = true;
                     }
                     _ => {}
                 }
