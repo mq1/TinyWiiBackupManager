@@ -39,10 +39,10 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     close = true;
                 }
 
-                if ui.button("📁 Open Directory").clicked() {
-                    if let Err(e) = open::that(&info.path) {
-                        app.toasts.error(e.to_string());
-                    }
+                if ui.button("📁 Open Directory").clicked()
+                    && let Err(e) = open::that(&info.path)
+                {
+                    app.toasts.error(e.to_string());
                 }
             })
         });
