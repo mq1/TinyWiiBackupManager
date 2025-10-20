@@ -38,6 +38,15 @@ impl Config {
 
         Ok(())
     }
+
+    pub fn get_drive_name(&self) -> &str {
+        self.contents
+            .mount_point
+            .file_name()
+            .unwrap_or(self.contents.mount_point.as_os_str())
+            .to_str()
+            .unwrap_or_default()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]

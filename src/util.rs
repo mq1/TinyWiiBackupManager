@@ -26,7 +26,7 @@ pub fn get_disk_usage(mount_point: &Path) -> Option<String> {
             let total = disk.total_space();
             let used = total - disk.available_space();
 
-            format!("{}/{}", Size::from_bytes(used), Size::from_bytes(total))
+            format!("({}/{})", Size::from_bytes(used), Size::from_bytes(total))
         })
 }
 
