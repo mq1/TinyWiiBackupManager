@@ -7,7 +7,7 @@ use crate::{
     games,
     ui::{games_grid, games_list},
 };
-use eframe::egui;
+use eframe::egui::{self, Vec2};
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
     egui::CentralPanel::default().show(&ctx, |ui| {
@@ -16,7 +16,6 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
             return;
         }
 
-        ui.add_space(5.);
         update_top_bar(ui, app);
         ui.add_space(10.);
 
@@ -29,122 +28,137 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
 fn update_top_bar(ui: &mut egui::Ui, app: &mut App) {
     ui.horizontal(move |ui| {
-        ui.add_space(5.);
-        ui.label("🔎");
+        ui.group(|ui| {
+            ui.label(egui::RichText::new("🔎").size(15.5));
 
-        if ui
-            .add(egui::TextEdit::singleline(&mut app.game_search).hint_text("Search by Title/ID"))
-            .changed()
-        {
-            app.update_filtered_games();
-        }
+            if ui
+                .add(
+                    egui::TextEdit::singleline(&mut app.game_search)
+                        .desired_width(200.)
+                        .hint_text("Search by Title/ID"),
+                )
+                .changed()
+            {
+                app.update_filtered_games();
+            }
+        });
 
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-            ui.add_space(5.);
+            if ui
+                .add_sized(
+                    Vec2::splat(32.),
+                    egui::Button::new(egui::RichText::new("✚").size(18.)),
+                )
+                .on_hover_text("Add Games")
+                .clicked()
+            {}
 
-            if ui.button("✚ Add Games").clicked() {}
-
-            if ui.button("⟳").on_hover_text("Refresh Games").clicked() {
+            if ui
+                .add_sized(
+                    Vec2::splat(32.),
+                    egui::Button::new(egui::RichText::new("⟳").size(18.)),
+                )
+                .on_hover_text("Refresh Games")
+                .clicked()
+            {
                 games::spawn_get_games_task(app);
             }
 
-            ui.separator();
+            ui.add_space(10.);
 
-            if ui
-                .selectable_label(
-                    matches!(app.config.contents.view_as, ViewAs::Grid),
-                    "🗓 Grid",
-                )
-                .clicked()
-            {
-                app.config.contents.view_as = ViewAs::Grid;
-                if let Err(e) = app.config.write() {
-                    app.toasts.lock().error(e.to_string());
+            ui.group(|ui| {
+                if ui
+                    .selectable_label(app.config.contents.view_as == ViewAs::List, "☰")
+                    .on_hover_text("View as List")
+                    .clicked()
+                {
+                    app.config.contents.view_as = ViewAs::List;
+                    if let Err(e) = app.config.write() {
+                        app.toasts.lock().error(e.to_string());
+                    }
                 }
-            }
 
-            if ui
-                .selectable_label(
-                    matches!(app.config.contents.view_as, ViewAs::List),
-                    "🗒 List",
-                )
-                .clicked()
-            {
-                app.config.contents.view_as = ViewAs::List;
-                if let Err(e) = app.config.write() {
-                    app.toasts.lock().error(e.to_string());
+                if ui
+                    .selectable_label(app.config.contents.view_as == ViewAs::Grid, "")
+                    .on_hover_text("View as Grid")
+                    .clicked()
+                {
+                    app.config.contents.view_as = ViewAs::Grid;
+                    if let Err(e) = app.config.write() {
+                        app.toasts.lock().error(e.to_string());
+                    }
                 }
-            }
+            });
 
-            ui.separator();
+            ui.group(|ui| {
+                if ui
+                    .selectable_label(
+                        matches!(
+                            app.config.contents.sort_by,
+                            SortBy::SizeAscending | SortBy::SizeDescending
+                        ),
+                        if app.config.contents.sort_by == SortBy::SizeDescending {
+                            "⚖⏷"
+                        } else {
+                            "⚖⏶"
+                        },
+                    )
+                    .on_hover_text("Sort by size")
+                    .clicked()
+                {
+                    app.config.contents.sort_by =
+                        if app.config.contents.sort_by == SortBy::SizeAscending {
+                            SortBy::SizeDescending
+                        } else {
+                            SortBy::SizeAscending
+                        };
+                    app.apply_sorting();
+                }
 
-            if ui
-                .selectable_label(
-                    matches!(
-                        app.config.contents.sort_by,
-                        SortBy::SizeAscending | SortBy::SizeDescending
-                    ),
-                    if app.config.contents.sort_by == SortBy::SizeDescending {
-                        "⚖⏷"
-                    } else {
-                        "⚖⏶"
-                    },
-                )
-                .on_hover_text("Sort by size")
-                .clicked()
-            {
-                app.config.contents.sort_by =
-                    if app.config.contents.sort_by == SortBy::SizeAscending {
-                        SortBy::SizeDescending
-                    } else {
-                        SortBy::SizeAscending
-                    };
-                app.apply_sorting();
-            }
+                if ui
+                    .selectable_label(
+                        matches!(
+                            app.config.contents.sort_by,
+                            SortBy::NameAscending | SortBy::NameDescending
+                        ),
+                        if app.config.contents.sort_by == SortBy::NameDescending {
+                            "🗛⏷"
+                        } else {
+                            "🗛⏶"
+                        },
+                    )
+                    .on_hover_text("Sort by name")
+                    .clicked()
+                {
+                    app.config.contents.sort_by =
+                        if app.config.contents.sort_by == SortBy::NameAscending {
+                            SortBy::NameDescending
+                        } else {
+                            SortBy::NameAscending
+                        };
+                    app.apply_sorting();
+                }
+            });
 
-            if ui
-                .selectable_label(
-                    matches!(
-                        app.config.contents.sort_by,
-                        SortBy::NameAscending | SortBy::NameDescending
-                    ),
-                    if app.config.contents.sort_by == SortBy::NameDescending {
-                        "🗛⏷"
-                    } else {
-                        "🗛⏶"
-                    },
-                )
-                .on_hover_text("Sort by name")
-                .clicked()
-            {
-                app.config.contents.sort_by =
-                    if app.config.contents.sort_by == SortBy::NameAscending {
-                        SortBy::NameDescending
-                    } else {
-                        SortBy::NameAscending
-                    };
-                app.apply_sorting();
-            }
+            ui.group(|ui| {
+                if ui
+                    .checkbox(&mut app.show_gc, "🎲")
+                    .on_hover_text("Show GameCube")
+                    .changed()
+                {
+                    app.update_filtered_games();
+                }
 
-            ui.separator();
+                ui.separator();
 
-            if ui
-                .checkbox(&mut app.show_gc, "🎲")
-                .on_hover_text("Show GameCube")
-                .changed()
-            {
-                app.update_filtered_games();
-            }
-
-            ui.separator();
-
-            if ui
-                .checkbox(&mut app.show_wii, "🎾")
-                .on_hover_text("Show Wii")
-                .changed()
-            {
-                app.update_filtered_games();
-            }
+                if ui
+                    .checkbox(&mut app.show_wii, "🎾")
+                    .on_hover_text("Show Wii")
+                    .changed()
+                {
+                    app.update_filtered_games();
+                }
+            });
         });
     });
 }

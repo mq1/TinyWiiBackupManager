@@ -63,7 +63,7 @@ fn view_top_bar(ui: &mut egui::Ui, app: &mut App) {
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
             ui.add_space(5.);
 
-            if ui.button("✚ Add Apps").clicked() {}
+            if ui.button("⊞ Add Apps").clicked() {}
 
             if ui.button("⟳").on_hover_text("Refresh Apps").clicked() {
                 hbc_apps::spawn_get_hbc_apps_task(app);
