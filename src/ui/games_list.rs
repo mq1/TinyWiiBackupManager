@@ -9,18 +9,16 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
     TableBuilder::new(ui)
         .striped(true)
         .column(Column::remainder())
-        .column(Column::auto())
-        .column(Column::auto())
-        .column(Column::auto())
+        .columns(Column::auto(), 3)
         .header(20.0, |mut header| {
             header.col(|ui| {
                 ui.heading("🏷 Title");
             });
             header.col(|ui| {
-                ui.heading("🎮 Console");
+                ui.heading("🎮 Console   ");
             });
             header.col(|ui| {
-                ui.heading("⚖ Size");
+                ui.heading("⚖ Size   ");
             });
             header.col(|ui| {
                 ui.heading("☞ Actions");
@@ -28,7 +26,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
         })
         .body(|mut body| {
             for game in app.filtered_games.lock().iter() {
-                body.row(30.0, |mut row| {
+                body.row(20., |mut row| {
                     row.col(|ui| {
                         ui.label(&game.display_title);
                     });
