@@ -11,7 +11,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
         ui::View::Games => ui::games::update(ctx, app),
         ui::View::HbcApps => ui::hbc_apps::update(ctx, app),
         ui::View::Osc => ui::osc::view(ctx),
-        ui::View::Settings => ui::settings::view(ctx),
+        ui::View::Settings => ui::settings::update(ctx, app),
     }
 
     ui::status::update(ctx, app);
