@@ -112,9 +112,9 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     ui.separator();
 
                     let _ = ui.button(egui::RichText::new("📥 Download all covers").size(15.));
-                    ui.separator();
 
                     if cfg!(target_os = "macos") {
+                        ui.separator();
                         let _ = ui.button(egui::RichText::new("👻 Run dot_clean").size(15.));
                     }
                 });
