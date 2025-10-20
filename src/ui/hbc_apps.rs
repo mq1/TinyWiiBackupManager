@@ -6,9 +6,9 @@ use crate::{
     config::SortBy,
     hbc_apps::{self, HbcApp},
 };
-use eframe::egui::{self, Margin, Vec2};
+use eframe::egui::{self, Vec2};
 
-const CARD_WIDTH: f32 = 153.5;
+const CARD_WIDTH: f32 = 161.5;
 const CARD_HEIGHT: f32 = 140.;
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
@@ -18,14 +18,13 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
             return;
         }
 
-        ui.add_space(5.);
         view_top_bar(ui, app);
         ui.add_space(10.);
 
         egui::ScrollArea::vertical().show(ui, |ui| {
             let available_width = ui.available_width();
             ui.set_width(available_width);
-            let cols = (available_width / (CARD_WIDTH + 28.)).floor() as usize;
+            let cols = (available_width / (CARD_WIDTH + 20.)).floor() as usize;
 
             egui::Grid::new("apps")
                 .num_columns(cols)
@@ -50,74 +49,91 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
 fn view_top_bar(ui: &mut egui::Ui, app: &mut App) {
     ui.horizontal(move |ui| {
-        ui.add_space(5.);
-        ui.label("🔎");
+        ui.group(|ui| {
+            ui.label(egui::RichText::new("🔎").size(15.5));
 
-        if ui
-            .add(egui::TextEdit::singleline(&mut app.hbc_app_search).hint_text("Search by Name"))
-            .changed()
-        {
-            app.update_filtered_hbc_apps();
-        }
+            if ui
+                .add(
+                    egui::TextEdit::singleline(&mut app.hbc_app_search).hint_text("Search by Name"),
+                )
+                .changed()
+            {
+                app.update_filtered_hbc_apps();
+            }
+        });
 
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-            ui.add_space(5.);
+            if ui
+                .add_sized(
+                    Vec2::splat(32.),
+                    egui::Button::new(egui::RichText::new("✚").size(18.)),
+                )
+                .on_hover_text("Add Apps")
+                .clicked()
+            {}
 
-            if ui.button("⊞ Add Apps").clicked() {}
-
-            if ui.button("⟳").on_hover_text("Refresh Apps").clicked() {
+            if ui
+                .add_sized(
+                    Vec2::splat(32.),
+                    egui::Button::new(egui::RichText::new("⟳").size(18.)),
+                )
+                .on_hover_text("Refresh Apps")
+                .clicked()
+            {
                 hbc_apps::spawn_get_hbc_apps_task(app);
             }
 
-            ui.separator();
+            ui.add_space(10.);
 
-            if ui
-                .selectable_label(
-                    matches!(
-                        app.config.contents.sort_by,
-                        SortBy::SizeAscending | SortBy::SizeDescending
-                    ),
-                    if app.config.contents.sort_by == SortBy::SizeDescending {
-                        "⚖⏷"
-                    } else {
-                        "⚖⏶"
-                    },
-                )
-                .on_hover_text("Sort by size")
-                .clicked()
-            {
-                app.config.contents.sort_by =
-                    if app.config.contents.sort_by == SortBy::SizeAscending {
-                        SortBy::SizeDescending
-                    } else {
-                        SortBy::SizeAscending
-                    };
-                app.apply_sorting();
-            }
+            ui.group(|ui| {
+                if ui
+                    .selectable_label(
+                        matches!(
+                            app.config.contents.sort_by,
+                            SortBy::SizeAscending | SortBy::SizeDescending
+                        ),
+                        if app.config.contents.sort_by == SortBy::SizeDescending {
+                            "⚖⏷"
+                        } else {
+                            "⚖⏶"
+                        },
+                    )
+                    .on_hover_text("Sort by size")
+                    .clicked()
+                {
+                    app.config.contents.sort_by =
+                        if app.config.contents.sort_by == SortBy::SizeAscending {
+                            SortBy::SizeDescending
+                        } else {
+                            SortBy::SizeAscending
+                        };
+                    app.apply_sorting();
+                }
 
-            if ui
-                .selectable_label(
-                    matches!(
-                        app.config.contents.sort_by,
-                        SortBy::NameAscending | SortBy::NameDescending
-                    ),
-                    if app.config.contents.sort_by == SortBy::NameDescending {
-                        "🗛⏷"
-                    } else {
-                        "🗛⏶"
-                    },
-                )
-                .on_hover_text("Sort by name")
-                .clicked()
-            {
-                app.config.contents.sort_by =
-                    if app.config.contents.sort_by == SortBy::NameAscending {
-                        SortBy::NameDescending
-                    } else {
-                        SortBy::NameAscending
-                    };
-                app.apply_sorting();
-            }
+                if ui
+                    .selectable_label(
+                        matches!(
+                            app.config.contents.sort_by,
+                            SortBy::NameAscending | SortBy::NameDescending
+                        ),
+                        if app.config.contents.sort_by == SortBy::NameDescending {
+                            "🗛⏷"
+                        } else {
+                            "🗛⏶"
+                        },
+                    )
+                    .on_hover_text("Sort by name")
+                    .clicked()
+                {
+                    app.config.contents.sort_by =
+                        if app.config.contents.sort_by == SortBy::NameAscending {
+                            SortBy::NameDescending
+                        } else {
+                            SortBy::NameAscending
+                        };
+                    app.apply_sorting();
+                }
+            });
         });
     });
 }
@@ -128,11 +144,7 @@ fn view_hbc_app_card(
     removing_hbc_app: &mut Option<HbcApp>,
     hbc_app_info: &mut Option<HbcApp>,
 ) {
-    let card = egui::Frame::group(ui.style())
-        .corner_radius(10.0)
-        .inner_margin(Margin::same(10));
-
-    card.show(ui, |ui| {
+    ui.group(|ui| {
         ui.set_height(CARD_HEIGHT);
         ui.set_width(CARD_WIDTH);
 
