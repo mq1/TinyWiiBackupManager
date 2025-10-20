@@ -79,8 +79,8 @@ impl App {
                 .default_file_filter("Nintendo Optical Disc"),
             choose_hbc_apps: FileDialog::new()
                 .as_modal(true)
-                .add_file_filter_extensions("HBC App", vec!["zip", "dol", "elf"])
-                .default_file_filter("HBC App"),
+                .add_file_filter_extensions("HBC App (zip)", vec!["zip", "ZIP"])
+                .default_file_filter("HBC App (zip)"),
             toasts,
             hbc_app_search: String::new(),
             hbc_apps: Vec::new(),
