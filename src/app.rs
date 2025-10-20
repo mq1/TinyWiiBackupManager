@@ -39,6 +39,7 @@ pub struct App {
     pub task_processor: TaskProcessor,
     pub choose_mount_point: FileDialog,
     pub choose_games: FileDialog,
+    pub choose_hbc_apps: FileDialog,
     pub toasts: Toasts,
 }
 
@@ -76,6 +77,10 @@ impl App {
                     extensions::SUPPORTED_INPUT_EXTENSIONS.to_vec(),
                 )
                 .default_file_filter("Nintendo Optical Disc"),
+            choose_hbc_apps: FileDialog::new()
+                .as_modal(true)
+                .add_file_filter_extensions("HBC App", vec!["zip", "dol", "elf"])
+                .default_file_filter("HBC App"),
             toasts,
             hbc_app_search: String::new(),
             hbc_apps: Vec::new(),
@@ -110,6 +115,7 @@ impl App {
 
     pub fn update_filtered_hbc_apps(&mut self) {
         if self.hbc_app_search.is_empty() {
+            self.filtered_hbc_apps = self.hbc_apps.clone();
             return;
         }
 
@@ -206,9 +212,6 @@ impl eframe::App for App {
                 BackgroundMessage::TriggerRefreshImages => {
                     ctx.forget_all_images();
                 }
-                BackgroundMessage::TriggerRefreshTitle => {
-                    self.update_title(ctx);
-                }
                 BackgroundMessage::TriggerRefreshGames => {
                     self.refresh_games();
                 }
@@ -221,16 +224,6 @@ impl eframe::App for App {
                 BackgroundMessage::GotTitles(titles) => {
                     self.titles = Some(titles);
                     self.refresh_games();
-                }
-                BackgroundMessage::GotGames(games) => {
-                    self.games = games;
-                    games::sort(&mut self.games, &self.config.contents.sort_by);
-                    self.update_filtered_games();
-                }
-                BackgroundMessage::GotHbcApps(hbc_apps) => {
-                    self.hbc_apps = hbc_apps;
-                    hbc_apps::sort(&mut self.hbc_apps, &self.config.contents.sort_by);
-                    self.update_filtered_hbc_apps();
                 }
             }
         }

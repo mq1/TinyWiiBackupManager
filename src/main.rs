@@ -52,13 +52,15 @@ fn get_data_dir() -> Result<PathBuf> {
 fn main() -> Result<()> {
     let data_dir = get_data_dir()?;
     fs::create_dir_all(&data_dir)?;
-    let app = App::new(&data_dir);
+    let mut app = App::new(&data_dir);
 
     // ----------------
     // Initialize tasks
 
-    titles::spawn_get_titles_task(&app); // this also loads games
+    titles::spawn_get_titles_task(&app); // this loads games when finished
     updater::spawn_check_update_task(&app);
+
+    app.refresh_hbc_apps();
 
     // -------------
     // Initialize UI
