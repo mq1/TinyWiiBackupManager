@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, convert, covers};
+use crate::{app::App, convert};
 use eframe::egui;
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
@@ -9,6 +9,5 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
     if let Some(paths) = app.choose_games.take_picked_multiple() {
         convert::spawn_add_games_task(&app, paths);
-        covers::spawn_download_covers_task(app);
     }
 }
