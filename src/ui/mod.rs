@@ -9,6 +9,7 @@ mod games;
 mod games_grid;
 mod games_list;
 mod hbc_apps;
+mod hbc_apps_grid;
 mod nav;
 mod osc;
 mod remove_game;

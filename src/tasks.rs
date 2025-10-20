@@ -1,12 +1,11 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::{titles::Titles, updater::UpdateInfo};
 use anyhow::Result;
 use crossbeam_channel::{Receiver, Sender, unbounded};
 use parking_lot::Mutex;
 use std::{sync::Arc, thread};
-
-use crate::{titles::Titles, updater::UpdateInfo};
 
 pub type BoxedTask =
     Box<dyn FnOnce(&Arc<Mutex<String>>, &Sender<BackgroundMessage>) -> Result<()> + Send>;
