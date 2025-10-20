@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, disc_info::DiscInfo, games::Game};
+use crate::{app::App, config::SortBy, disc_info::DiscInfo, games::Game};
 use eframe::egui::{self, Margin, Vec2};
 
-const CARD_WIDTH: f32 = 150.;
+const CARD_WIDTH: f32 = 153.5;
 const CARD_HEIGHT: f32 = 185.;
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
@@ -27,7 +27,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 .num_columns(cols)
                 .spacing(Vec2::splat(8.))
                 .show(ui, |ui| {
-                    for row in app.shown_games.lock().chunks(cols) {
+                    for row in app.filtered_games.chunks(cols) {
                         for game in row {
                             view_game_card(ui, game, &mut app.removing_game, &mut app.disc_info);
                         }
@@ -48,14 +48,80 @@ fn view_top_bar(ui: &mut egui::Ui, app: &mut App) {
             .add(egui::TextEdit::singleline(&mut app.game_search).hint_text("Search by Title/ID"))
             .changed()
         {
-            *app.shown_games.lock() = app
-                .games
-                .lock()
-                .iter()
-                .filter(|game| game.search_str.contains(&app.game_search))
-                .cloned()
-                .collect();
+            app.update_filtered_games();
         }
+
+        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+            ui.add_space(5.);
+
+            if ui
+                .selectable_label(
+                    matches!(
+                        app.config.contents.sort_by,
+                        SortBy::SizeAscending | SortBy::SizeDescending
+                    ),
+                    if app.config.contents.sort_by == SortBy::SizeDescending {
+                        "⚖⏷"
+                    } else {
+                        "⚖⏶"
+                    },
+                )
+                .on_hover_text("Sort by size")
+                .clicked()
+            {
+                app.config.contents.sort_by =
+                    if app.config.contents.sort_by == SortBy::SizeAscending {
+                        SortBy::SizeDescending
+                    } else {
+                        SortBy::SizeAscending
+                    };
+                app.apply_sorting();
+            }
+
+            if ui
+                .selectable_label(
+                    matches!(
+                        app.config.contents.sort_by,
+                        SortBy::NameAscending | SortBy::NameDescending
+                    ),
+                    if app.config.contents.sort_by == SortBy::NameDescending {
+                        "🗛⏷"
+                    } else {
+                        "🗛⏶"
+                    },
+                )
+                .on_hover_text("Sort by name")
+                .clicked()
+            {
+                app.config.contents.sort_by =
+                    if app.config.contents.sort_by == SortBy::NameAscending {
+                        SortBy::NameDescending
+                    } else {
+                        SortBy::NameAscending
+                    };
+                app.apply_sorting();
+            }
+
+            ui.separator();
+
+            if ui
+                .checkbox(&mut app.show_gc, "🎲")
+                .on_hover_text("Show GameCube")
+                .changed()
+            {
+                app.update_filtered_games();
+            }
+
+            ui.separator();
+
+            if ui
+                .checkbox(&mut app.show_wii, "🎾")
+                .on_hover_text("Show Wii")
+                .changed()
+            {
+                app.update_filtered_games();
+            }
+        });
     });
 }
 
