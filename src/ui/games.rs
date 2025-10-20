@@ -51,7 +51,9 @@ fn update_top_bar(ui: &mut egui::Ui, app: &mut App) {
                 )
                 .on_hover_text("Add Games")
                 .clicked()
-            {}
+            {
+                app.choose_games.pick_multiple();
+            }
 
             if ui
                 .add_sized(

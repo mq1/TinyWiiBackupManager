@@ -8,7 +8,6 @@ use crate::{
     tasks::TaskProcessor,
     util::{self, can_write_over_4gb},
 };
-use anyhow::{Result, bail};
 use nod::{
     common::Format,
     read::{DiscOptions, DiscReader, PartitionEncryption},
@@ -62,11 +61,7 @@ pub fn spawn_add_games_task(
     config: &Config,
     mut paths: Vec<PathBuf>,
     task_processor: &TaskProcessor,
-) -> Result<()> {
-    if config.contents.mount_point.as_os_str().is_empty() {
-        bail!("Conversion Failed: No mount point selected");
-    }
-
+) {
     let remove_sources = config.contents.remove_sources_games;
     let mount_point_clone = config.contents.mount_point.clone();
     let wii_output_format = config.contents.wii_output_format.clone();
@@ -180,6 +175,4 @@ pub fn spawn_add_games_task(
 
         Ok(())
     });
-
-    Ok(())
 }
