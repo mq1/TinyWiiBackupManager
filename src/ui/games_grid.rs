@@ -4,7 +4,7 @@
 use crate::{app::App, disc_info::DiscInfo, games::Game};
 use eframe::egui::{self, Vec2};
 
-const CARD_WIDTH: f32 = 152.75;
+const CARD_WIDTH: f32 = 152.5;
 const CARD_HEIGHT: f32 = 186.;
 
 pub fn update(ui: &mut egui::Ui, app: &mut App) {
