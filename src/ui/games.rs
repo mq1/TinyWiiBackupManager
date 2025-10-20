@@ -4,7 +4,6 @@
 use crate::{
     app::App,
     config::{SortBy, ViewAs},
-    games,
     ui::{games_grid, games_list},
 };
 use eframe::egui::{self, Vec2};
@@ -63,7 +62,7 @@ fn update_top_bar(ui: &mut egui::Ui, app: &mut App) {
                 .on_hover_text("Refresh Games")
                 .clicked()
             {
-                games::spawn_get_games_task(app);
+                app.refresh_games();
             }
 
             ui.add_space(10.);
@@ -76,7 +75,7 @@ fn update_top_bar(ui: &mut egui::Ui, app: &mut App) {
                 {
                     app.config.contents.view_as = ViewAs::List;
                     if let Err(e) = app.config.write() {
-                        app.toasts.lock().error(e.to_string());
+                        app.toasts.error(e.to_string());
                     }
                 }
 
@@ -87,7 +86,7 @@ fn update_top_bar(ui: &mut egui::Ui, app: &mut App) {
                 {
                     app.config.contents.view_as = ViewAs::Grid;
                     if let Err(e) = app.config.write() {
-                        app.toasts.lock().error(e.to_string());
+                        app.toasts.error(e.to_string());
                     }
                 }
             });

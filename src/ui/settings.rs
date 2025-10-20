@@ -22,7 +22,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 .changed()
             {
                 if let Err(e) = app.config.write() {
-                    app.toasts.lock().error(e.to_string());
+                    app.toasts.error(e.to_string());
                 }
             }
 
@@ -35,7 +35,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 .changed()
             {
                 if let Err(e) = app.config.write() {
-                    app.toasts.lock().error(e.to_string());
+                    app.toasts.error(e.to_string());
                 }
             }
 
@@ -52,7 +52,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 .changed()
             {
                 if let Err(e) = app.config.write() {
-                    app.toasts.lock().error(e.to_string());
+                    app.toasts.error(e.to_string());
                 }
             }
 
@@ -65,7 +65,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 .changed()
             {
                 if let Err(e) = app.config.write() {
-                    app.toasts.lock().error(e.to_string());
+                    app.toasts.error(e.to_string());
                 }
             }
 
@@ -82,7 +82,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 .changed()
             {
                 if let Err(e) = app.config.write() {
-                    app.toasts.lock().error(e.to_string());
+                    app.toasts.error(e.to_string());
                 }
             }
 
@@ -95,7 +95,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 .changed()
             {
                 if let Err(e) = app.config.write() {
-                    app.toasts.lock().error(e.to_string());
+                    app.toasts.error(e.to_string());
                 }
             }
 
@@ -112,7 +112,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 .changed()
             {
                 if let Err(e) = app.config.write() {
-                    app.toasts.lock().error(e.to_string());
+                    app.toasts.error(e.to_string());
                 }
             }
 
@@ -125,7 +125,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 .changed()
             {
                 if let Err(e) = app.config.write() {
-                    app.toasts.lock().error(e.to_string());
+                    app.toasts.error(e.to_string());
                 }
             }
 
@@ -142,7 +142,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 .changed()
             {
                 if let Err(e) = app.config.write() {
-                    app.toasts.lock().error(e.to_string());
+                    app.toasts.error(e.to_string());
                 }
             }
 
@@ -151,7 +151,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 .changed()
             {
                 if let Err(e) = app.config.write() {
-                    app.toasts.lock().error(e.to_string());
+                    app.toasts.error(e.to_string());
                 }
             }
 
@@ -168,7 +168,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 .changed()
             {
                 if let Err(e) = app.config.write() {
-                    app.toasts.lock().error(e.to_string());
+                    app.toasts.error(e.to_string());
                 }
             }
 
@@ -177,7 +177,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 .changed()
             {
                 if let Err(e) = app.config.write() {
-                    app.toasts.lock().error(e.to_string());
+                    app.toasts.error(e.to_string());
                 }
             }
         });
@@ -192,7 +192,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 {
                     ctx.set_theme(app.config.contents.theme_preference);
                     if let Err(e) = app.config.write() {
-                        app.toasts.lock().error(e.to_string());
+                        app.toasts.error(e.to_string());
                     }
                 }
             });

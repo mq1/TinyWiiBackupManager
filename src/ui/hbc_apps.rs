@@ -1,11 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    app::App,
-    config::SortBy,
-    hbc_apps::{self, HbcApp},
-};
+use crate::{app::App, config::SortBy, hbc_apps::HbcApp};
 use eframe::egui::{self, Vec2};
 
 const CARD_WIDTH: f32 = 161.5;
@@ -30,7 +26,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 .num_columns(cols)
                 .spacing(Vec2::splat(8.))
                 .show(ui, |ui| {
-                    for row in app.filtered_hbc_apps.lock().chunks(cols) {
+                    for row in app.filtered_hbc_apps.chunks(cols) {
                         for hbc_app in row {
                             view_hbc_app_card(
                                 ui,
@@ -80,7 +76,7 @@ fn view_top_bar(ui: &mut egui::Ui, app: &mut App) {
                 .on_hover_text("Refresh Apps")
                 .clicked()
             {
-                hbc_apps::spawn_get_hbc_apps_task(app);
+                app.refresh_hbc_apps();
             }
 
             ui.add_space(10.);

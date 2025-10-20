@@ -2,31 +2,34 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use anyhow::Result;
-use crossbeam_channel::{Sender, unbounded};
-use egui_notify::Toasts;
+use crossbeam_channel::{Receiver, Sender, unbounded};
 use parking_lot::Mutex;
 use std::{sync::Arc, thread};
 
-pub type BoxedTask = Box<dyn FnOnce(Arc<Mutex<String>>, Arc<Mutex<Toasts>>) -> Result<()> + Send>;
+use crate::{games::Game, hbc_apps::HbcApp, titles::Titles, updater::UpdateInfo};
+
+pub type BoxedTask =
+    Box<dyn FnOnce(&Arc<Mutex<String>>, &Sender<BackgroundMessage>) -> Result<()> + Send>;
 
 pub struct TaskProcessor {
     task_sender: Sender<BoxedTask>,
+    pub msg_receiver: Receiver<BackgroundMessage>,
     pub status: Arc<Mutex<String>>,
-    toasts: Arc<Mutex<Toasts>>,
 }
 
 impl TaskProcessor {
-    pub fn init(toasts: Arc<Mutex<Toasts>>) -> Self {
+    pub fn init() -> Self {
         let (task_sender, task_receiver) = unbounded::<BoxedTask>();
-
+        let (msg_sender, msg_receiver) = unbounded::<BackgroundMessage>();
         let status = Arc::new(Mutex::new(String::new()));
 
         let status_clone = status.clone();
-        let toasts_clone = toasts.clone();
         thread::spawn(move || {
             while let Ok(task) = task_receiver.recv() {
-                if let Err(e) = task(status_clone.clone(), toasts_clone.clone()) {
-                    toasts_clone.lock().error(e.to_string());
+                if let Err(e) = task(&status_clone, &msg_sender) {
+                    msg_sender
+                        .send(BackgroundMessage::NotifyError(e.to_string()))
+                        .expect("Failed to send message");
                 }
 
                 // Clean up
@@ -36,21 +39,34 @@ impl TaskProcessor {
 
         Self {
             task_sender,
+            msg_receiver,
             status,
-            toasts,
         }
     }
 
     pub fn spawn<F>(&self, task: F)
     where
-        F: FnOnce(Arc<Mutex<String>>, Arc<Mutex<Toasts>>) -> Result<()> + Send + 'static,
+        F: FnOnce(&Arc<Mutex<String>>, &Sender<BackgroundMessage>) -> Result<()> + Send + 'static,
     {
-        if let Err(e) = self.task_sender.send(Box::new(task)) {
-            self.toasts.lock().error(e.to_string());
-        }
+        self.task_sender
+            .send(Box::new(task))
+            .expect("Failed to send task");
     }
 
     pub fn pending(&self) -> usize {
         self.task_sender.len()
     }
+}
+
+pub enum BackgroundMessage {
+    NotifyInfo(String),
+    NotifyError(String),
+    TriggerRefreshImages,
+    TriggerRefreshTitle,
+    TriggerRefreshGames,
+    TriggerRefreshHbcApps,
+    GotUpdateInfo(UpdateInfo),
+    GotTitles(Titles),
+    GotGames(Vec<Game>),
+    GotHbcApps(Vec<HbcApp>),
 }

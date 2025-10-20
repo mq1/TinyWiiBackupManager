@@ -57,9 +57,7 @@ fn main() -> Result<()> {
     // ----------------
     // Initialize tasks
 
-    titles::spawn_get_titles_task(&app);
-    games::spawn_get_games_task(&app);
-    hbc_apps::spawn_get_hbc_apps_task(&app);
+    titles::spawn_get_titles_task(&app); // this also loads games
     updater::spawn_check_update_task(&app);
 
     // -------------
