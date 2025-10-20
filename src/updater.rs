@@ -1,27 +1,18 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{MainWindow, TaskType, UpdateInfo, http::AGENT};
+use crate::{http::AGENT, tasks::TaskProcessor};
 use anyhow::{Context, Result};
+use parking_lot::Mutex;
 use semver::Version;
-use slint::{ToSharedString, Weak};
-use std::sync::LazyLock;
+use std::{fmt, sync::Arc};
 
 const VERSION_URL: &str = concat!(
     env!("CARGO_PKG_REPOSITORY"),
     "/releases/latest/download/version.txt"
 );
 
-static CURRENT_VERSION: LazyLock<Version> = LazyLock::new(|| {
-    Version::parse(env!("CARGO_PKG_VERSION")).expect("Failed to parse current version")
-});
-
-pub fn check(weak: &Weak<MainWindow>) -> Result<()> {
-    weak.upgrade_in_event_loop(|handle| {
-        handle.set_status("Checking for updates...".to_shared_string());
-        handle.set_task_type(TaskType::CheckingForUpdates);
-    })?;
-
+pub fn check() -> Result<Option<UpdateInfo>> {
     let latest_version_str = AGENT
         .get(VERSION_URL)
         .call()
@@ -31,24 +22,32 @@ pub fn check(weak: &Weak<MainWindow>) -> Result<()> {
         .context("Failed to decode response body as UTF-8")?;
 
     let latest_version = Version::parse(latest_version_str.trim()).context(format!(
-        "Failed to parse latest version from server: '{latest_version_str}'"
+        "Failed to parse latest version from server: '{}'",
+        latest_version_str
     ))?;
 
-    if latest_version > *CURRENT_VERSION {
-        let info = UpdateInfo {
-            version: latest_version.to_shared_string(),
-            url: format!(
-                "{}/releases/tag/{}",
-                env!("CARGO_PKG_REPOSITORY"),
-                latest_version
-            )
-            .to_shared_string(),
-        };
+    let current_version =
+        Version::parse(env!("CARGO_PKG_VERSION")).context("Failed to parse current version")?;
 
-        weak.upgrade_in_event_loop(|handle| {
-            handle.set_update_info(info);
-        })?;
+    if latest_version > current_version {
+        return Ok(Some(UpdateInfo(latest_version)));
     }
 
-    Ok(())
+    Ok(None)
+}
+
+pub struct UpdateInfo(Version);
+
+impl fmt::Display for UpdateInfo {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "A new version is available: {}", self.0)
+    }
+}
+
+impl UpdateInfo {
+    pub fn open_url(&self) -> Result<()> {
+        let url = format!("{}/releases/tag/{}", env!("CARGO_PKG_REPOSITORY"), &self.0);
+        open::that(&url)?;
+        Ok(())
+    }
 }

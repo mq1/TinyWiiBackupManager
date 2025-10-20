@@ -1,0 +1,21 @@
+// SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+mod choose_mount_point_dialog;
+mod disc_info;
+mod games;
+mod hbc_apps;
+mod nav;
+mod osc;
+mod remove_game;
+pub mod root;
+mod settings;
+mod status;
+
+#[derive(PartialEq)]
+pub enum View {
+    Games,
+    HbcApps,
+    Osc,
+    Settings,
+}
