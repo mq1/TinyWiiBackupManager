@@ -204,6 +204,7 @@ impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         ui::root::update(ctx, self);
 
+        // Process background messages (from task_processor)
         while let Ok(msg) = self.task_processor.msg_receiver.try_recv() {
             match msg {
                 BackgroundMessage::NotifyInfo(string) => {
