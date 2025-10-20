@@ -170,8 +170,12 @@ impl App {
 
         ctx.send_viewport_cmd(egui::ViewportCommand::Title(title));
     }
+}
 
-    pub fn apply_pending(&mut self, ctx: &egui::Context) {
+impl eframe::App for App {
+    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        ui::root::update(ctx, self);
+
         let mut pending_update_title = self.pending_update_title.lock();
         if *pending_update_title {
             self.update_title(ctx);

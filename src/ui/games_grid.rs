@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{app::App, disc_info::DiscInfo, games::Game};
-use eframe::egui::{self, Margin, Vec2};
+use eframe::egui::{self, Vec2};
 
-const CARD_WIDTH: f32 = 153.75;
+const CARD_WIDTH: f32 = 152.75;
 const CARD_HEIGHT: f32 = 186.;
 
 pub fn update(ui: &mut egui::Ui, app: &mut App) {
@@ -34,17 +34,17 @@ fn view_game_card(
     removing_game: &mut Option<Game>,
     disc_info: &mut Option<DiscInfo>,
 ) {
-    let card = egui::Frame::group(ui.style())
-        .corner_radius(10.0)
-        .inner_margin(Margin::same(10));
-
-    card.show(ui, |ui| {
+    ui.group(|ui| {
         ui.set_height(CARD_HEIGHT);
         ui.set_width(CARD_WIDTH);
 
         ui.vertical_centered(|ui| {
+            ui.add_space(3.);
+
             // Top row with console label on the left and size label on the right
             ui.horizontal(|ui| {
+                ui.add_space(3.);
+
                 // Console label on the left
                 ui.label(if game.is_wii { "🎾 Wii" } else { "🎲 GC" });
 
@@ -52,6 +52,8 @@ fn view_game_card(
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     ui.label(game.size.to_string());
                 });
+
+                ui.add_space(1.);
             });
 
             ui.add_space(10.);
