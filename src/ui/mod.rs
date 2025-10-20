@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 mod choose_games_dialog;
+mod choose_hbc_apps_dialog;
 mod choose_mount_point_dialog;
 mod disc_info;
 mod games;
