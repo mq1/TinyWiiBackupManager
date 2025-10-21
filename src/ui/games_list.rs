@@ -49,7 +49,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                                 app.disc_info = Some((game.display_title.clone(), info));
                             }
                             // Archive button
-                            ui.button("📦")
+                            ui.button("📥")
                                 .on_hover_text("Archive Game to a zstd-19 compressed RVZ")
                                 .clicked();
 
