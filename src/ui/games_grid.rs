@@ -51,7 +51,7 @@ fn view_game_card(
             // Top row with console label on the left and size label on the right
             ui.horizontal(|ui| {
                 // Console label on the left
-                ui.label(if game.is_wii { "🎾 Wii" } else { "🎲 GC" });
+                ui.label(if game.is_wii { "🎾 Wii" } else { "◼ GC" });
 
                 // Size label on the right
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
