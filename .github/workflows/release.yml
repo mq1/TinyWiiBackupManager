@@ -54,7 +54,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libc6-dev-arm64-cross binutils-aarch64-linux-gnu libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
+          sudo apt-get install -y gcc-aarch64-linux-gnu libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
           wget -c "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage"
           wget -c "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-x86_64.AppImage"
           chmod +x linuxdeploy*.AppImage
@@ -67,12 +67,9 @@ jobs:
           mv TinyWiiBackupManager*.AppImage dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_${{ matrix.arch }}.AppImage
           mv TinyWiiBackupManager*.AppImage.zsync dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_${{ matrix.arch }}.AppImage.zsync
         env:
-          CC_x86_64_unknown_linux_gnu: "clang"
-          CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: "clang"
+          CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: "gcc"
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: "-C link-arg=-fuse-ld=/usr/local/bin/mold"
-          CC_aarch64_unknown_linux_gnu: "clang"
-          CFLAGS_aarch64_unknown_linux_gnu: "--target aarch64-linux-gnu --sysroot /usr/aarch64-linux-gnu -fuse-ld=/usr/local/bin/mold"
-          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: "clang"
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: "gcc-aarch64-linux-gnu"
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_RUSTFLAGS: "-C link-arg=-fuse-ld=/usr/local/bin/mold"
           LDAI_UPDATE_INFORMATION: "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|TinyWiiBackupManager_*_${{ matrix.arch }}.AppImage.zsync"
 
