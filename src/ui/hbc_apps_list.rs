@@ -8,9 +8,12 @@ use egui_extras::{Column, TableBuilder};
 pub fn update(ui: &mut egui::Ui, app: &mut App) {
     TableBuilder::new(ui)
         .striped(true)
+        .resizable(true)
+        .column(Column::auto().at_least(250.))
+        .column(Column::auto())
+        .column(Column::auto())
         .column(Column::remainder())
-        .columns(Column::auto(), 3)
-        .header(20.0, |mut header| {
+        .header(26.0, |mut header| {
             header.col(|ui| {
                 ui.heading("🏷 Name");
             });
@@ -26,20 +29,31 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
         })
         .body(|mut body| {
             for hbc_app in app.filtered_hbc_apps.iter() {
-                body.row(20., |mut row| {
+                body.row(26., |mut row| {
                     row.col(|ui| {
+                        ui.add_space(3.);
                         ui.label(&hbc_app.meta.name);
+                        ui.add_space(3.);
+                        ui.separator();
                     });
                     row.col(|ui| {
+                        ui.add_space(3.);
                         ui.label(&hbc_app.meta.version);
+                        ui.add_space(3.);
+                        ui.separator();
                     });
                     row.col(|ui| {
+                        ui.add_space(3.);
                         ui.label(hbc_app.size.to_string());
+                        ui.add_space(3.);
+                        ui.separator();
                     });
                     row.col(|ui| {
+                        ui.set_width(ui.available_width());
+
                         ui.horizontal(|ui| {
                             // Info button
-                            if ui.button("ℹ").on_hover_text("Show App Info").clicked() {
+                            if ui.button("ℹ Info").on_hover_text("Show App Info").clicked() {
                                 app.hbc_app_info = Some(hbc_app.clone());
                             }
 
@@ -50,7 +64,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                                     .find(|osc_app| osc_app.meta.name == hbc_app.meta.name)
                                 && osc_app.meta.version != hbc_app.meta.version
                                 && ui
-                                    .button("⮉")
+                                    .button("⮉ Update")
                                     .on_hover_text(
                                         "Download update from OSC: v".to_string()
                                             + &osc_app.meta.version,
@@ -66,10 +80,15 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                             }
 
                             // Remove button
-                            if ui.button("🗑").on_hover_text("Remove HBC App").clicked() {
+                            if ui
+                                .button("🗑 Remove")
+                                .on_hover_text("Remove HBC App")
+                                .clicked()
+                            {
                                 app.removing_hbc_app = Some(hbc_app.clone());
                             }
                         });
+                        ui.separator();
                     });
                 });
             }
