@@ -26,7 +26,7 @@ pub fn get_disk_usage(mount_point: &Path) -> Option<String> {
             let total = disk.total_space();
             let used = total - disk.available_space();
 
-            format!("{}/{}", Size::from_bytes(used), Size::from_bytes(total))
+            format!("({}/{})", Size::from_bytes(used), Size::from_bytes(total))
         })
 }
 
@@ -65,7 +65,7 @@ pub fn get_threads_num() -> (usize, usize) {
     (preloader_threads, processor_threads)
 }
 
-pub fn run_dot_clean(mount_point: &str) -> Result<()> {
+pub fn run_dot_clean(mount_point: &Path) -> Result<()> {
     Command::new("dot_clean")
         .arg("-m")
         .arg(mount_point)

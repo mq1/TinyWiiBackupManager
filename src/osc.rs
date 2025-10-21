@@ -1,59 +1,60 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{MainWindow, OscApp, http::AGENT};
+use crate::{app::App, http::AGENT, tasks::BackgroundMessage};
 use anyhow::{Result, bail};
-use serde::Deserialize;
+use path_slash::PathExt;
+use serde::{Deserialize, Deserializer};
 use size::Size;
-use slint::{Image, ModelRc, SharedString, ToSharedString, VecModel, Weak};
-use std::{fs, io::Read, path::Path, rc::Rc, time::Duration};
+use std::{fs, io::Read, path::Path, time::Duration};
 
 const CONTENTS_URL: &str = "https://hbb1.oscwii.org/api/v4/contents";
 
-pub fn load_osc_apps(data_dir: &Path, weak: &Weak<MainWindow>) -> Result<()> {
-    let cache_path = data_dir.join("osc-cache.json");
-    let icons_dir = data_dir.join("osc-icons");
+pub fn spawn_load_osc_apps_task(app: &App) {
+    let cache_path = app.data_dir.join("osc-cache.json");
+    let icons_dir = app.data_dir.join("osc-icons");
 
-    weak.upgrade_in_event_loop(|handle| {
-        handle.set_osc_load_status("Loading OSC Apps...".to_shared_string());
-    })?;
+    app.task_processor.spawn(move |msg_sender| {
+        msg_sender.send(BackgroundMessage::UpdateStatus(
+            "📓 Downloading OSC Meta...".to_string(),
+        ))?;
 
-    let cache = match load_cache(&cache_path) {
-        Ok(cache) => cache,
-        Err(_) => {
-            let bytes = AGENT.get(CONTENTS_URL).call()?.body_mut().read_to_vec()?;
-            fs::write(&cache_path, &bytes)?;
-            serde_json::from_slice(&bytes)?
+        let cache = match load_cache(&cache_path) {
+            Ok(cache) => cache,
+            Err(_) => {
+                let bytes = AGENT.get(CONTENTS_URL).call()?.body_mut().read_to_vec()?;
+                fs::write(&cache_path, &bytes)?;
+                serde_json::from_slice(&bytes)?
+            }
+        };
+
+        fs::create_dir_all(&icons_dir)?;
+        let len = cache.len();
+        for (i, meta) in cache.iter().enumerate() {
+            msg_sender.send(BackgroundMessage::UpdateStatus(format!(
+                "📥 Downloading OSC App icons... {}/{}",
+                i + 1,
+                len
+            )))?;
+
+            let _ = download_icon(meta, &icons_dir);
         }
-    };
 
-    fs::create_dir_all(&icons_dir)?;
-    let len = cache.len();
-    for (i, app) in cache.iter().enumerate() {
-        let status = format!("Downloading OSC App icons... {}/{}", i + 1, len).to_shared_string();
-
-        weak.upgrade_in_event_loop(move |handle| {
-            handle.set_osc_load_status(status);
-        })?;
-
-        let _ = download_icon(app, &icons_dir);
-    }
-
-    weak.upgrade_in_event_loop(move |handle| {
         let apps = cache
-            .iter()
-            .map(|app| OscApp::from_app(app, &icons_dir))
-            .collect::<VecModel<_>>();
+            .into_iter()
+            .filter_map(|meta| OscApp::from_meta(meta, &icons_dir))
+            .collect::<Vec<_>>();
 
-        let model = ModelRc::from(Rc::new(apps));
-        handle.set_osc_apps(model);
-        handle.set_osc_load_status(SharedString::new());
-    })?;
+        msg_sender.send(BackgroundMessage::GotOscApps(apps))?;
+        msg_sender.send(BackgroundMessage::NotifyInfo(
+            "📓 OSC Apps loaded".to_string(),
+        ))?;
 
-    Ok(())
+        Ok(())
+    });
 }
 
-fn load_cache(path: &Path) -> Result<Vec<App>> {
+fn load_cache(path: &Path) -> Result<Vec<OscAppMeta>> {
     // get file time
     let file_time = fs::metadata(path)?.modified()?;
 
@@ -70,15 +71,15 @@ fn load_cache(path: &Path) -> Result<Vec<App>> {
     Ok(apps)
 }
 
-fn download_icon(app: &App, icons_dir: &Path) -> Result<()> {
-    let icon_path = icons_dir.join(&app.slug).with_extension("png");
+fn download_icon(meta: &OscAppMeta, icons_dir: &Path) -> Result<()> {
+    let icon_path = icons_dir.join(&meta.slug).with_extension("png");
 
     if icon_path.exists() {
         return Ok(());
     }
 
-    let (_, body) = AGENT.get(&app.assets.icon.url).call()?.into_parts();
-    let mut icon = Vec::with_capacity(app.assets.icon.size as usize);
+    let (_, body) = AGENT.get(&meta.assets.icon.url).call()?.into_parts();
+    let mut icon = Vec::with_capacity(meta.assets.icon.size);
     body.into_reader().read_to_end(&mut icon)?;
 
     fs::write(&icon_path, &icon)?;
@@ -87,57 +88,58 @@ fn download_icon(app: &App, icons_dir: &Path) -> Result<()> {
 }
 
 impl OscApp {
-    fn from_app(app: &App, icons_dir: &Path) -> Self {
-        let size = Size::from_bytes(app.uncompressed_size);
+    fn from_meta(meta: OscAppMeta, icons_dir: &Path) -> Option<Self> {
+        let icon_path = icons_dir.join(&meta.slug).with_extension("png");
+        let icon_uri = format!("file://{}", icon_path.to_slash()?);
 
-        let icon_path = icons_dir.join(&app.slug).with_extension("png");
-        let icon = if icon_path.exists()
-            && let Ok(icon) = Image::load_from_path(&icon_path)
-        {
-            icon
-        } else {
-            Image::load_from_svg_data(include_bytes!("../mdi/image-frame.svg"))
-                .expect("Failed to load default icon")
-        };
+        let search_str = (meta.name.clone() + &meta.slug).to_lowercase();
 
-        let search_str = (app.name.clone() + &app.slug)
-            .to_lowercase()
-            .to_shared_string();
-
-        Self {
-            slug: app.slug.to_shared_string(),
-            name: app.name.to_shared_string(),
-            author: app.author.to_shared_string(),
-            version: app.version.to_shared_string(),
-            release_date: app.release_date.to_shared_string(),
-            size: size.to_shared_string(),
-            zip_url: app.assets.archive.url.to_shared_string(),
-            zip_size: app.assets.archive.size as i32,
-            icon,
+        Some(Self {
+            meta,
+            icon_uri,
             search_str,
-        }
+        })
     }
 }
 
-#[derive(Debug, Clone, Deserialize)]
-pub struct App {
+#[derive(Clone)]
+pub struct OscApp {
+    pub meta: OscAppMeta,
+    pub icon_uri: String,
+    pub search_str: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Default)]
+#[serde(default)]
+pub struct OscAppMeta {
     pub slug: String,
     pub name: String,
     pub author: String,
     pub assets: Assets,
-    pub release_date: u64,
-    pub uncompressed_size: u64,
+    pub release_date: usize,
+    #[serde(deserialize_with = "deser_size")]
+    pub uncompressed_size: Size,
     pub version: String,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+fn deser_size<'de, D>(deserializer: D) -> Result<Size, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let size = usize::deserialize(deserializer)?;
+    Ok(Size::from_bytes(size))
+}
+
+#[derive(Debug, Clone, Deserialize, Default)]
+#[serde(default)]
 pub struct Assets {
     pub icon: Asset,
     pub archive: Asset,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Default)]
+#[serde(default)]
 pub struct Asset {
     pub url: String,
-    pub size: u64,
+    pub size: usize,
 }

@@ -53,6 +53,8 @@ jobs:
 
       - name: Install dependencies
         run: |
+          sudo apt-get update
+          sudo apt-get install -y libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
           cargo install cargo-packager --version ^0.11 --locked
 
       - name: Build and package binary
@@ -101,6 +103,9 @@ jobs:
 
       - name: Build binary
         run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "app-dir native-tls"
+        env:
+          CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
+          CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
 
       - name: Package binary as installer
         run: cargo packager --release --target ${{ matrix.target }} --formats nsis
@@ -138,6 +143,9 @@ jobs:
 
       - name: Build binary with portable feature
         run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features native-tls
+        env:
+          CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
+          CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
 
       - name: Package portable binary as zip
         shell: pwsh
@@ -172,6 +180,7 @@ jobs:
         run: cargo build -Z build-std=std,panic_abort --release --locked --target i686-win7-windows-msvc --no-default-features --features bundled-tls
         env: 
           RUSTC_BOOTSTRAP: 1
+          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_LINKER: "rust-lld.exe"
       
       - name: Package binary as zip
         shell: pwsh

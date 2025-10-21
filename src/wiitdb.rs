@@ -1,55 +1,54 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::app::App;
 use crate::http::AGENT;
-use crate::{MainWindow, TaskType};
-use anyhow::Result;
-use slint::{ToSharedString, Weak};
+use crate::tasks::BackgroundMessage;
 use std::fs::{self, OpenOptions};
-use std::io::{self, BufWriter, Cursor};
-use std::path::Path;
+use std::io::{self, BufWriter, Cursor, Read};
 use zip::ZipArchive;
 
 const DOWNLOAD_URL: &str = "https://www.gametdb.com/wiitdb.zip";
 
 /// Handles the blocking logic of downloading and extracting the database.
-pub fn download(mount_point_str: &str, weak: &Weak<MainWindow>) -> Result<()> {
-    let mount_point = Path::new(mount_point_str);
+pub fn spawn_download_task(app: &App) {
+    let mount_point = app.config.contents.mount_point.clone();
 
-    // Create the target directory.
-    let target_dir = mount_point.join("apps").join("usbloader_gx");
-    fs::create_dir_all(&target_dir)?;
+    app.task_processor.spawn(move |msg_sender| {
+        msg_sender.send(BackgroundMessage::UpdateStatus(
+            "📥 Downloading wiitdb.xml...".to_string(),
+        ))?;
 
-    weak.upgrade_in_event_loop(move |handle| {
-        handle.set_status("Downloading wiitdb.xml...".to_shared_string());
-        handle.set_task_type(TaskType::DownloadingFile);
-    })?;
+        // Create the target directory.
+        let target_dir = mount_point.join("apps").join("usbloader_gx");
+        fs::create_dir_all(&target_dir)?;
 
-    // Perform the download request.
-    let mut response = AGENT.get(DOWNLOAD_URL).call()?;
+        // Perform the download request.
+        let (_, body) = AGENT.get(DOWNLOAD_URL).call()?.into_parts();
+        let mut buffer = Vec::with_capacity(body.content_length().unwrap_or(0) as usize);
+        body.into_reader().read_to_end(&mut buffer)?;
 
-    let buffer = response
-        .body_mut()
-        .with_config()
-        .limit(20 * 1024 * 1024) // 20 MiB
-        .read_to_vec()?;
+        // Create a cursor in memory.
+        let cursor = Cursor::new(buffer);
 
-    // Create a cursor in memory.
-    let cursor = Cursor::new(buffer);
+        // Open the zip archive from the in-memory buffer.
+        let mut archive = ZipArchive::new(cursor)?;
+        let mut zipped_file = archive.by_name("wiitdb.xml")?;
 
-    // Open the zip archive from the in-memory buffer.
-    let mut archive = ZipArchive::new(cursor)?;
-    let mut zipped_file = archive.by_name("wiitdb.xml")?;
+        // Extract the wiitdb.xml file to the target directory.
+        let target_path = target_dir.join("wiitdb.xml");
+        let target_file = OpenOptions::new()
+            .write(true)
+            .create(true)
+            .truncate(true)
+            .open(&target_path)?;
+        let mut writer = BufWriter::new(target_file);
+        io::copy(&mut zipped_file, &mut writer)?;
 
-    // Extract the wiitdb.xml file to the target directory.
-    let target_path = target_dir.join("wiitdb.xml");
-    let target_file = OpenOptions::new()
-        .write(true)
-        .create(true)
-        .truncate(true)
-        .open(&target_path)?;
-    let mut writer = BufWriter::new(target_file);
-    io::copy(&mut zipped_file, &mut writer)?;
+        msg_sender.send(BackgroundMessage::NotifyInfo(
+            "📥 wiitdb.xml Downloaded Successfully".to_string(),
+        ))?;
 
-    Ok(())
+        Ok(())
+    });
 }
