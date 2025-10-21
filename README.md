@@ -16,7 +16,7 @@
 ## ✨ Features
 
 - **Lightweight & Fast** — No Electron!!
-- **Cross-Platform** — Windows 7+ (x86, x64, arm64), macOS 11+ (Universal), Linux (x64, arm64)
+- **Cross-Platform** — Windows 10+ (x64, arm64), macOS 11+ (Universal), Linux (x64, arm64)
 
 ### 🎮 **Game Management**
 
@@ -38,7 +38,7 @@
 | Platform | Get the latest version from the **[Releases page](https://github.com/mq1/TinyWiiBackupManager/releases/latest)** |
 |----------|------------------|
 | 🐧 **Linux** | ⬇️ Download the `.AppImage`<br>📦 Or look for TinyWiiBackupManager on **Flathub** |
-| 🪟 **Windows** | ⬇️ Download the `setup.exe` (installer) or the `win-portable.zip` (portable)<br>📦 Or run `winget install mq1.TinyWiiBackupManager`<br>🐌 On Windows Legacy (32bit, win7-8-8.1): `win7.zip` (portable) |
+| 🪟 **Windows** | ⬇️ Download the `setup.exe` (installer) or the `win-portable.zip` (portable)<br>📦 Or run `winget install mq1.TinyWiiBackupManager` |
 | 🍏 **macOS** | ⬇️ Download the `.dmg`<br>⚠️ The app is not notarized<br>⚠️ You must allow it manually after installing by running this command in Terminal:<br>➡️ `xattr -rd com.apple.quarantine /Applications/TinyWiiBackupManager.app` |
 
 ## 📄 Additional Info
