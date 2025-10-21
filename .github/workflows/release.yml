@@ -23,16 +23,14 @@ jobs:
   # ==================================================================================
   build-linux:
     name: Build for Linux
-    runs-on: ${{ matrix.runner }}
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
         include:
           - target: x86_64-unknown-linux-gnu
-            runner: ubuntu-24.04
             arch: x86_64
           - target: aarch64-unknown-linux-gnu
-            runner: ubuntu-24.04-arm
             arch: aarch64
 
     steps:
@@ -57,15 +55,15 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
-          wget -c "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${{ matrix.arch }}.AppImage"
-          wget -c "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-${{ matrix.arch }}.AppImage"
+          wget -c "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage"
+          wget -c "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-x86_64.AppImage"
           chmod +x linuxdeploy*.AppImage
 
       - name: Build and package binary
         run: |
           mkdir dist
           cargo build --release --locked --target ${{ matrix.target }}
-          ./linuxdeploy-${{ matrix.arch }}.AppImage --appdir TinyWiiBackupManager.AppDir -e target/${{ matrix.target }}/release/TinyWiiBackupManager -d assets/TinyWiiBackupManager.desktop -i assets/TinyWiiBackupManager.png --output appimage
+          ./linuxdeploy-x86_64.AppImage --appdir TinyWiiBackupManager.AppDir -e target/${{ matrix.target }}/release/TinyWiiBackupManager -d assets/TinyWiiBackupManager.desktop -i assets/TinyWiiBackupManager.png --output appimage
           mv TinyWiiBackupManager*.AppImage dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_${{ matrix.arch }}.AppImage
           mv TinyWiiBackupManager*.AppImage.zsync dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_${{ matrix.arch }}.AppImage.zsync
         env:
