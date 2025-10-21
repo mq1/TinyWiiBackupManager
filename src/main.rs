@@ -70,8 +70,9 @@ fn main() -> Result<()> {
     // Initialize UI
 
     #[cfg(not(target_os = "macos"))]
-    let icon = eframe::icon_data::from_png_bytes(include_bytes!("../assets/logo-small.png"))
-        .expect("Failed to load icon");
+    let icon =
+        eframe::icon_data::from_png_bytes(include_bytes!("../assets/TinyWiiBackupManager.png"))
+            .expect("Failed to load icon");
 
     #[cfg(target_os = "macos")]
     let icon = eframe::egui::IconData::default();
