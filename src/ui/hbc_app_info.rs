@@ -39,7 +39,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
             ui.add_space(10.);
 
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Max), |ui| {
                 if ui.button("❌ Close").clicked() {
                     close = true;
                 }
