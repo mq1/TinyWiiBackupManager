@@ -80,6 +80,7 @@ fn main() -> Result<()> {
     let native_options = NativeOptions {
         viewport: ViewportBuilder::default()
             .with_inner_size([800., 600.])
+            .with_min_inner_size([400., 300.])
             .with_icon(icon),
         ..Default::default()
     };

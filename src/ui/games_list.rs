@@ -10,18 +10,18 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
         .striped(true)
         .resizable(true)
         .column(Column::auto().at_least(250.))
-        .column(Column::auto())
-        .column(Column::auto())
+        .column(Column::auto().at_least(100.))
+        .column(Column::auto().at_least(75.))
         .column(Column::remainder())
         .header(26.0, |mut header| {
             header.col(|ui| {
                 ui.heading("🏷 Title");
             });
             header.col(|ui| {
-                ui.heading("🎮 Console    ");
+                ui.heading("🎮 Console");
             });
             header.col(|ui| {
-                ui.heading("⚖ Size    ");
+                ui.heading("⚖ Size");
             });
             header.col(|ui| {
                 ui.heading("☞ Actions");
@@ -32,19 +32,22 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                 body.row(26., |mut row| {
                     row.col(|ui| {
                         ui.add_space(3.);
-                        ui.label(&game.display_title);
+                        ui.add(egui::Label::new(&game.display_title).truncate());
                         ui.add_space(3.);
                         ui.separator();
                     });
                     row.col(|ui| {
                         ui.add_space(3.);
-                        ui.label(if game.is_wii { "🎾 Wii" } else { "🎲 GC" });
+                        ui.add(
+                            egui::Label::new(if game.is_wii { "🎾 Wii" } else { "🎲 GC" })
+                                .truncate(),
+                        );
                         ui.add_space(3.);
                         ui.separator();
                     });
                     row.col(|ui| {
                         ui.add_space(3.);
-                        ui.label(game.size.to_string());
+                        ui.add(egui::Label::new(game.size.to_string()).truncate());
                         ui.add_space(3.);
                         ui.separator();
                     });
