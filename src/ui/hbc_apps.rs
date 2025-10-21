@@ -77,6 +77,22 @@ fn view_top_bar(ui: &mut egui::Ui, app: &mut App, ctx: &egui::Context) {
                 osc::spawn_load_osc_apps_task(app);
             }
 
+            ui.group(|ui| {
+                if ui.button("📤").on_hover_text("Wiiload").clicked() {
+                    if let Err(e) = app.config.write() {
+                        app.toasts.error(e.to_string());
+                    }
+
+                    app.choose_file_to_push.pick_file();
+                }
+
+                ui.add(
+                    egui::TextEdit::singleline(&mut app.config.contents.wii_ip)
+                        .desired_width(100.)
+                        .hint_text("Wii IP"),
+                );
+            });
+
             ui.add_space(10.);
 
             ui.group(|ui| {

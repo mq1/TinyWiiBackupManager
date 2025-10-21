@@ -1,9 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::path::Path;
-
-use crate::{app::App, hbc_apps, osc::OscApp, tasks::TaskProcessor};
+use crate::{app::App, config::Config, hbc_apps, osc::OscApp, tasks::TaskProcessor, wiiload};
 use eframe::egui::{self, Vec2};
 use egui_notify::Toasts;
 
@@ -27,7 +25,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                             osc_app,
                             &mut app.toasts,
                             &mut app.task_processor,
-                            &app.config.contents.mount_point,
+                            &app.config,
                         );
                     }
 
@@ -42,7 +40,7 @@ fn view_osc_app_card(
     osc_app: &OscApp,
     toasts: &mut Toasts,
     task_processor: &mut TaskProcessor,
-    mount_point: &Path,
+    config: &Config,
 ) {
     ui.group(|ui| {
         ui.set_height(CARD_HEIGHT);
@@ -82,7 +80,25 @@ fn view_osc_app_card(
                         osc_app.meta.assets.archive.url.clone(),
                         osc_app.meta.assets.archive.size,
                         task_processor,
-                        mount_point.to_path_buf(),
+                        config.contents.mount_point.to_path_buf(),
+                    );
+                }
+
+                // Wiiload button
+                if ui
+                    .button("📤")
+                    .on_hover_text("Push to Wii via Wiiload")
+                    .clicked()
+                {
+                    if let Err(e) = config.write() {
+                        toasts.error(e.to_string());
+                    }
+
+                    wiiload::spawn_push_osc_task(
+                        osc_app.meta.assets.archive.url.clone(),
+                        osc_app.meta.assets.archive.size,
+                        config.contents.wii_ip.clone(),
+                        task_processor,
                     );
                 }
 
