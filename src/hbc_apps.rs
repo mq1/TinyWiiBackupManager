@@ -1,7 +1,12 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, config::SortBy, http::AGENT, tasks::BackgroundMessage};
+use crate::{
+    app::App,
+    config::SortBy,
+    http::AGENT,
+    tasks::{BackgroundMessage, TaskProcessor},
+};
 use anyhow::Result;
 use path_slash::PathBufExt;
 use serde::Deserialize;
@@ -106,10 +111,13 @@ fn install_zip(mount_point: &Path, path: &Path) -> Result<()> {
     Ok(())
 }
 
-pub fn spawn_install_app_from_url_task(zip_url: String, zip_size: usize, app: &App) -> Result<()> {
-    let mount_point = app.config.contents.mount_point.clone();
-
-    app.task_processor.spawn(move |msg_sender| {
+pub fn spawn_install_app_from_url_task(
+    zip_url: String,
+    zip_size: usize,
+    task_processor: &TaskProcessor,
+    mount_point: PathBuf,
+) {
+    task_processor.spawn(move |msg_sender| {
         msg_sender.send(BackgroundMessage::UpdateStatus(format!(
             "📥 Downloading {}...",
             &zip_url
@@ -132,8 +140,6 @@ pub fn spawn_install_app_from_url_task(zip_url: String, zip_size: usize, app: &A
 
         Ok(())
     });
-
-    Ok(())
 }
 
 pub fn spawn_install_apps_task(app: &App, paths: Vec<PathBuf>) {

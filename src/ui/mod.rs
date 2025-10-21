@@ -15,6 +15,8 @@ mod hbc_apps_grid;
 mod hbc_apps_list;
 mod nav;
 mod osc;
+pub mod osc_grid;
+pub mod osc_list;
 mod remove_game;
 mod remove_hbc_app;
 pub mod root;
