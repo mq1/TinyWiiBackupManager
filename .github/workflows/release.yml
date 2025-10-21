@@ -57,18 +57,23 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
-          cargo install cargo-packager --version ^0.11 --locked
+          wget -c "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${{ matrix.arch }}.AppImage"
+          wget -c "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-${{ matrix.arch }}.AppImage"
+          chmod +x linuxdeploy*.AppImage
 
       - name: Build and package binary
         run: |
+          mkdir dist
           cargo build --release --locked --target ${{ matrix.target }}
-          cargo packager --release --target ${{ matrix.target }} --formats appimage
+          ./linuxdeploy-${{ matrix.arch }}.AppImage --appdir TinyWiiBackupManager.AppDir -e target/${{ matrix.target }}/release/TinyWiiBackupManager -d ../assets/TinyWiiBackupManager.desktop -i ../assets/TinyWiiBackupManager.png --output appimage
+          mv TinyWiiBackupManager*.AppImage dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_${{ matrix.arch }}.AppImage
+          mv TinyWiiBackupManager*.AppImage.zsync dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_${{ matrix.arch }}.AppImage.zsync
         env:
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: "clang"
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: "-C link-arg=-fuse-ld=/usr/local/bin/mold"
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: "clang"
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_RUSTFLAGS: "-C link-arg=-fuse-ld=/usr/local/bin/mold"
-          LDAI_UPDATE_INFORMATION: "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|TinyWiiBackupManager_*_${{ matrix.arch }}.AppImage.zsync"
+          UPDATE_INFORMATION: "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|TinyWiiBackupManager_*_${{ matrix.arch }}.AppImage.zsync"
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v4
