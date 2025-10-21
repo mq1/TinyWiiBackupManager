@@ -50,7 +50,7 @@ impl Config {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default, rename_all = "snake_case")]
 pub struct Contents {
     pub always_split: bool,
@@ -65,6 +65,24 @@ pub struct Contents {
     pub wii_output_format: WiiOutputFormat,
     #[serde(serialize_with = "ser_theme", deserialize_with = "deser_theme")]
     pub theme_preference: ThemePreference,
+}
+
+impl Default for Contents {
+    fn default() -> Self {
+        Self {
+            always_split: false,
+            archive_format: ArchiveFormat::Rvz,
+            mount_point: PathBuf::new(),
+            remove_sources_apps: false,
+            remove_sources_games: false,
+            scrub_update_partition: false,
+            sort_by: SortBy::NameAscending,
+            view_as: ViewAs::Grid,
+            wii_ip: "192.168.1.100".to_string(),
+            wii_output_format: WiiOutputFormat::Wbfs,
+            theme_preference: ThemePreference::System,
+        }
+    }
 }
 
 fn ser_theme<S>(theme: &ThemePreference, serializer: S) -> Result<S::Ok, S::Error>
@@ -90,10 +108,9 @@ where
     })
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum ArchiveFormat {
-    #[default]
     Rvz,
     Iso,
 }
@@ -107,28 +124,25 @@ impl AsRef<str> for ArchiveFormat {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum SortBy {
-    #[default]
     NameAscending,
     NameDescending,
     SizeAscending,
     SizeDescending,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum ViewAs {
-    #[default]
     Grid,
     List,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Copy)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Copy)]
 #[serde(rename_all = "snake_case")]
 pub enum WiiOutputFormat {
-    #[default]
     Wbfs,
     Iso,
 }
