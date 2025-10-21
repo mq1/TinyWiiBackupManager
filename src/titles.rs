@@ -14,7 +14,7 @@ impl Titles {
     pub fn load(data_dir: &Path) -> Result<Self> {
         let path = data_dir.join("titles.txt");
 
-        let contents = if data_dir.exists() {
+        let contents = if path.exists() {
             fs::read_to_string(path)?
         } else {
             let mut res = AGENT.get(DOWNLOAD_URL).call()?;
