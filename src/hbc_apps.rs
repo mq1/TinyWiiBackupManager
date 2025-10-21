@@ -174,7 +174,7 @@ pub fn spawn_install_apps_task(app: &App, paths: Vec<PathBuf>) {
     });
 }
 
-pub fn sort(hbc_apps: &mut Vec<HbcApp>, sort_by: &SortBy) {
+pub fn sort(hbc_apps: &mut [HbcApp], sort_by: &SortBy) {
     match sort_by {
         SortBy::NameAscending => {
             hbc_apps.sort_by(|a, b| a.meta.name.cmp(&b.meta.name));

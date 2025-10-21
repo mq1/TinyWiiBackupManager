@@ -172,7 +172,7 @@ impl AsRef<str> for GameID {
     }
 }
 
-pub fn sort(games: &mut Vec<Game>, sort_by: &SortBy) {
+pub fn sort(games: &mut [Game], sort_by: &SortBy) {
     match sort_by {
         SortBy::NameAscending => {
             games.sort_by(|a, b| a.display_title.cmp(&b.display_title));
