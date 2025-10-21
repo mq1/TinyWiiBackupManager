@@ -1,8 +1,14 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, hbc_apps::HbcApp};
+use crate::{
+    app::App,
+    hbc_apps::{self, HbcApp},
+    osc::OscApp,
+    tasks::TaskProcessor,
+};
 use eframe::egui::{self, Vec2};
+use std::path::Path;
 
 const CARD_WIDTH: f32 = 161.5;
 const CARD_HEIGHT: f32 = 140.;
@@ -24,6 +30,9 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                             hbc_app,
                             &mut app.removing_hbc_app,
                             &mut app.hbc_app_info,
+                            &app.osc_apps,
+                            &app.task_processor,
+                            &app.config.contents.mount_point,
                         );
                     }
 
@@ -38,6 +47,9 @@ fn view_hbc_app_card(
     hbc_app: &HbcApp,
     removing_hbc_app: &mut Option<HbcApp>,
     hbc_app_info: &mut Option<HbcApp>,
+    osc_apps: &Option<Vec<OscApp>>,
+    task_processor: &TaskProcessor,
+    mount_point: &Path,
 ) {
     ui.group(|ui| {
         ui.set_height(CARD_HEIGHT);
@@ -65,11 +77,31 @@ fn view_hbc_app_card(
             ui.add_space(10.);
 
             // Bottom row with buttons
-
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 // Remove button
                 if ui.button("🗑").on_hover_text("Remove HBC App").clicked() {
                     *removing_hbc_app = Some(hbc_app.clone());
+                }
+
+                // Update button
+                if let Some(osc_apps) = osc_apps
+                    && let Some(osc_app) = osc_apps
+                        .iter()
+                        .find(|osc_app| osc_app.meta.name == hbc_app.meta.name)
+                    && osc_app.meta.version != hbc_app.meta.version
+                    && ui
+                        .button("⮉")
+                        .on_hover_text(
+                            "Download update from OSC: v".to_string() + &osc_app.meta.version,
+                        )
+                        .clicked()
+                {
+                    hbc_apps::spawn_install_app_from_url_task(
+                        osc_app.meta.assets.archive.url.clone(),
+                        osc_app.meta.assets.archive.size,
+                        task_processor,
+                        mount_point.to_path_buf(),
+                    );
                 }
 
                 // Info button

@@ -108,7 +108,7 @@ fn view_game_card(
                     .on_hover_text("Show Disc Information")
                     .clicked()
                 {
-                    let info = DiscInfo::from_game_dir(&game.path, &data_dir).unwrap_or_default();
+                    let info = DiscInfo::from_game_dir(&game.path, data_dir).unwrap_or_default();
                     *disc_info = Some((game.display_title.clone(), info));
                 }
             });

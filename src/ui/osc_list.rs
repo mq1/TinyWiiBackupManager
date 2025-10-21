@@ -46,20 +46,20 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                             {
                                 hbc_apps::spawn_install_app_from_url_task(
                                     osc_app.meta.assets.archive.url.clone(),
-                                    osc_app.meta.assets.archive.size.clone(),
+                                    osc_app.meta.assets.archive.size,
                                     &app.task_processor,
                                     app.config.contents.mount_point.clone(),
                                 );
                             }
 
                             // Info button
-                            if ui.button("ℹ").on_hover_text("Show App Info").clicked() {
-                                if let Err(e) = open::that(
+                            if ui.button("ℹ").on_hover_text("Show App Info").clicked()
+                                && let Err(e) = open::that(
                                     "https://oscwii.org/library/app/".to_string()
                                         + &osc_app.meta.slug,
-                                ) {
-                                    app.toasts.error(e.to_string());
-                                }
+                                )
+                            {
+                                app.toasts.error(e.to_string());
                             }
                         });
                     });
