@@ -51,7 +51,8 @@ fn view_game_card(
     data_dir: &Path,
     task_processor: &TaskProcessor,
 ) {
-    ui.group(|ui| {
+    let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
+    group.show(ui, |ui| {
         ui.set_height(CARD_HEIGHT);
         ui.set_width(CARD_WIDTH);
 
