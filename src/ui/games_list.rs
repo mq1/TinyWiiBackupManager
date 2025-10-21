@@ -38,7 +38,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                     });
                     row.col(|ui| {
                         ui.add_space(3.);
-                        ui.label(if game.is_wii { "🎾 Wii" } else { "◼ GC" });
+                        ui.label(if game.is_wii { "🎾 Wii" } else { "🎲 GC" });
                         ui.add_space(3.);
                         ui.separator();
                     });
