@@ -8,9 +8,11 @@ use egui_extras::{Column, TableBuilder};
 pub fn update(ui: &mut egui::Ui, app: &mut App) {
     TableBuilder::new(ui)
         .striped(true)
+        .column(Column::auto().at_least(250.))
+        .column(Column::auto())
+        .column(Column::auto())
         .column(Column::remainder())
-        .columns(Column::auto(), 3)
-        .header(20.0, |mut header| {
+        .header(26.0, |mut header| {
             header.col(|ui| {
                 ui.heading("🏷 Name");
             });
@@ -26,35 +28,40 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
         })
         .body(|mut body| {
             for osc_app in &app.filtered_osc_apps {
-                body.row(20., |mut row| {
+                body.row(26., |mut row| {
                     row.col(|ui| {
+                        ui.add_space(3.);
                         ui.label(&osc_app.meta.name);
+                        ui.add_space(3.);
+                        ui.separator();
                     });
                     row.col(|ui| {
+                        ui.add_space(3.);
                         ui.label(&osc_app.meta.version);
+                        ui.add_space(3.);
+                        ui.separator();
                     });
                     row.col(|ui| {
+                        ui.add_space(3.);
                         ui.label(osc_app.meta.uncompressed_size.to_string());
+                        ui.add_space(3.);
+                        ui.separator();
                     });
                     row.col(|ui| {
                         ui.horizontal(|ui| {
-                            // Install button
-                            if ui
-                                .button("📥")
-                                .on_hover_text("Download and Install App")
-                                .clicked()
+                            // Info button
+                            if ui.button("ℹ Info").on_hover_text("Show App Info").clicked()
+                                && let Err(e) = open::that(
+                                    "https://oscwii.org/library/app/".to_string()
+                                        + &osc_app.meta.slug,
+                                )
                             {
-                                hbc_apps::spawn_install_app_from_url_task(
-                                    osc_app.meta.assets.archive.url.clone(),
-                                    osc_app.meta.assets.archive.size,
-                                    &app.task_processor,
-                                    app.config.contents.mount_point.clone(),
-                                );
+                                app.toasts.error(e.to_string());
                             }
 
                             // Wiiload button
                             if ui
-                                .button("📤")
+                                .button("📤 Wiiload")
                                 .on_hover_text("Push to Wii via Wiiload")
                                 .clicked()
                             {
@@ -70,16 +77,21 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                                 );
                             }
 
-                            // Info button
-                            if ui.button("ℹ").on_hover_text("Show App Info").clicked()
-                                && let Err(e) = open::that(
-                                    "https://oscwii.org/library/app/".to_string()
-                                        + &osc_app.meta.slug,
-                                )
+                            // Install button
+                            if ui
+                                .button("📥 Install")
+                                .on_hover_text("Download and Install App")
+                                .clicked()
                             {
-                                app.toasts.error(e.to_string());
+                                hbc_apps::spawn_install_app_from_url_task(
+                                    osc_app.meta.assets.archive.url.clone(),
+                                    osc_app.meta.assets.archive.size,
+                                    &app.task_processor,
+                                    app.config.contents.mount_point.clone(),
+                                );
                             }
                         });
+                        ui.separator();
                     });
                 });
             }
