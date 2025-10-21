@@ -143,15 +143,13 @@ pub fn spawn_add_games_task(app: &App, mut paths: Vec<PathBuf>) {
                             out1.write_all(&data)?;
                         }
 
-                        msg_sender
-                            .send(BackgroundMessage::UpdateStatus(format!(
-                                "🎮 Adding {}  {:02.0}%  ({}/{})",
-                                title,
-                                progress as f32 / total as f32 * 100.0,
-                                i + 1,
-                                len
-                            )))
-                            .map_err(|e| std::io::Error::other(e.to_string()))?;
+                        let _ = msg_sender.send(BackgroundMessage::UpdateStatus(format!(
+                            "🎮 Adding {}  {:02.0}%  ({}/{})",
+                            title,
+                            progress as f32 / total as f32 * 100.0,
+                            i + 1,
+                            len
+                        )));
 
                         Ok(())
                     },
