@@ -28,7 +28,7 @@ use crate::app::App;
 use anyhow::{Result, anyhow};
 use eframe::{
     NativeOptions,
-    egui::{self, CornerRadius, ViewportBuilder, vec2},
+    egui::{CornerRadius, ViewportBuilder, vec2},
 };
 use egui_extras::install_image_loaders;
 use std::{fs, path::PathBuf};
@@ -72,7 +72,7 @@ fn main() -> Result<()> {
         .expect("Failed to load icon");
 
     #[cfg(target_os = "macos")]
-    let icon = egui::IconData::default();
+    let icon = eframe::egui::IconData::default();
 
     let native_options = NativeOptions {
         viewport: ViewportBuilder::default()
