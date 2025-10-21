@@ -63,7 +63,31 @@ pub struct Contents {
     pub view_as: ViewAs,
     pub wii_ip: String,
     pub wii_output_format: WiiOutputFormat,
+    #[serde(serialize_with = "ser_theme", deserialize_with = "deser_theme")]
     pub theme_preference: ThemePreference,
+}
+
+fn ser_theme<S>(theme: &ThemePreference, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    serializer.serialize_str(match theme {
+        ThemePreference::System => "system",
+        ThemePreference::Light => "light",
+        ThemePreference::Dark => "dark",
+    })
+}
+
+fn deser_theme<'de, D>(deserializer: D) -> Result<ThemePreference, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let s = String::deserialize(deserializer)?;
+    Ok(match s.as_str() {
+        "light" => ThemePreference::Light,
+        "dark" => ThemePreference::Dark,
+        _ => ThemePreference::System,
+    })
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
