@@ -10,18 +10,18 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
         .striped(true)
         .resizable(true)
         .column(Column::auto().at_least(250.))
-        .column(Column::auto())
-        .column(Column::auto())
+        .column(Column::auto().at_least(100.))
+        .column(Column::auto().at_least(75.))
         .column(Column::remainder())
         .header(26.0, |mut header| {
             header.col(|ui| {
                 ui.heading("🏷 Name");
             });
             header.col(|ui| {
-                ui.heading("📌 Version    ");
+                ui.heading("📌 Version");
             });
             header.col(|ui| {
-                ui.heading("⚖ Size    ");
+                ui.heading("⚖ Size");
             });
             header.col(|ui| {
                 ui.heading("☞ Actions");
@@ -32,19 +32,19 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                 body.row(26., |mut row| {
                     row.col(|ui| {
                         ui.add_space(3.);
-                        ui.label(&hbc_app.meta.name);
+                        ui.add(egui::Label::new(&hbc_app.meta.name).truncate());
                         ui.add_space(3.);
                         ui.separator();
                     });
                     row.col(|ui| {
                         ui.add_space(3.);
-                        ui.label(&hbc_app.meta.version);
+                        ui.add(egui::Label::new(&hbc_app.meta.version).truncate());
                         ui.add_space(3.);
                         ui.separator();
                     });
                     row.col(|ui| {
                         ui.add_space(3.);
-                        ui.label(hbc_app.size.to_string());
+                        ui.add(egui::Label::new(&hbc_app.size.to_string()).truncate());
                         ui.add_space(3.);
                         ui.separator();
                     });
