@@ -74,6 +74,15 @@ pub enum ArchiveFormat {
     Iso,
 }
 
+impl AsRef<str> for ArchiveFormat {
+    fn as_ref(&self) -> &str {
+        match self {
+            ArchiveFormat::Rvz => "RVZ",
+            ArchiveFormat::Iso => "ISO",
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum SortBy {

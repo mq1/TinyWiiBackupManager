@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    config::Config,
+    config::{ArchiveFormat, Config},
     covers,
     disc_info::DiscInfo,
     extensions,
@@ -43,6 +43,8 @@ pub struct App {
     pub choose_mount_point: FileDialog,
     pub choose_games: FileDialog,
     pub choose_hbc_apps: FileDialog,
+    pub choose_archive_path: FileDialog,
+    pub archiving_game: Option<PathBuf>,
     pub toasts: Toasts,
     pub osc_apps: Option<Vec<OscApp>>,
     pub status: String,
@@ -52,6 +54,14 @@ pub struct App {
 
 impl App {
     pub fn new(data_dir: &Path) -> Self {
+        let config = Config::load(data_dir);
+
+        let choose_archive_path = FileDialog::new()
+            .as_modal(true)
+            .add_save_extension(ArchiveFormat::Rvz.as_ref(), "rvz")
+            .add_save_extension(ArchiveFormat::Iso.as_ref(), "iso")
+            .default_save_extension(config.contents.archive_format.as_ref());
+
         let toasts = Toasts::default()
             .with_anchor(Anchor::BottomRight)
             .with_margin(egui::vec2(8.0, 8.0))
@@ -65,7 +75,7 @@ impl App {
         Self {
             data_dir: data_dir.to_path_buf(),
             current_view: ui::View::Games,
-            config: Config::load(data_dir),
+            config,
             update_info: None,
             games: Vec::new(),
             filtered_games: Vec::new(),
@@ -89,6 +99,8 @@ impl App {
                 .as_modal(true)
                 .add_file_filter_extensions("HBC App (zip)", vec!["zip", "ZIP"])
                 .default_file_filter("HBC App (zip)"),
+            choose_archive_path,
+            archiving_game: None,
             toasts,
             hbc_app_search: String::new(),
             hbc_apps: Vec::new(),
@@ -254,6 +266,12 @@ impl App {
             }
             BackgroundMessage::GotRedumpDb => {
                 self.got_redump_db = true;
+            }
+            BackgroundMessage::SetArchiveFormat(format) => {
+                self.config.contents.archive_format = format;
+                if let Err(e) = self.config.write() {
+                    self.toasts.error(e.to_string());
+                }
             }
         }
     }

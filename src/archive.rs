@@ -2,101 +2,99 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    ArchiveFormat, Config, MainWindow, TaskType,
+    app::App,
+    config::ArchiveFormat,
     convert::{get_disc_opts, get_process_opts},
     overflow_reader::{OverflowReader, get_main_file, get_overflow_file},
+    tasks::BackgroundMessage,
 };
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, bail};
 use nod::{
     common::{Compression, Format},
     read::DiscReader,
     write::{DiscWriter, FormatOptions},
 };
-use rfd::FileDialog;
-use slint::{ToSharedString, Weak};
 use std::{
     fs::File,
     io::{BufWriter, Seek, Write},
-    path::Path,
+    path::PathBuf,
 };
 
-pub fn archive_game(game_dir: &str, config: &Config, weak: &Weak<MainWindow>) -> Result<()> {
-    let game_dir = Path::new(game_dir);
-    let path = get_main_file(game_dir).ok_or(anyhow!("No disc found"))?;
+pub fn spawn_archive_game_task(app: &App, game_dir: PathBuf, out_path: PathBuf) {
+    app.task_processor.spawn(move |msg_sender| {
+        msg_sender.send(BackgroundMessage::UpdateStatus(
+            "📦 Archiving game...".to_string(),
+        ))?;
 
-    let dest_dir = FileDialog::new()
-        .set_title("Select destination directory")
-        .pick_folder()
-        .ok_or(anyhow!("No destination directory selected"))?;
+        let archive_format = match out_path.extension() {
+            Some(ext) => match ext.to_str() {
+                Some("rvz") => ArchiveFormat::Rvz,
+                Some("iso") => ArchiveFormat::Iso,
+                _ => bail!("Unsupported archive format"),
+            },
+            None => bail!("Unsupported archive format"),
+        };
 
-    let base_name = game_dir
-        .file_name()
-        .ok_or(anyhow!("Failed to get disc name"))?
-        .to_str()
-        .ok_or(anyhow!("Failed to get disc name"))?
-        .to_string();
+        let format_opts = match archive_format {
+            ArchiveFormat::Rvz => FormatOptions {
+                format: Format::Rvz,
+                compression: Compression::Zstandard(19),
+                block_size: Format::Rvz.default_block_size(),
+            },
+            ArchiveFormat::Iso => FormatOptions {
+                format: Format::Iso,
+                compression: Compression::None,
+                block_size: Format::Iso.default_block_size(),
+            },
+        };
 
-    // Look for file overflows
-    let overflow = get_overflow_file(&path);
+        msg_sender.send(BackgroundMessage::SetArchiveFormat(archive_format))?;
 
-    let out_path = dest_dir
-        .join(&base_name)
-        .with_extension(config.archive_format.extension());
+        let path = get_main_file(&game_dir).ok_or(anyhow!("No disc found"))?;
+        let overflow = get_overflow_file(&path);
 
-    let process_opts = get_process_opts(false);
+        let process_opts = get_process_opts(false);
 
-    let format_opts = match config.archive_format {
-        ArchiveFormat::Rvz => FormatOptions {
-            format: Format::Rvz,
-            compression: Compression::Zstandard(19),
-            block_size: Format::Rvz.default_block_size(),
-        },
-        ArchiveFormat::Iso => FormatOptions {
-            format: Format::Iso,
-            compression: Compression::None,
-            block_size: Format::Iso.default_block_size(),
-        },
-    };
+        msg_sender.send(BackgroundMessage::UpdateStatus(format!(
+            "📦 Archiving {}...",
+            path.display()
+        )))?;
 
-    let status = format!("Archiving {}...", path.display());
-    weak.upgrade_in_event_loop(move |handle| {
-        handle.set_status(status.to_shared_string());
-        handle.set_task_type(TaskType::Archiving);
-    })?;
+        let disc = if let Some(overflow) = overflow {
+            let reader = OverflowReader::new(&path, &overflow)?;
+            DiscReader::new_stream(Box::new(reader), &get_disc_opts())?
+        } else {
+            DiscReader::new(&path, &get_disc_opts())?
+        };
 
-    let disc = if let Some(overflow) = overflow {
-        let reader = OverflowReader::new(&path, &overflow)?;
-        DiscReader::new_stream(Box::new(reader), &get_disc_opts())?
-    } else {
-        DiscReader::new(&path, &get_disc_opts())?
-    };
+        let mut output_file = BufWriter::new(File::create(&out_path)?);
+        let writer = DiscWriter::new(disc, &format_opts)?;
 
-    let mut output_file = BufWriter::new(File::create(&out_path)?);
-    let writer = DiscWriter::new(disc, &format_opts)?;
+        let finalization = writer.process(
+            |data, progress, total| {
+                output_file.write_all(&data)?;
 
-    let finalization = writer.process(
-        |data, progress, total| {
-            output_file.write_all(&data)?;
+                let _ = msg_sender.send(BackgroundMessage::UpdateStatus(format!(
+                    "📦 Archiving {}  {:02.0}%",
+                    path.display(),
+                    progress as f32 / total as f32 * 100.0
+                )));
 
-            let status = format!(
-                "Archiving {}  {:02.0}%",
-                base_name,
-                progress as f32 / total as f32 * 100.0
-            );
+                Ok(())
+            },
+            &process_opts,
+        )?;
 
-            let _ = weak.upgrade_in_event_loop(move |handle| {
-                handle.set_status(status.to_shared_string());
-            });
+        if !finalization.header.is_empty() {
+            output_file.rewind()?;
+            output_file.write_all(finalization.header.as_ref())?;
+        }
 
-            Ok(())
-        },
-        &process_opts,
-    )?;
+        msg_sender.send(BackgroundMessage::NotifyInfo(format!(
+            "📦 Archived {}",
+            path.display()
+        )))?;
 
-    if !finalization.header.is_empty() {
-        output_file.rewind()?;
-        output_file.write_all(finalization.header.as_ref())?;
-    }
-
-    Ok(())
+        Ok(())
+    });
 }
