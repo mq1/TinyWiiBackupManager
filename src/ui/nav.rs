@@ -135,7 +135,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     && ui
                         .add_sized(
                             Vec2::splat(40.),
-                            egui::Button::new(egui::RichText::new("🔔").size(26.)),
+                            egui::Button::new(egui::RichText::new("❕").size(26.)),
                         )
                         .on_hover_text(update_info.to_string())
                         .clicked()
