@@ -33,8 +33,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
                     // Is GameCube
                     ui.label(
-                        "🎲 Is GameCube: ".to_string()
-                            + if info.is_gamecube { "Yes" } else { "No" },
+                        "◼ Is GameCube: ".to_string() + if info.is_gamecube { "Yes" } else { "No" },
                     );
 
                     // Disc Number

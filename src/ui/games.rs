@@ -143,7 +143,7 @@ fn update_top_bar(ui: &mut egui::Ui, app: &mut App, ctx: &egui::Context) {
 
             ui.group(|ui| {
                 if ui
-                    .checkbox(&mut app.show_gc, "🎲")
+                    .checkbox(&mut app.show_gc, "◼")
                     .on_hover_text("Show GameCube")
                     .changed()
                 {
