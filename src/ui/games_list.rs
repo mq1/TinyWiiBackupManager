@@ -52,7 +52,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                             // Archive button
                             if ui
                                 .button("📥")
-                                .on_hover_text("Archive Game to a zstd-19 compressed RVZ")
+                                .on_hover_text("Archive Game to RVZ or ISO")
                                 .clicked()
                             {
                                 app.archiving_game = Some(game.path.clone());
