@@ -68,7 +68,6 @@ fn view_osc_app_card(
             ui.add_space(10.);
 
             // Bottom row with buttons
-
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 // Install button
                 if ui

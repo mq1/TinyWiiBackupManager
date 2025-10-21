@@ -8,9 +8,12 @@ use egui_extras::{Column, TableBuilder};
 pub fn update(ui: &mut egui::Ui, app: &mut App) {
     TableBuilder::new(ui)
         .striped(true)
+        .resizable(true)
+        .column(Column::auto().at_least(250.))
+        .column(Column::auto())
+        .column(Column::auto())
         .column(Column::remainder())
-        .columns(Column::auto(), 3)
-        .header(20.0, |mut header| {
+        .header(26.0, |mut header| {
             header.col(|ui| {
                 ui.heading("🏷 Title");
             });
@@ -26,21 +29,30 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
         })
         .body(|mut body| {
             for game in app.filtered_games.iter() {
-                body.row(20., |mut row| {
+                body.row(26., |mut row| {
                     row.col(|ui| {
+                        ui.add_space(3.);
                         ui.label(&game.display_title);
+                        ui.add_space(3.);
+                        ui.separator();
                     });
                     row.col(|ui| {
+                        ui.add_space(3.);
                         ui.label(if game.is_wii { "🎾 Wii" } else { "◼ GC" });
+                        ui.add_space(3.);
+                        ui.separator();
                     });
                     row.col(|ui| {
+                        ui.add_space(3.);
                         ui.label(game.size.to_string());
+                        ui.add_space(3.);
+                        ui.separator();
                     });
                     row.col(|ui| {
                         ui.horizontal(|ui| {
                             // Info button
                             if ui
-                                .button("ℹ")
+                                .button("ℹ Info")
                                 .on_hover_text("Show Disc Information")
                                 .clicked()
                             {
@@ -51,7 +63,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
 
                             // Archive button
                             if ui
-                                .button("📥")
+                                .button("📥 Archive")
                                 .on_hover_text("Archive Game to RVZ or ISO")
                                 .clicked()
                             {
@@ -60,7 +72,11 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                             }
 
                             // Integrity check button
-                            if ui.button("✅").on_hover_text("Integrity Check").clicked() {
+                            if ui
+                                .button("✅ Verify")
+                                .on_hover_text("Integrity Check")
+                                .clicked()
+                            {
                                 verify::spawn_verify_game_task(
                                     game.path.clone(),
                                     &app.task_processor,
@@ -68,10 +84,11 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                             }
 
                             // Remove button
-                            if ui.button("🗑").on_hover_text("Remove Game").clicked() {
+                            if ui.button("🗑 Remove").on_hover_text("Remove Game").clicked() {
                                 app.removing_game = Some(game.clone());
                             }
                         });
+                        ui.separator();
                     });
                 });
             }
