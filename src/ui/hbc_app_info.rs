@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::app::App;
+use crate::{app::App, ui::developers::get_developer_emoji};
 use eframe::egui;
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
@@ -19,10 +19,14 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
             ui.separator();
 
-            ui.label("Coder: ".to_string() + &info.meta.coder);
-            ui.label("Version: ".to_string() + &info.meta.version);
-            ui.label("Release Date: ".to_string() + &info.meta.release_date);
-            ui.label("Short Description: ".to_string() + &info.meta.short_description);
+            ui.label(format!(
+                "{} Coder: {}",
+                get_developer_emoji(&info.meta.coder),
+                &info.meta.coder
+            ));
+            ui.label("📌 Version: ".to_string() + &info.meta.version);
+            ui.label("📆 Release Date: ".to_string() + &info.meta.release_date);
+            ui.label("📄 Short Description: ".to_string() + &info.meta.short_description);
 
             ui.separator();
 
