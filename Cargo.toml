@@ -48,7 +48,6 @@ num_cpus = "1.17"
 semver = "1.0"
 path-slash = "0.2"
 hex = "0.4"
-parking_lot = "0.12"
 sanitize-filename = "0.7.0-beta"
 
 [target.'cfg(unix)'.dependencies]
