@@ -6,6 +6,7 @@ mod choose_file_to_push_dialog;
 mod choose_games_dialog;
 mod choose_hbc_apps_dialog;
 mod choose_mount_point_dialog;
+mod developers;
 mod disc_info;
 mod games;
 mod games_grid;

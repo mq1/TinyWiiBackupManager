@@ -40,7 +40,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     ui.label(format!("🔢 Disc Number: {}", &info.disc_num));
 
                     // Disc Version
-                    ui.label(format!("🏷 Disc Version: {}", &info.disc_version));
+                    ui.label(format!("📌 Disc Version: {}", &info.disc_version));
 
                     // Region
                     ui.label("🌍 Region: ".to_string() + info.game_id.get_region_display());
