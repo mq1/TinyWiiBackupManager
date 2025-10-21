@@ -23,7 +23,6 @@ OriginalFilename = "TinyWiiBackupManager.exe"
 LegalCopyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-3.0-only."
 
 [dependencies]
-egui = { version = "0.33", features = ["serde"] }
 egui_extras = { version = "0.33", features = ["image", "file"] }
 egui-theme-switch = "0.5"
 image = { version = "0.25", default-features = false, features = ["png"] }
