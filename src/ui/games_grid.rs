@@ -40,6 +40,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
     });
 }
 
+#[allow(clippy::too_many_arguments)]
 fn view_game_card(
     ui: &mut egui::Ui,
     game: &Game,
