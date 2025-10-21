@@ -1,69 +1,69 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{MainWindow, TaskType};
+use crate::{config::ArchiveFormat, osc::OscApp, titles::Titles, updater::UpdateInfo};
 use anyhow::Result;
-use slint::{SharedString, ToSharedString, Weak};
-use std::sync::mpsc;
+use crossbeam_channel::{Receiver, Sender, unbounded};
 use std::thread;
 
-pub type BoxedTask = Box<dyn FnOnce(&Weak<MainWindow>) -> Result<String> + Send>;
+pub type BoxedTask = Box<dyn FnOnce(&Sender<BackgroundMessage>) -> Result<()> + Send>;
 
 pub struct TaskProcessor {
-    sender: mpsc::Sender<BoxedTask>,
-    weak: Weak<MainWindow>,
+    task_sender: Sender<BoxedTask>,
+    pub msg_receiver: Receiver<BackgroundMessage>,
 }
 
 impl TaskProcessor {
-    pub fn init(weak: Weak<MainWindow>, hidden: bool) -> Self {
-        let (sender, receiver) = mpsc::channel::<BoxedTask>();
+    pub fn init() -> Self {
+        let (task_sender, task_receiver) = unbounded::<BoxedTask>();
+        let (msg_sender, msg_receiver) = unbounded::<BackgroundMessage>();
 
-        let weak_clone = weak.clone();
         thread::spawn(move || {
-            while let Ok(task) = receiver.recv() {
-                // Increment the task count
-                if !hidden {
-                    let _ = weak_clone.upgrade_in_event_loop(|handle| {
-                        handle.set_task_count(handle.get_task_count() + 1);
-                    });
+            while let Ok(task) = task_receiver.recv() {
+                if let Err(e) = task(&msg_sender) {
+                    msg_sender
+                        .send(BackgroundMessage::NotifyError(e.to_string()))
+                        .expect("Failed to send message");
                 }
-
-                // Execute the task and show the optional message
-                let res = task(&weak_clone);
-                let _ = weak_clone.upgrade_in_event_loop(|handle| match res {
-                    Ok(msg) => handle.invoke_show_info(msg.to_shared_string()),
-                    Err(e) => handle.invoke_show_error(e.to_shared_string()),
-                });
 
                 // Cleanup
-                if !hidden {
-                    let _ = weak_clone.upgrade_in_event_loop(move |handle| {
-                        handle.set_status(SharedString::new());
-                        handle.set_task_type(TaskType::Unknown);
-                        handle.set_task_count(handle.get_task_count() - 1);
-                    });
-                }
+                msg_sender
+                    .send(BackgroundMessage::ClearStatus)
+                    .expect("Failed to send message");
             }
         });
 
-        Self { sender, weak }
-    }
-
-    pub fn spawn(&self, task: BoxedTask) {
-        if let Err(e) = self.sender.send(task)
-            && let Some(handle) = self.weak.upgrade()
-        {
-            handle.invoke_show_error(e.to_shared_string());
+        Self {
+            task_sender,
+            msg_receiver,
         }
     }
 
-    pub fn run_now(&self, task: BoxedTask) {
-        let res = task(&self.weak);
-        if let Some(handle) = self.weak.upgrade() {
-            match res {
-                Ok(msg) => handle.invoke_show_info(msg.to_shared_string()),
-                Err(e) => handle.invoke_show_error(e.to_shared_string()),
-            }
-        }
+    pub fn spawn<F>(&self, task: F)
+    where
+        F: FnOnce(&Sender<BackgroundMessage>) -> Result<()> + Send + 'static,
+    {
+        self.task_sender
+            .send(Box::new(task))
+            .expect("Failed to send task");
     }
+
+    pub fn pending(&self) -> usize {
+        self.task_sender.len()
+    }
+}
+
+pub enum BackgroundMessage {
+    NotifyInfo(String),
+    NotifyError(String),
+    UpdateStatus(String),
+    ClearStatus,
+    TriggerRefreshImages,
+    TriggerRefreshGames,
+    TriggerRefreshHbcApps,
+    GotUpdateInfo(UpdateInfo),
+    GotTitles(Titles),
+    GotOscApps(Vec<OscApp>),
+    GotRedumpDb,
+    SetArchiveFormat(ArchiveFormat),
 }
