@@ -22,6 +22,7 @@ mod titles;
 mod ui;
 mod updater;
 mod util;
+mod verify;
 mod wiitdb;
 
 use crate::app::App;
