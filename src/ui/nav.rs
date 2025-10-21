@@ -5,9 +5,13 @@ use crate::{app::App, covers, ui, util, wiitdb};
 use eframe::egui::{self, Vec2};
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
+    let frame =
+        egui::Frame::side_top_panel(&ctx.style()).fill(ctx.style().visuals.extreme_bg_color);
+
     egui::SidePanel::left("nav")
         .resizable(false)
         .exact_width(57.)
+        .frame(frame)
         .show(ctx, |ui| {
             ui.add_space(6.);
 
