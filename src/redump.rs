@@ -13,7 +13,11 @@ use zip::ZipArchive;
 pub fn spawn_download_all_task(app: &App) {
     let data_dir = app.data_dir.clone();
 
-    app.secondary_task_processor.spawn(move |msg_sender| {
+    app.task_processor.spawn(move |msg_sender| {
+        msg_sender.send(BackgroundMessage::UpdateStatus(
+            "📥 Downloading Redump DB...".to_string(),
+        ))?;
+
         for console in ["wii", "gc"] {
             let path = data_dir.join(format!("redump-{console}.dat"));
             if path.exists() {

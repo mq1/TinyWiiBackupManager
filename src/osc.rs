@@ -14,8 +14,8 @@ pub fn spawn_load_osc_apps_task(app: &App) {
     let cache_path = app.data_dir.join("osc-cache.json");
     let icons_dir = app.data_dir.join("osc-icons");
 
-    app.secondary_task_processor.spawn(move |msg_sender| {
-        msg_sender.send(BackgroundMessage::UpdateOscStatus(
+    app.task_processor.spawn(move |msg_sender| {
+        msg_sender.send(BackgroundMessage::UpdateStatus(
             "📓 Downloading OSC Meta...".to_string(),
         ))?;
 
@@ -31,7 +31,7 @@ pub fn spawn_load_osc_apps_task(app: &App) {
         fs::create_dir_all(&icons_dir)?;
         let len = cache.len();
         for (i, meta) in cache.iter().enumerate() {
-            msg_sender.send(BackgroundMessage::UpdateOscStatus(format!(
+            msg_sender.send(BackgroundMessage::UpdateStatus(format!(
                 "📥 Downloading OSC App icons... {}/{}",
                 i + 1,
                 len
@@ -49,7 +49,6 @@ pub fn spawn_load_osc_apps_task(app: &App) {
         msg_sender.send(BackgroundMessage::NotifyInfo(
             "📓 OSC Apps loaded".to_string(),
         ))?;
-        msg_sender.send(BackgroundMessage::ClearOscStatus)?;
 
         Ok(())
     });
@@ -103,6 +102,7 @@ impl OscApp {
     }
 }
 
+#[derive(Clone)]
 pub struct OscApp {
     pub meta: OscAppMeta,
     pub icon_uri: String,
