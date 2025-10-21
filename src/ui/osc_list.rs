@@ -31,19 +31,21 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                 body.row(26., |mut row| {
                     row.col(|ui| {
                         ui.add_space(3.);
-                        ui.label(&osc_app.meta.name);
+                        ui.add(egui::Label::new(&osc_app.meta.name).truncate());
                         ui.add_space(3.);
                         ui.separator();
                     });
                     row.col(|ui| {
                         ui.add_space(3.);
-                        ui.label(&osc_app.meta.version);
+                        ui.add(egui::Label::new(&osc_app.meta.version).truncate());
                         ui.add_space(3.);
                         ui.separator();
                     });
                     row.col(|ui| {
                         ui.add_space(3.);
-                        ui.label(osc_app.meta.uncompressed_size.to_string());
+                        ui.add(egui::Label::new(
+                            &osc_app.meta.uncompressed_size.to_string(),
+                        ));
                         ui.add_space(3.);
                         ui.separator();
                     });
