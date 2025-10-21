@@ -10,18 +10,18 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
         .striped(true)
         .resizable(true)
         .column(Column::auto().at_least(250.))
-        .column(Column::auto())
-        .column(Column::auto())
+        .column(Column::auto().at_least(100.))
+        .column(Column::auto().at_least(75.))
         .column(Column::remainder())
         .header(26.0, |mut header| {
             header.col(|ui| {
                 ui.heading("🏷 Name");
             });
             header.col(|ui| {
-                ui.heading("📌 Version    ");
+                ui.heading("📌 Version");
             });
             header.col(|ui| {
-                ui.heading("⚖ Size    ");
+                ui.heading("⚖ Size");
             });
             header.col(|ui| {
                 ui.heading("☞ Actions");
