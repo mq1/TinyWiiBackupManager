@@ -82,7 +82,7 @@ fn view_game_card(
                 ui.button("✅").on_hover_text("Integrity Check").clicked();
 
                 // Archive button
-                ui.button("📦")
+                ui.button("📥")
                     .on_hover_text("Archive Game to a zstd-19 compressed RVZ")
                     .clicked();
 

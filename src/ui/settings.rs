@@ -95,7 +95,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
             ui.separator();
 
-            ui.heading("📦 Archive Format");
+            ui.heading("📥 Archive Format");
 
             if ui
                 .radio_value(
