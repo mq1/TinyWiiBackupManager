@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{osc::OscApp, titles::Titles, updater::UpdateInfo};
+use crate::{config::ArchiveFormat, osc::OscApp, titles::Titles, updater::UpdateInfo};
 use anyhow::Result;
 use crossbeam_channel::{Receiver, Sender, unbounded};
 use std::thread;
@@ -67,4 +67,5 @@ pub enum BackgroundMessage {
     GotTitles(Titles),
     GotOscApps(Vec<OscApp>),
     GotRedumpDb,
+    SetArchiveFormat(ArchiveFormat),
 }

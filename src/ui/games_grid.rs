@@ -1,10 +1,11 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use crate::{app::App, disc_info::DiscInfo, games::Game};
 use eframe::egui::{self, Vec2};
+use egui_file_dialog::FileDialog;
 
 const CARD_WIDTH: f32 = 161.5;
 const CARD_HEIGHT: f32 = 188.;
@@ -26,6 +27,8 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                             game,
                             &mut app.removing_game,
                             &mut app.disc_info,
+                            &mut app.archiving_game,
+                            &mut app.choose_archive_path,
                             &app.data_dir,
                         );
                     }
@@ -41,6 +44,8 @@ fn view_game_card(
     game: &Game,
     removing_game: &mut Option<Game>,
     disc_info: &mut Option<(String, DiscInfo)>,
+    archiving_game: &mut Option<PathBuf>,
+    choose_archive_path: &mut FileDialog,
     data_dir: &Path,
 ) {
     ui.group(|ui| {
@@ -82,9 +87,14 @@ fn view_game_card(
                 ui.button("✅").on_hover_text("Integrity Check").clicked();
 
                 // Archive button
-                ui.button("📥")
+                if ui
+                    .button("📥")
                     .on_hover_text("Archive Game to a zstd-19 compressed RVZ")
-                    .clicked();
+                    .clicked()
+                {
+                    *archiving_game = Some(game.path.clone());
+                    choose_archive_path.save_file();
+                }
 
                 // Info button
                 if ui
