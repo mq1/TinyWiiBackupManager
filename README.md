@@ -1,5 +1,5 @@
 <p align="center">
-  <img alt="TinyWiiBackupManager Logo" width="128" src="assets/logo-small.png">
+  <img alt="TinyWiiBackupManager Logo" width="128" src="assets/TinyWiiBackupManager.png">
 </p>
 
 <h1 align="center">TinyWiiBackupManager</h1>
