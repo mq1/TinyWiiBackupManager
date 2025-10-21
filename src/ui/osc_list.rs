@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, hbc_apps};
+use crate::{app::App, hbc_apps, wiiload};
 use eframe::egui;
 use egui_extras::{Column, TableBuilder};
 
@@ -49,6 +49,24 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                                     osc_app.meta.assets.archive.size,
                                     &app.task_processor,
                                     app.config.contents.mount_point.clone(),
+                                );
+                            }
+
+                            // Wiiload button
+                            if ui
+                                .button("📤")
+                                .on_hover_text("Push to Wii via Wiiload")
+                                .clicked()
+                            {
+                                if let Err(e) = app.config.write() {
+                                    app.toasts.error(e.to_string());
+                                }
+
+                                wiiload::spawn_push_osc_task(
+                                    osc_app.meta.assets.archive.url.clone(),
+                                    osc_app.meta.assets.archive.size,
+                                    app.config.contents.wii_ip.clone(),
+                                    &app.task_processor,
                                 );
                             }
 

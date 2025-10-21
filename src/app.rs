@@ -43,6 +43,7 @@ pub struct App {
     pub choose_games: FileDialog,
     pub choose_hbc_apps: FileDialog,
     pub choose_archive_path: FileDialog,
+    pub choose_file_to_push: FileDialog,
     pub archiving_game: Option<PathBuf>,
     pub toasts: Toasts,
     pub osc_apps: Option<Vec<OscApp>>,
@@ -98,6 +99,10 @@ impl App {
                 .as_modal(true)
                 .add_file_filter_extensions("HBC App (zip)", vec!["zip", "ZIP"])
                 .default_file_filter("HBC App (zip)"),
+            choose_file_to_push: FileDialog::new()
+                .as_modal(true)
+                .add_file_filter_extensions("HBC App (zip/dol/elf)", vec!["zip", "dol", "elf"])
+                .default_file_filter("HBC App (zip/dol/elf)"),
             choose_archive_path,
             archiving_game: None,
             toasts,

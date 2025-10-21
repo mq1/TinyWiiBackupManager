@@ -54,6 +54,16 @@ fn view_top_bar(ui: &mut egui::Ui, app: &mut App) {
                 app.refresh_osc_apps();
             }
 
+            ui.group(|ui| {
+                ui.add(
+                    egui::TextEdit::singleline(&mut app.config.contents.wii_ip)
+                        .desired_width(100.)
+                        .hint_text("Wii IP"),
+                );
+
+                ui.label("Wii IP");
+            });
+
             ui.add_space(10.);
 
             ui.group(|ui| {
