@@ -54,10 +54,10 @@ hex = "0.4"
 parking_lot = "0.12"
 sanitize-filename = "0.7.0-beta"
 
-[target.'cfg(any(unix, target_pointer_width = "32"))'.dependencies]
+[target.'cfg(unix)'.dependencies]
 eframe = "0.33"
 
-[target.'cfg(all(windows, target_pointer_width = "64"))'.dependencies]
+[target.'cfg(windows)'.dependencies]
 eframe = { version = "0.33", default-features = false, features = [
   "accesskit",
   "default_fonts",
