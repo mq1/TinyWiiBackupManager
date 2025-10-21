@@ -29,6 +29,7 @@ fn update_top_bar(ui: &mut egui::Ui, app: &mut App, ctx: &egui::Context) {
     ui.horizontal(move |ui| {
         let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
         group.show(ui, |ui| {
+            ui.set_height(21.);
             ui.label(egui::RichText::new("🔎").size(15.5));
 
             if ui
@@ -46,7 +47,7 @@ fn update_top_bar(ui: &mut egui::Ui, app: &mut App, ctx: &egui::Context) {
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
             if ui
                 .add_sized(
-                    Vec2::splat(32.),
+                    Vec2::splat(34.),
                     egui::Button::new(egui::RichText::new("✚").size(18.)),
                 )
                 .on_hover_text("Add Games")
@@ -57,7 +58,7 @@ fn update_top_bar(ui: &mut egui::Ui, app: &mut App, ctx: &egui::Context) {
 
             if ui
                 .add_sized(
-                    Vec2::splat(32.),
+                    Vec2::splat(34.),
                     egui::Button::new(egui::RichText::new("⟳").size(18.)),
                 )
                 .on_hover_text("Refresh Games")
