@@ -80,7 +80,7 @@ fn view_osc_app_card(
                 {
                     hbc_apps::spawn_install_app_from_url_task(
                         osc_app.meta.assets.archive.url.clone(),
-                        osc_app.meta.assets.archive.size.clone(),
+                        osc_app.meta.assets.archive.size,
                         task_processor,
                         mount_point.to_path_buf(),
                     );
@@ -93,12 +93,11 @@ fn view_osc_app_card(
                     )
                     .on_hover_text("Show App Information")
                     .clicked()
-                {
-                    if let Err(e) = open::that(
+                    && let Err(e) = open::that(
                         "https://oscwii.org/library/app/".to_string() + &osc_app.meta.slug,
-                    ) {
-                        toasts.error(e.to_string());
-                    }
+                    )
+                {
+                    toasts.error(e.to_string());
                 }
             });
         });

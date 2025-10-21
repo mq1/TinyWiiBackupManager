@@ -4,6 +4,7 @@
 use crate::{
     app::App,
     config::{SortBy, ViewAs},
+    osc,
     ui::{hbc_apps_grid, hbc_apps_list},
 };
 use eframe::egui::{self, Vec2};
@@ -63,6 +64,17 @@ fn view_top_bar(ui: &mut egui::Ui, app: &mut App, ctx: &egui::Context) {
                 .clicked()
             {
                 app.refresh_hbc_apps(ctx);
+            }
+
+            if ui
+                .add_sized(
+                    Vec2::splat(32.),
+                    egui::Button::new(egui::RichText::new("⮉").size(18.)),
+                )
+                .on_hover_text("Check for Updates")
+                .clicked()
+            {
+                osc::spawn_load_osc_apps_task(app);
             }
 
             ui.add_space(10.);
