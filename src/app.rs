@@ -8,7 +8,7 @@ use crate::{
     extensions,
     games::{self, Game},
     hbc_apps::{self, HbcApp},
-    osc::OscApp,
+    osc::{self, OscApp},
     tasks::{BackgroundMessage, TaskProcessor},
     titles::Titles,
     ui,
@@ -39,7 +39,6 @@ pub struct App {
     pub hbc_apps: Vec<HbcApp>,
     pub filtered_hbc_apps: Vec<HbcApp>,
     pub task_processor: TaskProcessor,
-    pub secondary_task_processor: TaskProcessor,
     pub choose_mount_point: FileDialog,
     pub choose_games: FileDialog,
     pub choose_hbc_apps: FileDialog,
@@ -47,8 +46,9 @@ pub struct App {
     pub archiving_game: Option<PathBuf>,
     pub toasts: Toasts,
     pub osc_apps: Option<Vec<OscApp>>,
+    pub filtered_osc_apps: Vec<OscApp>,
+    pub osc_app_search: String,
     pub status: String,
-    pub osc_status: String,
     pub got_redump_db: bool,
 }
 
@@ -86,7 +86,6 @@ impl App {
             disc_info: None,
             removing_game: None,
             task_processor: TaskProcessor::init(),
-            secondary_task_processor: TaskProcessor::init(),
             choose_mount_point: FileDialog::new().as_modal(true),
             choose_games: FileDialog::new()
                 .as_modal(true)
@@ -108,8 +107,9 @@ impl App {
             removing_hbc_app: None,
             hbc_app_info: None,
             osc_apps: None,
+            filtered_osc_apps: Vec::new(),
+            osc_app_search: String::new(),
             status: String::new(),
-            osc_status: String::new(),
             got_redump_db: false,
         }
     }
@@ -152,6 +152,22 @@ impl App {
             .collect();
     }
 
+    pub fn update_filtered_osc_apps(&mut self) {
+        if let Some(osc_apps) = &self.osc_apps {
+            if self.osc_app_search.is_empty() {
+                self.filtered_osc_apps = osc_apps.clone();
+                return;
+            }
+
+            let osc_app_search = self.osc_app_search.to_lowercase();
+            self.filtered_osc_apps = osc_apps
+                .iter()
+                .filter(|osc_app| osc_app.search_str.contains(&osc_app_search))
+                .cloned()
+                .collect();
+        }
+    }
+
     pub fn update_title(&self, ctx: &egui::Context) {
         let title = match self.current_view {
             ui::View::Games => format!(
@@ -171,9 +187,10 @@ impl App {
                 util::get_disk_usage(&self.config.contents.mount_point).unwrap_or_default()
             ),
             ui::View::Osc => format!(
-                "{} v{} • OSC",
+                "{} v{} • {} OSC Apps",
                 env!("CARGO_PKG_NAME"),
-                env!("CARGO_PKG_VERSION")
+                env!("CARGO_PKG_VERSION"),
+                self.osc_apps.as_ref().map(|a| a.len()).unwrap_or(0)
             ),
             ui::View::Settings => format!(
                 "{} v{} • Settings",
@@ -218,62 +235,15 @@ impl App {
         self.update_title(ctx);
     }
 
+    pub fn refresh_osc_apps(&self) {
+        osc::spawn_load_osc_apps_task(self);
+    }
+
     pub fn apply_sorting(&mut self) {
         games::sort(&mut self.games, &self.config.contents.sort_by);
         self.update_filtered_games();
         hbc_apps::sort(&mut self.hbc_apps, &self.config.contents.sort_by);
         self.update_filtered_hbc_apps();
-    }
-
-    fn process_msg(&mut self, ctx: &egui::Context, msg: BackgroundMessage) {
-        match msg {
-            BackgroundMessage::NotifyInfo(string) => {
-                self.toasts.info(string);
-            }
-            BackgroundMessage::NotifyError(string) => {
-                self.toasts.error(string);
-            }
-            BackgroundMessage::UpdateStatus(string) => {
-                self.status = string;
-            }
-            BackgroundMessage::ClearStatus => {
-                self.status.clear();
-            }
-            BackgroundMessage::ClearOscStatus => {
-                self.osc_status.clear();
-            }
-            BackgroundMessage::TriggerRefreshImages => {
-                ctx.forget_all_images();
-            }
-            BackgroundMessage::TriggerRefreshGames => {
-                self.refresh_games(ctx);
-            }
-            BackgroundMessage::TriggerRefreshHbcApps => {
-                self.refresh_hbc_apps(ctx);
-            }
-            BackgroundMessage::GotUpdateInfo(update_info) => {
-                self.update_info = Some(update_info);
-            }
-            BackgroundMessage::GotTitles(titles) => {
-                self.titles = Some(titles);
-                self.refresh_games(ctx);
-            }
-            BackgroundMessage::UpdateOscStatus(string) => {
-                self.osc_status = string;
-            }
-            BackgroundMessage::GotOscApps(osc_apps) => {
-                self.osc_apps = Some(osc_apps);
-            }
-            BackgroundMessage::GotRedumpDb => {
-                self.got_redump_db = true;
-            }
-            BackgroundMessage::SetArchiveFormat(format) => {
-                self.config.contents.archive_format = format;
-                if let Err(e) = self.config.write() {
-                    self.toasts.error(e.to_string());
-                }
-            }
-        }
     }
 }
 
@@ -283,12 +253,50 @@ impl eframe::App for App {
 
         // Process background messages (from task_processor)
         while let Ok(msg) = self.task_processor.msg_receiver.try_recv() {
-            self.process_msg(ctx, msg);
-            ctx.request_repaint();
-        }
+            match msg {
+                BackgroundMessage::NotifyInfo(string) => {
+                    self.toasts.info(string);
+                }
+                BackgroundMessage::NotifyError(string) => {
+                    self.toasts.error(string);
+                }
+                BackgroundMessage::UpdateStatus(string) => {
+                    self.status = string;
+                }
+                BackgroundMessage::ClearStatus => {
+                    self.status.clear();
+                }
+                BackgroundMessage::TriggerRefreshImages => {
+                    ctx.forget_all_images();
+                }
+                BackgroundMessage::TriggerRefreshGames => {
+                    self.refresh_games(ctx);
+                }
+                BackgroundMessage::TriggerRefreshHbcApps => {
+                    self.refresh_hbc_apps(ctx);
+                }
+                BackgroundMessage::GotUpdateInfo(update_info) => {
+                    self.update_info = Some(update_info);
+                }
+                BackgroundMessage::GotTitles(titles) => {
+                    self.titles = Some(titles);
+                    self.refresh_games(ctx);
+                }
+                BackgroundMessage::GotOscApps(osc_apps) => {
+                    self.osc_apps = Some(osc_apps);
+                    self.update_filtered_osc_apps();
+                }
+                BackgroundMessage::GotRedumpDb => {
+                    self.got_redump_db = true;
+                }
+                BackgroundMessage::SetArchiveFormat(format) => {
+                    self.config.contents.archive_format = format;
+                    if let Err(e) = self.config.write() {
+                        self.toasts.error(e.to_string());
+                    }
+                }
+            }
 
-        while let Ok(msg) = self.secondary_task_processor.msg_receiver.try_recv() {
-            self.process_msg(ctx, msg);
             ctx.request_repaint();
         }
     }

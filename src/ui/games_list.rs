@@ -15,10 +15,10 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                 ui.heading("🏷 Title");
             });
             header.col(|ui| {
-                ui.heading("🎮 Console   ");
+                ui.heading("🎮 Console    ");
             });
             header.col(|ui| {
-                ui.heading("⚖ Size   ");
+                ui.heading("⚖ Size    ");
             });
             header.col(|ui| {
                 ui.heading("☞ Actions");
