@@ -22,6 +22,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
     ui::choose_mount_point_dialog::update(ctx, app);
     ui::choose_games_dialog::update(ctx, app);
     ui::choose_hbc_apps_dialog::update(ctx, app);
+    ui::choose_archive_path_dialog::update(ctx, app);
 
     app.toasts.show(ctx);
 }

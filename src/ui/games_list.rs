@@ -48,10 +48,16 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                                     .unwrap_or_default();
                                 app.disc_info = Some((game.display_title.clone(), info));
                             }
+
                             // Archive button
-                            ui.button("📥")
+                            if ui
+                                .button("📥")
                                 .on_hover_text("Archive Game to a zstd-19 compressed RVZ")
-                                .clicked();
+                                .clicked()
+                            {
+                                app.archiving_game = Some(game.path.clone());
+                                app.choose_archive_path.save_file();
+                            }
 
                             // Integrity check button
                             ui.button("✅").on_hover_text("Integrity Check").clicked();

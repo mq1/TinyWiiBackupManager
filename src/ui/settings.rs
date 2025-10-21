@@ -1,10 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    app::App,
-    config::{ArchiveFormat, WiiOutputFormat},
-};
+use crate::{app::App, config::WiiOutputFormat};
 use eframe::egui;
 use egui_theme_switch::ThemeSwitch;
 
@@ -86,34 +83,6 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     &mut app.config.contents.scrub_update_partition,
                     true,
                     "Yes (saves some space)",
-                )
-                .changed()
-                && let Err(e) = app.config.write()
-            {
-                app.toasts.error(e.to_string());
-            }
-
-            ui.separator();
-
-            ui.heading("📥 Archive Format");
-
-            if ui
-                .radio_value(
-                    &mut app.config.contents.archive_format,
-                    ArchiveFormat::Rvz,
-                    "RVZ (recommended)",
-                )
-                .changed()
-                && let Err(e) = app.config.write()
-            {
-                app.toasts.error(e.to_string());
-            }
-
-            if ui
-                .radio_value(
-                    &mut app.config.contents.archive_format,
-                    ArchiveFormat::Iso,
-                    "ISO (very large)",
                 )
                 .changed()
                 && let Err(e) = app.config.write()
