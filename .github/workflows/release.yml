@@ -70,7 +70,7 @@ jobs:
           mv TinyWiiBackupManager*.AppImage dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_${{ matrix.arch }}.AppImage
           mv TinyWiiBackupManager*.AppImage.zsync dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_${{ matrix.arch }}.AppImage.zsync
         env:
-          ARCH: ${{ matrix.ai_arch }}
+          ARCH: ${{ matrix.ai_arch }} // for appimage-builder
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: "gcc"
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: "-C link-arg=-fuse-ld=/usr/local/bin/mold"
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: "aarch64-linux-gnu-gcc"
