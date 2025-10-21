@@ -51,7 +51,8 @@ fn view_game_card(
     data_dir: &Path,
     task_processor: &TaskProcessor,
 ) {
-    ui.group(|ui| {
+    let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
+    group.show(ui, |ui| {
         ui.set_height(CARD_HEIGHT);
         ui.set_width(CARD_WIDTH);
 
@@ -59,7 +60,7 @@ fn view_game_card(
             // Top row with console label on the left and size label on the right
             ui.horizontal(|ui| {
                 // Console label on the left
-                ui.label(if game.is_wii { "🎾 Wii" } else { "◼ GC" });
+                ui.label(if game.is_wii { "🎾 Wii" } else { "🎲 GC" });
 
                 // Size label on the right
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
