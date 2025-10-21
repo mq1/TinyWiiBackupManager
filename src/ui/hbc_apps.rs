@@ -28,7 +28,8 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
 fn view_top_bar(ui: &mut egui::Ui, app: &mut App, ctx: &egui::Context) {
     ui.horizontal(move |ui| {
-        ui.group(|ui| {
+        let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
+        group.show(ui, |ui| {
             ui.label(egui::RichText::new("🔎").size(15.5));
 
             if ui
@@ -77,7 +78,8 @@ fn view_top_bar(ui: &mut egui::Ui, app: &mut App, ctx: &egui::Context) {
                 osc::spawn_load_osc_apps_task(app);
             }
 
-            ui.group(|ui| {
+            let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
+            group.show(ui, |ui| {
                 if ui.button("📤").on_hover_text("Wiiload").clicked() {
                     if let Err(e) = app.config.write() {
                         app.toasts.error(e.to_string());
@@ -95,7 +97,8 @@ fn view_top_bar(ui: &mut egui::Ui, app: &mut App, ctx: &egui::Context) {
 
             ui.add_space(10.);
 
-            ui.group(|ui| {
+            let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
+            group.show(ui, |ui| {
                 if ui
                     .selectable_label(app.config.contents.view_as == ViewAs::List, "☰")
                     .on_hover_text("View as List")
@@ -119,7 +122,8 @@ fn view_top_bar(ui: &mut egui::Ui, app: &mut App, ctx: &egui::Context) {
                 }
             });
 
-            ui.group(|ui| {
+            let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
+            group.show(ui, |ui| {
                 if ui
                     .selectable_label(
                         matches!(

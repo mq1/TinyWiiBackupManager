@@ -27,7 +27,8 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
 fn update_top_bar(ui: &mut egui::Ui, app: &mut App, ctx: &egui::Context) {
     ui.horizontal(move |ui| {
-        ui.group(|ui| {
+        let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
+        group.show(ui, |ui| {
             ui.label(egui::RichText::new("🔎").size(15.5));
 
             if ui
@@ -67,7 +68,8 @@ fn update_top_bar(ui: &mut egui::Ui, app: &mut App, ctx: &egui::Context) {
 
             ui.add_space(10.);
 
-            ui.group(|ui| {
+            let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
+            group.show(ui, |ui| {
                 if ui
                     .selectable_label(app.config.contents.view_as == ViewAs::List, "☰")
                     .on_hover_text("View as List")
@@ -91,7 +93,8 @@ fn update_top_bar(ui: &mut egui::Ui, app: &mut App, ctx: &egui::Context) {
                 }
             });
 
-            ui.group(|ui| {
+            let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
+            group.show(ui, |ui| {
                 if ui
                     .selectable_label(
                         matches!(
@@ -141,9 +144,10 @@ fn update_top_bar(ui: &mut egui::Ui, app: &mut App, ctx: &egui::Context) {
                 }
             });
 
-            ui.group(|ui| {
+            let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
+            group.show(ui, |ui| {
                 if ui
-                    .checkbox(&mut app.show_gc, "◼")
+                    .checkbox(&mut app.show_gc, "🎲")
                     .on_hover_text("Show GameCube")
                     .changed()
                 {
