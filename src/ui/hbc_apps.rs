@@ -31,7 +31,8 @@ fn view_top_bar(ui: &mut egui::Ui, app: &mut App, ctx: &egui::Context) {
         let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
         group.show(ui, |ui| {
             ui.set_height(21.);
-            ui.label(egui::RichText::new("🔎").size(15.5));
+            ui.add_space(2.);
+            ui.label("🔎");
 
             if ui
                 .add(
