@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::app::App;
+use crate::{app::App, verify};
 use eframe::egui;
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
@@ -109,6 +109,15 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     && let Err(e) = open::that(&info.game_dir)
                 {
                     app.toasts.error(e.to_string());
+                }
+
+                // Integrity check button
+                if ui
+                    .button("✅ Verify Hashes")
+                    .on_hover_text("Integrity Check")
+                    .clicked()
+                {
+                    verify::spawn_verify_game_task(info.game_dir.clone(), &app.task_processor);
                 }
             })
         });

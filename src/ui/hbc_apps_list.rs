@@ -28,6 +28,8 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
             });
         })
         .body(|mut body| {
+            body.ui_mut().style_mut().spacing.item_spacing.y = 0.0;
+
             for hbc_app in app.filtered_hbc_apps.iter() {
                 body.row(26., |mut row| {
                     row.col(|ui| {
