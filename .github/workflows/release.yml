@@ -203,14 +203,14 @@ jobs:
 
   package-macos:
     name: Package MacOS Universal
-    runs-on: macos-14
+    runs-on: macos-26
     needs: build-macos
     steps:
       - name: Checkout
         uses: actions/checkout@v5
 
       - name: Install dependencies
-        run: brew install create-dmg
+        run: npm i -g appdmg@0.6.6
 
       - name: Download MacOS binaries
         uses: actions/download-artifact@v4
@@ -218,7 +218,24 @@ jobs:
           pattern: '*darwin*'
 
       - name: Create Universal app and DMG
-        run: ./scripts/package-macos.sh ${{ env.VERSION_NAME }}
+        run: |
+          # Setup directories
+          cp -r assets/TinyWiiBackupManager.app .
+          mkdir -p dist TinyWiiBackupManager.app/Contents/MacOS
+
+          # Create the universal binary using lipo
+          lipo -create \
+            -output TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager \
+            bin-aarch64-apple-darwin/TinyWiiBackupManager bin-x86_64-apple-darwin/TinyWiiBackupManager
+
+          # Set correct binary permissions
+          chmod 755 TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
+
+          # Set version string
+          sed -i "" "s/{{ version }}/${{ env.VERSION_NAME }}/" TinyWiiBackupManager.app/Contents/Info.plist
+
+          # Create dmg (assets from sindresorhus/create-dmg)
+          appdmg assets/appdmg.json dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_Universal.dmg
 
       - name: Upload MacOS distributable
         uses: actions/upload-artifact@v4
