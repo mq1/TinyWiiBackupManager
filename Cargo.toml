@@ -11,7 +11,6 @@ description = "A dead simple Wii Backup Manager"
 [package.metadata.packager]
 product-name = "TinyWiiBackupManager"
 identifier = "it.mq1.TinyWiiBackupManager"
-icons = ["assets/logo@2x.png", "assets/TinyWiiBackupManager.png"]
 copyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-3.0-only."
 category = "Utility"
 out_dir = "dist"

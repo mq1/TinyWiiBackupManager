@@ -209,17 +209,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Set up Rust
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          toolchain: 1.90.0
-          cache-key: universal-apple-darwin
-
       - name: Install dependencies
-        run: |
-          brew install graphicsmagick imagemagick
-          npm install -g create-dmg@^7.1.0
-          cargo install cargo-packager --version ^0.11 --locked
+        run: npm i -g appdmg@0.6.6
 
       - name: Download MacOS binaries
         uses: actions/download-artifact@v4
@@ -228,28 +219,23 @@ jobs:
 
       - name: Create Universal app and DMG
         run: |
-          mkdir -p target/universal-apple-darwin/release
-          
+          # Setup directories
+          cp -r assets/TinyWiiBackupManager.app .
+          mkdir -p dist TinyWiiBackupManager.app/Contents/MacOS
+
           # Create the universal binary using lipo
-          lipo \
-            -create \
-            -output target/universal-apple-darwin/release/TinyWiiBackupManager \
-            bin-*-apple-darwin/TinyWiiBackupManager
-          
+          lipo -create \
+            -output TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager \
+            bin-aarch64-apple-darwin/TinyWiiBackupManager bin-x86_64-apple-darwin/TinyWiiBackupManager
+
           # Set correct binary permissions
-          chmod 755 target/universal-apple-darwin/release/TinyWiiBackupManager
-          
-          # Create DMG with cargo-packager
-          cargo packager --release --target universal-apple-darwin --formats app
+          chmod 755 TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
 
-          # Create DMG with create-dmg
-          create-dmg --no-code-sign dist/TinyWiiBackupManager.app
+          # Set version string
+          sed -i "" "s/{{ version }}/${{ env.VERSION_NAME }}/" TinyWiiBackupManager.app/Contents/Info.plist
 
-          # Rename DMG
-          mv TinyWiiBackupManager*.dmg dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_universal.dmg
-
-          # Remove app bundle
-          rm -rf dist/TinyWiiBackupManager.app
+          # Create dmg (assets from sindresorhus/create-dmg)
+          appdmg assets/appdmg.json dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_Universal.dmg
 
       - name: Upload MacOS distributable
         uses: actions/upload-artifact@v4
