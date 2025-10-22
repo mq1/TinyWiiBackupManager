@@ -3,7 +3,7 @@ set -euo pipefail
 
 VERSION=$1
 
-mkdir -p dist TinyWiiBackupManager.app/Contents/MacOS
+mkdir -p dist assets/TinyWiiBackupManager.app/Contents/MacOS
 
 # Create the universal binary using lipo
 lipo -create \
