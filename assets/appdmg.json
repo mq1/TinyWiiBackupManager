@@ -1,7 +1,7 @@
 {
     "title": "TinyWiiBackupManager",
-    "icon": "assets/dmg-icon.icns",
-    "background": "assets/dmg-background.png",
+    "icon": "dmg-icon.icns",
+    "background": "dmg-background.png",
     "icon-size": 160,
     "window": {
         "size": {
@@ -16,7 +16,7 @@
             "x": 180,
             "y": 170,
             "type": "file",
-            "path": "TinyWiiBackupManager.app"
+            "path": "../TinyWiiBackupManager.app"
         },
         {
             "x": 480,
