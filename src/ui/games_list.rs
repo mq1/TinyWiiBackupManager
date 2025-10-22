@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, disc_info::DiscInfo, verify};
+use crate::{app::App, disc_info::DiscInfo};
 use eframe::egui;
 use egui_extras::{Column, TableBuilder};
 
@@ -72,18 +72,6 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                             {
                                 app.archiving_game = Some(game.path.clone());
                                 app.choose_archive_path.save_file();
-                            }
-
-                            // Integrity check button
-                            if ui
-                                .button("✅ Verify")
-                                .on_hover_text("Integrity Check")
-                                .clicked()
-                            {
-                                verify::spawn_verify_game_task(
-                                    game.path.clone(),
-                                    &app.task_processor,
-                                );
                             }
 
                             // Remove button

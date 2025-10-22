@@ -3,7 +3,7 @@
 
 use std::path::{Path, PathBuf};
 
-use crate::{app::App, disc_info::DiscInfo, games::Game, tasks::TaskProcessor, verify};
+use crate::{app::App, disc_info::DiscInfo, games::Game};
 use eframe::egui::{self, Vec2};
 use egui_file_dialog::FileDialog;
 
@@ -30,7 +30,6 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                             &mut app.archiving_game,
                             &mut app.choose_archive_path,
                             &app.data_dir,
-                            &app.task_processor,
                         );
                     }
 
@@ -49,7 +48,6 @@ fn view_game_card(
     archiving_game: &mut Option<PathBuf>,
     choose_archive_path: &mut FileDialog,
     data_dir: &Path,
-    task_processor: &TaskProcessor,
 ) {
     let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
     group.show(ui, |ui| {
@@ -85,11 +83,6 @@ fn view_game_card(
                 // Remove button
                 if ui.button("🗑").on_hover_text("Remove Game").clicked() {
                     *removing_game = Some(game.clone());
-                }
-
-                // Integrity check button
-                if ui.button("✅").on_hover_text("Integrity Check").clicked() {
-                    verify::spawn_verify_game_task(game.path.clone(), task_processor);
                 }
 
                 // Archive button
