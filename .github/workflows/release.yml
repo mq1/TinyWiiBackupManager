@@ -224,7 +224,7 @@ jobs:
           pattern: '*darwin*'
 
       - name: Create Universal app and DMG
-        run: ./scripts/package-macos.sh
+        run: ./scripts/package-macos.sh ${{ env.VERSION_NAME }}
 
       - name: Upload MacOS distributable
         uses: actions/upload-artifact@v4
