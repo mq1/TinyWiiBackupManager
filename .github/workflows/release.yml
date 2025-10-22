@@ -203,7 +203,7 @@ jobs:
 
   package-macos:
     name: Package MacOS Universal
-    runs-on: macos-26
+    runs-on: macos-15
     needs: build-macos
     steps:
       - name: Checkout
