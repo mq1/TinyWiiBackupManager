@@ -20,6 +20,13 @@ impl Config {
         let bytes = fs::read(&path).unwrap_or_default();
         let mut contents = serde_json::from_slice::<Contents>(&bytes).unwrap_or_default();
 
+        // Strip \\?\ from mount_point (I made a mess in v3, this fixes it)
+        contents.mount_point = contents
+            .mount_point
+            .strip_prefix(r"\\?\")
+            .unwrap_or(&contents.mount_point)
+            .to_path_buf();
+
         // Invalidate invalid mount_point
         if !matches!(fs::exists(&contents.mount_point), Ok(true)) {
             contents.mount_point = PathBuf::new();
