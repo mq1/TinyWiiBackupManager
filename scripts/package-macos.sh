@@ -14,7 +14,7 @@ lipo -create \
 chmod 755 assets/TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
 
 # Set version string
-sed -i "s/{{ version }}/${VERSION}/" assets/TinyWiiBackupManager.app/Contents/Info.plist
+sed -i "" "s/{{ version }}/${VERSION}/" assets/TinyWiiBackupManager.app/Contents/Info.plist
         
 # Create DMG (assets from sindresorhus/create-dmg)
 create-dmg \
