@@ -84,14 +84,16 @@ jobs:
 
   build-windows-setup:
     name: Build Windows Setup
-    runs-on: windows-2025
+    runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - target: x86_64-pc-windows-msvc
+            runner: windows-2025
             arch: x64
           - target: aarch64-pc-windows-msvc
+            runner: windows-11-arm
             arch: arm64
 
     steps:
@@ -112,9 +114,6 @@ jobs:
 
       - name: Build binary
         run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "app-dir native-tls"
-        env:
-          CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
-          CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
 
       - name: Package binary as installer
         run: cargo packager --release --target ${{ matrix.target }} --formats nsis
@@ -127,14 +126,16 @@ jobs:
 
   build-windows-portable:
     name: Build Windows Portable
-    runs-on: windows-2025
+    runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - target: x86_64-pc-windows-msvc
+            runner: windows-2025
             arch: x64
           - target: aarch64-pc-windows-msvc
+            runner: windows-11-arm
             arch: arm64
 
     steps:
@@ -152,9 +153,6 @@ jobs:
 
       - name: Build binary with portable feature
         run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features native-tls
-        env:
-          CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
-          CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
 
       - name: Package portable binary as zip
         shell: pwsh
