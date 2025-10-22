@@ -28,7 +28,9 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
             });
         })
         .body(|mut body| {
-            for game in app.filtered_games.iter() {
+            body.ui_mut().style_mut().spacing.item_spacing.y = 0.0;
+
+            for game in &app.filtered_games {
                 body.row(26., |mut row| {
                     row.col(|ui| {
                         ui.add_space(3.);

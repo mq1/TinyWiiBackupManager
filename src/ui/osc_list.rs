@@ -8,6 +8,7 @@ use egui_extras::{Column, TableBuilder};
 pub fn update(ui: &mut egui::Ui, app: &mut App) {
     TableBuilder::new(ui)
         .striped(true)
+        .resizable(true)
         .column(Column::auto().at_least(250.))
         .column(Column::auto().at_least(75.))
         .column(Column::auto().at_least(100.))
@@ -27,6 +28,8 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
             });
         })
         .body(|mut body| {
+            body.ui_mut().style_mut().spacing.item_spacing.y = 0.0;
+
             for osc_app in &app.filtered_osc_apps {
                 body.row(26., |mut row| {
                     row.col(|ui| {
