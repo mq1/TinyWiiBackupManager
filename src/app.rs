@@ -14,6 +14,7 @@ use crate::{
     ui,
     updater::UpdateInfo,
     util,
+    wiitdb::GameInfo,
 };
 use eframe::egui;
 use egui_file_dialog::FileDialog;
@@ -31,7 +32,7 @@ pub struct App {
     pub show_wii: bool,
     pub show_gc: bool,
     pub titles: Option<Titles>,
-    pub disc_info: Option<(String, DiscInfo)>,
+    pub game_info: Option<(Game, Result<DiscInfo, String>, Result<GameInfo, String>)>,
     pub removing_game: Option<Game>,
     pub removing_hbc_app: Option<HbcApp>,
     pub hbc_app_info: Option<HbcApp>,
@@ -83,7 +84,7 @@ impl App {
             show_wii: true,
             show_gc: true,
             titles: None,
-            disc_info: None,
+            game_info: None,
             removing_game: None,
             task_processor: TaskProcessor::init(),
             choose_mount_point: FileDialog::new().as_modal(true),
