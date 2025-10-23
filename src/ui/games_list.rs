@@ -61,8 +61,14 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                                 .on_hover_text("Show Disc Information")
                                 .clicked()
                             {
-                                let info = DiscInfo::from_game_dir(&game.path).unwrap_or_default();
-                                app.disc_info = Some((game.display_title.clone(), info));
+                                match DiscInfo::from_game_dir(game.path.clone()) {
+                                    Ok(info) => {
+                                        app.disc_info = Some((game.display_title.clone(), info));
+                                    }
+                                    Err(err) => {
+                                        app.toasts.error(err.to_string());
+                                    }
+                                }
                             }
 
                             // Archive button

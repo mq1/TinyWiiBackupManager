@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, verify};
+use crate::{app::App, games::GameID, verify};
 use eframe::egui;
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
@@ -10,87 +10,120 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
     if let Some((display_title, info)) = &app.disc_info {
         modal.show(ctx, |ui| {
-            ui.heading(display_title);
+            ui.heading(format!("⏵ {}", display_title));
+
+            // Path
+            ui.label(format!("📁 Path: {}", info.game_dir.display()));
 
             ui.separator();
 
             egui::ScrollArea::vertical()
                 .max_height(ui.available_height())
                 .show(ui, |ui| {
-                    // Path
-                    ui.label("📁 Path: ".to_string() + info.game_dir.to_str().unwrap_or("Unknown"));
-
-                    ui.separator();
+                    ui.heading("⏵ Disc Header");
 
                     // Game ID
-                    ui.label("🏷 ID: ".to_string() + info.game_id.as_ref());
+                    ui.label(format!("🏷 ID: {}", info.header.game_id_str()));
 
                     // Embedded Title
-                    ui.label("✏ Embedded Title: ".to_string() + &info.game_title);
-
-                    // Is Wii
-                    ui.label("🎾 Is Wii: ".to_string() + if info.is_wii { "Yes" } else { "No" });
-
-                    // Is GameCube
-                    ui.label(
-                        "🎲 Is GameCube: ".to_string()
-                            + if info.is_gamecube { "Yes" } else { "No" },
-                    );
-
-                    // Disc Number
-                    ui.label(format!("🔢 Disc Number: {}", &info.disc_num));
-
-                    // Disc Version
-                    ui.label(format!("📌 Disc Version: {}", &info.disc_version));
+                    ui.label(format!(
+                        "✏ Embedded Title: {}",
+                        &info.header.game_title_str()
+                    ));
 
                     // Region
-                    ui.label("🌍 Region: ".to_string() + info.game_id.get_region_display());
+                    ui.label(format!(
+                        "🌐 Region: {}",
+                        GameID(info.header.game_id).get_region_display()
+                    ));
+
+                    // Is Wii
+                    ui.label(format!(
+                        "🎾 Is Wii: {}",
+                        if info.header.is_wii() { "Yes" } else { "No" }
+                    ));
+
+                    // Is GameCube
+                    ui.label(format!(
+                        "🎲 Is GameCube: {}",
+                        if info.header.is_gamecube() {
+                            "Yes"
+                        } else {
+                            "No"
+                        },
+                    ));
+
+                    // Disc Number
+                    ui.label(format!("🔢 Disc Number: {}", &info.header.disc_num));
+
+                    // Disc Version
+                    ui.label(format!("📌 Disc Version: {}", &info.header.disc_version));
 
                     ui.separator();
+
+                    ui.heading("⏵ Disc Meta");
 
                     // Format
-                    ui.label(format!("💿 Format: {}", &info.format));
+                    ui.label(format!("💿 Format: {}", &info.meta.format));
 
                     // Compression
-                    ui.label(format!("⬌ Compression: {}", &info.compression));
+                    ui.label(format!("⬌ Compression: {}", &info.meta.compression));
 
                     // Block Size
-                    ui.label(format!("📏 Block Size: {}", &info.block_size));
+                    ui.label(format!(
+                        "📏 Block Size: {}",
+                        &info.meta.block_size.unwrap_or(0)
+                    ));
 
                     // Decrypted
-                    ui.label(
-                        "🔒 Decrypted: ".to_string() + if info.decrypted { "Yes" } else { "No" },
-                    );
+                    ui.label(format!(
+                        "🔐 Decrypted: {}",
+                        if info.meta.decrypted { "Yes" } else { "No" },
+                    ));
 
                     // Needs Hash Recovery
-                    ui.label(
-                        "⚠ Needs Hash Recovery: ".to_string()
-                            + if info.needs_hash_recovery {
-                                "Yes"
-                            } else {
-                                "No"
-                            },
-                    );
+                    ui.label(format!(
+                        "⚠ Needs Hash Recovery: {}",
+                        if info.meta.needs_hash_recovery {
+                            "Yes"
+                        } else {
+                            "No"
+                        },
+                    ));
 
                     // Lossless
-                    ui.label("☑ Lossless: ".to_string() + if info.lossless { "Yes" } else { "No" });
+                    ui.label(format!(
+                        "☑ Lossless: {}",
+                        if info.meta.lossless { "Yes" } else { "No" }
+                    ));
 
                     // Disc Size
-                    ui.label(format!("⚖ Disc Size: {}", &info.disc_size));
+                    ui.label(format!(
+                        "⚖ Disc Size: {}",
+                        &info.meta.disc_size.unwrap_or(0)
+                    ));
 
                     ui.separator();
 
+                    ui.heading("⏵ Disc Hashes");
+
                     // CRC32
-                    ui.label("☑ CRC32: ".to_string() + &info.crc32);
+                    ui.label(format!("☑ CRC32: {:02x}", &info.meta.crc32.unwrap_or(0)));
 
                     // MD5
-                    ui.label("☑ MD5: ".to_string() + &info.md5);
+                    ui.label(format!(
+                        "☑ MD5: {}",
+                        hex::encode(info.meta.md5.unwrap_or([0; 16]))
+                    ));
 
                     // SHA1
-                    ui.label("☑ SHA1: ".to_string() + &info.sha1);
+                    ui.label(format!(
+                        "☑ SHA1: {}",
+                        hex::encode(&info.meta.sha1.unwrap_or([0; 20]))
+                    ));
 
                     // XXH64
-                    ui.label("☑ XXH64: ".to_string() + &info.xxh64);
+                    ui.label(format!("☑ XXH64: {:02x}", &info.meta.xxh64.unwrap_or(0)));
                 });
 
             ui.add_space(10.);
