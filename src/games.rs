@@ -168,7 +168,7 @@ impl From<&str> for GameID {
 
 impl AsRef<str> for GameID {
     fn as_ref(&self) -> &str {
-        unsafe { std::str::from_utf8_unchecked(&self.0) }
+        std::str::from_utf8(&self.0).unwrap_or("[invalid]")
     }
 }
 

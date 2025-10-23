@@ -31,7 +31,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
             ui.separator();
 
             egui::ScrollArea::vertical()
-                .max_height(300.)
+                .max_height(400.)
                 .show(ui, |ui| {
                     ui.set_width(ui.available_width());
                     ui.label(&info.meta.long_description);
