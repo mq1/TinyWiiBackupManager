@@ -7,6 +7,7 @@ name = "TinyWiiBackupManager"
 version = "4.0.2"
 dependencies = [
  "anyhow",
+ "capitalize",
  "crossbeam-channel",
  "directories",
  "eframe",
@@ -642,6 +643,12 @@ dependencies = [
  "wayland-backend",
  "wayland-client",
 ]
+
+[[package]]
+name = "capitalize"
+version = "0.3.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6b5271031022835ee8c7582fe67403bd6cb3d962095787af7921027234bab5bf"
 
 [[package]]
 name = "cbc"

@@ -6,6 +6,7 @@ use crate::games::GameID;
 use crate::http::AGENT;
 use crate::tasks::BackgroundMessage;
 use anyhow::{Context, Result};
+use capitalize::Capitalize;
 use serde::Deserialize;
 use std::fs::{self, File, OpenOptions};
 use std::io::{self, BufReader, BufWriter, Cursor, Read};
@@ -57,48 +58,37 @@ pub fn spawn_download_task(app: &App) {
     });
 }
 
-pub fn is_present(app: &App) -> bool {
-    app.config
-        .contents
-        .mount_point
-        .join("apps")
-        .join("usbloader_gx")
-        .join("wiitdb.xml")
-        .exists()
-}
-
-fn load(mount_point: &Path) -> Result<Datafile> {
-    let path = mount_point
-        .join("apps")
-        .join("usbloader_gx")
-        .join("wiitdb.xml");
-
-    let reader = BufReader::new(File::open(&path)?);
-
-    // This crashes on debug builds, works fine on --release
-    let data = quick_xml::de::from_reader(reader)?;
-
-    Ok(data)
-}
-
-pub fn get_game_info(mount_point: &Path, game_id: &GameID) -> Result<GameInfo> {
-    let data =
-        load(mount_point).context("Failed to load wiitdb.xml, download it first (☰ button)")?;
-
-    data.games
-        .into_iter()
-        .find(|game| game.id == *game_id)
-        .context("Game not found")
-}
-
 #[derive(Debug, Deserialize, Default)]
 #[serde(default)]
-struct Datafile {
+pub struct Datafile {
     #[serde(rename = "game")]
     pub games: Vec<GameInfo>,
 }
 
-#[derive(Debug, Deserialize, Default)]
+impl Datafile {
+    pub fn load(mount_point: &Path) -> Result<Self> {
+        let path = mount_point
+            .join("apps")
+            .join("usbloader_gx")
+            .join("wiitdb.xml");
+
+        let file =
+            File::open(&path).context("Failed to load wiitdb.xml, download it first (☰ button)")?;
+
+        let reader = BufReader::new(file);
+
+        // This crashes on debug builds, works fine on --release
+        let data = quick_xml::de::from_reader(reader)?;
+
+        Ok(data)
+    }
+
+    pub fn get_game_info(&self, game_id: &GameID) -> Option<&GameInfo> {
+        self.games.iter().find(|game| game.id == *game_id)
+    }
+}
+
+#[derive(Debug, Deserialize, Default, Clone)]
 #[serde(default)]
 pub struct GameInfo {
     #[serde(rename = "@name")]
@@ -109,9 +99,10 @@ pub struct GameInfo {
     #[serde(deserialize_with = "deser_langs")]
     pub languages: Vec<Language>,
     pub developer: Option<String>,
-    pub publisher: String,
+    pub publisher: Option<String>,
     pub date: Date,
-    pub genre: Option<String>,
+    #[serde(deserialize_with = "deser_genres")]
+    pub genre: Vec<String>,
     pub rating: Rating,
     #[serde(rename = "wi-fi")]
     pub wifi: Wifi,
@@ -129,7 +120,20 @@ where
     Ok(id)
 }
 
-#[derive(Debug, Deserialize, Default)]
+fn deser_genres<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let s = String::deserialize(deserializer)?;
+    let genres = s
+        .split(',')
+        .map(|s| s.capitalize_first_only())
+        .map(String::from)
+        .collect();
+    Ok(genres)
+}
+
+#[derive(Debug, Deserialize, Default, Clone)]
 #[serde(default)]
 pub struct Date {
     #[serde(rename = "@year")]
@@ -140,7 +144,7 @@ pub struct Date {
     pub day: String,
 }
 
-#[derive(Debug, Deserialize, Default)]
+#[derive(Debug, Deserialize, Default, Clone)]
 #[serde(default)]
 pub struct Rating {
     #[serde(rename = "@type")]
@@ -149,7 +153,7 @@ pub struct Rating {
     pub value: String,
 }
 
-#[derive(Debug, Deserialize, Default)]
+#[derive(Debug, Deserialize, Default, Clone)]
 #[serde(default)]
 pub struct Wifi {
     #[serde(rename = "@players")]
@@ -158,7 +162,7 @@ pub struct Wifi {
     pub features: Vec<String>,
 }
 
-#[derive(Debug, Deserialize, Default)]
+#[derive(Debug, Deserialize, Default, Clone)]
 #[serde(default)]
 pub struct Input {
     #[serde(rename = "@players")]
@@ -167,7 +171,7 @@ pub struct Input {
     pub controls: Vec<Control>,
 }
 
-#[derive(Debug, Deserialize, Default)]
+#[derive(Debug, Deserialize, Default, Clone)]
 #[serde(default)]
 pub struct Control {
     #[serde(rename = "@required")]
@@ -176,15 +180,23 @@ pub struct Control {
     pub r#type: String,
 }
 
-#[derive(Debug, Deserialize, Default)]
+#[derive(Debug, Deserialize, Default, Clone)]
 #[serde(default)]
 pub struct Rom {
-    #[serde(rename = "@crc")]
-    pub crc: Option<String>,
+    #[serde(rename = "@crc", deserialize_with = "deser_crc")]
+    pub crc: Option<u32>,
+}
+
+fn deser_crc<'de, D>(deserializer: D) -> Result<Option<u32>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let s = String::deserialize(deserializer)?;
+    Ok(u32::from_str_radix(&s, 16).ok())
 }
 
 #[rustfmt::skip]
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub enum Language { En, Fr, De, Es, It, Ja, Nl, Se, Dk, No, Ko, Pt, Zhtw, Zhcn, Fi, Tr, Gr, Ru, #[default] Unknown }
 
 impl From<&str> for Language {
@@ -224,7 +236,7 @@ where
 }
 
 #[rustfmt::skip]
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub enum Region { NtscU, NtscJ, NtscK, NtscT, Pal, PalR, #[default] Unknown }
 
 impl<'de> Deserialize<'de> for Region {
