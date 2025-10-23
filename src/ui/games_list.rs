@@ -61,8 +61,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                                 .on_hover_text("Show Disc Information")
                                 .clicked()
                             {
-                                let info = DiscInfo::from_game_dir(&game.path, &app.data_dir)
-                                    .unwrap_or_default();
+                                let info = DiscInfo::from_game_dir(&game.path).unwrap_or_default();
                                 app.disc_info = Some((game.display_title.clone(), info));
                             }
 
