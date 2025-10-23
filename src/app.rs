@@ -18,8 +18,11 @@ use crate::{
 };
 use eframe::egui;
 use egui_file_dialog::FileDialog;
-use egui_notify::{Anchor, Toasts};
-use std::path::{Path, PathBuf};
+use egui_notify::{Anchor, Toast, Toasts};
+use std::{
+    path::{Path, PathBuf},
+    time::Duration,
+};
 
 pub type GameInfoData = (Game, Result<DiscInfo, String>, Result<GameInfo, String>);
 
@@ -266,10 +269,12 @@ impl eframe::App for App {
                     self.toasts.info(string);
                 }
                 BackgroundMessage::NotifyError(string) => {
-                    self.toasts.error(string);
+                    self.toasts.error(string).duration(Duration::from_secs(10));
                 }
                 BackgroundMessage::NotifySuccess(string) => {
-                    self.toasts.success(string);
+                    self.toasts
+                        .success(string)
+                        .duration(Duration::from_secs(10));
                 }
                 BackgroundMessage::UpdateStatus(string) => {
                     self.status = string;
