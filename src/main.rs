@@ -16,7 +16,6 @@ mod hbc_apps;
 mod http;
 mod osc;
 mod overflow_reader;
-mod redump;
 mod tasks;
 mod titles;
 mod ui;
@@ -64,7 +63,6 @@ fn main() -> Result<()> {
 
     titles::spawn_get_titles_task(&app); // this loads games when finished
     updater::spawn_check_update_task(&app);
-    redump::spawn_download_all_task(&app);
 
     // -------------
     // Initialize UI

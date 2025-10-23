@@ -1,11 +1,10 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::path::{Path, PathBuf};
-
 use crate::{app::App, disc_info::DiscInfo, games::Game};
 use eframe::egui::{self, Vec2};
 use egui_file_dialog::FileDialog;
+use std::path::PathBuf;
 
 const CARD_WIDTH: f32 = 161.5;
 const CARD_HEIGHT: f32 = 188.;
@@ -29,7 +28,6 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                             &mut app.disc_info,
                             &mut app.archiving_game,
                             &mut app.choose_archive_path,
-                            &app.data_dir,
                         );
                     }
 
@@ -47,7 +45,6 @@ fn view_game_card(
     disc_info: &mut Option<(String, DiscInfo)>,
     archiving_game: &mut Option<PathBuf>,
     choose_archive_path: &mut FileDialog,
-    data_dir: &Path,
 ) {
     let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
     group.show(ui, |ui| {
@@ -103,7 +100,7 @@ fn view_game_card(
                     .on_hover_text("Show Disc Information")
                     .clicked()
                 {
-                    let info = DiscInfo::from_game_dir(&game.path, data_dir).unwrap_or_default();
+                    let info = DiscInfo::from_game_dir(&game.path).unwrap_or_default();
                     *disc_info = Some((game.display_title.clone(), info));
                 }
             });
