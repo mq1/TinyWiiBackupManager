@@ -14,7 +14,7 @@ use crate::{
     ui,
     updater::UpdateInfo,
     util,
-    wiitdb::GameInfo,
+    wiitdb::{self, GameInfo},
 };
 use eframe::egui;
 use egui_file_dialog::FileDialog;
@@ -51,6 +51,7 @@ pub struct App {
     pub filtered_osc_apps: Vec<OscApp>,
     pub osc_app_search: String,
     pub status: String,
+    pub wiitdb: Option<wiitdb::Datafile>,
 }
 
 impl App {
@@ -115,6 +116,7 @@ impl App {
             filtered_osc_apps: Vec::new(),
             osc_app_search: String::new(),
             status: String::new(),
+            wiitdb: None,
         }
     }
 
