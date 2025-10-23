@@ -48,6 +48,8 @@ semver = "1.0"
 path-slash = "0.2"
 hex = "0.4"
 sanitize-filename = "0.7.0-beta"
+strum = "0.27"
+strum_macros = "0.27"
 
 [target.'cfg(unix)'.dependencies]
 eframe = "0.33"
