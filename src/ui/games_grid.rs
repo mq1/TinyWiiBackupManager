@@ -9,6 +9,7 @@ use crate::{
 };
 use eframe::egui::{self, Vec2};
 use egui_file_dialog::FileDialog;
+use egui_notify::Toasts;
 use std::path::{Path, PathBuf};
 
 const CARD_WIDTH: f32 = 161.5;
@@ -34,6 +35,8 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                             &mut app.archiving_game,
                             &mut app.choose_archive_path,
                             &app.config.contents.mount_point,
+                            &mut app.wiitdb,
+                            &mut app.toasts,
                         );
                     }
 
@@ -52,6 +55,8 @@ fn view_game_card(
     archiving_game: &mut Option<PathBuf>,
     choose_archive_path: &mut FileDialog,
     mount_point: &Path,
+    wiitdb: &mut Option<wiitdb::Datafile>,
+    toasts: &mut Toasts,
 ) {
     let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
     group.show(ui, |ui| {
@@ -109,8 +114,22 @@ fn view_game_card(
                 {
                     let game = game.clone();
                     let disc_info = DiscInfo::from_game_dir(&game.path).map_err(|e| e.to_string());
-                    let game_info =
-                        wiitdb::get_game_info(mount_point, &game.id).map_err(|e| e.to_string());
+
+                    if wiitdb.is_none() {
+                        match wiitdb::Datafile::load(mount_point) {
+                            Ok(new) => {
+                                *wiitdb = Some(new);
+                            }
+                            Err(e) => {
+                                toasts.error(e.to_string());
+                            }
+                        }
+                    }
+
+                    let game_info = wiitdb
+                        .as_ref()
+                        .and_then(|wiitdb| wiitdb.get_game_info(&game.id).cloned())
+                        .ok_or("Game not found in wiitdb".to_string());
 
                     *info = Some((game, disc_info, game_info));
                 }

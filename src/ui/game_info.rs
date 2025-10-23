@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{app::App, games::GameID, verify, wiitdb::Language};
+use capitalize::Capitalize;
 use eframe::egui::{self, ImageSource, include_image};
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
@@ -18,7 +19,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
             ui.separator();
 
             egui::ScrollArea::vertical()
-                .max_height(ui.available_height())
+                .max_height(400.)
                 .show(ui, |ui| {
                     ui.heading("⏵ Disc Info");
 
@@ -147,10 +148,16 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
                     ui.separator();
 
-                    ui.heading("⏵ Game Info");
+                    ui.heading("⏵ Game Info from wiitdb.xml");
 
                     match game_info {
                         Ok(game_info) => {
+                            // Name
+                            ui.label(format!("✏ Name: {}", &game_info.name));
+
+                            // Region
+                            ui.label(format!("🌐 Region: {}", &game_info.region.as_ref()));
+
                             // Languages
                             ui.horizontal(|ui| {
                                 ui.label("🌐 Languages: ");
@@ -163,9 +170,80 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                                     );
                                 }
                             });
+
+                            // Developer
+                            ui.label(format!(
+                                "👸 Developer: {}",
+                                game_info.developer.as_deref().unwrap_or("Unknown")
+                            ));
+
+                            // Publisher
+                            ui.label(format!(
+                                "👸 Publisher: {}",
+                                game_info.publisher.as_deref().unwrap_or("Unknown")
+                            ));
+
+                            // Date
+                            ui.label(format!(
+                                "📅 Date: {}-{}-{}",
+                                &game_info.date.year, &game_info.date.month, &game_info.date.day
+                            ));
+
+                            // Genres
+                            ui.label(format!("🎮 Genre(s): {}", &game_info.genre.join(", ")));
+
+                            // Rating
+                            ui.label(format!(
+                                "☺ Rating: {} • {}",
+                                &game_info.rating.r#type, &game_info.rating.value
+                            ));
+
+                            // Wifi
+                            ui.label(format!(
+                                "📶 WiFi: {} Players • {}",
+                                &game_info.wifi.players,
+                                game_info.wifi.features.join(", ")
+                            ));
+
+                            // Input
+                            ui.label(format!(
+                                "🕹 Input: {} Players • {}",
+                                &game_info.input.players,
+                                game_info
+                                    .input
+                                    .controls
+                                    .iter()
+                                    .map(|c| format!(
+                                        "{} ({})",
+                                        c.r#type.capitalize_first_only(),
+                                        if c.required { "Required" } else { "Optional" }
+                                    ))
+                                    .collect::<Vec<String>>()
+                                    .join(", ")
+                            ));
                         }
                         Err(e) => {
                             ui.label(format!("⚠ Error: {}", e));
+                        }
+                    }
+
+                    if let Ok(disc_info) = disc_info
+                        && let Ok(game_info) = game_info
+                        && game_info.roms.len() > 0
+                        && let Some(crc32) = disc_info.meta.crc32
+                    {
+                        ui.separator();
+
+                        if game_info
+                            .roms
+                            .iter()
+                            .filter_map(|r| r.crc)
+                            .find(|db_crc| *db_crc == crc32)
+                            .is_some()
+                        {
+                            ui.label("🎯 Redump: Verified");
+                        } else {
+                            ui.label("🎯 Redump: Not Verified");
                         }
                     }
                 });
@@ -184,10 +262,15 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 }
 
                 // Integrity check button
-                if ui
-                    .button("✅ Verify Hashes")
-                    .on_hover_text("Integrity Check")
-                    .clicked()
+                if let Ok(disc_info) = disc_info
+                    && (disc_info.meta.crc32.is_some()
+                        || disc_info.meta.md5.is_some()
+                        || disc_info.meta.sha1.is_some()
+                        || disc_info.meta.xxh64.is_some())
+                    && ui
+                        .button("✅ Verify Hashes")
+                        .on_hover_text("Integrity Check")
+                        .clicked()
                 {
                     verify::spawn_verify_game_task(game.path.clone(), &app.task_processor);
                 }
