@@ -46,9 +46,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                     });
                     row.col(|ui| {
                         ui.add_space(3.);
-                        ui.add(egui::Label::new(
-                            &osc_app.meta.uncompressed_size.to_string(),
-                        ));
+                        ui.add(egui::Label::new(osc_app.meta.uncompressed_size.to_string()));
                         ui.add_space(3.);
                         ui.separator();
                     });

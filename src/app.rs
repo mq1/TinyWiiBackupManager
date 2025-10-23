@@ -21,6 +21,8 @@ use egui_file_dialog::FileDialog;
 use egui_notify::{Anchor, Toasts};
 use std::path::{Path, PathBuf};
 
+pub type GameInfoData = (Game, Result<DiscInfo, String>, Result<GameInfo, String>);
+
 pub struct App {
     pub data_dir: PathBuf,
     pub current_view: ui::View,
@@ -32,7 +34,7 @@ pub struct App {
     pub show_wii: bool,
     pub show_gc: bool,
     pub titles: Option<Titles>,
-    pub game_info: Option<(Game, Result<DiscInfo, String>, Result<GameInfo, String>)>,
+    pub game_info: Option<GameInfoData>,
     pub removing_game: Option<Game>,
     pub removing_hbc_app: Option<HbcApp>,
     pub hbc_app_info: Option<HbcApp>,
@@ -265,6 +267,9 @@ impl eframe::App for App {
                 }
                 BackgroundMessage::NotifyError(string) => {
                     self.toasts.error(string);
+                }
+                BackgroundMessage::NotifySuccess(string) => {
+                    self.toasts.success(string);
                 }
                 BackgroundMessage::UpdateStatus(string) => {
                     self.status = string;

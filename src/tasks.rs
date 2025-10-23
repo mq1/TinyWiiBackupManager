@@ -56,6 +56,7 @@ impl TaskProcessor {
 pub enum BackgroundMessage {
     NotifyInfo(String),
     NotifyError(String),
+    NotifySuccess(String),
     UpdateStatus(String),
     ClearStatus,
     TriggerRefreshImages,

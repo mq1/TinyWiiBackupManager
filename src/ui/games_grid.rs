@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    app::App,
+    app::{App, GameInfoData},
     disc_info::DiscInfo,
     games::Game,
-    wiitdb::{self, GameInfo},
+    wiitdb::{self},
 };
 use eframe::egui::{self, Vec2};
 use egui_file_dialog::FileDialog;
@@ -51,7 +51,7 @@ fn view_game_card(
     ui: &mut egui::Ui,
     game: &Game,
     removing_game: &mut Option<Game>,
-    info: &mut Option<(Game, Result<DiscInfo, String>, Result<GameInfo, String>)>,
+    info: &mut Option<GameInfoData>,
     archiving_game: &mut Option<PathBuf>,
     choose_archive_path: &mut FileDialog,
     mount_point: &Path,
