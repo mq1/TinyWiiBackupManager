@@ -74,7 +74,9 @@ fn load(mount_point: &Path) -> Result<Datafile> {
         .join("wiitdb.xml");
 
     let reader = BufReader::new(File::open(&path)?);
-    let data = quick_xml::de::from_reader(reader).unwrap();
+
+    // This crashes on debug builds, works fine on --release
+    let data = quick_xml::de::from_reader(reader)?;
 
     Ok(data)
 }
@@ -175,6 +177,7 @@ pub struct Control {
 }
 
 #[derive(Debug, Deserialize, Default)]
+#[serde(default)]
 pub struct Rom {
     #[serde(rename = "@crc")]
     pub crc: Option<String>,

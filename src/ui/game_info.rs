@@ -156,7 +156,11 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                                 ui.label("🌐 Languages: ");
 
                                 for lang in &game_info.languages {
-                                    ui.add(egui::Image::new(lang.get_icon()).max_height(14.0));
+                                    ui.add(
+                                        egui::Image::new(lang.get_icon())
+                                            .max_height(14.0)
+                                            .corner_radius(3.),
+                                    );
                                 }
                             });
                         }
