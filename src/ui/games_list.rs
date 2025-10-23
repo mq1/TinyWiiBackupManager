@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, disc_info::DiscInfo};
+use crate::{app::App, disc_info::DiscInfo, wiitdb};
 use eframe::egui;
 use egui_extras::{Column, TableBuilder};
 
@@ -58,17 +58,18 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                             // Info button
                             if ui
                                 .button("ℹ Info")
-                                .on_hover_text("Show Disc Information")
+                                .on_hover_text("Show Game Information")
                                 .clicked()
                             {
-                                match DiscInfo::from_game_dir(game.path.clone()) {
-                                    Ok(info) => {
-                                        app.disc_info = Some((game.display_title.clone(), info));
-                                    }
-                                    Err(err) => {
-                                        app.toasts.error(err.to_string());
-                                    }
-                                }
+                                let disc_info =
+                                    DiscInfo::from_game_dir(&game.path).map_err(|e| e.to_string());
+                                let game_info = wiitdb::get_game_info(
+                                    &app.config.contents.mount_point,
+                                    &game.id,
+                                )
+                                .map_err(|e| e.to_string());
+
+                                app.game_info = Some((game.clone(), disc_info, game_info));
                             }
 
                             // Archive button
