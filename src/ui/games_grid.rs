@@ -1,11 +1,16 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::path::{Path, PathBuf};
-
-use crate::{app::App, disc_info::DiscInfo, games::Game};
+use crate::{
+    app::{App, GameInfoData},
+    disc_info::DiscInfo,
+    games::Game,
+    wiitdb::{self},
+};
 use eframe::egui::{self, Vec2};
 use egui_file_dialog::FileDialog;
+use egui_notify::Toasts;
+use std::path::{Path, PathBuf};
 
 const CARD_WIDTH: f32 = 161.5;
 const CARD_HEIGHT: f32 = 188.;
@@ -26,10 +31,12 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                             ui,
                             game,
                             &mut app.removing_game,
-                            &mut app.disc_info,
+                            &mut app.game_info,
                             &mut app.archiving_game,
                             &mut app.choose_archive_path,
-                            &app.data_dir,
+                            &app.config.contents.mount_point,
+                            &mut app.wiitdb,
+                            &mut app.toasts,
                         );
                     }
 
@@ -44,10 +51,12 @@ fn view_game_card(
     ui: &mut egui::Ui,
     game: &Game,
     removing_game: &mut Option<Game>,
-    disc_info: &mut Option<(String, DiscInfo)>,
+    info: &mut Option<GameInfoData>,
     archiving_game: &mut Option<PathBuf>,
     choose_archive_path: &mut FileDialog,
-    data_dir: &Path,
+    mount_point: &Path,
+    wiitdb: &mut Option<wiitdb::Datafile>,
+    toasts: &mut Toasts,
 ) {
     let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
     group.show(ui, |ui| {
@@ -103,8 +112,26 @@ fn view_game_card(
                     .on_hover_text("Show Disc Information")
                     .clicked()
                 {
-                    let info = DiscInfo::from_game_dir(&game.path, data_dir).unwrap_or_default();
-                    *disc_info = Some((game.display_title.clone(), info));
+                    let game = game.clone();
+                    let disc_info = DiscInfo::from_game_dir(&game.path).map_err(|e| e.to_string());
+
+                    if wiitdb.is_none() {
+                        match wiitdb::Datafile::load(mount_point) {
+                            Ok(new) => {
+                                *wiitdb = Some(new);
+                            }
+                            Err(e) => {
+                                toasts.error(e.to_string());
+                            }
+                        }
+                    }
+
+                    let game_info = wiitdb
+                        .as_ref()
+                        .and_then(|wiitdb| wiitdb.get_game_info(&game.id).cloned())
+                        .ok_or("Game not found in wiitdb".to_string());
+
+                    *info = Some((game, disc_info, game_info));
                 }
             });
         });

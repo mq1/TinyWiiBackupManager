@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, disc_info::DiscInfo};
+use crate::{app::App, disc_info::DiscInfo, wiitdb};
 use eframe::egui;
 use egui_extras::{Column, TableBuilder};
 
@@ -58,12 +58,30 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                             // Info button
                             if ui
                                 .button("ℹ Info")
-                                .on_hover_text("Show Disc Information")
+                                .on_hover_text("Show Game Information")
                                 .clicked()
                             {
-                                let info = DiscInfo::from_game_dir(&game.path, &app.data_dir)
-                                    .unwrap_or_default();
-                                app.disc_info = Some((game.display_title.clone(), info));
+                                let disc_info =
+                                    DiscInfo::from_game_dir(&game.path).map_err(|e| e.to_string());
+
+                                if app.wiitdb.is_none() {
+                                    match wiitdb::Datafile::load(&app.config.contents.mount_point) {
+                                        Ok(new) => {
+                                            app.wiitdb = Some(new);
+                                        }
+                                        Err(e) => {
+                                            app.toasts.error(e.to_string());
+                                        }
+                                    }
+                                }
+
+                                let game_info = app
+                                    .wiitdb
+                                    .as_ref()
+                                    .and_then(|wiitdb| wiitdb.get_game_info(&game.id).cloned())
+                                    .ok_or("Game not found in wiitdb".to_string());
+
+                                app.game_info = Some((game.clone(), disc_info, game_info));
                             }
 
                             // Archive button
