@@ -18,7 +18,7 @@ use crate::{
 };
 use eframe::egui;
 use egui_file_dialog::FileDialog;
-use egui_notify::{Anchor, Toast, Toasts};
+use egui_notify::{Anchor, Toasts};
 use std::{
     path::{Path, PathBuf},
     time::Duration,
