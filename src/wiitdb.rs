@@ -77,7 +77,6 @@ impl Datafile {
 
         let reader = BufReader::new(file);
 
-        // This crashes on debug builds, works fine on --release
         let data = quick_xml::de::from_reader(reader)?;
 
         Ok(data)
