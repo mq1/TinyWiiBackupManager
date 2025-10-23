@@ -4,6 +4,7 @@
 use crate::{app::App, disc_info::DiscInfo, games::Game};
 use eframe::egui::{self, Vec2};
 use egui_file_dialog::FileDialog;
+use egui_notify::Toasts;
 use std::path::PathBuf;
 
 const CARD_WIDTH: f32 = 161.5;
@@ -28,6 +29,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                             &mut app.disc_info,
                             &mut app.archiving_game,
                             &mut app.choose_archive_path,
+                            &mut app.toasts,
                         );
                     }
 
@@ -45,6 +47,7 @@ fn view_game_card(
     disc_info: &mut Option<(String, DiscInfo)>,
     archiving_game: &mut Option<PathBuf>,
     choose_archive_path: &mut FileDialog,
+    toasts: &mut Toasts,
 ) {
     let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
     group.show(ui, |ui| {
@@ -100,8 +103,14 @@ fn view_game_card(
                     .on_hover_text("Show Disc Information")
                     .clicked()
                 {
-                    let info = DiscInfo::from_game_dir(&game.path).unwrap_or_default();
-                    *disc_info = Some((game.display_title.clone(), info));
+                    match DiscInfo::from_game_dir(game.path.clone()) {
+                        Ok(info) => {
+                            *disc_info = Some((game.display_title.clone(), info));
+                        }
+                        Err(e) => {
+                            toasts.error(e.to_string());
+                        }
+                    }
                 }
             });
         });
