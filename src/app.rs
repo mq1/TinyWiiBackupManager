@@ -50,7 +50,6 @@ pub struct App {
     pub filtered_osc_apps: Vec<OscApp>,
     pub osc_app_search: String,
     pub status: String,
-    pub got_redump_db: bool,
 }
 
 impl App {
@@ -115,7 +114,6 @@ impl App {
             filtered_osc_apps: Vec::new(),
             osc_app_search: String::new(),
             status: String::new(),
-            got_redump_db: false,
         }
     }
 
@@ -290,9 +288,6 @@ impl eframe::App for App {
                 BackgroundMessage::GotOscApps(osc_apps) => {
                     self.osc_apps = Some(osc_apps);
                     self.update_filtered_osc_apps();
-                }
-                BackgroundMessage::GotRedumpDb => {
-                    self.got_redump_db = true;
                 }
                 BackgroundMessage::SetArchiveFormat(format) => {
                     self.config.contents.archive_format = format;
