@@ -6,6 +6,7 @@
 
 mod app;
 mod archive;
+mod checksum;
 mod config;
 mod convert;
 mod covers;
@@ -21,7 +22,6 @@ mod titles;
 mod ui;
 mod updater;
 mod util;
-mod verify;
 mod wiiload;
 mod wiitdb;
 

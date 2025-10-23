@@ -17,7 +17,7 @@ pub struct DiscInfo {
 
 impl DiscInfo {
     pub fn from_game_dir(game_dir: &Path) -> Result<DiscInfo> {
-        let path = get_main_file(&game_dir).ok_or(anyhow!("No disc found"))?;
+        let path = get_main_file(game_dir).ok_or(anyhow!("No disc found"))?;
         let disc = DiscReader::new(&path, &get_disc_opts())?;
 
         let header = disc.header().to_owned();

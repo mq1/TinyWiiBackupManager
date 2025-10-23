@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, games::GameID, verify, wiitdb::Language};
+use crate::{app::App, checksum, games::GameID, wiitdb::Language};
 use capitalize::Capitalize;
 use eframe::egui::{self, ImageSource, include_image};
 
@@ -132,7 +132,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                             // SHA1
                             ui.label(format!(
                                 "☑ SHA1: {}",
-                                hex::encode(&disc_info.meta.sha1.unwrap_or([0; 20]))
+                                hex::encode(disc_info.meta.sha1.unwrap_or([0; 20]))
                             ));
 
                             // XXH64
@@ -229,7 +229,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
                     if let Ok(disc_info) = disc_info
                         && let Ok(game_info) = game_info
-                        && game_info.roms.len() > 0
+                        && !game_info.roms.is_empty()
                         && let Some(crc32) = disc_info.meta.crc32
                     {
                         ui.separator();
@@ -238,8 +238,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                             .roms
                             .iter()
                             .filter_map(|r| r.crc)
-                            .find(|db_crc| *db_crc == crc32)
-                            .is_some()
+                            .any(|db_crc| db_crc == crc32)
                         {
                             ui.label("🎯 Redump: Verified");
                         } else {
@@ -262,19 +261,24 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 }
 
                 // Integrity check button
-                if let Ok(disc_info) = disc_info
-                    && (disc_info.meta.crc32.is_some()
-                        || disc_info.meta.md5.is_some()
-                        || disc_info.meta.sha1.is_some()
-                        || disc_info.meta.xxh64.is_some())
+                let has_embedded_crc32 = disc_info
+                    .as_ref()
+                    .map(|d| d.meta.crc32.is_some())
+                    .unwrap_or(false);
+
+                if (has_embedded_crc32 || game_info.is_ok())
                     && ui
                         .button("✅ Verify Hashes")
                         .on_hover_text("Integrity Check")
                         .clicked()
                 {
-                    verify::spawn_verify_game_task(game.path.clone(), &app.task_processor);
+                    checksum::spawn_checksum_task(
+                        game.path.clone(),
+                        game_info.clone().ok(),
+                        &app.task_processor,
+                    );
                 }
-            })
+            });
         });
     }
 

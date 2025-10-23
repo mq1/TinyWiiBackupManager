@@ -125,11 +125,7 @@ where
     D: serde::Deserializer<'de>,
 {
     let s = String::deserialize(deserializer)?;
-    let genres = s
-        .split(',')
-        .map(|s| s.capitalize_first_only())
-        .map(String::from)
-        .collect();
+    let genres = s.split(',').map(|s| s.capitalize_first_only()).collect();
     Ok(genres)
 }
 
