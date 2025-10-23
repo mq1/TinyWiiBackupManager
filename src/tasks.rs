@@ -56,6 +56,7 @@ impl TaskProcessor {
 pub enum BackgroundMessage {
     NotifyInfo(String),
     NotifyError(String),
+    NotifySuccess(String),
     UpdateStatus(String),
     ClearStatus,
     TriggerRefreshImages,
@@ -64,6 +65,5 @@ pub enum BackgroundMessage {
     GotUpdateInfo(UpdateInfo),
     GotTitles(Titles),
     GotOscApps(Vec<OscApp>),
-    GotRedumpDb,
     SetArchiveFormat(ArchiveFormat),
 }

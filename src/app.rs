@@ -14,11 +14,14 @@ use crate::{
     ui,
     updater::UpdateInfo,
     util,
+    wiitdb::{self, GameInfo},
 };
 use eframe::egui;
 use egui_file_dialog::FileDialog;
 use egui_notify::{Anchor, Toasts};
 use std::path::{Path, PathBuf};
+
+pub type GameInfoData = (Game, Result<DiscInfo, String>, Result<GameInfo, String>);
 
 pub struct App {
     pub data_dir: PathBuf,
@@ -31,7 +34,7 @@ pub struct App {
     pub show_wii: bool,
     pub show_gc: bool,
     pub titles: Option<Titles>,
-    pub disc_info: Option<(String, DiscInfo)>,
+    pub game_info: Option<GameInfoData>,
     pub removing_game: Option<Game>,
     pub removing_hbc_app: Option<HbcApp>,
     pub hbc_app_info: Option<HbcApp>,
@@ -50,7 +53,7 @@ pub struct App {
     pub filtered_osc_apps: Vec<OscApp>,
     pub osc_app_search: String,
     pub status: String,
-    pub got_redump_db: bool,
+    pub wiitdb: Option<wiitdb::Datafile>,
 }
 
 impl App {
@@ -84,7 +87,7 @@ impl App {
             show_wii: true,
             show_gc: true,
             titles: None,
-            disc_info: None,
+            game_info: None,
             removing_game: None,
             task_processor: TaskProcessor::init(),
             choose_mount_point: FileDialog::new().as_modal(true),
@@ -115,7 +118,7 @@ impl App {
             filtered_osc_apps: Vec::new(),
             osc_app_search: String::new(),
             status: String::new(),
-            got_redump_db: false,
+            wiitdb: None,
         }
     }
 
@@ -265,6 +268,9 @@ impl eframe::App for App {
                 BackgroundMessage::NotifyError(string) => {
                     self.toasts.error(string);
                 }
+                BackgroundMessage::NotifySuccess(string) => {
+                    self.toasts.success(string);
+                }
                 BackgroundMessage::UpdateStatus(string) => {
                     self.status = string;
                 }
@@ -290,9 +296,6 @@ impl eframe::App for App {
                 BackgroundMessage::GotOscApps(osc_apps) => {
                     self.osc_apps = Some(osc_apps);
                     self.update_filtered_osc_apps();
-                }
-                BackgroundMessage::GotRedumpDb => {
-                    self.got_redump_db = true;
                 }
                 BackgroundMessage::SetArchiveFormat(format) => {
                     self.config.contents.archive_format = format;
