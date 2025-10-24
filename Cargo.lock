@@ -11,10 +11,10 @@ dependencies = [
  "crossbeam-channel",
  "directories",
  "eframe",
- "egui-file-dialog",
  "egui-notify",
  "egui-theme-switch",
  "egui_extras",
+ "egui_file",
  "fs_extra",
  "hex",
  "image",
@@ -1016,12 +1016,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d8b14ccef22fc6f5a8f4d7d768562a182c04ce9a3b3157b91390b52ddfdf1a76"
 
 [[package]]
-name = "dunce"
-version = "1.0.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "92773504d58c093f6de2459af4af33faa518c13451eb8f2b5698ed3d36e7c813"
-
-[[package]]
 name = "dyn-clone"
 version = "1.0.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1090,19 +1084,6 @@ dependencies = [
  "profiling",
  "smallvec",
  "unicode-segmentation",
-]
-
-[[package]]
-name = "egui-file-dialog"
-version = "0.12.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "35f17e09f18a266f4ee9f1de0c22a6838d60b34d86a6c766f3d707accd483e50"
-dependencies = [
- "directories",
- "dunce",
- "egui",
- "serde",
- "sysinfo",
 ]
 
 [[package]]
@@ -1179,6 +1160,16 @@ dependencies = [
  "mime_guess2",
  "profiling",
  "resvg",
+]
+
+[[package]]
+name = "egui_file"
+version = "0.24.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a566f3e41131d34e92a664f45d7fb17f50d08cc64df867440a33c6cef6e2ed42"
+dependencies = [
+ "dyn-clone",
+ "egui",
 ]
 
 [[package]]

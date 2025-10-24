@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    config::{ArchiveFormat, Config},
+    config::Config,
     covers,
     disc_info::DiscInfo,
     extensions,
@@ -17,7 +17,7 @@ use crate::{
     wiitdb::{self, GameInfo},
 };
 use eframe::egui;
-use egui_file_dialog::FileDialog;
+use egui_file::FileDialog;
 use egui_notify::{Anchor, Toasts};
 use std::{
     path::{Path, PathBuf},
@@ -63,12 +63,6 @@ impl App {
     pub fn new(data_dir: &Path) -> Self {
         let config = Config::load(data_dir);
 
-        let choose_archive_path = FileDialog::new()
-            .as_modal(true)
-            .add_save_extension(ArchiveFormat::Rvz.as_ref(), "rvz")
-            .add_save_extension(ArchiveFormat::Iso.as_ref(), "iso")
-            .default_save_extension(config.contents.archive_format.as_ref());
-
         let toasts = Toasts::default()
             .with_anchor(Anchor::BottomRight)
             .with_margin(egui::vec2(8.0, 8.0))
@@ -93,23 +87,16 @@ impl App {
             game_info: None,
             removing_game: None,
             task_processor: TaskProcessor::init(),
-            choose_mount_point: FileDialog::new().as_modal(true),
-            choose_games: FileDialog::new()
-                .as_modal(true)
-                .add_file_filter_extensions(
-                    "Nintendo Optical Disc",
-                    extensions::SUPPORTED_INPUT_EXTENSIONS.to_vec(),
-                )
-                .default_file_filter("Nintendo Optical Disc"),
-            choose_hbc_apps: FileDialog::new()
-                .as_modal(true)
-                .add_file_filter_extensions("HBC App (zip)", vec!["zip", "ZIP"])
-                .default_file_filter("HBC App (zip)"),
-            choose_file_to_push: FileDialog::new()
-                .as_modal(true)
-                .add_file_filter_extensions("HBC App (zip/dol/elf)", vec!["zip", "dol", "elf"])
-                .default_file_filter("HBC App (zip/dol/elf)"),
-            choose_archive_path,
+            choose_mount_point: FileDialog::select_folder(None),
+            choose_games: FileDialog::open_file(None)
+                .multi_select(true)
+                .show_files_filter(Box::new(extensions::game_extension_filter)),
+            choose_hbc_apps: FileDialog::open_file(None)
+                .multi_select(true)
+                .show_files_filter(Box::new(extensions::zip_extension_filter)),
+            choose_file_to_push: FileDialog::open_file(None)
+                .show_files_filter(Box::new(extensions::hbc_app_extension_filter)),
+            choose_archive_path: FileDialog::save_file(None),
             archiving_game: None,
             toasts,
             hbc_app_search: String::new(),
