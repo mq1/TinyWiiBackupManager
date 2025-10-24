@@ -34,6 +34,10 @@ jobs:
           - target: aarch64-unknown-linux-gnu
             runner: ubuntu-24.04-arm
             arch: aarch64
+          - target: i686-unknown-linux-gnu
+            runner: ubuntu-24.04
+            arch: i686
+            deps: libc6-dev-i386
 
     steps:
       - name: Checkout
@@ -56,7 +60,11 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
+          sudo apt-get install -y ${{ matrix.deps }} libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
+
+      - name: Download LinuxDeploy
+        if: matrix.arch == 'x86_64' || matrix.arch == 'aarch64'
+        run: |
           wget -c "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${{ matrix.arch }}.AppImage"
           wget -c "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-${{ matrix.arch }}.AppImage"
           chmod +x linuxdeploy*.AppImage
@@ -69,6 +77,8 @@ jobs:
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: "-C link-arg=-fuse-ld=/usr/local/bin/mold"
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: "clang"
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_RUSTFLAGS: "-C link-arg=-fuse-ld=/usr/local/bin/mold"
+          CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER: "clang"
+          CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_RUSTFLAGS: "-C link-arg=-fuse-ld=/usr/local/bin/mold -C link-arg=--target=i686-unknown-linux-gnu"
 
       - name: Package binary as tar.gz
         run: |
@@ -78,6 +88,7 @@ jobs:
           tar -I 'gzip -9' -cvf "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.tar.gz" TinyWiiBackupManager
 
       - name: Package binary as AppImage
+        if: matrix.arch == 'x86_64' || matrix.arch == 'aarch64'
         run: |
           ./linuxdeploy-${{ matrix.arch }}.AppImage --appdir TinyWiiBackupManager.AppDir -e target/${{ matrix.target }}/release/TinyWiiBackupManager -d assets/TinyWiiBackupManager.desktop -i assets/TinyWiiBackupManager.png --output appimage
           mv TinyWiiBackupManager*.AppImage "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
@@ -127,7 +138,7 @@ jobs:
         env:
           CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
-          CARGO_TARGET_I686_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
+          CARGO_TARGET_I686_PC_WINDOWS_MSVC_LINKER: "link.exe"
 
       - name: Package binary as zip
         shell: pwsh
@@ -177,7 +188,7 @@ jobs:
           cache-key: ${{ matrix.target }}
 
       - name: Build binary with portable feature
-        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features native-tls
+        run: cargo build --release --locked --target ${{ matrix.target }}
         env:
           CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
@@ -194,6 +205,48 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: dist-${{ matrix.target }}-portable
+          path: dist/*
+
+  build-windows-legacy:
+    name: Build Windows Legacy
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: i686-pc-windows-gnu
+            os-name: windows
+            arch: x86
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+
+      - name: Set up Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: 1.90.0
+          target: ${{ matrix.target }}
+          cache-key: ${{ matrix.target }}
+
+      - name: Install dependencies
+        run: cargo install cross
+
+      - name: Build binary
+        run: cross build --release --locked --target ${{ matrix.target }}
+
+      - name: Package binary as zip
+        run: |
+          mkdir dist
+          cp "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" TinyWiiBackupManager.exe
+          zip -9 dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-${{ matrix.os-name }}-${{ matrix.arch }}.zip TinyWiiBackupManager.exe
+
+      - name: Upload Windows distributables
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.target }}-legacy
           path: dist/*
 
   build-macos:
