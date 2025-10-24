@@ -138,7 +138,7 @@ jobs:
         env:
           CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
-          CARGO_TARGET_I686_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
+          CARGO_TARGET_I686_PC_WINDOWS_MSVC_LINKER: "link.exe"
 
       - name: Package binary as zip
         shell: pwsh
@@ -188,7 +188,7 @@ jobs:
           cache-key: ${{ matrix.target }}
 
       - name: Build binary with portable feature
-        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features native-tls
+        run: cargo build --release --locked --target ${{ matrix.target }}
         env:
           CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
