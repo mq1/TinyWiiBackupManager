@@ -54,7 +54,7 @@ fn update_top_bar(ui: &mut egui::Ui, app: &mut App, ctx: &egui::Context) {
                 .on_hover_text("Add Games")
                 .clicked()
             {
-                app.choose_games.pick_multiple();
+                app.choose_games.open();
             }
 
             if ui

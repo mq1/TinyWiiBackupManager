@@ -5,10 +5,10 @@ use crate::app::App;
 use eframe::egui;
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
-    app.choose_mount_point.update(ctx);
-
-    if let Some(path) = app.choose_mount_point.take_picked() {
-        app.config.contents.mount_point = path;
+    if app.choose_mount_point.show(ctx).selected()
+        && let Some(path) = app.choose_mount_point.path()
+    {
+        app.config.contents.mount_point = path.to_path_buf();
         app.refresh_games(ctx);
         app.refresh_hbc_apps(ctx);
 

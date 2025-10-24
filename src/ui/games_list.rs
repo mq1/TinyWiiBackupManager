@@ -91,7 +91,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                                 .clicked()
                             {
                                 app.archiving_game = Some(game.path.clone());
-                                app.choose_archive_path.save_file();
+                                app.choose_archive_path.open();
                             }
 
                             // Remove button

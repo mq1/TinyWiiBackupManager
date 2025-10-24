@@ -8,7 +8,7 @@ use crate::{
     wiitdb::{self},
 };
 use eframe::egui::{self, Vec2};
-use egui_file_dialog::FileDialog;
+use egui_file::FileDialog;
 use egui_notify::Toasts;
 use std::path::{Path, PathBuf};
 
@@ -101,7 +101,7 @@ fn view_game_card(
                     .clicked()
                 {
                     *archiving_game = Some(game.path.clone());
-                    choose_archive_path.save_file();
+                    choose_archive_path.open();
                 }
 
                 // Info button
