@@ -207,48 +207,6 @@ jobs:
           name: dist-${{ matrix.target }}-portable
           path: dist/*
 
-  build-windows-legacy:
-    name: Build Windows Legacy
-    runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - target: i686-pc-windows-gnu
-            os-name: windows
-            arch: x86
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 1
-
-      - name: Set up Rust
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          toolchain: 1.90.0
-          target: ${{ matrix.target }}
-          cache-key: ${{ matrix.target }}
-
-      - name: Install dependencies
-        run: cargo install cross
-
-      - name: Build binary
-        run: cross build --release --locked --target ${{ matrix.target }}
-
-      - name: Package binary as zip
-        run: |
-          mkdir dist
-          cp "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" TinyWiiBackupManager.exe
-          zip -9 dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-${{ matrix.os-name }}-${{ matrix.arch }}.zip TinyWiiBackupManager.exe
-
-      - name: Upload Windows distributables
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist-${{ matrix.target }}-legacy
-          path: dist/*
-
   build-macos:
     name: Build for MacOS
     runs-on: macos-26
