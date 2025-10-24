@@ -8,6 +8,12 @@ fn main() {
         println!("cargo:rustc-env=MACOSX_DEPLOYMENT_TARGET=11");
     }
 
+    // Windows-specifix fixes
+    #[cfg(windows)]
+    {
+        println!("cargo:rustc-link-lib=kernel32");
+    }
+
     // Windows-specific icon resource
     #[cfg(windows)]
     {
