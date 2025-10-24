@@ -61,19 +61,27 @@ jobs:
           wget -c "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-${{ matrix.arch }}.AppImage"
           chmod +x linuxdeploy*.AppImage
 
-      - name: Build and package binary
-        run: |
-          mkdir dist
-          cargo build --release --locked --target ${{ matrix.target }}
-          ./linuxdeploy-${{ matrix.arch }}.AppImage --appdir TinyWiiBackupManager.AppDir -e target/${{ matrix.target }}/release/TinyWiiBackupManager -d assets/TinyWiiBackupManager.desktop -i assets/TinyWiiBackupManager.png --output appimage
-          mv TinyWiiBackupManager*.AppImage dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_${{ matrix.arch }}.AppImage
-          mv TinyWiiBackupManager*.AppImage.zsync dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_${{ matrix.arch }}.AppImage.zsync
+      - name: Build binary
+        run: cargo build --release --locked --target ${{ matrix.target }}
         env:
           CC: "clang"
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: "clang"
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: "-C link-arg=-fuse-ld=/usr/local/bin/mold"
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: "clang"
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_RUSTFLAGS: "-C link-arg=-fuse-ld=/usr/local/bin/mold"
+
+      - name: Package binary as tar.gz
+        run: |
+          mkdir dist
+          cp "target/${{ matrix.target }}/release/TinyWiiBackupManager" "TinyWiiBackupManager-${{ env.VERSION_NAME }}"
+          tar -czvf "dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_${{ matrix.arch }}.tar.gz" "TinyWiiBackupManager-${{ env.VERSION_NAME }}"
+
+      - name: Package binary as AppImage
+        run: |
+          ./linuxdeploy-${{ matrix.arch }}.AppImage --appdir TinyWiiBackupManager.AppDir -e target/${{ matrix.target }}/release/TinyWiiBackupManager -d assets/TinyWiiBackupManager.desktop -i assets/TinyWiiBackupManager.png --output appimage
+          mv TinyWiiBackupManager*.AppImage dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_${{ matrix.arch }}.AppImage
+          mv TinyWiiBackupManager*.AppImage.zsync dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_${{ matrix.arch }}.AppImage.zsync
+        env:
           LDAI_UPDATE_INFORMATION: "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|TinyWiiBackupManager_*_${{ matrix.arch }}.AppImage.zsync"
 
       - name: Upload Linux distributables
