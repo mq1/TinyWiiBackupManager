@@ -63,7 +63,7 @@ eframe = { version = "0.33", default-features = false, features = [
   "wgpu",
 ] }
 wgpu = { version = "*", default-features = false, features = ["dx12"] }
-windows = "0.61.3"
+windows = { version = "0.59", features = ["Win32_System_SystemInformation"] }
 
 [features]
 default = ["app-dir", "bundled-tls"]
