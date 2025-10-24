@@ -138,7 +138,6 @@ jobs:
         env:
           CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
-          CARGO_TARGET_I686_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
 
       - name: Package binary as zip
         shell: pwsh
@@ -192,7 +191,6 @@ jobs:
         env:
           CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
-          CARGO_TARGET_I686_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
 
       - name: Package portable binary as zip
         shell: pwsh
