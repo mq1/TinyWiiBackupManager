@@ -33,13 +33,19 @@
 - **OSC** — Download apps from the Open Shop Channel
 - **Wiiload** — Send apps directly to Wii via network
 
-## ⬇️ Download
+## ⬇️ Downloads
 
-| Platform | Get the latest version from the **[Releases page](https://github.com/mq1/TinyWiiBackupManager/releases/latest)** |
+| Platform | Packages |
 |----------|------------------|
-| 🐧 **Linux** | ⬇️ Download the `.AppImage`<br>📦 Or look for TinyWiiBackupManager on **Flathub** |
-| 🪟 **Windows** | ⬇️ Download the `setup.exe` (installer) or the `win-portable.zip` (portable)<br>📦 Or run `winget install mq1.TinyWiiBackupManager` |
-| 🍏 **macOS** | ⬇️ Download the `.dmg`<br>⚠️ The app is not notarized<br>⚠️ You must allow it manually after installing by running this command in Terminal:<br>➡️ `xattr -rd com.apple.quarantine /Applications/TinyWiiBackupManager.app` |
+| 🐧 **Linux** | [![Flathub](https://img.shields.io/flathub/v/it.mq1.TinyWiiBackupManager?label=Flathub)](https://flathub.org/en/apps/it.mq1.TinyWiiBackupManager)<br>[![AppImage (x86_64)](https://img.shields.io/badge/AppImage_(x86__64)-v4.1.1-green)](https://github.com/mq1/TinyWiiBackupManager/releases/download/4.1.1/TinyWiiBackupManager-4.1.1-linux-x86_64.AppImage) [![AppImage (aarch64)](https://img.shields.io/badge/AppImage_(aarch64)-v4.1.1-green)](https://github.com/mq1/TinyWiiBackupManager/releases/download/4.1.1/TinyWiiBackupManager-4.1.1-linux-aarch64.AppImage)<br>[![tar.gz (x86_64)](https://img.shields.io/badge/tar.gz_(x86__64)-v4.1.1-orange)](https://github.com/mq1/TinyWiiBackupManager/releases/download/4.1.1/TinyWiiBackupManager-4.1.1-linux-x86_64.tar.gz) [![tar.gz (aarch64)](https://img.shields.io/badge/tar.gz_(aarch64)-v4.1.1-orange)](https://github.com/mq1/TinyWiiBackupManager/releases/download/4.1.1/TinyWiiBackupManager-4.1.1-linux-aarch64.tar.gz) |
+| 🪟 **Windows** | [![Executable (x64)](https://img.shields.io/badge/Executable_(x64)-v4.1.1-lightblue)](https://github.com/mq1/TinyWiiBackupManager/releases/download/4.1.1/TinyWiiBackupManager-4.1.1-windows-x64.zip) [![Executable (arm64)](https://img.shields.io/badge/Executable_(arm64)-v4.1.1-lightblue)](https://github.com/mq1/TinyWiiBackupManager/releases/download/4.1.1/TinyWiiBackupManager-4.1.1-windows-arm64.zip)<br>[![Setup (x64)](https://img.shields.io/badge/Setup_(x64)-v4.1.1-lightblue)](https://github.com/mq1/TinyWiiBackupManager/releases/download/4.1.1/TinyWiiBackupManager-4.1.1-windows-x64-setup.exe) [![Setup (arm64)](https://img.shields.io/badge/Setup_(arm64)-v4.1.1-lightblue)](https://github.com/mq1/TinyWiiBackupManager/releases/download/4.1.1/TinyWiiBackupManager-4.1.1-windows-arm64-setup.exe)<br>[![Portable (x64)](https://img.shields.io/badge/Portable_(x64)-v4.1.1-lightblue)](https://github.com/mq1/TinyWiiBackupManager/releases/download/4.1.1/TinyWiiBackupManager-4.1.1-windows-x64-portable.zip) [![Portable (arm64)](https://img.shields.io/badge/Portable_(arm64)-v4.1.1-lightblue)](https://github.com/mq1/TinyWiiBackupManager/releases/download/4.1.1/TinyWiiBackupManager-4.1.1-windows-arm64-portable.zip) |
+| 🍏 **macOS** | [![Universal dmg](https://img.shields.io/badge/Universal_dmg-v4.1.1-lightgray)](https://github.com/mq1/TinyWiiBackupManager/releases/download/4.1.1/TinyWiiBackupManager-4.1.1-macos-universal.dmg) |
+
+### ⚠️ macOS installation
+The app is not notarized, You must allow it manually after installing by running this command in Terminal:
+```sh
+xattr -rd com.apple.quarantine /Applications/TinyWiiBackupManager.app
+```
 
 ## 📄 Additional Info
 
