@@ -3,11 +3,17 @@
 
 use crate::{app::App, convert};
 use eframe::egui;
+use std::path::PathBuf;
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
-    app.choose_games.update(ctx);
-
-    if let Some(paths) = app.choose_games.take_picked_multiple() {
-        convert::spawn_add_games_task(app, paths);
+    if app.choose_games.show(ctx).selected() && !app.choose_games.selection().is_empty() {
+        convert::spawn_add_games_task(
+            app,
+            app.choose_games
+                .selection()
+                .iter()
+                .map(PathBuf::from)
+                .collect(),
+        );
     }
 }
