@@ -113,7 +113,7 @@ jobs:
             arch: x64
           - target: aarch64-pc-windows-msvc
             arch: arm64
-          - target: i686-pc-windows-msvc
+          - target: i686-pc-windows-gnu
             arch: x86
 
     steps:
@@ -138,8 +138,6 @@ jobs:
         env:
           CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
-          CARGO_TARGET_I686_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
-          CARGO_TARGET_I686_PC_WINDOWS_MSVC_RUSTFLAGS: "-C link-arg=--target=i686-pc-windows-msvc"
 
       - name: Package binary as zip
         shell: pwsh
@@ -193,7 +191,6 @@ jobs:
         env:
           CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
-          CARGO_TARGET_I686_PC_WINDOWS_GNU_LINKER: "rust-lld.exe"
 
       - name: Package portable binary as zip
         shell: pwsh
