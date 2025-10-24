@@ -3,11 +3,17 @@
 
 use crate::{app::App, hbc_apps};
 use eframe::egui;
+use std::path::PathBuf;
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
-    app.choose_hbc_apps.update(ctx);
-
-    if let Some(paths) = app.choose_hbc_apps.take_picked_multiple() {
-        hbc_apps::spawn_install_apps_task(app, paths);
+    if app.choose_hbc_apps.show(ctx).selected() && !app.choose_hbc_apps.selection().is_empty() {
+        hbc_apps::spawn_install_apps_task(
+            app,
+            app.choose_hbc_apps
+                .selection()
+                .iter()
+                .map(PathBuf::from)
+                .collect(),
+        );
     }
 }
