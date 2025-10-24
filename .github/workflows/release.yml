@@ -124,7 +124,10 @@ jobs:
           7z a -tzip -mx=9 "dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_${{ matrix.arch }}-win.zip" "TinyWiiBackupManager_${{ env.VERSION_NAME }}.exe"
 
       - name: Package binary as installer
-        run: cargo packager --release --target ${{ matrix.target }} --formats nsis
+        shell: pwsh
+        run: |
+          cargo packager --release --target ${{ matrix.target }} --formats nsis
+          Move-Item -Path "*-setup.exe" -Destination "dist"
 
       - name: Upload Windows setup
         uses: actions/upload-artifact@v4
@@ -167,7 +170,7 @@ jobs:
         shell: pwsh
         run: |
           New-Item -Path "dist" -ItemType "directory"
-          Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager_${{ env.VERSION_NAME }}-portable.exe"
+          Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager_${{ env.VERSION_NAME }}-portable.exe"
           7z a -tzip -mx=9 "dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_${{ matrix.arch }}-win-portable.zip" "TinyWiiBackupManager_${{ env.VERSION_NAME }}-portable.exe"
 
       - name: Upload Windows portable distributables
@@ -216,8 +219,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
+      - name: Set up Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: 1.90.0
+          cache-key: universal-apple-darwin
+
       - name: Install dependencies
-        run: npm i -g appdmg@0.6.6
+        run: |
+          cargo install cargo-packager --version ^0.11 --locked
+          npm i -g appdmg@0.6.6
 
       - name: Download MacOS binaries
         uses: actions/download-artifact@v4
@@ -228,21 +239,21 @@ jobs:
         run: |
           # Setup directories
           cp -r assets/TinyWiiBackupManager.app .
-          mkdir -p dist TinyWiiBackupManager.app/Contents/MacOS
+          mkdir -p dist target/universal-apple-darwin/release
 
           # Create the universal binary using lipo
           lipo -create \
-            -output TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager \
+            -output target/universal-apple-darwin/release/TinyWiiBackupManager \
             bin-aarch64-apple-darwin/TinyWiiBackupManager bin-x86_64-apple-darwin/TinyWiiBackupManager
 
           # Set correct binary permissions
-          chmod 755 TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
-
-          # Set version string
-          sed -i "" "s/{{ version }}/${{ env.VERSION_NAME }}/" TinyWiiBackupManager.app/Contents/Info.plist
+          chmod 755 target/universal-apple-darwin/release/TinyWiiBackupManager
+       
+          # Create DMG with cargo-packager
+          cargo packager --release --target universal-apple-darwin --formats app
 
           # Create dmg (assets from sindresorhus/create-dmg)
-          appdmg assets/appdmg.json dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_Universal.dmg
+          appdmg assets/appdmg.json dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_universal.dmg
 
       - name: Upload MacOS distributable
         uses: actions/upload-artifact@v4
