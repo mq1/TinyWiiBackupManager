@@ -102,7 +102,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                         .button(egui::RichText::new("🖴 Choose a Drive/Directory").size(15.))
                         .clicked()
                     {
-                        app.choose_mount_point.pick_directory();
+                        app.choose_mount_point.open();
                     }
 
                     ui.separator();
