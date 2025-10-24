@@ -309,4 +309,4 @@ jobs:
         with:
           identifier: mq1.TinyWiiBackupManager
           token: ${{ secrets.WINGET_TOKEN }}
-          installers-regex: '\.exe$'
+          installers-regex: '64\.zip$'
