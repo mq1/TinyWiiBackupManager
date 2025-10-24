@@ -8,6 +8,12 @@ fn main() {
         println!("cargo:rustc-env=MACOSX_DEPLOYMENT_TARGET=11");
     }
 
+    // Windows 32-bit fix for egui-file-dialog
+    #[cfg(all(windows, target_pointer_width = "32"))]
+    {
+        println!("cargo:rustc-link-lib=kernel32");
+    }
+
     // Windows-specific icon resource
     #[cfg(windows)]
     {
