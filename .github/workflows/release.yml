@@ -120,7 +120,7 @@ jobs:
         shell: pwsh
         run: |
           New-Item -Path "dist" -ItemType "directory"
-          Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager_${{ env.VERSION_NAME }}.exe"
+          Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager_${{ env.VERSION_NAME }}.exe"
           7z a -tzip -mx=9 "dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_${{ matrix.arch }}-win.zip" "TinyWiiBackupManager_${{ env.VERSION_NAME }}.exe"
 
       - name: Package binary as installer
@@ -170,7 +170,7 @@ jobs:
         shell: pwsh
         run: |
           New-Item -Path "dist" -ItemType "directory"
-          Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager_${{ env.VERSION_NAME }}-portable.exe"
+          Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager_${{ env.VERSION_NAME }}-portable.exe"
           7z a -tzip -mx=9 "dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_${{ matrix.arch }}-win-portable.zip" "TinyWiiBackupManager_${{ env.VERSION_NAME }}-portable.exe"
 
       - name: Upload Windows portable distributables
