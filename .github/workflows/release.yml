@@ -80,7 +80,7 @@ jobs:
       - name: Package binary as AppImage
         run: |
           ./linuxdeploy-${{ matrix.arch }}.AppImage --appdir TinyWiiBackupManager.AppDir -e target/${{ matrix.target }}/release/TinyWiiBackupManager -d assets/TinyWiiBackupManager.desktop -i assets/TinyWiiBackupManager.png --output appimage
-          mv TinyWiiBackupManager*.AppImage "dist/TinyWiiBackupManager-linux-${{ matrix.arch }}.AppImage"
+          mv TinyWiiBackupManager*.AppImage "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
           mv TinyWiiBackupManager*.AppImage.zsync "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage.zsync"
         env:
           LDAI_UPDATE_INFORMATION: "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync"
