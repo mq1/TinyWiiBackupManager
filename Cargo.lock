@@ -32,7 +32,7 @@ dependencies = [
  "tempfile",
  "ureq",
  "wgpu",
- "windows 0.58.0",
+ "windows 0.61.3",
  "winres",
  "zip",
 ]
