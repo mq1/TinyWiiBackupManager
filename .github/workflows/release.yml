@@ -102,6 +102,8 @@ jobs:
             arch: x64
           - target: aarch64-pc-windows-msvc
             arch: arm64
+          - target: i686-pc-windows-msvc
+            arch: x86
 
     steps:
       - name: Checkout
@@ -117,6 +119,7 @@ jobs:
           cache-key: ${{ matrix.target }}
 
       - name: Install dependencies
+        if: matrix.arch == 'x64'
         run: cargo install cargo-packager --version ^0.11 --locked
 
       - name: Build binary
@@ -124,6 +127,7 @@ jobs:
         env:
           CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
+          CARGO_TARGET_I686_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
 
       - name: Package binary as zip
         shell: pwsh
@@ -132,7 +136,8 @@ jobs:
           Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination TinyWiiBackupManager.exe
           7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
 
-      - name: Package binary as installer
+      - name: Package binary as installer (only x64 for now)
+        if: matrix.arch == 'x64'
         shell: pwsh
         run: |
           cargo packager --release --target ${{ matrix.target }} --formats nsis
@@ -155,6 +160,8 @@ jobs:
             arch: x64
           - target: aarch64-pc-windows-msvc
             arch: arm64
+          - target: i686-pc-windows-msvc
+            arch: x86
 
     steps:
       - name: Checkout
@@ -174,6 +181,7 @@ jobs:
         env:
           CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
+          CARGO_TARGET_I686_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
 
       - name: Package portable binary as zip
         shell: pwsh
