@@ -136,7 +136,7 @@ jobs:
         shell: pwsh
         run: |
           cargo packager --release --target ${{ matrix.target }} --formats nsis
-          Move-Item -Path "*-setup.exe" -Destination "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}-setup.exe"
+          Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager*-setup.exe" -Destination "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}-setup.exe"
 
       - name: Upload Windows setup
         uses: actions/upload-artifact@v4
