@@ -82,8 +82,8 @@ jobs:
           name: dist-${{ matrix.target }}
           path: dist/*
 
-  build-windows-setup:
-    name: Build Windows Setup
+  build-windows:
+    name: Build Windows + Setup
     runs-on: windows-2025
     strategy:
       fail-fast: false
@@ -115,6 +115,13 @@ jobs:
         env:
           CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
+
+      - name: Package binary as zip
+        shell: pwsh
+        run: |
+          New-Item -Path "dist" -ItemType "directory"
+          Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager_${{ env.VERSION_NAME }}.exe"
+          7z a -tzip -mx=9 "dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_${{ matrix.arch }}-win.zip" "TinyWiiBackupManager_${{ env.VERSION_NAME }}.exe"
 
       - name: Package binary as installer
         run: cargo packager --release --target ${{ matrix.target }} --formats nsis
@@ -160,8 +167,8 @@ jobs:
         shell: pwsh
         run: |
           New-Item -Path "dist" -ItemType "directory"
-          Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager_${{ env.VERSION_NAME }}_${{ matrix.arch }}-win-portable.exe"
-          7z a -tzip -mx=9 "dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_${{ matrix.arch }}-win-portable.zip" "TinyWiiBackupManager_${{ env.VERSION_NAME }}_${{ matrix.arch }}-win-portable.exe"
+          Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager_${{ env.VERSION_NAME }}-portable.exe"
+          7z a -tzip -mx=9 "dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_${{ matrix.arch }}-win-portable.zip" "TinyWiiBackupManager_${{ env.VERSION_NAME }}-portable.exe"
 
       - name: Upload Windows portable distributables
         uses: actions/upload-artifact@v4
@@ -250,7 +257,7 @@ jobs:
     name: Create GitHub Release
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-24.04
-    needs: [ build-linux, build-windows-setup, build-windows-portable, package-macos ]
+    needs: [ build-linux, build-windows, build-windows-portable, package-macos ]
     steps:
       - name: Download distributables
         uses: actions/download-artifact@v4
