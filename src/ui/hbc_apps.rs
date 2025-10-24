@@ -55,7 +55,7 @@ fn view_top_bar(ui: &mut egui::Ui, app: &mut App, ctx: &egui::Context) {
                 .on_hover_text("Add Apps")
                 .clicked()
             {
-                app.choose_hbc_apps.pick_multiple();
+                app.choose_hbc_apps.open();
             }
 
             if ui
@@ -87,7 +87,7 @@ fn view_top_bar(ui: &mut egui::Ui, app: &mut App, ctx: &egui::Context) {
                         app.toasts.error(e.to_string());
                     }
 
-                    app.choose_file_to_push.pick_file();
+                    app.choose_file_to_push.open();
                 }
 
                 ui.add(
