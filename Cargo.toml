@@ -56,7 +56,7 @@ capitalize = "0.3"
 [target.'cfg(unix)'.dependencies]
 eframe = "0.33"
 
-[target.'cfg(all(windows, target_pointer_width = "64"))'.dependencies]
+[target.'cfg(windows)'.dependencies]
 eframe = { version = "0.33", default-features = false, features = [
   "accesskit",
   "default_fonts",
