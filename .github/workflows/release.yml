@@ -238,7 +238,6 @@ jobs:
       - name: Create Universal app and DMG
         run: |
           # Setup directories
-          cp -r assets/TinyWiiBackupManager.app .
           mkdir -p dist target/universal-apple-darwin/release
 
           # Create the universal binary using lipo
