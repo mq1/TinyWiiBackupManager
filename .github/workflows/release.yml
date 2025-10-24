@@ -61,20 +61,29 @@ jobs:
           wget -c "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-${{ matrix.arch }}.AppImage"
           chmod +x linuxdeploy*.AppImage
 
-      - name: Build and package binary
-        run: |
-          mkdir dist
-          cargo build --release --locked --target ${{ matrix.target }}
-          ./linuxdeploy-${{ matrix.arch }}.AppImage --appdir TinyWiiBackupManager.AppDir -e target/${{ matrix.target }}/release/TinyWiiBackupManager -d assets/TinyWiiBackupManager.desktop -i assets/TinyWiiBackupManager.png --output appimage
-          mv TinyWiiBackupManager*.AppImage dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_${{ matrix.arch }}.AppImage
-          mv TinyWiiBackupManager*.AppImage.zsync dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_${{ matrix.arch }}.AppImage.zsync
+      - name: Build binary
+        run: cargo build --release --locked --target ${{ matrix.target }}
         env:
           CC: "clang"
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: "clang"
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: "-C link-arg=-fuse-ld=/usr/local/bin/mold"
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: "clang"
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_RUSTFLAGS: "-C link-arg=-fuse-ld=/usr/local/bin/mold"
-          LDAI_UPDATE_INFORMATION: "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|TinyWiiBackupManager_*_${{ matrix.arch }}.AppImage.zsync"
+
+      - name: Package binary as tar.gz
+        run: |
+          mkdir dist
+          cp "target/${{ matrix.target }}/release/TinyWiiBackupManager" TinyWiiBackupManager
+          chmod 755 TinyWiiBackupManager
+          tar -I 'gzip -9' -cvf "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.tar.gz" TinyWiiBackupManager
+
+      - name: Package binary as AppImage
+        run: |
+          ./linuxdeploy-${{ matrix.arch }}.AppImage --appdir TinyWiiBackupManager.AppDir -e target/${{ matrix.target }}/release/TinyWiiBackupManager -d assets/TinyWiiBackupManager.desktop -i assets/TinyWiiBackupManager.png --output appimage
+          mv TinyWiiBackupManager*.AppImage "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
+          mv TinyWiiBackupManager*.AppImage.zsync "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage.zsync"
+        env:
+          LDAI_UPDATE_INFORMATION: "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync"
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v4
@@ -120,14 +129,14 @@ jobs:
         shell: pwsh
         run: |
           New-Item -Path "dist" -ItemType "directory"
-          Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager_${{ env.VERSION_NAME }}.exe"
-          7z a -tzip -mx=9 "dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_${{ matrix.arch }}-win.zip" "TinyWiiBackupManager_${{ env.VERSION_NAME }}.exe"
+          Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination TinyWiiBackupManager.exe
+          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
 
       - name: Package binary as installer
         shell: pwsh
         run: |
           cargo packager --release --target ${{ matrix.target }} --formats nsis
-          Move-Item -Path "*-setup.exe" -Destination "dist"
+          Move-Item -Path "*-setup.exe" -Destination "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}-setup.exe"
 
       - name: Upload Windows setup
         uses: actions/upload-artifact@v4
@@ -170,8 +179,8 @@ jobs:
         shell: pwsh
         run: |
           New-Item -Path "dist" -ItemType "directory"
-          Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager_${{ env.VERSION_NAME }}-portable.exe"
-          7z a -tzip -mx=9 "dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_${{ matrix.arch }}-win-portable.zip" "TinyWiiBackupManager_${{ env.VERSION_NAME }}-portable.exe"
+          Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager-portable.exe"
+          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}-portable.zip" "TinyWiiBackupManager-portable.exe"
 
       - name: Upload Windows portable distributables
         uses: actions/upload-artifact@v4
@@ -252,7 +261,7 @@ jobs:
           cargo packager --release --target universal-apple-darwin --formats app
 
           # Create dmg (assets from sindresorhus/create-dmg)
-          appdmg assets/appdmg.json dist/TinyWiiBackupManager_${{ env.VERSION_NAME }}_universal.dmg
+          appdmg assets/appdmg.json "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-universal.dmg"
 
       - name: Upload MacOS distributable
         uses: actions/upload-artifact@v4
