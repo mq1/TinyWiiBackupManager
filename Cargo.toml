@@ -56,9 +56,16 @@ capitalize = "0.3"
 [target.'cfg(unix)'.dependencies]
 eframe = "0.33"
 
-[target.'cfg(windows)'.dependencies]
+[target.'cfg(all(windows, target_pointer_width = "64"))'.dependencies]
 eframe = { version = "0.33", default-features = false, features = [
   "accesskit",
+  "default_fonts",
+  "wgpu",
+] }
+wgpu = { version = "*", default-features = false, features = ["dx12"] }
+
+[target.'cfg(all(windows, target_pointer_width = "32"))'.dependencies]
+eframe = { version = "0.33", default-features = false, features = [
   "default_fonts",
   "wgpu",
 ] }
