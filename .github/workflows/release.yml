@@ -312,7 +312,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate downloads table
-        run: sed "s/{{ version }}/${{ env.VERSION_NAME }}/g" assets/downloads-template.md > downloads.md
+        run: sed 's/{{ version }}/${{ env.VERSION_NAME }}/g' assets/downloads-template.md > downloads.md
 
       - name: Add downloads table to release body
         uses: softprops/action-gh-release@v2
