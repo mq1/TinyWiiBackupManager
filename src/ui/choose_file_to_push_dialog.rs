@@ -5,11 +5,11 @@ use crate::{app::App, wiiload};
 use eframe::egui;
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
-    if app.choose_file_to_push.show(ctx).selected()
-        && let Some(path) = app.choose_file_to_push.path()
-    {
+    app.choose_file_to_push.update(ctx);
+
+    if let Some(path) = app.choose_games.take_picked() {
         wiiload::spawn_push_file_task(
-            path.to_path_buf(),
+            path,
             app.config.contents.wii_ip.clone(),
             &app.task_processor,
         );
