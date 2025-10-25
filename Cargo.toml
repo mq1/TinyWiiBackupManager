@@ -110,11 +110,3 @@ overflow-checks = false
 
 [lints.rust]
 non_snake_case = "allow"
-
-[workspace.metadata.cross.target.i686-pc-windows-gnu]
-build-std = false
-pre-build = ["apt-get update", "apt-get -y install i686-w64-mingw32-gcc"]
-
-[workspace.metadata.cross.target.i686-win7-windows-gnu]
-build-std = true
-pre-build = ["apt-get update", "apt-get -y install i686-w64-mingw32-gcc"]
