@@ -210,8 +210,6 @@ jobs:
         include:
           - target: x86_64-win7-windows-msvc
             arch: x64
-          - target: i686-win7-windows-msvc
-            arch: x86
 
     steps:
       - name: Checkout
@@ -256,8 +254,6 @@ jobs:
         include:
           - target: x86_64-win7-windows-msvc
             arch: x64
-          - target: i686-win7-windows-msvc
-            arch: x86
 
     steps:
       - name: Checkout
