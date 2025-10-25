@@ -399,6 +399,9 @@ jobs:
           toolchain: 1.90.0
           cache: false
 
+      - name: Install Cargo binstall
+        uses: cargo-bins/cargo-binstall@main
+
       - name: Install cross
         run: cargo binstall cross
 
@@ -438,6 +441,9 @@ jobs:
         with:
           toolchain: 1.90.0
           cache: false
+
+      - name: Install Cargo binstall
+        uses: cargo-bins/cargo-binstall@main
 
       - name: Install cross
         run: cargo binstall cross
