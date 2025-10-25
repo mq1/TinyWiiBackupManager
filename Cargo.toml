@@ -15,9 +15,6 @@ icons = ["assets/TinyWiiBackupManager@2x.png"]
 copyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-3.0-only."
 category = "Utility"
 
-[package.metadata.packager.macos]
-minimumSystemVersion = "11"
-
 [package.metadata.winres]
 FileDescription = "A dead simple Wii Backup Manager"
 ProductName = "TinyWiiBackupManager"
