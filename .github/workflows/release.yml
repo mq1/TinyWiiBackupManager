@@ -317,6 +317,7 @@ jobs:
         run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "app-dir native-tls"
         env:
           CARGO_TARGET_I686_PC_WINDOWS_GNU_LINKER: "i686-w64-mingw32-gcc"
+          CARGO_TARGET_I686_PC_WINDOWS_GNU_RUSTFLAGS: "-C link-args=-lkernel32"
 
       - name: Package binary as zip
         run: |
@@ -362,6 +363,7 @@ jobs:
         run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "native-tls"
         env:
           CARGO_TARGET_I686_PC_WINDOWS_GNU_LINKER: "i686-w64-mingw32-gcc"
+          CARGO_TARGET_I686_PC_WINDOWS_GNU_RUSTFLAGS: "-C link-args=-lkernel32"
 
       - name: Package portable binary as zip
         run: |
@@ -408,6 +410,7 @@ jobs:
         env: 
           RUSTC_BOOTSTRAP: 1
           CARGO_TARGET_I686_PC_WINDOWS_GNU_LINKER: "i686-w64-mingw32-gcc"
+          CARGO_TARGET_I686_PC_WINDOWS_GNU_RUSTFLAGS: "-C link-args=-lkernel32"
 
       - name: Package binary as zip
         run: |
@@ -454,6 +457,7 @@ jobs:
         env:
           RUSTC_BOOTSTRAP: 1
           CARGO_TARGET_I686_PC_WINDOWS_GNU_LINKER: "i686-w64-mingw32-gcc"
+          CARGO_TARGET_I686_PC_WINDOWS_GNU_RUSTFLAGS: "-C link-args=-lkernel32"
 
       - name: Package portable binary as zip
         run: |
