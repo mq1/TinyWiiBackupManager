@@ -103,7 +103,7 @@ jobs:
           path: dist/*
 
   build-windows:
-    name: Build Windows + Setup
+    name: Build for Windows
     runs-on: windows-2025
     strategy:
       fail-fast: false
@@ -162,7 +162,7 @@ jobs:
           path: dist/*
 
   build-windows-portable:
-    name: Build Windows Portable
+    name: Build for Windows (Portable)
     runs-on: windows-2025
     strategy:
       fail-fast: false
@@ -257,7 +257,7 @@ jobs:
           path: dist/*
 
   build-win7-portable:
-    name: Build Windows 7 Portable
+    name: Build for Windows 7 (Portable)
     runs-on: windows-2025
     strategy:
       fail-fast: false
@@ -304,7 +304,7 @@ jobs:
           path: dist/*
 
   build-macos:
-    name: Build for MacOS
+    name: Build for macOS
     runs-on: macos-26
     strategy:
       fail-fast: false
@@ -329,14 +329,14 @@ jobs:
       - name: Build binary
         run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "app-dir native-tls"
 
-      - name: Upload MacOS binary
+      - name: Upload macOS binary
         uses: actions/upload-artifact@v4
         with:
           name: bin-${{ matrix.target }}
           path: target/${{ matrix.target }}/release/TinyWiiBackupManager
 
   package-macos:
-    name: Package MacOS Universal
+    name: Package macOS Universal
     runs-on: macos-26
     needs: build-macos
     steps:
@@ -354,7 +354,7 @@ jobs:
           cargo install cargo-packager --version ^0.11 --locked
           npm i -g appdmg@0.6.6
 
-      - name: Download MacOS binaries
+      - name: Download macOS binaries
         uses: actions/download-artifact@v4
         with:
           pattern: '*darwin*'
@@ -378,7 +378,7 @@ jobs:
           # Create dmg (assets from sindresorhus/create-dmg)
           appdmg assets/appdmg.json "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-universal.dmg"
 
-      - name: Upload MacOS distributable
+      - name: Upload macOS distributable
         uses: actions/upload-artifact@v4
         with:
           name: macos-dist
