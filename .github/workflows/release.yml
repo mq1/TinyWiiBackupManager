@@ -266,13 +266,11 @@ jobs:
       - name: Build binary
         run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "${{ matrix.features }}"
 
-      - name: Create app
-        run: |
-          cargo packager --release --target ${{ matrix.target }} --formats app
-          mv "target/${{ matrix.target }}/release/TinyWiiBackupManager.app" TinyWiiBackupManager.app
+      - name: Create app with cargo-packager
+        run: cargo packager --release --target ${{ matrix.target }} --formats app
 
       - name: Create dmg (assets from sindresorhus/create-dmg)
-        run: appdmg assets/appdmg.json "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-${{ matrix.arch }}.dmg"
+        run: appdmg assets/appdmg-${{ matrix.arch }}.json "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-${{ matrix.arch }}.dmg"
 
       - name: Upload macOS distributable
         uses: actions/upload-artifact@v4

@@ -9,14 +9,14 @@
             "height": 400
         }
     },
-    "format": "ULMO",
-    "filesystem": "APFS",
+    "format": "ULFO",
+    "filesystem": "HFS+",
     "contents": [
         {
             "x": 180,
             "y": 170,
             "type": "file",
-            "path": "../TinyWiiBackupManager.app"
+            "path": "../target/x86_64-apple-darwin/release/TinyWiiBackupManager.app"
         },
         {
             "x": 480,
