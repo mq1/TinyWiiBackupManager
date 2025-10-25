@@ -287,8 +287,8 @@ jobs:
           name: dist-${{ matrix.target }}-portable
           path: dist/*
 
-  build-windows-cross:
-    name: Build for Windows with cross
+  build-windows-gnu:
+    name: Build for Windows (GNU)
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
@@ -303,17 +303,22 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-mingw-w64-i686
+
       - name: Set up Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: 1.90.0
+          target: ${{ matrix.target }}
           cache-key: ${{ matrix.target }}
 
-      - name: Install dependencies
-        run: cargo install cross
-
       - name: Build binary
-        run: cross build --release --locked --target ${{ matrix.target }} --no-default-features --features "app-dir native-tls"
+        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "app-dir native-tls"
+        env:
+          CARGO_TARGET_I686_PC_WINDOWS_GNU_LINKER: "i686-w64-mingw32-gcc"
 
       - name: Package binary as zip
         run: |
@@ -327,8 +332,8 @@ jobs:
           name: dist-${{ matrix.target }}
           path: dist/*
 
-  build-windows-cross-portable:
-    name: Build for Windows (portable) with cross
+  build-windows-gnu-portable:
+    name: Build for Windows (GNU) (Portable)
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
@@ -343,17 +348,22 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-mingw-w64-i686
+
       - name: Set up Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: 1.90.0
+          target: ${{ matrix.target }}
           cache-key: ${{ matrix.target }}
 
-      - name: Install dependencies
-        run: cargo install cross
-
       - name: Build binary with portable feature
-        run: cross build --release --locked --target ${{ matrix.target }} --no-default-features --features "native-tls"
+        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "native-tls"
+        env:
+          CARGO_TARGET_I686_PC_WINDOWS_GNU_LINKER: "i686-w64-mingw32-gcc"
 
       - name: Package portable binary as zip
         run: |
@@ -367,8 +377,8 @@ jobs:
           name: dist-${{ matrix.target }}-portable
           path: dist/*
 
-  build-win7-cross:
-    name: Build for Windows 7 with cross
+  build-win7-gnu:
+    name: Build for Windows 7 (GNU)
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
@@ -383,17 +393,22 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-mingw-w64-i686
+        
       - name: Set up Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: 1.90.0
-          cache-key: ${{ matrix.target }}
-
-      - name: Install dependencies
-        run: cargo install cross
+          cache: false
 
       - name: Build binary
-        run: cross build --release --locked --target ${{ matrix.target }}
+        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
+        env: 
+          RUSTC_BOOTSTRAP: 1
+          CARGO_TARGET_I686_PC_WINDOWS_GNU_LINKER: "i686-w64-mingw32-gcc"
 
       - name: Package binary as zip
         run: |
@@ -407,8 +422,8 @@ jobs:
           name: dist-${{ matrix.target }}
           path: dist/*
 
-  build-win7-cross-portable:
-    name: Build for Windows 7 (portable) with cross
+  build-win7-gnu-portable:
+    name: Build for Windows 7 (GNU) (Portable)
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
@@ -427,13 +442,18 @@ jobs:
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: 1.90.0
-          cache-key: ${{ matrix.target }}
+          cache: false
 
       - name: Install dependencies
-        run: cargo install cross
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-mingw-w64-i686
 
-      - name: Build binary with portable feature
-        run: cross build --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
+      - name: Build portable binary
+        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
+        env:
+          RUSTC_BOOTSTRAP: 1
+          CARGO_TARGET_I686_PC_WINDOWS_GNU_LINKER: "i686-w64-mingw32-gcc"
 
       - name: Package portable binary as zip
         run: |
