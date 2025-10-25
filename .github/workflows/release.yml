@@ -239,7 +239,11 @@ jobs:
       matrix:
         include:
           - target: aarch64-apple-darwin
+            arch: arm64
+            features: app-dir native-tls
           - target: x86_64-apple-darwin
+            arch: x86_64
+            features: app-dir bundled-tls
 
     steps:
       - name: Checkout
@@ -254,57 +258,21 @@ jobs:
           target: ${{ matrix.target }}
           cache-key: ${{ matrix.target }}
 
-      - name: Build binary
-        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "app-dir native-tls"
-
-      - name: Upload macOS binary
-        uses: actions/upload-artifact@v4
-        with:
-          name: bin-${{ matrix.target }}
-          path: target/${{ matrix.target }}/release/TinyWiiBackupManager
-
-  package-macos:
-    name: Package macOS Universal
-    runs-on: macos-26
-    needs: build-macos
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Set up Rust
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          toolchain: 1.90.0
-          cache-key: universal-apple-darwin
-
       - name: Install dependencies
         run: |
           cargo install cargo-packager --version ^0.11 --locked
           npm i -g appdmg@0.6.6
 
-      - name: Download macOS binaries
-        uses: actions/download-artifact@v4
-        with:
-          pattern: '*darwin*'
+      - name: Build binary
+        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "${{ matrix.features }}"
 
-      - name: Create Universal app and DMG
+      - name: Create app
         run: |
-          # Setup directories
-          mkdir -p dist target/universal-apple-darwin/release
+          cargo packager --release --target ${{ matrix.target }} --formats app
+          mv "target/${{ matrix.target }}/release/TinyWiiBackupManager.app" TinyWiiBackupManager.app
 
-          # Create the universal binary using lipo
-          lipo -create \
-            -output target/universal-apple-darwin/release/TinyWiiBackupManager \
-            bin-aarch64-apple-darwin/TinyWiiBackupManager bin-x86_64-apple-darwin/TinyWiiBackupManager
-
-          # Set correct binary permissions
-          chmod 755 target/universal-apple-darwin/release/TinyWiiBackupManager
-       
-          # Create DMG with cargo-packager
-          cargo packager --release --target universal-apple-darwin --formats app
-
-          # Create dmg (assets from sindresorhus/create-dmg)
-          appdmg assets/appdmg.json "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-universal.dmg"
+      - name: Create dmg (assets from sindresorhus/create-dmg)
+        run: appdmg assets/appdmg.json "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-${{ matrix.arch }}.dmg"
 
       - name: Upload macOS distributable
         uses: actions/upload-artifact@v4
@@ -319,7 +287,7 @@ jobs:
     name: Create GitHub Release
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-24.04
-    needs: [ build-linux, build-windows, build-win7, package-macos ]
+    needs: [ build-linux, build-windows, build-win7, build-macos ]
     steps:
       - name: Download distributables
         uses: actions/download-artifact@v4
