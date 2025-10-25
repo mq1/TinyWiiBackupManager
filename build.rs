@@ -11,7 +11,7 @@ fn main() {
     // Windows i686-specific fix
     #[cfg(target_arch = "x86")]
     {
-        println!("cargo:rustc-link-lib=kernel32");
+        println!("cargo:rustc-link-lib=dylib=kernel32");
     }
 
     // Windows-specific icon resource
