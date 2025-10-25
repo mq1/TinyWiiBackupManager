@@ -170,7 +170,7 @@ jobs:
           cargo packager --release --target ${{ matrix.target }} --formats nsis
           Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager*-setup.exe" -Destination "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}-setup.exe"
 
-      - name: Upload Windows setup
+      - name: Upload Windows distributables
         uses: actions/upload-artifact@v4
         with:
           name: dist-${{ matrix.target }}${{ matrix.suffix }}
@@ -274,7 +274,7 @@ jobs:
           mkdir dist
           appdmg assets/appdmg-${{ matrix.arch }}.json "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-${{ matrix.arch }}.dmg"
 
-      - name: Upload macOS distributable
+      - name: Upload macOS distributables
         uses: actions/upload-artifact@v4
         with:
           name: dist-${{ matrix.target }}
