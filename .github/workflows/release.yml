@@ -285,7 +285,7 @@ jobs:
   # ==================================================================================
   release:
     name: Create GitHub Release
-    if: startsWith(github.ref, 'refs/tags/')
+    if: github.ref_type == 'tag'
     runs-on: ubuntu-24.04
     needs: [ build-linux, build-windows, build-win7, build-macos ]
     steps:
@@ -308,6 +308,17 @@ jobs:
             version.txt
           generate_release_notes: true
           prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate downloads table
+        run: sed "s/{{ version }}/${{ env.VERSION_NAME }}/g" assets/downloads-template.md > downloads.md
+
+      - name: Add downloads table to release body
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: downloads.md
+          append_body: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
