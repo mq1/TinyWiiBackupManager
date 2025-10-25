@@ -270,7 +270,9 @@ jobs:
         run: cargo packager --release --target ${{ matrix.target }} --formats app
 
       - name: Create dmg (assets from sindresorhus/create-dmg)
-        run: appdmg assets/appdmg-${{ matrix.arch }}.json "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-${{ matrix.arch }}.dmg"
+        run: |
+          mkdir dist
+          appdmg assets/appdmg-${{ matrix.arch }}.json "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-${{ matrix.arch }}.dmg"
 
       - name: Upload macOS distributable
         uses: actions/upload-artifact@v4
