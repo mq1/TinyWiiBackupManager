@@ -221,7 +221,6 @@ jobs:
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: 1.90.0
-          cache-key: ${{ matrix.target }}
           components: rust-src
           cache: false
 
@@ -264,7 +263,6 @@ jobs:
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: 1.90.0
-          cache-key: ${{ matrix.target }}
           components: rust-src
           cache: false
 
@@ -402,6 +400,7 @@ jobs:
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: 1.90.0
+          components: rust-src
           cache: false
 
       - name: Build binary
@@ -442,6 +441,7 @@ jobs:
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: 1.90.0
+          components: rust-src
           cache: false
 
       - name: Install dependencies
