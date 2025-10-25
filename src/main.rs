@@ -34,6 +34,12 @@ use eframe::{
 use egui_extras::install_image_loaders;
 use std::{fs, path::PathBuf};
 
+#[cfg(all(windows, target_arch = "x86"))]
+#[link(name = "kernel32")]
+extern "C" {
+    pub fn GetLogicalDrives() -> u32;
+}
+
 #[cfg(not(feature = "app-dir"))]
 fn get_data_dir() -> Result<PathBuf> {
     // For portable builds, use a directory next to the executable
