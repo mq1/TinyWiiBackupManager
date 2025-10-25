@@ -1095,7 +1095,7 @@ dependencies = [
 [[package]]
 name = "egui-file-dialog"
 version = "0.12.0"
-source = "git+https://github.com/mq1/egui-file-dialog#1aff8e6a6d228468df82a15073369cf1b0dc8bd8"
+source = "git+https://github.com/mq1/egui-file-dialog?branch=fix-win-i686#853f059625571ea59678db1851c582b6241f53be"
 dependencies = [
  "directories",
  "dunce",
