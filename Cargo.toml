@@ -72,7 +72,7 @@ eframe = { version = "0.33", default-features = false, features = [
 ] }
 wgpu = { version = "*", default-features = false, features = ["dx12"] }
 
-[target.i686-pc-windows-msvc.dependencies]
+[target.i686-pc-windows-gnu.dependencies]
 eframe = { version = "0.33", default-features = false, features = [
   "accesskit",
   "default_fonts",
@@ -83,7 +83,7 @@ wgpu = { version = "*", default-features = false, features = ["dx12"] }
 [target.x86_64-win7-windows-msvc.dependencies]
 eframe = "0.33"
 
-[target.i686-win7-windows-msvc.dependencies]
+[target.i686-win7-windows-gnu.dependencies]
 eframe = "0.33"
 
 [features]
