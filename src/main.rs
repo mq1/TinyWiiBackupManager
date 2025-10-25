@@ -36,7 +36,7 @@ use std::{fs, path::PathBuf};
 
 #[cfg(all(windows, target_arch = "x86"))]
 #[link(name = "kernel32")]
-extern "C" {
+unsafe extern "C" {
     pub fn GetLogicalDrives() -> u32;
 }
 
