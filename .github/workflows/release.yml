@@ -139,7 +139,6 @@ jobs:
           CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
           CARGO_TARGET_I686_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
-          CARGO_TARGET_I686_PC_WINDOWS_MSVC_RUSTFLAGS: '-L "C:\Program Files (x86)\Windows Kits\10\Lib\10.0.22621.0\um\x86" -L "C:\Program Files (x86)\Windows Kits\10\Lib\10.0.22621.0\ucrt\x86"'
 
       - name: Package binary as zip
         shell: pwsh
@@ -194,7 +193,6 @@ jobs:
           CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
           CARGO_TARGET_I686_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
-          CARGO_TARGET_I686_PC_WINDOWS_MSVC_RUSTFLAGS: '-L "C:\Program Files (x86)\Windows Kits\10\Lib\10.0.22621.0\um\x86" -L "C:\Program Files (x86)\Windows Kits\10\Lib\10.0.22621.0\ucrt\x86"'
 
       - name: Package portable binary as zip
         shell: pwsh
@@ -241,7 +239,6 @@ jobs:
           RUSTC_BOOTSTRAP: 1
           CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_LINKER: "rust-lld.exe"
           CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_LINKER: "rust-lld.exe"
-          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_RUSTFLAGS: '-L "C:\Program Files (x86)\Windows Kits\10\Lib\10.0.22621.0\um\x86" -L "C:\Program Files (x86)\Windows Kits\10\Lib\10.0.22621.0\ucrt\x86"'
 
       - name: Package binary as zip
         shell: pwsh
@@ -288,7 +285,6 @@ jobs:
           RUSTC_BOOTSTRAP: 1
           CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_LINKER: "rust-lld.exe"
           CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_LINKER: "rust-lld.exe"
-          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_RUSTFLAGS: '-L "C:\Program Files (x86)\Windows Kits\10\Lib\10.0.22621.0\um\x86" -L "C:\Program Files (x86)\Windows Kits\10\Lib\10.0.22621.0\ucrt\x86"'
 
       - name: Package portable binary as zip
         shell: pwsh
