@@ -111,8 +111,26 @@ jobs:
         include:
           - target: x86_64-pc-windows-msvc
             arch: x64
+            setup: true
+            features: app-dir native-tls
+          - target: x86_64-pc-windows-msvc
+            arch: x64
+            features: native-tls
+            suffix: -portable
           - target: aarch64-pc-windows-msvc
             arch: arm64
+            features: app-dir native-tls
+          - target: aarch64-pc-windows-msvc
+            arch: arm64
+            features: native-tls
+            suffix: -portable
+          - target: i686-pc-windows-msvc
+            arch: x86
+            features: app-dir bundled-tls
+          - target: i686-pc-windows-msvc
+            arch: x86
+            features: bundled-tls
+            suffix: -portable
 
     steps:
       - name: Checkout
@@ -128,24 +146,25 @@ jobs:
           cache-key: ${{ matrix.target }}
 
       - name: Install dependencies
-        if: matrix.arch == 'x64'
+        if: matrix.setup
         run: cargo install cargo-packager --version ^0.11 --locked
 
       - name: Build binary
-        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "app-dir native-tls"
+        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "${{ matrix.features }}"
         env:
           CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
+          CARGO_TARGET_I686_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
 
       - name: Package binary as zip
         shell: pwsh
         run: |
           New-Item -Path "dist" -ItemType "directory"
           Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination TinyWiiBackupManager.exe
-          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
+          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}${{ matrix.suffix }}.zip" TinyWiiBackupManager.exe
 
       - name: Package binary as installer (only x64 for now)
-        if: matrix.arch == 'x64'
+        if: matrix.setup
         shell: pwsh
         run: |
           cargo packager --release --target ${{ matrix.target }} --formats nsis
@@ -154,51 +173,7 @@ jobs:
       - name: Upload Windows setup
         uses: actions/upload-artifact@v4
         with:
-          name: dist-${{ matrix.target }}-setup
-          path: dist/*
-
-  build-windows-portable:
-    name: Build for Windows (Portable)
-    runs-on: windows-2025
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - target: x86_64-pc-windows-msvc
-            arch: x64
-          - target: aarch64-pc-windows-msvc
-            arch: arm64
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 1
-
-      - name: Set up Rust
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          toolchain: 1.90.0
-          target: ${{ matrix.target }}
-          cache-key: ${{ matrix.target }}
-
-      - name: Build binary with portable feature
-        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "native-tls"
-        env:
-          CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
-          CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
-
-      - name: Package portable binary as zip
-        shell: pwsh
-        run: |
-          New-Item -Path "dist" -ItemType "directory"
-          Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager-portable.exe"
-          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}-portable.zip" "TinyWiiBackupManager-portable.exe"
-
-      - name: Upload Windows portable distributables
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist-${{ matrix.target }}-portable
+          name: dist-${{ matrix.target }}${{ matrix.suffix }}
           path: dist/*
 
   build-win7:
@@ -210,6 +185,18 @@ jobs:
         include:
           - target: x86_64-win7-windows-msvc
             arch: x64
+            features: app-dir bundled-tls
+          - target: x86_64-win7-windows-msvc
+            arch: x64
+            features: bundled-tls
+            suffix: -portable
+          - target: i686-win7-windows-msvc
+            arch: x86
+            features: app-dir bundled-tls
+          - target: i686-win7-windows-msvc
+            arch: x86
+            features: bundled-tls
+            suffix: -portable
 
     steps:
       - name: Checkout
@@ -225,250 +212,23 @@ jobs:
           cache: false
 
       - name: Build binary
-        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
+        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "${{ matrix.features }}"
         env: 
           RUSTC_BOOTSTRAP: 1
           CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_LINKER: "rust-lld.exe"
+          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_LINKER: "rust-lld.exe"
 
       - name: Package binary as zip
         shell: pwsh
         run: |
           New-Item -Path "dist" -ItemType "directory"
           Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager.exe"
-          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-win7-${{ matrix.arch }}.zip" "TinyWiiBackupManager.exe"
+          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-win7-${{ matrix.arch }}${{ matrix.suffix }}.zip" "TinyWiiBackupManager.exe"
 
       - name: Upload Windows 7 distributables
         uses: actions/upload-artifact@v4
         with:
-          name: dist-${{ matrix.target }}
-          path: dist/*
-
-  build-win7-portable:
-    name: Build for Windows 7 (Portable)
-    runs-on: windows-2025
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - target: x86_64-win7-windows-msvc
-            arch: x64
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 1
-
-      - name: Set up Rust
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          toolchain: 1.90.0
-          components: rust-src
-          cache: false
-
-      - name: Build binary with portable feature
-        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
-        env: 
-          RUSTC_BOOTSTRAP: 1
-          CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_LINKER: "rust-lld.exe"
-
-      - name: Package portable binary as zip
-        shell: pwsh
-        run: |
-          New-Item -Path "dist" -ItemType "directory"
-          Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager-portable.exe"
-          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-win7-${{ matrix.arch }}-portable.zip" "TinyWiiBackupManager-portable.exe"
-
-      - name: Upload Windows 7 portable distributables
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist-${{ matrix.target }}-portable
-          path: dist/*
-
-  build-windows-gnu:
-    name: Build for Windows (GNU)
-    runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - target: i686-pc-windows-gnu
-            arch: x86
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 1
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-mingw-w64-i686
-
-      - name: Set up Rust
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          toolchain: 1.90.0
-          target: ${{ matrix.target }}
-          cache-key: ${{ matrix.target }}
-
-      - name: Build binary
-        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "app-dir native-tls"
-        env:
-          CARGO_TARGET_I686_PC_WINDOWS_GNU_LINKER: "i686-w64-mingw32-gcc"
-          CARGO_TARGET_I686_PC_WINDOWS_GNU_RUSTFLAGS: "-C link-args=-lkernel32"
-
-      - name: Package binary as zip
-        run: |
-          mkdir dist
-          cp "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" TinyWiiBackupManager.exe
-          zip -9 dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-win-${{ matrix.arch }}.zip TinyWiiBackupManager.exe
-
-      - name: Upload Windows distributables
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist-${{ matrix.target }}
-          path: dist/*
-
-  build-windows-gnu-portable:
-    name: Build for Windows (GNU) (Portable)
-    runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - target: i686-pc-windows-gnu
-            arch: x86
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 1
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-mingw-w64-i686
-
-      - name: Set up Rust
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          toolchain: 1.90.0
-          target: ${{ matrix.target }}
-          cache-key: ${{ matrix.target }}
-
-      - name: Build binary with portable feature
-        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "native-tls"
-        env:
-          CARGO_TARGET_I686_PC_WINDOWS_GNU_LINKER: "i686-w64-mingw32-gcc"
-          CARGO_TARGET_I686_PC_WINDOWS_GNU_RUSTFLAGS: "-C link-args=-lkernel32"
-
-      - name: Package portable binary as zip
-        run: |
-          mkdir dist
-          cp "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" TinyWiiBackupManager-portable.exe
-          zip -9 dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-win-${{ matrix.arch }}-portable.zip TinyWiiBackupManager-portable.exe
-
-      - name: Upload Windows distributables
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist-${{ matrix.target }}-portable
-          path: dist/*
-
-  build-win7-gnu:
-    name: Build for Windows 7 (GNU)
-    runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - target: i686-pc-windows-gnu
-            arch: x86
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 1
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-mingw-w64-i686
-        
-      - name: Set up Rust
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          toolchain: 1.90.0
-          components: rust-src
-          cache: false
-
-      - name: Build binary
-        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
-        env: 
-          RUSTC_BOOTSTRAP: 1
-          CARGO_TARGET_I686_PC_WINDOWS_GNU_LINKER: "i686-w64-mingw32-gcc"
-          CARGO_TARGET_I686_PC_WINDOWS_GNU_RUSTFLAGS: "-C link-args=-lkernel32"
-
-      - name: Package binary as zip
-        run: |
-          mkdir dist
-          cp "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" TinyWiiBackupManager.exe
-          zip -9 dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-win7-${{ matrix.arch }}.zip TinyWiiBackupManager.exe
-        
-      - name: Upload Windows 7 distributables
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist-${{ matrix.target }}
-          path: dist/*
-
-  build-win7-gnu-portable:
-    name: Build for Windows 7 (GNU) (Portable)
-    runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - target: i686-pc-windows-gnu
-            arch: x86
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 1
-
-      - name: Set up Rust
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          toolchain: 1.90.0
-          components: rust-src
-          cache: false
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-mingw-w64-i686
-
-      - name: Build portable binary
-        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
-        env:
-          RUSTC_BOOTSTRAP: 1
-          CARGO_TARGET_I686_PC_WINDOWS_GNU_LINKER: "i686-w64-mingw32-gcc"
-          CARGO_TARGET_I686_PC_WINDOWS_GNU_RUSTFLAGS: "-C link-args=-lkernel32"
-
-      - name: Package portable binary as zip
-        run: |
-          mkdir dist
-          cp "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" TinyWiiBackupManager-portable.exe
-          zip -9 dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-win7-${{ matrix.arch }}-portable.zip TinyWiiBackupManager-portable.exe
-
-      - name: Upload Windows 7 distributables
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist-${{ matrix.target }}-portable
+          name: dist-${{ matrix.target }}${{ matrix.suffix }}
           path: dist/*
 
   build-macos:
@@ -559,7 +319,7 @@ jobs:
     name: Create GitHub Release
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-24.04
-    needs: [ build-linux, build-windows, build-windows-portable, package-macos ]
+    needs: [ build-linux, build-windows, build-win7, package-macos ]
     steps:
       - name: Download distributables
         uses: actions/download-artifact@v4
