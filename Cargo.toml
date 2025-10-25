@@ -53,16 +53,38 @@ hex = "0.4"
 sanitize-filename = "0.7.0-beta"
 capitalize = "0.3"
 
-[target.'cfg(any(unix, target_pointer_width = "32"))'.dependencies]
+[target.'cfg(unix)'.dependencies]
 eframe = "0.33"
 
-[target.'cfg(all(windows, target_pointer_width = "64"))'.dependencies]
+[target.x86_64-pc-windows-msvc.dependencies]
 eframe = { version = "0.33", default-features = false, features = [
   "accesskit",
   "default_fonts",
   "wgpu",
 ] }
 wgpu = { version = "*", default-features = false, features = ["dx12"] }
+
+[target.aarch64-pc-windows-msvc.dependencies]
+eframe = { version = "0.33", default-features = false, features = [
+  "accesskit",
+  "default_fonts",
+  "wgpu",
+] }
+wgpu = { version = "*", default-features = false, features = ["dx12"] }
+
+[target.i686-pc-windows-msvc.dependencies]
+eframe = { version = "0.33", default-features = false, features = [
+  "accesskit",
+  "default_fonts",
+  "wgpu",
+] }
+wgpu = { version = "*", default-features = false, features = ["dx12"] }
+
+[target.x86_64-win7-windows-msvc.dependencies]
+eframe = "0.33"
+
+[target.i686-win7-windows-msvc.dependencies]
+eframe = "0.33"
 
 [features]
 default = ["app-dir", "bundled-tls"]
