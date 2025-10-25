@@ -53,10 +53,10 @@ hex = "0.4"
 sanitize-filename = "0.7.0-beta"
 capitalize = "0.3"
 
-[target.'cfg(unix)'.dependencies]
+[target.'cfg(any(unix, target_pointer_width = "32"))'.dependencies]
 eframe = "0.33"
 
-[target.'cfg(windows)'.dependencies]
+[target.'cfg(all(windows, target_pointer_width = "64"))'.dependencies]
 eframe = { version = "0.33", default-features = false, features = [
   "accesskit",
   "default_fonts",
