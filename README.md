@@ -15,23 +15,24 @@
 
 ## ✨ Features
 
-- **Lightweight & Fast** — No Electron!!
-- **Cross-Platform** — Cross-Platform — Windows 7+ (x86, x64, arm64), macOS 10.12+ (x64, arm64), Linux (x86, x64, arm64)
+- **Lightweight & Fast**: No Electron!!
+- **Cross-Platform**: Windows 7+ (x86, x64, arm64), macOS 10.12+ (x64, arm64), Linux (x86, x64, arm64)
 
 ### 🎮 **Game Management**
 
-- **Format Support** — .iso, .rvz and major formats via [NOD](https://github.com/encounter/nod)
-- **Automatic Splitting** — .wbfs file splitting when needed
-- **Partition Stripping** — Remove the update partition to save space
-- **Game Archiving** — Archive games using RVZ+zstd-19
-- **Integrity Checks** — Verify game data for corruption
-- **GameTDB** — Fetch covers and `wiitdb.xml` from GameTDB
+- **Games view**: Manage your Wii games
+- **Format Support**: .iso, .rvz and major formats via [NOD](https://github.com/encounter/nod)
+- **Automatic Splitting**: .wbfs file splitting when needed
+- **Partition Stripping**: Remove the update partition to save space
+- **Game Archiving**: Archive games using RVZ+zstd-19
+- **Integrity Checks**: Verify game data for corruption
+- **GameTDB**: Fetch covers and `wiitdb.xml` from GameTDB
 
 ### 🛠️ **Wii Homebrew Management**
 
-- **Apps** — Manage Wii homebrew applications
-- **OSC** — Download apps from the Open Shop Channel
-- **Wiiload** — Send apps directly to Wii via network
+- **Apps view**: Manage Wii homebrew applications
+- **OSC view**: Download apps from the Open Shop Channel
+- **Wiiload**: Send apps directly to Wii via network
 
 ## ⬇️ Downloads
 
