@@ -44,7 +44,7 @@
 | 🕸️ **Windows 7** (unsupported) | [![Standalone (x64)](https://img.shields.io/badge/Standalone_(x64)-v4.1.2-cyan)](https://github.com/mq1/TinyWiiBackupManager/releases/download/4.1.2/TinyWiiBackupManager-4.1.2-win7-x64.zip) [![Standalone (x86)](https://img.shields.io/badge/Standalone_(x86)-v4.1.2-cyan)](https://github.com/mq1/TinyWiiBackupManager/releases/download/4.1.2/TinyWiiBackupManager-4.1.2-win7-x86.zip)<br>[![Portable (x64)](https://img.shields.io/badge/Portable_(x64)-v4.1.2-cyan)](https://github.com/mq1/TinyWiiBackupManager/releases/download/4.1.2/TinyWiiBackupManager-4.1.2-win7-x64-portable.zip) [![Portable (x86)](https://img.shields.io/badge/Portable_(x86)-v4.1.2-cyan)](https://github.com/mq1/TinyWiiBackupManager/releases/download/4.1.2/TinyWiiBackupManager-4.1.2-win7-x86-portable.zip) |
 
 ### ⚠️ macOS installation
-The app is not notarized, You must allow it manually after installing by running this command in Terminal:
+The app is not notarized, you must allow it manually after installing by running this command in Terminal:
 ```sh
 xattr -rd com.apple.quarantine /Applications/TinyWiiBackupManager.app
 ```
