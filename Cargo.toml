@@ -49,14 +49,16 @@ path-slash = "0.2"
 hex = "0.4"
 sanitize-filename = "0.7.0-beta"
 capitalize = "0.3"
-mundy = { version = "0.2", default-features = false, optional = true, features = [
-  "accent-color",
-] }
 eframe = { version = "0.33", default-features = false, features = [
   "accesskit",
   "default_fonts",
 ] }
 winit = { version = "*", default-features = true }
+
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.62", features = [
+  "UI_ViewManagement",
+], optional = true }
 wgpu = { version = "*", default-features = false, optional = true }
 
 [features]
@@ -66,7 +68,7 @@ opengl = ["eframe/glow", "eframe/wayland", "eframe/x11"]
 dx12 = ["eframe/wgpu", "dep:wgpu", "wgpu/dx12"]
 bundled-tls = ["ureq/rustls"]
 native-tls = ["ureq/native-tls", "ureq/platform-verifier"]
-accent = ["dep:mundy"]
+accent = []
 
 [target.'cfg(target_os = "windows")'.build-dependencies]
 winres = "0.1"

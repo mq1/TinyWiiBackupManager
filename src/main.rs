@@ -4,6 +4,9 @@
 #![warn(clippy::all, rust_2018_idioms)]
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
+#[cfg(feature = "accent")]
+mod accent;
+
 mod app;
 mod archive;
 mod checksum;
@@ -29,10 +32,10 @@ use crate::app::App;
 use anyhow::{Result, anyhow};
 use eframe::{
     NativeOptions,
-    egui::{self, CornerRadius, ViewportBuilder, vec2},
+    egui::{CornerRadius, ViewportBuilder, vec2},
 };
 use egui_extras::install_image_loaders;
-use std::{fs, path::PathBuf, time::Duration};
+use std::{fs, path::PathBuf};
 
 #[cfg(not(feature = "app-dir"))]
 fn get_data_dir() -> Result<PathBuf> {
@@ -83,19 +86,6 @@ fn main() -> Result<()> {
         ..Default::default()
     };
 
-    #[cfg(feature = "accent")]
-    let accent =
-        mundy::Preferences::once_blocking(mundy::Interest::AccentColor, Duration::from_millis(100))
-            .and_then(|prefs| prefs.accent_color.0)
-            .map(|color| {
-                egui::Color32::from_rgba_unmultiplied(
-                    (color.red * 255.) as u8,
-                    (color.green * 255.) as u8,
-                    (color.blue * 255.) as u8,
-                    (color.alpha * 127.) as u8,
-                )
-            });
-
     eframe::run_native(
         &(env!("CARGO_PKG_NAME").to_string() + " v" + env!("CARGO_PKG_VERSION")),
         native_options,
@@ -105,7 +95,7 @@ fn main() -> Result<()> {
 
             cc.egui_ctx.all_styles_mut(|style| {
                 #[cfg(feature = "accent")]
-                if let Some(accent) = accent {
+                if let Some(accent) = accent::system_accent_color() {
                     style.visuals.selection.bg_fill = accent;
                     style.visuals.selection.stroke.color = style.visuals.strong_text_color();
                 }
