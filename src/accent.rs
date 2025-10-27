@@ -2,11 +2,21 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use eframe::egui;
+use std::process::Command;
 
-#[cfg(target_os = "macos")]
 pub fn system_accent_color() -> Option<egui::Color32> {
-    use std::process::Command;
+    if cfg!(target_os = "macos") {
+        return system_accent_color_macos();
+    }
 
+    if cfg!(target_os = "windows") {
+        return system_accent_color_windows();
+    }
+
+    None
+}
+
+pub fn system_accent_color_macos() -> Option<egui::Color32> {
     let output = Command::new("defaults")
         .args(&["read", "-g", "AppleAccentColor"])
         .output()
@@ -25,15 +35,30 @@ pub fn system_accent_color() -> Option<egui::Color32> {
     }
 }
 
-#[cfg(windows)]
-pub fn system_accent_color() -> Option<egui::Color32> {
-    use windows::UI::ViewManagement::UIColorType;
-    use windows::UI::ViewManagement::UISettings;
+pub fn system_accent_color_windows() -> Option<egui::Color32> {
+    let output = Command::new("reg")
+        .args(&[
+            "query",
+            "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Accent",
+            "/v",
+            "AccentColorMenu",
+        ])
+        .output()
+        .ok()?;
 
-    let settings = UISettings::new().ok()?;
-    let color = settings.GetColorValue(UIColorType::Accent).ok()?;
+    let hex_str = String::from_utf8_lossy(&output.stdout)
+        .trim()
+        .split_whitespace()
+        .last()?
+        .replace("0x", "");
 
-    Some(egui::Color32::from_rgba_unmultiplied(
-        color.R, color.G, color.B, 127,
-    ))
+    if hex_str.len() != 8 {
+        return None;
+    }
+
+    let r = u8::from_str_radix(&hex_str[0..2], 16).ok()?;
+    let g = u8::from_str_radix(&hex_str[2..4], 16).ok()?;
+    let b = u8::from_str_radix(&hex_str[4..6], 16).ok()?;
+
+    Some(egui::Color32::from_rgba_unmultiplied(r, g, b, 127))
 }
