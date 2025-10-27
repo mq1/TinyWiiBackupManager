@@ -27,7 +27,7 @@ pub fn system_accent_color() -> Option<egui::Color32> {
 
 #[cfg(windows)]
 pub fn system_accent_color() -> Option<String> {
-    use windows::UI::ViewManagemen::UIColorType;
+    use windows::UI::ViewManagement::UIColorType;
     use windows::UI::ViewManagement::UISettings;
 
     let settings = UISettings::new().ok()?;
