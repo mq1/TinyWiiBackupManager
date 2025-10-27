@@ -18,7 +18,7 @@
 - **Lightweight & Fast**: No Electron!!
 - **Cross-Platform**: Windows 7+ (x86, x64, arm64), macOS 10.12+ (x64, arm64), Linux (x86, x64, arm64)
 
-### 🎮 **Game Management**
+#### 🎮 **Game Management**
 
 - **Games view**: Manage your Wii games
 - **Format Support**: .iso, .rvz and major formats via [NOD](https://github.com/encounter/nod)
@@ -28,7 +28,7 @@
 - **Integrity Checks**: Verify game data for corruption
 - **GameTDB**: Fetch covers and `wiitdb.xml` from GameTDB
 
-### 🛠️ **Wii Homebrew Management**
+#### 🛠️ **Wii Homebrew Management**
 
 - **Apps view**: Manage Wii homebrew applications
 - **OSC view**: Download apps from the Open Shop Channel
