@@ -92,7 +92,7 @@ fn main() -> Result<()> {
                     (color.red * 255.) as u8,
                     (color.green * 255.) as u8,
                     (color.blue * 255.) as u8,
-                    (color.alpha * 255.) as u8 / 2,
+                    (color.alpha * 127.) as u8,
                 )
             });
 
