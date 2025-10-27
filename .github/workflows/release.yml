@@ -112,24 +112,24 @@ jobs:
           - target: x86_64-pc-windows-msvc
             arch: x64
             setup: true
-            features: app-dir native-tls wgpu accent
+            features: app-dir native-tls dx12 accent
           - target: x86_64-pc-windows-msvc
             arch: x64
             features: native-tls
             suffix: -portable
           - target: aarch64-pc-windows-msvc
             arch: arm64
-            features: app-dir native-tls wgpu accent
+            features: app-dir native-tls dx12 accent
           - target: aarch64-pc-windows-msvc
             arch: arm64
-            features: native-tls wgpu accent
+            features: native-tls dx12 accent
             suffix: -portable
           - target: i686-pc-windows-msvc
             arch: x86
             features: app-dir bundled-tls
           - target: i686-pc-windows-msvc
             arch: x86
-            features: bundled-tls wgpu accent
+            features: bundled-tls dx12 accent
             suffix: -portable
 
     steps:
