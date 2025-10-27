@@ -317,8 +317,10 @@ jobs:
       - name: Add downloads table to release body
         uses: softprops/action-gh-release@v2
         with:
+          name: v${{ github.ref_name }}
           body_path: downloads.md
           append_body: true
+          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
