@@ -115,7 +115,7 @@ jobs:
             features: app-dir native-tls dx12 accent
           - target: x86_64-pc-windows-msvc
             arch: x64
-            features: native-tls
+            features: native-tls dx12 accent
             suffix: -portable
           - target: aarch64-pc-windows-msvc
             arch: arm64
@@ -126,7 +126,7 @@ jobs:
             suffix: -portable
           - target: i686-pc-windows-msvc
             arch: x86
-            features: app-dir bundled-tls
+            features: app-dir bundled-tls dx12 accent
           - target: i686-pc-windows-msvc
             arch: x86
             features: bundled-tls dx12 accent
