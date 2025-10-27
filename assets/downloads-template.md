@@ -14,7 +14,7 @@
 - [![dmg (Apple Silicon)](https://img.shields.io/badge/dmg_(Apple_Silicon)-v{{ version }}-lightgray?logo=apple&logoColor=f5f5f5)](https://github.com/mq1/TinyWiiBackupManager/releases/download/{{ version }}/TinyWiiBackupManager-{{ version }}-macos-arm64.dmg) [![dmg (Intel)](https://img.shields.io/badge/dmg_(Intel)-v{{ version }}-lightgray?logo=apple&logoColor=f5f5f5)](https://github.com/mq1/TinyWiiBackupManager/releases/download/{{ version }}/TinyWiiBackupManager-{{ version }}-macos-x86_64.dmg)
 
 >**⚠️ macOS installation**\
->The app is not notarized, you must allow it manually after >installing by running this command in Terminal:
+>The app is not notarized, you must allow it manually after installing by running this command in Terminal:
 >```sh
 >xattr -rd com.apple.quarantine /Applications/TinyWiiBackupManager.>app
 >```
