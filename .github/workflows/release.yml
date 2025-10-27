@@ -296,28 +296,27 @@ jobs:
           pattern: '*dist*' # This pattern will match all final distributable artifacts
           merge-multiple: true # This places all matching artifacts into a single 'dist' directory
 
-      - name: Create version.txt
-        run: echo -n "${{ github.ref_name }}" > version.txt
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           name: v${{ github.ref_name }}
-          files: |
-            dist/*
-            version.txt
+          files: dist/*
           generate_release_notes: true
           prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Create version.txt
+        run: echo -n "${{ github.ref_name }}" > version.txt
+
       - name: Generate downloads table
         run: sed 's/{{ version }}/${{ env.VERSION_NAME }}/g' assets/downloads-template.md > downloads.md
 
-      - name: Add downloads table to release body
+      - name: Add release metadata
         uses: softprops/action-gh-release@v2
         with:
           name: v${{ github.ref_name }}
+          files: version.txt
           body_path: downloads.md
           append_body: true
           prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
