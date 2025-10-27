@@ -16,7 +16,7 @@
 >**⚠️ macOS installation**\
 >The app is not notarized, you must allow it manually after installing by running this command in Terminal:
 >```sh
->xattr -rd com.apple.quarantine /Applications/TinyWiiBackupManager.>app
+>xattr -rd com.apple.quarantine /Applications/TinyWiiBackupManager.app
 >```
 
 ## ⬇️ Download for Windows 7 / 8 / 8.1
