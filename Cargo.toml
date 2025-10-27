@@ -49,45 +49,24 @@ path-slash = "0.2"
 hex = "0.4"
 sanitize-filename = "0.7.0-beta"
 capitalize = "0.3"
-
-[target.'cfg(unix)'.dependencies]
-eframe = "0.33"
-
-[target.x86_64-pc-windows-msvc.dependencies]
+mundy = { version = "0.2", default-features = false, optional = true, features = [
+  "accent-color",
+] }
 eframe = { version = "0.33", default-features = false, features = [
   "accesskit",
   "default_fonts",
-  "wgpu",
 ] }
-wgpu = { version = "*", default-features = false, features = ["dx12"] }
-
-[target.aarch64-pc-windows-msvc.dependencies]
-eframe = { version = "0.33", default-features = false, features = [
-  "accesskit",
-  "default_fonts",
-  "wgpu",
-] }
-wgpu = { version = "*", default-features = false, features = ["dx12"] }
-
-[target.i686-pc-windows-msvc.dependencies]
-eframe = { version = "0.33", default-features = false, features = [
-  "accesskit",
-  "default_fonts",
-  "wgpu",
-] }
-wgpu = { version = "*", default-features = false, features = ["dx12"] }
-
-[target.x86_64-win7-windows-msvc.dependencies]
-eframe = "0.33"
-
-[target.i686-win7-windows-msvc.dependencies]
-eframe = "0.33"
+winit = { version = "*", default-features = true }
+wgpu = { version = "*", default-features = false, optional = true }
 
 [features]
-default = ["app-dir", "bundled-tls"]
+default = ["app-dir", "opengl", "bundled-tls", "accent"]
 app-dir = ["dep:directories"]
+opengl = ["eframe/glow", "eframe/wayland", "eframe/x11"]
+dx12 = ["eframe/wgpu", "dep:wgpu", "wgpu/dx12"]
 bundled-tls = ["ureq/rustls"]
 native-tls = ["ureq/native-tls", "ureq/platform-verifier"]
+accent = ["dep:mundy"]
 
 [target.'cfg(target_os = "windows")'.build-dependencies]
 winres = "0.1"

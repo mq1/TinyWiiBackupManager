@@ -29,10 +29,10 @@ use crate::app::App;
 use anyhow::{Result, anyhow};
 use eframe::{
     NativeOptions,
-    egui::{CornerRadius, ViewportBuilder, vec2},
+    egui::{self, CornerRadius, ViewportBuilder, vec2},
 };
 use egui_extras::install_image_loaders;
-use std::{fs, path::PathBuf};
+use std::{fs, path::PathBuf, time::Duration};
 
 #[cfg(not(feature = "app-dir"))]
 fn get_data_dir() -> Result<PathBuf> {
@@ -83,6 +83,19 @@ fn main() -> Result<()> {
         ..Default::default()
     };
 
+    #[cfg(feature = "accent")]
+    let accent =
+        mundy::Preferences::once_blocking(mundy::Interest::AccentColor, Duration::from_millis(100))
+            .and_then(|prefs| prefs.accent_color.0)
+            .map(|color| {
+                egui::Color32::from_rgba_unmultiplied(
+                    (color.red * 255.) as u8,
+                    (color.green * 255.) as u8,
+                    (color.blue * 255.) as u8,
+                    (color.alpha * 255.) as u8 / 2,
+                )
+            });
+
     eframe::run_native(
         &(env!("CARGO_PKG_NAME").to_string() + " v" + env!("CARGO_PKG_VERSION")),
         native_options,
@@ -91,6 +104,11 @@ fn main() -> Result<()> {
             cc.egui_ctx.set_theme(app.config.contents.theme_preference);
 
             cc.egui_ctx.all_styles_mut(|style| {
+                #[cfg(feature = "accent")]
+                if let Some(accent) = accent {
+                    style.visuals.selection.bg_fill = accent;
+                }
+
                 style.visuals.widgets.active.corner_radius = CornerRadius::same(30);
                 style.visuals.widgets.hovered.corner_radius = CornerRadius::same(30);
                 style.visuals.widgets.inactive.corner_radius = CornerRadius::same(30);
