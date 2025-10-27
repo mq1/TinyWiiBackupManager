@@ -107,7 +107,7 @@ fn main() -> Result<()> {
                 #[cfg(feature = "accent")]
                 if let Some(accent) = accent {
                     style.visuals.selection.bg_fill = accent;
-                    style.visuals.selection.stroke.color = style.visuals.text_color();
+                    style.visuals.selection.stroke.color = style.visuals.strong_text_color();
                 }
 
                 style.visuals.widgets.active.corner_radius = CornerRadius::same(30);
