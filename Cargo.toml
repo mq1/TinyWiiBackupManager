@@ -57,7 +57,7 @@ winit = { version = "*", default-features = true }
 wgpu = { version = "*", default-features = false, optional = true }
 
 [features]
-default = ["app-dir", "opengl", "bundled-tls"]
+default = ["app-dir", "opengl", "native-tls"]
 app-dir = ["dep:directories"]
 opengl = ["eframe/glow", "eframe/wayland", "eframe/x11"]
 dx12 = ["eframe/wgpu", "dep:wgpu", "wgpu/dx12"]

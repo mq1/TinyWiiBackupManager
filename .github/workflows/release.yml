@@ -54,8 +54,6 @@ jobs:
 
       - name: Set up Mold
         uses: rui314/setup-mold@v1
-        with:
-          make-default: false
 
       - name: Install dependencies
         run: |
@@ -70,7 +68,7 @@ jobs:
           chmod +x linuxdeploy*.AppImage
 
       - name: Build binary
-        run: cargo build --release --locked --target ${{ matrix.target }}
+        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "app-dir bundled-tls opengl"
         env:
           CC: "clang"
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: "clang"
@@ -78,7 +76,7 @@ jobs:
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: "clang"
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_RUSTFLAGS: "-C link-arg=-fuse-ld=/usr/local/bin/mold"
           CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER: "clang"
-          CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_RUSTFLAGS: "-C link-arg=-fuse-ld=/usr/local/bin/mold -C link-arg=--target=i686-unknown-linux-gnu"
+          CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_RUSTFLAGS: "-C link-arg=-fuse-ld=/usr/local/bin/mold"
 
       - name: Package binary as tar.gz
         run: |
