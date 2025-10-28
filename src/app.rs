@@ -8,7 +8,7 @@ use crate::{
     extensions,
     games::{self, Game},
     hbc_apps::{self, HbcApp},
-    osc::OscApp,
+    osc::{self, OscApp},
     tasks::{BackgroundMessage, TaskProcessor},
     titles::Titles,
     ui,
@@ -16,11 +16,13 @@ use crate::{
     util,
     wiitdb::{self, GameInfo},
 };
+use crossbeam_channel::{Receiver, unbounded};
 use eframe::egui;
 use egui_file_dialog::FileDialog;
 use egui_notify::{Anchor, Toasts};
 use std::{
     path::{Path, PathBuf},
+    thread,
     time::Duration,
 };
 
@@ -45,6 +47,7 @@ pub struct App {
     pub hbc_apps: Vec<HbcApp>,
     pub filtered_hbc_apps: Vec<HbcApp>,
     pub task_processor: TaskProcessor,
+    pub downloading_osc_icons: Option<Receiver<String>>,
     pub choose_mount_point: FileDialog,
     pub choose_games: FileDialog,
     pub choose_hbc_apps: FileDialog,
@@ -93,6 +96,7 @@ impl App {
             game_info: None,
             removing_game: None,
             task_processor: TaskProcessor::init(),
+            downloading_osc_icons: None,
             choose_mount_point: FileDialog::new().as_modal(true),
             choose_games: FileDialog::new()
                 .as_modal(true)
@@ -252,6 +256,24 @@ impl App {
         hbc_apps::sort(&mut self.hbc_apps, &self.config.contents.sort_by);
         self.update_filtered_hbc_apps();
     }
+
+    pub fn download_osc_icons(&mut self) {
+        let icons_dir = self.data_dir.join("osc-icons");
+
+        if let Some(osc_apps) = self.osc_apps.clone() {
+            let (sender, receiver) = unbounded();
+
+            thread::spawn(move || {
+                for osc_app in osc_apps {
+                    if osc::download_icon(&osc_app.meta, &icons_dir).is_ok() {
+                        let _ = sender.send(osc_app.icon_uri);
+                    }
+                }
+            });
+
+            self.downloading_osc_icons = Some(receiver);
+        }
+    }
 }
 
 impl eframe::App for App {
@@ -281,6 +303,9 @@ impl eframe::App for App {
                 BackgroundMessage::TriggerRefreshImages => {
                     ctx.forget_all_images();
                 }
+                BackgroundMessage::TriggerRefreshImage(uri) => {
+                    ctx.forget_image(&uri);
+                }
                 BackgroundMessage::TriggerRefreshGames => {
                     self.refresh_games(ctx);
                 }
@@ -307,6 +332,13 @@ impl eframe::App for App {
             }
 
             ctx.request_repaint();
+        }
+
+        // Process OSC icon updates
+        if let Some(receiver) = self.downloading_osc_icons.as_mut() {
+            while let Ok(icon_uri) = receiver.try_recv() {
+                ctx.forget_image(&icon_uri);
+            }
         }
     }
 }
