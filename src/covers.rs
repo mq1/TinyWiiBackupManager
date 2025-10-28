@@ -2,25 +2,26 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{app::App, games::GameID, http::AGENT, tasks::BackgroundMessage};
-use anyhow::Result;
+use anyhow::{Result, bail};
 use std::{fs, path::Path};
 
 fn download_cover3d(id: &GameID, mount_point: &Path) -> Result<()> {
     let images_dir = mount_point.join("apps").join("usbloader_gx").join("images");
     fs::create_dir_all(&images_dir)?;
 
-    let path = images_dir.join(id.as_ref()).with_extension("png");
+    let path = images_dir.join(id.as_str()).with_extension("png");
+    if path.exists() {
+        bail!("{} already exists", path.display());
+    }
 
     let url = format!(
         "https://art.gametdb.com/wii/cover3D/{}/{}.png",
         id.get_wiitdb_lang(),
-        id.as_ref()
+        id.as_str()
     );
 
-    if !path.exists() {
-        let bytes = AGENT.get(&url).call()?.body_mut().read_to_vec()?;
-        fs::write(&path, bytes)?;
-    }
+    let bytes = AGENT.get(&url).call()?.body_mut().read_to_vec()?;
+    fs::write(&path, bytes)?;
 
     Ok(())
 }
@@ -33,12 +34,12 @@ fn download_cover2d(id: &GameID, mount_point: &Path) -> Result<()> {
         .join("2D");
     fs::create_dir_all(&images_dir)?;
 
-    let path = images_dir.join(id.as_ref()).with_extension("png");
+    let path = images_dir.join(id.as_str()).with_extension("png");
 
     let url = format!(
         "https://art.gametdb.com/wii/cover/{}/{}.png",
         id.get_wiitdb_lang(),
-        id.as_ref()
+        id.as_str()
     );
 
     if !path.exists() {
@@ -57,12 +58,12 @@ fn download_coverfull(id: &GameID, mount_point: &Path) -> Result<()> {
         .join("full");
     fs::create_dir_all(&images_dir)?;
 
-    let path = images_dir.join(id.as_ref()).with_extension("png");
+    let path = images_dir.join(id.as_str()).with_extension("png");
 
     let url = format!(
         "https://art.gametdb.com/wii/coverfull/{}/{}.png",
         id.get_wiitdb_lang(),
-        id.as_ref()
+        id.as_str()
     );
 
     if !path.exists() {
@@ -73,7 +74,7 @@ fn download_coverfull(id: &GameID, mount_point: &Path) -> Result<()> {
     // for WiiFlow lite
     let wiiflow_cover_dir = mount_point.join("wiiflow").join("boxcovers");
     fs::create_dir_all(&wiiflow_cover_dir)?;
-    let dest = wiiflow_cover_dir.join(format!("{}.png", id.as_ref()));
+    let dest = wiiflow_cover_dir.join(format!("{}.png", id.as_str()));
     if !dest.exists() {
         fs::copy(&path, &dest)?;
     }
@@ -89,12 +90,12 @@ fn download_disc_cover(id: &GameID, mount_point: &Path) -> Result<()> {
         .join("disc");
     fs::create_dir_all(&images_dir)?;
 
-    let path = images_dir.join(id.as_ref()).with_extension("png");
+    let path = images_dir.join(id.as_str()).with_extension("png");
 
     let url = format!(
         "https://art.gametdb.com/wii/disc/{}/{}.png",
         id.get_wiitdb_lang(),
-        id.as_ref()
+        id.as_str()
     );
 
     if !path.exists() {
@@ -116,16 +117,17 @@ pub fn spawn_download_covers_task(app: &App) {
         ))?;
 
         let len = games.len();
-        for (i, game) in games.iter().enumerate() {
+        for (i, game) in games.into_iter().enumerate() {
             msg_sender.send(BackgroundMessage::UpdateStatus(format!(
                 "🖻 Downloading covers... ({}/{})",
                 i + 1,
                 len
             )))?;
-            let _ = download_cover3d(&game.id, &mount_point);
-        }
 
-        msg_sender.send(BackgroundMessage::TriggerRefreshImages)?;
+            if download_cover3d(&game.id, &mount_point).is_ok() {
+                let _ = BackgroundMessage::TriggerRefreshImage(game.image_uri);
+            }
+        }
 
         msg_sender.send(BackgroundMessage::NotifyInfo(
             "🖻 Covers downloaded".to_string(),
@@ -145,20 +147,21 @@ pub fn spawn_download_all_covers_task(app: &App) {
         ))?;
 
         let len = games.len();
-        for (i, game) in games.iter().enumerate() {
+        for (i, game) in games.into_iter().enumerate() {
             msg_sender.send(BackgroundMessage::UpdateStatus(format!(
                 "🖻 Downloading covers... ({}/{})",
                 i + 1,
                 len
             )))?;
 
-            let _ = download_cover3d(&game.id, &mount_point);
+            if download_cover3d(&game.id, &mount_point).is_ok() {
+                let _ = BackgroundMessage::TriggerRefreshImage(game.image_uri);
+            }
+
             let _ = download_cover2d(&game.id, &mount_point);
             let _ = download_coverfull(&game.id, &mount_point);
             let _ = download_disc_cover(&game.id, &mount_point);
         }
-
-        msg_sender.send(BackgroundMessage::TriggerRefreshImages)?;
 
         msg_sender.send(BackgroundMessage::NotifyInfo(
             "🖻 Covers downloaded".to_string(),
