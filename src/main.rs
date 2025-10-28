@@ -37,6 +37,8 @@ use eframe::{
 use egui_extras::install_image_loaders;
 use std::{fs, path::PathBuf};
 
+const APP_NAME: &str = concat!(env!("CARGO_PKG_NAME"), " v", env!("CARGO_PKG_VERSION"));
+
 #[cfg(not(feature = "app-dir"))]
 fn get_data_dir() -> Result<PathBuf> {
     // For portable builds, use a directory next to the executable
@@ -88,7 +90,7 @@ fn main() -> Result<()> {
     };
 
     eframe::run_native(
-        &(env!("CARGO_PKG_NAME").to_string() + " v" + env!("CARGO_PKG_VERSION")),
+        APP_NAME,
         native_options,
         Box::new(|cc| {
             install_image_loaders(&cc.egui_ctx);
