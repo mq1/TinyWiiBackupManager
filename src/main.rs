@@ -66,6 +66,7 @@ fn main() -> Result<()> {
 
     titles::spawn_get_titles_task(&app); // this loads games when finished
     updater::spawn_check_update_task(&app);
+    osc::spawn_load_osc_apps_task(&app);
 
     // -------------
     // Initialize UI
