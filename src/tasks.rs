@@ -60,6 +60,7 @@ pub enum BackgroundMessage {
     UpdateStatus(String),
     ClearStatus,
     TriggerRefreshImages,
+    TriggerRefreshImage(String),
     TriggerRefreshGames,
     TriggerRefreshHbcApps,
     GotUpdateInfo(UpdateInfo),
