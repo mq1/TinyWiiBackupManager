@@ -1,41 +1,32 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#[allow(unused_imports)]
+use anyhow::{Result, anyhow, bail};
 use eframe::egui;
 use std::process::Command;
 
-pub fn system_accent_color() -> Option<egui::Color32> {
-    if cfg!(target_os = "macos") {
-        return system_accent_color_macos();
-    }
-
-    if cfg!(target_os = "windows") {
-        return system_accent_color_windows();
-    }
-
-    None
-}
-
-pub fn system_accent_color_macos() -> Option<egui::Color32> {
+#[cfg(target_os = "macos")]
+pub fn system_accent_color() -> Result<egui::Color32> {
     let output = Command::new("defaults")
         .args(&["read", "-g", "AppleAccentColor"])
-        .output()
-        .ok()?;
+        .output()?;
 
     match String::from_utf8_lossy(&output.stdout).trim() {
-        "0" => Some(egui::Color32::from_rgba_unmultiplied(236, 95, 93, 127)), // red
-        "1" => Some(egui::Color32::from_rgba_unmultiplied(232, 136, 58, 127)), // orange
-        "2" => Some(egui::Color32::from_rgba_unmultiplied(246, 200, 68, 127)), // yellow
-        "3" => Some(egui::Color32::from_rgba_unmultiplied(120, 184, 86, 127)), // green
-        "4" => Some(egui::Color32::from_rgba_unmultiplied(52, 120, 246, 127)), // blue
-        "5" => Some(egui::Color32::from_rgba_unmultiplied(154, 85, 163, 127)), // purple
-        "6" => Some(egui::Color32::from_rgba_unmultiplied(228, 92, 156, 127)), // pink
-        "-1" => Some(egui::Color32::from_rgba_unmultiplied(140, 140, 140, 127)), // gray
-        _ => None,
+        "0" => Ok(egui::Color32::from_rgba_unmultiplied(236, 95, 93, 127)), // red
+        "1" => Ok(egui::Color32::from_rgba_unmultiplied(232, 136, 58, 127)), // orange
+        "2" => Ok(egui::Color32::from_rgba_unmultiplied(246, 200, 68, 127)), // yellow
+        "3" => Ok(egui::Color32::from_rgba_unmultiplied(120, 184, 86, 127)), // green
+        "4" => Ok(egui::Color32::from_rgba_unmultiplied(52, 120, 246, 127)), // blue
+        "5" => Ok(egui::Color32::from_rgba_unmultiplied(154, 85, 163, 127)), // purple
+        "6" => Ok(egui::Color32::from_rgba_unmultiplied(228, 92, 156, 127)), // pink
+        "-1" => Ok(egui::Color32::from_rgba_unmultiplied(140, 140, 140, 127)), // gray
+        _ => Err(anyhow!("Unknown accent color")),
     }
 }
 
-pub fn system_accent_color_windows() -> Option<egui::Color32> {
+#[cfg(windows)]
+pub fn system_accent_color() -> Result<egui::Color32> {
     let output = Command::new("reg")
         .args(&[
             "query",
@@ -43,22 +34,23 @@ pub fn system_accent_color_windows() -> Option<egui::Color32> {
             "/v",
             "AccentColorMenu",
         ])
-        .output()
-        .ok()?;
+        .creation_flags(0x08000000) // CREATE_NO_WINDOW
+        .output()?;
 
     let hex_str = String::from_utf8_lossy(&output.stdout)
         .trim()
         .split_whitespace()
-        .last()?
+        .last()
+        .ok_or(anyhow!("Failed to parse accent color"))?
         .replace("0x", "");
 
     if hex_str.len() != 8 {
-        return None;
+        bail!("Invalid accent color");
     }
 
-    let r = u8::from_str_radix(&hex_str[0..2], 16).ok()?;
-    let g = u8::from_str_radix(&hex_str[2..4], 16).ok()?;
-    let b = u8::from_str_radix(&hex_str[4..6], 16).ok()?;
+    let r = u8::from_str_radix(&hex_str[0..2], 16)?;
+    let g = u8::from_str_radix(&hex_str[2..4], 16)?;
+    let b = u8::from_str_radix(&hex_str[4..6], 16)?;
 
-    Some(egui::Color32::from_rgba_unmultiplied(r, g, b, 127))
+    Ok(egui::Color32::from_rgba_unmultiplied(r, g, b, 127))
 }
