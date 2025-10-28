@@ -8,7 +8,7 @@ use crate::{
     extensions,
     games::{self, Game},
     hbc_apps::{self, HbcApp},
-    osc::{self, OscApp},
+    osc::OscApp,
     tasks::{BackgroundMessage, TaskProcessor},
     titles::Titles,
     ui,
@@ -244,10 +244,6 @@ impl App {
         }
 
         self.update_title(ctx);
-    }
-
-    pub fn refresh_osc_apps(&self) {
-        osc::spawn_load_osc_apps_task(self);
     }
 
     pub fn apply_sorting(&mut self) {
