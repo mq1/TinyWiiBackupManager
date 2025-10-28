@@ -39,7 +39,8 @@ pub fn system_accent_color() -> Result<egui::Color32> {
         .creation_flags(0x08000000) // CREATE_NO_WINDOW
         .output()?;
 
-    let hex_str = String::from_utf8_lossy(&output.stdout)
+    let out_str = String::from_utf8_lossy(&output.stdout);
+    let hex_str = out_str
         .trim()
         .split_whitespace()
         .last()
