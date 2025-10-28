@@ -5,8 +5,7 @@
 <h1 align="center">TinyWiiBackupManager</h1>
 
 <p align="center">
-  ‼️ <strong>Use this ONLY with legally obtained backups</strong> ‼️<br>
-  🏴‍☠️ <strong>This project does NOT support piracy</strong> 🏴‍☠️
+  ‼️ TinyWiiBackupManager is intended strictly for legal homebrew use and is not affiliated with or endorsed by Nintendo. Use of TinyWiiBackupManager for pirated or unauthorized copies of games is strictly prohibited
 </p>
 
 <p align="center">
