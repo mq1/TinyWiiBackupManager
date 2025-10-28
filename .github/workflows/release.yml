@@ -299,17 +299,6 @@ jobs:
       - name: Create version.txt
         run: echo -n "${{ github.ref_name }}" > version.txt
 
-      - name: Build Changelog
-        id: github_release
-        uses: mikepenz/release-changelog-builder-action@v5
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Generate release body
-        run: |
-          echo "${{ steps.github_release.outputs.changelog }}" > release.md
-          sed 's/{{ version }}/${{ env.VERSION_NAME }}/g' assets/downloads-template.md >> release.md
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -317,8 +306,20 @@ jobs:
           files: |
             dist/*
             version.txt
-          generate_release_notes: false
-          body_path: release.md
+          generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate downloads table
+        run: sed 's/{{ version }}/${{ env.VERSION_NAME }}/g' assets/downloads-template.md > downloads.md
+    
+      - name: Append downloads table to release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: v${{ github.ref_name }}
+          append_body: true
+          body_path: downloads.md
           prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
