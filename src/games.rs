@@ -80,12 +80,12 @@ impl Game {
             .join("apps")
             .join("usbloader_gx")
             .join("images")
-            .join(id.as_ref())
+            .join(id.as_str())
             .with_extension("png");
 
         let image_uri = format!("file://{}", image_path.to_slash_lossy());
 
-        let search_str = (display_title.clone() + id.as_ref()).to_lowercase();
+        let search_str = (display_title.clone() + id.as_str()).to_lowercase();
 
         // Construct the Game object
         Ok(Self {
@@ -154,6 +154,10 @@ impl GameID {
             _ => "EN",
         }
     }
+
+    pub fn as_str(&self) -> &str {
+        std::str::from_utf8(&self.0).unwrap_or("[invalid]")
+    }
 }
 
 impl From<&str> for GameID {
@@ -163,12 +167,6 @@ impl From<&str> for GameID {
         let len = bytes.len().min(6);
         id_bytes[..len].copy_from_slice(&bytes[..len]);
         GameID(id_bytes)
-    }
-}
-
-impl AsRef<str> for GameID {
-    fn as_ref(&self) -> &str {
-        std::str::from_utf8(&self.0).unwrap_or("[invalid]")
     }
 }
 

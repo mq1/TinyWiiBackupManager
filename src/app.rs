@@ -300,9 +300,6 @@ impl eframe::App for App {
                 BackgroundMessage::ClearStatus => {
                     self.status.clear();
                 }
-                BackgroundMessage::TriggerRefreshImages => {
-                    ctx.forget_all_images();
-                }
                 BackgroundMessage::TriggerRefreshImage(uri) => {
                     ctx.forget_image(&uri);
                 }
