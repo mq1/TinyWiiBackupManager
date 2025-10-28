@@ -43,16 +43,15 @@ pub fn system_accent_color() -> Result<egui::Color32> {
         .trim()
         .split_whitespace()
         .last()
-        .ok_or(anyhow!("Failed to parse accent color"))?
-        .replace("0xff", "");
+        .ok_or(anyhow!("Failed to parse accent color"))?;
 
-    if hex_str.len() != 6 {
+    if hex_str.len() != 10 {
         bail!("Invalid accent color");
     }
 
-    let r = u8::from_str_radix(&hex_str[0..2], 16)?;
-    let g = u8::from_str_radix(&hex_str[2..4], 16)?;
-    let b = u8::from_str_radix(&hex_str[4..6], 16)?;
+    let r = u8::from_str_radix(&hex_str[4..6], 16)?;
+    let g = u8::from_str_radix(&hex_str[6..8], 16)?;
+    let b = u8::from_str_radix(&hex_str[8..10], 16)?;
 
     Ok(egui::Color32::from_rgba_unmultiplied(r, g, b, 127))
 }
