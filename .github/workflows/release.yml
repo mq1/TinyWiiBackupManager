@@ -126,10 +126,10 @@ jobs:
             suffix: -portable
           - target: i686-pc-windows-msvc
             arch: x86
-            features: app-dir bundled-tls dx12 accent
+            features: app-dir native-tls dx12 accent
           - target: i686-pc-windows-msvc
             arch: x86
-            features: bundled-tls dx12 accent
+            features: native-tls dx12 accent
             suffix: -portable
 
     steps:
@@ -243,7 +243,7 @@ jobs:
             features: app-dir native-tls opengl accent
           - target: x86_64-apple-darwin
             arch: x86_64
-            features: app-dir bundled-tls opengl accent
+            features: app-dir native-tls opengl accent
 
     steps:
       - name: Checkout
