@@ -19,6 +19,8 @@ pub fn spawn_load_osc_apps_task(app: &App) {
             "📓 Downloading OSC Meta...".to_string(),
         ))?;
 
+        fs::create_dir_all(&icons_dir)?;
+
         let cache = match load_cache(&cache_path) {
             Ok(cache) => cache,
             Err(_) => {
@@ -27,18 +29,6 @@ pub fn spawn_load_osc_apps_task(app: &App) {
                 serde_json::from_slice(&bytes)?
             }
         };
-
-        fs::create_dir_all(&icons_dir)?;
-        let len = cache.len();
-        for (i, meta) in cache.iter().enumerate() {
-            msg_sender.send(BackgroundMessage::UpdateStatus(format!(
-                "📥 Downloading OSC App icons... {}/{}",
-                i + 1,
-                len
-            )))?;
-
-            let _ = download_icon(meta, &icons_dir);
-        }
 
         let apps = cache
             .into_iter()
@@ -71,11 +61,11 @@ fn load_cache(path: &Path) -> Result<Vec<OscAppMeta>> {
     Ok(apps)
 }
 
-fn download_icon(meta: &OscAppMeta, icons_dir: &Path) -> Result<()> {
+pub fn download_icon(meta: &OscAppMeta, icons_dir: &Path) -> Result<()> {
     let icon_path = icons_dir.join(&meta.slug).with_extension("png");
 
     if icon_path.exists() {
-        return Ok(());
+        bail!("{} already exists", icon_path.display());
     }
 
     let (_, body) = AGENT.get(&meta.assets.icon.url).call()?.into_parts();
