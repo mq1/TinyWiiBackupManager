@@ -25,6 +25,7 @@ pub fn system_accent_color() -> Result<egui::Color32> {
     }
 }
 
+// https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-rdperp/bc6975ee-c630-4414-ba10-04eecbb6fccc
 #[cfg(windows)]
 pub fn system_accent_color() -> Result<egui::Color32> {
     use std::os::windows::process::CommandExt;
@@ -32,9 +33,9 @@ pub fn system_accent_color() -> Result<egui::Color32> {
     let output = Command::new("reg")
         .args(&[
             "query",
-            "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Accent",
+            "HKCU\\Software\\Microsoft\\Windows\\DWM",
             "/v",
-            "StartColorMenu",
+            "ColorizationColor",
         ])
         .creation_flags(0x08000000) // CREATE_NO_WINDOW
         .output()?;
