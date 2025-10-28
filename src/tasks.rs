@@ -59,7 +59,6 @@ pub enum BackgroundMessage {
     NotifySuccess(String),
     UpdateStatus(String),
     ClearStatus,
-    TriggerRefreshImages,
     TriggerRefreshImage(String),
     TriggerRefreshGames,
     TriggerRefreshHbcApps,
