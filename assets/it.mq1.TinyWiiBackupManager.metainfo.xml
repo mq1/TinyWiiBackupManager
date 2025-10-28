@@ -12,26 +12,25 @@
     <description>
         <p>✨ Features</p>
         <ul>
-            <li>Lightweight &amp; Fast — No Electron!!</li>
-            <li>Cross-Platform — Windows 7+ (x86, x64, arm64), macOS 10.12+ (x64, arm64), Linux (x86, x64, arm64)</li>
+            <li>Lightweight &amp; Fast: No Electron!!</li>
+            <li>Cross-Platform: Windows 7+ (x86, x64, arm64), macOS 10.12+ (x64, arm64), Linux (x86, x64, arm64)</li>
         </ul>
         <p>🎮 Game Management</p>
         <ul>
-            <li>Format Support — .iso, .rvz and major formats via
-                <code>NOD</code>
-            </li>
-            <li>Automatic Splitting — .wbfs file splitting when needed</li>
-            <li>Partition Stripping — Remove the update partition to save space</li>
-            <li>Game Archiving — Archive games using RVZ+zstd-19</li>
-            <li>Integrity Checks — Verify game data for corruption</li>
-            <li>GameTDB — Fetch covers and <code>wiitdb.xml</code> from GameTDB
+            <li>Games view: Manage your Wii games</li>
+            <li>Format Support: .iso, .rvz and major formats thanks to <code>NOD</code></li>
+            <li>Automatic Splitting: .wbfs file splitting when needed</li>
+            <li>Partition Stripping: Remove the update partition to save space</li>
+            <li>Game Archiving: Archive games using RVZ+zstd-19</li>
+            <li>Integrity Checks: Verify game data for corruption</li>
+            <li>GameTDB: Fetch covers and <code>wiitdb.xml</code> from GameTDB
             </li>
         </ul>
         <p>🛠️ Wii Homebrew Management</p>
         <ul>
-            <li>Apps — Manage Wii homebrew applications</li>
-            <li>OSC — Download apps from the Open Shop Channel</li>
-            <li>Wiiload — Send apps directly to Wii via network</li>
+            <li>Apps: Manage Wii homebrew applications</li>
+            <li>OSC: Download apps from the Open Shop Channel</li>
+            <li>Wiiload: Send apps directly to Wii via network</li>
         </ul>
     </description>
     <launchable type="desktop-id">it.mq1.TinyWiiBackupManager.desktop</launchable>
@@ -50,11 +49,14 @@
     <url type="vcs-browser">https://github.com/mq1/TinyWiiBackupManager</url>
     <screenshots>
         <screenshot type="default">
-            <image>https://github.com/mq1/TinyWiiBackupManager/blob/4.1.2/assets/screenshot.png?raw=true</image>
+            <image>https://github.com/mq1/TinyWiiBackupManager/blob/4.1.3/assets/screenshot.png?raw=true</image>
             <caption>TinyWiiBackupManager screenshot</caption>
         </screenshot>
     </screenshots>
     <releases>
+        <release version="4.1.3" date="2025-10-28">
+            <url type="details">https://github.com/mq1/TinyWiiBackupManager/releases/tag/4.1.3</url>
+        </release>
         <release version="4.1.2" date="2025-10-25">
             <url type="details">https://github.com/mq1/TinyWiiBackupManager/releases/tag/4.1.2</url>
         </release>
