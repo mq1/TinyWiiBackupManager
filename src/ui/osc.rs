@@ -6,17 +6,12 @@ use crate::{
     config::ViewAs,
     ui::{osc_grid, osc_list},
 };
-use eframe::egui::{self, Vec2};
+use eframe::egui;
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
     egui::CentralPanel::default().show(ctx, |ui| {
         view_top_bar(ui, app);
         ui.add_space(10.);
-
-        if app.osc_apps.is_none() {
-            ui.heading("Click on ⟳ to fetch the OSC Apps");
-            return;
-        }
 
         match app.config.contents.view_as {
             ViewAs::Grid => osc_grid::update(ui, app),
@@ -46,17 +41,6 @@ fn view_top_bar(ui: &mut egui::Ui, app: &mut App) {
         });
 
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-            if ui
-                .add_sized(
-                    Vec2::splat(34.),
-                    egui::Button::new(egui::RichText::new("⟳").size(18.)),
-                )
-                .on_hover_text("Fetch Apps")
-                .clicked()
-            {
-                app.refresh_osc_apps();
-            }
-
             let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
             group.show(ui, |ui| {
                 ui.add(
