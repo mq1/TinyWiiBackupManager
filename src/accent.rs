@@ -31,9 +31,9 @@ pub fn system_accent_color() -> Result<egui::Color32> {
     let output = Command::new("reg")
         .args(&[
             "query",
-            "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Accent",
+            "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Accent",
             "/v",
-            "AccentColorMenu",
+            "StartColorMenu",
         ])
         .creation_flags(0x08000000) // CREATE_NO_WINDOW
         .output()?;
@@ -43,9 +43,9 @@ pub fn system_accent_color() -> Result<egui::Color32> {
         .split_whitespace()
         .last()
         .ok_or(anyhow!("Failed to parse accent color"))?
-        .replace("0x", "");
+        .replace("0xff", "");
 
-    if hex_str.len() != 8 {
+    if hex_str.len() != 6 {
         anyhow::bail!("Invalid accent color");
     }
 
