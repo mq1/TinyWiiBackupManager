@@ -5,7 +5,7 @@
 <h1 align="center">TinyWiiBackupManager</h1>
 
 <p align="center">
-  ‼️ <strong>Only use with legally obtained backups</strong> ‼️<br>
+  ‼️ <strong>Use this ONLY with legally obtained backups</strong> ‼️<br>
   🏴‍☠️ <strong>This project does NOT support piracy</strong> 🏴‍☠️
 </p>
 
@@ -18,17 +18,17 @@
 - **Lightweight & Fast**: No Electron!!
 - **Cross-Platform**: Windows 7+ (x86, x64, arm64), macOS 10.12+ (x64, arm64), Linux (x86, x64, arm64)
 
-#### 🎮 **Game Management**
+#### 🎮 Game Management
 
 - **Games view**: Manage your Wii games
-- **Format Support**: .iso, .rvz and major formats via [NOD](https://github.com/encounter/nod)
+- **Format Support**: .iso, .rvz and major formats thanks to [NOD](https://github.com/encounter/nod)
 - **Automatic Splitting**: .wbfs file splitting when needed
 - **Partition Stripping**: Remove the update partition to save space
 - **Game Archiving**: Archive games using RVZ+zstd-19
 - **Integrity Checks**: Verify game data for corruption
 - **GameTDB**: Fetch covers and `wiitdb.xml` from GameTDB
 
-#### 🛠️ **Wii Homebrew Management**
+#### 🛠️ Wii Homebrew Management
 
 - **Apps view**: Manage Wii homebrew applications
 - **OSC view**: Download apps from the Open Shop Channel
