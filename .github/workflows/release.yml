@@ -110,24 +110,21 @@ jobs:
           - target: x86_64-pc-windows-msvc
             arch: x64
             setup: true
-            features: app-dir native-tls dx12 accent
+            features: app-dir
           - target: x86_64-pc-windows-msvc
             arch: x64
-            features: native-tls dx12 accent
             suffix: -portable
           - target: aarch64-pc-windows-msvc
             arch: arm64
-            features: app-dir native-tls dx12 accent
+            features: app-dir
           - target: aarch64-pc-windows-msvc
             arch: arm64
-            features: native-tls dx12 accent
             suffix: -portable
           - target: i686-pc-windows-msvc
             arch: x86
-            features: app-dir native-tls dx12 accent
+            features: app-dir
           - target: i686-pc-windows-msvc
             arch: x86
-            features: native-tls dx12 accent
             suffix: -portable
 
     steps:
@@ -148,7 +145,7 @@ jobs:
         run: cargo install cargo-packager --version ^0.11 --locked
 
       - name: Build binary
-        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "${{ matrix.features }}"
+        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "native-tls dx12 accent ${{ matrix.features }}"
         env:
           CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
@@ -183,17 +180,15 @@ jobs:
         include:
           - target: x86_64-win7-windows-msvc
             arch: x64
-            features: app-dir bundled-tls opengl
+            features: app-dir
           - target: x86_64-win7-windows-msvc
             arch: x64
-            features: bundled-tls opengl
             suffix: -portable
           - target: i686-win7-windows-msvc
             arch: x86
-            features: app-dir bundled-tls opengl
+            features: app-dir
           - target: i686-win7-windows-msvc
             arch: x86
-            features: bundled-tls opengl
             suffix: -portable
 
     steps:
@@ -210,7 +205,7 @@ jobs:
           cache: false
 
       - name: Build binary
-        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "${{ matrix.features }}"
+        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls opengl ${{ matrix.features }}"
         env: 
           RUSTC_BOOTSTRAP: 1
           CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_LINKER: "rust-lld.exe"
@@ -238,10 +233,8 @@ jobs:
         include:
           - target: aarch64-apple-darwin
             arch: arm64
-            features: app-dir native-tls opengl accent
           - target: x86_64-apple-darwin
             arch: x86_64
-            features: app-dir native-tls opengl accent
 
     steps:
       - name: Checkout
@@ -262,7 +255,7 @@ jobs:
           npm i -g appdmg@0.6.6
 
       - name: Build binary
-        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "${{ matrix.features }}"
+        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "app-dir native-tls opengl accent"
 
       - name: Create app with cargo-packager
         run: cargo packager --release --target ${{ matrix.target }} --formats app
