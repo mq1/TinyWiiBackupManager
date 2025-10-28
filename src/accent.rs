@@ -1,8 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-#[allow(unused_imports)]
-use anyhow::{Result, anyhow, bail};
+use anyhow::Result;
 use eframe::egui;
 use std::process::Command;
 
@@ -21,12 +20,14 @@ pub fn system_accent_color() -> Result<egui::Color32> {
         "5" => Ok(egui::Color32::from_rgba_unmultiplied(154, 85, 163, 127)), // purple
         "6" => Ok(egui::Color32::from_rgba_unmultiplied(228, 92, 156, 127)), // pink
         "-1" => Ok(egui::Color32::from_rgba_unmultiplied(140, 140, 140, 127)), // gray
-        _ => Err(anyhow!("Unknown accent color")),
+        _ => Err(anyhow::anyhow!("Unknown accent color")),
     }
 }
 
 #[cfg(windows)]
 pub fn system_accent_color() -> Result<egui::Color32> {
+    use std::os::windows::process::CommandExt;
+
     let output = Command::new("reg")
         .args(&[
             "query",
@@ -45,7 +46,7 @@ pub fn system_accent_color() -> Result<egui::Color32> {
         .replace("0x", "");
 
     if hex_str.len() != 8 {
-        bail!("Invalid accent color");
+        anyhow::bail!("Invalid accent color");
     }
 
     let r = u8::from_str_radix(&hex_str[0..2], 16)?;
