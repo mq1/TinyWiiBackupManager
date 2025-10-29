@@ -38,6 +38,7 @@
     <launchable type="desktop-id">it.mq1.TinyWiiBackupManager.desktop</launchable>
     <categories>
         <category>Utility</category>
+        <category>GameTool</category>
     </categories>
     <keywords>
         <keyword>Game Manager</keyword>
