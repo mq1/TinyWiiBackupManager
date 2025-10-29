@@ -2,8 +2,7 @@
 
 ### `TinyWiiBackupManager` <sub><sup>(a dead simple Wii backup manager)</sup></sub>
 
-‼️ TinyWiiBackupManager is intended strictly for legal homebrew use and is not affiliated with or endorsed by Nintendo.\
-‼️ Use of TinyWiiBackupManager for pirated or unauthorized copies of games is strictly prohibited.
+<sub>‼️ TinyWiiBackupManager is intended strictly for legal homebrew use and is not affiliated with or endorsed by Nintendo.<br>‼️ Use of TinyWiiBackupManager for pirated or unauthorized copies of games is strictly prohibited.</sub>
 
 <p align="center">
   <img alt="App Screenshot" src="assets/screenshot.png">
