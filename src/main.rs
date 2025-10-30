@@ -22,6 +22,7 @@ mod osc;
 mod overflow_reader;
 mod tasks;
 mod titles;
+mod txtcodes;
 mod ui;
 mod updater;
 mod util;
