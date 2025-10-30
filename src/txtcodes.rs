@@ -33,18 +33,22 @@ pub fn download_cheats(app: &mut App) {
         fs::create_dir_all(&txt_cheatcodespath)?;
 
         for game in &games {
+            msg_sender.send(BackgroundMessage::UpdateStatus(format!(
+                "📓 Downloading cheats... ({})",
+                &game.display_title
+            )))?;
+
             if let Err(e) = download_cheats_for_game(&txt_cheatcodespath, &game.id) {
                 msg_sender.send(BackgroundMessage::NotifyError(format!(
                     "Failed to download cheats for {}: {}",
                     &game.display_title, e
                 )))?;
-            } else {
-                msg_sender.send(BackgroundMessage::NotifySuccess(format!(
-                    "Downloaded cheats for {}",
-                    &game.display_title
-                )))?;
             }
         }
+
+        msg_sender.send(BackgroundMessage::NotifyInfo(
+            "📓 Cheats downloaded".to_string(),
+        ))?;
 
         Ok(())
     });
