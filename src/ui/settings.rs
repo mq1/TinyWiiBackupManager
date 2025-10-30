@@ -7,6 +7,8 @@ use egui_theme_switch::ThemeSwitch;
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
     egui::CentralPanel::default().show(ctx, |ui| {
+        ui.style_mut().spacing.item_spacing.y *= 2.;
+
         egui::ScrollArea::vertical().show(ui, |ui| {
             ui.heading("💿 Wii Output Format");
 
