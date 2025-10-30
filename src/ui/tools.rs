@@ -50,7 +50,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 ui.horizontal(|ui| {
                     if ui.button("⏵").clicked() {
                         match util::run_dot_clean(&app.config.contents.mount_point) {
-                            Ok(()) => app.toasts.info("dot_clean successful"),
+                            Ok(()) => app.toasts.success("dot_clean successful"),
                             Err(err) => app.toasts.error(err.to_string()),
                         };
                     }
