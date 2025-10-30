@@ -202,10 +202,14 @@ impl App {
                 util::get_disk_usage(&self.config.contents.mount_point).unwrap_or_default()
             ),
             ui::View::Osc => format!(
-                "{} v{} • {} OSC Apps",
+                "{} v{} • Open Shop Channel",
                 env!("CARGO_PKG_NAME"),
                 env!("CARGO_PKG_VERSION"),
-                self.osc_apps.as_ref().map(|a| a.len()).unwrap_or(0)
+            ),
+            ui::View::Tools => format!(
+                "{} v{} • Tools",
+                env!("CARGO_PKG_NAME"),
+                env!("CARGO_PKG_VERSION")
             ),
             ui::View::Settings => format!(
                 "{} v{} • Settings",

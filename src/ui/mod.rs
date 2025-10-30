@@ -17,18 +17,20 @@ mod hbc_apps_grid;
 mod hbc_apps_list;
 mod nav;
 mod osc;
-pub mod osc_grid;
-pub mod osc_list;
+mod osc_grid;
+mod osc_list;
 mod remove_game;
 mod remove_hbc_app;
 pub mod root;
 mod settings;
 mod status;
+mod tools;
 
 #[derive(PartialEq)]
 pub enum View {
     Games,
     HbcApps,
     Osc,
+    Tools,
     Settings,
 }
