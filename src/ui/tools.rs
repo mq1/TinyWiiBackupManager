@@ -44,7 +44,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                         };
                     }
 
-                    ui.label("Run dot_clean");
+                    ui.label("Run dot_clean (remove hidden ._ files)");
                 });
             }
         });
