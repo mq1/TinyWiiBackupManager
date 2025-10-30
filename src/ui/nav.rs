@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, covers, ui, util, wiitdb};
+use crate::{app::App, ui};
 use eframe::egui::{self, Vec2};
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
@@ -64,6 +64,21 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 .add_sized(
                     Vec2::splat(40.),
                     egui::Button::selectable(
+                        app.current_view == ui::View::Tools,
+                        egui::RichText::new("🔧").size(26.),
+                    ),
+                )
+                .on_hover_text("Tools")
+                .clicked()
+            {
+                app.current_view = ui::View::Tools;
+                app.update_title(ctx);
+            }
+
+            if ui
+                .add_sized(
+                    Vec2::splat(40.),
+                    egui::Button::selectable(
                         app.current_view == ui::View::Settings,
                         egui::RichText::new("⛭").size(26.),
                     ),
@@ -90,50 +105,16 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     app.toasts.error(e.to_string());
                 }
 
-                egui::Popup::menu(
-                    &ui.add_sized(
+                if ui
+                    .add_sized(
                         Vec2::splat(40.),
-                        egui::Button::new(egui::RichText::new("☰").size(26.)),
+                        egui::Button::new(egui::RichText::new("🖴").size(26.)),
                     )
-                    .on_hover_text("Additional actions"),
-                )
-                .show(|ui| {
-                    if ui
-                        .button(egui::RichText::new("🖴 Choose a Drive/Directory").size(15.))
-                        .clicked()
-                    {
-                        app.choose_mount_point.pick_directory();
-                    }
-
-                    ui.separator();
-
-                    if ui
-                        .button(egui::RichText::new("📥 Download wiitdb.xml").size(15.))
-                        .clicked()
-                    {
-                        wiitdb::spawn_download_task(app);
-                    }
-
-                    ui.separator();
-
-                    if ui
-                        .button(egui::RichText::new("📥 Download all covers").size(15.))
-                        .clicked()
-                    {
-                        covers::spawn_download_all_covers_task(app);
-                    }
-
-                    if cfg!(target_os = "macos") {
-                        ui.separator();
-                        if ui
-                            .button(egui::RichText::new("👻 Run dot_clean").size(15.))
-                            .clicked()
-                            && let Err(e) = util::run_dot_clean(&app.config.contents.mount_point)
-                        {
-                            app.toasts.error(e.to_string());
-                        }
-                    }
-                });
+                    .on_hover_text("Choose a Drive/Directory")
+                    .clicked()
+                {
+                    app.choose_mount_point.pick_directory();
+                }
 
                 if let Some(update_info) = &app.update_info
                     && ui
