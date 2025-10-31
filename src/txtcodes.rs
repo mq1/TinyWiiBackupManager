@@ -14,7 +14,10 @@ fn download_cheats_for_game(txt_cheatcodespath: &Path, game_id: &GameID) -> Resu
         return Ok(());
     }
 
-    let url = format!("https://codes.rc24.xyz/txt.php?txt={}", game_id.as_str());
+    let url = format!(
+        "https://web.archive.org/web/202009if_/geckocodes.org/txt.php?txt={}",
+        game_id.as_str()
+    );
     let bytes = AGENT.get(&url).call()?.body_mut().read_to_vec()?;
     fs::write(&path, bytes)?;
 
