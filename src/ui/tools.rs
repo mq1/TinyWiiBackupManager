@@ -41,6 +41,17 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
             });
 
             ui.separator();
+            ui.heading("🔀 WiiFlow Lite");
+
+            ui.horizontal(|ui| {
+                if ui.button("📥").clicked() {
+                    covers::spawn_download_wiiflow_covers_task(app);
+                }
+
+                ui.label("Download all covers (defaults to English for PAL games)");
+            });
+
+            ui.separator();
             ui.heading("🛠 Cheat Codes");
 
             ui.horizontal(|ui| {
