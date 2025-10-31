@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#[cfg(feature = "accent")]
+pub mod accent;
+
 mod choose_archive_path_dialog;
 mod choose_file_to_push_dialog;
 mod choose_games_dialog;
