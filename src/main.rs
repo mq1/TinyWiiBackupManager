@@ -9,6 +9,7 @@ mod accent;
 
 mod app;
 mod archive;
+mod banners;
 mod checksum;
 mod config;
 mod convert;
