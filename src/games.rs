@@ -158,6 +158,10 @@ impl GameID {
     pub fn as_str(&self) -> &str {
         std::str::from_utf8(&self.0).unwrap_or("[invalid]")
     }
+
+    pub fn as_partial(&self) -> &str {
+        std::str::from_utf8(&self.0[0..3]).unwrap_or("[invalid]")
+    }
 }
 
 impl From<&str> for GameID {

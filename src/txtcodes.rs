@@ -24,7 +24,7 @@ fn download_cheats_for_game(txt_cheatcodespath: &Path, game_id: &GameID) -> Resu
     Ok(())
 }
 
-pub fn download_cheats(app: &mut App) {
+pub fn spawn_download_cheats_task(app: &mut App) {
     let txt_cheatcodespath = app.config.contents.mount_point.join("txtcodes");
     let games = app.games.clone();
 
