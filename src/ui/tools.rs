@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, covers, txtcodes, util, wiitdb};
+use crate::{app::App, banners, covers, txtcodes, util, wiitdb};
 use eframe::egui;
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
@@ -32,12 +32,20 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 ui.label("Download all covers");
             });
 
+            ui.horizontal(|ui| {
+                if ui.button("📥").clicked() {
+                    banners::spawn_download_banners_task(app);
+                }
+
+                ui.label("Download banners (GameCube only)");
+            });
+
             ui.separator();
             ui.heading("🛠 Cheat Codes");
 
             ui.horizontal(|ui| {
                 if ui.button("📥").clicked() {
-                    txtcodes::download_cheats(app);
+                    txtcodes::spawn_download_cheats_task(app);
                 }
 
                 ui.label("Download cheats for all games (txt)");
