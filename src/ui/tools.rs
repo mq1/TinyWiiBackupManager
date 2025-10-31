@@ -14,7 +14,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
         ui.style_mut().spacing.item_spacing.y *= 2.;
 
         egui::ScrollArea::vertical().show(ui, |ui| {
-            ui.heading("🔁 USB Loader GX");
+            ui.heading("💫 USB Loader GX");
 
             ui.horizontal(|ui| {
                 if ui.button("📥").clicked() {
