@@ -29,7 +29,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     covers::spawn_download_all_covers_task(app);
                 }
 
-                ui.label("Download all covers (will default to English on PAL games, while usbloader_gx downloads the correct one)");
+                ui.label("Download all covers (will default to English on PAL games, while usbloader_gx detects the system language)");
             });
 
             ui.horizontal(|ui| {
