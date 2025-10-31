@@ -190,7 +190,7 @@ impl App {
                 env!("CARGO_PKG_NAME"),
                 env!("CARGO_PKG_VERSION"),
                 self.games.len(),
-                self.config.get_drive_name(),
+                self.config.get_drive_path_str(),
                 util::get_disk_usage(&self.config.contents.mount_point).unwrap_or_default()
             ),
             ui::View::HbcApps => format!(
@@ -198,7 +198,7 @@ impl App {
                 env!("CARGO_PKG_NAME"),
                 env!("CARGO_PKG_VERSION"),
                 self.hbc_apps.len(),
-                self.config.get_drive_name(),
+                self.config.get_drive_path_str(),
                 util::get_disk_usage(&self.config.contents.mount_point).unwrap_or_default()
             ),
             ui::View::Osc => format!(
