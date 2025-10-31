@@ -4,9 +4,6 @@
 #![warn(clippy::all, rust_2018_idioms)]
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
-#[cfg(feature = "accent")]
-mod accent;
-
 mod app;
 mod archive;
 mod banners;
@@ -100,7 +97,7 @@ fn main() -> Result<()> {
 
             cc.egui_ctx.all_styles_mut(|style| {
                 #[cfg(feature = "accent")]
-                if let Ok(accent) = accent::system_accent_color() {
+                if let Ok(accent) = ui::accent::system_accent_color() {
                     style.visuals.selection.bg_fill = accent;
                     style.visuals.selection.stroke.color = style.visuals.strong_text_color();
                 }
