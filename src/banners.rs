@@ -14,8 +14,6 @@ fn download_banner_for_game(cache_bnr_path: &Path, game_id: &GameID) -> Result<(
 
     let url = format!("https://banner.rc24.xyz/{}.bnr", game_id.as_str());
     let fallback_url = format!("https://banner.rc24.xyz/{}.bnr", game_id.as_partial());
-    println!("Downloading banner for {} from {}", game_id.as_str(), url);
-    println!("Fallback URL: {}", fallback_url);
 
     let bytes = match AGENT.get(&url).call() {
         Ok(mut resp) => resp.body_mut().read_to_vec()?,
