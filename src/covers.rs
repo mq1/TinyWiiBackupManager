@@ -71,14 +71,6 @@ fn download_coverfull(id: &GameID, mount_point: &Path) -> Result<()> {
         fs::write(&path, bytes)?;
     }
 
-    // for WiiFlow lite
-    let wiiflow_cover_dir = mount_point.join("wiiflow").join("boxcovers");
-    fs::create_dir_all(&wiiflow_cover_dir)?;
-    let dest = wiiflow_cover_dir.join(format!("{}.png", id.as_str()));
-    if !dest.exists() {
-        fs::copy(&path, &dest)?;
-    }
-
     Ok(())
 }
 
@@ -94,6 +86,46 @@ fn download_disc_cover(id: &GameID, mount_point: &Path) -> Result<()> {
 
     let url = format!(
         "https://art.gametdb.com/wii/disc/{}/{}.png",
+        id.get_wiitdb_lang(),
+        id.as_str()
+    );
+
+    if !path.exists() {
+        let bytes = AGENT.get(&url).call()?.body_mut().read_to_vec()?;
+        fs::write(&path, bytes)?;
+    }
+
+    Ok(())
+}
+
+fn download_wiiflow_boxcover(id: &GameID, mount_point: &Path) -> Result<()> {
+    let cover_dir = mount_point.join("wiiflow").join("boxcovers");
+    fs::create_dir_all(&cover_dir)?;
+
+    let path = cover_dir.join(format!("{}.png", id.as_str()));
+
+    let url = format!(
+        "https://art.gametdb.com/wii/coverfull/{}/{}.png",
+        id.get_wiitdb_lang(),
+        id.as_str()
+    );
+
+    if !path.exists() {
+        let bytes = AGENT.get(&url).call()?.body_mut().read_to_vec()?;
+        fs::write(&path, bytes)?;
+    }
+
+    Ok(())
+}
+
+fn download_wiiflow_cover(id: &GameID, mount_point: &Path) -> Result<()> {
+    let cover_dir = mount_point.join("wiiflow").join("covers");
+    fs::create_dir_all(&cover_dir)?;
+
+    let path = cover_dir.join(format!("{}.png", id.as_str()));
+
+    let url = format!(
+        "https://art.gametdb.com/wii/cover/{}/{}.png",
         id.get_wiitdb_lang(),
         id.as_str()
     );
@@ -161,6 +193,35 @@ pub fn spawn_download_all_covers_task(app: &App) {
             let _ = download_cover2d(&game.id, &mount_point);
             let _ = download_coverfull(&game.id, &mount_point);
             let _ = download_disc_cover(&game.id, &mount_point);
+        }
+
+        msg_sender.send(BackgroundMessage::NotifyInfo(
+            "🖻 Covers downloaded".to_string(),
+        ))?;
+
+        Ok(())
+    });
+}
+
+pub fn spawn_download_wiiflow_covers_task(app: &App) {
+    let mount_point = app.config.contents.mount_point.clone();
+    let games = app.games.clone();
+
+    app.task_processor.spawn(move |msg_sender| {
+        msg_sender.send(BackgroundMessage::UpdateStatus(
+            "🖻 Downloading covers...".to_string(),
+        ))?;
+
+        let len = games.len();
+        for (i, game) in games.into_iter().enumerate() {
+            msg_sender.send(BackgroundMessage::UpdateStatus(format!(
+                "🖻 Downloading covers... ({}/{})",
+                i + 1,
+                len
+            )))?;
+
+            let _ = download_wiiflow_boxcover(&game.id, &mount_point);
+            let _ = download_wiiflow_cover(&game.id, &mount_point);
         }
 
         msg_sender.send(BackgroundMessage::NotifyInfo(
