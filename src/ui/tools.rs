@@ -14,14 +14,14 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
         ui.style_mut().spacing.item_spacing.y *= 2.;
 
         egui::ScrollArea::vertical().show(ui, |ui| {
-            ui.heading("🔧 USB Loader GX");
+            ui.heading("🔁 USB Loader GX");
 
             ui.horizontal(|ui| {
                 if ui.button("📥").clicked() {
                     wiitdb::spawn_download_task(app);
                 }
 
-                ui.label("Download wiitdb.xml");
+                ui.label("Download wiitdb.xml (overwrites existing one)");
             });
 
             ui.horizontal(|ui| {
@@ -29,7 +29,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     covers::spawn_download_all_covers_task(app);
                 }
 
-                ui.label("Download all covers");
+                ui.label("Download all covers (will default to English on PAL games, while usbloader_gx downloads the correct one)");
             });
 
             ui.horizontal(|ui| {
