@@ -47,13 +47,21 @@ impl Config {
         Ok(())
     }
 
-    pub fn get_drive_name(&self) -> &str {
-        self.contents
-            .mount_point
-            .file_name()
-            .unwrap_or(self.contents.mount_point.as_os_str())
-            .to_str()
-            .unwrap_or_default()
+    //pub fn get_drive_name(&self) -> &str {
+    //    self.contents
+    //        .mount_point
+    //        .file_name()
+    //        .unwrap_or(self.contents.mount_point.as_os_str())
+    //        .to_str()
+    //        .unwrap_or_default()
+    //}
+
+    pub fn get_drive_path_str(&self) -> &str {
+        if self.contents.mount_point.as_os_str().is_empty() {
+            return "No Drive Selected";
+        }
+
+        self.contents.mount_point.to_str().unwrap_or("Invalid Path")
     }
 }
 
