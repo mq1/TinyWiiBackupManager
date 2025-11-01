@@ -3,9 +3,7 @@
 
 use crate::config::SortBy;
 use crate::titles::Titles;
-use anyhow::Result;
-use anyhow::anyhow;
-use anyhow::bail;
+use anyhow::{Result, anyhow};
 use path_slash::PathExt;
 use size::Size;
 use std::fs;
@@ -20,10 +18,33 @@ pub fn list(mount_point: &Path, titles: &Option<Titles>) -> Result<Vec<Game>> {
             continue;
         }
 
-        for entry in fs::read_dir(&dir)?.filter_map(Result::ok) {
-            if let Ok(game) = Game::from_dir(entry.path(), titles, mount_point) {
-                games.push(game);
-            }
+        let mut dir_games = search_dir(&dir, titles, mount_point)?;
+        games.append(&mut dir_games);
+    }
+
+    Ok(games)
+}
+
+fn search_dir(dir: &Path, titles: &Option<Titles>, mount_point: &Path) -> Result<Vec<Game>> {
+    let mut games = Vec::new();
+
+    for entry in fs::read_dir(dir)?.filter_map(Result::ok) {
+        // Skip non-directories and hidden directories
+        if !entry.path().is_dir()
+            || entry
+                .file_name()
+                .to_str()
+                .is_some_and(|s| s.starts_with('.'))
+        {
+            continue;
+        }
+
+        if let Ok(game) = Game::from_dir(&entry.path(), titles, mount_point) {
+            games.push(game);
+        } else {
+            // recursively check subdirectories
+            let mut sub_games = search_dir(&entry.path(), titles, mount_point).unwrap_or_default();
+            games.append(&mut sub_games);
         }
     }
 
@@ -31,20 +52,12 @@ pub fn list(mount_point: &Path, titles: &Option<Titles>) -> Result<Vec<Game>> {
 }
 
 impl Game {
-    pub fn from_dir(dir: PathBuf, titles: &Option<Titles>, mount_point: &Path) -> Result<Self> {
-        if !dir.is_dir() {
-            bail!("{} is not a directory", dir.display());
-        }
-
+    pub fn from_dir(dir: &Path, titles: &Option<Titles>, mount_point: &Path) -> Result<Self> {
         let file_name = dir
             .file_name()
             .ok_or(anyhow!("No file name found"))?
             .to_str()
             .ok_or(anyhow!("Invalid file name"))?;
-
-        if file_name.starts_with('.') {
-            bail!("Skipping hidden directory {}", dir.display());
-        }
 
         // Extract title and ID from the directory name, e.g., "Game Title [GAMEID]"
         let (title, id_part) = file_name
@@ -73,7 +86,7 @@ impl Game {
             .to_string();
 
         // Get the directory size
-        let size = Size::from_bytes(fs_extra::dir::get_size(&dir).unwrap_or(0));
+        let size = Size::from_bytes(fs_extra::dir::get_size(dir).unwrap_or(0));
 
         // Construct the path to the game's cover image
         let image_path = mount_point
@@ -89,7 +102,7 @@ impl Game {
 
         // Construct the Game object
         Ok(Self {
-            path: dir.clone(),
+            path: dir.to_path_buf(),
             id,
             display_title,
             size,
