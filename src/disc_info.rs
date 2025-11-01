@@ -7,22 +7,40 @@ use nod::{
     disc::DiscHeader,
     read::{DiscMeta, DiscReader},
 };
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone)]
 pub struct DiscInfo {
+    pub main_disc_path: PathBuf,
     pub header: DiscHeader,
     pub meta: DiscMeta,
 }
 
 impl DiscInfo {
     pub fn from_game_dir(game_dir: &Path) -> Result<DiscInfo> {
-        let path = get_main_file(game_dir).ok_or(anyhow!("No disc found"))?;
-        let disc = DiscReader::new(&path, &get_disc_opts())?;
+        let main_disc_path = get_main_file(game_dir).ok_or(anyhow!("No disc found"))?;
+        let disc = DiscReader::new(&main_disc_path, &get_disc_opts())?;
 
         let header = disc.header().to_owned();
         let meta = disc.meta();
 
-        Ok(Self { header, meta })
+        Ok(Self {
+            main_disc_path,
+            header,
+            meta,
+        })
+    }
+
+    pub fn from_main_file(main_disc_path: PathBuf) -> Result<DiscInfo> {
+        let disc = DiscReader::new(&main_disc_path, &get_disc_opts())?;
+
+        let header = disc.header().to_owned();
+        let meta = disc.meta();
+
+        Ok(Self {
+            main_disc_path,
+            header,
+            meta,
+        })
     }
 }

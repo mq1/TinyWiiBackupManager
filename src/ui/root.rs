@@ -25,6 +25,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
     ui::choose_hbc_apps_dialog::update(ctx, app);
     ui::choose_archive_path_dialog::update(ctx, app);
     ui::choose_file_to_push_dialog::update(ctx, app);
+    ui::conversion_confirmation::update(ctx, app);
     ui::info::update(ctx, app);
 
     app.toasts.show(ctx);
