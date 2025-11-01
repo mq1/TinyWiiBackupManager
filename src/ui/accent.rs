@@ -33,7 +33,7 @@ fn system_accent_color() -> anyhow::Result<Color32> {
 }
 
 // https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-rdperp/bc6975ee-c630-4414-ba10-04eecbb6fccc
-#[cfg(windows)]
+#[cfg(target_os = "windows")]
 fn system_accent_color() -> anyhow::Result<Color32> {
     use anyhow::{anyhow, bail};
     use std::os::windows::process::CommandExt;
