@@ -50,7 +50,7 @@ fn view_osc_app_card(
         ui.vertical_centered(|ui| {
             // Top row with version on the left and size label on the right
             ui.horizontal(|ui| {
-                ui.add(egui::Label::new(&osc_app.meta.version).truncate());
+                ui.add(egui::Label::new(format!("📌 {}", &osc_app.meta.version)).truncate());
 
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     ui.label(osc_app.meta.uncompressed_size.to_string());
