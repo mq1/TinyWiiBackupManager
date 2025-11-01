@@ -6,15 +6,15 @@ use eframe::egui;
 use std::fs;
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
-    let modal = egui::Modal::new("remove_hbc_app".into());
+    let modal = egui::Modal::new("delete_game".into());
     let mut close = false;
     let mut refresh = false;
 
-    if let Some(hbc_app) = &app.removing_hbc_app {
-        let text = format!("Are you sure you want to remove {}?", &hbc_app.meta.name);
+    if let Some(game) = &app.deleting_game {
+        let text = format!("Are you sure you want to delete {}?", &game.display_title);
 
         modal.show(ctx, |ui| {
-            ui.heading("⚠ Remove HBC App");
+            ui.heading("⚠ Delete Game");
 
             ui.add_space(10.);
 
@@ -23,8 +23,8 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
             ui.add_space(10.);
 
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                if ui.button("🗑 Remove").clicked() {
-                    if let Err(e) = fs::remove_dir_all(&hbc_app.path) {
+                if ui.button("🗑 Delete").clicked() {
+                    if let Err(e) = fs::remove_dir_all(&game.path) {
                         app.toasts.error(e.to_string());
                     }
 
@@ -40,10 +40,10 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
     }
 
     if close {
-        app.removing_hbc_app = None;
+        app.deleting_game = None;
     }
 
     if refresh {
-        app.refresh_hbc_apps(ctx);
+        app.refresh_games(ctx);
     }
 }

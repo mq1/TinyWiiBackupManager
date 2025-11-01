@@ -16,8 +16,8 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
     }
 
     ui::status::update(ctx, app);
-    ui::remove_game::update(ctx, app);
-    ui::remove_hbc_app::update(ctx, app);
+    ui::delete_game::update(ctx, app);
+    ui::delete_hbc_app::update(ctx, app);
     ui::game_info::update(ctx, app);
     ui::hbc_app_info::update(ctx, app);
     ui::choose_mount_point_dialog::update(ctx, app);
