@@ -109,7 +109,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                         Vec2::splat(40.),
                         egui::Button::new(egui::RichText::new("🖴").size(26.)),
                     )
-                    .on_hover_text("Choose a Drive/Directory")
+                    .on_hover_text("Select Drive/Mount Point")
                     .clicked()
                 {
                     app.choose_mount_point.pick_directory();
