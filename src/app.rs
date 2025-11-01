@@ -50,6 +50,7 @@ pub struct App {
     pub downloading_osc_icons: Option<Receiver<String>>,
     pub choose_mount_point: FileDialog,
     pub choose_games: FileDialog,
+    pub choosing_games: Vec<DiscInfo>,
     pub choose_hbc_apps: FileDialog,
     pub choose_archive_path: FileDialog,
     pub choose_file_to_push: FileDialog,
@@ -106,6 +107,7 @@ impl App {
                     extensions::SUPPORTED_INPUT_EXTENSIONS.to_vec(),
                 )
                 .default_file_filter("Nintendo Optical Disc"),
+            choosing_games: Vec::new(),
             choose_hbc_apps: FileDialog::new()
                 .as_modal(true)
                 .add_file_filter_extensions("HBC App (zip)", vec!["zip", "ZIP"])

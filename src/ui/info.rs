@@ -1,8 +1,6 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::env;
-
 use crate::{app::App, ui};
 use eframe::egui;
 
