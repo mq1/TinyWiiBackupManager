@@ -15,7 +15,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
         .column(Column::remainder())
         .header(26.0, |mut header| {
             header.col(|ui| {
-                ui.heading("🏷 Title");
+                ui.heading("✏ Title");
             });
             header.col(|ui| {
                 ui.heading("🎮 Console");
