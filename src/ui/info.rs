@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::env;
+
 use crate::{app::App, ui};
 use eframe::egui;
 
@@ -32,8 +34,22 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     app.is_info_open = false;
                 }
 
+                ui.add_sized(egui::Vec2::new(1., 21.), egui::Separator::default());
+
                 if ui.button("📁 Open Data Directory").clicked()
                     && let Err(e) = open::that(&app.data_dir)
+                {
+                    app.toasts.error(e.to_string());
+                }
+
+                if ui.button("🌐 Wiki").clicked()
+                    && let Err(e) = open::that(env!("CARGO_PKG_HOMEPAGE"))
+                {
+                    app.toasts.error(e.to_string());
+                }
+
+                if ui.button(" Source Code").clicked()
+                    && let Err(e) = open::that(env!("CARGO_PKG_REPOSITORY"))
                 {
                     app.toasts.error(e.to_string());
                 }
