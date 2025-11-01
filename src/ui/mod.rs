@@ -18,6 +18,7 @@ mod hbc_app_info;
 mod hbc_apps;
 mod hbc_apps_grid;
 mod hbc_apps_list;
+mod info;
 mod nav;
 mod osc;
 mod osc_grid;
@@ -28,6 +29,8 @@ pub mod root;
 mod settings;
 mod status;
 mod tools;
+
+pub const LOGO_BYTES: &[u8] = include_bytes!("../../assets/TinyWiiBackupManager.png");
 
 #[derive(PartialEq)]
 pub enum View {

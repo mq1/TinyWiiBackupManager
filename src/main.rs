@@ -36,8 +36,6 @@ use eframe::{
 use egui_extras::install_image_loaders;
 use std::{fs, path::PathBuf};
 
-const APP_NAME: &str = concat!(env!("CARGO_PKG_NAME"), " v", env!("CARGO_PKG_VERSION"));
-
 #[cfg(not(feature = "app-dir"))]
 fn get_data_dir() -> Result<PathBuf> {
     // For portable builds, use a directory next to the executable
@@ -72,13 +70,11 @@ fn main() -> Result<()> {
     // -------------
     // Initialize UI
 
-    #[cfg(not(target_os = "macos"))]
-    let icon =
-        eframe::icon_data::from_png_bytes(include_bytes!("../assets/TinyWiiBackupManager.png"))
-            .expect("Failed to load icon");
-
-    #[cfg(target_os = "macos")]
-    let icon = eframe::egui::IconData::default();
+    let icon = if cfg!(target_os = "macos") {
+        eframe::egui::IconData::default()
+    } else {
+        eframe::icon_data::from_png_bytes(ui::LOGO_BYTES).expect("Failed to load icon")
+    };
 
     let native_options = NativeOptions {
         viewport: ViewportBuilder::default()
@@ -89,7 +85,7 @@ fn main() -> Result<()> {
     };
 
     eframe::run_native(
-        APP_NAME,
+        env!("CARGO_PKG_NAME"),
         native_options,
         Box::new(|cc| {
             install_image_loaders(&cc.egui_ctx);
