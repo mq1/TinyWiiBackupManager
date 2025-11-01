@@ -145,7 +145,7 @@ jobs:
         run: cargo install cargo-packager --version ^0.11 --locked
 
       - name: Build binary
-        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "native-tls dx12 accent ${{ matrix.features }}"
+        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "native-tls dx12 ${{ matrix.features }}"
         env:
           CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
@@ -255,7 +255,7 @@ jobs:
           npm i -g appdmg@0.6.6
 
       - name: Build binary
-        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "app-dir native-tls opengl accent"
+        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "app-dir native-tls opengl"
 
       - name: Create app with cargo-packager
         run: cargo packager --release --target ${{ matrix.target }} --formats app
