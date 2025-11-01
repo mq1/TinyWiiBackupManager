@@ -60,6 +60,7 @@ pub struct App {
     pub osc_app_search: String,
     pub status: String,
     pub wiitdb: Option<wiitdb::Datafile>,
+    pub is_info_open: bool,
 }
 
 impl App {
@@ -126,6 +127,7 @@ impl App {
             osc_app_search: String::new(),
             status: String::new(),
             wiitdb: None,
+            is_info_open: false,
         }
     }
 
@@ -186,36 +188,22 @@ impl App {
     pub fn update_title(&self, ctx: &egui::Context) {
         let title = match self.current_view {
             ui::View::Games => format!(
-                "{} v{} • {} Games • {} {}",
+                "{} • {} Games in {} {}",
                 env!("CARGO_PKG_NAME"),
-                env!("CARGO_PKG_VERSION"),
                 self.games.len(),
                 self.config.get_drive_path_str(),
                 util::get_disk_usage(&self.config.contents.mount_point).unwrap_or_default()
             ),
             ui::View::HbcApps => format!(
-                "{} v{} • {} Apps • {} {}",
+                "{} • {} Apps in {} {}",
                 env!("CARGO_PKG_NAME"),
-                env!("CARGO_PKG_VERSION"),
                 self.hbc_apps.len(),
                 self.config.get_drive_path_str(),
                 util::get_disk_usage(&self.config.contents.mount_point).unwrap_or_default()
             ),
-            ui::View::Osc => format!(
-                "{} v{} • Open Shop Channel",
-                env!("CARGO_PKG_NAME"),
-                env!("CARGO_PKG_VERSION"),
-            ),
-            ui::View::Tools => format!(
-                "{} v{} • Tools",
-                env!("CARGO_PKG_NAME"),
-                env!("CARGO_PKG_VERSION")
-            ),
-            ui::View::Settings => format!(
-                "{} v{} • Settings",
-                env!("CARGO_PKG_NAME"),
-                env!("CARGO_PKG_VERSION")
-            ),
+            ui::View::Osc => format!("{} • Open Shop Channel", env!("CARGO_PKG_NAME"),),
+            ui::View::Tools => format!("{} • Tools", env!("CARGO_PKG_NAME"),),
+            ui::View::Settings => format!("{} • Settings", env!("CARGO_PKG_NAME"),),
         };
 
         ctx.send_viewport_cmd(egui::ViewportCommand::Title(title));
