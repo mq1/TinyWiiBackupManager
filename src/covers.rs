@@ -157,7 +157,7 @@ pub fn spawn_download_covers_task(app: &App) {
             )))?;
 
             if download_cover3d(&game.id, &mount_point).is_ok() {
-                let _ = msg_sender.send(BackgroundMessage::TriggerRefreshImage(game.image_uri));
+                msg_sender.send(BackgroundMessage::TriggerRefreshImage(game.image_uri))?;
             }
         }
 
@@ -187,7 +187,7 @@ pub fn spawn_download_all_covers_task(app: &App) {
             )))?;
 
             if download_cover3d(&game.id, &mount_point).is_ok() {
-                let _ = msg_sender.send(BackgroundMessage::TriggerRefreshImage(game.image_uri));
+                msg_sender.send(BackgroundMessage::TriggerRefreshImage(game.image_uri))?;
             }
 
             let _ = download_cover2d(&game.id, &mount_point);
