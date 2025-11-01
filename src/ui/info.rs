@@ -22,9 +22,34 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 ui.vertical(|ui| {
                     ui.add_space(4.);
                     ui.heading(env!("CARGO_PKG_NAME"));
-                    ui.label(format!("Version {}", env!("CARGO_PKG_VERSION")));
-                    ui.label("© 2025 Manuel Quarneti");
+                    ui.label(format!("📌 Version {}", env!("CARGO_PKG_VERSION")));
+                    ui.label("© 2025 Manuel Quarneti | 📃 GPL-3.0-only");
                 });
+            });
+
+            ui.separator();
+
+            ui.label("‼ TinyWiiBackupManager is intended strictly for legal homebrew use and is not affiliated with or endorsed by Nintendo. Use of TinyWiiBackupManager for pirated or unauthorized copies of games is strictly prohibited.");
+
+            ui.separator();
+            ui.add_space(10.);
+
+            ui.heading("💡 Projects that power TinyWiiBackupManager:");
+            ui.hyperlink("https://github.com/emilk/egui");
+            ui.hyperlink("https://github.com/encounter/nod");
+            ui.hyperlink("https://www.gametdb.com/");
+            ui.hyperlink_to("And many others", "https://github.com/mq1/TinyWiiBackupManager/blob/main/Cargo.toml");
+
+            ui.add_space(10.);
+
+            ui.heading("👏 Special thanks to");
+            ui.horizontal(|ui| {
+                ui.hyperlink_to("Luke Street", "https://github.com/encounter");
+                ui.label("for developing nod and helping TWBM leverage it effectively.");
+            });
+            ui.horizontal(|ui| {
+                ui.hyperlink_to("blackb0x", "https://github.com/wiidev");
+                ui.label("for invaluable feedback and advice during TWBM's development.");
             });
 
             ui.add_space(10.);
