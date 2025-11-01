@@ -4,7 +4,6 @@
 use crate::{
     app::App,
     config::WiiOutputFormat,
-    games::GameID,
     overflow_reader::{OverflowReader, get_overflow_file},
     tasks::BackgroundMessage,
     util::{self, can_write_over_4gb},
@@ -77,22 +76,20 @@ pub fn spawn_add_games_task(app: &App, mut paths: Vec<PathBuf>) {
             let (title, id, is_wii, disc_num) = {
                 let reader = DiscReader::new(&path, &disc_opts)?;
                 let header = reader.header();
-
-                if existing_games.contains(&GameID(header.game_id)) {
-                    msg_sender.send(BackgroundMessage::NotifyInfo(format!(
-                        "⚡ Skipping {}, game ID {} already exists",
-                        header.game_title_str(),
-                        header.game_id_str()
-                    )))?;
-                    continue;
-                }
-
                 let title = header.game_title_str().to_string();
                 let id = header.game_id_str().to_string();
                 let is_wii = header.is_wii();
                 let disc_num = header.disc_num;
                 (title, id, is_wii, disc_num)
             };
+
+            if existing_games.contains(&id.as_str().into()) {
+                msg_sender.send(BackgroundMessage::NotifyInfo(format!(
+                    "⚡ Skipping {}, game ID {} already exists",
+                    title, id
+                )))?;
+                continue;
+            }
 
             let dir_path = mount_point_clone
                 .join(if is_wii { "wbfs" } else { "games" })
