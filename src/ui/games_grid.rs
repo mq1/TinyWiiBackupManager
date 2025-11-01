@@ -10,6 +10,7 @@ use crate::{
 use eframe::egui::{self, Vec2};
 use egui_file_dialog::FileDialog;
 use egui_notify::Toasts;
+use itertools::Itertools;
 use std::path::{Path, PathBuf};
 
 const CARD_WIDTH: f32 = 161.5;
@@ -21,11 +22,19 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
         ui.set_width(available_width);
         let cols = (available_width / (CARD_WIDTH + 20.)).floor() as usize;
 
-        egui::Grid::new("games")
+        let wii_games = app.filtered_games.iter().filter(|g| g.is_wii);
+        let gc_games = app.filtered_games.iter().filter(|g| !g.is_wii);
+
+        ui.heading(format!(
+            "🎾 Wii Games ({} found)",
+            wii_games.clone().count()
+        ));
+        ui.add_space(5.);
+        egui::Grid::new("wii_games")
             .num_columns(cols)
             .spacing(Vec2::splat(8.))
             .show(ui, |ui| {
-                for row in app.filtered_games.chunks(cols) {
+                for row in &wii_games.chunks(cols) {
                     for game in row {
                         view_game_card(
                             ui,
@@ -40,6 +49,34 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                         );
                     }
 
+                    ui.end_row();
+                }
+            });
+
+        ui.add_space(10.);
+        ui.heading(format!(
+            "🎲 GameCube Games ({} found)",
+            gc_games.clone().count()
+        ));
+        ui.add_space(5.);
+        egui::Grid::new("gc_games")
+            .num_columns(cols)
+            .spacing(Vec2::splat(8.))
+            .show(ui, |ui| {
+                for row in &gc_games.chunks(cols) {
+                    for game in row {
+                        view_game_card(
+                            ui,
+                            game,
+                            &mut app.deleting_game,
+                            &mut app.game_info,
+                            &mut app.archiving_game,
+                            &mut app.choose_archive_path,
+                            &app.config.contents.mount_point,
+                            &mut app.wiitdb,
+                            &mut app.toasts,
+                        );
+                    }
                     ui.end_row();
                 }
             });
@@ -64,10 +101,10 @@ fn view_game_card(
         ui.set_width(CARD_WIDTH);
 
         ui.vertical_centered(|ui| {
-            // Top row with console label on the left and size label on the right
+            // Top row with id label on the left and size label on the right
             ui.horizontal(|ui| {
-                // Console label on the left
-                ui.label(if game.is_wii { "🎾 Wii" } else { "🎲 GC" });
+                // ID label on the left
+                ui.label(format!("🏷  {}", game.id.as_str()));
 
                 // Size label on the right
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
