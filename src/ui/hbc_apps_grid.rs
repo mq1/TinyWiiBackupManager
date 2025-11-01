@@ -28,7 +28,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                         view_hbc_app_card(
                             ui,
                             hbc_app,
-                            &mut app.removing_hbc_app,
+                            &mut app.deleting_hbc_app,
                             &mut app.hbc_app_info,
                             &app.osc_apps,
                             &app.task_processor,
@@ -45,7 +45,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
 fn view_hbc_app_card(
     ui: &mut egui::Ui,
     hbc_app: &HbcApp,
-    removing_hbc_app: &mut Option<HbcApp>,
+    deleting_hbc_app: &mut Option<HbcApp>,
     hbc_app_info: &mut Option<HbcApp>,
     osc_apps: &Option<Vec<OscApp>>,
     task_processor: &TaskProcessor,
@@ -79,9 +79,9 @@ fn view_hbc_app_card(
 
             // Bottom row with buttons
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                // Remove button
-                if ui.button("🗑").on_hover_text("Remove HBC App").clicked() {
-                    *removing_hbc_app = Some(hbc_app.clone());
+                // Delete button
+                if ui.button("🗑").on_hover_text("Delete HBC App").clicked() {
+                    *deleting_hbc_app = Some(hbc_app.clone());
                 }
 
                 // Update button

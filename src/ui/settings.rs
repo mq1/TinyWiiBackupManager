@@ -94,7 +94,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
             ui.separator();
 
-            ui.heading("💣 Remove sources when adding games");
+            ui.heading("💣 Delete sources when adding games");
 
             if ui
                 .radio_value(
@@ -118,7 +118,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
             ui.separator();
 
-            ui.heading("💣 Remove sources when adding apps");
+            ui.heading("💣 Delete sources when adding apps");
 
             if ui
                 .radio_value(
