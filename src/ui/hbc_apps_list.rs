@@ -81,13 +81,13 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                                 );
                             }
 
-                            // Remove button
+                            // Delete button
                             if ui
-                                .button("🗑 Remove")
-                                .on_hover_text("Remove HBC App")
+                                .button("🗑 Delete")
+                                .on_hover_text("Delete HBC App")
                                 .clicked()
                             {
-                                app.removing_hbc_app = Some(hbc_app.clone());
+                                app.deleting_hbc_app = Some(hbc_app.clone());
                             }
                         });
                         ui.separator();

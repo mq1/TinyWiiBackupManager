@@ -30,7 +30,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                         view_game_card(
                             ui,
                             game,
-                            &mut app.removing_game,
+                            &mut app.deleting_game,
                             &mut app.game_info,
                             &mut app.archiving_game,
                             &mut app.choose_archive_path,
@@ -50,7 +50,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
 fn view_game_card(
     ui: &mut egui::Ui,
     game: &Game,
-    removing_game: &mut Option<Game>,
+    deleting_game: &mut Option<Game>,
     info: &mut Option<GameInfoData>,
     archiving_game: &mut Option<PathBuf>,
     choose_archive_path: &mut FileDialog,
@@ -89,9 +89,9 @@ fn view_game_card(
             // Bottom row with buttons
 
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                // Remove button
-                if ui.button("🗑").on_hover_text("Remove Game").clicked() {
-                    *removing_game = Some(game.clone());
+                // Delete button
+                if ui.button("🗑").on_hover_text("Delete Game").clicked() {
+                    *deleting_game = Some(game.clone());
                 }
 
                 // Archive button
