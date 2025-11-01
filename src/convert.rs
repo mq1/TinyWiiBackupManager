@@ -4,6 +4,7 @@
 use crate::{
     app::App,
     config::WiiOutputFormat,
+    games::GameID,
     overflow_reader::{OverflowReader, get_overflow_file},
     tasks::BackgroundMessage,
     util::{self, can_write_over_4gb},
@@ -65,6 +66,7 @@ pub fn spawn_add_games_task(app: &App, mut paths: Vec<PathBuf>) {
     let scrub_update_partition = app.config.contents.scrub_update_partition;
     let must_split =
         app.config.contents.always_split || can_write_over_4gb(&mount_point_clone).is_err();
+    let existing_games = app.games.iter().map(|g| g.id).collect::<Vec<_>>();
 
     // We'll get those later with get_overflow_file
     paths.retain(|path| !path.ends_with(".part1.iso"));
@@ -75,6 +77,16 @@ pub fn spawn_add_games_task(app: &App, mut paths: Vec<PathBuf>) {
             let (title, id, is_wii, disc_num) = {
                 let reader = DiscReader::new(&path, &disc_opts)?;
                 let header = reader.header();
+
+                if existing_games.contains(&GameID(header.game_id)) {
+                    msg_sender.send(BackgroundMessage::NotifyInfo(format!(
+                        "⚡ Skipping {}, game ID {} already exists",
+                        header.game_title_str(),
+                        header.game_id_str()
+                    )))?;
+                    continue;
+                }
+
                 let title = header.game_title_str().to_string();
                 let id = header.game_id_str().to_string();
                 let is_wii = header.is_wii();
@@ -94,12 +106,6 @@ pub fn spawn_add_games_task(app: &App, mut paths: Vec<PathBuf>) {
                 (false, _, _, n) => &format!("disc{n}.iso"),
             };
 
-            let path1 = dir_path.join(file_name1);
-
-            if path1.exists() {
-                continue;
-            }
-
             fs::create_dir_all(&dir_path)?;
 
             {
@@ -111,6 +117,7 @@ pub fn spawn_add_games_task(app: &App, mut paths: Vec<PathBuf>) {
                     DiscReader::new(&path, &disc_opts)?
                 };
 
+                let path1 = dir_path.join(file_name1);
                 let mut out1 = BufWriter::new(File::create(&path1)?);
 
                 let file_name2 = match wii_output_format {
