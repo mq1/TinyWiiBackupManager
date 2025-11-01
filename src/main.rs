@@ -95,8 +95,8 @@ fn main() -> Result<()> {
                 #[cfg(feature = "accent")]
                 if let Ok(accent) = ui::accent::system_accent_color() {
                     style.visuals.selection.bg_fill = accent;
-                    style.visuals.selection.stroke.color = style.visuals.strong_text_color();
                 }
+                style.visuals.selection.stroke.color = style.visuals.strong_text_color();
 
                 style.visuals.widgets.active.corner_radius = CornerRadius::same(30);
                 style.visuals.widgets.hovered.corner_radius = CornerRadius::same(30);
