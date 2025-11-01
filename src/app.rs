@@ -188,14 +188,14 @@ impl App {
     pub fn update_title(&self, ctx: &egui::Context) {
         let title = match self.current_view {
             ui::View::Games => format!(
-                "{} • {} Games • {} {}",
+                "{} • {} Games in {} {}",
                 env!("CARGO_PKG_NAME"),
                 self.games.len(),
                 self.config.get_drive_path_str(),
                 util::get_disk_usage(&self.config.contents.mount_point).unwrap_or_default()
             ),
             ui::View::HbcApps => format!(
-                "{} • {} Apps • {} {}",
+                "{} • {} Apps in {} {}",
                 env!("CARGO_PKG_NAME"),
                 self.hbc_apps.len(),
                 self.config.get_drive_path_str(),
