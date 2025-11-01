@@ -92,10 +92,7 @@ fn main() -> Result<()> {
             cc.egui_ctx.set_theme(app.config.contents.theme_preference);
 
             cc.egui_ctx.all_styles_mut(|style| {
-                #[cfg(feature = "accent")]
-                if let Ok(accent) = ui::accent::system_accent_color() {
-                    style.visuals.selection.bg_fill = accent;
-                }
+                style.visuals.selection.bg_fill = ui::accent::get_accent_color();
                 style.visuals.selection.stroke.color = style.visuals.strong_text_color();
 
                 style.visuals.widgets.active.corner_radius = CornerRadius::same(30);
