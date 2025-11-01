@@ -94,9 +94,9 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                                 app.choose_archive_path.save_file();
                             }
 
-                            // Remove button
-                            if ui.button("🗑 Remove").on_hover_text("Remove Game").clicked() {
-                                app.removing_game = Some(game.clone());
+                            // Delete button
+                            if ui.button("🗑 Delete").on_hover_text("Delete Game").clicked() {
+                                app.deleting_game = Some(game.clone());
                             }
                         });
                         ui.separator();
