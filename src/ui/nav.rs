@@ -98,11 +98,10 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                         Vec2::splat(40.),
                         egui::Button::new(egui::RichText::new("ℹ").size(26.)),
                     )
-                    .on_hover_text("Wiki")
+                    .on_hover_text(format!("{} Info", env!("CARGO_PKG_NAME")))
                     .clicked()
-                    && let Err(e) = open::that(env!("CARGO_PKG_HOMEPAGE"))
                 {
-                    app.toasts.error(e.to_string());
+                    app.is_info_open = true;
                 }
 
                 if ui

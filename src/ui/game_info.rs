@@ -254,6 +254,8 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     close = true;
                 }
 
+                ui.add_sized(egui::Vec2::new(1., 21.), egui::Separator::default());
+
                 if ui.button("📁 Open Directory").clicked()
                     && let Err(e) = open::that(&game.path)
                 {
