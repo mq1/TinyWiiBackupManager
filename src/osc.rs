@@ -112,6 +112,16 @@ pub struct OscAppMeta {
     pub version: String,
 }
 
+impl OscAppMeta {
+    pub fn version_display(&self) -> String {
+        if self.version.len() > 10 {
+            format!("📌 {}...", &self.version[..10])
+        } else {
+            format!("📌 {}", &self.version)
+        }
+    }
+}
+
 fn deser_size<'de, D>(deserializer: D) -> Result<Size, D::Error>
 where
     D: Deserializer<'de>,
