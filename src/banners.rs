@@ -5,7 +5,7 @@ use crate::{app::App, games::GameID, http::AGENT, tasks::BackgroundMessage};
 use anyhow::Result;
 use std::{fs, path::Path};
 
-fn download_banner_for_game(cache_bnr_path: &Path, game_id: &GameID) -> Result<()> {
+fn download_banner_for_game(cache_bnr_path: &Path, game_id: &[u8; 6]) -> Result<()> {
     let path = cache_bnr_path.join(game_id.as_str()).with_extension("bnr");
 
     if path.exists() {

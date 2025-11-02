@@ -5,7 +5,7 @@ use crate::{app::App, games::GameID, http::AGENT, tasks::BackgroundMessage};
 use anyhow::Result;
 use std::{fs, path::Path};
 
-fn download_cheats_for_game(txt_cheatcodespath: &Path, game_id: &GameID) -> Result<()> {
+fn download_cheats_for_game(txt_cheatcodespath: &Path, game_id: &[u8; 6]) -> Result<()> {
     let path = txt_cheatcodespath
         .join(game_id.as_str())
         .with_extension("txt");
