@@ -82,7 +82,7 @@ impl Datafile {
         Ok(data)
     }
 
-    pub fn get_game_info(&self, game_id: &GameID) -> Option<&GameInfo> {
+    pub fn get_game_info(&self, game_id: &[u8; 6]) -> Option<&GameInfo> {
         self.games.iter().find(|game| game.id == *game_id)
     }
 }
@@ -93,7 +93,7 @@ pub struct GameInfo {
     #[serde(rename = "@name")]
     pub name: String,
     #[serde(deserialize_with = "deser_id")]
-    pub id: GameID,
+    pub id: [u8; 6],
     pub region: Region,
     #[serde(deserialize_with = "deser_langs")]
     pub languages: Vec<Language>,
@@ -110,12 +110,12 @@ pub struct GameInfo {
     pub roms: Vec<Rom>,
 }
 
-fn deser_id<'de, D>(deserializer: D) -> Result<GameID, D::Error>
+fn deser_id<'de, D>(deserializer: D) -> Result<[u8; 6], D::Error>
 where
     D: serde::Deserializer<'de>,
 {
     let s = String::deserialize(deserializer)?;
-    let id = GameID::from(s.as_str());
+    let id = <[u8; 6]>::from_id_str(&s);
     Ok(id)
 }
 

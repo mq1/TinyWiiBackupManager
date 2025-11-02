@@ -16,7 +16,7 @@ fn system_accent_color() -> anyhow::Result<Color32> {
     use std::process::Command;
 
     let output = Command::new("defaults")
-        .args(&["read", "-g", "AppleAccentColor"])
+        .args(["read", "-g", "AppleAccentColor"])
         .output()?;
 
     match String::from_utf8_lossy(&output.stdout).trim() {

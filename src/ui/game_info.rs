@@ -37,7 +37,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                             // Region
                             ui.label(format!(
                                 "🌐 Region (inferred from ID): {}",
-                                GameID(disc_info.header.game_id).get_region_display()
+                                disc_info.header.game_id.get_region_display()
                             ));
 
                             // Is Wii
