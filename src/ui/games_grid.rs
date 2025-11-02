@@ -4,7 +4,7 @@
 use crate::{
     app::{App, GameInfoData},
     disc_info::DiscInfo,
-    games::Game,
+    games::{Game, GameID},
     wiitdb::{self},
 };
 use eframe::egui::{self, Vec2};
