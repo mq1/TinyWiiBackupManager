@@ -20,6 +20,7 @@ use crossbeam_channel::{Receiver, unbounded};
 use eframe::egui;
 use egui_file_dialog::FileDialog;
 use egui_notify::{Anchor, Toasts};
+use size::Size;
 use std::{
     path::{Path, PathBuf},
     thread,
@@ -36,7 +37,9 @@ pub struct App {
     pub wii_games: Vec<Game>,
     pub gc_games: Vec<Game>,
     pub filtered_wii_games: Vec<Game>,
+    pub filtered_wii_games_size: Size,
     pub filtered_gc_games: Vec<Game>,
+    pub filtered_gc_games_size: Size,
     pub game_search: String,
     pub show_wii: bool,
     pub show_gc: bool,
@@ -95,6 +98,8 @@ impl App {
             gc_games: Vec::new(),
             filtered_wii_games: Vec::new(),
             filtered_gc_games: Vec::new(),
+            filtered_wii_games_size: Size::from_bytes(0),
+            filtered_gc_games_size: Size::from_bytes(0),
             game_search: String::new(),
             show_wii: true,
             show_gc: true,
@@ -141,24 +146,33 @@ impl App {
         if self.game_search.is_empty() {
             self.filtered_wii_games = self.wii_games.clone();
             self.filtered_gc_games = self.gc_games.clone();
-            return;
+        } else {
+            let game_search = self.game_search.to_lowercase();
+
+            self.filtered_wii_games = self
+                .wii_games
+                .iter()
+                .filter(|game| game.search_str.contains(&game_search))
+                .cloned()
+                .collect();
+
+            self.filtered_gc_games = self
+                .gc_games
+                .iter()
+                .filter(|game| game.search_str.contains(&game_search))
+                .cloned()
+                .collect();
         }
 
-        let game_search = self.game_search.to_lowercase();
-
-        self.filtered_wii_games = self
-            .wii_games
+        self.filtered_wii_games_size = self
+            .filtered_wii_games
             .iter()
-            .filter(|game| game.search_str.contains(&game_search))
-            .cloned()
-            .collect();
+            .fold(Size::from_bytes(0), |acc, game| acc + game.size);
 
-        self.filtered_gc_games = self
-            .gc_games
+        self.filtered_gc_games_size = self
+            .filtered_gc_games
             .iter()
-            .filter(|game| game.search_str.contains(&game_search))
-            .cloned()
-            .collect();
+            .fold(Size::from_bytes(0), |acc, game| acc + game.size);
     }
 
     pub fn update_filtered_hbc_apps(&mut self) {
