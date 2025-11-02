@@ -29,6 +29,16 @@ pub struct HbcAppMeta {
     pub long_description: String,
 }
 
+impl HbcAppMeta {
+    pub fn version_display(&self) -> String {
+        if self.version.len() > 10 {
+            format!("📌 {}...", &self.version[..10])
+        } else {
+            format!("📌 {}", &self.version)
+        }
+    }
+}
+
 impl Default for HbcAppMeta {
     fn default() -> Self {
         Self {
