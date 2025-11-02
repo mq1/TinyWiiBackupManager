@@ -22,64 +22,72 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
         ui.set_width(available_width);
         let cols = (available_width / (CARD_WIDTH + 20.)).floor() as usize;
 
-        let wii_games = app.filtered_games.iter().filter(|g| g.is_wii);
-        let gc_games = app.filtered_games.iter().filter(|g| !g.is_wii);
+        if app.show_wii {
+            let wii_games = app.filtered_games.iter().filter(|g| g.is_wii);
 
-        ui.heading(format!(
-            "🎾 Wii Games ({} found)",
-            wii_games.clone().count()
-        ));
-        ui.add_space(5.);
-        egui::Grid::new("wii_games")
-            .num_columns(cols)
-            .spacing(Vec2::splat(8.))
-            .show(ui, |ui| {
-                for row in &wii_games.chunks(cols) {
-                    for game in row {
-                        view_game_card(
-                            ui,
-                            game,
-                            &mut app.deleting_game,
-                            &mut app.game_info,
-                            &mut app.archiving_game,
-                            &mut app.choose_archive_path,
-                            &app.config.contents.mount_point,
-                            &mut app.wiitdb,
-                            &mut app.toasts,
-                        );
+            ui.heading(format!(
+                "🎾 Wii Games ({} found)",
+                wii_games.clone().count()
+            ));
+            ui.add_space(5.);
+            egui::Grid::new("wii_games")
+                .num_columns(cols)
+                .spacing(Vec2::splat(8.))
+                .show(ui, |ui| {
+                    for row in &wii_games.chunks(cols) {
+                        for game in row {
+                            view_game_card(
+                                ui,
+                                game,
+                                &mut app.deleting_game,
+                                &mut app.game_info,
+                                &mut app.archiving_game,
+                                &mut app.choose_archive_path,
+                                &app.config.contents.mount_point,
+                                &mut app.wiitdb,
+                                &mut app.toasts,
+                            );
+                        }
+
+                        ui.end_row();
                     }
+                });
+        }
 
-                    ui.end_row();
-                }
-            });
+        if app.show_gc {
+            if app.show_wii {
+                ui.add_space(10.);
+            }
 
-        ui.add_space(10.);
-        ui.heading(format!(
-            "🎲 GameCube Games ({} found)",
-            gc_games.clone().count()
-        ));
-        ui.add_space(5.);
-        egui::Grid::new("gc_games")
-            .num_columns(cols)
-            .spacing(Vec2::splat(8.))
-            .show(ui, |ui| {
-                for row in &gc_games.chunks(cols) {
-                    for game in row {
-                        view_game_card(
-                            ui,
-                            game,
-                            &mut app.deleting_game,
-                            &mut app.game_info,
-                            &mut app.archiving_game,
-                            &mut app.choose_archive_path,
-                            &app.config.contents.mount_point,
-                            &mut app.wiitdb,
-                            &mut app.toasts,
-                        );
+            let gc_games = app.filtered_games.iter().filter(|g| !g.is_wii);
+
+            ui.heading(format!(
+                "🎲 GameCube Games ({} found)",
+                gc_games.clone().count()
+            ));
+            ui.add_space(5.);
+            egui::Grid::new("gc_games")
+                .num_columns(cols)
+                .spacing(Vec2::splat(8.))
+                .show(ui, |ui| {
+                    for row in &gc_games.chunks(cols) {
+                        for game in row {
+                            view_game_card(
+                                ui,
+                                game,
+                                &mut app.deleting_game,
+                                &mut app.game_info,
+                                &mut app.archiving_game,
+                                &mut app.choose_archive_path,
+                                &app.config.contents.mount_point,
+                                &mut app.wiitdb,
+                                &mut app.toasts,
+                            );
+                        }
+                        ui.end_row();
                     }
-                    ui.end_row();
-                }
-            });
+                });
+        }
     });
 }
 
