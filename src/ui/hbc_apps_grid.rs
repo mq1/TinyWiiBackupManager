@@ -59,7 +59,7 @@ fn view_hbc_app_card(
         ui.vertical_centered(|ui| {
             // Top row with version on the left and size label on the right
             ui.horizontal(|ui| {
-                ui.add(egui::Label::new(format!("📌 {}", &hbc_app.meta.version)).truncate());
+                ui.label(hbc_app.meta.version_display());
 
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     ui.label(hbc_app.size.to_string());
