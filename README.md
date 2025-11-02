@@ -33,6 +33,7 @@
 
 - Get the latest release **[here](https://github.com/mq1/TinyWiiBackupManager/releases/latest)**
 - On Linux, a [Flatpak](https://flathub.org/apps/it.mq1.TinyWiiBackupManager) package is also available
+- A winget package is available (`mq1.TinyWiiBackupManager`)
 
 ## 📄 Additional Info
 
