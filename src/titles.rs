@@ -8,7 +8,7 @@ use std::{fs, path::Path};
 const DOWNLOAD_URL: &str = "https://www.gametdb.com/wiitdb.txt";
 
 #[derive(Debug, Clone)]
-pub struct Titles(Box<[(GameID, String)]>);
+pub struct Titles(Box<[([u8; 6], String)]>);
 
 impl Titles {
     pub fn load(data_dir: &Path) -> Result<Self> {
@@ -26,7 +26,7 @@ impl Titles {
         let mut titles = contents
             .lines()
             .filter_map(|line| line.split_once(" = "))
-            .map(|(id, title)| (GameID::from(id), title.to_string()))
+            .map(|(id, title)| (<[u8; 6]>::from_id_str(id), title.to_string()))
             .collect::<Vec<_>>();
 
         // We sort it now so we can binary search
@@ -37,8 +37,8 @@ impl Titles {
         Ok(Self(list))
     }
 
-    pub fn get(&self, id: GameID) -> Option<&str> {
-        let index = self.0.binary_search_by_key(&id, |(id, _)| *id).ok()?;
+    pub fn get(&self, id: &[u8; 6]) -> Option<&str> {
+        let index = self.0.binary_search_by_key(id, |(id, _)| *id).ok()?;
         let title = &self.0[index].1;
 
         Some(title)
