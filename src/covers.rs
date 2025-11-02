@@ -5,7 +5,7 @@ use crate::{app::App, games::GameID, http::AGENT, tasks::BackgroundMessage};
 use anyhow::{Result, bail};
 use std::{fs, path::Path};
 
-fn download_cover3d(id: &GameID, mount_point: &Path) -> Result<()> {
+fn download_cover3d(id: &[u8; 6], mount_point: &Path) -> Result<()> {
     let images_dir = mount_point.join("apps").join("usbloader_gx").join("images");
     fs::create_dir_all(&images_dir)?;
 
@@ -26,7 +26,7 @@ fn download_cover3d(id: &GameID, mount_point: &Path) -> Result<()> {
     Ok(())
 }
 
-fn download_cover2d(id: &GameID, mount_point: &Path) -> Result<()> {
+fn download_cover2d(id: &[u8; 6], mount_point: &Path) -> Result<()> {
     let images_dir = mount_point
         .join("apps")
         .join("usbloader_gx")
@@ -50,7 +50,7 @@ fn download_cover2d(id: &GameID, mount_point: &Path) -> Result<()> {
     Ok(())
 }
 
-fn download_coverfull(id: &GameID, mount_point: &Path) -> Result<()> {
+fn download_coverfull(id: &[u8; 6], mount_point: &Path) -> Result<()> {
     let images_dir = mount_point
         .join("apps")
         .join("usbloader_gx")
@@ -74,7 +74,7 @@ fn download_coverfull(id: &GameID, mount_point: &Path) -> Result<()> {
     Ok(())
 }
 
-fn download_disc_cover(id: &GameID, mount_point: &Path) -> Result<()> {
+fn download_disc_cover(id: &[u8; 6], mount_point: &Path) -> Result<()> {
     let images_dir = mount_point
         .join("apps")
         .join("usbloader_gx")
@@ -98,7 +98,7 @@ fn download_disc_cover(id: &GameID, mount_point: &Path) -> Result<()> {
     Ok(())
 }
 
-fn download_wiiflow_boxcover(id: &GameID, mount_point: &Path) -> Result<()> {
+fn download_wiiflow_boxcover(id: &[u8; 6], mount_point: &Path) -> Result<()> {
     let cover_dir = mount_point.join("wiiflow").join("boxcovers");
     fs::create_dir_all(&cover_dir)?;
 
@@ -118,7 +118,7 @@ fn download_wiiflow_boxcover(id: &GameID, mount_point: &Path) -> Result<()> {
     Ok(())
 }
 
-fn download_wiiflow_cover(id: &GameID, mount_point: &Path) -> Result<()> {
+fn download_wiiflow_cover(id: &[u8; 6], mount_point: &Path) -> Result<()> {
     let cover_dir = mount_point.join("wiiflow").join("covers");
     fs::create_dir_all(&cover_dir)?;
 

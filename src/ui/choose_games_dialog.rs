@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, disc_info::DiscInfo, games::GameID};
+use crate::{app::App, disc_info::DiscInfo};
 use eframe::egui;
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
@@ -15,10 +15,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
             .into_iter()
             .map(DiscInfo::from_main_file)
             .filter_map(Result::ok)
-            .filter(|info| {
-                let id = GameID(info.header.game_id);
-                app.games.iter().all(|game| game.id != id)
-            })
+            .filter(|info| app.games.iter().all(|game| game.id != info.header.game_id))
             .collect();
 
         if app.choosing_games.is_empty() {
