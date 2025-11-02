@@ -30,30 +30,31 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
         .body(|mut body| {
             body.ui_mut().style_mut().spacing.item_spacing.y = 0.0;
 
-            for game in app
-                .filtered_wii_games
+            let iterator = app
+                .filtered_games
                 .iter()
-                .map(|g| (true, g)) // true for Wii, false for GC
-                .chain(app.filtered_gc_games.iter().map(|g| (false, g)))
-            {
+                .filter(|game| game.is_wii && app.show_wii || !game.is_wii && app.show_gc);
+
+            for game in iterator {
                 body.row(26., |mut row| {
                     row.col(|ui| {
                         ui.add_space(3.);
-                        ui.add(egui::Label::new(&game.1.display_title).truncate());
+                        ui.add(egui::Label::new(&game.display_title).truncate());
                         ui.add_space(3.);
                         ui.separator();
                     });
                     row.col(|ui| {
                         ui.add_space(3.);
                         ui.add(
-                            egui::Label::new(if game.0 { "🎾 Wii" } else { "🎲 GC" }).truncate(),
+                            egui::Label::new(if game.is_wii { "🎾 Wii" } else { "🎲 GC" })
+                                .truncate(),
                         );
                         ui.add_space(3.);
                         ui.separator();
                     });
                     row.col(|ui| {
                         ui.add_space(3.);
-                        ui.add(egui::Label::new(game.1.size.to_string()).truncate());
+                        ui.add(egui::Label::new(game.size.to_string()).truncate());
                         ui.add_space(3.);
                         ui.separator();
                     });
@@ -65,8 +66,8 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                                 .on_hover_text("Show Game Information")
                                 .clicked()
                             {
-                                let disc_info = DiscInfo::from_game_dir(&game.1.path)
-                                    .map_err(|e| e.to_string());
+                                let disc_info =
+                                    DiscInfo::from_game_dir(&game.path).map_err(|e| e.to_string());
 
                                 if app.wiitdb.is_none() {
                                     match wiitdb::Datafile::load(&app.config.contents.mount_point) {
@@ -82,10 +83,10 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                                 let game_info = app
                                     .wiitdb
                                     .as_ref()
-                                    .and_then(|wiitdb| wiitdb.get_game_info(&game.1.id).cloned())
+                                    .and_then(|wiitdb| wiitdb.get_game_info(&game.id).cloned())
                                     .ok_or("Game not found in wiitdb".to_string());
 
-                                app.game_info = Some((game.1.clone(), disc_info, game_info));
+                                app.game_info = Some((game.clone(), disc_info, game_info));
                             }
 
                             // Archive button
@@ -94,13 +95,13 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                                 .on_hover_text("Archive Game to RVZ or ISO")
                                 .clicked()
                             {
-                                app.archiving_game = Some(game.1.path.clone());
+                                app.archiving_game = Some(game.path.clone());
                                 app.choose_archive_path.save_file();
                             }
 
                             // Delete button
                             if ui.button("🗑 Delete").on_hover_text("Delete Game").clicked() {
-                                app.deleting_game = Some(game.1.clone());
+                                app.deleting_game = Some(game.clone());
                             }
                         });
                         ui.separator();
