@@ -22,13 +22,17 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
         let cols = (available_width / (CARD_WIDTH + 20.)).floor() as usize;
 
         if app.show_wii {
-            ui.heading(format!("🎾 Wii Games ({} found)", app.wii_games.len()));
+            ui.heading(format!(
+                "🎾 Wii Games: {} found ({})",
+                app.filtered_wii_games.len(),
+                app.filtered_wii_games_size
+            ));
             ui.add_space(5.);
             egui::Grid::new("wii_games")
                 .num_columns(cols)
                 .spacing(Vec2::splat(8.))
                 .show(ui, |ui| {
-                    for row in app.wii_games.chunks(cols) {
+                    for row in app.filtered_wii_games.chunks(cols) {
                         for game in row {
                             view_game_card(
                                 ui,
@@ -53,13 +57,17 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                 ui.add_space(10.);
             }
 
-            ui.heading(format!("🎲 GameCube Games ({} found)", app.gc_games.len()));
+            ui.heading(format!(
+                "🎲 GameCube Games: {} found ({})",
+                app.filtered_gc_games.len(),
+                app.filtered_gc_games_size
+            ));
             ui.add_space(5.);
             egui::Grid::new("gc_games")
                 .num_columns(cols)
                 .spacing(Vec2::splat(8.))
                 .show(ui, |ui| {
-                    for row in app.gc_games.chunks(cols) {
+                    for row in app.filtered_gc_games.chunks(cols) {
                         for game in row {
                             view_game_card(
                                 ui,
