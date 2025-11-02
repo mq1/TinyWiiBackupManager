@@ -10,7 +10,6 @@ use crate::{
 use eframe::egui::{self, Vec2};
 use egui_file_dialog::FileDialog;
 use egui_notify::Toasts;
-use itertools::Itertools;
 use std::path::{Path, PathBuf};
 
 const CARD_WIDTH: f32 = 161.5;
@@ -23,18 +22,13 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
         let cols = (available_width / (CARD_WIDTH + 20.)).floor() as usize;
 
         if app.show_wii {
-            let wii_games = app.filtered_games.iter().filter(|g| g.is_wii);
-
-            ui.heading(format!(
-                "🎾 Wii Games ({} found)",
-                wii_games.clone().count()
-            ));
+            ui.heading(format!("🎾 Wii Games ({} found)", app.wii_games.len()));
             ui.add_space(5.);
             egui::Grid::new("wii_games")
                 .num_columns(cols)
                 .spacing(Vec2::splat(8.))
                 .show(ui, |ui| {
-                    for row in &wii_games.chunks(cols) {
+                    for row in app.wii_games.chunks(cols) {
                         for game in row {
                             view_game_card(
                                 ui,
@@ -59,18 +53,13 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                 ui.add_space(10.);
             }
 
-            let gc_games = app.filtered_games.iter().filter(|g| !g.is_wii);
-
-            ui.heading(format!(
-                "🎲 GameCube Games ({} found)",
-                gc_games.clone().count()
-            ));
+            ui.heading(format!("🎲 GameCube Games ({} found)", app.gc_games.len()));
             ui.add_space(5.);
             egui::Grid::new("gc_games")
                 .num_columns(cols)
                 .spacing(Vec2::splat(8.))
                 .show(ui, |ui| {
-                    for row in &gc_games.chunks(cols) {
+                    for row in app.gc_games.chunks(cols) {
                         for game in row {
                             view_game_card(
                                 ui,
