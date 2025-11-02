@@ -31,9 +31,10 @@
 
 ## ⬇️ Downloads
 
-- Get the latest release **[here](https://github.com/mq1/TinyWiiBackupManager/releases/latest)**
-- On Linux, a [Flatpak](https://flathub.org/apps/it.mq1.TinyWiiBackupManager) package is also available
-- A winget package is available (`mq1.TinyWiiBackupManager`)
+[![Download latest release (Windows/macOS/Linux)](https://img.shields.io/github/v/release/mq1/TinyWiiBackupManager?logo=github&label=Download%20latest%20release%20(Windows/macOS/Linux))](https://github.com/mq1/TinyWiiBackupManager/releases/latest) \
+[![Download on Flathub (Linux only)](https://img.shields.io/flathub/v/it.mq1.TinyWiiBackupManager?logo=flathub&label=Download%20on%20Flathub%20(Linux%20only))](https://flathub.org/apps/it.mq1.TinyWiiBackupManager)
+
+A winget package is also available (`winget install -e --id mq1.TinyWiiBackupManager`)
 
 ## 📄 Additional Info
 
