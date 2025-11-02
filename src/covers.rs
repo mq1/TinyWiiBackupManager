@@ -141,7 +141,12 @@ fn download_wiiflow_cover(id: &[u8; 6], mount_point: &Path) -> Result<()> {
 // Fail safe, ignores errors, no popup notification
 pub fn spawn_download_covers_task(app: &App) {
     let mount_point = app.config.contents.mount_point.clone();
-    let games = app.games.clone();
+    let games = app
+        .wii_games
+        .iter()
+        .chain(app.gc_games.iter())
+        .cloned()
+        .collect::<Vec<_>>();
 
     app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(BackgroundMessage::UpdateStatus(
@@ -171,7 +176,12 @@ pub fn spawn_download_covers_task(app: &App) {
 
 pub fn spawn_download_all_covers_task(app: &App) {
     let mount_point = app.config.contents.mount_point.clone();
-    let games = app.games.clone();
+    let games = app
+        .wii_games
+        .iter()
+        .chain(app.gc_games.iter())
+        .cloned()
+        .collect::<Vec<_>>();
 
     app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(BackgroundMessage::UpdateStatus(
@@ -205,7 +215,12 @@ pub fn spawn_download_all_covers_task(app: &App) {
 
 pub fn spawn_download_wiiflow_covers_task(app: &App) {
     let mount_point = app.config.contents.mount_point.clone();
-    let games = app.games.clone();
+    let games = app
+        .wii_games
+        .iter()
+        .chain(app.gc_games.iter())
+        .cloned()
+        .collect::<Vec<_>>();
 
     app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(BackgroundMessage::UpdateStatus(

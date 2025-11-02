@@ -11,23 +11,32 @@ use size::Size;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-pub fn list(mount_point: &Path, titles: &Option<Titles>) -> Result<Vec<Game>> {
-    let mut games = Vec::new();
-
-    for dir_name in ["wbfs", "games"] {
-        let dir = mount_point.join(dir_name);
-        if !dir.exists() || !dir.is_dir() {
-            continue;
-        }
-
-        for entry in fs::read_dir(&dir)?.filter_map(Result::ok) {
-            if let Ok(game) = Game::from_dir(entry.path(), titles, mount_point) {
-                games.push(game);
+pub fn list(mount_point: &Path, titles: &Option<Titles>) -> Result<(Vec<Game>, Vec<Game>)> {
+    let mut wii_games = Vec::new();
+    let wii_dir = mount_point.join("wbfs");
+    if wii_dir.exists() && wii_dir.is_dir() {
+        for entry in fs::read_dir(&wii_dir)? {
+            if let Ok(entry) = entry
+                && let Ok(game) = Game::from_dir(entry.path(), titles, mount_point)
+            {
+                wii_games.push(game);
             }
         }
     }
 
-    Ok(games)
+    let mut gc_games = Vec::new();
+    let gc_dir = mount_point.join("games");
+    if gc_dir.exists() && gc_dir.is_dir() {
+        for entry in fs::read_dir(&gc_dir)? {
+            if let Ok(entry) = entry
+                && let Ok(game) = Game::from_dir(entry.path(), titles, mount_point)
+            {
+                gc_games.push(game);
+            }
+        }
+    }
+
+    Ok((wii_games, gc_games))
 }
 
 impl Game {
@@ -55,16 +64,6 @@ impl Game {
             .strip_suffix(']')
             .map(<[u8; 6]>::from_id_str)
             .ok_or(anyhow!("Invalid directory name"))?;
-
-        // Determine the console from the parent directory ("wbfs" or "games")
-        let is_wii = dir
-            .parent()
-            .ok_or(anyhow!("No parent directory found"))?
-            .file_name()
-            .ok_or(anyhow!("No file name found"))?
-            .to_str()
-            .ok_or(anyhow!("Invalid file name"))?
-            == "wbfs";
 
         let display_title = titles
             .as_ref()
@@ -94,7 +93,6 @@ impl Game {
             display_title,
             size,
             image_uri,
-            is_wii,
             search_str,
         })
     }
@@ -107,7 +105,6 @@ pub struct Game {
     pub display_title: String,
     pub size: Size,
     pub image_uri: String,
-    pub is_wii: bool,
     pub search_str: String,
 }
 
