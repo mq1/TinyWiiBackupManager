@@ -10,6 +10,7 @@ use crate::{
 use eframe::egui::{self, Vec2};
 use egui_file_dialog::FileDialog;
 use egui_notify::Toasts;
+use itertools::Itertools;
 use std::path::{Path, PathBuf};
 
 const CARD_WIDTH: f32 = 161.5;
@@ -22,17 +23,18 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
         let cols = (available_width / (CARD_WIDTH + 20.)).floor() as usize;
 
         if app.show_wii {
+            let iterator = app.filtered_games.iter().filter(|game| game.is_wii);
+
             ui.heading(format!(
                 "🎾 Wii Games: {} found ({})",
-                app.filtered_wii_games.len(),
-                app.filtered_wii_games_size
+                app.filtered_wii_games_len, app.filtered_wii_games_size
             ));
             ui.add_space(5.);
             egui::Grid::new("wii_games")
                 .num_columns(cols)
                 .spacing(Vec2::splat(8.))
                 .show(ui, |ui| {
-                    for row in app.filtered_wii_games.chunks(cols) {
+                    for row in &iterator.chunks(cols) {
                         for game in row {
                             view_game_card(
                                 ui,
@@ -53,21 +55,22 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
         }
 
         if app.show_gc {
+            let iterator = app.filtered_games.iter().filter(|game| !game.is_wii);
+
             if app.show_wii {
                 ui.add_space(10.);
             }
 
             ui.heading(format!(
                 "🎲 GameCube Games: {} found ({})",
-                app.filtered_gc_games.len(),
-                app.filtered_gc_games_size
+                app.filtered_gc_games_len, app.filtered_gc_games_size
             ));
             ui.add_space(5.);
             egui::Grid::new("gc_games")
                 .num_columns(cols)
                 .spacing(Vec2::splat(8.))
                 .show(ui, |ui| {
-                    for row in app.filtered_gc_games.chunks(cols) {
+                    for row in &iterator.chunks(cols) {
                         for game in row {
                             view_game_card(
                                 ui,
