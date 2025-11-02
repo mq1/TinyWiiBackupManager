@@ -34,11 +34,11 @@ pub struct App {
     pub current_view: ui::View,
     pub config: Config,
     pub update_info: Option<UpdateInfo>,
-    pub wii_games: Vec<Game>,
-    pub gc_games: Vec<Game>,
-    pub filtered_wii_games: Vec<Game>,
+    pub games: Vec<Game>,
+    pub filtered_games: Vec<Game>,
+    pub filtered_wii_games_len: usize,
     pub filtered_wii_games_size: Size,
-    pub filtered_gc_games: Vec<Game>,
+    pub filtered_gc_games_len: usize,
     pub filtered_gc_games_size: Size,
     pub game_search: String,
     pub show_wii: bool,
@@ -94,11 +94,11 @@ impl App {
             current_view: ui::View::Games,
             config,
             update_info: None,
-            wii_games: Vec::new(),
-            gc_games: Vec::new(),
-            filtered_wii_games: Vec::new(),
-            filtered_gc_games: Vec::new(),
+            games: Vec::new(),
+            filtered_games: Vec::new(),
+            filtered_wii_games_len: 0,
             filtered_wii_games_size: Size::from_bytes(0),
+            filtered_gc_games_len: 0,
             filtered_gc_games_size: Size::from_bytes(0),
             game_search: String::new(),
             show_wii: true,
@@ -144,35 +144,33 @@ impl App {
 
     pub fn update_filtered_games(&mut self) {
         if self.game_search.is_empty() {
-            self.filtered_wii_games = self.wii_games.clone();
-            self.filtered_gc_games = self.gc_games.clone();
+            self.filtered_games.clone_from(&self.games);
         } else {
             let game_search = self.game_search.to_lowercase();
 
-            self.filtered_wii_games = self
-                .wii_games
-                .iter()
-                .filter(|game| game.search_str.contains(&game_search))
-                .cloned()
-                .collect();
-
-            self.filtered_gc_games = self
-                .gc_games
+            self.filtered_games = self
+                .games
                 .iter()
                 .filter(|game| game.search_str.contains(&game_search))
                 .cloned()
                 .collect();
         }
 
-        self.filtered_wii_games_size = self
-            .filtered_wii_games
-            .iter()
-            .fold(Size::from_bytes(0), |acc, game| acc + game.size);
+        self.filtered_wii_games_len = 0;
+        self.filtered_gc_games_len = 0;
 
-        self.filtered_gc_games_size = self
-            .filtered_gc_games
-            .iter()
-            .fold(Size::from_bytes(0), |acc, game| acc + game.size);
+        self.filtered_wii_games_size = Size::from_bytes(0);
+        self.filtered_gc_games_size = Size::from_bytes(0);
+
+        for game in &self.filtered_games {
+            if game.is_wii {
+                self.filtered_wii_games_len += 1;
+                self.filtered_wii_games_size += game.size;
+            } else {
+                self.filtered_gc_games_len += 1;
+                self.filtered_gc_games_size += game.size;
+            }
+        }
     }
 
     pub fn update_filtered_hbc_apps(&mut self) {
@@ -211,7 +209,7 @@ impl App {
             ui::View::Games => format!(
                 "{} • {} Games in {} {}",
                 env!("CARGO_PKG_NAME"),
-                self.wii_games.len() + self.gc_games.len(),
+                self.games.len(),
                 self.config.get_drive_path_str(),
                 util::get_disk_usage(&self.config.contents.mount_point).unwrap_or_default()
             ),
@@ -233,13 +231,9 @@ impl App {
     pub fn refresh_games(&mut self, ctx: &egui::Context) {
         let res = games::list(&self.config.contents.mount_point, &self.titles);
         match res {
-            Ok((wii_games, gc_games)) => {
-                self.wii_games = wii_games;
-                games::sort(&mut self.wii_games, &self.config.contents.sort_by);
-
-                self.gc_games = gc_games;
-                games::sort(&mut self.gc_games, &self.config.contents.sort_by);
-
+            Ok(games) => {
+                self.games = games;
+                games::sort(&mut self.games, &self.config.contents.sort_by);
                 self.update_filtered_games();
             }
             Err(e) => {
@@ -268,8 +262,7 @@ impl App {
     }
 
     pub fn apply_sorting(&mut self) {
-        games::sort(&mut self.wii_games, &self.config.contents.sort_by);
-        games::sort(&mut self.gc_games, &self.config.contents.sort_by);
+        games::sort(&mut self.games, &self.config.contents.sort_by);
         self.update_filtered_games();
 
         hbc_apps::sort(&mut self.hbc_apps, &self.config.contents.sort_by);
