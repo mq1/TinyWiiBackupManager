@@ -26,7 +26,12 @@ fn download_cheats_for_game(txt_cheatcodespath: &Path, game_id: &[u8; 6]) -> Res
 
 pub fn spawn_download_cheats_task(app: &mut App) {
     let txt_cheatcodespath = app.config.contents.mount_point.join("txtcodes");
-    let games = app.games.clone();
+    let games = app
+        .wii_games
+        .iter()
+        .chain(app.gc_games.iter())
+        .cloned()
+        .collect::<Vec<_>>();
 
     app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(BackgroundMessage::UpdateStatus(

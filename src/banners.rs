@@ -27,7 +27,7 @@ fn download_banner_for_game(cache_bnr_path: &Path, game_id: &[u8; 6]) -> Result<
 
 pub fn spawn_download_banners_task(app: &mut App) {
     let cache_bnr_path = app.config.contents.mount_point.join("cache_bnr");
-    let games = app.games.clone();
+    let gc_games = app.gc_games.clone();
 
     app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(BackgroundMessage::UpdateStatus(
@@ -36,7 +36,7 @@ pub fn spawn_download_banners_task(app: &mut App) {
 
         fs::create_dir_all(&cache_bnr_path)?;
 
-        for game in games.iter().filter(|g| !g.is_wii) {
+        for game in &gc_games {
             msg_sender.send(BackgroundMessage::UpdateStatus(format!(
                 "🖻 Downloading banners... ({})",
                 &game.display_title

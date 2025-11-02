@@ -15,7 +15,12 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
             .into_iter()
             .map(DiscInfo::from_main_file)
             .filter_map(Result::ok)
-            .filter(|info| app.games.iter().all(|game| game.id != info.header.game_id))
+            .filter(|info| {
+                app.wii_games
+                    .iter()
+                    .chain(app.gc_games.iter())
+                    .all(|game| game.id != info.header.game_id)
+            })
             .collect();
 
         if app.choosing_games.is_empty() {
