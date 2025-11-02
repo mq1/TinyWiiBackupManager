@@ -11,36 +11,41 @@ use size::Size;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-pub fn list(mount_point: &Path, titles: &Option<Titles>) -> Result<(Vec<Game>, Vec<Game>)> {
-    let mut wii_games = Vec::new();
+pub fn list(mount_point: &Path, titles: &Option<Titles>) -> Result<Vec<Game>> {
+    let mut games = Vec::new();
+
     let wii_dir = mount_point.join("wbfs");
     if wii_dir.exists() && wii_dir.is_dir() {
         for entry in fs::read_dir(&wii_dir)? {
             if let Ok(entry) = entry
-                && let Ok(game) = Game::from_dir(entry.path(), titles, mount_point)
+                && let Ok(game) = Game::from_dir(entry.path(), titles, mount_point, true)
             {
-                wii_games.push(game);
+                games.push(game);
             }
         }
     }
 
-    let mut gc_games = Vec::new();
     let gc_dir = mount_point.join("games");
     if gc_dir.exists() && gc_dir.is_dir() {
         for entry in fs::read_dir(&gc_dir)? {
             if let Ok(entry) = entry
-                && let Ok(game) = Game::from_dir(entry.path(), titles, mount_point)
+                && let Ok(game) = Game::from_dir(entry.path(), titles, mount_point, false)
             {
-                gc_games.push(game);
+                games.push(game);
             }
         }
     }
 
-    Ok((wii_games, gc_games))
+    Ok(games)
 }
 
 impl Game {
-    pub fn from_dir(dir: PathBuf, titles: &Option<Titles>, mount_point: &Path) -> Result<Self> {
+    pub fn from_dir(
+        dir: PathBuf,
+        titles: &Option<Titles>,
+        mount_point: &Path,
+        is_wii: bool,
+    ) -> Result<Self> {
         if !dir.is_dir() {
             bail!("{} is not a directory", dir.display());
         }
@@ -90,6 +95,7 @@ impl Game {
         Ok(Self {
             path: dir.clone(),
             id,
+            is_wii,
             display_title,
             size,
             image_uri,
@@ -102,6 +108,7 @@ impl Game {
 pub struct Game {
     pub path: PathBuf,
     pub id: [u8; 6],
+    pub is_wii: bool,
     pub display_title: String,
     pub size: Size,
     pub image_uri: String,
