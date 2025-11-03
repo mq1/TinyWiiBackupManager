@@ -50,18 +50,29 @@ hex = "0.4"
 sanitize-filename = "0.7.0-beta"
 capitalize = "0.3"
 itertools = "0.14"
+
+[target.'cfg(feature = "glow")'.dependencies]
+eframe = "0.33"
+
+[target.'cfg(not(feature = "glow"))'.dependencies]
 eframe = { version = "0.33", default-features = false, features = [
   "accesskit",
   "default_fonts",
+  "wgpu",
 ] }
-winit = { version = "*", default-features = true }
-wgpu = { version = "*", default-features = false, optional = true }
+
+[target.'cfg(all(target_os = "linux", not(feature = "glow")))'.dependencies]
+wgpu = { version = "27", default-features = false, features = ["vulkan"] }
+
+[target.'cfg(all(target_os = "windows", not(feature = "glow")))'.dependencies]
+wgpu = { version = "27", default-features = false, features = ["dx12"] }
+
+[target.'cfg(all(target_os = "macos", not(feature = "glow")))'.dependencies]
+wgpu = { version = "27", default-features = false, features = ["metal"] }
 
 [features]
-default = ["app-dir", "opengl", "native-tls"]
+default = ["app-dir", "native-tls"]
 app-dir = ["dep:directories"]
-opengl = ["eframe/glow", "eframe/wayland", "eframe/x11"]
-dx12 = ["eframe/wgpu", "dep:wgpu", "wgpu/dx12"]
 bundled-tls = ["ureq/rustls"]
 native-tls = ["ureq/native-tls", "ureq/platform-verifier"]
 

@@ -68,7 +68,7 @@ jobs:
           chmod +x linuxdeploy*.AppImage
 
       - name: Build binary
-        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "app-dir bundled-tls opengl"
+        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "app-dir bundled-tls glow"
         env:
           CC: "clang"
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: "clang"
@@ -145,7 +145,7 @@ jobs:
         run: cargo install cargo-packager --version ^0.11 --locked
 
       - name: Build binary
-        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "native-tls dx12 ${{ matrix.features }}"
+        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "native-tls ${{ matrix.features }}"
         env:
           CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
@@ -205,7 +205,7 @@ jobs:
           cache: false
 
       - name: Build binary
-        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls opengl ${{ matrix.features }}"
+        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls glow ${{ matrix.features }}"
         env: 
           RUSTC_BOOTSTRAP: 1
           CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_LINKER: "rust-lld.exe"
@@ -255,7 +255,7 @@ jobs:
           npm i -g appdmg@0.6.6
 
       - name: Build binary
-        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "app-dir native-tls opengl"
+        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "app-dir native-tls"
 
       - name: Create app with cargo-packager
         run: cargo packager --release --target ${{ matrix.target }} --formats app
