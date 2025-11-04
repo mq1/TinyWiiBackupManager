@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use anyhow::Result;
+use anyhow::{Result, bail};
 use http_req::{request::Request, uri::Uri};
 use std::{
     fs::File,
@@ -22,9 +22,14 @@ pub fn get(uri: &str, body_size: Option<usize>) -> Result<Vec<u8>> {
         Vec::new()
     };
 
-    let _ = Request::new(&uri)
+    let res = Request::new(&uri)
         .header("User-Agent", USER_AGENT)
         .send(&mut body)?;
+
+    let status_code = res.status_code();
+    if !status_code.is_success() {
+        bail!("HTTP request failed with status code {}", status_code);
+    }
 
     Ok(body)
 }
@@ -34,9 +39,14 @@ pub fn download_file(uri: &str, dest: &Path) -> Result<()> {
 
     let mut writer = BufWriter::new(File::create(dest)?);
 
-    let _ = Request::new(&uri)
+    let res = Request::new(&uri)
         .header("User-Agent", USER_AGENT)
         .send(&mut writer)?;
+
+    let status_code = res.status_code();
+    if !status_code.is_success() {
+        bail!("HTTP request failed with status code {}", status_code);
+    }
 
     Ok(())
 }
@@ -46,9 +56,14 @@ pub fn download_into_file(uri: &str, file: &File) -> Result<()> {
 
     let mut writer = BufWriter::new(file);
 
-    let _ = Request::new(&uri)
+    let res = Request::new(&uri)
         .header("User-Agent", USER_AGENT)
         .send(&mut writer)?;
+
+    let status_code = res.status_code();
+    if !status_code.is_success() {
+        bail!("HTTP request failed with status code {}", status_code);
+    }
 
     Ok(())
 }
@@ -61,9 +76,14 @@ pub fn download_and_extract_zip(uri: &str, dest_dir: &Path) -> Result<()> {
     {
         let mut writer = BufWriter::new(&tmp);
 
-        let _ = Request::new(&uri)
+        let res = Request::new(&uri)
             .header("User-Agent", USER_AGENT)
             .send(&mut writer)?;
+
+        let status_code = res.status_code();
+        if !status_code.is_success() {
+            bail!("HTTP request failed with status code {}", status_code);
+        }
     }
 
     {
