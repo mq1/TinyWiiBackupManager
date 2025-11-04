@@ -202,7 +202,7 @@ jobs:
         with:
           toolchain: 1.91.0
           components: rust-src
-          cache: false
+          cache-key: ${{ matrix.target }}
 
       - name: Install deps
         run: cargo install --locked bindgen-cli
