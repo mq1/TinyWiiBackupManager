@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, games::GameID, http::AGENT, tasks::BackgroundMessage};
+use crate::{app::App, games::GameID, http, tasks::BackgroundMessage};
 use anyhow::Result;
 use std::{fs, path::Path};
 
@@ -15,9 +15,9 @@ fn download_banner_for_game(cache_bnr_path: &Path, game_id: &[u8; 6]) -> Result<
     let url = format!("https://banner.rc24.xyz/{}.bnr", game_id.as_str());
     let fallback_url = format!("https://banner.rc24.xyz/{}.bnr", game_id.as_partial());
 
-    let bytes = match AGENT.get(&url).call() {
-        Ok(mut resp) => resp.body_mut().read_to_vec()?,
-        Err(_) => AGENT.get(&fallback_url).call()?.body_mut().read_to_vec()?,
+    let bytes = match http::get(&url, None) {
+        Ok(body) => body,
+        Err(_) => http::get(&fallback_url, None)?,
     };
 
     fs::write(&path, bytes)?;
