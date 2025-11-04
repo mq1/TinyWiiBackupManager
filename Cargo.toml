@@ -75,7 +75,7 @@ wgpu = { version = "*", default-features = false, features = ["metal"] }
 [features]
 default = ["app-dir", "native-tls"]
 app-dir = ["dep:directories"]
-native-tls = ["http_req/default"]
+native-tls = ["http_req/native-tls"]
 bundled-tls = ["http_req/rust-tls"]
 
 [target.'cfg(target_os = "windows")'.build-dependencies]
