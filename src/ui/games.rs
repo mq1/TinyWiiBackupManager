@@ -79,7 +79,7 @@ fn update_top_bar(ui: &mut egui::Ui, app: &mut App, ctx: &egui::Context) {
                 {
                     app.config.contents.view_as = ViewAs::List;
                     if let Err(e) = app.config.write() {
-                        app.toasts.error(e.to_string());
+                        app.notifications.show_err(e);
                     }
                 }
 
@@ -90,7 +90,7 @@ fn update_top_bar(ui: &mut egui::Ui, app: &mut App, ctx: &egui::Context) {
                 {
                     app.config.contents.view_as = ViewAs::Grid;
                     if let Err(e) = app.config.write() {
-                        app.toasts.error(e.to_string());
+                        app.notifications.show_err(e);
                     }
                 }
             });

@@ -75,7 +75,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                                             app.wiitdb = Some(new);
                                         }
                                         Err(e) => {
-                                            app.toasts.error(e.to_string());
+                                            app.notifications.show_err(e);
                                         }
                                     }
                                 }

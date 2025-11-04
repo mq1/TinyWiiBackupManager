@@ -5,11 +5,11 @@ use crate::{
     app::{App, GameInfoData},
     disc_info::DiscInfo,
     games::{Game, GameID},
+    notifications::Notifications,
     wiitdb::{self},
 };
 use eframe::egui::{self, Vec2};
 use egui_file_dialog::FileDialog;
-use egui_notify::Toasts;
 use itertools::Itertools;
 use std::path::{Path, PathBuf};
 
@@ -45,7 +45,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                                 &mut app.choose_archive_path,
                                 &app.config.contents.mount_point,
                                 &mut app.wiitdb,
-                                &mut app.toasts,
+                                &mut app.notifications,
                             );
                         }
 
@@ -81,7 +81,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                                 &mut app.choose_archive_path,
                                 &app.config.contents.mount_point,
                                 &mut app.wiitdb,
-                                &mut app.toasts,
+                                &mut app.notifications,
                             );
                         }
                         ui.end_row();
@@ -101,7 +101,7 @@ fn view_game_card(
     choose_archive_path: &mut FileDialog,
     mount_point: &Path,
     wiitdb: &mut Option<wiitdb::Datafile>,
-    toasts: &mut Toasts,
+    notifications: &mut Notifications,
 ) {
     let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
     group.show(ui, |ui| {
@@ -166,7 +166,7 @@ fn view_game_card(
                                 *wiitdb = Some(new);
                             }
                             Err(e) => {
-                                toasts.error(e.to_string());
+                                notifications.show_err(e);
                             }
                         }
                     }

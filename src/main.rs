@@ -16,6 +16,7 @@ mod extensions;
 mod games;
 mod hbc_apps;
 mod http;
+mod notifications;
 mod osc;
 mod overflow_reader;
 mod tasks;
@@ -58,6 +59,9 @@ fn get_data_dir() -> Result<PathBuf> {
 }
 
 fn main() -> Result<()> {
+    // Log to stderr (if you run with `RUST_LOG=debug`).
+    env_logger::init();
+
     let data_dir = get_data_dir()?;
     fs::create_dir_all(&data_dir)?;
     let mut app = App::new(&data_dir);

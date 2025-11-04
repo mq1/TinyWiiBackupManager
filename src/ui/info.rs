@@ -62,19 +62,19 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 if ui.button("📁 Open Data Directory").clicked()
                     && let Err(e) = open::that(&app.data_dir)
                 {
-                    app.toasts.error(e.to_string());
+                    app.notifications.show_err(e.into());
                 }
 
                 if ui.button("🌐 Wiki").clicked()
                     && let Err(e) = open::that(env!("CARGO_PKG_HOMEPAGE"))
                 {
-                    app.toasts.error(e.to_string());
+                    app.notifications.show_err(e.into());
                 }
 
                 if ui.button(" Source Code").clicked()
                     && let Err(e) = open::that(env!("CARGO_PKG_REPOSITORY"))
                 {
-                    app.toasts.error(e.to_string());
+                    app.notifications.show_err(e.into());
                 }
             })
         });
