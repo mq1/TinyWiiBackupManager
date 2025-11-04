@@ -17,7 +17,7 @@ impl Titles {
         let contents = if path.exists() {
             fs::read_to_string(path)?
         } else {
-            let bytes = http::get(DOWNLOAD_URL, None)?;
+            let bytes = http::get(DOWNLOAD_URL)?;
             fs::write(&path, &bytes)?;
             String::from_utf8(bytes)?
         };

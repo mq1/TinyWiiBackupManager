@@ -12,7 +12,7 @@ const VERSION_URL: &str = concat!(
 );
 
 pub fn check() -> Result<Option<UpdateInfo>> {
-    let body = http::get(VERSION_URL, None).context("Failed to fetch version")?;
+    let body = http::get(VERSION_URL).context("Failed to fetch version")?;
 
     let latest_version_str =
         String::from_utf8(body).context("Failed to decode response body as UTF-8")?;

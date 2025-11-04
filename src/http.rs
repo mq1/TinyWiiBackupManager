@@ -13,15 +13,10 @@ use zip::ZipArchive;
 
 const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 
-pub fn get(uri: &str, body_size: Option<usize>) -> Result<Vec<u8>> {
+pub fn get(uri: &str) -> Result<Vec<u8>> {
     let uri = Uri::try_from(uri)?;
 
-    let mut body = if let Some(size) = body_size {
-        Vec::with_capacity(size)
-    } else {
-        Vec::new()
-    };
-
+    let mut body = Vec::new();
     let res = Request::new(&uri)
         .header("User-Agent", USER_AGENT)
         .send(&mut body)?;
