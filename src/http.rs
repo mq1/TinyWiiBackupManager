@@ -4,7 +4,7 @@
 use anyhow::{Result, bail};
 use http_req::{request::Request, uri::Uri};
 use std::{
-    fs::File,
+    fs::{self, File},
     io::{BufReader, BufWriter},
     path::Path,
 };
@@ -32,15 +32,26 @@ pub fn get(uri: &str) -> Result<Vec<u8>> {
 pub fn download_file(uri: &str, dest: &Path) -> Result<()> {
     let uri = Uri::try_from(uri)?;
 
-    let mut writer = BufWriter::new(File::create(dest)?);
+    let res = || -> Result<()> {
+        let file = File::create(dest)?;
+        let mut writer = BufWriter::new(file);
 
-    let res = Request::new(&uri)
-        .header("User-Agent", USER_AGENT)
-        .send(&mut writer)?;
+        let res = Request::new(&uri)
+            .header("User-Agent", USER_AGENT)
+            .send(&mut writer)?;
 
-    let status_code = res.status_code();
-    if !status_code.is_success() {
-        bail!("HTTP request failed with status code {}", status_code);
+        let status_code = res.status_code();
+        if !status_code.is_success() {
+            bail!("HTTP request failed with status code {}", status_code);
+        }
+
+        Ok(())
+    }();
+
+    if let Err(e) = res {
+        let _ = fs::remove_file(dest);
+
+        return Err(e);
     }
 
     Ok(())
