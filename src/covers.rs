@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, games::GameID, http::AGENT, tasks::BackgroundMessage};
+use crate::{app::App, games::GameID, http, tasks::BackgroundMessage};
 use anyhow::{Result, bail};
 use std::{fs, path::Path};
 
@@ -20,8 +20,7 @@ fn download_cover3d(id: &[u8; 6], mount_point: &Path) -> Result<()> {
         id.as_str()
     );
 
-    let bytes = AGENT.get(&url).call()?.body_mut().read_to_vec()?;
-    fs::write(&path, bytes)?;
+    http::download_file(&url, &path)?;
 
     Ok(())
 }
@@ -43,8 +42,7 @@ fn download_cover2d(id: &[u8; 6], mount_point: &Path) -> Result<()> {
     );
 
     if !path.exists() {
-        let bytes = AGENT.get(&url).call()?.body_mut().read_to_vec()?;
-        fs::write(&path, bytes)?;
+        http::download_file(&url, &path)?;
     }
 
     Ok(())
@@ -67,8 +65,7 @@ fn download_coverfull(id: &[u8; 6], mount_point: &Path) -> Result<()> {
     );
 
     if !path.exists() {
-        let bytes = AGENT.get(&url).call()?.body_mut().read_to_vec()?;
-        fs::write(&path, bytes)?;
+        http::download_file(&url, &path)?;
     }
 
     Ok(())
@@ -91,8 +88,7 @@ fn download_disc_cover(id: &[u8; 6], mount_point: &Path) -> Result<()> {
     );
 
     if !path.exists() {
-        let bytes = AGENT.get(&url).call()?.body_mut().read_to_vec()?;
-        fs::write(&path, bytes)?;
+        http::download_file(&url, &path)?;
     }
 
     Ok(())
@@ -111,8 +107,7 @@ fn download_wiiflow_boxcover(id: &[u8; 6], mount_point: &Path) -> Result<()> {
     );
 
     if !path.exists() {
-        let bytes = AGENT.get(&url).call()?.body_mut().read_to_vec()?;
-        fs::write(&path, bytes)?;
+        http::download_file(&url, &path)?;
     }
 
     Ok(())
@@ -131,8 +126,7 @@ fn download_wiiflow_cover(id: &[u8; 6], mount_point: &Path) -> Result<()> {
     );
 
     if !path.exists() {
-        let bytes = AGENT.get(&url).call()?.body_mut().read_to_vec()?;
-        fs::write(&path, bytes)?;
+        http::download_file(&url, &path)?;
     }
 
     Ok(())

@@ -4,7 +4,7 @@
 use crate::{
     app::App,
     config::SortBy,
-    http::AGENT,
+    http,
     tasks::{BackgroundMessage, TaskProcessor},
 };
 use anyhow::Result;
@@ -13,7 +13,7 @@ use serde::Deserialize;
 use size::Size;
 use std::{
     fs::{self, File},
-    io::{BufReader, Cursor, Read},
+    io::BufReader,
     path::{Path, PathBuf},
 };
 use zip::ZipArchive;
@@ -123,7 +123,6 @@ fn install_zip(mount_point: &Path, path: &Path) -> Result<()> {
 
 pub fn spawn_install_app_from_url_task(
     zip_url: String,
-    zip_size: usize,
     task_processor: &TaskProcessor,
     mount_point: PathBuf,
 ) {
@@ -133,13 +132,7 @@ pub fn spawn_install_app_from_url_task(
             &zip_url
         )))?;
 
-        let (_, body) = AGENT.get(&zip_url).call()?.into_parts();
-        let mut buffer = Vec::with_capacity(zip_size);
-        body.into_reader().read_to_end(&mut buffer)?;
-
-        let cursor = Cursor::new(buffer);
-        let mut archive = ZipArchive::new(cursor)?;
-        archive.extract(mount_point)?;
+        http::download_and_extract_zip(&zip_url, &mount_point)?;
 
         msg_sender.send(BackgroundMessage::TriggerRefreshHbcApps)?;
 

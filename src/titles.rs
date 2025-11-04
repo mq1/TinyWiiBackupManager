@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, games::GameID, http::AGENT, tasks::BackgroundMessage};
+use crate::{app::App, games::GameID, http, tasks::BackgroundMessage};
 use anyhow::Result;
 use std::{fs, path::Path};
 
@@ -17,10 +17,9 @@ impl Titles {
         let contents = if path.exists() {
             fs::read_to_string(path)?
         } else {
-            let mut res = AGENT.get(DOWNLOAD_URL).call()?;
-            let contents = res.body_mut().read_to_string()?;
-            fs::write(path, &contents)?;
-            contents
+            let bytes = http::get(DOWNLOAD_URL, None)?;
+            fs::write(&path, &bytes)?;
+            String::from_utf8(bytes)?
         };
 
         let mut titles = contents
