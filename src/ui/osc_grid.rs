@@ -78,7 +78,6 @@ fn view_osc_app_card(
                 {
                     hbc_apps::spawn_install_app_from_url_task(
                         osc_app.meta.assets.archive.url.clone(),
-                        osc_app.meta.assets.archive.size,
                         task_processor,
                         config.contents.mount_point.to_path_buf(),
                     );
@@ -96,7 +95,6 @@ fn view_osc_app_card(
 
                     wiiload::spawn_push_osc_task(
                         osc_app.meta.assets.archive.url.clone(),
-                        osc_app.meta.assets.archive.size,
                         config.contents.wii_ip.clone(),
                         task_processor,
                     );

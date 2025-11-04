@@ -1,35 +1,76 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::convert::Into;
-use std::sync::LazyLock;
-use ureq::Agent;
-use ureq::tls::{RootCerts, TlsConfig, TlsProvider};
+use anyhow::Result;
+use http_req::{request::Request, uri::Uri};
+use std::{
+    fs::File,
+    io::{BufReader, BufWriter},
+    path::Path,
+};
+use tempfile::tempfile;
+use zip::ZipArchive;
 
 const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 
-#[cfg(feature = "native-tls")]
-const TLS_PROVIDER: TlsProvider = TlsProvider::NativeTls;
+pub fn get(uri: &str, body_size: Option<usize>) -> Result<Vec<u8>> {
+    let uri = Uri::try_from(uri)?;
 
-#[cfg(feature = "native-tls")]
-const ROOT_CERTS: RootCerts = RootCerts::PlatformVerifier;
+    let mut body = if let Some(size) = body_size {
+        Vec::with_capacity(size)
+    } else {
+        Vec::new()
+    };
 
-#[cfg(feature = "bundled-tls")]
-const TLS_PROVIDER: TlsProvider = TlsProvider::Rustls;
+    let _ = Request::new(&uri)
+        .header("User-Agent", USER_AGENT)
+        .send(&mut body)?;
 
-#[cfg(feature = "bundled-tls")]
-const ROOT_CERTS: RootCerts = RootCerts::WebPki;
+    Ok(body)
+}
 
-pub static AGENT: LazyLock<Agent> = LazyLock::new(|| {
-    Agent::config_builder()
-        .tls_config(
-            TlsConfig::builder()
-                .provider(TLS_PROVIDER)
-                .root_certs(ROOT_CERTS)
-                .build(),
-        )
-        //.timeout_global(Some(Duration::from_secs(30)))
-        .user_agent(USER_AGENT)
-        .build()
-        .into()
-});
+pub fn download_file(uri: &str, dest: &Path) -> Result<()> {
+    let uri = Uri::try_from(uri)?;
+
+    let mut writer = BufWriter::new(File::create(dest)?);
+
+    let _ = Request::new(&uri)
+        .header("User-Agent", USER_AGENT)
+        .send(&mut writer)?;
+
+    Ok(())
+}
+
+pub fn download_into_file(uri: &str, file: &File) -> Result<()> {
+    let uri = Uri::try_from(uri)?;
+
+    let mut writer = BufWriter::new(file);
+
+    let _ = Request::new(&uri)
+        .header("User-Agent", USER_AGENT)
+        .send(&mut writer)?;
+
+    Ok(())
+}
+
+pub fn download_and_extract_zip(uri: &str, dest_dir: &Path) -> Result<()> {
+    let uri = Uri::try_from(uri)?;
+
+    let tmp = tempfile()?;
+
+    {
+        let mut writer = BufWriter::new(&tmp);
+
+        let _ = Request::new(&uri)
+            .header("User-Agent", USER_AGENT)
+            .send(&mut writer)?;
+    }
+
+    {
+        let reader = BufReader::new(&tmp);
+        let mut zip = ZipArchive::new(reader)?;
+        zip.extract(dest_dir)?;
+    }
+
+    Ok(())
+}
