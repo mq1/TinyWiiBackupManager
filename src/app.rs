@@ -8,6 +8,7 @@ use crate::{
     extensions,
     games::{self, Game},
     hbc_apps::{self, HbcApp},
+    notifications::Notifications,
     osc::{self, OscApp},
     tasks::{BackgroundMessage, TaskProcessor},
     titles::Titles,
@@ -19,12 +20,10 @@ use crate::{
 use crossbeam_channel::{Receiver, unbounded};
 use eframe::egui;
 use egui_file_dialog::FileDialog;
-use egui_notify::{Anchor, Toasts};
 use size::Size;
 use std::{
     path::{Path, PathBuf},
     thread,
-    time::Duration,
 };
 
 pub type GameInfoData = (Game, Result<DiscInfo, String>, Result<GameInfo, String>);
@@ -60,13 +59,13 @@ pub struct App {
     pub choose_archive_path: FileDialog,
     pub choose_file_to_push: FileDialog,
     pub archiving_game: Option<PathBuf>,
-    pub toasts: Toasts,
     pub osc_apps: Option<Vec<OscApp>>,
     pub filtered_osc_apps: Vec<OscApp>,
     pub osc_app_search: String,
     pub status: String,
     pub wiitdb: Option<wiitdb::Datafile>,
     pub is_info_open: bool,
+    pub notifications: Notifications,
 }
 
 impl App {
@@ -78,16 +77,6 @@ impl App {
             .add_save_extension(ArchiveFormat::Rvz.as_ref(), "rvz")
             .add_save_extension(ArchiveFormat::Iso.as_ref(), "iso")
             .default_save_extension(config.contents.archive_format.as_ref());
-
-        let toasts = Toasts::default()
-            .with_anchor(Anchor::BottomRight)
-            .with_margin(egui::vec2(8.0, 8.0))
-            .with_shadow(egui::Shadow {
-                offset: [0, 0],
-                blur: 0,
-                spread: 1,
-                color: egui::Color32::GRAY,
-            });
 
         Self {
             data_dir: data_dir.to_path_buf(),
@@ -127,7 +116,6 @@ impl App {
                 .default_file_filter("HBC App (zip/dol/elf)"),
             choose_archive_path,
             archiving_game: None,
-            toasts,
             hbc_app_search: String::new(),
             hbc_apps: Vec::new(),
             filtered_hbc_apps: Vec::new(),
@@ -139,6 +127,7 @@ impl App {
             status: String::new(),
             wiitdb: None,
             is_info_open: false,
+            notifications: Notifications::new(),
         }
     }
 
@@ -237,7 +226,7 @@ impl App {
                 self.update_filtered_games();
             }
             Err(e) => {
-                self.toasts.error(e.to_string());
+                self.notifications.show_err(e);
             }
         }
 
@@ -254,7 +243,7 @@ impl App {
                 self.update_filtered_hbc_apps();
             }
             Err(e) => {
-                self.toasts.error(e.to_string());
+                self.notifications.show_err(e);
             }
         }
 
@@ -295,16 +284,14 @@ impl eframe::App for App {
         // Process background messages (from task_processor)
         while let Ok(msg) = self.task_processor.msg_receiver.try_recv() {
             match msg {
-                BackgroundMessage::NotifyInfo(string) => {
-                    self.toasts.info(string);
+                BackgroundMessage::NotifyInfo(i) => {
+                    self.notifications.show_info(&i);
                 }
-                BackgroundMessage::NotifyError(string) => {
-                    self.toasts.error(string).duration(Duration::from_secs(10));
+                BackgroundMessage::NotifyError(e) => {
+                    self.notifications.show_err(e);
                 }
-                BackgroundMessage::NotifySuccess(string) => {
-                    self.toasts
-                        .success(string)
-                        .duration(Duration::from_secs(10));
+                BackgroundMessage::NotifySuccess(s) => {
+                    self.notifications.show_success(&s);
                 }
                 BackgroundMessage::UpdateStatus(string) => {
                     self.status = string;
@@ -335,7 +322,7 @@ impl eframe::App for App {
                 BackgroundMessage::SetArchiveFormat(format) => {
                     self.config.contents.archive_format = format;
                     if let Err(e) = self.config.write() {
-                        self.toasts.error(e.to_string());
+                        self.notifications.show_err(e);
                     }
                 }
             }
