@@ -1,16 +1,17 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::http::AGENT;
+use crate::http;
 use crate::tasks::{BackgroundMessage, TaskProcessor};
 use anyhow::anyhow;
 use anyhow::{Result, bail};
 use path_slash::PathBufExt;
 use std::fs::{self, File};
-use std::io::{self, Cursor, Read, Seek, Write};
+use std::io::{self, BufReader, Cursor, Read, Seek, Write};
 use std::net::{SocketAddr, TcpStream, ToSocketAddrs};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
+use tempfile::tempfile;
 use zip::write::SimpleFileOptions;
 use zip::{ZipArchive, ZipWriter};
 
@@ -75,12 +76,7 @@ pub fn spawn_push_file_task(path: PathBuf, wii_ip: String, task_processor: &Task
     });
 }
 
-pub fn spawn_push_osc_task(
-    zip_url: String,
-    zip_size: usize,
-    wii_ip: String,
-    task_processor: &TaskProcessor,
-) {
+pub fn spawn_push_osc_task(zip_url: String, wii_ip: String, task_processor: &TaskProcessor) {
     task_processor.spawn(move |msg_sender| {
         msg_sender.send(BackgroundMessage::UpdateStatus(
             "📤 Starting Wilload...".to_string(),
@@ -98,12 +94,10 @@ pub fn spawn_push_osc_task(
             url
         )))?;
 
-        let (_, body) = AGENT.get(&url).call()?.into_parts();
-        let mut buffer = Vec::with_capacity(zip_size);
-        body.into_reader().read_to_end(&mut buffer)?;
-
-        let cursor = Cursor::new(buffer);
-        let mut archive = ZipArchive::new(cursor)?;
+        let tmp = tempfile()?;
+        http::download_into_file(&zip_url, &tmp)?;
+        let reader = BufReader::new(tmp);
+        let mut archive = ZipArchive::new(reader)?;
 
         // Find the dir containing boot.dol or boot.elf
         let app_dir = find_app_dir(&mut archive)?;

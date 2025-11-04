@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, http::AGENT, tasks::BackgroundMessage};
+use crate::{app::App, http, tasks::BackgroundMessage};
 use anyhow::{Context, Result};
 use semver::Version;
 use std::fmt;
@@ -12,13 +12,10 @@ const VERSION_URL: &str = concat!(
 );
 
 pub fn check() -> Result<Option<UpdateInfo>> {
-    let latest_version_str = AGENT
-        .get(VERSION_URL)
-        .call()
-        .context("Failed to fetch version")?
-        .body_mut()
-        .read_to_string()
-        .context("Failed to decode response body as UTF-8")?;
+    let body = http::get(VERSION_URL, None).context("Failed to fetch version")?;
+
+    let latest_version_str =
+        String::from_utf8(body).context("Failed to decode response body as UTF-8")?;
 
     let latest_version = Version::parse(latest_version_str.trim()).context(format!(
         "Failed to parse latest version from server: '{}'",

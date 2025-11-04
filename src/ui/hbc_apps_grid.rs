@@ -99,7 +99,6 @@ fn view_hbc_app_card(
                 {
                     hbc_apps::spawn_install_app_from_url_task(
                         osc_app.meta.assets.archive.url.clone(),
-                        osc_app.meta.assets.archive.size,
                         task_processor,
                         mount_point.to_path_buf(),
                     );

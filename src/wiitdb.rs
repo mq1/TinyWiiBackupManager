@@ -3,15 +3,14 @@
 
 use crate::app::App;
 use crate::games::GameID;
-use crate::http::AGENT;
+use crate::http;
 use crate::tasks::BackgroundMessage;
 use anyhow::{Context, Result};
 use capitalize::Capitalize;
 use serde::Deserialize;
-use std::fs::{self, File, OpenOptions};
-use std::io::{self, BufReader, BufWriter, Cursor, Read};
+use std::fs::{self, File};
+use std::io::BufReader;
 use std::path::Path;
-use zip::ZipArchive;
 
 const DOWNLOAD_URL: &str = "https://www.gametdb.com/wiitdb.zip";
 
@@ -28,27 +27,8 @@ pub fn spawn_download_task(app: &App) {
         let target_dir = mount_point.join("apps").join("usbloader_gx");
         fs::create_dir_all(&target_dir)?;
 
-        // Perform the download request.
-        let (_, body) = AGENT.get(DOWNLOAD_URL).call()?.into_parts();
-        let mut buffer = Vec::with_capacity(body.content_length().unwrap_or(0) as usize);
-        body.into_reader().read_to_end(&mut buffer)?;
-
-        // Create a cursor in memory.
-        let cursor = Cursor::new(buffer);
-
-        // Open the zip archive from the in-memory buffer.
-        let mut archive = ZipArchive::new(cursor)?;
-        let mut zipped_file = archive.by_name("wiitdb.xml")?;
-
-        // Extract the wiitdb.xml file to the target directory.
-        let target_path = target_dir.join("wiitdb.xml");
-        let target_file = OpenOptions::new()
-            .write(true)
-            .create(true)
-            .truncate(true)
-            .open(&target_path)?;
-        let mut writer = BufWriter::new(target_file);
-        io::copy(&mut zipped_file, &mut writer)?;
+        // Perform the download request and extract.
+        http::download_and_extract_zip(DOWNLOAD_URL, &target_dir)?;
 
         msg_sender.send(BackgroundMessage::NotifyInfo(
             "📥 wiitdb.xml Downloaded Successfully".to_string(),
