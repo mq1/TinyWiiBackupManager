@@ -4,7 +4,7 @@ version = "4.2.2"
 edition = "2024"
 authors = ["Manuel Quarneti <mq1@ik.me>"]
 license = "GPL-3.0-only"
-repository = "https://github.com/mq1/TinyWiiBackupManager"
+repository = "https://github.com/mq1/TinyWiiBackupManage"
 homepage = "https://github.com/mq1/TinyWiiBackupManager/wiki"
 description = "A dead simple Wii Backup Manager"
 
@@ -85,7 +85,8 @@ winres = "0.1"
 opt-level = 3
 lto = "fat"
 codegen-units = 1
-strip = true
+strip = "debuginfo"
+debug = "line-tables-only"
 panic = "abort"
 
 [profile.dev.package."*"]
