@@ -49,10 +49,8 @@ pub fn spawn_download_banners_task(app: &mut App) {
             )))?;
 
             if let Err(e) = download_banner_for_game(&cache_bnr_path, &game.id) {
-                msg_sender.send(BackgroundMessage::NotifyError(format!(
-                    "Failed to download banner for {}: {}",
-                    &game.display_title, e
-                )))?;
+                let context = format!("Failed to download banner for {}", &game.display_title);
+                msg_sender.send(BackgroundMessage::NotifyError(e.context(context)))?;
             }
         }
 

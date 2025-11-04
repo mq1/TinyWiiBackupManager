@@ -28,5 +28,5 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
     ui::conversion_confirmation::update(ctx, app);
     ui::info::update(ctx, app);
 
-    app.toasts.show(ctx);
+    app.notifications.show_toasts(ctx);
 }

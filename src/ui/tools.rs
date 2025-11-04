@@ -68,10 +68,11 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
                 ui.horizontal(|ui| {
                     if ui.button("⏵").clicked() {
-                        match util::run_dot_clean(&app.config.contents.mount_point) {
-                            Ok(()) => app.toasts.success("dot_clean successful"),
-                            Err(err) => app.toasts.error(err.to_string()),
-                        };
+                        if let Err(e) = util::run_dot_clean(&app.config.contents.mount_point) {
+                            app.notifications.show_err(e);
+                        } else {
+                            app.notifications.show_success("dot_clean successful");
+                        }
                     }
 
                     ui.label("Run dot_clean (remove hidden ._ files)");

@@ -35,11 +35,12 @@ pub fn spawn_checksum_task(
                     "🔎 Embedded CRC32 is == to the actual file CRC32".to_string()
                 ))?;
             } else {
-                msg_sender.send(BackgroundMessage::NotifyError(
-                    format!("🔎 Embedded CRC32 mismatch, expected: {:x}, found: {:x}\n\nThis is expected if the Update partition has been removed",
-                    embedded_crc32,
-                    crc32
-                )))?;
+                let e = anyhow!(
+                    "🔎 Embedded CRC32 mismatch, expected: {:x}, found: {:x}\n\nThis is expected if the Update partition has been removed",
+                    embedded_crc32, crc32
+                );
+
+                msg_sender.send(BackgroundMessage::NotifyError(e))?;
             }
         }
 
@@ -49,9 +50,11 @@ pub fn spawn_checksum_task(
                     "🔎 CRC32 matches the Redump hash: your dump is perfect!".to_string(),
                 ))?;
             } else {
-                msg_sender.send(BackgroundMessage::NotifyError(
-                    "🔎 CRC32 does not match the Redump hash".to_string(),
-                ))?;
+                let e = anyhow!(
+                    "🔎 CRC32 does not match the Redump hash"
+                );
+
+                msg_sender.send(BackgroundMessage::NotifyError(e))?;
             }
         }
 
