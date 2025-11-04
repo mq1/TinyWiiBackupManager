@@ -22,7 +22,7 @@ impl TaskProcessor {
             while let Ok(task) = task_receiver.recv() {
                 if let Err(e) = task(&msg_sender) {
                     msg_sender
-                        .send(BackgroundMessage::NotifyError(e.to_string()))
+                        .send(BackgroundMessage::NotifyError(e))
                         .expect("Failed to send message");
                 }
 
@@ -55,7 +55,7 @@ impl TaskProcessor {
 
 pub enum BackgroundMessage {
     NotifyInfo(String),
-    NotifyError(String),
+    NotifyError(anyhow::Error),
     NotifySuccess(String),
     UpdateStatus(String),
     ClearStatus,

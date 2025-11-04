@@ -13,7 +13,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
         app.refresh_hbc_apps(ctx);
 
         if let Err(e) = app.config.write() {
-            app.toasts.error(e.to_string());
+            app.notifications.show_err(e);
         }
     }
 }

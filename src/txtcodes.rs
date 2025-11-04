@@ -41,10 +41,8 @@ pub fn spawn_download_cheats_task(app: &mut App) {
             )))?;
 
             if let Err(e) = download_cheats_for_game(&txt_cheatcodespath, &game.id) {
-                msg_sender.send(BackgroundMessage::NotifyError(format!(
-                    "Failed to download cheats for {}: {}",
-                    &game.display_title, e
-                )))?;
+                let context = format!("Failed to download cheats for {}", &game.display_title);
+                msg_sender.send(BackgroundMessage::NotifyError(e.context(context)))?;
             }
         }
 
