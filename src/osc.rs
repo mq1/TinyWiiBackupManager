@@ -24,7 +24,7 @@ pub fn spawn_load_osc_apps_task(app: &App) {
         let cache = match load_cache(&cache_path) {
             Ok(cache) => cache,
             Err(_) => {
-                let bytes = http::get(CONTENTS_URL, None)?;
+                let bytes = http::get(CONTENTS_URL)?;
                 fs::write(&cache_path, &bytes)?;
                 serde_json::from_slice(&bytes)?
             }

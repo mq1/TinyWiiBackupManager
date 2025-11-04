@@ -15,9 +15,9 @@ fn download_banner_for_game(cache_bnr_path: &Path, game_id: &[u8; 6]) -> Result<
     let url = format!("https://banner.rc24.xyz/{}.bnr", game_id.as_str());
     let fallback_url = format!("https://banner.rc24.xyz/{}.bnr", game_id.as_partial());
 
-    let bytes = match http::get(&url, None) {
+    let bytes = match http::get(&url) {
         Ok(body) => body,
-        Err(_) => http::get(&fallback_url, None)?,
+        Err(_) => http::get(&fallback_url)?,
     };
 
     fs::write(&path, bytes)?;
