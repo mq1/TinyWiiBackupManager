@@ -59,7 +59,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                                         + &osc_app.meta.slug,
                                 )
                             {
-                                app.toasts.error(e.to_string());
+                                app.notifications.show_err(e.into());
                             }
 
                             // Wiiload button
@@ -69,7 +69,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                                 .clicked()
                             {
                                 if let Err(e) = app.config.write() {
-                                    app.toasts.error(e.to_string());
+                                    app.notifications.show_err(e);
                                 }
 
                                 wiiload::spawn_push_osc_task(

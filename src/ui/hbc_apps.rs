@@ -72,7 +72,7 @@ fn view_top_bar(ui: &mut egui::Ui, app: &mut App, ctx: &egui::Context) {
             group.show(ui, |ui| {
                 if ui.button("📤").on_hover_text("Wiiload").clicked() {
                     if let Err(e) = app.config.write() {
-                        app.toasts.error(e.to_string());
+                        app.notifications.show_err(e);
                     }
 
                     app.choose_file_to_push.pick_file();
@@ -96,7 +96,7 @@ fn view_top_bar(ui: &mut egui::Ui, app: &mut App, ctx: &egui::Context) {
                 {
                     app.config.contents.view_as = ViewAs::List;
                     if let Err(e) = app.config.write() {
-                        app.toasts.error(e.to_string());
+                        app.notifications.show_err(e);
                     }
                 }
 
@@ -107,7 +107,7 @@ fn view_top_bar(ui: &mut egui::Ui, app: &mut App, ctx: &egui::Context) {
                 {
                     app.config.contents.view_as = ViewAs::Grid;
                     if let Err(e) = app.config.write() {
-                        app.toasts.error(e.to_string());
+                        app.notifications.show_err(e);
                     }
                 }
             });

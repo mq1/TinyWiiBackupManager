@@ -1,9 +1,11 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, config::Config, hbc_apps, osc::OscApp, tasks::TaskProcessor, wiiload};
+use crate::{
+    app::App, config::Config, hbc_apps, notifications::Notifications, osc::OscApp,
+    tasks::TaskProcessor, wiiload,
+};
 use eframe::egui::{self, Vec2};
-use egui_notify::Toasts;
 
 const CARD_WIDTH: f32 = 161.5;
 const CARD_HEIGHT: f32 = 140.;
@@ -23,7 +25,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                         view_osc_app_card(
                             ui,
                             osc_app,
-                            &mut app.toasts,
+                            &mut app.notifications,
                             &mut app.task_processor,
                             &app.config,
                         );
@@ -38,7 +40,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
 fn view_osc_app_card(
     ui: &mut egui::Ui,
     osc_app: &OscApp,
-    toasts: &mut Toasts,
+    notifications: &mut Notifications,
     task_processor: &mut TaskProcessor,
     config: &Config,
 ) {
@@ -90,7 +92,7 @@ fn view_osc_app_card(
                     .clicked()
                 {
                     if let Err(e) = config.write() {
-                        toasts.error(e.to_string());
+                        notifications.show_err(e);
                     }
 
                     wiiload::spawn_push_osc_task(
@@ -111,7 +113,7 @@ fn view_osc_app_card(
                         "https://oscwii.org/library/app/".to_string() + &osc_app.meta.slug,
                     )
                 {
-                    toasts.error(e.to_string());
+                    notifications.show_err(e.into());
                 }
             });
         });

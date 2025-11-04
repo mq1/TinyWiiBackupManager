@@ -125,7 +125,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                         .clicked()
                     && let Err(e) = update_info.open_url()
                 {
-                    app.toasts.error(e.to_string());
+                    app.notifications.show_err(e);
                 }
             });
         });
