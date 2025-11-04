@@ -259,7 +259,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 if ui.button("📁 Open Directory").clicked()
                     && let Err(e) = open::that(&game.path)
                 {
-                    app.toasts.error(e.to_string());
+                    app.notifications.show_err(e.into());
                 }
 
                 // Integrity check button

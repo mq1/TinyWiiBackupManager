@@ -19,7 +19,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
             .collect();
 
         if app.choosing_games.is_empty() {
-            app.toasts.info("No new games were selected");
+            app.notifications.show_info("No new games were selected");
         }
     }
 }
