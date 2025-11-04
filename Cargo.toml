@@ -4,7 +4,7 @@ version = "4.2.2"
 edition = "2024"
 authors = ["Manuel Quarneti <mq1@ik.me>"]
 license = "GPL-3.0-only"
-repository = "https://github.com/mq1/TinyWiiBackupManage"
+repository = "https://github.com/mq1/TinyWiiBackupManager"
 homepage = "https://github.com/mq1/TinyWiiBackupManager/wiki"
 description = "A dead simple Wii Backup Manager"
 
