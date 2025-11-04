@@ -36,6 +36,8 @@ use eframe::{
 use egui_extras::install_image_loaders;
 use std::{fs, path::PathBuf};
 
+pub const APP_NAME: &str = env!("CARGO_PKG_NAME");
+
 #[cfg(not(feature = "app-dir"))]
 fn get_data_dir() -> Result<PathBuf> {
     // For portable builds, use a directory next to the executable
@@ -50,7 +52,7 @@ fn get_data_dir() -> Result<PathBuf> {
 #[cfg(feature = "app-dir")]
 fn get_data_dir() -> Result<PathBuf> {
     // For standard builds, use the system's app data directory
-    let proj = directories::ProjectDirs::from("it", "mq1", env!("CARGO_PKG_NAME"))
+    let proj = directories::ProjectDirs::from("it", "mq1", APP_NAME)
         .ok_or(anyhow!("Failed to get project dirs"))?;
     Ok(proj.data_dir().to_path_buf())
 }
@@ -85,7 +87,7 @@ fn main() -> Result<()> {
     };
 
     eframe::run_native(
-        env!("CARGO_PKG_NAME"),
+        APP_NAME,
         native_options,
         Box::new(|cc| {
             install_image_loaders(&cc.egui_ctx);

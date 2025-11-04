@@ -1,12 +1,12 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, http::AGENT, tasks::BackgroundMessage};
+use crate::{app::App, http, tasks::BackgroundMessage};
 use anyhow::{Result, bail};
 use path_slash::PathExt;
 use serde::{Deserialize, Deserializer};
 use size::Size;
-use std::{fs, io::Read, path::Path, time::Duration};
+use std::{fs, path::Path, time::Duration};
 
 const CONTENTS_URL: &str = "https://hbb1.oscwii.org/api/v4/contents";
 
@@ -24,7 +24,7 @@ pub fn spawn_load_osc_apps_task(app: &App) {
         let cache = match load_cache(&cache_path) {
             Ok(cache) => cache,
             Err(_) => {
-                let bytes = AGENT.get(CONTENTS_URL).call()?.body_mut().read_to_vec()?;
+                let bytes = http::get(CONTENTS_URL, None)?;
                 fs::write(&cache_path, &bytes)?;
                 serde_json::from_slice(&bytes)?
             }
@@ -68,11 +68,7 @@ pub fn download_icon(meta: &OscAppMeta, icons_dir: &Path) -> Result<()> {
         bail!("{} already exists", icon_path.display());
     }
 
-    let (_, body) = AGENT.get(&meta.assets.icon.url).call()?.into_parts();
-    let mut icon = Vec::with_capacity(meta.assets.icon.size);
-    body.into_reader().read_to_end(&mut icon)?;
-
-    fs::write(&icon_path, &icon)?;
+    http::download_file(&meta.assets.icon.url, &icon_path)?;
 
     Ok(())
 }
@@ -141,5 +137,4 @@ pub struct Assets {
 #[serde(default)]
 pub struct Asset {
     pub url: String,
-    pub size: usize,
 }

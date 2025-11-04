@@ -74,7 +74,6 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
 
                                 wiiload::spawn_push_osc_task(
                                     osc_app.meta.assets.archive.url.clone(),
-                                    osc_app.meta.assets.archive.size,
                                     app.config.contents.wii_ip.clone(),
                                     &app.task_processor,
                                 );
@@ -88,7 +87,6 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                             {
                                 hbc_apps::spawn_install_app_from_url_task(
                                     osc_app.meta.assets.archive.url.clone(),
-                                    osc_app.meta.assets.archive.size,
                                     &app.task_processor,
                                     app.config.contents.mount_point.clone(),
                                 );
