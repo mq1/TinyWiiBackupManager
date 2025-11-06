@@ -94,6 +94,3 @@ opt-level = 3
 
 [profile.dev.package.quick-xml]
 overflow-checks = false
-
-[lints.rust]
-non_snake_case = "allow"
