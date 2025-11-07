@@ -34,10 +34,10 @@ pub struct App {
     pub config: Config,
     pub update_info: Option<UpdateInfo>,
     pub games: Vec<Game>,
-    pub filtered_games: Vec<Game>,
-    pub filtered_wii_games_len: usize,
+    pub filtered_games: Box<[usize]>,
+    pub filtered_wii_games: Box<[usize]>,
+    pub filtered_gc_games: Box<[usize]>,
     pub filtered_wii_games_size: Size,
-    pub filtered_gc_games_len: usize,
     pub filtered_gc_games_size: Size,
     pub game_search: String,
     pub show_wii: bool,
@@ -49,7 +49,7 @@ pub struct App {
     pub hbc_app_info: Option<HbcApp>,
     pub hbc_app_search: String,
     pub hbc_apps: Vec<HbcApp>,
-    pub filtered_hbc_apps: Vec<HbcApp>,
+    pub filtered_hbc_apps: Box<[usize]>,
     pub task_processor: TaskProcessor,
     pub downloading_osc_icons: Option<Receiver<String>>,
     pub choose_mount_point: FileDialog,
@@ -59,8 +59,8 @@ pub struct App {
     pub choose_archive_path: FileDialog,
     pub choose_file_to_push: FileDialog,
     pub archiving_game: Option<PathBuf>,
-    pub osc_apps: Option<Vec<OscApp>>,
-    pub filtered_osc_apps: Vec<OscApp>,
+    pub osc_apps: Vec<OscApp>,
+    pub filtered_osc_apps: Box<[usize]>,
     pub osc_app_search: String,
     pub status: String,
     pub wiitdb: Option<wiitdb::Datafile>,
@@ -84,10 +84,10 @@ impl App {
             config,
             update_info: None,
             games: Vec::new(),
-            filtered_games: Vec::new(),
-            filtered_wii_games_len: 0,
+            filtered_games: Box::new([]),
+            filtered_wii_games: Box::new([]),
+            filtered_gc_games: Box::new([]),
             filtered_wii_games_size: Size::from_bytes(0),
-            filtered_gc_games_len: 0,
             filtered_gc_games_size: Size::from_bytes(0),
             game_search: String::new(),
             show_wii: true,
@@ -118,11 +118,11 @@ impl App {
             archiving_game: None,
             hbc_app_search: String::new(),
             hbc_apps: Vec::new(),
-            filtered_hbc_apps: Vec::new(),
+            filtered_hbc_apps: Box::new([]),
             deleting_hbc_app: None,
             hbc_app_info: None,
-            osc_apps: None,
-            filtered_osc_apps: Vec::new(),
+            osc_apps: Vec::new(),
+            filtered_osc_apps: Box::new([]),
             osc_app_search: String::new(),
             status: String::new(),
             wiitdb: None,
@@ -132,39 +132,50 @@ impl App {
     }
 
     pub fn update_filtered_games(&mut self) {
-        if self.game_search.is_empty() {
-            self.filtered_games.clone_from(&self.games);
-        } else {
-            let game_search = self.game_search.to_lowercase();
-
-            self.filtered_games = self
-                .games
-                .iter()
-                .filter(|game| game.search_str.contains(&game_search))
-                .cloned()
-                .collect();
-        }
-
-        self.filtered_wii_games_len = 0;
-        self.filtered_gc_games_len = 0;
-
         self.filtered_wii_games_size = Size::from_bytes(0);
         self.filtered_gc_games_size = Size::from_bytes(0);
 
-        for game in &self.filtered_games {
-            if game.is_wii {
-                self.filtered_wii_games_len += 1;
-                self.filtered_wii_games_size += game.size;
-            } else {
-                self.filtered_gc_games_len += 1;
-                self.filtered_gc_games_size += game.size;
+        let mut filtered_wii_games = Vec::new();
+        let mut filtered_gc_games = Vec::new();
+
+        if self.game_search.is_empty() {
+            self.filtered_games = (0..self.games.len()).collect();
+            for (i, game) in self.games.iter().enumerate() {
+                if game.is_wii {
+                    filtered_wii_games.push(i);
+                    self.filtered_wii_games_size += game.size;
+                } else {
+                    filtered_gc_games.push(i);
+                    self.filtered_gc_games_size += game.size;
+                }
             }
-        }
+        } else {
+            let game_search = self.game_search.to_lowercase();
+            self.filtered_games = self
+                .games
+                .iter()
+                .enumerate()
+                .filter(|(_, game)| game.search_str.contains(&game_search))
+                .map(|(i, game)| {
+                    if game.is_wii {
+                        filtered_wii_games.push(i);
+                        self.filtered_wii_games_size += game.size;
+                    } else {
+                        filtered_gc_games.push(i);
+                        self.filtered_gc_games_size += game.size;
+                    }
+                    i
+                })
+                .collect();
+        };
+
+        self.filtered_wii_games = filtered_wii_games.into_boxed_slice();
+        self.filtered_gc_games = filtered_gc_games.into_boxed_slice();
     }
 
     pub fn update_filtered_hbc_apps(&mut self) {
         if self.hbc_app_search.is_empty() {
-            self.filtered_hbc_apps = self.hbc_apps.clone();
+            self.filtered_hbc_apps = (0..self.hbc_apps.len()).collect();
             return;
         }
 
@@ -172,25 +183,26 @@ impl App {
         self.filtered_hbc_apps = self
             .hbc_apps
             .iter()
-            .filter(|hbc_app| hbc_app.search_str.contains(&hbc_app_search))
-            .cloned()
+            .enumerate()
+            .filter(|(_, hbc_app)| hbc_app.search_str.contains(&hbc_app_search))
+            .map(|(i, _)| i)
             .collect();
     }
 
     pub fn update_filtered_osc_apps(&mut self) {
-        if let Some(osc_apps) = &self.osc_apps {
-            if self.osc_app_search.is_empty() {
-                self.filtered_osc_apps = osc_apps.clone();
-                return;
-            }
-
-            let osc_app_search = self.osc_app_search.to_lowercase();
-            self.filtered_osc_apps = osc_apps
-                .iter()
-                .filter(|osc_app| osc_app.search_str.contains(&osc_app_search))
-                .cloned()
-                .collect();
+        if self.osc_app_search.is_empty() {
+            self.filtered_osc_apps = (0..self.osc_apps.len()).collect();
+            return;
         }
+
+        let osc_app_search = self.osc_app_search.to_lowercase();
+        self.filtered_osc_apps = self
+            .osc_apps
+            .iter()
+            .enumerate()
+            .filter(|(_, osc_app)| osc_app.search_str.contains(&osc_app_search))
+            .map(|(i, _)| i)
+            .collect();
     }
 
     pub fn update_title(&self, ctx: &egui::Context) {
@@ -261,19 +273,18 @@ impl App {
     pub fn download_osc_icons(&mut self) {
         let icons_dir = self.data_dir.join("osc-icons");
 
-        if let Some(osc_apps) = self.osc_apps.clone() {
-            let (sender, receiver) = unbounded();
+        let (sender, receiver) = unbounded();
 
-            thread::spawn(move || {
-                for osc_app in osc_apps {
-                    if osc::download_icon(&osc_app.meta, &icons_dir).is_ok() {
-                        let _ = sender.send(osc_app.icon_uri);
-                    }
+        let osc_apps = self.osc_apps.clone();
+        thread::spawn(move || {
+            for osc_app in osc_apps {
+                if osc::download_icon(&osc_app.meta, &icons_dir).is_ok() {
+                    let _ = sender.send(osc_app.icon_uri);
                 }
-            });
+            }
+        });
 
-            self.downloading_osc_icons = Some(receiver);
-        }
+        self.downloading_osc_icons = Some(receiver);
     }
 }
 
@@ -316,7 +327,7 @@ impl eframe::App for App {
                     self.refresh_games(ctx);
                 }
                 BackgroundMessage::GotOscApps(osc_apps) => {
-                    self.osc_apps = Some(osc_apps);
+                    self.osc_apps = osc_apps;
                     self.update_filtered_osc_apps();
                 }
                 BackgroundMessage::SetArchiveFormat(format) => {
