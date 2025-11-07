@@ -33,7 +33,7 @@ pub struct App {
     pub current_view: ui::View,
     pub config: Config,
     pub update_info: Option<UpdateInfo>,
-    pub games: Vec<Game>,
+    pub games: Box<[Game]>,
     pub filtered_games: Box<[usize]>,
     pub filtered_wii_games: Box<[usize]>,
     pub filtered_gc_games: Box<[usize]>,
@@ -48,7 +48,7 @@ pub struct App {
     pub deleting_hbc_app: Option<HbcApp>,
     pub hbc_app_info: Option<HbcApp>,
     pub hbc_app_search: String,
-    pub hbc_apps: Vec<HbcApp>,
+    pub hbc_apps: Box<[HbcApp]>,
     pub filtered_hbc_apps: Box<[usize]>,
     pub task_processor: TaskProcessor,
     pub downloading_osc_icons: Option<Receiver<String>>,
@@ -59,7 +59,7 @@ pub struct App {
     pub choose_archive_path: FileDialog,
     pub choose_file_to_push: FileDialog,
     pub archiving_game: Option<PathBuf>,
-    pub osc_apps: Vec<OscApp>,
+    pub osc_apps: Box<[OscApp]>,
     pub filtered_osc_apps: Box<[usize]>,
     pub osc_app_search: String,
     pub status: String,
@@ -83,7 +83,7 @@ impl App {
             current_view: ui::View::Games,
             config,
             update_info: None,
-            games: Vec::new(),
+            games: Box::new([]),
             filtered_games: Box::new([]),
             filtered_wii_games: Box::new([]),
             filtered_gc_games: Box::new([]),
@@ -117,11 +117,11 @@ impl App {
             choose_archive_path,
             archiving_game: None,
             hbc_app_search: String::new(),
-            hbc_apps: Vec::new(),
+            hbc_apps: Box::new([]),
             filtered_hbc_apps: Box::new([]),
             deleting_hbc_app: None,
             hbc_app_info: None,
-            osc_apps: Vec::new(),
+            osc_apps: Box::new([]),
             filtered_osc_apps: Box::new([]),
             osc_app_search: String::new(),
             status: String::new(),
@@ -230,34 +230,20 @@ impl App {
     }
 
     pub fn refresh_games(&mut self, ctx: &egui::Context) {
-        let res = games::list(&self.config.contents.mount_point, &self.titles);
-        match res {
-            Ok(games) => {
-                self.games = games;
-                games::sort(&mut self.games, &self.config.contents.sort_by);
-                self.update_filtered_games();
-            }
-            Err(e) => {
-                self.notifications.show_err(e);
-            }
-        }
+        self.games = games::list(&self.config.contents.mount_point, &self.titles);
+
+        games::sort(&mut self.games, &self.config.contents.sort_by);
+        self.update_filtered_games();
 
         self.update_title(ctx);
         covers::spawn_download_covers_task(self);
     }
 
     pub fn refresh_hbc_apps(&mut self, ctx: &egui::Context) {
-        let res = hbc_apps::list(&self.config.contents.mount_point);
-        match res {
-            Ok(hbc_apps) => {
-                self.hbc_apps = hbc_apps;
-                hbc_apps::sort(&mut self.hbc_apps, &self.config.contents.sort_by);
-                self.update_filtered_hbc_apps();
-            }
-            Err(e) => {
-                self.notifications.show_err(e);
-            }
-        }
+        self.hbc_apps = hbc_apps::list(&self.config.contents.mount_point);
+
+        hbc_apps::sort(&mut self.hbc_apps, &self.config.contents.sort_by);
+        self.update_filtered_hbc_apps();
 
         self.update_title(ctx);
     }
