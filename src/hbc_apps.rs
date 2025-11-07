@@ -83,7 +83,13 @@ impl HbcApp {
 
         let meta_path = path.join("meta").with_extension("xml");
         let meta = fs::read_to_string(&meta_path).unwrap_or_default();
-        let meta = quick_xml::de::from_str::<HbcAppMeta>(&meta).unwrap_or_default();
+        let mut meta = quick_xml::de::from_str::<HbcAppMeta>(&meta).unwrap_or_default();
+
+        if meta.name.is_empty() {
+            bail!("No name found in {}", path.display());
+        }
+
+        meta.name = meta.name.trim().to_string();
 
         let size = fs_extra::dir::get_size(&path).unwrap_or_default();
         let size = Size::from_bytes(size);
@@ -110,15 +116,12 @@ pub fn list(mount_point: &Path) -> Box<[HbcApp]> {
 
     let apps_dir = mount_point.join("apps");
 
-    match fs::read_dir(&apps_dir) {
-        Ok(entries) => {
-            let mut apps = entries
-                .filter_map(|entry| HbcApp::from_path(entry.ok()?.path()).ok())
-                .collect::<Vec<_>>();
-            apps.sort_by(|a, b| a.meta.name.cmp(&b.meta.name));
-            apps.into_boxed_slice()
-        }
-        Err(_) => Box::new([]),
+    if let Ok(entries) = fs::read_dir(&apps_dir) {
+        entries
+            .filter_map(|entry| HbcApp::from_path(entry.ok()?.path()).ok())
+            .collect()
+    } else {
+        Box::new([])
     }
 }
 
