@@ -11,6 +11,9 @@ on:
 permissions:
   contents: write
 
+env:
+  VERSION_NAME: ${{ github.event_name == 'pull_request' && format('PR-{0}', github.event.pull_request.number) || github.ref_name }}
+
 jobs:
   # ==================================================================================
   #  Build & Bundle Jobs: Run the platform-specific build scripts.
@@ -73,14 +76,14 @@ jobs:
           mkdir dist
           cp "target/${{ matrix.target }}/release/TinyWiiBackupManager" TinyWiiBackupManager
           chmod 755 TinyWiiBackupManager
-          tar -I 'gzip -9' -cvf "dist/TinyWiiBackupManager-${{ github.ref_name }}-linux-${{ matrix.arch }}.tar.gz" TinyWiiBackupManager
+          tar -I 'gzip -9' -cvf "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.tar.gz" TinyWiiBackupManager
 
       - name: Package binary as AppImage
         if: matrix.arch == 'x86_64' || matrix.arch == 'aarch64'
         run: |
           ./linuxdeploy-${{ matrix.arch }}.AppImage --appdir TinyWiiBackupManager.AppDir -e target/${{ matrix.target }}/release/TinyWiiBackupManager -d assets/TinyWiiBackupManager.desktop -i assets/TinyWiiBackupManager.png --output appimage
-          mv TinyWiiBackupManager*.AppImage "dist/TinyWiiBackupManager-${{ github.ref_name }}-linux-${{ matrix.arch }}.AppImage"
-          mv TinyWiiBackupManager*.AppImage.zsync "dist/TinyWiiBackupManager-${{ github.ref_name }}-linux-${{ matrix.arch }}.AppImage.zsync"
+          mv TinyWiiBackupManager*.AppImage "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
+          mv TinyWiiBackupManager*.AppImage.zsync "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage.zsync"
         env:
           LDAI_UPDATE_INFORMATION: "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync"
 
@@ -146,14 +149,14 @@ jobs:
         run: |
           New-Item -Path "dist" -ItemType "directory"
           Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination TinyWiiBackupManager.exe
-          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ github.ref_name }}-windows-${{ matrix.arch }}${{ matrix.suffix }}.zip" TinyWiiBackupManager.exe
+          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}${{ matrix.suffix }}.zip" TinyWiiBackupManager.exe
 
       - name: Package binary as installer (only x64 for now)
         if: matrix.setup
         shell: pwsh
         run: |
           cargo packager --release --target ${{ matrix.target }} --formats nsis
-          Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager*-setup.exe" -Destination "dist/TinyWiiBackupManager-${{ github.ref_name }}-windows-${{ matrix.arch }}-setup.exe"
+          Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager*-setup.exe" -Destination "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}-setup.exe"
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v4
@@ -208,7 +211,7 @@ jobs:
         run: |
           New-Item -Path "dist" -ItemType "directory"
           Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager.exe"
-          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ github.ref_name }}-win7-${{ matrix.arch }}${{ matrix.suffix }}.zip" "TinyWiiBackupManager.exe"
+          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-win7-${{ matrix.arch }}${{ matrix.suffix }}.zip" "TinyWiiBackupManager.exe"
 
       - name: Upload Windows 7 distributables
         uses: actions/upload-artifact@v4
@@ -254,7 +257,7 @@ jobs:
       - name: Create dmg (assets from sindresorhus/create-dmg)
         run: |
           mkdir dist
-          appdmg assets/appdmg-${{ matrix.arch }}.json "dist/TinyWiiBackupManager-${{ github.ref_name }}-macos-${{ matrix.arch }}.dmg"
+          appdmg assets/appdmg-${{ matrix.arch }}.json "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-${{ matrix.arch }}.dmg"
 
       - name: Upload macOS distributables
         uses: actions/upload-artifact@v4
@@ -284,12 +287,12 @@ jobs:
           merge-multiple: true # This places all matching artifacts into a single 'dist' directory
 
       - name: Create version.txt
-        run: echo -n "${{ github.ref_name }}" > version.txt
+        run: echo -n "${{ env.VERSION_NAME }}" > version.txt
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: v${{ github.ref_name }}
+          name: v${{ env.VERSION_NAME }}
           files: |
             dist/*
             version.txt
@@ -299,12 +302,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate downloads table
-        run: sed 's/{{ version }}/${{ github.ref_name }}/g' assets/downloads-template.md > downloads.md
+        run: sed 's/{{ version }}/${{ env.VERSION_NAME }}/g' assets/downloads-template.md > downloads.md
     
       - name: Append downloads table to release
         uses: softprops/action-gh-release@v2
         with:
-          name: v${{ github.ref_name }}
+          name: v${{ env.VERSION_NAME }}
           append_body: true
           body_path: downloads.md
           prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
