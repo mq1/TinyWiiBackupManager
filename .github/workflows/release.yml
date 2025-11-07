@@ -62,14 +62,6 @@ jobs:
 
       - name: Build binary
         run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "app-dir bundled-tls"
-        env:
-          CC: "clang"
-          CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: "clang"
-          CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: "-C link-arg=-fuse-ld=/usr/local/bin/mold"
-          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: "clang"
-          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_RUSTFLAGS: "-C link-arg=-fuse-ld=/usr/local/bin/mold"
-          CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER: "clang"
-          CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_RUSTFLAGS: "-C link-arg=-fuse-ld=/usr/local/bin/mold"
 
       - name: Package binary as tar.gz
         run: |
@@ -135,10 +127,6 @@ jobs:
 
       - name: Build binary
         run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "native-tls ${{ matrix.features }}"
-        env:
-          CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
-          CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
-          CARGO_TARGET_I686_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
 
       - name: Package binary as zip
         shell: pwsh
@@ -196,8 +184,6 @@ jobs:
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls ${{ matrix.features }}"
         env: 
           RUSTC_BOOTSTRAP: 1
-          CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_LINKER: "rust-lld.exe"
-          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_LINKER: "rust-lld.exe"
 
       - name: Package binary as zip
         shell: pwsh
