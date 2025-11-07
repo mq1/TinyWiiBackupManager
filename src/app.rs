@@ -221,9 +221,9 @@ impl App {
                 self.config.get_drive_path_str(),
                 util::get_disk_usage(&self.config.contents.mount_point).unwrap_or_default()
             ),
-            ui::View::Osc => format!("{} • Open Shop Channel", env!("CARGO_PKG_NAME"),),
-            ui::View::Tools => format!("{} • Tools", env!("CARGO_PKG_NAME"),),
-            ui::View::Settings => format!("{} • Settings", env!("CARGO_PKG_NAME"),),
+            ui::View::Osc => format!("{} • Open Shop Channel", env!("CARGO_PKG_NAME")),
+            ui::View::Tools => format!("{} • Tools", env!("CARGO_PKG_NAME")),
+            ui::View::Settings => format!("{} • Settings", env!("CARGO_PKG_NAME")),
         };
 
         ctx.send_viewport_cmd(egui::ViewportCommand::Title(title));
