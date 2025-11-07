@@ -11,12 +11,6 @@ on:
 permissions:
   contents: write
 
-# Global environment variable available to all jobs in this workflow.
-# - For pull requests, it uses 'PR-123'.
-# - For pushes, it uses the branch or tag name (e.g., 'main' or 'v1.2.0').
-env:
-  VERSION_NAME: ${{ github.event_name == 'pull_request' && format('PR-{0}', github.event.pull_request.number) || github.ref_name }}
-
 jobs:
   # ==================================================================================
   #  Build & Bundle Jobs: Run the platform-specific build scripts.
@@ -45,12 +39,8 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Set up Rust
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          toolchain: 1.91.0
-          target: ${{ matrix.target }}
-          cache-key: ${{ matrix.target }}
+      - name: Install cargo-binstall
+        uses: cargo-bins/cargo-binstall@main
 
       - name: Set up Mold
         uses: rui314/setup-mold@v1
@@ -59,6 +49,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ${{ matrix.deps }} libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
+          cargo binstall cargo-packager@0.11.7 --no-confirm
 
       - name: Download LinuxDeploy
         if: matrix.arch == 'x86_64' || matrix.arch == 'aarch64'
@@ -83,14 +74,14 @@ jobs:
           mkdir dist
           cp "target/${{ matrix.target }}/release/TinyWiiBackupManager" TinyWiiBackupManager
           chmod 755 TinyWiiBackupManager
-          tar -I 'gzip -9' -cvf "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.tar.gz" TinyWiiBackupManager
+          tar -I 'gzip -9' -cvf "dist/TinyWiiBackupManager-${{ github.ref_name }}-linux-${{ matrix.arch }}.tar.gz" TinyWiiBackupManager
 
       - name: Package binary as AppImage
         if: matrix.arch == 'x86_64' || matrix.arch == 'aarch64'
         run: |
           ./linuxdeploy-${{ matrix.arch }}.AppImage --appdir TinyWiiBackupManager.AppDir -e target/${{ matrix.target }}/release/TinyWiiBackupManager -d assets/TinyWiiBackupManager.desktop -i assets/TinyWiiBackupManager.png --output appimage
-          mv TinyWiiBackupManager*.AppImage "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
-          mv TinyWiiBackupManager*.AppImage.zsync "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage.zsync"
+          mv TinyWiiBackupManager*.AppImage "dist/TinyWiiBackupManager-${{ github.ref_name }}-linux-${{ matrix.arch }}.AppImage"
+          mv TinyWiiBackupManager*.AppImage.zsync "dist/TinyWiiBackupManager-${{ github.ref_name }}-linux-${{ matrix.arch }}.AppImage.zsync"
         env:
           LDAI_UPDATE_INFORMATION: "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync"
 
@@ -133,16 +124,13 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Set up Rust
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          toolchain: 1.91.0
-          target: ${{ matrix.target }}
-          cache-key: ${{ matrix.target }}
+      - name: Install cargo-binstall
+        if: matrix.setup
+        uses: cargo-bins/cargo-binstall@main
 
       - name: Install dependencies
         if: matrix.setup
-        run: cargo install cargo-packager --version ^0.11 --locked
+        run: cargo binstall cargo-packager@0.11.7 --no-confirm
 
       - name: Build binary
         run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "native-tls ${{ matrix.features }}"
@@ -156,14 +144,14 @@ jobs:
         run: |
           New-Item -Path "dist" -ItemType "directory"
           Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination TinyWiiBackupManager.exe
-          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}${{ matrix.suffix }}.zip" TinyWiiBackupManager.exe
+          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ github.ref_name }}-windows-${{ matrix.arch }}${{ matrix.suffix }}.zip" TinyWiiBackupManager.exe
 
       - name: Package binary as installer (only x64 for now)
         if: matrix.setup
         shell: pwsh
         run: |
           cargo packager --release --target ${{ matrix.target }} --formats nsis
-          Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager*-setup.exe" -Destination "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}-setup.exe"
+          Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager*-setup.exe" -Destination "dist/TinyWiiBackupManager-${{ github.ref_name }}-windows-${{ matrix.arch }}-setup.exe"
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v4
@@ -197,16 +185,6 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Set up Rust
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          toolchain: 1.91.0
-          components: rust-src
-          cache-key: ${{ matrix.target }}
-
-      - name: Install deps
-        run: cargo install --locked bindgen-cli
-
       - name: Build binary
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls ${{ matrix.features }}"
         env: 
@@ -219,7 +197,7 @@ jobs:
         run: |
           New-Item -Path "dist" -ItemType "directory"
           Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager.exe"
-          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-win7-${{ matrix.arch }}${{ matrix.suffix }}.zip" "TinyWiiBackupManager.exe"
+          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ github.ref_name }}-win7-${{ matrix.arch }}${{ matrix.suffix }}.zip" "TinyWiiBackupManager.exe"
 
       - name: Upload Windows 7 distributables
         uses: actions/upload-artifact@v4
@@ -245,16 +223,12 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Set up Rust
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          toolchain: 1.91.0
-          target: ${{ matrix.target }}
-          cache-key: ${{ matrix.target }}
+      - name: Install cargo-binstall
+        uses: cargo-bins/cargo-binstall@main
 
       - name: Install dependencies
         run: |
-          cargo install cargo-packager --version ^0.11 --locked
+          cargo binstall cargo-packager@0.11.7 --no-confirm
           npm i -g appdmg@0.6.6
 
       - name: Build binary
@@ -266,7 +240,7 @@ jobs:
       - name: Create dmg (assets from sindresorhus/create-dmg)
         run: |
           mkdir dist
-          appdmg assets/appdmg-${{ matrix.arch }}.json "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-${{ matrix.arch }}.dmg"
+          appdmg assets/appdmg-${{ matrix.arch }}.json "dist/TinyWiiBackupManager-${{ github.ref_name }}-macos-${{ matrix.arch }}.dmg"
 
       - name: Upload macOS distributables
         uses: actions/upload-artifact@v4
@@ -311,7 +285,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate downloads table
-        run: sed 's/{{ version }}/${{ env.VERSION_NAME }}/g' assets/downloads-template.md > downloads.md
+        run: sed 's/{{ version }}/${{ github.ref_name }}/g' assets/downloads-template.md > downloads.md
     
       - name: Append downloads table to release
         uses: softprops/action-gh-release@v2
