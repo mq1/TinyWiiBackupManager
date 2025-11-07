@@ -24,10 +24,10 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
             .spacing(Vec2::splat(8.))
             .show(ui, |ui| {
                 for row in app.filtered_hbc_apps.chunks(cols) {
-                    for hbc_app in row {
+                    for hbc_app_i in row {
                         view_hbc_app_card(
                             ui,
-                            hbc_app,
+                            &app.hbc_apps[*hbc_app_i],
                             &mut app.deleting_hbc_app,
                             &mut app.hbc_app_info,
                             &app.osc_apps,
