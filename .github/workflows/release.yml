@@ -129,13 +129,9 @@ jobs:
       - name: Install Rust toolchain
         run: rustup target add ${{ matrix.target }}
 
-      - name: Install cargo-binstall
-        if: matrix.setup
-        uses: cargo-bins/cargo-binstall@main
-
       - name: Install dependencies
         if: matrix.setup
-        run: cargo binstall cargo-packager --no-confirm
+        run: cargo install cargo-packager --version ^0.11 --locked
 
       - name: Build binary
         run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "native-tls ${{ matrix.features }}"
@@ -193,11 +189,8 @@ jobs:
       - name: Install rust-src
         run: rustup component add rust-src
 
-      - name: Install cargo-binstall
-        uses: cargo-bins/cargo-binstall@main
-
       - name: Install bindgen
-        run: cargo binstall bindgen-cli --no-confirm
+        run: cargo install bindgen-cli --version ^0.72 --locked
 
       - name: Build binary
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls ${{ matrix.features }}"
@@ -240,12 +233,10 @@ jobs:
       - name: Install Rust toolchain
         run: rustup target add ${{ matrix.target }}
 
-      - name: Install cargo-binstall
-        uses: cargo-bins/cargo-binstall@main
 
       - name: Install dependencies
         run: |
-          cargo binstall cargo-packager --no-confirm
+          cargo install cargo-packager --version ^0.11 --locked
           npm i -g appdmg@0.6.6
 
       - name: Build binary
