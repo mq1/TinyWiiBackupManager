@@ -135,7 +135,7 @@ jobs:
 
       - name: Install dependencies
         if: matrix.setup
-        run: cargo binstall cargo-packager@0.11.7 --no-confirm
+        run: cargo binstall cargo-packager --no-confirm
 
       - name: Build binary
         run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "native-tls ${{ matrix.features }}"
@@ -245,7 +245,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cargo binstall cargo-packager@0.11.7 --no-confirm
+          cargo binstall cargo-packager --no-confirm
           npm i -g appdmg@0.6.6
 
       - name: Build binary
