@@ -7,7 +7,7 @@ use crate::{
     http,
     tasks::{BackgroundMessage, TaskProcessor},
 };
-use anyhow::Result;
+use anyhow::{Result, bail};
 use path_slash::PathBufExt;
 use serde::Deserialize;
 use size::Size;
@@ -62,7 +62,18 @@ pub struct HbcApp {
 }
 
 impl HbcApp {
-    pub fn from_path(path: PathBuf) -> Self {
+    pub fn from_path(path: PathBuf) -> Result<Self> {
+        if !path.is_dir() {
+            bail!("{} is not a directory", path.display());
+        }
+
+        if let Some(file_name) = path.file_name()
+            && let Some(file_name) = file_name.to_str()
+            && file_name.starts_with('.')
+        {
+            bail!("Skipping hidden directory {}", path.display());
+        }
+
         let slug = path
             .file_name()
             .unwrap_or_default()
@@ -82,34 +93,33 @@ impl HbcApp {
 
         let search_str = (meta.name.clone() + &slug).to_lowercase();
 
-        Self {
+        Ok(Self {
             meta,
             path,
             size,
             search_str,
             image_uri,
-        }
+        })
     }
 }
 
-pub fn list(mount_point: &Path) -> Result<Vec<HbcApp>> {
+pub fn list(mount_point: &Path) -> Box<[HbcApp]> {
     if mount_point.as_os_str().is_empty() {
-        return Ok(vec![]);
+        return Box::new([]);
     }
 
     let apps_dir = mount_point.join("apps");
-    fs::create_dir_all(&apps_dir)?;
 
-    let mut apps = fs::read_dir(&apps_dir)?
-        .filter_map(Result::ok)
-        .map(|entry| entry.path())
-        .filter(|path| path.is_dir())
-        .map(HbcApp::from_path)
-        .collect::<Vec<_>>();
-
-    apps.sort_by(|a, b| a.meta.name.cmp(&b.meta.name));
-
-    Ok(apps)
+    match fs::read_dir(&apps_dir) {
+        Ok(entries) => {
+            let mut apps = entries
+                .filter_map(|entry| HbcApp::from_path(entry.ok()?.path()).ok())
+                .collect::<Vec<_>>();
+            apps.sort_by(|a, b| a.meta.name.cmp(&b.meta.name));
+            apps.into_boxed_slice()
+        }
+        Err(_) => Box::new([]),
+    }
 }
 
 fn install_zip(mount_point: &Path, path: &Path) -> Result<()> {

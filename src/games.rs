@@ -11,32 +11,22 @@ use size::Size;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-pub fn list(mount_point: &Path, titles: &Option<Titles>) -> Result<Vec<Game>> {
+pub fn list(mount_point: &Path, titles: &Option<Titles>) -> Box<[Game]> {
+    if mount_point.as_os_str().is_empty() {
+        return Box::new([]);
+    }
+
     let mut games = Vec::new();
 
-    let wii_dir = mount_point.join("wbfs");
-    if wii_dir.exists() && wii_dir.is_dir() {
-        for entry in fs::read_dir(&wii_dir)? {
-            if let Ok(entry) = entry
-                && let Ok(game) = Game::from_dir(entry.path(), titles, mount_point, true)
-            {
-                games.push(game);
-            }
+    for (dir_name, is_wii) in &[("wbfs", true), ("games", false)] {
+        if let Ok(entries) = fs::read_dir(mount_point.join(dir_name)) {
+            games.extend(entries.filter_map(|entry| {
+                Game::from_dir(entry.ok()?.path(), titles, mount_point, *is_wii).ok()
+            }));
         }
     }
 
-    let gc_dir = mount_point.join("games");
-    if gc_dir.exists() && gc_dir.is_dir() {
-        for entry in fs::read_dir(&gc_dir)? {
-            if let Ok(entry) = entry
-                && let Ok(game) = Game::from_dir(entry.path(), titles, mount_point, false)
-            {
-                games.push(game);
-            }
-        }
-    }
-
-    Ok(games)
+    games.into_boxed_slice()
 }
 
 impl Game {
@@ -48,6 +38,13 @@ impl Game {
     ) -> Result<Self> {
         if !dir.is_dir() {
             bail!("{} is not a directory", dir.display());
+        }
+
+        if let Some(file_name) = dir.file_name()
+            && let Some(file_name) = file_name.to_str()
+            && file_name.starts_with('.')
+        {
+            bail!("Skipping hidden directory {}", dir.display());
         }
 
         let file_name = dir
