@@ -327,7 +327,7 @@ impl eframe::App for App {
                     self.refresh_games(ctx);
                 }
                 BackgroundMessage::GotOscApps(osc_apps) => {
-                    self.osc_apps = osc_apps.into_boxed_slice();
+                    self.osc_apps = osc_apps;
                     self.update_filtered_osc_apps();
                 }
                 BackgroundMessage::SetArchiveFormat(format) => {
