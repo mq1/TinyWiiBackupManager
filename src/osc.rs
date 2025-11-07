@@ -33,7 +33,7 @@ pub fn spawn_load_osc_apps_task(app: &App) {
         let apps = cache
             .into_iter()
             .filter_map(|meta| OscApp::from_meta(meta, &icons_dir))
-            .collect::<Vec<_>>();
+            .collect();
 
         msg_sender.send(BackgroundMessage::GotOscApps(apps))?;
         msg_sender.send(BackgroundMessage::NotifyInfo(
