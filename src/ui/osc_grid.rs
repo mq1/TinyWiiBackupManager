@@ -21,10 +21,10 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
             .spacing(Vec2::splat(8.))
             .show(ui, |ui| {
                 for row in app.filtered_osc_apps.chunks(cols) {
-                    for osc_app in row {
+                    for osc_app_i in row {
                         view_osc_app_card(
                             ui,
-                            osc_app,
+                            &app.osc_apps[*osc_app_i],
                             &mut app.notifications,
                             &mut app.task_processor,
                             &app.config,
