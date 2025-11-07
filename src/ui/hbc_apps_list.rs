@@ -30,7 +30,9 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
         .body(|mut body| {
             body.ui_mut().style_mut().spacing.item_spacing.y = 0.0;
 
-            for hbc_app in app.filtered_hbc_apps.iter() {
+            for hbc_app_i in &app.filtered_hbc_apps {
+                let hbc_app = &app.hbc_apps[*hbc_app_i];
+
                 body.row(26., |mut row| {
                     row.col(|ui| {
                         ui.add_space(3.);
@@ -60,10 +62,10 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                             }
 
                             // Update button
-                            if let Some(osc_apps) = &app.osc_apps
-                                && let Some(osc_app) = osc_apps
-                                    .iter()
-                                    .find(|osc_app| osc_app.meta.name == hbc_app.meta.name)
+                            if let Some(osc_app) = app
+                                .osc_apps
+                                .iter()
+                                .find(|osc_app| osc_app.meta.name == hbc_app.meta.name)
                                 && osc_app.meta.version != hbc_app.meta.version
                                 && ui
                                     .button("⮉ Update")

@@ -24,10 +24,10 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
             .spacing(Vec2::splat(8.))
             .show(ui, |ui| {
                 for row in app.filtered_hbc_apps.chunks(cols) {
-                    for hbc_app in row {
+                    for hbc_app_i in row {
                         view_hbc_app_card(
                             ui,
-                            hbc_app,
+                            &app.hbc_apps[*hbc_app_i],
                             &mut app.deleting_hbc_app,
                             &mut app.hbc_app_info,
                             &app.osc_apps,
@@ -47,7 +47,7 @@ fn view_hbc_app_card(
     hbc_app: &HbcApp,
     deleting_hbc_app: &mut Option<HbcApp>,
     hbc_app_info: &mut Option<HbcApp>,
-    osc_apps: &Option<Vec<OscApp>>,
+    osc_apps: &Vec<OscApp>,
     task_processor: &TaskProcessor,
     mount_point: &Path,
 ) {
@@ -85,10 +85,9 @@ fn view_hbc_app_card(
                 }
 
                 // Update button
-                if let Some(osc_apps) = osc_apps
-                    && let Some(osc_app) = osc_apps
-                        .iter()
-                        .find(|osc_app| osc_app.meta.name == hbc_app.meta.name)
+                if let Some(osc_app) = osc_apps
+                    .iter()
+                    .find(|osc_app| osc_app.meta.name == hbc_app.meta.name)
                     && osc_app.meta.version != hbc_app.meta.version
                     && ui
                         .button("⮉")

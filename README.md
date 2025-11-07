@@ -15,7 +15,7 @@
 
 #### 🎮 Game Management
 
-- **Games view**: Manage your Wii games
+- **Games view**: Manage your Wii and GameCube games
 - **Format Support**: .iso, .rvz and major formats thanks to [NOD](https://github.com/encounter/nod)
 - **Automatic Splitting**: .wbfs file splitting when needed
 - **Partition Stripping**: Remove the update partition to save space
