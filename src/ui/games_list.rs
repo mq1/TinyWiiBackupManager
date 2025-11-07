@@ -30,12 +30,9 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
         .body(|mut body| {
             body.ui_mut().style_mut().spacing.item_spacing.y = 0.0;
 
-            let iterator = app
-                .filtered_games
-                .iter()
-                .filter(|game| game.is_wii && app.show_wii || !game.is_wii && app.show_gc);
+            for game_i in &app.filtered_games {
+                let game = &app.games[*game_i];
 
-            for game in iterator {
                 body.row(26., |mut row| {
                     row.col(|ui| {
                         ui.add_space(3.);

@@ -10,8 +10,10 @@
         <name>Manuel Quarneti</name>
     </developer>
     <description>
-        <p>‼️ TinyWiiBackupManager is intended strictly for legal homebrew use and is not affiliated with or endorsed by Nintendo.</p>
-        <p>‼️ Use of TinyWiiBackupManager for pirated or unauthorized copies of games is strictly prohibited.</p>
+        <ul>
+            <li>‼️ TinyWiiBackupManager is intended strictly for legal homebrew use and is not affiliated with or endorsed by Nintendo.</li>
+            <li>‼️ Use of TinyWiiBackupManager for pirated or unauthorized copies of games is strictly prohibited.</li>
+        </ul>
         <p>✨ Features</p>
         <ul>
             <li>Lightweight &amp; Fast: No Electron!!</li>
@@ -19,7 +21,7 @@
         </ul>
         <p>🎮 Game Management</p>
         <ul>
-            <li>Games view: Manage your Wii games</li>
+            <li>Games view: Manage your Wii and GameCube games</li>
             <li>Format Support: .iso, .rvz and major formats thanks to <code>NOD</code></li>
             <li>Automatic Splitting: .wbfs file splitting when needed</li>
             <li>Partition Stripping: Remove the update partition to save space</li>
