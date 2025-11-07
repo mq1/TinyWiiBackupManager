@@ -230,34 +230,20 @@ impl App {
     }
 
     pub fn refresh_games(&mut self, ctx: &egui::Context) {
-        let res = games::list(&self.config.contents.mount_point, &self.titles);
-        match res {
-            Ok(games) => {
-                self.games = games.into_boxed_slice();
-                games::sort(&mut self.games, &self.config.contents.sort_by);
-                self.update_filtered_games();
-            }
-            Err(e) => {
-                self.notifications.show_err(e);
-            }
-        }
+        self.games = games::list(&self.config.contents.mount_point, &self.titles);
+
+        games::sort(&mut self.games, &self.config.contents.sort_by);
+        self.update_filtered_games();
 
         self.update_title(ctx);
         covers::spawn_download_covers_task(self);
     }
 
     pub fn refresh_hbc_apps(&mut self, ctx: &egui::Context) {
-        let res = hbc_apps::list(&self.config.contents.mount_point);
-        match res {
-            Ok(hbc_apps) => {
-                self.hbc_apps = hbc_apps.into_boxed_slice();
-                hbc_apps::sort(&mut self.hbc_apps, &self.config.contents.sort_by);
-                self.update_filtered_hbc_apps();
-            }
-            Err(e) => {
-                self.notifications.show_err(e);
-            }
-        }
+        self.hbc_apps = hbc_apps::list(&self.config.contents.mount_point);
+
+        hbc_apps::sort(&mut self.hbc_apps, &self.config.contents.sort_by);
+        self.update_filtered_hbc_apps();
 
         self.update_title(ctx);
     }
