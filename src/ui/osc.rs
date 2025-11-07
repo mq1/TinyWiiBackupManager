@@ -10,12 +10,17 @@ use eframe::egui;
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
     egui::CentralPanel::default().show(ctx, |ui| {
-        view_top_bar(ui, app);
-        ui.add_space(10.);
+        if app.osc_apps.is_empty() {
+            ui.heading("Loading OSC Apps...");
+            return;
+        }
 
-        if app.osc_apps.is_some() && app.downloading_osc_icons.is_none() {
+        if app.downloading_osc_icons.is_none() {
             app.download_osc_icons();
         }
+
+        view_top_bar(ui, app);
+        ui.add_space(10.);
 
         match app.config.contents.view_as {
             ViewAs::Grid => osc_grid::update(ui, app),
