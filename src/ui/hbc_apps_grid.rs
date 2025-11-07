@@ -47,7 +47,7 @@ fn view_hbc_app_card(
     hbc_app: &HbcApp,
     deleting_hbc_app: &mut Option<HbcApp>,
     hbc_app_info: &mut Option<HbcApp>,
-    osc_apps: &Vec<OscApp>,
+    osc_apps: &[OscApp],
     task_processor: &TaskProcessor,
     mount_point: &Path,
 ) {
