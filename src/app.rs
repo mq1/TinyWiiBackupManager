@@ -33,7 +33,7 @@ pub struct App {
     pub current_view: ui::View,
     pub config: Config,
     pub update_info: Option<UpdateInfo>,
-    pub games: Vec<Game>,
+    pub games: Box<[Game]>,
     pub filtered_games: Box<[usize]>,
     pub filtered_wii_games: Box<[usize]>,
     pub filtered_gc_games: Box<[usize]>,
@@ -48,7 +48,7 @@ pub struct App {
     pub deleting_hbc_app: Option<HbcApp>,
     pub hbc_app_info: Option<HbcApp>,
     pub hbc_app_search: String,
-    pub hbc_apps: Vec<HbcApp>,
+    pub hbc_apps: Box<[HbcApp]>,
     pub filtered_hbc_apps: Box<[usize]>,
     pub task_processor: TaskProcessor,
     pub downloading_osc_icons: Option<Receiver<String>>,
@@ -59,7 +59,7 @@ pub struct App {
     pub choose_archive_path: FileDialog,
     pub choose_file_to_push: FileDialog,
     pub archiving_game: Option<PathBuf>,
-    pub osc_apps: Vec<OscApp>,
+    pub osc_apps: Box<[OscApp]>,
     pub filtered_osc_apps: Box<[usize]>,
     pub osc_app_search: String,
     pub status: String,
@@ -83,7 +83,7 @@ impl App {
             current_view: ui::View::Games,
             config,
             update_info: None,
-            games: Vec::new(),
+            games: Box::new([]),
             filtered_games: Box::new([]),
             filtered_wii_games: Box::new([]),
             filtered_gc_games: Box::new([]),
@@ -117,11 +117,11 @@ impl App {
             choose_archive_path,
             archiving_game: None,
             hbc_app_search: String::new(),
-            hbc_apps: Vec::new(),
+            hbc_apps: Box::new([]),
             filtered_hbc_apps: Box::new([]),
             deleting_hbc_app: None,
             hbc_app_info: None,
-            osc_apps: Vec::new(),
+            osc_apps: Box::new([]),
             filtered_osc_apps: Box::new([]),
             osc_app_search: String::new(),
             status: String::new(),
@@ -233,7 +233,7 @@ impl App {
         let res = games::list(&self.config.contents.mount_point, &self.titles);
         match res {
             Ok(games) => {
-                self.games = games;
+                self.games = games.into_boxed_slice();
                 games::sort(&mut self.games, &self.config.contents.sort_by);
                 self.update_filtered_games();
             }
@@ -250,7 +250,7 @@ impl App {
         let res = hbc_apps::list(&self.config.contents.mount_point);
         match res {
             Ok(hbc_apps) => {
-                self.hbc_apps = hbc_apps;
+                self.hbc_apps = hbc_apps.into_boxed_slice();
                 hbc_apps::sort(&mut self.hbc_apps, &self.config.contents.sort_by);
                 self.update_filtered_hbc_apps();
             }
@@ -327,7 +327,7 @@ impl eframe::App for App {
                     self.refresh_games(ctx);
                 }
                 BackgroundMessage::GotOscApps(osc_apps) => {
-                    self.osc_apps = osc_apps;
+                    self.osc_apps = osc_apps.into_boxed_slice();
                     self.update_filtered_osc_apps();
                 }
                 BackgroundMessage::SetArchiveFormat(format) => {
