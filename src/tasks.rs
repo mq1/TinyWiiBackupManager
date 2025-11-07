@@ -64,6 +64,6 @@ pub enum BackgroundMessage {
     TriggerRefreshHbcApps,
     GotUpdateInfo(UpdateInfo),
     GotTitles(Titles),
-    GotOscApps(Vec<OscApp>),
+    GotOscApps(Box<[OscApp]>),
     SetArchiveFormat(ArchiveFormat),
 }
