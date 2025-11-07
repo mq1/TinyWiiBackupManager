@@ -190,6 +190,12 @@ jobs:
       - name: Install rust-src
         run: rustup component add rust-src
 
+      - name: Install cargo-binstall
+        uses: cargo-bins/cargo-binstall@main
+
+      - name: Install bindgen
+        run: cargo binstall bindgen-cli --no-confirm
+
       - name: Build binary
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls ${{ matrix.features }}"
         env: 
