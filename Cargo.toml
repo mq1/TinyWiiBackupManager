@@ -49,7 +49,6 @@ path-slash = "0.2"
 hex = "0.4"
 sanitize-filename = "0.7.0-beta"
 capitalize = "0.3"
-itertools = "0.14"
 log = "0.4"
 env_logger = { version = "0.11", default-features = false, features = [
   "auto-color",
@@ -90,7 +89,7 @@ debug = "line-tables-only"
 panic = "abort"
 
 [profile.dev.package."*"]
-opt-level = 3
+opt-level = 2
 
 [profile.dev.package.quick-xml]
 overflow-checks = false
