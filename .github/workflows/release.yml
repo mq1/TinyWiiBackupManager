@@ -72,7 +72,7 @@ jobs:
       - name: Package binary as AppImage
         if: matrix.arch == 'x86_64' || matrix.arch == 'aarch64'
         run: |
-          cargo packager --release --target ${{ matrix.target }} --format appimage
+          cargo packager --release --target ${{ matrix.target }} --formats appimage
           mv "target/${{ matrix.target }}/release/TinyWiiBackupManager.AppImage" "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
           mv "target/${{ matrix.target }}/release/TinyWiiBackupManager.AppImage.zsync" "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage.zsync"
         env:
