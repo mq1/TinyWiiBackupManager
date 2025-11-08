@@ -5,35 +5,40 @@ use crate::{
     app::App, config::Config, hbc_apps, notifications::Notifications, osc::OscApp,
     tasks::TaskProcessor, wiiload,
 };
-use eframe::egui::{self, Vec2};
+use eframe::egui;
 
 const CARD_WIDTH: f32 = 161.5;
+const CARD_HORIZONTAL_SPACE: usize = 181;
 const CARD_HEIGHT: f32 = 140.;
 
 pub fn update(ui: &mut egui::Ui, app: &mut App) {
     egui::ScrollArea::vertical().show(ui, |ui| {
         let available_width = ui.available_width();
         ui.set_width(available_width);
-        let cols = (available_width / (CARD_WIDTH + 20.)).floor() as usize;
+        let cols = available_width as usize / CARD_HORIZONTAL_SPACE;
 
-        egui::Grid::new("osc")
-            .num_columns(cols)
-            .spacing(Vec2::splat(8.))
-            .show(ui, |ui| {
-                for row in app.filtered_osc_apps.chunks(cols) {
-                    for osc_app_i in row {
-                        view_osc_app_card(
-                            ui,
-                            &app.osc_apps[*osc_app_i],
-                            &mut app.notifications,
-                            &mut app.task_processor,
-                            &app.config,
-                        );
-                    }
+        ui.heading(format!(
+            "🏪 Open Shop Channel Apps: {} found",
+            app.filtered_osc_apps.len(),
+        ));
 
-                    ui.end_row();
+        ui.add_space(5.);
+
+        for row in app.filtered_osc_apps.chunks(cols) {
+            ui.horizontal_top(|ui| {
+                for osc_app_i in row {
+                    view_osc_app_card(
+                        ui,
+                        &app.osc_apps[*osc_app_i],
+                        &mut app.notifications,
+                        &mut app.task_processor,
+                        &app.config,
+                    );
                 }
             });
+
+            ui.add_space(5.);
+        }
     });
 }
 
