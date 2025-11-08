@@ -29,3 +29,4 @@ rustflags = ["-C", "target-feature=+crt-static"]
 
 [env]
 CC = "clang"
+CXX = "clang++"
