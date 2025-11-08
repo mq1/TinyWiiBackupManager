@@ -7,38 +7,44 @@ use crate::{
     osc::OscApp,
     tasks::TaskProcessor,
 };
-use eframe::egui::{self, Vec2};
+use eframe::egui;
 use std::path::Path;
 
 const CARD_WIDTH: f32 = 161.5;
+const CARD_HORIZONTAL_SPACE: usize = 181;
 const CARD_HEIGHT: f32 = 140.;
 
 pub fn update(ui: &mut egui::Ui, app: &mut App) {
     egui::ScrollArea::vertical().show(ui, |ui| {
         let available_width = ui.available_width();
         ui.set_width(available_width);
-        let cols = (available_width / (CARD_WIDTH + 20.)).floor() as usize;
+        let cols = available_width as usize / CARD_HORIZONTAL_SPACE;
 
-        egui::Grid::new("hbc_apps")
-            .num_columns(cols)
-            .spacing(Vec2::splat(8.))
-            .show(ui, |ui| {
-                for row in app.filtered_hbc_apps.chunks(cols) {
-                    for hbc_app_i in row {
-                        view_hbc_app_card(
-                            ui,
-                            &app.hbc_apps[*hbc_app_i],
-                            &mut app.deleting_hbc_app,
-                            &mut app.hbc_app_info,
-                            &app.osc_apps,
-                            &app.task_processor,
-                            &app.config.contents.mount_point,
-                        );
-                    }
+        ui.heading(format!(
+            "★ Homebrew Channel Apps: {} found ({})",
+            app.filtered_hbc_apps.len(),
+            app.filtered_hbc_apps_size
+        ));
 
-                    ui.end_row();
+        ui.add_space(5.);
+
+        for row in app.filtered_hbc_apps.chunks(cols) {
+            ui.horizontal_top(|ui| {
+                for hbc_app_i in row {
+                    view_hbc_app_card(
+                        ui,
+                        &app.hbc_apps[*hbc_app_i],
+                        &mut app.deleting_hbc_app,
+                        &mut app.hbc_app_info,
+                        &app.osc_apps,
+                        &app.task_processor,
+                        &app.config.contents.mount_point,
+                    );
                 }
             });
+
+            ui.add_space(5.);
+        }
     });
 }
 
