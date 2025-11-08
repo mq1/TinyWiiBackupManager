@@ -85,22 +85,23 @@ fn view_hbc_app_card(
                 }
 
                 // Update button
-                if let Some(osc_app) = osc_apps
-                    .iter()
-                    .find(|osc_app| osc_app.meta.name == hbc_app.meta.name)
-                    && osc_app.meta.version != hbc_app.meta.version
-                    && ui
-                        .button("⮉")
-                        .on_hover_text(
-                            "Download update from OSC: v".to_string() + &osc_app.meta.version,
-                        )
-                        .clicked()
-                {
-                    hbc_apps::spawn_install_app_from_url_task(
-                        osc_app.meta.assets.archive.url.clone(),
-                        task_processor,
-                        mount_point.to_path_buf(),
-                    );
+                if let Some(osc_app_i) = hbc_app.osc_app_i {
+                    let osc_app = &osc_apps[osc_app_i];
+
+                    if osc_app.meta.version != hbc_app.meta.version
+                        && ui
+                            .button("⮉")
+                            .on_hover_text(
+                                "Download update from OSC: v".to_string() + &osc_app.meta.version,
+                            )
+                            .clicked()
+                    {
+                        hbc_apps::spawn_install_app_from_url_task(
+                            osc_app.meta.assets.archive.url.clone(),
+                            task_processor,
+                            mount_point.to_path_buf(),
+                        );
+                    }
                 }
 
                 // Info button
