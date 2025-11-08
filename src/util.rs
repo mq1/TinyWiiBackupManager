@@ -11,9 +11,9 @@ use std::{
 use sysinfo::Disks;
 use tempfile::NamedTempFile;
 
-pub fn get_disk_usage(mount_point: &Path) -> Option<String> {
+pub fn get_disk_usage(mount_point: &Path) -> String {
     if mount_point.as_os_str().is_empty() {
-        return None;
+        return "0/0 bytes".to_string();
     }
 
     let disks = Disks::new_with_refreshed_list();
@@ -26,8 +26,9 @@ pub fn get_disk_usage(mount_point: &Path) -> Option<String> {
             let total = disk.total_space();
             let used = total - disk.available_space();
 
-            format!("({}/{})", Size::from_bytes(used), Size::from_bytes(total))
+            format!("{}/{}", Size::from_bytes(used), Size::from_bytes(total))
         })
+        .unwrap_or("0/0 bytes".to_string())
 }
 
 /// Returns Ok if we can create a file >4 GiB in this directory
