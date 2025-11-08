@@ -21,6 +21,7 @@ linker = "rust-lld.exe"
 
 [target.x86_64-win7-windows-msvc]
 linker = "rust-lld.exe"
+rustflags = ["-C", "target-feature=+crt-static"]
 
 [target.i686-win7-windows-msvc]
 linker = "rust-lld.exe"
