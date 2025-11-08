@@ -1,102 +1,75 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use anyhow::{Result, bail};
-use http_req::{request::Request, uri::Uri};
+use anyhow::Result;
 use std::{
     fs::{self, File},
-    io::{BufReader, BufWriter},
+    io::{self, BufReader, BufWriter},
     path::Path,
+    sync::LazyLock,
 };
 use tempfile::tempfile;
+use ureq::tls::{RootCerts, TlsProvider};
+use ureq::{Agent, tls::TlsConfig};
 use zip::ZipArchive;
 
 const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 
-pub fn get(uri: &str) -> Result<Vec<u8>> {
-    let uri = Uri::try_from(uri)?;
+#[cfg(feature = "native-tls")]
+const TLS_PROVIDER: TlsProvider = TlsProvider::NativeTls;
 
-    let mut body = Vec::new();
-    let res = Request::new(&uri)
-        .header("User-Agent", USER_AGENT)
-        .send(&mut body)?;
+#[cfg(feature = "native-tls")]
+const ROOT_CERTS: RootCerts = RootCerts::PlatformVerifier;
 
-    let status_code = res.status_code();
-    if !status_code.is_success() {
-        bail!("HTTP request failed with status code {}", status_code);
-    }
+#[cfg(feature = "bundled-tls")]
+const TLS_PROVIDER: TlsProvider = TlsProvider::Rustls;
 
-    Ok(body)
-}
+#[cfg(feature = "bundled-tls")]
+const ROOT_CERTS: RootCerts = RootCerts::WebPki;
 
-pub fn download_file(uri: &str, dest: &Path) -> Result<()> {
-    let uri = Uri::try_from(uri)?;
+static AGENT: LazyLock<Agent> = LazyLock::new(|| {
+    Agent::config_builder()
+        .tls_config(
+            TlsConfig::builder()
+                .provider(TLS_PROVIDER)
+                .root_certs(ROOT_CERTS)
+                .build(),
+        )
+        .user_agent(USER_AGENT)
+        .build()
+        .into()
+});
 
-    let res = || -> Result<()> {
-        let file = File::create(dest)?;
-        let mut writer = BufWriter::new(file);
-
-        let res = Request::new(&uri)
-            .header("User-Agent", USER_AGENT)
-            .send(&mut writer)?;
-
-        let status_code = res.status_code();
-        if !status_code.is_success() {
-            bail!("HTTP request failed with status code {}", status_code);
-        }
-
-        Ok(())
-    }();
-
-    if let Err(e) = res {
-        let _ = fs::remove_file(dest);
-
-        return Err(e);
-    }
-
-    Ok(())
+pub fn get(uri: &str) -> Result<Vec<u8>, ureq::Error> {
+    AGENT.get(uri).call()?.body_mut().read_to_vec()
 }
 
 pub fn download_into_file(uri: &str, file: &File) -> Result<()> {
-    let uri = Uri::try_from(uri)?;
-
     let mut writer = BufWriter::new(file);
 
-    let res = Request::new(&uri)
-        .header("User-Agent", USER_AGENT)
-        .send(&mut writer)?;
-
-    let status_code = res.status_code();
-    if !status_code.is_success() {
-        bail!("HTTP request failed with status code {}", status_code);
-    }
+    let body = AGENT.get(uri).call()?.into_body();
+    let mut reader = body.into_reader();
+    io::copy(&mut reader, &mut writer)?;
 
     Ok(())
 }
 
-pub fn download_and_extract_zip(uri: &str, dest_dir: &Path) -> Result<()> {
-    let uri = Uri::try_from(uri)?;
+pub fn download_file(uri: &str, dest: &Path) -> Result<()> {
+    let file = File::create(dest)?;
 
+    download_into_file(uri, &file).inspect_err(|_| {
+        let _ = fs::remove_file(dest);
+    })
+}
+
+pub fn download_and_extract_zip(uri: &str, dest_dir: &Path) -> Result<()> {
     let tmp = tempfile()?;
 
-    {
-        let mut writer = BufWriter::new(&tmp);
+    download_into_file(uri, &tmp)?;
 
-        let res = Request::new(&uri)
-            .header("User-Agent", USER_AGENT)
-            .send(&mut writer)?;
-
-        let status_code = res.status_code();
-        if !status_code.is_success() {
-            bail!("HTTP request failed with status code {}", status_code);
-        }
-    }
-
-    {
-        let reader = BufReader::new(&tmp);
-        let mut zip = ZipArchive::new(reader)?;
-        zip.extract(dest_dir)?;
-    }
+    let reader = BufReader::new(&tmp);
+    let mut zip = ZipArchive::new(reader)?;
+    zip.extract(dest_dir)?;
 
     Ok(())
 }

@@ -189,9 +189,6 @@ jobs:
       - name: Install rust-src
         run: rustup component add rust-src
 
-      - name: Install bindgen
-        run: cargo install bindgen-cli --version ^0.72 --locked
-
       - name: Build binary
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls ${{ matrix.features }}"
         env: 
