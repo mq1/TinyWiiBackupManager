@@ -23,7 +23,7 @@ linker = "rust-lld.exe"
 linker = "rust-lld.exe"
 
 [target.i686-win7-windows-msvc]
-linker = "rust-lld.exe"
+linker = "link.exe"
 
 [env]
 CC = "clang"
