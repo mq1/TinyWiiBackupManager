@@ -55,11 +55,21 @@ pub fn download_into_file(uri: &str, file: &File) -> Result<()> {
 }
 
 pub fn download_file(uri: &str, dest: &Path) -> Result<()> {
-    let file = File::create(dest)?;
+    let tmp = dest.with_extension("tmp");
 
-    download_into_file(uri, &file).inspect_err(|_| {
-        let _ = fs::remove_file(dest);
-    })
+    let res = {
+        let tmp_file = File::create(&tmp)?;
+        download_into_file(uri, &tmp_file)
+    };
+
+    if let Err(e) = res {
+        fs::remove_file(&tmp)?;
+        return Err(e);
+    }
+
+    fs::rename(&tmp, dest)?;
+
+    Ok(())
 }
 
 pub fn download_and_extract_zip(uri: &str, dest_dir: &Path) -> Result<()> {
