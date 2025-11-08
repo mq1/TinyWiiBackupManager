@@ -33,7 +33,7 @@ pub fn spawn_download_banners_task(app: &mut App) {
         .iter()
         .filter(|g| !g.is_wii)
         .cloned()
-        .collect::<Vec<_>>();
+        .collect::<Box<[_]>>();
 
     app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(BackgroundMessage::UpdateStatus(
