@@ -30,10 +30,13 @@ pub fn spawn_load_osc_apps_task(app: &App) {
             }
         };
 
-        let apps = cache
+        let mut apps = cache
             .into_iter()
             .filter_map(|meta| OscApp::from_meta(meta, &icons_dir))
-            .collect();
+            .collect::<Box<[_]>>();
+
+        // Sort by name (we need this for binary search)
+        apps.sort_by(|a, b| a.meta.name.cmp(&b.meta.name));
 
         msg_sender.send(BackgroundMessage::GotOscApps(apps))?;
         msg_sender.send(BackgroundMessage::NotifyInfo(
@@ -88,7 +91,7 @@ impl OscApp {
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct OscApp {
     pub meta: OscAppMeta,
     pub icon_uri: String,

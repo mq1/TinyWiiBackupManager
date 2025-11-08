@@ -256,6 +256,17 @@ impl App {
         self.update_filtered_hbc_apps();
     }
 
+    pub fn check_for_hbc_app_updates(&mut self) {
+        for hbc_app in self.hbc_apps.iter_mut() {
+            if let Ok(osc_app_i) = self
+                .osc_apps
+                .binary_search_by(|a| a.meta.name.cmp(&hbc_app.meta.name))
+            {
+                hbc_app.osc_app_i = Some(osc_app_i);
+            }
+        }
+    }
+
     pub fn download_osc_icons(&mut self) {
         let icons_dir = self.data_dir.join("osc-icons");
 
@@ -315,6 +326,7 @@ impl eframe::App for App {
                 BackgroundMessage::GotOscApps(osc_apps) => {
                     self.osc_apps = osc_apps;
                     self.update_filtered_osc_apps();
+                    self.check_for_hbc_app_updates();
                 }
                 BackgroundMessage::SetArchiveFormat(format) => {
                     self.config.contents.archive_format = format;
