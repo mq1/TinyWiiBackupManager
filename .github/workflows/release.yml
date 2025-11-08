@@ -11,9 +11,6 @@ on:
 permissions:
   contents: write
 
-# Global environment variable available to all jobs in this workflow.
-# - For pull requests, it uses 'PR-123'.
-# - For pushes, it uses the branch or tag name (e.g., 'main' or 'v1.2.0').
 env:
   VERSION_NAME: ${{ github.event_name == 'pull_request' && format('PR-{0}', github.event.pull_request.number) || github.ref_name }}
 
@@ -45,15 +42,13 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Set up Rust
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          toolchain: 1.91.0
-          target: ${{ matrix.target }}
-          cache-key: ${{ matrix.target }}
+      - name: Install Rust toolchain
+        run: rustup target add ${{ matrix.target }}
 
-      - name: Set up Mold
-        uses: rui314/setup-mold@v1
+      - name: Restore Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
 
       - name: Install dependencies
         run: |
@@ -69,14 +64,6 @@ jobs:
 
       - name: Build binary
         run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "app-dir bundled-tls"
-        env:
-          CC: "clang"
-          CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: "clang"
-          CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: "-C link-arg=-fuse-ld=/usr/local/bin/mold"
-          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: "clang"
-          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_RUSTFLAGS: "-C link-arg=-fuse-ld=/usr/local/bin/mold"
-          CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER: "clang"
-          CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_RUSTFLAGS: "-C link-arg=-fuse-ld=/usr/local/bin/mold"
 
       - name: Package binary as tar.gz
         run: |
@@ -133,12 +120,13 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Set up Rust
-        uses: actions-rust-lang/setup-rust-toolchain@v1
+      - name: Install Rust toolchain
+        run: rustup target add ${{ matrix.target }}
+
+      - name: Restore Rust cache
+        uses: Swatinem/rust-cache@v2
         with:
-          toolchain: 1.91.0
-          target: ${{ matrix.target }}
-          cache-key: ${{ matrix.target }}
+          key: ${{ matrix.target }}
 
       - name: Install dependencies
         if: matrix.setup
@@ -146,10 +134,6 @@ jobs:
 
       - name: Build binary
         run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "native-tls ${{ matrix.features }}"
-        env:
-          CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
-          CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
-          CARGO_TARGET_I686_PC_WINDOWS_MSVC_LINKER: "rust-lld.exe"
 
       - name: Package binary as zip
         shell: pwsh
@@ -197,22 +181,21 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Set up Rust
-        uses: actions-rust-lang/setup-rust-toolchain@v1
+      - name: Restore Rust cache
+        uses: Swatinem/rust-cache@v2
         with:
-          toolchain: 1.91.0
-          components: rust-src
-          cache-key: ${{ matrix.target }}
+          key: ${{ matrix.target }}
+        
+      - name: Install rust-src
+        run: rustup component add rust-src
 
-      - name: Install deps
-        run: cargo install --locked bindgen-cli
+      - name: Install bindgen
+        run: cargo install bindgen-cli --version ^0.72 --locked
 
       - name: Build binary
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls ${{ matrix.features }}"
         env: 
           RUSTC_BOOTSTRAP: 1
-          CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_LINKER: "rust-lld.exe"
-          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_LINKER: "rust-lld.exe"
 
       - name: Package binary as zip
         shell: pwsh
@@ -245,12 +228,13 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Set up Rust
-        uses: actions-rust-lang/setup-rust-toolchain@v1
+      - name: Install Rust toolchain
+        run: rustup target add ${{ matrix.target }}
+
+      - name: Restore Rust cache
+        uses: Swatinem/rust-cache@v2
         with:
-          toolchain: 1.91.0
-          target: ${{ matrix.target }}
-          cache-key: ${{ matrix.target }}
+          key: ${{ matrix.target }}
 
       - name: Install dependencies
         run: |
@@ -296,12 +280,12 @@ jobs:
           merge-multiple: true # This places all matching artifacts into a single 'dist' directory
 
       - name: Create version.txt
-        run: echo -n "${{ github.ref_name }}" > version.txt
+        run: echo -n "${{ env.VERSION_NAME }}" > version.txt
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: v${{ github.ref_name }}
+          name: v${{ env.VERSION_NAME }}
           files: |
             dist/*
             version.txt
@@ -316,7 +300,7 @@ jobs:
       - name: Append downloads table to release
         uses: softprops/action-gh-release@v2
         with:
-          name: v${{ github.ref_name }}
+          name: v${{ env.VERSION_NAME }}
           append_body: true
           body_path: downloads.md
           prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
