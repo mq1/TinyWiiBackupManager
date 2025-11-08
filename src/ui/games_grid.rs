@@ -8,18 +8,19 @@ use crate::{
     notifications::Notifications,
     wiitdb::{self},
 };
-use eframe::egui::{self, Vec2};
+use eframe::egui;
 use egui_file_dialog::FileDialog;
 use std::path::{Path, PathBuf};
 
 const CARD_WIDTH: f32 = 161.5;
+const CARD_HORIZONTAL_SPACE: usize = 181;
 const CARD_HEIGHT: f32 = 188.;
 
 pub fn update(ui: &mut egui::Ui, app: &mut App) {
     egui::ScrollArea::vertical().show(ui, |ui| {
         let available_width = ui.available_width();
         ui.set_width(available_width);
-        let cols = (available_width / (CARD_WIDTH + 20.)).floor() as usize;
+        let cols = available_width as usize / CARD_HORIZONTAL_SPACE;
 
         if app.show_wii {
             ui.heading(format!(
@@ -30,28 +31,25 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
 
             ui.add_space(5.);
 
-            egui::Grid::new("wii_games")
-                .num_columns(cols)
-                .spacing(Vec2::splat(8.))
-                .show(ui, |ui| {
-                    for row in app.filtered_wii_games.chunks(cols) {
-                        for game_i in row {
-                            view_game_card(
-                                ui,
-                                &app.games[*game_i],
-                                &mut app.deleting_game,
-                                &mut app.game_info,
-                                &mut app.archiving_game,
-                                &mut app.choose_archive_path,
-                                &app.config.contents.mount_point,
-                                &mut app.wiitdb,
-                                &mut app.notifications,
-                            );
-                        }
-
-                        ui.end_row();
+            for row in app.filtered_wii_games.chunks(cols) {
+                ui.horizontal_top(|ui| {
+                    for game_i in row {
+                        view_game_card(
+                            ui,
+                            &app.games[*game_i],
+                            &mut app.deleting_game,
+                            &mut app.game_info,
+                            &mut app.archiving_game,
+                            &mut app.choose_archive_path,
+                            &app.config.contents.mount_point,
+                            &mut app.wiitdb,
+                            &mut app.notifications,
+                        );
                     }
                 });
+
+                ui.add_space(5.);
+            }
         }
 
         if app.show_gc {
@@ -67,27 +65,25 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
 
             ui.add_space(5.);
 
-            egui::Grid::new("gc_games")
-                .num_columns(cols)
-                .spacing(Vec2::splat(8.))
-                .show(ui, |ui| {
-                    for row in app.filtered_gc_games.chunks(cols) {
-                        for game_i in row {
-                            view_game_card(
-                                ui,
-                                &app.games[*game_i],
-                                &mut app.deleting_game,
-                                &mut app.game_info,
-                                &mut app.archiving_game,
-                                &mut app.choose_archive_path,
-                                &app.config.contents.mount_point,
-                                &mut app.wiitdb,
-                                &mut app.notifications,
-                            );
-                        }
-                        ui.end_row();
+            for row in app.filtered_gc_games.chunks(cols) {
+                ui.horizontal_top(|ui| {
+                    for game_i in row {
+                        view_game_card(
+                            ui,
+                            &app.games[*game_i],
+                            &mut app.deleting_game,
+                            &mut app.game_info,
+                            &mut app.archiving_game,
+                            &mut app.choose_archive_path,
+                            &app.config.contents.mount_point,
+                            &mut app.wiitdb,
+                            &mut app.notifications,
+                        );
                     }
                 });
+
+                ui.add_space(5.);
+            }
         }
     });
 }

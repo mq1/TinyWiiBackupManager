@@ -39,3 +39,15 @@ pub enum View {
     Tools,
     Settings,
 }
+
+impl View {
+    pub fn title(&self) -> &'static str {
+        match self {
+            View::Games => "Games",
+            View::HbcApps => "HBC Apps",
+            View::Osc => "OSC Apps",
+            View::Tools => "Tools",
+            View::Settings => "Settings",
+        }
+    }
+}
