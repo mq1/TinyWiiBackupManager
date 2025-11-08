@@ -59,6 +59,7 @@ pub struct HbcApp {
     pub size: Size,
     pub path: PathBuf,
     pub search_str: String,
+    pub osc_app_i: Option<usize>,
 }
 
 impl HbcApp {
@@ -105,6 +106,7 @@ impl HbcApp {
             size,
             search_str,
             image_uri,
+            osc_app_i: None,
         })
     }
 }
