@@ -64,6 +64,21 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 .add_sized(
                     Vec2::splat(40.),
                     egui::Button::selectable(
+                        app.current_view == ui::View::Wiiload,
+                        egui::RichText::new("📮").size(26.),
+                    ),
+                )
+                .on_hover_text("Wiiload")
+                .clicked()
+            {
+                app.current_view = ui::View::Wiiload;
+                app.update_title(ctx);
+            }
+
+            if ui
+                .add_sized(
+                    Vec2::splat(40.),
+                    egui::Button::selectable(
                         app.current_view == ui::View::Tools,
                         egui::RichText::new("🔧").size(26.),
                     ),
