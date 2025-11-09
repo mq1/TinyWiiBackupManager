@@ -33,6 +33,7 @@ dependencies = [
  "sysinfo",
  "tempfile",
  "ureq",
+ "walkdir",
  "wgpu",
  "winres",
  "zip",
