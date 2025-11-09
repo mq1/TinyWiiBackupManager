@@ -4,14 +4,17 @@
 use crate::app::App;
 use eframe::egui;
 
-const WIILOAD_DESC: &str = "ℹ Wiiload is a method of loading .dol and .elf files over the network.\nℹ Also, you can use Wiiload to install homebrew applications directly onto your SD card.\nℹ If the icon in the very bottom right of the Homebrew Channel is lit up, it should work for you.\nℹ Pressing the home button in the Homebrew Channel will reveal your Wii's IP.";
-
 pub fn update(ctx: &egui::Context, app: &mut App) {
     egui::CentralPanel::default().show(ctx, |ui| {
         ui.style_mut().spacing.item_spacing.y *= 2.;
 
         ui.heading("📮 Wiiload v0.5");
-        ui.label(WIILOAD_DESC);
+        ui.add_space(10.);
+
+        ui.label("ℹ Wiiload is a method of loading .dol and .elf files over the network.");
+        ui.label("ℹ Also, you can use Wiiload to install homebrew applications directly onto your SD card.");
+        ui.label("ℹ If the icon in the very bottom right of the Homebrew Channel is lit up, it should work for you.");
+        ui.label("ℹ Pressing the home button in the Homebrew Channel will reveal your Wii's IP.");
 
         ui.separator();
 
