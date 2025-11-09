@@ -19,6 +19,7 @@ dependencies = [
  "fs_extra",
  "hex",
  "image",
+ "itertools",
  "log",
  "nod",
  "num_cpus",
