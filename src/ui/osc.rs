@@ -52,6 +52,19 @@ fn view_top_bar(ui: &mut egui::Ui, app: &mut App) {
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
             let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
             group.show(ui, |ui| {
+                ui.add(
+                    egui::TextEdit::singleline(&mut app.config.contents.wii_ip)
+                        .desired_width(100.)
+                        .hint_text("Wii IP"),
+                );
+
+                ui.label("Wii IP (for Wiiload)");
+            });
+
+            ui.add_space(10.);
+
+            let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
+            group.show(ui, |ui| {
                 if ui
                     .selectable_label(app.config.contents.view_as == ViewAs::List, "☰")
                     .on_hover_text("View as List")
