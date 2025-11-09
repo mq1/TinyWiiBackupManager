@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, banners, covers, txtcodes, util, wiitdb};
+use crate::{app::App, banners, covers, dir_layout, txtcodes, util, wiitdb};
 use eframe::egui;
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
@@ -60,6 +60,21 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 }
 
                 ui.label("Download cheats for all games (txt)");
+            });
+
+            ui.separator();
+            ui.heading("🚿 Cleanup");
+
+            ui.horizontal(|ui| {
+                if ui.button("⏵").clicked() {
+                    if let Err(e) = dir_layout::bulk_rename(&app.config.contents.mount_point) {
+                        app.notifications.show_err(e);
+                    } else {
+                        app.notifications.show_success("Bulk rename successful");
+                    }
+                }
+
+                ui.label("Rebuild the game directories layout (bulk rename)");
             });
 
             if cfg!(target_os = "macos") {
