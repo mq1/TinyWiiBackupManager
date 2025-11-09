@@ -28,6 +28,7 @@ pub mod root;
 mod settings;
 mod status;
 mod tools;
+mod wiiload;
 
 pub const LOGO_BYTES: &[u8] = include_bytes!("../../assets/TinyWiiBackupManager.png");
 
@@ -36,6 +37,7 @@ pub enum View {
     Games,
     HbcApps,
     Osc,
+    Wiiload,
     Tools,
     Settings,
 }
@@ -46,6 +48,7 @@ impl View {
             View::Games => "Games",
             View::HbcApps => "HBC Apps",
             View::Osc => "OSC Apps",
+            View::Wiiload => "Wiiload",
             View::Tools => "Tools",
             View::Settings => "Settings",
         }
