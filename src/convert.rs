@@ -18,6 +18,7 @@ use sanitize_filename::sanitize;
 use std::{
     fs::{self, File},
     io::{BufWriter, Seek, Write},
+    time::Instant,
 };
 
 const SPLIT_SIZE: u64 = 4 * 1024 * 1024 * 1024 - 32 * 1024;
@@ -104,6 +105,8 @@ pub fn spawn_add_games_task(app: &App, discs: Vec<DiscInfo>) {
 
             fs::create_dir_all(&dir_path)?;
 
+            let start_instant = Instant::now();
+            log::info!("Converting {}", disc_info.header.game_title_str());
             {
                 let disc = if let Some(overflow_file) = &overflow_file {
                     let reader = OverflowReader::new(&disc_info.main_disc_path, overflow_file)?;
@@ -170,6 +173,11 @@ pub fn spawn_add_games_task(app: &App, discs: Vec<DiscInfo>) {
                     out1.write_all(&finalization.header)?;
                 }
             }
+            log::info!(
+                "Converted {} in {:.2}s",
+                disc_info.header.game_title_str(),
+                start_instant.elapsed().as_secs_f32()
+            );
 
             if remove_sources {
                 fs::remove_file(&disc_info.main_disc_path)?;
