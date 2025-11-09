@@ -55,22 +55,31 @@ env_logger = { version = "0.11", default-features = false, features = [
   "auto-color",
   "humantime",
 ] }
+walkdir = "2.5"
 
 [target.'cfg(any(target_os = "linux", target_vendor = "win7"))'.dependencies]
 eframe = "0.33"
 
-[target.'cfg(any(target_os = "macos", all(target_os = "windows", target_vendor = "pc")))'.dependencies]
+[target.'cfg(any(target_os = "macos", target_vendor = "pc"))'.dependencies]
 eframe = { version = "0.33", default-features = false, features = [
   "accesskit",
   "default_fonts",
   "wgpu",
 ] }
 
-[target.'cfg(all(target_os = "windows", target_vendor = "pc"))'.dependencies]
-wgpu = { version = "*", default-features = false, features = ["dx12"] }
+[target.'cfg(target_vendor = "pc")'.dependencies]
+wgpu = { version = "*", default-features = false, features = [
+  "dx12",
+  "std",
+  "parking_lot",
+] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
-wgpu = { version = "*", default-features = false, features = ["metal"] }
+wgpu = { version = "*", default-features = false, features = [
+  "metal",
+  "std",
+  "parking_lot",
+] }
 
 [features]
 default = ["app-dir", "native-tls"]
@@ -78,7 +87,7 @@ app-dir = ["dep:directories"]
 native-tls = ["ureq/native-tls", "ureq/platform-verifier"]
 bundled-tls = ["ureq/rustls"]
 
-[target.'cfg(target_os = "windows")'.build-dependencies]
+[target.'cfg(windows)'.build-dependencies]
 winres = "0.1"
 
 [profile.release]

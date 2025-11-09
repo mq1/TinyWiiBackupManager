@@ -11,6 +11,7 @@ mod checksum;
 mod config;
 mod convert;
 mod covers;
+mod dir_layout;
 mod disc_info;
 mod extensions;
 mod games;
