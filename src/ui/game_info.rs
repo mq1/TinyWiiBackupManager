@@ -1,9 +1,10 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, checksum, games::GameID, wiitdb::Language};
+use crate::{app::App, checksum, games::GameID};
 use capitalize::Capitalize;
-use eframe::egui::{self, ImageSource, include_image};
+use eframe::egui;
+use itertools::Itertools;
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
     let modal = egui::Modal::new("disc_info".into());
@@ -156,20 +157,13 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                             ui.label(format!("✏ Name: {}", &game_info.name));
 
                             // Region
-                            ui.label(format!("🌐 Region: {}", &game_info.region.as_ref()));
+                            ui.label(format!("🌐 Region: {}", &game_info.region.as_str()));
 
                             // Languages
-                            ui.horizontal(|ui| {
-                                ui.label("🌐 Languages: ");
-
-                                for lang in &game_info.languages {
-                                    ui.add(
-                                        egui::Image::new(lang.get_icon())
-                                            .max_height(14.0)
-                                            .corner_radius(3.),
-                                    );
-                                }
-                            });
+                            ui.label(format!(
+                                "🌐 Languages: {}",
+                                &game_info.languages.iter().map(|l| l.as_str()).join(", ")
+                            ));
 
                             // Developer
                             ui.label(format!(
@@ -218,7 +212,6 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                                         c.r#type.capitalize_first_only(),
                                         if c.required { "Required" } else { "Optional" }
                                     ))
-                                    .collect::<Vec<String>>()
                                     .join(", ")
                             ));
                         }
@@ -286,31 +279,5 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
     if close {
         app.game_info = None;
-    }
-}
-
-impl Language {
-    pub fn get_icon(&self) -> ImageSource<'_> {
-        match self {
-            Language::En => include_image!("../../assets/flag-icons/gb-eng.svg"),
-            Language::Fr => include_image!("../../assets/flag-icons/fr.svg"),
-            Language::De => include_image!("../../assets/flag-icons/de.svg"),
-            Language::Es => include_image!("../../assets/flag-icons/es.svg"),
-            Language::It => include_image!("../../assets/flag-icons/it.svg"),
-            Language::Ja => include_image!("../../assets/flag-icons/jp.svg"),
-            Language::Nl => include_image!("../../assets/flag-icons/nl.svg"),
-            Language::Se => include_image!("../../assets/flag-icons/se.svg"),
-            Language::Dk => include_image!("../../assets/flag-icons/dk.svg"),
-            Language::No => include_image!("../../assets/flag-icons/no.svg"),
-            Language::Ko => include_image!("../../assets/flag-icons/kr.svg"),
-            Language::Pt => include_image!("../../assets/flag-icons/pt.svg"),
-            Language::Zhtw => include_image!("../../assets/flag-icons/tw.svg"),
-            Language::Zhcn => include_image!("../../assets/flag-icons/cn.svg"),
-            Language::Fi => include_image!("../../assets/flag-icons/fi.svg"),
-            Language::Tr => include_image!("../../assets/flag-icons/tr.svg"),
-            Language::Gr => include_image!("../../assets/flag-icons/gr.svg"),
-            Language::Ru => include_image!("../../assets/flag-icons/ru.svg"),
-            Language::Unknown => include_image!("../../assets/flag-icons/xx.svg"),
-        }
     }
 }
