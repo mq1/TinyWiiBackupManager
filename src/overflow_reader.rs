@@ -24,26 +24,23 @@ pub fn get_main_file(dir: &Path) -> Option<PathBuf> {
         .map(|entry| entry.path())
 }
 
-pub fn get_overflow_file(main: &Path) -> Option<PathBuf> {
-    if main.ends_with(".wbfs") {
-        let overflow = main.with_extension("wbf1");
-        if overflow.exists() {
-            return Some(overflow);
-        }
-    } else if main.ends_with(".part0.iso") {
-        let parent = main.parent()?;
-        let name = main
-            .file_name()?
-            .to_str()?
-            .replace(".part0.iso", ".part1.iso");
-
-        let overflow = parent.join(name);
-        if overflow.exists() {
-            return Some(overflow);
-        }
+pub fn get_overflow_file_name(main_file_name: &str) -> Option<String> {
+    if main_file_name.ends_with(".wbfs") {
+        Some(main_file_name.replace(".wbfs", ".wbf1"))
+    } else if main_file_name.ends_with(".part0.iso") {
+        Some(main_file_name.replace(".part0.iso", ".part1.iso"))
+    } else {
+        None
     }
+}
 
-    None
+pub fn get_overflow_file(main: &Path) -> Option<PathBuf> {
+    let parent = main.parent()?;
+    let main_file_name = main.file_name()?.to_str()?;
+    let file_name = get_overflow_file_name(main_file_name)?;
+    let path = parent.join(file_name);
+
+    if path.exists() { Some(path) } else { None }
 }
 
 #[derive(Debug)]
