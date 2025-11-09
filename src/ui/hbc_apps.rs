@@ -68,23 +68,6 @@ fn view_top_bar(ui: &mut egui::Ui, app: &mut App, ctx: &egui::Context) {
                 app.refresh_hbc_apps(ctx);
             }
 
-            let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
-            group.show(ui, |ui| {
-                if ui.button("📤").on_hover_text("Wiiload").clicked() {
-                    if let Err(e) = app.config.write() {
-                        app.notifications.show_err(e);
-                    }
-
-                    app.choose_file_to_push.pick_file();
-                }
-
-                ui.add(
-                    egui::TextEdit::singleline(&mut app.config.contents.wii_ip)
-                        .desired_width(100.)
-                        .hint_text("Wii IP"),
-                );
-            });
-
             ui.add_space(10.);
 
             let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
