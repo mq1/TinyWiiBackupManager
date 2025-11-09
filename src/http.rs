@@ -47,8 +47,9 @@ pub fn get(uri: &str) -> Result<Vec<u8>, ureq::Error> {
 pub fn download_into_file(uri: &str, file: &File) -> Result<()> {
     let mut writer = BufWriter::new(file);
 
-    let body = AGENT.get(uri).call()?.into_body();
-    let mut reader = body.into_reader();
+    let mut resp = AGENT.get(uri).call()?;
+    let body = resp.body_mut();
+    let mut reader = body.as_reader();
     io::copy(&mut reader, &mut writer)?;
 
     Ok(())
