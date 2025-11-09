@@ -4,6 +4,7 @@
 use crate::{app::App, checksum, games::GameID};
 use capitalize::Capitalize;
 use eframe::egui;
+use itertools::Itertools;
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
     let modal = egui::Modal::new("disc_info".into());
@@ -159,15 +160,9 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                             ui.label(format!("🌐 Region: {}", &game_info.region.as_str()));
 
                             // Languages
-
                             ui.label(format!(
                                 "🌐 Languages: {}",
-                                &game_info
-                                    .languages
-                                    .iter()
-                                    .map(|l| l.as_str())
-                                    .collect::<Vec<_>>()
-                                    .join(", ")
+                                &game_info.languages.iter().map(|l| l.as_str()).join(", ")
                             ));
 
                             // Developer
@@ -217,7 +212,6 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                                         c.r#type.capitalize_first_only(),
                                         if c.required { "Required" } else { "Optional" }
                                     ))
-                                    .collect::<Vec<String>>()
                                     .join(", ")
                             ));
                         }
