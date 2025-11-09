@@ -170,9 +170,56 @@ where
     Ok(u32::from_str_radix(&s, 16).ok())
 }
 
-#[rustfmt::skip]
 #[derive(Debug, Default, Clone)]
-pub enum Language { En, Fr, De, Es, It, Ja, Nl, Se, Dk, No, Ko, Pt, Zhtw, Zhcn, Fi, Tr, Gr, Ru, #[default] Unknown }
+pub enum Language {
+    En,
+    Fr,
+    De,
+    Es,
+    It,
+    Ja,
+    Nl,
+    Se,
+    Dk,
+    No,
+    Ko,
+    Pt,
+    Zhtw,
+    Zhcn,
+    Fi,
+    Tr,
+    Gr,
+    Ru,
+
+    #[default]
+    Unknown,
+}
+
+impl Language {
+    pub fn as_str(&self) -> &str {
+        match self {
+            Language::En => "English",
+            Language::Fr => "French",
+            Language::De => "German",
+            Language::Es => "Spanish",
+            Language::It => "Italian",
+            Language::Ja => "Japanese",
+            Language::Nl => "Dutch",
+            Language::Se => "Swedish",
+            Language::Dk => "Danish",
+            Language::No => "Norwegian",
+            Language::Ko => "Korean",
+            Language::Pt => "Portuguese",
+            Language::Zhtw => "Traditional Chinese",
+            Language::Zhcn => "Simplified Chinese",
+            Language::Fi => "Finnish",
+            Language::Tr => "Turkish",
+            Language::Gr => "Greek",
+            Language::Ru => "Russian",
+            Language::Unknown => "Unknown",
+        }
+    }
+}
 
 impl From<&str> for Language {
     fn from(s: &str) -> Self {
@@ -210,9 +257,32 @@ where
     Ok(langs)
 }
 
-#[rustfmt::skip]
 #[derive(Debug, Default, Clone)]
-pub enum Region { NtscU, NtscJ, NtscK, NtscT, Pal, PalR, #[default] Unknown }
+pub enum Region {
+    NtscU,
+    NtscJ,
+    NtscK,
+    NtscT,
+    Pal,
+    PalR,
+
+    #[default]
+    Unknown,
+}
+
+impl Region {
+    pub fn as_str(&self) -> &str {
+        match self {
+            Region::NtscJ => "NTSC-J",
+            Region::NtscU => "NTSC-U",
+            Region::NtscK => "NTSC-K",
+            Region::NtscT => "NTSC-T",
+            Region::Pal => "PAL",
+            Region::PalR => "PAL-R",
+            Region::Unknown => "Unknown",
+        }
+    }
+}
 
 impl<'de> Deserialize<'de> for Region {
     fn deserialize<D>(deserializer: D) -> Result<Region, D::Error>
@@ -229,19 +299,5 @@ impl<'de> Deserialize<'de> for Region {
             "PAL-R" => Region::PalR,
             _ => Region::Unknown,
         })
-    }
-}
-
-impl AsRef<str> for Region {
-    fn as_ref(&self) -> &str {
-        match self {
-            Region::NtscJ => "NTSC-J",
-            Region::NtscU => "NTSC-U",
-            Region::NtscK => "NTSC-K",
-            Region::NtscT => "NTSC-T",
-            Region::Pal => "PAL",
-            Region::PalR => "PAL-R",
-            Region::Unknown => "Unknown",
-        }
     }
 }
