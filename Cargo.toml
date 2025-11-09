@@ -83,11 +83,16 @@ winres = "0.1"
 
 [profile.release]
 opt-level = 3
-lto = "fat"
+lto = true
 codegen-units = 1
-strip = "debuginfo"
-debug = "line-tables-only"
+strip = true
 panic = "abort"
+
+[profile.release.package.nod]
+opt-level = 3
+
+[profile.release.package."*"]
+opt-level = "z"
 
 [profile.dev.package."*"]
 opt-level = 2
