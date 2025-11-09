@@ -97,6 +97,12 @@ pub fn bulk_rename(mount_point: &Path) -> Result<()> {
             bail!("Failed to get file name");
         };
 
+        let original_file_parent = if let Some(parent) = disc_info.main_disc_path.parent() {
+            parent
+        } else {
+            bail!("Failed to get file parent");
+        };
+
         let file_name1 = if original_file_name.ends_with(".wbfs") {
             disc_info.header.game_id_str().to_string() + ".wbfs"
         } else if original_file_name.ends_with(".part0.iso") {
@@ -121,6 +127,13 @@ pub fn bulk_rename(mount_point: &Path) -> Result<()> {
         {
             let file2 = dir.join(file_name2);
             fs::rename(&overflow_file, &file2)?;
+        }
+
+        let memcard_file_name = format!("memcard_{}.bin", disc_info.header.game_id_str());
+        let memcard_orig_path = original_file_parent.join(&memcard_file_name);
+        if memcard_orig_path.exists() {
+            let memcard_dest_path = dir.join(memcard_file_name);
+            fs::rename(&memcard_orig_path, &memcard_dest_path)?;
         }
     }
 
