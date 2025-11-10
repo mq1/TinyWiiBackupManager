@@ -31,7 +31,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
             body.ui_mut().style_mut().spacing.item_spacing.y = 0.0;
 
             for game_i in &app.filtered_games {
-                let game = &app.games[*game_i];
+                let game = &app.games[*game_i as usize];
 
                 body.row(26., |mut row| {
                     row.col(|ui| {
