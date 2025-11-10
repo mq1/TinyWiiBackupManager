@@ -10,15 +10,20 @@ use sanitize_filename::sanitize;
 use std::{fs, path::Path};
 use walkdir::{DirEntry, WalkDir};
 
-fn filter(entry: &DirEntry) -> bool {
+fn filter(path: &Path) -> bool {
     // Ignore directories
-    if entry.file_type().is_dir() {
+    if path.is_dir() {
         return false;
     }
 
     // Ignore invalid files
-    let file_name = if let Some(file_name) = entry.file_name().to_str() {
+    let file_name = if let Some(file_name) = path.file_name().and_then(|s| s.to_str()) {
         file_name
+    } else {
+        return false;
+    };
+    let file_extension = if let Some(file_extension) = path.extension().and_then(|s| s.to_str()) {
+        file_extension
     } else {
         return false;
     };
@@ -28,8 +33,8 @@ fn filter(entry: &DirEntry) -> bool {
         return false;
     }
 
-    // Ignore non-ISO/WBFS files
-    if !file_name.ends_with(".iso") || file_name.ends_with(".wbfs") {
+    // Ignore unsupported extensions
+    if !matches!(file_extension, "iso" | "wbfs" | "gcm" | "ciso") {
         return false;
     }
 
@@ -47,12 +52,13 @@ fn scan_for_games(mount_point: &Path) -> Box<[DiscInfo]> {
 
     let mut games: Vec<DiscInfo> = Vec::new();
     for dir in [wii_dir, games_dir] {
-        for entry in WalkDir::new(dir)
+        for path in WalkDir::new(dir)
             .into_iter()
             .filter_map(Result::ok)
-            .filter(filter)
+            .map(DirEntry::into_path)
+            .filter(|path| filter(path))
         {
-            if let Ok(game) = DiscInfo::from_main_file(entry.path().to_path_buf()) {
+            if let Ok(game) = DiscInfo::from_main_file(path) {
                 games.push(game);
             }
         }
@@ -75,6 +81,8 @@ pub fn bulk_rename(mount_point: &Path) -> Result<()> {
     for disc_info in scan_for_games(mount_point) {
         log::info!("Found game: {}", disc_info.main_disc_path.display());
 
+        let game_id = disc_info.header.game_id_str();
+
         let dir = mount_point
             .join(if disc_info.header.is_wii() {
                 "wbfs"
@@ -84,7 +92,7 @@ pub fn bulk_rename(mount_point: &Path) -> Result<()> {
             .join(format!(
                 "{} [{}]",
                 sanitize(disc_info.header.game_title_str()),
-                disc_info.header.game_id_str()
+                game_id
             ));
 
         let original_file_name = if let Some(name) = disc_info
@@ -103,16 +111,26 @@ pub fn bulk_rename(mount_point: &Path) -> Result<()> {
             bail!("Failed to get file parent");
         };
 
-        let file_name1 = if original_file_name.ends_with(".wbfs") {
-            disc_info.header.game_id_str().to_string() + ".wbfs"
-        } else if original_file_name.ends_with(".part0.iso") {
-            disc_info.header.game_id_str().to_string() + ".part0.iso"
-        } else if disc_info.header.is_gamecube() && disc_info.header.disc_num == 0 {
-            "game.iso".to_string()
-        } else if disc_info.header.is_gamecube() {
-            format!("disc{}.iso", disc_info.header.disc_num)
+        let file_name1 = if disc_info.header.is_wii() {
+            if original_file_name.ends_with(".wbfs") {
+                format!("{}.wbfs", game_id)
+            } else if original_file_name.ends_with(".part0.iso") {
+                format!("{}.part0.iso", game_id)
+            } else {
+                format!("{}.iso", game_id)
+            }
         } else {
-            disc_info.header.game_id_str().to_string() + ".iso"
+            let ext = if original_file_name.ends_with(".ciso") {
+                "ciso"
+            } else {
+                "iso"
+            };
+
+            if disc_info.header.disc_num == 0 {
+                format!("game.{}", ext)
+            } else {
+                format!("disc{}.{}", disc_info.header.disc_num, ext)
+            }
         };
 
         let file_name2 = get_overflow_file_name(&file_name1);
@@ -129,7 +147,7 @@ pub fn bulk_rename(mount_point: &Path) -> Result<()> {
             fs::rename(&overflow_file, &file2)?;
         }
 
-        let memcard_file_name = format!("memcard_{}.bin", disc_info.header.game_id_str());
+        let memcard_file_name = format!("memcard_{}.bin", game_id);
         let memcard_orig_path = original_file_parent.join(&memcard_file_name);
         if memcard_orig_path.exists() {
             let memcard_dest_path = dir.join(memcard_file_name);
