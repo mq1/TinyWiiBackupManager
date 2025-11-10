@@ -3,7 +3,7 @@
 
 use crate::{
     app::App,
-    config::WiiOutputFormat,
+    config::{Config, GcOutputFormat, WiiOutputFormat},
     disc_info::DiscInfo,
     overflow_reader::{OverflowReader, get_overflow_file},
     tasks::BackgroundMessage,
@@ -50,27 +50,34 @@ pub fn get_process_opts(scrub_update_partition: bool) -> ProcessOptions {
     }
 }
 
-fn get_output_format_opts(wii_output_format: WiiOutputFormat, is_wii: bool) -> FormatOptions {
-    match (wii_output_format, is_wii) {
-        (WiiOutputFormat::Wbfs, true) => FormatOptions::new(Format::Wbfs),
-        (WiiOutputFormat::Iso, true) => FormatOptions::new(Format::Iso),
-        (_, false) => FormatOptions::new(Format::Ciso),
+fn get_output_format_opts(config: &Config, is_wii: bool) -> FormatOptions {
+    if is_wii {
+        if config.contents.wii_output_format == WiiOutputFormat::Wbfs {
+            FormatOptions::new(Format::Wbfs)
+        } else {
+            FormatOptions::new(Format::Iso)
+        }
+    } else {
+        if config.contents.gc_output_format == GcOutputFormat::Iso {
+            FormatOptions::new(Format::Iso)
+        } else {
+            FormatOptions::new(Format::Ciso)
+        }
     }
 }
 
 pub fn spawn_add_games_task(app: &App, discs: Vec<DiscInfo>) {
-    let remove_sources = app.config.contents.remove_sources_games;
-    let mount_point_clone = app.config.contents.mount_point.clone();
-    let wii_output_format = app.config.contents.wii_output_format;
+    let config = app.config.clone();
     let disc_opts = get_disc_opts();
-    let scrub_update_partition = app.config.contents.scrub_update_partition;
-    let must_split =
-        app.config.contents.always_split || can_write_over_4gb(&mount_point_clone).is_err();
+    let must_split = app.config.contents.always_split
+        || can_write_over_4gb(&app.config.contents.mount_point).is_err();
 
     app.task_processor.spawn(move |msg_sender| {
         let len = discs.len();
         for (i, disc_info) in discs.into_iter().enumerate() {
-            let dir_path = mount_point_clone
+            let dir_path = config
+                .contents
+                .mount_point
                 .join(if disc_info.header.is_wii() {
                     "wbfs"
                 } else {
@@ -84,21 +91,24 @@ pub fn spawn_add_games_task(app: &App, discs: Vec<DiscInfo>) {
 
             let file_name1 = match (
                 disc_info.header.is_wii(),
-                wii_output_format,
+                config.contents.wii_output_format,
+                config.contents.gc_output_format,
                 must_split,
                 disc_info.header.disc_num,
             ) {
-                (true, WiiOutputFormat::Wbfs, _, _) => {
+                (true, WiiOutputFormat::Wbfs, _, _, _) => {
                     &format!("{}.wbfs", disc_info.header.game_id_str())
                 }
-                (true, WiiOutputFormat::Iso, true, _) => {
+                (true, WiiOutputFormat::Iso, _, true, _) => {
                     &format!("{}.part0.iso", disc_info.header.game_id_str())
                 }
-                (true, WiiOutputFormat::Iso, false, _) => {
+                (true, WiiOutputFormat::Iso, _, false, _) => {
                     &format!("{}.iso", disc_info.header.game_id_str())
                 }
-                (false, _, _, 0) => "game.iso",
-                (false, _, _, n) => &format!("disc{n}.iso"),
+                (false, _, GcOutputFormat::Iso, _, 0) => "game.iso",
+                (false, _, GcOutputFormat::Iso, _, n) => &format!("disc{n}.iso"),
+                (false, _, GcOutputFormat::Ciso, _, 0) => "game.ciso",
+                (false, _, GcOutputFormat::Ciso, _, n) => &format!("disc{n}.ciso"),
             };
 
             let overflow_file = get_overflow_file(&disc_info.main_disc_path);
@@ -118,7 +128,7 @@ pub fn spawn_add_games_task(app: &App, discs: Vec<DiscInfo>) {
                 let path1 = dir_path.join(file_name1);
                 let mut out1 = BufWriter::new(File::create(&path1)?);
 
-                let file_name2 = match wii_output_format {
+                let file_name2 = match config.contents.wii_output_format {
                     WiiOutputFormat::Wbfs => &format!("{}.wbf1", disc_info.header.game_id_str()),
                     WiiOutputFormat::Iso => {
                         &format!("{}.part1.iso", disc_info.header.game_id_str())
@@ -127,13 +137,13 @@ pub fn spawn_add_games_task(app: &App, discs: Vec<DiscInfo>) {
                 let path2 = dir_path.join(file_name2);
                 let mut out2: Option<BufWriter<File>> = None;
 
-                let out_opts = get_output_format_opts(wii_output_format, disc_info.header.is_wii());
+                let out_opts = get_output_format_opts(&config, disc_info.header.is_wii());
                 let writer = DiscWriter::new(disc, &out_opts)?;
 
                 let process_opts = get_process_opts(
-                    scrub_update_partition
+                    config.contents.scrub_update_partition
                         && disc_info.header.is_wii()
-                        && wii_output_format == WiiOutputFormat::Wbfs,
+                        && config.contents.wii_output_format == WiiOutputFormat::Wbfs,
                 );
 
                 let finalization = writer.process(
@@ -179,7 +189,7 @@ pub fn spawn_add_games_task(app: &App, discs: Vec<DiscInfo>) {
                 start_instant.elapsed().as_secs_f32()
             );
 
-            if remove_sources {
+            if config.contents.remove_sources_games {
                 fs::remove_file(&disc_info.main_disc_path)?;
                 if let Some(overflow_file) = &overflow_file {
                     fs::remove_file(overflow_file)?;

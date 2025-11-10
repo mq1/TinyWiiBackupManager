@@ -9,6 +9,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
+#[derive(Debug, Clone)]
 pub struct Config {
     pub path: PathBuf,
     pub contents: Contents,
@@ -69,6 +70,8 @@ pub struct Contents {
     pub view_as: ViewAs,
     pub wii_ip: String,
     pub wii_output_format: WiiOutputFormat,
+    pub gc_output_format: GcOutputFormat,
+
     #[serde(serialize_with = "ser_theme", deserialize_with = "deser_theme")]
     pub theme_preference: ThemePreference,
 }
@@ -86,6 +89,7 @@ impl Default for Contents {
             view_as: ViewAs::Grid,
             wii_ip: "192.168.1.100".to_string(),
             wii_output_format: WiiOutputFormat::Wbfs,
+            gc_output_format: GcOutputFormat::Iso,
             theme_preference: ThemePreference::System,
         }
     }
@@ -151,4 +155,11 @@ pub enum ViewAs {
 pub enum WiiOutputFormat {
     Wbfs,
     Iso,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Copy)]
+#[serde(rename_all = "snake_case")]
+pub enum GcOutputFormat {
+    Iso,
+    Ciso,
 }
