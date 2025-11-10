@@ -77,7 +77,7 @@ fn remove_empty_dirs(mount_point: &Path) {
     }
 }
 
-pub fn bulk_rename(mount_point: &Path) -> Result<()> {
+pub fn normalize_paths(mount_point: &Path) -> Result<()> {
     for disc_info in scan_for_games(mount_point) {
         log::info!("Found game: {}", disc_info.main_disc_path.display());
 
