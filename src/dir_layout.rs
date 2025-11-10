@@ -6,6 +6,7 @@ use crate::{
     overflow_reader::{get_overflow_file, get_overflow_file_name},
 };
 use anyhow::{Result, bail};
+use nod::common::Format;
 use sanitize_filename::sanitize;
 use std::{fs, path::Path};
 use walkdir::{DirEntry, WalkDir};
@@ -95,42 +96,24 @@ pub fn normalize_paths(mount_point: &Path) -> Result<()> {
                 game_id
             ));
 
-        let original_file_name = if let Some(name) = disc_info
-            .main_disc_path
-            .file_name()
-            .and_then(|s| s.to_str())
-        {
-            name
-        } else {
-            bail!("Failed to get file name");
-        };
-
         let original_file_parent = if let Some(parent) = disc_info.main_disc_path.parent() {
             parent
         } else {
             bail!("Failed to get file parent");
         };
 
-        let file_name1 = if disc_info.header.is_wii() {
-            if original_file_name.ends_with(".wbfs") {
-                format!("{}.wbfs", game_id)
-            } else if original_file_name.ends_with(".part0.iso") {
-                format!("{}.part0.iso", game_id)
-            } else {
-                format!("{}.iso", game_id)
-            }
-        } else {
-            let ext = if original_file_name.ends_with(".ciso") {
-                "ciso"
-            } else {
-                "iso"
-            };
-
-            if disc_info.header.disc_num == 0 {
-                format!("game.{}", ext)
-            } else {
-                format!("disc{}.{}", disc_info.header.disc_num, ext)
-            }
+        let file_name1 = match (
+            disc_info.meta.format,
+            disc_info.header.is_wii(),
+            disc_info.header.disc_num,
+        ) {
+            (Format::Wbfs, _, _) => &format!("{}.wbfs", game_id),
+            (Format::Iso, true, _) => &format!("{}.iso", game_id),
+            (Format::Iso, false, 0) => "game.iso",
+            (Format::Iso, false, n) => &format!("disc{}.iso", n),
+            (Format::Ciso, _, 0) => "game.ciso",
+            (Format::Ciso, _, n) => &format!("disc{}.ciso", n),
+            _ => bail!("Unsupported format"),
         };
 
         let file_name2 = get_overflow_file_name(&file_name1);
