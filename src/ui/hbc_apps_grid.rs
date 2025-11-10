@@ -33,7 +33,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                 for hbc_app_i in row {
                     view_hbc_app_card(
                         ui,
-                        &app.hbc_apps[*hbc_app_i],
+                        &app.hbc_apps[*hbc_app_i as usize],
                         &mut app.deleting_hbc_app,
                         &mut app.hbc_app_info,
                         &app.osc_apps,

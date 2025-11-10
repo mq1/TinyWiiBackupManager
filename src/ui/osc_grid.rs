@@ -29,7 +29,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                 for osc_app_i in row {
                     view_osc_app_card(
                         ui,
-                        &app.osc_apps[*osc_app_i],
+                        &app.osc_apps[*osc_app_i as usize],
                         &mut app.notifications,
                         &mut app.task_processor,
                         &app.config,

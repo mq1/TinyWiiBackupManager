@@ -36,7 +36,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                     for game_i in row {
                         view_game_card(
                             ui,
-                            &app.games[*game_i],
+                            &app.games[*game_i as usize],
                             &mut app.deleting_game,
                             &mut app.game_info,
                             &mut app.archiving_game,
@@ -70,7 +70,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                     for game_i in row {
                         view_game_card(
                             ui,
-                            &app.games[*game_i],
+                            &app.games[*game_i as usize],
                             &mut app.deleting_game,
                             &mut app.game_info,
                             &mut app.archiving_game,
