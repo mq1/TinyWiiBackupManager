@@ -5,7 +5,7 @@ use crate::{
     disc_info::DiscInfo,
     overflow_reader::{get_overflow_file, get_overflow_file_name},
 };
-use anyhow::{Result, bail};
+use anyhow::Result;
 use nod::common::Format;
 use sanitize_filename::sanitize;
 use std::{fs, path::Path};
@@ -99,7 +99,7 @@ pub fn normalize_paths(mount_point: &Path) -> Result<()> {
         let original_file_parent = if let Some(parent) = disc_info.main_disc_path.parent() {
             parent
         } else {
-            bail!("Failed to get file parent");
+            continue;
         };
 
         let file_name1 = match (
@@ -113,7 +113,7 @@ pub fn normalize_paths(mount_point: &Path) -> Result<()> {
             (Format::Iso, false, n) => &format!("disc{}.iso", n),
             (Format::Ciso, _, 0) => "game.ciso",
             (Format::Ciso, _, n) => &format!("disc{}.ciso", n),
-            _ => bail!("Unsupported format"),
+            _ => continue,
         };
 
         let file_name2 = get_overflow_file_name(&file_name1);
