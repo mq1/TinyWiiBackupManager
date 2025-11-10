@@ -58,7 +58,7 @@ fn view_top_bar(ui: &mut egui::Ui, app: &mut App) {
                         .hint_text("Wii IP"),
                 );
 
-                ui.label("Wii IP (for Wiiload)");
+                ui.label(" 📮  Wii IP (for Wiiload)");
             });
 
             ui.add_space(10.);
