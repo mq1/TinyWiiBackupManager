@@ -66,7 +66,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
 
                             // Wiiload button
                             if ui
-                                .button("📮 Wiiload")
+                                .button("📤 Wiiload")
                                 .on_hover_text("Push to Wii via Wiiload")
                                 .clicked()
                             {
