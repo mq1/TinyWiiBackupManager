@@ -67,14 +67,14 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
             ui.horizontal(|ui| {
                 if ui.button("⏵").clicked() {
-                    if let Err(e) = dir_layout::bulk_rename(&app.config.contents.mount_point) {
+                    if let Err(e) = dir_layout::normalize_paths(&app.config.contents.mount_point) {
                         app.notifications.show_err(e);
                     } else {
-                        app.notifications.show_success("Bulk rename successful");
+                        app.notifications.show_success("Paths successfully normalized");
                     }
                 }
 
-                ui.label("Rebuild the game directories layout (bulk rename)");
+                ui.label("Normalize paths (makes sure the game directories' layouts are correct)");
             });
 
             if cfg!(target_os = "macos") {

@@ -1,7 +1,10 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, config::WiiOutputFormat};
+use crate::{
+    app::App,
+    config::{GcOutputFormat, WiiOutputFormat},
+};
 use eframe::egui;
 use egui_theme_switch::ThemeSwitch;
 
@@ -29,6 +32,34 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     &mut app.config.contents.wii_output_format,
                     WiiOutputFormat::Iso,
                     "ISO (very large)",
+                )
+                .changed()
+                && let Err(e) = app.config.write()
+            {
+                app.notifications.show_err(e);
+            }
+
+            ui.separator();
+
+            ui.heading("💿 GameCube Output Format");
+
+            if ui
+                .radio_value(
+                    &mut app.config.contents.gc_output_format,
+                    GcOutputFormat::Iso,
+                    "ISO (recommended)",
+                )
+                .changed()
+                && let Err(e) = app.config.write()
+            {
+                app.notifications.show_err(e);
+            }
+
+            if ui
+                .radio_value(
+                    &mut app.config.contents.gc_output_format,
+                    GcOutputFormat::Ciso,
+                    "CISO (smaller, but poor compatibility)",
                 )
                 .changed()
                 && let Err(e) = app.config.write()
