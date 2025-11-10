@@ -59,7 +59,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 .radio_value(
                     &mut app.config.contents.gc_output_format,
                     GcOutputFormat::Ciso,
-                    "CISO (smaller, but poor compatibility)",
+                    "CISO (small but poor compatibility)",
                 )
                 .changed()
                 && let Err(e) = app.config.write()
