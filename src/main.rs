@@ -29,6 +29,8 @@ mod util;
 mod wiiload;
 mod wiitdb;
 
+pub mod known_mount_points;
+
 use crate::app::App;
 use anyhow::{Result, anyhow};
 use eframe::{
@@ -36,10 +38,7 @@ use eframe::{
     egui::{CornerRadius, ViewportBuilder, vec2},
 };
 use egui_extras::install_image_loaders;
-use std::{
-    fs,
-    path::{Path, PathBuf},
-};
+use std::{fs, path::PathBuf};
 
 pub const APP_NAME: &str = env!("CARGO_PKG_NAME");
 
@@ -79,40 +78,8 @@ fn main() -> Result<()> {
 
     // ----------------
     // Check if the mount point is known (compatibility with < v4.3.2)
-    let known_mount_points_path = data_dir.join("known_mount_points.txt");
-    if !known_mount_points_path.exists() {
-        fs::write(&known_mount_points_path, "")?;
-    }
-
-    // The "" mount point is always known, so we don't show the popup
-    let mut is_known = true;
-
-    if !app.config.contents.mount_point.as_os_str().is_empty() {
-        is_known = false;
-
-        let mut known_mount_points = fs::read_to_string(&known_mount_points_path)?;
-        for mount_point in known_mount_points.lines() {
-            if Path::new(mount_point) == app.config.contents.mount_point {
-                is_known = true;
-                break;
-            }
-        }
-
-        // Add the mount point to the list of known mount points
-        if !is_known {
-            known_mount_points.push_str(
-                app.config
-                    .contents
-                    .mount_point
-                    .to_str()
-                    .ok_or(anyhow!("Invalid mount point"))?,
-            );
-
-            known_mount_points.push('\n');
-
-            fs::write(&known_mount_points_path, known_mount_points)?;
-        }
-    }
+    let is_known =
+        known_mount_points::check(&data_dir, &app.config.contents.mount_point).unwrap_or(true);
 
     // -------------
     // Initialize UI
