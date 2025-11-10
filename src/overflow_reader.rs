@@ -12,16 +12,19 @@ pub fn get_main_file(dir: &Path) -> Option<PathBuf> {
     fs::read_dir(dir)
         .ok()?
         .filter_map(Result::ok)
-        .find(|entry| {
-            entry
-                .file_name()
-                .to_str()
-                .map(|s| {
-                    (s.ends_with(".wbfs") || s.ends_with(".iso")) && !s.ends_with(".part1.iso")
-                })
+        .map(|entry| entry.path())
+        .filter(|path| path.is_file())
+        .filter(|path| {
+            path.to_str()
+                .map(|p| !p.ends_with(".part1.iso"))
                 .unwrap_or(false)
         })
-        .map(|entry| entry.path())
+        .find(|path| {
+            path.extension()
+                .and_then(|ext| ext.to_str())
+                .map(|ext| matches!(ext, "iso" | "wbfs" | "ciso" | "gcm"))
+                .unwrap_or(false)
+        })
 }
 
 pub fn get_overflow_file_name(main_file_name: &str) -> Option<String> {
