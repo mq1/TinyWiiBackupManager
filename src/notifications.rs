@@ -39,6 +39,11 @@ impl Notifications {
         self.0.info(i);
     }
 
+    pub fn show_info_long(&mut self, i: &str) {
+        log::info!("{}", i);
+        self.0.info(i).duration(Duration::from_secs(10));
+    }
+
     pub fn show_toasts(&mut self, ctx: &egui::Context) {
         self.0.show(ctx);
     }
