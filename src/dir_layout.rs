@@ -102,18 +102,27 @@ pub fn normalize_paths(mount_point: &Path) -> Result<()> {
             continue;
         };
 
-        let file_name1 = match (
-            disc_info.meta.format,
-            disc_info.header.is_wii(),
-            disc_info.header.disc_num,
-        ) {
-            (Format::Wbfs, _, _) => &format!("{}.wbfs", game_id),
-            (Format::Iso, true, _) => &format!("{}.iso", game_id),
-            (Format::Iso, false, 0) => "game.iso",
-            (Format::Iso, false, n) => &format!("disc{}.iso", n),
-            (Format::Ciso, _, 0) => "game.ciso",
-            (Format::Ciso, _, n) => &format!("disc{}.ciso", n),
-            _ => continue,
+        let file_name1 = if let Some(og_name) = disc_info
+            .main_disc_path
+            .file_name()
+            .and_then(|n| n.to_str())
+            && og_name.ends_with(".part0.iso")
+        {
+            &format!("{}.part0.iso", game_id)
+        } else {
+            match (
+                disc_info.meta.format,
+                disc_info.header.is_wii(),
+                disc_info.header.disc_num,
+            ) {
+                (Format::Wbfs, _, _) => &format!("{}.wbfs", game_id),
+                (Format::Iso, true, _) => &format!("{}.iso", game_id),
+                (Format::Iso, false, 0) => "game.iso",
+                (Format::Iso, false, n) => &format!("disc{}.iso", n),
+                (Format::Ciso, _, 0) => "game.ciso",
+                (Format::Ciso, _, n) => &format!("disc{}.ciso", n),
+                _ => continue,
+            }
         };
 
         let file_name2 = get_overflow_file_name(&file_name1);
