@@ -21,6 +21,7 @@ use crossbeam_channel::{Receiver, unbounded};
 use eframe::egui;
 use egui_file_dialog::FileDialog;
 use size::Size;
+use smallvec::SmallVec;
 use std::{
     path::{Path, PathBuf},
     thread,
@@ -34,10 +35,10 @@ pub struct App {
     pub config: Config,
     pub update_info: Option<UpdateInfo>,
     pub games: Box<[Game]>,
-    pub filtered_games: Box<[usize]>,
-    pub filtered_wii_games: Box<[usize]>,
+    pub filtered_games: SmallVec<[usize; 256]>,
+    pub filtered_wii_games: SmallVec<[usize; 128]>,
     pub filtered_wii_games_size: Size,
-    pub filtered_gc_games: Box<[usize]>,
+    pub filtered_gc_games: SmallVec<[usize; 128]>,
     pub filtered_gc_games_size: Size,
     pub game_search: String,
     pub show_wii: bool,
@@ -49,7 +50,7 @@ pub struct App {
     pub hbc_app_info: Option<HbcApp>,
     pub hbc_app_search: String,
     pub hbc_apps: Box<[HbcApp]>,
-    pub filtered_hbc_apps: Box<[usize]>,
+    pub filtered_hbc_apps: SmallVec<[usize; 32]>,
     pub filtered_hbc_apps_size: Size,
     pub task_processor: TaskProcessor,
     pub downloading_osc_icons: Option<Receiver<String>>,
@@ -61,7 +62,7 @@ pub struct App {
     pub choose_file_to_push: FileDialog,
     pub archiving_game: Option<PathBuf>,
     pub osc_apps: Box<[OscApp]>,
-    pub filtered_osc_apps: Box<[usize]>,
+    pub filtered_osc_apps: SmallVec<[usize; 256 + 128]>,
     pub osc_app_search: String,
     pub status: String,
     pub wiitdb: Option<wiitdb::Datafile>,
@@ -85,9 +86,9 @@ impl App {
             config,
             update_info: None,
             games: Box::new([]),
-            filtered_games: Box::new([]),
-            filtered_wii_games: Box::new([]),
-            filtered_gc_games: Box::new([]),
+            filtered_games: SmallVec::new(),
+            filtered_wii_games: SmallVec::new(),
+            filtered_gc_games: SmallVec::new(),
             filtered_wii_games_size: Size::from_bytes(0),
             filtered_gc_games_size: Size::from_bytes(0),
             game_search: String::new(),
@@ -119,12 +120,12 @@ impl App {
             archiving_game: None,
             hbc_app_search: String::new(),
             hbc_apps: Box::new([]),
-            filtered_hbc_apps: Box::new([]),
+            filtered_hbc_apps: SmallVec::new(),
             filtered_hbc_apps_size: Size::from_bytes(0),
             deleting_hbc_app: None,
             hbc_app_info: None,
             osc_apps: Box::new([]),
-            filtered_osc_apps: Box::new([]),
+            filtered_osc_apps: SmallVec::new(),
             osc_app_search: String::new(),
             status: String::new(),
             wiitdb: None,
@@ -137,54 +138,48 @@ impl App {
         self.filtered_wii_games_size = Size::from_bytes(0);
         self.filtered_gc_games_size = Size::from_bytes(0);
 
-        if self.game_search.is_empty() {
-            self.filtered_games = (0..self.games.len()).collect();
+        // Clear the existing vectors, retaining their allocated capacity
+        self.filtered_games.clear();
+        self.filtered_wii_games.clear();
+        self.filtered_gc_games.clear();
 
-            let mut filtered_wii_games = Vec::new();
-            let mut filtered_gc_games = Vec::new();
+        if self.game_search.is_empty() {
+            self.filtered_games.extend(0..self.games.len());
 
             for (i, game) in self.games.iter().enumerate() {
                 if game.is_wii {
-                    filtered_wii_games.push(i);
+                    self.filtered_wii_games.push(i);
                     self.filtered_wii_games_size += game.size;
                 } else {
-                    filtered_gc_games.push(i);
+                    self.filtered_gc_games.push(i);
                     self.filtered_gc_games_size += game.size;
                 }
             }
-
-            self.filtered_wii_games = filtered_wii_games.into_boxed_slice();
-            self.filtered_gc_games = filtered_gc_games.into_boxed_slice();
         } else {
             let game_search = self.game_search.to_lowercase();
 
-            let mut filtered_games = Vec::new();
-            let mut filtered_wii_games = Vec::new();
-            let mut filtered_gc_games = Vec::new();
-
             for (i, game) in self.games.iter().enumerate() {
                 if game.search_str.contains(&game_search) {
-                    filtered_games.push(i);
+                    self.filtered_games.push(i);
 
                     if game.is_wii {
-                        filtered_wii_games.push(i);
+                        self.filtered_wii_games.push(i);
                         self.filtered_wii_games_size += game.size;
                     } else {
-                        filtered_gc_games.push(i);
+                        self.filtered_gc_games.push(i);
                         self.filtered_gc_games_size += game.size;
                     }
                 }
             }
-
-            self.filtered_games = filtered_games.into_boxed_slice();
-            self.filtered_wii_games = filtered_wii_games.into_boxed_slice();
-            self.filtered_gc_games = filtered_gc_games.into_boxed_slice();
         };
     }
 
     pub fn update_filtered_hbc_apps(&mut self) {
+        self.filtered_hbc_apps.clear();
+        self.filtered_hbc_apps_size = Size::from_bytes(0);
+
         if self.hbc_app_search.is_empty() {
-            self.filtered_hbc_apps = (0..self.hbc_apps.len()).collect();
+            self.filtered_hbc_apps.extend(0..self.hbc_apps.len());
             self.filtered_hbc_apps_size = self
                 .hbc_apps
                 .iter()
@@ -194,33 +189,28 @@ impl App {
         }
 
         let hbc_app_search = self.hbc_app_search.to_lowercase();
-        let mut filtered_hbc_apps = Vec::new();
-        self.filtered_hbc_apps_size = Size::from_bytes(0);
-
         for (i, hbc_app) in self.hbc_apps.iter().enumerate() {
             if hbc_app.search_str.contains(&hbc_app_search) {
-                filtered_hbc_apps.push(i);
+                self.filtered_hbc_apps.push(i);
                 self.filtered_hbc_apps_size += hbc_app.size;
             }
         }
-
-        self.filtered_hbc_apps = filtered_hbc_apps.into_boxed_slice();
     }
 
     pub fn update_filtered_osc_apps(&mut self) {
+        self.filtered_osc_apps.clear();
+
         if self.osc_app_search.is_empty() {
-            self.filtered_osc_apps = (0..self.osc_apps.len()).collect();
+            self.filtered_osc_apps.extend(0..self.osc_apps.len());
             return;
         }
 
         let osc_app_search = self.osc_app_search.to_lowercase();
-        self.filtered_osc_apps = self
-            .osc_apps
-            .iter()
-            .enumerate()
-            .filter(|(_, osc_app)| osc_app.search_str.contains(&osc_app_search))
-            .map(|(i, _)| i)
-            .collect();
+        for (i, osc_app) in self.osc_apps.iter().enumerate() {
+            if osc_app.search_str.contains(&osc_app_search) {
+                self.filtered_osc_apps.push(i);
+            }
+        }
     }
 
     pub fn update_title(&self, ctx: &egui::Context) {
