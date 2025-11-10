@@ -57,6 +57,7 @@ env_logger = { version = "0.11", default-features = false, features = [
 ] }
 walkdir = "2.5"
 itertools = "0.14"
+smallvec = "1.15"
 
 [target.'cfg(any(target_os = "linux", target_vendor = "win7"))'.dependencies]
 eframe = "0.33"
