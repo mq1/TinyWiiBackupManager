@@ -35,10 +35,10 @@ pub struct App {
     pub config: Config,
     pub update_info: Option<UpdateInfo>,
     pub games: Box<[Game]>,
-    pub filtered_games: SmallVec<[usize; 256]>,
-    pub filtered_wii_games: SmallVec<[usize; 128]>,
+    pub filtered_games: SmallVec<[u16; 512]>,
+    pub filtered_wii_games: SmallVec<[u16; 256]>,
     pub filtered_wii_games_size: Size,
-    pub filtered_gc_games: SmallVec<[usize; 128]>,
+    pub filtered_gc_games: SmallVec<[u16; 256]>,
     pub filtered_gc_games_size: Size,
     pub game_search: String,
     pub show_wii: bool,
@@ -50,7 +50,7 @@ pub struct App {
     pub hbc_app_info: Option<HbcApp>,
     pub hbc_app_search: String,
     pub hbc_apps: Box<[HbcApp]>,
-    pub filtered_hbc_apps: SmallVec<[usize; 32]>,
+    pub filtered_hbc_apps: SmallVec<[u16; 64]>,
     pub filtered_hbc_apps_size: Size,
     pub task_processor: TaskProcessor,
     pub downloading_osc_icons: Option<Receiver<String>>,
@@ -62,7 +62,7 @@ pub struct App {
     pub choose_file_to_push: FileDialog,
     pub archiving_game: Option<PathBuf>,
     pub osc_apps: Box<[OscApp]>,
-    pub filtered_osc_apps: SmallVec<[usize; 256 + 128]>,
+    pub filtered_osc_apps: SmallVec<[u16; 512]>,
     pub osc_app_search: String,
     pub status: String,
     pub wiitdb: Option<wiitdb::Datafile>,
@@ -144,9 +144,11 @@ impl App {
         self.filtered_gc_games.clear();
 
         if self.game_search.is_empty() {
-            self.filtered_games.extend(0..self.games.len());
+            self.filtered_games.extend(0..self.games.len() as u16);
 
             for (i, game) in self.games.iter().enumerate() {
+                let i = i as u16;
+
                 if game.is_wii {
                     self.filtered_wii_games.push(i);
                     self.filtered_wii_games_size += game.size;
@@ -159,6 +161,8 @@ impl App {
             let game_search = self.game_search.to_lowercase();
 
             for (i, game) in self.games.iter().enumerate() {
+                let i = i as u16;
+
                 if game.search_str.contains(&game_search) {
                     self.filtered_games.push(i);
 
@@ -179,7 +183,7 @@ impl App {
         self.filtered_hbc_apps_size = Size::from_bytes(0);
 
         if self.hbc_app_search.is_empty() {
-            self.filtered_hbc_apps.extend(0..self.hbc_apps.len());
+            self.filtered_hbc_apps.extend(0..self.hbc_apps.len() as u16);
             self.filtered_hbc_apps_size = self
                 .hbc_apps
                 .iter()
@@ -191,7 +195,7 @@ impl App {
         let hbc_app_search = self.hbc_app_search.to_lowercase();
         for (i, hbc_app) in self.hbc_apps.iter().enumerate() {
             if hbc_app.search_str.contains(&hbc_app_search) {
-                self.filtered_hbc_apps.push(i);
+                self.filtered_hbc_apps.push(i as u16);
                 self.filtered_hbc_apps_size += hbc_app.size;
             }
         }
@@ -201,14 +205,14 @@ impl App {
         self.filtered_osc_apps.clear();
 
         if self.osc_app_search.is_empty() {
-            self.filtered_osc_apps.extend(0..self.osc_apps.len());
+            self.filtered_osc_apps.extend(0..self.osc_apps.len() as u16);
             return;
         }
 
         let osc_app_search = self.osc_app_search.to_lowercase();
         for (i, osc_app) in self.osc_apps.iter().enumerate() {
             if osc_app.search_str.contains(&osc_app_search) {
-                self.filtered_osc_apps.push(i);
+                self.filtered_osc_apps.push(i as u16);
             }
         }
     }
