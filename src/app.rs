@@ -296,6 +296,7 @@ impl eframe::App for App {
         ui::root::update(ctx, self);
 
         // Process background messages (from task_processor)
+        let mut should_repaint = false;
         while let Ok(msg) = self.task_processor.msg_receiver.try_recv() {
             match msg {
                 BackgroundMessage::NotifyInfo(i) => {
@@ -342,6 +343,10 @@ impl eframe::App for App {
                 }
             }
 
+            should_repaint = true;
+        }
+
+        if should_repaint {
             ctx.request_repaint();
         }
 
