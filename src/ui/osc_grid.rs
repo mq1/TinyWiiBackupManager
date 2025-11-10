@@ -92,7 +92,7 @@ fn view_osc_app_card(
 
                 // Wiiload button
                 if ui
-                    .button("📮")
+                    .button("📤")
                     .on_hover_text("Push to Wii via Wiiload")
                     .clicked()
                 {

@@ -1,6 +1,6 @@
 [package]
 name = "TinyWiiBackupManager"
-version = "4.3.0"
+version = "4.3.1"
 rust-version = "1.90"
 edition = "2024"
 authors = ["Manuel Quarneti <mq1@ik.me>"]
@@ -103,6 +103,9 @@ opt-level = 3
 
 [profile.release.package."*"]
 opt-level = "z"
+
+[profile.dev.package."*"]
+opt-level = 2
 
 [profile.dev.package.quick-xml]
 overflow-checks = false
