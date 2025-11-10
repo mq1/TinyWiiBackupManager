@@ -31,7 +31,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
             body.ui_mut().style_mut().spacing.item_spacing.y = 0.0;
 
             for hbc_app_i in &app.filtered_hbc_apps {
-                let hbc_app = &app.hbc_apps[*hbc_app_i];
+                let hbc_app = &app.hbc_apps[*hbc_app_i as usize];
 
                 body.row(26., |mut row| {
                     row.col(|ui| {

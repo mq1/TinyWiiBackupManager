@@ -31,7 +31,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
             body.ui_mut().style_mut().spacing.item_spacing.y = 0.0;
 
             for osc_app_i in &app.filtered_osc_apps {
-                let osc_app = &app.osc_apps[*osc_app_i];
+                let osc_app = &app.osc_apps[*osc_app_i as usize];
 
                 body.row(26., |mut row| {
                     row.col(|ui| {
