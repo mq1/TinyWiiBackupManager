@@ -57,12 +57,10 @@ fn get_output_format_opts(config: &Config, is_wii: bool) -> FormatOptions {
         } else {
             FormatOptions::new(Format::Iso)
         }
+    } else if config.contents.gc_output_format == GcOutputFormat::Iso {
+        FormatOptions::new(Format::Iso)
     } else {
-        if config.contents.gc_output_format == GcOutputFormat::Iso {
-            FormatOptions::new(Format::Iso)
-        } else {
-            FormatOptions::new(Format::Ciso)
-        }
+        FormatOptions::new(Format::Ciso)
     }
 }
 

@@ -29,6 +29,8 @@ mod util;
 mod wiiload;
 mod wiitdb;
 
+pub mod known_mount_points;
+
 use crate::app::App;
 use anyhow::{Result, anyhow};
 use eframe::{
@@ -74,6 +76,11 @@ fn main() -> Result<()> {
     updater::spawn_check_update_task(&app);
     osc::spawn_load_osc_apps_task(&app);
 
+    // ----------------
+    // Check if the mount point is known (compatibility with < v4.3.2)
+    let is_known =
+        known_mount_points::check(&data_dir, &app.config.contents.mount_point).unwrap_or(true);
+
     // -------------
     // Initialize UI
 
@@ -112,6 +119,10 @@ fn main() -> Result<()> {
             });
 
             app.refresh_hbc_apps(&cc.egui_ctx);
+
+            if !is_known {
+                app.notifications.show_info_long("New Drive detected, a path normalization run is recommended\nYou can find it in the 🔧 Tools page");
+            }
 
             Ok(Box::new(app))
         }),
