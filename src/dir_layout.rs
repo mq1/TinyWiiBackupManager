@@ -125,7 +125,7 @@ pub fn normalize_paths(mount_point: &Path) -> Result<()> {
             }
         };
 
-        let file_name2 = get_overflow_file_name(&file_name1);
+        let file_name2 = get_overflow_file_name(file_name1);
 
         let file1 = dir.join(file_name1);
 
