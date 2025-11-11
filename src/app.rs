@@ -138,7 +138,6 @@ impl App {
         self.filtered_wii_games_size = Size::from_bytes(0);
         self.filtered_gc_games_size = Size::from_bytes(0);
 
-        // Clear the existing vectors, retaining their allocated capacity
         self.filtered_games.clear();
         self.filtered_wii_games.clear();
         self.filtered_gc_games.clear();
@@ -147,13 +146,11 @@ impl App {
             self.filtered_games.extend(0..self.games.len() as u16);
 
             for (i, game) in self.games.iter().enumerate() {
-                let i = i as u16;
-
                 if game.is_wii {
-                    self.filtered_wii_games.push(i);
+                    self.filtered_wii_games.push(i as u16);
                     self.filtered_wii_games_size += game.size;
                 } else {
-                    self.filtered_gc_games.push(i);
+                    self.filtered_gc_games.push(i as u16);
                     self.filtered_gc_games_size += game.size;
                 }
             }
@@ -161,9 +158,9 @@ impl App {
             let game_search = self.game_search.to_lowercase();
 
             for (i, game) in self.games.iter().enumerate() {
-                let i = i as u16;
-
                 if game.search_str.contains(&game_search) {
+                    let i = i as u16;
+
                     self.filtered_games.push(i);
 
                     if game.is_wii {
