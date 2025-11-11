@@ -134,6 +134,12 @@ impl App {
         }
     }
 
+    pub fn change_view(&mut self, ctx: &egui::Context, view: ui::View) {
+        self.current_view = view;
+        self.update_title(ctx);
+        ctx.forget_all_images();
+    }
+
     pub fn update_filtered_games(&mut self) {
         self.filtered_wii_games_size = Size::from_bytes(0);
         self.filtered_gc_games_size = Size::from_bytes(0);
