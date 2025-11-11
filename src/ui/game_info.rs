@@ -119,28 +119,32 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                             ui.separator();
 
                             // CRC32
-                            ui.label(format!(
-                                "☑ CRC32: {:02x}",
-                                &disc_info.meta.crc32.unwrap_or(0)
-                            ));
+                            if let Some(crc32) = disc_info.meta.crc32 {
+                                ui.label(format!("☑ CRC32: {:02x}", &crc32));
+                            } else {
+                                ui.label("☑ CRC32: N/A");
+                            }
 
                             // MD5
-                            ui.label(format!(
-                                "☑ MD5: {}",
-                                hex::encode(disc_info.meta.md5.unwrap_or([0; 16]))
-                            ));
+                            if let Some(md5) = disc_info.meta.md5 {
+                                ui.label(format!("☑ MD5: {}", hex::encode(md5)));
+                            } else {
+                                ui.label("☑ MD5: N/A");
+                            }
 
                             // SHA1
-                            ui.label(format!(
-                                "☑ SHA1: {}",
-                                hex::encode(disc_info.meta.sha1.unwrap_or([0; 20]))
-                            ));
+                            if let Some(sha1) = disc_info.meta.sha1 {
+                                ui.label(format!("☑ SHA1: {}", hex::encode(sha1)));
+                            } else {
+                                ui.label("☑ SHA1: N/A");
+                            }
 
                             // XXH64
-                            ui.label(format!(
-                                "☑ XXH64: {:02x}",
-                                &disc_info.meta.xxh64.unwrap_or(0)
-                            ));
+                            if let Some(xxh64) = disc_info.meta.xxh64 {
+                                ui.label(format!("☑ XXH64: {:02x}", &xxh64));
+                            } else {
+                                ui.label("☑ XXH64: N/A");
+                            }
                         }
                         Err(e) => {
                             ui.label(format!("⚠ Error: {}", e));
