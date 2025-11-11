@@ -37,27 +37,32 @@
         </ul>
     </description>
     <launchable type="desktop-id">it.mq1.TinyWiiBackupManager.desktop</launchable>
-    <categories>
-        <category>Utility</category>
-        <category>GameTool</category>
-    </categories>
     <keywords>
         <keyword>Game Manager</keyword>
         <keyword>Game Backup Manager</keyword>
+        <keyword>Homebrew app Manager</keyword>
+        <keyword>Homebrew</keyword>
         <keyword>Wii</keyword>
         <keyword>GameCube</keyword>
     </keywords>
+    <branding>
+        <color type="primary" scheme_preference="light">#d3d3d3</color>
+        <color type="primary" scheme_preference="dark">#a9a9a9</color>
+    </branding>
     <content_rating type="oars-1.1"/>
     <url type="bugtracker">https://github.com/mq1/TinyWiiBackupManager/issues</url>
     <url type="homepage">https://github.com/mq1/TinyWiiBackupManager</url>
     <url type="vcs-browser">https://github.com/mq1/TinyWiiBackupManager</url>
     <screenshots>
         <screenshot type="default">
-            <image>https://github.com/mq1/TinyWiiBackupManager/blob/4.3.3/assets/screenshot.png?raw=true</image>
+            <image>https://github.com/mq1/TinyWiiBackupManager/blob/4.3.4/assets/screenshot.png?raw=true</image>
             <caption>TinyWiiBackupManager screenshot</caption>
         </screenshot>
     </screenshots>
     <releases>
+        <release version="4.3.4" date="2025-11-11">
+            <url type="details">https://github.com/mq1/TinyWiiBackupManager/releases/tag/4.3.4</url>
+        </release>
         <release version="4.3.3" date="2025-11-10">
             <url type="details">https://github.com/mq1/TinyWiiBackupManager/releases/tag/4.3.3</url>
         </release>

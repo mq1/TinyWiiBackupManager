@@ -4,7 +4,7 @@ version = 4
 
 [[package]]
 name = "TinyWiiBackupManager"
-version = "4.3.3"
+version = "4.3.4"
 dependencies = [
  "anyhow",
  "capitalize",
@@ -25,7 +25,7 @@ dependencies = [
  "num_cpus",
  "open",
  "path-slash",
- "quick-xml 0.38.3",
+ "quick-xml 0.38.4",
  "sanitize-filename",
  "semver",
  "serde",
@@ -3183,9 +3183,9 @@ dependencies = [
 
 [[package]]
 name = "quick-xml"
-version = "0.38.3"
+version = "0.38.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "42a232e7487fc2ef313d96dde7948e7a3c05101870d8985e4fd8d26aedd27b89"
+checksum = "b66c2058c55a409d601666cffe35f04333cf1013010882cec174a7467cd4e21c"
 dependencies = [
  "memchr",
  "serde",
@@ -4369,9 +4369,9 @@ dependencies = [
 
 [[package]]
 name = "weezl"
-version = "0.1.11"
+version = "0.1.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "009936b22a61d342859b5f0ea64681cbb35a358ab548e2a44a8cf0dac2d980b8"
+checksum = "a28ac98ddc8b9274cb41bb4d9d4d5c425b6020c50c46f25559911905610b4a88"
 
 [[package]]
 name = "wgpu"
