@@ -15,8 +15,8 @@
 🐧 Linux (aarch64) | [.AppImage](https://github.com/mq1/TinyWiiBackupManager/releases/download/VERSION/TinyWiiBackupManager-VERSION-linux-aarch64.AppImage) |
 🐧 Linux (aarch64) | [.tar.gz](https://github.com/mq1/TinyWiiBackupManager/releases/download/VERSION/TinyWiiBackupManager-VERSION-linux-aarch64.tar.gz) |
 🐧 Linux (i686) | [.tar.gz](https://github.com/mq1/TinyWiiBackupManager/releases/download/VERSION/TinyWiiBackupManager-VERSION-linux-i686.tar.gz) |
-🍎 macOS (Apple Silicon) | [.dmg](https://github.com/mq1/TinyWiiBackupManager/releases/download/VERSION/TinyWiiBackupManager-VERSION-macos-arm64.dmg)
-🍎 macOS (Intel) | [.dmg](https://github.com/mq1/TinyWiiBackupManager/releases/download/VERSION/TinyWiiBackupManager-VERSION-macos-x86_64.dmg) |
+🍎 macOS (Apple Silicon) | [.dmg](https://github.com/mq1/TinyWiiBackupManager/releases/download/VERSION/TinyWiiBackupManager-VERSION-macos-arm64.dmg) | Read the instructions below
+🍎 macOS (Intel) | [.dmg](https://github.com/mq1/TinyWiiBackupManager/releases/download/VERSION/TinyWiiBackupManager-VERSION-macos-x86_64.dmg) | Read the instructions below
 🐠 Windows 7 (x64) | [.zip (Standalone)](https://github.com/mq1/TinyWiiBackupManager/releases/download/VERSION/TinyWiiBackupManager-VERSION-win7-x64.zip) | Unsupported
 🐠 Windows 7 (x64) | [.zip (Portable)](https://github.com/mq1/TinyWiiBackupManager/releases/download/VERSION/TinyWiiBackupManager-VERSION-win7-x64-portable.zip) | Unsupported
 🐠 Windows 7 (x86) | [.zip (Standalone)](https://github.com/mq1/TinyWiiBackupManager/releases/download/VERSION/TinyWiiBackupManager-VERSION-win7-x86.zip) | Unsupported
