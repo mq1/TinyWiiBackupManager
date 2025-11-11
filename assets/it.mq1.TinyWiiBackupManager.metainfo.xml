@@ -5,14 +5,13 @@
     <metadata_license>CC0-1.0</metadata_license>
     <project_license>GPL-3.0-only</project_license>
     <name>TinyWiiBackupManager</name>
-    <summary>A dead simple Wii backup manager</summary>
+    <summary>A tiny game backup and homebrew app manager for the Wii</summary>
     <developer id="it.mq1">
         <name>Manuel Quarneti</name>
     </developer>
     <description>
         <ul>
-            <li>‼️ TinyWiiBackupManager is intended strictly for legal homebrew use and is not affiliated with or endorsed by Nintendo.</li>
-            <li>‼️ Use of TinyWiiBackupManager for pirated or unauthorized copies of games is strictly prohibited.</li>
+            <li>‼️ TinyWiiBackupManager is intended strictly for legal homebrew use and is not affiliated with or endorsed by Nintendo. Use of TinyWiiBackupManager for pirated or unauthorized copies of games is strictly prohibited.</li>
         </ul>
         <p>✨ Features</p>
         <ul>
@@ -22,12 +21,12 @@
         <p>🎮 Game Management</p>
         <ul>
             <li>Games view: Manage your Wii and GameCube games</li>
-            <li>Format Support: .iso, .rvz and major formats thanks to <code>NOD</code></li>
+            <li>Format Support: .iso, .rvz and major formats thanks to NOD</li>
             <li>Automatic Splitting: .wbfs file splitting when needed</li>
             <li>Partition Stripping: Remove the update partition to save space</li>
             <li>Game Archiving: Archive games using RVZ+zstd-19</li>
             <li>Integrity Checks: Verify game data for corruption</li>
-            <li>GameTDB: Fetch covers and <code>wiitdb.xml</code> from GameTDB
+            <li>GameTDB: Fetch covers and wiitdb.xml from GameTDB
             </li>
         </ul>
         <p>🛠️ Wii Homebrew Management</p>
