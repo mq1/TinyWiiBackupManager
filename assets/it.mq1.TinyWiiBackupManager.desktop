@@ -1,6 +1,6 @@
 [Desktop Entry]
-Categories=Utility;
-Comment=A dead simple Wii Backup Manager
+Categories=Game;Utility;
+Comment=A tiny game backup and homebrew app manager for the Wii
 Exec=TinyWiiBackupManager
 Icon=it.mq1.TinyWiiBackupManager
 Name=TinyWiiBackupManager
