@@ -135,9 +135,19 @@ impl App {
     }
 
     pub fn change_view(&mut self, ctx: &egui::Context, view: ui::View) {
+        if self.current_view == view {
+            return;
+        }
+
+        // drop the osc icons from memory
+        if self.current_view == ui::View::Osc {
+            for osc_app in &self.osc_apps {
+                ctx.forget_image(&osc_app.icon_uri)
+            }
+        }
+
         self.current_view = view;
         self.update_title(ctx);
-        ctx.forget_all_images();
     }
 
     pub fn update_filtered_games(&mut self) {
