@@ -184,10 +184,10 @@ impl App {
 
         if self.hbc_app_search.is_empty() {
             self.filtered_hbc_apps.extend(0..self.hbc_apps.len() as u16);
-            self.filtered_hbc_apps_size = self
-                .hbc_apps
-                .iter()
-                .fold(Size::from_bytes(0), |acc, hbc_app| acc + hbc_app.size);
+
+            for hbc_app in &self.hbc_apps {
+                self.filtered_hbc_apps_size += hbc_app.size;
+            }
 
             return;
         }
