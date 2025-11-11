@@ -1,5 +1,5 @@
 
-🖥️ Platform | 🔗 Download	| 📝 Notes
+🖥️ Platform | 🔗 Download | 📝 Notes
 --- | --- | ---
 🪟 Windows (x64) | [<kbd>.zip</kbd> (Standalone)](https://github.com/mq1/TinyWiiBackupManager/releases/download/VERSION/TinyWiiBackupManager-VERSION-windows-x64.zip) | Pick this if unsure
 🪟 Windows (x64) | [<kbd>.zip</kbd> (Portable)](https://github.com/mq1/TinyWiiBackupManager/releases/download/VERSION/TinyWiiBackupManager-VERSION-windows-x64-portable.zip) |
