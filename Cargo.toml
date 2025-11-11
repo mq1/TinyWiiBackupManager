@@ -7,7 +7,7 @@ authors = ["Manuel Quarneti <mq1@ik.me>"]
 license = "GPL-3.0-only"
 repository = "https://github.com/mq1/TinyWiiBackupManager"
 homepage = "https://github.com/mq1/TinyWiiBackupManager/wiki"
-description = "A dead simple Wii Backup Manager"
+description = "A tiny game backup and homebrew app manager for the Wii"
 
 [package.metadata.packager]
 product-name = "TinyWiiBackupManager"
@@ -17,7 +17,7 @@ copyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-3.0-only."
 category = "Utility"
 
 [package.metadata.winres]
-FileDescription = "A dead simple Wii Backup Manager"
+FileDescription = "A tiny game backup and homebrew app manager for the Wii"
 ProductName = "TinyWiiBackupManager"
 OriginalFilename = "TinyWiiBackupManager.exe"
 LegalCopyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-3.0-only."
