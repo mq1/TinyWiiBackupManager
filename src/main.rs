@@ -131,7 +131,8 @@ fn main() -> Result<()> {
 
             Ok(Box::new(app))
         }),
-    )?;
+    )
+    .expect("Failed to run app");
 
     Ok(())
 }
