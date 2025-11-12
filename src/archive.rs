@@ -62,7 +62,7 @@ pub fn spawn_archive_game_task(app: &App, game_dir: PathBuf, out_path: PathBuf) 
 
         let disc = if let Some(overflow) = overflow {
             let reader = OverflowReader::new(&path, &overflow)?;
-            DiscReader::new_stream(Box::new(reader), &get_disc_opts())?
+            DiscReader::new_from_cloneable_read(reader, &get_disc_opts())?
         } else {
             DiscReader::new(&path, &get_disc_opts())?
         };

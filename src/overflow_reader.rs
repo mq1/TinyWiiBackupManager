@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nod::read::DiscStream;
 use std::{
+    cmp,
     fs::{self, File},
-    io::{Read, Seek, SeekFrom},
+    io::{self, Read, Seek, SeekFrom},
     path::{Path, PathBuf},
 };
 
@@ -48,42 +48,82 @@ pub fn get_overflow_file(main: &Path) -> Option<PathBuf> {
 
 #[derive(Debug)]
 pub struct OverflowReader {
+    position: u64,
     main: File,
+    main_len: u64,
     overflow: File,
+    overflow_len: u64,
+    total_len: u64,
 }
 
 impl Clone for OverflowReader {
     fn clone(&self) -> Self {
-        OverflowReader {
+        Self {
+            position: self.position,
             main: self.main.try_clone().unwrap(),
+            main_len: self.main_len,
             overflow: self.overflow.try_clone().unwrap(),
+            overflow_len: self.overflow_len,
+            total_len: self.total_len,
         }
     }
 }
 
 impl OverflowReader {
-    pub fn new(main_path: &Path, overflow_path: &Path) -> std::io::Result<Self> {
+    pub fn new(main_path: &Path, overflow_path: &Path) -> io::Result<Self> {
+        let main = File::open(main_path)?;
+        let main_len = main.metadata()?.len();
+        let overflow = File::open(overflow_path)?;
+        let overflow_len = overflow.metadata()?.len();
+
         Ok(OverflowReader {
-            main: File::open(main_path)?,
-            overflow: File::open(overflow_path)?,
+            position: 0,
+            main,
+            main_len,
+            overflow,
+            overflow_len,
+            total_len: main_len + overflow_len,
         })
     }
 }
 
-impl DiscStream for OverflowReader {
-    fn read_exact_at(&mut self, buf: &mut [u8], offset: u64) -> std::io::Result<()> {
-        let main_len = self.main.metadata()?.len();
-
-        if offset < main_len {
-            self.main.seek(SeekFrom::Start(offset))?;
-            self.main.read_exact(buf)
-        } else {
-            self.overflow.seek(SeekFrom::Start(offset - main_len))?;
-            self.overflow.read_exact(buf)
+impl Read for OverflowReader {
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        if self.position >= self.total_len {
+            return Ok(0);
         }
-    }
 
-    fn stream_len(&mut self) -> std::io::Result<u64> {
-        Ok(self.main.metadata()?.len() + self.overflow.metadata()?.len())
+        let bytes_read = if self.position < self.main_len {
+            self.main.seek(SeekFrom::Start(self.position))?;
+            let read_size = cmp::min(buf.len() as u64, self.main_len - self.position) as usize;
+            self.main.read(&mut buf[..read_size])?
+        } else {
+            let overflow_pos = self.position - self.main_len;
+            self.overflow.seek(SeekFrom::Start(overflow_pos))?;
+            self.overflow.read(buf)?
+        };
+
+        self.position += bytes_read as u64;
+        Ok(bytes_read)
+    }
+}
+
+impl Seek for OverflowReader {
+    fn seek(&mut self, pos: SeekFrom) -> io::Result<u64> {
+        let new_pos = match pos {
+            SeekFrom::Start(start) => start as i64,
+            SeekFrom::End(end) => (self.main_len + self.overflow_len) as i64 + end,
+            SeekFrom::Current(current) => self.position as i64 + current,
+        };
+
+        if new_pos < 0 {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "invalid seek to a negative position",
+            ));
+        }
+
+        self.position = new_pos as u64;
+        Ok(self.position)
     }
 }
