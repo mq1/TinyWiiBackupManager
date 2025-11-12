@@ -26,10 +26,10 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
 
         for row in app.filtered_osc_apps.chunks(cols) {
             ui.horizontal_top(|ui| {
-                for osc_app_i in row {
+                for osc_app_i in row.iter().copied() {
                     view_osc_app_card(
                         ui,
-                        &app.osc_apps[*osc_app_i as usize],
+                        &app.osc_apps[osc_app_i as usize],
                         &mut app.notifications,
                         &mut app.task_processor,
                         &app.config,

@@ -34,11 +34,11 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
 
             for row in app.filtered_wii_games.chunks(cols) {
                 ui.horizontal_top(|ui| {
-                    for game_i in row {
+                    for game_i in row.iter().copied() {
                         view_game_card(
                             ui,
                             game_i,
-                            &app.games[*game_i as usize],
+                            &app.games[game_i as usize],
                             &mut app.current_modal,
                             &mut app.current_game_info,
                             &mut app.archiving_game,
@@ -69,11 +69,11 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
 
             for row in app.filtered_gc_games.chunks(cols) {
                 ui.horizontal_top(|ui| {
-                    for game_i in row {
+                    for game_i in row.iter().copied() {
                         view_game_card(
                             ui,
                             game_i,
-                            &app.games[*game_i as usize],
+                            &app.games[game_i as usize],
                             &mut app.current_modal,
                             &mut app.current_game_info,
                             &mut app.archiving_game,
@@ -94,7 +94,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
 #[allow(clippy::too_many_arguments)]
 fn view_game_card(
     ui: &mut egui::Ui,
-    game_i: &u16,
+    game_i: u16,
     game: &Game,
     current_modal: &mut Modal,
     current_game_info: &mut Option<GameInfoData>,
@@ -137,7 +137,7 @@ fn view_game_card(
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 // Delete button
                 if ui.button("🗑").on_hover_text("Delete Game").clicked() {
-                    *current_modal = Modal::DeleteGame(*game_i);
+                    *current_modal = Modal::DeleteGame(game_i);
                 }
 
                 // Archive button
