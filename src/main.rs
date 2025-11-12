@@ -42,23 +42,28 @@ use std::{fs, path::PathBuf};
 
 pub const APP_NAME: &str = env!("CARGO_PKG_NAME");
 
-#[cfg(not(feature = "app-dir"))]
 fn get_data_dir() -> Result<PathBuf> {
-    // For portable builds, use a directory next to the executable
-    let exe_path = std::env::current_exe()?;
-    let exe_dir = exe_path
-        .parent()
-        .ok_or(anyhow!("Could not get executable directory"))?;
-    let data_dir = exe_dir.join("TinyWiiBackupManager-data");
-    Ok(data_dir)
-}
+    if let Ok(exe_path) = std::env::current_exe()
+        && let Some(exe_name) = exe_path.file_name()
+        && let Some(exe_name) = exe_name.to_str()
+        && exe_name.contains("portable")
+    {
+        let exe_dir = exe_path
+            .parent()
+            .ok_or(anyhow!("Could not get executable directory"))?
+            .to_path_buf();
 
-#[cfg(feature = "app-dir")]
-fn get_data_dir() -> Result<PathBuf> {
-    // For standard builds, use the system's app data directory
-    let proj = directories::ProjectDirs::from("it", "mq1", APP_NAME)
-        .ok_or(anyhow!("Failed to get project dirs"))?;
-    Ok(proj.data_dir().to_path_buf())
+        let data_dir = exe_dir.join("TinyWiiBackupManager-data");
+
+        Ok(data_dir)
+    } else {
+        let proj = directories::ProjectDirs::from("it", "mq1", APP_NAME)
+            .ok_or(anyhow!("Failed to get project dirs"))?;
+
+        let data_dir = proj.data_dir().to_path_buf();
+
+        Ok(data_dir)
+    }
 }
 
 fn main() -> Result<()> {
