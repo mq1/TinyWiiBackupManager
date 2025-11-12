@@ -31,11 +31,11 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
 
         for row in app.filtered_hbc_apps.chunks(cols) {
             ui.horizontal_top(|ui| {
-                for hbc_app_i in row {
+                for hbc_app_i in row.iter().copied() {
                     view_hbc_app_card(
                         ui,
                         hbc_app_i,
-                        &app.hbc_apps[*hbc_app_i as usize],
+                        &app.hbc_apps[hbc_app_i as usize],
                         &mut app.current_modal,
                         &app.osc_apps,
                         &app.task_processor,
@@ -51,7 +51,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
 
 fn view_hbc_app_card(
     ui: &mut egui::Ui,
-    hbc_app_i: &u16,
+    hbc_app_i: u16,
     hbc_app: &HbcApp,
     current_modal: &mut ui::Modal,
     osc_apps: &[OscApp],
@@ -88,7 +88,7 @@ fn view_hbc_app_card(
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 // Delete button
                 if ui.button("🗑").on_hover_text("Delete HBC App").clicked() {
-                    *current_modal = ui::Modal::DeleteHbcApp(*hbc_app_i);
+                    *current_modal = ui::Modal::DeleteHbcApp(hbc_app_i);
                 }
 
                 // Update button
@@ -119,7 +119,7 @@ fn view_hbc_app_card(
                     .on_hover_text("Show App Information")
                     .clicked()
                 {
-                    *current_modal = ui::Modal::HbcAppInfo(*hbc_app_i);
+                    *current_modal = ui::Modal::HbcAppInfo(hbc_app_i);
                 }
             });
         });

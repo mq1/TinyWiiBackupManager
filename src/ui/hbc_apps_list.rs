@@ -30,8 +30,8 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
         .body(|mut body| {
             body.ui_mut().style_mut().spacing.item_spacing.y = 0.0;
 
-            for hbc_app_i in &app.filtered_hbc_apps {
-                let hbc_app = &app.hbc_apps[*hbc_app_i as usize];
+            for hbc_app_i in app.filtered_hbc_apps.iter().copied() {
+                let hbc_app = &app.hbc_apps[hbc_app_i as usize];
 
                 body.row(26., |mut row| {
                     row.col(|ui| {
@@ -58,7 +58,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                         ui.horizontal(|ui| {
                             // Info button
                             if ui.button("ℹ Info").on_hover_text("Show App Info").clicked() {
-                                app.current_modal = ui::Modal::HbcAppInfo(*hbc_app_i);
+                                app.current_modal = ui::Modal::HbcAppInfo(hbc_app_i);
                             }
 
                             // Update button
@@ -88,7 +88,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                                 .on_hover_text("Delete HBC App")
                                 .clicked()
                             {
-                                app.current_modal = ui::Modal::DeleteHbcApp(*hbc_app_i);
+                                app.current_modal = ui::Modal::DeleteHbcApp(hbc_app_i);
                             }
                         });
                         ui.separator();
