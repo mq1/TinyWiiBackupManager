@@ -12,7 +12,7 @@ use crate::{
     osc::{self, OscApp},
     tasks::{BackgroundMessage, TaskProcessor},
     titles::Titles,
-    ui,
+    ui::{self, Modal},
     updater::UpdateInfo,
     util,
     wiitdb::{self, GameInfo},
@@ -44,10 +44,6 @@ pub struct App {
     pub show_wii: bool,
     pub show_gc: bool,
     pub titles: Option<Titles>,
-    pub game_info: Option<GameInfoData>,
-    pub deleting_game: Option<Game>,
-    pub deleting_hbc_app: Option<HbcApp>,
-    pub hbc_app_info: Option<HbcApp>,
     pub hbc_app_search: String,
     pub hbc_apps: Box<[HbcApp]>,
     pub filtered_hbc_apps: SmallVec<[u16; 64]>,
@@ -56,7 +52,6 @@ pub struct App {
     pub downloading_osc_icons: Option<Receiver<String>>,
     pub choose_mount_point: FileDialog,
     pub choose_games: FileDialog,
-    pub choosing_games: Vec<DiscInfo>,
     pub choose_hbc_apps: FileDialog,
     pub choose_archive_path: FileDialog,
     pub choose_file_to_push: FileDialog,
@@ -66,8 +61,10 @@ pub struct App {
     pub osc_app_search: String,
     pub status: String,
     pub wiitdb: Option<wiitdb::Datafile>,
-    pub is_info_open: bool,
     pub notifications: Notifications,
+    pub current_modal: Modal,
+    pub discs_to_convert: Box<[DiscInfo]>,
+    pub current_game_info: Option<GameInfoData>,
 }
 
 impl App {
@@ -95,8 +92,6 @@ impl App {
             show_wii: true,
             show_gc: true,
             titles: None,
-            game_info: None,
-            deleting_game: None,
             task_processor: TaskProcessor::init(),
             downloading_osc_icons: None,
             choose_mount_point: FileDialog::new().as_modal(true),
@@ -107,7 +102,6 @@ impl App {
                     extensions::SUPPORTED_INPUT_EXTENSIONS.to_vec(),
                 )
                 .default_file_filter("Nintendo Optical Disc"),
-            choosing_games: Vec::new(),
             choose_hbc_apps: FileDialog::new()
                 .as_modal(true)
                 .add_file_filter_extensions("HBC App (zip)", vec!["zip", "ZIP"])
@@ -122,15 +116,15 @@ impl App {
             hbc_apps: Box::new([]),
             filtered_hbc_apps: SmallVec::new(),
             filtered_hbc_apps_size: Size::from_bytes(0),
-            deleting_hbc_app: None,
-            hbc_app_info: None,
             osc_apps: Box::new([]),
             filtered_osc_apps: SmallVec::new(),
             osc_app_search: String::new(),
             status: String::new(),
             wiitdb: None,
-            is_info_open: false,
             notifications: Notifications::new(),
+            current_modal: Modal::None,
+            discs_to_convert: Box::new([]),
+            current_game_info: None,
         }
     }
 
