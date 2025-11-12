@@ -31,14 +31,14 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
             body.ui_mut().style_mut().spacing.item_spacing.y = 0.0;
 
             let iterator = match (app.show_wii, app.show_gc) {
-                (true, true) => app.filtered_games.iter(),
-                (true, false) => app.filtered_wii_games.iter(),
-                (false, true) => app.filtered_gc_games.iter(),
-                (false, false) => [].iter(),
+                (true, true) => app.filtered_games.iter().copied(),
+                (true, false) => app.filtered_wii_games.iter().copied(),
+                (false, true) => app.filtered_gc_games.iter().copied(),
+                (false, false) => [].iter().copied(),
             };
 
             for game_i in iterator {
-                let game = &app.games[*game_i as usize];
+                let game = &app.games[game_i as usize];
 
                 body.row(26., |mut row| {
                     row.col(|ui| {
@@ -106,7 +106,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
 
                             // Delete button
                             if ui.button("🗑 Delete").on_hover_text("Delete Game").clicked() {
-                                app.current_modal = ui::Modal::DeleteGame(*game_i);
+                                app.current_modal = ui::Modal::DeleteGame(game_i);
                             }
                         });
                         ui.separator();
