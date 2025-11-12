@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, disc_info::DiscInfo, wiitdb};
+use crate::{app::App, disc_info::DiscInfo, ui, wiitdb};
 use eframe::egui;
 use egui_extras::{Column, TableBuilder};
 
@@ -90,7 +90,8 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                                     .and_then(|wiitdb| wiitdb.get_game_info(&game.id).cloned())
                                     .ok_or("Game not found in wiitdb".to_string());
 
-                                app.game_info = Some((game.clone(), disc_info, game_info));
+                                app.current_game_info = Some((game.clone(), disc_info, game_info));
+                                app.current_modal = ui::Modal::GameInfo;
                             }
 
                             // Archive button
@@ -105,7 +106,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
 
                             // Delete button
                             if ui.button("🗑 Delete").on_hover_text("Delete Game").clicked() {
-                                app.deleting_game = Some(game.clone());
+                                app.current_modal = ui::Modal::DeleteGame(*game_i);
                             }
                         });
                         ui.separator();
