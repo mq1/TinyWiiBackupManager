@@ -64,7 +64,7 @@ fn get_output_format_opts(config: &Config, is_wii: bool) -> FormatOptions {
     }
 }
 
-pub fn spawn_add_games_task(app: &App, discs: Vec<DiscInfo>) {
+pub fn spawn_add_games_task(app: &App, discs: Box<[DiscInfo]>) {
     let config = app.config.clone();
     let disc_opts = get_disc_opts();
     let must_split = app.config.contents.always_split
