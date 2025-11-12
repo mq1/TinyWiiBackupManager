@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, hbc_apps};
+use crate::{app::App, hbc_apps, ui};
 use eframe::egui;
 use egui_extras::{Column, TableBuilder};
 
@@ -58,7 +58,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                         ui.horizontal(|ui| {
                             // Info button
                             if ui.button("ℹ Info").on_hover_text("Show App Info").clicked() {
-                                app.hbc_app_info = Some(hbc_app.clone());
+                                app.current_modal = ui::Modal::HbcAppInfo(*hbc_app_i);
                             }
 
                             // Update button
@@ -88,7 +88,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                                 .on_hover_text("Delete HBC App")
                                 .clicked()
                             {
-                                app.deleting_hbc_app = Some(hbc_app.clone());
+                                app.current_modal = ui::Modal::DeleteHbcApp(*hbc_app_i);
                             }
                         });
                         ui.separator();
