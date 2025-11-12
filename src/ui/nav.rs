@@ -110,7 +110,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     .on_hover_text(format!("{} Info", env!("CARGO_PKG_NAME")))
                     .clicked()
                 {
-                    app.is_info_open = true;
+                    app.current_modal = ui::Modal::Info;
                 }
 
                 if ui

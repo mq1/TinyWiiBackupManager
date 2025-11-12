@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, disc_info::DiscInfo};
+use crate::{app::App, disc_info::DiscInfo, ui};
 use eframe::egui;
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
@@ -11,15 +11,17 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
         // We'll get those later with get_overflow_file
         paths.retain(|path| !path.ends_with(".part1.iso"));
 
-        app.choosing_games = paths
+        app.discs_to_convert = paths
             .into_iter()
             .map(DiscInfo::from_main_file)
             .filter_map(Result::ok)
             .filter(|info| app.games.iter().all(|game| game.id != info.header.game_id))
             .collect();
 
-        if app.choosing_games.is_empty() {
+        if app.discs_to_convert.is_empty() {
             app.notifications.show_info("No new games were selected");
+        } else {
+            app.current_modal = ui::Modal::ConvertGames;
         }
     }
 }

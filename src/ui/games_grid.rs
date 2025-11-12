@@ -6,6 +6,7 @@ use crate::{
     disc_info::DiscInfo,
     games::{Game, GameID},
     notifications::Notifications,
+    ui::Modal,
     wiitdb::{self},
 };
 use eframe::egui;
@@ -36,9 +37,10 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                     for game_i in row {
                         view_game_card(
                             ui,
+                            game_i,
                             &app.games[*game_i as usize],
-                            &mut app.deleting_game,
-                            &mut app.game_info,
+                            &mut app.current_modal,
+                            &mut app.current_game_info,
                             &mut app.archiving_game,
                             &mut app.choose_archive_path,
                             &app.config.contents.mount_point,
@@ -70,9 +72,10 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                     for game_i in row {
                         view_game_card(
                             ui,
+                            game_i,
                             &app.games[*game_i as usize],
-                            &mut app.deleting_game,
-                            &mut app.game_info,
+                            &mut app.current_modal,
+                            &mut app.current_game_info,
                             &mut app.archiving_game,
                             &mut app.choose_archive_path,
                             &app.config.contents.mount_point,
@@ -91,9 +94,10 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
 #[allow(clippy::too_many_arguments)]
 fn view_game_card(
     ui: &mut egui::Ui,
+    game_i: &u16,
     game: &Game,
-    deleting_game: &mut Option<Game>,
-    info: &mut Option<GameInfoData>,
+    current_modal: &mut Modal,
+    current_game_info: &mut Option<GameInfoData>,
     archiving_game: &mut Option<PathBuf>,
     choose_archive_path: &mut FileDialog,
     mount_point: &Path,
@@ -133,7 +137,7 @@ fn view_game_card(
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 // Delete button
                 if ui.button("🗑").on_hover_text("Delete Game").clicked() {
-                    *deleting_game = Some(game.clone());
+                    *current_modal = Modal::DeleteGame(*game_i);
                 }
 
                 // Archive button
@@ -173,7 +177,8 @@ fn view_game_card(
                         .and_then(|wiitdb| wiitdb.get_game_info(&game.id).cloned())
                         .ok_or("Game not found in wiitdb".to_string());
 
-                    *info = Some((game, disc_info, game_info));
+                    *current_game_info = Some((game, disc_info, game_info));
+                    *current_modal = Modal::GameInfo;
                 }
             });
         });
