@@ -7,7 +7,7 @@ mod choose_file_to_push_dialog;
 mod choose_games_dialog;
 mod choose_hbc_apps_dialog;
 mod choose_mount_point_dialog;
-mod conversion_confirmation;
+mod confirm_conversion;
 mod delete_game;
 mod delete_hbc_app;
 mod developers;
@@ -53,4 +53,14 @@ impl View {
             View::Settings => "Settings",
         }
     }
+}
+
+pub enum Modal {
+    None,
+    Info,
+    GameInfo,
+    HbcAppInfo(u16),
+    DeleteGame(u16),
+    DeleteHbcApp(u16),
+    ConvertGames,
 }

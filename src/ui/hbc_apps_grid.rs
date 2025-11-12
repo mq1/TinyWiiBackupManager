@@ -6,6 +6,7 @@ use crate::{
     hbc_apps::{self, HbcApp},
     osc::OscApp,
     tasks::TaskProcessor,
+    ui,
 };
 use eframe::egui;
 use std::path::Path;
@@ -33,9 +34,9 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                 for hbc_app_i in row {
                     view_hbc_app_card(
                         ui,
+                        hbc_app_i,
                         &app.hbc_apps[*hbc_app_i as usize],
-                        &mut app.deleting_hbc_app,
-                        &mut app.hbc_app_info,
+                        &mut app.current_modal,
                         &app.osc_apps,
                         &app.task_processor,
                         &app.config.contents.mount_point,
@@ -50,9 +51,9 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
 
 fn view_hbc_app_card(
     ui: &mut egui::Ui,
+    hbc_app_i: &u16,
     hbc_app: &HbcApp,
-    deleting_hbc_app: &mut Option<HbcApp>,
-    hbc_app_info: &mut Option<HbcApp>,
+    current_modal: &mut ui::Modal,
     osc_apps: &[OscApp],
     task_processor: &TaskProcessor,
     mount_point: &Path,
@@ -87,7 +88,7 @@ fn view_hbc_app_card(
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 // Delete button
                 if ui.button("🗑").on_hover_text("Delete HBC App").clicked() {
-                    *deleting_hbc_app = Some(hbc_app.clone());
+                    *current_modal = ui::Modal::DeleteHbcApp(*hbc_app_i);
                 }
 
                 // Update button
@@ -118,7 +119,7 @@ fn view_hbc_app_card(
                     .on_hover_text("Show App Information")
                     .clicked()
                 {
-                    *hbc_app_info = Some(hbc_app.clone());
+                    *current_modal = ui::Modal::HbcAppInfo(*hbc_app_i);
                 }
             });
         });
