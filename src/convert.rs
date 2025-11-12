@@ -156,8 +156,12 @@ pub fn spawn_add_games_task(app: &App, discs: Box<[DiscInfo]>) {
                             && must_split
                             && pos + data.len() as u64 > SPLIT_SIZE
                         {
+                            // Split the data chunk
+                            let split_point = (SPLIT_SIZE - pos) as usize;
+                            out1.write_all(&data[..split_point])?;
+
                             let mut writer = BufWriter::new(File::create(&path2)?);
-                            writer.write_all(&data)?;
+                            writer.write_all(&data[split_point..])?;
                             out2 = Some(writer);
                         } else {
                             out1.write_all(&data)?;
