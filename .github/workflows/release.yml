@@ -63,7 +63,7 @@ jobs:
           chmod +x linuxdeploy*.AppImage
 
       - name: Build binary
-        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "app-dir bundled-tls"
+        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
 
       - name: Package binary as tar.gz
         run: |
@@ -97,22 +97,10 @@ jobs:
           - target: x86_64-pc-windows-msvc
             arch: x64
             setup: true
-            features: app-dir
-          - target: x86_64-pc-windows-msvc
-            arch: x64
-            suffix: -portable
           - target: aarch64-pc-windows-msvc
             arch: arm64
-            features: app-dir
-          - target: aarch64-pc-windows-msvc
-            arch: arm64
-            suffix: -portable
           - target: i686-pc-windows-msvc
             arch: x86
-            features: app-dir
-          - target: i686-pc-windows-msvc
-            arch: x86
-            suffix: -portable
 
     steps:
       - name: Checkout
@@ -133,14 +121,16 @@ jobs:
         run: cargo install cargo-packager --version ^0.11 --locked
 
       - name: Build binary
-        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "native-tls ${{ matrix.features }}"
+        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "native-tls"
 
-      - name: Package binary as zip
+      - name: Package binaries as zip
         shell: pwsh
         run: |
           New-Item -Path "dist" -ItemType "directory"
           Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination TinyWiiBackupManager.exe
-          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}${{ matrix.suffix }}.zip" TinyWiiBackupManager.exe
+          Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination TinyWiiBackupManager-portable.exe
+          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
+          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}-portable.zip" TinyWiiBackupManager-portable.exe
 
       - name: Package binary as installer (only x64 for now)
         if: matrix.setup
@@ -152,7 +142,7 @@ jobs:
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v4
         with:
-          name: dist-${{ matrix.target }}${{ matrix.suffix }}
+          name: dist-${{ matrix.target }}
           path: dist/*
 
   build-win7:
@@ -164,16 +154,8 @@ jobs:
         include:
           - target: x86_64-win7-windows-msvc
             arch: x64
-            features: app-dir
-          - target: x86_64-win7-windows-msvc
-            arch: x64
-            suffix: -portable
           - target: i686-win7-windows-msvc
             arch: x86
-            features: app-dir
-          - target: i686-win7-windows-msvc
-            arch: x86
-            suffix: -portable
 
     steps:
       - name: Checkout
@@ -190,7 +172,7 @@ jobs:
         run: rustup component add rust-src
 
       - name: Build binary
-        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls ${{ matrix.features }}"
+        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
         env: 
           RUSTC_BOOTSTRAP: 1
 
@@ -198,13 +180,15 @@ jobs:
         shell: pwsh
         run: |
           New-Item -Path "dist" -ItemType "directory"
-          Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager.exe"
-          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-win7-${{ matrix.arch }}${{ matrix.suffix }}.zip" "TinyWiiBackupManager.exe"
+          Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager.exe"
+          Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager-portable.exe"
+          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-win7-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
+          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-win7-${{ matrix.arch }}-portable.zip" TinyWiiBackupManager-portable.exe
 
       - name: Upload Windows 7 distributables
         uses: actions/upload-artifact@v4
         with:
-          name: dist-${{ matrix.target }}${{ matrix.suffix }}
+          name: dist-${{ matrix.target }}
           path: dist/*
 
   build-macos:
@@ -239,7 +223,7 @@ jobs:
           npm i -g appdmg@0.6.6
 
       - name: Build binary
-        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "app-dir native-tls"
+        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "native-tls"
 
       - name: Create app with cargo-packager
         run: cargo packager --release --target ${{ matrix.target }} --formats app
