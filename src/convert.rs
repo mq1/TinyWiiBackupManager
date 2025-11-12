@@ -118,7 +118,7 @@ pub fn spawn_add_games_task(app: &App, discs: Box<[DiscInfo]>) {
             {
                 let disc = if let Some(overflow_file) = &overflow_file {
                     let reader = OverflowReader::new(&disc_info.main_disc_path, overflow_file)?;
-                    DiscReader::new_stream(Box::new(reader), &disc_opts)?
+                    DiscReader::new_from_cloneable_read(reader, &disc_opts)?
                 } else {
                     DiscReader::new(&disc_info.main_disc_path, &disc_opts)?
                 };
