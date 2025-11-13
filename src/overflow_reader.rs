@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::{
-    cmp,
     fs::{self, File},
     io::{self, Read, Seek, SeekFrom},
     path::{Path, PathBuf},
@@ -50,10 +49,9 @@ pub fn get_overflow_file(main: &Path) -> Option<PathBuf> {
 pub struct OverflowReader {
     position: u64,
     main: File,
-    main_len: u64,
+    split_position: u64,
     overflow: File,
-    overflow_len: u64,
-    total_len: u64,
+    len: u64,
 }
 
 impl Clone for OverflowReader {
@@ -61,10 +59,9 @@ impl Clone for OverflowReader {
         Self {
             position: self.position,
             main: self.main.try_clone().unwrap(),
-            main_len: self.main_len,
+            split_position: self.split_position,
             overflow: self.overflow.try_clone().unwrap(),
-            overflow_len: self.overflow_len,
-            total_len: self.total_len,
+            len: self.len,
         }
     }
 }
@@ -72,33 +69,41 @@ impl Clone for OverflowReader {
 impl OverflowReader {
     pub fn new(main_path: &Path, overflow_path: &Path) -> io::Result<Self> {
         let main = File::open(main_path)?;
-        let main_len = main.metadata()?.len();
+        let split_position = main.metadata()?.len();
         let overflow = File::open(overflow_path)?;
-        let overflow_len = overflow.metadata()?.len();
+        let len = split_position + overflow.metadata()?.len();
 
-        Ok(OverflowReader {
+        Ok(Self {
             position: 0,
             main,
-            main_len,
+            split_position,
             overflow,
-            overflow_len,
-            total_len: main_len + overflow_len,
+            len,
         })
     }
 }
 
 impl Read for OverflowReader {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        if self.position >= self.total_len {
+        if self.position >= self.len {
             return Ok(0);
         }
 
-        let bytes_read = if self.position < self.main_len {
+        let bytes_read = if self.position < self.len {
             self.main.seek(SeekFrom::Start(self.position))?;
-            let read_size = cmp::min(buf.len() as u64, self.main_len - self.position) as usize;
-            self.main.read(&mut buf[..read_size])?
+
+            // read from main file AND overflow file
+            if self.position + buf.len() as u64 > self.split_position {
+                let split_point = (self.split_position - self.position) as usize;
+                let main_bytes = self.main.read(&mut buf[..split_point])?;
+                let overflow_bytes = self.overflow.read(&mut buf[split_point..])?;
+
+                main_bytes + overflow_bytes
+            } else {
+                self.main.read(buf)?
+            }
         } else {
-            let overflow_pos = self.position - self.main_len;
+            let overflow_pos = self.position - self.split_position;
             self.overflow.seek(SeekFrom::Start(overflow_pos))?;
             self.overflow.read(buf)?
         };
@@ -112,7 +117,7 @@ impl Seek for OverflowReader {
     fn seek(&mut self, pos: SeekFrom) -> io::Result<u64> {
         let new_pos = match pos {
             SeekFrom::Start(start) => start as i64,
-            SeekFrom::End(end) => self.total_len as i64 + end,
+            SeekFrom::End(end) => self.len as i64 + end,
             SeekFrom::Current(current) => self.position as i64 + current,
         };
 
