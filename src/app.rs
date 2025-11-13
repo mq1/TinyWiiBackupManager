@@ -65,7 +65,6 @@ pub struct App {
     pub current_modal: Modal,
     pub discs_to_convert: Box<[DiscInfo]>,
     pub current_game_info: Option<GameInfoData>,
-    pub prev_sort_by: SortBy,
 }
 
 impl App {
@@ -126,7 +125,6 @@ impl App {
             current_modal: Modal::None,
             discs_to_convert: Box::new([]),
             current_game_info: None,
-            prev_sort_by: SortBy::None,
         }
     }
 
@@ -242,8 +240,6 @@ impl App {
         self.games = games::list(&self.config.contents.mount_point, &self.titles);
 
         games::sort(&mut self.games, SortBy::None, self.config.contents.sort_by);
-        self.prev_sort_by = self.config.contents.sort_by;
-
         self.update_filtered_games();
 
         self.update_title(ctx);
@@ -253,17 +249,20 @@ impl App {
     pub fn refresh_hbc_apps(&mut self, ctx: &egui::Context) {
         self.hbc_apps = hbc_apps::list(&self.config.contents.mount_point);
 
-        hbc_apps::sort(&mut self.hbc_apps, &self.config.contents.sort_by);
+        hbc_apps::sort(
+            &mut self.hbc_apps,
+            SortBy::None,
+            self.config.contents.sort_by,
+        );
         self.update_filtered_hbc_apps();
 
         self.update_title(ctx);
     }
 
     pub fn apply_sorting(&mut self, sort_by: SortBy) {
-        games::sort(&mut self.games, self.prev_sort_by, sort_by);
-        hbc_apps::sort(&mut self.hbc_apps, &sort_by);
+        games::sort(&mut self.games, self.config.contents.sort_by, sort_by);
+        hbc_apps::sort(&mut self.hbc_apps, self.config.contents.sort_by, sort_by);
 
-        self.prev_sort_by = sort_by;
         self.config.contents.sort_by = sort_by;
 
         if let Err(e) = self.config.write() {
