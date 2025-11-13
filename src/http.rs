@@ -1,14 +1,14 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use anyhow::Result;
+use anyhow::{Result, anyhow};
 use std::{
-    fs::{self, File},
+    fs::File,
     io::{self, BufReader, BufWriter},
     path::Path,
     sync::LazyLock,
 };
-use tempfile::tempfile;
+use tempfile::{NamedTempFile, tempfile};
 use ureq::tls::{RootCerts, TlsProvider};
 use ureq::{Agent, tls::TlsConfig};
 use zip::ZipArchive;
@@ -56,19 +56,11 @@ pub fn download_into_file(uri: &str, file: &File) -> Result<()> {
 }
 
 pub fn download_file(uri: &str, dest: &Path) -> Result<()> {
-    let tmp = dest.with_extension("tmp");
+    let parent = dest.parent().ok_or(anyhow!("No parent directory"))?;
+    let tmp = NamedTempFile::new_in(parent)?;
 
-    let res = {
-        let tmp_file = File::create(&tmp)?;
-        download_into_file(uri, &tmp_file)
-    };
-
-    if let Err(e) = res {
-        fs::remove_file(&tmp)?;
-        return Err(e);
-    }
-
-    fs::rename(&tmp, dest)?;
+    download_into_file(uri, tmp.as_file())?;
+    tmp.persist(dest)?;
 
     Ok(())
 }
