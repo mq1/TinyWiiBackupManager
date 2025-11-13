@@ -73,9 +73,9 @@ impl App {
 
         let choose_archive_path = FileDialog::new()
             .as_modal(true)
-            .add_save_extension(ArchiveFormat::Rvz.as_ref(), "rvz")
-            .add_save_extension(ArchiveFormat::Iso.as_ref(), "iso")
-            .default_save_extension(config.contents.archive_format.as_ref());
+            .add_save_extension(ArchiveFormat::Rvz.as_str(), ArchiveFormat::Rvz.extension())
+            .add_save_extension(ArchiveFormat::Iso.as_str(), ArchiveFormat::Iso.extension())
+            .default_save_extension(config.contents.archive_format.as_str());
 
         Self {
             data_dir: data_dir.to_path_buf(),
