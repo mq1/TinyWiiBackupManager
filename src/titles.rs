@@ -26,14 +26,12 @@ impl Titles {
             .lines()
             .filter_map(|line| line.split_once(" = "))
             .map(|(id, title)| (<[u8; 6]>::from_id_str(id), title.to_string()))
-            .collect::<Vec<_>>();
+            .collect::<Box<[_]>>();
 
         // We sort it now so we can binary search
         titles.sort_by_key(|(id, _)| *id);
 
-        let list = titles.into_boxed_slice();
-
-        Ok(Self(list))
+        Ok(Self(titles))
     }
 
     pub fn get(&self, id: &[u8; 6]) -> Option<&str> {
