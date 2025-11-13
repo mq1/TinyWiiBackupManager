@@ -125,11 +125,18 @@ pub enum ArchiveFormat {
     Iso,
 }
 
-impl AsRef<str> for ArchiveFormat {
-    fn as_ref(&self) -> &str {
+impl ArchiveFormat {
+    pub fn as_str(&self) -> &str {
         match self {
             ArchiveFormat::Rvz => "RVZ",
             ArchiveFormat::Iso => "ISO",
+        }
+    }
+
+    pub fn extension(&self) -> &str {
+        match self {
+            ArchiveFormat::Rvz => "rvz",
+            ArchiveFormat::Iso => "iso",
         }
     }
 }
