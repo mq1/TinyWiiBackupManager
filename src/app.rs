@@ -275,9 +275,10 @@ impl App {
 
     pub fn check_for_hbc_app_updates(&mut self) {
         for hbc_app in self.hbc_apps.iter_mut() {
-            if let Ok(osc_app_i) = self
+            if let Some(osc_app_i) = self
                 .osc_apps
-                .binary_search_by(|a| a.meta.name.cmp(&hbc_app.meta.name))
+                .iter()
+                .position(|osc_app| hbc_app.meta.name == osc_app.meta.name)
             {
                 hbc_app.osc_app_i = Some(osc_app_i);
             }
