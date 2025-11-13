@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    config::{ArchiveFormat, Config},
+    config::{ArchiveFormat, Config, SortBy},
     covers,
     disc_info::DiscInfo,
     extensions,
@@ -65,11 +65,13 @@ pub struct App {
     pub current_modal: Modal,
     pub discs_to_convert: Box<[DiscInfo]>,
     pub current_game_info: Option<GameInfoData>,
+    pub prev_sort_by: SortBy,
 }
 
 impl App {
     pub fn new(data_dir: &Path) -> Self {
         let config = Config::load(data_dir);
+        let prev_sort_by = config.contents.sort_by;
 
         let choose_archive_path = FileDialog::new()
             .as_modal(true)
@@ -125,6 +127,7 @@ impl App {
             current_modal: Modal::None,
             discs_to_convert: Box::new([]),
             current_game_info: None,
+            prev_sort_by,
         }
     }
 
@@ -239,7 +242,14 @@ impl App {
     pub fn refresh_games(&mut self, ctx: &egui::Context) {
         self.games = games::list(&self.config.contents.mount_point, &self.titles);
 
-        games::sort(&mut self.games, &self.config.contents.sort_by);
+        games::sort(
+            &mut self.games,
+            self.prev_sort_by,
+            self.config.contents.sort_by,
+        );
+
+        self.prev_sort_by = self.config.contents.sort_by;
+
         self.update_filtered_games();
 
         self.update_title(ctx);
@@ -256,10 +266,17 @@ impl App {
     }
 
     pub fn apply_sorting(&mut self) {
-        games::sort(&mut self.games, &self.config.contents.sort_by);
-        self.update_filtered_games();
+        games::sort(
+            &mut self.games,
+            self.prev_sort_by,
+            self.config.contents.sort_by,
+        );
 
         hbc_apps::sort(&mut self.hbc_apps, &self.config.contents.sort_by);
+
+        self.prev_sort_by = self.config.contents.sort_by;
+
+        self.update_filtered_games();
         self.update_filtered_hbc_apps();
     }
 
