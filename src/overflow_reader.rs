@@ -112,7 +112,7 @@ impl Seek for OverflowReader {
     fn seek(&mut self, pos: SeekFrom) -> io::Result<u64> {
         let new_pos = match pos {
             SeekFrom::Start(start) => start as i64,
-            SeekFrom::End(end) => (self.main_len + self.overflow_len) as i64 + end,
+            SeekFrom::End(end) => self.total_len as i64 + end,
             SeekFrom::Current(current) => self.position as i64 + current,
         };
 
