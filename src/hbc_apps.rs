@@ -192,20 +192,45 @@ pub fn spawn_install_apps_task(app: &App, paths: Vec<PathBuf>) {
     });
 }
 
-pub fn sort(hbc_apps: &mut [HbcApp], sort_by: &SortBy) {
-    match sort_by {
-        SortBy::NameAscending => {
+pub fn sort(hbc_apps: &mut [HbcApp], prev_sort_by: SortBy, sort_by: SortBy) {
+    match (prev_sort_by, sort_by) {
+        (SortBy::NameAscending, SortBy::NameAscending)
+        | (SortBy::NameDescending, SortBy::NameDescending)
+        | (SortBy::SizeAscending, SortBy::SizeAscending)
+        | (SortBy::SizeDescending, SortBy::SizeDescending)
+        | (_, SortBy::None) => {
+            // Do nothing, already sorted
+        }
+
+        (SortBy::NameDescending, SortBy::NameAscending)
+        | (SortBy::NameAscending, SortBy::NameDescending)
+        | (SortBy::SizeDescending, SortBy::SizeAscending)
+        | (SortBy::SizeAscending, SortBy::SizeDescending) => {
+            hbc_apps.reverse();
+        }
+
+        (SortBy::SizeAscending, SortBy::NameAscending)
+        | (SortBy::SizeDescending, SortBy::NameAscending)
+        | (SortBy::None, SortBy::NameAscending) => {
             hbc_apps.sort_by(|a, b| a.meta.name.cmp(&b.meta.name));
         }
-        SortBy::NameDescending => {
+
+        (SortBy::SizeAscending, SortBy::NameDescending)
+        | (SortBy::SizeDescending, SortBy::NameDescending)
+        | (SortBy::None, SortBy::NameDescending) => {
             hbc_apps.sort_by(|a, b| b.meta.name.cmp(&a.meta.name));
         }
-        SortBy::SizeAscending => {
+
+        (SortBy::NameAscending, SortBy::SizeAscending)
+        | (SortBy::NameDescending, SortBy::SizeAscending)
+        | (SortBy::None, SortBy::SizeAscending) => {
             hbc_apps.sort_by(|a, b| a.size.cmp(&b.size));
         }
-        SortBy::SizeDescending => {
+
+        (SortBy::NameAscending, SortBy::SizeDescending)
+        | (SortBy::NameDescending, SortBy::SizeDescending)
+        | (SortBy::None, SortBy::SizeDescending) => {
             hbc_apps.sort_by(|a, b| b.size.cmp(&a.size));
         }
-        _ => {}
     }
 }
