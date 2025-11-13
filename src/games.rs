@@ -174,10 +174,7 @@ impl GameID for [u8; 6] {
     }
 
     fn as_partial(&self) -> &str {
-        match self.first_chunk::<3>() {
-            Some(s) => std::str::from_utf8(s).unwrap_or("invalid"),
-            None => "invalid",
-        }
+        std::str::from_utf8(&self[..3]).unwrap_or("invalid")
     }
 }
 
