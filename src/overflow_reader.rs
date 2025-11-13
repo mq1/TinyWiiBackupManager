@@ -85,31 +85,41 @@ impl OverflowReader {
 
 impl Read for OverflowReader {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        // If we are at or past the end of the combined file, return 0.
         if self.position >= self.len {
             return Ok(0);
         }
 
-        let bytes_read = if self.position < self.len {
+        let remaining_in_main = self.split_position.saturating_sub(self.position);
+
+        let bytes_to_read = buf.len().min((self.len - self.position) as usize);
+        let buf = &mut buf[..bytes_to_read];
+
+        // If the read is entirely within the main file.
+        if remaining_in_main > 0 {
             self.main.seek(SeekFrom::Start(self.position))?;
+            let main_bytes_read = self.main.read(buf)?;
 
-            // read from main file AND overflow file
-            if self.position + buf.len() as u64 > self.split_position {
-                let split_point = (self.split_position - self.position) as usize;
-                let main_bytes = self.main.read(&mut buf[..split_point])?;
-                let overflow_bytes = self.overflow.read(&mut buf[split_point..])?;
-
-                main_bytes + overflow_bytes
+            // If the read crosses the boundary into the overflow file.
+            if main_bytes_read < buf.len() {
+                self.overflow.seek(SeekFrom::Start(0))?;
+                let overflow_bytes_read = self.overflow.read(&mut buf[main_bytes_read..])?;
+                let total_bytes_read = main_bytes_read + overflow_bytes_read;
+                self.position += total_bytes_read as u64;
+                Ok(total_bytes_read)
             } else {
-                self.main.read(buf)?
+                self.position += main_bytes_read as u64;
+                Ok(main_bytes_read)
             }
-        } else {
+        }
+        // If the read is entirely within the overflow file.
+        else {
             let overflow_pos = self.position - self.split_position;
             self.overflow.seek(SeekFrom::Start(overflow_pos))?;
-            self.overflow.read(buf)?
-        };
-
-        self.position += bytes_read as u64;
-        Ok(bytes_read)
+            let bytes_read = self.overflow.read(buf)?;
+            self.position += bytes_read as u64;
+            Ok(bytes_read)
+        }
     }
 }
 
