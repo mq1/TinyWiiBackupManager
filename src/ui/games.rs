@@ -112,13 +112,12 @@ fn update_top_bar(ui: &mut egui::Ui, app: &mut App, ctx: &egui::Context) {
                     .on_hover_text("Sort by size")
                     .clicked()
                 {
-                    app.config.contents.sort_by =
-                        if app.config.contents.sort_by == SortBy::SizeAscending {
-                            SortBy::SizeDescending
-                        } else {
-                            SortBy::SizeAscending
-                        };
-                    app.apply_sorting();
+                    let sort_by = if app.config.contents.sort_by == SortBy::SizeAscending {
+                        SortBy::SizeDescending
+                    } else {
+                        SortBy::SizeAscending
+                    };
+                    app.apply_sorting(sort_by);
                 }
 
                 if ui
@@ -136,13 +135,12 @@ fn update_top_bar(ui: &mut egui::Ui, app: &mut App, ctx: &egui::Context) {
                     .on_hover_text("Sort by name")
                     .clicked()
                 {
-                    app.config.contents.sort_by =
-                        if app.config.contents.sort_by == SortBy::NameAscending {
-                            SortBy::NameDescending
-                        } else {
-                            SortBy::NameAscending
-                        };
-                    app.apply_sorting();
+                    let sort_by = if app.config.contents.sort_by == SortBy::NameAscending {
+                        SortBy::NameDescending
+                    } else {
+                        SortBy::NameAscending
+                    };
+                    app.apply_sorting(sort_by);
                 }
             });
 

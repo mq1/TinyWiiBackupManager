@@ -144,6 +144,7 @@ impl ArchiveFormat {
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum SortBy {
+    None,
     NameAscending,
     NameDescending,
     SizeAscending,
