@@ -206,5 +206,6 @@ pub fn sort(hbc_apps: &mut [HbcApp], sort_by: &SortBy) {
         SortBy::SizeDescending => {
             hbc_apps.sort_by(|a, b| b.size.cmp(&a.size));
         }
+        _ => {}
     }
 }
