@@ -181,18 +181,39 @@ impl GameID for [u8; 6] {
     }
 }
 
-pub fn sort(games: &mut [Game], sort_by: &SortBy) {
-    match sort_by {
-        SortBy::NameAscending => {
+pub fn sort(games: &mut [Game], prev_sort_by: SortBy, sort_by: SortBy) {
+    match (prev_sort_by, sort_by) {
+        (SortBy::NameAscending, SortBy::NameAscending)
+        | (SortBy::NameDescending, SortBy::NameDescending)
+        | (SortBy::SizeAscending, SortBy::SizeAscending)
+        | (SortBy::SizeDescending, SortBy::SizeDescending) => {
+            // Do nothing, already sorted
+        }
+
+        (SortBy::NameDescending, SortBy::NameAscending)
+        | (SortBy::NameAscending, SortBy::NameDescending)
+        | (SortBy::SizeDescending, SortBy::SizeAscending)
+        | (SortBy::SizeAscending, SortBy::SizeDescending) => {
+            games.reverse();
+        }
+
+        (SortBy::SizeAscending, SortBy::NameAscending)
+        | (SortBy::SizeDescending, SortBy::NameAscending) => {
             games.sort_by(|a, b| a.display_title.cmp(&b.display_title));
         }
-        SortBy::NameDescending => {
+
+        (SortBy::SizeAscending, SortBy::NameDescending)
+        | (SortBy::SizeDescending, SortBy::NameDescending) => {
             games.sort_by(|a, b| b.display_title.cmp(&a.display_title));
         }
-        SortBy::SizeAscending => {
+
+        (SortBy::NameAscending, SortBy::SizeAscending)
+        | (SortBy::NameDescending, SortBy::SizeAscending) => {
             games.sort_by(|a, b| a.size.cmp(&b.size));
         }
-        SortBy::SizeDescending => {
+
+        (SortBy::NameAscending, SortBy::SizeDescending)
+        | (SortBy::NameDescending, SortBy::SizeDescending) => {
             games.sort_by(|a, b| b.size.cmp(&a.size));
         }
     }
