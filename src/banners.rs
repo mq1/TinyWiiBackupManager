@@ -32,7 +32,7 @@ pub fn spawn_download_banners_task(app: &mut App) {
         .games
         .iter()
         .filter(|g| !g.is_wii)
-        .cloned()
+        .map(|g| (g.id, g.display_title.clone()))
         .collect::<Box<[_]>>();
 
     app.task_processor.spawn(move |msg_sender| {
@@ -45,11 +45,11 @@ pub fn spawn_download_banners_task(app: &mut App) {
         for game in &gc_games {
             msg_sender.send(BackgroundMessage::UpdateStatus(format!(
                 "🖻 Downloading banners... ({})",
-                &game.display_title
+                &game.1
             )))?;
 
-            if let Err(e) = download_banner_for_game(&cache_bnr_path, &game.id) {
-                let context = format!("Failed to download banner for {}", &game.display_title);
+            if let Err(e) = download_banner_for_game(&cache_bnr_path, &game.0) {
+                let context = format!("Failed to download banner for {}", &game.1);
                 msg_sender.send(BackgroundMessage::NotifyError(e.context(context)))?;
             }
         }
