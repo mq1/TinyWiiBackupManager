@@ -95,7 +95,7 @@ impl Read for OverflowReader {
         let bytes_to_read = buf.len().min((self.len - self.position) as usize);
         let buf = &mut buf[..bytes_to_read];
 
-        // If the read is entirely within the main file.
+        // If the read is partially or entirely within the main file.
         if remaining_in_main > 0 {
             self.main.seek(SeekFrom::Start(self.position))?;
             let main_bytes_read = self.main.read(buf)?;
@@ -107,7 +107,9 @@ impl Read for OverflowReader {
                 let total_bytes_read = main_bytes_read + overflow_bytes_read;
                 self.position += total_bytes_read as u64;
                 Ok(total_bytes_read)
-            } else {
+            }
+            // If the read is entirely within the main file.
+            else {
                 self.position += main_bytes_read as u64;
                 Ok(main_bytes_read)
             }
