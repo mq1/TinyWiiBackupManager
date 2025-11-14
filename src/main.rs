@@ -44,16 +44,16 @@ pub const APP_NAME: &str = env!("CARGO_PKG_NAME");
 
 fn get_data_dir() -> Result<PathBuf> {
     if let Ok(exe_path) = std::env::current_exe()
-        && let Some(exe_name) = exe_path.file_name()
-        && let Some(exe_name) = exe_name.to_str()
-        && exe_name.contains("portable")
+        && exe_path
+            .file_name()
+            .and_then(|n| n.to_str())
+            .is_some_and(|n| n.contains("portable"))
     {
-        let exe_dir = exe_path
+        let parent = exe_path
             .parent()
-            .ok_or(anyhow!("Could not get executable directory"))?
-            .to_path_buf();
+            .ok_or(anyhow!("Could not get executable directory"))?;
 
-        let data_dir = exe_dir.join("TinyWiiBackupManager-data");
+        let data_dir = parent.join("TinyWiiBackupManager-data");
 
         Ok(data_dir)
     } else {
