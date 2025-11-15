@@ -80,7 +80,7 @@ fn main() -> Result<()> {
     app.state.load_titles(); // this also loads games when finished
     app.state.check_for_update();
     app.state.load_osc();
-    app.state.load_wiitdb();
+    app.load_wiitdb();
 
     // -------------
     // Initialize UI
@@ -104,7 +104,7 @@ fn main() -> Result<()> {
         native_options,
         Box::new(|cc| {
             install_image_loaders(&cc.egui_ctx);
-            cc.egui_ctx.set_theme(app.state.config.contents.theme_preference);
+            cc.egui_ctx.set_theme(app.ui_buffers.config.contents.theme_preference);
 
             cc.egui_ctx.all_styles_mut(|style| {
                 style.visuals.selection.bg_fill = ui::accent::get_accent_color();
@@ -119,9 +119,10 @@ fn main() -> Result<()> {
                 style.spacing.button_padding = vec2(5., 2.5);
             });
 
-            app.state.refresh_hbc_apps("");
+            // Load hbc apps instantly
+            app.state.refresh_hbc_apps(&app.ui_buffers.config.contents.mount_point, app.ui_buffers.config.contents.sort_by, &app.ui_buffers.hbc_apps_filter);
 
-            if !app.state.is_mount_point_known() {
+            if !app.is_mount_point_known() {
                 app.state.notifications.show_info_no_duration("New Drive detected, a path normalization run is recommended\nYou can find it in the 🔧 Tools page");
             }
 

@@ -11,7 +11,7 @@ use eframe::egui;
 
 pub fn update(ctx: &egui::Context, app_state: &AppState, ui_buffers: &mut UiBuffers) {
     egui::CentralPanel::default().show(ctx, |ui| {
-        if app_state.config.contents.mount_point.as_os_str().is_empty() {
+        if ui_buffers.config.contents.mount_point.as_os_str().is_empty() {
             ui.heading("Click on 🖴 to select a Drive/Mount Point");
             return;
         }
@@ -23,9 +23,7 @@ pub fn update(ctx: &egui::Context, app_state: &AppState, ui_buffers: &mut UiBuff
 
             ui.horizontal(|ui| {
                 if ui.button("📥").clicked() {
-                    let task_processor = &app_state.task_processor;
-                    let mount_point = app_state.config.contents.mount_point.clone();
-                    wiitdb::spawn_download_task(task_processor, mount_point);
+                    wiitdb::spawn_download_task(&app_state.task_processor, ui_buffers.config.contents.mount_point.clone());
                 }
 
                 ui.label("Download wiitdb.xml (overwrites existing one)");
@@ -33,10 +31,7 @@ pub fn update(ctx: &egui::Context, app_state: &AppState, ui_buffers: &mut UiBuff
 
             ui.horizontal(|ui| {
                 if ui.button("📥").clicked() {
-                    let task_processor = &app_state.task_processor;
-                    let mount_point = app_state.config.contents.mount_point.clone();
-                    let games = app_state.games.clone().into_boxed_slice();
-                    covers::spawn_download_all_covers_task(task_processor, mount_point, games);
+                    covers::spawn_download_all_covers_task(&app_state.task_processor, ui_buffers.config.contents.mount_point.clone(), app_state.games.clone().into_boxed_slice());
                 }
 
                 ui.label("Download all covers (defaults to English for PAL games, while usbloader_gx downloads them in the correct language)");
@@ -44,10 +39,7 @@ pub fn update(ctx: &egui::Context, app_state: &AppState, ui_buffers: &mut UiBuff
 
             ui.horizontal(|ui| {
                 if ui.button("📥").clicked() {
-                    let task_processor = &app_state.task_processor;
-                    let mount_point = &app_state.config.contents.mount_point;
-                    let games = &app_state.games;
-                    banners::spawn_download_banners_task(task_processor, games, mount_point);
+                    banners::spawn_download_banners_task(&app_state.task_processor, &app_state.games,  &ui_buffers.config.contents.mount_point);
                 }
 
                 ui.label("Download banners (GameCube only)");
@@ -58,10 +50,7 @@ pub fn update(ctx: &egui::Context, app_state: &AppState, ui_buffers: &mut UiBuff
 
             ui.horizontal(|ui| {
                 if ui.button("📥").clicked() {
-                    let task_processor = &app_state.task_processor;
-                    let mount_point = app_state.config.contents.mount_point.clone();
-                    let games = app_state.games.clone().into_boxed_slice();
-                    covers::spawn_download_wiiflow_covers_task(task_processor, mount_point, games);
+                    covers::spawn_download_wiiflow_covers_task(&app_state.task_processor, ui_buffers.config.contents.mount_point.clone(), app_state.games.clone().into_boxed_slice());
                 }
 
                 ui.label("Download all covers (defaults to English for PAL games)");
@@ -72,10 +61,7 @@ pub fn update(ctx: &egui::Context, app_state: &AppState, ui_buffers: &mut UiBuff
 
             ui.horizontal(|ui| {
                 if ui.button("📥").clicked() {
-                    let task_processor = &app_state.task_processor;
-                    let mount_point = &app_state.config.contents.mount_point;
-                    let games = app_state.games.clone().into_boxed_slice();
-                    txtcodes::spawn_download_cheats_task(task_processor, mount_point, games);
+                    txtcodes::spawn_download_cheats_task(&app_state.task_processor, &ui_buffers.config.contents.mount_point, app_state.games.clone().into_boxed_slice());
                 }
 
                 ui.label("Download cheats for all games (txt)");

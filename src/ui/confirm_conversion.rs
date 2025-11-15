@@ -36,9 +36,11 @@ pub fn update(
 
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Max), |ui| {
             if ui.button("✅ Start conversion").clicked() {
-                let task_processor = &app_state.task_processor;
-                let config_contents = &app_state.config.contents;
-                convert::spawn_add_games_task(task_processor, config_contents, discs.into());
+                convert::spawn_add_games_task(
+                    &app_state.task_processor,
+                    &ui_buffers.config.contents,
+                    discs.into(),
+                );
 
                 ui_buffers.action = Some(UiAction::CloseModal)
             }

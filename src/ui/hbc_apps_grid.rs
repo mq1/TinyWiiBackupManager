@@ -95,14 +95,10 @@ fn update_hbc_app_card(
                             ))
                             .clicked()
                     {
-                        let zip_url = osc_app.meta.assets.archive.url.clone();
-                        let task_processor = &app_state.task_processor;
-                        let mount_point = app_state.config.contents.mount_point.clone();
-
                         hbc_apps::spawn_install_app_from_url_task(
-                            zip_url,
-                            task_processor,
-                            mount_point,
+                            osc_app.meta.assets.archive.url.clone(),
+                            &app_state.task_processor,
+                            ui_buffers.config.contents.mount_point.clone(),
                         );
                     }
                 }
