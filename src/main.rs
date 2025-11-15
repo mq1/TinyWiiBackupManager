@@ -124,7 +124,7 @@ fn main() -> Result<()> {
             });
 
             // Load hbc apps instantly
-            app.state.refresh_hbc_apps(&app.ui_buffers.config.contents.mount_point, app.ui_buffers.config.contents.sort_by, &app.ui_buffers.hbc_apps_filter);
+            app.refresh_hbc_apps();
 
             if !app.is_mount_point_known() {
                 app.state.notifications.show_info_no_duration("New Drive detected, a path normalization run is recommended\nYou can find it in the 🔧 Tools page");
