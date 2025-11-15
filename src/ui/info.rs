@@ -1,10 +1,13 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, ui};
+use crate::{
+    app::{AppState, UiBuffers},
+    ui::{self, UiAction},
+};
 use eframe::egui;
 
-pub fn update(ctx: &egui::Context, app: &mut App) {
+pub fn update(ctx: &egui::Context, _app_state: &AppState, ui_buffers: &mut UiBuffers) {
     let modal = egui::Modal::new("info".into());
 
     modal.show(ctx, |ui: &mut egui::Ui| {
@@ -53,27 +56,24 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Max), |ui| {
             if ui.button("❌ Close").clicked() {
-                app.current_modal = ui::Modal::None;
+                ui_buffers.action = Some(UiAction::CloseModal);
             }
 
             ui.add_sized(egui::Vec2::new(1., 21.), egui::Separator::default());
 
             if ui.button("📁 Open Data Directory").clicked()
-                && let Err(e) = open::that(&app.data_dir)
             {
-                app.notifications.show_err(e.into());
+                ui_buffers.action = Some(UiAction::OpenDataDir);
             }
 
             if ui.button("🌐 Wiki").clicked()
-                && let Err(e) = open::that(env!("CARGO_PKG_HOMEPAGE"))
             {
-                app.notifications.show_err(e.into());
+                ui_buffers.action = Some(UiAction::OpenWiki);
             }
 
             if ui.button(" Source Code").clicked()
-                && let Err(e) = open::that(env!("CARGO_PKG_REPOSITORY"))
             {
-                app.notifications.show_err(e.into());
+                ui_buffers.action = Some(UiAction::OpenRepo);
             }
         })
     });

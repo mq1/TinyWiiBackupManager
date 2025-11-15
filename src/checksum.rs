@@ -16,9 +16,9 @@ use nod::{
 use std::path::{Path, PathBuf};
 
 pub fn spawn_checksum_task(
+    task_processor: &TaskProcessor,
     game_dir: PathBuf,
     game_info: Option<GameInfo>,
-    task_processor: &TaskProcessor,
 ) {
     task_processor.spawn(move |msg_sender| {
         msg_sender.send(BackgroundMessage::UpdateStatus(
