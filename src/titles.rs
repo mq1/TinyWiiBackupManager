@@ -42,10 +42,10 @@ impl Titles {
     }
 
     pub fn get(&self, id: &[u8; 6]) -> Option<&str> {
-        let index = self.0.binary_search_by_key(id, |(id, _)| *id).ok()?;
-        let title = &self.0[index].1;
-
-        Some(title)
+        self.0
+            .binary_search_by_key(id, |(id, _)| *id)
+            .ok()
+            .map(|i| self.0[i].1.as_str())
     }
 }
 
