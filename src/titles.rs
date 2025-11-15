@@ -41,9 +41,9 @@ impl Titles {
         Ok(Self(titles))
     }
 
-    pub fn get(&self, id: &[u8; 6]) -> Option<&str> {
+    pub fn get(&self, id: [u8; 6]) -> Option<&str> {
         self.0
-            .binary_search_by_key(id, |(id, _)| *id)
+            .binary_search_by_key(&id, |(id, _)| *id)
             .ok()
             .map(|i| self.0[i].1.as_str())
     }
