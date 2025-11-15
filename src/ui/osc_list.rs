@@ -70,10 +70,11 @@ pub fn update(ui: &mut egui::Ui, app_state: &AppState, ui_buffers: &mut UiBuffer
                                 .on_hover_text("Push to Wii via Wiiload")
                                 .clicked()
                             {
-                                let zip_url = osc_app.meta.assets.archive.url.clone();
-                                let wii_ip = ui_buffers.config.contents.wii_ip.clone();
-                                let task_processor = &app_state.task_processor;
-                                wiiload::spawn_push_osc_task(zip_url, wii_ip, task_processor);
+                                wiiload::spawn_push_osc_task(
+                                    osc_app.meta.assets.archive.url.clone(),
+                                    ui_buffers.config.contents.wii_ip.clone(),
+                                    &app_state.task_processor,
+                                );
 
                                 ui_buffers.action = Some(UiAction::WriteConfig);
                             }
@@ -84,13 +85,10 @@ pub fn update(ui: &mut egui::Ui, app_state: &AppState, ui_buffers: &mut UiBuffer
                                 .on_hover_text("Download and Install App")
                                 .clicked()
                             {
-                                let zip_url = osc_app.meta.assets.archive.url.clone();
-                                let task_processor = &app_state.task_processor;
-                                let mount_point = app_state.config.contents.mount_point.clone();
                                 hbc_apps::spawn_install_app_from_url_task(
-                                    zip_url,
-                                    task_processor,
-                                    mount_point,
+                                    osc_app.meta.assets.archive.url.clone(),
+                                    &app_state.task_processor,
+                                    ui_buffers.config.contents.mount_point.clone(),
                                 );
                             }
                         });
