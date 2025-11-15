@@ -13,9 +13,9 @@ use crate::{
     notifications::Notifications,
     osc::{self, OscApp},
     tasks::{BackgroundMessage, TaskProcessor},
-    titles::{self, Titles},
+    titles::Titles,
     ui::{self, Modal, UiAction},
-    updater::{self, UpdateInfo},
+    updater::UpdateInfo,
     util, wiiload,
     wiitdb::{self, GameInfo},
 };
@@ -163,18 +163,6 @@ impl AppState {
         self.downloading_osc_icons = Some(receiver);
     }
 
-    pub fn load_titles(&mut self) {
-        titles::spawn_get_titles_task(&self.task_processor, self.data_dir.clone());
-    }
-
-    pub fn load_osc(&mut self) {
-        osc::spawn_load_osc_apps_task(&self.task_processor, &self.data_dir);
-    }
-
-    pub fn check_for_update(&self) {
-        updater::spawn_check_update_task(&self.task_processor);
-    }
-
     pub fn get_game_info(&self, game_id: [u8; 6]) -> Option<GameInfo> {
         self.wiitdb
             .as_ref()
@@ -227,9 +215,11 @@ impl AppWrapper {
     }
 
     pub fn is_mount_point_known(&self) -> bool {
-        let data_dir = &self.state.data_dir;
-        let mount_point = &self.ui_buffers.config.contents.mount_point;
-        known_mount_points::check(data_dir, mount_point).unwrap_or(true)
+        known_mount_points::check(
+            &self.state.data_dir,
+            &self.ui_buffers.config.contents.mount_point,
+        )
+        .unwrap_or(true)
     }
 
     fn save_config(&mut self) {

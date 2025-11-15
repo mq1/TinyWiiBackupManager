@@ -77,9 +77,9 @@ fn main() -> Result<()> {
     // ----------------
     // Initialize tasks
 
-    app.state.load_titles(); // this also loads games when finished
-    app.state.check_for_update();
-    app.state.load_osc();
+    titles::spawn_get_titles_task(&app.state.task_processor, app.state.data_dir.clone()); // this also loads games when finished
+    updater::spawn_check_update_task(&app.state.task_processor);
+    osc::spawn_load_osc_apps_task(&app.state.task_processor, &app.state.data_dir);
 
     wiitdb::spawn_load_wiitdb_task(
         &app.state.task_processor,
