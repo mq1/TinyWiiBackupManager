@@ -69,7 +69,7 @@ impl Game {
 
         let display_title = titles
             .as_ref()
-            .and_then(|titles| titles.get(&id))
+            .and_then(|titles| titles.get(id))
             .unwrap_or(title)
             .to_string();
 
@@ -130,7 +130,7 @@ impl GameID for [u8; 6] {
     }
 
     fn get_region_display(&self) -> &'static str {
-        match &self[3] {
+        match self[3] {
             b'A' => "System Wii Channels (i.e. Mii Channel)",
             b'B' => "Ufouria: The Saga (NA)",
             b'D' => "Germany",
@@ -159,7 +159,7 @@ impl GameID for [u8; 6] {
     }
 
     fn get_wiitdb_lang(&self) -> &'static str {
-        match &self[3] {
+        match self[3] {
             b'E' | b'N' => "US",
             b'J' => "JA",
             b'K' | b'Q' | b'T' => "KO",
