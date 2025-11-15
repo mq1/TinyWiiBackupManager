@@ -1,7 +1,10 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, http, tasks::BackgroundMessage};
+use crate::{
+    http,
+    tasks::{BackgroundMessage, TaskProcessor},
+};
 use anyhow::{Result, bail};
 use path_slash::PathExt;
 use serde::{Deserialize, Deserializer};
@@ -10,11 +13,11 @@ use std::{fs, path::Path, time::Duration};
 
 const CONTENTS_URL: &str = "https://hbb1.oscwii.org/api/v4/contents";
 
-pub fn spawn_load_osc_apps_task(app: &App) {
-    let cache_path = app.data_dir.join("osc-cache.json");
-    let icons_dir = app.data_dir.join("osc-icons");
+pub fn spawn_load_osc_apps_task(task_processor: &TaskProcessor, data_dir: &Path) {
+    let cache_path = data_dir.join("osc-cache.json");
+    let icons_dir = data_dir.join("osc-icons");
 
-    app.task_processor.spawn(move |msg_sender| {
+    task_processor.spawn(move |msg_sender| {
         msg_sender.send(BackgroundMessage::UpdateStatus(
             "📓 Downloading OSC Meta...".to_string(),
         ))?;
@@ -95,17 +98,26 @@ pub struct OscApp {
     pub search_str: String,
 }
 
+impl OscApp {
+    pub fn open_url(&self) -> Result<()> {
+        let url = format!("https://oscwii.org/library/app/{}", self.meta.slug);
+        open::that(&url).map_err(Into::into)
+    }
+}
+
 #[derive(Debug, Clone, Deserialize, Default)]
 #[serde(default)]
 pub struct OscAppMeta {
-    pub slug: String,
+    slug: String,
+
+    pub assets: Assets,
     pub name: String,
     pub author: String,
-    pub assets: Assets,
     pub release_date: usize,
+    pub version: String,
+
     #[serde(deserialize_with = "deser_size")]
     pub uncompressed_size: Size,
-    pub version: String,
 }
 
 impl OscAppMeta {

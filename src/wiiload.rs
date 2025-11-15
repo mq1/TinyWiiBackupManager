@@ -20,7 +20,7 @@ const WIILOAD_MAGIC: &[u8] = b"HAXX";
 const WIILOAD_TIMEOUT: Duration = Duration::from_secs(10);
 const WIILOAD_CHUNK_SIZE: usize = 4 * 1024;
 
-pub fn spawn_push_file_task(path: PathBuf, wii_ip: String, task_processor: &TaskProcessor) {
+pub fn spawn_push_file_task(task_processor: &TaskProcessor, path: PathBuf, wii_ip: String) {
     task_processor.spawn(move |msg_sender| {
         msg_sender.send(BackgroundMessage::UpdateStatus(
             "📤 Starting Wilload...".to_string(),

@@ -1,10 +1,13 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, ui};
+use crate::{
+    app::{AppState, UiBuffers},
+    ui::{self, UiAction, View},
+};
 use eframe::egui::{self, Vec2};
 
-pub fn update(ctx: &egui::Context, app: &mut App) {
+pub fn update(ctx: &egui::Context, app: &AppState, ui_buffers: &mut UiBuffers) {
     let frame =
         egui::Frame::side_top_panel(&ctx.style()).fill(ctx.style().visuals.extreme_bg_color);
 
@@ -19,84 +22,84 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 .add_sized(
                     Vec2::splat(40.),
                     egui::Button::selectable(
-                        app.current_view == ui::View::Games,
+                        app.current_view == View::Games,
                         egui::RichText::new("🎮").size(26.),
                     ),
                 )
                 .on_hover_text("View your Wii games")
                 .clicked()
             {
-                app.change_view(ctx, ui::View::Games);
+                ui_buffers.action = Some(UiAction::OpenView(View::Games));
             }
 
             if ui
                 .add_sized(
                     Vec2::splat(40.),
                     egui::Button::selectable(
-                        app.current_view == ui::View::HbcApps,
+                        app.current_view == View::HbcApps,
                         egui::RichText::new("★").size(26.),
                     ),
                 )
                 .on_hover_text("View your HBC apps")
                 .clicked()
             {
-                app.change_view(ctx, ui::View::HbcApps);
+                ui_buffers.action = Some(UiAction::OpenView(View::HbcApps));
             }
 
             if ui
                 .add_sized(
                     Vec2::splat(40.),
                     egui::Button::selectable(
-                        app.current_view == ui::View::Osc,
+                        app.current_view == View::Osc,
                         egui::RichText::new("🏪").size(26.),
                     ),
                 )
                 .on_hover_text("Open Shop Channel")
                 .clicked()
             {
-                app.change_view(ctx, ui::View::Osc);
+                ui_buffers.action = Some(UiAction::OpenView(View::Osc));
             }
 
             if ui
                 .add_sized(
                     Vec2::splat(40.),
                     egui::Button::selectable(
-                        app.current_view == ui::View::Wiiload,
+                        app.current_view == View::Wiiload,
                         egui::RichText::new("📮").size(26.),
                     ),
                 )
                 .on_hover_text("Wiiload")
                 .clicked()
             {
-                app.change_view(ctx, ui::View::Wiiload);
+                ui_buffers.action = Some(UiAction::OpenView(View::Wiiload));
             }
 
             if ui
                 .add_sized(
                     Vec2::splat(40.),
                     egui::Button::selectable(
-                        app.current_view == ui::View::Tools,
+                        app.current_view == View::Tools,
                         egui::RichText::new("🔧").size(26.),
                     ),
                 )
                 .on_hover_text("Tools")
                 .clicked()
             {
-                app.change_view(ctx, ui::View::Tools);
+                ui_buffers.action = Some(UiAction::OpenView(View::Tools));
             }
 
             if ui
                 .add_sized(
                     Vec2::splat(40.),
                     egui::Button::selectable(
-                        app.current_view == ui::View::Settings,
+                        app.current_view == View::Settings,
                         egui::RichText::new("⛭").size(26.),
                     ),
                 )
                 .on_hover_text("Settings")
                 .clicked()
             {
-                app.change_view(ctx, ui::View::Settings);
+                ui_buffers.action = Some(UiAction::OpenView(View::Settings));
             }
 
             ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
@@ -110,7 +113,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     .on_hover_text(format!("{} Info", env!("CARGO_PKG_NAME")))
                     .clicked()
                 {
-                    app.current_modal = ui::Modal::Info;
+                    ui_buffers.action = Some(UiAction::OpenModal(ui::Modal::Info));
                 }
 
                 if ui
@@ -121,7 +124,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     .on_hover_text("Select Drive/Mount Point")
                     .clicked()
                 {
-                    app.choose_mount_point.pick_directory();
+                    ui_buffers.action = Some(UiAction::OpenChooseMountPointDialog);
                 }
 
                 if let Some(update_info) = &app.update_info
@@ -130,11 +133,10 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                             Vec2::splat(40.),
                             egui::Button::new(egui::RichText::new("❕").size(26.)),
                         )
-                        .on_hover_text(update_info.to_string())
+                        .on_hover_text(&update_info.ui_text)
                         .clicked()
-                    && let Err(e) = update_info.open_url()
                 {
-                    app.notifications.show_err(e);
+                    ui_buffers.action = Some(UiAction::OpenUpdateUrl);
                 }
             });
         });

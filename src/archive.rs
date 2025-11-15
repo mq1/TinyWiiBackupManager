@@ -2,13 +2,12 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    app::App,
     config::ArchiveFormat,
     convert::{get_disc_opts, get_process_opts},
     overflow_reader::{OverflowReader, get_main_file, get_overflow_file},
-    tasks::BackgroundMessage,
+    tasks::{BackgroundMessage, TaskProcessor},
 };
-use anyhow::{anyhow, bail};
+use anyhow::{Result, anyhow, bail};
 use nod::{
     common::{Compression, Format},
     read::DiscReader,
@@ -20,20 +19,24 @@ use std::{
     path::PathBuf,
 };
 
-pub fn spawn_archive_game_task(app: &App, game_dir: PathBuf, out_path: PathBuf) {
-    app.task_processor.spawn(move |msg_sender| {
+pub fn spawn_archive_game_task(
+    task_processor: &TaskProcessor,
+    game_dir: PathBuf,
+    out_path: PathBuf,
+) -> Result<ArchiveFormat> {
+    let archive_format = match out_path.extension() {
+        Some(ext) => match ext.to_str() {
+            Some("rvz") => ArchiveFormat::Rvz,
+            Some("iso") => ArchiveFormat::Iso,
+            _ => bail!("Unsupported archive format"),
+        },
+        None => bail!("Unsupported archive format"),
+    };
+
+    task_processor.spawn(move |msg_sender| {
         msg_sender.send(BackgroundMessage::UpdateStatus(
             "📦 Archiving game...".to_string(),
         ))?;
-
-        let archive_format = match out_path.extension() {
-            Some(ext) => match ext.to_str() {
-                Some("rvz") => ArchiveFormat::Rvz,
-                Some("iso") => ArchiveFormat::Iso,
-                _ => bail!("Unsupported archive format"),
-            },
-            None => bail!("Unsupported archive format"),
-        };
 
         let format_opts = match archive_format {
             ArchiveFormat::Rvz => FormatOptions {
@@ -47,8 +50,6 @@ pub fn spawn_archive_game_task(app: &App, game_dir: PathBuf, out_path: PathBuf) 
                 block_size: Format::Iso.default_block_size(),
             },
         };
-
-        msg_sender.send(BackgroundMessage::SetArchiveFormat(archive_format))?;
 
         let path = get_main_file(&game_dir).ok_or(anyhow!("No disc found"))?;
         let overflow = get_overflow_file(&path);
@@ -97,4 +98,6 @@ pub fn spawn_archive_game_task(app: &App, game_dir: PathBuf, out_path: PathBuf) 
 
         Ok(())
     });
+
+    Ok(archive_format)
 }

@@ -29,7 +29,7 @@ impl Config {
             .to_path_buf();
 
         // Invalidate invalid mount_point
-        if !matches!(fs::exists(&contents.mount_point), Ok(true)) {
+        if !contents.mount_point.exists() {
             contents.mount_point = PathBuf::new();
         }
 
@@ -118,8 +118,8 @@ where
     })
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[serde(rename_all = "snake_case")]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "lowercase")]
 pub enum ArchiveFormat {
     Rvz,
     Iso,
@@ -151,21 +151,21 @@ pub enum SortBy {
     SizeDescending,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum ViewAs {
     Grid,
     List,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Copy)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum WiiOutputFormat {
     Wbfs,
     Iso,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Copy)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum GcOutputFormat {
     Iso,
