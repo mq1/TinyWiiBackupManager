@@ -24,7 +24,11 @@ use eframe::egui;
 use egui_file_dialog::FileDialog;
 use size::Size;
 use smallvec::SmallVec;
-use std::{fs, path::PathBuf, thread};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+    thread,
+};
 
 pub struct AppWrapper {
     pub state: AppState,
@@ -34,9 +38,10 @@ pub struct AppWrapper {
 impl AppWrapper {
     pub fn new(data_dir: PathBuf) -> Self {
         let config = Config::load(&data_dir);
+        let default_archive_format = config.contents.archive_format;
 
         Self {
-            state: AppState::new(data_dir, config.clone()),
+            state: AppState::new(data_dir, default_archive_format),
             ui_buffers: UiBuffers::new(config),
         }
     }
@@ -60,7 +65,6 @@ pub struct AppState {
     pub filtered_hbc_apps_size: Size,
     pub hbc_apps: Vec<HbcApp>,
     pub current_view: ui::View,
-    pub config: Config,
     pub notifications: Notifications,
     pub update_info: Option<UpdateInfo>,
     pub status: String,
@@ -71,10 +75,11 @@ pub struct AppState {
     pub choose_file_to_push: FileDialog,
     pub choose_archive_path: FileDialog,
     pub archiving_game_i: u16,
+    pub prev_sort_by: SortBy,
 }
 
 impl AppState {
-    pub fn new(data_dir: PathBuf, config: Config) -> Self {
+    pub fn new(data_dir: PathBuf, default_archive_format: ArchiveFormat) -> Self {
         let choose_mount_point = FileDialog::new().as_modal(true);
 
         let choose_games = FileDialog::new()
@@ -99,12 +104,11 @@ impl AppState {
             .as_modal(true)
             .add_save_extension(ArchiveFormat::Rvz.as_str(), ArchiveFormat::Rvz.extension())
             .add_save_extension(ArchiveFormat::Iso.as_str(), ArchiveFormat::Iso.extension())
-            .default_save_extension(config.contents.archive_format.as_str());
+            .default_save_extension(default_archive_format.as_str());
 
         Self {
             data_dir,
             current_view: ui::View::Games,
-            config,
             update_info: None,
             games: Vec::new(),
             filtered_games: SmallVec::new(),
@@ -130,6 +134,7 @@ impl AppState {
             choose_file_to_push,
             choose_archive_path,
             archiving_game_i: u16::MAX, // will be set later, panics if it's not
+            prev_sort_by: SortBy::None,
         }
     }
 
@@ -213,35 +218,35 @@ impl AppState {
         }
     }
 
-    pub fn refresh_games(&mut self, filter: &str) {
-        self.games = games::list(&self.config.contents.mount_point, &self.titles);
-        let sort_by = self.config.contents.sort_by;
+    pub fn refresh_games(&mut self, mount_point: &Path, sort_by: SortBy, filter: &str) {
+        self.games = games::list(mount_point, &self.titles);
 
         games::sort(&mut self.games, SortBy::None, sort_by);
         self.update_filtered_games(filter);
 
         // Make sure that all games have covers
         let task_processor = &self.task_processor;
-        let mount_point = self.config.contents.mount_point.clone();
+        let mount_point = mount_point.to_path_buf();
         let games = self.games.clone().into_boxed_slice();
         covers::spawn_download_covers_task(task_processor, mount_point, games);
     }
 
-    pub fn refresh_hbc_apps(&mut self, filter: &str) {
-        self.hbc_apps = hbc_apps::list(&self.config.contents.mount_point);
-        let sort_by = self.config.contents.sort_by;
+    pub fn refresh_hbc_apps(&mut self, mount_point: &Path, sort_by: SortBy, filter: &str) {
+        self.hbc_apps = hbc_apps::list(mount_point);
 
         hbc_apps::sort(&mut self.hbc_apps, SortBy::None, sort_by);
         self.update_filtered_hbc_apps(filter);
     }
 
-    pub fn apply_sorting(&mut self, sort_by: SortBy, games_filter: &str, hbc_apps_filter: &str) {
-        let prev_sort_by = self.config.contents.sort_by;
-
+    pub fn apply_sorting(
+        &mut self,
+        prev_sort_by: SortBy,
+        sort_by: SortBy,
+        games_filter: &str,
+        hbc_apps_filter: &str,
+    ) {
         games::sort(&mut self.games, prev_sort_by, sort_by);
         hbc_apps::sort(&mut self.hbc_apps, prev_sort_by, sort_by);
-
-        self.config.contents.sort_by = sort_by;
 
         self.update_filtered_games(games_filter);
         self.update_filtered_hbc_apps(hbc_apps_filter);
@@ -288,24 +293,6 @@ impl AppState {
         osc::spawn_load_osc_apps_task(task_processor, data_dir);
     }
 
-    pub fn is_mount_point_known(&self) -> bool {
-        let data_dir = &self.data_dir;
-        let mount_point = &self.config.contents.mount_point;
-        known_mount_points::check(data_dir, mount_point).unwrap_or(true)
-    }
-
-    fn save_config(&mut self) {
-        if let Err(e) = self.config.write() {
-            self.notifications.show_err(e);
-        }
-    }
-
-    pub fn load_wiitdb(&mut self) {
-        let task_processor = &self.task_processor;
-        let mount_point = self.config.contents.mount_point.clone();
-        wiitdb::spawn_load_wiitdb_task(task_processor, mount_point);
-    }
-
     pub fn check_for_update(&self) {
         let task_processor = &self.task_processor;
         updater::spawn_check_update_task(task_processor);
@@ -349,8 +336,8 @@ impl AppWrapper {
             "{} • {} • {} ({})",
             env!("CARGO_PKG_NAME"),
             self.state.current_view.title(),
-            self.state.config.get_drive_path_str(),
-            util::get_disk_usage(&self.state.config.contents.mount_point)
+            self.ui_buffers.config.get_drive_path_str(),
+            util::get_disk_usage(&self.ui_buffers.config.contents.mount_point)
         );
 
         ctx.send_viewport_cmd(egui::ViewportCommand::Title(title));
@@ -360,6 +347,24 @@ impl AppWrapper {
         for osc_app in &self.state.osc_apps {
             ctx.forget_image(&osc_app.icon_uri);
         }
+    }
+
+    pub fn is_mount_point_known(&self) -> bool {
+        let data_dir = &self.state.data_dir;
+        let mount_point = &self.ui_buffers.config.contents.mount_point;
+        known_mount_points::check(data_dir, mount_point).unwrap_or(true)
+    }
+
+    fn save_config(&mut self) {
+        if let Err(e) = self.ui_buffers.config.write() {
+            self.state.notifications.show_err(e);
+        }
+    }
+
+    pub fn load_wiitdb(&mut self) {
+        let task_processor = &self.state.task_processor;
+        let mount_point = self.ui_buffers.config.contents.mount_point.clone();
+        wiitdb::spawn_load_wiitdb_task(task_processor, mount_point);
     }
 
     // Process files selected in FileDialogs
@@ -389,32 +394,37 @@ impl AppWrapper {
         }
 
         if let Some(path) = self.state.choose_mount_point.take_picked() {
-            self.state.config.contents.mount_point = path;
+            self.ui_buffers.config.contents.mount_point = path;
 
-            if !self.state.is_mount_point_known() {
+            if !self.is_mount_point_known() {
                 self.state.notifications.show_info_no_duration("New Drive detected, a path normalization run is recommended\nYou can find it in the 🔧 Tools page");
             }
 
-            let games_filter = &self.ui_buffers.games_filter;
-            self.state.refresh_games(games_filter);
-            let hbc_apps_filter = &self.ui_buffers.hbc_apps_filter;
-            self.state.refresh_hbc_apps(hbc_apps_filter);
+            let mount_point = &self.ui_buffers.config.contents.mount_point;
+            let sort_by = self.ui_buffers.config.contents.sort_by;
+
+            self.state
+                .refresh_games(mount_point, sort_by, &self.ui_buffers.games_filter);
+            self.state
+                .refresh_hbc_apps(mount_point, sort_by, &self.ui_buffers.hbc_apps_filter);
+
             self.update_title(ctx);
-            self.state.save_config();
+            self.save_config();
         }
 
         if let Some(out_path) = self.state.choose_archive_path.take_picked() {
             let i = self.state.archiving_game_i;
 
             let game = &self.state.games[i as usize];
-            let game_dir = game.path.clone();
 
-            match archive::spawn_archive_game_task(&self.state.task_processor, game_dir, out_path) {
+            match archive::spawn_archive_game_task(
+                &self.state.task_processor,
+                game.path.clone(),
+                out_path,
+            ) {
                 Ok(format) => {
-                    self.state.config.contents.archive_format = format;
-                    if let Err(e) = self.state.config.write() {
-                        self.state.notifications.show_err(e);
-                    }
+                    self.ui_buffers.config.contents.archive_format = format;
+                    self.save_config();
                 }
                 Err(e) => self.state.notifications.show_err(e),
             }
@@ -422,18 +432,18 @@ impl AppWrapper {
 
         if let Some(path) = self.state.choose_file_to_push.take_picked() {
             let wii_ip = self.ui_buffers.config.contents.wii_ip.clone();
-            let task_processor = &self.state.task_processor;
-            wiiload::spawn_push_file_task(task_processor, path, wii_ip.clone());
+            wiiload::spawn_push_file_task(&self.state.task_processor, path, wii_ip.clone());
 
-            self.state.config.contents.wii_ip = wii_ip;
-            self.state.save_config();
+            self.ui_buffers.config.contents.wii_ip = wii_ip;
+            self.save_config();
         }
 
         if let Some(paths) = self.state.choose_hbc_apps.take_picked_multiple() {
-            let task_processor = &self.state.task_processor;
-            let config_contents = &self.state.config.contents;
-            let paths = paths.into_boxed_slice();
-            hbc_apps::spawn_install_apps_task(task_processor, config_contents, paths);
+            hbc_apps::spawn_install_apps_task(
+                &self.state.task_processor,
+                &self.ui_buffers.config.contents,
+                paths.into_boxed_slice(),
+            );
         }
     }
 
@@ -479,7 +489,7 @@ impl AppWrapper {
                 }
                 UiAction::RunNormalizePaths => {
                     if let Err(e) =
-                        dir_layout::normalize_paths(&self.state.config.contents.mount_point)
+                        dir_layout::normalize_paths(&self.ui_buffers.config.contents.mount_point)
                     {
                         self.state.notifications.show_err(e);
                     } else {
@@ -489,7 +499,9 @@ impl AppWrapper {
                     }
                 }
                 UiAction::RunDotClean => {
-                    if let Err(e) = util::run_dot_clean(&self.state.config.contents.mount_point) {
+                    if let Err(e) =
+                        util::run_dot_clean(&self.ui_buffers.config.contents.mount_point)
+                    {
                         self.state.notifications.show_err(e);
                     } else {
                         self.state
@@ -498,8 +510,7 @@ impl AppWrapper {
                     }
                 }
                 UiAction::WriteConfig => {
-                    self.state.config = self.ui_buffers.config.clone();
-                    self.state.save_config();
+                    self.save_config();
                 }
                 UiAction::OpenOscUrl(i) => {
                     if let Err(e) = self.state.osc_apps[i as usize].open_url() {
@@ -544,8 +555,12 @@ impl AppWrapper {
                     self.state.choose_file_to_push.pick_file();
                 }
                 UiAction::TriggerRefreshGames => {
-                    let filter = &self.ui_buffers.games_filter;
-                    self.state.refresh_games(filter);
+                    self.state.refresh_games(
+                        &self.ui_buffers.config.contents.mount_point,
+                        self.ui_buffers.config.contents.sort_by,
+                        &self.ui_buffers.games_filter,
+                    );
+
                     self.update_title(ctx);
                 }
                 UiAction::OpenChooseMountPointDialog => {
@@ -559,13 +574,17 @@ impl AppWrapper {
                     self.state.choose_games.pick_multiple();
                 }
                 UiAction::ApplySorting => {
+                    let sort_by = self.ui_buffers.config.contents.sort_by;
+
                     self.state.apply_sorting(
-                        self.ui_buffers.config.contents.sort_by,
+                        self.state.prev_sort_by,
+                        sort_by,
                         &self.ui_buffers.games_filter,
                         &self.ui_buffers.hbc_apps_filter,
                     );
 
-                    self.state.save_config();
+                    self.state.prev_sort_by = sort_by;
+                    self.save_config();
                 }
                 UiAction::OpenHbcAppDir(i) => {
                     if let Err(e) = self.state.hbc_apps[i as usize].open_dir() {
@@ -590,8 +609,12 @@ impl AppWrapper {
                     self.state.choose_hbc_apps.pick_multiple();
                 }
                 UiAction::TriggerRefreshHbcApps => {
-                    let filter = &self.ui_buffers.hbc_apps_filter;
-                    self.state.refresh_hbc_apps(filter);
+                    self.state.refresh_hbc_apps(
+                        &self.ui_buffers.config.contents.mount_point,
+                        self.ui_buffers.config.contents.sort_by,
+                        &self.ui_buffers.hbc_apps_filter,
+                    );
+
                     self.update_title(ctx);
                 }
             }
@@ -621,13 +644,21 @@ impl AppWrapper {
                     ctx.forget_image(&uri);
                 }
                 BackgroundMessage::TriggerRefreshGames => {
-                    let filter = &self.ui_buffers.games_filter;
-                    self.state.refresh_games(filter);
+                    self.state.refresh_games(
+                        &self.ui_buffers.config.contents.mount_point,
+                        self.ui_buffers.config.contents.sort_by,
+                        &self.ui_buffers.games_filter,
+                    );
+
                     self.update_title(ctx);
                 }
                 BackgroundMessage::TriggerRefreshHbcApps => {
-                    let filter = &self.ui_buffers.hbc_apps_filter;
-                    self.state.refresh_hbc_apps(filter);
+                    self.state.refresh_hbc_apps(
+                        &self.ui_buffers.config.contents.mount_point,
+                        self.ui_buffers.config.contents.sort_by,
+                        &self.ui_buffers.hbc_apps_filter,
+                    );
+
                     self.update_title(ctx);
                 }
                 BackgroundMessage::GotNewVersion(version) => {
@@ -639,8 +670,13 @@ impl AppWrapper {
                 }
                 BackgroundMessage::GotTitles(titles) => {
                     self.state.titles = Some(titles);
-                    let filter = &self.ui_buffers.games_filter;
-                    self.state.refresh_games(filter);
+
+                    self.state.refresh_games(
+                        &self.ui_buffers.config.contents.mount_point,
+                        self.ui_buffers.config.contents.sort_by,
+                        &self.ui_buffers.games_filter,
+                    );
+
                     self.update_title(ctx);
                 }
                 BackgroundMessage::GotOscApps(osc_apps) => {

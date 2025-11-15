@@ -10,7 +10,13 @@ use eframe::egui::{self, Vec2};
 
 pub fn update(ctx: &egui::Context, app_state: &AppState, ui_buffers: &mut UiBuffers) {
     egui::CentralPanel::default().show(ctx, |ui| {
-        if app_state.config.contents.mount_point.as_os_str().is_empty() {
+        if ui_buffers
+            .config
+            .contents
+            .mount_point
+            .as_os_str()
+            .is_empty()
+        {
             ui.heading("Click on 🖴 to select a Drive/Mount Point");
             return;
         }
@@ -18,14 +24,14 @@ pub fn update(ctx: &egui::Context, app_state: &AppState, ui_buffers: &mut UiBuff
         update_top_bar(ui, app_state, ui_buffers);
         ui.add_space(10.);
 
-        match app_state.config.contents.view_as {
+        match ui_buffers.config.contents.view_as {
             ViewAs::Grid => hbc_apps_grid::update(ui, app_state, ui_buffers),
             ViewAs::List => hbc_apps_list::update(ui, app_state, ui_buffers),
         }
     });
 }
 
-fn update_top_bar(ui: &mut egui::Ui, app_state: &AppState, ui_buffers: &mut UiBuffers) {
+fn update_top_bar(ui: &mut egui::Ui, _app_state: &AppState, ui_buffers: &mut UiBuffers) {
     ui.horizontal(move |ui| {
         let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
         group.show(ui, |ui| {
@@ -73,7 +79,7 @@ fn update_top_bar(ui: &mut egui::Ui, app_state: &AppState, ui_buffers: &mut UiBu
             let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
             group.show(ui, |ui| {
                 if ui
-                    .selectable_label(app_state.config.contents.view_as == ViewAs::List, "☰")
+                    .selectable_label(ui_buffers.config.contents.view_as == ViewAs::List, "☰")
                     .on_hover_text("View as List")
                     .clicked()
                 {
@@ -82,7 +88,7 @@ fn update_top_bar(ui: &mut egui::Ui, app_state: &AppState, ui_buffers: &mut UiBu
                 }
 
                 if ui
-                    .selectable_label(app_state.config.contents.view_as == ViewAs::Grid, "")
+                    .selectable_label(ui_buffers.config.contents.view_as == ViewAs::Grid, "")
                     .on_hover_text("View as Grid")
                     .clicked()
                 {
@@ -96,10 +102,10 @@ fn update_top_bar(ui: &mut egui::Ui, app_state: &AppState, ui_buffers: &mut UiBu
                 if ui
                     .selectable_label(
                         matches!(
-                            app_state.config.contents.sort_by,
+                            ui_buffers.config.contents.sort_by,
                             SortBy::SizeAscending | SortBy::SizeDescending
                         ),
-                        if app_state.config.contents.sort_by == SortBy::SizeDescending {
+                        if ui_buffers.config.contents.sort_by == SortBy::SizeDescending {
                             "⚖⏷"
                         } else {
                             "⚖⏶"
@@ -108,7 +114,7 @@ fn update_top_bar(ui: &mut egui::Ui, app_state: &AppState, ui_buffers: &mut UiBu
                     .on_hover_text("Sort by size")
                     .clicked()
                 {
-                    let sort_by = if app_state.config.contents.sort_by == SortBy::SizeAscending {
+                    let sort_by = if ui_buffers.config.contents.sort_by == SortBy::SizeAscending {
                         SortBy::SizeDescending
                     } else {
                         SortBy::SizeAscending
@@ -121,10 +127,10 @@ fn update_top_bar(ui: &mut egui::Ui, app_state: &AppState, ui_buffers: &mut UiBu
                 if ui
                     .selectable_label(
                         matches!(
-                            app_state.config.contents.sort_by,
+                            ui_buffers.config.contents.sort_by,
                             SortBy::NameAscending | SortBy::NameDescending
                         ),
-                        if app_state.config.contents.sort_by == SortBy::NameDescending {
+                        if ui_buffers.config.contents.sort_by == SortBy::NameDescending {
                             "🗛⏷"
                         } else {
                             "🗛⏶"
@@ -133,7 +139,7 @@ fn update_top_bar(ui: &mut egui::Ui, app_state: &AppState, ui_buffers: &mut UiBu
                     .on_hover_text("Sort by name")
                     .clicked()
                 {
-                    let sort_by = if app_state.config.contents.sort_by == SortBy::NameAscending {
+                    let sort_by = if ui_buffers.config.contents.sort_by == SortBy::NameAscending {
                         SortBy::NameDescending
                     } else {
                         SortBy::NameAscending

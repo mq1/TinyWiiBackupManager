@@ -22,14 +22,14 @@ pub fn update(ctx: &egui::Context, app_state: &AppState, ui_buffers: &mut UiBuff
         update_top_bar(ui, app_state, ui_buffers);
         ui.add_space(10.);
 
-        match app_state.config.contents.view_as {
+        match ui_buffers.config.contents.view_as {
             ViewAs::Grid => osc_grid::update(ui, app_state, ui_buffers),
             ViewAs::List => osc_list::update(ui, app_state, ui_buffers),
         }
     });
 }
 
-fn update_top_bar(ui: &mut egui::Ui, app_state: &AppState, ui_buffers: &mut UiBuffers) {
+fn update_top_bar(ui: &mut egui::Ui, _app_state: &AppState, ui_buffers: &mut UiBuffers) {
     ui.horizontal(move |ui| {
         let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
         group.show(ui, |ui| {
@@ -66,7 +66,7 @@ fn update_top_bar(ui: &mut egui::Ui, app_state: &AppState, ui_buffers: &mut UiBu
             let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
             group.show(ui, |ui| {
                 if ui
-                    .selectable_label(app_state.config.contents.view_as == ViewAs::List, "☰")
+                    .selectable_label(ui_buffers.config.contents.view_as == ViewAs::List, "☰")
                     .on_hover_text("View as List")
                     .clicked()
                 {
@@ -75,7 +75,7 @@ fn update_top_bar(ui: &mut egui::Ui, app_state: &AppState, ui_buffers: &mut UiBu
                 }
 
                 if ui
-                    .selectable_label(app_state.config.contents.view_as == ViewAs::Grid, "")
+                    .selectable_label(ui_buffers.config.contents.view_as == ViewAs::Grid, "")
                     .on_hover_text("View as Grid")
                     .clicked()
                 {
