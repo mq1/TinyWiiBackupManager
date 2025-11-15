@@ -308,7 +308,7 @@ impl AppState {
 
 pub struct UiBuffers {
     pub action: Option<UiAction>,
-    pub config: Config, // this is a mirror
+    pub config: Config,
     pub games_filter: String,
     pub hbc_apps_filter: String,
     pub osc_apps_filter: String,
