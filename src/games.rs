@@ -11,9 +11,9 @@ use size::Size;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-pub fn list(mount_point: &Path, titles: &Option<Titles>) -> Box<[Game]> {
+pub fn list(mount_point: &Path, titles: &Option<Titles>) -> Vec<Game> {
     if mount_point.as_os_str().is_empty() {
-        return Box::new([]);
+        return vec![];
     }
 
     let mut games = Vec::new();
@@ -26,7 +26,7 @@ pub fn list(mount_point: &Path, titles: &Option<Titles>) -> Box<[Game]> {
         }
     }
 
-    games.into_boxed_slice()
+    games
 }
 
 impl Game {

@@ -1,9 +1,10 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{config::ArchiveFormat, osc::OscApp, titles::Titles, updater::UpdateInfo};
+use crate::{osc::OscApp, titles::Titles, wiitdb};
 use anyhow::Result;
 use crossbeam_channel::{Receiver, Sender, unbounded};
+use semver::Version;
 use std::thread;
 
 pub type BoxedTask = Box<dyn FnOnce(&Sender<BackgroundMessage>) -> Result<()> + Send>;
@@ -62,8 +63,8 @@ pub enum BackgroundMessage {
     TriggerRefreshImage(String),
     TriggerRefreshGames,
     TriggerRefreshHbcApps,
-    GotUpdateInfo(UpdateInfo),
+    GotNewVersion(Version),
     GotTitles(Titles),
     GotOscApps(Box<[OscApp]>),
-    SetArchiveFormat(ArchiveFormat),
+    GotWiitdb(wiitdb::Datafile),
 }
