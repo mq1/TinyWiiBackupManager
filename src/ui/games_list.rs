@@ -1,11 +1,15 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, disc_info::DiscInfo, ui, wiitdb};
+use crate::{
+    app::{AppState, UiBuffers},
+    disc_info::DiscInfo,
+    ui::{self, UiAction},
+};
 use eframe::egui;
 use egui_extras::{Column, TableBuilder};
 
-pub fn update(ui: &mut egui::Ui, app: &mut App) {
+pub fn update(ui: &mut egui::Ui, app_state: &AppState, ui_buffers: &mut UiBuffers) {
     TableBuilder::new(ui)
         .striped(true)
         .resizable(true)
@@ -30,15 +34,15 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
         .body(|mut body| {
             body.ui_mut().style_mut().spacing.item_spacing.y = 0.0;
 
-            let iterator = match (app.show_wii, app.show_gc) {
-                (true, true) => app.filtered_games.iter().copied(),
-                (true, false) => app.filtered_wii_games.iter().copied(),
-                (false, true) => app.filtered_gc_games.iter().copied(),
+            let iterator = match (ui_buffers.show_wii, ui_buffers.show_gc) {
+                (true, true) => app_state.filtered_games.iter().copied(),
+                (true, false) => app_state.filtered_wii_games.iter().copied(),
+                (false, true) => app_state.filtered_gc_games.iter().copied(),
                 (false, false) => [].iter().copied(),
             };
 
             for game_i in iterator {
-                let game = &app.games[game_i as usize];
+                let game = &app_state.games[game_i as usize];
 
                 body.row(26., |mut row| {
                     row.col(|ui| {
@@ -70,28 +74,13 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                                 .on_hover_text("Show Game Information")
                                 .clicked()
                             {
-                                let disc_info =
-                                    DiscInfo::from_game_dir(&game.path).map_err(|e| e.to_string());
+                                let game = &app_state.games[game_i as usize];
+                                let disc_info = Box::new(DiscInfo::from_game_dir(&game.path).ok());
+                                let game_info = Box::new(app_state.get_game_info(game.id));
 
-                                if app.wiitdb.is_none() {
-                                    match wiitdb::Datafile::load(&app.config.contents.mount_point) {
-                                        Ok(new) => {
-                                            app.wiitdb = Some(new);
-                                        }
-                                        Err(e) => {
-                                            app.notifications.show_err(e);
-                                        }
-                                    }
-                                }
-
-                                let game_info = app
-                                    .wiitdb
-                                    .as_ref()
-                                    .and_then(|wiitdb| wiitdb.get_game_info(&game.id).cloned())
-                                    .ok_or("Game not found in wiitdb".to_string());
-
-                                app.current_game_info = Some((game.clone(), disc_info, game_info));
-                                app.current_modal = ui::Modal::GameInfo;
+                                ui_buffers.action = Some(UiAction::OpenModal(ui::Modal::GameInfo(
+                                    game_i, disc_info, game_info,
+                                )));
                             }
 
                             // Archive button
@@ -100,13 +89,13 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                                 .on_hover_text("Archive Game to RVZ or ISO")
                                 .clicked()
                             {
-                                app.archiving_game = Some(game.path.clone());
-                                app.choose_archive_path.save_file();
+                                ui_buffers.action = Some(UiAction::OpenArchiveGameDialog(game_i));
                             }
 
                             // Delete button
                             if ui.button("🗑 Delete").on_hover_text("Delete Game").clicked() {
-                                app.current_modal = ui::Modal::DeleteGame(game_i);
+                                ui_buffers.action =
+                                    Some(UiAction::OpenModal(ui::Modal::DeleteGame(game_i)));
                             }
                         });
                         ui.separator();

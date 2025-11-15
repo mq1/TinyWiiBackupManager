@@ -2,34 +2,34 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    app::App,
+    app::{AppState, UiBuffers},
     config::ViewAs,
-    ui::{osc_grid, osc_list},
+    ui::{UiAction, osc_grid, osc_list},
 };
 use eframe::egui;
 
-pub fn update(ctx: &egui::Context, app: &mut App) {
+pub fn update(ctx: &egui::Context, app_state: &AppState, ui_buffers: &mut UiBuffers) {
     egui::CentralPanel::default().show(ctx, |ui| {
-        if app.osc_apps.is_empty() {
+        if app_state.osc_apps.is_empty() {
             ui.heading("Loading OSC Apps...");
             return;
         }
 
-        if app.downloading_osc_icons.is_none() {
-            app.download_osc_icons();
+        if app_state.downloading_osc_icons.is_none() {
+            ui_buffers.action = Some(UiAction::TriggerDownloadOscIcons);
         }
 
-        view_top_bar(ui, app);
+        update_top_bar(ui, app_state, ui_buffers);
         ui.add_space(10.);
 
-        match app.config.contents.view_as {
-            ViewAs::Grid => osc_grid::update(ui, app),
-            ViewAs::List => osc_list::update(ui, app),
+        match ui_buffers.config.contents.view_as {
+            ViewAs::Grid => osc_grid::update(ui, app_state, ui_buffers),
+            ViewAs::List => osc_list::update(ui, app_state, ui_buffers),
         }
     });
 }
 
-fn view_top_bar(ui: &mut egui::Ui, app: &mut App) {
+fn update_top_bar(ui: &mut egui::Ui, _app_state: &AppState, ui_buffers: &mut UiBuffers) {
     ui.horizontal(move |ui| {
         let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
         group.show(ui, |ui| {
@@ -39,13 +39,13 @@ fn view_top_bar(ui: &mut egui::Ui, app: &mut App) {
 
             if ui
                 .add(
-                    egui::TextEdit::singleline(&mut app.osc_app_search)
+                    egui::TextEdit::singleline(&mut ui_buffers.osc_apps_filter)
                         .desired_width(200.)
                         .hint_text("Search by Name"),
                 )
                 .changed()
             {
-                app.update_filtered_osc_apps();
+                ui_buffers.action = Some(UiAction::ApplyFilterOscApps);
             }
         });
 
@@ -53,7 +53,7 @@ fn view_top_bar(ui: &mut egui::Ui, app: &mut App) {
             let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
             group.show(ui, |ui| {
                 ui.add(
-                    egui::TextEdit::singleline(&mut app.config.contents.wii_ip)
+                    egui::TextEdit::singleline(&mut ui_buffers.config.contents.wii_ip)
                         .desired_width(100.)
                         .hint_text("Wii IP"),
                 );
@@ -66,25 +66,21 @@ fn view_top_bar(ui: &mut egui::Ui, app: &mut App) {
             let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
             group.show(ui, |ui| {
                 if ui
-                    .selectable_label(app.config.contents.view_as == ViewAs::List, "☰")
+                    .selectable_label(ui_buffers.config.contents.view_as == ViewAs::List, "☰")
                     .on_hover_text("View as List")
                     .clicked()
                 {
-                    app.config.contents.view_as = ViewAs::List;
-                    if let Err(e) = app.config.write() {
-                        app.notifications.show_err(e);
-                    }
+                    ui_buffers.config.contents.view_as = ViewAs::List;
+                    ui_buffers.action = Some(UiAction::WriteConfig);
                 }
 
                 if ui
-                    .selectable_label(app.config.contents.view_as == ViewAs::Grid, "")
+                    .selectable_label(ui_buffers.config.contents.view_as == ViewAs::Grid, "")
                     .on_hover_text("View as Grid")
                     .clicked()
                 {
-                    app.config.contents.view_as = ViewAs::Grid;
-                    if let Err(e) = app.config.write() {
-                        app.notifications.show_err(e);
-                    }
+                    ui_buffers.config.contents.view_as = ViewAs::Grid;
+                    ui_buffers.action = Some(UiAction::WriteConfig);
                 }
             });
         });
