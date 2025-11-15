@@ -24,6 +24,7 @@ pub fn update(ctx: &egui::Context, app_state: &AppState, ui_buffers: &mut UiBuff
             ui.horizontal(|ui| {
                 if ui.button("📥").clicked() {
                     wiitdb::spawn_download_task(&app_state.task_processor, ui_buffers.config.contents.mount_point.clone());
+                    wiitdb::spawn_load_wiitdb_task(&app_state.task_processor, ui_buffers.config.contents.mount_point.clone());
                 }
 
                 ui.label("Download wiitdb.xml (overwrites existing one)");

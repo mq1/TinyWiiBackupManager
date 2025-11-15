@@ -282,20 +282,15 @@ impl AppState {
     }
 
     pub fn load_titles(&mut self) {
-        let task_processor = &self.task_processor;
-        let data_dir = self.data_dir.clone();
-        titles::spawn_get_titles_task(task_processor, data_dir);
+        titles::spawn_get_titles_task(&self.task_processor, self.data_dir.clone());
     }
 
     pub fn load_osc(&mut self) {
-        let task_processor = &self.task_processor;
-        let data_dir = &self.data_dir;
-        osc::spawn_load_osc_apps_task(task_processor, data_dir);
+        osc::spawn_load_osc_apps_task(&self.task_processor, &self.data_dir);
     }
 
     pub fn check_for_update(&self) {
-        let task_processor = &self.task_processor;
-        updater::spawn_check_update_task(task_processor);
+        updater::spawn_check_update_task(&self.task_processor);
     }
 
     pub fn get_game_info(&self, game_id: [u8; 6]) -> Option<GameInfo> {
@@ -359,12 +354,6 @@ impl AppWrapper {
         if let Err(e) = self.ui_buffers.config.write() {
             self.state.notifications.show_err(e);
         }
-    }
-
-    pub fn load_wiitdb(&mut self) {
-        let task_processor = &self.state.task_processor;
-        let mount_point = self.ui_buffers.config.contents.mount_point.clone();
-        wiitdb::spawn_load_wiitdb_task(task_processor, mount_point);
     }
 
     // Process files selected in FileDialogs
