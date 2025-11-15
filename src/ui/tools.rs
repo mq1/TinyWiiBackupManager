@@ -1,12 +1,17 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, banners, covers, dir_layout, txtcodes, util, wiitdb};
+use crate::{
+    app::{AppState, UiBuffers},
+    banners, covers, txtcodes,
+    ui::UiAction,
+    wiitdb,
+};
 use eframe::egui;
 
-pub fn update(ctx: &egui::Context, app: &mut App) {
+pub fn update(ctx: &egui::Context, app_state: &AppState, ui_buffers: &mut UiBuffers) {
     egui::CentralPanel::default().show(ctx, |ui| {
-        if app.config.contents.mount_point.as_os_str().is_empty() {
+        if app_state.config.contents.mount_point.as_os_str().is_empty() {
             ui.heading("Click on 🖴 to select a Drive/Mount Point");
             return;
         }
@@ -18,7 +23,9 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
             ui.horizontal(|ui| {
                 if ui.button("📥").clicked() {
-                    wiitdb::spawn_download_task(app);
+                    let task_processor = &app_state.task_processor;
+                    let mount_point = app_state.config.contents.mount_point.clone();
+                    wiitdb::spawn_download_task(task_processor, mount_point);
                 }
 
                 ui.label("Download wiitdb.xml (overwrites existing one)");
@@ -26,7 +33,10 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
             ui.horizontal(|ui| {
                 if ui.button("📥").clicked() {
-                    covers::spawn_download_all_covers_task(app);
+                    let task_processor = &app_state.task_processor;
+                    let mount_point = app_state.config.contents.mount_point.clone();
+                    let games = app_state.games.clone().into_boxed_slice();
+                    covers::spawn_download_all_covers_task(task_processor, mount_point, games);
                 }
 
                 ui.label("Download all covers (defaults to English for PAL games, while usbloader_gx downloads them in the correct language)");
@@ -34,7 +44,10 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
             ui.horizontal(|ui| {
                 if ui.button("📥").clicked() {
-                    banners::spawn_download_banners_task(app);
+                    let task_processor = &app_state.task_processor;
+                    let mount_point = &app_state.config.contents.mount_point;
+                    let games = &app_state.games;
+                    banners::spawn_download_banners_task(task_processor, games, mount_point);
                 }
 
                 ui.label("Download banners (GameCube only)");
@@ -45,7 +58,10 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
             ui.horizontal(|ui| {
                 if ui.button("📥").clicked() {
-                    covers::spawn_download_wiiflow_covers_task(app);
+                    let task_processor = &app_state.task_processor;
+                    let mount_point = app_state.config.contents.mount_point.clone();
+                    let games = app_state.games.clone().into_boxed_slice();
+                    covers::spawn_download_wiiflow_covers_task(task_processor, mount_point, games);
                 }
 
                 ui.label("Download all covers (defaults to English for PAL games)");
@@ -56,7 +72,10 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
             ui.horizontal(|ui| {
                 if ui.button("📥").clicked() {
-                    txtcodes::spawn_download_cheats_task(app);
+                    let task_processor = &app_state.task_processor;
+                    let mount_point = &app_state.config.contents.mount_point;
+                    let games = app_state.games.clone().into_boxed_slice();
+                    txtcodes::spawn_download_cheats_task(task_processor, mount_point, games);
                 }
 
                 ui.label("Download cheats for all games (txt)");
@@ -67,11 +86,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
             ui.horizontal(|ui| {
                 if ui.button("⏵").clicked() {
-                    if let Err(e) = dir_layout::normalize_paths(&app.config.contents.mount_point) {
-                        app.notifications.show_err(e);
-                    } else {
-                        app.notifications.show_success("Paths successfully normalized");
-                    }
+                    ui_buffers.action = Some(UiAction::RunNormalizePaths);
                 }
 
                 ui.label("Normalize paths (makes sure the game directories' layouts are correct)");
@@ -83,11 +98,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
                 ui.horizontal(|ui| {
                     if ui.button("⏵").clicked() {
-                        if let Err(e) = util::run_dot_clean(&app.config.contents.mount_point) {
-                            app.notifications.show_err(e);
-                        } else {
-                            app.notifications.show_success("dot_clean successful");
-                        }
+                        ui_buffers.action = Some(UiAction::RunDotClean);
                     }
 
                     ui.label("Run dot_clean (remove hidden ._ files)");

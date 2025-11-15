@@ -2,8 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    app::App,
-    config::SortBy,
+    config::{Contents, SortBy},
     http,
     tasks::{BackgroundMessage, TaskProcessor},
 };
@@ -15,6 +14,7 @@ use std::{
     fs::{self, File},
     io::BufReader,
     path::{Path, PathBuf},
+    vec,
 };
 use zip::ZipArchive;
 
@@ -59,7 +59,7 @@ pub struct HbcApp {
     pub size: Size,
     pub path: PathBuf,
     pub search_str: String,
-    pub osc_app_i: Option<usize>,
+    pub osc_app_i: Option<u16>,
 }
 
 impl HbcApp {
@@ -109,11 +109,19 @@ impl HbcApp {
             osc_app_i: None,
         })
     }
+
+    pub fn open_dir(&self) -> Result<()> {
+        open::that(&self.path).map_err(Into::into)
+    }
+
+    pub fn get_path_str(&self) -> &str {
+        self.path.to_str().unwrap_or("Invalid Path")
+    }
 }
 
-pub fn list(mount_point: &Path) -> Box<[HbcApp]> {
+pub fn list(mount_point: &Path) -> Vec<HbcApp> {
     if mount_point.as_os_str().is_empty() {
-        return Box::new([]);
+        return vec![];
     }
 
     let apps_dir = mount_point.join("apps");
@@ -123,7 +131,7 @@ pub fn list(mount_point: &Path) -> Box<[HbcApp]> {
             .filter_map(|entry| HbcApp::from_path(entry.ok()?.path()).ok())
             .collect()
     } else {
-        Box::new([])
+        vec![]
     }
 }
 
@@ -160,11 +168,15 @@ pub fn spawn_install_app_from_url_task(
     });
 }
 
-pub fn spawn_install_apps_task(app: &App, paths: Vec<PathBuf>) {
-    let remove_sources = app.config.contents.remove_sources_apps;
-    let mount_point = app.config.contents.mount_point.clone();
+pub fn spawn_install_apps_task(
+    task_processor: &TaskProcessor,
+    config_contents: &Contents,
+    paths: Box<[PathBuf]>,
+) {
+    let remove_sources = config_contents.remove_sources_apps;
+    let mount_point = config_contents.mount_point.clone();
 
-    app.task_processor.spawn(move |msg_sender| {
+    task_processor.spawn(move |msg_sender| {
         msg_sender.send(BackgroundMessage::UpdateStatus(
             "🖴 Installing apps...".to_string(),
         ))?;

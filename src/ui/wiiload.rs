@@ -1,10 +1,13 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::app::App;
+use crate::{
+    app::{AppState, UiBuffers},
+    ui::UiAction,
+};
 use eframe::egui;
 
-pub fn update(ctx: &egui::Context, app: &mut App) {
+pub fn update(ctx: &egui::Context, _app_state: &AppState, ui_buffers: &mut UiBuffers) {
     egui::CentralPanel::default().show(ctx, |ui| {
         ui.style_mut().spacing.item_spacing.y *= 2.;
 
@@ -24,7 +27,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 ui.label(" Type your Wii's IP:");
 
                 ui.add(
-                    egui::TextEdit::singleline(&mut app.config.contents.wii_ip)
+                    egui::TextEdit::singleline(&mut ui_buffers.config.contents.wii_ip)
                         .desired_width(150.)
                         .hint_text("Wii IP"),
                 );
@@ -35,11 +38,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
             .button("📤 Upload a Homebrew App (zip/dol/elf)")
             .clicked()
         {
-            if let Err(e) = app.config.write() {
-                app.notifications.show_err(e);
-            }
-
-            app.choose_file_to_push.pick_file();
+            ui_buffers.action = Some(UiAction::OpenPushFileDialog);
         }
     });
 }

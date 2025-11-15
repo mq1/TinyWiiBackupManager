@@ -2,8 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    app::App, config::Config, hbc_apps, notifications::Notifications, osc::OscApp,
-    tasks::TaskProcessor, wiiload,
+    app::{AppState, UiBuffers},
+    hbc_apps,
+    ui::UiAction,
+    wiiload,
 };
 use eframe::egui;
 
@@ -11,7 +13,7 @@ const CARD_WIDTH: f32 = 161.5;
 const CARD_HORIZONTAL_SPACE: usize = 181;
 const CARD_HEIGHT: f32 = 140.;
 
-pub fn update(ui: &mut egui::Ui, app: &mut App) {
+pub fn update(ui: &mut egui::Ui, app_state: &AppState, ui_buffers: &mut UiBuffers) {
     egui::ScrollArea::vertical().show(ui, |ui| {
         let available_width = ui.available_width();
         ui.set_width(available_width);
@@ -19,21 +21,15 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
 
         ui.heading(format!(
             "🏪 Open Shop Channel Apps: {} found",
-            app.filtered_osc_apps.len(),
+            app_state.filtered_osc_apps.len(),
         ));
 
         ui.add_space(5.);
 
-        for row in app.filtered_osc_apps.chunks(cols) {
+        for row in app_state.filtered_osc_apps.chunks(cols) {
             ui.horizontal_top(|ui| {
                 for osc_app_i in row.iter().copied() {
-                    view_osc_app_card(
-                        ui,
-                        &app.osc_apps[osc_app_i as usize],
-                        &mut app.notifications,
-                        &mut app.task_processor,
-                        &app.config,
-                    );
+                    update_osc_app_card(ui, app_state, ui_buffers, osc_app_i);
                 }
             });
 
@@ -42,13 +38,14 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
     });
 }
 
-fn view_osc_app_card(
+fn update_osc_app_card(
     ui: &mut egui::Ui,
-    osc_app: &OscApp,
-    notifications: &mut Notifications,
-    task_processor: &mut TaskProcessor,
-    config: &Config,
+    app_state: &AppState,
+    ui_buffers: &mut UiBuffers,
+    i: u16,
 ) {
+    let osc_app = &app_state.osc_apps[i as usize];
+
     let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
     group.show(ui, |ui| {
         ui.set_height(CARD_HEIGHT);
@@ -83,11 +80,10 @@ fn view_osc_app_card(
                     .on_hover_text("Download and Install App")
                     .clicked()
                 {
-                    hbc_apps::spawn_install_app_from_url_task(
-                        osc_app.meta.assets.archive.url.clone(),
-                        task_processor,
-                        config.contents.mount_point.to_path_buf(),
-                    );
+                    let zip_url = osc_app.meta.assets.archive.url.clone();
+                    let task_processor = &app_state.task_processor;
+                    let mount_point = app_state.config.contents.mount_point.clone();
+                    hbc_apps::spawn_install_app_from_url_task(zip_url, task_processor, mount_point);
                 }
 
                 // Wiiload button
@@ -96,15 +92,12 @@ fn view_osc_app_card(
                     .on_hover_text("Push to Wii via Wiiload")
                     .clicked()
                 {
-                    if let Err(e) = config.write() {
-                        notifications.show_err(e);
-                    }
+                    let zip_url = osc_app.meta.assets.archive.url.clone();
+                    let wii_ip = ui_buffers.config.contents.wii_ip.clone();
+                    let task_processor = &app_state.task_processor;
+                    wiiload::spawn_push_osc_task(zip_url, wii_ip, task_processor);
 
-                    wiiload::spawn_push_osc_task(
-                        osc_app.meta.assets.archive.url.clone(),
-                        config.contents.wii_ip.clone(),
-                        task_processor,
-                    );
+                    ui_buffers.action = Some(UiAction::WriteConfig);
                 }
 
                 // Info button
@@ -114,11 +107,8 @@ fn view_osc_app_card(
                     )
                     .on_hover_text("Show App Information")
                     .clicked()
-                    && let Err(e) = open::that(
-                        "https://oscwii.org/library/app/".to_string() + &osc_app.meta.slug,
-                    )
                 {
-                    notifications.show_err(e.into());
+                    ui_buffers.action = Some(UiAction::OpenOscUrl(i));
                 }
             });
         });

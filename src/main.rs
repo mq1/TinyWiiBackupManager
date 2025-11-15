@@ -31,7 +31,7 @@ mod wiitdb;
 
 pub mod known_mount_points;
 
-use crate::app::App;
+use crate::app::AppWrapper;
 use anyhow::{Result, anyhow};
 use eframe::{
     NativeOptions,
@@ -72,19 +72,15 @@ fn main() -> Result<()> {
 
     let data_dir = get_data_dir()?;
     fs::create_dir_all(&data_dir)?;
-    let mut app = App::new(&data_dir);
+    let mut app = AppWrapper::new(data_dir);
 
     // ----------------
     // Initialize tasks
 
-    titles::spawn_get_titles_task(&app); // this loads games when finished
-    updater::spawn_check_update_task(&app);
-    osc::spawn_load_osc_apps_task(&app);
-
-    // ----------------
-    // Check if the mount point is known (compatibility with < v4.3.2)
-    let is_known =
-        known_mount_points::check(&data_dir, &app.config.contents.mount_point).unwrap_or(true);
+    app.state.load_titles(); // this also loads games when finished
+    app.state.check_for_update();
+    app.state.load_osc();
+    app.state.load_wiitdb();
 
     // -------------
     // Initialize UI
@@ -108,7 +104,7 @@ fn main() -> Result<()> {
         native_options,
         Box::new(|cc| {
             install_image_loaders(&cc.egui_ctx);
-            cc.egui_ctx.set_theme(app.config.contents.theme_preference);
+            cc.egui_ctx.set_theme(app.state.config.contents.theme_preference);
 
             cc.egui_ctx.all_styles_mut(|style| {
                 style.visuals.selection.bg_fill = ui::accent::get_accent_color();
@@ -123,10 +119,10 @@ fn main() -> Result<()> {
                 style.spacing.button_padding = vec2(5., 2.5);
             });
 
-            app.refresh_hbc_apps(&cc.egui_ctx);
+            app.state.refresh_hbc_apps("");
 
-            if !is_known {
-                app.notifications.show_info_long("New Drive detected, a path normalization run is recommended\nYou can find it in the 🔧 Tools page");
+            if !app.state.is_mount_point_known() {
+                app.state.notifications.show_info_no_duration("New Drive detected, a path normalization run is recommended\nYou can find it in the 🔧 Tools page");
             }
 
             Ok(Box::new(app))

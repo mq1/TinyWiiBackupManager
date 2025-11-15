@@ -1,12 +1,9 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::{disc_info::DiscInfo, wiitdb::GameInfo};
+
 pub mod accent;
-mod choose_archive_path_dialog;
-mod choose_file_to_push_dialog;
-mod choose_games_dialog;
-mod choose_hbc_apps_dialog;
-mod choose_mount_point_dialog;
 mod confirm_conversion;
 mod delete_game;
 mod delete_hbc_app;
@@ -32,7 +29,7 @@ mod wiiload;
 
 pub const LOGO_BYTES: &[u8] = include_bytes!("../../assets/TinyWiiBackupManager.png");
 
-#[derive(PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum View {
     Games,
     HbcApps,
@@ -55,12 +52,43 @@ impl View {
     }
 }
 
+#[derive(Debug, Clone)]
 pub enum Modal {
-    None,
     Info,
-    GameInfo,
+    GameInfo(u16, Box<Option<DiscInfo>>, Box<Option<GameInfo>>),
     HbcAppInfo(u16),
     DeleteGame(u16),
     DeleteHbcApp(u16),
-    ConvertGames,
+    ConvertGames(Box<[DiscInfo]>),
+}
+
+#[derive(Debug)]
+pub enum UiAction {
+    OpenView(View),
+    OpenModal(Modal),
+    CloseModal,
+    OpenUpdateUrl,
+    OpenDataDir,
+    OpenWiki,
+    OpenRepo,
+    RunNormalizePaths,
+    RunDotClean,
+    WriteConfig,
+    ApplyFilterGames,
+    ApplyFilterHbcApps,
+    ApplyFilterOscApps,
+    OpenOscUrl(u16),
+    TriggerDownloadOscIcons,
+    DeleteGame(u16),
+    OpenGameDir(u16),
+    OpenPushFileDialog,
+    TriggerRefreshGames,
+    OpenChooseMountPointDialog,
+    OpenArchiveGameDialog(u16),
+    AddGames,
+    ApplySorting,
+    OpenHbcAppDir(u16),
+    DeleteHbcApp(u16),
+    AddHbcApps,
+    TriggerRefreshHbcApps,
 }

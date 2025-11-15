@@ -2,24 +2,26 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    app::App,
-    ui::{self, developers::get_developer_emoji},
+    app::{AppState, UiBuffers},
+    ui::{UiAction, developers::get_developer_emoji},
 };
 use eframe::egui;
 
-pub fn update(ctx: &egui::Context, app: &mut App, hbc_app_i: u16) {
-    let modal = egui::Modal::new("hbc_app_info".into());
-    let mut action = Action::None;
+pub fn update(
+    ctx: &egui::Context,
+    app_state: &AppState,
+    ui_buffers: &mut UiBuffers,
+    hbc_app_i: u16,
+) {
+    let hbc_app = &app_state.hbc_apps[hbc_app_i as usize];
 
-    let hbc_app = &app.hbc_apps[hbc_app_i as usize];
-
-    modal.show(ctx, |ui: &mut egui::Ui| {
+    egui::Modal::new("hbc_app_info".into()).show(ctx, |ui: &mut egui::Ui| {
         ui.heading(&hbc_app.meta.name);
 
         ui.separator();
 
         // Path
-        ui.label("📁 Path: ".to_string() + hbc_app.path.to_str().unwrap_or("Unknown"));
+        ui.label(format!("📁 Path: {}", hbc_app.get_path_str()));
 
         ui.separator();
 
@@ -45,32 +47,14 @@ pub fn update(ctx: &egui::Context, app: &mut App, hbc_app_i: u16) {
 
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Max), |ui| {
             if ui.button("❌ Close").clicked() {
-                action = Action::Close;
+                ui_buffers.action = Some(UiAction::CloseModal);
             }
 
             ui.add_sized(egui::Vec2::new(1., 21.), egui::Separator::default());
 
             if ui.button("📁 Open Directory").clicked() {
-                action = Action::OpenDirectory;
+                ui_buffers.action = Some(UiAction::OpenHbcAppDir(hbc_app_i));
             }
         })
     });
-
-    match action {
-        Action::None => {}
-        Action::OpenDirectory => {
-            if let Err(e) = open::that(&hbc_app.path) {
-                app.notifications.show_err(e.into());
-            }
-        }
-        Action::Close => {
-            app.current_modal = ui::Modal::None;
-        }
-    }
-}
-
-enum Action {
-    None,
-    OpenDirectory,
-    Close,
 }

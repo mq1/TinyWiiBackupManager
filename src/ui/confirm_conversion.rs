@@ -1,16 +1,21 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, convert, ui};
+use crate::{
+    app::{AppState, UiBuffers},
+    convert,
+    disc_info::DiscInfo,
+    ui::UiAction,
+};
 use eframe::egui;
 
-pub fn update(ctx: &egui::Context, app: &mut App) {
-    let modal = egui::Modal::new("confirm_conversion".into());
-    let mut action = Action::None;
-
-    let discs = &app.discs_to_convert;
-
-    modal.show(ctx, |ui: &mut egui::Ui| {
+pub fn update(
+    ctx: &egui::Context,
+    app_state: &AppState,
+    ui_buffers: &mut UiBuffers,
+    discs: &[DiscInfo],
+) {
+    egui::Modal::new("confirm_conversion".into()).show(ctx, |ui: &mut egui::Ui| {
         ui.heading(format!("🎮 {} Games selected for conversion", discs.len()));
         ui.label("(Existing games are automatically ignored)");
         ui.separator();
@@ -31,29 +36,16 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Max), |ui| {
             if ui.button("✅ Start conversion").clicked() {
-                action = Action::StartConversion;
+                let task_processor = &app_state.task_processor;
+                let config_contents = &app_state.config.contents;
+                convert::spawn_add_games_task(task_processor, config_contents, discs.into());
+
+                ui_buffers.action = Some(UiAction::CloseModal)
             }
 
             if ui.button("❌ Cancel").clicked() {
-                action = Action::Cancel;
+                ui_buffers.action = Some(UiAction::CloseModal)
             }
         })
     });
-
-    match action {
-        Action::None => {}
-        Action::StartConversion => {
-            convert::spawn_add_games_task(app, discs.clone());
-            app.current_modal = ui::Modal::None;
-        }
-        Action::Cancel => {
-            app.current_modal = ui::Modal::None;
-        }
-    }
-}
-
-enum Action {
-    None,
-    StartConversion,
-    Cancel,
 }

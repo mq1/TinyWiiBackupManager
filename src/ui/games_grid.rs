@@ -2,51 +2,36 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    app::{App, GameInfoData},
+    app::{AppState, UiBuffers},
     disc_info::DiscInfo,
-    games::{Game, GameID},
-    notifications::Notifications,
-    ui::Modal,
-    wiitdb::{self},
+    games::GameID,
+    ui::{self, UiAction},
 };
 use eframe::egui;
-use egui_file_dialog::FileDialog;
-use std::path::{Path, PathBuf};
 
 const CARD_WIDTH: f32 = 161.5;
 const CARD_HORIZONTAL_SPACE: usize = 181;
 const CARD_HEIGHT: f32 = 188.;
 
-pub fn update(ui: &mut egui::Ui, app: &mut App) {
+pub fn update(ui: &mut egui::Ui, app_state: &AppState, ui_buffers: &mut UiBuffers) {
     egui::ScrollArea::vertical().show(ui, |ui| {
         let available_width = ui.available_width();
         ui.set_width(available_width);
         let cols = available_width as usize / CARD_HORIZONTAL_SPACE;
 
-        if app.show_wii {
+        if ui_buffers.show_wii {
             ui.heading(format!(
                 "🎾 Wii Games: {} found ({})",
-                app.filtered_wii_games.len(),
-                app.filtered_wii_games_size
+                app_state.filtered_wii_games.len(),
+                app_state.filtered_wii_games_size
             ));
 
             ui.add_space(5.);
 
-            for row in app.filtered_wii_games.chunks(cols) {
+            for row in app_state.filtered_wii_games.chunks(cols) {
                 ui.horizontal_top(|ui| {
                     for game_i in row.iter().copied() {
-                        view_game_card(
-                            ui,
-                            game_i,
-                            &app.games[game_i as usize],
-                            &mut app.current_modal,
-                            &mut app.current_game_info,
-                            &mut app.archiving_game,
-                            &mut app.choose_archive_path,
-                            &app.config.contents.mount_point,
-                            &mut app.wiitdb,
-                            &mut app.notifications,
-                        );
+                        update_game_card(ui, app_state, ui_buffers, game_i);
                     }
                 });
 
@@ -54,34 +39,23 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
             }
         }
 
-        if app.show_gc {
-            if app.show_wii {
+        if ui_buffers.show_gc {
+            if ui_buffers.show_wii {
                 ui.add_space(10.);
             }
 
             ui.heading(format!(
                 "🎲 GameCube Games: {} found ({})",
-                app.filtered_gc_games.len(),
-                app.filtered_gc_games_size
+                app_state.filtered_gc_games.len(),
+                app_state.filtered_gc_games_size
             ));
 
             ui.add_space(5.);
 
-            for row in app.filtered_gc_games.chunks(cols) {
+            for row in app_state.filtered_gc_games.chunks(cols) {
                 ui.horizontal_top(|ui| {
                     for game_i in row.iter().copied() {
-                        view_game_card(
-                            ui,
-                            game_i,
-                            &app.games[game_i as usize],
-                            &mut app.current_modal,
-                            &mut app.current_game_info,
-                            &mut app.archiving_game,
-                            &mut app.choose_archive_path,
-                            &app.config.contents.mount_point,
-                            &mut app.wiitdb,
-                            &mut app.notifications,
-                        );
+                        update_game_card(ui, app_state, ui_buffers, game_i);
                     }
                 });
 
@@ -91,19 +65,14 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
     });
 }
 
-#[allow(clippy::too_many_arguments)]
-fn view_game_card(
+fn update_game_card(
     ui: &mut egui::Ui,
+    app_state: &AppState,
+    ui_buffers: &mut UiBuffers,
     game_i: u16,
-    game: &Game,
-    current_modal: &mut Modal,
-    current_game_info: &mut Option<GameInfoData>,
-    archiving_game: &mut Option<PathBuf>,
-    choose_archive_path: &mut FileDialog,
-    mount_point: &Path,
-    wiitdb: &mut Option<wiitdb::Datafile>,
-    notifications: &mut Notifications,
 ) {
+    let game = &app_state.games[game_i as usize];
+
     let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
     group.show(ui, |ui| {
         ui.set_height(CARD_HEIGHT);
@@ -137,7 +106,7 @@ fn view_game_card(
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 // Delete button
                 if ui.button("🗑").on_hover_text("Delete Game").clicked() {
-                    *current_modal = Modal::DeleteGame(game_i);
+                    ui_buffers.action = Some(UiAction::OpenModal(ui::Modal::DeleteGame(game_i)));
                 }
 
                 // Archive button
@@ -146,8 +115,7 @@ fn view_game_card(
                     .on_hover_text("Archive Game to RVZ or ISO")
                     .clicked()
                 {
-                    *archiving_game = Some(game.path.clone());
-                    choose_archive_path.save_file();
+                    ui_buffers.action = Some(UiAction::OpenArchiveGameDialog(game_i));
                 }
 
                 // Info button
@@ -158,27 +126,13 @@ fn view_game_card(
                     .on_hover_text("Show Disc Information")
                     .clicked()
                 {
-                    let game = game.clone();
-                    let disc_info = DiscInfo::from_game_dir(&game.path).map_err(|e| e.to_string());
+                    let game = &app_state.games[game_i as usize];
+                    let disc_info = Box::new(DiscInfo::from_game_dir(&game.path).ok());
+                    let game_info = Box::new(app_state.get_game_info(game.id));
 
-                    if wiitdb.is_none() {
-                        match wiitdb::Datafile::load(mount_point) {
-                            Ok(new) => {
-                                *wiitdb = Some(new);
-                            }
-                            Err(e) => {
-                                notifications.show_err(e);
-                            }
-                        }
-                    }
-
-                    let game_info = wiitdb
-                        .as_ref()
-                        .and_then(|wiitdb| wiitdb.get_game_info(&game.id).cloned())
-                        .ok_or("Game not found in wiitdb".to_string());
-
-                    *current_game_info = Some((game, disc_info, game_info));
-                    *current_modal = Modal::GameInfo;
+                    ui_buffers.action = Some(UiAction::OpenModal(ui::Modal::GameInfo(
+                        game_i, disc_info, game_info,
+                    )));
                 }
             });
         });
