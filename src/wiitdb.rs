@@ -1,24 +1,21 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::app::App;
 use crate::games::GameID;
 use crate::http;
-use crate::tasks::BackgroundMessage;
+use crate::tasks::{BackgroundMessage, TaskProcessor};
 use anyhow::{Context, Result};
 use capitalize::Capitalize;
 use serde::Deserialize;
 use std::fs::{self, File};
 use std::io::BufReader;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 const DOWNLOAD_URL: &str = "https://www.gametdb.com/wiitdb.zip";
 
 /// Handles the blocking logic of downloading and extracting the database.
-pub fn spawn_download_task(app: &App) {
-    let mount_point = app.config.contents.mount_point.clone();
-
-    app.task_processor.spawn(move |msg_sender| {
+pub fn spawn_download_task(task_processor: &TaskProcessor, mount_point: PathBuf) {
+    task_processor.spawn(move |msg_sender| {
         msg_sender.send(BackgroundMessage::UpdateStatus(
             "📥 Downloading wiitdb.xml...".to_string(),
         ))?;
@@ -42,7 +39,7 @@ pub fn spawn_download_task(app: &App) {
 #[serde(default)]
 pub struct Datafile {
     #[serde(rename = "game")]
-    pub games: Vec<GameInfo>,
+    pub games: Box<[GameInfo]>,
 }
 
 impl Datafile {
@@ -52,18 +49,24 @@ impl Datafile {
             .join("usbloader_gx")
             .join("wiitdb.xml");
 
-        let file =
-            File::open(&path).context("Failed to load wiitdb.xml, download it first (☰ button)")?;
+        let file = File::open(&path)
+            .context("Failed to load wiitdb.xml, download it first (🔧 Tools page)")?;
 
         let reader = BufReader::new(file);
 
-        let data = quick_xml::de::from_reader(reader)?;
+        let mut data = quick_xml::de::from_reader::<_, Datafile>(reader)?;
+
+        // We sort it now so we can binary search quickly
+        data.games.sort_by_key(|game| game.id);
 
         Ok(data)
     }
 
-    pub fn get_game_info(&self, game_id: &[u8; 6]) -> Option<&GameInfo> {
-        self.games.iter().find(|game| game.id == *game_id)
+    pub fn lookup(&self, game_id: [u8; 6]) -> Option<&GameInfo> {
+        self.games
+            .binary_search_by_key(&game_id, |game| game.id)
+            .ok()
+            .map(|i| &self.games[i])
     }
 }
 
@@ -76,18 +79,18 @@ pub struct GameInfo {
     pub id: [u8; 6],
     pub region: Region,
     #[serde(deserialize_with = "deser_langs")]
-    pub languages: Vec<Language>,
+    pub languages: Box<[Language]>,
     pub developer: Option<String>,
     pub publisher: Option<String>,
     pub date: Date,
     #[serde(deserialize_with = "deser_genres")]
-    pub genre: Vec<String>,
+    pub genre: Box<[String]>,
     pub rating: Rating,
     #[serde(rename = "wi-fi")]
     pub wifi: Wifi,
     pub input: Input,
     #[serde(rename = "rom")]
-    pub roms: Vec<Rom>,
+    pub roms: Box<[Rom]>,
 }
 
 fn deser_id<'de, D>(deserializer: D) -> Result<[u8; 6], D::Error>
@@ -99,7 +102,7 @@ where
     Ok(id)
 }
 
-fn deser_genres<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
+fn deser_genres<'de, D>(deserializer: D) -> Result<Box<[String]>, D::Error>
 where
     D: serde::Deserializer<'de>,
 {
@@ -134,7 +137,7 @@ pub struct Wifi {
     #[serde(rename = "@players")]
     pub players: u8,
     #[serde(rename = "feature")]
-    pub features: Vec<String>,
+    pub features: Box<[String]>,
 }
 
 #[derive(Debug, Deserialize, Default, Clone)]
@@ -143,7 +146,7 @@ pub struct Input {
     #[serde(rename = "@players")]
     pub players: u8,
     #[serde(rename = "control")]
-    pub controls: Vec<Control>,
+    pub controls: Box<[Control]>,
 }
 
 #[derive(Debug, Deserialize, Default, Clone)]
@@ -247,7 +250,7 @@ impl From<&str> for Language {
     }
 }
 
-fn deser_langs<'de, D>(deserializer: D) -> Result<Vec<Language>, D::Error>
+fn deser_langs<'de, D>(deserializer: D) -> Result<Box<[Language]>, D::Error>
 where
     D: serde::Deserializer<'de>,
 {
@@ -300,4 +303,22 @@ impl<'de> Deserialize<'de> for Region {
             _ => Region::Unknown,
         })
     }
+}
+
+pub fn spawn_load_wiitdb_task(task_processor: &TaskProcessor, mount_point: PathBuf) {
+    task_processor.spawn(move |msg_sender| {
+        msg_sender.send(BackgroundMessage::UpdateStatus(
+            "📓 Loading wiitdb.xml...".to_string(),
+        ))?;
+
+        let data = Datafile::load(&mount_point)?;
+
+        msg_sender.send(BackgroundMessage::GotWiitdb(data))?;
+
+        msg_sender.send(BackgroundMessage::NotifyInfo(
+            "📓 wiitdb.xml loaded".to_string(),
+        ))?;
+
+        Ok(())
+    });
 }

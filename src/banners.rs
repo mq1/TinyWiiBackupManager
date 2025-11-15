@@ -1,7 +1,11 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{app::App, games::GameID, http, tasks::BackgroundMessage};
+use crate::{
+    games::{Game, GameID},
+    http,
+    tasks::{BackgroundMessage, TaskProcessor},
+};
 use anyhow::Result;
 use std::{fs, path::Path};
 
@@ -25,17 +29,20 @@ fn download_banner_for_game(cache_bnr_path: &Path, game_id: &[u8; 6]) -> Result<
     Ok(())
 }
 
-pub fn spawn_download_banners_task(app: &mut App) {
-    let cache_bnr_path = app.config.contents.mount_point.join("cache_bnr");
+pub fn spawn_download_banners_task(
+    task_processor: &TaskProcessor,
+    games: &[Game],
+    mount_point: &Path,
+) {
+    let cache_bnr_path = mount_point.join("cache_bnr");
 
-    let gc_games = app
-        .games
+    let gc_games = games
         .iter()
         .filter(|g| !g.is_wii)
         .map(|g| (g.id, g.display_title.clone()))
         .collect::<Box<[_]>>();
 
-    app.task_processor.spawn(move |msg_sender| {
+    task_processor.spawn(move |msg_sender| {
         msg_sender.send(BackgroundMessage::UpdateStatus(
             "🖻 Downloading banners...".to_string(),
         ))?;
