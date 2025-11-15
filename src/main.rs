@@ -80,7 +80,11 @@ fn main() -> Result<()> {
     app.state.load_titles(); // this also loads games when finished
     app.state.check_for_update();
     app.state.load_osc();
-    app.load_wiitdb();
+
+    wiitdb::spawn_load_wiitdb_task(
+        &app.state.task_processor,
+        app.ui_buffers.config.contents.mount_point.clone(),
+    );
 
     // -------------
     // Initialize UI
