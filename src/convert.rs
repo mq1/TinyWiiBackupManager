@@ -5,7 +5,7 @@ use crate::{
     config::{Contents, GcOutputFormat, WiiOutputFormat},
     disc_info::DiscInfo,
     overflow_reader::{OverflowReader, get_overflow_file},
-    overflow_writer::{self, OverflowWriter},
+    overflow_writer::OverflowWriter,
     tasks::{BackgroundMessage, TaskProcessor},
     util::{self, can_write_over_4gb},
 };
@@ -20,8 +20,6 @@ use std::{
     io::Write,
     time::Instant,
 };
-
-const SPLIT_SIZE: u64 = 4 * 1024 * 1024 * 1024 - 32 * 1024;
 
 pub fn get_disc_opts() -> DiscOptions {
     let (preloader_threads, _) = util::get_threads_num();
@@ -137,11 +135,7 @@ pub fn spawn_add_games_task(
                     DiscReader::new(&disc_info.main_disc_path, &disc_opts)?
                 };
 
-                let mut overflow_writer = OverflowWriter::new(
-                    &file_path1,
-                    &file_path2,
-                    if must_split { SPLIT_SIZE } else { u64::MAX },
-                )?;
+                let mut overflow_writer = OverflowWriter::new(&file_path1, file_path2, must_split)?;
 
                 let out_opts = get_output_format_opts(
                     wii_output_format,
@@ -182,8 +176,6 @@ pub fn spawn_add_games_task(
                 disc_info.header.game_title_str(),
                 start_instant.elapsed().as_secs_f32()
             );
-
-            overflow_writer::delete_file_if_empty(&file_path2)?;
 
             if remove_sources_games {
                 fs::remove_file(&disc_info.main_disc_path)?;
