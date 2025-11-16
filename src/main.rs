@@ -20,6 +20,7 @@ mod http;
 mod notifications;
 mod osc;
 mod overflow_reader;
+mod overflow_writer;
 mod tasks;
 mod titles;
 mod txtcodes;

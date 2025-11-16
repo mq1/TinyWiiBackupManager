@@ -5,6 +5,7 @@ use crate::{
     config::{Contents, GcOutputFormat, WiiOutputFormat},
     disc_info::DiscInfo,
     overflow_reader::{OverflowReader, get_overflow_file},
+    overflow_writer::{self, OverflowWriter},
     tasks::{BackgroundMessage, TaskProcessor},
     util::{self, can_write_over_4gb},
 };
@@ -15,8 +16,8 @@ use nod::{
 };
 use sanitize_filename::sanitize;
 use std::{
-    fs::{self, File},
-    io::{BufWriter, Seek, Write},
+    fs::{self},
+    io::Write,
     time::Instant,
 };
 
@@ -116,6 +117,14 @@ pub fn spawn_add_games_task(
 
             let overflow_file = get_overflow_file(&disc_info.main_disc_path);
 
+            let file_path1 = dir_path.join(file_name1);
+
+            let file_name2 = match wii_output_format {
+                WiiOutputFormat::Wbfs => &format!("{}.wbf1", disc_info.header.game_id_str()),
+                WiiOutputFormat::Iso => &format!("{}.part1.iso", disc_info.header.game_id_str()),
+            };
+            let file_path2 = dir_path.join(file_name2);
+
             fs::create_dir_all(&dir_path)?;
 
             let start_instant = Instant::now();
@@ -128,17 +137,11 @@ pub fn spawn_add_games_task(
                     DiscReader::new(&disc_info.main_disc_path, &disc_opts)?
                 };
 
-                let path1 = dir_path.join(file_name1);
-                let mut out1 = BufWriter::new(File::create(&path1)?);
-
-                let file_name2 = match wii_output_format {
-                    WiiOutputFormat::Wbfs => &format!("{}.wbf1", disc_info.header.game_id_str()),
-                    WiiOutputFormat::Iso => {
-                        &format!("{}.part1.iso", disc_info.header.game_id_str())
-                    }
-                };
-                let path2 = dir_path.join(file_name2);
-                let mut out2: Option<BufWriter<File>> = None;
+                let mut overflow_writer = OverflowWriter::new(
+                    &file_path1,
+                    &file_path2,
+                    if must_split { SPLIT_SIZE } else { u64::MAX },
+                )?;
 
                 let out_opts = get_output_format_opts(
                     wii_output_format,
@@ -155,26 +158,7 @@ pub fn spawn_add_games_task(
 
                 let finalization = writer.process(
                     |data, progress, total| {
-                        // get position
-                        let pos = out1.stream_position()?;
-
-                        // write data to out1, or overflow to out2
-                        if let Some(out2) = out2.as_mut() {
-                            out2.write_all(&data)?;
-                        } else if disc_info.header.is_wii()
-                            && must_split
-                            && pos + data.len() as u64 > SPLIT_SIZE
-                        {
-                            // Split the data chunk
-                            let split_point = (SPLIT_SIZE - pos) as usize;
-                            out1.write_all(&data[..split_point])?;
-
-                            let mut writer = BufWriter::new(File::create(&path2)?);
-                            writer.write_all(&data[split_point..])?;
-                            out2 = Some(writer);
-                        } else {
-                            out1.write_all(&data)?;
-                        }
+                        overflow_writer.write_all(&data)?;
 
                         let _ = msg_sender.send(BackgroundMessage::UpdateStatus(format!(
                             "🎮 Adding {}  {:02.0}%  ({}/{})",
@@ -190,8 +174,7 @@ pub fn spawn_add_games_task(
                 )?;
 
                 if !finalization.header.is_empty() {
-                    out1.rewind()?;
-                    out1.write_all(&finalization.header)?;
+                    overflow_writer.write_header(&finalization.header)?;
                 }
             }
             log::info!(
@@ -199,6 +182,8 @@ pub fn spawn_add_games_task(
                 disc_info.header.game_title_str(),
                 start_instant.elapsed().as_secs_f32()
             );
+
+            overflow_writer::delete_file_if_empty(&file_path2)?;
 
             if remove_sources_games {
                 fs::remove_file(&disc_info.main_disc_path)?;
