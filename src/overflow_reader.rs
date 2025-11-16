@@ -13,10 +13,7 @@ pub fn get_main_file(dir: &Path) -> Option<PathBuf> {
         .filter_map(Result::ok)
         .map(|entry| entry.path())
         .filter(|path| path.is_file())
-        .filter(|path| {
-            path.to_str()
-                .is_some_and(|p| !p.ends_with(".part1.iso"))
-        })
+        .filter(|path| path.to_str().is_some_and(|p| !p.ends_with(".part1.iso")))
         .find(|path| {
             path.extension()
                 .and_then(|ext| ext.to_str())
@@ -85,10 +82,20 @@ impl Read for OverflowReader {
 impl Seek for OverflowReader {
     fn seek(&mut self, pos: SeekFrom) -> io::Result<u64> {
         let new_pos = match pos {
-            SeekFrom::Start(offset) => offset,
-            SeekFrom::Current(offset) => self.position.saturating_add_signed(offset),
-            SeekFrom::End(offset) => self.len.saturating_add_signed(offset),
+            SeekFrom::Start(offset) => offset as i64,
+            SeekFrom::Current(offset) => self.position as i64 + offset,
+            SeekFrom::End(offset) => self.position as i64 + offset,
         };
+
+        if new_pos < 0 {
+            return Err(io::Error::from(io::ErrorKind::InvalidInput));
+        }
+
+        let new_pos = new_pos as u64;
+
+        if new_pos > self.len {
+            return Err(io::Error::from(io::ErrorKind::InvalidInput));
+        }
 
         if new_pos < self.main_len {
             self.main.seek(SeekFrom::Start(new_pos))?;
