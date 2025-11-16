@@ -1,32 +1,37 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::path::PathBuf;
 use std::{
-    fs::{self, File},
+    fs::File,
     io::{self, Seek, Write},
     path::Path,
 };
 
+const SPLIT_SIZE: usize = 4294934528; // 4 GiB - 32 KiB (fits in a u32 on 32-bit systems)
+
 pub struct OverflowWriter {
-    position: u64,
+    main_pos: usize,
     main: File,
-    split_size: u64,
-    overflow: File,
+    must_split: bool,
+    overflow_path: PathBuf,
+    overflow: Option<File>,
 }
 
 impl OverflowWriter {
-    pub fn new(main_path: &Path, overflow_path: &Path, split_size: u64) -> io::Result<Self> {
+    pub fn new(main_path: &Path, overflow_path: PathBuf, must_split: bool) -> io::Result<Self> {
         let main = File::create(main_path)?;
-        let overflow = File::create(overflow_path)?;
 
         Ok(Self {
-            position: 0,
+            main_pos: 0,
             main,
-            split_size,
-            overflow,
+            must_split,
+            overflow_path,
+            overflow: None,
         })
     }
 
+    // This is the last thing we do, so we don't need to update the position
     pub fn write_header(&mut self, buf: &[u8]) -> io::Result<()> {
         self.main.rewind()?;
         self.main.write_all(buf)
@@ -35,26 +40,37 @@ impl OverflowWriter {
 
 impl Write for OverflowWriter {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        let bytes_written = if self.position + (buf.len() as u64) <= self.split_size {
-            self.main.write(buf)?
-        } else {
-            self.overflow.write(buf)?
-        };
+        // Main file already full, we write to overflow
+        if let Some(overflow) = &mut self.overflow {
+            overflow.write(buf)
+        }
+        // Main file not full, we write to main file and create the overflow file if needed
+        else if self.must_split {
+            let remaining_in_main = SPLIT_SIZE - self.main_pos;
 
-        self.position += bytes_written as u64;
-        Ok(bytes_written)
+            // Hey, you. You’re finally awake. You were trying to cross the border, right?
+            if remaining_in_main < buf.len() {
+                self.overflow = Some(File::create(&self.overflow_path)?);
+                self.main.write(&buf[..remaining_in_main])
+            }
+            // Main file not near split size, we write to main file
+            else {
+                let bytes_written = self.main.write(buf)?;
+                self.main_pos += bytes_written;
+                Ok(bytes_written)
+            }
+        }
+        // Main file not split, we write to main file
+        else {
+            self.main.write(buf)
+        }
     }
 
     fn flush(&mut self) -> io::Result<()> {
         self.main.flush()?;
-        self.overflow.flush()
-    }
-}
-
-pub fn delete_file_if_empty(path: &Path) -> io::Result<()> {
-    if path.exists() && path.metadata()?.len() == 0 {
-        fs::remove_file(path)
-    } else {
+        if let Some(overflow) = &mut self.overflow {
+            overflow.flush()?;
+        };
         Ok(())
     }
 }
