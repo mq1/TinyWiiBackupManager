@@ -524,14 +524,19 @@ impl AppWrapper {
                     self.state.download_osc_icons();
                 }
                 UiAction::DeleteGame(i) => {
-                    let i = i as usize;
-
-                    let game = &self.state.games[i];
+                    let game = &self.state.games[i as usize];
 
                     if let Err(e) = fs::remove_dir_all(&game.path) {
                         self.state.notifications.show_err(e.into());
                     } else {
-                        self.state.games.remove(i);
+                        self.state.games.remove(i as usize);
+
+                        self.state
+                            .filtered_games
+                            .iter()
+                            .position(|&ii| ii == i)
+                            .map(|ii| self.state.filtered_games.remove(ii));
+
                         self.update_title(ctx);
                     }
 
@@ -570,14 +575,19 @@ impl AppWrapper {
                     }
                 }
                 UiAction::DeleteHbcApp(i) => {
-                    let i = i as usize;
-
-                    let hbc_app = &self.state.hbc_apps[i];
+                    let hbc_app = &self.state.hbc_apps[i as usize];
 
                     if let Err(e) = fs::remove_dir_all(&hbc_app.path) {
                         self.state.notifications.show_err(e.into());
                     } else {
-                        self.state.hbc_apps.remove(i);
+                        self.state.hbc_apps.remove(i as usize);
+
+                        self.state
+                            .filtered_hbc_apps
+                            .iter()
+                            .position(|&ii| ii == i)
+                            .map(|ii| self.state.filtered_hbc_apps.remove(ii));
+
                         self.update_title(ctx);
                     }
 
