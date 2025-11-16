@@ -15,14 +15,12 @@ pub fn get_main_file(dir: &Path) -> Option<PathBuf> {
         .filter(|path| path.is_file())
         .filter(|path| {
             path.to_str()
-                .map(|p| !p.ends_with(".part1.iso"))
-                .unwrap_or(false)
+                .is_some_and(|p| !p.ends_with(".part1.iso"))
         })
         .find(|path| {
             path.extension()
                 .and_then(|ext| ext.to_str())
-                .map(|ext| matches!(ext, "iso" | "wbfs" | "ciso" | "gcm"))
-                .unwrap_or(false)
+                .is_some_and(|ext| matches!(ext, "iso" | "wbfs" | "ciso" | "gcm"))
         })
 }
 
