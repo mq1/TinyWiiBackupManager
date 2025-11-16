@@ -88,8 +88,8 @@ impl Seek for OverflowReader {
     fn seek(&mut self, pos: SeekFrom) -> io::Result<u64> {
         let new_pos = match pos {
             SeekFrom::Start(offset) => offset,
-            io::SeekFrom::Current(offset) => self.position.saturating_add_signed(offset),
-            io::SeekFrom::End(offset) => self.len.saturating_add_signed(offset),
+            SeekFrom::Current(offset) => self.position.saturating_add_signed(offset),
+            SeekFrom::End(offset) => self.len.saturating_add_signed(offset),
         };
 
         if new_pos < self.main_len {
