@@ -73,10 +73,18 @@ impl OverflowReader {
 
 impl Read for OverflowReader {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        let bytes_read = if self.position < self.main_len {
-            self.main.read(buf)?
-        } else {
+        let remaining_in_main = self.main_len.saturating_sub(self.position);
+
+        let bytes_read = if remaining_in_main == 0 {
             self.overflow.read(buf)?
+        } else {
+            let bytes_to_read = match remaining_in_main.try_into() {
+                Ok(x) => buf.len().min(x),
+                Err(_) => buf.len(),
+            };
+
+            self.main.read(&mut buf[..bytes_to_read])?
+                + self.overflow.read(&mut buf[bytes_to_read..])?
         };
 
         self.position += bytes_read as u64;
