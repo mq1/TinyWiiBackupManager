@@ -49,34 +49,22 @@ pub fn get_overflow_file(main: &Path) -> Option<PathBuf> {
 pub struct OverflowReader {
     position: u64,
     main: File,
-    split_position: u64,
+    main_len: u64,
     overflow: File,
     len: u64,
-}
-
-impl Clone for OverflowReader {
-    fn clone(&self) -> Self {
-        Self {
-            position: self.position,
-            main: self.main.try_clone().unwrap(),
-            split_position: self.split_position,
-            overflow: self.overflow.try_clone().unwrap(),
-            len: self.len,
-        }
-    }
 }
 
 impl OverflowReader {
     pub fn new(main_path: &Path, overflow_path: &Path) -> io::Result<Self> {
         let main = File::open(main_path)?;
-        let split_position = main.metadata()?.len();
+        let main_len = main.metadata()?.len();
         let overflow = File::open(overflow_path)?;
-        let len = split_position + overflow.metadata()?.len();
+        let len = main_len + overflow.metadata()?.len();
 
         Ok(Self {
             position: 0,
             main,
-            split_position,
+            main_len,
             overflow,
             len,
         })
@@ -85,62 +73,33 @@ impl OverflowReader {
 
 impl Read for OverflowReader {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        // If we are at or past the end of the combined file, return 0.
-        if self.position >= self.len {
-            return Ok(0);
-        }
+        let bytes_read = if self.position < self.main_len {
+            self.main.read(buf)?
+        } else {
+            self.overflow.read(buf)?
+        };
 
-        let remaining_in_main = self.split_position.saturating_sub(self.position);
-
-        let bytes_to_read = buf.len().min((self.len - self.position) as usize);
-        let buf = &mut buf[..bytes_to_read];
-
-        // If the read is partially or entirely within the main file.
-        if remaining_in_main > 0 {
-            self.main.seek(SeekFrom::Start(self.position))?;
-            let main_bytes_read = self.main.read(buf)?;
-
-            // If the read crosses the boundary into the overflow file.
-            if main_bytes_read < buf.len() {
-                self.overflow.seek(SeekFrom::Start(0))?;
-                let overflow_bytes_read = self.overflow.read(&mut buf[main_bytes_read..])?;
-                let total_bytes_read = main_bytes_read + overflow_bytes_read;
-                self.position += total_bytes_read as u64;
-                Ok(total_bytes_read)
-            }
-            // If the read is entirely within the main file.
-            else {
-                self.position += main_bytes_read as u64;
-                Ok(main_bytes_read)
-            }
-        }
-        // If the read is entirely within the overflow file.
-        else {
-            let overflow_pos = self.position - self.split_position;
-            self.overflow.seek(SeekFrom::Start(overflow_pos))?;
-            let bytes_read = self.overflow.read(buf)?;
-            self.position += bytes_read as u64;
-            Ok(bytes_read)
-        }
+        self.position += bytes_read as u64;
+        Ok(bytes_read)
     }
 }
 
 impl Seek for OverflowReader {
     fn seek(&mut self, pos: SeekFrom) -> io::Result<u64> {
         let new_pos = match pos {
-            SeekFrom::Start(start) => start as i64,
-            SeekFrom::End(end) => self.len as i64 + end,
-            SeekFrom::Current(current) => self.position as i64 + current,
+            SeekFrom::Start(offset) => offset,
+            io::SeekFrom::Current(offset) => self.position.saturating_add_signed(offset),
+            io::SeekFrom::End(offset) => self.len.saturating_add_signed(offset),
         };
 
-        if new_pos < 0 {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidInput,
-                "invalid seek to a negative position",
-            ));
+        if new_pos < self.main_len {
+            self.main.seek(SeekFrom::Start(new_pos))?;
+        } else {
+            let overflow_pos = new_pos - self.main_len;
+            self.overflow.seek(SeekFrom::Start(overflow_pos))?;
         }
 
-        self.position = new_pos as u64;
-        Ok(self.position)
+        self.position = new_pos;
+        Ok(new_pos)
     }
 }
