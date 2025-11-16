@@ -537,6 +537,18 @@ impl AppWrapper {
                             .position(|&ii| ii == i)
                             .map(|ii| self.state.filtered_games.remove(ii));
 
+                        self.state
+                            .filtered_wii_games
+                            .iter()
+                            .position(|&ii| ii == i)
+                            .map(|ii| self.state.filtered_wii_games.remove(ii));
+
+                        self.state
+                            .filtered_hbc_apps
+                            .iter()
+                            .position(|&ii| ii == i)
+                            .map(|ii| self.state.filtered_hbc_apps.remove(ii));
+
                         self.update_title(ctx);
                     }
 
