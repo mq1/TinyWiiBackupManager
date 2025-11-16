@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::io::BufWriter;
 use std::path::PathBuf;
 use std::{
     fs::File,
@@ -12,15 +13,15 @@ const SPLIT_SIZE: usize = 4294934528; // 4 GiB - 32 KiB (fits in a u32 on 32-bit
 
 pub struct OverflowWriter {
     main_pos: usize,
-    main: File,
+    main: BufWriter<File>,
     must_split: bool,
     overflow_path: PathBuf,
-    overflow: Option<File>,
+    overflow: Option<BufWriter<File>>,
 }
 
 impl OverflowWriter {
     pub fn new(main_path: &Path, overflow_path: PathBuf, must_split: bool) -> io::Result<Self> {
-        let main = File::create(main_path)?;
+        let main = BufWriter::new(File::create(main_path)?);
 
         Ok(Self {
             main_pos: 0,
@@ -50,7 +51,7 @@ impl Write for OverflowWriter {
 
             // Hey, you. You’re finally awake. You were trying to cross the border, right?
             if remaining_in_main < buf.len() {
-                self.overflow = Some(File::create(&self.overflow_path)?);
+                self.overflow = Some(BufWriter::new(File::create(&self.overflow_path)?));
                 self.main.write(&buf[..remaining_in_main])
             }
             // Main file not near split size, we write to main file
