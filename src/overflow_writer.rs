@@ -35,13 +35,10 @@ impl OverflowWriter {
 
 impl Write for OverflowWriter {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        let remaining_in_main = self.split_size.saturating_sub(self.position);
-
-        let bytes_written = if remaining_in_main == 0 {
-            self.overflow.write(buf)?
+        let bytes_written = if self.position + (buf.len() as u64) <= self.split_size {
+            self.main.write(buf)?
         } else {
-            let bytes_to_write = buf.len().min(saturating_u64_to_usize(remaining_in_main));
-            self.main.write(&buf[..bytes_to_write])?
+            self.overflow.write(buf)?
         };
 
         self.position += bytes_written as u64;
@@ -60,8 +57,4 @@ pub fn delete_file_if_empty(path: &Path) -> io::Result<()> {
     } else {
         Ok(())
     }
-}
-
-fn saturating_u64_to_usize(n: u64) -> usize {
-    n.try_into().unwrap_or(usize::MAX)
 }
