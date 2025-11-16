@@ -40,13 +40,8 @@ impl Write for OverflowWriter {
         let bytes_written = if remaining_in_main == 0 {
             self.overflow.write(buf)?
         } else {
-            let bytes_to_write = match remaining_in_main.try_into() {
-                Ok(x) => buf.len().min(x),
-                Err(_) => buf.len(),
-            };
-
+            let bytes_to_write = buf.len().min(saturating_u64_to_usize(remaining_in_main));
             self.main.write(&buf[..bytes_to_write])?
-                + self.overflow.write(&buf[bytes_to_write..])?
         };
 
         self.position += bytes_written as u64;
@@ -65,4 +60,8 @@ pub fn delete_file_if_empty(path: &Path) -> io::Result<()> {
     } else {
         Ok(())
     }
+}
+
+fn saturating_u64_to_usize(n: u64) -> usize {
+    n.try_into().unwrap_or(usize::MAX)
 }

@@ -530,25 +530,7 @@ impl AppWrapper {
                         self.state.notifications.show_err(e.into());
                     } else {
                         self.state.games.remove(i as usize);
-
-                        self.state
-                            .filtered_games
-                            .iter()
-                            .position(|&ii| ii == i)
-                            .map(|ii| self.state.filtered_games.remove(ii));
-
-                        self.state
-                            .filtered_wii_games
-                            .iter()
-                            .position(|&ii| ii == i)
-                            .map(|ii| self.state.filtered_wii_games.remove(ii));
-
-                        self.state
-                            .filtered_gc_games
-                            .iter()
-                            .position(|&ii| ii == i)
-                            .map(|ii| self.state.filtered_gc_games.remove(ii));
-
+                        self.update_filtered_games();
                         self.update_title(ctx);
                     }
 
@@ -593,13 +575,7 @@ impl AppWrapper {
                         self.state.notifications.show_err(e.into());
                     } else {
                         self.state.hbc_apps.remove(i as usize);
-
-                        self.state
-                            .filtered_hbc_apps
-                            .iter()
-                            .position(|&ii| ii == i)
-                            .map(|ii| self.state.filtered_hbc_apps.remove(ii));
-
+                        self.update_filtered_hbc_apps();
                         self.update_title(ctx);
                     }
 
