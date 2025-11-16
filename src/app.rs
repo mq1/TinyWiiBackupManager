@@ -544,10 +544,10 @@ impl AppWrapper {
                             .map(|ii| self.state.filtered_wii_games.remove(ii));
 
                         self.state
-                            .filtered_hbc_apps
+                            .filtered_gc_games
                             .iter()
                             .position(|&ii| ii == i)
-                            .map(|ii| self.state.filtered_hbc_apps.remove(ii));
+                            .map(|ii| self.state.filtered_gc_games.remove(ii));
 
                         self.update_title(ctx);
                     }
