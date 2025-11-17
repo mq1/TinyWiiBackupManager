@@ -43,7 +43,7 @@ jobs:
           fetch-depth: 1
 
       - name: Install Rust toolchain
-        run: rustup target add ${{ matrix.target }}
+        run: rustup toolchain install 1.91-${{ matrix.target }}
 
       - name: Restore Rust cache
         uses: Swatinem/rust-cache@v2
@@ -109,7 +109,7 @@ jobs:
           fetch-depth: 1
 
       - name: Install Rust toolchain
-        run: rustup target add ${{ matrix.target }}
+        run: rustup toolchain install 1.91-${{ matrix.target }}
 
       - name: Restore Rust cache
         uses: Swatinem/rust-cache@v2
@@ -167,13 +167,13 @@ jobs:
         uses: Swatinem/rust-cache@v2
         with:
           key: ${{ matrix.target }}
-        
-      - name: Install rust-src
-        run: rustup component add rust-src
+
+      - name: Install Rust toolchain and rust-src
+        run: rustup toolchain install 1.91 --component rust-src
 
       - name: Build binary
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
-        env: 
+        env:
           RUSTC_BOOTSTRAP: 1
 
       - name: Package binary as zip
@@ -210,7 +210,7 @@ jobs:
           fetch-depth: 1
 
       - name: Install Rust toolchain
-        run: rustup target add ${{ matrix.target }}
+        run: rustup toolchain install 1.91-${{ matrix.target }}
 
       - name: Restore Rust cache
         uses: Swatinem/rust-cache@v2
@@ -277,7 +277,7 @@ jobs:
 
       - name: Generate downloads table
         run: sed 's/VERSION/${{ env.VERSION_NAME }}/g' assets/downloads-template.md > downloads.md
-    
+
       - name: Append downloads table to release
         uses: softprops/action-gh-release@v2
         with:
