@@ -260,9 +260,10 @@ pub fn update(
             ui.add_sized(egui::Vec2::new(1., 21.), egui::Separator::default());
 
             if ui.button("📁 Open Directory").clicked()
-                && let Err(e) = open::that(&game.path) {
-                    ui_buffers.notifications.show_err(e.into());
-                }
+                && let Err(e) = game.open_dir()
+            {
+                ui_buffers.notifications.show_err(e);
+            }
 
             // Integrity check button
             let has_embedded_crc32 = disc_info
