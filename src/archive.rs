@@ -1,11 +1,12 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::messages::Message;
 use crate::{
     config::ArchiveFormat,
     convert::{get_disc_opts, get_process_opts},
     overflow_reader::{OverflowReader, get_main_file, get_overflow_file},
-    tasks::{BackgroundMessage, TaskProcessor},
+    tasks::TaskProcessor,
 };
 use anyhow::{Result, anyhow, bail};
 use nod::{
@@ -34,9 +35,7 @@ pub fn spawn_archive_game_task(
     };
 
     task_processor.spawn(move |msg_sender| {
-        msg_sender.send(BackgroundMessage::UpdateStatus(
-            "📦 Archiving game...".to_string(),
-        ))?;
+        msg_sender.send(Message::UpdateStatus("📦 Archiving game...".to_string()))?;
 
         let format_opts = match archive_format {
             ArchiveFormat::Rvz => FormatOptions {
@@ -56,7 +55,7 @@ pub fn spawn_archive_game_task(
 
         let process_opts = get_process_opts(false);
 
-        msg_sender.send(BackgroundMessage::UpdateStatus(format!(
+        msg_sender.send(Message::UpdateStatus(format!(
             "📦 Archiving {}...",
             path.display()
         )))?;
@@ -75,7 +74,7 @@ pub fn spawn_archive_game_task(
             |data, progress, total| {
                 output_file.write_all(&data)?;
 
-                let _ = msg_sender.send(BackgroundMessage::UpdateStatus(format!(
+                let _ = msg_sender.send(Message::UpdateStatus(format!(
                     "📦 Archiving {}  {:02.0}%",
                     path.display(),
                     progress as f32 / total as f32 * 100.0
@@ -91,7 +90,7 @@ pub fn spawn_archive_game_task(
             output_file.write_all(finalization.header.as_ref())?;
         }
 
-        msg_sender.send(BackgroundMessage::NotifyInfo(format!(
+        msg_sender.send(Message::NotifyInfo(format!(
             "📦 Archived {}",
             path.display()
         )))?;

@@ -1,10 +1,11 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::app::App;
+use crate::messages::Message;
 use crate::{
-    app::{AppState, UiBuffers},
     hbc_apps::{self},
-    ui::{self, UiAction},
+    ui::{self},
 };
 use eframe::egui;
 
@@ -12,26 +13,24 @@ const CARD_WIDTH: f32 = 161.5;
 const CARD_HORIZONTAL_SPACE: usize = 181;
 const CARD_HEIGHT: f32 = 140.;
 
-pub fn update(ui: &mut egui::Ui, app_state: &AppState, ui_buffers: &mut UiBuffers) {
+pub fn update(ui: &mut egui::Ui, app: &mut App) {
     egui::ScrollArea::vertical().show(ui, |ui| {
         let available_width = ui.available_width();
         ui.set_width(available_width);
         let cols = available_width as usize / CARD_HORIZONTAL_SPACE;
 
-        let filtered_hbc_apps = &app_state.filtered_hbc_apps;
-
         ui.heading(format!(
             "★ Homebrew Channel Apps: {} found ({})",
-            filtered_hbc_apps.len(),
-            &app_state.filtered_hbc_apps_size
+            app.filtered_hbc_apps.len(),
+            &app.filtered_hbc_apps_size
         ));
 
         ui.add_space(5.);
 
-        for row in filtered_hbc_apps.chunks(cols) {
+        for row in app.filtered_hbc_apps.chunks(cols) {
             ui.horizontal_top(|ui| {
                 for hbc_app_i in row.iter().copied() {
-                    update_hbc_app_card(ui, app_state, ui_buffers, hbc_app_i);
+                    update_hbc_app_card(ui, app, hbc_app_i);
                 }
             });
 
@@ -40,13 +39,8 @@ pub fn update(ui: &mut egui::Ui, app_state: &AppState, ui_buffers: &mut UiBuffer
     });
 }
 
-fn update_hbc_app_card(
-    ui: &mut egui::Ui,
-    app_state: &AppState,
-    ui_buffers: &mut UiBuffers,
-    hbc_app_i: u16,
-) {
-    let hbc_app = &app_state.hbc_apps[hbc_app_i as usize];
+fn update_hbc_app_card(ui: &mut egui::Ui, app: &App, hbc_app_i: u16) {
+    let hbc_app = &app.hbc_apps[hbc_app_i as usize];
 
     let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
     group.show(ui, |ui| {
@@ -78,13 +72,12 @@ fn update_hbc_app_card(
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 // Delete button
                 if ui.button("🗑").on_hover_text("Delete HBC App").clicked() {
-                    ui_buffers.action =
-                        Some(UiAction::OpenModal(ui::Modal::DeleteHbcApp(hbc_app_i)));
+                    app.send_msg(Message::OpenModal(ui::Modal::DeleteHbcApp(hbc_app_i)));
                 }
 
                 // Update button
                 if let Some(osc_app_i) = hbc_app.osc_app_i {
-                    let osc_app = &app_state.osc_apps[osc_app_i as usize];
+                    let osc_app = &app.osc_apps[osc_app_i as usize];
 
                     if osc_app.meta.version != hbc_app.meta.version
                         && ui
@@ -97,8 +90,8 @@ fn update_hbc_app_card(
                     {
                         hbc_apps::spawn_install_app_from_url_task(
                             osc_app.meta.assets.archive.url.clone(),
-                            &app_state.task_processor,
-                            ui_buffers.config.contents.mount_point.clone(),
+                            &app.task_processor,
+                            app.config.contents.mount_point.clone(),
                         );
                     }
                 }
@@ -111,7 +104,7 @@ fn update_hbc_app_card(
                     .on_hover_text("Show App Information")
                     .clicked()
                 {
-                    ui_buffers.action = Some(UiAction::OpenModal(ui::Modal::HbcAppInfo(hbc_app_i)));
+                    app.send_msg(Message::OpenModal(ui::Modal::HbcAppInfo(hbc_app_i)));
                 }
             });
         });

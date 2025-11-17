@@ -1,10 +1,11 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::messages::Message;
 use crate::{
     convert::{get_disc_opts, get_process_opts},
     overflow_reader::{OverflowReader, get_main_file, get_overflow_file},
-    tasks::{BackgroundMessage, TaskProcessor},
+    tasks::TaskProcessor,
     wiitdb::GameInfo,
 };
 use anyhow::{Result, anyhow};
@@ -21,7 +22,7 @@ pub fn spawn_checksum_task(
     game_info: Option<GameInfo>,
 ) {
     task_processor.spawn(move |msg_sender| {
-        msg_sender.send(BackgroundMessage::UpdateStatus(
+        msg_sender.send(Message::UpdateStatus(
             "🔎 Performing game checksum...".to_string(),
         ))?;
 
@@ -31,7 +32,7 @@ pub fn spawn_checksum_task(
         if let Some(embedded_crc32) = embedded.crc32
         {
             if embedded_crc32 == crc32 {
-                msg_sender.send(BackgroundMessage::NotifySuccess(
+                msg_sender.send(Message::NotifySuccess(
                     "🔎 Embedded CRC32 is == to the actual file CRC32".to_string()
                 ))?;
             } else {
@@ -40,13 +41,13 @@ pub fn spawn_checksum_task(
                     embedded_crc32, crc32
                 );
 
-                msg_sender.send(BackgroundMessage::NotifyError(e))?;
+                msg_sender.send(Message::NotifyError(e))?;
             }
         }
 
         if let Some(game_info) = game_info {
             if game_info.roms.iter().filter_map(|r| r.crc).any(|db_crc32| db_crc32 == crc32) {
-                msg_sender.send(BackgroundMessage::NotifySuccess(
+                msg_sender.send(Message::NotifySuccess(
                     "🔎 CRC32 matches the Redump hash: your dump is perfect!".to_string(),
                 ))?;
             } else {
@@ -54,7 +55,7 @@ pub fn spawn_checksum_task(
                     "🔎 CRC32 does not match the Redump hash"
                 );
 
-                msg_sender.send(BackgroundMessage::NotifyError(e))?;
+                msg_sender.send(Message::NotifyError(e))?;
             }
         }
 
@@ -69,7 +70,7 @@ fn get_embedded_hashes(game_dir: &Path) -> Result<DiscMeta> {
     Ok(meta)
 }
 
-pub fn calc_crc32(game_dir: &Path, msg_sender: &Sender<BackgroundMessage>) -> Result<u32> {
+pub fn calc_crc32(game_dir: &Path, msg_sender: &Sender<Message>) -> Result<u32> {
     let game_dir_name = game_dir
         .file_name()
         .ok_or(anyhow!("Failed to get disc name"))?
@@ -91,7 +92,7 @@ pub fn calc_crc32(game_dir: &Path, msg_sender: &Sender<BackgroundMessage>) -> Re
 
     let finalization = disc_writer.process(
         |_, progress, total| {
-            let _ = msg_sender.send(BackgroundMessage::UpdateStatus(format!(
+            let _ = msg_sender.send(Message::UpdateStatus(format!(
                 "🔎 Hashing {}  {:02.0}%",
                 &game_dir_name,
                 progress as f32 / total as f32 * 100.0,

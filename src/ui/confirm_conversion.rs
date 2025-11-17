@@ -1,20 +1,11 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    app::{AppState, UiBuffers},
-    convert,
-    disc_info::DiscInfo,
-    ui::UiAction,
-};
+use crate::app::App;
+use crate::{convert, disc_info::DiscInfo};
 use eframe::egui;
 
-pub fn update(
-    ctx: &egui::Context,
-    app_state: &AppState,
-    ui_buffers: &mut UiBuffers,
-    discs: &[DiscInfo],
-) {
+pub fn update(ctx: &egui::Context, app: &mut App, discs: &[DiscInfo]) {
     egui::Modal::new("confirm_conversion".into()).show(ctx, |ui: &mut egui::Ui| {
         ui.heading(format!("🎮 {} Games selected for conversion", discs.len()));
         ui.label("(Existing games are automatically ignored)");
@@ -37,16 +28,16 @@ pub fn update(
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Max), |ui| {
             if ui.button("✅ Start conversion").clicked() {
                 convert::spawn_add_games_task(
-                    &app_state.task_processor,
-                    &ui_buffers.config.contents,
+                    &app.task_processor,
+                    &app.config.contents,
                     discs.into(),
                 );
 
-                ui_buffers.action = Some(UiAction::CloseModal)
+                app.close_modal();
             }
 
             if ui.button("❌ Cancel").clicked() {
-                ui_buffers.action = Some(UiAction::CloseModal)
+                app.close_modal();
             }
         })
     });

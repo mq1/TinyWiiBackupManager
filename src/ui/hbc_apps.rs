@@ -1,37 +1,34 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::app::App;
 use crate::{
-    app::{AppState, UiBuffers},
     config::{SortBy, ViewAs},
-    ui::{UiAction, hbc_apps_grid, hbc_apps_list},
+    ui::{hbc_apps_grid, hbc_apps_list},
 };
 use eframe::egui::{self, Vec2};
 
-pub fn update(ctx: &egui::Context, app_state: &AppState, ui_buffers: &mut UiBuffers) {
+pub fn update(ctx: &egui::Context, app: &mut App) {
     egui::CentralPanel::default().show(ctx, |ui| {
-        if ui_buffers
-            .config
-            .contents
-            .mount_point
-            .as_os_str()
-            .is_empty()
-        {
+        if app.config.contents.mount_point.as_os_str().is_empty() {
             ui.heading("Click on 🖴 to select a Drive/Mount Point");
             return;
         }
 
-        update_top_bar(ui, app_state, ui_buffers);
+        update_top_bar(ui, ctx, app);
         ui.add_space(10.);
 
-        match ui_buffers.config.contents.view_as {
-            ViewAs::Grid => hbc_apps_grid::update(ui, app_state, ui_buffers),
-            ViewAs::List => hbc_apps_list::update(ui, app_state, ui_buffers),
+        match app.config.contents.view_as {
+            ViewAs::Grid => hbc_apps_grid::update(ui, app),
+            ViewAs::List => hbc_apps_list::update(ui, app),
         }
     });
 }
 
-fn update_top_bar(ui: &mut egui::Ui, _app_state: &AppState, ui_buffers: &mut UiBuffers) {
+fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, app: &mut App) {
+    let current_view_as = app.config.contents.view_as;
+    let current_sort_by = app.config.contents.sort_by;
+
     ui.horizontal(move |ui| {
         let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
         group.show(ui, |ui| {
@@ -41,13 +38,13 @@ fn update_top_bar(ui: &mut egui::Ui, _app_state: &AppState, ui_buffers: &mut UiB
 
             if ui
                 .add(
-                    egui::TextEdit::singleline(&mut ui_buffers.hbc_apps_filter)
+                    egui::TextEdit::singleline(&mut app.hbc_apps_filter)
                         .desired_width(200.)
                         .hint_text("Search by Name"),
                 )
                 .changed()
             {
-                ui_buffers.action = Some(UiAction::ApplyFilterHbcApps);
+                app.update_filtered_hbc_apps();
             }
         });
 
@@ -60,7 +57,7 @@ fn update_top_bar(ui: &mut egui::Ui, _app_state: &AppState, ui_buffers: &mut UiB
                 .on_hover_text("Add Apps")
                 .clicked()
             {
-                ui_buffers.choose_hbc_apps.pick_multiple();
+                app.choose_hbc_apps.pick_multiple();
             }
 
             if ui
@@ -71,7 +68,8 @@ fn update_top_bar(ui: &mut egui::Ui, _app_state: &AppState, ui_buffers: &mut UiB
                 .on_hover_text("Refresh Apps")
                 .clicked()
             {
-                ui_buffers.action = Some(UiAction::TriggerRefreshHbcApps);
+                app.refresh_hbc_apps();
+                app.update_title(ctx);
             }
 
             ui.add_space(10.);
@@ -79,21 +77,21 @@ fn update_top_bar(ui: &mut egui::Ui, _app_state: &AppState, ui_buffers: &mut UiB
             let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
             group.show(ui, |ui| {
                 if ui
-                    .selectable_label(ui_buffers.config.contents.view_as == ViewAs::List, "☰")
+                    .selectable_label(current_view_as == ViewAs::List, "☰")
                     .on_hover_text("View as List")
                     .clicked()
                 {
-                    ui_buffers.config.contents.view_as = ViewAs::List;
-                    ui_buffers.save_config();
+                    app.config.contents.view_as = ViewAs::List;
+                    app.save_config();
                 }
 
                 if ui
-                    .selectable_label(ui_buffers.config.contents.view_as == ViewAs::Grid, "")
+                    .selectable_label(current_view_as == ViewAs::Grid, "")
                     .on_hover_text("View as Grid")
                     .clicked()
                 {
-                    ui_buffers.config.contents.view_as = ViewAs::Grid;
-                    ui_buffers.save_config();
+                    app.config.contents.view_as = ViewAs::Grid;
+                    app.save_config();
                 }
             });
 
@@ -102,10 +100,10 @@ fn update_top_bar(ui: &mut egui::Ui, _app_state: &AppState, ui_buffers: &mut UiB
                 if ui
                     .selectable_label(
                         matches!(
-                            ui_buffers.config.contents.sort_by,
+                            current_sort_by,
                             SortBy::SizeAscending | SortBy::SizeDescending
                         ),
-                        if ui_buffers.config.contents.sort_by == SortBy::SizeDescending {
+                        if current_sort_by == SortBy::SizeDescending {
                             "⚖⏷"
                         } else {
                             "⚖⏶"
@@ -114,23 +112,22 @@ fn update_top_bar(ui: &mut egui::Ui, _app_state: &AppState, ui_buffers: &mut UiB
                     .on_hover_text("Sort by size")
                     .clicked()
                 {
-                    let sort_by = if ui_buffers.config.contents.sort_by == SortBy::SizeAscending {
+                    let sort_by = if current_sort_by == SortBy::SizeAscending {
                         SortBy::SizeDescending
                     } else {
                         SortBy::SizeAscending
                     };
 
-                    ui_buffers.config.contents.sort_by = sort_by;
-                    ui_buffers.action = Some(UiAction::ApplySorting);
+                    app.apply_sorting(sort_by);
                 }
 
                 if ui
                     .selectable_label(
                         matches!(
-                            ui_buffers.config.contents.sort_by,
+                            current_sort_by,
                             SortBy::NameAscending | SortBy::NameDescending
                         ),
-                        if ui_buffers.config.contents.sort_by == SortBy::NameDescending {
+                        if current_sort_by == SortBy::NameDescending {
                             "🗛⏷"
                         } else {
                             "🗛⏶"
@@ -139,14 +136,13 @@ fn update_top_bar(ui: &mut egui::Ui, _app_state: &AppState, ui_buffers: &mut UiB
                     .on_hover_text("Sort by name")
                     .clicked()
                 {
-                    let sort_by = if ui_buffers.config.contents.sort_by == SortBy::NameAscending {
+                    let sort_by = if current_sort_by == SortBy::NameAscending {
                         SortBy::NameDescending
                     } else {
                         SortBy::NameAscending
                     };
 
-                    ui_buffers.config.contents.sort_by = sort_by;
-                    ui_buffers.action = Some(UiAction::ApplySorting);
+                    app.apply_sorting(sort_by);
                 }
             });
         });
