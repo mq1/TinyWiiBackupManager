@@ -220,6 +220,15 @@ impl UiBuffers {
                 .show_success("dot_clean completed successfully");
         }
     }
+
+    pub fn run_normalize_paths(&mut self) {
+        if let Err(e) = dir_layout::normalize_paths(&self.config.contents.mount_point) {
+            self.notifications.show_err(e);
+        } else {
+            self.notifications
+                .show_success("Paths successfully normalized");
+        }
+    }
 }
 
 impl AppWrapper {
@@ -479,17 +488,6 @@ impl AppWrapper {
                 }
                 UiAction::CloseModal => {
                     self.state.current_modal = None;
-                }
-                UiAction::RunNormalizePaths => {
-                    if let Err(e) =
-                        dir_layout::normalize_paths(&self.ui_buffers.config.contents.mount_point)
-                    {
-                        self.ui_buffers.notifications.show_err(e);
-                    } else {
-                        self.ui_buffers
-                            .notifications
-                            .show_success("Paths successfully normalized");
-                    }
                 }
                 UiAction::ApplyFilterGames => {
                     self.update_filtered_games();
