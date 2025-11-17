@@ -15,7 +15,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
             return;
         }
 
-        if app.downloading_osc_icons.is_none() {
+        if !app.has_osc_icons_downlading_started {
             app.download_osc_icons();
         }
 
