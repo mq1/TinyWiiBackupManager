@@ -60,7 +60,6 @@ pub struct AppState {
     pub filtered_hbc_apps_size: Size,
     pub hbc_apps: Vec<HbcApp>,
     pub current_view: ui::View,
-    pub notifications: Notifications,
     pub update_info: Option<UpdateInfo>,
     pub status: String,
     pub current_modal: Option<Modal>,
@@ -89,7 +88,6 @@ impl AppState {
             filtered_osc_apps: SmallVec::new(),
             status: String::new(),
             wiitdb: None,
-            notifications: Notifications::new(),
             current_modal: None,
             prev_sort_by: SortBy::None,
         }
@@ -146,6 +144,7 @@ pub struct UiBuffers {
     pub choose_file_to_push: FileDialog,
     pub choose_archive_path: FileDialog,
     pub archiving_game_i: u16,
+    pub notifications: Notifications,
 }
 
 impl UiBuffers {
@@ -190,6 +189,7 @@ impl UiBuffers {
             choose_file_to_push,
             choose_archive_path,
             archiving_game_i: u16::MAX, // will be set later, panics if it's not
+            notifications: Notifications::new(),
         }
     }
 }
@@ -223,7 +223,7 @@ impl AppWrapper {
 
     fn save_config(&mut self) {
         if let Err(e) = self.ui_buffers.config.write() {
-            self.state.notifications.show_err(e);
+            self.ui_buffers.notifications.show_err(e);
         }
     }
 
@@ -383,7 +383,7 @@ impl AppWrapper {
                 .collect::<Box<[_]>>();
 
             if discs.is_empty() {
-                self.state
+                self.ui_buffers
                     .notifications
                     .show_info("No new games were selected");
             } else {
@@ -395,7 +395,7 @@ impl AppWrapper {
             self.ui_buffers.config.contents.mount_point = path;
 
             if !self.is_mount_point_known() {
-                self.state.notifications.show_info_no_duration("New Drive detected, a path normalization run is recommended\nYou can find it in the 🔧 Tools page");
+                self.ui_buffers.notifications.show_info_no_duration("New Drive detected, a path normalization run is recommended\nYou can find it in the 🔧 Tools page");
             }
 
             self.refresh_games();
@@ -419,7 +419,7 @@ impl AppWrapper {
                     self.ui_buffers.config.contents.archive_format = format;
                     self.save_config();
                 }
-                Err(e) => self.state.notifications.show_err(e),
+                Err(e) => self.ui_buffers.notifications.show_err(e),
             }
         }
 
@@ -462,31 +462,31 @@ impl AppWrapper {
                     if let Some(update_info) = &self.state.update_info
                         && let Err(e) = update_info.open_url()
                     {
-                        self.state.notifications.show_err(e);
+                        self.ui_buffers.notifications.show_err(e);
                     }
                 }
                 UiAction::OpenDataDir => {
                     if let Err(e) = open::that(&self.state.data_dir) {
-                        self.state.notifications.show_err(e.into());
+                        self.ui_buffers.notifications.show_err(e.into());
                     }
                 }
                 UiAction::OpenWiki => {
                     if let Err(e) = open::that(env!("CARGO_PKG_HOMEPAGE")) {
-                        self.state.notifications.show_err(e.into());
+                        self.ui_buffers.notifications.show_err(e.into());
                     }
                 }
                 UiAction::OpenRepo => {
                     if let Err(e) = open::that(env!("CARGO_PKG_REPOSITORY")) {
-                        self.state.notifications.show_err(e.into());
+                        self.ui_buffers.notifications.show_err(e.into());
                     }
                 }
                 UiAction::RunNormalizePaths => {
                     if let Err(e) =
                         dir_layout::normalize_paths(&self.ui_buffers.config.contents.mount_point)
                     {
-                        self.state.notifications.show_err(e);
+                        self.ui_buffers.notifications.show_err(e);
                     } else {
-                        self.state
+                        self.ui_buffers
                             .notifications
                             .show_success("Paths successfully normalized");
                     }
@@ -495,9 +495,9 @@ impl AppWrapper {
                     if let Err(e) =
                         util::run_dot_clean(&self.ui_buffers.config.contents.mount_point)
                     {
-                        self.state.notifications.show_err(e);
+                        self.ui_buffers.notifications.show_err(e);
                     } else {
-                        self.state
+                        self.ui_buffers
                             .notifications
                             .show_success("dot_clean completed successfully");
                     }
@@ -507,7 +507,7 @@ impl AppWrapper {
                 }
                 UiAction::OpenOscUrl(i) => {
                     if let Err(e) = self.state.osc_apps[i as usize].open_url() {
-                        self.state.notifications.show_err(e);
+                        self.ui_buffers.notifications.show_err(e);
                     }
                 }
                 UiAction::ApplyFilterGames => {
@@ -526,7 +526,7 @@ impl AppWrapper {
                     let game = &self.state.games[i as usize];
 
                     if let Err(e) = fs::remove_dir_all(&game.path) {
-                        self.state.notifications.show_err(e.into());
+                        self.ui_buffers.notifications.show_err(e.into());
                     } else {
                         self.state.games.remove(i as usize);
                         self.update_filtered_games();
@@ -534,11 +534,6 @@ impl AppWrapper {
                     }
 
                     self.state.current_modal = None;
-                }
-                UiAction::OpenGameDir(i) => {
-                    if let Err(e) = open::that(&self.state.games[i as usize].path) {
-                        self.state.notifications.show_err(e.into());
-                    }
                 }
                 UiAction::TriggerRefreshGames => {
                     self.refresh_games();
@@ -549,16 +544,11 @@ impl AppWrapper {
                     self.state.prev_sort_by = self.ui_buffers.config.contents.sort_by;
                     self.save_config();
                 }
-                UiAction::OpenHbcAppDir(i) => {
-                    if let Err(e) = self.state.hbc_apps[i as usize].open_dir() {
-                        self.state.notifications.show_err(e);
-                    }
-                }
                 UiAction::DeleteHbcApp(i) => {
                     let hbc_app = &self.state.hbc_apps[i as usize];
 
                     if let Err(e) = fs::remove_dir_all(&hbc_app.path) {
-                        self.state.notifications.show_err(e.into());
+                        self.ui_buffers.notifications.show_err(e.into());
                     } else {
                         self.state.hbc_apps.remove(i as usize);
                         self.update_filtered_hbc_apps();
@@ -580,13 +570,13 @@ impl AppWrapper {
         while let Ok(msg) = self.state.task_processor.msg_receiver.try_recv() {
             match msg {
                 BackgroundMessage::NotifyInfo(i) => {
-                    self.state.notifications.show_info(&i);
+                    self.ui_buffers.notifications.show_info(&i);
                 }
                 BackgroundMessage::NotifyError(e) => {
-                    self.state.notifications.show_err(e);
+                    self.ui_buffers.notifications.show_err(e);
                 }
                 BackgroundMessage::NotifySuccess(s) => {
-                    self.state.notifications.show_success(&s);
+                    self.ui_buffers.notifications.show_success(&s);
                 }
                 BackgroundMessage::UpdateStatus(string) => {
                     self.state.status = string;
@@ -607,7 +597,7 @@ impl AppWrapper {
                 }
                 BackgroundMessage::GotNewVersion(version) => {
                     let info = UpdateInfo::from_version(version);
-                    self.state
+                    self.ui_buffers
                         .notifications
                         .show_info_no_duration(&info.ui_text);
                     self.state.update_info = Some(info);
@@ -644,7 +634,6 @@ impl AppWrapper {
 impl eframe::App for AppWrapper {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         ui::root::update(ctx, &self.state, &mut self.ui_buffers);
-        self.state.notifications.show_toasts(ctx);
 
         self.process_dialog_files(ctx);
         self.process_ui_action(ctx);
