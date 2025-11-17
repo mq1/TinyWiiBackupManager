@@ -60,8 +60,10 @@ pub fn update(ui: &mut egui::Ui, app_state: &AppState, ui_buffers: &mut UiBuffer
                     row.col(|ui| {
                         ui.horizontal(|ui| {
                             // Info button
-                            if ui.button("ℹ Info").on_hover_text("Show App Info").clicked() {
-                                ui_buffers.action = Some(UiAction::OpenOscUrl(osc_app_i));
+                            if ui.button("ℹ Info").on_hover_text("Show App Info").clicked()
+                                && let Err(e) = osc_app.open_url()
+                            {
+                                ui_buffers.notifications.show_err(e);
                             }
 
                             // Wiiload button
@@ -76,7 +78,7 @@ pub fn update(ui: &mut egui::Ui, app_state: &AppState, ui_buffers: &mut UiBuffer
                                     &app_state.task_processor,
                                 );
 
-                                ui_buffers.action = Some(UiAction::WriteConfig);
+                                ui_buffers.save_config();
                             }
 
                             // Install button

@@ -84,7 +84,7 @@ fn update_top_bar(ui: &mut egui::Ui, _app_state: &AppState, ui_buffers: &mut UiB
                     .clicked()
                 {
                     ui_buffers.config.contents.view_as = ViewAs::List;
-                    ui_buffers.action = Some(UiAction::WriteConfig);
+                    ui_buffers.save_config();
                 }
 
                 if ui
@@ -93,7 +93,7 @@ fn update_top_bar(ui: &mut egui::Ui, _app_state: &AppState, ui_buffers: &mut UiB
                     .clicked()
                 {
                     ui_buffers.config.contents.view_as = ViewAs::Grid;
-                    ui_buffers.action = Some(UiAction::WriteConfig);
+                    ui_buffers.save_config();
                 }
             });
 
