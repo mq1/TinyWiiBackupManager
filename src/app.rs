@@ -33,7 +33,7 @@ pub struct App {
     pub data_dir: PathBuf,
     pub task_processor: TaskProcessor,
     pub titles: Option<Titles>,
-    pub downloading_osc_icons: Option<Receiver<String>>,
+    pub has_osc_icons_downlading_started: bool,
     pub wiitdb: Option<wiitdb::Datafile>,
     pub games: Vec<Game>,
     pub osc_apps: Box<[OscApp]>,
@@ -112,7 +112,7 @@ impl App {
             filtered_gc_games_size: Size::from_bytes(0),
             titles: None,
             task_processor,
-            downloading_osc_icons: None,
+            has_osc_icons_downlading_started: false,
             hbc_apps: Vec::new(),
             filtered_hbc_apps: SmallVec::new(),
             filtered_hbc_apps_size: Size::from_bytes(0),
@@ -168,19 +168,18 @@ impl App {
 
     pub fn download_osc_icons(&mut self) {
         let icons_dir = self.data_dir.join("osc-icons");
-
-        let (sender, receiver) = unbounded();
-
+        let msg_sender = self.msg_sender.clone();
         let osc_apps = self.osc_apps.clone();
+
         thread::spawn(move || {
             for osc_app in osc_apps {
                 if osc::download_icon(&osc_app.meta, &icons_dir).is_ok() {
-                    let _ = sender.send(osc_app.icon_uri);
+                    let _ = msg_sender.send(Message::TriggerRefreshImage(osc_app.icon_uri));
                 }
             }
         });
 
-        self.downloading_osc_icons = Some(receiver);
+        self.has_osc_icons_downlading_started = true;
     }
 
     pub fn get_game_info(&self, game_id: [u8; 6]) -> Option<GameInfo> {
@@ -494,13 +493,6 @@ impl eframe::App for App {
         while let Ok(msg) = self.msg_receiver.try_recv() {
             process_msg(self, ctx, msg);
             ctx.request_repaint();
-        }
-
-        // Process OSC icon updates
-        if let Some(receiver) = self.downloading_osc_icons.as_mut() {
-            while let Ok(icon_uri) = receiver.try_recv() {
-                ctx.forget_image(&icon_uri);
-            }
         }
     }
 }
