@@ -29,6 +29,7 @@ pub enum Message {
     WriteConfig,
     OpenOscAppInfo(u16),
     OpenGameDir(u16),
+    OpenHbcAppDir(u16),
 }
 
 pub fn process_msg(app: &mut App, ctx: &egui::Context, msg: Message) {
@@ -95,6 +96,9 @@ pub fn process_msg(app: &mut App, ctx: &egui::Context, msg: Message) {
         }
         Message::OpenGameDir(i) => {
             app.open_game_dir(i);
+        }
+        Message::OpenHbcAppDir(i) => {
+            app.open_hbc_app_dir(i);
         }
     }
 }

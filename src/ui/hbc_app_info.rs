@@ -2,53 +2,52 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::app::App;
+use crate::messages::Message;
 use crate::ui::developers::get_developer_emoji;
 use eframe::egui;
 
-pub fn update(ctx: &egui::Context, app: &mut App, hbc_app_i: u16) {
+pub fn update(ctx: &egui::Context, app: &App, hbc_app_i: u16) {
+    let hbc_app = &app.hbc_apps[hbc_app_i as usize];
+
     egui::Modal::new("hbc_app_info".into()).show(ctx, |ui: &mut egui::Ui| {
-        {
-            let hbc_app = &app.hbc_apps[hbc_app_i as usize];
+        ui.heading(&hbc_app.meta.name);
 
-            ui.heading(&hbc_app.meta.name);
+        ui.separator();
 
-            ui.separator();
+        // Path
+        ui.label(format!("📁 Path: {}", hbc_app.get_path_str()));
 
-            // Path
-            ui.label(format!("📁 Path: {}", hbc_app.get_path_str()));
+        ui.separator();
 
-            ui.separator();
+        ui.label(format!(
+            "{} Coder: {}",
+            get_developer_emoji(&hbc_app.meta.coder),
+            &hbc_app.meta.coder
+        ));
+        ui.label("📌 Version: ".to_string() + &hbc_app.meta.version);
+        ui.label("📆 Release Date: ".to_string() + &hbc_app.meta.release_date);
+        ui.label("📄 Short Description: ".to_string() + &hbc_app.meta.short_description);
 
-            ui.label(format!(
-                "{} Coder: {}",
-                get_developer_emoji(&hbc_app.meta.coder),
-                &hbc_app.meta.coder
-            ));
-            ui.label("📌 Version: ".to_string() + &hbc_app.meta.version);
-            ui.label("📆 Release Date: ".to_string() + &hbc_app.meta.release_date);
-            ui.label("📄 Short Description: ".to_string() + &hbc_app.meta.short_description);
+        ui.separator();
 
-            ui.separator();
-
-            egui::ScrollArea::vertical()
-                .max_height(400.)
-                .show(ui, |ui| {
-                    ui.set_width(ui.available_width());
-                    ui.label(&hbc_app.meta.long_description);
-                });
-        }
+        egui::ScrollArea::vertical()
+            .max_height(400.)
+            .show(ui, |ui| {
+                ui.set_width(ui.available_width());
+                ui.label(&hbc_app.meta.long_description);
+            });
 
         ui.add_space(10.);
 
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Max), |ui| {
             if ui.button("❌ Close").clicked() {
-                app.close_modal();
+                app.send_msg(Message::CloseModal);
             }
 
             ui.add_sized(egui::Vec2::new(1., 21.), egui::Separator::default());
 
             if ui.button("📁 Open Directory").clicked() {
-                app.open_hbc_app_dir(hbc_app_i);
+                app.send_msg(Message::OpenHbcAppDir(hbc_app_i));
             }
         })
     });
