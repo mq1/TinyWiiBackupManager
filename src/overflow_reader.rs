@@ -82,20 +82,11 @@ impl Read for OverflowReader {
 impl Seek for OverflowReader {
     fn seek(&mut self, pos: SeekFrom) -> io::Result<u64> {
         let new_pos = match pos {
-            SeekFrom::Start(offset) => offset as i64,
-            SeekFrom::Current(offset) => self.position as i64 + offset,
-            SeekFrom::End(offset) => self.position as i64 + offset,
-        };
-
-        if new_pos < 0 {
-            return Err(io::Error::from(io::ErrorKind::InvalidInput));
+            SeekFrom::Start(offset) => Some(offset),
+            SeekFrom::Current(offset) => self.position.checked_add_signed(offset),
+            SeekFrom::End(offset) => self.len.checked_add_signed(offset),
         }
-
-        let new_pos = new_pos as u64;
-
-        if new_pos > self.len {
-            return Err(io::Error::from(io::ErrorKind::InvalidInput));
-        }
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "invalid seek"))?;
 
         if new_pos < self.main_len {
             self.main.seek(SeekFrom::Start(new_pos))?;
