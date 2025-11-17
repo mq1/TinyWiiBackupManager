@@ -4,7 +4,6 @@
 use crate::{
     app::{AppState, UiBuffers},
     hbc_apps,
-    ui::UiAction,
     wiiload,
 };
 use eframe::egui;

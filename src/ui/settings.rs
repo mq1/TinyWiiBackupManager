@@ -4,7 +4,6 @@
 use crate::{
     app::{AppState, UiBuffers},
     config::{GcOutputFormat, WiiOutputFormat},
-    ui::UiAction,
 };
 use eframe::egui;
 use egui_theme_switch::ThemeSwitch;
