@@ -1,10 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    app::{AppState, UiBuffers},
-    ui::UiAction,
-};
+use crate::app::{AppState, UiBuffers};
 use eframe::egui;
 
 pub fn update(ctx: &egui::Context, _app_state: &AppState, ui_buffers: &mut UiBuffers) {

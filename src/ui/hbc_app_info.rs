@@ -53,7 +53,9 @@ pub fn update(
             ui.add_sized(egui::Vec2::new(1., 21.), egui::Separator::default());
 
             if ui.button("📁 Open Directory").clicked() {
-                ui_buffers.action = Some(UiAction::OpenHbcAppDir(hbc_app_i));
+                if let Err(e) = open::that(&hbc_app.path) {
+                    ui_buffers.notifications.show_err(e.into());
+                }
             }
         })
     });

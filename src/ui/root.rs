@@ -47,4 +47,5 @@ pub fn update(ctx: &egui::Context, app_state: &AppState, ui_buffers: &mut UiBuff
     ui_buffers.choose_mount_point.update(ctx);
     ui_buffers.choose_archive_path.update(ctx);
     ui_buffers.choose_file_to_push.update(ctx);
+    ui_buffers.notifications.show_toasts(ctx);
 }
