@@ -31,8 +31,9 @@ mod wiiload;
 mod wiitdb;
 
 pub mod known_mount_points;
+mod messages;
 
-use crate::app::AppWrapper;
+use crate::app::App;
 use anyhow::{Result, anyhow};
 use eframe::{
     NativeOptions,
@@ -73,19 +74,15 @@ fn main() -> Result<()> {
 
     let data_dir = get_data_dir()?;
     fs::create_dir_all(&data_dir)?;
-    let mut app = AppWrapper::new(data_dir);
+    let mut app = App::new(data_dir);
 
     // ----------------
     // Initialize tasks
 
-    titles::spawn_get_titles_task(&app.state.task_processor, app.state.data_dir.clone()); // this also loads games when finished
-    updater::spawn_check_update_task(&app.state.task_processor);
-    osc::spawn_load_osc_apps_task(&app.state.task_processor, &app.state.data_dir);
-
-    wiitdb::spawn_load_wiitdb_task(
-        &app.state.task_processor,
-        app.ui_buffers.config.contents.mount_point.clone(),
-    );
+    titles::spawn_get_titles_task(&app.task_processor, app.data_dir.clone()); // this also loads games when finished
+    updater::spawn_check_update_task(&app.task_processor);
+    osc::spawn_load_osc_apps_task(&app.task_processor, &app.data_dir);
+    wiitdb::spawn_load_wiitdb_task(&app.task_processor, app.config.contents.mount_point.clone());
 
     // -------------
     // Initialize UI
@@ -109,7 +106,7 @@ fn main() -> Result<()> {
         native_options,
         Box::new(|cc| {
             install_image_loaders(&cc.egui_ctx);
-            cc.egui_ctx.set_theme(app.ui_buffers.config.contents.theme_preference);
+            cc.egui_ctx.set_theme(app.config.contents.theme_preference);
 
             cc.egui_ctx.all_styles_mut(|style| {
                 style.visuals.selection.bg_fill = ui::accent::get_accent_color();
@@ -128,7 +125,7 @@ fn main() -> Result<()> {
             app.refresh_hbc_apps();
 
             if !app.is_mount_point_known() {
-                app.ui_buffers.notifications.show_info_no_duration("New Drive detected, a path normalization run is recommended\nYou can find it in the 🔧 Tools page");
+                app.notifications.show_info_no_duration("New Drive detected, a path normalization run is recommended\nYou can find it in the 🔧 Tools page");
             }
 
             Ok(Box::new(app))

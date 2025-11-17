@@ -1,10 +1,11 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::messages::Message;
 use crate::{
     games::{Game, GameID},
     http,
-    tasks::{BackgroundMessage, TaskProcessor},
+    tasks::TaskProcessor,
 };
 use anyhow::Result;
 use std::{fs, path::Path};
@@ -43,27 +44,25 @@ pub fn spawn_download_banners_task(
         .collect::<Box<[_]>>();
 
     task_processor.spawn(move |msg_sender| {
-        msg_sender.send(BackgroundMessage::UpdateStatus(
+        msg_sender.send(Message::UpdateStatus(
             "🖻 Downloading banners...".to_string(),
         ))?;
 
         fs::create_dir_all(&cache_bnr_path)?;
 
         for game in &gc_games {
-            msg_sender.send(BackgroundMessage::UpdateStatus(format!(
+            msg_sender.send(Message::UpdateStatus(format!(
                 "🖻 Downloading banners... ({})",
                 &game.1
             )))?;
 
             if let Err(e) = download_banner_for_game(&cache_bnr_path, &game.0) {
                 let context = format!("Failed to download banner for {}", &game.1);
-                msg_sender.send(BackgroundMessage::NotifyError(e.context(context)))?;
+                msg_sender.send(Message::NotifyError(e.context(context)))?;
             }
         }
 
-        msg_sender.send(BackgroundMessage::NotifyInfo(
-            "🖻 Banners downloaded".to_string(),
-        ))?;
+        msg_sender.send(Message::NotifyInfo("🖻 Banners downloaded".to_string()))?;
 
         Ok(())
     });

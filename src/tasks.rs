@@ -1,70 +1,45 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{osc::OscApp, titles::Titles, wiitdb};
+use crate::messages::Message;
 use anyhow::Result;
-use crossbeam_channel::{Receiver, Sender, unbounded};
-use semver::Version;
+use crossbeam_channel::{Sender, unbounded};
 use std::thread;
 
-pub type BoxedTask = Box<dyn FnOnce(&Sender<BackgroundMessage>) -> Result<()> + Send>;
+pub type BoxedTask = Box<dyn FnOnce(&Sender<Message>) -> Result<()> + Send>;
 
-pub struct TaskProcessor {
-    task_sender: Sender<BoxedTask>,
-    pub msg_receiver: Receiver<BackgroundMessage>,
-}
+pub struct TaskProcessor(Sender<BoxedTask>);
 
 impl TaskProcessor {
-    pub fn init() -> Self {
+    pub fn new(msg_sender: Sender<Message>) -> Self {
         let (task_sender, task_receiver) = unbounded::<BoxedTask>();
-        let (msg_sender, msg_receiver) = unbounded::<BackgroundMessage>();
 
         thread::spawn(move || {
             while let Ok(task) = task_receiver.recv() {
                 if let Err(e) = task(&msg_sender) {
                     msg_sender
-                        .send(BackgroundMessage::NotifyError(e))
+                        .send(Message::NotifyError(e))
                         .expect("Failed to send message");
                 }
 
                 // Cleanup
                 msg_sender
-                    .send(BackgroundMessage::ClearStatus)
+                    .send(Message::ClearStatus)
                     .expect("Failed to send message");
             }
         });
 
-        Self {
-            task_sender,
-            msg_receiver,
-        }
+        Self(task_sender)
     }
 
     pub fn spawn<F>(&self, task: F)
     where
-        F: FnOnce(&Sender<BackgroundMessage>) -> Result<()> + Send + 'static,
+        F: FnOnce(&Sender<Message>) -> Result<()> + Send + 'static,
     {
-        self.task_sender
-            .send(Box::new(task))
-            .expect("Failed to send task");
+        self.0.send(Box::new(task)).expect("Failed to send task");
     }
 
     pub fn pending(&self) -> usize {
-        self.task_sender.len()
+        self.0.len()
     }
-}
-
-pub enum BackgroundMessage {
-    NotifyInfo(String),
-    NotifyError(anyhow::Error),
-    NotifySuccess(String),
-    UpdateStatus(String),
-    ClearStatus,
-    TriggerRefreshImage(String),
-    TriggerRefreshGames,
-    TriggerRefreshHbcApps,
-    GotNewVersion(Version),
-    GotTitles(Titles),
-    GotOscApps(Box<[OscApp]>),
-    GotWiitdb(wiitdb::Datafile),
 }

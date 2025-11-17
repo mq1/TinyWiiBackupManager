@@ -1,10 +1,11 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::messages::Message;
 use crate::{
     config::{Contents, SortBy},
     http,
-    tasks::{BackgroundMessage, TaskProcessor},
+    tasks::TaskProcessor,
 };
 use anyhow::{Result, bail};
 use path_slash::PathBufExt;
@@ -150,19 +151,16 @@ pub fn spawn_install_app_from_url_task(
     mount_point: PathBuf,
 ) {
     task_processor.spawn(move |msg_sender| {
-        msg_sender.send(BackgroundMessage::UpdateStatus(format!(
+        msg_sender.send(Message::UpdateStatus(format!(
             "📥 Downloading {}...",
             &zip_url
         )))?;
 
         http::download_and_extract_zip(&zip_url, &mount_point)?;
 
-        msg_sender.send(BackgroundMessage::TriggerRefreshHbcApps)?;
+        msg_sender.send(Message::TriggerRefreshHbcApps)?;
 
-        msg_sender.send(BackgroundMessage::NotifyInfo(format!(
-            "📥 {} Downloaded",
-            &zip_url
-        )))?;
+        msg_sender.send(Message::NotifyInfo(format!("📥 {} Downloaded", &zip_url)))?;
 
         Ok(())
     });
@@ -177,12 +175,10 @@ pub fn spawn_install_apps_task(
     let mount_point = config_contents.mount_point.clone();
 
     task_processor.spawn(move |msg_sender| {
-        msg_sender.send(BackgroundMessage::UpdateStatus(
-            "🖴 Installing apps...".to_string(),
-        ))?;
+        msg_sender.send(Message::UpdateStatus("🖴 Installing apps...".to_string()))?;
 
         for path in &paths {
-            msg_sender.send(BackgroundMessage::UpdateStatus(format!(
+            msg_sender.send(Message::UpdateStatus(format!(
                 "🖴 Installing {}...",
                 path.display()
             )))?;
@@ -192,9 +188,9 @@ pub fn spawn_install_apps_task(
                 fs::remove_file(path)?;
             }
 
-            msg_sender.send(BackgroundMessage::TriggerRefreshHbcApps)?;
+            msg_sender.send(Message::TriggerRefreshHbcApps)?;
 
-            msg_sender.send(BackgroundMessage::NotifyInfo(format!(
+            msg_sender.send(Message::NotifyInfo(format!(
                 "🖴 Installed {}",
                 path.display()
             )))?;

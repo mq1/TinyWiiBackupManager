@@ -1,10 +1,11 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::messages::Message;
 use crate::{
     games::{Game, GameID},
     http,
-    tasks::{BackgroundMessage, TaskProcessor},
+    tasks::TaskProcessor,
 };
 use anyhow::{Result, bail};
 use std::{
@@ -146,26 +147,22 @@ pub fn spawn_download_covers_task(
     games: Box<[Game]>,
 ) {
     task_processor.spawn(move |msg_sender| {
-        msg_sender.send(BackgroundMessage::UpdateStatus(
-            "🖻 Downloading covers...".to_string(),
-        ))?;
+        msg_sender.send(Message::UpdateStatus("🖻 Downloading covers...".to_string()))?;
 
         let len = games.len();
         for (i, game) in games.into_iter().enumerate() {
-            msg_sender.send(BackgroundMessage::UpdateStatus(format!(
+            msg_sender.send(Message::UpdateStatus(format!(
                 "🖻 Downloading covers... ({}/{})",
                 i + 1,
                 len
             )))?;
 
             if download_cover3d(&game.id, &mount_point).is_ok() {
-                msg_sender.send(BackgroundMessage::TriggerRefreshImage(game.image_uri))?;
+                msg_sender.send(Message::TriggerRefreshImage(game.image_uri))?;
             }
         }
 
-        msg_sender.send(BackgroundMessage::NotifyInfo(
-            "🖻 Covers downloaded".to_string(),
-        ))?;
+        msg_sender.send(Message::NotifyInfo("🖻 Covers downloaded".to_string()))?;
 
         Ok(())
     });
@@ -177,20 +174,18 @@ pub fn spawn_download_all_covers_task(
     games: Box<[Game]>,
 ) {
     task_processor.spawn(move |msg_sender| {
-        msg_sender.send(BackgroundMessage::UpdateStatus(
-            "🖻 Downloading covers...".to_string(),
-        ))?;
+        msg_sender.send(Message::UpdateStatus("🖻 Downloading covers...".to_string()))?;
 
         let len = games.len();
         for (i, game) in games.into_iter().enumerate() {
-            msg_sender.send(BackgroundMessage::UpdateStatus(format!(
+            msg_sender.send(Message::UpdateStatus(format!(
                 "🖻 Downloading covers... ({}/{})",
                 i + 1,
                 len
             )))?;
 
             if download_cover3d(&game.id, &mount_point).is_ok() {
-                msg_sender.send(BackgroundMessage::TriggerRefreshImage(game.image_uri))?;
+                msg_sender.send(Message::TriggerRefreshImage(game.image_uri))?;
             }
 
             let _ = download_cover2d(&game.id, &mount_point);
@@ -198,9 +193,7 @@ pub fn spawn_download_all_covers_task(
             let _ = download_disc_cover(&game.id, &mount_point);
         }
 
-        msg_sender.send(BackgroundMessage::NotifyInfo(
-            "🖻 Covers downloaded".to_string(),
-        ))?;
+        msg_sender.send(Message::NotifyInfo("🖻 Covers downloaded".to_string()))?;
 
         Ok(())
     });
@@ -212,13 +205,11 @@ pub fn spawn_download_wiiflow_covers_task(
     games: Box<[Game]>,
 ) {
     task_processor.spawn(move |msg_sender| {
-        msg_sender.send(BackgroundMessage::UpdateStatus(
-            "🖻 Downloading covers...".to_string(),
-        ))?;
+        msg_sender.send(Message::UpdateStatus("🖻 Downloading covers...".to_string()))?;
 
         let len = games.len();
         for (i, game) in games.into_iter().enumerate() {
-            msg_sender.send(BackgroundMessage::UpdateStatus(format!(
+            msg_sender.send(Message::UpdateStatus(format!(
                 "🖻 Downloading covers... ({}/{})",
                 i + 1,
                 len
@@ -228,9 +219,7 @@ pub fn spawn_download_wiiflow_covers_task(
             let _ = download_wiiflow_cover(&game.id, &mount_point);
         }
 
-        msg_sender.send(BackgroundMessage::NotifyInfo(
-            "🖻 Covers downloaded".to_string(),
-        ))?;
+        msg_sender.send(Message::NotifyInfo("🖻 Covers downloaded".to_string()))?;
 
         Ok(())
     });

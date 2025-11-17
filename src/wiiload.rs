@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::http;
-use crate::tasks::{BackgroundMessage, TaskProcessor};
+use crate::messages::Message;
+use crate::tasks::TaskProcessor;
 use anyhow::anyhow;
 use anyhow::{Result, bail};
 use path_slash::PathBufExt;
@@ -22,9 +23,7 @@ const WIILOAD_CHUNK_SIZE: usize = 4 * 1024;
 
 pub fn spawn_push_file_task(task_processor: &TaskProcessor, path: PathBuf, wii_ip: String) {
     task_processor.spawn(move |msg_sender| {
-        msg_sender.send(BackgroundMessage::UpdateStatus(
-            "📤 Starting Wilload...".to_string(),
-        ))?;
+        msg_sender.send(Message::UpdateStatus("📤 Starting Wilload...".to_string()))?;
 
         let addr = (wii_ip.as_str(), WIILOAD_PORT)
             .to_socket_addrs()?
@@ -38,7 +37,7 @@ pub fn spawn_push_file_task(task_processor: &TaskProcessor, path: PathBuf, wii_i
             .ok_or(anyhow!("Invalid file name"))?
             .to_string();
 
-        msg_sender.send(BackgroundMessage::UpdateStatus(format!(
+        msg_sender.send(Message::UpdateStatus(format!(
             "📤 Uploading {}...",
             file_name
         )))?;
@@ -57,7 +56,7 @@ pub fn spawn_push_file_task(task_processor: &TaskProcessor, path: PathBuf, wii_i
             // Connect to the Wii and send the data
             send_to_wii(&addr, &zipped_app, &file_name)?;
 
-            msg_sender.send(BackgroundMessage::NotifyInfo(format!(
+            msg_sender.send(Message::NotifyInfo(format!(
                 "📤 Uploaded {}\nExcluded files: {}",
                 file_name,
                 excluded_files.join(", ")
@@ -66,10 +65,7 @@ pub fn spawn_push_file_task(task_processor: &TaskProcessor, path: PathBuf, wii_i
             let bytes = fs::read(path)?;
             send_to_wii(&addr, &bytes, &file_name)?;
 
-            msg_sender.send(BackgroundMessage::NotifyInfo(format!(
-                "📤 Uploaded {}",
-                file_name
-            )))?;
+            msg_sender.send(Message::NotifyInfo(format!("📤 Uploaded {}", file_name)))?;
         }
 
         Ok(())
@@ -78,9 +74,7 @@ pub fn spawn_push_file_task(task_processor: &TaskProcessor, path: PathBuf, wii_i
 
 pub fn spawn_push_osc_task(zip_url: String, wii_ip: String, task_processor: &TaskProcessor) {
     task_processor.spawn(move |msg_sender| {
-        msg_sender.send(BackgroundMessage::UpdateStatus(
-            "📤 Starting Wilload...".to_string(),
-        ))?;
+        msg_sender.send(Message::UpdateStatus("📤 Starting Wilload...".to_string()))?;
 
         let addr = (wii_ip.as_str(), WIILOAD_PORT)
             .to_socket_addrs()?
@@ -89,10 +83,7 @@ pub fn spawn_push_osc_task(zip_url: String, wii_ip: String, task_processor: &Tas
 
         let url = zip_url.to_string();
 
-        msg_sender.send(BackgroundMessage::UpdateStatus(format!(
-            "📥 Downloading {}...",
-            url
-        )))?;
+        msg_sender.send(Message::UpdateStatus(format!("📥 Downloading {}...", url)))?;
 
         let tmp = tempfile()?;
         http::download_into_file(&zip_url, &tmp)?;
@@ -108,7 +99,7 @@ pub fn spawn_push_osc_task(zip_url: String, wii_ip: String, task_processor: &Tas
         // Connect to the Wii and send the data
         send_to_wii(&addr, &zipped_app, "app.zip")?;
 
-        msg_sender.send(BackgroundMessage::NotifyInfo(format!(
+        msg_sender.send(Message::NotifyInfo(format!(
             "📥 Downloaded {}\nExcluded files: {}",
             url,
             excluded_files.join(", ")

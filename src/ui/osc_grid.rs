@@ -1,18 +1,16 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    app::{AppState, UiBuffers},
-    hbc_apps,
-    wiiload,
-};
+use crate::app::App;
+use crate::messages::Message;
+use crate::{hbc_apps, wiiload};
 use eframe::egui;
 
 const CARD_WIDTH: f32 = 161.5;
 const CARD_HORIZONTAL_SPACE: usize = 181;
 const CARD_HEIGHT: f32 = 140.;
 
-pub fn update(ui: &mut egui::Ui, app_state: &AppState, ui_buffers: &mut UiBuffers) {
+pub fn update(ui: &mut egui::Ui, app: &mut App) {
     egui::ScrollArea::vertical().show(ui, |ui| {
         let available_width = ui.available_width();
         ui.set_width(available_width);
@@ -20,15 +18,15 @@ pub fn update(ui: &mut egui::Ui, app_state: &AppState, ui_buffers: &mut UiBuffer
 
         ui.heading(format!(
             "🏪 Open Shop Channel Apps: {} found",
-            app_state.filtered_osc_apps.len(),
+            app.filtered_osc_apps.len(),
         ));
 
         ui.add_space(5.);
 
-        for row in app_state.filtered_osc_apps.chunks(cols) {
+        for row in app.filtered_osc_apps.chunks(cols) {
             ui.horizontal_top(|ui| {
                 for osc_app_i in row.iter().copied() {
-                    update_osc_app_card(ui, app_state, ui_buffers, osc_app_i);
+                    update_osc_app_card(ui, app, osc_app_i);
                 }
             });
 
@@ -37,13 +35,8 @@ pub fn update(ui: &mut egui::Ui, app_state: &AppState, ui_buffers: &mut UiBuffer
     });
 }
 
-fn update_osc_app_card(
-    ui: &mut egui::Ui,
-    app_state: &AppState,
-    ui_buffers: &mut UiBuffers,
-    i: u16,
-) {
-    let osc_app = &app_state.osc_apps[i as usize];
+fn update_osc_app_card(ui: &mut egui::Ui, app: &App, osc_app_i: u16) {
+    let osc_app = &app.osc_apps[osc_app_i as usize];
 
     let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
     group.show(ui, |ui| {
@@ -81,8 +74,8 @@ fn update_osc_app_card(
                 {
                     hbc_apps::spawn_install_app_from_url_task(
                         osc_app.meta.assets.archive.url.clone(),
-                        &app_state.task_processor,
-                        ui_buffers.config.contents.mount_point.clone(),
+                        &app.task_processor,
+                        app.config.contents.mount_point.clone(),
                     );
                 }
 
@@ -94,11 +87,11 @@ fn update_osc_app_card(
                 {
                     wiiload::spawn_push_osc_task(
                         osc_app.meta.assets.archive.url.clone(),
-                        ui_buffers.config.contents.wii_ip.clone(),
-                        &app_state.task_processor,
+                        app.config.contents.wii_ip.clone(),
+                        &app.task_processor,
                     );
 
-                    ui_buffers.save_config();
+                    app.send_msg(Message::WriteConfig);
                 }
 
                 // Info button
@@ -108,9 +101,8 @@ fn update_osc_app_card(
                     )
                     .on_hover_text("Show App Information")
                     .clicked()
-                    && let Err(e) = osc_app.open_url()
                 {
-                    ui_buffers.notifications.show_err(e);
+                    app.send_msg(Message::OpenOscAppInfo(osc_app_i));
                 }
             });
         });

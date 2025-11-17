@@ -1,33 +1,25 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    app::{AppState, UiBuffers},
-    checksum,
-    disc_info::DiscInfo,
-    games::GameID,
-    ui::UiAction,
-    wiitdb::GameInfo,
-};
+use crate::app::App;
+use crate::{checksum, disc_info::DiscInfo, games::GameID, wiitdb::GameInfo};
 use capitalize::Capitalize;
 use eframe::egui;
 use itertools::Itertools;
 
 pub fn update(
     ctx: &egui::Context,
-    app_state: &AppState,
-    ui_buffers: &mut UiBuffers,
+    app: &mut App,
     game_i: u16,
     disc_info: &Option<DiscInfo>,
     game_info: &Option<GameInfo>,
 ) {
-    let game = &app_state.games[game_i as usize];
-
     egui::Modal::new("game_info".into()).show(ctx, |ui| {
-        ui.heading(format!("⏵ {}", game.display_title));
-
-        // Path
-        ui.label(format!("📁 Path: {}", game.path.display()));
+        {
+            let game = &app.games[game_i as usize];
+            ui.heading(format!("⏵ {}", game.display_title));
+            ui.label(format!("📁 Path: {}", game.path.display()));
+        }
 
         ui.separator();
 
@@ -254,15 +246,13 @@ pub fn update(
 
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Max), |ui| {
             if ui.button("❌ Close").clicked() {
-                ui_buffers.action = Some(UiAction::CloseModal);
+                app.close_modal();
             }
 
             ui.add_sized(egui::Vec2::new(1., 21.), egui::Separator::default());
 
-            if ui.button("📁 Open Directory").clicked()
-                && let Err(e) = game.open_dir()
-            {
-                ui_buffers.notifications.show_err(e);
+            if ui.button("📁 Open Directory").clicked() {
+                app.open_game_dir(game_i);
             }
 
             // Integrity check button
@@ -277,11 +267,11 @@ pub fn update(
                     .on_hover_text("Integrity Check")
                     .clicked()
             {
-                let task_processor = &app_state.task_processor;
-                let game_dir = game.path.clone();
-                let game_info = game_info.clone();
-
-                checksum::spawn_checksum_task(task_processor, game_dir, game_info);
+                checksum::spawn_checksum_task(
+                    &app.task_processor,
+                    app.games[game_i as usize].path.clone(),
+                    game_info.clone(),
+                );
             }
         });
     });

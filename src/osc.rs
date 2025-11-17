@@ -1,10 +1,8 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    http,
-    tasks::{BackgroundMessage, TaskProcessor},
-};
+use crate::messages::Message;
+use crate::{http, tasks::TaskProcessor};
 use anyhow::{Result, bail};
 use path_slash::PathExt;
 use serde::{Deserialize, Deserializer};
@@ -18,7 +16,7 @@ pub fn spawn_load_osc_apps_task(task_processor: &TaskProcessor, data_dir: &Path)
     let icons_dir = data_dir.join("osc-icons");
 
     task_processor.spawn(move |msg_sender| {
-        msg_sender.send(BackgroundMessage::UpdateStatus(
+        msg_sender.send(Message::UpdateStatus(
             "📓 Downloading OSC Meta...".to_string(),
         ))?;
 
@@ -38,10 +36,8 @@ pub fn spawn_load_osc_apps_task(task_processor: &TaskProcessor, data_dir: &Path)
             .filter_map(|meta| OscApp::from_meta(meta, &icons_dir))
             .collect::<Box<[_]>>();
 
-        msg_sender.send(BackgroundMessage::GotOscApps(apps))?;
-        msg_sender.send(BackgroundMessage::NotifyInfo(
-            "📓 OSC Apps loaded".to_string(),
-        ))?;
+        msg_sender.send(Message::GotOscApps(apps))?;
+        msg_sender.send(Message::NotifyInfo("📓 OSC Apps loaded".to_string()))?;
 
         Ok(())
     });
