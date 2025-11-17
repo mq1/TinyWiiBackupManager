@@ -34,10 +34,9 @@ pub struct AppWrapper {
 impl AppWrapper {
     pub fn new(data_dir: PathBuf) -> Self {
         let config = Config::load(&data_dir);
-        let default_archive_format = config.contents.archive_format;
 
         Self {
-            state: AppState::new(data_dir, default_archive_format),
+            state: AppState::new(data_dir),
             ui_buffers: UiBuffers::new(config),
         }
     }
@@ -65,43 +64,11 @@ pub struct AppState {
     pub update_info: Option<UpdateInfo>,
     pub status: String,
     pub current_modal: Option<Modal>,
-    pub choose_mount_point: FileDialog,
-    pub choose_games: FileDialog,
-    pub choose_hbc_apps: FileDialog,
-    pub choose_file_to_push: FileDialog,
-    pub choose_archive_path: FileDialog,
-    pub archiving_game_i: u16,
     pub prev_sort_by: SortBy,
 }
 
 impl AppState {
-    pub fn new(data_dir: PathBuf, default_archive_format: ArchiveFormat) -> Self {
-        let choose_mount_point = FileDialog::new().as_modal(true);
-
-        let choose_games = FileDialog::new()
-            .as_modal(true)
-            .add_file_filter_extensions(
-                "Nintendo Optical Disc",
-                extensions::SUPPORTED_INPUT_EXTENSIONS.to_vec(),
-            )
-            .default_file_filter("Nintendo Optical Disc");
-
-        let choose_hbc_apps = FileDialog::new()
-            .as_modal(true)
-            .add_file_filter_extensions("HBC App (zip)", vec!["zip", "ZIP"])
-            .default_file_filter("HBC App (zip)");
-
-        let choose_file_to_push = FileDialog::new()
-            .as_modal(true)
-            .add_file_filter_extensions("HBC App (zip/dol/elf)", vec!["zip", "dol", "elf"])
-            .default_file_filter("HBC App (zip/dol/elf)");
-
-        let choose_archive_path = FileDialog::new()
-            .as_modal(true)
-            .add_save_extension(ArchiveFormat::Rvz.as_str(), ArchiveFormat::Rvz.extension())
-            .add_save_extension(ArchiveFormat::Iso.as_str(), ArchiveFormat::Iso.extension())
-            .default_save_extension(default_archive_format.as_str());
-
+    pub fn new(data_dir: PathBuf) -> Self {
         Self {
             data_dir,
             current_view: ui::View::Games,
@@ -124,12 +91,6 @@ impl AppState {
             wiitdb: None,
             notifications: Notifications::new(),
             current_modal: None,
-            choose_mount_point,
-            choose_games,
-            choose_hbc_apps,
-            choose_file_to_push,
-            choose_archive_path,
-            archiving_game_i: u16::MAX, // will be set later, panics if it's not
             prev_sort_by: SortBy::None,
         }
     }
@@ -179,10 +140,42 @@ pub struct UiBuffers {
     pub osc_apps_filter: String,
     pub show_wii: bool,
     pub show_gc: bool,
+    pub choose_mount_point: FileDialog,
+    pub choose_games: FileDialog,
+    pub choose_hbc_apps: FileDialog,
+    pub choose_file_to_push: FileDialog,
+    pub choose_archive_path: FileDialog,
+    pub archiving_game_i: u16,
 }
 
 impl UiBuffers {
     pub fn new(config: Config) -> Self {
+        let choose_mount_point = FileDialog::new().as_modal(true);
+
+        let choose_games = FileDialog::new()
+            .as_modal(true)
+            .add_file_filter_extensions(
+                "Nintendo Optical Disc",
+                extensions::SUPPORTED_INPUT_EXTENSIONS.to_vec(),
+            )
+            .default_file_filter("Nintendo Optical Disc");
+
+        let choose_hbc_apps = FileDialog::new()
+            .as_modal(true)
+            .add_file_filter_extensions("HBC App (zip)", vec!["zip", "ZIP"])
+            .default_file_filter("HBC App (zip)");
+
+        let choose_file_to_push = FileDialog::new()
+            .as_modal(true)
+            .add_file_filter_extensions("HBC App (zip/dol/elf)", vec!["zip", "dol", "elf"])
+            .default_file_filter("HBC App (zip/dol/elf)");
+
+        let choose_archive_path = FileDialog::new()
+            .as_modal(true)
+            .add_save_extension(ArchiveFormat::Rvz.as_str(), ArchiveFormat::Rvz.extension())
+            .add_save_extension(ArchiveFormat::Iso.as_str(), ArchiveFormat::Iso.extension())
+            .default_save_extension(config.contents.archive_format.as_str());
+
         Self {
             action: None,
             config,
@@ -191,6 +184,12 @@ impl UiBuffers {
             osc_apps_filter: String::new(),
             show_wii: true,
             show_gc: true,
+            choose_mount_point,
+            choose_games,
+            choose_hbc_apps,
+            choose_file_to_push,
+            choose_archive_path,
+            archiving_game_i: u16::MAX, // will be set later, panics if it's not
         }
     }
 }
@@ -368,7 +367,7 @@ impl AppWrapper {
 
     // Process files selected in FileDialogs
     fn process_dialog_files(&mut self, ctx: &egui::Context) {
-        if let Some(mut paths) = self.state.choose_games.take_picked_multiple() {
+        if let Some(mut paths) = self.ui_buffers.choose_games.take_picked_multiple() {
             // We'll get those later with get_overflow_file
             paths.retain(|path| !path.ends_with(".part1.iso"));
 
@@ -392,7 +391,7 @@ impl AppWrapper {
             }
         }
 
-        if let Some(path) = self.state.choose_mount_point.take_picked() {
+        if let Some(path) = self.ui_buffers.choose_mount_point.take_picked() {
             self.ui_buffers.config.contents.mount_point = path;
 
             if !self.is_mount_point_known() {
@@ -406,8 +405,8 @@ impl AppWrapper {
             self.save_config();
         }
 
-        if let Some(out_path) = self.state.choose_archive_path.take_picked() {
-            let i = self.state.archiving_game_i;
+        if let Some(out_path) = self.ui_buffers.choose_archive_path.take_picked() {
+            let i = self.ui_buffers.archiving_game_i;
 
             let game = &self.state.games[i as usize];
 
@@ -424,7 +423,7 @@ impl AppWrapper {
             }
         }
 
-        if let Some(path) = self.state.choose_file_to_push.take_picked() {
+        if let Some(path) = self.ui_buffers.choose_file_to_push.take_picked() {
             let wii_ip = self.ui_buffers.config.contents.wii_ip.clone();
             wiiload::spawn_push_file_task(&self.state.task_processor, path, wii_ip.clone());
 
@@ -432,7 +431,7 @@ impl AppWrapper {
             self.save_config();
         }
 
-        if let Some(paths) = self.state.choose_hbc_apps.take_picked_multiple() {
+        if let Some(paths) = self.ui_buffers.choose_hbc_apps.take_picked_multiple() {
             hbc_apps::spawn_install_apps_task(
                 &self.state.task_processor,
                 &self.ui_buffers.config.contents,
@@ -541,22 +540,9 @@ impl AppWrapper {
                         self.state.notifications.show_err(e.into());
                     }
                 }
-                UiAction::OpenPushFileDialog => {
-                    self.state.choose_file_to_push.pick_file();
-                }
                 UiAction::TriggerRefreshGames => {
                     self.refresh_games();
                     self.update_title(ctx);
-                }
-                UiAction::OpenChooseMountPointDialog => {
-                    self.state.choose_mount_point.pick_directory();
-                }
-                UiAction::OpenArchiveGameDialog(i) => {
-                    self.state.archiving_game_i = i;
-                    self.state.choose_archive_path.save_file();
-                }
-                UiAction::AddGames => {
-                    self.state.choose_games.pick_multiple();
                 }
                 UiAction::ApplySorting => {
                     self.apply_sorting();
@@ -580,9 +566,6 @@ impl AppWrapper {
                     }
 
                     self.state.current_modal = None;
-                }
-                UiAction::AddHbcApps => {
-                    self.state.choose_hbc_apps.pick_multiple();
                 }
                 UiAction::TriggerRefreshHbcApps => {
                     self.refresh_hbc_apps();
@@ -661,11 +644,6 @@ impl AppWrapper {
 impl eframe::App for AppWrapper {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         ui::root::update(ctx, &self.state, &mut self.ui_buffers);
-        self.state.choose_games.update(ctx);
-        self.state.choose_hbc_apps.update(ctx);
-        self.state.choose_mount_point.update(ctx);
-        self.state.choose_archive_path.update(ctx);
-        self.state.choose_file_to_push.update(ctx);
         self.state.notifications.show_toasts(ctx);
 
         self.process_dialog_files(ctx);

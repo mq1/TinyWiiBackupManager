@@ -124,7 +124,7 @@ pub fn update(ctx: &egui::Context, app: &AppState, ui_buffers: &mut UiBuffers) {
                     .on_hover_text("Select Drive/Mount Point")
                     .clicked()
                 {
-                    ui_buffers.action = Some(UiAction::OpenChooseMountPointDialog);
+                    ui_buffers.choose_mount_point.pick_directory();
                 }
 
                 if let Some(update_info) = &app.update_info

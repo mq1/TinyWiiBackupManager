@@ -38,7 +38,7 @@ pub fn update(ctx: &egui::Context, _app_state: &AppState, ui_buffers: &mut UiBuf
             .button("📤 Upload a Homebrew App (zip/dol/elf)")
             .clicked()
         {
-            ui_buffers.action = Some(UiAction::OpenPushFileDialog);
+            ui_buffers.choose_file_to_push.pick_file();
         }
     });
 }

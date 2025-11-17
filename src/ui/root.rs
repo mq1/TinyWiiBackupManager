@@ -41,4 +41,10 @@ pub fn update(ctx: &egui::Context, app_state: &AppState, ui_buffers: &mut UiBuff
             ui::Modal::Info => ui::info::update(ctx, app_state, ui_buffers),
         }
     }
+
+    ui_buffers.choose_games.update(ctx);
+    ui_buffers.choose_hbc_apps.update(ctx);
+    ui_buffers.choose_mount_point.update(ctx);
+    ui_buffers.choose_archive_path.update(ctx);
+    ui_buffers.choose_file_to_push.update(ctx);
 }

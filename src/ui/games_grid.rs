@@ -115,7 +115,8 @@ fn update_game_card(
                     .on_hover_text("Archive Game to RVZ or ISO")
                     .clicked()
                 {
-                    ui_buffers.action = Some(UiAction::OpenArchiveGameDialog(game_i));
+                    ui_buffers.archiving_game_i = game_i;
+                    ui_buffers.choose_archive_path.save_file();
                 }
 
                 // Info button
