@@ -1,6 +1,6 @@
 [package]
 name = "TinyWiiBackupManager"
-version = "4.3.7"
+version = "4.3.8"
 rust-version = "1.90"
 edition = "2024"
 authors = ["Manuel Quarneti <mq1@ik.me>"]
@@ -37,7 +37,7 @@ anyhow = "1.0"
 fs_extra = "1.3"
 size = "0.5"
 zip = { version = "6.0", default-features = false, features = [
-  "deflate-flate2-zlib-rs",
+    "deflate-flate2-zlib-rs",
 ] }
 quick-xml = { version = "0.38", features = ["serialize"] }
 sysinfo = "0.37"
@@ -52,8 +52,8 @@ sanitize-filename = "0.7.0-beta"
 capitalize = "0.3"
 log = "0.4"
 env_logger = { version = "0.11", default-features = false, features = [
-  "auto-color",
-  "humantime",
+    "auto-color",
+    "humantime",
 ] }
 walkdir = "2.5"
 itertools = "0.14"
@@ -64,23 +64,23 @@ eframe = "0.33"
 
 [target.'cfg(any(target_os = "macos", target_vendor = "pc"))'.dependencies]
 eframe = { version = "0.33", default-features = false, features = [
-  "accesskit",
-  "default_fonts",
-  "wgpu",
+    "accesskit",
+    "default_fonts",
+    "wgpu",
 ] }
 
 [target.'cfg(target_vendor = "pc")'.dependencies]
 wgpu = { version = "*", default-features = false, features = [
-  "dx12",
-  "std",
-  "parking_lot",
+    "dx12",
+    "std",
+    "parking_lot",
 ] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 wgpu = { version = "*", default-features = false, features = [
-  "metal",
-  "std",
-  "parking_lot",
+    "metal",
+    "std",
+    "parking_lot",
 ] }
 
 [features]
