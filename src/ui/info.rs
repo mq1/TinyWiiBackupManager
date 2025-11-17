@@ -7,7 +7,7 @@ use crate::{
 };
 use eframe::egui;
 
-pub fn update(ctx: &egui::Context, _app_state: &AppState, ui_buffers: &mut UiBuffers) {
+pub fn update(ctx: &egui::Context, app_state: &AppState, ui_buffers: &mut UiBuffers) {
     let modal = egui::Modal::new("info".into());
 
     modal.show(ctx, |ui: &mut egui::Ui| {
@@ -62,19 +62,19 @@ pub fn update(ctx: &egui::Context, _app_state: &AppState, ui_buffers: &mut UiBuf
             ui.add_sized(egui::Vec2::new(1., 21.), egui::Separator::default());
 
             if ui.button("📁 Open Data Directory").clicked()
-            {
-                ui_buffers.action = Some(UiAction::OpenDataDir);
-            }
+                && let Err(e) = app_state.open_data_dir() {
+                    ui_buffers.notifications.show_err(e);
+                }
 
             if ui.button("🌐 Wiki").clicked()
-            {
-                ui_buffers.action = Some(UiAction::OpenWiki);
-            }
+                && let Err(e) = app_state.open_wiki() {
+                    ui_buffers.notifications.show_err(e);
+                }
 
             if ui.button(" Source Code").clicked()
-            {
-                ui_buffers.action = Some(UiAction::OpenRepo);
-            }
+                && let Err(e) = app_state.open_repo() {
+                    ui_buffers.notifications.show_err(e);
+                }
         })
     });
 }

@@ -19,6 +19,7 @@ use crate::{
     util, wiiload,
     wiitdb::{self, GameInfo},
 };
+use anyhow::Result;
 use crossbeam_channel::{Receiver, unbounded};
 use eframe::egui;
 use egui_file_dialog::FileDialog;
@@ -127,6 +128,18 @@ impl AppState {
             .as_ref()
             .and_then(|db| db.lookup(game_id))
             .cloned()
+    }
+
+    pub fn open_data_dir(&self) -> Result<()> {
+        open::that(&self.data_dir).map_err(Into::into)
+    }
+
+    pub fn open_wiki(&self) -> Result<()> {
+        open::that(env!("CARGO_PKG_HOMEPAGE")).map_err(Into::into)
+    }
+
+    pub fn open_repo(&self) -> Result<()> {
+        open::that(env!("CARGO_PKG_REPOSITORY")).map_err(Into::into)
     }
 }
 
@@ -457,28 +470,6 @@ impl AppWrapper {
                 }
                 UiAction::CloseModal => {
                     self.state.current_modal = None;
-                }
-                UiAction::OpenUpdateUrl => {
-                    if let Some(update_info) = &self.state.update_info
-                        && let Err(e) = update_info.open_url()
-                    {
-                        self.ui_buffers.notifications.show_err(e);
-                    }
-                }
-                UiAction::OpenDataDir => {
-                    if let Err(e) = open::that(&self.state.data_dir) {
-                        self.ui_buffers.notifications.show_err(e.into());
-                    }
-                }
-                UiAction::OpenWiki => {
-                    if let Err(e) = open::that(env!("CARGO_PKG_HOMEPAGE")) {
-                        self.ui_buffers.notifications.show_err(e.into());
-                    }
-                }
-                UiAction::OpenRepo => {
-                    if let Err(e) = open::that(env!("CARGO_PKG_REPOSITORY")) {
-                        self.ui_buffers.notifications.show_err(e.into());
-                    }
                 }
                 UiAction::RunNormalizePaths => {
                     if let Err(e) =
