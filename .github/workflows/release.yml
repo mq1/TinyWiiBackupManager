@@ -45,6 +45,7 @@ jobs:
       - name: Install Rust toolchain
         run: |
           rustup toolchain install 1.91
+          rustup default 1.91
           rustup target add ${{ matrix.target }}
 
       - name: Restore Rust cache
@@ -113,6 +114,7 @@ jobs:
       - name: Install Rust toolchain
         run: |
           rustup toolchain install 1.91
+          rustup default 1.91
           rustup target add ${{ matrix.target }}
 
       - name: Restore Rust cache
@@ -173,7 +175,9 @@ jobs:
           key: ${{ matrix.target }}
 
       - name: Install Rust toolchain and rust-src
-        run: rustup toolchain install 1.91 --component rust-src
+        run: |
+          rustup toolchain install 1.91 --component rust-src
+          rustup default 1.91
 
       - name: Build binary
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
@@ -216,6 +220,7 @@ jobs:
       - name: Install Rust toolchain
         run: |
           rustup toolchain install 1.91
+          rustup default 1.91
           rustup target add ${{ matrix.target }}
 
       - name: Restore Rust cache
