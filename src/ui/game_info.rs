@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::app::App;
+use crate::messages::Message;
 use crate::{checksum, disc_info::DiscInfo, games::GameID, wiitdb::GameInfo};
 use capitalize::Capitalize;
 use eframe::egui;
@@ -9,7 +10,7 @@ use itertools::Itertools;
 
 pub fn update(
     ctx: &egui::Context,
-    app: &mut App,
+    app: &App,
     game_i: u16,
     disc_info: &Option<DiscInfo>,
     game_info: &Option<GameInfo>,
@@ -246,13 +247,13 @@ pub fn update(
 
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Max), |ui| {
             if ui.button("❌ Close").clicked() {
-                app.close_modal();
+                app.send_msg(Message::CloseModal);
             }
 
             ui.add_sized(egui::Vec2::new(1., 21.), egui::Separator::default());
 
             if ui.button("📁 Open Directory").clicked() {
-                app.open_game_dir(game_i);
+                app.send_msg(Message::OpenGameDir(game_i));
             }
 
             // Integrity check button
