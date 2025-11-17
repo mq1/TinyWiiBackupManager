@@ -11,7 +11,10 @@
     </developer>
     <description>
         <ul>
-            <li>‼️ TinyWiiBackupManager is intended strictly for legal homebrew use and is not affiliated with or endorsed by Nintendo. Use of TinyWiiBackupManager for pirated or unauthorized copies of games is strictly prohibited.</li>
+            <li>‼️ TinyWiiBackupManager is intended strictly for legal homebrew use and is not affiliated with or
+                endorsed by Nintendo. Use of TinyWiiBackupManager for pirated or unauthorized copies of games is
+                strictly prohibited.
+            </li>
         </ul>
         <p>✨ Features</p>
         <ul>
@@ -55,11 +58,14 @@
     <url type="vcs-browser">https://github.com/mq1/TinyWiiBackupManager</url>
     <screenshots>
         <screenshot type="default">
-            <image>https://github.com/mq1/TinyWiiBackupManager/blob/4.3.7/assets/screenshot.png?raw=true</image>
+            <image>https://github.com/mq1/TinyWiiBackupManager/blob/4.3.8/assets/screenshot.png?raw=true</image>
             <caption>TinyWiiBackupManager screenshot</caption>
         </screenshot>
     </screenshots>
     <releases>
+        <release version="4.3.8" date="2025-11-17">
+            <url type="details">https://github.com/mq1/TinyWiiBackupManager/releases/tag/4.3.8</url>
+        </release>
         <release version="4.3.7" date="2025-11-16">
             <url type="details">https://github.com/mq1/TinyWiiBackupManager/releases/tag/4.3.7</url>
         </release>
