@@ -68,7 +68,6 @@ pub enum UiAction {
     OpenModal(Modal),
     CloseModal,
     RunNormalizePaths,
-    RunDotClean,
     ApplyFilterGames,
     ApplyFilterHbcApps,
     ApplyFilterOscApps,

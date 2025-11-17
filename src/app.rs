@@ -211,6 +211,15 @@ impl UiBuffers {
             self.notifications.show_err(e);
         }
     }
+
+    pub fn run_dot_clean(&mut self) {
+        if let Err(e) = util::run_dot_clean(&self.config.contents.mount_point) {
+            self.notifications.show_err(e);
+        } else {
+            self.notifications
+                .show_success("dot_clean completed successfully");
+        }
+    }
 }
 
 impl AppWrapper {
@@ -480,17 +489,6 @@ impl AppWrapper {
                         self.ui_buffers
                             .notifications
                             .show_success("Paths successfully normalized");
-                    }
-                }
-                UiAction::RunDotClean => {
-                    if let Err(e) =
-                        util::run_dot_clean(&self.ui_buffers.config.contents.mount_point)
-                    {
-                        self.ui_buffers.notifications.show_err(e);
-                    } else {
-                        self.ui_buffers
-                            .notifications
-                            .show_success("dot_clean completed successfully");
                     }
                 }
                 UiAction::ApplyFilterGames => {

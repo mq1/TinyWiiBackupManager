@@ -85,7 +85,7 @@ pub fn update(ctx: &egui::Context, app_state: &AppState, ui_buffers: &mut UiBuff
 
                 ui.horizontal(|ui| {
                     if ui.button("⏵").clicked() {
-                        ui_buffers.action = Some(UiAction::RunDotClean);
+                        ui_buffers.run_dot_clean();
                     }
 
                     ui.label("Run dot_clean (remove hidden ._ files)");
