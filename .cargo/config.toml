@@ -1,11 +1,11 @@
 [target.x86_64-unknown-linux-gnu]
-rustflags = ["-Clinker-features=+lld"]
+rustflags = ["-Z", "unstable-options", "-C", "linker-features=+lld"]
 
 [target.aarch64-unknown-linux-gnu]
-rustflags = ["-Clinker-features=+lld"]
+rustflags = ["-Z", "unstable-options", "-C", "linker-features=+lld"]
 
 [target.i686-unknown-linux-gnu]
-rustflags = ["-Clinker-features=+lld"]
+rustflags = ["-Z", "unstable-options", "-C", "linker-features=+lld"]
 
 [target.x86_64-pc-windows-msvc]
 linker = "rust-lld.exe"
