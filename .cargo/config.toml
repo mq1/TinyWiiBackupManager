@@ -5,8 +5,7 @@ linker = "rust-lld"
 linker = "rust-lld"
 
 [target.i686-unknown-linux-gnu]
-linker = "clang"
-rustflags = ["-C", "link-arg=-fuse-ld=lld"]
+linker = "rust-lld"
 
 [target.x86_64-pc-windows-msvc]
 linker = "rust-lld.exe"
