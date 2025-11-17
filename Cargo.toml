@@ -1,7 +1,7 @@
 [package]
 name = "TinyWiiBackupManager"
 version = "4.3.8"
-rust-version = "1.90"
+rust-version = "1.91"
 edition = "2024"
 authors = ["Manuel Quarneti <mq1@ik.me>"]
 license = "GPL-3.0-only"
