@@ -127,7 +127,7 @@ jobs:
         run: cargo install cargo-packager --version ^0.11 --locked
 
       - name: Build binary
-        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "native-tls"
+        run: cargo build --release --locked --target ${{ matrix.target }}
 
       - name: Package binaries as zip
         shell: pwsh
@@ -234,7 +234,7 @@ jobs:
           npm i -g appdmg@0.6.6
 
       - name: Build binary
-        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "native-tls"
+        run: cargo build --release --locked --target ${{ matrix.target }}
 
       - name: Create app with cargo-packager
         run: cargo packager --release --target ${{ matrix.target }} --formats app
