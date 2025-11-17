@@ -15,12 +15,11 @@ pub fn update(
     disc_info: &Option<DiscInfo>,
     game_info: &Option<GameInfo>,
 ) {
+    let game = &app.games[game_i as usize];
+
     egui::Modal::new("game_info".into()).show(ctx, |ui| {
-        {
-            let game = &app.games[game_i as usize];
-            ui.heading(format!("⏵ {}", game.display_title));
-            ui.label(format!("📁 Path: {}", game.path.display()));
-        }
+        ui.heading(format!("⏵ {}", game.display_title));
+        ui.label(format!("📁 Path: {}", game.path.display()));
 
         ui.separator();
 
@@ -270,7 +269,7 @@ pub fn update(
             {
                 checksum::spawn_checksum_task(
                     &app.task_processor,
-                    app.games[game_i as usize].path.clone(),
+                    game.path.clone(),
                     game_info.clone(),
                 );
             }
