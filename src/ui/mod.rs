@@ -80,10 +80,8 @@ pub enum UiAction {
     OpenOscUrl(u16),
     TriggerDownloadOscIcons,
     DeleteGame(u16),
-    OpenGameDir(u16),
     TriggerRefreshGames,
     ApplySorting,
-    OpenHbcAppDir(u16),
     DeleteHbcApp(u16),
     TriggerRefreshHbcApps,
 }
