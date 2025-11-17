@@ -3,7 +3,8 @@
 
 use crate::games::GameID;
 use crate::http;
-use crate::tasks::{BackgroundMessage, TaskProcessor};
+use crate::messages::Message;
+use crate::tasks::TaskProcessor;
 use anyhow::{Context, Result};
 use capitalize::Capitalize;
 use serde::Deserialize;
@@ -16,7 +17,7 @@ const DOWNLOAD_URL: &str = "https://www.gametdb.com/wiitdb.zip";
 /// Handles the blocking logic of downloading and extracting the database.
 pub fn spawn_download_task(task_processor: &TaskProcessor, mount_point: PathBuf) {
     task_processor.spawn(move |msg_sender| {
-        msg_sender.send(BackgroundMessage::UpdateStatus(
+        msg_sender.send(Message::UpdateStatus(
             "📥 Downloading wiitdb.xml...".to_string(),
         ))?;
 
@@ -27,7 +28,7 @@ pub fn spawn_download_task(task_processor: &TaskProcessor, mount_point: PathBuf)
         // Perform the download request and extract.
         http::download_and_extract_zip(DOWNLOAD_URL, &target_dir)?;
 
-        msg_sender.send(BackgroundMessage::NotifyInfo(
+        msg_sender.send(Message::NotifyInfo(
             "📥 wiitdb.xml Downloaded Successfully".to_string(),
         ))?;
 
@@ -307,17 +308,15 @@ impl<'de> Deserialize<'de> for Region {
 
 pub fn spawn_load_wiitdb_task(task_processor: &TaskProcessor, mount_point: PathBuf) {
     task_processor.spawn(move |msg_sender| {
-        msg_sender.send(BackgroundMessage::UpdateStatus(
+        msg_sender.send(Message::UpdateStatus(
             "📓 Loading wiitdb.xml...".to_string(),
         ))?;
 
         let data = Datafile::load(&mount_point)?;
 
-        msg_sender.send(BackgroundMessage::GotWiitdb(data))?;
+        msg_sender.send(Message::GotWiitdb(data))?;
 
-        msg_sender.send(BackgroundMessage::NotifyInfo(
-            "📓 wiitdb.xml loaded".to_string(),
-        ))?;
+        msg_sender.send(Message::NotifyInfo("📓 wiitdb.xml loaded".to_string()))?;
 
         Ok(())
     });

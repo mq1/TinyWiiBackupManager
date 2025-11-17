@@ -1,15 +1,16 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::app::App;
+use crate::messages::Message;
 use crate::{
-    app::{AppState, UiBuffers},
     disc_info::DiscInfo,
-    ui::{self, UiAction},
+    ui::{self},
 };
 use eframe::egui;
 use egui_extras::{Column, TableBuilder};
 
-pub fn update(ui: &mut egui::Ui, app_state: &AppState, ui_buffers: &mut UiBuffers) {
+pub fn update(ui: &mut egui::Ui, app: &mut App) {
     TableBuilder::new(ui)
         .striped(true)
         .resizable(true)
@@ -34,15 +35,15 @@ pub fn update(ui: &mut egui::Ui, app_state: &AppState, ui_buffers: &mut UiBuffer
         .body(|mut body| {
             body.ui_mut().style_mut().spacing.item_spacing.y = 0.0;
 
-            let iterator = match (ui_buffers.show_wii, ui_buffers.show_gc) {
-                (true, true) => app_state.filtered_games.iter().copied(),
-                (true, false) => app_state.filtered_wii_games.iter().copied(),
-                (false, true) => app_state.filtered_gc_games.iter().copied(),
+            let iterator = match (app.show_wii, app.show_gc) {
+                (true, true) => app.filtered_games.iter().copied(),
+                (true, false) => app.filtered_wii_games.iter().copied(),
+                (false, true) => app.filtered_gc_games.iter().copied(),
                 (false, false) => [].iter().copied(),
             };
 
             for game_i in iterator {
-                let game = &app_state.games[game_i as usize];
+                let game = &app.games[game_i as usize];
 
                 body.row(26., |mut row| {
                     row.col(|ui| {
@@ -74,11 +75,10 @@ pub fn update(ui: &mut egui::Ui, app_state: &AppState, ui_buffers: &mut UiBuffer
                                 .on_hover_text("Show Game Information")
                                 .clicked()
                             {
-                                let game = &app_state.games[game_i as usize];
                                 let disc_info = Box::new(DiscInfo::from_game_dir(&game.path).ok());
-                                let game_info = Box::new(app_state.get_game_info(game.id));
+                                let game_info = Box::new(app.get_game_info(game.id));
 
-                                ui_buffers.action = Some(UiAction::OpenModal(ui::Modal::GameInfo(
+                                app.send_msg(Message::OpenModal(ui::Modal::GameInfo(
                                     game_i, disc_info, game_info,
                                 )));
                             }
@@ -89,14 +89,12 @@ pub fn update(ui: &mut egui::Ui, app_state: &AppState, ui_buffers: &mut UiBuffer
                                 .on_hover_text("Archive Game to RVZ or ISO")
                                 .clicked()
                             {
-                                ui_buffers.archiving_game_i = game_i;
-                                ui_buffers.choose_archive_path.save_file();
+                                app.send_msg(Message::ArchiveGame(game_i));
                             }
 
                             // Delete button
                             if ui.button("🗑 Delete").on_hover_text("Delete Game").clicked() {
-                                ui_buffers.action =
-                                    Some(UiAction::OpenModal(ui::Modal::DeleteGame(game_i)));
+                                app.send_msg(Message::OpenModal(ui::Modal::DeleteGame(game_i)));
                             }
                         });
                         ui.separator();

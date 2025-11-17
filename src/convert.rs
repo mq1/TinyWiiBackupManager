@@ -1,12 +1,13 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::messages::Message;
 use crate::{
     config::{Contents, GcOutputFormat, WiiOutputFormat},
     disc_info::DiscInfo,
     overflow_reader::{OverflowReader, get_overflow_file},
     overflow_writer::OverflowWriter,
-    tasks::{BackgroundMessage, TaskProcessor},
+    tasks::TaskProcessor,
     util::{self, can_write_over_4gb},
 };
 use nod::{
@@ -154,7 +155,7 @@ pub fn spawn_add_games_task(
                     |data, progress, total| {
                         overflow_writer.write_all(&data)?;
 
-                        let _ = msg_sender.send(BackgroundMessage::UpdateStatus(format!(
+                        let _ = msg_sender.send(Message::UpdateStatus(format!(
                             "🎮 Adding {}  {:02.0}%  ({}/{})",
                             disc_info.header.game_title_str(),
                             progress as f32 / total as f32 * 100.0,
@@ -184,11 +185,11 @@ pub fn spawn_add_games_task(
                 }
             }
 
-            msg_sender.send(BackgroundMessage::NotifyInfo(format!(
+            msg_sender.send(Message::NotifyInfo(format!(
                 "🎮 Added {}",
                 disc_info.header.game_title_str()
             )))?;
-            msg_sender.send(BackgroundMessage::TriggerRefreshGames)?;
+            msg_sender.send(Message::TriggerRefreshGames)?;
         }
 
         Ok(())

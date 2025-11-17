@@ -1,14 +1,12 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    app::{AppState, UiBuffers},
-    config::{GcOutputFormat, WiiOutputFormat},
-};
+use crate::app::App;
+use crate::config::{GcOutputFormat, WiiOutputFormat};
 use eframe::egui;
 use egui_theme_switch::ThemeSwitch;
 
-pub fn update(ctx: &egui::Context, _app_state: &AppState, ui_buffers: &mut UiBuffers) {
+pub fn update(ctx: &egui::Context, app: &mut App) {
     egui::CentralPanel::default().show(ctx, |ui| {
         ui.style_mut().spacing.item_spacing.y *= 2.;
 
@@ -17,24 +15,24 @@ pub fn update(ctx: &egui::Context, _app_state: &AppState, ui_buffers: &mut UiBuf
 
             if ui
                 .radio_value(
-                    &mut ui_buffers.config.contents.wii_output_format,
+                    &mut app.config.contents.wii_output_format,
                     WiiOutputFormat::Wbfs,
                     "WBFS (recommended)",
                 )
                 .changed()
             {
-                ui_buffers.save_config();
+                app.save_config();
             }
 
             if ui
                 .radio_value(
-                    &mut ui_buffers.config.contents.wii_output_format,
+                    &mut app.config.contents.wii_output_format,
                     WiiOutputFormat::Iso,
                     "ISO (very large)",
                 )
                 .changed()
             {
-                ui_buffers.save_config();
+                app.save_config();
             }
 
             ui.separator();
@@ -43,24 +41,24 @@ pub fn update(ctx: &egui::Context, _app_state: &AppState, ui_buffers: &mut UiBuf
 
             if ui
                 .radio_value(
-                    &mut ui_buffers.config.contents.gc_output_format,
+                    &mut app.config.contents.gc_output_format,
                     GcOutputFormat::Iso,
                     "ISO (recommended)",
                 )
                 .changed()
             {
-                ui_buffers.save_config();
+                app.save_config();
             }
 
             if ui
                 .radio_value(
-                    &mut ui_buffers.config.contents.gc_output_format,
+                    &mut app.config.contents.gc_output_format,
                     GcOutputFormat::Ciso,
                     "CISO (small but poor compatibility)",
                 )
                 .changed()
             {
-                ui_buffers.save_config();
+                app.save_config();
             }
 
             ui.separator();
@@ -69,24 +67,24 @@ pub fn update(ctx: &egui::Context, _app_state: &AppState, ui_buffers: &mut UiBuf
 
             if ui
                 .radio_value(
-                    &mut ui_buffers.config.contents.always_split,
+                    &mut app.config.contents.always_split,
                     false,
                     "Only when needed (recommended)",
                 )
                 .changed()
             {
-                ui_buffers.save_config();
+                app.save_config();
             }
 
             if ui
                 .radio_value(
-                    &mut ui_buffers.config.contents.always_split,
+                    &mut app.config.contents.always_split,
                     true,
                     "Always 4GB-32KB",
                 )
                 .changed()
             {
-                ui_buffers.save_config();
+                app.save_config();
             }
 
             ui.separator();
@@ -95,24 +93,24 @@ pub fn update(ctx: &egui::Context, _app_state: &AppState, ui_buffers: &mut UiBuf
 
             if ui
                 .radio_value(
-                    &mut ui_buffers.config.contents.scrub_update_partition,
+                    &mut app.config.contents.scrub_update_partition,
                     false,
                     "No (recommended)",
                 )
                 .changed()
             {
-                ui_buffers.save_config();
+                app.save_config();
             }
 
             if ui
                 .radio_value(
-                    &mut ui_buffers.config.contents.scrub_update_partition,
+                    &mut app.config.contents.scrub_update_partition,
                     true,
                     "Yes (saves some space)",
                 )
                 .changed()
             {
-                ui_buffers.save_config();
+                app.save_config();
             }
 
             ui.separator();
@@ -121,24 +119,20 @@ pub fn update(ctx: &egui::Context, _app_state: &AppState, ui_buffers: &mut UiBuf
 
             if ui
                 .radio_value(
-                    &mut ui_buffers.config.contents.remove_sources_games,
+                    &mut app.config.contents.remove_sources_games,
                     false,
                     "No (recommended)",
                 )
                 .changed()
             {
-                ui_buffers.save_config();
+                app.save_config();
             }
 
             if ui
-                .radio_value(
-                    &mut ui_buffers.config.contents.remove_sources_games,
-                    true,
-                    "Yes",
-                )
+                .radio_value(&mut app.config.contents.remove_sources_games, true, "Yes")
                 .changed()
             {
-                ui_buffers.save_config();
+                app.save_config();
             }
 
             ui.separator();
@@ -147,24 +141,20 @@ pub fn update(ctx: &egui::Context, _app_state: &AppState, ui_buffers: &mut UiBuf
 
             if ui
                 .radio_value(
-                    &mut ui_buffers.config.contents.remove_sources_apps,
+                    &mut app.config.contents.remove_sources_apps,
                     false,
                     "No (recommended)",
                 )
                 .changed()
             {
-                ui_buffers.save_config();
+                app.save_config();
             }
 
             if ui
-                .radio_value(
-                    &mut ui_buffers.config.contents.remove_sources_apps,
-                    true,
-                    "Yes",
-                )
+                .radio_value(&mut app.config.contents.remove_sources_apps, true, "Yes")
                 .changed()
             {
-                ui_buffers.save_config();
+                app.save_config();
             }
         });
 
@@ -173,13 +163,11 @@ pub fn update(ctx: &egui::Context, _app_state: &AppState, ui_buffers: &mut UiBuf
 
             ui.horizontal(|ui| {
                 if ui
-                    .add(ThemeSwitch::new(
-                        &mut ui_buffers.config.contents.theme_preference,
-                    ))
+                    .add(ThemeSwitch::new(&mut app.config.contents.theme_preference))
                     .changed()
                 {
-                    ctx.set_theme(ui_buffers.config.contents.theme_preference);
-                    ui_buffers.save_config();
+                    ctx.set_theme(app.config.contents.theme_preference);
+                    app.save_config();
                 }
             });
         });

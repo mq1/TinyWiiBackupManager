@@ -61,19 +61,3 @@ pub enum Modal {
     DeleteHbcApp(u16),
     ConvertGames(Box<[DiscInfo]>),
 }
-
-#[derive(Debug)]
-pub enum UiAction {
-    OpenView(View),
-    OpenModal(Modal),
-    CloseModal,
-    ApplyFilterGames,
-    ApplyFilterHbcApps,
-    ApplyFilterOscApps,
-    TriggerDownloadOscIcons,
-    DeleteGame(u16),
-    TriggerRefreshGames,
-    ApplySorting,
-    DeleteHbcApp(u16),
-    TriggerRefreshHbcApps,
-}
