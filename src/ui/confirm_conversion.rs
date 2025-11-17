@@ -2,10 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::app::App;
+use crate::messages::Message;
 use crate::{convert, disc_info::DiscInfo};
 use eframe::egui;
 
-pub fn update(ctx: &egui::Context, app: &mut App, discs: &[DiscInfo]) {
+pub fn update(ctx: &egui::Context, app: &App, discs: &[DiscInfo]) {
     egui::Modal::new("confirm_conversion".into()).show(ctx, |ui: &mut egui::Ui| {
         ui.heading(format!("🎮 {} Games selected for conversion", discs.len()));
         ui.label("(Existing games are automatically ignored)");
@@ -33,11 +34,11 @@ pub fn update(ctx: &egui::Context, app: &mut App, discs: &[DiscInfo]) {
                     discs.into(),
                 );
 
-                app.close_modal();
+                app.send_msg(Message::CloseModal);
             }
 
             if ui.button("❌ Cancel").clicked() {
-                app.close_modal();
+                app.send_msg(Message::CloseModal);
             }
         })
     });
