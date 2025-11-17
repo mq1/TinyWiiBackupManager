@@ -19,19 +19,17 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
     ui::status::update(ctx, app);
 
-    if let Some(modal) = app.current_modal.take() {
+    if let Some(modal) = &app.current_modal {
         match modal {
-            ui::Modal::DeleteGame(game_i) => ui::delete_game::update(ctx, app, game_i),
-            ui::Modal::DeleteHbcApp(hbc_app_i) => ui::delete_hbc_app::update(ctx, app, hbc_app_i),
-            ui::Modal::GameInfo(game_i, ref disc_info, ref game_info) => {
-                ui::game_info::update(ctx, app, game_i, disc_info, game_info)
+            ui::Modal::DeleteGame(game_i) => ui::delete_game::update(ctx, app, *game_i),
+            ui::Modal::DeleteHbcApp(hbc_app_i) => ui::delete_hbc_app::update(ctx, app, *hbc_app_i),
+            ui::Modal::GameInfo(game_i, disc_info, game_info) => {
+                ui::game_info::update(ctx, app, *game_i, disc_info, game_info)
             }
-            ui::Modal::HbcAppInfo(hbc_app_i) => ui::hbc_app_info::update(ctx, app, hbc_app_i),
-            ui::Modal::ConvertGames(ref discs) => ui::confirm_conversion::update(ctx, app, discs),
+            ui::Modal::HbcAppInfo(hbc_app_i) => ui::hbc_app_info::update(ctx, app, *hbc_app_i),
+            ui::Modal::ConvertGames(discs) => ui::confirm_conversion::update(ctx, app, discs),
             ui::Modal::Info => ui::info::update(ctx, app),
         }
-
-        app.current_modal = Some(modal);
     }
 
     app.choose_games.update(ctx);

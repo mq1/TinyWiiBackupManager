@@ -24,9 +24,11 @@ pub enum Message {
     GotOscApps(Box<[OscApp]>),
     GotWiitdb(wiitdb::Datafile),
     OpenModal(Modal),
+    CloseModal,
     ArchiveGame(u16),
     WriteConfig,
     OpenOscAppInfo(u16),
+    OpenGameDir(u16),
 }
 
 pub fn process_msg(app: &mut App, ctx: &egui::Context, msg: Message) {
@@ -78,6 +80,9 @@ pub fn process_msg(app: &mut App, ctx: &egui::Context, msg: Message) {
         Message::OpenModal(modal) => {
             app.current_modal = Some(modal);
         }
+        Message::CloseModal => {
+            app.current_modal = None;
+        }
         Message::ArchiveGame(i) => {
             app.archiving_game_i = i;
             app.choose_archive_path.save_file();
@@ -87,6 +92,9 @@ pub fn process_msg(app: &mut App, ctx: &egui::Context, msg: Message) {
         }
         Message::OpenOscAppInfo(i) => {
             app.open_osc_app_info(i);
+        }
+        Message::OpenGameDir(i) => {
+            app.open_game_dir(i);
         }
     }
 }
