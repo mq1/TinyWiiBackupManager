@@ -60,7 +60,7 @@ fn update_top_bar(ui: &mut egui::Ui, _app_state: &AppState, ui_buffers: &mut UiB
                 .on_hover_text("Add Games")
                 .clicked()
             {
-                ui_buffers.action = Some(UiAction::AddGames);
+                ui_buffers.choose_games.pick_multiple();
             }
 
             if ui
