@@ -24,7 +24,7 @@ pub fn update(ctx: &egui::Context, _app_state: &AppState, ui_buffers: &mut UiBuf
                 )
                 .changed()
             {
-                ui_buffers.action = Some(UiAction::WriteConfig);
+                ui_buffers.save_config();
             }
 
             if ui
@@ -35,7 +35,7 @@ pub fn update(ctx: &egui::Context, _app_state: &AppState, ui_buffers: &mut UiBuf
                 )
                 .changed()
             {
-                ui_buffers.action = Some(UiAction::WriteConfig);
+                ui_buffers.save_config();
             }
 
             ui.separator();
@@ -50,7 +50,7 @@ pub fn update(ctx: &egui::Context, _app_state: &AppState, ui_buffers: &mut UiBuf
                 )
                 .changed()
             {
-                ui_buffers.action = Some(UiAction::WriteConfig);
+                ui_buffers.save_config();
             }
 
             if ui
@@ -61,7 +61,7 @@ pub fn update(ctx: &egui::Context, _app_state: &AppState, ui_buffers: &mut UiBuf
                 )
                 .changed()
             {
-                ui_buffers.action = Some(UiAction::WriteConfig);
+                ui_buffers.save_config();
             }
 
             ui.separator();
@@ -76,7 +76,7 @@ pub fn update(ctx: &egui::Context, _app_state: &AppState, ui_buffers: &mut UiBuf
                 )
                 .changed()
             {
-                ui_buffers.action = Some(UiAction::WriteConfig);
+                ui_buffers.save_config();
             }
 
             if ui
@@ -87,7 +87,7 @@ pub fn update(ctx: &egui::Context, _app_state: &AppState, ui_buffers: &mut UiBuf
                 )
                 .changed()
             {
-                ui_buffers.action = Some(UiAction::WriteConfig);
+                ui_buffers.save_config();
             }
 
             ui.separator();
@@ -102,7 +102,7 @@ pub fn update(ctx: &egui::Context, _app_state: &AppState, ui_buffers: &mut UiBuf
                 )
                 .changed()
             {
-                ui_buffers.action = Some(UiAction::WriteConfig);
+                ui_buffers.save_config();
             }
 
             if ui
@@ -113,7 +113,7 @@ pub fn update(ctx: &egui::Context, _app_state: &AppState, ui_buffers: &mut UiBuf
                 )
                 .changed()
             {
-                ui_buffers.action = Some(UiAction::WriteConfig);
+                ui_buffers.save_config();
             }
 
             ui.separator();
@@ -128,7 +128,7 @@ pub fn update(ctx: &egui::Context, _app_state: &AppState, ui_buffers: &mut UiBuf
                 )
                 .changed()
             {
-                ui_buffers.action = Some(UiAction::WriteConfig);
+                ui_buffers.save_config();
             }
 
             if ui
@@ -139,7 +139,7 @@ pub fn update(ctx: &egui::Context, _app_state: &AppState, ui_buffers: &mut UiBuf
                 )
                 .changed()
             {
-                ui_buffers.action = Some(UiAction::WriteConfig);
+                ui_buffers.save_config();
             }
 
             ui.separator();
@@ -154,7 +154,7 @@ pub fn update(ctx: &egui::Context, _app_state: &AppState, ui_buffers: &mut UiBuf
                 )
                 .changed()
             {
-                ui_buffers.action = Some(UiAction::WriteConfig);
+                ui_buffers.save_config();
             }
 
             if ui
@@ -165,7 +165,7 @@ pub fn update(ctx: &egui::Context, _app_state: &AppState, ui_buffers: &mut UiBuf
                 )
                 .changed()
             {
-                ui_buffers.action = Some(UiAction::WriteConfig);
+                ui_buffers.save_config();
             }
         });
 
@@ -180,7 +180,7 @@ pub fn update(ctx: &egui::Context, _app_state: &AppState, ui_buffers: &mut UiBuf
                     .changed()
                 {
                     ctx.set_theme(ui_buffers.config.contents.theme_preference);
-                    ui_buffers.action = Some(UiAction::WriteConfig);
+                    ui_buffers.save_config();
                 }
             });
         });

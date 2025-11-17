@@ -192,6 +192,12 @@ impl UiBuffers {
             notifications: Notifications::new(),
         }
     }
+
+    pub fn save_config(&mut self) {
+        if let Err(e) = self.config.write() {
+            self.notifications.show_err(e);
+        }
+    }
 }
 
 impl AppWrapper {
@@ -219,12 +225,6 @@ impl AppWrapper {
             &self.ui_buffers.config.contents.mount_point,
         )
         .unwrap_or(true)
-    }
-
-    fn save_config(&mut self) {
-        if let Err(e) = self.ui_buffers.config.write() {
-            self.ui_buffers.notifications.show_err(e);
-        }
     }
 
     pub fn update_filtered_games(&mut self) {
@@ -402,7 +402,7 @@ impl AppWrapper {
             self.refresh_hbc_apps();
 
             self.update_title(ctx);
-            self.save_config();
+            self.ui_buffers.save_config();
         }
 
         if let Some(out_path) = self.ui_buffers.choose_archive_path.take_picked() {
@@ -417,7 +417,7 @@ impl AppWrapper {
             ) {
                 Ok(format) => {
                     self.ui_buffers.config.contents.archive_format = format;
-                    self.save_config();
+                    self.ui_buffers.save_config();
                 }
                 Err(e) => self.ui_buffers.notifications.show_err(e),
             }
@@ -428,7 +428,7 @@ impl AppWrapper {
             wiiload::spawn_push_file_task(&self.state.task_processor, path, wii_ip.clone());
 
             self.ui_buffers.config.contents.wii_ip = wii_ip;
-            self.save_config();
+            self.ui_buffers.save_config();
         }
 
         if let Some(paths) = self.ui_buffers.choose_hbc_apps.take_picked_multiple() {
@@ -502,14 +502,6 @@ impl AppWrapper {
                             .show_success("dot_clean completed successfully");
                     }
                 }
-                UiAction::WriteConfig => {
-                    self.save_config();
-                }
-                UiAction::OpenOscUrl(i) => {
-                    if let Err(e) = self.state.osc_apps[i as usize].open_url() {
-                        self.ui_buffers.notifications.show_err(e);
-                    }
-                }
                 UiAction::ApplyFilterGames => {
                     self.update_filtered_games();
                 }
@@ -542,7 +534,7 @@ impl AppWrapper {
                 UiAction::ApplySorting => {
                     self.apply_sorting();
                     self.state.prev_sort_by = self.ui_buffers.config.contents.sort_by;
-                    self.save_config();
+                    self.ui_buffers.save_config();
                 }
                 UiAction::DeleteHbcApp(i) => {
                     let hbc_app = &self.state.hbc_apps[i as usize];

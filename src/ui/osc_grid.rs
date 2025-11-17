@@ -99,7 +99,7 @@ fn update_osc_app_card(
                         &app_state.task_processor,
                     );
 
-                    ui_buffers.action = Some(UiAction::WriteConfig);
+                    ui_buffers.save_config();
                 }
 
                 // Info button
@@ -109,8 +109,9 @@ fn update_osc_app_card(
                     )
                     .on_hover_text("Show App Information")
                     .clicked()
+                    && let Err(e) = osc_app.open_url()
                 {
-                    ui_buffers.action = Some(UiAction::OpenOscUrl(i));
+                    ui_buffers.notifications.show_err(e);
                 }
             });
         });
