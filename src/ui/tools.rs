@@ -4,7 +4,6 @@
 use crate::{
     app::{AppState, UiBuffers},
     banners, covers, txtcodes,
-    ui::UiAction,
     wiitdb,
 };
 use eframe::egui;
@@ -73,7 +72,7 @@ pub fn update(ctx: &egui::Context, app_state: &AppState, ui_buffers: &mut UiBuff
 
             ui.horizontal(|ui| {
                 if ui.button("⏵").clicked() {
-                    ui_buffers.action = Some(UiAction::RunNormalizePaths);
+                    ui_buffers.run_normalize_paths();
                 }
 
                 ui.label("Normalize paths (makes sure the game directories' layouts are correct)");
