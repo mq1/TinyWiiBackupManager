@@ -89,7 +89,8 @@ pub fn update(ui: &mut egui::Ui, app_state: &AppState, ui_buffers: &mut UiBuffer
                                 .on_hover_text("Archive Game to RVZ or ISO")
                                 .clicked()
                             {
-                                ui_buffers.action = Some(UiAction::OpenArchiveGameDialog(game_i));
+                                ui_buffers.archiving_game_i = game_i;
+                                ui_buffers.choose_archive_path.save_file();
                             }
 
                             // Delete button

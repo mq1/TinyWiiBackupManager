@@ -60,7 +60,7 @@ fn update_top_bar(ui: &mut egui::Ui, _app_state: &AppState, ui_buffers: &mut UiB
                 .on_hover_text("Add Apps")
                 .clicked()
             {
-                ui_buffers.action = Some(UiAction::AddHbcApps);
+                ui_buffers.choose_hbc_apps.pick_multiple();
             }
 
             if ui
