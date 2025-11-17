@@ -43,7 +43,9 @@ jobs:
           fetch-depth: 1
 
       - name: Install Rust toolchain
-        run: rustup toolchain install 1.91-${{ matrix.target }}
+        run: |
+          rustup toolchain install 1.91
+          rustup target add ${{ matrix.target }}
 
       - name: Restore Rust cache
         uses: Swatinem/rust-cache@v2
@@ -109,7 +111,9 @@ jobs:
           fetch-depth: 1
 
       - name: Install Rust toolchain
-        run: rustup toolchain install 1.91-${{ matrix.target }}
+        run: |
+          rustup toolchain install 1.91
+          rustup target add ${{ matrix.target }}
 
       - name: Restore Rust cache
         uses: Swatinem/rust-cache@v2
@@ -210,7 +214,9 @@ jobs:
           fetch-depth: 1
 
       - name: Install Rust toolchain
-        run: rustup toolchain install 1.91-${{ matrix.target }}
+        run: |
+          rustup toolchain install 1.91
+          rustup target add ${{ matrix.target }}
 
       - name: Restore Rust cache
         uses: Swatinem/rust-cache@v2
