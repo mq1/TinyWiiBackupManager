@@ -52,11 +52,10 @@ pub fn update(
 
             ui.add_sized(egui::Vec2::new(1., 21.), egui::Separator::default());
 
-            if ui.button("📁 Open Directory").clicked() {
-                if let Err(e) = open::that(&hbc_app.path) {
+            if ui.button("📁 Open Directory").clicked()
+                && let Err(e) = open::that(&hbc_app.path) {
                     ui_buffers.notifications.show_err(e.into());
                 }
-            }
         })
     });
 }
