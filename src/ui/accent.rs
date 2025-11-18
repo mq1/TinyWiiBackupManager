@@ -3,11 +3,17 @@
 
 use eframe::egui::Color32;
 
+const RED: Color32 = Color32::from_rgba_unmultiplied_const(236, 95, 93, 127);
+const ORANGE: Color32 = Color32::from_rgba_unmultiplied_const(232, 136, 58, 127);
+const YELLOW: Color32 = Color32::from_rgba_unmultiplied_const(246, 200, 68, 127);
+const GREEN: Color32 = Color32::from_rgba_unmultiplied_const(120, 184, 86, 127);
+const BLUE: Color32 = Color32::from_rgba_unmultiplied_const(52, 120, 246, 127);
+const PURPLE: Color32 = Color32::from_rgba_unmultiplied_const(154, 85, 163, 127);
+const PINK: Color32 = Color32::from_rgba_unmultiplied_const(228, 92, 156, 127);
+const GRAY: Color32 = Color32::from_rgba_unmultiplied_const(140, 140, 140, 127);
+
 pub fn get_accent_color() -> Color32 {
-    system_accent_color().unwrap_or(
-        // Fallback accent color (orange)
-        Color32::from_rgba_unmultiplied(232, 136, 58, 127),
-    )
+    system_accent_color().unwrap_or(ORANGE)
 }
 
 #[cfg(target_os = "macos")]
@@ -20,14 +26,14 @@ fn system_accent_color() -> anyhow::Result<Color32> {
         .output()?;
 
     match String::from_utf8_lossy(&output.stdout).trim() {
-        "0" => Ok(Color32::from_rgba_unmultiplied(236, 95, 93, 127)), // red
-        "1" => Ok(Color32::from_rgba_unmultiplied(232, 136, 58, 127)), // orange
-        "2" => Ok(Color32::from_rgba_unmultiplied(246, 200, 68, 127)), // yellow
-        "3" => Ok(Color32::from_rgba_unmultiplied(120, 184, 86, 127)), // green
-        "4" => Ok(Color32::from_rgba_unmultiplied(52, 120, 246, 127)), // blue
-        "5" => Ok(Color32::from_rgba_unmultiplied(154, 85, 163, 127)), // purple
-        "6" => Ok(Color32::from_rgba_unmultiplied(228, 92, 156, 127)), // pink
-        "-1" => Ok(Color32::from_rgba_unmultiplied(140, 140, 140, 127)), // gray
+        "0" => Ok(RED),
+        "1" => Ok(ORANGE),
+        "2" => Ok(YELLOW),
+        "3" => Ok(GREEN),
+        "4" => Ok(BLUE),
+        "5" => Ok(PURPLE),
+        "6" => Ok(PINK),
+        "-1" => Ok(GRAY),
         _ => Err(anyhow!("Unknown accent color")),
     }
 }
