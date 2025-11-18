@@ -6,10 +6,10 @@ use crate::messages::Message;
 use crate::ui::developers::get_developer_emoji;
 use eframe::egui;
 
-pub fn update(ctx: &egui::Context, app: &App, hbc_app_i: u16) {
-    let hbc_app = &app.hbc_apps[hbc_app_i as usize];
-
+pub fn update(ctx: &egui::Context, app: &mut App, hbc_app_i: u16) {
     egui::Modal::new("hbc_app_info".into()).show(ctx, |ui: &mut egui::Ui| {
+        let hbc_app = &app.hbc_apps[hbc_app_i as usize];
+
         ui.heading(&hbc_app.meta.name);
 
         ui.separator();
@@ -41,13 +41,13 @@ pub fn update(ctx: &egui::Context, app: &App, hbc_app_i: u16) {
 
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Max), |ui| {
             if ui.button("❌ Close").clicked() {
-                app.send_msg(Message::CloseModal);
+                app.close_modal();
             }
 
             ui.add_sized(egui::Vec2::new(1., 21.), egui::Separator::default());
 
             if ui.button("📁 Open Directory").clicked() {
-                app.send_msg(Message::OpenHbcAppDir(hbc_app_i));
+                app.open_hbc_app_dir(hbc_app_i);
             }
         })
     });
