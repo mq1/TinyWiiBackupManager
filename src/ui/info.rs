@@ -6,9 +6,7 @@ use crate::ui;
 use eframe::egui;
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
-    let modal = egui::Modal::new("info".into());
-
-    modal.show(ctx, |ui: &mut egui::Ui| {
+    egui::Modal::new("info".into()).show(ctx, |ui: &mut egui::Ui| {
         ui.horizontal(|ui| {
             ui.set_height(68.);
 
