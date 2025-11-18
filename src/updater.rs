@@ -33,7 +33,7 @@ pub fn check() -> Result<Option<Version>> {
 }
 
 pub struct UpdateInfo {
-    url: String,
+    pub url: String,
     pub ui_text: String,
 }
 
@@ -43,10 +43,6 @@ impl UpdateInfo {
             url: format!("{}/releases/tag/{}", env!("CARGO_PKG_REPOSITORY"), &version),
             ui_text: format!("A new version is available: {}", &version),
         }
-    }
-
-    pub fn open_url(&self) -> Result<()> {
-        open::that(&self.url).map_err(Into::into)
     }
 }
 

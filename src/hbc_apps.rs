@@ -111,10 +111,6 @@ impl HbcApp {
         })
     }
 
-    pub fn open_dir(&self) -> Result<()> {
-        open::that(&self.path).map_err(Into::into)
-    }
-
     pub fn get_path_str(&self) -> &str {
         self.path.to_str().unwrap_or("Invalid Path")
     }
