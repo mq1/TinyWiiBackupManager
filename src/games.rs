@@ -99,10 +99,6 @@ impl Game {
             search_str,
         })
     }
-
-    pub fn open_dir(&self) -> Result<()> {
-        open::that(&self.path).map_err(Into::into)
-    }
 }
 
 #[derive(Debug, Clone)]

@@ -136,9 +136,8 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                         )
                         .on_hover_text(&update_info.ui_text)
                         .clicked()
-                    && let Err(e) = update_info.open_url()
                 {
-                    app.notifications.show_err(e);
+                    app.open_update_info_url(ctx);
                 }
             });
         });
