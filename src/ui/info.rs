@@ -62,11 +62,11 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
             }
 
             if ui.button("🌐 Wiki").clicked() {
-                app.open_wiki();
+                app.open_wiki(ctx);
             }
 
             if ui.button(" Source Code").clicked() {
-                app.open_repo();
+                app.open_repo(ctx);
             }
         })
     });

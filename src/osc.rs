@@ -76,12 +76,13 @@ impl OscApp {
     fn from_meta(meta: OscAppMeta, icons_dir: &Path) -> Option<Self> {
         let icon_path = icons_dir.join(&meta.slug).with_extension("png");
         let icon_uri = format!("file://{}", icon_path.to_slash()?);
-
+        let info_url = format!("https://oscwii.org/library/app/{}", meta.slug);
         let search_str = (meta.name.clone() + &meta.slug).to_lowercase();
 
         Some(Self {
             meta,
             icon_uri,
+            info_url,
             search_str,
         })
     }
@@ -91,14 +92,8 @@ impl OscApp {
 pub struct OscApp {
     pub meta: OscAppMeta,
     pub icon_uri: String,
+    pub info_url: String,
     pub search_str: String,
-}
-
-impl OscApp {
-    pub fn open_url(&self) -> Result<()> {
-        let url = format!("https://oscwii.org/library/app/{}", self.meta.slug);
-        open::that(&url).map_err(Into::into)
-    }
 }
 
 #[derive(Debug, Clone, Deserialize, Default)]
