@@ -22,6 +22,7 @@ use crate::{
 };
 use crossbeam_channel::{Receiver, Sender, unbounded};
 use eframe::egui;
+use eframe::egui::OpenUrl;
 use egui_file_dialog::FileDialog;
 use size::Size;
 use smallvec::SmallVec;
@@ -195,33 +196,40 @@ impl App {
         }
     }
 
-    pub fn open_wiki(&mut self) {
-        if let Err(e) = open::that(env!("CARGO_PKG_HOMEPAGE")) {
-            self.notifications.show_err(e.into());
-        }
+    pub fn open_wiki(&mut self, ctx: &egui::Context) {
+        let url = env!("CARGO_PKG_HOMEPAGE");
+        ctx.open_url(OpenUrl::new_tab(url));
     }
 
-    pub fn open_repo(&mut self) {
-        if let Err(e) = open::that(env!("CARGO_PKG_REPOSITORY")) {
-            self.notifications.show_err(e.into());
-        }
+    pub fn open_repo(&mut self, ctx: &egui::Context) {
+        let url = env!("CARGO_PKG_REPOSITORY");
+        ctx.open_url(OpenUrl::new_tab(url));
     }
 
     pub fn open_game_dir(&mut self, game_i: u16) {
-        if let Err(e) = self.games[game_i as usize].open_dir() {
-            self.notifications.show_err(e);
+        let game = &self.games[game_i as usize];
+        if let Err(e) = open::that(&game.path) {
+            self.notifications.show_err(e.into());
         }
     }
 
     pub fn open_hbc_app_dir(&mut self, hbc_app_i: u16) {
-        if let Err(e) = self.hbc_apps[hbc_app_i as usize].open_dir() {
-            self.notifications.show_err(e);
+        let hbc_app = &self.hbc_apps[hbc_app_i as usize];
+        if let Err(e) = open::that(&hbc_app.path) {
+            self.notifications.show_err(e.into());
         }
     }
 
-    pub fn open_osc_app_info(&mut self, osc_app_i: u16) {
-        if let Err(e) = self.osc_apps[osc_app_i as usize].open_url() {
-            self.notifications.show_err(e);
+    pub fn open_osc_app_info(&mut self, ctx: &egui::Context, osc_app_i: u16) {
+        let osc_app = &self.osc_apps[osc_app_i as usize];
+        let url = &osc_app.info_url;
+        ctx.open_url(OpenUrl::new_tab(url));
+    }
+
+    pub fn open_update_info_url(&mut self, ctx: &egui::Context) {
+        if let Some(update_info) = &self.update_info {
+            let url = &update_info.url;
+            ctx.open_url(OpenUrl::new_tab(url));
         }
     }
 
