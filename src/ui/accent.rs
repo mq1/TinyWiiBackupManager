@@ -1,7 +1,9 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use anyhow::{Result, anyhow};
 use eframe::egui::Color32;
+use std::process::Command;
 
 const RED: Color32 = Color32::from_rgba_unmultiplied_const(236, 95, 93, 127);
 const ORANGE: Color32 = Color32::from_rgba_unmultiplied_const(232, 136, 58, 127);
@@ -13,14 +15,14 @@ const PINK: Color32 = Color32::from_rgba_unmultiplied_const(228, 92, 156, 127);
 const GRAY: Color32 = Color32::from_rgba_unmultiplied_const(140, 140, 140, 127);
 
 pub fn get_accent_color() -> Color32 {
-    system_accent_color().unwrap_or(ORANGE)
+    if cfg!(target_os = "macos") {
+        get_accent_macos().unwrap_or(ORANGE)
+    } else {
+        ORANGE
+    }
 }
 
-#[cfg(target_os = "macos")]
-fn system_accent_color() -> anyhow::Result<Color32> {
-    use anyhow::anyhow;
-    use std::process::Command;
-
+fn get_accent_macos() -> Result<Color32> {
     let output = Command::new("defaults")
         .args(["read", "-g", "AppleAccentColor"])
         .output()?;
@@ -36,46 +38,4 @@ fn system_accent_color() -> anyhow::Result<Color32> {
         "-1" => Ok(GRAY),
         _ => Err(anyhow!("Unknown accent color")),
     }
-}
-
-// https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-rdperp/bc6975ee-c630-4414-ba10-04eecbb6fccc
-#[cfg(target_os = "windows")]
-fn system_accent_color() -> anyhow::Result<Color32> {
-    use anyhow::{anyhow, bail};
-    use std::os::windows::process::CommandExt;
-    use std::process::Command;
-
-    let output = Command::new("reg")
-        .args(&[
-            "query",
-            "HKCU\\Software\\Microsoft\\Windows\\DWM",
-            "/v",
-            "ColorizationColor",
-        ])
-        .creation_flags(0x08000000) // CREATE_NO_WINDOW
-        .output()?;
-
-    let out_str = String::from_utf8_lossy(&output.stdout);
-    let hex_str = out_str
-        .trim()
-        .split_whitespace()
-        .last()
-        .ok_or(anyhow!("Failed to parse accent color"))?;
-
-    if hex_str.len() != 10 {
-        bail!("Invalid accent color");
-    }
-
-    let r = u8::from_str_radix(&hex_str[4..6], 16)?;
-    let g = u8::from_str_radix(&hex_str[6..8], 16)?;
-    let b = u8::from_str_radix(&hex_str[8..10], 16)?;
-
-    Ok(Color32::from_rgba_unmultiplied(r, g, b, 127))
-}
-
-#[cfg(target_os = "linux")]
-fn system_accent_color() -> anyhow::Result<Color32> {
-    use anyhow::anyhow;
-
-    Err(anyhow!("System accent color not supported on Linux"))
 }
