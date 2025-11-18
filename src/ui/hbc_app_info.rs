@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::app::App;
-use crate::messages::Message;
 use crate::ui::developers::get_developer_emoji;
 use eframe::egui;
 
