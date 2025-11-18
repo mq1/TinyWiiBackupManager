@@ -91,7 +91,7 @@ pub fn process_msg(app: &mut App, ctx: &egui::Context, msg: Message) {
             app.save_config();
         }
         Message::OpenOscAppInfo(i) => {
-            app.open_osc_app_info(i);
+            app.open_osc_app_info(ctx, i);
         }
         Message::OpenGameDir(i) => {
             app.open_game_dir(i);
