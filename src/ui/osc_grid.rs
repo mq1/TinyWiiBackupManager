@@ -73,9 +73,8 @@ fn update_osc_app_card(ui: &mut egui::Ui, app: &App, osc_app_i: u16) {
                     .clicked()
                 {
                     hbc_apps::spawn_install_app_from_url_task(
+                        app,
                         osc_app.meta.assets.archive.url.clone(),
-                        &app.task_processor,
-                        app.config.contents.mount_point.clone(),
                     );
                 }
 
@@ -85,12 +84,7 @@ fn update_osc_app_card(ui: &mut egui::Ui, app: &App, osc_app_i: u16) {
                     .on_hover_text("Push to Wii via Wiiload")
                     .clicked()
                 {
-                    wiiload::spawn_push_osc_task(
-                        osc_app.meta.assets.archive.url.clone(),
-                        app.config.contents.wii_ip.clone(),
-                        &app.task_processor,
-                    );
-
+                    wiiload::spawn_push_osc_task(app, osc_app.meta.assets.archive.url.clone());
                     app.send_msg(Message::WriteConfig);
                 }
 

@@ -1,8 +1,9 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::app::App;
+use crate::http;
 use crate::messages::Message;
-use crate::{http, tasks::TaskProcessor};
 use anyhow::{Context, Result};
 use semver::Version;
 
@@ -46,8 +47,8 @@ impl UpdateInfo {
     }
 }
 
-pub fn spawn_check_update_task(task_processor: &TaskProcessor) {
-    task_processor.spawn(move |msg_sender| {
+pub fn spawn_check_update_task(app: &App) {
+    app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(Message::UpdateStatus(
             "✈ Checking for updates...".to_string(),
         ))?;

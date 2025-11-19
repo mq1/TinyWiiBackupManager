@@ -28,12 +28,7 @@ pub fn update(ctx: &egui::Context, app: &App, discs: &[DiscInfo]) {
 
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Max), |ui| {
             if ui.button("✅ Start conversion").clicked() {
-                convert::spawn_add_games_task(
-                    &app.task_processor,
-                    &app.config.contents,
-                    discs.into(),
-                );
-
+                convert::spawn_add_games_task(app, discs.into());
                 app.send_msg(Message::CloseModal);
             }
 

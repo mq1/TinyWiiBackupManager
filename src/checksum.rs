@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::app::App;
 use crate::messages::Message;
 use crate::{
     convert::{get_disc_opts, get_process_opts},
     overflow_reader::{OverflowReader, get_main_file, get_overflow_file},
-    tasks::TaskProcessor,
     wiitdb::GameInfo,
 };
 use anyhow::{Result, anyhow};
@@ -16,12 +16,8 @@ use nod::{
 };
 use std::path::{Path, PathBuf};
 
-pub fn spawn_checksum_task(
-    task_processor: &TaskProcessor,
-    game_dir: PathBuf,
-    game_info: Option<GameInfo>,
-) {
-    task_processor.spawn(move |msg_sender| {
+pub fn spawn_checksum_task(app: &App, game_dir: PathBuf, game_info: Option<GameInfo>) {
+    app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(Message::UpdateStatus(
             "🔎 Performing game checksum...".to_string(),
         ))?;
