@@ -1,8 +1,9 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::app::App;
+use crate::http;
 use crate::messages::Message;
-use crate::{http, tasks::TaskProcessor};
 use anyhow::{Result, bail};
 use path_slash::PathExt;
 use serde::{Deserialize, Deserializer};
@@ -11,11 +12,11 @@ use std::{fs, path::Path, time::Duration};
 
 const CONTENTS_URL: &str = "https://hbb1.oscwii.org/api/v4/contents";
 
-pub fn spawn_load_osc_apps_task(task_processor: &TaskProcessor, data_dir: &Path) {
-    let cache_path = data_dir.join("osc-cache.json");
-    let icons_dir = data_dir.join("osc-icons");
+pub fn spawn_load_osc_apps_task(app: &App) {
+    let cache_path = app.data_dir.join("osc-cache.json");
+    let icons_dir = app.data_dir.join("osc-icons");
 
-    task_processor.spawn(move |msg_sender| {
+    app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(Message::UpdateStatus(
             "📓 Downloading OSC Meta...".to_string(),
         ))?;

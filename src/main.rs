@@ -79,10 +79,10 @@ fn main() -> Result<()> {
     // ----------------
     // Initialize tasks
 
-    titles::spawn_get_titles_task(&app.task_processor, app.data_dir.clone()); // this also loads games when finished
-    updater::spawn_check_update_task(&app.task_processor);
-    osc::spawn_load_osc_apps_task(&app.task_processor, &app.data_dir);
-    wiitdb::spawn_load_wiitdb_task(&app.task_processor, app.config.contents.mount_point.clone());
+    titles::spawn_get_titles_task(&app); // this also loads games when finished
+    updater::spawn_check_update_task(&app);
+    osc::spawn_load_osc_apps_task(&app);
+    wiitdb::spawn_load_wiitdb_task(&app);
 
     // -------------
     // Initialize UI
@@ -123,10 +123,6 @@ fn main() -> Result<()> {
 
             // Load hbc apps instantly
             app.refresh_hbc_apps();
-
-            if !app.is_mount_point_known() {
-                app.notifications.show_info_no_duration("New Drive detected, a path normalization run is recommended\nYou can find it in the 🔧 Tools page");
-            }
 
             Ok(Box::new(app))
         }),

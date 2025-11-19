@@ -1,22 +1,24 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::app::App;
 use crate::games::GameID;
 use crate::http;
 use crate::messages::Message;
-use crate::tasks::TaskProcessor;
 use anyhow::{Context, Result};
 use capitalize::Capitalize;
 use serde::Deserialize;
 use std::fs::{self, File};
 use std::io::BufReader;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 const DOWNLOAD_URL: &str = "https://www.gametdb.com/wiitdb.zip";
 
 /// Handles the blocking logic of downloading and extracting the database.
-pub fn spawn_download_task(task_processor: &TaskProcessor, mount_point: PathBuf) {
-    task_processor.spawn(move |msg_sender| {
+pub fn spawn_download_task(app: &App) {
+    let mount_point = app.config.contents.mount_point.clone();
+
+    app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(Message::UpdateStatus(
             "📥 Downloading wiitdb.xml...".to_string(),
         ))?;
@@ -306,8 +308,10 @@ impl<'de> Deserialize<'de> for Region {
     }
 }
 
-pub fn spawn_load_wiitdb_task(task_processor: &TaskProcessor, mount_point: PathBuf) {
-    task_processor.spawn(move |msg_sender| {
+pub fn spawn_load_wiitdb_task(app: &App) {
+    let mount_point = app.config.contents.mount_point.clone();
+
+    app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(Message::UpdateStatus(
             "📓 Loading wiitdb.xml...".to_string(),
         ))?;
