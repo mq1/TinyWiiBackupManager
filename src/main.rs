@@ -124,10 +124,6 @@ fn main() -> Result<()> {
             // Load hbc apps instantly
             app.refresh_hbc_apps();
 
-            if !app.is_mount_point_known() {
-                app.notifications.show_info_no_duration("New Drive detected, a path normalization run is recommended\nYou can find it in the 🔧 Tools page");
-            }
-
             Ok(Box::new(app))
         }),
     )
