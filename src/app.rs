@@ -359,8 +359,10 @@ impl App {
     pub fn refresh_games(&mut self) {
         self.games = games::list(&self.config.contents.mount_point, &self.titles);
 
+        let is_known = known_mount_points::check(self).unwrap_or(true);
+
         if !self.games.is_empty() {
-            if !known_mount_points::check(self).unwrap_or(true) {
+            if !is_known {
                 self.notifications.show_info_no_duration("New Drive detected, a path normalization run is recommended\nYou can find it in the 🔧 Tools page");
             }
 
