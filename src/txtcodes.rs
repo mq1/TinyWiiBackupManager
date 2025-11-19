@@ -1,12 +1,9 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::app::App;
 use crate::messages::Message;
-use crate::{
-    games::{Game, GameID},
-    http,
-    tasks::TaskProcessor,
-};
+use crate::{games::GameID, http};
 use anyhow::Result;
 use std::{fs, path::Path};
 
@@ -28,14 +25,11 @@ fn download_cheats_for_game(txt_cheatcodespath: &Path, game_id: &[u8; 6]) -> Res
     Ok(())
 }
 
-pub fn spawn_download_cheats_task(
-    task_processor: &TaskProcessor,
-    mount_point: &Path,
-    games: Box<[Game]>,
-) {
-    let txt_cheatcodespath = mount_point.join("txtcodes");
+pub fn spawn_download_cheats_task(app: &App) {
+    let txt_cheatcodespath = app.config.contents.mount_point.join("txtcodes");
+    let games = app.games.clone().into_boxed_slice();
 
-    task_processor.spawn(move |msg_sender| {
+    app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(Message::UpdateStatus(
             "📓 Downloading cheats...".to_string(),
         ))?;

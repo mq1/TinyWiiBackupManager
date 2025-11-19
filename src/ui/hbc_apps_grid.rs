@@ -89,9 +89,8 @@ fn update_hbc_app_card(ui: &mut egui::Ui, app: &App, hbc_app_i: u16) {
                             .clicked()
                     {
                         hbc_apps::spawn_install_app_from_url_task(
+                            app,
                             osc_app.meta.assets.archive.url.clone(),
-                            &app.task_processor,
-                            app.config.contents.mount_point.clone(),
                         );
                     }
                 }

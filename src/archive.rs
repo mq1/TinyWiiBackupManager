@@ -1,12 +1,12 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::app::App;
 use crate::messages::Message;
 use crate::{
     config::ArchiveFormat,
     convert::{get_disc_opts, get_process_opts},
     overflow_reader::{OverflowReader, get_main_file, get_overflow_file},
-    tasks::TaskProcessor,
 };
 use anyhow::{Result, anyhow, bail};
 use nod::{
@@ -21,7 +21,7 @@ use std::{
 };
 
 pub fn spawn_archive_game_task(
-    task_processor: &TaskProcessor,
+    app: &App,
     game_dir: PathBuf,
     out_path: PathBuf,
 ) -> Result<ArchiveFormat> {
@@ -34,7 +34,7 @@ pub fn spawn_archive_game_task(
         None => bail!("Unsupported archive format"),
     };
 
-    task_processor.spawn(move |msg_sender| {
+    app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(Message::UpdateStatus("📦 Archiving game...".to_string()))?;
 
         let format_opts = match archive_format {

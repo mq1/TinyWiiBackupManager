@@ -7,6 +7,12 @@ use std::time::Duration;
 
 pub struct Notifications(Toasts);
 
+impl Default for Notifications {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Notifications {
     pub fn new() -> Self {
         let toasts = Toasts::default()

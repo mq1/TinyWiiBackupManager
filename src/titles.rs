@@ -1,13 +1,11 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::app::App;
 use crate::messages::Message;
-use crate::{games::GameID, http, tasks::TaskProcessor};
+use crate::{games::GameID, http};
 use anyhow::Result;
-use std::{
-    fs,
-    path::{Path, PathBuf},
-};
+use std::{fs, path::Path};
 
 const DOWNLOAD_URL: &str = "https://www.gametdb.com/wiitdb.txt";
 
@@ -46,8 +44,10 @@ impl Titles {
     }
 }
 
-pub fn spawn_get_titles_task(task_processor: &TaskProcessor, data_dir: PathBuf) {
-    task_processor.spawn(move |msg_sender| {
+pub fn spawn_get_titles_task(app: &App) {
+    let data_dir = app.data_dir.clone();
+
+    app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(Message::UpdateStatus("📓 Loading titles...".to_string()))?;
 
         let titles = Titles::load(&data_dir)?;
