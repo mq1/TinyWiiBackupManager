@@ -275,10 +275,6 @@ impl App {
         }
     }
 
-    pub fn is_mount_point_known(&self) -> bool {
-        known_mount_points::check(&self.data_dir, &self.config.contents.mount_point).unwrap_or(true)
-    }
-
     pub fn update_filtered_games(&mut self) {
         self.filtered_wii_games_size = Size::from_bytes(0);
         self.filtered_gc_games_size = Size::from_bytes(0);
@@ -363,12 +359,16 @@ impl App {
     pub fn refresh_games(&mut self) {
         self.games = games::list(&self.config.contents.mount_point, &self.titles);
 
-        games::sort(&mut self.games, SortBy::None, self.config.contents.sort_by);
+        if !self.games.is_empty() {
+            if !known_mount_points::check(self).unwrap_or(true) {
+                self.notifications.show_info_no_duration("New Drive detected, a path normalization run is recommended\nYou can find it in the 🔧 Tools page");
+            }
+
+            games::sort(&mut self.games, SortBy::None, self.config.contents.sort_by);
+            covers::spawn_download_covers_task(self);
+        }
 
         self.update_filtered_games();
-
-        // Make sure that all games have covers
-        covers::spawn_download_covers_task(self);
     }
 
     pub fn refresh_hbc_apps(&mut self) {
@@ -415,10 +415,6 @@ impl App {
 
         if let Some(path) = self.choose_mount_point.take_picked() {
             self.config.contents.mount_point = path;
-
-            if !self.is_mount_point_known() {
-                self.notifications.show_info_no_duration("New Drive detected, a path normalization run is recommended\nYou can find it in the 🔧 Tools page");
-            }
 
             self.refresh_games();
             self.refresh_hbc_apps();
