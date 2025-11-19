@@ -368,11 +368,7 @@ impl App {
         self.update_filtered_games();
 
         // Make sure that all games have covers
-        covers::spawn_download_covers_task(
-            &self.task_processor,
-            self.config.contents.mount_point.clone(),
-            self.games.clone().into_boxed_slice(),
-        );
+        covers::spawn_download_covers_task(self);
     }
 
     pub fn refresh_hbc_apps(&mut self) {
@@ -436,11 +432,7 @@ impl App {
 
             let game = &self.games[i as usize];
 
-            match archive::spawn_archive_game_task(
-                &self.task_processor,
-                game.path.clone(),
-                out_path,
-            ) {
+            match archive::spawn_archive_game_task(self, game.path.clone(), out_path) {
                 Ok(format) => {
                     self.config.contents.archive_format = format;
                     self.save_config();
@@ -450,19 +442,12 @@ impl App {
         }
 
         if let Some(path) = self.choose_file_to_push.take_picked() {
-            let wii_ip = self.config.contents.wii_ip.clone();
-            wiiload::spawn_push_file_task(&self.task_processor, path, wii_ip.clone());
-
-            self.config.contents.wii_ip = wii_ip;
+            wiiload::spawn_push_file_task(self, path);
             self.save_config();
         }
 
         if let Some(paths) = self.choose_hbc_apps.take_picked_multiple() {
-            hbc_apps::spawn_install_apps_task(
-                &self.task_processor,
-                &self.config.contents,
-                paths.into_boxed_slice(),
-            );
+            hbc_apps::spawn_install_apps_task(self, paths.into_boxed_slice());
         }
     }
 

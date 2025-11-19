@@ -1,12 +1,9 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::app::App;
 use crate::messages::Message;
-use crate::{
-    config::{Contents, SortBy},
-    http,
-    tasks::TaskProcessor,
-};
+use crate::{config::SortBy, http};
 use anyhow::{Result, bail};
 use path_slash::PathBufExt;
 use serde::Deserialize;
@@ -141,12 +138,10 @@ fn install_zip(mount_point: &Path, path: &Path) -> Result<()> {
     Ok(())
 }
 
-pub fn spawn_install_app_from_url_task(
-    zip_url: String,
-    task_processor: &TaskProcessor,
-    mount_point: PathBuf,
-) {
-    task_processor.spawn(move |msg_sender| {
+pub fn spawn_install_app_from_url_task(app: &App, zip_url: String) {
+    let mount_point = app.config.contents.mount_point.clone();
+
+    app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(Message::UpdateStatus(format!(
             "📥 Downloading {}...",
             &zip_url
@@ -162,15 +157,11 @@ pub fn spawn_install_app_from_url_task(
     });
 }
 
-pub fn spawn_install_apps_task(
-    task_processor: &TaskProcessor,
-    config_contents: &Contents,
-    paths: Box<[PathBuf]>,
-) {
-    let remove_sources = config_contents.remove_sources_apps;
-    let mount_point = config_contents.mount_point.clone();
+pub fn spawn_install_apps_task(app: &App, paths: Box<[PathBuf]>) {
+    let remove_sources = app.config.contents.remove_sources_apps;
+    let mount_point = app.config.contents.mount_point.clone();
 
-    task_processor.spawn(move |msg_sender| {
+    app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(Message::UpdateStatus("🖴 Installing apps...".to_string()))?;
 
         for path in &paths {

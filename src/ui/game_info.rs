@@ -267,11 +267,7 @@ pub fn update(
                     .on_hover_text("Integrity Check")
                     .clicked()
             {
-                checksum::spawn_checksum_task(
-                    &app.task_processor,
-                    game.path.clone(),
-                    game_info.clone(),
-                );
+                checksum::spawn_checksum_task(app, game.path.clone(), game_info.clone());
             }
         });
     });
