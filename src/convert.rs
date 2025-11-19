@@ -1,13 +1,13 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::app::App;
 use crate::messages::Message;
 use crate::{
-    config::{Contents, GcOutputFormat, WiiOutputFormat},
+    config::{GcOutputFormat, WiiOutputFormat},
     disc_info::DiscInfo,
     overflow_reader::{OverflowReader, get_overflow_file},
     overflow_writer::OverflowWriter,
-    tasks::TaskProcessor,
     util::{self, can_write_over_4gb},
 };
 use nod::{
@@ -62,22 +62,19 @@ fn get_output_format_opts(
     }
 }
 
-pub fn spawn_add_games_task(
-    task_processor: &TaskProcessor,
-    config_contents: &Contents,
-    discs: Box<[DiscInfo]>,
-) {
+pub fn spawn_add_games_task(app: &App, discs: Box<[DiscInfo]>) {
     let disc_opts = get_disc_opts();
 
-    let mount_point = config_contents.mount_point.clone();
-    let wii_output_format = config_contents.wii_output_format;
-    let gc_output_format = config_contents.gc_output_format;
-    let scrub_update_partition = config_contents.scrub_update_partition;
-    let remove_sources_games = config_contents.remove_sources_games;
-    let must_split =
-        config_contents.always_split || can_write_over_4gb(&config_contents.mount_point).is_err();
+    let mount_point = app.config.contents.mount_point.clone();
+    let wii_output_format = app.config.contents.wii_output_format;
+    let gc_output_format = app.config.contents.gc_output_format;
+    let scrub_update_partition = app.config.contents.scrub_update_partition;
+    let remove_sources_games = app.config.contents.remove_sources_games;
 
-    task_processor.spawn(move |msg_sender| {
+    let must_split = app.config.contents.always_split
+        || can_write_over_4gb(&app.config.contents.mount_point).is_err();
+
+    app.task_processor.spawn(move |msg_sender| {
         let len = discs.len();
         for (i, disc_info) in discs.into_iter().enumerate() {
             let dir_path = mount_point

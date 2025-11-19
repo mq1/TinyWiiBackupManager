@@ -19,8 +19,8 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
             ui.horizontal(|ui| {
                 if ui.button("📥").clicked() {
-                    wiitdb::spawn_download_task(&app.task_processor, app.config.contents.mount_point.clone());
-                    wiitdb::spawn_load_wiitdb_task(&app.task_processor, app.config.contents.mount_point.clone());
+                    wiitdb::spawn_download_task(app);
+                    wiitdb::spawn_load_wiitdb_task(app);
                 }
 
                 ui.label("Download wiitdb.xml (overwrites existing one)");
@@ -28,7 +28,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
             ui.horizontal(|ui| {
                 if ui.button("📥").clicked() {
-                    covers::spawn_download_all_covers_task(&app.task_processor, app.config.contents.mount_point.clone(), app.games.clone().into_boxed_slice());
+                    covers::spawn_download_all_covers_task(app);
                 }
 
                 ui.label("Download all covers (defaults to English for PAL games, while usbloader_gx downloads them in the correct language)");
@@ -36,7 +36,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
             ui.horizontal(|ui| {
                 if ui.button("📥").clicked() {
-                    banners::spawn_download_banners_task(&app.task_processor, &app.games,  &app.config.contents.mount_point);
+                    banners::spawn_download_banners_task(app);
                 }
 
                 ui.label("Download banners (GameCube only)");
@@ -47,7 +47,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
             ui.horizontal(|ui| {
                 if ui.button("📥").clicked() {
-                    covers::spawn_download_wiiflow_covers_task(&app.task_processor, app.config.contents.mount_point.clone(), app.games.clone().into_boxed_slice());
+                    covers::spawn_download_wiiflow_covers_task(app);
                 }
 
                 ui.label("Download all covers (defaults to English for PAL games)");
@@ -58,7 +58,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
             ui.horizontal(|ui| {
                 if ui.button("📥").clicked() {
-                    txtcodes::spawn_download_cheats_task(&app.task_processor, &app.config.contents.mount_point, app.games.clone().into_boxed_slice());
+                    txtcodes::spawn_download_cheats_task(app);
                 }
 
                 ui.label("Download cheats for all games (txt)");

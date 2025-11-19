@@ -80,9 +80,8 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                                         .clicked()
                                 {
                                     hbc_apps::spawn_install_app_from_url_task(
+                                        app,
                                         osc_app.meta.assets.archive.url.clone(),
-                                        &app.task_processor,
-                                        app.config.contents.mount_point.clone(),
                                     );
                                 }
                             }

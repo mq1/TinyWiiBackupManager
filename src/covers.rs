@@ -1,17 +1,11 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::app::App;
 use crate::messages::Message;
-use crate::{
-    games::{Game, GameID},
-    http,
-    tasks::TaskProcessor,
-};
+use crate::{games::GameID, http};
 use anyhow::{Result, bail};
-use std::{
-    fs,
-    path::{Path, PathBuf},
-};
+use std::{fs, path::Path};
 
 fn download_cover3d(id: &[u8; 6], mount_point: &Path) -> Result<()> {
     let images_dir = mount_point.join("apps").join("usbloader_gx").join("images");
@@ -141,12 +135,11 @@ fn download_wiiflow_cover(id: &[u8; 6], mount_point: &Path) -> Result<()> {
 }
 
 // Fail safe, ignores errors, no popup notification
-pub fn spawn_download_covers_task(
-    task_processor: &TaskProcessor,
-    mount_point: PathBuf,
-    games: Box<[Game]>,
-) {
-    task_processor.spawn(move |msg_sender| {
+pub fn spawn_download_covers_task(app: &App) {
+    let mount_point = app.config.contents.mount_point.clone();
+    let games = app.games.clone().into_boxed_slice();
+
+    app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(Message::UpdateStatus("🖻 Downloading covers...".to_string()))?;
 
         let len = games.len();
@@ -168,12 +161,11 @@ pub fn spawn_download_covers_task(
     });
 }
 
-pub fn spawn_download_all_covers_task(
-    task_processor: &TaskProcessor,
-    mount_point: PathBuf,
-    games: Box<[Game]>,
-) {
-    task_processor.spawn(move |msg_sender| {
+pub fn spawn_download_all_covers_task(app: &App) {
+    let mount_point = app.config.contents.mount_point.clone();
+    let games = app.games.clone().into_boxed_slice();
+
+    app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(Message::UpdateStatus("🖻 Downloading covers...".to_string()))?;
 
         let len = games.len();
@@ -199,12 +191,11 @@ pub fn spawn_download_all_covers_task(
     });
 }
 
-pub fn spawn_download_wiiflow_covers_task(
-    task_processor: &TaskProcessor,
-    mount_point: PathBuf,
-    games: Box<[Game]>,
-) {
-    task_processor.spawn(move |msg_sender| {
+pub fn spawn_download_wiiflow_covers_task(app: &App) {
+    let mount_point = app.config.contents.mount_point.clone();
+    let games = app.games.clone().into_boxed_slice();
+
+    app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(Message::UpdateStatus("🖻 Downloading covers...".to_string()))?;
 
         let len = games.len();
