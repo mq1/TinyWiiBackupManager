@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::messages::{Message, process_msg};
+use crate::ui::accent::AccentColor;
 use crate::{
     archive,
     config::{ArchiveFormat, Config, SortBy},
@@ -237,6 +238,15 @@ impl App {
         if let Err(e) = self.config.write() {
             self.notifications.show_err(e);
         }
+    }
+
+    pub fn set_accent_color(&mut self, ctx: &egui::Context, accent_color: AccentColor) {
+        ctx.all_styles_mut(|style| {
+            style.visuals.selection.bg_fill = accent_color.into();
+        });
+
+        self.config.contents.accent_color = accent_color;
+        self.save_config();
     }
 
     pub fn run_dot_clean(&mut self) {
