@@ -3,6 +3,7 @@
 
 use crate::app::App;
 use crate::config::{GcOutputFormat, WiiOutputFormat};
+use crate::ui::accent::AccentColor;
 use eframe::egui;
 use egui_theme_switch::ThemeSwitch;
 
@@ -169,7 +170,47 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     ctx.set_theme(app.config.contents.theme_preference);
                     app.save_config();
                 }
+
+                ui.add_space(5.);
+                ui.separator();
+                ui.add_space(5.);
+
+                update_accent_btn(ui, ctx, app, AccentColor::Gray);
+                update_accent_btn(ui, ctx, app, AccentColor::Green);
+                update_accent_btn(ui, ctx, app, AccentColor::Yellow);
+                update_accent_btn(ui, ctx, app, AccentColor::Orange);
+                update_accent_btn(ui, ctx, app, AccentColor::Red);
+                update_accent_btn(ui, ctx, app, AccentColor::Pink);
+                update_accent_btn(ui, ctx, app, AccentColor::Purple);
+                update_accent_btn(ui, ctx, app, AccentColor::Blue);
+
+                if cfg!(target_os = "macos") {
+                    update_accent_btn(ui, ctx, app, AccentColor::System);
+                }
+
+                ui.label("Accent Color:");
             });
         });
     });
+}
+
+fn update_accent_btn(
+    ui: &mut egui::Ui,
+    ctx: &egui::Context,
+    app: &mut App,
+    accent_color: AccentColor,
+) {
+    if ui
+        .add(
+            egui::Button::new(
+                egui::RichText::new("🌑").color(egui::Color32::from(accent_color).to_opaque()),
+            )
+            .frame(false),
+        )
+        .on_hover_text(accent_color.as_str())
+        .on_hover_cursor(egui::CursorIcon::PointingHand)
+        .clicked()
+    {
+        app.set_accent_color(ctx, accent_color);
+    }
 }
