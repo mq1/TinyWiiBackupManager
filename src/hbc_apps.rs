@@ -14,8 +14,8 @@ use std::{
     io::BufReader,
     path::{Path, PathBuf},
 };
-use time::macros::format_description;
 use time::PrimitiveDateTime;
+use time::macros::format_description;
 use zip::ZipArchive;
 
 #[derive(Debug, Clone, Deserialize, Default)]
