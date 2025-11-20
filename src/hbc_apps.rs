@@ -216,25 +216,25 @@ pub fn sort(hbc_apps: &mut [HbcApp], prev_sort_by: SortBy, sort_by: SortBy) {
         (SortBy::SizeAscending, SortBy::NameAscending)
         | (SortBy::SizeDescending, SortBy::NameAscending)
         | (SortBy::None, SortBy::NameAscending) => {
-            hbc_apps.sort_by(|a, b| a.meta.name.cmp(&b.meta.name));
+            hbc_apps.sort_unstable_by(|a, b| a.meta.name.cmp(&b.meta.name));
         }
 
         (SortBy::SizeAscending, SortBy::NameDescending)
         | (SortBy::SizeDescending, SortBy::NameDescending)
         | (SortBy::None, SortBy::NameDescending) => {
-            hbc_apps.sort_by(|a, b| b.meta.name.cmp(&a.meta.name));
+            hbc_apps.sort_unstable_by(|a, b| b.meta.name.cmp(&a.meta.name));
         }
 
         (SortBy::NameAscending, SortBy::SizeAscending)
         | (SortBy::NameDescending, SortBy::SizeAscending)
         | (SortBy::None, SortBy::SizeAscending) => {
-            hbc_apps.sort_by(|a, b| a.size.cmp(&b.size));
+            hbc_apps.sort_unstable_by(|a, b| a.size.cmp(&b.size));
         }
 
         (SortBy::NameAscending, SortBy::SizeDescending)
         | (SortBy::NameDescending, SortBy::SizeDescending)
         | (SortBy::None, SortBy::SizeDescending) => {
-            hbc_apps.sort_by(|a, b| b.size.cmp(&a.size));
+            hbc_apps.sort_unstable_by(|a, b| b.size.cmp(&a.size));
         }
     }
 }
