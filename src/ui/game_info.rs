@@ -7,6 +7,7 @@ use crate::{checksum, disc_info::DiscInfo, games::GameID, wiitdb::GameInfo};
 use capitalize::Capitalize;
 use eframe::egui;
 use itertools::Itertools;
+use size::Size;
 
 pub fn update(
     ctx: &egui::Context,
@@ -84,7 +85,7 @@ pub fn update(
                     // Block Size
                     ui.label(format!(
                         "📏 Block Size: {}",
-                        &disc_info.meta.block_size.unwrap_or(0)
+                        Size::from_bytes(disc_info.meta.block_size.unwrap_or(0))
                     ));
 
                     // Decrypted
@@ -116,7 +117,7 @@ pub fn update(
                     // Disc Size
                     ui.label(format!(
                         "⚖ Disc Size: {}",
-                        &disc_info.meta.disc_size.unwrap_or(0)
+                        Size::from_bytes(disc_info.meta.disc_size.unwrap_or(0))
                     ));
 
                     ui.separator();
