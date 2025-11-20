@@ -5,6 +5,7 @@ use crate::app::App;
 use crate::ui::developers::get_developer_emoji;
 use eframe::egui;
 use eframe::egui::OpenUrl;
+use itertools::Itertools;
 
 pub fn update(ctx: &egui::Context, app: &mut App, osc_app_i: u16) {
     egui::Modal::new("osc_app_info".into()).show(ctx, |ui: &mut egui::Ui| {
@@ -21,16 +22,28 @@ pub fn update(ctx: &egui::Context, app: &mut App, osc_app_i: u16) {
         ));
 
         ui.label(format!("👫 Authors: {}", osc_app.meta.authors.join(", ")));
-        ui.label(format!("🧩 Category: {}", &osc_app.meta.category));
+        ui.label(format!("🏷 Category: {}", &osc_app.meta.category));
         ui.label(format!(
-            "👫 Contributors: {}",
+            "👏 Contributors: {}",
             osc_app.meta.contributors.join(", ")
         ));
-        ui.label(format!("🚩 Flags: {}", osc_app.meta.flags.join(", ")));
-        ui.label(format!("📦 Package Type: {}", &osc_app.meta.package_type));
+        ui.label(format!("📥 Downloads: {}", osc_app.meta.downloads));
+        ui.label(format!(
+            "🚩 Flags: {}",
+            osc_app.meta.flags.iter().map(|f| f.as_str()).join(", ")
+        ));
+        ui.label(format!(
+            "📦 Package Type: {}",
+            osc_app.meta.package_type.as_str()
+        ));
         ui.label(format!(
             "🔌 Peripherals: {}",
-            &osc_app.meta.peripherals.join(", ")
+            &osc_app
+                .meta
+                .peripherals
+                .iter()
+                .map(|p| p.as_str())
+                .join(", ")
         ));
         ui.label(format!(
             "📆 Release Date: {}",
@@ -42,7 +55,12 @@ pub fn update(ctx: &egui::Context, app: &mut App, osc_app_i: u16) {
         ));
         ui.label(format!(
             "💻 Supported Platforms: {}",
-            osc_app.meta.supported_platforms.join(", ")
+            osc_app
+                .meta
+                .supported_platforms
+                .iter()
+                .map(|p| p.as_str())
+                .join(", ")
         ));
         ui.label(format!(
             "⚖ Uncompressed size: {}",
