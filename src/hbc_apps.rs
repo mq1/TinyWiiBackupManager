@@ -3,6 +3,7 @@
 
 use crate::app::App;
 use crate::messages::Message;
+use crate::osc::OscApp;
 use crate::{config::SortBy, http};
 use anyhow::{Result, bail};
 use path_slash::PathBufExt;
@@ -12,7 +13,6 @@ use std::{
     fs::{self, File},
     io::BufReader,
     path::{Path, PathBuf},
-    vec,
 };
 use zip::ZipArchive;
 
@@ -61,7 +61,7 @@ pub struct HbcApp {
 }
 
 impl HbcApp {
-    pub fn from_path(path: PathBuf) -> Result<Self> {
+    pub fn from_path(path: PathBuf, osc_apps: &[OscApp]) -> Result<Self> {
         if !path.is_dir() {
             bail!("{} is not a directory", path.display());
         }
@@ -98,13 +98,18 @@ impl HbcApp {
 
         let search_str = (meta.name.clone() + &slug).to_lowercase();
 
+        let osc_app_i = osc_apps
+            .iter()
+            .position(|osc_app| osc_app.meta.name == meta.name)
+            .map(|i| i as u16);
+
         Ok(Self {
             meta,
             path,
             size,
             search_str,
             image_uri,
-            osc_app_i: None,
+            osc_app_i,
         })
     }
 
@@ -113,20 +118,24 @@ impl HbcApp {
     }
 }
 
-pub fn list(mount_point: &Path) -> Vec<HbcApp> {
+pub fn list(mount_point: &Path, osc_apps: &[OscApp]) -> Vec<HbcApp> {
+    let mut hbc_apps = Vec::new();
+
     if mount_point.as_os_str().is_empty() {
-        return vec![];
+        return hbc_apps;
     }
 
     let apps_dir = mount_point.join("apps");
 
     if let Ok(entries) = fs::read_dir(&apps_dir) {
-        entries
-            .filter_map(|entry| HbcApp::from_path(entry.ok()?.path()).ok())
-            .collect()
-    } else {
-        vec![]
+        for entry in entries.filter_map(Result::ok) {
+            if let Ok(hbc_app) = HbcApp::from_path(entry.path(), osc_apps) {
+                hbc_apps.push(hbc_app);
+            }
+        }
     }
+
+    hbc_apps
 }
 
 fn install_zip(mount_point: &Path, path: &Path) -> Result<()> {
