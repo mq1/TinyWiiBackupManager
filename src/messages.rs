@@ -65,14 +65,13 @@ pub fn process_msg(app: &mut App, ctx: &egui::Context, msg: Message) {
             app.update_info = Some(info);
         }
         Message::GotTitles(titles) => {
-            app.titles = Some(titles);
+            app.titles = titles;
             app.refresh_games();
             app.update_title(ctx);
         }
         Message::GotOscApps(osc_apps) => {
             app.osc_apps = osc_apps;
             app.update_filtered_osc_apps();
-            app.check_for_hbc_app_updates();
         }
         Message::GotWiitdb(data) => {
             app.wiitdb = Some(data);
