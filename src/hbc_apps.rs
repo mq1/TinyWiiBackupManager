@@ -7,24 +7,45 @@ use crate::osc::OscApp;
 use crate::{config::SortBy, http};
 use anyhow::{Result, bail};
 use path_slash::PathBufExt;
-use serde::Deserialize;
+use serde::{Deserialize, Deserializer};
 use size::Size;
 use std::{
     fs::{self, File},
     io::BufReader,
     path::{Path, PathBuf},
 };
+use time::macros::format_description;
+use time::PrimitiveDateTime;
 use zip::ZipArchive;
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Default)]
 #[serde(default)]
 pub struct HbcAppMeta {
     pub name: String,
     pub coder: String,
     pub version: String,
-    pub release_date: String,
+
     pub short_description: String,
     pub long_description: String,
+
+    #[serde(deserialize_with = "deser_date")]
+    pub release_date: String,
+}
+
+fn deser_date<'de, D>(deserializer: D) -> Result<String, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    const FORMAT_DESCRIPTION: &[time::format_description::FormatItem<'_>] =
+        format_description!("[year][month][day][hour][minute][second]");
+
+    let s = String::deserialize(deserializer)?;
+
+    let date = PrimitiveDateTime::parse(&s, &FORMAT_DESCRIPTION)
+        .map(|dt| dt.date().to_string())
+        .unwrap_or(s);
+
+    Ok(date)
 }
 
 impl HbcAppMeta {
@@ -33,19 +54,6 @@ impl HbcAppMeta {
             format!("📌 {}...", &self.version[..10])
         } else {
             format!("📌 {}", &self.version)
-        }
-    }
-}
-
-impl Default for HbcAppMeta {
-    fn default() -> Self {
-        Self {
-            name: "Unknown Name".to_string(),
-            coder: "Unknown Coder".to_string(),
-            version: "Unknown Version".to_string(),
-            release_date: "Unknown Release Date".to_string(),
-            short_description: "Unknown Short Description".to_string(),
-            long_description: "Unknown Long Description".to_string(),
         }
     }
 }
