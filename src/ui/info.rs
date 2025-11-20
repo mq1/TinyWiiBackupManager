@@ -4,6 +4,7 @@
 use crate::app::App;
 use crate::ui;
 use eframe::egui;
+use eframe::egui::OpenUrl;
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
     egui::Modal::new("info".into()).show(ctx, |ui: &mut egui::Ui| {
@@ -30,11 +31,16 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
         ui.separator();
         ui.add_space(10.);
 
-        ui.heading("💡 Projects that power TinyWiiBackupManager:");
-        ui.hyperlink("https://github.com/emilk/egui");
-        ui.hyperlink("https://github.com/encounter/nod");
-        ui.hyperlink("https://www.gametdb.com/");
-        ui.hyperlink_to("And many others", "https://github.com/mq1/TinyWiiBackupManager/blob/main/Cargo.toml");
+        ui.heading("ℹ Need help modding your Wii?");
+        ui.hyperlink_to("🌐 Wii Hacks Guide", "https://wii.hacks.guide/");
+
+        ui.add_space(10.);
+
+        ui.heading("💡 Projects powering TinyWiiBackupManager:");
+        ui.hyperlink_to("🌐 https://github.com/emilk/egui", "https://github.com/emilk/egui");
+        ui.hyperlink_to("🌐 https://github.com/encounter/nod", "https://github.com/encounter/nod");
+        ui.hyperlink_to("🌐 https://www.gametdb.com/", "https://www.gametdb.com/");
+        ui.hyperlink_to("💡 And many more", "https://github.com/mq1/TinyWiiBackupManager/blob/main/Cargo.toml");
 
         ui.add_space(10.);
 
@@ -62,11 +68,11 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
             }
 
             if ui.button("🌐 Wiki").clicked() {
-                app.open_wiki(ctx);
+                ctx.open_url(OpenUrl::new_tab(env!("CARGO_PKG_HOMEPAGE")));
             }
 
             if ui.button(" Source Code").clicked() {
-                app.open_repo(ctx);
+                ctx.open_url(OpenUrl::new_tab(env!("CARGO_PKG_REPOSITORY")));
             }
         })
     });

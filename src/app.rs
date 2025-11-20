@@ -185,16 +185,6 @@ impl App {
         }
     }
 
-    pub fn open_wiki(&mut self, ctx: &egui::Context) {
-        let url = env!("CARGO_PKG_HOMEPAGE");
-        ctx.open_url(OpenUrl::new_tab(url));
-    }
-
-    pub fn open_repo(&mut self, ctx: &egui::Context) {
-        let url = env!("CARGO_PKG_REPOSITORY");
-        ctx.open_url(OpenUrl::new_tab(url));
-    }
-
     pub fn open_game_dir(&mut self, game_i: u16) {
         let game = &self.games[game_i as usize];
         if let Err(e) = open::that(&game.path) {
