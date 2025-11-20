@@ -97,28 +97,61 @@ pub struct OscApp {
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct OscAppMeta {
+    #[serde(default)]
     pub slug: String,
+
+    #[serde(default)]
     pub name: String,
+
+    #[serde(default)]
     pub author: String,
+
+    #[serde(default)]
     pub authors: Box<[String]>,
+
+    #[serde(default)]
     pub category: String,
+
+    #[serde(default)]
     pub contributors: Box<[String]>,
+
+    #[serde(default)]
     pub description: Description,
+
+    #[serde(default)]
+    pub downloads: usize,
+
+    #[serde(default)]
     pub assets: Assets,
-    pub flags: Box<[String]>,
-    pub package_type: String,
-    pub peripherals: Box<[String]>,
-    //pub shop: ShopInformation,
+
+    #[serde(default)]
+    pub flags: Box<[Flag]>,
+
+    #[serde(default)]
+    pub package_type: PackageType,
+
+    #[serde(default)]
+    pub peripherals: Box<[Peripheral]>,
+
+    #[serde(default)]
     pub subdirectories: Box<[String]>,
-    pub supported_platforms: Box<[String]>,
+
+    #[serde(default)]
+    pub supported_platforms: Box<[Platform]>,
+
+    #[serde(default)]
     pub uncompressed_size: Size,
+
+    #[serde(default)]
     pub version: String,
 
     #[serde(deserialize_with = "time::serde::timestamp::deserialize")]
+    #[serde(default = "unix_epoch")]
     pub release_date: OffsetDateTime,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Default)]
+#[serde(default)]
 pub struct Description {
     pub short: String,
     pub long: String,
@@ -134,7 +167,8 @@ impl OscAppMeta {
     }
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Default)]
+#[serde(default)]
 pub struct Assets {
     pub archive: Asset,
     pub binary: Asset,
@@ -142,9 +176,106 @@ pub struct Assets {
     pub meta: Asset,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Default)]
+#[serde(default)]
 pub struct Asset {
     pub url: String,
     pub size: Option<Size>,
     pub hash: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum PackageType {
+    Dol,
+    Elf,
+
+    #[default]
+    Unknown,
+}
+
+impl PackageType {
+    pub fn as_str(&self) -> &str {
+        match self {
+            PackageType::Dol => "DOL",
+            PackageType::Elf => "ELF",
+            PackageType::Unknown => "Unknown",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum Peripheral {
+    WiiRemote,
+    GamecubeController,
+    Nunchuk,
+    ClassicController,
+    Sdhc,
+    UsbKeyboard,
+    WiiZapper,
+
+    #[default]
+    Unknown,
+}
+
+impl Peripheral {
+    pub fn as_str(&self) -> &str {
+        match self {
+            Peripheral::WiiRemote => "Wii Remote",
+            Peripheral::GamecubeController => "GameCube Controller",
+            Peripheral::Nunchuk => "Nunchuk",
+            Peripheral::ClassicController => "Classic Controller",
+            Peripheral::Sdhc => "SDHC Support",
+            Peripheral::UsbKeyboard => "USB Keyboard",
+            Peripheral::WiiZapper => "Wii Zapper",
+            Peripheral::Unknown => "Unknown",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum Platform {
+    Wii,
+    WiiMini,
+    Vwii,
+
+    #[default]
+    Unknown,
+}
+
+impl Platform {
+    pub fn as_str(&self) -> &str {
+        match self {
+            Platform::Wii => "Wii",
+            Platform::WiiMini => "Wii Mini",
+            Platform::Vwii => "vWii",
+            Platform::Unknown => "Unknown",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum Flag {
+    WritesToNand,
+    Deprecated,
+
+    #[default]
+    Unknown,
+}
+
+impl Flag {
+    pub fn as_str(&self) -> &str {
+        match self {
+            Flag::WritesToNand => "Writes to NAND",
+            Flag::Deprecated => "Deprecated",
+            Flag::Unknown => "Unknown",
+        }
+    }
+}
+
+fn unix_epoch() -> OffsetDateTime {
+    OffsetDateTime::UNIX_EPOCH
 }
