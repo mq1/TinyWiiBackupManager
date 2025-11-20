@@ -160,9 +160,11 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
         });
 
         ui.with_layout(egui::Layout::bottom_up(egui::Align::RIGHT), |ui| {
-            ui.add_space(5.);
+            ui.set_height(32.);
 
-            ui.horizontal(|ui| {
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                ui.add_space(5.);
+
                 if ui
                     .add(ThemeSwitch::new(&mut app.config.contents.theme_preference))
                     .changed()
@@ -171,24 +173,29 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     app.save_config();
                 }
 
-                ui.add_space(5.);
-                ui.separator();
-                ui.add_space(5.);
+                ui.add_space(4.);
 
-                update_accent_btn(ui, ctx, app, AccentColor::Gray);
-                update_accent_btn(ui, ctx, app, AccentColor::Green);
-                update_accent_btn(ui, ctx, app, AccentColor::Yellow);
-                update_accent_btn(ui, ctx, app, AccentColor::Orange);
-                update_accent_btn(ui, ctx, app, AccentColor::Red);
-                update_accent_btn(ui, ctx, app, AccentColor::Pink);
-                update_accent_btn(ui, ctx, app, AccentColor::Purple);
-                update_accent_btn(ui, ctx, app, AccentColor::Blue);
+                let group =
+                    egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
 
-                if cfg!(target_os = "macos") {
-                    update_accent_btn(ui, ctx, app, AccentColor::System);
-                }
+                group.show(ui, |ui| {
+                    ui.add_space(4.);
 
-                ui.label("Accent Color:");
+                    update_accent_btn(ui, ctx, app, AccentColor::Gray);
+                    update_accent_btn(ui, ctx, app, AccentColor::Green);
+                    update_accent_btn(ui, ctx, app, AccentColor::Yellow);
+                    update_accent_btn(ui, ctx, app, AccentColor::Orange);
+                    update_accent_btn(ui, ctx, app, AccentColor::Red);
+                    update_accent_btn(ui, ctx, app, AccentColor::Pink);
+                    update_accent_btn(ui, ctx, app, AccentColor::Purple);
+                    update_accent_btn(ui, ctx, app, AccentColor::Blue);
+
+                    if cfg!(target_os = "macos") {
+                        update_accent_btn(ui, ctx, app, AccentColor::System);
+                    }
+
+                    ui.label("🎨");
+                });
             });
         });
     });
