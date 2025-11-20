@@ -60,7 +60,7 @@ impl Datafile {
         let mut data = quick_xml::de::from_reader::<_, Datafile>(reader)?;
 
         // We sort it now so we can binary search quickly
-        data.games.sort_by_key(|game| game.id);
+        data.games.sort_unstable_by_key(|game| game.id);
 
         Ok(data)
     }
