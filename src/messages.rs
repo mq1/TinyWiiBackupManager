@@ -5,7 +5,6 @@ use crate::app::App;
 use crate::osc::OscApp;
 use crate::titles::Titles;
 use crate::ui::Modal;
-use crate::updater::UpdateInfo;
 use crate::wiitdb;
 use eframe::egui;
 use semver::Version;
@@ -59,9 +58,9 @@ pub fn process_msg(app: &mut App, ctx: &egui::Context, msg: Message) {
             app.update_title(ctx);
         }
         Message::GotNewVersion(version) => {
-            let info = UpdateInfo::from_version(version);
-            app.notifications.show_info_no_duration(&info.ui_text);
-            app.update_info = Some(info);
+            let info = format!("A new version is available: {}", &version);
+            app.notifications.show_info_no_duration(&info);
+            app.update = Some(version);
         }
         Message::GotTitles(titles) => {
             app.titles = titles;
