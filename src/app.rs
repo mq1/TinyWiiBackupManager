@@ -199,13 +199,6 @@ impl App {
         }
     }
 
-    pub fn open_update_info_url(&mut self, ctx: &egui::Context) {
-        if self.update.is_some() {
-            const UPDATE_URL: &str = concat!(env!("CARGO_PKG_REPOSITORY"), "{}/releases/latest");
-            ctx.open_url(OpenUrl::new_tab(UPDATE_URL));
-        }
-    }
-
     pub fn save_config(&mut self) {
         if let Err(e) = self.config.write() {
             self.notifications.show_err(e);
