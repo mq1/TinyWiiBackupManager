@@ -194,25 +194,25 @@ pub fn sort(games: &mut [Game], prev_sort_by: SortBy, sort_by: SortBy) {
         (SortBy::SizeAscending, SortBy::NameAscending)
         | (SortBy::SizeDescending, SortBy::NameAscending)
         | (SortBy::None, SortBy::NameAscending) => {
-            games.sort_by(|a, b| a.display_title.cmp(&b.display_title));
+            games.sort_unstable_by(|a, b| a.display_title.cmp(&b.display_title));
         }
 
         (SortBy::SizeAscending, SortBy::NameDescending)
         | (SortBy::SizeDescending, SortBy::NameDescending)
         | (SortBy::None, SortBy::NameDescending) => {
-            games.sort_by(|a, b| b.display_title.cmp(&a.display_title));
+            games.sort_unstable_by(|a, b| b.display_title.cmp(&a.display_title));
         }
 
         (SortBy::NameAscending, SortBy::SizeAscending)
         | (SortBy::NameDescending, SortBy::SizeAscending)
         | (SortBy::None, SortBy::SizeAscending) => {
-            games.sort_by(|a, b| a.size.cmp(&b.size));
+            games.sort_unstable_by(|a, b| a.size.cmp(&b.size));
         }
 
         (SortBy::NameAscending, SortBy::SizeDescending)
         | (SortBy::NameDescending, SortBy::SizeDescending)
         | (SortBy::None, SortBy::SizeDescending) => {
-            games.sort_by(|a, b| b.size.cmp(&a.size));
+            games.sort_unstable_by(|a, b| b.size.cmp(&a.size));
         }
     }
 }
