@@ -128,13 +128,13 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     app.choose_mount_point.pick_directory();
                 }
 
-                if let Some(update_info) = &app.update_info
+                if let Some(version) = &app.update
                     && ui
                         .add_sized(
                             Vec2::splat(40.),
                             egui::Button::new(egui::RichText::new("❕").size(26.)),
                         )
-                        .on_hover_text(&update_info.ui_text)
+                        .on_hover_text(format!("A new version is available: {}", &version))
                         .clicked()
                 {
                     app.open_update_info_url(ctx);
