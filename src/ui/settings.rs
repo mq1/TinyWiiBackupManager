@@ -200,13 +200,13 @@ fn update_accent_btn(
     app: &mut App,
     accent_color: AccentColor,
 ) {
+    let mut text = egui::RichText::new("🌑").color(egui::Color32::from(accent_color).to_opaque());
+    if accent_color == app.config.contents.accent_color {
+        text = text.underline();
+    }
+
     if ui
-        .add(
-            egui::Button::new(
-                egui::RichText::new("🌑").color(egui::Color32::from(accent_color).to_opaque()),
-            )
-            .frame(false),
-        )
+        .add(egui::Button::new(text).frame(false))
         .on_hover_text(accent_color.as_str())
         .on_hover_cursor(egui::CursorIcon::PointingHand)
         .clicked()
