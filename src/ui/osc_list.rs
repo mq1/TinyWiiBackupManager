@@ -3,7 +3,7 @@
 
 use crate::app::App;
 use crate::messages::Message;
-use crate::{hbc_apps, wiiload};
+use crate::{hbc_apps, ui, wiiload};
 use eframe::egui;
 use egui_extras::{Column, TableBuilder};
 
@@ -58,7 +58,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                         ui.horizontal(|ui| {
                             // Info button
                             if ui.button("ℹ Info").on_hover_text("Show App Info").clicked() {
-                                app.send_msg(Message::OpenOscAppInfo(osc_app_i));
+                                app.send_msg(Message::OpenModal(ui::Modal::OscAppInfo(osc_app_i)));
                             }
 
                             // Wiiload button
