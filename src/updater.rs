@@ -13,18 +13,10 @@ const VERSION_URL: &str = concat!(
 );
 
 pub fn check() -> Result<Option<Version>> {
-    let body = http::get(VERSION_URL).context("Failed to fetch version")?;
+    let body = http::get_string(VERSION_URL).context("Failed to fetch version")?;
 
-    let latest_version_str =
-        String::from_utf8(body).context("Failed to decode response body as UTF-8")?;
-
-    let latest_version = Version::parse(latest_version_str.trim()).context(format!(
-        "Failed to parse latest version from server: '{}'",
-        latest_version_str
-    ))?;
-
-    let current_version =
-        Version::parse(env!("CARGO_PKG_VERSION")).context("Failed to parse current version")?;
+    let latest_version = Version::parse(&body)?;
+    let current_version = Version::parse(env!("CARGO_PKG_VERSION"))?;
 
     if latest_version > current_version {
         return Ok(Some(latest_version));

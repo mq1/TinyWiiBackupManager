@@ -5,14 +5,14 @@ on:
     branches:
       - main
     tags:
-      - '*'
+      - 'v*.*.*'
   pull_request:
 
 permissions:
   contents: write
 
 env:
-  VERSION_NAME: ${{ github.event_name == 'pull_request' && format('PR-{0}', github.event.pull_request.number) || github.ref_name }}
+  VERSION_NAME: ${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
 
 jobs:
   # ==================================================================================
@@ -272,17 +272,17 @@ jobs:
           merge-multiple: true # This places all matching artifacts into a single 'dist' directory
 
       - name: Create version.txt
-        run: echo -n "${{ env.VERSION_NAME }}" > version.txt
+        run: echo -n "${VERSION_NAME#v}" > version.txt
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: v${{ env.VERSION_NAME }}
+          name: ${{ env.VERSION_NAME }}
           files: |
             dist/*
             version.txt
           generate_release_notes: true
-          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
+          prerelease: ${{ contains(env.VERSION_NAME, 'alpha') || contains(env.VERSION_NAME, 'beta') || contains(env.VERSION_NAME, 'rc') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -295,7 +295,7 @@ jobs:
           name: v${{ env.VERSION_NAME }}
           append_body: true
           body_path: downloads.md
-          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
+          prerelease: ${{ contains(env.VERSION_NAME, 'alpha') || contains(env.VERSION_NAME, 'beta') || contains(env.VERSION_NAME, 'rc') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
