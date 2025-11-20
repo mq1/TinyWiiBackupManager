@@ -13,7 +13,6 @@ dependencies = [
  "eframe",
  "egui-file-dialog",
  "egui-notify",
- "egui-theme-switch",
  "egui_extras",
  "env_logger",
  "fs_extra",
@@ -1162,15 +1161,6 @@ name = "egui-notify"
 version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e8d811c81c13fbce131116eeb6b228086f2c7eb6e4105e03ceb3a358c53c1668"
-dependencies = [
- "egui",
-]
-
-[[package]]
-name = "egui-theme-switch"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "183847e1b40cdf690a596578d432874d654a8abd43686a53242a13ea1d6ed56a"
 dependencies = [
  "egui",
 ]

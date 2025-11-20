@@ -5,7 +5,7 @@ use crate::app::App;
 use crate::config::{GcOutputFormat, WiiOutputFormat};
 use crate::ui::accent::AccentColor;
 use eframe::egui;
-use egui_theme_switch::ThemeSwitch;
+use eframe::egui::ThemePreference;
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
     egui::CentralPanel::default().show(ctx, |ui| {
@@ -160,27 +160,21 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
         });
 
         ui.with_layout(egui::Layout::bottom_up(egui::Align::RIGHT), |ui| {
-            ui.set_height(32.);
+            ui.set_height(35.);
 
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                ui.add_space(5.);
-
-                if ui
-                    .add(ThemeSwitch::new(&mut app.config.contents.theme_preference))
-                    .changed()
-                {
-                    ctx.set_theme(app.config.contents.theme_preference);
-                    app.save_config();
-                }
-
-                ui.add_space(4.);
+                ui.add_space(1.);
 
                 let group =
                     egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
 
                 group.show(ui, |ui| {
-                    ui.add_space(4.);
+                    update_theme_btn(ui, ctx, app, ThemePreference::Dark, "Dark Theme", "🌙");
+                    update_theme_btn(ui, ctx, app, ThemePreference::Light, "Light Theme", "☀");
+                    update_theme_btn(ui, ctx, app, ThemePreference::System, "System Theme", "🌓");
+                });
 
+                group.show(ui, |ui| {
                     update_accent_btn(ui, ctx, app, AccentColor::Gray);
                     update_accent_btn(ui, ctx, app, AccentColor::Green);
                     update_accent_btn(ui, ctx, app, AccentColor::Yellow);
@@ -201,13 +195,37 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
     });
 }
 
+fn update_theme_btn(
+    ui: &mut egui::Ui,
+    ctx: &egui::Context,
+    app: &mut App,
+    theme_preference: ThemePreference,
+    text: &str,
+    emoji: &str,
+) {
+    if ui
+        .selectable_label(
+            app.config.contents.theme_preference == theme_preference,
+            emoji,
+        )
+        .on_hover_text(text)
+        .clicked()
+    {
+        app.config.contents.theme_preference = theme_preference;
+        ctx.set_theme(theme_preference);
+        app.save_config();
+    }
+}
+
 fn update_accent_btn(
     ui: &mut egui::Ui,
     ctx: &egui::Context,
     app: &mut App,
     accent_color: AccentColor,
 ) {
-    let mut text = egui::RichText::new("🌑").color(egui::Color32::from(accent_color).to_opaque());
+    let color = egui::Color32::from(accent_color);
+
+    let mut text = egui::RichText::new("🌑").color(color.to_opaque());
     if accent_color == app.config.contents.accent_color {
         text = text.underline();
     }
@@ -218,6 +236,11 @@ fn update_accent_btn(
         .on_hover_cursor(egui::CursorIcon::PointingHand)
         .clicked()
     {
-        app.set_accent_color(ctx, accent_color);
+        ctx.all_styles_mut(|style| {
+            style.visuals.selection.bg_fill = color;
+        });
+
+        app.config.contents.accent_color = accent_color;
+        app.save_config();
     }
 }
