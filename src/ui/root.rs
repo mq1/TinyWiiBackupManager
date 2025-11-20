@@ -27,6 +27,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 ui::game_info::update(ctx, app, *game_i, disc_info, game_info)
             }
             ui::Modal::HbcAppInfo(hbc_app_i) => ui::hbc_app_info::update(ctx, app, *hbc_app_i),
+            ui::Modal::OscAppInfo(osc_app_i) => ui::osc_app_info::update(ctx, app, *osc_app_i),
             ui::Modal::ConvertGames(discs) => ui::confirm_conversion::update(ctx, app, discs),
             ui::Modal::Info => ui::info::update(ctx, app),
         }

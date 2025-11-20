@@ -23,9 +23,12 @@ pub fn update(ctx: &egui::Context, app: &mut App, hbc_app_i: u16) {
             get_developer_emoji(&hbc_app.meta.coder),
             &hbc_app.meta.coder
         ));
-        ui.label("📌 Version: ".to_string() + &hbc_app.meta.version);
-        ui.label("📆 Release Date: ".to_string() + &hbc_app.meta.release_date);
-        ui.label("📄 Short Description: ".to_string() + &hbc_app.meta.short_description);
+        ui.label(format!("📌 Version: {}", &hbc_app.meta.version));
+        ui.label(format!("📆 Release Date: {}", &hbc_app.meta.release_date));
+        ui.label(format!(
+            "📄 Short Description: {}",
+            &hbc_app.meta.short_description
+        ));
 
         ui.separator();
 
