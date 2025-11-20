@@ -277,7 +277,6 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: ${{ env.VERSION_NAME }}
           files: |
             dist/*
             version.txt
@@ -292,7 +291,6 @@ jobs:
       - name: Append downloads table to release
         uses: softprops/action-gh-release@v2
         with:
-          name: v${{ env.VERSION_NAME }}
           append_body: true
           body_path: downloads.md
           prerelease: ${{ contains(env.VERSION_NAME, 'alpha') || contains(env.VERSION_NAME, 'beta') || contains(env.VERSION_NAME, 'rc') }}
