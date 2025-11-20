@@ -11,7 +11,7 @@ use size::Size;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-pub fn list(mount_point: &Path, titles: &Option<Titles>) -> Vec<Game> {
+pub fn list(mount_point: &Path, titles: &Titles) -> Vec<Game> {
     if mount_point.as_os_str().is_empty() {
         return vec![];
     }
@@ -32,7 +32,7 @@ pub fn list(mount_point: &Path, titles: &Option<Titles>) -> Vec<Game> {
 impl Game {
     pub fn from_dir(
         dir: PathBuf,
-        titles: &Option<Titles>,
+        titles: &Titles,
         mount_point: &Path,
         is_wii: bool,
     ) -> Result<Self> {
@@ -67,11 +67,7 @@ impl Game {
             .map(<[u8; 6]>::from_id_str)
             .ok_or(anyhow!("Invalid directory name"))?;
 
-        let display_title = titles
-            .as_ref()
-            .and_then(|titles| titles.get(id))
-            .unwrap_or(title)
-            .to_string();
+        let display_title = titles.get(id).unwrap_or(title).to_string();
 
         // Get the directory size
         let size = Size::from_bytes(fs_extra::dir::get_size(&dir).unwrap_or(0));
