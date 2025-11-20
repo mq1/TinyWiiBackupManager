@@ -34,7 +34,7 @@ pub struct App {
     pub msg_receiver: Receiver<Message>,
     pub data_dir: PathBuf,
     pub task_processor: TaskProcessor,
-    pub titles: Option<Titles>,
+    pub titles: Titles,
     pub has_osc_icons_downlading_started: bool,
     pub wiitdb: Option<wiitdb::Datafile>,
     pub games: Vec<Game>,
@@ -112,7 +112,7 @@ impl App {
             filtered_gc_games: SmallVec::new(),
             filtered_wii_games_size: Size::from_bytes(0),
             filtered_gc_games_size: Size::from_bytes(0),
-            titles: None,
+            titles: Titles::empty(),
             task_processor,
             has_osc_icons_downlading_started: false,
             hbc_apps: Vec::new(),
@@ -154,18 +154,6 @@ impl App {
 
     pub fn close_modal(&mut self) {
         self.current_modal = None;
-    }
-
-    pub fn check_for_hbc_app_updates(&mut self) {
-        for hbc_app in self.hbc_apps.iter_mut() {
-            if let Some(osc_app_i) = self
-                .osc_apps
-                .iter()
-                .position(|osc_app| hbc_app.meta.name == osc_app.meta.name)
-            {
-                hbc_app.osc_app_i = Some(osc_app_i as u16);
-            }
-        }
     }
 
     pub fn download_osc_icons(&mut self) {
@@ -354,7 +342,6 @@ impl App {
 
         if self.osc_apps_filter.is_empty() {
             self.filtered_osc_apps.extend(0..self.osc_apps.len() as u16);
-
             return;
         }
 
@@ -384,7 +371,7 @@ impl App {
     }
 
     pub fn refresh_hbc_apps(&mut self) {
-        self.hbc_apps = hbc_apps::list(&self.config.contents.mount_point);
+        self.hbc_apps = hbc_apps::list(&self.config.contents.mount_point, &self.osc_apps);
 
         hbc_apps::sort(
             &mut self.hbc_apps,

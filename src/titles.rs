@@ -13,6 +13,10 @@ const DOWNLOAD_URL: &str = "https://www.gametdb.com/wiitdb.txt";
 pub struct Titles(Box<[([u8; 6], String)]>);
 
 impl Titles {
+    pub fn empty() -> Self {
+        Self(Box::new([]))
+    }
+
     pub fn load(data_dir: &Path) -> Result<Self> {
         let path = data_dir.join("titles.txt");
 
