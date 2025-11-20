@@ -4,7 +4,7 @@
 use crate::app::App;
 use crate::messages::Message;
 use crate::ui::{self, View};
-use eframe::egui::{self, Vec2};
+use eframe::egui::{self, OpenUrl, Vec2};
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
     let current_view = app.current_view;
@@ -137,8 +137,13 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                         .on_hover_text(format!("A new version is available: {}", &version))
                         .clicked()
                 {
-                    app.open_update_info_url(ctx);
+                    open_update_info_url(ctx);
                 }
             });
         });
+}
+
+pub fn open_update_info_url(ctx: &egui::Context) {
+    const UPDATE_URL: &str = concat!(env!("CARGO_PKG_REPOSITORY"), "{}/releases/latest");
+    ctx.open_url(OpenUrl::new_tab(UPDATE_URL));
 }
