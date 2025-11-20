@@ -199,12 +199,6 @@ impl App {
         }
     }
 
-    pub fn open_osc_app_info(&mut self, ctx: &egui::Context, osc_app_i: u16) {
-        let osc_app = &self.osc_apps[osc_app_i as usize];
-        let url = &osc_app.info_url;
-        ctx.open_url(OpenUrl::new_tab(url));
-    }
-
     pub fn open_update_info_url(&mut self, ctx: &egui::Context) {
         if let Some(update_info) = &self.update_info {
             let url = &update_info.url;

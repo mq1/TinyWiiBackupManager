@@ -27,7 +27,6 @@ pub enum Message {
     CloseModal,
     ArchiveGame(u16),
     WriteConfig,
-    OpenOscAppInfo(u16),
     OpenGameDir(u16),
 }
 
@@ -88,9 +87,6 @@ pub fn process_msg(app: &mut App, ctx: &egui::Context, msg: Message) {
         }
         Message::WriteConfig => {
             app.save_config();
-        }
-        Message::OpenOscAppInfo(i) => {
-            app.open_osc_app_info(ctx, i);
         }
         Message::OpenGameDir(i) => {
             app.open_game_dir(i);
