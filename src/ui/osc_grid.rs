@@ -3,7 +3,7 @@
 
 use crate::app::App;
 use crate::messages::Message;
-use crate::{hbc_apps, wiiload};
+use crate::{hbc_apps, ui, wiiload};
 use eframe::egui;
 
 const CARD_WIDTH: f32 = 161.5;
@@ -46,7 +46,7 @@ fn update_osc_app_card(ui: &mut egui::Ui, app: &App, osc_app_i: u16) {
         ui.vertical_centered(|ui| {
             // Top row with version on the left and size label on the right
             ui.horizontal(|ui| {
-                ui.label(osc_app.meta.version_display());
+                ui.label(format!("📌 {}", osc_app.meta.trimmed_version()));
 
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     ui.label(osc_app.meta.uncompressed_size.to_string());
@@ -96,7 +96,7 @@ fn update_osc_app_card(ui: &mut egui::Ui, app: &App, osc_app_i: u16) {
                     .on_hover_text("Show App Information")
                     .clicked()
                 {
-                    app.send_msg(Message::OpenOscAppInfo(osc_app_i));
+                    app.send_msg(Message::OpenModal(ui::Modal::OscAppInfo(osc_app_i)));
                 }
             });
         });
