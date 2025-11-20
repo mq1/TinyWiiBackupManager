@@ -6,9 +6,10 @@ use crate::http;
 use crate::messages::Message;
 use anyhow::{Result, bail};
 use path_slash::PathExt;
-use serde::{Deserialize, Deserializer};
+use serde::Deserialize;
 use size::Size;
 use std::{fs, path::Path, time::Duration};
+use time::OffsetDateTime;
 
 const CONTENTS_URL: &str = "https://hbb1.oscwii.org/api/v4/contents";
 
@@ -77,13 +78,11 @@ impl OscApp {
     fn from_meta(meta: OscAppMeta, icons_dir: &Path) -> Option<Self> {
         let icon_path = icons_dir.join(&meta.slug).with_extension("png");
         let icon_uri = format!("file://{}", icon_path.to_slash()?);
-        let info_url = format!("https://oscwii.org/library/app/{}", meta.slug);
         let search_str = (meta.name.clone() + &meta.slug).to_lowercase();
 
         Some(Self {
             meta,
             icon_uri,
-            info_url,
             search_str,
         })
     }
@@ -93,52 +92,59 @@ impl OscApp {
 pub struct OscApp {
     pub meta: OscAppMeta,
     pub icon_uri: String,
-    pub info_url: String,
     pub search_str: String,
 }
 
-#[derive(Debug, Clone, Deserialize, Default)]
-#[serde(default)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct OscAppMeta {
-    slug: String,
-
-    pub assets: Assets,
+    pub slug: String,
     pub name: String,
     pub author: String,
-    pub release_date: usize,
+    pub authors: Box<[String]>,
+    pub category: String,
+    pub contributors: Box<[String]>,
+    pub description: Description,
+    pub assets: Assets,
+    pub flags: Box<[String]>,
+    pub package_type: String,
+    pub peripherals: Box<[String]>,
+    //pub shop: ShopInformation,
+    pub subdirectories: Box<[String]>,
+    pub supported_platforms: Box<[String]>,
+    pub uncompressed_size: Size,
     pub version: String,
 
-    #[serde(deserialize_with = "deser_size")]
-    pub uncompressed_size: Size,
+    #[serde(deserialize_with = "time::serde::timestamp::deserialize")]
+    pub release_date: OffsetDateTime,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct Description {
+    pub short: String,
+    pub long: String,
 }
 
 impl OscAppMeta {
-    pub fn version_display(&self) -> String {
+    pub fn trimmed_version(&self) -> &str {
         if self.version.len() > 10 {
-            format!("📌 {}...", &self.version[..10])
+            &self.version[..10]
         } else {
-            format!("📌 {}", &self.version)
+            &self.version
         }
     }
 }
 
-fn deser_size<'de, D>(deserializer: D) -> Result<Size, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let size = usize::deserialize(deserializer)?;
-    Ok(Size::from_bytes(size))
-}
-
-#[derive(Debug, Clone, Deserialize, Default)]
-#[serde(default)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct Assets {
-    pub icon: Asset,
     pub archive: Asset,
+    pub binary: Asset,
+    pub icon: Asset,
+    pub meta: Asset,
 }
 
-#[derive(Debug, Clone, Deserialize, Default)]
-#[serde(default)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct Asset {
     pub url: String,
+    pub size: Option<Size>,
+    pub hash: Option<String>,
 }

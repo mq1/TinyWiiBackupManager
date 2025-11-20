@@ -19,6 +19,7 @@ mod hbc_apps_list;
 mod info;
 mod nav;
 mod osc;
+mod osc_app_info;
 mod osc_grid;
 mod osc_list;
 pub mod root;
@@ -57,6 +58,7 @@ pub enum Modal {
     Info,
     GameInfo(u16, Box<Option<DiscInfo>>, Box<Option<GameInfo>>),
     HbcAppInfo(u16),
+    OscAppInfo(u16),
     DeleteGame(u16),
     DeleteHbcApp(u16),
     ConvertGames(Box<[DiscInfo]>),
