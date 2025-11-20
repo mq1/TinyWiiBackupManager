@@ -44,6 +44,10 @@ pub fn get(uri: &str) -> Result<Vec<u8>, ureq::Error> {
     AGENT.get(uri).call()?.body_mut().read_to_vec()
 }
 
+pub fn get_string(uri: &str) -> Result<String, ureq::Error> {
+    AGENT.get(uri).call()?.body_mut().read_to_string()
+}
+
 pub fn download_into_file(uri: &str, file: &File) -> Result<()> {
     let mut writer = BufWriter::new(file);
 
