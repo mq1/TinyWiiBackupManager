@@ -25,20 +25,6 @@ pub fn check() -> Result<Option<Version>> {
     Ok(None)
 }
 
-pub struct UpdateInfo {
-    pub url: String,
-    pub ui_text: String,
-}
-
-impl UpdateInfo {
-    pub fn from_version(version: Version) -> UpdateInfo {
-        Self {
-            url: format!("{}/releases/tag/{}", env!("CARGO_PKG_REPOSITORY"), &version),
-            ui_text: format!("A new version is available: {}", &version),
-        }
-    }
-}
-
 pub fn spawn_check_update_task(app: &App) {
     app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(Message::UpdateStatus(

@@ -17,7 +17,6 @@ use crate::{
     tasks::TaskProcessor,
     titles::Titles,
     ui::{self, Modal},
-    updater::UpdateInfo,
     util, wiiload,
     wiitdb::{self, GameInfo},
 };
@@ -25,6 +24,7 @@ use crossbeam_channel::{Receiver, Sender, unbounded};
 use eframe::egui;
 use eframe::egui::OpenUrl;
 use egui_file_dialog::FileDialog;
+use semver::Version;
 use size::Size;
 use smallvec::SmallVec;
 use std::{fs, path::PathBuf, thread};
@@ -49,7 +49,7 @@ pub struct App {
     pub filtered_hbc_apps_size: Size,
     pub hbc_apps: Vec<HbcApp>,
     pub current_view: ui::View,
-    pub update_info: Option<UpdateInfo>,
+    pub update: Option<Version>,
     pub status: String,
     pub current_modal: Option<Modal>,
     pub config: Config,
@@ -105,7 +105,7 @@ impl App {
             msg_receiver,
             data_dir,
             current_view: ui::View::Games,
-            update_info: None,
+            update: None,
             games: Vec::new(),
             filtered_games: SmallVec::new(),
             filtered_wii_games: SmallVec::new(),
@@ -200,9 +200,9 @@ impl App {
     }
 
     pub fn open_update_info_url(&mut self, ctx: &egui::Context) {
-        if let Some(update_info) = &self.update_info {
-            let url = &update_info.url;
-            ctx.open_url(OpenUrl::new_tab(url));
+        if self.update.is_some() {
+            const UPDATE_URL: &str = concat!(env!("CARGO_PKG_REPOSITORY"), "{}/releases/latest");
+            ctx.open_url(OpenUrl::new_tab(UPDATE_URL));
         }
     }
 
