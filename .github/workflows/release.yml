@@ -239,10 +239,13 @@ jobs:
       - name: Create app with cargo-packager
         run: cargo packager --release --target ${{ matrix.target }} --formats app
 
-      - name: Create dmg (assets from sindresorhus/create-dmg)
+      - name: zip the app
         run: |
           mkdir dist
-          appdmg assets/appdmg-${{ matrix.arch }}.json "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-${{ matrix.arch }}.dmg"
+          ditto -c -k --sequesterRsrc --keepParent "target/${{ matrix.target }}/release/TinyWiiBackupManager.app" "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-${{ matrix.arch }}.zip"
+
+      - name: Create dmg (assets from sindresorhus/create-dmg)
+        run: appdmg assets/appdmg-${{ matrix.arch }}.json "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-${{ matrix.arch }}.dmg"
 
       - name: Upload macOS distributables
         uses: actions/upload-artifact@v4
