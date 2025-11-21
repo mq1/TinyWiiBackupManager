@@ -242,7 +242,7 @@ jobs:
       - name: zip the app
         run: |
           mkdir dist
-          ditto -c -k --sequesterRsrc --keepParent "target/${{ matrix.target }}/release/TinyWiiBackupManager.app" "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-${{ matrix.arch }}.zip"
+          ditto -c -k --sequesterRsrc --keepParent --zlibCompressionLevel 9 "target/${{ matrix.target }}/release/TinyWiiBackupManager.app" "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-${{ matrix.arch }}.zip"
 
       - name: Create dmg (assets from sindresorhus/create-dmg)
         run: appdmg assets/appdmg-${{ matrix.arch }}.json "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-${{ matrix.arch }}.dmg"
