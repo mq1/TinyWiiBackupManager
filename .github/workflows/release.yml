@@ -28,12 +28,20 @@ jobs:
           - target: x86_64-unknown-linux-gnu
             runner: ubuntu-24.04
             arch: x86_64
+            ldai-arch: x86_64
+          - target: x86_64-unknown-linux-gnu
+            runner: ubuntu-24.04
+            arch: x86_64-v3
+            ldai-arch: x86_64
+            rustflags: "-C target-cpu=x86-64-v3"
           - target: aarch64-unknown-linux-gnu
             runner: ubuntu-24.04-arm
-            arch: aarch64
+            arch: arm64
+            ldai-arch: aarch64
           - target: i686-unknown-linux-gnu
             runner: ubuntu-24.04
-            arch: i686
+            arch: x86
+            ldai-arch: none
             deps: libc6-dev-i386
 
     steps:
@@ -51,7 +59,7 @@ jobs:
       - name: Restore Rust cache
         uses: Swatinem/rust-cache@v2
         with:
-          key: ${{ matrix.target }}
+          key: ${{ matrix.arch }}
 
       - name: Install dependencies
         run: |
@@ -59,14 +67,16 @@ jobs:
           sudo apt-get install -y ${{ matrix.deps }} libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
 
       - name: Download LinuxDeploy
-        if: matrix.arch == 'x86_64' || matrix.arch == 'aarch64'
+        if: matrix.ldai-arch != 'none'
         run: |
-          wget -c "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${{ matrix.arch }}.AppImage"
-          wget -c "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-${{ matrix.arch }}.AppImage"
-          chmod +x linuxdeploy*.AppImage
+          wget "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${{ matrix.ldai-arch }}.AppImage"
+          wget "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-${{ matrix.ldai-arch }}.AppImage"
+          chmod +x linuxdeploy-${{ matrix.ldai-arch }}.AppImage linuxdeploy-plugin-appimage-${{ matrix.ldai-arch }}.AppImage
 
       - name: Build binary
         run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
+        env:
+          RUSTFLAGS: ${{ matrix.rustflags }}
 
       - name: Package binary as tar.gz
         run: |
@@ -76,18 +86,18 @@ jobs:
           tar -I 'gzip -9' -cvf "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.tar.gz" TinyWiiBackupManager
 
       - name: Package binary as AppImage
-        if: matrix.arch == 'x86_64' || matrix.arch == 'aarch64'
+        if: matrix.ldai-arch != 'none'
         run: |
-          ./linuxdeploy-${{ matrix.arch }}.AppImage --appdir TinyWiiBackupManager.AppDir -e target/${{ matrix.target }}/release/TinyWiiBackupManager -d assets/TinyWiiBackupManager.desktop -i assets/TinyWiiBackupManager.png --output appimage
-          mv TinyWiiBackupManager*.AppImage "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
-          mv TinyWiiBackupManager*.AppImage.zsync "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage.zsync"
+          ./linuxdeploy-${{ matrix.ldai-arch }}.AppImage --appdir TinyWiiBackupManager.AppDir -e target/${{ matrix.target }}/release/TinyWiiBackupManager -d assets/TinyWiiBackupManager.desktop -i assets/TinyWiiBackupManager.png --output appimage
+          mv "TinyWiiBackupManager-${{ matrix.ldai-arch }}.AppImage" "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
+          mv "TinyWiiBackupManager-${{ matrix.ldai-arch }}.AppImage.zsync" "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage.zsync"
         env:
           LDAI_UPDATE_INFORMATION: "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync"
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v4
         with:
-          name: dist-${{ matrix.target }}
+          name: dist-linux-${{ matrix.arch }}
           path: dist/*
 
   build-windows:
@@ -98,8 +108,10 @@ jobs:
       matrix:
         include:
           - target: x86_64-pc-windows-msvc
-            arch: x64
-            setup: true
+            arch: x86_64
+          - target: x86_64-pc-windows-msvc
+            arch: x86_64-v3
+            rustflags: "-C target-cpu=x86-64-v3"
           - target: aarch64-pc-windows-msvc
             arch: arm64
           - target: i686-pc-windows-msvc
@@ -120,14 +132,16 @@ jobs:
       - name: Restore Rust cache
         uses: Swatinem/rust-cache@v2
         with:
-          key: ${{ matrix.target }}
+          key: ${{ matrix.arch }}
 
       - name: Install dependencies
-        if: matrix.setup
+        if: matrix.arch == 'x86_64' || matrix.arch == 'x86_64-v3'
         run: cargo install cargo-packager --version ^0.11 --locked
 
       - name: Build binary
         run: cargo build --release --locked --target ${{ matrix.target }}
+        env:
+          RUSTFLAGS: ${{ matrix.rustflags }}
 
       - name: Package binaries as zip
         shell: pwsh
@@ -138,8 +152,8 @@ jobs:
           7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
           7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}-portable.zip" TinyWiiBackupManager-portable.exe
 
-      - name: Package binary as installer (only x64 for now)
-        if: matrix.setup
+      - name: Package binary as installer
+        if: matrix.arch == 'x86_64' || matrix.arch == 'x86_64-v3'
         shell: pwsh
         run: |
           cargo packager --release --target ${{ matrix.target }} --formats nsis
@@ -148,7 +162,7 @@ jobs:
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v4
         with:
-          name: dist-${{ matrix.target }}
+          name: dist-windows-${{ matrix.arch }}
           path: dist/*
 
   build-win7:
@@ -159,7 +173,7 @@ jobs:
       matrix:
         include:
           - target: x86_64-win7-windows-msvc
-            arch: x64
+            arch: x86_64
           - target: i686-win7-windows-msvc
             arch: x86
 
@@ -172,7 +186,7 @@ jobs:
       - name: Restore Rust cache
         uses: Swatinem/rust-cache@v2
         with:
-          key: ${{ matrix.target }}
+          key: ${{ matrix.arch }}
 
       - name: Install Rust toolchain and rust-src
         run: |
@@ -226,7 +240,7 @@ jobs:
       - name: Restore Rust cache
         uses: Swatinem/rust-cache@v2
         with:
-          key: ${{ matrix.target }}
+          key: ${{ matrix.arch }}
 
       - name: Install dependencies
         run: |
@@ -288,18 +302,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Generate downloads table
-        run: sed 's/VERSION/${{ env.VERSION_NAME }}/g' assets/downloads-template.md > downloads.md
-
-      - name: Append downloads table to release
-        uses: softprops/action-gh-release@v2
-        with:
-          append_body: true
-          body_path: downloads.md
-          prerelease: ${{ contains(env.VERSION_NAME, 'alpha') || contains(env.VERSION_NAME, 'beta') || contains(env.VERSION_NAME, 'rc') }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   winget:
     needs: [ release ]
     name: Publish to WinGet
@@ -309,4 +311,4 @@ jobs:
         with:
           identifier: mq1.TinyWiiBackupManager
           token: ${{ secrets.WINGET_TOKEN }}
-          installers-regex: 'setup\.exe$'
+          installers-regex: 'x86_64-setup\.exe$'
