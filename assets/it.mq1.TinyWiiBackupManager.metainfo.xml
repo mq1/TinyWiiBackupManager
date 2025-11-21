@@ -58,28 +58,31 @@
     <url type="vcs-browser">https://github.com/mq1/TinyWiiBackupManager</url>
     <screenshots>
         <screenshot type="default">
-            <image>https://github.com/mq1/TinyWiiBackupManager/blob/v4.4.0/assets/screenshot.png?raw=true</image>
+            <image>https://github.com/mq1/TinyWiiBackupManager/blob/v4.4.1/assets/screenshot.png?raw=true</image>
             <caption>TinyWiiBackupManager screenshot</caption>
         </screenshot>
     </screenshots>
     <releases>
+        <release version="4.4.1" date="2025-11-21">
+            <url type="details">https://github.com/mq1/TinyWiiBackupManager/releases/tag/v4.4.1</url>
+        </release>
         <release version="4.4.0" date="2025-11-20">
             <url type="details">https://github.com/mq1/TinyWiiBackupManager/releases/tag/v4.4.0</url>
         </release>
         <release version="4.3.11" date="2025-11-20">
-            <url type="details">https://github.com/mq1/TinyWiiBackupManager/releases/tag/4.3.11</url>
+            <url type="details">https://github.com/mq1/TinyWiiBackupManager/releases/tag/v4.3.11</url>
         </release>
         <release version="4.3.10" date="2025-11-19">
-            <url type="details">https://github.com/mq1/TinyWiiBackupManager/releases/tag/4.3.10</url>
+            <url type="details">https://github.com/mq1/TinyWiiBackupManager/releases/tag/v4.3.10</url>
         </release>
         <release version="4.3.9" date="2025-11-18">
-            <url type="details">https://github.com/mq1/TinyWiiBackupManager/releases/tag/4.3.9</url>
+            <url type="details">https://github.com/mq1/TinyWiiBackupManager/releases/tag/v4.3.9</url>
         </release>
         <release version="4.3.8" date="2025-11-17">
-            <url type="details">https://github.com/mq1/TinyWiiBackupManager/releases/tag/4.3.8</url>
+            <url type="details">https://github.com/mq1/TinyWiiBackupManager/releases/tag/v4.3.8</url>
         </release>
         <release version="4.3.7" date="2025-11-16">
-            <url type="details">https://github.com/mq1/TinyWiiBackupManager/releases/tag/4.3.7</url>
+            <url type="details">https://github.com/mq1/TinyWiiBackupManager/releases/tag/v4.3.7</url>
         </release>
         <release version="4.3.6" date="2025-11-13">
             <url type="details">https://github.com/mq1/TinyWiiBackupManager/releases/tag/4.3.6</url>
