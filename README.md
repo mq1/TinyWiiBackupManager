@@ -11,7 +11,7 @@ Nintendo.<br>‼️ Use of TinyWiiBackupManager for pirated or unauthorized copi
 
 ## ✨ Features
 
-- **Lightweight & Fast**: No Electron!!
+- **Lightweight & Fast**: Native DX12/Metal/OpenGL rendering, -O3, LTO, x86_64-v3 optimized builds
 - **Cross-Platform**: Windows 7+ (x86, x64, arm64), macOS 10.12+ (x64, arm64), Linux (x86, x64, arm64)
 
 #### 🎮 Game Management
