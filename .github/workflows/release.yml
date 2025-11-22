@@ -83,7 +83,8 @@ jobs:
           mkdir dist
           cp "target/${{ matrix.target }}/release/TinyWiiBackupManager" TinyWiiBackupManager
           chmod 755 TinyWiiBackupManager
-          tar -I 'gzip -9' -cvf "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.tar.gz" TinyWiiBackupManager
+          touch "Rename TinyWiiBackupManager to TinyWiiBackupManager-portable to make it portable"
+          tar -I 'gzip -9' -cvf "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.tar.gz" TinyWiiBackupManager "Rename TinyWiiBackupManager to TinyWiiBackupManager-portable to make it portable"
 
       - name: Package binary as AppImage
         if: matrix.ldai-arch != 'none'
@@ -146,11 +147,10 @@ jobs:
       - name: Package binaries as zip
         shell: pwsh
         run: |
-          New-Item -Path "dist" -ItemType "directory"
+          New-Item -Path "dist" -ItemType Directory
           Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination TinyWiiBackupManager.exe
-          Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination TinyWiiBackupManager-portable.exe
-          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
-          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}-portable.zip" TinyWiiBackupManager-portable.exe
+          New-Item -Path "Rename TinyWiiBackupManager.exe to TinyWiiBackupManager-portable.exe to make it portable" -ItemType File
+          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe "Rename TinyWiiBackupManager.exe to TinyWiiBackupManager-portable.exe to make it portable"
 
       - name: Package binary as installer
         if: matrix.arch == 'x86_64' || matrix.arch == 'x86_64-v3'
@@ -201,16 +201,15 @@ jobs:
       - name: Package binary as zip
         shell: pwsh
         run: |
-          New-Item -Path "dist" -ItemType "directory"
+          New-Item -Path "dist" -ItemType Directory
           Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager.exe"
-          Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager-portable.exe"
-          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-win7-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
-          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-win7-${{ matrix.arch }}-portable.zip" TinyWiiBackupManager-portable.exe
+          New-Item -Path "Rename TinyWiiBackupManager.exe to TinyWiiBackupManager-portable.exe to make it portable" -ItemType File
+          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-win7-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe "Rename TinyWiiBackupManager.exe to TinyWiiBackupManager-portable.exe to make it portable"
 
       - name: Upload Windows 7 distributables
         uses: actions/upload-artifact@v4
         with:
-          name: dist-${{ matrix.target }}
+          name: dist-win7-${{ matrix.arch }}
           path: dist/*
 
   build-macos:
@@ -264,7 +263,7 @@ jobs:
       - name: Upload macOS distributables
         uses: actions/upload-artifact@v4
         with:
-          name: dist-${{ matrix.target }}
+          name: dist-macos-${{ matrix.arch }}
           path: dist/*
 
   # ==================================================================================
