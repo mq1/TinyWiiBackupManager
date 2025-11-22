@@ -6,6 +6,8 @@ use crate::messages::Message;
 use crate::ui::{self, View};
 use eframe::egui::{self, OpenUrl, Vec2};
 
+const UPDATE_URL: &str = concat!(env!("CARGO_PKG_REPOSITORY"), "/releases/latest");
+
 pub fn update(ctx: &egui::Context, app: &mut App) {
     let current_view = app.current_view;
 
@@ -137,13 +139,8 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                         .on_hover_text(format!("A new version is available: {}", &version))
                         .clicked()
                 {
-                    open_update_info_url(ctx);
+                    ctx.open_url(OpenUrl::new_tab(UPDATE_URL));
                 }
             });
         });
-}
-
-pub fn open_update_info_url(ctx: &egui::Context) {
-    const UPDATE_URL: &str = concat!(env!("CARGO_PKG_REPOSITORY"), "/releases/latest");
-    ctx.open_url(OpenUrl::new_tab(UPDATE_URL));
 }
