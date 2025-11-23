@@ -42,7 +42,9 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
 fn update_hbc_app_card(ui: &mut egui::Ui, app: &App, hbc_app_i: u16) {
     let hbc_app = &app.hbc_apps[hbc_app_i as usize];
 
-    let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
+    let style = ui.style();
+    let group = egui::Frame::group(style).fill(style.visuals.extreme_bg_color);
+
     group.show(ui, |ui| {
         ui.set_height(CARD_HEIGHT);
         ui.set_width(CARD_WIDTH);
