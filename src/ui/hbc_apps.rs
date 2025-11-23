@@ -29,8 +29,10 @@ fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, app: &mut App) {
     let current_view_as = app.config.contents.view_as;
     let current_sort_by = app.config.contents.sort_by;
 
+    let style = ui.style();
+    let group = egui::Frame::group(style).fill(style.visuals.extreme_bg_color);
+
     ui.horizontal(move |ui| {
-        let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
         group.show(ui, |ui| {
             ui.set_height(21.);
             ui.add_space(2.);
@@ -74,7 +76,6 @@ fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, app: &mut App) {
 
             ui.add_space(10.);
 
-            let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
             group.show(ui, |ui| {
                 if ui
                     .selectable_label(current_view_as == ViewAs::List, "☰")
@@ -95,7 +96,6 @@ fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, app: &mut App) {
                 }
             });
 
-            let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
             group.show(ui, |ui| {
                 if ui
                     .selectable_label(
