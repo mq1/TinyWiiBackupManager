@@ -18,7 +18,9 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
         ui.separator();
 
-        let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
+        let style = ui.style();
+        let group = egui::Frame::group(style).fill(style.visuals.extreme_bg_color);
+
         group.show(ui, |ui| {
             ui.horizontal(|ui| {
                 ui.label(" Type your Wii's IP:");

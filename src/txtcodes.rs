@@ -5,9 +5,43 @@ use crate::app::App;
 use crate::messages::Message;
 use crate::{games::GameID, http};
 use anyhow::Result;
+use serde::{Deserialize, Serialize};
 use std::{fs, path::Path};
 
-fn download_cheats_for_game(txt_cheatcodespath: &Path, game_id: &[u8; 6]) -> Result<()> {
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TxtCodesSource {
+    WebArchive,
+    Rc24,
+}
+
+impl TxtCodesSource {
+    fn get_base_url(&self) -> &str {
+        match self {
+            Self::WebArchive => "https://web.archive.org/web/202009if_/geckocodes.org/",
+            Self::Rc24 => "https://codes.rc24.xyz/",
+        }
+    }
+
+    pub fn get_comment(&self) -> &str {
+        match self {
+            Self::WebArchive => {
+                "https://web.archive.org/web/202009if_/geckocodes.org/    (Recommended, high quality)"
+            }
+            Self::Rc24 => "https://codes.rc24.xyz/",
+        }
+    }
+
+    pub fn get_url(&self, game_id: [u8; 6]) -> String {
+        format!("{}txt.php?txt={}", self.get_base_url(), game_id.as_str())
+    }
+}
+
+fn download_cheats_for_game(
+    txt_cheatcodespath: &Path,
+    source: TxtCodesSource,
+    game_id: [u8; 6],
+) -> Result<()> {
     let path = txt_cheatcodespath
         .join(game_id.as_str())
         .with_extension("txt");
@@ -16,10 +50,7 @@ fn download_cheats_for_game(txt_cheatcodespath: &Path, game_id: &[u8; 6]) -> Res
         return Ok(());
     }
 
-    let url = format!(
-        "https://web.archive.org/web/202009if_/geckocodes.org/txt.php?txt={}",
-        game_id.as_str()
-    );
+    let url = source.get_url(game_id);
     http::download_file(&url, &path)?;
 
     Ok(())
@@ -27,6 +58,7 @@ fn download_cheats_for_game(txt_cheatcodespath: &Path, game_id: &[u8; 6]) -> Res
 
 pub fn spawn_download_cheats_task(app: &App) {
     let txt_cheatcodespath = app.config.contents.mount_point.join("txtcodes");
+    let source = app.config.contents.txt_codes_source;
     let games = app.games.clone().into_boxed_slice();
 
     app.task_processor.spawn(move |msg_sender| {
@@ -42,7 +74,7 @@ pub fn spawn_download_cheats_task(app: &App) {
                 &game.display_title
             )))?;
 
-            if let Err(e) = download_cheats_for_game(&txt_cheatcodespath, &game.id) {
+            if let Err(e) = download_cheats_for_game(&txt_cheatcodespath, source, game.id) {
                 let context = format!("Failed to download cheats for {}", &game.display_title);
                 msg_sender.send(Message::NotifyError(e.context(context)))?;
             }

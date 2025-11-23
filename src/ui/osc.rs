@@ -32,8 +32,10 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 fn update_top_bar(ui: &mut egui::Ui, app: &mut App) {
     let current_view_as = app.config.contents.view_as;
 
-    ui.horizontal(move |ui| {
-        let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
+    let style = ui.style();
+    let group = egui::Frame::group(style).fill(style.visuals.extreme_bg_color);
+
+    ui.horizontal(|ui| {
         group.show(ui, |ui| {
             ui.set_height(21.);
             ui.add_space(2.);
@@ -52,7 +54,6 @@ fn update_top_bar(ui: &mut egui::Ui, app: &mut App) {
         });
 
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-            let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
             group.show(ui, |ui| {
                 ui.add(
                     egui::TextEdit::singleline(&mut app.config.contents.wii_ip)
@@ -65,7 +66,6 @@ fn update_top_bar(ui: &mut egui::Ui, app: &mut App) {
 
             ui.add_space(10.);
 
-            let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
             group.show(ui, |ui| {
                 if ui
                     .selectable_label(current_view_as == ViewAs::List, "☰")
