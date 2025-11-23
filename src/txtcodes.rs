@@ -59,7 +59,12 @@ fn download_cheats_for_game(
 pub fn spawn_download_cheats_task(app: &App) {
     let txt_cheatcodespath = app.config.contents.mount_point.join("txtcodes");
     let source = app.config.contents.txt_codes_source;
-    let games = app.games.clone().into_boxed_slice();
+
+    let games = app
+        .games
+        .iter()
+        .map(|game| (game.id, game.display_title.clone()))
+        .collect::<Box<[_]>>();
 
     app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(Message::UpdateStatus(
@@ -71,11 +76,11 @@ pub fn spawn_download_cheats_task(app: &App) {
         for game in &games {
             msg_sender.send(Message::UpdateStatus(format!(
                 "📓 Downloading cheats... ({})",
-                &game.display_title
+                &game.1
             )))?;
 
-            if let Err(e) = download_cheats_for_game(&txt_cheatcodespath, source, game.id) {
-                let context = format!("Failed to download cheats for {}", &game.display_title);
+            if let Err(e) = download_cheats_for_game(&txt_cheatcodespath, source, game.0) {
+                let context = format!("Failed to download cheats for {}", &game.1);
                 msg_sender.send(Message::NotifyError(e.context(context)))?;
             }
         }
