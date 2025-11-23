@@ -69,7 +69,9 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
 fn update_game_card(ui: &mut egui::Ui, app: &App, game_i: u16) {
     let game = &app.games[game_i as usize];
 
-    let group = egui::Frame::group(ui.style()).fill(ui.style().visuals.extreme_bg_color);
+    let style = ui.style();
+    let group = egui::Frame::group(style).fill(style.visuals.extreme_bg_color);
+
     group.show(ui, |ui| {
         ui.set_height(CARD_HEIGHT);
         ui.set_width(CARD_WIDTH);

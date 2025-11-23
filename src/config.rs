@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::txtcodes::TxtCodesSource;
 use crate::ui::accent::AccentColor;
 use anyhow::Result;
 use eframe::egui::ThemePreference;
@@ -73,6 +74,7 @@ pub struct Contents {
     pub wii_output_format: WiiOutputFormat,
     pub gc_output_format: GcOutputFormat,
     pub accent_color: AccentColor,
+    pub txt_codes_source: TxtCodesSource,
 
     #[serde(serialize_with = "ser_theme", deserialize_with = "deser_theme")]
     pub theme_preference: ThemePreference,
@@ -94,6 +96,7 @@ impl Default for Contents {
             gc_output_format: GcOutputFormat::Iso,
             theme_preference: ThemePreference::System,
             accent_color: AccentColor::System,
+            txt_codes_source: TxtCodesSource::WebArchive,
         }
     }
 }
