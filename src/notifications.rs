@@ -31,7 +31,7 @@ impl Notifications {
     pub fn show_err(&mut self, e: anyhow::Error) {
         log::error!("{:?}", e);
         self.0
-            .error(e.to_string())
+            .error(format!("{e:#}"))
             .duration(Duration::from_secs(10));
     }
 
