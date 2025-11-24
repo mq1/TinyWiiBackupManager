@@ -106,9 +106,9 @@ pub fn spawn_add_games_task(app: &App, discs: Box<[DiscInfo]>) {
                     &format!("{}.iso", disc_info.header.game_id_str())
                 }
                 (false, _, GcOutputFormat::Iso, _, 0) => "game.iso",
-                (false, _, GcOutputFormat::Iso, _, n) => &format!("disc{n}.iso"),
+                (false, _, GcOutputFormat::Iso, _, n) => &format!("disc{}.iso", n + 1),
                 (false, _, GcOutputFormat::Ciso, _, 0) => "game.ciso",
-                (false, _, GcOutputFormat::Ciso, _, n) => &format!("disc{n}.ciso"),
+                (false, _, GcOutputFormat::Ciso, _, n) => &format!("disc{}.ciso", n + 1),
             };
 
             let overflow_file = get_overflow_file(&disc_info.main_disc_path);
