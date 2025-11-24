@@ -383,6 +383,7 @@ impl App {
 
             self.refresh_games();
             self.refresh_hbc_apps();
+            wiitdb::spawn_load_wiitdb_task(self);
 
             self.update_title(ctx);
             self.save_config();
