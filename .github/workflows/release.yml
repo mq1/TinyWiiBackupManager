@@ -288,7 +288,10 @@ jobs:
           merge-multiple: true # This places all matching artifacts into a single 'dist' directory
 
       - name: Create version.txt
-        run: echo -n "${VERSION_NAME#v}" > version.txt
+        run: |
+          trimmed_ver="${VERSION_NAME#v}"         # Remove leading 'v'
+          trimmed_ver="${trimmed_ver%%+*}"        # Remove build version '+X'
+          echo -n "${trimmed_ver}" > version.txt  # Write without line break
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -310,4 +313,4 @@ jobs:
         with:
           identifier: mq1.TinyWiiBackupManager
           token: ${{ secrets.WINGET_TOKEN }}
-          installers-regex: 'x86_64-setup\.exe$'
+          installers-regex: '^TinyWiiBackupManager-.+-windows-(?:x86_64|arm64)\.zip$'
