@@ -44,7 +44,7 @@ impl Config {
     }
 
     pub fn write(&self) -> Result<()> {
-        let bytes = serde_json::to_vec(&self.contents)?;
+        let bytes = serde_json::to_vec_pretty(&self.contents)?;
         fs::write(&self.path, &bytes)?;
 
         Ok(())
