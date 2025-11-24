@@ -82,7 +82,10 @@ fn main() -> Result<()> {
     titles::spawn_get_titles_task(&app); // this also loads games when finished
     updater::spawn_check_update_task(&app);
     osc::spawn_load_osc_apps_task(&app);
-    wiitdb::spawn_load_wiitdb_task(&app);
+
+    if !app.config.contents.mount_point.as_os_str().is_empty() {
+        wiitdb::spawn_load_wiitdb_task(&app);
+    }
 
     // -------------
     // Initialize UI
