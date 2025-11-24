@@ -104,7 +104,7 @@ fn main() -> Result<()> {
         ..Default::default()
     };
 
-    eframe::run_native(
+    let res = eframe::run_native(
         APP_NAME,
         native_options,
         Box::new(|cc| {
@@ -129,8 +129,12 @@ fn main() -> Result<()> {
 
             Ok(Box::new(app))
         }),
-    )
-    .expect("Failed to run app");
+    );
+
+    if let Err(e) = res {
+        eprintln!("Failed to run app: {}", e);
+        std::process::exit(1);
+    }
 
     Ok(())
 }
