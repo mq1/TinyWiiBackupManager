@@ -188,7 +188,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     .radio_value(
                         &mut app.config.contents.txt_codes_source,
                         TxtCodesSource::WebArchive,
-                        TxtCodesSource::WebArchive.get_comment(),
+                        "geckocodes.org (web.archive.org)    (Recommended, high quality)",
                     )
                     .changed()
                 {
@@ -199,7 +199,18 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     .radio_value(
                         &mut app.config.contents.txt_codes_source,
                         TxtCodesSource::Rc24,
-                        TxtCodesSource::Rc24.get_comment(),
+                        "codes.rc24.xyz    (Lower quality)",
+                    )
+                    .changed()
+                {
+                    app.save_config();
+                }
+
+                if ui
+                    .radio_value(
+                        &mut app.config.contents.txt_codes_source,
+                        TxtCodesSource::GameHacking,
+                        "gamehacking.org    (Up to date, download might fail)",
                     )
                     .changed()
                 {
