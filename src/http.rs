@@ -48,6 +48,13 @@ pub fn get_string(uri: &str) -> Result<String, ureq::Error> {
     AGENT.get(uri).call()?.body_mut().read_to_string()
 }
 
+pub fn send_form<I: IntoIterator<Item = (S, S)>, S: AsRef<str>>(
+    uri: &str,
+    form: I,
+) -> Result<Vec<u8>, ureq::Error> {
+    AGENT.post(uri).send_form(form)?.body_mut().read_to_vec()
+}
+
 pub fn download_into_file(uri: &str, file: &File) -> Result<()> {
     let mut writer = BufWriter::new(file);
 

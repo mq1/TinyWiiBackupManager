@@ -24,6 +24,7 @@ dependencies = [
  "num_cpus",
  "open",
  "path-slash",
+ "percent-encoding",
  "quick-xml 0.38.4",
  "sanitize-filename",
  "semver",
