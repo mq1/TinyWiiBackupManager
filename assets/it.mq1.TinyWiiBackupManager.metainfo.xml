@@ -29,7 +29,8 @@
             <li>Partition Stripping: Remove the update partition to save space</li>
             <li>Game Archiving: Archive games using RVZ+zstd-19</li>
             <li>Integrity Checks: Verify game data for corruption</li>
-            <li>GameTDB: Fetch covers and wiitdb.xml from GameTDB
+            <li>GameTDB: Fetch covers and wiitdb.xml from GameTDB</li>
+            <li>TxtCodes: Download cheat codes from geckocodes.org (web archive), codes.rc24.xyz and gamehacking.org
             </li>
         </ul>
         <p>🛠️ Wii Homebrew Management</p>
