@@ -23,6 +23,7 @@ Nintendo.<br>‼️ Use of TinyWiiBackupManager for pirated or unauthorized copi
 - **Game Archiving**: Archive games using RVZ+zstd-19
 - **Integrity Checks**: Verify game data for corruption
 - **GameTDB**: Fetch covers and `wiitdb.xml` from GameTDB
+- **TxtCodes**: Download cheat codes from geckocodes.org (web archive), codes.rc24.xyz and gamehacking.org
 
 #### 🛠️ Wii Homebrew Management
 
