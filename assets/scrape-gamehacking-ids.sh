@@ -14,3 +14,4 @@ do
 done
 
 sed -i '' '/^--$/d' gamehacking-ids.txt
+sed -i '' 's/^[[:space:]]*//; s/[[:space:]]*$//' gamehacking-ids.txt
