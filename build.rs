@@ -4,11 +4,15 @@
 use std::path::PathBuf;
 use std::{env, fs};
 
-fn id_str_to_bytes(id: &str) -> [u8; 6] {
+fn id6_str_to_bytes(id: &str) -> [u8; 6] {
     let mut id_bytes = [0u8; 6];
-    let bytes = id.as_bytes();
-    let len = bytes.len().min(6);
-    id_bytes[..len].copy_from_slice(&bytes[..len]);
+    id_bytes.copy_from_slice(id.as_bytes());
+    id_bytes
+}
+
+fn id4_str_to_bytes(id: &str) -> [u8; 4] {
+    let mut id_bytes = [0u8; 4];
+    id_bytes.copy_from_slice(id.as_bytes());
     id_bytes
 }
 
@@ -19,26 +23,43 @@ fn compile_wiitdb_txt() {
     let mut lines = txt.lines();
     lines.next();
 
-    // Build the map
-    let mut titles = Vec::new();
+    // Build the maps
+    let mut id6_titles = Vec::new();
+    let mut id4_titles = Vec::new();
+
     for line in lines {
         let (id, title) = line.split_once(" = ").unwrap();
-        titles.push((id_str_to_bytes(id), title));
+
+        match id.len() {
+            6 => id6_titles.push((id6_str_to_bytes(id), title)),
+            4 => id4_titles.push((id4_str_to_bytes(id), title)),
+            _ => panic!("Invalid ID: {}", id),
+        }
     }
 
-    // Sort the map (to enable binary search)
-    titles.sort_unstable_by_key(|entry| entry.0);
+    // Sort the maps (to enable binary search)
+    id6_titles.sort_unstable_by_key(|entry| entry.0);
+    id4_titles.sort_unstable_by_key(|entry| entry.0);
 
     // Build the Rust code
-    let mut wiitdb_txt_rs = "const WIITDB_TXT: &[([u8; 6], &str)] = &[".to_string();
+    let mut wiitdb_txt_rs = String::new();
 
-    for (id, title) in titles {
+    wiitdb_txt_rs.push_str("const ID6_TITLES: &[([u8; 6], &str)] = &[");
+    for (id, title) in id6_titles {
         wiitdb_txt_rs.push_str(&format!(
             "([{},{},{},{},{},{}],\"{}\"),",
             id[0], id[1], id[2], id[3], id[4], id[5], title
         ));
     }
+    wiitdb_txt_rs.push_str("];");
 
+    wiitdb_txt_rs.push_str("const ID4_TITLES: &[([u8; 4], &str)] = &[");
+    for (id, title) in id4_titles {
+        wiitdb_txt_rs.push_str(&format!(
+            "([{},{},{},{}],\"{}\"),",
+            id[0], id[1], id[2], id[3], title
+        ));
+    }
     wiitdb_txt_rs.push_str("];");
 
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
