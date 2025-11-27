@@ -3,7 +3,7 @@
 
 use crate::app::App;
 use crate::messages::Message;
-use crate::{checksum, disc_info::DiscInfo, games::GameID, wiitdb::GameInfo};
+use crate::{checksum, disc_info::DiscInfo, games::GameID, txtcodes, wiitdb::GameInfo};
 use capitalize::Capitalize;
 use eframe::egui;
 use itertools::Itertools;
@@ -269,6 +269,11 @@ pub fn update(
                     .clicked()
             {
                 checksum::spawn_checksum_task(app, game.path.clone(), game_info.clone());
+            }
+
+            // Download cheats
+            if ui.button("📥 Download Cheats").clicked() {
+                txtcodes::spawn_download_cheats_task(app, game);
             }
         });
     });
