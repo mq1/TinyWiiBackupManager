@@ -14,7 +14,6 @@ use crate::{
     notifications::Notifications,
     osc::{self, OscApp},
     tasks::TaskProcessor,
-    titles::Titles,
     ui::{self, Modal},
     util, wiiload,
     wiitdb::{self, GameInfo},
@@ -32,7 +31,6 @@ pub struct App {
     pub msg_receiver: Receiver<Message>,
     pub data_dir: PathBuf,
     pub task_processor: TaskProcessor,
-    pub titles: Titles,
     pub has_osc_icons_downlading_started: bool,
     pub wiitdb: Option<wiitdb::Datafile>,
     pub games: Vec<Game>,
@@ -110,7 +108,6 @@ impl App {
             filtered_gc_games: SmallVec::new(),
             filtered_wii_games_size: Size::from_bytes(0),
             filtered_gc_games_size: Size::from_bytes(0),
-            titles: Titles::empty(),
             task_processor,
             has_osc_icons_downlading_started: false,
             hbc_apps: Vec::new(),
@@ -320,7 +317,7 @@ impl App {
     }
 
     pub fn refresh_games(&mut self) {
-        self.games = games::list(&self.config.contents.mount_point, &self.titles);
+        self.games = games::list(&self.config.contents.mount_point);
 
         let is_known = known_mount_points::check(self).unwrap_or(true);
 

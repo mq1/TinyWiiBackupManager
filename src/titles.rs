@@ -1,72 +1,11 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::app::App;
-use crate::messages::Message;
-use crate::{games::GameID, http};
-use anyhow::Result;
-use std::{fs, path::Path};
+include!(concat!(env!("OUT_DIR"), "/wiitdb_txt.rs"));
 
-const DOWNLOAD_URL: &str = "https://www.gametdb.com/wiitdb.txt";
-
-#[derive(Debug, Clone)]
-pub struct Titles(Box<[TitleEntry]>);
-
-#[derive(Debug, Clone)]
-struct TitleEntry {
-    pub id: [u8; 6],
-    pub title: String,
-}
-
-impl Titles {
-    pub fn empty() -> Self {
-        Self(Box::new([]))
-    }
-
-    pub fn load(data_dir: &Path) -> Result<Self> {
-        let path = data_dir.join("titles.txt");
-
-        let contents = if path.exists() {
-            fs::read_to_string(path)?
-        } else {
-            let bytes = http::get(DOWNLOAD_URL)?;
-            fs::write(&path, &bytes)?;
-            String::from_utf8(bytes)?
-        };
-
-        let mut titles = contents
-            .lines()
-            .filter_map(|line| line.split_once(" = "))
-            .map(|(id, title)| TitleEntry {
-                id: <[u8; 6]>::from_id_str(id),
-                title: title.to_string(),
-            })
-            .collect::<Box<[_]>>();
-
-        // We sort it now so we can binary search
-        titles.sort_unstable_by_key(|entry| entry.id);
-
-        Ok(Self(titles))
-    }
-
-    pub fn get(&self, id: [u8; 6]) -> Option<&str> {
-        self.0
-            .binary_search_by_key(&id, |entry| entry.id)
-            .ok()
-            .map(|i| self.0[i].title.as_str())
-    }
-}
-
-pub fn spawn_get_titles_task(app: &App) {
-    let data_dir = app.data_dir.clone();
-
-    app.task_processor.spawn(move |msg_sender| {
-        msg_sender.send(Message::UpdateStatus("📓 Loading titles...".to_string()))?;
-
-        let titles = Titles::load(&data_dir)?;
-        msg_sender.send(Message::GotTitles(titles))?;
-        msg_sender.send(Message::NotifyInfo("📓 Titles loaded".to_string()))?;
-
-        Ok(())
-    });
+pub fn get(id: [u8; 6]) -> Option<&'static str> {
+    WIITDB_TXT
+        .binary_search_by_key(&id, |entry| entry.0)
+        .map(|i| WIITDB_TXT[i].1)
+        .ok()
 }
