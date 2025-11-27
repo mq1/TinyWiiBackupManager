@@ -48,7 +48,7 @@ pub fn get_string(uri: &str) -> Result<String, ureq::Error> {
     AGENT.get(uri).call()?.body_mut().read_to_string()
 }
 
-pub fn send_form<I: IntoIterator<Item = (S, S)>, S: AsRef<str>>(
+pub fn send_form<I: IntoIterator<Item = (K, V)>, K: AsRef<str>, V: AsRef<str>>(
     uri: &str,
     form: I,
 ) -> Result<Vec<u8>, ureq::Error> {
