@@ -3,7 +3,6 @@
 
 use crate::app::App;
 use crate::osc::OscApp;
-use crate::titles::Titles;
 use crate::ui::Modal;
 use crate::wiitdb;
 use eframe::egui;
@@ -19,7 +18,6 @@ pub enum Message {
     TriggerRefreshGames,
     TriggerRefreshHbcApps,
     GotNewVersion(Version),
-    GotTitles(Titles),
     GotOscApps(Box<[OscApp]>),
     GotWiitdb(wiitdb::Datafile),
     OpenModal(Modal),
@@ -61,11 +59,6 @@ pub fn process_msg(app: &mut App, ctx: &egui::Context, msg: Message) {
             let info = format!("A new version is available: {}", &version);
             app.notifications.show_info_no_duration(&info);
             app.update = Some(version);
-        }
-        Message::GotTitles(titles) => {
-            app.titles = titles;
-            app.refresh_games();
-            app.update_title(ctx);
         }
         Message::GotOscApps(osc_apps) => {
             app.osc_apps = osc_apps;
