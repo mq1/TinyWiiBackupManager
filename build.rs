@@ -14,12 +14,12 @@ fn str_to_gameid(id: &str) -> [u8; 6] {
 
 fn parse_gamehacking_ids() -> Box<[([u8; 6], u32)]> {
     let txt = fs::read_to_string("assets/gamehacking-ids.txt").unwrap();
+    let mut lines = txt.lines();
 
     let mut ids = Vec::new();
-    let lines = txt.lines().count();
-    for i in (0..lines).step_by(2) {
-        let gamehacking_id_raw = txt.lines().nth(i).unwrap();
-        let game_id_raw = txt.lines().nth(i + 1).unwrap();
+    while let Some(line) = lines.next() {
+        let gamehacking_id_raw = line;
+        let game_id_raw = lines.next().unwrap();
 
         let gamehacking_id = gamehacking_id_raw
             .trim()
@@ -86,7 +86,6 @@ fn compile_id_map() {
 
 fn main() {
     compile_id_map();
-    println!("cargo:rerun-if-changed=assets/wiitdb.txt");
 
     // Windows-specific icon resource
     #[cfg(windows)]
