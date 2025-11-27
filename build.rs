@@ -26,14 +26,14 @@ fn parse_gamehacking_ids() -> Box<[([u8; 6], u32)]> {
             .trim_start_matches("<td><a href=\"/game/");
         let gamehacking_id_end = gamehacking_id.find('"').unwrap();
         let gamehacking_id = gamehacking_id[..gamehacking_id_end].to_string();
-        let gamehacking_id = u32::from_str_radix(&gamehacking_id, 10).unwrap();
+        let gamehacking_id = gamehacking_id.parse::<u32>().unwrap();
 
         let game_id = game_id_raw
             .trim()
             .trim_start_matches("<td class=\"text-center\">")
             .trim_end_matches("</td>");
 
-        let game_id = str_to_gameid(&game_id);
+        let game_id = str_to_gameid(game_id);
         ids.push((game_id, gamehacking_id));
     }
 
