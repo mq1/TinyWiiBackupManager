@@ -25,8 +25,7 @@ fn parse_gamehacking_ids() -> Box<[([u8; 6], u32)]> {
             .trim()
             .trim_start_matches("<td><a href=\"/game/");
         let gamehacking_id_end = gamehacking_id.find('"').unwrap();
-        let gamehacking_id = gamehacking_id[..gamehacking_id_end].to_string();
-        let gamehacking_id = gamehacking_id.parse::<u32>().unwrap();
+        let gamehacking_id = gamehacking_id[..gamehacking_id_end].parse::<u32>().unwrap();
 
         let game_id = game_id_raw
             .trim()
