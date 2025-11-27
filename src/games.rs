@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::config::SortBy;
-use crate::titles;
+use crate::id_map;
 use anyhow::Result;
 use anyhow::anyhow;
 use anyhow::bail;
@@ -64,7 +64,7 @@ impl Game {
             .map(<[u8; 6]>::from_id_str)
             .ok_or(anyhow!("Invalid directory name"))?;
 
-        let display_title = titles::get(id).unwrap_or(title).to_string();
+        let display_title = id_map::get_title(id).unwrap_or(title).to_string();
 
         // Get the directory size
         let size = Size::from_bytes(fs_extra::dir::get_size(&dir).unwrap_or(0));
