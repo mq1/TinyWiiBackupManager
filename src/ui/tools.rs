@@ -70,7 +70,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
                 ui.horizontal(|ui| {
                     if ui.button("📥").clicked() {
-                        txtcodes::spawn_download_cheats_task(app);
+                        txtcodes::spawn_download_all_cheats_task(app);
                     }
 
                     ui.label("Download cheats for all games (txt)");
