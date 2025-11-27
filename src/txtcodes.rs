@@ -3,9 +3,8 @@
 
 use crate::app::App;
 use crate::messages::Message;
-use crate::{games::GameID, http};
+use crate::{games::GameID, http, id_map};
 use anyhow::{Result, anyhow};
-use percent_encoding::{NON_ALPHANUMERIC, utf8_percent_encode};
 use serde::{Deserialize, Serialize};
 use std::{fs, path::Path};
 
@@ -38,15 +37,7 @@ impl TxtCodesSource {
                 http::get(&url).map_err(Into::into)
             }
             Self::GameHacking => {
-                let encoded_title = utf8_percent_encode(display_title, NON_ALPHANUMERIC);
-                let url_to_scrape = format!("https://gamehacking.org/system/wii/{}", encoded_title);
-                let html_str = http::get_string(&url_to_scrape)?;
-                let ids = scrape_gamehacks_search_html(&html_str);
-
-                let gamehacks_id = ids
-                    .into_iter()
-                    .find(|(id, _)| *id == game_id)
-                    .map(|(_, gamehacks_id)| gamehacks_id)
+                let gamehacking_id = id_map::get_gamehacking_id(game_id)
                     .ok_or(anyhow!("Could not find gamehacks id"))?;
 
                 let form = [
@@ -54,7 +45,7 @@ impl TxtCodesSource {
                     ("codID", ""),
                     ("filename", game_id_str),
                     ("sysID", "22"),
-                    ("gamID", &gamehacks_id),
+                    ("gamID", &gamehacking_id.to_string()),
                     ("download", "true"),
                 ];
 
@@ -117,42 +108,4 @@ pub fn spawn_download_cheats_task(app: &App) {
 
         Ok(())
     });
-}
-
-// This could be written with regex, but I don't want to add a dependency for that.
-// If regex is added, this function should be rewritten.
-fn scrape_gamehacks_search_html(html_str: &str) -> Box<[([u8; 6], String)]> {
-    let mut games = Vec::new();
-
-    let mut gamehacks_id_buffer = String::new();
-    for line in html_str.lines() {
-        let line = line.trim();
-
-        if line.starts_with("<td><a href=\"/game/") {
-            let line = line.trim_start_matches("<td><a href=\"/game/");
-
-            let quotation_marks_i = if let Some(quotation_marks_i) = line.find('"') {
-                quotation_marks_i
-            } else {
-                continue;
-            };
-
-            let gamehacks_id = &line[..quotation_marks_i];
-            gamehacks_id_buffer.push_str(gamehacks_id);
-            continue;
-        }
-
-        // Line immediately after gamehacks id
-        if !gamehacks_id_buffer.is_empty() {
-            let id_str = line
-                .trim_start_matches("<td class=\"text-center\">")
-                .trim_end_matches("</td>");
-
-            let game_id = <[u8; 6]>::from_id_str(id_str);
-            let gamehacks_id = std::mem::take(&mut gamehacks_id_buffer);
-            games.push((game_id, gamehacks_id));
-        }
-    }
-
-    games.into_boxed_slice()
 }
