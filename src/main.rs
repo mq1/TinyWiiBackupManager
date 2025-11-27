@@ -79,7 +79,6 @@ fn main() -> Result<()> {
     // ----------------
     // Initialize tasks
 
-    titles::spawn_get_titles_task(&app); // this also loads games when finished
     updater::spawn_check_update_task(&app);
     osc::spawn_load_osc_apps_task(&app);
 
@@ -124,8 +123,10 @@ fn main() -> Result<()> {
                 style.spacing.button_padding = vec2(5., 2.5);
             });
 
-            // Load hbc apps instantly
+            // Load games and hbc apps
+            app.refresh_games();
             app.refresh_hbc_apps();
+            app.update_title(&cc.egui_ctx);
 
             Ok(Box::new(app))
         }),

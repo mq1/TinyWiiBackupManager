@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::config::SortBy;
-use crate::titles::Titles;
+use crate::titles;
 use anyhow::Result;
 use anyhow::anyhow;
 use anyhow::bail;
@@ -11,7 +11,7 @@ use size::Size;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-pub fn list(mount_point: &Path, titles: &Titles) -> Vec<Game> {
+pub fn list(mount_point: &Path) -> Vec<Game> {
     if mount_point.as_os_str().is_empty() {
         return vec![];
     }
@@ -20,9 +20,11 @@ pub fn list(mount_point: &Path, titles: &Titles) -> Vec<Game> {
 
     for (dir_name, is_wii) in &[("wbfs", true), ("games", false)] {
         if let Ok(entries) = fs::read_dir(mount_point.join(dir_name)) {
-            games.extend(entries.filter_map(|entry| {
-                Game::from_dir(entry.ok()?.path(), titles, mount_point, *is_wii).ok()
-            }));
+            games.extend(
+                entries.filter_map(|entry| {
+                    Game::from_dir(entry.ok()?.path(), mount_point, *is_wii).ok()
+                }),
+            );
         }
     }
 
@@ -30,12 +32,7 @@ pub fn list(mount_point: &Path, titles: &Titles) -> Vec<Game> {
 }
 
 impl Game {
-    pub fn from_dir(
-        dir: PathBuf,
-        titles: &Titles,
-        mount_point: &Path,
-        is_wii: bool,
-    ) -> Result<Self> {
+    pub fn from_dir(dir: PathBuf, mount_point: &Path, is_wii: bool) -> Result<Self> {
         if !dir.is_dir() {
             bail!("{} is not a directory", dir.display());
         }
@@ -67,7 +64,7 @@ impl Game {
             .map(<[u8; 6]>::from_id_str)
             .ok_or(anyhow!("Invalid directory name"))?;
 
-        let display_title = titles.get(id).unwrap_or(title).to_string();
+        let display_title = titles::get(id).unwrap_or(title).to_string();
 
         // Get the directory size
         let size = Size::from_bytes(fs_extra::dir::get_size(&dir).unwrap_or(0));
