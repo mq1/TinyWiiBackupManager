@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::fs::File;
+use std::io::BufRead;
+use std::io::BufReader;
 use std::path::PathBuf;
 use std::{env, fs};
 
@@ -13,13 +16,13 @@ fn str_to_gameid(id: &str) -> [u8; 6] {
 }
 
 fn parse_gamehacking_ids() -> Box<[([u8; 6], u32)]> {
-    let txt = fs::read_to_string("assets/gamehacking-ids.txt").unwrap();
-    let mut lines = txt.lines();
+    let file = BufReader::new(File::open("assets/gamehacking-ids.txt").unwrap());
+    let mut lines = file.lines();
 
     let mut ids = Vec::new();
     while let Some(line) = lines.next() {
-        let gamehacking_id_raw = line;
-        let game_id_raw = lines.next().unwrap();
+        let gamehacking_id_raw = line.unwrap();
+        let game_id_raw = lines.next().unwrap().unwrap();
 
         let gamehacking_id = gamehacking_id_raw.trim_start_matches("<td><a href=\"/game/");
         let gamehacking_id_end = gamehacking_id.find('"').unwrap();
@@ -42,18 +45,19 @@ fn parse_gamehacking_ids() -> Box<[([u8; 6], u32)]> {
 fn compile_id_map() {
     let gamehacking_ids = parse_gamehacking_ids();
 
-    let txt = fs::read_to_string("assets/wiitdb.txt").unwrap();
+    let file = BufReader::new(File::open("assets/wiitdb.txt").unwrap());
 
     // Skip the first line
-    let mut lines = txt.lines();
+    let mut lines = file.lines();
     lines.next();
 
     // Build the map
     let mut id6_titles = Vec::new();
 
     for line in lines {
+        let line = line.unwrap();
         let (id, title) = line.split_once(" = ").unwrap();
-        id6_titles.push((str_to_gameid(id), title));
+        id6_titles.push((str_to_gameid(id), title.to_string()));
     }
 
     // Sort the map (to enable binary search)
