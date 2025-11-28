@@ -56,9 +56,12 @@ fn compile_id_map() {
     let mut titles_map = Vec::new();
 
     for line in lines {
-        let line = line.unwrap();
-        let (id, title) = line.split_once(" = ").unwrap();
-        titles_map.push((str_to_gameid(id), title.to_string()));
+        let mut line = line.unwrap();
+        let split_pos = line.find('=').unwrap();
+        let id = &line[..(split_pos - 1)];
+        let id = str_to_gameid(id);
+        line.drain(..(split_pos + 2));
+        titles_map.push((id, line));
     }
 
     // Sort the map (to enable binary search)
