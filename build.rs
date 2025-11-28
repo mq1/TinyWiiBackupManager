@@ -31,8 +31,10 @@ fn parse_gamehacking_ids() -> Box<[([u8; 6], u32)]> {
             .trim_start_matches("<td class=\"text-center\">")
             .trim_end_matches("</td>");
 
-        let game_id = str_to_gameid(game_id);
-        ids.push((game_id, gamehacking_id));
+        if !game_id.is_empty() {
+            let game_id = str_to_gameid(game_id);
+            ids.push((game_id, gamehacking_id));
+        }
     }
 
     let mut ids = ids.into_boxed_slice();
