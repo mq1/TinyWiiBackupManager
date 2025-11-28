@@ -1,11 +1,10 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::env;
 use std::fs::File;
-use std::io::BufRead;
-use std::io::BufReader;
-use std::path::PathBuf;
-use std::{env, fs};
+use std::io::{BufRead, BufReader, BufWriter, Write};
+use std::path::Path;
 
 fn str_to_gameid(id: &str) -> [u8; 6] {
     let mut id_bytes = [0u8; 6];
@@ -44,44 +43,43 @@ fn parse_gamehacking_ids() -> Box<[([u8; 6], u32)]> {
 
 fn compile_id_map() {
     let gamehacking_ids = parse_gamehacking_ids();
-
     let file = BufReader::new(File::open("assets/wiitdb.txt").unwrap());
+    let mut out_file = BufWriter::new(
+        File::create(Path::new(&env::var("OUT_DIR").unwrap()).join("id_map_data.rs")).unwrap(),
+    );
 
     // Skip the first line
     let mut lines = file.lines();
     lines.next();
 
     // Build the map
-    let mut id6_titles = Vec::new();
+    let mut titles_map = Vec::new();
 
     for line in lines {
         let line = line.unwrap();
         let (id, title) = line.split_once(" = ").unwrap();
-        id6_titles.push((str_to_gameid(id), title.to_string()));
+        titles_map.push((str_to_gameid(id), title.to_string()));
     }
 
     // Sort the map (to enable binary search)
-    id6_titles.sort_unstable_by_key(|entry| entry.0);
+    titles_map.sort_unstable_by_key(|entry| entry.0);
 
     // Build the Rust code
-    let mut id_map_data = String::new();
-
-    id_map_data.push_str("const DATA: &[([u8; 6], &str, u32)] = &[");
-    for (id, title) in id6_titles {
+    write!(&mut out_file, "const DATA: &[([u8; 6], &str, u32)] = &[").unwrap();
+    for (id, title) in titles_map {
         let ghid = gamehacking_ids
             .binary_search_by_key(&id, |entry| entry.0)
             .map(|i| gamehacking_ids[i].1)
             .unwrap_or(0);
 
-        id_map_data.push_str(&format!(
+        write!(
+            &mut out_file,
             "([{},{},{},{},{},{}],\"{}\",{}),",
             id[0], id[1], id[2], id[3], id[4], id[5], title, ghid
-        ));
+        )
+        .unwrap();
     }
-    id_map_data.push_str("];");
-
-    let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
-    fs::write(out_dir.join("id_map_data.rs"), id_map_data).unwrap();
+    write!(&mut out_file, "];").unwrap();
 }
 
 fn main() {
