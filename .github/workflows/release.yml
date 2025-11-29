@@ -137,7 +137,7 @@ jobs:
 
       - name: Install dependencies
         if: matrix.arch == 'x86_64' || matrix.arch == 'x86_64-v3'
-        run: cargo install cargo-packager --version ^0.11 --locked
+        run: cargo install cargo-packager --version 0.11.8 --locked
 
       - name: Build binary
         run: cargo build --release --locked --target ${{ matrix.target }}
@@ -243,7 +243,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cargo install cargo-packager --version ^0.11 --locked
+          cargo install cargo-packager --version 0.11.8 --locked
           npm i -g appdmg@0.6.6
 
       - name: Build binary
