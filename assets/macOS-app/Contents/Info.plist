@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+    <dict>
+        <key>CFBundleName</key>
+        <string>TinyWiiBackupManager</string>
+
+        <key>CFBundleDisplayName</key>
+        <string>TinyWiiBackupManager</string>
+
+        <key>CFBundleExecutable</key>
+        <string>TinyWiiBackupManager</string>
+
+        <key>CFBundleIdentifier</key>
+        <string>it.mq1.TinyWiiBackupManager</string>
+
+        <key>CFBundleVersion</key>
+        <string>1</string>
+
+        <key>CFBundleShortVersionString</key>
+        <string>0.0.0</string>
+
+        <key>CFBundlePackageType</key>
+        <string>APPL</string>
+
+        <key>CFBundleInfoDictionaryVersion</key>
+        <string>6.0</string>
+
+        <key>LSMinimumSystemVersion</key>
+        <string>10.12</string>
+
+        <key>NSHighResolutionCapable</key>
+        <true/>
+
+        <key>LSApplicationCategoryType</key>
+        <string>public.app-category.utilities</string>
+
+        <key>CFBundleIconFile</key>
+        <string>AppIcon</string>
+
+        <key>CFBundleDevelopmentRegion</key>
+        <string>en</string>
+
+        <key>NSHumanReadableCopyright</key>
+        <string>Copyright © 2025 Manuel Quarneti. Licensed under GPL-3.0-only.</string>
+
+        <key>NSRequiresAquaSystemAppearance</key>
+        <false/>
+
+        <key>NSRemovableVolumesUsageDescription</key>
+        <string>TinyWiiBackupManager needs access to external drives to read and write Wii games.</string>
+
+        <key>NSAppSleepDisabled</key>
+        <true/>
+
+        <key>NSPrincipalClass</key>
+        <string>NSApplication</string>
+
+        <key>NSSupportsAutomaticGraphicsSwitching</key>
+        <true/>
+    </dict>
+</plist>

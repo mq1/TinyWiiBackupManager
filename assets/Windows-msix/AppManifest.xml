@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Package
+        xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+        xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+        xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+        IgnorableNamespaces="uap rescap">
+
+    <Identity
+            Name="TinyWiiBackupManager"
+            Publisher="CN=Manuel Quarneti"
+            Version="0.0.0.0"/>
+
+    <Properties>
+        <DisplayName>TinyWiiBackupManager</DisplayName>
+        <PublisherDisplayName>Manuel Quarneti</PublisherDisplayName>
+        <Logo>Assets\AppIcon.png</Logo>
+        <Description>A tiny game backup and homebrew app manager for the Wii</Description>
+    </Properties>
+
+    <Dependencies>
+        <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.22621.0"/>
+    </Dependencies>
+
+    <Resources>
+        <Resource Language="en-us"/>
+    </Resources>
+
+    <Applications>
+        <Application
+                Id="TinyWiiBackupManager"
+                Executable="TinyWiiBackupManager.exe"
+                EntryPoint="Windows.FullTrustApplication">
+
+            <uap:VisualElements
+                    DisplayName="TinyWiiBackupManager"
+                    Description="A tiny game backup and homebrew app manager for the Wii"
+                    BackgroundColor="transparent"
+                    Square150x150Logo="Assets\AppIcon.png"
+                    Square44x44Logo="Assets\AppIcon.png">
+            </uap:VisualElements>
+        </Application>
+    </Applications>
+
+    <Capabilities>
+        <rescap:Capability Name="runFullTrust"/>
+    </Capabilities>
+</Package>
