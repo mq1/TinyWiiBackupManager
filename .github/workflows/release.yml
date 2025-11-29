@@ -140,6 +140,7 @@ jobs:
           key: ${{ matrix.arch }}
 
       - name: Install cargo-packager
+        if: matrix.arch != 'x86'
         run: cargo install cargo-packager --version 0.11.8 --locked
 
       - name: Build binary
@@ -155,11 +156,12 @@ jobs:
           New-Item -Path "Rename TinyWiiBackupManager.exe to TinyWiiBackupManager-portable.exe to make it portable" -ItemType File
           7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe "Rename TinyWiiBackupManager.exe to TinyWiiBackupManager-portable.exe to make it portable"
 
-      - name: Package binary as msi
+      - name: Package binary with NSIS
+        if: matrix.arch != 'x86'
         shell: pwsh
         run: |
-          cargo packager --release --target ${{ matrix.target }} --formats wix
-          Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager-*.msi" -Destination "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.msi"
+          cargo packager --release --target ${{ matrix.target }} --formats nsis
+          Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager*-setup.exe" -Destination "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}-setup.exe"
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v4
