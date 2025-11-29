@@ -8,7 +8,7 @@
     <Identity
             Name="TinyWiiBackupManager"
             Publisher="CN=mq1"
-            Version="X.X.X.0"/>
+            Version="0.0.0.0"/>
 
     <Properties>
         <DisplayName>TinyWiiBackupManager</DisplayName>
