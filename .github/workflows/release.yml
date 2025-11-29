@@ -52,9 +52,8 @@ jobs:
 
       - name: Install Rust toolchain
         run: |
-          rustup toolchain install 1.91
+          rustup toolchain install 1.91 --component rust-src
           rustup default 1.91
-          rustup target add ${{ matrix.target }}
 
       - name: Restore Rust cache
         uses: Swatinem/rust-cache@v2
@@ -74,8 +73,9 @@ jobs:
           chmod +x linuxdeploy-${{ matrix.ldai-arch }}.AppImage linuxdeploy-plugin-appimage-${{ matrix.ldai-arch }}.AppImage
 
       - name: Build binary
-        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
+        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
         env:
+          RUSTC_BOOTSTRAP: 1
           RUSTFLAGS: ${{ matrix.rustflags }}
 
       - name: Package binary as tar.gz
@@ -127,9 +127,8 @@ jobs:
       - name: Install Rust toolchain
         shell: pwsh
         run: |
-          rustup toolchain install 1.91
+          rustup toolchain install 1.91 --component rust-src
           rustup default 1.91
-          rustup target add ${{ matrix.target }}
 
       - name: Restore Rust cache
         uses: Swatinem/rust-cache@v2
@@ -143,8 +142,9 @@ jobs:
 
       - name: Build binary
         shell: pwsh
-        run: cargo build --release --locked --target ${{ matrix.target }}
+        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
         env:
+          RUSTC_BOOTSTRAP: 1
           RUSTFLAGS: ${{ matrix.rustflags }}
 
       - name: Package binary as zip
@@ -237,9 +237,8 @@ jobs:
 
       - name: Install Rust toolchain
         run: |
-          rustup toolchain install 1.91
+          rustup toolchain install 1.91 --component rust-src
           rustup default 1.91
-          rustup target add ${{ matrix.target }}
 
       - name: Restore Rust cache
         uses: Swatinem/rust-cache@v2
@@ -247,7 +246,9 @@ jobs:
           key: ${{ matrix.arch }}
 
       - name: Build binary
-        run: cargo build --release --locked --target ${{ matrix.target }}
+        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
+        env:
+          RUSTC_BOOTSTRAP: 1
 
       - name: Create .app
         run: |
