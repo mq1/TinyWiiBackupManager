@@ -103,23 +103,19 @@ jobs:
 
   build-windows:
     name: Build for Windows
-    runs-on: ${{ matrix.runner }}
+    runs-on: windows-2025
     strategy:
       fail-fast: false
       matrix:
         include:
           - target: x86_64-pc-windows-msvc
-            runner: windows-2025
             arch: x86_64
           - target: x86_64-pc-windows-msvc
-            runner: windows-2025
             arch: x86_64-v3
             rustflags: "-C target-cpu=x86-64-v3"
           - target: aarch64-pc-windows-msvc
-            runner: windows-11-arm
             arch: arm64
           - target: i686-pc-windows-msvc
-            runner: windows-2025
             arch: x86
 
     steps:
@@ -139,10 +135,6 @@ jobs:
         with:
           key: ${{ matrix.arch }}
 
-      - name: Install cargo-packager
-        if: matrix.arch != 'x86'
-        run: cargo install cargo-packager --version 0.11.8 --locked
-
       - name: Build binary
         run: cargo build --release --locked --target ${{ matrix.target }}
         env:
@@ -156,12 +148,30 @@ jobs:
           New-Item -Path "Rename TinyWiiBackupManager.exe to TinyWiiBackupManager-portable.exe to make it portable" -ItemType File
           7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe "Rename TinyWiiBackupManager.exe to TinyWiiBackupManager-portable.exe to make it portable"
 
-      - name: Package binary with NSIS
-        if: matrix.arch != 'x86'
+      - name: Setup msix package dir
+        shell: pwsh
+        run: Copy-Item -Recurse -Path "assets/Windows-msix" -Destination "package"
+
+      - name: Set version in AppxManifest.xml
+        if: github.ref_type == 'tag'
         shell: pwsh
         run: |
-          cargo packager --release --target ${{ matrix.target }} --formats nsis
-          Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager*-setup.exe" -Destination "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}-setup.exe"
+          $plain_ver = $env:VERSION_NAME -replace '^v', ''
+          (Get-Content "package/AppxManifest.xml").Replace("0.0.0.0", $plain_ver + ".0") | Set-Content "package/AppxManifest.xml"
+
+      - name: Package binary as msix
+        shell: pwsh
+        run: |
+          Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "package/TinyWiiBackupManager.exe"
+          & "C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\MakeAppx.exe" pack /d "package" /p "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.msix" /nv
+
+      - name: Sign with certificate from secrets
+        shell: pwsh
+        run: |
+          $pfxBytes = [System.Convert]::FromBase64String("${{ secrets.SIGNING_CERT_BASE64 }}")
+          [IO.File]::WriteAllBytes("signing-cert.pfx", $pfxBytes)
+          & "C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\SignTool.exe" sign /fd SHA256 /f "signing-cert.pfx" /p "${{ secrets.SIGNING_CERT_PASSWORD }}" "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.msix"
+          Remove-Item "signing-cert.pfx"
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v4
@@ -245,20 +255,27 @@ jobs:
         with:
           key: ${{ matrix.arch }}
 
-      - name: Install cargo-packager
-        run: cargo install cargo-packager --version 0.11.8 --locked
-
       - name: Build binary
         run: cargo build --release --locked --target ${{ matrix.target }}
 
       - name: Create .app
-        run: cargo packager --release --target ${{ matrix.target }} --formats app
+        run: |
+          cp -r assets/macOS-app TinyWiiBackupManager.app
+          mkdir TinyWiiBackupManager.app/Contents/MacOS
+          cp target/${{ matrix.target }}/release/TinyWiiBackupManager TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
+          chmod 755 TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
+
+      - name: Set version in Info.plist
+        if: github.ref_type == 'tag'
+        run: |
+          plain_ver="${VERSION_NAME#v}"
+          sed -i '' 's/0.0.0/${plain_ver}/' TinyWiiBackupManager.app/Contents/Info.plist
 
       - name: zip the app
         run: |
           mkdir dist
           ditto -c -k --sequesterRsrc --keepParent --zlibCompressionLevel 9 \
-            "target/${{ matrix.target }}/release/TinyWiiBackupManager.app" \
+            TinyWiiBackupManager.app \
             "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-${{ matrix.arch }}.zip"
 
       - name: Create dmg (assets from sindresorhus/create-dmg)
