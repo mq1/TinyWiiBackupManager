@@ -91,6 +91,7 @@ bundled-tls = ["ureq/rustls"]
 
 [target.'cfg(windows)'.build-dependencies]
 winres = "0.1"
+static_vcruntime = "3.0"
 
 [profile.release]
 opt-level = 3
