@@ -90,10 +90,11 @@ fn compile_id_map() {
 fn main() {
     compile_id_map();
 
+    #[cfg(target_vendor = "pc")]
+    static_vcruntime::metabuild();
+
     #[cfg(windows)]
     {
-        static_vcruntime::metabuild();
-
         let mut res = winres::WindowsResource::new();
         res.set_icon("assets/TinyWiiBackupManager.ico");
         res.compile().unwrap();
