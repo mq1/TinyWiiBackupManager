@@ -142,7 +142,7 @@ jobs:
 
       - name: Build binary
         shell: pwsh
-        run: cargo bundle --release --target ${{ matrix.target }}
+        run: cargo build --release --locked --target ${{ matrix.target }}
         env:
           RUSTFLAGS: ${{ matrix.rustflags }}
 
@@ -156,7 +156,9 @@ jobs:
 
       - name: Package binary as msi
         shell: pwsh
-        run: Move-Item -Path "target/${{ matrix.target }}/release/bundle/msi/TinyWiiBackupManager.msi" -Destination "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.msi"
+        run: |
+          cargo bundle --release --target ${{ matrix.target }} --format msi
+          Move-Item -Path "target/${{ matrix.target }}/release/bundle/msi/TinyWiiBackupManager.msi" -Destination "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.msi"
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v4
