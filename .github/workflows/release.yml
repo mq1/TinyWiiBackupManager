@@ -165,14 +165,6 @@ jobs:
           Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "package/TinyWiiBackupManager.exe"
           & "C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\MakeAppx.exe" pack /d "package" /p "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.msix" /nv
 
-      - name: Sign with certificate from secrets
-        shell: pwsh
-        run: |
-          $pfxBytes = [System.Convert]::FromBase64String("${{ secrets.SIGNING_CERT_BASE64 }}")
-          [IO.File]::WriteAllBytes("signing-cert.pfx", $pfxBytes)
-          & "C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\SignTool.exe" sign /fd SHA256 /f "signing-cert.pfx" /p "${{ secrets.SIGNING_CERT_PASSWORD }}" "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.msix"
-          Remove-Item "signing-cert.pfx"
-
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v4
         with:
