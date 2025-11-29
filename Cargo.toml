@@ -60,10 +60,10 @@ itertools = "0.14"
 smallvec = "1.15"
 time = { version = "0.3", features = ["macros", "parsing", "serde"] }
 
-[target.'cfg(any(target_os = "linux", target_vendor = "win7"))'.dependencies]
+[target.'cfg(any(all(target_os = "macos", target_arch = "x86_64"), target_os = "linux", target_vendor = "win7"))'.dependencies]
 eframe = "0.33"
 
-[target.'cfg(any(target_os = "macos", target_vendor = "pc"))'.dependencies]
+[target.'cfg(any(all(target_os = "macos", target_arch = "aarch64"), target_vendor = "pc"))'.dependencies]
 eframe = { version = "0.33", default-features = false, features = [
     "accesskit",
     "default_fonts",
