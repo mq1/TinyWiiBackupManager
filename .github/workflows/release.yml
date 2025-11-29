@@ -135,6 +135,9 @@ jobs:
         with:
           key: ${{ matrix.arch }}
 
+      - name: Install cargo-packager
+        run: cargo install cargo-packager --version 0.11.8 --locked
+
       - name: Build binary
         run: cargo build --release --locked --target ${{ matrix.target }}
         env:
@@ -148,22 +151,11 @@ jobs:
           New-Item -Path "Rename TinyWiiBackupManager.exe to TinyWiiBackupManager-portable.exe to make it portable" -ItemType File
           7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe "Rename TinyWiiBackupManager.exe to TinyWiiBackupManager-portable.exe to make it portable"
 
-      - name: Setup msix package dir
-        shell: pwsh
-        run: Copy-Item -Recurse -Path "assets/windows-msix" -Destination "package"
-
-      - name: Set version in AppxManifest.xml
-        if: github.ref_type == 'tag'
+      - name: Package binary as msi
         shell: pwsh
         run: |
-          $plain_ver = $env:VERSION_NAME -replace '^v', ''
-          (Get-Content "package/AppxManifest.xml").Replace("0.0.0.0", $plain_ver) | Set-Content "package/AppxManifest.xml"
-
-      - name: Package binary as msix
-        shell: pwsh
-        run: |
-          Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "package/TinyWiiBackupManager.exe"
-          & "C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\MakeAppx.exe" pack /d "package" /p "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.msix" /nv
+          cargo packager --release --target ${{ matrix.target }} --formats msi
+          Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager-*.msi" -Destination "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.msi"
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v4
@@ -247,21 +239,14 @@ jobs:
         with:
           key: ${{ matrix.arch }}
 
+      - name: Install cargo-packager
+        run: cargo install cargo-packager --version 0.11.8 --locked
+
       - name: Build binary
         run: cargo build --release --locked --target ${{ matrix.target }}
 
       - name: Create .app
-        run: |
-          cp -r assets/macOS-app TinyWiiBackupManager.app
-          mkdir TinyWiiBackupManager.app/Contents/MacOS
-          cp target/${{ matrix.target }}/release/TinyWiiBackupManager TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
-          chmod 755 TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
-
-      - name: Set version in Info.plist
-        if: github.ref_type == 'tag'
-        run: |
-          plain_ver="${VERSION_NAME#v}"
-          sed -i '' 's/0.0.0/${plain_ver}/' TinyWiiBackupManager.app/Contents/Info.plist
+        run: cargo packager --release --target ${{ matrix.target }} --formats app
 
       - name: zip the app
         run: |
