@@ -70,16 +70,16 @@ eframe = { version = "0.33", default-features = false, features = [
     "wgpu",
 ] }
 
-[target.'cfg(target_vendor = "pc")'.dependencies]
+[target.'cfg(all(target_os = "macos", target_arch = "aarch64"))'.dependencies]
 wgpu = { version = "*", default-features = false, features = [
-    "dx12",
+    "metal",
     "std",
     "parking_lot",
 ] }
 
-[target.'cfg(target_os = "macos")'.dependencies]
+[target.'cfg(target_vendor = "pc")'.dependencies]
 wgpu = { version = "*", default-features = false, features = [
-    "metal",
+    "dx12",
     "std",
     "parking_lot",
 ] }
