@@ -154,7 +154,7 @@ jobs:
           Copy-Item -Recurse -Path "assets/windows-msix" -Destination "package"
           (Get-Content "package/AppxManifest.xml").Replace("X.X.X", "${{ env.VERSION_NAME }}") | Set-Content "package/AppxManifest.xml"
           Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "package/TinyWiiBackupManager.exe"
-          MakeAppx.exe pack /d "package" /p "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.msix"
+          "C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\MakeAppx.exe" pack /d "package" /p "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.msix" /nv
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v4
