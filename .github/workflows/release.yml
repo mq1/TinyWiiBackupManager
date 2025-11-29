@@ -136,9 +136,7 @@ jobs:
           key: ${{ matrix.arch }}
 
       - name: Install dependencies
-        run: |
-          cargo install cargo-packager --version 0.11.8 --locked
-          choco install wixtoolset
+        run: cargo install cargo-bundle --version 0.9.0 --locked
 
       - name: Build binary
         run: cargo build --release --locked --target ${{ matrix.target }}
@@ -156,7 +154,7 @@ jobs:
       - name: Package binary as msi
         shell: pwsh
         run: |
-          cargo packager --release --target ${{ matrix.target }} --formats wix
+          cargo bundle --release --target ${{ matrix.target }} --format msi
           Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager*.msi" -Destination "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.msi"
 
       - name: Upload Windows distributables
