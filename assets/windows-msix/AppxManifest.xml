@@ -37,7 +37,6 @@
                     BackgroundColor="transparent"
                     Square150x150Logo="Assets\AppIcon.png"
                     Square44x44Logo="Assets\AppIcon.png">
-                >
             </uap:VisualElements>
         </Application>
     </Applications>
