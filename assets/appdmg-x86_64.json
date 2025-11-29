@@ -1,28 +1,27 @@
 {
-    "title": "TinyWiiBackupManager",
-    "icon": "dmg-icon.icns",
-    "background": "dmg-background.png",
-    "icon-size": 160,
-    "window": {
-        "size": {
-            "width": 660,
-            "height": 400
-        }
+  "title": "TinyWiiBackupManager",
+  "background": "dmg-background.png",
+  "icon-size": 160,
+  "window": {
+    "size": {
+      "width": 660,
+      "height": 400
+    }
+  },
+  "format": "ULFO",
+  "filesystem": "HFS+",
+  "contents": [
+    {
+      "x": 180,
+      "y": 170,
+      "type": "file",
+      "path": "../TinyWiiBackupManager.app"
     },
-    "format": "ULFO",
-    "filesystem": "HFS+",
-    "contents": [
-        {
-            "x": 180,
-            "y": 170,
-            "type": "file",
-            "path": "../target/x86_64-apple-darwin/release/TinyWiiBackupManager.app"
-        },
-        {
-            "x": 480,
-            "y": 170,
-            "type": "link",
-            "path": "/Applications"
-        }
-    ]
+    {
+      "x": 480,
+      "y": 170,
+      "type": "link",
+      "path": "/Applications"
+    }
+  ]
 }

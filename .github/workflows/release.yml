@@ -137,7 +137,7 @@ jobs:
 
       - name: Install dependencies
         if: matrix.arch == 'x86_64' || matrix.arch == 'x86_64-v3'
-        run: cargo install cargo-packager --version ^0.11 --locked
+        run: cargo install cargo-packager --version 0.11.8 --locked
 
       - name: Build binary
         run: cargo build --release --locked --target ${{ matrix.target }}
@@ -241,24 +241,29 @@ jobs:
         with:
           key: ${{ matrix.arch }}
 
-      - name: Install dependencies
-        run: |
-          cargo install cargo-packager --version ^0.11 --locked
-          npm i -g appdmg@0.6.6
-
       - name: Build binary
         run: cargo build --release --locked --target ${{ matrix.target }}
 
-      - name: Create app with cargo-packager
-        run: cargo packager --release --target ${{ matrix.target }} --formats app
+      - name: Create .app
+        run: |
+          cp -r assets/macOS-app TinyWiiBackupManager.app
+          sed -i '' 's/X.X.X/${{ env.VERSION_NAME }}/' TinyWiiBackupManager.app/Contents/Info.plist
+          mkdir TinyWiiBackupManager.app/Contents/MacOS
+          cp target/${{ matrix.target }}/release/TinyWiiBackupManager TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
+          chmod 755 TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
 
       - name: zip the app
         run: |
           mkdir dist
-          ditto -c -k --sequesterRsrc --keepParent --zlibCompressionLevel 9 "target/${{ matrix.target }}/release/TinyWiiBackupManager.app" "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-${{ matrix.arch }}.zip"
+          ditto -c -k --sequesterRsrc --keepParent --zlibCompressionLevel 9 \
+            TinyWiiBackupManager.app \
+            "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-${{ matrix.arch }}.zip"
 
       - name: Create dmg (assets from sindresorhus/create-dmg)
-        run: appdmg assets/appdmg-${{ matrix.arch }}.json "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-${{ matrix.arch }}.dmg"
+        run: |
+          npx -y appdmg@0.6.6 \
+            "assets/appdmg-${{ matrix.arch }}.json" \
+            "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-${{ matrix.arch }}.dmg"
 
       - name: Upload macOS distributables
         uses: actions/upload-artifact@v4
