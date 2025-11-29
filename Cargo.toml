@@ -10,15 +10,8 @@ homepage = "https://github.com/mq1/TinyWiiBackupManager/wiki"
 description = "A tiny game backup and homebrew app manager for the Wii"
 build = "build.rs"
 
-[package.metadata.packager]
-product-name = "TinyWiiBackupManager"
-identifier = "it.mq1.TinyWiiBackupManager"
-icons = ["assets/TinyWiiBackupManager@2x.png"]
-copyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-3.0-only."
-category = "Utility"
-
 [package.metadata.winres]
-FileDescription = "A tiny game backup and homebrew app manager for the Wii"
+FileDescription = "TinyWiiBackupManager"
 ProductName = "TinyWiiBackupManager"
 OriginalFilename = "TinyWiiBackupManager.exe"
 LegalCopyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-3.0-only."

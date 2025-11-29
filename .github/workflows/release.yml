@@ -135,10 +135,6 @@ jobs:
         with:
           key: ${{ matrix.arch }}
 
-      - name: Install dependencies
-        if: matrix.arch == 'x86_64' || matrix.arch == 'x86_64-v3'
-        run: cargo install cargo-packager --version 0.11.8 --locked
-
       - name: Build binary
         run: cargo build --release --locked --target ${{ matrix.target }}
         env:
@@ -152,12 +148,13 @@ jobs:
           New-Item -Path "Rename TinyWiiBackupManager.exe to TinyWiiBackupManager-portable.exe to make it portable" -ItemType File
           7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe "Rename TinyWiiBackupManager.exe to TinyWiiBackupManager-portable.exe to make it portable"
 
-      - name: Package binary as installer
-        if: matrix.arch == 'x86_64' || matrix.arch == 'x86_64-v3'
+      - name: Package binary as msix
         shell: pwsh
         run: |
-          cargo packager --release --target ${{ matrix.target }} --formats nsis
-          Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager*-setup.exe" -Destination "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}-setup.exe"
+          Copy-Item -Recurse -Path "assets/windows-msix" -Destination "package"
+          (Get-Content "package/AppxManifest.xml").Replace("X.X.X", "${{ env.VERSION_NAME }}") | Set-Content "package/AppxManifest.xml"
+          Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "package/TinyWiiBackupManager.exe"
+          MakeAppx pack /d "package" /p "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.msix"
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v4
