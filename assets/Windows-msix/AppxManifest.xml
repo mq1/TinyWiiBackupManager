@@ -7,7 +7,7 @@
 
     <Identity
             Name="TinyWiiBackupManager"
-            Publisher="CN=Manuel Quarneti"
+            Publisher="CN=mq1, OID.2.25.311729368913984317654407730594956997722=1"
             Version="0.0.0.0"/>
 
     <Properties>
