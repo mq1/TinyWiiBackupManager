@@ -154,7 +154,7 @@ jobs:
       - name: Package binary as msi
         shell: pwsh
         run: |
-          cargo packager --release --target ${{ matrix.target }} --formats msi
+          cargo packager --release --target ${{ matrix.target }} --formats wix
           Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager-*.msi" -Destination "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.msi"
 
       - name: Upload Windows distributables
