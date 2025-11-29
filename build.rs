@@ -90,7 +90,9 @@ fn compile_id_map() {
 fn main() {
     compile_id_map();
 
-    // Windows-specific icon resource
+    #[cfg(target_vendor = "pc")]
+    static_vcruntime::metabuild();
+
     #[cfg(windows)]
     {
         let mut res = winres::WindowsResource::new();
