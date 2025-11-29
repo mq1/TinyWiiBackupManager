@@ -125,6 +125,7 @@ jobs:
           fetch-depth: 1
 
       - name: Install Rust toolchain
+        shell: pwsh
         run: |
           rustup toolchain install 1.91
           rustup default 1.91
@@ -136,15 +137,16 @@ jobs:
           key: ${{ matrix.arch }}
 
       - name: Install dependencies
-        if: matrix.arch == 'x86_64' || matrix.arch == 'x86_64-v3'
-        run: cargo install cargo-packager --version 0.11.8 --locked
+        shell: pwsh
+        run: cargo install cargo-bundle --version 0.9.0 --locked
 
       - name: Build binary
+        shell: pwsh
         run: cargo build --release --locked --target ${{ matrix.target }}
         env:
           RUSTFLAGS: ${{ matrix.rustflags }}
 
-      - name: Package binaries as zip
+      - name: Package binary as zip
         shell: pwsh
         run: |
           New-Item -Path "dist" -ItemType Directory
@@ -152,12 +154,13 @@ jobs:
           New-Item -Path "Rename TinyWiiBackupManager.exe to TinyWiiBackupManager-portable.exe to make it portable" -ItemType File
           7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe "Rename TinyWiiBackupManager.exe to TinyWiiBackupManager-portable.exe to make it portable"
 
-      - name: Package binary as installer
-        if: matrix.arch == 'x86_64' || matrix.arch == 'x86_64-v3'
+      - name: Package binary as msi
         shell: pwsh
         run: |
-          cargo packager --release --target ${{ matrix.target }} --formats nsis
-          Move-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager*-setup.exe" -Destination "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}-setup.exe"
+          cargo bundle --release --target ${{ matrix.target }} --format msi
+          Copy-Item -Path "target/${{ matrix.target }}/release/bundle/msi/TinyWiiBackupManager.msi" -Destination "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.msi"
+        env:
+          RUSTFLAGS: ${{ matrix.rustflags }}
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v4
@@ -189,11 +192,13 @@ jobs:
           key: ${{ matrix.arch }}
 
       - name: Install Rust toolchain and rust-src
+        shell: pwsh
         run: |
           rustup toolchain install 1.91 --component rust-src
           rustup default 1.91
 
       - name: Build binary
+        shell: pwsh
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
         env:
           RUSTC_BOOTSTRAP: 1
@@ -247,10 +252,15 @@ jobs:
       - name: Create .app
         run: |
           cp -r assets/macOS-app TinyWiiBackupManager.app
-          sed -i '' 's/X.X.X/${{ env.VERSION_NAME }}/' TinyWiiBackupManager.app/Contents/Info.plist
           mkdir TinyWiiBackupManager.app/Contents/MacOS
           cp target/${{ matrix.target }}/release/TinyWiiBackupManager TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
           chmod 755 TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
+
+      - name: Set version in Info.plist
+        if: github.ref_type == 'tag'
+        run: |
+          plain_ver="${VERSION_NAME#v}"
+          sed -i '' 's/0.0.0/${plain_ver}/' TinyWiiBackupManager.app/Contents/Info.plist
 
       - name: zip the app
         run: |
@@ -294,9 +304,8 @@ jobs:
 
       - name: Create version.txt
         run: |
-          trimmed_ver="${VERSION_NAME#v}"         # Remove leading 'v'
-          trimmed_ver="${trimmed_ver%%+*}"        # Remove build version '+X'
-          echo -n "${trimmed_ver}" > version.txt  # Write without line break
+          plain_ver="${VERSION_NAME#v}" # Remove leading 'v'
+          echo -n "${plain_ver}" > version.txt  # Write without line break
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
