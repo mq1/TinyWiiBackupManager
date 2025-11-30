@@ -65,12 +65,7 @@ Nintendo.<br>‼️ Use of TinyWiiBackupManager for pirated or unauthorized copi
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     </td>
     <td>
-        <a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest">
-            <img alt="AppImage" src="https://img.shields.io/github/v/release/mq1/TinyWiiBackupManager?logo=github&label=AppImage">
-        </a>
-        <a href="https://flathub.org/apps/it.mq1.TinyWiiBackupManager">
-            <img alt="Flatpak" src="https://img.shields.io/flathub/v/it.mq1.TinyWiiBackupManager?logo=flathub&label=Flatpak">
-        </a>
+        <a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest"><img alt="AppImage" src="https://img.shields.io/github/v/release/mq1/TinyWiiBackupManager?logo=github&label=AppImage"></a> <a href="https://flathub.org/apps/it.mq1.TinyWiiBackupManager"><img alt="Flatpak" src="https://img.shields.io/flathub/v/it.mq1.TinyWiiBackupManager?logo=flathub&label=Flatpak"></a>
         <br>
         If you don't know which asset to download, <kbd>TinyWiiBackupManager-vX.X.X-linux-x86_64.AppImage</kbd> should work for most users
         <br>
