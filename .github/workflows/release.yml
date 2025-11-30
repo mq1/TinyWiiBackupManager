@@ -111,16 +111,34 @@ jobs:
           - target: x86_64-pc-windows-msvc
             runner: windows-2025
             arch: x86_64
+            features: native-tls
+            pc: windows
           - target: x86_64-pc-windows-msvc
             runner: windows-2025
             arch: x86_64-v3
             rustflags: "-C target-cpu=x86-64-v3"
+            features: native-tls
+            pc: windows
           - target: aarch64-pc-windows-msvc
             runner: windows-11-arm
             arch: arm64
+            features: native-tls
+            pc: windows
           - target: i686-pc-windows-msvc
             runner: windows-2025
             arch: x86
+            features: native-tls
+            pc: windows
+          - target: x86_64-win7-windows-msvc
+            runner: windows-2025
+            arch: x86_64
+            features: bundled-tls
+            pc: windows7
+          - target: i686-win7-windows-msvc
+            runner: windows-2025
+            arch: x86
+            features: bundled-tls
+            pc: windows7
 
     steps:
       - name: Checkout
@@ -145,7 +163,7 @@ jobs:
 
       - name: Build binary
         shell: pwsh
-        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
+        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "${{ matrix.features }}"
         env:
           RUSTC_BOOTSTRAP: 1
           RUSTFLAGS: ${{ matrix.rustflags }}
@@ -156,67 +174,18 @@ jobs:
           New-Item -Path "dist" -ItemType Directory
           Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination TinyWiiBackupManager.exe
           New-Item -Path "Rename TinyWiiBackupManager.exe to TinyWiiBackupManager-portable.exe to make it portable" -ItemType File
-          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe "Rename TinyWiiBackupManager.exe to TinyWiiBackupManager-portable.exe to make it portable"
+          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-${{ matrix.pc }}-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe "Rename TinyWiiBackupManager.exe to TinyWiiBackupManager-portable.exe to make it portable"
 
       - name: Package binary with NSIS
         shell: pwsh
         run: |
           cargo packager --release --target ${{ matrix.target }} --formats nsis
-          Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager*-setup.exe" -Destination "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}-setup.exe"
+          Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager*-setup.exe" -Destination "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-${{ matrix.pc }}-${{ matrix.arch }}-setup.exe"
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v4
         with:
-          name: dist-windows-${{ matrix.arch }}
-          path: dist/*
-
-  build-win7:
-    name: Build for Windows 7
-    runs-on: windows-2025
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - target: x86_64-win7-windows-msvc
-            arch: x86_64
-          - target: i686-win7-windows-msvc
-            arch: x86
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 1
-
-      - name: Restore Rust cache
-        uses: Swatinem/rust-cache@v2
-        with:
-          key: ${{ matrix.arch }}
-
-      - name: Install Rust toolchain and rust-src
-        shell: pwsh
-        run: |
-          rustup toolchain install 1.91 --component rust-src
-          rustup default 1.91
-
-      - name: Build binary
-        shell: pwsh
-        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
-        env:
-          RUSTC_BOOTSTRAP: 1
-
-      - name: Package binary as zip
-        shell: pwsh
-        run: |
-          New-Item -Path "dist" -ItemType Directory
-          Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination "TinyWiiBackupManager.exe"
-          New-Item -Path "Rename TinyWiiBackupManager.exe to TinyWiiBackupManager-portable.exe to make it portable" -ItemType File
-          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-win7-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe "Rename TinyWiiBackupManager.exe to TinyWiiBackupManager-portable.exe to make it portable"
-
-      - name: Upload Windows 7 distributables
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist-win7-${{ matrix.arch }}
+          name: dist-${{ matrix.pc }}-${{ matrix.arch }}
           path: dist/*
 
   build-macos:
@@ -295,7 +264,7 @@ jobs:
     name: Create GitHub Release
     if: github.ref_type == 'tag'
     runs-on: ubuntu-24.04
-    needs: [ build-linux, build-windows, build-win7, build-macos ]
+    needs: [ build-linux, build-windows, build-macos ]
     steps:
       - name: Checkout
         uses: actions/checkout@v5
