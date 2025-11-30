@@ -13,9 +13,10 @@ build = "build.rs"
 [package.metadata.packager]
 product-name = "TinyWiiBackupManager"
 identifier = "it.mq1.TinyWiiBackupManager"
-icons = ["assets/TinyWiiBackupManager.png"]
+icons = ["assets/TinyWiiBackupManager@2x.png"]
 copyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-3.0-only."
 category = "Utility"
+macos.minimumSystemVersion = "MACOS_MIN_SYS_VER"
 
 [package.metadata.winres]
 FileDescription = "TinyWiiBackupManager"
