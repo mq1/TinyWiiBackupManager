@@ -197,8 +197,10 @@ jobs:
         include:
           - target: aarch64-apple-darwin
             arch: arm64
+            min_sys_ver: "11"
           - target: x86_64-apple-darwin
             arch: x86_64
+            min_sys_ver: "10.12"
 
     steps:
       - name: Checkout
@@ -216,33 +218,25 @@ jobs:
         with:
           key: ${{ matrix.arch }}
 
+      - name: Install cargo-packager
+        run: cargo install cargo-packager --version 0.11.8 --locked
+
       - name: Build binary
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
         env:
           RUSTC_BOOTSTRAP: 1
 
-      - name: Create .app
-        run: |
-          cp -r assets/macOS-app TinyWiiBackupManager.app
-          mkdir TinyWiiBackupManager.app/Contents/MacOS
-          cp target/${{ matrix.target }}/release/TinyWiiBackupManager TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
-          chmod 755 TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
+      - name: Set macos.minimumSystemVersion in Cargo.toml
+        run: sed -i '' 's/MACOS_MIN_SYS_VER/${{ matrix.min_sys_ver }}/' Cargo.toml
 
-      - name: Set version in Info.plist
-        if: github.ref_type == 'tag'
-        run: |
-          plain_ver="${VERSION_NAME#v}"
-          sed -i '' 's/0.0.0/${plain_ver}/' TinyWiiBackupManager.app/Contents/Info.plist
-
-      - name: Bump macOS system version in Info.plist
-        if: matrix.arch == 'arm64'
-        run: sed -i '' 's/10.12/11/' TinyWiiBackupManager.app/Contents/Info.plist
+      - name: Build macOS app bundle
+        run: cargo packager --release --target ${{ matrix.target }} --formats app
 
       - name: zip the app
         run: |
           mkdir dist
           ditto -c -k --sequesterRsrc --keepParent --zlibCompressionLevel 9 \
-            TinyWiiBackupManager.app \
+            "target/${{ matrix.target }}/release/TinyWiiBackupManager.app" \
             "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-${{ matrix.arch }}.zip"
 
       - name: Create dmg (assets from sindresorhus/create-dmg)
