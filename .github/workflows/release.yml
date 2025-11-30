@@ -103,19 +103,23 @@ jobs:
 
   build-windows:
     name: Build for Windows
-    runs-on: windows-2025
+    runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - target: x86_64-pc-windows-msvc
+            runner: windows-2025
             arch: x86_64
           - target: x86_64-pc-windows-msvc
+            runner: windows-2025
             arch: x86_64-v3
             rustflags: "-C target-cpu=x86-64-v3"
           - target: aarch64-pc-windows-msvc
+            runner: windows-11-arm
             arch: arm64
           - target: i686-pc-windows-msvc
+            runner: windows-2025
             arch: x86
 
     steps:
