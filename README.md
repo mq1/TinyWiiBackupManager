@@ -33,20 +33,69 @@ Nintendo.<br>‼️ Use of TinyWiiBackupManager for pirated or unauthorized copi
 
 ## ⬇️ Downloads
 
-[![Download latest release (Windows/macOS/Linux)](https://img.shields.io/github/v/release/mq1/TinyWiiBackupManager?logo=github&label=Download%20latest%20release%20(Windows/macOS/Linux))](https://github.com/mq1/TinyWiiBackupManager/releases/latest) [![Download on Flathub (Linux only)](https://img.shields.io/flathub/v/it.mq1.TinyWiiBackupManager?logo=flathub&label=Download%20on%20Flathub%20(Linux%20only))](https://flathub.org/apps/it.mq1.TinyWiiBackupManager)
+<table>
+  <tr>
+    <td>
+        <img height="48" src="https://raw.githubusercontent.com/edent/SuperTinyIcons/refs/heads/master/images/svg/windows.svg">
+        <br>
+        Windows
+    </td>
+    <td>
+        <a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest">
+            <img alt="Standalone/Installer" src="https://img.shields.io/github/v/release/mq1/TinyWiiBackupManager?logo=github&label=Standalone/Installer">
+        </a>
+        <br>
+        If you don't know which asset to download, <kbd>TinyWiiBackupManager-vX.X.X-windows-x86_64.zip</kbd> should work for most users
+        <br>
+        <br>
+        If you have a recent CPU (see <a href="https://en.wikipedia.org/wiki/X86-64#Microarchitecture_levels">here</a>), you can get the slightly faster <kbd>TinyWiiBackupManager-vX.X.X-windows-x86_64-v3.zip</kbd>
+    </td>
+  </tr>
+</table>
 
-> **ℹ️ I don't know which asset I should download**\
-> On Windows, you'll usually download `TinyWiiBackupManager-vX.X.X-windows-x86_64.zip`\
-> On macOS, you'll usually download `TinyWiiBackupManager-vX.X.X-macos-arm64.dmg`\
-> On Linux, you'll usually download `TinyWiiBackupManager-vX.X.X-linux-x86_64.AppImage`\
-> If you have a recent CPU (see [here](https://en.wikipedia.org/wiki/X86-64#Microarchitecture_levels)), you can get the
-> slightly faster x86_64-v3 binary
+<table>
+  <tr>
+    <td>
+        <img height="48" src="https://raw.githubusercontent.com/edent/SuperTinyIcons/refs/heads/master/images/svg/linux.svg">
+        <br>
+        Linux
+    </td>
+    <td>
+        <a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest">
+            <img alt="AppImage" src="https://img.shields.io/github/v/release/mq1/TinyWiiBackupManager?logo=github&label=AppImage">
+        </a>
+        <a href="https://flathub.org/apps/it.mq1.TinyWiiBackupManager">
+            <img alt="Flatpak" src="https://img.shields.io/flathub/v/it.mq1.TinyWiiBackupManager?logo=flathub&label=Flatpak">
+        </a>
+        <br>
+        If you don't know which asset to download, <kbd>TinyWiiBackupManager-vX.X.X-linux-x86_64.AppImage</kbd> should work for most users
+        <br>
+        <br>
+        If you have a recent CPU (see <a href="https://en.wikipedia.org/wiki/X86-64#Microarchitecture_levels">here</a>), you can get the slightly faster <kbd>TinyWiiBackupManager-vX.X.X-linux-x86_64-v3.AppImage</kbd>
+    </td>
+  </tr>
+</table>
 
-> **⚠️ macOS post-installation**\
-> The app is not notarized, you must allow it manually after installing by running this command in Terminal:
->```sh
->xattr -rd com.apple.quarantine /Applications/TinyWiiBackupManager.app
->```
+<table>
+  <tr>
+    <td>
+        <img height="48" src="https://raw.githubusercontent.com/edent/SuperTinyIcons/refs/heads/master/images/svg/apple.svg">
+        <br>
+        macOS
+    </td>
+    <td>
+        <a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest">
+            <img alt="DMG/ZIP" src="https://img.shields.io/github/v/release/mq1/TinyWiiBackupManager?logo=github&label=DMG/ZIP">
+        </a>
+        <br>
+        If you don't know which asset to download, <kbd>TinyWiiBackupManager-vX.X.X-macos-arm64.dmg</kbd> should work for most users
+        <br>
+        <br>
+        The app is not notarized, you must allow it manually after installing by running this command in Terminal:
+        <code>xattr -rd com.apple.quarantine /Applications/TinyWiiBackupManager.app</code>
+    </td>
+  </tr>
+</table>
 
 ## 📄 Additional Info
 
