@@ -59,11 +59,14 @@
     <url type="vcs-browser">https://github.com/mq1/TinyWiiBackupManager</url>
     <screenshots>
         <screenshot type="default">
-            <image>https://github.com/mq1/TinyWiiBackupManager/blob/v4.4.7/assets/screenshot.png?raw=true</image>
+            <image>https://github.com/mq1/TinyWiiBackupManager/blob/v4.4.8/assets/screenshot.png?raw=true</image>
             <caption>TinyWiiBackupManager screenshot</caption>
         </screenshot>
     </screenshots>
     <releases>
+        <release version="4.4.8" date="2025-11-30">
+            <url type="details">https://github.com/mq1/TinyWiiBackupManager/releases/tag/v4.4.8</url>
+        </release>
         <release version="4.4.7" date="2025-11-27">
             <url type="details">https://github.com/mq1/TinyWiiBackupManager/releases/tag/v4.4.7</url>
         </release>
