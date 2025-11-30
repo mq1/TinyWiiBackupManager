@@ -155,7 +155,7 @@ jobs:
       - name: Restore Rust cache
         uses: Swatinem/rust-cache@v2
         with:
-          key: ${{ matrix.arch }}
+          key: ${{ matrix.pc }}-${{ matrix.arch }}
 
       - name: Install dependencies
         shell: pwsh
