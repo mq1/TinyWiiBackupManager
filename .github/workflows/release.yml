@@ -267,6 +267,10 @@ jobs:
           plain_ver="${VERSION_NAME#v}"
           sed -i '' 's/0.0.0/${plain_ver}/' TinyWiiBackupManager.app/Contents/Info.plist
 
+      - name: Bump macOS system version in Info.plist
+        if: matrix.arch == 'arm64'
+        run: sed -i '' 's/10.12/11/' TinyWiiBackupManager.app/Contents/Info.plist
+
       - name: zip the app
         run: |
           mkdir dist
