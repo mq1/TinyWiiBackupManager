@@ -288,13 +288,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-#  winget:
-#    needs: [ release ]
-#    name: Publish to WinGet
-#    runs-on: windows-2025
-#    steps:
-#      - uses: vedantmgoyal9/winget-releaser@main
-#        with:
-#          identifier: mq1.TinyWiiBackupManager
-#          token: ${{ secrets.WINGET_TOKEN }}
-#          installers-regex: '^TinyWiiBackupManager-.+-windows-(?:x86_64|arm64)\.zip$'
+  winget:
+    needs: [ release ]
+    name: Publish to WinGet
+    runs-on: windows-2025
+    steps:
+      - uses: vedantmgoyal9/winget-releaser@main
+        with:
+          identifier: mq1.TinyWiiBackupManager
+          token: ${{ secrets.WINGET_TOKEN }}
+          installers-regex: '^TinyWiiBackupManager-v.+-windows-(?:x86_64|arm64|x86)-setup\.exe$'
