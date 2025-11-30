@@ -58,7 +58,7 @@ Nintendo.<br>‼️ Use of TinyWiiBackupManager for pirated or unauthorized copi
     <td>
         <img height="48" src="https://raw.githubusercontent.com/edent/SuperTinyIcons/refs/heads/master/images/svg/linux.svg">
         <br>
-        Linux
+        Linux &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     </td>
     <td>
         <a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest">
@@ -81,7 +81,7 @@ Nintendo.<br>‼️ Use of TinyWiiBackupManager for pirated or unauthorized copi
     <td>
         <img height="48" src="https://raw.githubusercontent.com/edent/SuperTinyIcons/refs/heads/master/images/svg/apple.svg">
         <br>
-        macOS
+        macOS&nbsp;&nbsp;&nbsp;
     </td>
     <td>
         <a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest">
