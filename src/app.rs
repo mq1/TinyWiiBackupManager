@@ -3,10 +3,11 @@
 
 use crate::extensions::SUPPORTED_INPUT_EXTENSIONS;
 use crate::messages::{Message, process_msg};
+use crate::overflow_reader::get_main_file;
 use crate::{
     archive,
     config::{ArchiveFormat, Config, SortBy},
-    covers, dir_layout,
+    convert, covers, dir_layout,
     disc_info::DiscInfo,
     games::{self, Game},
     hbc_apps::{self, HbcApp},
@@ -18,6 +19,7 @@ use crate::{
     util, wiiload,
     wiitdb::{self, GameInfo},
 };
+use anyhow::anyhow;
 use crossbeam_channel::{Receiver, Sender, unbounded};
 use eframe::egui;
 use egui_file_dialog::FileDialog;
@@ -57,9 +59,15 @@ pub struct App {
     pub show_gc: bool,
     pub choose_mount_point: FileDialog,
     pub choose_games: FileDialog,
+    pub choose_game_manual_conv: FileDialog,
+    pub chosen_game_manual_conv: Option<DiscInfo>,
+    pub choose_game_dest_manual_conv: FileDialog,
     pub choose_hbc_apps: FileDialog,
     pub choose_file_to_push: FileDialog,
     pub choose_archive_path: FileDialog,
+    pub choose_game_to_archive_manually: FileDialog,
+    pub chosen_game_to_archive_manually: Option<PathBuf>,
+    pub choose_archive_path_manually: FileDialog,
     pub archiving_game_i: u16,
     pub notifications: Notifications,
 }
@@ -82,6 +90,19 @@ impl App {
             )
             .default_file_filter("Nintendo Optical Disc");
 
+        let choose_game_manual_conv = FileDialog::new()
+            .as_modal(true)
+            .title("Select a game to convert")
+            .add_file_filter_extensions(
+                "Nintendo Optical Disc",
+                SUPPORTED_INPUT_EXTENSIONS.to_vec(),
+            )
+            .default_file_filter("Nintendo Optical Disc");
+
+        let choose_game_dest_manual_conv = FileDialog::new()
+            .as_modal(true)
+            .title("Select a destination folder for the converted game");
+
         let choose_hbc_apps = FileDialog::new()
             .as_modal(true)
             .add_file_filter_extensions("HBC App (zip)", vec!["zip", "ZIP"])
@@ -93,6 +114,21 @@ impl App {
             .default_file_filter("HBC App (zip/dol/elf)");
 
         let choose_archive_path = FileDialog::new()
+            .as_modal(true)
+            .add_save_extension(ArchiveFormat::Rvz.as_str(), ArchiveFormat::Rvz.extension())
+            .add_save_extension(ArchiveFormat::Iso.as_str(), ArchiveFormat::Iso.extension())
+            .default_save_extension(config.contents.archive_format.as_str());
+
+        let choose_game_to_archive_manually = FileDialog::new()
+            .as_modal(true)
+            .title("Select a game to archive")
+            .add_file_filter_extensions(
+                "Nintendo Optical Disc",
+                SUPPORTED_INPUT_EXTENSIONS.to_vec(),
+            )
+            .default_file_filter("Nintendo Optical Disc");
+
+        let choose_archive_path_manually = FileDialog::new()
             .as_modal(true)
             .add_save_extension(ArchiveFormat::Rvz.as_str(), ArchiveFormat::Rvz.extension())
             .add_save_extension(ArchiveFormat::Iso.as_str(), ArchiveFormat::Iso.extension())
@@ -128,9 +164,15 @@ impl App {
             show_gc: true,
             choose_mount_point,
             choose_games,
+            choose_game_manual_conv,
+            chosen_game_manual_conv: None,
+            choose_game_dest_manual_conv,
             choose_hbc_apps,
             choose_file_to_push,
             choose_archive_path,
+            choose_game_to_archive_manually,
+            choose_archive_path_manually,
+            chosen_game_to_archive_manually: None,
             archiving_game_i: u16::MAX, // will be set later, panics if it's not
             notifications: Notifications::new(),
         }
@@ -394,6 +436,23 @@ impl App {
             }
         }
 
+        if let Some(path) = self.choose_game_manual_conv.take_picked()
+            && !path.ends_with(".part1.iso")
+        {
+            if let Ok(disc) = DiscInfo::from_main_file(path) {
+                self.chosen_game_manual_conv = Some(disc);
+                self.choose_game_dest_manual_conv.pick_directory();
+            } else {
+                self.notifications.show_err(anyhow!("Invalid disc"));
+            }
+        }
+
+        if let Some(path) = self.choose_game_dest_manual_conv.take_picked()
+            && let Some(disc) = self.chosen_game_manual_conv.take()
+        {
+            convert::spawn_convert_game_task(self, disc, path);
+        }
+
         if let Some(path) = self.choose_mount_point.take_picked() {
             self.config.contents.mount_point = path;
 
@@ -407,10 +466,30 @@ impl App {
 
         if let Some(out_path) = self.choose_archive_path.take_picked() {
             let i = self.archiving_game_i;
-
             let game = &self.games[i as usize];
 
-            match archive::spawn_archive_game_task(self, game.path.clone(), out_path) {
+            if let Some(disc_path) = get_main_file(&game.path) {
+                match archive::spawn_archive_game_task(self, disc_path, out_path) {
+                    Ok(format) => {
+                        self.config.contents.archive_format = format;
+                        self.save_config();
+                    }
+                    Err(e) => self.notifications.show_err(e),
+                }
+            } else {
+                self.notifications.show_err(anyhow!("Disc not found"));
+            }
+        }
+
+        if let Some(path) = self.choose_game_to_archive_manually.take_picked() {
+            self.chosen_game_to_archive_manually = Some(path);
+            self.choose_archive_path_manually.save_file();
+        }
+
+        if let Some(out_path) = self.choose_archive_path_manually.take_picked()
+            && let Some(disc_path) = self.chosen_game_to_archive_manually.take()
+        {
+            match archive::spawn_archive_game_task(self, disc_path, out_path) {
                 Ok(format) => {
                     self.config.contents.archive_format = format;
                     self.save_config();
