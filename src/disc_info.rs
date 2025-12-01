@@ -91,7 +91,7 @@ impl DiscInfo {
             main_disc_path: PathBuf::new(),
 
             // discheader
-            id: GameID::from(header.game_id),
+            id: GameID(header.game_id),
             title: header.game_title_str().to_string(),
             is_wii: header.is_wii(),
             is_gc: header.is_gamecube(),
