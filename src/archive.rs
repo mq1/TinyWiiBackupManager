@@ -6,9 +6,9 @@ use crate::messages::Message;
 use crate::{
     config::ArchiveFormat,
     convert::{get_disc_opts, get_process_opts},
-    overflow_reader::{OverflowReader, get_main_file, get_overflow_file},
+    overflow_reader::{OverflowReader, get_overflow_file},
 };
-use anyhow::{Result, anyhow, bail};
+use anyhow::{Result, bail};
 use nod::{
     common::{Compression, Format},
     read::DiscReader,
@@ -22,7 +22,7 @@ use std::{
 
 pub fn spawn_archive_game_task(
     app: &App,
-    game_dir: PathBuf,
+    path: PathBuf,
     out_path: PathBuf,
 ) -> Result<ArchiveFormat> {
     let archive_format = match out_path.extension() {
@@ -50,7 +50,6 @@ pub fn spawn_archive_game_task(
             },
         };
 
-        let path = get_main_file(&game_dir).ok_or(anyhow!("No disc found"))?;
         let overflow = get_overflow_file(&path);
 
         let process_opts = get_process_opts(false);
