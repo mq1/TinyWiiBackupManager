@@ -75,41 +75,9 @@ impl DiscInfo {
                 ..Default::default()
             })
         } else {
-            let disc = DiscReader::new(&main_disc_path, &get_disc_opts())?;
-
-            let header = disc.header();
-            let meta = disc.meta();
-
-            Ok(Self {
-                main_disc_path,
-
-                // discheader
-                id: GameID::from(header.game_id),
-                title: header.game_title_str().to_string(),
-                is_wii: header.is_wii(),
-                is_gc: header.is_gamecube(),
-                disc_num: header.disc_num,
-                disc_version: header.disc_version,
-
-                // discmeta
-                format: meta.format,
-                compression: meta.compression,
-                block_size: meta
-                    .block_size
-                    .map(|bytes| Size::from_bytes(bytes).to_string())
-                    .unwrap_or_else(|| "N/A".to_string()),
-                decrypted: meta.decrypted,
-                needs_hash_recovery: meta.needs_hash_recovery,
-                lossless: meta.lossless,
-                disc_size: meta
-                    .disc_size
-                    .map(|bytes| Size::from_bytes(bytes).to_string())
-                    .unwrap_or_else(|| "N/A".to_string()),
-                crc32: meta.crc32,
-                md5: meta.md5,
-                sha1: meta.sha1,
-                xxh64: meta.xxh64,
-            })
+            let mut disc_info = Self::from_file(File::open(&main_disc_path)?)?;
+            disc_info.main_disc_path = main_disc_path;
+            Ok(disc_info)
         }
     }
 
