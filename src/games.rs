@@ -105,8 +105,14 @@ pub struct Game {
     pub search_str: String,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct GameID([u8; 6]);
+
+impl Default for GameID {
+    fn default() -> Self {
+        Self([b'?'; 6])
+    }
+}
 
 impl From<&str> for GameID {
     fn from(id: &str) -> Self {
