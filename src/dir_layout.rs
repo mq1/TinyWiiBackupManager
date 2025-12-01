@@ -82,19 +82,11 @@ pub fn normalize_paths(mount_point: &Path) -> Result<()> {
     for disc_info in scan_for_games(mount_point) {
         log::info!("Found game: {}", disc_info.main_disc_path.display());
 
-        let game_id = disc_info.header.game_id_str();
+        let game_id = disc_info.id.as_str();
 
         let dir = mount_point
-            .join(if disc_info.header.is_wii() {
-                "wbfs"
-            } else {
-                "games"
-            })
-            .join(format!(
-                "{} [{}]",
-                sanitize(disc_info.header.game_title_str()),
-                game_id
-            ));
+            .join(if disc_info.is_wii { "wbfs" } else { "games" })
+            .join(format!("{} [{}]", sanitize(&disc_info.title), game_id));
 
         let original_file_parent = if let Some(parent) = disc_info.main_disc_path.parent() {
             parent
@@ -110,11 +102,7 @@ pub fn normalize_paths(mount_point: &Path) -> Result<()> {
         {
             &format!("{}.part0.iso", game_id)
         } else {
-            match (
-                disc_info.meta.format,
-                disc_info.header.is_wii(),
-                disc_info.header.disc_num,
-            ) {
+            match (disc_info.format, disc_info.is_wii, disc_info.disc_num) {
                 (Format::Wbfs, _, _) => &format!("{}.wbfs", game_id),
                 (Format::Iso, true, _) => &format!("{}.iso", game_id),
                 (Format::Iso, false, 0) => "game.iso",

@@ -61,7 +61,7 @@ impl Game {
 
         let id = id_part
             .strip_suffix(']')
-            .map(<[u8; 6]>::from_id_str)
+            .map(GameID::from)
             .ok_or(anyhow!("Invalid directory name"))?;
 
         let display_title = id_map::get_title(id).unwrap_or(title).to_string();
@@ -97,7 +97,7 @@ impl Game {
 #[derive(Debug, Clone)]
 pub struct Game {
     pub path: PathBuf,
-    pub id: [u8; 6],
+    pub id: GameID,
     pub is_wii: bool,
     pub display_title: String,
     pub size: Size,
@@ -105,25 +105,33 @@ pub struct Game {
     pub search_str: String,
 }
 
-pub trait GameID {
-    fn from_id_str(id: &str) -> Self;
-    fn get_region_display(&self) -> &'static str;
-    fn get_wiitdb_lang(&self) -> &'static str;
-    fn as_str(&self) -> &str;
-    fn as_partial(&self) -> &str;
-}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default)]
+pub struct GameID([u8; 6]);
 
-impl GameID for [u8; 6] {
-    fn from_id_str(id: &str) -> Self {
+impl From<&str> for GameID {
+    fn from(id: &str) -> Self {
         let mut id_bytes = [0u8; 6];
         let bytes = id.as_bytes();
         let len = bytes.len().min(6);
         id_bytes[..len].copy_from_slice(&bytes[..len]);
-        id_bytes
+
+        Self(id_bytes)
+    }
+}
+
+impl From<[u8; 6]> for GameID {
+    fn from(id: [u8; 6]) -> Self {
+        Self(id)
+    }
+}
+
+impl GameID {
+    pub fn as_bytes(&self) -> &[u8; 6] {
+        &self.0
     }
 
-    fn get_region_display(&self) -> &'static str {
-        match self[3] {
+    pub fn get_region_display(&self) -> &'static str {
+        match self.0[3] {
             b'A' => "System Wii Channels (i.e. Mii Channel)",
             b'B' => "Ufouria: The Saga (NA)",
             b'D' => "Germany",
@@ -151,8 +159,8 @@ impl GameID for [u8; 6] {
         }
     }
 
-    fn get_wiitdb_lang(&self) -> &'static str {
-        match self[3] {
+    pub fn get_wiitdb_lang(&self) -> &'static str {
+        match self.0[3] {
             b'E' | b'N' => "US",
             b'J' => "JA",
             b'K' | b'Q' | b'T' => "KO",
@@ -162,12 +170,12 @@ impl GameID for [u8; 6] {
         }
     }
 
-    fn as_str(&self) -> &str {
-        std::str::from_utf8(self).unwrap_or("invalid")
+    pub fn as_str(&self) -> &str {
+        std::str::from_utf8(&self.0).unwrap_or("invalid")
     }
 
-    fn as_partial(&self) -> &str {
-        std::str::from_utf8(&self[..3]).unwrap_or("invalid")
+    pub fn as_partial(&self) -> &str {
+        std::str::from_utf8(&self.0[..3]).unwrap_or("invalid")
     }
 }
 

@@ -3,11 +3,10 @@
 
 use crate::app::App;
 use crate::messages::Message;
-use crate::{checksum, disc_info::DiscInfo, games::GameID, txtcodes, wiitdb::GameInfo};
+use crate::{checksum, disc_info::DiscInfo, txtcodes, wiitdb::GameInfo};
 use capitalize::Capitalize;
 use eframe::egui;
 use itertools::Itertools;
-use size::Size;
 
 pub fn update(
     ctx: &egui::Context,
@@ -31,77 +30,56 @@ pub fn update(
 
                 if let Some(disc_info) = &disc_info {
                     // Game ID
-                    ui.label(format!("🏷 ID: {}", disc_info.header.game_id_str()));
+                    ui.label(format!("🏷 ID: {}", disc_info.id.as_str()));
 
                     // Embedded Title
-                    ui.label(format!(
-                        "✏ Embedded Title: {}",
-                        &disc_info.header.game_title_str()
-                    ));
+                    ui.label(format!("✏ Embedded Title: {}", &disc_info.title));
 
                     // Region
                     ui.label(format!(
                         "🌐 Region (inferred from ID): {}",
-                        disc_info.header.game_id.get_region_display()
+                        disc_info.id.get_region_display()
                     ));
 
                     // Is Wii
                     ui.label(format!(
                         "🎾 Is Wii: {}",
-                        if disc_info.header.is_wii() {
-                            "Yes"
-                        } else {
-                            "No"
-                        }
+                        if disc_info.is_wii { "Yes" } else { "No" }
                     ));
 
                     // Is GameCube
                     ui.label(format!(
                         "🎲 Is GameCube: {}",
-                        if disc_info.header.is_gamecube() {
-                            "Yes"
-                        } else {
-                            "No"
-                        },
+                        if disc_info.is_gc { "Yes" } else { "No" },
                     ));
 
                     // Disc Number
-                    ui.label(format!("🔢 Disc Number: {}", &disc_info.header.disc_num));
+                    ui.label(format!("🔢 Disc Number: {}", &disc_info.disc_num));
 
                     // Disc Version
-                    ui.label(format!(
-                        "📌 Disc Version: {}",
-                        &disc_info.header.disc_version
-                    ));
+                    ui.label(format!("📌 Disc Version: {}", &disc_info.disc_version));
 
                     ui.separator();
 
                     // Format
-                    ui.label(format!("💿 Format: {}", &disc_info.meta.format));
+                    ui.label(format!("💿 Format: {}", &disc_info.format));
 
                     // Compression
-                    ui.label(format!("⬌ Compression: {}", &disc_info.meta.compression));
+                    ui.label(format!("⬌ Compression: {}", &disc_info.compression));
 
                     // Block Size
-                    ui.label(format!(
-                        "📏 Block Size: {}",
-                        Size::from_bytes(disc_info.meta.block_size.unwrap_or(0))
-                    ));
+                    ui.label(format!("📏 Block Size: {}", &disc_info.block_size));
 
                     // Decrypted
                     ui.label(format!(
                         "🔐 Decrypted: {}",
-                        if disc_info.meta.decrypted {
-                            "Yes"
-                        } else {
-                            "No"
-                        },
+                        if disc_info.decrypted { "Yes" } else { "No" },
                     ));
 
                     // Needs Hash Recovery
                     ui.label(format!(
                         "⚠ Needs Hash Recovery: {}",
-                        if disc_info.meta.needs_hash_recovery {
+                        if disc_info.needs_hash_recovery {
                             "Yes"
                         } else {
                             "No"
@@ -111,40 +89,37 @@ pub fn update(
                     // Lossless
                     ui.label(format!(
                         "☑ Lossless: {}",
-                        if disc_info.meta.lossless { "Yes" } else { "No" }
+                        if disc_info.lossless { "Yes" } else { "No" }
                     ));
 
                     // Disc Size
-                    ui.label(format!(
-                        "⚖ Disc Size: {}",
-                        Size::from_bytes(disc_info.meta.disc_size.unwrap_or(0))
-                    ));
+                    ui.label(format!("⚖ Disc Size: {}", &disc_info.disc_size));
 
                     ui.separator();
 
                     // CRC32
-                    if let Some(crc32) = disc_info.meta.crc32 {
+                    if let Some(crc32) = disc_info.crc32 {
                         ui.label(format!("☑ CRC32: {:02x}", &crc32));
                     } else {
                         ui.label("☑ CRC32: N/A");
                     }
 
                     // MD5
-                    if let Some(md5) = disc_info.meta.md5 {
+                    if let Some(md5) = disc_info.md5 {
                         ui.label(format!("☑ MD5: {}", hex::encode(md5)));
                     } else {
                         ui.label("☑ MD5: N/A");
                     }
 
                     // SHA1
-                    if let Some(sha1) = disc_info.meta.sha1 {
+                    if let Some(sha1) = disc_info.sha1 {
                         ui.label(format!("☑ SHA1: {}", hex::encode(sha1)));
                     } else {
                         ui.label("☑ SHA1: N/A");
                     }
 
                     // XXH64
-                    if let Some(xxh64) = disc_info.meta.xxh64 {
+                    if let Some(xxh64) = disc_info.xxh64 {
                         ui.label(format!("☑ XXH64: {:02x}", &xxh64));
                     } else {
                         ui.label("☑ XXH64: N/A");
@@ -226,7 +201,7 @@ pub fn update(
                 if let Some(disc_info) = &disc_info
                     && let Some(game_info) = &game_info
                     && !game_info.roms.is_empty()
-                    && let Some(crc32) = disc_info.meta.crc32
+                    && let Some(crc32) = disc_info.crc32
                 {
                     ui.separator();
 
@@ -259,8 +234,7 @@ pub fn update(
             // Integrity check button
             let has_embedded_crc32 = disc_info
                 .as_ref()
-                .map(|d| d.meta.crc32.is_some())
-                .unwrap_or(false);
+                .is_some_and(|disc_info| disc_info.crc32.is_some());
 
             if (has_embedded_crc32 || game_info.is_some())
                 && ui

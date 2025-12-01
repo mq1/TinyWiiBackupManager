@@ -18,7 +18,7 @@ pub enum TxtCodesSource {
 }
 
 impl TxtCodesSource {
-    pub fn get_txtcode(&self, game_id: [u8; 6], game_id_str: &str) -> Result<Vec<u8>> {
+    pub fn get_txtcode(&self, game_id: GameID, game_id_str: &str) -> Result<Vec<u8>> {
         match self {
             Self::WebArchive => {
                 let url = format!(
@@ -54,7 +54,7 @@ impl TxtCodesSource {
 fn download_cheats_for_game(
     txt_cheatcodespath: &Path,
     source: TxtCodesSource,
-    game_id: [u8; 6],
+    game_id: GameID,
 ) -> Result<()> {
     let game_id_str = game_id.as_str();
     let path = txt_cheatcodespath.join(game_id_str).with_extension("txt");
