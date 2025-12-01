@@ -82,7 +82,33 @@ pub fn spawn_add_games_task(app: &App, discs: Box<[DiscInfo]>) {
 
     app.task_processor.spawn(move |msg_sender| {
         let len = discs.len();
-        for (i, disc_info) in discs.into_iter().enumerate() {
+        for (i, mut disc_info) in discs.into_iter().enumerate() {
+            let mut tmp = None;
+
+            if disc_info
+                .main_disc_path
+                .extension()
+                .and_then(|ext| ext.to_str())
+                .is_some_and(|ext| ["zip", "ZIP"].contains(&ext))
+            {
+                let mut tmp = tmp.insert(tempfile()?);
+
+                {
+                    let file_reader = BufReader::new(File::open(&disc_info.main_disc_path)?);
+                    let mut archive = ZipArchive::new(file_reader)?;
+                    let mut disc_file = archive.by_index(0)?;
+                    let mut tmp_writer = BufWriter::new(&mut tmp);
+
+                    msg_sender.send(Message::UpdateStatus(format!(
+                        "🎮 Extracting {}",
+                        &disc_info.title
+                    )))?;
+                    io::copy(&mut disc_file, &mut tmp_writer)?;
+                }
+
+                disc_info = DiscInfo::from_file(tmp.try_clone().unwrap())?;
+            }
+
             let dir_path = mount_point
                 .join(if disc_info.is_wii { "wbfs" } else { "games" })
                 .join(format!(
@@ -126,32 +152,14 @@ pub fn spawn_add_games_task(app: &App, discs: Box<[DiscInfo]>) {
             fs::create_dir_all(&dir_path)?;
 
             let start_instant = Instant::now();
-            let mut tmp = tempfile()?;
             log::info!("Converting {}", &disc_info.title);
             {
-                let disc = if let Some(overflow_file) = &overflow_file {
+                let disc = if let Some(tmp) = tmp.take() {
+                    let reader = BufReader::new(tmp);
+                    DiscReader::new_from_non_cloneable_read(reader, &disc_opts)?
+                } else if let Some(overflow_file) = &overflow_file {
                     let reader = OverflowReader::new(&disc_info.main_disc_path, overflow_file)?;
                     DiscReader::new_from_non_cloneable_read(reader, &disc_opts)?
-                } else if disc_info
-                    .main_disc_path
-                    .extension()
-                    .and_then(|ext| ext.to_str())
-                    .is_some_and(|ext| ["zip", "ZIP"].contains(&ext))
-                {
-                    {
-                        let file_reader = BufReader::new(File::open(&disc_info.main_disc_path)?);
-                        let mut archive = ZipArchive::new(file_reader)?;
-                        let mut disc_file = archive.by_index(0)?;
-                        let mut tmp_writer = BufWriter::new(&mut tmp);
-
-                        msg_sender.send(Message::UpdateStatus(format!(
-                            "🎮 Extracting {}",
-                            &disc_info.title
-                        )))?;
-                        io::copy(&mut disc_file, &mut tmp_writer)?;
-                    }
-
-                    DiscReader::new_from_non_cloneable_read(tmp, &disc_opts)?
                 } else {
                     DiscReader::new(&disc_info.main_disc_path, &disc_opts)?
                 };
