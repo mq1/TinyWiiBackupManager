@@ -3,6 +3,6 @@
 
 #[rustfmt::skip]
 pub const SUPPORTED_INPUT_EXTENSIONS: &[&str] = &[
-    "gcm", "iso", "wbfs", "wia", "rvz", "ciso", "gcz", "tgc", "nfs",
-    "GCM", "ISO", "WBFS", "WIA", "RVZ", "CISO", "GCS", "TGC", "NFS",
+    "gcm", "iso", "wbfs", "wia", "rvz", "ciso", "gcz", "tgc", "nfs", "zip",
+    "GCM", "ISO", "WBFS", "WIA", "RVZ", "CISO", "GCS", "TGC", "NFS", "ZIP",
 ];
