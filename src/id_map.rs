@@ -6,13 +6,13 @@ use crate::games::GameID;
 include!(concat!(env!("OUT_DIR"), "/id_map_data.rs"));
 
 pub fn get_title(id: GameID) -> Option<&'static str> {
-    DATA.binary_search_by_key(id.as_bytes(), |entry| entry.0)
+    DATA.binary_search_by_key(&id.0, |entry| entry.0)
         .map(|i| DATA[i].1)
         .ok()
 }
 
 pub fn get_gamehacking_id(id: GameID) -> Option<u32> {
-    DATA.binary_search_by_key(id.as_bytes(), |entry| entry.0)
+    DATA.binary_search_by_key(&id.0, |entry| entry.0)
         .map(|i| DATA[i].2)
         .ok()
 }

@@ -106,7 +106,7 @@ pub struct Game {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub struct GameID([u8; 6]);
+pub struct GameID(pub [u8; 6]);
 
 impl Default for GameID {
     fn default() -> Self {
@@ -125,17 +125,7 @@ impl From<&str> for GameID {
     }
 }
 
-impl From<[u8; 6]> for GameID {
-    fn from(id: [u8; 6]) -> Self {
-        Self(id)
-    }
-}
-
 impl GameID {
-    pub fn as_bytes(&self) -> &[u8; 6] {
-        &self.0
-    }
-
     pub fn get_region_display(&self) -> &'static str {
         match self.0[3] {
             b'A' => "System Wii Channels (i.e. Mii Channel)",
