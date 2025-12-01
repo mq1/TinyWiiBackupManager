@@ -289,6 +289,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   winget:
+    if: false
     needs: [ release ]
     name: Publish to WinGet
     runs-on: windows-2025
