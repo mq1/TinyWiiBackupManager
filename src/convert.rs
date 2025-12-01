@@ -82,34 +82,56 @@ pub fn spawn_add_games_task(app: &App, discs: Box<[DiscInfo]>) {
 
     app.task_processor.spawn(move |msg_sender| {
         let len = discs.len();
-        for (i, disc_info) in discs.into_iter().enumerate() {
+        for (i, mut disc_info) in discs.into_iter().enumerate() {
+            let mut tmp = None;
+
+            if disc_info
+                .main_disc_path
+                .extension()
+                .and_then(|ext| ext.to_str())
+                .is_some_and(|ext| ["zip", "ZIP"].contains(&ext))
+            {
+                let mut tmp = tmp.insert(tempfile()?);
+
+                {
+                    let file_reader = BufReader::new(File::open(&disc_info.main_disc_path)?);
+                    let mut archive = ZipArchive::new(file_reader)?;
+                    let mut disc_file = archive.by_index(0)?;
+                    let mut tmp_writer = BufWriter::new(&mut tmp);
+
+                    msg_sender.send(Message::UpdateStatus(format!(
+                        "🎮 Extracting {}",
+                        &disc_info.title
+                    )))?;
+                    io::copy(&mut disc_file, &mut tmp_writer)?;
+                }
+
+                disc_info = DiscInfo::from_file(tmp.try_clone().unwrap())?;
+            }
+
             let dir_path = mount_point
-                .join(if disc_info.header.is_wii() {
-                    "wbfs"
-                } else {
-                    "games"
-                })
+                .join(if disc_info.is_wii { "wbfs" } else { "games" })
                 .join(format!(
                     "{} [{}]",
-                    sanitize(disc_info.header.game_title_str()),
-                    disc_info.header.game_id_str()
+                    sanitize(&disc_info.title),
+                    disc_info.id.as_str()
                 ));
 
             let file_name1 = match (
-                disc_info.header.is_wii(),
+                disc_info.is_wii,
                 wii_output_format,
                 gc_output_format,
                 must_split,
-                disc_info.header.disc_num,
+                disc_info.disc_num,
             ) {
                 (true, WiiOutputFormat::Wbfs, _, _, _) => {
-                    &format!("{}.wbfs", disc_info.header.game_id_str())
+                    &format!("{}.wbfs", disc_info.id.as_str())
                 }
                 (true, WiiOutputFormat::Iso, _, true, _) => {
-                    &format!("{}.part0.iso", disc_info.header.game_id_str())
+                    &format!("{}.part0.iso", disc_info.id.as_str())
                 }
                 (true, WiiOutputFormat::Iso, _, false, _) => {
-                    &format!("{}.iso", disc_info.header.game_id_str())
+                    &format!("{}.iso", disc_info.id.as_str())
                 }
                 (false, _, GcOutputFormat::Iso, _, 0) => "game.iso",
                 (false, _, GcOutputFormat::Iso, _, n) => &format!("disc{}.iso", n + 1),
@@ -122,56 +144,35 @@ pub fn spawn_add_games_task(app: &App, discs: Box<[DiscInfo]>) {
             let file_path1 = dir_path.join(file_name1);
 
             let file_name2 = match wii_output_format {
-                WiiOutputFormat::Wbfs => &format!("{}.wbf1", disc_info.header.game_id_str()),
-                WiiOutputFormat::Iso => &format!("{}.part1.iso", disc_info.header.game_id_str()),
+                WiiOutputFormat::Wbfs => &format!("{}.wbf1", disc_info.id.as_str()),
+                WiiOutputFormat::Iso => &format!("{}.part1.iso", disc_info.id.as_str()),
             };
             let file_path2 = dir_path.join(file_name2);
 
             fs::create_dir_all(&dir_path)?;
 
             let start_instant = Instant::now();
-            let mut tmp = tempfile()?;
-            log::info!("Converting {}", disc_info.header.game_title_str());
+            log::info!("Converting {}", &disc_info.title);
             {
-                let disc = if let Some(overflow_file) = &overflow_file {
+                let disc = if let Some(tmp) = tmp.take() {
+                    let reader = BufReader::new(tmp);
+                    DiscReader::new_from_non_cloneable_read(reader, &disc_opts)?
+                } else if let Some(overflow_file) = &overflow_file {
                     let reader = OverflowReader::new(&disc_info.main_disc_path, overflow_file)?;
                     DiscReader::new_from_non_cloneable_read(reader, &disc_opts)?
-                } else if disc_info
-                    .main_disc_path
-                    .extension()
-                    .and_then(|ext| ext.to_str())
-                    .is_some_and(|ext| ["zip", "ZIP"].contains(&ext))
-                {
-                    {
-                        let file_reader = BufReader::new(File::open(&disc_info.main_disc_path)?);
-                        let mut archive = ZipArchive::new(file_reader)?;
-                        let mut disc_file = archive.by_index(0)?;
-                        let mut tmp_writer = BufWriter::new(&mut tmp);
-
-                        msg_sender.send(Message::UpdateStatus(format!(
-                            "🎮 Extracting {}",
-                            disc_info.header.game_title_str()
-                        )))?;
-                        io::copy(&mut disc_file, &mut tmp_writer)?;
-                    }
-
-                    DiscReader::new_from_non_cloneable_read(tmp, &disc_opts)?
                 } else {
                     DiscReader::new(&disc_info.main_disc_path, &disc_opts)?
                 };
 
                 let mut overflow_writer = OverflowWriter::new(&file_path1, file_path2, must_split)?;
 
-                let out_opts = get_output_format_opts(
-                    wii_output_format,
-                    gc_output_format,
-                    disc_info.header.is_wii(),
-                );
+                let out_opts =
+                    get_output_format_opts(wii_output_format, gc_output_format, disc_info.is_wii);
                 let writer = DiscWriter::new(disc, &out_opts)?;
 
                 let process_opts = get_process_opts(
                     scrub_update_partition
-                        && disc_info.header.is_wii()
+                        && disc_info.is_wii
                         && wii_output_format == WiiOutputFormat::Wbfs,
                 );
 
@@ -181,7 +182,7 @@ pub fn spawn_add_games_task(app: &App, discs: Box<[DiscInfo]>) {
 
                         let _ = msg_sender.send(Message::UpdateStatus(format!(
                             "🎮 Adding {}  {:02.0}%  ({}/{})",
-                            disc_info.header.game_title_str(),
+                            &disc_info.title,
                             progress as f32 / total as f32 * 100.0,
                             i + 1,
                             len
@@ -198,7 +199,7 @@ pub fn spawn_add_games_task(app: &App, discs: Box<[DiscInfo]>) {
             }
             log::info!(
                 "Converted {} in {:.2}s",
-                disc_info.header.game_title_str(),
+                &disc_info.title,
                 start_instant.elapsed().as_secs_f32()
             );
 
@@ -211,7 +212,7 @@ pub fn spawn_add_games_task(app: &App, discs: Box<[DiscInfo]>) {
 
             msg_sender.send(Message::NotifyInfo(format!(
                 "🎮 Added {}",
-                disc_info.header.game_title_str()
+                &disc_info.title
             )))?;
             msg_sender.send(Message::TriggerRefreshGames)?;
         }
@@ -234,26 +235,22 @@ pub fn spawn_convert_game_task(app: &App, disc_info: DiscInfo, dest_dir: PathBuf
     app.task_processor.spawn(move |msg_sender| {
         let dir_path = dest_dir.join(format!(
             "{} [{}]",
-            sanitize(disc_info.header.game_title_str()),
-            disc_info.header.game_id_str()
+            sanitize(&disc_info.title),
+            disc_info.id.as_str()
         ));
 
         let file_name1 = match (
-            disc_info.header.is_wii(),
+            disc_info.is_wii,
             wii_output_format,
             gc_output_format,
             must_split,
-            disc_info.header.disc_num,
+            disc_info.disc_num,
         ) {
-            (true, WiiOutputFormat::Wbfs, _, _, _) => {
-                &format!("{}.wbfs", disc_info.header.game_id_str())
-            }
+            (true, WiiOutputFormat::Wbfs, _, _, _) => &format!("{}.wbfs", disc_info.id.as_str()),
             (true, WiiOutputFormat::Iso, _, true, _) => {
-                &format!("{}.part0.iso", disc_info.header.game_id_str())
+                &format!("{}.part0.iso", disc_info.id.as_str())
             }
-            (true, WiiOutputFormat::Iso, _, false, _) => {
-                &format!("{}.iso", disc_info.header.game_id_str())
-            }
+            (true, WiiOutputFormat::Iso, _, false, _) => &format!("{}.iso", disc_info.id.as_str()),
             (false, _, GcOutputFormat::Iso, _, 0) => "game.iso",
             (false, _, GcOutputFormat::Iso, _, n) => &format!("disc{}.iso", n + 1),
             (false, _, GcOutputFormat::Ciso, _, 0) => "game.ciso",
@@ -265,8 +262,8 @@ pub fn spawn_convert_game_task(app: &App, disc_info: DiscInfo, dest_dir: PathBuf
         let file_path1 = dir_path.join(file_name1);
 
         let file_name2 = match wii_output_format {
-            WiiOutputFormat::Wbfs => &format!("{}.wbf1", disc_info.header.game_id_str()),
-            WiiOutputFormat::Iso => &format!("{}.part1.iso", disc_info.header.game_id_str()),
+            WiiOutputFormat::Wbfs => &format!("{}.wbf1", disc_info.id.as_str()),
+            WiiOutputFormat::Iso => &format!("{}.part1.iso", disc_info.id.as_str()),
         };
         let file_path2 = dir_path.join(file_name2);
 
@@ -291,7 +288,7 @@ pub fn spawn_convert_game_task(app: &App, disc_info: DiscInfo, dest_dir: PathBuf
 
                     msg_sender.send(Message::UpdateStatus(format!(
                         "🎮 Extracting {}",
-                        disc_info.header.game_title_str()
+                        &disc_info.title
                     )))?;
                     io::copy(&mut disc_file, &mut tmp_writer)?;
                 }
@@ -303,16 +300,13 @@ pub fn spawn_convert_game_task(app: &App, disc_info: DiscInfo, dest_dir: PathBuf
 
             let mut overflow_writer = OverflowWriter::new(&file_path1, file_path2, must_split)?;
 
-            let out_opts = get_output_format_opts(
-                wii_output_format,
-                gc_output_format,
-                disc_info.header.is_wii(),
-            );
+            let out_opts =
+                get_output_format_opts(wii_output_format, gc_output_format, disc_info.is_wii);
             let writer = DiscWriter::new(disc, &out_opts)?;
 
             let process_opts = get_process_opts(
                 scrub_update_partition
-                    && disc_info.header.is_wii()
+                    && disc_info.is_wii
                     && wii_output_format == WiiOutputFormat::Wbfs,
             );
 
@@ -322,7 +316,7 @@ pub fn spawn_convert_game_task(app: &App, disc_info: DiscInfo, dest_dir: PathBuf
 
                     let _ = msg_sender.send(Message::UpdateStatus(format!(
                         "🎮 Converting {}  {:02.0}%",
-                        disc_info.header.game_title_str(),
+                        &disc_info.title,
                         progress as f32 / total as f32 * 100.0,
                     )));
 
@@ -345,7 +339,7 @@ pub fn spawn_convert_game_task(app: &App, disc_info: DiscInfo, dest_dir: PathBuf
 
         msg_sender.send(Message::NotifyInfo(format!(
             "🎮 {} Converted",
-            disc_info.header.game_title_str()
+            &disc_info.title
         )))?;
 
         Ok(())
