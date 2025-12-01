@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::extensions::SUPPORTED_INPUT_EXTENSIONS;
+use crate::games::GameID;
 use crate::messages::{Message, process_msg};
 use crate::overflow_reader::get_main_file;
 use crate::{
@@ -211,7 +212,7 @@ impl App {
         self.has_osc_icons_downlading_started = true;
     }
 
-    pub fn get_game_info(&self, game_id: [u8; 6]) -> Option<GameInfo> {
+    pub fn get_game_info(&self, game_id: GameID) -> Option<GameInfo> {
         self.wiitdb
             .as_ref()
             .and_then(|db| db.lookup(game_id))
@@ -426,7 +427,7 @@ impl App {
             let discs = paths
                 .into_iter()
                 .filter_map(|path| DiscInfo::from_main_file(path).ok())
-                .filter(|info| self.games.iter().all(|game| game.id != info.header.game_id))
+                .filter(|info| self.games.iter().all(|game| game.id != info.id))
                 .collect::<Box<[_]>>();
 
             if discs.is_empty() {
