@@ -65,7 +65,7 @@ impl Datafile {
         Ok(data)
     }
 
-    pub fn lookup(&self, game_id: [u8; 6]) -> Option<&GameInfo> {
+    pub fn lookup(&self, game_id: GameID) -> Option<&GameInfo> {
         self.games
             .binary_search_by_key(&game_id, |game| game.id)
             .ok()
@@ -79,7 +79,7 @@ pub struct GameInfo {
     #[serde(rename = "@name")]
     pub name: String,
     #[serde(deserialize_with = "deser_id")]
-    pub id: [u8; 6],
+    pub id: GameID,
     pub region: Region,
     #[serde(deserialize_with = "deser_langs")]
     pub languages: Box<[Language]>,
@@ -96,12 +96,12 @@ pub struct GameInfo {
     pub roms: Box<[Rom]>,
 }
 
-fn deser_id<'de, D>(deserializer: D) -> Result<[u8; 6], D::Error>
+fn deser_id<'de, D>(deserializer: D) -> Result<GameID, D::Error>
 where
     D: serde::Deserializer<'de>,
 {
     let s = String::deserialize(deserializer)?;
-    let id = <[u8; 6]>::from_id_str(&s);
+    let id = GameID::from(s.as_str());
     Ok(id)
 }
 

@@ -7,7 +7,7 @@ use crate::{games::GameID, http};
 use anyhow::{Result, bail};
 use std::{fs, path::Path};
 
-fn download_cover3d(id: &[u8; 6], mount_point: &Path) -> Result<()> {
+fn download_cover3d(id: GameID, mount_point: &Path) -> Result<()> {
     let images_dir = mount_point.join("apps").join("usbloader_gx").join("images");
     fs::create_dir_all(&images_dir)?;
 
@@ -27,7 +27,7 @@ fn download_cover3d(id: &[u8; 6], mount_point: &Path) -> Result<()> {
     Ok(())
 }
 
-fn download_cover2d(id: &[u8; 6], mount_point: &Path) -> Result<()> {
+fn download_cover2d(id: GameID, mount_point: &Path) -> Result<()> {
     let images_dir = mount_point
         .join("apps")
         .join("usbloader_gx")
@@ -50,7 +50,7 @@ fn download_cover2d(id: &[u8; 6], mount_point: &Path) -> Result<()> {
     Ok(())
 }
 
-fn download_coverfull(id: &[u8; 6], mount_point: &Path) -> Result<()> {
+fn download_coverfull(id: GameID, mount_point: &Path) -> Result<()> {
     let images_dir = mount_point
         .join("apps")
         .join("usbloader_gx")
@@ -73,7 +73,7 @@ fn download_coverfull(id: &[u8; 6], mount_point: &Path) -> Result<()> {
     Ok(())
 }
 
-fn download_disc_cover(id: &[u8; 6], mount_point: &Path) -> Result<()> {
+fn download_disc_cover(id: GameID, mount_point: &Path) -> Result<()> {
     let images_dir = mount_point
         .join("apps")
         .join("usbloader_gx")
@@ -96,7 +96,7 @@ fn download_disc_cover(id: &[u8; 6], mount_point: &Path) -> Result<()> {
     Ok(())
 }
 
-fn download_wiiflow_boxcover(id: &[u8; 6], mount_point: &Path) -> Result<()> {
+fn download_wiiflow_boxcover(id: GameID, mount_point: &Path) -> Result<()> {
     let cover_dir = mount_point.join("wiiflow").join("boxcovers");
     fs::create_dir_all(&cover_dir)?;
 
@@ -115,7 +115,7 @@ fn download_wiiflow_boxcover(id: &[u8; 6], mount_point: &Path) -> Result<()> {
     Ok(())
 }
 
-fn download_wiiflow_cover(id: &[u8; 6], mount_point: &Path) -> Result<()> {
+fn download_wiiflow_cover(id: GameID, mount_point: &Path) -> Result<()> {
     let cover_dir = mount_point.join("wiiflow").join("covers");
     fs::create_dir_all(&cover_dir)?;
 
@@ -150,7 +150,7 @@ pub fn spawn_download_covers_task(app: &App) {
                 len
             )))?;
 
-            if download_cover3d(&game.id, &mount_point).is_ok() {
+            if download_cover3d(game.id, &mount_point).is_ok() {
                 msg_sender.send(Message::TriggerRefreshImage(game.image_uri))?;
             }
         }
@@ -176,13 +176,13 @@ pub fn spawn_download_all_covers_task(app: &App) {
                 len
             )))?;
 
-            if download_cover3d(&game.id, &mount_point).is_ok() {
+            if download_cover3d(game.id, &mount_point).is_ok() {
                 msg_sender.send(Message::TriggerRefreshImage(game.image_uri))?;
             }
 
-            let _ = download_cover2d(&game.id, &mount_point);
-            let _ = download_coverfull(&game.id, &mount_point);
-            let _ = download_disc_cover(&game.id, &mount_point);
+            let _ = download_cover2d(game.id, &mount_point);
+            let _ = download_coverfull(game.id, &mount_point);
+            let _ = download_disc_cover(game.id, &mount_point);
         }
 
         msg_sender.send(Message::NotifyInfo("🖻 Covers downloaded".to_string()))?;
@@ -206,8 +206,8 @@ pub fn spawn_download_wiiflow_covers_task(app: &App) {
                 len
             )))?;
 
-            let _ = download_wiiflow_boxcover(&game.id, &mount_point);
-            let _ = download_wiiflow_cover(&game.id, &mount_point);
+            let _ = download_wiiflow_boxcover(game.id, &mount_point);
+            let _ = download_wiiflow_cover(game.id, &mount_point);
         }
 
         msg_sender.send(Message::NotifyInfo("🖻 Covers downloaded".to_string()))?;
