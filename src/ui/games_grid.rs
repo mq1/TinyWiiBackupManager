@@ -5,7 +5,6 @@ use crate::app::App;
 use crate::messages::Message;
 use crate::{
     disc_info::DiscInfo,
-    games::GameID,
     ui::{self},
 };
 use eframe::egui;
