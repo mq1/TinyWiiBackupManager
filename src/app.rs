@@ -1,13 +1,13 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::extensions::SUPPORTED_INPUT_EXTENSIONS;
 use crate::messages::{Message, process_msg};
 use crate::{
     archive,
     config::{ArchiveFormat, Config, SortBy},
     covers, dir_layout,
     disc_info::DiscInfo,
-    extensions,
     games::{self, Game},
     hbc_apps::{self, HbcApp},
     known_mount_points,
@@ -25,6 +25,7 @@ use semver::Version;
 use size::Size;
 use smallvec::SmallVec;
 use std::{fs, path::PathBuf, thread};
+use walkdir::WalkDir;
 
 pub struct App {
     pub msg_sender: Sender<Message>,
@@ -74,9 +75,10 @@ impl App {
 
         let choose_games = FileDialog::new()
             .as_modal(true)
+            .title("Select games (or a directory containing games)")
             .add_file_filter_extensions(
                 "Nintendo Optical Disc",
-                extensions::SUPPORTED_INPUT_EXTENSIONS.to_vec(),
+                SUPPORTED_INPUT_EXTENSIONS.to_vec(),
             )
             .default_file_filter("Nintendo Optical Disc");
 
@@ -359,6 +361,23 @@ impl App {
     // Process files selected in FileDialogs
     fn process_dialog_files(&mut self, ctx: &egui::Context) {
         if let Some(mut paths) = self.choose_games.take_picked_multiple() {
+            if let Some(path) = paths.first()
+                && path.is_dir()
+            {
+                paths = WalkDir::new(path)
+                    .into_iter()
+                    .filter_map(Result::ok)
+                    .filter(|e| e.file_type().is_file())
+                    .map(|e| e.path().to_path_buf())
+                    .collect::<Vec<_>>();
+            }
+
+            paths.retain(|path| {
+                path.extension()
+                    .and_then(|ext| ext.to_str())
+                    .is_some_and(|ext| SUPPORTED_INPUT_EXTENSIONS.contains(&ext))
+            });
+
             // We'll get those later with get_overflow_file
             paths.retain(|path| !path.ends_with(".part1.iso"));
 
