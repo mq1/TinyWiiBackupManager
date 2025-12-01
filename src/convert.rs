@@ -16,11 +16,16 @@ use nod::{
     write::{DiscWriter, FormatOptions, ProcessOptions, ScrubLevel},
 };
 use sanitize_filename::sanitize;
+use std::fs::File;
+use std::io::{BufReader, BufWriter};
 use std::{
     fs::{self},
+    io,
     io::Write,
     time::Instant,
 };
+use tempfile::tempfile;
+use zip::ZipArchive;
 
 pub fn get_disc_opts() -> DiscOptions {
     let (preloader_threads, _) = util::get_threads_num();
@@ -124,11 +129,32 @@ pub fn spawn_add_games_task(app: &App, discs: Box<[DiscInfo]>) {
             fs::create_dir_all(&dir_path)?;
 
             let start_instant = Instant::now();
+            let mut tmp = tempfile()?;
             log::info!("Converting {}", disc_info.header.game_title_str());
             {
                 let disc = if let Some(overflow_file) = &overflow_file {
                     let reader = OverflowReader::new(&disc_info.main_disc_path, overflow_file)?;
                     DiscReader::new_from_non_cloneable_read(reader, &disc_opts)?
+                } else if disc_info
+                    .main_disc_path
+                    .extension()
+                    .and_then(|ext| ext.to_str())
+                    .is_some_and(|ext| ["zip", "ZIP"].contains(&ext))
+                {
+                    {
+                        let file_reader = BufReader::new(File::open(&disc_info.main_disc_path)?);
+                        let mut archive = ZipArchive::new(file_reader)?;
+                        let mut disc_file = archive.by_index(0)?;
+                        let mut tmp_writer = BufWriter::new(&mut tmp);
+
+                        msg_sender.send(Message::UpdateStatus(format!(
+                            "🎮 Extracting {}",
+                            disc_info.header.game_title_str()
+                        )))?;
+                        io::copy(&mut disc_file, &mut tmp_writer)?;
+                    }
+
+                    DiscReader::new_from_non_cloneable_read(tmp, &disc_opts)?
                 } else {
                     DiscReader::new(&disc_info.main_disc_path, &disc_opts)?
                 };
