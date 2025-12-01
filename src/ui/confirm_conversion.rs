@@ -16,11 +16,7 @@ pub fn update(ctx: &egui::Context, app: &App, discs: &[DiscInfo]) {
             .max_height(400.)
             .show(ui, |ui| {
                 for info in discs {
-                    ui.label(format!(
-                        "⏵ {} [{}]",
-                        info.header.game_title_str(),
-                        info.header.game_id_str()
-                    ));
+                    ui.label(format!("⏵ {} [{}]", &info.title, info.id.as_str()));
                 }
             });
 

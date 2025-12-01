@@ -7,7 +7,7 @@ use crate::{games::GameID, http};
 use anyhow::Result;
 use std::{fs, path::Path};
 
-fn download_banner_for_game(cache_bnr_path: &Path, game_id: &[u8; 6]) -> Result<()> {
+fn download_banner_for_game(cache_bnr_path: &Path, game_id: GameID) -> Result<()> {
     let path = cache_bnr_path.join(game_id.as_str()).with_extension("bnr");
 
     if path.exists() {
@@ -50,7 +50,7 @@ pub fn spawn_download_banners_task(app: &App) {
                 &game.1
             )))?;
 
-            if let Err(e) = download_banner_for_game(&cache_bnr_path, &game.0) {
+            if let Err(e) = download_banner_for_game(&cache_bnr_path, game.0) {
                 let context = format!("Failed to download banner for {}", &game.1);
                 msg_sender.send(Message::NotifyError(e.context(context)))?;
             }
