@@ -7,16 +7,29 @@ use eframe::egui;
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
     egui::CentralPanel::default().show(ctx, |ui| {
-        if app.config.contents.mount_point.as_os_str().is_empty() {
-            ui.heading("Click on 🖴 to select a Drive/Mount Point");
-            return;
-        }
-
         ui.style_mut().spacing.item_spacing.y *= 2.;
 
         egui::ScrollArea::vertical().show(ui, |ui| {
             let style = ui.style();
             let group = egui::Frame::group(style).fill(style.visuals.extreme_bg_color);
+
+            group.show(ui, |ui| {
+                ui.set_width(ui.available_width());
+
+                ui.heading("🔁 Drive independent game conversions");
+
+                if ui.button("✚ Select game to add").clicked() {
+                    app.choose_game_manual_conv.pick_file();
+                }
+
+                if ui.button("📥 Select game to archive").clicked() {
+                    app.choose_game_to_archive_manually.pick_file();
+                }
+            });
+
+            if app.config.contents.mount_point.as_os_str().is_empty() {
+                return;
+            }
 
             group.show(ui, |ui| {
                 ui.set_width(ui.available_width());

@@ -34,9 +34,13 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
     }
 
     app.choose_games.update(ctx);
+    app.choose_game_manual_conv.update(ctx);
+    app.choose_game_dest_manual_conv.update(ctx);
     app.choose_hbc_apps.update(ctx);
     app.choose_mount_point.update(ctx);
     app.choose_archive_path.update(ctx);
+    app.choose_game_to_archive_manually.update(ctx);
+    app.choose_archive_path_manually.update(ctx);
     app.choose_file_to_push.update(ctx);
     app.notifications.show_toasts(ctx);
 }
