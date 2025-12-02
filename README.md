@@ -103,7 +103,7 @@ Nintendo.<br>‼️ Use of TinyWiiBackupManager for pirated or unauthorized copi
     <td>
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         <br>
-        &nbsp;&nbsp;<img height="40px" src="https://www.svgrepo.com/download/355384/windows-legacy.svg">
+        &nbsp;&nbsp;&nbsp;<img height="40px" src="https://www.svgrepo.com/download/355384/windows-legacy.svg">
         <br>
         Windows 7
         <br>
