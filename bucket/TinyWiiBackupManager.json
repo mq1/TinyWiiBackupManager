@@ -7,28 +7,24 @@
     "identifier": "GPL-3.0-only",
     "url": "https://github.com/mq1/TinyWiiBackupManager/blob/main/COPYING"
   },
-  "bin": "TinyWiiBackupManager.exe",
   "shortcuts": [
     [
       "TinyWiiBackupManager.exe",
       "TinyWiiBackupManager"
     ]
   ],
-  "uninstaller": {
-    "file": "uninstall.exe"
-  },
   "architecture": {
     "64bit": {
-      "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/v4.5.1/TinyWiiBackupManager-v4.5.1-windows-x86_64-setup.exe",
-      "hash": "8d65afb4440b5fd359bb2d10a8c94a735c4416732352815c777b6ef5079c6420"
+      "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/v4.5.1/TinyWiiBackupManager-v4.5.1-windows-x86_64.zip",
+      "hash": "fe22f3a848954876bd9236bfa1993d3c344e42b0ac6a12f8a4a8c0fd0399cdde"
     },
     "arm64": {
-      "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/v4.5.1/TinyWiiBackupManager-v4.5.1-windows-arm64-setup.exe",
-      "hash": "da960747100ff901502add822c441cca17cc3e9940d7f8c497dbca1a408ea95c"
+      "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/v4.5.1/TinyWiiBackupManager-v4.5.1-windows-arm64.zip",
+      "hash": "67fb88caa511a0e1c92547a5ffb0a2fa078b8f397370f583b6ba16a83efbff99"
     },
     "32bit": {
-      "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/v4.5.1/TinyWiiBackupManager-v4.5.1-windows-x86-setup.exe",
-      "hash": "7bdfc5a8bda0c3d23aed9cadde9e6d953beaa30a8ef29131803a6ae673059513"
+      "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/v4.5.1/TinyWiiBackupManager-v4.5.1-windows-x86.zip",
+      "hash": "231c5f6b66f23932832920e57f25107974373f11f910bb3abf490001065c86d3"
     }
   },
   "checkver": {
@@ -37,13 +33,13 @@
   "autoupdate": {
     "architecture": {
       "64bit": {
-        "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/v$version/TinyWiiBackupManager-v$version-windows-x86_64-setup.exe"
+        "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/v$version/TinyWiiBackupManager-v$version-windows-x86_64.zip"
       },
       "32bit": {
-        "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/v$version/TinyWiiBackupManager-v$version-windows-x86-setup.exe"
+        "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/v$version/TinyWiiBackupManager-v$version-windows-x86.zip"
       },
       "arm64": {
-        "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/v$version/TinyWiiBackupManager-v$version-windows-arm64-setup.exe"
+        "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/v$version/TinyWiiBackupManager-v$version-windows-arm64.zip"
       }
     }
   }
