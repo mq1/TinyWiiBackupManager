@@ -1,0 +1,50 @@
+{
+  "$schema": "https://raw.githubusercontent.com/ScoopInstaller/Scoop/master/schema.json",
+  "version": "4.5.1",
+  "description": "A tiny game backup and homebrew app manager for the Wii",
+  "homepage": "https://github.com/mq1/TinyWiiBackupManager",
+  "license": {
+    "identifier": "GPL-3.0-only",
+    "url": "https://github.com/mq1/TinyWiiBackupManager/blob/main/COPYING"
+  },
+  "bin": "TinyWiiBackupManager.exe",
+  "shortcuts": [
+    [
+      "TinyWiiBackupManager.exe",
+      "TinyWiiBackupManager"
+    ]
+  ],
+  "uninstaller": {
+    "file": "uninstall.exe"
+  },
+  "architecture": {
+    "64bit": {
+      "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/v4.5.1/TinyWiiBackupManager-v4.5.1-windows-x86_64-setup.exe",
+      "hash": "8d65afb4440b5fd359bb2d10a8c94a735c4416732352815c777b6ef5079c6420"
+    },
+    "arm64": {
+      "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/v4.5.1/TinyWiiBackupManager-v4.5.1-windows-arm64-setup.exe",
+      "hash": "da960747100ff901502add822c441cca17cc3e9940d7f8c497dbca1a408ea95c"
+    },
+    "32bit": {
+      "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/v4.5.1/TinyWiiBackupManager-v4.5.1-windows-x86-setup.exe",
+      "hash": "7bdfc5a8bda0c3d23aed9cadde9e6d953beaa30a8ef29131803a6ae673059513"
+    }
+  },
+  "checkver": {
+    "url": "https://github.com/mq1/TinyWiiBackupManager/releases/latest/download/version.txt"
+  },
+  "autoupdate": {
+    "architecture": {
+      "64bit": {
+        "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/v$version/TinyWiiBackupManager-v$version-windows-x86_64-setup.exe"
+      },
+      "32bit": {
+        "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/v$version/TinyWiiBackupManager-v$version-windows-x86-setup.exe"
+      },
+      "arm64": {
+        "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/v$version/TinyWiiBackupManager-v$version-windows-arm64-setup.exe"
+      }
+    }
+  }
+}
