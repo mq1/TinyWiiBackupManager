@@ -36,13 +36,13 @@ Nintendo.<br>‼️ Use of TinyWiiBackupManager for pirated or unauthorized copi
 <table>
   <tr>
     <td>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         <br>
         <img height="48px" src="https://raw.githubusercontent.com/edent/SuperTinyIcons/refs/heads/master/images/svg/windows.svg">
         <br>
-        Windows
+        Windows<br>10+
         <br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     </td>
     <td>
         <a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest"><img alt="⬇️ Standalone/Installer" src="https://img.shields.io/github/v/release/mq1/TinyWiiBackupManager?logo=github&label=%E2%AC%87%20Standalone/Installer"></a>
@@ -57,13 +57,13 @@ Nintendo.<br>‼️ Use of TinyWiiBackupManager for pirated or unauthorized copi
 <table>
   <tr>
     <td>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         <br>
         <img height="48px" src="https://raw.githubusercontent.com/edent/SuperTinyIcons/refs/heads/master/images/svg/linux.svg">
         <br>
         Linux
         <br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     </td>
     <td>
         <a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest"><img alt="⬇️ AppImage" src="https://img.shields.io/github/v/release/mq1/TinyWiiBackupManager?logo=github&label=%E2%AC%87%20AppImage"></a> <a href="https://flathub.org/apps/it.mq1.TinyWiiBackupManager"><img alt="⬇️ Flatpak" src="https://img.shields.io/flathub/v/it.mq1.TinyWiiBackupManager?logo=flathub&label=%E2%AC%87%20Flatpak"></a>
@@ -84,7 +84,7 @@ Nintendo.<br>‼️ Use of TinyWiiBackupManager for pirated or unauthorized copi
         <br>
         macOS
         <br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     </td>
     <td>
         <a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest"><img alt="⬇️ DMG/ZIP" src="https://img.shields.io/github/v/release/mq1/TinyWiiBackupManager?logo=github&label=%E2%AC%87%20DMG/ZIP"></a>
@@ -101,13 +101,13 @@ Nintendo.<br>‼️ Use of TinyWiiBackupManager for pirated or unauthorized copi
 <table>
   <tr>
     <td>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         <br>
         &nbsp;&nbsp;&nbsp;<img height="36px" src="https://www.svgrepo.com/download/355384/windows-legacy.svg">
         <br>
-        Windows 7
+        Windows<br>7, 8, 8.1
         <br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     </td>
     <td>
         <a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest"><img alt="⬇️ Standalone/Installer" src="https://img.shields.io/github/v/release/mq1/TinyWiiBackupManager?logo=github&label=%E2%AC%87%20Standalone/Installer"></a>
