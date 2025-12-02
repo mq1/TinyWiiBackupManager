@@ -92,6 +92,7 @@ Nintendo.<br>‼️ Use of TinyWiiBackupManager for pirated or unauthorized copi
         ℹ️ If you don't know which asset to download, <kbd>TinyWiiBackupManager-vX.X.X-macos-arm64.dmg</kbd> should work for most users
         <br><br>
         ⚠️ The app is not notarized, you must allow it manually after installing by running this command in Terminal:
+        <br>
         <code>xattr -rd com.apple.quarantine /Applications/TinyWiiBackupManager.app</code>
     </td>
   </tr>
