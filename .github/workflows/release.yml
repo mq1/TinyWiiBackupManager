@@ -260,16 +260,11 @@ jobs:
     runs-on: ubuntu-24.04
     needs: [ build-linux, build-windows, build-macos ]
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 1
-
       - name: Download distributables
         uses: actions/download-artifact@v4
         with:
           path: dist
-          pattern: '*dist*' # This pattern will match all final distributable artifacts
+          pattern: 'dist-*' # This pattern will match all final distributable artifacts
           merge-multiple: true # This places all matching artifacts into a single 'dist' directory
 
       - name: Create version.txt
@@ -288,14 +283,41 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  winget:
-    if: false
-    needs: [ release ]
-    name: Publish to WinGet
-    runs-on: windows-2025
+  scoop:
+    name: Update scoop bucket
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-24.04
+    needs: [ build-windows ]
     steps:
-      - uses: vedantmgoyal9/winget-releaser@main
+      - name: Checkout
+        uses: actions/checkout@v5
         with:
-          identifier: mq1.TinyWiiBackupManager
-          token: ${{ secrets.WINGET_TOKEN }}
-          installers-regex: '^TinyWiiBackupManager-v.+-windows-(?:x86_64|arm64|x86)-setup\.exe$'
+          fetch-depth: 1
+
+      - name: Download distributables
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          pattern: 'dist-windows-*'
+          merge-multiple: true
+
+      - name: Generate TinyyiiBackupManager.json
+        run: |
+          plain_ver="${VERSION_NAME#v}" # Remove leading 'v'
+          x86_64_hash=$(sha256sum dist/TinyWiiBackupManager-${VERSION_NAME}-windows-x86_64.zip | cut -d' ' -f1)
+          arm64_hash=$(sha256sum dist/TinyWiiBackupManager-${VERSION_NAME}-windows-arm64.zip | cut -d' ' -f1)
+          x86_hash=$(sha256sum dist/TinyWiiBackupManager-${VERSION_NAME}-windows-x86.zip | cut -d' ' -f1)
+          
+          cp assets/scoop-template.json bucket/TinyWiiBackupManager.json
+          sed -i "s/PLAIN_VER/${plain_ver}/g" bucket/TinyWiiBackupManager.json
+          sed -i "s/X86_64_HASH/${x86_64_hash}/g" bucket/TinyWiiBackupManager.json
+          sed -i "s/ARM64_HASH/${arm64_hash}/g" bucket/TinyWiiBackupManager.json
+          sed -i "s/X86_HASH/${x86_hash}/g" bucket/TinyWiiBackupManager.json
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "Manuel Quarneti"
+          git config user.email "mq1@ik.me"
+          git add bucket/TinyWiiBackupManager.json
+          git commit -m "🍨 Scoop: update TinyWiiBackupManager to ${VERSION_NAME} [skip ci]"
+          git push
