@@ -26,21 +26,5 @@
       "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/v4.5.1/TinyWiiBackupManager-v4.5.1-windows-x86.zip",
       "hash": "231c5f6b66f23932832920e57f25107974373f11f910bb3abf490001065c86d3"
     }
-  },
-  "checkver": {
-    "url": "https://github.com/mq1/TinyWiiBackupManager/releases/latest/download/version.txt"
-  },
-  "autoupdate": {
-    "architecture": {
-      "64bit": {
-        "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/v$version/TinyWiiBackupManager-v$version-windows-x86_64.zip"
-      },
-      "32bit": {
-        "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/v$version/TinyWiiBackupManager-v$version-windows-x86.zip"
-      },
-      "arm64": {
-        "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/v$version/TinyWiiBackupManager-v$version-windows-arm64.zip"
-      }
-    }
   }
 }
