@@ -35,11 +35,13 @@ mod messages;
 
 use crate::app::App;
 use anyhow::{Result, anyhow};
+use eframe::egui::FontData;
 use eframe::{
     NativeOptions, egui,
     egui::{CornerRadius, ViewportBuilder, vec2},
 };
 use egui_extras::install_image_loaders;
+use std::sync::Arc;
 use std::{fs, path::PathBuf};
 
 pub const APP_NAME: &str = env!("CARGO_PKG_NAME");
@@ -113,9 +115,30 @@ fn main() -> Result<()> {
             // Set theme based on config preference
             cc.egui_ctx.set_theme(app.config.contents.theme_preference);
 
-            // Load default fonts and phosphor icons
-            let mut fonts = egui::FontDefinitions::default();
+            // Load fonts and phosphor icons
+            let mut fonts = egui::FontDefinitions::empty();
+            fonts.font_data.insert(
+                "ubuntu".to_string(),
+                Arc::new(FontData::from_static(include_bytes!(
+                    "../assets/Ubuntu-Light.ttf"
+                ))),
+            );
+            if let Some(font_keys) = fonts.families.get_mut(&egui::FontFamily::Proportional) {
+                font_keys.push("ubuntu".to_string());
+            }
+            if let Some(font_keys) = fonts.families.get_mut(&egui::FontFamily::Monospace) {
+                font_keys.push("ubuntu".to_string());
+            }
             egui_phosphor::add_to_fonts(&mut fonts, egui_phosphor::Variant::Regular);
+            fonts.font_data.insert(
+                "emoji-icon-font".to_string(),
+                Arc::new(FontData::from_static(include_bytes!(
+                    "../assets/emoji-icon-font.ttf"
+                ))),
+            );
+            if let Some(font_keys) = fonts.families.get_mut(&egui::FontFamily::Proportional) {
+                font_keys.push("emoji-icon-font".to_string());
+            }
             cc.egui_ctx.set_fonts(fonts);
 
             cc.egui_ctx.all_styles_mut(|style| {
