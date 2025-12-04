@@ -26,7 +26,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     Vec2::splat(40.),
                     egui::Button::selectable(
                         current_view == View::Games,
-                        egui::RichText::new("🎮").size(26.),
+                        egui::RichText::new(egui_phosphor::regular::SWORD).size(26.),
                     ),
                 )
                 .on_hover_text("View your Wii games")
@@ -40,10 +40,10 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     Vec2::splat(40.),
                     egui::Button::selectable(
                         current_view == View::HbcApps,
-                        egui::RichText::new("★").size(26.),
+                        egui::RichText::new(egui_phosphor::regular::WAVES).size(26.),
                     ),
                 )
-                .on_hover_text("View your HBC apps")
+                .on_hover_text("View your Homebrew Channel apps")
                 .clicked()
             {
                 app.open_view(ctx, View::HbcApps);
@@ -54,7 +54,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     Vec2::splat(40.),
                     egui::Button::selectable(
                         current_view == View::Osc,
-                        egui::RichText::new("🏪").size(26.),
+                        egui::RichText::new(egui_phosphor::regular::STOREFRONT).size(26.),
                     ),
                 )
                 .on_hover_text("Open Shop Channel")
@@ -68,7 +68,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     Vec2::splat(40.),
                     egui::Button::selectable(
                         current_view == View::Wiiload,
-                        egui::RichText::new("📮").size(26.),
+                        egui::RichText::new(egui_phosphor::regular::MONITOR_ARROW_UP).size(26.),
                     ),
                 )
                 .on_hover_text("Wiiload")
@@ -82,7 +82,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     Vec2::splat(40.),
                     egui::Button::selectable(
                         current_view == View::Tools,
-                        egui::RichText::new("🔧").size(26.),
+                        egui::RichText::new(egui_phosphor::regular::WRENCH).size(26.),
                     ),
                 )
                 .on_hover_text("Tools")
@@ -96,7 +96,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     Vec2::splat(40.),
                     egui::Button::selectable(
                         current_view == View::Settings,
-                        egui::RichText::new("⛭").size(26.),
+                        egui::RichText::new(egui_phosphor::regular::GEAR).size(26.),
                     ),
                 )
                 .on_hover_text("Settings")
@@ -111,7 +111,9 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 if ui
                     .add_sized(
                         Vec2::splat(40.),
-                        egui::Button::new(egui::RichText::new("ℹ").size(26.)),
+                        egui::Button::new(
+                            egui::RichText::new(egui_phosphor::regular::INFO).size(26.),
+                        ),
                     )
                     .on_hover_text(format!("{} Info", env!("CARGO_PKG_NAME")))
                     .clicked()
@@ -122,7 +124,9 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 if ui
                     .add_sized(
                         Vec2::splat(40.),
-                        egui::Button::new(egui::RichText::new("🖴").size(26.)),
+                        egui::Button::new(
+                            egui::RichText::new(egui_phosphor::regular::HARD_DRIVES).size(26.),
+                        ),
                     )
                     .on_hover_text("Select Drive/Mount Point")
                     .clicked()
@@ -134,9 +138,15 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     && ui
                         .add_sized(
                             Vec2::splat(40.),
-                            egui::Button::new(egui::RichText::new("❕").size(26.)),
+                            egui::Button::new(
+                                egui::RichText::new(egui_phosphor::regular::SEAL_WARNING).size(26.),
+                            ),
                         )
-                        .on_hover_text(format!("A new version is available: {}", &version))
+                        .on_hover_text(format!(
+                            "{} A new version is available: {}",
+                            egui_phosphor::regular::CLOUD_CHECK,
+                            &version
+                        ))
                         .clicked()
                 {
                     ctx.open_url(OpenUrl::new_tab(UPDATE_URL));

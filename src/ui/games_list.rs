@@ -12,7 +12,6 @@ use egui_extras::{Column, TableBuilder};
 
 pub fn update(ui: &mut egui::Ui, app: &mut App) {
     TableBuilder::new(ui)
-        .striped(true)
         .resizable(true)
         .column(Column::auto().at_least(250.))
         .column(Column::auto().at_least(100.))
@@ -20,16 +19,16 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
         .column(Column::remainder())
         .header(26.0, |mut header| {
             header.col(|ui| {
-                ui.heading("✏ Title");
+                ui.heading("Title");
             });
             header.col(|ui| {
-                ui.heading("🎮 Console");
+                ui.heading("Console");
             });
             header.col(|ui| {
-                ui.heading("⚖ Size");
+                ui.heading("Size");
             });
             header.col(|ui| {
-                ui.heading("☞ Actions");
+                ui.heading("Actions");
             });
         })
         .body(|mut body| {
@@ -55,8 +54,12 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                     row.col(|ui| {
                         ui.add_space(3.);
                         ui.add(
-                            egui::Label::new(if game.is_wii { "🎾 Wii" } else { "🎲 GC" })
-                                .truncate(),
+                            egui::Label::new(if game.is_wii {
+                                format!("{} Wii", egui_phosphor::regular::HAND_DEPOSIT)
+                            } else {
+                                format!("{} GC", egui_phosphor::regular::GAME_CONTROLLER)
+                            })
+                            .truncate(),
                         );
                         ui.add_space(3.);
                         ui.separator();
@@ -71,7 +74,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                         ui.horizontal(|ui| {
                             // Info button
                             if ui
-                                .button("ℹ Info")
+                                .button(format!("{} Info", egui_phosphor::regular::INFO))
                                 .on_hover_text("Show Game Information")
                                 .clicked()
                             {
@@ -85,7 +88,10 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
 
                             // Archive button
                             if ui
-                                .button("📥 Archive")
+                                .button(format!(
+                                    "{} Archive",
+                                    egui_phosphor::regular::BOX_ARROW_DOWN
+                                ))
                                 .on_hover_text("Archive Game to RVZ or ISO")
                                 .clicked()
                             {
@@ -93,7 +99,11 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                             }
 
                             // Delete button
-                            if ui.button("🗑 Delete").on_hover_text("Delete Game").clicked() {
+                            if ui
+                                .button(format!("{} Delete", egui_phosphor::regular::TRASH))
+                                .on_hover_text("Delete Game")
+                                .clicked()
+                            {
                                 app.send_msg(Message::OpenModal(ui::Modal::DeleteGame(game_i)));
                             }
                         });
