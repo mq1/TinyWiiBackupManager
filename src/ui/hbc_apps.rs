@@ -13,7 +13,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
         if app.config.contents.mount_point.as_os_str().is_empty() {
             ui.heading(format!(
                 "Click on {} to select a Drive/Mount Point",
-                egui_phosphor::regular::HARD_DRIVES
+                egui_phosphor::regular::HARD_DRIVE
             ));
             return;
         }

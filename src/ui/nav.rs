@@ -125,7 +125,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     .add_sized(
                         Vec2::splat(40.),
                         egui::Button::new(
-                            egui::RichText::new(egui_phosphor::regular::HARD_DRIVES).size(26.),
+                            egui::RichText::new(egui_phosphor::regular::HARD_DRIVE).size(26.),
                         ),
                     )
                     .on_hover_text("Select Drive/Mount Point")
