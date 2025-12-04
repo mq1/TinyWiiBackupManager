@@ -46,12 +46,20 @@ pub fn get_base_dialog() -> FileDialog {
             Arc::new(|path| path.extension().unwrap_or_default() == "tgc"),
         )
         .set_file_icon(
-            egui_phosphor::regular::FILES,
+            egui_phosphor::regular::FILE_ARCHIVE,
             Arc::new(|path| path.extension().unwrap_or_default() == "nfs"),
         )
         .set_file_icon(
             egui_phosphor::regular::FILE_ZIP,
             Arc::new(|path| path.extension().unwrap_or_default() == "zip"),
+        )
+        .set_file_icon(
+            egui_phosphor::regular::BINARY,
+            Arc::new(|path| path.extension().unwrap_or_default() == "dol"),
+        )
+        .set_file_icon(
+            egui_phosphor::regular::BINARY,
+            Arc::new(|path| path.extension().unwrap_or_default() == "elf"),
         )
 }
 
