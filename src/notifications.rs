@@ -44,7 +44,7 @@ impl Notifications {
         self.toasts.add(Toast {
             text: format!("{:#}", e).into(),
             kind: ToastKind::Error,
-            options: ToastOptions::default().duration_in_seconds(10.0),
+            options: ToastOptions::default(),
             style: self.style.clone(),
         });
     }
