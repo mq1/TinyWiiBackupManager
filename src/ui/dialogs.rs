@@ -1,9 +1,56 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use egui_file_dialog::FileDialogLabels;
+use egui_file_dialog::{FileDialog, FileDialogLabels};
+use std::sync::Arc;
 
-pub fn get_labels() -> FileDialogLabels {
+pub fn get_base_dialog() -> FileDialog {
+    FileDialog::new()
+        .labels(get_labels())
+        .as_modal(true)
+        .set_file_icon(
+            egui_phosphor::regular::DISC,
+            Arc::new(|path| path.extension().unwrap_or_default() == "gcm"),
+        )
+        .set_file_icon(
+            egui_phosphor::regular::DISC,
+            Arc::new(|path| path.extension().unwrap_or_default() == "iso"),
+        )
+        .set_file_icon(
+            egui_phosphor::regular::DATABASE,
+            Arc::new(|path| path.extension().unwrap_or_default() == "wbfs"),
+        )
+        .set_file_icon(
+            egui_phosphor::regular::FILE_ARCHIVE,
+            Arc::new(|path| path.extension().unwrap_or_default() == "wia"),
+        )
+        .set_file_icon(
+            egui_phosphor::regular::FILE_ARCHIVE,
+            Arc::new(|path| path.extension().unwrap_or_default() == "rvz"),
+        )
+        .set_file_icon(
+            egui_phosphor::regular::FILE_ARCHIVE,
+            Arc::new(|path| path.extension().unwrap_or_default() == "ciso"),
+        )
+        .set_file_icon(
+            egui_phosphor::regular::FILE_ARCHIVE,
+            Arc::new(|path| path.extension().unwrap_or_default() == "gcz"),
+        )
+        .set_file_icon(
+            egui_phosphor::regular::FILE_ARCHIVE,
+            Arc::new(|path| path.extension().unwrap_or_default() == "tgc"),
+        )
+        .set_file_icon(
+            egui_phosphor::regular::FILES,
+            Arc::new(|path| path.extension().unwrap_or_default() == "nfs"),
+        )
+        .set_file_icon(
+            egui_phosphor::regular::FILE_ZIP,
+            Arc::new(|path| path.extension().unwrap_or_default() == "zip"),
+        )
+}
+
+fn get_labels() -> FileDialogLabels {
     FileDialogLabels {
         title_select_directory: format!("{} Select Folder", egui_phosphor::regular::FOLDER),
         title_select_file: format!("{} Open File", egui_phosphor::regular::FOLDER_OPEN),
