@@ -16,9 +16,8 @@ pub fn update(ctx: &egui::Context, app: &App) {
             let pending = app.task_processor.pending();
             if pending > 0 {
                 ui.label(format!("{pending} Pending Tasks"));
+                ui.separator();
             }
-
-            ui.separator();
 
             ui.label(&app.status);
         });

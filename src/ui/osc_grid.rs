@@ -17,7 +17,8 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
         let cols = available_width as usize / CARD_HORIZONTAL_SPACE;
 
         ui.heading(format!(
-            "🏪 Open Shop Channel Apps: {} found",
+            "{} Open Shop Channel Apps: {} found",
+            egui_phosphor::regular::STOREFRONT,
             app.filtered_osc_apps.len(),
         ));
 
@@ -48,7 +49,11 @@ fn update_osc_app_card(ui: &mut egui::Ui, app: &App, osc_app_i: u16) {
         ui.vertical_centered(|ui| {
             // Top row with version on the left and size label on the right
             ui.horizontal(|ui| {
-                ui.label(format!("📌 {}", osc_app.meta.trimmed_version()));
+                ui.label(format!(
+                    "{}  {}",
+                    egui_phosphor::regular::PUSH_PIN,
+                    osc_app.meta.trimmed_version()
+                ));
 
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     ui.label(osc_app.meta.uncompressed_size.to_string());
@@ -70,7 +75,7 @@ fn update_osc_app_card(ui: &mut egui::Ui, app: &App, osc_app_i: u16) {
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 // Install button
                 if ui
-                    .button("📥")
+                    .button(egui_phosphor::regular::CLOUD_ARROW_DOWN)
                     .on_hover_text("Download and Install App")
                     .clicked()
                 {
@@ -82,7 +87,7 @@ fn update_osc_app_card(ui: &mut egui::Ui, app: &App, osc_app_i: u16) {
 
                 // Wiiload button
                 if ui
-                    .button("📤")
+                    .button(egui_phosphor::regular::MONITOR_ARROW_UP)
                     .on_hover_text("Push to Wii via Wiiload")
                     .clicked()
                 {
@@ -93,7 +98,8 @@ fn update_osc_app_card(ui: &mut egui::Ui, app: &App, osc_app_i: u16) {
                 // Info button
                 if ui
                     .add(
-                        egui::Button::new("ℹ Info").min_size(egui::vec2(ui.available_width(), 0.0)),
+                        egui::Button::new(format!("{} Info", egui_phosphor::regular::INFO))
+                            .min_size(egui::vec2(ui.available_width(), 0.0)),
                     )
                     .on_hover_text("Show App Information")
                     .clicked()

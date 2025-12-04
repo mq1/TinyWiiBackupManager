@@ -11,7 +11,10 @@ use eframe::egui;
 pub fn update(ctx: &egui::Context, app: &mut App) {
     egui::CentralPanel::default().show(ctx, |ui| {
         if app.osc_apps.is_empty() {
-            ui.heading("Loading OSC Apps...");
+            ui.heading(format!(
+                "{} Loading OSC Apps...",
+                egui_phosphor::regular::CLOUD_ARROW_DOWN
+            ));
             return;
         }
 
@@ -38,8 +41,8 @@ fn update_top_bar(ui: &mut egui::Ui, app: &mut App) {
     ui.horizontal(|ui| {
         group.show(ui, |ui| {
             ui.set_height(21.);
-            ui.add_space(2.);
-            ui.label("🔎");
+            ui.add_space(3.);
+            ui.label(egui_phosphor::regular::MAGNIFYING_GLASS);
 
             if ui
                 .add(
@@ -61,14 +64,20 @@ fn update_top_bar(ui: &mut egui::Ui, app: &mut App) {
                         .hint_text("Wii IP"),
                 );
 
-                ui.label(" 📮  Wii IP (for Wiiload)");
+                ui.label(format!(
+                    "  {}  Wii IP (for Wiiload)",
+                    egui_phosphor::regular::WIFI_HIGH
+                ));
             });
 
             ui.add_space(10.);
 
             group.show(ui, |ui| {
                 if ui
-                    .selectable_label(current_view_as == ViewAs::List, "☰")
+                    .selectable_label(
+                        current_view_as == ViewAs::List,
+                        egui_phosphor::regular::LIST,
+                    )
                     .on_hover_text("View as List")
                     .clicked()
                 {
@@ -77,7 +86,10 @@ fn update_top_bar(ui: &mut egui::Ui, app: &mut App) {
                 }
 
                 if ui
-                    .selectable_label(current_view_as == ViewAs::Grid, "")
+                    .selectable_label(
+                        current_view_as == ViewAs::Grid,
+                        egui_phosphor::regular::SQUARES_FOUR,
+                    )
                     .on_hover_text("View as Grid")
                     .clicked()
                 {

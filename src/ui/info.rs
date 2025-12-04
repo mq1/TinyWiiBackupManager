@@ -19,32 +19,32 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
             ui.vertical(|ui| {
                 ui.add_space(4.);
                 ui.heading(env!("CARGO_PKG_NAME"));
-                ui.label(format!("📌 Version {}", env!("CARGO_PKG_VERSION")));
-                ui.label("© 2025 Manuel Quarneti | 📃 GPL-3.0-only");
+                ui.label(format!("{} Version {}", egui_phosphor::regular::PUSH_PIN, env!("CARGO_PKG_VERSION")));
+                ui.label(format!("© 2025 Manuel Quarneti | {} GPL-3.0-only", egui_phosphor::regular::FILE_TEXT));
             });
         });
 
         ui.separator();
 
-        ui.label("‼ TinyWiiBackupManager is intended strictly for legal homebrew use and is not affiliated with or endorsed by Nintendo. Use of TinyWiiBackupManager for pirated or unauthorized copies of games is strictly prohibited.");
+        ui.label(format!("{} TinyWiiBackupManager is intended strictly for legal homebrew use and is not affiliated with or endorsed by Nintendo. Use of TinyWiiBackupManager for pirated or unauthorized copies of games is strictly prohibited.", egui_phosphor::regular::WARNING));
 
         ui.separator();
         ui.add_space(10.);
 
         ui.heading("ℹ Need help modding your Wii?");
-        ui.hyperlink_to("🌐 Wii Hacks Guide", "https://wii.hacks.guide/");
+        ui.hyperlink_to(format!("{} Wii Hacks Guide", egui_phosphor::regular::LINK), "https://wii.hacks.guide/");
 
         ui.add_space(10.);
 
-        ui.heading("💡 Projects powering TinyWiiBackupManager:");
-        ui.hyperlink_to("🌐 https://github.com/emilk/egui", "https://github.com/emilk/egui");
-        ui.hyperlink_to("🌐 https://github.com/encounter/nod", "https://github.com/encounter/nod");
-        ui.hyperlink_to("🌐 https://www.gametdb.com/", "https://www.gametdb.com/");
-        ui.hyperlink_to("💡 And many more", "https://github.com/mq1/TinyWiiBackupManager/blob/main/Cargo.toml");
+        ui.heading(format!("{} Projects powering TinyWiiBackupManager:", egui_phosphor::regular::LIGHTBULB));
+        ui.hyperlink_to(format!("{} https://github.com/emilk/egui", egui_phosphor::regular::LINK) , "https://github.com/emilk/egui");
+        ui.hyperlink_to(format!("{} https://github.com/encounter/nod", egui_phosphor::regular::LINK), "https://github.com/encounter/nod");
+        ui.hyperlink_to(format!("{} https://www.gametdb.com/", egui_phosphor::regular::LINK), "https://www.gametdb.com/");
+        ui.hyperlink_to(format!("{} And many more", egui_phosphor::regular::LIGHTBULB), "https://github.com/mq1/TinyWiiBackupManager/blob/main/Cargo.toml");
 
         ui.add_space(10.);
 
-        ui.heading("👏 Special thanks to");
+        ui.heading(format!("{} Special thanks to", egui_phosphor::regular::HEART));
         ui.horizontal(|ui| {
             ui.hyperlink_to("Luke Street", "https://github.com/encounter");
             ui.label("for developing nod and helping TWBM leverage it effectively.");
@@ -57,21 +57,21 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
         ui.add_space(10.);
 
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Max), |ui| {
-            if ui.button("❌ Close").clicked() {
+            if ui.button(format!("{} Close", egui_phosphor::regular::X)).clicked() {
                 app.close_modal();
             }
 
             ui.add_sized(egui::Vec2::new(1., 21.), egui::Separator::default());
 
-            if ui.button("📁 Open Data Directory").clicked() {
+            if ui.button(format!("{} Open Data Directory", egui_phosphor::regular::FOLDER)).clicked() {
                 app.open_data_dir();
             }
 
-            if ui.button("🌐 Wiki").clicked() {
+            if ui.button(format!("{} Wiki", egui_phosphor::regular::LINK)).clicked() {
                 ctx.open_url(OpenUrl::new_tab(env!("CARGO_PKG_HOMEPAGE")));
             }
 
-            if ui.button(" Source Code").clicked() {
+            if ui.button(format!("{} Source Code", egui_phosphor::regular::GITHUB_LOGO)).clicked() {
                 ctx.open_url(OpenUrl::new_tab(env!("CARGO_PKG_REPOSITORY")));
             }
         })

@@ -11,7 +11,10 @@ use eframe::egui::{self, Vec2};
 pub fn update(ctx: &egui::Context, app: &mut App) {
     egui::CentralPanel::default().show(ctx, |ui| {
         if app.config.contents.mount_point.as_os_str().is_empty() {
-            ui.heading("Click on 🖴 to select a Drive/Mount Point");
+            ui.heading(format!(
+                "Click on {} to select a Drive/Mount Point",
+                egui_phosphor::regular::HARD_DRIVES
+            ));
             return;
         }
 
@@ -35,8 +38,8 @@ fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, app: &mut App) {
     ui.horizontal(|ui| {
         group.show(ui, |ui| {
             ui.set_height(21.);
-            ui.add_space(2.);
-            ui.label("🔎");
+            ui.add_space(3.);
+            ui.label(egui_phosphor::regular::MAGNIFYING_GLASS);
 
             if ui
                 .add(
@@ -54,7 +57,7 @@ fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, app: &mut App) {
             if ui
                 .add_sized(
                     Vec2::splat(34.),
-                    egui::Button::new(egui::RichText::new("✚").size(18.)),
+                    egui::Button::new(egui::RichText::new(egui_phosphor::regular::PLUS).size(18.)),
                 )
                 .on_hover_text("Add Games")
                 .clicked()
@@ -65,7 +68,9 @@ fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, app: &mut App) {
             if ui
                 .add_sized(
                     Vec2::splat(34.),
-                    egui::Button::new(egui::RichText::new("⟳").size(18.)),
+                    egui::Button::new(
+                        egui::RichText::new(egui_phosphor::regular::ARROWS_CLOCKWISE).size(18.),
+                    ),
                 )
                 .on_hover_text("Refresh Games")
                 .clicked()
@@ -78,7 +83,10 @@ fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, app: &mut App) {
 
             group.show(ui, |ui| {
                 if ui
-                    .selectable_label(current_view_as == ViewAs::List, "☰")
+                    .selectable_label(
+                        current_view_as == ViewAs::List,
+                        egui_phosphor::regular::LIST,
+                    )
                     .on_hover_text("View as List")
                     .clicked()
                 {
@@ -87,7 +95,10 @@ fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, app: &mut App) {
                 }
 
                 if ui
-                    .selectable_label(current_view_as == ViewAs::Grid, "")
+                    .selectable_label(
+                        current_view_as == ViewAs::Grid,
+                        egui_phosphor::regular::SQUARES_FOUR,
+                    )
                     .on_hover_text("View as Grid")
                     .clicked()
                 {
@@ -104,9 +115,17 @@ fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, app: &mut App) {
                             SortBy::SizeAscending | SortBy::SizeDescending
                         ),
                         if current_sort_by == SortBy::SizeDescending {
-                            "⚖⏷"
+                            format!(
+                                "{}{}",
+                                egui_phosphor::regular::SCALES,
+                                egui_phosphor::regular::SORT_DESCENDING
+                            )
                         } else {
-                            "⚖⏶"
+                            format!(
+                                "{}{}",
+                                egui_phosphor::regular::SCALES,
+                                egui_phosphor::regular::SORT_ASCENDING
+                            )
                         },
                     )
                     .on_hover_text("Sort by size")
@@ -128,9 +147,17 @@ fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, app: &mut App) {
                             SortBy::NameAscending | SortBy::NameDescending
                         ),
                         if current_sort_by == SortBy::NameDescending {
-                            "🗛⏷"
+                            format!(
+                                "{}{}",
+                                egui_phosphor::regular::TEXT_AA,
+                                egui_phosphor::regular::SORT_DESCENDING
+                            )
                         } else {
-                            "🗛⏶"
+                            format!(
+                                "{}{}",
+                                egui_phosphor::regular::TEXT_AA,
+                                egui_phosphor::regular::SORT_ASCENDING
+                            )
                         },
                     )
                     .on_hover_text("Sort by name")
@@ -147,12 +174,12 @@ fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, app: &mut App) {
             });
 
             group.show(ui, |ui| {
-                ui.checkbox(&mut app.show_gc, "🎲")
+                ui.checkbox(&mut app.show_gc, egui_phosphor::regular::GAME_CONTROLLER)
                     .on_hover_text("Show GameCube");
 
                 ui.separator();
 
-                ui.checkbox(&mut app.show_wii, "🎾")
+                ui.checkbox(&mut app.show_wii, egui_phosphor::regular::HAND_DEPOSIT)
                     .on_hover_text("Show Wii");
             });
         });

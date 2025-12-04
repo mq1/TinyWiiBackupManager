@@ -36,7 +36,7 @@ mod messages;
 use crate::app::App;
 use anyhow::{Result, anyhow};
 use eframe::{
-    NativeOptions,
+    NativeOptions, egui,
     egui::{CornerRadius, ViewportBuilder, vec2},
 };
 use egui_extras::install_image_loaders;
@@ -107,8 +107,16 @@ fn main() -> Result<()> {
         APP_NAME,
         native_options,
         Box::new(|cc| {
+            // Load png image loader
             install_image_loaders(&cc.egui_ctx);
+
+            // Set theme based on config preference
             cc.egui_ctx.set_theme(app.config.contents.theme_preference);
+
+            // Load default fonts and phosphor icons
+            let mut fonts = egui::FontDefinitions::default();
+            egui_phosphor::add_to_fonts(&mut fonts, egui_phosphor::Variant::Regular);
+            cc.egui_ctx.set_fonts(fonts);
 
             cc.egui_ctx.all_styles_mut(|style| {
                 style.visuals.selection.bg_fill = app.config.contents.accent_color.into();
