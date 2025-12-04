@@ -8,6 +8,11 @@ pub fn get_base_dialog() -> FileDialog {
     FileDialog::new()
         .labels(get_labels())
         .as_modal(true)
+        .err_icon(egui_phosphor::regular::X)
+        .default_file_icon(egui_phosphor::regular::FILE)
+        .default_folder_icon(egui_phosphor::regular::FOLDER)
+        .device_icon(egui_phosphor::regular::HARD_DRIVE)
+        .removable_device_icon(egui_phosphor::regular::HARD_DRIVE)
         .set_file_icon(
             egui_phosphor::regular::DISC,
             Arc::new(|path| path.extension().unwrap_or_default() == "gcm"),
