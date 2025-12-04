@@ -12,8 +12,8 @@ dependencies = [
  "directories",
  "eframe",
  "egui-file-dialog",
- "egui-notify",
  "egui-phosphor",
+ "egui-toast",
  "egui_extras",
  "env_logger",
  "fs_extra",
@@ -1140,19 +1140,19 @@ dependencies = [
 ]
 
 [[package]]
-name = "egui-notify"
-version = "0.21.0"
+name = "egui-phosphor"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e8d811c81c13fbce131116eeb6b228086f2c7eb6e4105e03ceb3a358c53c1668"
+checksum = "e3b2838620355debaeb7fa3cc331a1d8ab77e6387d40e65686fa468c229dbf63"
 dependencies = [
  "egui",
 ]
 
 [[package]]
-name = "egui-phosphor"
-version = "0.11.0"
+name = "egui-toast"
+version = "0.19.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e3b2838620355debaeb7fa3cc331a1d8ab77e6387d40e65686fa468c229dbf63"
+checksum = "2d70ffb0cc3f04ee54e4ce7a202bbbe2bc10020fa9287d10812cda8c92b033f2"
 dependencies = [
  "egui",
 ]
@@ -1345,8 +1345,7 @@ dependencies = [
 [[package]]
 name = "epaint_default_fonts"
 version = "0.33.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ad9649446c23368ae138716910e3e28143995691b598fbb9de16b42b0722cbcc"
+source = "git+https://github.com/mq1/epaint_no_fonts?branch=main#1bf053fb90c00b3d2245decda327eaccf368668a"
 
 [[package]]
 name = "equivalent"
