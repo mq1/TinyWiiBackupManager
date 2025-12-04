@@ -5,7 +5,7 @@ use crate::app::App;
 use crate::messages::Message;
 use crate::osc::OscApp;
 use crate::{config::SortBy, http};
-use anyhow::{Result, bail};
+use anyhow::{Result, anyhow, bail};
 use path_slash::PathBufExt;
 use serde::{Deserialize, Deserializer};
 use size::Size;
@@ -48,16 +48,6 @@ where
     Ok(date)
 }
 
-impl HbcAppMeta {
-    pub fn version_display(&self) -> String {
-        if self.version.len() > 10 {
-            format!("📌 {}...", &self.version[..10])
-        } else {
-            format!("📌 {}", &self.version)
-        }
-    }
-}
-
 #[derive(Debug, Clone)]
 pub struct HbcApp {
     pub meta: HbcAppMeta,
@@ -71,22 +61,32 @@ pub struct HbcApp {
 impl HbcApp {
     pub fn from_path(path: PathBuf, osc_apps: &[OscApp]) -> Result<Self> {
         if !path.is_dir() {
-            bail!("{} is not a directory", path.display());
-        }
-
-        if let Some(file_name) = path.file_name()
-            && let Some(file_name) = file_name.to_str()
-            && file_name.starts_with('.')
-        {
-            bail!("Skipping hidden directory {}", path.display());
+            bail!(
+                "{} {} is not a directory",
+                egui_phosphor::regular::FILE_X,
+                path.display()
+            );
         }
 
         let slug = path
             .file_name()
-            .unwrap_or_default()
+            .ok_or(anyhow!(
+                "{} No file name found",
+                egui_phosphor::regular::FILE_X
+            ))?
             .to_str()
-            .unwrap_or_default()
-            .to_string();
+            .ok_or(anyhow!(
+                "{} Invalid file name",
+                egui_phosphor::regular::FILE_X
+            ))?;
+
+        if slug.starts_with('.') {
+            bail!(
+                "{} Skipping hidden directory {}",
+                egui_phosphor::regular::FOLDER_DASHED,
+                path.display()
+            );
+        }
 
         let meta_path = path.join("meta").with_extension("xml");
         let meta = fs::read_to_string(&meta_path).unwrap_or_default();
@@ -104,7 +104,7 @@ impl HbcApp {
         let image_path = path.join("icon.png");
         let image_uri = format!("file://{}", image_path.to_slash_lossy());
 
-        let search_str = (meta.name.clone() + &slug).to_lowercase();
+        let search_str = (meta.name.clone() + slug).to_lowercase();
 
         let osc_app_i = osc_apps
             .iter()
@@ -160,7 +160,8 @@ pub fn spawn_install_app_from_url_task(app: &App, zip_url: String) {
 
     app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(Message::UpdateStatus(format!(
-            "📥 Downloading {}...",
+            "{} Downloading {}...",
+            egui_phosphor::regular::CLOUD_ARROW_DOWN,
             &zip_url
         )))?;
 
@@ -168,7 +169,11 @@ pub fn spawn_install_app_from_url_task(app: &App, zip_url: String) {
 
         msg_sender.send(Message::TriggerRefreshHbcApps)?;
 
-        msg_sender.send(Message::NotifyInfo(format!("📥 {} Downloaded", &zip_url)))?;
+        msg_sender.send(Message::NotifyInfo(format!(
+            "{} {} Downloaded",
+            egui_phosphor::regular::CLOUD_ARROW_DOWN,
+            &zip_url
+        )))?;
 
         Ok(())
     });
@@ -179,11 +184,15 @@ pub fn spawn_install_apps_task(app: &App, paths: Box<[PathBuf]>) {
     let mount_point = app.config.contents.mount_point.clone();
 
     app.task_processor.spawn(move |msg_sender| {
-        msg_sender.send(Message::UpdateStatus("🖴 Installing apps...".to_string()))?;
+        msg_sender.send(Message::UpdateStatus(format!(
+            "{} Installing apps...",
+            egui_phosphor::regular::WAVES
+        )))?;
 
         for path in &paths {
             msg_sender.send(Message::UpdateStatus(format!(
-                "🖴 Installing {}...",
+                "{} Installing {}...",
+                egui_phosphor::regular::WAVES,
                 path.display()
             )))?;
             install_zip(&mount_point, path)?;
@@ -195,7 +204,8 @@ pub fn spawn_install_apps_task(app: &App, paths: Box<[PathBuf]>) {
             msg_sender.send(Message::TriggerRefreshHbcApps)?;
 
             msg_sender.send(Message::NotifyInfo(format!(
-                "🖴 Installed {}",
+                "{} Installed {}",
+                egui_phosphor::regular::WAVES,
                 path.display()
             )))?;
         }

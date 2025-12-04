@@ -38,25 +38,34 @@ pub fn spawn_download_banners_task(app: &App) {
         .collect::<Box<[_]>>();
 
     app.task_processor.spawn(move |msg_sender| {
-        msg_sender.send(Message::UpdateStatus(
-            "🖻 Downloading banners...".to_string(),
-        ))?;
+        msg_sender.send(Message::UpdateStatus(format!(
+            "{} Downloading banners...",
+            egui_phosphor::regular::IMAGE
+        )))?;
 
         fs::create_dir_all(&cache_bnr_path)?;
 
         for game in &gc_games {
             msg_sender.send(Message::UpdateStatus(format!(
-                "🖻 Downloading banners... ({})",
+                "{} Downloading banners... ({})",
+                egui_phosphor::regular::IMAGE,
                 &game.1
             )))?;
 
             if let Err(e) = download_banner_for_game(&cache_bnr_path, game.0) {
-                let context = format!("Failed to download banner for {}", &game.1);
+                let context = format!(
+                    "{} Failed to download banner for {}",
+                    egui_phosphor::regular::IMAGE,
+                    &game.1
+                );
                 msg_sender.send(Message::NotifyError(e.context(context)))?;
             }
         }
 
-        msg_sender.send(Message::NotifyInfo("🖻 Banners downloaded".to_string()))?;
+        msg_sender.send(Message::NotifyInfo(format!(
+            "{} Banners downloaded",
+            egui_phosphor::regular::IMAGE
+        )))?;
 
         Ok(())
     });

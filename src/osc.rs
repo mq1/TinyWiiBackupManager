@@ -18,15 +18,16 @@ pub fn spawn_load_osc_apps_task(app: &App) {
     let icons_dir = app.data_dir.join("osc-icons");
 
     app.task_processor.spawn(move |msg_sender| {
-        msg_sender.send(Message::UpdateStatus(
-            "📓 Downloading OSC Meta...".to_string(),
-        ))?;
+        msg_sender.send(Message::UpdateStatus(format!(
+            "{} Loading OSC Meta...",
+            egui_phosphor::regular::STOREFRONT
+        )))?;
 
         fs::create_dir_all(&icons_dir)?;
 
         let cache = match load_cache(&cache_path) {
-            Ok(cache) => cache,
-            Err(_) => {
+            Some(cache) => cache,
+            None => {
                 let bytes = http::get(CONTENTS_URL)?;
                 fs::write(&cache_path, &bytes)?;
                 serde_json::from_slice(&bytes)?
@@ -39,27 +40,30 @@ pub fn spawn_load_osc_apps_task(app: &App) {
             .collect::<Box<[_]>>();
 
         msg_sender.send(Message::GotOscApps(apps))?;
-        msg_sender.send(Message::NotifyInfo("📓 OSC Apps loaded".to_string()))?;
+        msg_sender.send(Message::NotifyInfo(format!(
+            "{} OSC Apps loaded",
+            egui_phosphor::regular::STOREFRONT
+        )))?;
 
         Ok(())
     });
 }
 
-fn load_cache(path: &Path) -> Result<Vec<OscAppMeta>> {
+fn load_cache(path: &Path) -> Option<Vec<OscAppMeta>> {
     // get file time
-    let file_time = fs::metadata(path)?.modified()?;
+    let file_time = fs::metadata(path).ok()?.modified().ok()?;
 
     // get difference
-    let elapsed = file_time.elapsed()?;
+    let elapsed = file_time.elapsed().ok()?;
 
     if elapsed > Duration::from_secs(60 * 60 * 24) {
-        bail!("osc-cache.json is too old");
+        return None;
     }
 
-    let bytes = fs::read(path)?;
-    let apps = serde_json::from_slice(&bytes)?;
+    let bytes = fs::read(path).ok()?;
+    let apps = serde_json::from_slice(&bytes).ok()?;
 
-    Ok(apps)
+    Some(apps)
 }
 
 pub fn download_icon(meta: &OscAppMeta, icons_dir: &Path) -> Result<()> {

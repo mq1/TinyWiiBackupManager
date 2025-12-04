@@ -9,7 +9,6 @@ use egui_extras::{Column, TableBuilder};
 
 pub fn update(ui: &mut egui::Ui, app: &mut App) {
     TableBuilder::new(ui)
-        .striped(true)
         .resizable(true)
         .column(Column::auto().at_least(250.))
         .column(Column::auto().at_least(75.))
@@ -17,16 +16,16 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
         .column(Column::remainder())
         .header(26.0, |mut header| {
             header.col(|ui| {
-                ui.heading("✏ Name");
+                ui.heading("Name");
             });
             header.col(|ui| {
-                ui.heading("📌 Version");
+                ui.heading("Version");
             });
             header.col(|ui| {
-                ui.heading("⚖ Size");
+                ui.heading("Size");
             });
             header.col(|ui| {
-                ui.heading("☞ Actions");
+                ui.heading("Actions");
             });
         })
         .body(|mut body| {
@@ -57,13 +56,20 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                     row.col(|ui| {
                         ui.horizontal(|ui| {
                             // Info button
-                            if ui.button("ℹ Info").on_hover_text("Show App Info").clicked() {
+                            if ui
+                                .button(format!("{} Info", egui_phosphor::regular::INFO))
+                                .on_hover_text("Show App Info")
+                                .clicked()
+                            {
                                 app.send_msg(Message::OpenModal(ui::Modal::OscAppInfo(osc_app_i)));
                             }
 
                             // Wiiload button
                             if ui
-                                .button("📤 Wiiload")
+                                .button(format!(
+                                    "{} Wiiload",
+                                    egui_phosphor::regular::MONITOR_ARROW_UP
+                                ))
                                 .on_hover_text("Push to Wii via Wiiload")
                                 .clicked()
                             {
@@ -77,7 +83,10 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
 
                             // Install button
                             if ui
-                                .button("📥 Install")
+                                .button(format!(
+                                    "{} Install",
+                                    egui_phosphor::regular::CLOUD_ARROW_DOWN
+                                ))
                                 .on_hover_text("Download and Install App")
                                 .clicked()
                             {

@@ -29,13 +29,22 @@ pub fn spawn_archive_game_task(
         Some(ext) => match ext.to_str() {
             Some("rvz") => ArchiveFormat::Rvz,
             Some("iso") => ArchiveFormat::Iso,
-            _ => bail!("Unsupported archive format"),
+            _ => bail!(
+                "{} Unsupported archive format",
+                egui_phosphor::regular::FILE_ARCHIVE
+            ),
         },
-        None => bail!("Unsupported archive format"),
+        None => bail!(
+            "{} Unsupported archive format",
+            egui_phosphor::regular::FILE_ARCHIVE
+        ),
     };
 
     app.task_processor.spawn(move |msg_sender| {
-        msg_sender.send(Message::UpdateStatus("📦 Archiving game...".to_string()))?;
+        msg_sender.send(Message::UpdateStatus(format!(
+            "{} Archiving game...",
+            egui_phosphor::regular::FILE_ARCHIVE
+        )))?;
 
         let format_opts = match archive_format {
             ArchiveFormat::Rvz => FormatOptions {
@@ -55,7 +64,8 @@ pub fn spawn_archive_game_task(
         let process_opts = get_process_opts(false);
 
         msg_sender.send(Message::UpdateStatus(format!(
-            "📦 Archiving {}...",
+            "{} Archiving {}...",
+            egui_phosphor::regular::FILE_ARCHIVE,
             path.display()
         )))?;
 
@@ -74,7 +84,8 @@ pub fn spawn_archive_game_task(
                 output_file.write_all(&data)?;
 
                 let _ = msg_sender.send(Message::UpdateStatus(format!(
-                    "📦 Archiving {}  {:02.0}%",
+                    "{} Archiving {}  {:02.0}%",
+                    egui_phosphor::regular::FILE_ARCHIVE,
                     path.display(),
                     progress as f32 / total as f32 * 100.0
                 )));
@@ -90,7 +101,8 @@ pub fn spawn_archive_game_task(
         }
 
         msg_sender.send(Message::NotifyInfo(format!(
-            "📦 Archived {}",
+            "{} Archived {}",
+            egui_phosphor::regular::FILE_ARCHIVE,
             path.display()
         )))?;
 

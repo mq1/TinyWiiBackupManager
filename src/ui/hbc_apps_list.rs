@@ -12,7 +12,6 @@ use egui_extras::{Column, TableBuilder};
 
 pub fn update(ui: &mut egui::Ui, app: &mut App) {
     TableBuilder::new(ui)
-        .striped(true)
         .resizable(true)
         .column(Column::auto().at_least(250.))
         .column(Column::auto().at_least(100.))
@@ -20,16 +19,16 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
         .column(Column::remainder())
         .header(26.0, |mut header| {
             header.col(|ui| {
-                ui.heading("✏ Name");
+                ui.heading("Name");
             });
             header.col(|ui| {
-                ui.heading("📌 Version");
+                ui.heading("Version");
             });
             header.col(|ui| {
-                ui.heading("⚖ Size");
+                ui.heading("Size");
             });
             header.col(|ui| {
-                ui.heading("☞ Actions");
+                ui.heading("Actions");
             });
         })
         .body(|mut body| {
@@ -62,7 +61,11 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
 
                         ui.horizontal(|ui| {
                             // Info button
-                            if ui.button("ℹ Info").on_hover_text("Show App Info").clicked() {
+                            if ui
+                                .button(format!("{} Info", egui_phosphor::regular::INFO))
+                                .on_hover_text("Show App Info")
+                                .clicked()
+                            {
                                 app.send_msg(Message::OpenModal(ui::Modal::HbcAppInfo(hbc_app_i)));
                             }
 
@@ -72,7 +75,10 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
 
                                 if osc_app.meta.version != hbc_app.meta.version
                                     && ui
-                                        .button("⮉ Update")
+                                        .button(format!(
+                                            "{} Update",
+                                            egui_phosphor::regular::CLOUD_ARROW_DOWN
+                                        ))
                                         .on_hover_text(
                                             "Download update from OSC: v".to_string()
                                                 + &osc_app.meta.version,
@@ -88,7 +94,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
 
                             // Delete button
                             if ui
-                                .button("🗑 Delete")
+                                .button(format!("{} Delete", egui_phosphor::regular::TRASH))
                                 .on_hover_text("Delete HBC App")
                                 .clicked()
                             {

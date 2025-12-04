@@ -14,7 +14,11 @@ pub fn update(ctx: &egui::Context, app: &mut App, hbc_app_i: u16) {
         ui.separator();
 
         // Path
-        ui.label(format!("📁 Path: {}", hbc_app.get_path_str()));
+        ui.label(format!(
+            "{} Path: {}",
+            egui_phosphor::regular::FOLDER,
+            hbc_app.get_path_str()
+        ));
 
         ui.separator();
 
@@ -23,10 +27,19 @@ pub fn update(ctx: &egui::Context, app: &mut App, hbc_app_i: u16) {
             get_developer_emoji(&hbc_app.meta.coder),
             &hbc_app.meta.coder
         ));
-        ui.label(format!("📌 Version: {}", &hbc_app.meta.version));
-        ui.label(format!("📆 Release Date: {}", &hbc_app.meta.release_date));
         ui.label(format!(
-            "📄 Short Description: {}",
+            "{} Version: {}",
+            egui_phosphor::regular::PUSH_PIN,
+            &hbc_app.meta.version
+        ));
+        ui.label(format!(
+            "{} Release Date: {}",
+            egui_phosphor::regular::CALENDAR,
+            &hbc_app.meta.release_date
+        ));
+        ui.label(format!(
+            "{} Short Description: {}",
+            egui_phosphor::regular::CLIPBOARD_TEXT,
             &hbc_app.meta.short_description
         ));
 
@@ -42,13 +55,19 @@ pub fn update(ctx: &egui::Context, app: &mut App, hbc_app_i: u16) {
         ui.add_space(10.);
 
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Max), |ui| {
-            if ui.button("❌ Close").clicked() {
+            if ui
+                .button(format!("{} Close", egui_phosphor::regular::X))
+                .clicked()
+            {
                 app.close_modal();
             }
 
             ui.add_sized(egui::Vec2::new(1., 21.), egui::Separator::default());
 
-            if ui.button("📁 Open Directory").clicked() {
+            if ui
+                .button(format!("{} Open Directory", egui_phosphor::regular::FOLDER))
+                .clicked()
+            {
                 app.open_hbc_app_dir(hbc_app_i);
             }
         })

@@ -25,22 +25,36 @@ pub fn spawn_push_file_task(app: &App, path: PathBuf) {
     let wii_ip = app.config.contents.wii_ip.clone();
 
     app.task_processor.spawn(move |msg_sender| {
-        msg_sender.send(Message::UpdateStatus("📤 Starting Wilload...".to_string()))?;
+        msg_sender.send(Message::UpdateStatus(format!(
+            "{} Starting Wilload...",
+            egui_phosphor::regular::MONITOR_ARROW_UP
+        )))?;
 
         let addr = (wii_ip.as_str(), WIILOAD_PORT)
             .to_socket_addrs()?
             .next()
-            .ok_or(anyhow!("Failed to resolve Wii IP: {}", &wii_ip))?;
+            .ok_or(anyhow!(
+                "{} Failed to resolve Wii IP: {}",
+                egui_phosphor::regular::WIFI_SLASH,
+                &wii_ip
+            ))?;
 
         let file_name = path
             .file_name()
-            .ok_or(anyhow!("No file name found"))?
+            .ok_or(anyhow!(
+                "{} No file name found",
+                egui_phosphor::regular::FILE_X
+            ))?
             .to_str()
-            .ok_or(anyhow!("Invalid file name"))?
+            .ok_or(anyhow!(
+                "{} Invalid file name",
+                egui_phosphor::regular::FILE_X
+            ))?
             .to_string();
 
         msg_sender.send(Message::UpdateStatus(format!(
-            "📤 Uploading {}...",
+            "{} Uploading {}...",
+            egui_phosphor::regular::MONITOR_ARROW_UP,
             file_name
         )))?;
 
@@ -59,7 +73,8 @@ pub fn spawn_push_file_task(app: &App, path: PathBuf) {
             send_to_wii(&addr, &zipped_app, &file_name)?;
 
             msg_sender.send(Message::NotifyInfo(format!(
-                "📤 Uploaded {}\nExcluded files: {}",
+                "{} Uploaded {}\nExcluded files: {}",
+                egui_phosphor::regular::MONITOR_ARROW_UP,
                 file_name,
                 excluded_files.join(", ")
             )))?;
@@ -67,7 +82,11 @@ pub fn spawn_push_file_task(app: &App, path: PathBuf) {
             let bytes = fs::read(path)?;
             send_to_wii(&addr, &bytes, &file_name)?;
 
-            msg_sender.send(Message::NotifyInfo(format!("📤 Uploaded {}", file_name)))?;
+            msg_sender.send(Message::NotifyInfo(format!(
+                "{} Uploaded {}",
+                egui_phosphor::regular::MONITOR_ARROW_UP,
+                file_name
+            )))?;
         }
 
         Ok(())
@@ -78,16 +97,27 @@ pub fn spawn_push_osc_task(app: &App, zip_url: String) {
     let wii_ip = app.config.contents.wii_ip.clone();
 
     app.task_processor.spawn(move |msg_sender| {
-        msg_sender.send(Message::UpdateStatus("📤 Starting Wilload...".to_string()))?;
+        msg_sender.send(Message::UpdateStatus(format!(
+            "{} Starting Wilload...",
+            egui_phosphor::regular::MONITOR_ARROW_UP
+        )))?;
 
         let addr = (wii_ip.as_str(), WIILOAD_PORT)
             .to_socket_addrs()?
             .next()
-            .ok_or(anyhow!("Failed to resolve Wii IP: {}", &wii_ip))?;
+            .ok_or(anyhow!(
+                "{} Failed to resolve Wii IP: {}",
+                egui_phosphor::regular::WIFI_SLASH,
+                &wii_ip
+            ))?;
 
         let url = zip_url.to_string();
 
-        msg_sender.send(Message::UpdateStatus(format!("📥 Downloading {}...", url)))?;
+        msg_sender.send(Message::UpdateStatus(format!(
+            "{} Downloading {}...",
+            egui_phosphor::regular::CLOUD_ARROW_DOWN,
+            url
+        )))?;
 
         let tmp = tempfile()?;
         http::download_into_file(&zip_url, &tmp)?;
@@ -104,7 +134,8 @@ pub fn spawn_push_osc_task(app: &App, zip_url: String) {
         send_to_wii(&addr, &zipped_app, "app.zip")?;
 
         msg_sender.send(Message::NotifyInfo(format!(
-            "📥 Downloaded {}\nExcluded files: {}",
+            "{} Uploaded {}\nExcluded files: {}",
+            egui_phosphor::regular::MONITOR_ARROW_UP,
             url,
             excluded_files.join(", ")
         )))?;
@@ -140,7 +171,10 @@ fn recreate_zip(
 
     let app_name = app_dir
         .file_name()
-        .ok_or(anyhow!("No app name found"))?
+        .ok_or(anyhow!(
+            "{} No app name found",
+            egui_phosphor::regular::FILE_X
+        ))?
         .to_string_lossy()
         .to_string();
 

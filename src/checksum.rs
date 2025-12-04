@@ -19,7 +19,7 @@ use std::path::{Path, PathBuf};
 pub fn spawn_checksum_task(app: &App, game_dir: PathBuf, game_info: Option<GameInfo>) {
     app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(Message::UpdateStatus(
-            "🔎 Performing game checksum...".to_string(),
+            format!("{} Performing game checksum...", egui_phosphor::regular::FINGERPRINT_SIMPLE),
         ))?;
 
         let embedded = get_embedded_hashes(&game_dir)?;
@@ -29,12 +29,12 @@ pub fn spawn_checksum_task(app: &App, game_dir: PathBuf, game_info: Option<GameI
         {
             if embedded_crc32 == crc32 {
                 msg_sender.send(Message::NotifySuccess(
-                    "🔎 Embedded CRC32 is == to the actual file CRC32".to_string()
+                    format!("{} Embedded CRC32 is == to the actual file CRC32", egui_phosphor::regular::FINGERPRINT_SIMPLE),
                 ))?;
             } else {
                 let e = anyhow!(
-                    "🔎 Embedded CRC32 mismatch, expected: {:x}, found: {:x}\n\nThis is expected if the Update partition has been removed",
-                    embedded_crc32, crc32
+                    "{} Embedded CRC32 mismatch, expected: {:x}, found: {:x}\n\nThis is expected if the Update partition has been removed",
+                    egui_phosphor::regular::FINGERPRINT_SIMPLE, embedded_crc32, crc32
                 );
 
                 msg_sender.send(Message::NotifyError(e))?;
@@ -44,11 +44,11 @@ pub fn spawn_checksum_task(app: &App, game_dir: PathBuf, game_info: Option<GameI
         if let Some(game_info) = game_info {
             if game_info.roms.iter().filter_map(|r| r.crc).any(|db_crc32| db_crc32 == crc32) {
                 msg_sender.send(Message::NotifySuccess(
-                    "🔎 CRC32 matches the Redump hash: your dump is perfect!".to_string(),
+                    format!("{} CRC32 matches the Redump hash: your dump is perfect!", egui_phosphor::regular::FINGERPRINT_SIMPLE),
                 ))?;
             } else {
                 let e = anyhow!(
-                    "🔎 CRC32 does not match the Redump hash"
+                    "{} CRC32 does not match the Redump hash", egui_phosphor::regular::FINGERPRINT_SIMPLE
                 );
 
                 msg_sender.send(Message::NotifyError(e))?;
@@ -69,12 +69,19 @@ fn get_embedded_hashes(game_dir: &Path) -> Result<DiscMeta> {
 pub fn calc_crc32(game_dir: &Path, msg_sender: &Sender<Message>) -> Result<u32> {
     let game_dir_name = game_dir
         .file_name()
-        .ok_or(anyhow!("Failed to get disc name"))?
+        .ok_or(anyhow!(
+            "{} Failed to get disc name",
+            egui_phosphor::regular::DISC
+        ))?
         .to_str()
-        .ok_or(anyhow!("Failed to get disc name"))?
+        .ok_or(anyhow!(
+            "{} Failed to get disc name",
+            egui_phosphor::regular::DISC
+        ))?
         .to_string();
 
-    let path = get_main_file(game_dir).ok_or(anyhow!("No disc found"))?;
+    let path =
+        get_main_file(game_dir).ok_or(anyhow!("{} No disc found", egui_phosphor::regular::DISC))?;
     let overflow = get_overflow_file(&path);
 
     let disc = if let Some(overflow) = overflow {
@@ -89,7 +96,8 @@ pub fn calc_crc32(game_dir: &Path, msg_sender: &Sender<Message>) -> Result<u32> 
     let finalization = disc_writer.process(
         |_, progress, total| {
             let _ = msg_sender.send(Message::UpdateStatus(format!(
-                "🔎 Hashing {}  {:02.0}%",
+                "{} Hashing {}  {:02.0}%",
+                egui_phosphor::regular::FINGERPRINT_SIMPLE,
                 &game_dir_name,
                 progress as f32 / total as f32 * 100.0,
             )));
@@ -99,7 +107,10 @@ pub fn calc_crc32(game_dir: &Path, msg_sender: &Sender<Message>) -> Result<u32> 
         &get_process_opts(false),
     )?;
 
-    let crc32 = finalization.crc32.ok_or(anyhow!("Failed to get CRC32"))?;
+    let crc32 = finalization.crc32.ok_or(anyhow!(
+        "{} Failed to get CRC32",
+        egui_phosphor::regular::FINGERPRINT_SIMPLE
+    ))?;
 
     Ok(crc32)
 }
