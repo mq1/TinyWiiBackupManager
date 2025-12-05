@@ -13,6 +13,13 @@ pub fn get_base_dialog() -> FileDialog {
         .default_folder_icon(egui_phosphor::regular::FOLDER)
         .device_icon(egui_phosphor::regular::HARD_DRIVE)
         .removable_device_icon(egui_phosphor::regular::HARD_DRIVE)
+        .parent_directory_icon(egui_phosphor::regular::CARET_UP)
+        .back_icon(egui_phosphor::regular::CARET_LEFT)
+        .forward_icon(egui_phosphor::regular::CARET_RIGHT)
+        .new_folder_icon(egui_phosphor::regular::PLUS)
+        .menu_icon(egui_phosphor::regular::LIST)
+        .search_icon(egui_phosphor::regular::MAGNIFYING_GLASS)
+        .path_edit_icon(egui_phosphor::regular::PENCIL)
         .set_file_icon(
             egui_phosphor::regular::DISC,
             Arc::new(|path| path.extension().unwrap_or_default() == "gcm"),

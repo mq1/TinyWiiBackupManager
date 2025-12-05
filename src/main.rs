@@ -130,15 +130,6 @@ fn main() -> Result<()> {
                 font_keys.push("ubuntu".to_string());
             }
             egui_phosphor::add_to_fonts(&mut fonts, egui_phosphor::Variant::Regular);
-            fonts.font_data.insert(
-                "emoji-icon-font".to_string(),
-                Arc::new(FontData::from_static(include_bytes!(
-                    "../assets/emoji-icon-font.ttf"
-                ))),
-            );
-            if let Some(font_keys) = fonts.families.get_mut(&egui::FontFamily::Proportional) {
-                font_keys.push("emoji-icon-font".to_string());
-            }
             cc.egui_ctx.set_fonts(fonts);
 
             cc.egui_ctx.all_styles_mut(|style| {
