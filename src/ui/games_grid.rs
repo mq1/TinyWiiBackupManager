@@ -21,7 +21,8 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
 
         if app.show_wii {
             ui.heading(format!(
-                "🎾 Wii Games: {} found ({})",
+                "{} Wii Games: {} found ({})",
+                egui_phosphor::regular::HAND_DEPOSIT,
                 app.filtered_wii_games.len(),
                 app.filtered_wii_games_size
             ));
@@ -45,7 +46,8 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
             }
 
             ui.heading(format!(
-                "🎲 GameCube Games: {} found ({})",
+                "{} GameCube Games: {} found ({})",
+                egui_phosphor::regular::GAME_CONTROLLER,
                 app.filtered_gc_games.len(),
                 app.filtered_gc_games_size
             ));
@@ -79,7 +81,11 @@ fn update_game_card(ui: &mut egui::Ui, app: &App, game_i: u16) {
             // Top row with id label on the left and size label on the right
             ui.horizontal(|ui| {
                 // ID label on the left
-                ui.label(format!("🏷  {}", game.id.as_str()));
+                ui.label(format!(
+                    "{}  {}",
+                    egui_phosphor::regular::TAG,
+                    game.id.as_str()
+                ));
 
                 // Size label on the right
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
@@ -102,13 +108,17 @@ fn update_game_card(ui: &mut egui::Ui, app: &App, game_i: u16) {
 
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 // Delete button
-                if ui.button("🗑").on_hover_text("Delete Game").clicked() {
+                if ui
+                    .button(egui_phosphor::regular::TRASH)
+                    .on_hover_text("Delete Game")
+                    .clicked()
+                {
                     app.send_msg(Message::OpenModal(ui::Modal::DeleteGame(game_i)));
                 }
 
                 // Archive button
                 if ui
-                    .button("📥")
+                    .button(egui_phosphor::regular::BOX_ARROW_DOWN)
                     .on_hover_text("Archive Game to RVZ or ISO")
                     .clicked()
                 {
@@ -118,7 +128,8 @@ fn update_game_card(ui: &mut egui::Ui, app: &App, game_i: u16) {
                 // Info button
                 if ui
                     .add(
-                        egui::Button::new("ℹ Info").min_size(egui::vec2(ui.available_width(), 0.0)),
+                        egui::Button::new(format!("{} Info", egui_phosphor::regular::INFO))
+                            .min_size(egui::vec2(ui.available_width(), 0.0)),
                     )
                     .on_hover_text("Show Disc Information")
                     .clicked()

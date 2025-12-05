@@ -8,13 +8,13 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
     egui::CentralPanel::default().show(ctx, |ui| {
         ui.style_mut().spacing.item_spacing.y *= 2.;
 
-        ui.heading("📮 Wiiload v0.5");
+        ui.heading(format!("{} Wiiload v0.5", egui_phosphor::regular::MONITOR_ARROW_UP));
         ui.add_space(10.);
 
-        ui.label("ℹ Wiiload is a method of loading .dol and .elf files over the network.");
-        ui.label("ℹ Also, you can use Wiiload to install homebrew applications directly onto your SD card.");
-        ui.label("ℹ If the icon in the very bottom right of the Homebrew Channel is lit up, it should work for you.");
-        ui.label("ℹ Pressing the home button in the Homebrew Channel will reveal your Wii's IP.");
+        ui.label(format!("{} Wiiload is a method of loading .dol and .elf files over the network.", egui_phosphor::regular::INFO));
+        ui.label(format!("{} Also, you can use Wiiload to install homebrew applications directly onto your SD card.", egui_phosphor::regular::INFO));
+        ui.label(format!("{} If the icon in the very bottom right of the Homebrew Channel is lit up, it should work for you.", egui_phosphor::regular::INFO));
+        ui.label(format!("{} Pressing the home button in the Homebrew Channel will reveal your Wii's IP.", egui_phosphor::regular::INFO));
 
         ui.separator();
 
@@ -34,7 +34,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
         });
 
         if ui
-            .button("📤 Upload a Homebrew App (zip/dol/elf)")
+            .button(format!("{} Upload a Homebrew App (zip/dol/elf)", egui_phosphor::regular::UPLOAD))
             .clicked()
         {
             app.choose_file_to_push.pick_file();

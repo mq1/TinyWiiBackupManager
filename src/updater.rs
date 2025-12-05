@@ -13,7 +13,10 @@ const VERSION_URL: &str = concat!(
 );
 
 pub fn check() -> Result<Option<Version>> {
-    let body = http::get_string(VERSION_URL).context("Failed to fetch version")?;
+    let body = http::get_string(VERSION_URL).context(format!(
+        "{} Failed to fetch version",
+        egui_phosphor::regular::CLOUD_WARNING
+    ))?;
 
     let latest_version = Version::parse(&body)?;
     let current_version = Version::parse(env!("CARGO_PKG_VERSION"))?;
@@ -27,9 +30,10 @@ pub fn check() -> Result<Option<Version>> {
 
 pub fn spawn_check_update_task(app: &App) {
     app.task_processor.spawn(move |msg_sender| {
-        msg_sender.send(Message::UpdateStatus(
-            "✈ Checking for updates...".to_string(),
-        ))?;
+        msg_sender.send(Message::UpdateStatus(format!(
+            "{} Checking for updates...",
+            egui_phosphor::regular::CLOUD_CHECK
+        )))?;
 
         let version = check()?;
 

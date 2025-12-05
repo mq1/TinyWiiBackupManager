@@ -5,6 +5,7 @@ use crate::extensions::SUPPORTED_INPUT_EXTENSIONS;
 use crate::games::GameID;
 use crate::messages::{Message, process_msg};
 use crate::overflow_reader::get_main_file;
+use crate::ui::dialogs::get_base_dialog;
 use crate::{
     archive,
     config::{ArchiveFormat, Config, SortBy},
@@ -80,10 +81,9 @@ impl App {
         let (msg_sender, msg_receiver) = unbounded();
         let task_processor = TaskProcessor::new(msg_sender.clone());
 
-        let choose_mount_point = FileDialog::new().as_modal(true);
+        let choose_mount_point = get_base_dialog();
 
-        let choose_games = FileDialog::new()
-            .as_modal(true)
+        let choose_games = get_base_dialog()
             .title("Select games (or a directory containing games)")
             .add_file_filter_extensions(
                 "Nintendo Optical Disc",
@@ -91,8 +91,7 @@ impl App {
             )
             .default_file_filter("Nintendo Optical Disc");
 
-        let choose_game_manual_conv = FileDialog::new()
-            .as_modal(true)
+        let choose_game_manual_conv = get_base_dialog()
             .title("Select a game to convert")
             .add_file_filter_extensions(
                 "Nintendo Optical Disc",
@@ -100,28 +99,23 @@ impl App {
             )
             .default_file_filter("Nintendo Optical Disc");
 
-        let choose_game_dest_manual_conv = FileDialog::new()
-            .as_modal(true)
-            .title("Select a destination folder for the converted game");
+        let choose_game_dest_manual_conv =
+            get_base_dialog().title("Select a destination folder for the converted game");
 
-        let choose_hbc_apps = FileDialog::new()
-            .as_modal(true)
+        let choose_hbc_apps = get_base_dialog()
             .add_file_filter_extensions("HBC App (zip)", vec!["zip", "ZIP"])
             .default_file_filter("HBC App (zip)");
 
-        let choose_file_to_push = FileDialog::new()
-            .as_modal(true)
+        let choose_file_to_push = get_base_dialog()
             .add_file_filter_extensions("HBC App (zip/dol/elf)", vec!["zip", "dol", "elf"])
             .default_file_filter("HBC App (zip/dol/elf)");
 
-        let choose_archive_path = FileDialog::new()
-            .as_modal(true)
+        let choose_archive_path = get_base_dialog()
             .add_save_extension(ArchiveFormat::Rvz.as_str(), ArchiveFormat::Rvz.extension())
             .add_save_extension(ArchiveFormat::Iso.as_str(), ArchiveFormat::Iso.extension())
             .default_save_extension(config.contents.archive_format.as_str());
 
-        let choose_game_to_archive_manually = FileDialog::new()
-            .as_modal(true)
+        let choose_game_to_archive_manually = get_base_dialog()
             .title("Select a game to archive")
             .add_file_filter_extensions(
                 "Nintendo Optical Disc",
@@ -129,8 +123,7 @@ impl App {
             )
             .default_file_filter("Nintendo Optical Disc");
 
-        let choose_archive_path_manually = FileDialog::new()
-            .as_modal(true)
+        let choose_archive_path_manually = get_base_dialog()
             .add_save_extension(ArchiveFormat::Rvz.as_str(), ArchiveFormat::Rvz.extension())
             .add_save_extension(ArchiveFormat::Iso.as_str(), ArchiveFormat::Iso.extension())
             .default_save_extension(config.contents.archive_format.as_str());
