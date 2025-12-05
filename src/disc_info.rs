@@ -62,11 +62,17 @@ impl DiscInfo {
                 .iter()
                 .any(|ext| title.ends_with(ext))
             {
-                bail!("Unsupported disc extension: {}", &title);
+                bail!(
+                    "{} Unsupported disc extension: {}",
+                    egui_phosphor::regular::DISC,
+                    &title
+                );
             }
 
-            let format = DiscReader::detect(&mut disc_file)?
-                .ok_or(anyhow!("Failed to detect disc format"))?;
+            let format = DiscReader::detect(&mut disc_file)?.ok_or(anyhow!(
+                "{} Failed to detect disc format",
+                egui_phosphor::regular::DISC
+            ))?;
 
             Ok(Self {
                 main_disc_path,

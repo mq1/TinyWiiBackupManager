@@ -27,8 +27,9 @@ LegalCopyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-3.0-only
 [dependencies]
 egui_extras = { version = "0.33", features = ["image", "file"] }
 image = { version = "0.25", default-features = false, features = ["png"] }
-egui-notify = "0.21"
-egui-file-dialog = { git = "https://github.com/mq1/egui-file-dialog", tag = "v0.12.0-fix" }
+egui-toast = "0.19"
+egui-file-dialog = { git = "https://github.com/mq1/egui-file-dialog", branch = "more-custom-icons" }
+egui-phosphor = "0.11"
 crossbeam-channel = "0.5"
 ureq = { version = "3.1", default-features = false }
 serde = { version = "1.0", features = ["derive"] }
@@ -65,25 +66,13 @@ time = { version = "0.3", features = ["macros", "parsing", "serde"] }
 eframe = "0.33"
 
 [target.'cfg(any(all(target_os = "macos", target_arch = "aarch64"), target_vendor = "pc"))'.dependencies]
-eframe = { version = "0.33", default-features = false, features = [
-    "accesskit",
-    "default_fonts",
-    "wgpu",
-] }
+eframe = { version = "0.33", default-features = false, features = ["accesskit", "wgpu"] }
 
 [target.'cfg(all(target_os = "macos", target_arch = "aarch64"))'.dependencies]
-wgpu = { version = "*", default-features = false, features = [
-    "metal",
-    "std",
-    "parking_lot",
-] }
+wgpu = { version = "*", default-features = false, features = ["metal", "std", "parking_lot"] }
 
 [target.'cfg(target_vendor = "pc")'.dependencies]
-wgpu = { version = "*", default-features = false, features = [
-    "dx12",
-    "std",
-    "parking_lot",
-] }
+wgpu = { version = "*", default-features = false, features = ["dx12", "std", "parking_lot"] }
 
 [features]
 default = ["native-tls"]
@@ -95,6 +84,9 @@ winres = "0.1"
 
 [target.'cfg(target_vendor = "pc")'.build-dependencies]
 static_vcruntime = "3.0"
+
+[patch.crates-io]
+epaint_default_fonts = { git = "https://github.com/mq1/epaint_no_fonts", branch = "main" }
 
 [profile.release]
 opt-level = 3

@@ -100,7 +100,8 @@ pub fn spawn_add_games_task(app: &App, discs: Box<[DiscInfo]>) {
                     let mut tmp_writer = BufWriter::new(&mut tmp);
 
                     msg_sender.send(Message::UpdateStatus(format!(
-                        "🎮 Extracting {}",
+                        "{} Extracting {}",
+                        egui_phosphor::regular::FILE_ZIP,
                         &disc_info.title
                     )))?;
                     io::copy(&mut disc_file, &mut tmp_writer)?;
@@ -181,7 +182,8 @@ pub fn spawn_add_games_task(app: &App, discs: Box<[DiscInfo]>) {
                         overflow_writer.write_all(&data)?;
 
                         let _ = msg_sender.send(Message::UpdateStatus(format!(
-                            "🎮 Adding {}  {:02.0}%  ({}/{})",
+                            "{} Adding {}  {:02.0}%  ({}/{})",
+                            egui_phosphor::regular::FLOW_ARROW,
                             &disc_info.title,
                             progress as f32 / total as f32 * 100.0,
                             i + 1,
@@ -211,7 +213,8 @@ pub fn spawn_add_games_task(app: &App, discs: Box<[DiscInfo]>) {
             }
 
             msg_sender.send(Message::NotifyInfo(format!(
-                "🎮 Added {}",
+                "{} Added {}",
+                egui_phosphor::regular::FLOW_ARROW,
                 &disc_info.title
             )))?;
             msg_sender.send(Message::TriggerRefreshGames)?;
@@ -287,7 +290,8 @@ pub fn spawn_convert_game_task(app: &App, disc_info: DiscInfo, dest_dir: PathBuf
                     let mut tmp_writer = BufWriter::new(&mut tmp);
 
                     msg_sender.send(Message::UpdateStatus(format!(
-                        "🎮 Extracting {}",
+                        "{} Extracting {}",
+                        egui_phosphor::regular::FILE_ZIP,
                         &disc_info.title
                     )))?;
                     io::copy(&mut disc_file, &mut tmp_writer)?;
@@ -315,7 +319,8 @@ pub fn spawn_convert_game_task(app: &App, disc_info: DiscInfo, dest_dir: PathBuf
                     overflow_writer.write_all(&data)?;
 
                     let _ = msg_sender.send(Message::UpdateStatus(format!(
-                        "🎮 Converting {}  {:02.0}%",
+                        "{} Converting {}  {:02.0}%",
+                        egui_phosphor::regular::FLOW_ARROW,
                         &disc_info.title,
                         progress as f32 / total as f32 * 100.0,
                     )));
@@ -338,7 +343,8 @@ pub fn spawn_convert_game_task(app: &App, disc_info: DiscInfo, dest_dir: PathBuf
         }
 
         msg_sender.send(Message::NotifyInfo(format!(
-            "🎮 {} Converted",
+            "{} {} Converted",
+            egui_phosphor::regular::FLOW_ARROW,
             &disc_info.title
         )))?;
 

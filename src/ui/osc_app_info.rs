@@ -26,23 +26,39 @@ pub fn update(ctx: &egui::Context, app: &mut App, osc_app_i: u16) {
                     &osc_app.meta.author
                 ));
 
-                ui.label(format!("👫 Authors: {}", osc_app.meta.authors.join(", ")));
-                ui.label(format!("🏷 Category: {}", &osc_app.meta.category));
                 ui.label(format!(
-                    "👏 Contributors: {}",
+                    "{} Authors: {}",
+                    egui_phosphor::regular::USERS_THREE,
+                    osc_app.meta.authors.join(", ")
+                ));
+                ui.label(format!(
+                    "{} Category: {}",
+                    egui_phosphor::regular::TAG_SIMPLE,
+                    &osc_app.meta.category
+                ));
+                ui.label(format!(
+                    "{} Contributors: {}",
+                    egui_phosphor::regular::USERS_FOUR,
                     osc_app.meta.contributors.join(", ")
                 ));
-                ui.label(format!("📥 Downloads: {}", osc_app.meta.downloads));
                 ui.label(format!(
-                    "🚩 Flags: {}",
+                    "{} Downloads: {}",
+                    egui_phosphor::regular::CLOUD_ARROW_DOWN,
+                    osc_app.meta.downloads
+                ));
+                ui.label(format!(
+                    "{} Flags: {}",
+                    egui_phosphor::regular::FLAG,
                     osc_app.meta.flags.iter().map(|f| f.as_str()).join(", ")
                 ));
                 ui.label(format!(
-                    "📦 Package Type: {}",
+                    "{} Package Type: {}",
+                    egui_phosphor::regular::PACKAGE,
                     osc_app.meta.package_type.as_str()
                 ));
                 ui.label(format!(
-                    "🔌 Peripherals: {}",
+                    "{} Peripherals: {}",
+                    egui_phosphor::regular::USB,
                     &osc_app
                         .meta
                         .peripherals
@@ -51,15 +67,18 @@ pub fn update(ctx: &egui::Context, app: &mut App, osc_app_i: u16) {
                         .join(", ")
                 ));
                 ui.label(format!(
-                    "📆 Release Date: {}",
+                    "{} Release Date: {}",
+                    egui_phosphor::regular::CALENDAR,
                     osc_app.meta.release_date.date()
                 ));
                 ui.label(format!(
-                    "📁 Subdirectories: {}",
+                    "{} Subdirectories: {}",
+                    egui_phosphor::regular::FOLDER_OPEN,
                     osc_app.meta.subdirectories.join(", ")
                 ));
                 ui.label(format!(
-                    "💻 Supported Platforms: {}",
+                    "{} Supported Platforms: {}",
+                    egui_phosphor::regular::DEVICES,
                     osc_app
                         .meta
                         .supported_platforms
@@ -68,12 +87,18 @@ pub fn update(ctx: &egui::Context, app: &mut App, osc_app_i: u16) {
                         .join(", ")
                 ));
                 ui.label(format!(
-                    "⚖ Uncompressed size: {}",
+                    "{} Uncompressed size: {}",
+                    egui_phosphor::regular::SCALES,
                     &osc_app.meta.uncompressed_size
                 ));
-                ui.label(format!("📌 Version: {}", &osc_app.meta.version));
                 ui.label(format!(
-                    "📄 Short Description: {}",
+                    "{} Version: {}",
+                    egui_phosphor::regular::TAG,
+                    &osc_app.meta.version
+                ));
+                ui.label(format!(
+                    "{} Short Description: {}",
+                    egui_phosphor::regular::CLIPBOARD_TEXT,
                     &osc_app.meta.description.short
                 ));
 
@@ -85,13 +110,19 @@ pub fn update(ctx: &egui::Context, app: &mut App, osc_app_i: u16) {
         ui.add_space(10.);
 
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Max), |ui| {
-            if ui.button("❌ Close").clicked() {
+            if ui
+                .button(format!("{} Close", egui_phosphor::regular::X))
+                .clicked()
+            {
                 app.close_modal();
             }
 
             ui.add_sized(egui::Vec2::new(1., 21.), egui::Separator::default());
 
-            if ui.button("🌐 Open HBC page").clicked() {
+            if ui
+                .button(format!("{} Open HBC page", egui_phosphor::regular::LINK))
+                .clicked()
+            {
                 let osc_app = &app.osc_apps[osc_app_i as usize];
                 let url = format!("https://oscwii.org/library/app/{}", &osc_app.meta.slug);
                 ctx.open_url(OpenUrl::new_tab(&url));
