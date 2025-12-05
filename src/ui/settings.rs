@@ -332,7 +332,7 @@ fn update_accent_btn(
     accent_color: AccentColor,
 ) {
     let color = egui::Color32::from(accent_color);
-    let text = egui::RichText::new("🌑").color(color.to_opaque());
+    let text = egui::RichText::new(egui_phosphor::regular::SPIRAL).color(color.to_opaque());
 
     if ui
         .selectable_label(app.config.contents.accent_color == accent_color, text)
