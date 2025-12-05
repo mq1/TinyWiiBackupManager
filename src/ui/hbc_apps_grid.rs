@@ -20,7 +20,8 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
         let cols = available_width as usize / CARD_HORIZONTAL_SPACE;
 
         ui.heading(format!(
-            "★ Homebrew Channel Apps: {} found ({})",
+            "{} Homebrew Channel Apps: {} found ({})",
+            egui_phosphor::regular::WAVES,
             app.filtered_hbc_apps.len(),
             &app.filtered_hbc_apps_size
         ));
@@ -52,7 +53,15 @@ fn update_hbc_app_card(ui: &mut egui::Ui, app: &App, hbc_app_i: u16) {
         ui.vertical_centered(|ui| {
             // Top row with version on the left and size label on the right
             ui.horizontal(|ui| {
-                ui.label(hbc_app.meta.version_display());
+                ui.label(format!(
+                    "{}  {}",
+                    egui_phosphor::regular::PUSH_PIN,
+                    hbc_app
+                        .meta
+                        .version
+                        .get(..10)
+                        .unwrap_or(&hbc_app.meta.version)
+                ));
 
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     ui.label(hbc_app.size.to_string());
@@ -73,7 +82,11 @@ fn update_hbc_app_card(ui: &mut egui::Ui, app: &App, hbc_app_i: u16) {
             // Bottom row with buttons
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 // Delete button
-                if ui.button("🗑").on_hover_text("Delete HBC App").clicked() {
+                if ui
+                    .button(egui_phosphor::regular::TRASH)
+                    .on_hover_text("Delete HBC App")
+                    .clicked()
+                {
                     app.send_msg(Message::OpenModal(ui::Modal::DeleteHbcApp(hbc_app_i)));
                 }
 
@@ -83,7 +96,7 @@ fn update_hbc_app_card(ui: &mut egui::Ui, app: &App, hbc_app_i: u16) {
 
                     if osc_app.meta.version != hbc_app.meta.version
                         && ui
-                            .button("⮉")
+                            .button(egui_phosphor::regular::CLOUD_ARROW_DOWN)
                             .on_hover_text(format!(
                                 "Download update from OSC: v{}",
                                 &osc_app.meta.version
@@ -100,7 +113,8 @@ fn update_hbc_app_card(ui: &mut egui::Ui, app: &App, hbc_app_i: u16) {
                 // Info button
                 if ui
                     .add(
-                        egui::Button::new("ℹ Info").min_size(egui::vec2(ui.available_width(), 0.0)),
+                        egui::Button::new(format!("{} Info", egui_phosphor::regular::INFO))
+                            .min_size(egui::vec2(ui.available_width(), 0.0)),
                     )
                     .on_hover_text("Show App Information")
                     .clicked()

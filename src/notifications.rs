@@ -2,10 +2,13 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use eframe::egui;
-use egui_notify::{Anchor, Toasts};
-use std::time::Duration;
+use eframe::egui::{Align2, Color32, Direction, Order, WidgetText};
+use egui_toast::{Toast, ToastKind, ToastOptions, ToastStyle, Toasts};
 
-pub struct Notifications(Toasts);
+pub struct Notifications {
+    toasts: Toasts,
+    style: ToastStyle,
+}
 
 impl Default for Notifications {
     fn default() -> Self {
@@ -15,42 +18,71 @@ impl Default for Notifications {
 
 impl Notifications {
     pub fn new() -> Self {
-        let toasts = Toasts::default()
-            .with_anchor(Anchor::BottomRight)
-            .with_margin(egui::vec2(8.0, 8.0))
-            .with_shadow(egui::Shadow {
-                offset: [0, 0],
-                blur: 0,
-                spread: 1,
-                color: egui::Color32::GRAY,
-            });
+        let toasts = Toasts::new()
+            .anchor(Align2::RIGHT_BOTTOM, (-10., -10.))
+            .direction(Direction::BottomUp)
+            .order(Order::Tooltip);
 
-        Self(toasts)
+        let style = ToastStyle {
+            info_icon: WidgetText::from(egui_phosphor::regular::INFO)
+                .color(Color32::from_rgb(0, 155, 255)),
+            warning_icon: WidgetText::from(egui_phosphor::regular::WARNING)
+                .color(Color32::from_rgb(255, 212, 0)),
+            error_icon: WidgetText::from(egui_phosphor::regular::WARNING)
+                .color(Color32::from_rgb(255, 32, 0)),
+            success_icon: WidgetText::from(egui_phosphor::regular::SEAL_CHECK)
+                .color(Color32::from_rgb(0, 255, 32)),
+            close_button_text: WidgetText::from(egui_phosphor::regular::X),
+        };
+
+        Self { toasts, style }
     }
 
     pub fn show_err(&mut self, e: anyhow::Error) {
         log::error!("{:?}", e);
-        self.0
-            .error(format!("{:#}", e))
-            .duration(Duration::from_secs(10));
+
+        self.toasts.add(Toast {
+            text: format!("{:#}", e).into(),
+            kind: ToastKind::Error,
+            options: ToastOptions::default(),
+            style: self.style.clone(),
+        });
     }
 
     pub fn show_success(&mut self, s: &str) {
         log::info!("{}", s);
-        self.0.success(s).duration(Duration::from_secs(10));
+
+        self.toasts.add(Toast {
+            text: s.into(),
+            kind: ToastKind::Success,
+            options: ToastOptions::default().duration_in_seconds(10.0),
+            style: self.style.clone(),
+        });
     }
 
     pub fn show_info(&mut self, i: &str) {
         log::info!("{}", i);
-        self.0.info(i);
+
+        self.toasts.add(Toast {
+            text: i.into(),
+            kind: ToastKind::Info,
+            options: ToastOptions::default().duration_in_seconds(5.0),
+            style: self.style.clone(),
+        });
     }
 
     pub fn show_info_no_duration(&mut self, i: &str) {
         log::info!("{}", i);
-        self.0.info(i).duration(None);
+
+        self.toasts.add(Toast {
+            text: i.into(),
+            kind: ToastKind::Success,
+            options: ToastOptions::default(),
+            style: self.style.clone(),
+        });
     }
 
     pub fn show_toasts(&mut self, ctx: &egui::Context) {
-        self.0.show(ctx);
+        self.toasts.show(ctx);
     }
 }

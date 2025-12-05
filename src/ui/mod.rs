@@ -8,6 +8,7 @@ mod confirm_conversion;
 mod delete_game;
 mod delete_hbc_app;
 mod developers;
+pub mod dialogs;
 mod game_info;
 mod games;
 mod games_grid;

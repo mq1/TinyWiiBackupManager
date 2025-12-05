@@ -4,16 +4,16 @@
 use crate::app::App;
 use crate::messages::Message;
 use crate::{games::GameID, http};
-use anyhow::{Result, bail};
+use anyhow::Result;
 use std::{fs, path::Path};
 
-fn download_cover3d(id: GameID, mount_point: &Path) -> Result<()> {
+fn download_cover3d(id: GameID, mount_point: &Path) -> Result<bool> {
     let images_dir = mount_point.join("apps").join("usbloader_gx").join("images");
     fs::create_dir_all(&images_dir)?;
 
     let path = images_dir.join(id.as_str()).with_extension("png");
     if path.exists() {
-        bail!("{} already exists", path.display());
+        return Ok(false);
     }
 
     let url = format!(
@@ -24,10 +24,10 @@ fn download_cover3d(id: GameID, mount_point: &Path) -> Result<()> {
 
     http::download_file(&url, &path)?;
 
-    Ok(())
+    Ok(true)
 }
 
-fn download_cover2d(id: GameID, mount_point: &Path) -> Result<()> {
+fn download_cover2d(id: GameID, mount_point: &Path) -> Result<bool> {
     let images_dir = mount_point
         .join("apps")
         .join("usbloader_gx")
@@ -36,6 +36,9 @@ fn download_cover2d(id: GameID, mount_point: &Path) -> Result<()> {
     fs::create_dir_all(&images_dir)?;
 
     let path = images_dir.join(id.as_str()).with_extension("png");
+    if path.exists() {
+        return Ok(false);
+    }
 
     let url = format!(
         "https://art.gametdb.com/wii/cover/{}/{}.png",
@@ -43,14 +46,12 @@ fn download_cover2d(id: GameID, mount_point: &Path) -> Result<()> {
         id.as_str()
     );
 
-    if !path.exists() {
-        http::download_file(&url, &path)?;
-    }
+    http::download_file(&url, &path)?;
 
-    Ok(())
+    Ok(true)
 }
 
-fn download_coverfull(id: GameID, mount_point: &Path) -> Result<()> {
+fn download_coverfull(id: GameID, mount_point: &Path) -> Result<bool> {
     let images_dir = mount_point
         .join("apps")
         .join("usbloader_gx")
@@ -59,6 +60,9 @@ fn download_coverfull(id: GameID, mount_point: &Path) -> Result<()> {
     fs::create_dir_all(&images_dir)?;
 
     let path = images_dir.join(id.as_str()).with_extension("png");
+    if path.exists() {
+        return Ok(false);
+    }
 
     let url = format!(
         "https://art.gametdb.com/wii/coverfull/{}/{}.png",
@@ -66,14 +70,12 @@ fn download_coverfull(id: GameID, mount_point: &Path) -> Result<()> {
         id.as_str()
     );
 
-    if !path.exists() {
-        http::download_file(&url, &path)?;
-    }
+    http::download_file(&url, &path)?;
 
-    Ok(())
+    Ok(true)
 }
 
-fn download_disc_cover(id: GameID, mount_point: &Path) -> Result<()> {
+fn download_disc_cover(id: GameID, mount_point: &Path) -> Result<bool> {
     let images_dir = mount_point
         .join("apps")
         .join("usbloader_gx")
@@ -82,6 +84,9 @@ fn download_disc_cover(id: GameID, mount_point: &Path) -> Result<()> {
     fs::create_dir_all(&images_dir)?;
 
     let path = images_dir.join(id.as_str()).with_extension("png");
+    if path.exists() {
+        return Ok(false);
+    }
 
     let url = format!(
         "https://art.gametdb.com/wii/disc/{}/{}.png",
@@ -89,18 +94,19 @@ fn download_disc_cover(id: GameID, mount_point: &Path) -> Result<()> {
         id.as_str()
     );
 
-    if !path.exists() {
-        http::download_file(&url, &path)?;
-    }
+    http::download_file(&url, &path)?;
 
-    Ok(())
+    Ok(true)
 }
 
-fn download_wiiflow_boxcover(id: GameID, mount_point: &Path) -> Result<()> {
+fn download_wiiflow_boxcover(id: GameID, mount_point: &Path) -> Result<bool> {
     let cover_dir = mount_point.join("wiiflow").join("boxcovers");
     fs::create_dir_all(&cover_dir)?;
 
     let path = cover_dir.join(format!("{}.png", id.as_str()));
+    if path.exists() {
+        return Ok(false);
+    }
 
     let url = format!(
         "https://art.gametdb.com/wii/coverfull/{}/{}.png",
@@ -108,18 +114,19 @@ fn download_wiiflow_boxcover(id: GameID, mount_point: &Path) -> Result<()> {
         id.as_str()
     );
 
-    if !path.exists() {
-        http::download_file(&url, &path)?;
-    }
+    http::download_file(&url, &path)?;
 
-    Ok(())
+    Ok(true)
 }
 
-fn download_wiiflow_cover(id: GameID, mount_point: &Path) -> Result<()> {
+fn download_wiiflow_cover(id: GameID, mount_point: &Path) -> Result<bool> {
     let cover_dir = mount_point.join("wiiflow").join("covers");
     fs::create_dir_all(&cover_dir)?;
 
     let path = cover_dir.join(format!("{}.png", id.as_str()));
+    if path.exists() {
+        return Ok(false);
+    }
 
     let url = format!(
         "https://art.gametdb.com/wii/cover/{}/{}.png",
@@ -127,11 +134,9 @@ fn download_wiiflow_cover(id: GameID, mount_point: &Path) -> Result<()> {
         id.as_str()
     );
 
-    if !path.exists() {
-        http::download_file(&url, &path)?;
-    }
+    http::download_file(&url, &path)?;
 
-    Ok(())
+    Ok(true)
 }
 
 // Fail safe, ignores errors, no popup notification
@@ -145,17 +150,23 @@ pub fn spawn_download_covers_task(app: &App) {
         let len = games.len();
         for (i, game) in games.into_iter().enumerate() {
             msg_sender.send(Message::UpdateStatus(format!(
-                "🖻 Downloading covers... ({}/{})",
+                "{} Downloading covers... ({}/{})",
+                egui_phosphor::regular::IMAGE,
                 i + 1,
                 len
             )))?;
 
-            if download_cover3d(game.id, &mount_point).is_ok() {
-                msg_sender.send(Message::TriggerRefreshImage(game.image_uri))?;
+            match download_cover3d(game.id, &mount_point) {
+                Ok(true) => msg_sender.send(Message::TriggerRefreshImage(game.image_uri))?,
+                Ok(false) => {}
+                Err(e) => msg_sender.send(Message::NotifyError(e))?,
             }
         }
 
-        msg_sender.send(Message::NotifyInfo("🖻 Covers downloaded".to_string()))?;
+        msg_sender.send(Message::NotifyInfo(format!(
+            "{} Covers downloaded",
+            egui_phosphor::regular::IMAGE
+        )))?;
 
         Ok(())
     });
@@ -171,21 +182,35 @@ pub fn spawn_download_all_covers_task(app: &App) {
         let len = games.len();
         for (i, game) in games.into_iter().enumerate() {
             msg_sender.send(Message::UpdateStatus(format!(
-                "🖻 Downloading covers... ({}/{})",
+                "{} Downloading covers... ({}/{})",
+                egui_phosphor::regular::IMAGE,
                 i + 1,
                 len
             )))?;
 
-            if download_cover3d(game.id, &mount_point).is_ok() {
-                msg_sender.send(Message::TriggerRefreshImage(game.image_uri))?;
+            match download_cover3d(game.id, &mount_point) {
+                Ok(true) => msg_sender.send(Message::TriggerRefreshImage(game.image_uri))?,
+                Ok(false) => {}
+                Err(e) => msg_sender.send(Message::NotifyError(e))?,
             }
 
-            let _ = download_cover2d(game.id, &mount_point);
-            let _ = download_coverfull(game.id, &mount_point);
-            let _ = download_disc_cover(game.id, &mount_point);
+            if let Err(e) = download_cover2d(game.id, &mount_point) {
+                msg_sender.send(Message::NotifyError(e))?;
+            }
+
+            if let Err(e) = download_coverfull(game.id, &mount_point) {
+                msg_sender.send(Message::NotifyError(e))?;
+            }
+
+            if let Err(e) = download_disc_cover(game.id, &mount_point) {
+                msg_sender.send(Message::NotifyError(e))?;
+            }
         }
 
-        msg_sender.send(Message::NotifyInfo("🖻 Covers downloaded".to_string()))?;
+        msg_sender.send(Message::NotifyInfo(format!(
+            "{} Covers downloaded",
+            egui_phosphor::regular::IMAGE
+        )))?;
 
         Ok(())
     });
@@ -196,21 +221,33 @@ pub fn spawn_download_wiiflow_covers_task(app: &App) {
     let games = app.games.clone().into_boxed_slice();
 
     app.task_processor.spawn(move |msg_sender| {
-        msg_sender.send(Message::UpdateStatus("🖻 Downloading covers...".to_string()))?;
+        msg_sender.send(Message::UpdateStatus(format!(
+            "{} Downloading covers...",
+            egui_phosphor::regular::IMAGE
+        )))?;
 
         let len = games.len();
         for (i, game) in games.into_iter().enumerate() {
             msg_sender.send(Message::UpdateStatus(format!(
-                "🖻 Downloading covers... ({}/{})",
+                "{} Downloading covers... ({}/{})",
+                egui_phosphor::regular::IMAGE,
                 i + 1,
                 len
             )))?;
 
-            let _ = download_wiiflow_boxcover(game.id, &mount_point);
-            let _ = download_wiiflow_cover(game.id, &mount_point);
+            if let Err(e) = download_wiiflow_boxcover(game.id, &mount_point) {
+                msg_sender.send(Message::NotifyError(e))?;
+            }
+
+            if let Err(e) = download_wiiflow_cover(game.id, &mount_point) {
+                msg_sender.send(Message::NotifyError(e))?;
+            }
         }
 
-        msg_sender.send(Message::NotifyInfo("🖻 Covers downloaded".to_string()))?;
+        msg_sender.send(Message::NotifyInfo(format!(
+            "{} Covers downloaded",
+            egui_phosphor::regular::IMAGE
+        )))?;
 
         Ok(())
     });

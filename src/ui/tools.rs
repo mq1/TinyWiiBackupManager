@@ -16,13 +16,13 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
             group.show(ui, |ui| {
                 ui.set_width(ui.available_width());
 
-                ui.heading("🔁 Drive independent game conversions");
+                ui.heading(format!("{} Drive independent game conversions", egui_phosphor::regular::FLOW_ARROW));
 
-                if ui.button("✚ Select game to add").clicked() {
+                if ui.button(format!("{} Select game to add", egui_phosphor::regular::PLUS_CIRCLE)).clicked() {
                     app.choose_game_manual_conv.pick_file();
                 }
 
-                if ui.button("📥 Select game to archive").clicked() {
+                if ui.button(format!("{} Select game to archive", egui_phosphor::regular::BOX_ARROW_DOWN)).clicked() {
                     app.choose_game_to_archive_manually.pick_file();
                 }
             });
@@ -34,10 +34,10 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
             group.show(ui, |ui| {
                 ui.set_width(ui.available_width());
 
-                ui.heading("💫 USB Loader GX");
+                ui.heading(format!("{} USB Loader GX", egui_phosphor::regular::MAGIC_WAND));
 
                 ui.horizontal(|ui| {
-                    if ui.button("📥").clicked() {
+                    if ui.button(egui_phosphor::regular::CLOUD_ARROW_DOWN).clicked() {
                         wiitdb::spawn_download_task(app);
                         wiitdb::spawn_load_wiitdb_task(app);
                     }
@@ -46,7 +46,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 });
 
                 ui.horizontal(|ui| {
-                    if ui.button("📥").clicked() {
+                    if ui.button(egui_phosphor::regular::CLOUD_ARROW_DOWN).clicked() {
                         covers::spawn_download_all_covers_task(app);
                     }
 
@@ -54,7 +54,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 });
 
                 ui.horizontal(|ui| {
-                    if ui.button("📥").clicked() {
+                    if ui.button(egui_phosphor::regular::CLOUD_ARROW_DOWN).clicked() {
                         banners::spawn_download_banners_task(app);
                     }
 
@@ -65,10 +65,10 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
             group.show(ui, |ui| {
                 ui.set_width(ui.available_width());
 
-                ui.heading("🔀 WiiFlow Lite");
+                ui.heading(format!("{} WiiFlow Lite", egui_phosphor::regular::SHUFFLE));
 
             ui.horizontal(|ui| {
-                if ui.button("📥").clicked() {
+                if ui.button(egui_phosphor::regular::CLOUD_ARROW_DOWN).clicked() {
                         covers::spawn_download_wiiflow_covers_task(app);
                     }
 
@@ -79,10 +79,10 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
             group.show(ui, |ui| {
                 ui.set_width(ui.available_width());
 
-                ui.heading("🛠 Cheat Codes");
+                ui.heading(format!("{} Cheat Codes", egui_phosphor::regular::FILE_TXT));
 
                 ui.horizontal(|ui| {
-                    if ui.button("📥").clicked() {
+                    if ui.button(egui_phosphor::regular::CLOUD_ARROW_DOWN).clicked() {
                         txtcodes::spawn_download_all_cheats_task(app);
                     }
 
@@ -93,10 +93,10 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
             group.show(ui, |ui| {
                 ui.set_width(ui.available_width());
 
-                ui.heading("🚿 Cleanup");
+                ui.heading(format!("{} Cleanup", egui_phosphor::regular::BROOM));
 
                 ui.horizontal(|ui| {
-                    if ui.button("⏵").clicked() {
+                    if ui.button(egui_phosphor::regular::ARROW_FAT_RIGHT).clicked() {
                         app.run_normalize_paths();
                     }
 
@@ -108,10 +108,10 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 group.show(ui, |ui| {
                     ui.set_width(ui.available_width());
 
-                    ui.heading(" macOS");
+                    ui.heading(format!("{} macOS", egui_phosphor::regular::APPLE_LOGO));
 
                     ui.horizontal(|ui| {
-                        if ui.button("⏵").clicked() {
+                        if ui.button(egui_phosphor::regular::ARROW_FAT_RIGHT).clicked() {
                             app.run_dot_clean();
                         }
 

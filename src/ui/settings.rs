@@ -22,7 +22,10 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
             group.show(ui, |ui| {
                 ui.set_width(ui.available_width());
 
-                ui.heading("💿 Wii Output Format");
+                ui.heading(format!(
+                    "{} Wii Output Format",
+                    egui_phosphor::regular::DISC
+                ));
 
                 if ui
                     .radio_value(
@@ -50,7 +53,10 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
             group.show(ui, |ui| {
                 ui.set_width(ui.available_width());
 
-                ui.heading("💿 GameCube Output Format");
+                ui.heading(format!(
+                    "{} GameCube Output Format",
+                    egui_phosphor::regular::DISC
+                ));
 
                 if ui
                     .radio_value(
@@ -78,7 +84,10 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
             group.show(ui, |ui| {
                 ui.set_width(ui.available_width());
 
-                ui.heading("🗐 Split Output");
+                ui.heading(format!(
+                    "{} Split Output",
+                    egui_phosphor::regular::ARROWS_SPLIT
+                ));
 
                 if ui
                     .radio_value(
@@ -106,7 +115,10 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
             group.show(ui, |ui| {
                 ui.set_width(ui.available_width());
 
-                ui.heading("🗑 Remove Update Partition on WBFS");
+                ui.heading(format!(
+                    "{} Remove Update Partition on WBFS",
+                    egui_phosphor::regular::FILE_DASHED
+                ));
 
                 if ui
                     .radio_value(
@@ -134,7 +146,10 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
             group.show(ui, |ui| {
                 ui.set_width(ui.available_width());
 
-                ui.heading("💣 Delete sources when adding games");
+                ui.heading(format!(
+                    "{} Delete sources when adding games",
+                    egui_phosphor::regular::TRASH
+                ));
 
                 if ui
                     .radio_value(
@@ -158,7 +173,10 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
             group.show(ui, |ui| {
                 ui.set_width(ui.available_width());
 
-                ui.heading("💣 Delete sources when adding apps");
+                ui.heading(format!(
+                    "{} Delete sources when adding apps",
+                    egui_phosphor::regular::TRASH
+                ));
 
                 if ui
                     .radio_value(
@@ -182,7 +200,10 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
             group.show(ui, |ui| {
                 ui.set_width(ui.available_width());
 
-                ui.heading("🔢 Cheat Codes source");
+                ui.heading(format!(
+                    "{} Cheat Codes source",
+                    egui_phosphor::regular::FILE_TXT
+                ));
 
                 if ui
                     .radio_value(
@@ -229,9 +250,30 @@ fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, app: &mut App) {
         group.show(ui, |ui| {
             ui.style_mut().spacing.item_spacing.x = 0.;
 
-            update_theme_btn(ui, ctx, app, ThemePreference::Dark, "Dark Theme", "🌙");
-            update_theme_btn(ui, ctx, app, ThemePreference::Light, "Light Theme", "☀");
-            update_theme_btn(ui, ctx, app, ThemePreference::System, "System Theme", "🌓");
+            update_theme_btn(
+                ui,
+                ctx,
+                app,
+                ThemePreference::Dark,
+                "Dark Theme",
+                egui_phosphor::regular::MOON,
+            );
+            update_theme_btn(
+                ui,
+                ctx,
+                app,
+                ThemePreference::Light,
+                "Light Theme",
+                egui_phosphor::regular::SUN,
+            );
+            update_theme_btn(
+                ui,
+                ctx,
+                app,
+                ThemePreference::System,
+                "System Theme",
+                egui_phosphor::regular::CIRCLE_HALF,
+            );
         });
 
         group.show(ui, |ui| {
@@ -251,7 +293,10 @@ fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, app: &mut App) {
             }
 
             ui.add_space(5.);
-            ui.add_sized(Vec2::splat(21.), egui::Label::new("🎨"));
+            ui.add_sized(
+                Vec2::splat(21.),
+                egui::Label::new(egui_phosphor::regular::PALETTE),
+            );
         });
 
         ui.shrink_height_to_current();
