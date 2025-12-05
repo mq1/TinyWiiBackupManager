@@ -31,7 +31,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
         ui.separator();
         ui.add_space(10.);
 
-        ui.heading("ℹ Need help modding your Wii?");
+        ui.heading(format!("{} Need help modding your Wii?", egui_phosphor::regular::INFO));
         ui.hyperlink_to(format!("{} Wii Hacks Guide", egui_phosphor::regular::LINK), "https://wii.hacks.guide/");
 
         ui.add_space(10.);
