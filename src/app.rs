@@ -333,17 +333,6 @@ impl App {
     }
 
     pub fn add_games(&mut self, mut paths: Vec<PathBuf>) {
-        if let Some(path) = paths.first()
-            && path.is_dir()
-        {
-            paths = WalkDir::new(path)
-                .into_iter()
-                .filter_map(Result::ok)
-                .filter(|e| e.file_type().is_file())
-                .map(|e| e.path().to_path_buf())
-                .collect();
-        }
-
         paths.retain(|path| {
             path.extension()
                 .and_then(|ext| ext.to_str())
@@ -363,6 +352,19 @@ impl App {
             self.notifications.show_info("No new games were selected");
         } else {
             self.current_modal = Some(Modal::ConvertGames(discs));
+        }
+    }
+
+    pub fn add_games_from_dir(&mut self, frame: &eframe::Frame) {
+        if let Some(src_dir) = ui::dialogs::choose_src_dir(frame) {
+            let paths = WalkDir::new(src_dir)
+                .into_iter()
+                .filter_map(Result::ok)
+                .filter(|e| e.file_type().is_file())
+                .map(|e| e.path().to_path_buf())
+                .collect();
+
+            self.add_games(paths);
         }
     }
 
