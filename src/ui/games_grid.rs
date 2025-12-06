@@ -113,7 +113,7 @@ fn update_game_card(ui: &mut egui::Ui, app: &App, game_i: u16) {
                     .on_hover_text("Delete Game")
                     .clicked()
                 {
-                    app.send_msg(Message::OpenModal(ui::Modal::DeleteGame(game_i)));
+                    app.send_msg(Message::DeleteGame(game_i));
                 }
 
                 // Archive button
