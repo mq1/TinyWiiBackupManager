@@ -407,15 +407,17 @@ impl App {
         convert::spawn_strip_game_task(self, game.path.clone());
     }
 
-    pub fn delete_game(&mut self, ctx: &egui::Context, game_i: u16) {
+    pub fn delete_game(&mut self, ctx: &egui::Context, frame: &eframe::Frame, game_i: u16) {
         let game = &self.games[game_i as usize];
 
-        if let Err(e) = fs::remove_dir_all(&game.path) {
-            self.notifications.show_err(e.into());
-        } else {
-            self.games.remove(game_i as usize);
-            self.update_filtered_games();
-            self.update_title(ctx);
+        if ui::dialogs::delete_game(frame, &game.display_title) {
+            if let Err(e) = fs::remove_dir_all(&game.path) {
+                self.notifications.show_err(e.into());
+            } else {
+                self.games.remove(game_i as usize);
+                self.update_filtered_games();
+                self.update_title(ctx);
+            }
         }
     }
 

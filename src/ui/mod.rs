@@ -5,7 +5,6 @@ use crate::{disc_info::DiscInfo, wiitdb::GameInfo};
 
 pub mod accent;
 mod confirm_conversion;
-mod delete_game;
 mod delete_hbc_app;
 mod developers;
 pub mod dialogs;
@@ -61,7 +60,6 @@ pub enum Modal {
     GameInfo(u16, Box<Option<DiscInfo>>, Box<Option<GameInfo>>),
     HbcAppInfo(u16),
     OscAppInfo(u16),
-    DeleteGame(u16),
     DeleteHbcApp(u16),
     ConvertGames(Box<[DiscInfo]>),
     StripGame(u16),
