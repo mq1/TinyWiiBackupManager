@@ -358,6 +358,26 @@ pub fn update(
                 app.send_msg(Message::OpenGameDir(game_i));
             }
 
+            // Strip update partition button
+            if disc_info
+                .as_ref()
+                .is_some_and(|disc_info| disc_info.is_worth_stripping)
+            {
+                if ui
+                    .button(format!(
+                        "{} Remove Update Partition",
+                        egui_phosphor::regular::FILE_DASHED
+                    ))
+                    .on_hover_text(format!(
+                        "Removes the update partition from the disc\n{}This is irreversible!",
+                        egui_phosphor::regular::WARNING
+                    ))
+                    .clicked()
+                {
+                    println!("Placeholder");
+                }
+            }
+
             // Integrity check button
             let has_embedded_crc32 = disc_info
                 .as_ref()
