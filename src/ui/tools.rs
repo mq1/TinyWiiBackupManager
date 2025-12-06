@@ -5,7 +5,7 @@ use crate::app::App;
 use crate::{banners, covers, txtcodes, wiitdb};
 use eframe::egui;
 
-pub fn update(ctx: &egui::Context, app: &mut App) {
+pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
     egui::CentralPanel::default().show(ctx, |ui| {
         ui.style_mut().spacing.item_spacing.y *= 2.;
 
@@ -19,11 +19,11 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 ui.heading(format!("{} Drive independent game conversions", egui_phosphor::regular::FLOW_ARROW));
 
                 if ui.button(format!("{} Select game to add", egui_phosphor::regular::PLUS_CIRCLE)).clicked() {
-                    app.choose_game_manual_conv.pick_file();
+                    app.conv_game_manually(frame);
                 }
 
                 if ui.button(format!("{} Select game to archive", egui_phosphor::regular::BOX_ARROW_DOWN)).clicked() {
-                    app.choose_game_to_archive_manually.pick_file();
+                    app.archive_game_manually(frame);
                 }
             });
 

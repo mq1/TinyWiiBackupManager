@@ -33,7 +33,7 @@ impl TxtCodesSource {
                 http::get(&url).map_err(Into::into)
             }
             Self::GameHacking => {
-                let gamehacking_id = id_map::get_gamehacking_id(game_id)
+                let gamehacking_id = id_map::get_gamehacking_id(game_id.0)
                     .ok_or(anyhow!("Could not find gamehacks id"))?;
 
                 let form = [

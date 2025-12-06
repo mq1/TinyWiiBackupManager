@@ -35,7 +35,7 @@ pub fn update(
             .max_height(400.)
             .show(ui, |ui| {
                 ui.heading(format!(
-                    "{} Disc Info (Header)",
+                    "{} Disc Header",
                     egui_phosphor::regular::CARET_RIGHT
                 ));
 
@@ -91,10 +91,7 @@ pub fn update(
 
                     ui.separator();
 
-                    ui.heading(format!(
-                        "{} Disc Info (Metadata)",
-                        egui_phosphor::regular::CARET_RIGHT
-                    ));
+                    ui.heading(format!("{} Disc Meta", egui_phosphor::regular::CARET_RIGHT));
 
                     // Format
                     ui.label(format!(
@@ -152,7 +149,7 @@ pub fn update(
                     ui.separator();
 
                     ui.heading(format!(
-                        "{} Disc Info (Hashes)",
+                        "{} Disc Meta (Hashes)",
                         egui_phosphor::regular::CARET_RIGHT
                     ));
 
@@ -359,6 +356,24 @@ pub fn update(
                 .clicked()
             {
                 app.send_msg(Message::OpenGameDir(game_i));
+            }
+
+            // Strip update partition button
+            if disc_info
+                .as_ref()
+                .is_some_and(|disc_info| disc_info.is_worth_stripping)
+                && ui
+                    .button(format!(
+                        "{} Remove Update Partition",
+                        egui_phosphor::regular::FILE_DASHED
+                    ))
+                    .on_hover_text(format!(
+                        "Removes the update partition from the disc\n{}This is irreversible!",
+                        egui_phosphor::regular::WARNING
+                    ))
+                    .clicked()
+            {
+                println!("Placeholder");
             }
 
             // Integrity check button

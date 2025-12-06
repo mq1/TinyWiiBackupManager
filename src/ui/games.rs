@@ -4,11 +4,12 @@
 use crate::app::App;
 use crate::{
     config::{SortBy, ViewAs},
+    ui,
     ui::{games_grid, games_list},
 };
 use eframe::egui::{self, Vec2};
 
-pub fn update(ctx: &egui::Context, app: &mut App) {
+pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
     egui::CentralPanel::default().show(ctx, |ui| {
         if app.config.contents.mount_point.as_os_str().is_empty() {
             ui.heading(format!(
@@ -18,7 +19,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
             return;
         }
 
-        update_top_bar(ui, ctx, app);
+        update_top_bar(ui, ctx, frame, app);
         ui.add_space(10.);
 
         match app.config.contents.view_as {
@@ -28,7 +29,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
     });
 }
 
-fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, app: &mut App) {
+fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
     let current_view_as = app.config.contents.view_as;
     let current_sort_by = app.config.contents.sort_by;
 
@@ -57,12 +58,28 @@ fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, app: &mut App) {
             if ui
                 .add_sized(
                     Vec2::splat(34.),
+                    egui::Button::new(
+                        egui::RichText::new(egui_phosphor::regular::FOLDER_PLUS).size(18.),
+                    ),
+                )
+                .on_hover_text("Add Games Recursively")
+                .clicked()
+            {
+                app.add_games_from_dir(frame);
+            }
+
+            if ui
+                .add_sized(
+                    Vec2::splat(34.),
                     egui::Button::new(egui::RichText::new(egui_phosphor::regular::PLUS).size(18.)),
                 )
                 .on_hover_text("Add Games")
                 .clicked()
             {
-                app.choose_games.pick_multiple();
+                let games = ui::dialogs::choose_games(frame);
+                if !games.is_empty() {
+                    app.add_games(games);
+                }
             }
 
             if ui
