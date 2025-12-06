@@ -5,11 +5,11 @@ use crate::extensions::SUPPORTED_INPUT_EXTENSIONS;
 use crate::games::GameID;
 use crate::{convert::get_disc_opts, overflow_reader::get_main_file};
 use anyhow::{Result, anyhow, bail};
-use nod::common::{Compression, Format};
-use nod::read::DiscReader;
+use nod::common::{Compression, Format, PartitionKind};
+use nod::read::{DiscReader, PartitionOptions};
 use size::Size;
 use std::fs::File;
-use std::io::BufReader;
+use std::io::{BufReader, Read};
 use std::path::{Path, PathBuf};
 use zip::ZipArchive;
 
@@ -37,6 +37,9 @@ pub struct DiscInfo {
     pub md5: Option<[u8; 16]>,
     pub sha1: Option<[u8; 20]>,
     pub xxh64: Option<u64>,
+
+    // misc
+    pub is_worth_stripping: bool,
 }
 
 impl DiscInfo {
@@ -88,10 +91,13 @@ impl DiscInfo {
     }
 
     pub fn from_file(file: File) -> Result<DiscInfo> {
-        let disc = DiscReader::new_from_non_cloneable_read(file, &get_disc_opts())?;
+        let disc =
+            DiscReader::new_from_non_cloneable_read(file.try_clone().unwrap(), &get_disc_opts())?;
 
         let header = disc.header();
         let meta = disc.meta();
+
+        let is_worth_stripping = is_worth_stripping(file);
 
         Ok(Self {
             main_disc_path: PathBuf::new(),
@@ -122,6 +128,31 @@ impl DiscInfo {
             md5: meta.md5,
             sha1: meta.sha1,
             xxh64: meta.xxh64,
+            is_worth_stripping,
         })
     }
+}
+
+// Returns true if the disc is worth stripping
+// Currently checks if the update partition is >= 8 MiB
+pub fn is_worth_stripping(file: File) -> bool {
+    if let Ok(disc) = DiscReader::new_from_non_cloneable_read(file, &get_disc_opts())
+        && disc.meta().format == Format::Wbfs
+        && let Ok(mut update_reader) =
+            disc.open_partition_kind(PartitionKind::Update, &PartitionOptions::default())
+    {
+        let mut non_empty_blocks = 0u8;
+
+        let mut block_buf = Box::new([0u8; 0x200000]); // 2 MB
+        while update_reader.read_exact(&mut block_buf[..]).is_ok() {
+            if block_buf.iter().any(|b| *b != 0) {
+                non_empty_blocks += 1;
+                if non_empty_blocks > 4 {
+                    return true;
+                }
+            }
+        }
+    }
+
+    false
 }

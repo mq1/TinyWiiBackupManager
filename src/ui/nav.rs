@@ -8,16 +8,16 @@ use eframe::egui::{self, OpenUrl, Vec2};
 
 const UPDATE_URL: &str = concat!(env!("CARGO_PKG_REPOSITORY"), "/releases/latest");
 
-pub fn update(ctx: &egui::Context, app: &mut App) {
+pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
     let current_view = app.current_view;
 
-    let frame =
-        egui::Frame::side_top_panel(&ctx.style()).fill(ctx.style().visuals.extreme_bg_color);
+    let style = &ctx.style();
+    let nav_frame = egui::Frame::side_top_panel(style).fill(style.visuals.extreme_bg_color);
 
     egui::SidePanel::left("nav")
         .resizable(false)
         .exact_width(57.)
-        .frame(frame)
+        .frame(nav_frame)
         .show(ctx, |ui| {
             ui.add_space(6.);
 
@@ -130,8 +130,9 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     )
                     .on_hover_text("Select Drive/Mount Point")
                     .clicked()
+                    && let Some(path) = ui::dialogs::choose_mount_point(frame)
                 {
-                    app.choose_mount_point.pick_directory();
+                    app.update_mount_point(ctx, path);
                 }
 
                 if let Some(version) = &app.update

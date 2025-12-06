@@ -2,9 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::app::App;
+use crate::{ui, wiiload};
 use eframe::egui;
 
-pub fn update(ctx: &egui::Context, app: &mut App) {
+pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
     egui::CentralPanel::default().show(ctx, |ui| {
         ui.style_mut().spacing.item_spacing.y *= 2.;
 
@@ -36,8 +37,9 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
         if ui
             .button(format!("{} Upload a Homebrew App (zip/dol/elf)", egui_phosphor::regular::UPLOAD))
             .clicked()
-        {
-            app.choose_file_to_push.pick_file();
-        }
+            && let Some(path) = ui::dialogs::choose_file_to_push(frame) {
+                wiiload::spawn_push_file_task(app, path);
+                app.save_config();
+            }
     });
 }

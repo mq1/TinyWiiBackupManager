@@ -4,11 +4,12 @@
 use crate::app::App;
 use crate::{
     config::{SortBy, ViewAs},
+    hbc_apps, ui,
     ui::{hbc_apps_grid, hbc_apps_list},
 };
 use eframe::egui::{self, Vec2};
 
-pub fn update(ctx: &egui::Context, app: &mut App) {
+pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
     egui::CentralPanel::default().show(ctx, |ui| {
         if app.config.contents.mount_point.as_os_str().is_empty() {
             ui.heading(format!(
@@ -18,7 +19,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
             return;
         }
 
-        update_top_bar(ui, ctx, app);
+        update_top_bar(ui, ctx, frame, app);
         ui.add_space(10.);
 
         match app.config.contents.view_as {
@@ -28,7 +29,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
     });
 }
 
-fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, app: &mut App) {
+fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
     let current_view_as = app.config.contents.view_as;
     let current_sort_by = app.config.contents.sort_by;
 
@@ -62,7 +63,10 @@ fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, app: &mut App) {
                 .on_hover_text("Add Apps")
                 .clicked()
             {
-                app.choose_hbc_apps.pick_multiple();
+                let paths = ui::dialogs::choose_hbc_apps(frame);
+                if !paths.is_empty() {
+                    hbc_apps::spawn_install_apps_task(app, paths.into_boxed_slice());
+                }
             }
 
             if ui
