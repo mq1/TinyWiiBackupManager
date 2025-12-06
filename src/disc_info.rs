@@ -5,11 +5,11 @@ use crate::extensions::SUPPORTED_INPUT_EXTENSIONS;
 use crate::games::GameID;
 use crate::{convert::get_disc_opts, overflow_reader::get_main_file};
 use anyhow::{Result, anyhow, bail};
-use nod::common::{Compression, Format};
-use nod::read::DiscReader;
+use nod::common::{Compression, Format, PartitionKind};
+use nod::read::{DiscReader, PartitionOptions};
 use size::Size;
 use std::fs::File;
-use std::io::BufReader;
+use std::io::{BufReader, Read, Seek, SeekFrom};
 use std::path::{Path, PathBuf};
 use zip::ZipArchive;
 
@@ -93,6 +93,34 @@ impl DiscInfo {
         let header = disc.header();
         let meta = disc.meta();
 
+        let bundles_update = if meta.format == Format::Wbfs
+            && let Some(update_part_info) = disc
+                .partitions()
+                .iter()
+                .find(|p| p.kind == PartitionKind::Update)
+            && let Ok(mut update_reader) =
+                disc.open_partition(update_part_info.index, &PartitionOptions::default())
+        {
+            // Skip the header
+            update_reader.seek(SeekFrom::Start(update_part_info.header.data_off()))?;
+
+            // Skip the first block (2 MB)
+            update_reader.seek(SeekFrom::Current(0x200000))?;
+
+            let mut bundles_update = false;
+            let mut block_buf = Box::new([0u8; 0x200000]);
+            while update_reader.read_exact(&mut block_buf[..]).is_ok() {
+                if block_buf.iter().any(|b| *b != 0) {
+                    bundles_update = true;
+                    break;
+                }
+            }
+
+            bundles_update
+        } else {
+            false
+        };
+
         Ok(Self {
             main_disc_path: PathBuf::new(),
 
@@ -124,4 +152,26 @@ impl DiscInfo {
             xxh64: meta.xxh64,
         })
     }
+}
+
+pub fn is_worth_stripping(disc_path: &Path) -> bool {
+    if let Ok(disc) = DiscReader::new(disc_path, &get_disc_opts())
+        && disc.meta().format == Format::Wbfs
+        && let Ok(mut update_reader) =
+            disc.open_partition_kind(PartitionKind::Update, &PartitionOptions::default())
+    {
+        let mut non_empty_blocks = 0u8;
+
+        let mut block_buf = Box::new([0u8; 0x200000]); // 2 MB
+        while update_reader.read_exact(&mut block_buf[..]).is_ok() {
+            if block_buf.iter().any(|b| *b != 0) {
+                non_empty_blocks += 1;
+                if non_empty_blocks > 4 {
+                    return true;
+                }
+            }
+        }
+    }
+
+    false
 }

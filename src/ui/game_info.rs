@@ -35,7 +35,7 @@ pub fn update(
             .max_height(400.)
             .show(ui, |ui| {
                 ui.heading(format!(
-                    "{} Disc Info (Header)",
+                    "{} Disc Header",
                     egui_phosphor::regular::CARET_RIGHT
                 ));
 
@@ -91,10 +91,7 @@ pub fn update(
 
                     ui.separator();
 
-                    ui.heading(format!(
-                        "{} Disc Info (Metadata)",
-                        egui_phosphor::regular::CARET_RIGHT
-                    ));
+                    ui.heading(format!("{} Disc Meta", egui_phosphor::regular::CARET_RIGHT));
 
                     // Format
                     ui.label(format!(
@@ -152,7 +149,7 @@ pub fn update(
                     ui.separator();
 
                     ui.heading(format!(
-                        "{} Disc Info (Hashes)",
+                        "{} Disc Meta (Hashes)",
                         egui_phosphor::regular::CARET_RIGHT
                     ));
 

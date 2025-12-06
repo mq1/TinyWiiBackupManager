@@ -1149,7 +1149,7 @@ dependencies = [
 [[package]]
 name = "egui-file-dialog"
 version = "0.12.0"
-source = "git+https://github.com/mq1/egui-file-dialog?branch=more-custom-icons#810e5ded44046e1e2e40212f9e4894eada8a46e9"
+source = "git+https://github.com/jannistpl/egui-file-dialog?rev=74077a5#74077a590e6228c9321d3dc5dff790823c7bbc13"
 dependencies = [
  "directories",
  "dunce",
