@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::extensions::{HBC_APP_EXTENSIONS, SUPPORTED_INPUT_EXTENSIONS, ZIP_EXTENSIONS};
-use rfd::FileDialog;
+use rfd::{FileDialog, MessageButtons, MessageDialog, MessageDialogResult, MessageLevel};
 use std::path::PathBuf;
 
 pub fn choose_mount_point(frame: &eframe::Frame) -> Option<PathBuf> {
@@ -58,4 +58,18 @@ pub fn choose_game_manual_conv(frame: &eframe::Frame) -> Option<PathBuf> {
         .set_parent(frame)
         .add_filter("Nintendo Optical Disc", SUPPORTED_INPUT_EXTENSIONS)
         .pick_file()
+}
+
+pub fn delete_game(frame: &eframe::Frame, game_title: &str) -> bool {
+    MessageDialog::new()
+        .set_title("🗑 Delete game")
+        .set_parent(frame)
+        .set_description(format!(
+            "⚠️ Are you sure you want to delete {}?",
+            game_title
+        ))
+        .set_level(MessageLevel::Warning)
+        .set_buttons(MessageButtons::OkCancel)
+        .show()
+        == MessageDialogResult::Ok
 }
