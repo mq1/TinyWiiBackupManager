@@ -362,8 +362,7 @@ pub fn update(
             if disc_info
                 .as_ref()
                 .is_some_and(|disc_info| disc_info.is_worth_stripping)
-            {
-                if ui
+                && ui
                     .button(format!(
                         "{} Remove Update Partition",
                         egui_phosphor::regular::FILE_DASHED
@@ -373,9 +372,8 @@ pub fn update(
                         egui_phosphor::regular::WARNING
                     ))
                     .clicked()
-                {
-                    println!("Placeholder");
-                }
+            {
+                println!("Placeholder");
             }
 
             // Integrity check button

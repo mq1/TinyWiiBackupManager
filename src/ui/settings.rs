@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::app::App;
-use crate::config::{GcOutputFormat, WiiOutputFormat};
+use crate::config::{ArchiveFormat, GcOutputFormat, WiiOutputFormat};
 use crate::txtcodes::TxtCodesSource;
 use crate::ui::accent::AccentColor;
 use eframe::egui;
@@ -74,6 +74,37 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                         &mut app.config.contents.gc_output_format,
                         GcOutputFormat::Ciso,
                         "CISO (small but poor compatibility)",
+                    )
+                    .changed()
+                {
+                    app.save_config();
+                }
+            });
+
+            group.show(ui, |ui| {
+                ui.set_width(ui.available_width());
+
+                ui.heading(format!(
+                    "{} Archive Output Format",
+                    egui_phosphor::regular::DISC
+                ));
+
+                if ui
+                    .radio_value(
+                        &mut app.config.contents.archive_format,
+                        ArchiveFormat::Rvz,
+                        "RVZ [zstd -19] (recommended)",
+                    )
+                    .changed()
+                {
+                    app.save_config();
+                }
+
+                if ui
+                    .radio_value(
+                        &mut app.config.contents.archive_format,
+                        ArchiveFormat::Iso,
+                        "ISO (very large)",
                     )
                     .changed()
                 {
