@@ -27,7 +27,7 @@ pub enum Message {
     OpenGameDir(u16),
 }
 
-pub fn process_msg(app: &mut App, ctx: &egui::Context, msg: Message) {
+pub fn process_msg(app: &mut App, ctx: &egui::Context, frame: &eframe::Frame, msg: Message) {
     match msg {
         Message::NotifyInfo(i) => {
             app.notifications.show_info(&i);
@@ -74,8 +74,7 @@ pub fn process_msg(app: &mut App, ctx: &egui::Context, msg: Message) {
             app.current_modal = None;
         }
         Message::ArchiveGame(i) => {
-            app.archiving_game_i = i;
-            app.choose_archive_path.save_file();
+            app.archive_game(i, frame);
         }
         Message::WriteConfig => {
             app.save_config();

@@ -6,9 +6,9 @@ use crate::messages::Message;
 use crate::{
     config::ArchiveFormat,
     convert::{get_disc_opts, get_process_opts},
+    id_map,
     overflow_reader::{OverflowReader, get_overflow_file},
 };
-use anyhow::{Result, bail};
 use nod::{
     common::{Compression, Format},
     read::DiscReader,
@@ -20,25 +20,8 @@ use std::{
     path::PathBuf,
 };
 
-pub fn spawn_archive_game_task(
-    app: &App,
-    path: PathBuf,
-    out_path: PathBuf,
-) -> Result<ArchiveFormat> {
-    let archive_format = match out_path.extension() {
-        Some(ext) => match ext.to_str() {
-            Some("rvz") => ArchiveFormat::Rvz,
-            Some("iso") => ArchiveFormat::Iso,
-            _ => bail!(
-                "{} Unsupported archive format",
-                egui_phosphor::regular::FILE_ARCHIVE
-            ),
-        },
-        None => bail!(
-            "{} Unsupported archive format",
-            egui_phosphor::regular::FILE_ARCHIVE
-        ),
-    };
+pub fn spawn_archive_game_task(app: &App, path: PathBuf, out_dir: PathBuf) {
+    let archive_format = app.config.contents.archive_format;
 
     app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(Message::UpdateStatus(format!(
@@ -76,6 +59,13 @@ pub fn spawn_archive_game_task(
             DiscReader::new(&path, &get_disc_opts())?
         };
 
+        let disc_header = disc.header();
+        let game_title =
+            id_map::get_title(disc_header.game_id).unwrap_or_else(|| disc_header.game_title_str());
+        let out_path = out_dir
+            .join(game_title)
+            .with_extension(archive_format.extension());
+
         let mut output_file = BufWriter::new(File::create(&out_path)?);
         let writer = DiscWriter::new(disc, &format_opts)?;
 
@@ -108,6 +98,4 @@ pub fn spawn_archive_game_task(
 
         Ok(())
     });
-
-    Ok(archive_format)
 }
