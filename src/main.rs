@@ -92,7 +92,7 @@ fn main() -> Result<()> {
     // Initialize UI
 
     let icon = if cfg!(target_os = "macos") {
-        eframe::egui::IconData::default()
+        egui::IconData::default()
     } else {
         eframe::icon_data::from_png_bytes(ui::LOGO_BYTES).expect("Failed to load icon")
     };
@@ -100,7 +100,7 @@ fn main() -> Result<()> {
     let native_options = NativeOptions {
         viewport: ViewportBuilder::default()
             .with_inner_size([800., 600.])
-            .with_min_inner_size([745., 390.])
+            .with_min_inner_size([800., 600.])
             .with_icon(icon),
         ..Default::default()
     };

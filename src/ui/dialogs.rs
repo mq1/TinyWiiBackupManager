@@ -14,11 +14,18 @@ pub fn choose_mount_point(frame: &eframe::Frame) -> Option<PathBuf> {
 
 pub fn choose_games(frame: &eframe::Frame) -> Vec<PathBuf> {
     FileDialog::new()
-        .set_title("Select games (or a directory containing games)")
+        .set_title("Select games")
         .set_parent(frame)
         .add_filter("Nintendo Optical Disc", SUPPORTED_INPUT_EXTENSIONS)
         .pick_files()
         .unwrap_or_default()
+}
+
+pub fn choose_src_dir(frame: &eframe::Frame) -> Option<PathBuf> {
+    FileDialog::new()
+        .set_title("Select a folder containing games")
+        .set_parent(frame)
+        .pick_folder()
 }
 
 pub fn choose_hbc_apps(frame: &eframe::Frame) -> Vec<PathBuf> {

@@ -58,6 +58,19 @@ fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, frame: &eframe::Frame,
             if ui
                 .add_sized(
                     Vec2::splat(34.),
+                    egui::Button::new(
+                        egui::RichText::new(egui_phosphor::regular::FOLDER_PLUS).size(18.),
+                    ),
+                )
+                .on_hover_text("Add Games Recursively")
+                .clicked()
+            {
+                app.add_games_from_dir(frame);
+            }
+
+            if ui
+                .add_sized(
+                    Vec2::splat(34.),
                     egui::Button::new(egui::RichText::new(egui_phosphor::regular::PLUS).size(18.)),
                 )
                 .on_hover_text("Add Games")
