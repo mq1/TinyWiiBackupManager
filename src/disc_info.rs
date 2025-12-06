@@ -9,7 +9,7 @@ use nod::common::{Compression, Format, PartitionKind};
 use nod::read::{DiscReader, PartitionOptions};
 use size::Size;
 use std::fs::File;
-use std::io::{BufReader, Read, Seek, SeekFrom};
+use std::io::{BufReader, Read};
 use std::path::{Path, PathBuf};
 use zip::ZipArchive;
 
@@ -37,6 +37,9 @@ pub struct DiscInfo {
     pub md5: Option<[u8; 16]>,
     pub sha1: Option<[u8; 20]>,
     pub xxh64: Option<u64>,
+
+    // misc
+    pub is_worth_stripping: bool,
 }
 
 impl DiscInfo {
@@ -88,38 +91,13 @@ impl DiscInfo {
     }
 
     pub fn from_file(file: File) -> Result<DiscInfo> {
-        let disc = DiscReader::new_from_non_cloneable_read(file, &get_disc_opts())?;
+        let disc =
+            DiscReader::new_from_non_cloneable_read(file.try_clone().unwrap(), &get_disc_opts())?;
 
         let header = disc.header();
         let meta = disc.meta();
 
-        let bundles_update = if meta.format == Format::Wbfs
-            && let Some(update_part_info) = disc
-                .partitions()
-                .iter()
-                .find(|p| p.kind == PartitionKind::Update)
-            && let Ok(mut update_reader) =
-                disc.open_partition(update_part_info.index, &PartitionOptions::default())
-        {
-            // Skip the header
-            update_reader.seek(SeekFrom::Start(update_part_info.header.data_off()))?;
-
-            // Skip the first block (2 MB)
-            update_reader.seek(SeekFrom::Current(0x200000))?;
-
-            let mut bundles_update = false;
-            let mut block_buf = Box::new([0u8; 0x200000]);
-            while update_reader.read_exact(&mut block_buf[..]).is_ok() {
-                if block_buf.iter().any(|b| *b != 0) {
-                    bundles_update = true;
-                    break;
-                }
-            }
-
-            bundles_update
-        } else {
-            false
-        };
+        let is_worth_stripping = is_worth_stripping(file);
 
         Ok(Self {
             main_disc_path: PathBuf::new(),
@@ -150,12 +128,15 @@ impl DiscInfo {
             md5: meta.md5,
             sha1: meta.sha1,
             xxh64: meta.xxh64,
+            is_worth_stripping,
         })
     }
 }
 
-pub fn is_worth_stripping(disc_path: &Path) -> bool {
-    if let Ok(disc) = DiscReader::new(disc_path, &get_disc_opts())
+// Returns true if the disc is worth stripping
+// Currently checks if the update partition is >= 8 MiB
+pub fn is_worth_stripping(file: File) -> bool {
+    if let Ok(disc) = DiscReader::new_from_non_cloneable_read(file, &get_disc_opts())
         && disc.meta().format == Format::Wbfs
         && let Ok(mut update_reader) =
             disc.open_partition_kind(PartitionKind::Update, &PartitionOptions::default())
