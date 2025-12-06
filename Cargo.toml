@@ -28,7 +28,6 @@ LegalCopyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-3.0-only
 egui_extras = { version = "0.33", features = ["image", "file"] }
 image = { version = "0.25", default-features = false, features = ["png"] }
 egui-toast = "0.19"
-rfd = "0.16"
 egui-phosphor = "0.11"
 crossbeam-channel = "0.5"
 ureq = { version = "3.1", default-features = false }
@@ -61,6 +60,12 @@ walkdir = "2.5"
 itertools = "0.14"
 smallvec = "1.15"
 time = { version = "0.3", features = ["macros", "parsing", "serde"] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+rfd = "0.16"
+
+[target.'cfg(not(target_os = "linux"))'.dependencies]
+rfd = { version = "0.16", default-features = false }
 
 [target.'cfg(any(all(target_os = "macos", target_arch = "x86_64"), target_os = "linux", target_vendor = "win7"))'.dependencies]
 eframe = "0.33"

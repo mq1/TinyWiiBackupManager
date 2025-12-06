@@ -10,6 +10,7 @@ use crate::{
     overflow_writer::OverflowWriter,
     util::{self, can_write_over_4gb},
 };
+use anyhow::anyhow;
 use nod::{
     common::Format,
     read::{DiscOptions, DiscReader, PartitionEncryption},
@@ -347,6 +348,89 @@ pub fn spawn_convert_game_task(app: &App, disc_info: DiscInfo, dest_dir: PathBuf
             egui_phosphor::regular::FLOW_ARROW,
             &disc_info.title
         )))?;
+
+        Ok(())
+    });
+}
+
+pub fn spawn_strip_game_task(app: &App, game_dir: PathBuf) {
+    let disc_opts = get_disc_opts();
+
+    let must_split = app.config.contents.always_split
+        || can_write_over_4gb(&app.config.contents.mount_point).is_err();
+
+    app.task_processor.spawn(move |msg_sender| {
+        let disc_info = DiscInfo::from_game_dir(&game_dir)?;
+
+        let overflow_file = get_overflow_file(&disc_info.main_disc_path);
+
+        let old_name = game_dir
+            .file_name()
+            .ok_or(anyhow!("No file name"))?
+            .to_str()
+            .ok_or(anyhow!("Invalid file name"))?;
+
+        let new_name = format!("{}.new", old_name);
+
+        let parent_dir = game_dir.parent().ok_or(anyhow!("No parent directory"))?;
+
+        let dir_path = parent_dir.join(new_name);
+
+        let file_name1 = format!("{}.wbfs", disc_info.id.as_str());
+        let file_path1 = dir_path.join(file_name1);
+
+        let file_name2 = format!("{}.wbf1", disc_info.id.as_str());
+        let file_path2 = dir_path.join(file_name2);
+
+        fs::create_dir_all(&dir_path)?;
+        {
+            let disc = if let Some(overflow_file) = &overflow_file {
+                let reader = OverflowReader::new(&disc_info.main_disc_path, overflow_file)?;
+                DiscReader::new_from_non_cloneable_read(reader, &disc_opts)?
+            } else {
+                DiscReader::new(&disc_info.main_disc_path, &disc_opts)?
+            };
+
+            let mut overflow_writer = OverflowWriter::new(&file_path1, file_path2, must_split)?;
+
+            let out_opts = FormatOptions::new(Format::Wbfs);
+            let writer = DiscWriter::new(disc, &out_opts)?;
+
+            let process_opts = get_process_opts(true);
+
+            let finalization = writer.process(
+                |data, progress, total| {
+                    overflow_writer.write_all(&data)?;
+
+                    let _ = msg_sender.send(Message::UpdateStatus(format!(
+                        "{} Converting {}  {:02.0}%",
+                        egui_phosphor::regular::FLOW_ARROW,
+                        &disc_info.title,
+                        progress as f32 / total as f32 * 100.0,
+                    )));
+
+                    Ok(())
+                },
+                &process_opts,
+            )?;
+
+            if !finalization.header.is_empty() {
+                overflow_writer.write_header(&finalization.header)?;
+            }
+        }
+
+        // Remove the original game directory
+        fs::remove_dir_all(&game_dir)?;
+
+        // Rename the new directory to the original game directory name
+        fs::rename(dir_path, game_dir)?;
+
+        msg_sender.send(Message::NotifyInfo(format!(
+            "{} {} Converted (without update partition)",
+            egui_phosphor::regular::FLOW_ARROW,
+            &disc_info.title
+        )))?;
+        msg_sender.send(Message::TriggerRefreshGames)?;
 
         Ok(())
     });

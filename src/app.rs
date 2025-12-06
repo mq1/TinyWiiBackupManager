@@ -402,6 +402,11 @@ impl App {
         }
     }
 
+    pub fn strip_game(&mut self, i: u16) {
+        let game = &self.games[i as usize];
+        convert::spawn_strip_game_task(self, game.path.clone());
+    }
+
     pub fn delete_game(&mut self, ctx: &egui::Context, game_i: u16) {
         let game = &self.games[game_i as usize];
 
