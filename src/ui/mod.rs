@@ -26,6 +26,7 @@ mod osc_list;
 pub mod root;
 mod settings;
 mod status;
+mod strip_game;
 mod tools;
 mod wiiload;
 
@@ -63,4 +64,5 @@ pub enum Modal {
     DeleteGame(u16),
     DeleteHbcApp(u16),
     ConvertGames(Box<[DiscInfo]>),
+    StripGame(u16),
 }

@@ -143,7 +143,7 @@ pub fn is_worth_stripping(file: File) -> bool {
     {
         let mut non_empty_blocks = 0u8;
 
-        let mut block_buf = Box::new([0u8; 0x200000]); // 2 MB
+        let mut block_buf = vec![0u8; 0x200000].into_boxed_slice(); // 2 MB
         while update_reader.read_exact(&mut block_buf[..]).is_ok() {
             if block_buf.iter().any(|b| *b != 0) {
                 non_empty_blocks += 1;
