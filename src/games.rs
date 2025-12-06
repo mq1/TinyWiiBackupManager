@@ -72,7 +72,7 @@ impl Game {
             egui_phosphor::regular::FOLDER
         ))?;
 
-        let display_title = id_map::get_title(id).unwrap_or(title).to_string();
+        let display_title = id_map::get_title(id.0).unwrap_or(title).to_string();
 
         // Get the directory size
         let size = Size::from_bytes(fs_extra::dir::get_size(&dir).unwrap_or(0));
