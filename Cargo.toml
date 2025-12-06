@@ -28,7 +28,7 @@ LegalCopyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-3.0-only
 egui_extras = { version = "0.33", features = ["image", "file"] }
 image = { version = "0.25", default-features = false, features = ["png"] }
 egui-toast = "0.19"
-egui-file-dialog = { git = "https://github.com/mq1/egui-file-dialog", branch = "more-custom-icons" }
+egui-file-dialog = { git = "https://github.com/jannistpl/egui-file-dialog", rev = "74077a5" }
 egui-phosphor = "0.11"
 crossbeam-channel = "0.5"
 ureq = { version = "3.1", default-features = false }
