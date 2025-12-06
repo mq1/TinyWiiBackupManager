@@ -86,7 +86,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
                 ui.heading(format!(
                     "{} Archive Output Format",
-                    egui_phosphor::regular::DISC
+                    egui_phosphor::regular::FILE_ARCHIVE
                 ));
 
                 if ui
