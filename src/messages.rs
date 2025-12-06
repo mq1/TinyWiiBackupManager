@@ -25,6 +25,7 @@ pub enum Message {
     ArchiveGame(u16),
     WriteConfig,
     OpenGameDir(u16),
+    DeleteGame(u16),
 }
 
 pub fn process_msg(app: &mut App, ctx: &egui::Context, frame: &eframe::Frame, msg: Message) {
@@ -81,6 +82,9 @@ pub fn process_msg(app: &mut App, ctx: &egui::Context, frame: &eframe::Frame, ms
         }
         Message::OpenGameDir(i) => {
             app.open_game_dir(i);
+        }
+        Message::DeleteGame(i) => {
+            app.delete_game(ctx, frame, i);
         }
     }
 }

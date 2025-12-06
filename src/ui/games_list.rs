@@ -104,7 +104,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                                 .on_hover_text("Delete Game")
                                 .clicked()
                             {
-                                app.send_msg(Message::OpenModal(ui::Modal::DeleteGame(game_i)));
+                                app.send_msg(Message::DeleteGame(game_i));
                             }
                         });
                         ui.separator();
