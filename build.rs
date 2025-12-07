@@ -93,13 +93,15 @@ fn main() {
     #[cfg(target_vendor = "pc")]
     static_vcruntime::metabuild();
 
-    #[cfg(target_vendor = "pc")]
-    embed_resource::compile("assets/manifest.rc", embed_resource::NONE)
-        .manifest_required()
-        .unwrap();
+    #[cfg(windows)]
+    let mut res = winres::WindowsResource::new();
 
-    #[cfg(target_vendor = "win7")]
-    embed_resource::compile("assets/manifest-win7.rc", embed_resource::NONE)
-        .manifest_required()
-        .unwrap();
+    #[cfg(windows)]
+    res.set_icon("assets/TinyWiiBackupManager.ico");
+
+    #[cfg(target_vendor = "pc")]
+    res.append_rc_content("common_controls_v6 assets/TinyWiiBackupManager.exe.manifest");
+
+    #[cfg(windows)]
+    res.compile().unwrap();
 }
