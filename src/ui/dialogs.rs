@@ -63,7 +63,7 @@ pub fn choose_game_manual_conv(frame: &eframe::Frame) -> Option<PathBuf> {
 
 pub fn delete_game(frame: &eframe::Frame, game_title: &str) -> bool {
     MessageDialog::new()
-        .set_title("🗑 Delete game")
+        .set_title("Delete game")
         .set_parent(frame)
         .set_description(format!("Are you sure you want to delete {}?", game_title))
         .set_level(MessageLevel::Warning)
@@ -74,7 +74,7 @@ pub fn delete_game(frame: &eframe::Frame, game_title: &str) -> bool {
 
 pub fn delete_hbc_app(frame: &eframe::Frame, app_name: &str) -> bool {
     MessageDialog::new()
-        .set_title("🗑 Delete Homebrew Channel app")
+        .set_title("Delete Homebrew Channel app")
         .set_parent(frame)
         .set_description(format!("Are you sure you want to delete {}?", app_name))
         .set_level(MessageLevel::Warning)
@@ -95,6 +95,20 @@ pub fn confirm_conversion(frame: &eframe::Frame, discs: &[DiscInfo]) -> bool {
         .set_parent(frame)
         .set_description(desc)
         .set_level(MessageLevel::Info)
+        .set_buttons(MessageButtons::OkCancel)
+        .show()
+        == MessageDialogResult::Ok
+}
+
+pub fn confirm_strip_game(frame: &eframe::Frame, game_title: &str) -> bool {
+    MessageDialog::new()
+        .set_title("Remove update partition?")
+        .set_parent(frame)
+        .set_description(format!(
+            "Are you sure you want to remove the update partition from {}?\n\nThis is irreversible!",
+            game_title
+        ))
+        .set_level(MessageLevel::Warning)
         .set_buttons(MessageButtons::OkCancel)
         .show()
         == MessageDialogResult::Ok

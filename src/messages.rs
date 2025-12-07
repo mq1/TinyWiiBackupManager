@@ -27,6 +27,7 @@ pub enum Message {
     OpenGameDir(u16),
     DeleteGame(u16),
     DeleteHbcApp(u16),
+    StripGame(u16),
 }
 
 pub fn process_msg(app: &mut App, ctx: &egui::Context, frame: &eframe::Frame, msg: Message) {
@@ -93,6 +94,9 @@ pub fn process_msg(app: &mut App, ctx: &egui::Context, frame: &eframe::Frame, ms
             if let Err(e) = app.delete_hbc_app(frame, i) {
                 app.notifications.show_err(e);
             }
+        }
+        Message::StripGame(i) => {
+            app.strip_game(frame, i);
         }
     }
 }
