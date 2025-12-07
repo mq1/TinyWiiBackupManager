@@ -20,7 +20,7 @@ use crate::{
     util,
     wiitdb::{self, GameInfo},
 };
-use anyhow::anyhow;
+use anyhow::{Result, anyhow};
 use crossbeam_channel::{Receiver, Sender, unbounded};
 use eframe::egui;
 use semver::Version;
@@ -36,7 +36,7 @@ pub struct App {
     pub task_processor: TaskProcessor,
     pub has_osc_icons_downlading_started: bool,
     pub wiitdb: Option<wiitdb::Datafile>,
-    pub games: Vec<Game>,
+    pub games: Box<[Game]>,
     pub osc_apps: Box<[OscApp]>,
     pub filtered_games: SmallVec<[u16; 512]>,
     pub filtered_wii_games: SmallVec<[u16; 256]>,
@@ -46,7 +46,7 @@ pub struct App {
     pub filtered_osc_apps: SmallVec<[u16; 512]>,
     pub filtered_hbc_apps: SmallVec<[u16; 64]>,
     pub filtered_hbc_apps_size: Size,
-    pub hbc_apps: Vec<HbcApp>,
+    pub hbc_apps: Box<[HbcApp]>,
     pub current_view: ui::View,
     pub update: Option<Version>,
     pub status: String,
@@ -73,7 +73,7 @@ impl App {
             data_dir,
             current_view: ui::View::Games,
             update: None,
-            games: Vec::new(),
+            games: Box::new([]),
             filtered_games: SmallVec::new(),
             filtered_wii_games: SmallVec::new(),
             filtered_gc_games: SmallVec::new(),
@@ -81,7 +81,7 @@ impl App {
             filtered_gc_games_size: Size::from_bytes(0),
             task_processor,
             has_osc_icons_downlading_started: false,
-            hbc_apps: Vec::new(),
+            hbc_apps: Box::new([]),
             filtered_hbc_apps: SmallVec::new(),
             filtered_hbc_apps_size: Size::from_bytes(0),
             osc_apps: Box::new([]),
@@ -282,7 +282,7 @@ impl App {
     }
 
     pub fn refresh_games(&mut self) {
-        self.games = games::list(&self.config.contents.mount_point);
+        self.games = games::list(&self.config.contents.mount_point).into_boxed_slice();
 
         let is_known = known_mount_points::check(self).unwrap_or(true);
 
@@ -299,7 +299,8 @@ impl App {
     }
 
     pub fn refresh_hbc_apps(&mut self) {
-        self.hbc_apps = hbc_apps::list(&self.config.contents.mount_point, &self.osc_apps);
+        self.hbc_apps =
+            hbc_apps::list(&self.config.contents.mount_point, &self.osc_apps).into_boxed_slice();
 
         hbc_apps::sort(
             &mut self.hbc_apps,
@@ -407,30 +408,26 @@ impl App {
         convert::spawn_strip_game_task(self, game.path.clone());
     }
 
-    pub fn delete_game(&mut self, ctx: &egui::Context, frame: &eframe::Frame, game_i: u16) {
+    pub fn delete_game(&self, frame: &eframe::Frame, game_i: u16) -> Result<()> {
         let game = &self.games[game_i as usize];
 
         if ui::dialogs::delete_game(frame, &game.display_title) {
-            if let Err(e) = fs::remove_dir_all(&game.path) {
-                self.notifications.show_err(e.into());
-            } else {
-                self.games.remove(game_i as usize);
-                self.update_filtered_games();
-                self.update_title(ctx);
-            }
+            fs::remove_dir_all(&game.path)?;
+            self.msg_sender.send(Message::TriggerRefreshGames)?;
         }
+
+        Ok(())
     }
 
-    pub fn delete_hbc_app(&mut self, ctx: &egui::Context, hbc_app_i: u16) {
+    pub fn delete_hbc_app(&self, frame: &eframe::Frame, hbc_app_i: u16) -> Result<()> {
         let hbc_app = &self.hbc_apps[hbc_app_i as usize];
 
-        if let Err(e) = fs::remove_dir_all(&hbc_app.path) {
-            self.notifications.show_err(e.into());
-        } else {
-            self.hbc_apps.remove(hbc_app_i as usize);
-            self.update_filtered_hbc_apps();
-            self.update_title(ctx);
+        if ui::dialogs::delete_hbc_app(frame, &hbc_app.meta.name) {
+            fs::remove_dir_all(&hbc_app.path)?;
+            self.msg_sender.send(Message::TriggerRefreshHbcApps)?;
         }
+
+        Ok(())
     }
 }
 
