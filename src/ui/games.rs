@@ -4,7 +4,6 @@
 use crate::app::App;
 use crate::{
     config::{SortBy, ViewAs},
-    ui,
     ui::{games_grid, games_list},
 };
 use eframe::egui::{self, Vec2};
@@ -76,10 +75,7 @@ fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, frame: &eframe::Frame,
                 .on_hover_text("Add Games")
                 .clicked()
             {
-                let games = ui::dialogs::choose_games(frame);
-                if !games.is_empty() {
-                    app.add_games(games);
-                }
+                app.add_games(frame);
             }
 
             if ui
