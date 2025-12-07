@@ -29,20 +29,25 @@ jobs:
             runner: ubuntu-24.04
             arch: x86_64
             ldai-arch: x86_64
+            pkg_deps: libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev libgtk-3-dev
           - target: x86_64-unknown-linux-gnu
             runner: ubuntu-24.04
             arch: x86_64-v3
             ldai-arch: x86_64
             rustflags: "-C target-cpu=x86-64-v3"
+            pkg_deps: libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev libgtk-3-dev
           - target: aarch64-unknown-linux-gnu
             runner: ubuntu-24.04-arm
             arch: arm64
             ldai-arch: aarch64
+            pkg_deps: libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev libgtk-3-dev
           - target: i686-unknown-linux-gnu
             runner: ubuntu-24.04
             arch: x86
             ldai-arch: none
-            deps: libc6-dev-i386
+            pkg_deps: libc6-dev-i386 libxcb-render0-dev:i386 libxcb-shape0-dev:i386 libxcb-xfixes0-dev:i386 libxkbcommon-dev:i386 libssl-dev:i386 libgtk-3-dev:i386
+            pkg_config_path: "/usr/lib/i386-linux-gnu/pkgconfig"
+            pkg_config_allow_cross: "1"
 
     steps:
       - name: Checkout
@@ -62,8 +67,9 @@ jobs:
 
       - name: Install dependencies
         run: |
+          [[ "${{ matrix.arch }}" == "x86" ]] && sudo dpkg --add-architecture i386
           sudo apt-get update
-          sudo apt-get install -y ${{ matrix.deps }} libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev libgtk-3-dev
+          sudo apt-get install -y ${{ matrix.pkg_deps }}
 
       - name: Download LinuxDeploy
         if: matrix.ldai-arch != 'none'
@@ -77,6 +83,8 @@ jobs:
         env:
           RUSTC_BOOTSTRAP: 1
           RUSTFLAGS: ${{ matrix.rustflags }}
+          PKG_CONFIG_PATH: ${{ matrix.pkg_config_path }}
+          PKG_CONFIG_ALLOW_CROSS: ${{ matrix.pkg_config_allow_cross }}
 
       - name: Package binary as tar.gz
         run: |
