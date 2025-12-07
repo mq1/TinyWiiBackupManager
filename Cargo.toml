@@ -61,10 +61,7 @@ itertools = "0.14"
 smallvec = "1.15"
 time = { version = "0.3", features = ["macros", "parsing", "serde"] }
 
-[target.'cfg(target_os = "linux")'.dependencies]
-rfd = "0.16"
-
-[target.'cfg(any(target_os = "macos", target_vendor = "win7"))'.dependencies]
+[target.'cfg(any(target_os = "linux", target_os = "macos", target_vendor = "win7"))'.dependencies]
 rfd = { version = "0.16", default-features = false }
 
 [target.'cfg(any(all(target_os = "macos", target_arch = "x86_64"), target_os = "linux", target_vendor = "win7"))'.dependencies]
@@ -84,6 +81,8 @@ wgpu = { version = "*", default-features = false, features = ["dx12", "std", "pa
 default = ["native-tls"]
 native-tls = ["ureq/native-tls", "ureq/platform-verifier"]
 bundled-tls = ["ureq/rustls"]
+gtk3 = ["rfd/gtk3"]
+xdg = ["rfd/xdg-portal", "rfd/async-std", "rfd/wayland"]
 
 [target.'cfg(windows)'.build-dependencies]
 winres = "0.1"

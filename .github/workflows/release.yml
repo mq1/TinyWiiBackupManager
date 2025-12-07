@@ -73,7 +73,7 @@ jobs:
           chmod +x linuxdeploy-${{ matrix.ldai-arch }}.AppImage linuxdeploy-plugin-appimage-${{ matrix.ldai-arch }}.AppImage
 
       - name: Build binary
-        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
+        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls gtk3"
         env:
           RUSTC_BOOTSTRAP: 1
           RUSTFLAGS: ${{ matrix.rustflags }}
