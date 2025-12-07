@@ -23,7 +23,6 @@ mod osc_list;
 pub mod root;
 mod settings;
 mod status;
-mod strip_game;
 mod tools;
 mod wiiload;
 
@@ -58,5 +57,4 @@ pub enum Modal {
     GameInfo(u16, Box<Option<DiscInfo>>, Box<Option<GameInfo>>),
     HbcAppInfo(u16),
     OscAppInfo(u16),
-    StripGame(u16),
 }
