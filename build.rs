@@ -100,7 +100,7 @@ fn main() {
     res.set_icon("assets/TinyWiiBackupManager.ico");
 
     #[cfg(target_vendor = "pc")]
-    res.append_rc_content("common_controls_v6 assets/TinyWiiBackupManager.exe.manifest");
+    res.set_manifest_file("assets/TinyWiiBackupManager.exe.manifest");
 
     #[cfg(windows)]
     res.compile().unwrap();
