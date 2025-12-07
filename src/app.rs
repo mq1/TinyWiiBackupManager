@@ -333,7 +333,7 @@ impl App {
         self.save_config();
     }
 
-    pub fn add_games(&mut self, mut paths: Vec<PathBuf>) {
+    pub fn run_add_games(&mut self, frame: &eframe::Frame, mut paths: Vec<PathBuf>) {
         paths.retain(|path| {
             path.extension()
                 .and_then(|ext| ext.to_str())
@@ -351,8 +351,15 @@ impl App {
 
         if discs.is_empty() {
             self.notifications.show_info("No new games were selected");
-        } else {
-            self.current_modal = Some(Modal::ConvertGames(discs));
+        } else if ui::dialogs::confirm_conversion(frame, &discs) {
+            convert::spawn_add_games_task(self, discs);
+        }
+    }
+
+    pub fn add_games(&mut self, frame: &eframe::Frame) {
+        let games = ui::dialogs::choose_games(frame);
+        if !games.is_empty() {
+            self.run_add_games(frame, games);
         }
     }
 
@@ -365,7 +372,7 @@ impl App {
                 .map(|e| e.path().to_path_buf())
                 .collect();
 
-            self.add_games(paths);
+            self.run_add_games(frame, paths);
         }
     }
 
