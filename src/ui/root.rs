@@ -21,9 +21,7 @@ pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
 
     if let Some(modal) = &app.current_modal {
         match modal {
-            ui::Modal::GameInfo(game_i, disc_info, game_info) => {
-                ui::game_info::update(ctx, app, *game_i, disc_info, game_info)
-            }
+            ui::Modal::GameInfo(game_i) => ui::game_info::update(ctx, app, *game_i),
             ui::Modal::HbcAppInfo(hbc_app_i) => ui::hbc_app_info::update(ctx, app, *hbc_app_i),
             ui::Modal::OscAppInfo(osc_app_i) => ui::osc_app_info::update(ctx, app, *osc_app_i),
             ui::Modal::Info => ui::info::update(ctx, app),
