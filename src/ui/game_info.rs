@@ -3,19 +3,15 @@
 
 use crate::app::App;
 use crate::messages::Message;
-use crate::{checksum, disc_info::DiscInfo, txtcodes, wiitdb::GameInfo};
+use crate::{checksum, txtcodes};
 use capitalize::Capitalize;
 use eframe::egui;
 use itertools::Itertools;
 
-pub fn update(
-    ctx: &egui::Context,
-    app: &App,
-    game_i: u16,
-    disc_info: &Option<DiscInfo>,
-    game_info: &Option<GameInfo>,
-) {
+pub fn update(ctx: &egui::Context, app: &App, game_i: u16) {
     let game = &app.games[game_i as usize];
+    let disc_info = &app.current_disc_info;
+    let game_info = &app.current_game_info;
 
     egui::Modal::new("game_info".into()).show(ctx, |ui| {
         ui.heading(format!(
