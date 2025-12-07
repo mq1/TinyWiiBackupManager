@@ -3,7 +3,7 @@
 
 use crate::app::App;
 use crate::messages::Message;
-use crate::{checksum, disc_info::DiscInfo, txtcodes, ui, wiitdb::GameInfo};
+use crate::{checksum, disc_info::DiscInfo, txtcodes, wiitdb::GameInfo};
 use capitalize::Capitalize;
 use eframe::egui;
 use itertools::Itertools;
@@ -373,7 +373,7 @@ pub fn update(
                     ))
                     .clicked()
             {
-                app.send_msg(Message::OpenModal(ui::Modal::StripGame(game_i)));
+                app.send_msg(Message::StripGame(game_i));
             }
 
             // Integrity check button
