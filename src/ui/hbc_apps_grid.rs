@@ -87,7 +87,7 @@ fn update_hbc_app_card(ui: &mut egui::Ui, app: &App, hbc_app_i: u16) {
                     .on_hover_text("Delete HBC App")
                     .clicked()
                 {
-                    app.send_msg(Message::OpenModal(ui::Modal::DeleteHbcApp(hbc_app_i)));
+                    app.send_msg(Message::DeleteHbcApp(hbc_app_i));
                 }
 
                 // Update button

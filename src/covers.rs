@@ -142,7 +142,7 @@ fn download_wiiflow_cover(id: GameID, mount_point: &Path) -> Result<bool> {
 // Fail safe, ignores errors, no popup notification
 pub fn spawn_download_covers_task(app: &App) {
     let mount_point = app.config.contents.mount_point.clone();
-    let games = app.games.clone().into_boxed_slice();
+    let games = app.games.clone();
 
     app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(Message::UpdateStatus("🖻 Downloading covers...".to_string()))?;
@@ -174,7 +174,7 @@ pub fn spawn_download_covers_task(app: &App) {
 
 pub fn spawn_download_all_covers_task(app: &App) {
     let mount_point = app.config.contents.mount_point.clone();
-    let games = app.games.clone().into_boxed_slice();
+    let games = app.games.clone();
 
     app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(Message::UpdateStatus("🖻 Downloading covers...".to_string()))?;
@@ -218,7 +218,7 @@ pub fn spawn_download_all_covers_task(app: &App) {
 
 pub fn spawn_download_wiiflow_covers_task(app: &App) {
     let mount_point = app.config.contents.mount_point.clone();
-    let games = app.games.clone().into_boxed_slice();
+    let games = app.games.clone();
 
     app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(Message::UpdateStatus(format!(
