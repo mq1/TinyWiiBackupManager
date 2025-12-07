@@ -64,10 +64,7 @@ pub fn delete_game(frame: &eframe::Frame, game_title: &str) -> bool {
     MessageDialog::new()
         .set_title("🗑 Delete game")
         .set_parent(frame)
-        .set_description(format!(
-            "⚠️ Are you sure you want to delete {}?",
-            game_title
-        ))
+        .set_description(format!("Are you sure you want to delete {}?", game_title))
         .set_level(MessageLevel::Warning)
         .set_buttons(MessageButtons::OkCancel)
         .show()
@@ -78,7 +75,7 @@ pub fn delete_hbc_app(frame: &eframe::Frame, app_name: &str) -> bool {
     MessageDialog::new()
         .set_title("🗑 Delete Homebrew Channel app")
         .set_parent(frame)
-        .set_description(format!("⚠️ Are you sure you want to delete {}?", app_name))
+        .set_description(format!("Are you sure you want to delete {}?", app_name))
         .set_level(MessageLevel::Warning)
         .set_buttons(MessageButtons::OkCancel)
         .show()
