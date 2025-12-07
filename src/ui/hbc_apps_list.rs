@@ -98,9 +98,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                                 .on_hover_text("Delete HBC App")
                                 .clicked()
                             {
-                                app.send_msg(Message::OpenModal(ui::Modal::DeleteHbcApp(
-                                    hbc_app_i,
-                                )));
+                                app.send_msg(Message::DeleteHbcApp(hbc_app_i));
                             }
                         });
                         ui.separator();
