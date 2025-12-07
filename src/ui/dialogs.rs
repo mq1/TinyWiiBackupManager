@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::disc_info::DiscInfo;
 use crate::extensions::{HBC_APP_EXTENSIONS, SUPPORTED_INPUT_EXTENSIONS, ZIP_EXTENSIONS};
 use rfd::{FileDialog, MessageButtons, MessageDialog, MessageDialogResult, MessageLevel};
 use std::path::PathBuf;
@@ -77,6 +78,23 @@ pub fn delete_hbc_app(frame: &eframe::Frame, app_name: &str) -> bool {
         .set_parent(frame)
         .set_description(format!("Are you sure you want to delete {}?", app_name))
         .set_level(MessageLevel::Warning)
+        .set_buttons(MessageButtons::OkCancel)
+        .show()
+        == MessageDialogResult::Ok
+}
+
+pub fn confirm_conversion(frame: &eframe::Frame, discs: &[DiscInfo]) -> bool {
+    let mut desc = String::new();
+    for disc in discs {
+        desc.push_str(&format!("• {}\n", &disc.title));
+    }
+    desc.push_str("\n\nAre you sure you want to continue?");
+
+    MessageDialog::new()
+        .set_title("The following games will be added")
+        .set_parent(frame)
+        .set_description(desc)
+        .set_level(MessageLevel::Info)
         .set_buttons(MessageButtons::OkCancel)
         .show()
         == MessageDialogResult::Ok
