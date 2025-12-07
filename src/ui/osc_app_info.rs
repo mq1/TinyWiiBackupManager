@@ -120,7 +120,10 @@ pub fn update(ctx: &egui::Context, app: &mut App, osc_app_i: u16) {
             ui.add_sized(egui::Vec2::new(1., 21.), egui::Separator::default());
 
             if ui
-                .button(format!("{} Open HBC page", egui_phosphor::regular::LINK))
+                .button(format!(
+                    "{} Open oscwii.org page",
+                    egui_phosphor::regular::LINK
+                ))
                 .clicked()
             {
                 let osc_app = &app.osc_apps[osc_app_i as usize];
