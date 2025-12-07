@@ -18,6 +18,12 @@ copyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-3.0-only."
 category = "Utility"
 macos.minimumSystemVersion = "MACOS_MIN_SYS_VER"
 
+[package.metadata.winres]
+FileDescription = "TinyWiiBackupManager"
+ProductName = "TinyWiiBackupManager"
+OriginalFilename = "TinyWiiBackupManager.exe"
+LegalCopyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-3.0-only."
+
 [dependencies]
 egui_extras = { version = "0.33", features = ["image", "file"] }
 image = { version = "0.25", default-features = false, features = ["png"] }
