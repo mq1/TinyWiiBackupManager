@@ -410,9 +410,12 @@ impl App {
         }
     }
 
-    pub fn strip_game(&mut self, i: u16) {
-        let game = &self.games[i as usize];
-        convert::spawn_strip_game_task(self, game.path.clone());
+    pub fn strip_game(&mut self, frame: &eframe::Frame, game_i: u16) {
+        let game = &self.games[game_i as usize];
+
+        if ui::dialogs::confirm_strip_game(frame, &game.display_title) {
+            convert::spawn_strip_game_task(self, game.path.clone());
+        }
     }
 
     pub fn delete_game(&self, frame: &eframe::Frame, game_i: u16) -> Result<()> {
