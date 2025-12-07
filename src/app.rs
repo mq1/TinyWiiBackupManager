@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::extensions::SUPPORTED_INPUT_EXTENSIONS;
-use crate::games::GameID;
 use crate::messages::{Message, process_msg};
 use crate::overflow_reader::get_main_file;
 use crate::{
@@ -58,6 +57,8 @@ pub struct App {
     pub show_wii: bool,
     pub show_gc: bool,
     pub notifications: Notifications,
+    pub current_game_info: Option<GameInfo>,
+    pub current_disc_info: Option<DiscInfo>,
 }
 
 impl App {
@@ -96,6 +97,8 @@ impl App {
             show_wii: true,
             show_gc: true,
             notifications: Notifications::new(),
+            current_game_info: None,
+            current_disc_info: None,
         }
     }
 
@@ -130,13 +133,6 @@ impl App {
         });
 
         self.has_osc_icons_downlading_started = true;
-    }
-
-    pub fn get_game_info(&self, game_id: GameID) -> Option<GameInfo> {
-        self.wiitdb
-            .as_ref()
-            .and_then(|db| db.lookup(game_id))
-            .cloned()
     }
 
     pub fn open_data_dir(&mut self) {
@@ -438,6 +434,18 @@ impl App {
         }
 
         Ok(())
+    }
+
+    pub fn update_game_info(&mut self, game_i: u16) {
+        let game = &self.games[game_i as usize];
+
+        self.current_disc_info = DiscInfo::from_game_dir(&game.path).ok();
+
+        self.current_game_info = self
+            .wiitdb
+            .as_ref()
+            .and_then(|db| db.lookup(game.id))
+            .cloned();
     }
 }
 

@@ -1,6 +1,6 @@
 [package]
 name = "TinyWiiBackupManager"
-version = "4.7.0"
+version = "4.7.1"
 rust-version = "1.91"
 edition = "2024"
 authors = ["Manuel Quarneti <mq1@ik.me>"]
@@ -86,7 +86,7 @@ native-tls = ["ureq/native-tls", "ureq/platform-verifier"]
 bundled-tls = ["ureq/rustls"]
 
 [target.'cfg(windows)'.build-dependencies]
-embed-resource = "3.0"
+winres = "0.1"
 
 [target.'cfg(target_vendor = "pc")'.build-dependencies]
 static_vcruntime = "3.0"
