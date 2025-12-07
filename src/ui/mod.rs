@@ -1,8 +1,6 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{disc_info::DiscInfo, wiitdb::GameInfo};
-
 pub mod accent;
 mod developers;
 pub mod dialogs;
@@ -54,7 +52,7 @@ impl View {
 #[derive(Debug, Clone)]
 pub enum Modal {
     Info,
-    GameInfo(u16, Box<Option<DiscInfo>>, Box<Option<GameInfo>>),
+    GameInfo(u16),
     HbcAppInfo(u16),
     OscAppInfo(u16),
 }
