@@ -3,10 +3,6 @@
 
 use crate::app::App;
 use crate::messages::Message;
-use crate::{
-    disc_info::DiscInfo,
-    ui::{self},
-};
 use eframe::egui;
 use egui_extras::{Column, TableBuilder};
 
@@ -78,12 +74,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                                 .on_hover_text("Show Game Information")
                                 .clicked()
                             {
-                                let disc_info = Box::new(DiscInfo::from_game_dir(&game.path).ok());
-                                let game_info = Box::new(app.get_game_info(game.id));
-
-                                app.send_msg(Message::OpenModal(ui::Modal::GameInfo(
-                                    game_i, disc_info, game_info,
-                                )));
+                                app.send_msg(Message::OpenGameInfo(game_i));
                             }
 
                             // Archive button

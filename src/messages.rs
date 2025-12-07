@@ -28,6 +28,7 @@ pub enum Message {
     DeleteGame(u16),
     DeleteHbcApp(u16),
     StripGame(u16),
+    OpenGameInfo(u16),
 }
 
 pub fn process_msg(app: &mut App, ctx: &egui::Context, frame: &eframe::Frame, msg: Message) {
@@ -97,6 +98,10 @@ pub fn process_msg(app: &mut App, ctx: &egui::Context, frame: &eframe::Frame, ms
         }
         Message::StripGame(i) => {
             app.strip_game(frame, i);
+        }
+        Message::OpenGameInfo(i) => {
+            app.update_game_info(i);
+            app.current_modal = Some(Modal::GameInfo(i));
         }
     }
 }
