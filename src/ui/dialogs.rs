@@ -113,3 +113,13 @@ pub fn confirm_strip_game(frame: &eframe::Frame, game_title: &str) -> bool {
         .show()
         == MessageDialogResult::Ok
 }
+
+pub fn confirm_strip_all_games(frame: &eframe::Frame) -> bool {
+    MessageDialog::new()
+        .set_title("Remove update partitions?")
+        .set_parent(frame)
+        .set_description("Are you sure you want to remove the update partitions from all .wbfs files?\n\nThis is irreversible!")
+        .set_level(MessageLevel::Warning)
+        .set_buttons(MessageButtons::OkCancel)
+        .show() == MessageDialogResult::Ok
+}

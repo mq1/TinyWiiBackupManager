@@ -4,6 +4,7 @@
 use crate::extensions::SUPPORTED_INPUT_EXTENSIONS;
 use crate::messages::{Message, process_msg};
 use crate::overflow_reader::get_main_file;
+use crate::ui::dialogs;
 use crate::{
     archive,
     config::{Config, SortBy},
@@ -446,6 +447,13 @@ impl App {
             .as_ref()
             .and_then(|db| db.lookup(game.id))
             .cloned();
+    }
+
+    pub fn run_strip_all_games(&mut self, frame: &eframe::Frame) {
+        if dialogs::confirm_strip_all_games(frame) && !convert::spawn_strip_all_games_tasks(self) {
+            self.notifications
+                .show_info("No additional update partitions to remove were found");
+        }
     }
 }
 
