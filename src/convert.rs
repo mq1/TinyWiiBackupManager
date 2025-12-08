@@ -134,8 +134,8 @@ pub fn spawn_strip_all_games_tasks(app: &mut App) -> bool {
 
     for game in &app.games {
         if let Some(path) = get_main_file(&game.path)
-            && let Ok(file) = File::open(path)
-            && is_worth_stripping(file)
+            && let Ok(disc) = DiscReader::new(&path, &get_disc_opts())
+            && is_worth_stripping(&disc)
         {
             spawn_strip_game_task(app, game.path.clone());
             at_least_one_stripped = true;
@@ -367,10 +367,10 @@ pub fn spawn_add_game_task(app: &App, in_path: PathBuf, should_download_covers: 
     });
 }
 
-pub fn spawn_add_games_task(app: &App, paths: Box<[PathBuf]>) {
-    let last_i = paths.len() - 1;
+pub fn spawn_add_games_task(app: &App, discs: Box<[DiscInfo]>) {
+    let last_i = discs.len() - 1;
 
-    for (i, path) in paths.into_iter().enumerate() {
-        spawn_add_game_task(app, path, i == last_i);
+    for (i, disc_info) in discs.into_iter().enumerate() {
+        spawn_add_game_task(app, disc_info.main_disc_path, i == last_i);
     }
 }
