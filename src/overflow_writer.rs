@@ -70,12 +70,12 @@ impl Write for OverflowWriter {
 
             // Hey, you. You’re finally awake. You were trying to cross the border, right?
             if remaining_in_main < buf.len() {
-                let main_n = self.main.write(&buf[..remaining_in_main])?;
+                self.main.write_all(&buf[..remaining_in_main])?;
                 let mut overflow = BufWriter::new(File::create(&self.overflow_path)?);
                 let overflow_n = overflow.write(&buf[remaining_in_main..])?;
                 self.overflow = Some(overflow);
 
-                Ok(main_n + overflow_n)
+                Ok(remaining_in_main + overflow_n)
             }
             // Main file not near split size, we write to main file
             else {
