@@ -95,7 +95,6 @@ pub fn spawn_convert_game_task(
 ) {
     let disc_opts = get_disc_opts();
 
-    let already_present_ids = app.games.iter().map(|g| g.id.0).collect::<Box<[_]>>();
     let wii_output_format = app.config.contents.wii_output_format;
     let gc_output_format = app.config.contents.gc_output_format;
     let scrub_update_partition = app.config.contents.scrub_update_partition;
@@ -136,11 +135,6 @@ pub fn spawn_convert_game_task(
         };
         let disc_header = disc.header();
 
-        // If the disc is already present in the library, skip it
-        if already_present_ids.contains(&disc_header.game_id) {
-            return Ok(());
-        }
-
         let is_wii = disc_header.is_wii();
         let disc_num = disc_header.disc_num;
         let game_id = disc_header.game_id_str().to_string();
@@ -169,6 +163,10 @@ pub fn spawn_convert_game_task(
         };
 
         let file_path1 = dir_path.join(file_name1);
+
+        if file_path1.exists() {
+            return Ok(());
+        }
 
         let file_name2 = match wii_output_format {
             WiiOutputFormat::Wbfs => &format!("{}.wbf1", &game_id),
