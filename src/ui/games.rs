@@ -88,7 +88,7 @@ fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, frame: &eframe::Frame,
                 .on_hover_text("Refresh Games")
                 .clicked()
             {
-                app.refresh_games();
+                app.refresh_games(true);
                 app.update_title(ctx);
             }
 
