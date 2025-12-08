@@ -92,7 +92,7 @@ pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
                 .checkbox(
                     &mut app.config.contents.always_split,
                     format!(
-                        "{} Split Output WBFS/ISO to 4GB-32KB",
+                        "{} Split WBFS/ISO to 4GB-32KB",
                         egui_phosphor::regular::ARROWS_SPLIT
                     ),
                 )
