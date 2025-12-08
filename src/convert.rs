@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::app::App;
+use crate::disc_info::is_worth_stripping;
 use crate::messages::Message;
+use crate::overflow_reader::get_main_file;
 use crate::{
     config::{GcOutputFormat, WiiOutputFormat},
     disc_info::DiscInfo,
@@ -434,4 +436,20 @@ pub fn spawn_strip_game_task(app: &App, game_dir: PathBuf) {
 
         Ok(())
     });
+}
+
+pub fn spawn_strip_all_games_tasks(app: &mut App) -> bool {
+    let mut at_least_one_stripped = false;
+
+    for game in &app.games {
+        if let Some(path) = get_main_file(&game.path)
+            && let Ok(file) = File::open(path)
+            && is_worth_stripping(file)
+        {
+            spawn_strip_game_task(app, game.path.clone());
+            at_least_one_stripped = true;
+        }
+    }
+
+    at_least_one_stripped
 }
