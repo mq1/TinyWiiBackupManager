@@ -71,7 +71,7 @@ impl OverflowReader {
 
 impl Read for OverflowReader {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        let remaining_in_main = (self.len - self.position).try_into().unwrap_or(usize::MAX);
+        let remaining_in_main = (self.len - self.position).min(usize::MAX as u64) as usize;
 
         let bytes_read = if self.position < self.main_len {
             if remaining_in_main < buf.len() {
