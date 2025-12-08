@@ -81,6 +81,20 @@ pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
                 .add_sized(
                     Vec2::splat(40.),
                     egui::Button::selectable(
+                        current_view == View::NodGui,
+                        egui::RichText::new(egui_phosphor::regular::FLOW_ARROW).size(26.),
+                    ),
+                )
+                .on_hover_text("Nintendo Optical Disc format conversion")
+                .clicked()
+            {
+                app.open_view(ctx, View::NodGui);
+            }
+
+            if ui
+                .add_sized(
+                    Vec2::splat(40.),
+                    egui::Button::selectable(
                         current_view == View::Tools,
                         egui::RichText::new(egui_phosphor::regular::WRENCH).size(26.),
                     ),

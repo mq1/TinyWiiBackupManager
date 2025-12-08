@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::ffi::OsStr;
 use std::{
     fs::{self, File},
     io::{self, Read, Seek, SeekFrom},
@@ -21,7 +22,9 @@ pub fn get_main_file(dir: &Path) -> Option<PathBuf> {
         })
 }
 
-pub fn get_overflow_file_name(main_file_name: &str) -> Option<String> {
+pub fn get_overflow_file_name(main_file_name: &OsStr) -> Option<String> {
+    let main_file_name = main_file_name.to_str()?;
+
     if main_file_name.ends_with(".wbfs") {
         Some(main_file_name.replace(".wbfs", ".wbf1"))
     } else if main_file_name.ends_with(".part0.iso") {
@@ -33,7 +36,7 @@ pub fn get_overflow_file_name(main_file_name: &str) -> Option<String> {
 
 pub fn get_overflow_file(main: &Path) -> Option<PathBuf> {
     let parent = main.parent()?;
-    let main_file_name = main.file_name()?.to_str()?;
+    let main_file_name = main.file_name()?;
     let file_name = get_overflow_file_name(main_file_name)?;
     let path = parent.join(file_name);
 
