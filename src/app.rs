@@ -353,7 +353,7 @@ impl App {
                 if path.ends_with(".zip") {
                     DiscInfo::from_zip_file(&path).ok()
                 } else {
-                    DiscInfo::from_game_dir(&path).ok()
+                    DiscInfo::from_path(&path).ok()
                 }
             })
             .filter(|info| !existing_ids.contains(&info.id))
