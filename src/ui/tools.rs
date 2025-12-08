@@ -102,6 +102,14 @@ pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
 
                     ui.label("Normalize paths (makes sure the game directories' layouts are correct)");
                 });
+
+                ui.horizontal(|ui| {
+                    if ui.button(egui_phosphor::regular::ARROW_FAT_RIGHT).clicked() {
+                        app.run_strip_all_games(frame);
+                    }
+
+                    ui.label("Remove the update partition from all .wbfs files");
+                });
             });
 
             if cfg!(target_os = "macos") {
