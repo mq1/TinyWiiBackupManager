@@ -45,13 +45,7 @@ pub struct DiscInfo {
 impl DiscInfo {
     pub fn from_game_dir(game_dir: &Path) -> Result<DiscInfo> {
         let path = get_main_file(game_dir).ok_or(anyhow!("No disc found"))?;
-        let disc = DiscReader::new(path, &get_disc_opts())?;
-        Self::from_disc(&disc)
-    }
-
-    pub fn from_path(path: &Path) -> Result<DiscInfo> {
-        let disc = DiscReader::new(path, &get_disc_opts())?;
-        Self::from_disc(&disc)
+        Self::from_path(path)
     }
 
     pub fn from_zip_file(zip_file: &Path) -> Result<DiscInfo> {
@@ -85,14 +79,15 @@ impl DiscInfo {
         })
     }
 
-    pub fn from_disc(disc: &DiscReader) -> Result<DiscInfo> {
-        let is_worth_stripping = is_worth_stripping(disc);
+    pub fn from_path(disc_path: PathBuf) -> Result<DiscInfo> {
+        let disc = DiscReader::new(&disc_path, &get_disc_opts())?;
+        let is_worth_stripping = is_worth_stripping(&disc);
 
         let header = disc.header();
         let meta = disc.meta();
 
         Ok(Self {
-            main_disc_path: PathBuf::new(),
+            main_disc_path: disc_path,
 
             // discheader
             id: GameID(header.game_id),
