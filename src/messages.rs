@@ -15,7 +15,7 @@ pub enum Message {
     UpdateStatus(String),
     ClearStatus,
     TriggerRefreshImage(String),
-    TriggerRefreshGames,
+    TriggerRefreshGames(bool),
     TriggerRefreshHbcApps,
     GotNewVersion(Version),
     GotOscApps(Box<[OscApp]>),
@@ -51,8 +51,8 @@ pub fn process_msg(app: &mut App, ctx: &egui::Context, frame: &eframe::Frame, ms
         Message::TriggerRefreshImage(uri) => {
             ctx.forget_image(&uri);
         }
-        Message::TriggerRefreshGames => {
-            app.refresh_games();
+        Message::TriggerRefreshGames(download_covers) => {
+            app.refresh_games(download_covers);
             app.update_title(ctx);
         }
         Message::TriggerRefreshHbcApps => {
