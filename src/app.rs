@@ -4,7 +4,6 @@
 use crate::extensions::SUPPORTED_INPUT_EXTENSIONS;
 use crate::messages::{Message, process_msg};
 use crate::overflow_reader::get_main_file;
-use crate::ui::dialogs;
 use crate::{
     archive,
     config::{Config, SortBy},
@@ -23,6 +22,7 @@ use crate::{
 use anyhow::{Result, anyhow};
 use crossbeam_channel::{Receiver, Sender, unbounded};
 use eframe::egui;
+use itertools::Itertools;
 use semver::Version;
 use size::Size;
 use smallvec::SmallVec;
@@ -278,7 +278,7 @@ impl App {
         }
     }
 
-    pub fn refresh_games(&mut self) {
+    pub fn refresh_games(&mut self, download_covers: bool) {
         self.games = games::list(&self.config.contents.mount_point).into_boxed_slice();
 
         let is_known = known_mount_points::check(self).unwrap_or(true);
@@ -289,7 +289,10 @@ impl App {
             }
 
             games::sort(&mut self.games, SortBy::None, self.config.contents.sort_by);
-            covers::spawn_download_covers_task(self);
+
+            if download_covers {
+                covers::spawn_download_covers_task(self);
+            }
         }
 
         self.update_filtered_games();
@@ -322,7 +325,7 @@ impl App {
     pub fn update_mount_point(&mut self, ctx: &egui::Context, path: PathBuf) {
         self.config.contents.mount_point = path;
 
-        self.refresh_games();
+        self.refresh_games(true);
         self.refresh_hbc_apps();
         wiitdb::spawn_load_wiitdb_task(self);
 
@@ -340,10 +343,12 @@ impl App {
         // We'll get those later with get_overflow_file
         paths.retain(|path| !path.ends_with(".part1.iso"));
 
+        // Discard already present games and duplicates
         let discs = paths
             .into_iter()
             .filter_map(|path| DiscInfo::from_main_file(path).ok())
             .filter(|info| self.games.iter().all(|game| game.id != info.id))
+            .dedup_by(|a, b| a.id == b.id)
             .collect::<Box<[_]>>();
 
         if discs.is_empty() {
@@ -388,14 +393,9 @@ impl App {
     pub fn conv_game_manually(&mut self, frame: &eframe::Frame) {
         if let Some(path) = ui::dialogs::choose_game_manual_conv(frame)
             && !path.ends_with(".part1.iso")
+            && let Some(dest_dir) = ui::dialogs::choose_dest_dir(frame)
         {
-            if let Ok(disc) = DiscInfo::from_main_file(path) {
-                if let Some(out_dir) = ui::dialogs::choose_dest_dir(frame) {
-                    convert::spawn_convert_game_task(self, disc, out_dir);
-                }
-            } else {
-                self.notifications.show_err(anyhow!("Invalid disc"));
-            }
+            convert::spawn_convert_game_task(self, path, dest_dir, false, false);
         }
     }
 
@@ -420,7 +420,7 @@ impl App {
 
         if ui::dialogs::delete_game(frame, &game.display_title) {
             fs::remove_dir_all(&game.path)?;
-            self.msg_sender.send(Message::TriggerRefreshGames)?;
+            self.msg_sender.send(Message::TriggerRefreshGames(false))?;
         }
 
         Ok(())
@@ -450,7 +450,9 @@ impl App {
     }
 
     pub fn run_strip_all_games(&mut self, frame: &eframe::Frame) {
-        if dialogs::confirm_strip_all_games(frame) && !convert::spawn_strip_all_games_tasks(self) {
+        if ui::dialogs::confirm_strip_all_games(frame)
+            && !convert::spawn_strip_all_games_tasks(self)
+        {
             self.notifications
                 .show_info("No additional update partitions to remove were found");
         }

@@ -146,7 +146,7 @@ fn main() -> Result<()> {
             });
 
             // Load games and hbc apps
-            app.refresh_games();
+            app.refresh_games(true);
             app.refresh_hbc_apps();
             app.update_title(&cc.egui_ctx);
 
