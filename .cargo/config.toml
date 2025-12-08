@@ -4,7 +4,7 @@ rustflags = ["-C", "link-arg=-fuse-ld=lld"]
 
 [target.i686-unknown-linux-gnu]
 linker = "clang"
-rustflags = ["-C", "link-arg=-fuse-ld=lld"]
+rustflags = ["-C", "link-arg=-fuse-ld=lld", "-C", "link-arg=-m32"]
 
 [target.x86_64-pc-windows-msvc]
 linker = "rust-lld.exe"
