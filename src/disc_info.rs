@@ -8,6 +8,7 @@ use anyhow::{Result, anyhow, bail};
 use nod::common::{Compression, Format, PartitionKind};
 use nod::read::{DiscReader, PartitionOptions};
 use size::Size;
+use std::ffi::OsStr;
 use std::fs::File;
 use std::io::{BufReader, Read};
 use std::path::{Path, PathBuf};
@@ -49,11 +50,7 @@ impl DiscInfo {
     }
 
     pub fn from_main_file(main_disc_path: PathBuf) -> Result<DiscInfo> {
-        if main_disc_path
-            .extension()
-            .and_then(|ext| ext.to_str())
-            .is_some_and(|ext| ["zip", "ZIP"].contains(&ext))
-        {
+        if main_disc_path.extension() == Some(OsStr::new("zip")) {
             let file_reader = BufReader::new(File::open(&main_disc_path)?);
             let mut archive = ZipArchive::new(file_reader)?;
 

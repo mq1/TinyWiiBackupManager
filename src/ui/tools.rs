@@ -7,29 +7,19 @@ use eframe::egui;
 
 pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
     egui::CentralPanel::default().show(ctx, |ui| {
+        if app.config.contents.mount_point.as_os_str().is_empty() {
+            ui.heading(format!(
+                "Click on {} to select a Drive/Mount Point",
+                egui_phosphor::regular::HARD_DRIVE
+            ));
+            return;
+        }
+
         ui.style_mut().spacing.item_spacing.y *= 2.;
 
         egui::ScrollArea::vertical().show(ui, |ui| {
             let style = ui.style();
             let group = egui::Frame::group(style).fill(style.visuals.extreme_bg_color);
-
-            group.show(ui, |ui| {
-                ui.set_width(ui.available_width());
-
-                ui.heading(format!("{} Drive independent game conversions", egui_phosphor::regular::FLOW_ARROW));
-
-                if ui.button(format!("{} Select game to add", egui_phosphor::regular::PLUS_CIRCLE)).clicked() {
-                    app.conv_game_manually(frame);
-                }
-
-                if ui.button(format!("{} Select game to archive", egui_phosphor::regular::BOX_ARROW_DOWN)).clicked() {
-                    app.archive_game_manually(frame);
-                }
-            });
-
-            if app.config.contents.mount_point.as_os_str().is_empty() {
-                return;
-            }
 
             group.show(ui, |ui| {
                 ui.set_width(ui.available_width());
@@ -67,8 +57,8 @@ pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
 
                 ui.heading(format!("{} WiiFlow Lite", egui_phosphor::regular::SHUFFLE));
 
-            ui.horizontal(|ui| {
-                if ui.button(egui_phosphor::regular::CLOUD_ARROW_DOWN).clicked() {
+                ui.horizontal(|ui| {
+                    if ui.button(egui_phosphor::regular::CLOUD_ARROW_DOWN).clicked() {
                         covers::spawn_download_wiiflow_covers_task(app);
                     }
 
