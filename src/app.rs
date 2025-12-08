@@ -24,6 +24,7 @@ use nod::common::Format;
 use semver::Version;
 use size::Size;
 use smallvec::SmallVec;
+use std::ffi::OsStr;
 use std::{fs, path::PathBuf, thread};
 use walkdir::WalkDir;
 
@@ -350,7 +351,7 @@ impl App {
         let discs = paths
             .into_iter()
             .filter_map(|path| {
-                if path.ends_with(".zip") {
+                if path.extension() == Some(OsStr::new("zip")) {
                     DiscInfo::from_zip_file(&path).ok()
                 } else {
                     DiscInfo::from_path(path).ok()
