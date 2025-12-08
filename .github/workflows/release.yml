@@ -42,13 +42,16 @@ jobs:
             runner: ubuntu-24.04
             arch: x86
             ldai-arch: none
-            deps: libc6-dev-i386
 
     steps:
       - name: Checkout
         uses: actions/checkout@v5
         with:
           fetch-depth: 1
+
+      - name: Install dependencies
+        if: matrix.arch == 'x86'
+        run: sudo apt-get install -y libc6-dev-i386
 
       - name: Install Rust toolchain
         run: |
