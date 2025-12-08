@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::extensions::ext_to_format;
 use crate::games::GameID;
 use crate::{convert::get_disc_opts, overflow_reader::get_main_file};
 use anyhow::{Result, anyhow};
@@ -62,15 +63,24 @@ impl DiscInfo {
             .enclosed_name()
             .ok_or(anyhow!("No disc file found in ZIP archive"))?;
 
-        let file_name = disc_path
-            .file_name()
-            .ok_or(anyhow!("No file name"))?
+        let file_stem = disc_path
+            .file_stem()
+            .ok_or(anyhow!("No file stem"))?
             .to_str()
-            .ok_or(anyhow!("Invalid file name"))?;
+            .ok_or(anyhow!("Invalid file stem"))?;
+
+        let ext = disc_path
+            .extension()
+            .ok_or(anyhow!("No file extension"))?
+            .to_str()
+            .ok_or(anyhow!("Invalid file extension"))?;
+
+        let format = ext_to_format(ext).ok_or(anyhow!("Unsupported file extension"))?;
 
         Ok(Self {
             main_disc_path: zip_file.to_path_buf(),
-            title: file_name.to_string(),
+            title: file_stem.to_string(),
+            format,
             ..Self::default()
         })
     }
