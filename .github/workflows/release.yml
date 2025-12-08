@@ -60,11 +60,6 @@ jobs:
         with:
           key: ${{ matrix.arch }}
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ${{ matrix.deps }} libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
-
       - name: Download LinuxDeploy
         if: matrix.ldai-arch != 'none'
         run: |
@@ -302,7 +297,7 @@ jobs:
           pattern: 'dist-windows-*'
           merge-multiple: true
 
-      - name: Generate TinyyiiBackupManager.json
+      - name: Generate TinyWiiBackupManager.json
         run: |
           plain_ver="${VERSION_NAME#v}" # Remove leading 'v'
           x86_64_hash=$(sha256sum dist/TinyWiiBackupManager-${VERSION_NAME}-windows-x86_64.zip | cut -d' ' -f1)
