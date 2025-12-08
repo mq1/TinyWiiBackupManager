@@ -20,7 +20,6 @@ use crate::{
 use anyhow::{Result, anyhow};
 use crossbeam_channel::{Receiver, Sender, unbounded};
 use eframe::egui;
-use itertools::Itertools;
 use nod::common::Format;
 use semver::Version;
 use size::Size;
@@ -347,21 +346,23 @@ impl App {
         paths.retain(|path| !path.ends_with(".part1.iso"));
 
         // Discard already present games and duplicates
+        let existing_ids = self.games.iter().map(|game| game.id).collect::<Box<[_]>>();
         let discs = paths
             .into_iter()
-            .filter_map(|path| DiscInfo::from_main_file(path).ok())
-            .filter(|info| self.games.iter().all(|game| game.id != info.id))
-            .dedup_by(|a, b| a.id == b.id)
+            .filter_map(|path| {
+                if path.ends_with(".zip") {
+                    DiscInfo::from_zip_file(&path).ok()
+                } else {
+                    DiscInfo::from_game_dir(&path).ok()
+                }
+            })
+            .filter(|info| !existing_ids.contains(&info.id))
             .collect::<Box<[_]>>();
 
         if discs.is_empty() {
             self.notifications.show_info("No new games were selected");
         } else if ui::dialogs::confirm_add_games(frame, &discs) {
-            let paths = discs
-                .into_iter()
-                .map(|disc_info| disc_info.main_disc_path)
-                .collect();
-            convert::spawn_add_games_task(self, paths);
+            convert::spawn_add_games_task(self, discs);
         }
     }
 
