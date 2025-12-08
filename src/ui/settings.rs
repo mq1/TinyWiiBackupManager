@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::app::App;
-use crate::config::{ArchiveFormat, GcOutputFormat, WiiOutputFormat};
 use crate::txtcodes::TxtCodesSource;
 use crate::ui::accent::AccentColor;
 use eframe::egui;
 use eframe::egui::{ThemePreference, Vec2};
+use nod::common::Format;
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
     egui::CentralPanel::default().show(ctx, |ui| {
@@ -30,7 +30,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 if ui
                     .radio_value(
                         &mut app.config.contents.wii_output_format,
-                        WiiOutputFormat::Wbfs,
+                        Format::Wbfs,
                         "WBFS (recommended)",
                     )
                     .changed()
@@ -41,7 +41,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 if ui
                     .radio_value(
                         &mut app.config.contents.wii_output_format,
-                        WiiOutputFormat::Iso,
+                        Format::Iso,
                         "ISO (very large)",
                     )
                     .changed()
@@ -61,7 +61,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 if ui
                     .radio_value(
                         &mut app.config.contents.gc_output_format,
-                        GcOutputFormat::Iso,
+                        Format::Iso,
                         "ISO (recommended)",
                     )
                     .changed()
@@ -72,7 +72,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 if ui
                     .radio_value(
                         &mut app.config.contents.gc_output_format,
-                        GcOutputFormat::Ciso,
+                        Format::Ciso,
                         "CISO (small but poor compatibility)",
                     )
                     .changed()
@@ -92,7 +92,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 if ui
                     .radio_value(
                         &mut app.config.contents.archive_format,
-                        ArchiveFormat::Rvz,
+                        Format::Rvz,
                         "RVZ [zstd -19] (recommended)",
                     )
                     .changed()
@@ -103,7 +103,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 if ui
                     .radio_value(
                         &mut app.config.contents.archive_format,
-                        ArchiveFormat::Iso,
+                        Format::Iso,
                         "ISO (very large)",
                     )
                     .changed()
@@ -147,7 +147,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 ui.set_width(ui.available_width());
 
                 ui.heading(format!(
-                    "{} Remove Update Partition on WBFS",
+                    "{} Remove Update Partition on WBFS/CISO",
                     egui_phosphor::regular::FILE_DASHED
                 ));
 

@@ -3,9 +3,7 @@
 
 use crate::extensions::SUPPORTED_INPUT_EXTENSIONS;
 use crate::messages::{Message, process_msg};
-use crate::overflow_reader::get_main_file;
 use crate::{
-    archive,
     config::{Config, SortBy},
     convert, covers, dir_layout,
     disc_info::DiscInfo,
@@ -23,6 +21,7 @@ use anyhow::{Result, anyhow};
 use crossbeam_channel::{Receiver, Sender, unbounded};
 use eframe::egui;
 use itertools::Itertools;
+use nod::common::Format;
 use semver::Version;
 use size::Size;
 use smallvec::SmallVec;
@@ -60,6 +59,8 @@ pub struct App {
     pub notifications: Notifications,
     pub current_game_info: Option<GameInfo>,
     pub current_disc_info: Option<DiscInfo>,
+    pub nod_gui_input_path: String,
+    pub nod_gui_output_path: String,
 }
 
 impl App {
@@ -100,6 +101,8 @@ impl App {
             notifications: Notifications::new(),
             current_game_info: None,
             current_disc_info: None,
+            nod_gui_input_path: String::new(),
+            nod_gui_output_path: String::new(),
         }
     }
 
@@ -353,8 +356,12 @@ impl App {
 
         if discs.is_empty() {
             self.notifications.show_info("No new games were selected");
-        } else if ui::dialogs::confirm_conversion(frame, &discs) {
-            convert::spawn_add_games_task(self, discs);
+        } else if ui::dialogs::confirm_add_games(frame, &discs) {
+            let paths = discs
+                .into_iter()
+                .map(|disc_info| disc_info.main_disc_path)
+                .collect();
+            convert::spawn_add_games_task(self, paths);
         }
     }
 
@@ -381,29 +388,20 @@ impl App {
     pub fn archive_game(&mut self, i: u16, frame: &eframe::Frame) {
         let game = &self.games[i as usize];
 
-        if let Some(disc_path) = get_main_file(&game.path)
-            && let Some(out_path) = ui::dialogs::choose_dest_dir(frame)
-        {
-            archive::spawn_archive_game_task(self, disc_path, out_path)
+        if let Ok(disc_info) = DiscInfo::from_game_dir(&game.path) {
+            if let Some(dest_dir) = ui::dialogs::choose_dest_dir(frame) {
+                let ext = if self.config.contents.archive_format == Format::Rvz {
+                    "rvz"
+                } else {
+                    "iso"
+                };
+
+                let out_path = dest_dir.join(format!("{}.{}", disc_info.title, ext));
+
+                convert::spawn_conv_game_task(self, disc_info.main_disc_path, out_path);
+            }
         } else {
             self.notifications.show_err(anyhow!("Disc not found"));
-        }
-    }
-
-    pub fn conv_game_manually(&mut self, frame: &eframe::Frame) {
-        if let Some(path) = ui::dialogs::choose_game_manual_conv(frame)
-            && !path.ends_with(".part1.iso")
-            && let Some(dest_dir) = ui::dialogs::choose_dest_dir(frame)
-        {
-            convert::spawn_convert_game_task(self, path, dest_dir, false, false);
-        }
-    }
-
-    pub fn archive_game_manually(&mut self, frame: &eframe::Frame) {
-        if let Some(disc_path) = ui::dialogs::choose_game_manual_conv(frame)
-            && let Some(out_dir) = ui::dialogs::choose_dest_dir(frame)
-        {
-            archive::spawn_archive_game_task(self, disc_path, out_dir);
         }
     }
 
@@ -455,6 +453,19 @@ impl App {
         {
             self.notifications
                 .show_info("No additional update partitions to remove were found");
+        }
+    }
+
+    pub fn run_single_conversion(&mut self, frame: &eframe::Frame) {
+        if ui::dialogs::confirm_single_conversion(
+            frame,
+            &self.nod_gui_input_path,
+            &self.nod_gui_output_path,
+        ) {
+            let in_path = PathBuf::from(&self.nod_gui_input_path);
+            let out_path = PathBuf::from(&self.nod_gui_output_path);
+
+            convert::spawn_conv_game_task(self, in_path, out_path);
         }
     }
 }

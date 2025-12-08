@@ -14,6 +14,7 @@ mod hbc_apps_grid;
 mod hbc_apps_list;
 mod info;
 mod nav;
+mod nod_gui;
 mod osc;
 mod osc_app_info;
 mod osc_grid;
@@ -34,6 +35,7 @@ pub enum View {
     Wiiload,
     Tools,
     Settings,
+    NodGui,
 }
 
 impl View {
@@ -45,6 +47,7 @@ impl View {
             View::Wiiload => "Wiiload",
             View::Tools => "Tools",
             View::Settings => "Settings",
+            View::NodGui => "Convert",
         }
     }
 }

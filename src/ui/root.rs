@@ -7,6 +7,7 @@ use eframe::egui;
 
 pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
     ui::nav::update(ctx, frame, app);
+    ui::status::update(ctx, app);
 
     match app.current_view {
         ui::View::Games => ui::games::update(ctx, frame, app),
@@ -15,9 +16,8 @@ pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
         ui::View::Wiiload => ui::wiiload::update(ctx, frame, app),
         ui::View::Tools => ui::tools::update(ctx, frame, app),
         ui::View::Settings => ui::settings::update(ctx, app),
+        ui::View::NodGui => ui::nod_gui::update(ctx, frame, app),
     }
-
-    ui::status::update(ctx, app);
 
     if let Some(modal) = &app.current_modal {
         match modal {
