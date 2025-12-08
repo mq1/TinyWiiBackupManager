@@ -242,10 +242,6 @@ pub fn spawn_add_game_task(app: &App, in_path: PathBuf, should_download_covers: 
     let remove_sources = app.config.contents.remove_sources_games;
 
     app.task_processor.spawn(move |msg_sender| {
-        if !in_path.exists() {
-            bail!("{} does not exist", in_path.display());
-        }
-
         let mut tmp = None;
 
         // If the disc is a ZIP file, extract it to a temporary file
