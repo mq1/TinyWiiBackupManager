@@ -42,13 +42,16 @@ jobs:
             runner: ubuntu-24.04
             arch: x86
             ldai-arch: none
-            deps: libc6-dev-i386
 
     steps:
       - name: Checkout
         uses: actions/checkout@v5
         with:
           fetch-depth: 1
+
+      - name: Install dependencies
+        if: matrix.arch == 'x86'
+        run: sudo apt-get install -y libc6-dev-i386
 
       - name: Install Rust toolchain
         run: |
@@ -59,11 +62,6 @@ jobs:
         uses: Swatinem/rust-cache@v2
         with:
           key: ${{ matrix.arch }}
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ${{ matrix.deps }} libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
 
       - name: Download LinuxDeploy
         if: matrix.ldai-arch != 'none'
@@ -302,7 +300,7 @@ jobs:
           pattern: 'dist-windows-*'
           merge-multiple: true
 
-      - name: Generate TinyyiiBackupManager.json
+      - name: Generate TinyWiiBackupManager.json
         run: |
           plain_ver="${VERSION_NAME#v}" # Remove leading 'v'
           x86_64_hash=$(sha256sum dist/TinyWiiBackupManager-${VERSION_NAME}-windows-x86_64.zip | cut -d' ' -f1)
