@@ -79,7 +79,10 @@ jobs:
 
       - name: Package binary as AppImage
         if: matrix.arch != 'x86'
-        run: cargo packager --release --target ${{ matrix.target }} --formats appimage
+        run: |
+          cargo packager --release --target ${{ matrix.target }} --formats appimage
+          cp "target/${{ matrix.target }}/release/TinyWiiBackupManager*.AppImage" "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
+          cp "target/${{ matrix.target }}/release/TinyWiiBackupManager*.AppImage.zsync" "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage.zsync"
         env:
           LDAI_UPDATE_INFORMATION: "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync"
 
