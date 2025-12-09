@@ -63,7 +63,7 @@ jobs:
         run: cargo binstall cargo-packager
         env:
           BINSTALL_NO_CONFIRM: 1
-          BINSTALL_STRATEGIES: quick-install compile
+          BINSTALL_STRATEGIES: quick-install,compile
 
       - name: Build binary
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
@@ -152,7 +152,7 @@ jobs:
         run: cargo binstall cargo-packager
         env:
           BINSTALL_NO_CONFIRM: 1
-          BINSTALL_STRATEGIES: quick-install compile
+          BINSTALL_STRATEGIES: quick-install,compile
 
       - name: Build binary
         shell: pwsh
@@ -213,7 +213,7 @@ jobs:
         run: cargo binstall cargo-packager
         env:
           BINSTALL_NO_CONFIRM: 1
-          BINSTALL_STRATEGIES: quick-install compile
+          BINSTALL_STRATEGIES: quick-install,compile
 
       - name: Build binary
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
