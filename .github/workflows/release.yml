@@ -60,7 +60,10 @@ jobs:
 
       - name: Install cargo-packager
         if: matrix.arch != 'x86'
-        run: cargo binstall -y cargo-packager
+        run: cargo binstall cargo-packager
+        env:
+          BINSTALL_NO_CONFIRM: 1
+          BINSTALL_STRATEGIES: quick-install compile
 
       - name: Build binary
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
@@ -146,7 +149,10 @@ jobs:
 
       - name: Install cargo-packager
         shell: pwsh
-        run: cargo binstall -y cargo-packager
+        run: cargo binstall cargo-packager
+        env:
+          BINSTALL_NO_CONFIRM: 1
+          BINSTALL_STRATEGIES: quick-install compile
 
       - name: Build binary
         shell: pwsh
@@ -204,7 +210,10 @@ jobs:
         uses: cargo-bins/cargo-binstall@main
 
       - name: Install cargo-packager
-        run: cargo binstall -y cargo-packager
+        run: cargo binstall cargo-packager
+        env:
+          BINSTALL_NO_CONFIRM: 1
+          BINSTALL_STRATEGIES: quick-install compile
 
       - name: Build binary
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
