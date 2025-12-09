@@ -82,7 +82,7 @@ jobs:
       - name: Package binary as AppImage
         if: matrix.arch != 'x86'
         run: |
-          sed -i 's/SED_ARCH/${{ matrix.arch }}' Cargo.toml
+          sed -i 's/SED_ARCH/${{ matrix.arch }}/' Cargo.toml
           cargo packager --release --target ${{ matrix.target }} --formats appimage
           cp target/${{ matrix.target }}/release/TinyWiiBackupManager*.AppImage "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
           cp target/${{ matrix.target }}/release/TinyWiiBackupManager*.AppImage.zsync "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage.zsync"
