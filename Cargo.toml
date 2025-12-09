@@ -16,7 +16,12 @@ identifier = "it.mq1.TinyWiiBackupManager"
 icons = ["assets/TinyWiiBackupManager@2x.png"]
 copyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-3.0-only."
 category = "Utility"
-macos.minimumSystemVersion = "10.12"
+
+# we set this in gh actions
+macos.minimumSystemVersion = "SED_MACOS_MIN_VER"
+
+# we inject update info as cargo-packager doesn't support it yet
+appimage.bins = "/dev/null /dev/null\nexport LDAI_UPDATE_INFORMATION='gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*SED_ARCH.AppImage.zsync'\necho"
 
 [package.metadata.winres]
 FileDescription = "TinyWiiBackupManager"

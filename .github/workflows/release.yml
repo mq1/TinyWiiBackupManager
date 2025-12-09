@@ -79,11 +79,10 @@ jobs:
       - name: Package binary as AppImage
         if: matrix.arch != 'x86'
         run: |
+          sed -i 's/SED_ARCH/${{ matrix.arch }}' Cargo.toml
           cargo packager --release --target ${{ matrix.target }} --formats appimage
           cp target/${{ matrix.target }}/release/TinyWiiBackupManager*.AppImage "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
           cp target/${{ matrix.target }}/release/TinyWiiBackupManager*.AppImage.zsync "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage.zsync"
-        env:
-          LDAI_UPDATE_INFORMATION: "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync"
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v4
@@ -213,7 +212,7 @@ jobs:
           RUSTC_BOOTSTRAP: 1
 
       - name: Set macos.minimumSystemVersion in Cargo.toml
-        run: sed -i '' 's/10\.12/${{ matrix.min_sys_ver }}/' Cargo.toml
+        run: sed -i '' 's/SED_MACOS_MIN_VER/${{ matrix.min_sys_ver }}/' Cargo.toml
 
       - name: Build macOS app bundle
         run: cargo packager --release --target ${{ matrix.target }} --formats app
