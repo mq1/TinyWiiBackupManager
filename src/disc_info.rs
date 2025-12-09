@@ -15,6 +15,7 @@ use zip::ZipArchive;
 
 #[derive(Debug, Clone, Default)]
 pub struct DiscInfo {
+    pub game_dir: PathBuf,
     pub main_disc_path: PathBuf,
 
     // discheader
@@ -44,8 +45,8 @@ pub struct DiscInfo {
 
 impl DiscInfo {
     pub fn from_game_dir(game_dir: &Path) -> Result<DiscInfo> {
-        let path = get_main_file(game_dir).ok_or(anyhow!("No disc found"))?;
-        Self::from_path(path)
+        let disc_path = get_main_file(game_dir).ok_or(anyhow!("No disc file found"))?;
+        DiscInfo::from_path(disc_path)
     }
 
     pub fn from_zip_file(zip_file: &Path) -> Result<DiscInfo> {
@@ -80,6 +81,7 @@ impl DiscInfo {
     }
 
     pub fn from_path(disc_path: PathBuf) -> Result<DiscInfo> {
+        let parent_dir = disc_path.parent().ok_or(anyhow!("No parent directory"))?;
         let disc = DiscReader::new(&disc_path, &get_disc_opts())?;
         let is_worth_stripping = is_worth_stripping(&disc);
 
@@ -87,6 +89,7 @@ impl DiscInfo {
         let meta = disc.meta();
 
         Ok(Self {
+            game_dir: parent_dir.to_path_buf(),
             main_disc_path: disc_path,
 
             // discheader
@@ -115,6 +118,8 @@ impl DiscInfo {
             md5: meta.md5,
             sha1: meta.sha1,
             xxh64: meta.xxh64,
+
+            // misc
             is_worth_stripping,
         })
     }

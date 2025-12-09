@@ -16,7 +16,13 @@ use nod::{
 };
 use std::path::{Path, PathBuf};
 
-pub fn spawn_checksum_task(app: &App, game_dir: PathBuf, game_info: Option<GameInfo>) {
+pub fn spawn_checksum_task(app: &App, game_dir: PathBuf, game_info: Option<&GameInfo>) {
+    let redump_crc32s = game_info
+        .iter()
+        .flat_map(|g| &g.roms)
+        .flat_map(|r| r.crc)
+        .collect::<Box<[_]>>();
+
     app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(Message::UpdateStatus(
             format!("{} Performing game checksum...", egui_phosphor::regular::FINGERPRINT_SIMPLE),
@@ -41,8 +47,8 @@ pub fn spawn_checksum_task(app: &App, game_dir: PathBuf, game_info: Option<GameI
             }
         }
 
-        if let Some(game_info) = game_info {
-            if game_info.roms.iter().filter_map(|r| r.crc).any(|db_crc32| db_crc32 == crc32) {
+        if !redump_crc32s.is_empty() {
+            if redump_crc32s.contains(&crc32) {
                 msg_sender.send(Message::NotifySuccess(
                     format!("{} CRC32 matches the Redump hash: your dump is perfect!", egui_phosphor::regular::FINGERPRINT_SIMPLE),
                 ))?;
