@@ -14,8 +14,7 @@ use crate::{
     osc::{self, OscApp},
     tasks::TaskProcessor,
     ui::{self, Modal},
-    util,
-    wiitdb::{self, GameInfo},
+    util, wiitdb,
 };
 use anyhow::{Result, anyhow};
 use crossbeam_channel::{Receiver, Sender, unbounded};
@@ -57,7 +56,7 @@ pub struct App {
     pub show_wii: bool,
     pub show_gc: bool,
     pub notifications: Notifications,
-    pub current_game_info: Option<GameInfo>,
+    pub current_game_info: Option<u16>,
     pub current_disc_info: Option<DiscInfo>,
     pub nod_gui_input_path: String,
     pub nod_gui_output_path: String,
@@ -407,12 +406,17 @@ impl App {
         }
     }
 
-    pub fn strip_game(&mut self, frame: &eframe::Frame, game_i: u16) {
-        let game = &self.games[game_i as usize];
+    pub fn strip_game(&mut self, frame: &eframe::Frame) -> Result<()> {
+        let disc_info = self
+            .current_disc_info
+            .clone()
+            .ok_or(anyhow!("No disc selected"))?;
 
-        if ui::dialogs::confirm_strip_game(frame, &game.display_title) {
-            convert::spawn_strip_game_task(self, game.path.clone());
+        if ui::dialogs::confirm_strip_game(frame, &disc_info.title) {
+            convert::spawn_strip_game_task(self, disc_info);
         }
+
+        Ok(())
     }
 
     pub fn delete_game(&self, frame: &eframe::Frame, game_i: u16) -> Result<()> {
@@ -440,13 +444,8 @@ impl App {
     pub fn update_game_info(&mut self, game_i: u16) {
         let game = &self.games[game_i as usize];
 
+        self.current_game_info = self.wiitdb.as_ref().and_then(|db| db.lookup(game.id));
         self.current_disc_info = DiscInfo::from_game_dir(&game.path).ok();
-
-        self.current_game_info = self
-            .wiitdb
-            .as_ref()
-            .and_then(|db| db.lookup(game.id))
-            .cloned();
     }
 
     pub fn run_strip_all_games(&mut self, frame: &eframe::Frame) {

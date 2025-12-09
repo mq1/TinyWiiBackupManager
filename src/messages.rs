@@ -27,7 +27,7 @@ pub enum Message {
     OpenGameDir(u16),
     DeleteGame(u16),
     DeleteHbcApp(u16),
-    StripGame(u16),
+    StripGame,
     OpenGameInfo(u16),
 }
 
@@ -96,8 +96,10 @@ pub fn process_msg(app: &mut App, ctx: &egui::Context, frame: &eframe::Frame, ms
                 app.notifications.show_err(e);
             }
         }
-        Message::StripGame(i) => {
-            app.strip_game(frame, i);
+        Message::StripGame => {
+            if let Err(e) = app.strip_game(frame) {
+                app.notifications.show_err(e);
+            }
         }
         Message::OpenGameInfo(i) => {
             app.update_game_info(i);

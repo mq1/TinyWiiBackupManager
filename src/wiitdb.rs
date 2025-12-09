@@ -69,11 +69,11 @@ impl Datafile {
         Ok(data)
     }
 
-    pub fn lookup(&self, game_id: GameID) -> Option<&GameInfo> {
+    pub fn lookup(&self, game_id: GameID) -> Option<u16> {
         self.games
             .binary_search_by_key(&game_id, |game| game.id)
+            .map(|i| i as u16)
             .ok()
-            .map(|i| &self.games[i])
     }
 }
 
