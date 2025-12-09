@@ -53,14 +53,6 @@ pub fn choose_file_to_push(frame: &eframe::Frame) -> Option<PathBuf> {
         .pick_file()
 }
 
-pub fn choose_game_manual_conv(frame: &eframe::Frame) -> Option<PathBuf> {
-    FileDialog::new()
-        .set_title("Select disc image to convert")
-        .set_parent(frame)
-        .add_filter("Nintendo Optical Disc", SUPPORTED_INPUT_EXTENSIONS)
-        .pick_file()
-}
-
 pub fn delete_game(frame: &eframe::Frame, game_title: &str) -> bool {
     MessageDialog::new()
         .set_title("Delete game")
@@ -83,7 +75,7 @@ pub fn delete_hbc_app(frame: &eframe::Frame, app_name: &str) -> bool {
         == MessageDialogResult::Ok
 }
 
-pub fn confirm_conversion(frame: &eframe::Frame, discs: &[DiscInfo]) -> bool {
+pub fn confirm_add_games(frame: &eframe::Frame, discs: &[DiscInfo]) -> bool {
     let mut desc = String::new();
     for disc in discs {
         desc.push_str(&format!("• {}\n", &disc.title));
@@ -122,4 +114,31 @@ pub fn confirm_strip_all_games(frame: &eframe::Frame) -> bool {
         .set_level(MessageLevel::Warning)
         .set_buttons(MessageButtons::OkCancel)
         .show() == MessageDialogResult::Ok
+}
+
+pub fn choose_input_disc_path(frame: &eframe::Frame) -> Option<PathBuf> {
+    FileDialog::new()
+        .set_title("Select input disc file")
+        .set_parent(frame)
+        .add_filter("Nintendo Optical Disc", SUPPORTED_INPUT_EXTENSIONS)
+        .pick_file()
+}
+
+pub fn choose_output_disc_path(frame: &eframe::Frame) -> Option<PathBuf> {
+    FileDialog::new()
+        .set_title("Select output disc file")
+        .set_parent(frame)
+        .add_filter("Nintendo Optical Disc", SUPPORTED_INPUT_EXTENSIONS)
+        .save_file()
+}
+
+pub fn confirm_single_conversion(frame: &eframe::Frame, in_path: &str, out_path: &str) -> bool {
+    MessageDialog::new()
+        .set_title("Convert disc")
+        .set_parent(frame)
+        .set_description(format!("Convert {} to {}?", in_path, out_path))
+        .set_level(MessageLevel::Info)
+        .set_buttons(MessageButtons::OkCancel)
+        .show()
+        == MessageDialogResult::Ok
 }
