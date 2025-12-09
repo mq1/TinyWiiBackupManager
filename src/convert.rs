@@ -54,16 +54,15 @@ pub fn get_process_opts(scrub_update_partition: bool) -> ProcessOptions {
     }
 }
 
-pub fn spawn_strip_game_task(app: &App, game_dir: PathBuf) {
+pub fn spawn_strip_game_task(app: &App, disc_info: DiscInfo) {
     let disc_opts = get_disc_opts();
     let always_split = app.config.contents.always_split;
 
     app.task_processor.spawn(move |msg_sender| {
-        let disc_info = DiscInfo::from_game_dir(&game_dir)?;
-
         let overflow_file = get_overflow_file(&disc_info.main_disc_path);
 
-        let old_name = game_dir
+        let old_name = disc_info
+            .game_dir
             .file_name()
             .ok_or(anyhow!("No file name"))?
             .to_str()
@@ -71,7 +70,10 @@ pub fn spawn_strip_game_task(app: &App, game_dir: PathBuf) {
 
         let new_name = format!("{}.new", old_name);
 
-        let parent_dir = game_dir.parent().ok_or(anyhow!("No parent directory"))?;
+        let parent_dir = disc_info
+            .game_dir
+            .parent()
+            .ok_or(anyhow!("No parent directory"))?;
 
         let dir_path = parent_dir.join(new_name);
         fs::create_dir_all(&dir_path)?;
@@ -113,10 +115,10 @@ pub fn spawn_strip_game_task(app: &App, game_dir: PathBuf) {
         }
 
         // Remove the original game directory
-        fs::remove_dir_all(&game_dir)?;
+        fs::remove_dir_all(&disc_info.game_dir)?;
 
         // Rename the new directory to the original game directory name
-        fs::rename(dir_path, game_dir)?;
+        fs::rename(dir_path, disc_info.game_dir)?;
 
         msg_sender.send(Message::NotifyInfo(format!(
             "{} {} Converted (without update partition)",
@@ -136,8 +138,9 @@ pub fn spawn_strip_all_games_tasks(app: &mut App) -> bool {
         if let Some(path) = get_main_file(&game.path)
             && let Ok(disc) = DiscReader::new(&path, &get_disc_opts())
             && is_worth_stripping(&disc)
+            && let Ok(disc_info) = DiscInfo::from_path(path)
         {
-            spawn_strip_game_task(app, game.path.clone());
+            spawn_strip_game_task(app, disc_info);
             at_least_one_stripped = true;
         }
     }
