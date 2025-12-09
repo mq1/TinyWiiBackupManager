@@ -1,9 +1,12 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::overflow_reader::get_overflow_file_name;
+use crate::util::can_write_over_4gb;
 use std::io::BufWriter;
 use std::path::PathBuf;
 use std::{
+    fs,
     fs::File,
     io::{self, Seek, Write},
     path::Path,
@@ -20,8 +23,24 @@ pub struct OverflowWriter {
 }
 
 impl OverflowWriter {
-    pub fn new(main_path: &Path, overflow_path: PathBuf, must_split: bool) -> io::Result<Self> {
+    pub fn new(main_path: &Path, always_split: bool) -> io::Result<Self> {
+        let main_name = main_path
+            .file_name()
+            .ok_or(io::Error::other("No file name"))?;
+
+        let main_parent = main_path
+            .parent()
+            .ok_or(io::Error::other("No parent directory"))?;
+
+        fs::create_dir_all(main_parent)?;
         let main = BufWriter::new(File::create(main_path)?);
+
+        let overflow_path = get_overflow_file_name(main_name)
+            .map(|name| main_parent.join(name))
+            .unwrap_or_default();
+
+        let must_split = !overflow_path.as_os_str().is_empty()
+            && (always_split || can_write_over_4gb(main_parent).is_err());
 
         Ok(Self {
             main_pos: 0,
@@ -51,12 +70,12 @@ impl Write for OverflowWriter {
 
             // Hey, you. You’re finally awake. You were trying to cross the border, right?
             if remaining_in_main < buf.len() {
-                let main_n = self.main.write(&buf[..remaining_in_main])?;
+                self.main.write_all(&buf[..remaining_in_main])?;
                 let mut overflow = BufWriter::new(File::create(&self.overflow_path)?);
                 let overflow_n = overflow.write(&buf[remaining_in_main..])?;
                 self.overflow = Some(overflow);
 
-                Ok(main_n + overflow_n)
+                Ok(remaining_in_main + overflow_n)
             }
             // Main file not near split size, we write to main file
             else {

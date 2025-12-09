@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::extensions::SUPPORTED_INPUT_EXTENSIONS;
+use crate::extensions::ext_to_format;
 use crate::games::GameID;
 use crate::{convert::get_disc_opts, overflow_reader::get_main_file};
-use anyhow::{Result, anyhow, bail};
+use anyhow::{Result, anyhow};
 use nod::common::{Compression, Format, PartitionKind};
 use nod::read::{DiscReader, PartitionOptions};
 use size::Size;
@@ -44,63 +44,50 @@ pub struct DiscInfo {
 
 impl DiscInfo {
     pub fn from_game_dir(game_dir: &Path) -> Result<DiscInfo> {
-        let main_disc_path = get_main_file(game_dir).ok_or(anyhow!("No disc found"))?;
-        Self::from_main_file(main_disc_path)
+        let path = get_main_file(game_dir).ok_or(anyhow!("No disc found"))?;
+        Self::from_path(path)
     }
 
-    pub fn from_main_file(main_disc_path: PathBuf) -> Result<DiscInfo> {
-        if main_disc_path
+    pub fn from_zip_file(zip_file: &Path) -> Result<DiscInfo> {
+        let zip_file_reader = BufReader::new(File::open(zip_file)?);
+        let mut archive = ZipArchive::new(zip_file_reader)?;
+        let disc_file = archive.by_index(0)?;
+
+        let disc_path = disc_file
+            .enclosed_name()
+            .ok_or(anyhow!("No disc file found in ZIP archive"))?;
+
+        let file_stem = disc_path
+            .file_stem()
+            .ok_or(anyhow!("No file stem"))?
+            .to_str()
+            .ok_or(anyhow!("Invalid file stem"))?;
+
+        let ext = disc_path
             .extension()
-            .and_then(|ext| ext.to_str())
-            .is_some_and(|ext| ["zip", "ZIP"].contains(&ext))
-        {
-            let file_reader = BufReader::new(File::open(&main_disc_path)?);
-            let mut archive = ZipArchive::new(file_reader)?;
+            .ok_or(anyhow!("No file extension"))?
+            .to_str()
+            .ok_or(anyhow!("Invalid file extension"))?;
 
-            // for now, only the first file is read
-            let mut disc_file = archive.by_index(0)?;
-            let title = disc_file.name().to_string();
+        let format = ext_to_format(ext).ok_or(anyhow!("Unsupported file extension"))?;
 
-            if !SUPPORTED_INPUT_EXTENSIONS
-                .iter()
-                .any(|ext| title.ends_with(ext))
-            {
-                bail!(
-                    "{} Unsupported disc extension: {}",
-                    egui_phosphor::regular::DISC,
-                    &title
-                );
-            }
-
-            let format = DiscReader::detect(&mut disc_file)?.ok_or(anyhow!(
-                "{} Failed to detect disc format",
-                egui_phosphor::regular::DISC
-            ))?;
-
-            Ok(Self {
-                main_disc_path,
-                format,
-                title,
-                ..Default::default()
-            })
-        } else {
-            let mut disc_info = Self::from_file(File::open(&main_disc_path)?)?;
-            disc_info.main_disc_path = main_disc_path;
-            Ok(disc_info)
-        }
+        Ok(Self {
+            main_disc_path: zip_file.to_path_buf(),
+            title: file_stem.to_string(),
+            format,
+            ..Self::default()
+        })
     }
 
-    pub fn from_file(file: File) -> Result<DiscInfo> {
-        let disc =
-            DiscReader::new_from_non_cloneable_read(file.try_clone().unwrap(), &get_disc_opts())?;
+    pub fn from_path(disc_path: PathBuf) -> Result<DiscInfo> {
+        let disc = DiscReader::new(&disc_path, &get_disc_opts())?;
+        let is_worth_stripping = is_worth_stripping(&disc);
 
         let header = disc.header();
         let meta = disc.meta();
 
-        let is_worth_stripping = is_worth_stripping(file);
-
         Ok(Self {
-            main_disc_path: PathBuf::new(),
+            main_disc_path: disc_path,
 
             // discheader
             id: GameID(header.game_id),
@@ -135,9 +122,8 @@ impl DiscInfo {
 
 // Returns true if the disc is worth stripping
 // Currently checks if the update partition is >= 8 MiB
-pub fn is_worth_stripping(file: File) -> bool {
-    if let Ok(disc) = DiscReader::new_from_non_cloneable_read(file, &get_disc_opts())
-        && disc.meta().format == Format::Wbfs
+pub fn is_worth_stripping(disc: &DiscReader) -> bool {
+    if disc.meta().format == Format::Wbfs
         && let Ok(mut update_reader) =
             disc.open_partition_kind(PartitionKind::Update, &PartitionOptions::default())
     {

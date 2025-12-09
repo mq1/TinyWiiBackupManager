@@ -63,7 +63,6 @@ impl Config {
 #[serde(default, rename_all = "snake_case")]
 pub struct Contents {
     pub always_split: bool,
-    pub archive_format: ArchiveFormat,
     pub mount_point: PathBuf,
     pub remove_sources_apps: bool,
     pub remove_sources_games: bool,
@@ -71,10 +70,17 @@ pub struct Contents {
     pub sort_by: SortBy,
     pub view_as: ViewAs,
     pub wii_ip: String,
-    pub wii_output_format: WiiOutputFormat,
-    pub gc_output_format: GcOutputFormat,
     pub accent_color: AccentColor,
     pub txt_codes_source: TxtCodesSource,
+
+    #[serde(with = "FormatDef")]
+    pub archive_format: nod::common::Format,
+
+    #[serde(with = "FormatDef")]
+    pub wii_output_format: nod::common::Format,
+
+    #[serde(with = "FormatDef")]
+    pub gc_output_format: nod::common::Format,
 
     #[serde(serialize_with = "ser_theme", deserialize_with = "deser_theme")]
     pub theme_preference: ThemePreference,
@@ -84,7 +90,7 @@ impl Default for Contents {
     fn default() -> Self {
         Self {
             always_split: false,
-            archive_format: ArchiveFormat::Rvz,
+            archive_format: nod::common::Format::Rvz,
             mount_point: PathBuf::new(),
             remove_sources_apps: false,
             remove_sources_games: false,
@@ -92,8 +98,8 @@ impl Default for Contents {
             sort_by: SortBy::NameAscending,
             view_as: ViewAs::Grid,
             wii_ip: "192.168.1.100".to_string(),
-            wii_output_format: WiiOutputFormat::Wbfs,
-            gc_output_format: GcOutputFormat::Iso,
+            wii_output_format: nod::common::Format::Wbfs,
+            gc_output_format: nod::common::Format::Iso,
             theme_preference: ThemePreference::System,
             accent_color: AccentColor::System,
             txt_codes_source: TxtCodesSource::WebArchive,
@@ -125,29 +131,6 @@ where
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
-#[serde(rename_all = "lowercase")]
-pub enum ArchiveFormat {
-    Rvz,
-    Iso,
-}
-
-impl ArchiveFormat {
-    pub fn as_str(&self) -> &str {
-        match self {
-            ArchiveFormat::Rvz => "RVZ",
-            ArchiveFormat::Iso => "ISO",
-        }
-    }
-
-    pub fn extension(&self) -> &str {
-        match self {
-            ArchiveFormat::Rvz => "rvz",
-            ArchiveFormat::Iso => "iso",
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum SortBy {
     None,
@@ -164,16 +147,15 @@ pub enum ViewAs {
     List,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
-#[serde(rename_all = "snake_case")]
-pub enum WiiOutputFormat {
-    Wbfs,
-    Iso,
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
-#[serde(rename_all = "snake_case")]
-pub enum GcOutputFormat {
+#[derive(Serialize, Deserialize)]
+#[serde(remote = "nod::common::Format", rename_all = "snake_case")]
+pub enum FormatDef {
     Iso,
     Ciso,
+    Gcz,
+    Nfs,
+    Rvz,
+    Wbfs,
+    Wia,
+    Tgc,
 }
