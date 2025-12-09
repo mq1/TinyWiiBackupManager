@@ -54,14 +54,13 @@ jobs:
           rustup toolchain install 1.91 --component rust-src
           rustup default 1.91
 
-      - name: Restore Rust cache
-        uses: Swatinem/rust-cache@v2
-        with:
-          key: ${{ matrix.arch }}
+      - name: Install cargo-binstall
+        if: matrix.arch == 'x86'
+        uses: cargo-bins/cargo-binstall@main
 
       - name: Install cargo-packager
         if: matrix.arch != 'x86'
-        run: cargo install cargo-packager --version 0.11.8 --locked
+        run: cargo binstall -y cargo-packager
 
       - name: Build binary
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
@@ -81,8 +80,8 @@ jobs:
         if: matrix.arch != 'x86'
         run: |
           cargo packager --release --target ${{ matrix.target }} --formats appimage
-          cp "target/${{ matrix.target }}/release/TinyWiiBackupManager*.AppImage" "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
-          cp "target/${{ matrix.target }}/release/TinyWiiBackupManager*.AppImage.zsync" "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage.zsync"
+          cp target/${{ matrix.target }}/release/TinyWiiBackupManager*.AppImage "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
+          cp target/${{ matrix.target }}/release/TinyWiiBackupManager*.AppImage.zsync "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage.zsync"
         env:
           LDAI_UPDATE_INFORMATION: "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync"
 
@@ -143,14 +142,12 @@ jobs:
           rustup toolchain install 1.91 --component rust-src
           rustup default 1.91
 
-      - name: Restore Rust cache
-        uses: Swatinem/rust-cache@v2
-        with:
-          key: ${{ matrix.pc }}-${{ matrix.arch }}
+      - name: Install cargo-binstall
+        uses: cargo-bins/cargo-binstall@main
 
-      - name: Install dependencies
+      - name: Install cargo-packager
         shell: pwsh
-        run: cargo install cargo-packager --version 0.11.8 --locked
+        run: cargo binstall -y cargo-packager
 
       - name: Build binary
         shell: pwsh
@@ -204,13 +201,11 @@ jobs:
           rustup toolchain install 1.91 --component rust-src
           rustup default 1.91
 
-      - name: Restore Rust cache
-        uses: Swatinem/rust-cache@v2
-        with:
-          key: ${{ matrix.arch }}
+      - name: Install cargo-binstall
+        uses: cargo-bins/cargo-binstall@main
 
       - name: Install cargo-packager
-        run: cargo install cargo-packager --version 0.11.8 --locked
+        run: cargo binstall -y cargo-packager
 
       - name: Build binary
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
@@ -218,7 +213,7 @@ jobs:
           RUSTC_BOOTSTRAP: 1
 
       - name: Set macos.minimumSystemVersion in Cargo.toml
-        run: sed -i '' 's/MACOS_MIN_SYS_VER/${{ matrix.min_sys_ver }}/' Cargo.toml
+        run: sed -i '' 's/10\.12/${{ matrix.min_sys_ver }}/' Cargo.toml
 
       - name: Build macOS app bundle
         run: cargo packager --release --target ${{ matrix.target }} --formats app

@@ -16,7 +16,7 @@ identifier = "it.mq1.TinyWiiBackupManager"
 icons = ["assets/TinyWiiBackupManager@2x.png"]
 copyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-3.0-only."
 category = "Utility"
-macos.minimumSystemVersion = "MACOS_MIN_SYS_VER"
+macos.minimumSystemVersion = "10.12"
 
 [package.metadata.winres]
 FileDescription = "TinyWiiBackupManager"
