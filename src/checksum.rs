@@ -102,10 +102,10 @@ pub fn calc_crc32(game_dir: &Path, msg_sender: &Sender<Message>) -> Result<u32> 
     let finalization = disc_writer.process(
         |_, progress, total| {
             let _ = msg_sender.send(Message::UpdateStatus(format!(
-                "{} Hashing {}  {:02.0}%",
+                "{} Hashing {}  {:02}%",
                 egui_phosphor::regular::FINGERPRINT_SIMPLE,
                 &game_dir_name,
-                progress as f32 / total as f32 * 100.0,
+                progress * 100 / total,
             )));
 
             Ok(())
