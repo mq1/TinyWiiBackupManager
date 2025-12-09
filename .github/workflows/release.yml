@@ -28,20 +28,16 @@ jobs:
           - target: x86_64-unknown-linux-gnu
             runner: ubuntu-24.04
             arch: x86_64
-            ldai-arch: x86_64
           - target: x86_64-unknown-linux-gnu
             runner: ubuntu-24.04
             arch: x86_64-v3
-            ldai-arch: x86_64
             rustflags: "-C target-cpu=x86-64-v3"
           - target: aarch64-unknown-linux-gnu
             runner: ubuntu-24.04-arm
             arch: arm64
-            ldai-arch: aarch64
           - target: i686-unknown-linux-gnu
             runner: ubuntu-24.04
             arch: x86
-            ldai-arch: none
 
     steps:
       - name: Checkout
@@ -49,7 +45,7 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install dependencies
+      - name: Install x86 dependencies
         if: matrix.arch == 'x86'
         run: sudo apt-get install -y libc6-dev-i386
 
@@ -63,12 +59,9 @@ jobs:
         with:
           key: ${{ matrix.arch }}
 
-      - name: Download LinuxDeploy
-        if: matrix.ldai-arch != 'none'
-        run: |
-          wget "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${{ matrix.ldai-arch }}.AppImage"
-          wget "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-${{ matrix.ldai-arch }}.AppImage"
-          chmod +x linuxdeploy-${{ matrix.ldai-arch }}.AppImage linuxdeploy-plugin-appimage-${{ matrix.ldai-arch }}.AppImage
+      - name: Install cargo-packager
+        if: matrix.arch != 'x86'
+        run: cargo install cargo-packager --version 0.11.8 --locked
 
       - name: Build binary
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
@@ -85,11 +78,8 @@ jobs:
           tar -I 'gzip -9' -cvf "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.tar.gz" TinyWiiBackupManager "Rename TinyWiiBackupManager to TinyWiiBackupManager-portable to make it portable"
 
       - name: Package binary as AppImage
-        if: matrix.ldai-arch != 'none'
-        run: |
-          ./linuxdeploy-${{ matrix.ldai-arch }}.AppImage --appdir TinyWiiBackupManager.AppDir -e target/${{ matrix.target }}/release/TinyWiiBackupManager -d assets/TinyWiiBackupManager.desktop -i assets/TinyWiiBackupManager.png --output appimage
-          mv "TinyWiiBackupManager-${{ matrix.ldai-arch }}.AppImage" "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
-          mv "TinyWiiBackupManager-${{ matrix.ldai-arch }}.AppImage.zsync" "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage.zsync"
+        if: matrix.arch != 'x86'
+        run: cargo packager --release --target ${{ matrix.target }} --formats appimage
         env:
           LDAI_UPDATE_INFORMATION: "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync"
 
