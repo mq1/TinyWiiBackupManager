@@ -7,6 +7,7 @@ use crate::messages::Message;
 use anyhow::anyhow;
 use anyhow::{Result, bail};
 use path_slash::PathBufExt;
+use std::ffi::OsStr;
 use std::fs::{self, File};
 use std::io::{self, BufReader, Cursor, Read, Seek, Write};
 use std::net::{SocketAddr, TcpStream, ToSocketAddrs};
@@ -58,7 +59,7 @@ pub fn spawn_push_file_task(app: &App, path: PathBuf) {
             file_name
         )))?;
 
-        if file_name.ends_with(".zip") {
+        if path.extension() == Some(OsStr::new("zip")) {
             // Open the source file
             let source_zip_file = File::open(path)?;
             let mut archive = ZipArchive::new(source_zip_file)?;
