@@ -11,7 +11,11 @@ use itertools::Itertools;
 pub fn update(ctx: &egui::Context, app: &App, game_i: u16) {
     let game = &app.games[game_i as usize];
     let disc_info = &app.current_disc_info;
-    let game_info = &app.current_game_info;
+
+    let game_info = app.wiitdb.as_ref().and_then(|wiitdb| {
+        let i = app.current_game_info? as usize;
+        Some(&wiitdb.games[i])
+    });
 
     egui::Modal::new("game_info".into()).show(ctx, |ui| {
         ui.heading(format!(
@@ -369,7 +373,7 @@ pub fn update(ctx: &egui::Context, app: &App, game_i: u16) {
                     ))
                     .clicked()
             {
-                app.send_msg(Message::StripGame(game_i));
+                app.send_msg(Message::StripGame);
             }
 
             // Integrity check button
@@ -383,7 +387,7 @@ pub fn update(ctx: &egui::Context, app: &App, game_i: u16) {
                     .on_hover_text("Integrity Check")
                     .clicked()
             {
-                checksum::spawn_checksum_task(app, game.path.clone(), game_info.clone());
+                checksum::spawn_checksum_task(app, game.path.clone(), game_info);
             }
 
             // Download cheats
