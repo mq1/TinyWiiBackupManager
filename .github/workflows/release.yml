@@ -62,7 +62,7 @@ jobs:
         if: matrix.arch != 'x86'
         run: cargo binstall cargo-packager
         env:
-          BINSTALL_NO_CONFIRM: 1
+          BINSTALL_NO_CONFIRM: true
           BINSTALL_STRATEGIES: quick-install,compile
 
       - name: Build binary
@@ -151,7 +151,7 @@ jobs:
         shell: pwsh
         run: cargo binstall cargo-packager
         env:
-          BINSTALL_NO_CONFIRM: 1
+          BINSTALL_NO_CONFIRM: true
           BINSTALL_STRATEGIES: quick-install,compile
 
       - name: Build binary
@@ -212,7 +212,7 @@ jobs:
       - name: Install cargo-packager
         run: cargo binstall cargo-packager
         env:
-          BINSTALL_NO_CONFIRM: 1
+          BINSTALL_NO_CONFIRM: true
           BINSTALL_STRATEGIES: quick-install,compile
 
       - name: Build binary
