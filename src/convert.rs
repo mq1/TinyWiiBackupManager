@@ -76,8 +76,6 @@ pub fn spawn_strip_game_task(app: &App, disc_info: DiscInfo) {
             .ok_or(anyhow!("No parent directory"))?;
 
         let dir_path = parent_dir.join(new_name);
-        fs::create_dir_all(&dir_path)?;
-
         let out_path = dir_path.join(format!("{}.wbfs", disc_info.id.as_str()));
 
         let disc = if let Some(overflow_file) = &overflow_file {
