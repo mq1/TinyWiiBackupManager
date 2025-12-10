@@ -2,21 +2,21 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::app::App;
+use crate::disc_info::DiscInfo;
 use crate::messages::Message;
 use crate::{
     convert::{get_disc_opts, get_process_opts},
-    overflow_reader::{OverflowReader, get_main_file, get_overflow_file},
+    overflow_reader::OverflowReader,
     wiitdb::GameInfo,
 };
 use anyhow::{Result, anyhow};
 use crossbeam_channel::Sender;
 use nod::{
-    read::{DiscMeta, DiscReader},
+    read::DiscReader,
     write::{DiscWriter, FormatOptions},
 };
-use std::path::{Path, PathBuf};
 
-pub fn spawn_checksum_task(app: &App, game_dir: PathBuf, game_info: Option<&GameInfo>) {
+pub fn spawn_checksum_task(app: &App, disc_info: DiscInfo, game_info: Option<&GameInfo>) {
     let redump_crc32s = game_info
         .iter()
         .flat_map(|g| &g.roms)
@@ -28,11 +28,9 @@ pub fn spawn_checksum_task(app: &App, game_dir: PathBuf, game_info: Option<&Game
             format!("{} Performing game checksum...", egui_phosphor::regular::FINGERPRINT_SIMPLE),
         ))?;
 
-        let embedded = get_embedded_hashes(&game_dir)?;
-        let crc32 = calc_crc32(&game_dir, msg_sender)?;
+        let crc32 = calc_crc32(&disc_info, msg_sender)?;
 
-        if let Some(embedded_crc32) = embedded.crc32
-        {
+        if let Some(embedded_crc32) = disc_info.crc32 {
             if embedded_crc32 == crc32 {
                 msg_sender.send(Message::NotifySuccess(
                     format!("{} Embedded CRC32 is == to the actual file CRC32", egui_phosphor::regular::FINGERPRINT_SIMPLE),
@@ -65,38 +63,9 @@ pub fn spawn_checksum_task(app: &App, game_dir: PathBuf, game_info: Option<&Game
     });
 }
 
-fn get_embedded_hashes(game_dir: &Path) -> Result<DiscMeta> {
-    let path = get_main_file(game_dir).ok_or(anyhow!("No disc found"))?;
-    let disc = DiscReader::new(&path, &get_disc_opts())?;
-    let meta = disc.meta();
-    Ok(meta)
-}
-
-pub fn calc_crc32(game_dir: &Path, msg_sender: &Sender<Message>) -> Result<u32> {
-    let game_dir_name = game_dir
-        .file_name()
-        .ok_or(anyhow!(
-            "{} Failed to get disc name",
-            egui_phosphor::regular::DISC
-        ))?
-        .to_str()
-        .ok_or(anyhow!(
-            "{} Failed to get disc name",
-            egui_phosphor::regular::DISC
-        ))?
-        .to_string();
-
-    let path =
-        get_main_file(game_dir).ok_or(anyhow!("{} No disc found", egui_phosphor::regular::DISC))?;
-    let overflow = get_overflow_file(&path);
-
-    let disc = if let Some(overflow) = overflow {
-        let reader = OverflowReader::new(&path, &overflow)?;
-        DiscReader::new_stream(Box::new(reader), &get_disc_opts())?
-    } else {
-        DiscReader::new(&path, &get_disc_opts())?
-    };
-
+pub fn calc_crc32(disc_info: &DiscInfo, msg_sender: &Sender<Message>) -> Result<u32> {
+    let reader = OverflowReader::new(&disc_info.main_disc_path)?;
+    let disc = DiscReader::new_stream(Box::new(reader), &get_disc_opts())?;
     let disc_writer = DiscWriter::new(disc, &FormatOptions::default())?;
 
     let finalization = disc_writer.process(
@@ -104,7 +73,7 @@ pub fn calc_crc32(game_dir: &Path, msg_sender: &Sender<Message>) -> Result<u32> 
             let _ = msg_sender.send(Message::UpdateStatus(format!(
                 "{} Hashing {}  {:02}%",
                 egui_phosphor::regular::FINGERPRINT_SIMPLE,
-                &game_dir_name,
+                &disc_info.title,
                 progress * 100 / total,
             )));
 

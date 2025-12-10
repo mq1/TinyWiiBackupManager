@@ -4,6 +4,7 @@
 use nod::read::DiscStream;
 use positioned_io::{RandomAccessFile, ReadAt};
 use std::ffi::OsStr;
+use std::fs::Metadata;
 use std::sync::Arc;
 use std::{
     fs::{self, File},
@@ -49,25 +50,42 @@ pub fn get_overflow_file(main: &Path) -> Option<PathBuf> {
 #[derive(Debug, Clone)]
 pub struct OverflowReader {
     main: Arc<RandomAccessFile>,
-    overflow: Arc<RandomAccessFile>,
+    pub overflow_path: Option<PathBuf>,
+    overflow: Option<Arc<RandomAccessFile>>,
     main_len: u64,
     total_len: u64,
 }
 
 impl OverflowReader {
-    pub fn new(main_path: &Path, overflow_path: &Path) -> io::Result<Self> {
+    pub fn new(main_path: &Path) -> io::Result<Self> {
+        let overflow_path = get_overflow_file(main_path);
+
         let main_file = File::open(main_path)?;
-        let overflow_file = File::open(overflow_path)?;
+        let overflow_file = overflow_path.as_ref().map(File::open).transpose()?;
 
         let main_len = main_file.metadata()?.len();
-        let total_len = main_len + overflow_file.metadata()?.len();
+        let overflow_len = overflow_file
+            .as_ref()
+            .map(File::metadata)
+            .transpose()?
+            .as_ref()
+            .map(Metadata::len);
 
-        let main = RandomAccessFile::try_new(main_file)?;
-        let overflow = RandomAccessFile::try_new(overflow_file)?;
+        let total_len = match overflow_len {
+            Some(overflow_len) => main_len + overflow_len,
+            None => main_len,
+        };
+
+        let main = Arc::new(RandomAccessFile::try_new(main_file)?);
+        let overflow = overflow_file
+            .map(RandomAccessFile::try_new)
+            .transpose()?
+            .map(Arc::new);
 
         Ok(Self {
-            main: Arc::new(main),
-            overflow: Arc::new(overflow),
+            main,
+            overflow_path,
+            overflow,
             main_len,
             total_len,
         })
@@ -82,12 +100,26 @@ impl DiscStream for OverflowReader {
         if end <= self.main_len {
             self.main.read_exact_at(offset, buf)?;
         } else if offset >= self.main_len {
-            let overflow_offset = offset - self.main_len;
-            self.overflow.read_exact_at(overflow_offset, buf)?;
+            match &self.overflow {
+                Some(overflow) => {
+                    let overflow_offset = offset - self.main_len;
+                    overflow.read_exact_at(overflow_offset, buf)?;
+                }
+                None => {
+                    return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+                }
+            }
         } else {
-            let bytes_in_main = (self.main_len - offset) as usize;
-            self.main.read_exact_at(offset, &mut buf[..bytes_in_main])?;
-            self.overflow.read_exact_at(0, &mut buf[bytes_in_main..])?;
+            match &self.overflow {
+                Some(overflow) => {
+                    let bytes_in_main = (self.main_len - offset) as usize;
+                    self.main.read_exact_at(offset, &mut buf[..bytes_in_main])?;
+                    overflow.read_exact_at(0, &mut buf[bytes_in_main..])?;
+                }
+                None => {
+                    return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+                }
+            }
         }
 
         Ok(())
