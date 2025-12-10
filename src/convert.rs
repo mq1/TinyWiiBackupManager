@@ -80,7 +80,7 @@ pub fn spawn_strip_game_task(app: &App, disc_info: DiscInfo) {
 
         let disc = if let Some(overflow_file) = &overflow_file {
             let reader = OverflowReader::new(&disc_info.main_disc_path, overflow_file)?;
-            DiscReader::new_from_non_cloneable_read(reader, &disc_opts)?
+            DiscReader::new_stream(Box::new(reader), &disc_opts)?
         } else {
             DiscReader::new(&disc_info.main_disc_path, &disc_opts)?
         };
@@ -199,7 +199,7 @@ pub fn spawn_conv_game_task(app: &App, in_path: PathBuf, out_path: PathBuf) {
             DiscReader::new_from_non_cloneable_read(tmp, &disc_opts)?
         } else if let Some(overflow_file) = &overflow_file {
             let reader = OverflowReader::new(&in_path, overflow_file)?;
-            DiscReader::new_from_non_cloneable_read(reader, &disc_opts)?
+            DiscReader::new_stream(Box::new(reader), &disc_opts)?
         } else {
             DiscReader::new(&in_path, &disc_opts)?
         };
@@ -280,7 +280,7 @@ pub fn spawn_add_game_task(app: &App, in_path: PathBuf, should_download_covers: 
             DiscReader::new_from_non_cloneable_read(tmp, &disc_opts)?
         } else if let Some(overflow_file) = &overflow_file {
             let reader = OverflowReader::new(&in_path, overflow_file)?;
-            DiscReader::new_from_non_cloneable_read(reader, &disc_opts)?
+            DiscReader::new_stream(Box::new(reader), &disc_opts)?
         } else {
             DiscReader::new(&in_path, &disc_opts)?
         };
