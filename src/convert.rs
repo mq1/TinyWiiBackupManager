@@ -8,7 +8,7 @@ use crate::messages::Message;
 use crate::overflow_reader::get_main_file;
 use crate::{
     disc_info::DiscInfo,
-    overflow_reader::{OverflowReader, get_overflow_file},
+    overflow_reader::OverflowReader,
     overflow_writer::OverflowWriter,
     util::{self, can_write_over_4gb},
 };
@@ -55,12 +55,9 @@ pub fn get_process_opts(scrub_update_partition: bool) -> ProcessOptions {
 }
 
 pub fn spawn_strip_game_task(app: &App, disc_info: DiscInfo) {
-    let disc_opts = get_disc_opts();
     let always_split = app.config.contents.always_split;
 
     app.task_processor.spawn(move |msg_sender| {
-        let overflow_file = get_overflow_file(&disc_info.main_disc_path);
-
         let old_name = disc_info
             .game_dir
             .file_name()
@@ -78,12 +75,8 @@ pub fn spawn_strip_game_task(app: &App, disc_info: DiscInfo) {
         let dir_path = parent_dir.join(new_name);
         let out_path = dir_path.join(format!("{}.wbfs", disc_info.id.as_str()));
 
-        let disc = if let Some(overflow_file) = &overflow_file {
-            let reader = OverflowReader::new(&disc_info.main_disc_path, overflow_file)?;
-            DiscReader::new_stream(Box::new(reader), &disc_opts)?
-        } else {
-            DiscReader::new(&disc_info.main_disc_path, &disc_opts)?
-        };
+        let reader = OverflowReader::new(&disc_info.main_disc_path)?;
+        let disc = DiscReader::new_stream(Box::new(reader), &get_disc_opts())?;
 
         let mut overflow_writer = OverflowWriter::new(&out_path, always_split)?;
 
@@ -185,24 +178,14 @@ pub fn spawn_conv_game_task(app: &App, in_path: PathBuf, out_path: PathBuf) {
             }
         }
 
-        let disc_opts = get_disc_opts();
-
         let out_format = out_path
             .extension()
             .and_then(|ext| ext.to_str())
             .and_then(ext_to_format)
             .ok_or(anyhow!("Invalid output file extension"))?;
 
-        let overflow_file = get_overflow_file(&in_path);
-
-        let disc = if let Some(tmp) = tmp {
-            DiscReader::new_from_non_cloneable_read(tmp, &disc_opts)?
-        } else if let Some(overflow_file) = &overflow_file {
-            let reader = OverflowReader::new(&in_path, overflow_file)?;
-            DiscReader::new_stream(Box::new(reader), &disc_opts)?
-        } else {
-            DiscReader::new(&in_path, &disc_opts)?
-        };
+        let reader = OverflowReader::new(&in_path)?;
+        let disc = DiscReader::new_stream(Box::new(reader), &get_disc_opts())?;
         let game_title = disc.header().game_title_str().to_string();
 
         let mut overflow_writer = OverflowWriter::new(&out_path, always_split)?;
@@ -273,88 +256,83 @@ pub fn spawn_add_game_task(app: &App, in_path: PathBuf, should_download_covers: 
             }
         }
 
-        let disc_opts = get_disc_opts();
-        let overflow_file = get_overflow_file(&in_path);
+        let overflow_path;
+        {
+            let reader = OverflowReader::new(&in_path)?;
+            overflow_path = reader.overflow_path.clone();
+            let disc = DiscReader::new_stream(Box::new(reader), &get_disc_opts())?;
 
-        let disc = if let Some(tmp) = tmp {
-            DiscReader::new_from_non_cloneable_read(tmp, &disc_opts)?
-        } else if let Some(overflow_file) = &overflow_file {
-            let reader = OverflowReader::new(&in_path, overflow_file)?;
-            DiscReader::new_stream(Box::new(reader), &disc_opts)?
-        } else {
-            DiscReader::new(&in_path, &disc_opts)?
-        };
+            let disc_header = disc.header();
+            let game_id = disc_header.game_id_str().to_string();
+            let game_title = disc_header.game_title_str().to_string();
+            let is_wii = disc_header.is_wii();
 
-        let disc_header = disc.header();
-        let game_id = disc_header.game_id_str().to_string();
-        let game_title = disc_header.game_title_str().to_string();
-        let is_wii = disc_header.is_wii();
+            let out_dir = mount_point
+                .join(if is_wii { "wbfs" } else { "games" })
+                .join(format!("{} [{}]", sanitize(&game_title), &game_id));
 
-        let out_dir = mount_point
-            .join(if is_wii { "wbfs" } else { "games" })
-            .join(format!("{} [{}]", sanitize(&game_title), &game_id));
-
-        let out_file_name = if is_wii {
-            if wii_output_format == Format::Wbfs {
-                format!("{}.wbfs", &game_id)
-            } else if always_split || can_write_over_4gb(&mount_point).is_err() {
-                format!("{}.part0.iso", &game_id)
+            let out_file_name = if is_wii {
+                if wii_output_format == Format::Wbfs {
+                    format!("{}.wbfs", &game_id)
+                } else if always_split || can_write_over_4gb(&mount_point).is_err() {
+                    format!("{}.part0.iso", &game_id)
+                } else {
+                    format!("{}.iso", &game_id)
+                }
+            } else if wii_output_format == Format::Ciso {
+                if disc_header.disc_num == 0 {
+                    "game.ciso".to_string()
+                } else {
+                    format!("disc{}.ciso", disc_header.disc_num + 1)
+                }
+            } else if disc_header.disc_num == 0 {
+                "game.iso".to_string()
             } else {
-                format!("{}.iso", &game_id)
+                format!("disc{}.iso", disc_header.disc_num + 1)
+            };
+
+            let out_path = out_dir.join(out_file_name);
+            if out_path.exists() {
+                return Ok(());
             }
-        } else if wii_output_format == Format::Ciso {
-            if disc_header.disc_num == 0 {
-                "game.ciso".to_string()
+
+            let mut overflow_writer = OverflowWriter::new(&out_path, always_split)?;
+
+            let out_format = if is_wii {
+                wii_output_format
             } else {
-                format!("disc{}.ciso", disc_header.disc_num + 1)
+                gc_output_format
+            };
+
+            let out_opts = format_to_opts(out_format);
+            let disc_writer = DiscWriter::new(disc, &out_opts)?;
+            let process_opts = get_process_opts(scrub_update_partition);
+
+            let finalization = disc_writer.process(
+                |data, progress, total| {
+                    overflow_writer.write_all(&data)?;
+
+                    let _ = msg_sender.send(Message::UpdateStatus(format!(
+                        "{} Converting {}  {:02}%",
+                        egui_phosphor::regular::FLOW_ARROW,
+                        &game_title,
+                        progress * 100 / total
+                    )));
+
+                    Ok(())
+                },
+                &process_opts,
+            )?;
+
+            if !finalization.header.is_empty() {
+                overflow_writer.write_header(&finalization.header)?;
             }
-        } else if disc_header.disc_num == 0 {
-            "game.iso".to_string()
-        } else {
-            format!("disc{}.iso", disc_header.disc_num + 1)
-        };
-
-        let out_path = out_dir.join(out_file_name);
-        if out_path.exists() {
-            return Ok(());
-        }
-
-        let mut overflow_writer = OverflowWriter::new(&out_path, always_split)?;
-
-        let out_format = if is_wii {
-            wii_output_format
-        } else {
-            gc_output_format
-        };
-
-        let out_opts = format_to_opts(out_format);
-        let disc_writer = DiscWriter::new(disc, &out_opts)?;
-        let process_opts = get_process_opts(scrub_update_partition);
-
-        let finalization = disc_writer.process(
-            |data, progress, total| {
-                overflow_writer.write_all(&data)?;
-
-                let _ = msg_sender.send(Message::UpdateStatus(format!(
-                    "{} Converting {}  {:02}%",
-                    egui_phosphor::regular::FLOW_ARROW,
-                    &game_title,
-                    progress * 100 / total
-                )));
-
-                Ok(())
-            },
-            &process_opts,
-        )?;
-
-        if !finalization.header.is_empty() {
-            overflow_writer.write_header(&finalization.header)?;
         }
 
         if remove_sources {
             fs::remove_file(&in_path)?;
-            if let Some(overflow_file) = &overflow_file {
-                fs::remove_file(overflow_file)?;
+            if let Some(overflow_path) = &overflow_path {
+                fs::remove_file(overflow_path)?;
             }
         }
 
