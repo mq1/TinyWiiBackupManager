@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::extensions::is_valid_input_extension;
 use nod::read::DiscStream;
 use positioned_io::{RandomAccessFile, ReadAt};
 use std::ffi::OsStr;
@@ -12,18 +13,18 @@ use std::{
     path::{Path, PathBuf},
 };
 
-pub fn get_main_file(dir: &Path) -> Option<PathBuf> {
-    fs::read_dir(dir)
-        .ok()?
-        .filter_map(Result::ok)
-        .map(|entry| entry.path())
-        .filter(|path| path.is_file())
-        .filter(|path| path.to_str().is_some_and(|p| !p.ends_with(".part1.iso")))
-        .find(|path| {
-            path.extension()
-                .and_then(|ext| ext.to_str())
-                .is_some_and(|ext| matches!(ext, "iso" | "wbfs" | "ciso" | "gcm"))
-        })
+pub fn get_main_file(game_dir: &Path) -> Option<PathBuf> {
+    let entries = fs::read_dir(game_dir).ok()?.filter_map(Result::ok);
+    let paths = entries.map(|entry| entry.path());
+    let only_files = paths.filter(|path| path.is_file());
+
+    let mut no_overflows = only_files.filter(|path| {
+        path.file_stem()
+            .and_then(OsStr::to_str)
+            .is_some_and(|stem| !stem.ends_with("part1"))
+    });
+
+    no_overflows.find(|path| path.extension().is_some_and(is_valid_input_extension))
 }
 
 pub fn get_overflow_file_name(main_file_name: &OsStr) -> Option<String> {

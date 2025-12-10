@@ -3,10 +3,16 @@
 
 use nod::common::{Compression, Format};
 use nod::write::FormatOptions;
+use std::ffi::OsStr;
 
 pub const SUPPORTED_INPUT_EXTENSIONS: &[&str] = &[
     "gcm", "iso", "wbfs", "wia", "rvz", "ciso", "gcz", "tgc", "nfs", "zip",
 ];
+
+pub fn is_valid_input_extension(ext: &OsStr) -> bool {
+    ext.to_str()
+        .is_some_and(|ext| SUPPORTED_INPUT_EXTENSIONS.contains(&ext))
+}
 
 pub const SUPPORTED_OUTPUT_EXTENSIONS: &[&str] = &[
     "gcm", "iso", "wbfs", "wia", "rvz", "ciso", "gcz", "tgc", "nfs",
