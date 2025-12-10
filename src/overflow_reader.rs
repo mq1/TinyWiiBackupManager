@@ -1,10 +1,13 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use nod::read::DiscStream;
+use positioned_io::{RandomAccessFile, ReadAt};
 use std::ffi::OsStr;
+use std::sync::Arc;
 use std::{
     fs::{self, File},
-    io::{self, Read, Seek, SeekFrom},
+    io,
     path::{Path, PathBuf},
 };
 
@@ -43,72 +46,54 @@ pub fn get_overflow_file(main: &Path) -> Option<PathBuf> {
     if path.exists() { Some(path) } else { None }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct OverflowReader {
-    position: u64,
-    main: File,
+    main: Arc<RandomAccessFile>,
+    overflow: Arc<RandomAccessFile>,
     main_len: u64,
-    overflow: File,
-    len: u64,
+    total_len: u64,
 }
 
 impl OverflowReader {
     pub fn new(main_path: &Path, overflow_path: &Path) -> io::Result<Self> {
-        let main = File::open(main_path)?;
-        let main_len = main.metadata()?.len();
-        let overflow = File::open(overflow_path)?;
-        let len = main_len + overflow.metadata()?.len();
+        let main_file = File::open(main_path)?;
+        let overflow_file = File::open(overflow_path)?;
+
+        let main_len = main_file.metadata()?.len();
+        let total_len = main_len + overflow_file.metadata()?.len();
+
+        let main = RandomAccessFile::try_new(main_file)?;
+        let overflow = RandomAccessFile::try_new(overflow_file)?;
 
         Ok(Self {
-            position: 0,
-            main,
+            main: Arc::new(main),
+            overflow: Arc::new(overflow),
             main_len,
-            overflow,
-            len,
+            total_len,
         })
     }
 }
 
-impl Read for OverflowReader {
-    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        let remaining_in_main = (self.len - self.position).min(usize::MAX as u64) as usize;
+impl DiscStream for OverflowReader {
+    fn read_exact_at(&mut self, buf: &mut [u8], offset: u64) -> io::Result<()> {
+        let buf_len = buf.len() as u64;
+        let end = offset + buf_len;
 
-        let bytes_read = if self.position < self.main_len {
-            if remaining_in_main < buf.len() {
-                self.main.read_exact(&mut buf[..remaining_in_main])?;
-                let overflow_n = self.overflow.read(&mut buf[remaining_in_main..])?;
-                remaining_in_main + overflow_n
-            } else {
-                self.main.read(buf)?
-            }
+        if end <= self.main_len {
+            self.main.read_exact_at(offset, buf)?;
+        } else if offset >= self.main_len {
+            let overflow_offset = offset - self.main_len;
+            self.overflow.read_exact_at(overflow_offset, buf)?;
         } else {
-            self.overflow.read(buf)?
-        };
+            let bytes_in_main = (self.main_len - offset) as usize;
+            self.main.read_exact_at(offset, &mut buf[..bytes_in_main])?;
+            self.overflow.read_exact_at(0, &mut buf[bytes_in_main..])?;
+        }
 
-        self.position += bytes_read as u64;
-        Ok(bytes_read)
+        Ok(())
     }
-}
 
-impl Seek for OverflowReader {
-    fn seek(&mut self, pos: SeekFrom) -> io::Result<u64> {
-        let new_pos = match pos {
-            SeekFrom::Start(offset) => Some(offset),
-            SeekFrom::Current(offset) => self.position.checked_add_signed(offset),
-            SeekFrom::End(offset) => self.len.checked_add_signed(offset),
-        }
-        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "invalid seek"))?;
-
-        if new_pos < self.main_len {
-            self.main.seek(SeekFrom::Start(new_pos))?;
-            self.overflow.seek(SeekFrom::Start(0))?;
-        } else {
-            let overflow_pos = new_pos - self.main_len;
-            self.overflow.seek(SeekFrom::Start(overflow_pos))?;
-            self.main.seek(SeekFrom::End(0))?;
-        }
-
-        self.position = new_pos;
-        Ok(new_pos)
+    fn stream_len(&mut self) -> io::Result<u64> {
+        Ok(self.total_len)
     }
 }
