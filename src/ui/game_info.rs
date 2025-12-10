@@ -377,17 +377,14 @@ pub fn update(ctx: &egui::Context, app: &App, game_i: u16) {
             }
 
             // Integrity check button
-            let has_embedded_crc32 = disc_info
-                .as_ref()
-                .is_some_and(|disc_info| disc_info.crc32.is_some());
-
-            if (has_embedded_crc32 || game_info.is_some())
+            if let Some(disc_info) = disc_info
+                && (disc_info.crc32.is_some() || game_info.is_some())
                 && ui
                     .button(format!("{} Verify Hashes", egui_phosphor::regular::CHECKS))
                     .on_hover_text("Integrity Check")
                     .clicked()
             {
-                checksum::spawn_checksum_task(app, game.path.clone(), game_info);
+                checksum::spawn_checksum_task(app, disc_info.clone(), game_info);
             }
 
             // Download cheats
