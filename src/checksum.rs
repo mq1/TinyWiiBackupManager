@@ -92,7 +92,7 @@ pub fn calc_crc32(game_dir: &Path, msg_sender: &Sender<Message>) -> Result<u32> 
 
     let disc = if let Some(overflow) = overflow {
         let reader = OverflowReader::new(&path, &overflow)?;
-        DiscReader::new_from_non_cloneable_read(reader, &get_disc_opts())?
+        DiscReader::new_stream(Box::new(reader), &get_disc_opts())?
     } else {
         DiscReader::new(&path, &get_disc_opts())?
     };
