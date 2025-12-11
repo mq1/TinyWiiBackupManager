@@ -1,8 +1,9 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::disc_info::DiscInfo;
+use crate::{disc_info::DiscInfo, overflow_writer::get_overflow_path};
 use anyhow::Result;
+use nod::common::Format;
 use sanitize_filename::sanitize;
 use std::{fs, path::Path};
 use walkdir::WalkDir;
@@ -16,13 +17,46 @@ pub fn normalize_games_dir(games_dir: &Path) -> Result<()> {
         let path = entry.path();
 
         if let Ok(disc_info) = DiscInfo::from_game_dir(path) {
+            let game_id = disc_info.id.as_str();
+
+            let new_disc_name = match disc_info.format {
+                Format::Wbfs => format!("{}.wbfs", game_id),
+                Format::Ciso => match disc_info.disc_num {
+                    0 => "game.ciso".to_string(),
+                    n => format!("disc{}.ciso", n + 1),
+                },
+                Format::Iso => match disc_info.is_wii {
+                    true => format!("{}.iso", game_id),
+                    false => match disc_info.disc_num {
+                        0 => "game.iso".to_string(),
+                        n => format!("disc{}.iso", n + 1),
+                    },
+                },
+                _ => continue,
+            };
+            let new_disc_path = path.join(new_disc_name);
+
+            if disc_info.disc_path != new_disc_path {
+                fs::rename(&disc_info.disc_path, &new_disc_path)?;
+            }
+
+            if let Some(overflow_path) = get_overflow_path(&disc_info.disc_path)
+                && overflow_path.exists()
+                && let Some(new_overflow_path) = get_overflow_path(&new_disc_path)
+                && overflow_path != new_overflow_path
+            {
+                fs::rename(overflow_path, new_overflow_path)?;
+            }
+
             let new_game_dir = games_dir.join(format!(
                 "{} [{}]",
                 sanitize(&disc_info.title),
                 disc_info.id.as_str()
             ));
 
-            fs::rename(path, new_game_dir)?;
+            if path != new_game_dir {
+                fs::rename(path, new_game_dir)?;
+            }
         }
     }
 
