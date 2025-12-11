@@ -55,7 +55,7 @@ impl Notifications {
         self.toasts.add(Toast {
             text: s.into(),
             kind: ToastKind::Success,
-            options: ToastOptions::default().duration_in_seconds(10.0),
+            options: ToastOptions::default(),
             style: self.style.clone(),
         });
     }
