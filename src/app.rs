@@ -399,7 +399,7 @@ impl App {
 
                 let out_path = dest_dir.join(format!("{}.{}", disc_info.title, ext));
 
-                convert::spawn_conv_game_task(self, disc_info.main_disc_path, out_path);
+                convert::spawn_conv_game_task(self, disc_info.disc_path, out_path);
             }
         } else {
             self.notifications.show_err(anyhow!("Disc not found"));
