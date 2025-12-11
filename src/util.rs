@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use anyhow::{Context, Result, bail};
+use anyhow::{Context, Result};
 use size::Size;
 use std::{
     io::{Seek, SeekFrom, Write},
@@ -32,22 +32,33 @@ pub fn get_disk_usage(mount_point: &Path) -> String {
 }
 
 /// Returns Ok if we can create a file >4 GiB in this directory
-pub fn can_write_over_4gb(mount_point: &Path) -> Result<()> {
+pub fn can_write_over_4gb(mount_point: &Path) -> bool {
     if mount_point.as_os_str().is_empty() {
-        bail!("Fat32 check failed: No mount point selected");
+        return false;
     }
 
     // Create a temp file in the target directory
-    let mut tmp = NamedTempFile::new_in(mount_point)?;
+    let mut tmp = if let Ok(tmp) = NamedTempFile::new_in(mount_point) {
+        tmp
+    } else {
+        return false;
+    };
 
     // Seek to 4 GiB
-    tmp.as_file_mut()
-        .seek(SeekFrom::Start(4 * 1024 * 1024 * 1024))?;
+    if tmp
+        .as_file_mut()
+        .seek(SeekFrom::Start(4 * 1024 * 1024 * 1024))
+        .is_err()
+    {
+        return false;
+    }
 
     // Write a single byte
-    tmp.as_file_mut().write_all(&[0])?;
+    if tmp.as_file_mut().write_all(&[0]).is_err() {
+        return false;
+    }
 
-    Ok(())
+    true
 }
 
 pub fn get_threads_num() -> (usize, usize) {

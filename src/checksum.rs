@@ -6,7 +6,6 @@ use crate::disc_info::DiscInfo;
 use crate::messages::Message;
 use crate::{
     convert::{get_disc_opts, get_process_opts},
-    overflow_reader::OverflowReader,
     wiitdb::GameInfo,
 };
 use anyhow::{Result, anyhow};
@@ -64,8 +63,7 @@ pub fn spawn_checksum_task(app: &App, disc_info: DiscInfo, game_info: Option<&Ga
 }
 
 pub fn calc_crc32(disc_info: &DiscInfo, msg_sender: &Sender<Message>) -> Result<u32> {
-    let reader = OverflowReader::new(&disc_info.main_disc_path)?;
-    let disc = DiscReader::new_stream(Box::new(reader), &get_disc_opts())?;
+    let disc = DiscReader::new(&disc_info.disc_path, &get_disc_opts())?;
     let disc_writer = DiscWriter::new(disc, &FormatOptions::default())?;
 
     let finalization = disc_writer.process(
