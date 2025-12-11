@@ -73,7 +73,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                     .radio_value(
                         &mut app.config.contents.gc_output_format,
                         Format::Ciso,
-                        "CISO (small but poor compatibility)",
+                        "CISO (smaller, slightly slower, less metadata in game loaders)",
                     )
                     .changed()
                 {
