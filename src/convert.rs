@@ -2,13 +2,12 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::app::App;
-use crate::disc_info::is_worth_stripping;
+use crate::disc_info::{get_main_file, is_worth_stripping};
 use crate::extensions::{ext_to_format, format_to_opts};
 use crate::messages::Message;
-use crate::overflow_reader::get_main_file;
+use crate::overflow_writer::get_overflow_path;
 use crate::{
     disc_info::DiscInfo,
-    overflow_reader::OverflowReader,
     overflow_writer::OverflowWriter,
     util::{self, can_write_over_4gb},
 };
@@ -75,8 +74,7 @@ pub fn spawn_strip_game_task(app: &App, disc_info: DiscInfo) {
         let dir_path = parent_dir.join(new_name);
         let out_path = dir_path.join(format!("{}.wbfs", disc_info.id.as_str()));
 
-        let reader = OverflowReader::new(&disc_info.main_disc_path)?;
-        let disc = DiscReader::new_stream(Box::new(reader), &get_disc_opts())?;
+        let disc = DiscReader::new(&disc_info.disc_path, &get_disc_opts())?;
 
         let mut overflow_writer = OverflowWriter::new(&out_path, always_split)?;
 
@@ -184,8 +182,7 @@ pub fn spawn_conv_game_task(app: &App, in_path: PathBuf, out_path: PathBuf) {
             .and_then(ext_to_format)
             .ok_or(anyhow!("Invalid output file extension"))?;
 
-        let reader = OverflowReader::new(&in_path)?;
-        let disc = DiscReader::new_stream(Box::new(reader), &get_disc_opts())?;
+        let disc = DiscReader::new(&in_path, &get_disc_opts())?;
         let game_title = disc.header().game_title_str().to_string();
 
         let mut overflow_writer = OverflowWriter::new(&out_path, always_split)?;
@@ -256,11 +253,8 @@ pub fn spawn_add_game_task(app: &App, in_path: PathBuf, should_download_covers: 
             }
         }
 
-        let overflow_path;
         {
-            let reader = OverflowReader::new(&in_path)?;
-            overflow_path = reader.overflow_path.clone();
-            let disc = DiscReader::new_stream(Box::new(reader), &get_disc_opts())?;
+            let disc = DiscReader::new(&in_path, &get_disc_opts())?;
 
             let disc_header = disc.header();
             let game_id = disc_header.game_id_str().to_string();
@@ -274,7 +268,7 @@ pub fn spawn_add_game_task(app: &App, in_path: PathBuf, should_download_covers: 
             let out_file_name = if is_wii {
                 if wii_output_format == Format::Wbfs {
                     format!("{}.wbfs", &game_id)
-                } else if always_split || can_write_over_4gb(&mount_point).is_err() {
+                } else if always_split || !can_write_over_4gb(&mount_point) {
                     format!("{}.part0.iso", &game_id)
                 } else {
                     format!("{}.iso", &game_id)
@@ -331,7 +325,7 @@ pub fn spawn_add_game_task(app: &App, in_path: PathBuf, should_download_covers: 
 
         if remove_sources {
             fs::remove_file(&in_path)?;
-            if let Some(overflow_path) = &overflow_path {
+            if let Some(overflow_path) = get_overflow_path(&in_path) {
                 fs::remove_file(overflow_path)?;
             }
         }
@@ -346,6 +340,6 @@ pub fn spawn_add_games_task(app: &App, discs: Box<[DiscInfo]>) {
     let last_i = discs.len() - 1;
 
     for (i, disc_info) in discs.into_iter().enumerate() {
-        spawn_add_game_task(app, disc_info.main_disc_path, i == last_i);
+        spawn_add_game_task(app, disc_info.disc_path, i == last_i);
     }
 }
