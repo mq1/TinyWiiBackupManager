@@ -28,20 +28,16 @@ jobs:
           - target: x86_64-unknown-linux-gnu
             runner: ubuntu-24.04
             arch: x86_64
-            ldai-arch: x86_64
           - target: x86_64-unknown-linux-gnu
             runner: ubuntu-24.04
             arch: x86_64-v3
-            ldai-arch: x86_64
             rustflags: "-C target-cpu=x86-64-v3"
           - target: aarch64-unknown-linux-gnu
             runner: ubuntu-24.04-arm
-            arch: arm64
-            ldai-arch: aarch64
+            arch: aarch64
           - target: i686-unknown-linux-gnu
             runner: ubuntu-24.04
-            arch: x86
-            ldai-arch: none
+            arch: i686
 
     steps:
       - name: Checkout
@@ -50,7 +46,7 @@ jobs:
           fetch-depth: 1
 
       - name: Install dependencies
-        if: matrix.arch == 'x86'
+        if: matrix.arch == 'i686'
         run: sudo apt-get install -y libc6-dev-i386
 
       - name: Install Rust toolchain
@@ -64,11 +60,12 @@ jobs:
           key: ${{ matrix.arch }}
 
       - name: Download LinuxDeploy
-        if: matrix.ldai-arch != 'none'
+        if: matrix.arch != 'i686'
         run: |
-          wget "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${{ matrix.ldai-arch }}.AppImage"
-          wget "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-${{ matrix.ldai-arch }}.AppImage"
-          chmod +x linuxdeploy-${{ matrix.ldai-arch }}.AppImage linuxdeploy-plugin-appimage-${{ matrix.ldai-arch }}.AppImage
+          ldai_arch=$(uname -m)
+          wget "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${ldai_arch}.AppImage"
+          wget "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-${ldai_arch}.AppImage"
+          chmod +x *.AppImage
 
       - name: Build binary
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
@@ -85,9 +82,9 @@ jobs:
           tar -I 'gzip -9' -cvf "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.tar.gz" TinyWiiBackupManager "Rename TinyWiiBackupManager to TinyWiiBackupManager-portable to make it portable"
 
       - name: Package binary as AppImage
-        if: matrix.ldai-arch != 'none'
+        if: matrix.arch != 'i686'
         run: |
-          ./linuxdeploy-${{ matrix.ldai-arch }}.AppImage --appdir TinyWiiBackupManager.AppDir -e target/${{ matrix.target }}/release/TinyWiiBackupManager -d assets/TinyWiiBackupManager.desktop -i assets/TinyWiiBackupManager.png --output appimage
+          ./linuxdeploy-*.AppImage --appdir TinyWiiBackupManager.AppDir -e target/${{ matrix.target }}/release/TinyWiiBackupManager -d assets/TinyWiiBackupManager.desktop -i assets/TinyWiiBackupManager.png --output appimage
           mv "TinyWiiBackupManager-${{ matrix.ldai-arch }}.AppImage" "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
           mv "TinyWiiBackupManager-${{ matrix.ldai-arch }}.AppImage.zsync" "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage.zsync"
         env:
@@ -108,12 +105,12 @@ jobs:
         include:
           - target: x86_64-pc-windows-msvc
             runner: windows-2025
-            arch: x86_64
+            arch: x64
             features: native-tls
             pc: windows
           - target: x86_64-pc-windows-msvc
             runner: windows-2025
-            arch: x86_64-v3
+            arch: x64-v3
             rustflags: "-C target-cpu=x86-64-v3"
             features: native-tls
             pc: windows
@@ -129,7 +126,7 @@ jobs:
             pc: windows
           - target: x86_64-win7-windows-msvc
             runner: windows-2025
-            arch: x86_64
+            arch: x64
             features: bundled-tls
             pc: windows7
           - target: i686-win7-windows-msvc
@@ -303,13 +300,13 @@ jobs:
       - name: Generate TinyWiiBackupManager.json
         run: |
           plain_ver="${VERSION_NAME#v}" # Remove leading 'v'
-          x86_64_hash=$(sha256sum dist/TinyWiiBackupManager-${VERSION_NAME}-windows-x86_64.zip | cut -d' ' -f1)
+          x64_hash=$(sha256sum dist/TinyWiiBackupManager-${VERSION_NAME}-windows-x64.zip | cut -d' ' -f1)
           arm64_hash=$(sha256sum dist/TinyWiiBackupManager-${VERSION_NAME}-windows-arm64.zip | cut -d' ' -f1)
           x86_hash=$(sha256sum dist/TinyWiiBackupManager-${VERSION_NAME}-windows-x86.zip | cut -d' ' -f1)
           
           cp assets/scoop-template.json bucket/TinyWiiBackupManager.json
           sed -i "s/PLAIN_VER/${plain_ver}/g" bucket/TinyWiiBackupManager.json
-          sed -i "s/X86_64_HASH/${x86_64_hash}/g" bucket/TinyWiiBackupManager.json
+          sed -i "s/X64_HASH/${x64_hash}/g" bucket/TinyWiiBackupManager.json
           sed -i "s/ARM64_HASH/${arm64_hash}/g" bucket/TinyWiiBackupManager.json
           sed -i "s/X86_HASH/${x86_hash}/g" bucket/TinyWiiBackupManager.json
 
@@ -320,3 +317,4 @@ jobs:
           git add bucket/TinyWiiBackupManager.json
           git commit -m "🍨 Scoop: update TinyWiiBackupManager to ${VERSION_NAME} [skip ci]"
           git push
+

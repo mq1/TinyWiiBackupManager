@@ -15,8 +15,8 @@
   ],
   "architecture": {
     "64bit": {
-      "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/vPLAIN_VER/TinyWiiBackupManager-vPLAIN_VER-windows-x86_64.zip",
-      "hash": "X86_64_HASH"
+      "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/vPLAIN_VER/TinyWiiBackupManager-vPLAIN_VER-windows-x64.zip",
+      "hash": "X64_HASH"
     },
     "arm64": {
       "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/vPLAIN_VER/TinyWiiBackupManager-vPLAIN_VER-windows-arm64.zip",
