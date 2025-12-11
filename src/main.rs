@@ -19,7 +19,6 @@ mod http;
 mod id_map;
 mod notifications;
 mod osc;
-mod overflow_reader;
 mod overflow_writer;
 mod tasks;
 mod txtcodes;

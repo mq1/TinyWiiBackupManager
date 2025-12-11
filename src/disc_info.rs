@@ -1,14 +1,15 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::convert::get_disc_opts;
 use crate::extensions::ext_to_format;
 use crate::games::GameID;
-use crate::{convert::get_disc_opts, overflow_reader::get_main_file};
 use anyhow::{Result, anyhow};
 use nod::common::{Compression, Format, PartitionKind};
 use nod::read::{DiscReader, PartitionOptions};
 use size::Size;
-use std::fs::File;
+use std::ffi::OsStr;
+use std::fs::{self, File};
 use std::io::{BufReader, Read};
 use std::path::{Path, PathBuf};
 use zip::ZipArchive;
@@ -16,7 +17,7 @@ use zip::ZipArchive;
 #[derive(Debug, Clone, Default)]
 pub struct DiscInfo {
     pub game_dir: PathBuf,
-    pub main_disc_path: PathBuf,
+    pub disc_path: PathBuf,
 
     // discheader
     pub id: GameID,
@@ -41,6 +42,21 @@ pub struct DiscInfo {
 
     // misc
     pub is_worth_stripping: bool,
+}
+
+pub fn get_main_file(game_dir: &Path) -> Option<PathBuf> {
+    for entry in fs::read_dir(game_dir).ok()?.filter_map(Result::ok) {
+        let path = entry.path();
+
+        if let Some(stem) = path.file_stem().and_then(OsStr::to_str)
+            && let Some(ext) = path.extension().and_then(OsStr::to_str)
+            && (ext == "wbfs" || ext == "ciso" || (ext == "iso" && !stem.ends_with("part1")))
+        {
+            return Some(path);
+        }
+    }
+
+    None
 }
 
 impl DiscInfo {
@@ -73,7 +89,7 @@ impl DiscInfo {
         let format = ext_to_format(ext).ok_or(anyhow!("Unsupported file extension"))?;
 
         Ok(Self {
-            main_disc_path: zip_file.to_path_buf(),
+            disc_path: zip_file.to_path_buf(),
             title: file_stem.to_string(),
             format,
             ..Self::default()
@@ -90,7 +106,7 @@ impl DiscInfo {
 
         Ok(Self {
             game_dir: parent_dir.to_path_buf(),
-            main_disc_path: disc_path,
+            disc_path,
 
             // discheader
             id: GameID(header.game_id),
