@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/ScoopInstaller/Scoop/master/schema.json",
-  "version": "4.9.1",
+  "version": "4.9.2",
   "description": "A tiny game backup and homebrew app manager for the Wii",
   "homepage": "https://github.com/mq1/TinyWiiBackupManager",
   "license": {
@@ -15,16 +15,16 @@
   ],
   "architecture": {
     "64bit": {
-      "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/v4.9.1/TinyWiiBackupManager-v4.9.1-windows-x86_64.zip",
-      "hash": "46073b3c1c01a3219bb137b4fff21c5fc01a4d90e326fc5c9e5e6f639844de49"
+      "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/v4.9.2/TinyWiiBackupManager-v4.9.2-windows-x86_64.zip",
+      "hash": "a01be470f85dde1349ff3ec0bfcb1aff9c44faabdbfc2bd72ae3d6adeee13015"
     },
     "arm64": {
-      "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/v4.9.1/TinyWiiBackupManager-v4.9.1-windows-arm64.zip",
-      "hash": "f4980016dd082bd75d986862edffe4cab5aeba8d692f75d8a82f6babf9c64502"
+      "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/v4.9.2/TinyWiiBackupManager-v4.9.2-windows-arm64.zip",
+      "hash": "c67bc3e68f703c883c3d2375ed82bfb0a2a0c0626f7b76137e10fd8bc1b92eca"
     },
     "32bit": {
-      "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/v4.9.1/TinyWiiBackupManager-v4.9.1-windows-x86.zip",
-      "hash": "acf08862e0e1890afdec1a46734e5cfeb705621db6cdf0e9c237412211e1fb41"
+      "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/v4.9.2/TinyWiiBackupManager-v4.9.2-windows-x86.zip",
+      "hash": "b1975751fc29097e66eef66174294fac5ef57143b9e0fd778d2cb80d1a8cc957"
     }
   }
 }
