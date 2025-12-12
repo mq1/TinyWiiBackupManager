@@ -1,9 +1,16 @@
 <img alt="TinyWiiBackupManager Logo" width="128" src="assets/TinyWiiBackupManager.png" align="left">
 
-### `TinyWiiBackupManager` <sub><sup>(A tiny game backup and homebrew app manager for the Wii)</sup></sub>
+### `TinyWiiBackupManager`<br><sub><sup>⭐ A tiny game backup and homebrew app manager for the Wii</sup></sub>
 
-<sub>‼️ TinyWiiBackupManager is intended strictly for legal homebrew use and is not affiliated with or endorsed by
-Nintendo.<br>‼️ Use of TinyWiiBackupManager for pirated or unauthorized copies of games is strictly prohibited.</sub>
+[![Downloads](https://img.shields.io/github/downloads/mq1/TinyWiiBackupManager/total)](https://github.com/mq1/TinyWiiBackupManager?tab=readme-ov-file#%EF%B8%8F-downloads)
+[![License](https://img.shields.io/github/license/mq1/TinyWiiBackupManager)](https://github.com/mq1/TinyWiiBackupManager/blob/main/COPYING)
+[![Top Language](https://img.shields.io/github/languages/top/mq1/TinyWiiBackupManager)](https://github.com/mq1/TinyWiiBackupManager/search?l=rust)
+
+<br>
+
+> [!CAUTION]
+> TinyWiiBackupManager is intended strictly for legal homebrew use and is not affiliated with or endorsed by Nintendo.\
+> Use of TinyWiiBackupManager for pirated or unauthorized copies of games is strictly prohibited.
 
 <p align="center">
   <img alt="App Screenshot" src="assets/screenshot.png">
