@@ -10,12 +10,7 @@
         <name>Manuel Quarneti</name>
     </developer>
     <description>
-        <ul>
-            <li>‼️ TinyWiiBackupManager is intended strictly for legal homebrew use and is not affiliated with or
-                endorsed by Nintendo. Use of TinyWiiBackupManager for pirated or unauthorized copies of games is
-                strictly prohibited.
-            </li>
-        </ul>
+        <p>‼️ TinyWiiBackupManager is intended strictly for legal homebrew use and is not affiliated with or endorsed by Nintendo. Use of TinyWiiBackupManager for pirated or unauthorized copies of games is strictly prohibited.</p>
         <p>✨ Features</p>
         <ul>
             <li>Lightweight &amp; Fast: Native DX12/Metal/OpenGL rendering, -O3, LTO, x86_64-v3 optimized builds</li>
@@ -30,8 +25,7 @@
             <li>Game Archiving: Archive games using RVZ+zstd-19</li>
             <li>Integrity Checks: Verify game data for corruption</li>
             <li>GameTDB: Fetch covers and wiitdb.xml from GameTDB</li>
-            <li>TxtCodes: Download cheat codes from geckocodes.org (web archive), codes.rc24.xyz and gamehacking.org
-            </li>
+            <li>TxtCodes: Download cheat codes from geckocodes.org (web archive), codes.rc24.xyz and gamehacking.org</li>
         </ul>
         <p>🛠️ Wii Homebrew Management</p>
         <ul>
@@ -59,11 +53,14 @@
     <url type="vcs-browser">https://github.com/mq1/TinyWiiBackupManager</url>
     <screenshots>
         <screenshot type="default">
-            <image>https://github.com/mq1/TinyWiiBackupManager/blob/v4.9.1/assets/screenshot.png?raw=true</image>
+            <image>https://github.com/mq1/TinyWiiBackupManager/blob/v4.9.2/assets/screenshot.png?raw=true</image>
             <caption>TinyWiiBackupManager screenshot</caption>
         </screenshot>
     </screenshots>
     <releases>
+        <release version="4.9.2" date="2025-12-12">
+            <url type="details">https://github.com/mq1/TinyWiiBackupManager/releases/tag/v4.9.2</url>
+        </release>
         <release version="4.9.1" date="2025-12-11">
             <url type="details">https://github.com/mq1/TinyWiiBackupManager/releases/tag/v4.9.1</url>
         </release>
