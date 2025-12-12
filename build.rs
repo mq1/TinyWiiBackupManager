@@ -94,7 +94,7 @@ fn main() {
     static_vcruntime::metabuild();
 
     #[cfg(windows)]
-    let mut res = winres::WindowsResource::new();
+    let mut res = winresource::WindowsResource::new();
 
     #[cfg(windows)]
     res.set_icon("assets/TinyWiiBackupManager.ico");
