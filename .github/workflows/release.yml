@@ -55,8 +55,8 @@ jobs:
 
       - name: Install Rust toolchain
         run: |
-          rustup toolchain install 1.91 --component rust-src
-          rustup default 1.91
+          rustup toolchain install 1.92 --component rust-src
+          rustup default 1.92
 
       - name: Restore Rust cache
         uses: Swatinem/rust-cache@v2
@@ -147,8 +147,8 @@ jobs:
       - name: Install Rust toolchain
         shell: pwsh
         run: |
-          rustup toolchain install 1.91 --component rust-src
-          rustup default 1.91
+          rustup toolchain install 1.92 --component rust-src
+          rustup default 1.92
 
       - name: Restore Rust cache
         uses: Swatinem/rust-cache@v2
@@ -208,8 +208,8 @@ jobs:
 
       - name: Install Rust toolchain
         run: |
-          rustup toolchain install 1.91 --component rust-src
-          rustup default 1.91
+          rustup toolchain install 1.92 --component rust-src
+          rustup default 1.92
 
       - name: Restore Rust cache
         uses: Swatinem/rust-cache@v2
