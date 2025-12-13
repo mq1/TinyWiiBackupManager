@@ -7,7 +7,7 @@ use crate::http;
 use crate::messages::Message;
 use anyhow::{Context, Result};
 use capitalize::Capitalize;
-use egui_phosphor::bold as ph;
+use egui_phosphor::fill as ph;
 use serde::Deserialize;
 use std::fs::{self, File};
 use std::io::BufReader;

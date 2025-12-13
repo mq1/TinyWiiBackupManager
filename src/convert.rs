@@ -12,7 +12,7 @@ use crate::{
     util::{self, can_write_over_4gb},
 };
 use anyhow::{anyhow, bail};
-use egui_phosphor::bold as ph;
+use egui_phosphor::fill as ph;
 use nod::{
     common::Format,
     read::{DiscOptions, DiscReader, PartitionEncryption},
