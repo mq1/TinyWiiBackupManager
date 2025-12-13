@@ -40,9 +40,11 @@ fn update_top_bar(ui: &mut egui::Ui, app: &mut App) {
 
     ui.horizontal(|ui| {
         group.show(ui, |ui| {
-            ui.set_height(25.);
             ui.add_space(3.);
-            ui.label(egui_phosphor::regular::MAGNIFYING_GLASS);
+            ui.vertical(|ui| {
+                ui.add_space(2.);
+                ui.label(egui_phosphor::regular::MAGNIFYING_GLASS);
+            });
 
             if ui
                 .add(
