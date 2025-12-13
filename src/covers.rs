@@ -5,6 +5,7 @@ use crate::app::App;
 use crate::messages::Message;
 use crate::{games::GameID, http};
 use anyhow::Result;
+use egui_phosphor::regular as ph;
 use std::{fs, path::Path};
 
 fn download_cover3d(id: GameID, mount_point: &Path) -> Result<bool> {
@@ -151,7 +152,7 @@ pub fn spawn_download_covers_task(app: &App) {
         for (i, game) in games.into_iter().enumerate() {
             msg_sender.send(Message::UpdateStatus(format!(
                 "{} Downloading covers... ({}/{})",
-                egui_phosphor::regular::IMAGE,
+                ph::IMAGE,
                 i + 1,
                 len
             )))?;
@@ -165,7 +166,7 @@ pub fn spawn_download_covers_task(app: &App) {
 
         msg_sender.send(Message::NotifyInfo(format!(
             "{} Covers downloaded",
-            egui_phosphor::regular::IMAGE
+            ph::IMAGE
         )))?;
 
         Ok(())
@@ -183,7 +184,7 @@ pub fn spawn_download_all_covers_task(app: &App) {
         for (i, game) in games.into_iter().enumerate() {
             msg_sender.send(Message::UpdateStatus(format!(
                 "{} Downloading covers... ({}/{})",
-                egui_phosphor::regular::IMAGE,
+                ph::IMAGE,
                 i + 1,
                 len
             )))?;
@@ -209,7 +210,7 @@ pub fn spawn_download_all_covers_task(app: &App) {
 
         msg_sender.send(Message::NotifyInfo(format!(
             "{} Covers downloaded",
-            egui_phosphor::regular::IMAGE
+            ph::IMAGE
         )))?;
 
         Ok(())
@@ -223,14 +224,14 @@ pub fn spawn_download_wiiflow_covers_task(app: &App) {
     app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(Message::UpdateStatus(format!(
             "{} Downloading covers...",
-            egui_phosphor::regular::IMAGE
+            ph::IMAGE
         )))?;
 
         let len = games.len();
         for (i, game) in games.into_iter().enumerate() {
             msg_sender.send(Message::UpdateStatus(format!(
                 "{} Downloading covers... ({}/{})",
-                egui_phosphor::regular::IMAGE,
+                ph::IMAGE,
                 i + 1,
                 len
             )))?;
@@ -246,7 +247,7 @@ pub fn spawn_download_wiiflow_covers_task(app: &App) {
 
         msg_sender.send(Message::NotifyInfo(format!(
             "{} Covers downloaded",
-            egui_phosphor::regular::IMAGE
+            ph::IMAGE
         )))?;
 
         Ok(())

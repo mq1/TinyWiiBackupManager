@@ -9,6 +9,7 @@ use crate::{
 };
 use eframe::egui;
 use egui_extras::{Column, TableBuilder};
+use egui_phosphor::regular as ph;
 
 pub fn update(ui: &mut egui::Ui, app: &mut App) {
     TableBuilder::new(ui)
@@ -62,7 +63,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                         ui.horizontal(|ui| {
                             // Info button
                             if ui
-                                .button(format!("{} Info", egui_phosphor::regular::INFO))
+                                .button(format!("{} Info", ph::INFO))
                                 .on_hover_text("Show App Info")
                                 .clicked()
                             {
@@ -75,10 +76,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
 
                                 if osc_app.meta.version != hbc_app.meta.version
                                     && ui
-                                        .button(format!(
-                                            "{} Update",
-                                            egui_phosphor::regular::CLOUD_ARROW_DOWN
-                                        ))
+                                        .button(format!("{} Update", ph::CLOUD_ARROW_DOWN))
                                         .on_hover_text(
                                             "Download update from OSC: v".to_string()
                                                 + &osc_app.meta.version,
@@ -94,7 +92,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
 
                             // Delete button
                             if ui
-                                .button(format!("{} Delete", egui_phosphor::regular::TRASH))
+                                .button(format!("{} Delete", ph::TRASH))
                                 .on_hover_text("Delete HBC App")
                                 .clicked()
                             {

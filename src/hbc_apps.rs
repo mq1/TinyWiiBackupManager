@@ -6,6 +6,7 @@ use crate::messages::Message;
 use crate::osc::OscApp;
 use crate::{config::SortBy, http};
 use anyhow::{Result, anyhow, bail};
+use egui_phosphor::regular as ph;
 use path_slash::PathBufExt;
 use serde::{Deserialize, Deserializer};
 use size::Size;
@@ -61,29 +62,19 @@ pub struct HbcApp {
 impl HbcApp {
     pub fn from_path(path: PathBuf, osc_apps: &[OscApp]) -> Result<Self> {
         if !path.is_dir() {
-            bail!(
-                "{} {} is not a directory",
-                egui_phosphor::regular::FILE_X,
-                path.display()
-            );
+            bail!("{} {} is not a directory", ph::FILE_X, path.display());
         }
 
         let slug = path
             .file_name()
-            .ok_or(anyhow!(
-                "{} No file name found",
-                egui_phosphor::regular::FILE_X
-            ))?
+            .ok_or(anyhow!("{} No file name found", ph::FILE_X))?
             .to_str()
-            .ok_or(anyhow!(
-                "{} Invalid file name",
-                egui_phosphor::regular::FILE_X
-            ))?;
+            .ok_or(anyhow!("{} Invalid file name", ph::FILE_X))?;
 
         if slug.starts_with('.') {
             bail!(
                 "{} Skipping hidden directory {}",
-                egui_phosphor::regular::FOLDER_DASHED,
+                ph::FOLDER_DASHED,
                 path.display()
             );
         }
@@ -161,7 +152,7 @@ pub fn spawn_install_app_from_url_task(app: &App, zip_url: String) {
     app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(Message::UpdateStatus(format!(
             "{} Downloading {}...",
-            egui_phosphor::regular::CLOUD_ARROW_DOWN,
+            ph::CLOUD_ARROW_DOWN,
             &zip_url
         )))?;
 
@@ -171,7 +162,7 @@ pub fn spawn_install_app_from_url_task(app: &App, zip_url: String) {
 
         msg_sender.send(Message::NotifyInfo(format!(
             "{} {} Downloaded",
-            egui_phosphor::regular::CLOUD_ARROW_DOWN,
+            ph::CLOUD_ARROW_DOWN,
             &zip_url
         )))?;
 
@@ -186,13 +177,13 @@ pub fn spawn_install_apps_task(app: &App, paths: Box<[PathBuf]>) {
     app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(Message::UpdateStatus(format!(
             "{} Installing apps...",
-            egui_phosphor::regular::WAVES
+            ph::WAVES
         )))?;
 
         for path in &paths {
             msg_sender.send(Message::UpdateStatus(format!(
                 "{} Installing {}...",
-                egui_phosphor::regular::WAVES,
+                ph::WAVES,
                 path.display()
             )))?;
             install_zip(&mount_point, path)?;
@@ -205,7 +196,7 @@ pub fn spawn_install_apps_task(app: &App, paths: Box<[PathBuf]>) {
 
             msg_sender.send(Message::NotifyInfo(format!(
                 "{} Installed {}",
-                egui_phosphor::regular::WAVES,
+                ph::WAVES,
                 path.display()
             )))?;
         }
