@@ -6,7 +6,7 @@ use crate::id_map;
 use anyhow::Result;
 use anyhow::anyhow;
 use anyhow::bail;
-use egui_phosphor::regular as ph;
+use egui_phosphor::bold as ph;
 use path_slash::PathExt;
 use size::Size;
 use std::fs;

@@ -7,6 +7,7 @@ use crate::http;
 use crate::messages::Message;
 use anyhow::{Context, Result};
 use capitalize::Capitalize;
+use egui_phosphor::bold as ph;
 use serde::Deserialize;
 use std::fs::{self, File};
 use std::io::BufReader;
@@ -21,7 +22,7 @@ pub fn spawn_download_task(app: &App) {
     app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(Message::UpdateStatus(format!(
             "{} Downloading wiitdb.xml...",
-            egui_phosphor::regular::CLOUD_ARROW_DOWN
+            ph::CLOUD_ARROW_DOWN
         )))?;
 
         // Create the target directory.
@@ -33,7 +34,7 @@ pub fn spawn_download_task(app: &App) {
 
         msg_sender.send(Message::NotifyInfo(format!(
             "{} wiitdb.xml Downloaded Successfully",
-            egui_phosphor::regular::CLOUD_ARROW_DOWN
+            ph::CLOUD_ARROW_DOWN
         )))?;
 
         Ok(())
@@ -56,7 +57,7 @@ impl Datafile {
 
         let file = File::open(&path).context(format!(
             "Failed to load wiitdb.xml, download it first ({} Tools page)",
-            egui_phosphor::regular::WRENCH
+            ph::WRENCH
         ))?;
 
         let reader = BufReader::new(file);
@@ -318,7 +319,7 @@ pub fn spawn_load_wiitdb_task(app: &App) {
     app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(Message::UpdateStatus(format!(
             "{} Loading wiitdb.xml...",
-            egui_phosphor::regular::FILE_CODE
+            ph::FILE_CODE
         )))?;
 
         let data = Datafile::load(&mount_point)?;
@@ -327,7 +328,7 @@ pub fn spawn_load_wiitdb_task(app: &App) {
 
         msg_sender.send(Message::NotifyInfo(format!(
             "{} wiitdb.xml loaded",
-            egui_phosphor::regular::FILE_CODE
+            ph::FILE_CODE
         )))?;
 
         Ok(())

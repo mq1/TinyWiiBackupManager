@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use egui_phosphor::regular as ph;
+use egui_phosphor::bold as ph;
 
 /// Map of developers to their emojis
 /// If you want to add yourself, open a PR or an issue :)

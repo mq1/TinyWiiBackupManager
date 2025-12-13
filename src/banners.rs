@@ -5,7 +5,7 @@ use crate::app::App;
 use crate::messages::Message;
 use crate::{games::GameID, http};
 use anyhow::Result;
-use egui_phosphor::regular as ph;
+use egui_phosphor::bold as ph;
 use std::{fs, path::Path};
 
 fn download_banner_for_game(cache_bnr_path: &Path, game_id: GameID) -> Result<()> {

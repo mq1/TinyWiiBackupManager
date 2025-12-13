@@ -6,7 +6,7 @@ use crate::txtcodes::TxtCodesSource;
 use crate::ui::accent::AccentColor;
 use eframe::egui;
 use eframe::egui::{ThemePreference, Vec2};
-use egui_phosphor::regular as ph;
+use egui_phosphor::bold as ph;
 use nod::common::Format;
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
