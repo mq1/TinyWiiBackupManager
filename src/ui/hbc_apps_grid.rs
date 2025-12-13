@@ -75,7 +75,7 @@ fn update_hbc_app_card(ui: &mut egui::Ui, app: &App, hbc_app_i: u16) {
 
             ui.add_space(10.);
 
-            ui.add(egui::Label::new(&hbc_app.meta.name).truncate());
+            ui.add(egui::Label::new(egui::RichText::new(&hbc_app.meta.name).strong()).truncate());
 
             ui.add_space(10.);
 
