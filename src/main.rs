@@ -32,10 +32,10 @@ pub mod known_mount_points;
 mod messages;
 
 use crate::app::App;
-use anyhow::{Result, anyhow};
-use eframe::egui::FontData;
+use anyhow::{Result, anyhow, bail};
+use eframe::egui::{FontData, FontDefinitions, FontFamily};
 use eframe::{
-    NativeOptions, egui,
+    NativeOptions,
     egui::{CornerRadius, ViewportBuilder, vec2},
 };
 use egui_extras::install_image_loaders;
@@ -89,11 +89,11 @@ fn main() -> Result<()> {
     // -------------
     // Initialize UI
 
-    let icon = if cfg!(target_os = "macos") {
-        egui::IconData::default()
-    } else {
-        eframe::icon_data::from_png_bytes(ui::LOGO_BYTES).expect("Failed to load icon")
-    };
+    #[cfg(target_os = "macos")]
+    let icon = eframe::egui::IconData::default();
+
+    #[cfg(not(target_os = "macos"))]
+    let icon = eframe::icon_data::from_png_bytes(ui::LOGO_BYTES).expect("Failed to load icon");
 
     let native_options = NativeOptions {
         viewport: ViewportBuilder::default()
@@ -114,18 +114,18 @@ fn main() -> Result<()> {
             cc.egui_ctx.set_theme(app.config.contents.theme_preference);
 
             // Load fonts and phosphor icons
-            let mut fonts = egui::FontDefinitions::empty();
+            let mut fonts = FontDefinitions::empty();
             fonts.font_data.insert(
-                "ubuntu".to_string(),
+                "manrope".to_string(),
                 Arc::new(FontData::from_static(include_bytes!(
-                    "../assets/Ubuntu-Light.ttf"
+                    "../assets/ManropeV5-Medium.otf"
                 ))),
             );
-            if let Some(font_keys) = fonts.families.get_mut(&egui::FontFamily::Proportional) {
-                font_keys.push("ubuntu".to_string());
+            if let Some(font_keys) = fonts.families.get_mut(&FontFamily::Proportional) {
+                font_keys.push("manrope".to_string());
             }
-            if let Some(font_keys) = fonts.families.get_mut(&egui::FontFamily::Monospace) {
-                font_keys.push("ubuntu".to_string());
+            if let Some(font_keys) = fonts.families.get_mut(&FontFamily::Monospace) {
+                font_keys.push("manrope".to_string());
             }
             egui_phosphor::add_to_fonts(&mut fonts, egui_phosphor::Variant::Regular);
             cc.egui_ctx.set_fonts(fonts);
@@ -140,7 +140,7 @@ fn main() -> Result<()> {
                 style.visuals.widgets.noninteractive.corner_radius = CornerRadius::same(8);
                 style.visuals.widgets.open.corner_radius = CornerRadius::same(30);
 
-                style.spacing.button_padding = vec2(5., 2.5);
+                style.spacing.button_padding = vec2(6., 3.);
             });
 
             // Load games and hbc apps
@@ -153,8 +153,7 @@ fn main() -> Result<()> {
     );
 
     if let Err(e) = res {
-        eprintln!("Failed to run app: {}", e);
-        std::process::exit(1);
+        bail!("Failed to start eframe: {e}");
     }
 
     Ok(())
