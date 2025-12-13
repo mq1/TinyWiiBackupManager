@@ -9,7 +9,7 @@ use crate::{
 };
 use eframe::egui;
 use egui_extras::{Column, TableBuilder};
-use egui_phosphor::bold as ph;
+use egui_phosphor::fill as ph;
 
 pub fn update(ui: &mut egui::Ui, app: &mut App) {
     TableBuilder::new(ui)

@@ -5,7 +5,7 @@ use crate::app::App;
 use crate::http;
 use crate::messages::Message;
 use anyhow::{Result, bail};
-use egui_phosphor::bold as ph;
+use egui_phosphor::fill as ph;
 use path_slash::PathExt;
 use serde::Deserialize;
 use size::Size;
