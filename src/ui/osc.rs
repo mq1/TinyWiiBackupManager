@@ -7,7 +7,7 @@ use crate::{
     ui::{osc_grid, osc_list},
 };
 use eframe::egui;
-use egui_phosphor::bold as ph;
+use egui_phosphor::fill as ph;
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
     egui::CentralPanel::default().show(ctx, |ui| {
@@ -71,7 +71,7 @@ fn update_top_bar(ui: &mut egui::Ui, app: &mut App) {
 
             group.show(ui, |ui| {
                 if ui
-                    .selectable_label(current_view_as == ViewAs::List, ph::LIST)
+                    .selectable_label(current_view_as == ViewAs::List, ph::ROWS)
                     .on_hover_text("View as List")
                     .clicked()
                 {

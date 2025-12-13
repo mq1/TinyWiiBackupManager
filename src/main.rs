@@ -127,12 +127,12 @@ fn main() -> Result<()> {
             if let Some(font_keys) = fonts.families.get_mut(&FontFamily::Monospace) {
                 font_keys.push("manrope".to_string());
             }
-            egui_phosphor::add_to_fonts(&mut fonts, egui_phosphor::Variant::Bold);
+            egui_phosphor::add_to_fonts(&mut fonts, egui_phosphor::Variant::Fill);
             cc.egui_ctx.set_fonts(fonts);
 
             cc.egui_ctx.all_styles_mut(|style| {
                 style.visuals.selection.bg_fill = app.config.contents.accent_color.into();
-                style.visuals.selection.stroke.color = style.visuals.strong_text_color();
+                style.visuals.selection.stroke.color = style.visuals.widgets.hovered.text_color();
 
                 style.visuals.widgets.active.corner_radius = CornerRadius::same(30);
                 style.visuals.widgets.hovered.corner_radius = CornerRadius::same(30);
@@ -140,7 +140,7 @@ fn main() -> Result<()> {
                 style.visuals.widgets.noninteractive.corner_radius = CornerRadius::same(8);
                 style.visuals.widgets.open.corner_radius = CornerRadius::same(30);
 
-                style.spacing.button_padding = vec2(4.5, 2.);
+                style.spacing.button_padding = vec2(4.5, 2.25);
             });
 
             // Load games and hbc apps

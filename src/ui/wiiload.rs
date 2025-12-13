@@ -4,7 +4,7 @@
 use crate::app::App;
 use crate::{ui, wiiload};
 use eframe::egui;
-use egui_phosphor::bold as ph;
+use egui_phosphor::fill as ph;
 
 pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
     egui::CentralPanel::default().show(ctx, |ui| {
@@ -25,7 +25,11 @@ pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
 
         group.show(ui, |ui| {
             ui.horizontal(|ui| {
-                ui.label(" Type your Wii's IP:");
+                ui.add_space(3.);
+                ui.vertical(|ui| {
+                    ui.add_space(2.);
+                    ui.label("Type your Wii's IP:");
+                });
 
                 ui.add(
                     egui::TextEdit::singleline(&mut app.config.contents.wii_ip)

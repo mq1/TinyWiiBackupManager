@@ -4,7 +4,7 @@
 use crate::app::App;
 use crate::messages::Message;
 use eframe::egui;
-use egui_phosphor::bold as ph;
+use egui_phosphor::fill as ph;
 
 const CARD_WIDTH: f32 = 161.5;
 const CARD_HORIZONTAL_SPACE: usize = 181;
