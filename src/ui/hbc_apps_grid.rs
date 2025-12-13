@@ -8,6 +8,7 @@ use crate::{
     ui::{self},
 };
 use eframe::egui;
+use egui_phosphor::regular as ph;
 
 const CARD_WIDTH: f32 = 161.5;
 const CARD_HORIZONTAL_SPACE: usize = 181;
@@ -21,7 +22,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
 
         ui.heading(format!(
             "{} Homebrew Channel Apps: {} found ({})",
-            egui_phosphor::regular::WAVES,
+            ph::WAVES,
             app.filtered_hbc_apps.len(),
             &app.filtered_hbc_apps_size
         ));
@@ -55,7 +56,7 @@ fn update_hbc_app_card(ui: &mut egui::Ui, app: &App, hbc_app_i: u16) {
             ui.horizontal(|ui| {
                 ui.label(format!(
                     "{}  {}",
-                    egui_phosphor::regular::PUSH_PIN,
+                    ph::PUSH_PIN,
                     hbc_app
                         .meta
                         .version
@@ -83,7 +84,7 @@ fn update_hbc_app_card(ui: &mut egui::Ui, app: &App, hbc_app_i: u16) {
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 // Delete button
                 if ui
-                    .button(egui_phosphor::regular::TRASH)
+                    .button(ph::TRASH)
                     .on_hover_text("Delete HBC App")
                     .clicked()
                 {
@@ -96,7 +97,7 @@ fn update_hbc_app_card(ui: &mut egui::Ui, app: &App, hbc_app_i: u16) {
 
                     if osc_app.meta.version != hbc_app.meta.version
                         && ui
-                            .button(egui_phosphor::regular::CLOUD_ARROW_DOWN)
+                            .button(ph::CLOUD_ARROW_DOWN)
                             .on_hover_text(format!(
                                 "Download update from OSC: v{}",
                                 &osc_app.meta.version
@@ -113,7 +114,7 @@ fn update_hbc_app_card(ui: &mut egui::Ui, app: &App, hbc_app_i: u16) {
                 // Info button
                 if ui
                     .add(
-                        egui::Button::new(format!("{} Info", egui_phosphor::regular::INFO))
+                        egui::Button::new(format!("{} Info", ph::INFO))
                             .min_size(egui::vec2(ui.available_width(), 0.0)),
                     )
                     .on_hover_text("Show App Information")

@@ -6,6 +6,7 @@ use crate::txtcodes::TxtCodesSource;
 use crate::ui::accent::AccentColor;
 use eframe::egui;
 use eframe::egui::{ThemePreference, Vec2};
+use egui_phosphor::regular as ph;
 use nod::common::Format;
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
@@ -22,10 +23,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
             group.show(ui, |ui| {
                 ui.set_width(ui.available_width());
 
-                ui.heading(format!(
-                    "{} Wii Output Format",
-                    egui_phosphor::regular::DISC
-                ));
+                ui.heading(format!("{} Wii Output Format", ph::DISC));
 
                 if ui
                     .radio_value(
@@ -53,10 +51,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
             group.show(ui, |ui| {
                 ui.set_width(ui.available_width());
 
-                ui.heading(format!(
-                    "{} GameCube Output Format",
-                    egui_phosphor::regular::DISC
-                ));
+                ui.heading(format!("{} GameCube Output Format", ph::DISC));
 
                 if ui
                     .radio_value(
@@ -84,10 +79,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
             group.show(ui, |ui| {
                 ui.set_width(ui.available_width());
 
-                ui.heading(format!(
-                    "{} Archive Output Format",
-                    egui_phosphor::regular::FILE_ARCHIVE
-                ));
+                ui.heading(format!("{} Archive Output Format", ph::FILE_ARCHIVE));
 
                 if ui
                     .radio_value(
@@ -115,10 +107,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
             group.show(ui, |ui| {
                 ui.set_width(ui.available_width());
 
-                ui.heading(format!(
-                    "{} Split Output",
-                    egui_phosphor::regular::ARROWS_SPLIT
-                ));
+                ui.heading(format!("{} Split Output", ph::ARROWS_SPLIT));
 
                 if ui
                     .radio_value(
@@ -148,7 +137,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
                 ui.heading(format!(
                     "{} Remove Update Partition on WBFS/CISO",
-                    egui_phosphor::regular::FILE_DASHED
+                    ph::FILE_DASHED
                 ));
 
                 if ui
@@ -177,10 +166,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
             group.show(ui, |ui| {
                 ui.set_width(ui.available_width());
 
-                ui.heading(format!(
-                    "{} Delete sources when adding games",
-                    egui_phosphor::regular::TRASH
-                ));
+                ui.heading(format!("{} Delete sources when adding games", ph::TRASH));
 
                 if ui
                     .radio_value(
@@ -204,10 +190,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
             group.show(ui, |ui| {
                 ui.set_width(ui.available_width());
 
-                ui.heading(format!(
-                    "{} Delete sources when adding apps",
-                    egui_phosphor::regular::TRASH
-                ));
+                ui.heading(format!("{} Delete sources when adding apps", ph::TRASH));
 
                 if ui
                     .radio_value(
@@ -231,10 +214,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
             group.show(ui, |ui| {
                 ui.set_width(ui.available_width());
 
-                ui.heading(format!(
-                    "{} Cheat Codes source",
-                    egui_phosphor::regular::FILE_TXT
-                ));
+                ui.heading(format!("{} Cheat Codes source", ph::FILE_TXT));
 
                 if ui
                     .radio_value(
@@ -281,29 +261,15 @@ fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, app: &mut App) {
         group.show(ui, |ui| {
             ui.style_mut().spacing.item_spacing.x = 0.;
 
-            update_theme_btn(
-                ui,
-                ctx,
-                app,
-                ThemePreference::Dark,
-                "Dark Theme",
-                egui_phosphor::regular::MOON,
-            );
-            update_theme_btn(
-                ui,
-                ctx,
-                app,
-                ThemePreference::Light,
-                "Light Theme",
-                egui_phosphor::regular::SUN,
-            );
+            update_theme_btn(ui, ctx, app, ThemePreference::Dark, "Dark Theme", ph::MOON);
+            update_theme_btn(ui, ctx, app, ThemePreference::Light, "Light Theme", ph::SUN);
             update_theme_btn(
                 ui,
                 ctx,
                 app,
                 ThemePreference::System,
                 "System Theme",
-                egui_phosphor::regular::CIRCLE_HALF,
+                ph::CIRCLE_HALF,
             );
         });
 
@@ -324,10 +290,7 @@ fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, app: &mut App) {
             }
 
             ui.add_space(5.);
-            ui.add_sized(
-                Vec2::splat(21.),
-                egui::Label::new(egui_phosphor::regular::PALETTE),
-            );
+            ui.add_sized(Vec2::splat(21.), egui::Label::new(ph::PALETTE));
         });
 
         ui.shrink_height_to_current();
@@ -363,7 +326,7 @@ fn update_accent_btn(
     accent_color: AccentColor,
 ) {
     let color = egui::Color32::from(accent_color);
-    let text = egui::RichText::new(egui_phosphor::regular::SPIRAL).color(color.to_opaque());
+    let text = egui::RichText::new(ph::SPIRAL).color(color.to_opaque());
 
     if ui
         .selectable_label(app.config.contents.accent_color == accent_color, text)

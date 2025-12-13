@@ -4,18 +4,19 @@
 use crate::app::App;
 use crate::{ui, wiiload};
 use eframe::egui;
+use egui_phosphor::regular as ph;
 
 pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
     egui::CentralPanel::default().show(ctx, |ui| {
         ui.style_mut().spacing.item_spacing.y *= 2.;
 
-        ui.heading(format!("{} Wiiload v0.5", egui_phosphor::regular::MONITOR_ARROW_UP));
+        ui.heading(format!("{} Wiiload v0.5", ph::MONITOR_ARROW_UP));
         ui.add_space(10.);
 
-        ui.label(format!("{} Wiiload is a method of loading .dol and .elf files over the network.", egui_phosphor::regular::INFO));
-        ui.label(format!("{} Also, you can use Wiiload to install homebrew applications directly onto your SD card.", egui_phosphor::regular::INFO));
-        ui.label(format!("{} If the icon in the very bottom right of the Homebrew Channel is lit up, it should work for you.", egui_phosphor::regular::INFO));
-        ui.label(format!("{} Pressing the home button in the Homebrew Channel will reveal your Wii's IP.", egui_phosphor::regular::INFO));
+        ui.label(format!("{} Wiiload is a method of loading .dol and .elf files over the network.", ph::INFO));
+        ui.label(format!("{} Also, you can use Wiiload to install homebrew applications directly onto your SD card.", ph::INFO));
+        ui.label(format!("{} If the icon in the very bottom right of the Homebrew Channel is lit up, it should work for you.", ph::INFO));
+        ui.label(format!("{} Pressing the home button in the Homebrew Channel will reveal your Wii's IP.", ph::INFO));
 
         ui.separator();
 
@@ -35,7 +36,7 @@ pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
         });
 
         if ui
-            .button(format!("{} Upload a Homebrew App (zip/dol/elf)", egui_phosphor::regular::UPLOAD))
+            .button(format!("{} Upload a Homebrew App (zip/dol/elf)", ph::UPLOAD))
             .clicked()
             && let Some(path) = ui::dialogs::choose_file_to_push(frame) {
                 wiiload::spawn_push_file_task(app, path);
