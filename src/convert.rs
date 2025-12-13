@@ -12,6 +12,7 @@ use crate::{
     util::{self, can_write_over_4gb},
 };
 use anyhow::{anyhow, bail};
+use egui_phosphor::bold as ph;
 use nod::{
     common::Format,
     read::{DiscOptions, DiscReader, PartitionEncryption},
@@ -89,7 +90,7 @@ pub fn spawn_strip_game_task(app: &App, disc_info: DiscInfo) {
 
                 let _ = msg_sender.send(Message::UpdateStatus(format!(
                     "{} Converting {}  {:02}%",
-                    egui_phosphor::regular::FLOW_ARROW,
+                    ph::FLOW_ARROW,
                     &disc_info.title,
                     progress * 100 / total,
                 )));
@@ -111,7 +112,7 @@ pub fn spawn_strip_game_task(app: &App, disc_info: DiscInfo) {
 
         msg_sender.send(Message::NotifyInfo(format!(
             "{} {} Converted (without update partition)",
-            egui_phosphor::regular::FLOW_ARROW,
+            ph::FLOW_ARROW,
             &disc_info.title
         )))?;
         msg_sender.send(Message::TriggerRefreshGames(false))?;
@@ -169,7 +170,7 @@ pub fn spawn_conv_game_task(app: &App, in_path: PathBuf, out_path: PathBuf) {
 
                 msg_sender.send(Message::UpdateStatus(format!(
                     "{} Extracting {}  {:02}%",
-                    egui_phosphor::regular::FILE_ZIP,
+                    ph::FILE_ZIP,
                     in_path.display(),
                     progress * 100 / total
                 )))?;
@@ -196,7 +197,7 @@ pub fn spawn_conv_game_task(app: &App, in_path: PathBuf, out_path: PathBuf) {
 
                 let _ = msg_sender.send(Message::UpdateStatus(format!(
                     "{} Converting {}  {:02}%",
-                    egui_phosphor::regular::FLOW_ARROW,
+                    ph::FLOW_ARROW,
                     &game_title,
                     progress * 100 / total
                 )));
@@ -246,7 +247,7 @@ pub fn spawn_add_game_task(app: &App, in_path: PathBuf, should_download_covers: 
 
                 msg_sender.send(Message::UpdateStatus(format!(
                     "{} Extracting {}  {:02}%",
-                    egui_phosphor::regular::FILE_ZIP,
+                    ph::FILE_ZIP,
                     in_path.display(),
                     progress * 100 / total
                 )))?;
@@ -308,7 +309,7 @@ pub fn spawn_add_game_task(app: &App, in_path: PathBuf, should_download_covers: 
 
                     let _ = msg_sender.send(Message::UpdateStatus(format!(
                         "{} Converting {}  {:02}%",
-                        egui_phosphor::regular::FLOW_ARROW,
+                        ph::FLOW_ARROW,
                         &game_title,
                         progress * 100 / total
                     )));

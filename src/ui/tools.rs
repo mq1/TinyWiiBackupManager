@@ -4,13 +4,14 @@
 use crate::app::App;
 use crate::{banners, covers, txtcodes, wiitdb};
 use eframe::egui;
+use egui_phosphor::bold as ph;
 
 pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
     egui::CentralPanel::default().show(ctx, |ui| {
         if app.config.contents.mount_point.as_os_str().is_empty() {
             ui.heading(format!(
                 "Click on {} to select a Drive/Mount Point",
-                egui_phosphor::regular::HARD_DRIVE
+                ph::HARD_DRIVE
             ));
             return;
         }
@@ -24,10 +25,10 @@ pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
             group.show(ui, |ui| {
                 ui.set_width(ui.available_width());
 
-                ui.heading(format!("{} USB Loader GX", egui_phosphor::regular::MAGIC_WAND));
+                ui.heading(format!("{} USB Loader GX", ph::MAGIC_WAND));
 
                 ui.horizontal(|ui| {
-                    if ui.button(egui_phosphor::regular::CLOUD_ARROW_DOWN).clicked() {
+                    if ui.button(ph::CLOUD_ARROW_DOWN).clicked() {
                         wiitdb::spawn_download_task(app);
                         wiitdb::spawn_load_wiitdb_task(app);
                     }
@@ -36,7 +37,7 @@ pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
                 });
 
                 ui.horizontal(|ui| {
-                    if ui.button(egui_phosphor::regular::CLOUD_ARROW_DOWN).clicked() {
+                    if ui.button(ph::CLOUD_ARROW_DOWN).clicked() {
                         covers::spawn_download_all_covers_task(app);
                     }
 
@@ -44,7 +45,7 @@ pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
                 });
 
                 ui.horizontal(|ui| {
-                    if ui.button(egui_phosphor::regular::CLOUD_ARROW_DOWN).clicked() {
+                    if ui.button(ph::CLOUD_ARROW_DOWN).clicked() {
                         banners::spawn_download_banners_task(app);
                     }
 
@@ -55,10 +56,10 @@ pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
             group.show(ui, |ui| {
                 ui.set_width(ui.available_width());
 
-                ui.heading(format!("{} WiiFlow Lite", egui_phosphor::regular::SHUFFLE));
+                ui.heading(format!("{} WiiFlow Lite", ph::SHUFFLE));
 
                 ui.horizontal(|ui| {
-                    if ui.button(egui_phosphor::regular::CLOUD_ARROW_DOWN).clicked() {
+                    if ui.button(ph::CLOUD_ARROW_DOWN).clicked() {
                         covers::spawn_download_wiiflow_covers_task(app);
                     }
 
@@ -69,10 +70,10 @@ pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
             group.show(ui, |ui| {
                 ui.set_width(ui.available_width());
 
-                ui.heading(format!("{} Cheat Codes", egui_phosphor::regular::FILE_TXT));
+                ui.heading(format!("{} Cheat Codes", ph::FILE_TXT));
 
                 ui.horizontal(|ui| {
-                    if ui.button(egui_phosphor::regular::CLOUD_ARROW_DOWN).clicked() {
+                    if ui.button(ph::CLOUD_ARROW_DOWN).clicked() {
                         txtcodes::spawn_download_all_cheats_task(app);
                     }
 
@@ -83,10 +84,10 @@ pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
             group.show(ui, |ui| {
                 ui.set_width(ui.available_width());
 
-                ui.heading(format!("{} Cleanup", egui_phosphor::regular::BROOM));
+                ui.heading(format!("{} Cleanup", ph::BROOM));
 
                 ui.horizontal(|ui| {
-                    if ui.button(egui_phosphor::regular::ARROW_FAT_RIGHT).clicked() {
+                    if ui.button(ph::ARROW_FAT_RIGHT).clicked() {
                         app.run_normalize_paths();
                     }
 
@@ -94,7 +95,7 @@ pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
                 });
 
                 ui.horizontal(|ui| {
-                    if ui.button(egui_phosphor::regular::ARROW_FAT_RIGHT).clicked() {
+                    if ui.button(ph::ARROW_FAT_RIGHT).clicked() {
                         app.run_strip_all_games(frame);
                     }
 
@@ -106,10 +107,10 @@ pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
                 group.show(ui, |ui| {
                     ui.set_width(ui.available_width());
 
-                    ui.heading(format!("{} macOS", egui_phosphor::regular::APPLE_LOGO));
+                    ui.heading(format!("{} macOS", ph::APPLE_LOGO));
 
                     ui.horizontal(|ui| {
-                        if ui.button(egui_phosphor::regular::ARROW_FAT_RIGHT).clicked() {
+                        if ui.button(ph::ARROW_FAT_RIGHT).clicked() {
                             app.run_dot_clean();
                         }
 
