@@ -36,11 +36,8 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
 
         ui.add_space(10.);
 
-        ui.heading(format!("{} Projects powering TinyWiiBackupManager:", egui_phosphor::regular::LIGHTBULB));
-        ui.hyperlink_to(format!("{} https://github.com/emilk/egui", egui_phosphor::regular::LINK) , "https://github.com/emilk/egui");
-        ui.hyperlink_to(format!("{} https://github.com/encounter/nod", egui_phosphor::regular::LINK), "https://github.com/encounter/nod");
-        ui.hyperlink_to(format!("{} https://www.gametdb.com/", egui_phosphor::regular::LINK), "https://www.gametdb.com/");
-        ui.hyperlink_to(format!("{} And many more", egui_phosphor::regular::LIGHTBULB), "https://github.com/mq1/TinyWiiBackupManager/blob/main/Cargo.toml");
+        ui.heading(format!("{} 3rd party libraries and licenses", egui_phosphor::regular::LIGHTBULB));
+        ui.hyperlink_to(format!("{} List", egui_phosphor::regular::LINK), "https://github.com/mq1/TinyWiiBackupManager/wiki/3rd-party-libraries-and-licenses");
 
         ui.add_space(10.);
 
