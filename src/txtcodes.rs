@@ -6,6 +6,7 @@ use crate::games::Game;
 use crate::messages::Message;
 use crate::{games::GameID, http, id_map};
 use anyhow::{Result, anyhow};
+use egui_phosphor::regular as ph;
 use serde::{Deserialize, Serialize};
 use std::{fs, path::Path};
 
@@ -82,7 +83,7 @@ pub fn spawn_download_all_cheats_task(app: &App) {
     app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(Message::UpdateStatus(format!(
             "{} Downloading cheats...",
-            egui_phosphor::regular::CLOUD_ARROW_DOWN
+            ph::CLOUD_ARROW_DOWN
         )))?;
 
         fs::create_dir_all(&txt_cheatcodespath)?;
@@ -90,23 +91,19 @@ pub fn spawn_download_all_cheats_task(app: &App) {
         for game in &games {
             msg_sender.send(Message::UpdateStatus(format!(
                 "{} Downloading cheats... ({})",
-                egui_phosphor::regular::CLOUD_ARROW_DOWN,
+                ph::CLOUD_ARROW_DOWN,
                 &game.1
             )))?;
 
             if let Err(e) = download_cheats_for_game(&txt_cheatcodespath, source, game.0) {
-                let context = format!(
-                    "{} Failed to download cheats for {}",
-                    egui_phosphor::regular::FILE_TXT,
-                    &game.1
-                );
+                let context = format!("{} Failed to download cheats for {}", ph::FILE_TXT, &game.1);
                 msg_sender.send(Message::NotifyError(e.context(context)))?;
             }
         }
 
         msg_sender.send(Message::NotifyInfo(format!(
             "{} Cheats downloaded",
-            egui_phosphor::regular::CLOUD_ARROW_DOWN
+            ph::CLOUD_ARROW_DOWN
         )))?;
 
         Ok(())
@@ -123,7 +120,7 @@ pub fn spawn_download_cheats_task(app: &App, game: &Game) {
     app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(Message::UpdateStatus(format!(
             "{} Downloading cheats... ({})",
-            egui_phosphor::regular::CLOUD_ARROW_DOWN,
+            ph::CLOUD_ARROW_DOWN,
             &display_title
         )))?;
 
@@ -132,14 +129,14 @@ pub fn spawn_download_cheats_task(app: &App, game: &Game) {
         if let Err(e) = download_cheats_for_game(&txt_cheatcodespath, source, game_id) {
             let context = format!(
                 "{} Failed to download cheats for {}",
-                egui_phosphor::regular::FILE_TXT,
+                ph::FILE_TXT,
                 &display_title
             );
             msg_sender.send(Message::NotifyError(e.context(context)))?;
         } else {
             msg_sender.send(Message::NotifyInfo(format!(
                 "{} Cheats downloaded",
-                egui_phosphor::regular::CLOUD_ARROW_DOWN
+                ph::CLOUD_ARROW_DOWN
             )))?;
         }
 

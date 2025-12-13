@@ -5,6 +5,7 @@ use crate::app::App;
 use crate::ui;
 use eframe::egui;
 use eframe::egui::OpenUrl;
+use egui_phosphor::regular as ph;
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
     egui::Modal::new("info".into()).show(ctx, |ui: &mut egui::Ui| {
@@ -19,29 +20,29 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
             ui.vertical(|ui| {
                 ui.add_space(4.);
                 ui.heading(env!("CARGO_PKG_NAME"));
-                ui.label(format!("{} Version {}", egui_phosphor::regular::PUSH_PIN, env!("CARGO_PKG_VERSION")));
-                ui.label(format!("© 2025 Manuel Quarneti | {} GPL-3.0-only", egui_phosphor::regular::FILE_TEXT));
+                ui.label(format!("{} Version {}", ph::PUSH_PIN, env!("CARGO_PKG_VERSION")));
+                ui.label(format!("© 2025 Manuel Quarneti | {} GPL-3.0-only", ph::FILE_TEXT));
             });
         });
 
         ui.separator();
 
-        ui.label(format!("{} TinyWiiBackupManager is intended strictly for legal homebrew use and is not affiliated with or endorsed by Nintendo. Use of TinyWiiBackupManager for pirated or unauthorized copies of games is strictly prohibited.", egui_phosphor::regular::WARNING));
+        ui.label(format!("{} TinyWiiBackupManager is intended strictly for legal homebrew use and is not affiliated with or endorsed by Nintendo. Use of TinyWiiBackupManager for pirated or unauthorized copies of games is strictly prohibited.", ph::WARNING));
 
         ui.separator();
         ui.add_space(10.);
 
-        ui.heading(format!("{} Need help modding your Wii?", egui_phosphor::regular::INFO));
-        ui.hyperlink_to(format!("{} Wii Hacks Guide", egui_phosphor::regular::LINK), "https://wii.hacks.guide/");
+        ui.heading(format!("{} Need help modding your Wii?", ph::INFO));
+        ui.hyperlink_to(format!("{} Wii Hacks Guide", ph::LINK), "https://wii.hacks.guide/");
 
         ui.add_space(10.);
 
-        ui.heading(format!("{} 3rd party libraries and licenses", egui_phosphor::regular::LIGHTBULB));
-        ui.hyperlink_to(format!("{} List", egui_phosphor::regular::LINK), "https://github.com/mq1/TinyWiiBackupManager/wiki/3rd-party-libraries-and-licenses");
+        ui.heading(format!("{} 3rd party libraries and licenses", ph::LIGHTBULB));
+        ui.hyperlink_to(format!("{} List", ph::LINK), "https://github.com/mq1/TinyWiiBackupManager/wiki/3rd-party-libraries-and-licenses");
 
         ui.add_space(10.);
 
-        ui.heading(format!("{} Special thanks to", egui_phosphor::regular::HEART));
+        ui.heading(format!("{} Special thanks to", ph::HEART));
         ui.horizontal(|ui| {
             ui.hyperlink_to("Luke Street", "https://github.com/encounter");
             ui.label("for developing nod and helping TWBM leverage it effectively.");
@@ -54,21 +55,21 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
         ui.add_space(10.);
 
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Max), |ui| {
-            if ui.button(format!("{} Close", egui_phosphor::regular::X)).clicked() {
+            if ui.button(format!("{} Close", ph::X)).clicked() {
                 app.close_modal();
             }
 
             ui.add_sized(egui::Vec2::new(1., 21.), egui::Separator::default());
 
-            if ui.button(format!("{} Open Data Directory", egui_phosphor::regular::FOLDER)).clicked() {
+            if ui.button(format!("{} Open Data Directory", ph::FOLDER)).clicked() {
                 app.open_data_dir();
             }
 
-            if ui.button(format!("{} Wiki", egui_phosphor::regular::LINK)).clicked() {
+            if ui.button(format!("{} Wiki", ph::LINK)).clicked() {
                 ctx.open_url(OpenUrl::new_tab(env!("CARGO_PKG_HOMEPAGE")));
             }
 
-            if ui.button(format!("{} Source Code", egui_phosphor::regular::GITHUB_LOGO)).clicked() {
+            if ui.button(format!("{} Source Code", ph::GITHUB_LOGO)).clicked() {
                 ctx.open_url(OpenUrl::new_tab(env!("CARGO_PKG_REPOSITORY")));
             }
         })

@@ -4,6 +4,7 @@
 use crate::app::App;
 use crate::ui::developers::get_developer_emoji;
 use eframe::egui;
+use egui_phosphor::regular as ph;
 
 pub fn update(ctx: &egui::Context, app: &mut App, hbc_app_i: u16) {
     egui::Modal::new("hbc_app_info".into()).show(ctx, |ui: &mut egui::Ui| {
@@ -14,11 +15,7 @@ pub fn update(ctx: &egui::Context, app: &mut App, hbc_app_i: u16) {
         ui.separator();
 
         // Path
-        ui.label(format!(
-            "{} Path: {}",
-            egui_phosphor::regular::FOLDER,
-            hbc_app.get_path_str()
-        ));
+        ui.label(format!("{} Path: {}", ph::FOLDER, hbc_app.get_path_str()));
 
         ui.separator();
 
@@ -29,17 +26,17 @@ pub fn update(ctx: &egui::Context, app: &mut App, hbc_app_i: u16) {
         ));
         ui.label(format!(
             "{} Version: {}",
-            egui_phosphor::regular::PUSH_PIN,
+            ph::PUSH_PIN,
             &hbc_app.meta.version
         ));
         ui.label(format!(
             "{} Release Date: {}",
-            egui_phosphor::regular::CALENDAR,
+            ph::CALENDAR,
             &hbc_app.meta.release_date
         ));
         ui.label(format!(
             "{} Short Description: {}",
-            egui_phosphor::regular::CLIPBOARD_TEXT,
+            ph::CLIPBOARD_TEXT,
             &hbc_app.meta.short_description
         ));
 
@@ -55,17 +52,14 @@ pub fn update(ctx: &egui::Context, app: &mut App, hbc_app_i: u16) {
         ui.add_space(10.);
 
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Max), |ui| {
-            if ui
-                .button(format!("{} Close", egui_phosphor::regular::X))
-                .clicked()
-            {
+            if ui.button(format!("{} Close", ph::X)).clicked() {
                 app.close_modal();
             }
 
             ui.add_sized(egui::Vec2::new(1., 21.), egui::Separator::default());
 
             if ui
-                .button(format!("{} Open Directory", egui_phosphor::regular::FOLDER))
+                .button(format!("{} Open Directory", ph::FOLDER))
                 .clicked()
             {
                 app.open_hbc_app_dir(hbc_app_i);

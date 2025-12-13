@@ -7,13 +7,14 @@ use crate::{
     ui::{games_grid, games_list},
 };
 use eframe::egui::{self, Vec2};
+use egui_phosphor::regular as ph;
 
 pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
     egui::CentralPanel::default().show(ctx, |ui| {
         if app.config.contents.mount_point.as_os_str().is_empty() {
             ui.heading(format!(
                 "Click on {} to select a Drive/Mount Point",
-                egui_phosphor::regular::HARD_DRIVE
+                ph::HARD_DRIVE
             ));
             return;
         }
@@ -40,7 +41,7 @@ fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, frame: &eframe::Frame,
             ui.add_space(3.);
             ui.vertical(|ui| {
                 ui.add_space(2.);
-                ui.label(egui_phosphor::regular::MAGNIFYING_GLASS);
+                ui.label(ph::MAGNIFYING_GLASS);
             });
 
             if ui
@@ -59,9 +60,7 @@ fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, frame: &eframe::Frame,
             if ui
                 .add_sized(
                     Vec2::splat(34.),
-                    egui::Button::new(
-                        egui::RichText::new(egui_phosphor::regular::FOLDER_PLUS).size(18.),
-                    ),
+                    egui::Button::new(egui::RichText::new(ph::FOLDER_PLUS).size(18.)),
                 )
                 .on_hover_text("Add Games Recursively")
                 .clicked()
@@ -72,7 +71,7 @@ fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, frame: &eframe::Frame,
             if ui
                 .add_sized(
                     Vec2::splat(34.),
-                    egui::Button::new(egui::RichText::new(egui_phosphor::regular::PLUS).size(18.)),
+                    egui::Button::new(egui::RichText::new(ph::PLUS).size(18.)),
                 )
                 .on_hover_text("Add Games")
                 .clicked()
@@ -83,9 +82,7 @@ fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, frame: &eframe::Frame,
             if ui
                 .add_sized(
                     Vec2::splat(34.),
-                    egui::Button::new(
-                        egui::RichText::new(egui_phosphor::regular::ARROWS_CLOCKWISE).size(18.),
-                    ),
+                    egui::Button::new(egui::RichText::new(ph::ARROWS_CLOCKWISE).size(18.)),
                 )
                 .on_hover_text("Refresh Games")
                 .clicked()
@@ -98,10 +95,7 @@ fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, frame: &eframe::Frame,
 
             group.show(ui, |ui| {
                 if ui
-                    .selectable_label(
-                        current_view_as == ViewAs::List,
-                        egui_phosphor::regular::LIST,
-                    )
+                    .selectable_label(current_view_as == ViewAs::List, ph::LIST)
                     .on_hover_text("View as List")
                     .clicked()
                 {
@@ -110,10 +104,7 @@ fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, frame: &eframe::Frame,
                 }
 
                 if ui
-                    .selectable_label(
-                        current_view_as == ViewAs::Grid,
-                        egui_phosphor::regular::SQUARES_FOUR,
-                    )
+                    .selectable_label(current_view_as == ViewAs::Grid, ph::SQUARES_FOUR)
                     .on_hover_text("View as Grid")
                     .clicked()
                 {
@@ -130,17 +121,9 @@ fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, frame: &eframe::Frame,
                             SortBy::SizeAscending | SortBy::SizeDescending
                         ),
                         if current_sort_by == SortBy::SizeDescending {
-                            format!(
-                                "{}{}",
-                                egui_phosphor::regular::SCALES,
-                                egui_phosphor::regular::SORT_DESCENDING
-                            )
+                            format!("{}{}", ph::SCALES, ph::SORT_DESCENDING)
                         } else {
-                            format!(
-                                "{}{}",
-                                egui_phosphor::regular::SCALES,
-                                egui_phosphor::regular::SORT_ASCENDING
-                            )
+                            format!("{}{}", ph::SCALES, ph::SORT_ASCENDING)
                         },
                     )
                     .on_hover_text("Sort by size")
@@ -162,17 +145,9 @@ fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, frame: &eframe::Frame,
                             SortBy::NameAscending | SortBy::NameDescending
                         ),
                         if current_sort_by == SortBy::NameDescending {
-                            format!(
-                                "{}{}",
-                                egui_phosphor::regular::TEXT_AA,
-                                egui_phosphor::regular::SORT_DESCENDING
-                            )
+                            format!("{}{}", ph::TEXT_AA, ph::SORT_DESCENDING)
                         } else {
-                            format!(
-                                "{}{}",
-                                egui_phosphor::regular::TEXT_AA,
-                                egui_phosphor::regular::SORT_ASCENDING
-                            )
+                            format!("{}{}", ph::TEXT_AA, ph::SORT_ASCENDING)
                         },
                     )
                     .on_hover_text("Sort by name")
@@ -191,12 +166,12 @@ fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, frame: &eframe::Frame,
             group.show(ui, |ui| {
                 ui.add_space(2.);
 
-                ui.checkbox(&mut app.show_gc, egui_phosphor::regular::GAME_CONTROLLER)
+                ui.checkbox(&mut app.show_gc, ph::GAME_CONTROLLER)
                     .on_hover_text("Show GameCube");
 
                 ui.separator();
 
-                ui.checkbox(&mut app.show_wii, egui_phosphor::regular::HAND_DEPOSIT)
+                ui.checkbox(&mut app.show_wii, ph::HAND_DEPOSIT)
                     .on_hover_text("Show Wii");
 
                 ui.add_space(-6.);

@@ -3,6 +3,7 @@
 
 use eframe::egui;
 use eframe::egui::{Align2, Color32, Direction, Order, WidgetText};
+use egui_phosphor::regular as ph;
 use egui_toast::{Toast, ToastKind, ToastOptions, ToastStyle, Toasts};
 
 pub struct Notifications {
@@ -24,15 +25,11 @@ impl Notifications {
             .order(Order::Tooltip);
 
         let style = ToastStyle {
-            info_icon: WidgetText::from(egui_phosphor::regular::INFO)
-                .color(Color32::from_rgb(0, 155, 255)),
-            warning_icon: WidgetText::from(egui_phosphor::regular::WARNING)
-                .color(Color32::from_rgb(255, 212, 0)),
-            error_icon: WidgetText::from(egui_phosphor::regular::WARNING)
-                .color(Color32::from_rgb(255, 32, 0)),
-            success_icon: WidgetText::from(egui_phosphor::regular::SEAL_CHECK)
-                .color(Color32::from_rgb(0, 255, 32)),
-            close_button_text: WidgetText::from(egui_phosphor::regular::X),
+            info_icon: WidgetText::from(ph::INFO).color(Color32::from_rgb(0, 155, 255)),
+            warning_icon: WidgetText::from(ph::WARNING).color(Color32::from_rgb(255, 212, 0)),
+            error_icon: WidgetText::from(ph::WARNING).color(Color32::from_rgb(255, 32, 0)),
+            success_icon: WidgetText::from(ph::SEAL_CHECK).color(Color32::from_rgb(0, 255, 32)),
+            close_button_text: WidgetText::from(ph::X),
         };
 
         Self { toasts, style }

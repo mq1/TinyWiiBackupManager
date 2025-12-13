@@ -6,6 +6,7 @@ use crate::id_map;
 use anyhow::Result;
 use anyhow::anyhow;
 use anyhow::bail;
+use egui_phosphor::regular as ph;
 use path_slash::PathExt;
 use size::Size;
 use std::fs;
@@ -34,43 +35,32 @@ pub fn list(mount_point: &Path) -> Vec<Game> {
 impl Game {
     pub fn from_dir(dir: PathBuf, mount_point: &Path, is_wii: bool) -> Result<Self> {
         if !dir.is_dir() {
-            bail!(
-                "{} {} is not a directory",
-                egui_phosphor::regular::FILE_X,
-                dir.display()
-            );
+            bail!("{} {} is not a directory", ph::FILE_X, dir.display());
         }
 
         let file_name = dir
             .file_name()
-            .ok_or(anyhow!(
-                "{} No file name found",
-                egui_phosphor::regular::FILE_X
-            ))?
+            .ok_or(anyhow!("{} No file name found", ph::FILE_X))?
             .to_str()
-            .ok_or(anyhow!(
-                "{} Invalid file name",
-                egui_phosphor::regular::FILE_X
-            ))?;
+            .ok_or(anyhow!("{} Invalid file name", ph::FILE_X))?;
 
         if file_name.starts_with('.') {
             bail!(
                 "{} Skipping hidden directory {}",
-                egui_phosphor::regular::FOLDER_DASHED,
+                ph::FOLDER_DASHED,
                 dir.display()
             );
         }
 
         // Extract title and ID from the directory name, e.g., "Game Title [GAMEID]"
-        let (title, id_part) = file_name.split_once(" [").ok_or(anyhow!(
-            "{} Invalid directory name",
-            egui_phosphor::regular::FOLDER
-        ))?;
+        let (title, id_part) = file_name
+            .split_once(" [")
+            .ok_or(anyhow!("{} Invalid directory name", ph::FOLDER))?;
 
-        let id = id_part.strip_suffix(']').map(GameID::from).ok_or(anyhow!(
-            "{} Invalid directory name",
-            egui_phosphor::regular::FOLDER
-        ))?;
+        let id = id_part
+            .strip_suffix(']')
+            .map(GameID::from)
+            .ok_or(anyhow!("{} Invalid directory name", ph::FOLDER))?;
 
         let display_title = id_map::get_title(id.0).unwrap_or(title).to_string();
 
