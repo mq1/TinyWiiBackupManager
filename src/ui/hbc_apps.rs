@@ -8,7 +8,7 @@ use crate::{
     ui::{hbc_apps_grid, hbc_apps_list},
 };
 use eframe::egui::{self, Vec2};
-use egui_phosphor::bold as ph;
+use egui_phosphor::fill as ph;
 
 pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
     egui::CentralPanel::default().show(ctx, |ui| {
@@ -61,7 +61,7 @@ fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, frame: &eframe::Frame,
             if ui
                 .add_sized(
                     Vec2::splat(34.),
-                    egui::Button::new(egui::RichText::new(ph::PLUS).size(18.)),
+                    egui::Button::new(egui::RichText::new("+").strong().size(22.)),
                 )
                 .on_hover_text("Add Apps")
                 .clicked()
@@ -75,7 +75,7 @@ fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, frame: &eframe::Frame,
             if ui
                 .add_sized(
                     Vec2::splat(34.),
-                    egui::Button::new(egui::RichText::new(ph::ARROWS_CLOCKWISE).size(18.)),
+                    egui::Button::new(egui::RichText::new(ph::ARROW_CLOCKWISE).strong().size(18.)),
                 )
                 .on_hover_text("Refresh Apps")
                 .clicked()
@@ -88,7 +88,7 @@ fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, frame: &eframe::Frame,
 
             group.show(ui, |ui| {
                 if ui
-                    .selectable_label(current_view_as == ViewAs::List, ph::LIST)
+                    .selectable_label(current_view_as == ViewAs::List, ph::ROWS)
                     .on_hover_text("View as List")
                     .clicked()
                 {
@@ -114,9 +114,9 @@ fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, frame: &eframe::Frame,
                             SortBy::SizeAscending | SortBy::SizeDescending
                         ),
                         if current_sort_by == SortBy::SizeDescending {
-                            format!("{}{}", ph::SCALES, ph::SORT_DESCENDING)
+                            format!("MiB {}", ph::CARET_DOWN)
                         } else {
-                            format!("{}{}", ph::SCALES, ph::SORT_ASCENDING)
+                            format!("MiB {}", ph::CARET_UP)
                         },
                     )
                     .on_hover_text("Sort by size")
@@ -138,9 +138,9 @@ fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, frame: &eframe::Frame,
                             SortBy::NameAscending | SortBy::NameDescending
                         ),
                         if current_sort_by == SortBy::NameDescending {
-                            format!("{}{}", ph::TEXT_AA, ph::SORT_DESCENDING)
+                            format!("A-Z {}", ph::CARET_DOWN)
                         } else {
-                            format!("{}{}", ph::TEXT_AA, ph::SORT_ASCENDING)
+                            format!("A-Z {}", ph::CARET_UP)
                         },
                     )
                     .on_hover_text("Sort by name")
