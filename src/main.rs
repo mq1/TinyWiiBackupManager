@@ -140,7 +140,7 @@ fn main() -> Result<()> {
                 style.visuals.widgets.noninteractive.corner_radius = CornerRadius::same(8);
                 style.visuals.widgets.open.corner_radius = CornerRadius::same(30);
 
-                style.spacing.button_padding = vec2(6., 3.);
+                style.spacing.button_padding = vec2(4.5, 2.);
             });
 
             // Load games and hbc apps
