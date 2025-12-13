@@ -5,7 +5,7 @@ use crate::app::App;
 use crate::ui;
 use eframe::egui;
 use eframe::egui::OpenUrl;
-use egui_phosphor::regular as ph;
+use egui_phosphor::bold as ph;
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
     egui::Modal::new("info".into()).show(ctx, |ui: &mut egui::Ui| {

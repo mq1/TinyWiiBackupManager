@@ -6,7 +6,7 @@ use crate::messages::Message;
 use crate::{checksum, txtcodes};
 use capitalize::Capitalize;
 use eframe::egui;
-use egui_phosphor::regular as ph;
+use egui_phosphor::bold as ph;
 use itertools::Itertools;
 
 pub fn update(ctx: &egui::Context, app: &App, game_i: u16) {
