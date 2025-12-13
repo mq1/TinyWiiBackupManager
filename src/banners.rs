@@ -5,6 +5,7 @@ use crate::app::App;
 use crate::messages::Message;
 use crate::{games::GameID, http};
 use anyhow::Result;
+use egui_phosphor::bold as ph;
 use std::{fs, path::Path};
 
 fn download_banner_for_game(cache_bnr_path: &Path, game_id: GameID) -> Result<()> {
@@ -40,7 +41,7 @@ pub fn spawn_download_banners_task(app: &App) {
     app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(Message::UpdateStatus(format!(
             "{} Downloading banners...",
-            egui_phosphor::regular::IMAGE
+            ph::IMAGE
         )))?;
 
         fs::create_dir_all(&cache_bnr_path)?;
@@ -48,23 +49,19 @@ pub fn spawn_download_banners_task(app: &App) {
         for game in &gc_games {
             msg_sender.send(Message::UpdateStatus(format!(
                 "{} Downloading banners... ({})",
-                egui_phosphor::regular::IMAGE,
+                ph::IMAGE,
                 &game.1
             )))?;
 
             if let Err(e) = download_banner_for_game(&cache_bnr_path, game.0) {
-                let context = format!(
-                    "{} Failed to download banner for {}",
-                    egui_phosphor::regular::IMAGE,
-                    &game.1
-                );
+                let context = format!("{} Failed to download banner for {}", ph::IMAGE, &game.1);
                 msg_sender.send(Message::NotifyError(e.context(context)))?;
             }
         }
 
         msg_sender.send(Message::NotifyInfo(format!(
             "{} Banners downloaded",
-            egui_phosphor::regular::IMAGE
+            ph::IMAGE
         )))?;
 
         Ok(())

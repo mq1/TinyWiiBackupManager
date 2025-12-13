@@ -5,6 +5,7 @@ use crate::app::App;
 use crate::messages::Message;
 use crate::ui::{self, View};
 use eframe::egui::{self, OpenUrl, Vec2};
+use egui_phosphor::bold as ph;
 
 const UPDATE_URL: &str = concat!(env!("CARGO_PKG_REPOSITORY"), "/releases/latest");
 
@@ -26,7 +27,7 @@ pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
                     Vec2::splat(40.),
                     egui::Button::selectable(
                         current_view == View::Games,
-                        egui::RichText::new(egui_phosphor::regular::SWORD).size(26.),
+                        egui::RichText::new(ph::SWORD).size(26.),
                     ),
                 )
                 .on_hover_text("View your Wii games")
@@ -40,7 +41,7 @@ pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
                     Vec2::splat(40.),
                     egui::Button::selectable(
                         current_view == View::HbcApps,
-                        egui::RichText::new(egui_phosphor::regular::WAVES).size(26.),
+                        egui::RichText::new(ph::WAVES).size(26.),
                     ),
                 )
                 .on_hover_text("View your Homebrew Channel apps")
@@ -54,7 +55,7 @@ pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
                     Vec2::splat(40.),
                     egui::Button::selectable(
                         current_view == View::Osc,
-                        egui::RichText::new(egui_phosphor::regular::STOREFRONT).size(26.),
+                        egui::RichText::new(ph::STOREFRONT).size(26.),
                     ),
                 )
                 .on_hover_text("Open Shop Channel")
@@ -68,7 +69,7 @@ pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
                     Vec2::splat(40.),
                     egui::Button::selectable(
                         current_view == View::Wiiload,
-                        egui::RichText::new(egui_phosphor::regular::MONITOR_ARROW_UP).size(26.),
+                        egui::RichText::new(ph::MONITOR_ARROW_UP).size(26.),
                     ),
                 )
                 .on_hover_text("Wiiload")
@@ -82,7 +83,7 @@ pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
                     Vec2::splat(40.),
                     egui::Button::selectable(
                         current_view == View::NodGui,
-                        egui::RichText::new(egui_phosphor::regular::FLOW_ARROW).size(26.),
+                        egui::RichText::new(ph::FLOW_ARROW).size(26.),
                     ),
                 )
                 .on_hover_text("Nintendo Optical Disc format conversion")
@@ -96,7 +97,7 @@ pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
                     Vec2::splat(40.),
                     egui::Button::selectable(
                         current_view == View::Tools,
-                        egui::RichText::new(egui_phosphor::regular::WRENCH).size(26.),
+                        egui::RichText::new(ph::WRENCH).size(26.),
                     ),
                 )
                 .on_hover_text("Tools")
@@ -110,7 +111,7 @@ pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
                     Vec2::splat(40.),
                     egui::Button::selectable(
                         current_view == View::Settings,
-                        egui::RichText::new(egui_phosphor::regular::GEAR).size(26.),
+                        egui::RichText::new(ph::GEAR).size(26.),
                     ),
                 )
                 .on_hover_text("Settings")
@@ -125,9 +126,7 @@ pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
                 if ui
                     .add_sized(
                         Vec2::splat(40.),
-                        egui::Button::new(
-                            egui::RichText::new(egui_phosphor::regular::INFO).size(26.),
-                        ),
+                        egui::Button::new(egui::RichText::new(ph::INFO).size(26.)),
                     )
                     .on_hover_text(format!("{} Info", env!("CARGO_PKG_NAME")))
                     .clicked()
@@ -138,9 +137,7 @@ pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
                 if ui
                     .add_sized(
                         Vec2::splat(40.),
-                        egui::Button::new(
-                            egui::RichText::new(egui_phosphor::regular::HARD_DRIVE).size(26.),
-                        ),
+                        egui::Button::new(egui::RichText::new(ph::HARD_DRIVE).size(26.)),
                     )
                     .on_hover_text("Select Drive/Mount Point")
                     .clicked()
@@ -153,13 +150,11 @@ pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
                     && ui
                         .add_sized(
                             Vec2::splat(40.),
-                            egui::Button::new(
-                                egui::RichText::new(egui_phosphor::regular::SEAL_WARNING).size(26.),
-                            ),
+                            egui::Button::new(egui::RichText::new(ph::SEAL_WARNING).size(26.)),
                         )
                         .on_hover_text(format!(
                             "{} A new version is available: {}",
-                            egui_phosphor::regular::CLOUD_CHECK,
+                            ph::CLOUD_CHECK,
                             &version
                         ))
                         .clicked()

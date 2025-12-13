@@ -5,6 +5,7 @@ use crate::app::App;
 use crate::messages::Message;
 use eframe::egui;
 use egui_extras::{Column, TableBuilder};
+use egui_phosphor::bold as ph;
 
 pub fn update(ui: &mut egui::Ui, app: &mut App) {
     TableBuilder::new(ui)
@@ -51,9 +52,9 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                         ui.add_space(3.);
                         ui.add(
                             egui::Label::new(if game.is_wii {
-                                format!("{} Wii", egui_phosphor::regular::HAND_DEPOSIT)
+                                format!("{} Wii", ph::HAND_DEPOSIT)
                             } else {
-                                format!("{} GC", egui_phosphor::regular::GAME_CONTROLLER)
+                                format!("{} GC", ph::GAME_CONTROLLER)
                             })
                             .truncate(),
                         );
@@ -70,7 +71,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                         ui.horizontal(|ui| {
                             // Info button
                             if ui
-                                .button(format!("{} Info", egui_phosphor::regular::INFO))
+                                .button(format!("{} Info", ph::INFO))
                                 .on_hover_text("Show Game Information")
                                 .clicked()
                             {
@@ -79,10 +80,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
 
                             // Archive button
                             if ui
-                                .button(format!(
-                                    "{} Archive",
-                                    egui_phosphor::regular::BOX_ARROW_DOWN
-                                ))
+                                .button(format!("{} Archive", ph::BOX_ARROW_DOWN))
                                 .on_hover_text("Archive Game to RVZ or ISO")
                                 .clicked()
                             {
@@ -91,7 +89,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
 
                             // Delete button
                             if ui
-                                .button(format!("{} Delete", egui_phosphor::regular::TRASH))
+                                .button(format!("{} Delete", ph::TRASH))
                                 .on_hover_text("Delete Game")
                                 .clicked()
                             {

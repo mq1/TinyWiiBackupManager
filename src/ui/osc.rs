@@ -7,14 +7,12 @@ use crate::{
     ui::{osc_grid, osc_list},
 };
 use eframe::egui;
+use egui_phosphor::bold as ph;
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
     egui::CentralPanel::default().show(ctx, |ui| {
         if app.osc_apps.is_empty() {
-            ui.heading(format!(
-                "{} Loading OSC Apps...",
-                egui_phosphor::regular::CLOUD_ARROW_DOWN
-            ));
+            ui.heading(format!("{} Loading OSC Apps...", ph::CLOUD_ARROW_DOWN));
             return;
         }
 
@@ -43,7 +41,7 @@ fn update_top_bar(ui: &mut egui::Ui, app: &mut App) {
             ui.add_space(3.);
             ui.vertical(|ui| {
                 ui.add_space(2.);
-                ui.label(egui_phosphor::regular::MAGNIFYING_GLASS);
+                ui.label(ph::MAGNIFYING_GLASS);
             });
 
             if ui
@@ -66,20 +64,14 @@ fn update_top_bar(ui: &mut egui::Ui, app: &mut App) {
                         .hint_text("Wii IP"),
                 );
 
-                ui.label(format!(
-                    "  {}  Wii IP (for Wiiload)",
-                    egui_phosphor::regular::WIFI_HIGH
-                ));
+                ui.label(format!("  {}  Wii IP (for Wiiload)", ph::WIFI_HIGH));
             });
 
             ui.add_space(10.);
 
             group.show(ui, |ui| {
                 if ui
-                    .selectable_label(
-                        current_view_as == ViewAs::List,
-                        egui_phosphor::regular::LIST,
-                    )
+                    .selectable_label(current_view_as == ViewAs::List, ph::LIST)
                     .on_hover_text("View as List")
                     .clicked()
                 {
@@ -88,10 +80,7 @@ fn update_top_bar(ui: &mut egui::Ui, app: &mut App) {
                 }
 
                 if ui
-                    .selectable_label(
-                        current_view_as == ViewAs::Grid,
-                        egui_phosphor::regular::SQUARES_FOUR,
-                    )
+                    .selectable_label(current_view_as == ViewAs::Grid, ph::SQUARES_FOUR)
                     .on_hover_text("View as Grid")
                     .clicked()
                 {

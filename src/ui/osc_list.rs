@@ -6,6 +6,7 @@ use crate::messages::Message;
 use crate::{hbc_apps, ui, wiiload};
 use eframe::egui;
 use egui_extras::{Column, TableBuilder};
+use egui_phosphor::bold as ph;
 
 pub fn update(ui: &mut egui::Ui, app: &mut App) {
     TableBuilder::new(ui)
@@ -57,7 +58,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                         ui.horizontal(|ui| {
                             // Info button
                             if ui
-                                .button(format!("{} Info", egui_phosphor::regular::INFO))
+                                .button(format!("{} Info", ph::INFO))
                                 .on_hover_text("Show App Info")
                                 .clicked()
                             {
@@ -66,10 +67,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
 
                             // Wiiload button
                             if ui
-                                .button(format!(
-                                    "{} Wiiload",
-                                    egui_phosphor::regular::MONITOR_ARROW_UP
-                                ))
+                                .button(format!("{} Wiiload", ph::MONITOR_ARROW_UP))
                                 .on_hover_text("Push to Wii via Wiiload")
                                 .clicked()
                             {
@@ -83,10 +81,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
 
                             // Install button
                             if ui
-                                .button(format!(
-                                    "{} Install",
-                                    egui_phosphor::regular::CLOUD_ARROW_DOWN
-                                ))
+                                .button(format!("{} Install", ph::CLOUD_ARROW_DOWN))
                                 .on_hover_text("Download and Install App")
                                 .clicked()
                             {
