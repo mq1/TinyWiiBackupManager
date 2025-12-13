@@ -67,7 +67,7 @@ fn update_osc_app_card(ui: &mut egui::Ui, app: &App, osc_app_i: u16) {
 
             ui.add_space(10.);
 
-            ui.add(egui::Label::new(&osc_app.meta.name).truncate());
+            ui.add(egui::Label::new(egui::RichText::new(&osc_app.meta.name).strong()).truncate());
 
             ui.add_space(10.);
 

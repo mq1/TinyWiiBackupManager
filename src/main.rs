@@ -116,16 +116,16 @@ fn main() -> Result<()> {
             // Load fonts and phosphor icons
             let mut fonts = FontDefinitions::empty();
             fonts.font_data.insert(
-                "ubuntu".to_string(),
+                "manrope".to_string(),
                 Arc::new(FontData::from_static(include_bytes!(
-                    "../assets/Ubuntu-R.ttf"
+                    "../assets/ManropeV5-Medium.otf"
                 ))),
             );
             if let Some(font_keys) = fonts.families.get_mut(&FontFamily::Proportional) {
-                font_keys.push("ubuntu".to_string());
+                font_keys.push("manrope".to_string());
             }
             if let Some(font_keys) = fonts.families.get_mut(&FontFamily::Monospace) {
-                font_keys.push("ubuntu".to_string());
+                font_keys.push("manrope".to_string());
             }
             egui_phosphor::add_to_fonts(&mut fonts, egui_phosphor::Variant::Regular);
             cc.egui_ctx.set_fonts(fonts);
@@ -140,7 +140,7 @@ fn main() -> Result<()> {
                 style.visuals.widgets.noninteractive.corner_radius = CornerRadius::same(8);
                 style.visuals.widgets.open.corner_radius = CornerRadius::same(30);
 
-                style.spacing.button_padding = vec2(5., 2.5);
+                style.spacing.button_padding = vec2(6., 3.);
             });
 
             // Load games and hbc apps

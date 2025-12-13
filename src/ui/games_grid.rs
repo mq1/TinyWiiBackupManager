@@ -96,7 +96,7 @@ fn update_game_card(ui: &mut egui::Ui, app: &App, game_i: u16) {
 
             ui.add_space(10.);
 
-            ui.add(egui::Label::new(&game.display_title).truncate());
+            ui.add(egui::Label::new(egui::RichText::new(&game.display_title).strong()).truncate());
 
             ui.add_space(10.);
 
