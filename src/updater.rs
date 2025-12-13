@@ -5,6 +5,7 @@ use crate::app::App;
 use crate::http;
 use crate::messages::Message;
 use anyhow::{Context, Result};
+use egui_phosphor::bold as ph;
 use semver::Version;
 
 const VERSION_URL: &str = concat!(
@@ -13,10 +14,8 @@ const VERSION_URL: &str = concat!(
 );
 
 pub fn check() -> Result<Option<Version>> {
-    let body = http::get_string(VERSION_URL).context(format!(
-        "{} Failed to fetch version",
-        egui_phosphor::regular::CLOUD_WARNING
-    ))?;
+    let body = http::get_string(VERSION_URL)
+        .context(format!("{} Failed to fetch version", ph::CLOUD_WARNING))?;
 
     let latest_version = Version::parse(&body)?;
     let current_version = Version::parse(env!("CARGO_PKG_VERSION"))?;
@@ -32,7 +31,7 @@ pub fn spawn_check_update_task(app: &App) {
     app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(Message::UpdateStatus(format!(
             "{} Checking for updates...",
-            egui_phosphor::regular::CLOUD_CHECK
+            ph::CLOUD_CHECK
         )))?;
 
         let version = check()?;

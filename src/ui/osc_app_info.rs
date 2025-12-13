@@ -5,7 +5,7 @@ use crate::app::App;
 use crate::ui::developers::get_developer_emoji;
 use eframe::egui;
 use eframe::egui::OpenUrl;
-use egui_phosphor::regular as ph;
+use egui_phosphor::bold as ph;
 use itertools::Itertools;
 
 pub fn update(ctx: &egui::Context, app: &mut App, osc_app_i: u16) {

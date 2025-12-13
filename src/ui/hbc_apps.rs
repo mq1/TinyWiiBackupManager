@@ -8,7 +8,7 @@ use crate::{
     ui::{hbc_apps_grid, hbc_apps_list},
 };
 use eframe::egui::{self, Vec2};
-use egui_phosphor::regular as ph;
+use egui_phosphor::bold as ph;
 
 pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
     egui::CentralPanel::default().show(ctx, |ui| {

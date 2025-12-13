@@ -5,7 +5,7 @@ use crate::app::App;
 use crate::messages::Message;
 use crate::ui::{self, View};
 use eframe::egui::{self, OpenUrl, Vec2};
-use egui_phosphor::regular as ph;
+use egui_phosphor::bold as ph;
 
 const UPDATE_URL: &str = concat!(env!("CARGO_PKG_REPOSITORY"), "/releases/latest");
 

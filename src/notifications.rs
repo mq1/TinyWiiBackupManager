@@ -3,7 +3,7 @@
 
 use eframe::egui;
 use eframe::egui::{Align2, Color32, Direction, Order, WidgetText};
-use egui_phosphor::regular as ph;
+use egui_phosphor::bold as ph;
 use egui_toast::{Toast, ToastKind, ToastOptions, ToastStyle, Toasts};
 
 pub struct Notifications {
