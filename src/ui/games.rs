@@ -37,9 +37,11 @@ fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, frame: &eframe::Frame,
 
     ui.horizontal(|ui| {
         group.show(ui, |ui| {
-            ui.set_height(25.);
             ui.add_space(3.);
-            ui.label(egui_phosphor::regular::MAGNIFYING_GLASS);
+            ui.vertical(|ui| {
+                ui.add_space(2.);
+                ui.label(egui_phosphor::regular::MAGNIFYING_GLASS);
+            });
 
             if ui
                 .add(
@@ -197,7 +199,7 @@ fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, frame: &eframe::Frame,
                 ui.checkbox(&mut app.show_wii, egui_phosphor::regular::HAND_DEPOSIT)
                     .on_hover_text("Show Wii");
 
-                ui.add_space(-5.);
+                ui.add_space(-6.);
             });
         });
     });
