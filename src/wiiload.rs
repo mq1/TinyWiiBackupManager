@@ -6,6 +6,7 @@ use crate::http;
 use crate::messages::Message;
 use anyhow::anyhow;
 use anyhow::{Result, bail};
+use egui_phosphor::bold as ph;
 use path_slash::PathBufExt;
 use std::ffi::OsStr;
 use std::fs::{self, File};
@@ -28,7 +29,7 @@ pub fn spawn_push_file_task(app: &App, path: PathBuf) {
     app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(Message::UpdateStatus(format!(
             "{} Starting Wilload...",
-            egui_phosphor::regular::MONITOR_ARROW_UP
+            ph::MONITOR_ARROW_UP
         )))?;
 
         let addr = (wii_ip.as_str(), WIILOAD_PORT)
@@ -36,26 +37,20 @@ pub fn spawn_push_file_task(app: &App, path: PathBuf) {
             .next()
             .ok_or(anyhow!(
                 "{} Failed to resolve Wii IP: {}",
-                egui_phosphor::regular::WIFI_SLASH,
+                ph::WIFI_SLASH,
                 &wii_ip
             ))?;
 
         let file_name = path
             .file_name()
-            .ok_or(anyhow!(
-                "{} No file name found",
-                egui_phosphor::regular::FILE_X
-            ))?
+            .ok_or(anyhow!("{} No file name found", ph::FILE_X))?
             .to_str()
-            .ok_or(anyhow!(
-                "{} Invalid file name",
-                egui_phosphor::regular::FILE_X
-            ))?
+            .ok_or(anyhow!("{} Invalid file name", ph::FILE_X))?
             .to_string();
 
         msg_sender.send(Message::UpdateStatus(format!(
             "{} Uploading {}...",
-            egui_phosphor::regular::MONITOR_ARROW_UP,
+            ph::MONITOR_ARROW_UP,
             file_name
         )))?;
 
@@ -75,7 +70,7 @@ pub fn spawn_push_file_task(app: &App, path: PathBuf) {
 
             msg_sender.send(Message::NotifyInfo(format!(
                 "{} Uploaded {}\nExcluded files: {}",
-                egui_phosphor::regular::MONITOR_ARROW_UP,
+                ph::MONITOR_ARROW_UP,
                 file_name,
                 excluded_files.join(", ")
             )))?;
@@ -85,7 +80,7 @@ pub fn spawn_push_file_task(app: &App, path: PathBuf) {
 
             msg_sender.send(Message::NotifyInfo(format!(
                 "{} Uploaded {}",
-                egui_phosphor::regular::MONITOR_ARROW_UP,
+                ph::MONITOR_ARROW_UP,
                 file_name
             )))?;
         }
@@ -100,7 +95,7 @@ pub fn spawn_push_osc_task(app: &App, zip_url: String) {
     app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(Message::UpdateStatus(format!(
             "{} Starting Wilload...",
-            egui_phosphor::regular::MONITOR_ARROW_UP
+            ph::MONITOR_ARROW_UP
         )))?;
 
         let addr = (wii_ip.as_str(), WIILOAD_PORT)
@@ -108,7 +103,7 @@ pub fn spawn_push_osc_task(app: &App, zip_url: String) {
             .next()
             .ok_or(anyhow!(
                 "{} Failed to resolve Wii IP: {}",
-                egui_phosphor::regular::WIFI_SLASH,
+                ph::WIFI_SLASH,
                 &wii_ip
             ))?;
 
@@ -116,7 +111,7 @@ pub fn spawn_push_osc_task(app: &App, zip_url: String) {
 
         msg_sender.send(Message::UpdateStatus(format!(
             "{} Downloading {}...",
-            egui_phosphor::regular::CLOUD_ARROW_DOWN,
+            ph::CLOUD_ARROW_DOWN,
             url
         )))?;
 
@@ -136,7 +131,7 @@ pub fn spawn_push_osc_task(app: &App, zip_url: String) {
 
         msg_sender.send(Message::NotifyInfo(format!(
             "{} Uploaded {}\nExcluded files: {}",
-            egui_phosphor::regular::MONITOR_ARROW_UP,
+            ph::MONITOR_ARROW_UP,
             url,
             excluded_files.join(", ")
         )))?;
@@ -172,10 +167,7 @@ fn recreate_zip(
 
     let app_name = app_dir
         .file_name()
-        .ok_or(anyhow!(
-            "{} No app name found",
-            egui_phosphor::regular::FILE_X
-        ))?
+        .ok_or(anyhow!("{} No app name found", ph::FILE_X))?
         .to_string_lossy()
         .to_string();
 

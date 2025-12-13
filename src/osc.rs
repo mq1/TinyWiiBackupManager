@@ -5,6 +5,7 @@ use crate::app::App;
 use crate::http;
 use crate::messages::Message;
 use anyhow::{Result, bail};
+use egui_phosphor::bold as ph;
 use path_slash::PathExt;
 use serde::Deserialize;
 use size::Size;
@@ -20,7 +21,7 @@ pub fn spawn_load_osc_apps_task(app: &App) {
     app.task_processor.spawn(move |msg_sender| {
         msg_sender.send(Message::UpdateStatus(format!(
             "{} Loading OSC Meta...",
-            egui_phosphor::regular::STOREFRONT
+            ph::STOREFRONT
         )))?;
 
         fs::create_dir_all(&icons_dir)?;
@@ -42,7 +43,7 @@ pub fn spawn_load_osc_apps_task(app: &App) {
         msg_sender.send(Message::GotOscApps(apps))?;
         msg_sender.send(Message::NotifyInfo(format!(
             "{} OSC Apps loaded",
-            egui_phosphor::regular::STOREFRONT
+            ph::STOREFRONT
         )))?;
 
         Ok(())

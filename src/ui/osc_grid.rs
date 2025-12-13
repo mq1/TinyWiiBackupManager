@@ -5,6 +5,7 @@ use crate::app::App;
 use crate::messages::Message;
 use crate::{hbc_apps, ui, wiiload};
 use eframe::egui;
+use egui_phosphor::bold as ph;
 
 const CARD_WIDTH: f32 = 161.5;
 const CARD_HORIZONTAL_SPACE: usize = 181;
@@ -18,7 +19,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
 
         ui.heading(format!(
             "{} Open Shop Channel Apps: {} found",
-            egui_phosphor::regular::STOREFRONT,
+            ph::STOREFRONT,
             app.filtered_osc_apps.len(),
         ));
 
@@ -51,7 +52,7 @@ fn update_osc_app_card(ui: &mut egui::Ui, app: &App, osc_app_i: u16) {
             ui.horizontal(|ui| {
                 ui.label(format!(
                     "{}  {}",
-                    egui_phosphor::regular::PUSH_PIN,
+                    ph::PUSH_PIN,
                     osc_app.meta.trimmed_version()
                 ));
 
@@ -75,7 +76,7 @@ fn update_osc_app_card(ui: &mut egui::Ui, app: &App, osc_app_i: u16) {
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 // Install button
                 if ui
-                    .button(egui_phosphor::regular::CLOUD_ARROW_DOWN)
+                    .button(ph::CLOUD_ARROW_DOWN)
                     .on_hover_text("Download and Install App")
                     .clicked()
                 {
@@ -87,7 +88,7 @@ fn update_osc_app_card(ui: &mut egui::Ui, app: &App, osc_app_i: u16) {
 
                 // Wiiload button
                 if ui
-                    .button(egui_phosphor::regular::MONITOR_ARROW_UP)
+                    .button(ph::MONITOR_ARROW_UP)
                     .on_hover_text("Push to Wii via Wiiload")
                     .clicked()
                 {
@@ -98,7 +99,7 @@ fn update_osc_app_card(ui: &mut egui::Ui, app: &App, osc_app_i: u16) {
                 // Info button
                 if ui
                     .add(
-                        egui::Button::new(format!("{} Info", egui_phosphor::regular::INFO))
+                        egui::Button::new(format!("{} Info", ph::INFO))
                             .min_size(egui::vec2(ui.available_width(), 0.0)),
                     )
                     .on_hover_text("Show App Information")
