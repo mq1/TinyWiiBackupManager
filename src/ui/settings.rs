@@ -6,7 +6,7 @@ use crate::txtcodes::TxtCodesSource;
 use crate::ui::accent::AccentColor;
 use eframe::egui;
 use eframe::egui::{ThemePreference, Vec2};
-use egui_phosphor::fill as ph;
+use egui_phosphor::regular as ph;
 use nod::common::Format;
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
@@ -326,7 +326,7 @@ fn update_accent_btn(
     accent_color: AccentColor,
 ) {
     let color = egui::Color32::from(accent_color);
-    let text = egui::RichText::new(ph::CIRCLE).color(color.to_opaque());
+    let text = egui::RichText::new(ph::SPIRAL).color(color.to_opaque());
 
     if ui
         .selectable_label(app.config.contents.accent_color == accent_color, text)

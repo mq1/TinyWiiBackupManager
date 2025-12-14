@@ -5,7 +5,7 @@ use crate::app::App;
 use crate::messages::Message;
 use crate::{games::GameID, http};
 use anyhow::Result;
-use egui_phosphor::fill as ph;
+use egui_phosphor::regular as ph;
 use std::{fs, path::Path};
 
 fn download_cover3d(id: GameID, mount_point: &Path) -> Result<bool> {

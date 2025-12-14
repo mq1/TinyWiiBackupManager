@@ -5,7 +5,7 @@ use crate::app::App;
 use crate::http;
 use crate::messages::Message;
 use anyhow::{Context, Result};
-use egui_phosphor::fill as ph;
+use egui_phosphor::regular as ph;
 use semver::Version;
 
 const VERSION_URL: &str = concat!(

@@ -5,7 +5,7 @@ use crate::app::App;
 use crate::ui::developers::get_developer_emoji;
 use eframe::egui;
 use eframe::egui::OpenUrl;
-use egui_phosphor::fill as ph;
+use egui_phosphor::regular as ph;
 use itertools::Itertools;
 
 pub fn update(ctx: &egui::Context, app: &mut App, osc_app_i: u16) {
@@ -107,14 +107,14 @@ pub fn update(ctx: &egui::Context, app: &mut App, osc_app_i: u16) {
         ui.add_space(10.);
 
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Max), |ui| {
-            if ui.button(format!("{} Close", ph::X_CIRCLE)).clicked() {
+            if ui.button(format!("{} Close", ph::X)).clicked() {
                 app.close_modal();
             }
 
             ui.add_sized(egui::Vec2::new(1., 21.), egui::Separator::default());
 
             if ui
-                .button(format!("{} Open oscwii.org page", ph::GLOBE))
+                .button(format!("{} Open oscwii.org page", ph::LINK))
                 .clicked()
             {
                 let osc_app = &app.osc_apps[osc_app_i as usize];

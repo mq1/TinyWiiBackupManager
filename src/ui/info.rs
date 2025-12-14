@@ -5,7 +5,7 @@ use crate::app::App;
 use crate::ui;
 use eframe::egui;
 use eframe::egui::OpenUrl;
-use egui_phosphor::fill as ph;
+use egui_phosphor::regular as ph;
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
     egui::Modal::new("info".into()).show(ctx, |ui: &mut egui::Ui| {
@@ -33,12 +33,12 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
         ui.add_space(10.);
 
         ui.heading(format!("{} Need help modding your Wii?", ph::INFO));
-        ui.hyperlink_to(format!("{} Wii Hacks Guide", ph::GLOBE), "https://wii.hacks.guide/");
+        ui.hyperlink_to(format!("{} Wii Hacks Guide", ph::LINK), "https://wii.hacks.guide/");
 
         ui.add_space(10.);
 
         ui.heading(format!("{} 3rd party libraries and licenses", ph::LIGHTBULB));
-        ui.hyperlink_to(format!("{} List", ph::GLOBE), "https://github.com/mq1/TinyWiiBackupManager/wiki/3rd-party-libraries-and-licenses");
+        ui.hyperlink_to(format!("{} List", ph::LINK), "https://github.com/mq1/TinyWiiBackupManager/wiki/3rd-party-libraries-and-licenses");
 
         ui.add_space(10.);
 
@@ -55,7 +55,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
         ui.add_space(10.);
 
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Max), |ui| {
-            if ui.button(format!("{} Close", ph::X_CIRCLE)).clicked() {
+            if ui.button(format!("{} Close", ph::X)).clicked() {
                 app.close_modal();
             }
 
@@ -65,7 +65,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 app.open_data_dir();
             }
 
-            if ui.button(format!("{} Wiki", ph::GLOBE)).clicked() {
+            if ui.button(format!("{} Wiki", ph::LINK)).clicked() {
                 ctx.open_url(OpenUrl::new_tab(env!("CARGO_PKG_HOMEPAGE")));
             }
 

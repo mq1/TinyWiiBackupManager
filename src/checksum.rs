@@ -10,7 +10,7 @@ use crate::{
 };
 use anyhow::{Result, anyhow};
 use crossbeam_channel::Sender;
-use egui_phosphor::fill as ph;
+use egui_phosphor::regular as ph;
 use nod::{
     read::DiscReader,
     write::{DiscWriter, FormatOptions},
