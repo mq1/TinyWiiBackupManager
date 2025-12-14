@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::ffi::OsStr;
+
 use crate::app::App;
 use crate::ui::developers::get_developer_emoji;
 use eframe::egui;
@@ -13,7 +15,19 @@ pub fn update(ctx: &egui::Context, app: &mut App, hbc_app_i: u16) {
         ui.set_height(ctx.available_rect().height() - 80.);
         ui.set_width(700.);
 
-        ui.heading(&hbc_app.meta.name);
+        ui.horizontal(|ui| {
+            ui.heading(&hbc_app.meta.name);
+
+            if let Some(slug) = hbc_app.path.file_name().and_then(OsStr::to_str) {
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Min), |ui| {
+                    let url = format!("https://oscwii.org/library/app/{}", slug);
+
+                    ui.hyperlink_to(format!("{} Open Shop Channel", ph::INFO), &url)
+                        .on_hover_text(url)
+                });
+            }
+        });
+
         ui.label(format!("{} Path: {}", ph::FOLDER, hbc_app.get_path_str()));
 
         ui.separator();
