@@ -6,7 +6,7 @@ use crate::http;
 use crate::messages::Message;
 use anyhow::anyhow;
 use anyhow::{Result, bail};
-use egui_phosphor::fill as ph;
+use egui_phosphor::regular as ph;
 use path_slash::PathBufExt;
 use std::ffi::OsStr;
 use std::fs::{self, File};

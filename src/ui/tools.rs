@@ -4,7 +4,7 @@
 use crate::app::App;
 use crate::{banners, covers, txtcodes, wiitdb};
 use eframe::egui;
-use egui_phosphor::fill as ph;
+use egui_phosphor::regular as ph;
 
 pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
     egui::CentralPanel::default().show(ctx, |ui| {

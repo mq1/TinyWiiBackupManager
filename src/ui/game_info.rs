@@ -6,7 +6,7 @@ use crate::messages::Message;
 use crate::{checksum, txtcodes};
 use capitalize::Capitalize;
 use eframe::egui;
-use egui_phosphor::fill as ph;
+use egui_phosphor::regular as ph;
 use itertools::Itertools;
 
 pub fn update(ctx: &egui::Context, app: &App, game_i: u16) {
@@ -284,7 +284,7 @@ pub fn update(ctx: &egui::Context, app: &App, game_i: u16) {
         ui.add_space(10.);
 
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Max), |ui| {
-            if ui.button(format!("{} Close", ph::X_CIRCLE)).clicked() {
+            if ui.button(format!("{} Close", ph::X)).clicked() {
                 app.send_msg(Message::CloseModal);
             }
 
