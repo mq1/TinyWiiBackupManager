@@ -4,7 +4,6 @@
 use crate::app::App;
 use crate::ui::developers::get_developer_emoji;
 use eframe::egui;
-use eframe::egui::OpenUrl;
 use egui_phosphor::regular as ph;
 use itertools::Itertools;
 
@@ -15,7 +14,17 @@ pub fn update(ctx: &egui::Context, app: &mut App, osc_app_i: u16) {
         ui.set_height(ctx.available_rect().height() - 80.);
         ui.set_width(700.);
 
-        ui.heading(&osc_app.meta.name);
+        ui.horizontal(|ui| {
+            ui.heading(&osc_app.meta.name);
+
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Min), |ui| {
+                let url = format!("https://oscwii.org/library/app/{}", &osc_app.meta.slug);
+
+                ui.hyperlink_to(format!("{} Open Shop Channel", ph::INFO), &url)
+                    .on_hover_text(url)
+            });
+        });
+
         ui.separator();
 
         egui::ScrollArea::vertical().show(ui, |ui| {
@@ -109,17 +118,6 @@ pub fn update(ctx: &egui::Context, app: &mut App, osc_app_i: u16) {
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Max), |ui| {
             if ui.button(format!("{} Close", ph::X)).clicked() {
                 app.close_modal();
-            }
-
-            ui.add_sized(egui::Vec2::new(1., 21.), egui::Separator::default());
-
-            if ui
-                .button(format!("{} Open oscwii.org page", ph::LINK))
-                .clicked()
-            {
-                let osc_app = &app.osc_apps[osc_app_i as usize];
-                let url = format!("https://oscwii.org/library/app/{}", &osc_app.meta.slug);
-                ctx.open_url(OpenUrl::new_tab(&url));
             }
         });
     });
