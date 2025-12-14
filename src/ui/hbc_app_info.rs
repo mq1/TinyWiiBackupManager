@@ -1,12 +1,11 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::ffi::OsStr;
-
 use crate::app::App;
 use crate::ui::developers::get_developer_emoji;
 use eframe::egui;
 use egui_phosphor::regular as ph;
+use std::ffi::OsStr;
 
 pub fn update(ctx: &egui::Context, app: &mut App, hbc_app_i: u16) {
     egui::Modal::new("hbc_app_info".into()).show(ctx, |ui: &mut egui::Ui| {
