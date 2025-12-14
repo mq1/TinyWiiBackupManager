@@ -7,7 +7,7 @@ use crate::{
     ui::{osc_grid, osc_list},
 };
 use eframe::egui;
-use egui_phosphor::fill as ph;
+use egui_phosphor::regular as ph;
 
 pub fn update(ctx: &egui::Context, app: &mut App) {
     egui::CentralPanel::default().show(ctx, |ui| {

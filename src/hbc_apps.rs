@@ -6,7 +6,7 @@ use crate::messages::Message;
 use crate::osc::OscApp;
 use crate::{config::SortBy, http};
 use anyhow::{Result, anyhow, bail};
-use egui_phosphor::fill as ph;
+use egui_phosphor::regular as ph;
 use path_slash::PathBufExt;
 use serde::{Deserialize, Deserializer};
 use size::Size;

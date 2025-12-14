@@ -7,7 +7,7 @@ use crate::{
     ui::{games_grid, games_list},
 };
 use eframe::egui::{self, Vec2};
-use egui_phosphor::fill as ph;
+use egui_phosphor::regular as ph;
 
 pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
     egui::CentralPanel::default().show(ctx, |ui| {
@@ -71,7 +71,7 @@ fn update_top_bar(ui: &mut egui::Ui, ctx: &egui::Context, frame: &eframe::Frame,
             if ui
                 .add_sized(
                     Vec2::splat(34.),
-                    egui::Button::new(egui::RichText::new("+").strong().size(22.)),
+                    egui::Button::new(egui::RichText::new(ph::PLUS).strong().size(18.)),
                 )
                 .on_hover_text("Add Games")
                 .clicked()
