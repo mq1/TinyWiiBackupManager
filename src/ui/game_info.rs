@@ -25,7 +25,17 @@ pub fn update(ctx: &egui::Context, app: &App, game_i: u16) {
         ui.set_height(ctx.available_rect().height() - 80.);
         ui.set_width(700.);
 
-        ui.heading(format!("{} {}", ph::SWORD, game.display_title));
+        ui.horizontal(|ui| {
+            ui.heading(format!("{} {}", ph::SWORD, game.display_title));
+
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Min), |ui| {
+                let url = format!("https://www.gametdb.com/Wii/{}", game.id.as_str());
+
+                ui.hyperlink_to(format!("{} GameTDB", ph::INFO), &url)
+                    .on_hover_text(url)
+            });
+        });
+
         ui.label(format!("{} Path: {}", ph::FOLDER, game.path.display()));
 
         ui.separator();
