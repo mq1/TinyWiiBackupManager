@@ -13,7 +13,7 @@
 > Use of TinyWiiBackupManager for pirated or unauthorized copies of games is strictly prohibited.
 
 <p align="center">
-  <img alt="App Screenshot" src="assets/screenshot.png">
+  <img alt="App Screenshot" src="assets/screenshots/games.png">
 </p>
 
 ## ✨ Features
