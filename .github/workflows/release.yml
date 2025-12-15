@@ -52,6 +52,10 @@ jobs:
       - name: Install mold
         uses: rui314/setup-mold@v1
 
+      - name: Install dependencies
+        if: matrix.arch == 'x86'
+        run: sudo apt-get install -y libc6-dev-i386
+
       - name: Install Rust toolchain
         run: |
           rustup toolchain install 1.92 --component rust-src
