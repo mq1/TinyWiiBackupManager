@@ -245,7 +245,7 @@ jobs:
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
         env:
           RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: -Clinker=clang -Clink-arg=-fuse-ld=lld -Clinker-plugin-lto
+          RUSTFLAGS: -Clinker=clang -Clink-arg=-fuse-ld=ld.lld -Clinker-plugin-lto
           CC: "clang"
           CXX: "clang++"
           CFLAGS: -flto -O3 -pipe
