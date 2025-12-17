@@ -225,6 +225,9 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Install llvm and lld
+        run: brew install llvm@21 lld@21
+
       - name: Install Rust toolchain
         run: |
           rustup toolchain install 1.92 --component rust-src
@@ -242,6 +245,7 @@ jobs:
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
         env:
           RUSTC_BOOTSTRAP: 1
+          RUSTFLAGS: -Clinker=clang -Clink-arg=-fuse-ld=lld -Clinker-plugin-lto
           CC: "clang"
           CXX: "clang++"
           CFLAGS: -flto -O3 -pipe
