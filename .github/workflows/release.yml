@@ -58,12 +58,12 @@ jobs:
       - name: Install LLVM and Clang
         uses: KyleMayes/install-llvm-action@v2
         with:
-          version: "21"
+          version: "21.1.3"
 
       - name: Install Rust toolchain
         run: |
           rustup toolchain install 1.92 --component rust-src
-          rustup default 1.92
+          rustup default 1.92.0
 
       - name: Restore Rust cache
         uses: Swatinem/rust-cache@v2
@@ -162,13 +162,13 @@ jobs:
       - name: Install LLVM and Clang
         uses: KyleMayes/install-llvm-action@v2
         with:
-          version: "21"
+          version: "21.1.3"
 
       - name: Install Rust toolchain
         shell: pwsh
         run: |
           rustup toolchain install 1.92 --component rust-src
-          rustup default 1.92
+          rustup default 1.92.0
 
       - name: Restore Rust cache
         uses: Swatinem/rust-cache@v2
@@ -234,12 +234,12 @@ jobs:
       - name: Install LLVM and Clang
         uses: KyleMayes/install-llvm-action@v2
         with:
-          version: "21"
+          version: "21.1.3"
 
       - name: Install Rust toolchain
         run: |
           rustup toolchain install 1.92 --component rust-src
-          rustup default 1.92
+          rustup default 1.92.0
 
       - name: Restore Rust cache
         uses: Swatinem/rust-cache@v2
