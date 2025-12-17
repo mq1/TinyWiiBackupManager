@@ -1,9 +1,0 @@
-[target.'cfg(target_os = "linux")']
-rustflags = ["-C", "link-arg=-fuse-ld=mold"]
-
-[target.'cfg(target_vendor = "pc")']
-linker = "rust-lld.exe"
-
-[target.'cfg(target_vendor = "win7")']
-linker = "rust-lld.exe"
-rustflags = ["-C", "target-feature=+crt-static"]
