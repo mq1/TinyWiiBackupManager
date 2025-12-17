@@ -112,18 +112,16 @@ jobs:
 
   build-windows:
     name: Build for Windows
-    runs-on: ${{ matrix.runner }}
+    runs-on: windows-2025
     strategy:
       fail-fast: false
       matrix:
         include:
           - target: x86_64-pc-windows-msvc
-            runner: windows-2025
             arch: x86_64
             features: native-tls
             pc: windows
           - target: x86_64-pc-windows-msvc
-            runner: windows-2025
             arch: x86_64-v3
             rustflags: "-Ctarget-cpu=x86-64-v3"
             cflags: "/clang:-march=x86-64-v3"
@@ -131,23 +129,19 @@ jobs:
             features: native-tls
             pc: windows
           - target: aarch64-pc-windows-msvc
-            runner: windows-11-arm
             arch: arm64
             features: native-tls
             pc: windows
           - target: i686-pc-windows-msvc
-            runner: windows-2025
             arch: x86
             features: native-tls
             pc: windows
           - target: x86_64-win7-windows-msvc
-            runner: windows-2025
             arch: x86_64
             rustflags: "-Ctarget-feature=+crt-static"
             features: bundled-tls
             pc: windows7
           - target: i686-win7-windows-msvc
-            runner: windows-2025
             arch: x86
             rustflags: "-Ctarget-feature=+crt-static"
             features: bundled-tls
@@ -248,7 +242,7 @@ jobs:
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
         env:
           RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: -Clinker=clang -Clink-arg=-fuse-ld=lld -Clinker-plugin-lto
+          RUSTFLAGS: -Clinker-plugin-lto
           CC: "clang"
           CXX: "clang++"
           CLAGS: -flto -O3 -pipe
