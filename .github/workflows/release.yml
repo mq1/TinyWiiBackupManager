@@ -56,7 +56,7 @@ jobs:
         run: sudo apt-get install -y libc6-dev-i386
 
       - name: Install LLVM and Clang
-        uses: KyleMayes/install-llvm-action@v2
+        uses: KyleMayes/install-llvm-action@master
         with:
           version: "21.1.3"
 
@@ -160,7 +160,7 @@ jobs:
           fetch-depth: 1
 
       - name: Install LLVM and Clang
-        uses: KyleMayes/install-llvm-action@v2
+        uses: KyleMayes/install-llvm-action@master
         with:
           version: "21.1.3"
 
@@ -232,7 +232,7 @@ jobs:
           fetch-depth: 1
 
       - name: Install LLVM and Clang
-        uses: KyleMayes/install-llvm-action@v2
+        uses: KyleMayes/install-llvm-action@master
         with:
           version: "21.1.3"
 
