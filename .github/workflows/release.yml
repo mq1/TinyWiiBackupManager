@@ -5,7 +5,7 @@ on:
     branches:
       - main
     tags:
-      - 'v*.*.*'
+      - "v*.*.*"
   pull_request:
 
 permissions:
@@ -33,7 +33,9 @@ jobs:
             runner: ubuntu-24.04
             arch: x86_64-v3
             ldai-arch: x86_64
-            rustflags: "-C target-cpu=x86-64-v3"
+            rustflags: "-Ctarget-cpu=x86-64-v3"
+            cflags: "-march=x86-64-v3"
+            cxxflags: "-march=x86-64-v3"
           - target: aarch64-unknown-linux-gnu
             runner: ubuntu-24.04-arm
             arch: arm64
@@ -49,12 +51,14 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install mold
-        uses: rui314/setup-mold@v1
-
       - name: Install dependencies
         if: matrix.arch == 'x86'
         run: sudo apt-get install -y libc6-dev-i386
+
+      - name: Install LLVM and Clang
+        uses: KyleMayes/install-llvm-action@master
+        with:
+          version: "21"
 
       - name: Install Rust toolchain
         run: |
@@ -77,7 +81,11 @@ jobs:
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
         env:
           RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: ${{ matrix.rustflags }}
+          RUSTFLAGS: ${{ matrix.rustflags }} -Clinker=clang -Clink-arg=-fuse-ld=lld -Clinker-plugin-lto
+          CC: "clang"
+          CXX: "clang++"
+          CFLAGS: ${{ matrix.cflags }} -flto -O3 -pipe
+          CXXFLAGS: ${{ matrix.cxxflags }} -flto -O3 -pipe
 
       - name: Package binary as tar.gz
         run: |
@@ -104,40 +112,38 @@ jobs:
 
   build-windows:
     name: Build for Windows
-    runs-on: ${{ matrix.runner }}
+    runs-on: windows-2025
     strategy:
       fail-fast: false
       matrix:
         include:
           - target: x86_64-pc-windows-msvc
-            runner: windows-2025
             arch: x86_64
             features: native-tls
             pc: windows
           - target: x86_64-pc-windows-msvc
-            runner: windows-2025
             arch: x86_64-v3
-            rustflags: "-C target-cpu=x86-64-v3"
+            rustflags: "-Ctarget-cpu=x86-64-v3"
+            cflags: "/clang:-march=x86-64-v3"
+            cxxflags: "/clang:-march=x86-64-v3"
             features: native-tls
             pc: windows
           - target: aarch64-pc-windows-msvc
-            runner: windows-11-arm
             arch: arm64
             features: native-tls
             pc: windows
           - target: i686-pc-windows-msvc
-            runner: windows-2025
             arch: x86
             features: native-tls
             pc: windows
           - target: x86_64-win7-windows-msvc
-            runner: windows-2025
             arch: x86_64
+            rustflags: "-Ctarget-feature=+crt-static"
             features: bundled-tls
             pc: windows7
           - target: i686-win7-windows-msvc
-            runner: windows-2025
             arch: x86
+            rustflags: "-Ctarget-feature=+crt-static"
             features: bundled-tls
             pc: windows7
 
@@ -146,6 +152,11 @@ jobs:
         uses: actions/checkout@v5
         with:
           fetch-depth: 1
+
+      - name: Install LLVM and Clang
+        uses: KyleMayes/install-llvm-action@master
+        with:
+          version: "21"
 
       - name: Install Rust toolchain
         shell: pwsh
@@ -167,7 +178,12 @@ jobs:
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "${{ matrix.features }}"
         env:
           RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: ${{ matrix.rustflags }}
+          RUSTFLAGS: ${{ matrix.rustflags }} -Clinker-plugin-lto -Clinker=lld-link
+          CC: "clang-cl"
+          CXX: "clang-cl"
+          AR: "llvm-lib"
+          CFLAGS: "${{ matrix.cflags }} /clang:-flto /clang:-fuse-ld=lld-link /clang:-O3 /clang:-pipe"
+          CXXFLAGS: "${{ matrix.cxxflags }} /clang:-flto /clang:-fuse-ld=lld-link /clang:-O3 /clang:-pipe"
 
       - name: Package binary as zip
         shell: pwsh
@@ -226,6 +242,10 @@ jobs:
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
         env:
           RUSTC_BOOTSTRAP: 1
+          CC: "clang"
+          CXX: "clang++"
+          CFLAGS: -flto -O3 -pipe
+          CXXFLAGS: -flto -O3 -pipe
 
       - name: Set macos.minimumSystemVersion in Cargo.toml
         run: sed -i '' 's/MACOS_MIN_SYS_VER/${{ matrix.min_sys_ver }}/' Cargo.toml
@@ -259,13 +279,13 @@ jobs:
     name: Create GitHub Release
     if: github.ref_type == 'tag'
     runs-on: ubuntu-24.04
-    needs: [ build-linux, build-windows, build-macos ]
+    needs: [build-linux, build-windows, build-macos]
     steps:
       - name: Download distributables
         uses: actions/download-artifact@v4
         with:
           path: dist
-          pattern: 'dist-*' # This pattern will match all final distributable artifacts
+          pattern: "dist-*" # This pattern will match all final distributable artifacts
           merge-multiple: true # This places all matching artifacts into a single 'dist' directory
 
       - name: Create version.txt
@@ -288,7 +308,7 @@ jobs:
     name: Update scoop bucket
     if: github.ref_type == 'tag'
     runs-on: ubuntu-24.04
-    needs: [ build-windows ]
+    needs: [build-windows]
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -300,7 +320,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: dist
-          pattern: 'dist-windows-*'
+          pattern: "dist-windows-*"
           merge-multiple: true
 
       - name: Generate TinyWiiBackupManager.json
@@ -309,7 +329,7 @@ jobs:
           x86_64_hash=$(sha256sum dist/TinyWiiBackupManager-${VERSION_NAME}-windows-x86_64.zip | cut -d' ' -f1)
           arm64_hash=$(sha256sum dist/TinyWiiBackupManager-${VERSION_NAME}-windows-arm64.zip | cut -d' ' -f1)
           x86_hash=$(sha256sum dist/TinyWiiBackupManager-${VERSION_NAME}-windows-x86.zip | cut -d' ' -f1)
-          
+
           cp assets/scoop-template.json bucket/TinyWiiBackupManager.json
           sed -i "s/PLAIN_VER/${plain_ver}/g" bucket/TinyWiiBackupManager.json
           sed -i "s/X86_64_HASH/${x86_64_hash}/g" bucket/TinyWiiBackupManager.json
