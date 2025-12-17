@@ -55,6 +55,11 @@ jobs:
         if: matrix.arch == 'x86'
         run: sudo apt-get install -y libc6-dev-i386
 
+      - name: Install LLVM and Clang
+        uses: KyleMayes/install-llvm-action@v2
+        with:
+          version: "21"
+
       - name: Install Rust toolchain
         run: |
           rustup toolchain install 1.92 --component rust-src
@@ -154,6 +159,11 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Install LLVM and Clang
+        uses: KyleMayes/install-llvm-action@v2
+        with:
+          version: "21"
+
       - name: Install Rust toolchain
         shell: pwsh
         run: |
@@ -221,6 +231,11 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Install LLVM and Clang
+        uses: KyleMayes/install-llvm-action@v2
+        with:
+          version: "21"
+
       - name: Install Rust toolchain
         run: |
           rustup toolchain install 1.92 --component rust-src
@@ -238,11 +253,11 @@ jobs:
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
         env:
           RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: -Clinker=ld -Clinker-plugin-lto
+          RUSTFLAGS: -Clinker=clang -Clink-arg=-fuse-ld=lld -Clinker-plugin-lto
           CC: "clang"
           CXX: "clang++"
-          CLAGS: ${{ matrix.cflags }} -flto -O3 -pipe
-          CXXFLAGS: ${{ matrix.cxxflags }} -flto -O3 -pipe
+          CLAGS: -flto -O3 -pipe
+          CXXFLAGS: -flto -O3 -pipe
 
       - name: Set macos.minimumSystemVersion in Cargo.toml
         run: sed -i '' 's/MACOS_MIN_SYS_VER/${{ matrix.min_sys_ver }}/' Cargo.toml
