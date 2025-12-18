@@ -75,33 +75,35 @@ pub fn spawn_strip_game_task(app: &App, disc_info: DiscInfo) {
         let dir_path = parent_dir.join(new_name);
         let out_path = dir_path.join(format!("{}.wbfs", disc_info.id.as_str()));
 
-        let disc = DiscReader::new(&disc_info.disc_path, &get_disc_opts())?;
+        {
+            let disc = DiscReader::new(&disc_info.disc_path, &get_disc_opts())?;
 
-        let mut overflow_writer = OverflowWriter::new(&out_path, always_split)?;
+            let mut overflow_writer = OverflowWriter::new(&out_path, always_split)?;
 
-        let out_opts = FormatOptions::new(Format::Wbfs);
-        let writer = DiscWriter::new(disc, &out_opts)?;
+            let out_opts = FormatOptions::new(Format::Wbfs);
+            let writer = DiscWriter::new(disc, &out_opts)?;
 
-        let process_opts = get_process_opts(true);
+            let process_opts = get_process_opts(true);
 
-        let finalization = writer.process(
-            |data, progress, total| {
-                overflow_writer.write_all(&data)?;
+            let finalization = writer.process(
+                |data, progress, total| {
+                    overflow_writer.write_all(&data)?;
 
-                let _ = msg_sender.send(Message::UpdateStatus(format!(
-                    "{} Converting {}  {:02}%",
-                    ph::FLOW_ARROW,
-                    &disc_info.title,
-                    progress * 100 / total,
-                )));
+                    let _ = msg_sender.send(Message::UpdateStatus(format!(
+                        "{} Converting {}  {:02}%",
+                        ph::FLOW_ARROW,
+                        &disc_info.title,
+                        progress * 100 / total,
+                    )));
 
-                Ok(())
-            },
-            &process_opts,
-        )?;
+                    Ok(())
+                },
+                &process_opts,
+            )?;
 
-        if !finalization.header.is_empty() {
-            overflow_writer.write_header(&finalization.header)?;
+            if !finalization.header.is_empty() {
+                overflow_writer.write_header(&finalization.header)?;
+            }
         }
 
         // Remove the original game directory
@@ -111,7 +113,7 @@ pub fn spawn_strip_game_task(app: &App, disc_info: DiscInfo) {
         fs::rename(dir_path, disc_info.game_dir)?;
 
         msg_sender.send(Message::NotifyInfo(format!(
-            "{} {} Converted (without update partition)",
+            "{} {} Converted successfully (no update partition)",
             ph::FLOW_ARROW,
             &disc_info.title
         )))?;
@@ -183,33 +185,41 @@ pub fn spawn_conv_game_task(app: &App, in_path: PathBuf, out_path: PathBuf) {
             .and_then(ext_to_format)
             .ok_or(anyhow!("Invalid output file extension"))?;
 
-        let disc = DiscReader::new(&in_path, &get_disc_opts())?;
-        let game_title = disc.header().game_title_str().to_string();
+        {
+            let disc = DiscReader::new(&in_path, &get_disc_opts())?;
+            let game_title = disc.header().game_title_str().to_string();
 
-        let mut overflow_writer = OverflowWriter::new(&out_path, always_split)?;
-        let out_opts = format_to_opts(out_format);
-        let disc_writer = DiscWriter::new(disc, &out_opts)?;
-        let process_opts = get_process_opts(scrub_update_partition);
+            let mut overflow_writer = OverflowWriter::new(&out_path, always_split)?;
+            let out_opts = format_to_opts(out_format);
+            let disc_writer = DiscWriter::new(disc, &out_opts)?;
+            let process_opts = get_process_opts(scrub_update_partition);
 
-        let finalization = disc_writer.process(
-            |data, progress, total| {
-                overflow_writer.write_all(&data)?;
+            let finalization = disc_writer.process(
+                |data, progress, total| {
+                    overflow_writer.write_all(&data)?;
 
-                let _ = msg_sender.send(Message::UpdateStatus(format!(
-                    "{} Converting {}  {:02}%",
-                    ph::FLOW_ARROW,
-                    &game_title,
-                    progress * 100 / total
-                )));
+                    let _ = msg_sender.send(Message::UpdateStatus(format!(
+                        "{} Converting {}  {:02}%",
+                        ph::FLOW_ARROW,
+                        &game_title,
+                        progress * 100 / total
+                    )));
 
-                Ok(())
-            },
-            &process_opts,
-        )?;
+                    Ok(())
+                },
+                &process_opts,
+            )?;
 
-        if !finalization.header.is_empty() {
-            overflow_writer.write_header(&finalization.header)?;
+            if !finalization.header.is_empty() {
+                overflow_writer.write_header(&finalization.header)?;
+            }
         }
+
+        msg_sender.send(Message::UpdateStatus(format!(
+            "{} {} Converted successfully",
+            ph::FLOW_ARROW,
+            in_path.display()
+        )))?;
 
         Ok(())
     });
@@ -331,6 +341,11 @@ pub fn spawn_add_game_task(app: &App, in_path: PathBuf, should_download_covers: 
             }
         }
 
+        msg_sender.send(Message::UpdateStatus(format!(
+            "{} {} Added successfully",
+            ph::FLOW_ARROW,
+            in_path.display()
+        )))?;
         msg_sender.send(Message::TriggerRefreshGames(should_download_covers))?;
 
         Ok(())
