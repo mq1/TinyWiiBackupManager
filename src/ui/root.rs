@@ -7,7 +7,7 @@ use eframe::egui;
 
 pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
     ui::nav::update(ctx, frame, app);
-    ui::status::update(ctx, app);
+    ui::status::update(ctx, frame, app);
 
     match app.current_view {
         ui::View::Games => ui::games::update(ctx, frame, app),
