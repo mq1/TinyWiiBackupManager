@@ -215,7 +215,7 @@ pub fn spawn_conv_game_task(app: &App, in_path: PathBuf, out_path: PathBuf) {
             }
         }
 
-        msg_sender.send(Message::UpdateStatus(format!(
+        msg_sender.send(Message::NotifyInfo(format!(
             "{} {} Converted successfully",
             ph::FLOW_ARROW,
             in_path.display()
@@ -341,7 +341,7 @@ pub fn spawn_add_game_task(app: &App, in_path: PathBuf, should_download_covers: 
             }
         }
 
-        msg_sender.send(Message::UpdateStatus(format!(
+        msg_sender.send(Message::NotifyInfo(format!(
             "{} {} Added successfully",
             ph::FLOW_ARROW,
             in_path.display()
