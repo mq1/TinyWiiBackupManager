@@ -469,6 +469,12 @@ impl App {
             convert::spawn_conv_game_task(self, in_path, out_path);
         }
     }
+
+    pub fn cancel_tasks(&mut self, frame: &eframe::Frame) {
+        if ui::dialogs::confirm_cancel_tasks(frame) {
+            self.task_processor.cancel_pending();
+        }
+    }
 }
 
 impl eframe::App for App {
