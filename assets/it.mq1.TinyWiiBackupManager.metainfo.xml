@@ -53,47 +53,50 @@
     <url type="vcs-browser">https://github.com/mq1/TinyWiiBackupManager</url>
     <screenshots>
         <screenshot type="default">
-            <image>https://github.com/mq1/TinyWiiBackupManager/blob/v4.9.4+1/assets/screenshots/games.png?raw=true</image>
+            <image>https://github.com/mq1/TinyWiiBackupManager/blob/v4.9.5/assets/screenshots/games.png?raw=true</image>
             <caption>Games</caption>
         </screenshot>
         <screenshot>
-            <image>https://github.com/mq1/TinyWiiBackupManager/blob/v4.9.4+1/assets/screenshots/game-info.png?raw=true</image>
+            <image>https://github.com/mq1/TinyWiiBackupManager/blob/v4.9.5/assets/screenshots/game-info.png?raw=true</image>
             <caption>Game info</caption>
         </screenshot>
         <screenshot>
-            <image>https://github.com/mq1/TinyWiiBackupManager/blob/v4.9.4+1/assets/screenshots/hbc-apps.png?raw=true</image>
+            <image>https://github.com/mq1/TinyWiiBackupManager/blob/v4.9.5/assets/screenshots/hbc-apps.png?raw=true</image>
             <caption>Homebrew Channel apps</caption>
         </screenshot>
         <screenshot>
-            <image>https://github.com/mq1/TinyWiiBackupManager/blob/v4.9.4+1/assets/screenshots/hbc-app-info.png?raw=true</image>
+            <image>https://github.com/mq1/TinyWiiBackupManager/blob/v4.9.5/assets/screenshots/hbc-app-info.png?raw=true</image>
             <caption>Homebrew Channel app info</caption>
         </screenshot>
         <screenshot>
-            <image>https://github.com/mq1/TinyWiiBackupManager/blob/v4.9.4+1/assets/screenshots/osc-apps.png?raw=true</image>
+            <image>https://github.com/mq1/TinyWiiBackupManager/blob/v4.9.5/assets/screenshots/osc-apps.png?raw=true</image>
             <caption>Open Shop Channel apps</caption>
         </screenshot>
         <screenshot>
-            <image>https://github.com/mq1/TinyWiiBackupManager/blob/v4.9.4+1/assets/screenshots/osc-app-info.png?raw=true</image>
+            <image>https://github.com/mq1/TinyWiiBackupManager/blob/v4.9.5/assets/screenshots/osc-app-info.png?raw=true</image>
             <caption>Open Shop Channel app info</caption>
         </screenshot>
         <screenshot>
-            <image>https://github.com/mq1/TinyWiiBackupManager/blob/v4.9.4+1/assets/screenshots/wiiload.png?raw=true</image>
+            <image>https://github.com/mq1/TinyWiiBackupManager/blob/v4.9.5/assets/screenshots/wiiload.png?raw=true</image>
             <caption>Wiiload</caption>
         </screenshot>
         <screenshot>
-            <image>https://github.com/mq1/TinyWiiBackupManager/blob/v4.9.4+1/assets/screenshots/nod.png?raw=true</image>
+            <image>https://github.com/mq1/TinyWiiBackupManager/blob/v4.9.5/assets/screenshots/nod.png?raw=true</image>
             <caption>Nintendo Optical Disc format conversion</caption>
         </screenshot>
         <screenshot>
-            <image>https://github.com/mq1/TinyWiiBackupManager/blob/v4.9.4+1/assets/screenshots/tools.png?raw=true</image>
+            <image>https://github.com/mq1/TinyWiiBackupManager/blob/v4.9.5/assets/screenshots/tools.png?raw=true</image>
             <caption>Tools</caption>
         </screenshot>
         <screenshot>
-            <image>https://github.com/mq1/TinyWiiBackupManager/blob/v4.9.4+1/assets/screenshots/settings.png?raw=true</image>
+            <image>https://github.com/mq1/TinyWiiBackupManager/blob/v4.9.5/assets/screenshots/settings.png?raw=true</image>
             <caption>Settings</caption>
         </screenshot>
     </screenshots>
     <releases>
+        <release version="4.9.5" date="2025-12-18">
+            <url type="details">https://github.com/mq1/TinyWiiBackupManager/releases/tag/v4.9.5</url>
+        </release>
         <release version="4.9.4" date="2025-12-14">
             <url type="details">https://github.com/mq1/TinyWiiBackupManager/releases/tag/v4.9.4</url>
         </release>
