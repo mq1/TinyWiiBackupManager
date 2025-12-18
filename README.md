@@ -49,7 +49,7 @@
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     </td>
     <td>
-        <a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest"><img alt="⬇️ Standalone/Installer" src="https://img.shields.io/github/v/release/mq1/TinyWiiBackupManager?logo=github&label=%E2%AC%87%20Standalone/Installer"></a>
+        &rarr;&nbsp;<a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest">Download Standalone/Installer</a>&nbsp;&larr;
         <br><br>
         ℹ️ If you don't know which asset to download, <kbd>TinyWiiBackupManager-vX.X.X-windows-x86_64.zip</kbd> should work for most users
         <br><br>
@@ -76,7 +76,9 @@
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     </td>
     <td>
-        <a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest"><img alt="⬇️ AppImage/Tarball" src="https://img.shields.io/github/v/release/mq1/TinyWiiBackupManager?logo=github&label=%E2%AC%87%20AppImage/Tarball"></a> <a href="https://flathub.org/apps/it.mq1.TinyWiiBackupManager"><img alt="⬇️ Flatpak" src="https://img.shields.io/flathub/v/it.mq1.TinyWiiBackupManager?logo=flathub&label=%E2%AC%87%20Flatpak"></a>
+        &rarr;&nbsp;<a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest">Download AppImage/Tarball</a>&nbsp;&larr;
+        <br>
+        &rarr;&nbsp;<a href="https://flathub.org/apps/it.mq1.TinyWiiBackupManager">Download Flatpak (Flathub)</a>&nbsp;&larr;
         <br><br>
         ℹ️ If you don't know which asset to download, <kbd>TinyWiiBackupManager-vX.X.X-linux-x86_64.AppImage</kbd> should work for most users
         <br><br>
@@ -97,7 +99,7 @@
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     </td>
     <td>
-        <a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest"><img alt="⬇️ DMG/ZIP" src="https://img.shields.io/github/v/release/mq1/TinyWiiBackupManager?logo=github&label=%E2%AC%87%20DMG/ZIP"></a>
+        &rarr;&nbsp;<a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest">Download DMG/ZIP</a>&nbsp;&larr;
         <br><br>
         ℹ️ If you don't know which asset to download, <kbd>TinyWiiBackupManager-vX.X.X-macos-arm64.dmg</kbd> should work for most users
         <br><br>
@@ -119,11 +121,12 @@
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     </td>
     <td>
-        <a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest"><img alt="⬇️ Standalone/Installer" src="https://img.shields.io/github/v/release/mq1/TinyWiiBackupManager?logo=github&label=%E2%AC%87%20Standalone/Installer"></a>
+        &rarr;&nbsp;<a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest">Download Standalone/Installer</a>&nbsp;&larr;
         <br><br>
         ℹ️ If you don't know which asset to download, <kbd>TinyWiiBackupManager-vX.X.X-windows7-x86.zip</kbd> should work for most users
         <br><br>
         ⚠️ This package is untested and may not work
+        <br><br>
     </td>
   </tr>
 </table>
