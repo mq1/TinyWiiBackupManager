@@ -4,7 +4,6 @@
 
 [![release: vX.X.X](https://img.shields.io/github/v/release/mq1/TinyWiiBackupManager)](#%EF%B8%8F-downloads)
 [![license: GPL-3.0](https://img.shields.io/github/license/mq1/TinyWiiBackupManager)](https://github.com/mq1/TinyWiiBackupManager/blob/main/COPYING)
-[![rust: 100%](https://img.shields.io/github/languages/top/mq1/TinyWiiBackupManager)](https://github.com/mq1/TinyWiiBackupManager/search?l=rust)
 
 <br>
 
@@ -12,13 +11,11 @@
 > TinyWiiBackupManager is intended strictly for legal homebrew use and is not affiliated with or endorsed by Nintendo.
 > Use of TinyWiiBackupManager for pirated or unauthorized copies of games is strictly prohibited.
 
-<p align="center">
-  <img alt="App Screenshot" src="assets/screenshots/games.png">
-</p>
+<img align="center" alt="App Screenshot" src="assets/screenshots/games.png">
 
 ## ✨ Features
 
-- **Lightweight & Fast**: Native DX12/Metal/OpenGL rendering, -O3, cross-language LTO, x86_64-v3 optimized builds
+- **Lightweight & Fast**: Native app, -O3, cross-language LTO, x86_64-v3 optimized builds
 - **Cross-Platform**: Windows 7+, macOS 10.12+, Linux | x86, x86_64, arm64
 
 #### 🎮 Game Management
