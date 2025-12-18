@@ -1,6 +1,6 @@
 [package]
 name = "TinyWiiBackupManager"
-version = "4.9.4"
+version = "4.9.5"
 rust-version = "1.92"
 edition = "2024"
 authors = ["Manuel Quarneti <mq1@ik.me>"]
@@ -75,7 +75,7 @@ eframe = { version = "0.33", default-features = false, features = [
 ] }
 
 [target.'cfg(all(target_os = "macos", target_arch = "aarch64"))'.dependencies]
-wgpu = { version = "*", default-features = false, features = [
+wgpu = { version = "27", default-features = false, features = [
   "metal",
   "std",
   "parking_lot",
@@ -85,7 +85,7 @@ wgpu = { version = "*", default-features = false, features = [
 rfd = { version = "0.16", default-features = false, features = [
   "common-controls-v6",
 ] }
-wgpu = { version = "*", default-features = false, features = [
+wgpu = { version = "27", default-features = false, features = [
   "dx12",
   "std",
   "parking_lot",
