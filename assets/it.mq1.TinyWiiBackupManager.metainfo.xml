@@ -13,7 +13,7 @@
         <p>‼️ TinyWiiBackupManager is intended strictly for legal homebrew use and is not affiliated with or endorsed by Nintendo. Use of TinyWiiBackupManager for pirated or unauthorized copies of games is strictly prohibited.</p>
         <p>✨ Features</p>
         <ul>
-            <li>Lightweight &amp; Fast: Native DX12/Metal/OpenGL rendering, -O3, cross-language LTO, x86_64-v3 optimized builds</li>
+            <li>Lightweight &amp; Fast: Native app, -O3, cross-language LTO, x86_64-v3 optimized builds</li>
             <li>Cross-Platform: Windows 7+ (x86, x64, arm64), macOS 10.12+ (x64, arm64), Linux (x86, x64, arm64)</li>
         </ul>
         <p>🎮 Game Management</p>
