@@ -7,12 +7,7 @@
     "identifier": "GPL-3.0-only",
     "url": "https://github.com/mq1/TinyWiiBackupManager/blob/main/COPYING"
   },
-  "shortcuts": [
-    [
-      "TinyWiiBackupManager.exe",
-      "TinyWiiBackupManager"
-    ]
-  ],
+  "shortcuts": [["TinyWiiBackupManager.exe", "TinyWiiBackupManager"]],
   "architecture": {
     "64bit": {
       "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/vPLAIN_VER/TinyWiiBackupManager-vPLAIN_VER-windows-x86_64.zip",
@@ -28,3 +23,4 @@
     }
   }
 }
+
