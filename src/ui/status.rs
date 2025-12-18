@@ -3,8 +3,9 @@
 
 use crate::app::App;
 use eframe::egui;
+use egui_phosphor::regular as ph;
 
-pub fn update(ctx: &egui::Context, app: &App) {
+pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
     if app.status.is_empty() {
         return;
     }
@@ -15,11 +16,19 @@ pub fn update(ctx: &egui::Context, app: &App) {
 
             let pending = app.task_processor.pending();
             if pending > 0 {
-                ui.label(format!("{pending} Pending Tasks"));
+                ui.label(pending.to_string());
                 ui.separator();
             }
 
             ui.label(&app.status);
+
+            if pending > 0 {
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    if ui.button(format!("{} Cancel Pending", ph::X)).clicked() {
+                        app.cancel_tasks(frame);
+                    }
+                });
+            }
         });
     });
 }

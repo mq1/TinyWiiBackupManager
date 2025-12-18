@@ -142,3 +142,14 @@ pub fn confirm_single_conversion(frame: &eframe::Frame, in_path: &str, out_path:
         .show()
         == MessageDialogResult::Ok
 }
+
+pub fn confirm_cancel_tasks(frame: &eframe::Frame) -> bool {
+    MessageDialog::new()
+        .set_title("Cancel pending tasks")
+        .set_parent(frame)
+        .set_description("Are you sure you want to cancel all pending tasks?")
+        .set_level(MessageLevel::Warning)
+        .set_buttons(MessageButtons::OkCancel)
+        .show()
+        == MessageDialogResult::Ok
+}
