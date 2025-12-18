@@ -84,8 +84,8 @@ jobs:
           RUSTFLAGS: ${{ matrix.rustflags }} -Clinker=clang -Clink-arg=-fuse-ld=lld -Clinker-plugin-lto
           CC: "clang"
           CXX: "clang++"
-          CFLAGS: ${{ matrix.cflags }} -flto -O3 -pipe
-          CXXFLAGS: ${{ matrix.cxxflags }} -flto -O3 -pipe
+          CFLAGS: ${{ matrix.cflags }} -flto -O3
+          CXXFLAGS: ${{ matrix.cxxflags }} -flto -O3
 
       - name: Package binary as tar.gz
         run: |
@@ -182,8 +182,8 @@ jobs:
           CC: "clang-cl"
           CXX: "clang-cl"
           AR: "llvm-lib"
-          CFLAGS: "${{ matrix.cflags }} /clang:-flto /clang:-fuse-ld=lld-link /clang:-O3 /clang:-pipe"
-          CXXFLAGS: "${{ matrix.cxxflags }} /clang:-flto /clang:-fuse-ld=lld-link /clang:-O3 /clang:-pipe"
+          CFLAGS: "${{ matrix.cflags }} /clang:-flto /clang:-fuse-ld=lld-link /clang:-O3"
+          CXXFLAGS: "${{ matrix.cxxflags }} /clang:-flto /clang:-fuse-ld=lld-link /clang:-O3"
 
       - name: Package binary as zip
         shell: pwsh
@@ -245,11 +245,12 @@ jobs:
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
         env:
           RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: -Clinker=clang -Clink-arg=-fuse-ld=ld.lld -Clinker-plugin-lto
-          CC: "clang"
-          CXX: "clang++"
-          CFLAGS: -flto -O3 -pipe
-          CXXFLAGS: -flto -O3 -pipe
+          RUSTFLAGS: -Clinker=clang -Clinker-plugin-lto -Clink-arg=-fuse-ld=/opt/homebrew/opt/lld@21/bin/ld64.lld
+          CC: /opt/homebrew/opt/llvm@21/bin/clang
+          CXX: /opt/homebrew/opt/llvm@21/bin/clang++
+          AR: /opt/homebrew/opt/llvm@21/bin/llvm-ar
+          CFLAGS: -flto -O3
+          CXXFLAGS: -flto -O3
 
       - name: Set macos.minimumSystemVersion in Cargo.toml
         run: sed -i '' 's/MACOS_MIN_SYS_VER/${{ matrix.min_sys_ver }}/' Cargo.toml
