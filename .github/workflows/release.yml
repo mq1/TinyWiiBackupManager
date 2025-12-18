@@ -245,7 +245,7 @@ jobs:
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
         env:
           RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: -Clinker=clang -Clinker-plugin-lto -Clink-arg=-fuse-ld=/opt/homebrew/opt/lld@21/bin/ld64.lld
+          RUSTFLAGS: -Clinker=./macos-linker.sh -Clinker-plugin-lto -Clink-arg=-fuse-ld=/opt/homebrew/opt/lld@21/bin/ld64.lld
           CC: /opt/homebrew/opt/llvm@21/bin/clang
           CXX: /opt/homebrew/opt/llvm@21/bin/clang++
           AR: /opt/homebrew/opt/llvm@21/bin/llvm-ar
