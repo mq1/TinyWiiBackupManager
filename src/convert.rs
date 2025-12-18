@@ -104,6 +104,8 @@ pub fn spawn_strip_game_task(app: &App, disc_info: DiscInfo) {
             if !finalization.header.is_empty() {
                 overflow_writer.write_header(&finalization.header)?;
             }
+
+            overflow_writer.flush()?;
         }
 
         // Remove the original game directory
@@ -213,6 +215,8 @@ pub fn spawn_conv_game_task(app: &App, in_path: PathBuf, out_path: PathBuf) {
             if !finalization.header.is_empty() {
                 overflow_writer.write_header(&finalization.header)?;
             }
+
+            overflow_writer.flush()?;
         }
 
         msg_sender.send(Message::NotifyInfo(format!(
@@ -332,6 +336,8 @@ pub fn spawn_add_game_task(app: &App, in_path: PathBuf, should_download_covers: 
             if !finalization.header.is_empty() {
                 overflow_writer.write_header(&finalization.header)?;
             }
+
+            overflow_writer.flush()?;
         }
 
         if remove_sources {
