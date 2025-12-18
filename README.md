@@ -18,7 +18,7 @@
 
 ## ✨ Features
 
-- **Lightweight & Fast**: Native DX12/Metal/OpenGL rendering, -O3, LTO, x86_64-v3 optimized builds
+- **Lightweight & Fast**: Native DX12/Metal/OpenGL rendering, -O3, cross-language LTO, x86_64-v3 optimized builds
 - **Cross-Platform**: Windows 7+, macOS 10.12+, Linux | x86, x86_64, arm64
 
 #### 🎮 Game Management
