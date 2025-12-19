@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{disc_info::DiscInfo, overflow_writer::get_overflow_path};
+use crate::{disc_info::DiscInfo, overflow_writer::get_overflow_path, util::SANITIZE_OPTS};
 use anyhow::Result;
 use nod::common::Format;
-use sanitize_filename::sanitize;
+use sanitize_filename::sanitize_with_options;
 use std::{fs, path::Path};
 use walkdir::WalkDir;
 
@@ -50,7 +50,7 @@ pub fn normalize_games_dir(games_dir: &Path) -> Result<()> {
 
             let new_game_dir = games_dir.join(format!(
                 "{} [{}]",
-                sanitize(&disc_info.title),
+                sanitize_with_options(&disc_info.title, SANITIZE_OPTS),
                 disc_info.id.as_str()
             ));
 
