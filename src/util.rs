@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use anyhow::{Context, Result};
-use sanitize_filename::Options as SanitizeOpts;
 use size::Size;
 use std::{
     io::{Seek, SeekFrom, Write},
@@ -12,11 +11,13 @@ use std::{
 use sysinfo::Disks;
 use tempfile::NamedTempFile;
 
-pub const SANITIZE_OPTS: SanitizeOpts<'_> = SanitizeOpts {
-    truncate: true,
-    windows: true,
-    replacement: "",
-};
+pub fn sanitize(s: &str) -> String {
+    s.chars()
+        .filter(|c| c.is_ascii_alphanumeric() || *c == ' ')
+        .collect::<String>()
+        .trim()
+        .to_string()
+}
 
 pub fn get_disk_usage(mount_point: &Path) -> String {
     if mount_point.as_os_str().is_empty() {
