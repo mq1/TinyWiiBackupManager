@@ -1,6 +1,6 @@
 [package]
 name = "TinyWiiBackupManager"
-version = "4.9.7"
+version = "4.9.8"
 rust-version = "1.92"
 edition = "2024"
 authors = ["Manuel Quarneti <mq1@ik.me>"]
@@ -47,7 +47,6 @@ num_cpus = "1.17"
 semver = "1.0"
 path-slash = "0.2"
 hex = "0.4"
-sanitize-filename = "0.7.0-beta"
 capitalize = "0.3"
 log = "0.4"
 env_logger = { version = "0.11", default-features = false, features = [
