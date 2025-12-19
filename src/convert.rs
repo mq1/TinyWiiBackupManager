@@ -6,6 +6,7 @@ use crate::disc_info::{get_main_file, is_worth_stripping};
 use crate::extensions::{ext_to_format, format_to_opts};
 use crate::messages::Message;
 use crate::overflow_writer::get_overflow_path;
+use crate::util::SANITIZE_OPTS;
 use crate::{
     disc_info::DiscInfo,
     overflow_writer::OverflowWriter,
@@ -18,7 +19,7 @@ use nod::{
     read::{DiscOptions, DiscReader, PartitionEncryption},
     write::{DiscWriter, FormatOptions, ProcessOptions, ScrubLevel},
 };
-use sanitize_filename::sanitize;
+use sanitize_filename::sanitize_with_options;
 use std::ffi::OsStr;
 use std::fs::File;
 use std::io::{BufReader, BufWriter, Read};
@@ -278,7 +279,11 @@ pub fn spawn_add_game_task(app: &App, in_path: PathBuf, should_download_covers: 
 
             let out_dir = mount_point
                 .join(if is_wii { "wbfs" } else { "games" })
-                .join(format!("{} [{}]", sanitize(&game_title), &game_id));
+                .join(format!(
+                    "{} [{}]",
+                    sanitize_with_options(&game_title, SANITIZE_OPTS),
+                    &game_id
+                ));
 
             let out_file_name = if is_wii {
                 if wii_output_format == Format::Wbfs {
