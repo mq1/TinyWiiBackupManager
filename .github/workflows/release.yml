@@ -51,14 +51,15 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install dependencies
+      - name: Install LLVM
+        run: |
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 21
+
+      - name: Install x86 dependencies
         if: matrix.arch == 'x86'
         run: sudo apt-get install -y libc6-dev-i386
-
-      - name: Install LLVM and Clang
-        uses: KyleMayes/install-llvm-action@master
-        with:
-          version: "21"
 
       - name: Install Rust toolchain
         run: |
@@ -153,10 +154,9 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install LLVM and Clang
-        uses: KyleMayes/install-llvm-action@master
-        with:
-          version: "21"
+      - name: Install LLVM
+        shell: pwsh
+        run: choco install llvm --version 21.1.7
 
       - name: Install Rust toolchain
         shell: pwsh
@@ -225,7 +225,7 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install llvm and lld
+      - name: Install LLVM
         run: brew install llvm@21 lld@21
 
       - name: Install Rust toolchain
