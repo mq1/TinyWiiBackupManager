@@ -65,6 +65,7 @@ eframe = { version = "0.33", default-features = false, features = [
   "x11",
   "wayland",
 ] }
+winit = { version = "0.30", features = ["wayland-csd-adwaita"] }
 rfd = "0.16"
 
 [target.'cfg(any(target_os = "macos", target_vendor = "win7"))'.dependencies]
