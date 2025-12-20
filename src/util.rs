@@ -11,9 +11,13 @@ use std::{
 use sysinfo::Disks;
 use tempfile::NamedTempFile;
 
+fn is_valid_char(c: &char) -> bool {
+    matches!(*c, 'a'..='z' | 'A'..='Z' | '0'..='9' | ' ' | '+')
+}
+
 pub fn sanitize(s: &str) -> String {
     s.chars()
-        .filter(|c| c.is_ascii_alphanumeric() || *c == ' ')
+        .filter(is_valid_char)
         .collect::<String>()
         .trim()
         .to_string()
