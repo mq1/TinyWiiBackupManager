@@ -1,6 +1,6 @@
 [package]
 name = "TinyWiiBackupManager"
-version = "4.9.8"
+version = "4.9.9"
 rust-version = "1.92"
 edition = "2024"
 authors = ["Manuel Quarneti <mq1@ik.me>"]
@@ -65,7 +65,7 @@ eframe = { version = "0.33", default-features = false, features = [
   "x11",
   "wayland",
 ] }
-winit = { version = "0.30", default-features = false, features = [
+winit = { version = "*", default-features = false, features = [
   "wayland-csd-adwaita",
 ] }
 rfd = "0.16"
