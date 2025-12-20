@@ -35,7 +35,7 @@ directories = "6.0"
 anyhow = "1.0"
 fs_extra = "1.3"
 size = { version = "0.5", features = ["serde"] }
-zip = { version = "6.0", default-features = false, features = [
+zip = { version = "7.0", default-features = false, features = [
   "deflate-flate2",
 ] }
 quick-xml = { version = "0.38", features = ["serialize"] }
@@ -59,13 +59,25 @@ smallvec = "1.15"
 time = { version = "0.3", features = ["macros", "parsing", "serde"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
+eframe = { version = "0.33", default-features = false, features = [
+  "accesskit",
+  "glow",
+  "x11",
+  "wayland",
+] }
+winit = { version = "0.30", default-features = false, features = [
+  "wayland-csd-adwaita",
+] }
 rfd = "0.16"
 
 [target.'cfg(any(target_os = "macos", target_vendor = "win7"))'.dependencies]
 rfd = { version = "0.16", default-features = false }
 
 [target.'cfg(any(all(target_os = "macos", target_arch = "x86_64"), target_os = "linux", target_vendor = "win7"))'.dependencies]
-eframe = "0.33"
+eframe = { version = "0.33", default-features = false, features = [
+  "accesskit",
+  "glow",
+] }
 
 [target.'cfg(any(all(target_os = "macos", target_arch = "aarch64"), target_vendor = "pc"))'.dependencies]
 eframe = { version = "0.33", default-features = false, features = [
@@ -100,9 +112,6 @@ winresource = "0.1"
 
 [target.'cfg(target_vendor = "pc")'.build-dependencies]
 static_vcruntime = "3.0"
-
-[patch.crates-io]
-epaint_default_fonts = { git = "https://github.com/mq1/epaint_no_fonts", branch = "main" }
 
 [profile.release]
 opt-level = 3
