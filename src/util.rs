@@ -12,7 +12,7 @@ use sysinfo::Disks;
 use tempfile::NamedTempFile;
 
 fn is_valid_char(c: &char) -> bool {
-    matches!(*c, 'a'..='z' | 'A'..='Z' | '0'..='9' | ' ' | '+')
+    matches!(*c, 'a'..='z' | 'A'..='Z' | '0'..='9' | ' ' | '+' | '-')
 }
 
 pub fn sanitize(s: &str) -> String {
