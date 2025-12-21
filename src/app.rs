@@ -25,7 +25,6 @@ use size::Size;
 use smallvec::SmallVec;
 use std::ffi::OsStr;
 use std::{fs, path::PathBuf, thread};
-use walkdir::WalkDir;
 
 pub struct App {
     pub msg_sender: Sender<Message>,
@@ -375,13 +374,7 @@ impl App {
 
     pub fn add_games_from_dir(&mut self, frame: &eframe::Frame) {
         if let Some(src_dir) = ui::dialogs::choose_src_dir(frame) {
-            let paths = WalkDir::new(src_dir)
-                .into_iter()
-                .filter_map(Result::ok)
-                .filter(|e| e.file_type().is_file())
-                .map(|e| e.path().to_path_buf())
-                .collect();
-
+            let paths = util::scan_for_discs(&src_dir);
             self.run_add_games(frame, paths);
         }
     }
