@@ -4,7 +4,7 @@ version = 4
 
 [[package]]
 name = "TinyWiiBackupManager"
-version = "4.9.9"
+version = "4.9.10"
 dependencies = [
  "anyhow",
  "capitalize",
@@ -36,7 +36,6 @@ dependencies = [
  "tempfile",
  "time",
  "ureq",
- "walkdir",
  "wgpu",
  "winit",
  "winresource",
@@ -1997,9 +1996,9 @@ dependencies = [
 
 [[package]]
 name = "itoa"
-version = "1.0.15"
+version = "1.0.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4a5f13b858c8d314ee3e8f639011f7ccefe71f97f96e50151fb991f267928e2c"
+checksum = "7ee5b5339afb4c41626dde77b7a611bd4f2c202b897852b4bcf5d03eddc61010"
 
 [[package]]
 name = "jiff"
