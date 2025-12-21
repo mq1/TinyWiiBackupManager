@@ -1,11 +1,14 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::extensions::SUPPORTED_INPUT_EXTENSIONS;
 use anyhow::{Context, Result};
 use size::Size;
 use std::{
+    ffi::OsStr,
+    fs,
     io::{Seek, SeekFrom, Write},
-    path::Path,
+    path::{Path, PathBuf},
     process::Command,
 };
 use sysinfo::Disks;
@@ -97,4 +100,28 @@ pub fn run_dot_clean(mount_point: &Path) -> Result<()> {
         .context("Failed to run dot_clean")?;
 
     Ok(())
+}
+
+pub fn scan_for_discs(dir: &Path) -> Vec<PathBuf> {
+    let mut disc_paths = Vec::new();
+
+    if let Ok(entries) = fs::read_dir(dir) {
+        for entry in entries.filter_map(Result::ok) {
+            let path = entry.path();
+
+            if path.is_dir() {
+                let mut new = scan_for_discs(&path);
+                disc_paths.append(&mut new);
+            } else if path.is_file()
+                && path
+                    .extension()
+                    .and_then(OsStr::to_str)
+                    .is_some_and(|ext| SUPPORTED_INPUT_EXTENSIONS.contains(&ext))
+            {
+                disc_paths.push(path);
+            }
+        }
+    }
+
+    disc_paths
 }
