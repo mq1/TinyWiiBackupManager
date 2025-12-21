@@ -44,14 +44,57 @@ pub fn normalize_games_dir(games_dir: &Path) -> Result<()> {
                 fs::rename(overflow_path, new_overflow_path)?;
             }
 
-            let new_game_dir = games_dir.join(format!(
-                "{} [{}]",
-                sanitize(&disc_info.title),
-                disc_info.id.as_str()
-            ));
+            let new_game_dir =
+                games_dir.join(format!("{} [{}]", sanitize(&disc_info.title), game_id));
+
+            if new_game_dir.exists() {
+                continue;
+            }
 
             if path != new_game_dir {
-                fs::rename(path, new_game_dir)?;
+                fs::rename(&path, new_game_dir)?;
+            }
+        } else if let Ok(disc_info) = DiscInfo::from_path(path) {
+            let game_id = disc_info.id.as_str();
+
+            let overflow_path = get_overflow_path(&disc_info.disc_path);
+
+            let new_disc_name = match disc_info.format {
+                Format::Wbfs => format!("{}.wbfs", game_id),
+                Format::Ciso => match disc_info.disc_num {
+                    0 => "game.ciso".to_string(),
+                    n => format!("disc{}.ciso", n + 1),
+                },
+                Format::Iso => match disc_info.is_wii {
+                    true => format!("{}.iso", game_id),
+                    false => match disc_info.disc_num {
+                        0 => "game.iso".to_string(),
+                        n => format!("disc{}.iso", n + 1),
+                    },
+                },
+                _ => continue,
+            };
+
+            let new_game_dir =
+                games_dir.join(format!("{} [{}]", sanitize(&disc_info.title), game_id));
+
+            if new_game_dir.exists() {
+                continue;
+            }
+
+            let new_disc_path = new_game_dir.join(new_disc_name);
+            let new_overflow_path = get_overflow_path(&new_disc_path);
+
+            fs::create_dir_all(new_game_dir)?;
+            if disc_info.disc_path != new_disc_path {
+                fs::rename(&disc_info.disc_path, &new_disc_path)?;
+            }
+            if let Some(overflow_path) = overflow_path
+                && overflow_path.exists()
+                && let Some(new_overflow_path) = new_overflow_path
+                && overflow_path != new_overflow_path
+            {
+                fs::rename(overflow_path, new_overflow_path)?;
             }
         }
     }
