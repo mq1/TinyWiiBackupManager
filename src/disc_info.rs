@@ -70,6 +70,10 @@ impl DiscInfo {
     }
 
     pub fn from_zip_file(zip_file: &Path) -> Result<DiscInfo> {
+        if !zip_file.is_file() {
+            bail!("Not a file")
+        }
+
         let zip_file_reader = BufReader::new(File::open(zip_file)?);
         let mut archive = ZipArchive::new(zip_file_reader)?;
         let disc_file = archive.by_index(0)?;
@@ -101,6 +105,10 @@ impl DiscInfo {
     }
 
     pub fn from_path(disc_path: PathBuf) -> Result<DiscInfo> {
+        if !disc_path.is_file() {
+            bail!("Not a file");
+        }
+
         let parent_dir = disc_path.parent().ok_or(anyhow!("No parent directory"))?;
         let disc = DiscReader::new(&disc_path, &get_disc_opts())?;
         let is_worth_stripping = is_worth_stripping(&disc);
