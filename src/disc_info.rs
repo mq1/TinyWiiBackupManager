@@ -4,7 +4,7 @@
 use crate::convert::get_disc_opts;
 use crate::extensions::ext_to_format;
 use crate::games::GameID;
-use anyhow::{Result, anyhow};
+use anyhow::{Result, anyhow, bail};
 use nod::common::{Compression, Format, PartitionKind};
 use nod::read::{DiscReader, PartitionOptions};
 use size::Size;
@@ -61,6 +61,10 @@ pub fn get_main_file(game_dir: &Path) -> Option<PathBuf> {
 
 impl DiscInfo {
     pub fn from_game_dir(game_dir: &Path) -> Result<DiscInfo> {
+        if !game_dir.is_dir() {
+            bail!("Not a directory");
+        }
+
         let disc_path = get_main_file(game_dir).ok_or(anyhow!("No disc file found"))?;
         DiscInfo::from_path(disc_path)
     }
