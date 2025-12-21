@@ -5,17 +5,14 @@ use crate::{disc_info::DiscInfo, overflow_writer::get_overflow_path, util::sanit
 use anyhow::Result;
 use nod::common::Format;
 use std::{fs, path::Path};
-use walkdir::WalkDir;
 
 pub fn normalize_games_dir(games_dir: &Path) -> Result<()> {
-    for entry in WalkDir::new(games_dir)
-        .into_iter()
-        .filter_map(Result::ok)
-        .filter(|entry| entry.file_type().is_dir())
-    {
+    fs::create_dir_all(games_dir)?;
+
+    for entry in fs::read_dir(games_dir)?.filter_map(Result::ok) {
         let path = entry.path();
 
-        if let Ok(disc_info) = DiscInfo::from_game_dir(path) {
+        if let Ok(disc_info) = DiscInfo::from_game_dir(&path) {
             let game_id = disc_info.id.as_str();
 
             let new_disc_name = match disc_info.format {
