@@ -2,8 +2,6 @@ name: Release
 
 on:
   push:
-    branches:
-      - main
     tags:
       - "v*.*.*"
   pull_request:
@@ -346,5 +344,5 @@ jobs:
           git config user.name "Manuel Quarneti"
           git config user.email "mq1@ik.me"
           git add bucket/TinyWiiBackupManager.json
-          git commit -m "🍨 Scoop: update TinyWiiBackupManager to ${VERSION_NAME} [skip ci]"
+          git commit -m "ci: update scoop manifest to ${VERSION_NAME}"
           git push
