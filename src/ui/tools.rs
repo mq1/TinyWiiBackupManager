@@ -29,11 +29,10 @@ pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
 
                 ui.horizontal(|ui| {
                     if ui.button(ph::CLOUD_ARROW_DOWN).clicked() {
-                        wiitdb::spawn_download_task(app);
-                        wiitdb::spawn_load_wiitdb_task(app);
+                        wiitdb::spawn_update_wiitdb_task(app);
                     }
 
-                    ui.label("Download wiitdb.xml (overwrites existing one)");
+                    ui.label("Update wiitdb.xml (overwrites existing one)");
                 });
 
                 ui.horizontal(|ui| {
