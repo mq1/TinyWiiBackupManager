@@ -5,7 +5,7 @@ use crate::app::App;
 use crate::games::GameID;
 use crate::http;
 use crate::messages::Message;
-use anyhow::{Context, Result};
+use anyhow::{Result, bail};
 use capitalize::Capitalize;
 use egui_phosphor::regular as ph;
 use serde::Deserialize;
@@ -16,25 +16,25 @@ use std::path::Path;
 const DOWNLOAD_URL: &str = "https://www.gametdb.com/wiitdb.zip";
 
 /// Handles the blocking logic of downloading and extracting the database.
-pub fn spawn_download_task(app: &App) {
+pub fn spawn_update_wiitdb_task(app: &App) {
+    let wiitdb_path = app.data_dir.join("wiitdb.xml");
     let mount_point = app.config.contents.mount_point.clone();
 
     app.task_processor.spawn(move |msg_sender| {
-        msg_sender.send(Message::UpdateStatus(format!(
-            "{} Downloading wiitdb.xml...",
-            ph::CLOUD_ARROW_DOWN
-        )))?;
+        if !wiitdb_path.exists() {
+            bail!("wiitdb.xml not found in {}", wiitdb_path.display());
+        }
 
         // Create the target directory.
         let target_dir = mount_point.join("apps").join("usbloader_gx");
         fs::create_dir_all(&target_dir)?;
 
-        // Perform the download request and extract.
-        http::download_and_extract_zip(DOWNLOAD_URL, &target_dir)?;
+        // Copy the cached wiitdb.xml to the target directory.
+        fs::copy(wiitdb_path, target_dir.join("wiitdb.xml"))?;
 
-        msg_sender.send(Message::NotifyInfo(format!(
-            "{} wiitdb.xml Downloaded Successfully",
-            ph::CLOUD_ARROW_DOWN
+        msg_sender.send(Message::NotifySuccess(format!(
+            "{} wiitdb.xml updated successfully",
+            ph::FILE_CODE
         )))?;
 
         Ok(())
@@ -49,20 +49,9 @@ pub struct Datafile {
 }
 
 impl Datafile {
-    pub fn load(mount_point: &Path) -> Result<Self> {
-        let path = mount_point
-            .join("apps")
-            .join("usbloader_gx")
-            .join("wiitdb.xml");
-
-        let file = File::open(&path).context(format!(
-            "Failed to load wiitdb.xml, download it first ({} Tools page)",
-            ph::WRENCH
-        ))?;
-
-        let reader = BufReader::new(file);
-
-        let mut data = quick_xml::de::from_reader::<_, Datafile>(reader)?;
+    pub fn load(path: &Path) -> Result<Self> {
+        let file = BufReader::new(File::open(path)?);
+        let mut data = quick_xml::de::from_reader::<_, Datafile>(file)?;
 
         // We sort it now so we can binary search quickly
         data.games.sort_unstable_by_key(|game| game.id);
@@ -314,15 +303,26 @@ impl<'de> Deserialize<'de> for Region {
 }
 
 pub fn spawn_load_wiitdb_task(app: &App) {
-    let mount_point = app.config.contents.mount_point.clone();
+    let data_dir = app.data_dir.clone();
+    let wiitdb_path = app.data_dir.join("wiitdb.xml");
 
     app.task_processor.spawn(move |msg_sender| {
+        if !wiitdb_path.exists() {
+            msg_sender.send(Message::UpdateStatus(format!(
+                "{} Downloading wiitdb.xml...",
+                ph::CLOUD_ARROW_DOWN
+            )))?;
+
+            // Perform the download request and extract.
+            http::download_and_extract_zip(DOWNLOAD_URL, &data_dir)?;
+        }
+
         msg_sender.send(Message::UpdateStatus(format!(
             "{} Loading wiitdb.xml...",
             ph::FILE_CODE
         )))?;
 
-        let data = Datafile::load(&mount_point)?;
+        let data = Datafile::load(&wiitdb_path)?;
 
         msg_sender.send(Message::GotWiitdb(data))?;
 
