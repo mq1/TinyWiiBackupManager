@@ -45,42 +45,20 @@ fn parse_gamehacking_ids() -> Box<[([u8; 6], u32)]> {
 
 fn compile_id_map() {
     let gamehacking_ids = parse_gamehacking_ids();
-    let file = BufReader::new(File::open("assets/wiitdb.txt").unwrap());
-    let mut out_file = BufWriter::new(
-        File::create(Path::new(&env::var("OUT_DIR").unwrap()).join("id_map_data.rs")).unwrap(),
-    );
-
-    // Skip the first line
-    let mut lines = file.lines();
-    lines.next();
-
-    // Build the map
-    let mut titles_map = Vec::new();
-
-    for line in lines {
-        let mut line = line.unwrap();
-        let split_pos = line.find('=').unwrap();
-        let id = &line[..(split_pos - 1)];
-        let id = str_to_gameid(id);
-        line.drain(..(split_pos + 2));
-        titles_map.push((id, line));
-    }
-
-    // Sort the map (to enable binary search)
-    titles_map.sort_unstable_by_key(|entry| entry.0);
+    let out_path = Path::new(&env::var("OUT_DIR").unwrap()).join("gamehacking_ids.rs");
+    let mut out_file = BufWriter::new(File::create(out_path).unwrap());
 
     // Build the Rust code
-    write!(&mut out_file, "const DATA: &[([u8; 6], &str, u32)] = &[").unwrap();
-    for (id, title) in titles_map {
-        let ghid = gamehacking_ids
-            .binary_search_by_key(&id, |entry| entry.0)
-            .map(|i| gamehacking_ids[i].1)
-            .unwrap_or(0);
-
+    write!(
+        &mut out_file,
+        "const GAMEID_TO_GHID: &[([u8; 6], u32)] = &["
+    )
+    .unwrap();
+    for (game_id, ghid) in gamehacking_ids {
         write!(
             &mut out_file,
-            "([{},{},{},{},{},{}],\"{}\",{}),",
-            id[0], id[1], id[2], id[3], id[4], id[5], title, ghid
+            "([{},{},{},{},{},{}],{}),",
+            game_id[0], game_id[1], game_id[2], game_id[3], game_id[4], game_id[5], ghid
         )
         .unwrap();
     }
