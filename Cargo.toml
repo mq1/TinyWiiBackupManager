@@ -1,6 +1,6 @@
 [package]
 name = "TinyWiiBackupManager"
-version = "4.9.10"
+version = "4.9.11"
 rust-version = "1.92"
 edition = "2024"
 authors = ["Manuel Quarneti <mq1@ik.me>"]
@@ -65,7 +65,9 @@ eframe = { version = "0.33", default-features = false, features = [
   "wayland",
 ] }
 winit = { version = "*", default-features = false, features = [
-  "wayland-csd-adwaita",
+  "x11",
+  "wayland",
+  "wayland-dlopen",
 ] }
 rfd = "0.16"
 
@@ -77,12 +79,14 @@ eframe = { version = "0.33", default-features = false, features = [
   "accesskit",
   "glow",
 ] }
+winit = { version = "*", default-features = false }
 
 [target.'cfg(any(all(target_os = "macos", target_arch = "aarch64"), target_vendor = "pc"))'.dependencies]
 eframe = { version = "0.33", default-features = false, features = [
   "accesskit",
   "wgpu",
 ] }
+winit = { version = "*", default-features = false }
 
 [target.'cfg(all(target_os = "macos", target_arch = "aarch64"))'.dependencies]
 wgpu = { version = "27", default-features = false, features = [
@@ -105,6 +109,8 @@ wgpu = { version = "27", default-features = false, features = [
 default = ["native-tls"]
 native-tls = ["ureq/native-tls", "ureq/platform-verifier"]
 bundled-tls = ["ureq/rustls"]
+csd-abglyph = ["winit/wayland-csd-adwaita"]
+csd-freetype = ["winit/wayland-csd-adwaita-crossfont"]
 
 [target.'cfg(windows)'.build-dependencies]
 winresource = "0.1"
