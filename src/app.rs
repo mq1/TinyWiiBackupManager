@@ -292,7 +292,7 @@ impl App {
             games::sort(&mut self.games, SortBy::None, self.config.contents.sort_by);
 
             if download_covers {
-                covers::spawn_download_covers_task(self);
+                covers::spawn_cache_covers_task(self);
             }
         }
 
