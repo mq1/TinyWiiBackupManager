@@ -280,7 +280,7 @@ impl App {
     }
 
     pub fn refresh_games(&mut self, download_covers: bool) {
-        self.games = games::list(&self.config.contents.mount_point).into_boxed_slice();
+        self.games = games::list(self).into_boxed_slice();
 
         let is_known = known_mount_points::check(self).unwrap_or(true);
 
