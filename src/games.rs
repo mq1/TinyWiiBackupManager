@@ -71,12 +71,8 @@ impl Game {
 
         // Construct the path to the game's cover image
         let image_path = app
-            .config
-            .contents
-            .mount_point
-            .join("apps")
-            .join("usbloader_gx")
-            .join("images")
+            .data_dir
+            .join("covers")
             .join(id.as_str())
             .with_extension("png");
 
