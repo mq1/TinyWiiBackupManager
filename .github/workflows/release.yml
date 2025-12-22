@@ -296,13 +296,16 @@ jobs:
           plain_ver="${VERSION_NAME#v}" # Remove leading 'v'
           echo -n "${plain_ver}" > version.txt  # Write without line break
 
+      - name: Generate changelog
+        run: npx -y git-cliff@latest --current -o CHANGELOG.md
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
             dist/*
             version.txt
-          generate_release_notes: true
+          body_path: CHANGELOG.md
           prerelease: ${{ contains(env.VERSION_NAME, 'alpha') || contains(env.VERSION_NAME, 'beta') || contains(env.VERSION_NAME, 'rc') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
