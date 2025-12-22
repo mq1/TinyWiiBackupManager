@@ -62,8 +62,16 @@ impl Datafile {
     pub fn lookup(&self, game_id: GameID) -> Option<u16> {
         self.games
             .binary_search_by_key(&game_id, |game| game.id)
-            .map(|i| i as u16)
             .ok()
+            .map(|i| i as u16)
+    }
+
+    pub fn get_title(&self, game_id: GameID) -> Option<String> {
+        self.games
+            .binary_search_by_key(&game_id, |game| game.id)
+            .ok()
+            .and_then(|i| self.games[i].locales.first())
+            .map(|locale| locale.title.clone())
     }
 }
 
@@ -77,6 +85,8 @@ pub struct GameInfo {
     pub region: Region,
     #[serde(deserialize_with = "deser_langs")]
     pub languages: Box<[Language]>,
+    #[serde(rename = "locale")]
+    pub locales: Box<[Locale]>,
     pub developer: Option<String>,
     pub publisher: Option<String>,
     pub date: Date,
@@ -106,6 +116,12 @@ where
     let s = String::deserialize(deserializer)?;
     let genres = s.split(',').map(|s| s.capitalize_first_only()).collect();
     Ok(genres)
+}
+
+#[derive(Debug, Deserialize, Default, Clone)]
+#[serde(default)]
+pub struct Locale {
+    title: String,
 }
 
 #[derive(Debug, Deserialize, Default, Clone)]
@@ -330,6 +346,8 @@ pub fn spawn_load_wiitdb_task(app: &App) {
             "{} wiitdb.xml loaded",
             ph::FILE_CODE
         )))?;
+
+        msg_sender.send(Message::TriggerRefreshGames(false))?;
 
         Ok(())
     });

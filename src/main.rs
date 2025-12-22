@@ -79,12 +79,9 @@ fn main() -> Result<()> {
     // ----------------
     // Initialize tasks
 
+    wiitdb::spawn_load_wiitdb_task(&app);
     updater::spawn_check_update_task(&app);
     osc::spawn_load_osc_apps_task(&app);
-
-    if !app.config.contents.mount_point.as_os_str().is_empty() {
-        wiitdb::spawn_load_wiitdb_task(&app);
-    }
 
     // -------------
     // Initialize UI
