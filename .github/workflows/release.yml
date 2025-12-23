@@ -353,5 +353,5 @@ jobs:
           git config user.name "Manuel Quarneti"
           git config user.email "mq1@ik.me"
           git add bucket/TinyWiiBackupManager.json
-          git commit -m "chore: update scoop manifest to ${VERSION_NAME}"
+          git commit -m "chore(release): update scoop manifest to ${VERSION_NAME}"
           git push
