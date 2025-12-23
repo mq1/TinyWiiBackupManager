@@ -2,19 +2,17 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::convert::get_disc_opts;
-use crate::extensions::ext_to_format;
 use crate::games::GameID;
 use anyhow::{Result, anyhow, bail};
 use nod::common::{Compression, Format, PartitionKind};
 use nod::read::{DiscReader, PartitionOptions};
 use size::Size;
 use std::ffi::OsStr;
-use std::fs::{self, File};
-use std::io::{BufReader, Read};
+use std::fs::{self};
+use std::io::Read;
 use std::path::{Path, PathBuf};
-use zip::ZipArchive;
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct DiscInfo {
     pub game_dir: PathBuf,
     pub disc_path: PathBuf,
@@ -48,9 +46,14 @@ pub fn get_main_file(game_dir: &Path) -> Option<PathBuf> {
     for entry in fs::read_dir(game_dir).ok()?.filter_map(Result::ok) {
         let path = entry.path();
 
-        if let Some(stem) = path.file_stem().and_then(OsStr::to_str)
-            && let Some(ext) = path.extension().and_then(OsStr::to_str)
-            && (ext == "wbfs" || ext == "ciso" || (ext == "iso" && !stem.ends_with("part1")))
+        if path
+            .file_name()
+            .and_then(OsStr::to_str)
+            .is_some_and(|file_name| {
+                file_name.ends_with(".wbfs")
+                    || file_name.ends_with(".ciso")
+                    || (file_name.ends_with(".iso") && !file_name.ends_with(".part1.iso"))
+            })
         {
             return Some(path);
         }
@@ -67,41 +70,6 @@ impl DiscInfo {
 
         let disc_path = get_main_file(game_dir).ok_or(anyhow!("No disc file found"))?;
         DiscInfo::from_path(disc_path)
-    }
-
-    pub fn from_zip_file(zip_file: &Path) -> Result<DiscInfo> {
-        if !zip_file.is_file() {
-            bail!("Not a file")
-        }
-
-        let zip_file_reader = BufReader::new(File::open(zip_file)?);
-        let mut archive = ZipArchive::new(zip_file_reader)?;
-        let disc_file = archive.by_index(0)?;
-
-        let disc_path = disc_file
-            .enclosed_name()
-            .ok_or(anyhow!("No disc file found in ZIP archive"))?;
-
-        let file_stem = disc_path
-            .file_stem()
-            .ok_or(anyhow!("No file stem"))?
-            .to_str()
-            .ok_or(anyhow!("Invalid file stem"))?;
-
-        let ext = disc_path
-            .extension()
-            .ok_or(anyhow!("No file extension"))?
-            .to_str()
-            .ok_or(anyhow!("Invalid file extension"))?;
-
-        let format = ext_to_format(ext).ok_or(anyhow!("Unsupported file extension"))?;
-
-        Ok(Self {
-            disc_path: zip_file.to_path_buf(),
-            title: file_stem.to_string(),
-            format,
-            ..Self::default()
-        })
     }
 
     pub fn from_path(disc_path: PathBuf) -> Result<DiscInfo> {

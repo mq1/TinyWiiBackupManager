@@ -6,13 +6,14 @@ use anyhow::{Context, Result};
 use size::Size;
 use std::{
     ffi::OsStr,
-    fs,
-    io::{Seek, SeekFrom, Write},
+    fs::{self, File},
+    io::{BufReader, Seek, SeekFrom, Write},
     path::{Path, PathBuf},
     process::Command,
 };
 use sysinfo::Disks;
 use tempfile::NamedTempFile;
+use zip::ZipArchive;
 
 fn is_valid_char(c: &char) -> bool {
     matches!(*c, 'a'..='z' | 'A'..='Z' | '0'..='9' | ' ' | '+' | '-')
@@ -124,4 +125,32 @@ pub fn scan_for_discs(dir: &Path) -> Vec<PathBuf> {
     }
 
     disc_paths
+}
+
+pub fn does_this_zip_contain_a_disc(path: &Path) -> bool {
+    let file = if let Ok(file) = File::open(path) {
+        file
+    } else {
+        return false;
+    };
+
+    let reader = BufReader::new(file);
+
+    let mut archive = if let Ok(archive) = ZipArchive::new(reader) {
+        archive
+    } else {
+        return false;
+    };
+
+    let disc_file = if let Ok(disc_file) = archive.by_index(0) {
+        disc_file
+    } else {
+        return false;
+    };
+
+    disc_file
+        .mangled_name()
+        .extension()
+        .and_then(OsStr::to_str)
+        .is_some_and(|ext| SUPPORTED_INPUT_EXTENSIONS.contains(&ext))
 }

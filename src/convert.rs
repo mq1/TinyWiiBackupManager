@@ -7,11 +7,7 @@ use crate::extensions::{ext_to_format, format_to_opts};
 use crate::messages::Message;
 use crate::overflow_writer::get_overflow_path;
 use crate::util::sanitize;
-use crate::{
-    disc_info::DiscInfo,
-    overflow_writer::OverflowWriter,
-    util::{self, can_write_over_4gb},
-};
+use crate::{disc_info::DiscInfo, overflow_writer::OverflowWriter, util};
 use anyhow::{anyhow, bail};
 use egui_phosphor::regular as ph;
 use nod::{
@@ -283,7 +279,7 @@ pub fn spawn_add_game_task(app: &App, in_path: PathBuf, should_download_covers: 
             let out_file_name = if is_wii {
                 if wii_output_format == Format::Wbfs {
                     format!("{}.wbfs", &game_id)
-                } else if always_split || !can_write_over_4gb(&mount_point) {
+                } else if always_split || !util::can_write_over_4gb(&mount_point) {
                     format!("{}.part0.iso", &game_id)
                 } else {
                     format!("{}.iso", &game_id)
@@ -302,6 +298,12 @@ pub fn spawn_add_game_task(app: &App, in_path: PathBuf, should_download_covers: 
 
             let out_path = out_dir.join(out_file_name);
             if out_path.exists() {
+                msg_sender.send(Message::NotifyInfo(format!(
+                    "{} Skipping {}",
+                    ph::FLOW_ARROW,
+                    &game_title
+                )))?;
+
                 return Ok(());
             }
 
@@ -358,10 +360,10 @@ pub fn spawn_add_game_task(app: &App, in_path: PathBuf, should_download_covers: 
     });
 }
 
-pub fn spawn_add_games_task(app: &App, discs: Box<[DiscInfo]>) {
-    let last_i = discs.len() - 1;
+pub fn spawn_add_games_task(app: &App, paths: Box<[PathBuf]>) {
+    let last_i = paths.len() - 1;
 
-    for (i, disc_info) in discs.into_iter().enumerate() {
-        spawn_add_game_task(app, disc_info.disc_path, i == last_i);
+    for (i, path) in paths.into_iter().enumerate() {
+        spawn_add_game_task(app, path, i == last_i);
     }
 }

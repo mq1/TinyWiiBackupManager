@@ -339,31 +339,29 @@ impl App {
     pub fn run_add_games(&mut self, frame: &eframe::Frame, mut paths: Vec<PathBuf>) {
         paths.retain(|path| {
             path.extension()
-                .and_then(|ext| ext.to_str())
+                .and_then(OsStr::to_str)
                 .is_some_and(|ext| SUPPORTED_INPUT_EXTENSIONS.contains(&ext))
         });
 
         // We'll get those later with get_overflow_file
-        paths.retain(|path| !path.ends_with(".part1.iso"));
+        paths.retain(|path| {
+            path.file_name()
+                .and_then(OsStr::to_str)
+                .is_some_and(|name| !name.ends_with(".part1.iso"))
+        });
 
-        // Discard already present games and duplicates
-        let existing_ids = self.games.iter().map(|game| game.id).collect::<Box<[_]>>();
-        let discs = paths
-            .into_iter()
-            .filter_map(|path| {
-                if path.extension() == Some(OsStr::new("zip")) {
-                    DiscInfo::from_zip_file(&path).ok()
-                } else {
-                    DiscInfo::from_path(path).ok()
-                }
-            })
-            .filter(|info| !existing_ids.contains(&info.id))
-            .collect::<Box<[_]>>();
+        // filter out invalid zip files
+        paths.retain(|path| {
+            path.extension() != Some(OsStr::new("zip")) || util::does_this_zip_contain_a_disc(path)
+        });
 
-        if discs.is_empty() {
-            self.notifications.show_info("No new games were selected");
-        } else if ui::dialogs::confirm_add_games(frame, &discs) {
-            convert::spawn_add_games_task(self, discs);
+        // remove mutability
+        let paths = paths.into_boxed_slice();
+
+        if paths.is_empty() {
+            self.notifications.show_info("No games were selected");
+        } else if ui::dialogs::confirm_add_games(frame, &paths) {
+            convert::spawn_add_games_task(self, paths);
         }
     }
 
