@@ -27,6 +27,7 @@ use std::ffi::OsStr;
 use std::{fs, path::PathBuf, thread};
 
 pub struct App {
+    pub show_zoom_buttons: bool,
     pub msg_sender: Sender<Message>,
     pub msg_receiver: Receiver<Message>,
     pub data_dir: PathBuf,
@@ -62,13 +63,14 @@ pub struct App {
 }
 
 impl App {
-    pub fn new(data_dir: PathBuf) -> Self {
+    pub fn new(data_dir: PathBuf, show_zoom_buttons: bool) -> Self {
         let config = Config::load(&data_dir);
 
         let (msg_sender, msg_receiver) = unbounded();
         let task_processor = TaskProcessor::new(msg_sender.clone());
 
         Self {
+            show_zoom_buttons,
             msg_sender,
             msg_receiver,
             data_dir,
