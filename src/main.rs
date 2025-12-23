@@ -81,7 +81,11 @@ fn main() -> Result<()> {
     // Initialize tasks
 
     wiitdb::spawn_load_wiitdb_task(&app);
-    updater::spawn_check_update_task(&app);
+
+    if !std::env::var("TWBM_DISABLE_UPDATES").is_ok_and(|v| &v == "1") {
+        updater::spawn_check_update_task(&app);
+    }
+
     osc::spawn_load_osc_apps_task(&app);
 
     // -------------
