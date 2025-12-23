@@ -74,7 +74,8 @@ fn main() -> Result<()> {
 
     let data_dir = get_data_dir()?;
     fs::create_dir_all(&data_dir)?;
-    let mut app = App::new(data_dir);
+    let show_zoom_buttons = std::env::var("TWBM_ZOOM").is_ok_and(|v| &v == "1");
+    let mut app = App::new(data_dir, show_zoom_buttons);
 
     // ----------------
     // Initialize tasks

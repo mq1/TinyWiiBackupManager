@@ -22,6 +22,23 @@ pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
         .show(ctx, |ui| {
             ui.add_space(6.);
 
+            if app.show_zoom_buttons {
+                ui.horizontal(|ui| {
+                    let spacing = ui.spacing_mut();
+                    spacing.button_padding = egui::vec2(3., 0.);
+                    spacing.item_spacing = egui::vec2(4., 0.);
+
+                    if ui.button(ph::MINUS).clicked() {
+                        egui::gui_zoom::zoom_out(ctx);
+                    }
+                    if ui.button(ph::PLUS).clicked() {
+                        egui::gui_zoom::zoom_in(ctx);
+                    }
+                });
+
+                ui.separator();
+            }
+
             if ui
                 .add_sized(
                     Vec2::splat(40.),
