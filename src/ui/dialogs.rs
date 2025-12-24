@@ -5,6 +5,7 @@ use crate::extensions::{HBC_APP_EXTENSIONS, SUPPORTED_INPUT_EXTENSIONS, ZIP_EXTE
 use crate::util;
 use rfd::{FileDialog, MessageButtons, MessageDialog, MessageDialogResult, MessageLevel};
 use std::ffi::OsStr;
+use std::fmt::Write;
 use std::path::PathBuf;
 
 pub fn choose_mount_point(frame: &eframe::Frame) -> Option<PathBuf> {
@@ -100,16 +101,29 @@ pub fn confirm_add_games(frame: &eframe::Frame, paths: &[PathBuf]) -> bool {
     let file_names = paths
         .iter()
         .filter_map(|path| path.file_name())
-        .filter_map(OsStr::to_str);
+        .filter_map(OsStr::to_str)
+        .collect::<Box<[_]>>();
+
+    const SHOWN: usize = 20;
+    let extra = file_names.len().saturating_sub(SHOWN);
 
     let mut desc = String::new();
-    for file_name in file_names {
-        desc.push_str(&format!("• {}\n", file_name));
+    for file_name in file_names.iter().take(SHOWN) {
+        desc.push_str("• ");
+        desc.push_str(file_name);
+        desc.push('\n');
     }
-    desc.push_str("\n\nAre you sure you want to continue?");
+
+    if extra > 0 {
+        desc.push_str("\n... and ");
+        let _ = write!(desc, "{}", extra);
+        desc.push_str(" more");
+    }
+
+    desc.push_str("\n\nAlready present games will be skipped\nAre you sure you want to continue?");
 
     MessageDialog::new()
-        .set_title("Games to convert (already present games will be skipped):")
+        .set_title("The following games will be added")
         .set_parent(frame)
         .set_description(desc)
         .set_level(MessageLevel::Info)
