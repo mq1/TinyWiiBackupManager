@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::app::App;
-use crate::extensions::SUPPORTED_OUTPUT_EXTENSIONS;
+use crate::extensions::SUPPORTED_DISC_EXTENSIONS;
 use crate::ui;
 use eframe::egui;
 use egui_phosphor::regular as ph;
@@ -50,7 +50,7 @@ pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
             ui.label(format!(
                 "{} Supported extensions: {}",
                 ph::INFO,
-                SUPPORTED_OUTPUT_EXTENSIONS.join(", ")
+                SUPPORTED_DISC_EXTENSIONS.join(", ")
             ));
 
             ui.horizontal(|ui| {

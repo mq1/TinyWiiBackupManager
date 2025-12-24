@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::extensions::SUPPORTED_INPUT_EXTENSIONS;
 use crate::messages::{Message, process_msg};
 use crate::{
     config::{Config, SortBy},
@@ -23,7 +22,6 @@ use nod::common::Format;
 use semver::Version;
 use size::Size;
 use smallvec::SmallVec;
-use std::ffi::OsStr;
 use std::{fs, path::PathBuf, thread};
 
 pub struct App {
@@ -336,28 +334,7 @@ impl App {
         self.save_config();
     }
 
-    pub fn run_add_games(&mut self, frame: &eframe::Frame, mut paths: Vec<PathBuf>) {
-        paths.retain(|path| {
-            path.extension()
-                .and_then(OsStr::to_str)
-                .is_some_and(|ext| SUPPORTED_INPUT_EXTENSIONS.contains(&ext))
-        });
-
-        // We'll get those later with get_overflow_file
-        paths.retain(|path| {
-            path.file_name()
-                .and_then(OsStr::to_str)
-                .is_some_and(|name| !name.ends_with(".part1.iso"))
-        });
-
-        // filter out invalid zip files
-        paths.retain(|path| {
-            path.extension() != Some(OsStr::new("zip")) || util::does_this_zip_contain_a_disc(path)
-        });
-
-        // remove mutability
-        let paths = paths.into_boxed_slice();
-
+    pub fn run_add_games(&mut self, frame: &eframe::Frame, paths: Box<[PathBuf]>) {
         if paths.is_empty() {
             self.notifications.show_info("No games were selected");
         } else if ui::dialogs::confirm_add_games(frame, &paths) {
@@ -367,14 +344,12 @@ impl App {
 
     pub fn add_games(&mut self, frame: &eframe::Frame) {
         let games = ui::dialogs::choose_games(frame);
-        if !games.is_empty() {
-            self.run_add_games(frame, games);
-        }
+        self.run_add_games(frame, games);
     }
 
     pub fn add_games_from_dir(&mut self, frame: &eframe::Frame) {
         if let Some(src_dir) = ui::dialogs::choose_src_dir(frame) {
-            let paths = util::scan_for_discs(&src_dir);
+            let paths = util::scan_for_discs(&src_dir).into_boxed_slice();
             self.run_add_games(frame, paths);
         }
     }

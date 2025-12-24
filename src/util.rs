@@ -118,6 +118,12 @@ pub fn scan_for_discs(dir: &Path) -> Vec<PathBuf> {
                     .extension()
                     .and_then(OsStr::to_str)
                     .is_some_and(|ext| SUPPORTED_INPUT_EXTENSIONS.contains(&ext))
+                && path
+                    .file_name()
+                    .and_then(OsStr::to_str)
+                    .is_some_and(|file_name| !file_name.ends_with(".part1.iso"))
+                && (path.extension() != Some(OsStr::new("zip"))
+                    || does_this_zip_contain_a_disc(&path))
             {
                 disc_paths.push(path);
             }

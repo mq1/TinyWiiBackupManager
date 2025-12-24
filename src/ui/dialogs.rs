@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::extensions::{HBC_APP_EXTENSIONS, SUPPORTED_INPUT_EXTENSIONS, ZIP_EXTENSIONS};
+use crate::util;
 use rfd::{FileDialog, MessageButtons, MessageDialog, MessageDialogResult, MessageLevel};
 use std::ffi::OsStr;
 use std::path::PathBuf;
@@ -13,13 +14,33 @@ pub fn choose_mount_point(frame: &eframe::Frame) -> Option<PathBuf> {
         .pick_folder()
 }
 
-pub fn choose_games(frame: &eframe::Frame) -> Vec<PathBuf> {
-    FileDialog::new()
+pub fn choose_games(frame: &eframe::Frame) -> Box<[PathBuf]> {
+    let mut paths = FileDialog::new()
         .set_title("Select games")
         .set_parent(frame)
         .add_filter("Nintendo Optical Disc", SUPPORTED_INPUT_EXTENSIONS)
         .pick_files()
-        .unwrap_or_default()
+        .unwrap_or_default();
+
+    paths.retain(|path| {
+        path.extension()
+            .and_then(OsStr::to_str)
+            .is_some_and(|ext| SUPPORTED_INPUT_EXTENSIONS.contains(&ext))
+    });
+
+    // nod already fetches these automatically
+    paths.retain(|path| {
+        path.file_name()
+            .and_then(OsStr::to_str)
+            .is_some_and(|name| !name.ends_with(".part1.iso"))
+    });
+
+    // filter out invalid zip files
+    paths.retain(|path| {
+        path.extension() != Some(OsStr::new("zip")) || util::does_this_zip_contain_a_disc(path)
+    });
+
+    paths.into_boxed_slice()
 }
 
 pub fn choose_src_dir(frame: &eframe::Frame) -> Option<PathBuf> {

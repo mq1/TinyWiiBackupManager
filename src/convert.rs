@@ -175,6 +175,8 @@ pub fn spawn_conv_game_task(app: &App, in_path: PathBuf, out_path: PathBuf) {
                     progress * 100 / total
                 )))?;
             }
+
+            tmp_writer.flush()?;
         }
 
         let out_format = out_path
@@ -184,7 +186,13 @@ pub fn spawn_conv_game_task(app: &App, in_path: PathBuf, out_path: PathBuf) {
             .ok_or(anyhow!("Invalid output file extension"))?;
 
         {
-            let disc = DiscReader::new(&in_path, &get_disc_opts())?;
+            let disc = if let Some(tmp) = tmp {
+                let reader = BufReader::new(tmp);
+                DiscReader::new_from_non_cloneable_read(reader, &get_disc_opts())?
+            } else {
+                DiscReader::new(&in_path, &get_disc_opts())?
+            };
+
             let game_title = disc.header().game_title_str().to_string();
 
             let mut overflow_writer = OverflowWriter::new(&out_path, always_split)?;
@@ -262,10 +270,17 @@ pub fn spawn_add_game_task(app: &App, in_path: PathBuf, should_download_covers: 
                     progress * 100 / total
                 )))?;
             }
+
+            tmp_writer.flush()?;
         }
 
         {
-            let disc = DiscReader::new(&in_path, &get_disc_opts())?;
+            let disc = if let Some(tmp) = tmp {
+                let reader = BufReader::new(tmp);
+                DiscReader::new_from_non_cloneable_read(reader, &get_disc_opts())?
+            } else {
+                DiscReader::new(&in_path, &get_disc_opts())?
+            };
 
             let disc_header = disc.header();
             let game_id = disc_header.game_id_str().to_string();

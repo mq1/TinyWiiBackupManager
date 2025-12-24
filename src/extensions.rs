@@ -8,7 +8,7 @@ pub const SUPPORTED_INPUT_EXTENSIONS: &[&str] = &[
     "gcm", "iso", "wbfs", "wia", "rvz", "ciso", "gcz", "tgc", "nfs", "zip",
 ];
 
-pub const SUPPORTED_OUTPUT_EXTENSIONS: &[&str] = &[
+pub const SUPPORTED_DISC_EXTENSIONS: &[&str] = &[
     "gcm", "iso", "wbfs", "wia", "rvz", "ciso", "gcz", "tgc", "nfs",
 ];
 
