@@ -299,6 +299,17 @@ impl App {
         self.update_filtered_games();
     }
 
+    pub fn update_game_titles(&mut self, wiitdb: &wiitdb::Datafile) {
+        for game in &mut self.games {
+            if let Some(title) = wiitdb.get_title(game.id) {
+                game.display_title = title;
+            }
+        }
+
+        games::sort(&mut self.games, SortBy::None, self.config.contents.sort_by);
+        self.update_filtered_games();
+    }
+
     pub fn refresh_hbc_apps(&mut self) {
         self.hbc_apps =
             hbc_apps::list(&self.config.contents.mount_point, &self.osc_apps).into_boxed_slice();

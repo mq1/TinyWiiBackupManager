@@ -98,12 +98,11 @@ pub fn delete_hbc_app(frame: &eframe::Frame, app_name: &str) -> bool {
 }
 
 pub fn confirm_add_games(frame: &eframe::Frame, paths: &[PathBuf]) -> bool {
-    let count = paths.len();
-    let shown = count.min(20);
+    const MAX: usize = 20;
 
     let mut desc = String::new();
-    for i in 0..shown {
-        let file_name = paths[i]
+    for path in paths.iter().take(MAX) {
+        let file_name = path
             .file_name()
             .and_then(OsStr::to_str)
             .unwrap_or("Invalid file name");
@@ -113,9 +112,10 @@ pub fn confirm_add_games(frame: &eframe::Frame, paths: &[PathBuf]) -> bool {
         desc.push('\n');
     }
 
-    if count > shown {
+    let not_shown = paths.len().saturating_sub(MAX);
+    if not_shown > 0 {
         desc.push_str("\n... and ");
-        let _ = write!(desc, "{}", count - shown);
+        let _ = write!(desc, "{}", not_shown);
         desc.push_str(" more");
     }
 

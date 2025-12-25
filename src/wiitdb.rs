@@ -347,8 +347,6 @@ pub fn spawn_load_wiitdb_task(app: &App) {
             ph::FILE_CODE
         )))?;
 
-        msg_sender.send(Message::TriggerRefreshGames(false))?;
-
         Ok(())
     });
 }

@@ -69,6 +69,7 @@ pub fn process_msg(app: &mut App, ctx: &egui::Context, frame: &eframe::Frame, ms
             app.update_filtered_osc_apps();
         }
         Message::GotWiitdb(data) => {
+            app.update_game_titles(&data);
             app.wiitdb = Some(data);
         }
         Message::OpenModal(modal) => {
