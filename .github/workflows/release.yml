@@ -33,9 +33,6 @@ jobs:
             runner: ubuntu-24.04
             arch: x86_64-v3
             ldai-arch: x86_64
-            rustflags: "-Ctarget-cpu=x86-64-v3"
-            cflags: "-march=x86-64-v3"
-            cxxflags: "-march=x86-64-v3"
           - target: aarch64-unknown-linux-gnu
             runner: ubuntu-24.04-arm
             arch: arm64
@@ -50,12 +47,6 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 1
-
-      - name: Install LLVM
-        run: |
-          wget https://apt.llvm.org/llvm.sh
-          chmod +x llvm.sh
-          sudo ./llvm.sh 21
 
       - name: Install x86 dependencies
         if: matrix.arch == 'x86'
@@ -78,16 +69,14 @@ jobs:
           wget "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-${{ matrix.ldai-arch }}.AppImage"
           chmod +x linuxdeploy-${{ matrix.ldai-arch }}.AppImage linuxdeploy-plugin-appimage-${{ matrix.ldai-arch }}.AppImage
 
+      - name: Enable x86_64-v3 config
+        if: matrix.arch == 'x86_64-v3'
+        run: mv .cargo/config-x86_64-v3.toml .cargo/config.toml
+
       - name: Build binary
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls csd-abglyph"
         env:
           RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: ${{ matrix.rustflags }} -Clinker=clang-21 -Clink-arg=-fuse-ld=lld-21 -Clinker-plugin-lto
-          CC: clang-21
-          CXX: clang++-21
-          AR: llvm-ar-21
-          CFLAGS: ${{ matrix.cflags }} -flto=thin -O3
-          CXXFLAGS: ${{ matrix.cxxflags }} -flto=thin -O3
 
       - name: Package binary as tar.gz
         run: |
@@ -125,9 +114,6 @@ jobs:
             pc: windows
           - target: x86_64-pc-windows-msvc
             arch: x86_64-v3
-            rustflags: "-Ctarget-cpu=x86-64-v3"
-            cflags: "/clang:-march=x86-64-v3"
-            cxxflags: "/clang:-march=x86-64-v3"
             features: native-tls
             pc: windows
           - target: aarch64-pc-windows-msvc
@@ -155,10 +141,6 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install LLVM
-        shell: pwsh
-        run: choco install llvm --version 21.1.7
-
       - name: Install Rust toolchain
         shell: pwsh
         run: |
@@ -174,17 +156,16 @@ jobs:
         shell: pwsh
         run: cargo install cargo-packager --version 0.11.8 --locked
 
+      - name: Enable x86_64-v3 config
+        if: matrix.arch == 'x86_64-v3'
+        shell: pwsh
+        run: Move-Item ./cargo/config-x86_64-v3.toml ./cargo/config.toml
+
       - name: Build binary
         shell: pwsh
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "${{ matrix.features }}"
         env:
           RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: ${{ matrix.rustflags }} -Clinker-plugin-lto -Clinker=lld-link
-          CC: "clang-cl"
-          CXX: "clang-cl"
-          AR: "llvm-lib"
-          CFLAGS: "${{ matrix.cflags }} /clang:-flto=thin /clang:-fuse-ld=lld-link /clang:-O3"
-          CXXFLAGS: "${{ matrix.cxxflags }} /clang:-flto=thin /clang:-fuse-ld=lld-link /clang:-O3"
 
       - name: Package binary as zip
         shell: pwsh
@@ -226,9 +207,6 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install LLVM
-        run: brew install llvm@21 lld@21
-
       - name: Install Rust toolchain
         run: |
           rustup toolchain install 1.92 --component rust-src
@@ -246,12 +224,6 @@ jobs:
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
         env:
           RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: -Clinker=./macos-linker.sh -Clinker-plugin-lto -Clink-arg=-fuse-ld=/opt/homebrew/opt/lld@21/bin/ld64.lld
-          CC: /opt/homebrew/opt/llvm@21/bin/clang
-          CXX: /opt/homebrew/opt/llvm@21/bin/clang++
-          AR: /opt/homebrew/opt/llvm@21/bin/llvm-ar
-          CFLAGS: -flto=thin -O3
-          CXXFLAGS: -flto=thin -O3
 
       - name: Set macos.minimumSystemVersion in Cargo.toml
         run: sed -i '' 's/MACOS_MIN_SYS_VER/${{ matrix.min_sys_ver }}/' Cargo.toml
