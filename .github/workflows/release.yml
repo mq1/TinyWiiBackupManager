@@ -83,8 +83,9 @@ jobs:
         env:
           RUSTC_BOOTSTRAP: 1
           RUSTFLAGS: ${{ matrix.rustflags }} -Clinker=clang-21 -Clink-arg=-fuse-ld=lld-21 -Clinker-plugin-lto
-          CC: "clang-21"
-          CXX: "clang++-21"
+          CC: clang-21
+          CXX: clang++-21
+          AR: llvm-ar-21
           CFLAGS: ${{ matrix.cflags }} -flto=thin -O3
           CXXFLAGS: ${{ matrix.cxxflags }} -flto=thin -O3
 
