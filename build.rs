@@ -72,14 +72,9 @@ fn main() {
     static_vcruntime::metabuild();
 
     #[cfg(windows)]
-    let mut res = winresource::WindowsResource::new();
-
-    #[cfg(windows)]
-    res.set_icon("assets/TinyWiiBackupManager.ico");
-
-    #[cfg(target_vendor = "pc")]
-    res.set_manifest_file("assets/TinyWiiBackupManager.exe.manifest");
-
-    #[cfg(windows)]
-    res.compile().unwrap();
+    {
+        let mut res = winresource::WindowsResource::new();
+        res.set_icon("assets/TinyWiiBackupManager.ico");
+        res.compile().unwrap();
+    }
 }
