@@ -126,12 +126,10 @@ jobs:
             pc: windows
           - target: x86_64-win7-windows-msvc
             arch: x86_64
-            rustflags: "-Ctarget-feature=+crt-static"
             features: bundled-tls
             pc: windows7
           - target: i686-win7-windows-msvc
             arch: x86
-            rustflags: "-Ctarget-feature=+crt-static"
             features: bundled-tls
             pc: windows7
 
