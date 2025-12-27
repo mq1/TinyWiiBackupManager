@@ -1,6 +1,6 @@
 [package]
 name = "TinyWiiBackupManager"
-version = "4.9.17"
+version = "4.9.18"
 rust-version = "1.92"
 edition = "2024"
 authors = ["Manuel Quarneti <mq1@ik.me>"]
@@ -57,6 +57,9 @@ itertools = "0.14"
 smallvec = "1.15"
 time = { version = "0.3", features = ["macros", "parsing", "serde"] }
 
+[target.'cfg(not(target_vendor = "pc"))'.dependencies]
+native-dialog = "0.9"
+
 [target.'cfg(target_os = "linux")'.dependencies]
 eframe = { version = "0.33", default-features = false, features = [
   "accesskit",
@@ -69,12 +72,8 @@ winit = { version = "*", default-features = false, features = [
   "wayland",
   "wayland-dlopen",
 ] }
-rfd = "0.16"
 
-[target.'cfg(any(target_os = "macos", target_vendor = "win7"))'.dependencies]
-rfd = { version = "0.16", default-features = false }
-
-[target.'cfg(any(all(target_os = "macos", target_arch = "x86_64"), target_os = "linux", target_vendor = "win7"))'.dependencies]
+[target.'cfg(any(all(target_os = "macos", target_arch = "x86_64"), target_vendor = "win7"))'.dependencies]
 eframe = { version = "0.33", default-features = false, features = [
   "accesskit",
   "glow",
@@ -96,8 +95,9 @@ wgpu = { version = "27", default-features = false, features = [
 ] }
 
 [target.'cfg(target_vendor = "pc")'.dependencies]
-rfd = { version = "0.16", default-features = false, features = [
-  "common-controls-v6",
+native-dialog = { version = "0.9", features = [
+  "windows_dpi_awareness",
+  "windows_visual_styles",
 ] }
 wgpu = { version = "27", default-features = false, features = [
   "dx12",

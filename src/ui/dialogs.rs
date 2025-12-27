@@ -3,24 +3,27 @@
 
 use crate::extensions::{HBC_APP_EXTENSIONS, SUPPORTED_INPUT_EXTENSIONS, ZIP_EXTENSIONS};
 use crate::util;
-use rfd::{FileDialog, MessageButtons, MessageDialog, MessageDialogResult, MessageLevel};
+use native_dialog::{DialogBuilder, MessageLevel};
 use std::ffi::OsStr;
 use std::fmt::Write;
 use std::path::PathBuf;
 
 pub fn choose_mount_point(frame: &eframe::Frame) -> Option<PathBuf> {
-    FileDialog::new()
+    DialogBuilder::file()
         .set_title("Select Drive/Mount Point")
-        .set_parent(frame)
-        .pick_folder()
+        .set_owner(frame)
+        .open_single_dir()
+        .show()
+        .unwrap_or_default()
 }
 
 pub fn choose_games(frame: &eframe::Frame) -> Box<[PathBuf]> {
-    let mut paths = FileDialog::new()
+    let mut paths = DialogBuilder::file()
         .set_title("Select games")
-        .set_parent(frame)
+        .set_owner(frame)
         .add_filter("Nintendo Optical Disc", SUPPORTED_INPUT_EXTENSIONS)
-        .pick_files()
+        .open_multiple_file()
+        .show()
         .unwrap_or_default();
 
     paths.retain(|path| {
@@ -45,56 +48,63 @@ pub fn choose_games(frame: &eframe::Frame) -> Box<[PathBuf]> {
 }
 
 pub fn choose_src_dir(frame: &eframe::Frame) -> Option<PathBuf> {
-    FileDialog::new()
+    DialogBuilder::file()
         .set_title("Select a folder containing games")
-        .set_parent(frame)
-        .pick_folder()
+        .set_owner(frame)
+        .open_single_dir()
+        .show()
+        .unwrap_or_default()
 }
 
 pub fn choose_hbc_apps(frame: &eframe::Frame) -> Vec<PathBuf> {
-    FileDialog::new()
+    DialogBuilder::file()
         .set_title("Select Homebrew Channel Apps")
-        .set_parent(frame)
+        .set_owner(frame)
         .add_filter("HBC App", ZIP_EXTENSIONS)
-        .pick_files()
+        .open_multiple_file()
+        .show()
         .unwrap_or_default()
 }
 
 pub fn choose_dest_dir(frame: &eframe::Frame) -> Option<PathBuf> {
-    FileDialog::new()
+    DialogBuilder::file()
         .set_title("Save game to:")
-        .set_parent(frame)
-        .pick_folder()
+        .set_owner(frame)
+        .open_single_dir()
+        .show()
+        .unwrap_or_default()
 }
 
 pub fn choose_file_to_push(frame: &eframe::Frame) -> Option<PathBuf> {
-    FileDialog::new()
+    DialogBuilder::file()
         .set_title("Select file to Wiiload")
-        .set_parent(frame)
+        .set_owner(frame)
         .add_filter("HBC App", HBC_APP_EXTENSIONS)
-        .pick_file()
+        .open_single_file()
+        .show()
+        .unwrap_or_default()
 }
 
 pub fn delete_game(frame: &eframe::Frame, game_title: &str) -> bool {
-    MessageDialog::new()
+    DialogBuilder::message()
         .set_title("Delete game")
-        .set_parent(frame)
-        .set_description(format!("Are you sure you want to delete {}?", game_title))
+        .set_owner(frame)
+        .set_text(format!("Are you sure you want to delete {}?", game_title))
         .set_level(MessageLevel::Warning)
-        .set_buttons(MessageButtons::OkCancel)
+        .confirm()
         .show()
-        == MessageDialogResult::Ok
+        .unwrap_or_default()
 }
 
 pub fn delete_hbc_app(frame: &eframe::Frame, app_name: &str) -> bool {
-    MessageDialog::new()
+    DialogBuilder::message()
         .set_title("Delete Homebrew Channel app")
-        .set_parent(frame)
-        .set_description(format!("Are you sure you want to delete {}?", app_name))
+        .set_owner(frame)
+        .set_text(format!("Are you sure you want to delete {}?", app_name))
         .set_level(MessageLevel::Warning)
-        .set_buttons(MessageButtons::OkCancel)
+        .confirm()
         .show()
-        == MessageDialogResult::Ok
+        .unwrap_or_default()
 }
 
 pub fn confirm_add_games(frame: &eframe::Frame, paths: &[PathBuf]) -> bool {
@@ -121,74 +131,79 @@ pub fn confirm_add_games(frame: &eframe::Frame, paths: &[PathBuf]) -> bool {
 
     desc.push_str("\n\nAlready present games will be skipped\nAre you sure you want to continue?");
 
-    MessageDialog::new()
+    DialogBuilder::message()
         .set_title("The following games will be added")
-        .set_parent(frame)
-        .set_description(desc)
+        .set_owner(frame)
+        .set_text(desc)
         .set_level(MessageLevel::Info)
-        .set_buttons(MessageButtons::OkCancel)
+        .confirm()
         .show()
-        == MessageDialogResult::Ok
+        .unwrap_or_default()
 }
 
 pub fn confirm_strip_game(frame: &eframe::Frame, game_title: &str) -> bool {
-    MessageDialog::new()
+    DialogBuilder::message()
         .set_title("Remove update partition?")
-        .set_parent(frame)
-        .set_description(format!(
+        .set_owner(frame)
+        .set_text(format!(
             "Are you sure you want to remove the update partition from {}?\n\nThis is irreversible!",
             game_title
         ))
         .set_level(MessageLevel::Warning)
-        .set_buttons(MessageButtons::OkCancel)
+        .confirm()
         .show()
-        == MessageDialogResult::Ok
+        .unwrap_or_default()
 }
 
 pub fn confirm_strip_all_games(frame: &eframe::Frame) -> bool {
-    MessageDialog::new()
+    DialogBuilder::message()
         .set_title("Remove update partitions?")
-        .set_parent(frame)
-        .set_description("Are you sure you want to remove the update partitions from all .wbfs files?\n\nThis is irreversible!")
+        .set_owner(frame)
+        .set_text("Are you sure you want to remove the update partitions from all .wbfs files?\n\nThis is irreversible!")
         .set_level(MessageLevel::Warning)
-        .set_buttons(MessageButtons::OkCancel)
-        .show() == MessageDialogResult::Ok
+        .confirm()
+        .show()
+        .unwrap_or_default()
 }
 
 pub fn choose_input_disc_path(frame: &eframe::Frame) -> Option<PathBuf> {
-    FileDialog::new()
+    DialogBuilder::file()
         .set_title("Select input disc file")
-        .set_parent(frame)
+        .set_owner(frame)
         .add_filter("Nintendo Optical Disc", SUPPORTED_INPUT_EXTENSIONS)
-        .pick_file()
+        .open_single_file()
+        .show()
+        .unwrap_or_default()
 }
 
 pub fn choose_output_disc_path(frame: &eframe::Frame) -> Option<PathBuf> {
-    FileDialog::new()
+    DialogBuilder::file()
         .set_title("Select output disc file")
-        .set_parent(frame)
+        .set_owner(frame)
         .add_filter("Nintendo Optical Disc", SUPPORTED_INPUT_EXTENSIONS)
-        .save_file()
+        .save_single_file()
+        .show()
+        .unwrap_or_default()
 }
 
 pub fn confirm_single_conversion(frame: &eframe::Frame, in_path: &str, out_path: &str) -> bool {
-    MessageDialog::new()
+    DialogBuilder::message()
         .set_title("Convert disc")
-        .set_parent(frame)
-        .set_description(format!("Convert {} to {}?", in_path, out_path))
+        .set_owner(frame)
+        .set_text(format!("Convert {} to {}?", in_path, out_path))
         .set_level(MessageLevel::Info)
-        .set_buttons(MessageButtons::OkCancel)
+        .confirm()
         .show()
-        == MessageDialogResult::Ok
+        .unwrap_or_default()
 }
 
 pub fn confirm_cancel_tasks(frame: &eframe::Frame) -> bool {
-    MessageDialog::new()
+    DialogBuilder::message()
         .set_title("Cancel pending tasks")
-        .set_parent(frame)
-        .set_description("Are you sure you want to cancel all pending tasks?")
+        .set_owner(frame)
+        .set_text("Are you sure you want to cancel all pending tasks?")
         .set_level(MessageLevel::Warning)
-        .set_buttons(MessageButtons::OkCancel)
+        .confirm()
         .show()
-        == MessageDialogResult::Ok
+        .unwrap_or_default()
 }
