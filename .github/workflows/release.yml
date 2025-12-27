@@ -85,8 +85,8 @@ jobs:
           RUSTFLAGS: ${{ matrix.rustflags }} -Clinker=clang-21 -Clink-arg=-fuse-ld=lld-21 -Clinker-plugin-lto
           CC: "clang-21"
           CXX: "clang++-21"
-          CFLAGS: ${{ matrix.cflags }} -flto -O3
-          CXXFLAGS: ${{ matrix.cxxflags }} -flto -O3
+          CFLAGS: ${{ matrix.cflags }} -flto=thin -O3
+          CXXFLAGS: ${{ matrix.cxxflags }} -flto=thin -O3
 
       - name: Package binary as tar.gz
         run: |
@@ -182,8 +182,8 @@ jobs:
           CC: "clang-cl"
           CXX: "clang-cl"
           AR: "llvm-lib"
-          CFLAGS: "${{ matrix.cflags }} /clang:-flto /clang:-fuse-ld=lld-link /clang:-O3"
-          CXXFLAGS: "${{ matrix.cxxflags }} /clang:-flto /clang:-fuse-ld=lld-link /clang:-O3"
+          CFLAGS: "${{ matrix.cflags }} /clang:-flto=thin /clang:-fuse-ld=lld-link /clang:-O3"
+          CXXFLAGS: "${{ matrix.cxxflags }} /clang:-flto=thin /clang:-fuse-ld=lld-link /clang:-O3"
 
       - name: Package binary as zip
         shell: pwsh
@@ -249,8 +249,8 @@ jobs:
           CC: /opt/homebrew/opt/llvm@21/bin/clang
           CXX: /opt/homebrew/opt/llvm@21/bin/clang++
           AR: /opt/homebrew/opt/llvm@21/bin/llvm-ar
-          CFLAGS: -flto -O3
-          CXXFLAGS: -flto -O3
+          CFLAGS: -flto=thin -O3
+          CXXFLAGS: -flto=thin -O3
 
       - name: Set macos.minimumSystemVersion in Cargo.toml
         run: sed -i '' 's/MACOS_MIN_SYS_VER/${{ matrix.min_sys_ver }}/' Cargo.toml

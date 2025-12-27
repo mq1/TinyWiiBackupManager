@@ -120,7 +120,6 @@ static_vcruntime = "3.0"
 
 [profile.release]
 opt-level = 3
-lto = false
 codegen-units = 1
 strip = true
 panic = "abort"
