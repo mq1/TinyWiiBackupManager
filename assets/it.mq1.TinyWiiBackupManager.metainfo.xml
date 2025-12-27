@@ -94,6 +94,9 @@
         </screenshot>
     </screenshots>
     <releases>
+        <release version="4.9.18" date="2025-12-27">
+            <url type="details">https://github.com/mq1/TinyWiiBackupManager/releases/tag/v4.9.18</url>
+        </release>
         <release version="4.9.17" date="2025-12-26">
             <url type="details">https://github.com/mq1/TinyWiiBackupManager/releases/tag/v4.9.17</url>
         </release>
