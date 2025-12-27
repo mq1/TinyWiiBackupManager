@@ -159,7 +159,7 @@ jobs:
       - name: Enable x86_64-v3 config
         if: matrix.arch == 'x86_64-v3'
         shell: pwsh
-        run: Move-Item ./cargo/config-x86_64-v3.toml ./cargo/config.toml
+        run: Move-Item .cargo/config-x86_64-v3.toml .cargo/config.toml
 
       - name: Build binary
         shell: pwsh
