@@ -1,0 +1,8 @@
+[build]
+rustflags = "-Ctarget-cpu=x86-64-v3"
+
+[env]
+CFLAGS_x86_64-unknown-linux-gnu = "-march=x86-64-v3"
+CXXFLAGS_x86_64-unknown-linux-gnu = "-march=x86-64-v3"
+CFLAGS_x86_64-pc-windows-msvc = "/arch:AVX2"
+CXXFLAGS_x86_64-pc-windows-msvc = "/arch:AVX2"
