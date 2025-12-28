@@ -53,7 +53,7 @@ pub fn update(ui: &mut egui::Ui, app: &mut App) {
                     });
                     row.col(|ui| {
                         ui.add_space(3.);
-                        ui.add(egui::Label::new(hbc_app.size.to_string()).truncate());
+                        ui.add(egui::Label::new(&hbc_app.size_str).truncate());
                         ui.add_space(3.);
                         ui.separator();
                     });

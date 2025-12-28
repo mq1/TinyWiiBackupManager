@@ -54,6 +54,7 @@ pub struct HbcApp {
     pub meta: HbcAppMeta,
     pub image_uri: String,
     pub size: Size,
+    pub size_str: String,
     pub path: PathBuf,
     pub search_str: String,
     pub osc_app_i: Option<u16>,
@@ -89,8 +90,8 @@ impl HbcApp {
 
         meta.name = meta.name.trim().to_string();
 
-        let size = fs_extra::dir::get_size(&path).unwrap_or_default();
-        let size = Size::from_bytes(size);
+        let size = Size::from_bytes(fs_extra::dir::get_size(&path).unwrap_or_default());
+        let size_str = size.to_string();
 
         let image_path = path.join("icon.png");
         let image_uri = format!("file://{}", image_path.to_slash_lossy());
@@ -106,6 +107,7 @@ impl HbcApp {
             meta,
             path,
             size,
+            size_str,
             search_str,
             image_uri,
             osc_app_i,
