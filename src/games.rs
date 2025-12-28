@@ -9,21 +9,35 @@ use anyhow::bail;
 use egui_phosphor::regular as ph;
 use path_slash::PathExt;
 use size::Size;
+use std::ffi::OsStr;
 use std::fs;
 use std::path::PathBuf;
 
 pub fn list(app: &App) -> Vec<Game> {
-    if app.config.contents.mount_point.as_os_str().is_empty() {
-        return vec![];
+    let mut games = Vec::new();
+    let mount_point = &app.config.contents.mount_point;
+
+    if mount_point.as_os_str().is_empty() {
+        return games;
     }
 
+    let mut wii_games = scan_dir(mount_point.join("wbfs"), app);
+    let mut gc_games = scan_dir(mount_point.join("games"), app);
+
+    games.append(&mut wii_games);
+    games.append(&mut gc_games);
+
+    games
+}
+
+fn scan_dir(dir: PathBuf, app: &App) -> Vec<Game> {
     let mut games = Vec::new();
 
-    for (dir_name, is_wii) in &[("wbfs", true), ("games", false)] {
-        if let Ok(entries) = fs::read_dir(app.config.contents.mount_point.join(dir_name)) {
-            games.extend(
-                entries.filter_map(|entry| Game::from_dir(entry.ok()?.path(), app, *is_wii).ok()),
-            );
+    if let Ok(entries) = fs::read_dir(dir) {
+        for entry in entries.filter_map(Result::ok) {
+            if let Ok(game) = Game::from_dir(entry.path(), app) {
+                games.push(game);
+            }
         }
     }
 
@@ -31,10 +45,16 @@ pub fn list(app: &App) -> Vec<Game> {
 }
 
 impl Game {
-    pub fn from_dir(dir: PathBuf, app: &App, is_wii: bool) -> Result<Self> {
+    pub fn from_dir(dir: PathBuf, app: &App) -> Result<Self> {
         if !dir.is_dir() {
             bail!("{} {} is not a directory", ph::FILE_X, dir.display());
         }
+
+        let is_wii = dir
+            .parent()
+            .and_then(|p| p.file_name())
+            .and_then(OsStr::to_str)
+            .is_some_and(|n| n == "wbfs");
 
         let file_name = dir
             .file_name()
