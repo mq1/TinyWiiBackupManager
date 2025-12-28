@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::extensions::SUPPORTED_INPUT_EXTENSIONS;
+use crate::extensions::SUPPORTED_DISC_EXTENSIONS;
 use anyhow::{Context, Result};
 use size::Size;
 use std::{
@@ -113,18 +113,7 @@ pub fn scan_for_discs(dir: &Path) -> Vec<PathBuf> {
             if path.is_dir() {
                 let mut new = scan_for_discs(&path);
                 disc_paths.append(&mut new);
-            } else if path.is_file()
-                && path
-                    .extension()
-                    .and_then(OsStr::to_str)
-                    .is_some_and(|ext| SUPPORTED_INPUT_EXTENSIONS.contains(&ext))
-                && path
-                    .file_name()
-                    .and_then(OsStr::to_str)
-                    .is_some_and(|file_name| !file_name.ends_with(".part1.iso"))
-                && (path.extension() != Some(OsStr::new("zip"))
-                    || does_this_zip_contain_a_disc(&path))
-            {
+            } else if is_valid_disc_file(&path) {
                 disc_paths.push(path);
             }
         }
@@ -133,27 +122,50 @@ pub fn scan_for_discs(dir: &Path) -> Vec<PathBuf> {
     disc_paths
 }
 
-pub fn does_this_zip_contain_a_disc(path: &Path) -> bool {
-    let file = if let Ok(file) = File::open(path) {
-        file
-    } else {
+pub fn is_valid_disc_file(path: &Path) -> bool {
+    if !path.is_file() {
         return false;
+    }
+
+    let stem = match path.file_stem().and_then(OsStr::to_str) {
+        Some(s) => s,
+        None => return false,
     };
 
-    let mut archive = if let Ok(archive) = ZipArchive::new(file) {
-        archive
-    } else {
+    if stem.ends_with(".part1") {
         return false;
+    }
+
+    let ext = match path.extension().and_then(OsStr::to_str) {
+        Some(s) => s,
+        None => return false,
     };
 
-    let disc_file = if let Ok(disc_file) = archive.by_index(0) {
-        disc_file
-    } else {
-        return false;
+    match ext {
+        "zip" => does_this_zip_contain_a_disc(path),
+        "gcm" | "iso" | "wbfs" | "wia" | "rvz" | "ciso" | "gcz" | "tgc" | "nfs" => true,
+        _ => false,
+    }
+}
+
+fn does_this_zip_contain_a_disc(path: &Path) -> bool {
+    let file = match File::open(path) {
+        Ok(f) => f,
+        Err(_) => return false,
+    };
+
+    let mut archive = match ZipArchive::new(file) {
+        Ok(a) => a,
+        Err(_) => return false,
+    };
+
+    let disc_file = match archive.by_index(0) {
+        Ok(f) => f,
+        Err(_) => return false,
     };
 
     let disc_name = disc_file.name();
-    SUPPORTED_INPUT_EXTENSIONS
+    SUPPORTED_DISC_EXTENSIONS
         .iter()
         .any(|ext| disc_name.ends_with(ext))
 }

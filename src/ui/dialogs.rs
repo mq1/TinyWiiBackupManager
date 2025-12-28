@@ -26,23 +26,7 @@ pub fn choose_games(frame: &eframe::Frame) -> Box<[PathBuf]> {
         .show()
         .unwrap_or_default();
 
-    paths.retain(|path| {
-        path.extension()
-            .and_then(OsStr::to_str)
-            .is_some_and(|ext| SUPPORTED_INPUT_EXTENSIONS.contains(&ext))
-    });
-
-    // nod already fetches these automatically
-    paths.retain(|path| {
-        path.file_name()
-            .and_then(OsStr::to_str)
-            .is_some_and(|name| !name.ends_with(".part1.iso"))
-    });
-
-    // filter out invalid zip files
-    paths.retain(|path| {
-        path.extension() != Some(OsStr::new("zip")) || util::does_this_zip_contain_a_disc(path)
-    });
+    paths.retain(|p| util::is_valid_disc_file(p));
 
     paths.into_boxed_slice()
 }
