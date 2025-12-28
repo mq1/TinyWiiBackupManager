@@ -6,7 +6,7 @@ use crate::disc_info::{get_main_file, is_worth_stripping};
 use crate::extensions::{ext_to_format, format_to_opts};
 use crate::messages::Message;
 use crate::overflow_writer::get_overflow_path;
-use crate::util::sanitize;
+use crate::util::{PRELOADER_THREADS, PROCESSOR_THREADS, sanitize};
 use crate::{disc_info::DiscInfo, overflow_writer::OverflowWriter, util};
 use anyhow::{anyhow, bail};
 use egui_phosphor::regular as ph;
@@ -19,29 +19,24 @@ use std::ffi::OsStr;
 use std::fs::File;
 use std::io::{BufReader, BufWriter, Read};
 use std::path::PathBuf;
+use std::sync::LazyLock;
 use std::{fs, io::Write};
 use tempfile::tempfile;
 use zip::ZipArchive;
 
-pub fn get_disc_opts() -> DiscOptions {
-    let (preloader_threads, _) = util::get_threads_num();
-
-    DiscOptions {
-        partition_encryption: PartitionEncryption::Original,
-        preloader_threads,
-    }
-}
+pub static DISC_OPTS: LazyLock<DiscOptions> = LazyLock::new(|| DiscOptions {
+    partition_encryption: PartitionEncryption::Original,
+    preloader_threads: *PRELOADER_THREADS,
+});
 
 pub fn get_process_opts(scrub_update_partition: bool) -> ProcessOptions {
-    let (_, processor_threads) = util::get_threads_num();
-
     let scrub = match scrub_update_partition {
         true => ScrubLevel::UpdatePartition,
         false => ScrubLevel::None,
     };
 
     ProcessOptions {
-        processor_threads,
+        processor_threads: *PROCESSOR_THREADS,
         digest_crc32: true,
         digest_md5: false,
         digest_sha1: false,
@@ -72,7 +67,7 @@ pub fn spawn_strip_game_task(app: &App, disc_info: DiscInfo) {
         let out_path = dir_path.join(format!("{}.wbfs", disc_info.id.as_str()));
 
         {
-            let disc = DiscReader::new(&disc_info.disc_path, &get_disc_opts())?;
+            let disc = DiscReader::new(&disc_info.disc_path, &DISC_OPTS)?;
 
             let mut overflow_writer = OverflowWriter::new(&out_path, always_split)?;
 
@@ -126,7 +121,7 @@ pub fn spawn_strip_all_games_tasks(app: &mut App) -> bool {
 
     for game in &app.games {
         if let Some(path) = get_main_file(&game.path)
-            && let Ok(disc) = DiscReader::new(&path, &get_disc_opts())
+            && let Ok(disc) = DiscReader::new(&path, &DISC_OPTS)
             && is_worth_stripping(&disc)
             && let Ok(disc_info) = DiscInfo::from_path(path)
         {
@@ -188,9 +183,9 @@ pub fn spawn_conv_game_task(app: &App, in_path: PathBuf, out_path: PathBuf) {
         {
             let disc = if let Some(tmp) = tmp {
                 let reader = BufReader::new(tmp);
-                DiscReader::new_from_non_cloneable_read(reader, &get_disc_opts())?
+                DiscReader::new_from_non_cloneable_read(reader, &DISC_OPTS)?
             } else {
-                DiscReader::new(&in_path, &get_disc_opts())?
+                DiscReader::new(&in_path, &DISC_OPTS)?
             };
 
             let game_title = disc.header().game_title_str().to_string();
@@ -277,9 +272,9 @@ pub fn spawn_add_game_task(app: &App, in_path: PathBuf, should_download_covers: 
         {
             let disc = if let Some(tmp) = tmp {
                 let reader = BufReader::new(tmp);
-                DiscReader::new_from_non_cloneable_read(reader, &get_disc_opts())?
+                DiscReader::new_from_non_cloneable_read(reader, &DISC_OPTS)?
             } else {
-                DiscReader::new(&in_path, &get_disc_opts())?
+                DiscReader::new(&in_path, &DISC_OPTS)?
             };
 
             let disc_header = disc.header();

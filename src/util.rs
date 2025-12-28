@@ -10,10 +10,25 @@ use std::{
     io::{Seek, SeekFrom, Write},
     path::{Path, PathBuf},
     process::Command,
+    sync::LazyLock,
 };
 use sysinfo::Disks;
 use tempfile::NamedTempFile;
 use zip::ZipArchive;
+
+static NUM_CPUS: LazyLock<usize> = LazyLock::new(num_cpus::get);
+
+pub static PRELOADER_THREADS: LazyLock<usize> = LazyLock::new(|| match *NUM_CPUS {
+    0..=4 => 1,
+    5..=8 => 2,
+    _ => 4,
+});
+
+pub static PROCESSOR_THREADS: LazyLock<usize> = LazyLock::new(|| match *NUM_CPUS {
+    0..=4 => *NUM_CPUS - 1,
+    5..=8 => *NUM_CPUS - 2,
+    _ => *NUM_CPUS - 4,
+});
 
 fn keep_valid_char(c: char) -> Option<char> {
     match c {
@@ -74,22 +89,6 @@ pub fn can_write_over_4gb(mount_point: &Path) -> bool {
     }
 
     true
-}
-
-pub fn get_threads_num() -> (usize, usize) {
-    let cpus = num_cpus::get();
-
-    let preloader_threads = if cpus <= 4 {
-        1
-    } else if cpus <= 8 {
-        2
-    } else {
-        4
-    };
-
-    let processor_threads = cpus - preloader_threads;
-
-    (preloader_threads, processor_threads)
 }
 
 pub fn run_dot_clean(mount_point: &Path) -> Result<()> {

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::convert::get_disc_opts;
+use crate::convert::DISC_OPTS;
 use crate::games::GameID;
 use anyhow::{Result, anyhow, bail};
 use nod::common::{Compression, Format, PartitionKind};
@@ -78,7 +78,7 @@ impl DiscInfo {
         }
 
         let parent_dir = disc_path.parent().ok_or(anyhow!("No parent directory"))?;
-        let disc = DiscReader::new(&disc_path, &get_disc_opts())?;
+        let disc = DiscReader::new(&disc_path, &DISC_OPTS)?;
         let is_worth_stripping = is_worth_stripping(&disc);
 
         let header = disc.header();
