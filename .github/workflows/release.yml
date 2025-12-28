@@ -33,6 +33,8 @@ jobs:
             runner: ubuntu-24.04
             arch: x86_64-v3
             ldai-arch: x86_64
+            rustflags: -Ctarget-cpu=x86-64-v3
+            cflags: -march=x86-64-v3
           - target: aarch64-unknown-linux-gnu
             runner: ubuntu-24.04-arm
             arch: arm64
@@ -69,14 +71,13 @@ jobs:
           wget "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-${{ matrix.ldai-arch }}.AppImage"
           chmod +x linuxdeploy-${{ matrix.ldai-arch }}.AppImage linuxdeploy-plugin-appimage-${{ matrix.ldai-arch }}.AppImage
 
-      - name: Enable x86_64-v3 config
-        if: matrix.arch == 'x86_64-v3'
-        run: mv .cargo/config-x86_64-v3.toml .cargo/config.toml
-
       - name: Build binary
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls csd-abglyph"
         env:
           RUSTC_BOOTSTRAP: 1
+          RUSTFLAGS: ${{ matrix.rustflags }}
+          CFLAGS: ${{ matrix.cflags }}
+          CXXFLAGS: ${{ matrix.cflags }}
 
       - name: Package binary as tar.gz
         run: |
@@ -116,6 +117,8 @@ jobs:
             arch: x86_64-v3
             features: native-tls
             pc: windows
+            rustflags: -Ctarget-cpu=x86-64-v3
+            cflags: /arch:AVX2
           - target: aarch64-pc-windows-msvc
             arch: arm64
             features: native-tls
@@ -128,10 +131,12 @@ jobs:
             arch: x86_64
             features: bundled-tls
             pc: windows7
+            rustflags: -Ctarget-feature=+crt-static
           - target: i686-win7-windows-msvc
             arch: x86
             features: bundled-tls
             pc: windows7
+            rustflags: -Ctarget-feature=+crt-static
 
     steps:
       - name: Checkout
@@ -154,16 +159,14 @@ jobs:
         shell: pwsh
         run: cargo install cargo-packager --version 0.11.8 --locked
 
-      - name: Enable x86_64-v3 config
-        if: matrix.arch == 'x86_64-v3'
-        shell: pwsh
-        run: Move-Item -Path .cargo/config-x86_64-v3.toml -Destination .cargo/config.toml -Force
-
       - name: Build binary
         shell: pwsh
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "${{ matrix.features }}"
         env:
           RUSTC_BOOTSTRAP: 1
+          RUSTFLAGS: ${{ matrix.rustflags }}
+          CFLAGS: ${{ matrix.cflags }}
+          CXXFLAGS: ${{ matrix.cflags }}
 
       - name: Package binary as zip
         shell: pwsh
