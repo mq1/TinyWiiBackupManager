@@ -68,6 +68,7 @@ impl Game {
 
         // Get the directory size
         let size = Size::from_bytes(fs_extra::dir::get_size(&dir).unwrap_or(0));
+        let size_str = size.to_string();
 
         // Construct the path to the game's cover image
         let image_path = app
@@ -87,6 +88,7 @@ impl Game {
             is_wii,
             display_title,
             size,
+            size_str,
             image_uri,
             search_str,
         })
@@ -100,6 +102,7 @@ pub struct Game {
     pub is_wii: bool,
     pub display_title: String,
     pub size: Size,
+    pub size_str: String,
     pub image_uri: String,
     pub search_str: String,
 }

@@ -82,7 +82,7 @@ fn update_game_card(ui: &mut egui::Ui, app: &App, game_i: u16) {
 
                 // Size label on the right
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                    ui.label(game.size.to_string());
+                    ui.label(&game.size_str);
                 });
             });
 
