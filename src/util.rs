@@ -7,7 +7,7 @@ use size::Size;
 use std::{
     ffi::OsStr,
     fs::{self, File},
-    io::{BufReader, Seek, SeekFrom, Write},
+    io::{Seek, SeekFrom, Write},
     path::{Path, PathBuf},
     process::Command,
 };
@@ -140,9 +140,7 @@ pub fn does_this_zip_contain_a_disc(path: &Path) -> bool {
         return false;
     };
 
-    let reader = BufReader::new(file);
-
-    let mut archive = if let Ok(archive) = ZipArchive::new(reader) {
+    let mut archive = if let Ok(archive) = ZipArchive::new(file) {
         archive
     } else {
         return false;
@@ -154,9 +152,8 @@ pub fn does_this_zip_contain_a_disc(path: &Path) -> bool {
         return false;
     };
 
-    disc_file
-        .mangled_name()
-        .extension()
-        .and_then(OsStr::to_str)
-        .is_some_and(|ext| SUPPORTED_INPUT_EXTENSIONS.contains(&ext))
+    let disc_name = disc_file.name();
+    SUPPORTED_INPUT_EXTENSIONS
+        .iter()
+        .any(|ext| disc_name.ends_with(ext))
 }
