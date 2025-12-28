@@ -15,16 +15,15 @@ use sysinfo::Disks;
 use tempfile::NamedTempFile;
 use zip::ZipArchive;
 
-fn is_valid_char(c: &char) -> bool {
-    matches!(*c, 'a'..='z' | 'A'..='Z' | '0'..='9' | ' ' | '+' | '-')
+fn keep_valid_char(c: char) -> Option<char> {
+    match c {
+        'a'..='z' | 'A'..='Z' | '0'..='9' | ' ' | '+' | '-' => Some(c),
+        _ => None,
+    }
 }
 
 pub fn sanitize(s: &str) -> String {
-    s.chars()
-        .filter(is_valid_char)
-        .collect::<String>()
-        .trim()
-        .to_string()
+    s.chars().filter_map(keep_valid_char).collect()
 }
 
 pub fn get_disk_usage(mount_point: &Path) -> String {

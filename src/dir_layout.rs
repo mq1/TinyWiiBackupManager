@@ -44,8 +44,11 @@ pub fn normalize_games_dir(games_dir: &Path) -> Result<()> {
                 fs::rename(overflow_path, new_overflow_path)?;
             }
 
-            let new_game_dir =
-                games_dir.join(format!("{} [{}]", sanitize(&disc_info.title), game_id));
+            let new_game_dir = games_dir.join(format!(
+                "{} [{}]",
+                sanitize(&disc_info.title).trim(),
+                game_id
+            ));
 
             if new_game_dir.exists() {
                 continue;

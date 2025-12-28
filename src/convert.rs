@@ -283,21 +283,22 @@ pub fn spawn_add_game_task(app: &App, in_path: PathBuf, should_download_covers: 
             };
 
             let disc_header = disc.header();
-            let game_id = disc_header.game_id_str().to_string();
-            let game_title = disc_header.game_title_str().to_string();
+            let game_id = disc_header.game_id_str();
+            let game_title = sanitize(disc_header.game_title_str());
+            let game_title = game_title.trim();
             let is_wii = disc_header.is_wii();
 
             let out_dir = mount_point
                 .join(if is_wii { "wbfs" } else { "games" })
-                .join(format!("{} [{}]", sanitize(&game_title), &game_id));
+                .join(format!("{} [{}]", game_title, game_id));
 
             let out_file_name = if is_wii {
                 if wii_output_format == Format::Wbfs {
-                    format!("{}.wbfs", &game_id)
+                    format!("{}.wbfs", game_id)
                 } else if always_split || !util::can_write_over_4gb(&mount_point) {
-                    format!("{}.part0.iso", &game_id)
+                    format!("{}.part0.iso", game_id)
                 } else {
-                    format!("{}.iso", &game_id)
+                    format!("{}.iso", game_id)
                 }
             } else if wii_output_format == Format::Ciso {
                 if disc_header.disc_num == 0 {
@@ -316,7 +317,7 @@ pub fn spawn_add_game_task(app: &App, in_path: PathBuf, should_download_covers: 
                 msg_sender.send(Message::NotifyInfo(format!(
                     "{} Skipping {}",
                     ph::FLOW_ARROW,
-                    &game_title
+                    game_title
                 )))?;
 
                 return Ok(());
@@ -341,7 +342,7 @@ pub fn spawn_add_game_task(app: &App, in_path: PathBuf, should_download_covers: 
                     let _ = msg_sender.send(Message::UpdateStatus(format!(
                         "{} Converting {}  {:02}%",
                         ph::FLOW_ARROW,
-                        &game_title,
+                        game_title,
                         progress * 100 / total
                     )));
 
