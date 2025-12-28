@@ -7,7 +7,7 @@ use crate::messages::Message;
 use anyhow::{Result, bail};
 use egui_phosphor::regular as ph;
 use path_slash::PathExt;
-use serde::Deserialize;
+use serde::{Deserialize, Deserializer};
 use size::Size;
 use std::{fs, path::Path, time::Duration};
 use time::OffsetDateTime;
@@ -144,8 +144,9 @@ pub struct OscAppMeta {
     #[serde(default)]
     pub supported_platforms: Box<[Platform]>,
 
+    #[serde(deserialize_with = "size_to_string")]
     #[serde(default)]
-    pub uncompressed_size: Size,
+    pub uncompressed_size: String,
 
     #[serde(default)]
     pub version: String,
@@ -153,6 +154,14 @@ pub struct OscAppMeta {
     #[serde(deserialize_with = "time::serde::timestamp::deserialize")]
     #[serde(default = "unix_epoch")]
     pub release_date: OffsetDateTime,
+}
+
+pub fn size_to_string<'de, D>(deserializer: D) -> Result<String, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let size = Size::deserialize(deserializer)?;
+    Ok(size.to_string())
 }
 
 #[derive(Debug, Clone, Deserialize, Default)]

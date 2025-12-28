@@ -57,7 +57,7 @@ fn update_osc_app_card(ui: &mut egui::Ui, app: &App, osc_app_i: u16) {
                 ));
 
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                    ui.label(osc_app.meta.uncompressed_size.to_string());
+                    ui.label(&osc_app.meta.uncompressed_size);
                 });
             });
 
