@@ -163,6 +163,7 @@ impl App {
         }
     }
 
+    #[cfg(target_os = "macos")]
     pub fn run_dot_clean(&mut self) {
         if let Err(e) = util::run_dot_clean(&self.config.contents.mount_point) {
             self.notifications.show_err(e);
@@ -353,13 +354,13 @@ impl App {
     }
 
     pub fn add_games(&mut self, frame: &eframe::Frame) {
-        let games = ui::dialogs::choose_games(frame);
-        self.run_add_games(frame, games);
+        let paths = ui::dialogs::choose_games(frame);
+        self.run_add_games(frame, paths);
     }
 
     pub fn add_games_from_dir(&mut self, frame: &eframe::Frame) {
         if let Some(src_dir) = ui::dialogs::choose_src_dir(frame) {
-            let paths = util::scan_for_discs(&src_dir).into_boxed_slice();
+            let paths = util::scan_for_discs(&src_dir);
             self.run_add_games(frame, paths);
         }
     }

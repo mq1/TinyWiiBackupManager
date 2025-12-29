@@ -56,6 +56,7 @@ env_logger = { version = "0.11", default-features = false, features = [
 itertools = "0.14"
 smallvec = "1.15"
 time = { version = "0.3", features = ["macros", "parsing", "serde"] }
+walkdir = "2.5"
 
 [target.'cfg(not(target_vendor = "pc"))'.dependencies]
 native-dialog = "0.9"

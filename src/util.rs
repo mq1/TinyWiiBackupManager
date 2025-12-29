@@ -6,14 +6,14 @@ use anyhow::{Context, Result};
 use size::Size;
 use std::{
     ffi::OsStr,
-    fs::{self, File},
+    fs::File,
     io::{Seek, SeekFrom, Write},
     path::{Path, PathBuf},
-    process::Command,
     sync::LazyLock,
 };
 use sysinfo::Disks;
 use tempfile::NamedTempFile;
+use walkdir::WalkDir;
 use zip::ZipArchive;
 
 static NUM_CPUS: LazyLock<usize> = LazyLock::new(num_cpus::get);
@@ -91,8 +91,9 @@ pub fn can_write_over_4gb(mount_point: &Path) -> bool {
     true
 }
 
+#[cfg(target_os = "macos")]
 pub fn run_dot_clean(mount_point: &Path) -> Result<()> {
-    Command::new("dot_clean")
+    std::process::Command::new("dot_clean")
         .arg("-m")
         .arg(mount_point)
         .status()
@@ -101,30 +102,19 @@ pub fn run_dot_clean(mount_point: &Path) -> Result<()> {
     Ok(())
 }
 
-pub fn scan_for_discs(dir: &Path) -> Vec<PathBuf> {
-    let mut disc_paths = Vec::new();
-
-    if let Ok(entries) = fs::read_dir(dir) {
-        for entry in entries.filter_map(Result::ok) {
-            let path = entry.path();
-
-            if path.is_dir() {
-                let mut new = scan_for_discs(&path);
-                disc_paths.append(&mut new);
-            } else if is_valid_disc_file(&path) {
-                disc_paths.push(path);
-            }
-        }
-    }
-
-    disc_paths
+pub fn scan_for_discs(dir: &Path) -> Box<[PathBuf]> {
+    WalkDir::new(dir)
+        .sort_by_file_name()
+        .same_file_system(true)
+        .into_iter()
+        .filter_map(|e| e.ok())
+        .filter(|e| e.file_type().is_file())
+        .map(|e| e.into_path())
+        .filter(|p| is_valid_disc_file(p))
+        .collect()
 }
 
 pub fn is_valid_disc_file(path: &Path) -> bool {
-    if !path.is_file() {
-        return false;
-    }
-
     let stem = match path.file_stem().and_then(OsStr::to_str) {
         Some(s) => s,
         None => return false,

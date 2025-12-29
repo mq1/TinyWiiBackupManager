@@ -102,7 +102,8 @@ pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
                 });
             });
 
-            if cfg!(target_os = "macos") {
+            #[cfg(target_os = "macos")]
+            {
                 group.show(ui, |ui| {
                     ui.set_width(ui.available_width());
 
