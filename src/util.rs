@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::extensions::SUPPORTED_DISC_EXTENSIONS;
-use anyhow::{Context, Result};
+use anyhow::Result;
 use size::Size;
 use std::{
     ffi::OsStr,
@@ -15,6 +15,12 @@ use sysinfo::Disks;
 use tempfile::NamedTempFile;
 use walkdir::WalkDir;
 use zip::ZipArchive;
+
+#[cfg(target_os = "macos")]
+use anyhow::Context;
+
+#[cfg(target_os = "macos")]
+use std::process::Command;
 
 static NUM_CPUS: LazyLock<usize> = LazyLock::new(num_cpus::get);
 
@@ -94,7 +100,7 @@ pub fn can_write_over_4gb(mount_point: &Path) -> bool {
 
 #[cfg(target_os = "macos")]
 pub fn run_dot_clean(mount_point: &Path) -> Result<()> {
-    std::process::Command::new("dot_clean")
+    Command::new("dot_clean")
         .arg("-m")
         .arg(mount_point)
         .status()
