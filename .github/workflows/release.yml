@@ -55,14 +55,11 @@ jobs:
         run: sudo apt-get install -y libc6-dev-i386
 
       - name: Install Rust toolchain
-        run: |
-          rustup toolchain install 1.92 --component rust-src
-          rustup default 1.92
-
-      - name: Restore Rust cache
-        uses: Swatinem/rust-cache@v2
+        uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          key: ${{ matrix.arch }}
+          toolchain: 1.92
+          components: rust-src
+          cache-key: ${{ matrix.arch }}
 
       - name: Download LinuxDeploy
         if: matrix.ldai-arch != 'none'
@@ -145,15 +142,11 @@ jobs:
           fetch-depth: 1
 
       - name: Install Rust toolchain
-        shell: pwsh
-        run: |
-          rustup toolchain install 1.92 --component rust-src
-          rustup default 1.92
-
-      - name: Restore Rust cache
-        uses: Swatinem/rust-cache@v2
+        uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          key: ${{ matrix.pc }}-${{ matrix.arch }}
+          toolchain: 1.92
+          components: rust-src
+          cache-key: ${{ matrix.pc }}-${{ matrix.arch }}
 
       - name: Install dependencies
         shell: pwsh
@@ -209,14 +202,11 @@ jobs:
           fetch-depth: 1
 
       - name: Install Rust toolchain
-        run: |
-          rustup toolchain install 1.92 --component rust-src
-          rustup default 1.92
-
-      - name: Restore Rust cache
-        uses: Swatinem/rust-cache@v2
+        uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          key: ${{ matrix.arch }}
+          toolchain: 1.92
+          components: rust-src
+          cache-key: ${{ matrix.arch }}
 
       - name: Install cargo-packager
         run: cargo install cargo-packager --version 0.11.8 --locked
