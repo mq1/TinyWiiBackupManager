@@ -280,7 +280,6 @@ pub fn spawn_add_game_task(app: &App, in_path: PathBuf, should_download_covers: 
             let disc_header = disc.header();
             let game_id = disc_header.game_id_str();
             let game_title = sanitize(disc_header.game_title_str());
-            let game_title = game_title.trim();
             let is_wii = disc_header.is_wii();
 
             let out_dir = mount_point

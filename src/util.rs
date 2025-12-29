@@ -6,7 +6,7 @@ use anyhow::{Context, Result};
 use size::Size;
 use std::{
     ffi::OsStr,
-    fs::File,
+    fs::{self, File},
     io::{Seek, SeekFrom, Write},
     path::{Path, PathBuf},
     sync::LazyLock,
@@ -30,15 +30,16 @@ pub static PROCESSOR_THREADS: LazyLock<usize> = LazyLock::new(|| match *NUM_CPUS
     _ => *NUM_CPUS - 4,
 });
 
-fn keep_valid_char(c: char) -> Option<char> {
-    match c {
-        'a'..='z' | 'A'..='Z' | '0'..='9' | ' ' | '+' | '-' => Some(c),
-        _ => None,
-    }
-}
-
 pub fn sanitize(s: &str) -> String {
-    s.chars().filter_map(keep_valid_char).collect()
+    let opts = sanitize_filename::Options {
+        truncate: true,
+        windows: true,
+        replacement: "",
+    };
+
+    sanitize_filename::sanitize_with_options(s, opts)
+        .trim()
+        .to_string()
 }
 
 pub fn get_disk_usage(mount_point: &Path) -> String {
@@ -107,7 +108,7 @@ pub fn scan_for_discs(dir: &Path) -> Box<[PathBuf]> {
         .sort_by_file_name()
         .same_file_system(true)
         .into_iter()
-        .filter_map(|e| e.ok())
+        .filter_map(Result::ok)
         .filter(|e| e.file_type().is_file())
         .map(|e| e.into_path())
         .filter(|p| is_valid_disc_file(p))
@@ -156,4 +157,28 @@ fn does_this_zip_contain_a_disc(path: &Path) -> bool {
     SUPPORTED_DISC_EXTENSIONS
         .iter()
         .any(|ext| disc_name.ends_with(ext))
+}
+
+pub fn get_files_and_dirs(base_dir: &Path) -> (Vec<PathBuf>, Vec<PathBuf>) {
+    let mut files = Vec::new();
+    let mut dirs = Vec::new();
+
+    let entries = match fs::read_dir(base_dir) {
+        Ok(e) => e,
+        Err(_) => return (files, dirs),
+    };
+
+    let iterator = entries.filter_map(Result::ok);
+
+    for entry in iterator {
+        if let Ok(file_type) = entry.file_type() {
+            if file_type.is_file() {
+                files.push(entry.path());
+            } else if file_type.is_dir() {
+                dirs.push(entry.path());
+            }
+        }
+    }
+
+    (files, dirs)
 }

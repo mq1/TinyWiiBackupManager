@@ -88,6 +88,7 @@ pub fn update(ctx: &egui::Context, frame: &eframe::Frame, app: &mut App) {
                 ui.horizontal(|ui| {
                     if ui.button(ph::ARROW_FAT_RIGHT).clicked() {
                         app.run_normalize_paths();
+                        app.refresh_games(true);
                     }
 
                     ui.label("Normalize paths (makes sure the game directories' layouts are correct)");
