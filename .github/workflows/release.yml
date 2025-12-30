@@ -149,17 +149,16 @@ jobs:
           cache: false # https://github.com/Swatinem/rust-cache/issues/161
 
       - name: Cache cargo-packager
+        id: cache-cargo-packager-windows
         uses: actions/cache@v5
         with:
           path: ~/.cargo/bin/cargo-packager.exe
           key: cargo-packager-0.11.8-windows
 
       - name: Install cargo-packager
+        if: steps.cache-cargo-packager-windows.outputs.cache-hit != 'true'
         shell: pwsh
-        run: |
-          if (-not (Test-Path "$env:USERPROFILE\.cargo\bin\cargo-packager.exe")) {
-            cargo install cargo-packager --version 0.11.8 --locked
-          }
+        run: cargo install cargo-packager --version 0.11.8 --locked
 
       - name: Build binary
         shell: pwsh
@@ -218,16 +217,15 @@ jobs:
           cache: false # https://github.com/Swatinem/rust-cache/issues/161
 
       - name: Cache cargo-packager
+        id: cache-cargo-packager-macos
         uses: actions/cache@v5
         with:
           path: ~/.cargo/bin/cargo-packager
           key: cargo-packager-0.11.8-macos
 
       - name: Install cargo-packager
-        run: |
-          if [ ! -f "$HOME/.cargo/bin/cargo-packager" ]; then
-            cargo install cargo-packager --version 0.11.8 --locked
-          fi
+        if: steps.cache-cargo-packager-macos.outputs.cache-hit != 'true'
+        run: cargo install cargo-packager --version 0.11.8 --locked
 
       - name: Build binary
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
