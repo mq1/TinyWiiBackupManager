@@ -60,6 +60,10 @@
         <code>scoop bucket add TinyWiiBackupManager https://github.com/mq1/TinyWiiBackupManager</code>
         <br>
         <code>scoop install TinyWiiBackupManager</code>
+        <br><br>
+        📦 A winget package is also available:
+        <br>
+        <code>winget install -e --id mq1.TinyWiiBackupManager</code>
     </td>
   </tr>
 </table>
