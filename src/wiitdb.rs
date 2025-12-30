@@ -9,8 +9,7 @@ use anyhow::{Result, bail};
 use capitalize::Capitalize;
 use egui_phosphor::regular as ph;
 use serde::Deserialize;
-use std::fs::{self, File};
-use std::io::BufReader;
+use std::fs;
 use std::path::Path;
 
 const DOWNLOAD_URL: &str = "https://www.gametdb.com/wiitdb.zip";
@@ -50,8 +49,8 @@ pub struct Datafile {
 
 impl Datafile {
     pub fn load(path: &Path) -> Result<Self> {
-        let file = BufReader::new(File::open(path)?);
-        let mut data = quick_xml::de::from_reader::<_, Datafile>(file)?;
+        let contents = fs::read_to_string(path)?;
+        let mut data = quick_xml::de::from_str::<Datafile>(&contents)?;
 
         // We sort it now so we can binary search quickly
         data.games.sort_unstable_by_key(|game| game.id);
