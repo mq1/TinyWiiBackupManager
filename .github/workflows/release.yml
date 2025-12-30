@@ -59,7 +59,7 @@ jobs:
         with:
           toolchain: 1.92
           components: rust-src
-          cache-key: ${{ matrix.arch }}
+          cache: false # https://github.com/Swatinem/rust-cache/issues/161
 
       - name: Download LinuxDeploy
         if: matrix.ldai-arch != 'none'
@@ -146,7 +146,7 @@ jobs:
         with:
           toolchain: 1.92
           components: rust-src
-          cache-key: ${{ matrix.pc }}-${{ matrix.arch }}
+          cache-workspaces: "" # https://github.com/Swatinem/rust-cache/issues/161
 
       - name: Install dependencies
         shell: pwsh
@@ -206,7 +206,7 @@ jobs:
         with:
           toolchain: 1.92
           components: rust-src
-          cache-key: ${{ matrix.arch }}
+          cache-workspaces: "" # https://github.com/Swatinem/rust-cache/issues/161
 
       - name: Install cargo-packager
         run: cargo install cargo-packager --version 0.11.8 --locked
