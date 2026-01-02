@@ -1,0 +1,62 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+use iced::{
+    Background, Color, Theme, border,
+    widget::{button, container, text_input},
+};
+
+pub fn root_container(theme: &Theme) -> container::Style {
+    let mut style = container::bordered_box(theme);
+    style.border.width = 0.0;
+    style
+}
+
+pub fn rounded_button(theme: &Theme, status: button::Status) -> button::Style {
+    let mut style = button::primary(theme, status);
+    style.border.radius = border::radius(30);
+    style
+}
+
+pub fn nav_button(theme: &Theme, status: button::Status, active: bool) -> button::Style {
+    let mut style = match active {
+        true => {
+            let mut style = button::background(theme, status);
+            if let Some(bg) = &mut style.background {
+                *bg = Background::Color(theme.palette().primary.scale_alpha(0.5));
+            }
+            style
+        }
+        false => button::background(theme, status),
+    };
+
+    style.border.radius = border::radius(30);
+    style
+}
+
+pub fn rounded_background_button(theme: &Theme, status: button::Status) -> button::Style {
+    let mut style = button::background(theme, status);
+    style.border.radius = border::radius(30);
+    style
+}
+
+pub fn nav_container(theme: &Theme) -> container::Style {
+    let bg = theme.palette().background;
+    container::background(bg)
+}
+
+pub fn card(theme: &Theme) -> container::Style {
+    let bg = theme.palette().background;
+
+    let mut style = container::bordered_box(theme);
+    style.background = Some(Background::Color(bg));
+    style.border.radius = border::radius(10);
+    style
+}
+
+pub fn search_bar(theme: &Theme, status: text_input::Status) -> text_input::Style {
+    let mut style = text_input::default(theme, status);
+    style.background = Background::Color(Color::TRANSPARENT);
+    style.border.width = 0.0;
+    style
+}

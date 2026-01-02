@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::app::App;
@@ -6,7 +6,6 @@ use crate::config::SortBy;
 use anyhow::Result;
 use anyhow::anyhow;
 use anyhow::bail;
-use egui_phosphor::regular as ph;
 use path_slash::PathExt;
 use size::Size;
 use std::ffi::OsStr;

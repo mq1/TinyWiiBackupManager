@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
 include!(concat!(env!("OUT_DIR"), "/gamehacking_ids.rs"));

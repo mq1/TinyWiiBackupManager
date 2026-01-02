@@ -1,6 +1,6 @@
 [package]
 name = "TinyWiiBackupManager"
-version = "4.9.22"
+version = "5.0.0"
 rust-version = "1.92"
 edition = "2024"
 authors = ["Manuel Quarneti <mq1@ik.me>"]
@@ -14,20 +14,25 @@ build = "build.rs"
 product-name = "TinyWiiBackupManager"
 identifier = "it.mq1.TinyWiiBackupManager"
 icons = ["assets/TinyWiiBackupManager@2x.png"]
-copyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-3.0-only."
+copyright = "Copyright © 2026 Manuel Quarneti. Licensed under GPL-3.0-only."
 category = "Utility"
-macos.minimumSystemVersion = "MACOS_MIN_SYS_VER"
 
 [package.metadata.winresource]
 OriginalFilename = "TinyWiiBackupManager.exe"
-LegalCopyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-3.0-only."
+LegalCopyright = "Copyright © 2026 Manuel Quarneti. Licensed under GPL-3.0-only."
 
 [dependencies]
-egui_extras = { version = "0.33", features = ["image", "file"] }
-image = { version = "0.25", default-features = false, features = ["png"] }
-egui-toast = "0.19"
-egui-phosphor = "0.11"
-crossbeam-channel = "0.5"
+iced = { version = "0.14", default-features = false, features = [
+  "linux-theme-detection",
+  "smol",
+  "x11",
+  "wayland",
+  "wgpu-bare",
+  "tiny-skia",
+  "image-without-codecs",
+] }
+image = { version = "*", default-features = false, features = ["png"] }
+lucide-icons = { version = "0.562", features = ["iced"] }
 ureq = { version = "3.1", default-features = false }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
@@ -48,71 +53,39 @@ semver = "1.0"
 path-slash = "0.2"
 hex = "0.4"
 capitalize = "0.3"
-log = "0.4"
-env_logger = { version = "0.11", default-features = false, features = [
-  "auto-color",
-  "humantime",
-] }
 itertools = "0.14"
 smallvec = "1.15"
 time = { version = "0.3", features = ["macros", "parsing", "serde"] }
 walkdir = "2.5"
 sanitize-filename = "0.7.0-beta"
 
-[target.'cfg(not(target_vendor = "pc"))'.dependencies]
-native-dialog = "0.9"
-
-[target.'cfg(target_os = "linux")'.dependencies]
-eframe = { version = "0.33", default-features = false, features = [
-  "accesskit",
-  "glow",
-  "x11",
-  "wayland",
-] }
-winit = { version = "*", default-features = false, features = [
-  "x11",
-  "wayland",
-  "wayland-dlopen",
-] }
-
-[target.'cfg(any(all(target_os = "macos", target_arch = "x86_64"), target_vendor = "win7"))'.dependencies]
-eframe = { version = "0.33", default-features = false, features = [
-  "accesskit",
-  "glow",
-] }
-winit = { version = "*", default-features = false }
-
-[target.'cfg(any(all(target_os = "macos", target_arch = "aarch64"), target_vendor = "pc"))'.dependencies]
-eframe = { version = "0.33", default-features = false, features = [
-  "accesskit",
-  "wgpu",
-] }
-winit = { version = "*", default-features = false }
-
-[target.'cfg(all(target_os = "macos", target_arch = "aarch64"))'.dependencies]
+[target.'cfg(target_os = "macos")'.dependencies]
 wgpu = { version = "27", default-features = false, features = [
-  "metal",
   "std",
   "parking_lot",
+  "metal",
 ] }
 
-[target.'cfg(target_vendor = "pc")'.dependencies]
+[target.'cfg(not(target_os = "macos"))'.dependencies]
+wgpu = { version = "27", default-features = false, features = [
+  "std",
+  "parking_lot",
+  "gles",
+] }
+
+[target.'cfg(not(windows))'.dependencies]
+native-dialog = "0.9"
+
+[target.'cfg(windows)'.dependencies]
 native-dialog = { version = "0.9", features = [
   "windows_dpi_awareness",
   "windows_visual_styles",
-] }
-wgpu = { version = "27", default-features = false, features = [
-  "dx12",
-  "std",
-  "parking_lot",
 ] }
 
 [features]
 default = ["native-tls"]
 native-tls = ["ureq/native-tls", "ureq/platform-verifier"]
 bundled-tls = ["ureq/rustls"]
-csd-abglyph = ["winit/wayland-csd-adwaita"]
-csd-freetype = ["winit/wayland-csd-adwaita-crossfont"]
 
 [target.'cfg(windows)'.build-dependencies]
 winresource = "0.1"
@@ -128,7 +101,7 @@ strip = true
 panic = "abort"
 
 [profile.dev.package."*"]
-opt-level = 2
+opt-level = 3
 
 [profile.dev.package.quick-xml]
 overflow-checks = false

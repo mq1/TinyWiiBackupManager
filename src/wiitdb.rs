@@ -1,46 +1,20 @@
-// SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::app::App;
-use crate::games::GameID;
+use crate::game_id::GameID;
 use crate::http;
-use crate::messages::Message;
-use anyhow::{Result, bail};
+use crate::message::Message;
+use crate::state::State;
+use anyhow::Result;
 use capitalize::Capitalize;
-use egui_phosphor::regular as ph;
+use iced::Task;
 use serde::Deserialize;
 use std::fs;
 use std::path::Path;
 
 const DOWNLOAD_URL: &str = "https://www.gametdb.com/wiitdb.zip";
 
-/// Handles the blocking logic of downloading and extracting the database.
-pub fn spawn_update_wiitdb_task(app: &App) {
-    let wiitdb_path = app.data_dir.join("wiitdb.xml");
-    let mount_point = app.config.contents.mount_point.clone();
-
-    app.task_processor.spawn(move |msg_sender| {
-        if !wiitdb_path.exists() {
-            bail!("wiitdb.xml not found in {}", wiitdb_path.display());
-        }
-
-        // Create the target directory.
-        let target_dir = mount_point.join("apps").join("usbloader_gx");
-        fs::create_dir_all(&target_dir)?;
-
-        // Copy the cached wiitdb.xml to the target directory.
-        fs::copy(wiitdb_path, target_dir.join("wiitdb.xml"))?;
-
-        msg_sender.send(Message::NotifySuccess(format!(
-            "{} wiitdb.xml updated successfully",
-            ph::FILE_CODE
-        )))?;
-
-        Ok(())
-    });
-}
-
-#[derive(Debug, Deserialize, Default)]
+#[derive(Debug, Clone, Deserialize, Default)]
 #[serde(default)]
 pub struct Datafile {
     #[serde(rename = "game")]
@@ -58,14 +32,14 @@ impl Datafile {
         Ok(data)
     }
 
-    pub fn lookup(&self, game_id: GameID) -> Option<u16> {
+    pub fn lookup(&self, game_id: [u8; 6]) -> Option<u16> {
         self.games
             .binary_search_by_key(&game_id, |game| game.id)
             .ok()
             .map(|i| i as u16)
     }
 
-    pub fn get_title(&self, game_id: GameID) -> Option<String> {
+    pub fn get_title(&self, game_id: [u8; 6]) -> Option<String> {
         self.games
             .binary_search_by_key(&game_id, |game| game.id)
             .ok()
@@ -80,7 +54,7 @@ pub struct GameInfo {
     #[serde(rename = "@name")]
     pub name: String,
     #[serde(deserialize_with = "deser_id")]
-    pub id: GameID,
+    pub id: [u8; 6],
     pub region: Region,
     #[serde(deserialize_with = "deser_langs")]
     pub languages: Box<[Language]>,
@@ -99,12 +73,12 @@ pub struct GameInfo {
     pub roms: Box<[Rom]>,
 }
 
-fn deser_id<'de, D>(deserializer: D) -> Result<GameID, D::Error>
+fn deser_id<'de, D>(deserializer: D) -> Result<[u8; 6], D::Error>
 where
     D: serde::Deserializer<'de>,
 {
     let s = String::deserialize(deserializer)?;
-    let id = GameID::from(s.as_str());
+    let id = GameID::from_str(s.as_str());
     Ok(id)
 }
 
@@ -317,35 +291,18 @@ impl<'de> Deserialize<'de> for Region {
     }
 }
 
-pub fn spawn_load_wiitdb_task(app: &App) {
-    let data_dir = app.data_dir.clone();
-    let wiitdb_path = app.data_dir.join("wiitdb.xml");
+pub fn get_load_wiitdb_task(state: &State) -> Task<Message> {
+    let data_dir = state.data_dir.clone();
+    let wiitdb_path = state.data_dir.join("wiitdb.xml");
 
-    app.task_processor.spawn(move |msg_sender| {
-        if !wiitdb_path.exists() {
-            msg_sender.send(Message::UpdateStatus(format!(
-                "{} Downloading wiitdb.xml...",
-                ph::CLOUD_ARROW_DOWN
-            )))?;
+    Task::perform(
+        async move {
+            if !wiitdb_path.exists() {
+                http::download_and_extract_zip(DOWNLOAD_URL, &data_dir)?;
+            }
 
-            // Perform the download request and extract.
-            http::download_and_extract_zip(DOWNLOAD_URL, &data_dir)?;
-        }
-
-        msg_sender.send(Message::UpdateStatus(format!(
-            "{} Loading wiitdb.xml...",
-            ph::FILE_CODE
-        )))?;
-
-        let data = Datafile::load(&wiitdb_path)?;
-
-        msg_sender.send(Message::GotWiitdb(data))?;
-
-        msg_sender.send(Message::NotifyInfo(format!(
-            "{} wiitdb.xml loaded",
-            ph::FILE_CODE
-        )))?;
-
-        Ok(())
-    });
+            Datafile::load(&wiitdb_path)
+        },
+        |res| Message::GotWiitdbDatafile(res.map_err(|e| e.to_string())),
+    )
 }

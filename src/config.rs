@@ -1,10 +1,7 @@
-// SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::txtcodes::TxtCodesSource;
-use crate::ui::accent::AccentColor;
 use anyhow::Result;
-use eframe::egui::ThemePreference;
 use serde::{Deserialize, Serialize};
 use std::{
     fs,
@@ -13,8 +10,8 @@ use std::{
 
 #[derive(Debug, Clone)]
 pub struct Config {
-    pub path: PathBuf,
-    pub contents: Contents,
+    path: PathBuf,
+    contents: Contents,
 }
 
 impl Config {
@@ -23,21 +20,16 @@ impl Config {
         let bytes = fs::read(&path).unwrap_or_default();
         let mut contents = serde_json::from_slice::<Contents>(&bytes).unwrap_or_default();
 
-        // Strip \\?\ from mount_point (I made a mess in v3, this fixes it)
-        contents.mount_point = contents
-            .mount_point
-            .strip_prefix(r"\\?\")
-            .unwrap_or(&contents.mount_point)
-            .to_path_buf();
-
         // Invalidate invalid mount_point
         if !contents.mount_point.exists() {
             contents.mount_point = PathBuf::new();
         }
 
         // load mount_point from args
-        if let Some(mount_point) = std::env::args().nth(1) {
-            contents.mount_point = PathBuf::from(mount_point);
+        if let Some(mount_point) = std::env::args().nth(1).map(PathBuf::from)
+            && mount_point.exists()
+        {
+            contents.mount_point = mount_point;
         }
 
         Self { path, contents }
@@ -50,12 +42,14 @@ impl Config {
         Ok(())
     }
 
+    #[inline]
     pub fn get_drive_path_str(&self) -> &str {
-        if self.contents.mount_point.as_os_str().is_empty() {
-            return "No Drive Selected";
-        }
-
         self.contents.mount_point.to_str().unwrap_or("Invalid Path")
+    }
+
+    #[inline]
+    pub fn get_drive_path(&self) -> &Path {
+        &self.contents.mount_point
     }
 }
 
@@ -70,8 +64,9 @@ pub struct Contents {
     pub sort_by: SortBy,
     pub view_as: ViewAs,
     pub wii_ip: String,
-    pub accent_color: AccentColor,
-    pub txt_codes_source: TxtCodesSource,
+    //pub accent_color: AccentColor,
+    //pub txt_codes_source: TxtCodesSource,
+    pub theme_preference: ThemePreference,
 
     #[serde(with = "FormatDef")]
     pub archive_format: nod::common::Format,
@@ -81,9 +76,6 @@ pub struct Contents {
 
     #[serde(with = "FormatDef")]
     pub gc_output_format: nod::common::Format,
-
-    #[serde(serialize_with = "ser_theme", deserialize_with = "deser_theme")]
-    pub theme_preference: ThemePreference,
 }
 
 impl Default for Contents {
@@ -101,33 +93,10 @@ impl Default for Contents {
             wii_output_format: nod::common::Format::Wbfs,
             gc_output_format: nod::common::Format::Iso,
             theme_preference: ThemePreference::System,
-            accent_color: AccentColor::System,
-            txt_codes_source: TxtCodesSource::WebArchive,
+            //accent_color: AccentColor::System,
+            //txt_codes_source: TxtCodesSource::WebArchive,
         }
     }
-}
-
-fn ser_theme<S>(theme: &ThemePreference, serializer: S) -> Result<S::Ok, S::Error>
-where
-    S: serde::Serializer,
-{
-    serializer.serialize_str(match theme {
-        ThemePreference::System => "system",
-        ThemePreference::Light => "light",
-        ThemePreference::Dark => "dark",
-    })
-}
-
-fn deser_theme<'de, D>(deserializer: D) -> Result<ThemePreference, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    let s = String::deserialize(deserializer)?;
-    Ok(match s.as_str() {
-        "light" => ThemePreference::Light,
-        "dark" => ThemePreference::Dark,
-        _ => ThemePreference::System,
-    })
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
@@ -141,14 +110,14 @@ pub enum SortBy {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all = "lowercase")]
 pub enum ViewAs {
     Grid,
     List,
 }
 
 #[derive(Serialize, Deserialize)]
-#[serde(remote = "nod::common::Format", rename_all = "snake_case")]
+#[serde(remote = "nod::common::Format", rename_all = "lowercase")]
 pub enum FormatDef {
     Iso,
     Ciso,
@@ -158,4 +127,12 @@ pub enum FormatDef {
     Wbfs,
     Wia,
     Tgc,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub enum ThemePreference {
+    Light,
+    Dark,
+    System,
 }
