@@ -199,41 +199,41 @@ jobs:
           name: dist-macos-${{ matrix.arch }}
           path: dist/*
 
-    build-dmg:
-      name: Build macOS dmg (Universal2)
-      runs-on: macos-26
-      needs: [build-macos]
+  build-dmg:
+    name: Build macOS dmg (Universal2)
+    runs-on: macos-26
+    needs: [build-macos]
 
-      steps:
-      - name: Download macOS .app distributables
-        uses: actions/download-artifact@v7
-        with:
-          pattern: "dist-macos-*"
+    steps:
+    - name: Download macOS .app distributables
+      uses: actions/download-artifact@v7
+      with:
+        pattern: "dist-macos-*"
 
-      - name: Extract the .zip distributables
-        run: |
-          ditto -x -k "dist-macos-arm64/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macOS-arm64.zip" .
-          ditto -x -k "dist-macos-x86_64/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macOS-x86_64.zip" dist-macos-x86_64
+    - name: Extract the .zip distributables
+      run: |
+        ditto -x -k "dist-macos-arm64/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macOS-arm64.zip" .
+        ditto -x -k "dist-macos-x86_64/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macOS-x86_64.zip" dist-macos-x86_64
 
-      - name: Create the Universal2 app
-        run: |
-          lipo -create \
-            -output TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager \
-            TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager \
-            dist-macos-x86_64/TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
+    - name: Create the Universal2 app
+      run: |
+        lipo -create \
+          -output TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager \
+          TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager \
+          dist-macos-x86_64/TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
 
-      - name: Create dmg (assets from sindresorhus/create-dmg)
-        run: |
-          mkdir dist
-          npx -y appdmg@0.6.6 \
-            "assets/appdmg-${{ matrix.arch }}.json" \
-            "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macOS.dmg"
+    - name: Create dmg (assets from sindresorhus/create-dmg)
+      run: |
+        mkdir dist
+        npx -y appdmg@0.6.6 \
+          "assets/appdmg-${{ matrix.arch }}.json" \
+          "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macOS.dmg"
 
-      - name: Upload macOS distributables
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist-macos
-          path: dist/*
+    - name: Upload macOS distributables
+      uses: actions/upload-artifact@v4
+      with:
+        name: dist-macos
+        path: dist/*
 
   # ==================================================================================
   #  Release Job: Collects all artifacts and creates a single GitHub Release.
