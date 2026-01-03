@@ -31,10 +31,14 @@ pub fn view(state: &State) -> Element<'_, Message> {
         space::horizontal(),
         container(
             row![
-                checkbox(state.show_wii).on_toggle(Message::ShowWii),
+                checkbox(state.show_wii)
+                    .style(style::toolbar_checkbox)
+                    .on_toggle(Message::ShowWii),
                 my_tooltip::view(icon_pointer(), "Show Wii Games"),
                 text("  |  "),
-                checkbox(state.show_gc).on_toggle(Message::ShowGc),
+                checkbox(state.show_gc)
+                    .style(style::toolbar_checkbox)
+                    .on_toggle(Message::ShowGc),
                 my_tooltip::view(icon_box(), "Show GameCube Games"),
             ]
             .align_y(Alignment::Center)

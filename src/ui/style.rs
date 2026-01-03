@@ -3,7 +3,7 @@
 
 use iced::{
     Background, Color, Theme, border,
-    widget::{button, container, text_input},
+    widget::{button, checkbox, container, text_input},
 };
 
 pub fn root_container(theme: &Theme) -> container::Style {
@@ -58,5 +58,11 @@ pub fn search_bar(theme: &Theme, status: text_input::Status) -> text_input::Styl
     let mut style = text_input::default(theme, status);
     style.background = Background::Color(Color::TRANSPARENT);
     style.border.width = 0.0;
+    style
+}
+
+pub fn toolbar_checkbox(theme: &Theme, status: checkbox::Status) -> checkbox::Style {
+    let mut style = checkbox::secondary(theme, status);
+    style.border.radius = border::radius(30);
     style
 }
