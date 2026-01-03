@@ -9,7 +9,7 @@ mod data_dir;
 mod extensions;
 mod game;
 mod game_id;
-mod http;
+mod http_util;
 mod message;
 mod notifications;
 mod state;

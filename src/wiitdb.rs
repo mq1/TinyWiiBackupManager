@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::game_id::GameID;
-use crate::http;
+use crate::http_util;
 use crate::message::Message;
 use crate::state::State;
 use anyhow::Result;
@@ -298,7 +298,7 @@ pub fn get_load_wiitdb_task(state: &State) -> Task<Message> {
     Task::perform(
         async move {
             if !wiitdb_path.exists() {
-                http::download_and_extract_zip(DOWNLOAD_URL, &data_dir)?;
+                http_util::download_and_extract_zip(DOWNLOAD_URL, &data_dir)?;
             }
 
             Datafile::load(&wiitdb_path)

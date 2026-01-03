@@ -28,15 +28,12 @@ jobs:
           - target: x86_64-unknown-linux-musl
             runner: ubuntu-24.04
             arch: x86_64
-            features: bundled-tls
           - target: aarch64-unknown-linux-musl
             runner: ubuntu-24.04-arm
             arch: aarch64
-            features: bundled-tls
           - target: i686-unknown-linux-musl
             runner: ubuntu-24.04
             arch: i686
-            features: native-tls vendored-tls
 
     steps:
       - name: Checkout
@@ -62,7 +59,7 @@ jobs:
           chmod +x linuxdeploy-${{ matrix.arch }}.AppImage linuxdeploy-plugin-appimage-${{ matrix.arch }}.AppImage
 
       - name: Build binary
-        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "${{ matrix.features }}"
+        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
 
       - name: Package binary as tar.gz
         run: |
