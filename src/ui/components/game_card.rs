@@ -1,0 +1,60 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+use crate::{
+    game_id::GameID,
+    message::Message,
+    state::State,
+    ui::{Screen, components::my_tooltip, style},
+};
+use iced::{
+    Alignment, Element,
+    widget::{button, column, container, image, row, space, text},
+};
+use lucide_icons::iced::{icon_hard_drive_download, icon_info, icon_tag, icon_trash};
+
+pub fn view(state: &State, i: usize) -> Element<'_, Message> {
+    let game = &state.games[i];
+
+    let mut col = column![
+        row![
+            icon_tag(),
+            text(game.id.as_str()),
+            space::horizontal(),
+            text(game.size.to_string())
+        ]
+        .spacing(5)
+        .align_y(Alignment::Center),
+        space::vertical(),
+    ]
+    .spacing(5)
+    .padding(10)
+    .width(170)
+    .height(220)
+    .align_x(Alignment::Center);
+
+    if let Some(cover) = state.get_game_cover(game) {
+        col = col.push(image(cover).height(100));
+    }
+
+    col = col
+        .push(my_tooltip::view(
+            container(text(&game.title).wrapping(text::Wrapping::None)).clip(true),
+            &game.title,
+        ))
+        .push(space::vertical())
+        .push(
+            row![
+                button(row![icon_info(), text("Info")].spacing(5))
+                    .style(style::rounded_secondary_button)
+                    .on_press(Message::NavigateTo(Screen::GameInfo(i))),
+                button(icon_hard_drive_download()).style(style::rounded_secondary_button),
+                button(icon_trash())
+                    .style(style::rounded_secondary_button)
+                    .on_press(Message::AskDeleteGame(i))
+            ]
+            .spacing(5),
+        );
+
+    container(col).style(style::card).into()
+}
