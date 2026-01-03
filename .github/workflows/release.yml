@@ -41,9 +41,8 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install x86 dependencies
-        if: matrix.arch == 'x86'
-        run: sudo apt-get install -y libc6-dev-i386
+      - name: Install dependencies
+        run: sudo apt-get install -y musl-gcc
 
       - name: Install Rust toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
