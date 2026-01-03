@@ -43,7 +43,7 @@ jobs:
 
       - name: Install x86 dependencies
         if: matrix.arch == 'i686'
-        run: cargo install cross --git https://github.com/cross-rs/cross
+        run: pip install cargo-zigbuild
 
       - name: Install musl-gcc
         if: matrix.arch == 'x86_64' || matrix.arch == 'aarch64'
@@ -53,7 +53,7 @@ jobs:
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: 1.92
-          target: ${{ matrix.arch == 'i686' && '' || matrix.target }}
+          target: ${{ matrix.target }}
           cache-key: ${{ matrix.arch }}
 
       - name: Download LinuxDeploy
@@ -69,7 +69,7 @@ jobs:
 
       - name: Build binary (i686)
         if: matrix.arch == 'i686'
-        run: cross build --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
+        run: cargo zigbuild --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
 
       - name: Package binary as tar.gz
         run: |
