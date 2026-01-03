@@ -64,9 +64,11 @@ jobs:
           chmod +x linuxdeploy-${{ matrix.arch }}.AppImage linuxdeploy-plugin-appimage-${{ matrix.arch }}.AppImage
 
       - name: Build binary (x86_64 && aarch64)
+        if: matrix.arch == 'x86_64' || matrix.arch == 'aarch64'
         run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
 
       - name: Build binary (i686)
+        if: matrix.arch == 'i686'
         run: cross build --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
 
       - name: Package binary as tar.gz
