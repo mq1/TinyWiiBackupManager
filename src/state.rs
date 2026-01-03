@@ -12,7 +12,7 @@ use crate::{
     wiitdb,
 };
 use iced::{
-    Task,
+    Task, Window,
     window::{self},
 };
 use std::path::PathBuf;
@@ -126,14 +126,11 @@ impl State {
                 Task::none()
             }
             Message::AskDeleteGame(i) => {
-                let game = &self.games[i];
-                let title = game.title.clone();
+                let title = self.games[i].title.clone();
+                let callback = move |w: &dyn Window| dialogs::delete_game(w, title);
 
                 window::oldest()
-                    .and_then(move |id| {
-                        let title = title.clone();
-                        window::run(id, move |w| dialogs::delete_game(w, &title))
-                    })
+                    .and_then(move |id| window::run(id, callback.clone()))
                     .map(move |yes| Message::DeleteGame(i, yes))
             }
             Message::DeleteGame(i, yes) => {
