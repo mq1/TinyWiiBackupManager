@@ -28,22 +28,21 @@ jobs:
           - target: x86_64-unknown-linux-musl
             runner: ubuntu-24.04
             arch: x86_64
+            features: bundled-tls
           - target: aarch64-unknown-linux-musl
             runner: ubuntu-24.04-arm
             arch: aarch64
+            features: bundled-tls
           - target: i686-unknown-linux-musl
             runner: ubuntu-24.04
             arch: i686
+            features: native-tls vendored-tls
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
           fetch-depth: 1
-
-      - name: Install x86 dependencies
-        if: matrix.arch == 'x86'
-        run: sudo apt-get install -y libc6-dev-i386
 
       - name: Install musl-gcc
         run: sudo apt-get install -y musl-tools
@@ -63,7 +62,7 @@ jobs:
           chmod +x linuxdeploy-${{ matrix.arch }}.AppImage linuxdeploy-plugin-appimage-${{ matrix.arch }}.AppImage
 
       - name: Build binary
-        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
+        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "${{ matrix.features }}"
 
       - name: Package binary as tar.gz
         run: |

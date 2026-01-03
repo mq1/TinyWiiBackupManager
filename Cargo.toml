@@ -86,6 +86,7 @@ native-dialog = { version = "0.9", features = [
 default = ["native-tls"]
 native-tls = ["ureq/native-tls", "ureq/platform-verifier"]
 bundled-tls = ["ureq/rustls"]
+vendored-tls = ["ureq/vendored"]
 
 [target.'cfg(windows)'.build-dependencies]
 winresource = "0.1"
