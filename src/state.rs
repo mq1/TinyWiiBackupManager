@@ -12,12 +12,13 @@ use crate::{
     wiitdb,
 };
 use iced::{
-    Task, Window,
+    Task,
     window::{self},
 };
 use std::path::PathBuf;
 
 pub struct State {
+    pub window_id: Option<window::Id>,
     pub screen: Screen,
     pub data_dir: PathBuf,
     pub config: Config,
@@ -38,6 +39,7 @@ impl State {
         let games = game::list(config.get_drive_path(), &None);
 
         let initial_state = Self {
+            window_id: None,
             screen: Screen::Games,
             data_dir,
             config,
@@ -50,9 +52,11 @@ impl State {
             show_gc: true,
         };
 
-        let task = wiitdb::get_load_wiitdb_task(&initial_state);
+        let task1 = window::oldest().map(Message::GotWindowId);
+        let task2 = wiitdb::get_load_wiitdb_task(&initial_state);
+        let tasks = Task::batch(vec![task1, task2]);
 
-        (initial_state, task)
+        (initial_state, tasks)
     }
 
     pub fn update(&mut self, message: Message) -> Task<Message> {
@@ -112,9 +116,10 @@ impl State {
                 self.show_gc = show;
                 Task::none()
             }
-            Message::SelectMountPoint => window::oldest()
-                .and_then(|id| window::run(id, dialogs::choose_mount_point))
-                .map(Message::MountPointChosen),
+            Message::SelectMountPoint => {
+                let window_id = self.window_id.expect("Window ID not set");
+                window::run(window_id, dialogs::choose_mount_point).map(Message::MountPointChosen)
+            }
             Message::MountPointChosen(mount_point) => {
                 if let Some(mount_point) = mount_point {
                     if let Err(e) = self.config.update_drive_path(mount_point) {
@@ -126,11 +131,10 @@ impl State {
                 Task::none()
             }
             Message::AskDeleteGame(i) => {
+                let window_id = self.window_id.expect("Window ID not set");
                 let title = self.games[i].title.clone();
-                let callback = move |w: &dyn Window| dialogs::delete_game(w, title);
 
-                window::oldest()
-                    .and_then(move |id| window::run(id, callback.clone()))
+                window::run(window_id, move |w| dialogs::delete_game(w, title))
                     .map(move |yes| Message::DeleteGame(i, yes))
             }
             Message::DeleteGame(i, yes) => {
@@ -141,6 +145,10 @@ impl State {
                         return self.update(Message::RefreshGames);
                     }
                 }
+                Task::none()
+            }
+            Message::GotWindowId(id) => {
+                self.window_id = id;
                 Task::none()
             }
         }
