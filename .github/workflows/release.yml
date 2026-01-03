@@ -31,7 +31,7 @@ jobs:
           - target: aarch64-unknown-linux-musl
             runner: ubuntu-24.04-arm
             arch: aarch64
-          - target: i686-unknown-linux-gcc
+          - target: i686-unknown-linux-gnu
             runner: ubuntu-24.04
             arch: i686
 
