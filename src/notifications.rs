@@ -28,12 +28,12 @@ impl Notifications {
     /// 1/2 of a second has passed
     pub fn tick(&mut self) {
         for notification in &mut self.list {
-            if notification.life < u8::MAX {
+            if notification.life != u8::MAX {
                 notification.life -= 1;
             }
         }
 
-        self.list.retain(|n| n.life > 0);
+        self.list.retain(|n| n.life != 0);
     }
 
     pub fn close(&mut self, id: usize) {

@@ -32,17 +32,14 @@ impl Datafile {
         Ok(data)
     }
 
-    pub fn lookup(&self, game_id: [u8; 6]) -> Option<u16> {
+    pub fn lookup(&self, game_id: [u8; 6]) -> Option<usize> {
         self.games
             .binary_search_by_key(&game_id, |game| game.id)
             .ok()
-            .map(|i| i as u16)
     }
 
     pub fn get_title(&self, game_id: [u8; 6]) -> Option<String> {
-        self.games
-            .binary_search_by_key(&game_id, |game| game.id)
-            .ok()
+        self.lookup(game_id)
             .and_then(|i| self.games[i].locales.first())
             .map(|locale| locale.title.clone())
     }
