@@ -87,14 +87,13 @@ impl State {
                 self.screen = screen;
                 Task::none()
             }
-            Message::RefreshGames => {
+            Message::RefreshGamesAndApps => {
                 let drive_path = self.config.get_drive_path();
+
                 self.games = game::list(drive_path, &self.wiitdb);
+                self.hbc_apps.clear(); // TODO
                 self.drive_usage = util::get_drive_usage(drive_path);
-                Task::none()
-            }
-            Message::RefreshHbcApps => {
-                self.hbc_apps.clear();
+
                 Task::none()
             }
             Message::OpenProjectRepo => {
@@ -149,7 +148,7 @@ impl State {
                     if let Err(e) = self.config.update_drive_path(mount_point) {
                         self.notifications.error(e.to_string());
                     } else {
-                        return self.update(Message::RefreshGames);
+                        return self.update(Message::RefreshGamesAndApps);
                     }
                 }
                 Task::none()
@@ -166,7 +165,7 @@ impl State {
                     if let Err(e) = self.games[i].delete() {
                         self.notifications.error(e.to_string());
                     } else {
-                        return self.update(Message::RefreshGames);
+                        return self.update(Message::RefreshGamesAndApps);
                     }
                 }
                 Task::none()

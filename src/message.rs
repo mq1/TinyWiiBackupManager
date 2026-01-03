@@ -8,8 +8,7 @@ use std::path::PathBuf;
 #[derive(Debug, Clone)]
 pub enum Message {
     NavigateTo(Screen),
-    RefreshGames,
-    RefreshHbcApps,
+    RefreshGamesAndApps,
     OpenProjectRepo,
     UpdateGamesFilter(String),
     GotWiitdbDatafile(Result<wiitdb::Datafile, String>),
