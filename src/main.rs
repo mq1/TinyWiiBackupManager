@@ -66,7 +66,7 @@ fn main() -> iced::Result {
         .window(window)
         .settings(settings)
         .font(LUCIDE_FONT_BYTES)
-        .title(env!("CARGO_PKG_NAME"))
+        .title(State::title)
         .subscription(notifications_subscription);
 
     app.run()

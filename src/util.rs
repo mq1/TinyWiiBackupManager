@@ -48,7 +48,7 @@ pub fn sanitize(s: &str) -> String {
         .to_string()
 }
 
-pub fn get_disk_usage(mount_point: &Path) -> String {
+pub fn get_drive_usage(mount_point: &Path) -> String {
     if mount_point.as_os_str().is_empty() {
         return "0 bytes/0 bytes".to_string();
     }

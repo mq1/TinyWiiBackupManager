@@ -9,7 +9,7 @@ use crate::{
     message::Message,
     notifications::Notifications,
     ui::{Screen, dialogs},
-    wiitdb,
+    util, wiitdb,
 };
 use iced::{
     Task,
@@ -29,6 +29,7 @@ pub struct State {
     pub notifications: Notifications,
     pub show_wii: bool,
     pub show_gc: bool,
+    pub drive_usage: String,
 }
 
 impl State {
@@ -36,7 +37,9 @@ impl State {
         let data_dir = get_data_dir().expect("Failed to get data dir");
         let config = Config::load(&data_dir);
 
-        let games = game::list(config.get_drive_path(), &None);
+        let drive_path = config.get_drive_path();
+        let games = game::list(drive_path, &None);
+        let drive_usage = util::get_drive_usage(drive_path);
 
         let initial_state = Self {
             window_id: None,
@@ -50,6 +53,7 @@ impl State {
             notifications: Notifications::new(),
             show_wii: true,
             show_gc: true,
+            drive_usage,
         };
 
         let task1 = window::oldest().map(Message::GotWindowId);
@@ -59,6 +63,24 @@ impl State {
         (initial_state, tasks)
     }
 
+    pub fn title(&self) -> String {
+        match self.screen {
+            Screen::Games => format!(
+                "TinyWiiBackupManager • Games • {} ({})",
+                self.config.get_drive_path_str(),
+                &self.drive_usage
+            ),
+            Screen::HbcApps => format!(
+                "TinyWiiBackupManager • HBC Apps • {} ({})",
+                self.config.get_drive_path_str(),
+                &self.drive_usage
+            ),
+            Screen::Osc => "TinyWiiBackupManager • Open Shop Channel".to_string(),
+            Screen::GameInfo(_) => "TinyWiiBackupManager • Game Info".to_string(),
+            Screen::About => "TinyWiiBackupManager • About".to_string(),
+        }
+    }
+
     pub fn update(&mut self, message: Message) -> Task<Message> {
         match message {
             Message::NavigateTo(screen) => {
@@ -66,7 +88,9 @@ impl State {
                 Task::none()
             }
             Message::RefreshGames => {
-                self.games = game::list(self.config.get_drive_path(), &self.wiitdb);
+                let drive_path = self.config.get_drive_path();
+                self.games = game::list(drive_path, &self.wiitdb);
+                self.drive_usage = util::get_drive_usage(drive_path);
                 Task::none()
             }
             Message::RefreshHbcApps => {
