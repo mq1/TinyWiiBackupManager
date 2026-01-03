@@ -4,7 +4,7 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::{
-    fs,
+    fs, io,
     path::{Path, PathBuf},
 };
 
@@ -35,7 +35,7 @@ impl Config {
         Self { path, contents }
     }
 
-    pub fn write(&self) -> Result<()> {
+    fn write(&self) -> Result<()> {
         let bytes = serde_json::to_vec_pretty(&self.contents)?;
         fs::write(&self.path, &bytes)?;
 
@@ -50,6 +50,12 @@ impl Config {
     #[inline]
     pub fn get_drive_path(&self) -> &Path {
         &self.contents.mount_point
+    }
+
+    #[inline]
+    pub fn update_drive_path(&mut self, new_mount_point: PathBuf) -> Result<()> {
+        self.contents.mount_point = new_mount_point;
+        self.write()
     }
 }
 

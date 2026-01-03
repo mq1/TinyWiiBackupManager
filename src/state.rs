@@ -8,10 +8,16 @@ use crate::{
     game_id::GameID,
     message::Message,
     notifications::Notifications,
-    ui::Screen,
+    ui::{Screen, dialogs},
     wiitdb,
 };
-use iced::Task;
+use iced::{
+    Task,
+    window::{
+        self,
+        raw_window_handle::{HasWindowHandle, WindowHandle},
+    },
+};
 use std::path::PathBuf;
 
 pub struct State {
@@ -107,6 +113,17 @@ impl State {
             }
             Message::ShowGc(show) => {
                 self.show_gc = show;
+                Task::none()
+            }
+            Message::SelectMountPoint => window::oldest()
+                .and_then(|id| window::run(id, dialogs::choose_mount_point))
+                .map(Message::MountPointSelected),
+            Message::MountPointSelected(mount_point) => {
+                if let Some(mount_point) = mount_point {
+                    if let Err(e) = self.config.update_drive_path(mount_point) {
+                        self.notifications.error(e.to_string());
+                    }
+                }
                 Task::none()
             }
         }

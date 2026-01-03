@@ -1,14 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use anyhow::{Result, anyhow};
-use std::{
-    fs::File,
-    io::{self, BufReader, BufWriter},
-    path::Path,
-    sync::LazyLock,
-};
-use tempfile::{NamedTempFile, tempfile};
+use anyhow::Result;
+use std::{io::Cursor, path::Path, sync::LazyLock};
 use ureq::tls::{RootCerts, TlsProvider};
 use ureq::{Agent, tls::TlsConfig};
 use zip::ZipArchive;
@@ -55,34 +49,11 @@ pub fn send_form<I: IntoIterator<Item = (K, V)>, K: AsRef<str>, V: AsRef<str>>(
     AGENT.post(uri).send_form(form)?.body_mut().read_to_vec()
 }
 
-pub fn download_into_file(uri: &str, file: &File) -> Result<()> {
-    let mut writer = BufWriter::new(file);
-
-    let mut resp = AGENT.get(uri).call()?;
-    let body = resp.body_mut();
-    let mut reader = body.as_reader();
-    io::copy(&mut reader, &mut writer)?;
-
-    Ok(())
-}
-
-pub fn download_file(uri: &str, dest: &Path) -> Result<()> {
-    let parent = dest.parent().ok_or(anyhow!("No parent directory"))?;
-    let tmp = NamedTempFile::new_in(parent)?;
-
-    download_into_file(uri, tmp.as_file())?;
-    tmp.persist(dest)?;
-
-    Ok(())
-}
-
 pub fn download_and_extract_zip(uri: &str, dest_dir: &Path) -> Result<()> {
-    let tmp = tempfile()?;
+    let buf = get(uri)?;
+    let cursor = Cursor::new(buf);
 
-    download_into_file(uri, &tmp)?;
-
-    let reader = BufReader::new(&tmp);
-    let mut zip = ZipArchive::new(reader)?;
+    let mut zip = ZipArchive::new(cursor)?;
     zip.extract(dest_dir)?;
 
     Ok(())

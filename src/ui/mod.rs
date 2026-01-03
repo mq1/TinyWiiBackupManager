@@ -8,6 +8,7 @@ use iced::{
 };
 
 mod components;
+pub mod dialogs;
 mod style;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
@@ -31,7 +32,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
             },
         ])
         .style(style::root_container),
-        components::notifications::view(state),
+        components::notifications::view(state)
     ]
     .into()
 }

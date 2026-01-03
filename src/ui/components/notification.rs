@@ -29,8 +29,8 @@ pub fn view(notification: &Notification) -> Element<'_, Message> {
                 space(),
                 text(&notification.text),
                 button(icon_x().center())
-                    .height(18)
-                    .width(18)
+                    .height(20)
+                    .width(20)
                     .style(style::rounded_background_button)
                     .on_press(Message::CloseNotification(notification.id))
             ]

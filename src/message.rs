@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{ui::Screen, wiitdb};
+use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -15,4 +16,6 @@ pub enum Message {
     CloseNotification(usize),
     ShowWii(bool),
     ShowGc(bool),
+    SelectMountPoint,
+    MountPointSelected(Option<PathBuf>),
 }

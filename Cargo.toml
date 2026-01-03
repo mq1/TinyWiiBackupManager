@@ -27,7 +27,7 @@ iced = { version = "0.14", default-features = false, features = [
   "smol",
   "x11",
   "wayland",
-  "wgpu-bare",
+  #"wgpu-bare",
   "tiny-skia",
   "image-without-codecs",
 ] }
@@ -59,19 +59,19 @@ time = { version = "0.3", features = ["macros", "parsing", "serde"] }
 walkdir = "2.5"
 sanitize-filename = "0.7.0-beta"
 
-[target.'cfg(target_os = "macos")'.dependencies]
-wgpu = { version = "27", default-features = false, features = [
-  "std",
-  "parking_lot",
-  "metal",
-] }
+#[target.'cfg(target_os = "macos")'.dependencies]
+#wgpu = { version = "27", default-features = false, features = [
+#  "std",
+#  "parking_lot",
+#  "metal",
+#] }
 
-[target.'cfg(not(target_os = "macos"))'.dependencies]
-wgpu = { version = "27", default-features = false, features = [
-  "std",
-  "parking_lot",
-  "gles",
-] }
+#[target.'cfg(not(target_os = "macos"))'.dependencies]
+#wgpu = { version = "27", default-features = false, features = [
+#  "std",
+#  "parking_lot",
+#  "gles",
+#] }
 
 [target.'cfg(not(windows))'.dependencies]
 native-dialog = "0.9"

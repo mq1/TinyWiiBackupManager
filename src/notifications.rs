@@ -28,14 +28,22 @@ impl Notifications {
     /// 1/2 of a second has passed
     pub fn tick(&mut self) {
         for notification in &mut self.list {
-            notification.life = notification.life - 1;
+            if notification.life < u8::MAX {
+                notification.life -= 1;
+            }
         }
 
         self.list.retain(|n| n.life > 0);
     }
 
     pub fn close(&mut self, id: usize) {
-        self.list.retain(|n| n.id != id);
+        // note: we could have binary-searched (as the ids are always ordered)
+        // but as we don't have hundreds of notifications this is fine
+
+        self.list
+            .iter()
+            .position(|n| n.id == id)
+            .map(|i| self.list.remove(i));
     }
 
     pub fn info(&mut self, text: String) {
@@ -56,7 +64,7 @@ impl Notifications {
             id: self.last_id,
             text,
             level: NotificationLevel::Error,
-            life: u8::MAX, // ~ 2 min
+            life: u8::MAX, // infinite duration
         });
     }
 
@@ -67,7 +75,7 @@ impl Notifications {
             id: self.last_id,
             text,
             level: NotificationLevel::Success,
-            life: u8::MAX, // ~ 2 min
+            life: u8::MAX, // infinite duration
         });
     }
 }
@@ -76,7 +84,7 @@ pub struct Notification {
     pub id: usize,
     pub text: String,
     pub level: NotificationLevel,
-    pub life: u8,
+    life: u8,
 }
 
 impl Notification {

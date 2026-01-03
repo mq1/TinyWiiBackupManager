@@ -4,7 +4,7 @@
 use crate::{
     message::Message,
     state::State,
-    ui::{Screen, style},
+    ui::{Screen, components::my_tooltip, style},
 };
 use iced::{
     Element,
@@ -33,10 +33,13 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 .width(40)
                 .on_press(Message::NavigateTo(Screen::Osc)),
             space::vertical(),
-            button(icon_hard_drive().size(20).center())
-                .style(|t, s| style::nav_button(t, s, false))
-                .height(40)
-                .width(40),
+            my_tooltip::view(
+                button(icon_hard_drive().size(20).center())
+                    .style(button::background)
+                    .height(40)
+                    .width(40),
+                "Select Drive/Mount Point"
+            ),
             button(icon_info().size(20).center())
                 .style(|t, s| style::nav_button(t, s, state.screen == Screen::About))
                 .height(40)

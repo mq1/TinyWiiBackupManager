@@ -4,6 +4,6 @@
 use crate::{message::Message, state::State};
 use iced::{Element, widget::text};
 
-pub fn view(state: &State) -> Element<'_, Message> {
+pub fn view(_state: &State) -> Element<'_, Message> {
     text("HBC Apps").into()
 }

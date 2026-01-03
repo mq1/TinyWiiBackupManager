@@ -4,6 +4,8 @@
 use crate::{message::Message, state::State};
 use iced::{Element, widget::text};
 
-pub fn view(_state: &State) -> Element<'_, Message> {
-    text("Open Shop Channel").into()
+pub fn view(state: &State, game_i: usize) -> Element<'_, Message> {
+    let game = &state.games[game_i];
+
+    text(&game.title).into()
 }

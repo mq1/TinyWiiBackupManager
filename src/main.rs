@@ -6,6 +6,7 @@
 
 mod config;
 mod data_dir;
+mod extensions;
 mod game;
 mod game_id;
 mod http;
@@ -13,6 +14,7 @@ mod message;
 mod notifications;
 mod state;
 mod ui;
+mod util;
 mod wiitdb;
 
 use std::{io::Cursor, sync::LazyLock};
@@ -61,11 +63,12 @@ fn main() -> iced::Result {
         ..Default::default()
     };
 
-    iced::application(State::new, State::update, ui::view)
+    let app = iced::application(State::new, State::update, ui::view)
         .window(window)
         .settings(settings)
         .font(LUCIDE_FONT_BYTES)
         .title(env!("CARGO_PKG_NAME"))
-        .subscription(notifications_subscription)
-        .run()
+        .subscription(notifications_subscription);
+
+    app.run()
 }
