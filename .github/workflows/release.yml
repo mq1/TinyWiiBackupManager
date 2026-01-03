@@ -42,7 +42,7 @@ jobs:
           fetch-depth: 1
 
       - name: Install dependencies
-        run: sudo apt-get install -y musl-gcc
+        run: sudo apt-get install -y musl-tools
 
       - name: Install Rust toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
