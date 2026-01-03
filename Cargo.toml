@@ -85,7 +85,7 @@ native-dialog = { version = "0.9", features = [
 [features]
 default = ["native-tls"]
 native-tls = ["minreq/https-native"]
-bundled-tls = ["minreq/https-rustls-probe"]
+bundled-tls = ["minreq/https-rustls"]
 
 [target.'cfg(windows)'.build-dependencies]
 winresource = "0.1"
