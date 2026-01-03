@@ -130,11 +130,6 @@ jobs:
         shell: pwsh
         run: cargo install cargo-packager --version 0.11.8 --locked
 
-      - name: Install xargo (win7+)
-        if: matrix.platform == 'WindowsLegacy'
-        shell: pwsh
-        run: cargo install xargo --version 0.3.26 --locked
-
       - name: Build binary (win10+)
         if: matrix.platform == 'Windows'
         shell: pwsh
@@ -143,7 +138,9 @@ jobs:
       - name: Build binary (win7+)
         if: matrix.platform == 'WindowsLegacy'
         shell: pwsh
-        run: xargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
+        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
+        env:
+          RUSTC_BOOTSTRAP: 1
 
       - name: Package binary as zip
         shell: pwsh
