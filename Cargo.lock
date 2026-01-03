@@ -27,7 +27,6 @@ dependencies = [
  "serde",
  "serde_json",
  "size",
- "smallvec",
  "static_vcruntime",
  "sysinfo",
  "tempfile",
