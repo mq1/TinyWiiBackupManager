@@ -31,7 +31,7 @@ jobs:
           - target: aarch64-unknown-linux-musl
             runner: ubuntu-24.04-arm
             arch: aarch64
-          - target: i686-unknown-linux-musl
+          - target: i686-unknown-linux-gnu
             runner: ubuntu-24.04
             arch: i686
 
@@ -46,6 +46,7 @@ jobs:
         run: sudo apt-get install -y libc6-dev-i386
 
       - name: Install musl-gcc
+        if: matrix.arch == 'x86_64' || matrix.arch == 'aarch64'
         run: sudo apt-get install -y musl-tools
 
       - name: Install Rust toolchain
@@ -64,6 +65,8 @@ jobs:
 
       - name: Build binary
         run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
+        env:
+          RUSTFLAGS: "-C target-feature=+crt-static"
 
       - name: Package binary as tar.gz
         run: |
