@@ -132,7 +132,7 @@ impl State {
                 window::oldest()
                     .and_then(move |id| {
                         let title = title.clone();
-                        window::run(id, move |w| dialogs::delete_game(w, title))
+                        window::run(id, move |w| dialogs::delete_game(w, &title))
                     })
                     .map(move |yes| Message::DeleteGame(i, yes))
             }
