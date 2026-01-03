@@ -21,4 +21,5 @@ pub enum Message {
     AskDeleteGame(usize),
     DeleteGame(usize, bool),
     GotWindowId(Option<window::Id>),
+    OpenGameDir(usize),
 }

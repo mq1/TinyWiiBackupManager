@@ -59,6 +59,10 @@ impl Game {
     pub fn matches_search(&self, filter: &str) -> bool {
         self.search_term.contains(filter)
     }
+
+    pub fn get_path_str(&self) -> &str {
+        self.path.to_str().unwrap_or("Invalid path")
+    }
 }
 
 pub fn list(drive_path: &Path, wiitdb: &Option<wiitdb::Datafile>) -> Box<[Game]> {

@@ -27,7 +27,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
             rule::vertical(1),
             match state.screen {
                 Screen::Games => components::games::view(state),
-                Screen::GameInfo(game) => components::game_info::view(&state.games[game]),
+                Screen::GameInfo(game_i) => components::game_info::view(state, game_i),
                 Screen::HbcApps => components::hbc_apps::view(state),
                 Screen::Osc => components::osc::view(state),
                 Screen::About => components::about::view(),

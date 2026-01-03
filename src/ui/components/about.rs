@@ -29,10 +29,10 @@ pub fn view() -> Element<'static, Message> {
         .style(style::card),
         space::vertical(),
         row![
-            space::horizontal(),
             button(row![icon_github(), text("Source Code")].spacing(5))
                 .style(style::rounded_button)
                 .on_press(Message::OpenProjectRepo),
+            space::horizontal(),
         ]
         .padding(10),
     ]

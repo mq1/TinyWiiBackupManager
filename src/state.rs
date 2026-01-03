@@ -97,7 +97,9 @@ impl State {
                 Task::none()
             }
             Message::OpenProjectRepo => {
-                let _ = open::that(env!("CARGO_PKG_REPOSITORY"));
+                if let Err(e) = open::that(env!("CARGO_PKG_REPOSITORY")) {
+                    self.notifications.error(e.to_string());
+                }
                 Task::none()
             }
             Message::UpdateGamesFilter(new) => {
@@ -172,6 +174,12 @@ impl State {
             }
             Message::GotWindowId(id) => {
                 self.window_id = id;
+                Task::none()
+            }
+            Message::OpenGameDir(game_i) => {
+                if let Err(e) = self.games[game_i].open_dir() {
+                    self.notifications.error(e.to_string());
+                }
                 Task::none()
             }
         }
