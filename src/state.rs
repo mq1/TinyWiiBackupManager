@@ -13,10 +13,7 @@ use crate::{
 };
 use iced::{
     Task,
-    window::{
-        self,
-        raw_window_handle::{HasWindowHandle, WindowHandle},
-    },
+    window::{self},
 };
 use std::path::PathBuf;
 
@@ -117,11 +114,13 @@ impl State {
             }
             Message::SelectMountPoint => window::oldest()
                 .and_then(|id| window::run(id, dialogs::choose_mount_point))
-                .map(Message::MountPointSelected),
-            Message::MountPointSelected(mount_point) => {
+                .map(Message::MountPointChosen),
+            Message::MountPointChosen(mount_point) => {
                 if let Some(mount_point) = mount_point {
                     if let Err(e) = self.config.update_drive_path(mount_point) {
                         self.notifications.error(e.to_string());
+                    } else {
+                        return self.update(Message::RefreshGames);
                     }
                 }
                 Task::none()

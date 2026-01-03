@@ -4,7 +4,7 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::{
-    fs, io,
+    fs,
     path::{Path, PathBuf},
 };
 
@@ -42,17 +42,14 @@ impl Config {
         Ok(())
     }
 
-    #[inline]
     pub fn get_drive_path_str(&self) -> &str {
         self.contents.mount_point.to_str().unwrap_or("Invalid Path")
     }
 
-    #[inline]
     pub fn get_drive_path(&self) -> &Path {
         &self.contents.mount_point
     }
 
-    #[inline]
     pub fn update_drive_path(&mut self, new_mount_point: PathBuf) -> Result<()> {
         self.contents.mount_point = new_mount_point;
         self.write()

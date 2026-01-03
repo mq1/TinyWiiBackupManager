@@ -17,5 +17,5 @@ pub enum Message {
     ShowWii(bool),
     ShowGc(bool),
     SelectMountPoint,
-    MountPointSelected(Option<PathBuf>),
+    MountPointChosen(Option<PathBuf>),
 }

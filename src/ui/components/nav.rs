@@ -35,9 +35,10 @@ pub fn view(state: &State) -> Element<'_, Message> {
             space::vertical(),
             my_tooltip::view(
                 button(icon_hard_drive().size(20).center())
-                    .style(button::background)
+                    .style(|t, s| style::nav_button(t, s, false))
                     .height(40)
-                    .width(40),
+                    .width(40)
+                    .on_press(Message::SelectMountPoint),
                 "Select Drive/Mount Point"
             ),
             button(icon_info().size(20).center())
