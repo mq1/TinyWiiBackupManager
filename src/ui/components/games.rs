@@ -11,30 +11,37 @@ use size::Size;
 
 pub fn view(state: &State) -> Element<'_, Message> {
     let filter = state.games_filter.to_lowercase();
-    let wii_games = state
-        .games
-        .iter()
-        .filter(|g| g.is_wii && g.matches_search(&filter));
-    let gc_games = state
-        .games
-        .iter()
-        .filter(|g| !g.is_wii && g.matches_search(&filter));
+
+    let mut wii_row = Row::new().width(Length::Fill).spacing(10);
+    let mut wii_count = 0usize;
+    let mut wii_total_size = Size::from_bytes(0);
+    let mut gc_row = Row::new().width(Length::Fill).spacing(10);
+    let mut gc_count = 0usize;
+    let mut gc_total_size = Size::from_bytes(0);
+
+    for (i, game) in state.games.iter().enumerate() {
+        if game.is_wii {
+            wii_count += 1;
+            wii_total_size += game.size;
+
+            if state.show_wii && game.matches_search(&filter) {
+                wii_row = wii_row.push(components::game_card::view(state, i));
+            }
+        } else {
+            gc_count += 1;
+            gc_total_size += game.size;
+
+            if state.show_gc && game.matches_search(&filter) {
+                gc_row = gc_row.push(components::game_card::view(state, i));
+            }
+        }
+    }
 
     let mut col = column![components::games_toolbar::view(state)]
         .spacing(10)
         .padding(10);
 
     if state.show_wii {
-        let mut wii_row = Row::new().width(Length::Fill).spacing(10);
-        let mut wii_count = 0usize;
-        let mut wii_total_size = Size::from_bytes(0);
-
-        for game in wii_games {
-            wii_row = wii_row.push(components::game_card::view(state, game));
-            wii_count += 1;
-            wii_total_size += game.size;
-        }
-
         col = col
             .push(
                 row![
@@ -55,16 +62,6 @@ pub fn view(state: &State) -> Element<'_, Message> {
     }
 
     if state.show_gc {
-        let mut gc_row = Row::new().width(Length::Fill).spacing(10);
-        let mut gc_count = 0usize;
-        let mut gc_total_size = Size::from_bytes(0);
-
-        for game in gc_games {
-            gc_row = gc_row.push(components::game_card::view(state, game));
-            gc_count += 1;
-            gc_total_size += game.size;
-        }
-
         col = col
             .push(
                 row![

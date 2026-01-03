@@ -70,7 +70,7 @@ pub fn choose_file_to_push(window: &dyn Window) -> Option<PathBuf> {
         .unwrap_or_default()
 }
 
-pub fn delete_game(window: &dyn Window, game_title: &str) -> bool {
+pub fn delete_game(window: &dyn Window, game_title: String) -> bool {
     DialogBuilder::message()
         .set_title("Delete game")
         .set_owner(&window)

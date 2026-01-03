@@ -18,4 +18,6 @@ pub enum Message {
     ShowGc(bool),
     SelectMountPoint,
     MountPointChosen(Option<PathBuf>),
+    AskDeleteGame(usize),
+    DeleteGame(usize, bool),
 }

@@ -17,12 +17,11 @@ mod ui;
 mod util;
 mod wiitdb;
 
-use std::{io::Cursor, sync::LazyLock};
-
 use crate::{notifications::notifications_subscription, state::State};
 use iced::{Size, window};
 use image::{DynamicImage, codecs::png::PngDecoder};
 use lucide_icons::LUCIDE_FONT_BYTES;
+use std::{io::Cursor, sync::LazyLock};
 
 pub static APP_ICON: LazyLock<Box<[u8]>> = LazyLock::new(|| {
     let decoder = PngDecoder::new(Cursor::new(include_bytes!(

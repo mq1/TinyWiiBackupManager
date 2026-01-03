@@ -125,6 +125,27 @@ impl State {
                 }
                 Task::none()
             }
+            Message::AskDeleteGame(i) => {
+                let game = &self.games[i];
+                let title = game.title.clone();
+
+                window::oldest()
+                    .and_then(move |id| {
+                        let title = title.clone();
+                        window::run(id, move |w| dialogs::delete_game(w, title))
+                    })
+                    .map(move |yes| Message::DeleteGame(i, yes))
+            }
+            Message::DeleteGame(i, yes) => {
+                if yes {
+                    if let Err(e) = self.games[i].delete() {
+                        self.notifications.error(e.to_string());
+                    } else {
+                        return self.update(Message::RefreshGames);
+                    }
+                }
+                Task::none()
+            }
         }
     }
 

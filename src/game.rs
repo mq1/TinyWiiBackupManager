@@ -9,6 +9,7 @@ use std::{
 
 use crate::{game_id::GameID, wiitdb};
 
+#[derive(Debug, Clone)]
 pub struct Game {
     pub path: PathBuf,
     pub size: Size,
@@ -47,12 +48,14 @@ impl Game {
         })
     }
 
-    #[inline]
     pub fn open_dir(&self) -> io::Result<()> {
         open::that(&self.path)
     }
 
-    #[inline]
+    pub fn delete(&self) -> io::Result<()> {
+        fs::remove_dir_all(&self.path)
+    }
+
     pub fn matches_search(&self, filter: &str) -> bool {
         self.search_term.contains(filter)
     }

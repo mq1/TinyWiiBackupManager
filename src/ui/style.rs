@@ -18,6 +18,12 @@ pub fn rounded_button(theme: &Theme, status: button::Status) -> button::Style {
     style
 }
 
+pub fn rounded_secondary_button(theme: &Theme, status: button::Status) -> button::Style {
+    let mut style = button::secondary(theme, status);
+    style.border.radius = border::radius(30);
+    style
+}
+
 pub fn nav_button(theme: &Theme, status: button::Status, active: bool) -> button::Style {
     let mut style = match active {
         true => {

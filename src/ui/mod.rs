@@ -11,9 +11,10 @@ mod components;
 pub mod dialogs;
 mod style;
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Screen {
     Games,
+    GameInfo(usize),
     HbcApps,
     Osc,
     About,
@@ -26,6 +27,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
             rule::vertical(1),
             match state.screen {
                 Screen::Games => components::games::view(state),
+                Screen::GameInfo(game) => components::game_info::view(&state.games[game]),
                 Screen::HbcApps => components::hbc_apps::view(state),
                 Screen::Osc => components::osc::view(state),
                 Screen::About => components::about::view(),
