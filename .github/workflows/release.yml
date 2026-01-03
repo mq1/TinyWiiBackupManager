@@ -184,7 +184,7 @@ jobs:
         run: cargo install cargo-packager --version 0.11.8 --locked
 
       - name: Build binary
-        run: cargo --release --locked --target ${{ matrix.target }}
+        run: cargo build --release --locked --target ${{ matrix.target }}
 
       - name: Build macOS app bundle
         run: cargo packager --release --target ${{ matrix.target }} --formats app
