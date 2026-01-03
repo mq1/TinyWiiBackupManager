@@ -301,9 +301,9 @@ jobs:
       - name: Generate TinyWiiBackupManager.json
         run: |
           plain_ver="${VERSION_NAME#v}" # Remove leading 'v'
-          x86_64_hash=$(sha256sum dist/TinyWiiBackupManager-${VERSION_NAME}-windows-x86_64.zip | cut -d' ' -f1)
-          arm64_hash=$(sha256sum dist/TinyWiiBackupManager-${VERSION_NAME}-windows-arm64.zip | cut -d' ' -f1)
-          x86_hash=$(sha256sum dist/TinyWiiBackupManager-${VERSION_NAME}-windows-x86.zip | cut -d' ' -f1)
+          x86_64_hash=$(sha256sum dist/TinyWiiBackupManager-${VERSION_NAME}-Windows-x64.zip | cut -d' ' -f1)
+          arm64_hash=$(sha256sum dist/TinyWiiBackupManager-${VERSION_NAME}-Windows-arm64.zip | cut -d' ' -f1)
+          x86_hash=$(sha256sum dist/TinyWiiBackupManager-${VERSION_NAME}-WindowsLegacy-x86.zip | cut -d' ' -f1)
 
           cp assets/scoop-template.json bucket/TinyWiiBackupManager.json
           sed -i "s/PLAIN_VER/${plain_ver}/g" bucket/TinyWiiBackupManager.json
