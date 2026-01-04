@@ -31,7 +31,7 @@ pub struct State {
 
 impl State {
     pub fn new() -> (Self, Task<Message>) {
-        let window_id = serde_json::from_str("1").expect("Failed to get window id");
+        let window_id = serde_plain::from_str("1").expect("Failed to parse window id");
 
         let data_dir = get_data_dir().expect("Failed to get data dir");
         let config = Config::load(&data_dir);
