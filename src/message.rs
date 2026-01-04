@@ -20,5 +20,5 @@ pub enum Message {
     AskDeleteGame(usize),
     DeleteGame(usize, bool),
     OpenGameDir(usize),
-    OpenPath(PathBuf),
+    OpenGameCover(usize),
 }

@@ -33,9 +33,9 @@ pub fn view(state: &State, game_i: usize) -> Element<'_, Message> {
 
     if let Some(cover) = state.get_game_cover(game) {
         row = row.push(
-            button(image(&cover).height(100))
+            button(image(cover).height(100))
                 .style(button::text)
-                .on_press(Message::OpenPath(cover)),
+                .on_press(Message::OpenGameCover(game_i)),
         );
     }
 

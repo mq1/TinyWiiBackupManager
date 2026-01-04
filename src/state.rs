@@ -179,10 +179,15 @@ impl State {
                 }
                 Task::none()
             }
-            Message::OpenPath(path) => {
-                if let Err(e) = open::that(path) {
-                    self.notifications.error(e.to_string());
+            Message::OpenGameCover(game_i) => {
+                if let Some(path) = self.get_game_cover(&self.games[game_i]) {
+                    if let Err(e) = open::that(path) {
+                        self.notifications.error(e.to_string());
+                    }
+                } else {
+                    self.notifications.error("Game cover not found".to_string());
                 }
+
                 Task::none()
             }
         }
