@@ -9,7 +9,7 @@ use crate::{
 };
 use iced::{
     Alignment, Element,
-    widget::{button, column, container, image, row, rule, space, text},
+    widget::{button, column, container, image, row, space, text},
 };
 use lucide_icons::iced::{icon_hard_drive_download, icon_info, icon_tag, icon_trash};
 

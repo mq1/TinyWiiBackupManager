@@ -32,7 +32,11 @@ pub fn view(state: &State, game_i: usize) -> Element<'_, Message> {
     .padding(10);
 
     if let Some(cover) = state.get_game_cover(game) {
-        row = row.push(image(cover).height(100));
+        row = row.push(
+            button(image(&cover).height(100))
+                .style(button::text)
+                .on_press(Message::OpenPath(cover)),
+        );
     }
 
     row.into()

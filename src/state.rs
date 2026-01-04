@@ -182,6 +182,12 @@ impl State {
                 }
                 Task::none()
             }
+            Message::OpenPath(path) => {
+                if let Err(e) = open::that(path) {
+                    self.notifications.error(e.to_string());
+                }
+                Task::none()
+            }
         }
     }
 
