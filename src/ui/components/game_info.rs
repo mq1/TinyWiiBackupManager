@@ -4,9 +4,11 @@
 use crate::{message::Message, state::State, ui::style};
 use iced::{
     Element,
-    widget::{button, column, image, row, space, text},
+    widget::{button, column, image, row, rule, space, text},
 };
-use lucide_icons::iced::{icon_folder, icon_gamepad_2, icon_globe, icon_trash};
+use lucide_icons::iced::{
+    icon_chevron_right, icon_folder, icon_gamepad_2, icon_globe, icon_tag, icon_trash,
+};
 
 pub fn view(state: &State, game_i: usize) -> Element<'_, Message> {
     let game = &state.games[game_i];
@@ -15,6 +17,15 @@ pub fn view(state: &State, game_i: usize) -> Element<'_, Message> {
         column![
             row![icon_gamepad_2().size(19), text(&game.title).size(18)].spacing(5),
             row![icon_folder(), text("Path:"), text(game.get_path_str())].spacing(5),
+            rule::horizontal(1),
+            row![icon_chevron_right().size(19), text("Disc Header").size(18)].spacing(5),
+            row![icon_tag(), text("ID:")].spacing(5),
+            rule::horizontal(1),
+            row![icon_chevron_right().size(19), text("Disc Meta").size(18)].spacing(5),
+            rule::horizontal(1),
+            row![icon_chevron_right().size(19), text("NKit Hashes").size(18)].spacing(5),
+            rule::horizontal(1),
+            row![icon_chevron_right().size(19), text("GameTDB info").size(18)].spacing(5),
             space::vertical(),
             row![
                 button(row![icon_folder(), text("Open Game Directory")].spacing(5))
@@ -30,7 +41,6 @@ pub fn view(state: &State, game_i: usize) -> Element<'_, Message> {
             .spacing(5)
         ]
         .spacing(5),
-        space::horizontal()
     ]
     .padding(10);
 
