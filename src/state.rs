@@ -205,6 +205,12 @@ impl State {
                 }
                 Task::none()
             }
+            Message::OpenGameTdb(game_i) => {
+                if let Err(e) = self.games[game_i].open_gametdb() {
+                    self.notifications.error(e.to_string());
+                }
+                Task::none()
+            }
         }
     }
 

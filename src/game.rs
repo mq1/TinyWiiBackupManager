@@ -52,6 +52,11 @@ impl Game {
         open::that(&self.path)
     }
 
+    pub fn open_gametdb(&self) -> io::Result<()> {
+        let url = format!("https://www.gametdb.com/Wii/{}", self.id.as_str());
+        open::that(url)
+    }
+
     pub fn delete(&self) -> io::Result<()> {
         fs::remove_dir_all(&self.path)
     }

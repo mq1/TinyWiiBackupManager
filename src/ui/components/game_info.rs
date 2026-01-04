@@ -6,7 +6,7 @@ use iced::{
     Element,
     widget::{button, column, image, row, space, text},
 };
-use lucide_icons::iced::{icon_folder, icon_gamepad_2, icon_trash};
+use lucide_icons::iced::{icon_folder, icon_gamepad_2, icon_globe, icon_trash};
 
 pub fn view(state: &State, game_i: usize) -> Element<'_, Message> {
     let game = &state.games[game_i];
@@ -20,6 +20,9 @@ pub fn view(state: &State, game_i: usize) -> Element<'_, Message> {
                 button(row![icon_folder(), text("Open Game Directory")].spacing(5))
                     .style(style::rounded_button)
                     .on_press(Message::OpenGameDir(game_i)),
+                button(row![icon_globe(), text("Open GameTDB Page")].spacing(5))
+                    .style(style::rounded_button)
+                    .on_press(Message::OpenGameTdb(game_i)),
                 button(row![icon_trash(), text("Delete Game")].spacing(5))
                     .style(style::rounded_danger_button)
                     .on_press(Message::AskDeleteGame(game_i))

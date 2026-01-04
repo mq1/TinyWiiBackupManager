@@ -22,4 +22,5 @@ pub enum Message {
     OpenGameDir(usize),
     OpenGameCover(usize),
     GotOscApps(Result<Box<[OscApp]>, String>),
+    OpenGameTdb(usize),
 }
