@@ -31,6 +31,7 @@ iced = { version = "0.14", default-features = false, features = [
   "tiny-skia",
   "image-without-codecs",
 ] }
+iced_core = { version = "0.14", features = ["serde"] }
 image = { version = "*", default-features = false, features = ["png"] }
 lucide-icons = { version = "0.562", features = ["iced"] }
 minreq = "2.14"

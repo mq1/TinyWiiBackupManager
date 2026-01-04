@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{ui::Screen, wiitdb};
-use iced::window;
 use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
@@ -20,7 +19,6 @@ pub enum Message {
     MountPointChosen(Option<PathBuf>),
     AskDeleteGame(usize),
     DeleteGame(usize, bool),
-    GotWindowId(Option<window::Id>),
     OpenGameDir(usize),
     OpenPath(PathBuf),
 }

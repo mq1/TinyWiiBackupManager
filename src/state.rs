@@ -11,14 +11,11 @@ use crate::{
     ui::{Screen, dialogs},
     util, wiitdb,
 };
-use iced::{
-    Task,
-    window::{self},
-};
+use iced::{Task, window};
 use std::path::PathBuf;
 
 pub struct State {
-    pub window_id: Option<window::Id>,
+    pub window_id: window::Id,
     pub screen: Screen,
     pub data_dir: PathBuf,
     pub config: Config,
@@ -34,6 +31,8 @@ pub struct State {
 
 impl State {
     pub fn new() -> (Self, Task<Message>) {
+        let window_id = serde_json::from_str("1").expect("Failed to get window id");
+
         let data_dir = get_data_dir().expect("Failed to get data dir");
         let config = Config::load(&data_dir);
 
@@ -42,7 +41,7 @@ impl State {
         let drive_usage = util::get_drive_usage(drive_path);
 
         let initial_state = Self {
-            window_id: None,
+            window_id,
             screen: Screen::Games,
             data_dir,
             config,
@@ -56,11 +55,9 @@ impl State {
             drive_usage,
         };
 
-        let task1 = window::oldest().map(Message::GotWindowId);
-        let task2 = wiitdb::get_load_wiitdb_task(&initial_state);
-        let tasks = Task::batch(vec![task1, task2]);
+        let task = wiitdb::get_load_wiitdb_task(&initial_state);
 
-        (initial_state, tasks)
+        (initial_state, task)
     }
 
     pub fn title(&self) -> String {
@@ -148,10 +145,8 @@ impl State {
                 self.show_gc = show;
                 Task::none()
             }
-            Message::SelectMountPoint => {
-                let window_id = self.window_id.expect("Window ID not set");
-                window::run(window_id, dialogs::choose_mount_point).map(Message::MountPointChosen)
-            }
+            Message::SelectMountPoint => window::run(self.window_id, dialogs::choose_mount_point)
+                .map(Message::MountPointChosen),
             Message::MountPointChosen(mount_point) => {
                 if let Some(mount_point) = mount_point {
                     if let Err(e) = self.config.update_drive_path(mount_point) {
@@ -163,10 +158,9 @@ impl State {
                 Task::none()
             }
             Message::AskDeleteGame(i) => {
-                let window_id = self.window_id.expect("Window ID not set");
                 let title = self.games[i].title.clone();
 
-                window::run(window_id, move |w| dialogs::delete_game(w, title))
+                window::run(self.window_id, move |w| dialogs::delete_game(w, title))
                     .map(move |yes| Message::DeleteGame(i, yes))
             }
             Message::DeleteGame(i, yes) => {
@@ -177,10 +171,6 @@ impl State {
                         return self.update(Message::RefreshGamesAndApps);
                     }
                 }
-                Task::none()
-            }
-            Message::GotWindowId(id) => {
-                self.window_id = id;
                 Task::none()
             }
             Message::OpenGameDir(game_i) => {
