@@ -15,7 +15,6 @@ use iced::{Task, window};
 use std::path::PathBuf;
 
 pub struct State {
-    pub window_id: window::Id,
     pub screen: Screen,
     pub data_dir: PathBuf,
     pub config: Config,
@@ -31,8 +30,6 @@ pub struct State {
 
 impl State {
     pub fn new() -> (Self, Task<Message>) {
-        let window_id = serde_plain::from_str("1").expect("Failed to parse window id");
-
         let data_dir = get_data_dir().expect("Failed to get data dir");
         let config = Config::load(&data_dir);
 
@@ -41,7 +38,6 @@ impl State {
         let drive_usage = util::get_drive_usage(drive_path);
 
         let initial_state = Self {
-            window_id,
             screen: Screen::Games,
             data_dir,
             config,
@@ -145,7 +141,8 @@ impl State {
                 self.show_gc = show;
                 Task::none()
             }
-            Message::SelectMountPoint => window::run(self.window_id, dialogs::choose_mount_point)
+            Message::SelectMountPoint => window::oldest()
+                .and_then(|id| window::run(id, dialogs::choose_mount_point))
                 .map(Message::MountPointChosen),
             Message::MountPointChosen(mount_point) => {
                 if let Some(mount_point) = mount_point {
@@ -160,7 +157,11 @@ impl State {
             Message::AskDeleteGame(i) => {
                 let title = self.games[i].title.clone();
 
-                window::run(self.window_id, move |w| dialogs::delete_game(w, title))
+                window::oldest()
+                    .and_then(move |id| {
+                        let title = title.clone();
+                        window::run(id, move |w| dialogs::delete_game(w, title))
+                    })
                     .map(move |yes| Message::DeleteGame(i, yes))
             }
             Message::DeleteGame(i, yes) => {
