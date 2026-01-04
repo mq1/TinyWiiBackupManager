@@ -8,7 +8,7 @@ use crate::{
     game_id::GameID,
     message::Message,
     notifications::Notifications,
-    osc::OscApp,
+    osc::{self, OscApp},
     ui::{Screen, dialogs},
     util, wiitdb,
 };
@@ -28,6 +28,7 @@ pub struct State {
     pub show_wii: bool,
     pub show_gc: bool,
     pub drive_usage: String,
+    pub osc_filter: String,
 }
 
 impl State {
@@ -52,11 +53,14 @@ impl State {
             show_wii: true,
             show_gc: true,
             drive_usage,
+            osc_filter: String::new(),
         };
 
-        let task = wiitdb::get_load_wiitdb_task(&initial_state);
+        let task1 = wiitdb::get_load_wiitdb_task(&initial_state);
+        let task2 = osc::get_load_osc_apps_task(&initial_state);
+        let tasks = Task::batch(vec![task1, task2]);
 
-        (initial_state, task)
+        (initial_state, tasks)
     }
 
     pub fn title(&self) -> String {
@@ -209,6 +213,10 @@ impl State {
                 if let Err(e) = self.games[game_i].open_gametdb() {
                     self.notifications.error(e.to_string());
                 }
+                Task::none()
+            }
+            Message::UpdateOscFilter(filter) => {
+                self.osc_filter = filter;
                 Task::none()
             }
         }

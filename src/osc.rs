@@ -39,10 +39,7 @@ fn load_osc_apps(data_dir: PathBuf) -> Result<Box<[OscApp]>> {
         }
     };
 
-    let apps = cache
-        .into_iter()
-        .filter_map(|meta| OscApp::from_meta(meta, &icons_dir))
-        .collect();
+    let apps = cache.into_iter().filter_map(OscApp::from_meta).collect();
 
     Ok(apps)
 }
@@ -77,18 +74,21 @@ pub fn download_icon(meta: &OscAppMeta, icons_dir: &Path) -> Result<()> {
 }
 
 impl OscApp {
-    fn from_meta(meta: OscAppMeta, icons_dir: &Path) -> Option<Self> {
-        let _icon_path = icons_dir.join(&meta.slug).with_extension("png");
-        let search_str = (meta.name.clone() + &meta.slug).to_lowercase();
+    fn from_meta(meta: OscAppMeta) -> Option<Self> {
+        let search_term = format!("{}{}", meta.name, meta.slug).to_lowercase();
 
-        Some(Self { meta, search_str })
+        Some(Self { meta, search_term })
+    }
+
+    pub fn matches_search(&self, search: &str) -> bool {
+        self.search_term.contains(search)
     }
 }
 
 #[derive(Debug, Clone)]
 pub struct OscApp {
     pub meta: OscAppMeta,
-    pub search_str: String,
+    search_term: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]

@@ -23,4 +23,5 @@ pub enum Message {
     OpenGameCover(usize),
     GotOscApps(Result<Box<[OscApp]>, String>),
     OpenGameTdb(usize),
+    UpdateOscFilter(String),
 }
