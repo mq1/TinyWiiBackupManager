@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    config::Config,
+    config::{Config, SortBy},
     data_dir::get_data_dir,
-    game::{self, Game},
+    game::{self, Game, Games},
     game_id::GameID,
     message::Message,
     notifications::Notifications,
@@ -91,6 +91,7 @@ impl State {
                 let drive_path = self.config.get_drive_path();
 
                 self.games = game::list(drive_path, &self.wiitdb);
+                self.games.sort(SortBy::None, self.config.get_sort_by());
                 self.hbc_apps.clear(); // TODO
                 self.drive_usage = util::get_drive_usage(drive_path);
 
@@ -114,6 +115,12 @@ impl State {
                                 game.title = title;
                             }
                         }
+
+                        let sort_by = self.config.get_sort_by();
+                        if matches!(sort_by, SortBy::NameAscending | SortBy::NameDescending) {
+                            self.games.sort(SortBy::None, sort_by);
+                        }
+
                         self.wiitdb = Some(wiitdb);
                         self.notifications
                             .info("GameTDB Datafile (wiitdb.xml) loaded successfully".to_string());

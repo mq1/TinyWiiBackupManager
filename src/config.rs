@@ -54,6 +54,10 @@ impl Config {
         self.contents.mount_point = new_mount_point;
         self.write()
     }
+
+    pub fn get_sort_by(&self) -> SortBy {
+        self.contents.sort_by
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

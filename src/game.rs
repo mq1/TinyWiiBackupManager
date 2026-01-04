@@ -7,7 +7,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use crate::{game_id::GameID, wiitdb};
+use crate::{config::SortBy, game_id::GameID, wiitdb};
 
 #[derive(Debug, Clone)]
 pub struct Game {
@@ -96,4 +96,53 @@ fn read_game_dir(game_dir: PathBuf, is_wii: bool) -> Vec<Game> {
         .filter_map(Result::ok)
         .filter_map(|e| Game::from_path(e.path(), is_wii))
         .collect()
+}
+
+pub trait Games {
+    fn sort(&mut self, prev_sort_by: SortBy, sort_by: SortBy);
+}
+
+impl Games for Box<[Game]> {
+    fn sort(&mut self, prev_sort_by: SortBy, sort_by: SortBy) {
+        match (prev_sort_by, sort_by) {
+            (SortBy::NameAscending, SortBy::NameAscending)
+            | (SortBy::NameDescending, SortBy::NameDescending)
+            | (SortBy::SizeAscending, SortBy::SizeAscending)
+            | (SortBy::SizeDescending, SortBy::SizeDescending)
+            | (_, SortBy::None) => {
+                // Do nothing, already sorted
+            }
+
+            (SortBy::NameDescending, SortBy::NameAscending)
+            | (SortBy::NameAscending, SortBy::NameDescending)
+            | (SortBy::SizeDescending, SortBy::SizeAscending)
+            | (SortBy::SizeAscending, SortBy::SizeDescending) => {
+                self.reverse();
+            }
+
+            (SortBy::SizeAscending, SortBy::NameAscending)
+            | (SortBy::SizeDescending, SortBy::NameAscending)
+            | (SortBy::None, SortBy::NameAscending) => {
+                self.sort_unstable_by(|a, b| a.title.cmp(&b.title));
+            }
+
+            (SortBy::SizeAscending, SortBy::NameDescending)
+            | (SortBy::SizeDescending, SortBy::NameDescending)
+            | (SortBy::None, SortBy::NameDescending) => {
+                self.sort_unstable_by(|a, b| b.title.cmp(&a.title));
+            }
+
+            (SortBy::NameAscending, SortBy::SizeAscending)
+            | (SortBy::NameDescending, SortBy::SizeAscending)
+            | (SortBy::None, SortBy::SizeAscending) => {
+                self.sort_unstable_by(|a, b| a.size.cmp(&b.size));
+            }
+
+            (SortBy::NameAscending, SortBy::SizeDescending)
+            | (SortBy::NameDescending, SortBy::SizeDescending)
+            | (SortBy::None, SortBy::SizeDescending) => {
+                self.sort_unstable_by(|a, b| b.size.cmp(&a.size));
+            }
+        }
+    }
 }
