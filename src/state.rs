@@ -8,6 +8,7 @@ use crate::{
     game_id::GameID,
     message::Message,
     notifications::Notifications,
+    osc::OscApp,
     ui::{Screen, dialogs},
     util, wiitdb,
 };
@@ -21,6 +22,7 @@ pub struct State {
     pub games: Box<[Game]>,
     pub games_filter: String,
     pub hbc_apps: Vec<()>,
+    pub osc_apps: Box<[OscApp]>,
     pub wiitdb: Option<wiitdb::Datafile>,
     pub notifications: Notifications,
     pub show_wii: bool,
@@ -44,6 +46,7 @@ impl State {
             games,
             games_filter: String::new(),
             hbc_apps: Vec::new(),
+            osc_apps: Box::new([]),
             wiitdb: None,
             notifications: Notifications::new(),
             show_wii: true,
@@ -191,6 +194,17 @@ impl State {
 
                 Task::none()
             }
+            Message::GotOscApps(res) => {
+                match res {
+                    Ok(osc_apps) => {
+                        self.osc_apps = osc_apps;
+                    }
+                    Err(e) => {
+                        self.notifications.error(e);
+                    }
+                }
+                Task::none()
+            }
         }
     }
 
@@ -200,6 +214,17 @@ impl State {
 
         if cover_path.exists() {
             Some(cover_path)
+        } else {
+            None
+        }
+    }
+
+    pub fn get_osc_app_icon(&self, app: &OscApp) -> Option<PathBuf> {
+        let icons_dir = self.data_dir.join("osc-icons");
+        let icon_path = icons_dir.join(&app.meta.slug).with_extension("png");
+
+        if icon_path.exists() {
+            Some(icon_path)
         } else {
             None
         }

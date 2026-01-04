@@ -1,53 +1,50 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::app::App;
-use crate::http;
-use crate::messages::Message;
+use crate::{http_util, message::Message, state::State};
 use anyhow::{Result, bail};
-use egui_phosphor::regular as ph;
-use path_slash::PathExt;
+use iced::Task;
 use serde::{Deserialize, Deserializer};
 use size::Size;
-use std::{fs, path::Path, time::Duration};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+    time::Duration,
+};
 use time::OffsetDateTime;
 
 const CONTENTS_URL: &str = "https://hbb1.oscwii.org/api/v4/contents";
 
-pub fn spawn_load_osc_apps_task(app: &App) {
-    let cache_path = app.data_dir.join("osc-cache.json");
-    let icons_dir = app.data_dir.join("osc-icons");
+pub fn get_load_osc_apps_task(state: &State) -> Task<Message> {
+    let data_dir = state.data_dir.clone();
 
-    app.task_processor.spawn(move |msg_sender| {
-        msg_sender.send(Message::UpdateStatus(format!(
-            "{} Loading OSC Meta...",
-            ph::STOREFRONT
-        )))?;
+    Task::perform(
+        async move { load_osc_apps(data_dir).map_err(|e| e.to_string()) },
+        Message::GotOscApps,
+    )
+}
 
-        fs::create_dir_all(&icons_dir)?;
+fn load_osc_apps(data_dir: PathBuf) -> Result<Box<[OscApp]>> {
+    let cache_path = data_dir.join("osc-cache.json");
+    let icons_dir = data_dir.join("osc-icons");
 
-        let cache = match load_cache(&cache_path) {
-            Some(cache) => cache,
-            None => {
-                let bytes = http::get(CONTENTS_URL)?;
-                fs::write(&cache_path, &bytes)?;
-                serde_json::from_slice(&bytes)?
-            }
-        };
+    fs::create_dir_all(&icons_dir)?;
 
-        let apps = cache
-            .into_iter()
-            .filter_map(|meta| OscApp::from_meta(meta, &icons_dir))
-            .collect::<Box<[_]>>();
+    let cache = match load_cache(&cache_path) {
+        Some(cache) => cache,
+        None => {
+            let bytes = http_util::get(CONTENTS_URL)?;
+            fs::write(&cache_path, &bytes)?;
+            serde_json::from_slice(&bytes)?
+        }
+    };
 
-        msg_sender.send(Message::GotOscApps(apps))?;
-        msg_sender.send(Message::NotifyInfo(format!(
-            "{} OSC Apps loaded",
-            ph::STOREFRONT
-        )))?;
+    let apps = cache
+        .into_iter()
+        .filter_map(|meta| OscApp::from_meta(meta, &icons_dir))
+        .collect();
 
-        Ok(())
-    });
+    Ok(apps)
 }
 
 fn load_cache(path: &Path) -> Option<Vec<OscAppMeta>> {
@@ -74,29 +71,23 @@ pub fn download_icon(meta: &OscAppMeta, icons_dir: &Path) -> Result<()> {
         bail!("{} already exists", icon_path.display());
     }
 
-    http::download_file(&meta.assets.icon.url, &icon_path)?;
+    http_util::download_file(&meta.assets.icon.url, &icon_path)?;
 
     Ok(())
 }
 
 impl OscApp {
     fn from_meta(meta: OscAppMeta, icons_dir: &Path) -> Option<Self> {
-        let icon_path = icons_dir.join(&meta.slug).with_extension("png");
-        let icon_uri = format!("file://{}", icon_path.to_slash()?);
+        let _icon_path = icons_dir.join(&meta.slug).with_extension("png");
         let search_str = (meta.name.clone() + &meta.slug).to_lowercase();
 
-        Some(Self {
-            meta,
-            icon_uri,
-            search_str,
-        })
+        Some(Self { meta, search_str })
     }
 }
 
 #[derive(Debug, Clone)]
 pub struct OscApp {
     pub meta: OscAppMeta,
-    pub icon_uri: String,
     pub search_str: String,
 }
 

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{ui::Screen, wiitdb};
+use crate::{osc::OscApp, ui::Screen, wiitdb};
 use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
@@ -21,4 +21,5 @@ pub enum Message {
     DeleteGame(usize, bool),
     OpenGameDir(usize),
     OpenGameCover(usize),
+    GotOscApps(Result<Box<[OscApp]>, String>),
 }

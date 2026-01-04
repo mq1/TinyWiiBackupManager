@@ -10,7 +10,7 @@ use capitalize::Capitalize;
 use iced::Task;
 use serde::Deserialize;
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 const DOWNLOAD_URL: &str = "https://www.gametdb.com/wiitdb.zip";
 
@@ -290,16 +290,19 @@ impl<'de> Deserialize<'de> for Region {
 
 pub fn get_load_wiitdb_task(state: &State) -> Task<Message> {
     let data_dir = state.data_dir.clone();
-    let wiitdb_path = state.data_dir.join("wiitdb.xml");
 
     Task::perform(
-        async move {
-            if !wiitdb_path.exists() {
-                http_util::download_and_extract_zip(DOWNLOAD_URL, &data_dir)?;
-            }
-
-            Datafile::load(&wiitdb_path)
-        },
-        |res| Message::GotWiitdbDatafile(res.map_err(|e| e.to_string())),
+        async move { load_wiitdb(data_dir).map_err(|e| e.to_string()) },
+        Message::GotWiitdbDatafile,
     )
+}
+
+fn load_wiitdb(data_dir: PathBuf) -> Result<Datafile> {
+    let wiitdb_path = data_dir.join("wiitdb.xml");
+
+    if !wiitdb_path.exists() {
+        http_util::download_and_extract_zip(DOWNLOAD_URL, &data_dir)?;
+    }
+
+    Datafile::load(&wiitdb_path)
 }

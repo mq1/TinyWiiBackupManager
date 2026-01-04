@@ -12,6 +12,7 @@ mod game_id;
 mod http_util;
 mod message;
 mod notifications;
+mod osc;
 mod state;
 mod ui;
 mod util;
@@ -34,26 +35,18 @@ pub static APP_ICON: LazyLock<Box<[u8]>> = LazyLock::new(|| {
     img.into_rgba8().into_vec().into_boxed_slice()
 });
 
-#[cfg(target_os = "macos")]
-#[inline]
-fn get_app_icon() -> Option<window::Icon> {
-    None
-}
+fn main() -> iced::Result {
+    #[cfg(target_os = "macos")]
+    let icon = None;
 
-#[cfg(not(target_os = "macos"))]
-#[inline]
-fn get_app_icon() -> Option<window::Icon> {
+    #[cfg(not(target_os = "macos"))]
     let icon =
         window::icon::from_rgba(APP_ICON.to_vec(), 512, 512).expect("Failed to create window icon");
 
-    Some(icon)
-}
-
-fn main() -> iced::Result {
     let window = window::Settings {
         size: Size::new(800.0, 600.0),
         min_size: Some(Size::new(800.0, 600.0)),
-        icon: get_app_icon(),
+        icon,
         ..Default::default()
     };
 

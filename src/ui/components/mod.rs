@@ -12,3 +12,4 @@ pub mod nav;
 pub mod notification;
 pub mod notifications;
 pub mod osc;
+pub mod osc_card;
