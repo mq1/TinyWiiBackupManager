@@ -42,6 +42,10 @@ impl Config {
         Ok(())
     }
 
+    pub fn valid_mount_point(&self) -> bool {
+        !self.contents.mount_point.as_os_str().is_empty() && self.contents.mount_point.exists()
+    }
+
     pub fn get_drive_path_str(&self) -> &str {
         self.contents.mount_point.to_str().unwrap_or("Invalid Path")
     }

@@ -4,12 +4,26 @@
 use crate::{message::Message, state::State, ui::components};
 use iced::{
     Element, Length,
-    widget::{Column, Row, column, row, scrollable, space, text},
+    widget::{Column, Row, column, container, row, scrollable, space, text},
 };
 use iced_fonts::lucide;
 use size::Size;
 
 pub fn view(state: &State) -> Element<'_, Message> {
+    if !state.config.valid_mount_point() {
+        return container(
+            row![
+                lucide::arrow_down_left(),
+                text("Click on"),
+                lucide::hard_drive(),
+                text("to select a Drive/Mount Point")
+            ]
+            .spacing(5),
+        )
+        .center(Length::Fill)
+        .into();
+    }
+
     let filter = state.games_filter.to_lowercase();
 
     let mut wii_row = Row::new().width(Length::Fill).spacing(10);
