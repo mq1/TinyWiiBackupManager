@@ -83,6 +83,11 @@ impl OscApp {
     pub fn matches_search(&self, search: &str) -> bool {
         self.search_term.contains(search)
     }
+
+    pub fn get_trimmed_version_str(&self) -> &str {
+        let len = self.meta.version.len().min(8);
+        &self.meta.version[..len]
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -160,16 +165,6 @@ where
 pub struct Description {
     pub short: String,
     pub long: String,
-}
-
-impl OscAppMeta {
-    pub fn trimmed_version(&self) -> &str {
-        if self.version.len() > 10 {
-            &self.version[..10]
-        } else {
-            &self.version
-        }
-    }
 }
 
 #[derive(Debug, Clone, Deserialize, Default)]

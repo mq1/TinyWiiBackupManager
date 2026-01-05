@@ -4,13 +4,13 @@
 use crate::{
     message::Message,
     state::State,
-    ui::{components::my_tooltip, style},
+    ui::{Screen, components::my_tooltip, style},
 };
 use iced::{
     Alignment, Element,
-    widget::{column, container, image, row, space, text},
+    widget::{button, column, container, image, row, space, text},
 };
-use lucide_icons::iced::icon_pin;
+use lucide_icons::iced::{icon_cloud_download, icon_info, icon_monitor_up, icon_pin};
 
 pub fn view(state: &State, i: usize) -> Element<'_, Message> {
     let app = &state.osc_apps[i];
@@ -18,7 +18,7 @@ pub fn view(state: &State, i: usize) -> Element<'_, Message> {
     let mut col = column![
         row![
             icon_pin(),
-            text(&app.meta.version),
+            text(app.get_trimmed_version_str()),
             space::horizontal(),
             text(&app.meta.uncompressed_size)
         ]
@@ -42,7 +42,16 @@ pub fn view(state: &State, i: usize) -> Element<'_, Message> {
             &app.meta.name,
         ))
         .push(space::vertical())
-        .push(row![].spacing(5));
+        .push(
+            row![
+                button(row![icon_info(), text("Info")].spacing(5))
+                    .style(style::rounded_secondary_button)
+                    .on_press(Message::NavigateTo(Screen::OscInfo(i))),
+                button(icon_monitor_up()).style(style::rounded_secondary_button),
+                button(icon_cloud_download()).style(style::rounded_secondary_button)
+            ]
+            .spacing(5),
+        );
 
     container(col).style(style::card).into()
 }

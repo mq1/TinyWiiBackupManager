@@ -17,6 +17,7 @@ pub enum Screen {
     GameInfo(usize),
     HbcApps,
     Osc,
+    OscInfo(usize),
     About,
 }
 
@@ -28,8 +29,9 @@ pub fn view(state: &State) -> Element<'_, Message> {
             match state.screen {
                 Screen::Games => components::games::view(state),
                 Screen::GameInfo(game_i) => components::game_info::view(state, game_i),
-                Screen::HbcApps => components::hbc_apps::view(state),
+                Screen::HbcApps => components::hbc::view(state),
                 Screen::Osc => components::osc::view(state),
+                Screen::OscInfo(osc_i) => components::osc_info::view(state, osc_i),
                 Screen::About => components::about::view(),
             },
         ])

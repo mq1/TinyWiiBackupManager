@@ -23,7 +23,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
         scrollable(
             column![
                 row![
-                    icon_shopping_bag(),
+                    icon_shopping_bag().size(19),
                     text("Open Shop Channel Apps (oscwii.org)").size(18)
                 ]
                 .spacing(5),
