@@ -39,8 +39,9 @@ fn main() -> iced::Result {
     let icon = None;
 
     #[cfg(not(target_os = "macos"))]
-    let icon =
-        window::icon::from_rgba(APP_ICON.to_vec(), 512, 512).expect("Failed to create window icon");
+    let icon = Some(
+        window::icon::from_rgba(APP_ICON.to_vec(), 512, 512).expect("Failed to create window icon"),
+    );
 
     let window = window::Settings {
         size: Size::new(800.0, 600.0),
