@@ -4,7 +4,7 @@
 use crate::{message::Message, state::State, ui::components};
 use iced::{
     Element, Length,
-    widget::{Row, column, row, scrollable, space, text},
+    widget::{Column, Row, column, row, scrollable, space, text},
 };
 use lucide_icons::iced::{icon_box, icon_pointer};
 use size::Size;
@@ -37,9 +37,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
         }
     }
 
-    let mut col = column![components::games_toolbar::view(state)]
-        .spacing(10)
-        .padding(10);
+    let mut col = Column::new().spacing(10).padding(10);
 
     if state.show_wii {
         col = col
@@ -77,5 +75,5 @@ pub fn view(state: &State) -> Element<'_, Message> {
             .push(gc_row.wrap());
     }
 
-    scrollable(col).into()
+    column![components::games_toolbar::view(state), scrollable(col)].into()
 }

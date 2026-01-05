@@ -4,8 +4,9 @@
 use crate::{message::Message, state::State, ui::components};
 use iced::{
     Element, Length,
-    widget::{Row, column, scrollable, text},
+    widget::{Row, column, row, scrollable, text},
 };
+use lucide_icons::iced::icon_shopping_bag;
 
 pub fn view(state: &State) -> Element<'_, Message> {
     let mut row = Row::new().width(Length::Fill).spacing(10);
@@ -20,9 +21,16 @@ pub fn view(state: &State) -> Element<'_, Message> {
     column![
         components::osc_toolbar::view(state),
         scrollable(
-            column![text("Open Shop Channel").size(18), row.wrap()]
-                .spacing(10)
-                .padding(10)
+            column![
+                row![
+                    icon_shopping_bag(),
+                    text("Open Shop Channel Apps (oscwii.org)").size(18)
+                ]
+                .spacing(5),
+                row.wrap()
+            ]
+            .spacing(10)
+            .padding(10)
         ),
     ]
     .into()

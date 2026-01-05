@@ -1,16 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    message::Message,
-    state::State,
-    ui::{components::my_tooltip, style},
-};
+use crate::{message::Message, state::State, ui::style};
 use iced::{
     Alignment, Element,
-    widget::{button, checkbox, container, row, space, text, text_input},
+    widget::{container, row, space, text_input},
 };
-use lucide_icons::iced::{icon_box, icon_plus, icon_pointer, icon_rotate_cw, icon_search};
+use lucide_icons::iced::icon_search;
 
 pub fn view(state: &State) -> Element<'_, Message> {
     row![

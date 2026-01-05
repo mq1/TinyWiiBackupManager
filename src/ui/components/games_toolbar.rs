@@ -61,6 +61,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
             .style(style::rounded_button)
     ]
     .spacing(10)
+    .padding(10)
     .align_y(Alignment::Center)
     .into()
 }
