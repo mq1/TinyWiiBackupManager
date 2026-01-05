@@ -1,13 +1,11 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::app::App;
-use crate::messages::Message;
-use crate::osc::OscApp;
-use crate::{config::SortBy, http};
-use anyhow::{Result, anyhow, bail};
-use egui_phosphor::regular as ph;
-use path_slash::PathBufExt;
+use crate::config::SortBy;
+use crate::message::Message;
+use crate::state::State;
+use anyhow::Result;
+use iced::Task;
 use serde::{Deserialize, Deserializer};
 use size::Size;
 use std::{
@@ -52,32 +50,23 @@ where
 #[derive(Debug, Clone)]
 pub struct HbcApp {
     pub meta: HbcAppMeta,
-    pub image_uri: String,
     pub size: Size,
     pub size_str: String,
     pub path: PathBuf,
     pub search_str: String,
-    pub osc_app_i: Option<u16>,
+    pub image_path: PathBuf,
 }
 
 impl HbcApp {
-    pub fn from_path(path: PathBuf, osc_apps: &[OscApp]) -> Result<Self> {
+    pub fn from_path(path: PathBuf) -> Option<Self> {
         if !path.is_dir() {
-            bail!("{} {} is not a directory", ph::FILE_X, path.display());
+            return None;
         }
 
-        let slug = path
-            .file_name()
-            .ok_or(anyhow!("{} No file name found", ph::FILE_X))?
-            .to_str()
-            .ok_or(anyhow!("{} Invalid file name", ph::FILE_X))?;
+        let slug = path.file_name()?.to_str()?;
 
         if slug.starts_with('.') {
-            bail!(
-                "{} Skipping hidden directory {}",
-                ph::FOLDER_DASHED,
-                path.display()
-            );
+            return None;
         }
 
         let meta_path = path.join("meta").with_extension("xml");
@@ -85,7 +74,7 @@ impl HbcApp {
         let mut meta = quick_xml::de::from_str::<HbcAppMeta>(&meta).unwrap_or_default();
 
         if meta.name.is_empty() {
-            bail!("No name found in {}", path.display());
+            return None;
         }
 
         meta.name = meta.name.trim().to_string();
@@ -94,23 +83,16 @@ impl HbcApp {
         let size_str = size.to_string();
 
         let image_path = path.join("icon.png");
-        let image_uri = format!("file://{}", image_path.to_slash_lossy());
 
-        let search_str = (meta.name.clone() + slug).to_lowercase();
+        let search_str = format!("{}{}", &meta.name, &slug).to_lowercase();
 
-        let osc_app_i = osc_apps
-            .iter()
-            .position(|osc_app| osc_app.meta.name == meta.name)
-            .map(|i| i as u16);
-
-        Ok(Self {
+        Some(Self {
             meta,
             path,
             size,
             size_str,
             search_str,
-            image_uri,
-            osc_app_i,
+            image_path,
         })
     }
 
@@ -119,24 +101,27 @@ impl HbcApp {
     }
 }
 
-pub fn list(mount_point: &Path, osc_apps: &[OscApp]) -> Vec<HbcApp> {
-    let mut hbc_apps = Vec::new();
+pub fn get_list_hbc_apps_task(state: &State) -> Task<Message> {
+    let mount_point = state.config.get_drive_path().to_path_buf();
 
-    if mount_point.as_os_str().is_empty() {
-        return hbc_apps;
-    }
+    Task::perform(
+        async move { list(mount_point).map_err(|e| e.to_string()) },
+        Message::GotHbcApps,
+    )
+}
 
+fn list(mount_point: PathBuf) -> Result<Box<[HbcApp]>> {
     let apps_dir = mount_point.join("apps");
 
-    if let Ok(entries) = fs::read_dir(&apps_dir) {
-        for entry in entries.filter_map(Result::ok) {
-            if let Ok(hbc_app) = HbcApp::from_path(entry.path(), osc_apps) {
-                hbc_apps.push(hbc_app);
-            }
-        }
-    }
+    let entries = fs::read_dir(&apps_dir)?;
 
-    hbc_apps
+    let hbc_apps = entries
+        .filter_map(Result::ok)
+        .map(|e| e.path())
+        .filter_map(HbcApp::from_path)
+        .collect();
+
+    Ok(hbc_apps)
 }
 
 fn install_zip(mount_point: &Path, path: &Path) -> Result<()> {
@@ -146,65 +131,6 @@ fn install_zip(mount_point: &Path, path: &Path) -> Result<()> {
     archive.extract(mount_point)?;
 
     Ok(())
-}
-
-pub fn spawn_install_app_from_url_task(app: &App, zip_url: String) {
-    let mount_point = app.config.contents.mount_point.clone();
-
-    app.task_processor.spawn(move |msg_sender| {
-        msg_sender.send(Message::UpdateStatus(format!(
-            "{} Downloading {}...",
-            ph::CLOUD_ARROW_DOWN,
-            &zip_url
-        )))?;
-
-        http::download_and_extract_zip(&zip_url, &mount_point)?;
-
-        msg_sender.send(Message::TriggerRefreshHbcApps)?;
-
-        msg_sender.send(Message::NotifyInfo(format!(
-            "{} {} Downloaded",
-            ph::CLOUD_ARROW_DOWN,
-            &zip_url
-        )))?;
-
-        Ok(())
-    });
-}
-
-pub fn spawn_install_apps_task(app: &App, paths: Box<[PathBuf]>) {
-    let remove_sources = app.config.contents.remove_sources_apps;
-    let mount_point = app.config.contents.mount_point.clone();
-
-    app.task_processor.spawn(move |msg_sender| {
-        msg_sender.send(Message::UpdateStatus(format!(
-            "{} Installing apps...",
-            ph::WAVES
-        )))?;
-
-        for path in &paths {
-            msg_sender.send(Message::UpdateStatus(format!(
-                "{} Installing {}...",
-                ph::WAVES,
-                path.display()
-            )))?;
-            install_zip(&mount_point, path)?;
-
-            if remove_sources {
-                fs::remove_file(path)?;
-            }
-
-            msg_sender.send(Message::TriggerRefreshHbcApps)?;
-
-            msg_sender.send(Message::NotifyInfo(format!(
-                "{} Installed {}",
-                ph::WAVES,
-                path.display()
-            )))?;
-        }
-
-        Ok(())
-    });
 }
 
 pub trait HbcApps {

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{game::Game, osc::OscApp, ui::Screen, wiitdb};
+use crate::{game::Game, hbc::HbcApp, osc::OscApp, ui::Screen, wiitdb};
 use iced::font;
 use std::path::PathBuf;
 
@@ -27,4 +27,6 @@ pub enum Message {
     FontLoaded(Result<(), font::Error>),
     OpenOscPage(usize),
     GotGames(Result<Box<[Game]>, String>),
+    GotHbcApps(Result<Box<[HbcApp]>, String>),
+    GotDriveUsage(String),
 }

@@ -1,8 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::extensions::SUPPORTED_DISC_EXTENSIONS;
+use crate::{extensions::SUPPORTED_DISC_EXTENSIONS, message::Message, state::State};
 use anyhow::Result;
+use iced::Task;
 use size::Size;
 use std::{
     ffi::OsStr,
@@ -48,7 +49,16 @@ pub fn sanitize(s: &str) -> String {
         .to_string()
 }
 
-pub fn get_drive_usage(mount_point: &Path) -> String {
+pub fn get_drive_usage_task(state: &State) -> Task<Message> {
+    let drive_path = state.config.get_drive_path().to_path_buf();
+
+    Task::perform(
+        async move { get_drive_usage(drive_path) },
+        Message::GotDriveUsage,
+    )
+}
+
+fn get_drive_usage(mount_point: PathBuf) -> String {
     if mount_point.as_os_str().is_empty() {
         return "0 bytes/0 bytes".to_string();
     }

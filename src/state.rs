@@ -6,6 +6,7 @@ use crate::{
     data_dir::get_data_dir,
     game::{self, Game, Games},
     game_id::GameID,
+    hbc::{self, HbcApp},
     message::Message,
     notifications::Notifications,
     osc::{self, OscApp},
@@ -22,7 +23,7 @@ pub struct State {
     pub config: Config,
     pub games: Box<[Game]>,
     pub games_filter: String,
-    pub hbc_apps: Vec<()>,
+    pub hbc_apps: Box<[HbcApp]>,
     pub osc_apps: Box<[OscApp]>,
     pub wiitdb: Option<wiitdb::Datafile>,
     pub notifications: Notifications,
@@ -37,22 +38,19 @@ impl State {
         let data_dir = get_data_dir().expect("Failed to get data dir");
         let config = Config::load(&data_dir);
 
-        let drive_path = config.get_drive_path();
-        let drive_usage = util::get_drive_usage(drive_path);
-
         let initial_state = Self {
             screen: Screen::Games,
             data_dir,
             config,
             games: Box::new([]),
             games_filter: String::new(),
-            hbc_apps: Vec::new(),
+            hbc_apps: Box::new([]),
             osc_apps: Box::new([]),
             wiitdb: None,
             notifications: Notifications::new(),
             show_wii: true,
             show_gc: true,
-            drive_usage,
+            drive_usage: String::new(),
             osc_filter: String::new(),
         };
 
@@ -60,6 +58,7 @@ impl State {
             wiitdb::get_load_wiitdb_task(&initial_state),
             game::get_list_games_task(&initial_state),
             osc::get_load_osc_apps_task(&initial_state),
+            util::get_drive_usage_task(&initial_state),
             font::load(LUCIDE_FONT_BYTES).map(Message::FontLoaded),
         ]);
 
@@ -91,15 +90,11 @@ impl State {
                 self.screen = screen;
                 Task::none()
             }
-            Message::RefreshGamesAndApps => {
-                let drive_path = self.config.get_drive_path();
-
-                self.games.sort(SortBy::None, self.config.get_sort_by());
-                self.hbc_apps.clear(); // TODO
-                self.drive_usage = util::get_drive_usage(drive_path);
-
-                game::get_list_games_task(self)
-            }
+            Message::RefreshGamesAndApps => Task::batch(vec![
+                game::get_list_games_task(self),
+                hbc::get_list_hbc_apps_task(self),
+                util::get_drive_usage_task(self),
+            ]),
             Message::OpenProjectRepo => {
                 if let Err(e) = open::that(env!("CARGO_PKG_REPOSITORY")) {
                     self.notifications.error(e);
@@ -242,6 +237,21 @@ impl State {
                         self.notifications.error(e);
                     }
                 }
+                Task::none()
+            }
+            Message::GotHbcApps(res) => {
+                match res {
+                    Ok(hbc_apps) => {
+                        self.hbc_apps = hbc_apps;
+                    }
+                    Err(e) => {
+                        self.notifications.error(e);
+                    }
+                }
+                Task::none()
+            }
+            Message::GotDriveUsage(usage) => {
+                self.drive_usage = usage;
                 Task::none()
             }
         }

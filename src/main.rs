@@ -9,6 +9,7 @@ mod data_dir;
 mod extensions;
 mod game;
 mod game_id;
+mod hbc;
 mod http_util;
 mod message;
 mod notifications;
