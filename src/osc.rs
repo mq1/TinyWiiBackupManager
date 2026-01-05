@@ -169,7 +169,7 @@ where
     D: Deserializer<'de>,
 {
     let date_time = time::serde::timestamp::deserialize(deserializer)?;
-    Ok(date_time.to_string())
+    Ok(date_time.date().to_string())
 }
 
 #[derive(Debug, Clone, Deserialize, Default)]
