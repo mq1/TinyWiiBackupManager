@@ -20,18 +20,16 @@ mod wiitdb;
 
 use crate::{notifications::notifications_subscription, state::State};
 use iced::{Size, window};
-use image::{DynamicImage, codecs::png::PngDecoder};
-use std::{io::Cursor, sync::LazyLock};
+use std::sync::LazyLock;
 
 pub static APP_ICON: LazyLock<Vec<u8>> = LazyLock::new(|| {
-    let decoder = PngDecoder::new(Cursor::new(include_bytes!(
-        "../assets/TinyWiiBackupManager.png"
-    )))
-    .expect("Failed to decode app icon png data");
-
-    let img = DynamicImage::from_decoder(decoder).expect("Failed to load app icon");
-
-    img.into_rgba8().into_vec()
+    image::load_from_memory_with_format(
+        include_bytes!("../assets/TinyWiiBackupManager.png"),
+        image::ImageFormat::Png,
+    )
+    .expect("Failed to load app icon")
+    .into_rgba8()
+    .into_vec()
 });
 
 fn main() -> iced::Result {
