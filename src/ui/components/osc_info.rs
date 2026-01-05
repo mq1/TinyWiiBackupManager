@@ -8,7 +8,7 @@ use crate::{
     ui::style,
 };
 use iced::{
-    Element,
+    Element, Length,
     widget::{button, column, image, row, rule, scrollable, space, stack, text},
 };
 use iced_fonts::lucide;
@@ -114,7 +114,7 @@ pub fn view(state: &State, osc_i: usize) -> Element<'_, Message> {
         ]
         .spacing(5),
         rule::horizontal(1),
-        scrollable(text(&app.meta.description.long)),
+        scrollable(text(&app.meta.description.long)).width(Length::Fill),
         space::vertical(),
         row![
             button(row![lucide::globe(), text("Open OSC Page")].spacing(5))
