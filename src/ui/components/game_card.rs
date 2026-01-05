@@ -30,7 +30,7 @@ pub fn view(state: &State, i: usize) -> Element<'_, Message> {
     .spacing(5)
     .padding(10)
     .width(170)
-    .height(220)
+    .height(210)
     .align_x(Alignment::Center);
 
     if let Some(cover) = state.get_game_cover(game) {
