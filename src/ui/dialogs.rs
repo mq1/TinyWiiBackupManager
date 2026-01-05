@@ -3,6 +3,7 @@
 
 use crate::extensions::{HBC_APP_EXTENSIONS, SUPPORTED_INPUT_EXTENSIONS, ZIP_EXTENSIONS};
 use crate::util;
+use futures::future::join_all;
 use iced::Window;
 use native_dialog::{DialogBuilder, MessageLevel};
 use std::ffi::OsStr;
@@ -19,7 +20,7 @@ pub fn choose_mount_point(window: &dyn Window) -> Option<PathBuf> {
 }
 
 pub fn choose_games(window: &dyn Window) -> Box<[PathBuf]> {
-    let mut paths = DialogBuilder::file()
+    let paths = DialogBuilder::file()
         .set_title("Select games")
         .set_owner(&window)
         .add_filter("Nintendo Optical Disc", SUPPORTED_INPUT_EXTENSIONS)
@@ -27,9 +28,15 @@ pub fn choose_games(window: &dyn Window) -> Box<[PathBuf]> {
         .show()
         .unwrap_or_default();
 
-    paths.retain(|p| util::is_valid_disc_file(p));
+    let paths = paths.into_iter().map(|p| async {
+        if util::is_valid_disc_file(&p).await {
+            Some(p)
+        } else {
+            None
+        }
+    });
 
-    paths.into_boxed_slice()
+    smol::block_on(async { join_all(paths).await.into_iter().flatten().collect() })
 }
 
 pub fn choose_src_dir(window: &dyn Window) -> Option<PathBuf> {

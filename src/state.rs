@@ -171,7 +171,7 @@ impl State {
             }
             Message::DeleteGame(i, yes) => {
                 if yes {
-                    if let Err(e) = self.games[i].delete() {
+                    if let Err(e) = smol::block_on(self.games[i].delete()) {
                         self.notifications.error(e);
                     } else {
                         return self.update(Message::RefreshGamesAndApps);

@@ -2,10 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{config::SortBy, game_id::GameID, message::Message, state::State};
-use iced::{Task, futures::TryFutureExt};
+use futures::TryFutureExt;
+use iced::Task;
 use size::Size;
-use smol::{future::try_zip, stream::StreamExt};
-use std::{fs, io, path::PathBuf};
+use smol::{fs, future::try_zip, io, stream::StreamExt};
+use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
 pub struct Game {
@@ -55,8 +56,8 @@ impl Game {
         open::that(url)
     }
 
-    pub fn delete(&self) -> io::Result<()> {
-        fs::remove_dir_all(&self.path)
+    pub async fn delete(&self) -> io::Result<()> {
+        fs::remove_dir_all(&self.path).await
     }
 
     pub fn matches_search(&self, filter: &str) -> bool {
@@ -94,7 +95,7 @@ async fn read_game_dir(game_dir: PathBuf, is_wii: bool) -> io::Result<Vec<Game>>
         return Ok(Vec::new());
     }
 
-    let mut entries = smol::fs::read_dir(game_dir).await?;
+    let mut entries = fs::read_dir(game_dir).await?;
 
     let mut games = Vec::new();
     while let Some(entry) = entries.try_next().await? {

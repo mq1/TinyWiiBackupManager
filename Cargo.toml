@@ -40,9 +40,6 @@ directories = "6.0"
 anyhow = "1.0"
 fs_extra = "1.3"
 size = { version = "0.5", features = ["serde"] }
-zip = { version = "7.0", default-features = false, features = [
-  "deflate-flate2",
-] }
 quick-xml = { version = "0.38", features = ["serialize"] }
 sysinfo = "0.37"
 open = "5.3"
@@ -58,6 +55,8 @@ time = { version = "0.3", features = ["macros", "parsing", "serde"] }
 walkdir = "2.5"
 sanitize-filename = "0.7.0-beta"
 smol = "*"
+futures = "*"
+async_zip = { version = "0.0.18", features = ["deflate"] }
 
 #[target.'cfg(target_os = "macos")'.dependencies]
 #wgpu = { version = "27", default-features = false, features = [

@@ -7,6 +7,7 @@ use crate::message::Message;
 use crate::state::State;
 use anyhow::Result;
 use capitalize::Capitalize;
+use futures::TryFutureExt;
 use iced::Task;
 use serde::Deserialize;
 use std::fs;
@@ -292,16 +293,16 @@ pub fn get_load_wiitdb_task(state: &State) -> Task<Message> {
     let data_dir = state.data_dir.clone();
 
     Task::perform(
-        async move { load_wiitdb(data_dir).map_err(|e| e.to_string()) },
+        load_wiitdb(data_dir).map_err(|e| e.to_string()),
         Message::GotWiitdbDatafile,
     )
 }
 
-fn load_wiitdb(data_dir: PathBuf) -> Result<Datafile> {
+async fn load_wiitdb(data_dir: PathBuf) -> Result<Datafile> {
     let wiitdb_path = data_dir.join("wiitdb.xml");
 
     if !wiitdb_path.exists() {
-        http_util::download_and_extract_zip(DOWNLOAD_URL, &data_dir)?;
+        http_util::download_and_extract_zip(DOWNLOAD_URL, &data_dir).await?;
     }
 
     Datafile::load(&wiitdb_path)

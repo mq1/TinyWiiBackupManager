@@ -3,11 +3,12 @@
 
 use crate::{http_util, message::Message, state::State};
 use anyhow::{Result, bail};
+use futures::TryFutureExt;
 use iced::Task;
 use serde::{Deserialize, Deserializer};
 use size::Size;
+use smol::{fs, io};
 use std::{
-    fs, io,
     path::{Path, PathBuf},
     time::Duration,
 };
@@ -19,22 +20,22 @@ pub fn get_load_osc_apps_task(state: &State) -> Task<Message> {
     let data_dir = state.data_dir.clone();
 
     Task::perform(
-        async move { load_osc_apps(data_dir).map_err(|e| e.to_string()) },
+        load_osc_apps(data_dir).map_err(|e| e.to_string()),
         Message::GotOscApps,
     )
 }
 
-fn load_osc_apps(data_dir: PathBuf) -> Result<Box<[OscApp]>> {
+async fn load_osc_apps(data_dir: PathBuf) -> Result<Box<[OscApp]>> {
     let cache_path = data_dir.join("osc-cache.json");
     let icons_dir = data_dir.join("osc-icons");
 
-    fs::create_dir_all(&icons_dir)?;
+    fs::create_dir_all(&icons_dir).await?;
 
-    let cache = match load_cache(&cache_path) {
+    let cache = match load_cache(&cache_path).await {
         Some(cache) => cache,
         None => {
             let bytes = http_util::get(CONTENTS_URL)?;
-            fs::write(&cache_path, &bytes)?;
+            fs::write(&cache_path, &bytes).await?;
             serde_json::from_slice(&bytes)?
         }
     };
@@ -44,9 +45,9 @@ fn load_osc_apps(data_dir: PathBuf) -> Result<Box<[OscApp]>> {
     Ok(apps)
 }
 
-fn load_cache(path: &Path) -> Option<Vec<OscAppMeta>> {
+async fn load_cache(path: &Path) -> Option<Vec<OscAppMeta>> {
     // get file time
-    let file_time = fs::metadata(path).ok()?.modified().ok()?;
+    let file_time = fs::metadata(path).await.ok()?.modified().ok()?;
 
     // get difference
     let elapsed = file_time.elapsed().ok()?;
@@ -55,20 +56,20 @@ fn load_cache(path: &Path) -> Option<Vec<OscAppMeta>> {
         return None;
     }
 
-    let bytes = fs::read(path).ok()?;
+    let bytes = fs::read(path).await.ok()?;
     let apps = serde_json::from_slice(&bytes).ok()?;
 
     Some(apps)
 }
 
-pub fn download_icon(meta: &OscAppMeta, icons_dir: &Path) -> Result<()> {
+pub async fn download_icon(meta: &OscAppMeta, icons_dir: &Path) -> Result<()> {
     let icon_path = icons_dir.join(&meta.slug).with_extension("png");
 
     if icon_path.exists() {
         bail!("{} already exists", icon_path.display());
     }
 
-    http_util::download_file(&meta.assets.icon.url, &icon_path)?;
+    http_util::download_file(&meta.assets.icon.url, &icon_path).await?;
 
     Ok(())
 }

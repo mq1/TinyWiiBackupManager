@@ -5,17 +5,16 @@ use crate::config::SortBy;
 use crate::message::Message;
 use crate::state::State;
 use anyhow::Result;
+use futures::TryFutureExt;
+use futures::future::join_all;
 use iced::Task;
 use serde::{Deserialize, Deserializer};
 use size::Size;
-use std::{
-    fs::{self, File},
-    io::BufReader,
-    path::{Path, PathBuf},
-};
+use smol::fs;
+use smol::stream::StreamExt;
+use std::path::PathBuf;
 use time::PrimitiveDateTime;
 use time::macros::format_description;
-use zip::ZipArchive;
 
 #[derive(Debug, Clone, Deserialize, Default)]
 #[serde(default)]
@@ -58,7 +57,7 @@ pub struct HbcApp {
 }
 
 impl HbcApp {
-    pub fn from_path(path: PathBuf) -> Option<Self> {
+    pub async fn from_path(path: PathBuf) -> Option<Self> {
         if !path.is_dir() {
             return None;
         }
@@ -70,7 +69,7 @@ impl HbcApp {
         }
 
         let meta_path = path.join("meta").with_extension("xml");
-        let meta = fs::read_to_string(&meta_path).unwrap_or_default();
+        let meta = fs::read_to_string(&meta_path).await.unwrap_or_default();
         let mut meta = quick_xml::de::from_str::<HbcAppMeta>(&meta).unwrap_or_default();
 
         if meta.name.is_empty() {
@@ -105,32 +104,23 @@ pub fn get_list_hbc_apps_task(state: &State) -> Task<Message> {
     let mount_point = state.config.get_drive_path().to_path_buf();
 
     Task::perform(
-        async move { list(mount_point).map_err(|e| e.to_string()) },
+        list(mount_point).map_err(|e| e.to_string()),
         Message::GotHbcApps,
     )
 }
 
-fn list(mount_point: PathBuf) -> Result<Box<[HbcApp]>> {
+async fn list(mount_point: PathBuf) -> Result<Box<[HbcApp]>> {
     let apps_dir = mount_point.join("apps");
 
-    let entries = fs::read_dir(&apps_dir)?;
+    let mut entries = fs::read_dir(&apps_dir).await?;
 
-    let hbc_apps = entries
-        .filter_map(Result::ok)
-        .map(|e| e.path())
-        .filter_map(HbcApp::from_path)
-        .collect();
+    let mut hbc_apps = Vec::new();
+    while let Some(entry) = entries.try_next().await? {
+        let path = entry.path();
+        hbc_apps.push(HbcApp::from_path(path));
+    }
 
-    Ok(hbc_apps)
-}
-
-fn install_zip(mount_point: &Path, path: &Path) -> Result<()> {
-    let file = File::open(path)?;
-    let reader = BufReader::new(file);
-    let mut archive = ZipArchive::new(reader)?;
-    archive.extract(mount_point)?;
-
-    Ok(())
+    Ok(join_all(hbc_apps).await.into_iter().flatten().collect())
 }
 
 pub trait HbcApps {
