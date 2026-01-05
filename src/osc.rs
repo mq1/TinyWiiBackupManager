@@ -11,7 +11,6 @@ use std::{
     path::{Path, PathBuf},
     time::Duration,
 };
-use time::OffsetDateTime;
 
 const CONTENTS_URL: &str = "https://hbb1.oscwii.org/api/v4/contents";
 
