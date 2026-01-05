@@ -79,7 +79,7 @@ pub fn view(state: &State, osc_i: usize) -> Element<'_, Message> {
         row![
             lucide::calendar(),
             text("Release Date:"),
-            text(&app.meta.release_date)
+            text(app.meta.release_date.to_string())
         ]
         .spacing(5),
         row![

@@ -11,6 +11,7 @@ use std::{
     path::{Path, PathBuf},
     time::Duration,
 };
+use time::Date;
 
 const CONTENTS_URL: &str = "https://hbb1.oscwii.org/api/v4/contents";
 
@@ -151,9 +152,9 @@ pub struct OscAppMeta {
     #[serde(default)]
     pub version: String,
 
-    #[serde(deserialize_with = "timestamp_to_string")]
-    #[serde(default)]
-    pub release_date: String,
+    #[serde(deserialize_with = "timestamp_to_date")]
+    #[serde(default = "min_date")]
+    pub release_date: Date,
 }
 
 fn size_to_string<'de, D>(deserializer: D) -> Result<String, D::Error>
@@ -164,12 +165,16 @@ where
     Ok(size.to_string())
 }
 
-fn timestamp_to_string<'de, D>(deserializer: D) -> Result<String, D::Error>
+fn timestamp_to_date<'de, D>(deserializer: D) -> Result<Date, D::Error>
 where
     D: Deserializer<'de>,
 {
     let date_time = time::serde::timestamp::deserialize(deserializer)?;
-    Ok(date_time.date().to_string())
+    Ok(date_time.date())
+}
+
+fn min_date() -> Date {
+    Date::MIN
 }
 
 #[derive(Debug, Clone, Deserialize, Default)]
