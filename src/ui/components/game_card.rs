@@ -18,7 +18,7 @@ pub fn view(state: &State, i: usize) -> Element<'_, Message> {
 
     let mut col = column![
         row![
-            icon_tag(),
+            icon_tag().size(12),
             text(game.id.as_str()),
             space::horizontal(),
             text(game.size.to_string())
