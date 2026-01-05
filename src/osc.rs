@@ -7,7 +7,7 @@ use iced::Task;
 use serde::{Deserialize, Deserializer};
 use size::Size;
 use std::{
-    fs,
+    fs, io,
     path::{Path, PathBuf},
     time::Duration,
 };
@@ -87,6 +87,11 @@ impl OscApp {
     pub fn get_trimmed_version_str(&self) -> &str {
         let len = self.meta.version.len().min(8);
         &self.meta.version[..len]
+    }
+
+    pub fn open_page(&self) -> io::Result<()> {
+        let url = format!("https://oscwii.org/library/app/{}", &self.meta.slug);
+        open::that(url)
     }
 }
 

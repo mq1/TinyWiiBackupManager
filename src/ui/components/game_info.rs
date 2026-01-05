@@ -13,7 +13,7 @@ pub fn view(state: &State, game_i: usize) -> Element<'_, Message> {
 
     let mut row = row![
         column![
-            row![lucide::gamepad().size(19), text(&game.title).size(18)].spacing(5),
+            row![lucide::gamepad_two().size(19), text(&game.title).size(18)].spacing(5),
             row![lucide::folder(), text("Path:"), text(game.get_path_str())].spacing(5),
             rule::horizontal(1),
             row![

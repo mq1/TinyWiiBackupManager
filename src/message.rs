@@ -26,4 +26,6 @@ pub enum Message {
     OpenGameTdb(usize),
     UpdateOscFilter(String),
     FontLoaded(Result<(), font::Error>),
+    OpenOscIcon(usize),
+    OpenOscPage(usize),
 }

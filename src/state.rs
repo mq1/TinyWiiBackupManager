@@ -230,6 +230,23 @@ impl State {
                 }
                 Task::none()
             }
+            Message::OpenOscIcon(osc_i) => {
+                if let Some(path) = self.get_osc_app_icon(&self.osc_apps[osc_i]) {
+                    if let Err(e) = open::that(path) {
+                        self.notifications.error(e.to_string());
+                    }
+                } else {
+                    self.notifications.error("App icon not found".to_string());
+                }
+
+                Task::none()
+            }
+            Message::OpenOscPage(osc_i) => {
+                if let Err(e) = self.osc_apps[osc_i].open_page() {
+                    self.notifications.error(e.to_string());
+                }
+                Task::none()
+            }
         }
     }
 
