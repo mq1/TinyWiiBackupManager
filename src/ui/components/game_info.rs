@@ -55,13 +55,7 @@ pub fn view(state: &State, game_i: usize) -> Element<'_, Message> {
     match state.get_game_cover(game) {
         Some(cover) => stack![
             col,
-            row![
-                space::horizontal(),
-                button(image(cover).height(100))
-                    .style(button::text)
-                    .on_press(Message::OpenGameCover(game_i)),
-            ]
-            .padding(10)
+            row![space::horizontal(), image(cover).height(248)].padding(10)
         ]
         .into(),
         None => col.into(),

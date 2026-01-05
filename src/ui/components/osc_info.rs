@@ -135,9 +135,10 @@ pub fn view(state: &State, osc_i: usize) -> Element<'_, Message> {
             col,
             row![
                 space::horizontal(),
-                button(image(icon).height(50))
-                    .style(button::text)
-                    .on_press(Message::OpenOscIcon(osc_i)),
+                image(icon)
+                    .height(96)
+                    .expand(true)
+                    .filter_method(image::FilterMethod::Linear)
             ]
             .padding(10)
         ]

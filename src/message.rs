@@ -21,11 +21,9 @@ pub enum Message {
     AskDeleteGame(usize),
     DeleteGame(usize, bool),
     OpenGameDir(usize),
-    OpenGameCover(usize),
     GotOscApps(Result<Box<[OscApp]>, String>),
     OpenGameTdb(usize),
     UpdateOscFilter(String),
     FontLoaded(Result<(), font::Error>),
-    OpenOscIcon(usize),
     OpenOscPage(usize),
 }

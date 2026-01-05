@@ -33,7 +33,7 @@ pub fn view(state: &State, i: usize) -> Element<'_, Message> {
     .align_x(Alignment::Center);
 
     if let Some(icon) = state.get_osc_app_icon(app) {
-        col = col.push(image(icon).height(50));
+        col = col.push(image(icon).height(48));
     }
 
     col = col

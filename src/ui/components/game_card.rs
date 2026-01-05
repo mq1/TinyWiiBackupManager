@@ -30,11 +30,15 @@ pub fn view(state: &State, i: usize) -> Element<'_, Message> {
     .spacing(5)
     .padding(10)
     .width(170)
-    .height(210)
+    .height(205)
     .align_x(Alignment::Center);
 
     if let Some(cover) = state.get_game_cover(game) {
-        col = col.push(image(cover).height(100));
+        col = col.push(
+            image(cover)
+                .height(93)
+                .filter_method(image::FilterMethod::Linear),
+        );
     }
 
     col = col
