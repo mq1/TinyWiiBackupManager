@@ -1,13 +1,11 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::{config::SortBy, game_id::GameID, message::Message, state::State};
+use anyhow::Result;
+use iced::Task;
 use size::Size;
-use std::{
-    fs, io,
-    path::{Path, PathBuf},
-};
-
-use crate::{config::SortBy, game_id::GameID, wiitdb};
+use std::{fs, io, path::PathBuf};
 
 #[derive(Debug, Clone)]
 pub struct Game {
@@ -70,37 +68,40 @@ impl Game {
     }
 }
 
-pub fn list(drive_path: &Path, wiitdb: &Option<wiitdb::Datafile>) -> Box<[Game]> {
-    let mut games = Vec::new();
+pub fn get_list_games_task(state: &State) -> Task<Message> {
+    let drive_path = state.config.get_drive_path().to_path_buf();
 
-    let mut wii_games = read_game_dir(drive_path.join("wbfs"), true);
-    let mut gc_games = read_game_dir(drive_path.join("games"), false);
-
-    games.append(&mut wii_games);
-    games.append(&mut gc_games);
-    let mut games = games.into_boxed_slice();
-
-    if let Some(wiitdb) = &wiitdb {
-        for game in &mut games {
-            if let Some(title) = wiitdb.get_title(game.id) {
-                game.title = title;
-            }
-        }
-    }
-
-    games
+    Task::perform(
+        async move { list(drive_path).map_err(|e| e.to_string()) },
+        Message::GotGames,
+    )
 }
 
-fn read_game_dir(game_dir: PathBuf, is_wii: bool) -> Vec<Game> {
-    let entries = match fs::read_dir(game_dir) {
-        Ok(e) => e,
-        Err(_) => return Vec::new(),
-    };
+fn list(drive_path: PathBuf) -> Result<Box<[Game]>> {
+    let mut games = Vec::new();
 
-    entries
+    let wii_path = drive_path.join("wbfs");
+    if wii_path.exists() {
+        games.append(&mut read_game_dir(wii_path, true)?);
+    }
+
+    let gc_path = drive_path.join("games");
+    if gc_path.exists() {
+        games.append(&mut read_game_dir(gc_path, false)?);
+    }
+
+    Ok(games.into_boxed_slice())
+}
+
+fn read_game_dir(game_dir: PathBuf, is_wii: bool) -> Result<Vec<Game>> {
+    let entries = fs::read_dir(game_dir)?;
+
+    let games = entries
         .filter_map(Result::ok)
         .filter_map(|e| Game::from_path(e.path(), is_wii))
-        .collect()
+        .collect();
+
+    Ok(games)
 }
 
 pub trait Games {

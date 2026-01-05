@@ -38,14 +38,13 @@ impl State {
         let config = Config::load(&data_dir);
 
         let drive_path = config.get_drive_path();
-        let games = game::list(drive_path, &None);
         let drive_usage = util::get_drive_usage(drive_path);
 
         let initial_state = Self {
             screen: Screen::Games,
             data_dir,
             config,
-            games,
+            games: Box::new([]),
             games_filter: String::new(),
             hbc_apps: Vec::new(),
             osc_apps: Box::new([]),
@@ -59,6 +58,7 @@ impl State {
 
         let tasks = Task::batch(vec![
             wiitdb::get_load_wiitdb_task(&initial_state),
+            game::get_list_games_task(&initial_state),
             osc::get_load_osc_apps_task(&initial_state),
             font::load(LUCIDE_FONT_BYTES).map(Message::FontLoaded),
         ]);
@@ -94,12 +94,11 @@ impl State {
             Message::RefreshGamesAndApps => {
                 let drive_path = self.config.get_drive_path();
 
-                self.games = game::list(drive_path, &self.wiitdb);
                 self.games.sort(SortBy::None, self.config.get_sort_by());
                 self.hbc_apps.clear(); // TODO
                 self.drive_usage = util::get_drive_usage(drive_path);
 
-                Task::none()
+                game::get_list_games_task(self)
             }
             Message::OpenProjectRepo => {
                 if let Err(e) = open::that(env!("CARGO_PKG_REPOSITORY")) {
@@ -221,6 +220,27 @@ impl State {
             Message::OpenOscPage(osc_i) => {
                 if let Err(e) = self.osc_apps[osc_i].open_page() {
                     self.notifications.error(e);
+                }
+                Task::none()
+            }
+            Message::GotGames(res) => {
+                match res {
+                    Ok(games) => {
+                        self.games = games;
+
+                        if let Some(wiitdb) = &self.wiitdb {
+                            for game in &mut self.games {
+                                if let Some(title) = wiitdb.get_title(game.id) {
+                                    game.title = title;
+                                }
+                            }
+                        }
+
+                        self.games.sort(SortBy::None, self.config.get_sort_by());
+                    }
+                    Err(e) => {
+                        self.notifications.error(e);
+                    }
                 }
                 Task::none()
             }
