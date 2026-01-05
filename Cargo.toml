@@ -57,6 +57,7 @@ itertools = "0.14"
 time = { version = "0.3", features = ["macros", "parsing", "serde"] }
 walkdir = "2.5"
 sanitize-filename = "0.7.0-beta"
+smol = "*"
 
 #[target.'cfg(target_os = "macos")'.dependencies]
 #wgpu = { version = "27", default-features = false, features = [

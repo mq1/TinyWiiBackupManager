@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{config::SortBy, game_id::GameID, message::Message, state::State};
-use anyhow::Result;
-use iced::Task;
+use iced::{Task, futures::TryFutureExt};
 use size::Size;
+use smol::{future::try_zip, stream::StreamExt};
 use std::{fs, io, path::PathBuf};
 
 #[derive(Debug, Clone)]
@@ -72,34 +72,36 @@ pub fn get_list_games_task(state: &State) -> Task<Message> {
     let drive_path = state.config.get_drive_path().to_path_buf();
 
     Task::perform(
-        async move { list(drive_path).map_err(|e| e.to_string()) },
+        list(drive_path).map_err(|e| e.to_string()),
         Message::GotGames,
     )
 }
 
-fn list(drive_path: PathBuf) -> Result<Box<[Game]>> {
-    let mut games = Vec::new();
-
+async fn list(drive_path: PathBuf) -> io::Result<Box<[Game]>> {
     let wii_path = drive_path.join("wbfs");
-    if wii_path.exists() {
-        games.append(&mut read_game_dir(wii_path, true)?);
-    }
-
     let gc_path = drive_path.join("games");
-    if gc_path.exists() {
-        games.append(&mut read_game_dir(gc_path, false)?);
-    }
 
-    Ok(games.into_boxed_slice())
+    let (mut wii_games, mut gc_games) =
+        try_zip(read_game_dir(wii_path, true), read_game_dir(gc_path, false)).await?;
+
+    wii_games.append(&mut gc_games);
+
+    Ok(wii_games.into_boxed_slice())
 }
 
-fn read_game_dir(game_dir: PathBuf, is_wii: bool) -> Result<Vec<Game>> {
-    let entries = fs::read_dir(game_dir)?;
+async fn read_game_dir(game_dir: PathBuf, is_wii: bool) -> io::Result<Vec<Game>> {
+    if !game_dir.exists() {
+        return Ok(Vec::new());
+    }
 
-    let games = entries
-        .filter_map(Result::ok)
-        .filter_map(|e| Game::from_path(e.path(), is_wii))
-        .collect();
+    let mut entries = smol::fs::read_dir(game_dir).await?;
+
+    let mut games = Vec::new();
+    while let Some(entry) = entries.try_next().await? {
+        if let Some(game) = Game::from_path(entry.path(), is_wii) {
+            games.push(game);
+        }
+    }
 
     Ok(games)
 }
