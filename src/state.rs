@@ -103,7 +103,7 @@ impl State {
             }
             Message::OpenProjectRepo => {
                 if let Err(e) = open::that(env!("CARGO_PKG_REPOSITORY")) {
-                    self.notifications.error(e.to_string());
+                    self.notifications.error(e);
                 }
                 Task::none()
             }
@@ -127,7 +127,7 @@ impl State {
 
                         self.wiitdb = Some(wiitdb);
                         self.notifications
-                            .info("GameTDB Datafile (wiitdb.xml) loaded successfully".to_string());
+                            .info("GameTDB Datafile (wiitdb.xml) loaded successfully");
                     }
                     Err(e) => {
                         self.notifications.error(e);
@@ -158,7 +158,7 @@ impl State {
             Message::MountPointChosen(mount_point) => {
                 if let Some(mount_point) = mount_point {
                     if let Err(e) = self.config.update_drive_path(mount_point) {
-                        self.notifications.error(e.to_string());
+                        self.notifications.error(e);
                     } else {
                         return self.update(Message::RefreshGamesAndApps);
                     }
@@ -178,7 +178,7 @@ impl State {
             Message::DeleteGame(i, yes) => {
                 if yes {
                     if let Err(e) = self.games[i].delete() {
-                        self.notifications.error(e.to_string());
+                        self.notifications.error(e);
                     } else {
                         return self.update(Message::RefreshGamesAndApps);
                     }
@@ -187,17 +187,17 @@ impl State {
             }
             Message::OpenGameDir(game_i) => {
                 if let Err(e) = self.games[game_i].open_dir() {
-                    self.notifications.error(e.to_string());
+                    self.notifications.error(e);
                 }
                 Task::none()
             }
             Message::OpenGameCover(game_i) => {
                 if let Some(path) = self.get_game_cover(&self.games[game_i]) {
                     if let Err(e) = open::that(path) {
-                        self.notifications.error(e.to_string());
+                        self.notifications.error(e);
                     }
                 } else {
-                    self.notifications.error("Game cover not found".to_string());
+                    self.notifications.error("Game cover not found");
                 }
 
                 Task::none()
@@ -215,7 +215,7 @@ impl State {
             }
             Message::OpenGameTdb(game_i) => {
                 if let Err(e) = self.games[game_i].open_gametdb() {
-                    self.notifications.error(e.to_string());
+                    self.notifications.error(e);
                 }
                 Task::none()
             }
@@ -225,25 +225,24 @@ impl State {
             }
             Message::FontLoaded(res) => {
                 if res.is_err() {
-                    self.notifications
-                        .error("Failed to load lucide icons".to_string());
+                    self.notifications.error("Failed to load lucide icons");
                 }
                 Task::none()
             }
             Message::OpenOscIcon(osc_i) => {
                 if let Some(path) = self.get_osc_app_icon(&self.osc_apps[osc_i]) {
                     if let Err(e) = open::that(path) {
-                        self.notifications.error(e.to_string());
+                        self.notifications.error(e);
                     }
                 } else {
-                    self.notifications.error("App icon not found".to_string());
+                    self.notifications.error("App icon not found");
                 }
 
                 Task::none()
             }
             Message::OpenOscPage(osc_i) => {
                 if let Err(e) = self.osc_apps[osc_i].open_page() {
-                    self.notifications.error(e.to_string());
+                    self.notifications.error(e);
                 }
                 Task::none()
             }

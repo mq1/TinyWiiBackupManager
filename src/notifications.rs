@@ -6,6 +6,7 @@ use iced::{
     Subscription,
     time::{self, Duration},
 };
+use std::fmt::Display;
 
 #[inline]
 pub fn notifications_subscription(_state: &State) -> Subscription<Message> {
@@ -46,34 +47,34 @@ impl Notifications {
             .map(|i| self.list.remove(i));
     }
 
-    pub fn info(&mut self, text: String) {
+    pub fn info(&mut self, text: impl Display) {
         self.last_id += 1;
 
         self.list.push(Notification {
             id: self.last_id,
-            text,
+            text: text.to_string(),
             level: NotificationLevel::Info,
             life: 20, // 10 seconds
         });
     }
 
-    pub fn error(&mut self, text: String) {
+    pub fn error(&mut self, text: impl Display) {
         self.last_id += 1;
 
         self.list.push(Notification {
             id: self.last_id,
-            text,
+            text: text.to_string(),
             level: NotificationLevel::Error,
             life: u8::MAX, // infinite duration
         });
     }
 
-    pub fn success(&mut self, text: String) {
+    pub fn success(&mut self, text: impl Display) {
         self.last_id += 1;
 
         self.list.push(Notification {
             id: self.last_id,
-            text,
+            text: text.to_string(),
             level: NotificationLevel::Success,
             life: u8::MAX, // infinite duration
         });
