@@ -11,14 +11,14 @@ use iced::{
     Alignment, Element,
     widget::{button, column, container, image, row, space, text},
 };
-use lucide_icons::iced::{icon_hard_drive_download, icon_info, icon_tag, icon_trash};
+use iced_fonts::lucide;
 
 pub fn view(state: &State, i: usize) -> Element<'_, Message> {
     let game = &state.games[i];
 
     let mut col = column![
         row![
-            icon_tag().size(12),
+            lucide::tag().size(12),
             text(game.id.as_str()),
             space::horizontal(),
             text(game.size.to_string())
@@ -45,11 +45,11 @@ pub fn view(state: &State, i: usize) -> Element<'_, Message> {
         .push(space::vertical())
         .push(
             row![
-                button(row![icon_info(), text("Info")].spacing(5))
+                button(row![lucide::info(), text("Info")].spacing(5))
                     .style(style::rounded_secondary_button)
                     .on_press(Message::NavigateTo(Screen::GameInfo(i))),
-                button(icon_hard_drive_download()).style(style::rounded_secondary_button),
-                button(icon_trash())
+                button(lucide::hard_drive_download()).style(style::rounded_secondary_button),
+                button(lucide::trash())
                     .style(style::rounded_secondary_button)
                     .on_press(Message::AskDeleteGame(i))
             ]

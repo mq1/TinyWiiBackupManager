@@ -12,7 +12,8 @@ use crate::{
     ui::{Screen, dialogs},
     util, wiitdb,
 };
-use iced::{Task, window};
+use iced::{Task, font, window};
+use iced_fonts::LUCIDE_FONT_BYTES;
 use std::path::PathBuf;
 
 pub struct State {
@@ -56,9 +57,11 @@ impl State {
             osc_filter: String::new(),
         };
 
-        let task1 = wiitdb::get_load_wiitdb_task(&initial_state);
-        let task2 = osc::get_load_osc_apps_task(&initial_state);
-        let tasks = Task::batch(vec![task1, task2]);
+        let tasks = Task::batch(vec![
+            wiitdb::get_load_wiitdb_task(&initial_state),
+            osc::get_load_osc_apps_task(&initial_state),
+            font::load(LUCIDE_FONT_BYTES).map(Message::FontLoaded),
+        ]);
 
         (initial_state, tasks)
     }
@@ -218,6 +221,13 @@ impl State {
             }
             Message::UpdateOscFilter(filter) => {
                 self.osc_filter = filter;
+                Task::none()
+            }
+            Message::FontLoaded(res) => {
+                if res.is_err() {
+                    self.notifications
+                        .error("Failed to load lucide icons".to_string());
+                }
                 Task::none()
             }
         }

@@ -6,7 +6,7 @@ use iced::{
     Element, Length,
     widget::{Column, Row, column, row, scrollable, space, text},
 };
-use lucide_icons::iced::{icon_box, icon_pointer};
+use iced_fonts::lucide;
 use size::Size;
 
 pub fn view(state: &State) -> Element<'_, Message> {
@@ -43,7 +43,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
         col = col
             .push(
                 row![
-                    icon_pointer().size(18),
+                    lucide::pointer().size(18),
                     text(format!(
                         "Wii Games: {} found ({})",
                         wii_count, wii_total_size
@@ -63,7 +63,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
         col = col
             .push(
                 row![
-                    icon_box().size(18),
+                    lucide::r#box().size(18),
                     text(format!(
                         "GameCube Games: {} found ({})",
                         gc_count, gc_total_size

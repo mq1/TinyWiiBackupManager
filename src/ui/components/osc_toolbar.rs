@@ -6,14 +6,14 @@ use iced::{
     Alignment, Element,
     widget::{container, row, space, text_input},
 };
-use lucide_icons::iced::icon_search;
+use iced_fonts::lucide;
 
 pub fn view(state: &State) -> Element<'_, Message> {
     row![
         container(
             row![
                 space(),
-                icon_search(),
+                lucide::search(),
                 text_input("Search by Name", &state.osc_filter)
                     .width(200)
                     .style(style::search_bar)

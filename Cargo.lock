@@ -12,9 +12,9 @@ dependencies = [
  "fs_extra",
  "hex",
  "iced",
+ "iced_fonts",
  "image",
  "itertools",
- "lucide-icons",
  "minreq",
  "native-dialog",
  "nod",
@@ -1405,6 +1405,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "iced_fonts"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "214cff7c8499e328774216690e58e315a1a5f8f6fdd1035aed6298e62ffc4c1d"
+dependencies = [
+ "iced_core",
+ "iced_fonts_macros",
+ "iced_widget",
+]
+
+[[package]]
+name = "iced_fonts_macros"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7ef5125e110cb19cd1910a28298661c98c5d9ab02eef43594968352940e8752e"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+ "ttf-parser",
+]
+
+[[package]]
 name = "iced_futures"
 version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1788,15 +1811,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "96051b46fc183dc9cd4a223960ef37b9af631b55191852a8274bfef064cda20f"
 dependencies = [
  "hashbrown",
-]
-
-[[package]]
-name = "lucide-icons"
-version = "0.562.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "db8acecc97d96f9f8e70ae6fed025b6d962d8c88d85bdbcf16916e9f7ad23e0f"
-dependencies = [
- "iced",
 ]
 
 [[package]]

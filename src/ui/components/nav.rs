@@ -10,38 +10,36 @@ use iced::{
     Element,
     widget::{button, column, container, space},
 };
-use lucide_icons::iced::{
-    icon_gamepad_2, icon_hard_drive, icon_info, icon_shopping_bag, icon_waves,
-};
+use iced_fonts::lucide;
 
 pub fn view(state: &State) -> Element<'_, Message> {
     container(
         column![
-            button(icon_gamepad_2().size(20).center())
+            button(lucide::gamepad_two().size(20).center())
                 .style(|t, s| style::nav_button(t, s, state.screen == Screen::Games))
                 .height(40)
                 .width(40)
                 .on_press(Message::NavigateTo(Screen::Games)),
-            button(icon_waves().size(20).center())
+            button(lucide::waves().size(20).center())
                 .style(|t, s| style::nav_button(t, s, state.screen == Screen::HbcApps))
                 .height(40)
                 .width(40)
                 .on_press(Message::NavigateTo(Screen::HbcApps)),
-            button(icon_shopping_bag().size(20).center())
+            button(lucide::shopping_bag().size(20).center())
                 .style(|t, s| style::nav_button(t, s, state.screen == Screen::Osc))
                 .height(40)
                 .width(40)
                 .on_press(Message::NavigateTo(Screen::Osc)),
             space::vertical(),
             my_tooltip::view(
-                button(icon_hard_drive().size(20).center())
+                button(lucide::hard_drive().size(20).center())
                     .style(|t, s| style::nav_button(t, s, false))
                     .height(40)
                     .width(40)
                     .on_press(Message::SelectMountPoint),
                 "Select Drive/Mount Point"
             ),
-            button(icon_info().size(20).center())
+            button(lucide::info().size(20).center())
                 .style(|t, s| style::nav_button(t, s, state.screen == Screen::About))
                 .height(40)
                 .width(40)

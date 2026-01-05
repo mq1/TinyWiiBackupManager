@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{osc::OscApp, ui::Screen, wiitdb};
+use iced::font;
 use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
@@ -24,4 +25,5 @@ pub enum Message {
     GotOscApps(Result<Box<[OscApp]>, String>),
     OpenGameTdb(usize),
     UpdateOscFilter(String),
+    FontLoaded(Result<(), font::Error>),
 }

@@ -10,14 +10,14 @@ use iced::{
     Alignment, Element,
     widget::{button, checkbox, container, row, space, text, text_input},
 };
-use lucide_icons::iced::{icon_box, icon_plus, icon_pointer, icon_rotate_cw, icon_search};
+use iced_fonts::lucide;
 
 pub fn view(state: &State) -> Element<'_, Message> {
     row![
         container(
             row![
                 space(),
-                icon_search(),
+                lucide::search(),
                 text_input("Search by Title/ID", &state.games_filter)
                     .width(200)
                     .style(style::search_bar)
@@ -34,12 +34,12 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 checkbox(state.show_wii)
                     .style(style::toolbar_checkbox)
                     .on_toggle(Message::ShowWii),
-                my_tooltip::view(icon_pointer(), "Show Wii Games"),
+                my_tooltip::view(lucide::pointer(), "Show Wii Games"),
                 text("  |  "),
                 checkbox(state.show_gc)
                     .style(style::toolbar_checkbox)
                     .on_toggle(Message::ShowGc),
-                my_tooltip::view(icon_box(), "Show GameCube Games"),
+                my_tooltip::view(lucide::r#box(), "Show GameCube Games"),
             ]
             .align_y(Alignment::Center)
             .spacing(5)
@@ -48,14 +48,14 @@ pub fn view(state: &State) -> Element<'_, Message> {
         .style(style::card),
         space(),
         my_tooltip::view(
-            button(icon_rotate_cw().size(18).center())
+            button(lucide::rotate_cw().size(18).center())
                 .width(35)
                 .height(35)
                 .style(style::rounded_button)
                 .on_press(Message::RefreshGamesAndApps),
             "Refresh Games"
         ),
-        button(icon_plus().size(18).center())
+        button(lucide::plus().size(18).center())
             .width(35)
             .height(35)
             .style(style::rounded_button)

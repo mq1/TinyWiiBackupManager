@@ -21,7 +21,6 @@ mod wiitdb;
 use crate::{notifications::notifications_subscription, state::State};
 use iced::{Size, window};
 use image::{DynamicImage, codecs::png::PngDecoder};
-use lucide_icons::LUCIDE_FONT_BYTES;
 use std::{io::Cursor, sync::LazyLock};
 
 pub static APP_ICON: LazyLock<Box<[u8]>> = LazyLock::new(|| {
@@ -58,7 +57,6 @@ fn main() -> iced::Result {
     let app = iced::application(State::new, State::update, ui::view)
         .window(window)
         .settings(settings)
-        .font(LUCIDE_FONT_BYTES)
         .title(State::title)
         .subscription(notifications_subscription);
 
