@@ -55,7 +55,13 @@ pub fn view(state: &State, game_i: usize) -> Element<'_, Message> {
     match state.get_game_cover(game) {
         Some(cover) => stack![
             col,
-            row![space::horizontal(), image(cover).height(248)].padding(10)
+            row![
+                space::horizontal(),
+                image(cover)
+                    .height(186)
+                    .filter_method(image::FilterMethod::Linear)
+            ]
+            .padding(10)
         ]
         .into(),
         None => col.into(),
