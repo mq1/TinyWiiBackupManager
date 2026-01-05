@@ -152,17 +152,25 @@ pub struct OscAppMeta {
     #[serde(default)]
     pub version: String,
 
-    #[serde(deserialize_with = "time::serde::timestamp::deserialize")]
-    #[serde(default = "unix_epoch")]
-    pub release_date: OffsetDateTime,
+    #[serde(deserialize_with = "timestamp_to_string")]
+    #[serde(default)]
+    pub release_date: String,
 }
 
-pub fn size_to_string<'de, D>(deserializer: D) -> Result<String, D::Error>
+fn size_to_string<'de, D>(deserializer: D) -> Result<String, D::Error>
 where
     D: Deserializer<'de>,
 {
     let size = Size::deserialize(deserializer)?;
     Ok(size.to_string())
+}
+
+fn timestamp_to_string<'de, D>(deserializer: D) -> Result<String, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let date_time = time::serde::timestamp::deserialize(deserializer)?;
+    Ok(date_time.to_string())
 }
 
 #[derive(Debug, Clone, Deserialize, Default)]
@@ -279,8 +287,4 @@ impl Flag {
             Flag::Unknown => "Unknown",
         }
     }
-}
-
-fn unix_epoch() -> OffsetDateTime {
-    OffsetDateTime::UNIX_EPOCH
 }
