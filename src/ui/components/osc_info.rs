@@ -5,7 +5,7 @@ use crate::{
     message::Message,
     osc::{Flag, Peripheral, Platform},
     state::State,
-    ui::style,
+    ui::{components, style},
 };
 use iced::{
     Element, Length,
@@ -24,7 +24,12 @@ pub fn view(state: &State, osc_i: usize) -> Element<'_, Message> {
         .spacing(5),
         rule::horizontal(1),
         row![lucide::tag(), text("Version:"), text(&app.meta.version)].spacing(5),
-        row![lucide::user(), text("Author:"), text(&app.meta.author)].spacing(5),
+        row![
+            components::developers::get_icon(&app.meta.author),
+            text("Author:"),
+            text(&app.meta.author)
+        ]
+        .spacing(5),
         row![
             lucide::users(),
             text("Authors:"),

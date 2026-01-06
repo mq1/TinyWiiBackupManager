@@ -1,7 +1,11 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{message::Message, state::State, ui::style};
+use crate::{
+    message::Message,
+    state::State,
+    ui::{components, style},
+};
 use iced::{
     Element, Length,
     widget::{button, column, image, row, rule, scrollable, space, stack, text},
@@ -15,7 +19,12 @@ pub fn view(state: &State, hbc_i: usize) -> Element<'_, Message> {
         row![lucide::waves().size(18), text(&app.meta.name).size(18)].spacing(5),
         rule::horizontal(1),
         row![lucide::tag(), text("Version:"), text(&app.meta.version)].spacing(5),
-        row![lucide::user(), text("Coder:"), text(&app.meta.coder)].spacing(5),
+        row![
+            components::developers::get_icon(&app.meta.coder),
+            text("Coder:"),
+            text(&app.meta.coder)
+        ]
+        .spacing(5),
         row![
             lucide::calendar(),
             text("Release Date:"),
