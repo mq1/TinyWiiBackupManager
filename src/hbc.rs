@@ -4,6 +4,7 @@
 use crate::config::SortBy;
 use crate::message::Message;
 use crate::state::State;
+use crate::util;
 use anyhow::{Result, anyhow};
 use futures::TryFutureExt;
 use futures::future::join_all;
@@ -77,7 +78,7 @@ impl HbcApp {
 
         meta.name = meta.name.trim().to_string();
 
-        let size = Size::from_bytes(fs_extra::dir::get_size(&path).unwrap_or_default());
+        let size = util::get_dir_size(path.clone()).await.unwrap_or_default();
 
         let image_path = path.join("icon.png");
         let image_path = if image_path.exists() {

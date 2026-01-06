@@ -20,7 +20,6 @@ use std::{
 };
 use sysinfo::Disks;
 use tempfile::NamedTempFile;
-use walkdir::WalkDir;
 
 #[cfg(target_os = "macos")]
 use smol::process;
@@ -121,30 +120,35 @@ pub async fn run_dot_clean(mount_point: &Path) -> io::Result<process::ExitStatus
         .await
 }
 
-pub async fn scan_for_discs(dir: &Path) -> Box<[PathBuf]> {
-    let entries = WalkDir::new(dir)
-        .sort_by_file_name()
-        .same_file_system(true)
-        .into_iter()
-        .filter_map(Result::ok)
-        .filter(|e| e.file_type().is_file())
-        .map(|e| async {
-            let path = e.into_path();
+pub async fn scan_for_discs(path: PathBuf) -> io::Result<Box<[PathBuf]>> {
+    let mut discs = Vec::new();
+    let mut stack = vec![path];
 
-            if is_valid_disc_file(&path).await {
-                Some(path)
-            } else {
-                None
+    while let Some(current_path) = stack.pop() {
+        let mut entries = fs::read_dir(&current_path).await?;
+
+        while let Some(entry) = entries.try_next().await? {
+            let entry_path = entry.path();
+
+            if entry_path.is_dir() {
+                stack.push(entry_path);
+            } else if entry_path.is_file() {
+                discs.push(keep_disc_file(entry_path));
             }
-        })
-        .collect::<Vec<_>>();
+        }
+    }
 
-    join_all(entries)
-        .await
-        .into_iter()
-        .flatten()
-        .collect::<Vec<_>>()
-        .into_boxed_slice()
+    let discs = join_all(discs).await.into_iter().flatten().collect();
+
+    Ok(discs)
+}
+
+async fn keep_disc_file(path: PathBuf) -> Option<PathBuf> {
+    if is_valid_disc_file(&path).await {
+        Some(path)
+    } else {
+        None
+    }
 }
 
 pub async fn is_valid_disc_file(path: &Path) -> bool {
@@ -299,4 +303,26 @@ pub async fn extract_zip_bytes(zip_bytes: Vec<u8>, dest_dir: &Path) -> Result<()
     }
 
     Ok(())
+}
+
+pub async fn get_dir_size(path: PathBuf) -> io::Result<Size> {
+    let mut bytes = 0u64;
+    let mut stack = vec![path];
+
+    while let Some(current_path) = stack.pop() {
+        let mut entries = fs::read_dir(&current_path).await?;
+
+        while let Some(entry) = entries.try_next().await? {
+            let entry_path = entry.path();
+
+            if entry_path.is_dir() {
+                stack.push(entry_path);
+            } else if entry_path.is_file() {
+                let meta = entry.metadata().await?;
+                bytes += meta.len();
+            }
+        }
+    }
+
+    Ok(Size::from_bytes(bytes))
 }

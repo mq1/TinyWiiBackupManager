@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{config::SortBy, game_id::GameID, message::Message, state::State};
+use crate::{config::SortBy, game_id::GameID, message::Message, state::State, util};
 use futures::TryFutureExt;
 use iced::Task;
 use size::Size;
@@ -19,21 +19,22 @@ pub struct Game {
 }
 
 impl Game {
-    pub fn from_path(path: PathBuf, is_wii: bool) -> Option<Self> {
+    pub async fn from_path(path: PathBuf, is_wii: bool) -> Option<Self> {
         if !path.is_dir() {
             return None;
         }
 
-        let (title_str, id_str) = path.file_name()?.to_str()?.split_once(" [")?;
+        let filename = path.file_name()?.to_str()?;
+        if filename.starts_with('.') {
+            return None;
+        }
+
+        let (title_str, id_str) = filename.split_once(" [")?;
         let id_str = id_str.strip_suffix(']')?;
         let title = title_str.to_string();
         let id = GameID::from_str(id_str);
 
-        let bytes = fs_extra::dir::get_size(&path).unwrap_or(0);
-        if bytes <= 1024 * 1024 * 8 {
-            return None;
-        }
-        let size = Size::from_bytes(bytes);
+        let size = util::get_dir_size(path.clone()).await.unwrap_or_default();
 
         let search_term = format!("{}{}", title, id_str).to_lowercase();
 
@@ -108,7 +109,7 @@ async fn read_game_dir(game_dir: PathBuf, is_wii: bool) -> io::Result<Vec<Game>>
 
     let mut games = Vec::new();
     while let Some(entry) = entries.try_next().await? {
-        if let Some(game) = Game::from_path(entry.path(), is_wii) {
+        if let Some(game) = Game::from_path(entry.path(), is_wii).await {
             games.push(game);
         }
     }
