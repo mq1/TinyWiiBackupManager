@@ -14,9 +14,9 @@ use iced_fonts::lucide;
 
 pub fn view(notification: &Notification) -> Element<'_, Message> {
     let icon = match notification.level {
-        NotificationLevel::Info => lucide::message_circle_warning(),
-        NotificationLevel::Error => lucide::message_circle_x(),
-        NotificationLevel::Success => lucide::message_circle_heart(),
+        NotificationLevel::Info => lucide::info(),
+        NotificationLevel::Error => lucide::triangle_alert(),
+        NotificationLevel::Success => lucide::check(),
     };
 
     container(
