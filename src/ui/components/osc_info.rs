@@ -128,8 +128,9 @@ pub fn view(state: &State, osc_i: usize) -> Element<'_, Message> {
                 .on_press(Message::OpenOscPage(osc_i)),
             button(row![lucide::monitor_up(), text("Send via Wiiload")].spacing(5))
                 .style(style::rounded_button),
-            button(row![lucide::cloud_download(), text("Download")].spacing(5))
+            button(row![lucide::cloud_download(), text("Install")].spacing(5))
                 .style(style::rounded_button)
+                .on_press(Message::AskInstallOscApp(osc_i))
         ]
         .spacing(5)
     ]
