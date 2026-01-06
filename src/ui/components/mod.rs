@@ -8,6 +8,7 @@ pub mod games;
 pub mod games_toolbar;
 pub mod hbc;
 pub mod hbc_card;
+pub mod hbc_info;
 pub mod hbc_toolbar;
 pub mod my_tooltip;
 pub mod nav;

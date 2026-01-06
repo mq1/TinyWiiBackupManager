@@ -4,7 +4,7 @@
 use crate::config::SortBy;
 use crate::message::Message;
 use crate::state::State;
-use anyhow::Result;
+use anyhow::{Result, anyhow};
 use futures::TryFutureExt;
 use futures::future::join_all;
 use iced::Task;
@@ -121,6 +121,20 @@ impl HbcApp {
             },
             Message::AppDeleted,
         )
+    }
+
+    pub fn open_page(&self) -> Result<()> {
+        let slug = self
+            .path
+            .file_name()
+            .ok_or(anyhow!("Could not get file name"))?
+            .to_str()
+            .ok_or(anyhow!("Could not get file name"))?;
+
+        let url = format!("https://oscwii.org/library/app/{}", slug);
+        open::that(url)?;
+
+        Ok(())
     }
 }
 

@@ -38,4 +38,5 @@ pub enum Message {
     AskDeleteHbcApp(usize),
     DeleteHbcApp(usize, bool),
     AppDeleted(Result<String, String>),
+    OpenHbcPage(usize),
 }

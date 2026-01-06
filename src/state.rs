@@ -80,6 +80,7 @@ impl State {
                 self.config.get_drive_path_str(),
                 &self.drive_usage
             ),
+            Screen::HbcInfo(_) => "TinyWiiBackupManager • HBC App Info".to_string(),
             Screen::Osc => "TinyWiiBackupManager • Open Shop Channel".to_string(),
             Screen::OscInfo(_) => "TinyWiiBackupManager • OSC App Info".to_string(),
             Screen::GameInfo(_) => "TinyWiiBackupManager • Game Info".to_string(),
@@ -197,6 +198,7 @@ impl State {
                     }
                 }
 
+                self.screen = Screen::Games;
                 self.update(Message::RefreshGamesAndApps)
             }
             Message::OpenGameDir(game_i) => {
@@ -348,7 +350,14 @@ impl State {
                     }
                 }
 
+                self.screen = Screen::HbcApps;
                 self.update(Message::RefreshGamesAndApps)
+            }
+            Message::OpenHbcPage(hbc_i) => {
+                if let Err(e) = self.hbc_apps[hbc_i].open_page() {
+                    self.notifications.error(e);
+                }
+                Task::none()
             }
         }
     }
