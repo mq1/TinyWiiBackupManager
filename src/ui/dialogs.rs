@@ -88,7 +88,7 @@ pub fn delete_game(window: &dyn Window, game_title: String) -> bool {
         .unwrap_or_default()
 }
 
-pub fn delete_hbc_app(window: &dyn Window, app_name: &str) -> bool {
+pub fn delete_hbc_app(window: &dyn Window, app_name: String) -> bool {
     DialogBuilder::message()
         .set_title("Delete Homebrew Channel app")
         .set_owner(&window)

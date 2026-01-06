@@ -35,4 +35,7 @@ pub enum Message {
     AppInstalled(Result<String, String>),
     UpdateHbcFilter(String),
     ChangeTheme,
+    AskDeleteHbcApp(usize),
+    DeleteHbcApp(usize, bool),
+    AppDeleted(Result<String, String>),
 }

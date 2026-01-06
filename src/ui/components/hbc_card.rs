@@ -46,7 +46,9 @@ pub fn view(state: &State, i: usize) -> Element<'_, Message> {
             row![
                 button(row![lucide::info(), text("Info")].spacing(5))
                     .style(style::rounded_secondary_button),
-                button(lucide::trash()).style(style::rounded_secondary_button)
+                button(lucide::trash())
+                    .style(style::rounded_secondary_button)
+                    .on_press(Message::AskDeleteHbcApp(i)),
             ]
             .spacing(5),
         );

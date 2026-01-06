@@ -109,6 +109,19 @@ impl HbcApp {
     pub fn matches_search(&self, filter: &str) -> bool {
         self.search_str.contains(filter)
     }
+
+    pub fn get_delete_task(&self) -> Task<Message> {
+        let path = self.path.clone();
+        let name = self.meta.name.clone();
+
+        Task::perform(
+            async move {
+                fs::remove_dir_all(path).await.map_err(|e| e.to_string())?;
+                Ok(name)
+            },
+            Message::AppDeleted,
+        )
+    }
 }
 
 pub fn get_list_hbc_apps_task(state: &State) -> Task<Message> {

@@ -321,6 +321,35 @@ impl State {
 
                 Task::none()
             }
+            Message::AskDeleteHbcApp(hbc_i) => {
+                let name = self.hbc_apps[hbc_i].meta.name.clone();
+
+                window::oldest()
+                    .and_then(move |id| {
+                        let name = name.clone();
+                        window::run(id, move |w| dialogs::delete_hbc_app(w, name))
+                    })
+                    .map(move |yes| Message::DeleteHbcApp(hbc_i, yes))
+            }
+            Message::DeleteHbcApp(usize, yes) => {
+                if yes {
+                    self.hbc_apps[usize].get_delete_task()
+                } else {
+                    Task::none()
+                }
+            }
+            Message::AppDeleted(res) => {
+                match res {
+                    Ok(name) => {
+                        self.notifications.info(format!("App deleted: {}", name));
+                    }
+                    Err(e) => {
+                        self.notifications.error(e);
+                    }
+                }
+
+                self.update(Message::RefreshGamesAndApps)
+            }
         }
     }
 
