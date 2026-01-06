@@ -165,9 +165,8 @@ impl State {
                 if let Some(mount_point) = mount_point {
                     if let Err(e) = self.config.update_drive_path(mount_point) {
                         self.notifications.error(e);
-                    } else {
-                        return self.update(Message::RefreshGamesAndApps);
                     }
+                    return self.update(Message::RefreshGamesAndApps);
                 }
                 Task::none()
             }
@@ -191,7 +190,8 @@ impl State {
             Message::GameDeleted(res) => {
                 match res {
                     Ok(title) => {
-                        self.notifications.info(format!("Game deleted: {}", title));
+                        self.notifications
+                            .success(format!("Game deleted: {}", title));
                     }
                     Err(e) => {
                         self.notifications.error(e);
@@ -297,7 +297,8 @@ impl State {
             Message::AppInstalled(res) => {
                 match res {
                     Ok(name) => {
-                        self.notifications.info(format!("App installed: {}", name));
+                        self.notifications
+                            .success(format!("App installed: {}", name));
                     }
                     Err(e) => {
                         self.notifications.error(e);
@@ -343,7 +344,7 @@ impl State {
             Message::AppDeleted(res) => {
                 match res {
                     Ok(name) => {
-                        self.notifications.info(format!("App deleted: {}", name));
+                        self.notifications.success(format!("App deleted: {}", name));
                     }
                     Err(e) => {
                         self.notifications.error(e);
