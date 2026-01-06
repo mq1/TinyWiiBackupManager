@@ -157,6 +157,10 @@ pub async fn is_valid_disc_file(path: &Path) -> bool {
         None => return false,
     };
 
+    if stem.starts_with('.') {
+        return false;
+    }
+
     if stem.ends_with(".part1") {
         return false;
     }
