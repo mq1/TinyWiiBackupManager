@@ -30,6 +30,22 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 .height(40)
                 .width(40)
                 .on_press(Message::NavigateTo(Screen::Osc)),
+            button(lucide::monitor_up().size(20).center())
+                .style(|t, s| style::nav_button(t, s, false))
+                .height(40)
+                .width(40),
+            button(lucide::git_compare_arrows().size(20).center())
+                .style(|t, s| style::nav_button(t, s, false))
+                .height(40)
+                .width(40),
+            button(lucide::wrench().size(20).center())
+                .style(|t, s| style::nav_button(t, s, false))
+                .height(40)
+                .width(40),
+            button(lucide::settings().size(20).center())
+                .style(|t, s| style::nav_button(t, s, false))
+                .height(40)
+                .width(40),
             space::vertical(),
             my_tooltip::view(
                 button(lucide::hard_drive().size(20).center())
@@ -39,14 +55,18 @@ pub fn view(state: &State) -> Element<'_, Message> {
                     .on_press(Message::SelectMountPoint),
                 "Select Drive/Mount Point"
             ),
+            button(lucide::moon().size(20).center())
+                .style(|t, s| style::nav_button(t, s, false))
+                .height(40)
+                .width(40),
             button(lucide::info().size(20).center())
                 .style(|t, s| style::nav_button(t, s, state.screen == Screen::About))
                 .height(40)
                 .width(40)
                 .on_press(Message::NavigateTo(Screen::About)),
         ]
-        .padding(10)
-        .spacing(10),
+        .padding(9)
+        .spacing(5),
     )
     .style(style::nav_container)
     .into()
