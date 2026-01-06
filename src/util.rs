@@ -9,7 +9,7 @@ use iced::Task;
 use size::Size;
 use smol::{
     fs::{self, File},
-    io::{BufReader, BufWriter},
+    io::{AsyncWriteExt, BufReader},
     stream::StreamExt,
 };
 use std::{
@@ -240,8 +240,7 @@ pub async fn extract_zip(zip_path: &Path, dest_dir: &Path) -> Result<()> {
         let mut reader = zip.reader_without_entry(i).await?;
 
         fs::create_dir_all(parent).await?;
-        let file = File::create(dest_path).await?;
-        let mut writer = BufWriter::new(file);
+        let mut writer = File::create(dest_path).await?;
         io::copy(&mut reader, &mut writer).await?;
     }
 
@@ -274,8 +273,7 @@ pub async fn extract_zip_bytes(zip_bytes: Vec<u8>, dest_dir: &Path) -> Result<()
         let mut reader = zip.reader_without_entry(i).await?;
 
         fs::create_dir_all(parent).await?;
-        let file = File::create(dest_path).await?;
-        let mut writer = BufWriter::new(file);
+        let mut writer = File::create(dest_path).await?;
         io::copy(&mut reader, &mut writer).await?;
     }
 
