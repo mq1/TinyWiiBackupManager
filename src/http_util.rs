@@ -30,6 +30,12 @@ pub async fn download_file(url: &str, dest_path: &Path) -> Result<()> {
 }
 
 pub async fn download_and_extract_zip(uri: &str, dest_dir: &Path) -> Result<()> {
+    println!(
+        "Downloading and extracting \"{}\" into \"{}\"",
+        uri,
+        dest_dir.display()
+    );
+
     let body = minreq::get(uri)
         .with_header("User-Agent", USER_AGENT)
         .send()?

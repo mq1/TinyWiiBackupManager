@@ -12,6 +12,7 @@ use smol::{
     io::{AsyncWriteExt, BufReader},
     stream::StreamExt,
 };
+use soft_canonicalize::soft_canonicalize;
 use std::{
     ffi::OsStr,
     path::{Path, PathBuf},
@@ -212,6 +213,12 @@ pub async fn get_files_and_dirs(base_dir: &Path) -> io::Result<(Vec<PathBuf>, Ve
 }
 
 pub async fn extract_zip(zip_path: &Path, dest_dir: &Path) -> Result<()> {
+    println!(
+        "Extracting \"{}\" into \"{}\"",
+        zip_path.display(),
+        dest_dir.display()
+    );
+
     let zip_file_reader = BufReader::new(File::open(zip_path).await?);
     let mut zip = async_zip::base::read::seek::ZipFileReader::new(zip_file_reader).await?;
 
@@ -221,8 +228,14 @@ pub async fn extract_zip(zip_path: &Path, dest_dir: &Path) -> Result<()> {
         let filename = entry.filename().as_str()?;
         let is_dir = entry.dir()?;
 
+        if is_dir {
+            println!("  - Directory: {}", filename);
+        } else {
+            println!("  - File: {}", filename);
+        }
+
         let rel_path = Path::new(filename);
-        let dest_path = dest_dir.join(rel_path).canonicalize()?;
+        let dest_path = soft_canonicalize(dest_dir.join(rel_path))?;
 
         if !dest_path.starts_with(dest_dir) {
             bail!("Directory traversal attempt detected");
@@ -248,14 +261,22 @@ pub async fn extract_zip(zip_path: &Path, dest_dir: &Path) -> Result<()> {
 }
 
 pub async fn extract_zip_bytes(zip_bytes: Vec<u8>, dest_dir: &Path) -> Result<()> {
+    println!("Extracting zip into \"{}\"", dest_dir.display());
+
     let zip = async_zip::base::read::mem::ZipFileReader::new(zip_bytes).await?;
 
     for (i, entry) in zip.file().entries().iter().enumerate() {
         let filename = entry.filename().as_str()?;
         let is_dir = entry.dir()?;
 
+        if is_dir {
+            println!("  - Directory: {}", filename);
+        } else {
+            println!("  - File: {}", filename);
+        }
+
         let rel_path = Path::new(filename);
-        let dest_path = dest_dir.join(rel_path).canonicalize()?;
+        let dest_path = soft_canonicalize(dest_dir.join(rel_path))?;
 
         if !dest_path.starts_with(dest_dir) {
             bail!("Directory traversal attempt detected");

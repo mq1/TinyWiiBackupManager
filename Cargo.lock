@@ -30,6 +30,7 @@ dependencies = [
  "serde_json",
  "size",
  "smol",
+ "soft-canonicalize",
  "static_vcruntime",
  "sysinfo",
  "tempfile",
@@ -2762,6 +2763,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "439ee305def115ba05938db6eb1644ff94165c5ab5e9420d1c1bcedbba909391"
 
 [[package]]
+name = "proc-canonicalize"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6127461ef34c8119591fc98e4046230f4f953bec84aaebfe326e3d82e8f383da"
+
+[[package]]
 name = "proc-macro-crate"
 version = "3.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3298,6 +3305,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dd538fb6910ac1099850255cf94a94df6551fbdd602454387d0adb2d1ca6dead"
 dependencies = [
  "serde",
+]
+
+[[package]]
+name = "soft-canonicalize"
+version = "0.5.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4cef0e671b866166a64b83b8d4c9a39394ac40e34bc03240228a474581a48f84"
+dependencies = [
+ "proc-canonicalize",
 ]
 
 [[package]]

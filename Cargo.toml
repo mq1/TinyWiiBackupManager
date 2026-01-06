@@ -57,6 +57,7 @@ sanitize-filename = "0.7.0-beta"
 smol = "*"
 futures = "*"
 async_zip = { version = "0.0.18", features = ["deflate"] }
+soft-canonicalize = "0.5"
 
 #[target.'cfg(target_os = "macos")'.dependencies]
 #wgpu = { version = "27", default-features = false, features = [
