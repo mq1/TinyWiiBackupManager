@@ -125,6 +125,7 @@ jobs:
           target: ${{ matrix.platform == 'Windows' && matrix.target || '' }}
           components: ${{ matrix.platform == 'WindowsLegacy' && 'rust-src' || '' }}
           cache-key: ${{ matrix.arch }}
+          rustflags: ${{ matrix.platform == 'WindowsLegacy' && '-D warnings -C target-feature=+crt-static' || '-D warnings' }}
 
       - name: Install cargo-packager
         shell: pwsh
