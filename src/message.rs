@@ -34,4 +34,5 @@ pub enum Message {
     InstallOscApp(usize, bool),
     AppInstalled(Result<String, String>),
     UpdateHbcFilter(String),
+    ChangeTheme,
 }

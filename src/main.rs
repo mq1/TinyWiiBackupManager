@@ -57,6 +57,7 @@ fn main() -> iced::Result {
         .window(window)
         .settings(settings)
         .title(State::title)
+        .theme(State::theme)
         .subscription(notifications_subscription);
 
     app.run()

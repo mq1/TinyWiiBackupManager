@@ -62,6 +62,15 @@ impl Config {
     pub fn get_sort_by(&self) -> SortBy {
         self.contents.sort_by
     }
+
+    pub fn get_theme_pref(&self) -> ThemePreference {
+        self.contents.theme_preference
+    }
+
+    pub fn update_theme_pref(&mut self, new_theme_pref: ThemePreference) -> Result<()> {
+        self.contents.theme_preference = new_theme_pref;
+        self.write()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

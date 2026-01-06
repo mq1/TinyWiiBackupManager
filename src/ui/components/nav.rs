@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
+    config::ThemePreference,
     message::Message,
     state::State,
     ui::{Screen, components::my_tooltip, style},
@@ -13,6 +14,12 @@ use iced::{
 use iced_fonts::lucide;
 
 pub fn view(state: &State) -> Element<'_, Message> {
+    let theme_icon = match state.config.get_theme_pref() {
+        ThemePreference::Light => lucide::sun(),
+        ThemePreference::Dark => lucide::moon(),
+        ThemePreference::System => lucide::sun_moon(),
+    };
+
     container(
         column![
             button(lucide::gamepad_two().size(20).center())
@@ -55,10 +62,14 @@ pub fn view(state: &State) -> Element<'_, Message> {
                     .on_press(Message::SelectMountPoint),
                 "Select Drive/Mount Point"
             ),
-            button(lucide::moon().size(20).center())
-                .style(|t, s| style::nav_button(t, s, false))
-                .height(40)
-                .width(40),
+            my_tooltip::view(
+                button(theme_icon.size(20).center())
+                    .style(|t, s| style::nav_button(t, s, false))
+                    .height(40)
+                    .width(40)
+                    .on_press(Message::ChangeTheme),
+                "Change Theme (Light/Dark/System)"
+            ),
             button(lucide::info().size(20).center())
                 .style(|t, s| style::nav_button(t, s, state.screen == Screen::About))
                 .height(40)

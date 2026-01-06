@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    config::{Config, SortBy},
+    config::{Config, SortBy, ThemePreference},
     data_dir::get_data_dir,
     game::{self, Game, Games},
     game_id::GameID,
@@ -13,7 +13,7 @@ use crate::{
     ui::{Screen, dialogs},
     util, wiitdb,
 };
-use iced::{Task, font, window};
+use iced::{Task, Theme, font, window};
 use iced_fonts::LUCIDE_FONT_BYTES;
 use std::path::PathBuf;
 
@@ -84,6 +84,14 @@ impl State {
             Screen::OscInfo(_) => "TinyWiiBackupManager • OSC App Info".to_string(),
             Screen::GameInfo(_) => "TinyWiiBackupManager • Game Info".to_string(),
             Screen::About => "TinyWiiBackupManager • About".to_string(),
+        }
+    }
+
+    pub fn theme(&self) -> Option<Theme> {
+        match self.config.get_theme_pref() {
+            ThemePreference::Light => Some(Theme::Light),
+            ThemePreference::Dark => Some(Theme::Dark),
+            ThemePreference::System => None,
         }
     }
 
@@ -298,6 +306,19 @@ impl State {
             }
             Message::UpdateHbcFilter(filter) => {
                 self.hbc_filter = filter;
+                Task::none()
+            }
+            Message::ChangeTheme => {
+                let new_theme_pref = match self.config.get_theme_pref() {
+                    ThemePreference::Light => ThemePreference::Dark,
+                    ThemePreference::Dark => ThemePreference::System,
+                    ThemePreference::System => ThemePreference::Light,
+                };
+
+                if let Err(e) = self.config.update_theme_pref(new_theme_pref) {
+                    self.notifications.error(e);
+                }
+
                 Task::none()
             }
         }
