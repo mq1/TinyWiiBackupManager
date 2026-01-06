@@ -36,8 +36,6 @@ pub fn view(state: &State, hbc_i: usize) -> Element<'_, Message> {
             button(row![lucide::globe(), text("Open OSC Page")].spacing(5))
                 .style(style::rounded_button)
                 .on_press(Message::OpenHbcPage(hbc_i)),
-            button(row![lucide::monitor_up(), text("Send via Wiiload")].spacing(5))
-                .style(style::rounded_button),
             button(row![lucide::trash(), text("Delete")].spacing(5))
                 .style(style::rounded_danger_button)
                 .on_press(Message::AskDeleteHbcApp(hbc_i)),
