@@ -94,6 +94,21 @@ impl OscApp {
         let url = format!("https://oscwii.org/library/app/{}", &self.meta.slug);
         open::that(url)
     }
+
+    pub fn get_install_task(&self, mount_point: PathBuf) -> Task<Message> {
+        let url = self.meta.assets.archive.url.clone();
+        let name = self.meta.name.clone();
+
+        Task::perform(
+            async move {
+                http_util::download_and_extract_zip(&url, &mount_point)
+                    .await
+                    .map_err(|e| e.to_string())?;
+                Ok(name)
+            },
+            Message::AppInstalled,
+        )
+    }
 }
 
 #[derive(Debug, Clone)]

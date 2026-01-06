@@ -48,7 +48,9 @@ pub fn view(state: &State, i: usize) -> Element<'_, Message> {
                     .style(style::rounded_secondary_button)
                     .on_press(Message::NavigateTo(Screen::OscInfo(i))),
                 button(lucide::monitor_up()).style(style::rounded_secondary_button),
-                button(lucide::cloud_download()).style(style::rounded_secondary_button)
+                button(lucide::cloud_download())
+                    .style(style::rounded_secondary_button)
+                    .on_press(Message::AskInstallOscApp(i)),
             ]
             .spacing(5),
         );

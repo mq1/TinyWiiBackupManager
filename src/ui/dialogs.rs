@@ -199,3 +199,14 @@ pub fn confirm_cancel_tasks(window: &dyn Window) -> bool {
         .show()
         .unwrap_or_default()
 }
+
+pub fn confirm_install_osc_app(window: &dyn Window, app_name: String) -> bool {
+    DialogBuilder::message()
+        .set_title("Install OSC app")
+        .set_owner(&window)
+        .set_text(format!("Are you sure you want to install {}?", app_name))
+        .set_level(MessageLevel::Info)
+        .confirm()
+        .show()
+        .unwrap_or_default()
+}

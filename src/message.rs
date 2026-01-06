@@ -30,4 +30,7 @@ pub enum Message {
     GotGames(Result<Box<[Game]>, String>),
     GotHbcApps(Result<Box<[HbcApp]>, String>),
     GotDriveUsage(String),
+    AskInstallOscApp(usize),
+    InstallOscApp(usize, bool),
+    AppInstalled(Result<String, String>),
 }

@@ -264,6 +264,36 @@ impl State {
                 self.drive_usage = usage;
                 Task::none()
             }
+            Message::AskInstallOscApp(i) => {
+                let name = self.osc_apps[i].meta.name.clone();
+
+                window::oldest()
+                    .and_then(move |id| {
+                        let name = name.clone();
+                        window::run(id, move |w| dialogs::confirm_install_osc_app(w, name))
+                    })
+                    .map(move |yes| Message::InstallOscApp(i, yes))
+            }
+            Message::InstallOscApp(usize, yes) => {
+                if yes {
+                    let base_dir = self.config.get_drive_path().to_path_buf();
+                    self.osc_apps[usize].get_install_task(base_dir)
+                } else {
+                    Task::none()
+                }
+            }
+            Message::AppInstalled(res) => {
+                match res {
+                    Ok(name) => {
+                        self.notifications.info(format!("App installed: {}", name));
+                    }
+                    Err(e) => {
+                        self.notifications.error(e);
+                    }
+                }
+
+                self.update(Message::RefreshGamesAndApps)
+            }
         }
     }
 
