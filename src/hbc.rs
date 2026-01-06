@@ -50,10 +50,9 @@ where
 pub struct HbcApp {
     pub meta: HbcAppMeta,
     pub size: Size,
-    pub size_str: String,
     pub path: PathBuf,
-    pub search_str: String,
-    pub image_path: PathBuf,
+    pub image_path: Option<PathBuf>,
+    search_str: String,
 }
 
 impl HbcApp {
@@ -79,9 +78,13 @@ impl HbcApp {
         meta.name = meta.name.trim().to_string();
 
         let size = Size::from_bytes(fs_extra::dir::get_size(&path).unwrap_or_default());
-        let size_str = size.to_string();
 
         let image_path = path.join("icon.png");
+        let image_path = if image_path.exists() {
+            Some(image_path)
+        } else {
+            None
+        };
 
         let search_str = format!("{}{}", &meta.name, &slug).to_lowercase();
 
@@ -89,7 +92,6 @@ impl HbcApp {
             meta,
             path,
             size,
-            size_str,
             search_str,
             image_path,
         })
@@ -97,6 +99,15 @@ impl HbcApp {
 
     pub fn get_path_str(&self) -> &str {
         self.path.to_str().unwrap_or("Invalid Path")
+    }
+
+    pub fn get_trimmed_version_str(&self) -> &str {
+        let len = self.meta.version.len().min(8);
+        &self.meta.version[..len]
+    }
+
+    pub fn matches_search(&self, filter: &str) -> bool {
+        self.search_str.contains(filter)
     }
 }
 

@@ -31,6 +31,7 @@ pub struct State {
     pub show_gc: bool,
     pub drive_usage: String,
     pub osc_filter: String,
+    pub hbc_filter: String,
 }
 
 impl State {
@@ -52,6 +53,7 @@ impl State {
             show_gc: true,
             drive_usage: String::new(),
             osc_filter: String::new(),
+            hbc_filter: String::new(),
         };
 
         let tasks = Task::batch(vec![
@@ -293,6 +295,10 @@ impl State {
                 }
 
                 self.update(Message::RefreshGamesAndApps)
+            }
+            Message::UpdateHbcFilter(filter) => {
+                self.hbc_filter = filter;
+                Task::none()
             }
         }
     }
