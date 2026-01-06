@@ -61,7 +61,7 @@ wgpu = { version = "27", default-features = false, features = [
 ] }
 native-dialog = "0.9"
 
-[target.'cfg(all(target_os = "linux", target_pointer_width = "64"))'.dependencies]
+[target.'cfg(target_os = "linux")'.dependencies]
 iced = { version = "0.14", default-features = false, features = [
   "linux-theme-detection",
   "smol",
@@ -73,18 +73,7 @@ iced = { version = "0.14", default-features = false, features = [
 wgpu = { version = "27", default-features = false, features = [
   "std",
   "parking_lot",
-  "vulkan",
-] }
-native-dialog = "0.9"
-
-[target.'cfg(all(target_os = "linux", target_pointer_width = "32"))'.dependencies]
-iced = { version = "0.14", default-features = false, features = [
-  "linux-theme-detection",
-  "smol",
-  "x11",
-  "wayland",
-  "tiny-skia",
-  "image-without-codecs",
+  "gles",
 ] }
 native-dialog = "0.9"
 
