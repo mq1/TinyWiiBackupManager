@@ -20,6 +20,7 @@ pub enum Message {
     MountPointChosen(Option<PathBuf>),
     AskDeleteGame(usize),
     DeleteGame(usize, bool),
+    GameDeleted(Result<String, String>),
     OpenGameDir(usize),
     GotOscApps(Result<Box<[OscApp]>, String>),
     OpenGameTdb(usize),

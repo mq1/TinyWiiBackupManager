@@ -56,8 +56,17 @@ impl Game {
         open::that(url)
     }
 
-    pub async fn delete(&self) -> io::Result<()> {
-        fs::remove_dir_all(&self.path).await
+    pub fn get_delete_task(&self) -> Task<Message> {
+        let path = self.path.clone();
+        let title = self.title.clone();
+
+        Task::perform(
+            async move {
+                fs::remove_dir_all(&path).await.map_err(|e| e.to_string())?;
+                Ok(title)
+            },
+            Message::GameDeleted,
+        )
     }
 
     pub fn matches_search(&self, filter: &str) -> bool {

@@ -172,13 +172,22 @@ impl State {
             }
             Message::DeleteGame(i, yes) => {
                 if yes {
-                    if let Err(e) = smol::block_on(self.games[i].delete()) {
+                    self.games[i].get_delete_task()
+                } else {
+                    Task::none()
+                }
+            }
+            Message::GameDeleted(res) => {
+                match res {
+                    Ok(title) => {
+                        self.notifications.info(format!("Game deleted: {}", title));
+                    }
+                    Err(e) => {
                         self.notifications.error(e);
-                    } else {
-                        return self.update(Message::RefreshGamesAndApps);
                     }
                 }
-                Task::none()
+
+                self.update(Message::RefreshGamesAndApps)
             }
             Message::OpenGameDir(game_i) => {
                 if let Err(e) = self.games[game_i].open_dir() {
