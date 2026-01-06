@@ -68,7 +68,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
                     .height(40)
                     .width(40)
                     .on_press(Message::ChangeTheme),
-                "Change Theme (Light/Dark/System)"
+                "Change Theme (System/Light/Dark)"
             ),
             button(lucide::info().size(20).center())
                 .style(|t, s| style::nav_button(t, s, state.screen == Screen::About))
