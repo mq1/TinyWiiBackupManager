@@ -9,7 +9,7 @@ use iced::Task;
 use size::Size;
 use smol::{
     fs::{self, File},
-    io::{AsyncWriteExt, BufReader},
+    io::{self, BufReader},
     stream::StreamExt,
 };
 use soft_canonicalize::soft_canonicalize;
@@ -23,7 +23,7 @@ use tempfile::NamedTempFile;
 use walkdir::WalkDir;
 
 #[cfg(target_os = "macos")]
-use smol::{io, process};
+use smol::process;
 
 static NUM_CPUS: LazyLock<usize> = LazyLock::new(num_cpus::get);
 
