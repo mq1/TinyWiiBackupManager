@@ -57,6 +57,7 @@ impl State {
         let tasks = Task::batch(vec![
             wiitdb::get_load_wiitdb_task(&initial_state),
             game::get_list_games_task(&initial_state),
+            hbc::get_list_hbc_apps_task(&initial_state),
             osc::get_load_osc_apps_task(&initial_state),
             util::get_drive_usage_task(&initial_state),
             font::load(LUCIDE_FONT_BYTES).map(Message::FontLoaded),

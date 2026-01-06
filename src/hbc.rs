@@ -111,6 +111,9 @@ pub fn get_list_hbc_apps_task(state: &State) -> Task<Message> {
 
 async fn list(mount_point: PathBuf) -> Result<Box<[HbcApp]>> {
     let apps_dir = mount_point.join("apps");
+    if !apps_dir.exists() {
+        return Ok(Box::new([]));
+    }
 
     let mut entries = fs::read_dir(&apps_dir).await?;
 
