@@ -6,7 +6,7 @@ use iced::{
     Alignment, Element,
     widget::{button, column, container, image, row, space, text},
 };
-use lucide_icons::iced::icon_github;
+use lucide_icons::iced::{icon_folder, icon_github};
 
 const COPYRIGHT_TEXT: &str = "Copyright © 2026 Manuel Quarneti";
 
@@ -29,11 +29,15 @@ pub fn view() -> Element<'static, Message> {
         .style(style::card),
         space::vertical(),
         row![
+            button(row![icon_folder(), text("Data Directory")].spacing(5))
+                .style(style::rounded_button)
+                .on_press(Message::OpenDataDir),
             button(row![icon_github(), text("Source Code")].spacing(5))
                 .style(style::rounded_button)
                 .on_press(Message::OpenProjectRepo),
             space::horizontal(),
         ]
+        .spacing(5)
         .padding(10),
     ]
     .align_x(Alignment::Center)

@@ -40,4 +40,5 @@ pub enum Message {
     AppDeleted(Result<String, String>),
     OpenHbcPage(usize),
     SortGamesAndApps(SortBy),
+    OpenDataDir,
 }

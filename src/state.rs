@@ -371,6 +371,12 @@ impl State {
 
                 Task::none()
             }
+            Message::OpenDataDir => {
+                if let Err(e) = open::that(&self.data_dir) {
+                    self.notifications.error(e);
+                }
+                Task::none()
+            }
         }
     }
 
