@@ -11,51 +11,42 @@ use iced::{
     Element,
     widget::{button, column, container, space},
 };
-use iced_fonts::lucide;
+use lucide_icons::iced::{
+    icon_gamepad_2, icon_hard_drive, icon_info, icon_moon, icon_shopping_bag, icon_sun,
+    icon_sun_moon, icon_tool_case, icon_waves,
+};
 
 pub fn view(state: &State) -> Element<'_, Message> {
     let theme_icon = match state.config.get_theme_pref() {
-        ThemePreference::Light => lucide::sun(),
-        ThemePreference::Dark => lucide::moon(),
-        ThemePreference::System => lucide::sun_moon(),
+        ThemePreference::Light => icon_sun(),
+        ThemePreference::Dark => icon_moon(),
+        ThemePreference::System => icon_sun_moon(),
     };
 
     container(
         column![
-            button(lucide::gamepad_two().size(20).center())
+            button(icon_gamepad_2().size(20).center())
                 .style(|t, s| style::nav_button(t, s, state.screen == Screen::Games))
                 .height(40)
                 .width(40)
                 .on_press(Message::NavigateTo(Screen::Games)),
-            button(lucide::waves().size(20).center())
+            button(icon_waves().size(20).center())
                 .style(|t, s| style::nav_button(t, s, state.screen == Screen::HbcApps))
                 .height(40)
                 .width(40)
                 .on_press(Message::NavigateTo(Screen::HbcApps)),
-            button(lucide::shopping_bag().size(20).center())
+            button(icon_shopping_bag().size(20).center())
                 .style(|t, s| style::nav_button(t, s, state.screen == Screen::Osc))
                 .height(40)
                 .width(40)
                 .on_press(Message::NavigateTo(Screen::Osc)),
-            button(lucide::monitor_up().size(20).center())
-                .style(|t, s| style::nav_button(t, s, false))
-                .height(40)
-                .width(40),
-            button(lucide::git_compare_arrows().size(20).center())
-                .style(|t, s| style::nav_button(t, s, false))
-                .height(40)
-                .width(40),
-            button(lucide::wrench().size(20).center())
-                .style(|t, s| style::nav_button(t, s, false))
-                .height(40)
-                .width(40),
-            button(lucide::settings().size(20).center())
+            button(icon_tool_case().size(20).center())
                 .style(|t, s| style::nav_button(t, s, false))
                 .height(40)
                 .width(40),
             space::vertical(),
             my_tooltip::view(
-                button(lucide::hard_drive().size(20).center())
+                button(icon_hard_drive().size(20).center())
                     .style(|t, s| style::nav_button(t, s, false))
                     .height(40)
                     .width(40)
@@ -70,7 +61,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
                     .on_press(Message::ChangeTheme),
                 "Change Theme (System/Light/Dark)"
             ),
-            button(lucide::info().size(20).center())
+            button(icon_info().size(20).center())
                 .style(|t, s| style::nav_button(t, s, state.screen == Screen::About))
                 .height(40)
                 .width(40)

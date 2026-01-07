@@ -10,14 +10,14 @@ use iced::{
     Alignment, Element,
     widget::{button, column, container, image, row, space, text},
 };
-use iced_fonts::lucide;
+use lucide_icons::iced::{icon_cloud_download, icon_info, icon_monitor_up, icon_pin};
 
 pub fn view(state: &State, i: usize) -> Element<'_, Message> {
     let app = &state.osc_apps[i];
 
     let mut col = column![
         row![
-            lucide::pin().size(12),
+            icon_pin().size(12),
             my_tooltip::view(text(app.get_trimmed_version_str()), &app.meta.version),
             space::horizontal(),
             text(&app.meta.uncompressed_size)
@@ -44,11 +44,11 @@ pub fn view(state: &State, i: usize) -> Element<'_, Message> {
         .push(space::vertical())
         .push(
             row![
-                button(row![lucide::info(), text("Info")].spacing(5))
+                button(row![icon_info(), text("Info")].spacing(5))
                     .style(style::rounded_secondary_button)
                     .on_press(Message::NavigateTo(Screen::OscInfo(i))),
-                button(lucide::monitor_up()).style(style::rounded_secondary_button),
-                button(lucide::cloud_download())
+                button(icon_monitor_up()).style(style::rounded_secondary_button),
+                button(icon_cloud_download())
                     .style(style::rounded_secondary_button)
                     .on_press(Message::AskInstallOscApp(i)),
             ]

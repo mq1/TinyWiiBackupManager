@@ -10,15 +10,17 @@ use iced::{
     Element, Length,
     widget::{button, column, image, row, rule, scrollable, space, stack, text},
 };
-use iced_fonts::lucide;
+use lucide_icons::iced::{
+    icon_calendar, icon_clipboard_list, icon_globe, icon_tag, icon_trash, icon_waves, icon_weight,
+};
 
 pub fn view(state: &State, hbc_i: usize) -> Element<'_, Message> {
     let app = &state.hbc_apps[hbc_i];
 
     let col = column![
-        row![lucide::waves().size(18), text(&app.meta.name).size(18)].spacing(5),
+        row![icon_waves().size(18), text(&app.meta.name).size(18)].spacing(5),
         rule::horizontal(1),
-        row![lucide::tag(), text("Version:"), text(&app.meta.version)].spacing(5),
+        row![icon_tag(), text("Version:"), text(&app.meta.version)].spacing(5),
         row![
             components::developers::get_icon(&app.meta.coder),
             text("Coder:"),
@@ -26,14 +28,14 @@ pub fn view(state: &State, hbc_i: usize) -> Element<'_, Message> {
         ]
         .spacing(5),
         row![
-            lucide::calendar(),
+            icon_calendar(),
             text("Release Date:"),
             text(app.meta.release_date.to_string())
         ]
         .spacing(5),
-        row![lucide::weight(), text("Size:"), text(app.size.to_string())].spacing(5),
+        row![icon_weight(), text("Size:"), text(app.size.to_string())].spacing(5),
         row![
-            lucide::clipboard_list(),
+            icon_clipboard_list(),
             text("Short Description:"),
             text(&app.meta.short_description)
         ]
@@ -43,10 +45,10 @@ pub fn view(state: &State, hbc_i: usize) -> Element<'_, Message> {
             .width(Length::Fill)
             .height(Length::Fill),
         row![
-            button(row![lucide::globe(), text("Open OSC Page")].spacing(5))
+            button(row![icon_globe(), text("Open OSC Page")].spacing(5))
                 .style(style::rounded_button)
                 .on_press(Message::OpenHbcPage(hbc_i)),
-            button(row![lucide::trash(), text("Delete")].spacing(5))
+            button(row![icon_trash(), text("Delete")].spacing(5))
                 .style(style::rounded_danger_button)
                 .on_press(Message::AskDeleteHbcApp(hbc_i)),
         ]

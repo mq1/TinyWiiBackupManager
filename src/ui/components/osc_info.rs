@@ -11,19 +11,19 @@ use iced::{
     Element, Length,
     widget::{button, column, image, row, rule, scrollable, space, stack, text},
 };
-use iced_fonts::lucide;
+use lucide_icons::iced::{
+    icon_calendar, icon_clipboard_list, icon_cloud_download, icon_computer, icon_flag,
+    icon_folders, icon_globe, icon_monitor_up, icon_package, icon_shopping_bag, icon_tag, icon_usb,
+    icon_users, icon_weight,
+};
 
 pub fn view(state: &State, osc_i: usize) -> Element<'_, Message> {
     let app = &state.osc_apps[osc_i];
 
     let col = column![
-        row![
-            lucide::shopping_bag().size(18),
-            text(&app.meta.name).size(18)
-        ]
-        .spacing(5),
+        row![icon_shopping_bag().size(18), text(&app.meta.name).size(18)].spacing(5),
         rule::horizontal(1),
-        row![lucide::tag(), text("Version:"), text(&app.meta.version)].spacing(5),
+        row![icon_tag(), text("Version:"), text(&app.meta.version)].spacing(5),
         row![
             components::developers::get_icon(&app.meta.author),
             text("Author:"),
@@ -31,26 +31,26 @@ pub fn view(state: &State, osc_i: usize) -> Element<'_, Message> {
         ]
         .spacing(5),
         row![
-            lucide::users(),
+            icon_users(),
             text("Authors:"),
             text(app.meta.authors.join(", "))
         ]
         .spacing(5),
-        row![lucide::tag(), text("Category:"), text(&app.meta.category)].spacing(5),
+        row![icon_tag(), text("Category:"), text(&app.meta.category)].spacing(5),
         row![
-            lucide::users(),
-            text("contributors:"),
+            icon_users(),
+            text("Contributors:"),
             text(app.meta.contributors.join(", "))
         ]
         .spacing(5),
         row![
-            lucide::cloud_download(),
+            icon_cloud_download(),
             text("Downloads:"),
             text(app.meta.downloads)
         ]
         .spacing(5),
         row![
-            lucide::flag(),
+            icon_flag(),
             text("Flags:"),
             text(
                 app.meta
@@ -63,13 +63,13 @@ pub fn view(state: &State, osc_i: usize) -> Element<'_, Message> {
         ]
         .spacing(5),
         row![
-            lucide::package(),
+            icon_package(),
             text("Package Type:"),
             text(app.meta.package_type.as_str())
         ]
         .spacing(5),
         row![
-            lucide::usb(),
+            icon_usb(),
             text("Peripherals:"),
             text(
                 app.meta
@@ -82,19 +82,19 @@ pub fn view(state: &State, osc_i: usize) -> Element<'_, Message> {
         ]
         .spacing(5),
         row![
-            lucide::calendar(),
+            icon_calendar(),
             text("Release Date:"),
             text(app.meta.release_date.to_string())
         ]
         .spacing(5),
         row![
-            lucide::folders(),
+            icon_folders(),
             text("Subdirectories:"),
             text(app.meta.subdirectories.join(", "))
         ]
         .spacing(5),
         row![
-            lucide::computer(),
+            icon_computer(),
             text("Supported Platforms:"),
             text(
                 app.meta
@@ -107,13 +107,13 @@ pub fn view(state: &State, osc_i: usize) -> Element<'_, Message> {
         ]
         .spacing(5),
         row![
-            lucide::weight(),
+            icon_weight(),
             text("Uncompressed Size:"),
             text(&app.meta.uncompressed_size)
         ]
         .spacing(5),
         row![
-            lucide::clipboard_list(),
+            icon_clipboard_list(),
             text("Short Description:"),
             text(&app.meta.description.short)
         ]
@@ -123,12 +123,12 @@ pub fn view(state: &State, osc_i: usize) -> Element<'_, Message> {
             .width(Length::Fill)
             .height(Length::Fill),
         row![
-            button(row![lucide::globe(), text("Open OSC Page")].spacing(5))
+            button(row![icon_globe(), text("Open OSC Page")].spacing(5))
                 .style(style::rounded_button)
                 .on_press(Message::OpenOscPage(osc_i)),
-            button(row![lucide::monitor_up(), text("Send via Wiiload")].spacing(5))
+            button(row![icon_monitor_up(), text("Send via Wiiload")].spacing(5))
                 .style(style::rounded_button),
-            button(row![lucide::cloud_download(), text("Install")].spacing(5))
+            button(row![icon_cloud_download(), text("Install")].spacing(5))
                 .style(style::rounded_button)
                 .on_press(Message::AskInstallOscApp(osc_i))
         ]

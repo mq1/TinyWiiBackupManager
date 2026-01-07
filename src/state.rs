@@ -14,7 +14,7 @@ use crate::{
     util, wiitdb,
 };
 use iced::{Task, Theme, font, window};
-use iced_fonts::LUCIDE_FONT_BYTES;
+use lucide_icons::LUCIDE_FONT_BYTES;
 use std::path::PathBuf;
 
 pub struct State {

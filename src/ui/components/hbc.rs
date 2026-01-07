@@ -6,15 +6,15 @@ use iced::{
     Element, Length,
     widget::{Row, column, container, row, scrollable, text},
 };
-use iced_fonts::lucide;
+use lucide_icons::iced::{icon_arrow_down_left, icon_hard_drive, icon_waves};
 
 pub fn view(state: &State) -> Element<'_, Message> {
     if !state.config.valid_mount_point() {
         return container(
             row![
-                lucide::arrow_down_left(),
+                icon_arrow_down_left(),
                 text("Click on"),
-                lucide::hard_drive(),
+                icon_hard_drive(),
                 text("to select a Drive/Mount Point")
             ]
             .spacing(5),
@@ -37,7 +37,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
         scrollable(
             column![
                 row![
-                    lucide::waves().size(18),
+                    icon_waves().size(18),
                     text("Homebrew Channel Apps").size(18)
                 ]
                 .spacing(5),

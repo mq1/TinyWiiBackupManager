@@ -6,16 +6,16 @@ use iced::{
     Element, Length,
     widget::{Column, Row, column, container, row, scrollable, space, text},
 };
-use iced_fonts::lucide;
+use lucide_icons::iced::{icon_arrow_down_left, icon_box, icon_hard_drive, icon_pointer};
 use size::Size;
 
 pub fn view(state: &State) -> Element<'_, Message> {
     if !state.config.valid_mount_point() {
         return container(
             row![
-                lucide::arrow_down_left(),
+                icon_arrow_down_left(),
                 text("Click on"),
-                lucide::hard_drive(),
+                icon_hard_drive(),
                 text("to select a Drive/Mount Point")
             ]
             .spacing(5),
@@ -57,7 +57,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
         col = col
             .push(
                 row![
-                    lucide::pointer().size(18),
+                    icon_pointer().size(18),
                     text(format!(
                         "Wii Games: {} found ({})",
                         wii_count, wii_total_size
@@ -77,7 +77,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
         col = col
             .push(
                 row![
-                    lucide::r#box().size(18),
+                    icon_box().size(18),
                     text(format!(
                         "GameCube Games: {} found ({})",
                         gc_count, gc_total_size

@@ -22,7 +22,7 @@ OriginalFilename = "TinyWiiBackupManager.exe"
 LegalCopyright = "Copyright © 2026 Manuel Quarneti. Licensed under GPL-3.0-only."
 
 [dependencies]
-iced_fonts = { version = "0.3", features = ["lucide"] }
+lucide-icons = { version = "0.562", features = ["iced"] }
 image = { version = "*", default-features = false, features = ["png"] }
 minreq = "2.14"
 serde = { version = "1.0", features = ["derive"] }

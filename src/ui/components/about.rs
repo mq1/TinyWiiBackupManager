@@ -6,7 +6,7 @@ use iced::{
     Alignment, Element,
     widget::{button, column, container, image, row, space, text},
 };
-use iced_fonts::lucide;
+use lucide_icons::iced::icon_github;
 
 const COPYRIGHT_TEXT: &str = "Copyright © 2026 Manuel Quarneti";
 
@@ -29,7 +29,7 @@ pub fn view() -> Element<'static, Message> {
         .style(style::card),
         space::vertical(),
         row![
-            button(row![lucide::github(), text("Source Code")].spacing(5))
+            button(row![icon_github(), text("Source Code")].spacing(5))
                 .style(style::rounded_button)
                 .on_press(Message::OpenProjectRepo),
             space::horizontal(),

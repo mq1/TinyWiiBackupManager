@@ -10,13 +10,13 @@ use iced::{
     Alignment, Element,
     widget::{button, column, container, row, space, text},
 };
-use iced_fonts::lucide;
+use lucide_icons::iced::{icon_check, icon_info, icon_triangle_alert, icon_x};
 
 pub fn view(notification: &Notification) -> Element<'_, Message> {
     let icon = match notification.level {
-        NotificationLevel::Info => lucide::info(),
-        NotificationLevel::Error => lucide::triangle_alert(),
-        NotificationLevel::Success => lucide::check(),
+        NotificationLevel::Info => icon_info(),
+        NotificationLevel::Error => icon_triangle_alert(),
+        NotificationLevel::Success => icon_check(),
     };
 
     container(
@@ -26,7 +26,7 @@ pub fn view(notification: &Notification) -> Element<'_, Message> {
                 icon,
                 space(),
                 text(&notification.text),
-                button(lucide::x().center())
+                button(icon_x().center())
                     .height(20)
                     .width(20)
                     .style(style::rounded_background_button)
