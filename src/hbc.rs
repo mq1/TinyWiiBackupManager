@@ -53,7 +53,6 @@ pub struct HbcApp {
     pub size: Size,
     pub path: PathBuf,
     pub image_path: Option<PathBuf>,
-    search_str: String,
 }
 
 impl HbcApp {
@@ -87,13 +86,10 @@ impl HbcApp {
             None
         };
 
-        let search_str = format!("{}{}", &meta.name, &slug).to_lowercase();
-
         Some(Self {
             meta,
             path,
             size,
-            search_str,
             image_path,
         })
     }
@@ -105,10 +101,6 @@ impl HbcApp {
     pub fn get_trimmed_version_str(&self) -> &str {
         let len = self.meta.version.len().min(8);
         &self.meta.version[..len]
-    }
-
-    pub fn matches_search(&self, filter: &str) -> bool {
-        self.search_str.contains(filter)
     }
 
     pub fn get_delete_task(&self) -> Task<Message> {

@@ -27,7 +27,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
     }
 
     if !state.games_filter.is_empty() {
-        let mut row = Row::new().spacing(10).padding(10);
+        let mut row = Row::new().width(Length::Fill).spacing(10).padding(10);
 
         let matcher = SkimMatcherV2::default();
         let games = state
@@ -44,7 +44,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
                     (None, None) => None,
                 }
             })
-            .sorted_unstable_by_key(|(_, id)| *id);
+            .sorted_unstable_by_key(|(_, score)| *score);
 
         for (i, _) in games {
             row = row.push(components::game_card::view(state, i));
