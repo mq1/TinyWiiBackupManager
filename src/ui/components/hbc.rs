@@ -25,9 +25,9 @@ pub fn view(state: &State) -> Element<'_, Message> {
         .into();
     }
 
-    let mut row = Row::new().width(Length::Fill).spacing(10);
-
     if !state.hbc_filter.is_empty() {
+        let mut row = Row::new().width(Length::Fill).spacing(10).padding(10);
+
         let matcher = SkimMatcherV2::default();
         let apps = state
             .hbc_apps
@@ -43,10 +43,13 @@ pub fn view(state: &State) -> Element<'_, Message> {
         for (i, _) in apps {
             row = row.push(components::hbc_card::view(state, i));
         }
-    } else {
-        for i in 0..state.hbc_apps.len() {
-            row = row.push(components::hbc_card::view(state, i));
-        }
+
+        return column![components::hbc_toolbar::view(state), scrollable(row.wrap())].into();
+    }
+
+    let mut row = Row::new().width(Length::Fill).spacing(10);
+    for i in 0..state.hbc_apps.len() {
+        row = row.push(components::hbc_card::view(state, i));
     }
 
     column![

@@ -11,9 +11,9 @@ use itertools::Itertools;
 use lucide_icons::iced::icon_shopping_bag;
 
 pub fn view(state: &State) -> Element<'_, Message> {
-    let mut row = Row::new().width(Length::Fill).spacing(10);
-
     if !state.osc_filter.is_empty() {
+        let mut row = Row::new().width(Length::Fill).spacing(10).padding(10);
+
         let matcher = SkimMatcherV2::default();
         let apps = state
             .osc_apps
@@ -29,10 +29,13 @@ pub fn view(state: &State) -> Element<'_, Message> {
         for (i, _) in apps {
             row = row.push(components::osc_card::view(state, i));
         }
-    } else {
-        for i in 0..state.osc_apps.len() {
-            row = row.push(components::osc_card::view(state, i));
-        }
+
+        return column![components::osc_toolbar::view(state), scrollable(row.wrap())].into();
+    }
+
+    let mut row = Row::new().width(Length::Fill).spacing(10);
+    for i in 0..state.osc_apps.len() {
+        row = row.push(components::osc_card::view(state, i));
     }
 
     column![
