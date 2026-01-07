@@ -12,8 +12,9 @@ use iced::{
     widget::{button, column, container, space},
 };
 use lucide_icons::iced::{
-    icon_gamepad_2, icon_hard_drive, icon_info, icon_moon, icon_shopping_bag, icon_sun,
-    icon_sun_moon, icon_tool_case, icon_waves,
+    icon_arrow_down_0_1, icon_arrow_down_1_0, icon_gamepad_2, icon_hard_drive, icon_info,
+    icon_moon, icon_settings, icon_shopping_bag, icon_sun, icon_sun_moon, icon_tool_case,
+    icon_waves,
 };
 
 pub fn view(state: &State) -> Element<'_, Message> {
@@ -21,6 +22,22 @@ pub fn view(state: &State) -> Element<'_, Message> {
         ThemePreference::Light => icon_sun(),
         ThemePreference::Dark => icon_moon(),
         ThemePreference::System => icon_sun_moon(),
+    };
+
+    let transfer_button: Element<'_, Message> = if state.transfer_stack.is_empty() {
+        space().into()
+    } else {
+        let icon = if state.half_sec_anim_state {
+            icon_arrow_down_0_1()
+        } else {
+            icon_arrow_down_1_0()
+        };
+
+        button(icon.size(20).center())
+            .style(|t, s| style::nav_button(t, s, false))
+            .height(40)
+            .width(40)
+            .into()
     };
 
     container(
@@ -44,7 +61,12 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 .style(|t, s| style::nav_button(t, s, false))
                 .height(40)
                 .width(40),
+            button(icon_settings().size(20).center())
+                .style(|t, s| style::nav_button(t, s, false))
+                .height(40)
+                .width(40),
             space::vertical(),
+            transfer_button,
             my_tooltip::view(
                 button(icon_hard_drive().size(20).center())
                     .style(|t, s| style::nav_button(t, s, false))

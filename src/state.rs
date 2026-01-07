@@ -32,6 +32,8 @@ pub struct State {
     pub drive_usage: String,
     pub osc_filter: String,
     pub hbc_filter: String,
+    pub transfer_stack: Vec<PathBuf>,
+    pub half_sec_anim_state: bool,
 }
 
 impl State {
@@ -54,6 +56,8 @@ impl State {
             drive_usage: String::new(),
             osc_filter: String::new(),
             hbc_filter: String::new(),
+            transfer_stack: Vec::new(),
+            half_sec_anim_state: false,
         };
 
         let tasks = Task::batch(vec![
@@ -144,6 +148,7 @@ impl State {
             }
             Message::NotificationTick => {
                 self.notifications.tick();
+                self.half_sec_anim_state = !self.half_sec_anim_state;
                 Task::none()
             }
             Message::CloseNotification(id) => {
