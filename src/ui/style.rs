@@ -32,18 +32,23 @@ pub fn rounded_danger_button(theme: &Theme, status: button::Status) -> button::S
     style
 }
 
-pub fn nav_button(theme: &Theme, status: button::Status, active: bool) -> button::Style {
-    let mut style = match active {
-        true => {
-            let mut style = button::background(theme, status);
-            if let Some(bg) = &mut style.background {
-                *bg = Background::Color(theme.palette().primary.scale_alpha(0.5));
-            }
-            style
-        }
-        false => button::background(theme, status),
-    };
+pub fn get_nav_button_style(active: bool) -> fn(&Theme, button::Status) -> button::Style {
+    if active {
+        active_nav_button
+    } else {
+        inactive_nav_button
+    }
+}
 
+pub fn active_nav_button(theme: &Theme, status: button::Status) -> button::Style {
+    let mut style = button::background(theme, status);
+    style.background = Some(Background::Color(theme.palette().primary.scale_alpha(0.5)));
+    style.border.radius = border::radius(30);
+    style
+}
+
+pub fn inactive_nav_button(theme: &Theme, status: button::Status) -> button::Style {
+    let mut style = button::background(theme, status);
     style.border.radius = border::radius(30);
     style
 }

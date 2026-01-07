@@ -34,7 +34,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
         };
 
         button(icon.size(20).center())
-            .style(|t, s| style::nav_button(t, s, false))
+            .style(style::inactive_nav_button)
             .height(40)
             .width(40)
             .into()
@@ -43,33 +43,33 @@ pub fn view(state: &State) -> Element<'_, Message> {
     container(
         column![
             button(icon_gamepad_2().size(20).center())
-                .style(|t, s| style::nav_button(t, s, state.screen == Screen::Games))
+                .style(style::get_nav_button_style(state.screen == Screen::Games))
                 .height(40)
                 .width(40)
                 .on_press(Message::NavigateTo(Screen::Games)),
             button(icon_waves().size(20).center())
-                .style(|t, s| style::nav_button(t, s, state.screen == Screen::HbcApps))
+                .style(style::get_nav_button_style(state.screen == Screen::HbcApps))
                 .height(40)
                 .width(40)
                 .on_press(Message::NavigateTo(Screen::HbcApps)),
             button(icon_shopping_bag().size(20).center())
-                .style(|t, s| style::nav_button(t, s, state.screen == Screen::Osc))
+                .style(style::get_nav_button_style(state.screen == Screen::Osc))
                 .height(40)
                 .width(40)
                 .on_press(Message::NavigateTo(Screen::Osc)),
             button(icon_tool_case().size(20).center())
-                .style(|t, s| style::nav_button(t, s, false))
+                .style(style::inactive_nav_button)
                 .height(40)
                 .width(40),
             button(icon_settings().size(20).center())
-                .style(|t, s| style::nav_button(t, s, false))
+                .style(style::inactive_nav_button)
                 .height(40)
                 .width(40),
             space::vertical(),
             transfer_button,
             my_tooltip::view(
                 button(icon_hard_drive().size(20).center())
-                    .style(|t, s| style::nav_button(t, s, false))
+                    .style(style::inactive_nav_button)
                     .height(40)
                     .width(40)
                     .on_press(Message::SelectMountPoint),
@@ -77,14 +77,14 @@ pub fn view(state: &State) -> Element<'_, Message> {
             ),
             my_tooltip::view(
                 button(theme_icon.size(20).center())
-                    .style(|t, s| style::nav_button(t, s, false))
+                    .style(style::inactive_nav_button)
                     .height(40)
                     .width(40)
                     .on_press(Message::ChangeTheme),
                 "Change Theme (System/Light/Dark)"
             ),
             button(icon_info().size(20).center())
-                .style(|t, s| style::nav_button(t, s, state.screen == Screen::About))
+                .style(style::get_nav_button_style(state.screen == Screen::About))
                 .height(40)
                 .width(40)
                 .on_press(Message::NavigateTo(Screen::About)),
