@@ -41,4 +41,5 @@ pub enum Message {
     OpenHbcPage(usize),
     SortGamesAndApps(SortBy),
     OpenDataDir,
+    EmptyResult(Result<(), String>),
 }

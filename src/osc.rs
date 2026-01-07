@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{http_util, message::Message, state::State};
-use anyhow::{Result, bail};
+use anyhow::Result;
 use futures::TryFutureExt;
 use iced::Task;
 use serde::{Deserialize, Deserializer};
@@ -27,9 +27,6 @@ pub fn get_load_osc_apps_task(state: &State) -> Task<Message> {
 
 async fn load_osc_apps(data_dir: PathBuf) -> Result<Box<[OscAppMeta]>> {
     let cache_path = data_dir.join("osc-cache.json");
-    let icons_dir = data_dir.join("osc-icons");
-
-    fs::create_dir_all(&icons_dir).await?;
 
     let apps = match load_cache(&cache_path).await {
         Some(cache) => cache,
@@ -60,16 +57,27 @@ async fn load_cache(path: &Path) -> Option<Vec<OscAppMeta>> {
     Some(apps)
 }
 
-pub async fn download_icon(meta: &OscAppMeta, icons_dir: &Path) -> Result<()> {
-    let icon_path = icons_dir.join(&meta.slug).with_extension("png");
+pub fn get_download_icons_task(state: &State) -> Task<Message> {
+    let osc_apps = state.osc_apps.clone();
+    let icons_dir = state.data_dir.join("osc-icons");
 
-    if icon_path.exists() {
-        bail!("{} already exists", icon_path.display());
-    }
+    Task::perform(
+        async move {
+            fs::create_dir_all(&icons_dir)
+                .await
+                .map_err(|e| e.to_string())?;
 
-    http_util::download_file(&meta.assets.icon.url, &icon_path).await?;
+            for app in &osc_apps {
+                let icon_path = icons_dir.join(&app.slug).with_extension("png");
+                if !icon_path.exists() {
+                    let _ = http_util::download_file(&app.assets.icon.url, &icon_path).await;
+                }
+            }
 
-    Ok(())
+            Ok(())
+        },
+        Message::EmptyResult,
+    )
 }
 
 impl OscAppMeta {

@@ -207,17 +207,16 @@ impl State {
                 }
                 Task::none()
             }
-            Message::GotOscApps(res) => {
-                match res {
-                    Ok(osc_apps) => {
-                        self.osc_apps = osc_apps;
-                    }
-                    Err(e) => {
-                        self.notifications.error(e);
-                    }
+            Message::GotOscApps(res) => match res {
+                Ok(osc_apps) => {
+                    self.osc_apps = osc_apps;
+                    osc::get_download_icons_task(self)
                 }
-                Task::none()
-            }
+                Err(e) => {
+                    self.notifications.error(e);
+                    Task::none()
+                }
+            },
             Message::OpenGameTdb(game_i) => {
                 if let Err(e) = self.games[game_i].open_gametdb() {
                     self.notifications.error(e);
@@ -373,6 +372,12 @@ impl State {
             }
             Message::OpenDataDir => {
                 if let Err(e) = open::that(&self.data_dir) {
+                    self.notifications.error(e);
+                }
+                Task::none()
+            }
+            Message::EmptyResult(res) => {
+                if let Err(e) = res {
                     self.notifications.error(e);
                 }
                 Task::none()
