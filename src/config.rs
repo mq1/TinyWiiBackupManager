@@ -63,6 +63,11 @@ impl Config {
         self.contents.sort_by
     }
 
+    pub fn update_sort_by(&mut self, new_sort_by: SortBy) -> Result<()> {
+        self.contents.sort_by = new_sort_by;
+        self.write()
+    }
+
     pub fn get_theme_pref(&self) -> ThemePreference {
         self.contents.theme_preference
     }

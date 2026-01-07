@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{game::Game, hbc::HbcApp, osc::OscApp, ui::Screen, wiitdb};
+use crate::{config::SortBy, game::Game, hbc::HbcApp, osc::OscApp, ui::Screen, wiitdb};
 use iced::font;
 use std::path::PathBuf;
 
@@ -39,4 +39,5 @@ pub enum Message {
     DeleteHbcApp(usize, bool),
     AppDeleted(Result<String, String>),
     OpenHbcPage(usize),
+    SortGamesAndApps(SortBy),
 }

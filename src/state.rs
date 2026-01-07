@@ -6,7 +6,7 @@ use crate::{
     data_dir::get_data_dir,
     game::{self, Game, Games},
     game_id::GameID,
-    hbc::{self, HbcApp},
+    hbc::{self, HbcApp, HbcApps},
     message::Message,
     notifications::Notifications,
     osc::{self, OscApp},
@@ -358,6 +358,17 @@ impl State {
                 if let Err(e) = self.hbc_apps[hbc_i].open_page() {
                     self.notifications.error(e);
                 }
+                Task::none()
+            }
+            Message::SortGamesAndApps(sort_by) => {
+                let prev_sort_by = self.config.get_sort_by();
+                self.games.sort(prev_sort_by, sort_by);
+                self.hbc_apps.sort(prev_sort_by, sort_by);
+
+                if let Err(e) = self.config.update_sort_by(sort_by) {
+                    self.notifications.error(e);
+                }
+
                 Task::none()
             }
         }
