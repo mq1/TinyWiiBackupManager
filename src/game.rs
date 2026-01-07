@@ -15,7 +15,6 @@ pub struct Game {
     pub is_wii: bool,
     pub title: String,
     pub id: [u8; 6],
-    search_term: String,
 }
 
 impl Game {
@@ -36,15 +35,12 @@ impl Game {
 
         let size = util::get_dir_size(path.clone()).await.unwrap_or_default();
 
-        let search_term = format!("{}{}", title, id_str).to_lowercase();
-
         Some(Self {
             path,
             size,
             is_wii,
             title,
             id,
-            search_term,
         })
     }
 
@@ -68,10 +64,6 @@ impl Game {
             },
             Message::GameDeleted,
         )
-    }
-
-    pub fn matches_search(&self, filter: &str) -> bool {
-        self.search_term.contains(filter)
     }
 
     pub fn get_path_str(&self) -> &str {

@@ -1,11 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{message::Message, state::State, ui::components};
+use crate::{game_id::GameID, message::Message, state::State, ui::components};
+use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
 use iced::{
     Element, Length,
     widget::{Column, Row, column, container, row, scrollable, space, text},
 };
+use itertools::Itertools;
 use lucide_icons::iced::{icon_arrow_down_left, icon_box, icon_hard_drive, icon_pointer};
 use size::Size;
 
@@ -24,7 +26,36 @@ pub fn view(state: &State) -> Element<'_, Message> {
         .into();
     }
 
-    let filter = state.games_filter.to_lowercase();
+    if !state.games_filter.is_empty() {
+        let mut row = Row::new().spacing(10).padding(10);
+
+        let matcher = SkimMatcherV2::default();
+        let games = state
+            .games
+            .iter()
+            .enumerate()
+            .filter_map(|(i, g)| {
+                let title_score = matcher.fuzzy_match(&g.title, &state.games_filter);
+                let id_score = matcher.fuzzy_match(g.id.as_str(), &state.games_filter);
+
+                match (title_score, id_score) {
+                    (Some(s1), Some(s2)) => Some((i, s1 + s2)),
+                    (Some(s1), None) | (None, Some(s1)) => Some((i, s1)),
+                    (None, None) => None,
+                }
+            })
+            .sorted_unstable_by_key(|(_, id)| *id);
+
+        for (i, _) in games {
+            row = row.push(components::game_card::view(state, i));
+        }
+
+        return column![
+            components::games_toolbar::view(state),
+            scrollable(row.wrap())
+        ]
+        .into();
+    }
 
     let mut wii_row = Row::new().width(Length::Fill).spacing(10);
     let mut wii_count = 0usize;
@@ -38,14 +69,14 @@ pub fn view(state: &State) -> Element<'_, Message> {
             wii_count += 1;
             wii_total_size += game.size;
 
-            if state.show_wii && game.matches_search(&filter) {
+            if state.show_wii {
                 wii_row = wii_row.push(components::game_card::view(state, i));
             }
         } else {
             gc_count += 1;
             gc_total_size += game.size;
 
-            if state.show_gc && game.matches_search(&filter) {
+            if state.show_gc {
                 gc_row = gc_row.push(components::game_card::view(state, i));
             }
         }
