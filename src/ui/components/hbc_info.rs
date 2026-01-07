@@ -11,7 +11,8 @@ use iced::{
     widget::{button, column, image, row, rule, scrollable, space, stack, text},
 };
 use lucide_icons::iced::{
-    icon_calendar, icon_clipboard_list, icon_globe, icon_tag, icon_trash, icon_waves, icon_weight,
+    icon_calendar, icon_clipboard_list, icon_folder, icon_globe, icon_tag, icon_trash, icon_waves,
+    icon_weight,
 };
 
 pub fn view(state: &State, hbc_i: usize) -> Element<'_, Message> {
@@ -19,6 +20,7 @@ pub fn view(state: &State, hbc_i: usize) -> Element<'_, Message> {
 
     let col = column![
         row![icon_waves().size(18), text(&app.meta.name).size(18)].spacing(5),
+        row![icon_folder(), text("Path:"), text(app.get_path_str())].spacing(5),
         rule::horizontal(1),
         row![icon_tag(), text("Version:"), text(&app.meta.version)].spacing(5),
         row![
