@@ -2,18 +2,35 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{message::Message, state::State, ui::components};
+use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
 use iced::{
     Element, Length,
     widget::{Row, column, row, scrollable, text},
 };
+use itertools::Itertools;
 use lucide_icons::iced::icon_shopping_bag;
 
 pub fn view(state: &State) -> Element<'_, Message> {
     let mut row = Row::new().width(Length::Fill).spacing(10);
 
-    let filter = state.osc_filter.to_lowercase();
-    for (i, app) in state.osc_apps.iter().enumerate() {
-        if app.matches_search(&filter) {
+    if !state.osc_filter.is_empty() {
+        let matcher = SkimMatcherV2::default();
+        let apps = state
+            .osc_apps
+            .iter()
+            .enumerate()
+            .filter_map(|(i, app)| {
+                matcher
+                    .fuzzy_match(&app.name, &state.osc_filter)
+                    .map(|score| (i, score))
+            })
+            .sorted_unstable_by_key(|(_, score)| *score);
+
+        for (i, _) in apps {
+            row = row.push(components::osc_card::view(state, i));
+        }
+    } else {
+        for i in 0..state.osc_apps.len() {
             row = row.push(components::osc_card::view(state, i));
         }
     }

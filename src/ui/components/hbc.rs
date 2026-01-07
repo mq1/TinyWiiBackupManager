@@ -34,8 +34,9 @@ pub fn view(state: &State) -> Element<'_, Message> {
             .iter()
             .enumerate()
             .filter_map(|(i, app)| {
-                let score = matcher.fuzzy_match(&app.meta.name, &state.hbc_filter);
-                score.map(|score| (i, score))
+                matcher
+                    .fuzzy_match(&app.meta.name, &state.hbc_filter)
+                    .map(|score| (i, score))
             })
             .sorted_unstable_by_key(|(_, score)| *score);
 

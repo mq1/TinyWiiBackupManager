@@ -21,40 +21,34 @@ pub fn view(state: &State, osc_i: usize) -> Element<'_, Message> {
     let app = &state.osc_apps[osc_i];
 
     let col = column![
-        row![icon_shopping_bag().size(18), text(&app.meta.name).size(18)].spacing(5),
+        row![icon_shopping_bag().size(18), text(&app.name).size(18)].spacing(5),
         rule::horizontal(1),
-        row![icon_tag(), text("Version:"), text(&app.meta.version)].spacing(5),
+        row![icon_tag(), text("Version:"), text(&app.version)].spacing(5),
         row![
-            components::developers::get_icon(&app.meta.author),
+            components::developers::get_icon(&app.author),
             text("Author:"),
-            text(&app.meta.author)
+            text(&app.author)
         ]
         .spacing(5),
-        row![
-            icon_users(),
-            text("Authors:"),
-            text(app.meta.authors.join(", "))
-        ]
-        .spacing(5),
-        row![icon_tag(), text("Category:"), text(&app.meta.category)].spacing(5),
+        row![icon_users(), text("Authors:"), text(app.authors.join(", "))].spacing(5),
+        row![icon_tag(), text("Category:"), text(&app.category)].spacing(5),
         row![
             icon_users(),
             text("Contributors:"),
-            text(app.meta.contributors.join(", "))
+            text(app.contributors.join(", "))
         ]
         .spacing(5),
         row![
             icon_cloud_download(),
             text("Downloads:"),
-            text(app.meta.downloads)
+            text(app.downloads)
         ]
         .spacing(5),
         row![
             icon_flag(),
             text("Flags:"),
             text(
-                app.meta
-                    .flags
+                app.flags
                     .iter()
                     .map(Flag::as_str)
                     .collect::<Vec<_>>()
@@ -65,15 +59,14 @@ pub fn view(state: &State, osc_i: usize) -> Element<'_, Message> {
         row![
             icon_package(),
             text("Package Type:"),
-            text(app.meta.package_type.as_str())
+            text(app.package_type.as_str())
         ]
         .spacing(5),
         row![
             icon_usb(),
             text("Peripherals:"),
             text(
-                app.meta
-                    .peripherals
+                app.peripherals
                     .iter()
                     .map(Peripheral::as_str)
                     .collect::<Vec<_>>()
@@ -84,21 +77,20 @@ pub fn view(state: &State, osc_i: usize) -> Element<'_, Message> {
         row![
             icon_calendar(),
             text("Release Date:"),
-            text(app.meta.release_date.to_string())
+            text(app.release_date.to_string())
         ]
         .spacing(5),
         row![
             icon_folders(),
             text("Subdirectories:"),
-            text(app.meta.subdirectories.join(", "))
+            text(app.subdirectories.join(", "))
         ]
         .spacing(5),
         row![
             icon_computer(),
             text("Supported Platforms:"),
             text(
-                app.meta
-                    .supported_platforms
+                app.supported_platforms
                     .iter()
                     .map(Platform::as_str)
                     .collect::<Vec<_>>()
@@ -109,17 +101,17 @@ pub fn view(state: &State, osc_i: usize) -> Element<'_, Message> {
         row![
             icon_weight(),
             text("Uncompressed Size:"),
-            text(&app.meta.uncompressed_size)
+            text(&app.uncompressed_size)
         ]
         .spacing(5),
         row![
             icon_clipboard_list(),
             text("Short Description:"),
-            text(&app.meta.description.short)
+            text(&app.description.short)
         ]
         .spacing(5),
         rule::horizontal(1),
-        scrollable(text(&app.meta.description.long))
+        scrollable(text(&app.description.long))
             .width(Length::Fill)
             .height(Length::Fill),
         row![

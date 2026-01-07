@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{config::SortBy, game::Game, hbc::HbcApp, osc::OscApp, ui::Screen, wiitdb};
+use crate::{config::SortBy, game::Game, hbc::HbcApp, osc::OscAppMeta, ui::Screen, wiitdb};
 use iced::font;
 use std::path::PathBuf;
 
@@ -22,7 +22,7 @@ pub enum Message {
     DeleteGame(usize, bool),
     GameDeleted(Result<String, String>),
     OpenGameDir(usize),
-    GotOscApps(Result<Box<[OscApp]>, String>),
+    GotOscApps(Result<Box<[OscAppMeta]>, String>),
     OpenGameTdb(usize),
     UpdateOscFilter(String),
     FontLoaded(Result<(), font::Error>),

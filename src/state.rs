@@ -9,7 +9,7 @@ use crate::{
     hbc::{self, HbcApp, HbcApps},
     message::Message,
     notifications::Notifications,
-    osc::{self, OscApp},
+    osc::{self, OscAppMeta},
     ui::{Screen, dialogs},
     util, wiitdb,
 };
@@ -24,7 +24,7 @@ pub struct State {
     pub games: Box<[Game]>,
     pub games_filter: String,
     pub hbc_apps: Box<[HbcApp]>,
-    pub osc_apps: Box<[OscApp]>,
+    pub osc_apps: Box<[OscAppMeta]>,
     pub wiitdb: Option<wiitdb::Datafile>,
     pub notifications: Notifications,
     pub show_wii: bool,
@@ -277,7 +277,7 @@ impl State {
                 Task::none()
             }
             Message::AskInstallOscApp(i) => {
-                let name = self.osc_apps[i].meta.name.clone();
+                let name = self.osc_apps[i].name.clone();
 
                 window::oldest()
                     .and_then(move |id| {
@@ -385,9 +385,9 @@ impl State {
         }
     }
 
-    pub fn get_osc_app_icon(&self, app: &OscApp) -> Option<PathBuf> {
+    pub fn get_osc_app_icon(&self, app: &OscAppMeta) -> Option<PathBuf> {
         let icons_dir = self.data_dir.join("osc-icons");
-        let icon_path = icons_dir.join(&app.meta.slug).with_extension("png");
+        let icon_path = icons_dir.join(&app.slug).with_extension("png");
 
         if icon_path.exists() {
             Some(icon_path)

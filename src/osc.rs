@@ -25,13 +25,13 @@ pub fn get_load_osc_apps_task(state: &State) -> Task<Message> {
     )
 }
 
-async fn load_osc_apps(data_dir: PathBuf) -> Result<Box<[OscApp]>> {
+async fn load_osc_apps(data_dir: PathBuf) -> Result<Box<[OscAppMeta]>> {
     let cache_path = data_dir.join("osc-cache.json");
     let icons_dir = data_dir.join("osc-icons");
 
     fs::create_dir_all(&icons_dir).await?;
 
-    let cache = match load_cache(&cache_path).await {
+    let apps = match load_cache(&cache_path).await {
         Some(cache) => cache,
         None => {
             let bytes = http_util::get(CONTENTS_URL)?;
@@ -40,9 +40,7 @@ async fn load_osc_apps(data_dir: PathBuf) -> Result<Box<[OscApp]>> {
         }
     };
 
-    let apps = cache.into_iter().filter_map(OscApp::from_meta).collect();
-
-    Ok(apps)
+    Ok(apps.into_boxed_slice())
 }
 
 async fn load_cache(path: &Path) -> Option<Vec<OscAppMeta>> {
@@ -74,30 +72,20 @@ pub async fn download_icon(meta: &OscAppMeta, icons_dir: &Path) -> Result<()> {
     Ok(())
 }
 
-impl OscApp {
-    fn from_meta(meta: OscAppMeta) -> Option<Self> {
-        let search_term = format!("{}{}", meta.name, meta.slug).to_lowercase();
-
-        Some(Self { meta, search_term })
-    }
-
-    pub fn matches_search(&self, search: &str) -> bool {
-        self.search_term.contains(search)
-    }
-
+impl OscAppMeta {
     pub fn get_trimmed_version_str(&self) -> &str {
-        let len = self.meta.version.len().min(8);
-        &self.meta.version[..len]
+        let len = self.version.len().min(8);
+        &self.version[..len]
     }
 
     pub fn open_page(&self) -> io::Result<()> {
-        let url = format!("https://oscwii.org/library/app/{}", &self.meta.slug);
+        let url = format!("https://oscwii.org/library/app/{}", &self.slug);
         open::that(url)
     }
 
     pub fn get_install_task(&self, mount_point: PathBuf) -> Task<Message> {
-        let url = self.meta.assets.archive.url.clone();
-        let name = self.meta.name.clone();
+        let url = self.assets.archive.url.clone();
+        let name = self.name.clone();
 
         Task::perform(
             async move {
@@ -109,12 +97,6 @@ impl OscApp {
             Message::AppInstalled,
         )
     }
-}
-
-#[derive(Debug, Clone)]
-pub struct OscApp {
-    pub meta: OscAppMeta,
-    search_term: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]
