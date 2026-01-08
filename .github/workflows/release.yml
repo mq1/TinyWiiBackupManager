@@ -243,11 +243,11 @@ jobs:
           -output TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager \
           TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager \
           dist-macos-x86_64/TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
+        codesign --force --deep -s - TinyWiiBackupManager.app
 
     - name: Create dmg (assets from sindresorhus/create-dmg)
       run: |
         mkdir dist
-        chown -R $(id -u):staff TinyWiiBackupManager.app
         npx -y appdmg@0.6.6 assets/appdmg.json \
           "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos.dmg"
 
