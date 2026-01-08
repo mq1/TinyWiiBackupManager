@@ -77,8 +77,8 @@ jobs:
         if: matrix.arch == 'x64' || matrix.arch == 'x64-v3' || matrix.arch == 'ARM64'
         run: |
           ./linuxdeploy-$(uname -m).AppImage --appdir TinyWiiBackupManager.AppDir -e TinyWiiBackupManager -d assets/TinyWiiBackupManager.desktop -i assets/TinyWiiBackupManager.png --output appimage
-          mv "TinyWiiBackupManager-*.AppImage" "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-Linux-${{ matrix.arch }}.AppImage"
-          mv "TinyWiiBackupManager-*.AppImage.zsync" "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-Linux-${{ matrix.arch }}.AppImage.zsync"
+          mv TinyWiiBackupManager-*.AppImage "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-Linux-${{ matrix.arch }}.AppImage"
+          mv TinyWiiBackupManager-*.AppImage.zsync "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-Linux-${{ matrix.arch }}.AppImage.zsync"
         env:
           LDAI_UPDATE_INFORMATION: "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync"
 
@@ -237,7 +237,7 @@ jobs:
       run: |
         mkdir dist
         npx -y appdmg@0.6.6 \
-          "assets/appdmg-${{ matrix.arch }}.json" \
+          "assets/appdmg.json" \
           "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macOS-Universal.dmg"
 
     - name: Upload macOS distributables
