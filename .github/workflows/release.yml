@@ -110,7 +110,7 @@ jobs:
             runner: windows-2025
             platform: windows
           - target: aarch64-pc-windows-msvc
-            arch: ARM64
+            arch: arm64
             runner: windows-11-arm
             platform: windows
           - target: i686-pc-windows-msvc
@@ -118,7 +118,7 @@ jobs:
             runner: windows-2025
             platform: windows
           - target: x86_64-win7-windows-msvc
-            arch: x64
+            arch: x86_64
             runner: windows-2025
             platform: windows7
           - target: i686-win7-windows-msvc
