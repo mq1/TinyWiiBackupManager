@@ -27,13 +27,17 @@ jobs:
         include:
           - target: x86_64-unknown-linux-musl
             runner: ubuntu-24.04
-            arch: x86_64
+            arch: x64-v3
+            rustflags: -C target-cpu=x86-64-v3
+          - target: x86_64-unknown-linux-musl
+            runner: ubuntu-24.04
+            arch: x64
           - target: aarch64-unknown-linux-musl
             runner: ubuntu-24.04-arm
-            arch: aarch64
+            arch: ARM64
           - target: i686-unknown-linux-musl
             runner: ubuntu-24.04
-            arch: i686
+            arch: x86
 
     steps:
       - name: Checkout
@@ -42,11 +46,11 @@ jobs:
           fetch-depth: 1
 
       - name: Install x86 dependencies
-        if: matrix.arch == 'i686'
+        if: matrix.arch == 'x86'
         run: pip install cargo-zigbuild
 
       - name: Install musl-gcc
-        if: matrix.arch == 'x86_64' || matrix.arch == 'aarch64'
+        if: matrix.arch == 'x64' || matrix.arch == 'x64-v3' || matrix.arch == 'ARM64'
         run: sudo apt-get install -y musl-tools
 
       - name: Install Rust toolchain
@@ -55,21 +59,21 @@ jobs:
           toolchain: 1.92
           target: ${{ matrix.target }}
           cache-key: ${{ matrix.arch }}
-          rustflags: ''
+          rustflags: $${{ matrix.rustflags }}
 
       - name: Download LinuxDeploy
-        if: matrix.arch == 'x86_64' || matrix.arch == 'aarch64'
+        if: matrix.arch == 'x64' || matrix.arch == 'x64-v3' || matrix.arch == 'ARM64'
         run: |
-          wget "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${{ matrix.arch }}.AppImage"
-          wget "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-${{ matrix.arch }}.AppImage"
-          chmod +x linuxdeploy-${{ matrix.arch }}.AppImage linuxdeploy-plugin-appimage-${{ matrix.arch }}.AppImage
+          wget "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-$(uname -m).AppImage"
+          wget "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-$(uname -m).AppImage"
+          chmod +x *.AppImage
 
-      - name: Build binary (x86_64 && aarch64)
-        if: matrix.arch == 'x86_64' || matrix.arch == 'aarch64'
+      - name: Build binary (x64, x64v3 and ARM64)
+        if: matrix.arch == 'x64' || matrix.arch == 'x64-v3' || matrix.arch == 'ARM64'
         run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
 
-      - name: Build binary (i686)
-        if: matrix.arch == 'i686'
+      - name: Build binary (x86)
+        if: matrix.arch == 'x86'
         run: cargo zigbuild --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
 
       - name: Package binary as tar.gz
@@ -79,9 +83,9 @@ jobs:
           tar -I 'gzip -9' -cvf "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-Linux-${{ matrix.arch }}.tar.gz" TinyWiiBackupManager
 
       - name: Package binary as AppImage
-        if: matrix.arch == 'x86_64' || matrix.arch == 'aarch64'
+        if: matrix.arch == 'x64' || matrix.arch == 'x64-v3' || matrix.arch == 'ARM64'
         run: |
-          ./linuxdeploy-${{ matrix.arch }}.AppImage --appdir TinyWiiBackupManager.AppDir -e TinyWiiBackupManager -d assets/TinyWiiBackupManager.desktop -i assets/TinyWiiBackupManager.png --output appimage
+          ./linuxdeploy-$(uname -m).AppImage --appdir TinyWiiBackupManager.AppDir -e TinyWiiBackupManager -d assets/TinyWiiBackupManager.desktop -i assets/TinyWiiBackupManager.png --output appimage
           mv "TinyWiiBackupManager-${{ matrix.arch }}.AppImage" "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-Linux-${{ matrix.arch }}.AppImage"
           mv "TinyWiiBackupManager-${{ matrix.arch }}.AppImage.zsync" "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-Linux-${{ matrix.arch }}.AppImage.zsync"
         env:
@@ -101,11 +105,16 @@ jobs:
       matrix:
         include:
           - target: x86_64-pc-windows-msvc
+            arch: x64-v3
+            runner: windows-2025
+            platform: Windows
+            rustflags: -C target-cpu=x86-64-v3
+          - target: x86_64-pc-windows-msvc
             arch: x64
             runner: windows-2025
             platform: Windows
           - target: aarch64-pc-windows-msvc
-            arch: arm64
+            arch: ARM64
             runner: windows-11-arm
             platform: Windows
           - target: i686-pc-windows-msvc
@@ -115,11 +124,11 @@ jobs:
           - target: x86_64-win7-windows-msvc
             arch: x64
             runner: windows-2025
-            platform: WindowsLegacy
+            platform: Windows7
           - target: i686-win7-windows-msvc
             arch: x86
             runner: windows-2025
-            platform: WindowsLegacy
+            platform: Windows7
 
     steps:
       - name: Checkout
@@ -132,7 +141,7 @@ jobs:
         with:
           toolchain: 1.92
           target: ${{ matrix.platform == 'Windows' && matrix.target || '' }}
-          components: ${{ matrix.platform == 'WindowsLegacy' && 'rust-src' || '' }}
+          components: ${{ matrix.platform == 'Windows7' && 'rust-src' || '' }}
           cache-key: ${{ matrix.arch }}
           rustflags: ''
 
@@ -142,7 +151,7 @@ jobs:
         run: cargo build --release --locked --target ${{ matrix.target }}
 
       - name: Build binary (win7+)
-        if: matrix.platform == 'WindowsLegacy'
+        if: matrix.platform == 'Windows7'
         shell: pwsh
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
         env:
@@ -169,9 +178,9 @@ jobs:
       matrix:
         include:
           - target: aarch64-apple-darwin
-            arch: arm64
+            arch: AppleSilicon
           - target: x86_64-apple-darwin
-            arch: x86_64
+            arch: Intel
 
     steps:
       - name: Checkout
@@ -219,31 +228,31 @@ jobs:
     - name: Download macOS .app distributables
       uses: actions/download-artifact@v7
       with:
-        pattern: "dist-macos-*"
+        pattern: "dist-macOS-*"
 
     - name: Extract the .zip distributables
       run: |
-        ditto -x -k "dist-macos-arm64/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macOS-arm64.zip" .
-        ditto -x -k "dist-macos-x86_64/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macOS-x86_64.zip" dist-macos-x86_64
+        ditto -x -k "dist-macos-arm64/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macOS-AppleSilicon.zip" .
+        ditto -x -k "dist-macos-x86_64/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macOS-Intel.zip" dist-macOS-Intel
 
     - name: Create the Universal2 app
       run: |
         lipo -create \
           -output TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager \
           TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager \
-          dist-macos-x86_64/TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
+          dist-macOS/Intel/TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
 
     - name: Create dmg (assets from sindresorhus/create-dmg)
       run: |
         mkdir dist
         npx -y appdmg@0.6.6 \
           "assets/appdmg-${{ matrix.arch }}.json" \
-          "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macOS.dmg"
+          "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macOS-Universal.dmg"
 
     - name: Upload macOS distributables
       uses: actions/upload-artifact@v4
       with:
-        name: dist-macOS-Universal2
+        name: dist-macOS-Universal
         path: dist/*
 
   # ==================================================================================
