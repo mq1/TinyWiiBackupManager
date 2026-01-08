@@ -25,18 +25,18 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - target: x86_64-unknown-linux-musl
-            runner: ubuntu-24.04
+          - target: x86_64-unknown-linux-gnu
+            runner: ubuntu-22.04
             arch: x64-v3
             rustflags: -C target-cpu=x86-64-v3
-          - target: x86_64-unknown-linux-musl
-            runner: ubuntu-24.04
+          - target: x86_64-unknown-linux-gnu
+            runner: ubuntu-22.04
             arch: x64
-          - target: aarch64-unknown-linux-musl
-            runner: ubuntu-24.04-arm
+          - target: aarch64-unknown-linux-gnu
+            runner: ubuntu-22.04-arm
             arch: ARM64
-          - target: i686-unknown-linux-musl
-            runner: ubuntu-24.04
+          - target: i686-unknown-linux-gnu
+            runner: ubuntu-22.04
             arch: x86
 
     steps:
@@ -47,11 +47,7 @@ jobs:
 
       - name: Install x86 dependencies
         if: matrix.arch == 'x86'
-        run: pip install cargo-zigbuild
-
-      - name: Install musl-gcc
-        if: matrix.arch == 'x64' || matrix.arch == 'x64-v3' || matrix.arch == 'ARM64'
-        run: sudo apt-get install -y musl-tools
+        run: sudo apt-get install -y gcc-multilib
 
       - name: Install Rust toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -68,13 +64,8 @@ jobs:
           wget "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-$(uname -m).AppImage"
           chmod +x *.AppImage
 
-      - name: Build binary (x64, x64v3 and ARM64)
-        if: matrix.arch == 'x64' || matrix.arch == 'x64-v3' || matrix.arch == 'ARM64'
+      - name: Build binary
         run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
-
-      - name: Build binary (x86)
-        if: matrix.arch == 'x86'
-        run: cargo zigbuild --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
 
       - name: Package binary as tar.gz
         run: |
@@ -86,8 +77,8 @@ jobs:
         if: matrix.arch == 'x64' || matrix.arch == 'x64-v3' || matrix.arch == 'ARM64'
         run: |
           ./linuxdeploy-$(uname -m).AppImage --appdir TinyWiiBackupManager.AppDir -e TinyWiiBackupManager -d assets/TinyWiiBackupManager.desktop -i assets/TinyWiiBackupManager.png --output appimage
-          mv "TinyWiiBackupManager-${{ matrix.arch }}.AppImage" "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-Linux-${{ matrix.arch }}.AppImage"
-          mv "TinyWiiBackupManager-${{ matrix.arch }}.AppImage.zsync" "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-Linux-${{ matrix.arch }}.AppImage.zsync"
+          mv "TinyWiiBackupManager-*.AppImage" "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-Linux-${{ matrix.arch }}.AppImage"
+          mv "TinyWiiBackupManager-*.AppImage.zsync" "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-Linux-${{ matrix.arch }}.AppImage.zsync"
         env:
           LDAI_UPDATE_INFORMATION: "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync"
 
