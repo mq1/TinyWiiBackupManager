@@ -27,14 +27,14 @@ jobs:
         include:
           - target: x86_64-unknown-linux-gnu
             runner: ubuntu-24.04
-            arch: x64-v3
+            arch: x86_64-v3
             rustflags: -C target-cpu=x86-64-v3
           - target: x86_64-unknown-linux-gnu
             runner: ubuntu-24.04
-            arch: x64
+            arch: x86_64
           - target: aarch64-unknown-linux-gnu
             runner: ubuntu-24.04-arm
-            arch: ARM64
+            arch: arm64
           - target: i686-unknown-linux-musl
             runner: ubuntu-24.04
             arch: x86
@@ -58,14 +58,14 @@ jobs:
           rustflags: ${{ matrix.rustflags }}
 
       - name: Download LinuxDeploy
-        if: matrix.arch == 'x64' || matrix.arch == 'x64-v3' || matrix.arch == 'ARM64'
+        if: matrix.arch == 'x86_64' || matrix.arch == 'x86_64-v3' || matrix.arch == 'arm64'
         run: |
           wget "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-$(uname -m).AppImage"
           wget "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-$(uname -m).AppImage"
           chmod +x *.AppImage
 
-      - name: Build binary (x64, x64-v3, ARM64)
-        if: matrix.arch == 'x64' || matrix.arch == 'x64-v3' || matrix.arch == 'ARM64'
+      - name: Build binary (x86_64, x86_64-v3, arm64)
+        if: matrix.arch == 'x86_64' || matrix.arch == 'x86_64-v3' || matrix.arch == 'arm64'
         run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
 
       - name: Build binary (x86)
@@ -76,21 +76,21 @@ jobs:
         run: |
           mkdir dist
           cp "target/${{ matrix.target }}/release/TinyWiiBackupManager" TinyWiiBackupManager
-          tar -I 'gzip -9' -cvf "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-Linux-${{ matrix.arch }}.tar.gz" TinyWiiBackupManager
+          tar -I 'gzip -9' -cvf "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.tar.gz" TinyWiiBackupManager
 
       - name: Package binary as AppImage
-        if: matrix.arch == 'x64' || matrix.arch == 'x64-v3' || matrix.arch == 'ARM64'
+        if: matrix.arch == 'x86_64' || matrix.arch == 'x86_64-v3' || matrix.arch == 'arm64'
         run: |
           ./linuxdeploy-$(uname -m).AppImage --appdir TinyWiiBackupManager.AppDir -e TinyWiiBackupManager -d assets/TinyWiiBackupManager.desktop -i assets/TinyWiiBackupManager.png --output appimage
-          mv TinyWiiBackupManager-*.AppImage "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-Linux-${{ matrix.arch }}.AppImage"
-          mv TinyWiiBackupManager-*.AppImage.zsync "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-Linux-${{ matrix.arch }}.AppImage.zsync"
+          mv TinyWiiBackupManager-*.AppImage "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
+          mv TinyWiiBackupManager-*.AppImage.zsync "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage.zsync"
         env:
           LDAI_UPDATE_INFORMATION: "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync"
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v4
         with:
-          name: dist-Linux-${{ matrix.arch }}
+          name: dist-linux-${{ matrix.arch }}
           path: dist/*
 
   build-windows:
@@ -103,28 +103,28 @@ jobs:
           - target: x86_64-pc-windows-msvc
             arch: x64-v3
             runner: windows-2025
-            platform: Windows
+            platform: windows
             rustflags: -C target-cpu=x86-64-v3
           - target: x86_64-pc-windows-msvc
             arch: x64
             runner: windows-2025
-            platform: Windows
+            platform: windows
           - target: aarch64-pc-windows-msvc
             arch: ARM64
             runner: windows-11-arm
-            platform: Windows
+            platform: windows
           - target: i686-pc-windows-msvc
             arch: x86
             runner: windows-2025
-            platform: Windows
+            platform: windows
           - target: x86_64-win7-windows-msvc
             arch: x64
             runner: windows-2025
-            platform: Windows7
+            platform: windows7
           - target: i686-win7-windows-msvc
             arch: x86
             runner: windows-2025
-            platform: Windows7
+            platform: windows7
 
     steps:
       - name: Checkout
@@ -136,18 +136,18 @@ jobs:
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: 1.92
-          target: ${{ matrix.platform == 'Windows' && matrix.target || '' }}
-          components: ${{ matrix.platform == 'Windows7' && 'rust-src' || '' }}
+          target: ${{ matrix.platform == 'windows' && matrix.target || '' }}
+          components: ${{ matrix.platform == 'windows7' && 'rust-src' || '' }}
           cache-key: ${{ matrix.arch }}
           rustflags: ''
 
       - name: Build binary (win10+)
-        if: matrix.platform == 'Windows'
+        if: matrix.platform == 'windows'
         shell: pwsh
         run: cargo build --release --locked --target ${{ matrix.target }}
 
       - name: Build binary (win7+)
-        if: matrix.platform == 'Windows7'
+        if: matrix.platform == 'windows7'
         shell: pwsh
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
         env:
@@ -174,9 +174,9 @@ jobs:
       matrix:
         include:
           - target: aarch64-apple-darwin
-            arch: AppleSilicon
+            arch: arm64
           - target: x86_64-apple-darwin
-            arch: Intel
+            arch: x86_64
 
     steps:
       - name: Checkout
@@ -207,12 +207,12 @@ jobs:
           mkdir dist
           ditto -c -k --sequesterRsrc --keepParent --zlibCompressionLevel 9 \
             TinyWiiBackupManager.app \
-            "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macOS-${{ matrix.arch }}.zip"
+            "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-${{ matrix.arch }}.zip"
 
       - name: Upload macOS distributables
         uses: actions/upload-artifact@v4
         with:
-          name: dist-macOS-${{ matrix.arch }}
+          name: dist-macos-${{ matrix.arch }}
           path: dist/*
 
   build-dmg:
@@ -229,30 +229,30 @@ jobs:
     - name: Download macOS .app distributables
       uses: actions/download-artifact@v7
       with:
-        pattern: "dist-macOS-*"
+        pattern: "dist-macos-*"
 
     - name: Extract the .zip distributables
       run: |
-        ditto -x -k "dist-macOS-AppleSilicon/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macOS-AppleSilicon.zip" .
-        ditto -x -k "dist-macOS-Intel/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macOS-Intel.zip" dist-macOS-Intel
+        ditto -x -k "dist-macos-arm64/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-arm64.zip" .
+        ditto -x -k "dist-macos-x86_64/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-x86_64.zip" dist-macos-x86_64
 
     - name: Create the Universal2 app
       run: |
         lipo -create \
           -output TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager \
           TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager \
-          dist-macOS-Intel/TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
+          dist-macos-x86_64/TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
 
     - name: Create dmg (assets from sindresorhus/create-dmg)
       run: |
         mkdir dist
         npx -y appdmg@0.6.6 assets/appdmg.json \
-          "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macOS-Universal.dmg"
+          "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos.dmg"
 
     - name: Upload macOS distributables
       uses: actions/upload-artifact@v4
       with:
-        name: dist-macOS-Universal
+        name: dist-macos-universal
         path: dist/*
 
   # ==================================================================================
