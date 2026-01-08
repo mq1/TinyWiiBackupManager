@@ -59,7 +59,7 @@ jobs:
           toolchain: 1.92
           target: ${{ matrix.target }}
           cache-key: ${{ matrix.arch }}
-          rustflags: $${{ matrix.rustflags }}
+          rustflags: ${{ matrix.rustflags }}
 
       - name: Download LinuxDeploy
         if: matrix.arch == 'x64' || matrix.arch == 'x64-v3' || matrix.arch == 'ARM64'
@@ -232,8 +232,8 @@ jobs:
 
     - name: Extract the .zip distributables
       run: |
-        ditto -x -k "dist-macos-arm64/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macOS-AppleSilicon.zip" .
-        ditto -x -k "dist-macos-x86_64/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macOS-Intel.zip" dist-macOS-Intel
+        ditto -x -k "dist-macOS-AppleSilicon/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macOS-AppleSilicon.zip" .
+        ditto -x -k "dist-macOS-Intel/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macOS-Intel.zip" dist-macOS-Intel
 
     - name: Create the Universal2 app
       run: |
