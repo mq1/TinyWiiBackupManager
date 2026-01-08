@@ -246,7 +246,7 @@ jobs:
     - name: Create dmg (assets from sindresorhus/create-dmg)
       run: |
         mkdir dist
-        xattr -cr TinyWiiBackupManager.app
+        chown -R $(id -u):staff TinyWiiBackupManager.app
         npx -y appdmg@0.6.6 assets/appdmg.json \
           "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos.dmg"
 
