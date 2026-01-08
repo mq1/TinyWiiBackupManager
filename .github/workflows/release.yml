@@ -242,7 +242,7 @@ jobs:
           -output TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager \
           TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager \
           dist-macos-x86_64/TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
-        chown -R 99:99 TinyWiiBackupManager.app
+        sudo chown -R 99:99 TinyWiiBackupManager.app
 
     - name: Create dmg (assets from sindresorhus/create-dmg)
       run: |
