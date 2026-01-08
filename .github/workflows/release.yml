@@ -138,6 +138,7 @@ jobs:
           toolchain: 1.92
           target: ${{ matrix.platform == 'windows' && matrix.target || '' }}
           components: ${{ matrix.platform == 'windows7' && 'rust-src' || '' }}
+          cache: ${{ matrix.platform == 'windows' }}
           cache-key: ${{ matrix.arch }}
           rustflags: ''
 
