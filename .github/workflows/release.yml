@@ -246,9 +246,7 @@ jobs:
     - name: Create dmg (assets from sindresorhus/create-dmg)
       run: |
         mkdir dist
-        sudo chmod -R -N TinyWiiBackupManager.app
-        sudo xattr -cr TinyWiiBackupManager.app
-        sudo chown -R 99:99 TinyWiiBackupManager.app
+        xattr -cr TinyWiiBackupManager.app
         npx -y appdmg@0.6.6 assets/appdmg.json \
           "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos.dmg"
 
