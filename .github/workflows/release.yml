@@ -25,18 +25,18 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - target: x86_64-unknown-linux-gnu
-            runner: ubuntu-22.04
+          - target: x86_64-unknown-linux-musl
+            runner: ubuntu-24.04
             arch: x64-v3
             rustflags: -C target-cpu=x86-64-v3
-          - target: x86_64-unknown-linux-gnu
-            runner: ubuntu-22.04
+          - target: x86_64-unknown-linux-musl
+            runner: ubuntu-24.04
             arch: x64
-          - target: aarch64-unknown-linux-gnu
-            runner: ubuntu-22.04-arm
+          - target: aarch64-unknown-linux-musl
+            runner: ubuntu-24.04-arm
             arch: ARM64
-          - target: i686-unknown-linux-gnu
-            runner: ubuntu-22.04
+          - target: i686-unknown-linux-musl
+            runner: ubuntu-24.04
             arch: x86
 
     steps:
@@ -231,7 +231,7 @@ jobs:
         lipo -create \
           -output TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager \
           TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager \
-          dist-macOS/Intel/TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
+          dist-macOS-Intel/TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
 
     - name: Create dmg (assets from sindresorhus/create-dmg)
       run: |
@@ -252,7 +252,7 @@ jobs:
   release:
     name: Create GitHub Release
     if: github.ref_type == 'tag'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     needs: [build-linux, build-windows, build-macos, build-dmg]
     steps:
       - name: Checkout
@@ -290,7 +290,7 @@ jobs:
   scoop:
     name: Update scoop bucket
     if: github.ref_type == 'tag'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     needs: [release]
     steps:
       - name: Checkout
