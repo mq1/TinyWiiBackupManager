@@ -55,6 +55,7 @@ jobs:
           toolchain: 1.92
           target: ${{ matrix.target }}
           cache-key: ${{ matrix.arch }}
+          rustflags: ''
 
       - name: Download LinuxDeploy
         if: matrix.arch == 'x86_64' || matrix.arch == 'aarch64'
@@ -89,7 +90,7 @@ jobs:
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v4
         with:
-          name: dist-linux-${{ matrix.arch }}
+          name: dist-Linux-${{ matrix.arch }}
           path: dist/*
 
   build-windows:
@@ -107,6 +108,14 @@ jobs:
             arch: arm64
             runner: windows-11-arm
             platform: Windows
+          - target: i686-pc-windows-msvc
+            arch: x86
+            runner: windows-2025
+            platform: Windows
+          - target: x86_64-win7-windows-msvc
+            arch: x64
+            runner: windows-2025
+            platform: WindowsLegacy
           - target: i686-win7-windows-msvc
             arch: x86
             runner: windows-2025
@@ -125,10 +134,7 @@ jobs:
           target: ${{ matrix.platform == 'Windows' && matrix.target || '' }}
           components: ${{ matrix.platform == 'WindowsLegacy' && 'rust-src' || '' }}
           cache-key: ${{ matrix.arch }}
-
-      - name: Install cargo-packager
-        shell: pwsh
-        run: cargo install cargo-packager --version 0.11.8 --locked
+          rustflags: ''
 
       - name: Build binary (win10+)
         if: matrix.platform == 'Windows'
@@ -149,16 +155,10 @@ jobs:
           Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination TinyWiiBackupManager.exe
           7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
 
-      - name: Package binary with NSIS
-        shell: pwsh
-        run: |
-          cargo packager --release --target ${{ matrix.target }} --formats nsis
-          Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager*-setup.exe" -Destination "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}-setup.exe"
-
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v4
         with:
-          name: dist-windows-${{ matrix.arch }}
+          name: dist-${{ matrix.platform }}-${{ matrix.arch }}
           path: dist/*
 
   build-macos:
@@ -185,27 +185,29 @@ jobs:
           toolchain: 1.92
           target: ${{ matrix.target }}
           cache-key: ${{ matrix.arch }}
-
-      - name: Install cargo-packager
-        run: cargo install cargo-packager --version 0.11.8 --locked
+          rustflags: ''
 
       - name: Build binary
         run: cargo build --release --locked --target ${{ matrix.target }}
 
       - name: Build macOS app bundle
-        run: cargo packager --release --target ${{ matrix.target }} --formats app
+        run: |
+          mkdir -p TinyWiiBackupManager.app/Contents/MacOS TinyWiiBackupManager.app/Contents/Resources
+          cp "target/${{ matrix.target }}/release/TinyWiiBackupManager" TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
+          sed 's/VERSION_NAME/${{ env.VERSION_NAME }}/' assets/Info.plist > TinyWiiBackupManager.app/Contents/Info.plist
+          cp assets/TinyWiiBackupManager.icns TinyWiiBackupManager.app/Contents/Resources/TinyWiiBackupManager.icns
 
       - name: zip the app
         run: |
           mkdir dist
           ditto -c -k --sequesterRsrc --keepParent --zlibCompressionLevel 9 \
-            "target/${{ matrix.target }}/release/TinyWiiBackupManager.app" \
+            TinyWiiBackupManager.app \
             "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macOS-${{ matrix.arch }}.zip"
 
       - name: Upload macOS distributables
         uses: actions/upload-artifact@v4
         with:
-          name: dist-macos-${{ matrix.arch }}
+          name: dist-macOS-${{ matrix.arch }}
           path: dist/*
 
   build-dmg:
@@ -241,7 +243,7 @@ jobs:
     - name: Upload macOS distributables
       uses: actions/upload-artifact@v4
       with:
-        name: dist-macos
+        name: dist-macOS-Universal2
         path: dist/*
 
   # ==================================================================================
