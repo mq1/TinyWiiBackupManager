@@ -11,7 +11,7 @@ use crate::{
 };
 use iced::{
     Alignment, Element,
-    widget::{button, checkbox, container, row, space, text, text_input},
+    widget::{button, checkbox, container, row, rule, space, text, text_input},
 };
 use lucide_icons::iced::{icon_box, icon_plus, icon_pointer, icon_rotate_cw, icon_search};
 
@@ -38,12 +38,15 @@ pub fn view(state: &State) -> Element<'_, Message> {
                     .style(style::toolbar_checkbox)
                     .on_toggle(Message::ShowWii),
                 my_tooltip::view(icon_pointer(), "Show Wii Games"),
-                text("  |  "),
+                space(),
+                rule::vertical(1),
+                space(),
                 checkbox(state.show_gc)
                     .style(style::toolbar_checkbox)
                     .on_toggle(Message::ShowGc),
                 my_tooltip::view(icon_box(), "Show GameCube Games"),
             ]
+            .height(38)
             .align_y(Alignment::Center)
             .spacing(5)
             .padding(10)
