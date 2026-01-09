@@ -4,7 +4,10 @@
 use crate::{
     message::Message,
     state::State,
-    ui::{components::my_tooltip, style},
+    ui::{
+        components::{self, my_tooltip},
+        style,
+    },
 };
 use iced::{
     Alignment, Element,
@@ -46,6 +49,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
             .padding(10)
         )
         .style(style::card),
+        components::sort_by::view(state),
         space(),
         my_tooltip::view(
             button(icon_rotate_cw().size(18).center())
