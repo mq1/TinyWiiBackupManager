@@ -89,7 +89,7 @@ jobs:
 
   build-windows:
     name: Build for Windows
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -99,7 +99,7 @@ jobs:
             platform: windows
             rustflags: -C target-cpu=x86-64-v3
           - target: x86_64-pc-windows-gnullvm
-            arch: x64
+            arch: x86_64
             platform: windows
           - target: aarch64-pc-windows-gnullvm
             arch: arm64
@@ -120,6 +120,11 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Install llvm-mingw
+        run: |
+          wget https://github.com/mstorsjo/llvm-mingw/releases/download/20251216/llvm-mingw-20251216-ucrt-ubuntu-22.04-x86_64.tar.xz
+          tar xf llvm-mingw-20251216-ucrt-ubuntu-22.04-x86_64.tar.xz
+
       - name: Install Rust toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
@@ -132,7 +137,9 @@ jobs:
 
       - name: Build binary (win10+)
         if: matrix.platform == 'windows'
-        run: cargo build --release --locked --target ${{ matrix.target }}
+        run: |
+          export PATH="$PWD/llvm-mingw-20251216-ucrt-ubuntu-22.04-x86_64/bin:$PATH"
+          cargo build --release --locked --target ${{ matrix.target }}
 
       - name: Build binary (win7+)
         if: matrix.platform == 'windows7'
