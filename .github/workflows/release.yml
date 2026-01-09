@@ -25,17 +25,17 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - target: x86_64-unknown-linux-gnu
+          - target: x86_64-unknown-linux-gnu.2.17
             runner: ubuntu-24.04
             arch: x86_64-v3
             rustflags: -C target-cpu=x86-64-v3
-          - target: x86_64-unknown-linux-gnu
+          - target: x86_64-unknown-linux-gnu.2.17
             runner: ubuntu-24.04
             arch: x86_64
-          - target: aarch64-unknown-linux-gnu
+          - target: aarch64-unknown-linux-gnu.2.17
             runner: ubuntu-24.04-arm
             arch: arm64
-          - target: i686-unknown-linux-musl
+          - target: i686-unknown-linux-gnu.2.17
             runner: ubuntu-24.04
             arch: x86
 
@@ -45,8 +45,7 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install x86 dependencies
-        if: matrix.arch == 'x86'
+      - name: Install cargo-zigbuild
         run: pip install cargo-zigbuild
 
       - name: Install Rust toolchain
@@ -64,12 +63,7 @@ jobs:
           wget "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-$(uname -m).AppImage"
           chmod +x *.AppImage
 
-      - name: Build binary (x86_64, x86_64-v3, arm64)
-        if: matrix.arch == 'x86_64' || matrix.arch == 'x86_64-v3' || matrix.arch == 'arm64'
-        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
-
-      - name: Build binary (x86)
-        if: matrix.arch == 'x86'
+      - name: Build binary
         run: cargo zigbuild --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
 
       - name: Package binary as tar.gz
