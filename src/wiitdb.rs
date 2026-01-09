@@ -307,3 +307,23 @@ async fn load_wiitdb(data_dir: PathBuf) -> Result<Datafile> {
 
     Datafile::load(&wiitdb_path)
 }
+
+pub fn get_download_wiitdb_to_drive_task(state: &State) -> Task<Message> {
+    let mount_point = state.config.get_drive_path().to_path_buf();
+
+    Task::perform(
+        download_wiitdb_to_drive(mount_point).map_err(|e| e.to_string()),
+        Message::FinishedDownloadingWiitdbToDrive,
+    )
+}
+
+async fn download_wiitdb_to_drive(mount_point: PathBuf) -> Result<()> {
+    // Create the target directory.
+    let target_dir = mount_point.join("apps").join("usbloader_gx");
+    fs::create_dir_all(&target_dir)?;
+
+    // Download wiitdb
+    http_util::download_and_extract_zip(DOWNLOAD_URL, &target_dir).await?;
+
+    Ok(())
+}

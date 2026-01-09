@@ -7,6 +7,8 @@ use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
 pub enum Message {
+    EmptyResult(Result<(), String>),
+
     NavigateTo(Screen),
     RefreshGamesAndApps,
     OpenProjectRepo,
@@ -40,7 +42,8 @@ pub enum Message {
     AppDeleted(Result<String, String>),
     OpenHbcPage(usize),
     OpenDataDir,
-    EmptyResult(Result<(), String>),
+    DownloadWiitdbToDrive,
+    FinishedDownloadingWiitdbToDrive(Result<(), String>),
 
     // Settings
     UpdateWiiOutputFormat(nod::common::Format),

@@ -398,6 +398,24 @@ impl State {
 
                 Task::none()
             }
+            Message::DownloadWiitdbToDrive => {
+                self.notifications
+                    .info("Downloading wiitdb.xml to drive...");
+                wiitdb::get_download_wiitdb_to_drive_task(self)
+            }
+            Message::FinishedDownloadingWiitdbToDrive(res) => {
+                match res {
+                    Ok(()) => {
+                        self.notifications
+                            .success("wiitdb.xml successfully downloaded to drive");
+                    }
+                    Err(e) => {
+                        self.notifications.error(e);
+                    }
+                }
+
+                Task::none()
+            }
         }
     }
 
