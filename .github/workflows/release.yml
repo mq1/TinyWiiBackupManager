@@ -89,35 +89,29 @@ jobs:
 
   build-windows:
     name: Build for Windows
-    runs-on: ${{ matrix.runner }}
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
         include:
-          - target: x86_64-pc-windows-msvc
+          - target: x86_64-pc-windows-gnullvm
             arch: x64-v3
-            runner: windows-2025
             platform: windows
             rustflags: -C target-cpu=x86-64-v3
-          - target: x86_64-pc-windows-msvc
+          - target: x86_64-pc-windows-gnullvm
             arch: x64
-            runner: windows-2025
             platform: windows
-          - target: aarch64-pc-windows-msvc
+          - target: aarch64-pc-windows-gnullvm
             arch: arm64
-            runner: windows-11-arm
             platform: windows
-          - target: i686-pc-windows-msvc
+          - target: i686-pc-windows-gnullvm
             arch: x86
-            runner: windows-2025
             platform: windows
-          - target: x86_64-win7-windows-msvc
+          - target: x86_64-win7-windows-gnu
             arch: x86_64
-            runner: windows-2025
             platform: windows7
-          - target: i686-win7-windows-msvc
+          - target: i686-win7-windows-gnu
             arch: x86
-            runner: windows-2025
             platform: windows7
 
     steps:
@@ -138,22 +132,19 @@ jobs:
 
       - name: Build binary (win10+)
         if: matrix.platform == 'windows'
-        shell: pwsh
         run: cargo build --release --locked --target ${{ matrix.target }}
 
       - name: Build binary (win7+)
         if: matrix.platform == 'windows7'
-        shell: pwsh
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
         env:
           RUSTC_BOOTSTRAP: 1
 
       - name: Package binary as zip
-        shell: pwsh
         run: |
-          New-Item -Path "dist" -ItemType Directory
-          Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination TinyWiiBackupManager.exe
-          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
+          mkdir dist
+          cp "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" TinyWiiBackupManager.exe
+          zip "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v4
