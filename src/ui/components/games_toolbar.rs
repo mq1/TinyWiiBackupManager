@@ -11,7 +11,7 @@ use crate::{
 };
 use iced::{
     Alignment, Element,
-    widget::{button, checkbox, container, row, rule, space, text, text_input},
+    widget::{button, checkbox, container, row, rule, space, text_input},
 };
 use lucide_icons::iced::{icon_box, icon_plus, icon_pointer, icon_rotate_cw, icon_search};
 

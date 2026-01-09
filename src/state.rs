@@ -3,6 +3,7 @@
 
 use crate::{
     config::{Config, SortBy, ThemePreference},
+    covers,
     data_dir::get_data_dir,
     game::{self, Game, Games},
     game_id::GameID,
@@ -246,27 +247,27 @@ impl State {
                 }
                 Task::none()
             }
-            Message::GotGames(res) => {
-                match res {
-                    Ok(games) => {
-                        self.games = games;
+            Message::GotGames(res) => match res {
+                Ok(games) => {
+                    self.games = games;
 
-                        if let Some(wiitdb) = &self.wiitdb {
-                            for game in &mut self.games {
-                                if let Some(title) = wiitdb.get_title(game.id) {
-                                    game.title = title;
-                                }
+                    if let Some(wiitdb) = &self.wiitdb {
+                        for game in &mut self.games {
+                            if let Some(title) = wiitdb.get_title(game.id) {
+                                game.title = title;
                             }
                         }
+                    }
 
-                        self.games.sort(SortBy::None, self.config.get_sort_by());
-                    }
-                    Err(e) => {
-                        self.notifications.error(e);
-                    }
+                    self.games.sort(SortBy::None, self.config.get_sort_by());
+
+                    covers::get_cache_cover3ds_task(self)
                 }
-                Task::none()
-            }
+                Err(e) => {
+                    self.notifications.error(e);
+                    Task::none()
+                }
+            },
             Message::GotHbcApps(res) => {
                 match res {
                     Ok(hbc_apps) => {

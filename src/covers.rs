@@ -1,31 +1,33 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::app::App;
-use crate::messages::Message;
-use crate::{games::GameID, http};
+use crate::{game::Game, game_id::GameID, http_util, message::Message, state::State};
 use anyhow::Result;
-use egui_phosphor::regular as ph;
-use std::{fs, path::Path};
+use futures::TryFutureExt;
+use iced::Task;
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 
-fn cache_cover3d(id: GameID, cache_dir: &Path) -> Result<bool> {
+async fn cache_cover3d(id: [u8; 6], cache_dir: &Path) -> Result<()> {
     let path = cache_dir.join(id.as_str()).with_extension("png");
     if path.exists() {
-        return Ok(false);
+        return Ok(());
     }
 
     let url = format!(
         "https://art.gametdb.com/wii/cover3D/{}/{}.png",
-        id.get_wiitdb_lang(),
+        id.as_lang_str(),
         id.as_str()
     );
 
-    http::download_file(&url, &path)?;
+    http_util::download_file(&url, &path).await?;
 
-    Ok(true)
+    Ok(())
 }
 
-fn download_cover3d(id: GameID, mount_point: &Path) -> Result<()> {
+async fn download_cover3d(id: [u8; 6], mount_point: &Path) -> Result<()> {
     let images_dir = mount_point.join("apps").join("usbloader_gx").join("images");
     fs::create_dir_all(&images_dir)?;
 
@@ -36,16 +38,16 @@ fn download_cover3d(id: GameID, mount_point: &Path) -> Result<()> {
 
     let url = format!(
         "https://art.gametdb.com/wii/cover3D/{}/{}.png",
-        id.get_wiitdb_lang(),
+        id.as_lang_str(),
         id.as_str()
     );
 
-    http::download_file(&url, &path)?;
+    http_util::download_file(&url, &path).await?;
 
     Ok(())
 }
 
-fn download_cover2d(id: GameID, mount_point: &Path) -> Result<()> {
+async fn download_cover2d(id: [u8; 6], mount_point: &Path) -> Result<()> {
     let images_dir = mount_point
         .join("apps")
         .join("usbloader_gx")
@@ -60,16 +62,16 @@ fn download_cover2d(id: GameID, mount_point: &Path) -> Result<()> {
 
     let url = format!(
         "https://art.gametdb.com/wii/cover/{}/{}.png",
-        id.get_wiitdb_lang(),
+        id.as_lang_str(),
         id.as_str()
     );
 
-    http::download_file(&url, &path)?;
+    http_util::download_file(&url, &path).await?;
 
     Ok(())
 }
 
-fn download_coverfull(id: GameID, mount_point: &Path) -> Result<()> {
+async fn download_coverfull(id: [u8; 6], mount_point: &Path) -> Result<()> {
     let images_dir = mount_point
         .join("apps")
         .join("usbloader_gx")
@@ -84,16 +86,16 @@ fn download_coverfull(id: GameID, mount_point: &Path) -> Result<()> {
 
     let url = format!(
         "https://art.gametdb.com/wii/coverfull/{}/{}.png",
-        id.get_wiitdb_lang(),
+        id.as_lang_str(),
         id.as_str()
     );
 
-    http::download_file(&url, &path)?;
+    http_util::download_file(&url, &path).await?;
 
     Ok(())
 }
 
-fn download_disc_cover(id: GameID, mount_point: &Path) -> Result<()> {
+async fn download_disc_cover(id: [u8; 6], mount_point: &Path) -> Result<()> {
     let images_dir = mount_point
         .join("apps")
         .join("usbloader_gx")
@@ -108,16 +110,16 @@ fn download_disc_cover(id: GameID, mount_point: &Path) -> Result<()> {
 
     let url = format!(
         "https://art.gametdb.com/wii/disc/{}/{}.png",
-        id.get_wiitdb_lang(),
+        id.as_lang_str(),
         id.as_str()
     );
 
-    http::download_file(&url, &path)?;
+    http_util::download_file(&url, &path).await?;
 
     Ok(())
 }
 
-fn download_wiiflow_boxcover(id: GameID, mount_point: &Path) -> Result<()> {
+async fn download_wiiflow_boxcover(id: [u8; 6], mount_point: &Path) -> Result<()> {
     let cover_dir = mount_point.join("wiiflow").join("boxcovers");
     fs::create_dir_all(&cover_dir)?;
 
@@ -128,16 +130,16 @@ fn download_wiiflow_boxcover(id: GameID, mount_point: &Path) -> Result<()> {
 
     let url = format!(
         "https://art.gametdb.com/wii/coverfull/{}/{}.png",
-        id.get_wiitdb_lang(),
+        id.as_lang_str(),
         id.as_str()
     );
 
-    http::download_file(&url, &path)?;
+    http_util::download_file(&url, &path).await?;
 
     Ok(())
 }
 
-fn download_wiiflow_cover(id: GameID, mount_point: &Path) -> Result<()> {
+async fn download_wiiflow_cover(id: [u8; 6], mount_point: &Path) -> Result<()> {
     let cover_dir = mount_point.join("wiiflow").join("covers");
     fs::create_dir_all(&cover_dir)?;
 
@@ -148,53 +150,37 @@ fn download_wiiflow_cover(id: GameID, mount_point: &Path) -> Result<()> {
 
     let url = format!(
         "https://art.gametdb.com/wii/cover/{}/{}.png",
-        id.get_wiitdb_lang(),
+        id.as_lang_str(),
         id.as_str()
     );
 
-    http::download_file(&url, &path)?;
+    http_util::download_file(&url, &path).await?;
 
     Ok(())
 }
 
-// Fail safe, ignores errors, no popup notification
-pub fn spawn_cache_covers_task(app: &App) {
-    let covers_dir = app.data_dir.join("covers");
-    let games = app.games.clone();
+pub fn get_cache_cover3ds_task(state: &State) -> Task<Message> {
+    let cache_dir = state.data_dir.join("covers");
+    let games = state.games.clone();
 
-    app.task_processor.spawn(move |msg_sender| {
-        fs::create_dir_all(&covers_dir)?;
-
-        msg_sender.send(Message::UpdateStatus(format!(
-            "{} Downloading covers...",
-            ph::IMAGE
-        )))?;
-
-        let len = games.len();
-        for (i, game) in games.into_iter().enumerate() {
-            msg_sender.send(Message::UpdateStatus(format!(
-                "{} Downloading covers... ({}/{})",
-                ph::IMAGE,
-                i + 1,
-                len
-            )))?;
-
-            match cache_cover3d(game.id, &covers_dir) {
-                Ok(true) => msg_sender.send(Message::TriggerRefreshImage(game.image_uri))?,
-                Ok(false) => {}
-                Err(e) => log::error!("Failed to download cover: {}", e),
-            }
-        }
-
-        msg_sender.send(Message::NotifyInfo(format!(
-            "{} Covers downloaded",
-            ph::IMAGE
-        )))?;
-
-        Ok(())
-    });
+    Task::perform(
+        cache_cover3ds(cache_dir, games).map_err(|e| e.to_string()),
+        Message::EmptyResult,
+    )
 }
 
+// ignores errors, no popup notifications
+async fn cache_cover3ds(cache_dir: PathBuf, games: Box<[Game]>) -> Result<()> {
+    fs::create_dir_all(&cache_dir)?;
+
+    for game in games {
+        let _ = cache_cover3d(game.id, &cache_dir).await;
+    }
+
+    Ok(())
+}
+
+#[cfg(false)]
 pub fn spawn_download_all_covers_task(app: &App) {
     let mount_point = app.config.contents.mount_point.clone();
     let games = app.games.clone();
@@ -240,6 +226,7 @@ pub fn spawn_download_all_covers_task(app: &App) {
     });
 }
 
+#[cfg(false)]
 pub fn spawn_download_wiiflow_covers_task(app: &App) {
     let mount_point = app.config.contents.mount_point.clone();
     let games = app.games.clone();
