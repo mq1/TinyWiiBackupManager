@@ -142,7 +142,7 @@ jobs:
           toolchain: 1.92
           target: ${{ matrix.target }}
           cache-key: ${{ matrix.arch }}
-          rustflags: ''
+          rustflags: ${{ matrix.rustflags }}
 
       - name: Build binary
         run: |
