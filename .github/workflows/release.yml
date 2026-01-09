@@ -168,7 +168,7 @@ jobs:
 
   build-windows7:
     name: Build for Windows 7
-    runs-on: ubuntu-24.04
+    runs-on: windows-2025
     strategy:
       fail-fast: false
       matrix:
@@ -192,19 +192,18 @@ jobs:
           cache: false
           rustflags: '-C target-feature=+crt-static'
 
-      - name: Install cargo-xwin
-        run: pip install cargo-xwin
-
       - name: Build binary
-        run: cargo xwin build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
+        shell: pwsh
+        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
         env:
           RUSTC_BOOTSTRAP: 1
 
       - name: Package binary as zip
+        shell: pwsh
         run: |
-          mkdir dist
-          cp "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" TinyWiiBackupManager.exe
-          zip "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows7-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
+          New-Item -Path "dist" -ItemType Directory
+          Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination TinyWiiBackupManager.exe
+          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows7-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v4
