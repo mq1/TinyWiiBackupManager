@@ -25,17 +25,17 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - target: x86_64-unknown-linux-gnu.2.17
+          - target: x86_64-unknown-linux-gnu
             runner: ubuntu-24.04
             arch: x86_64-v3
             rustflags: -C target-cpu=x86-64-v3
-          - target: x86_64-unknown-linux-gnu.2.17
+          - target: x86_64-unknown-linux-gnu
             runner: ubuntu-24.04
             arch: x86_64
-          - target: aarch64-unknown-linux-gnu.2.17
+          - target: aarch64-unknown-linux-gnu
             runner: ubuntu-24.04-arm
             arch: arm64
-          - target: i686-unknown-linux-gnu.2.17
+          - target: i686-unknown-linux-gnu
             runner: ubuntu-24.04
             arch: x86
 
@@ -64,7 +64,7 @@ jobs:
           chmod +x *.AppImage
 
       - name: Build binary
-        run: cargo zigbuild --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
+        run: cargo zigbuild --release --locked --target ${{ matrix.target }}.2.17 --no-default-features --features "bundled-tls"
 
       - name: Package binary as tar.gz
         run: |
