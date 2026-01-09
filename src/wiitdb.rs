@@ -312,8 +312,13 @@ pub fn get_download_wiitdb_to_drive_task(state: &State) -> Task<Message> {
     let mount_point = state.config.get_drive_path().to_path_buf();
 
     Task::perform(
-        download_wiitdb_to_drive(mount_point).map_err(|e| e.to_string()),
-        Message::FinishedDownloadingWiitdbToDrive,
+        async move {
+            match download_wiitdb_to_drive(mount_point).await {
+                Ok(()) => Ok("wiitdb.xml successfully downloaded to drive".to_string()),
+                Err(e) => Err(e.to_string()),
+            }
+        },
+        Message::GenericResult,
     )
 }
 

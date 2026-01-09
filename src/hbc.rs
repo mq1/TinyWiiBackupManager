@@ -205,3 +205,20 @@ impl HbcApps for Box<[HbcApp]> {
         }
     }
 }
+
+pub fn get_install_hbc_apps_task(state: &State, zip_paths: Box<[PathBuf]>) -> Task<Message> {
+    let drive_path = state.config.get_drive_path().to_path_buf();
+
+    Task::perform(
+        install_hbc_apps(drive_path, zip_paths).map_err(|e| e.to_string()),
+        Message::HbcAppsInstalled,
+    )
+}
+
+async fn install_hbc_apps(dest_dir: PathBuf, zip_paths: Box<[PathBuf]>) -> Result<()> {
+    for zip_path in zip_paths {
+        util::extract_zip(&zip_path, &dest_dir).await?;
+    }
+
+    Ok(())
+}

@@ -4,13 +4,16 @@
 use crate::{
     message::Message,
     state::State,
-    ui::{components, style},
+    ui::{
+        components::{self, my_tooltip},
+        style,
+    },
 };
 use iced::{
     Alignment, Element,
     widget::{button, container, row, space, text_input},
 };
-use lucide_icons::iced::{icon_plus, icon_search};
+use lucide_icons::iced::{icon_plus, icon_rotate_cw, icon_search};
 
 pub fn view(state: &State) -> Element<'_, Message> {
     row![
@@ -31,10 +34,22 @@ pub fn view(state: &State) -> Element<'_, Message> {
         space::horizontal(),
         components::sort_by::view(state),
         space(),
-        button(icon_plus().size(18).center())
-            .width(35)
-            .height(35)
-            .style(style::rounded_button)
+        my_tooltip::view(
+            button(icon_rotate_cw().size(18).center())
+                .width(35)
+                .height(35)
+                .style(style::rounded_button)
+                .on_press(Message::RefreshGamesAndApps),
+            "Refresh Apps"
+        ),
+        my_tooltip::view(
+            button(icon_plus().size(18).center())
+                .width(35)
+                .height(35)
+                .style(style::rounded_button)
+                .on_press(Message::ChooseHbcAppsToAdd),
+            "Add Apps (.zip)"
+        )
     ]
     .spacing(10)
     .padding(10)

@@ -7,6 +7,7 @@ use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
 pub enum Message {
+    GenericResult(Result<String, String>),
     EmptyResult(Result<(), String>),
 
     NavigateTo(Screen),
@@ -43,7 +44,9 @@ pub enum Message {
     OpenHbcPage(usize),
     OpenDataDir,
     DownloadWiitdbToDrive,
-    FinishedDownloadingWiitdbToDrive(Result<(), String>),
+    ChooseHbcAppsToAdd,
+    AddHbcApps(Box<[PathBuf]>),
+    HbcAppsInstalled(Result<(), String>),
 
     // Settings
     UpdateWiiOutputFormat(nod::common::Format),

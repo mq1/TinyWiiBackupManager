@@ -48,7 +48,7 @@ pub fn choose_src_dir(window: &dyn Window) -> Option<PathBuf> {
         .unwrap_or_default()
 }
 
-pub fn choose_hbc_apps(window: &dyn Window) -> Vec<PathBuf> {
+pub fn choose_hbc_apps(window: &dyn Window) -> Box<[PathBuf]> {
     DialogBuilder::file()
         .set_title("Select Homebrew Channel Apps")
         .set_owner(&window)
@@ -56,6 +56,13 @@ pub fn choose_hbc_apps(window: &dyn Window) -> Vec<PathBuf> {
         .open_multiple_file()
         .show()
         .unwrap_or_default()
+        .into_iter()
+        .filter(|p| {
+            p.extension()
+                .and_then(OsStr::to_str)
+                .is_some_and(|ext| ext == "zip")
+        })
+        .collect()
 }
 
 pub fn choose_dest_dir(window: &dyn Window) -> Option<PathBuf> {

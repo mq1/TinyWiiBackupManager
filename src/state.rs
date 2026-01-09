@@ -105,6 +105,13 @@ impl State {
 
     pub fn update(&mut self, message: Message) -> Task<Message> {
         match message {
+            Message::GenericResult(res) => {
+                match res {
+                    Ok(s) => self.notifications.success(s),
+                    Err(e) => self.notifications.error(e),
+                }
+                Task::none()
+            }
             Message::NavigateTo(screen) => {
                 self.screen = screen;
                 Task::none()
@@ -403,18 +410,24 @@ impl State {
                     .info("Downloading wiitdb.xml to drive...");
                 wiitdb::get_download_wiitdb_to_drive_task(self)
             }
-            Message::FinishedDownloadingWiitdbToDrive(res) => {
-                match res {
-                    Ok(()) => {
-                        self.notifications
-                            .success("wiitdb.xml successfully downloaded to drive");
-                    }
-                    Err(e) => {
-                        self.notifications.error(e);
-                    }
+            Message::ChooseHbcAppsToAdd => window::oldest()
+                .and_then(|id| window::run(id, dialogs::choose_hbc_apps))
+                .map(Message::AddHbcApps),
+            Message::AddHbcApps(apps) => {
+                if apps.is_empty() {
+                    Task::none()
+                } else {
+                    hbc::get_install_hbc_apps_task(self, apps)
+                }
+            }
+            Message::HbcAppsInstalled(res) => {
+                if let Err(e) = res {
+                    self.notifications.error(e);
+                } else {
+                    self.notifications.success("Apps installed");
                 }
 
-                Task::none()
+                self.update(Message::RefreshGamesAndApps)
             }
         }
     }
