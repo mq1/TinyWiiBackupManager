@@ -39,10 +39,10 @@ pub enum Message {
     DeleteHbcApp(usize, bool),
     AppDeleted(Result<String, String>),
     OpenHbcPage(usize),
-    SortGamesAndApps(SortBy),
     OpenDataDir,
     EmptyResult(Result<(), String>),
 
     // Settings
     UpdateWiiOutputFormat(nod::common::Format),
+    UpdateSortBy(SortBy),
 }

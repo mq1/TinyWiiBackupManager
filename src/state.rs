@@ -271,6 +271,7 @@ impl State {
                 match res {
                     Ok(hbc_apps) => {
                         self.hbc_apps = hbc_apps;
+                        self.hbc_apps.sort(SortBy::None, self.config.get_sort_by());
                     }
                     Err(e) => {
                         self.notifications.error(e);
@@ -366,17 +367,6 @@ impl State {
                 }
                 Task::none()
             }
-            Message::SortGamesAndApps(sort_by) => {
-                let prev_sort_by = self.config.get_sort_by();
-                self.games.sort(prev_sort_by, sort_by);
-                self.hbc_apps.sort(prev_sort_by, sort_by);
-
-                if let Err(e) = self.config.update_sort_by(sort_by) {
-                    self.notifications.error(e);
-                }
-
-                Task::none()
-            }
             Message::OpenDataDir => {
                 if let Err(e) = open::that(&self.data_dir) {
                     self.notifications.error(e);
@@ -393,6 +383,18 @@ impl State {
                 if let Err(e) = self.config.update_wii_output_format(format) {
                     self.notifications.error(e);
                 }
+                Task::none()
+            }
+            Message::UpdateSortBy(sort_by) => {
+                let prev_sort_by = self.config.get_sort_by();
+
+                if let Err(e) = self.config.update_sort_by(sort_by) {
+                    self.notifications.error(e);
+                } else {
+                    self.games.sort(prev_sort_by, sort_by);
+                    self.hbc_apps.sort(prev_sort_by, sort_by);
+                }
+
                 Task::none()
             }
         }

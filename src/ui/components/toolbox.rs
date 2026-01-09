@@ -8,7 +8,7 @@ use iced::{
 };
 use lucide_icons::iced::icon_tool_case;
 
-pub fn view(state: &State) -> Element<'_, Message> {
+pub fn view(_state: &State) -> Element<'_, Message> {
     column![row![icon_tool_case().size(18), text("Toolbox").size(18)].spacing(5)]
         .spacing(10)
         .padding(10)

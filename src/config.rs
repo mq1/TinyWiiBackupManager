@@ -146,6 +146,16 @@ pub enum SortBy {
     SizeDescending,
 }
 
+impl SortBy {
+    pub fn is_name(&self) -> bool {
+        matches!(self, SortBy::NameAscending | SortBy::NameDescending)
+    }
+
+    pub fn is_size(&self) -> bool {
+        matches!(self, SortBy::SizeAscending | SortBy::SizeDescending)
+    }
+}
+
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum ViewAs {
