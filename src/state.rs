@@ -88,6 +88,7 @@ impl State {
             Screen::Osc => "TinyWiiBackupManager • Open Shop Channel".to_string(),
             Screen::OscInfo(_) => "TinyWiiBackupManager • OSC App Info".to_string(),
             Screen::GameInfo(_) => "TinyWiiBackupManager • Game Info".to_string(),
+            Screen::Toolbox => "TinyWiiBackupManager • Toolbox".to_string(),
             Screen::Settings => "TinyWiiBackupManager • Settings".to_string(),
             Screen::About => "TinyWiiBackupManager • About".to_string(),
         }

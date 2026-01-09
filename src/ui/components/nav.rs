@@ -58,9 +58,10 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 .width(40)
                 .on_press(Message::NavigateTo(Screen::Osc)),
             button(icon_tool_case().size(20).center())
-                .style(style::inactive_nav_button)
+                .style(style::get_nav_button_style(state.screen == Screen::Toolbox))
                 .height(40)
-                .width(40),
+                .width(40)
+                .on_press(Message::NavigateTo(Screen::Toolbox)),
             button(icon_settings().size(20).center())
                 .style(style::get_nav_button_style(
                     state.screen == Screen::Settings

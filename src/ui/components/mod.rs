@@ -20,3 +20,4 @@ pub mod osc_card;
 pub mod osc_info;
 pub mod osc_toolbar;
 pub mod settings;
+pub mod toolbox;
