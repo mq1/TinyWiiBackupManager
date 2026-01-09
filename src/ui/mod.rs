@@ -19,6 +19,7 @@ pub enum Screen {
     HbcInfo(usize),
     Osc,
     OscInfo(usize),
+    Settings,
     About,
 }
 
@@ -34,6 +35,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 Screen::HbcInfo(hbc_i) => components::hbc_info::view(state, hbc_i),
                 Screen::Osc => components::osc::view(state),
                 Screen::OscInfo(osc_i) => components::osc_info::view(state, osc_i),
+                Screen::Settings => components::settings::view(state),
                 Screen::About => components::about::view(),
             },
         ])

@@ -88,6 +88,7 @@ impl State {
             Screen::Osc => "TinyWiiBackupManager • Open Shop Channel".to_string(),
             Screen::OscInfo(_) => "TinyWiiBackupManager • OSC App Info".to_string(),
             Screen::GameInfo(_) => "TinyWiiBackupManager • Game Info".to_string(),
+            Screen::Settings => "TinyWiiBackupManager • Settings".to_string(),
             Screen::About => "TinyWiiBackupManager • About".to_string(),
         }
     }
@@ -383,6 +384,12 @@ impl State {
             }
             Message::EmptyResult(res) => {
                 if let Err(e) = res {
+                    self.notifications.error(e);
+                }
+                Task::none()
+            }
+            Message::UpdateWiiOutputFormat(format) => {
+                if let Err(e) = self.config.update_wii_output_format(format) {
                     self.notifications.error(e);
                 }
                 Task::none()

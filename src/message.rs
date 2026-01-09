@@ -42,4 +42,7 @@ pub enum Message {
     SortGamesAndApps(SortBy),
     OpenDataDir,
     EmptyResult(Result<(), String>),
+
+    // Settings
+    UpdateWiiOutputFormat(nod::common::Format),
 }

@@ -76,6 +76,18 @@ impl Config {
         self.contents.theme_preference = new_theme_pref;
         self.write()
     }
+
+    pub fn get_wii_output_format(&self) -> nod::common::Format {
+        self.contents.wii_output_format
+    }
+
+    pub fn update_wii_output_format(
+        &mut self,
+        new_wii_output_format: nod::common::Format,
+    ) -> Result<()> {
+        self.contents.wii_output_format = new_wii_output_format;
+        self.write()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
