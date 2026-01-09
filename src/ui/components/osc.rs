@@ -8,7 +8,7 @@ use iced::{
     widget::{Row, column, row, scrollable, text},
 };
 use itertools::Itertools;
-use lucide_icons::iced::icon_shopping_bag;
+use lucide_icons::iced::icon_store;
 
 pub fn view(state: &State) -> Element<'_, Message> {
     if !state.osc_filter.is_empty() {
@@ -43,7 +43,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
         scrollable(
             column![
                 row![
-                    icon_shopping_bag().size(18),
+                    icon_store().size(18),
                     text("Open Shop Channel Apps (oscwii.org)").size(18)
                 ]
                 .spacing(5),

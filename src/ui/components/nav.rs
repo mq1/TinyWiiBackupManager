@@ -13,8 +13,7 @@ use iced::{
 };
 use lucide_icons::iced::{
     icon_arrow_down_0_1, icon_arrow_down_1_0, icon_gamepad_2, icon_hard_drive, icon_info,
-    icon_moon, icon_settings, icon_shopping_bag, icon_sun, icon_sun_moon, icon_tool_case,
-    icon_waves,
+    icon_moon, icon_settings, icon_store, icon_sun, icon_sun_moon, icon_tool_case, icon_waves,
 };
 
 pub fn view(state: &State) -> Element<'_, Message> {
@@ -52,7 +51,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 .height(40)
                 .width(40)
                 .on_press(Message::NavigateTo(Screen::HbcApps)),
-            button(icon_shopping_bag().size(20).center())
+            button(icon_store().size(20).center())
                 .style(style::get_nav_button_style(state.screen == Screen::Osc))
                 .height(40)
                 .width(40)
