@@ -70,8 +70,8 @@ jobs:
         env:
           CC: clang
           CXX: clang++
-          CFLAGS: ${{ matrix.cflags }}
-          CXXFLAGS: ${{ matrix.cxxflags }}
+          CFLAGS: -O3 -flto ${{ matrix.cflags }}
+          CXXFLAGS: -O3 -flto ${{ matrix.cxxflags }}
 
       - name: Package binary as tar.gz
         run: |
