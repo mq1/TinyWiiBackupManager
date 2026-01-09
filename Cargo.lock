@@ -31,7 +31,6 @@ dependencies = [
  "size",
  "smol",
  "soft-canonicalize",
- "static_vcruntime",
  "sysinfo",
  "tempfile",
  "time",
@@ -3489,12 +3488,6 @@ name = "static_assertions"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
-
-[[package]]
-name = "static_vcruntime"
-version = "3.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ff7589a1859b09232522bb9edf076ca7fcf14ded96685d3fa629db73023ffbb7"
 
 [[package]]
 name = "strict-num"

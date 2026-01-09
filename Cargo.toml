@@ -103,9 +103,6 @@ bundled-tls = ["minreq/https-rustls"]
 [target.'cfg(windows)'.build-dependencies]
 winresource = "0.1"
 
-[target.'cfg(all(target_vendor = "pc", target_env = "msvc"))'.build-dependencies]
-static_vcruntime = "3.0"
-
 [profile.release]
 opt-level = 3
 lto = true

@@ -68,9 +68,6 @@ fn compile_id_map() {
 fn main() {
     compile_id_map();
 
-    #[cfg(all(target_vendor = "pc", target_env = "msvc"))]
-    static_vcruntime::metabuild();
-
     #[cfg(windows)]
     {
         let mut res = winresource::WindowsResource::new();
