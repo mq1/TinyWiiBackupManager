@@ -31,15 +31,23 @@ jobs:
             rustflags: -C target-cpu=x86-64-v3
             cflags: -march=x86-64-v3
             cxxflags: -march=x86-64-v3
+            linuxdeploy-bin: linuxdeploy-x86_64.AppImage
+            linuxdeploy-ai-bin: linuxdeploy-plugin-appimage-x86_64.AppImage
           - target: x86_64-unknown-linux-musl
             runner: ubuntu-24.04
             arch: x86_64
+            linuxdeploy-bin: linuxdeploy-x86_64.AppImage
+            linuxdeploy-ai-bin: linuxdeploy-plugin-appimage-x86_64.AppImage
           - target: aarch64-unknown-linux-musl
             runner: ubuntu-24.04-arm
             arch: arm64
+            linuxdeploy-bin: linuxdeploy-aarch64.AppImage
+            linuxdeploy-ai-bin: linuxdeploy-plugin-appimage-aarch64.AppImage
           - target: i686-unknown-linux-musl
             runner: ubuntu-24.04
             arch: x86
+            linuxdeploy-bin: linuxdeploy-i386.AppImage
+            linuxdeploy-ai-bin: linuxdeploy-plugin-appimage-i686.AppImage
 
     steps:
       - name: Checkout
@@ -63,10 +71,9 @@ jobs:
           key: ${{ matrix.arch }}
 
       - name: Download LinuxDeploy
-        if: matrix.arch == 'x86_64' || matrix.arch == 'x86_64-v3' || matrix.arch == 'arm64'
         run: |
-          wget "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-$(uname -m).AppImage"
-          wget "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-$(uname -m).AppImage"
+          wget "https://github.com/linuxdeploy/linuxdeploy/releases/download/1-alpha-20251107-1/${{ matrix.linuxdeploy-bin }}"
+          wget "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/1-alpha-20250213-1/${{ matrix.linuxdeploy-ai-bin }}"
           chmod +x *.AppImage
 
       - name: Build binary
@@ -88,9 +95,8 @@ jobs:
           tar -I 'gzip -9' -cvf "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.tar.gz" TinyWiiBackupManager
 
       - name: Package binary as AppImage
-        if: matrix.arch == 'x86_64' || matrix.arch == 'x86_64-v3' || matrix.arch == 'arm64'
         run: |
-          ./linuxdeploy-$(uname -m).AppImage --appdir TinyWiiBackupManager.AppDir -e TinyWiiBackupManager -d assets/TinyWiiBackupManager.desktop -i assets/TinyWiiBackupManager.png --output appimage
+          ./${{ matrix.linuxdeploy-bin }} --appdir TinyWiiBackupManager.AppDir -e TinyWiiBackupManager -d assets/TinyWiiBackupManager.desktop -i assets/TinyWiiBackupManager.png --output appimage
           mv TinyWiiBackupManager-*.AppImage "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
           mv TinyWiiBackupManager-*.AppImage.zsync "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage.zsync"
         env:
