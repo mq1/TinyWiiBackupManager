@@ -479,6 +479,12 @@ impl State {
                 self.transfer_stack.remove(i);
                 Task::none()
             }
+            Message::UpdateViewAs(view_as) => {
+                if let Err(e) = self.config.update_view_as(view_as) {
+                    self.notifications.error(e);
+                }
+                Task::none()
+            }
         }
     }
 

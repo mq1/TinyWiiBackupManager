@@ -33,6 +33,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
         .style(style::card),
         space::horizontal(),
         components::sort_by::view(state),
+        components::view_as::view(state),
         space(),
         my_tooltip::view(
             button(icon_rotate_cw().size(18).center())

@@ -1,13 +1,11 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{message::Message, state::State, ui::components};
-use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
+use crate::{config::ViewAs, message::Message, state::State, ui::components};
 use iced::{
-    Element, Length,
-    widget::{Row, column, container, row, scrollable, text},
+    Element, Length, padding,
+    widget::{column, container, row, text},
 };
-use itertools::Itertools;
 use lucide_icons::iced::{icon_arrow_down_left, icon_hard_drive, icon_waves};
 
 pub fn view(state: &State) -> Element<'_, Message> {
@@ -25,47 +23,23 @@ pub fn view(state: &State) -> Element<'_, Message> {
         .into();
     }
 
-    if !state.hbc_filter.is_empty() {
-        let mut row = Row::new().width(Length::Fill).spacing(10).padding(10);
+    let mut col = column![components::hbc_toolbar::view(state)];
 
-        let matcher = SkimMatcherV2::default();
-        let apps = state
-            .hbc_apps
-            .iter()
-            .enumerate()
-            .filter_map(|(i, app)| {
-                matcher
-                    .fuzzy_match(&app.meta.name, &state.hbc_filter)
-                    .map(|score| (i, score))
-            })
-            .sorted_unstable_by_key(|(_, score)| *score);
-
-        for (i, _) in apps {
-            row = row.push(components::hbc_card::view(state, i));
-        }
-
-        return column![components::hbc_toolbar::view(state), scrollable(row.wrap())].into();
-    }
-
-    let mut row = Row::new().width(Length::Fill).spacing(10);
-    for i in 0..state.hbc_apps.len() {
-        row = row.push(components::hbc_card::view(state, i));
-    }
-
-    column![
-        components::hbc_toolbar::view(state),
-        scrollable(
-            column![
-                row![
-                    icon_waves().size(18),
-                    text("Homebrew Channel Apps").size(18)
-                ]
-                .spacing(5),
-                row.wrap()
+    if state.hbc_filter.is_empty() {
+        col = col.push(
+            row![
+                icon_waves().size(18),
+                text("Homebrew Channel Apps").size(18)
             ]
-            .spacing(10)
-            .padding(10)
-        ),
-    ]
-    .into()
+            .spacing(5)
+            .padding(padding::left(20)),
+        );
+    }
+
+    col = col.push(match state.config.get_view_as() {
+        ViewAs::Grid => components::hbc_grid::view(state),
+        ViewAs::Table => components::hbc_table::view(state),
+    });
+
+    col.into()
 }

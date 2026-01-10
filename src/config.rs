@@ -88,30 +88,57 @@ impl Config {
         self.contents.wii_output_format = new_wii_output_format;
         self.write()
     }
+
+    pub fn get_view_as(&self) -> ViewAs {
+        self.contents.view_as
+    }
+
+    pub fn update_view_as(&mut self, new_view_as: ViewAs) -> Result<()> {
+        self.contents.view_as = new_view_as;
+        self.write()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(default, rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 pub struct Contents {
+    #[serde(default)]
     pub always_split: bool,
+
+    #[serde(default)]
     pub mount_point: PathBuf,
+
+    #[serde(default)]
     pub remove_sources_apps: bool,
+
+    #[serde(default)]
     pub remove_sources_games: bool,
+
+    #[serde(default)]
     pub scrub_update_partition: bool,
+
+    #[serde(default)]
     pub sort_by: SortBy,
+
+    #[serde(default)]
     pub view_as: ViewAs,
+
+    #[serde(default = "default_wii_ip")]
     pub wii_ip: String,
+    //
     //pub accent_color: AccentColor,
     //pub txt_codes_source: TxtCodesSource,
+    //
+    #[serde(default)]
     pub theme_preference: ThemePreference,
 
-    #[serde(with = "FormatDef")]
+    #[serde(default = "default_archive_format", with = "FormatDef")]
     pub archive_format: nod::common::Format,
 
-    #[serde(with = "FormatDef")]
+    #[serde(default = "default_wii_output_format", with = "FormatDef")]
     pub wii_output_format: nod::common::Format,
 
-    #[serde(with = "FormatDef")]
+    #[serde(default = "default_gc_output_format", with = "FormatDef")]
     pub gc_output_format: nod::common::Format,
 }
 
@@ -136,21 +163,23 @@ impl Default for Contents {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum SortBy {
-    None,
+    #[default]
     NameAscending,
     NameDescending,
     SizeAscending,
     SizeDescending,
+    None,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum ViewAs {
+    #[default]
     Grid,
-    List,
+    Table,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -166,10 +195,27 @@ pub enum FormatDef {
     Tgc,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+fn default_archive_format() -> nod::common::Format {
+    nod::common::Format::Rvz
+}
+
+fn default_wii_output_format() -> nod::common::Format {
+    nod::common::Format::Wbfs
+}
+
+fn default_gc_output_format() -> nod::common::Format {
+    nod::common::Format::Iso
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum ThemePreference {
+    #[default]
+    System,
     Light,
     Dark,
-    System,
+}
+
+fn default_wii_ip() -> String {
+    "192.168.1.100".to_string()
 }

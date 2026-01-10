@@ -1,7 +1,14 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{config::SortBy, game::Game, hbc::HbcApp, osc::OscAppMeta, ui::Screen, wiitdb};
+use crate::{
+    config::{SortBy, ViewAs},
+    game::Game,
+    hbc::HbcApp,
+    osc::OscAppMeta,
+    ui::Screen,
+    wiitdb,
+};
 use iced::font;
 use std::path::PathBuf;
 
@@ -62,4 +69,5 @@ pub enum Message {
     // Settings
     UpdateWiiOutputFormat(nod::common::Format),
     UpdateSortBy(SortBy),
+    UpdateViewAs(ViewAs),
 }
