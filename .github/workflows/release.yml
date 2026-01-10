@@ -25,19 +25,19 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - target: x86_64-unknown-linux-gnu
+          - target: x86_64-unknown-linux-musl
             runner: ubuntu-24.04
             arch: x86_64-v3
             rustflags: -C target-cpu=x86-64-v3
             cflags: -march=x86-64-v3
             cxxflags: -march=x86-64-v3
-          - target: x86_64-unknown-linux-gnu
+          - target: x86_64-unknown-linux-musl
             runner: ubuntu-24.04
             arch: x86_64
-          - target: aarch64-unknown-linux-gnu
+          - target: aarch64-unknown-linux-musl
             runner: ubuntu-24.04-arm
             arch: arm64
-          - target: i686-unknown-linux-gnu
+          - target: i686-unknown-linux-musl
             runner: ubuntu-24.04
             arch: x86
 
@@ -46,10 +46,6 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 1
-
-      - name: Install cargo-zigbuild
-        if: matrix.arch != 'x86_64-v3'
-        run: pip install cargo-zigbuild
 
       - name: Install Rust toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -67,17 +63,7 @@ jobs:
           chmod +x *.AppImage
 
       - name: Build binary
-        if: matrix.arch == 'x86_64-v3'
         run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
-        env:
-          CC: clang
-          CXX: clang++
-          CFLAGS: -O3 -flto ${{ matrix.cflags }}
-          CXXFLAGS: -O3 -flto ${{ matrix.cxxflags }}
-
-      - name: Build binary (cargo-zigbuild)
-        if: matrix.arch != 'x86_64-v3'
-        run: cargo zigbuild --release --locked --target ${{ matrix.target }}.2.17 --no-default-features --features "bundled-tls"
         env:
           CC: clang
           CXX: clang++
