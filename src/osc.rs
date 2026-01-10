@@ -31,7 +31,7 @@ async fn load_osc_apps(data_dir: PathBuf) -> Result<Box<[OscAppMeta]>> {
     let apps = match load_cache(&cache_path).await {
         Some(cache) => cache,
         None => {
-            let bytes = http_util::get(CONTENTS_URL)?;
+            let bytes = http_util::get(CONTENTS_URL).await?;
             fs::write(&cache_path, &bytes).await?;
             serde_json::from_slice(&bytes)?
         }
