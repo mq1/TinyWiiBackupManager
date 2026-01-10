@@ -110,7 +110,7 @@ jobs:
 
   build-windows:
     name: Build for Windows
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     strategy:
       fail-fast: false
       matrix:
@@ -175,7 +175,9 @@ jobs:
 
   build-windows7:
     name: Build for Windows 7
-    runs-on: windows-2025
+    runs-on: ubuntu-slim
+    container:
+      image: messense/cargo-xwin:latest
     strategy:
       fail-fast: false
       matrix:
@@ -192,26 +194,21 @@ jobs:
           fetch-depth: 1
 
       - name: Install Rust toolchain
-        shell: pwsh
         run: |
           rustup toolchain install 1.92 --component rust-src
           rustup default 1.92
 
       - name: Build binary
-        shell: pwsh
-        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
+        run: cargo xwin build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
         env:
           RUSTC_BOOTSTRAP: 1
-          CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_LINKER: rust-lld.exe
-          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_LINKER: rust-lld.exe
           RUSTFLAGS: -C target-feature=+crt-static
 
       - name: Package binary as zip
-        shell: pwsh
         run: |
-          New-Item -Path "dist" -ItemType Directory
-          Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination TinyWiiBackupManager.exe
-          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows7-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
+          mkdir dist
+          cp "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" TinyWiiBackupManager.exe
+          zip -9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows7-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v4
