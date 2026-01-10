@@ -47,6 +47,9 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Install musl dependencies
+        run: sudo apt-get install -y musl-tools
+
       - name: Install x86 dependencies
         if: matrix.arch == 'x86'
         run: sudo apt-get install -y libc6-dev-i386
