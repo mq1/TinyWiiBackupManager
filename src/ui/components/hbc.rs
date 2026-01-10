@@ -43,7 +43,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
             ]
             .align_y(Alignment::Center)
             .spacing(5)
-            .padding(padding::left(20).right(30).bottom(10)),
+            .padding(padding::left(15).right(25)),
         );
     }
 
