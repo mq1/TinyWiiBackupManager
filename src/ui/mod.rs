@@ -21,6 +21,7 @@ pub enum Screen {
     OscInfo(usize),
     Toolbox,
     Settings,
+    Transfer,
     About,
 }
 
@@ -38,6 +39,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 Screen::OscInfo(osc_i) => components::osc_info::view(state, osc_i),
                 Screen::Toolbox => components::toolbox::view(state),
                 Screen::Settings => components::settings::view(state),
+                Screen::Transfer => components::transfer::view(state),
                 Screen::About => components::about::view(),
             },
         ])

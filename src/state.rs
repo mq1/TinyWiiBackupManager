@@ -16,7 +16,7 @@ use crate::{
 };
 use iced::{Task, Theme, font, window};
 use lucide_icons::LUCIDE_FONT_BYTES;
-use std::path::PathBuf;
+use std::{path::PathBuf, time::Duration};
 
 pub struct State {
     pub screen: Screen,
@@ -91,6 +91,7 @@ impl State {
             Screen::GameInfo(_) => "TinyWiiBackupManager • Game Info".to_string(),
             Screen::Toolbox => "TinyWiiBackupManager • Toolbox".to_string(),
             Screen::Settings => "TinyWiiBackupManager • Settings".to_string(),
+            Screen::Transfer => "TinyWiiBackupManager • Transfer".to_string(),
             Screen::About => "TinyWiiBackupManager • About".to_string(),
         }
     }
@@ -428,6 +429,55 @@ impl State {
                 }
 
                 self.update(Message::RefreshGamesAndApps)
+            }
+            Message::ChooseGamesToAdd => window::oldest()
+                .and_then(|id| window::run(id, dialogs::choose_games))
+                .map(Message::AddGamesToTransferStack),
+            Message::AddGamesToTransferStack(mut paths) => {
+                if !paths.is_empty() {
+                    let empty = self.transfer_stack.is_empty();
+                    self.transfer_stack.append(&mut paths);
+
+                    if empty {
+                        self.update(Message::StartSingleGameTransfer)
+                    } else {
+                        Task::none()
+                    }
+                } else {
+                    Task::none()
+                }
+            }
+            Message::StartSingleGameTransfer => {
+                // TODO
+
+                if let Some(path) = self.transfer_stack.pop() {
+                    Task::perform(
+                        async move {
+                            // TODO
+                            smol::Timer::after(Duration::from_secs(5)).await;
+                            Ok(path.to_string_lossy().to_string())
+                        },
+                        Message::FinishedTransferringSingleGame,
+                    )
+                } else {
+                    self.notifications
+                        .success("Finished transferring all games");
+                    Task::none()
+                }
+            }
+            Message::FinishedTransferringSingleGame(res) => match res {
+                Ok(name) => {
+                    self.notifications.info(format!("Transferred: {}", name));
+                    self.update(Message::StartSingleGameTransfer)
+                }
+                Err(e) => {
+                    self.notifications.error(e);
+                    Task::none()
+                }
+            },
+            Message::CancelTransfer(i) => {
+                self.transfer_stack.remove(i);
+                Task::none()
             }
         }
     }

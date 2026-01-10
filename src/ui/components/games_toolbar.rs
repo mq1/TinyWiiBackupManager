@@ -62,10 +62,14 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 .on_press(Message::RefreshGamesAndApps),
             "Refresh Games"
         ),
-        button(icon_plus().size(18).center())
-            .width(35)
-            .height(35)
-            .style(style::rounded_button)
+        my_tooltip::view(
+            button(icon_plus().size(18).center())
+                .width(35)
+                .height(35)
+                .style(style::rounded_button)
+                .on_press(Message::ChooseGamesToAdd),
+            "Add Games"
+        )
     ]
     .spacing(10)
     .padding(10)

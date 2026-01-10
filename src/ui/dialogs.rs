@@ -19,7 +19,7 @@ pub fn choose_mount_point(window: &dyn Window) -> Option<PathBuf> {
         .unwrap_or_default()
 }
 
-pub fn choose_games(window: &dyn Window) -> Box<[PathBuf]> {
+pub fn choose_games(window: &dyn Window) -> Vec<PathBuf> {
     let paths = DialogBuilder::file()
         .set_title("Select games")
         .set_owner(&window)
@@ -28,15 +28,17 @@ pub fn choose_games(window: &dyn Window) -> Box<[PathBuf]> {
         .show()
         .unwrap_or_default();
 
-    let paths = paths.into_iter().map(|p| async {
-        if util::is_valid_disc_file(&p).await {
-            Some(p)
-        } else {
-            None
-        }
-    });
-
-    smol::block_on(async { join_all(paths).await.into_iter().flatten().collect() })
+    smol::block_on(async move {
+        join_all(
+            paths
+                .into_iter()
+                .map(|p| async move { util::is_valid_disc_file(&p).await.then_some(p) }),
+        )
+        .await
+        .into_iter()
+        .flatten()
+        .collect()
+    })
 }
 
 pub fn choose_src_dir(window: &dyn Window) -> Option<PathBuf> {

@@ -22,3 +22,4 @@ pub mod osc_toolbar;
 pub mod settings;
 pub mod sort_by;
 pub mod toolbox;
+pub mod transfer;
