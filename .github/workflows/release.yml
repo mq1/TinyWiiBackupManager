@@ -28,7 +28,9 @@ jobs:
           - target: x86_64-unknown-linux-musl
             runner: ubuntu-24.04
             arch: x86_64-v3
-            cargo-args: --config .cargo/config-x86_64-v3.toml
+            rustflags: -C target-cpu=x86-64-v3
+            cflags: -march=x86-64-v3
+            cxxflags: -march=x86-64-v3
           - target: x86_64-unknown-linux-musl
             runner: ubuntu-24.04
             arch: x86_64
@@ -68,7 +70,16 @@ jobs:
           chmod +x *.AppImage
 
       - name: Build binary
-        run: cargo ${{ matrix.cargo-args }} build --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
+        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
+        env:
+          CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER: clang
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER: clang
+          CARGO_TARGET_I686_UNKNOWN_LINUX_MUSL_LINKER: clang
+          RUSTFLAGS: -C link-arg=-fuse-ld=lld ${{ matrix.rustflags }}
+          CC: clang
+          CXX: clang++
+          CFLAGS: -O3 -flto ${{ matrix.cflags }}
+          CXXFLAGS: -O3 -flto ${{ matrix.cxxflags }}
 
       - name: Package binary as tar.gz
         run: |
@@ -100,7 +111,9 @@ jobs:
         include:
           - target: x86_64-pc-windows-gnullvm
             arch: x86_64-v3
-            cargo-args: --config .cargo/config-x86_64-v3.toml
+            rustflags: -C target-cpu=x86-64-v3
+            cflags: -march=x86-64-v3
+            cxxflags: -march=x86-64-v3
           - target: x86_64-pc-windows-gnullvm
             arch: x86_64
           - target: aarch64-pc-windows-gnullvm
@@ -135,6 +148,12 @@ jobs:
         run: |
           export PATH="$PWD/llvm-mingw-20251216-ucrt-ubuntu-22.04-x86_64/bin:$PATH"
           cargo ${{ matrix.cargo-args }} build --release --locked --target ${{ matrix.target }}
+        env:
+          RUSTFLAGS: ${{ matrix.rustflags }}
+          CC: clang
+          CXX: clang++
+          CFLAGS: -O3 -flto ${{ matrix.cflags }}
+          CXXFLAGS: -O3 -flto ${{ matrix.cxxflags }}
 
       - name: Package binary as zip
         run: |
@@ -177,6 +196,8 @@ jobs:
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
         env:
           RUSTC_BOOTSTRAP: 1
+          CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_LINKER: rust-lld.exe
+          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_LINKER: rust-lld.exe
 
       - name: Package binary as zip
         shell: pwsh
@@ -222,6 +243,9 @@ jobs:
 
       - name: Build binary
         run: cargo build --release --locked --target ${{ matrix.target }}
+        env:
+          CFLAGS: -O3 -flto
+          CXXFLAGS: -O3 -flto
 
       - name: Build macOS app bundle
         run: |
