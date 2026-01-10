@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
+    hbc::HbcApp,
     message::Message,
-    state::State,
     ui::{Screen, components::my_tooltip, style},
 };
 use iced::{
@@ -12,9 +12,7 @@ use iced::{
 };
 use lucide_icons::iced::{icon_info, icon_pin, icon_trash};
 
-pub fn view(state: &State, i: usize) -> Element<'_, Message> {
-    let app = &state.hbc_apps[i];
-
+pub fn view<'a>(app: &'a HbcApp, i: usize) -> Element<'a, Message> {
     let mut col = column![
         row![
             icon_pin().size(12),

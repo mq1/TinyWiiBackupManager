@@ -18,16 +18,16 @@ pub fn view(state: &State) -> Element<'_, Message> {
             .filter_map(|(i, app)| {
                 matcher
                     .fuzzy_match(&app.meta.name, &state.hbc_filter)
-                    .map(|score| (i, score))
+                    .map(|score| (app, i, score))
             })
-            .sorted_unstable_by_key(|(_, score)| *score);
+            .sorted_unstable_by_key(|(_app, _i, score)| *score);
 
-        for (i, _) in apps {
-            row = row.push(components::hbc_card::view(state, i));
+        for (app, i, _score) in apps {
+            row = row.push(components::hbc_card::view(app, i));
         }
     } else {
-        for i in 0..state.hbc_apps.len() {
-            row = row.push(components::hbc_card::view(state, i));
+        for (i, app) in state.hbc_apps.iter().enumerate() {
+            row = row.push(components::hbc_card::view(app, i));
         }
     }
 
