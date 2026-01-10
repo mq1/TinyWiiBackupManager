@@ -77,7 +77,7 @@ jobs:
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -C link-arg=-fuse-ld=lld
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: clang
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -C link-arg=-fuse-ld=lld
-          CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER": clang
+          CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER: clang
           CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_RUSTFLAGS: -C link-arg=-fuse-ld=lld
 
       - name: Package binary as tar.gz
