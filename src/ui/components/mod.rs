@@ -6,6 +6,8 @@ pub mod developers;
 pub mod game_card;
 pub mod game_info;
 pub mod games;
+pub mod games_grid;
+pub mod games_table;
 pub mod games_toolbar;
 pub mod hbc;
 pub mod hbc_card;

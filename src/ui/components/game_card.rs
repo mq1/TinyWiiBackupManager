@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
+    game::Game,
     game_id::GameID,
     message::Message,
     state::State,
@@ -13,9 +14,7 @@ use iced::{
 };
 use lucide_icons::iced::{icon_hard_drive_download, icon_info, icon_tag, icon_trash};
 
-pub fn view(state: &State, i: usize) -> Element<'_, Message> {
-    let game = &state.games[i];
-
+pub fn view<'a>(state: &State, game: &'a Game, i: usize) -> Element<'a, Message> {
     let mut col = column![
         row![
             icon_tag().size(12),
