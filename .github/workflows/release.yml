@@ -51,8 +51,9 @@ jobs:
 
       - name: Install Rust toolchain
         run: |
-          rustup toolchain install 1.92-${{ matrix.target }}
-          rustup default 1.92-${{ matrix.target }}
+          rustup toolchain install 1.92
+          rustup default 1.92
+          rustup target add ${{ matrix.target }}
 
       - name: Rust cache
         uses: Swatinem/rust-cache@v2
@@ -121,8 +122,9 @@ jobs:
 
       - name: Install Rust toolchain
         run: |
-          rustup toolchain install 1.92-${{ matrix.target }}
-          rustup default 1.92-${{ matrix.target }}
+          rustup toolchain install 1.92
+          rustup default 1.92
+          rustup target add ${{ matrix.target }}
 
       - name: Rust cache
         uses: Swatinem/rust-cache@v2
@@ -167,8 +169,8 @@ jobs:
       - name: Install Rust toolchain
         shell: pwsh
         run: |
-          rustup toolchain install 1.92-x86_64-pc-windows-msvc --components rust-src
-          rustup default 1.92-x86_64-pc-windows-msvc
+          rustup toolchain install 1.92
+          rustup default 1.92
 
       - name: Build binary
         shell: pwsh
@@ -209,8 +211,9 @@ jobs:
 
       - name: Install Rust toolchain
         run: |
-          rustup toolchain install 1.92-${{ matrix.target }}
-          rustup default 1.92-${{ matrix.target }}
+          rustup toolchain install 1.92
+          rustup default 1.92
+          rustup target add ${{ matrix.target }}
 
       - name: Rust cache
         uses: Swatinem/rust-cache@v2
