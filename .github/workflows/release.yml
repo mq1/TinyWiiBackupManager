@@ -110,7 +110,7 @@ jobs:
 
   build-windows:
     name: Build for Windows
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -175,7 +175,7 @@ jobs:
 
   build-windows7:
     name: Build for Windows 7
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-24.04
     container:
       image: messense/cargo-xwin:latest
     strategy:
