@@ -198,6 +198,7 @@ jobs:
           RUSTC_BOOTSTRAP: 1
           CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_LINKER: rust-lld.exe
           CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_LINKER: rust-lld.exe
+          RUSTFLAGS: -C target-feature=+crt-static
 
       - name: Package binary as zip
         shell: pwsh
