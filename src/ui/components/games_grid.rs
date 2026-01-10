@@ -8,7 +8,7 @@ use iced::{
     widget::{Row, column, row, space, text},
 };
 use itertools::Itertools;
-use lucide_icons::iced::{icon_hard_drive, icon_pointer};
+use lucide_icons::iced::{icon_box, icon_hard_drive, icon_pointer};
 use size::Size;
 
 pub fn view(state: &State) -> Element<'_, Message> {
@@ -101,7 +101,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
                     ))
                     .size(18),
                     space::horizontal(),
-                    icon_hard_drive(),
+                    icon_box(),
                     text(&state.drive_usage).size(16),
                 ]
                 .align_y(Alignment::Center)
@@ -128,7 +128,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 wii_row.wrap(),
                 space().height(20),
                 row![
-                    icon_pointer().size(18),
+                    icon_box().size(18),
                     text(format!(
                         "GameCube Games: {} found ({})",
                         gc_count, gc_total_size
