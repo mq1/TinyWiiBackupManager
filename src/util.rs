@@ -60,8 +60,10 @@ pub fn get_drive_usage_task(state: &State) -> Task<Message> {
 }
 
 fn get_drive_usage(mount_point: PathBuf) -> String {
+    const GIB: f64 = 1024.0 * 1024.0 * 1024.0;
+
     if mount_point.as_os_str().is_empty() {
-        return "0 bytes/0 bytes".to_string();
+        return "0/0 GiB".to_string();
     }
 
     let disks = Disks::new_with_refreshed_list();
@@ -74,9 +76,12 @@ fn get_drive_usage(mount_point: PathBuf) -> String {
             let total = disk.total_space();
             let used = total - disk.available_space();
 
-            format!("{}/{}", Size::from_bytes(used), Size::from_bytes(total))
+            let used = used as f64 / GIB;
+            let total = total as f64 / GIB;
+
+            format!("{:.2}/{:.2} GiB", used, total)
         })
-        .unwrap_or("0 bytes/0 bytes".to_string())
+        .unwrap_or("0/0 GiB".to_string())
 }
 
 /// Returns Ok if we can create a file >4 GiB in this directory

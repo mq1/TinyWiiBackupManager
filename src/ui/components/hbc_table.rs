@@ -9,7 +9,7 @@ use crate::{
 use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
 use iced::{
     Element, Length,
-    widget::{button, container, row, scrollable, table, text},
+    widget::{button, container, row, table, text},
 };
 use itertools::Itertools;
 use lucide_icons::iced::{icon_info, icon_trash};
@@ -57,5 +57,5 @@ pub fn view(state: &State) -> Element<'_, Message> {
         table(t_columns, 0..state.hbc_apps.len()).width(Length::Fill)
     };
 
-    scrollable(container(table).padding(10)).into()
+    container(table).padding(10).into()
 }

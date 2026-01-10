@@ -3,10 +3,11 @@
 
 use crate::{config::ViewAs, message::Message, state::State, ui::components};
 use iced::{
-    Element, Length, padding,
-    widget::{column, container, row, text},
+    Alignment, Element, Length, padding,
+    widget::{Column, column, container, row, scrollable, space, text},
 };
 use lucide_icons::iced::{icon_arrow_down_left, icon_hard_drive, icon_waves};
+use size::Size;
 
 pub fn view(state: &State) -> Element<'_, Message> {
     if !state.config.valid_mount_point() {
@@ -23,16 +24,26 @@ pub fn view(state: &State) -> Element<'_, Message> {
         .into();
     }
 
-    let mut col = column![components::hbc_toolbar::view(state)];
+    let mut col = Column::new();
 
     if state.hbc_filter.is_empty() {
+        let size = state
+            .hbc_apps
+            .iter()
+            .map(|app| app.size)
+            .fold(Size::from_bytes(0), |a, b| a + b);
+
         col = col.push(
             row![
                 icon_waves().size(18),
-                text("Homebrew Channel Apps").size(18)
+                text!("Homebrew Channel Apps ({})", size).size(18),
+                space::horizontal(),
+                icon_hard_drive(),
+                text(&state.drive_usage).size(16),
             ]
+            .align_y(Alignment::Center)
             .spacing(5)
-            .padding(padding::left(20)),
+            .padding(padding::left(20).right(30).bottom(10)),
         );
     }
 
@@ -41,5 +52,5 @@ pub fn view(state: &State) -> Element<'_, Message> {
         ViewAs::Table => components::hbc_table::view(state),
     });
 
-    col.into()
+    column![components::hbc_toolbar::view(state), scrollable(col)].into()
 }

@@ -74,26 +74,10 @@ impl State {
     }
 
     pub fn title(&self) -> String {
-        match self.screen {
-            Screen::Games => format!(
-                "TinyWiiBackupManager • Games • {} ({})",
-                self.config.get_drive_path_str(),
-                &self.drive_usage
-            ),
-            Screen::HbcApps => format!(
-                "TinyWiiBackupManager • HBC Apps • {} ({})",
-                self.config.get_drive_path_str(),
-                &self.drive_usage
-            ),
-            Screen::HbcInfo(_) => "TinyWiiBackupManager • HBC App Info".to_string(),
-            Screen::Osc => "TinyWiiBackupManager • Open Shop Channel".to_string(),
-            Screen::OscInfo(_) => "TinyWiiBackupManager • OSC App Info".to_string(),
-            Screen::GameInfo(_) => "TinyWiiBackupManager • Game Info".to_string(),
-            Screen::Toolbox => "TinyWiiBackupManager • Toolbox".to_string(),
-            Screen::Settings => "TinyWiiBackupManager • Settings".to_string(),
-            Screen::Transfer => "TinyWiiBackupManager • Transfer".to_string(),
-            Screen::About => "TinyWiiBackupManager • About".to_string(),
-        }
+        format!(
+            "TinyWiiBackupManager • {}",
+            self.config.get_drive_path_str()
+        )
     }
 
     pub fn theme(&self) -> Option<Theme> {

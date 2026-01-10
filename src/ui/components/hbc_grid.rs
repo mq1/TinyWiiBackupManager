@@ -3,10 +3,7 @@
 
 use crate::{message::Message, state::State, ui::components};
 use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
-use iced::{
-    Element, Length,
-    widget::{Row, scrollable},
-};
+use iced::{Element, Length, widget::Row};
 use itertools::Itertools;
 
 pub fn view(state: &State) -> Element<'_, Message> {
@@ -34,5 +31,5 @@ pub fn view(state: &State) -> Element<'_, Message> {
         }
     }
 
-    scrollable(row.wrap()).into()
+    row.wrap().into()
 }
