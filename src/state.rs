@@ -75,7 +75,7 @@ impl State {
 
     pub fn title(&self) -> String {
         format!(
-            "TinyWiiBackupManager • {}",
+            "TinyWiiBackupManager  ›  {}",
             self.config.get_drive_path_str()
         )
     }
