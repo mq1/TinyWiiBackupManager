@@ -1,0 +1,12 @@
+[target.'cfg(target_os = "linux")']
+linker = "clang"
+rustflags = "-C link-arg=-fuse-ld=lld -C target-cpu=x86-64-v3"
+
+[target.'cfg(target_os = "windows")']
+rustflags = "-C target-cpu=x86-64-v3"
+
+[env]
+CC = "clang"
+CXX = "clang++"
+CFLAGS = "-O3 -flto -march=x86-64-v3"
+CXXFLAGS = "-O3 -flto -march=x86-64-v3"

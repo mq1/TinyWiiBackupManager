@@ -28,9 +28,7 @@ jobs:
           - target: x86_64-unknown-linux-musl
             runner: ubuntu-24.04
             arch: x86_64-v3
-            rustflags: -C target-cpu=x86-64-v3
-            cflags: -march=x86-64-v3
-            cxxflags: -march=x86-64-v3
+            cargo-args: --config .cargo/config-x86_64-v3.toml
           - target: x86_64-unknown-linux-musl
             runner: ubuntu-24.04
             arch: x86_64
@@ -52,12 +50,14 @@ jobs:
         run: sudo apt-get install -y libc6-dev-i386
 
       - name: Install Rust toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@v1
+        run: |
+          rustup toolchain install 1.92-${{ matrix.target }}
+          rustup default 1.92-${{ matrix.target }}
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
         with:
-          toolchain: 1.92
-          target: ${{ matrix.target }}
-          cache-key: ${{ matrix.arch }}
-          rustflags: -C link-arg=-fuse-ld=lld ${{ matrix.rustflags }}
+          key: ${{ matrix.arch }}
 
       - name: Download LinuxDeploy
         if: matrix.arch == 'x86_64' || matrix.arch == 'x86_64-v3' || matrix.arch == 'arm64'
@@ -67,15 +67,7 @@ jobs:
           chmod +x *.AppImage
 
       - name: Build binary
-        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
-        env:
-          CC: clang
-          CXX: clang++
-          CFLAGS: -O3 -flto ${{ matrix.cflags }}
-          CXXFLAGS: -O3 -flto ${{ matrix.cxxflags }}
-          CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER: clang
-          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER: clang
-          CARGO_TARGET_I686_UNKNOWN_LINUX_MUSL_LINKER: clang
+        run: cargo ${{ matrix.cargo-args }} build --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
 
       - name: Package binary as tar.gz
         run: |
@@ -106,10 +98,8 @@ jobs:
       matrix:
         include:
           - target: x86_64-pc-windows-gnullvm
-            arch: x64-v3
-            rustflags: -C target-cpu=x86-64-v3
-            cflags: -march=x86-64-v3
-            cxxflags: -march=x86-64-v3
+            arch: x86_64-v3
+            cargo-args: --config .cargo/config-x86_64-v3.toml
           - target: x86_64-pc-windows-gnullvm
             arch: x86_64
           - target: aarch64-pc-windows-gnullvm
@@ -130,22 +120,19 @@ jobs:
           tar xf llvm-mingw-20251216-ucrt-ubuntu-22.04-x86_64.tar.xz
 
       - name: Install Rust toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@v1
+        run: |
+          rustup toolchain install 1.92-${{ matrix.target }}
+          rustup default 1.92-${{ matrix.target }}
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
         with:
-          toolchain: 1.92
-          target: ${{ matrix.target }}
-          cache-key: ${{ matrix.arch }}
-          rustflags: ${{ matrix.rustflags }}
+          key: ${{ matrix.arch }}
 
       - name: Build binary
         run: |
           export PATH="$PWD/llvm-mingw-20251216-ucrt-ubuntu-22.04-x86_64/bin:$PATH"
-          cargo build --release --locked --target ${{ matrix.target }}
-        env:
-          CC: clang
-          CXX: clang++
-          CFLAGS: -O3 -flto ${{ matrix.cflags }}
-          CXXFLAGS: -O3 -flto ${{ matrix.cxxflags }}
+          cargo ${{ matrix.cargo-args }} build --release --locked --target ${{ matrix.target }}
 
       - name: Package binary as zip
         run: |
@@ -178,20 +165,16 @@ jobs:
           fetch-depth: 1
 
       - name: Install Rust toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          toolchain: 1.92
-          components: rust-src
-          cache: false
-          rustflags: '-C target-feature=+crt-static'
+        shell: pwsh
+        run: |
+          rustup toolchain install 1.92-x86_64-pc-windows-msvc --components rust-src
+          rustup default 1.92-x86_64-pc-windows-msvc
 
       - name: Build binary
         shell: pwsh
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
         env:
           RUSTC_BOOTSTRAP: 1
-          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_LINKER: rust-lld.exe
-          CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_LINKER: rust-lld.exe
 
       - name: Package binary as zip
         shell: pwsh
@@ -225,12 +208,14 @@ jobs:
           fetch-depth: 1
 
       - name: Install Rust toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@v1
+        run: |
+          rustup toolchain install 1.92-${{ matrix.target }}
+          rustup default 1.92-${{ matrix.target }}
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
         with:
-          toolchain: 1.92
-          target: ${{ matrix.target }}
-          cache-key: ${{ matrix.arch }}
-          rustflags: ''
+          key: ${{ matrix.arch }}
 
       - name: Build binary
         run: cargo build --release --locked --target ${{ matrix.target }}

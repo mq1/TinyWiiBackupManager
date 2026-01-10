@@ -1,0 +1,13 @@
+[target.'cfg(target_os = "linux")']
+linker = "clang"
+rustflags = "-C link-arg=-fuse-ld=lld"
+
+[target.'cfg(target_vendor = "win7")']
+linker = "rust-lld.exe"
+rustflags = "-C target-feature=+crt-static"
+
+[env]
+CC = "clang"
+CXX = "clang++"
+CFLAGS = "-O3 -flto"
+CXXFLAGS = "-O3 -flto"
