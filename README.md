@@ -53,7 +53,7 @@
         <br><br>
         ℹ️ If you don't know which asset to download, <kbd>TinyWiiBackupManager-vX.X.X-Windows-x64.zip</kbd> should work for most users
         <br><br>
-        🔋 If you have a ARM-based PC (see <a href="https://en.wikipedia.org/wiki/List_of_Qualcomm_Snapdragon_systems_on_chips#Snapdragon_X_series">here</a>), you can get the faster, efficient and fully native <kbd>TinyWiiBackupManager-vX.X.X-windows-arm64.AppImage</kbd>
+        🔋 If you have a ARM-based PC (see <a href="https://en.wikipedia.org/wiki/List_of_Qualcomm_Snapdragon_systems_on_chips#Snapdragon_X_series">here</a>), you can get the faster, efficient and fully native <kbd>TinyWiiBackupManager-vX.X.X-windows-arm64.zip</kbd>
         <br><br>
         🍨 A scoop package is also available:
         <br>
