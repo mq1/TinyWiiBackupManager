@@ -199,12 +199,14 @@ jobs:
 
       - name: Build binary
         shell: pwsh
-        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
+        run: cargo build -Z build-std=std,panic_abort --profile quick-release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
         env:
           RUSTC_BOOTSTRAP: 1
           CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_LINKER: rust-lld.exe
           CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_LINKER: rust-lld.exe
           RUSTFLAGS: -C target-feature=+crt-static
+          CC: clang-cl
+          CXX: clang-cl
 
       - name: Package binary as zip
         shell: pwsh
