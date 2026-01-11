@@ -28,5 +28,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
         ViewAs::Table => components::games_grid::view(state), // TODO
     };
 
-    column![components::games_toolbar::view(state), scrollable(content)].into()
+    column![components::games_toolbar::view(state), scrollable(content)]
+        .spacing(10)
+        .into()
 }

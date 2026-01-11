@@ -24,7 +24,10 @@ pub fn view(state: &State) -> Element<'_, Message> {
         .into();
     }
 
-    let mut col = Column::new();
+    let content = match state.config.get_view_as() {
+        ViewAs::Grid => components::hbc_grid::view(state),
+        ViewAs::Table => components::hbc_table::view(state),
+    };
 
     if state.hbc_filter.is_empty() {
         let size = state
@@ -33,24 +36,27 @@ pub fn view(state: &State) -> Element<'_, Message> {
             .map(|app| app.size)
             .fold(Size::from_bytes(0), |a, b| a + b);
 
-        col = col.push(
-            row![
-                icon_waves().size(18),
-                text!("Homebrew Channel Apps ({})", size).size(18),
-                space::horizontal(),
-                icon_hard_drive(),
-                text(&state.drive_usage).size(16),
-            ]
-            .align_y(Alignment::Center)
-            .spacing(5)
-            .padding(padding::left(15).right(25)),
-        );
+        column![
+            components::hbc_toolbar::view(state),
+            scrollable(column![
+                row![
+                    icon_waves().size(18),
+                    text!("Homebrew Channel Apps ({})", size).size(18),
+                    space::horizontal(),
+                    icon_hard_drive(),
+                    text(&state.drive_usage).size(16),
+                ]
+                .align_y(Alignment::Center)
+                .spacing(5)
+                .padding(padding::left(15).right(25)),
+                content
+            ])
+        ]
+        .spacing(10)
+        .into()
+    } else {
+        column![components::hbc_toolbar::view(state), scrollable(content)]
+            .spacing(10)
+            .into()
     }
-
-    col = col.push(match state.config.get_view_as() {
-        ViewAs::Grid => components::hbc_grid::view(state),
-        ViewAs::Table => components::hbc_table::view(state),
-    });
-
-    column![components::hbc_toolbar::view(state), scrollable(col)].into()
 }
