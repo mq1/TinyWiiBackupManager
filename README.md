@@ -53,6 +53,8 @@
         <br><br>
         ℹ️ If you don't know which asset to download, <kbd>TinyWiiBackupManager-vX.X.X-Windows-x64.zip</kbd> should work for most users
         <br><br>
+        🔋 If you have a ARM-based PC (see <a href="https://en.wikipedia.org/wiki/List_of_Qualcomm_Snapdragon_systems_on_chips#Snapdragon_X_series">here</a>), you can get the faster, efficient and fully native <kbd>TinyWiiBackupManager-vX.X.X-windows-arm64.AppImage</kbd>
+        <br><br>
         🍨 A scoop package is also available:
         <br>
         <code>scoop bucket add TinyWiiBackupManager https://github.com/mq1/TinyWiiBackupManager</code>
@@ -82,7 +84,11 @@
         <br>
         &rarr;&nbsp;<a href="https://flathub.org/apps/it.mq1.TinyWiiBackupManager">Download Flatpak (Flathub)</a>&nbsp;&larr;
         <br><br>
-        ℹ️ If you don't know which asset to download, <kbd>TinyWiiBackupManager-vX.X.X-Linux-x86_64.AppImage</kbd> should work for most users
+        ℹ️ If you don't know which asset to download, <kbd>TinyWiiBackupManager-vX.X.X-linux-x86_64.AppImage</kbd> should work for most users
+        <br><br>
+        ⚡️ If you have a recent CPU (see <a href="https://en.wikipedia.org/wiki/X86-64#Microarchitecture_levels">here</a>), you can get the slightly faster <kbd>TinyWiiBackupManager-vX.X.X-linux-x86_64-v3.AppImage</kbd>
+        <br><br>
+        🔋 If you have a ARM-based PC (see <a href="https://en.wikipedia.org/wiki/List_of_Qualcomm_Snapdragon_systems_on_chips#Snapdragon_X_series">here</a>), you can get the faster, efficient and fully native <kbd>TinyWiiBackupManager-vX.X.X-linux-arm64.AppImage</kbd>
     </td>
   </tr>
 </table>
