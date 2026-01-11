@@ -198,7 +198,7 @@ jobs:
         include:
           - target: aarch64-apple-darwin
             arch: arm64
-            min_sys_ver: "11"
+            min_sys_ver: "26"
           - target: x86_64-apple-darwin
             arch: x86_64
             min_sys_ver: "10.12"
