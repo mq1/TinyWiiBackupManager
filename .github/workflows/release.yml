@@ -80,8 +80,8 @@ jobs:
 
       - name: Download LinuxDeploy
         run: |
-          wget "https://github.com/linuxdeploy/linuxdeploy/releases/download/1-alpha-20251107-1/${{ matrix.linuxdeploy-bin }}"
-          wget "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/1-alpha-20250213-1/${{ matrix.linuxdeploy-ai-bin }}"
+          wget "https://github.com/linuxdeploy/linuxdeploy/releases/latest/download/${{ matrix.linuxdeploy-bin }}"
+          wget "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/latest/download/${{ matrix.linuxdeploy-ai-bin }}"
           chmod +x *.AppImage
 
       - name: Build binary (x86_64-v3)
