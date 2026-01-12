@@ -170,7 +170,7 @@ jobs:
           export PATH="$PWD/llvm-mingw-20251216-ucrt-ubuntu-22.04-x86_64/bin:$PATH"
           cargo ${{ matrix.cargo-args }} build --release --locked --target ${{ matrix.target }}
         env:
-          RUSTFLAGS: ${{ matrix.rustflags }}
+          RUSTFLAGS: ${{ matrix.rustflags }} -C linker-plugin-lto
           CC: clang
           CXX: clang++
           CFLAGS: -O3 -flto ${{ matrix.cflags }}
