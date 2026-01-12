@@ -203,15 +203,17 @@ jobs:
 
       - name: Build binary
         shell: pwsh
-        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
+        run: |
+          $env:Path = "$Pwd\llvm-21\bin);$env:Path"
+          cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
         env:
           RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: -C target-feature=+crt-static -C linker-plugin-lto -C linker=./llvm-21/bin/lld-link.exe
-          CC: ./llvm-21/bin/clang-cl.exe
-          CXX: ./llvm-21/bin/clang-cl.exe
-          AR: ./llvm-21/bin/llvm-lib.exe
-          CFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=./llvm-21/bin/lld-link.exe
-          CXXFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=./llvm-21/bin/lld-link.exe
+          RUSTFLAGS: -C target-feature=+crt-static -C linker-plugin-lto -C linker=lld-link
+          CC: clang-cl
+          CXX: clang-cl
+          AR: llvm-lib
+          CFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
+          CXXFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
 
       - name: Package binary as zip
         shell: pwsh
