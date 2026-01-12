@@ -113,7 +113,7 @@ jobs:
 
   build-windows:
     name: Build for Windows
-    runs-on: ubuntu-22.04
+    runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
