@@ -55,15 +55,15 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install x86 dependencies
-        if: matrix.arch == 'x86'
-        run: sudo apt-get install -y libc6-dev-i386
-
       - name: Install LLVM 21
         run: |
           wget https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
           sudo ./llvm.sh 21
+
+      - name: Install x86 dependencies
+        if: matrix.arch == 'x86'
+        run: sudo apt-get install -y libc6-dev-i386
 
       - name: Install Rust toolchain
         run: |
