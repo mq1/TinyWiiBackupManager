@@ -241,10 +241,14 @@ jobs:
           rustup toolchain install 1.92 --component rust-src
           rustup default 1.92
 
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.arch }}
+
       - name: Build binary
-        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
+        run: cargo build --release --locked --target ${{ matrix.target }}
         env:
-          RUSTC_BOOTSTRAP: 1
           CFLAGS: -O3 -flto
           CXXFLAGS: -O3 -flto
 
