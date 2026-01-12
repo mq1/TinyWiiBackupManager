@@ -188,13 +188,6 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install LLVM 21
-        shell: pwsh
-        run: |
-          Invoke-WebRequest -Uri "https://github.com/llvm/llvm-project/releases/download/llvmorg-21.1.8/LLVM-21.1.8-win64.exe" -OutFile LLVM-21.1.8-win64.exe
-          $InstallDir = Join-Path (Get-Location) "llvm-21"
-          Start-Process -FilePath ".\LLVM-21.1.8-win64.exe" -ArgumentList "/S", "/D=$InstallDir" -Wait
-
       - name: Install Rust toolchain
         shell: pwsh
         run: |
@@ -203,17 +196,14 @@ jobs:
 
       - name: Build binary
         shell: pwsh
-        run: |
-          $env:Path = "$Pwd\llvm-21\bin);$env:Path"
-          cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
+        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
         env:
           RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: -C target-feature=+crt-static -C linker-plugin-lto -C linker=lld-link
+          RUSTFLAGS: -C target-feature=+crt-static -C linker=rust-lld.exe
           CC: clang-cl
           CXX: clang-cl
-          AR: llvm-lib
-          CFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
-          CXXFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
+          CFLAGS: /clang:-O3 /clang:-flto
+          CXXFLAGS: /clang:-O3 /clang:-flto
 
       - name: Package binary as zip
         shell: pwsh
