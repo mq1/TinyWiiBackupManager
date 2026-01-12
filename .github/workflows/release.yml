@@ -88,7 +88,7 @@ jobs:
         if: matrix.arch == 'x86_64-v3'
         run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
         env:
-          RUSTFLAGS: -C target-cpu=x86-64-v3 -C linker-plugin-lto -C linker=clang -C link-arg=-fuse-ld=lld
+          RUSTFLAGS: -C target-cpu=x86-64-v3 -C linker-plugin-lto -C linker=clang-21 -C link-arg=-fuse-ld=lld-21
           CC: clang
           CXX: clang++
           CFLAGS: -O3 -flto -march=x86-64-v3
