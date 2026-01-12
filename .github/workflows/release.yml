@@ -67,9 +67,8 @@ jobs:
 
       - name: Install Rust toolchain
         run: |
-          rustup toolchain install 1.92
+          rustup toolchain install 1.92 --component rust-src
           rustup default 1.92
-          rustup target add ${{ matrix.target }}
 
       - name: Download LinuxDeploy
         run: |
@@ -144,9 +143,8 @@ jobs:
 
       - name: Install Rust toolchain
         run: |
-          rustup toolchain install 1.92
+          rustup toolchain install 1.92 --component rust-src
           rustup default 1.92
-          rustup target add ${{ matrix.target }}
 
       - name: Build binary
         run: |
@@ -248,9 +246,8 @@ jobs:
 
       - name: Install Rust toolchain
         run: |
-          rustup toolchain install 1.92
+          rustup toolchain install 1.92 --component rust-src
           rustup default 1.92
-          rustup target add ${{ matrix.target }}
 
       - name: Build binary
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
