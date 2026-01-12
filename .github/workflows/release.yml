@@ -190,7 +190,9 @@ jobs:
 
       - name: Install LLVM 21
         shell: pwsh
-        run: choco install llvm --version 21.1.7 --yes
+        run: |
+          wget https://github.com/llvm/llvm-project/releases/download/llvmorg-21.1.8/clang+llvm-21.1.8-x86_64-pc-windows-msvc.tar.xz
+          tar xf clang+llvm-21.1.8-x86_64-pc-windows-msvc.tar.xz
 
       - name: Install Rust toolchain
         shell: pwsh
@@ -203,12 +205,12 @@ jobs:
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
         env:
           RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: -C target-feature=+crt-static -C linker-plugin-lto -C linker=lld-link
-          CC: clang-cl
-          CXX: clang-cl
-          AR: llvm-lib
-          CFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
-          CXXFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
+          RUSTFLAGS: -C target-feature=+crt-static -C linker-plugin-lto -C linker=./clang+llvm-21.1.8-x86_64-pc-windows-msvc.tar.xz/bin/lld-link.exe
+          CC: ./clang+llvm-21.1.8-x86_64-pc-windows-msvc.tar.xz/bin/clang-cl
+          CXX: ./clang+llvm-21.1.8-x86_64-pc-windows-msvc.tar.xz/bin/clang-cl
+          AR: ./clang+llvm-21.1.8-x86_64-pc-windows-msvc.tar.xz/bin/llvm-lib
+          CFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=./clang+llvm-21.1.8-x86_64-pc-windows-msvc.tar.xz/bin/lld-link.exe
+          CXXFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=./clang+llvm-21.1.8-x86_64-pc-windows-msvc.tar.xz/bin/lld-link.exe
 
       - name: Package binary as zip
         shell: pwsh
