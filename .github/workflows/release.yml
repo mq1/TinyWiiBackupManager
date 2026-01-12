@@ -29,8 +29,8 @@ jobs:
             runner: ubuntu-24.04
             arch: x86_64-v3
             rustflags: -C target-cpu=x86-64-v3
-            cflags: -march=x86-64-v3
-            cxxflags: -march=x86-64-v3
+            cflags: -march=x86_64_v3
+            cxxflags: -march=x86_64_v3
             linuxdeploy-bin: linuxdeploy-x86_64.AppImage
             linuxdeploy-ai-bin: linuxdeploy-plugin-appimage-x86_64.AppImage
           - target: x86_64-unknown-linux-gnu
