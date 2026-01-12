@@ -63,7 +63,7 @@ jobs:
           rustup target add ${{ matrix.target }}
 
       - name: Install cargo-zigbuild
-        if: target.arch != 'x86_64-v3'
+        if: matrix.arch != 'x86_64-v3'
         run: pip install cargo-zigbuild
 
       - name: Rust cache
@@ -78,6 +78,7 @@ jobs:
           chmod +x *.AppImage
 
       - name: Build binary (x86_64-v3)
+        if: matrix.arch == 'x86_64-v3'
         run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
         env:
           RUSTFLAGS: -C target-cpu=x86-64-v3
@@ -87,6 +88,7 @@ jobs:
           CXXFLAGS: -O3 -flto -march=x86-64-v3
 
       - name: Build binary (glibc 2.17)
+        if: matrix.arch != 'x86_64-v3'
         run: cargo zigbuild --release --locked --target ${{ matrix.target }}.2.17 --no-default-features --features "bundled-tls"
         env:
           CC: clang
