@@ -98,6 +98,10 @@ impl State {
                 Task::none()
             }
             Message::NavigateTo(screen) => {
+                if let Screen::GameInfo(i) = self.screen {
+                    self.games[i].disc_info = None
+                }
+
                 let task = match screen {
                     Screen::GameInfo(i) => self.games[i].get_load_disc_info_task(i),
                     _ => Task::none(),
