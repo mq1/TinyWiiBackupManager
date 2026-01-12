@@ -205,11 +205,11 @@ jobs:
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
         env:
           RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: -C target-feature=+crt-static -C linker=rust-lld.exe
+          RUSTFLAGS: -C lto=thin -C target-feature=+crt-static -C linker=rust-lld.exe
           CC: clang-cl
           CXX: clang-cl
-          CFLAGS: /clang:-O3 /clang:-flto
-          CXXFLAGS: /clang:-O3 /clang:-flto
+          CFLAGS: /clang:-O3 /clang:-flto=thin
+          CXXFLAGS: /clang:-O3 /clang:-flto=thin
 
       - name: Package binary as zip
         shell: pwsh
