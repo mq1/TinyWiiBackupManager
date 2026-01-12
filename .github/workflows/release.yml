@@ -71,11 +71,6 @@ jobs:
           rustup default 1.92
           rustup target add ${{ matrix.target }}
 
-      - name: Rust cache
-        uses: Swatinem/rust-cache@v2
-        with:
-          key: ${{ matrix.arch }}
-
       - name: Download LinuxDeploy
         run: |
           wget "https://github.com/linuxdeploy/linuxdeploy/releases/latest/download/${{ matrix.linuxdeploy-bin }}"
@@ -83,8 +78,9 @@ jobs:
           chmod +x *.AppImage
 
       - name: Build binary
-        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
+        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
         env:
+          RUSTC_BOOTSTRAP: 1
           RUSTFLAGS: -C linker-plugin-lto -C linker=clang-21 -C link-arg=-fuse-ld=lld-21 ${{ matrix.rustflags }}
           CC: clang-21
           CXX: clang++-21
@@ -113,7 +109,7 @@ jobs:
 
   build-windows:
     name: Build for Windows
-    runs-on: ${{ matrix.runner }}
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -128,7 +124,7 @@ jobs:
             runner: ubuntu-22.04
             arch: x86_64
           - target: aarch64-pc-windows-gnullvm
-            runner: ubuntu-22.04-arm
+            runner: ubuntu-22.04
             arch: arm64
             platform: windows
           - target: i686-pc-windows-gnullvm
@@ -143,8 +139,8 @@ jobs:
 
       - name: Install llvm-mingw
         run: |
-          wget "https://github.com/mstorsjo/llvm-mingw/releases/download/20251216/llvm-mingw-20251216-ucrt-ubuntu-22.04-$(uname -m).tar.xz"
-          tar xf "llvm-mingw-20251216-ucrt-ubuntu-22.04-$(uname -m).tar.xz"
+          wget https://github.com/mstorsjo/llvm-mingw/releases/download/20251216/llvm-mingw-20251216-ucrt-ubuntu-22.04-x86_64.tar.xz
+          tar xf llvm-mingw-20251216-ucrt-ubuntu-22.04-x86_64.tar.xz
 
       - name: Install Rust toolchain
         run: |
@@ -152,16 +148,12 @@ jobs:
           rustup default 1.92
           rustup target add ${{ matrix.target }}
 
-      - name: Rust cache
-        uses: Swatinem/rust-cache@v2
-        with:
-          key: ${{ matrix.arch }}
-
       - name: Build binary
         run: |
-          export PATH="$PWD/llvm-mingw-20251216-ucrt-ubuntu-22.04-$(uname -m)/bin:$PATH"
-          cargo ${{ matrix.cargo-args }} build --release --locked --target ${{ matrix.target }}
+          export PATH="$PWD/llvm-mingw-20251216-ucrt-ubuntu-22.04-x86_64/bin:$PATH"
+          cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
         env:
+          RUSTC_BOOTSTRAP: 1
           RUSTFLAGS: -C linker-plugin-lto ${{ matrix.rustflags }}
           CC: clang
           CXX: clang++
@@ -198,6 +190,10 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Install LLVM 21
+        shell: pwsh
+        run: choco install llvm --version 21.1.7 --yes
+
       - name: Install Rust toolchain
         shell: pwsh
         run: |
@@ -209,11 +205,12 @@ jobs:
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
         env:
           RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: -C target-feature=+crt-static -C linker=rust-lld.exe
+          RUSTFLAGS: -C target-feature=+crt-static -C linker-plugin-lto -C linker=lld-link
           CC: clang-cl
           CXX: clang-cl
-          CFLAGS: /clang:-O3 /clang:-flto
-          CXXFLAGS: /clang:-O3 /clang:-flto
+          AR: llvm-lib
+          CFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
+          CXXFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
 
       - name: Package binary as zip
         shell: pwsh
@@ -255,14 +252,10 @@ jobs:
           rustup default 1.92
           rustup target add ${{ matrix.target }}
 
-      - name: Rust cache
-        uses: Swatinem/rust-cache@v2
-        with:
-          key: ${{ matrix.arch }}
-
       - name: Build binary
-        run: cargo build --release --locked --target ${{ matrix.target }}
+        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
         env:
+          RUSTC_BOOTSTRAP: 1
           RUSTFLAGS: -C linker=/opt/homebrew/opt/llvm@21/bin/clang -C link-arg=-fuse-ld=/opt/homebrew/opt/lld@21/bin/ld64.lld
           CC: /opt/homebrew/opt/llvm@21/bin/clang
           CXX: /opt/homebrew/opt/llvm@21/bin/clang++
