@@ -119,19 +119,21 @@ jobs:
       matrix:
         include:
           - target: x86_64-pc-windows-gnullvm
+            runner: ubuntu-22.04
             arch: x86_64-v3
-            rustflags: -C linker-plugin-lto -C target-cpu=x86-64-v3
+            rustflags: -C target-cpu=x86-64-v3
             cflags: -march=x86-64-v3
             cxxflags: -march=x86-64-v3
           - target: x86_64-pc-windows-gnullvm
+            runner: ubuntu-22.04
             arch: x86_64
-            rustflags: -C linker-plugin-lto
           - target: aarch64-pc-windows-gnullvm
+            runner: ubuntu-22.04-arm
             arch: arm64
             platform: windows
           - target: i686-pc-windows-gnullvm
+            runner: ubuntu-22.04
             arch: x86
-            rustflags: -C linker-plugin-lto
 
     steps:
       - name: Checkout
@@ -141,8 +143,8 @@ jobs:
 
       - name: Install llvm-mingw
         run: |
-          wget https://github.com/mstorsjo/llvm-mingw/releases/download/20251216/llvm-mingw-20251216-ucrt-ubuntu-22.04-x86_64.tar.xz
-          tar xf llvm-mingw-20251216-ucrt-ubuntu-22.04-x86_64.tar.xz
+          wget "https://github.com/mstorsjo/llvm-mingw/releases/download/20251216/llvm-mingw-20251216-ucrt-ubuntu-22.04-$(uname -m).tar.xz"
+          tar xf "llvm-mingw-20251216-ucrt-ubuntu-22.04-$(uname -m).tar.xz"
 
       - name: Install Rust toolchain
         run: |
@@ -157,10 +159,10 @@ jobs:
 
       - name: Build binary
         run: |
-          export PATH="$PWD/llvm-mingw-20251216-ucrt-ubuntu-22.04-x86_64/bin:$PATH"
+          export PATH="$PWD/llvm-mingw-20251216-ucrt-ubuntu-22.04-$(uname -m)/bin:$PATH"
           cargo ${{ matrix.cargo-args }} build --release --locked --target ${{ matrix.target }}
         env:
-          RUSTFLAGS: ${{ matrix.rustflags }}
+          RUSTFLAGS: -C linker-plugin-lto ${{ matrix.rustflags }}
           CC: clang
           CXX: clang++
           CFLAGS: -O3 -flto ${{ matrix.cflags }}
