@@ -207,9 +207,9 @@ jobs:
         env:
           RUSTC_BOOTSTRAP: 1
           RUSTFLAGS: -C target-feature=+crt-static -C linker-plugin-lto -C linker=./llvm-21/bin/lld-link.exe
-          CC: ./llvm-21/bin/clang-cl
-          CXX: ./llvm-21/bin/clang-cl
-          AR: ./llvm-21/bin/llvm-lib
+          CC: ./llvm-21/bin/clang-cl.exe
+          CXX: ./llvm-21/bin/clang-cl.exe
+          AR: ./llvm-21/bin/llvm-lib.exe
           CFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=./llvm-21/bin/lld-link.exe
           CXXFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=./llvm-21/bin/lld-link.exe
 
