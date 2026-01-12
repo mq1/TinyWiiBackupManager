@@ -244,6 +244,9 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Install clang
+        run: brew install llvm@21
+
       - name: Install Rust toolchain
         run: |
           rustup toolchain install 1.92
@@ -258,6 +261,8 @@ jobs:
       - name: Build binary
         run: cargo build --release --locked --target ${{ matrix.target }}
         env:
+          CC: /opt/homebrew/opt/llvm@21/bin/clang
+          CXX: /opt/homebrew/opt/llvm@21/bin/clang++
           CFLAGS: -O3 -flto
           CXXFLAGS: -O3 -flto
 
