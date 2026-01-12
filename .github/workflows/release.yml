@@ -259,7 +259,7 @@ jobs:
       - name: Build binary
         run: cargo build --release --locked --target ${{ matrix.target }}
         env:
-          RUSTFLAGS: -C linker=/opt/homebrew/opt/llvm@21/bin/clang link-arg=-fuse-ld=/opt/homebrew/opt/lld@21/bin/ld64.lld
+          RUSTFLAGS: -C linker=/opt/homebrew/opt/llvm@21/bin/clang -C link-arg=-fuse-ld=/opt/homebrew/opt/lld@21/bin/ld64.lld
           CC: /opt/homebrew/opt/llvm@21/bin/clang
           CXX: /opt/homebrew/opt/llvm@21/bin/clang++
           CFLAGS: -O3 -flto
