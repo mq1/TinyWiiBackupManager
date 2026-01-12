@@ -236,9 +236,6 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install LLVM and LLD
-        run: brew install llvm@21 lld@21
-
       - name: Install Rust toolchain
         run: |
           rustup toolchain install 1.92 --component rust-src
@@ -248,9 +245,6 @@ jobs:
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
         env:
           RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: -C linker=/opt/homebrew/opt/llvm@21/bin/clang -C link-arg=-fuse-ld=/opt/homebrew/opt/lld@21/bin/ld64.lld
-          CC: /opt/homebrew/opt/llvm@21/bin/clang
-          CXX: /opt/homebrew/opt/llvm@21/bin/clang++
           CFLAGS: -O3 -flto
           CXXFLAGS: -O3 -flto
 
