@@ -111,6 +111,8 @@
         <br><br>
         ℹ️ If you don't know which asset to download, <kbd>TinyWiiBackupManager-vX.X.X-macos-arm64.dmg</kbd> should work for most users
         <br><br>
+        🖥️ If you have a Intel-based Mac, you need to get <kbd>TinyWiiBackupManager-vX.X.X-macos-x86-64.dmg</kbd>
+        <br><br>
         ⚠️ The app is not notarized, you must allow it manually after installing by running this command in Terminal:
         <code>xattr -rd com.apple.quarantine /Applications/TinyWiiBackupManager.app</code>
     </td>
