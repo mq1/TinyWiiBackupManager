@@ -193,7 +193,7 @@ jobs:
         run: |
           Invoke-WebRequest -Uri "https://github.com/llvm/llvm-project/releases/download/llvmorg-21.1.8/LLVM-21.1.8-win64.exe" -OutFile LLVM-21.1.8-win64.exe
           $InstallDir = Join-Path (Get-Location) "llvm-21"
-          & .\LLVM-21.1.8-win64.exe /S /D=$InstallDir
+          Start-Process -FilePath ".\LLVM-21.1.8-win64.exe" -ArgumentList "/S", "/D=$InstallDir" -Wait
 
       - name: Install Rust toolchain
         shell: pwsh
