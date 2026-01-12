@@ -25,7 +25,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - target: x86_64-unknown-linux-musl
+          - target: x86_64-unknown-linux-gnu
             runner: ubuntu-24.04
             arch: x86_64-v3
             rustflags: -C target-cpu=x86-64-v3
@@ -33,17 +33,17 @@ jobs:
             cxxflags: -march=x86-64-v3
             linuxdeploy-bin: linuxdeploy-x86_64.AppImage
             linuxdeploy-ai-bin: linuxdeploy-plugin-appimage-x86_64.AppImage
-          - target: x86_64-unknown-linux-musl
+          - target: x86_64-unknown-linux-gnu
             runner: ubuntu-24.04
             arch: x86_64
             linuxdeploy-bin: linuxdeploy-x86_64.AppImage
             linuxdeploy-ai-bin: linuxdeploy-plugin-appimage-x86_64.AppImage
-          - target: aarch64-unknown-linux-musl
+          - target: aarch64-unknown-linux-gnu
             runner: ubuntu-24.04-arm
             arch: arm64
             linuxdeploy-bin: linuxdeploy-aarch64.AppImage
             linuxdeploy-ai-bin: linuxdeploy-plugin-appimage-aarch64.AppImage
-          - target: i686-unknown-linux-musl
+          - target: i686-unknown-linux-gnu
             runner: ubuntu-24.04
             arch: x86
             linuxdeploy-bin: linuxdeploy-i386.AppImage
@@ -65,6 +65,9 @@ jobs:
           rustup default 1.92
           rustup target add ${{ matrix.target }}
 
+      - name: Install cargo-zigbuild
+        run: pip install cargo-zigbuild
+
       - name: Rust cache
         uses: Swatinem/rust-cache@v2
         with:
@@ -77,12 +80,9 @@ jobs:
           chmod +x *.AppImage
 
       - name: Build binary
-        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
+        run: cargo zigbuild --release --locked --target ${{ matrix.target }}.2.17 --no-default-features --features "bundled-tls"
         env:
-          CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER: clang
-          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER: clang
-          CARGO_TARGET_I686_UNKNOWN_LINUX_MUSL_LINKER: clang
-          RUSTFLAGS: -C link-arg=-fuse-ld=lld ${{ matrix.rustflags }}
+          RUSTFLAGS: ${{ matrix.rustflags }}
           CC: clang
           CXX: clang++
           CFLAGS: -O3 -flto ${{ matrix.cflags }}
