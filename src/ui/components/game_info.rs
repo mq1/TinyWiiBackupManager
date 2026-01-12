@@ -3,7 +3,7 @@
 
 use crate::{game_id::GameID, message::Message, state::State, ui::style};
 use iced::{
-    Element, Length,
+    Element, Length, padding,
     widget::{button, column, image, row, rule, scrollable, space, stack, text},
 };
 use lucide_icons::iced::{
@@ -18,7 +18,7 @@ pub fn view(state: &State, game_i: usize) -> Element<'_, Message> {
 
     let disc_info = match &game.disc_info {
         None => column![text("Loading Disc Info...")],
-        Some(Err(e)) => column![text!("Error: {}", e)],
+        Some(Err(e)) => column![text!("Could not load disc info: {}", e)],
         Some(Ok(disc_info)) => {
             let block_size = match disc_info.block_size {
                 None => text("Block Size: N/A"),
@@ -110,20 +110,25 @@ pub fn view(state: &State, game_i: usize) -> Element<'_, Message> {
         }
     };
 
+    let wiitdb_info = match &game.wiitdb_info {
+        None => column![text("GameTDB game info not found")],
+        Some(game_info) => column![
+            row![icon_chevron_right().size(19), text("GameTDB Info").size(18)].spacing(5),
+            text("TODO")
+        ],
+    };
+
     let col = column![
         row![icon_gamepad_2().size(19), text(&game.title).size(18)].spacing(5),
         row![icon_folder(), text("Path:"), text(game.get_path_str())].spacing(5),
         rule::horizontal(1),
         scrollable(
-            column![
-                disc_info,
-                rule::horizontal(1),
-                row![icon_chevron_right().size(19), text("GameTDB info").size(18)].spacing(5),
-            ]
-            .spacing(5)
-            .width(Length::Fill)
+            column![disc_info, rule::horizontal(1), wiitdb_info]
+                .spacing(5)
+                .width(Length::Fill)
         )
         .height(Length::Fill),
+        rule::horizontal(1),
         row![
             button(row![icon_folder(), text("Open Game Directory")].spacing(5))
                 .style(style::rounded_button)
@@ -136,6 +141,7 @@ pub fn view(state: &State, game_i: usize) -> Element<'_, Message> {
                 .on_press(Message::AskDeleteGame(game_i))
         ]
         .spacing(5)
+        .padding(padding::top(5))
     ]
     .spacing(5)
     .padding(10);

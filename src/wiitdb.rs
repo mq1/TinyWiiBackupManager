@@ -33,15 +33,20 @@ impl Datafile {
         Ok(data)
     }
 
-    pub fn lookup(&self, game_id: [u8; 6]) -> Option<usize> {
+    fn lookup(&self, game_id: [u8; 6]) -> Option<&GameInfo> {
         self.games
             .binary_search_by_key(&game_id, |game| game.id)
             .ok()
+            .map(|i| &self.games[i])
+    }
+
+    pub fn get_game_info(&self, game_id: [u8; 6]) -> Option<GameInfo> {
+        self.lookup(game_id).cloned()
     }
 
     pub fn get_title(&self, game_id: [u8; 6]) -> Option<String> {
         self.lookup(game_id)
-            .and_then(|i| self.games[i].locales.first())
+            .and_then(|info| info.locales.first())
             .map(|locale| locale.title.clone())
     }
 }

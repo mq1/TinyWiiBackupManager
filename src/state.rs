@@ -99,11 +99,20 @@ impl State {
             }
             Message::NavigateTo(screen) => {
                 if let Screen::GameInfo(i) = self.screen {
-                    self.games[i].disc_info = None
+                    let game = &mut self.games[i];
+                    game.disc_info = None;
+                    game.wiitdb_info = None;
                 }
 
                 let task = match screen {
-                    Screen::GameInfo(i) => self.games[i].get_load_disc_info_task(i),
+                    Screen::GameInfo(i) => {
+                        let game = &mut self.games[i];
+                        game.wiitdb_info = self
+                            .wiitdb
+                            .as_ref()
+                            .and_then(|wiitdb| wiitdb.get_game_info(game.id));
+                        game.get_load_disc_info_task(i)
+                    }
                     _ => Task::none(),
                 };
 

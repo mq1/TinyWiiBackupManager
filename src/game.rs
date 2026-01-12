@@ -3,6 +3,7 @@
 
 use crate::{
     config::SortBy, disc_info::DiscInfo, game_id::GameID, message::Message, state::State, util,
+    wiitdb::GameInfo,
 };
 use futures::TryFutureExt;
 use iced::Task;
@@ -18,6 +19,7 @@ pub struct Game {
     pub title: String,
     pub id: [u8; 6],
     pub disc_info: Option<Result<DiscInfo, String>>,
+    pub wiitdb_info: Option<GameInfo>,
 }
 
 impl Game {
@@ -45,6 +47,7 @@ impl Game {
             title,
             id,
             disc_info: None,
+            wiitdb_info: None,
         })
     }
 
