@@ -191,8 +191,9 @@ jobs:
       - name: Install LLVM 21
         shell: pwsh
         run: |
-          Invoke-WebRequest -Uri "https://github.com/llvm/llvm-project/releases/download/llvmorg-21.1.8/clang+llvm-21.1.8-x86_64-pc-windows-msvc.tar.xz" -OutFile "clang+llvm-21.1.8-x86_64-pc-windows-msvc.tar.xz"
-          tar xf clang+llvm-21.1.8-x86_64-pc-windows-msvc.tar.xz
+          Invoke-WebRequest -Uri "https://github.com/llvm/llvm-project/releases/download/llvmorg-21.1.8/LLVM-21.1.8-win64.exe" -OutFile LLVM-21.1.8-win64.exe
+          $InstallDir = Join-Path (Get-Location) "llvm-21"
+          & .\LLVM-21.1.8-win64.exe /S /D=$InstallDir
 
       - name: Install Rust toolchain
         shell: pwsh
@@ -205,12 +206,12 @@ jobs:
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
         env:
           RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: -C target-feature=+crt-static -C linker-plugin-lto -C linker=./clang+llvm-21.1.8-x86_64-pc-windows-msvc.tar.xz/bin/lld-link.exe
-          CC: ./clang+llvm-21.1.8-x86_64-pc-windows-msvc.tar.xz/bin/clang-cl
-          CXX: ./clang+llvm-21.1.8-x86_64-pc-windows-msvc.tar.xz/bin/clang-cl
-          AR: ./clang+llvm-21.1.8-x86_64-pc-windows-msvc.tar.xz/bin/llvm-lib
-          CFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=./clang+llvm-21.1.8-x86_64-pc-windows-msvc.tar.xz/bin/lld-link.exe
-          CXXFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=./clang+llvm-21.1.8-x86_64-pc-windows-msvc.tar.xz/bin/lld-link.exe
+          RUSTFLAGS: -C target-feature=+crt-static -C linker-plugin-lto -C linker=./llvm-21/bin/lld-link.exe
+          CC: ./llvm-21/bin/clang-cl
+          CXX: ./llvm-21/bin/clang-cl
+          AR: ./llvm-21/bin/llvm-lib
+          CFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=./llvm-21/bin/lld-link.exe
+          CXXFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=./llvm-21/bin/lld-link.exe
 
       - name: Package binary as zip
         shell: pwsh
