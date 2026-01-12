@@ -115,7 +115,7 @@ strip = true
 panic = "abort"
 
 [profile.dev.package."*"]
-opt-level = 3
+opt-level = 1
 
 [profile.dev.package.quick-xml]
 overflow-checks = false
