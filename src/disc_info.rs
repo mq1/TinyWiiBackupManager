@@ -9,12 +9,11 @@ use smol::fs;
 use smol::stream::StreamExt;
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
-use std::sync::LazyLock;
 
-static DISC_OPTS: LazyLock<DiscOptions> = LazyLock::new(|| DiscOptions {
+const DISC_OPTS: DiscOptions = DiscOptions {
     partition_encryption: PartitionEncryption::Original,
     preloader_threads: 0,
-});
+};
 
 #[derive(Debug, Clone)]
 pub struct DiscInfo {
