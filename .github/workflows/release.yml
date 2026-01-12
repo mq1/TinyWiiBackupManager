@@ -56,6 +56,13 @@ jobs:
         if: matrix.arch == 'x86'
         run: sudo apt-get install -y libc6-dev-i386
 
+      - name: Install LLVM 21
+        if: matrix.arch == 'x86_64-v3'
+        run: |
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 21
+
       - name: Install Rust toolchain
         run: |
           rustup toolchain install 1.92
@@ -81,7 +88,7 @@ jobs:
         if: matrix.arch == 'x86_64-v3'
         run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
         env:
-          RUSTFLAGS: -C target-cpu=x86-64-v3
+          RUSTFLAGS: -C target-cpu=x86-64-v3 -C linker-plugin-lto -C linker=clang -C link-arg=-fuse-ld=lld
           CC: clang
           CXX: clang++
           CFLAGS: -O3 -flto -march=x86-64-v3
@@ -210,9 +217,7 @@ jobs:
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
         env:
           RUSTC_BOOTSTRAP: 1
-          CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_LINKER: rust-lld.exe
-          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_LINKER: rust-lld.exe
-          RUSTFLAGS: -C target-feature=+crt-static
+          RUSTFLAGS: -C target-feature=+crt-static -C linker=rust-lld.exe
           CC: clang-cl
           CXX: clang-cl
           CFLAGS: /clang:-O3 /clang:-flto
