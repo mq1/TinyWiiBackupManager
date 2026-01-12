@@ -1,16 +1,21 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::convert::DISC_OPTS;
-use crate::games::GameID;
+use crate::util::PRELOADER_THREADS;
 use anyhow::{Result, anyhow, bail};
 use nod::common::{Compression, Format, PartitionKind};
-use nod::read::{DiscReader, PartitionOptions};
+use nod::read::{DiscOptions, DiscReader, PartitionEncryption, PartitionOptions};
 use size::Size;
+use smol::fs;
+use smol::stream::StreamExt;
 use std::ffi::OsStr;
-use std::fs::{self};
-use std::io::Read;
 use std::path::{Path, PathBuf};
+use std::sync::LazyLock;
+
+pub static DISC_OPTS: LazyLock<DiscOptions> = LazyLock::new(|| DiscOptions {
+    partition_encryption: PartitionEncryption::Original,
+    preloader_threads: *PRELOADER_THREADS,
+});
 
 #[derive(Debug, Clone)]
 pub struct DiscInfo {
@@ -18,7 +23,7 @@ pub struct DiscInfo {
     pub disc_path: PathBuf,
 
     // discheader
-    pub id: GameID,
+    pub id: [u8; 6],
     pub title: String,
     pub is_wii: bool,
     pub is_gc: bool,
@@ -42,11 +47,13 @@ pub struct DiscInfo {
     pub is_worth_stripping: bool,
 }
 
-pub fn get_main_file(game_dir: &Path) -> Option<PathBuf> {
-    for entry in fs::read_dir(game_dir).ok()?.filter_map(Result::ok) {
-        let path = entry.path();
+pub async fn get_main_file(game_dir: &Path) -> Result<PathBuf> {
+    let mut entries = fs::read_dir(game_dir).await?;
 
-        if path
+    while let Some(entry) = entries.try_next().await? {
+        let entry_path = entry.path();
+
+        if entry_path
             .file_name()
             .and_then(OsStr::to_str)
             .is_some_and(|file_name| {
@@ -55,69 +62,72 @@ pub fn get_main_file(game_dir: &Path) -> Option<PathBuf> {
                     || (file_name.ends_with(".iso") && !file_name.ends_with(".part1.iso"))
             })
         {
-            return Some(path);
+            return Ok(entry_path);
         }
     }
 
-    None
+    Err(anyhow!("No disc file found"))
 }
 
 impl DiscInfo {
-    pub fn from_game_dir(game_dir: &Path) -> Result<DiscInfo> {
+    pub async fn from_game_dir(game_dir: PathBuf) -> Result<DiscInfo> {
         if !game_dir.is_dir() {
             bail!("Not a directory");
         }
 
-        let disc_path = get_main_file(game_dir).ok_or(anyhow!("No disc file found"))?;
-        DiscInfo::from_path(disc_path)
+        let disc_path = get_main_file(&game_dir).await?;
+        DiscInfo::from_path(disc_path).await
     }
 
-    pub fn from_path(disc_path: PathBuf) -> Result<DiscInfo> {
+    pub async fn from_path(disc_path: PathBuf) -> Result<DiscInfo> {
         if !disc_path.is_file() {
             bail!("Not a file");
         }
 
-        let parent_dir = disc_path.parent().ok_or(anyhow!("No parent directory"))?;
-        let disc = DiscReader::new(&disc_path, &DISC_OPTS)?;
-        let is_worth_stripping = is_worth_stripping(&disc);
+        smol::unblock(move || -> Result<DiscInfo> {
+            let parent_dir = disc_path.parent().ok_or(anyhow!("No parent directory"))?;
+            let disc = DiscReader::new(&disc_path, &DISC_OPTS)?;
+            let is_worth_stripping = is_worth_stripping(&disc);
 
-        let header = disc.header();
-        let meta = disc.meta();
+            let header = disc.header();
+            let meta = disc.meta();
 
-        Ok(Self {
-            game_dir: parent_dir.to_path_buf(),
-            disc_path,
+            Ok(DiscInfo {
+                game_dir: parent_dir.to_path_buf(),
+                disc_path,
 
-            // discheader
-            id: GameID(header.game_id),
-            title: header.game_title_str().to_string(),
-            is_wii: header.is_wii(),
-            is_gc: header.is_gamecube(),
-            disc_num: header.disc_num,
-            disc_version: header.disc_version,
+                // discheader
+                id: header.game_id,
+                title: header.game_title_str().to_string(),
+                is_wii: header.is_wii(),
+                is_gc: header.is_gamecube(),
+                disc_num: header.disc_num,
+                disc_version: header.disc_version,
 
-            // discmeta
-            format: meta.format,
-            compression: meta.compression,
-            block_size: meta
-                .block_size
-                .map(|bytes| Size::from_bytes(bytes).to_string())
-                .unwrap_or_else(|| "N/A".to_string()),
-            decrypted: meta.decrypted,
-            needs_hash_recovery: meta.needs_hash_recovery,
-            lossless: meta.lossless,
-            disc_size: meta
-                .disc_size
-                .map(|bytes| Size::from_bytes(bytes).to_string())
-                .unwrap_or_else(|| "N/A".to_string()),
-            crc32: meta.crc32,
-            md5: meta.md5,
-            sha1: meta.sha1,
-            xxh64: meta.xxh64,
+                // discmeta
+                format: meta.format,
+                compression: meta.compression,
+                block_size: meta
+                    .block_size
+                    .map(|bytes| Size::from_bytes(bytes).to_string())
+                    .unwrap_or_else(|| "N/A".to_string()),
+                decrypted: meta.decrypted,
+                needs_hash_recovery: meta.needs_hash_recovery,
+                lossless: meta.lossless,
+                disc_size: meta
+                    .disc_size
+                    .map(|bytes| Size::from_bytes(bytes).to_string())
+                    .unwrap_or_else(|| "N/A".to_string()),
+                crc32: meta.crc32,
+                md5: meta.md5,
+                sha1: meta.sha1,
+                xxh64: meta.xxh64,
 
-            // misc
-            is_worth_stripping,
+                // misc
+                is_worth_stripping,
+            })
         })
+        .await
     }
 }
 

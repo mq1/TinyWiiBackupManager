@@ -3,6 +3,7 @@
 
 use crate::{
     config::{SortBy, ViewAs},
+    disc_info::DiscInfo,
     game::Game,
     hbc::HbcApp,
     osc::OscAppMeta,
@@ -46,6 +47,7 @@ pub enum Message {
     StartSingleGameTransfer,
     FinishedTransferringSingleGame(Result<String, String>),
     CancelTransfer(usize),
+    GotDiscInfo(usize, Result<DiscInfo, String>),
 
     // HBC Apps
     GotHbcApps(Result<Box<[HbcApp]>, String>),

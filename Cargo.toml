@@ -47,6 +47,7 @@ iced = { version = "0.14", default-features = false, features = [
   "smol",
   "wgpu-bare",
   "image-without-codecs",
+  "sipper",
 ] }
 wgpu = { version = "27", default-features = false, features = [
   "std",
@@ -63,6 +64,7 @@ iced = { version = "0.14", default-features = false, features = [
   "wayland",
   "wgpu-bare",
   "image-without-codecs",
+  "sipper",
 ] }
 wgpu = { version = "27", default-features = false, features = [
   "std",
@@ -76,6 +78,7 @@ iced = { version = "0.14", default-features = false, features = [
   "smol",
   "wgpu-bare",
   "image-without-codecs",
+  "sipper",
 ] }
 wgpu = { version = "27", default-features = false, features = [
   "std",
@@ -92,6 +95,7 @@ iced = { version = "0.14", default-features = false, features = [
   "smol",
   "tiny-skia",
   "image-without-codecs",
+  "sipper",
 ] }
 native-dialog = "0.9"
 

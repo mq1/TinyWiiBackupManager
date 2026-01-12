@@ -98,8 +98,13 @@ impl State {
                 Task::none()
             }
             Message::NavigateTo(screen) => {
+                let task = match screen {
+                    Screen::GameInfo(i) => self.games[i].get_load_disc_info_task(i),
+                    _ => Task::none(),
+                };
+
                 self.screen = screen;
-                Task::none()
+                task
             }
             Message::RefreshGamesAndApps => Task::batch(vec![
                 game::get_list_games_task(self),
@@ -467,6 +472,10 @@ impl State {
                 if let Err(e) = self.config.update_view_as(view_as) {
                     self.notifications.error(e);
                 }
+                Task::none()
+            }
+            Message::GotDiscInfo(i, res) => {
+                self.games[i].disc_info = Some(res);
                 Task::none()
             }
         }

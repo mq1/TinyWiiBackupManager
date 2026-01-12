@@ -1,7 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{config::SortBy, game_id::GameID, message::Message, state::State, util};
+use crate::{
+    config::SortBy, disc_info::DiscInfo, game_id::GameID, message::Message, state::State, util,
+};
 use futures::TryFutureExt;
 use iced::Task;
 use size::Size;
@@ -15,6 +17,7 @@ pub struct Game {
     pub is_wii: bool,
     pub title: String,
     pub id: [u8; 6],
+    pub disc_info: Option<Result<DiscInfo, String>>,
 }
 
 impl Game {
@@ -41,6 +44,7 @@ impl Game {
             is_wii,
             title,
             id,
+            disc_info: None,
         })
     }
 
@@ -68,6 +72,15 @@ impl Game {
 
     pub fn get_path_str(&self) -> &str {
         self.path.to_str().unwrap_or("Invalid path")
+    }
+
+    pub fn get_load_disc_info_task(&mut self, i: usize) -> Task<Message> {
+        let path = self.path.clone();
+
+        Task::perform(
+            DiscInfo::from_game_dir(path).map_err(|e| e.to_string()),
+            move |res| Message::GotDiscInfo(i, res),
+        )
     }
 }
 

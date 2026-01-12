@@ -7,6 +7,7 @@
 mod config;
 mod covers;
 mod data_dir;
+mod disc_info;
 mod extensions;
 mod game;
 mod game_id;

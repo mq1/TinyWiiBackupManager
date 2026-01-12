@@ -4,7 +4,7 @@
 use crate::{config::ViewAs, message::Message, state::State, ui::components};
 use iced::{
     Alignment, Element, Length, padding,
-    widget::{Column, column, container, row, scrollable, space, text},
+    widget::{column, container, row, scrollable, space, text},
 };
 use lucide_icons::iced::{icon_arrow_down_left, icon_hard_drive, icon_waves};
 use size::Size;
