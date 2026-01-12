@@ -191,7 +191,7 @@ jobs:
       - name: Install LLVM 21
         shell: pwsh
         run: |
-          wget https://github.com/llvm/llvm-project/releases/download/llvmorg-21.1.8/clang+llvm-21.1.8-x86_64-pc-windows-msvc.tar.xz
+          Invoke-WebRequest -Uri "https://github.com/llvm/llvm-project/releases/download/llvmorg-21.1.8/clang+llvm-21.1.8-x86_64-pc-windows-msvc.tar.xz" -OutFile "clang+llvm-21.1.8-x86_64-pc-windows-msvc.tar.xz"
           tar xf clang+llvm-21.1.8-x86_64-pc-windows-msvc.tar.xz
 
       - name: Install Rust toolchain
