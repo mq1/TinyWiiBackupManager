@@ -31,11 +31,11 @@ pub struct DiscInfo {
     // discmeta
     pub format: Format,
     pub compression: Compression,
-    pub block_size: String,
+    pub block_size: Option<Size>,
     pub decrypted: bool,
     pub needs_hash_recovery: bool,
     pub lossless: bool,
-    pub disc_size: String,
+    pub disc_size: Option<Size>,
     pub crc32: Option<u32>,
     pub md5: Option<[u8; 16]>,
     pub sha1: Option<[u8; 20]>,
@@ -105,17 +105,11 @@ impl DiscInfo {
                 // discmeta
                 format: meta.format,
                 compression: meta.compression,
-                block_size: meta
-                    .block_size
-                    .map(|bytes| Size::from_bytes(bytes).to_string())
-                    .unwrap_or_else(|| "N/A".to_string()),
+                block_size: meta.block_size.map(Size::from_bytes),
                 decrypted: meta.decrypted,
                 needs_hash_recovery: meta.needs_hash_recovery,
                 lossless: meta.lossless,
-                disc_size: meta
-                    .disc_size
-                    .map(|bytes| Size::from_bytes(bytes).to_string())
-                    .unwrap_or_else(|| "N/A".to_string()),
+                disc_size: meta.disc_size.map(Size::from_bytes),
                 crc32: meta.crc32,
                 md5: meta.md5,
                 sha1: meta.sha1,
