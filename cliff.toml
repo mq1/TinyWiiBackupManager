@@ -11,6 +11,10 @@ body = """
             {{ commit.message | upper_first }}\
     {% endfor %}
 {% endfor %}
+
+## :arrow_down: Quick download links
+:arrow_right: [Windows Installer](https://github.com/mq1/TinyWiiBackupManagerInstaller/releases/latest/download/TinyWiiBackupManagerInstaller.exe) \
+:arrow_right: [macOS universal binary](https://github.com/mq1/TinyWiiBackupManager/releases/download/{{ version }}/TinyWiiBackupManager-{{ version }}-macos.dmg)
 """
 
 [git]
