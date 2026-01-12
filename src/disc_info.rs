@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::util::PRELOADER_THREADS;
 use anyhow::{Result, anyhow, bail};
 use nod::common::{Compression, Format, PartitionKind};
 use nod::read::{DiscOptions, DiscReader, PartitionEncryption, PartitionOptions};
@@ -12,9 +11,9 @@ use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::sync::LazyLock;
 
-pub static DISC_OPTS: LazyLock<DiscOptions> = LazyLock::new(|| DiscOptions {
+static DISC_OPTS: LazyLock<DiscOptions> = LazyLock::new(|| DiscOptions {
     partition_encryption: PartitionEncryption::Original,
-    preloader_threads: *PRELOADER_THREADS,
+    preloader_threads: 0,
 });
 
 #[derive(Debug, Clone)]
