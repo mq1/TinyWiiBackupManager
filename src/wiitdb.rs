@@ -10,6 +10,7 @@ use capitalize::Capitalize;
 use futures::TryFutureExt;
 use iced::Task;
 use serde::Deserialize;
+use serde_with::{DefaultOnError, DisplayFromStr, serde_as};
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -100,33 +101,19 @@ pub struct Locale {
     title: String,
 }
 
+#[serde_as]
 #[derive(Debug, Deserialize, Default, Clone)]
 #[serde(default)]
 pub struct Date {
-    #[serde(rename = "@year", deserialize_with = "str_to_u16")]
+    #[serde(rename = "@year")]
+    #[serde_as(as = "DefaultOnError<DisplayFromStr>")]
     pub year: u16,
-    #[serde(rename = "@month", deserialize_with = "str_to_u8")]
+    #[serde(rename = "@month")]
+    #[serde_as(as = "DefaultOnError<DisplayFromStr>")]
     pub month: u8,
-    #[serde(rename = "@day", deserialize_with = "str_to_u8")]
+    #[serde(rename = "@day")]
+    #[serde_as(as = "DefaultOnError<DisplayFromStr>")]
     pub day: u8,
-}
-
-fn str_to_u8<'de, D>(deserializer: D) -> Result<u8, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    let s = String::deserialize(deserializer)?;
-    let u = s.parse().unwrap_or(1);
-    Ok(u)
-}
-
-fn str_to_u16<'de, D>(deserializer: D) -> Result<u16, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    let s = String::deserialize(deserializer)?;
-    let u = s.parse().unwrap_or(1970);
-    Ok(u)
 }
 
 #[derive(Debug, Deserialize, Default, Clone)]
