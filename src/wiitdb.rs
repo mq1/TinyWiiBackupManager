@@ -103,12 +103,30 @@ pub struct Locale {
 #[derive(Debug, Deserialize, Default, Clone)]
 #[serde(default)]
 pub struct Date {
-    #[serde(rename = "@year")]
-    pub year: String,
-    #[serde(rename = "@month")]
-    pub month: String,
-    #[serde(rename = "@day")]
-    pub day: String,
+    #[serde(rename = "@year", deserialize_with = "str_to_u16")]
+    pub year: u16,
+    #[serde(rename = "@month", deserialize_with = "str_to_u8")]
+    pub month: u8,
+    #[serde(rename = "@day", deserialize_with = "str_to_u8")]
+    pub day: u8,
+}
+
+fn str_to_u8<'de, D>(deserializer: D) -> Result<u8, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let s = String::deserialize(deserializer)?;
+    let u = s.parse().unwrap_or(1);
+    Ok(u)
+}
+
+fn str_to_u16<'de, D>(deserializer: D) -> Result<u16, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let s = String::deserialize(deserializer)?;
+    let u = s.parse().unwrap_or(1970);
+    Ok(u)
 }
 
 #[derive(Debug, Deserialize, Default, Clone)]

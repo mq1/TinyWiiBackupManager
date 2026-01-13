@@ -2,15 +2,18 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{game_id::GameID, message::Message, state::State, ui::style};
+use capitalize::Capitalize;
 use iced::{
     Element, Length, padding,
     widget::{button, column, image, row, rule, scrollable, space, stack, text},
 };
+use itertools::Itertools;
 use lucide_icons::iced::{
-    icon_badge_check, icon_box, icon_chevron_right, icon_disc_3, icon_file_archive,
-    icon_fingerprint_pattern, icon_folder, icon_gamepad_2, icon_globe, icon_hash, icon_lock_open,
-    icon_notebook_pen, icon_pin, icon_pointer, icon_ruler_dimension_line, icon_tag, icon_trash,
-    icon_triangle_alert, icon_weight,
+    icon_baby, icon_badge_check, icon_bow_arrow, icon_box, icon_building, icon_calendar,
+    icon_chevron_right, icon_disc_3, icon_earth, icon_file_archive, icon_fingerprint_pattern,
+    icon_folder, icon_gamepad_2, icon_globe, icon_hash, icon_joystick, icon_languages,
+    icon_lock_open, icon_notebook_pen, icon_pin, icon_pointer, icon_ruler_dimension_line, icon_tag,
+    icon_trash, icon_triangle_alert, icon_user, icon_weight, icon_wifi,
 };
 
 pub fn view(state: &State, game_i: usize) -> Element<'_, Message> {
@@ -112,10 +115,78 @@ pub fn view(state: &State, game_i: usize) -> Element<'_, Message> {
 
     let wiitdb_info = match &game.wiitdb_info {
         None => column![text("GameTDB game info not found")],
-        Some(game_info) => column![
+        Some(info) => column![
             row![icon_chevron_right().size(19), text("GameTDB Info").size(18)].spacing(5),
-            text("TODO")
-        ],
+            row![icon_tag(), text!("Name: {}", &info.name)].spacing(5),
+            row![icon_earth(), text!("Region: {}", info.region.as_str())].spacing(5),
+            row![
+                icon_languages(),
+                text!(
+                    "Languages: {}",
+                    info.languages.iter().map(|l| l.as_str()).join(", ")
+                )
+            ]
+            .spacing(5),
+            row![
+                icon_user(),
+                text!(
+                    "Developer: {}",
+                    info.developer.as_deref().unwrap_or("Unknown")
+                )
+            ]
+            .spacing(5),
+            row![
+                icon_building(),
+                text!(
+                    "Publisher: {}",
+                    info.publisher.as_deref().unwrap_or("Unknown")
+                )
+            ]
+            .spacing(5),
+            row![
+                icon_calendar(),
+                text!(
+                    "Date: {}-{}-{}",
+                    info.date.year,
+                    info.date.month,
+                    info.date.day
+                )
+            ]
+            .spacing(5),
+            row![icon_bow_arrow(), text!("Genres: {}", info.genre.join(", "))].spacing(5),
+            row![
+                icon_baby(),
+                text!("Rating: {} {}", &info.rating.r#type, &info.rating.value)
+            ]
+            .spacing(5),
+            row![
+                icon_wifi(),
+                text!(
+                    "WiFi: {} Players • {}",
+                    info.wifi.players,
+                    info.wifi.features.join(", ")
+                )
+            ]
+            .spacing(5),
+            row![
+                icon_joystick(),
+                text!(
+                    "Input: {} Players • {}",
+                    info.input.players,
+                    info.input
+                        .controls
+                        .iter()
+                        .map(|c| format!(
+                            "{} ({})",
+                            c.r#type.capitalize_first_only(),
+                            if c.required { "Required" } else { "Optional" }
+                        ))
+                        .join(", ")
+                )
+            ]
+            .spacing(5),
+        ]
+        .spacing(5),
     };
 
     let col = column![
