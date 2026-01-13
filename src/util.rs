@@ -1,26 +1,28 @@
-// SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::extensions::SUPPORTED_DISC_EXTENSIONS;
-use anyhow::Result;
+use crate::{extensions::SUPPORTED_DISC_EXTENSIONS, message::Message, state::State};
+use anyhow::{Result, anyhow, bail};
+use async_zip::base::read::seek::ZipFileReader;
+use futures::future::join_all;
+use iced::Task;
 use size::Size;
+use smol::{
+    fs::{self, File},
+    io::{self, BufReader},
+    stream::StreamExt,
+};
+use soft_canonicalize::soft_canonicalize;
 use std::{
     ffi::OsStr,
-    fs::{self, File},
-    io::{Seek, SeekFrom, Write},
     path::{Path, PathBuf},
     sync::LazyLock,
 };
 use sysinfo::Disks;
 use tempfile::NamedTempFile;
-use walkdir::WalkDir;
-use zip::ZipArchive;
 
 #[cfg(target_os = "macos")]
-use anyhow::Context;
-
-#[cfg(target_os = "macos")]
-use std::process::Command;
+use smol::process;
 
 static NUM_CPUS: LazyLock<usize> = LazyLock::new(num_cpus::get);
 
@@ -48,9 +50,20 @@ pub fn sanitize(s: &str) -> String {
         .to_string()
 }
 
-pub fn get_disk_usage(mount_point: &Path) -> String {
+pub fn get_drive_usage_task(state: &State) -> Task<Message> {
+    let drive_path = state.config.get_drive_path().to_path_buf();
+
+    Task::perform(
+        async move { get_drive_usage(drive_path) },
+        Message::GotDriveUsage,
+    )
+}
+
+fn get_drive_usage(mount_point: PathBuf) -> String {
+    const GIB: f64 = 1024.0 * 1024.0 * 1024.0;
+
     if mount_point.as_os_str().is_empty() {
-        return "0 bytes/0 bytes".to_string();
+        return "0/0 GiB".to_string();
     }
 
     let disks = Disks::new_with_refreshed_list();
@@ -63,13 +76,18 @@ pub fn get_disk_usage(mount_point: &Path) -> String {
             let total = disk.total_space();
             let used = total - disk.available_space();
 
-            format!("{}/{}", Size::from_bytes(used), Size::from_bytes(total))
+            let used = used as f64 / GIB;
+            let total = total as f64 / GIB;
+
+            format!("{:.2}/{:.2} GiB", used, total)
         })
-        .unwrap_or("0 bytes/0 bytes".to_string())
+        .unwrap_or("0/0 GiB".to_string())
 }
 
 /// Returns Ok if we can create a file >4 GiB in this directory
 pub fn can_write_over_4gb(mount_point: &Path) -> bool {
+    use std::io::{Seek, SeekFrom, Write};
+
     if mount_point.as_os_str().is_empty() {
         return false;
     }
@@ -99,33 +117,54 @@ pub fn can_write_over_4gb(mount_point: &Path) -> bool {
 }
 
 #[cfg(target_os = "macos")]
-pub fn run_dot_clean(mount_point: &Path) -> Result<()> {
-    Command::new("dot_clean")
+pub async fn run_dot_clean(mount_point: &Path) -> io::Result<process::ExitStatus> {
+    process::Command::new("dot_clean")
         .arg("-m")
         .arg(mount_point)
         .status()
-        .context("Failed to run dot_clean")?;
-
-    Ok(())
+        .await
 }
 
-pub fn scan_for_discs(dir: &Path) -> Box<[PathBuf]> {
-    WalkDir::new(dir)
-        .sort_by_file_name()
-        .same_file_system(true)
-        .into_iter()
-        .filter_map(Result::ok)
-        .filter(|e| e.file_type().is_file())
-        .map(|e| e.into_path())
-        .filter(|p| is_valid_disc_file(p))
-        .collect()
+pub async fn scan_for_discs(path: PathBuf) -> io::Result<Box<[PathBuf]>> {
+    let mut discs = Vec::new();
+    let mut stack = vec![path];
+
+    while let Some(current_path) = stack.pop() {
+        let mut entries = fs::read_dir(&current_path).await?;
+
+        while let Some(entry) = entries.try_next().await? {
+            let entry_path = entry.path();
+
+            if entry_path.is_dir() {
+                stack.push(entry_path);
+            } else if entry_path.is_file() {
+                discs.push(keep_disc_file(entry_path));
+            }
+        }
+    }
+
+    let discs = join_all(discs).await.into_iter().flatten().collect();
+
+    Ok(discs)
 }
 
-pub fn is_valid_disc_file(path: &Path) -> bool {
+async fn keep_disc_file(path: PathBuf) -> Option<PathBuf> {
+    if is_valid_disc_file(&path).await {
+        Some(path)
+    } else {
+        None
+    }
+}
+
+pub async fn is_valid_disc_file(path: &Path) -> bool {
     let stem = match path.file_stem().and_then(OsStr::to_str) {
         Some(s) => s,
         None => return false,
     };
+
+    if stem.starts_with('.') {
+        return false;
+    }
 
     if stem.ends_with(".part1") {
         return false;
@@ -137,54 +176,162 @@ pub fn is_valid_disc_file(path: &Path) -> bool {
     };
 
     match ext {
-        "zip" => does_this_zip_contain_a_disc(path),
+        "zip" => does_this_zip_contain_a_disc(path).await,
         "gcm" | "iso" | "wbfs" | "wia" | "rvz" | "ciso" | "gcz" | "tgc" | "nfs" => true,
         _ => false,
     }
 }
 
-fn does_this_zip_contain_a_disc(path: &Path) -> bool {
-    let file = match File::open(path) {
+async fn does_this_zip_contain_a_disc(path: &Path) -> bool {
+    let file = match File::open(path).await {
         Ok(f) => f,
         Err(_) => return false,
     };
 
-    let mut archive = match ZipArchive::new(file) {
+    let reader = BufReader::new(file);
+
+    let zip = match ZipFileReader::new(reader).await {
         Ok(a) => a,
         Err(_) => return false,
     };
 
-    let disc_file = match archive.by_index(0) {
-        Ok(f) => f,
-        Err(_) => return false,
-    };
-
-    let disc_name = disc_file.name();
-    SUPPORTED_DISC_EXTENSIONS
-        .iter()
-        .any(|ext| disc_name.ends_with(ext))
+    zip.file()
+        .entries()
+        .first()
+        .and_then(|e| e.filename().as_str().ok())
+        .is_some_and(|filename| {
+            SUPPORTED_DISC_EXTENSIONS
+                .iter()
+                .any(|ext| filename.ends_with(ext))
+        })
 }
 
-pub fn get_files_and_dirs(base_dir: &Path) -> (Vec<PathBuf>, Vec<PathBuf>) {
+pub async fn get_files_and_dirs(base_dir: &Path) -> io::Result<(Vec<PathBuf>, Vec<PathBuf>)> {
     let mut files = Vec::new();
     let mut dirs = Vec::new();
 
-    let entries = match fs::read_dir(base_dir) {
-        Ok(e) => e,
-        Err(_) => return (files, dirs),
-    };
+    let mut entries = fs::read_dir(base_dir).await?;
 
-    let iterator = entries.filter_map(Result::ok);
+    while let Some(entry) = entries.try_next().await? {
+        let path = entry.path();
 
-    for entry in iterator {
-        if let Ok(file_type) = entry.file_type() {
-            if file_type.is_file() {
-                files.push(entry.path());
-            } else if file_type.is_dir() {
-                dirs.push(entry.path());
+        if path.is_dir() {
+            dirs.push(path);
+        } else if path.is_file() {
+            files.push(path);
+        }
+    }
+
+    Ok((files, dirs))
+}
+
+pub async fn extract_zip(zip_path: &Path, dest_dir: &Path) -> Result<()> {
+    println!(
+        "Extracting \"{}\" into \"{}\"",
+        zip_path.display(),
+        dest_dir.display()
+    );
+
+    let zip_file_reader = BufReader::new(File::open(zip_path).await?);
+    let mut zip = async_zip::base::read::seek::ZipFileReader::new(zip_file_reader).await?;
+
+    for i in 0..zip.file().entries().len() {
+        let entry = &zip.file().entries()[i];
+
+        let filename = entry.filename().as_str()?;
+        let is_dir = entry.dir()?;
+
+        if is_dir {
+            println!("  - Directory: {}", filename);
+        } else {
+            println!("  - File: {}", filename);
+        }
+
+        let rel_path = Path::new(filename);
+        let dest_path = soft_canonicalize(dest_dir.join(rel_path))?;
+
+        if !dest_path.starts_with(dest_dir) {
+            bail!("Directory traversal attempt detected");
+        }
+
+        if is_dir {
+            fs::create_dir_all(&dest_path).await?;
+            continue;
+        }
+
+        let parent = dest_path
+            .parent()
+            .ok_or(anyhow!("Failed to get parent dir"))?;
+
+        let mut reader = zip.reader_without_entry(i).await?;
+
+        fs::create_dir_all(parent).await?;
+        let mut writer = File::create(dest_path).await?;
+        io::copy(&mut reader, &mut writer).await?;
+    }
+
+    Ok(())
+}
+
+pub async fn extract_zip_bytes(zip_bytes: Vec<u8>, dest_dir: &Path) -> Result<()> {
+    println!("Extracting zip into \"{}\"", dest_dir.display());
+
+    let zip = async_zip::base::read::mem::ZipFileReader::new(zip_bytes).await?;
+
+    for (i, entry) in zip.file().entries().iter().enumerate() {
+        let filename = entry.filename().as_str()?;
+        let is_dir = entry.dir()?;
+
+        if is_dir {
+            println!("  - Directory: {}", filename);
+        } else {
+            println!("  - File: {}", filename);
+        }
+
+        let rel_path = Path::new(filename);
+        let dest_path = soft_canonicalize(dest_dir.join(rel_path))?;
+
+        if !dest_path.starts_with(dest_dir) {
+            bail!("Directory traversal attempt detected");
+        }
+
+        if is_dir {
+            fs::create_dir_all(&dest_path).await?;
+            continue;
+        }
+
+        let parent = dest_path
+            .parent()
+            .ok_or(anyhow!("Failed to get parent dir"))?;
+
+        let mut reader = zip.reader_without_entry(i).await?;
+
+        fs::create_dir_all(parent).await?;
+        let mut writer = File::create(dest_path).await?;
+        io::copy(&mut reader, &mut writer).await?;
+    }
+
+    Ok(())
+}
+
+pub async fn get_dir_size(path: PathBuf) -> io::Result<Size> {
+    let mut bytes = 0u64;
+    let mut stack = vec![path];
+
+    while let Some(current_path) = stack.pop() {
+        let mut entries = fs::read_dir(&current_path).await?;
+
+        while let Some(entry) = entries.try_next().await? {
+            let entry_path = entry.path();
+
+            if entry_path.is_dir() {
+                stack.push(entry_path);
+            } else if entry_path.is_file() {
+                let meta = entry.metadata().await?;
+                bytes += meta.len();
             }
         }
     }
 
-    (files, dirs)
+    Ok(Size::from_bytes(bytes))
 }

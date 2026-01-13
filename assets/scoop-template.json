@@ -10,15 +10,15 @@
   "shortcuts": [["TinyWiiBackupManager.exe", "TinyWiiBackupManager"]],
   "architecture": {
     "64bit": {
-      "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/vPLAIN_VER/TinyWiiBackupManager-vPLAIN_VER-windows-x86_64.zip",
+      "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/vPLAIN_VER/TinyWiiBackupManager-vPLAIN_VER-Windows-x64.zip",
       "hash": "X86_64_HASH"
     },
     "arm64": {
-      "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/vPLAIN_VER/TinyWiiBackupManager-vPLAIN_VER-windows-arm64.zip",
+      "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/vPLAIN_VER/TinyWiiBackupManager-vPLAIN_VER-Windows-arm64.zip",
       "hash": "ARM64_HASH"
     },
     "32bit": {
-      "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/vPLAIN_VER/TinyWiiBackupManager-vPLAIN_VER-windows-x86.zip",
+      "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/vPLAIN_VER/TinyWiiBackupManager-vPLAIN_VER-WindowsLegacy-x86.zip",
       "hash": "X86_HASH"
     }
   }

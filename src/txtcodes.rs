@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::app::App;
@@ -6,7 +6,6 @@ use crate::games::Game;
 use crate::messages::Message;
 use crate::{games::GameID, http, id_map};
 use anyhow::{Result, anyhow};
-use egui_phosphor::regular as ph;
 use serde::{Deserialize, Serialize};
 use std::{fs, path::Path};
 

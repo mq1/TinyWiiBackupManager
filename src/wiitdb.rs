@@ -1,46 +1,22 @@
-// SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::app::App;
-use crate::games::GameID;
-use crate::http;
-use crate::messages::Message;
-use anyhow::{Result, bail};
+use crate::game_id::GameID;
+use crate::http_util;
+use crate::message::Message;
+use crate::state::State;
+use anyhow::Result;
 use capitalize::Capitalize;
-use egui_phosphor::regular as ph;
+use futures::TryFutureExt;
+use iced::Task;
 use serde::Deserialize;
+use serde_with::{DefaultOnError, DisplayFromStr, serde_as};
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 const DOWNLOAD_URL: &str = "https://www.gametdb.com/wiitdb.zip";
 
-/// Handles the blocking logic of downloading and extracting the database.
-pub fn spawn_update_wiitdb_task(app: &App) {
-    let wiitdb_path = app.data_dir.join("wiitdb.xml");
-    let mount_point = app.config.contents.mount_point.clone();
-
-    app.task_processor.spawn(move |msg_sender| {
-        if !wiitdb_path.exists() {
-            bail!("wiitdb.xml not found in {}", wiitdb_path.display());
-        }
-
-        // Create the target directory.
-        let target_dir = mount_point.join("apps").join("usbloader_gx");
-        fs::create_dir_all(&target_dir)?;
-
-        // Copy the cached wiitdb.xml to the target directory.
-        fs::copy(wiitdb_path, target_dir.join("wiitdb.xml"))?;
-
-        msg_sender.send(Message::NotifySuccess(format!(
-            "{} wiitdb.xml updated successfully",
-            ph::FILE_CODE
-        )))?;
-
-        Ok(())
-    });
-}
-
-#[derive(Debug, Deserialize, Default)]
+#[derive(Debug, Clone, Deserialize, Default)]
 #[serde(default)]
 pub struct Datafile {
     #[serde(rename = "game")]
@@ -58,18 +34,20 @@ impl Datafile {
         Ok(data)
     }
 
-    pub fn lookup(&self, game_id: GameID) -> Option<u16> {
+    fn lookup(&self, game_id: [u8; 6]) -> Option<&GameInfo> {
         self.games
             .binary_search_by_key(&game_id, |game| game.id)
             .ok()
-            .map(|i| i as u16)
+            .map(|i| &self.games[i])
     }
 
-    pub fn get_title(&self, game_id: GameID) -> Option<String> {
-        self.games
-            .binary_search_by_key(&game_id, |game| game.id)
-            .ok()
-            .and_then(|i| self.games[i].locales.first())
+    pub fn get_game_info(&self, game_id: [u8; 6]) -> Option<GameInfo> {
+        self.lookup(game_id).cloned()
+    }
+
+    pub fn get_title(&self, game_id: [u8; 6]) -> Option<String> {
+        self.lookup(game_id)
+            .and_then(|info| info.locales.first())
             .map(|locale| locale.title.clone())
     }
 }
@@ -80,7 +58,7 @@ pub struct GameInfo {
     #[serde(rename = "@name")]
     pub name: String,
     #[serde(deserialize_with = "deser_id")]
-    pub id: GameID,
+    pub id: [u8; 6],
     pub region: Region,
     #[serde(deserialize_with = "deser_langs")]
     pub languages: Box<[Language]>,
@@ -99,12 +77,12 @@ pub struct GameInfo {
     pub roms: Box<[Rom]>,
 }
 
-fn deser_id<'de, D>(deserializer: D) -> Result<GameID, D::Error>
+fn deser_id<'de, D>(deserializer: D) -> Result<[u8; 6], D::Error>
 where
     D: serde::Deserializer<'de>,
 {
     let s = String::deserialize(deserializer)?;
-    let id = GameID::from(s.as_str());
+    let id = GameID::from_str(s.as_str());
     Ok(id)
 }
 
@@ -123,15 +101,19 @@ pub struct Locale {
     title: String,
 }
 
+#[serde_as]
 #[derive(Debug, Deserialize, Default, Clone)]
 #[serde(default)]
 pub struct Date {
     #[serde(rename = "@year")]
-    pub year: String,
+    #[serde_as(as = "DefaultOnError<DisplayFromStr>")]
+    pub year: u16,
     #[serde(rename = "@month")]
-    pub month: String,
+    #[serde_as(as = "DefaultOnError<DisplayFromStr>")]
+    pub month: u8,
     #[serde(rename = "@day")]
-    pub day: String,
+    #[serde_as(as = "DefaultOnError<DisplayFromStr>")]
+    pub day: u8,
 }
 
 #[derive(Debug, Deserialize, Default, Clone)]
@@ -317,35 +299,46 @@ impl<'de> Deserialize<'de> for Region {
     }
 }
 
-pub fn spawn_load_wiitdb_task(app: &App) {
-    let data_dir = app.data_dir.clone();
-    let wiitdb_path = app.data_dir.join("wiitdb.xml");
+pub fn get_load_wiitdb_task(state: &State) -> Task<Message> {
+    let data_dir = state.data_dir.clone();
 
-    app.task_processor.spawn(move |msg_sender| {
-        if !wiitdb_path.exists() {
-            msg_sender.send(Message::UpdateStatus(format!(
-                "{} Downloading wiitdb.xml...",
-                ph::CLOUD_ARROW_DOWN
-            )))?;
+    Task::perform(
+        load_wiitdb(data_dir).map_err(|e| e.to_string()),
+        Message::GotWiitdbDatafile,
+    )
+}
 
-            // Perform the download request and extract.
-            http::download_and_extract_zip(DOWNLOAD_URL, &data_dir)?;
-        }
+async fn load_wiitdb(data_dir: PathBuf) -> Result<Datafile> {
+    let wiitdb_path = data_dir.join("wiitdb.xml");
 
-        msg_sender.send(Message::UpdateStatus(format!(
-            "{} Loading wiitdb.xml...",
-            ph::FILE_CODE
-        )))?;
+    if !wiitdb_path.exists() {
+        http_util::download_and_extract_zip(DOWNLOAD_URL, &data_dir).await?;
+    }
 
-        let data = Datafile::load(&wiitdb_path)?;
+    Datafile::load(&wiitdb_path)
+}
 
-        msg_sender.send(Message::GotWiitdb(data))?;
+pub fn get_download_wiitdb_to_drive_task(state: &State) -> Task<Message> {
+    let mount_point = state.config.get_drive_path().to_path_buf();
 
-        msg_sender.send(Message::NotifyInfo(format!(
-            "{} wiitdb.xml loaded",
-            ph::FILE_CODE
-        )))?;
+    Task::perform(
+        async move {
+            match download_wiitdb_to_drive(mount_point).await {
+                Ok(()) => Ok("wiitdb.xml successfully downloaded to drive".to_string()),
+                Err(e) => Err(e.to_string()),
+            }
+        },
+        Message::GenericResult,
+    )
+}
 
-        Ok(())
-    });
+async fn download_wiitdb_to_drive(mount_point: PathBuf) -> Result<()> {
+    // Create the target directory.
+    let target_dir = mount_point.join("apps").join("usbloader_gx");
+    fs::create_dir_all(&target_dir)?;
+
+    // Download wiitdb
+    http_util::download_and_extract_zip(DOWNLOAD_URL, &target_dir).await?;
+
+    Ok(())
 }

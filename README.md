@@ -16,7 +16,10 @@
 ## ✨ Features
 
 - **Lightweight & Fast**: Native app, -O3, LTO, x86_64-v3 optimized builds
-- **Cross-Platform**: Windows 7+, macOS 10.12+, Linux | x86, x86_64, arm64
+- **Cross-Platform**:
+  - 🪟 Windows 7+ | x86 (32-bit), x86_64 (64-bit), arm64 (Qualcomm Snapdragon)
+  - 🍎 macOS 10.12+ | x86_64 (Intel), arm64 (Apple Silicon/M1+)
+  - 🐧 Linux | x86 (32-bit), x86_64 (64-bit), arm64 (Qualcomm Snapdragon, Raspberry PIs etc.)
 
 #### 🎮 Game Management
 
@@ -44,16 +47,16 @@
         <br>
         <img height="48px" src="https://raw.githubusercontent.com/edent/SuperTinyIcons/refs/heads/master/images/svg/windows.svg">
         <br>
-        Windows<br>10+
+        Windows
         <br>
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     </td>
     <td>
-        &rarr;&nbsp;<a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest">Download Standalone/Installer</a>&nbsp;&larr;
+        &rarr;&nbsp;<a href="https://github.com/mq1/TinyWiiBackupManagerInstaller/releases/latest/download/TinyWiiBackupManagerInstaller.exe">Download Installer</a>&nbsp;&larr;
+        <br>
+        &rarr;&nbsp;<a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest">Download Standalone</a>&nbsp;&larr;
         <br><br>
-        ℹ️ If you don't know which asset to download, <kbd>TinyWiiBackupManager-vX.X.X-windows-x86_64.zip</kbd> should work for most users
-        <br><br>
-        ⚡️ If you have a recent CPU (see <a href="https://en.wikipedia.org/wiki/X86-64#Microarchitecture_levels">here</a>), you can get the slightly faster <kbd>TinyWiiBackupManager-vX.X.X-windows-x86_64-v3.zip</kbd>
+        ℹ️ If you don't know which asset to download, the <a href="https://github.com/mq1/TinyWiiBackupManagerInstaller/releases/latest/download/TinyWiiBackupManagerInstaller.exe">Installer</a> will install the right one for you PC
         <br><br>
         🔋 If you have a ARM-based PC (see <a href="https://en.wikipedia.org/wiki/List_of_Qualcomm_Snapdragon_systems_on_chips#Snapdragon_X_series">here</a>), you can get the faster, efficient and fully native <kbd>TinyWiiBackupManager-vX.X.X-windows-arm64.zip</kbd>
         <br><br>
@@ -82,11 +85,11 @@
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     </td>
     <td>
-        &rarr;&nbsp;<a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest">Download AppImage/Tarball</a>&nbsp;&larr;
-        <br>
         &rarr;&nbsp;<a href="https://flathub.org/apps/it.mq1.TinyWiiBackupManager">Download Flatpak (Flathub)</a>&nbsp;&larr;
+        <br>
+        &rarr;&nbsp;<a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest">Download AppImage/Tarball</a>&nbsp;&larr;
         <br><br>
-        ℹ️ If you don't know which asset to download, <kbd>TinyWiiBackupManager-vX.X.X-linux-x86_64.AppImage</kbd> should work for most users
+        ℹ️ If you don't know which asset to download, the <a href="https://flathub.org/apps/it.mq1.TinyWiiBackupManager">Flatpak</a> should work for most users
         <br><br>
         ⚡️ If you have a recent CPU (see <a href="https://en.wikipedia.org/wiki/X86-64#Microarchitecture_levels">here</a>), you can get the slightly faster <kbd>TinyWiiBackupManager-vX.X.X-linux-x86_64-v3.AppImage</kbd>
         <br><br>
@@ -109,34 +112,12 @@
     <td>
         &rarr;&nbsp;<a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest">Download DMG/ZIP</a>&nbsp;&larr;
         <br><br>
-        ℹ️ If you don't know which asset to download, <kbd>TinyWiiBackupManager-vX.X.X-macos-arm64.dmg</kbd> should work for most users
+        ℹ️ If you don't know which asset to download, <kbd>TinyWiiBackupManager-vX.X.X-macos-universal.dmg</kbd> should work for most users
         <br><br>
         🖥️ If you have a Intel-based Mac, you need to get <kbd>TinyWiiBackupManager-vX.X.X-macos-x86-64.dmg</kbd>
         <br><br>
         ⚠️ The app is not notarized, you must allow it manually after installing by running this command in Terminal:
         <code>xattr -rd com.apple.quarantine /Applications/TinyWiiBackupManager.app</code>
-    </td>
-  </tr>
-</table>
-
-<table>
-  <tr>
-    <td>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        <br>
-        &nbsp;&nbsp;<img height="36px" src="https://www.svgrepo.com/download/355384/windows-legacy.svg">
-        <br>
-        Windows<br>7-8-8.1
-        <br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    </td>
-    <td>
-        &rarr;&nbsp;<a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest">Download Standalone/Installer</a>&nbsp;&larr;
-        <br><br>
-        ℹ️ If you don't know which asset to download, <kbd>TinyWiiBackupManager-vX.X.X-windows7-x86.zip</kbd> should work for most users
-        <br><br>
-        ⚠️ This package is untested and may not work
-        <br><br>
     </td>
   </tr>
 </table>

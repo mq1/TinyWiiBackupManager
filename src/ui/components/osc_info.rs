@@ -1,0 +1,147 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+use crate::{
+    message::Message,
+    osc::{Flag, Peripheral, Platform},
+    state::State,
+    ui::{components, style},
+};
+use iced::{
+    Element, Length,
+    widget::{button, column, image, row, rule, scrollable, space, stack, text},
+};
+use lucide_icons::iced::{
+    icon_calendar, icon_clipboard_list, icon_cloud_download, icon_computer, icon_flag,
+    icon_folders, icon_globe, icon_monitor_up, icon_package, icon_shopping_bag, icon_tag, icon_usb,
+    icon_users, icon_weight,
+};
+
+pub fn view(state: &State, osc_i: usize) -> Element<'_, Message> {
+    let app = &state.osc_apps[osc_i];
+
+    let col = column![
+        row![icon_shopping_bag().size(18), text(&app.name).size(18)].spacing(5),
+        rule::horizontal(1),
+        row![icon_tag(), text("Version:"), text(&app.version)].spacing(5),
+        row![
+            components::developers::get_icon(&app.author),
+            text("Author:"),
+            text(&app.author)
+        ]
+        .spacing(5),
+        row![icon_users(), text("Authors:"), text(app.authors.join(", "))].spacing(5),
+        row![icon_tag(), text("Category:"), text(&app.category)].spacing(5),
+        row![
+            icon_users(),
+            text("Contributors:"),
+            text(app.contributors.join(", "))
+        ]
+        .spacing(5),
+        row![
+            icon_cloud_download(),
+            text("Downloads:"),
+            text(app.downloads)
+        ]
+        .spacing(5),
+        row![
+            icon_flag(),
+            text("Flags:"),
+            text(
+                app.flags
+                    .iter()
+                    .map(Flag::as_str)
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            )
+        ]
+        .spacing(5),
+        row![
+            icon_package(),
+            text("Package Type:"),
+            text(app.package_type.as_str())
+        ]
+        .spacing(5),
+        row![
+            icon_usb(),
+            text("Peripherals:"),
+            text(
+                app.peripherals
+                    .iter()
+                    .map(Peripheral::as_str)
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            )
+        ]
+        .spacing(5),
+        row![
+            icon_calendar(),
+            text("Release Date:"),
+            text(app.release_date.to_string())
+        ]
+        .spacing(5),
+        row![
+            icon_folders(),
+            text("Subdirectories:"),
+            text(app.subdirectories.join(", "))
+        ]
+        .spacing(5),
+        row![
+            icon_computer(),
+            text("Supported Platforms:"),
+            text(
+                app.supported_platforms
+                    .iter()
+                    .map(Platform::as_str)
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            )
+        ]
+        .spacing(5),
+        row![
+            icon_weight(),
+            text("Uncompressed Size:"),
+            text(&app.uncompressed_size)
+        ]
+        .spacing(5),
+        row![
+            icon_clipboard_list(),
+            text("Short Description:"),
+            text(&app.description.short)
+        ]
+        .spacing(5),
+        rule::horizontal(1),
+        scrollable(text(&app.description.long))
+            .width(Length::Fill)
+            .height(Length::Fill),
+        row![
+            button(row![icon_globe(), text("Open OSC Page")].spacing(5))
+                .style(style::rounded_button)
+                .on_press(Message::OpenOscPage(osc_i)),
+            button(row![icon_monitor_up(), text("Send via Wiiload")].spacing(5))
+                .style(style::rounded_button),
+            button(row![icon_cloud_download(), text("Install")].spacing(5))
+                .style(style::rounded_button)
+                .on_press(Message::AskInstallOscApp(osc_i))
+        ]
+        .spacing(5)
+    ]
+    .spacing(5)
+    .padding(10);
+
+    match state.get_osc_app_icon(app) {
+        Some(icon) => stack![
+            col,
+            row![
+                space::horizontal(),
+                image(icon)
+                    .height(96)
+                    .expand(true)
+                    .filter_method(image::FilterMethod::Linear)
+            ]
+            .padding(10)
+        ]
+        .into(),
+        None => col.into(),
+    }
+}

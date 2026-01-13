@@ -1,10 +1,7 @@
-// SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::txtcodes::TxtCodesSource;
-use crate::ui::accent::AccentColor;
 use anyhow::Result;
-use eframe::egui::ThemePreference;
 use serde::{Deserialize, Serialize};
 use std::{
     fs,
@@ -13,8 +10,8 @@ use std::{
 
 #[derive(Debug, Clone)]
 pub struct Config {
-    pub path: PathBuf,
-    pub contents: Contents,
+    path: PathBuf,
+    contents: Contents,
 }
 
 impl Config {
@@ -23,67 +20,126 @@ impl Config {
         let bytes = fs::read(&path).unwrap_or_default();
         let mut contents = serde_json::from_slice::<Contents>(&bytes).unwrap_or_default();
 
-        // Strip \\?\ from mount_point (I made a mess in v3, this fixes it)
-        contents.mount_point = contents
-            .mount_point
-            .strip_prefix(r"\\?\")
-            .unwrap_or(&contents.mount_point)
-            .to_path_buf();
-
         // Invalidate invalid mount_point
         if !contents.mount_point.exists() {
             contents.mount_point = PathBuf::new();
         }
 
         // load mount_point from args
-        if let Some(mount_point) = std::env::args().nth(1) {
-            contents.mount_point = PathBuf::from(mount_point);
+        if let Some(mount_point) = std::env::args().nth(1).map(PathBuf::from)
+            && mount_point.exists()
+        {
+            contents.mount_point = mount_point;
         }
 
         Self { path, contents }
     }
 
-    pub fn write(&self) -> Result<()> {
+    fn write(&self) -> Result<()> {
         let bytes = serde_json::to_vec_pretty(&self.contents)?;
         fs::write(&self.path, &bytes)?;
 
         Ok(())
     }
 
-    pub fn get_drive_path_str(&self) -> &str {
-        if self.contents.mount_point.as_os_str().is_empty() {
-            return "No Drive Selected";
-        }
+    pub fn valid_mount_point(&self) -> bool {
+        !self.contents.mount_point.as_os_str().is_empty() && self.contents.mount_point.exists()
+    }
 
+    pub fn get_drive_path_str(&self) -> &str {
         self.contents.mount_point.to_str().unwrap_or("Invalid Path")
+    }
+
+    pub fn get_drive_path(&self) -> &Path {
+        &self.contents.mount_point
+    }
+
+    pub fn update_drive_path(&mut self, new_mount_point: PathBuf) -> Result<()> {
+        self.contents.mount_point = new_mount_point;
+        self.write()
+    }
+
+    pub fn get_sort_by(&self) -> SortBy {
+        self.contents.sort_by
+    }
+
+    pub fn update_sort_by(&mut self, new_sort_by: SortBy) -> Result<()> {
+        self.contents.sort_by = new_sort_by;
+        self.write()
+    }
+
+    pub fn get_theme_pref(&self) -> ThemePreference {
+        self.contents.theme_preference
+    }
+
+    pub fn update_theme_pref(&mut self, new_theme_pref: ThemePreference) -> Result<()> {
+        self.contents.theme_preference = new_theme_pref;
+        self.write()
+    }
+
+    pub fn get_wii_output_format(&self) -> nod::common::Format {
+        self.contents.wii_output_format
+    }
+
+    pub fn update_wii_output_format(
+        &mut self,
+        new_wii_output_format: nod::common::Format,
+    ) -> Result<()> {
+        self.contents.wii_output_format = new_wii_output_format;
+        self.write()
+    }
+
+    pub fn get_view_as(&self) -> ViewAs {
+        self.contents.view_as
+    }
+
+    pub fn update_view_as(&mut self, new_view_as: ViewAs) -> Result<()> {
+        self.contents.view_as = new_view_as;
+        self.write()
     }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(default, rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 pub struct Contents {
+    #[serde(default)]
     pub always_split: bool,
-    pub mount_point: PathBuf,
-    pub remove_sources_apps: bool,
-    pub remove_sources_games: bool,
-    pub scrub_update_partition: bool,
-    pub sort_by: SortBy,
-    pub view_as: ViewAs,
-    pub wii_ip: String,
-    pub accent_color: AccentColor,
-    pub txt_codes_source: TxtCodesSource,
 
-    #[serde(with = "FormatDef")]
+    #[serde(default)]
+    pub mount_point: PathBuf,
+
+    #[serde(default)]
+    pub remove_sources_apps: bool,
+
+    #[serde(default)]
+    pub remove_sources_games: bool,
+
+    #[serde(default)]
+    pub scrub_update_partition: bool,
+
+    #[serde(default)]
+    pub sort_by: SortBy,
+
+    #[serde(default)]
+    pub view_as: ViewAs,
+
+    #[serde(default = "default_wii_ip")]
+    pub wii_ip: String,
+    //
+    //pub accent_color: AccentColor,
+    //pub txt_codes_source: TxtCodesSource,
+    //
+    #[serde(default)]
+    pub theme_preference: ThemePreference,
+
+    #[serde(default = "default_archive_format", with = "FormatDef")]
     pub archive_format: nod::common::Format,
 
-    #[serde(with = "FormatDef")]
+    #[serde(default = "default_wii_output_format", with = "FormatDef")]
     pub wii_output_format: nod::common::Format,
 
-    #[serde(with = "FormatDef")]
+    #[serde(default = "default_gc_output_format", with = "FormatDef")]
     pub gc_output_format: nod::common::Format,
-
-    #[serde(serialize_with = "ser_theme", deserialize_with = "deser_theme")]
-    pub theme_preference: ThemePreference,
 }
 
 impl Default for Contents {
@@ -101,54 +157,33 @@ impl Default for Contents {
             wii_output_format: nod::common::Format::Wbfs,
             gc_output_format: nod::common::Format::Iso,
             theme_preference: ThemePreference::System,
-            accent_color: AccentColor::System,
-            txt_codes_source: TxtCodesSource::WebArchive,
+            //accent_color: AccentColor::System,
+            //txt_codes_source: TxtCodesSource::WebArchive,
         }
     }
 }
 
-fn ser_theme<S>(theme: &ThemePreference, serializer: S) -> Result<S::Ok, S::Error>
-where
-    S: serde::Serializer,
-{
-    serializer.serialize_str(match theme {
-        ThemePreference::System => "system",
-        ThemePreference::Light => "light",
-        ThemePreference::Dark => "dark",
-    })
-}
-
-fn deser_theme<'de, D>(deserializer: D) -> Result<ThemePreference, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    let s = String::deserialize(deserializer)?;
-    Ok(match s.as_str() {
-        "light" => ThemePreference::Light,
-        "dark" => ThemePreference::Dark,
-        _ => ThemePreference::System,
-    })
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum SortBy {
-    None,
+    #[default]
     NameAscending,
     NameDescending,
     SizeAscending,
     SizeDescending,
+    None,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
-#[serde(rename_all = "snake_case")]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Default)]
+#[serde(rename_all = "lowercase")]
 pub enum ViewAs {
+    #[default]
     Grid,
-    List,
+    Table,
 }
 
 #[derive(Serialize, Deserialize)]
-#[serde(remote = "nod::common::Format", rename_all = "snake_case")]
+#[serde(remote = "nod::common::Format", rename_all = "lowercase")]
 pub enum FormatDef {
     Iso,
     Ciso,
@@ -158,4 +193,29 @@ pub enum FormatDef {
     Wbfs,
     Wia,
     Tgc,
+}
+
+fn default_archive_format() -> nod::common::Format {
+    nod::common::Format::Rvz
+}
+
+fn default_wii_output_format() -> nod::common::Format {
+    nod::common::Format::Wbfs
+}
+
+fn default_gc_output_format() -> nod::common::Format {
+    nod::common::Format::Iso
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum ThemePreference {
+    #[default]
+    System,
+    Light,
+    Dark,
+}
+
+fn default_wii_ip() -> String {
+    "192.168.1.100".to_string()
 }

@@ -1,162 +1,67 @@
-// SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
 #![warn(clippy::all, rust_2018_idioms)]
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
-mod app;
-mod banners;
-mod checksum;
 mod config;
-mod convert;
 mod covers;
-mod dir_layout;
+mod data_dir;
 mod disc_info;
 mod extensions;
-mod games;
-mod hbc_apps;
-mod http;
-mod id_map;
+mod game;
+mod game_id;
+mod hbc;
+mod http_util;
+mod message;
 mod notifications;
 mod osc;
-mod overflow_writer;
-mod tasks;
-mod txtcodes;
+mod state;
 mod ui;
-mod updater;
 mod util;
-mod wiiload;
 mod wiitdb;
 
-pub mod known_mount_points;
-mod messages;
+use crate::{notifications::notifications_subscription, state::State};
+use iced::{Size, window};
+use std::sync::LazyLock;
 
-use crate::app::App;
-use anyhow::{Result, anyhow, bail};
-use eframe::egui::{FontData, FontDefinitions, FontFamily};
-use eframe::{
-    NativeOptions,
-    egui::{CornerRadius, ViewportBuilder, vec2},
-};
-use egui_extras::install_image_loaders;
-use std::sync::Arc;
-use std::{fs, path::PathBuf};
+pub static APP_ICON: LazyLock<Vec<u8>> = LazyLock::new(|| {
+    image::load_from_memory_with_format(
+        include_bytes!("../assets/TinyWiiBackupManager.png"),
+        image::ImageFormat::Png,
+    )
+    .expect("Failed to load app icon")
+    .into_rgba8()
+    .into_vec()
+});
 
-pub const APP_NAME: &str = env!("CARGO_PKG_NAME");
-
-fn get_data_dir() -> Result<PathBuf> {
-    if let Ok(exe_path) = std::env::current_exe()
-        && exe_path
-            .file_name()
-            .and_then(|n| n.to_str())
-            .is_some_and(|n| n.contains("portable"))
-    {
-        let parent = exe_path
-            .parent()
-            .ok_or(anyhow!("Could not get executable directory"))?;
-
-        let data_dir = parent.join("TinyWiiBackupManager-data");
-
-        Ok(data_dir)
-    } else {
-        let proj = directories::ProjectDirs::from("it", "mq1", APP_NAME)
-            .ok_or(anyhow!("Failed to get project dirs"))?;
-
-        let data_dir = proj.data_dir().to_path_buf();
-
-        Ok(data_dir)
-    }
-}
-
-fn main() -> Result<()> {
-    // Log to stderr (if you run with `RUST_LOG=debug`).
-    env_logger::init();
-
-    let data_dir = get_data_dir()?;
-    fs::create_dir_all(&data_dir)?;
-    let show_zoom_buttons = std::env::var("TWBM_ZOOM").is_ok_and(|v| &v == "1");
-    let mut app = App::new(data_dir, show_zoom_buttons);
-
-    // ----------------
-    // Initialize tasks
-
-    wiitdb::spawn_load_wiitdb_task(&app);
-
-    if !std::env::var("TWBM_DISABLE_UPDATES").is_ok_and(|v| &v == "1") {
-        updater::spawn_check_update_task(&app);
-    }
-
-    osc::spawn_load_osc_apps_task(&app);
-
-    // -------------
-    // Initialize UI
-
+fn main() -> iced::Result {
     #[cfg(target_os = "macos")]
-    let icon = eframe::egui::IconData::default();
+    let icon = None;
 
     #[cfg(not(target_os = "macos"))]
-    let icon = eframe::icon_data::from_png_bytes(ui::LOGO_BYTES).expect("Failed to load icon");
+    let icon = Some(
+        window::icon::from_rgba(APP_ICON.clone(), 512, 512).expect("Failed to create window icon"),
+    );
 
-    let native_options = NativeOptions {
-        viewport: ViewportBuilder::default()
-            .with_inner_size([800., 600.])
-            .with_min_inner_size([800., 600.])
-            .with_icon(icon),
+    let window = window::Settings {
+        size: Size::new(800.0, 600.0),
+        min_size: Some(Size::new(800.0, 600.0)),
+        icon,
         ..Default::default()
     };
 
-    let res = eframe::run_native(
-        APP_NAME,
-        native_options,
-        Box::new(|cc| {
-            // Load png image loader
-            install_image_loaders(&cc.egui_ctx);
+    let settings = iced::Settings {
+        default_text_size: 14.into(),
+        ..Default::default()
+    };
 
-            // Set theme based on config preference
-            cc.egui_ctx.set_theme(app.config.contents.theme_preference);
+    let app = iced::application(State::new, State::update, ui::view)
+        .window(window)
+        .settings(settings)
+        .title(State::title)
+        .theme(State::theme)
+        .subscription(notifications_subscription);
 
-            // Load fonts and phosphor icons
-            let mut fonts = FontDefinitions::empty();
-            fonts.font_data.insert(
-                "manrope".to_string(),
-                Arc::new(FontData::from_static(include_bytes!(
-                    "../assets/ManropeV5-Medium.otf"
-                ))),
-            );
-            if let Some(font_keys) = fonts.families.get_mut(&FontFamily::Proportional) {
-                font_keys.push("manrope".to_string());
-            }
-            if let Some(font_keys) = fonts.families.get_mut(&FontFamily::Monospace) {
-                font_keys.push("manrope".to_string());
-            }
-            egui_phosphor::add_to_fonts(&mut fonts, egui_phosphor::Variant::Regular);
-            cc.egui_ctx.set_fonts(fonts);
-
-            cc.egui_ctx.all_styles_mut(|style| {
-                style.visuals.selection.bg_fill = app.config.contents.accent_color.into();
-                style.visuals.selection.stroke.color = style.visuals.widgets.hovered.text_color();
-
-                style.visuals.widgets.active.corner_radius = CornerRadius::same(30);
-                style.visuals.widgets.hovered.corner_radius = CornerRadius::same(30);
-                style.visuals.widgets.inactive.corner_radius = CornerRadius::same(30);
-                style.visuals.widgets.noninteractive.corner_radius = CornerRadius::same(8);
-                style.visuals.widgets.open.corner_radius = CornerRadius::same(30);
-
-                style.spacing.button_padding = vec2(4.5, 2.25);
-            });
-
-            // Load games and hbc apps
-            app.refresh_games(true);
-            app.refresh_hbc_apps();
-            app.update_title(&cc.egui_ctx);
-
-            Ok(Box::new(app))
-        }),
-    );
-
-    if let Err(e) = res {
-        bail!("Failed to start eframe: {e}");
-    }
-
-    Ok(())
+    app.run()
 }
