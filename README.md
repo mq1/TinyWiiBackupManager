@@ -60,7 +60,7 @@
 <br>
 
 - **:apple: macOS**\
-  :arrow_right: [Download latest dmg/zip](https://github.com/mq1/TinyWiiBackupManager/releases/latest) (<kbd>universal.dmg</kbd> recommended for most users)\
+  :arrow_right: [Download latest dmg/zip](https://github.com/mq1/TinyWiiBackupManager/releases/latest) (_universal.dmg_ recommended for most users)\
   :warning: The app is not notarized, you must allow it manually after installing by running this command in Terminal:\
   `xattr -rd com.apple.quarantine /Applications/TinyWiiBackupManager.app`
 
