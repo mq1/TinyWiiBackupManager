@@ -10,7 +10,7 @@ use crate::{
     },
 };
 use iced::{
-    Alignment, Element,
+    Alignment, Element, Font, font,
     widget::{button, checkbox, container, row, rule, space, text_input},
 };
 use lucide_icons::iced::{icon_box, icon_plus, icon_pointer, icon_rotate_cw, icon_search};
@@ -34,20 +34,27 @@ pub fn view(state: &State) -> Element<'_, Message> {
         space::horizontal(),
         container(
             row![
-                checkbox(state.show_wii)
-                    .style(style::toolbar_checkbox)
-                    .on_toggle(Message::ShowWii),
-                my_tooltip::view(icon_pointer(), "Show Wii Games"),
+                my_tooltip::view(
+                    checkbox(state.show_wii)
+                        .label(lucide_icons::Icon::Pointer.unicode())
+                        .font(Font::with_name("lucide"))
+                        .style(style::toolbar_checkbox)
+                        .on_toggle(Message::ShowWii),
+                    "Show Wii Games"
+                ),
                 space(),
                 rule::vertical(1),
                 space(),
-                checkbox(state.show_gc)
-                    .style(style::toolbar_checkbox)
-                    .on_toggle(Message::ShowGc),
-                my_tooltip::view(icon_box(), "Show GameCube Games"),
+                my_tooltip::view(
+                    checkbox(state.show_gc)
+                        .label(lucide_icons::Icon::Box.unicode())
+                        .font(Font::with_name("lucide"))
+                        .style(style::toolbar_checkbox)
+                        .on_toggle(Message::ShowGc),
+                    "Show GameCube Games"
+                ),
             ]
             .height(38)
-            .align_y(Alignment::Center)
             .spacing(5)
             .padding(10)
         )
