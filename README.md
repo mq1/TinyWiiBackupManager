@@ -56,7 +56,7 @@
         <br>
         &rarr;&nbsp;<a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest">Download Standalone</a>&nbsp;&larr;
         <br><br>
-        ℹ️ If you don't know which asset to download, the <a href="https://github.com/mq1/TinyWiiBackupManagerInstaller/releases/latest/download/TinyWiiBackupManagerInstaller.exe">Installer</a> will install the right one for you PC
+        ℹ️ If you don't know what to download, the <a href="https://github.com/mq1/TinyWiiBackupManagerInstaller/releases/latest/download/TinyWiiBackupManagerInstaller.exe">Installer</a> will install the right one for you PC
         <br><br>
         🍨 A scoop package is also available:
         <br>
@@ -87,7 +87,7 @@
         <br>
         &rarr;&nbsp;<a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest">Download AppImage/Tarball</a>&nbsp;&larr;
         <br><br>
-        ℹ️ If you don't know which asset to download, the <a href="https://flathub.org/apps/it.mq1.TinyWiiBackupManager">Flatpak</a> should work for most users
+        ℹ️ If you don't know what to download, the <a href="https://flathub.org/apps/it.mq1.TinyWiiBackupManager">Flatpak</a> should work for most users
     </td>
   </tr>
 </table>
@@ -106,7 +106,7 @@
     <td>
         &rarr;&nbsp;<a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest">Download DMG/ZIP</a>&nbsp;&larr;
         <br><br>
-        ℹ️ If you don't know which asset to download, <kbd>TinyWiiBackupManager-vX.X.X-macos-universal.dmg</kbd> should work for most users
+        ℹ️ If you don't know what to download, click on the **macOS universal binary** link
         <br><br>
         ⚠️ The app is not notarized, you must allow it manually after installing by running this command in Terminal:
         <code>xattr -rd com.apple.quarantine /Applications/TinyWiiBackupManager.app</code>
