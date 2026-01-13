@@ -36,10 +36,8 @@ pub static APP_ICON: LazyLock<Vec<u8>> = LazyLock::new(|| {
 });
 
 fn main() -> iced::Result {
-    let thread_num = num_cpus::get().min(2).to_string();
-    println!("Initializing smol runtime with {} threads", &thread_num);
     unsafe {
-        env::set_var("SMOL_THREADS", thread_num);
+        env::set_var("SMOL_THREADS", "2");
     }
 
     #[cfg(target_os = "macos")]
