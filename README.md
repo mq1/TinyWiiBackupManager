@@ -17,8 +17,9 @@
 
 - **Lightweight & Fast**: Native app, -O3, LTO, x86_64-v3 optimized builds
 - **Cross-Platform**:
-  - 🪟 Windows 7+ • 🍎 macOS 10.12+ • 🐧 Linux
-  - 🐌 x86 • 🖥️ x86_64 • 💻 arm64
+  - 🪟 Windows 7+ | x86 (32-bit), x86_64 (64-bit), arm64 (Qualcomm Snapdragon)
+  - 🍎 macOS 10.12+ | x86_64 (Intel), arm64 (Apple Silicon/M1+)
+  - 🐧 Linux | x86 (32-bit), x86_64 (64-bit), arm64 (Qualcomm Snapdragon, Raspberry PIs etc.)
 
 #### 🎮 Game Management
 
