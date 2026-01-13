@@ -83,7 +83,7 @@ jobs:
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
         env:
           RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: -C linker-plugin-lto -C linker=clang-21 -C link-arg=-fuse-ld=mold ${{ matrix.rustflags }}
+          RUSTFLAGS: -C linker-plugin-lto -C linker=clang-21 -C link-arg=-fuse-ld=mold -C link-arg=-flto ${{ matrix.rustflags }}
           CC: clang-21
           CXX: clang++-21
           CFLAGS: -O3 -flto ${{ matrix.cflags }}
