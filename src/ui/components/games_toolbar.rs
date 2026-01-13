@@ -10,10 +10,10 @@ use crate::{
     },
 };
 use iced::{
-    Alignment, Element, Font, font,
+    Alignment, Element, Font,
     widget::{button, checkbox, container, row, rule, space, text_input},
 };
-use lucide_icons::iced::{icon_box, icon_plus, icon_pointer, icon_rotate_cw, icon_search};
+use lucide_icons::iced::{icon_plus, icon_rotate_cw, icon_search};
 
 pub fn view(state: &State) -> Element<'_, Message> {
     row![
