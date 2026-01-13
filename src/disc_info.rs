@@ -82,44 +82,41 @@ impl DiscInfo {
             bail!("Not a file");
         }
 
-        smol::unblock(move || -> Result<DiscInfo> {
-            let parent_dir = disc_path.parent().ok_or(anyhow!("No parent directory"))?;
-            let disc = DiscReader::new(&disc_path, &DISC_OPTS)?;
-            let is_worth_stripping = is_worth_stripping(&disc);
+        let parent_dir = disc_path.parent().ok_or(anyhow!("No parent directory"))?;
+        let disc = DiscReader::new(&disc_path, &DISC_OPTS)?;
+        let is_worth_stripping = is_worth_stripping(&disc);
 
-            let header = disc.header();
-            let meta = disc.meta();
+        let header = disc.header();
+        let meta = disc.meta();
 
-            Ok(DiscInfo {
-                game_dir: parent_dir.to_path_buf(),
-                disc_path,
+        Ok(DiscInfo {
+            game_dir: parent_dir.to_path_buf(),
+            disc_path,
 
-                // discheader
-                id: header.game_id,
-                title: header.game_title_str().to_string(),
-                is_wii: header.is_wii(),
-                is_gc: header.is_gamecube(),
-                disc_num: header.disc_num,
-                disc_version: header.disc_version,
+            // discheader
+            id: header.game_id,
+            title: header.game_title_str().to_string(),
+            is_wii: header.is_wii(),
+            is_gc: header.is_gamecube(),
+            disc_num: header.disc_num,
+            disc_version: header.disc_version,
 
-                // discmeta
-                format: meta.format,
-                compression: meta.compression,
-                block_size: meta.block_size.map(Size::from_bytes),
-                decrypted: meta.decrypted,
-                needs_hash_recovery: meta.needs_hash_recovery,
-                lossless: meta.lossless,
-                disc_size: meta.disc_size.map(Size::from_bytes),
-                crc32: meta.crc32,
-                md5: meta.md5,
-                sha1: meta.sha1,
-                xxh64: meta.xxh64,
+            // discmeta
+            format: meta.format,
+            compression: meta.compression,
+            block_size: meta.block_size.map(Size::from_bytes),
+            decrypted: meta.decrypted,
+            needs_hash_recovery: meta.needs_hash_recovery,
+            lossless: meta.lossless,
+            disc_size: meta.disc_size.map(Size::from_bytes),
+            crc32: meta.crc32,
+            md5: meta.md5,
+            sha1: meta.sha1,
+            xxh64: meta.xxh64,
 
-                // misc
-                is_worth_stripping,
-            })
+            // misc
+            is_worth_stripping,
         })
-        .await
     }
 }
 

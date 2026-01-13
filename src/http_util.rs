@@ -3,7 +3,6 @@
 
 use crate::util;
 use anyhow::Result;
-use minreq::Response;
 use smol::fs;
 use std::path::Path;
 
@@ -12,13 +11,10 @@ const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VE
 pub async fn get(url: &str) -> Result<Vec<u8>> {
     let url = url.to_string();
 
-    let body = smol::unblock(move || -> std::result::Result<Vec<u8>, minreq::Error> {
-        minreq::get(url)
-            .with_header("User-Agent", USER_AGENT)
-            .send()
-            .map(Response::into_bytes)
-    })
-    .await?;
+    let body = minreq::get(url)
+        .with_header("User-Agent", USER_AGENT)
+        .send()?
+        .into_bytes();
 
     Ok(body)
 }

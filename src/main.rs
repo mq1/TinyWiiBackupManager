@@ -23,7 +23,7 @@ mod wiitdb;
 
 use crate::{notifications::notifications_subscription, state::State};
 use iced::{Size, window};
-use std::sync::LazyLock;
+use std::{env, sync::LazyLock};
 
 pub static APP_ICON: LazyLock<Vec<u8>> = LazyLock::new(|| {
     image::load_from_memory_with_format(
@@ -36,6 +36,12 @@ pub static APP_ICON: LazyLock<Vec<u8>> = LazyLock::new(|| {
 });
 
 fn main() -> iced::Result {
+    let thread_num = num_cpus::get().min(2).to_string();
+    println!("Initializing smol runtime with {} threads", &thread_num);
+    unsafe {
+        env::set_var("SMOL_THREADS", thread_num);
+    }
+
     #[cfg(target_os = "macos")]
     let icon = None;
 
