@@ -14,7 +14,7 @@ body = """
 
 ## :arrow_down: Quick download links
 :arrow_right: [Windows Installer](https://github.com/mq1/TinyWiiBackupManagerInstaller/releases/latest/download/TinyWiiBackupManagerInstaller.exe)\
-:arrow_right: [macOS universal binary](https://github.com/mq1/TinyWiiBackupManager/releases/download/{{ version }}/TinyWiiBackupManager-{{ version }}-macos.dmg)\
+:arrow_right: [macOS universal binary](https://github.com/mq1/TinyWiiBackupManager/releases/download/{{ version }}/TinyWiiBackupManager-{{ version }}-macos-universal.dmg)\
 :arrow_right: [Linux Flatpak](https://flathub.org/apps/details/it.mq1.TinyWiiBackupManager)
 """
 

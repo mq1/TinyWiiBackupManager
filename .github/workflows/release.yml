@@ -229,6 +229,7 @@ jobs:
             arch: arm64
           - target: x86_64-apple-darwin
             arch: x86_64
+            appdmg-suffix: -compat
 
     steps:
       - name: Checkout
@@ -267,13 +268,19 @@ jobs:
             TinyWiiBackupManager.app \
             "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-${{ matrix.arch }}.zip"
 
+      - name: Create dmg
+        run: |
+          npx -y appdmg@0.6.6 \
+            assets/appdmg${{ matrix.appdmg-suffix }}.json \
+            "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-${{ matrix.arch }}.dmg"
+
       - name: Upload macOS distributables
         uses: actions/upload-artifact@v4
         with:
           name: dist-macos-${{ matrix.arch }}
           path: dist/*
 
-  build-dmg:
+  build-macos-universal:
     name: Build macOS dmg (Universal2)
     runs-on: macos-26
     needs: [build-macos]
@@ -302,11 +309,18 @@ jobs:
           dist-macos-x86_64/TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
         codesign --force --deep -s - TinyWiiBackupManager.app
 
-    - name: Create dmg (assets from sindresorhus/create-dmg)
+    - name: zip the app
       run: |
         mkdir dist
-        npx -y appdmg@0.6.6 assets/appdmg.json \
-          "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos.dmg"
+        ditto -c -k --sequesterRsrc --keepParent --zlibCompressionLevel 9 \
+          TinyWiiBackupManager.app \
+          "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-universal.zip"
+
+    - name: Create dmg (assets from sindresorhus/create-dmg)
+      run: |
+        npx -y appdmg@0.6.6 \
+          assets/appdmg.json \
+          "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-universal.dmg"
 
     - name: Upload macOS distributables
       uses: actions/upload-artifact@v4
@@ -321,7 +335,7 @@ jobs:
     name: Create GitHub Release
     if: github.ref_type == 'tag'
     runs-on: ubuntu-slim
-    needs: [build-linux, build-windows, build-macos, build-dmg]
+    needs: [build-linux, build-windows, build-macos, build-macos-universal]
     steps:
       - name: Checkout
         uses: actions/checkout@v6
