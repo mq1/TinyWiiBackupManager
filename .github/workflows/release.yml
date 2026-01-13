@@ -70,6 +70,9 @@ jobs:
           rustup toolchain install 1.92 --component rust-src
           rustup default 1.92
 
+      - name: Install mold
+        uses: rui314/setup-mold@v1
+
       - name: Download LinuxDeploy
         run: |
           wget "https://github.com/linuxdeploy/linuxdeploy/releases/latest/download/${{ matrix.linuxdeploy-bin }}"
@@ -80,7 +83,7 @@ jobs:
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
         env:
           RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: -C linker-plugin-lto -C linker=clang-21 -C link-arg=-fuse-ld=lld-21 ${{ matrix.rustflags }}
+          RUSTFLAGS: -C linker-plugin-lto -C linker=clang-21 -C link-arg=-fuse-ld=mold ${{ matrix.rustflags }}
           CC: clang-21
           CXX: clang++-21
           CFLAGS: -O3 -flto ${{ matrix.cflags }}
