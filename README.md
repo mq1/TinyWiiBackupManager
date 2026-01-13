@@ -88,8 +88,6 @@
         &rarr;&nbsp;<a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest">Download AppImage/Tarball</a>&nbsp;&larr;
         <br><br>
         ℹ️ If you don't know which asset to download, the <a href="https://flathub.org/apps/it.mq1.TinyWiiBackupManager">Flatpak</a> should work for most users
-        <br><br>
-        ⚡️ If you have a recent CPU (see <a href="https://en.wikipedia.org/wiki/X86-64#Microarchitecture_levels">here</a>), you can get the slightly faster <kbd>TinyWiiBackupManager-vX.X.X-linux-x86_64-v3.AppImage</kbd>
     </td>
   </tr>
 </table>
