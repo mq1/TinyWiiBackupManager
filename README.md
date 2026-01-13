@@ -79,4 +79,4 @@ For useful tips, check out the [Wiki](https://github.com/mq1/TinyWiiBackupManage
 <br>
 <br>
 
-<p align="center"> Made with 🤍🩷🩵🤎🖤❤️🧡💛💚💙💜 for the Wii homebrew community </p>
+<p align="center"> Made with :white_heart::pink_heart::light_blue_heart::brown_heart::black_heart::heart::orange_heart::yellow_heart::green_heart::blue_heart::purple_heart: for the Wii homebrew community </p>
