@@ -3,8 +3,8 @@
 
 use crate::extensions::{HBC_APP_EXTENSIONS, SUPPORTED_INPUT_EXTENSIONS, ZIP_EXTENSIONS};
 use crate::util;
-use futures::future::join_all;
 use iced::Window;
+use iced::futures::future::join_all;
 use native_dialog::{DialogBuilder, MessageLevel};
 use std::ffi::OsStr;
 use std::fmt::Write;

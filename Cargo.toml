@@ -16,7 +16,7 @@ LegalCopyright = "Copyright © 2026 Manuel Quarneti. Licensed under GPL-3.0-only
 
 [dependencies]
 lucide-icons = { version = "0.562", features = ["iced"] }
-image = { version = "*", default-features = false, features = ["png"] }
+image = { version = "0.25", default-features = false, features = ["png"] }
 minreq = "2.14"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
@@ -37,8 +37,7 @@ capitalize = "0.3"
 itertools = "0.14"
 time = { version = "0.3", features = ["macros", "parsing", "serde"] }
 sanitize-filename = "0.7.0-beta"
-smol = "*"
-futures = "*"
+smol = "2"
 async_zip = { version = "0.0.18", features = ["deflate"] }
 soft-canonicalize = "0.5"
 fuzzy-matcher = "0.3"

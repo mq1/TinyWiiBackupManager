@@ -3,8 +3,7 @@
 
 use crate::{http_util, message::Message, state::State};
 use anyhow::Result;
-use futures::TryFutureExt;
-use iced::Task;
+use iced::{Task, futures::TryFutureExt};
 use serde::{Deserialize, Deserializer};
 use size::Size;
 use smol::{fs, io};

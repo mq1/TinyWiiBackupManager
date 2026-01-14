@@ -4,8 +4,7 @@
 use crate::{extensions::SUPPORTED_DISC_EXTENSIONS, message::Message, state::State};
 use anyhow::{Result, anyhow, bail};
 use async_zip::base::read::seek::ZipFileReader;
-use futures::future::join_all;
-use iced::Task;
+use iced::{Task, futures::future::join_all};
 use size::Size;
 use smol::{
     fs::{self, File},

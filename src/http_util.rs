@@ -11,10 +11,13 @@ const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VE
 pub async fn get(url: &str) -> Result<Vec<u8>> {
     let url = url.to_string();
 
-    let body = minreq::get(url)
-        .with_header("User-Agent", USER_AGENT)
-        .send()?
-        .into_bytes();
+    let body = smol::unblock(move || -> Result<Vec<u8>> {
+        Ok(minreq::get(url)
+            .with_header("User-Agent", USER_AGENT)
+            .send()?
+            .into_bytes())
+    })
+    .await?;
 
     Ok(body)
 }

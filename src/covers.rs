@@ -3,8 +3,7 @@
 
 use crate::{game::Game, game_id::GameID, http_util, message::Message, state::State};
 use anyhow::Result;
-use futures::TryFutureExt;
-use iced::Task;
+use iced::{Task, futures::TryFutureExt};
 use std::{
     fs,
     path::{Path, PathBuf},
