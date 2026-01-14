@@ -5,10 +5,9 @@ use anyhow::{Result, anyhow, bail};
 use nod::common::{Compression, Format, PartitionKind};
 use nod::read::{DiscOptions, DiscReader, PartitionEncryption, PartitionOptions};
 use size::Size;
-use smol::fs;
-use smol::stream::StreamExt;
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
+use tokio::fs;
 
 const DISC_OPTS: DiscOptions = DiscOptions {
     partition_encryption: PartitionEncryption::Original,
@@ -48,7 +47,7 @@ pub struct DiscInfo {
 pub async fn get_main_file(game_dir: &Path) -> Result<PathBuf> {
     let mut entries = fs::read_dir(game_dir).await?;
 
-    while let Some(entry) = entries.try_next().await? {
+    while let Some(entry) = entries.next_entry().await? {
         let entry_path = entry.path();
 
         if entry_path

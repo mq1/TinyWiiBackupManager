@@ -6,16 +6,15 @@ use crate::message::Message;
 use crate::state::State;
 use crate::util;
 use anyhow::{Result, anyhow};
-use futures::TryFutureExt;
-use futures::future::join_all;
 use iced::Task;
+use iced::futures::TryFutureExt;
+use iced::futures::future::join_all;
 use serde::{Deserialize, Deserializer};
 use size::Size;
-use smol::fs;
-use smol::stream::StreamExt;
 use std::path::PathBuf;
 use time::PrimitiveDateTime;
 use time::macros::format_description;
+use tokio::fs;
 
 #[derive(Debug, Clone, Deserialize, Default)]
 #[serde(default)]
@@ -149,7 +148,7 @@ async fn list(mount_point: PathBuf) -> Result<Box<[HbcApp]>> {
     let mut entries = fs::read_dir(&apps_dir).await?;
 
     let mut hbc_apps = Vec::new();
-    while let Some(entry) = entries.try_next().await? {
+    while let Some(entry) = entries.next_entry().await? {
         let path = entry.path();
         hbc_apps.push(HbcApp::from_path(path));
     }

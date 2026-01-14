@@ -3,16 +3,15 @@
 
 use crate::{http_util, message::Message, state::State};
 use anyhow::Result;
-use futures::TryFutureExt;
-use iced::Task;
+use iced::{Task, futures::TryFutureExt};
 use serde::{Deserialize, Deserializer};
 use size::Size;
-use smol::{fs, io};
 use std::{
     path::{Path, PathBuf},
     time::Duration,
 };
 use time::Date;
+use tokio::fs;
 
 const CONTENTS_URL: &str = "https://hbb1.oscwii.org/api/v4/contents";
 
@@ -86,7 +85,7 @@ impl OscAppMeta {
         &self.version[..len]
     }
 
-    pub fn open_page(&self) -> io::Result<()> {
+    pub fn open_page(&self) -> std::io::Result<()> {
         let url = format!("https://oscwii.org/library/app/{}", &self.slug);
         open::that(url)
     }

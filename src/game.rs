@@ -5,11 +5,13 @@ use crate::{
     config::SortBy, disc_info::DiscInfo, game_id::GameID, message::Message, state::State, util,
     wiitdb::GameInfo,
 };
-use futures::TryFutureExt;
-use iced::Task;
+use iced::{
+    Task,
+    futures::{TryFutureExt, join},
+};
 use size::Size;
-use smol::{fs, future::try_zip, io, stream::StreamExt};
 use std::path::PathBuf;
+use tokio::fs;
 
 #[derive(Debug, Clone)]
 pub struct Game {
@@ -51,11 +53,11 @@ impl Game {
         })
     }
 
-    pub fn open_dir(&self) -> io::Result<()> {
+    pub fn open_dir(&self) -> std::io::Result<()> {
         open::that(&self.path)
     }
 
-    pub fn open_gametdb(&self) -> io::Result<()> {
+    pub fn open_gametdb(&self) -> std::io::Result<()> {
         let url = format!("https://www.gametdb.com/Wii/{}", self.id.as_str());
         open::that(url)
     }
@@ -98,19 +100,21 @@ pub fn get_list_games_task(state: &State) -> Task<Message> {
     )
 }
 
-async fn list(drive_path: PathBuf) -> io::Result<Box<[Game]>> {
+async fn list(drive_path: PathBuf) -> std::io::Result<Box<[Game]>> {
     let wii_path = drive_path.join("wbfs");
     let gc_path = drive_path.join("games");
 
-    let (mut wii_games, mut gc_games) =
-        try_zip(read_game_dir(wii_path, true), read_game_dir(gc_path, false)).await?;
+    let games = join!(read_game_dir(wii_path, true), read_game_dir(gc_path, false));
+
+    let mut wii_games = games.0?;
+    let mut gc_games = games.1?;
 
     wii_games.append(&mut gc_games);
 
     Ok(wii_games.into_boxed_slice())
 }
 
-async fn read_game_dir(game_dir: PathBuf, is_wii: bool) -> io::Result<Vec<Game>> {
+async fn read_game_dir(game_dir: PathBuf, is_wii: bool) -> std::io::Result<Vec<Game>> {
     if !game_dir.exists() {
         return Ok(Vec::new());
     }
@@ -118,7 +122,7 @@ async fn read_game_dir(game_dir: PathBuf, is_wii: bool) -> io::Result<Vec<Game>>
     let mut entries = fs::read_dir(game_dir).await?;
 
     let mut games = Vec::new();
-    while let Some(entry) = entries.try_next().await? {
+    while let Some(entry) = entries.next_entry().await? {
         if let Some(game) = Game::from_path(entry.path(), is_wii).await {
             games.push(game);
         }

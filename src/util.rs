@@ -4,14 +4,11 @@
 use crate::{extensions::SUPPORTED_DISC_EXTENSIONS, message::Message, state::State};
 use anyhow::{Result, anyhow, bail};
 use async_zip::base::read::seek::ZipFileReader;
-use futures::future::join_all;
-use iced::Task;
-use size::Size;
-use smol::{
-    fs::{self, File},
-    io::{self, BufReader},
-    stream::StreamExt,
+use iced::{
+    Task,
+    futures::{self, AsyncReadExt, future::join_all},
 };
+use size::Size;
 use soft_canonicalize::soft_canonicalize;
 use std::{
     ffi::OsStr,
@@ -20,9 +17,11 @@ use std::{
 };
 use sysinfo::Disks;
 use tempfile::NamedTempFile;
-
-#[cfg(target_os = "macos")]
-use smol::process;
+use tokio::{
+    fs::{self, File},
+    io::{self, AsyncWriteExt, BufReader},
+};
+use tokio_util::compat::TokioAsyncWriteCompatExt;
 
 static NUM_CPUS: LazyLock<usize> = LazyLock::new(num_cpus::get);
 
@@ -117,8 +116,8 @@ pub fn can_write_over_4gb(mount_point: &Path) -> bool {
 }
 
 #[cfg(target_os = "macos")]
-pub async fn run_dot_clean(mount_point: &Path) -> io::Result<process::ExitStatus> {
-    process::Command::new("dot_clean")
+pub async fn run_dot_clean(mount_point: &Path) -> io::Result<std::process::ExitStatus> {
+    tokio::process::Command::new("dot_clean")
         .arg("-m")
         .arg(mount_point)
         .status()
@@ -132,7 +131,7 @@ pub async fn scan_for_discs(path: PathBuf) -> io::Result<Box<[PathBuf]>> {
     while let Some(current_path) = stack.pop() {
         let mut entries = fs::read_dir(&current_path).await?;
 
-        while let Some(entry) = entries.try_next().await? {
+        while let Some(entry) = entries.next_entry().await? {
             let entry_path = entry.path();
 
             if entry_path.is_dir() {
@@ -190,7 +189,7 @@ async fn does_this_zip_contain_a_disc(path: &Path) -> bool {
 
     let reader = BufReader::new(file);
 
-    let zip = match ZipFileReader::new(reader).await {
+    let zip = match ZipFileReader::with_tokio(reader).await {
         Ok(a) => a,
         Err(_) => return false,
     };
@@ -212,7 +211,7 @@ pub async fn get_files_and_dirs(base_dir: &Path) -> io::Result<(Vec<PathBuf>, Ve
 
     let mut entries = fs::read_dir(base_dir).await?;
 
-    while let Some(entry) = entries.try_next().await? {
+    while let Some(entry) = entries.next_entry().await? {
         let path = entry.path();
 
         if path.is_dir() {
@@ -232,8 +231,7 @@ pub async fn extract_zip(zip_path: &Path, dest_dir: &Path) -> Result<()> {
         dest_dir.display()
     );
 
-    let zip_file_reader = BufReader::new(File::open(zip_path).await?);
-    let mut zip = async_zip::base::read::seek::ZipFileReader::new(zip_file_reader).await?;
+    let zip = async_zip::tokio::read::fs::ZipFileReader::new(zip_path).await?;
 
     for i in 0..zip.file().entries().len() {
         let entry = &zip.file().entries()[i];
@@ -266,8 +264,8 @@ pub async fn extract_zip(zip_path: &Path, dest_dir: &Path) -> Result<()> {
         let mut reader = zip.reader_without_entry(i).await?;
 
         fs::create_dir_all(parent).await?;
-        let mut writer = File::create(dest_path).await?;
-        io::copy(&mut reader, &mut writer).await?;
+        let writer = File::create(dest_path).await?;
+        futures::io::copy(&mut reader, &mut writer.compat_write()).await?;
     }
 
     Ok(())
@@ -305,10 +303,11 @@ pub async fn extract_zip_bytes(zip_bytes: Vec<u8>, dest_dir: &Path) -> Result<()
             .ok_or(anyhow!("Failed to get parent dir"))?;
 
         let mut reader = zip.reader_without_entry(i).await?;
+        let mut bytes = Vec::new();
+        reader.read_to_end(&mut bytes).await?;
 
         fs::create_dir_all(parent).await?;
-        let mut writer = File::create(dest_path).await?;
-        io::copy(&mut reader, &mut writer).await?;
+        fs::write(dest_path, bytes).await?;
     }
 
     Ok(())
@@ -321,7 +320,7 @@ pub async fn get_dir_size(path: PathBuf) -> io::Result<Size> {
     while let Some(current_path) = stack.pop() {
         let mut entries = fs::read_dir(&current_path).await?;
 
-        while let Some(entry) = entries.try_next().await? {
+        while let Some(entry) = entries.next_entry().await? {
             let entry_path = entry.path();
 
             if entry_path.is_dir() {

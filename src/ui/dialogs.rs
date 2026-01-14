@@ -3,12 +3,13 @@
 
 use crate::extensions::{HBC_APP_EXTENSIONS, SUPPORTED_INPUT_EXTENSIONS, ZIP_EXTENSIONS};
 use crate::util;
-use futures::future::join_all;
 use iced::Window;
+use iced::futures::future::join_all;
 use native_dialog::{DialogBuilder, MessageLevel};
 use std::ffi::OsStr;
 use std::fmt::Write;
 use std::path::PathBuf;
+use tokio::runtime::Runtime;
 
 pub fn choose_mount_point(window: &dyn Window) -> Option<PathBuf> {
     DialogBuilder::file()
@@ -28,17 +29,19 @@ pub fn choose_games(window: &dyn Window) -> Vec<PathBuf> {
         .show()
         .unwrap_or_default();
 
-    smol::block_on(async move {
-        join_all(
-            paths
-                .into_iter()
-                .map(|p| async move { util::is_valid_disc_file(&p).await.then_some(p) }),
-        )
-        .await
-        .into_iter()
-        .flatten()
-        .collect()
-    })
+    Runtime::new()
+        .expect("Could not create tokio runtime")
+        .block_on(async move {
+            join_all(
+                paths
+                    .into_iter()
+                    .map(|p| async move { util::is_valid_disc_file(&p).await.then_some(p) }),
+            )
+            .await
+            .into_iter()
+            .flatten()
+            .collect()
+        })
 }
 
 pub fn choose_src_dir(window: &dyn Window) -> Option<PathBuf> {

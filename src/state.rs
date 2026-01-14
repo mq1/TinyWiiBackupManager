@@ -456,7 +456,7 @@ impl State {
                     Task::perform(
                         async move {
                             // TODO
-                            smol::Timer::after(Duration::from_secs(5)).await;
+                            tokio::time::sleep(Duration::from_secs(5)).await;
                             Ok(path.to_string_lossy().to_string())
                         },
                         Message::FinishedTransferringSingleGame,

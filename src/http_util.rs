@@ -3,20 +3,23 @@
 
 use crate::util;
 use anyhow::Result;
-use smol::fs;
 use std::path::Path;
+use tokio::fs;
 
 const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 
 pub async fn get(url: &str) -> Result<Vec<u8>> {
-    let url = url.to_string();
+    let client = reqwest::Client::new();
 
-    let body = minreq::get(url)
-        .with_header("User-Agent", USER_AGENT)
-        .send()?
-        .into_bytes();
+    let body = client
+        .get(url)
+        .header("User-Agent", USER_AGENT)
+        .send()
+        .await?
+        .bytes()
+        .await?;
 
-    Ok(body)
+    Ok(body.to_vec())
 }
 
 pub async fn download_file(url: &str, dest_path: &Path) -> Result<()> {
