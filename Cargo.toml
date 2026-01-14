@@ -17,7 +17,6 @@ LegalCopyright = "Copyright © 2026 Manuel Quarneti. Licensed under GPL-3.0-only
 [dependencies]
 lucide-icons = { version = "0.562", features = ["iced"] }
 image = { version = "0.25", default-features = false, features = ["png"] }
-minreq = "2.14"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 serde_with = "3.16"
@@ -41,6 +40,9 @@ smol = "2"
 async_zip = { version = "0.0.18", features = ["deflate"] }
 soft-canonicalize = "0.5"
 fuzzy-matcher = "0.3"
+reqwest = { version = "0.13", default-features = false, features = [
+  "system-proxy",
+] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 iced = { version = "0.14", default-features = false, features = [
@@ -101,8 +103,8 @@ native-dialog = "0.9"
 
 [features]
 default = ["native-tls"]
-native-tls = ["minreq/https-native"]
-bundled-tls = ["minreq/https-rustls"]
+native-tls = ["reqwest/native-tls"]
+bundled-tls = ["reqwest/native-tls-vendored"]
 
 [target.'cfg(windows)'.build-dependencies]
 winresource = "0.1"
