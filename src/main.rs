@@ -23,7 +23,7 @@ mod wiitdb;
 
 use crate::{notifications::notifications_subscription, state::State};
 use iced::{Size, window};
-use std::{env, sync::LazyLock};
+use std::sync::LazyLock;
 
 pub static APP_ICON: LazyLock<Vec<u8>> = LazyLock::new(|| {
     image::load_from_memory_with_format(

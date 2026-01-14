@@ -149,7 +149,7 @@ jobs:
       - name: Build binary
         run: |
           export PATH="$PWD/llvm-mingw-20251216-ucrt-ubuntu-22.04-x86_64/bin:$PATH"
-          cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
+          cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --features "win10"
         env:
           RUSTC_BOOTSTRAP: 1
           RUSTFLAGS: -C linker-plugin-lto ${{ matrix.rustflags }}
