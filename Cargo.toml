@@ -87,7 +87,7 @@ default = ["wgpu", "native-tls"]
 wgpu = ["dep:wgpu", "iced/wgpu-bare"]
 tiny-skia = ["iced/tiny-skia"]
 native-tls = ["reqwest/native-tls"]
-rustls = ["reqwest/default-tls"]
+vendored-tls = ["reqwest/native-tls-vendored"]
 win10 = [
   "native-dialog/windows_dpi_awareness",
   "native-dialog/windows_visual_styles",

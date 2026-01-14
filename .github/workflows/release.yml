@@ -77,7 +77,7 @@ jobs:
           chmod +x *.AppImage
 
       - name: Build binary
-        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "wgpu rustls"
+        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "wgpu vendored-tls"
         env:
           RUSTC_BOOTSTRAP: 1
           RUSTFLAGS: -C linker-plugin-lto -C linker=clang-21 -C link-arg=-fuse-ld=lld-21 ${{ matrix.rustflags }}
@@ -196,7 +196,7 @@ jobs:
 
       - name: Build binary
         shell: pwsh
-        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "tiny-skia rustls"
+        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "tiny-skia vendored-tls"
         env:
           RUSTC_BOOTSTRAP: 1
           RUSTFLAGS: -C target-feature=+crt-static -C linker=rust-lld.exe
