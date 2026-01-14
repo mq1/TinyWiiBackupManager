@@ -137,6 +137,8 @@
         <br><br>
         ⚠️ This package is untested and may not work
         <br><br>
+        ⛔ Please do not attempt to run this on Windows XP with OneCoreAPI, as apart from being untested on Windows 7/8/8.1, if executed on XP with OneCoreAPI the program will not work, or being extremely unstable if it works
+        <br><br>
     </td>
   </tr>
 </table>
