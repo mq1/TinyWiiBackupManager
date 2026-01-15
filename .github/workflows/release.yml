@@ -81,11 +81,15 @@ jobs:
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
         env:
           RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: -C linker-plugin-lto -C linker=clang-21 -C link-arg=-fuse-ld=lld-21 ${{ matrix.rustflags }}
+          RUSTFLAGS: -C linker-plugin-lto -C link-arg=-fuse-ld=lld-21 ${{ matrix.rustflags }}
           CC: clang-21
           CXX: clang++-21
           CFLAGS: -O3 -flto ${{ matrix.cflags }}
           CXXFLAGS: -O3 -flto ${{ matrix.cxxflags }}
+          CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: clang-21
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: clang-21
+          CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER: clang-21
+          AR: llvm-ar-21
 
       - name: Package binary as tar.gz
         run: |
@@ -200,11 +204,7 @@ jobs:
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
         env:
           RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: -C target-feature=+crt-static -C linker=rust-lld.exe
-          CC: clang-cl
-          CXX: clang-cl
-          CFLAGS: /clang:-O3 /clang:-flto
-          CXXFLAGS: /clang:-O3 /clang:-flto
+          RUSTFLAGS: -C target-feature=+crt-static
 
       - name: Package binary as zip
         shell: pwsh
