@@ -147,7 +147,7 @@ pub async fn scan_for_discs(path: PathBuf) -> io::Result<Box<[PathBuf]>> {
     Ok(discs)
 }
 
-async fn keep_disc_file(path: PathBuf) -> Option<PathBuf> {
+pub async fn keep_disc_file(path: PathBuf) -> Option<PathBuf> {
     if is_valid_disc_file(&path).await {
         Some(path)
     } else {

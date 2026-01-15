@@ -29,15 +29,11 @@ pub fn choose_games(window: &dyn Window) -> Vec<PathBuf> {
         .unwrap_or_default();
 
     smol::block_on(async move {
-        join_all(
-            paths
-                .into_iter()
-                .map(|p| async move { util::is_valid_disc_file(&p).await.then_some(p) }),
-        )
-        .await
-        .into_iter()
-        .flatten()
-        .collect()
+        join_all(paths.into_iter().map(util::keep_disc_file))
+            .await
+            .into_iter()
+            .flatten()
+            .collect()
     })
 }
 
