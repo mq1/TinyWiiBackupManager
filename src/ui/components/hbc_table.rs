@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
+    hbc::HbcApp,
     message::Message,
     state::State,
     ui::{Screen, style},
@@ -14,16 +15,16 @@ use lucide_icons::iced::{icon_info, icon_trash};
 
 pub fn view(state: &State) -> Element<'_, Message> {
     let t_columns = vec![
-        table::column(text("Name").size(16), |i: usize| {
-            text(&state.hbc_apps[i].meta.name)
+        table::column(text("Name").size(16), |(_, app): (usize, &HbcApp)| {
+            text(&app.meta.name)
         }),
-        table::column(text("Version").size(16), |i: usize| {
-            text(&state.hbc_apps[i].meta.version)
+        table::column(text("Version").size(16), |(_, app): (usize, &HbcApp)| {
+            text(&app.meta.version)
         }),
-        table::column(text("Size").size(16), |i: usize| {
-            text(state.hbc_apps[i].size.to_string())
+        table::column(text("Size").size(16), |(_, app): (usize, &HbcApp)| {
+            text(app.size.to_string())
         }),
-        table::column(text("Actions").size(16), |i: usize| {
+        table::column(text("Actions").size(16), |(i, _): (usize, &HbcApp)| {
             row![
                 button(row![icon_info(), text("Info")].spacing(5))
                     .style(style::rounded_secondary_button)
@@ -37,10 +38,15 @@ pub fn view(state: &State) -> Element<'_, Message> {
     ];
 
     let table = if !state.hbc_filter.is_empty() {
-        let indices = state.filtered_hbc_indices.iter().copied();
-        table(t_columns, indices).width(Length::Fill)
+        let apps = state
+            .filtered_hbc_indices
+            .iter()
+            .copied()
+            .map(|i| (i, &state.hbc_apps[i]));
+        table(t_columns, apps).width(Length::Fill)
     } else {
-        table(t_columns, 0..state.hbc_apps.len()).width(Length::Fill)
+        let apps = state.hbc_apps.iter().enumerate();
+        table(t_columns, apps).width(Length::Fill)
     };
 
     container(table).padding(10).into()
