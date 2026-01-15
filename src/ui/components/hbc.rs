@@ -48,15 +48,12 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 ]
                 .align_y(Alignment::Center)
                 .spacing(5)
-                .padding(padding::left(15).right(25)),
+                .padding(padding::left(15).right(25).top(10)),
                 content
             ])
         ]
-        .spacing(10)
         .into()
     } else {
-        column![components::hbc_toolbar::view(state), scrollable(content)]
-            .spacing(10)
-            .into()
+        column![components::hbc_toolbar::view(state), scrollable(content)].into()
     }
 }

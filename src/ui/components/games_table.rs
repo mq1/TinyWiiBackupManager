@@ -8,10 +8,11 @@ use crate::{
     ui::{Screen, style},
 };
 use iced::{
-    Element, Length,
-    widget::{button, container, row, table, text},
+    Alignment, Element, Length, padding,
+    widget::{button, column, container, row, space, table, text},
 };
-use lucide_icons::iced::{icon_info, icon_trash};
+use lucide_icons::iced::{icon_gamepad_2, icon_hard_drive, icon_info, icon_trash};
+use size::Size;
 
 pub fn view(state: &State) -> Element<'_, Message> {
     let t_columns = vec![
@@ -44,13 +45,32 @@ pub fn view(state: &State) -> Element<'_, Message> {
         }),
     ];
 
-    let table = if !state.games_filter.is_empty() {
+    if !state.games_filter.is_empty() {
         let indices = state.filtered_game_indices.iter().copied();
-        table(t_columns, indices).width(Length::Fill)
+        container(table(t_columns, indices).width(Length::Fill))
+            .padding(10)
+            .into()
     } else {
-        let indices = 0..state.games.len();
-        table(t_columns, indices).width(Length::Fill)
-    };
+        let count = state.games.len();
+        let indices = 0..count;
+        let total_size = state
+            .games
+            .iter()
+            .fold(Size::from_bytes(0), |a, b| a + b.size);
 
-    container(table).padding(10).into()
+        column![
+            row![
+                icon_gamepad_2().size(18),
+                text!("Games: {} found ({})", count, total_size).size(18),
+                space::horizontal(),
+                icon_hard_drive(),
+                text(&state.drive_usage).size(16),
+            ]
+            .align_y(Alignment::Center)
+            .spacing(5)
+            .padding(padding::left(15).right(25).top(10)),
+            container(table(t_columns, indices).width(Length::Fill)).padding(10),
+        ]
+        .into()
+    }
 }

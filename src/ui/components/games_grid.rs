@@ -68,7 +68,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 ]
                 .align_y(Alignment::Center)
                 .spacing(5)
-                .padding(padding::left(15).right(25)),
+                .padding(padding::left(15).right(25).top(10)),
                 wii_row.wrap()
             ]
             .into(),
@@ -86,7 +86,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 ]
                 .align_y(Alignment::Center)
                 .spacing(5)
-                .padding(padding::left(15).right(25)),
+                .padding(padding::left(15).right(25).top(10)),
                 gc_row.wrap()
             ]
             .into(),
@@ -104,7 +104,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 ]
                 .align_y(Alignment::Center)
                 .spacing(5)
-                .padding(padding::left(15).right(25)),
+                .padding(padding::left(15).right(25).top(10)),
                 wii_row.wrap(),
                 space().height(20),
                 row![

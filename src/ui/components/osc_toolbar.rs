@@ -1,7 +1,11 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{message::Message, state::State, ui::style};
+use crate::{
+    message::Message,
+    state::State,
+    ui::{components, style},
+};
 use iced::{
     Alignment, Element,
     widget::{container, row, space, text_input},
@@ -25,6 +29,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
         )
         .style(style::card),
         space::horizontal(),
+        components::view_as::view(state),
     ]
     .spacing(10)
     .padding(10)
