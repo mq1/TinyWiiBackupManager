@@ -1,9 +1,11 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{http_util, message::Message, state::State};
+use crate::{http_util, message::Message, state::State, util::FuzzySearchable};
 use anyhow::Result;
+use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
 use iced::{Task, futures::TryFutureExt};
+use itertools::Itertools;
 use serde::{Deserialize, Deserializer};
 use size::Size;
 use smol::{fs, io};
@@ -295,5 +297,22 @@ impl Flag {
             Flag::Deprecated => "Deprecated",
             Flag::Unknown => "Unknown",
         }
+    }
+}
+
+impl FuzzySearchable for Box<[OscAppMeta]> {
+    fn fuzzy_search(&self, query: &str) -> Box<[usize]> {
+        let matcher = SkimMatcherV2::default();
+
+        self.iter()
+            .enumerate()
+            .filter_map(|(i, app)| {
+                matcher
+                    .fuzzy_match(&app.name, query)
+                    .map(|score| (i, score))
+            })
+            .sorted_unstable_by_key(|(_, score)| *score)
+            .map(|(i, _)| i)
+            .collect()
     }
 }

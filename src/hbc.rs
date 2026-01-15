@@ -4,11 +4,14 @@
 use crate::config::SortBy;
 use crate::message::Message;
 use crate::state::State;
-use crate::util;
+use crate::util::{self, FuzzySearchable};
 use anyhow::{Result, anyhow};
+use fuzzy_matcher::FuzzyMatcher;
+use fuzzy_matcher::skim::SkimMatcherV2;
 use iced::Task;
 use iced::futures::TryFutureExt;
 use iced::futures::future::join_all;
+use itertools::Itertools;
 use serde::{Deserialize, Deserializer};
 use size::Size;
 use smol::fs;
@@ -203,6 +206,23 @@ impl HbcApps for Box<[HbcApp]> {
                 self.sort_unstable_by(|a, b| b.size.cmp(&a.size));
             }
         }
+    }
+}
+
+impl FuzzySearchable for Box<[HbcApp]> {
+    fn fuzzy_search(&self, query: &str) -> Box<[usize]> {
+        let matcher = SkimMatcherV2::default();
+
+        self.iter()
+            .enumerate()
+            .filter_map(|(i, app)| {
+                matcher
+                    .fuzzy_match(&app.meta.name, query)
+                    .map(|score| (i, score))
+            })
+            .sorted_unstable_by_key(|(_, score)| *score)
+            .map(|(i, _)| i)
+            .collect()
     }
 }
 

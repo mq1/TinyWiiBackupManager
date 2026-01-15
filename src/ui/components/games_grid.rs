@@ -1,13 +1,11 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{game_id::GameID, message::Message, state::State, ui::components};
-use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
+use crate::{message::Message, state::State, ui::components};
 use iced::{
     Alignment, Element, Length, padding,
     widget::{Row, column, row, space, text},
 };
-use itertools::Itertools;
 use lucide_icons::iced::{icon_box, icon_hard_drive, icon_pointer};
 use size::Size;
 
@@ -15,25 +13,8 @@ pub fn view(state: &State) -> Element<'_, Message> {
     if !state.games_filter.is_empty() {
         let mut row = Row::new().width(Length::Fill).spacing(10).padding(10);
 
-        let matcher = SkimMatcherV2::default();
-
-        let games = state
-            .games
-            .iter()
-            .enumerate()
-            .filter_map(|(i, game)| {
-                let title_score = matcher.fuzzy_match(&game.title, &state.games_filter);
-                let id_score = matcher.fuzzy_match(game.id.as_str(), &state.games_filter);
-
-                match (title_score, id_score) {
-                    (Some(s1), Some(s2)) => Some((game, i, s1 + s2)),
-                    (Some(s1), None) | (None, Some(s1)) => Some((game, i, s1)),
-                    (None, None) => None,
-                }
-            })
-            .sorted_unstable_by_key(|(_game, _i, score)| *score);
-
-        for (game, i, _score) in games {
+        for i in state.filtered_game_indices.iter().copied() {
+            let game = &state.games[i];
             row = row.push(components::game_card::view(state, game, i));
         }
 

@@ -6,12 +6,10 @@ use crate::{
     state::State,
     ui::{Screen, style},
 };
-use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
 use iced::{
     Element, Length,
     widget::{button, container, row, table, text},
 };
-use itertools::Itertools;
 use lucide_icons::iced::{icon_info, icon_trash};
 
 pub fn view(state: &State) -> Element<'_, Message> {
@@ -39,20 +37,8 @@ pub fn view(state: &State) -> Element<'_, Message> {
     ];
 
     let table = if !state.hbc_filter.is_empty() {
-        let matcher = SkimMatcherV2::default();
-        let indexes = state
-            .hbc_apps
-            .iter()
-            .enumerate()
-            .filter_map(|(i, app)| {
-                matcher
-                    .fuzzy_match(&app.meta.name, &state.hbc_filter)
-                    .map(|score| (i, score))
-            })
-            .sorted_unstable_by_key(|(_, score)| *score)
-            .map(|(i, _)| i);
-
-        table(t_columns, indexes).width(Length::Fill)
+        let indices = state.filtered_hbc_indices.iter().copied();
+        table(t_columns, indices).width(Length::Fill)
     } else {
         table(t_columns, 0..state.hbc_apps.len()).width(Length::Fill)
     };

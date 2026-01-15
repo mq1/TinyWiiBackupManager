@@ -20,9 +20,6 @@ use std::{
 use sysinfo::Disks;
 use tempfile::NamedTempFile;
 
-#[cfg(target_os = "macos")]
-use smol::process;
-
 static NUM_CPUS: LazyLock<usize> = LazyLock::new(num_cpus::get);
 
 pub static PRELOADER_THREADS: LazyLock<usize> = LazyLock::new(|| match *NUM_CPUS {
@@ -36,6 +33,10 @@ pub static PROCESSOR_THREADS: LazyLock<usize> = LazyLock::new(|| match *NUM_CPUS
     5..=8 => *NUM_CPUS - 2,
     _ => *NUM_CPUS - 4,
 });
+
+pub trait FuzzySearchable {
+    fn fuzzy_search(&self, query: &str) -> Box<[usize]>;
+}
 
 pub fn sanitize(s: &str) -> String {
     let opts = sanitize_filename::Options {
@@ -116,8 +117,8 @@ pub fn can_write_over_4gb(mount_point: &Path) -> bool {
 }
 
 #[cfg(target_os = "macos")]
-pub async fn run_dot_clean(mount_point: &Path) -> io::Result<process::ExitStatus> {
-    process::Command::new("dot_clean")
+pub async fn run_dot_clean(mount_point: &Path) -> io::Result<std::process::ExitStatus> {
+    smol::process::Command::new("dot_clean")
         .arg("-m")
         .arg(mount_point)
         .status()

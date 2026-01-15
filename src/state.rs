@@ -13,7 +13,8 @@ use crate::{
     notifications::Notifications,
     osc::{self, OscAppMeta},
     ui::{Screen, dialogs},
-    util, wiitdb,
+    util::{self, FuzzySearchable},
+    wiitdb,
 };
 use iced::{Task, Theme, window};
 use std::{path::PathBuf, time::Duration};
@@ -24,6 +25,7 @@ pub struct State {
     pub config: Config,
     pub games: Box<[Game]>,
     pub games_filter: String,
+    pub filtered_game_indices: Box<[usize]>,
     pub hbc_apps: Box<[HbcApp]>,
     pub osc_apps: Box<[OscAppMeta]>,
     pub wiitdb: Option<wiitdb::Datafile>,
@@ -32,7 +34,9 @@ pub struct State {
     pub show_gc: bool,
     pub drive_usage: String,
     pub osc_filter: String,
+    pub filtered_osc_indices: Box<[usize]>,
     pub hbc_filter: String,
+    pub filtered_hbc_indices: Box<[usize]>,
     pub transfer_stack: Vec<PathBuf>,
     pub half_sec_anim_state: bool,
 }
@@ -59,6 +63,9 @@ impl State {
             hbc_filter: String::new(),
             transfer_stack: Vec::new(),
             half_sec_anim_state: false,
+            filtered_game_indices: Box::new([]),
+            filtered_osc_indices: Box::new([]),
+            filtered_hbc_indices: Box::new([]),
         };
 
         let tasks = Task::batch(vec![
@@ -130,8 +137,9 @@ impl State {
                 }
                 Task::none()
             }
-            Message::UpdateGamesFilter(new) => {
-                self.games_filter = new;
+            Message::UpdateGamesFilter(filter) => {
+                self.filtered_game_indices = self.games.fuzzy_search(&filter);
+                self.games_filter = filter;
                 Task::none()
             }
             Message::GotWiitdbDatafile(res) => {
@@ -242,6 +250,7 @@ impl State {
                 Task::none()
             }
             Message::UpdateOscFilter(filter) => {
+                self.filtered_osc_indices = self.osc_apps.fuzzy_search(&filter);
                 self.osc_filter = filter;
                 Task::none()
             }
@@ -320,6 +329,7 @@ impl State {
                 self.update(Message::RefreshGamesAndApps)
             }
             Message::UpdateHbcFilter(filter) => {
+                self.filtered_hbc_indices = self.hbc_apps.fuzzy_search(&filter);
                 self.hbc_filter = filter;
                 Task::none()
             }

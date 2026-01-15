@@ -2,13 +2,20 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    config::SortBy, disc_info::DiscInfo, game_id::GameID, message::Message, state::State, util,
+    config::SortBy,
+    disc_info::DiscInfo,
+    game_id::GameID,
+    message::Message,
+    state::State,
+    util::{self, FuzzySearchable},
     wiitdb::GameInfo,
 };
+use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
 use iced::{
     Task,
     futures::{TryFutureExt, join},
 };
+use itertools::Itertools;
 use size::Size;
 use smol::{fs, io, stream::StreamExt};
 use std::path::PathBuf;
@@ -180,5 +187,27 @@ impl Games for Box<[Game]> {
                 self.sort_unstable_by(|a, b| b.size.cmp(&a.size));
             }
         }
+    }
+}
+
+impl FuzzySearchable for Box<[Game]> {
+    fn fuzzy_search(&self, query: &str) -> Box<[usize]> {
+        let matcher = SkimMatcherV2::default();
+
+        self.iter()
+            .enumerate()
+            .filter_map(|(i, game)| {
+                let title_score = matcher.fuzzy_match(&game.title, query);
+                let id_score = matcher.fuzzy_match(game.id.as_str(), query);
+
+                match (title_score, id_score) {
+                    (Some(s1), Some(s2)) => Some((i, s1 + s2)),
+                    (Some(s1), None) | (None, Some(s1)) => Some((i, s1)),
+                    (None, None) => None,
+                }
+            })
+            .sorted_unstable_by_key(|(_, score)| *score)
+            .map(|(i, _)| i)
+            .collect()
     }
 }
