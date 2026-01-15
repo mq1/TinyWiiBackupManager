@@ -25,7 +25,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
 
     let content = match state.config.get_view_as() {
         ViewAs::Grid => components::games_grid::view(state),
-        ViewAs::Table => components::games_grid::view(state), // TODO
+        ViewAs::Table => components::games_table::view(state),
     };
 
     column![components::games_toolbar::view(state), scrollable(content)]
