@@ -9,12 +9,11 @@ pub fn view(state: &State) -> Element<'_, Message> {
 
     if !state.hbc_filter.is_empty() {
         for i in state.filtered_hbc_indices.iter().copied() {
-            let app = &state.hbc_apps[i];
-            row = row.push(components::hbc_card::view(app, i));
+            row = row.push(components::hbc_card::view(state, i));
         }
     } else {
-        for (i, app) in state.hbc_apps.iter().enumerate() {
-            row = row.push(components::hbc_card::view(app, i));
+        for i in 0..state.hbc_apps.len() {
+            row = row.push(components::hbc_card::view(state, i));
         }
     }
 
