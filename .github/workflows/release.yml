@@ -85,7 +85,7 @@ jobs:
           CC: clang-21
           CXX: clang++-21
           LD: lld-21
-          LDFLAGS: -fuse-ld=lld
+          LDFLAGS: -fuse-ld=lld-21
           AR: llvm-ar-21
           CFLAGS: -O3 -flto ${{ matrix.cflags }}
           CXXFLAGS: -O3 -flto ${{ matrix.cxxflags }}
