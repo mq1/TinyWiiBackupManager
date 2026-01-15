@@ -43,9 +43,8 @@ pub fn view(state: &State, hbc_i: usize) -> Element<'_, Message> {
         ]
         .spacing(5),
         rule::horizontal(1),
-        scrollable(text(&app.meta.long_description))
-            .width(Length::Fill)
-            .height(Length::Fill),
+        scrollable(text(&app.meta.long_description).width(Length::Fill)).height(Length::Fill),
+        rule::horizontal(1),
         row![
             button(row![icon_globe(), text("Open OSC Page")].spacing(5))
                 .style(style::rounded_button)
