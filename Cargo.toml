@@ -41,6 +41,19 @@ smol = "2"
 async_zip = { version = "0.0.18", features = ["deflate"] }
 soft-canonicalize = "0.5"
 fuzzy-matcher = "0.3"
+reqwest = { version = "0.13", default-features = false, features = [
+  "charset",
+  "system-proxy",
+] }
+tokio = { version = "1", default-features = false, features = [
+  "parking_lot",
+  "fs",
+  "process",
+  "time",
+  "rt",
+] }
+tokio-util = { version = "0.7", features = ["compat"] }
+zstd = "0.13"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 iced = { version = "0.14", default-features = false, features = [
@@ -98,6 +111,10 @@ iced = { version = "0.14", default-features = false, features = [
   "sipper",
 ] }
 native-dialog = "0.9"
+
+[build-dependencies]
+lucide-icons = "0.562"
+zstd = "0.13"
 
 [features]
 default = ["native-tls"]

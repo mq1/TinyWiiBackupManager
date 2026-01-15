@@ -10,7 +10,6 @@ use crate::{
     ui::Screen,
     wiitdb,
 };
-use iced::font;
 use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
@@ -26,7 +25,6 @@ pub enum Message {
     CloseNotification(usize),
     SelectMountPoint,
     MountPointChosen(Option<PathBuf>),
-    FontLoaded(Result<(), font::Error>),
     GotDriveUsage(String),
     ChangeTheme,
     OpenDataDir,

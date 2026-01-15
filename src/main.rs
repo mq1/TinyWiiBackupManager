@@ -13,6 +13,7 @@ mod game;
 mod game_id;
 mod hbc;
 mod http_util;
+mod lucide;
 mod message;
 mod notifications;
 mod osc;

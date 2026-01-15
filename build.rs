@@ -1,10 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::env;
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Write};
 use std::path::Path;
+use std::{env, fs};
+
+use lucide_icons::LUCIDE_FONT_BYTES;
 
 fn str_to_gameid(id: &str) -> [u8; 6] {
     let mut id_bytes = [0u8; 6];
@@ -65,8 +67,23 @@ fn compile_id_map() {
     write!(&mut out_file, "];").unwrap();
 }
 
+fn compress_lucide() {
+    let out_path = Path::new(&env::var("OUT_DIR").unwrap()).join("lucide.ttf.zst");
+    let meta_out_path = Path::new(&env::var("OUT_DIR").unwrap()).join("lucide_meta.rs");
+
+    let bytes = zstd::bulk::compress(LUCIDE_FONT_BYTES, 19).unwrap();
+    fs::write(out_path, bytes).unwrap();
+
+    let meta = format!(
+        "const LUCIDE_BYTES_LEN: usize = {};",
+        LUCIDE_FONT_BYTES.len()
+    );
+    fs::write(meta_out_path, meta).unwrap();
+}
+
 fn main() {
     compile_id_map();
+    compress_lucide();
 
     #[cfg(windows)]
     {

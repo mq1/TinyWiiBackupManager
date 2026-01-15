@@ -36,6 +36,7 @@ dependencies = [
  "time",
  "wgpu",
  "winresource",
+ "zstd",
 ]
 
 [[package]]

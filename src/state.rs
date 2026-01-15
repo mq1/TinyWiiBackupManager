@@ -8,14 +8,14 @@ use crate::{
     game::{self, Game, Games},
     game_id::GameID,
     hbc::{self, HbcApp, HbcApps},
+    lucide,
     message::Message,
     notifications::Notifications,
     osc::{self, OscAppMeta},
     ui::{Screen, dialogs},
     util, wiitdb,
 };
-use iced::{Task, Theme, font, window};
-use lucide_icons::LUCIDE_FONT_BYTES;
+use iced::{Task, Theme, window};
 use std::{path::PathBuf, time::Duration};
 
 pub struct State {
@@ -67,7 +67,7 @@ impl State {
             hbc::get_list_hbc_apps_task(&initial_state),
             osc::get_load_osc_apps_task(&initial_state),
             util::get_drive_usage_task(&initial_state),
-            font::load(LUCIDE_FONT_BYTES).map(Message::FontLoaded),
+            lucide::get_load_lucide_task(),
         ]);
 
         (initial_state, tasks)
@@ -243,12 +243,6 @@ impl State {
             }
             Message::UpdateOscFilter(filter) => {
                 self.osc_filter = filter;
-                Task::none()
-            }
-            Message::FontLoaded(res) => {
-                if res.is_err() {
-                    self.notifications.error("Failed to load lucide icons");
-                }
                 Task::none()
             }
             Message::OpenOscPage(osc_i) => {
