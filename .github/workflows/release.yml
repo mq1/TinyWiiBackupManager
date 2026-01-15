@@ -89,7 +89,8 @@ jobs:
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: clang-21
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: clang-21
           CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER: clang-21
-          AR: llvm-ar-21
+          CARGO_HOST_LINKER: clang-21
+          CARGO_HOST_RUSTFLAGS: -C link-arg=-fuse-ld=lld-21
 
       - name: Package binary as tar.gz
         run: |
