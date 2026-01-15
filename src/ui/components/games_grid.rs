@@ -46,13 +46,14 @@ pub fn view(state: &State) -> Element<'_, Message> {
 
         match (state.show_wii, state.show_gc) {
             (false, false) => row![
+                text("").size(18),
                 space::horizontal(),
                 icon_hard_drive(),
                 text(&state.drive_usage).size(16),
             ]
             .align_y(Alignment::Center)
             .spacing(5)
-            .padding(padding::right(25).top(1))
+            .padding(padding::left(15).right(25).top(10))
             .into(),
             (true, false) => column![
                 row![
