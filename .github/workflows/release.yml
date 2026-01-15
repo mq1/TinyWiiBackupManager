@@ -85,6 +85,7 @@ jobs:
           CC: clang-21
           CXX: clang++-21
           AR: llvm-ar-21
+          LD: ld.lld-21
           CFLAGS: -O3 -flto ${{ matrix.cflags }}
           CXXFLAGS: -O3 -flto ${{ matrix.cxxflags }}
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: clang-21
