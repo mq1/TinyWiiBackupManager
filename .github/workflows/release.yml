@@ -84,8 +84,6 @@ jobs:
           RUSTFLAGS: -C linker-plugin-lto -C link-arg=-fuse-ld=lld-21 ${{ matrix.rustflags }}
           CC: clang-21
           CXX: clang++-21
-          LD: lld-21
-          LDFLAGS: -fuse-ld=lld-21
           AR: llvm-ar-21
           CFLAGS: -O3 -flto ${{ matrix.cflags }}
           CXXFLAGS: -O3 -flto ${{ matrix.cxxflags }}
