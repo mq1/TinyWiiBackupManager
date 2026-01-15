@@ -94,14 +94,14 @@ pub fn view(state: &State) -> Element<'_, Message> {
             .into(),
             (false, true) => column![
                 row![
-                    icon_pointer().size(18),
+                    icon_box().size(18),
                     text(format!(
                         "GameCube Games: {} found ({})",
                         gc_count, gc_total_size
                     ))
                     .size(18),
                     space::horizontal(),
-                    icon_box(),
+                    icon_hard_drive(),
                     text(&state.drive_usage).size(16),
                 ]
                 .align_y(Alignment::Center)
