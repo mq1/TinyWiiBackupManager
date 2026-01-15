@@ -41,7 +41,7 @@ smol = "2"
 async_zip = { version = "0.0.18", features = ["deflate"] }
 soft-canonicalize = "0.5"
 fuzzy-matcher = "0.3"
-zstd = "0.13"
+zstd = { version = "0.13", features = ["fat-lto"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 iced = { version = "0.14", default-features = false, features = [
