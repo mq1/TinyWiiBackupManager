@@ -45,17 +45,12 @@
 - **:window: Windows**:\
   :arrow_right: [Download installer](https://github.com/mq1/TinyWiiBackupManagerInstaller/releases/latest/download/TinyWiiBackupManagerInstaller.exe) (recommended for most users)\
   :arrow_right: [Download standalone binary](https://github.com/mq1/TinyWiiBackupManager/releases/latest)
-
-<br>
-
-- :ice_cream: Windows (scoop):\
-  `scoop bucket add TinyWiiBackupManager https://github.com/mq1/TinyWiiBackupManage`\
-  `scoop install TinyWiiBackupManager`
-
-<br>
-
-- :package: Windows (winget):\
-  `winget install -e --id mq1.TinyWiiBackupManager`
+  
+  - :ice_cream: scoop:\
+    `scoop bucket add TinyWiiBackupManager https://github.com/mq1/TinyWiiBackupManage`\
+    `scoop install TinyWiiBackupManager`
+  - :package: winget:\
+    `winget install -e --id mq1.TinyWiiBackupManager`
 
 <br>
 
