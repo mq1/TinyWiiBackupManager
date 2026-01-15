@@ -29,7 +29,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
                     .style(style::rounded_secondary_button)
                     .on_press(Message::NavigateTo(Screen::OscInfo(i))),
                 button(row![icon_cloud_download(), text("Install")].spacing(5))
-                    .style(style::rounded_button)
+                    .style(style::rounded_secondary_button)
                     .on_press(Message::AskInstallOscApp(i))
             ]
             .spacing(5)
