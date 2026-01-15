@@ -14,8 +14,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
         let mut row = Row::new().width(Length::Fill).spacing(10).padding(10);
 
         for i in state.filtered_game_indices.iter().copied() {
-            let game = &state.games[i];
-            row = row.push(components::game_card::view(state, game, i));
+            row = row.push(components::game_card::view(state, i));
         }
 
         row.wrap().into()
@@ -33,14 +32,14 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 wii_total_size += game.size;
 
                 if state.show_wii {
-                    wii_row = wii_row.push(components::game_card::view(state, game, i));
+                    wii_row = wii_row.push(components::game_card::view(state, i));
                 }
             } else {
                 gc_count += 1;
                 gc_total_size += game.size;
 
                 if state.show_gc {
-                    gc_row = gc_row.push(components::game_card::view(state, game, i));
+                    gc_row = gc_row.push(components::game_card::view(state, i));
                 }
             }
         }
