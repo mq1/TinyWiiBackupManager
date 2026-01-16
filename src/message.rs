@@ -67,6 +67,7 @@ pub enum Message {
 
     // Toolbox
     DownloadWiitdbToDrive,
+    #[cfg(target_os = "macos")]
     RunDotClean,
 
     // Settings

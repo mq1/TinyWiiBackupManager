@@ -499,6 +499,7 @@ impl State {
                 self.games[i].disc_info = Some(res);
                 Task::none()
             }
+            #[cfg(target_os = "macos")]
             Message::RunDotClean => {
                 let mount_point = self.config.get_drive_path().to_path_buf();
 

@@ -11,6 +11,30 @@ use lucide_icons::iced::{
 };
 
 pub fn view(_state: &State) -> Element<'_, Message> {
+    #[cfg(not(target_os = "macos"))]
+    let os_specific = space();
+
+    #[cfg(target_os = "macos")]
+    let os_specific = container(
+        column![
+            row![icon_apple(), text("macOS")].spacing(5),
+            rule::horizontal(1),
+            space(),
+            row![
+                button(icon_play())
+                    .style(style::rounded_button)
+                    .on_press(Message::RunDotClean),
+                text("Delete ._ files (dot_clean)")
+            ]
+            .align_y(Alignment::Center)
+            .spacing(10)
+        ]
+        .spacing(5)
+        .padding(10)
+        .width(Length::Fill),
+    )
+    .style(style::card);
+
     column![
         row![icon_tool_case().size(18), text("Toolbox").size(18)].spacing(5),
         container(
@@ -32,25 +56,7 @@ pub fn view(_state: &State) -> Element<'_, Message> {
             .width(Length::Fill)
         )
         .style(style::card),
-        container(
-            column![
-                row![icon_apple(), text("macOS")].spacing(5),
-                rule::horizontal(1),
-                space(),
-                row![
-                    button(icon_play())
-                        .style(style::rounded_button)
-                        .on_press(Message::RunDotClean),
-                    text("Delete ._ files (dot_clean)")
-                ]
-                .align_y(Alignment::Center)
-                .spacing(10)
-            ]
-            .spacing(5)
-            .padding(10)
-            .width(Length::Fill)
-        )
-        .style(style::card)
+        os_specific
     ]
     .spacing(10)
     .padding(10)
