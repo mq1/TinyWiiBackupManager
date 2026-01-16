@@ -19,6 +19,7 @@ use crate::{
 use iced::{
     Task, Theme,
     futures::{FutureExt, TryFutureExt},
+    widget::operation::{self, AbsoluteOffset},
     window,
 };
 use std::{path::PathBuf, time::Duration};
@@ -43,6 +44,9 @@ pub struct State {
     pub filtered_hbc_indices: Box<[usize]>,
     pub transfer_stack: Vec<PathBuf>,
     pub half_sec_anim_state: bool,
+    pub games_scroll_offset: AbsoluteOffset,
+    pub hbc_scroll_offset: AbsoluteOffset,
+    pub osc_scroll_offset: AbsoluteOffset,
 }
 
 impl State {
@@ -70,6 +74,9 @@ impl State {
             filtered_game_indices: Box::new([]),
             filtered_osc_indices: Box::new([]),
             filtered_hbc_indices: Box::new([]),
+            games_scroll_offset: AbsoluteOffset::default(),
+            hbc_scroll_offset: AbsoluteOffset::default(),
+            osc_scroll_offset: AbsoluteOffset::default(),
         };
 
         let tasks = Task::batch(vec![
@@ -115,7 +122,7 @@ impl State {
                     game.wiitdb_info = None;
                 }
 
-                let task = match screen {
+                let load_disc_info_task = match screen {
                     Screen::GameInfo(i) => {
                         let game = &mut self.games[i];
                         game.wiitdb_info = self
@@ -127,8 +134,15 @@ impl State {
                     _ => Task::none(),
                 };
 
+                let scroll_task = match screen {
+                    Screen::Games => operation::scroll_to("games_scroll", self.games_scroll_offset),
+                    Screen::HbcApps => operation::scroll_to("hbc_scroll", self.hbc_scroll_offset),
+                    Screen::Osc => operation::scroll_to("osc_scroll", self.osc_scroll_offset),
+                    _ => Task::none(),
+                };
+
                 self.screen = screen;
-                task
+                Task::batch(vec![load_disc_info_task, scroll_task])
             }
             Message::RefreshGamesAndApps => Task::batch(vec![
                 game::get_list_games_task(self),
@@ -512,6 +526,18 @@ impl State {
                     },
                     Message::GenericResult,
                 )
+            }
+            Message::UpdateGamesScrollOffset(offset) => {
+                self.games_scroll_offset = offset;
+                Task::none()
+            }
+            Message::UpdateHbcScrollOffset(offset) => {
+                self.hbc_scroll_offset = offset;
+                Task::none()
+            }
+            Message::UpdateOscScrollOffset(offset) => {
+                self.osc_scroll_offset = offset;
+                Task::none()
             }
         }
     }

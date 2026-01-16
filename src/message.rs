@@ -10,6 +10,7 @@ use crate::{
     ui::Screen,
     wiitdb,
 };
+use iced::widget::operation::AbsoluteOffset;
 use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
@@ -28,6 +29,9 @@ pub enum Message {
     GotDriveUsage(String),
     ChangeTheme,
     OpenDataDir,
+    UpdateGamesScrollOffset(AbsoluteOffset),
+    UpdateHbcScrollOffset(AbsoluteOffset),
+    UpdateOscScrollOffset(AbsoluteOffset),
 
     // Games
     GotGames(Result<Box<[Game]>, String>),

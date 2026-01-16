@@ -56,6 +56,8 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 .padding(padding::left(15).right(25).top(10)),
                 content
             ])
+            .id("hbc_scroll")
+            .on_scroll(|s| Message::UpdateHbcScrollOffset(s.absolute_offset()))
         ]
         .into()
     } else {
