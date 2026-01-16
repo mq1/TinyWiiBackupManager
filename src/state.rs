@@ -16,7 +16,11 @@ use crate::{
     util::{self, FuzzySearchable},
     wiitdb,
 };
-use iced::{Task, Theme, window};
+use iced::{
+    Task, Theme,
+    futures::{FutureExt, TryFutureExt},
+    window,
+};
 use std::{path::PathBuf, time::Duration};
 
 pub struct State {
@@ -494,6 +498,19 @@ impl State {
             Message::GotDiscInfo(i, res) => {
                 self.games[i].disc_info = Some(res);
                 Task::none()
+            }
+            Message::RunDotClean => {
+                let mount_point = self.config.get_drive_path().to_path_buf();
+
+                Task::perform(
+                    async move {
+                        match util::run_dot_clean(mount_point).await {
+                            Ok(()) => Ok("dot_clean successful".to_string()),
+                            Err(e) => Err(e.to_string()),
+                        }
+                    },
+                    Message::GenericResult,
+                )
             }
         }
     }

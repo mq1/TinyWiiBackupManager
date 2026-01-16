@@ -6,7 +6,9 @@ use iced::{
     Alignment, Element, Length,
     widget::{button, column, container, row, rule, space, text},
 };
-use lucide_icons::iced::{icon_cloud_download, icon_tool_case, icon_wand_sparkles};
+use lucide_icons::iced::{
+    icon_apple, icon_cloud_download, icon_play, icon_tool_case, icon_wand_sparkles,
+};
 
 pub fn view(_state: &State) -> Element<'_, Message> {
     column![
@@ -21,6 +23,25 @@ pub fn view(_state: &State) -> Element<'_, Message> {
                         .style(style::rounded_button)
                         .on_press(Message::DownloadWiitdbToDrive),
                     text("Update wiitdb.xml (overwrites existing one)")
+                ]
+                .align_y(Alignment::Center)
+                .spacing(10)
+            ]
+            .spacing(5)
+            .padding(10)
+            .width(Length::Fill)
+        )
+        .style(style::card),
+        container(
+            column![
+                row![icon_apple(), text("macOS")].spacing(5),
+                rule::horizontal(1),
+                space(),
+                row![
+                    button(icon_play())
+                        .style(style::rounded_button)
+                        .on_press(Message::RunDotClean),
+                    text("Delete ._ files (dot_clean)")
                 ]
                 .align_y(Alignment::Center)
                 .spacing(10)

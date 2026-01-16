@@ -28,7 +28,6 @@ pub enum Message {
     GotDriveUsage(String),
     ChangeTheme,
     OpenDataDir,
-    DownloadWiitdbToDrive,
 
     // Games
     GotGames(Result<Box<[Game]>, String>),
@@ -65,6 +64,10 @@ pub enum Message {
     InstallOscApp(usize, bool),
     AppInstalled(Result<String, String>),
     OpenOscPage(usize),
+
+    // Toolbox
+    DownloadWiitdbToDrive,
+    RunDotClean,
 
     // Settings
     UpdateWiiOutputFormat(nod::common::Format),

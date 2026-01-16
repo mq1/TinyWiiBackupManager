@@ -117,12 +117,23 @@ pub fn can_write_over_4gb(mount_point: &Path) -> bool {
 }
 
 #[cfg(target_os = "macos")]
-pub async fn run_dot_clean(mount_point: &Path) -> io::Result<std::process::ExitStatus> {
-    smol::process::Command::new("dot_clean")
+pub async fn run_dot_clean(mount_point: PathBuf) -> Result<()> {
+    let status = smol::process::Command::new("dot_clean")
         .arg("-m")
         .arg(mount_point)
         .status()
-        .await
+        .await;
+
+    match status {
+        Ok(status) => {
+            if !status.success() {
+                Err(anyhow!("dot_clean failed"))
+            } else {
+                Ok(())
+            }
+        }
+        Err(e) => Err(anyhow!("dot_clean failed: {}", e)),
+    }
 }
 
 pub async fn scan_for_discs(path: PathBuf) -> io::Result<Box<[PathBuf]>> {
