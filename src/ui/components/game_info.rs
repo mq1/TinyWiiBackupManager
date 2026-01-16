@@ -191,7 +191,7 @@ pub fn view(state: &State, game_i: usize) -> Element<'_, Message> {
 
     let col = column![
         row![icon_gamepad_2().size(19), text(&game.title).size(18)].spacing(5),
-        row![icon_folder(), text("Path:"), text(game.get_path_str())].spacing(5),
+        row![icon_folder(), text!("Path: {}", game.get_path_str())].spacing(5),
         rule::horizontal(1),
         scrollable(
             column![disc_info, rule::horizontal(1), wiitdb_info]
