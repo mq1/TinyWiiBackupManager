@@ -41,7 +41,12 @@ pub fn view(state: &State) -> Element<'_, Message> {
             scrollable(column![
                 row![
                     icon_waves().size(18),
-                    text!("Homebrew Channel Apps ({})", size).size(18),
+                    text!(
+                        "Homebrew Channel Apps: {} found ({})",
+                        state.hbc_apps.len(),
+                        size
+                    )
+                    .size(18),
                     space::horizontal(),
                     icon_hard_drive(),
                     text(&state.drive_usage).size(16),
