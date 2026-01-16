@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 Manuel Quarneti <mq1@ik.me>
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::app::App;
@@ -21,7 +21,7 @@ pub fn update(ctx: &egui::Context, app: &mut App) {
                 ui.add_space(4.);
                 ui.heading(env!("CARGO_PKG_NAME"));
                 ui.label(format!("{} Version {}", ph::PUSH_PIN, env!("CARGO_PKG_VERSION")));
-                ui.label(format!("© 2025 Manuel Quarneti | {} GPL-3.0-only", ph::FILE_TEXT));
+                ui.label(format!("© 2026 Manuel Quarneti | {} GPL-3.0-only", ph::FILE_TEXT));
             });
         });
 

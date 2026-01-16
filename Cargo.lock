@@ -4,7 +4,7 @@ version = 4
 
 [[package]]
 name = "TinyWiiBackupManager"
-version = "4.9.22"
+version = "4.9.23"
 dependencies = [
  "anyhow",
  "capitalize",

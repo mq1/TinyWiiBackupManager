@@ -12,7 +12,7 @@ build = "build.rs"
 
 [package.metadata.winresource]
 OriginalFilename = "TinyWiiBackupManager.exe"
-LegalCopyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-3.0-only."
+LegalCopyright = "Copyright © 2026 Manuel Quarneti. Licensed under GPL-3.0-only."
 
 [dependencies]
 egui_extras = { version = "0.33", features = ["image", "file"] }
