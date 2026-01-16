@@ -7,7 +7,7 @@ use crate::{
     ui::{components, style},
 };
 use iced::{
-    Element, Length,
+    Element, Length, padding,
     widget::{button, column, image, row, rule, scrollable, space, stack, text},
 };
 use lucide_icons::iced::{
@@ -54,6 +54,7 @@ pub fn view(state: &State, hbc_i: usize) -> Element<'_, Message> {
                 .on_press(Message::AskDeleteHbcApp(hbc_i)),
         ]
         .spacing(5)
+        .padding(padding::top(5))
     ]
     .spacing(5)
     .padding(10);
