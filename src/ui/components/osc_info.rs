@@ -13,7 +13,7 @@ use iced::{
 };
 use lucide_icons::iced::{
     icon_calendar, icon_clipboard_list, icon_cloud_download, icon_computer, icon_flag,
-    icon_folders, icon_globe, icon_monitor_up, icon_package, icon_shopping_bag, icon_tag, icon_usb,
+    icon_folders, icon_globe, icon_monitor_up, icon_package, icon_store, icon_tag, icon_usb,
     icon_users, icon_weight,
 };
 
@@ -21,7 +21,7 @@ pub fn view(state: &State, osc_i: usize) -> Element<'_, Message> {
     let app = &state.osc_apps[osc_i];
 
     let col = column![
-        row![icon_shopping_bag().size(18), text(&app.name).size(18)].spacing(5),
+        row![icon_store().size(18), text(&app.name).size(18)].spacing(5),
         rule::horizontal(1),
         row![icon_tag(), text("Version:"), text(&app.version)].spacing(5),
         row![
