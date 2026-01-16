@@ -20,26 +20,23 @@ pub fn view(state: &State, hbc_i: usize) -> Element<'_, Message> {
 
     let col = column![
         row![icon_waves().size(18), text(&app.meta.name).size(18)].spacing(5),
-        row![icon_folder(), text("Path:"), text(app.get_path_str())].spacing(5),
+        row![icon_folder(), text!("Path: {}", app.get_path_str())].spacing(5),
         rule::horizontal(1),
-        row![icon_tag(), text("Version:"), text(&app.meta.version)].spacing(5),
+        row![icon_tag(), text!("Version: {}", &app.meta.version)].spacing(5),
         row![
             components::developers::get_icon(&app.meta.coder),
-            text("Coder:"),
-            text(&app.meta.coder)
+            text!("Coder: {}", &app.meta.coder)
         ]
         .spacing(5),
         row![
             icon_calendar(),
-            text("Release Date:"),
-            text(app.meta.release_date.to_string())
+            text!("Release Date: {}", &app.meta.release_date)
         ]
         .spacing(5),
-        row![icon_weight(), text("Size:"), text(app.size.to_string())].spacing(5),
+        row![icon_weight(), text!("Size: {}", app.size)].spacing(5),
         row![
             icon_clipboard_list(),
-            text("Short Description:"),
-            text(&app.meta.short_description)
+            text!("Short Description: {}", &app.meta.short_description)
         ]
         .spacing(5),
         rule::horizontal(1),
