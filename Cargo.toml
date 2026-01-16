@@ -1,6 +1,6 @@
 [package]
 name = "TinyWiiBackupManager"
-version = "4.9.22"
+version = "4.9.23"
 rust-version = "1.92"
 edition = "2024"
 authors = ["Manuel Quarneti <mq1@ik.me>"]
@@ -10,17 +10,9 @@ homepage = "https://github.com/mq1/TinyWiiBackupManager/wiki"
 description = "A tiny game backup and homebrew app manager for the Wii"
 build = "build.rs"
 
-[package.metadata.packager]
-product-name = "TinyWiiBackupManager"
-identifier = "it.mq1.TinyWiiBackupManager"
-icons = ["assets/TinyWiiBackupManager@2x.png"]
-copyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-3.0-only."
-category = "Utility"
-macos.minimumSystemVersion = "MACOS_MIN_SYS_VER"
-
 [package.metadata.winresource]
 OriginalFilename = "TinyWiiBackupManager.exe"
-LegalCopyright = "Copyright © 2025 Manuel Quarneti. Licensed under GPL-3.0-only."
+LegalCopyright = "Copyright © 2026 Manuel Quarneti. Licensed under GPL-3.0-only."
 
 [dependencies]
 egui_extras = { version = "0.33", features = ["image", "file"] }
@@ -35,7 +27,7 @@ directories = "6.0"
 anyhow = "1.0"
 fs_extra = "1.3"
 size = { version = "0.5", features = ["serde"] }
-zip = { version = "7.0", default-features = false, features = [
+zip = { version = "7.1", default-features = false, features = [
   "deflate-flate2",
 ] }
 quick-xml = { version = "0.38", features = ["serialize"] }
@@ -116,9 +108,6 @@ csd-freetype = ["winit/wayland-csd-adwaita-crossfont"]
 
 [target.'cfg(windows)'.build-dependencies]
 winresource = "0.1"
-
-[target.'cfg(all(target_vendor = "pc", target_env = "msvc"))'.build-dependencies]
-static_vcruntime = "3.0"
 
 [profile.release]
 opt-level = 3

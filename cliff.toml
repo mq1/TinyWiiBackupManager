@@ -11,19 +11,25 @@ body = """
             {{ commit.message | upper_first }}\
     {% endfor %}
 {% endfor %}
+
+## :arrow_down: Quick download links
+:arrow_right: [Windows Installer](https://github.com/mq1/TinyWiiBackupManagerInstaller/releases/latest/download/TinyWiiBackupManagerInstaller.exe)\\
+:arrow_right: [macOS universal binary](https://github.com/mq1/TinyWiiBackupManager/releases/download/{{ version }}/TinyWiiBackupManager-{{ version }}-macos-universal.dmg)\\
+:arrow_right: [Linux Flatpak](https://flathub.org/apps/details/it.mq1.TinyWiiBackupManager)
+
 """
 
 [git]
 commit_parsers = [
-  { message = "^feat", group = "<!-- 0 -->🚀 Features" },
-  { message = "^fix", group = "<!-- 1 -->🐛 Bug Fixes" },
+  { message = "^feat", group = "<!-- 0 -->:rocket: Features" },
+  { message = "^fix", group = "<!-- 1 -->:bug: Bug Fixes" },
   { message = "^doc", skip = true },
-  { message = "^perf", group = "<!-- 4 -->⚡ Performance" },
-  { message = "^refactor", group = "<!-- 2 -->🚜 Refactor" },
-  { message = "^style", group = "<!-- 5 -->🎨 Styling" },
-  { message = "^test", group = "<!-- 6 -->🧪 Testing" },
+  { message = "^perf", group = "<!-- 4 -->:zap: Performance" },
+  { message = "^refactor", group = "<!-- 2 -->:tractor: Refactor" },
+  { message = "^style", group = "<!-- 5 -->:art: Styling" },
+  { message = "^test", group = "<!-- 6 -->:test_tube: Testing" },
   { message = "^chore|^ci", skip = true },
-  { body = ".*security", group = "<!-- 8 -->🛡️ Security" },
-  { message = "^revert", group = "<!-- 9 -->◀️ Revert" },
-  { message = ".*", group = "<!-- 10 -->💼 Other" },
+  { body = ".*security", group = "<!-- 8 -->:shield: Security" },
+  { message = "^revert", group = "<!-- 9 -->:arrow_backward: Revert" },
+  { message = ".*", group = "<!-- 10 -->:briefcase: Other" },
 ]
