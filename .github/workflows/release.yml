@@ -26,23 +26,28 @@ jobs:
       matrix:
         include:
           - target: x86_64-unknown-linux-gnu
-            runner: ubuntu-24.04
-            arch: x86_64
-            ldai-arch: x86_64
-          - target: x86_64-unknown-linux-gnu
-            runner: ubuntu-24.04
+            runner: ubuntu-22.04
             arch: x86_64-v3
-            ldai-arch: x86_64
-            rustflags: -Ctarget-cpu=x86-64-v3
+            rustflags: -C target-cpu=x86-64-v3
             cflags: -march=x86-64-v3
+            cxxflags: -march=x86-64-v3
+            linuxdeploy-bin: linuxdeploy-x86_64.AppImage
+            linuxdeploy-ai-bin: linuxdeploy-plugin-appimage-x86_64.AppImage
+          - target: x86_64-unknown-linux-gnu
+            runner: ubuntu-22.04
+            arch: x86_64
+            linuxdeploy-bin: linuxdeploy-x86_64.AppImage
+            linuxdeploy-ai-bin: linuxdeploy-plugin-appimage-x86_64.AppImage
           - target: aarch64-unknown-linux-gnu
-            runner: ubuntu-24.04-arm
+            runner: ubuntu-22.04-arm
             arch: arm64
-            ldai-arch: aarch64
+            linuxdeploy-bin: linuxdeploy-aarch64.AppImage
+            linuxdeploy-ai-bin: linuxdeploy-plugin-appimage-aarch64.AppImage
           - target: i686-unknown-linux-gnu
-            runner: ubuntu-24.04
+            runner: ubuntu-22.04
             arch: x86
-            ldai-arch: none
+            linuxdeploy-bin: linuxdeploy-i386.AppImage
+            linuxdeploy-ai-bin: linuxdeploy-plugin-appimage-i686.AppImage
 
     steps:
       - name: Checkout
@@ -50,46 +55,54 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Install LLVM 21
+        run: |
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 21
+          sudo rm /usr/bin/ld
+          sudo ln -sf $(which lld-21) /usr/bin/ld
+
       - name: Install x86 dependencies
         if: matrix.arch == 'x86'
         run: sudo apt-get install -y libc6-dev-i386
 
       - name: Install Rust toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          toolchain: 1.92
-          components: rust-src
-          cache: false # https://github.com/Swatinem/rust-cache/issues/161
+        run: |
+          rustup toolchain install 1.92 --component rust-src
+          rustup default 1.92
 
       - name: Download LinuxDeploy
-        if: matrix.ldai-arch != 'none'
         run: |
-          wget "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${{ matrix.ldai-arch }}.AppImage"
-          wget "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/continuous/linuxdeploy-plugin-appimage-${{ matrix.ldai-arch }}.AppImage"
-          chmod +x linuxdeploy-${{ matrix.ldai-arch }}.AppImage linuxdeploy-plugin-appimage-${{ matrix.ldai-arch }}.AppImage
+          wget "https://github.com/linuxdeploy/linuxdeploy/releases/latest/download/${{ matrix.linuxdeploy-bin }}"
+          wget "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/latest/download/${{ matrix.linuxdeploy-ai-bin }}"
+          chmod +x *.AppImage
 
       - name: Build binary
-        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls csd-abglyph"
+        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
         env:
           RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: ${{ matrix.rustflags }}
-          CFLAGS: ${{ matrix.cflags }}
-          CXXFLAGS: ${{ matrix.cflags }}
+          RUSTFLAGS: -C linker-plugin-lto -C link-arg=-fuse-ld=lld-21 ${{ matrix.rustflags }}
+          CC: clang-21
+          CXX: clang++-21
+          AR: llvm-ar-21
+          CFLAGS: -O3 -flto ${{ matrix.cflags }}
+          CXXFLAGS: -O3 -flto ${{ matrix.cxxflags }}
+          CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: clang-21
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: clang-21
+          CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER: clang-21
 
       - name: Package binary as tar.gz
         run: |
           mkdir dist
           cp "target/${{ matrix.target }}/release/TinyWiiBackupManager" TinyWiiBackupManager
-          chmod 755 TinyWiiBackupManager
-          touch "Rename TinyWiiBackupManager to TinyWiiBackupManager-portable to make it portable"
-          tar -I 'gzip -9' -cvf "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.tar.gz" TinyWiiBackupManager "Rename TinyWiiBackupManager to TinyWiiBackupManager-portable to make it portable"
+          tar -I 'gzip -9' -cvf "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.tar.gz" TinyWiiBackupManager
 
       - name: Package binary as AppImage
-        if: matrix.ldai-arch != 'none'
         run: |
-          ./linuxdeploy-${{ matrix.ldai-arch }}.AppImage --appdir TinyWiiBackupManager.AppDir -e target/${{ matrix.target }}/release/TinyWiiBackupManager -d assets/TinyWiiBackupManager.desktop -i assets/TinyWiiBackupManager.png --output appimage
-          mv "TinyWiiBackupManager-${{ matrix.ldai-arch }}.AppImage" "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
-          mv "TinyWiiBackupManager-${{ matrix.ldai-arch }}.AppImage.zsync" "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage.zsync"
+          ./${{ matrix.linuxdeploy-bin }} --appdir TinyWiiBackupManager.AppDir -e TinyWiiBackupManager -d assets/TinyWiiBackupManager.desktop -i assets/TinyWiiBackupManager.png --output appimage
+          mv TinyWiiBackupManager-*.AppImage "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
+          mv TinyWiiBackupManager-*.AppImage.zsync "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage.zsync"
         env:
           LDAI_UPDATE_INFORMATION: "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync"
 
@@ -101,39 +114,79 @@ jobs:
 
   build-windows:
     name: Build for Windows
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-pc-windows-gnullvm
+            runner: ubuntu-22.04
+            arch: x86_64-v3
+            rustflags: -C target-cpu=x86-64-v3
+            cflags: -march=x86-64-v3
+            cxxflags: -march=x86-64-v3
+          - target: x86_64-pc-windows-gnullvm
+            runner: ubuntu-22.04
+            arch: x86_64
+          - target: aarch64-pc-windows-gnullvm
+            runner: ubuntu-22.04
+            arch: arm64
+            platform: windows
+          - target: i686-pc-windows-gnullvm
+            runner: ubuntu-22.04
+            arch: x86
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Install llvm-mingw
+        run: |
+          wget https://github.com/mstorsjo/llvm-mingw/releases/download/20251216/llvm-mingw-20251216-ucrt-ubuntu-22.04-x86_64.tar.xz
+          tar xf llvm-mingw-20251216-ucrt-ubuntu-22.04-x86_64.tar.xz
+
+      - name: Install Rust toolchain
+        run: |
+          rustup toolchain install 1.92 --component rust-src
+          rustup default 1.92
+
+      - name: Build binary
+        run: |
+          export PATH="$PWD/llvm-mingw-20251216-ucrt-ubuntu-22.04-x86_64/bin:$PATH"
+          cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
+        env:
+          RUSTC_BOOTSTRAP: 1
+          RUSTFLAGS: -C linker-plugin-lto ${{ matrix.rustflags }}
+          CC: clang
+          CXX: clang++
+          CFLAGS: -O3 -flto ${{ matrix.cflags }}
+          CXXFLAGS: -O3 -flto ${{ matrix.cxxflags }}
+
+      - name: Package binary as zip
+        run: |
+          mkdir dist
+          cp "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" TinyWiiBackupManager.exe
+          zip -9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
+
+      - name: Upload Windows distributables
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-windows-${{ matrix.arch }}
+          path: dist/*
+
+  build-windows7:
+    name: Build for Windows 7
     runs-on: windows-2025
     strategy:
       fail-fast: false
       matrix:
         include:
-          - target: x86_64-pc-windows-msvc
-            arch: x86_64
-            features: native-tls
-            pc: windows
-          - target: x86_64-pc-windows-msvc
-            arch: x86_64-v3
-            features: native-tls
-            pc: windows
-            rustflags: -Ctarget-cpu=x86-64-v3
-            cflags: /arch:AVX2
-          - target: aarch64-pc-windows-msvc
-            arch: arm64
-            features: native-tls
-            pc: windows
-          - target: i686-pc-windows-msvc
-            arch: x86
-            features: native-tls
-            pc: windows
           - target: x86_64-win7-windows-msvc
             arch: x86_64
-            features: bundled-tls
-            pc: windows7
-            rustflags: -Ctarget-feature=+crt-static
           - target: i686-win7-windows-msvc
             arch: x86
-            features: bundled-tls
-            pc: windows7
-            rustflags: -Ctarget-feature=+crt-static
 
     steps:
       - name: Checkout
@@ -142,51 +195,29 @@ jobs:
           fetch-depth: 1
 
       - name: Install Rust toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          toolchain: 1.92
-          components: rust-src
-          cache: false # https://github.com/Swatinem/rust-cache/issues/161
-
-      - name: Cache cargo-packager
-        id: cache-cargo-packager-windows
-        uses: actions/cache@v5
-        with:
-          path: ~/.cargo/bin/cargo-packager.exe
-          key: cargo-packager-0.11.8-windows
-
-      - name: Install cargo-packager
-        if: steps.cache-cargo-packager-windows.outputs.cache-hit != 'true'
         shell: pwsh
-        run: cargo install cargo-packager --version 0.11.8 --locked
+        run: |
+          rustup toolchain install 1.92 --component rust-src
+          rustup default 1.92
 
       - name: Build binary
         shell: pwsh
-        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "${{ matrix.features }}"
+        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
         env:
           RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: ${{ matrix.rustflags }}
-          CFLAGS: ${{ matrix.cflags }}
-          CXXFLAGS: ${{ matrix.cflags }}
+          RUSTFLAGS: -C target-feature=+crt-static
 
       - name: Package binary as zip
         shell: pwsh
         run: |
           New-Item -Path "dist" -ItemType Directory
           Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination TinyWiiBackupManager.exe
-          New-Item -Path "Rename TinyWiiBackupManager.exe to TinyWiiBackupManager-portable.exe to make it portable" -ItemType File
-          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-${{ matrix.pc }}-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe "Rename TinyWiiBackupManager.exe to TinyWiiBackupManager-portable.exe to make it portable"
-
-      - name: Package binary with NSIS
-        shell: pwsh
-        run: |
-          cargo packager --release --target ${{ matrix.target }} --formats nsis
-          Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager*-setup.exe" -Destination "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-${{ matrix.pc }}-${{ matrix.arch }}-setup.exe"
+          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows7-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v4
         with:
-          name: dist-${{ matrix.pc }}-${{ matrix.arch }}
+          name: dist-windows7-${{ matrix.arch }}
           path: dist/*
 
   build-macos:
@@ -198,10 +229,9 @@ jobs:
         include:
           - target: aarch64-apple-darwin
             arch: arm64
-            min_sys_ver: "11"
           - target: x86_64-apple-darwin
             arch: x86_64
-            min_sys_ver: "10.12"
+            appdmg-suffix: -compat
 
     steps:
       - name: Checkout
@@ -210,45 +240,40 @@ jobs:
           fetch-depth: 1
 
       - name: Install Rust toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          toolchain: 1.92
-          components: rust-src
-          cache: false # https://github.com/Swatinem/rust-cache/issues/161
+        run: |
+          rustup toolchain install 1.92
+          rustup default 1.92
+          rustup target add ${{ matrix.target }}
 
-      - name: Cache cargo-packager
-        id: cache-cargo-packager-macos
-        uses: actions/cache@v5
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
         with:
-          path: ~/.cargo/bin/cargo-packager
-          key: cargo-packager-0.11.8-macos
-
-      - name: Install cargo-packager
-        if: steps.cache-cargo-packager-macos.outputs.cache-hit != 'true'
-        run: cargo install cargo-packager --version 0.11.8 --locked
+          key: ${{ matrix.arch }}
 
       - name: Build binary
-        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
+        run: cargo build --release --locked --target ${{ matrix.target }}
         env:
-          RUSTC_BOOTSTRAP: 1
-
-      - name: Set macos.minimumSystemVersion in Cargo.toml
-        run: sed -i '' 's/MACOS_MIN_SYS_VER/${{ matrix.min_sys_ver }}/' Cargo.toml
+          CFLAGS: -O3 -flto
+          CXXFLAGS: -O3 -flto
 
       - name: Build macOS app bundle
-        run: cargo packager --release --target ${{ matrix.target }} --formats app
+        run: |
+          mkdir -p TinyWiiBackupManager.app/Contents/MacOS TinyWiiBackupManager.app/Contents/Resources
+          cp "target/${{ matrix.target }}/release/TinyWiiBackupManager" TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
+          sed 's/VERSION_NAME/${{ env.VERSION_NAME }}/' assets/Info.plist > TinyWiiBackupManager.app/Contents/Info.plist
+          cp assets/TinyWiiBackupManager.icns TinyWiiBackupManager.app/Contents/Resources/TinyWiiBackupManager.icns
 
       - name: zip the app
         run: |
           mkdir dist
           ditto -c -k --sequesterRsrc --keepParent --zlibCompressionLevel 9 \
-            "target/${{ matrix.target }}/release/TinyWiiBackupManager.app" \
+            TinyWiiBackupManager.app \
             "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-${{ matrix.arch }}.zip"
 
-      - name: Create dmg (assets from sindresorhus/create-dmg)
+      - name: Create dmg
         run: |
           npx -y appdmg@0.6.6 \
-            "assets/appdmg-${{ matrix.arch }}.json" \
+            assets/appdmg${{ matrix.appdmg-suffix }}.json \
             "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-${{ matrix.arch }}.dmg"
 
       - name: Upload macOS distributables
@@ -257,14 +282,62 @@ jobs:
           name: dist-macos-${{ matrix.arch }}
           path: dist/*
 
+  build-macos-universal:
+    name: Build macOS dmg (Universal2)
+    runs-on: macos-26
+    needs: [build-macos]
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+      with:
+        fetch-depth: 1
+
+    - name: Download macOS .app distributables
+      uses: actions/download-artifact@v7
+      with:
+        pattern: "dist-macos-*"
+
+    - name: Extract the .zip distributables
+      run: |
+        ditto -x -k "dist-macos-arm64/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-arm64.zip" .
+        ditto -x -k "dist-macos-x86_64/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-x86_64.zip" dist-macos-x86_64
+
+    - name: Create the Universal2 app
+      run: |
+        lipo -create \
+          -output TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager \
+          TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager \
+          dist-macos-x86_64/TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
+        codesign --force --deep -s - TinyWiiBackupManager.app
+
+    - name: zip the app
+      run: |
+        mkdir dist
+        ditto -c -k --sequesterRsrc --keepParent --zlibCompressionLevel 9 \
+          TinyWiiBackupManager.app \
+          "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-universal.zip"
+
+    - name: Create dmg (assets from sindresorhus/create-dmg)
+      run: |
+        npx -y appdmg@0.6.6 \
+          assets/appdmg.json \
+          "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-universal.dmg"
+
+    - name: Upload macOS distributables
+      uses: actions/upload-artifact@v4
+      with:
+        name: dist-macos-universal
+        path: dist/*
+
   # ==================================================================================
   #  Release Job: Collects all artifacts and creates a single GitHub Release.
   # ==================================================================================
   release:
     name: Create GitHub Release
     if: github.ref_type == 'tag'
-    runs-on: ubuntu-24.04
-    needs: [build-linux, build-windows, build-macos]
+    runs-on: ubuntu-slim
+    needs: [build-linux, build-windows, build-macos, build-macos-universal]
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -273,7 +346,7 @@ jobs:
           fetch-tags: true
 
       - name: Download distributables
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           path: dist
           pattern: "dist-*" # This pattern will match all final distributable artifacts
@@ -285,7 +358,9 @@ jobs:
           echo -n "${plain_ver}" > version.txt  # Write without line break
 
       - name: Generate changelog
-        run: npx -y git-cliff@latest --current -o CHANGELOG.md
+        uses: orhun/git-cliff-action@v4
+        with:
+          args: --current
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -293,7 +368,7 @@ jobs:
           files: |
             dist/*
             version.txt
-          body_path: CHANGELOG.md
+          body_path: git-cliff/CHANGELOG.md
           prerelease: ${{ contains(env.VERSION_NAME, 'alpha') || contains(env.VERSION_NAME, 'beta') || contains(env.VERSION_NAME, 'rc') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -301,7 +376,7 @@ jobs:
   scoop:
     name: Update scoop bucket
     if: github.ref_type == 'tag'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     needs: [release]
     steps:
       - name: Checkout
@@ -311,7 +386,7 @@ jobs:
           fetch-depth: 1
 
       - name: Download distributables
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           path: dist
           pattern: "dist-windows-*"
@@ -324,11 +399,12 @@ jobs:
           arm64_hash=$(sha256sum dist/TinyWiiBackupManager-${VERSION_NAME}-windows-arm64.zip | cut -d' ' -f1)
           x86_hash=$(sha256sum dist/TinyWiiBackupManager-${VERSION_NAME}-windows-x86.zip | cut -d' ' -f1)
 
-          cp assets/scoop-template.json bucket/TinyWiiBackupManager.json
-          sed -i "s/PLAIN_VER/${plain_ver}/g" bucket/TinyWiiBackupManager.json
-          sed -i "s/X86_64_HASH/${x86_64_hash}/g" bucket/TinyWiiBackupManager.json
-          sed -i "s/ARM64_HASH/${arm64_hash}/g" bucket/TinyWiiBackupManager.json
-          sed -i "s/X86_HASH/${x86_hash}/g" bucket/TinyWiiBackupManager.json
+          sed \
+            -e "s/PLAIN_VER/${plain_ver}/g" \
+            -e "s/X86_64_HASH/${x86_64_hash}/g" \
+            -e "s/ARM64_HASH/${arm64_hash}/g" \
+            -e "s/X86_HASH/${x86_hash}/g" \
+            assets/scoop-template.json > bucket/TinyWiiBackupManager.json
 
       - name: Commit and push changes
         run: |
