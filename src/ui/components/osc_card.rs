@@ -20,7 +20,7 @@ pub fn view(state: &State, i: usize) -> Element<'_, Message> {
             icon_pin().size(12),
             my_tooltip::view(text(app.get_trimmed_version_str()), &app.version),
             space::horizontal(),
-            text(&app.uncompressed_size)
+            text!("{}", app.uncompressed_size)
         ]
         .spacing(5)
         .align_y(Alignment::Center),

@@ -13,7 +13,7 @@ use std::{
     path::{Path, PathBuf},
     time::Duration,
 };
-use time::Date;
+use time::{Date, OffsetDateTime};
 
 const CONTENTS_URL: &str = "https://hbb1.oscwii.org/api/v4/contents";
 
@@ -152,36 +152,19 @@ pub struct OscAppMeta {
     #[serde(default)]
     pub supported_platforms: Box<[Platform]>,
 
-    #[serde(deserialize_with = "size_to_string")]
     #[serde(default)]
-    pub uncompressed_size: String,
+    pub uncompressed_size: Size,
 
     #[serde(default)]
     pub version: String,
 
-    #[serde(deserialize_with = "timestamp_to_date")]
-    #[serde(default = "min_date")]
-    pub release_date: Date,
+    #[serde(deserialize_with = "time::serde::timestamp::deserialize")]
+    #[serde(default = "unix_epoch")]
+    pub release_date: OffsetDateTime,
 }
 
-fn size_to_string<'de, D>(deserializer: D) -> Result<String, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let size = Size::deserialize(deserializer)?;
-    Ok(size.to_string())
-}
-
-fn timestamp_to_date<'de, D>(deserializer: D) -> Result<Date, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let date_time = time::serde::timestamp::deserialize(deserializer)?;
-    Ok(date_time.date())
-}
-
-fn min_date() -> Date {
-    Date::MIN
+fn unix_epoch() -> OffsetDateTime {
+    OffsetDateTime::UNIX_EPOCH
 }
 
 #[derive(Debug, Clone, Deserialize, Default)]

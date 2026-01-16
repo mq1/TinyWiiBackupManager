@@ -11,6 +11,7 @@ use iced::{
     Element, Length, padding,
     widget::{button, column, image, row, rule, scrollable, space, stack, text},
 };
+use itertools::Itertools;
 use lucide_icons::iced::{
     icon_calendar, icon_clipboard_list, icon_cloud_download, icon_computer, icon_flag,
     icon_folders, icon_globe, icon_monitor_up, icon_package, icon_store, icon_tag, icon_usb,
@@ -23,31 +24,24 @@ pub fn view(state: &State, osc_i: usize) -> Element<'_, Message> {
     let col = column![
         row![icon_store().size(18), text(&app.name).size(18)].spacing(5),
         rule::horizontal(1),
-        row![icon_tag(), text("Version:"), text(&app.version)].spacing(5),
+        row![icon_tag(), text!("Version: {}", &app.version)].spacing(5),
         row![
             components::developers::get_icon(&app.author),
-            text("Author:"),
-            text(&app.author)
+            text!("Author: {}", &app.author)
         ]
         .spacing(5),
-        row![icon_users(), text("Authors:"), text(app.authors.join(", "))].spacing(5),
-        row![icon_tag(), text("Category:"), text(&app.category)].spacing(5),
+        row![icon_users(), text!("Authors: {}", app.authors.join(", "))].spacing(5),
+        row![icon_tag(), text!("Category: {}", &app.category)].spacing(5),
         row![
             icon_users(),
-            text("Contributors:"),
-            text(app.contributors.join(", "))
+            text!("Contributors: {}", app.contributors.join(", "))
         ]
         .spacing(5),
-        row![
-            icon_cloud_download(),
-            text("Downloads:"),
-            text(app.downloads)
-        ]
-        .spacing(5),
+        row![icon_cloud_download(), text!("Downloads: {}", app.downloads)].spacing(5),
         row![
             icon_flag(),
-            text("Flags:"),
-            text(
+            text!(
+                "Flags: {}",
                 app.flags
                     .iter()
                     .map(Flag::as_str)
@@ -58,56 +52,46 @@ pub fn view(state: &State, osc_i: usize) -> Element<'_, Message> {
         .spacing(5),
         row![
             icon_package(),
-            text("Package Type:"),
-            text(app.package_type.as_str())
+            text!("Package Type: {}", app.package_type.as_str())
         ]
         .spacing(5),
         row![
             icon_usb(),
-            text("Peripherals:"),
-            text(
-                app.peripherals
-                    .iter()
-                    .map(Peripheral::as_str)
-                    .collect::<Vec<_>>()
-                    .join(", ")
+            text!(
+                "Peripherals: {}",
+                app.peripherals.iter().map(Peripheral::as_str).join(", ")
             )
         ]
         .spacing(5),
         row![
             icon_calendar(),
-            text("Release Date:"),
-            text(app.release_date.to_string())
+            text!("Release Date: {}", app.release_date.date())
         ]
         .spacing(5),
         row![
             icon_folders(),
-            text("Subdirectories:"),
-            text(app.subdirectories.join(", "))
+            text!("Subdirectories: {}", app.subdirectories.join(", "))
         ]
         .spacing(5),
         row![
             icon_computer(),
-            text("Supported Platforms:"),
-            text(
+            text!(
+                "Supported Platforms: {}",
                 app.supported_platforms
                     .iter()
                     .map(Platform::as_str)
-                    .collect::<Vec<_>>()
                     .join(", ")
             )
         ]
         .spacing(5),
         row![
             icon_weight(),
-            text("Uncompressed Size:"),
-            text(&app.uncompressed_size)
+            text!("Uncompressed Size: {}", app.uncompressed_size)
         ]
         .spacing(5),
         row![
             icon_clipboard_list(),
-            text("Short Description:"),
-            text(&app.description.short)
+            text!("Short Description: {}", &app.description.short)
         ]
         .spacing(5),
         rule::horizontal(1),
