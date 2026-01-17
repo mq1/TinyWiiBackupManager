@@ -102,7 +102,9 @@ panic = "abort"
 opt-level = "z"
 [profile.release.package.wgpu_core]
 opt-level = "z"
-[profile.release.package.winit]
+[profile.release.package.harfrust]
+opt-level = "z"
+[profile.release.package.skrifa]
 opt-level = "z"
 
 [profile.dev.package."*"]
