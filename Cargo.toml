@@ -122,6 +122,9 @@ codegen-units = 1
 strip = true
 panic = "abort"
 
+[profile.release.package.naga]
+opt-level = "z"
+
 [profile.dev.package."*"]
 opt-level = 1
 
