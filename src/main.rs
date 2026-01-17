@@ -38,7 +38,7 @@ pub static APP_ICON: LazyLock<Vec<u8>> = LazyLock::new(|| {
 
 fn main() -> iced::Result {
     unsafe {
-        env::set_var("SMOL_THREADS", "1");
+        env::set_var("SMOL_THREADS", "2");
     }
 
     #[cfg(target_os = "macos")]

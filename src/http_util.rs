@@ -3,18 +3,15 @@
 
 use crate::util;
 use anyhow::Result;
-use async_compat::CompatExt;
 use smol::fs;
 use std::path::Path;
 
 const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 
 pub async fn get(url: &str) -> Result<Vec<u8>> {
-    let body = bitreq::get(url)
+    let body = minreq::get(url)
         .with_header("User-Agent", USER_AGENT)
-        .send_async()
-        .compat()
-        .await?
+        .send()?
         .into_bytes();
 
     Ok(body)
