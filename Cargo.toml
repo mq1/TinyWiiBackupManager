@@ -15,6 +15,13 @@ OriginalFilename = "TinyWiiBackupManager.exe"
 LegalCopyright = "Copyright © 2026 Manuel Quarneti. Licensed under GPL-3.0-only."
 
 [dependencies]
+iced = { version = "0.14", default-features = false, features = [
+  "smol",
+  "image-without-codecs",
+  "linux-theme-detection",
+  "x11",
+  "wayland",
+] }
 lucide-icons = { version = "0.562", features = ["iced"] }
 image = { version = "0.25", default-features = false, features = ["png"] }
 serde = { version = "1.0", features = ["derive"] }
@@ -42,72 +49,43 @@ soft-canonicalize = "0.5"
 fuzzy-matcher = "0.3"
 zstd = { version = "0.13", features = ["fat-lto"] }
 minreq = "2.14"
+native-dialog = "0.9"
 
 [target.'cfg(target_os = "macos")'.dependencies]
-iced = { version = "0.14", default-features = false, features = [
-  "smol",
-  "wgpu-bare",
-  "image-without-codecs",
-  "sipper",
-] }
-wgpu = { version = "27", default-features = false, features = [
+wgpu = { version = "27", optional = true, default-features = false, features = [
   "std",
   "parking_lot",
   "metal",
 ] }
-native-dialog = "0.9"
 
 [target.'cfg(target_os = "linux")'.dependencies]
-iced = { version = "0.14", default-features = false, features = [
-  "linux-theme-detection",
-  "smol",
-  "x11",
-  "wayland",
-  "wgpu-bare",
-  "image-without-codecs",
-  "sipper",
-] }
-wgpu = { version = "27", default-features = false, features = [
+wgpu = { version = "27", optional = true, default-features = false, features = [
   "std",
   "parking_lot",
   "gles",
 ] }
-native-dialog = "0.9"
 
 [target.'cfg(target_vendor = "pc")'.dependencies]
-iced = { version = "0.14", default-features = false, features = [
-  "smol",
-  "wgpu-bare",
-  "image-without-codecs",
-  "sipper",
-] }
-wgpu = { version = "27", default-features = false, features = [
+wgpu = { version = "27", optional = true, default-features = false, features = [
   "std",
   "parking_lot",
   "dx12",
 ] }
-native-dialog = { version = "0.9", features = [
-  "windows_dpi_awareness",
-  "windows_visual_styles",
-] }
-
-[target.'cfg(target_vendor = "win7")'.dependencies]
-iced = { version = "0.14", default-features = false, features = [
-  "smol",
-  "tiny-skia",
-  "image-without-codecs",
-  "sipper",
-] }
-native-dialog = "0.9"
 
 [build-dependencies]
 lucide-icons = "0.562"
 zstd = "0.13"
 
 [features]
-default = ["native-tls"]
+default = ["wgpu", "native-tls"]
+wgpu = ["iced/wgpu-bare", "dep:wgpu"]
+tiny-skia = ["iced/tiny-skia"]
 native-tls = ["minreq/https-native"]
 bundled-tls = ["minreq/https-rustls"]
+common-controls-v6 = [
+  "native-dialog/windows_dpi_awareness",
+  "native-dialog/windows_visual_styles",
+]
 
 [target.'cfg(windows)'.build-dependencies]
 winresource = "0.1"
@@ -119,7 +97,12 @@ codegen-units = 1
 strip = true
 panic = "abort"
 
+# Dependencies >= 200 KiB in release
 [profile.release.package.naga]
+opt-level = "z"
+[profile.release.package.wgpu_core]
+opt-level = "z"
+[profile.release.package.winit]
 opt-level = "z"
 
 [profile.dev.package."*"]
