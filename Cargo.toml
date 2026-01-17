@@ -45,7 +45,6 @@ time = { version = "0.3", features = ["macros", "parsing", "serde"] }
 sanitize-filename = "0.7.0-beta"
 smol = "2"
 async_zip = { version = "0.0.18", features = ["deflate"] }
-soft-canonicalize = "0.5"
 fuzzy-matcher = "0.3"
 zstd = { version = "0.13", features = ["fat-lto"] }
 minreq = "2.14"
@@ -100,7 +99,7 @@ panic = "abort"
 # Dependencies >= 200 KiB in release
 [profile.release.package.naga]
 opt-level = "z"
-[profile.release.package.wgpu_core]
+[profile.release.package.wgpu-core]
 opt-level = "z"
 [profile.release.package.harfrust]
 opt-level = "z"

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{extensions::SUPPORTED_DISC_EXTENSIONS, message::Message, state::State};
-use anyhow::{Result, anyhow, bail};
+use anyhow::{Result, anyhow};
 use async_zip::base::read::seek::ZipFileReader;
 use iced::{Task, futures::future::join_all};
 use size::Size;
@@ -11,7 +11,6 @@ use smol::{
     io::{self, BufReader},
     stream::StreamExt,
 };
-use soft_canonicalize::soft_canonicalize;
 use std::{
     ffi::OsStr,
     path::{Path, PathBuf},
@@ -247,38 +246,34 @@ pub async fn extract_zip(zip_path: &Path, dest_dir: &Path) -> Result<()> {
     let mut zip = async_zip::base::read::seek::ZipFileReader::new(zip_file_reader).await?;
 
     for i in 0..zip.file().entries().len() {
-        let entry = &zip.file().entries()[i];
+        let entry = zip
+            .file()
+            .entries()
+            .get(i)
+            .ok_or_else(|| anyhow!("Failed to get entry"))?;
 
-        let filename = entry.filename().as_str()?;
-        let is_dir = entry.dir()?;
+        let path = dest_dir.join(sanitize_file_path(entry.filename().as_str()?));
 
-        if is_dir {
-            println!("  - Directory: {}", filename);
+        let entry_is_dir = entry.dir()?;
+
+        let mut entry_reader = zip.reader_without_entry(i).await?;
+
+        if entry_is_dir {
+            if !path.exists() {
+                fs::create_dir_all(&path).await?;
+            }
         } else {
-            println!("  - File: {}", filename);
+            let parent = path
+                .parent()
+                .ok_or_else(|| anyhow!("Failed to get parent dir"))?;
+
+            if !parent.is_dir() {
+                fs::create_dir_all(parent).await?;
+            }
+
+            let mut file = File::create(&path).await?;
+            io::copy(&mut entry_reader, &mut file).await?;
         }
-
-        let rel_path = Path::new(filename);
-        let dest_path = soft_canonicalize(dest_dir.join(rel_path))?;
-
-        if !dest_path.starts_with(dest_dir) {
-            bail!("Directory traversal attempt detected");
-        }
-
-        if is_dir {
-            fs::create_dir_all(&dest_path).await?;
-            continue;
-        }
-
-        let parent = dest_path
-            .parent()
-            .ok_or(anyhow!("Failed to get parent dir"))?;
-
-        let mut reader = zip.reader_without_entry(i).await?;
-
-        fs::create_dir_all(parent).await?;
-        let mut writer = File::create(dest_path).await?;
-        io::copy(&mut reader, &mut writer).await?;
     }
 
     Ok(())
@@ -289,37 +284,35 @@ pub async fn extract_zip_bytes(zip_bytes: Vec<u8>, dest_dir: &Path) -> Result<()
 
     let zip = async_zip::base::read::mem::ZipFileReader::new(zip_bytes).await?;
 
-    for (i, entry) in zip.file().entries().iter().enumerate() {
-        let filename = entry.filename().as_str()?;
-        let is_dir = entry.dir()?;
+    for i in 0..zip.file().entries().len() {
+        let entry = zip
+            .file()
+            .entries()
+            .get(i)
+            .ok_or_else(|| anyhow!("Failed to get entry"))?;
 
-        if is_dir {
-            println!("  - Directory: {}", filename);
+        let path = dest_dir.join(sanitize_file_path(entry.filename().as_str()?));
+
+        let entry_is_dir = entry.dir()?;
+
+        let mut entry_reader = zip.reader_without_entry(i).await?;
+
+        if entry_is_dir {
+            if !path.exists() {
+                fs::create_dir_all(&path).await?;
+            }
         } else {
-            println!("  - File: {}", filename);
+            let parent = path
+                .parent()
+                .ok_or_else(|| anyhow!("Failed to get parent dir"))?;
+
+            if !parent.is_dir() {
+                fs::create_dir_all(parent).await?;
+            }
+
+            let mut file = File::create(&path).await?;
+            io::copy(&mut entry_reader, &mut file).await?;
         }
-
-        let rel_path = Path::new(filename);
-        let dest_path = soft_canonicalize(dest_dir.join(rel_path))?;
-
-        if !dest_path.starts_with(dest_dir) {
-            bail!("Directory traversal attempt detected");
-        }
-
-        if is_dir {
-            fs::create_dir_all(&dest_path).await?;
-            continue;
-        }
-
-        let parent = dest_path
-            .parent()
-            .ok_or(anyhow!("Failed to get parent dir"))?;
-
-        let mut reader = zip.reader_without_entry(i).await?;
-
-        fs::create_dir_all(parent).await?;
-        let mut writer = File::create(dest_path).await?;
-        io::copy(&mut reader, &mut writer).await?;
     }
 
     Ok(())
@@ -345,4 +338,15 @@ pub async fn get_dir_size(path: PathBuf) -> io::Result<Size> {
     }
 
     Ok(Size::from_bytes(bytes))
+}
+
+/// Returns a relative path without reserved names, redundant separators, ".", or "..".
+fn sanitize_file_path(path: &str) -> PathBuf {
+    // Replaces backwards slashes
+    path.replace('\\', "/")
+        // Sanitizes each component
+        .split('/')
+        .map(sanitize_filename::sanitize)
+        .map(String::from)
+        .collect()
 }
