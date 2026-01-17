@@ -10,18 +10,12 @@ use std::path::Path;
 const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 
 pub async fn get(url: &str) -> Result<Vec<u8>> {
-    let client = reqwest::Client::new();
-
-    let body = client
-        .get(url)
-        .header("User-Agent", USER_AGENT)
-        .send()
+    let body = bitreq::get(url)
+        .with_header("User-Agent", USER_AGENT)
+        .send_async()
         .compat()
         .await?
-        .bytes()
-        .compat()
-        .await?
-        .to_vec();
+        .into_bytes();
 
     Ok(body)
 }
