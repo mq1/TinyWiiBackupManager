@@ -17,7 +17,6 @@ LegalCopyright = "Copyright © 2026 Manuel Quarneti. Licensed under GPL-3.0-only
 [dependencies]
 lucide-icons = { version = "0.562", features = ["iced"] }
 image = { version = "0.25", default-features = false, features = ["png"] }
-minreq = "2.14"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 serde_with = "3.16"
@@ -38,10 +37,12 @@ itertools = "0.14"
 time = { version = "0.3", features = ["macros", "parsing", "serde"] }
 sanitize-filename = "0.7.0-beta"
 smol = "2"
+async-compat = "0.2"
 async_zip = { version = "0.0.18", features = ["deflate"] }
 soft-canonicalize = "0.5"
 fuzzy-matcher = "0.3"
 zstd = { version = "0.13", features = ["fat-lto"] }
+bitreq = "0.3"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 iced = { version = "0.14", default-features = false, features = [
@@ -106,8 +107,8 @@ zstd = "0.13"
 
 [features]
 default = ["native-tls"]
-native-tls = ["minreq/https-native"]
-bundled-tls = ["minreq/https-rustls"]
+native-tls = ["bitreq/async-https-native-tls"]
+bundled-tls = ["bitreq/async-https-rustls"]
 
 [target.'cfg(windows)'.build-dependencies]
 winresource = "0.1"
@@ -118,6 +119,9 @@ lto = true
 codegen-units = 1
 strip = true
 panic = "abort"
+
+[profile.release.package.naga]
+opt-level = "z"
 
 [profile.dev.package."*"]
 opt-level = 1

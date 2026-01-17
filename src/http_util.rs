@@ -3,22 +3,25 @@
 
 use crate::util;
 use anyhow::Result;
+use async_compat::CompatExt;
 use smol::fs;
 use std::path::Path;
 
 const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 
-pub fn get(url: &str) -> Result<Vec<u8>> {
-    let body = minreq::get(url)
+pub async fn get(url: &str) -> Result<Vec<u8>> {
+    let body = bitreq::get(url)
         .with_header("User-Agent", USER_AGENT)
-        .send()?
+        .send_async()
+        .compat()
+        .await?
         .into_bytes();
 
     Ok(body)
 }
 
 pub async fn download_file(url: &str, dest_path: &Path) -> Result<()> {
-    let body = get(url)?;
+    let body = get(url).await?;
     fs::write(dest_path, body).await?;
 
     Ok(())
@@ -31,6 +34,6 @@ pub async fn download_and_extract_zip(uri: &str, dest_dir: &Path) -> Result<()> 
         dest_dir.display()
     );
 
-    let body = get(uri)?;
+    let body = get(uri).await?;
     util::extract_zip_bytes(body, dest_dir).await
 }
