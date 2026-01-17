@@ -28,7 +28,7 @@ use std::{env, sync::LazyLock};
 
 pub static APP_ICON: LazyLock<Vec<u8>> = LazyLock::new(|| {
     image::load_from_memory_with_format(
-        include_bytes!("../assets/TinyWiiBackupManager.png"),
+        include_bytes!("../assets/TinyWiiBackupManager@0.5x.png"),
         image::ImageFormat::Png,
     )
     .expect("Failed to load app icon")
@@ -46,7 +46,7 @@ fn main() -> iced::Result {
 
     #[cfg(not(target_os = "macos"))]
     let icon = Some(
-        window::icon::from_rgba(APP_ICON.clone(), 512, 512).expect("Failed to create window icon"),
+        window::icon::from_rgba(APP_ICON.clone(), 256, 256).expect("Failed to create window icon"),
     );
 
     let window = window::Settings {

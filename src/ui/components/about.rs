@@ -11,7 +11,7 @@ use lucide_icons::iced::{icon_folder, icon_github};
 const COPYRIGHT_TEXT: &str = "Copyright © 2026 Manuel Quarneti";
 
 pub fn view() -> Element<'static, Message> {
-    let icon_handle = image::Handle::from_rgba(512, 512, &APP_ICON[..]);
+    let icon_handle = image::Handle::from_rgba(256, 256, &APP_ICON[..]);
 
     column![
         space::vertical(),
