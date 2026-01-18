@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    game_id::GameID,
     message::Message,
     state::State,
     ui::{Screen, components::my_tooltip, style},

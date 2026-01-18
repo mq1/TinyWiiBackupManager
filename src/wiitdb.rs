@@ -37,18 +37,18 @@ impl Datafile {
         Ok(data)
     }
 
-    fn lookup(&self, game_id: [u8; 6]) -> Option<&GameInfo> {
+    fn lookup(&self, game_id: GameID) -> Option<&GameInfo> {
         self.games
             .binary_search_by_key(&game_id, |game| game.id)
             .ok()
             .map(|i| &self.games[i])
     }
 
-    pub fn get_game_info(&self, game_id: [u8; 6]) -> Option<GameInfo> {
+    pub fn get_game_info(&self, game_id: GameID) -> Option<GameInfo> {
         self.lookup(game_id).cloned()
     }
 
-    pub fn get_title(&self, game_id: [u8; 6]) -> Option<String> {
+    pub fn get_title(&self, game_id: GameID) -> Option<String> {
         self.lookup(game_id)
             .and_then(|info| info.locales.first())
             .map(|locale| locale.title.clone())
@@ -61,7 +61,7 @@ pub struct GameInfo {
     #[serde(rename = "@name")]
     pub name: String,
     #[serde(deserialize_with = "deser_id")]
-    pub id: [u8; 6],
+    pub id: GameID,
     pub region: Region,
     #[serde(deserialize_with = "deser_langs")]
     pub languages: Box<[Language]>,
@@ -80,12 +80,12 @@ pub struct GameInfo {
     pub roms: Box<[Rom]>,
 }
 
-fn deser_id<'de, D>(deserializer: D) -> Result<[u8; 6], D::Error>
+fn deser_id<'de, D>(deserializer: D) -> Result<GameID, D::Error>
 where
     D: serde::Deserializer<'de>,
 {
     let s = String::deserialize(deserializer)?;
-    let id = GameID::from_str(s.as_str());
+    let id = GameID::from(s.as_str());
     Ok(id)
 }
 

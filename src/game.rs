@@ -26,7 +26,7 @@ pub struct Game {
     pub size: Size,
     pub is_wii: bool,
     pub title: String,
-    pub id: [u8; 6],
+    pub id: GameID,
     pub disc_info: Option<Result<DiscInfo, String>>,
     pub wiitdb_info: Option<GameInfo>,
 }
@@ -45,7 +45,7 @@ impl Game {
         let (title_str, id_str) = filename.split_once(" [")?;
         let id_str = id_str.strip_suffix(']')?;
         let title = title_str.to_string();
-        let id = GameID::from_str(id_str);
+        let id = GameID::from(id_str);
 
         let size = util::get_dir_size(path.clone()).await.unwrap_or_default();
 

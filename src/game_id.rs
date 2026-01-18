@@ -1,35 +1,48 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-pub trait GameID {
-    fn from_str(s: &str) -> Self;
-    fn as_str(&self) -> &str;
-    fn as_partial_str(&self) -> &str;
-    fn as_region_str(&self) -> &str;
-    fn as_lang_str(&self) -> &str;
+use std::fmt;
+
+#[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Default)]
+pub struct GameID([u8; 6]);
+
+impl From<[u8; 6]> for GameID {
+    fn from(id: [u8; 6]) -> Self {
+        GameID(id)
+    }
 }
 
-impl GameID for [u8; 6] {
-    fn from_str(s: &str) -> Self {
+impl From<&str> for GameID {
+    fn from(s: &str) -> Self {
         let mut id = [0u8; 6];
         let bytes = s.as_bytes();
         let len = bytes.len().min(6);
         id[..len].copy_from_slice(&bytes[..len]);
-        id
+        GameID(id)
+    }
+}
+
+impl fmt::Display for GameID {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for c in self.0 {
+            write!(f, "{}", c as char)?;
+        }
+
+        Ok(())
+    }
+}
+
+impl GameID {
+    pub fn as_str(&self) -> &str {
+        std::str::from_utf8(&self.0).unwrap_or("invalid")
     }
 
-    #[inline]
-    fn as_str(&self) -> &str {
-        std::str::from_utf8(self).unwrap_or("invalid")
+    pub fn as_partial_str(&self) -> &str {
+        std::str::from_utf8(&self.0[..3]).unwrap_or("invalid")
     }
 
-    #[inline]
-    fn as_partial_str(&self) -> &str {
-        std::str::from_utf8(&self[..3]).unwrap_or("invalid")
-    }
-
-    fn as_region_str(&self) -> &'static str {
-        match self[3] {
+    pub fn as_region_str(&self) -> &'static str {
+        match self.0[3] {
             b'A' => "System Wii Channels (i.e. Mii Channel)",
             b'B' => "Ufouria: The Saga (NA)",
             b'D' => "Germany",
@@ -57,8 +70,8 @@ impl GameID for [u8; 6] {
         }
     }
 
-    fn as_lang_str(&self) -> &'static str {
-        match self[3] {
+    pub fn as_lang_str(&self) -> &'static str {
+        match self.0[3] {
             b'E' | b'N' => "US",
             b'J' => "JA",
             b'K' | b'Q' | b'T' => "KO",

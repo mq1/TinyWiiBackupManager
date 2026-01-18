@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::game_id::GameID;
 use anyhow::{Result, anyhow, bail};
 use nod::common::{Compression, Format, PartitionKind};
 use nod::read::{DiscOptions, DiscReader, PartitionEncryption, PartitionOptions};
@@ -21,7 +22,7 @@ pub struct DiscInfo {
     pub disc_path: PathBuf,
 
     // discheader
-    pub id: [u8; 6],
+    pub id: GameID,
     pub title: String,
     pub is_wii: bool,
     pub is_gc: bool,
@@ -94,7 +95,7 @@ impl DiscInfo {
             disc_path,
 
             // discheader
-            id: header.game_id,
+            id: header.game_id.into(),
             title: header.game_title_str().to_string(),
             is_wii: header.is_wii(),
             is_gc: header.is_gamecube(),

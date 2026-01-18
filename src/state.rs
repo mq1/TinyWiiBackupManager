@@ -6,7 +6,6 @@ use crate::{
     covers,
     data_dir::get_data_dir,
     game::{self, Game, Games},
-    game_id::GameID,
     hbc::{self, HbcApp, HbcApps},
     lucide,
     message::Message,

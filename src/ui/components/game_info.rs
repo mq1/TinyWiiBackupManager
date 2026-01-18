@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{game_id::GameID, message::Message, state::State, ui::style};
+use crate::{message::Message, state::State, ui::style};
 use capitalize::Capitalize;
 use iced::{
     Element, Length, padding,
@@ -55,7 +55,7 @@ pub fn view(state: &State, game_i: usize) -> Element<'_, Message> {
 
             column![
                 row![icon_chevron_right().size(19), text("Disc Header").size(18)].spacing(5),
-                row![icon_tag(), text!("ID: {}", disc_info.id.as_str())].spacing(5),
+                row![icon_tag(), text!("ID: {}", disc_info.id)].spacing(5),
                 row![
                     icon_notebook_pen(),
                     text!("Embedded Title: {}", &disc_info.title),
