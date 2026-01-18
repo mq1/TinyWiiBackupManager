@@ -315,7 +315,7 @@ async fn load_wiitdb(data_dir: PathBuf) -> Result<Datafile> {
     let wiitdb_path = data_dir.join("wiitdb.xml");
 
     if !wiitdb_path.exists() {
-        http_util::download_and_extract_zip(DOWNLOAD_URL, &data_dir).await?;
+        http_util::download_and_extract_zip(DOWNLOAD_URL.to_string(), &data_dir).await?;
     }
 
     Datafile::load(&wiitdb_path)
@@ -337,7 +337,7 @@ pub fn get_download_wiitdb_to_drive_task(state: &State) -> Task<Message> {
 
 async fn download_wiitdb_to_drive(mount_point: PathBuf) -> Result<()> {
     // Download wiitdb
-    let zip_bytes = http_util::get(DOWNLOAD_URL).await?;
+    let zip_bytes = http_util::get(DOWNLOAD_URL.to_string()).await?;
 
     // Open the archive
     let zip = ZipFileReader::new(zip_bytes).await?;

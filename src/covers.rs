@@ -21,7 +21,7 @@ async fn cache_cover3d(id: [u8; 6], cache_dir: &Path) -> Result<()> {
         id.as_str()
     );
 
-    http_util::download_file(&url, &path).await?;
+    http_util::download_file(url, &path).await?;
 
     Ok(())
 }
@@ -41,7 +41,7 @@ async fn download_cover3d(id: [u8; 6], mount_point: &Path) -> Result<()> {
         id.as_str()
     );
 
-    http_util::download_file(&url, &path).await?;
+    http_util::download_file(url, &path).await?;
 
     Ok(())
 }
@@ -65,7 +65,7 @@ async fn download_cover2d(id: [u8; 6], mount_point: &Path) -> Result<()> {
         id.as_str()
     );
 
-    http_util::download_file(&url, &path).await?;
+    http_util::download_file(url, &path).await?;
 
     Ok(())
 }
@@ -89,7 +89,7 @@ async fn download_coverfull(id: [u8; 6], mount_point: &Path) -> Result<()> {
         id.as_str()
     );
 
-    http_util::download_file(&url, &path).await?;
+    http_util::download_file(url, &path).await?;
 
     Ok(())
 }
@@ -113,7 +113,7 @@ async fn download_disc_cover(id: [u8; 6], mount_point: &Path) -> Result<()> {
         id.as_str()
     );
 
-    http_util::download_file(&url, &path).await?;
+    http_util::download_file(url, &path).await?;
 
     Ok(())
 }
@@ -133,7 +133,7 @@ async fn download_wiiflow_boxcover(id: [u8; 6], mount_point: &Path) -> Result<()
         id.as_str()
     );
 
-    http_util::download_file(&url, &path).await?;
+    http_util::download_file(url, &path).await?;
 
     Ok(())
 }
@@ -153,7 +153,7 @@ async fn download_wiiflow_cover(id: [u8; 6], mount_point: &Path) -> Result<()> {
         id.as_str()
     );
 
-    http_util::download_file(&url, &path).await?;
+    http_util::download_file(url, &path).await?;
 
     Ok(())
 }

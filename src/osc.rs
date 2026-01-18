@@ -32,7 +32,7 @@ async fn load_osc_apps(data_dir: PathBuf) -> Result<Box<[OscAppMeta]>> {
     let apps = match load_cache(&cache_path).await {
         Some(cache) => cache,
         None => {
-            let bytes = http_util::get(CONTENTS_URL).await?;
+            let bytes = http_util::get(CONTENTS_URL.to_string()).await?;
             fs::write(&cache_path, &bytes).await?;
             serde_json::from_slice(&bytes)?
         }
@@ -68,10 +68,10 @@ pub fn get_download_icons_task(state: &State) -> Task<Message> {
                 .await
                 .map_err(|e| e.to_string())?;
 
-            for app in &osc_apps {
-                let icon_path = icons_dir.join(&app.slug).with_extension("png");
+            for app in osc_apps.into_iter() {
+                let icon_path = icons_dir.join(app.slug).with_extension("png");
                 if !icon_path.exists() {
-                    let _ = http_util::download_file(&app.assets.icon.url, &icon_path).await;
+                    let _ = http_util::download_file(app.assets.icon.url, &icon_path).await;
                 }
             }
 
@@ -98,7 +98,7 @@ impl OscAppMeta {
 
         Task::perform(
             async move {
-                http_util::download_and_extract_zip(&url, &mount_point)
+                http_util::download_and_extract_zip(url, &mount_point)
                     .await
                     .map_err(|e| e.to_string())?;
                 Ok(name)

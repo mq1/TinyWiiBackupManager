@@ -3,34 +3,55 @@
 
 use crate::util;
 use anyhow::Result;
-use smol::fs;
-use std::path::Path;
+use minreq::Response;
+use smol::{
+    channel::{Sender, bounded, unbounded},
+    fs,
+};
+use std::{path::Path, sync::LazyLock};
 
 const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 
-pub async fn get(url: &str) -> Result<Vec<u8>> {
-    let body = minreq::get(url)
-        .with_header("User-Agent", USER_AGENT)
-        .send()?
-        .into_bytes();
+type Job = (String, Sender<Result<Vec<u8>>>);
 
-    Ok(body)
+static HTTP_WORKER: LazyLock<Sender<Job>> = LazyLock::new(|| {
+    let (tx, rx) = unbounded::<Job>();
+
+    std::thread::spawn(move || {
+        while let Ok((url, reply_tx)) = rx.recv_blocking() {
+            let res = minreq::get(&url)
+                .with_header("User-Agent", USER_AGENT)
+                .send()
+                .map(Response::into_bytes)
+                .map_err(Into::into);
+
+            let _ = reply_tx.send_blocking(res);
+        }
+    });
+
+    tx
+});
+
+pub async fn get(url: String) -> Result<Vec<u8>> {
+    let (reply_tx, reply_rx) = bounded(1);
+    HTTP_WORKER.send((url, reply_tx)).await?;
+    reply_rx.recv().await?
 }
 
-pub async fn download_file(url: &str, dest_path: &Path) -> Result<()> {
+pub async fn download_file(url: String, dest_path: &Path) -> Result<()> {
     let body = get(url).await?;
     fs::write(dest_path, body).await?;
 
     Ok(())
 }
 
-pub async fn download_and_extract_zip(uri: &str, dest_dir: &Path) -> Result<()> {
+pub async fn download_and_extract_zip(url: String, dest_dir: &Path) -> Result<()> {
     println!(
         "Downloading and extracting \"{}\" into \"{}\"",
-        uri,
+        &url,
         dest_dir.display()
     );
 
-    let body = get(uri).await?;
+    let body = get(url).await?;
     util::extract_zip_bytes(body, dest_dir).await
 }
