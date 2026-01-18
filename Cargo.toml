@@ -57,18 +57,11 @@ wgpu = { version = "27", optional = true, default-features = false, features = [
   "metal",
 ] }
 
-[target.'cfg(target_os = "linux")'.dependencies]
+[target.'cfg(not(target_os = "macos"))'.dependencies]
 wgpu = { version = "27", optional = true, default-features = false, features = [
   "std",
   "parking_lot",
   "gles",
-] }
-
-[target.'cfg(target_vendor = "pc")'.dependencies]
-wgpu = { version = "27", optional = true, default-features = false, features = [
-  "std",
-  "parking_lot",
-  "dx12",
 ] }
 
 [build-dependencies]
