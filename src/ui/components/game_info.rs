@@ -117,7 +117,7 @@ pub fn view(state: &State, game_i: usize) -> Element<'_, Message> {
         Some(info) => column![
             row![icon_chevron_right().size(19), text("GameTDB Info").size(18)].spacing(5),
             row![icon_tag(), text!("Name: {}", &info.name)].spacing(5),
-            row![icon_earth(), text!("Region: {}", info.region.as_str())].spacing(5),
+            row![icon_earth(), text!("Region: {}", info.region)].spacing(5),
             row![
                 icon_languages(),
                 text!(
@@ -163,7 +163,11 @@ pub fn view(state: &State, game_i: usize) -> Element<'_, Message> {
                 text!(
                     "WiFi: {} Players • {}",
                     info.wifi.players,
-                    info.wifi.features.iter().map(|f| f.as_ref()).join(", ")
+                    info.wifi
+                        .features
+                        .iter()
+                        .map(<&'static str>::from)
+                        .join(", ")
                 )
             ]
             .spacing(5),
@@ -177,7 +181,7 @@ pub fn view(state: &State, game_i: usize) -> Element<'_, Message> {
                         .iter()
                         .map(|c| format!(
                             "{} ({})",
-                            c.r#type.as_ref(),
+                            c.r#type,
                             if c.required { "Required" } else { "Optional" }
                         ))
                         .join(", ")

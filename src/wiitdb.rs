@@ -65,6 +65,7 @@ pub struct GameInfo {
     pub name: String,
     #[serde(deserialize_with = "deser_id")]
     pub id: GameID,
+    #[serde_as(as = "DisplayFromStr")]
     pub region: Region,
     #[serde_as(as = "StringWithSeparator::<CommaSeparator, Language>")]
     pub languages: Box<[Language]>,
@@ -142,8 +143,9 @@ pub struct Wifi {
     pub features: Box<[WifiFeature]>,
 }
 
-#[derive(Debug, Clone, Deserialize, strum_macros::Display, strum_macros::AsRefStr)]
-#[serde(rename_all = "lowercase")]
+#[derive(
+    Debug, Clone, Deserialize, Default, strum_macros::Display, strum_macros::IntoStaticStr,
+)]
 pub enum WifiFeature {
     NintendoDS,
     Online,
@@ -151,6 +153,8 @@ pub enum WifiFeature {
     Score,
     Download,
     MessageBoard,
+
+    #[default]
     Unknown,
 }
 
@@ -192,8 +196,9 @@ pub struct Control {
     pub r#type: ControlType,
 }
 
-#[derive(Debug, Clone, Deserialize, Default, strum_macros::Display, strum_macros::AsRefStr)]
-#[serde(rename_all = "lowercase")]
+#[derive(
+    Debug, Clone, Deserialize, Default, strum_macros::Display, strum_macros::IntoStaticStr,
+)]
 pub enum ControlType {
     Wiimote,
     Nunchuk,
@@ -323,40 +328,37 @@ impl FromStr for Language {
     }
 }
 
-#[derive(Debug, Default, Clone)]
+#[derive(
+    Debug, Default, Clone, Deserialize, strum_macros::Display, strum_macros::IntoStaticStr,
+)]
 pub enum Region {
+    #[strum(serialize = "NTSC-U")]
     NtscU,
+
+    #[strum(serialize = "NTSC-J")]
     NtscJ,
+
+    #[strum(serialize = "NTSC-K")]
     NtscK,
+
+    #[strum(serialize = "NTSC-T")]
     NtscT,
+
+    #[strum(serialize = "PAL")]
     Pal,
+
+    #[strum(serialize = "PAL-R")]
     PalR,
 
     #[default]
     Unknown,
 }
 
-impl Region {
-    pub fn as_str(&self) -> &str {
-        match self {
-            Region::NtscJ => "NTSC-J",
-            Region::NtscU => "NTSC-U",
-            Region::NtscK => "NTSC-K",
-            Region::NtscT => "NTSC-T",
-            Region::Pal => "PAL",
-            Region::PalR => "PAL-R",
-            Region::Unknown => "Unknown",
-        }
-    }
-}
+impl FromStr for Region {
+    type Err = &'static str;
 
-impl<'de> Deserialize<'de> for Region {
-    fn deserialize<D>(deserializer: D) -> Result<Region, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        let s = String::deserialize(deserializer)?;
-        Ok(match s.as_str() {
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let r = match s {
             "NTSC-U" => Region::NtscU,
             "NTSC-J" => Region::NtscJ,
             "NTSC-K" => Region::NtscK,
@@ -364,7 +366,9 @@ impl<'de> Deserialize<'de> for Region {
             "PAL" => Region::Pal,
             "PAL-R" => Region::PalR,
             _ => Region::Unknown,
-        })
+        };
+
+        Ok(r)
     }
 }
 
