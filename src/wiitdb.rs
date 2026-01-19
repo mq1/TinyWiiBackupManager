@@ -74,7 +74,7 @@ pub struct GameInfo {
     pub developer: Option<String>,
     pub publisher: Option<String>,
     pub date: Date,
-    #[serde(deserialize_with = "deser_genres")]
+    #[serde_as(as = "StringWithSeparator::<CommaSeparator, String>")]
     pub genre: Box<[String]>,
     pub rating: Rating,
     #[serde(rename = "wi-fi")]
@@ -91,15 +91,6 @@ where
     let s = String::deserialize(deserializer)?;
     let id = GameID::try_from(s.as_str()).map_err(serde::de::Error::custom)?;
     Ok(id)
-}
-
-fn deser_genres<'de, D>(deserializer: D) -> Result<Box<[String]>, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    let s = String::deserialize(deserializer)?;
-    let genres = s.split(',').map(str::to_string).collect();
-    Ok(genres)
 }
 
 #[derive(Debug, Deserialize, Default, Clone)]
