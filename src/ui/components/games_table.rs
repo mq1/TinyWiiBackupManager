@@ -1,11 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    message::Message,
-    state::State,
-    ui::{Screen, style},
-};
+use crate::{message::Message, state::State, ui::Screen};
 use iced::{
     Alignment, Element, Length, padding,
     widget::{button, column, container, row, space, table, text},
@@ -34,13 +30,17 @@ pub fn view(state: &State) -> Element<'_, Message> {
         table::column(text("Actions").size(16), |i| {
             row![
                 button(row![icon_info(), text("Info")].spacing(5))
-                    .style(style::rounded_secondary_button)
+                    .padding(0)
+                    .style(button::text)
                     .on_press(Message::NavigateTo(Screen::GameInfo(i))),
+                text('•'),
                 button(row![icon_trash(), text("Delete")].spacing(5))
-                    .style(style::rounded_secondary_button)
+                    .padding(0)
+                    .style(button::text)
                     .on_press(Message::AskDeleteGame(i))
             ]
-            .spacing(5)
+            .spacing(10)
+            .align_y(Alignment::Center)
         }),
     ];
 

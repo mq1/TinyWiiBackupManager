@@ -1,11 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    message::Message,
-    state::State,
-    ui::{Screen, style},
-};
+use crate::{message::Message, state::State, ui::Screen};
 use iced::{
     Element, Length,
     widget::{button, container, row, table, text},
@@ -26,13 +22,16 @@ pub fn view(state: &State) -> Element<'_, Message> {
         table::column(text("Actions").size(16), |i| {
             row![
                 button(row![icon_info(), text("Info")].spacing(5))
-                    .style(style::rounded_secondary_button)
+                    .padding(0)
+                    .style(button::text)
                     .on_press(Message::NavigateTo(Screen::HbcInfo(i))),
+                text('•'),
                 button(row![icon_trash(), text("Delete")].spacing(5))
-                    .style(style::rounded_secondary_button)
+                    .padding(0)
+                    .style(button::text)
                     .on_press(Message::AskDeleteHbcApp(i))
             ]
-            .spacing(5)
+            .spacing(10)
         }),
     ];
 
