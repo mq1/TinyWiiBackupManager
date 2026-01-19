@@ -49,6 +49,8 @@ fuzzy-matcher = "0.3"
 zstd = { version = "0.13", features = ["fat-lto"] }
 minreq = "2.14"
 native-dialog = "0.9"
+strum = "0.27"
+strum_macros = "0.27"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 wgpu = { version = "27", optional = true, default-features = false, features = [

@@ -16,6 +16,7 @@ use smol::fs::File;
 use smol::io;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::str::FromStr;
 
 const DOWNLOAD_URL: &str = "https://www.gametdb.com/wiitdb.zip";
 
@@ -128,13 +129,45 @@ pub struct Rating {
     pub value: String,
 }
 
+#[serde_as]
 #[derive(Debug, Deserialize, Default, Clone)]
 #[serde(default)]
 pub struct Wifi {
     #[serde(rename = "@players")]
     pub players: u8,
     #[serde(rename = "feature")]
-    pub features: Box<[String]>,
+    #[serde_as(as = "Box<[DisplayFromStr]>")]
+    pub features: Box<[Feature]>,
+}
+
+#[derive(Debug, Clone, Deserialize, strum_macros::Display, strum_macros::AsRefStr)]
+#[serde(rename_all = "lowercase")]
+pub enum Feature {
+    NintendoDS,
+    Online,
+    Wiimmfi,
+    Score,
+    Download,
+    MessageBoard,
+    Unknown,
+}
+
+impl FromStr for Feature {
+    type Err = bool;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let f = match s {
+            "nintendods" => Self::NintendoDS,
+            "online" => Self::Online,
+            "wiimmfi" => Self::Wiimmfi,
+            "score" => Self::Score,
+            "download" => Self::Download,
+            "messageboard" => Self::MessageBoard,
+            _ => Self::Unknown,
+        };
+
+        Ok(f)
+    }
 }
 
 #[derive(Debug, Deserialize, Default, Clone)]
