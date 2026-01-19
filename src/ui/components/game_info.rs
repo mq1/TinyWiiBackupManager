@@ -122,7 +122,7 @@ pub fn view(state: &State, game_i: usize) -> Element<'_, Message> {
                 icon_languages(),
                 text!(
                     "Languages: {}",
-                    info.languages.iter().map(|l| l.as_ref()).join(", ")
+                    info.languages.iter().map(<&'static str>::from).join(", ")
                 )
             ]
             .spacing(5),

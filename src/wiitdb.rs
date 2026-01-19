@@ -264,7 +264,7 @@ where
     Ok(u32::from_str_radix(&s, 16).ok())
 }
 
-#[derive(Debug, Default, Clone, strum_macros::Display, strum_macros::AsRefStr)]
+#[derive(Debug, Default, Clone, strum_macros::Display, strum_macros::IntoStaticStr)]
 pub enum Language {
     English,
     French,
