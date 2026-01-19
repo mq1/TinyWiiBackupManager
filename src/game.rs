@@ -11,10 +11,7 @@ use crate::{
     wiitdb::GameInfo,
 };
 use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
-use iced::{
-    Task,
-    futures::{TryFutureExt, join},
-};
+use iced::{Task, futures::TryFutureExt};
 use itertools::Itertools;
 use size::Size;
 use smol::{fs, io, stream::StreamExt};

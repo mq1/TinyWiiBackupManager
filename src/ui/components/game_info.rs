@@ -1,8 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{message::Message, state::State, ui::style, wiitdb};
-use capitalize::Capitalize;
+use crate::{message::Message, state::State, ui::style};
 use iced::{
     Element, Length, padding,
     widget::{button, column, image, row, rule, scrollable, space, stack, text},
@@ -123,7 +122,7 @@ pub fn view(state: &State, game_i: usize) -> Element<'_, Message> {
                 icon_languages(),
                 text!(
                     "Languages: {}",
-                    info.languages.iter().map(|l| l.as_str()).join(", ")
+                    info.languages.iter().map(|l| l.as_ref()).join(", ")
                 )
             ]
             .spacing(5),
@@ -178,7 +177,7 @@ pub fn view(state: &State, game_i: usize) -> Element<'_, Message> {
                         .iter()
                         .map(|c| format!(
                             "{} ({})",
-                            c.r#type.capitalize_first_only(),
+                            c.r#type.as_ref(),
                             if c.required { "Required" } else { "Optional" }
                         ))
                         .join(", ")

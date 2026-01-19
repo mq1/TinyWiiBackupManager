@@ -7,11 +7,12 @@ use crate::message::Message;
 use crate::state::State;
 use anyhow::{Result, anyhow};
 use async_zip::base::read::mem::ZipFileReader;
-use capitalize::Capitalize;
 use iced::Task;
 use iced::futures::TryFutureExt;
 use serde::Deserialize;
-use serde_with::{DefaultOnError, DisplayFromStr, serde_as};
+use serde_with::{
+    DefaultOnError, DisplayFromStr, StringWithSeparator, formats::CommaSeparator, serde_as,
+};
 use smol::fs::File;
 use smol::io;
 use std::fs;
@@ -56,6 +57,7 @@ impl Datafile {
     }
 }
 
+#[serde_as]
 #[derive(Debug, Deserialize, Default, Clone)]
 #[serde(default)]
 pub struct GameInfo {
@@ -64,7 +66,7 @@ pub struct GameInfo {
     #[serde(deserialize_with = "deser_id")]
     pub id: GameID,
     pub region: Region,
-    #[serde(deserialize_with = "deser_langs")]
+    #[serde_as(as = "StringWithSeparator::<CommaSeparator, Language>")]
     pub languages: Box<[Language]>,
     #[serde(rename = "locale")]
     pub locales: Box<[Locale]>,
@@ -95,7 +97,7 @@ where
     D: serde::Deserializer<'de>,
 {
     let s = String::deserialize(deserializer)?;
-    let genres = s.split(',').map(|s| s.capitalize_first_only()).collect();
+    let genres = s.split(',').map(str::to_string).collect();
     Ok(genres)
 }
 
@@ -137,12 +139,12 @@ pub struct Wifi {
     pub players: u8,
     #[serde(rename = "feature")]
     #[serde_as(as = "Box<[DisplayFromStr]>")]
-    pub features: Box<[Feature]>,
+    pub features: Box<[WifiFeature]>,
 }
 
 #[derive(Debug, Clone, Deserialize, strum_macros::Display, strum_macros::AsRefStr)]
 #[serde(rename_all = "lowercase")]
-pub enum Feature {
+pub enum WifiFeature {
     NintendoDS,
     Online,
     Wiimmfi,
@@ -152,8 +154,8 @@ pub enum Feature {
     Unknown,
 }
 
-impl FromStr for Feature {
-    type Err = bool;
+impl FromStr for WifiFeature {
+    type Err = &'static str;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let f = match s {
@@ -179,13 +181,76 @@ pub struct Input {
     pub controls: Box<[Control]>,
 }
 
+#[serde_as]
 #[derive(Debug, Deserialize, Default, Clone)]
 #[serde(default)]
 pub struct Control {
     #[serde(rename = "@required")]
     pub required: bool,
     #[serde(rename = "@type")]
-    pub r#type: String,
+    #[serde_as(as = "DefaultOnError<DisplayFromStr>")]
+    pub r#type: ControlType,
+}
+
+#[derive(Debug, Clone, Deserialize, Default, strum_macros::Display, strum_macros::AsRefStr)]
+#[serde(rename_all = "lowercase")]
+pub enum ControlType {
+    Wiimote,
+    Nunchuk,
+    GameCube,
+    MotionPlus,
+    BalanceBoard,
+    Mii,
+    #[strum(serialize = "Classic Controller")]
+    ClassicController,
+    Wheel,
+    Zapper,
+    Drums,
+    Guitar,
+    Microphone,
+    WiiSpeak,
+    #[strum(serialize = "3D Glasses")]
+    _3dGlasses,
+    NintendoDS,
+    DancePad,
+    Keyboard,
+    UDraw,
+    #[strum(serialize = "Gameboy Advance")]
+    GameboyAdvance,
+
+    #[default]
+    Unknown,
+}
+
+impl FromStr for ControlType {
+    type Err = &'static str;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let f = match s {
+            "wiimote" => Self::Wiimote,
+            "nunchuk" => Self::Nunchuk,
+            "gamecube" => Self::GameCube,
+            "motionplus" => Self::MotionPlus,
+            "balanceboard" => Self::BalanceBoard,
+            "mii" => Self::Mii,
+            "classiccontroller" => Self::ClassicController,
+            "wheel" => Self::Wheel,
+            "zapper" => Self::Zapper,
+            "drums" => Self::Drums,
+            "guitar" => Self::Guitar,
+            "microphone" => Self::Microphone,
+            "wiispeak" => Self::WiiSpeak,
+            "3dglasses" => Self::_3dGlasses,
+            "nintendods" => Self::NintendoDS,
+            "dancepad" => Self::DancePad,
+            "keyboard" => Self::Keyboard,
+            "udraw" => Self::UDraw,
+            "gameboy advance" => Self::GameboyAdvance,
+            _ => return Err("Unknown"),
+        };
+
+        Ok(f)
+    }
 }
 
 #[derive(Debug, Deserialize, Default, Clone)]
@@ -203,91 +268,59 @@ where
     Ok(u32::from_str_radix(&s, 16).ok())
 }
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, strum_macros::Display, strum_macros::AsRefStr)]
 pub enum Language {
-    En,
-    Fr,
-    De,
-    Es,
-    It,
-    Ja,
-    Nl,
-    Se,
-    Dk,
-    No,
-    Ko,
-    Pt,
-    Zhtw,
-    Zhcn,
-    Fi,
-    Tr,
-    Gr,
-    Ru,
+    English,
+    French,
+    German,
+    Spanish,
+    Italian,
+    Japanese,
+    Dutch,
+    Swedish,
+    Danish,
+    Norwegian,
+    Korean,
+    Portuguese,
+    TraditionalChinese,
+    SimplifiedChinese,
+    Finnish,
+    Turkish,
+    Greek,
+    Russian,
 
     #[default]
     Unknown,
 }
 
-impl Language {
-    pub fn as_str(&self) -> &str {
-        match self {
-            Language::En => "English",
-            Language::Fr => "French",
-            Language::De => "German",
-            Language::Es => "Spanish",
-            Language::It => "Italian",
-            Language::Ja => "Japanese",
-            Language::Nl => "Dutch",
-            Language::Se => "Swedish",
-            Language::Dk => "Danish",
-            Language::No => "Norwegian",
-            Language::Ko => "Korean",
-            Language::Pt => "Portuguese",
-            Language::Zhtw => "Traditional Chinese",
-            Language::Zhcn => "Simplified Chinese",
-            Language::Fi => "Finnish",
-            Language::Tr => "Turkish",
-            Language::Gr => "Greek",
-            Language::Ru => "Russian",
-            Language::Unknown => "Unknown",
-        }
+impl FromStr for Language {
+    type Err = &'static str;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let l = match s {
+            "EN" => Language::English,
+            "FR" => Language::French,
+            "DE" => Language::German,
+            "ES" => Language::Spanish,
+            "IT" => Language::Italian,
+            "JA" => Language::Japanese,
+            "NL" => Language::Dutch,
+            "SE" => Language::Swedish,
+            "DK" => Language::Danish,
+            "NO" => Language::Norwegian,
+            "KO" => Language::Korean,
+            "PT" => Language::Portuguese,
+            "ZHTW" => Language::TraditionalChinese,
+            "ZHCN" => Language::SimplifiedChinese,
+            "FI" => Language::Finnish,
+            "TR" => Language::Turkish,
+            "GR" => Language::Greek,
+            "RU" => Language::Russian,
+            _ => return Err("Unknown"),
+        };
+
+        Ok(l)
     }
-}
-
-impl From<&str> for Language {
-    fn from(s: &str) -> Self {
-        match s {
-            "EN" => Language::En,
-            "FR" => Language::Fr,
-            "DE" => Language::De,
-            "ES" => Language::Es,
-            "IT" => Language::It,
-            "JA" => Language::Ja,
-            "NL" => Language::Nl,
-            "SE" => Language::Se,
-            "DK" => Language::Dk,
-            "NO" => Language::No,
-            "KO" => Language::Ko,
-            "PT" => Language::Pt,
-            "ZHTW" => Language::Zhtw,
-            "ZHCN" => Language::Zhcn,
-            "FI" => Language::Fi,
-            "TR" => Language::Tr,
-            "GR" => Language::Gr,
-            "RU" => Language::Ru,
-            _ => Language::Unknown,
-        }
-    }
-}
-
-fn deser_langs<'de, D>(deserializer: D) -> Result<Box<[Language]>, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    let s = String::deserialize(deserializer)?;
-    let langs = s.split(',').map(Language::from).collect();
-
-    Ok(langs)
 }
 
 #[derive(Debug, Default, Clone)]
