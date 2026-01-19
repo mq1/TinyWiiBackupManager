@@ -6,17 +6,23 @@ pub struct GameID([u8; 6]);
 
 impl From<[u8; 6]> for GameID {
     fn from(id: [u8; 6]) -> Self {
-        GameID(id)
+        Self(id)
     }
 }
 
-impl From<&str> for GameID {
-    fn from(s: &str) -> Self {
-        let mut id = [0u8; 6];
+impl TryFrom<&str> for GameID {
+    type Error = usize;
+
+    fn try_from(s: &str) -> Result<Self, Self::Error> {
         let bytes = s.as_bytes();
-        let len = bytes.len().min(6);
-        id[..len].copy_from_slice(&bytes[..len]);
-        GameID(id)
+
+        match s.len() {
+            4 => Ok(Self([bytes[0], bytes[1], bytes[2], bytes[3], 0, 0])),
+            6 => Ok(Self([
+                bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5],
+            ])),
+            n => Err(n),
+        }
     }
 }
 

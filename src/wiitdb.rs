@@ -85,7 +85,7 @@ where
     D: serde::Deserializer<'de>,
 {
     let s = String::deserialize(deserializer)?;
-    let id = GameID::from(s.as_str());
+    let id = GameID::try_from(s.as_str()).map_err(serde::de::Error::custom)?;
     Ok(id)
 }
 

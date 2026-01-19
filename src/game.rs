@@ -45,7 +45,7 @@ impl Game {
         let (title_str, id_str) = filename.split_once(" [")?;
         let id_str = id_str.strip_suffix(']')?;
         let title = title_str.to_string();
-        let id = GameID::from(id_str);
+        let id = GameID::try_from(id_str).ok()?;
 
         let size = util::get_dir_size(path.clone()).await.unwrap_or_default();
 
