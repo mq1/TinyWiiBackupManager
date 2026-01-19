@@ -2,9 +2,18 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use iced::{
-    Background, Color, Theme, border,
+    Background, Color, Pixels, Theme, border,
     widget::{button, checkbox, container, text_input},
 };
+
+#[cfg(target_os = "macos")]
+const OS_RADIUS: Pixels = Pixels(16.);
+
+#[cfg(target_os = "windows")]
+const OS_RADIUS: usize = Pixels(8);
+
+#[cfg(not(any(target_os = "macos", target_os = "windows")))]
+const OS_RADIUS: usize = Pixels(15);
 
 pub fn root_container(theme: &Theme) -> container::Style {
     let mut style = container::bordered_box(theme);
@@ -69,7 +78,7 @@ pub fn card(theme: &Theme) -> container::Style {
 
     let mut style = container::bordered_box(theme);
     style.background = Some(Background::Color(bg));
-    style.border.radius = border::radius(10);
+    style.border.radius = border::radius(OS_RADIUS);
     style
 }
 
