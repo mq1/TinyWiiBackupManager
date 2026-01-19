@@ -97,7 +97,7 @@ codegen-units = 1
 strip = true
 panic = "abort"
 
-# Dependencies >= 100 KiB in release
+# Big UI dependencies (cargo bloat --release --crates)
 [profile.release.package.naga]
 opt-level = "z"
 [profile.release.package.wgpu-core]
@@ -108,11 +108,25 @@ opt-level = "z"
 opt-level = "z"
 [profile.release.package.zeno]
 opt-level = "z"
-[profile.release.package.wgpu]
+[profile.release.package.read-fonts]
 opt-level = "z"
 [profile.release.package.iced_winit]
 opt-level = "z"
+[profile.release.package.wgpu]
+opt-level = "z"
 [profile.release.package.iced_wgpu]
+opt-level = "z"
+[profile.release.package.wgpu-hal]
+opt-level = "z"
+[profile.release.package.winit]
+opt-level = "z"
+[profile.release.package.cosmic-text]
+opt-level = "z"
+[profile.release.package.iced_widget]
+opt-level = "z"
+[profile.release.package.image]
+opt-level = "z"
+[profile.release.package.iced_graphics]
 opt-level = "z"
 
 [profile.dev.package."*"]
