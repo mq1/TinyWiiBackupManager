@@ -214,8 +214,8 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install LLVM
-        run: brew install llvm@21
+      - name: Install LLVM and LLD
+        run: brew install llvm@21 lld@21
 
       - name: Install Rust toolchain
         run: |
@@ -231,11 +231,14 @@ jobs:
       - name: Build binary
         run: cargo build --release --locked --target ${{ matrix.target }}
         env:
+          RUSTFLAGS: -C link-arg=-fuse-ld=/opt/homebrew/bin/lld@21/lld
           CC: /opt/homebrew/opt/llvm@21/bin/clang
           CXX: /opt/homebrew/opt/llvm@21/bin/clang++
           AR: /opt/homebrew/opt/llvm@21/bin/llvm-ar
-          CFLAGS: -O3 -flto
-          CXXFLAGS: -O3 -flto
+          CFLAGS: -O3 -flto -fuse-ld=/opt/homebrew/bin/lld@21/lld
+          CXXFLAGS: -O3 -flto -fuse-ld=/opt/homebrew/bin/lld@21/lld
+          CARGO_TARGET_AARCH64_APPLE_DARWIN_LINKER: /opt/homebrew/opt/llvm@21/clang
+          CARGO_TARGET_X86_64_APPLE_DARWIN_LINKER: /opt/homebrew/opt/llvm@21/clang
 
       - name: Build macOS app bundle
         run: |
