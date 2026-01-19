@@ -94,7 +94,7 @@ impl Game {
 }
 
 pub fn get_list_games_task(state: &State) -> Task<Message> {
-    let drive_path = state.config.get_drive_path().to_path_buf();
+    let drive_path = state.config.contents.mount_point.to_path_buf();
 
     Task::perform(
         list(drive_path).map_err(|e| e.to_string()),

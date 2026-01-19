@@ -11,7 +11,7 @@ use std::{
 #[derive(Debug, Clone)]
 pub struct Config {
     path: PathBuf,
-    contents: Contents,
+    pub contents: Contents,
 }
 
 impl Config {
@@ -35,7 +35,7 @@ impl Config {
         Self { path, contents }
     }
 
-    fn write(&self) -> Result<()> {
+    pub fn write(&self) -> Result<()> {
         let bytes = serde_json::to_vec_pretty(&self.contents)?;
         fs::write(&self.path, &bytes)?;
 
@@ -46,56 +46,22 @@ impl Config {
         !self.contents.mount_point.as_os_str().is_empty() && self.contents.mount_point.exists()
     }
 
-    pub fn get_drive_path_str(&self) -> &str {
-        self.contents.mount_point.to_str().unwrap_or("Invalid Path")
+    pub fn with_sort_by(&self, sort_by: SortBy) -> Self {
+        let mut config = self.clone();
+        config.contents.sort_by = sort_by;
+        config
     }
 
-    pub fn get_drive_path(&self) -> &Path {
-        &self.contents.mount_point
+    pub fn with_view_as(&self, view_as: ViewAs) -> Self {
+        let mut config = self.clone();
+        config.contents.view_as = view_as;
+        config
     }
 
-    pub fn update_drive_path(&mut self, new_mount_point: PathBuf) -> Result<()> {
-        self.contents.mount_point = new_mount_point;
-        self.write()
-    }
-
-    pub fn get_sort_by(&self) -> SortBy {
-        self.contents.sort_by
-    }
-
-    pub fn update_sort_by(&mut self, new_sort_by: SortBy) -> Result<()> {
-        self.contents.sort_by = new_sort_by;
-        self.write()
-    }
-
-    pub fn get_theme_pref(&self) -> ThemePreference {
-        self.contents.theme_preference
-    }
-
-    pub fn update_theme_pref(&mut self, new_theme_pref: ThemePreference) -> Result<()> {
-        self.contents.theme_preference = new_theme_pref;
-        self.write()
-    }
-
-    pub fn get_wii_output_format(&self) -> nod::common::Format {
-        self.contents.wii_output_format
-    }
-
-    pub fn update_wii_output_format(
-        &mut self,
-        new_wii_output_format: nod::common::Format,
-    ) -> Result<()> {
-        self.contents.wii_output_format = new_wii_output_format;
-        self.write()
-    }
-
-    pub fn get_view_as(&self) -> ViewAs {
-        self.contents.view_as
-    }
-
-    pub fn update_view_as(&mut self, new_view_as: ViewAs) -> Result<()> {
-        self.contents.view_as = new_view_as;
-        self.write()
+    pub fn with_wii_output_format(&self, wii_output_format: nod::common::Format) -> Self {
+        let mut config = self.clone();
+        config.contents.wii_output_format = wii_output_format;
+        config
     }
 }
 

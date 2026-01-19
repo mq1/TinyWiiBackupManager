@@ -14,15 +14,15 @@ use iced::{
 use lucide_icons::iced::{icon_layout_grid, icon_table};
 
 pub fn view(state: &State) -> Element<'_, Message> {
-    let view_as = state.config.get_view_as();
+    let view_as = state.config.contents.view_as;
 
     let view_as_grid_button = button(icon_layout_grid())
         .style(style::get_nav_button_style(view_as == ViewAs::Grid))
-        .on_press(Message::UpdateViewAs(ViewAs::Grid));
+        .on_press_with(|| Message::UpdateConfig(state.config.with_view_as(ViewAs::Grid)));
 
     let view_as_table_button = button(icon_table())
         .style(style::get_nav_button_style(view_as == ViewAs::Table))
-        .on_press(Message::UpdateViewAs(ViewAs::Table));
+        .on_press_with(|| Message::UpdateConfig(state.config.with_view_as(ViewAs::Table)));
 
     container(
         row![

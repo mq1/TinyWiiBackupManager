@@ -383,7 +383,7 @@ async fn load_wiitdb(data_dir: PathBuf) -> Result<Datafile> {
 }
 
 pub fn get_download_wiitdb_to_drive_task(state: &State) -> Task<Message> {
-    let mount_point = state.config.get_drive_path().to_path_buf();
+    let mount_point = state.config.contents.mount_point.to_path_buf();
 
     Task::perform(
         async move {

@@ -24,7 +24,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
         .into();
     }
 
-    let content = match state.config.get_view_as() {
+    let content = match state.config.contents.view_as {
         ViewAs::Grid => components::hbc_grid::view(state),
         ViewAs::Table => components::hbc_table::view(state),
     };

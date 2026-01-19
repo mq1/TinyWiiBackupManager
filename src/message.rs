@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    config::{SortBy, ViewAs},
+    config::{Config, SortBy},
     disc_info::DiscInfo,
     game::Game,
     hbc::HbcApp,
@@ -25,13 +25,14 @@ pub enum Message {
     NotificationTick,
     CloseNotification(usize),
     SelectMountPoint,
-    MountPointChosen(Option<PathBuf>),
     GotDriveUsage(String),
     ChangeTheme,
     OpenDataDir,
     UpdateGamesScrollOffset(AbsoluteOffset),
     UpdateHbcScrollOffset(AbsoluteOffset),
     UpdateOscScrollOffset(AbsoluteOffset),
+    UpdateConfig(Config),
+    MountPointChosen(Option<PathBuf>),
 
     // Games
     GotGames(Result<Box<[Game]>, String>),
@@ -50,6 +51,7 @@ pub enum Message {
     FinishedTransferringSingleGame(Result<String, String>),
     CancelTransfer(usize),
     GotDiscInfo(usize, Result<DiscInfo, String>),
+    SortGamesAndApps(SortBy),
 
     // HBC Apps
     GotHbcApps(Result<Box<[HbcApp]>, String>),
@@ -74,9 +76,4 @@ pub enum Message {
     DownloadWiitdbToDrive,
     #[cfg(target_os = "macos")]
     RunDotClean,
-
-    // Settings
-    UpdateWiiOutputFormat(nod::common::Format),
-    UpdateSortBy(SortBy),
-    UpdateViewAs(ViewAs),
 }

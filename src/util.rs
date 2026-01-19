@@ -50,15 +50,11 @@ pub fn sanitize(s: &str) -> String {
 }
 
 pub fn get_drive_usage_task(state: &State) -> Task<Message> {
-    let drive_path = state.config.get_drive_path().to_path_buf();
-
-    Task::perform(
-        async move { get_drive_usage(drive_path) },
-        Message::GotDriveUsage,
-    )
+    let mount_point = state.config.contents.mount_point.to_path_buf();
+    Task::perform(get_drive_usage(mount_point), Message::GotDriveUsage)
 }
 
-fn get_drive_usage(mount_point: PathBuf) -> String {
+async fn get_drive_usage(mount_point: PathBuf) -> String {
     const GIB: f64 = 1024.0 * 1024.0 * 1024.0;
 
     if mount_point.as_os_str().is_empty() {

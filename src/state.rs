@@ -93,12 +93,12 @@ impl State {
     pub fn title(&self) -> String {
         format!(
             "TinyWiiBackupManager  ›  {}",
-            self.config.get_drive_path_str()
+            self.config.contents.mount_point.display()
         )
     }
 
     pub fn theme(&self) -> Option<Theme> {
-        match self.config.get_theme_pref() {
+        match self.config.contents.theme_preference {
             ThemePreference::Light => Some(Theme::Light),
             ThemePreference::Dark => Some(Theme::Dark),
             ThemePreference::System => None,
@@ -168,7 +168,7 @@ impl State {
                             }
                         }
 
-                        let sort_by = self.config.get_sort_by();
+                        let sort_by = self.config.contents.sort_by;
                         if matches!(sort_by, SortBy::NameAscending | SortBy::NameDescending) {
                             self.games.sort(SortBy::None, sort_by);
                         }
@@ -206,12 +206,14 @@ impl State {
                 .map(Message::MountPointChosen),
             Message::MountPointChosen(mount_point) => {
                 if let Some(mount_point) = mount_point {
-                    if let Err(e) = self.config.update_drive_path(mount_point) {
+                    self.config.contents.mount_point = mount_point;
+                    if let Err(e) = self.config.write() {
                         self.notifications.error(e);
                     }
-                    return self.update(Message::RefreshGamesAndApps);
+                    self.update(Message::RefreshGamesAndApps)
+                } else {
+                    Task::none()
                 }
-                Task::none()
             }
             Message::AskDeleteGame(i) => {
                 let title = self.games[i].title.clone();
@@ -289,7 +291,7 @@ impl State {
                         }
                     }
 
-                    self.games.sort(SortBy::None, self.config.get_sort_by());
+                    self.games.sort(SortBy::None, self.config.contents.sort_by);
 
                     covers::get_cache_cover3ds_task(self)
                 }
@@ -302,7 +304,8 @@ impl State {
                 match res {
                     Ok(hbc_apps) => {
                         self.hbc_apps = hbc_apps;
-                        self.hbc_apps.sort(SortBy::None, self.config.get_sort_by());
+                        self.hbc_apps
+                            .sort(SortBy::None, self.config.contents.sort_by);
                     }
                     Err(e) => {
                         self.notifications.error(e);
@@ -326,7 +329,7 @@ impl State {
             }
             Message::InstallOscApp(usize, yes) => {
                 if yes {
-                    let base_dir = self.config.get_drive_path().to_path_buf();
+                    let base_dir = self.config.contents.mount_point.to_path_buf();
                     self.osc_apps[usize].get_install_task(base_dir)
                 } else {
                     Task::none()
@@ -351,13 +354,14 @@ impl State {
                 Task::none()
             }
             Message::ChangeTheme => {
-                let new_theme_pref = match self.config.get_theme_pref() {
+                let new_theme_pref = match self.config.contents.theme_preference {
                     ThemePreference::Light => ThemePreference::Dark,
                     ThemePreference::Dark => ThemePreference::System,
                     ThemePreference::System => ThemePreference::Light,
                 };
 
-                if let Err(e) = self.config.update_theme_pref(new_theme_pref) {
+                self.config.contents.theme_preference = new_theme_pref;
+                if let Err(e) = self.config.write() {
                     self.notifications.error(e);
                 }
 
@@ -411,22 +415,20 @@ impl State {
                 }
                 Task::none()
             }
-            Message::UpdateWiiOutputFormat(format) => {
-                if let Err(e) = self.config.update_wii_output_format(format) {
+            Message::UpdateConfig(new_config) => {
+                self.config = new_config;
+                if let Err(e) = self.config.write() {
                     self.notifications.error(e);
                 }
                 Task::none()
             }
-            Message::UpdateSortBy(sort_by) => {
-                let prev_sort_by = self.config.get_sort_by();
-
-                if let Err(e) = self.config.update_sort_by(sort_by) {
+            Message::SortGamesAndApps(sort_by) => {
+                self.games.sort(self.config.contents.sort_by, sort_by);
+                self.hbc_apps.sort(self.config.contents.sort_by, sort_by);
+                self.config.contents.sort_by = sort_by;
+                if let Err(e) = self.config.write() {
                     self.notifications.error(e);
-                } else {
-                    self.games.sort(prev_sort_by, sort_by);
-                    self.hbc_apps.sort(prev_sort_by, sort_by);
                 }
-
                 Task::none()
             }
             Message::DownloadWiitdbToDrive => {
@@ -505,19 +507,13 @@ impl State {
                 self.transfer_stack.remove(i);
                 Task::none()
             }
-            Message::UpdateViewAs(view_as) => {
-                if let Err(e) = self.config.update_view_as(view_as) {
-                    self.notifications.error(e);
-                }
-                Task::none()
-            }
             Message::GotDiscInfo(i, res) => {
                 self.games[i].disc_info = Some(res);
                 Task::none()
             }
             #[cfg(target_os = "macos")]
             Message::RunDotClean => {
-                let mount_point = self.config.get_drive_path().to_path_buf();
+                let mount_point = self.config.contents.mount_point.to_path_buf();
 
                 Task::perform(
                     async move {
