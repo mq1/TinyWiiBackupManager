@@ -11,7 +11,7 @@
 > TinyWiiBackupManager is intended strictly for legal homebrew use and is not affiliated with or endorsed by Nintendo.
 > Use of TinyWiiBackupManager for pirated or unauthorized copies of games is strictly prohibited.
 
-<img align="center" alt="App Screenshot" src="assets/screenshots/games.png">
+<img align="center" alt="App Screenshot" src="assets/screenshot.png">
 
 ## :sparkles: Features
 
