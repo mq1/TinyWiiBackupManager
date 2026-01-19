@@ -27,6 +27,16 @@ impl TryFrom<&str> for GameID {
 }
 
 impl GameID {
+    #[inline]
+    pub fn is_wii(&self) -> bool {
+        self.0[4] != 0
+    }
+
+    #[inline]
+    pub fn is_gc(&self) -> bool {
+        self.0[4] == 0
+    }
+
     pub fn as_str(&self) -> &str {
         if self.0[4] == 0 {
             std::str::from_utf8(&self.0[..4]).unwrap_or("invalid")

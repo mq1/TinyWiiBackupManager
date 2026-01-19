@@ -24,7 +24,6 @@ use std::path::PathBuf;
 pub struct Game {
     pub path: PathBuf,
     pub size: Size,
-    pub is_wii: bool,
     pub title: String,
     pub id: GameID,
     pub disc_info: Option<Result<DiscInfo, String>>,
@@ -32,7 +31,7 @@ pub struct Game {
 }
 
 impl Game {
-    pub async fn from_path(path: PathBuf, is_wii: bool) -> Option<Self> {
+    pub async fn from_path(path: PathBuf) -> Option<Self> {
         if !path.is_dir() {
             return None;
         }
@@ -52,7 +51,6 @@ impl Game {
         Some(Self {
             path,
             size,
-            is_wii,
             title,
             id,
             disc_info: None,
@@ -111,34 +109,27 @@ async fn list(drive_path: PathBuf) -> io::Result<Box<[Game]>> {
     let wii_path = drive_path.join("wbfs");
     let gc_path = drive_path.join("games");
 
-    let games = join!(read_game_dir(wii_path, true), read_game_dir(gc_path, false));
-
-    let mut wii_games = games.0?;
-    let mut gc_games = games.1?;
-
     let mut games = Vec::new();
-    games.append(&mut wii_games);
-    games.append(&mut gc_games);
-    let games = games.into_boxed_slice();
+    read_game_dir(wii_path, &mut games).await?;
+    read_game_dir(gc_path, &mut games).await?;
 
-    Ok(games)
+    Ok(games.into_boxed_slice())
 }
 
-async fn read_game_dir(game_dir: PathBuf, is_wii: bool) -> io::Result<Vec<Game>> {
+async fn read_game_dir(game_dir: PathBuf, games: &mut Vec<Game>) -> io::Result<()> {
     if !game_dir.exists() {
-        return Ok(Vec::new());
+        return Ok(());
     }
 
     let mut entries = fs::read_dir(game_dir).await?;
 
-    let mut games = Vec::new();
     while let Some(entry) = entries.try_next().await? {
-        if let Some(game) = Game::from_path(entry.path(), is_wii).await {
+        if let Some(game) = Game::from_path(entry.path()).await {
             games.push(game);
         }
     }
 
-    Ok(games)
+    Ok(())
 }
 
 pub trait Games {

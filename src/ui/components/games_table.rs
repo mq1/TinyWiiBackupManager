@@ -22,7 +22,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
             text(state.games[i].id.as_str())
         }),
         table::column(text("Console").size(16), |i: usize| {
-            text(if state.games[i].is_wii {
+            text(if state.games[i].id.is_wii() {
                 "Wii"
             } else {
                 "GameCube"

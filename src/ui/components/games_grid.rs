@@ -27,7 +27,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
         let mut gc_total_size = Size::from_bytes(0);
 
         for (i, game) in state.games.iter().enumerate() {
-            if game.is_wii {
+            if game.id.is_wii() {
                 wii_count += 1;
                 wii_total_size += game.size;
 
