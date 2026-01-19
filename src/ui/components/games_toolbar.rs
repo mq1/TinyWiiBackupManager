@@ -13,7 +13,7 @@ use iced::{
     Alignment, Element, Font,
     widget::{button, checkbox, container, row, rule, space, text_input},
 };
-use lucide_icons::iced::{icon_plus, icon_rotate_cw, icon_search};
+use lucide_icons::iced::{icon_folder_plus, icon_plus, icon_rotate_cw, icon_search};
 
 pub fn view(state: &State) -> Element<'_, Message> {
     row![
@@ -63,20 +63,28 @@ pub fn view(state: &State) -> Element<'_, Message> {
         components::view_as::view(state),
         space(),
         my_tooltip::view(
-            button(icon_rotate_cw().size(18).center())
+            button(icon_rotate_cw().size(17).center())
                 .width(35)
                 .height(35)
                 .style(style::rounded_button)
                 .on_press(Message::RefreshGamesAndApps),
-            "Refresh Games"
+            "Refresh games"
         ),
         my_tooltip::view(
-            button(icon_plus().size(18).center())
+            button(icon_plus().size(17).center())
                 .width(35)
                 .height(35)
                 .style(style::rounded_button)
                 .on_press(Message::ChooseGamesToAdd),
-            "Add Games"
+            "Add games"
+        ),
+        my_tooltip::view(
+            button(icon_folder_plus().size(17).center())
+                .width(35)
+                .height(35)
+                .style(style::rounded_button)
+                .on_press(Message::ChooseGamesSrcDir),
+            "Add games recursively"
         )
     ]
     .spacing(10)

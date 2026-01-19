@@ -135,7 +135,7 @@ pub async fn run_dot_clean(mount_point: PathBuf) -> Result<()> {
     }
 }
 
-pub async fn scan_for_discs(path: PathBuf) -> io::Result<Box<[PathBuf]>> {
+pub async fn scan_for_discs(path: PathBuf) -> io::Result<Vec<PathBuf>> {
     let mut discs = Vec::new();
     let mut stack = vec![path];
 

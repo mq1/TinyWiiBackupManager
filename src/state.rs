@@ -456,6 +456,9 @@ impl State {
             Message::ChooseGamesToAdd => window::oldest()
                 .and_then(|id| window::run(id, dialogs::choose_games))
                 .map(Message::AddGamesToTransferStack),
+            Message::ChooseGamesSrcDir => window::oldest()
+                .and_then(|id| window::run(id, dialogs::choose_src_dir))
+                .map(Message::AddGamesToTransferStack),
             Message::AddGamesToTransferStack(mut paths) => {
                 if !paths.is_empty() {
                     let empty = self.transfer_stack.is_empty();

@@ -37,13 +37,18 @@ pub fn choose_games(window: &dyn Window) -> Vec<PathBuf> {
     })
 }
 
-pub fn choose_src_dir(window: &dyn Window) -> Option<PathBuf> {
-    DialogBuilder::file()
+pub fn choose_src_dir(window: &dyn Window) -> Vec<PathBuf> {
+    let dir = DialogBuilder::file()
         .set_title("Select a folder containing games")
         .set_owner(&window)
         .open_single_dir()
         .show()
-        .unwrap_or_default()
+        .unwrap_or_default();
+
+    match dir {
+        Some(dir) => smol::block_on(util::scan_for_discs(dir)).unwrap_or_default(),
+        None => Vec::new(),
+    }
 }
 
 pub fn choose_hbc_apps(window: &dyn Window) -> Box<[PathBuf]> {

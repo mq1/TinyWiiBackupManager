@@ -44,6 +44,7 @@ pub enum Message {
     OpenGameDir(usize),
     OpenGameTdb(usize),
     ChooseGamesToAdd,
+    ChooseGamesSrcDir,
     AddGamesToTransferStack(Vec<PathBuf>),
     StartSingleGameTransfer,
     FinishedTransferringSingleGame(Result<String, String>),
