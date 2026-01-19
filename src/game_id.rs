@@ -29,12 +29,12 @@ impl TryFrom<&str> for GameID {
 impl GameID {
     #[inline]
     pub fn is_wii(&self) -> bool {
-        self.0[4] != 0
+        matches!(self.0[0], b'H' | b'R' | b'S' | b'W' | b'X')
     }
 
     #[inline]
     pub fn is_gc(&self) -> bool {
-        self.0[4] == 0
+        matches!(self.0[0], b'D' | b'G')
     }
 
     pub fn as_str(&self) -> &str {
