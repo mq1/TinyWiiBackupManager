@@ -55,7 +55,7 @@ pub fn view(state: &State, game_i: usize) -> Element<'_, Message> {
 
             column![
                 row![icon_chevron_right().size(19), text("Disc Header").size(18)].spacing(5),
-                row![icon_tag(), text!("ID: {}", disc_info.id)].spacing(5),
+                row![icon_tag(), text!("ID: {}", disc_info.id.as_str())].spacing(5),
                 row![
                     icon_notebook_pen(),
                     text!("Embedded Title: {}", &disc_info.title),

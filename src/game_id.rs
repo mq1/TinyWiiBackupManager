@@ -1,8 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::fmt;
-
 #[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Default)]
 pub struct GameID([u8; 6]);
 
@@ -22,19 +20,13 @@ impl From<&str> for GameID {
     }
 }
 
-impl fmt::Display for GameID {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for c in self.0 {
-            write!(f, "{}", c as char)?;
-        }
-
-        Ok(())
-    }
-}
-
 impl GameID {
     pub fn as_str(&self) -> &str {
-        std::str::from_utf8(&self.0).unwrap_or("invalid")
+        if self.0[4] == 0 {
+            std::str::from_utf8(&self.0[..4]).unwrap_or("invalid")
+        } else {
+            std::str::from_utf8(&self.0).unwrap_or("invalid")
+        }
     }
 
     pub fn as_partial_str(&self) -> &str {
