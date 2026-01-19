@@ -3,7 +3,7 @@
 
 use crate::{message::Message, state::State, ui::Screen};
 use iced::{
-    Element, Length,
+    Alignment, Element, Length,
     widget::{button, container, row, table, text},
 };
 use lucide_icons::iced::{icon_cloud_download, icon_info};
@@ -32,6 +32,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
                     .on_press(Message::AskInstallOscApp(i))
             ]
             .spacing(10)
+            .align_y(Alignment::Center)
         }),
     ];
 
