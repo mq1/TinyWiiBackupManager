@@ -61,8 +61,6 @@ jobs:
           wget https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
           sudo ./llvm.sh 21
-          sudo rm /usr/bin/ld
-          sudo ln -sf $(which lld-21) /usr/bin/ld
 
       - name: Install x86 dependencies
         if: matrix.arch == 'x86'
@@ -87,8 +85,8 @@ jobs:
           CC: clang-21
           CXX: clang++-21
           AR: llvm-ar-21
-          CFLAGS: -O3 -flto ${{ matrix.cflags }}
-          CXXFLAGS: -O3 -flto ${{ matrix.cxxflags }}
+          CFLAGS: -O3 -flto -fuse-ld=lld-21 ${{ matrix.cflags }}
+          CXXFLAGS: -O3 -flto -fuse-ld=lld-21 ${{ matrix.cxxflags }}
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: clang-21
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: clang-21
           CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER: clang-21
