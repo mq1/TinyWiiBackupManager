@@ -69,7 +69,6 @@ impl Game {
 
     pub fn get_load_disc_info_task(&mut self, i: usize) -> Task<Message> {
         self.disc_info = None;
-
         let path = self.path.clone();
 
         Task::perform(

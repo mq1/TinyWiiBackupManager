@@ -111,30 +111,24 @@ impl State {
                 Task::none()
             }
             Message::NavigateTo(screen) => {
-                let mut tasks = Vec::new();
-
-                if let Screen::GameInfo(i) = self.screen {
-                    let game = &mut self.games[i];
-                    game.disc_info = None;
-                    game.wiitdb_info = None;
-                }
-
-                if let Screen::GameInfo(i) = screen {
-                    let game = &mut self.games[i];
-                    game.wiitdb_info = self
-                        .wiitdb
-                        .as_ref()
-                        .and_then(|wiitdb| wiitdb.get_game_info(game.id));
-
-                    tasks.push(game.get_load_disc_info_task(i));
-                }
-
-                if let Some(offset) = self.scroll_offsets.get(&screen) {
-                    tasks.push(operation::scroll_to(screen.get_scroll_id(), *offset));
-                }
+                let task = if let Some(offset) = self.scroll_offsets.get(&screen) {
+                    operation::scroll_to(screen.get_scroll_id(), *offset)
+                } else {
+                    Task::none()
+                };
 
                 self.screen = screen;
-                Task::batch(tasks)
+                task
+            }
+            Message::OpenGameInfo(i) => {
+                let game = &mut self.games[i];
+
+                if let Some(wiitdb) = &self.wiitdb {
+                    game.wiitdb_info = wiitdb.get_game_info(game.id);
+                }
+
+                self.screen = Screen::GameInfo(i);
+                game.get_load_disc_info_task(i)
             }
             Message::RefreshGamesAndApps => Task::batch(vec![
                 game::get_list_games_task(self),

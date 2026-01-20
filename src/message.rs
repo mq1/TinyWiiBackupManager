@@ -46,6 +46,7 @@ pub enum Message {
     CancelTransfer(usize),
     GotDiscInfo(usize, Result<DiscInfo, String>),
     SortGamesAndApps(SortBy),
+    OpenGameInfo(usize),
 
     // HBC Apps
     GotHbcApps(Result<Box<[HbcApp]>, String>),
