@@ -106,6 +106,12 @@ impl Config {
         config.gc_output_format = gc_output_format;
         config
     }
+
+    pub fn clone_with_txt_codes_source(&self, txt_codes_source: TxtCodesSource) -> Self {
+        let mut config = self.clone();
+        config.txt_codes_source = txt_codes_source;
+        config
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Getters)]
@@ -143,10 +149,11 @@ pub struct Config {
 
     #[serde(default = "default_wii_ip")]
     wii_ip: String,
-    //
-    //pub accent_color: AccentColor,
-    //pub txt_codes_source: TxtCodesSource,
-    //
+
+    #[serde(default)]
+    #[getter(copy)]
+    txt_codes_source: TxtCodesSource,
+
     #[serde(default)]
     #[getter(copy)]
     theme_preference: ThemePreference,
@@ -180,8 +187,7 @@ impl Default for Config {
             wii_output_format: nod::common::Format::Wbfs,
             gc_output_format: nod::common::Format::Iso,
             theme_preference: ThemePreference::System,
-            //accent_color: AccentColor::System,
-            //txt_codes_source: TxtCodesSource::WebArchive,
+            txt_codes_source: TxtCodesSource::WebArchive,
         }
     }
 }
@@ -237,6 +243,15 @@ pub enum ThemePreference {
     System,
     Light,
     Dark,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum TxtCodesSource {
+    #[default]
+    WebArchive,
+    Rc24,
+    GameHacking,
 }
 
 fn default_wii_ip() -> String {

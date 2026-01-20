@@ -9,14 +9,6 @@ use anyhow::{Result, anyhow};
 use serde::{Deserialize, Serialize};
 use std::{fs, path::Path};
 
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum TxtCodesSource {
-    WebArchive,
-    Rc24,
-    GameHacking,
-}
-
 impl TxtCodesSource {
     pub fn get_txtcode(&self, game_id: GameID, game_id_str: &str) -> Result<Vec<u8>> {
         match self {
