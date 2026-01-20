@@ -425,11 +425,9 @@ impl State {
             Message::SortGamesAndApps(sort_by) => {
                 self.games.sort(self.config.contents.sort_by, sort_by);
                 self.hbc_apps.sort(self.config.contents.sort_by, sort_by);
-                self.config.contents.sort_by = sort_by;
-                if let Err(e) = self.config.write() {
-                    self.notifications.error(e);
-                }
-                Task::none()
+
+                let new_config = self.config.with_sort_by(sort_by);
+                self.update(Message::UpdateConfig(new_config))
             }
             Message::DownloadWiitdbToDrive => {
                 self.notifications

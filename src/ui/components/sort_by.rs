@@ -20,37 +20,25 @@ pub fn view(state: &State) -> Element<'_, Message> {
 
     let sort_by_name_button = match sort_by {
         SortBy::NameAscending => button(icon_arrow_down_a_z())
-            .on_press_with(|| {
-                Message::UpdateConfig(state.config.with_sort_by(SortBy::NameDescending))
-            })
+            .on_press(Message::SortGamesAndApps(SortBy::NameDescending))
             .style(style::active_nav_button),
         SortBy::NameDescending => button(icon_arrow_up_a_z())
-            .on_press_with(|| {
-                Message::UpdateConfig(state.config.with_sort_by(SortBy::NameAscending))
-            })
+            .on_press(Message::SortGamesAndApps(SortBy::NameAscending))
             .style(style::active_nav_button),
         _ => button(icon_arrow_down_a_z())
-            .on_press_with(|| {
-                Message::UpdateConfig(state.config.with_sort_by(SortBy::NameAscending))
-            })
+            .on_press(Message::SortGamesAndApps(SortBy::NameAscending))
             .style(style::inactive_nav_button),
     };
 
     let sort_by_size_button = match sort_by {
         SortBy::SizeAscending => button(icon_arrow_down_narrow_wide())
-            .on_press_with(|| {
-                Message::UpdateConfig(state.config.with_sort_by(SortBy::SizeDescending))
-            })
+            .on_press(Message::SortGamesAndApps(SortBy::SizeDescending))
             .style(style::active_nav_button),
         SortBy::SizeDescending => button(icon_arrow_up_narrow_wide())
-            .on_press_with(|| {
-                Message::UpdateConfig(state.config.with_sort_by(SortBy::SizeAscending))
-            })
+            .on_press(Message::SortGamesAndApps(SortBy::SizeAscending))
             .style(style::active_nav_button),
         _ => button(icon_arrow_down_narrow_wide())
-            .on_press_with(|| {
-                Message::UpdateConfig(state.config.with_sort_by(SortBy::SizeAscending))
-            })
+            .on_press(Message::SortGamesAndApps(SortBy::SizeAscending))
             .style(style::inactive_nav_button),
     };
 
