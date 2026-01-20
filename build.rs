@@ -85,6 +85,12 @@ fn main() {
     compile_id_map();
     compress_lucide();
 
+    #[cfg(all(target_os = "macos", target_arch = "x86_64"))]
+    println!("cargo:rustc-env=MACOSX_DEPLOYMENT_TARGET=10.13");
+
+    #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+    println!("cargo:rustc-env=MACOSX_DEPLOYMENT_TARGET=11.0");
+
     #[cfg(windows)]
     {
         let mut res = winresource::WindowsResource::new();
