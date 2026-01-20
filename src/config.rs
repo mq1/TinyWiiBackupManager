@@ -35,73 +35,73 @@ impl Config {
         !self.mount_point.as_os_str().is_empty() && self.mount_point.exists()
     }
 
-    pub fn with_always_split(&self, always_split: bool) -> Self {
+    pub fn clone_with_always_split(&self, always_split: bool) -> Self {
         let mut config = self.clone();
         config.always_split = always_split;
         config
     }
 
-    pub fn with_mount_point(&self, mount_point: PathBuf) -> Self {
+    pub fn clone_with_mount_point(&self, mount_point: PathBuf) -> Self {
         let mut config = self.clone();
         config.mount_point = mount_point;
         config
     }
 
-    pub fn with_remove_sources_apps(&self, remove_sources_apps: bool) -> Self {
+    pub fn clone_with_remove_sources_apps(&self, remove_sources_apps: bool) -> Self {
         let mut config = self.clone();
         config.remove_sources_apps = remove_sources_apps;
         config
     }
 
-    pub fn with_remove_sources_games(&self, remove_sources_games: bool) -> Self {
+    pub fn clone_with_remove_sources_games(&self, remove_sources_games: bool) -> Self {
         let mut config = self.clone();
         config.remove_sources_games = remove_sources_games;
         config
     }
 
-    pub fn with_scrub_update_partition(&self, scrub_update_partition: bool) -> Self {
+    pub fn clone_with_scrub_update_partition(&self, scrub_update_partition: bool) -> Self {
         let mut config = self.clone();
         config.scrub_update_partition = scrub_update_partition;
         config
     }
 
-    pub fn with_sort_by(&self, sort_by: SortBy) -> Self {
+    pub fn clone_with_sort_by(&self, sort_by: SortBy) -> Self {
         let mut config = self.clone();
         config.sort_by = sort_by;
         config
     }
 
-    pub fn with_view_as(&self, view_as: ViewAs) -> Self {
+    pub fn clone_with_view_as(&self, view_as: ViewAs) -> Self {
         let mut config = self.clone();
         config.view_as = view_as;
         config
     }
 
-    pub fn with_wii_ip(&self, wii_ip: String) -> Self {
+    pub fn clone_with_wii_ip(&self, wii_ip: String) -> Self {
         let mut config = self.clone();
         config.wii_ip = wii_ip;
         config
     }
 
-    pub fn with_theme_preference(&self, theme_preference: ThemePreference) -> Self {
+    pub fn clone_with_theme_preference(&self, theme_preference: ThemePreference) -> Self {
         let mut config = self.clone();
         config.theme_preference = theme_preference;
         config
     }
 
-    pub fn with_archive_format(&self, archive_format: nod::common::Format) -> Self {
+    pub fn clone_with_archive_format(&self, archive_format: nod::common::Format) -> Self {
         let mut config = self.clone();
         config.archive_format = archive_format;
         config
     }
 
-    pub fn with_wii_output_format(&self, wii_output_format: nod::common::Format) -> Self {
+    pub fn clone_with_wii_output_format(&self, wii_output_format: nod::common::Format) -> Self {
         let mut config = self.clone();
         config.wii_output_format = wii_output_format;
         config
     }
 
-    pub fn with_gc_output_format(&self, gc_output_format: nod::common::Format) -> Self {
+    pub fn clone_with_gc_output_format(&self, gc_output_format: nod::common::Format) -> Self {
         let mut config = self.clone();
         config.gc_output_format = gc_output_format;
         config

@@ -194,7 +194,7 @@ impl State {
             Message::MountPointChosen(mount_point) => {
                 let mut tasks = Vec::new();
                 if let Some(mount_point) = mount_point {
-                    let new_config = self.config.with_mount_point(mount_point);
+                    let new_config = self.config.clone_with_mount_point(mount_point);
 
                     tasks.push(self.update(Message::UpdateConfig(new_config)));
                     tasks.push(self.update(Message::RefreshGamesAndApps));
@@ -314,7 +314,7 @@ impl State {
                     ThemePreference::System => ThemePreference::Light,
                 };
 
-                let new_config = self.config.with_theme_preference(new_theme_pref);
+                let new_config = self.config.clone_with_theme_preference(new_theme_pref);
                 self.update(Message::UpdateConfig(new_config))
             }
             Message::EmptyResult(res) => {
@@ -335,7 +335,7 @@ impl State {
                 self.games.sort(prev_sort_by, sort_by);
                 self.hbc_apps.sort(prev_sort_by, sort_by);
 
-                let new_config = self.config.with_sort_by(sort_by);
+                let new_config = self.config.clone_with_sort_by(sort_by);
                 self.update(Message::UpdateConfig(new_config))
             }
             Message::DownloadWiitdbToDrive => {
