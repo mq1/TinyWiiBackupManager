@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{APP_ICON, message::Message, ui::style};
+use crate::{APP_ICON, message::Message, state::State, ui::style};
 use iced::{
     Alignment, Element,
     widget::{button, column, container, image, row, space, text},
@@ -9,8 +9,9 @@ use iced::{
 use lucide_icons::iced::{icon_folder, icon_github};
 
 const COPYRIGHT_TEXT: &str = "Copyright © 2026 Manuel Quarneti";
+const REPO_URI: &str = env!("CARGO_PKG_REPOSITORY");
 
-pub fn view() -> Element<'static, Message> {
+pub fn view(state: &State) -> Element<'_, Message> {
     let icon_handle = image::Handle::from_rgba(256, 256, &APP_ICON[..]);
 
     column![
@@ -31,10 +32,12 @@ pub fn view() -> Element<'static, Message> {
         row![
             button(row![icon_folder(), text("Data Directory")].spacing(5))
                 .style(style::rounded_button)
-                .on_press(Message::OpenDataDir),
+                .on_press_with(|| Message::OpenThat(
+                    state.config.contents.mount_point.as_os_str().into()
+                )),
             button(row![icon_github(), text("Source Code")].spacing(5))
                 .style(style::rounded_button)
-                .on_press(Message::OpenProjectRepo),
+                .on_press_with(|| Message::OpenThat(REPO_URI.into())),
             space::horizontal(),
         ]
         .spacing(5)

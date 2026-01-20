@@ -148,12 +148,6 @@ impl State {
                 hbc::get_list_hbc_apps_task(self),
                 util::get_drive_usage_task(self),
             ]),
-            Message::OpenProjectRepo => {
-                if let Err(e) = open::that(env!("CARGO_PKG_REPOSITORY")) {
-                    self.notifications.error(e);
-                }
-                Task::none()
-            }
             Message::UpdateGamesFilter(filter) => {
                 self.filtered_game_indices = self.games.fuzzy_search(&filter);
                 self.games_filter = filter;
@@ -246,12 +240,6 @@ impl State {
                 self.screen = Screen::Games;
                 self.update(Message::RefreshGamesAndApps)
             }
-            Message::OpenGameDir(game_i) => {
-                if let Err(e) = self.games[game_i].open_dir() {
-                    self.notifications.error(e);
-                }
-                Task::none()
-            }
             Message::GotOscApps(res) => match res {
                 Ok(osc_apps) => {
                     self.osc_apps = osc_apps;
@@ -262,21 +250,9 @@ impl State {
                     Task::none()
                 }
             },
-            Message::OpenGameTdb(game_i) => {
-                if let Err(e) = self.games[game_i].open_gametdb() {
-                    self.notifications.error(e);
-                }
-                Task::none()
-            }
             Message::UpdateOscFilter(filter) => {
                 self.filtered_osc_indices = self.osc_apps.fuzzy_search(&filter);
                 self.osc_filter = filter;
-                Task::none()
-            }
-            Message::OpenOscPage(osc_i) => {
-                if let Err(e) = self.osc_apps[osc_i].open_page() {
-                    self.notifications.error(e);
-                }
                 Task::none()
             }
             Message::GotGames(res) => match res {
@@ -396,18 +372,6 @@ impl State {
 
                 self.screen = Screen::HbcApps;
                 self.update(Message::RefreshGamesAndApps)
-            }
-            Message::OpenHbcPage(hbc_i) => {
-                if let Err(e) = self.hbc_apps[hbc_i].open_page() {
-                    self.notifications.error(e);
-                }
-                Task::none()
-            }
-            Message::OpenDataDir => {
-                if let Err(e) = open::that(&self.data_dir) {
-                    self.notifications.error(e);
-                }
-                Task::none()
             }
             Message::EmptyResult(res) => {
                 if let Err(e) = res {
@@ -533,6 +497,12 @@ impl State {
             }
             Message::UpdateOscScrollOffset(offset) => {
                 self.osc_scroll_offset = offset;
+                Task::none()
+            }
+            Message::OpenThat(uri) => {
+                if let Err(e) = open::that(&uri) {
+                    self.notifications.error(e);
+                }
                 Task::none()
             }
         }

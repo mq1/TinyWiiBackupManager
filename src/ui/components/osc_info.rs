@@ -100,7 +100,7 @@ pub fn view(state: &State, osc_i: usize) -> Element<'_, Message> {
         row![
             button(row![icon_globe(), text("Open OSC Page")].spacing(5))
                 .style(style::rounded_button)
-                .on_press(Message::OpenOscPage(osc_i)),
+                .on_press_with(|| Message::OpenThat(app.get_oscwii_uri())),
             button(row![icon_monitor_up(), text("Send via Wiiload")].spacing(5))
                 .style(style::rounded_button),
             button(row![icon_cloud_download(), text("Install")].spacing(5))

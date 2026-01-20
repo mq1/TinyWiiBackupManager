@@ -8,8 +8,9 @@ use iced::{Task, futures::TryFutureExt};
 use itertools::Itertools;
 use serde::Deserialize;
 use size::Size;
-use smol::{fs, io};
+use smol::fs;
 use std::{
+    ffi::OsString,
     path::{Path, PathBuf},
     time::Duration,
 };
@@ -87,9 +88,8 @@ impl OscAppMeta {
         &self.version[..len]
     }
 
-    pub fn open_page(&self) -> io::Result<()> {
-        let url = format!("https://oscwii.org/library/app/{}", &self.slug);
-        open::that(url)
+    pub fn get_oscwii_uri(&self) -> OsString {
+        format!("https://oscwii.org/library/app/{}", &self.slug).into()
     }
 
     pub fn get_install_task(&self, mount_point: PathBuf) -> Task<Message> {

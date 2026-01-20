@@ -15,7 +15,7 @@ use iced::{Task, futures::TryFutureExt};
 use itertools::Itertools;
 use size::Size;
 use smol::{fs, io, stream::StreamExt};
-use std::path::PathBuf;
+use std::{ffi::OsString, path::PathBuf};
 
 #[derive(Debug, Clone)]
 pub struct Game {
@@ -55,13 +55,12 @@ impl Game {
         })
     }
 
-    pub fn open_dir(&self) -> io::Result<()> {
-        open::that(&self.path)
+    pub fn get_path_uri(&self) -> OsString {
+        self.path.as_os_str().to_os_string()
     }
 
-    pub fn open_gametdb(&self) -> io::Result<()> {
-        let url = format!("https://www.gametdb.com/Wii/{}", self.id.as_str());
-        open::that(url)
+    pub fn get_gametdb_uri(&self) -> OsString {
+        format!("https://www.gametdb.com/Wii/{}", self.id.as_str()).into()
     }
 
     pub fn get_delete_task(&self) -> Task<Message> {

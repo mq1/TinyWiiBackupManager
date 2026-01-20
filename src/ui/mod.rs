@@ -40,7 +40,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 Screen::Toolbox => components::toolbox::view(state),
                 Screen::Settings => components::settings::view(state),
                 Screen::Transfer => components::transfer::view(state),
-                Screen::About => components::about::view(),
+                Screen::About => components::about::view(state),
             },
         ])
         .style(style::root_container),

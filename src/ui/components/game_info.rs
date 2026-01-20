@@ -206,10 +206,10 @@ pub fn view(state: &State, game_i: usize) -> Element<'_, Message> {
         row![
             button(row![icon_folder(), text("Open Game Directory")].spacing(5))
                 .style(style::rounded_button)
-                .on_press(Message::OpenGameDir(game_i)),
+                .on_press_with(|| Message::OpenThat(game.get_path_uri())),
             button(row![icon_globe(), text("Open GameTDB Page")].spacing(5))
                 .style(style::rounded_button)
-                .on_press(Message::OpenGameTdb(game_i)),
+                .on_press_with(|| Message::OpenThat(game.get_gametdb_uri())),
             button(row![icon_trash(), text("Delete Game")].spacing(5))
                 .style(style::rounded_danger_button)
                 .on_press(Message::AskDeleteGame(game_i))

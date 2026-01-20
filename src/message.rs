@@ -11,7 +11,7 @@ use crate::{
     wiitdb,
 };
 use iced::widget::operation::AbsoluteOffset;
-use std::path::PathBuf;
+use std::{ffi::OsString, path::PathBuf};
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -20,19 +20,18 @@ pub enum Message {
 
     NavigateTo(Screen),
     RefreshGamesAndApps,
-    OpenProjectRepo,
     GotWiitdbDatafile(Result<wiitdb::Datafile, String>),
     NotificationTick,
     CloseNotification(usize),
     SelectMountPoint,
     GotDriveUsage(String),
     ChangeTheme,
-    OpenDataDir,
     UpdateGamesScrollOffset(AbsoluteOffset),
     UpdateHbcScrollOffset(AbsoluteOffset),
     UpdateOscScrollOffset(AbsoluteOffset),
     UpdateConfig(Config),
     MountPointChosen(Option<PathBuf>),
+    OpenThat(OsString),
 
     // Games
     GotGames(Result<Box<[Game]>, String>),
@@ -42,8 +41,6 @@ pub enum Message {
     AskDeleteGame(usize),
     DeleteGame(usize, bool),
     GameDeleted(Result<String, String>),
-    OpenGameDir(usize),
-    OpenGameTdb(usize),
     ChooseGamesToAdd,
     ChooseGamesSrcDir,
     AddGamesToTransferStack(Vec<PathBuf>),
@@ -59,7 +56,6 @@ pub enum Message {
     AddHbcApps(Box<[PathBuf]>),
     HbcAppsInstalled(Result<(), String>),
     UpdateHbcFilter(String),
-    OpenHbcPage(usize),
     AskDeleteHbcApp(usize),
     DeleteHbcApp(usize, bool),
     AppDeleted(Result<String, String>),
@@ -70,7 +66,6 @@ pub enum Message {
     AskInstallOscApp(usize),
     InstallOscApp(usize, bool),
     AppInstalled(Result<String, String>),
-    OpenOscPage(usize),
 
     // Toolbox
     DownloadWiitdbToDrive,

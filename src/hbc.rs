@@ -5,7 +5,7 @@ use crate::config::SortBy;
 use crate::message::Message;
 use crate::state::State;
 use crate::util::{self, FuzzySearchable};
-use anyhow::{Result, anyhow};
+use anyhow::Result;
 use fuzzy_matcher::FuzzyMatcher;
 use fuzzy_matcher::skim::SkimMatcherV2;
 use iced::Task;
@@ -16,6 +16,7 @@ use serde::{Deserialize, Deserializer};
 use size::Size;
 use smol::fs;
 use smol::stream::StreamExt;
+use std::ffi::OsString;
 use std::path::PathBuf;
 use time::PrimitiveDateTime;
 use time::macros::format_description;
@@ -119,18 +120,13 @@ impl HbcApp {
         )
     }
 
-    pub fn open_page(&self) -> Result<()> {
-        let slug = self
-            .path
-            .file_name()
-            .ok_or(anyhow!("Could not get file name"))?
-            .to_str()
-            .ok_or(anyhow!("Could not get file name"))?;
-
-        let url = format!("https://oscwii.org/library/app/{}", slug);
-        open::that(url)?;
-
-        Ok(())
+    pub fn get_oscwii_uri(&self) -> OsString {
+        match self.path.file_name() {
+            Some(file_name) => {
+                format!("https://oscwii.org/library/app/{}", file_name.display()).into()
+            }
+            None => "https://oscwii.org/404".into(),
+        }
     }
 }
 
