@@ -63,6 +63,12 @@ impl Config {
         config.contents.wii_output_format = wii_output_format;
         config
     }
+
+    pub fn with_theme_preference(&self, theme_preference: ThemePreference) -> Self {
+        let mut config = self.clone();
+        config.contents.theme_preference = theme_preference;
+        config
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -316,12 +316,8 @@ impl State {
                     ThemePreference::System => ThemePreference::Light,
                 };
 
-                self.config.contents.theme_preference = new_theme_pref;
-                if let Err(e) = self.config.write() {
-                    self.notifications.error(e);
-                }
-
-                Task::none()
+                let new_config = self.config.with_theme_preference(new_theme_pref);
+                self.update(Message::UpdateConfig(new_config))
             }
             Message::EmptyResult(res) => {
                 if let Err(e) = res {
