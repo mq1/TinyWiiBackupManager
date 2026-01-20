@@ -26,14 +26,12 @@ pub enum Message {
     SelectMountPoint,
     GotDriveUsage(String),
     ChangeTheme,
-    UpdateGamesScrollOffset(AbsoluteOffset),
-    UpdateHbcScrollOffset(AbsoluteOffset),
-    UpdateOscScrollOffset(AbsoluteOffset),
     UpdateConfig(Config),
     MountPointChosen(Option<PathBuf>),
     OpenThat(OsString),
     AskDeleteDirConfirmation(PathBuf),
     DirectoryDeleted(Result<PathBuf, String>),
+    UpdateScrollOffset(Screen, AbsoluteOffset),
 
     // Games
     GotGames(Result<Box<[Game]>, String>),

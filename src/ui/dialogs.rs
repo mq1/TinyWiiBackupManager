@@ -8,7 +8,7 @@ use iced::futures::future::join_all;
 use native_dialog::{DialogBuilder, MessageLevel};
 use std::ffi::OsStr;
 use std::fmt::Write;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 pub fn choose_mount_point(window: &dyn Window) -> Option<PathBuf> {
     DialogBuilder::file()

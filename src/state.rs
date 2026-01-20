@@ -21,7 +21,7 @@ use iced::{
     widget::operation::{self, AbsoluteOffset},
     window,
 };
-use std::{path::PathBuf, time::Duration};
+use std::{collections::BTreeMap, path::PathBuf, time::Duration};
 
 pub struct State {
     pub screen: Screen,
@@ -43,9 +43,7 @@ pub struct State {
     pub filtered_hbc_indices: Box<[usize]>,
     pub transfer_stack: Vec<PathBuf>,
     pub half_sec_anim_state: bool,
-    pub games_scroll_offset: AbsoluteOffset,
-    pub hbc_scroll_offset: AbsoluteOffset,
-    pub osc_scroll_offset: AbsoluteOffset,
+    pub scroll_offsets: BTreeMap<Screen, AbsoluteOffset>,
 }
 
 impl State {
@@ -73,9 +71,7 @@ impl State {
             filtered_game_indices: Box::new([]),
             filtered_osc_indices: Box::new([]),
             filtered_hbc_indices: Box::new([]),
-            games_scroll_offset: AbsoluteOffset::default(),
-            hbc_scroll_offset: AbsoluteOffset::default(),
-            osc_scroll_offset: AbsoluteOffset::default(),
+            scroll_offsets: BTreeMap::new(),
         };
 
         let tasks = Task::batch(vec![
@@ -115,33 +111,30 @@ impl State {
                 Task::none()
             }
             Message::NavigateTo(screen) => {
+                let mut tasks = Vec::new();
+
                 if let Screen::GameInfo(i) = self.screen {
                     let game = &mut self.games[i];
                     game.disc_info = None;
                     game.wiitdb_info = None;
                 }
 
-                let load_disc_info_task = match screen {
-                    Screen::GameInfo(i) => {
-                        let game = &mut self.games[i];
-                        game.wiitdb_info = self
-                            .wiitdb
-                            .as_ref()
-                            .and_then(|wiitdb| wiitdb.get_game_info(game.id));
-                        game.get_load_disc_info_task(i)
-                    }
-                    _ => Task::none(),
-                };
+                if let Screen::GameInfo(i) = screen {
+                    let game = &mut self.games[i];
+                    game.wiitdb_info = self
+                        .wiitdb
+                        .as_ref()
+                        .and_then(|wiitdb| wiitdb.get_game_info(game.id));
 
-                let scroll_task = match screen {
-                    Screen::Games => operation::scroll_to("games_scroll", self.games_scroll_offset),
-                    Screen::HbcApps => operation::scroll_to("hbc_scroll", self.hbc_scroll_offset),
-                    Screen::Osc => operation::scroll_to("osc_scroll", self.osc_scroll_offset),
-                    _ => Task::none(),
-                };
+                    tasks.push(game.get_load_disc_info_task(i));
+                }
+
+                if let Some(offset) = self.scroll_offsets.get(&screen) {
+                    tasks.push(operation::scroll_to(screen.get_scroll_id(), *offset));
+                }
 
                 self.screen = screen;
-                Task::batch(vec![load_disc_info_task, scroll_task])
+                Task::batch(tasks)
             }
             Message::RefreshGamesAndApps => Task::batch(vec![
                 game::get_list_games_task(self),
@@ -433,16 +426,8 @@ impl State {
                     Message::GenericResult,
                 )
             }
-            Message::UpdateGamesScrollOffset(offset) => {
-                self.games_scroll_offset = offset;
-                Task::none()
-            }
-            Message::UpdateHbcScrollOffset(offset) => {
-                self.hbc_scroll_offset = offset;
-                Task::none()
-            }
-            Message::UpdateOscScrollOffset(offset) => {
-                self.osc_scroll_offset = offset;
+            Message::UpdateScrollOffset(screen, offset) => {
+                self.scroll_offsets.insert(screen, offset);
                 Task::none()
             }
             Message::OpenThat(uri) => {

@@ -11,7 +11,7 @@ mod components;
 pub mod dialogs;
 mod style;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Screen {
     Games,
     GameInfo(usize),
@@ -23,6 +23,17 @@ pub enum Screen {
     Settings,
     Transfer,
     About,
+}
+
+impl Screen {
+    pub fn get_scroll_id(&self) -> &'static str {
+        match self {
+            Screen::Games => "games_scroll",
+            Screen::HbcApps => "hbc_scroll",
+            Screen::Osc => "osc_scroll",
+            _ => "",
+        }
+    }
 }
 
 pub fn view(state: &State) -> Element<'_, Message> {
