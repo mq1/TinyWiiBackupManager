@@ -10,10 +10,10 @@ use iced::{
 const OS_RADIUS: Pixels = Pixels(16.);
 
 #[cfg(target_os = "windows")]
-const OS_RADIUS: Pixels = Pixels(8);
+const OS_RADIUS: Pixels = Pixels(8.);
 
 #[cfg(not(any(target_os = "macos", target_os = "windows")))]
-const OS_RADIUS: Pixels = Pixels(15);
+const OS_RADIUS: Pixels = Pixels(15.);
 
 pub fn root_container(theme: &Theme) -> container::Style {
     let mut style = container::bordered_box(theme);
