@@ -228,8 +228,9 @@ jobs:
       - name: Build binary
         run: cargo build --release --locked --target ${{ matrix.target }}
         env:
-          CFLAGS: -O3 -flto
-          CXXFLAGS: -O3 -flto
+          CFLAGS: -O3 -flto -mmacosx-version-min=10.13
+          CXXFLAGS: -O3 -flto -mmacosx-version-min=10.13
+          MACOSX_DEPLOYMENT_TARGET: "10.13"
 
       - name: Build macOS app bundle
         run: |
