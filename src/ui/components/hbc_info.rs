@@ -20,7 +20,7 @@ pub fn view(state: &State, hbc_i: usize) -> Element<'_, Message> {
 
     let col = column![
         row![icon_waves().size(18), text(&app.meta.name).size(18)].spacing(5),
-        row![icon_folder(), text!("Path: {}", app.get_path_str())].spacing(5),
+        row![icon_folder(), text!("Path: {}", app.path.display())].spacing(5),
         rule::horizontal(1),
         row![icon_tag(), text!("Version: {}", &app.meta.version)].spacing(5),
         row![
@@ -43,6 +43,9 @@ pub fn view(state: &State, hbc_i: usize) -> Element<'_, Message> {
         scrollable(text(&app.meta.long_description).width(Length::Fill)).height(Length::Fill),
         rule::horizontal(1),
         row![
+            button(row![icon_folder(), text("Open App Directory")].spacing(5))
+                .style(style::rounded_button)
+                .on_press_with(|| Message::OpenThat(app.get_path_uri())),
             button(row![icon_globe(), text("Open OSC Page")].spacing(5))
                 .style(style::rounded_button)
                 .on_press_with(|| Message::OpenThat(app.get_oscwii_uri())),

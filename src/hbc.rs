@@ -98,8 +98,8 @@ impl HbcApp {
         })
     }
 
-    pub fn get_path_str(&self) -> &str {
-        self.path.to_str().unwrap_or("Invalid Path")
+    pub fn get_path_uri(&self) -> OsString {
+        self.path.as_os_str().to_os_string()
     }
 
     pub fn get_trimmed_version_str(&self) -> &str {
