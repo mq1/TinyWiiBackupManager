@@ -4,38 +4,20 @@
 use crate::util;
 use anyhow::Result;
 use minreq::Response;
-use smol::{
-    channel::{Sender, bounded, unbounded},
-    fs,
-};
-use std::{path::Path, sync::LazyLock};
+use smol::fs;
+use std::path::Path;
 
 const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 
-type Job = (String, Sender<Result<Vec<u8>>>);
-
-static HTTP_WORKER: LazyLock<Sender<Job>> = LazyLock::new(|| {
-    let (tx, rx) = unbounded::<Job>();
-
-    std::thread::spawn(move || {
-        while let Ok((url, reply_tx)) = rx.recv_blocking() {
-            let res = minreq::get(&url)
-                .with_header("User-Agent", USER_AGENT)
-                .send()
-                .map(Response::into_bytes)
-                .map_err(Into::into);
-
-            let _ = reply_tx.send_blocking(res);
-        }
-    });
-
-    tx
-});
-
 pub async fn get(url: String) -> Result<Vec<u8>> {
-    let (reply_tx, reply_rx) = bounded(1);
-    HTTP_WORKER.send((url, reply_tx)).await?;
-    reply_rx.recv().await?
+    smol::unblock(move || -> Result<Vec<u8>> {
+        minreq::get(&url)
+            .with_header("User-Agent", USER_AGENT)
+            .send()
+            .map(Response::into_bytes)
+            .map_err(Into::into)
+    })
+    .await
 }
 
 pub async fn download_file(url: String, dest_path: &Path) -> Result<()> {
