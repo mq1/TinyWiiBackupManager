@@ -9,7 +9,7 @@ use iced::{
 use lucide_icons::iced::{icon_disc_3, icon_settings};
 
 pub fn view(state: &State) -> Element<'_, Message> {
-    let wii_output_format = state.config.contents.wii_output_format;
+    let wii_output_format = state.config.wii_output_format();
 
     column![
         row![icon_settings().size(18), text("Settings").size(18)].spacing(5),
@@ -22,13 +22,17 @@ pub fn view(state: &State) -> Element<'_, Message> {
                     "WBFS (recommended)",
                     nod::common::Format::Wbfs,
                     Some(wii_output_format),
-                    |format| Message::UpdateConfig(state.config.with_wii_output_format(format))
+                    |format| Message::UpdateConfig(
+                        state.config.clone().with_wii_output_format(format)
+                    )
                 ),
                 radio(
                     "ISO (very large)",
                     nod::common::Format::Iso,
                     Some(wii_output_format),
-                    |format| Message::UpdateConfig(state.config.with_wii_output_format(format))
+                    |format| Message::UpdateConfig(
+                        state.config.clone().with_wii_output_format(format)
+                    )
                 ),
             ]
             .spacing(5)

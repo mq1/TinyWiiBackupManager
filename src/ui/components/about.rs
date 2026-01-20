@@ -32,9 +32,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
         row![
             button(row![icon_folder(), text("Data Directory")].spacing(5))
                 .style(style::rounded_button)
-                .on_press_with(|| Message::OpenThat(
-                    state.config.contents.mount_point.as_os_str().into()
-                )),
+                .on_press_with(|| Message::OpenThat(state.config.mount_point().as_os_str().into())),
             button(row![icon_github(), text("Source Code")].spacing(5))
                 .style(style::rounded_button)
                 .on_press_with(|| Message::OpenThat(REPO_URI.into())),

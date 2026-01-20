@@ -50,7 +50,7 @@ pub fn sanitize(s: &str) -> String {
 }
 
 pub fn get_drive_usage_task(state: &State) -> Task<Message> {
-    let mount_point = state.config.contents.mount_point.to_path_buf();
+    let mount_point = state.config.mount_point().to_path_buf();
     Task::perform(get_drive_usage(mount_point), Message::GotDriveUsage)
 }
 

@@ -118,7 +118,7 @@ impl HbcApp {
 }
 
 pub fn get_list_hbc_apps_task(state: &State) -> Task<Message> {
-    let mount_point = state.config.contents.mount_point.to_path_buf();
+    let mount_point = state.config.mount_point().to_path_buf();
 
     Task::perform(
         list(mount_point).map_err(|e| e.to_string()),
@@ -210,7 +210,7 @@ impl FuzzySearchable for Box<[HbcApp]> {
 }
 
 pub fn get_install_hbc_apps_task(state: &State, zip_paths: Box<[PathBuf]>) -> Task<Message> {
-    let drive_path = state.config.contents.mount_point.to_path_buf();
+    let drive_path = state.config.mount_point().to_path_buf();
 
     Task::perform(
         install_hbc_apps(drive_path, zip_paths).map_err(|e| e.to_string()),

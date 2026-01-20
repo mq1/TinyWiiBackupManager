@@ -16,7 +16,7 @@ use lucide_icons::iced::{
 };
 
 pub fn view(state: &State) -> Element<'_, Message> {
-    let sort_by = state.config.contents.sort_by;
+    let sort_by = state.config.sort_by();
 
     let sort_by_name_button = match sort_by {
         SortBy::NameAscending => button(icon_arrow_down_a_z())

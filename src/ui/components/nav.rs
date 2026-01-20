@@ -17,7 +17,7 @@ use lucide_icons::iced::{
 };
 
 pub fn view(state: &State) -> Element<'_, Message> {
-    let theme_icon = match state.config.contents.theme_preference {
+    let theme_icon = match state.config.theme_preference() {
         ThemePreference::Light => icon_sun(),
         ThemePreference::Dark => icon_moon(),
         ThemePreference::System => icon_sun_moon(),

@@ -14,7 +14,7 @@ use iced::{
 use lucide_icons::iced::icon_store;
 
 pub fn view(state: &State) -> Element<'_, Message> {
-    let content = match state.config.contents.view_as {
+    let content = match state.config.view_as() {
         ViewAs::Grid => components::osc_grid::view(state),
         ViewAs::Table => components::osc_table::view(state),
     };

@@ -14,7 +14,7 @@ use iced::{
 use lucide_icons::iced::{icon_arrow_down_left, icon_hard_drive};
 
 pub fn view(state: &State) -> Element<'_, Message> {
-    if !state.config.valid_mount_point() {
+    if !state.config.is_mount_point_valid() {
         return container(
             row![
                 icon_arrow_down_left(),
@@ -28,7 +28,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
         .into();
     }
 
-    let content = match state.config.contents.view_as {
+    let content = match state.config.view_as() {
         ViewAs::Grid => components::games_grid::view(state),
         ViewAs::Table => components::games_table::view(state),
     };
