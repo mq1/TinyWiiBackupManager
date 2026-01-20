@@ -30,7 +30,7 @@ pub enum Message {
     MountPointChosen(Option<PathBuf>),
     OpenThat(OsString),
     AskDeleteDirConfirmation(PathBuf),
-    DirectoryDeleted(Result<PathBuf, String>),
+    DirectoryDeleted(Result<(), String>),
     UpdateScrollOffset(Screen, AbsoluteOffset),
 
     // Games

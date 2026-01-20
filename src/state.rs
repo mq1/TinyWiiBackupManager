@@ -206,12 +206,18 @@ impl State {
                 .and_then(move |id| window::run(id, dialogs::delete_dir(path.clone())))
                 .map(Message::DirectoryDeleted),
             Message::DirectoryDeleted(res) => {
-                let res = res.map(|p| format!("Directory deleted: {}", p.display()));
+                match self.screen {
+                    Screen::GameInfo(_) => self.screen = Screen::Games,
+                    Screen::HbcInfo(_) => self.screen = Screen::HbcApps,
+                    Screen::OscInfo(_) => self.screen = Screen::Osc,
+                    _ => {}
+                }
 
-                Task::batch(vec![
-                    self.update(Message::GenericResult(res)),
-                    self.update(Message::RefreshGamesAndApps),
-                ])
+                if let Err(e) = res {
+                    self.notifications.error(e);
+                }
+
+                self.update(Message::RefreshGamesAndApps)
             }
             Message::GotOscApps(res) => match res {
                 Ok(osc_apps) => {

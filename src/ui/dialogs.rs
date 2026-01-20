@@ -87,7 +87,7 @@ pub fn choose_file_to_push(window: &dyn Window) -> Option<PathBuf> {
         .unwrap_or_default()
 }
 
-pub fn delete_dir(path: PathBuf) -> impl FnOnce(&dyn Window) -> Result<PathBuf, String> {
+pub fn delete_dir(path: PathBuf) -> impl FnOnce(&dyn Window) -> Result<(), String> {
     move |window: &dyn Window| {
         let yes = DialogBuilder::message()
             .set_title("Delete directory")
@@ -103,10 +103,9 @@ pub fn delete_dir(path: PathBuf) -> impl FnOnce(&dyn Window) -> Result<PathBuf, 
 
         if yes {
             std::fs::remove_dir_all(&path).map_err(|e| e.to_string())?;
-            Ok(path)
-        } else {
-            Err("Cancelled".to_string())
         }
+
+        Ok(())
     }
 }
 
