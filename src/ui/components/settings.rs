@@ -22,17 +22,13 @@ pub fn view(state: &State) -> Element<'_, Message> {
                     "WBFS (recommended)",
                     nod::common::Format::Wbfs,
                     Some(wii_output_format),
-                    |format| Message::UpdateConfig(
-                        state.config.clone().with_wii_output_format(format)
-                    )
+                    |format| Message::UpdateConfig(state.config.with_wii_output_format(format))
                 ),
                 radio(
                     "ISO (very large)",
                     nod::common::Format::Iso,
                     Some(wii_output_format),
-                    |format| Message::UpdateConfig(
-                        state.config.clone().with_wii_output_format(format)
-                    )
+                    |format| Message::UpdateConfig(state.config.with_wii_output_format(format))
                 ),
             ]
             .spacing(5)
