@@ -8,7 +8,7 @@ use iced::futures::future::join_all;
 use native_dialog::{DialogBuilder, MessageLevel};
 use std::ffi::OsStr;
 use std::fmt::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 pub fn choose_mount_point(window: &dyn Window) -> Option<PathBuf> {
     DialogBuilder::file()
@@ -87,26 +87,27 @@ pub fn choose_file_to_push(window: &dyn Window) -> Option<PathBuf> {
         .unwrap_or_default()
 }
 
-pub fn delete_game(window: &dyn Window, game_title: String) -> bool {
-    DialogBuilder::message()
-        .set_title("Delete game")
-        .set_owner(&window)
-        .set_text(format!("Are you sure you want to delete {}?", game_title))
-        .set_level(MessageLevel::Warning)
-        .confirm()
-        .show()
-        .unwrap_or_default()
-}
+pub fn delete_dir(path: PathBuf) -> impl FnOnce(&dyn Window) -> Result<PathBuf, String> {
+    move |window: &dyn Window| {
+        let yes = DialogBuilder::message()
+            .set_title("Delete directory")
+            .set_owner(&window)
+            .set_text(format!(
+                "Are you sure you want to delete {}?",
+                path.display()
+            ))
+            .set_level(MessageLevel::Warning)
+            .confirm()
+            .show()
+            .unwrap_or_default();
 
-pub fn delete_hbc_app(window: &dyn Window, app_name: String) -> bool {
-    DialogBuilder::message()
-        .set_title("Delete Homebrew Channel app")
-        .set_owner(&window)
-        .set_text(format!("Are you sure you want to delete {}?", app_name))
-        .set_level(MessageLevel::Warning)
-        .confirm()
-        .show()
-        .unwrap_or_default()
+        if yes {
+            std::fs::remove_dir_all(&path).map_err(|e| e.to_string())?;
+            Ok(path)
+        } else {
+            Err("Cancelled".to_string())
+        }
+    }
 }
 
 pub fn confirm_add_games(window: &dyn Window, paths: &[PathBuf]) -> bool {

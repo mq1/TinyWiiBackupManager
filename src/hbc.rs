@@ -107,19 +107,6 @@ impl HbcApp {
         &self.meta.version[..len]
     }
 
-    pub fn get_delete_task(&self) -> Task<Message> {
-        let path = self.path.clone();
-        let name = self.meta.name.clone();
-
-        Task::perform(
-            async move {
-                fs::remove_dir_all(path).await.map_err(|e| e.to_string())?;
-                Ok(name)
-            },
-            Message::AppDeleted,
-        )
-    }
-
     pub fn get_oscwii_uri(&self) -> OsString {
         match self.path.file_name() {
             Some(file_name) => {

@@ -49,7 +49,7 @@ pub fn view(state: &State, i: usize) -> Element<'_, Message> {
                     .on_press(Message::NavigateTo(Screen::HbcInfo(i))),
                 button(icon_trash())
                     .style(style::rounded_secondary_button)
-                    .on_press(Message::AskDeleteHbcApp(i)),
+                    .on_press_with(|| Message::AskDeleteDirConfirmation(app.path.clone())),
             ]
             .spacing(5),
         );

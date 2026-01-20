@@ -209,36 +209,16 @@ impl State {
                     Task::none()
                 }
             }
-            Message::AskDeleteGame(i) => {
-                let title = self.games[i].title.clone();
+            Message::AskDeleteDirConfirmation(path) => window::oldest()
+                .and_then(move |id| window::run(id, dialogs::delete_dir(path.clone())))
+                .map(Message::DirectoryDeleted),
+            Message::DirectoryDeleted(res) => {
+                let res = res.map(|p| format!("Directory deleted: {}", p.display()));
 
-                window::oldest()
-                    .and_then(move |id| {
-                        let title = title.clone();
-                        window::run(id, move |w| dialogs::delete_game(w, title))
-                    })
-                    .map(move |yes| Message::DeleteGame(i, yes))
-            }
-            Message::DeleteGame(i, yes) => {
-                if yes {
-                    self.games[i].get_delete_task()
-                } else {
-                    Task::none()
-                }
-            }
-            Message::GameDeleted(res) => {
-                match res {
-                    Ok(title) => {
-                        self.notifications
-                            .success(format!("Game deleted: {}", title));
-                    }
-                    Err(e) => {
-                        self.notifications.error(e);
-                    }
-                }
-
-                self.screen = Screen::Games;
-                self.update(Message::RefreshGamesAndApps)
+                Task::batch(vec![
+                    self.update(Message::GenericResult(res)),
+                    self.update(Message::RefreshGamesAndApps),
+                ])
             }
             Message::GotOscApps(res) => match res {
                 Ok(osc_apps) => {
@@ -342,36 +322,6 @@ impl State {
                 }
 
                 Task::none()
-            }
-            Message::AskDeleteHbcApp(hbc_i) => {
-                let name = self.hbc_apps[hbc_i].meta.name.clone();
-
-                window::oldest()
-                    .and_then(move |id| {
-                        let name = name.clone();
-                        window::run(id, move |w| dialogs::delete_hbc_app(w, name))
-                    })
-                    .map(move |yes| Message::DeleteHbcApp(hbc_i, yes))
-            }
-            Message::DeleteHbcApp(usize, yes) => {
-                if yes {
-                    self.hbc_apps[usize].get_delete_task()
-                } else {
-                    Task::none()
-                }
-            }
-            Message::AppDeleted(res) => {
-                match res {
-                    Ok(name) => {
-                        self.notifications.success(format!("App deleted: {}", name));
-                    }
-                    Err(e) => {
-                        self.notifications.error(e);
-                    }
-                }
-
-                self.screen = Screen::HbcApps;
-                self.update(Message::RefreshGamesAndApps)
             }
             Message::EmptyResult(res) => {
                 if let Err(e) = res {

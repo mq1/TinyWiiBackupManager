@@ -32,15 +32,14 @@ pub enum Message {
     UpdateConfig(Config),
     MountPointChosen(Option<PathBuf>),
     OpenThat(OsString),
+    AskDeleteDirConfirmation(PathBuf),
+    DirectoryDeleted(Result<PathBuf, String>),
 
     // Games
     GotGames(Result<Box<[Game]>, String>),
     UpdateGamesFilter(String),
     ShowWii(bool),
     ShowGc(bool),
-    AskDeleteGame(usize),
-    DeleteGame(usize, bool),
-    GameDeleted(Result<String, String>),
     ChooseGamesToAdd,
     ChooseGamesSrcDir,
     AddGamesToTransferStack(Vec<PathBuf>),
@@ -56,9 +55,6 @@ pub enum Message {
     AddHbcApps(Box<[PathBuf]>),
     HbcAppsInstalled(Result<(), String>),
     UpdateHbcFilter(String),
-    AskDeleteHbcApp(usize),
-    DeleteHbcApp(usize, bool),
-    AppDeleted(Result<String, String>),
 
     // OSC Apps
     GotOscApps(Result<Box<[OscAppMeta]>, String>),

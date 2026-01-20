@@ -63,19 +63,6 @@ impl Game {
         format!("https://www.gametdb.com/Wii/{}", self.id.as_str()).into()
     }
 
-    pub fn get_delete_task(&self) -> Task<Message> {
-        let path = self.path.clone();
-        let title = self.title.clone();
-
-        Task::perform(
-            async move {
-                fs::remove_dir_all(&path).await.map_err(|e| e.to_string())?;
-                Ok(title)
-            },
-            Message::GameDeleted,
-        )
-    }
-
     pub fn get_path_str(&self) -> &str {
         self.path.to_str().unwrap_or("Invalid path")
     }

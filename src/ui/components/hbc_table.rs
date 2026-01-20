@@ -29,7 +29,9 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 button(row![icon_trash(), text("Delete")].spacing(5))
                     .padding(0)
                     .style(button::text)
-                    .on_press(Message::AskDeleteHbcApp(i))
+                    .on_press_with(move || Message::AskDeleteDirConfirmation(
+                        state.hbc_apps[i].path.clone()
+                    )),
             ]
             .spacing(10)
             .align_y(Alignment::Center)

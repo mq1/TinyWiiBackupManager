@@ -54,7 +54,7 @@ pub fn view(state: &State, i: usize) -> Element<'_, Message> {
                 button(icon_hard_drive_download()).style(style::rounded_secondary_button),
                 button(icon_trash())
                     .style(style::rounded_secondary_button)
-                    .on_press(Message::AskDeleteGame(i))
+                    .on_press_with(|| Message::AskDeleteDirConfirmation(game.path.clone()))
             ]
             .spacing(5),
         );

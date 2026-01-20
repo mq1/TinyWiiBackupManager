@@ -48,7 +48,7 @@ pub fn view(state: &State, hbc_i: usize) -> Element<'_, Message> {
                 .on_press_with(|| Message::OpenThat(app.get_oscwii_uri())),
             button(row![icon_trash(), text("Delete")].spacing(5))
                 .style(style::rounded_danger_button)
-                .on_press(Message::AskDeleteHbcApp(hbc_i)),
+                .on_press_with(|| Message::AskDeleteDirConfirmation(app.path.clone())),
         ]
         .spacing(5)
         .padding(padding::top(5))
