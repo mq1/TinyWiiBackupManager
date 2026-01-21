@@ -9,7 +9,6 @@ mod data_dir;
 mod games;
 mod hbc;
 mod http_util;
-mod lucide;
 mod message;
 mod notifications;
 mod state;

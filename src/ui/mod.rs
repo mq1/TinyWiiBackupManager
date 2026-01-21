@@ -9,6 +9,7 @@ use iced::{
 
 mod components;
 pub mod dialogs;
+pub mod lucide;
 mod style;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]

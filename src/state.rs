@@ -15,10 +15,9 @@ use crate::{
         apps::{HbcApp, HbcApps},
         osc::{self, OscAppMeta},
     },
-    lucide,
     message::Message,
     notifications::Notifications,
-    ui::{Screen, dialogs},
+    ui::{Screen, dialogs, lucide},
     util::{self, FuzzySearchable},
 };
 use iced::{
