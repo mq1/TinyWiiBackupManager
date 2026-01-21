@@ -38,25 +38,27 @@ impl Screen {
 }
 
 pub fn view(state: &State) -> Element<'_, Message> {
-    stack![
-        container(row![
-            components::nav::view(state),
-            rule::vertical(1),
-            match state.screen {
-                Screen::Games => components::games::view(state),
-                Screen::GameInfo(game_i) => components::game_info::view(state, game_i),
-                Screen::HbcApps => components::hbc::view(state),
-                Screen::HbcInfo(hbc_i) => components::hbc_info::view(state, hbc_i),
-                Screen::Osc => components::osc::view(state),
-                Screen::OscInfo(osc_i) => components::osc_info::view(state, osc_i),
-                Screen::Toolbox => components::toolbox::view(state),
-                Screen::Settings => components::settings::view(state),
-                Screen::Transfer => components::transfer::view(state),
-                Screen::About => components::about::view(state),
-            },
-        ])
-        .style(style::root_container),
-        components::notifications::view(state)
-    ]
-    .into()
+    let root = container(row![
+        components::nav::view(state),
+        rule::vertical(1),
+        match state.screen {
+            Screen::Games => components::games::view(state),
+            Screen::GameInfo(game_i) => components::game_info::view(state, game_i),
+            Screen::HbcApps => components::hbc::view(state),
+            Screen::HbcInfo(hbc_i) => components::hbc_info::view(state, hbc_i),
+            Screen::Osc => components::osc::view(state),
+            Screen::OscInfo(osc_i) => components::osc_info::view(state, osc_i),
+            Screen::Toolbox => components::toolbox::view(state),
+            Screen::Settings => components::settings::view(state),
+            Screen::Transfer => components::transfer::view(state),
+            Screen::About => components::about::view(state),
+        },
+    ])
+    .style(style::root_container);
+
+    if state.notifications.is_empty() {
+        root.into()
+    } else {
+        stack![root, components::notifications::view(state)].into()
+    }
 }
