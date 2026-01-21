@@ -1,7 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{game_id::GameID, game_list::GameList, http_util, message::Message, state::State};
+use crate::{
+    games::{game_id::GameID, game_list::GameList},
+    http_util,
+    message::Message,
+    state::State,
+};
 use anyhow::Result;
 use iced::{Task, futures::TryFutureExt};
 use std::{

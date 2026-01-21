@@ -3,12 +3,9 @@
 
 use crate::{
     config::{Config, SortBy},
-    disc_info::DiscInfo,
-    game_list::GameList,
-    hbc::HbcApp,
-    osc::OscAppMeta,
+    games::{disc_info::DiscInfo, game_list::GameList, wiitdb::Datafile},
+    hbc::{apps::HbcApp, osc::OscAppMeta},
     ui::Screen,
-    wiitdb,
 };
 use iced::widget::operation::AbsoluteOffset;
 use std::{ffi::OsString, path::PathBuf};
@@ -20,7 +17,7 @@ pub enum Message {
 
     NavigateTo(Screen),
     RefreshGamesAndApps,
-    GotWiitdbDatafile(Result<wiitdb::Datafile, String>),
+    GotWiitdbDatafile(Result<Datafile, String>),
     NotificationTick,
     CloseNotification(usize),
     SelectMountPoint,

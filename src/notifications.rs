@@ -15,7 +15,7 @@ pub fn notifications_subscription(_state: &State) -> Subscription<Message> {
 
 pub struct Notifications {
     last_id: usize,
-    pub list: Vec<Notification>,
+    list: Vec<Notification>,
 }
 
 impl Notifications {
@@ -24,6 +24,10 @@ impl Notifications {
             last_id: 0,
             list: Vec::new(),
         }
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = &Notification> {
+        self.list.iter().rev()
     }
 
     /// 1/2 of a second has passed

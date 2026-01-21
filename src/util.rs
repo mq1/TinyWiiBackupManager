@@ -1,10 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{extensions::SUPPORTED_DISC_EXTENSIONS, message::Message, state::State};
+use crate::{message::Message, state::State};
 use anyhow::{Result, anyhow};
-use async_zip::base::read::seek::ZipFileReader;
-use iced::{Task, futures::future::join_all};
+use iced::Task;
 use size::Size;
 use smol::{
     fs::{self, File},
@@ -12,7 +11,6 @@ use smol::{
     stream::StreamExt,
 };
 use std::{
-    ffi::OsStr,
     path::{Path, PathBuf},
     sync::LazyLock,
 };
@@ -129,87 +127,6 @@ pub async fn run_dot_clean(mount_point: PathBuf) -> Result<()> {
         }
         Err(e) => Err(anyhow!("dot_clean failed: {}", e)),
     }
-}
-
-pub async fn scan_for_discs(path: PathBuf) -> io::Result<Vec<PathBuf>> {
-    let mut discs = Vec::new();
-    let mut stack = vec![path];
-
-    while let Some(current_path) = stack.pop() {
-        let mut entries = fs::read_dir(&current_path).await?;
-
-        while let Some(entry) = entries.try_next().await? {
-            let entry_path = entry.path();
-
-            if entry_path.is_dir() {
-                stack.push(entry_path);
-            } else if entry_path.is_file() {
-                discs.push(keep_disc_file(entry_path));
-            }
-        }
-    }
-
-    let discs = join_all(discs).await.into_iter().flatten().collect();
-
-    Ok(discs)
-}
-
-pub async fn keep_disc_file(path: PathBuf) -> Option<PathBuf> {
-    if is_valid_disc_file(&path).await {
-        Some(path)
-    } else {
-        None
-    }
-}
-
-pub async fn is_valid_disc_file(path: &Path) -> bool {
-    let stem = match path.file_stem().and_then(OsStr::to_str) {
-        Some(s) => s,
-        None => return false,
-    };
-
-    if stem.starts_with('.') {
-        return false;
-    }
-
-    if stem.ends_with(".part1") {
-        return false;
-    }
-
-    let ext = match path.extension().and_then(OsStr::to_str) {
-        Some(s) => s,
-        None => return false,
-    };
-
-    match ext {
-        "zip" => does_this_zip_contain_a_disc(path).await,
-        "gcm" | "iso" | "wbfs" | "wia" | "rvz" | "ciso" | "gcz" | "tgc" | "nfs" => true,
-        _ => false,
-    }
-}
-
-async fn does_this_zip_contain_a_disc(path: &Path) -> bool {
-    let file = match File::open(path).await {
-        Ok(f) => f,
-        Err(_) => return false,
-    };
-
-    let reader = BufReader::new(file);
-
-    let zip = match ZipFileReader::new(reader).await {
-        Ok(a) => a,
-        Err(_) => return false,
-    };
-
-    zip.file()
-        .entries()
-        .first()
-        .and_then(|e| e.filename().as_str().ok())
-        .is_some_and(|filename| {
-            SUPPORTED_DISC_EXTENSIONS
-                .iter()
-                .any(|ext| filename.ends_with(ext))
-        })
 }
 
 pub async fn get_files_and_dirs(base_dir: &Path) -> io::Result<(Vec<PathBuf>, Vec<PathBuf>)> {

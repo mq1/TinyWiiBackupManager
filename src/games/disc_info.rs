@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::game_id::GameID;
+use crate::games::game_id::GameID;
 use anyhow::{Result, anyhow, bail};
 use nod::common::{Compression, Format, PartitionKind};
 use nod::read::{DiscOptions, DiscReader, PartitionEncryption, PartitionOptions};

@@ -2,11 +2,13 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    disc_info::DiscInfo,
-    game_id::GameID,
+    games::{
+        disc_info::DiscInfo,
+        game_id::GameID,
+        wiitdb::{Datafile, GameInfo},
+    },
     message::Message,
-    util::{self},
-    wiitdb::{Datafile, GameInfo},
+    util,
 };
 use derive_getters::Getters;
 use iced::{Task, futures::TryFutureExt};

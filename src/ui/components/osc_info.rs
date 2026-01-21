@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
+    hbc::osc::{Flag, Peripheral, Platform},
     message::Message,
-    osc::{Flag, Peripheral, Platform},
     state::State,
     ui::{components, style},
 };

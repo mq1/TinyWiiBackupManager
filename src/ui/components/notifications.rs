@@ -14,7 +14,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
         .spacing(10)
         .padding(10);
 
-    for notification in state.notifications.list.iter().rev() {
+    for notification in state.notifications.iter() {
         col = col.push(components::notification::view(notification));
     }
 

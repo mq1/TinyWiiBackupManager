@@ -12,10 +12,6 @@ pub const SUPPORTED_DISC_EXTENSIONS: &[&str] = &[
     "gcm", "iso", "wbfs", "wia", "rvz", "ciso", "gcz", "tgc", "nfs",
 ];
 
-pub const ZIP_EXTENSIONS: &[&str] = &["zip"];
-
-pub const HBC_APP_EXTENSIONS: &[&str] = &["zip", "dol", "elf"];
-
 pub fn ext_to_format(ext: &str) -> Option<Format> {
     match ext {
         "gcm" | "iso" => Some(Format::Iso),

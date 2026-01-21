@@ -3,18 +3,23 @@
 
 use crate::{
     config::{Config, SortBy, ThemePreference},
-    covers,
     data_dir::get_data_dir,
-    game::Game,
-    game_list::{self, GameList},
-    hbc::{self, HbcApp, HbcApps},
+    games::{
+        covers,
+        game::Game,
+        game_list::{self, GameList},
+        wiitdb::{self, Datafile},
+    },
+    hbc::{
+        self,
+        apps::{HbcApp, HbcApps},
+        osc::{self, OscAppMeta},
+    },
     lucide,
     message::Message,
     notifications::Notifications,
-    osc::{self, OscAppMeta},
     ui::{Screen, dialogs},
     util::{self, FuzzySearchable},
-    wiitdb,
 };
 use iced::{
     Task, Theme,
@@ -32,7 +37,7 @@ pub struct State {
     pub games_filter: String,
     pub hbc_apps: Box<[HbcApp]>,
     pub osc_apps: Box<[OscAppMeta]>,
-    pub wiitdb: Option<wiitdb::Datafile>,
+    pub wiitdb: Option<Datafile>,
     pub notifications: Notifications,
     pub show_wii: bool,
     pub show_gc: bool,
@@ -76,7 +81,7 @@ impl State {
         let tasks = Task::batch(vec![
             wiitdb::get_load_wiitdb_task(&initial_state),
             game_list::get_list_games_task(&initial_state),
-            hbc::get_list_hbc_apps_task(&initial_state),
+            hbc::apps::get_list_hbc_apps_task(&initial_state),
             osc::get_load_osc_apps_task(&initial_state),
             util::get_drive_usage_task(&initial_state),
             lucide::get_load_lucide_task(),
@@ -131,7 +136,7 @@ impl State {
             }
             Message::RefreshGamesAndApps => Task::batch(vec![
                 game_list::get_list_games_task(self),
-                hbc::get_list_hbc_apps_task(self),
+                hbc::apps::get_list_hbc_apps_task(self),
                 util::get_drive_usage_task(self),
             ]),
             Message::UpdateGamesFilter(filter) => {
@@ -339,7 +344,7 @@ impl State {
                 if apps.is_empty() {
                     Task::none()
                 } else {
-                    hbc::get_install_hbc_apps_task(self, apps)
+                    hbc::apps::get_install_hbc_apps_task(self, apps)
                 }
             }
             Message::HbcAppsInstalled(res) => {

@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::extensions::{HBC_APP_EXTENSIONS, SUPPORTED_INPUT_EXTENSIONS, ZIP_EXTENSIONS};
-use crate::util;
+use crate::games;
+use crate::games::extensions::SUPPORTED_INPUT_EXTENSIONS;
 use iced::Window;
 use iced::futures::future::join_all;
 use native_dialog::{DialogBuilder, MessageLevel};
@@ -23,13 +23,13 @@ pub fn choose_games(window: &dyn Window) -> Vec<PathBuf> {
     let paths = DialogBuilder::file()
         .set_title("Select games")
         .set_owner(&window)
-        .add_filter("Nintendo Optical Disc", SUPPORTED_INPUT_EXTENSIONS)
+        .add_filter("NINTENDO OPTICAL DISC", SUPPORTED_INPUT_EXTENSIONS)
         .open_multiple_file()
         .show()
         .unwrap_or_default();
 
     smol::block_on(async move {
-        join_all(paths.into_iter().map(util::keep_disc_file))
+        join_all(paths.into_iter().map(games::util::keep_disc_file))
             .await
             .into_iter()
             .flatten()
@@ -46,7 +46,7 @@ pub fn choose_src_dir(window: &dyn Window) -> Vec<PathBuf> {
         .unwrap_or_default();
 
     match dir {
-        Some(dir) => smol::block_on(util::scan_for_discs(dir)).unwrap_or_default(),
+        Some(dir) => smol::block_on(games::util::scan_for_discs(dir)).unwrap_or_default(),
         None => Vec::new(),
     }
 }
@@ -55,7 +55,7 @@ pub fn choose_hbc_apps(window: &dyn Window) -> Box<[PathBuf]> {
     DialogBuilder::file()
         .set_title("Select Homebrew Channel Apps")
         .set_owner(&window)
-        .add_filter("HBC App", ZIP_EXTENSIONS)
+        .add_filter("HBC App", ["zip"])
         .open_multiple_file()
         .show()
         .unwrap_or_default()
@@ -81,7 +81,7 @@ pub fn choose_file_to_push(window: &dyn Window) -> Option<PathBuf> {
     DialogBuilder::file()
         .set_title("Select file to Wiiload")
         .set_owner(&window)
-        .add_filter("HBC App", HBC_APP_EXTENSIONS)
+        .add_filter("HBC App", ["zip", "dol", "elf"])
         .open_single_file()
         .show()
         .unwrap_or_default()

@@ -5,23 +5,16 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
 mod config;
-mod covers;
 mod data_dir;
-mod disc_info;
-mod extensions;
-mod game;
-mod game_id;
-mod game_list;
+mod games;
 mod hbc;
 mod http_util;
 mod lucide;
 mod message;
 mod notifications;
-mod osc;
 mod state;
 mod ui;
 mod util;
-mod wiitdb;
 
 use crate::{notifications::notifications_subscription, state::State};
 use iced::{Size, window};

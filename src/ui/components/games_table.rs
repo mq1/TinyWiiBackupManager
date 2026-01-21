@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{game::Game, message::Message, state::State};
+use crate::{games::game::Game, message::Message, state::State};
 use iced::{
     Alignment, Element, Length, padding,
     widget::{button, column, container, row, space, table, text},
