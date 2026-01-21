@@ -30,7 +30,6 @@ pub struct State {
     pub config: Config,
     pub game_list: GameList,
     pub games_filter: String,
-    pub filtered_game_indices: Box<[usize]>,
     pub hbc_apps: Box<[HbcApp]>,
     pub osc_apps: Box<[OscAppMeta]>,
     pub wiitdb: Option<wiitdb::Datafile>,
@@ -69,7 +68,6 @@ impl State {
             hbc_filter: String::new(),
             transfer_stack: Vec::new(),
             half_sec_anim_state: false,
-            filtered_game_indices: Box::new([]),
             filtered_osc_indices: Box::new([]),
             filtered_hbc_indices: Box::new([]),
             scroll_offsets: BTreeMap::new(),
@@ -137,7 +135,7 @@ impl State {
                 util::get_drive_usage_task(self),
             ]),
             Message::UpdateGamesFilter(filter) => {
-                self.filtered_game_indices = self.game_list.fuzzy_search(&filter);
+                self.game_list.fuzzy_search(&filter);
                 self.games_filter = filter;
                 Task::none()
             }

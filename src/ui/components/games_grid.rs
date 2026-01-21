@@ -11,9 +11,8 @@ use lucide_icons::iced::{icon_box, icon_hard_drive, icon_pointer};
 pub fn view(state: &State) -> Element<'_, Message> {
     if !state.games_filter.is_empty() {
         let cards = state
-            .filtered_game_indices
-            .iter()
-            .copied()
+            .game_list
+            .filtered_indices()
             .map(|i| components::game_card::view(state, i));
 
         let row = Row::from_iter(cards)

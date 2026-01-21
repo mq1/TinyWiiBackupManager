@@ -11,80 +11,112 @@ use smol::{fs, stream::StreamExt};
 use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
-pub struct GameList(Box<[Game]>);
+pub struct GameList {
+    list: Box<[Game]>,
+    total_size: Size,
+    wii_indices: Box<[usize]>,
+    wii_size: Size,
+    gc_indices: Box<[usize]>,
+    gc_size: Size,
+    filtered_indices: Box<[usize]>,
+}
 
 impl GameList {
     #[inline(always)]
     pub fn empty() -> Self {
-        Self(Box::new([]))
+        Self {
+            list: Box::new([]),
+            total_size: Size::from_bytes(0),
+            wii_indices: Box::new([]),
+            wii_size: Size::from_bytes(0),
+            gc_indices: Box::new([]),
+            gc_size: Size::from_bytes(0),
+            filtered_indices: Box::new([]),
+        }
     }
 
     #[inline(always)]
     pub fn new(games: Vec<Game>) -> Self {
-        Self(games.into_boxed_slice())
+        let mut wii_indices = Vec::new();
+        let mut wii_size = Size::from_bytes(0);
+
+        let mut gc_indices = Vec::new();
+        let mut gc_size = Size::from_bytes(0);
+
+        for (i, game) in games.iter().enumerate() {
+            if game.id().is_wii() {
+                wii_indices.push(i);
+                wii_size += game.size();
+            } else if game.id().is_gc() {
+                gc_indices.push(i);
+                gc_size += game.size();
+            }
+        }
+
+        Self {
+            list: games.into_boxed_slice(),
+            total_size: wii_size + gc_size,
+            wii_indices: wii_indices.into_boxed_slice(),
+            wii_size,
+            gc_indices: gc_indices.into_boxed_slice(),
+            gc_size,
+            filtered_indices: Box::new([]),
+        }
     }
 
     #[inline(always)]
     pub fn get(&self, i: usize) -> Option<&Game> {
-        self.0.get(i)
+        self.list.get(i)
     }
 
     #[inline(always)]
     pub fn get_mut(&mut self, i: usize) -> Option<&mut Game> {
-        self.0.get_mut(i)
+        self.list.get_mut(i)
     }
 
     #[inline(always)]
     pub fn get_unchecked(&self, i: usize) -> &Game {
-        &self.0[i]
+        &self.list[i]
     }
 
     #[inline(always)]
     pub fn get_unchecked_mut(&mut self, i: usize) -> &mut Game {
-        &mut self.0[i]
+        &mut self.list[i]
     }
 
     #[inline(always)]
     pub fn iter(&self) -> impl Iterator<Item = &Game> {
-        self.0.iter()
+        self.list.iter()
     }
 
     #[inline(always)]
     pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut Game> {
-        self.0.iter_mut()
-    }
-
-    #[inline(always)]
-    pub fn iter_wii(&self) -> impl Iterator<Item = &Game> {
-        self.0.iter().filter(|g| g.id().is_wii())
-    }
-
-    #[inline(always)]
-    pub fn iter_gc(&self) -> impl Iterator<Item = &Game> {
-        self.0.iter().filter(|g| g.id().is_gc())
+        self.list.iter_mut()
     }
 
     #[inline(always)]
     pub fn wii_indices(&self) -> impl Iterator<Item = usize> {
-        self.0
-            .iter()
-            .enumerate()
-            .filter(|(_, g)| g.id().is_wii())
-            .map(|(i, _)| i)
+        self.wii_indices.iter().copied()
     }
 
     #[inline(always)]
     pub fn gc_indices(&self) -> impl Iterator<Item = usize> {
-        self.0
-            .iter()
-            .enumerate()
-            .filter(|(_, g)| g.id().is_gc())
-            .map(|(i, _)| i)
+        self.gc_indices.iter().copied()
+    }
+
+    #[inline(always)]
+    pub fn iter_wii(&self) -> impl Iterator<Item = &Game> {
+        self.wii_indices().map(|i| &self.list[i])
+    }
+
+    #[inline(always)]
+    pub fn iter_gc(&self) -> impl Iterator<Item = &Game> {
+        self.gc_indices().map(|i| &self.list[i])
     }
 
     #[inline(always)]
     pub fn total_count(&self) -> usize {
-        self.0.len()
+        self.list.len()
     }
 
     #[inline(always)]
@@ -99,19 +131,22 @@ impl GameList {
 
     #[inline(always)]
     pub fn total_size(&self) -> Size {
-        self.iter().fold(Size::default(), |acc, g| acc + g.size())
+        self.total_size
     }
 
     #[inline(always)]
     pub fn wii_size(&self) -> Size {
-        self.iter_wii()
-            .fold(Size::default(), |acc, g| acc + g.size())
+        self.wii_size
     }
 
     #[inline(always)]
     pub fn gc_size(&self) -> Size {
-        self.iter_gc()
-            .fold(Size::default(), |acc, g| acc + g.size())
+        self.gc_size
+    }
+
+    #[inline(always)]
+    pub fn filtered_indices(&self) -> impl Iterator<Item = usize> {
+        self.filtered_indices.iter().copied()
     }
 
     pub fn sort(&mut self, prev_sort_by: SortBy, sort_by: SortBy) {
@@ -128,39 +163,54 @@ impl GameList {
             | (SortBy::NameAscending, SortBy::NameDescending)
             | (SortBy::SizeDescending, SortBy::SizeAscending)
             | (SortBy::SizeAscending, SortBy::SizeDescending) => {
-                self.0.reverse();
+                self.list.reverse();
             }
 
             (SortBy::SizeAscending, SortBy::NameAscending)
             | (SortBy::SizeDescending, SortBy::NameAscending)
             | (SortBy::None, SortBy::NameAscending) => {
-                self.0.sort_unstable_by(|a, b| a.title().cmp(b.title()));
+                self.list.sort_unstable_by(|a, b| a.title().cmp(b.title()));
             }
 
             (SortBy::SizeAscending, SortBy::NameDescending)
             | (SortBy::SizeDescending, SortBy::NameDescending)
             | (SortBy::None, SortBy::NameDescending) => {
-                self.0.sort_unstable_by(|a, b| b.title().cmp(a.title()));
+                self.list.sort_unstable_by(|a, b| b.title().cmp(a.title()));
             }
 
             (SortBy::NameAscending, SortBy::SizeAscending)
             | (SortBy::NameDescending, SortBy::SizeAscending)
             | (SortBy::None, SortBy::SizeAscending) => {
-                self.0.sort_unstable_by_key(|a| a.size());
+                self.list.sort_unstable_by_key(|a| a.size());
             }
 
             (SortBy::NameAscending, SortBy::SizeDescending)
             | (SortBy::NameDescending, SortBy::SizeDescending)
             | (SortBy::None, SortBy::SizeDescending) => {
-                self.0.sort_unstable_by_key(|a| std::cmp::Reverse(a.size()))
+                self.list
+                    .sort_unstable_by_key(|a| std::cmp::Reverse(a.size()));
             }
         }
+
+        // Indices lists need to be recalculated
+        let mut wii_indices = Vec::new();
+        let mut gc_indices = Vec::new();
+        for (i, game) in self.list.iter().enumerate() {
+            if game.id().is_wii() {
+                wii_indices.push(i);
+            } else if game.id().is_gc() {
+                gc_indices.push(i);
+            }
+        }
+        self.wii_indices = wii_indices.into_boxed_slice();
+        self.gc_indices = gc_indices.into_boxed_slice();
     }
 
-    pub fn fuzzy_search(&self, query: &str) -> Box<[usize]> {
+    pub fn fuzzy_search(&mut self, query: &str) {
         let matcher = SkimMatcherV2::default();
 
-        self.iter()
+        self.filtered_indices = self
+            .iter()
             .enumerate()
             .filter_map(|(i, game)| {
                 let title_score = matcher.fuzzy_match(game.title(), query);
@@ -174,7 +224,7 @@ impl GameList {
             })
             .sorted_unstable_by_key(|(_, score)| *score)
             .map(|(i, _)| i)
-            .collect()
+            .collect();
     }
 }
 

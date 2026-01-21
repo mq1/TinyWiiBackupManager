@@ -47,9 +47,8 @@ pub fn view(state: &State) -> Element<'_, Message> {
 
     if !state.games_filter.is_empty() {
         let iter = state
-            .filtered_game_indices
-            .iter()
-            .copied()
+            .game_list
+            .filtered_indices()
             .map(|i| (i, state.game_list.get_unchecked(i)));
 
         return container(table(t_columns, iter).width(Length::Fill))
