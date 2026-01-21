@@ -244,7 +244,7 @@ jobs:
         run: |
           mkdir -p TinyWiiBackupManager.app/Contents/MacOS TinyWiiBackupManager.app/Contents/Resources
           cp "target/${{ matrix.target }}/release/TinyWiiBackupManager" TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
-          sed 's/VERSION_NAME/${{ env.VERSION_NAME }}/' package/macos/Info.plist > TinyWiiBackupManager.app/Contents/Info.plist
+          sed 's/{{ VERSION_NAME }}/${{ env.VERSION_NAME }}/' package/macos/Info.plist > TinyWiiBackupManager.app/Contents/Info.plist
           cp package/macos/TinyWiiBackupManager.icns TinyWiiBackupManager.app/Contents/Resources/TinyWiiBackupManager.icns
 
       - name: zip the app
@@ -379,15 +379,16 @@ jobs:
       - name: Generate TinyWiiBackupManager.json
         run: |
           plain_ver="${VERSION_NAME#v}" # Remove leading 'v'
-          x86_64_hash=$(sha256sum dist/TinyWiiBackupManager-${VERSION_NAME}-windows-x86_64.zip | cut -d' ' -f1)
+          64bit_hash=$(sha256sum dist/TinyWiiBackupManager-${VERSION_NAME}-windows-x86_64.zip | cut -d' ' -f1)
           arm64_hash=$(sha256sum dist/TinyWiiBackupManager-${VERSION_NAME}-windows-arm64.zip | cut -d' ' -f1)
-          x86_hash=$(sha256sum dist/TinyWiiBackupManager-${VERSION_NAME}-windows-x86.zip | cut -d' ' -f1)
+          32bit_hash=$(sha256sum dist/TinyWiiBackupManager-${VERSION_NAME}-windows-x86.zip | cut -d' ' -f1)
 
           sed \
-            -e "s/PLAIN_VER/${plain_ver}/g" \
-            -e "s/X86_64_HASH/${x86_64_hash}/g" \
-            -e "s/ARM64_HASH/${arm64_hash}/g" \
-            -e "s/X86_HASH/${x86_hash}/g" \
+            -e "s/{{ VERSION_NAME }}/${VERSION_NAME}/g" \
+            -e "s/{{ PLAIN_VER }}/${plain_ver}/g" \
+            -e "s/{{ 64BIT_HASH }}/${64bit_hash}/g" \
+            -e "s/{{ ARM64_HASH }}/${arm64_hash}/g" \
+            -e "s/{{ 32BIT_HASH }}/${32bit_hash}/g" \
             package/windows/scoop-template.json > bucket/TinyWiiBackupManager.json
 
       - name: Commit and push changes
