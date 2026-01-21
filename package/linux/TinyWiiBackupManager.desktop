@@ -6,3 +6,4 @@ Icon=TinyWiiBackupManager
 Name=TinyWiiBackupManager
 Terminal=false
 Type=Application
+StartupWMClass=TinyWiiBackupManager

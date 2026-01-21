@@ -42,18 +42,22 @@ fn main() -> iced::Result {
         env::set_var("WGPU_POWER_PREF", "low");
     }
 
-    #[cfg(target_os = "macos")]
-    let icon = None;
-
-    #[cfg(not(target_os = "macos"))]
-    let icon = Some(
-        window::icon::from_rgba(APP_ICON.clone(), 256, 256).expect("Failed to create window icon"),
-    );
-
     let window = window::Settings {
         size: Size::new(800.0, 600.0),
         min_size: Some(Size::new(800.0, 600.0)),
-        icon,
+
+        #[cfg(any(target_os = "linux", target_os = "windows"))]
+        icon: Some(
+            window::icon::from_rgba(APP_ICON.clone(), 256, 256)
+                .expect("Failed to create window icon"),
+        ),
+
+        #[cfg(target_os = "linux")]
+        platform_specific: window::settings::PlatformSpecific {
+            application_id: "TinyWiiBackupManager".to_string(),
+            ..Default::default()
+        },
+
         ..Default::default()
     };
 
