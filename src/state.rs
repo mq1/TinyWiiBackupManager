@@ -14,7 +14,7 @@ use crate::{
     message::Message,
     notifications::Notifications,
     ui::{Screen, dialogs, lucide},
-    util,
+    updater, util,
 };
 use iced::{
     Task, Theme,
@@ -22,6 +22,7 @@ use iced::{
     widget::operation::{self, AbsoluteOffset},
     window,
 };
+use semver::Version;
 use std::{collections::BTreeMap, path::PathBuf, time::Duration};
 
 pub struct State {
@@ -42,6 +43,7 @@ pub struct State {
     pub transfer_stack: Vec<PathBuf>,
     pub half_sec_anim_state: bool,
     pub scroll_offsets: BTreeMap<Screen, AbsoluteOffset>,
+    pub new_version: Option<Version>,
 }
 
 impl State {
@@ -67,6 +69,7 @@ impl State {
             transfer_stack: Vec::new(),
             half_sec_anim_state: false,
             scroll_offsets: BTreeMap::new(),
+            new_version: None,
         };
 
         let tasks = Task::batch(vec![
@@ -76,6 +79,7 @@ impl State {
             hbc::osc_list::get_load_osc_apps_task(&initial_state),
             util::get_drive_usage_task(&initial_state),
             lucide::get_load_lucide_task(),
+            updater::get_check_update_task(),
         ]);
 
         (initial_state, tasks)
@@ -426,6 +430,24 @@ impl State {
             Message::OpenThat(uri) => {
                 if let Err(e) = open::that(&uri) {
                     self.notifications.error(e);
+                }
+                Task::none()
+            }
+            Message::GotLatestVersion(res) => {
+                match res {
+                    Ok(Some(version)) => {
+                        self.notifications.info(format!(
+                            "A new version of {} is available: {}",
+                            env!("CARGO_PKG_NAME"),
+                            version
+                        ));
+
+                        self.new_version = Some(version);
+                    }
+                    Ok(None) => {}
+                    Err(e) => {
+                        self.notifications.error(e);
+                    }
                 }
                 Task::none()
             }

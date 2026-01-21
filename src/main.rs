@@ -13,6 +13,7 @@ mod message;
 mod notifications;
 mod state;
 mod ui;
+mod updater;
 mod util;
 
 use crate::{notifications::notifications_subscription, state::State};

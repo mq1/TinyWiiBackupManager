@@ -8,6 +8,7 @@ use crate::{
     ui::Screen,
 };
 use iced::widget::operation::AbsoluteOffset;
+use semver::Version;
 use std::{ffi::OsString, path::PathBuf};
 
 #[derive(Debug, Clone)]
@@ -29,6 +30,7 @@ pub enum Message {
     AskDeleteDirConfirmation(PathBuf),
     DirectoryDeleted(Result<(), String>),
     UpdateScrollOffset(Screen, AbsoluteOffset),
+    GotLatestVersion(Result<Option<Version>, String>),
 
     // Games
     GotGameList(Result<GameList, String>),

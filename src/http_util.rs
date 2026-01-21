@@ -20,10 +20,15 @@ pub async fn get(url: String) -> Result<Vec<u8>> {
     .await
 }
 
+pub async fn get_string(url: String) -> Result<String> {
+    let bytes = get(url).await?;
+    let s = std::str::from_utf8(&bytes)?;
+    Ok(s.to_string())
+}
+
 pub async fn download_file(url: String, dest_path: &Path) -> Result<()> {
     let body = get(url).await?;
     fs::write(dest_path, body).await?;
-
     Ok(())
 }
 

@@ -6,14 +6,16 @@ use crate::{
     message::Message,
     state::State,
     ui::{Screen, components::my_tooltip, style},
+    updater::LATEST_VERSION_DOWNLOAD_URL,
 };
 use iced::{
     Element,
-    widget::{button, column, container, space},
+    widget::{Column, button, container, space},
 };
 use lucide_icons::iced::{
-    icon_arrow_down_0_1, icon_arrow_down_1_0, icon_gamepad_2, icon_hard_drive, icon_info,
-    icon_moon, icon_settings, icon_store, icon_sun, icon_sun_moon, icon_tool_case, icon_waves,
+    icon_arrow_down_0_1, icon_arrow_down_1_0, icon_cloud_backup, icon_gamepad_2, icon_hard_drive,
+    icon_info, icon_moon, icon_settings, icon_store, icon_sun, icon_sun_moon, icon_tool_case,
+    icon_waves,
 };
 
 pub fn view(state: &State) -> Element<'_, Message> {
@@ -23,79 +25,99 @@ pub fn view(state: &State) -> Element<'_, Message> {
         ThemePreference::System => icon_sun_moon(),
     };
 
-    let transfer_button: Element<'_, Message> = if state.transfer_stack.is_empty() {
-        space().into()
-    } else {
+    let mut col = Column::new()
+        .padding(9)
+        .spacing(5)
+        .push(
+            button(icon_gamepad_2().size(20).center())
+                .style(style::get_nav_button_style(state.screen == Screen::Games))
+                .height(40)
+                .width(40)
+                .on_press(Message::NavigateTo(Screen::Games)),
+        )
+        .push(
+            button(icon_waves().size(20).center())
+                .style(style::get_nav_button_style(state.screen == Screen::HbcApps))
+                .height(40)
+                .width(40)
+                .on_press(Message::NavigateTo(Screen::HbcApps)),
+        )
+        .push(
+            button(icon_store().size(20).center())
+                .style(style::get_nav_button_style(state.screen == Screen::Osc))
+                .height(40)
+                .width(40)
+                .on_press(Message::NavigateTo(Screen::Osc)),
+        )
+        .push(
+            button(icon_tool_case().size(20).center())
+                .style(style::get_nav_button_style(state.screen == Screen::Toolbox))
+                .height(40)
+                .width(40)
+                .on_press(Message::NavigateTo(Screen::Toolbox)),
+        )
+        .push(
+            button(icon_settings().size(20).center())
+                .style(style::get_nav_button_style(
+                    state.screen == Screen::Settings,
+                ))
+                .height(40)
+                .width(40)
+                .on_press(Message::NavigateTo(Screen::Settings)),
+        )
+        .push(space::vertical());
+
+    if !state.transfer_stack.is_empty() {
         let icon = if state.half_sec_anim_state {
             icon_arrow_down_0_1()
         } else {
             icon_arrow_down_1_0()
         };
 
-        button(icon.size(20).center())
-            .style(style::inactive_nav_button)
-            .height(40)
-            .width(40)
-            .on_press(Message::NavigateTo(Screen::Transfer))
-            .into()
+        col = col.push(
+            button(icon.size(20).center())
+                .style(style::inactive_nav_button)
+                .height(40)
+                .width(40)
+                .on_press(Message::NavigateTo(Screen::Transfer)),
+        );
     };
 
-    container(
-        column![
-            button(icon_gamepad_2().size(20).center())
-                .style(style::get_nav_button_style(state.screen == Screen::Games))
+    if let Some(new_version) = &state.new_version {
+        col = col.push(my_tooltip::view(
+            button(icon_cloud_backup().size(20).center())
+                .style(style::inactive_nav_button)
                 .height(40)
                 .width(40)
-                .on_press(Message::NavigateTo(Screen::Games)),
-            button(icon_waves().size(20).center())
-                .style(style::get_nav_button_style(state.screen == Screen::HbcApps))
+                .on_press_with(|| Message::OpenThat(LATEST_VERSION_DOWNLOAD_URL.into())),
+            format!("New Version Available: {}", new_version),
+        ));
+    }
+
+    col = col
+        .push(my_tooltip::view(
+            button(icon_hard_drive().size(20).center())
+                .style(style::inactive_nav_button)
                 .height(40)
                 .width(40)
-                .on_press(Message::NavigateTo(Screen::HbcApps)),
-            button(icon_store().size(20).center())
-                .style(style::get_nav_button_style(state.screen == Screen::Osc))
+                .on_press(Message::SelectMountPoint),
+            "Select Drive/Mount Point",
+        ))
+        .push(my_tooltip::view(
+            button(theme_icon.size(20).center())
+                .style(style::inactive_nav_button)
                 .height(40)
                 .width(40)
-                .on_press(Message::NavigateTo(Screen::Osc)),
-            button(icon_tool_case().size(20).center())
-                .style(style::get_nav_button_style(state.screen == Screen::Toolbox))
-                .height(40)
-                .width(40)
-                .on_press(Message::NavigateTo(Screen::Toolbox)),
-            button(icon_settings().size(20).center())
-                .style(style::get_nav_button_style(
-                    state.screen == Screen::Settings
-                ))
-                .height(40)
-                .width(40)
-                .on_press(Message::NavigateTo(Screen::Settings)),
-            space::vertical(),
-            transfer_button,
-            my_tooltip::view(
-                button(icon_hard_drive().size(20).center())
-                    .style(style::inactive_nav_button)
-                    .height(40)
-                    .width(40)
-                    .on_press(Message::SelectMountPoint),
-                "Select Drive/Mount Point"
-            ),
-            my_tooltip::view(
-                button(theme_icon.size(20).center())
-                    .style(style::inactive_nav_button)
-                    .height(40)
-                    .width(40)
-                    .on_press(Message::ChangeTheme),
-                "Change Theme (System/Light/Dark)"
-            ),
+                .on_press(Message::ChangeTheme),
+            "Change Theme (System/Light/Dark)",
+        ))
+        .push(
             button(icon_info().size(20).center())
                 .style(style::get_nav_button_style(state.screen == Screen::About))
                 .height(40)
                 .width(40)
                 .on_press(Message::NavigateTo(Screen::About)),
-        ]
-        .padding(9)
-        .spacing(5),
-    )
-    .style(style::nav_container)
-    .into()
+        );
+
+    container(col).style(style::nav_container).into()
 }

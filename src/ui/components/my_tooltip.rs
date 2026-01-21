@@ -10,9 +10,9 @@ use iced::{
 
 pub fn view<'a>(
     content: impl Into<Element<'a, Message>>,
-    tooltip_str: &'a str,
+    tooltip_text: impl Into<String>,
 ) -> Element<'a, Message> {
-    let popup: Element<'_, Message> = container(text(tooltip_str))
+    let popup: Element<'_, Message> = container(text(tooltip_text.into()))
         .padding(5)
         .style(style::card)
         .into();
