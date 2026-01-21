@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/ScoopInstaller/Scoop/master/schema.json",
-  "version": "PLAIN_VER",
+  "version": "{{ PLAIN_VER }}",
   "description": "A tiny game backup and homebrew app manager for the Wii",
   "homepage": "https://github.com/mq1/TinyWiiBackupManager",
   "license": {
@@ -10,16 +10,16 @@
   "shortcuts": [["TinyWiiBackupManager.exe", "TinyWiiBackupManager"]],
   "architecture": {
     "64bit": {
-      "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/vPLAIN_VER/TinyWiiBackupManager-vPLAIN_VER-windows-x86_64.zip",
-      "hash": "X86_64_HASH"
+      "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/{{ VERSION_NAME }}/TinyWiiBackupManager-{{ VERSION_NAME }}-Windows-x64.zip",
+      "hash": "{{ 64BIT_HASH }}"
     },
     "arm64": {
-      "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/vPLAIN_VER/TinyWiiBackupManager-vPLAIN_VER-windows-arm64.zip",
-      "hash": "ARM64_HASH"
+      "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/{{ VERSION_NAME }}/TinyWiiBackupManager-{{ VERSION_NAME }}-Windows-arm64.zip",
+      "hash": "{{ ARM64_HASH }}"
     },
     "32bit": {
-      "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/vPLAIN_VER/TinyWiiBackupManager-vPLAIN_VER-windows-x86.zip",
-      "hash": "X86_HASH"
+      "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/{{ VERSION_NAME }}/TinyWiiBackupManager-{{ VERSION_NAME }}-WindowsLegacy-x86.zip",
+      "hash": "{{ 32BIT_HASH }}"
     }
   }
 }

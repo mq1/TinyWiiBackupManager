@@ -8,8 +8,8 @@
       "height": 400
     }
   },
-  "format": "ULMO",
-  "filesystem": "APFS",
+  "format": "UDBZ",
+  "filesystem": "HFS+",
   "contents": [
     {
       "x": 180,

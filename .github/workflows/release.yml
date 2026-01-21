@@ -6,6 +6,13 @@ on:
       - main
     tags:
       - "v*.*.*"
+    paths:
+      - "build.rs"
+      - "src/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "package/**"
+      - ".github/workflows/release.yml"
   pull_request:
 
 permissions:
@@ -60,7 +67,6 @@ jobs:
           wget https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
           sudo ./llvm.sh 21
-          sudo rm /usr/bin/ld
           sudo ln -sf $(which lld-21) /usr/bin/ld
 
       - name: Install x86 dependencies
@@ -86,8 +92,8 @@ jobs:
           CC: clang-21
           CXX: clang++-21
           AR: llvm-ar-21
-          CFLAGS: -O3 -flto ${{ matrix.cflags }}
-          CXXFLAGS: -O3 -flto ${{ matrix.cxxflags }}
+          CFLAGS: -O3 -flto -fuse-ld=lld-21 ${{ matrix.cflags }}
+          CXXFLAGS: -O3 -flto -fuse-ld=lld-21 ${{ matrix.cxxflags }}
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: clang-21
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: clang-21
           CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER: clang-21
@@ -114,85 +120,50 @@ jobs:
 
   build-windows:
     name: Build for Windows
-    runs-on: ubuntu-22.04
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - target: x86_64-pc-windows-gnullvm
-            runner: ubuntu-22.04
-            arch: x86_64-v3
-            rustflags: -C target-cpu=x86-64-v3
-            cflags: -march=x86-64-v3
-            cxxflags: -march=x86-64-v3
-          - target: x86_64-pc-windows-gnullvm
-            runner: ubuntu-22.04
-            arch: x86_64
-          - target: aarch64-pc-windows-gnullvm
-            runner: ubuntu-22.04
-            arch: arm64
-            platform: windows
-          - target: i686-pc-windows-gnullvm
-            runner: ubuntu-22.04
-            arch: x86
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 1
-
-      - name: Install llvm-mingw
-        run: |
-          wget https://github.com/mstorsjo/llvm-mingw/releases/download/20251216/llvm-mingw-20251216-ucrt-ubuntu-22.04-x86_64.tar.xz
-          tar xf llvm-mingw-20251216-ucrt-ubuntu-22.04-x86_64.tar.xz
-
-      - name: Install Rust toolchain
-        run: |
-          rustup toolchain install 1.92 --component rust-src
-          rustup default 1.92
-
-      - name: Build binary
-        run: |
-          export PATH="$PWD/llvm-mingw-20251216-ucrt-ubuntu-22.04-x86_64/bin:$PATH"
-          cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
-        env:
-          RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: -C linker-plugin-lto ${{ matrix.rustflags }}
-          CC: clang
-          CXX: clang++
-          CFLAGS: -O3 -flto ${{ matrix.cflags }}
-          CXXFLAGS: -O3 -flto ${{ matrix.cxxflags }}
-
-      - name: Package binary as zip
-        run: |
-          mkdir dist
-          cp "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" TinyWiiBackupManager.exe
-          zip -9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
-
-      - name: Upload Windows distributables
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist-windows-${{ matrix.arch }}
-          path: dist/*
-
-  build-windows7:
-    name: Build for Windows 7
     runs-on: windows-2025
     strategy:
       fail-fast: false
       matrix:
         include:
-          - target: x86_64-win7-windows-msvc
+          - target: x86_64-pc-windows-msvc
+            features: native-tls
+            arch: x86_64-v3
+            rustflags: -C target-cpu=x86-64-v3
+            cflags: /clang:-march=x86-64-v3
+            cxxflags: /clang:-march=x86-64-v3
+            platform: windows
+          - target: x86_64-pc-windows-msvc
+            features: native-tls
             arch: x86_64
-          - target: i686-win7-windows-msvc
+            platform: windows
+          - target: aarch64-pc-windows-msvc
+            features: native-tls
+            arch: arm64
+            platform: windows
+          - target: i686-pc-windows-msvc
+            features: native-tls
             arch: x86
+            platform: windows
+          - target: x86_64-win7-windows-msvc
+            features: bundled-tls
+            arch: x86_64
+            platform: windows7
+          - target: i686-win7-windows-msvc
+            features: bundled-tls
+            arch: x86
+            platform: windows7
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
           fetch-depth: 1
+
+      - name: Install LLVM and Clang
+        uses: KyleMayes/install-llvm-action@v2
+        with:
+          version: "21.1.8"
+          force-url: https://github.com/llvm/llvm-project/releases/download/llvmorg-21.1.8/LLVM-21.1.8-win64.exe
 
       - name: Install Rust toolchain
         shell: pwsh
@@ -202,22 +173,32 @@ jobs:
 
       - name: Build binary
         shell: pwsh
-        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "bundled-tls"
+        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "${{ matrix.features }}"
         env:
           RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: -C target-feature=+crt-static
+          RUSTFLAGS: -C target-feature=+crt-static -C linker-plugin-lto ${{ matrix.rustflags }}
+          CC: clang-cl
+          CXX: clang-cl
+          AR: llvm-lib
+          CFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link ${{ matrix.cflags }}
+          CXXFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link ${{ matrix.cxxflags }}
+          CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: lld-link
+          CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: lld-link
+          CARGO_TARGET_I686_PC_WINDOWS_MSVC_LINKER: lld-link
+          CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_LINKER: lld-link
+          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_LINKER: lld-link
 
       - name: Package binary as zip
         shell: pwsh
         run: |
           New-Item -Path "dist" -ItemType Directory
           Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination TinyWiiBackupManager.exe
-          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows7-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
+          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v4
         with:
-          name: dist-windows7-${{ matrix.arch }}
+          name: dist-${{ matrix.platform }}-${{ matrix.arch }}
           path: dist/*
 
   build-macos:
@@ -229,9 +210,10 @@ jobs:
         include:
           - target: aarch64-apple-darwin
             arch: arm64
+            deployment_target: 11.0
           - target: x86_64-apple-darwin
             arch: x86_64
-            appdmg-suffix: -compat
+            deployment_target: 10.12
 
     steps:
       - name: Checkout
@@ -253,14 +235,15 @@ jobs:
       - name: Build binary
         run: cargo build --release --locked --target ${{ matrix.target }}
         env:
-          CFLAGS: -O3 -flto
-          CXXFLAGS: -O3 -flto
+          RUSTFLAGS: -C link-arg=-mmacosx-version-min=${{ matrix.deployment_target }}
+          CFLAGS: -O3 -flto -mmacosx-version-min=${{ matrix.deployment_target }}
+          CXXFLAGS: -O3 -flto -mmacosx-version-min=${{ matrix.deployment_target }}
 
       - name: Build macOS app bundle
         run: |
           mkdir -p TinyWiiBackupManager.app/Contents/MacOS TinyWiiBackupManager.app/Contents/Resources
           cp "target/${{ matrix.target }}/release/TinyWiiBackupManager" TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
-          sed 's/VERSION_NAME/${{ env.VERSION_NAME }}/' assets/Info.plist > TinyWiiBackupManager.app/Contents/Info.plist
+          sed 's/{{ VERSION_NAME }}/${{ env.VERSION_NAME }}/' assets/Info.plist > TinyWiiBackupManager.app/Contents/Info.plist
           cp assets/TinyWiiBackupManager.icns TinyWiiBackupManager.app/Contents/Resources/TinyWiiBackupManager.icns
 
       - name: zip the app
@@ -273,7 +256,7 @@ jobs:
       - name: Create dmg
         run: |
           npx -y appdmg@0.6.6 \
-            assets/appdmg${{ matrix.appdmg-suffix }}.json \
+            assets/appdmg.json \
             "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-${{ matrix.arch }}.dmg"
 
       - name: Upload macOS distributables
@@ -395,15 +378,16 @@ jobs:
       - name: Generate TinyWiiBackupManager.json
         run: |
           plain_ver="${VERSION_NAME#v}" # Remove leading 'v'
-          x86_64_hash=$(sha256sum dist/TinyWiiBackupManager-${VERSION_NAME}-windows-x86_64.zip | cut -d' ' -f1)
+          64bit_hash=$(sha256sum dist/TinyWiiBackupManager-${VERSION_NAME}-windows-x86_64.zip | cut -d' ' -f1)
           arm64_hash=$(sha256sum dist/TinyWiiBackupManager-${VERSION_NAME}-windows-arm64.zip | cut -d' ' -f1)
-          x86_hash=$(sha256sum dist/TinyWiiBackupManager-${VERSION_NAME}-windows-x86.zip | cut -d' ' -f1)
+          32bit_hash=$(sha256sum dist/TinyWiiBackupManager-${VERSION_NAME}-windows-x86.zip | cut -d' ' -f1)
 
           sed \
-            -e "s/PLAIN_VER/${plain_ver}/g" \
-            -e "s/X86_64_HASH/${x86_64_hash}/g" \
-            -e "s/ARM64_HASH/${arm64_hash}/g" \
-            -e "s/X86_HASH/${x86_hash}/g" \
+            -e "s/{{ VERSION_NAME }}/${VERSION_NAME}/g" \
+            -e "s/{{ PLAIN_VER }}/${plain_ver}/g" \
+            -e "s/{{ 64BIT_HASH }}/${64bit_hash}/g" \
+            -e "s/{{ ARM64_HASH }}/${arm64_hash}/g" \
+            -e "s/{{ 32BIT_HASH }}/${32bit_hash}/g" \
             assets/scoop-template.json > bucket/TinyWiiBackupManager.json
 
       - name: Commit and push changes
