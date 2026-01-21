@@ -16,7 +16,7 @@ use iced::{
 use lucide_icons::iced::{icon_plus, icon_rotate_cw, icon_search};
 
 pub fn view(state: &State) -> Element<'_, Message> {
-    row![
+    let mut row = row![
         container(
             row![
                 space(),
@@ -31,29 +31,33 @@ pub fn view(state: &State) -> Element<'_, Message> {
             .align_y(Alignment::Center)
         )
         .style(style::card),
-        space::horizontal(),
-        components::sort_by::view(state),
-        components::view_as::view(state),
-        space(),
-        my_tooltip::view(
+        space::horizontal()
+    ];
+
+    if state.hbc_filter.is_empty() {
+        row = row.push(components::sort_by::view(state));
+    }
+
+    row.push(components::view_as::view(state))
+        .push(space())
+        .push(my_tooltip::view(
             button(icon_rotate_cw().size(18).center())
                 .width(35)
                 .height(35)
                 .style(style::rounded_button)
                 .on_press(Message::RefreshGamesAndApps),
-            "Refresh Apps"
-        ),
-        my_tooltip::view(
+            "Refresh Apps",
+        ))
+        .push(my_tooltip::view(
             button(icon_plus().size(18).center())
                 .width(35)
                 .height(35)
                 .style(style::rounded_button)
                 .on_press(Message::ChooseHbcAppsToAdd),
-            "Add Apps (.zip)"
-        )
-    ]
-    .spacing(10)
-    .padding(10)
-    .align_y(Alignment::Center)
-    .into()
+            "Add Apps (.zip)",
+        ))
+        .spacing(10)
+        .padding(10)
+        .align_y(Alignment::Center)
+        .into()
 }
