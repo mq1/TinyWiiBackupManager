@@ -379,16 +379,16 @@ jobs:
       - name: Generate TinyWiiBackupManager.json
         run: |
           plain_ver="${VERSION_NAME#v}" # Remove leading 'v'
-          64bit_hash=$(sha256sum dist/TinyWiiBackupManager-${VERSION_NAME}-windows-x86_64.zip | cut -d' ' -f1)
+          _64bit_hash=$(sha256sum dist/TinyWiiBackupManager-${VERSION_NAME}-windows-x86_64.zip | cut -d' ' -f1)
           arm64_hash=$(sha256sum dist/TinyWiiBackupManager-${VERSION_NAME}-windows-arm64.zip | cut -d' ' -f1)
-          32bit_hash=$(sha256sum dist/TinyWiiBackupManager-${VERSION_NAME}-windows-x86.zip | cut -d' ' -f1)
+          _32bit_hash=$(sha256sum dist/TinyWiiBackupManager-${VERSION_NAME}-windows-x86.zip | cut -d' ' -f1)
 
           sed \
             -e "s/{{ VERSION_NAME }}/${VERSION_NAME}/g" \
             -e "s/{{ PLAIN_VER }}/${plain_ver}/g" \
-            -e "s/{{ 64BIT_HASH }}/${64bit_hash}/g" \
+            -e "s/{{ 64BIT_HASH }}/${_64bit_hash}/g" \
             -e "s/{{ ARM64_HASH }}/${arm64_hash}/g" \
-            -e "s/{{ 32BIT_HASH }}/${32bit_hash}/g" \
+            -e "s/{{ 32BIT_HASH }}/${_32bit_hash}/g" \
             package/windows/scoop-template.json > bucket/TinyWiiBackupManager.json
 
       - name: Commit and push changes
