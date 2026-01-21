@@ -16,9 +16,9 @@ use lucide_icons::iced::{
 };
 
 pub fn view(state: &State, game_i: usize) -> Element<'_, Message> {
-    let game = &state.games[game_i];
+    let game = &state.game_list.get_unchecked(game_i);
 
-    let disc_info = match &game.disc_info {
+    let disc_info = match game.disc_info() {
         None => column![text("Loading Disc Info...")],
         Some(Err(e)) => column![text!("Could not load disc info: {}", e)],
         Some(Ok(disc_info)) => {
@@ -112,7 +112,7 @@ pub fn view(state: &State, game_i: usize) -> Element<'_, Message> {
         }
     };
 
-    let wiitdb_info = match &game.wiitdb_info {
+    let wiitdb_info = match game.wiitdb_info() {
         None => column![text("GameTDB game info not found")],
         Some(info) => column![
             row![icon_chevron_right().size(19), text("GameTDB Info").size(18)].spacing(5),
@@ -193,7 +193,7 @@ pub fn view(state: &State, game_i: usize) -> Element<'_, Message> {
     };
 
     let col = column![
-        row![icon_gamepad_2().size(19), text(&game.title).size(18)].spacing(5),
+        row![icon_gamepad_2().size(19), text(game.title()).size(18)].spacing(5),
         row![icon_folder(), text!("Path: {}", game.get_path_str())].spacing(5),
         rule::horizontal(1),
         scrollable(
@@ -212,7 +212,7 @@ pub fn view(state: &State, game_i: usize) -> Element<'_, Message> {
                 .on_press_with(|| Message::OpenThat(game.get_gametdb_uri())),
             button(row![icon_trash(), text("Delete Game")].spacing(5))
                 .style(style::rounded_danger_button)
-                .on_press_with(|| Message::AskDeleteDirConfirmation(game.path.clone()))
+                .on_press_with(|| Message::AskDeleteDirConfirmation(game.path().to_path_buf()))
         ]
         .spacing(5)
         .padding(padding::top(5))

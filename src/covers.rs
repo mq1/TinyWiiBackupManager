@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{game::Game, game_id::GameID, http_util, message::Message, state::State};
+use crate::{game_id::GameID, game_list::GameList, http_util, message::Message, state::State};
 use anyhow::Result;
 use iced::{Task, futures::TryFutureExt};
 use std::{
@@ -160,20 +160,20 @@ async fn download_wiiflow_cover(id: GameID, mount_point: &Path) -> Result<()> {
 
 pub fn get_cache_cover3ds_task(state: &State) -> Task<Message> {
     let cache_dir = state.data_dir.join("covers");
-    let games = state.games.clone();
+    let game_list = state.game_list.clone();
 
     Task::perform(
-        cache_cover3ds(cache_dir, games).map_err(|e| e.to_string()),
+        cache_cover3ds(cache_dir, game_list).map_err(|e| e.to_string()),
         Message::EmptyResult,
     )
 }
 
 // ignores errors, no popup notifications
-async fn cache_cover3ds(cache_dir: PathBuf, games: Box<[Game]>) -> Result<()> {
+async fn cache_cover3ds(cache_dir: PathBuf, game_list: GameList) -> Result<()> {
     fs::create_dir_all(&cache_dir)?;
 
-    for game in games {
-        let _ = cache_cover3d(game.id, &cache_dir).await;
+    for game in game_list.iter() {
+        let _ = cache_cover3d(game.id(), &cache_dir).await;
     }
 
     Ok(())

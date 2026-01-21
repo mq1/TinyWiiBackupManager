@@ -5,7 +5,8 @@ use crate::{
     config::{Config, SortBy, ThemePreference},
     covers,
     data_dir::get_data_dir,
-    game::{self, Game, Games},
+    game::Game,
+    game_list::{self, GameList},
     hbc::{self, HbcApp, HbcApps},
     lucide,
     message::Message,
@@ -27,7 +28,7 @@ pub struct State {
     pub screen: Screen,
     pub data_dir: PathBuf,
     pub config: Config,
-    pub games: Box<[Game]>,
+    pub game_list: GameList,
     pub games_filter: String,
     pub filtered_game_indices: Box<[usize]>,
     pub hbc_apps: Box<[HbcApp]>,
@@ -55,7 +56,7 @@ impl State {
             screen: Screen::Games,
             data_dir,
             config,
-            games: Box::new([]),
+            game_list: GameList::empty(),
             games_filter: String::new(),
             hbc_apps: Box::new([]),
             osc_apps: Box::new([]),
@@ -76,7 +77,7 @@ impl State {
 
         let tasks = Task::batch(vec![
             wiitdb::get_load_wiitdb_task(&initial_state),
-            game::get_list_games_task(&initial_state),
+            game_list::get_list_games_task(&initial_state),
             hbc::get_list_hbc_apps_task(&initial_state),
             osc::get_load_osc_apps_task(&initial_state),
             util::get_drive_usage_task(&initial_state),
@@ -121,37 +122,35 @@ impl State {
                 task
             }
             Message::OpenGameInfo(i) => {
-                let game = &mut self.games[i];
+                let game = self.game_list.get_unchecked_mut(i);
 
                 if let Some(wiitdb) = &self.wiitdb {
-                    game.wiitdb_info = wiitdb.get_game_info(game.id);
+                    game.update_wiitdb_info(wiitdb);
                 }
 
                 self.screen = Screen::GameInfo(i);
                 game.get_load_disc_info_task(i)
             }
             Message::RefreshGamesAndApps => Task::batch(vec![
-                game::get_list_games_task(self),
+                game_list::get_list_games_task(self),
                 hbc::get_list_hbc_apps_task(self),
                 util::get_drive_usage_task(self),
             ]),
             Message::UpdateGamesFilter(filter) => {
-                self.filtered_game_indices = self.games.fuzzy_search(&filter);
+                self.filtered_game_indices = self.game_list.fuzzy_search(&filter);
                 self.games_filter = filter;
                 Task::none()
             }
             Message::GotWiitdbDatafile(res) => {
                 match res {
                     Ok(wiitdb) => {
-                        for game in &mut self.games {
-                            if let Some(title) = wiitdb.get_title(game.id) {
-                                game.title = title;
-                            }
+                        for game in self.game_list.iter_mut() {
+                            game.update_title(&wiitdb);
                         }
 
                         let sort_by = self.config.sort_by();
                         if matches!(sort_by, SortBy::NameAscending | SortBy::NameDescending) {
-                            self.games.sort(SortBy::None, sort_by);
+                            self.game_list.sort(SortBy::None, sort_by);
                         }
 
                         self.wiitdb = Some(wiitdb);
@@ -228,19 +227,17 @@ impl State {
                 self.osc_filter = filter;
                 Task::none()
             }
-            Message::GotGames(res) => match res {
-                Ok(games) => {
-                    self.games = games;
+            Message::GotGameList(res) => match res {
+                Ok(game_list) => {
+                    self.game_list = game_list;
 
                     if let Some(wiitdb) = &self.wiitdb {
-                        for game in &mut self.games {
-                            if let Some(title) = wiitdb.get_title(game.id) {
-                                game.title = title;
-                            }
+                        for game in self.game_list.iter_mut() {
+                            game.update_title(wiitdb);
                         }
                     }
 
-                    self.games.sort(SortBy::None, self.config.sort_by());
+                    self.game_list.sort(SortBy::None, self.config.sort_by());
 
                     covers::get_cache_cover3ds_task(self)
                 }
@@ -326,7 +323,7 @@ impl State {
             }
             Message::SortGamesAndApps(sort_by) => {
                 let prev_sort_by = self.config.sort_by();
-                self.games.sort(prev_sort_by, sort_by);
+                self.game_list.sort(prev_sort_by, sort_by);
                 self.hbc_apps.sort(prev_sort_by, sort_by);
 
                 let new_config = self.config.clone_with_sort_by(sort_by);
@@ -409,7 +406,7 @@ impl State {
                 Task::none()
             }
             Message::GotDiscInfo(i, res) => {
-                self.games[i].disc_info = Some(res);
+                self.game_list.get_unchecked_mut(i).update_disc_info(res);
                 Task::none()
             }
             #[cfg(target_os = "macos")]
@@ -441,7 +438,7 @@ impl State {
 
     pub fn get_game_cover(&self, game: &Game) -> Option<PathBuf> {
         let covers_dir = self.data_dir.join("covers");
-        let cover_path = covers_dir.join(game.id.as_str()).with_extension("png");
+        let cover_path = covers_dir.join(game.id().as_str()).with_extension("png");
 
         if cover_path.exists() {
             Some(cover_path)

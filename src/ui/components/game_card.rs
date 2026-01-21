@@ -13,14 +13,14 @@ use iced::{
 use lucide_icons::iced::{icon_hard_drive_download, icon_info, icon_tag, icon_trash};
 
 pub fn view(state: &State, i: usize) -> Element<'_, Message> {
-    let game = &state.games[i];
+    let game = state.game_list.get_unchecked(i);
 
     let mut col = column![
         row![
             icon_tag().size(12),
-            text(game.id.as_str()),
+            text(game.id().as_str().to_string()),
             space::horizontal(),
-            text(game.size.to_string())
+            text(game.size().to_string())
         ]
         .spacing(5)
         .align_y(Alignment::Center),
@@ -42,8 +42,8 @@ pub fn view(state: &State, i: usize) -> Element<'_, Message> {
 
     col = col
         .push(my_tooltip::view(
-            container(text(&game.title).wrapping(text::Wrapping::None)).clip(true),
-            &game.title,
+            container(text(game.title()).wrapping(text::Wrapping::None)).clip(true),
+            game.title(),
         ))
         .push(space::vertical())
         .push(
@@ -54,7 +54,7 @@ pub fn view(state: &State, i: usize) -> Element<'_, Message> {
                 button(icon_hard_drive_download()).style(style::rounded_secondary_button),
                 button(icon_trash())
                     .style(style::rounded_secondary_button)
-                    .on_press_with(|| Message::AskDeleteDirConfirmation(game.path.clone()))
+                    .on_press_with(|| Message::AskDeleteDirConfirmation(game.path().to_path_buf()))
             ]
             .spacing(5),
         );

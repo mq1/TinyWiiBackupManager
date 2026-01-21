@@ -7,60 +7,54 @@ use iced::{
     widget::{Row, column, row, space, text},
 };
 use lucide_icons::iced::{icon_box, icon_hard_drive, icon_pointer};
-use size::Size;
 
 pub fn view(state: &State) -> Element<'_, Message> {
     if !state.games_filter.is_empty() {
-        let mut row = Row::new().width(Length::Fill).spacing(10).padding(10);
+        let cards = state
+            .filtered_game_indices
+            .iter()
+            .copied()
+            .map(|i| components::game_card::view(state, i));
 
-        for i in state.filtered_game_indices.iter().copied() {
-            row = row.push(components::game_card::view(state, i));
-        }
+        let row = Row::from_iter(cards)
+            .width(Length::Fill)
+            .spacing(10)
+            .padding(10)
+            .wrap();
 
-        row.wrap().into()
-    } else {
-        let mut wii_row = Row::new().width(Length::Fill).spacing(10).padding(10);
-        let mut wii_count = 0usize;
-        let mut wii_total_size = Size::from_bytes(0);
-        let mut gc_row = Row::new().width(Length::Fill).spacing(10).padding(10);
-        let mut gc_count = 0usize;
-        let mut gc_total_size = Size::from_bytes(0);
+        return row.into();
+    }
 
-        for (i, game) in state.games.iter().enumerate() {
-            if game.id.is_wii() {
-                wii_count += 1;
-                wii_total_size += game.size;
+    match (state.show_wii, state.show_gc) {
+        (false, false) => row![
+            text("").size(18),
+            space::horizontal(),
+            icon_hard_drive(),
+            text(&state.drive_usage).size(16),
+        ]
+        .align_y(Alignment::Center)
+        .spacing(5)
+        .padding(padding::left(15).right(25).top(10))
+        .into(),
+        (true, false) => {
+            let cards = state
+                .game_list
+                .wii_indices()
+                .map(|i| components::game_card::view(state, i));
 
-                if state.show_wii {
-                    wii_row = wii_row.push(components::game_card::view(state, i));
-                }
-            } else {
-                gc_count += 1;
-                gc_total_size += game.size;
+            let row = Row::from_iter(cards)
+                .width(Length::Fill)
+                .spacing(10)
+                .padding(10)
+                .wrap();
 
-                if state.show_gc {
-                    gc_row = gc_row.push(components::game_card::view(state, i));
-                }
-            }
-        }
-
-        match (state.show_wii, state.show_gc) {
-            (false, false) => row![
-                text("").size(18),
-                space::horizontal(),
-                icon_hard_drive(),
-                text(&state.drive_usage).size(16),
-            ]
-            .align_y(Alignment::Center)
-            .spacing(5)
-            .padding(padding::left(15).right(25).top(10))
-            .into(),
-            (true, false) => column![
+            column![
                 row![
                     icon_pointer().size(18),
                     text(format!(
                         "Wii Games: {} found ({})",
-                        wii_count, wii_total_size
+                        state.game_list.wii_count(),
+                        state.game_list.wii_size()
                     ))
                     .size(18),
                     space::horizontal(),
@@ -70,15 +64,29 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 .align_y(Alignment::Center)
                 .spacing(5)
                 .padding(padding::left(15).right(25).top(10)),
-                wii_row.wrap()
+                row
             ]
-            .into(),
-            (false, true) => column![
+            .into()
+        }
+        (false, true) => {
+            let cards = state
+                .game_list
+                .gc_indices()
+                .map(|i| components::game_card::view(state, i));
+
+            let row = Row::from_iter(cards)
+                .width(Length::Fill)
+                .spacing(10)
+                .padding(10)
+                .wrap();
+
+            column![
                 row![
                     icon_box().size(18),
                     text(format!(
                         "GameCube Games: {} found ({})",
-                        gc_count, gc_total_size
+                        state.game_list.gc_count(),
+                        state.game_list.gc_size()
                     ))
                     .size(18),
                     space::horizontal(),
@@ -88,15 +96,40 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 .align_y(Alignment::Center)
                 .spacing(5)
                 .padding(padding::left(15).right(25).top(10)),
-                gc_row.wrap()
+                row
             ]
-            .into(),
-            (true, true) => column![
+            .into()
+        }
+        (true, true) => {
+            let wii_cards = state
+                .game_list
+                .wii_indices()
+                .map(|i| components::game_card::view(state, i));
+
+            let wii_row = Row::from_iter(wii_cards)
+                .width(Length::Fill)
+                .spacing(10)
+                .padding(10)
+                .wrap();
+
+            let gc_cards = state
+                .game_list
+                .gc_indices()
+                .map(|i| components::game_card::view(state, i));
+
+            let gc_row = Row::from_iter(gc_cards)
+                .width(Length::Fill)
+                .spacing(10)
+                .padding(10)
+                .wrap();
+
+            column![
                 row![
                     icon_pointer().size(18),
                     text(format!(
                         "Wii Games: {} found ({})",
-                        wii_count, wii_total_size
+                        state.game_list.wii_count(),
+                        state.game_list.wii_size()
                     ))
                     .size(18),
                     space::horizontal(),
@@ -106,22 +139,23 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 .align_y(Alignment::Center)
                 .spacing(5)
                 .padding(padding::left(15).right(25).top(10)),
-                wii_row.wrap(),
+                wii_row,
                 space().height(20),
                 row![
                     icon_box().size(18),
                     text(format!(
                         "GameCube Games: {} found ({})",
-                        gc_count, gc_total_size
+                        state.game_list.gc_count(),
+                        state.game_list.gc_size()
                     ))
                     .size(18),
                 ]
                 .align_y(Alignment::Center)
                 .spacing(5)
                 .padding(padding::left(15).right(25)),
-                gc_row.wrap()
+                gc_row
             ]
-            .into(),
+            .into()
         }
     }
 }

@@ -11,6 +11,7 @@ mod disc_info;
 mod extensions;
 mod game;
 mod game_id;
+mod game_list;
 mod hbc;
 mod http_util;
 mod lucide;

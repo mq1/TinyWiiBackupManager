@@ -4,7 +4,7 @@
 use crate::{
     config::{Config, SortBy},
     disc_info::DiscInfo,
-    game::Game,
+    game_list::GameList,
     hbc::HbcApp,
     osc::OscAppMeta,
     ui::Screen,
@@ -34,7 +34,7 @@ pub enum Message {
     UpdateScrollOffset(Screen, AbsoluteOffset),
 
     // Games
-    GotGames(Result<Box<[Game]>, String>),
+    GotGameList(Result<GameList, String>),
     UpdateGamesFilter(String),
     ShowWii(bool),
     ShowGc(bool),
