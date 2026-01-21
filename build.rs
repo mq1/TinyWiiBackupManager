@@ -82,6 +82,9 @@ fn compress_lucide() {
 }
 
 fn main() {
+    println!("cargo::rerun-if-changed=build.rs");
+    println!("cargo::rerun-if-changed=assets/gamehacking-ids.txt");
+
     compile_id_map();
     compress_lucide();
 
