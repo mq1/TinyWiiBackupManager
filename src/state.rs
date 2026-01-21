@@ -446,7 +446,8 @@ impl State {
                     }
                     Ok(None) => {}
                     Err(e) => {
-                        self.notifications.error(e);
+                        self.notifications
+                            .error(format!("Failed to check for updates: {}", e));
                     }
                 }
                 Task::none()
