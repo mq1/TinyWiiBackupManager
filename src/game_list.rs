@@ -14,9 +14,9 @@ use std::path::PathBuf;
 pub struct GameList {
     list: Box<[Game]>,
     total_size: Size,
-    wii_indices: Box<[usize]>,
+    wii_indices: Vec<usize>,
     wii_size: Size,
-    gc_indices: Box<[usize]>,
+    gc_indices: Vec<usize>,
     gc_size: Size,
     filtered_indices: Box<[usize]>,
 }
@@ -27,9 +27,9 @@ impl GameList {
         Self {
             list: Box::new([]),
             total_size: Size::from_bytes(0),
-            wii_indices: Box::new([]),
+            wii_indices: Vec::new(),
             wii_size: Size::from_bytes(0),
-            gc_indices: Box::new([]),
+            gc_indices: Vec::new(),
             gc_size: Size::from_bytes(0),
             filtered_indices: Box::new([]),
         }
@@ -56,9 +56,9 @@ impl GameList {
         Self {
             list: games.into_boxed_slice(),
             total_size: wii_size + gc_size,
-            wii_indices: wii_indices.into_boxed_slice(),
+            wii_indices,
             wii_size,
-            gc_indices: gc_indices.into_boxed_slice(),
+            gc_indices,
             gc_size,
             filtered_indices: Box::new([]),
         }
@@ -193,17 +193,15 @@ impl GameList {
         }
 
         // Indices lists need to be recalculated
-        let mut wii_indices = Vec::new();
-        let mut gc_indices = Vec::new();
+        self.wii_indices.clear();
+        self.gc_indices.clear();
         for (i, game) in self.list.iter().enumerate() {
             if game.id().is_wii() {
-                wii_indices.push(i);
+                self.wii_indices.push(i);
             } else if game.id().is_gc() {
-                gc_indices.push(i);
+                self.gc_indices.push(i);
             }
         }
-        self.wii_indices = wii_indices.into_boxed_slice();
-        self.gc_indices = gc_indices.into_boxed_slice();
     }
 
     pub fn fuzzy_search(&mut self, query: &str) {
