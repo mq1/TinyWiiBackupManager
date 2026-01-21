@@ -208,6 +208,7 @@ impl GameList {
         let matcher = SkimMatcherV2::default();
 
         self.filtered_indices = self
+            .list
             .iter()
             .enumerate()
             .filter_map(|(i, game)| {

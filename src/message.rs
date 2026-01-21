@@ -4,7 +4,7 @@
 use crate::{
     config::{Config, SortBy},
     games::{disc_info::DiscInfo, game_list::GameList, wiitdb::Datafile},
-    hbc::{apps::HbcApp, osc::OscAppMeta},
+    hbc::{app_list::HbcAppList, osc_list::OscAppList},
     ui::Screen,
 };
 use iced::widget::operation::AbsoluteOffset;
@@ -46,14 +46,14 @@ pub enum Message {
     OpenGameInfo(usize),
 
     // HBC Apps
-    GotHbcApps(Result<Box<[HbcApp]>, String>),
+    GotHbcAppList(Result<HbcAppList, String>),
     ChooseHbcAppsToAdd,
     AddHbcApps(Box<[PathBuf]>),
     HbcAppsInstalled(Result<(), String>),
     UpdateHbcFilter(String),
 
     // OSC Apps
-    GotOscApps(Result<Box<[OscAppMeta]>, String>),
+    GotOscAppList(Result<OscAppList, String>),
     UpdateOscFilter(String),
     AskInstallOscApp(usize),
     InstallOscApp(usize, bool),

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{message::Message, state::State, ui::Screen};
+use crate::{hbc::app::HbcApp, message::Message, state::State, ui::Screen};
 use iced::{
     Alignment, Element, Length,
     widget::{button, container, row, table, text},
@@ -10,16 +10,16 @@ use lucide_icons::iced::{icon_info, icon_trash};
 
 pub fn view(state: &State) -> Element<'_, Message> {
     let t_columns = vec![
-        table::column(text("Name").size(16), |i: usize| {
-            text(&state.hbc_apps[i].meta.name)
+        table::column(text("Name").size(16), |(_, app): (usize, &HbcApp)| {
+            text(app.meta().name())
         }),
-        table::column(text("Version").size(16), |i: usize| {
-            text(&state.hbc_apps[i].meta.version)
+        table::column(text("Version").size(16), |(_, app): (usize, &HbcApp)| {
+            text(app.meta().version())
         }),
-        table::column(text("Size").size(16), |i: usize| {
-            text(state.hbc_apps[i].size.to_string())
+        table::column(text("Size").size(16), |(_, app): (usize, &HbcApp)| {
+            text(app.size().to_string())
         }),
-        table::column(text("Actions").size(16), |i| {
+        table::column(text("Actions").size(16), |(i, app): (usize, &HbcApp)| {
             row![
                 button(row![icon_info(), text("Info")].spacing(5))
                     .padding(0)
@@ -30,7 +30,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
                     .padding(0)
                     .style(button::text)
                     .on_press_with(move || Message::AskDeleteDirConfirmation(
-                        state.hbc_apps[i].path.clone()
+                        app.path().to_path_buf(),
                     )),
             ]
             .spacing(10)
@@ -39,11 +39,15 @@ pub fn view(state: &State) -> Element<'_, Message> {
     ];
 
     let table = if !state.hbc_filter.is_empty() {
-        let indices = state.filtered_hbc_indices.iter().copied();
-        table(t_columns, indices).width(Length::Fill)
+        let iter = state
+            .hbc_app_list
+            .filtered_indices()
+            .map(|i| (i, state.hbc_app_list.get_unchecked(i)));
+
+        table(t_columns, iter).width(Length::Fill)
     } else {
-        let indices = 0..state.hbc_apps.len();
-        table(t_columns, indices).width(Length::Fill)
+        let iter = state.hbc_app_list.iter().enumerate();
+        table(t_columns, iter).width(Length::Fill)
     };
 
     container(table).padding(10).into()

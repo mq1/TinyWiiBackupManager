@@ -8,11 +8,11 @@ pub fn view(state: &State) -> Element<'_, Message> {
     let mut row = Row::new().width(Length::Fill).spacing(10).padding(10);
 
     if !state.osc_filter.is_empty() {
-        for i in state.filtered_osc_indices.iter().copied() {
+        for i in state.osc_app_list.filtered_indices() {
             row = row.push(components::osc_card::view(state, i));
         }
     } else {
-        for i in 0..state.osc_apps.len() {
+        for i in 0..state.osc_app_list.count() {
             row = row.push(components::osc_card::view(state, i));
         }
     }

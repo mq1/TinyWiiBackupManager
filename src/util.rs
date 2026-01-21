@@ -10,30 +10,9 @@ use smol::{
     io::{self, BufReader},
     stream::StreamExt,
 };
-use std::{
-    path::{Path, PathBuf},
-    sync::LazyLock,
-};
+use std::path::{Path, PathBuf};
 use sysinfo::Disks;
 use tempfile::NamedTempFile;
-
-static NUM_CPUS: LazyLock<usize> = LazyLock::new(num_cpus::get);
-
-pub static PRELOADER_THREADS: LazyLock<usize> = LazyLock::new(|| match *NUM_CPUS {
-    0..=4 => 1,
-    5..=8 => 2,
-    _ => 4,
-});
-
-pub static PROCESSOR_THREADS: LazyLock<usize> = LazyLock::new(|| match *NUM_CPUS {
-    0..=4 => *NUM_CPUS - 1,
-    5..=8 => *NUM_CPUS - 2,
-    _ => *NUM_CPUS - 4,
-});
-
-pub trait FuzzySearchable {
-    fn fuzzy_search(&self, query: &str) -> Box<[usize]>;
-}
 
 pub fn sanitize(s: &str) -> String {
     let opts = sanitize_filename::Options {

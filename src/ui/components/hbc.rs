@@ -12,7 +12,6 @@ use iced::{
     widget::{column, container, row, scrollable, space, text},
 };
 use lucide_icons::iced::{icon_arrow_down_left, icon_hard_drive, icon_waves};
-use size::Size;
 
 pub fn view(state: &State) -> Element<'_, Message> {
     if !state.config.is_mount_point_valid() {
@@ -35,12 +34,6 @@ pub fn view(state: &State) -> Element<'_, Message> {
     };
 
     if state.hbc_filter.is_empty() {
-        let size = state
-            .hbc_apps
-            .iter()
-            .map(|app| app.size)
-            .fold(Size::from_bytes(0), |a, b| a + b);
-
         column![
             components::hbc_toolbar::view(state),
             scrollable(column![
@@ -48,8 +41,8 @@ pub fn view(state: &State) -> Element<'_, Message> {
                     icon_waves().size(18),
                     text!(
                         "Homebrew Channel Apps: {} found ({})",
-                        state.hbc_apps.len(),
-                        size
+                        state.hbc_app_list.count(),
+                        state.hbc_app_list.total_size()
                     )
                     .size(18),
                     space::horizontal(),

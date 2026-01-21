@@ -1,86 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{http_util, message::Message, state::State, util::FuzzySearchable};
-use anyhow::Result;
-use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
+use crate::{http_util, message::Message};
 use iced::{Task, futures::TryFutureExt};
-use itertools::Itertools;
 use serde::Deserialize;
 use size::Size;
-use smol::fs;
-use std::{
-    ffi::OsString,
-    path::{Path, PathBuf},
-    time::Duration,
-};
+use std::{ffi::OsString, path::PathBuf};
 use time::OffsetDateTime;
-
-const CONTENTS_URL: &str = "https://hbb1.oscwii.org/api/v4/contents";
-
-pub fn get_load_osc_apps_task(state: &State) -> Task<Message> {
-    let data_dir = state.data_dir.clone();
-
-    Task::perform(
-        load_osc_apps(data_dir).map_err(|e| e.to_string()),
-        Message::GotOscApps,
-    )
-}
-
-async fn load_osc_apps(data_dir: PathBuf) -> Result<Box<[OscAppMeta]>> {
-    let cache_path = data_dir.join("osc-cache.json");
-
-    let apps = match load_cache(&cache_path).await {
-        Some(cache) => cache,
-        None => {
-            let bytes = http_util::get(CONTENTS_URL.to_string()).await?;
-            fs::write(&cache_path, &bytes).await?;
-            serde_json::from_slice(&bytes)?
-        }
-    };
-
-    Ok(apps.into_boxed_slice())
-}
-
-async fn load_cache(path: &Path) -> Option<Vec<OscAppMeta>> {
-    // get file time
-    let file_time = fs::metadata(path).await.ok()?.modified().ok()?;
-
-    // get difference
-    let elapsed = file_time.elapsed().ok()?;
-
-    if elapsed > Duration::from_secs(60 * 60 * 24) {
-        return None;
-    }
-
-    let bytes = fs::read(path).await.ok()?;
-    let apps = serde_json::from_slice(&bytes).ok()?;
-
-    Some(apps)
-}
-
-pub fn get_download_icons_task(state: &State) -> Task<Message> {
-    let osc_apps = state.osc_apps.clone();
-    let icons_dir = state.data_dir.join("osc-icons");
-
-    Task::perform(
-        async move {
-            fs::create_dir_all(&icons_dir)
-                .await
-                .map_err(|e| e.to_string())?;
-
-            for app in osc_apps.into_iter() {
-                let icon_path = icons_dir.join(app.slug).with_extension("png");
-                if !icon_path.exists() {
-                    let _ = http_util::download_file(app.assets.icon.url, &icon_path).await;
-                }
-            }
-
-            Ok(())
-        },
-        Message::EmptyResult,
-    )
-}
 
 impl OscAppMeta {
     pub fn get_trimmed_version_str(&self) -> &str {
@@ -280,22 +206,5 @@ impl Flag {
             Flag::Deprecated => "Deprecated",
             Flag::Unknown => "Unknown",
         }
-    }
-}
-
-impl FuzzySearchable for Box<[OscAppMeta]> {
-    fn fuzzy_search(&self, query: &str) -> Box<[usize]> {
-        let matcher = SkimMatcherV2::default();
-
-        self.iter()
-            .enumerate()
-            .filter_map(|(i, app)| {
-                matcher
-                    .fuzzy_match(&app.name, query)
-                    .map(|score| (i, score))
-            })
-            .sorted_unstable_by_key(|(_, score)| *score)
-            .map(|(i, _)| i)
-            .collect()
     }
 }

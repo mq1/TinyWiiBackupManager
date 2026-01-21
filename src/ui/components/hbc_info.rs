@@ -16,31 +16,31 @@ use lucide_icons::iced::{
 };
 
 pub fn view(state: &State, hbc_i: usize) -> Element<'_, Message> {
-    let app = &state.hbc_apps[hbc_i];
+    let app = state.hbc_app_list.get_unchecked(hbc_i);
 
     let col = column![
-        row![icon_waves().size(18), text(&app.meta.name).size(18)].spacing(5),
-        row![icon_folder(), text!("Path: {}", app.path.display())].spacing(5),
+        row![icon_waves().size(18), text(app.meta().name()).size(18)].spacing(5),
+        row![icon_folder(), text!("Path: {}", app.path().display())].spacing(5),
         rule::horizontal(1),
-        row![icon_tag(), text!("Version: {}", &app.meta.version)].spacing(5),
+        row![icon_tag(), text!("Version: {}", app.meta().version())].spacing(5),
         row![
-            components::developers::get_icon(&app.meta.coder),
-            text!("Coder: {}", &app.meta.coder)
+            components::developers::get_icon(app.meta().coder()),
+            text!("Coder: {}", app.meta().coder())
         ]
         .spacing(5),
         row![
             icon_calendar(),
-            text!("Release Date: {}", &app.meta.release_date)
+            text!("Release Date: {}", app.meta().release_date())
         ]
         .spacing(5),
-        row![icon_weight(), text!("Size: {}", app.size)].spacing(5),
+        row![icon_weight(), text!("Size: {}", app.size())].spacing(5),
         row![
             icon_clipboard_list(),
-            text!("Short Description: {}", &app.meta.short_description)
+            text!("Short Description: {}", app.meta().short_description())
         ]
         .spacing(5),
         rule::horizontal(1),
-        scrollable(text(&app.meta.long_description).width(Length::Fill)).height(Length::Fill),
+        scrollable(text(app.meta().long_description()).width(Length::Fill)).height(Length::Fill),
         rule::horizontal(1),
         row![
             button(row![icon_folder(), text("Open App Directory")].spacing(5))
@@ -51,7 +51,7 @@ pub fn view(state: &State, hbc_i: usize) -> Element<'_, Message> {
                 .on_press_with(|| Message::OpenThat(app.get_oscwii_uri())),
             button(row![icon_trash(), text("Delete")].spacing(5))
                 .style(style::rounded_danger_button)
-                .on_press_with(|| Message::AskDeleteDirConfirmation(app.path.clone())),
+                .on_press_with(|| Message::AskDeleteDirConfirmation(app.path().to_path_buf())),
         ]
         .spacing(5)
         .padding(padding::top(5))
@@ -59,7 +59,7 @@ pub fn view(state: &State, hbc_i: usize) -> Element<'_, Message> {
     .spacing(5)
     .padding(10);
 
-    match &app.image_path {
+    match app.image_path() {
         Some(image_path) => stack![
             col,
             row![

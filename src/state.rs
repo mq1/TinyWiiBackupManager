@@ -10,15 +10,11 @@ use crate::{
         game_list::{self, GameList},
         wiitdb::{self, Datafile},
     },
-    hbc::{
-        self,
-        apps::{HbcApp, HbcApps},
-        osc::{self, OscAppMeta},
-    },
+    hbc::{self, app_list::HbcAppList, osc::OscAppMeta, osc_list::OscAppList},
     message::Message,
     notifications::Notifications,
     ui::{Screen, dialogs, lucide},
-    util::{self, FuzzySearchable},
+    util,
 };
 use iced::{
     Task, Theme,
@@ -34,17 +30,15 @@ pub struct State {
     pub config: Config,
     pub game_list: GameList,
     pub games_filter: String,
-    pub hbc_apps: Box<[HbcApp]>,
-    pub osc_apps: Box<[OscAppMeta]>,
+    pub hbc_app_list: HbcAppList,
+    pub osc_app_list: OscAppList,
     pub wiitdb: Option<Datafile>,
     pub notifications: Notifications,
     pub show_wii: bool,
     pub show_gc: bool,
     pub drive_usage: String,
     pub osc_filter: String,
-    pub filtered_osc_indices: Box<[usize]>,
     pub hbc_filter: String,
-    pub filtered_hbc_indices: Box<[usize]>,
     pub transfer_stack: Vec<PathBuf>,
     pub half_sec_anim_state: bool,
     pub scroll_offsets: BTreeMap<Screen, AbsoluteOffset>,
@@ -61,8 +55,8 @@ impl State {
             config,
             game_list: GameList::empty(),
             games_filter: String::new(),
-            hbc_apps: Box::new([]),
-            osc_apps: Box::new([]),
+            hbc_app_list: HbcAppList::empty(),
+            osc_app_list: OscAppList::empty(),
             wiitdb: None,
             notifications: Notifications::new(),
             show_wii: true,
@@ -72,16 +66,14 @@ impl State {
             hbc_filter: String::new(),
             transfer_stack: Vec::new(),
             half_sec_anim_state: false,
-            filtered_osc_indices: Box::new([]),
-            filtered_hbc_indices: Box::new([]),
             scroll_offsets: BTreeMap::new(),
         };
 
         let tasks = Task::batch(vec![
             wiitdb::get_load_wiitdb_task(&initial_state),
             game_list::get_list_games_task(&initial_state),
-            hbc::apps::get_list_hbc_apps_task(&initial_state),
-            osc::get_load_osc_apps_task(&initial_state),
+            hbc::app_list::get_list_hbc_apps_task(&initial_state),
+            hbc::osc_list::get_load_osc_apps_task(&initial_state),
             util::get_drive_usage_task(&initial_state),
             lucide::get_load_lucide_task(),
         ]);
@@ -135,7 +127,7 @@ impl State {
             }
             Message::RefreshGamesAndApps => Task::batch(vec![
                 game_list::get_list_games_task(self),
-                hbc::apps::get_list_hbc_apps_task(self),
+                hbc::app_list::get_list_hbc_apps_task(self),
                 util::get_drive_usage_task(self),
             ]),
             Message::UpdateGamesFilter(filter) => {
@@ -214,10 +206,10 @@ impl State {
 
                 self.update(Message::RefreshGamesAndApps)
             }
-            Message::GotOscApps(res) => match res {
-                Ok(osc_apps) => {
-                    self.osc_apps = osc_apps;
-                    osc::get_download_icons_task(self)
+            Message::GotOscAppList(res) => match res {
+                Ok(osc_app_list) => {
+                    self.osc_app_list = osc_app_list;
+                    hbc::osc_list::get_download_icons_task(self)
                 }
                 Err(e) => {
                     self.notifications.error(e);
@@ -225,7 +217,7 @@ impl State {
                 }
             },
             Message::UpdateOscFilter(filter) => {
-                self.filtered_osc_indices = self.osc_apps.fuzzy_search(&filter);
+                self.osc_app_list.fuzzy_search(&filter);
                 self.osc_filter = filter;
                 Task::none()
             }
@@ -248,11 +240,11 @@ impl State {
                     Task::none()
                 }
             },
-            Message::GotHbcApps(res) => {
+            Message::GotHbcAppList(res) => {
                 match res {
-                    Ok(hbc_apps) => {
-                        self.hbc_apps = hbc_apps;
-                        self.hbc_apps.sort(SortBy::None, self.config.sort_by());
+                    Ok(hbc_app_list) => {
+                        self.hbc_app_list = hbc_app_list;
+                        self.hbc_app_list.sort(SortBy::None, self.config.sort_by());
                     }
                     Err(e) => {
                         self.notifications.error(e);
@@ -265,7 +257,7 @@ impl State {
                 Task::none()
             }
             Message::AskInstallOscApp(i) => {
-                let name = self.osc_apps[i].name.clone();
+                let name = self.osc_app_list.get_unchecked(i).name.clone();
 
                 window::oldest()
                     .and_then(move |id| {
@@ -274,10 +266,12 @@ impl State {
                     })
                     .map(move |yes| Message::InstallOscApp(i, yes))
             }
-            Message::InstallOscApp(usize, yes) => {
+            Message::InstallOscApp(i, yes) => {
                 if yes {
                     let base_dir = self.config.mount_point().to_path_buf();
-                    self.osc_apps[usize].get_install_task(base_dir)
+                    self.osc_app_list
+                        .get_unchecked(i)
+                        .get_install_task(base_dir)
                 } else {
                     Task::none()
                 }
@@ -296,7 +290,7 @@ impl State {
                 self.update(Message::RefreshGamesAndApps)
             }
             Message::UpdateHbcFilter(filter) => {
-                self.filtered_hbc_indices = self.hbc_apps.fuzzy_search(&filter);
+                self.hbc_app_list.fuzzy_search(&filter);
                 self.hbc_filter = filter;
                 Task::none()
             }
@@ -326,7 +320,7 @@ impl State {
             Message::SortGamesAndApps(sort_by) => {
                 let prev_sort_by = self.config.sort_by();
                 self.game_list.sort(prev_sort_by, sort_by);
-                self.hbc_apps.sort(prev_sort_by, sort_by);
+                self.hbc_app_list.sort(prev_sort_by, sort_by);
 
                 let new_config = self.config.clone_with_sort_by(sort_by);
                 self.update(Message::UpdateConfig(new_config))
@@ -343,7 +337,7 @@ impl State {
                 if apps.is_empty() {
                     Task::none()
                 } else {
-                    hbc::apps::get_install_hbc_apps_task(self, apps)
+                    hbc::app::get_install_hbc_apps_task(self, apps)
                 }
             }
             Message::HbcAppsInstalled(res) => {

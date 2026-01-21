@@ -19,7 +19,7 @@ use lucide_icons::iced::{
 };
 
 pub fn view(state: &State, osc_i: usize) -> Element<'_, Message> {
-    let app = &state.osc_apps[osc_i];
+    let app = state.osc_app_list.get_unchecked(osc_i);
 
     let col = column![
         row![icon_store().size(18), text(&app.name).size(18)].spacing(5),
