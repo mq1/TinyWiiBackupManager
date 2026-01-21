@@ -8,14 +8,14 @@
       "height": 400
     }
   },
-  "format": "ULMO",
+  "format": "UDBZ",
   "filesystem": "APFS",
   "contents": [
     {
       "x": 180,
       "y": 170,
       "type": "file",
-      "path": "../TinyWiiBackupManager.app"
+      "path": "../../TinyWiiBackupManager.app"
     },
     {
       "x": 480,

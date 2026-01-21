@@ -94,7 +94,7 @@ fn main() {
     #[cfg(windows)]
     {
         let mut res = winresource::WindowsResource::new();
-        res.set_icon("assets/TinyWiiBackupManager.ico");
+        res.set_icon("package/windows/TinyWiiBackupManager.ico");
         res.compile().unwrap();
     }
 }

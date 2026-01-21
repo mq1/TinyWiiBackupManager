@@ -100,7 +100,7 @@ jobs:
 
       - name: Package binary as AppImage
         run: |
-          ./${{ matrix.linuxdeploy-bin }} --appdir TinyWiiBackupManager.AppDir -e TinyWiiBackupManager -d assets/TinyWiiBackupManager.desktop -i assets/TinyWiiBackupManager.png --output appimage
+          ./${{ matrix.linuxdeploy-bin }} --appdir TinyWiiBackupManager.AppDir -e TinyWiiBackupManager -d package/linux/TinyWiiBackupManager.desktop -i assets/TinyWiiBackupManager.png --output appimage
           mv TinyWiiBackupManager-*.AppImage "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
           mv TinyWiiBackupManager-*.AppImage.zsync "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage.zsync"
         env:
@@ -207,7 +207,6 @@ jobs:
             deployment_target: 11.0
           - target: x86_64-apple-darwin
             arch: x86_64
-            appdmg-suffix: -compat
             deployment_target: 10.13
 
     steps:
@@ -238,8 +237,8 @@ jobs:
         run: |
           mkdir -p TinyWiiBackupManager.app/Contents/MacOS TinyWiiBackupManager.app/Contents/Resources
           cp "target/${{ matrix.target }}/release/TinyWiiBackupManager" TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
-          sed 's/VERSION_NAME/${{ env.VERSION_NAME }}/' assets/Info.plist > TinyWiiBackupManager.app/Contents/Info.plist
-          cp assets/TinyWiiBackupManager.icns TinyWiiBackupManager.app/Contents/Resources/TinyWiiBackupManager.icns
+          sed 's/VERSION_NAME/${{ env.VERSION_NAME }}/' package/macos/Info.plist > TinyWiiBackupManager.app/Contents/Info.plist
+          cp package/macos/TinyWiiBackupManager.icns TinyWiiBackupManager.app/Contents/Resources/TinyWiiBackupManager.icns
 
       - name: zip the app
         run: |
@@ -251,7 +250,7 @@ jobs:
       - name: Create dmg
         run: |
           npx -y appdmg@0.6.6 \
-            assets/appdmg${{ matrix.appdmg-suffix }}.json \
+            package/macos/appdmg.json \
             "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-${{ matrix.arch }}.dmg"
 
       - name: Upload macOS distributables
@@ -382,7 +381,7 @@ jobs:
             -e "s/X86_64_HASH/${x86_64_hash}/g" \
             -e "s/ARM64_HASH/${arm64_hash}/g" \
             -e "s/X86_HASH/${x86_hash}/g" \
-            assets/scoop-template.json > bucket/TinyWiiBackupManager.json
+            package/windows/scoop-template.json > bucket/TinyWiiBackupManager.json
 
       - name: Commit and push changes
         run: |
