@@ -305,7 +305,7 @@ jobs:
     - name: Create dmg (assets from sindresorhus/create-dmg)
       run: |
         npx -y appdmg@0.6.6 \
-          assets/appdmg.json \
+          package/macos/appdmg.json \
           "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-universal.dmg"
 
     - name: Upload macOS distributables
