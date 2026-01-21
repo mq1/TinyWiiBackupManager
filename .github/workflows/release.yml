@@ -7,6 +7,13 @@ on:
       - v5
     tags:
       - "v*.*.*"
+    paths:
+      - "build.rs"
+      - "src/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "package/**"
+      - ".github/workflows/build.yml"
   pull_request:
 
 permissions:
