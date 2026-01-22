@@ -135,3 +135,10 @@ opt-level = 1
 
 [profile.dev.package.quick-xml]
 overflow-checks = false
+
+[lints.rust]
+rust_2018_idioms = "deny"
+
+[lints.clippy]
+all = "warn"
+pedantic = "warn"
