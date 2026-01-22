@@ -23,7 +23,7 @@ use iced::{
     window,
 };
 use semver::Version;
-use std::{collections::BTreeMap, path::PathBuf, time::Duration};
+use std::{path::PathBuf, time::Duration};
 
 pub struct State {
     pub screen: Screen,
@@ -42,8 +42,10 @@ pub struct State {
     pub hbc_filter: String,
     pub transfer_stack: Vec<PathBuf>,
     pub half_sec_anim_state: bool,
-    pub scroll_offsets: BTreeMap<Screen, AbsoluteOffset>,
     pub new_version: Option<Version>,
+    pub games_scroll_offset: AbsoluteOffset,
+    pub hbc_scroll_offset: AbsoluteOffset,
+    pub osc_scroll_offset: AbsoluteOffset,
 }
 
 impl State {
@@ -68,8 +70,10 @@ impl State {
             hbc_filter: String::new(),
             transfer_stack: Vec::new(),
             half_sec_anim_state: false,
-            scroll_offsets: BTreeMap::new(),
             new_version: None,
+            games_scroll_offset: AbsoluteOffset::default(),
+            hbc_scroll_offset: AbsoluteOffset::default(),
+            osc_scroll_offset: AbsoluteOffset::default(),
         };
 
         let tasks = Task::batch(vec![
@@ -109,25 +113,52 @@ impl State {
                 }
                 Task::none()
             }
-            Message::NavigateTo(screen) => {
-                let task = if let Some(offset) = self.scroll_offsets.get(&screen) {
-                    operation::scroll_to(screen.get_scroll_id(), *offset)
-                } else {
-                    Task::none()
-                };
-
-                self.screen = screen;
-                task
+            Message::NavToGames => {
+                self.screen = Screen::Games;
+                operation::scroll_to("games_scroll", self.games_scroll_offset)
             }
-            Message::OpenGameInfo(i) => {
+            Message::NavToGameInfo(i) => {
+                self.screen = Screen::GameInfo(i);
+
                 let game = self.game_list.get_unchecked_mut(i);
 
                 if let Some(wiitdb) = &self.wiitdb {
                     game.update_wiitdb_info(wiitdb);
                 }
 
-                self.screen = Screen::GameInfo(i);
-                game.get_load_disc_info_task(i)
+                game.get_load_disc_info_task()
+            }
+            Message::NavToHbcApps => {
+                self.screen = Screen::HbcApps;
+                operation::scroll_to("hbc_scroll", self.hbc_scroll_offset)
+            }
+            Message::NavToHbcAppInfo(i) => {
+                self.screen = Screen::HbcInfo(i);
+                Task::none()
+            }
+            Message::NavToOscApps => {
+                self.screen = Screen::Osc;
+                operation::scroll_to("osc_scroll", self.osc_scroll_offset)
+            }
+            Message::NavToOscAppInfo(i) => {
+                self.screen = Screen::OscInfo(i);
+                Task::none()
+            }
+            Message::NavToToolbox => {
+                self.screen = Screen::Toolbox;
+                Task::none()
+            }
+            Message::NavToSettings => {
+                self.screen = Screen::Settings;
+                Task::none()
+            }
+            Message::NavToTransfer => {
+                self.screen = Screen::Transfer;
+                Task::none()
+            }
+            Message::NavToAbout => {
+                self.screen = Screen::About;
+                Task::none()
             }
             Message::RefreshGamesAndApps => Task::batch(vec![
                 game_list::get_list_games_task(self),
@@ -137,6 +168,18 @@ impl State {
             Message::UpdateGamesFilter(filter) => {
                 self.game_list.fuzzy_search(&filter);
                 self.games_filter = filter;
+                Task::none()
+            }
+            Message::UpdateGamesScrollOffset(viewport) => {
+                self.games_scroll_offset = viewport.absolute_offset();
+                Task::none()
+            }
+            Message::UpdateHbcScrollOffset(viewport) => {
+                self.hbc_scroll_offset = viewport.absolute_offset();
+                Task::none()
+            }
+            Message::UpdateOscScrollOffset(viewport) => {
+                self.osc_scroll_offset = viewport.absolute_offset();
                 Task::none()
             }
             Message::GotWiitdbDatafile(res) => {
@@ -405,8 +448,10 @@ impl State {
                 self.transfer_stack.remove(i);
                 Task::none()
             }
-            Message::GotDiscInfo(i, res) => {
-                self.game_list.get_unchecked_mut(i).update_disc_info(res);
+            Message::GotDiscInfo(res) => {
+                if let Screen::GameInfo(i) = self.screen {
+                    self.game_list.get_unchecked_mut(i).update_disc_info(res);
+                }
                 Task::none()
             }
             #[cfg(target_os = "macos")]
@@ -422,10 +467,6 @@ impl State {
                     },
                     Message::GenericResult,
                 )
-            }
-            Message::UpdateScrollOffset(screen, offset) => {
-                self.scroll_offsets.insert(screen, offset);
-                Task::none()
             }
             Message::OpenThat(uri) => {
                 if let Err(e) = open::that(&uri) {

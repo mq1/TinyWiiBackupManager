@@ -31,7 +31,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 button(row![icon_info(), text("Info")].spacing(5))
                     .padding(0)
                     .style(button::text)
-                    .on_press(Message::OpenGameInfo(i)),
+                    .on_press(Message::NavToGameInfo(i)),
                 text('•'),
                 button(row![icon_trash(), text("Delete")].spacing(5))
                     .padding(0)

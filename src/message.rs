@@ -5,18 +5,33 @@ use crate::{
     config::{Config, SortBy},
     games::{disc_info::DiscInfo, game_list::GameList, wiitdb::Datafile},
     hbc::{app_list::HbcAppList, osc_list::OscAppList},
-    ui::Screen,
 };
-use iced::widget::operation::AbsoluteOffset;
+use iced::widget::scrollable::Viewport;
 use semver::Version;
 use std::{ffi::OsString, path::PathBuf};
 
 #[derive(Debug, Clone)]
 pub enum Message {
+    // Notification helpers
     GenericResult(Result<String, String>),
     EmptyResult(Result<(), String>),
 
-    NavigateTo(Screen),
+    // Navigation
+    NavToGames,
+    NavToGameInfo(usize),
+    NavToHbcApps,
+    NavToHbcAppInfo(usize),
+    NavToOscApps,
+    NavToOscAppInfo(usize),
+    NavToToolbox,
+    NavToTransfer,
+    NavToSettings,
+    NavToAbout,
+    UpdateGamesScrollOffset(Viewport),
+    UpdateHbcScrollOffset(Viewport),
+    UpdateOscScrollOffset(Viewport),
+
+    // Misc
     RefreshGamesAndApps,
     GotWiitdbDatafile(Result<Datafile, String>),
     NotificationTick,
@@ -29,7 +44,6 @@ pub enum Message {
     OpenThat(OsString),
     AskDeleteDirConfirmation(PathBuf),
     DirectoryDeleted(Result<(), String>),
-    UpdateScrollOffset(Screen, AbsoluteOffset),
     GotLatestVersion(Result<Option<Version>, String>),
 
     // Games
@@ -43,9 +57,8 @@ pub enum Message {
     StartSingleGameTransfer,
     FinishedTransferringSingleGame(Result<String, String>),
     CancelTransfer(usize),
-    GotDiscInfo(usize, Result<DiscInfo, String>),
+    GotDiscInfo(Result<DiscInfo, String>),
     SortGamesAndApps(SortBy),
-    OpenGameInfo(usize),
 
     // HBC Apps
     GotHbcAppList(Result<HbcAppList, String>),

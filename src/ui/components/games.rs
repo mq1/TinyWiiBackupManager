@@ -1,12 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    config::ViewAs,
-    message::Message,
-    state::State,
-    ui::{Screen, components},
-};
+use crate::{config::ViewAs, message::Message, state::State, ui::components};
 use iced::{
     Element, Length,
     widget::{column, container, row, scrollable, text},
@@ -37,7 +32,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
         components::games_toolbar::view(state),
         scrollable(content)
             .id("games_scroll")
-            .on_scroll(|s| Message::UpdateScrollOffset(Screen::Games, s.absolute_offset()))
+            .on_scroll(Message::UpdateGamesScrollOffset)
     ]
     .into()
 }

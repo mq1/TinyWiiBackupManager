@@ -37,12 +37,6 @@ impl HbcAppList {
         }
     }
 
-    #[allow(unused)]
-    #[inline(always)]
-    pub fn get(&self, i: usize) -> Option<&HbcApp> {
-        self.list.get(i)
-    }
-
     #[inline(always)]
     pub fn get_unchecked(&self, i: usize) -> &HbcApp {
         &self.list[i]

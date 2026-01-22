@@ -63,18 +63,6 @@ impl GameList {
         }
     }
 
-    #[allow(unused)]
-    #[inline(always)]
-    pub fn get(&self, i: usize) -> Option<&Game> {
-        self.list.get(i)
-    }
-
-    #[allow(unused)]
-    #[inline(always)]
-    pub fn get_mut(&mut self, i: usize) -> Option<&mut Game> {
-        self.list.get_mut(i)
-    }
-
     #[inline(always)]
     pub fn get_unchecked(&self, i: usize) -> &Game {
         &self.list[i]

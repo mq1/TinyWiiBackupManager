@@ -33,28 +33,28 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 .style(style::get_nav_button_style(state.screen == Screen::Games))
                 .height(40)
                 .width(40)
-                .on_press(Message::NavigateTo(Screen::Games)),
+                .on_press(Message::NavToGames),
         )
         .push(
             button(icon_waves().size(20).center())
                 .style(style::get_nav_button_style(state.screen == Screen::HbcApps))
                 .height(40)
                 .width(40)
-                .on_press(Message::NavigateTo(Screen::HbcApps)),
+                .on_press(Message::NavToHbcApps),
         )
         .push(
             button(icon_store().size(20).center())
                 .style(style::get_nav_button_style(state.screen == Screen::Osc))
                 .height(40)
                 .width(40)
-                .on_press(Message::NavigateTo(Screen::Osc)),
+                .on_press(Message::NavToOscApps),
         )
         .push(
             button(icon_tool_case().size(20).center())
                 .style(style::get_nav_button_style(state.screen == Screen::Toolbox))
                 .height(40)
                 .width(40)
-                .on_press(Message::NavigateTo(Screen::Toolbox)),
+                .on_press(Message::NavToToolbox),
         )
         .push(
             button(icon_settings().size(20).center())
@@ -63,7 +63,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 ))
                 .height(40)
                 .width(40)
-                .on_press(Message::NavigateTo(Screen::Settings)),
+                .on_press(Message::NavToSettings),
         )
         .push(space::vertical());
 
@@ -79,7 +79,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 .style(style::inactive_nav_button)
                 .height(40)
                 .width(40)
-                .on_press(Message::NavigateTo(Screen::Transfer)),
+                .on_press(Message::NavToTransfer),
         );
     };
 
@@ -116,7 +116,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 .style(style::get_nav_button_style(state.screen == Screen::About))
                 .height(40)
                 .width(40)
-                .on_press(Message::NavigateTo(Screen::About)),
+                .on_press(Message::NavToAbout),
         );
 
     container(col).style(style::nav_container).into()

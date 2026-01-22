@@ -4,7 +4,7 @@
 use crate::{
     message::Message,
     state::State,
-    ui::{Screen, components::my_tooltip, style},
+    ui::{components::my_tooltip, style},
 };
 use iced::{
     Alignment, Element,
@@ -46,7 +46,7 @@ pub fn view(state: &State, i: usize) -> Element<'_, Message> {
             row![
                 button(row![icon_info(), text("Info")].spacing(5))
                     .style(style::rounded_secondary_button)
-                    .on_press(Message::NavigateTo(Screen::OscInfo(i))),
+                    .on_press(Message::NavToOscAppInfo(i)),
                 button(icon_monitor_up()).style(style::rounded_secondary_button),
                 button(icon_cloud_download())
                     .style(style::rounded_secondary_button)

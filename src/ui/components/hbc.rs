@@ -1,12 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    config::ViewAs,
-    message::Message,
-    state::State,
-    ui::{Screen, components},
-};
+use crate::{config::ViewAs, message::Message, state::State, ui::components};
 use iced::{
     Alignment, Element, Length, padding,
     widget::{column, container, row, scrollable, space, text},
@@ -55,7 +50,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 content
             ])
             .id("hbc_scroll")
-            .on_scroll(|s| Message::UpdateScrollOffset(Screen::HbcApps, s.absolute_offset()))
+            .on_scroll(Message::UpdateHbcScrollOffset)
         ]
         .into()
     } else {

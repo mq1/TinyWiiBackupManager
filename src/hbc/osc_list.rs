@@ -17,7 +17,7 @@ const CONTENTS_URL: &str = "https://hbb1.oscwii.org/api/v4/contents";
 #[derive(Debug, Clone)]
 pub struct OscAppList {
     list: Box<[OscAppMeta]>,
-    filtered_indices: Box<[usize]>,
+    filtered_indices: Box<[(usize, i64)]>,
 }
 
 impl OscAppList {
@@ -36,6 +36,11 @@ impl OscAppList {
     }
 
     #[inline(always)]
+    pub fn get_unchecked(&self, i: usize) -> &OscAppMeta {
+        &self.list[i]
+    }
+
+    #[inline(always)]
     pub fn count(&self) -> usize {
         self.list.len()
     }
@@ -46,13 +51,16 @@ impl OscAppList {
     }
 
     #[inline(always)]
-    pub fn get_unchecked(&self, i: usize) -> &OscAppMeta {
-        &self.list[i]
+    pub fn iter_filtered_indices(&self) -> impl Iterator<Item = usize> {
+        self.filtered_indices.iter().copied().map(|(i, _score)| i)
     }
 
     #[inline(always)]
-    pub fn filtered_indices(&self) -> impl Iterator<Item = usize> {
-        self.filtered_indices.iter().copied()
+    pub fn iter_enumerate_filtered(&self) -> impl Iterator<Item = (usize, &OscAppMeta)> {
+        self.filtered_indices
+            .iter()
+            .copied()
+            .map(|(i, _score)| (i, &self.list[i]))
     }
 
     pub fn fuzzy_search(&mut self, query: &str) {
@@ -67,9 +75,10 @@ impl OscAppList {
                     .fuzzy_match(&app.name, query)
                     .map(|score| (i, score))
             })
-            .sorted_unstable_by_key(|(_, score)| *score)
-            .map(|(i, _)| i)
-            .collect()
+            .collect();
+
+        self.filtered_indices
+            .sort_unstable_by_key(|(_, score)| *score);
     }
 }
 

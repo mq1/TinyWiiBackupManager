@@ -69,13 +69,13 @@ impl Game {
         self.path.to_str().unwrap_or("Invalid path")
     }
 
-    pub fn get_load_disc_info_task(&mut self, i: usize) -> Task<Message> {
+    pub fn get_load_disc_info_task(&mut self) -> Task<Message> {
         self.disc_info = None;
         let path = self.path.clone();
 
         Task::perform(
             DiscInfo::from_game_dir(path).map_err(|e| e.to_string()),
-            move |res| Message::GotDiscInfo(i, res),
+            Message::GotDiscInfo,
         )
     }
 

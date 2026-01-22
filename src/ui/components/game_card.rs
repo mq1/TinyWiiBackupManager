@@ -50,7 +50,7 @@ pub fn view(state: &State, i: usize) -> Element<'_, Message> {
             row![
                 button(row![icon_info(), text("Info")].spacing(5))
                     .style(style::rounded_secondary_button)
-                    .on_press(Message::OpenGameInfo(i)),
+                    .on_press(Message::NavToGameInfo(i)),
                 button(icon_hard_drive_download()).style(style::rounded_secondary_button),
                 button(icon_trash())
                     .style(style::rounded_secondary_button)
