@@ -89,7 +89,15 @@ pub struct OscAppMeta {
     pub release_date: OffsetDateTime,
 }
 
-fn unix_epoch() -> OffsetDateTime {
+impl PartialEq for OscAppMeta {
+    fn eq(&self, other: &Self) -> bool {
+        self.slug == other.slug
+    }
+}
+
+impl Eq for OscAppMeta {}
+
+const fn unix_epoch() -> OffsetDateTime {
     OffsetDateTime::UNIX_EPOCH
 }
 
@@ -128,11 +136,11 @@ pub enum PackageType {
 }
 
 impl PackageType {
-    pub fn as_str(&self) -> &str {
+    pub const fn as_str(&self) -> &str {
         match self {
-            PackageType::Dol => "DOL",
-            PackageType::Elf => "ELF",
-            PackageType::Unknown => "Unknown",
+            Self::Dol => "DOL",
+            Self::Elf => "ELF",
+            Self::Unknown => "Unknown",
         }
     }
 }
@@ -153,16 +161,16 @@ pub enum Peripheral {
 }
 
 impl Peripheral {
-    pub fn as_str(&self) -> &str {
+    pub const fn as_str(&self) -> &str {
         match self {
-            Peripheral::WiiRemote => "Wii Remote",
-            Peripheral::GamecubeController => "GameCube Controller",
-            Peripheral::Nunchuk => "Nunchuk",
-            Peripheral::ClassicController => "Classic Controller",
-            Peripheral::Sdhc => "SDHC Support",
-            Peripheral::UsbKeyboard => "USB Keyboard",
-            Peripheral::WiiZapper => "Wii Zapper",
-            Peripheral::Unknown => "Unknown",
+            Self::WiiRemote => "Wii Remote",
+            Self::GamecubeController => "GameCube Controller",
+            Self::Nunchuk => "Nunchuk",
+            Self::ClassicController => "Classic Controller",
+            Self::Sdhc => "SDHC Support",
+            Self::UsbKeyboard => "USB Keyboard",
+            Self::WiiZapper => "Wii Zapper",
+            Self::Unknown => "Unknown",
         }
     }
 }
@@ -179,12 +187,12 @@ pub enum Platform {
 }
 
 impl Platform {
-    pub fn as_str(&self) -> &str {
+    pub const fn as_str(&self) -> &str {
         match self {
-            Platform::Wii => "Wii",
-            Platform::WiiMini => "Wii Mini",
-            Platform::Vwii => "vWii",
-            Platform::Unknown => "Unknown",
+            Self::Wii => "Wii",
+            Self::WiiMini => "Wii Mini",
+            Self::Vwii => "vWii",
+            Self::Unknown => "Unknown",
         }
     }
 }
@@ -200,11 +208,11 @@ pub enum Flag {
 }
 
 impl Flag {
-    pub fn as_str(&self) -> &str {
+    pub const fn as_str(&self) -> &str {
         match self {
-            Flag::WritesToNand => "Writes to NAND",
-            Flag::Deprecated => "Deprecated",
-            Flag::Unknown => "Unknown",
+            Self::WritesToNand => "Writes to NAND",
+            Self::Deprecated => "Deprecated",
+            Self::Unknown => "Unknown",
         }
     }
 }

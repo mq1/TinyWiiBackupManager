@@ -3,8 +3,8 @@
 
 use crate::{
     config::{Config, SortBy},
-    games::{disc_info::DiscInfo, game_list::GameList, wiitdb::Datafile},
-    hbc::{app_list::HbcAppList, osc::OscAppMeta, osc_list::OscAppList},
+    games::{disc_info::DiscInfo, game::Game, game_list::GameList, wiitdb::Datafile},
+    hbc::{app::HbcApp, app_list::HbcAppList, osc::OscAppMeta, osc_list::OscAppList},
 };
 use iced::widget::scrollable::Viewport;
 use semver::Version;
@@ -18,11 +18,11 @@ pub enum Message {
 
     // Navigation
     NavToGames,
-    NavToGameInfo(PathBuf),
+    NavToGameInfo(Game),
     NavToHbcApps,
-    NavToHbcAppInfo(PathBuf),
+    NavToHbcAppInfo(HbcApp),
     NavToOscApps,
-    NavToOscAppInfo(String),
+    NavToOscAppInfo(OscAppMeta),
     NavToToolbox,
     NavToTransfer,
     NavToSettings,

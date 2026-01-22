@@ -19,7 +19,7 @@ pub struct Notifications {
 }
 
 impl Notifications {
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {
             last_id: 0,
             list: Vec::new(),
@@ -27,7 +27,7 @@ impl Notifications {
     }
 
     #[inline(always)]
-    pub fn is_empty(&self) -> bool {
+    pub const fn is_empty(&self) -> bool {
         self.list.is_empty()
     }
 
@@ -99,7 +99,7 @@ pub struct Notification {
 }
 
 impl Notification {
-    pub fn get_life_str(&self) -> &'static str {
+    pub const fn get_life_str(&self) -> &'static str {
         match self.life {
             20 => "____________________",
             19 => "___________________",

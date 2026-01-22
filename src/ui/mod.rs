@@ -1,7 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{message::Message, state::State};
+use crate::{
+    games::game::Game,
+    hbc::{app::HbcApp, osc::OscAppMeta},
+    message::Message,
+    state::State,
+};
 use iced::{
     Element,
     widget::{container, row, rule, stack},
@@ -15,11 +20,11 @@ mod style;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Screen {
     Games,
-    GameInfo(usize),
+    GameInfo(Game),
     HbcApps,
-    HbcInfo(usize),
+    HbcInfo(HbcApp),
     Osc,
-    OscInfo(usize),
+    OscInfo(OscAppMeta),
     Toolbox,
     Settings,
     Transfer,
@@ -30,16 +35,13 @@ pub fn view(state: &State) -> Element<'_, Message> {
     let root = container(row![
         components::nav::view(state),
         rule::vertical(1),
-        match state.screen {
+        match &state.screen {
             Screen::Games => components::games::view(state),
-            Screen::GameInfo(i) =>
-                components::game_info::view(state, state.game_list.get_unchecked(i)),
+            Screen::GameInfo(game) => components::game_info::view(state, game),
             Screen::HbcApps => components::hbc::view(state),
-            Screen::HbcInfo(i) =>
-                components::hbc_info::view(state, state.hbc_app_list.get_unchecked(i)),
+            Screen::HbcInfo(app) => components::hbc_info::view(state, app),
             Screen::Osc => components::osc::view(state),
-            Screen::OscInfo(i) =>
-                components::osc_info::view(state, state.osc_app_list.get_unchecked(i)),
+            Screen::OscInfo(app) => components::osc_info::view(state, app),
             Screen::Toolbox => components::toolbox::view(state),
             Screen::Settings => components::settings::view(state),
             Screen::Transfer => components::transfer::view(state),

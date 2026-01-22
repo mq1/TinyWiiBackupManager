@@ -49,11 +49,11 @@ pub fn view<'a>(state: &State, game: &'a Game) -> Element<'a, Message> {
             row![
                 button(row![icon_info(), text("Info")].spacing(5))
                     .style(style::rounded_secondary_button)
-                    .on_press_with(|| Message::NavToGameInfo(game.path().to_path_buf())),
+                    .on_press_with(|| Message::NavToGameInfo(game.clone())),
                 button(icon_hard_drive_download()).style(style::rounded_secondary_button),
                 button(icon_trash())
                     .style(style::rounded_secondary_button)
-                    .on_press_with(|| Message::AskDeleteDirConfirmation(game.path().to_path_buf()))
+                    .on_press_with(|| Message::AskDeleteDirConfirmation(game.path().clone()))
             ]
             .spacing(5),
         );

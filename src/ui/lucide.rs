@@ -10,7 +10,7 @@ const COMPRESSED_BYTES: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/lucide
 pub fn get_load_lucide_task() -> Task<Message> {
     Task::future(load_lucide())
         .then(font::load)
-        .map_err(|e| format!("{:#?}", e))
+        .map_err(|e| format!("{e:#?}"))
         .map(Message::EmptyResult)
 }
 

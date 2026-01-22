@@ -27,6 +27,14 @@ pub struct Game {
     wiitdb_info: Option<GameInfo>,
 }
 
+impl PartialEq for Game {
+    fn eq(&self, other: &Self) -> bool {
+        self.path() == other.path()
+    }
+}
+
+impl Eq for Game {}
+
 impl Game {
     pub async fn from_path(path: PathBuf) -> Option<Self> {
         if !path.is_dir() {

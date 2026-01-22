@@ -128,7 +128,7 @@ pub fn confirm_add_games(window: &dyn Window, paths: &[PathBuf]) -> bool {
     let not_shown = paths.len().saturating_sub(MAX);
     if not_shown > 0 {
         desc.push_str("\n... and ");
-        let _ = write!(desc, "{}", not_shown);
+        let _ = write!(desc, "{not_shown}");
         desc.push_str(" more");
     }
 
@@ -149,8 +149,7 @@ pub fn confirm_strip_game(window: &dyn Window, game_title: &str) -> bool {
         .set_title("Remove update partition?")
         .set_owner(&window)
         .set_text(format!(
-            "Are you sure you want to remove the update partition from {}?\n\nThis is irreversible!",
-            game_title
+            "Are you sure you want to remove the update partition from {game_title}?\n\nThis is irreversible!"
         ))
         .set_level(MessageLevel::Warning)
         .confirm()
@@ -193,7 +192,7 @@ pub fn confirm_single_conversion(window: &dyn Window, in_path: &str, out_path: &
     DialogBuilder::message()
         .set_title("Convert disc")
         .set_owner(&window)
-        .set_text(format!("Convert {} to {}?", in_path, out_path))
+        .set_text(format!("Convert {in_path} to {out_path}?"))
         .set_level(MessageLevel::Info)
         .confirm()
         .show()

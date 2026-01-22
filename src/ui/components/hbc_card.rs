@@ -45,10 +45,10 @@ pub fn view<'a>(_state: &State, app: &'a HbcApp) -> Element<'a, Message> {
             row![
                 button(row![icon_info(), text("Info")].spacing(5))
                     .style(style::rounded_secondary_button)
-                    .on_press_with(|| Message::NavToHbcAppInfo(app.path().to_path_buf())),
+                    .on_press_with(|| Message::NavToHbcAppInfo(app.clone())),
                 button(icon_trash())
                     .style(style::rounded_secondary_button)
-                    .on_press_with(|| Message::AskDeleteDirConfirmation(app.path().to_path_buf())),
+                    .on_press_with(|| Message::AskDeleteDirConfirmation(app.path().clone())),
             ]
             .spacing(5),
         );

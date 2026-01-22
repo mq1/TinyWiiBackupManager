@@ -112,27 +112,27 @@ impl GameList {
     }
 
     #[inline(always)]
-    pub fn wii_count(&self) -> usize {
+    pub const fn wii_count(&self) -> usize {
         self.wii_indices.len()
     }
 
     #[inline(always)]
-    pub fn gc_count(&self) -> usize {
+    pub const fn gc_count(&self) -> usize {
         self.gc_indices.len()
     }
 
     #[inline(always)]
-    pub fn total_size(&self) -> Size {
+    pub const fn total_size(&self) -> Size {
         self.total_size
     }
 
     #[inline(always)]
-    pub fn wii_size(&self) -> Size {
+    pub const fn wii_size(&self) -> Size {
         self.wii_size
     }
 
     #[inline(always)]
-    pub fn gc_size(&self) -> Size {
+    pub const fn gc_size(&self) -> Size {
         self.gc_size
     }
 
@@ -153,27 +153,31 @@ impl GameList {
                 self.list.reverse();
             }
 
-            (SortBy::SizeAscending, SortBy::NameAscending)
-            | (SortBy::SizeDescending, SortBy::NameAscending)
-            | (SortBy::None, SortBy::NameAscending) => {
+            (
+                SortBy::SizeAscending | SortBy::SizeDescending | SortBy::None,
+                SortBy::NameAscending,
+            ) => {
                 self.list.sort_unstable_by(|a, b| a.title().cmp(b.title()));
             }
 
-            (SortBy::SizeAscending, SortBy::NameDescending)
-            | (SortBy::SizeDescending, SortBy::NameDescending)
-            | (SortBy::None, SortBy::NameDescending) => {
+            (
+                SortBy::SizeAscending | SortBy::SizeDescending | SortBy::None,
+                SortBy::NameDescending,
+            ) => {
                 self.list.sort_unstable_by(|a, b| b.title().cmp(a.title()));
             }
 
-            (SortBy::NameAscending, SortBy::SizeAscending)
-            | (SortBy::NameDescending, SortBy::SizeAscending)
-            | (SortBy::None, SortBy::SizeAscending) => {
-                self.list.sort_unstable_by_key(|a| a.size());
+            (
+                SortBy::NameAscending | SortBy::NameDescending | SortBy::None,
+                SortBy::SizeAscending,
+            ) => {
+                self.list.sort_unstable_by_key(super::game::Game::size);
             }
 
-            (SortBy::NameAscending, SortBy::SizeDescending)
-            | (SortBy::NameDescending, SortBy::SizeDescending)
-            | (SortBy::None, SortBy::SizeDescending) => {
+            (
+                SortBy::NameAscending | SortBy::NameDescending | SortBy::None,
+                SortBy::SizeDescending,
+            ) => {
                 self.list
                     .sort_unstable_by_key(|a| std::cmp::Reverse(a.size()));
             }
@@ -216,7 +220,7 @@ impl GameList {
 }
 
 pub fn get_list_games_task(state: &State) -> Task<Message> {
-    let drive_path = state.config.mount_point().to_path_buf();
+    let drive_path = state.config.mount_point().clone();
 
     Task::perform(
         list(drive_path).map_err(|e| e.to_string()),

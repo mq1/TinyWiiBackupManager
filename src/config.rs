@@ -13,7 +13,7 @@ impl Config {
     pub fn load(data_dir: &Path) -> Self {
         let path = data_dir.join("config.json");
         let bytes = fs::read(&path).unwrap_or_default();
-        let mut config = serde_json::from_slice::<Config>(&bytes).unwrap_or_default();
+        let mut config = serde_json::from_slice::<Self>(&bytes).unwrap_or_default();
         config.path = path;
 
         // Invalidate invalid mount_point
@@ -192,7 +192,7 @@ impl Default for Config {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Default)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum SortBy {
     #[default]
@@ -203,7 +203,7 @@ pub enum SortBy {
     None,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Default)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum ViewAs {
     #[default]
@@ -224,19 +224,19 @@ pub enum FormatDef {
     Tgc,
 }
 
-fn default_archive_format() -> nod::common::Format {
+const fn default_archive_format() -> nod::common::Format {
     nod::common::Format::Rvz
 }
 
-fn default_wii_output_format() -> nod::common::Format {
+const fn default_wii_output_format() -> nod::common::Format {
     nod::common::Format::Wbfs
 }
 
-fn default_gc_output_format() -> nod::common::Format {
+const fn default_gc_output_format() -> nod::common::Format {
     nod::common::Format::Iso
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Default)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum ThemePreference {
     #[default]

@@ -116,41 +116,29 @@ impl State {
                 self.screen = Screen::Games;
                 operation::scroll_to("games_scroll", self.games_scroll_offset)
             }
-            Message::NavToGameInfo(path) => {
-                if let Some(i) = self.game_list.position_by_path(&path) {
-                    self.screen = Screen::GameInfo(i);
-
-                    let game = self.game_list.get_unchecked_mut(i);
-
-                    if let Some(wiitdb) = &self.wiitdb {
-                        game.update_wiitdb_info(wiitdb);
-                    }
-
-                    game.get_load_disc_info_task()
-                } else {
-                    Task::none()
+            Message::NavToGameInfo(mut game) => {
+                if let Some(wiitdb) = &self.wiitdb {
+                    game.update_wiitdb_info(wiitdb);
                 }
+
+                let task = game.get_load_disc_info_task();
+                self.screen = Screen::GameInfo(game);
+                task
             }
             Message::NavToHbcApps => {
                 self.screen = Screen::HbcApps;
                 operation::scroll_to("hbc_scroll", self.hbc_scroll_offset)
             }
-            Message::NavToHbcAppInfo(path) => {
-                if let Some(i) = self.hbc_app_list.position_by_path(&path) {
-                    self.screen = Screen::HbcInfo(i);
-                }
-
+            Message::NavToHbcAppInfo(app) => {
+                self.screen = Screen::HbcInfo(app);
                 Task::none()
             }
             Message::NavToOscApps => {
                 self.screen = Screen::Osc;
                 operation::scroll_to("osc_scroll", self.osc_scroll_offset)
             }
-            Message::NavToOscAppInfo(slug) => {
-                if let Some(i) = self.osc_app_list.position_by_slug(&slug) {
-                    self.screen = Screen::OscInfo(i);
-                }
-
+            Message::NavToOscAppInfo(app) => {
+                self.screen = Screen::OscInfo(app);
                 Task::none()
             }
             Message::NavToToolbox => {
@@ -320,7 +308,7 @@ impl State {
                 .map(Message::InstallOscApp),
             Message::InstallOscApp((app, yes)) => {
                 if yes {
-                    let base_dir = self.config.mount_point().to_path_buf();
+                    let base_dir = self.config.mount_point().clone();
                     app.get_install_task(base_dir)
                 } else {
                     Task::none()
@@ -329,8 +317,7 @@ impl State {
             Message::AppInstalled(res) => {
                 match res {
                     Ok(name) => {
-                        self.notifications
-                            .success(format!("App installed: {}", name));
+                        self.notifications.success(format!("App installed: {name}"));
                     }
                     Err(e) => {
                         self.notifications.error(e);
@@ -406,7 +393,9 @@ impl State {
                 .and_then(|id| window::run(id, dialogs::choose_src_dir))
                 .map(Message::AddGamesToTransferStack),
             Message::AddGamesToTransferStack(mut paths) => {
-                if !paths.is_empty() {
+                if paths.is_empty() {
+                    Task::none()
+                } else {
                     let empty = self.transfer_stack.is_empty();
                     self.transfer_stack.append(&mut paths);
 
@@ -415,8 +404,6 @@ impl State {
                     } else {
                         Task::none()
                     }
-                } else {
-                    Task::none()
                 }
             }
             Message::StartSingleGameTransfer => {
@@ -439,7 +426,7 @@ impl State {
             }
             Message::FinishedTransferringSingleGame(res) => match res {
                 Ok(name) => {
-                    self.notifications.info(format!("Transferred: {}", name));
+                    self.notifications.info(format!("Transferred: {name}"));
                     self.update(Message::StartSingleGameTransfer)
                 }
                 Err(e) => {
@@ -454,10 +441,8 @@ impl State {
             Message::GotDiscInfo(res) => {
                 match res {
                     Ok(disc_info) => {
-                        if let Some(i) = self.game_list.position_by_path(&disc_info.game_dir) {
-                            self.game_list
-                                .get_unchecked_mut(i)
-                                .update_disc_info(disc_info);
+                        if let Screen::GameInfo(game) = &mut self.screen {
+                            game.update_disc_info(disc_info);
                         }
                     }
                     Err(e) => {
@@ -469,7 +454,7 @@ impl State {
             }
             #[cfg(target_os = "macos")]
             Message::RunDotClean => {
-                let mount_point = self.config.mount_point().to_path_buf();
+                let mount_point = self.config.mount_point().clone();
 
                 Task::perform(
                     async move {
@@ -501,7 +486,7 @@ impl State {
                     Ok(None) => {}
                     Err(e) => {
                         self.notifications
-                            .error(format!("Failed to check for updates: {}", e));
+                            .error(format!("Failed to check for updates: {e}"));
                     }
                 }
                 Task::none()

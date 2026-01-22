@@ -22,7 +22,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 button(row![icon_info(), text("Info")].spacing(5))
                     .padding(0)
                     .style(button::text)
-                    .on_press_with(|| Message::NavToOscAppInfo(app.slug.clone())),
+                    .on_press_with(|| Message::NavToOscAppInfo(app.clone())),
                 text('•'),
                 button(row![icon_cloud_download(), text("Install")].spacing(5))
                     .padding(0)
@@ -34,11 +34,11 @@ pub fn view(state: &State) -> Element<'_, Message> {
         }),
     ];
 
-    let table = if !state.osc_filter.is_empty() {
-        let iter = state.osc_app_list.iter_filtered();
+    let table = if state.osc_filter.is_empty() {
+        let iter = state.osc_app_list.iter();
         table(t_columns, iter).width(Length::Fill)
     } else {
-        let iter = state.osc_app_list.iter();
+        let iter = state.osc_app_list.iter_filtered();
         table(t_columns, iter).width(Length::Fill)
     };
 

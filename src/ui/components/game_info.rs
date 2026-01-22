@@ -209,7 +209,7 @@ pub fn view<'a>(state: &State, game: &'a Game) -> Element<'a, Message> {
                 .on_press_with(|| Message::OpenThat(game.get_gametdb_uri())),
             button(row![icon_trash(), text("Delete Game")].spacing(5))
                 .style(style::rounded_danger_button)
-                .on_press_with(|| Message::AskDeleteDirConfirmation(game.path().to_path_buf()))
+                .on_press_with(|| Message::AskDeleteDirConfirmation(game.path().clone()))
         ]
         .spacing(5)
         .padding(padding::top(5))

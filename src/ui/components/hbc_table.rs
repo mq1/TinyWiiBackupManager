@@ -24,23 +24,23 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 button(row![icon_info(), text("Info")].spacing(5))
                     .padding(0)
                     .style(button::text)
-                    .on_press_with(|| Message::NavToHbcAppInfo(app.path().to_path_buf())),
+                    .on_press_with(|| Message::NavToHbcAppInfo(app.clone())),
                 text('•'),
                 button(row![icon_trash(), text("Delete")].spacing(5))
                     .padding(0)
                     .style(button::text)
-                    .on_press_with(|| Message::AskDeleteDirConfirmation(app.path().to_path_buf())),
+                    .on_press_with(|| Message::AskDeleteDirConfirmation(app.path().clone())),
             ]
             .spacing(10)
             .align_y(Alignment::Center)
         }),
     ];
 
-    let table = if !state.hbc_filter.is_empty() {
-        let iter = state.hbc_app_list.iter_filtered();
+    let table = if state.hbc_filter.is_empty() {
+        let iter = state.hbc_app_list.iter();
         table(t_columns, iter).width(Length::Fill)
     } else {
-        let iter = state.hbc_app_list.iter();
+        let iter = state.hbc_app_list.iter_filtered();
         table(t_columns, iter).width(Length::Fill)
     };
 

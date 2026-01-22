@@ -45,7 +45,7 @@ pub fn view<'a>(state: &State, app: &'a OscAppMeta) -> Element<'a, Message> {
             row![
                 button(row![icon_info(), text("Info")].spacing(5))
                     .style(style::rounded_secondary_button)
-                    .on_press_with(|| Message::NavToOscAppInfo(app.slug.clone())),
+                    .on_press_with(|| Message::NavToOscAppInfo(app.clone())),
                 button(icon_monitor_up()).style(style::rounded_secondary_button),
                 button(icon_cloud_download())
                     .style(style::rounded_secondary_button)

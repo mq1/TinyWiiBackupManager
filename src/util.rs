@@ -27,7 +27,7 @@ pub fn sanitize(s: &str) -> String {
 }
 
 pub fn get_drive_usage_task(state: &State) -> Task<Message> {
-    let mount_point = state.config.mount_point().to_path_buf();
+    let mount_point = state.config.mount_point().clone();
     Task::perform(get_drive_usage(mount_point), Message::GotDriveUsage)
 }
 
@@ -44,16 +44,15 @@ async fn get_drive_usage(mount_point: PathBuf) -> String {
         .iter()
         .filter(|disk| mount_point.starts_with(disk.mount_point()))
         .max_by_key(|disk| disk.mount_point().as_os_str().len())
-        .map(|disk| {
+        .map_or("0/0 GiB".to_string(), |disk| {
             let total = disk.total_space();
             let used = total - disk.available_space();
 
             let used = used as f64 / GIB;
             let total = total as f64 / GIB;
 
-            format!("{:.2}/{:.2} GiB", used, total)
+            format!("{used:.2}/{total:.2} GiB")
         })
-        .unwrap_or("0/0 GiB".to_string())
 }
 
 /// Returns Ok if we can create a file >4 GiB in this directory
@@ -98,13 +97,13 @@ pub async fn run_dot_clean(mount_point: PathBuf) -> Result<()> {
 
     match status {
         Ok(status) => {
-            if !status.success() {
-                Err(anyhow!("dot_clean failed"))
-            } else {
+            if status.success() {
                 Ok(())
+            } else {
+                Err(anyhow!("dot_clean failed"))
             }
         }
-        Err(e) => Err(anyhow!("dot_clean failed: {}", e)),
+        Err(e) => Err(anyhow!("dot_clean failed: {e}")),
     }
 }
 

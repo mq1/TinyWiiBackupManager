@@ -58,7 +58,7 @@ impl HbcAppList {
     }
 
     #[inline(always)]
-    pub fn total_size(&self) -> Size {
+    pub const fn total_size(&self) -> Size {
         self.total_size
     }
 
@@ -105,29 +105,33 @@ impl HbcAppList {
                 self.list.reverse();
             }
 
-            (SortBy::SizeAscending, SortBy::NameAscending)
-            | (SortBy::SizeDescending, SortBy::NameAscending)
-            | (SortBy::None, SortBy::NameAscending) => {
+            (
+                SortBy::SizeAscending | SortBy::SizeDescending | SortBy::None,
+                SortBy::NameAscending,
+            ) => {
                 self.list
                     .sort_unstable_by(|a, b| a.meta().name().cmp(b.meta().name()));
             }
 
-            (SortBy::SizeAscending, SortBy::NameDescending)
-            | (SortBy::SizeDescending, SortBy::NameDescending)
-            | (SortBy::None, SortBy::NameDescending) => {
+            (
+                SortBy::SizeAscending | SortBy::SizeDescending | SortBy::None,
+                SortBy::NameDescending,
+            ) => {
                 self.list
                     .sort_unstable_by(|a, b| b.meta().name().cmp(a.meta().name()));
             }
 
-            (SortBy::NameAscending, SortBy::SizeAscending)
-            | (SortBy::NameDescending, SortBy::SizeAscending)
-            | (SortBy::None, SortBy::SizeAscending) => {
-                self.list.sort_unstable_by_key(|a| a.size());
+            (
+                SortBy::NameAscending | SortBy::NameDescending | SortBy::None,
+                SortBy::SizeAscending,
+            ) => {
+                self.list.sort_unstable_by_key(super::app::HbcApp::size);
             }
 
-            (SortBy::NameAscending, SortBy::SizeDescending)
-            | (SortBy::NameDescending, SortBy::SizeDescending)
-            | (SortBy::None, SortBy::SizeDescending) => {
+            (
+                SortBy::NameAscending | SortBy::NameDescending | SortBy::None,
+                SortBy::SizeDescending,
+            ) => {
                 self.list
                     .sort_unstable_by_key(|a| std::cmp::Reverse(a.size()));
             }
@@ -136,7 +140,7 @@ impl HbcAppList {
 }
 
 pub fn get_list_hbc_apps_task(state: &State) -> Task<Message> {
-    let mount_point = state.config.mount_point().to_path_buf();
+    let mount_point = state.config.mount_point().clone();
 
     Task::perform(
         list(mount_point).map_err(|e| e.to_string()),

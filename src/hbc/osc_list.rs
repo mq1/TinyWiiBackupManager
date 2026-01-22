@@ -94,13 +94,12 @@ pub fn get_load_osc_apps_task(state: &State) -> Task<Message> {
 async fn load_osc_apps(data_dir: PathBuf) -> Result<OscAppList> {
     let cache_path = data_dir.join("osc-cache.json");
 
-    let apps = match load_cache(&cache_path).await {
-        Some(cache) => cache,
-        None => {
-            let bytes = http_util::get(CONTENTS_URL.to_string()).await?;
-            fs::write(&cache_path, &bytes).await?;
-            serde_json::from_slice(&bytes)?
-        }
+    let apps = if let Some(cache) = load_cache(&cache_path).await {
+        cache
+    } else {
+        let bytes = http_util::get(CONTENTS_URL.to_string()).await?;
+        fs::write(&cache_path, &bytes).await?;
+        serde_json::from_slice(&bytes)?
     };
 
     let osc_app_list = OscAppList::new(apps);
@@ -134,7 +133,7 @@ pub fn get_download_icons_task(state: &State) -> Task<Message> {
                 .await
                 .map_err(|e| e.to_string())?;
 
-            for app in list.into_iter() {
+            for app in list {
                 let icon_path = icons_dir.join(app.slug).with_extension("png");
                 if !icon_path.exists() {
                     let _ = http_util::download_file(app.assets.icon.url, &icon_path).await;

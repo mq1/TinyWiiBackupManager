@@ -7,12 +7,12 @@ use iced::{Element, Length, widget::Row};
 pub fn view(state: &State) -> Element<'_, Message> {
     let mut row = Row::new().width(Length::Fill).spacing(10).padding(10);
 
-    if !state.osc_filter.is_empty() {
-        for app in state.osc_app_list.iter_filtered() {
+    if state.osc_filter.is_empty() {
+        for app in state.osc_app_list.iter() {
             row = row.push(components::osc_card::view(state, app));
         }
     } else {
-        for app in state.osc_app_list.iter() {
+        for app in state.osc_app_list.iter_filtered() {
             row = row.push(components::osc_card::view(state, app));
         }
     }

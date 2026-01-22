@@ -54,6 +54,14 @@ pub struct HbcApp {
     image_path: Option<PathBuf>,
 }
 
+impl PartialEq for HbcApp {
+    fn eq(&self, other: &Self) -> bool {
+        self.path == other.path
+    }
+}
+
+impl Eq for HbcApp {}
+
 impl HbcApp {
     pub async fn from_path(path: PathBuf) -> Option<Self> {
         if !path.is_dir() {
@@ -87,8 +95,8 @@ impl HbcApp {
 
         Some(Self {
             meta,
-            path,
             size,
+            path,
             image_path,
         })
     }
@@ -113,7 +121,7 @@ impl HbcApp {
 }
 
 pub fn get_install_hbc_apps_task(state: &State, zip_paths: Box<[PathBuf]>) -> Task<Message> {
-    let drive_path = state.config.mount_point().to_path_buf();
+    let drive_path = state.config.mount_point().clone();
 
     Task::perform(
         install_hbc_apps(drive_path, zip_paths).map_err(|e| e.to_string()),

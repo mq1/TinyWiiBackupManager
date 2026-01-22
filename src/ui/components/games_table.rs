@@ -29,12 +29,12 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 button(row![icon_info(), text("Info")].spacing(5))
                     .padding(0)
                     .style(button::text)
-                    .on_press_with(|| Message::NavToGameInfo(game.path().to_path_buf())),
+                    .on_press_with(|| Message::NavToGameInfo(game.clone())),
                 text('•'),
                 button(row![icon_trash(), text("Delete")].spacing(5))
                     .padding(0)
                     .style(button::text)
-                    .on_press_with(|| Message::AskDeleteDirConfirmation(game.path().to_path_buf()))
+                    .on_press_with(|| Message::AskDeleteDirConfirmation(game.path().clone()))
             ]
             .spacing(10)
             .align_y(Alignment::Center)

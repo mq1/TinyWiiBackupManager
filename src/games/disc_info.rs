@@ -69,16 +69,16 @@ pub async fn get_main_file(game_dir: &Path) -> Result<PathBuf> {
 }
 
 impl DiscInfo {
-    pub async fn from_game_dir(game_dir: PathBuf) -> Result<DiscInfo> {
+    pub async fn from_game_dir(game_dir: PathBuf) -> Result<Self> {
         if !game_dir.is_dir() {
             bail!("Not a directory");
         }
 
         let disc_path = get_main_file(&game_dir).await?;
-        DiscInfo::from_path(disc_path).await
+        Self::from_path(disc_path).await
     }
 
-    pub async fn from_path(disc_path: PathBuf) -> Result<DiscInfo> {
+    pub async fn from_path(disc_path: PathBuf) -> Result<Self> {
         if !disc_path.is_file() {
             bail!("Not a file");
         }
@@ -90,7 +90,7 @@ impl DiscInfo {
         let header = disc.header();
         let meta = disc.meta();
 
-        Ok(DiscInfo {
+        Ok(Self {
             game_dir: parent_dir.to_path_buf(),
             disc_path,
 

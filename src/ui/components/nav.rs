@@ -81,7 +81,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 .width(40)
                 .on_press(Message::NavToTransfer),
         );
-    };
+    }
 
     if let Some(new_version) = &state.new_version {
         col = col.push(my_tooltip::view(
@@ -90,7 +90,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 .height(40)
                 .width(40)
                 .on_press_with(|| Message::OpenThat(LATEST_VERSION_DOWNLOAD_URL.into())),
-            format!("New Version Available: {}", new_version),
+            format!("New Version Available: {new_version}"),
         ));
     }
 

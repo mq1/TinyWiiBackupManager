@@ -31,7 +31,7 @@ pub struct Datafile {
 impl Datafile {
     pub fn load(path: &Path) -> Result<Self> {
         let contents = fs::read_to_string(path)?;
-        let mut data = quick_xml::de::from_str::<Datafile>(&contents)?;
+        let mut data = quick_xml::de::from_str::<Self>(&contents)?;
 
         // We sort it now so we can binary search quickly
         data.games.sort_unstable_by_key(|game| game.id);
@@ -294,24 +294,24 @@ impl FromStr for Language {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let l = match s {
-            "EN" => Language::English,
-            "FR" => Language::French,
-            "DE" => Language::German,
-            "ES" => Language::Spanish,
-            "IT" => Language::Italian,
-            "JA" => Language::Japanese,
-            "NL" => Language::Dutch,
-            "SE" => Language::Swedish,
-            "DK" => Language::Danish,
-            "NO" => Language::Norwegian,
-            "KO" => Language::Korean,
-            "PT" => Language::Portuguese,
-            "ZHTW" => Language::TraditionalChinese,
-            "ZHCN" => Language::SimplifiedChinese,
-            "FI" => Language::Finnish,
-            "TR" => Language::Turkish,
-            "GR" => Language::Greek,
-            "RU" => Language::Russian,
+            "EN" => Self::English,
+            "FR" => Self::French,
+            "DE" => Self::German,
+            "ES" => Self::Spanish,
+            "IT" => Self::Italian,
+            "JA" => Self::Japanese,
+            "NL" => Self::Dutch,
+            "SE" => Self::Swedish,
+            "DK" => Self::Danish,
+            "NO" => Self::Norwegian,
+            "KO" => Self::Korean,
+            "PT" => Self::Portuguese,
+            "ZHTW" => Self::TraditionalChinese,
+            "ZHCN" => Self::SimplifiedChinese,
+            "FI" => Self::Finnish,
+            "TR" => Self::Turkish,
+            "GR" => Self::Greek,
+            "RU" => Self::Russian,
             _ => return Err("Unknown"),
         };
 
@@ -350,13 +350,13 @@ impl FromStr for Region {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let r = match s {
-            "NTSC-U" => Region::NtscU,
-            "NTSC-J" => Region::NtscJ,
-            "NTSC-K" => Region::NtscK,
-            "NTSC-T" => Region::NtscT,
-            "PAL" => Region::Pal,
-            "PAL-R" => Region::PalR,
-            _ => Region::Unknown,
+            "NTSC-U" => Self::NtscU,
+            "NTSC-J" => Self::NtscJ,
+            "NTSC-K" => Self::NtscK,
+            "NTSC-T" => Self::NtscT,
+            "PAL" => Self::Pal,
+            "PAL-R" => Self::PalR,
+            _ => Self::Unknown,
         };
 
         Ok(r)
@@ -383,7 +383,7 @@ async fn load_wiitdb(data_dir: PathBuf) -> Result<Datafile> {
 }
 
 pub fn get_download_wiitdb_to_drive_task(state: &State) -> Task<Message> {
-    let mount_point = state.config.mount_point().to_path_buf();
+    let mount_point = state.config.mount_point().clone();
 
     Task::perform(
         async move {

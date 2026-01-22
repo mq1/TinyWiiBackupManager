@@ -30,12 +30,12 @@ impl TryFrom<&str> for GameID {
 
 impl GameID {
     #[inline]
-    pub fn is_wii(&self) -> bool {
+    pub const fn is_wii(&self) -> bool {
         matches!(self.0[0], b'H' | b'R' | b'S' | b'W' | b'X')
     }
 
     #[inline]
-    pub fn is_gc(&self) -> bool {
+    pub const fn is_gc(&self) -> bool {
         matches!(self.0[0], b'D' | b'G')
     }
 
@@ -59,7 +59,7 @@ impl GameID {
         }
     }
 
-    pub fn as_region_str(&self) -> &'static str {
+    pub const fn as_region_str(&self) -> &'static str {
         match self.0[3] {
             b'A' => "System Wii Channels (i.e. Mii Channel)",
             b'B' => "Ufouria: The Saga (NA)",
@@ -88,7 +88,7 @@ impl GameID {
         }
     }
 
-    pub fn as_lang_str(&self) -> &'static str {
+    pub const fn as_lang_str(&self) -> &'static str {
         match self.0[3] {
             b'E' | b'N' => "US",
             b'J' => "JA",
