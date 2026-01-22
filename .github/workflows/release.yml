@@ -43,6 +43,14 @@ jobs:
             linuxdeploy-ai-bin: linuxdeploy-plugin-appimage-x86_64.AppImage
           - target: x86_64-unknown-linux-gnu
             runner: ubuntu-22.04
+            arch: x86_64-v2
+            rustflags: -C target-cpu=x86-64-v2
+            cflags: -march=x86-64-v2
+            cxxflags: -march=x86-64-v2
+            linuxdeploy-bin: linuxdeploy-x86_64.AppImage
+            linuxdeploy-ai-bin: linuxdeploy-plugin-appimage-x86_64.AppImage
+          - target: x86_64-unknown-linux-gnu
+            runner: ubuntu-22.04
             arch: x86_64
             linuxdeploy-bin: linuxdeploy-x86_64.AppImage
             linuxdeploy-ai-bin: linuxdeploy-plugin-appimage-x86_64.AppImage
@@ -132,6 +140,13 @@ jobs:
             rustflags: -C target-cpu=x86-64-v3
             cflags: /clang:-march=x86-64-v3
             cxxflags: /clang:-march=x86-64-v3
+            platform: windows
+          - target: x86_64-pc-windows-msvc
+            features: wgpu native-tls common-controls-v6
+            arch: x86_64-v2
+            rustflags: -C target-cpu=x86-64-v2
+            cflags: /clang:-march=x86-64-v2
+            cxxflags: /clang:-march=x86-64-v2
             platform: windows
           - target: x86_64-pc-windows-msvc
             features: wgpu native-tls common-controls-v6
