@@ -26,12 +26,12 @@ impl Notifications {
         }
     }
 
-    #[inline(always)]
+    #[inline]
     pub const fn is_empty(&self) -> bool {
         self.list.is_empty()
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn iter(&self) -> impl Iterator<Item = &Notification> {
         self.list.iter().rev()
     }

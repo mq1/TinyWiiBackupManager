@@ -7,7 +7,7 @@ use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
 use iced::{Task, futures::TryFutureExt};
 use size::Size;
 use smol::{fs, stream::StreamExt};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
 pub struct GameList {
@@ -21,7 +21,6 @@ pub struct GameList {
 }
 
 impl GameList {
-    #[inline(always)]
     pub fn empty() -> Self {
         Self {
             list: Box::new([]),
@@ -34,7 +33,6 @@ impl GameList {
         }
     }
 
-    #[inline(always)]
     pub fn new(games: Vec<Game>) -> Self {
         let mut wii_indices = Vec::new();
         let mut wii_size = Size::from_bytes(0);
@@ -62,43 +60,27 @@ impl GameList {
             filtered_indices: Box::new([]),
         }
     }
-
-    #[inline(always)]
-    pub fn get_unchecked(&self, i: usize) -> &Game {
-        &self.list[i]
-    }
-
-    #[inline(always)]
-    pub fn get_unchecked_mut(&mut self, i: usize) -> &mut Game {
-        &mut self.list[i]
-    }
-
-    #[inline(always)]
-    pub fn position_by_path(&self, path: &Path) -> Option<usize> {
-        self.list.iter().position(|g| g.path() == path)
-    }
-
-    #[inline(always)]
+    #[inline]
     pub fn iter(&self) -> impl Iterator<Item = &Game> {
         self.list.iter()
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut Game> {
         self.list.iter_mut()
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn iter_wii(&self) -> impl Iterator<Item = &Game> {
         self.wii_indices.iter().copied().map(|i| &self.list[i])
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn iter_gc(&self) -> impl Iterator<Item = &Game> {
         self.gc_indices.iter().copied().map(|i| &self.list[i])
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn iter_filtered(&self) -> impl Iterator<Item = &Game> {
         self.filtered_indices
             .iter()
@@ -106,32 +88,32 @@ impl GameList {
             .map(|(i, _score)| &self.list[i])
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn total_count(&self) -> usize {
         self.list.len()
     }
 
-    #[inline(always)]
+    #[inline]
     pub const fn wii_count(&self) -> usize {
         self.wii_indices.len()
     }
 
-    #[inline(always)]
+    #[inline]
     pub const fn gc_count(&self) -> usize {
         self.gc_indices.len()
     }
 
-    #[inline(always)]
+    #[inline]
     pub const fn total_size(&self) -> Size {
         self.total_size
     }
 
-    #[inline(always)]
+    #[inline]
     pub const fn wii_size(&self) -> Size {
         self.wii_size
     }
 
-    #[inline(always)]
+    #[inline]
     pub const fn gc_size(&self) -> Size {
         self.gc_size
     }

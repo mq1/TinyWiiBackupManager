@@ -40,6 +40,7 @@ pub struct State {
     pub osc_filter: String,
     pub hbc_filter: String,
     pub transfer_stack: Vec<PathBuf>,
+    #[allow(clippy::struct_field_names)]
     pub half_sec_anim_state: bool,
     pub new_version: Option<Version>,
     pub games_scroll_offset: AbsoluteOffset,
@@ -103,6 +104,7 @@ impl State {
         }
     }
 
+    #[allow(clippy::too_many_lines)]
     pub fn update(&mut self, message: Message) -> Task<Message> {
         match message {
             Message::GenericResult(res) => {

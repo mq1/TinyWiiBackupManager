@@ -35,27 +35,18 @@ impl OscAppList {
         }
     }
 
-    #[inline(always)]
-    pub fn get_unchecked(&self, i: usize) -> &OscAppMeta {
-        &self.list[i]
-    }
-
-    #[inline(always)]
-    pub fn position_by_slug(&self, slug: &str) -> Option<usize> {
-        self.list.iter().position(|a| a.slug == slug)
-    }
-
-    #[inline(always)]
+    #[allow(unused)]
+    #[inline]
     pub fn count(&self) -> usize {
         self.list.len()
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn iter(&self) -> impl Iterator<Item = &OscAppMeta> {
         self.list.iter()
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn iter_filtered(&self) -> impl Iterator<Item = &OscAppMeta> {
         self.filtered_indices
             .iter()
