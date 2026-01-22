@@ -236,13 +236,15 @@ impl State {
                 Task::batch(tasks)
             }
             Message::AskDeleteDirConfirmation(path) => window::oldest()
-                .and_then(move |id| window::run(id, dialogs::delete_dir(path.clone())))
+                .and_then(move |id| {
+                    let path = path.clone();
+                    window::run(id, move |id| dialogs::delete_dir(id, &path))
+                })
                 .map(Message::DirectoryDeleted),
             Message::DirectoryDeleted(res) => {
                 match self.screen {
                     Screen::GameInfo(_) => self.screen = Screen::Games,
                     Screen::HbcInfo(_) => self.screen = Screen::HbcApps,
-                    Screen::OscInfo(_) => self.screen = Screen::Osc,
                     _ => {}
                 }
 
