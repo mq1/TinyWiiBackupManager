@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
+    hbc::osc::OscAppMeta,
     message::Message,
     state::State,
     ui::{components::my_tooltip, style},
@@ -12,9 +13,7 @@ use iced::{
 };
 use lucide_icons::iced::{icon_cloud_download, icon_info, icon_monitor_up, icon_pin};
 
-pub fn view(state: &State, i: usize) -> Element<'_, Message> {
-    let app = state.osc_app_list.get_unchecked(i);
-
+pub fn view<'a>(state: &State, app: &'a OscAppMeta) -> Element<'a, Message> {
     let mut col = column![
         row![
             icon_pin().size(12),
@@ -46,11 +45,11 @@ pub fn view(state: &State, i: usize) -> Element<'_, Message> {
             row![
                 button(row![icon_info(), text("Info")].spacing(5))
                     .style(style::rounded_secondary_button)
-                    .on_press(Message::NavToOscAppInfo(i)),
+                    .on_press_with(|| Message::NavToOscAppInfo(app.slug.clone())),
                 button(icon_monitor_up()).style(style::rounded_secondary_button),
                 button(icon_cloud_download())
                     .style(style::rounded_secondary_button)
-                    .on_press(Message::AskInstallOscApp(i)),
+                    .on_press_with(|| Message::AskInstallOscApp(app.clone())),
             ]
             .spacing(5),
         );

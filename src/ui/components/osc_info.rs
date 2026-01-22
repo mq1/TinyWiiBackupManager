@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    hbc::osc::{Flag, Peripheral, Platform},
+    hbc::osc::{Flag, OscAppMeta, Peripheral, Platform},
     message::Message,
     state::State,
     ui::{components, style},
@@ -18,9 +18,7 @@ use lucide_icons::iced::{
     icon_users, icon_weight,
 };
 
-pub fn view(state: &State, osc_i: usize) -> Element<'_, Message> {
-    let app = state.osc_app_list.get_unchecked(osc_i);
-
+pub fn view<'a>(state: &State, app: &'a OscAppMeta) -> Element<'a, Message> {
     let col = column![
         row![icon_store().size(18), text(&app.name).size(18)].spacing(5),
         rule::horizontal(1),
@@ -105,7 +103,7 @@ pub fn view(state: &State, osc_i: usize) -> Element<'_, Message> {
                 .style(style::rounded_button),
             button(row![icon_cloud_download(), text("Install")].spacing(5))
                 .style(style::rounded_button)
-                .on_press(Message::AskInstallOscApp(osc_i))
+                .on_press_with(|| Message::AskInstallOscApp(app.clone()))
         ]
         .spacing(5)
         .padding(padding::top(5))

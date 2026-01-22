@@ -35,9 +35,11 @@ pub fn view(state: &State) -> Element<'_, Message> {
             Screen::GameInfo(i) =>
                 components::game_info::view(state, state.game_list.get_unchecked(i)),
             Screen::HbcApps => components::hbc::view(state),
-            Screen::HbcInfo(hbc_i) => components::hbc_info::view(state, hbc_i),
+            Screen::HbcInfo(i) =>
+                components::hbc_info::view(state, state.hbc_app_list.get_unchecked(i)),
             Screen::Osc => components::osc::view(state),
-            Screen::OscInfo(osc_i) => components::osc_info::view(state, osc_i),
+            Screen::OscInfo(i) =>
+                components::osc_info::view(state, state.osc_app_list.get_unchecked(i)),
             Screen::Toolbox => components::toolbox::view(state),
             Screen::Settings => components::settings::view(state),
             Screen::Transfer => components::transfer::view(state),

@@ -41,6 +41,11 @@ impl OscAppList {
     }
 
     #[inline(always)]
+    pub fn position_by_slug(&self, slug: &str) -> Option<usize> {
+        self.list.iter().position(|a| a.slug == slug)
+    }
+
+    #[inline(always)]
     pub fn count(&self) -> usize {
         self.list.len()
     }
@@ -51,16 +56,11 @@ impl OscAppList {
     }
 
     #[inline(always)]
-    pub fn iter_filtered_indices(&self) -> impl Iterator<Item = usize> {
-        self.filtered_indices.iter().copied().map(|(i, _score)| i)
-    }
-
-    #[inline(always)]
-    pub fn iter_enumerate_filtered(&self) -> impl Iterator<Item = (usize, &OscAppMeta)> {
+    pub fn iter_filtered(&self) -> impl Iterator<Item = &OscAppMeta> {
         self.filtered_indices
             .iter()
             .copied()
-            .map(|(i, _score)| (i, &self.list[i]))
+            .map(|(i, _score)| &self.list[i])
     }
 
     pub fn fuzzy_search(&mut self, query: &str) {

@@ -135,16 +135,22 @@ impl State {
                 self.screen = Screen::HbcApps;
                 operation::scroll_to("hbc_scroll", self.hbc_scroll_offset)
             }
-            Message::NavToHbcAppInfo(i) => {
-                self.screen = Screen::HbcInfo(i);
+            Message::NavToHbcAppInfo(path) => {
+                if let Some(i) = self.hbc_app_list.position_by_path(&path) {
+                    self.screen = Screen::HbcInfo(i);
+                }
+
                 Task::none()
             }
             Message::NavToOscApps => {
                 self.screen = Screen::Osc;
                 operation::scroll_to("osc_scroll", self.osc_scroll_offset)
             }
-            Message::NavToOscAppInfo(i) => {
-                self.screen = Screen::OscInfo(i);
+            Message::NavToOscAppInfo(slug) => {
+                if let Some(i) = self.osc_app_list.position_by_slug(&slug) {
+                    self.screen = Screen::OscInfo(i);
+                }
+
                 Task::none()
             }
             Message::NavToToolbox => {
@@ -306,22 +312,16 @@ impl State {
                 self.drive_usage = usage;
                 Task::none()
             }
-            Message::AskInstallOscApp(i) => {
-                let name = self.osc_app_list.get_unchecked(i).name.clone();
-
-                window::oldest()
-                    .and_then(move |id| {
-                        let name = name.clone();
-                        window::run(id, move |w| dialogs::confirm_install_osc_app(w, name))
-                    })
-                    .map(move |yes| Message::InstallOscApp(i, yes))
-            }
-            Message::InstallOscApp(i, yes) => {
+            Message::AskInstallOscApp(app) => window::oldest()
+                .and_then(move |id| {
+                    let app = app.clone();
+                    window::run(id, move |w| dialogs::confirm_install_osc_app(w, app))
+                })
+                .map(Message::InstallOscApp),
+            Message::InstallOscApp((app, yes)) => {
                 if yes {
                     let base_dir = self.config.mount_point().to_path_buf();
-                    self.osc_app_list
-                        .get_unchecked(i)
-                        .get_install_task(base_dir)
+                    app.get_install_task(base_dir)
                 } else {
                     Task::none()
                 }

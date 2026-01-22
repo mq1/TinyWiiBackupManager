@@ -4,7 +4,7 @@
 use crate::{
     config::{Config, SortBy},
     games::{disc_info::DiscInfo, game_list::GameList, wiitdb::Datafile},
-    hbc::{app_list::HbcAppList, osc_list::OscAppList},
+    hbc::{app_list::HbcAppList, osc::OscAppMeta, osc_list::OscAppList},
 };
 use iced::widget::scrollable::Viewport;
 use semver::Version;
@@ -20,9 +20,9 @@ pub enum Message {
     NavToGames,
     NavToGameInfo(PathBuf),
     NavToHbcApps,
-    NavToHbcAppInfo(usize),
+    NavToHbcAppInfo(PathBuf),
     NavToOscApps,
-    NavToOscAppInfo(usize),
+    NavToOscAppInfo(String),
     NavToToolbox,
     NavToTransfer,
     NavToSettings,
@@ -70,8 +70,8 @@ pub enum Message {
     // OSC Apps
     GotOscAppList(Result<OscAppList, String>),
     UpdateOscFilter(String),
-    AskInstallOscApp(usize),
-    InstallOscApp(usize, bool),
+    AskInstallOscApp(OscAppMeta),
+    InstallOscApp((OscAppMeta, bool)),
     AppInstalled(Result<String, String>),
 
     // Toolbox

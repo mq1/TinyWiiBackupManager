@@ -3,6 +3,7 @@
 
 use crate::games;
 use crate::games::extensions::SUPPORTED_INPUT_EXTENSIONS;
+use crate::hbc::osc::OscAppMeta;
 use iced::Window;
 use iced::futures::future::join_all;
 use native_dialog::{DialogBuilder, MessageLevel};
@@ -210,13 +211,15 @@ pub fn confirm_cancel_tasks(window: &dyn Window) -> bool {
         .unwrap_or_default()
 }
 
-pub fn confirm_install_osc_app(window: &dyn Window, app_name: String) -> bool {
-    DialogBuilder::message()
+pub fn confirm_install_osc_app(window: &dyn Window, app: OscAppMeta) -> (OscAppMeta, bool) {
+    let yes = DialogBuilder::message()
         .set_title("Install OSC app")
         .set_owner(&window)
-        .set_text(format!("Are you sure you want to install {}?", app_name))
+        .set_text(format!("Are you sure you want to install {}?", &app.name))
         .set_level(MessageLevel::Info)
         .confirm()
         .show()
-        .unwrap_or_default()
+        .unwrap_or_default();
+
+    (app, yes)
 }

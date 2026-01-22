@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
+    hbc::app::HbcApp,
     message::Message,
     state::State,
     ui::{components, style},
@@ -15,9 +16,7 @@ use lucide_icons::iced::{
     icon_weight,
 };
 
-pub fn view(state: &State, hbc_i: usize) -> Element<'_, Message> {
-    let app = state.hbc_app_list.get_unchecked(hbc_i);
-
+pub fn view<'a>(_state: &State, app: &'a HbcApp) -> Element<'a, Message> {
     let col = column![
         row![icon_waves().size(18), text(app.meta().name()).size(18)].spacing(5),
         row![icon_folder(), text!("Path: {}", app.path().display())].spacing(5),

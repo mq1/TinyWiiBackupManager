@@ -7,7 +7,7 @@ use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
 use iced::{Task, futures::TryFutureExt};
 use size::Size;
 use smol::{fs, stream::StreamExt};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone)]
 pub struct HbcAppList {
@@ -43,6 +43,11 @@ impl HbcAppList {
     }
 
     #[inline(always)]
+    pub fn position_by_path(&self, path: &Path) -> Option<usize> {
+        self.list.iter().position(|a| a.path() == path)
+    }
+
+    #[inline(always)]
     pub fn count(&self) -> usize {
         self.list.len()
     }
@@ -58,16 +63,11 @@ impl HbcAppList {
     }
 
     #[inline(always)]
-    pub fn iter_filtered_indices(&self) -> impl Iterator<Item = usize> {
-        self.filtered_indices.iter().copied().map(|(i, _score)| i)
-    }
-
-    #[inline(always)]
-    pub fn iter_enumerate_filtered(&self) -> impl Iterator<Item = (usize, &HbcApp)> {
+    pub fn iter_filtered(&self) -> impl Iterator<Item = &HbcApp> {
         self.filtered_indices
             .iter()
             .copied()
-            .map(|(i, _score)| (i, &self.list[i]))
+            .map(|(i, _score)| &self.list[i])
     }
 
     pub fn fuzzy_search(&mut self, query: &str) {

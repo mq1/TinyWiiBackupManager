@@ -10,21 +10,21 @@ use lucide_icons::iced::{icon_info, icon_trash};
 
 pub fn view(state: &State) -> Element<'_, Message> {
     let t_columns = vec![
-        table::column(text("Name").size(16), |(_, app): (usize, &HbcApp)| {
+        table::column(text("Name").size(16), |app: &HbcApp| {
             text(app.meta().name())
         }),
-        table::column(text("Version").size(16), |(_, app): (usize, &HbcApp)| {
+        table::column(text("Version").size(16), |app: &HbcApp| {
             text(app.meta().version())
         }),
-        table::column(text("Size").size(16), |(_, app): (usize, &HbcApp)| {
+        table::column(text("Size").size(16), |app: &HbcApp| {
             text(app.size().to_string())
         }),
-        table::column(text("Actions").size(16), |(i, app): (usize, &HbcApp)| {
+        table::column(text("Actions").size(16), |app: &HbcApp| {
             row![
                 button(row![icon_info(), text("Info")].spacing(5))
                     .padding(0)
                     .style(button::text)
-                    .on_press(Message::NavToHbcAppInfo(i)),
+                    .on_press_with(|| Message::NavToHbcAppInfo(app.path().to_path_buf())),
                 text('•'),
                 button(row![icon_trash(), text("Delete")].spacing(5))
                     .padding(0)
@@ -37,10 +37,10 @@ pub fn view(state: &State) -> Element<'_, Message> {
     ];
 
     let table = if !state.hbc_filter.is_empty() {
-        let iter = state.hbc_app_list.iter_enumerate_filtered();
+        let iter = state.hbc_app_list.iter_filtered();
         table(t_columns, iter).width(Length::Fill)
     } else {
-        let iter = state.hbc_app_list.iter().enumerate();
+        let iter = state.hbc_app_list.iter();
         table(t_columns, iter).width(Length::Fill)
     };
 

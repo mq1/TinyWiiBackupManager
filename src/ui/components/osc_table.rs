@@ -10,27 +10,24 @@ use lucide_icons::iced::{icon_cloud_download, icon_info};
 
 pub fn view(state: &State) -> Element<'_, Message> {
     let t_columns = vec![
-        table::column(text("Name").size(16), |(_, app): (usize, &OscAppMeta)| {
-            text(&app.name)
+        table::column(text("Name").size(16), |app: &OscAppMeta| text(&app.name)),
+        table::column(text("Version").size(16), |app: &OscAppMeta| {
+            text(&app.version)
         }),
-        table::column(
-            text("Version").size(16),
-            |(_, app): (usize, &OscAppMeta)| text(&app.version),
-        ),
-        table::column(text("Author").size(16), |(_, app): (usize, &OscAppMeta)| {
+        table::column(text("Author").size(16), |app: &OscAppMeta| {
             text(&app.author)
         }),
-        table::column(text("Actions").size(16), |(i, _): (usize, &OscAppMeta)| {
+        table::column(text("Actions").size(16), |app: &OscAppMeta| {
             row![
                 button(row![icon_info(), text("Info")].spacing(5))
                     .padding(0)
                     .style(button::text)
-                    .on_press(Message::NavToOscAppInfo(i)),
+                    .on_press_with(|| Message::NavToOscAppInfo(app.slug.clone())),
                 text('•'),
                 button(row![icon_cloud_download(), text("Install")].spacing(5))
                     .padding(0)
                     .style(button::text)
-                    .on_press(Message::AskInstallOscApp(i))
+                    .on_press_with(|| Message::AskInstallOscApp(app.clone()))
             ]
             .spacing(10)
             .align_y(Alignment::Center)
@@ -38,10 +35,10 @@ pub fn view(state: &State) -> Element<'_, Message> {
     ];
 
     let table = if !state.osc_filter.is_empty() {
-        let iter = state.osc_app_list.iter_enumerate_filtered();
+        let iter = state.osc_app_list.iter_filtered();
         table(t_columns, iter).width(Length::Fill)
     } else {
-        let iter = state.osc_app_list.iter().enumerate();
+        let iter = state.osc_app_list.iter();
         table(t_columns, iter).width(Length::Fill)
     };
 
