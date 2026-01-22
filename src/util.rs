@@ -28,10 +28,13 @@ pub fn sanitize(s: &str) -> String {
 
 pub fn get_drive_usage_task(state: &State) -> Task<Message> {
     let mount_point = state.config.mount_point().clone();
-    Task::perform(get_drive_usage(mount_point), Message::GotDriveUsage)
+    Task::perform(
+        async move { get_drive_usage(&mount_point) },
+        Message::GotDriveUsage,
+    )
 }
 
-async fn get_drive_usage(mount_point: PathBuf) -> String {
+fn get_drive_usage(mount_point: &Path) -> String {
     const GIB: f64 = 1024.0 * 1024.0 * 1024.0;
 
     if mount_point.as_os_str().is_empty() {
@@ -48,7 +51,9 @@ async fn get_drive_usage(mount_point: PathBuf) -> String {
             let total = disk.total_space();
             let used = total - disk.available_space();
 
+            #[allow(clippy::cast_precision_loss)]
             let used = used as f64 / GIB;
+            #[allow(clippy::cast_precision_loss)]
             let total = total as f64 / GIB;
 
             format!("{used:.2}/{total:.2} GiB")
@@ -64,9 +69,7 @@ pub fn can_write_over_4gb(mount_point: &Path) -> bool {
     }
 
     // Create a temp file in the target directory
-    let mut tmp = if let Ok(tmp) = NamedTempFile::new_in(mount_point) {
-        tmp
-    } else {
+    let Ok(tmp) = &mut NamedTempFile::new_in(mount_point) else {
         return false;
     };
 
