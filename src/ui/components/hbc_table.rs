@@ -39,11 +39,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
     ];
 
     let table = if !state.hbc_filter.is_empty() {
-        let iter = state
-            .hbc_app_list
-            .filtered_indices()
-            .map(|i| (i, state.hbc_app_list.get_unchecked(i)));
-
+        let iter = state.hbc_app_list.iter_enumerate_filtered();
         table(t_columns, iter).width(Length::Fill)
     } else {
         let iter = state.hbc_app_list.iter().enumerate();

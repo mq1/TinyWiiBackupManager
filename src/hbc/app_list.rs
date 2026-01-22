@@ -5,7 +5,6 @@ use crate::{config::SortBy, hbc::app::HbcApp, message::Message, state::State};
 use anyhow::Result;
 use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
 use iced::{Task, futures::TryFutureExt};
-use itertools::Itertools;
 use size::Size;
 use smol::{fs, stream::StreamExt};
 use std::path::PathBuf;
@@ -14,7 +13,7 @@ use std::path::PathBuf;
 pub struct HbcAppList {
     list: Box<[HbcApp]>,
     total_size: Size,
-    filtered_indices: Box<[usize]>,
+    filtered_indices: Box<[(usize, i64)]>,
 }
 
 impl HbcAppList {
@@ -38,6 +37,7 @@ impl HbcAppList {
         }
     }
 
+    #[allow(unused)]
     #[inline(always)]
     pub fn get(&self, i: usize) -> Option<&HbcApp> {
         self.list.get(i)
@@ -64,8 +64,16 @@ impl HbcAppList {
     }
 
     #[inline(always)]
-    pub fn filtered_indices(&self) -> impl Iterator<Item = usize> {
-        self.filtered_indices.iter().copied()
+    pub fn iter_filtered_indices(&self) -> impl Iterator<Item = usize> {
+        self.filtered_indices.iter().copied().map(|(i, _score)| i)
+    }
+
+    #[inline(always)]
+    pub fn iter_enumerate_filtered(&self) -> impl Iterator<Item = (usize, &HbcApp)> {
+        self.filtered_indices
+            .iter()
+            .copied()
+            .map(|(i, _score)| (i, &self.list[i]))
     }
 
     pub fn fuzzy_search(&mut self, query: &str) {
@@ -80,9 +88,10 @@ impl HbcAppList {
                     .fuzzy_match(app.meta().name(), query)
                     .map(|score| (i, score))
             })
-            .sorted_unstable_by_key(|(_, score)| *score)
-            .map(|(i, _)| i)
             .collect();
+
+        self.filtered_indices
+            .sort_unstable_by_key(|(_, score)| *score);
     }
 
     pub fn sort(&mut self, prev_sort_by: SortBy, sort_by: SortBy) {

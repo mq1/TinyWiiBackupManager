@@ -8,7 +8,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
     let mut row = Row::new().width(Length::Fill).spacing(10).padding(10);
 
     if !state.hbc_filter.is_empty() {
-        for i in state.hbc_app_list.filtered_indices() {
+        for i in state.hbc_app_list.iter_filtered_indices() {
             row = row.push(components::hbc_card::view(state, i));
         }
     } else {
