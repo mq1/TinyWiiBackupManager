@@ -52,11 +52,9 @@ fn get_drive_usage(mount_point: &Path) -> String {
             let used = total - disk.available_space();
 
             #[allow(clippy::cast_precision_loss)]
-            let used = used as f64 / GIB;
-            #[allow(clippy::cast_precision_loss)]
-            let total = total as f64 / GIB;
+            let (used, total) = (used as f64, total as f64);
 
-            format!("{used:.2}/{total:.2} GiB")
+            format!("{:.2}/{:.2} GiB", used / GIB, total / GIB)
         })
 }
 
