@@ -125,7 +125,8 @@ impl HbcAppList {
             (SortBy::NameAscending, SortBy::SizeDescending)
             | (SortBy::NameDescending, SortBy::SizeDescending)
             | (SortBy::None, SortBy::SizeDescending) => {
-                self.list.sort_unstable_by(|a, b| b.size().cmp(&a.size()));
+                self.list
+                    .sort_unstable_by_key(|a| std::cmp::Reverse(a.size()));
             }
         }
     }
