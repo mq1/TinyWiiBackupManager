@@ -3,7 +3,7 @@
 
 use crate::{message::Message, ui::style};
 use iced::{
-    Element,
+    Element, padding,
     time::Duration,
     widget::{container, text, tooltip},
 };
@@ -13,7 +13,7 @@ pub fn view<'a>(
     tooltip_text: impl Into<String>,
 ) -> Element<'a, Message> {
     let popup: Element<'_, Message> = container(text(tooltip_text.into()))
-        .padding(5)
+        .padding(padding::vertical(5).horizontal(10))
         .style(style::card)
         .into();
 
