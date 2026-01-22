@@ -16,7 +16,7 @@ use lucide_icons::iced::{
 };
 
 pub fn view(state: &State, game_i: usize) -> Element<'_, Message> {
-    let game = &state.game_list.get_unchecked(game_i);
+    let game = state.game_list.get_unchecked(game_i);
 
     let disc_info = match game.disc_info() {
         None => column![text("Loading Disc Info...")],
