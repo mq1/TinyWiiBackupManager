@@ -7,7 +7,7 @@ use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
 use iced::{Task, futures::TryFutureExt};
 use size::Size;
 use smol::{fs, stream::StreamExt};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone)]
 pub struct GameList {
@@ -71,6 +71,11 @@ impl GameList {
     #[inline(always)]
     pub fn get_unchecked_mut(&mut self, i: usize) -> &mut Game {
         &mut self.list[i]
+    }
+
+    #[inline(always)]
+    pub fn get_by_path_mut(&mut self, path: &Path) -> Option<&mut Game> {
+        self.list.iter_mut().find(|game| game.path() == path)
     }
 
     #[inline(always)]

@@ -449,9 +449,17 @@ impl State {
                 Task::none()
             }
             Message::GotDiscInfo(res) => {
-                if let Screen::GameInfo(i) = self.screen {
-                    self.game_list.get_unchecked_mut(i).update_disc_info(res);
+                match res {
+                    Ok(disc_info) => {
+                        if let Some(game) = self.game_list.get_by_path_mut(&disc_info.game_dir) {
+                            game.update_disc_info(disc_info);
+                        }
+                    }
+                    Err(e) => {
+                        self.notifications.error(e);
+                    }
                 }
+
                 Task::none()
             }
             #[cfg(target_os = "macos")]

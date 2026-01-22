@@ -20,8 +20,7 @@ pub fn view(state: &State, game_i: usize) -> Element<'_, Message> {
 
     let disc_info = match game.disc_info() {
         None => column![text("Loading Disc Info...")],
-        Some(Err(e)) => column![text!("Could not load disc info: {}", e)],
-        Some(Ok(disc_info)) => {
+        Some(disc_info) => {
             let block_size = match disc_info.block_size {
                 None => text("Block Size: N/A"),
                 Some(size) => text!("Block Size: {size}"),

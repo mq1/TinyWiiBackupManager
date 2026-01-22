@@ -23,7 +23,7 @@ pub struct Game {
     title: String,
     #[getter(copy)]
     id: GameID,
-    disc_info: Option<Result<DiscInfo, String>>,
+    disc_info: Option<DiscInfo>,
     wiitdb_info: Option<GameInfo>,
 }
 
@@ -89,7 +89,7 @@ impl Game {
         }
     }
 
-    pub fn update_disc_info(&mut self, res: Result<DiscInfo, String>) {
-        self.disc_info = Some(res);
+    pub fn update_disc_info(&mut self, disc_info: DiscInfo) {
+        self.disc_info = Some(disc_info);
     }
 }
