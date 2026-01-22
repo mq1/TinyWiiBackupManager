@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
+    games::game::Game,
     message::Message,
     state::State,
     ui::{components::my_tooltip, style},
@@ -12,9 +13,7 @@ use iced::{
 };
 use lucide_icons::iced::{icon_hard_drive_download, icon_info, icon_tag, icon_trash};
 
-pub fn view(state: &State, i: usize) -> Element<'_, Message> {
-    let game = state.game_list.get_unchecked(i);
-
+pub fn view<'a>(state: &State, game: &'a Game) -> Element<'a, Message> {
     let mut col = column![
         row![
             icon_tag().size(12),
@@ -50,7 +49,7 @@ pub fn view(state: &State, i: usize) -> Element<'_, Message> {
             row![
                 button(row![icon_info(), text("Info")].spacing(5))
                     .style(style::rounded_secondary_button)
-                    .on_press(Message::NavToGameInfo(i)),
+                    .on_press_with(|| Message::NavToGameInfo(game.path().to_path_buf())),
                 button(icon_hard_drive_download()).style(style::rounded_secondary_button),
                 button(icon_trash())
                     .style(style::rounded_secondary_button)

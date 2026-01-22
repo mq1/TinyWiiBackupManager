@@ -18,7 +18,6 @@ use crate::{
 };
 use iced::{
     Task, Theme,
-    futures::{FutureExt, TryFutureExt},
     widget::operation::{self, AbsoluteOffset},
     window,
 };
@@ -117,16 +116,20 @@ impl State {
                 self.screen = Screen::Games;
                 operation::scroll_to("games_scroll", self.games_scroll_offset)
             }
-            Message::NavToGameInfo(i) => {
-                self.screen = Screen::GameInfo(i);
+            Message::NavToGameInfo(path) => {
+                if let Some(i) = self.game_list.position_by_path(&path) {
+                    self.screen = Screen::GameInfo(i);
 
-                let game = self.game_list.get_unchecked_mut(i);
+                    let game = self.game_list.get_unchecked_mut(i);
 
-                if let Some(wiitdb) = &self.wiitdb {
-                    game.update_wiitdb_info(wiitdb);
+                    if let Some(wiitdb) = &self.wiitdb {
+                        game.update_wiitdb_info(wiitdb);
+                    }
+
+                    game.get_load_disc_info_task()
+                } else {
+                    Task::none()
                 }
-
-                game.get_load_disc_info_task()
             }
             Message::NavToHbcApps => {
                 self.screen = Screen::HbcApps;
@@ -451,8 +454,10 @@ impl State {
             Message::GotDiscInfo(res) => {
                 match res {
                     Ok(disc_info) => {
-                        if let Some(game) = self.game_list.get_by_path_mut(&disc_info.game_dir) {
-                            game.update_disc_info(disc_info);
+                        if let Some(i) = self.game_list.position_by_path(&disc_info.game_dir) {
+                            self.game_list
+                                .get_unchecked_mut(i)
+                                .update_disc_info(disc_info);
                         }
                     }
                     Err(e) => {

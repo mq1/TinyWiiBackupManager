@@ -74,8 +74,8 @@ impl GameList {
     }
 
     #[inline(always)]
-    pub fn get_by_path_mut(&mut self, path: &Path) -> Option<&mut Game> {
-        self.list.iter_mut().find(|game| game.path() == path)
+    pub fn position_by_path(&self, path: &Path) -> Option<usize> {
+        self.list.iter().position(|g| g.path() == path)
     }
 
     #[inline(always)]
@@ -88,39 +88,22 @@ impl GameList {
         self.list.iter_mut()
     }
 
-    #[allow(unused)]
     #[inline(always)]
-    pub fn iter_enumerate_wii(&self) -> impl Iterator<Item = (usize, &Game)> {
-        self.wii_indices.iter().copied().map(|i| (i, &self.list[i]))
-    }
-
-    #[allow(unused)]
-    #[inline(always)]
-    pub fn iter_enumerate_gc(&self) -> impl Iterator<Item = (usize, &Game)> {
-        self.gc_indices.iter().copied().map(|i| (i, &self.list[i]))
+    pub fn iter_wii(&self) -> impl Iterator<Item = &Game> {
+        self.wii_indices.iter().copied().map(|i| &self.list[i])
     }
 
     #[inline(always)]
-    pub fn iter_enumerate_filtered(&self) -> impl Iterator<Item = (usize, &Game)> {
+    pub fn iter_gc(&self) -> impl Iterator<Item = &Game> {
+        self.gc_indices.iter().copied().map(|i| &self.list[i])
+    }
+
+    #[inline(always)]
+    pub fn iter_filtered(&self) -> impl Iterator<Item = &Game> {
         self.filtered_indices
             .iter()
             .copied()
-            .map(|(i, _score)| (i, &self.list[i]))
-    }
-
-    #[inline(always)]
-    pub fn iter_wii_indices(&self) -> impl Iterator<Item = usize> {
-        self.wii_indices.iter().copied()
-    }
-
-    #[inline(always)]
-    pub fn iter_gc_indices(&self) -> impl Iterator<Item = usize> {
-        self.gc_indices.iter().copied()
-    }
-
-    #[inline(always)]
-    pub fn iter_filtered_indices(&self) -> impl Iterator<Item = usize> {
-        self.filtered_indices.iter().copied().map(|(i, _score)| i)
+            .map(|(i, _score)| &self.list[i])
     }
 
     #[inline(always)]

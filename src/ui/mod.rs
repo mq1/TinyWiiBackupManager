@@ -32,7 +32,8 @@ pub fn view(state: &State) -> Element<'_, Message> {
         rule::vertical(1),
         match state.screen {
             Screen::Games => components::games::view(state),
-            Screen::GameInfo(game_i) => components::game_info::view(state, game_i),
+            Screen::GameInfo(i) =>
+                components::game_info::view(state, state.game_list.get_unchecked(i)),
             Screen::HbcApps => components::hbc::view(state),
             Screen::HbcInfo(hbc_i) => components::hbc_info::view(state, hbc_i),
             Screen::Osc => components::osc::view(state),

@@ -18,7 +18,7 @@ pub enum Message {
 
     // Navigation
     NavToGames,
-    NavToGameInfo(usize),
+    NavToGameInfo(PathBuf),
     NavToHbcApps,
     NavToHbcAppInfo(usize),
     NavToOscApps,

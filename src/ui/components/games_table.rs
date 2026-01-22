@@ -10,28 +10,26 @@ use lucide_icons::iced::{icon_gamepad_2, icon_hard_drive, icon_info, icon_trash}
 
 pub fn view(state: &State) -> Element<'_, Message> {
     let t_columns = vec![
-        table::column(text("Title").size(16), |(_, game): (usize, &Game)| {
-            text(game.title())
-        }),
-        table::column(text("ID").size(16), |(_, game): (usize, &Game)| {
+        table::column(text("Title").size(16), |game: &Game| text(game.title())),
+        table::column(text("ID").size(16), |game: &Game| {
             text(game.id().as_str().to_string())
         }),
-        table::column(text("Console").size(16), |(_, game): (usize, &Game)| {
+        table::column(text("Console").size(16), |game: &Game| {
             text(if game.id().is_wii() {
                 "Wii"
             } else {
                 "GameCube"
             })
         }),
-        table::column(text("Size").size(16), |(_, game): (usize, &Game)| {
+        table::column(text("Size").size(16), |game: &Game| {
             text(game.size().to_string())
         }),
-        table::column(text("Actions").size(16), |(i, game): (usize, &Game)| {
+        table::column(text("Actions").size(16), |game: &Game| {
             row![
                 button(row![icon_info(), text("Info")].spacing(5))
                     .padding(0)
                     .style(button::text)
-                    .on_press(Message::NavToGameInfo(i)),
+                    .on_press_with(|| Message::NavToGameInfo(game.path().to_path_buf())),
                 text('•'),
                 button(row![icon_trash(), text("Delete")].spacing(5))
                     .padding(0)
@@ -44,14 +42,14 @@ pub fn view(state: &State) -> Element<'_, Message> {
     ];
 
     if !state.games_filter.is_empty() {
-        let iter = state.game_list.iter_enumerate_filtered();
+        let iter = state.game_list.iter_filtered();
 
         return container(table(t_columns, iter).width(Length::Fill))
             .padding(10)
             .into();
     }
 
-    let iter = state.game_list.iter().enumerate();
+    let iter = state.game_list.iter();
 
     column![
         row![

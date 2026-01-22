@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{message::Message, state::State, ui::style};
+use crate::{games::game::Game, message::Message, state::State, ui::style};
 use iced::{
     Element, Length, padding,
     widget::{button, column, image, row, rule, scrollable, space, stack, text},
@@ -15,9 +15,7 @@ use lucide_icons::iced::{
     icon_trash, icon_triangle_alert, icon_user, icon_weight, icon_wifi,
 };
 
-pub fn view(state: &State, game_i: usize) -> Element<'_, Message> {
-    let game = state.game_list.get_unchecked(game_i);
-
+pub fn view<'a>(state: &State, game: &'a Game) -> Element<'a, Message> {
     let disc_info = match game.disc_info() {
         None => column![text("Loading Disc Info...")],
         Some(disc_info) => {

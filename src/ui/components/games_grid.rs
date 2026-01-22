@@ -12,8 +12,8 @@ pub fn view(state: &State) -> Element<'_, Message> {
     if !state.games_filter.is_empty() {
         let cards = state
             .game_list
-            .iter_filtered_indices()
-            .map(|i| components::game_card::view(state, i));
+            .iter_filtered()
+            .map(|g| components::game_card::view(state, g));
 
         let row = Row::from_iter(cards)
             .width(Length::Fill)
@@ -38,8 +38,8 @@ pub fn view(state: &State) -> Element<'_, Message> {
         (true, false) => {
             let cards = state
                 .game_list
-                .iter_wii_indices()
-                .map(|i| components::game_card::view(state, i));
+                .iter_wii()
+                .map(|g| components::game_card::view(state, g));
 
             let row = Row::from_iter(cards)
                 .width(Length::Fill)
@@ -70,8 +70,8 @@ pub fn view(state: &State) -> Element<'_, Message> {
         (false, true) => {
             let cards = state
                 .game_list
-                .iter_gc_indices()
-                .map(|i| components::game_card::view(state, i));
+                .iter_gc()
+                .map(|g| components::game_card::view(state, g));
 
             let row = Row::from_iter(cards)
                 .width(Length::Fill)
@@ -102,8 +102,8 @@ pub fn view(state: &State) -> Element<'_, Message> {
         (true, true) => {
             let wii_cards = state
                 .game_list
-                .iter_wii_indices()
-                .map(|i| components::game_card::view(state, i));
+                .iter_wii()
+                .map(|g| components::game_card::view(state, g));
 
             let wii_row = Row::from_iter(wii_cards)
                 .width(Length::Fill)
@@ -113,8 +113,8 @@ pub fn view(state: &State) -> Element<'_, Message> {
 
             let gc_cards = state
                 .game_list
-                .iter_gc_indices()
-                .map(|i| components::game_card::view(state, i));
+                .iter_gc()
+                .map(|g| components::game_card::view(state, g));
 
             let gc_row = Row::from_iter(gc_cards)
                 .width(Length::Fill)
