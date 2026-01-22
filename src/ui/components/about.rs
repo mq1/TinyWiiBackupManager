@@ -23,39 +23,41 @@ pub fn view(state: &State) -> Element<'_, Message> {
     column![
         space::vertical(),
         container(
-            column![
-                row![
-                    image(icon_handle).width(100).height(100),
-                    column![
-                        text(VERSION_TEXT).size(20),
-                        text(COPYRIGHT_TEXT),
-                        button(
-                            row![
-                                icon_scroll_text().style(text::primary),
-                                text("GPL-3.0-only").style(text::primary)
-                            ]
-                            .spacing(5)
-                        )
-                        .style(button::text)
-                        .padding(padding::top(2))
-                        .on_press_with(|| Message::OpenThat(LICENSE_URI.into())),
-                    ],
-                ].spacing(10).padding(padding::bottom(10)).align_y(Alignment::Center),
-                row![
-                    icon_triangle_alert(),
-                    text("TinyWiiBackupManager is intended strictly for legal homebrew use and is not affiliated with or endorsed by Nintendo. Use of TinyWiiBackupManager for pirated or unauthorized copies of games is strictly prohibited.")
-                ].spacing(5),
-                space(),
-                rule::horizontal(1),
-                space(),
-                row![icon_heart().size(18), text("Special thanks to").size(18)].spacing(5),
-                row![button(row![icon_triangle().style(text::primary), text("Luke Street").style(text::primary)].spacing(5)).style(button::text).padding(0).on_press_with(|| Message::OpenThat("https://github.com/encounter".into())), "for developing nod and helping TWBM leverage it effectively."].spacing(5),
-                row![button(row![icon_wand_sparkles().style(text::primary), text("blackb0x").style(text::primary)].spacing(5)).style(button::text).padding(0).on_press_with(|| Message::OpenThat("https://github.com/wiidev".into())), "for invaluable feedback and advice during TWBM's development."].spacing(5)
-            ]
-            .spacing(5)
-        )
-        .padding(40)
-        .style(style::card),
+            container(
+                column![
+                    row![
+                        image(icon_handle).width(100).height(100),
+                        column![
+                            text(VERSION_TEXT).size(20),
+                            text(COPYRIGHT_TEXT),
+                            button(
+                                row![
+                                    icon_scroll_text().style(text::primary),
+                                    text("GPL-3.0-only").style(text::primary)
+                                ]
+                                .spacing(5)
+                            )
+                            .style(button::text)
+                            .padding(padding::top(2))
+                            .on_press_with(|| Message::OpenThat(LICENSE_URI.into())),
+                        ],
+                    ].spacing(10).padding(padding::bottom(10)).align_y(Alignment::Center),
+                    row![
+                        icon_triangle_alert(),
+                        text("TinyWiiBackupManager is intended strictly for legal homebrew use and is not affiliated with or endorsed by Nintendo. Use of TinyWiiBackupManager for pirated or unauthorized copies of games is strictly prohibited.")
+                    ].spacing(5),
+                    space(),
+                    rule::horizontal(1),
+                    space(),
+                    row![icon_heart().size(18), text("Special thanks to").size(18)].spacing(5),
+                    row![button(row![icon_triangle().style(text::primary), text("Luke Street").style(text::primary)].spacing(5)).style(button::text).padding(0).on_press_with(|| Message::OpenThat("https://github.com/encounter".into())), "for developing nod and helping TWBM leverage it effectively."].spacing(5),
+                    row![button(row![icon_wand_sparkles().style(text::primary), text("blackb0x").style(text::primary)].spacing(5)).style(button::text).padding(0).on_press_with(|| Message::OpenThat("https://github.com/wiidev".into())), "for invaluable feedback and advice during TWBM's development."].spacing(5)
+                ]
+                .spacing(5)
+            )
+            .padding(40)
+            .style(style::card)
+        ).padding(40),
         space::vertical(),
         row![
             button(row![icon_folder(), text("Data Directory")].spacing(5))
@@ -69,9 +71,9 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 .on_press_with(|| Message::OpenThat(WIKI_URI.into())),
             space::horizontal(),
         ]
+        .padding(10)
         .spacing(5)
     ]
-    .padding(10)
     .align_x(Alignment::Center)
     .into()
 }
