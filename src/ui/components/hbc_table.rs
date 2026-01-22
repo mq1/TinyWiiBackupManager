@@ -29,9 +29,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 button(row![icon_trash(), text("Delete")].spacing(5))
                     .padding(0)
                     .style(button::text)
-                    .on_press_with(move || Message::AskDeleteDirConfirmation(
-                        app.path().to_path_buf(),
-                    )),
+                    .on_press_with(|| Message::AskDeleteDirConfirmation(app.path().to_path_buf())),
             ]
             .spacing(10)
             .align_y(Alignment::Center)
