@@ -5,7 +5,6 @@ use crate::{config::SortBy, games::game::Game, message::Message, state::State};
 use anyhow::Result;
 use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
 use iced::{Task, futures::TryFutureExt};
-use itertools::Itertools;
 use size::Size;
 use smol::{fs, stream::StreamExt};
 use std::path::PathBuf;
@@ -18,7 +17,7 @@ pub struct GameList {
     wii_size: Size,
     gc_indices: Vec<usize>,
     gc_size: Size,
-    filtered_indices: Box<[usize]>,
+    filtered_indices: Box<[(usize, i64)]>,
 }
 
 impl GameList {
@@ -64,11 +63,13 @@ impl GameList {
         }
     }
 
+    #[allow(unused)]
     #[inline(always)]
     pub fn get(&self, i: usize) -> Option<&Game> {
         self.list.get(i)
     }
 
+    #[allow(unused)]
     #[inline(always)]
     pub fn get_mut(&mut self, i: usize) -> Option<&mut Game> {
         self.list.get_mut(i)
@@ -94,24 +95,39 @@ impl GameList {
         self.list.iter_mut()
     }
 
+    #[allow(unused)]
     #[inline(always)]
-    pub fn wii_indices(&self) -> impl Iterator<Item = usize> {
+    pub fn iter_enumerate_wii(&self) -> impl Iterator<Item = (usize, &Game)> {
+        self.wii_indices.iter().copied().map(|i| (i, &self.list[i]))
+    }
+
+    #[allow(unused)]
+    #[inline(always)]
+    pub fn iter_enumerate_gc(&self) -> impl Iterator<Item = (usize, &Game)> {
+        self.gc_indices.iter().copied().map(|i| (i, &self.list[i]))
+    }
+
+    #[inline(always)]
+    pub fn iter_enumerate_filtered(&self) -> impl Iterator<Item = (usize, &Game)> {
+        self.filtered_indices
+            .iter()
+            .copied()
+            .map(|(i, _score)| (i, &self.list[i]))
+    }
+
+    #[inline(always)]
+    pub fn iter_wii_indices(&self) -> impl Iterator<Item = usize> {
         self.wii_indices.iter().copied()
     }
 
     #[inline(always)]
-    pub fn gc_indices(&self) -> impl Iterator<Item = usize> {
+    pub fn iter_gc_indices(&self) -> impl Iterator<Item = usize> {
         self.gc_indices.iter().copied()
     }
 
     #[inline(always)]
-    pub fn iter_wii(&self) -> impl Iterator<Item = &Game> {
-        self.wii_indices().map(|i| &self.list[i])
-    }
-
-    #[inline(always)]
-    pub fn iter_gc(&self) -> impl Iterator<Item = &Game> {
-        self.gc_indices().map(|i| &self.list[i])
+    pub fn iter_filtered_indices(&self) -> impl Iterator<Item = usize> {
+        self.filtered_indices.iter().copied().map(|(i, _score)| i)
     }
 
     #[inline(always)]
@@ -121,12 +137,12 @@ impl GameList {
 
     #[inline(always)]
     pub fn wii_count(&self) -> usize {
-        self.iter_wii().count()
+        self.wii_indices.len()
     }
 
     #[inline(always)]
     pub fn gc_count(&self) -> usize {
-        self.iter_gc().count()
+        self.gc_indices.len()
     }
 
     #[inline(always)]
@@ -142,11 +158,6 @@ impl GameList {
     #[inline(always)]
     pub fn gc_size(&self) -> Size {
         self.gc_size
-    }
-
-    #[inline(always)]
-    pub fn filtered_indices(&self) -> impl Iterator<Item = usize> {
-        self.filtered_indices.iter().copied()
     }
 
     pub fn sort(&mut self, prev_sort_by: SortBy, sort_by: SortBy) {
@@ -221,9 +232,10 @@ impl GameList {
                     (None, None) => None,
                 }
             })
-            .sorted_unstable_by_key(|(_, score)| *score)
-            .map(|(i, _)| i)
             .collect();
+
+        self.filtered_indices
+            .sort_unstable_by_key(|(_, score)| *score);
     }
 }
 

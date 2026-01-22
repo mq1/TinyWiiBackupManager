@@ -12,7 +12,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
     if !state.games_filter.is_empty() {
         let cards = state
             .game_list
-            .filtered_indices()
+            .iter_filtered_indices()
             .map(|i| components::game_card::view(state, i));
 
         let row = Row::from_iter(cards)
@@ -38,7 +38,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
         (true, false) => {
             let cards = state
                 .game_list
-                .wii_indices()
+                .iter_wii_indices()
                 .map(|i| components::game_card::view(state, i));
 
             let row = Row::from_iter(cards)
@@ -70,7 +70,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
         (false, true) => {
             let cards = state
                 .game_list
-                .gc_indices()
+                .iter_gc_indices()
                 .map(|i| components::game_card::view(state, i));
 
             let row = Row::from_iter(cards)
@@ -102,7 +102,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
         (true, true) => {
             let wii_cards = state
                 .game_list
-                .wii_indices()
+                .iter_wii_indices()
                 .map(|i| components::game_card::view(state, i));
 
             let wii_row = Row::from_iter(wii_cards)
@@ -113,7 +113,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
 
             let gc_cards = state
                 .game_list
-                .gc_indices()
+                .iter_gc_indices()
                 .map(|i| components::game_card::view(state, i));
 
             let gc_row = Row::from_iter(gc_cards)
