@@ -256,17 +256,18 @@ impl State {
                 })
                 .map(Message::DirectoryDeleted),
             Message::DirectoryDeleted(res) => {
-                match self.screen {
-                    Screen::GameInfo(_) => self.screen = Screen::Games,
-                    Screen::HbcInfo(_) => self.screen = Screen::HbcApps,
-                    _ => {}
+                let mut tasks = vec![
+                    self.update(Message::EmptyResult(res)),
+                    self.update(Message::RefreshGamesAndApps),
+                ];
+
+                if let Screen::GameInfo(_) = &self.screen {
+                    tasks.push(self.update(Message::NavTo(Screen::Games)));
+                } else if let Screen::HbcInfo(_) = &self.screen {
+                    tasks.push(self.update(Message::NavTo(Screen::HbcApps)));
                 }
 
-                if let Err(e) = res {
-                    self.notifications.error(e);
-                }
-
-                self.update(Message::RefreshGamesAndApps)
+                Task::batch(tasks)
             }
             Message::GotOscAppList(Ok(app_list)) => {
                 self.osc_app_list = app_list;
