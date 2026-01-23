@@ -67,7 +67,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
         )
         .push(space::vertical());
 
-    if !state.transfer_stack.is_empty() {
+    if state.transfer_queue.has_pending_operations() {
         let icon = if state.half_sec_anim_state {
             icon_arrow_down_0_1()
         } else {

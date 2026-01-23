@@ -17,6 +17,7 @@ LegalCopyright = "Copyright © 2026 Manuel Quarneti. Licensed under GPL-3.0-only
 [dependencies]
 iced = { version = "0.14", default-features = false, features = [
   "smol",
+  "sipper",
   "image-without-codecs",
   "linux-theme-detection",
   "x11",

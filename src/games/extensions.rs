@@ -3,6 +3,7 @@
 
 use nod::common::{Compression, Format};
 use nod::write::FormatOptions;
+use std::ffi::OsStr;
 
 pub const SUPPORTED_INPUT_EXTENSIONS: &[&str] = &[
     "gcm", "iso", "wbfs", "wia", "rvz", "ciso", "gcz", "tgc", "nfs", "zip",
@@ -12,16 +13,16 @@ pub const SUPPORTED_DISC_EXTENSIONS: &[&str] = &[
     "gcm", "iso", "wbfs", "wia", "rvz", "ciso", "gcz", "tgc", "nfs",
 ];
 
-pub fn ext_to_format(ext: &str) -> Option<Format> {
-    match ext {
-        "gcm" | "iso" => Some(Format::Iso),
-        "wbfs" => Some(Format::Wbfs),
-        "wia" => Some(Format::Wia),
-        "rvz" => Some(Format::Rvz),
-        "ciso" => Some(Format::Ciso),
-        "gcz" => Some(Format::Gcz),
-        "tgc" => Some(Format::Tgc),
-        "nfs" => Some(Format::Nfs),
+pub fn ext_to_format(ext: Option<&OsStr>) -> Option<Format> {
+    match ext.and_then(OsStr::to_str) {
+        Some("gcm" | "iso") => Some(Format::Iso),
+        Some("wbfs") => Some(Format::Wbfs),
+        Some("wia") => Some(Format::Wia),
+        Some("rvz") => Some(Format::Rvz),
+        Some("ciso") => Some(Format::Ciso),
+        Some("gcz") => Some(Format::Gcz),
+        Some("tgc") => Some(Format::Tgc),
+        Some("nfs") => Some(Format::Nfs),
         _ => None,
     }
 }

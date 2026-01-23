@@ -8,6 +8,7 @@ use crate::{
         covers,
         game::Game,
         game_list::{self, GameList},
+        transfer::TransferQueue,
         wiitdb::{self, Datafile},
     },
     hbc::{self, app_list::HbcAppList, osc::OscAppMeta, osc_list::OscAppList},
@@ -42,10 +43,11 @@ pub struct State {
     pub drive_usage: String,
     pub osc_filter: String,
     pub hbc_filter: String,
-    pub transfer_stack: Vec<PathBuf>,
+    pub new_version: Option<Version>,
+    pub transfer_queue: TransferQueue,
+
     #[allow(clippy::struct_field_names)]
     pub half_sec_anim_state: bool,
-    pub new_version: Option<Version>,
 
     // scroll positions
     pub games_scroll_id: Id,
@@ -76,9 +78,10 @@ impl State {
             drive_usage: String::new(),
             osc_filter: String::new(),
             hbc_filter: String::new(),
-            transfer_stack: Vec::new(),
-            half_sec_anim_state: false,
             new_version: None,
+            transfer_queue: TransferQueue::new(),
+
+            half_sec_anim_state: false,
 
             // scroll positions
             games_scroll_id: Id::unique(),
@@ -131,7 +134,6 @@ impl State {
             | Message::GotOscAppList(Err(e))
             | Message::GotGameList(Err(e))
             | Message::GotLatestVersion(Err(e))
-            | Message::FinishedTransferringSingleGame(Err(e))
             | Message::GotDiscInfo(Err(e))
             | Message::GotHbcAppList(Err(e)) => {
                 self.notifications.error(e);
@@ -390,7 +392,7 @@ impl State {
             Message::StartSingleGameTransfer => {
                 // TODO
 
-                if let Some(path) = self.transfer_stack.pop() {
+                if let Some(operation) = self.transfer_queue.pop() {
                     Task::perform(
                         async move {
                             // TODO
@@ -405,12 +407,8 @@ impl State {
                     Task::none()
                 }
             }
-            Message::FinishedTransferringSingleGame(Ok(name)) => {
-                self.notifications.info(format!("Transferred: {name}"));
-                self.update(Message::StartSingleGameTransfer)
-            }
             Message::CancelTransfer(i) => {
-                self.transfer_stack.remove(i);
+                self.transfer_queue.cancel(i);
                 Task::none()
             }
             Message::GotDiscInfo(Ok(disc_info)) => {

@@ -3,7 +3,9 @@
 
 use crate::{
     config::{Config, SortBy},
-    games::{disc_info::DiscInfo, game_list::GameList, wiitdb::Datafile},
+    games::{
+        disc_info::DiscInfo, game_list::GameList, transfer::TransferOperation, wiitdb::Datafile,
+    },
     hbc::{app_list::HbcAppList, osc::OscAppMeta, osc_list::OscAppList},
     ui::Screen,
 };
@@ -45,10 +47,10 @@ pub enum Message {
     ChooseGamesSrcDir,
     AddGamesToTransferStack(Vec<PathBuf>),
     StartSingleGameTransfer,
-    FinishedTransferringSingleGame(Result<String, String>),
     CancelTransfer(usize),
     GotDiscInfo(Result<DiscInfo, String>),
     SortGamesAndApps(SortBy),
+    UpdateTransferStatus(String),
 
     // HBC Apps
     GotHbcAppList(Result<HbcAppList, String>),
