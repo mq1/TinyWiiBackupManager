@@ -21,25 +21,16 @@ pub fn choose_mount_point(window: &dyn Window) -> Option<PathBuf> {
 }
 
 pub fn choose_games(window: &dyn Window) -> Vec<PathBuf> {
-    let paths = DialogBuilder::file()
+    DialogBuilder::file()
         .set_title("Select games")
         .set_owner(&window)
         .add_filter("NINTENDO OPTICAL DISC", SUPPORTED_INPUT_EXTENSIONS)
         .open_multiple_file()
         .show()
-        .unwrap_or_default();
-
-    smol::block_on(async move {
-        let mut disc_files = Vec::new();
-
-        for path in paths {
-            if games::util::is_valid_disc_file(&path).await {
-                disc_files.push(path);
-            }
-        }
-
-        disc_files
-    })
+        .unwrap_or_default()
+        .into_iter()
+        .filter(|p| smol::block_on(games::util::is_valid_disc_file(p)))
+        .collect()
 }
 
 pub fn choose_src_dir(window: &dyn Window) -> Vec<PathBuf> {
