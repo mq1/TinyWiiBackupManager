@@ -3,6 +3,7 @@
 
 use crate::games::game_id::GameID;
 use anyhow::{Result, anyhow, bail};
+use derive_getters::Getters;
 use nod::common::{Compression, Format, PartitionKind};
 use nod::read::{DiscOptions, DiscReader, PartitionEncryption, PartitionOptions};
 use size::Size;
@@ -17,34 +18,51 @@ const DISC_OPTS: DiscOptions = DiscOptions {
 };
 
 #[allow(clippy::struct_excessive_bools)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Getters)]
 pub struct DiscInfo {
-    pub game_dir: PathBuf,
-    pub disc_path: PathBuf,
+    game_dir: PathBuf,
+    disc_path: PathBuf,
 
     // discheader
-    pub id: GameID,
-    pub title: String,
-    pub is_wii: bool,
-    pub is_gc: bool,
-    pub disc_num: u8,
-    pub disc_version: u8,
+    #[getter(copy)]
+    id: GameID,
+    title: String,
+    #[getter(copy)]
+    is_wii: bool,
+    #[getter(copy)]
+    is_gc: bool,
+    #[getter(copy)]
+    disc_num: u8,
+    #[getter(copy)]
+    disc_version: u8,
 
     // discmeta
-    pub format: Format,
-    pub compression: Compression,
-    pub block_size: Option<Size>,
-    pub decrypted: bool,
-    pub needs_hash_recovery: bool,
-    pub lossless: bool,
-    pub disc_size: Option<Size>,
-    pub crc32: Option<u32>,
-    pub md5: Option<[u8; 16]>,
-    pub sha1: Option<[u8; 20]>,
-    pub xxh64: Option<u64>,
+    #[getter(copy)]
+    format: Format,
+    #[getter(copy)]
+    compression: Compression,
+    #[getter(copy)]
+    block_size: Option<Size>,
+    #[getter(copy)]
+    decrypted: bool,
+    #[getter(copy)]
+    needs_hash_recovery: bool,
+    #[getter(copy)]
+    lossless: bool,
+    #[getter(copy)]
+    disc_size: Option<Size>,
+    #[getter(copy)]
+    crc32: Option<u32>,
+    #[getter(copy)]
+    md5: Option<[u8; 16]>,
+    #[getter(copy)]
+    sha1: Option<[u8; 20]>,
+    #[getter(copy)]
+    xxh64: Option<u64>,
 
     // misc
-    pub is_worth_stripping: bool,
+    #[getter(copy)]
+    is_worth_stripping: bool,
 }
 
 pub async fn get_main_file(game_dir: &Path) -> Result<PathBuf> {
