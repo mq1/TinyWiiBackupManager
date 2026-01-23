@@ -16,6 +16,7 @@ const DISC_OPTS: DiscOptions = DiscOptions {
     preloader_threads: 0,
 };
 
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Debug, Clone)]
 pub struct DiscInfo {
     pub game_dir: PathBuf,
@@ -52,6 +53,7 @@ pub async fn get_main_file(game_dir: &Path) -> Result<PathBuf> {
     while let Some(entry) = entries.try_next().await? {
         let entry_path = entry.path();
 
+        #[allow(clippy::case_sensitive_file_extension_comparisons)]
         if entry_path
             .file_name()
             .and_then(OsStr::to_str)
@@ -75,10 +77,10 @@ impl DiscInfo {
         }
 
         let disc_path = get_main_file(&game_dir).await?;
-        Self::from_path(disc_path).await
+        Self::from_path(disc_path)
     }
 
-    pub async fn from_path(disc_path: PathBuf) -> Result<Self> {
+    pub fn from_path(disc_path: PathBuf) -> Result<Self> {
         if !disc_path.is_file() {
             bail!("Not a file");
         }
@@ -130,7 +132,7 @@ pub fn is_worth_stripping(disc: &DiscReader) -> bool {
     {
         let mut non_empty_blocks = 0u8;
 
-        let mut block_buf = vec![0u8; 0x200000].into_boxed_slice(); // 2 MB
+        let mut block_buf = vec![0u8; 2 * 1024 * 1024].into_boxed_slice(); // 2 MB
         while update_reader.read_exact(&mut block_buf[..]).is_ok() {
             if block_buf.iter().any(|b| *b != 0) {
                 non_empty_blocks += 1;

@@ -75,7 +75,7 @@ fn compress_lucide() {
     fs::write(out_path, bytes).unwrap();
 
     let meta = format!(
-        "const LUCIDE_BYTES_LEN: usize = {};",
+        "#[allow(clippy::unreadable_literal)]\nconst LUCIDE_BYTES_LEN: usize = {};",
         LUCIDE_FONT_BYTES.len()
     );
     fs::write(meta_out_path, meta).unwrap();
