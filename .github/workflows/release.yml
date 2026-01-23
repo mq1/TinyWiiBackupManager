@@ -135,29 +135,29 @@ jobs:
       matrix:
         include:
           - target: x86_64-pc-windows-msvc
-            features: wgpu native-tls common-controls-v6
+            features: wgpu native-tls
             arch: x86_64-v3
             rustflags: -C target-cpu=x86-64-v3
             cflags: /clang:-march=x86-64-v3
             cxxflags: /clang:-march=x86-64-v3
             platform: windows
           - target: x86_64-pc-windows-msvc
-            features: wgpu native-tls common-controls-v6
+            features: wgpu native-tls
             arch: x86_64-v2
             rustflags: -C target-cpu=x86-64-v2
             cflags: /clang:-march=x86-64-v2
             cxxflags: /clang:-march=x86-64-v2
             platform: windows
           - target: x86_64-pc-windows-msvc
-            features: wgpu native-tls common-controls-v6
+            features: wgpu native-tls
             arch: x86_64
             platform: windows
           - target: aarch64-pc-windows-msvc
-            features: wgpu native-tls common-controls-v6
+            features: wgpu native-tls
             arch: arm64
             platform: windows
           - target: i686-pc-windows-msvc
-            features: wgpu native-tls common-controls-v6
+            features: wgpu native-tls
             arch: x86
             platform: windows
           - target: x86_64-win7-windows-msvc
