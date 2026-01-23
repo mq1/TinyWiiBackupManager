@@ -124,11 +124,11 @@ impl State {
                 self.notifications.error(e);
                 Task::none()
             }
-            Message::NavToGames => {
+            Message::NavTo(Screen::Games) => {
                 self.screen = Screen::Games;
                 operation::scroll_to("games_scroll", self.games_scroll_offset)
             }
-            Message::NavToGameInfo(mut game) => {
+            Message::NavTo(Screen::GameInfo(mut game)) => {
                 if let Some(wiitdb) = &self.wiitdb {
                     game.update_wiitdb_info(wiitdb);
                 }
@@ -137,35 +137,35 @@ impl State {
                 self.screen = Screen::GameInfo(game);
                 task
             }
-            Message::NavToHbcApps => {
+            Message::NavTo(Screen::HbcApps) => {
                 self.screen = Screen::HbcApps;
                 operation::scroll_to("hbc_scroll", self.hbc_scroll_offset)
             }
-            Message::NavToHbcAppInfo(app) => {
+            Message::NavTo(Screen::HbcInfo(app)) => {
                 self.screen = Screen::HbcInfo(app);
                 Task::none()
             }
-            Message::NavToOscApps => {
+            Message::NavTo(Screen::Osc) => {
                 self.screen = Screen::Osc;
                 operation::scroll_to("osc_scroll", self.osc_scroll_offset)
             }
-            Message::NavToOscAppInfo(app) => {
+            Message::NavTo(Screen::OscInfo(app)) => {
                 self.screen = Screen::OscInfo(app);
                 Task::none()
             }
-            Message::NavToToolbox => {
+            Message::NavTo(Screen::Toolbox) => {
                 self.screen = Screen::Toolbox;
                 Task::none()
             }
-            Message::NavToSettings => {
+            Message::NavTo(Screen::Settings) => {
                 self.screen = Screen::Settings;
                 Task::none()
             }
-            Message::NavToTransfer => {
+            Message::NavTo(Screen::Transfer) => {
                 self.screen = Screen::Transfer;
                 Task::none()
             }
-            Message::NavToAbout => {
+            Message::NavTo(Screen::About) => {
                 self.screen = Screen::About;
                 Task::none()
             }

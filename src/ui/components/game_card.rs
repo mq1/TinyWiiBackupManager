@@ -5,7 +5,7 @@ use crate::{
     games::game::Game,
     message::Message,
     state::State,
-    ui::{components::my_tooltip, style},
+    ui::{Screen, components::my_tooltip, style},
 };
 use iced::{
     Alignment, Element,
@@ -49,7 +49,7 @@ pub fn view<'a>(state: &State, game: &'a Game) -> Element<'a, Message> {
             row![
                 button(row![icon_info(), text("Info")].spacing(5))
                     .style(style::rounded_secondary_button)
-                    .on_press_with(|| Message::NavToGameInfo(game.clone())),
+                    .on_press_with(|| Message::NavTo(Screen::GameInfo(game.clone()))),
                 button(icon_hard_drive_download()).style(style::rounded_secondary_button),
                 button(icon_trash())
                     .style(style::rounded_secondary_button)

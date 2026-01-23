@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{hbc::osc::OscAppMeta, message::Message, state::State};
+use crate::{hbc::osc::OscAppMeta, message::Message, state::State, ui::Screen};
 use iced::{
     Alignment, Element, Length,
     widget::{button, container, row, table, text},
@@ -22,7 +22,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 button(row![icon_info(), text("Info")].spacing(5))
                     .padding(0)
                     .style(button::text)
-                    .on_press_with(|| Message::NavToOscAppInfo(app.clone())),
+                    .on_press_with(|| Message::NavTo(Screen::OscInfo(app.clone()))),
                 text('•'),
                 button(row![icon_cloud_download(), text("Install")].spacing(5))
                     .padding(0)

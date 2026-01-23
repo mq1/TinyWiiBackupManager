@@ -5,7 +5,7 @@ use crate::{
     hbc::app::HbcApp,
     message::Message,
     state::State,
-    ui::{components::my_tooltip, style},
+    ui::{Screen, components::my_tooltip, style},
 };
 use iced::{
     Alignment, Element,
@@ -45,7 +45,7 @@ pub fn view<'a>(_state: &State, app: &'a HbcApp) -> Element<'a, Message> {
             row![
                 button(row![icon_info(), text("Info")].spacing(5))
                     .style(style::rounded_secondary_button)
-                    .on_press_with(|| Message::NavToHbcAppInfo(app.clone())),
+                    .on_press_with(|| Message::NavTo(Screen::HbcInfo(app.clone()))),
                 button(icon_trash())
                     .style(style::rounded_secondary_button)
                     .on_press_with(|| Message::AskDeleteDirConfirmation(app.path().clone())),
