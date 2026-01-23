@@ -16,7 +16,8 @@ pub fn view(state: &State) -> Element<'_, Message> {
             .iter_filtered()
             .map(|g| components::game_card::view(state, g));
 
-        let row = Row::from_iter(cards)
+        let row = cards
+            .collect::<Row<'_, _>>()
             .width(Length::Fill)
             .spacing(10)
             .padding(10)
@@ -42,7 +43,8 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 .iter_wii()
                 .map(|g| components::game_card::view(state, g));
 
-            let row = Row::from_iter(cards)
+            let row = cards
+                .collect::<Row<'_, _>>()
                 .width(Length::Fill)
                 .spacing(10)
                 .padding(10)
@@ -74,7 +76,8 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 .iter_gc()
                 .map(|g| components::game_card::view(state, g));
 
-            let row = Row::from_iter(cards)
+            let row = cards
+                .collect::<Row<'_, _>>()
                 .width(Length::Fill)
                 .spacing(10)
                 .padding(10)
@@ -106,7 +109,8 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 .iter_wii()
                 .map(|g| components::game_card::view(state, g));
 
-            let wii_row = Row::from_iter(wii_cards)
+            let wii_row = wii_cards
+                .collect::<Row<'_, _>>()
                 .width(Length::Fill)
                 .spacing(10)
                 .padding(10)
@@ -117,7 +121,8 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 .iter_gc()
                 .map(|g| components::game_card::view(state, g));
 
-            let gc_row = Row::from_iter(gc_cards)
+            let gc_row = gc_cards
+                .collect::<Row<'_, _>>()
                 .width(Length::Fill)
                 .spacing(10)
                 .padding(10)
