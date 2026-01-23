@@ -39,26 +39,22 @@ pub async fn is_valid_disc_file(path: &Path) -> bool {
         return false;
     }
 
-    let Some(stem) = path.file_stem().and_then(OsStr::to_str) else {
+    let Some(filename) = path.file_name().and_then(OsStr::to_str) else {
         return false;
     };
 
-    if stem.starts_with('.') {
+    if filename.starts_with('.') {
         return false;
     }
 
-    if stem.ends_with("part1") {
+    if filename.ends_with(".part1.iso") {
         return false;
     }
 
-    let Some(ext) = path.extension().and_then(OsStr::to_str) else {
-        return false;
-    };
-
-    match ext {
-        "zip" => does_this_zip_contain_a_disc(path).await,
-        "gcm" | "iso" | "wbfs" | "wia" | "rvz" | "ciso" | "gcz" | "tgc" | "nfs" => true,
-        _ => false,
+    if filename.ends_with(".zip") {
+        does_this_zip_contain_a_disc(path).await
+    } else {
+        is_disc_filename(filename)
     }
 }
 
@@ -77,11 +73,17 @@ async fn does_this_zip_contain_a_disc(path: &Path) -> bool {
         .entries()
         .first()
         .and_then(|e| e.filename().as_str().ok())
-        .is_some_and(|filename| {
-            [
-                ".gcm", ".iso", ".wbfs", ".wia", ".rvz", ".ciso", ".gcz", ".tgc", ".nfs",
-            ]
-            .iter()
-            .any(|ext| filename.ends_with(ext))
-        })
+        .is_some_and(is_disc_filename)
+}
+
+fn is_disc_filename(filename: &str) -> bool {
+    filename.ends_with(".gcm")
+        || filename.ends_with(".iso")
+        || filename.ends_with(".wbfs")
+        || filename.ends_with(".wia")
+        || filename.ends_with(".rvz")
+        || filename.ends_with(".ciso")
+        || filename.ends_with(".gcz")
+        || filename.ends_with(".tgc")
+        || filename.ends_with(".nfs")
 }

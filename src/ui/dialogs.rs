@@ -5,7 +5,6 @@ use crate::games;
 use crate::games::extensions::SUPPORTED_INPUT_EXTENSIONS;
 use crate::hbc::osc::OscAppMeta;
 use iced::Window;
-use iced::futures::future::join_all;
 use native_dialog::{DialogBuilder, MessageLevel};
 use std::ffi::OsStr;
 use std::fmt::Write;
