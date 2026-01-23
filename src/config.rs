@@ -113,7 +113,7 @@ impl Config {
         config
     }
 }
-
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Debug, Clone, Serialize, Deserialize, Getters)]
 #[serde(rename_all = "snake_case")]
 pub struct Config {

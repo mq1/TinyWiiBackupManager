@@ -30,15 +30,16 @@ impl TryFrom<&str> for GameID {
 
 impl GameID {
     #[inline]
-    pub const fn is_wii(&self) -> bool {
+    pub const fn is_wii(self) -> bool {
         matches!(self.0[0], b'H' | b'R' | b'S' | b'W' | b'X')
     }
 
     #[inline]
-    pub const fn is_gc(&self) -> bool {
+    pub const fn is_gc(self) -> bool {
         matches!(self.0[0], b'D' | b'G')
     }
 
+    #[inline]
     pub fn as_str(&self) -> &str {
         if self.0[4] == 0 {
             std::str::from_utf8(&self.0[..4]).unwrap_or("invalid")
@@ -47,10 +48,12 @@ impl GameID {
         }
     }
 
+    #[inline]
     pub fn as_partial_str(&self) -> &str {
         std::str::from_utf8(&self.0[..3]).unwrap_or("invalid")
     }
 
+    #[inline]
     pub fn as_os_str(&self) -> &OsStr {
         if self.0[4] == 0 {
             unsafe { OsStr::from_encoded_bytes_unchecked(&self.0[..4]) }
@@ -59,7 +62,7 @@ impl GameID {
         }
     }
 
-    pub const fn as_region_str(&self) -> &'static str {
+    pub const fn as_region_str(self) -> &'static str {
         match self.0[3] {
             b'A' => "System Wii Channels (i.e. Mii Channel)",
             b'B' => "Ufouria: The Saga (NA)",
@@ -81,14 +84,12 @@ impl GameID {
             b'U' => "Australia / Europe alternate languages",
             b'V' => "Scandinavia",
             b'W' => "Republic of China (Taiwan) / Hong Kong / Macau",
-            b'X' => "Europe alternate languages / US special releases",
-            b'Y' => "Europe alternate languages / US special releases",
-            b'Z' => "Europe alternate languages / US special releases",
+            b'X' | b'Y' | b'Z' => "Europe alternate languages / US special releases",
             _ => "Unknown",
         }
     }
 
-    pub const fn as_lang_str(&self) -> &'static str {
+    pub const fn as_lang_str(self) -> &'static str {
         match self.0[3] {
             b'E' | b'N' => "US",
             b'J' => "JA",

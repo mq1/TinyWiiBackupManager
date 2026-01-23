@@ -46,22 +46,20 @@ pub async fn keep_disc_file(path: PathBuf) -> Option<PathBuf> {
 }
 
 pub async fn is_valid_disc_file(path: &Path) -> bool {
-    let stem = match path.file_stem().and_then(OsStr::to_str) {
-        Some(s) => s,
-        None => return false,
+    let Some(stem) = path.file_stem().and_then(OsStr::to_str) else {
+        return false;
     };
 
     if stem.starts_with('.') {
         return false;
     }
 
-    if stem.ends_with(".part1") {
+    if stem.ends_with("part1") {
         return false;
     }
 
-    let ext = match path.extension().and_then(OsStr::to_str) {
-        Some(s) => s,
-        None => return false,
+    let Some(ext) = path.extension().and_then(OsStr::to_str) else {
+        return false;
     };
 
     match ext {
@@ -72,16 +70,14 @@ pub async fn is_valid_disc_file(path: &Path) -> bool {
 }
 
 async fn does_this_zip_contain_a_disc(path: &Path) -> bool {
-    let file = match File::open(path).await {
-        Ok(f) => f,
-        Err(_) => return false,
+    let Ok(file) = File::open(path).await else {
+        return false;
     };
 
     let reader = BufReader::new(file);
 
-    let zip = match ZipFileReader::new(reader).await {
-        Ok(a) => a,
-        Err(_) => return false,
+    let Ok(zip) = ZipFileReader::new(reader).await else {
+        return false;
     };
 
     zip.file()
