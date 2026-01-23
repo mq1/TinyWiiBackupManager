@@ -30,11 +30,15 @@ pub fn choose_games(window: &dyn Window) -> Vec<PathBuf> {
         .unwrap_or_default();
 
     smol::block_on(async move {
-        join_all(paths.into_iter().map(games::util::keep_disc_file))
-            .await
-            .into_iter()
-            .flatten()
-            .collect()
+        let mut disc_files = Vec::new();
+
+        for path in paths {
+            if games::util::is_valid_disc_file(&path).await {
+                disc_files.push(path);
+            }
+        }
+
+        disc_files
     })
 }
 

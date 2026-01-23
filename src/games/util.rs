@@ -3,7 +3,6 @@
 
 use anyhow::Result;
 use async_zip::base::read::seek::ZipFileReader;
-use iced::futures::future::join_all;
 use smol::{
     fs::{self, File},
     io::BufReader,
@@ -26,26 +25,20 @@ pub async fn scan_for_discs(path: PathBuf) -> Result<Vec<PathBuf>> {
 
             if entry_path.is_dir() {
                 stack.push(entry_path);
-            } else if entry_path.is_file() {
-                discs.push(keep_disc_file(entry_path));
+            } else if is_valid_disc_file(&entry_path).await {
+                discs.push(entry_path);
             }
         }
     }
 
-    let discs = join_all(discs).await.into_iter().flatten().collect();
-
     Ok(discs)
 }
 
-pub async fn keep_disc_file(path: PathBuf) -> Option<PathBuf> {
-    if is_valid_disc_file(&path).await {
-        Some(path)
-    } else {
-        None
-    }
-}
-
 pub async fn is_valid_disc_file(path: &Path) -> bool {
+    if !path.is_file() {
+        return false;
+    }
+
     let Some(stem) = path.file_stem().and_then(OsStr::to_str) else {
         return false;
     };
