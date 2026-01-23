@@ -107,11 +107,21 @@ impl State {
     #[allow(clippy::too_many_lines)]
     pub fn update(&mut self, message: Message) -> Task<Message> {
         match message {
-            Message::GenericResult(res) => {
-                match res {
-                    Ok(s) => self.notifications.success(s),
-                    Err(e) => self.notifications.error(e),
-                }
+            Message::GenericResult(Ok(s)) => {
+                self.notifications.success(s);
+                Task::none()
+            }
+            Message::EmptyResult(Ok(())) => Task::none(),
+            Message::GenericResult(Err(e))
+            | Message::EmptyResult(Err(e))
+            | Message::GotWiitdbDatafile(Err(e))
+            | Message::GotOscAppList(Err(e))
+            | Message::GotGameList(Err(e))
+            | Message::GotLatestVersion(Err(e))
+            | Message::FinishedTransferringSingleGame(Err(e))
+            | Message::GotDiscInfo(Err(e))
+            | Message::GotHbcAppList(Err(e)) => {
+                self.notifications.error(e);
                 Task::none()
             }
             Message::NavToGames => {
@@ -181,27 +191,19 @@ impl State {
                 self.osc_scroll_offset = viewport.absolute_offset();
                 Task::none()
             }
-            Message::GotWiitdbDatafile(res) => {
-                match res {
-                    Ok(wiitdb) => {
-                        for game in self.game_list.iter_mut() {
-                            game.update_title(&wiitdb);
-                        }
-
-                        let sort_by = self.config.sort_by();
-                        if matches!(sort_by, SortBy::NameAscending | SortBy::NameDescending) {
-                            self.game_list.sort(SortBy::None, sort_by);
-                        }
-
-                        self.wiitdb = Some(wiitdb);
-                        self.notifications
-                            .info("GameTDB Datafile (wiitdb.xml) loaded successfully");
-                    }
-                    Err(e) => {
-                        self.notifications.error(e);
-                    }
+            Message::GotWiitdbDatafile(Ok(wiitdb)) => {
+                for game in self.game_list.iter_mut() {
+                    game.update_title(&wiitdb);
                 }
 
+                let sort_by = self.config.sort_by();
+                if matches!(sort_by, SortBy::NameAscending | SortBy::NameDescending) {
+                    self.game_list.sort(SortBy::None, sort_by);
+                }
+
+                self.wiitdb = Some(wiitdb);
+                self.notifications
+                    .info("GameTDB Datafile (wiitdb.xml) loaded successfully");
                 Task::none()
             }
             Message::NotificationTick => {
@@ -254,50 +256,31 @@ impl State {
 
                 self.update(Message::RefreshGamesAndApps)
             }
-            Message::GotOscAppList(res) => match res {
-                Ok(osc_app_list) => {
-                    self.osc_app_list = osc_app_list;
-                    hbc::osc_list::get_download_icons_task(self)
-                }
-                Err(e) => {
-                    self.notifications.error(e);
-                    Task::none()
-                }
-            },
+            Message::GotOscAppList(Ok(app_list)) => {
+                self.osc_app_list = app_list;
+                hbc::osc_list::get_download_icons_task(self)
+            }
             Message::UpdateOscFilter(filter) => {
                 self.osc_app_list.fuzzy_search(&filter);
                 self.osc_filter = filter;
                 Task::none()
             }
-            Message::GotGameList(res) => match res {
-                Ok(game_list) => {
-                    self.game_list = game_list;
+            Message::GotGameList(Ok(game_list)) => {
+                self.game_list = game_list;
 
-                    if let Some(wiitdb) = &self.wiitdb {
-                        for game in self.game_list.iter_mut() {
-                            game.update_title(wiitdb);
-                        }
-                    }
-
-                    self.game_list.sort(SortBy::None, self.config.sort_by());
-
-                    covers::get_cache_cover3ds_task(self)
-                }
-                Err(e) => {
-                    self.notifications.error(e);
-                    Task::none()
-                }
-            },
-            Message::GotHbcAppList(res) => {
-                match res {
-                    Ok(hbc_app_list) => {
-                        self.hbc_app_list = hbc_app_list;
-                        self.hbc_app_list.sort(SortBy::None, self.config.sort_by());
-                    }
-                    Err(e) => {
-                        self.notifications.error(e);
+                if let Some(wiitdb) = &self.wiitdb {
+                    for game in self.game_list.iter_mut() {
+                        game.update_title(wiitdb);
                     }
                 }
+
+                self.game_list.sort(SortBy::None, self.config.sort_by());
+
+                covers::get_cache_cover3ds_task(self)
+            }
+            Message::GotHbcAppList(Ok(app_list)) => {
+                self.hbc_app_list = app_list;
+                self.hbc_app_list.sort(SortBy::None, self.config.sort_by());
                 Task::none()
             }
             Message::GotDriveUsage(usage) => {
@@ -318,18 +301,10 @@ impl State {
                     Task::none()
                 }
             }
-            Message::AppInstalled(res) => {
-                match res {
-                    Ok(name) => {
-                        self.notifications.success(format!("App installed: {name}"));
-                    }
-                    Err(e) => {
-                        self.notifications.error(e);
-                    }
-                }
-
-                self.update(Message::RefreshGamesAndApps)
-            }
+            Message::AppInstalled(res) => Task::batch(vec![
+                self.update(Message::GenericResult(res)),
+                self.update(Message::RefreshGamesAndApps),
+            ]),
             Message::UpdateHbcFilter(filter) => {
                 self.hbc_app_list.fuzzy_search(&filter);
                 self.hbc_filter = filter;
@@ -344,12 +319,6 @@ impl State {
 
                 let new_config = self.config.clone_with_theme_preference(new_theme_pref);
                 self.update(Message::UpdateConfig(new_config))
-            }
-            Message::EmptyResult(res) => {
-                if let Err(e) = res {
-                    self.notifications.error(e);
-                }
-                Task::none()
             }
             Message::UpdateConfig(new_config) => {
                 self.config = new_config;
@@ -381,15 +350,10 @@ impl State {
                     hbc::app::get_install_hbc_apps_task(self, apps)
                 }
             }
-            Message::HbcAppsInstalled(res) => {
-                if let Err(e) = res {
-                    self.notifications.error(e);
-                } else {
-                    self.notifications.success("Apps installed");
-                }
-
-                self.update(Message::RefreshGamesAndApps)
-            }
+            Message::HbcAppsInstalled(res) => Task::batch(vec![
+                self.update(Message::GenericResult(res)),
+                self.update(Message::RefreshGamesAndApps),
+            ]),
             Message::ChooseGamesToAdd => window::oldest()
                 .and_then(|id| window::run(id, dialogs::choose_games))
                 .map(Message::AddGamesToTransferStack),
@@ -428,30 +392,17 @@ impl State {
                     Task::none()
                 }
             }
-            Message::FinishedTransferringSingleGame(res) => match res {
-                Ok(name) => {
-                    self.notifications.info(format!("Transferred: {name}"));
-                    self.update(Message::StartSingleGameTransfer)
-                }
-                Err(e) => {
-                    self.notifications.error(e);
-                    Task::none()
-                }
-            },
+            Message::FinishedTransferringSingleGame(Ok(name)) => {
+                self.notifications.info(format!("Transferred: {name}"));
+                self.update(Message::StartSingleGameTransfer)
+            }
             Message::CancelTransfer(i) => {
                 self.transfer_stack.remove(i);
                 Task::none()
             }
-            Message::GotDiscInfo(res) => {
-                match res {
-                    Ok(disc_info) => {
-                        if let Screen::GameInfo(game) = &mut self.screen {
-                            game.update_disc_info(disc_info);
-                        }
-                    }
-                    Err(e) => {
-                        self.notifications.error(e);
-                    }
+            Message::GotDiscInfo(Ok(disc_info)) => {
+                if let Screen::GameInfo(game) = &mut self.screen {
+                    game.update_disc_info(disc_info);
                 }
 
                 Task::none()
@@ -476,23 +427,18 @@ impl State {
                 }
                 Task::none()
             }
-            Message::GotLatestVersion(res) => {
-                match res {
-                    Ok(Some(version)) => {
-                        self.notifications.info(format!(
-                            "A new version of {} is available: {}",
-                            env!("CARGO_PKG_NAME"),
-                            version
-                        ));
+            Message::GotLatestVersion(Ok(Some(version))) => {
+                self.notifications.info(format!(
+                    "A new version of {} is available: {}",
+                    env!("CARGO_PKG_NAME"),
+                    version
+                ));
 
-                        self.new_version = Some(version);
-                    }
-                    Ok(None) => {}
-                    Err(e) => {
-                        self.notifications
-                            .error(format!("Failed to check for updates: {e}"));
-                    }
-                }
+                self.new_version = Some(version);
+                Task::none()
+            }
+            Message::GotLatestVersion(Ok(None)) => {
+                println!("No new version of {} available", env!("CARGO_PKG_NAME"));
                 Task::none()
             }
         }

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{http_util, message::Message};
-use iced::{Task, futures::TryFutureExt};
+use iced::Task;
 use serde::Deserialize;
 use size::Size;
 use std::{ffi::OsString, path::PathBuf};
@@ -27,7 +27,9 @@ impl OscAppMeta {
                 http_util::download_and_extract_zip(url, &mount_point)
                     .await
                     .map_err(|e| e.to_string())?;
-                Ok(name)
+
+                let msg = format!("App installed: {name}");
+                Ok(msg)
             },
             Message::AppInstalled,
         )

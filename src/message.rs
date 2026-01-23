@@ -64,7 +64,7 @@ pub enum Message {
     GotHbcAppList(Result<HbcAppList, String>),
     ChooseHbcAppsToAdd,
     AddHbcApps(Box<[PathBuf]>),
-    HbcAppsInstalled(Result<(), String>),
+    HbcAppsInstalled(Result<String, String>),
     UpdateHbcFilter(String),
 
     // OSC Apps

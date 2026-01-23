@@ -18,6 +18,7 @@ use lucide_icons::iced::{
     icon_users, icon_weight,
 };
 
+#[allow(clippy::too_many_lines)]
 pub fn view<'a>(state: &State, app: &'a OscAppMeta) -> Element<'a, Message> {
     let col = column![
         row![icon_store().size(18), text(&app.name).size(18)].spacing(5),

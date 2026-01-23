@@ -102,7 +102,7 @@ pub fn delete_dir(window: &dyn Window, path: &Path) -> Result<(), String> {
         .unwrap_or_default();
 
     if yes {
-        std::fs::remove_dir_all(&path).map_err(|e| e.to_string())?;
+        std::fs::remove_dir_all(path).map_err(|e| e.to_string())?;
     }
 
     Ok(())

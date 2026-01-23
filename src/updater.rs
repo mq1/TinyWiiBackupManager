@@ -33,7 +33,7 @@ async fn check() -> Result<Option<Version>> {
 
 pub fn get_check_update_task() -> Task<Message> {
     Task::perform(
-        check().map_err(|e| e.to_string()),
+        check().map_err(|e| format!("Failed to check for updates: {e}")),
         Message::GotLatestVersion,
     )
 }

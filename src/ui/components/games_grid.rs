@@ -8,6 +8,7 @@ use iced::{
 };
 use lucide_icons::iced::{icon_box, icon_hard_drive, icon_pointer};
 
+#[allow(clippy::too_many_lines)]
 pub fn view(state: &State) -> Element<'_, Message> {
     if !state.games_filter.is_empty() {
         let cards = state

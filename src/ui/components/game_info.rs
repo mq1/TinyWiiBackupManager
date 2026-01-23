@@ -15,6 +15,7 @@ use lucide_icons::iced::{
     icon_trash, icon_triangle_alert, icon_user, icon_weight, icon_wifi,
 };
 
+#[allow(clippy::too_many_lines)]
 pub fn view<'a>(state: &State, game: &'a Game) -> Element<'a, Message> {
     let disc_info = match game.disc_info() {
         None => column![text("Loading Disc Info...")],

@@ -11,6 +11,7 @@ use lucide_icons::iced::{
     icon_square_split_horizontal, icon_trash,
 };
 
+#[allow(clippy::too_many_lines)]
 pub fn view(state: &State) -> Element<'_, Message> {
     let wii_output_format = state.config.wii_output_format();
     let gc_output_format = state.config.gc_output_format();
