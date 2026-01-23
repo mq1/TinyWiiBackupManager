@@ -18,7 +18,10 @@ use crate::{
 };
 use iced::{
     Task, Theme,
-    widget::operation::{self, AbsoluteOffset},
+    widget::{
+        Id,
+        operation::{self, AbsoluteOffset},
+    },
     window,
 };
 use semver::Version;
@@ -43,8 +46,13 @@ pub struct State {
     #[allow(clippy::struct_field_names)]
     pub half_sec_anim_state: bool,
     pub new_version: Option<Version>,
+
+    // scroll positions
+    pub games_scroll_id: Id,
     pub games_scroll_offset: AbsoluteOffset,
+    pub hbc_scroll_id: Id,
     pub hbc_scroll_offset: AbsoluteOffset,
+    pub osc_scroll_id: Id,
     pub osc_scroll_offset: AbsoluteOffset,
 }
 
@@ -71,8 +79,13 @@ impl State {
             transfer_stack: Vec::new(),
             half_sec_anim_state: false,
             new_version: None,
+
+            // scroll positions
+            games_scroll_id: Id::unique(),
             games_scroll_offset: AbsoluteOffset::default(),
+            hbc_scroll_id: Id::unique(),
             hbc_scroll_offset: AbsoluteOffset::default(),
+            osc_scroll_id: Id::unique(),
             osc_scroll_offset: AbsoluteOffset::default(),
         };
 
@@ -126,7 +139,7 @@ impl State {
             }
             Message::NavTo(Screen::Games) => {
                 self.screen = Screen::Games;
-                operation::scroll_to("games_scroll", self.games_scroll_offset)
+                operation::scroll_to(self.games_scroll_id.clone(), self.games_scroll_offset)
             }
             Message::NavTo(Screen::GameInfo(mut game)) => {
                 if let Some(wiitdb) = &self.wiitdb {
@@ -139,7 +152,7 @@ impl State {
             }
             Message::NavTo(Screen::HbcApps) => {
                 self.screen = Screen::HbcApps;
-                operation::scroll_to("hbc_scroll", self.hbc_scroll_offset)
+                operation::scroll_to(self.hbc_scroll_id.clone(), self.hbc_scroll_offset)
             }
             Message::NavTo(Screen::HbcInfo(app)) => {
                 self.screen = Screen::HbcInfo(app);
@@ -147,7 +160,7 @@ impl State {
             }
             Message::NavTo(Screen::Osc) => {
                 self.screen = Screen::Osc;
-                operation::scroll_to("osc_scroll", self.osc_scroll_offset)
+                operation::scroll_to(self.osc_scroll_id.clone(), self.osc_scroll_offset)
             }
             Message::NavTo(Screen::OscInfo(app)) => {
                 self.screen = Screen::OscInfo(app);
@@ -179,16 +192,15 @@ impl State {
                 self.games_filter = filter;
                 Task::none()
             }
-            Message::UpdateGamesScrollOffset(viewport) => {
-                self.games_scroll_offset = viewport.absolute_offset();
-                Task::none()
-            }
-            Message::UpdateHbcScrollOffset(viewport) => {
-                self.hbc_scroll_offset = viewport.absolute_offset();
-                Task::none()
-            }
-            Message::UpdateOscScrollOffset(viewport) => {
-                self.osc_scroll_offset = viewport.absolute_offset();
+            Message::UpdateScrollPosition(id, offset) => {
+                if id == self.games_scroll_id {
+                    self.games_scroll_offset = offset;
+                } else if id == self.hbc_scroll_id {
+                    self.hbc_scroll_offset = offset;
+                } else if id == self.osc_scroll_id {
+                    self.osc_scroll_offset = offset;
+                }
+
                 Task::none()
             }
             Message::GotWiitdbDatafile(Ok(wiitdb)) => {

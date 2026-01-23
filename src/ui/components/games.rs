@@ -31,8 +31,11 @@ pub fn view(state: &State) -> Element<'_, Message> {
     column![
         components::games_toolbar::view(state),
         scrollable(content)
-            .id("games_scroll")
-            .on_scroll(Message::UpdateGamesScrollOffset)
+            .id(state.games_scroll_id.clone())
+            .on_scroll(|viewport| Message::UpdateScrollPosition(
+                state.games_scroll_id.clone(),
+                viewport.absolute_offset()
+            ))
     ]
     .into()
 }

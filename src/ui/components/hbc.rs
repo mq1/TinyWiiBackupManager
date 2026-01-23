@@ -49,8 +49,11 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 .padding(padding::left(15).right(25).top(10)),
                 content
             ])
-            .id("hbc_scroll")
-            .on_scroll(Message::UpdateHbcScrollOffset)
+            .id(state.hbc_scroll_id.clone())
+            .on_scroll(|viewport| Message::UpdateScrollPosition(
+                state.hbc_scroll_id.clone(),
+                viewport.absolute_offset()
+            ))
         ]
         .into()
     } else {

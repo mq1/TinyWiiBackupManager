@@ -26,8 +26,11 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 .padding(padding::left(15).top(10)),
                 content
             ])
-            .id("osc_scroll")
-            .on_scroll(Message::UpdateOscScrollOffset)
+            .id(state.osc_scroll_id.clone())
+            .on_scroll(|viewport| Message::UpdateScrollPosition(
+                state.osc_scroll_id.clone(),
+                viewport.absolute_offset()
+            ))
         ]
         .into()
     } else {

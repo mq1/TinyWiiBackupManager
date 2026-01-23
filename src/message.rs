@@ -7,7 +7,7 @@ use crate::{
     hbc::{app_list::HbcAppList, osc::OscAppMeta, osc_list::OscAppList},
     ui::Screen,
 };
-use iced::widget::scrollable::Viewport;
+use iced::widget::{Id, operation::AbsoluteOffset};
 use semver::Version;
 use std::{ffi::OsString, path::PathBuf};
 
@@ -19,9 +19,7 @@ pub enum Message {
 
     // Navigation
     NavTo(Screen),
-    UpdateGamesScrollOffset(Viewport),
-    UpdateHbcScrollOffset(Viewport),
-    UpdateOscScrollOffset(Viewport),
+    UpdateScrollPosition(Id, AbsoluteOffset),
 
     // Misc
     RefreshGamesAndApps,
