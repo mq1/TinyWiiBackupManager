@@ -135,18 +135,9 @@ impl ConvertForWiiOperation {
                         if let Some(overflow_writer) = &mut overflow_writer {
                             overflow_writer.write_all(&data)?;
                         } else if must_split {
-                            if progress > SPLIT_SIZE {
-                                let overflow_path = if out_format == nod::common::Format::Wbfs {
-                                    parent.join(&id).with_extension("wbf1")
-                                } else {
-                                    parent.join(&id).with_extension("part1.iso")
-                                };
+                            let data_end_pos = progress + data.len() as u64;
 
-                                let overflow_file = File::create(overflow_path)?;
-                                let overflow_writer =
-                                    overflow_writer.insert(BufWriter::new(overflow_file));
-                                overflow_writer.write_all(&data)?;
-                            } else if progress + data.len() as u64 > SPLIT_SIZE {
+                            if data_end_pos > SPLIT_SIZE {
                                 let overflow_path = if out_format == nod::common::Format::Wbfs {
                                     parent.join(&id).with_extension("wbf1")
                                 } else {
@@ -158,7 +149,7 @@ impl ConvertForWiiOperation {
                                     overflow_writer.insert(BufWriter::new(overflow_file));
 
                                 #[allow(clippy::cast_possible_truncation)]
-                                let split_pos = (SPLIT_SIZE - progress) as usize;
+                                let split_pos = (data_end_pos - SPLIT_SIZE) as usize;
                                 let split_data = data.split_to(split_pos);
                                 out_writer.write_all(&split_data)?;
                                 overflow_writer.write_all(&data)?;
