@@ -14,9 +14,9 @@ use lucide_icons::iced::{icon_check, icon_info, icon_triangle_alert, icon_x};
 
 pub fn view(notification: &Notification) -> Element<'_, Message> {
     let icon = match notification.level() {
-        NotificationLevel::Info => icon_info(),
-        NotificationLevel::Error => icon_triangle_alert(),
-        NotificationLevel::Success => icon_check(),
+        NotificationLevel::Info => icon_info().style(text::primary),
+        NotificationLevel::Error => icon_triangle_alert().style(text::danger),
+        NotificationLevel::Success => icon_check().style(text::success),
     };
 
     container(
