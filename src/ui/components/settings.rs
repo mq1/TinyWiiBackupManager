@@ -247,5 +247,6 @@ pub fn view(state: &State) -> Element<'_, Message> {
         )
         .spacing(1)
     ]
+    .height(Length::Fill)
     .into()
 }

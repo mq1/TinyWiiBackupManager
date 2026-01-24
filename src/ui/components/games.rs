@@ -37,5 +37,6 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 viewport.absolute_offset()
             ))
     ]
+    .height(Length::Fill)
     .into()
 }

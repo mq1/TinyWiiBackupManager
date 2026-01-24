@@ -3,7 +3,7 @@
 
 use crate::{config::ViewAs, message::Message, state::State, ui::components};
 use iced::{
-    Element, padding,
+    Element, Length, padding,
     widget::{column, row, scrollable, text},
 };
 use lucide_icons::iced::icon_store;
@@ -32,8 +32,11 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 viewport.absolute_offset()
             ))
         ]
+        .height(Length::Fill)
         .into()
     } else {
-        column![components::osc_toolbar::view(state), scrollable(content)].into()
+        column![components::osc_toolbar::view(state), scrollable(content)]
+            .height(Length::Fill)
+            .into()
     }
 }

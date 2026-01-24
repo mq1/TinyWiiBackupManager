@@ -24,14 +24,12 @@ impl TransferOperation {
 
 pub struct TransferQueue {
     queue: VecDeque<TransferOperation>,
-    status: String,
 }
 
 impl TransferQueue {
     pub fn new() -> Self {
         Self {
             queue: VecDeque::new(),
-            status: "Idle".to_string(),
         }
     }
 
@@ -70,18 +68,5 @@ impl TransferQueue {
 
     pub fn has_pending_operations(&self) -> bool {
         !self.queue.is_empty()
-    }
-
-    pub fn status(&self) -> &str {
-        &self.status
-    }
-
-    pub fn set_status(&mut self, status: String) {
-        self.status = status;
-    }
-
-    pub fn reset_status(&mut self) {
-        self.status.clear();
-        self.status.push_str("Idle");
     }
 }

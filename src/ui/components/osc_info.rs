@@ -114,7 +114,8 @@ pub fn view<'a>(state: &State, app: &'a OscAppMeta) -> Element<'a, Message> {
         .padding(padding::top(5))
     ]
     .spacing(5)
-    .padding(10);
+    .padding(10)
+    .height(Length::Fill);
 
     match state.get_osc_app_icon(app) {
         Some(icon) => stack![

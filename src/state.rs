@@ -47,6 +47,7 @@ pub struct State {
     pub hbc_filter: String,
     pub new_version: Option<Version>,
     pub transfer_queue: TransferQueue,
+    pub status: String,
 
     #[allow(clippy::struct_field_names)]
     pub half_sec_anim_state: bool,
@@ -82,6 +83,7 @@ impl State {
             hbc_filter: String::new(),
             new_version: None,
             transfer_queue: TransferQueue::new(),
+            status: String::new(),
 
             half_sec_anim_state: false,
 
@@ -418,7 +420,7 @@ impl State {
             }
             Message::Transferred(Ok(msg)) => {
                 self.notifications.success(msg);
-                self.transfer_queue.reset_status();
+                self.status.clear();
 
                 Task::batch(vec![
                     self.update(Message::StartTransfer),
@@ -465,7 +467,7 @@ impl State {
                 Task::none()
             }
             Message::UpdateTransferStatus(status) => {
-                self.transfer_queue.set_status(status);
+                self.status = status;
                 self.half_sec_anim_state = !self.half_sec_anim_state;
                 Task::none()
             }

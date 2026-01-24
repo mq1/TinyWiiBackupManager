@@ -56,7 +56,8 @@ pub fn view<'a>(_state: &State, app: &'a HbcApp) -> Element<'a, Message> {
         .padding(padding::top(5))
     ]
     .spacing(5)
-    .padding(10);
+    .padding(10)
+    .height(Length::Fill);
 
     match app.image_path() {
         Some(image_path) => stack![

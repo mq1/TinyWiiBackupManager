@@ -4,7 +4,7 @@
 use crate::{message::Message, state::State, ui::style};
 use iced::{
     Alignment, Element, Length,
-    widget::{Column, button, column, row, rule, scrollable, text},
+    widget::{Column, button, column, row, scrollable, text},
 };
 use lucide_icons::iced::{icon_hard_drive_download, icon_x};
 
@@ -31,9 +31,8 @@ pub fn view(state: &State) -> Element<'_, Message> {
         ]
         .spacing(5),
         scrollable(col).width(Length::Fill).height(Length::Fill),
-        rule::horizontal(1),
-        text(state.transfer_queue.status())
     ]
+    .height(Length::Fill)
     .spacing(10)
     .padding(10)
     .into()

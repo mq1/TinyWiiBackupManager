@@ -55,8 +55,11 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 viewport.absolute_offset()
             ))
         ]
+        .height(Length::Fill)
         .into()
     } else {
-        column![components::hbc_toolbar::view(state), scrollable(content)].into()
+        column![components::hbc_toolbar::view(state), scrollable(content)]
+            .height(Length::Fill)
+            .into()
     }
 }
