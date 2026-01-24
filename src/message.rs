@@ -9,15 +9,18 @@ use crate::{
     hbc::{app_list::HbcAppList, osc::OscAppMeta, osc_list::OscAppList},
     ui::Screen,
 };
-use iced::widget::{Id, operation::AbsoluteOffset};
+use iced::{
+    Event,
+    widget::{Id, operation::AbsoluteOffset},
+};
 use semver::Version;
-use std::{ffi::OsString, path::PathBuf};
+use std::{ffi::OsString, path::PathBuf, sync::Arc};
 
 #[derive(Debug, Clone)]
 pub enum Message {
     // Notification helpers
-    GenericResult(Result<String, String>),
-    EmptyResult(Result<(), String>),
+    GenericResult(Result<String, Arc<anyhow::Error>>),
+    EmptyResult(Result<(), Arc<anyhow::Error>>),
 
     // Navigation
     NavTo(Screen),
@@ -25,8 +28,7 @@ pub enum Message {
 
     // Misc
     RefreshGamesAndApps,
-    GotWiitdbDatafile(Result<Datafile, String>),
-    NotificationTick,
+    GotWiitdbDatafile(Result<Datafile, Arc<anyhow::Error>>),
     CloseNotification(usize),
     SelectMountPoint,
     GotDriveUsage(String),
@@ -35,11 +37,12 @@ pub enum Message {
     MountPointChosen(Option<PathBuf>),
     OpenThat(OsString),
     AskDeleteDirConfirmation(PathBuf),
-    DirectoryDeleted(Result<(), String>),
-    GotLatestVersion(Result<Option<Version>, String>),
+    DirectoryDeleted(Result<(), Arc<anyhow::Error>>),
+    GotLatestVersion(Result<Option<Version>, Arc<anyhow::Error>>),
+    Event(Event),
 
     // Games
-    GotGameList(Result<GameList, String>),
+    GotGameList(Result<GameList, Arc<anyhow::Error>>),
     UpdateGamesFilter(String),
     ShowWii(bool),
     ShowGc(bool),
@@ -48,23 +51,23 @@ pub enum Message {
     AddGamesToTransferStack(Vec<PathBuf>),
     StartSingleGameTransfer,
     CancelTransfer(usize),
-    GotDiscInfo(Result<DiscInfo, String>),
+    GotDiscInfo(Result<DiscInfo, Arc<anyhow::Error>>),
     SortGamesAndApps(SortBy),
     UpdateTransferStatus(String),
 
     // HBC Apps
-    GotHbcAppList(Result<HbcAppList, String>),
+    GotHbcAppList(Result<HbcAppList, Arc<anyhow::Error>>),
     ChooseHbcAppsToAdd,
     AddHbcApps(Box<[PathBuf]>),
-    HbcAppsInstalled(Result<String, String>),
+    HbcAppsInstalled(Result<String, Arc<anyhow::Error>>),
     UpdateHbcFilter(String),
 
     // OSC Apps
-    GotOscAppList(Result<OscAppList, String>),
+    GotOscAppList(Result<OscAppList, Arc<anyhow::Error>>),
     UpdateOscFilter(String),
     AskInstallOscApp(OscAppMeta),
     InstallOscApp((OscAppMeta, bool)),
-    AppInstalled(Result<String, String>),
+    AppInstalled(Result<String, Arc<anyhow::Error>>),
 
     // Toolbox
     DownloadWiitdbToDrive,

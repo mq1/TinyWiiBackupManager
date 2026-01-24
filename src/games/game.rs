@@ -8,12 +8,11 @@ use crate::{
         wiitdb::{Datafile, GameInfo},
     },
     message::Message,
-    util,
 };
 use derive_getters::Getters;
 use iced::{Task, futures::TryFutureExt};
 use size::Size;
-use std::{ffi::OsString, path::PathBuf};
+use std::{ffi::OsString, path::PathBuf, sync::Arc};
 
 #[derive(Debug, Clone, Getters)]
 pub struct Game {
@@ -36,7 +35,7 @@ impl PartialEq for Game {
 impl Eq for Game {}
 
 impl Game {
-    pub async fn from_path(path: PathBuf) -> Option<Self> {
+    pub fn maybe_from_path(path: PathBuf) -> Option<Self> {
         if !path.is_dir() {
             return None;
         }
@@ -51,11 +50,11 @@ impl Game {
         let title = title_str.to_string();
         let id = GameID::try_from(id_str).ok()?;
 
-        let size = util::get_dir_size(path.clone()).await.unwrap_or_default();
+        let size = fs_extra::dir::get_size(&path).unwrap_or(0);
 
         Some(Self {
             path,
-            size,
+            size: Size::from_bytes(size),
             title,
             id,
             disc_info: None,
@@ -82,7 +81,7 @@ impl Game {
         let path = self.path.clone();
 
         Task::perform(
-            DiscInfo::from_game_dir(path).map_err(|e| e.to_string()),
+            async { DiscInfo::from_game_dir(path) }.map_err(Arc::new),
             Message::GotDiscInfo,
         )
     }

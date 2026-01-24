@@ -1,44 +1,41 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::util;
 use anyhow::Result;
-use minreq::Response;
-use smol::fs;
-use std::path::Path;
+use std::{fs, io::Cursor, path::Path};
+use zip::ZipArchive;
 
 const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 
-pub async fn get(url: String) -> Result<Vec<u8>> {
-    smol::unblock(move || -> Result<Vec<u8>> {
-        minreq::get(&url)
-            .with_header("User-Agent", USER_AGENT)
-            .send()
-            .map(Response::into_bytes)
-            .map_err(Into::into)
-    })
-    .await
+pub fn get(url: &str) -> Result<Vec<u8>> {
+    let resp = minreq::get(url)
+        .with_header("User-Agent", USER_AGENT)
+        .send()?;
+
+    let bytes = resp.into_bytes();
+    Ok(bytes)
 }
 
-pub async fn get_string(url: String) -> Result<String> {
-    let bytes = get(url).await?;
-    let s = std::str::from_utf8(&bytes)?;
-    Ok(s.to_string())
+pub fn get_string(url: &str) -> Result<String> {
+    let resp = minreq::get(url)
+        .with_header("User-Agent", USER_AGENT)
+        .send()?;
+
+    let string = resp.as_str()?.to_string();
+    Ok(string)
 }
 
-pub async fn download_file(url: String, dest_path: &Path) -> Result<()> {
-    let body = get(url).await?;
-    fs::write(dest_path, body).await?;
+/// Works well for small files
+pub fn download_file(url: &str, dest_path: &Path) -> Result<()> {
+    let body = get(url)?;
+    fs::write(dest_path, body)?;
     Ok(())
 }
 
-pub async fn download_and_extract_zip(url: String, dest_dir: &Path) -> Result<()> {
-    println!(
-        "Downloading and extracting \"{}\" into \"{}\"",
-        &url,
-        dest_dir.display()
-    );
-
-    let body = get(url).await?;
-    util::extract_zip_bytes(body, dest_dir).await
+/// Works well for small files
+pub fn download_and_extract_zip(url: &str, dest_dir: &Path) -> Result<()> {
+    let body = get(url)?;
+    let mut archive = ZipArchive::new(Cursor::new(body))?;
+    archive.extract(dest_dir)?;
+    Ok(())
 }

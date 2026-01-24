@@ -6,23 +6,20 @@ use iced::{
     Subscription,
     time::{self, Duration},
 };
-use std::fmt::Display;
-
-#[inline]
-pub fn notifications_subscription(_state: &State) -> Subscription<Message> {
-    time::every(Duration::from_millis(500)).map(|_| Message::NotificationTick)
-}
+use std::{fmt::Display, time::Instant};
 
 pub struct Notifications {
     last_id: usize,
     list: Vec<Notification>,
+    before: Instant,
 }
 
 impl Notifications {
-    pub const fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             last_id: 0,
             list: Vec::new(),
+            before: Instant::now(),
         }
     }
 
@@ -36,15 +33,17 @@ impl Notifications {
         self.list.iter().rev()
     }
 
-    /// 1/2 of a second has passed
-    pub fn tick(&mut self) {
+    pub fn update(&mut self, now: Instant) {
+        let time_passed = now.duration_since(self.before);
+        self.before = now;
+
         for notification in &mut self.list {
-            if notification.life != u8::MAX {
-                notification.life -= 1;
+            if notification.life != Duration::MAX {
+                notification.life = notification.life.saturating_sub(time_passed);
             }
         }
 
-        self.list.retain(|n| n.life != 0);
+        self.list.retain(|n| !n.life.is_zero());
     }
 
     pub fn close(&mut self, id: usize) {
@@ -64,18 +63,18 @@ impl Notifications {
             id: self.last_id,
             text: text.to_string(),
             level: NotificationLevel::Info,
-            life: 20, // 10 seconds
+            life: Duration::from_secs(10),
         });
     }
 
-    pub fn error(&mut self, text: impl Display) {
+    pub fn error(&mut self, e: impl AsRef<anyhow::Error>) {
         self.last_id += 1;
 
         self.list.push(Notification {
             id: self.last_id,
-            text: text.to_string(),
+            text: e.as_ref().to_string(),
             level: NotificationLevel::Error,
-            life: u8::MAX, // infinite duration
+            life: Duration::MAX, // infinite duration
         });
     }
 
@@ -86,7 +85,7 @@ impl Notifications {
             id: self.last_id,
             text: text.to_string(),
             level: NotificationLevel::Success,
-            life: u8::MAX, // infinite duration
+            life: Duration::MAX, // infinite duration
         });
     }
 }
@@ -95,12 +94,12 @@ pub struct Notification {
     pub id: usize,
     pub text: String,
     pub level: NotificationLevel,
-    life: u8,
+    life: Duration,
 }
 
 impl Notification {
     pub const fn get_life_str(&self) -> &'static str {
-        match self.life {
+        match self.life.as_millis() / 500 {
             20 => "____________________",
             19 => "___________________",
             18 => "__________________",

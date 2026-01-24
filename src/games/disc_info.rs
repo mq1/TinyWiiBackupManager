@@ -7,9 +7,7 @@ use derive_getters::Getters;
 use nod::common::{Compression, Format, PartitionKind};
 use nod::read::{DiscOptions, DiscReader, PartitionEncryption, PartitionOptions};
 use size::Size;
-use smol::fs;
-use smol::stream::StreamExt;
-use std::ffi::OsStr;
+use std::fs;
 use std::path::{Path, PathBuf};
 
 const DISC_OPTS: DiscOptions = DiscOptions {
@@ -65,23 +63,18 @@ pub struct DiscInfo {
     is_worth_stripping: bool,
 }
 
-pub async fn get_main_file(game_dir: &Path) -> Result<PathBuf> {
-    let mut entries = fs::read_dir(game_dir).await?;
-
-    while let Some(entry) = entries.try_next().await? {
-        let entry_path = entry.path();
-
-        #[allow(clippy::case_sensitive_file_extension_comparisons)]
-        if entry_path
-            .file_name()
-            .and_then(OsStr::to_str)
-            .is_some_and(|file_name| {
-                file_name.ends_with(".wbfs")
-                    || file_name.ends_with(".ciso")
-                    || (file_name.ends_with(".iso") && !file_name.ends_with(".part1.iso"))
-            })
+pub fn get_main_disc_file_in_dir(dir: &Path) -> Result<PathBuf> {
+    let entries = fs::read_dir(dir)?;
+    for entry in entries.filter_map(Result::ok) {
+        if let Ok(file_type) = entry.file_type()
+            && file_type.is_file()
+            && let Some(filename) = entry.file_name().to_str()
+            && !filename.ends_with(".part1.iso")
+            && (filename.ends_with(".wbfs")
+                || filename.ends_with(".ciso")
+                || (filename.ends_with(".iso")))
         {
-            return Ok(entry_path);
+            return Ok(entry.path());
         }
     }
 
@@ -89,12 +82,12 @@ pub async fn get_main_file(game_dir: &Path) -> Result<PathBuf> {
 }
 
 impl DiscInfo {
-    pub async fn from_game_dir(game_dir: PathBuf) -> Result<Self> {
+    pub fn from_game_dir(game_dir: PathBuf) -> Result<Self> {
         if !game_dir.is_dir() {
             bail!("Not a directory");
         }
 
-        let disc_path = get_main_file(&game_dir).await?;
+        let disc_path = get_main_disc_file_in_dir(&game_dir)?;
         Self::from_path(disc_path)
     }
 

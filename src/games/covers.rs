@@ -12,9 +12,10 @@ use iced::{Task, futures::TryFutureExt};
 use std::{
     fs,
     path::{Path, PathBuf},
+    sync::Arc,
 };
 
-async fn cache_cover3d(id: GameID, cache_dir: &Path) -> Result<()> {
+fn cache_cover3d(id: GameID, cache_dir: &Path) -> Result<()> {
     let path = cache_dir.join(id.as_str()).with_extension("png");
     if path.exists() {
         return Ok(());
@@ -26,12 +27,12 @@ async fn cache_cover3d(id: GameID, cache_dir: &Path) -> Result<()> {
         id.as_str()
     );
 
-    http_util::download_file(url, &path).await?;
+    http_util::download_file(&url, &path)?;
 
     Ok(())
 }
 
-async fn download_cover3d(id: GameID, mount_point: &Path) -> Result<()> {
+fn download_cover3d(id: GameID, mount_point: &Path) -> Result<()> {
     let images_dir = mount_point.join("apps").join("usbloader_gx").join("images");
     fs::create_dir_all(&images_dir)?;
 
@@ -46,12 +47,12 @@ async fn download_cover3d(id: GameID, mount_point: &Path) -> Result<()> {
         id.as_str()
     );
 
-    http_util::download_file(url, &path).await?;
+    http_util::download_file(&url, &path)?;
 
     Ok(())
 }
 
-async fn download_cover2d(id: GameID, mount_point: &Path) -> Result<()> {
+fn download_cover2d(id: GameID, mount_point: &Path) -> Result<()> {
     let images_dir = mount_point
         .join("apps")
         .join("usbloader_gx")
@@ -70,12 +71,12 @@ async fn download_cover2d(id: GameID, mount_point: &Path) -> Result<()> {
         id.as_str()
     );
 
-    http_util::download_file(url, &path).await?;
+    http_util::download_file(&url, &path)?;
 
     Ok(())
 }
 
-async fn download_coverfull(id: GameID, mount_point: &Path) -> Result<()> {
+fn download_coverfull(id: GameID, mount_point: &Path) -> Result<()> {
     let images_dir = mount_point
         .join("apps")
         .join("usbloader_gx")
@@ -94,12 +95,12 @@ async fn download_coverfull(id: GameID, mount_point: &Path) -> Result<()> {
         id.as_str()
     );
 
-    http_util::download_file(url, &path).await?;
+    http_util::download_file(&url, &path)?;
 
     Ok(())
 }
 
-async fn download_disc_cover(id: GameID, mount_point: &Path) -> Result<()> {
+fn download_disc_cover(id: GameID, mount_point: &Path) -> Result<()> {
     let images_dir = mount_point
         .join("apps")
         .join("usbloader_gx")
@@ -118,12 +119,12 @@ async fn download_disc_cover(id: GameID, mount_point: &Path) -> Result<()> {
         id.as_str()
     );
 
-    http_util::download_file(url, &path).await?;
+    http_util::download_file(&url, &path)?;
 
     Ok(())
 }
 
-async fn download_wiiflow_boxcover(id: GameID, mount_point: &Path) -> Result<()> {
+fn download_wiiflow_boxcover(id: GameID, mount_point: &Path) -> Result<()> {
     let cover_dir = mount_point.join("wiiflow").join("boxcovers");
     fs::create_dir_all(&cover_dir)?;
 
@@ -138,12 +139,12 @@ async fn download_wiiflow_boxcover(id: GameID, mount_point: &Path) -> Result<()>
         id.as_str()
     );
 
-    http_util::download_file(url, &path).await?;
+    http_util::download_file(&url, &path)?;
 
     Ok(())
 }
 
-async fn download_wiiflow_cover(id: GameID, mount_point: &Path) -> Result<()> {
+fn download_wiiflow_cover(id: GameID, mount_point: &Path) -> Result<()> {
     let cover_dir = mount_point.join("wiiflow").join("covers");
     fs::create_dir_all(&cover_dir)?;
 
@@ -158,7 +159,7 @@ async fn download_wiiflow_cover(id: GameID, mount_point: &Path) -> Result<()> {
         id.as_str()
     );
 
-    http_util::download_file(url, &path).await?;
+    http_util::download_file(&url, &path)?;
 
     Ok(())
 }
@@ -168,17 +169,17 @@ pub fn get_cache_cover3ds_task(state: &State) -> Task<Message> {
     let game_list = state.game_list.clone();
 
     Task::perform(
-        cache_cover3ds(cache_dir, game_list).map_err(|e| e.to_string()),
+        async { cache_cover3ds(cache_dir, game_list) }.map_err(Arc::new),
         Message::EmptyResult,
     )
 }
 
 // ignores errors, no popup notifications
-async fn cache_cover3ds(cache_dir: PathBuf, game_list: GameList) -> Result<()> {
+fn cache_cover3ds(cache_dir: PathBuf, game_list: GameList) -> Result<()> {
     fs::create_dir_all(&cache_dir)?;
 
     for game in game_list.iter() {
-        let _ = cache_cover3d(game.id(), &cache_dir).await;
+        let _ = cache_cover3d(game.id(), &cache_dir);
     }
 
     Ok(())

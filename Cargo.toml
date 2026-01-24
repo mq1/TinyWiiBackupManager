@@ -16,14 +16,14 @@ LegalCopyright = "Copyright © 2026 Manuel Quarneti. Licensed under GPL-3.0-only
 
 [dependencies]
 iced = { version = "0.14", default-features = false, features = [
-  "smol",
+  "thread-pool",
   "sipper",
   "image-without-codecs",
   "linux-theme-detection",
   "x11",
   "wayland",
 ] }
-lucide-icons = { version = "0.562", features = ["iced"] }
+lucide-icons = { version = "0.563", features = ["iced"] }
 image = { version = "0.25", default-features = false, features = ["png"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
@@ -43,14 +43,17 @@ hex = "0.4"
 itertools = "0.14"
 time = { version = "0.3", features = ["macros", "parsing", "serde"] }
 sanitize-filename = "0.7.0-beta"
-smol = "2"
-async_zip = { version = "0.0.18", features = ["deflate"] }
+zip = { version = "7.2", default-features = false, features = [
+  "deflate-flate2-zlib-rs",
+] }
 fuzzy-matcher = "0.3"
 zstd = { version = "0.13", features = ["fat-lto"] }
 minreq = "2.14"
 strum = "0.27"
 strum_macros = "0.27"
 derive-getters = "0.5"
+walkdir = "2.5"
+fs_extra = "1.3"
 
 [target.'cfg(not(target_vendor = "pc"))'.dependencies.native-dialog]
 version = "0.9"
@@ -78,7 +81,7 @@ default-features = false
 features = ["std", "parking_lot", "dx12"]
 
 [build-dependencies]
-lucide-icons = "0.562"
+lucide-icons = "0.563"
 zstd = "0.13"
 
 [features]

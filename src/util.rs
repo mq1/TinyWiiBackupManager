@@ -4,13 +4,10 @@
 use crate::{message::Message, state::State};
 use anyhow::{Result, anyhow};
 use iced::Task;
-use size::Size;
-use smol::{
-    fs::{self, File},
-    io::{self, BufReader},
-    stream::StreamExt,
+use std::{
+    fs,
+    path::{Path, PathBuf},
 };
-use std::path::{Path, PathBuf};
 use sysinfo::Disks;
 use tempfile::NamedTempFile;
 
@@ -89,17 +86,16 @@ pub fn can_write_over_4gb(mount_point: &Path) -> bool {
 }
 
 #[cfg(target_os = "macos")]
-pub async fn run_dot_clean(mount_point: PathBuf) -> Result<()> {
-    let status = smol::process::Command::new("dot_clean")
+pub fn run_dot_clean(mount_point: PathBuf) -> Result<String> {
+    let status = std::process::Command::new("dot_clean")
         .arg("-m")
         .arg(mount_point)
-        .status()
-        .await;
+        .status();
 
     match status {
         Ok(status) => {
             if status.success() {
-                Ok(())
+                Ok("dot_clean successful".to_string())
             } else {
                 Err(anyhow!("dot_clean failed"))
             }
@@ -108,137 +104,20 @@ pub async fn run_dot_clean(mount_point: PathBuf) -> Result<()> {
     }
 }
 
-pub async fn get_files_and_dirs(base_dir: &Path) -> io::Result<(Vec<PathBuf>, Vec<PathBuf>)> {
+pub fn get_files_and_dirs(base_dir: &Path) -> Result<(Vec<PathBuf>, Vec<PathBuf>)> {
     let mut files = Vec::new();
     let mut dirs = Vec::new();
 
-    let mut entries = fs::read_dir(base_dir).await?;
-
-    while let Some(entry) = entries.try_next().await? {
-        let path = entry.path();
-
-        if path.is_dir() {
-            dirs.push(path);
-        } else if path.is_file() {
-            files.push(path);
+    let entries = fs::read_dir(base_dir)?;
+    for entry in entries.filter_map(Result::ok) {
+        if let Ok(file_type) = entry.file_type() {
+            if file_type.is_dir() {
+                dirs.push(entry.path());
+            } else if file_type.is_file() {
+                files.push(entry.path());
+            }
         }
     }
 
     Ok((files, dirs))
-}
-
-pub async fn extract_zip(zip_path: &Path, dest_dir: &Path) -> Result<()> {
-    println!(
-        "Extracting \"{}\" into \"{}\"",
-        zip_path.display(),
-        dest_dir.display()
-    );
-
-    let zip_file_reader = BufReader::new(File::open(zip_path).await?);
-    let mut zip = async_zip::base::read::seek::ZipFileReader::new(zip_file_reader).await?;
-
-    for i in 0..zip.file().entries().len() {
-        let entry = zip
-            .file()
-            .entries()
-            .get(i)
-            .ok_or_else(|| anyhow!("Failed to get entry"))?;
-
-        let path = dest_dir.join(sanitize_file_path(entry.filename().as_str()?));
-
-        let entry_is_dir = entry.dir()?;
-
-        let mut entry_reader = zip.reader_without_entry(i).await?;
-
-        if entry_is_dir {
-            if !path.exists() {
-                fs::create_dir_all(&path).await?;
-            }
-        } else {
-            let parent = path
-                .parent()
-                .ok_or_else(|| anyhow!("Failed to get parent dir"))?;
-
-            if !parent.is_dir() {
-                fs::create_dir_all(parent).await?;
-            }
-
-            let mut file = File::create(&path).await?;
-            io::copy(&mut entry_reader, &mut file).await?;
-        }
-    }
-
-    Ok(())
-}
-
-pub async fn extract_zip_bytes(zip_bytes: Vec<u8>, dest_dir: &Path) -> Result<()> {
-    println!("Extracting zip into \"{}\"", dest_dir.display());
-
-    let zip = async_zip::base::read::mem::ZipFileReader::new(zip_bytes).await?;
-
-    for i in 0..zip.file().entries().len() {
-        let entry = zip
-            .file()
-            .entries()
-            .get(i)
-            .ok_or_else(|| anyhow!("Failed to get entry"))?;
-
-        let path = dest_dir.join(sanitize_file_path(entry.filename().as_str()?));
-
-        let entry_is_dir = entry.dir()?;
-
-        let mut entry_reader = zip.reader_without_entry(i).await?;
-
-        if entry_is_dir {
-            if !path.exists() {
-                fs::create_dir_all(&path).await?;
-            }
-        } else {
-            let parent = path
-                .parent()
-                .ok_or_else(|| anyhow!("Failed to get parent dir"))?;
-
-            if !parent.is_dir() {
-                fs::create_dir_all(parent).await?;
-            }
-
-            let mut file = File::create(&path).await?;
-            io::copy(&mut entry_reader, &mut file).await?;
-        }
-    }
-
-    Ok(())
-}
-
-pub async fn get_dir_size(path: PathBuf) -> io::Result<Size> {
-    let mut bytes = 0u64;
-    let mut stack = vec![path];
-
-    while let Some(current_path) = stack.pop() {
-        let mut entries = fs::read_dir(&current_path).await?;
-
-        while let Some(entry) = entries.try_next().await? {
-            let entry_path = entry.path();
-
-            if entry_path.is_dir() {
-                stack.push(entry_path);
-            } else if entry_path.is_file() {
-                let meta = entry.metadata().await?;
-                bytes += meta.len();
-            }
-        }
-    }
-
-    Ok(Size::from_bytes(bytes))
-}
-
-/// Returns a relative path without reserved names, redundant separators, ".", or "..".
-fn sanitize_file_path(path: &str) -> PathBuf {
-    // Replaces backwards slashes
-    path.replace('\\', "/")
-        // Sanitizes each component
-        .split('/')
-        .map(sanitize_filename::sanitize)
-        .map(String::from)
-        .collect()
 }

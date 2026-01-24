@@ -4,10 +4,12 @@
 use crate::games;
 use crate::games::extensions::SUPPORTED_INPUT_EXTENSIONS;
 use crate::hbc::osc::OscAppMeta;
+use anyhow::Result;
 use iced::Window;
 use native_dialog::{DialogBuilder, MessageLevel};
 use std::ffi::OsStr;
 use std::fmt::Write;
+use std::fs;
 use std::path::{Path, PathBuf};
 
 pub fn choose_mount_point(window: &dyn Window) -> Option<PathBuf> {
@@ -28,7 +30,7 @@ pub fn choose_games(window: &dyn Window) -> Vec<PathBuf> {
         .show()
         .unwrap_or_default()
         .into_iter()
-        .filter(|p| smol::block_on(games::util::is_valid_disc_file(p)))
+        .filter(|p| games::util::is_valid_disc_file(p))
         .collect()
 }
 
@@ -41,7 +43,7 @@ pub fn choose_src_dir(window: &dyn Window) -> Vec<PathBuf> {
         .unwrap_or_default();
 
     match dir {
-        Some(dir) => smol::block_on(games::util::scan_for_discs(dir)).unwrap_or_default(),
+        Some(dir) => games::util::scan_for_discs(dir),
         None => Vec::new(),
     }
 }
@@ -82,7 +84,7 @@ pub fn choose_file_to_push(window: &dyn Window) -> Option<PathBuf> {
         .unwrap_or_default()
 }
 
-pub fn delete_dir(window: &dyn Window, path: &Path) -> Result<(), String> {
+pub fn delete_dir(window: &dyn Window, path: &Path) -> Result<()> {
     let yes = DialogBuilder::message()
         .set_title("Delete directory")
         .set_owner(&window)
@@ -96,7 +98,7 @@ pub fn delete_dir(window: &dyn Window, path: &Path) -> Result<(), String> {
         .unwrap_or_default();
 
     if yes {
-        std::fs::remove_dir_all(path).map_err(|e| e.to_string())?;
+        fs::remove_dir_all(path)?;
     }
 
     Ok(())
@@ -206,7 +208,7 @@ pub fn confirm_install_osc_app(window: &dyn Window, app: OscAppMeta) -> (OscAppM
     let yes = DialogBuilder::message()
         .set_title("Install OSC app")
         .set_owner(&window)
-        .set_text(format!("Are you sure you want to install {}?", &app.name))
+        .set_text(format!("Are you sure you want to install {}?", app.name()))
         .set_level(MessageLevel::Info)
         .confirm()
         .show()

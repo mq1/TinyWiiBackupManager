@@ -10,10 +10,10 @@ use crate::{
     },
     message::Message,
 };
-use anyhow::Result;
+use anyhow::{Result, bail};
 use iced::{
     Task,
-    futures::TryFutureExt,
+    futures::{TryFutureExt, executor::block_on},
     task::{Straw, sipper},
 };
 use nod::{
@@ -24,6 +24,7 @@ use std::{
     fs::File,
     io::{BufWriter, Seek, Write},
     path::PathBuf,
+    sync::Arc,
 };
 
 #[derive(Debug, Clone)]
@@ -44,27 +45,25 @@ impl ArchiveOperation {
         }
     }
 
-    pub fn run(self) -> impl Straw<String, String, String> {
+    pub fn run(self) -> impl Straw<String, String, anyhow::Error> {
         sipper(async move |mut sender| {
-            let disc_path = disc_info::get_main_file(self.source.path())
-                .await
-                .map_err(|e| e.to_string())?;
+            let disc_path = disc_info::get_main_disc_file_in_dir(self.source.path())?;
 
             let Some(out_format) = ext_to_format(self.dest.extension()) else {
-                return Err("Unsupported output format".to_string());
+                bail!("Unsupported extension");
             };
 
-            let out_file = File::create(&self.dest).map_err(|e| e.to_string())?;
+            let out_file = File::create(&self.dest)?;
             let mut out_writer = BufWriter::new(out_file);
 
             let disc_opts = DiscOptions {
                 partition_encryption: PartitionEncryption::Original,
                 preloader_threads: 1,
             };
-            let disc_reader = DiscReader::new(disc_path, &disc_opts).map_err(|e| e.to_string())?;
+            let disc_reader = DiscReader::new(disc_path, &disc_opts)?;
 
             let out_opts = format_to_opts(out_format);
-            let disc_writer = DiscWriter::new(disc_reader, &out_opts).map_err(|e| e.to_string())?;
+            let disc_writer = DiscWriter::new(disc_reader, &out_opts)?;
 
             let process_opts = ProcessOptions {
                 processor_threads: (num_cpus::get() - 1).max(1),
@@ -75,31 +74,27 @@ impl ArchiveOperation {
                 scrub: ScrubLevel::None,
             };
 
-            let finalization = disc_writer
-                .process(
-                    |data, progress, total| {
-                        out_writer.write_all(&data)?;
+            let finalization = disc_writer.process(
+                |data, progress, total| {
+                    out_writer.write_all(&data)?;
 
-                        let _ = smol::block_on(sender.send(format!(
-                            "Archiving {}  {:02}%",
-                            self.source.title(),
-                            progress * 100 / total
-                        )));
+                    block_on(sender.send(format!(
+                        "Archiving {}  {:02}%",
+                        self.source.title(),
+                        progress * 100 / total
+                    )));
 
-                        Ok(())
-                    },
-                    &process_opts,
-                )
-                .map_err(|e| e.to_string())?;
+                    Ok(())
+                },
+                &process_opts,
+            )?;
 
             if !finalization.header.is_empty() {
-                out_writer.rewind();
-                out_writer
-                    .write_all(&finalization.header)
-                    .map_err(|e| e.to_string())?;
+                out_writer.rewind()?;
+                out_writer.write_all(&finalization.header)?;
             }
 
-            out_writer.flush().map_err(|e| e.to_string())?;
+            out_writer.flush()?;
 
             let msg = format!("Archived {}", self.source.title());
             Ok(msg)
