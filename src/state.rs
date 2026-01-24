@@ -49,9 +49,6 @@ pub struct State {
     pub transfer_queue: TransferQueue,
     pub status: String,
 
-    #[allow(clippy::struct_field_names)]
-    pub half_sec_anim_state: bool,
-
     // scroll positions
     pub games_scroll_id: Id,
     pub games_scroll_offset: AbsoluteOffset,
@@ -84,8 +81,6 @@ impl State {
             new_version: None,
             transfer_queue: TransferQueue::new(),
             status: String::new(),
-
-            half_sec_anim_state: false,
 
             // scroll positions
             games_scroll_id: Id::unique(),
@@ -468,7 +463,6 @@ impl State {
             }
             Message::UpdateTransferStatus(status) => {
                 self.status = status;
-                self.half_sec_anim_state = !self.half_sec_anim_state;
                 Task::none()
             }
             Message::ChooseArchiveDest(game) => window::oldest()

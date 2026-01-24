@@ -13,9 +13,8 @@ use iced::{
     widget::{Column, button, container, space},
 };
 use lucide_icons::iced::{
-    icon_arrow_down_0_1, icon_arrow_down_1_0, icon_cloud_backup, icon_gamepad_2, icon_hard_drive,
-    icon_info, icon_moon, icon_settings, icon_store, icon_sun, icon_sun_moon, icon_tool_case,
-    icon_waves,
+    icon_arrow_down_0_1, icon_cloud_backup, icon_gamepad_2, icon_hard_drive, icon_info, icon_moon,
+    icon_settings, icon_store, icon_sun, icon_sun_moon, icon_tool_case, icon_waves,
 };
 
 pub fn view(state: &State) -> Element<'_, Message> {
@@ -68,14 +67,8 @@ pub fn view(state: &State) -> Element<'_, Message> {
         .push(space::vertical());
 
     if state.transfer_queue.has_pending_operations() {
-        let icon = if state.half_sec_anim_state {
-            icon_arrow_down_0_1()
-        } else {
-            icon_arrow_down_1_0()
-        };
-
         col = col.push(
-            button(icon.size(20).center())
+            button(icon_arrow_down_0_1().size(20).center())
                 .style(style::get_nav_button_style(
                     state.screen == Screen::Transfer,
                 ))
