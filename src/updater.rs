@@ -16,11 +16,7 @@ pub const LATEST_VERSION_DOWNLOAD_URL: &str =
     concat!(env!("CARGO_PKG_REPOSITORY"), "/releases/latest");
 
 fn check() -> Result<Option<Version>> {
-    let body = if cfg!(debug_assertions) {
-        "999.0.0-test".to_string()
-    } else {
-        http_util::get_string(VERSION_URL)?
-    };
+    let body = http_util::get_string(VERSION_URL)?;
 
     let latest_version = Version::parse(&body)?;
     let current_version = Version::parse(env!("CARGO_PKG_VERSION"))?;
