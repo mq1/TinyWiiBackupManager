@@ -15,7 +15,7 @@ mod ui;
 mod updater;
 mod util;
 
-use crate::{notifications::notifications_subscription, state::State};
+use crate::state::State;
 use iced::{Size, window};
 use std::{env, sync::LazyLock};
 
@@ -31,7 +31,6 @@ pub static APP_ICON: LazyLock<Vec<u8>> = LazyLock::new(|| {
 
 fn main() -> iced::Result {
     unsafe {
-        env::set_var("SMOL_THREADS", "2");
         env::set_var("WGPU_POWER_PREF", "low");
     }
 
@@ -63,8 +62,7 @@ fn main() -> iced::Result {
         .window(window)
         .settings(settings)
         .title(State::title)
-        .theme(State::theme)
-        .subscription(notifications_subscription);
+        .theme(State::theme);
 
     app.run()
 }

@@ -5,19 +5,19 @@ use crate::games::game_id::GameID;
 use crate::http_util;
 use crate::message::Message;
 use crate::state::State;
-use anyhow::{Result, anyhow};
-use async_zip::base::read::mem::ZipFileReader;
+use anyhow::Result;
 use iced::Task;
 use iced::futures::TryFutureExt;
 use serde::Deserialize;
 use serde_with::{
     DefaultOnError, DisplayFromStr, StringWithSeparator, formats::CommaSeparator, serde_as,
 };
-use smol::fs::File;
-use smol::io;
-use std::fs;
+use std::fs::{self, File};
+use std::io::{self, Cursor};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
+use std::sync::Arc;
+use zip::ZipArchive;
 
 const DOWNLOAD_URL: &str = "https://www.gametdb.com/wiitdb.zip";
 
@@ -367,48 +367,45 @@ pub fn get_load_wiitdb_task(state: &State) -> Task<Message> {
     let data_dir = state.data_dir.clone();
 
     Task::perform(
-        load_wiitdb(data_dir).map_err(|e| e.to_string()),
+        async { load_wiitdb(data_dir) }.map_err(Arc::new),
         Message::GotWiitdbDatafile,
     )
 }
 
-async fn load_wiitdb(data_dir: PathBuf) -> Result<Datafile> {
+fn load_wiitdb(data_dir: PathBuf) -> Result<(Datafile, bool)> {
+    let mut downloaded = false;
     let wiitdb_path = data_dir.join("wiitdb.xml");
 
     if !wiitdb_path.exists() {
-        http_util::download_and_extract_zip(DOWNLOAD_URL.to_string(), &data_dir).await?;
+        let body = http_util::get(DOWNLOAD_URL)?;
+        let mut archive = ZipArchive::new(Cursor::new(body))?;
+        let mut datafile = archive.by_name("wiitdb.xml")?;
+        let mut out_file = File::create(&wiitdb_path)?;
+        io::copy(&mut datafile, &mut out_file)?;
+        downloaded = true;
     }
 
-    Datafile::load(&wiitdb_path)
+    let datafile = Datafile::load(&wiitdb_path)?;
+
+    Ok((datafile, downloaded))
 }
 
 pub fn get_download_wiitdb_to_drive_task(state: &State) -> Task<Message> {
     let mount_point = state.config.mount_point().clone();
 
     Task::perform(
-        async move {
-            match download_wiitdb_to_drive(mount_point).await {
-                Ok(()) => Ok("wiitdb.xml successfully downloaded to drive".to_string()),
-                Err(e) => Err(e.to_string()),
-            }
-        },
+        async move { download_wiitdb_to_drive(mount_point) }.map_err(Arc::new),
         Message::GenericResult,
     )
 }
 
-async fn download_wiitdb_to_drive(mount_point: PathBuf) -> Result<()> {
+fn download_wiitdb_to_drive(mount_point: PathBuf) -> Result<String> {
     // Download wiitdb
-    let zip_bytes = http_util::get(DOWNLOAD_URL.to_string()).await?;
+    let body = http_util::get(DOWNLOAD_URL)?;
 
     // Open the archive
-    let zip = ZipFileReader::new(zip_bytes).await?;
-    let index = zip
-        .file()
-        .entries()
-        .iter()
-        .position(|e| e.filename().as_str().is_ok_and(|name| name == "wiitdb.xml"))
-        .ok_or(anyhow!("Could not find wiitdb.xml in zip"))?;
-    let mut archived_wiitdb_xml = zip.reader_without_entry(index).await?;
+    let mut archive = ZipArchive::new(Cursor::new(body))?;
+    let mut datafile = archive.by_name("wiitdb.xml")?;
 
     // Create the target directory.
     let target_dir = mount_point.join("apps").join("usbloader_gx");
@@ -416,8 +413,8 @@ async fn download_wiitdb_to_drive(mount_point: PathBuf) -> Result<()> {
 
     // Extract wiitdb.xml
     let target_path = target_dir.join("wiitdb.xml");
-    let mut file = File::create(&target_path).await?;
-    io::copy(&mut archived_wiitdb_xml, &mut file).await?;
+    let mut out_file = File::create(&target_path)?;
+    io::copy(&mut datafile, &mut out_file)?;
 
-    Ok(())
+    Ok("wiitdb.xml successfully downloaded to drive".to_string())
 }

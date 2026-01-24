@@ -3,18 +3,19 @@
 
 use crate::message::Message;
 use crate::state::State;
-use crate::util;
 use anyhow::Result;
 use derive_getters::Getters;
 use iced::Task;
 use iced::futures::TryFutureExt;
 use serde::{Deserialize, Deserializer};
 use size::Size;
-use smol::fs;
 use std::ffi::OsString;
+use std::fs::{self, File};
 use std::path::PathBuf;
+use std::sync::Arc;
 use time::PrimitiveDateTime;
 use time::macros::format_description;
+use zip::ZipArchive;
 
 #[derive(Debug, Clone, Deserialize, Default, Getters)]
 #[serde(default)]
@@ -63,7 +64,7 @@ impl PartialEq for HbcApp {
 impl Eq for HbcApp {}
 
 impl HbcApp {
-    pub async fn from_path(path: PathBuf) -> Option<Self> {
+    pub fn maybe_from_path(path: PathBuf) -> Option<Self> {
         if !path.is_dir() {
             return None;
         }
@@ -75,7 +76,7 @@ impl HbcApp {
         }
 
         let meta_path = path.join("meta").with_extension("xml");
-        let meta = fs::read_to_string(&meta_path).await.unwrap_or_default();
+        let meta = fs::read_to_string(&meta_path).unwrap_or_default();
         let mut meta = quick_xml::de::from_str::<HbcAppMeta>(&meta).unwrap_or_default();
 
         if meta.name.is_empty() {
@@ -84,7 +85,7 @@ impl HbcApp {
 
         meta.name = meta.name.trim().to_string();
 
-        let size = util::get_dir_size(path.clone()).await.unwrap_or_default();
+        let size = fs_extra::dir::get_size(&path).unwrap_or(0);
 
         let image_path = path.join("icon.png");
         let image_path = if image_path.exists() {
@@ -95,7 +96,7 @@ impl HbcApp {
 
         Some(Self {
             meta,
-            size,
+            size: Size::from_bytes(size),
             path,
             image_path,
         })
@@ -124,14 +125,16 @@ pub fn get_install_hbc_apps_task(state: &State, zip_paths: Box<[PathBuf]>) -> Ta
     let drive_path = state.config.mount_point().clone();
 
     Task::perform(
-        install_hbc_apps(drive_path, zip_paths).map_err(|e| e.to_string()),
+        async { install_hbc_apps(zip_paths, drive_path) }.map_err(Arc::new),
         Message::HbcAppsInstalled,
     )
 }
 
-async fn install_hbc_apps(dest_dir: PathBuf, zip_paths: Box<[PathBuf]>) -> Result<String> {
+fn install_hbc_apps(zip_paths: Box<[PathBuf]>, dest_dir: PathBuf) -> Result<String> {
     for zip_path in &zip_paths {
-        util::extract_zip(zip_path, &dest_dir).await?;
+        let zip_file = File::open(zip_path)?;
+        let mut archive = ZipArchive::new(zip_file)?;
+        archive.extract(&dest_dir)?;
     }
 
     let msg = format!("Installed {} apps", zip_paths.len());

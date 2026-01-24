@@ -6,8 +6,7 @@ use anyhow::Result;
 use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
 use iced::{Task, futures::TryFutureExt};
 use size::Size;
-use smol::{fs, stream::StreamExt};
-use std::path::PathBuf;
+use std::{fs, path::PathBuf, sync::Arc};
 
 #[derive(Debug, Clone)]
 pub struct GameList {
@@ -205,32 +204,32 @@ pub fn get_list_games_task(state: &State) -> Task<Message> {
     let drive_path = state.config.mount_point().clone();
 
     Task::perform(
-        list(drive_path).map_err(|e| e.to_string()),
+        async { list(drive_path) }.map_err(Arc::new),
         Message::GotGameList,
     )
 }
 
-async fn list(drive_path: PathBuf) -> Result<GameList> {
+fn list(drive_path: PathBuf) -> Result<GameList> {
     let wii_path = drive_path.join("wbfs");
     let gc_path = drive_path.join("games");
 
     let mut games = Vec::new();
-    read_game_dir(wii_path, &mut games).await?;
-    read_game_dir(gc_path, &mut games).await?;
+    read_game_dir(wii_path, &mut games)?;
+    read_game_dir(gc_path, &mut games)?;
 
     let game_list = GameList::new(games);
     Ok(game_list)
 }
 
-async fn read_game_dir(game_dir: PathBuf, games: &mut Vec<Game>) -> Result<()> {
+fn read_game_dir(game_dir: PathBuf, games: &mut Vec<Game>) -> Result<()> {
     if !game_dir.exists() {
         return Ok(());
     }
 
-    let mut entries = fs::read_dir(game_dir).await?;
-
-    while let Some(entry) = entries.try_next().await? {
-        if let Some(game) = Game::from_path(entry.path()).await {
+    let entries = fs::read_dir(game_dir)?;
+    for entry in entries.filter_map(Result::ok) {
+        let path = entry.path();
+        if let Some(game) = Game::maybe_from_path(path) {
             games.push(game);
         }
     }

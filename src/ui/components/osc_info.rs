@@ -21,27 +21,31 @@ use lucide_icons::iced::{
 #[allow(clippy::too_many_lines)]
 pub fn view<'a>(state: &State, app: &'a OscAppMeta) -> Element<'a, Message> {
     let col = column![
-        row![icon_store().size(18), text(&app.name).size(18)].spacing(5),
+        row![icon_store().size(18), text(app.name()).size(18)].spacing(5),
         rule::horizontal(1),
-        row![icon_tag(), text!("Version: {}", &app.version)].spacing(5),
+        row![icon_tag(), text!("Version: {}", app.version())].spacing(5),
         row![
-            components::developers::get_icon(&app.author),
-            text!("Author: {}", &app.author)
+            components::developers::get_icon(app.author()),
+            text!("Author: {}", app.author())
         ]
         .spacing(5),
-        row![icon_users(), text!("Authors: {}", app.authors.join(", "))].spacing(5),
-        row![icon_tag(), text!("Category: {}", &app.category)].spacing(5),
+        row![icon_users(), text!("Authors: {}", app.authors().join(", "))].spacing(5),
+        row![icon_tag(), text!("Category: {}", app.category())].spacing(5),
         row![
             icon_users(),
-            text!("Contributors: {}", app.contributors.join(", "))
+            text!("Contributors: {}", app.contributors().join(", "))
         ]
         .spacing(5),
-        row![icon_cloud_download(), text!("Downloads: {}", app.downloads)].spacing(5),
+        row![
+            icon_cloud_download(),
+            text!("Downloads: {}", app.downloads())
+        ]
+        .spacing(5),
         row![
             icon_flag(),
             text!(
                 "Flags: {}",
-                app.flags
+                app.flags()
                     .iter()
                     .map(Flag::as_str)
                     .collect::<Vec<_>>()
@@ -51,32 +55,32 @@ pub fn view<'a>(state: &State, app: &'a OscAppMeta) -> Element<'a, Message> {
         .spacing(5),
         row![
             icon_package(),
-            text!("Package Type: {}", app.package_type.as_str())
+            text!("Package Type: {}", app.package_type().as_str())
         ]
         .spacing(5),
         row![
             icon_usb(),
             text!(
                 "Peripherals: {}",
-                app.peripherals.iter().map(Peripheral::as_str).join(", ")
+                app.peripherals().iter().map(Peripheral::as_str).join(", ")
             )
         ]
         .spacing(5),
         row![
             icon_calendar(),
-            text!("Release Date: {}", app.release_date.date())
+            text!("Release Date: {}", app.release_date().date())
         ]
         .spacing(5),
         row![
             icon_folders(),
-            text!("Subdirectories: {}", app.subdirectories.join(", "))
+            text!("Subdirectories: {}", app.subdirectories().join(", "))
         ]
         .spacing(5),
         row![
             icon_computer(),
             text!(
                 "Supported Platforms: {}",
-                app.supported_platforms
+                app.supported_platforms()
                     .iter()
                     .map(Platform::as_str)
                     .join(", ")
@@ -85,16 +89,16 @@ pub fn view<'a>(state: &State, app: &'a OscAppMeta) -> Element<'a, Message> {
         .spacing(5),
         row![
             icon_weight(),
-            text!("Uncompressed Size: {}", app.uncompressed_size)
+            text!("Uncompressed Size: {}", app.uncompressed_size())
         ]
         .spacing(5),
         row![
             icon_clipboard_list(),
-            text!("Short Description: {}", &app.description.short)
+            text!("Short Description: {}", app.description().short())
         ]
         .spacing(5),
         rule::horizontal(1),
-        scrollable(text(&app.description.long).width(Length::Fill)).height(Length::Fill),
+        scrollable(text(app.description().long()).width(Length::Fill)).height(Length::Fill),
         rule::horizontal(1),
         row![
             button(row![icon_globe(), text("Open OSC Page")].spacing(5))

@@ -8,35 +8,31 @@ use crate::{
 };
 use iced::{
     Alignment, Element,
-    widget::{button, column, container, row, space, text},
+    widget::{button, container, row, space, text},
 };
 use lucide_icons::iced::{icon_check, icon_info, icon_triangle_alert, icon_x};
 
 pub fn view(notification: &Notification) -> Element<'_, Message> {
-    let icon = match notification.level {
+    let icon = match notification.level() {
         NotificationLevel::Info => icon_info(),
         NotificationLevel::Error => icon_triangle_alert(),
         NotificationLevel::Success => icon_check(),
     };
 
     container(
-        column![
-            row![
-                space(),
-                icon,
-                space(),
-                text(&notification.text),
-                button(icon_x().center())
-                    .height(20)
-                    .width(20)
-                    .style(style::rounded_background_button)
-                    .on_press(Message::CloseNotification(notification.id))
-            ]
-            .spacing(5)
-            .align_y(Alignment::Center),
-            text(notification.get_life_str())
+        row![
+            space(),
+            icon,
+            space(),
+            text(notification.text()),
+            button(icon_x().center())
+                .height(20)
+                .width(20)
+                .style(style::rounded_background_button)
+                .on_press(Message::CloseNotification(notification.id()))
         ]
-        .align_x(Alignment::End),
+        .spacing(5)
+        .align_y(Alignment::Center),
     )
     .padding(10)
     .style(style::card)

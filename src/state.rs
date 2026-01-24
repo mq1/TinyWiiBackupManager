@@ -8,7 +8,7 @@ use crate::{
         covers,
         game::Game,
         game_list::{self, GameList},
-        transfer::TransferQueue,
+        transfer::{TransferOperation, TransferQueue},
         wiitdb::{self, Datafile},
     },
     hbc::{self, app_list::HbcAppList, osc::OscAppMeta, osc_list::OscAppList},
@@ -26,7 +26,7 @@ use iced::{
     window,
 };
 use semver::Version;
-use std::{path::PathBuf, time::Duration};
+use std::{path::PathBuf, sync::Arc};
 
 pub struct State {
     pub screen: Screen,
@@ -205,7 +205,7 @@ impl State {
 
                 Task::none()
             }
-            Message::GotWiitdbDatafile(Ok(wiitdb)) => {
+            Message::GotWiitdbDatafile(Ok((wiitdb, downloaded))) => {
                 for game in self.game_list.iter_mut() {
                     game.update_title(&wiitdb);
                 }
@@ -216,13 +216,12 @@ impl State {
                 }
 
                 self.wiitdb = Some(wiitdb);
-                self.notifications
-                    .info("GameTDB Datafile (wiitdb.xml) loaded successfully");
-                Task::none()
-            }
-            Message::NotificationTick => {
-                self.notifications.tick();
-                self.half_sec_anim_state = !self.half_sec_anim_state;
+
+                if downloaded {
+                    self.notifications
+                        .info("GameTDB Datafile (wiitdb.xml) downloaded successfully");
+                }
+
                 Task::none()
             }
             Message::CloseNotification(id) => {
@@ -254,7 +253,9 @@ impl State {
             Message::AskDeleteDirConfirmation(path) => window::oldest()
                 .and_then(move |id| {
                     let path = path.clone();
-                    window::run(id, move |id| dialogs::delete_dir(id, &path))
+                    window::run(id, move |id| {
+                        dialogs::delete_dir(id, &path).map_err(Arc::new)
+                    })
                 })
                 .map(Message::DirectoryDeleted),
             Message::DirectoryDeleted(res) => {
@@ -338,7 +339,7 @@ impl State {
             Message::UpdateConfig(new_config) => {
                 self.config = new_config;
                 if let Err(e) = self.config.write() {
-                    self.notifications.error(e);
+                    self.notifications.error(Arc::new(e));
                 }
                 Task::none()
             }
@@ -375,32 +376,24 @@ impl State {
             Message::ChooseGamesSrcDir => window::oldest()
                 .and_then(|id| window::run(id, dialogs::choose_src_dir))
                 .map(Message::AddGamesToTransferStack),
-            Message::AddGamesToTransferStack(mut paths) => {
+            Message::AddGamesToTransferStack(paths) => {
                 if paths.is_empty() {
                     Task::none()
                 } else {
-                    let empty = self.transfer_stack.is_empty();
-                    self.transfer_stack.append(&mut paths);
+                    let had_pending_operations = self.transfer_queue.has_pending_operations();
+                    let operations = paths.into_iter().map(TransferOperation::Convert).collect();
+                    self.transfer_queue.push_multiple(operations);
 
-                    if empty {
-                        self.update(Message::StartSingleGameTransfer)
-                    } else {
+                    if had_pending_operations {
                         Task::none()
+                    } else {
+                        self.update(Message::StartSingleGameTransfer)
                     }
                 }
             }
             Message::StartSingleGameTransfer => {
-                // TODO
-
-                if let Some(operation) = self.transfer_queue.pop() {
-                    Task::perform(
-                        async move {
-                            // TODO
-                            smol::Timer::after(Duration::from_secs(5)).await;
-                            Ok(path.to_string_lossy().to_string())
-                        },
-                        Message::FinishedTransferringSingleGame,
-                    )
+                if let Some(task) = self.transfer_queue.pop_task() {
+                    task
                 } else {
                     self.notifications
                         .success("Finished transferring all games");
@@ -420,21 +413,19 @@ impl State {
             }
             #[cfg(target_os = "macos")]
             Message::RunDotClean => {
+                use iced::futures::TryFutureExt;
+                use std::sync::Arc;
+
                 let mount_point = self.config.mount_point().clone();
 
                 Task::perform(
-                    async move {
-                        match util::run_dot_clean(mount_point).await {
-                            Ok(()) => Ok("dot_clean successful".to_string()),
-                            Err(e) => Err(e.to_string()),
-                        }
-                    },
+                    async move { util::run_dot_clean(mount_point) }.map_err(Arc::new),
                     Message::GenericResult,
                 )
             }
             Message::OpenThat(uri) => {
                 if let Err(e) = open::that(&uri) {
-                    self.notifications.error(e);
+                    self.notifications.error(Arc::new(anyhow::Error::from(e)));
                 }
                 Task::none()
             }
@@ -450,6 +441,11 @@ impl State {
             }
             Message::GotLatestVersion(Ok(None)) => {
                 println!("No new version of {} available", env!("CARGO_PKG_NAME"));
+                Task::none()
+            }
+            Message::UpdateTransferStatus(status) => {
+                self.transfer_queue.set_status(status);
+                self.half_sec_anim_state = !self.half_sec_anim_state;
                 Task::none()
             }
         }
@@ -468,7 +464,7 @@ impl State {
 
     pub fn get_osc_app_icon(&self, app: &OscAppMeta) -> Option<PathBuf> {
         let icons_dir = self.data_dir.join("osc-icons");
-        let icon_path = icons_dir.join(&app.slug).with_extension("png");
+        let icon_path = icons_dir.join(app.slug()).with_extension("png");
 
         if icon_path.exists() {
             Some(icon_path)

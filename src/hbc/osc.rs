@@ -2,10 +2,12 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{http_util, message::Message};
-use iced::Task;
+use anyhow::Result;
+use derive_getters::Getters;
+use iced::{Task, futures::TryFutureExt};
 use serde::Deserialize;
 use size::Size;
-use std::{ffi::OsString, path::PathBuf};
+use std::{ffi::OsString, path::PathBuf, sync::Arc};
 use time::OffsetDateTime;
 
 impl OscAppMeta {
@@ -19,76 +21,79 @@ impl OscAppMeta {
     }
 
     pub fn get_install_task(&self, mount_point: PathBuf) -> Task<Message> {
-        let url = self.assets.archive.url.clone();
-        let name = self.name.clone();
+        let app = self.clone();
 
         Task::perform(
-            async move {
-                http_util::download_and_extract_zip(url, &mount_point)
-                    .await
-                    .map_err(|e| e.to_string())?;
-
-                let msg = format!("App installed: {name}");
-                Ok(msg)
-            },
+            async move { app.install(mount_point) }.map_err(Arc::new),
             Message::AppInstalled,
         )
     }
+
+    pub fn install(&self, mount_point: PathBuf) -> Result<String> {
+        let url = self.assets.archive.url();
+        http_util::download_and_extract_zip(url, &mount_point)?;
+
+        let msg = format!("App installed: {}", self.name());
+        Ok(msg)
+    }
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Getters)]
 pub struct OscAppMeta {
     #[serde(default)]
-    pub slug: String,
+    slug: String,
 
     #[serde(default)]
-    pub name: String,
+    name: String,
 
     #[serde(default)]
-    pub author: String,
+    author: String,
 
     #[serde(default)]
-    pub authors: Box<[String]>,
+    authors: Box<[String]>,
 
     #[serde(default)]
-    pub category: String,
+    category: String,
 
     #[serde(default)]
-    pub contributors: Box<[String]>,
+    contributors: Box<[String]>,
 
     #[serde(default)]
-    pub description: Description,
+    description: Description,
 
     #[serde(default)]
-    pub downloads: usize,
+    #[getter(copy)]
+    downloads: usize,
 
     #[serde(default)]
-    pub assets: Assets,
+    assets: Assets,
 
     #[serde(default)]
-    pub flags: Box<[Flag]>,
+    flags: Box<[Flag]>,
 
     #[serde(default)]
-    pub package_type: PackageType,
+    package_type: PackageType,
 
     #[serde(default)]
-    pub peripherals: Box<[Peripheral]>,
+    peripherals: Box<[Peripheral]>,
 
     #[serde(default)]
-    pub subdirectories: Box<[String]>,
+    subdirectories: Box<[String]>,
 
     #[serde(default)]
-    pub supported_platforms: Box<[Platform]>,
+    supported_platforms: Box<[Platform]>,
 
     #[serde(default)]
-    pub uncompressed_size: Size,
+    #[getter(copy)]
+    uncompressed_size: Size,
 
     #[serde(default)]
-    pub version: String,
+    version: String,
 
     #[serde(deserialize_with = "time::serde::timestamp::deserialize")]
     #[serde(default = "unix_epoch")]
-    pub release_date: OffsetDateTime,
+    #[getter(copy)]
+    release_date: OffsetDateTime,
 }
 
 impl PartialEq for OscAppMeta {
@@ -103,14 +108,14 @@ const fn unix_epoch() -> OffsetDateTime {
     OffsetDateTime::UNIX_EPOCH
 }
 
-#[derive(Debug, Clone, Deserialize, Default)]
+#[derive(Debug, Clone, Deserialize, Default, Getters)]
 #[serde(default)]
 pub struct Description {
-    pub short: String,
-    pub long: String,
+    short: String,
+    long: String,
 }
 
-#[derive(Debug, Clone, Deserialize, Default)]
+#[derive(Debug, Clone, Deserialize, Default, Getters)]
 #[serde(default)]
 pub struct Assets {
     pub archive: Asset,
@@ -119,7 +124,7 @@ pub struct Assets {
     pub meta: Asset,
 }
 
-#[derive(Debug, Clone, Deserialize, Default)]
+#[derive(Debug, Clone, Deserialize, Default, Getters)]
 #[serde(default)]
 pub struct Asset {
     pub url: String,

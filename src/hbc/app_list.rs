@@ -6,8 +6,7 @@ use anyhow::Result;
 use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
 use iced::{Task, futures::TryFutureExt};
 use size::Size;
-use smol::{fs, stream::StreamExt};
-use std::path::PathBuf;
+use std::{fs, path::PathBuf, sync::Arc};
 
 #[derive(Debug, Clone)]
 pub struct HbcAppList {
@@ -133,25 +132,22 @@ pub fn get_list_hbc_apps_task(state: &State) -> Task<Message> {
     let mount_point = state.config.mount_point().clone();
 
     Task::perform(
-        list(mount_point).map_err(|e| e.to_string()),
+        async { list(mount_point) }.map_err(Arc::new),
         Message::GotHbcAppList,
     )
 }
 
-async fn list(mount_point: PathBuf) -> Result<HbcAppList> {
+fn list(mount_point: PathBuf) -> Result<HbcAppList> {
     let apps_dir = mount_point.join("apps");
     if !apps_dir.exists() {
         return Ok(HbcAppList::empty());
     }
 
-    let mut entries = fs::read_dir(&apps_dir).await?;
-
-    let mut hbc_apps = Vec::new();
-    while let Some(entry) = entries.try_next().await? {
-        if let Some(hbc_app) = HbcApp::from_path(entry.path()).await {
-            hbc_apps.push(hbc_app);
-        }
-    }
+    let hbc_apps = fs::read_dir(apps_dir)?
+        .filter_map(Result::ok)
+        .map(|e| e.path())
+        .filter_map(HbcApp::maybe_from_path)
+        .collect();
 
     let hbc_app_list = HbcAppList::new(hbc_apps);
     Ok(hbc_app_list)

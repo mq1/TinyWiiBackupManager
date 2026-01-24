@@ -10,12 +10,12 @@ use lucide_icons::iced::{icon_cloud_download, icon_info};
 
 pub fn view(state: &State) -> Element<'_, Message> {
     let t_columns = vec![
-        table::column(text("Name").size(16), |app: &OscAppMeta| text(&app.name)),
+        table::column(text("Name").size(16), |app: &OscAppMeta| text(app.name())),
         table::column(text("Version").size(16), |app: &OscAppMeta| {
-            text(&app.version)
+            text(app.version())
         }),
         table::column(text("Author").size(16), |app: &OscAppMeta| {
-            text(&app.author)
+            text(app.author())
         }),
         table::column(text("Actions").size(16), |app: &OscAppMeta| {
             row![
