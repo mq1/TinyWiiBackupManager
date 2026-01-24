@@ -69,4 +69,8 @@ impl TransferQueue {
     pub fn has_pending_operations(&self) -> bool {
         !self.queue.is_empty()
     }
+
+    pub fn len(&self) -> usize {
+        self.queue.len()
+    }
 }

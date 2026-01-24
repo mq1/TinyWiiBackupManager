@@ -8,7 +8,7 @@ use crate::{
     state::State,
 };
 use iced::{
-    Element, Length, padding,
+    Element, padding,
     widget::{column, container, row, rule, stack, text},
 };
 
