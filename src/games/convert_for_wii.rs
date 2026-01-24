@@ -32,7 +32,6 @@ pub struct ConvertForWiiOperation {
     source_path: PathBuf,
     display_str: String,
     config: Config,
-    additional_file_to_remove: Option<PathBuf>,
 }
 
 impl ConvertForWiiOperation {
@@ -43,24 +42,28 @@ impl ConvertForWiiOperation {
             source_path,
             display_str,
             config,
-            additional_file_to_remove: None,
         }
     }
 
     #[allow(clippy::too_many_lines)]
     pub fn run(mut self) -> impl Straw<String, String, Arc<anyhow::Error>> {
         sipper(async move |mut sender| {
-            if self
-                .source_path
-                .extension()
-                .and_then(OsStr::to_str)
-                .is_some_and(|ext| ext == "zip")
-            {
-                sender
-                    .send(format!("Unzipping {}", self.source_path.display()))
-                    .await;
+            let (mut tx, mut rx) = mpsc::channel(100);
 
-                let new_source_path = || -> Result<PathBuf> {
+            let handle = thread::spawn(move || -> Result<String> {
+                let mut files_to_remove = Vec::new();
+                if self.config.remove_sources_games() {
+                    files_to_remove.push(self.source_path.clone());
+                }
+
+                if self
+                    .source_path
+                    .extension()
+                    .and_then(OsStr::to_str)
+                    .is_some_and(|ext| ext == "zip")
+                {
+                    let _ = tx.try_send(format!("Unzipping {}", self.source_path.display()));
+
                     let file = File::open(&self.source_path)?;
                     let reader = BufReader::new(file);
                     let mut archive = ZipArchive::new(reader)?;
@@ -76,18 +79,12 @@ impl ConvertForWiiOperation {
                         let mut writer = BufWriter::new(out);
                         io::copy(&mut archived_disc, &mut writer)?;
                         writer.flush()?;
+                        files_to_remove.push(new_source_path.clone());
                     }
 
-                    Ok(new_source_path)
-                }()
-                .map_err(Arc::new)?;
+                    self.source_path = new_source_path;
+                }
 
-                self.additional_file_to_remove = Some(self.source_path);
-                self.source_path = new_source_path;
-            }
-
-            let (mut tx, mut rx) = mpsc::channel(100);
-            let handle = thread::spawn(move || -> Result<String> {
                 let (processor_threads, preloader_threads) = get_threads_num();
 
                 let disc_opts = DiscOptions {
@@ -221,11 +218,8 @@ impl ConvertForWiiOperation {
                     overflow_writer.flush()?;
                 }
 
-                if self.config.remove_sources_games() {
-                    fs::remove_file(self.source_path)?;
-                    if let Some(path) = self.additional_file_to_remove {
-                        fs::remove_file(path)?;
-                    }
+                for path in files_to_remove {
+                    fs::remove_file(path)?;
                 }
 
                 let msg = format!("Converted {title}");
