@@ -1,19 +1,22 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{games::archive::ArchiveOperation, message::Message};
-use iced::{Task, futures::TryFutureExt};
-use std::{collections::VecDeque, path::PathBuf, sync::Arc};
+use crate::{
+    games::{archive::ArchiveOperation, convert_for_wii::ConvertForWiiOperation},
+    message::Message,
+};
+use iced::Task;
+use std::collections::VecDeque;
 
 pub enum TransferOperation {
-    Convert(PathBuf),
+    ConvertForWii(ConvertForWiiOperation),
     Archive(ArchiveOperation),
 }
 
 impl TransferOperation {
     pub fn display_str(&self) -> &str {
         match self {
-            TransferOperation::Convert(_) => todo!(),
+            TransferOperation::ConvertForWii(op) => op.display_str(),
             TransferOperation::Archive(op) => op.display_str(),
         }
     }
@@ -28,7 +31,7 @@ impl TransferQueue {
     pub fn new() -> Self {
         Self {
             queue: VecDeque::new(),
-            status: String::new(),
+            status: "Idle".to_string(),
         }
     }
 
@@ -43,15 +46,17 @@ impl TransferQueue {
     }
 
     pub fn pop_task(&mut self) -> Option<Task<Message>> {
-        self.queue.pop_front().map(|op| {
-            let straw = match op {
-                TransferOperation::Convert(_) => todo!(),
-                TransferOperation::Archive(op) => op.run(),
-            };
-
-            Task::sip(straw, Message::UpdateTransferStatus, |res| {
-                Message::Transferred(res.map_err(Arc::new))
-            })
+        self.queue.pop_front().map(|op| match op {
+            TransferOperation::ConvertForWii(op) => Task::sip(
+                op.run(),
+                Message::UpdateTransferStatus,
+                Message::Transferred,
+            ),
+            TransferOperation::Archive(op) => Task::sip(
+                op.run(),
+                Message::UpdateTransferStatus,
+                Message::Transferred,
+            ),
         })
     }
 
@@ -73,5 +78,10 @@ impl TransferQueue {
 
     pub fn set_status(&mut self, status: String) {
         self.status = status;
+    }
+
+    pub fn reset_status(&mut self) {
+        self.status.clear();
+        self.status.push_str("Idle");
     }
 }

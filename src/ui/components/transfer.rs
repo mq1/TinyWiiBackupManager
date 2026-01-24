@@ -9,7 +9,7 @@ use iced::{
 use lucide_icons::iced::{icon_hard_drive_download, icon_x};
 
 pub fn view(state: &State) -> Element<'_, Message> {
-    let mut col = Column::new().spacing(5).padding(10);
+    let mut col = Column::new().spacing(5);
 
     for (i, op) in state.transfer_queue.iter().enumerate() {
         col = col.push(
@@ -29,11 +29,12 @@ pub fn view(state: &State) -> Element<'_, Message> {
             icon_hard_drive_download().size(18),
             text("Transfer queue").size(18)
         ]
-        .spacing(5)
-        .padding(10),
+        .spacing(5),
         scrollable(col).width(Length::Fill).height(Length::Fill),
         rule::horizontal(1),
         text(state.transfer_queue.status())
     ]
+    .spacing(10)
+    .padding(10)
     .into()
 }

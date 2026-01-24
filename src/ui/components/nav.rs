@@ -67,23 +67,23 @@ pub fn view(state: &State) -> Element<'_, Message> {
         )
         .push(space::vertical());
 
-    if state.transfer_queue.has_pending_operations() {
-        let icon = if state.half_sec_anim_state {
-            icon_arrow_down_0_1()
-        } else {
-            icon_arrow_down_1_0()
-        };
+    //if state.transfer_queue.has_pending_operations() {
+    let icon = if state.half_sec_anim_state {
+        icon_arrow_down_0_1()
+    } else {
+        icon_arrow_down_1_0()
+    };
 
-        col = col.push(
-            button(icon.size(20).center())
-                .style(style::get_nav_button_style(
-                    state.screen == Screen::Transfer,
-                ))
-                .height(40)
-                .width(40)
-                .on_press(Message::NavTo(Screen::Transfer)),
-        );
-    }
+    col = col.push(
+        button(icon.size(20).center())
+            .style(style::get_nav_button_style(
+                state.screen == Screen::Transfer,
+            ))
+            .height(40)
+            .width(40)
+            .on_press(Message::NavTo(Screen::Transfer)),
+    );
+    //}
 
     if let Some(new_version) = &state.new_version {
         col = col.push(my_tooltip::view(

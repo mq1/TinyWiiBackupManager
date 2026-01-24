@@ -27,6 +27,19 @@ pub fn ext_to_format(ext: Option<&OsStr>) -> Option<Format> {
     }
 }
 
+pub fn format_to_ext(format: Format) -> &'static str {
+    match format {
+        Format::Iso => "iso",
+        Format::Wbfs => "wbfs",
+        Format::Wia => "wia",
+        Format::Rvz => "rvz",
+        Format::Ciso => "ciso",
+        Format::Gcz => "gcz",
+        Format::Tgc => "tgc",
+        Format::Nfs => "nfs",
+    }
+}
+
 pub fn format_to_opts(format: Format) -> FormatOptions {
     match format {
         Format::Iso => FormatOptions::new(Format::Iso),

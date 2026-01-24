@@ -6,6 +6,7 @@ use crate::{
     data_dir::get_data_dir,
     games::{
         archive::ArchiveOperation,
+        convert_for_wii::ConvertForWiiOperation,
         covers,
         game::Game,
         game_list::{self, GameList},
@@ -383,7 +384,16 @@ impl State {
                     Task::none()
                 } else {
                     let had_pending_operations = self.transfer_queue.has_pending_operations();
-                    let operations = paths.into_iter().map(TransferOperation::Convert).collect();
+                    let operations = paths
+                        .into_iter()
+                        .map(|p| {
+                            TransferOperation::ConvertForWii(ConvertForWiiOperation::new(
+                                p,
+                                self.config.clone(),
+                            ))
+                        })
+                        .collect();
+
                     self.transfer_queue.push_multiple(operations);
 
                     if had_pending_operations {
@@ -408,7 +418,12 @@ impl State {
             }
             Message::Transferred(Ok(msg)) => {
                 self.notifications.success(msg);
-                self.update(Message::StartTransfer)
+                self.transfer_queue.reset_status();
+
+                Task::batch(vec![
+                    self.update(Message::StartTransfer),
+                    self.update(Message::RefreshGamesAndApps),
+                ])
             }
             Message::GotDiscInfo(Ok(disc_info)) => {
                 if let Screen::GameInfo(game) = &mut self.screen {

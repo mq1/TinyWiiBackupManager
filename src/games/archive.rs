@@ -6,9 +6,9 @@ use crate::games::{
     extensions::{ext_to_format, format_to_opts},
     game::Game,
 };
-use anyhow::bail;
+use anyhow::{Result, bail};
 use iced::{
-    futures::executor::block_on,
+    futures::{StreamExt, channel::mpsc},
     task::{Straw, sipper},
 };
 use nod::{
@@ -19,6 +19,8 @@ use std::{
     fs::File,
     io::{BufWriter, Seek, Write},
     path::PathBuf,
+    sync::Arc,
+    thread,
 };
 
 #[derive(Debug, Clone)]
@@ -39,59 +41,73 @@ impl ArchiveOperation {
         }
     }
 
-    pub fn run(self) -> impl Straw<String, String, anyhow::Error> {
+    pub fn run(self) -> impl Straw<String, String, Arc<anyhow::Error>> {
         sipper(async move |mut sender| {
-            let disc_path = disc_info::get_main_disc_file_in_dir(self.source.path())?;
+            let finish_msg = format!("Archived {}", self.source.title());
+            let (mut tx, mut rx) = mpsc::channel(100);
 
-            let Some(out_format) = ext_to_format(self.dest.extension()) else {
-                bail!("Unsupported extension");
-            };
+            let handle = thread::spawn(move || -> Result<()> {
+                let disc_path = disc_info::get_main_disc_file_in_dir(self.source.path())?;
 
-            let out_file = File::create(&self.dest)?;
-            let mut out_writer = BufWriter::new(out_file);
+                let Some(out_format) = ext_to_format(self.dest.extension()) else {
+                    bail!("Unsupported extension");
+                };
 
-            let disc_opts = DiscOptions {
-                partition_encryption: PartitionEncryption::Original,
-                preloader_threads: 1,
-            };
-            let disc_reader = DiscReader::new(disc_path, &disc_opts)?;
+                let process_opts = ProcessOptions {
+                    processor_threads: num_cpus::get() - 1,
+                    digest_crc32: true,
+                    digest_md5: false,
+                    digest_sha1: true,
+                    digest_xxh64: true,
+                    scrub: ScrubLevel::None,
+                };
 
-            let out_opts = format_to_opts(out_format);
-            let disc_writer = DiscWriter::new(disc_reader, &out_opts)?;
+                let out_file = File::create(&self.dest)?;
+                let mut out_writer = BufWriter::new(out_file);
 
-            let process_opts = ProcessOptions {
-                processor_threads: num_cpus::get() - 1,
-                digest_crc32: true,
-                digest_md5: false,
-                digest_sha1: true,
-                digest_xxh64: true,
-                scrub: ScrubLevel::None,
-            };
+                let disc_opts = DiscOptions {
+                    partition_encryption: PartitionEncryption::Original,
+                    preloader_threads: 1,
+                };
+                let disc_reader = DiscReader::new(disc_path, &disc_opts)?;
 
-            let finalization = disc_writer.process(
-                |data, progress, total| {
-                    out_writer.write_all(&data)?;
+                let out_opts = format_to_opts(out_format);
+                let disc_writer = DiscWriter::new(disc_reader, &out_opts)?;
 
-                    block_on(sender.send(format!(
-                        "⤓ Archiving {}  {:02}%",
-                        self.source.title(),
-                        progress * 100 / total
-                    )));
+                let finalization = disc_writer.process(
+                    |data, progress, total| {
+                        out_writer.write_all(&data)?;
 
-                    Ok(())
-                },
-                &process_opts,
-            )?;
+                        let _ = tx.try_send(format!(
+                            "⤓ Archiving {}  {:02}%",
+                            self.source.title(),
+                            progress * 100 / total
+                        ));
 
-            if !finalization.header.is_empty() {
-                out_writer.rewind()?;
-                out_writer.write_all(&finalization.header)?;
+                        Ok(())
+                    },
+                    &process_opts,
+                )?;
+
+                if !finalization.header.is_empty() {
+                    out_writer.rewind()?;
+                    out_writer.write_all(&finalization.header)?;
+                }
+
+                out_writer.flush()?;
+                Ok(())
+            });
+
+            while let Some(msg) = rx.next().await {
+                sender.send(msg).await;
             }
 
-            out_writer.flush()?;
+            handle
+                .join()
+                .expect("Failed to archive game")
+                .map_err(Arc::new)?;
 
-            let msg = format!("Archived {}", self.source.title());
-            Ok(msg)
+            Ok(finish_msg)
         })
     }
 

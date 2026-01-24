@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 pub mod archive;
+pub mod convert_for_wii;
 pub mod covers;
 pub mod disc_info;
 pub mod extensions;
