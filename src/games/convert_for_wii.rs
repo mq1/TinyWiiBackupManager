@@ -145,6 +145,13 @@ impl ConvertForWiiOperation {
                     out_path = out_path.with_extension("part0.iso");
                 }
 
+                if out_path.exists() {
+                    for path in files_to_remove {
+                        fs::remove_file(path)?;
+                    }
+                    return Ok(format!("Skipped conversion of {title} (already exists)"));
+                }
+
                 fs::create_dir_all(&parent)?;
                 let out_file = File::create(out_path)?;
                 let mut out_writer = BufWriter::new(out_file);
