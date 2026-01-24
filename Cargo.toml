@@ -44,7 +44,7 @@ itertools = "0.14"
 time = { version = "0.3", features = ["macros", "parsing", "serde"] }
 sanitize-filename = "0.7.0-beta"
 zip = { version = "7.2", default-features = false, features = [
-  "deflate-flate2-zlib-rs",
+  "deflate-flate2",
 ] }
 fuzzy-matcher = "0.3"
 zstd = { version = "0.13", features = ["fat-lto"] }
