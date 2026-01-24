@@ -62,8 +62,7 @@ fn main() -> iced::Result {
         .window(window)
         .settings(settings)
         .title(State::title)
-        .theme(State::theme)
-        .subscription(State::subscription);
+        .theme(State::theme);
 
     app.run()
 }

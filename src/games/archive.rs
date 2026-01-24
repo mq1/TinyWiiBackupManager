@@ -1,19 +1,14 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    games::{
-        disc_info,
-        extensions::{ext_to_format, format_to_opts},
-        game::Game,
-        transfer::TransferOperation,
-    },
-    message::Message,
+use crate::games::{
+    disc_info,
+    extensions::{ext_to_format, format_to_opts},
+    game::Game,
 };
-use anyhow::{Result, bail};
+use anyhow::bail;
 use iced::{
-    Task,
-    futures::{TryFutureExt, executor::block_on},
+    futures::executor::block_on,
     task::{Straw, sipper},
 };
 use nod::{
@@ -24,7 +19,6 @@ use std::{
     fs::File,
     io::{BufWriter, Seek, Write},
     path::PathBuf,
-    sync::Arc,
 };
 
 #[derive(Debug, Clone)]

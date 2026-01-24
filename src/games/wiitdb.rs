@@ -372,7 +372,8 @@ pub fn get_load_wiitdb_task(state: &State) -> Task<Message> {
     )
 }
 
-fn load_wiitdb(data_dir: PathBuf) -> Result<Datafile> {
+fn load_wiitdb(data_dir: PathBuf) -> Result<(Datafile, bool)> {
+    let mut downloaded = false;
     let wiitdb_path = data_dir.join("wiitdb.xml");
 
     if !wiitdb_path.exists() {
@@ -381,9 +382,12 @@ fn load_wiitdb(data_dir: PathBuf) -> Result<Datafile> {
         let mut datafile = archive.by_name("wiitdb.xml")?;
         let mut out_file = File::create(&wiitdb_path)?;
         io::copy(&mut datafile, &mut out_file)?;
+        downloaded = true;
     }
 
-    Datafile::load(&wiitdb_path)
+    let datafile = Datafile::load(&wiitdb_path)?;
+
+    Ok((datafile, downloaded))
 }
 
 pub fn get_download_wiitdb_to_drive_task(state: &State) -> Task<Message> {

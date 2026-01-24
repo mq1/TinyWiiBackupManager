@@ -3,16 +3,11 @@
 
 use crate::{
     config::{Config, SortBy},
-    games::{
-        disc_info::DiscInfo, game_list::GameList, transfer::TransferOperation, wiitdb::Datafile,
-    },
+    games::{disc_info::DiscInfo, game_list::GameList, wiitdb::Datafile},
     hbc::{app_list::HbcAppList, osc::OscAppMeta, osc_list::OscAppList},
     ui::Screen,
 };
-use iced::{
-    Event,
-    widget::{Id, operation::AbsoluteOffset},
-};
+use iced::widget::{Id, operation::AbsoluteOffset};
 use semver::Version;
 use std::{ffi::OsString, path::PathBuf, sync::Arc};
 
@@ -28,7 +23,7 @@ pub enum Message {
 
     // Misc
     RefreshGamesAndApps,
-    GotWiitdbDatafile(Result<Datafile, Arc<anyhow::Error>>),
+    GotWiitdbDatafile(Result<(Datafile, bool), Arc<anyhow::Error>>),
     CloseNotification(usize),
     SelectMountPoint,
     GotDriveUsage(String),
@@ -39,7 +34,6 @@ pub enum Message {
     AskDeleteDirConfirmation(PathBuf),
     DirectoryDeleted(Result<(), Arc<anyhow::Error>>),
     GotLatestVersion(Result<Option<Version>, Arc<anyhow::Error>>),
-    Event(Event),
 
     // Games
     GotGameList(Result<GameList, Arc<anyhow::Error>>),

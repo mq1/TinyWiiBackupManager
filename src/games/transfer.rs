@@ -2,8 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{games::archive::ArchiveOperation, message::Message};
-use anyhow::Result;
-use iced::{Task, futures::TryFutureExt, task::Straw};
+use iced::{Task, futures::TryFutureExt};
 use std::{collections::VecDeque, path::PathBuf, sync::Arc};
 
 pub enum TransferOperation {

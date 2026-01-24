@@ -17,9 +17,8 @@ use crate::{
     ui::{Screen, dialogs, lucide},
     updater, util,
 };
-use anyhow::anyhow;
 use iced::{
-    Event, Subscription, Task, Theme, event,
+    Task, Theme,
     widget::{
         Id,
         operation::{self, AbsoluteOffset},
@@ -27,7 +26,7 @@ use iced::{
     window,
 };
 use semver::Version;
-use std::{cell::Ref, path::PathBuf, sync::Arc, time::Duration};
+use std::{path::PathBuf, sync::Arc};
 
 pub struct State {
     pub screen: Screen,
@@ -121,18 +120,9 @@ impl State {
         }
     }
 
-    pub fn subscription(&self) -> Subscription<Message> {
-        event::listen().map(Message::Event)
-    }
-
     #[allow(clippy::too_many_lines)]
     pub fn update(&mut self, message: Message) -> Task<Message> {
         match message {
-            Message::Event(Event::Window(window::Event::RedrawRequested(now))) => {
-                self.notifications.update(now);
-                Task::none()
-            }
-            Message::Event(_) => Task::none(),
             Message::GenericResult(Ok(s)) => {
                 self.notifications.success(s);
                 Task::none()
@@ -215,7 +205,7 @@ impl State {
 
                 Task::none()
             }
-            Message::GotWiitdbDatafile(Ok(wiitdb)) => {
+            Message::GotWiitdbDatafile(Ok((wiitdb, downloaded))) => {
                 for game in self.game_list.iter_mut() {
                     game.update_title(&wiitdb);
                 }
@@ -226,8 +216,12 @@ impl State {
                 }
 
                 self.wiitdb = Some(wiitdb);
-                self.notifications
-                    .info("GameTDB Datafile (wiitdb.xml) loaded successfully");
+
+                if downloaded {
+                    self.notifications
+                        .info("GameTDB Datafile (wiitdb.xml) downloaded successfully");
+                }
+
                 Task::none()
             }
             Message::CloseNotification(id) => {
@@ -345,7 +339,7 @@ impl State {
             Message::UpdateConfig(new_config) => {
                 self.config = new_config;
                 if let Err(e) = self.config.write() {
-                    self.notifications.error(Arc::new(anyhow::Error::from(e)));
+                    self.notifications.error(Arc::new(e));
                 }
                 Task::none()
             }
@@ -451,6 +445,7 @@ impl State {
             }
             Message::UpdateTransferStatus(status) => {
                 self.transfer_queue.set_status(status);
+                self.half_sec_anim_state = !self.half_sec_anim_state;
                 Task::none()
             }
         }

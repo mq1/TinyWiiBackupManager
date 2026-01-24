@@ -1,17 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{message::Message, state::State};
-use iced::{
-    Subscription,
-    time::{self, Duration},
-};
-use std::{fmt::Display, time::Instant};
+use derive_getters::Getters;
+use std::fmt::Display;
 
+#[derive(Debug, Clone)]
 pub struct Notifications {
     last_id: usize,
     list: Vec<Notification>,
-    before: Instant,
 }
 
 impl Notifications {
@@ -19,7 +15,6 @@ impl Notifications {
         Self {
             last_id: 0,
             list: Vec::new(),
-            before: Instant::now(),
         }
     }
 
@@ -33,19 +28,6 @@ impl Notifications {
         self.list.iter().rev()
     }
 
-    pub fn update(&mut self, now: Instant) {
-        let time_passed = now.duration_since(self.before);
-        self.before = now;
-
-        for notification in &mut self.list {
-            if notification.life != Duration::MAX {
-                notification.life = notification.life.saturating_sub(time_passed);
-            }
-        }
-
-        self.list.retain(|n| !n.life.is_zero());
-    }
-
     pub fn close(&mut self, id: usize) {
         // note: we could have binary-searched (as the ids are always ordered)
         // but as we don't have hundreds of notifications this is fine
@@ -57,74 +39,52 @@ impl Notifications {
     }
 
     pub fn info(&mut self, text: impl Display) {
+        println!("INFO: {text}");
+
         self.last_id += 1;
 
         self.list.push(Notification {
             id: self.last_id,
             text: text.to_string(),
             level: NotificationLevel::Info,
-            life: Duration::from_secs(10),
         });
     }
 
     pub fn error(&mut self, e: impl AsRef<anyhow::Error>) {
+        eprintln!("ERROR: {}", e.as_ref());
+
         self.last_id += 1;
 
         self.list.push(Notification {
             id: self.last_id,
             text: e.as_ref().to_string(),
             level: NotificationLevel::Error,
-            life: Duration::MAX, // infinite duration
         });
     }
 
     pub fn success(&mut self, text: impl Display) {
+        println!("SUCCESS: {text}");
+
         self.last_id += 1;
 
         self.list.push(Notification {
             id: self.last_id,
             text: text.to_string(),
             level: NotificationLevel::Success,
-            life: Duration::MAX, // infinite duration
         });
     }
 }
 
+#[derive(Debug, Clone, Getters)]
 pub struct Notification {
-    pub id: usize,
-    pub text: String,
-    pub level: NotificationLevel,
-    life: Duration,
+    #[getter(copy)]
+    id: usize,
+    text: String,
+    #[getter(copy)]
+    level: NotificationLevel,
 }
 
-impl Notification {
-    pub const fn get_life_str(&self) -> &'static str {
-        match self.life.as_millis() / 500 {
-            20 => "____________________",
-            19 => "___________________",
-            18 => "__________________",
-            17 => "_________________",
-            16 => "________________",
-            15 => "_______________",
-            14 => "______________",
-            13 => "_____________",
-            12 => "____________",
-            11 => "___________",
-            10 => "__________",
-            9 => "_________",
-            8 => "________",
-            7 => "_______",
-            6 => "______",
-            5 => "_____",
-            4 => "____",
-            3 => "___",
-            2 => "__",
-            1 => "_",
-            _ => "",
-        }
-    }
-}
-
+#[derive(Debug, Copy, Clone)]
 pub enum NotificationLevel {
     Info,
     Error,

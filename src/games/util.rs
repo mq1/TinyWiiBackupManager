@@ -4,8 +4,7 @@
 use anyhow::Result;
 use std::{
     ffi::OsStr,
-    fs::{self, File},
-    io::BufReader,
+    fs::File,
     path::{Path, PathBuf},
 };
 use walkdir::{DirEntry, WalkDir};
