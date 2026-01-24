@@ -23,6 +23,8 @@ use std::{
     thread,
 };
 
+const SPLIT_SIZE: u64 = 4_294_934_528; // 4 GiB - 32 KiB
+
 #[derive(Debug, Clone)]
 pub struct ConvertForWiiOperation {
     source_path: PathBuf,
@@ -41,6 +43,7 @@ impl ConvertForWiiOperation {
         }
     }
 
+    #[allow(clippy::too_many_lines)]
     pub fn run(self) -> impl Straw<String, String, Arc<anyhow::Error>> {
         sipper(async move |mut sender| {
             let (mut tx, mut rx) = mpsc::channel(100);
@@ -56,7 +59,7 @@ impl ConvertForWiiOperation {
                 let disc_reader = DiscReader::new(&self.source_path, &disc_opts)?;
                 let is_wii = disc_reader.header().is_wii();
                 let title = disc_reader.header().game_title_str().to_string();
-                let id = disc_reader.header().game_id_str();
+                let id = disc_reader.header().game_id_str().to_string();
 
                 let out_format = if is_wii {
                     self.config.wii_output_format()
@@ -64,7 +67,7 @@ impl ConvertForWiiOperation {
                     self.config.gc_output_format()
                 };
 
-                let (parent, out_path) = if is_wii {
+                let (parent, mut out_path) = if is_wii {
                     let title = util::sanitize(&title);
 
                     let parent = self
@@ -73,7 +76,7 @@ impl ConvertForWiiOperation {
                         .join("wbfs")
                         .join(format!("{title} [{id}]"));
 
-                    let out_path = parent.join(id).with_extension(format_to_ext(out_format));
+                    let out_path = parent.join(&id).with_extension(format_to_ext(out_format));
 
                     (parent, out_path)
                 } else {
@@ -99,9 +102,17 @@ impl ConvertForWiiOperation {
                     (parent, out_path)
                 };
 
-                fs::create_dir_all(parent)?;
+                let must_split =
+                    is_wii && (self.config.always_split() || !util::can_write_over_4gb(&parent));
+
+                if must_split && out_format == nod::common::Format::Iso {
+                    out_path = out_path.with_extension("part0.iso");
+                }
+
+                fs::create_dir_all(&parent)?;
                 let out_file = File::create(out_path)?;
                 let mut out_writer = BufWriter::new(out_file);
+                let mut overflow_writer: Option<BufWriter<File>> = None;
 
                 let out_opts = format_to_opts(out_format);
                 let disc_writer = DiscWriter::new(disc_reader, &out_opts)?;
@@ -120,8 +131,42 @@ impl ConvertForWiiOperation {
                 };
 
                 let finalization = disc_writer.process(
-                    |data, progress, total| {
-                        out_writer.write_all(&data)?;
+                    |mut data, progress, total| {
+                        if let Some(overflow_writer) = &mut overflow_writer {
+                            overflow_writer.write_all(&data)?;
+                        } else if must_split {
+                            if progress > SPLIT_SIZE {
+                                let overflow_path = if out_format == nod::common::Format::Wbfs {
+                                    parent.join(&id).with_extension("wbf1")
+                                } else {
+                                    parent.join(&id).with_extension("part1.iso")
+                                };
+
+                                let overflow_file = File::create(overflow_path)?;
+                                let overflow_writer =
+                                    overflow_writer.insert(BufWriter::new(overflow_file));
+                                overflow_writer.write_all(&data)?;
+                            } else if progress + data.len() as u64 > SPLIT_SIZE {
+                                let overflow_path = if out_format == nod::common::Format::Wbfs {
+                                    parent.join(&id).with_extension("wbf1")
+                                } else {
+                                    parent.join(&id).with_extension("part1.iso")
+                                };
+
+                                let overflow_file = File::create(overflow_path)?;
+                                let overflow_writer =
+                                    overflow_writer.insert(BufWriter::new(overflow_file));
+
+                                let split_pos = (SPLIT_SIZE - progress) as usize;
+                                let split_data = data.split_to(split_pos);
+                                out_writer.write_all(&split_data)?;
+                                overflow_writer.write_all(&data)?;
+                            } else {
+                                out_writer.write_all(&data)?;
+                            }
+                        } else {
+                            out_writer.write_all(&data)?;
+                        }
 
                         let _ = tx.try_send(format!(
                             "⤒ Converting {}  {:02}%",
