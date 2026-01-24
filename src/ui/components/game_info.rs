@@ -10,9 +10,10 @@ use itertools::Itertools;
 use lucide_icons::iced::{
     icon_baby, icon_badge_check, icon_bow_arrow, icon_box, icon_building, icon_calendar,
     icon_chevron_right, icon_disc_3, icon_earth, icon_file_archive, icon_fingerprint_pattern,
-    icon_folder, icon_gamepad_2, icon_globe, icon_hash, icon_joystick, icon_languages,
-    icon_lock_open, icon_notebook_pen, icon_pin, icon_pointer, icon_ruler_dimension_line, icon_tag,
-    icon_trash, icon_triangle_alert, icon_user, icon_weight, icon_wifi,
+    icon_folder, icon_gamepad_2, icon_globe, icon_hard_drive_download, icon_hash, icon_joystick,
+    icon_languages, icon_lock_open, icon_notebook_pen, icon_pin, icon_pointer,
+    icon_ruler_dimension_line, icon_tag, icon_trash, icon_triangle_alert, icon_user, icon_weight,
+    icon_wifi,
 };
 
 #[allow(clippy::too_many_lines)]
@@ -208,6 +209,9 @@ pub fn view<'a>(state: &State, game: &'a Game) -> Element<'a, Message> {
             button(row![icon_globe(), text("Open GameTDB Page")].spacing(5))
                 .style(style::rounded_button)
                 .on_press_with(|| Message::OpenThat(game.get_gametdb_uri())),
+            button(row![icon_hard_drive_download(), text("Archive Game")].spacing(5))
+                .style(style::rounded_button)
+                .on_press_with(|| Message::ChooseArchiveDest(game.clone())),
             button(row![icon_trash(), text("Delete Game")].spacing(5))
                 .style(style::rounded_danger_button)
                 .on_press_with(|| Message::AskDeleteDirConfirmation(game.path().clone()))
