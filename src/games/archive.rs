@@ -73,7 +73,7 @@ impl ArchiveOperation {
                 let out_opts = format_to_opts(out_format);
                 let disc_writer = DiscWriter::new(disc_reader, &out_opts)?;
 
-                let mut prev_percentage = 0;
+                let mut prev_percentage = 100;
                 let game_title = self.source.title();
                 let finalization = disc_writer.process(
                     |data, progress, total| {

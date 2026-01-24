@@ -173,7 +173,7 @@ impl ConvertForWiiOperation {
                     },
                 };
 
-                let mut prev_percentage = 0;
+                let mut prev_percentage = 100;
                 let finalization = disc_writer.process(
                     |mut data, progress, total| {
                         if let Some(overflow_writer) = &mut overflow_writer {
