@@ -50,7 +50,7 @@ impl TransferQueue {
             };
 
             Task::sip(straw, Message::UpdateTransferStatus, |res| {
-                Message::GenericResult(res.map_err(Arc::new))
+                Message::Transferred(res.map_err(Arc::new))
             })
         })
     }
