@@ -1,9 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::games;
 use crate::games::extensions::SUPPORTED_INPUT_EXTENSIONS;
+use crate::games::game::Game;
 use crate::hbc::osc::OscAppMeta;
+use crate::{games, util};
 use anyhow::Result;
 use iced::Window;
 use native_dialog::{DialogBuilder, MessageLevel};
@@ -215,4 +216,20 @@ pub fn confirm_install_osc_app(window: &dyn Window, app: OscAppMeta) -> (OscAppM
         .unwrap_or_default();
 
     (app, yes)
+}
+
+pub fn choose_archive_dest(window: &dyn Window, game: Game) -> Option<(Game, PathBuf)> {
+    let title = format!("Archive {}", game.title());
+    let default_file_name = format!("{}.rvz", util::sanitize(game.title()));
+
+    let path = DialogBuilder::file()
+        .set_title(&title)
+        .set_owner(&window)
+        .add_filter("Nintendo Optical Disc", SUPPORTED_INPUT_EXTENSIONS)
+        .set_filename(default_file_name)
+        .save_single_file()
+        .show()
+        .unwrap_or_default();
+
+    path.map(|path| (game, path))
 }

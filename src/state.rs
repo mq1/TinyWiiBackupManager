@@ -5,6 +5,7 @@ use crate::{
     config::{Config, SortBy, ThemePreference},
     data_dir::get_data_dir,
     games::{
+        archive::ArchiveOperation,
         covers,
         game::Game,
         game_list::{self, GameList},
@@ -135,7 +136,8 @@ impl State {
             | Message::GotGameList(Err(e))
             | Message::GotLatestVersion(Err(e))
             | Message::GotDiscInfo(Err(e))
-            | Message::GotHbcAppList(Err(e)) => {
+            | Message::GotHbcAppList(Err(e))
+            | Message::Transferred(Err(e)) => {
                 self.notifications.error(e);
                 Task::none()
             }
@@ -387,11 +389,11 @@ impl State {
                     if had_pending_operations {
                         Task::none()
                     } else {
-                        self.update(Message::StartSingleGameTransfer)
+                        self.update(Message::StartTransfer)
                     }
                 }
             }
-            Message::StartSingleGameTransfer => {
+            Message::StartTransfer => {
                 if let Some(task) = self.transfer_queue.pop_task() {
                     task
                 } else {
@@ -403,6 +405,10 @@ impl State {
             Message::CancelTransfer(i) => {
                 self.transfer_queue.cancel(i);
                 Task::none()
+            }
+            Message::Transferred(Ok(msg)) => {
+                self.notifications.success(msg);
+                self.update(Message::StartTransfer)
             }
             Message::GotDiscInfo(Ok(disc_info)) => {
                 if let Screen::GameInfo(game) = &mut self.screen {
@@ -447,6 +453,18 @@ impl State {
                 self.transfer_queue.set_status(status);
                 self.half_sec_anim_state = !self.half_sec_anim_state;
                 Task::none()
+            }
+            Message::ChooseArchiveDest(game) => window::oldest()
+                .and_then(move |id| {
+                    let game = game.clone();
+                    window::run(id, move |w| dialogs::choose_archive_dest(w, game))
+                })
+                .map(Message::ArchiveGame),
+            Message::ArchiveGame(None) => Task::none(),
+            Message::ArchiveGame(Some((game, dest))) => {
+                let op = ArchiveOperation::new(game, dest);
+                self.transfer_queue.push(TransferOperation::Archive(op));
+                self.update(Message::StartTransfer)
             }
         }
     }

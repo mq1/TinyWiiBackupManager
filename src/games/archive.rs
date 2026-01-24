@@ -60,7 +60,7 @@ impl ArchiveOperation {
             let disc_writer = DiscWriter::new(disc_reader, &out_opts)?;
 
             let process_opts = ProcessOptions {
-                processor_threads: (num_cpus::get() - 1).max(1),
+                processor_threads: num_cpus::get() - 1,
                 digest_crc32: true,
                 digest_md5: false,
                 digest_sha1: true,
@@ -73,7 +73,7 @@ impl ArchiveOperation {
                     out_writer.write_all(&data)?;
 
                     block_on(sender.send(format!(
-                        "Archiving {}  {:02}%",
+                        "⤓ Archiving {}  {:02}%",
                         self.source.title(),
                         progress * 100 / total
                     )));

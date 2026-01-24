@@ -47,13 +47,24 @@ pub fn view<'a>(state: &State, game: &'a Game) -> Element<'a, Message> {
         .push(space::vertical())
         .push(
             row![
-                button(row![icon_info(), text("Info")].spacing(5))
-                    .style(style::rounded_secondary_button)
-                    .on_press_with(|| Message::NavTo(Screen::GameInfo(game.clone()))),
-                button(icon_hard_drive_download()).style(style::rounded_secondary_button),
-                button(icon_trash())
-                    .style(style::rounded_secondary_button)
-                    .on_press_with(|| Message::AskDeleteDirConfirmation(game.path().clone()))
+                my_tooltip::view(
+                    button(row![icon_info(), text("Info")].spacing(5))
+                        .style(style::rounded_secondary_button)
+                        .on_press_with(|| Message::NavTo(Screen::GameInfo(game.clone()))),
+                    "Show game info"
+                ),
+                my_tooltip::view(
+                    button(icon_hard_drive_download())
+                        .style(style::rounded_secondary_button)
+                        .on_press_with(|| Message::ChooseArchiveDest(game.clone())),
+                    "Archive game to PC"
+                ),
+                my_tooltip::view(
+                    button(icon_trash())
+                        .style(style::rounded_secondary_button)
+                        .on_press_with(|| Message::AskDeleteDirConfirmation(game.path().clone())),
+                    "Delete game"
+                )
             ]
             .spacing(5),
         );

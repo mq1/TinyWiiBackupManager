@@ -1,12 +1,19 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{games::game::Game, message::Message, state::State, ui::Screen};
+use crate::{
+    games::game::Game,
+    message::Message,
+    state::State,
+    ui::{Screen, components::my_tooltip},
+};
 use iced::{
     Alignment, Element, Length, padding,
     widget::{button, column, container, row, space, table, text},
 };
-use lucide_icons::iced::{icon_gamepad_2, icon_hard_drive, icon_info, icon_trash};
+use lucide_icons::iced::{
+    icon_gamepad_2, icon_hard_drive, icon_hard_drive_download, icon_info, icon_trash,
+};
 
 pub fn view(state: &State) -> Element<'_, Message> {
     let t_columns = vec![
@@ -26,15 +33,29 @@ pub fn view(state: &State) -> Element<'_, Message> {
         }),
         table::column(text("Actions").size(16), |game: &Game| {
             row![
-                button(row![icon_info(), text("Info")].spacing(5))
-                    .padding(0)
-                    .style(button::text)
-                    .on_press_with(|| Message::NavTo(Screen::GameInfo(game.clone()))),
+                my_tooltip::view(
+                    button(row![icon_info(), text("Info")].spacing(5))
+                        .padding(0)
+                        .style(button::text)
+                        .on_press_with(|| Message::NavTo(Screen::GameInfo(game.clone()))),
+                    "Show game info"
+                ),
                 text('•'),
-                button(row![icon_trash(), text("Delete")].spacing(5))
-                    .padding(0)
-                    .style(button::text)
-                    .on_press_with(|| Message::AskDeleteDirConfirmation(game.path().clone()))
+                my_tooltip::view(
+                    button(row![icon_hard_drive_download(), text("Archive")].spacing(5))
+                        .padding(0)
+                        .style(button::text)
+                        .on_press_with(|| Message::ChooseArchiveDest(game.clone())),
+                    "Archive game to PC"
+                ),
+                text('•'),
+                my_tooltip::view(
+                    button(row![icon_trash(), text("Delete")].spacing(5))
+                        .padding(0)
+                        .style(button::text)
+                        .on_press_with(|| Message::AskDeleteDirConfirmation(game.path().clone())),
+                    "Delete game"
+                )
             ]
             .spacing(10)
             .align_y(Alignment::Center)
