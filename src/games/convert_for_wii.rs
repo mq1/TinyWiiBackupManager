@@ -6,7 +6,7 @@ use crate::{
     games::extensions::{format_to_ext, format_to_opts},
     util,
 };
-use anyhow::Result;
+use anyhow::{Result, anyhow};
 use iced::{
     futures::{StreamExt, channel::mpsc},
     task::{Straw, sipper},
@@ -16,12 +16,14 @@ use nod::{
     write::{DiscWriter, ProcessOptions, ScrubLevel},
 };
 use std::{
+    ffi::OsStr,
     fs::{self, File},
-    io::{BufWriter, Seek, Write},
+    io::{self, BufReader, BufWriter, Seek, Write},
     path::PathBuf,
     sync::Arc,
     thread,
 };
+use zip::ZipArchive;
 
 const SPLIT_SIZE: u64 = 4_294_934_528; // 4 GiB - 32 KiB
 
@@ -30,6 +32,7 @@ pub struct ConvertForWiiOperation {
     source_path: PathBuf,
     display_str: String,
     config: Config,
+    additional_file_to_remove: Option<PathBuf>,
 }
 
 impl ConvertForWiiOperation {
@@ -40,14 +43,50 @@ impl ConvertForWiiOperation {
             source_path,
             display_str,
             config,
+            additional_file_to_remove: None,
         }
     }
 
     #[allow(clippy::too_many_lines)]
-    pub fn run(self) -> impl Straw<String, String, Arc<anyhow::Error>> {
+    pub fn run(mut self) -> impl Straw<String, String, Arc<anyhow::Error>> {
         sipper(async move |mut sender| {
-            let (mut tx, mut rx) = mpsc::channel(100);
+            if self
+                .source_path
+                .extension()
+                .and_then(OsStr::to_str)
+                .is_some_and(|ext| ext == "zip")
+            {
+                sender
+                    .send(format!("Unzipping {}", self.source_path.display()))
+                    .await;
 
+                let new_source_path = || -> Result<PathBuf> {
+                    let file = File::open(&self.source_path)?;
+                    let reader = BufReader::new(file);
+                    let mut archive = ZipArchive::new(reader)?;
+                    let mut archived_disc = archive.by_index(0)?;
+                    let parent = self
+                        .source_path
+                        .parent()
+                        .ok_or(anyhow!("No parent dir found"))?;
+
+                    let new_source_path = parent.join(archived_disc.name());
+                    if !new_source_path.exists() {
+                        let out = File::create(&new_source_path)?;
+                        let mut writer = BufWriter::new(out);
+                        io::copy(&mut archived_disc, &mut writer)?;
+                        writer.flush()?;
+                    }
+
+                    Ok(new_source_path)
+                }()
+                .map_err(Arc::new)?;
+
+                self.additional_file_to_remove = Some(self.source_path);
+                self.source_path = new_source_path;
+            }
+
+            let (mut tx, mut rx) = mpsc::channel(100);
             let handle = thread::spawn(move || -> Result<String> {
                 let (processor_threads, preloader_threads) = get_threads_num();
 
@@ -135,7 +174,8 @@ impl ConvertForWiiOperation {
                         if let Some(overflow_writer) = &mut overflow_writer {
                             overflow_writer.write_all(&data)?;
                         } else if must_split {
-                            let data_end_pos = progress + data.len() as u64;
+                            let current_pos = out_writer.stream_position()?;
+                            let data_end_pos = current_pos + data.len() as u64;
 
                             if data_end_pos > SPLIT_SIZE {
                                 let overflow_path = if out_format == nod::common::Format::Wbfs {
@@ -183,6 +223,9 @@ impl ConvertForWiiOperation {
 
                 if self.config.remove_sources_games() {
                     fs::remove_file(self.source_path)?;
+                    if let Some(path) = self.additional_file_to_remove {
+                        fs::remove_file(path)?;
+                    }
                 }
 
                 let msg = format!("Converted {title}");
