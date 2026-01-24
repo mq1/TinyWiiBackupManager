@@ -43,7 +43,7 @@ impl ArchiveOperation {
 
     pub fn run(self) -> impl Straw<String, String, Arc<anyhow::Error>> {
         sipper(async move |mut sender| {
-            let (mut tx, mut rx) = mpsc::channel(100);
+            let (mut tx, mut rx) = mpsc::channel(1);
 
             let handle = thread::spawn(move || -> Result<String> {
                 let disc_path = disc_info::get_main_disc_file_in_dir(self.source.path())?;
@@ -73,15 +73,19 @@ impl ArchiveOperation {
                 let out_opts = format_to_opts(out_format);
                 let disc_writer = DiscWriter::new(disc_reader, &out_opts)?;
 
+                let mut prev_percentage = 0;
+                let game_title = self.source.title();
                 let finalization = disc_writer.process(
                     |data, progress, total| {
                         out_writer.write_all(&data)?;
 
-                        let _ = tx.try_send(format!(
-                            "⤓ Archiving {}  {:02}%",
-                            self.source.title(),
-                            progress * 100 / total
-                        ));
+                        let progress_percentage = progress * 100 / total;
+                        if progress_percentage != prev_percentage {
+                            let _ = tx.try_send(format!(
+                                "⤓ Archiving {game_title}  {progress_percentage:02}%"
+                            ));
+                            prev_percentage = progress_percentage;
+                        }
 
                         Ok(())
                     },
@@ -94,7 +98,7 @@ impl ArchiveOperation {
                 }
 
                 out_writer.flush()?;
-                Ok(format!("Archived {}", self.source.title()))
+                Ok(format!("Archived {game_title}"))
             });
 
             while let Some(msg) = rx.next().await {

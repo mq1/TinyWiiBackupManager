@@ -48,7 +48,7 @@ impl ConvertForWiiOperation {
     #[allow(clippy::too_many_lines)]
     pub fn run(mut self) -> impl Straw<String, String, Arc<anyhow::Error>> {
         sipper(async move |mut sender| {
-            let (mut tx, mut rx) = mpsc::channel(100);
+            let (mut tx, mut rx) = mpsc::channel(1);
 
             let handle = thread::spawn(move || -> Result<String> {
                 let mut files_to_remove = Vec::new();
@@ -173,6 +173,7 @@ impl ConvertForWiiOperation {
                     },
                 };
 
+                let mut prev_percentage = 0;
                 let finalization = disc_writer.process(
                     |mut data, progress, total| {
                         if let Some(overflow_writer) = &mut overflow_writer {
@@ -204,11 +205,13 @@ impl ConvertForWiiOperation {
                             out_writer.write_all(&data)?;
                         }
 
-                        let _ = tx.try_send(format!(
-                            "⤒ Converting {}  {:02}%",
-                            title,
-                            progress * 100 / total
-                        ));
+                        let progress_percentage = progress * 100 / total;
+                        if progress_percentage != prev_percentage {
+                            let _ = tx.try_send(format!(
+                                "⤒ Converting {title}  {progress_percentage:02}%"
+                            ));
+                            prev_percentage = progress_percentage;
+                        }
 
                         Ok(())
                     },
