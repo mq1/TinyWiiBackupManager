@@ -157,6 +157,7 @@ impl ConvertForWiiOperation {
                                 let overflow_writer =
                                     overflow_writer.insert(BufWriter::new(overflow_file));
 
+                                #[allow(clippy::cast_possible_truncation)]
                                 let split_pos = (SPLIT_SIZE - progress) as usize;
                                 let split_data = data.split_to(split_pos);
                                 out_writer.write_all(&split_data)?;
@@ -185,6 +186,9 @@ impl ConvertForWiiOperation {
                 }
 
                 out_writer.flush()?;
+                if let Some(overflow_writer) = &mut overflow_writer {
+                    overflow_writer.flush()?;
+                }
 
                 if self.config.remove_sources_games() {
                     fs::remove_file(self.source_path)?;
