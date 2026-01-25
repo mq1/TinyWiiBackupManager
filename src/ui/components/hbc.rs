@@ -50,6 +50,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 content
             ])
             .id(state.hbc_scroll_id.clone())
+            .spacing(1)
             .on_scroll(|viewport| Message::UpdateScrollPosition(
                 state.hbc_scroll_id.clone(),
                 viewport.absolute_offset()
