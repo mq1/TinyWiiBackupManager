@@ -212,8 +212,7 @@ pub fn view<'a>(state: &State, game: &'a Game) -> Element<'a, Message> {
             .padding(padding::top(10).left(10)),
         row![icon_folder(), text!("Path: {}", game.get_path_str())]
             .spacing(5)
-            .padding(padding::left(10)),
-        space(),
+            .padding(padding::left(10).bottom(10)),
         scrollable(
             column![
                 container(disc_info.width(Length::Fill)).style(style::card),
@@ -241,7 +240,6 @@ pub fn view<'a>(state: &State, game: &'a Game) -> Element<'a, Message> {
         .spacing(5)
         .padding(5)
     ]
-    .spacing(5)
     .height(Length::Fill);
 
     match state.get_game_cover(game) {
