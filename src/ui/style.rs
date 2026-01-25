@@ -67,20 +67,45 @@ pub fn nav_container(theme: &Theme) -> container::Style {
 pub fn card(theme: &Theme) -> container::Style {
     let bg = theme.palette().background;
 
-    let mut style = container::bordered_box(theme);
-    style.background = Some(Background::Color(bg));
-    style.border.radius = border::radius(10);
-    style
-}
+    let shadow_color = if theme.extended_palette().is_dark {
+        Color::from_rgba8(100, 100, 100, 0.1)
+    } else {
+        Color::from_rgba8(0, 0, 0, 0.1)
+    };
 
-pub fn card_with_shadow(theme: &Theme) -> container::Style {
     let shadow = Shadow {
-        color: theme.palette().text.scale_alpha(0.2),
+        color: shadow_color,
         offset: Vector::new(0.0, 0.0),
         blur_radius: 10.0,
     };
 
-    card(theme).shadow(shadow)
+    let mut style = container::bordered_box(theme);
+    style.background = Some(Background::Color(bg));
+    style.border.radius = border::radius(10);
+    style.shadow = shadow;
+    style
+}
+
+pub fn heavy_card(theme: &Theme) -> container::Style {
+    let bg = theme.palette().background;
+
+    let shadow_color = if theme.extended_palette().is_dark {
+        Color::from_rgba8(100, 100, 100, 0.2)
+    } else {
+        Color::from_rgba8(0, 0, 0, 0.2)
+    };
+
+    let shadow = Shadow {
+        color: shadow_color,
+        offset: Vector::new(0.0, 0.0),
+        blur_radius: 10.0,
+    };
+
+    let mut style = container::bordered_box(theme);
+    style.background = Some(Background::Color(bg));
+    style.border.radius = border::radius(10);
+    style.shadow = shadow;
+    style
 }
 
 pub fn search_bar(theme: &Theme, status: text_input::Status) -> text_input::Style {

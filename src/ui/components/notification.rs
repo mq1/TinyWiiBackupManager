@@ -35,6 +35,6 @@ pub fn view(notification: &Notification) -> Element<'_, Message> {
         .align_y(Alignment::Center),
     )
     .padding(10)
-    .style(style::card_with_shadow)
+    .style(style::heavy_card)
     .into()
 }
