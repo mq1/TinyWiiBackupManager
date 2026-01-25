@@ -3,16 +3,18 @@
 
 use crate::{message::Message, state::State, ui::style};
 use iced::{
-    Alignment, Element, Length,
-    widget::{button, column, container, row, rule, space, text},
+    Alignment, Element, Length, padding,
+    widget::{button, column, container, row, rule, scrollable, space, text},
 };
 use lucide_icons::iced::{
-    icon_cloud_download, icon_image_down, icon_skull, icon_tool_case, icon_wand_sparkles,
+    icon_brush_cleaning, icon_cloud_download, icon_image_down, icon_play, icon_skull,
+    icon_tool_case, icon_wand_sparkles,
 };
 
 #[cfg(target_os = "macos")]
-use lucide_icons::iced::{icon_apple, icon_brush_cleaning};
+use lucide_icons::iced::icon_apple;
 
+#[allow(clippy::too_many_lines)]
 pub fn view(_state: &State) -> Element<'_, Message> {
     let usbloader_gx = column![
         row![icon_wand_sparkles(), "USB Loader GX"].spacing(5),
@@ -30,7 +32,7 @@ pub fn view(_state: &State) -> Element<'_, Message> {
             button(icon_image_down())
                 .style(style::rounded_button)
                 .on_press(Message::DownloadCoversForUsbLoaderGx),
-            "Download all covers (defaults to English for PAL games; usbloader_gx downloads them in the correct language)"
+            "Download all covers\ndefaults to English for PAL games (usbloader_gx downloads them in the correct language)"
         ]
         .align_y(Alignment::Center)
         .spacing(10),
@@ -81,11 +83,31 @@ pub fn view(_state: &State) -> Element<'_, Message> {
     .padding(10)
     .width(Length::Fill);
 
-    #[cfg(not(target_os = "macos"))]
-    let os_specific = space();
+    let cleanup = column![
+        row![icon_brush_cleaning(), "Cleanup"].spacing(5),
+        rule::horizontal(1),
+        space(),
+        row![
+            button(icon_play())
+                .style(style::rounded_button)
+                .on_press(Message::NormalizePaths),
+            "Normalize paths (makes sure the game directories' layouts are correct)"
+        ]
+        .align_y(Alignment::Center)
+        .spacing(10),
+        row![
+            button(icon_play()).style(style::rounded_button),
+            "Remove the update partition from all .wbfs files"
+        ]
+        .align_y(Alignment::Center)
+        .spacing(10)
+    ]
+    .spacing(5)
+    .padding(10)
+    .width(Length::Fill);
 
     #[cfg(target_os = "macos")]
-    let os_specific = container(
+    let macos = container(
         column![
             row![icon_apple(), text("macOS")].spacing(5),
             rule::horizontal(1),
@@ -106,15 +128,25 @@ pub fn view(_state: &State) -> Element<'_, Message> {
     .style(style::card);
 
     column![
-        row![icon_tool_case().size(18), text("Toolbox").size(18)].spacing(5),
-        container(usbloader_gx).style(style::card),
-        container(wiiflow).style(style::card),
-        container(cheats).style(style::card),
-        os_specific
+        row![icon_tool_case().size(18), text("Toolbox").size(18)]
+            .spacing(5)
+            .padding(padding::top(10).left(10)),
+        scrollable(
+            column![
+                container(usbloader_gx).style(style::card),
+                container(wiiflow).style(style::card),
+                container(cheats).style(style::card),
+                container(cleanup).style(style::card),
+                #[cfg(target_os = "macos")]
+                macos,
+                space()
+            ]
+            .spacing(10)
+            .padding(padding::horizontal(10))
+        )
+        .spacing(1)
+        .height(Length::Fill)
     ]
     .spacing(10)
-    .padding(10)
-    .width(Length::Fill)
-    .height(Length::Fill)
     .into()
 }

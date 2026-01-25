@@ -60,6 +60,7 @@ pub enum Message {
     DownloadCheatsForGame(Game),
     DownloadCheatsForAllGames,
     DownloadBanners,
+    NormalizePaths,
 
     // HBC Apps
     GotHbcAppList(Result<HbcAppList, Arc<anyhow::Error>>),

@@ -7,7 +7,7 @@ use crate::{
     message::Message,
     state::State,
 };
-use anyhow::{Result, bail};
+use anyhow::Result;
 use iced::{
     Task,
     task::{Sipper, sipper},

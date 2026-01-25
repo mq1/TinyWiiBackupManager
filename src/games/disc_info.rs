@@ -1,12 +1,14 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::games::extensions::SUPPORTED_DISC_EXTENSIONS;
 use crate::games::game_id::GameID;
 use anyhow::{Result, anyhow, bail};
 use derive_getters::Getters;
 use nod::common::{Compression, Format, PartitionKind};
 use nod::read::{DiscOptions, DiscReader, PartitionEncryption, PartitionOptions};
 use size::Size;
+use std::ffi::OsStr;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -82,18 +84,53 @@ pub fn get_main_disc_file_in_dir(dir: &Path) -> Result<PathBuf> {
 }
 
 impl DiscInfo {
-    pub fn from_game_dir(game_dir: PathBuf) -> Result<Self> {
+    pub fn try_from_game_dir(game_dir: PathBuf) -> Result<Self> {
         if !game_dir.is_dir() {
             bail!("Not a directory");
         }
 
-        let disc_path = get_main_disc_file_in_dir(&game_dir)?;
-        Self::from_path(disc_path)
+        let Some(filename) = game_dir.file_name().and_then(OsStr::to_str) else {
+            bail!("No file name");
+        };
+
+        if filename.starts_with('.') {
+            bail!("Hidden directory");
+        }
+
+        for entry in fs::read_dir(&game_dir)?.filter_map(Result::ok) {
+            let disc_path = entry.path();
+
+            if let Ok(disc_info) = Self::try_from_path(disc_path) {
+                return Ok(disc_info);
+            }
+        }
+
+        Err(anyhow!("No disc file found"))
     }
 
-    pub fn from_path(disc_path: PathBuf) -> Result<Self> {
+    pub fn try_from_path(disc_path: PathBuf) -> Result<Self> {
         if !disc_path.is_file() {
             bail!("Not a file");
+        }
+
+        let Some(filename) = disc_path.file_name().and_then(OsStr::to_str) else {
+            bail!("No file name");
+        };
+
+        if filename.starts_with('.') {
+            bail!("Hidden file");
+        }
+
+        if filename.ends_with(".part1.iso") {
+            bail!("Part 1 file");
+        }
+
+        let Some(ext) = disc_path.extension().and_then(OsStr::to_str) else {
+            bail!("No file extension");
+        };
+
+        if !SUPPORTED_DISC_EXTENSIONS.contains(&ext) {
+            bail!("Unsupported file extension");
         }
 
         let parent_dir = disc_path.parent().ok_or(anyhow!("No parent directory"))?;

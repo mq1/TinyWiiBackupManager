@@ -8,7 +8,7 @@ use crate::{
         archive::ArchiveOperation,
         banners,
         convert_for_wii::ConvertForWiiOperation,
-        covers,
+        covers, dir_layout,
         game::Game,
         game_list::{self, GameList},
         transfer::{TransferOperation, TransferQueue},
@@ -513,6 +513,14 @@ impl State {
                 self.notifications
                     .info("Downloading banners for all GameCube games, this may take some time!");
                 banners::get_download_banners_task(self)
+            }
+            Message::NormalizePaths => {
+                let res = dir_layout::normalize_paths(self.config.mount_point()).map_err(Arc::new);
+
+                Task::batch(vec![
+                    self.update(Message::GenericResult(res)),
+                    self.update(Message::RefreshGamesAndApps),
+                ])
             }
         }
     }

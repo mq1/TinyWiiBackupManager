@@ -5,6 +5,7 @@ pub mod archive;
 pub mod banners;
 pub mod convert_for_wii;
 pub mod covers;
+pub mod dir_layout;
 pub mod disc_info;
 pub mod extensions;
 pub mod game;

@@ -4,10 +4,7 @@
 use crate::{message::Message, state::State};
 use anyhow::{Result, anyhow};
 use iced::Task;
-use std::{
-    fs,
-    path::{Path, PathBuf},
-};
+use std::path::{Path, PathBuf};
 use sysinfo::Disks;
 use tempfile::NamedTempFile;
 
@@ -102,22 +99,4 @@ pub fn run_dot_clean(mount_point: PathBuf) -> Result<String> {
         }
         Err(e) => Err(anyhow!("dot_clean failed: {e}")),
     }
-}
-
-pub fn get_files_and_dirs(base_dir: &Path) -> Result<(Vec<PathBuf>, Vec<PathBuf>)> {
-    let mut files = Vec::new();
-    let mut dirs = Vec::new();
-
-    let entries = fs::read_dir(base_dir)?;
-    for entry in entries.filter_map(Result::ok) {
-        if let Ok(file_type) = entry.file_type() {
-            if file_type.is_dir() {
-                dirs.push(entry.path());
-            } else if file_type.is_file() {
-                files.push(entry.path());
-            }
-        }
-    }
-
-    Ok((files, dirs))
 }
