@@ -18,6 +18,8 @@ pub enum Message {
     EmptyResult(Result<(), Arc<anyhow::Error>>),
     GenericError(Arc<anyhow::Error>),
     GenericSuccess(String),
+    CloseNotification(usize),
+    CloseAllNotifications,
 
     // Navigation
     NavTo(Screen),
@@ -26,7 +28,6 @@ pub enum Message {
     // Misc
     RefreshGamesAndApps,
     GotWiitdbDatafile(Result<(Datafile, bool), Arc<anyhow::Error>>),
-    CloseNotification(usize),
     SelectMountPoint,
     GotDriveUsage(String),
     ChangeTheme,

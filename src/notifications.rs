@@ -38,6 +38,16 @@ impl Notifications {
             .map(|i| self.list.remove(i));
     }
 
+    #[inline]
+    pub fn count(&self) -> usize {
+        self.list.len()
+    }
+
+    #[inline]
+    pub fn close_all(&mut self) {
+        self.list.clear();
+    }
+
     pub fn info(&mut self, text: impl Display) {
         println!("INFO: {text}");
 

@@ -493,6 +493,10 @@ impl State {
                     .info("Downloading covers for Wiiflow, this may take some time!");
                 covers::get_download_wiiflow_covers_task(self)
             }
+            Message::CloseAllNotifications => {
+                self.notifications.close_all();
+                Task::none()
+            }
         }
     }
 
