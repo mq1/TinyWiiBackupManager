@@ -194,7 +194,7 @@ impl ConvertForWiiOperation {
                                     overflow_writer.insert(BufWriter::new(overflow_file));
 
                                 #[allow(clippy::cast_possible_truncation)]
-                                let split_pos = (data_end_pos - SPLIT_SIZE) as usize;
+                                let split_pos = (SPLIT_SIZE - current_pos) as usize;
                                 out_writer.write_all(&data[..split_pos])?;
                                 overflow_writer.write_all(&data[split_pos..])?;
                             } else {
