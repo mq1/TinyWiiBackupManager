@@ -9,20 +9,21 @@ use crate::{
 };
 use iced::{
     Element, Length, padding,
-    widget::{button, column, image, row, rule, scrollable, space, stack, text},
+    widget::{button, column, container, image, row, rule, scrollable, space, stack, text},
 };
 use itertools::Itertools;
 use lucide_icons::iced::{
-    icon_calendar, icon_clipboard_list, icon_cloud_download, icon_computer, icon_flag,
-    icon_folders, icon_globe, icon_monitor_up, icon_package, icon_store, icon_tag, icon_usb,
-    icon_users, icon_weight,
+    icon_calendar, icon_clipboard_list, icon_cloud_download, icon_computer, icon_file_text,
+    icon_flag, icon_folders, icon_globe, icon_info, icon_monitor_up, icon_package, icon_store,
+    icon_tag, icon_usb, icon_users, icon_weight,
 };
 
 #[allow(clippy::too_many_lines)]
 pub fn view<'a>(state: &State, app: &'a OscAppMeta) -> Element<'a, Message> {
-    let col = column![
-        row![icon_store().size(18), text(app.name()).size(18)].spacing(5),
+    let details = column![
+        row![icon_info(), "Details"].spacing(10),
         rule::horizontal(1),
+        space(),
         row![icon_tag(), text!("Version: {}", app.version())].spacing(5),
         row![
             components::developers::get_icon(app.author()),
@@ -94,12 +95,38 @@ pub fn view<'a>(state: &State, app: &'a OscAppMeta) -> Element<'a, Message> {
         .spacing(5),
         row![
             icon_clipboard_list(),
-            text!("Short Description: {}", app.description().short())
+            text!("Short description: {}", app.description().short())
         ]
         .spacing(5),
+    ]
+    .padding(10)
+    .spacing(5)
+    .width(Length::Fill);
+
+    let long_description = column![
+        row![icon_file_text(), "Long description"].spacing(5),
         rule::horizontal(1),
-        scrollable(text(app.description().long()).width(Length::Fill)).height(Length::Fill),
-        rule::horizontal(1),
+        space(),
+        text(app.description().long()),
+    ]
+    .padding(10)
+    .spacing(5)
+    .width(Length::Fill);
+
+    let col = column![
+        row![icon_store().size(18), text(app.name()).size(18)]
+            .spacing(5)
+            .padding(10),
+        scrollable(
+            column![
+                container(details).style(style::card),
+                container(long_description).style(style::card)
+            ]
+            .spacing(10)
+            .padding(padding::horizontal(10))
+        )
+        .spacing(1)
+        .height(Length::Fill),
         row![
             button(row![icon_globe(), text("Open OSC Page")].spacing(5))
                 .style(style::rounded_button)
@@ -111,11 +138,8 @@ pub fn view<'a>(state: &State, app: &'a OscAppMeta) -> Element<'a, Message> {
                 .on_press_with(|| Message::AskInstallOscApp(app.clone()))
         ]
         .spacing(5)
-        .padding(padding::top(5))
-    ]
-    .spacing(5)
-    .padding(10)
-    .height(Length::Fill);
+        .padding(5)
+    ];
 
     match state.get_osc_app_icon(app) {
         Some(icon) => stack![
