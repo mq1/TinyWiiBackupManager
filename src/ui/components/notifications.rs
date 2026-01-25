@@ -19,16 +19,16 @@ pub fn view(state: &State) -> Element<'_, Message> {
         .spacing(10)
         .padding(10);
 
-    for notification in state.notifications.iter() {
-        col = col.push(components::notification::view(notification));
-    }
-
-    if state.notifications.count() > 10 {
+    if state.notifications.count() >= 8 {
         col = col.push(
             button(row![icon_brush_cleaning(), "Close all notifications"].spacing(5))
                 .style(style::rounded_button)
                 .on_press(Message::CloseAllNotifications),
         );
+    }
+
+    for notification in state.notifications.iter() {
+        col = col.push(components::notification::view(notification));
     }
 
     col.into()

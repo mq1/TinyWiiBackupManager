@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use iced::{
-    Background, Color, Theme, border,
+    Background, Color, Shadow, Theme, Vector, border,
     widget::{button, checkbox, container, text_input},
 };
 
@@ -71,6 +71,16 @@ pub fn card(theme: &Theme) -> container::Style {
     style.background = Some(Background::Color(bg));
     style.border.radius = border::radius(10);
     style
+}
+
+pub fn card_with_shadow(theme: &Theme) -> container::Style {
+    let shadow = Shadow {
+        color: theme.palette().text.scale_alpha(0.2),
+        offset: Vector::new(0.0, 0.0),
+        blur_radius: 10.0,
+    };
+
+    card(theme).shadow(shadow)
 }
 
 pub fn search_bar(theme: &Theme, status: text_input::Status) -> text_input::Style {
