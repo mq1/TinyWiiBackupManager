@@ -33,6 +33,14 @@ pub fn view(_state: &State) -> Element<'_, Message> {
             "Download all covers (defaults to English for PAL games; usbloader_gx downloads them in the correct language)"
         ]
         .align_y(Alignment::Center)
+        .spacing(10),
+        row![
+            button(icon_image_down())
+                .style(style::rounded_button)
+                .on_press(Message::DownloadBanners),
+            "Download banners for all GameCube games"
+        ]
+        .align_y(Alignment::Center)
         .spacing(10)
     ]
     .spacing(5)

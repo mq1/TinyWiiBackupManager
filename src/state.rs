@@ -6,6 +6,7 @@ use crate::{
     data_dir::get_data_dir,
     games::{
         archive::ArchiveOperation,
+        banners,
         convert_for_wii::ConvertForWiiOperation,
         covers,
         game::Game,
@@ -507,6 +508,11 @@ impl State {
                 self.notifications
                     .info("Downloading cheats for all games, this may take some time!");
                 txtcodes::get_download_cheats_for_all_games_task(self)
+            }
+            Message::DownloadBanners => {
+                self.notifications
+                    .info("Downloading banners for all GameCube games, this may take some time!");
+                banners::get_download_banners_task(self)
             }
         }
     }

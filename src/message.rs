@@ -59,6 +59,7 @@ pub enum Message {
     DownloadCoversForWiiflow,
     DownloadCheatsForGame(Game),
     DownloadCheatsForAllGames,
+    DownloadBanners,
 
     // HBC Apps
     GotHbcAppList(Result<HbcAppList, Arc<anyhow::Error>>),

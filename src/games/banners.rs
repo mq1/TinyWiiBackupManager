@@ -1,69 +1,65 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::app::App;
-use crate::messages::Message;
-use crate::{games::GameID, http};
-use anyhow::Result;
-use egui_phosphor::regular as ph;
-use std::{fs, path::Path};
+use crate::{
+    games::{game_id::GameID, game_list::GameList},
+    http_util,
+    message::Message,
+    state::State,
+};
+use anyhow::{Result, bail};
+use iced::{
+    Task,
+    task::{Sipper, sipper},
+};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+    sync::Arc,
+};
 
-fn download_banner_for_game(cache_bnr_path: &Path, game_id: GameID) -> Result<()> {
-    let path = cache_bnr_path.join(game_id.as_str()).with_extension("bnr");
+fn download_banner_for_game(mount_point: &Path, game_id: GameID) -> Result<()> {
+    let parent = mount_point.join("cache_bnr");
+    let path = parent.join(game_id.as_str()).with_extension("bnr");
 
     if path.exists() {
         return Ok(());
     }
 
     let url = format!("https://banner.rc24.xyz/{}.bnr", game_id.as_str());
-    let fallback_url = format!("https://banner.rc24.xyz/{}.bnr", game_id.as_partial());
+    let fallback_url = format!("https://banner.rc24.xyz/{}.bnr", game_id.as_partial_str());
 
-    let bytes = match http::get(&url) {
+    let bytes = match http_util::get(&url) {
         Ok(body) => body,
-        Err(_) => http::get(&fallback_url)?,
+        Err(_) => http_util::get(&fallback_url)?,
     };
 
+    fs::create_dir_all(&parent)?;
     fs::write(&path, bytes)?;
 
     Ok(())
 }
 
-pub fn spawn_download_banners_task(app: &App) {
-    let cache_bnr_path = app.config.contents.mount_point.join("cache_bnr");
-
-    let gc_games = app
-        .games
-        .iter()
-        .filter(|g| !g.is_wii)
-        .map(|g| (g.id, g.display_title.clone()))
-        .collect::<Box<[_]>>();
-
-    app.task_processor.spawn(move |msg_sender| {
-        msg_sender.send(Message::UpdateStatus(format!(
-            "{} Downloading banners...",
-            ph::IMAGE
-        )))?;
-
-        fs::create_dir_all(&cache_bnr_path)?;
-
-        for game in &gc_games {
-            msg_sender.send(Message::UpdateStatus(format!(
-                "{} Downloading banners... ({})",
-                ph::IMAGE,
-                &game.1
-            )))?;
-
-            if let Err(e) = download_banner_for_game(&cache_bnr_path, game.0) {
-                let context = format!("{} Failed to download banner for {}", ph::IMAGE, &game.1);
-                msg_sender.send(Message::NotifyError(e.context(context)))?;
+fn get_download_banners_sipper(
+    mount_point: PathBuf,
+    game_list: GameList,
+) -> impl Sipper<String, Arc<anyhow::Error>> {
+    sipper(async move |mut progress| {
+        for game in game_list.iter().filter(|g| g.id().is_gc()) {
+            if let Err(e) = download_banner_for_game(&mount_point, game.id()) {
+                let e = e.context(format!("Failed to download banner for {}", game.title()));
+                progress.send(Arc::new(e)).await;
             }
         }
 
-        msg_sender.send(Message::NotifyInfo(format!(
-            "{} Banners downloaded",
-            ph::IMAGE
-        )))?;
+        "Banners downloaded".to_string()
+    })
+}
 
-        Ok(())
-    });
+pub fn get_download_banners_task(state: &State) -> Task<Message> {
+    Task::sip(
+        get_download_banners_sipper(state.config.mount_point().clone(), state.game_list.clone()),
+        Message::GenericError,
+        Message::GenericSuccess,
+    )
 }
