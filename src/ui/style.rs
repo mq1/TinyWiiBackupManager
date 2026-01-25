@@ -13,8 +13,21 @@ pub fn root_container(theme: &Theme) -> container::Style {
 }
 
 pub fn rounded_button(theme: &Theme, status: button::Status) -> button::Style {
+    let shadow_color = if theme.extended_palette().is_dark {
+        Color::from_rgba8(100, 100, 100, 0.2)
+    } else {
+        Color::from_rgba8(0, 0, 0, 0.2)
+    };
+
+    let shadow = Shadow {
+        color: shadow_color,
+        offset: Vector::new(0.0, 0.0),
+        blur_radius: 10.0,
+    };
+
     let mut style = button::primary(theme, status);
     style.border.radius = border::radius(30);
+    style.shadow = shadow;
     style
 }
 
@@ -27,8 +40,21 @@ pub fn rounded_secondary_button(theme: &Theme, status: button::Status) -> button
 }
 
 pub fn rounded_danger_button(theme: &Theme, status: button::Status) -> button::Style {
+    let shadow_color = if theme.extended_palette().is_dark {
+        Color::from_rgba8(100, 100, 100, 0.2)
+    } else {
+        Color::from_rgba8(0, 0, 0, 0.2)
+    };
+
+    let shadow = Shadow {
+        color: shadow_color,
+        offset: Vector::new(0.0, 0.0),
+        blur_radius: 10.0,
+    };
+
     let mut style = button::danger(theme, status);
     style.border.radius = border::radius(30);
+    style.shadow = shadow;
     style
 }
 
