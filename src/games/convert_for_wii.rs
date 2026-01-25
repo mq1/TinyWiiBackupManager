@@ -25,7 +25,7 @@ use std::{
 };
 use zip::ZipArchive;
 
-const SPLIT_SIZE: u64 = 4_294_934_528; // 4 GiB - 32 KiB
+const SPLIT_SIZE: usize = 4_294_934_528; // 4 GiB - 32 KiB (fits on a u32)
 
 #[derive(Debug, Clone)]
 pub struct ConvertForWiiOperation {
@@ -174,15 +174,18 @@ impl ConvertForWiiOperation {
                 };
 
                 let mut prev_percentage = 100;
+                let mut bytes_written_in_first_split = 0;
                 let finalization = disc_writer.process(
                     |data, progress, total| {
                         if let Some(overflow_writer) = &mut overflow_writer {
                             overflow_writer.write_all(&data)?;
                         } else if must_split {
-                            let current_pos = out_writer.stream_position()?;
-                            let data_end_pos = current_pos + data.len() as u64;
+                            let remaining_in_first_split =
+                                SPLIT_SIZE - bytes_written_in_first_split;
 
-                            if data_end_pos > SPLIT_SIZE {
+                            let bytes_to_write_count = data.len();
+
+                            if remaining_in_first_split < bytes_to_write_count {
                                 let overflow_path = if out_format == nod::common::Format::Wbfs {
                                     parent.join(&id).with_extension("wbf1")
                                 } else {
@@ -194,11 +197,14 @@ impl ConvertForWiiOperation {
                                     overflow_writer.insert(BufWriter::new(overflow_file));
 
                                 #[allow(clippy::cast_possible_truncation)]
-                                let split_pos = (SPLIT_SIZE - current_pos) as usize;
-                                out_writer.write_all(&data[..split_pos])?;
-                                overflow_writer.write_all(&data[split_pos..])?;
+                                out_writer.write_all(&data[..remaining_in_first_split])?;
+                                overflow_writer.write_all(&data[remaining_in_first_split..])?;
+
+                                // we don't update bytes_written_in_first_split as we won't access
+                                // it anymore; theoretically it should now be SPLIT_SIZE
                             } else {
                                 out_writer.write_all(&data)?;
+                                bytes_written_in_first_split += bytes_to_write_count;
                             }
                         } else {
                             out_writer.write_all(&data)?;
