@@ -17,6 +17,42 @@ use lucide_icons::iced::{
 };
 
 pub fn view<'a>(_state: &State, app: &'a HbcApp) -> Element<'a, Message> {
+    let details = column![
+        row![icon_info(), "Details"].spacing(5),
+        rule::horizontal(1),
+        space(),
+        row![icon_tag(), text!("Version: {}", app.meta().version())].spacing(5),
+        row![
+            components::developers::get_icon(app.meta().coder()),
+            text!("Coder: {}", app.meta().coder())
+        ]
+        .spacing(5),
+        row![
+            icon_calendar(),
+            text!("Release date: {}", app.meta().release_date())
+        ]
+        .spacing(5),
+        row![icon_weight(), text!("Size: {}", app.size())].spacing(5),
+        row![
+            icon_clipboard_list(),
+            text!("Short description: {}", app.meta().short_description())
+        ]
+        .spacing(5),
+    ]
+    .padding(10)
+    .width(Length::Fill)
+    .spacing(5);
+
+    let long_description = column![
+        row![icon_file_text(), "Long description"].spacing(5),
+        rule::horizontal(1),
+        space(),
+        text(app.meta().long_description()),
+    ]
+    .padding(10)
+    .width(Length::Fill)
+    .spacing(5);
+
     let col = column![
         row![icon_waves().size(18), text(app.meta().name()).size(18)]
             .spacing(5)
@@ -26,46 +62,8 @@ pub fn view<'a>(_state: &State, app: &'a HbcApp) -> Element<'a, Message> {
             .padding(padding::left(10).bottom(10)),
         scrollable(
             column![
-                container(
-                    column![
-                        row![icon_info(), "Details"].spacing(5),
-                        rule::horizontal(1),
-                        space(),
-                        row![icon_tag(), text!("Version: {}", app.meta().version())].spacing(5),
-                        row![
-                            components::developers::get_icon(app.meta().coder()),
-                            text!("Coder: {}", app.meta().coder())
-                        ]
-                        .spacing(5),
-                        row![
-                            icon_calendar(),
-                            text!("Release date: {}", app.meta().release_date())
-                        ]
-                        .spacing(5),
-                        row![icon_weight(), text!("Size: {}", app.size())].spacing(5),
-                        row![
-                            icon_clipboard_list(),
-                            text!("Short description: {}", app.meta().short_description())
-                        ]
-                        .spacing(5),
-                    ]
-                    .padding(10)
-                    .width(Length::Fill)
-                    .spacing(5)
-                )
-                .style(style::card),
-                container(
-                    column![
-                        row![icon_file_text(), "Long description"].spacing(5),
-                        rule::horizontal(1),
-                        space(),
-                        text(app.meta().long_description()),
-                    ]
-                    .padding(10)
-                    .width(Length::Fill)
-                    .spacing(5)
-                )
-                .style(style::card),
+                container(details).style(style::card),
+                container(long_description).style(style::card),
             ]
             .spacing(10)
             .padding(padding::horizontal(10))
@@ -73,10 +71,10 @@ pub fn view<'a>(_state: &State, app: &'a HbcApp) -> Element<'a, Message> {
         .spacing(1)
         .height(Length::Fill),
         row![
-            button(row![icon_folder(), text("Open App Directory")].spacing(5))
+            button(row![icon_folder(), text("Open app directory")].spacing(5))
                 .style(style::rounded_button)
                 .on_press_with(|| Message::OpenThat(app.get_path_uri())),
-            button(row![icon_globe(), text("Open OSC Page")].spacing(5))
+            button(row![icon_globe(), text("Open OSC page")].spacing(5))
                 .style(style::rounded_button)
                 .on_press_with(|| Message::OpenThat(app.get_oscwii_uri())),
             button(row![icon_trash(), text("Delete")].spacing(5))
