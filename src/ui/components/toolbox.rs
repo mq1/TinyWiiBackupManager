@@ -107,25 +107,22 @@ pub fn view(_state: &State) -> Element<'_, Message> {
     .width(Length::Fill);
 
     #[cfg(target_os = "macos")]
-    let macos = container(
-        column![
-            row![icon_apple(), text("macOS")].spacing(5),
-            rule::horizontal(1),
-            space(),
-            row![
-                button(icon_brush_cleaning())
-                    .style(style::rounded_button)
-                    .on_press(Message::RunDotClean),
-                text("Delete ._ files (dot_clean)")
-            ]
-            .align_y(Alignment::Center)
-            .spacing(10)
+    let macos = column![
+        row![icon_apple(), text("macOS")].spacing(5),
+        rule::horizontal(1),
+        space(),
+        row![
+            button(icon_brush_cleaning())
+                .style(style::rounded_button)
+                .on_press(Message::RunDotClean),
+            text("Delete ._ files (dot_clean)")
         ]
-        .spacing(5)
-        .padding(10)
-        .width(Length::Fill),
-    )
-    .style(style::card);
+        .align_y(Alignment::Center)
+        .spacing(10)
+    ]
+    .spacing(5)
+    .padding(10)
+    .width(Length::Fill);
 
     column![
         row![icon_tool_case().size(18), text("Toolbox").size(18)]
@@ -138,7 +135,7 @@ pub fn view(_state: &State) -> Element<'_, Message> {
                 container(cheats).style(style::card),
                 container(cleanup).style(style::card),
                 #[cfg(target_os = "macos")]
-                macos,
+                container(macos).style(style::card),
                 space()
             ]
             .spacing(10)
