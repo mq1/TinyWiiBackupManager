@@ -218,7 +218,7 @@ pub fn view<'a>(state: &State, game: &'a Game) -> Element<'a, Message> {
                 container(disc_info.width(Length::Fill)).style(style::card),
                 container(wiitdb_info.width(Length::Fill)).style(style::card)
             ]
-            .padding(10)
+            .padding(padding::horizontal(10))
             .spacing(10)
         )
         .spacing(1)

@@ -3,7 +3,7 @@
 
 use crate::{config::TxtCodesSource, message::Message, state::State, ui::style};
 use iced::{
-    Element, Length,
+    Element, Length, padding,
     widget::{column, container, radio, row, rule, scrollable, space, text},
 };
 use lucide_icons::iced::{
@@ -241,7 +241,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 .style(style::card)
             ]
             .spacing(10)
-            .padding(10)
+            .padding(padding::horizontal(10))
             .width(Length::Fill)
             .height(Length::Fill)
         )
