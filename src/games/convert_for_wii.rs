@@ -175,7 +175,7 @@ impl ConvertForWiiOperation {
 
                 let mut prev_percentage = 100;
                 let finalization = disc_writer.process(
-                    |mut data, progress, total| {
+                    |data, progress, total| {
                         if let Some(overflow_writer) = &mut overflow_writer {
                             overflow_writer.write_all(&data)?;
                         } else if must_split {
@@ -195,9 +195,8 @@ impl ConvertForWiiOperation {
 
                                 #[allow(clippy::cast_possible_truncation)]
                                 let split_pos = (data_end_pos - SPLIT_SIZE) as usize;
-                                let split_data = data.split_to(split_pos);
-                                out_writer.write_all(&split_data)?;
-                                overflow_writer.write_all(&data)?;
+                                out_writer.write_all(&data[..split_pos])?;
+                                overflow_writer.write_all(&data[split_pos..])?;
                             } else {
                                 out_writer.write_all(&data)?;
                             }
