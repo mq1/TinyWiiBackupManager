@@ -124,25 +124,27 @@ pub fn view(_state: &State) -> Element<'_, Message> {
     .padding(10)
     .width(Length::Fill);
 
+    let mut col = column![
+        container(usbloader_gx).style(style::card),
+        container(wiiflow).style(style::card),
+        container(cheats).style(style::card),
+        container(cleanup).style(style::card),
+    ]
+    .spacing(10)
+    .padding(padding::horizontal(10));
+
+    #[cfg(target_os = "macos")]
+    {
+        col = col.push(container(macos).style(style::card));
+    }
+
+    col = col.push(space);
+
     column![
         row![icon_tool_case().size(18), text("Toolbox").size(18)]
             .spacing(5)
             .padding(padding::top(10).left(10)),
-        scrollable(
-            column![
-                container(usbloader_gx).style(style::card),
-                container(wiiflow).style(style::card),
-                container(cheats).style(style::card),
-                container(cleanup).style(style::card),
-                #[cfg(target_os = "macos")]
-                container(macos).style(style::card),
-                space()
-            ]
-            .spacing(10)
-            .padding(padding::horizontal(10))
-        )
-        .spacing(1)
-        .height(Length::Fill)
+        scrollable(col).spacing(1).height(Length::Fill)
     ]
     .spacing(10)
     .into()
