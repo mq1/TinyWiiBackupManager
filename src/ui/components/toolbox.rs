@@ -11,7 +11,7 @@ use lucide_icons::iced::{
 };
 
 #[cfg(target_os = "macos")]
-use lucide_icons::iced::{icon_apple, icon_play};
+use lucide_icons::iced::{icon_apple, icon_brush_cleaning};
 
 pub fn view(_state: &State) -> Element<'_, Message> {
     let usbloader_gx = column![
@@ -91,7 +91,7 @@ pub fn view(_state: &State) -> Element<'_, Message> {
             rule::horizontal(1),
             space(),
             row![
-                button(icon_play())
+                button(icon_brush_cleaning())
                     .style(style::rounded_button)
                     .on_press(Message::RunDotClean),
                 text("Delete ._ files (dot_clean)")
