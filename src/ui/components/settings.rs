@@ -238,7 +238,8 @@ pub fn view(state: &State) -> Element<'_, Message> {
                     .padding(10)
                     .width(Length::Fill)
                 )
-                .style(style::card)
+                .style(style::card),
+                space()
             ]
             .spacing(10)
             .padding(padding::horizontal(10))
