@@ -105,7 +105,7 @@ pub fn delete_dir(window: &dyn Window, path: &Path) -> Result<()> {
     Ok(())
 }
 
-pub fn confirm_add_games(window: &dyn Window, paths: &[PathBuf]) -> bool {
+pub fn confirm_add_games(window: &dyn Window, paths: Vec<PathBuf>) -> (Vec<PathBuf>, bool) {
     const MAX: usize = 20;
 
     let mut desc = String::new();
@@ -129,14 +129,16 @@ pub fn confirm_add_games(window: &dyn Window, paths: &[PathBuf]) -> bool {
 
     desc.push_str("\n\nAlready present games will be skipped\nAre you sure you want to continue?");
 
-    DialogBuilder::message()
+    let yes = DialogBuilder::message()
         .set_title("The following games will be added")
         .set_owner(&window)
         .set_text(desc)
         .set_level(MessageLevel::Info)
         .confirm()
         .show()
-        .unwrap_or_default()
+        .unwrap_or_default();
+
+    (paths, yes)
 }
 
 pub fn confirm_strip_game(window: &dyn Window, game_title: &str) -> bool {
@@ -189,17 +191,6 @@ pub fn confirm_single_conversion(window: &dyn Window, in_path: &str, out_path: &
         .set_owner(&window)
         .set_text(format!("Convert {in_path} to {out_path}?"))
         .set_level(MessageLevel::Info)
-        .confirm()
-        .show()
-        .unwrap_or_default()
-}
-
-pub fn confirm_cancel_tasks(window: &dyn Window) -> bool {
-    DialogBuilder::message()
-        .set_title("Cancel pending tasks")
-        .set_owner(&window)
-        .set_text("Are you sure you want to cancel all pending tasks?")
-        .set_level(MessageLevel::Warning)
         .confirm()
         .show()
         .unwrap_or_default()

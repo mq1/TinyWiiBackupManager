@@ -373,32 +373,37 @@ impl State {
             ]),
             Message::ChooseGamesToAdd => window::oldest()
                 .and_then(|id| window::run(id, dialogs::choose_games))
-                .map(Message::AddGamesToTransferStack),
+                .map(Message::ConfirmAddGamesToTransferStack),
             Message::ChooseGamesSrcDir => window::oldest()
                 .and_then(|id| window::run(id, dialogs::choose_src_dir))
-                .map(Message::AddGamesToTransferStack),
-            Message::AddGamesToTransferStack(paths) => {
+                .map(Message::ConfirmAddGamesToTransferStack),
+            Message::ConfirmAddGamesToTransferStack(paths) => {
                 if paths.is_empty() {
                     Task::none()
                 } else {
-                    let had_pending_operations = self.transfer_queue.has_pending_operations();
-                    let operations = paths
-                        .into_iter()
-                        .map(|p| {
-                            TransferOperation::ConvertForWii(ConvertForWiiOperation::new(
-                                p,
-                                self.config.clone(),
-                            ))
+                    window::oldest()
+                        .and_then(move |id| {
+                            let paths = paths.clone();
+                            window::run(id, move |w| dialogs::confirm_add_games(w, paths))
                         })
-                        .collect();
-
-                    self.transfer_queue.push_multiple(operations);
-
-                    if had_pending_operations {
-                        Task::none()
-                    } else {
-                        self.update(Message::StartTransfer)
+                        .map(Message::AddGamesToTransferStack)
+                }
+            }
+            Message::AddGamesToTransferStack((paths, yes)) => {
+                if yes {
+                    for path in paths {
+                        self.transfer_queue.push(TransferOperation::ConvertForWii(
+                            ConvertForWiiOperation::new(path, self.config.clone()),
+                        ));
                     }
+
+                    if self.status.is_empty() {
+                        self.update(Message::StartTransfer)
+                    } else {
+                        Task::none()
+                    }
+                } else {
+                    Task::none()
                 }
             }
             Message::StartTransfer => {

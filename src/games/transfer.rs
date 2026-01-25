@@ -37,12 +37,6 @@ impl TransferQueue {
         self.queue.push_back(operation);
     }
 
-    pub fn push_multiple(&mut self, mut operations: Vec<TransferOperation>) {
-        while let Some(op) = operations.pop() {
-            self.queue.push_back(op);
-        }
-    }
-
     pub fn pop_task(&mut self) -> Option<Task<Message>> {
         self.queue.pop_front().map(|op| match op {
             TransferOperation::ConvertForWii(op) => Task::sip(
