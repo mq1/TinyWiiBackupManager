@@ -122,13 +122,14 @@ impl State {
     #[allow(clippy::too_many_lines)]
     pub fn update(&mut self, message: Message) -> Task<Message> {
         match message {
-            Message::GenericResult(Ok(s)) => {
+            Message::GenericResult(Ok(s)) | Message::GenericSuccess(s) => {
                 self.notifications.success(s);
                 Task::none()
             }
             Message::EmptyResult(Ok(())) => Task::none(),
             Message::GenericResult(Err(e))
             | Message::EmptyResult(Err(e))
+            | Message::GenericError(e)
             | Message::GotWiitdbDatafile(Err(e))
             | Message::GotOscAppList(Err(e))
             | Message::GotGameList(Err(e))
@@ -476,6 +477,16 @@ impl State {
                 let op = ArchiveOperation::new(game, dest);
                 self.transfer_queue.push(TransferOperation::Archive(op));
                 self.update(Message::StartTransfer)
+            }
+            Message::DownloadCoversForUsbLoaderGx => {
+                self.notifications
+                    .info("Downloading covers for USB Loader GX, this may take some time!");
+                covers::get_download_all_covers_task(self)
+            }
+            Message::DownloadCoversForWiiflow => {
+                self.notifications
+                    .info("Downloading covers for Wiiflow, this may take some time!");
+                covers::get_download_wiiflow_covers_task(self)
             }
         }
     }

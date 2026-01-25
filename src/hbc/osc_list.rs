@@ -5,7 +5,6 @@ use crate::{hbc::osc::OscAppMeta, http_util, message::Message, state::State};
 use anyhow::Result;
 use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
 use iced::{Task, futures::TryFutureExt};
-use itertools::Itertools;
 use std::{
     fs,
     path::{Path, PathBuf},

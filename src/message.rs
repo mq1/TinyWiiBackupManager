@@ -16,6 +16,8 @@ pub enum Message {
     // Notification helpers
     GenericResult(Result<String, Arc<anyhow::Error>>),
     EmptyResult(Result<(), Arc<anyhow::Error>>),
+    GenericError(Arc<anyhow::Error>),
+    GenericSuccess(String),
 
     // Navigation
     NavTo(Screen),
@@ -51,6 +53,8 @@ pub enum Message {
     Transferred(Result<String, Arc<anyhow::Error>>),
     ChooseArchiveDest(Game),
     ArchiveGame(Option<(Game, PathBuf)>),
+    DownloadCoversForUsbLoaderGx,
+    DownloadCoversForWiiflow,
 
     // HBC Apps
     GotHbcAppList(Result<HbcAppList, Arc<anyhow::Error>>),
