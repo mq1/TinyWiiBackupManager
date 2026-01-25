@@ -9,6 +9,8 @@ pub mod extensions;
 pub mod game;
 pub mod game_id;
 pub mod game_list;
+pub mod id_map;
 pub mod transfer;
+pub mod txtcodes;
 pub mod util;
 pub mod wiitdb;

@@ -39,3 +39,14 @@ pub fn download_and_extract_zip(url: &str, dest_dir: &Path) -> Result<()> {
     archive.extract(dest_dir)?;
     Ok(())
 }
+
+pub fn send_form(url: &str, form: &str) -> Result<Vec<u8>> {
+    let resp = minreq::post(url)
+        .with_header("User-Agent", USER_AGENT)
+        .with_header("Content-Type", "application/x-www-form-urlencoded")
+        .with_body(form)
+        .send()?;
+
+    let bytes = resp.into_bytes();
+    Ok(bytes)
+}

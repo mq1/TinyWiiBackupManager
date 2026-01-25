@@ -1,136 +1,109 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::app::App;
-use crate::games::Game;
-use crate::messages::Message;
-use crate::{games::GameID, http, id_map};
+use crate::{
+    config::TxtCodesSource,
+    games::{game::Game, game_id::GameID, game_list::GameList, id_map},
+    http_util,
+    message::Message,
+    state::State,
+};
 use anyhow::{Result, anyhow};
-use serde::{Deserialize, Serialize};
-use std::{fs, path::Path};
+use iced::{
+    Task,
+    futures::TryFutureExt,
+    task::{Sipper, sipper},
+};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+    sync::Arc,
+};
 
 impl TxtCodesSource {
-    pub fn get_txtcode(&self, game_id: GameID, game_id_str: &str) -> Result<Vec<u8>> {
+    pub fn get_txtcode(&self, game_id: GameID) -> Result<Vec<u8>> {
         match self {
             Self::WebArchive => {
                 let url = format!(
                     "https://web.archive.org/web/202009if_/geckocodes.org/txt.php?txt={}",
-                    game_id_str
+                    game_id.as_str()
                 );
 
-                http::get(&url).map_err(Into::into)
+                http_util::get(&url)
             }
             Self::Rc24 => {
-                let url = format!("https://codes.rc24.xyz/txt.php?txt={}", game_id_str);
-                http::get(&url).map_err(Into::into)
+                let url = format!("https://codes.rc24.xyz/txt.php?txt={}", game_id.as_str());
+                http_util::get(&url)
             }
             Self::GameHacking => {
-                let gamehacking_id = id_map::get_gamehacking_id(game_id.0)
+                let gamehacking_id = id_map::get_gamehacking_id(game_id)
                     .ok_or(anyhow!("Could not find gamehacks id"))?;
 
-                let form = [
-                    ("format", "Text"),
-                    ("filename", game_id_str),
-                    ("sysID", "22"),
-                    ("gamID", &gamehacking_id.to_string()),
-                    ("download", "true"),
-                ];
+                let form = format!(
+                    "format=Text&filename={}&sysID=22&gamID={}&download=true",
+                    game_id.as_str(),
+                    gamehacking_id
+                );
 
-                http::send_form("https://gamehacking.org/inc/sub.exportCodes.php", form)
-                    .map_err(Into::into)
+                http_util::send_form("https://gamehacking.org/inc/sub.exportCodes.php", &form)
             }
         }
     }
 }
 
 fn download_cheats_for_game(
-    txt_cheatcodespath: &Path,
+    mount_point: &Path,
     source: TxtCodesSource,
-    game_id: GameID,
-) -> Result<()> {
-    let game_id_str = game_id.as_str();
-    let path = txt_cheatcodespath.join(game_id_str).with_extension("txt");
+    game: Game,
+) -> Result<String> {
+    let parent = mount_point.join("txtcodes");
+    let path = parent.join(game.id().as_str()).with_extension("txt");
 
     if path.exists() {
-        return Ok(());
+        return Ok(format!("Cheats for {} already present", game.title()));
     }
 
-    let txtcode = source.get_txtcode(game_id, game_id_str)?;
+    let txtcode = source.get_txtcode(game.id())?;
+    fs::create_dir_all(parent)?;
     fs::write(&path, txtcode)?;
 
-    Ok(())
+    Ok(format!("Cheats for {} downloaded", game.title()))
 }
 
-pub fn spawn_download_all_cheats_task(app: &App) {
-    let txt_cheatcodespath = app.config.contents.mount_point.join("txtcodes");
-    let source = app.config.contents.txt_codes_source;
+pub fn get_download_cheats_for_game_task(state: &State, game: Game) -> Task<Message> {
+    let mount_point = state.config.mount_point().clone();
+    let source = state.config.txt_codes_source();
 
-    let games = app
-        .games
-        .iter()
-        .map(|game| (game.id, game.display_title.clone()))
-        .collect::<Box<[_]>>();
+    Task::perform(
+        async move { download_cheats_for_game(&mount_point, source, game) }.map_err(Arc::new),
+        Message::GenericResult,
+    )
+}
 
-    app.task_processor.spawn(move |msg_sender| {
-        msg_sender.send(Message::UpdateStatus(format!(
-            "{} Downloading cheats...",
-            ph::CLOUD_ARROW_DOWN
-        )))?;
-
-        fs::create_dir_all(&txt_cheatcodespath)?;
-
-        for game in &games {
-            msg_sender.send(Message::UpdateStatus(format!(
-                "{} Downloading cheats... ({})",
-                ph::CLOUD_ARROW_DOWN,
-                &game.1
-            )))?;
-
-            if let Err(e) = download_cheats_for_game(&txt_cheatcodespath, source, game.0) {
-                let context = format!("{} Failed to download cheats for {}", ph::FILE_TXT, &game.1);
-                msg_sender.send(Message::NotifyError(e.context(context)))?;
+fn get_download_chats_for_all_games_sipper(
+    mount_point: PathBuf,
+    game_list: GameList,
+    source: TxtCodesSource,
+) -> impl Sipper<String, Arc<anyhow::Error>> {
+    sipper(async move |mut progress| {
+        for game in game_list.into_iter() {
+            if let Err(e) = download_cheats_for_game(&mount_point, source, game) {
+                progress.send(Arc::new(e)).await;
             }
         }
 
-        msg_sender.send(Message::NotifyInfo(format!(
-            "{} Cheats downloaded",
-            ph::CLOUD_ARROW_DOWN
-        )))?;
-
-        Ok(())
-    });
+        "Finished downloading cheats for all games".to_string()
+    })
 }
 
-pub fn spawn_download_cheats_task(app: &App, game: &Game) {
-    let txt_cheatcodespath = app.config.contents.mount_point.join("txtcodes");
-    let source = app.config.contents.txt_codes_source;
-
-    let game_id = game.id;
-    let display_title = game.display_title.clone();
-
-    app.task_processor.spawn(move |msg_sender| {
-        msg_sender.send(Message::UpdateStatus(format!(
-            "{} Downloading cheats... ({})",
-            ph::CLOUD_ARROW_DOWN,
-            &display_title
-        )))?;
-
-        fs::create_dir_all(&txt_cheatcodespath)?;
-
-        if let Err(e) = download_cheats_for_game(&txt_cheatcodespath, source, game_id) {
-            let context = format!(
-                "{} Failed to download cheats for {}",
-                ph::FILE_TXT,
-                &display_title
-            );
-            msg_sender.send(Message::NotifyError(e.context(context)))?;
-        } else {
-            msg_sender.send(Message::NotifyInfo(format!(
-                "{} Cheats downloaded",
-                ph::CLOUD_ARROW_DOWN
-            )))?;
-        }
-
-        Ok(())
-    });
+pub fn get_download_chats_for_all_games_task(state: &State) -> Task<Message> {
+    Task::sip(
+        get_download_chats_for_all_games_sipper(
+            state.config.mount_point().clone(),
+            state.game_list.clone(),
+            state.config.txt_codes_source(),
+        ),
+        Message::GenericError,
+        Message::GenericSuccess,
+    )
 }

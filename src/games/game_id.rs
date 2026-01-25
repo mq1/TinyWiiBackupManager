@@ -12,6 +12,12 @@ impl From<[u8; 6]> for GameID {
     }
 }
 
+impl From<GameID> for [u8; 6] {
+    fn from(val: GameID) -> Self {
+        val.0
+    }
+}
+
 impl TryFrom<&str> for GameID {
     type Error = usize;
 

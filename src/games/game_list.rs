@@ -59,9 +59,15 @@ impl GameList {
             filtered_indices: Box::new([]),
         }
     }
+
     #[inline]
     pub fn iter(&self) -> impl Iterator<Item = &Game> {
         self.list.iter()
+    }
+
+    #[inline]
+    pub fn into_iter(self) -> impl Iterator<Item = Game> {
+        self.list.into_iter()
     }
 
     #[inline]
