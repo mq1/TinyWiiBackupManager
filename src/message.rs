@@ -57,6 +57,8 @@ pub enum Message {
     ArchiveGame(Option<(Game, PathBuf)>),
     DownloadCoversForUsbLoaderGx,
     DownloadCoversForWiiflow,
+    DownloadCheatsForGame(Game),
+    DownloadCheatsForAllGames,
 
     // HBC Apps
     GotHbcAppList(Result<HbcAppList, Arc<anyhow::Error>>),

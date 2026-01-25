@@ -21,7 +21,7 @@ use std::{
 };
 
 impl TxtCodesSource {
-    pub fn get_txtcode(&self, game_id: GameID) -> Result<Vec<u8>> {
+    pub fn get_txtcode(self, game_id: GameID) -> Result<Vec<u8>> {
         match self {
             Self::WebArchive => {
                 let url = format!(
@@ -54,7 +54,7 @@ impl TxtCodesSource {
 fn download_cheats_for_game(
     mount_point: &Path,
     source: TxtCodesSource,
-    game: Game,
+    game: &Game,
 ) -> Result<String> {
     let parent = mount_point.join("txtcodes");
     let path = parent.join(game.id().as_str()).with_extension("txt");
@@ -75,7 +75,7 @@ pub fn get_download_cheats_for_game_task(state: &State, game: Game) -> Task<Mess
     let source = state.config.txt_codes_source();
 
     Task::perform(
-        async move { download_cheats_for_game(&mount_point, source, game) }.map_err(Arc::new),
+        async move { download_cheats_for_game(&mount_point, source, &game) }.map_err(Arc::new),
         Message::GenericResult,
     )
 }
@@ -87,7 +87,7 @@ fn get_download_chats_for_all_games_sipper(
 ) -> impl Sipper<String, Arc<anyhow::Error>> {
     sipper(async move |mut progress| {
         for game in game_list.into_iter() {
-            if let Err(e) = download_cheats_for_game(&mount_point, source, game) {
+            if let Err(e) = download_cheats_for_game(&mount_point, source, &game) {
                 progress.send(Arc::new(e)).await;
             }
         }
@@ -96,7 +96,7 @@ fn get_download_chats_for_all_games_sipper(
     })
 }
 
-pub fn get_download_chats_for_all_games_task(state: &State) -> Task<Message> {
+pub fn get_download_cheats_for_all_games_task(state: &State) -> Task<Message> {
     Task::sip(
         get_download_chats_for_all_games_sipper(
             state.config.mount_point().clone(),

@@ -11,6 +11,7 @@ use crate::{
         game::Game,
         game_list::{self, GameList},
         transfer::{TransferOperation, TransferQueue},
+        txtcodes,
         wiitdb::{self, Datafile},
     },
     hbc::{self, app_list::HbcAppList, osc::OscAppMeta, osc_list::OscAppList},
@@ -496,6 +497,16 @@ impl State {
             Message::CloseAllNotifications => {
                 self.notifications.close_all();
                 Task::none()
+            }
+            Message::DownloadCheatsForGame(game) => {
+                self.notifications
+                    .info(format!("Downloading cheats for {}...", game.title()));
+                txtcodes::get_download_cheats_for_game_task(self, game)
+            }
+            Message::DownloadCheatsForAllGames => {
+                self.notifications
+                    .info("Downloading cheats for all games, this may take some time!");
+                txtcodes::get_download_cheats_for_all_games_task(self)
             }
         }
     }

@@ -7,7 +7,7 @@ use iced::{
     widget::{button, column, container, row, rule, space, text},
 };
 use lucide_icons::iced::{
-    icon_cloud_download, icon_image_down, icon_tool_case, icon_wand_sparkles,
+    icon_cloud_download, icon_image_down, icon_skull, icon_tool_case, icon_wand_sparkles,
 };
 
 #[cfg(target_os = "macos")]
@@ -56,6 +56,23 @@ pub fn view(_state: &State) -> Element<'_, Message> {
     .padding(10)
     .width(Length::Fill);
 
+    let cheats = column![
+        row![icon_skull(), "Cheats (txtcodes)"].spacing(5),
+        rule::horizontal(1),
+        space(),
+        row![
+            button(icon_cloud_download())
+                .style(style::rounded_button)
+                .on_press(Message::DownloadCheatsForAllGames),
+            "Download cheats for all games"
+        ]
+        .align_y(Alignment::Center)
+        .spacing(10)
+    ]
+    .spacing(5)
+    .padding(10)
+    .width(Length::Fill);
+
     #[cfg(not(target_os = "macos"))]
     let os_specific = space();
 
@@ -84,6 +101,7 @@ pub fn view(_state: &State) -> Element<'_, Message> {
         row![icon_tool_case().size(18), text("Toolbox").size(18)].spacing(5),
         container(usbloader_gx).style(style::card),
         container(wiiflow).style(style::card),
+        container(cheats).style(style::card),
         os_specific
     ]
     .spacing(10)
