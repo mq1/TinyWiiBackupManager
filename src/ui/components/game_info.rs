@@ -4,22 +4,28 @@
 use crate::{games::game::Game, message::Message, state::State, ui::style};
 use iced::{
     Element, Length, padding,
-    widget::{button, column, image, row, rule, scrollable, space, stack, text},
+    widget::{button, column, container, image, row, rule, scrollable, space, stack, text},
 };
 use itertools::Itertools;
 use lucide_icons::iced::{
     icon_baby, icon_badge_check, icon_bow_arrow, icon_box, icon_building, icon_calendar,
-    icon_chevron_right, icon_disc_3, icon_earth, icon_file_archive, icon_fingerprint_pattern,
-    icon_folder, icon_gamepad_2, icon_globe, icon_hard_drive_download, icon_hash, icon_joystick,
-    icon_languages, icon_lock_open, icon_notebook_pen, icon_pin, icon_pointer,
-    icon_ruler_dimension_line, icon_tag, icon_trash, icon_triangle_alert, icon_user, icon_weight,
-    icon_wifi,
+    icon_disc_3, icon_earth, icon_file_archive, icon_fingerprint_pattern, icon_folder,
+    icon_gamepad_2, icon_globe, icon_hard_drive_download, icon_hash, icon_joystick, icon_languages,
+    icon_lock_open, icon_notebook_pen, icon_pin, icon_pointer, icon_ruler_dimension_line, icon_tag,
+    icon_trash, icon_triangle_alert, icon_user, icon_weight, icon_wifi,
 };
 
 #[allow(clippy::too_many_lines)]
 pub fn view<'a>(state: &State, game: &'a Game) -> Element<'a, Message> {
     let disc_info = match game.disc_info() {
-        None => column![text("Loading Disc Info...")],
+        None => column![
+            row![icon_disc_3(), text("Disc info")].spacing(5),
+            rule::horizontal(1),
+            space(),
+            text("Loading Disc Info...")
+        ]
+        .spacing(5)
+        .padding(10),
         Some(disc_info) => {
             let block_size = match disc_info.block_size() {
                 None => text("Block Size: N/A"),
@@ -52,7 +58,9 @@ pub fn view<'a>(state: &State, game: &'a Game) -> Element<'a, Message> {
             };
 
             column![
-                row![icon_chevron_right().size(19), text("Disc Header").size(18)].spacing(5),
+                row![icon_disc_3(), text("Disc info")].spacing(5),
+                rule::horizontal(1),
+                space(),
                 row![icon_tag(), text!("ID: {}", disc_info.id().as_str())].spacing(5),
                 row![
                     icon_notebook_pen(),
@@ -75,8 +83,6 @@ pub fn view<'a>(state: &State, game: &'a Game) -> Element<'a, Message> {
                     text!("Disc Version: {}", disc_info.disc_version()),
                 ]
                 .spacing(5),
-                rule::horizontal(1),
-                row![icon_chevron_right().size(19), text("Disc Meta").size(18)].spacing(5),
                 row![icon_disc_3(), text!("Format: {}", disc_info.format())].spacing(5),
                 row![
                     icon_file_archive(),
@@ -100,21 +106,29 @@ pub fn view<'a>(state: &State, game: &'a Game) -> Element<'a, Message> {
                 ]
                 .spacing(5),
                 row![icon_weight(), disc_size].spacing(5),
-                rule::horizontal(1),
-                row![icon_chevron_right().size(19), text("NKit Hashes").size(18)].spacing(5),
                 row![icon_fingerprint_pattern(), crc32].spacing(5),
                 row![icon_fingerprint_pattern(), md5].spacing(5),
                 row![icon_fingerprint_pattern(), sha1].spacing(5),
                 row![icon_fingerprint_pattern(), xxh64].spacing(5),
             ]
             .spacing(5)
+            .padding(10)
         }
     };
 
     let wiitdb_info = match game.wiitdb_info() {
-        None => column![text("GameTDB game info not found")],
+        None => column![
+            row![icon_globe(), text("GameTDB Info")].spacing(5),
+            rule::horizontal(1),
+            space(),
+            text("GameTDB game info not found")
+        ]
+        .spacing(5)
+        .padding(10),
         Some(info) => column![
-            row![icon_chevron_right().size(19), text("GameTDB Info").size(18)].spacing(5),
+            row![icon_globe(), text("GameTDB Info")].spacing(5),
+            rule::horizontal(1),
+            space(),
             row![icon_tag(), text!("Name: {}", &info.name)].spacing(5),
             row![icon_earth(), text!("Region: {}", info.region)].spacing(5),
             row![
@@ -188,20 +202,28 @@ pub fn view<'a>(state: &State, game: &'a Game) -> Element<'a, Message> {
             ]
             .spacing(5),
         ]
-        .spacing(5),
+        .spacing(5)
+        .padding(10),
     };
 
     let col = column![
-        row![icon_gamepad_2().size(19), text(game.title()).size(18)].spacing(5),
-        row![icon_folder(), text!("Path: {}", game.get_path_str())].spacing(5),
-        rule::horizontal(1),
+        row![icon_gamepad_2().size(19), text(game.title()).size(18)]
+            .spacing(5)
+            .padding(padding::top(10).left(10)),
+        row![icon_folder(), text!("Path: {}", game.get_path_str())]
+            .spacing(5)
+            .padding(padding::left(10)),
+        space(),
         scrollable(
-            column![disc_info, rule::horizontal(1), wiitdb_info]
-                .spacing(5)
-                .width(Length::Fill)
+            column![
+                container(disc_info.width(Length::Fill)).style(style::card),
+                container(wiitdb_info.width(Length::Fill)).style(style::card)
+            ]
+            .padding(10)
+            .spacing(10)
         )
+        .spacing(1)
         .height(Length::Fill),
-        rule::horizontal(1),
         row![
             button(row![icon_folder(), text("Open Game Directory")].spacing(5))
                 .style(style::rounded_button)
@@ -217,10 +239,9 @@ pub fn view<'a>(state: &State, game: &'a Game) -> Element<'a, Message> {
                 .on_press_with(|| Message::AskDeleteDirConfirmation(game.path().clone()))
         ]
         .spacing(5)
-        .padding(padding::top(5))
+        .padding(5)
     ]
     .spacing(5)
-    .padding(10)
     .height(Length::Fill);
 
     match state.get_game_cover(game) {
