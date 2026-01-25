@@ -138,7 +138,7 @@ pub fn view(_state: &State) -> Element<'_, Message> {
         col = col.push(container(macos).style(style::card));
     }
 
-    col = col.push(space);
+    col = col.push(space());
 
     column![
         row![icon_tool_case().size(18), text("Toolbox").size(18)]
