@@ -4,18 +4,18 @@
 use crate::{message::Message, state::State, ui::style};
 use iced::{
     Alignment, Element, Length, padding,
-    widget::{button, column, container, row, rule, scrollable, space, text},
+    widget::{button, column, container, row, rule, scrollable, space, text, text_input},
 };
 use lucide_icons::iced::{
-    icon_brush_cleaning, icon_cloud_download, icon_image_down, icon_play, icon_skull,
-    icon_tool_case, icon_wand_sparkles,
+    icon_brush_cleaning, icon_cloud_download, icon_file_up, icon_image_down, icon_monitor_up,
+    icon_play, icon_skull, icon_tool_case, icon_wand_sparkles, icon_wifi_pen,
 };
 
 #[cfg(target_os = "macos")]
 use lucide_icons::iced::icon_apple;
 
 #[allow(clippy::too_many_lines)]
-pub fn view(_state: &State) -> Element<'_, Message> {
+pub fn view(state: &State) -> Element<'_, Message> {
     let usbloader_gx = column![
         row![icon_wand_sparkles(), "USB Loader GX"].spacing(5),
         rule::horizontal(1),
@@ -106,6 +106,37 @@ pub fn view(_state: &State) -> Element<'_, Message> {
     .padding(10)
     .width(Length::Fill);
 
+    let wiiload = column![
+        row![icon_monitor_up(), "Wiiload"].spacing(5),
+        rule::horizontal(1),
+        text("Wiiload is a method of loading .dol and .elf files over the network."),
+        text("Also, you can use Wiiload to install homebrew applications directly onto your SD card."),
+        text("If the icon in the very bottom right of the Homebrew Channel is lit up, it should work for you."),
+        text("Pressing the home button in the Homebrew Channel will reveal your Wii's IP."),
+        rule::horizontal(1),
+        space(),
+        row![
+            button(icon_file_up())
+                .style(style::rounded_button).on_press(Message::ChooseFileToWiiload),
+            "Choose a file to send (.zip/.dol/.elf)",
+            space::horizontal(),
+            icon_wifi_pen(),
+            "Wii IP:",
+            text_input("192.168.1.100", state.config.wii_ip())
+                .width(130)
+                .style(style::rounded_text_input)
+                .padding(padding::left(10).vertical(5))
+                .on_input(|wii_ip| Message::UpdateConfig(
+                    state.config.clone_with_wii_ip(wii_ip)
+                ))
+        ]
+        .align_y(Alignment::Center)
+        .spacing(10),
+    ]
+    .spacing(5)
+    .padding(10)
+    .width(Length::Fill);
+
     #[cfg(target_os = "macos")]
     let macos = column![
         row![icon_apple(), text("macOS")].spacing(5),
@@ -129,6 +160,7 @@ pub fn view(_state: &State) -> Element<'_, Message> {
         container(wiiflow).style(style::card),
         container(cheats).style(style::card),
         container(cleanup).style(style::card),
+        container(wiiload).style(style::card),
     ]
     .spacing(10)
     .padding(padding::horizontal(10));

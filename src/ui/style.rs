@@ -146,3 +146,9 @@ pub fn toolbar_checkbox(theme: &Theme, status: checkbox::Status) -> checkbox::St
     style.border.radius = border::radius(30);
     style
 }
+
+pub fn rounded_text_input(theme: &Theme, status: text_input::Status) -> text_input::Style {
+    let mut style = text_input::default(theme, status);
+    style.border.radius = border::radius(30);
+    style
+}
