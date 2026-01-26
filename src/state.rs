@@ -429,10 +429,16 @@ impl State {
 
                 self.status.clear();
 
-                Task::batch(vec![
+                let mut tasks = vec![
                     self.update(Message::StartTransfer),
                     self.update(Message::RefreshGamesAndApps),
-                ])
+                ];
+
+                if let Screen::GameInfo(game) = &mut self.screen {
+                    tasks.push(game.get_load_disc_info_task());
+                }
+
+                Task::batch(tasks)
             }
             Message::Transferred(Err(e)) => {
                 self.status.clear();
