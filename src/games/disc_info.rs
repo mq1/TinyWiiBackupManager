@@ -84,7 +84,7 @@ pub fn get_main_disc_file_in_dir(dir: &Path) -> Result<PathBuf> {
 }
 
 impl DiscInfo {
-    pub fn try_from_game_dir(game_dir: PathBuf) -> Result<Self> {
+    pub fn try_from_game_dir(game_dir: &Path) -> Result<Self> {
         if !game_dir.is_dir() {
             bail!("Not a directory");
         }

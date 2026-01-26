@@ -91,8 +91,7 @@ fn readopt_parented_discs(mount_point: &Path) -> Result<()> {
         .filter(|e| e.file_type().is_ok_and(|t| t.is_dir()));
 
     let all_discs = all_dirs
-        .map(|e| e.path())
-        .map(DiscInfo::try_from_game_dir)
+        .map(|e| DiscInfo::try_from_game_dir(&e.path()))
         .filter_map(Result::ok);
 
     for disc in all_discs {

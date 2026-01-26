@@ -81,7 +81,7 @@ impl Game {
         let path = self.path.clone();
 
         Task::perform(
-            async { DiscInfo::try_from_game_dir(path) }.map_err(Arc::new),
+            async move { DiscInfo::try_from_game_dir(&path) }.map_err(Arc::new),
             Message::GotDiscInfo,
         )
     }
