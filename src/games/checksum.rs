@@ -77,9 +77,13 @@ impl ChecksumOperation {
                 )?;
 
                 let msg = if disc_info.crc32() == finalization.crc32 {
-                    format!("✓ Hash match for {game_title}")
+                    format!(
+                        "Hash match for {game_title}! — Embedded CRC32 is = to the actual file CRC32"
+                    )
                 } else {
-                    format!("✗ Hash mismatch for {game_title}")
+                    format!(
+                        "Hash mismatch for {game_title} — Embedded CRC32 is ≠ to the actual file CRC32\nThis is expected if the Update partition has been removed"
+                    )
                 };
 
                 Ok(Some(msg))
