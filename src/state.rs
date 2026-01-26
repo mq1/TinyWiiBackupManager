@@ -11,6 +11,7 @@ use crate::{
         covers, dir_layout,
         game::Game,
         game_list::{self, GameList},
+        strip::StripOperation,
         transfer::{TransferOperation, TransferQueue},
         txtcodes,
         wiitdb::{self, Datafile},
@@ -537,6 +538,21 @@ impl State {
                 let zip_url = app.assets().archive().url().clone();
                 self.notifications.info("Sending file to Wii...");
                 wiiload::get_download_and_send_via_wiiload_task(self, zip_url)
+            }
+            Message::ConfirmStripGame(game) => window::oldest()
+                .and_then(move |id| {
+                    let game = game.clone();
+                    window::run(id, move |w| dialogs::confirm_strip_game(w, game))
+                })
+                .map(Message::StripGame),
+            Message::StripGame((game, yes)) => {
+                if yes {
+                    let op = StripOperation::new(game, self.config.always_split());
+                    self.transfer_queue.push(TransferOperation::Strip(op));
+                    self.update(Message::StartTransfer)
+                } else {
+                    Task::none()
+                }
             }
         }
     }

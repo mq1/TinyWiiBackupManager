@@ -66,15 +66,6 @@ pub fn choose_hbc_apps(window: &dyn Window) -> Box<[PathBuf]> {
         .collect()
 }
 
-pub fn choose_dest_dir(window: &dyn Window) -> Option<PathBuf> {
-    DialogBuilder::file()
-        .set_title("Save game to:")
-        .set_owner(&window)
-        .open_single_dir()
-        .show()
-        .unwrap_or_default()
-}
-
 pub fn choose_file_to_wiiload(window: &dyn Window) -> Option<PathBuf> {
     DialogBuilder::file()
         .set_title("Select file to Wiiload")
@@ -141,17 +132,19 @@ pub fn confirm_add_games(window: &dyn Window, paths: Vec<PathBuf>) -> (Vec<PathB
     (paths, yes)
 }
 
-pub fn confirm_strip_game(window: &dyn Window, game_title: &str) -> bool {
-    DialogBuilder::message()
+pub fn confirm_strip_game(window: &dyn Window, game: Game) -> (Game, bool) {
+    let yes = DialogBuilder::message()
         .set_title("Remove update partition?")
         .set_owner(&window)
         .set_text(format!(
-            "Are you sure you want to remove the update partition from {game_title}?\n\nThis is irreversible!"
+            "Are you sure you want to remove the update partition from {}?\n\nThis is irreversible!", game.title()
         ))
         .set_level(MessageLevel::Warning)
         .confirm()
         .show()
-        .unwrap_or_default()
+        .unwrap_or_default();
+
+    (game, yes)
 }
 
 pub fn confirm_strip_all_games(window: &dyn Window) -> bool {

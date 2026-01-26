@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    games::{archive::ArchiveOperation, convert_for_wii::ConvertForWiiOperation},
+    games::{
+        archive::ArchiveOperation, convert_for_wii::ConvertForWiiOperation, strip::StripOperation,
+    },
     message::Message,
 };
 use iced::Task;
@@ -11,6 +13,7 @@ use std::collections::VecDeque;
 pub enum TransferOperation {
     ConvertForWii(ConvertForWiiOperation),
     Archive(ArchiveOperation),
+    Strip(StripOperation),
 }
 
 impl TransferOperation {
@@ -18,6 +21,7 @@ impl TransferOperation {
         match self {
             TransferOperation::ConvertForWii(op) => op.display_str(),
             TransferOperation::Archive(op) => op.display_str(),
+            TransferOperation::Strip(op) => op.display_str(),
         }
     }
 }
@@ -45,6 +49,11 @@ impl TransferQueue {
                 Message::Transferred,
             ),
             TransferOperation::Archive(op) => Task::sip(
+                op.run(),
+                Message::UpdateTransferStatus,
+                Message::Transferred,
+            ),
+            TransferOperation::Strip(op) => Task::sip(
                 op.run(),
                 Message::UpdateTransferStatus,
                 Message::Transferred,

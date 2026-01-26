@@ -61,6 +61,8 @@ pub enum Message {
     DownloadCheatsForAllGames,
     DownloadBanners,
     NormalizePaths,
+    ConfirmStripGame(Game),
+    StripGame((Game, bool)),
 
     // HBC Apps
     GotHbcAppList(Result<HbcAppList, Arc<anyhow::Error>>),

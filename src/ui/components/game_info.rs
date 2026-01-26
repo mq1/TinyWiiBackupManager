@@ -1,7 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{games::game::Game, message::Message, state::State, ui::style};
+use crate::{
+    games::{disc_info::DiscInfo, game::Game},
+    message::Message,
+    state::State,
+    ui::style,
+};
 use iced::{
     Element, Length, padding,
     widget::{button, column, container, image, row, rule, scrollable, space, stack, text},
@@ -9,11 +14,11 @@ use iced::{
 use itertools::Itertools;
 use lucide_icons::iced::{
     icon_baby, icon_badge_check, icon_bow_arrow, icon_box, icon_building, icon_calendar,
-    icon_cloud_download, icon_disc_3, icon_earth, icon_file_archive, icon_fingerprint_pattern,
-    icon_folder, icon_gamepad_2, icon_globe, icon_hard_drive_download, icon_hash, icon_joystick,
-    icon_languages, icon_lock_open, icon_notebook_pen, icon_pin, icon_pointer,
-    icon_ruler_dimension_line, icon_tag, icon_trash, icon_triangle_alert, icon_user, icon_weight,
-    icon_wifi,
+    icon_cloud_download, icon_disc_3, icon_earth, icon_file_archive, icon_file_minus_corner,
+    icon_fingerprint_pattern, icon_folder, icon_gamepad_2, icon_globe, icon_hard_drive_download,
+    icon_hash, icon_joystick, icon_languages, icon_lock_open, icon_notebook_pen, icon_pin,
+    icon_pointer, icon_ruler_dimension_line, icon_tag, icon_trash, icon_triangle_alert, icon_user,
+    icon_weight, icon_wifi,
 };
 
 #[allow(clippy::too_many_lines)]
@@ -207,6 +212,41 @@ pub fn view<'a>(state: &State, game: &'a Game) -> Element<'a, Message> {
         .padding(10),
     };
 
+    let mut actions = row![
+        button(row![icon_folder(), text("Game folder")].spacing(5))
+            .style(style::rounded_button)
+            .on_press_with(|| Message::OpenThat(game.get_path_uri())),
+        button(row![icon_globe(), text("GameTDB")].spacing(5))
+            .style(style::rounded_button)
+            .on_press_with(|| Message::OpenThat(game.get_gametdb_uri())),
+        button(row![icon_cloud_download(), text("Get cheats")].spacing(5))
+            .style(style::rounded_button)
+            .on_press_with(|| Message::DownloadCheatsForGame(game.clone())),
+        button(row![icon_hard_drive_download(), text("Archive")].spacing(5))
+            .style(style::rounded_button)
+            .on_press_with(|| Message::ChooseArchiveDest(game.clone())),
+    ]
+    .spacing(5)
+    .padding(5);
+
+    if game
+        .disc_info()
+        .as_ref()
+        .is_some_and(DiscInfo::is_worth_stripping)
+    {
+        actions = actions.push(
+            button(row![icon_file_minus_corner(), text("Remove update partition")].spacing(5))
+                .style(style::rounded_danger_button)
+                .on_press_with(|| Message::ConfirmStripGame(game.clone())),
+        );
+    }
+
+    actions = actions.push(
+        button(row![icon_trash(), text("Delete")].spacing(5))
+            .style(style::rounded_danger_button)
+            .on_press_with(|| Message::AskDeleteDirConfirmation(game.path().clone())),
+    );
+
     let col = column![
         row![icon_gamepad_2().size(19), text(game.title()).size(18)]
             .spacing(5)
@@ -224,25 +264,7 @@ pub fn view<'a>(state: &State, game: &'a Game) -> Element<'a, Message> {
         )
         .spacing(1)
         .height(Length::Fill),
-        row![
-            button(row![icon_folder(), text("Open directory")].spacing(5))
-                .style(style::rounded_button)
-                .on_press_with(|| Message::OpenThat(game.get_path_uri())),
-            button(row![icon_globe(), text("Open GameTDB page")].spacing(5))
-                .style(style::rounded_button)
-                .on_press_with(|| Message::OpenThat(game.get_gametdb_uri())),
-            button(row![icon_cloud_download(), text("Download cheats")].spacing(5))
-                .style(style::rounded_button)
-                .on_press_with(|| Message::DownloadCheatsForGame(game.clone())),
-            button(row![icon_hard_drive_download(), text("Archive")].spacing(5))
-                .style(style::rounded_button)
-                .on_press_with(|| Message::ChooseArchiveDest(game.clone())),
-            button(row![icon_trash(), text("Delete")].spacing(5))
-                .style(style::rounded_danger_button)
-                .on_press_with(|| Message::AskDeleteDirConfirmation(game.path().clone()))
-        ]
-        .spacing(5)
-        .padding(5)
+        actions
     ]
     .height(Length::Fill);
 
