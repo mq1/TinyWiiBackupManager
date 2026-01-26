@@ -25,7 +25,7 @@ use std::{
 };
 use zip::ZipArchive;
 
-const SPLIT_SIZE: usize = 4_294_934_528; // 4 GiB - 32 KiB (fits on a u32)
+pub const SPLIT_SIZE: usize = 4_294_934_528; // 4 GiB - 32 KiB (fits on a u32)
 
 #[derive(Debug, Clone)]
 pub struct ConvertForWiiOperation {
