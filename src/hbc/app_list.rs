@@ -6,7 +6,7 @@ use anyhow::Result;
 use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
 use iced::{Task, futures::TryFutureExt};
 use size::Size;
-use std::{fs, path::PathBuf, sync::Arc};
+use std::{fs, path::Path, sync::Arc};
 
 #[derive(Debug, Clone)]
 pub struct HbcAppList {
@@ -132,12 +132,12 @@ pub fn get_list_hbc_apps_task(state: &State) -> Task<Message> {
     let mount_point = state.config.mount_point().clone();
 
     Task::perform(
-        async { list(mount_point) }.map_err(Arc::new),
+        async move { list(&mount_point) }.map_err(Arc::new),
         Message::GotHbcAppList,
     )
 }
 
-fn list(mount_point: PathBuf) -> Result<HbcAppList> {
+fn list(mount_point: &Path) -> Result<HbcAppList> {
     let apps_dir = mount_point.join("apps");
     if !apps_dir.exists() {
         return Ok(HbcAppList::empty());

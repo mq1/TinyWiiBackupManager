@@ -53,7 +53,7 @@ fn compile_id_map() {
     // Build the Rust code
     write!(
         &mut out_file,
-        "const GAMEID_TO_GHID: &[([u8; 6], u32)] = &["
+        "#[allow(clippy::unreadable_literal)]\nconst GAMEID_TO_GHID: &[([u8; 6], u32)] = &["
     )
     .unwrap();
     for (game_id, ghid) in gamehacking_ids {

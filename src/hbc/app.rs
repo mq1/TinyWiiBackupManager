@@ -11,7 +11,7 @@ use serde::{Deserialize, Deserializer};
 use size::Size;
 use std::ffi::OsString;
 use std::fs::{self, File};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use time::PrimitiveDateTime;
 use time::macros::format_description;
@@ -125,16 +125,16 @@ pub fn get_install_hbc_apps_task(state: &State, zip_paths: Box<[PathBuf]>) -> Ta
     let drive_path = state.config.mount_point().clone();
 
     Task::perform(
-        async { install_hbc_apps(zip_paths, drive_path) }.map_err(Arc::new),
+        async move { install_hbc_apps(&zip_paths, &drive_path) }.map_err(Arc::new),
         Message::HbcAppsInstalled,
     )
 }
 
-fn install_hbc_apps(zip_paths: Box<[PathBuf]>, dest_dir: PathBuf) -> Result<String> {
-    for zip_path in &zip_paths {
+fn install_hbc_apps(zip_paths: &[PathBuf], dest_dir: &Path) -> Result<String> {
+    for zip_path in zip_paths {
         let zip_file = File::open(zip_path)?;
         let mut archive = ZipArchive::new(zip_file)?;
-        archive.extract(&dest_dir)?;
+        archive.extract(dest_dir)?;
     }
 
     let msg = format!("Installed {} apps", zip_paths.len());
