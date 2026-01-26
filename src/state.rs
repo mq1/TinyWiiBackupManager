@@ -22,6 +22,7 @@ use crate::{
     ui::{Screen, dialogs, lucide},
     updater, util,
 };
+use anyhow::anyhow;
 use iced::{
     Task, Theme,
     widget::{
@@ -138,8 +139,7 @@ impl State {
             | Message::GotGameList(Err(e))
             | Message::GotLatestVersion(Err(e))
             | Message::GotDiscInfo(Err(e))
-            | Message::GotHbcAppList(Err(e))
-            | Message::Transferred(Err(e)) => {
+            | Message::GotHbcAppList(Err(e)) => {
                 self.notifications.error(e);
                 Task::none()
             }
@@ -433,6 +433,14 @@ impl State {
                     self.update(Message::StartTransfer),
                     self.update(Message::RefreshGamesAndApps),
                 ])
+            }
+            Message::Transferred(Err(e)) => {
+                self.status.clear();
+                self.notifications.error(e);
+                self.notifications
+                    .error(Arc::new(anyhow!("Aborting queued transfer operations!")));
+                self.transfer_queue.cancel_all();
+                self.update(Message::RefreshGamesAndApps)
             }
             Message::GotDiscInfo(Ok(disc_info)) => {
                 if let Screen::GameInfo(game) = &mut self.screen {

@@ -69,6 +69,10 @@ impl TransferQueue {
         self.queue.remove(i);
     }
 
+    pub fn cancel_all(&mut self) {
+        self.queue.clear();
+    }
+
     pub fn has_pending_operations(&self) -> bool {
         !self.queue.is_empty()
     }

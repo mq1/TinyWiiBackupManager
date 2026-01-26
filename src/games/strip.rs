@@ -37,7 +37,7 @@ pub struct StripOperation {
 
 impl StripOperation {
     pub fn new(source: Game, always_split: bool) -> Self {
-        let display_str = format!("✕ Remove update partition from {}", source.title());
+        let display_str = format!("Remove update partition from {}", source.title());
 
         Self {
             source,
@@ -118,7 +118,7 @@ impl StripOperation {
                         let progress_percentage = progress * 100 / total;
                         if progress_percentage != prev_percentage {
                             let _ = tx.try_send(format!(
-                                "✕ Remove update partition from {game_title}  {progress_percentage:02}%"
+                                "Remove update partition from {game_title}  {progress_percentage:02}%"
                             ));
                             prev_percentage = progress_percentage;
                         }
