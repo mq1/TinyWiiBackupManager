@@ -6,7 +6,7 @@ use iced::{
     Alignment, Element, Length,
     widget::{button, container, row, table, text},
 };
-use lucide_icons::iced::{icon_cloud_download, icon_info};
+use lucide_icons::iced::{icon_cloud_download, icon_info, icon_monitor_up};
 
 pub fn view(state: &State) -> Element<'_, Message> {
     let t_columns = vec![
@@ -23,6 +23,11 @@ pub fn view(state: &State) -> Element<'_, Message> {
                     .padding(0)
                     .style(button::text)
                     .on_press_with(|| Message::NavTo(Screen::OscInfo(app.clone()))),
+                text('•'),
+                button(row![icon_monitor_up(), text("Wiiload")].spacing(5))
+                    .padding(0)
+                    .style(button::text)
+                    .on_press_with(|| Message::WiiloadOsc(app.clone())),
                 text('•'),
                 button(row![icon_cloud_download(), text("Install")].spacing(5))
                     .padding(0)
