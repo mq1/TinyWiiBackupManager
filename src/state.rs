@@ -414,8 +414,7 @@ impl State {
                 if let Some(task) = self.transfer_queue.pop_task() {
                     task
                 } else {
-                    self.notifications
-                        .success("Finished all game converting operations!");
+                    self.notifications.success("Finished all game operations!");
                     Task::none()
                 }
             }
@@ -445,7 +444,7 @@ impl State {
                 self.status.clear();
                 self.notifications.error(e);
                 self.notifications
-                    .error(Arc::new(anyhow!("Aborting queued transfer operations!")));
+                    .error(Arc::new(anyhow!("Aborting queued game operations!")));
                 self.transfer_queue.cancel_all();
                 self.update(Message::RefreshGamesAndApps)
             }
