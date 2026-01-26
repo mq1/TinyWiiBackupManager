@@ -2,9 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{message::Message, state::State};
-use anyhow::{Result, anyhow};
 use iced::Task;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use sysinfo::Disks;
 use tempfile::NamedTempFile;
 
@@ -83,7 +82,7 @@ pub fn can_write_over_4gb(mount_point: &Path) -> bool {
 }
 
 #[cfg(target_os = "macos")]
-pub fn run_dot_clean(mount_point: PathBuf) -> Result<String> {
+pub fn run_dot_clean(mount_point: std::path::PathBuf) -> anyhow::Result<String> {
     let status = std::process::Command::new("dot_clean")
         .arg("-m")
         .arg(mount_point)
@@ -94,9 +93,9 @@ pub fn run_dot_clean(mount_point: PathBuf) -> Result<String> {
             if status.success() {
                 Ok("dot_clean successful".to_string())
             } else {
-                Err(anyhow!("dot_clean failed"))
+                Err(anyhow::anyhow!("dot_clean failed"))
             }
         }
-        Err(e) => Err(anyhow!("dot_clean failed: {e}")),
+        Err(e) => Err(anyhow::anyhow!("dot_clean failed: {e}")),
     }
 }
