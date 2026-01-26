@@ -97,7 +97,7 @@ impl DiscInfo {
             bail!("Hidden directory");
         }
 
-        for entry in fs::read_dir(&game_dir)?.filter_map(Result::ok) {
+        for entry in fs::read_dir(game_dir)?.filter_map(Result::ok) {
             let disc_path = entry.path();
 
             if let Ok(disc_info) = Self::try_from_path(disc_path) {

@@ -7,7 +7,11 @@ use derive_getters::Getters;
 use iced::{Task, futures::TryFutureExt};
 use serde::Deserialize;
 use size::Size;
-use std::{ffi::OsString, path::PathBuf, sync::Arc};
+use std::{
+    ffi::OsString,
+    path::{Path, PathBuf},
+    sync::Arc,
+};
 use time::OffsetDateTime;
 
 impl OscAppMeta {
@@ -24,14 +28,14 @@ impl OscAppMeta {
         let app = self.clone();
 
         Task::perform(
-            async move { app.install(mount_point) }.map_err(Arc::new),
+            async move { app.install(&mount_point) }.map_err(Arc::new),
             Message::AppInstalled,
         )
     }
 
-    pub fn install(&self, mount_point: PathBuf) -> Result<String> {
+    pub fn install(&self, mount_point: &Path) -> Result<String> {
         let url = self.assets.archive.url();
-        http_util::download_and_extract_zip(url, &mount_point)?;
+        http_util::download_and_extract_zip(url, mount_point)?;
 
         let msg = format!("App installed: {}", self.name());
         Ok(msg)
