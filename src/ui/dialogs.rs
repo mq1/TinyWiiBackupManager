@@ -75,7 +75,7 @@ pub fn choose_dest_dir(window: &dyn Window) -> Option<PathBuf> {
         .unwrap_or_default()
 }
 
-pub fn choose_file_to_push(window: &dyn Window) -> Option<PathBuf> {
+pub fn choose_file_to_wiiload(window: &dyn Window) -> Option<PathBuf> {
     DialogBuilder::file()
         .set_title("Select file to Wiiload")
         .set_owner(&window)

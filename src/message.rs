@@ -61,6 +61,8 @@ pub enum Message {
     DownloadCheatsForAllGames,
     DownloadBanners,
     NormalizePaths,
+    ChooseFileToWiiload,
+    Wiiload(Option<PathBuf>),
 
     // HBC Apps
     GotHbcAppList(Result<HbcAppList, Arc<anyhow::Error>>),

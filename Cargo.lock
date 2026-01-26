@@ -36,6 +36,7 @@ dependencies = [
  "time",
  "walkdir",
  "wgpu",
+ "wiiload",
  "winresource",
  "zip",
  "zstd",
@@ -1097,7 +1098,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b375d6465b98090a5f25b1c7703f3859783755aa9a80433b36e0379a3ec2f369"
 dependencies = [
  "crc32fast",
- "miniz_oxide",
+ "miniz_oxide 0.8.9",
 ]
 
 [[package]]
@@ -2057,6 +2058,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "miniz_oxide"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5faa9f23e86bd5768d76def086192ff5f869fb088da12a976ea21e9796b975f6"
+dependencies = [
+ "adler2",
+]
+
+[[package]]
 name = "minreq"
 version = "2.14.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2235,7 +2245,7 @@ dependencies = [
  "liblzma-sys",
  "lru",
  "md-5",
- "miniz_oxide",
+ "miniz_oxide 0.8.9",
  "polonius-the-crab",
  "sha1",
  "simple_moving_average",
@@ -2899,7 +2909,7 @@ dependencies = [
  "crc32fast",
  "fdeflate",
  "flate2",
- "miniz_oxide",
+ "miniz_oxide 0.8.9",
 ]
 
 [[package]]
@@ -4440,6 +4450,16 @@ dependencies = [
  "env_home",
  "rustix 1.1.3",
  "winsafe",
+]
+
+[[package]]
+name = "wiiload"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "81a6fd0cf8b45af894780bad16b12bbe4a33c3a852672267c69251812a3540e4"
+dependencies = [
+ "miniz_oxide 0.9.0",
+ "thiserror 2.0.18",
 ]
 
 [[package]]

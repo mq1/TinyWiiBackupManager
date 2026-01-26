@@ -5,3 +5,4 @@ pub mod app;
 pub mod app_list;
 pub mod osc;
 pub mod osc_list;
+pub mod wiiload;

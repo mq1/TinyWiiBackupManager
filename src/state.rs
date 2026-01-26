@@ -15,7 +15,7 @@ use crate::{
         txtcodes,
         wiitdb::{self, Datafile},
     },
-    hbc::{self, app_list::HbcAppList, osc::OscAppMeta, osc_list::OscAppList},
+    hbc::{self, app_list::HbcAppList, osc::OscAppMeta, osc_list::OscAppList, wiiload},
     message::Message,
     notifications::Notifications,
     ui::{Screen, dialogs, lucide},
@@ -521,6 +521,17 @@ impl State {
                     self.update(Message::GenericResult(res)),
                     self.update(Message::RefreshGamesAndApps),
                 ])
+            }
+            Message::ChooseFileToWiiload => window::oldest()
+                .and_then(|id| window::run(id, dialogs::choose_file_to_wiiload))
+                .map(Message::Wiiload),
+            Message::Wiiload(path) => {
+                if let Some(path) = path {
+                    self.notifications.info("Sending file to Wii...");
+                    wiiload::get_send_to_wiiload_task(self, path)
+                } else {
+                    Task::none()
+                }
             }
         }
     }
