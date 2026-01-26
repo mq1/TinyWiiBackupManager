@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{message::Message, state::State};
+use crate::{http_util, message::Message, state::State};
 use anyhow::{Result, bail};
 use iced::{Task, futures::TryFutureExt};
 use std::{
@@ -68,7 +68,7 @@ fn rebuild_zip(body: Vec<u8>) -> Result<(Vec<u8>, Vec<String>)> {
     Ok((buf, excluded_files))
 }
 
-fn send_too_wiiload(wii_ip: &str, path: &Path) -> Result<String> {
+fn send_via_wiiload(wii_ip: &str, path: &Path) -> Result<String> {
     let wii_ip: Ipv4Addr = wii_ip.parse()?;
 
     let Some(filename) = path.file_name().and_then(OsStr::to_str) else {
@@ -94,11 +94,33 @@ fn send_too_wiiload(wii_ip: &str, path: &Path) -> Result<String> {
     }
 }
 
-pub fn get_send_to_wiiload_task(state: &State, path: PathBuf) -> Task<Message> {
+pub fn get_send_via_wiiload_task(state: &State, path: PathBuf) -> Task<Message> {
     let wii_ip = state.config.wii_ip().clone();
 
     Task::perform(
-        async move { send_too_wiiload(&wii_ip, &path) }.map_err(Arc::new),
+        async move { send_via_wiiload(&wii_ip, &path) }.map_err(Arc::new),
+        Message::GenericResult,
+    )
+}
+
+fn download_and_send_via_wiiload(wii_ip: &str, zip_url: &str) -> Result<String> {
+    let wii_ip: Ipv4Addr = wii_ip.parse()?;
+    let body = http_util::get(zip_url)?;
+
+    let (body, excluded_files) = rebuild_zip(body)?;
+    wiiload::send("app.zip", body, wii_ip)?;
+
+    Ok(format!(
+        "File sent successfully. Excluded files: {}",
+        excluded_files.join(", ")
+    ))
+}
+
+pub fn get_download_and_send_via_wiiload_task(state: &State, zip_url: String) -> Task<Message> {
+    let wii_ip = state.config.wii_ip().clone();
+
+    Task::perform(
+        async move { download_and_send_via_wiiload(&wii_ip, &zip_url) }.map_err(Arc::new),
         Message::GenericResult,
     )
 }

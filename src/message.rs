@@ -61,8 +61,6 @@ pub enum Message {
     DownloadCheatsForAllGames,
     DownloadBanners,
     NormalizePaths,
-    ChooseFileToWiiload,
-    Wiiload(Option<PathBuf>),
 
     // HBC Apps
     GotHbcAppList(Result<HbcAppList, Arc<anyhow::Error>>),
@@ -70,6 +68,8 @@ pub enum Message {
     AddHbcApps(Box<[PathBuf]>),
     HbcAppsInstalled(Result<String, Arc<anyhow::Error>>),
     UpdateHbcFilter(String),
+    ChooseFileToWiiload,
+    Wiiload(Option<PathBuf>),
 
     // OSC Apps
     GotOscAppList(Result<OscAppList, Arc<anyhow::Error>>),
@@ -77,6 +77,7 @@ pub enum Message {
     AskInstallOscApp(OscAppMeta),
     InstallOscApp((OscAppMeta, bool)),
     AppInstalled(Result<String, Arc<anyhow::Error>>),
+    WiiloadOsc(OscAppMeta),
 
     // Toolbox
     DownloadWiitdbToDrive,

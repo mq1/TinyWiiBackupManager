@@ -528,10 +528,14 @@ impl State {
             Message::Wiiload(path) => {
                 if let Some(path) = path {
                     self.notifications.info("Sending file to Wii...");
-                    wiiload::get_send_to_wiiload_task(self, path)
+                    wiiload::get_send_via_wiiload_task(self, path)
                 } else {
                     Task::none()
                 }
+            }
+            Message::WiiloadOsc(app) => {
+                let zip_url = app.assets().archive().url().clone();
+                wiiload::get_download_and_send_via_wiiload_task(self, zip_url)
             }
         }
     }
