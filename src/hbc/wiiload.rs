@@ -7,10 +7,56 @@ use iced::{Task, futures::TryFutureExt};
 use std::{
     ffi::OsStr,
     fs,
+    io::{self, Cursor, Read, Seek},
     net::Ipv4Addr,
     path::{Path, PathBuf},
     sync::Arc,
 };
+use zip::{CompressionMethod, ZipArchive, ZipWriter, write::SimpleFileOptions};
+
+fn get_app_files(archive: &mut ZipArchive<impl Read + Seek>) -> Result<(String, Vec<String>)> {
+    let Some(app_filename) = archive
+        .file_names()
+        .find(|f| f.ends_with("boot.dol") || f.ends_with("boot.elf"))
+    else {
+        bail!("Failed to find app binary")
+    };
+
+    let parent_filename = app_filename[0..app_filename.len() - 8].to_string();
+
+    let app_files = archive
+        .file_names()
+        .filter(|f| f.starts_with(&parent_filename))
+        .map(String::from)
+        .collect();
+
+    Ok((parent_filename, app_files))
+}
+
+fn rebuild_zip(body: Vec<u8>) -> Result<Vec<u8>> {
+    let mut archive = ZipArchive::new(Cursor::new(body))?;
+    let (parent_filename, app_files) = get_app_files(&mut archive)?;
+    let Some(app_name) = parent_filename.split('/').next_back() else {
+        bail!("Failed to get app name")
+    };
+
+    let mut buf = Vec::new();
+    let mut writer = ZipWriter::new(Cursor::new(&mut buf));
+
+    let options = SimpleFileOptions::default()
+        .compression_method(CompressionMethod::Deflated)
+        .compression_level(Some(9));
+
+    for filename in &app_files {
+        let new_filename = filename.replace(&parent_filename, app_name);
+        writer.start_file(new_filename, options)?;
+        let mut file = archive.by_name(filename.as_str())?;
+        io::copy(&mut file, &mut writer)?;
+    }
+
+    writer.finish()?;
+    Ok(buf)
+}
 
 fn send_too_wiiload(wii_ip: &str, path: &Path) -> Result<String> {
     let wii_ip: Ipv4Addr = wii_ip.parse()?;
@@ -26,6 +72,7 @@ fn send_too_wiiload(wii_ip: &str, path: &Path) -> Result<String> {
     let body = fs::read(path)?;
 
     if ext == "zip" {
+        let body = rebuild_zip(body)?;
         wiiload::send(filename, body, wii_ip)?;
     } else {
         wiiload::compress_then_send(filename, body, wii_ip)?;

@@ -38,7 +38,6 @@ tempfile = "3.23"
 nod = "2.0.0-alpha.4"
 num_cpus = "1.17"
 semver = "1.0"
-path-slash = "0.2"
 hex = "0.4"
 itertools = "0.14"
 time = { version = "0.3", features = ["macros", "parsing", "serde"] }
