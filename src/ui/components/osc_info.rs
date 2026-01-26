@@ -113,6 +113,30 @@ pub fn view<'a>(state: &State, app: &'a OscAppMeta) -> Element<'a, Message> {
     .spacing(5)
     .width(Length::Fill);
 
+    let mut actions = row![
+        button(row![icon_globe(), text("Open OSC Page")].spacing(5))
+            .style(style::rounded_button)
+            .on_press_with(|| Message::OpenThat(app.get_oscwii_uri())),
+        button(row![icon_monitor_up(), text("Send via Wiiload")].spacing(5))
+            .style(style::rounded_button)
+            .on_press_with(|| Message::WiiloadOsc(app.clone())),
+    ]
+    .spacing(5)
+    .padding(5);
+
+    if state.config.is_mount_point_valid() {
+        actions = actions.push(
+            button(row![icon_cloud_download(), text("Install")].spacing(5))
+                .style(style::rounded_button)
+                .on_press_with(|| Message::AskInstallOscApp(app.clone())),
+        );
+    } else {
+        actions = actions.push(
+            button(row![icon_cloud_download(), text("Install")].spacing(5))
+                .style(style::rounded_button),
+        );
+    }
+
     let col = column![
         row![icon_store().size(18), text(app.name()).size(18)]
             .spacing(5)
@@ -127,18 +151,7 @@ pub fn view<'a>(state: &State, app: &'a OscAppMeta) -> Element<'a, Message> {
         )
         .spacing(1)
         .height(Length::Fill),
-        row![
-            button(row![icon_globe(), text("Open OSC Page")].spacing(5))
-                .style(style::rounded_button)
-                .on_press_with(|| Message::OpenThat(app.get_oscwii_uri())),
-            button(row![icon_monitor_up(), text("Send via Wiiload")].spacing(5))
-                .style(style::rounded_button),
-            button(row![icon_cloud_download(), text("Install")].spacing(5))
-                .style(style::rounded_button)
-                .on_press_with(|| Message::AskInstallOscApp(app.clone()))
-        ]
-        .spacing(5)
-        .padding(5)
+        actions
     ];
 
     match state.get_osc_app_icon(app) {
