@@ -65,6 +65,7 @@ pub enum Message {
     StripGame((Game, bool)),
     ConfirmStripAllGames,
     StripAllGames(bool),
+    ChecksumGame(Game),
 
     // HBC Apps
     GotHbcAppList(Result<HbcAppList, Arc<anyhow::Error>>),

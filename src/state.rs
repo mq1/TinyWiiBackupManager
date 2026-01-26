@@ -7,6 +7,7 @@ use crate::{
     games::{
         archive::ArchiveOperation,
         banners,
+        checksum::ChecksumOperation,
         convert_for_wii::ConvertForWiiOperation,
         covers, dir_layout,
         game::Game,
@@ -569,6 +570,9 @@ impl State {
                 .map(Message::StripGame),
             Message::StripGame((game, yes)) => {
                 if yes {
+                    self.notifications
+                        .info(format!("Removing update partition from {}", game.title()));
+
                     let op = StripOperation::new(game, self.config.always_split());
                     self.transfer_queue.push(TransferOperation::Strip(op));
 
@@ -586,6 +590,9 @@ impl State {
                 .map(Message::StripAllGames),
             Message::StripAllGames(yes) => {
                 if yes {
+                    self.notifications
+                        .info("Removing update partition from all games, this may take some time!");
+
                     for game in self.game_list.iter().cloned() {
                         let op = StripOperation::new(game, self.config.always_split());
                         self.transfer_queue.push(TransferOperation::Strip(op));
@@ -596,6 +603,19 @@ impl State {
                     } else {
                         Task::none()
                     }
+                } else {
+                    Task::none()
+                }
+            }
+            Message::ChecksumGame(game) => {
+                self.notifications
+                    .info(format!("Calculating checksum for {}", game.title()));
+
+                let op = ChecksumOperation::new(game);
+                self.transfer_queue.push(TransferOperation::Checksum(op));
+
+                if self.status.is_empty() {
+                    self.update(Message::StartTransfer)
                 } else {
                     Task::none()
                 }

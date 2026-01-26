@@ -4,6 +4,7 @@
 use crate::{
     games::{
         convert_for_wii::SPLIT_SIZE, disc_info::DiscInfo, extensions::format_to_opts, game::Game,
+        util::get_threads_num,
     },
     util,
 };
@@ -53,8 +54,9 @@ impl StripOperation {
                     return Ok(None);
                 }
 
+                let (processor_threads, preloader_threads) = get_threads_num();
                 let process_opts = ProcessOptions {
-                    processor_threads: num_cpus::get() - 1,
+                    processor_threads,
                     digest_crc32: true,
                     digest_md5: false,
                     digest_sha1: true,
@@ -72,7 +74,7 @@ impl StripOperation {
 
                 let disc_opts = DiscOptions {
                     partition_encryption: PartitionEncryption::Original,
-                    preloader_threads: 1,
+                    preloader_threads,
                 };
                 let disc_reader = DiscReader::new(disc_info.disc_path(), &disc_opts)?;
 

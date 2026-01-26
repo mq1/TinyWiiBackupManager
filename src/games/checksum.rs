@@ -1,89 +1,102 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::app::App;
-use crate::disc_info::DiscInfo;
-use crate::messages::Message;
-use crate::{
-    convert::{DISC_OPTS, get_process_opts},
-    wiitdb::GameInfo,
+use crate::games::{
+    disc_info::DiscInfo, extensions::format_to_opts, game::Game, util::get_threads_num,
 };
-use anyhow::{Result, anyhow};
-use crossbeam_channel::Sender;
-use egui_phosphor::regular as ph;
+use anyhow::Result;
+use iced::{
+    futures::{StreamExt, channel::mpsc},
+    task::{Straw, sipper},
+};
 use nod::{
-    read::DiscReader,
-    write::{DiscWriter, FormatOptions},
+    common::Format,
+    read::{DiscOptions, DiscReader, PartitionEncryption},
+    write::{DiscWriter, ProcessOptions, ScrubLevel},
 };
+use std::{sync::Arc, thread};
 
-pub fn spawn_checksum_task(app: &App, disc_info: DiscInfo, game_info: Option<&GameInfo>) {
-    let redump_crc32s = game_info
-        .iter()
-        .flat_map(|g| &g.roms)
-        .flat_map(|r| r.crc)
-        .collect::<Box<[_]>>();
-
-    app.task_processor.spawn(move |msg_sender| {
-        msg_sender.send(Message::UpdateStatus(
-            format!("{} Performing game checksum...", ph::FINGERPRINT_SIMPLE),
-        ))?;
-
-        let crc32 = calc_crc32(&disc_info, msg_sender)?;
-
-        if let Some(embedded_crc32) = disc_info.crc32 {
-            if embedded_crc32 == crc32 {
-                msg_sender.send(Message::NotifySuccess(
-                    format!("{} Embedded CRC32 is == to the actual file CRC32", ph::FINGERPRINT_SIMPLE),
-                ))?;
-            } else {
-                let e = anyhow!(
-                    "{} Embedded CRC32 mismatch, expected: {:x}, found: {:x}\n\nThis is expected if the Update partition has been removed",
-                    ph::FINGERPRINT_SIMPLE, embedded_crc32, crc32
-                );
-
-                msg_sender.send(Message::NotifyError(e))?;
-            }
-        }
-
-        if !redump_crc32s.is_empty() {
-            if redump_crc32s.contains(&crc32) {
-                msg_sender.send(Message::NotifySuccess(
-                    format!("{} CRC32 matches the Redump hash: your dump is perfect!", ph::FINGERPRINT_SIMPLE),
-                ))?;
-            } else {
-                let e = anyhow!(
-                    "{} CRC32 does not match the Redump hash", ph::FINGERPRINT_SIMPLE
-                );
-
-                msg_sender.send(Message::NotifyError(e))?;
-            }
-        }
-
-        Ok(())
-    });
+#[derive(Debug, Clone)]
+pub struct ChecksumOperation {
+    source: Game,
+    display_str: String,
 }
 
-pub fn calc_crc32(disc_info: &DiscInfo, msg_sender: &Sender<Message>) -> Result<u32> {
-    let disc = DiscReader::new(&disc_info.disc_path, &DISC_OPTS)?;
-    let disc_writer = DiscWriter::new(disc, &FormatOptions::default())?;
+impl ChecksumOperation {
+    pub fn new(source: Game) -> Self {
+        let display_str = format!("Checksum {}", source.title());
 
-    let finalization = disc_writer.process(
-        |_, progress, total| {
-            let _ = msg_sender.send(Message::UpdateStatus(format!(
-                "{} Hashing {}  {:02}%",
-                ph::FINGERPRINT_SIMPLE,
-                &disc_info.title,
-                progress * 100 / total,
-            )));
+        Self {
+            source,
+            display_str,
+        }
+    }
 
-            Ok(())
-        },
-        &get_process_opts(false),
-    )?;
+    pub fn run(self) -> impl Straw<Option<String>, String, Arc<anyhow::Error>> {
+        sipper(async move |mut sender| {
+            let (mut tx, mut rx) = mpsc::channel(1);
 
-    let crc32 = finalization
-        .crc32
-        .ok_or(anyhow!("{} Failed to get CRC32", ph::FINGERPRINT_SIMPLE))?;
+            let handle = thread::spawn(move || -> Result<Option<String>> {
+                let disc_info = DiscInfo::try_from_game_dir(self.source.path())?;
 
-    Ok(crc32)
+                let (processor_threads, preloader_threads) = get_threads_num();
+                let process_opts = ProcessOptions {
+                    processor_threads,
+                    digest_crc32: true,
+                    digest_md5: false,
+                    digest_sha1: false,
+                    digest_xxh64: false,
+                    scrub: ScrubLevel::None,
+                };
+
+                let disc_opts = DiscOptions {
+                    partition_encryption: PartitionEncryption::Original,
+                    preloader_threads,
+                };
+                let disc_reader = DiscReader::new(disc_info.disc_path(), &disc_opts)?;
+
+                let out_opts = format_to_opts(Format::Iso);
+                let disc_writer = DiscWriter::new(disc_reader, &out_opts)?;
+
+                let mut prev_percentage = 100;
+                let game_title = self.source.title();
+                let finalization = disc_writer.process(
+                    |_data, progress, total| {
+                        let progress_percentage = progress * 100 / total;
+
+                        if progress_percentage != prev_percentage {
+                            let _ = tx.try_send(format!(
+                                "✓ Hashing {game_title}  {progress_percentage:02}%"
+                            ));
+                            prev_percentage = progress_percentage;
+                        }
+
+                        Ok(())
+                    },
+                    &process_opts,
+                )?;
+
+                let msg = if disc_info.crc32() == finalization.crc32 {
+                    format!("✓ Hash match for {game_title}")
+                } else {
+                    format!("✗ Hash mismatch for {game_title}")
+                };
+
+                Ok(Some(msg))
+            });
+
+            while let Some(msg) = rx.next().await {
+                sender.send(msg).await;
+            }
+
+            handle
+                .join()
+                .expect("Failed to checksum game")
+                .map_err(Arc::new)
+        })
+    }
+
+    pub fn display_str(&self) -> &str {
+        &self.display_str
+    }
 }

@@ -222,6 +222,9 @@ pub fn view<'a>(state: &State, game: &'a Game) -> Element<'a, Message> {
         button(row![icon_cloud_download(), text("Get cheats")].spacing(5))
             .style(style::rounded_button)
             .on_press_with(|| Message::DownloadCheatsForGame(game.clone())),
+        button(row![icon_fingerprint_pattern(), text("Checksum")].spacing(5))
+            .style(style::rounded_button)
+            .on_press_with(|| Message::ChecksumGame(game.clone())),
         button(row![icon_hard_drive_download(), text("Archive")].spacing(5))
             .style(style::rounded_button)
             .on_press_with(|| Message::ChooseArchiveDest(game.clone())),

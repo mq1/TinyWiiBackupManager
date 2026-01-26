@@ -3,7 +3,8 @@
 
 use crate::{
     games::{
-        archive::ArchiveOperation, convert_for_wii::ConvertForWiiOperation, strip::StripOperation,
+        archive::ArchiveOperation, checksum::ChecksumOperation,
+        convert_for_wii::ConvertForWiiOperation, strip::StripOperation,
     },
     message::Message,
 };
@@ -14,6 +15,7 @@ pub enum TransferOperation {
     ConvertForWii(ConvertForWiiOperation),
     Archive(ArchiveOperation),
     Strip(StripOperation),
+    Checksum(ChecksumOperation),
 }
 
 impl TransferOperation {
@@ -22,6 +24,7 @@ impl TransferOperation {
             TransferOperation::ConvertForWii(op) => op.display_str(),
             TransferOperation::Archive(op) => op.display_str(),
             TransferOperation::Strip(op) => op.display_str(),
+            TransferOperation::Checksum(op) => op.display_str(),
         }
     }
 }
@@ -54,6 +57,11 @@ impl TransferQueue {
                 Message::Transferred,
             ),
             TransferOperation::Strip(op) => Task::sip(
+                op.run(),
+                Message::UpdateTransferStatus,
+                Message::Transferred,
+            ),
+            TransferOperation::Checksum(op) => Task::sip(
                 op.run(),
                 Message::UpdateTransferStatus,
                 Message::Transferred,

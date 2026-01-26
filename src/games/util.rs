@@ -96,3 +96,17 @@ fn is_disc_filename(filename: &str) -> bool {
         || filename.ends_with(".tgc")
         || filename.ends_with(".nfs")
 }
+
+pub fn get_threads_num() -> (usize, usize) {
+    let cpus = num_cpus::get();
+
+    let preloader_threads = match cpus {
+        0..=4 => 1,
+        5..=8 => 2,
+        _ => 4,
+    };
+
+    let processor_threads = cpus - preloader_threads;
+
+    (preloader_threads, processor_threads)
+}

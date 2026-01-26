@@ -5,6 +5,7 @@ use crate::games::{
     disc_info::DiscInfo,
     extensions::{ext_to_format, format_to_opts},
     game::Game,
+    util::get_threads_num,
 };
 use anyhow::{Result, bail};
 use iced::{
@@ -52,8 +53,9 @@ impl ArchiveOperation {
                     bail!("Unsupported extension");
                 };
 
+                let (processor_threads, preloader_threads) = get_threads_num();
                 let process_opts = ProcessOptions {
-                    processor_threads: num_cpus::get() - 1,
+                    processor_threads,
                     digest_crc32: true,
                     digest_md5: false,
                     digest_sha1: true,
@@ -66,7 +68,7 @@ impl ArchiveOperation {
 
                 let disc_opts = DiscOptions {
                     partition_encryption: PartitionEncryption::Original,
-                    preloader_threads: 1,
+                    preloader_threads,
                 };
                 let disc_reader = DiscReader::new(disc_info.disc_path(), &disc_opts)?;
 

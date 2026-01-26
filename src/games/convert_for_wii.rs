@@ -3,7 +3,10 @@
 
 use crate::{
     config::Config,
-    games::extensions::{format_to_ext, format_to_opts},
+    games::{
+        extensions::{format_to_ext, format_to_opts},
+        util::get_threads_num,
+    },
     util,
 };
 use anyhow::{Result, anyhow};
@@ -254,18 +257,4 @@ impl ConvertForWiiOperation {
     pub fn display_str(&self) -> &str {
         &self.display_str
     }
-}
-
-pub fn get_threads_num() -> (usize, usize) {
-    let cpus = num_cpus::get();
-
-    let preloader_threads = match cpus {
-        0..=4 => 1,
-        5..=8 => 2,
-        _ => 4,
-    };
-
-    let processor_threads = cpus - preloader_threads;
-
-    (preloader_threads, processor_threads)
 }
