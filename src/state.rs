@@ -535,6 +535,7 @@ impl State {
             }
             Message::WiiloadOsc(app) => {
                 let zip_url = app.assets().archive().url().clone();
+                self.notifications.info("Sending file to Wii...");
                 wiiload::get_download_and_send_via_wiiload_task(self, zip_url)
             }
         }

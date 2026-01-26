@@ -23,8 +23,10 @@ fn get_app_files(
     else {
         bail!("Failed to find app binary")
     };
+    println!("App filename: {app_filename}");
 
     let parent_filename = app_filename[0..app_filename.len() - 8].to_string();
+    println!("Parent filename: {parent_filename}");
 
     let mut app_files = Vec::new();
     let mut excluded_files = Vec::new();
@@ -49,6 +51,7 @@ fn rebuild_zip(body: Vec<u8>) -> Result<(Vec<u8>, Vec<String>)> {
     else {
         bail!("Failed to get app name")
     };
+    println!("App name: {app_name}");
 
     let mut buf = Vec::new();
     let mut writer = ZipWriter::new(Cursor::new(&mut buf));
@@ -57,11 +60,13 @@ fn rebuild_zip(body: Vec<u8>) -> Result<(Vec<u8>, Vec<String>)> {
         .compression_method(CompressionMethod::Deflated)
         .compression_level(Some(9));
 
+    let new_parent_filename = format!("{app_name}/");
     for filename in &app_files {
-        let new_filename = filename.replace(&parent_filename, app_name);
-        writer.start_file(new_filename, options)?;
+        let new_filename = filename.replace(&parent_filename, &new_parent_filename);
+        writer.start_file(&new_filename, options)?;
         let mut file = archive.by_name(filename.as_str())?;
         io::copy(&mut file, &mut writer)?;
+        println!("Copied {filename} to {new_filename}");
     }
 
     writer.finish()?;

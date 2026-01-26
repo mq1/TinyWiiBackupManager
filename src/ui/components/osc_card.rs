@@ -35,24 +35,43 @@ pub fn view<'a>(state: &State, app: &'a OscAppMeta) -> Element<'a, Message> {
         col = col.push(image(icon).height(48));
     }
 
+    let mut actions = row![
+        my_tooltip::view(
+            button(row![icon_info(), text("Info")].spacing(5))
+                .style(style::rounded_secondary_button)
+                .on_press_with(|| Message::NavTo(Screen::OscInfo(app.clone()))),
+            "Show app info",
+        ),
+        my_tooltip::view(
+            button(icon_monitor_up())
+                .style(style::rounded_secondary_button)
+                .on_press_with(|| Message::WiiloadOsc(app.clone())),
+            "Send app via Wiiload"
+        ),
+    ]
+    .spacing(5);
+
+    if state.config.is_mount_point_valid() {
+        actions = actions.push(my_tooltip::view(
+            button(icon_cloud_download())
+                .style(style::rounded_secondary_button)
+                .on_press_with(|| Message::AskInstallOscApp(app.clone())),
+            "Install app",
+        ));
+    } else {
+        actions = actions.push(my_tooltip::view(
+            button(icon_cloud_download()).style(style::rounded_secondary_button),
+            "Install app",
+        ));
+    }
+
     col = col
         .push(my_tooltip::view(
             container(text(app.name()).wrapping(text::Wrapping::None)).clip(true),
             app.name(),
         ))
         .push(space::vertical())
-        .push(
-            row![
-                button(row![icon_info(), text("Info")].spacing(5))
-                    .style(style::rounded_secondary_button)
-                    .on_press_with(|| Message::NavTo(Screen::OscInfo(app.clone()))),
-                button(icon_monitor_up()).style(style::rounded_secondary_button),
-                button(icon_cloud_download())
-                    .style(style::rounded_secondary_button)
-                    .on_press_with(|| Message::AskInstallOscApp(app.clone())),
-            ]
-            .spacing(5),
-        );
+        .push(actions);
 
     container(col).style(style::card).into()
 }

@@ -10,7 +10,7 @@ use iced::{
     Alignment, Element,
     widget::{container, row, space, text_input},
 };
-use lucide_icons::iced::icon_search;
+use lucide_icons::iced::{icon_search, icon_wifi_pen};
 
 pub fn view(state: &State) -> Element<'_, Message> {
     row![
@@ -30,6 +30,23 @@ pub fn view(state: &State) -> Element<'_, Message> {
         .style(style::card),
         space::horizontal(),
         components::view_as::view(state),
+        container(
+            row![
+                space(),
+                icon_wifi_pen(),
+                "Wii IP for Wiiload:",
+                text_input("192.168.1.100", state.config.wii_ip())
+                    .width(130)
+                    .style(style::search_bar)
+                    .on_input(|wii_ip| Message::UpdateConfig(
+                        state.config.clone_with_wii_ip(wii_ip)
+                    ))
+            ]
+            .spacing(10)
+            .padding(5)
+            .align_y(Alignment::Center)
+        )
+        .style(style::card),
     ]
     .spacing(10)
     .padding(10)
