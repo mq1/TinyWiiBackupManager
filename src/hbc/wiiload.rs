@@ -14,7 +14,9 @@ use std::{
 };
 use zip::{CompressionMethod, ZipArchive, ZipWriter, write::SimpleFileOptions};
 
-fn get_app_files(archive: &mut ZipArchive<impl Read + Seek>) -> Result<(String, Vec<String>)> {
+fn get_app_files(
+    archive: &mut ZipArchive<impl Read + Seek>,
+) -> Result<(String, Vec<String>, Vec<String>)> {
     let Some(app_filename) = archive
         .file_names()
         .find(|f| f.ends_with("boot.dol") || f.ends_with("boot.elf"))
@@ -24,18 +26,22 @@ fn get_app_files(archive: &mut ZipArchive<impl Read + Seek>) -> Result<(String, 
 
     let parent_filename = app_filename[0..app_filename.len() - 8].to_string();
 
-    let app_files = archive
-        .file_names()
-        .filter(|f| f.starts_with(&parent_filename))
-        .map(String::from)
-        .collect();
+    let mut app_files = Vec::new();
+    let mut excluded_files = Vec::new();
+    for filename in archive.file_names() {
+        if filename.starts_with(&parent_filename) {
+            app_files.push(filename.to_string());
+        } else {
+            excluded_files.push(filename.to_string());
+        }
+    }
 
-    Ok((parent_filename, app_files))
+    Ok((parent_filename, app_files, excluded_files))
 }
 
-fn rebuild_zip(body: Vec<u8>) -> Result<Vec<u8>> {
+fn rebuild_zip(body: Vec<u8>) -> Result<(Vec<u8>, Vec<String>)> {
     let mut archive = ZipArchive::new(Cursor::new(body))?;
-    let (parent_filename, app_files) = get_app_files(&mut archive)?;
+    let (parent_filename, app_files, excluded_files) = get_app_files(&mut archive)?;
     let Some(app_name) = parent_filename.split('/').next_back() else {
         bail!("Failed to get app name")
     };
@@ -55,7 +61,7 @@ fn rebuild_zip(body: Vec<u8>) -> Result<Vec<u8>> {
     }
 
     writer.finish()?;
-    Ok(buf)
+    Ok((buf, excluded_files))
 }
 
 fn send_too_wiiload(wii_ip: &str, path: &Path) -> Result<String> {
@@ -72,13 +78,16 @@ fn send_too_wiiload(wii_ip: &str, path: &Path) -> Result<String> {
     let body = fs::read(path)?;
 
     if ext == "zip" {
-        let body = rebuild_zip(body)?;
+        let (body, excluded_files) = rebuild_zip(body)?;
         wiiload::send(filename, body, wii_ip)?;
+        Ok(format!(
+            "File sent successfully. Excluded files: {}",
+            excluded_files.join(", ")
+        ))
     } else {
         wiiload::compress_then_send(filename, body, wii_ip)?;
+        Ok("File sent successfully".to_string())
     }
-
-    Ok("File sent successfully".to_string())
 }
 
 pub fn get_send_to_wiiload_task(state: &State, path: PathBuf) -> Task<Message> {
