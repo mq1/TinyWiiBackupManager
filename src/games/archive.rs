@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::games::{
-    disc_info,
+    disc_info::DiscInfo,
     extensions::{ext_to_format, format_to_opts},
     game::Game,
 };
@@ -46,7 +46,7 @@ impl ArchiveOperation {
             let (mut tx, mut rx) = mpsc::channel(1);
 
             let handle = thread::spawn(move || -> Result<Option<String>> {
-                let disc_path = disc_info::get_main_disc_file_in_dir(self.source.path())?;
+                let disc_info = DiscInfo::try_from_game_dir(self.source.path())?;
 
                 let Some(out_format) = ext_to_format(self.dest.extension()) else {
                     bail!("Unsupported extension");
@@ -68,7 +68,7 @@ impl ArchiveOperation {
                     partition_encryption: PartitionEncryption::Original,
                     preloader_threads: 1,
                 };
-                let disc_reader = DiscReader::new(disc_path, &disc_opts)?;
+                let disc_reader = DiscReader::new(disc_info.disc_path(), &disc_opts)?;
 
                 let out_opts = format_to_opts(out_format);
                 let disc_writer = DiscWriter::new(disc_reader, &out_opts)?;

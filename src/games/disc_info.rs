@@ -65,24 +65,6 @@ pub struct DiscInfo {
     is_worth_stripping: bool,
 }
 
-pub fn get_main_disc_file_in_dir(dir: &Path) -> Result<PathBuf> {
-    let entries = fs::read_dir(dir)?;
-    for entry in entries.filter_map(Result::ok) {
-        if let Ok(file_type) = entry.file_type()
-            && file_type.is_file()
-            && let Some(filename) = entry.file_name().to_str()
-            && !filename.ends_with(".part1.iso")
-            && (filename.ends_with(".wbfs")
-                || filename.ends_with(".ciso")
-                || (filename.ends_with(".iso")))
-        {
-            return Ok(entry.path());
-        }
-    }
-
-    Err(anyhow!("No disc file found"))
-}
-
 impl DiscInfo {
     pub fn try_from_game_dir(game_dir: &Path) -> Result<Self> {
         if !game_dir.is_dir() {
@@ -105,7 +87,7 @@ impl DiscInfo {
             }
         }
 
-        Err(anyhow!("No disc file found"))
+        Err(anyhow!("No disc file found in {}", game_dir.display()))
     }
 
     pub fn try_from_path(disc_path: PathBuf) -> Result<Self> {

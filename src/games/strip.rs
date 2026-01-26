@@ -3,10 +3,7 @@
 
 use crate::{
     games::{
-        convert_for_wii::SPLIT_SIZE,
-        disc_info::{self, is_worth_stripping},
-        extensions::format_to_opts,
-        game::Game,
+        convert_for_wii::SPLIT_SIZE, disc_info::DiscInfo, extensions::format_to_opts, game::Game,
     },
     util,
 };
@@ -51,7 +48,10 @@ impl StripOperation {
             let (mut tx, mut rx) = mpsc::channel(1);
 
             let handle = thread::spawn(move || -> Result<Option<String>> {
-                let disc_path = disc_info::get_main_disc_file_in_dir(self.source.path())?;
+                let disc_info = DiscInfo::try_from_game_dir(self.source.path())?;
+                if !disc_info.is_worth_stripping() {
+                    return Ok(None);
+                }
 
                 let process_opts = ProcessOptions {
                     processor_threads: num_cpus::get() - 1,
@@ -64,7 +64,7 @@ impl StripOperation {
 
                 let must_split = self.always_split || !util::can_write_over_4gb(self.source.path());
 
-                let out_path = disc_path.with_extension("wbfs.new");
+                let out_path = disc_info.disc_path().with_extension("wbfs.new");
                 let out_file = File::create(&out_path)?;
                 let mut out_writer = BufWriter::new(out_file);
                 let mut overflow_path: Option<PathBuf> = None;
@@ -74,10 +74,7 @@ impl StripOperation {
                     partition_encryption: PartitionEncryption::Original,
                     preloader_threads: 1,
                 };
-                let disc_reader = DiscReader::new(&disc_path, &disc_opts)?;
-                if !is_worth_stripping(&disc_reader) {
-                    return Ok(None);
-                }
+                let disc_reader = DiscReader::new(disc_info.disc_path(), &disc_opts)?;
 
                 let out_opts = format_to_opts(Format::Wbfs);
                 let disc_writer = DiscWriter::new(disc_reader, &out_opts)?;
@@ -96,7 +93,7 @@ impl StripOperation {
                             let bytes_to_write_count = data.len();
 
                             if remaining_in_first_split < bytes_to_write_count {
-                                let overflow_path = overflow_path.insert(disc_path.with_extension("wbf1.new"));
+                                let overflow_path = overflow_path.insert(disc_info.disc_path().with_extension("wbf1.new"));
                                 let overflow_file = File::create(overflow_path)?;
                                 let overflow_writer =
                                     overflow_writer.insert(BufWriter::new(overflow_file));
@@ -138,9 +135,9 @@ impl StripOperation {
                     overflow_writer.flush()?;
                 }
 
-                fs::rename(out_path, &disc_path)?;
+                fs::rename(out_path, disc_info.disc_path())?;
                 if let Some(overflow_path) = overflow_path.take() {
-                    fs::rename(overflow_path, disc_path.with_extension("wbf1"))?;
+                    fs::rename(overflow_path, disc_info.disc_path().with_extension("wbf1"))?;
                 }
 
                 Ok(Some(format!("Removed update partition from {game_title}")))
