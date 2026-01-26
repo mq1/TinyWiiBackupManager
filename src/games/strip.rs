@@ -2,7 +2,12 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    games::{convert_for_wii::SPLIT_SIZE, disc_info, extensions::format_to_opts, game::Game},
+    games::{
+        convert_for_wii::SPLIT_SIZE,
+        disc_info::{self, is_worth_stripping},
+        extensions::format_to_opts,
+        game::Game,
+    },
     util,
 };
 use anyhow::Result;
@@ -41,11 +46,11 @@ impl StripOperation {
         }
     }
 
-    pub fn run(self) -> impl Straw<String, String, Arc<anyhow::Error>> {
+    pub fn run(self) -> impl Straw<Option<String>, String, Arc<anyhow::Error>> {
         sipper(async move |mut sender| {
             let (mut tx, mut rx) = mpsc::channel(1);
 
-            let handle = thread::spawn(move || -> Result<String> {
+            let handle = thread::spawn(move || -> Result<Option<String>> {
                 let disc_path = disc_info::get_main_disc_file_in_dir(self.source.path())?;
 
                 let process_opts = ProcessOptions {
@@ -70,6 +75,9 @@ impl StripOperation {
                     preloader_threads: 1,
                 };
                 let disc_reader = DiscReader::new(&disc_path, &disc_opts)?;
+                if !is_worth_stripping(&disc_reader) {
+                    return Ok(None);
+                }
 
                 let out_opts = format_to_opts(Format::Wbfs);
                 let disc_writer = DiscWriter::new(disc_reader, &out_opts)?;
@@ -135,7 +143,7 @@ impl StripOperation {
                     fs::rename(overflow_path, disc_path.with_extension("wbf1"))?;
                 }
 
-                Ok(format!("Removed update partition from {game_title}"))
+                Ok(Some(format!("Removed update partition from {game_title}")))
             });
 
             while let Some(msg) = rx.next().await {

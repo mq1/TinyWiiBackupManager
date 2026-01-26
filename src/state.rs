@@ -414,7 +414,7 @@ impl State {
                     task
                 } else {
                     self.notifications
-                        .success("Finished transferring all games");
+                        .success("Finished all game converting operations!");
                     Task::none()
                 }
             }
@@ -423,7 +423,10 @@ impl State {
                 Task::none()
             }
             Message::Transferred(Ok(msg)) => {
-                self.notifications.success(msg);
+                if let Some(msg) = msg {
+                    self.notifications.success(msg);
+                }
+
                 self.status.clear();
 
                 Task::batch(vec![
@@ -484,7 +487,12 @@ impl State {
             Message::ArchiveGame(Some((game, dest))) => {
                 let op = ArchiveOperation::new(game, dest);
                 self.transfer_queue.push(TransferOperation::Archive(op));
-                self.update(Message::StartTransfer)
+
+                if self.status.is_empty() {
+                    self.update(Message::StartTransfer)
+                } else {
+                    Task::none()
+                }
             }
             Message::DownloadCoversForUsbLoaderGx => {
                 self.notifications
@@ -549,7 +557,31 @@ impl State {
                 if yes {
                     let op = StripOperation::new(game, self.config.always_split());
                     self.transfer_queue.push(TransferOperation::Strip(op));
-                    self.update(Message::StartTransfer)
+
+                    if self.status.is_empty() {
+                        self.update(Message::StartTransfer)
+                    } else {
+                        Task::none()
+                    }
+                } else {
+                    Task::none()
+                }
+            }
+            Message::ConfirmStripAllGames => window::oldest()
+                .and_then(|id| window::run(id, dialogs::confirm_strip_all_games))
+                .map(Message::StripAllGames),
+            Message::StripAllGames(yes) => {
+                if yes {
+                    for game in self.game_list.iter().cloned() {
+                        let op = StripOperation::new(game, self.config.always_split());
+                        self.transfer_queue.push(TransferOperation::Strip(op));
+                    }
+
+                    if self.status.is_empty() {
+                        self.update(Message::StartTransfer)
+                    } else {
+                        Task::none()
+                    }
                 } else {
                     Task::none()
                 }

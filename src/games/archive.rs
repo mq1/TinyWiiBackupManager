@@ -41,11 +41,11 @@ impl ArchiveOperation {
         }
     }
 
-    pub fn run(self) -> impl Straw<String, String, Arc<anyhow::Error>> {
+    pub fn run(self) -> impl Straw<Option<String>, String, Arc<anyhow::Error>> {
         sipper(async move |mut sender| {
             let (mut tx, mut rx) = mpsc::channel(1);
 
-            let handle = thread::spawn(move || -> Result<String> {
+            let handle = thread::spawn(move || -> Result<Option<String>> {
                 let disc_path = disc_info::get_main_disc_file_in_dir(self.source.path())?;
 
                 let Some(out_format) = ext_to_format(self.dest.extension()) else {
@@ -98,7 +98,8 @@ impl ArchiveOperation {
                 }
 
                 out_writer.flush()?;
-                Ok(format!("Archived {game_title}"))
+
+                Ok(Some(format!("Archived {game_title}")))
             });
 
             while let Some(msg) = rx.next().await {

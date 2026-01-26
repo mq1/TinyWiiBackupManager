@@ -52,7 +52,7 @@ pub enum Message {
     GotDiscInfo(Result<DiscInfo, Arc<anyhow::Error>>),
     SortGamesAndApps(SortBy),
     UpdateTransferStatus(String),
-    Transferred(Result<String, Arc<anyhow::Error>>),
+    Transferred(Result<Option<String>, Arc<anyhow::Error>>),
     ChooseArchiveDest(Game),
     ArchiveGame(Option<(Game, PathBuf)>),
     DownloadCoversForUsbLoaderGx,
@@ -63,6 +63,8 @@ pub enum Message {
     NormalizePaths,
     ConfirmStripGame(Game),
     StripGame((Game, bool)),
+    ConfirmStripAllGames,
+    StripAllGames(bool),
 
     // HBC Apps
     GotHbcAppList(Result<HbcAppList, Arc<anyhow::Error>>),

@@ -46,11 +46,11 @@ impl ConvertForWiiOperation {
     }
 
     #[allow(clippy::too_many_lines)]
-    pub fn run(mut self) -> impl Straw<String, String, Arc<anyhow::Error>> {
+    pub fn run(mut self) -> impl Straw<Option<String>, String, Arc<anyhow::Error>> {
         sipper(async move |mut sender| {
             let (mut tx, mut rx) = mpsc::channel(1);
 
-            let handle = thread::spawn(move || -> Result<String> {
+            let handle = thread::spawn(move || -> Result<Option<String>> {
                 let mut files_to_remove = Vec::new();
                 if self.config.remove_sources_games() {
                     files_to_remove.push(self.source_path.clone());
@@ -149,7 +149,7 @@ impl ConvertForWiiOperation {
                     for path in files_to_remove {
                         fs::remove_file(path)?;
                     }
-                    return Ok(format!("Skipped conversion of {title} (already exists)"));
+                    return Ok(None);
                 }
 
                 fs::create_dir_all(&parent)?;
@@ -237,8 +237,7 @@ impl ConvertForWiiOperation {
                     fs::remove_file(path)?;
                 }
 
-                let msg = format!("Converted {title}");
-                Ok(msg)
+                Ok(Some(format!("Converted {title}")))
             });
 
             while let Some(msg) = rx.next().await {

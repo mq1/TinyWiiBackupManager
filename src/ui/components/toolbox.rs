@@ -96,7 +96,9 @@ pub fn view(state: &State) -> Element<'_, Message> {
         .align_y(Alignment::Center)
         .spacing(10),
         row![
-            button(icon_play()).style(style::rounded_button),
+            button(icon_play())
+                .style(style::rounded_button)
+                .on_press(Message::ConfirmStripAllGames),
             "Remove the update partition from all .wbfs files"
         ]
         .align_y(Alignment::Center)
