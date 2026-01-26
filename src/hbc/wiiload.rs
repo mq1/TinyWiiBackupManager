@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{message::Message, state::State};
-use anyhow::{Result, anyhow};
+use anyhow::{Result, bail};
 use iced::{Task, futures::TryFutureExt};
 use std::{
     ffi::OsStr,
@@ -15,17 +15,17 @@ use std::{
 fn send_too_wiiload(wii_ip: &str, path: &Path) -> Result<String> {
     let wii_ip: Ipv4Addr = wii_ip.parse()?;
 
-    let filename = path
-        .file_name()
-        .and_then(OsStr::to_str)
-        .ok_or(anyhow!("Could not get filename"))?;
+    let Some(filename) = path.file_name().and_then(OsStr::to_str) else {
+        bail!("Failed to get filename")
+    };
+
+    let Some(ext) = path.extension().and_then(OsStr::to_str) else {
+        bail!("Failed to get extension")
+    };
+
     let body = fs::read(path)?;
 
-    if path
-        .extension()
-        .and_then(OsStr::to_str)
-        .is_some_and(|ext| ext == "zip")
-    {
+    if ext == "zip" {
         wiiload::send(filename, body, wii_ip)?;
     } else {
         wiiload::compress_then_send(filename, body, wii_ip)?;
