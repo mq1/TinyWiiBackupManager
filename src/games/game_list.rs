@@ -6,7 +6,11 @@ use anyhow::Result;
 use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
 use iced::{Task, futures::TryFutureExt};
 use size::Size;
-use std::{fs, path::PathBuf, sync::Arc};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+    sync::Arc,
+};
 
 #[derive(Debug, Clone)]
 pub struct GameList {
@@ -210,12 +214,12 @@ pub fn get_list_games_task(state: &State) -> Task<Message> {
     let drive_path = state.config.mount_point().clone();
 
     Task::perform(
-        async { list(drive_path) }.map_err(Arc::new),
+        async move { list(&drive_path) }.map_err(Arc::new),
         Message::GotGameList,
     )
 }
 
-fn list(drive_path: PathBuf) -> Result<GameList> {
+fn list(drive_path: &Path) -> Result<GameList> {
     let wii_path = drive_path.join("wbfs");
     let gc_path = drive_path.join("games");
 

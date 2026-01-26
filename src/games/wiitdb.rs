@@ -14,7 +14,7 @@ use serde_with::{
 };
 use std::fs::{self, File};
 use std::io::{self, Cursor};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::str::FromStr;
 use std::sync::Arc;
 use zip::ZipArchive;
@@ -367,12 +367,12 @@ pub fn get_load_wiitdb_task(state: &State) -> Task<Message> {
     let data_dir = state.data_dir.clone();
 
     Task::perform(
-        async { load_wiitdb(data_dir) }.map_err(Arc::new),
+        async move { load_wiitdb(&data_dir) }.map_err(Arc::new),
         Message::GotWiitdbDatafile,
     )
 }
 
-fn load_wiitdb(data_dir: PathBuf) -> Result<(Datafile, bool)> {
+fn load_wiitdb(data_dir: &Path) -> Result<(Datafile, bool)> {
     let mut downloaded = false;
     let wiitdb_path = data_dir.join("wiitdb.xml");
 
@@ -394,12 +394,12 @@ pub fn get_download_wiitdb_to_drive_task(state: &State) -> Task<Message> {
     let mount_point = state.config.mount_point().clone();
 
     Task::perform(
-        async move { download_wiitdb_to_drive(mount_point) }.map_err(Arc::new),
+        async move { download_wiitdb_to_drive(&mount_point) }.map_err(Arc::new),
         Message::GenericResult,
     )
 }
 
-fn download_wiitdb_to_drive(mount_point: PathBuf) -> Result<String> {
+fn download_wiitdb_to_drive(mount_point: &Path) -> Result<String> {
     // Download wiitdb
     let body = http_util::get(DOWNLOAD_URL)?;
 
