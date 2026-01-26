@@ -42,7 +42,11 @@ fn get_app_files(
 fn rebuild_zip(body: Vec<u8>) -> Result<(Vec<u8>, Vec<String>)> {
     let mut archive = ZipArchive::new(Cursor::new(body))?;
     let (parent_filename, app_files, excluded_files) = get_app_files(&mut archive)?;
-    let Some(app_name) = parent_filename.split('/').next_back() else {
+
+    let Some(app_name) = parent_filename[0..parent_filename.len() - 1]
+        .split('/')
+        .next_back()
+    else {
         bail!("Failed to get app name")
     };
 
