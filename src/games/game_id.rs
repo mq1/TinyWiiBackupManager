@@ -36,6 +36,11 @@ impl TryFrom<&str> for GameID {
 
 impl GameID {
     #[inline]
+    pub const fn empty() -> Self {
+        Self([0; 6])
+    }
+
+    #[inline]
     pub const fn is_wii(self) -> bool {
         matches!(self.0[0], b'H' | b'R' | b'S' | b'W' | b'X')
     }

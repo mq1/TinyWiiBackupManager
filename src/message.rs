@@ -66,6 +66,9 @@ pub enum Message {
     ConfirmStripAllGames,
     StripAllGames(bool),
     ChecksumGame(Game),
+    ChooseGameToArchiveManually,
+    SetManualArchivingGame(Option<PathBuf>),
+    RunManualGameArchiving,
 
     // HBC Apps
     GotHbcAppList(Result<HbcAppList, Arc<anyhow::Error>>),

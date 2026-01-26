@@ -53,6 +53,7 @@ pub struct State {
     pub new_version: Option<Version>,
     pub transfer_queue: TransferQueue,
     pub status: String,
+    pub manual_archiving_game: Option<PathBuf>,
 
     // scroll positions
     pub games_scroll_id: Id,
@@ -86,6 +87,7 @@ impl State {
             new_version: None,
             transfer_queue: TransferQueue::new(),
             status: String::new(),
+            manual_archiving_game: None,
 
             // scroll positions
             games_scroll_id: Id::unique(),
@@ -615,6 +617,21 @@ impl State {
 
                 if self.status.is_empty() {
                     self.update(Message::StartTransfer)
+                } else {
+                    Task::none()
+                }
+            }
+            Message::ChooseGameToArchiveManually => window::oldest()
+                .and_then(|id| window::run(id, dialogs::choose_game_to_archive_manually))
+                .map(Message::SetManualArchivingGame),
+            Message::SetManualArchivingGame(game) => {
+                self.manual_archiving_game = game;
+                Task::none()
+            }
+            Message::RunManualGameArchiving => {
+                if let Some(path) = self.manual_archiving_game.take() {
+                    let game = Game::new_utility_game_object(path);
+                    self.update(Message::ChooseArchiveDest(game))
                 } else {
                     Task::none()
                 }

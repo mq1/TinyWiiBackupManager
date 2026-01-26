@@ -12,7 +12,11 @@ use crate::{
 use derive_getters::Getters;
 use iced::{Task, futures::TryFutureExt};
 use size::Size;
-use std::{ffi::OsString, path::PathBuf, sync::Arc};
+use std::{
+    ffi::{OsStr, OsString},
+    path::PathBuf,
+    sync::Arc,
+};
 
 #[derive(Debug, Clone, Getters)]
 pub struct Game {
@@ -60,6 +64,24 @@ impl Game {
             disc_info: None,
             wiitdb_info: None,
         })
+    }
+
+    /// Used to archive games manually
+    pub fn new_utility_game_object(path: PathBuf) -> Self {
+        let title = path
+            .file_stem()
+            .and_then(OsStr::to_str)
+            .unwrap_or("GAME")
+            .to_string();
+
+        Self {
+            path,
+            size: Size::from_bytes(0),
+            title,
+            id: GameID::empty(),
+            disc_info: None,
+            wiitdb_info: None,
+        }
     }
 
     pub fn get_path_uri(&self) -> OsString {

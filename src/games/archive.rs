@@ -47,7 +47,13 @@ impl ArchiveOperation {
             let (mut tx, mut rx) = mpsc::channel(1);
 
             let handle = thread::spawn(move || -> Result<Option<String>> {
-                let disc_info = DiscInfo::try_from_game_dir(self.source.path())?;
+                let disc_path = if self.source.path().is_dir() {
+                    DiscInfo::try_from_game_dir(self.source.path())?
+                        .disc_path()
+                        .clone()
+                } else {
+                    self.source.path().clone()
+                };
 
                 let Some(out_format) = ext_to_format(self.dest.extension()) else {
                     bail!("Unsupported extension");
@@ -70,7 +76,7 @@ impl ArchiveOperation {
                     partition_encryption: PartitionEncryption::Original,
                     preloader_threads,
                 };
-                let disc_reader = DiscReader::new(disc_info.disc_path(), &disc_opts)?;
+                let disc_reader = DiscReader::new(disc_path, &disc_opts)?;
 
                 let out_opts = format_to_opts(out_format);
                 let disc_writer = DiscWriter::new(disc_reader, &out_opts)?;

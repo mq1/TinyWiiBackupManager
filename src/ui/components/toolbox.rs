@@ -7,8 +7,9 @@ use iced::{
     widget::{button, column, container, row, rule, scrollable, space, text, text_input},
 };
 use lucide_icons::iced::{
-    icon_brush_cleaning, icon_cloud_download, icon_file_up, icon_image_down, icon_monitor_up,
-    icon_play, icon_skull, icon_tool_case, icon_wand_sparkles, icon_wifi_pen,
+    icon_brush_cleaning, icon_cloud_download, icon_file_up, icon_hard_drive_download,
+    icon_image_down, icon_monitor_up, icon_play, icon_skull, icon_tool_case, icon_wand_sparkles,
+    icon_wifi_pen,
 };
 
 #[cfg(target_os = "macos")]
@@ -139,6 +140,50 @@ pub fn view(state: &State) -> Element<'_, Message> {
     .padding(10)
     .width(Length::Fill);
 
+    let manual_archive_button: Element<'_, Message> = if state.manual_archiving_game.is_some() {
+        button(row![icon_play(), "Archive"].spacing(5))
+            .style(style::rounded_button)
+            .on_press(Message::RunManualGameArchiving)
+            .into()
+    } else {
+        space().into()
+    };
+
+    let manual_archive = column![
+        row![
+            icon_hard_drive_download(),
+            "Choose game to archive manually (a plain conversion leveraging",
+            button(text("NOD").style(text::primary))
+                .style(button::text)
+                .padding(0)
+                .on_press_with(|| Message::OpenThat("https://github.com/encounter/nod".into())),
+            ")"
+        ]
+        .spacing(5),
+        rule::horizontal(1),
+        space(),
+        row![
+            button(icon_file_up())
+                .style(style::rounded_button)
+                .on_press(Message::ChooseGameToArchiveManually),
+            text(
+                state
+                    .manual_archiving_game
+                    .as_ref()
+                    .map_or("No game selected".to_string(), |p| p
+                        .to_string_lossy()
+                        .to_string())
+            ),
+            space::horizontal(),
+            manual_archive_button
+        ]
+        .align_y(Alignment::Center)
+        .spacing(10)
+    ]
+    .spacing(5)
+    .padding(10)
+    .width(Length::Fill);
+
     #[cfg(target_os = "macos")]
     let macos = column![
         row![icon_apple(), text("macOS")].spacing(5),
@@ -163,6 +208,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
         container(cheats).style(style::card),
         container(cleanup).style(style::card),
         container(wiiload).style(style::card),
+        container(manual_archive).style(style::card),
     ]
     .spacing(10)
     .padding(padding::horizontal(10));

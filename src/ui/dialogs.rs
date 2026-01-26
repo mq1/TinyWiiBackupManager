@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::games::extensions::SUPPORTED_INPUT_EXTENSIONS;
+use crate::games::extensions::{SUPPORTED_DISC_EXTENSIONS, SUPPORTED_INPUT_EXTENSIONS};
 use crate::games::game::Game;
 use crate::hbc::osc::OscAppMeta;
 use crate::{games, util};
@@ -158,33 +158,12 @@ pub fn confirm_strip_all_games(window: &dyn Window) -> bool {
         .unwrap_or_default()
 }
 
-pub fn choose_input_disc_path(window: &dyn Window) -> Option<PathBuf> {
+pub fn choose_game_to_archive_manually(window: &dyn Window) -> Option<PathBuf> {
     DialogBuilder::file()
         .set_title("Select input disc file")
         .set_owner(&window)
-        .add_filter("Nintendo Optical Disc", SUPPORTED_INPUT_EXTENSIONS)
+        .add_filter("Nintendo Optical Disc", SUPPORTED_DISC_EXTENSIONS)
         .open_single_file()
-        .show()
-        .unwrap_or_default()
-}
-
-pub fn choose_output_disc_path(window: &dyn Window) -> Option<PathBuf> {
-    DialogBuilder::file()
-        .set_title("Select output disc file")
-        .set_owner(&window)
-        .add_filter("Nintendo Optical Disc", SUPPORTED_INPUT_EXTENSIONS)
-        .save_single_file()
-        .show()
-        .unwrap_or_default()
-}
-
-pub fn confirm_single_conversion(window: &dyn Window, in_path: &str, out_path: &str) -> bool {
-    DialogBuilder::message()
-        .set_title("Convert disc")
-        .set_owner(&window)
-        .set_text(format!("Convert {in_path} to {out_path}?"))
-        .set_level(MessageLevel::Info)
-        .confirm()
         .show()
         .unwrap_or_default()
 }
@@ -209,7 +188,7 @@ pub fn choose_archive_dest(window: &dyn Window, game: Game) -> Option<(Game, Pat
     let path = DialogBuilder::file()
         .set_title(&title)
         .set_owner(&window)
-        .add_filter("Nintendo Optical Disc", SUPPORTED_INPUT_EXTENSIONS)
+        .add_filter("Nintendo Optical Disc", SUPPORTED_DISC_EXTENSIONS)
         .set_filename(default_file_name)
         .save_single_file()
         .show()
