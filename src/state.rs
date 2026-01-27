@@ -33,7 +33,7 @@ use iced::{
     window,
 };
 use semver::Version;
-use std::{path::PathBuf, sync::Arc};
+use std::{ffi::OsStr, path::PathBuf, sync::Arc};
 
 pub struct State {
     pub screen: Screen,
@@ -503,15 +503,24 @@ impl State {
                 self.status = status;
                 Task::none()
             }
-            Message::ChooseArchiveDest(game) => window::oldest()
-                .and_then(move |id| {
-                    let game = game.clone();
-                    window::run(id, move |w| dialogs::choose_archive_dest(w, game))
-                })
-                .map(Message::ArchiveGame),
+            Message::ChooseArchiveDest(source, title) => {
+                if let Some(source) = source {
+                    window::oldest()
+                        .and_then(move |id| {
+                            let source = source.clone();
+                            let title = title.clone();
+                            window::run(id, move |w| dialogs::choose_archive_dest(w, source, title))
+                        })
+                        .map(Message::ArchiveGame)
+                } else {
+                    self.notifications
+                        .error(Arc::new(anyhow!("Could not get game disc file")));
+                    Task::none()
+                }
+            }
             Message::ArchiveGame(None) => Task::none(),
-            Message::ArchiveGame(Some((game, dest))) => {
-                let op = ArchiveOperation::new(game, dest);
+            Message::ArchiveGame(Some((source, title, dest))) => {
+                let op = ArchiveOperation::new(source, title, dest);
                 self.transfer_queue.push(TransferOperation::Archive(op));
 
                 if self.status.is_empty() {
@@ -639,9 +648,11 @@ impl State {
                 Task::none()
             }
             Message::RunManualGameArchiving => {
-                if let Some(path) = self.manual_archiving_game.take() {
-                    let game = Game::new_utility_game_object(path);
-                    self.update(Message::ChooseArchiveDest(game))
+                if let Some(path) = self.manual_archiving_game.take()
+                    && let Some(title) = path.file_stem().and_then(OsStr::to_str)
+                {
+                    let title = title.to_string();
+                    self.update(Message::ChooseArchiveDest(Some(path), title))
                 } else {
                     Task::none()
                 }

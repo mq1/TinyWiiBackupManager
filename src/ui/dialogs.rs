@@ -181,18 +181,23 @@ pub fn confirm_install_osc_app(window: &dyn Window, app: OscAppMeta) -> (OscAppM
     (app, yes)
 }
 
-pub fn choose_archive_dest(window: &dyn Window, game: Game) -> Option<(Game, PathBuf)> {
-    let title = format!("Archive {}", game.title());
-    let default_file_name = format!("{}.rvz", util::sanitize(game.title()));
+pub fn choose_archive_dest(
+    window: &dyn Window,
+    source: PathBuf,
+    title: String,
+) -> Option<(PathBuf, String, PathBuf)> {
+    let window_title = format!("Archive {title}");
+
+    let default_file_name = format!("{}.rvz", util::sanitize(&title));
 
     let path = DialogBuilder::file()
-        .set_title(&title)
+        .set_title(&window_title)
         .set_owner(&window)
         .add_filter("Nintendo Optical Disc", SUPPORTED_DISC_EXTENSIONS)
         .set_filename(default_file_name)
         .save_single_file()
         .show()
-        .unwrap_or_default();
+        .unwrap_or_default()?;
 
-    path.map(|path| (game, path))
+    Some((source, title, path))
 }

@@ -14,6 +14,7 @@ use iced::{Task, futures::TryFutureExt};
 use size::Size;
 use std::{
     ffi::{OsStr, OsString},
+    fs,
     path::PathBuf,
     sync::Arc,
 };
@@ -66,22 +67,37 @@ impl Game {
         })
     }
 
-    /// Used to archive games manually
-    pub fn new_utility_game_object(path: PathBuf) -> Self {
-        let title = path
-            .file_stem()
-            .and_then(OsStr::to_str)
-            .unwrap_or("GAME")
-            .to_string();
+    pub fn get_disc_path(&self) -> Option<PathBuf> {
+        let entries = fs::read_dir(&self.path).ok()?;
 
-        Self {
-            path,
-            size: Size::from_bytes(0),
-            title,
-            id: GameID::empty(),
-            disc_info: None,
-            wiitdb_info: None,
+        for entry in entries.filter_map(Result::ok) {
+            if !entry.file_type().is_ok_and(|t| t.is_file()) {
+                continue;
+            }
+
+            let path = entry.path();
+
+            let Some(filename) = path.file_name().and_then(OsStr::to_str) else {
+                continue;
+            };
+
+            if filename.starts_with('.') {
+                continue;
+            }
+
+            if filename.ends_with(".part1.iso") {
+                continue;
+            }
+
+            if filename.ends_with(".iso")
+                || filename.ends_with(".wbfs")
+                || filename.ends_with(".ciso")
+            {
+                return Some(path);
+            }
         }
+
+        None
     }
 
     pub fn get_path_uri(&self) -> OsString {

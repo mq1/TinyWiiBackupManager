@@ -45,7 +45,10 @@ pub fn view(state: &State) -> Element<'_, Message> {
                     button(row![icon_hard_drive_download(), text("Archive")].spacing(5))
                         .padding(0)
                         .style(button::text)
-                        .on_press_with(|| Message::ChooseArchiveDest(game.clone())),
+                        .on_press_with(|| Message::ChooseArchiveDest(
+                            game.get_disc_path(),
+                            game.title().clone()
+                        )),
                     "Archive game to PC"
                 ),
                 text('•'),

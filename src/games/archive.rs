@@ -2,9 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::games::{
-    disc_info::DiscInfo,
     extensions::{ext_to_format, format_to_opts},
-    game::Game,
     util::get_threads_num,
 };
 use anyhow::{Result, bail};
@@ -26,17 +24,19 @@ use std::{
 
 #[derive(Debug, Clone)]
 pub struct ArchiveOperation {
-    source: Game,
+    source: PathBuf,
+    title: String,
     dest: PathBuf,
     display_str: String,
 }
 
 impl ArchiveOperation {
-    pub fn new(source: Game, dest: PathBuf) -> Self {
-        let display_str = format!("⤓ Archive {}", source.title());
+    pub fn new(source: PathBuf, title: String, dest: PathBuf) -> Self {
+        let display_str = format!("⤓ Archive {title}");
 
         Self {
             source,
+            title,
             dest,
             display_str,
         }
@@ -47,14 +47,6 @@ impl ArchiveOperation {
             let (mut tx, mut rx) = mpsc::channel(1);
 
             let handle = thread::spawn(move || -> Result<Option<String>> {
-                let disc_path = if self.source.path().is_dir() {
-                    DiscInfo::try_from_game_dir(self.source.path())?
-                        .disc_path()
-                        .clone()
-                } else {
-                    self.source.path().clone()
-                };
-
                 let Some(out_format) = ext_to_format(self.dest.extension()) else {
                     bail!("Unsupported extension");
                 };
@@ -76,13 +68,12 @@ impl ArchiveOperation {
                     partition_encryption: PartitionEncryption::Original,
                     preloader_threads,
                 };
-                let disc_reader = DiscReader::new(disc_path, &disc_opts)?;
+                let disc_reader = DiscReader::new(&self.source, &disc_opts)?;
 
                 let out_opts = format_to_opts(out_format);
                 let disc_writer = DiscWriter::new(disc_reader, &out_opts)?;
 
                 let mut prev_percentage = 100;
-                let game_title = self.source.title();
                 let finalization = disc_writer.process(
                     |data, progress, total| {
                         out_writer.write_all(&data)?;
@@ -90,7 +81,8 @@ impl ArchiveOperation {
                         let progress_percentage = progress * 100 / total;
                         if progress_percentage != prev_percentage {
                             let _ = tx.try_send(format!(
-                                "⤓ Archiving {game_title}  {progress_percentage:02}%"
+                                "⤓ Archiving {}  {:02}%",
+                                self.title, progress_percentage
                             ));
                             prev_percentage = progress_percentage;
                         }
@@ -107,7 +99,7 @@ impl ArchiveOperation {
 
                 out_writer.flush()?;
 
-                Ok(Some(format!("Archived {game_title}")))
+                Ok(Some(format!("Archived {}", self.title)))
             });
 
             while let Some(msg) = rx.next().await {
