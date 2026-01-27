@@ -374,7 +374,7 @@ jobs:
 
   scoop:
     name: Update scoop bucket
-    if: ${{ ! (contains(env.VERSION_NAME, 'alpha') || contains(env.VERSION_NAME, 'beta') || contains(env.VERSION_NAME, 'rc')) }}
+    if: ${{ ! (contains(vars.VERSION_NAME, 'alpha') || contains(vars.VERSION_NAME, 'beta') || contains(vars.VERSION_NAME, 'rc')) }}
     runs-on: ubuntu-slim
     needs: [release]
     steps:
