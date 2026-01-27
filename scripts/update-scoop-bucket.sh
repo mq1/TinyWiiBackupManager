@@ -7,7 +7,7 @@ _arm64_hash=$(curl -sSL "https://github.com/mq1/TinyWiiBackupManager/releases/do
 _32bit_hash=$(curl -sSL "https://github.com/mq1/TinyWiiBackupManager/releases/download/v${LATEST_VERSION}/TinyWiiBackupManager-v${LATEST_VERSION}-windows-x86.zip" | sha256sum | cut -d' ' -f1)
 
 sed \
-  -e "s/{{ VERSION_NAME }}/${VERSION_NAME}/g" \
+  -e "s/{{ LATEST_VERSION }}/${LATEST_VERSION}/g" \
   -e "s/{{ 64BIT_HASH }}/${_64bit_hash}/g" \
   -e "s/{{ ARM64_HASH }}/${_arm64_hash}/g" \
   -e "s/{{ 32BIT_HASH }}/${_32bit_hash}/g" \
