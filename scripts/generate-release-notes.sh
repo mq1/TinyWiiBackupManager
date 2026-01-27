@@ -1,6 +1,6 @@
 #!/bin/sh
 
-if grep -q "[$1]" CHANGELOG.md; then
+if ! grep -Fq "## [$1]" CHANGELOG.md; then
   exit
 fi
 
