@@ -57,9 +57,17 @@ pub fn view<'a>(_state: &State, app: &'a HbcApp) -> Element<'a, Message> {
         row![icon_waves().size(18), text(app.meta().name()).size(18)]
             .spacing(5)
             .padding(padding::top(10).left(10)),
-        row![icon_folder(), text!("Path: {}", app.path().display())]
+        button(
+            row![
+                icon_folder().style(text::primary),
+                text!("Path: {}", app.path().display()).style(text::primary)
+            ]
             .spacing(5)
             .padding(padding::left(10).bottom(10)),
+        )
+        .style(button::text)
+        .padding(0)
+        .on_press_with(|| Message::OpenThat(app.get_path_uri())),
         scrollable(
             column![
                 container(details).style(style::card),
@@ -71,9 +79,6 @@ pub fn view<'a>(_state: &State, app: &'a HbcApp) -> Element<'a, Message> {
         .spacing(1)
         .height(Length::Fill),
         row![
-            button(row![icon_folder(), text("Open app directory")].spacing(5))
-                .style(style::rounded_button)
-                .on_press_with(|| Message::OpenThat(app.get_path_uri())),
             button(row![icon_globe(), text("Open OSC page")].spacing(5))
                 .style(style::rounded_button)
                 .on_press_with(|| Message::OpenThat(app.get_oscwii_uri())),

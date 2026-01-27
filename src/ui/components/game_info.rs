@@ -213,9 +213,6 @@ pub fn view<'a>(state: &State, game: &'a Game) -> Element<'a, Message> {
     };
 
     let mut actions = row![
-        button(row![icon_folder(), text("Game folder")].spacing(5))
-            .style(style::rounded_button)
-            .on_press_with(|| Message::OpenThat(game.get_path_uri())),
         button(row![icon_globe(), text("GameTDB")].spacing(5))
             .style(style::rounded_button)
             .on_press_with(|| Message::OpenThat(game.get_gametdb_uri())),
@@ -254,9 +251,17 @@ pub fn view<'a>(state: &State, game: &'a Game) -> Element<'a, Message> {
         row![icon_gamepad_2().size(19), text(game.title()).size(18)]
             .spacing(5)
             .padding(padding::top(10).left(10)),
-        row![icon_folder(), text!("Path: {}", game.get_path_str())]
+        button(
+            row![
+                icon_folder().style(text::primary),
+                text!("Path: {}", game.get_path_str()).style(text::primary)
+            ]
             .spacing(5)
             .padding(padding::left(10).bottom(10)),
+        )
+        .style(button::text)
+        .padding(0)
+        .on_press_with(|| Message::OpenThat(game.get_path_uri())),
         scrollable(
             column![
                 container(disc_info.width(Length::Fill)).style(style::card),
