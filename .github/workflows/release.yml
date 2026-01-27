@@ -356,12 +356,16 @@ jobs:
           plain_ver="${VERSION_NAME#v}" # Remove leading 'v'
           echo -n "${plain_ver}" > version.txt  # Write without line break
 
+      - name: Generate release notes
+        run: ./scripts/generate-release-notes.sh $VERSION_NAME > BODY.md
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
             dist/*
             version.txt
+          body_path: BODY.md
           prerelease: ${{ contains(env.VERSION_NAME, 'alpha') || contains(env.VERSION_NAME, 'beta') || contains(env.VERSION_NAME, 'rc') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
