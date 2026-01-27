@@ -94,10 +94,6 @@ impl Game {
         uri
     }
 
-    pub fn get_path_str(&self) -> &str {
-        self.path.to_str().unwrap_or("Invalid path")
-    }
-
     pub fn get_load_disc_info_task(&mut self) -> Task<Message> {
         self.disc_info = None;
         let path = self.path.clone();

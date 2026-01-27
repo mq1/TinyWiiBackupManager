@@ -254,7 +254,7 @@ pub fn view<'a>(state: &State, game: &'a Game) -> Element<'a, Message> {
         button(
             row![
                 icon_folder().style(text::primary),
-                text!("Path: {}", game.get_path_str()).style(text::primary)
+                text!("Path: {}", game.path().display()).style(text::primary)
             ]
             .spacing(5)
             .padding(padding::left(10).bottom(10)),
