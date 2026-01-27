@@ -33,3 +33,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - TinyWiiBackupManager icon now shows up again on the windows exe
 
+[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v4.9.24...HEAD
+[v4.9.24]: https://github.com/mq1/TinyWiiBackupManager/compare/v4.9.23...v4.9.24
