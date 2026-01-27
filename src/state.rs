@@ -648,7 +648,7 @@ impl State {
             }
             Message::FileDropped(path) => match self.screen {
                 Screen::Games => self.update(Message::ConfirmAddGamesToTransferStack(vec![path])),
-                Screen::HbcApps => Task::none(), // TODO
+                Screen::HbcApps => self.update(Message::AddHbcApps(vec![path])),
                 _ => Task::none(),
             },
         }

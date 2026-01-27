@@ -49,7 +49,7 @@ pub fn choose_src_dir(window: &dyn Window) -> Vec<PathBuf> {
     }
 }
 
-pub fn choose_hbc_apps(window: &dyn Window) -> Box<[PathBuf]> {
+pub fn choose_hbc_apps(window: &dyn Window) -> Vec<PathBuf> {
     DialogBuilder::file()
         .set_title("Select Homebrew Channel Apps")
         .set_owner(&window)

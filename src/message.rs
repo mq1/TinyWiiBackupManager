@@ -74,7 +74,7 @@ pub enum Message {
     // HBC Apps
     GotHbcAppList(Result<HbcAppList, Arc<anyhow::Error>>),
     ChooseHbcAppsToAdd,
-    AddHbcApps(Box<[PathBuf]>),
+    AddHbcApps(Vec<PathBuf>),
     HbcAppsInstalled(Result<String, Arc<anyhow::Error>>),
     UpdateHbcFilter(String),
     ChooseFileToWiiload,

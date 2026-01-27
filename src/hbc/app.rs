@@ -121,7 +121,7 @@ impl HbcApp {
     }
 }
 
-pub fn get_install_hbc_apps_task(state: &State, zip_paths: Box<[PathBuf]>) -> Task<Message> {
+pub fn get_install_hbc_apps_task(state: &State, zip_paths: Vec<PathBuf>) -> Task<Message> {
     let drive_path = state.config.mount_point().clone();
 
     Task::perform(
