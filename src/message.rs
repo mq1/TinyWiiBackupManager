@@ -37,6 +37,7 @@ pub enum Message {
     AskDeleteDirConfirmation(PathBuf),
     DirectoryDeleted(Result<(), Arc<anyhow::Error>>),
     GotLatestVersion(Result<Option<Version>, Arc<anyhow::Error>>),
+    FileDropped(PathBuf),
 
     // Games
     GotGameList(Result<GameList, Arc<anyhow::Error>>),

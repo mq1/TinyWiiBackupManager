@@ -25,7 +25,7 @@ use crate::{
 };
 use anyhow::anyhow;
 use iced::{
-    Task, Theme,
+    Subscription, Task, Theme,
     widget::{
         Id,
         operation::{self, AbsoluteOffset},
@@ -124,6 +124,16 @@ impl State {
             ThemePreference::Dark => Some(Theme::Dark),
             ThemePreference::System => None,
         }
+    }
+
+    pub fn subscription(_: &Self) -> Subscription<Message> {
+        iced::event::listen_with(|event, _status, _id| {
+            if let iced::Event::Window(iced::window::Event::FileDropped(path)) = event {
+                Some(Message::FileDropped(path))
+            } else {
+                None
+            }
+        })
     }
 
     #[allow(clippy::too_many_lines)]
@@ -636,6 +646,11 @@ impl State {
                     Task::none()
                 }
             }
+            Message::FileDropped(path) => match self.screen {
+                Screen::Games => self.update(Message::ConfirmAddGamesToTransferStack(vec![path])),
+                Screen::HbcApps => Task::none(), // TODO
+                _ => Task::none(),
+            },
         }
     }
 
