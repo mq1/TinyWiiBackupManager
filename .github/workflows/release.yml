@@ -374,7 +374,7 @@ jobs:
 
   scoop:
     name: Update scoop bucket
-    if: github.ref_type == 'tag'
+    if: ${{ ! (contains(env.VERSION_NAME, 'alpha') || contains(env.VERSION_NAME, 'beta') || contains(env.VERSION_NAME, 'rc')) }}
     runs-on: ubuntu-slim
     needs: [release]
     steps:
