@@ -89,12 +89,6 @@ impl Config {
         config
     }
 
-    pub fn clone_with_archive_format(&self, archive_format: nod::common::Format) -> Self {
-        let mut config = self.clone();
-        config.archive_format = archive_format;
-        config
-    }
-
     pub fn clone_with_wii_output_format(&self, wii_output_format: nod::common::Format) -> Self {
         let mut config = self.clone();
         config.wii_output_format = wii_output_format;
@@ -158,10 +152,6 @@ pub struct Config {
     #[getter(copy)]
     theme_preference: ThemePreference,
 
-    #[serde(default = "default_archive_format", with = "FormatDef")]
-    #[getter(copy)]
-    archive_format: nod::common::Format,
-
     #[serde(default = "default_wii_output_format", with = "FormatDef")]
     #[getter(copy)]
     wii_output_format: nod::common::Format,
@@ -176,7 +166,6 @@ impl Default for Config {
         Self {
             path: PathBuf::new(),
             always_split: false,
-            archive_format: nod::common::Format::Rvz,
             mount_point: PathBuf::new(),
             remove_sources_apps: false,
             remove_sources_games: false,
@@ -222,10 +211,6 @@ pub enum FormatDef {
     Wbfs,
     Wia,
     Tgc,
-}
-
-const fn default_archive_format() -> nod::common::Format {
-    nod::common::Format::Rvz
 }
 
 const fn default_wii_output_format() -> nod::common::Format {

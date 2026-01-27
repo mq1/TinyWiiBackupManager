@@ -7,15 +7,14 @@ use iced::{
     widget::{column, container, radio, row, rule, scrollable, space, text},
 };
 use lucide_icons::iced::{
-    icon_disc_3, icon_file_archive, icon_file_minus_corner, icon_settings, icon_skull,
-    icon_square_split_horizontal, icon_trash,
+    icon_disc_3, icon_file_minus_corner, icon_settings, icon_skull, icon_square_split_horizontal,
+    icon_trash,
 };
 
 #[allow(clippy::too_many_lines)]
 pub fn view(state: &State) -> Element<'_, Message> {
     let wii_output_format = state.config.wii_output_format();
     let gc_output_format = state.config.gc_output_format();
-    let archive_format = state.config.archive_format();
     let always_split = state.config.always_split();
     let scrub_update_partition = state.config.scrub_update_partition();
     let remove_sources_games = state.config.remove_sources_games();
@@ -74,33 +73,6 @@ pub fn view(state: &State) -> Element<'_, Message> {
                             Some(gc_output_format),
                             |format| Message::UpdateConfig(
                                 state.config.clone_with_gc_output_format(format)
-                            )
-                        ),
-                    ]
-                    .spacing(5)
-                    .padding(10)
-                    .width(Length::Fill)
-                )
-                .style(style::card),
-                container(
-                    column![
-                        row![icon_file_archive(), text("Archive format")].spacing(5),
-                        rule::horizontal(1),
-                        space(),
-                        radio(
-                            "RVZ zstd-19 (recommended)",
-                            nod::common::Format::Rvz,
-                            Some(archive_format),
-                            |format| Message::UpdateConfig(
-                                state.config.clone_with_archive_format(format)
-                            )
-                        ),
-                        radio(
-                            "ISO (very large)",
-                            nod::common::Format::Iso,
-                            Some(archive_format),
-                            |format| Message::UpdateConfig(
-                                state.config.clone_with_archive_format(format)
                             )
                         ),
                     ]
