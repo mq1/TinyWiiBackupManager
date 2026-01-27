@@ -20,7 +20,6 @@ const DISC_OPTS: DiscOptions = DiscOptions {
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Debug, Clone, Getters)]
 pub struct DiscInfo {
-    game_dir: PathBuf,
     disc_path: PathBuf,
 
     // discheader
@@ -107,15 +106,13 @@ impl DiscInfo {
             bail!("Part 1 file");
         }
 
-        let Some(ext) = disc_path.extension().and_then(OsStr::to_str) else {
-            bail!("No file extension");
-        };
-
-        if !SUPPORTED_DISC_EXTENSIONS.contains(&ext) {
+        if !filename.ends_with(".iso")
+            && !filename.ends_with(".wbfs")
+            && !filename.ends_with(".ciso")
+        {
             bail!("Unsupported file extension");
         }
 
-        let parent_dir = disc_path.parent().ok_or(anyhow!("No parent directory"))?;
         let disc = DiscReader::new(&disc_path, &DISC_OPTS)?;
         let is_worth_stripping = is_worth_stripping(&disc);
 
@@ -123,7 +120,6 @@ impl DiscInfo {
         let meta = disc.meta();
 
         Ok(Self {
-            game_dir: parent_dir.to_path_buf(),
             disc_path,
 
             // discheader

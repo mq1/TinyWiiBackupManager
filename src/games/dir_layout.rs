@@ -90,11 +90,13 @@ fn readopt_parented_discs(mount_point: &Path) -> Result<()> {
         .filter_map(Result::ok)
         .filter(|e| e.file_type().is_ok_and(|t| t.is_dir()));
 
-    let all_discs = all_dirs
-        .map(|e| DiscInfo::try_from_game_dir(&e.path()))
-        .filter_map(Result::ok);
+    let all_discs = all_dirs.filter_map(|e| {
+        let path = e.path();
+        let disc_info = DiscInfo::try_from_game_dir(&path).ok()?;
+        Some((disc_info, path))
+    });
 
-    for disc in all_discs {
+    for (disc, parent) in all_discs {
         let title = if disc.is_wii() {
             sanitize(disc.title())
         } else {
@@ -115,7 +117,7 @@ fn readopt_parented_discs(mount_point: &Path) -> Result<()> {
             continue;
         }
 
-        fs::rename(disc.game_dir(), &new_parent)?;
+        fs::rename(parent, &new_parent)?;
     }
 
     Ok(())

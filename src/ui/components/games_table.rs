@@ -46,7 +46,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
                         .padding(0)
                         .style(button::text)
                         .on_press_with(|| Message::ChooseArchiveDest(
-                            game.get_disc_path(),
+                            game.get_disc_path().ok(),
                             game.title().clone()
                         )),
                     "Archive game to PC"

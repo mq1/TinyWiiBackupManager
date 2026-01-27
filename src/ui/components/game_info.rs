@@ -225,7 +225,7 @@ pub fn view<'a>(state: &State, game: &'a Game) -> Element<'a, Message> {
         button(row![icon_hard_drive_download(), text("Archive")].spacing(5))
             .style(style::rounded_button)
             .on_press_with(|| Message::ChooseArchiveDest(
-                game.get_disc_path(),
+                game.get_disc_path().ok(),
                 game.title().clone()
             )),
     ]

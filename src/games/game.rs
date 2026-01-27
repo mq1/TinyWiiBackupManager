@@ -9,6 +9,7 @@ use crate::{
     },
     message::Message,
 };
+use anyhow::{Result, anyhow};
 use derive_getters::Getters;
 use iced::{Task, futures::TryFutureExt};
 use size::Size;
@@ -67,8 +68,8 @@ impl Game {
         })
     }
 
-    pub fn get_disc_path(&self) -> Option<PathBuf> {
-        let entries = fs::read_dir(&self.path).ok()?;
+    pub fn get_disc_path(&self) -> Result<PathBuf> {
+        let entries = fs::read_dir(&self.path)?;
 
         for entry in entries.filter_map(Result::ok) {
             if !entry.file_type().is_ok_and(|t| t.is_file()) {
@@ -93,11 +94,11 @@ impl Game {
                 || filename.ends_with(".wbfs")
                 || filename.ends_with(".ciso")
             {
-                return Some(path);
+                return Ok(path);
             }
         }
 
-        None
+        Err(anyhow!("No disc found"))
     }
 
     pub fn get_path_uri(&self) -> OsString {
