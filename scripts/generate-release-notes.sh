@@ -1,5 +1,9 @@
 #!/bin/sh
 
+if grep -q "[$1]" CHANGELOG.md; then
+  exit
+fi
+
 awk -v t="$1" '/^## \[/ && f {exit} $0 ~ "^## \\[" t {f=1; next} f' CHANGELOG.md
 
 echo "&rarr; [Windows Installer] (https://github.com/mq1/TinyWiiBackupManagerInstaller/releases/latest/download/TinyWiiBackupManagerInstaller.exe)\\"

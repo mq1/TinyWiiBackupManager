@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ⚡️ x86_64-v2 optimized builds (linux-AppImage and windows); this is detected by TinyWiiBackupManagerInstaller
 - 🔎 Fuzzy game / homebrew apps search
 - ⏳ Game transfer queue management
+- 📥 Drag a game from your file explorer into twbm to add it
+- 📥 Drag an app from your file explorer into twbm to add it
 
 ### Changed
 
@@ -21,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 💄 Switch from [phosphor icons](https://phosphoricons.com/) to [lucide icons](https://lucide.dev/)
 - 🖥️ Use software rendering on windows 7
 - 🧵 Use a thread-pool to execute tasks concurrently
+- 🗜️ Compress .dol and .elf files before sending them via wiiload
 
 ### Removed
 
