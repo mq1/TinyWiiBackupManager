@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TARGET_RESOLUTIONS=("16x16" "24x24" "32x32" "48x48" "256x256")
+TARGET_RESOLUTIONS=("16x16" "32x32" "48x48" "64x64" "128x128" "256x256" "512x512")
 
 # Linux
 rm -rf package/linux/icons
