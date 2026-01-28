@@ -34,7 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - 🖼️ Taskbar/window icon on linux wayland is now correctly displayed
-- 🗜️ Issues #492 and #494 have been fixed (large zipped games not converting)
+- 🗜️ Issues #492 and #494 have been fixed (large zipped games not being converted)
 - 📂 Issue #495 has been fixed (resident evil 4 wrong folder name)
 
 ## [v4.9.24] - 2026-01-21
