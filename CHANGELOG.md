@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - 🧊 Port the UI to the [Iced](https://github.com/iced-rs/iced) framework
-- 🪶 Reduce app size by selectively compiling GUI crates with -Oz (keeping the logic on -O3)
+- 🪶 Reduce app size by selectively compiling GUI crates with -Oz (keeping the logic on -O3, so performance isn't affected)
 - 🧰 Move Wiiload and nod-gui utilities into an unified "Toolbox" page
 - 💄 Switch from [phosphor icons](https://phosphoricons.com/) to [lucide icons](https://lucide.dev/)
 - 🖥️ Use software rendering on windows 7
