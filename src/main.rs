@@ -44,9 +44,11 @@ fn main() -> iced::Result {
         size: Size::new(800.0, 600.0),
         min_size: Some(Size::new(800.0, 600.0)),
 
+        // x11 and windows only
         #[cfg(any(target_os = "windows", target_os = "linux"))]
         icon: get_window_icon(),
 
+        // wayland only
         #[cfg(target_os = "linux")]
         platform_specific: window::settings::PlatformSpecific {
             application_id: "TinyWiiBackupManager".to_string(),
