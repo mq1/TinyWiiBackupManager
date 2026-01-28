@@ -18,6 +18,7 @@ use crate::{
         wiitdb::{self, Datafile},
     },
     hbc::{self, app_list::HbcAppList, osc::OscAppMeta, osc_list::OscAppList, wiiload},
+    known_mount_points,
     message::Message,
     notifications::Notifications,
     ui::{Screen, dialogs, lucide},
@@ -69,7 +70,7 @@ impl State {
         let data_dir = get_data_dir().expect("Failed to get data dir");
         let config = Config::load(&data_dir);
 
-        let initial_state = Self {
+        let mut initial_state = Self {
             screen: Screen::Games,
             data_dir,
             config,
@@ -97,6 +98,10 @@ impl State {
             osc_scroll_id: Id::unique(),
             osc_scroll_offset: AbsoluteOffset::default(),
         };
+
+        if known_mount_points::check(&initial_state) {
+            initial_state.notifications.info("New drive detected, a path normalization run is recommended\nYou can find it in the Toolbox page");
+        }
 
         let tasks = Task::batch(vec![
             lucide::get_load_lucide_task(),
@@ -257,15 +262,18 @@ impl State {
                 .and_then(|id| window::run(id, dialogs::choose_mount_point))
                 .map(Message::MountPointChosen),
             Message::MountPointChosen(mount_point) => {
-                let mut tasks = Vec::new();
                 if let Some(mount_point) = mount_point {
                     let new_config = self.config.clone_with_mount_point(mount_point);
+                    let _ = self.update(Message::UpdateConfig(new_config));
 
-                    tasks.push(self.update(Message::UpdateConfig(new_config)));
-                    tasks.push(self.update(Message::RefreshGamesAndApps));
+                    if known_mount_points::check(self) {
+                        self.notifications.info("New drive detected, a path normalization run is recommended\nYou can find it in the Toolbox page");
+                    }
+
+                    self.update(Message::RefreshGamesAndApps)
+                } else {
+                    Task::none()
                 }
-
-                Task::batch(tasks)
             }
             Message::AskDeleteDirConfirmation(path) => window::oldest()
                 .and_then(move |id| {

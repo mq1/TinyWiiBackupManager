@@ -8,6 +8,7 @@ mod data_dir;
 mod games;
 mod hbc;
 mod http_util;
+mod known_mount_points;
 mod message;
 mod notifications;
 mod state;
