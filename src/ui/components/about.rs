@@ -16,9 +16,7 @@ const COPYRIGHT_TEXT: &str = "Copyright © 2026 Manuel Quarneti";
 const REPO_URI: &str = env!("CARGO_PKG_REPOSITORY");
 const WIKI_URI: &str = concat!(env!("CARGO_PKG_REPOSITORY"), "/wiki");
 const LICENSE_URI: &str = "https://www.gnu.org/licenses/gpl-3.0.html";
-const ICON_BYTES: &[u8] = include_bytes!(
-    "../../../package/linux/icons/hicolor/256x256/apps/it.mq1.TinyWiiBackupManager.png"
-);
+const ICON_BYTES: &[u8] = include_bytes!("../../../assets/TinyWiiBackupManager-256x256.png");
 
 pub fn view(state: &State) -> Element<'_, Message> {
     let icon_handle = image::Handle::from_bytes(ICON_BYTES);

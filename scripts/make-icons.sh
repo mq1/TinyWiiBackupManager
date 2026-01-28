@@ -3,6 +3,10 @@
 TARGET_RESOLUTIONS=("16x16" "32x32" "48x48" "64x64" "128x128" "256x256" "512x512")
 MAGICK_ARGS="-strip -colors 16"
 
+# Common
+magick assets/TinyWiiBackupManager-1024x1024.png ${MAGICK_ARGS} -resize 256x256 assets/TinyWiiBackupManager-256x256.png
+oxipng -sao6 assets/TinyWiiBackupManager-256x256.png
+
 # Linux
 rm -rf package/linux/icons
 for res in "${TARGET_RESOLUTIONS[@]}"; do
