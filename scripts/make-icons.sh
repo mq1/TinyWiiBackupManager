@@ -18,4 +18,23 @@ oxipng -sao6 package/windows/TinyWiiBackupManager-64x64.png
 
 # macOS
 rm -f package/macos/TinyWiiBackupManager.icns
-magick assets/TinyWiiBackupManager-1024x1024.png -resize 256x256 package/macos/TinyWiiBackupManager.icns
+rm -rf package/macos/TinyWiiBackupManager.iconset
+mkdir package/macos/TinyWiiBackupManager.iconset
+magick assets/TinyWiiBackupManager-1024x1024.png -resize 16x16 package/macos/TinyWiiBackupManager.iconset/icon_16x16.png
+oxipng -sao6 package/macos/TinyWiiBackupManager.iconset/icon_16x16.png
+magick assets/TinyWiiBackupManager-1024x1024.png -resize 32x32 package/macos/TinyWiiBackupManager.iconset/icon_16x16@2x.png
+oxipng -sao6 package/macos/TinyWiiBackupManager.iconset/icon_16x16@2x.png
+magick assets/TinyWiiBackupManager-1024x1024.png -resize 64x64 package/macos/TinyWiiBackupManager.iconset/icon_32x32@2x.png
+oxipng -sao6 package/macos/TinyWiiBackupManager.iconset/icon_32x32@2x.png
+magick assets/TinyWiiBackupManager-1024x1024.png -resize 128x128 package/macos/TinyWiiBackupManager.iconset/icon_128x128.png
+oxipng -sao6 package/macos/TinyWiiBackupManager.iconset/icon_128x128.png
+magick assets/TinyWiiBackupManager-1024x1024.png -resize 256x256 package/macos/TinyWiiBackupManager.iconset/icon_128x128@2x.png
+oxipng -sao6 package/macos/TinyWiiBackupManager.iconset/icon_128x128@2x.png
+magick assets/TinyWiiBackupManager-1024x1024.png -resize 256x256 package/macos/TinyWiiBackupManager.iconset/icon_256x256.png
+oxipng -sao6 package/macos/TinyWiiBackupManager.iconset/icon_256x256.png
+magick assets/TinyWiiBackupManager-1024x1024.png -resize 512x512 package/macos/TinyWiiBackupManager.iconset/icon_256x256@2x.png
+oxipng -sao6 package/macos/TinyWiiBackupManager.iconset/icon_256x256@2x.png
+magick assets/TinyWiiBackupManager-1024x1024.png -resize 512x512 package/macos/TinyWiiBackupManager.iconset/icon_512x512.png
+oxipng -sao6 package/macos/TinyWiiBackupManager.iconset/icon_512x512.png
+cp assets/TinyWiiBackupManager-1024x1024.png package/macos/TinyWiiBackupManager.iconset/icon_512x512@2x.png
+iconutil -c icns package/macos/TinyWiiBackupManager.iconset
