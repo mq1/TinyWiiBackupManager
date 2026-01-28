@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 LATEST_VERSION=$(curl -sSL "https://github.com/mq1/TinyWiiBackupManager/releases/latest/download/version.txt")
 

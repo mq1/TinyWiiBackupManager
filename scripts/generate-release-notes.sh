@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 if ! grep -Fq "## [$1]" CHANGELOG.md; then
   exit

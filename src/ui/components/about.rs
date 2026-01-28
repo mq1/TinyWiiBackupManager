@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{APP_ICON, message::Message, state::State, ui::style};
+use crate::{message::Message, state::State, ui::style};
 use iced::{
     Alignment, Element, padding,
     widget::{button, column, container, image, row, rule, space, text},
@@ -16,9 +16,12 @@ const COPYRIGHT_TEXT: &str = "Copyright © 2026 Manuel Quarneti";
 const REPO_URI: &str = env!("CARGO_PKG_REPOSITORY");
 const WIKI_URI: &str = concat!(env!("CARGO_PKG_REPOSITORY"), "/wiki");
 const LICENSE_URI: &str = "https://www.gnu.org/licenses/gpl-3.0.html";
+const ICON_BYTES: &[u8] = include_bytes!(
+    "../../../package/linux/icons/hicolor/256x256/apps/it.mq1.tinywiibackupmanager.png"
+);
 
 pub fn view(state: &State) -> Element<'_, Message> {
-    let icon_handle = image::Handle::from_rgba(256, 256, &APP_ICON[..]);
+    let icon_handle = image::Handle::from_bytes(ICON_BYTES);
 
     column![
         space::vertical(),

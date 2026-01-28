@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 komac update mq1.TinyWiiBackupManager \
   --version "${1}" \
