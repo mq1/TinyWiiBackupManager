@@ -118,7 +118,13 @@ jobs:
             --appdir TinyWiiBackupManager.AppDir \
             -e TinyWiiBackupManager \
             -d package/linux/TinyWiiBackupManager.desktop \
-            -i assets/TinyWiiBackupManager-1024x1024.png \
+            -i package/linux/icons/hicolor/16x16/apps/TinyWiiBackupManager.png \
+            -i package/linux/icons/hicolor/32x32/apps/TinyWiiBackupManager.png \
+            -i package/linux/icons/hicolor/48x48/apps/TinyWiiBackupManager.png \
+            -i package/linux/icons/hicolor/64x64/apps/TinyWiiBackupManager.png \
+            -i package/linux/icons/hicolor/128x128/apps/TinyWiiBackupManager.png \
+            -i package/linux/icons/hicolor/256x256/apps/TinyWiiBackupManager.png \
+            -i package/linux/icons/hicolor/512x512/apps/TinyWiiBackupManager.png \
             --output appimage
 
           mv TinyWiiBackupManager-*.AppImage "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
