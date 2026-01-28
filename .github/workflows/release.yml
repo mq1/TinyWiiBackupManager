@@ -114,7 +114,19 @@ jobs:
 
       - name: Package binary as AppImage
         run: |
-          ./${{ matrix.linuxdeploy-bin }} --appdir TinyWiiBackupManager.AppDir -e TinyWiiBackupManager -d package/linux/TinyWiiBackupManager.desktop -i assets/TinyWiiBackupManager.png --output appimage
+          ./${{ matrix.linuxdeploy-bin }} \
+            --appdir TinyWiiBackupManager.AppDir \
+            -e TinyWiiBackupManager \
+            -d package/linux/TinyWiiBackupManager.desktop \
+            -i package/linux/icons/hicolor/16x16/apps/it.mq1.TinyWiiBackupManager.png \
+            -i package/linux/icons/hicolor/32x32/apps/it.mq1.TinyWiiBackupManager.png \
+            -i package/linux/icons/hicolor/48x48/apps/it.mq1.TinyWiiBackupManager.png \
+            -i package/linux/icons/hicolor/64x64/apps/it.mq1.TinyWiiBackupManager.png \
+            -i package/linux/icons/hicolor/128x128/apps/it.mq1.TinyWiiBackupManager.png \
+            -i package/linux/icons/hicolor/256x256/apps/it.mq1.TinyWiiBackupManager.png \
+            -i package/linux/icons/hicolor/512x512/apps/it.mq1.TinyWiiBackupManager.png \
+            --output appimage
+
           mv TinyWiiBackupManager-*.AppImage "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
           mv TinyWiiBackupManager-*.AppImage.zsync "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage.zsync"
         env:
