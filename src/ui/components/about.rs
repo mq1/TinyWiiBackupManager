@@ -17,7 +17,7 @@ const REPO_URI: &str = env!("CARGO_PKG_REPOSITORY");
 const WIKI_URI: &str = concat!(env!("CARGO_PKG_REPOSITORY"), "/wiki");
 const LICENSE_URI: &str = "https://www.gnu.org/licenses/gpl-3.0.html";
 const ICON_BYTES: &[u8] = include_bytes!(
-    "../../../package/linux/icons/hicolor/256x256/apps/it.mq1.tinywiibackupmanager.png"
+    "../../../package/linux/icons/hicolor/256x256/apps/it.mq1.TinyWiiBackupManager.png"
 );
 
 pub fn view(state: &State) -> Element<'_, Message> {
