@@ -83,8 +83,8 @@ jobs:
 
       - name: Install Rust toolchain
         run: |
-          rustup toolchain install 1.92 --component rust-src
-          rustup default 1.92
+          rustup toolchain install 1.93 --component rust-src
+          rustup default 1.93
 
       - name: Download LinuxDeploy
         run: |
@@ -183,8 +183,8 @@ jobs:
       - name: Install Rust toolchain
         shell: pwsh
         run: |
-          rustup toolchain install 1.92 --component rust-src
-          rustup default 1.92
+          rustup toolchain install 1.93 --component rust-src
+          rustup default 1.93
 
       - name: Build binary
         shell: pwsh
@@ -238,8 +238,8 @@ jobs:
 
       - name: Install Rust toolchain
         run: |
-          rustup toolchain install 1.92
-          rustup default 1.92
+          rustup toolchain install 1.93
+          rustup default 1.93
           rustup target add ${{ matrix.target }}
 
       - name: Rust cache
