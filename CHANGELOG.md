@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- ⬇️ [TinyWiiBackupManagerInstaller](https://github.com/mq1/TinyWiiBackupManagerInstaller), an installer that automatically picks the latest release of TinyWiiBackupManager, and the right asset (optimized for your CPU)
+- ⬇️ [TinyWiiBackupManagerInstaller](https://github.com/mq1/TinyWiiBackupManagerInstaller), an installer for windows that automatically picks the latest release of TinyWiiBackupManager, and the right asset (optimized for your CPU)
 - ⚡️ x86_64-v2 optimized builds (linux-AppImage and windows); this is detected by TinyWiiBackupManagerInstaller
 - 🔎 Fuzzy game / homebrew apps search
 - ⏳ Game transfer queue management (#476)
