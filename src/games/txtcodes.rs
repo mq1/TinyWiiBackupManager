@@ -3,7 +3,7 @@
 
 use crate::{
     config::TxtCodesSource,
-    games::{game::Game, game_id::GameID, game_list::GameList, id_map},
+    games::{game::Game, game_id::GameID, game_list::GameList, id_map::ID_MAP},
     http_util,
     message::Message,
     state::State,
@@ -32,7 +32,8 @@ impl TxtCodesSource {
                 http_util::get(&url)
             }
             Self::GameHacking => {
-                let gamehacking_id = id_map::get_gamehacking_id(game_id)
+                let gamehacking_id = ID_MAP
+                    .get_ghid(game_id)
                     .ok_or(anyhow!("Could not find gamehacks id"))?;
 
                 let form = format!(
