@@ -102,16 +102,11 @@ impl HbcApp {
         })
     }
 
-    pub fn get_path_uri(&self) -> OsString {
+    pub fn path_uri(&self) -> OsString {
         self.path.as_os_str().to_os_string()
     }
 
-    pub fn get_trimmed_version_str(&self) -> &str {
-        let len = self.meta.version.len().min(8);
-        &self.meta.version[..len]
-    }
-
-    pub fn get_oscwii_uri(&self) -> OsString {
+    pub fn oscwii_uri(&self) -> OsString {
         match self.path.file_name() {
             Some(file_name) => {
                 format!("https://oscwii.org/library/app/{}", file_name.display()).into()

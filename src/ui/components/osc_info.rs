@@ -116,7 +116,7 @@ pub fn view<'a>(state: &State, app: &'a OscAppMeta) -> Element<'a, Message> {
     let mut actions = row![
         button(row![icon_globe(), text("Open OSC Page")].spacing(5))
             .style(style::rounded_button)
-            .on_press_with(|| Message::OpenThat(app.get_oscwii_uri())),
+            .on_press_with(|| Message::OpenThat(app.oscwii_uri())),
         button(row![icon_monitor_up(), text("Send via Wiiload")].spacing(5))
             .style(style::rounded_button)
             .on_press_with(|| Message::WiiloadOsc(app.clone())),

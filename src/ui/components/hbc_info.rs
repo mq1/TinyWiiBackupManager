@@ -67,7 +67,7 @@ pub fn view<'a>(_state: &State, app: &'a HbcApp) -> Element<'a, Message> {
         )
         .style(button::text)
         .padding(0)
-        .on_press_with(|| Message::OpenThat(app.get_path_uri())),
+        .on_press_with(|| Message::OpenThat(app.path_uri())),
         scrollable(
             column![
                 container(details).style(style::card),
@@ -81,7 +81,7 @@ pub fn view<'a>(_state: &State, app: &'a HbcApp) -> Element<'a, Message> {
         row![
             button(row![icon_globe(), text("Open OSC page")].spacing(5))
                 .style(style::rounded_button)
-                .on_press_with(|| Message::OpenThat(app.get_oscwii_uri())),
+                .on_press_with(|| Message::OpenThat(app.oscwii_uri())),
             button(row![icon_trash(), text("Delete")].spacing(5))
                 .style(style::rounded_danger_button)
                 .on_press_with(|| Message::AskDeleteDirConfirmation(app.path().clone())),

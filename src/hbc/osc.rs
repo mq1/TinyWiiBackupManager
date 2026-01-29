@@ -15,12 +15,7 @@ use std::{
 use time::OffsetDateTime;
 
 impl OscAppMeta {
-    pub fn get_trimmed_version_str(&self) -> &str {
-        let len = self.version.len().min(8);
-        &self.version[..len]
-    }
-
-    pub fn get_oscwii_uri(&self) -> OsString {
+    pub fn oscwii_uri(&self) -> OsString {
         format!("https://oscwii.org/library/app/{}", &self.slug).into()
     }
 

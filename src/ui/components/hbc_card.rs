@@ -17,7 +17,12 @@ pub fn view<'a>(_state: &State, app: &'a HbcApp) -> Element<'a, Message> {
     let mut col = column![
         row![
             icon_pin().size(12),
-            my_tooltip::view(text(app.get_trimmed_version_str()), app.meta().version()),
+            my_tooltip::view(
+                container(text(app.meta().version()).wrapping(text::Wrapping::None))
+                    .max_width(75)
+                    .clip(true),
+                app.meta().version()
+            ),
             space::horizontal(),
             text(app.size().to_string())
         ]

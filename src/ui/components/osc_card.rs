@@ -17,7 +17,12 @@ pub fn view<'a>(state: &State, app: &'a OscAppMeta) -> Element<'a, Message> {
     let mut col = column![
         row![
             icon_pin().size(12),
-            my_tooltip::view(text(app.get_trimmed_version_str()), app.version()),
+            my_tooltip::view(
+                container(text(app.version()).wrapping(text::Wrapping::None))
+                    .max_width(75)
+                    .clip(true),
+                app.version()
+            ),
             space::horizontal(),
             text(app.uncompressed_size().to_string())
         ]
