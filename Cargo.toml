@@ -23,6 +23,7 @@ iced = { version = "0.14", default-features = false, features = [
   "x11",
   "wayland",
 ] }
+iced_palace = "0.14"
 lucide-icons = { version = "0.563", features = ["iced"] }
 image = { version = "0.25", default-features = false, features = ["png"] }
 serde = { version = "1.0", features = ["derive"] }

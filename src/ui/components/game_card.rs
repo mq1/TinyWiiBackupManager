@@ -11,6 +11,7 @@ use iced::{
     Alignment, Element,
     widget::{button, column, container, image, row, space, text},
 };
+use iced_palace::widget::ellipsized_text;
 use lucide_icons::iced::{icon_hard_drive_download, icon_info, icon_tag, icon_trash};
 
 pub fn view<'a>(state: &State, game: &'a Game) -> Element<'a, Message> {
@@ -41,7 +42,7 @@ pub fn view<'a>(state: &State, game: &'a Game) -> Element<'a, Message> {
 
     col = col
         .push(my_tooltip::view(
-            container(text(game.title()).wrapping(text::Wrapping::None)).clip(true),
+            ellipsized_text(game.title()).wrapping(text::Wrapping::None),
             game.title(),
         ))
         .push(space::vertical())

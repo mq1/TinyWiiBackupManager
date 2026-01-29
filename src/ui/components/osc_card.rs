@@ -11,6 +11,7 @@ use iced::{
     Alignment, Element,
     widget::{button, column, container, image, row, space, text},
 };
+use iced_palace::widget::ellipsized_text;
 use lucide_icons::iced::{icon_cloud_download, icon_info, icon_monitor_up, icon_pin};
 
 pub fn view<'a>(state: &State, app: &'a OscAppMeta) -> Element<'a, Message> {
@@ -18,9 +19,9 @@ pub fn view<'a>(state: &State, app: &'a OscAppMeta) -> Element<'a, Message> {
         row![
             icon_pin().size(12),
             my_tooltip::view(
-                container(text(app.version()).wrapping(text::Wrapping::None))
-                    .max_width(75)
-                    .clip(true),
+                ellipsized_text(app.version())
+                    .width(65)
+                    .wrapping(text::Wrapping::None),
                 app.version()
             ),
             space::horizontal(),

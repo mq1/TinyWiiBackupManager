@@ -11,6 +11,7 @@ use iced::{
     Alignment, Element,
     widget::{button, column, container, image, row, space, text},
 };
+use iced_palace::widget::ellipsized_text;
 use lucide_icons::iced::{icon_info, icon_pin, icon_trash};
 
 pub fn view<'a>(_state: &State, app: &'a HbcApp) -> Element<'a, Message> {
@@ -18,9 +19,9 @@ pub fn view<'a>(_state: &State, app: &'a HbcApp) -> Element<'a, Message> {
         row![
             icon_pin().size(12),
             my_tooltip::view(
-                container(text(app.meta().version()).wrapping(text::Wrapping::None))
-                    .max_width(75)
-                    .clip(true),
+                ellipsized_text(app.meta().version())
+                    .width(65)
+                    .wrapping(text::Wrapping::None),
                 app.meta().version()
             ),
             space::horizontal(),
