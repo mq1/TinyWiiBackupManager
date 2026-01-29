@@ -25,8 +25,9 @@ fn parse_gamehacking_ids() -> Vec<([u8; 6], u32)> {
         Regex::new(r#"(?s)href="/game/(\d+)"[^>]*>.*?<td[^>]*>\s*([A-Z0-9]+)\s*</td>"#).unwrap();
 
     for i in 0..=70 {
-        let filename = format!("assets/gamehacking/GameHacking.org | WII | Page {i}.html");
-        let contents = fs::read_to_string(filename).unwrap();
+        let filename = format!("GameHacking.org | WII | Page {i}.html");
+        let path = Path::new("assets").join("gamehacking").join(filename);
+        let contents = fs::read_to_string(path).unwrap();
 
         for cap in re.captures_iter(&contents) {
             if let Some(game_id) = str_to_game_id(&cap[2])
