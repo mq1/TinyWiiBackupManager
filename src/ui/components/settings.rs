@@ -182,7 +182,15 @@ pub fn view(state: &State) -> Element<'_, Message> {
                         rule::horizontal(1),
                         space(),
                         radio(
-                            "gamehacking.org (Up to date, recommended)",
+                            "geckocodes.org_201909 archive (recommended)",
+                            TxtCodesSource::WebArchive,
+                            Some(txt_codes_source),
+                            |source| Message::UpdateConfig(
+                                state.config.clone_with_txt_codes_source(source)
+                            )
+                        ),
+                        radio(
+                            "gamehacking.org (Up to date)",
                             TxtCodesSource::GameHacking,
                             Some(txt_codes_source),
                             |source| Message::UpdateConfig(

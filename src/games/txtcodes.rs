@@ -23,6 +23,14 @@ use std::{
 impl TxtCodesSource {
     pub fn get_txtcode(self, game_id: GameID) -> Result<Vec<u8>> {
         match self {
+            Self::WebArchive => {
+                let url = format!(
+                    "https://raw.githubusercontent.com/mq1/GeckoArchive/refs/heads/main/codes/{}.txt",
+                    game_id.as_str()
+                );
+
+                http_util::get(&url)
+            }
             Self::GameHacking => {
                 let gamehacking_id = id_map::get_gamehacking_id(game_id)
                     .ok_or(anyhow!("Could not find gamehacks id"))?;

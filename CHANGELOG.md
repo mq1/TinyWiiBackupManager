@@ -31,7 +31,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 🍎 macOS min supported version has changed (10.12 → 10.13), following WGPU recommendations
 - 🎨 Accent color selection (might be re-added later on)
-- 👾 geckocodes.org archive as a cheat source (get requests are currently not working). GameHacking.org logic has been rewritten and it's now the default as it seems the most up to date.
 
 ### Fixed
 
