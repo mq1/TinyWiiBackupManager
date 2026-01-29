@@ -190,7 +190,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
                             )
                         ),
                         radio(
-                            "gamehacking.org (Up to date)",
+                            "gamehacking.org (up to date)",
                             TxtCodesSource::GameHacking,
                             Some(txt_codes_source),
                             |source| Message::UpdateConfig(
