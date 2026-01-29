@@ -81,6 +81,7 @@ default-features = false
 features = ["std", "parking_lot", "dx12"]
 
 [build-dependencies]
+regex = "1.12"
 lucide-icons = "0.563"
 zstd = "0.13"
 

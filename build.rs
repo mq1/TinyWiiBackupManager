@@ -1,61 +1,58 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use lucide_icons::LUCIDE_FONT_BYTES;
+use regex::Regex;
 use std::fs::File;
-use std::io::{BufRead, BufReader, BufWriter, Write};
+use std::io::Write;
 use std::path::Path;
 use std::{env, fs};
 
-use lucide_icons::LUCIDE_FONT_BYTES;
+fn str_to_game_id(id: &str) -> Option<[u8; 6]> {
+    let id = id.as_bytes();
 
-fn str_to_gameid(id: &str) -> [u8; 6] {
-    let mut id_bytes = [0u8; 6];
-    let bytes = id.as_bytes();
-    let len = bytes.len().min(6);
-    id_bytes[..len].copy_from_slice(&bytes[..len]);
-    id_bytes
+    match id.len() {
+        6 => Some([id[0], id[1], id[2], id[3], id[4], id[5]]),
+        4 => Some([id[0], id[1], id[2], id[3], 0, 0]),
+        _ => None,
+    }
 }
 
-fn parse_gamehacking_ids() -> Box<[([u8; 6], u32)]> {
-    let file = BufReader::new(File::open("assets/gamehacking-ids.txt").unwrap());
-    let mut lines = file.lines();
+fn parse_gamehacking_ids() -> Vec<([u8; 6], u32)> {
+    let mut id_map = Vec::new();
 
-    let mut ids = Vec::new();
-    while let Some(line) = lines.next() {
-        let gamehacking_id_raw = line.unwrap();
-        let game_id_raw = lines.next().unwrap().unwrap();
+    let re =
+        Regex::new(r#"(?s)href="/game/(\d+)"[^>]*>.*?<td[^>]*>\s*([A-Z0-9]+)\s*</td>"#).unwrap();
 
-        let gamehacking_id = gamehacking_id_raw.trim_start_matches("<td><a href=\"/game/");
-        let gamehacking_id_end = gamehacking_id.find('"').unwrap();
-        let gamehacking_id = gamehacking_id[..gamehacking_id_end].parse::<u32>().unwrap();
+    for i in 0..=70 {
+        let filename = format!("assets/gamehacking/GameHacking.org | WII | Page {i}.html");
+        let contents = fs::read_to_string(filename).unwrap();
 
-        let game_id = game_id_raw
-            .trim_start_matches("<td class=\"text-center\">")
-            .trim_end_matches("</td>");
-
-        if !game_id.is_empty() {
-            let game_id = str_to_gameid(game_id);
-            ids.push((game_id, gamehacking_id));
+        for cap in re.captures_iter(&contents) {
+            if let Some(game_id) = str_to_game_id(&cap[2])
+                && let Ok(ghid) = cap[1].parse()
+            {
+                id_map.push((game_id, ghid));
+            }
         }
     }
 
-    let mut ids = ids.into_boxed_slice();
-    ids.sort_unstable_by_key(|entry| entry.0);
+    id_map.sort_by_key(|(game_id, _)| *game_id);
 
-    ids
+    id_map
 }
 
 fn compile_id_map() {
     let gamehacking_ids = parse_gamehacking_ids();
     let out_path = Path::new(&env::var("OUT_DIR").unwrap()).join("gamehacking_ids.rs");
-    let mut out_file = BufWriter::new(File::create(out_path).unwrap());
+    let mut out_file = File::create(out_path).unwrap();
 
-    // Build the Rust code
     write!(
         &mut out_file,
         "#[allow(clippy::unreadable_literal)]\nconst GAMEID_TO_GHID: &[([u8; 6], u32)] = &["
     )
     .unwrap();
+
     for (game_id, ghid) in gamehacking_ids {
         write!(
             &mut out_file,
@@ -64,6 +61,7 @@ fn compile_id_map() {
         )
         .unwrap();
     }
+
     write!(&mut out_file, "];").unwrap();
 }
 
