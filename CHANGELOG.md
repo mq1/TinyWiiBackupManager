@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- 📋 CHANGELOG.md, I'll try to keep it tidy, complete and updated
 - ⬇️ [TinyWiiBackupManagerInstaller](https://github.com/mq1/TinyWiiBackupManagerInstaller), an installer for windows that automatically picks the latest release of TinyWiiBackupManager, and the right asset (optimized for your CPU)
 - ⚡️ x86_64-v2 optimized builds (linux-AppImage and windows); this is detected by TinyWiiBackupManagerInstaller
 - 🔎 Fuzzy game / homebrew apps search
@@ -37,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🖼️ Taskbar/window icon on linux wayland is now correctly displayed
 - 🗜️ Issues #492 and #494 have been fixed (large zipped games not being converted)
 - 📂 Issue #495 has been fixed (resident evil 4 wrong folder name)
+- ✅ More reliable fat32 checking (used to trigger .wbfs splitting)
 
 ## [v4.9.24] - 2026-01-21
 
