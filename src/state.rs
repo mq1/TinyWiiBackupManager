@@ -12,6 +12,7 @@ use crate::{
         covers, dir_layout,
         game::Game,
         game_list::{self, GameList},
+        id_map,
         strip::StripOperation,
         transfer::{TransferOperation, TransferQueue},
         txtcodes,
@@ -108,13 +109,14 @@ impl State {
         }
 
         let tasks = Task::batch(vec![
+            id_map::get_init_task(),
             lucide::get_load_lucide_task(),
             game_list::get_list_games_task(&initial_state),
-            wiitdb::get_load_wiitdb_task(&initial_state),
             hbc::app_list::get_list_hbc_apps_task(&initial_state),
             DriveInfo::get_task(&initial_state),
             hbc::osc_list::get_load_osc_apps_task(&initial_state),
             updater::get_check_update_task(),
+            wiitdb::get_load_wiitdb_task(&initial_state),
         ]);
 
         (initial_state, tasks)
@@ -232,15 +234,6 @@ impl State {
                 Task::none()
             }
             Message::GotWiitdbDatafile(Ok((wiitdb, downloaded))) => {
-                for game in self.game_list.iter_mut() {
-                    game.update_title(&wiitdb);
-                }
-
-                let sort_by = self.config.sort_by();
-                if matches!(sort_by, SortBy::NameAscending | SortBy::NameDescending) {
-                    self.game_list.sort(SortBy::None, sort_by);
-                }
-
                 self.wiitdb = Some(wiitdb);
 
                 if downloaded {
@@ -312,13 +305,6 @@ impl State {
             }
             Message::GotGameList(Ok(game_list)) => {
                 self.game_list = game_list;
-
-                if let Some(wiitdb) = &self.wiitdb {
-                    for game in self.game_list.iter_mut() {
-                        game.update_title(wiitdb);
-                    }
-                }
-
                 self.game_list.sort(SortBy::None, self.config.sort_by());
 
                 covers::get_cache_cover3ds_task(self)

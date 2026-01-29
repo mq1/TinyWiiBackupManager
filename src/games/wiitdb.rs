@@ -49,12 +49,6 @@ impl Datafile {
     pub fn get_game_info(&self, game_id: GameID) -> Option<GameInfo> {
         self.lookup(game_id).cloned()
     }
-
-    pub fn get_title(&self, game_id: GameID) -> Option<String> {
-        self.lookup(game_id)
-            .and_then(|info| info.locales.first())
-            .map(|locale| locale.title.clone())
-    }
 }
 
 #[serde_as]

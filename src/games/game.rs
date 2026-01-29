@@ -5,6 +5,7 @@ use crate::{
     games::{
         disc_info::DiscInfo,
         game_id::GameID,
+        id_map::ID_MAP,
         wiitdb::{Datafile, GameInfo},
     },
     message::Message,
@@ -53,8 +54,12 @@ impl Game {
 
         let (title_str, id_str) = filename.split_once(" [")?;
         let id_str = id_str.strip_suffix(']')?;
-        let title = title_str.to_string();
         let id = GameID::try_from(id_str).ok()?;
+
+        let title = match ID_MAP.get_title(id) {
+            Some(title) => title.to_string(),
+            None => title_str.to_string(),
+        };
 
         let size = fs_extra::dir::get_size(&path).unwrap_or(0);
 
@@ -123,12 +128,6 @@ impl Game {
 
     pub fn update_wiitdb_info(&mut self, wiitdb: &Datafile) {
         self.wiitdb_info = wiitdb.get_game_info(self.id);
-    }
-
-    pub fn update_title(&mut self, wiitdb: &Datafile) {
-        if let Some(title) = wiitdb.get_title(self.id) {
-            self.title = title;
-        }
     }
 
     pub fn update_disc_info(&mut self, disc_info: DiscInfo) {

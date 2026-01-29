@@ -75,11 +75,6 @@ impl GameList {
     }
 
     #[inline]
-    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut Game> {
-        self.list.iter_mut()
-    }
-
-    #[inline]
     pub fn iter_wii(&self) -> impl Iterator<Item = &Game> {
         self.wii_indices.iter().copied().map(|i| &self.list[i])
     }

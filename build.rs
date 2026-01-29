@@ -3,7 +3,6 @@
 
 use lucide_icons::LUCIDE_FONT_BYTES;
 use regex::Regex;
-use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 use std::{env, fs};
@@ -16,6 +15,26 @@ fn str_to_game_id(id: &str) -> Option<[u8; 6]> {
         4 => Some([id[0], id[1], id[2], id[3], 0, 0]),
         _ => None,
     }
+}
+
+fn parse_titles_txt() -> Vec<([u8; 6], String)> {
+    let mut title_map = Vec::new();
+
+    let contents = fs::read_to_string("assets/wiitdb.txt").unwrap();
+    let mut lines = contents.lines();
+
+    // skip heading
+    let _ = lines.next();
+
+    for line in lines {
+        let (game_id, title) = line.split_once(" = ").unwrap();
+        let game_id = str_to_game_id(game_id).unwrap();
+        title_map.push((game_id, title.to_string()));
+    }
+
+    title_map.sort_by_key(|(game_id, _)| *game_id);
+
+    title_map
 }
 
 fn parse_gamehacking_ids() -> Vec<([u8; 6], u32)> {
@@ -42,27 +61,40 @@ fn parse_gamehacking_ids() -> Vec<([u8; 6], u32)> {
     id_map
 }
 
-fn compile_id_map() {
+fn serialize_id_map() {
+    let title_map = parse_titles_txt();
     let gamehacking_ids = parse_gamehacking_ids();
-    let out_path = Path::new(&env::var("OUT_DIR").unwrap()).join("gamehacking_ids.rs");
-    let mut out_file = File::create(out_path).unwrap();
 
-    write!(
-        &mut out_file,
-        "#[allow(clippy::unreadable_literal)]\nconst GAMEID_TO_GHID: &[([u8; 6], u32)] = &["
-    )
-    .unwrap();
+    let mut out = Vec::new();
 
-    for (game_id, ghid) in gamehacking_ids {
-        write!(
-            &mut out_file,
-            "([{},{},{},{},{},{}],{}),",
-            game_id[0], game_id[1], game_id[2], game_id[3], game_id[4], game_id[5], ghid
-        )
-        .unwrap();
+    let id_count = title_map.len();
+    for (game_id, title) in title_map {
+        let ghid = gamehacking_ids
+            .iter()
+            .find(|(id, _)| *id == game_id)
+            .map(|(_, ghid)| ghid)
+            .copied()
+            .unwrap_or(0);
+
+        let title_len: u8 = title.len().try_into().unwrap();
+
+        out.write_all(&game_id).unwrap();
+        out.write_all(&ghid.to_le_bytes()).unwrap();
+        out.write_all(&[title_len]).unwrap();
+        out.write_all(title.as_bytes()).unwrap();
     }
 
-    write!(&mut out_file, "];").unwrap();
+    let compressed = zstd::bulk::compress(&out, 19).unwrap();
+    let out_path = Path::new(&env::var("OUT_DIR").unwrap()).join("id_map.bin.zst");
+    fs::write(out_path, compressed).unwrap();
+
+    let meta = format!(
+        "const ID_COUNT: usize = {};\n#[allow(clippy::unreadable_literal)]\nconst ID_MAP_BYTES_LEN: usize = {};",
+        id_count,
+        out.len()
+    );
+    let meta_out_path = Path::new(&env::var("OUT_DIR").unwrap()).join("id_map_meta.rs");
+    fs::write(meta_out_path, meta).unwrap();
 }
 
 fn compress_lucide() {
@@ -83,7 +115,7 @@ fn main() {
     println!("cargo::rerun-if-changed=build.rs");
     println!("cargo::rerun-if-changed=assets/gamehacking-ids.txt");
 
-    compile_id_map();
+    serialize_id_map();
     compress_lucide();
 
     #[cfg(all(target_os = "macos", target_arch = "x86_64"))]
