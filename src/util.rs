@@ -7,7 +7,7 @@ use iced::Task;
 use std::path::Path;
 use sysinfo::Disks;
 
-const GIB: f64 = 1024.0 * 1024.0 * 1024.0;
+const GIB: u64 = 1024 * 1024 * 1024;
 
 #[derive(Debug, Clone, Getters)]
 pub struct DriveInfo {
@@ -51,10 +51,13 @@ impl DriveInfo {
     }
 
     pub fn get_usage_string(&self) -> String {
-        #[allow(clippy::cast_precision_loss)]
-        let (used, total) = (self.used_space as f64, self.total_space as f64);
+        let used_whole = self.used_space / GIB;
+        let total_whole = self.total_space / GIB;
 
-        format!("{:.2}/{:.2} GiB", used / GIB, total / GIB)
+        let used_fract = ((self.used_space % GIB) * 100) / GIB;
+        let total_fract = ((self.total_space % GIB) * 100) / GIB;
+
+        format!("{used_whole}.{used_fract:02}/{total_whole}.{total_fract:02} GiB")
     }
 
     pub fn get_task(state: &State) -> Task<Message> {
