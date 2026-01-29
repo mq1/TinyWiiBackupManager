@@ -23,7 +23,7 @@ use crate::{
     notifications::Notifications,
     ui::{Screen, dialogs, lucide},
     updater,
-    util::{self, DriveInfo},
+    util::DriveInfo,
 };
 use anyhow::anyhow;
 use iced::{
@@ -36,6 +36,9 @@ use iced::{
 };
 use semver::Version;
 use std::{ffi::OsStr, path::PathBuf, sync::Arc};
+
+#[cfg(target_os = "macos")]
+use crate::util::run_dot_clean;
 
 pub struct State {
     pub screen: Screen,
@@ -480,7 +483,7 @@ impl State {
                 let mount_point = self.config.mount_point().clone();
 
                 Task::perform(
-                    async move { util::run_dot_clean(mount_point) }.map_err(Arc::new),
+                    async move { run_dot_clean(mount_point) }.map_err(Arc::new),
                     Message::GenericResult,
                 )
             }
