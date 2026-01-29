@@ -176,7 +176,7 @@ impl Default for Config {
             wii_output_format: nod::common::Format::Wbfs,
             gc_output_format: nod::common::Format::Iso,
             theme_preference: ThemePreference::System,
-            txt_codes_source: TxtCodesSource::WebArchive,
+            txt_codes_source: TxtCodesSource::GameHacking,
         }
     }
 }
@@ -234,9 +234,8 @@ pub enum ThemePreference {
 #[serde(rename_all = "snake_case")]
 pub enum TxtCodesSource {
     #[default]
-    WebArchive,
-    Rc24,
     GameHacking,
+    Rc24,
 }
 
 fn default_wii_ip() -> String {

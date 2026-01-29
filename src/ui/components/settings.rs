@@ -182,24 +182,16 @@ pub fn view(state: &State) -> Element<'_, Message> {
                         rule::horizontal(1),
                         space(),
                         radio(
-                            "geckocodes.org (web.archive.org)    (Recommended, high quality)",
-                            TxtCodesSource::WebArchive,
-                            Some(txt_codes_source),
-                            |source| Message::UpdateConfig(
-                                state.config.clone_with_txt_codes_source(source)
-                            )
-                        ),
-                        radio(
-                            "codes.rc24.xyz    (Lower quality)",
-                            TxtCodesSource::Rc24,
-                            Some(txt_codes_source),
-                            |source| Message::UpdateConfig(
-                                state.config.clone_with_txt_codes_source(source)
-                            )
-                        ),
-                        radio(
-                            "gamehacking.org    (Up to date, download might fail)",
+                            "gamehacking.org (Up to date, recommended)",
                             TxtCodesSource::GameHacking,
+                            Some(txt_codes_source),
+                            |source| Message::UpdateConfig(
+                                state.config.clone_with_txt_codes_source(source)
+                            )
+                        ),
+                        radio(
+                            "codes.rc24.xyz",
+                            TxtCodesSource::Rc24,
                             Some(txt_codes_source),
                             |source| Message::UpdateConfig(
                                 state.config.clone_with_txt_codes_source(source)

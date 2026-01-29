@@ -23,18 +23,6 @@ use std::{
 impl TxtCodesSource {
     pub fn get_txtcode(self, game_id: GameID) -> Result<Vec<u8>> {
         match self {
-            Self::WebArchive => {
-                let url = format!(
-                    "https://web.archive.org/web/202009if_/geckocodes.org/txt.php?txt={}",
-                    game_id.as_str()
-                );
-
-                http_util::get(&url)
-            }
-            Self::Rc24 => {
-                let url = format!("https://codes.rc24.xyz/txt.php?txt={}", game_id.as_str());
-                http_util::get(&url)
-            }
             Self::GameHacking => {
                 let gamehacking_id = id_map::get_gamehacking_id(game_id)
                     .ok_or(anyhow!("Could not find gamehacks id"))?;
@@ -46,6 +34,10 @@ impl TxtCodesSource {
                 );
 
                 http_util::send_form("https://gamehacking.org/inc/sub.exportCodes.php", &form)
+            }
+            Self::Rc24 => {
+                let url = format!("https://codes.rc24.xyz/txt.php?txt={}", game_id.as_str());
+                http_util::get(&url)
             }
         }
     }
