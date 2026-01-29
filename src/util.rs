@@ -32,14 +32,7 @@ impl DriveInfo {
         let total_space = disk.total_space();
         let used_space = total_space - disk.available_space();
 
-        #[cfg(target_os = "macos")]
-        let is_fat32 = disk.file_system().to_str()? == "msdos";
-
-        #[cfg(target_os = "linux")]
-        let is_fat32 = disk.file_system().to_str()? == "vfat";
-
-        #[cfg(target_os = "windows")]
-        let is_fat32 = disk.file_system().to_str()? == "FAT32";
+        let is_fat32 = matches!(disk.file_system().to_str()?, "msdos" | "vfat" | "FAT32");
 
         let info = Self {
             used_space,
