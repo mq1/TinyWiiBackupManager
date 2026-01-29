@@ -1,6 +1,6 @@
 [package]
 name = "TinyWiiBackupManager"
-version = "5.0.0-rc.4"
+version = "5.0.0-rc.5"
 rust-version = "1.93"
 edition = "2024"
 authors = ["Manuel Quarneti <mq1@ik.me>"]
@@ -34,7 +34,6 @@ size = { version = "0.5", features = ["serde"] }
 quick-xml = { version = "0.38", features = ["serialize"] }
 sysinfo = "0.38"
 open = "5.3"
-tempfile = "3.23"
 nod = "2.0.0-alpha.4"
 num_cpus = "1.17"
 semver = "1.0"

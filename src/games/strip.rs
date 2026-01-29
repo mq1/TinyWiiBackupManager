@@ -1,12 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    games::{
-        convert_for_wii::SPLIT_SIZE, disc_info::DiscInfo, extensions::format_to_opts, game::Game,
-        util::get_threads_num,
-    },
-    util,
+use crate::games::{
+    convert_for_wii::SPLIT_SIZE, disc_info::DiscInfo, extensions::format_to_opts, game::Game,
+    util::get_threads_num,
 };
 use anyhow::Result;
 use iced::{
@@ -31,16 +28,18 @@ pub struct StripOperation {
     source: Game,
     display_str: String,
     always_split: bool,
+    is_fat32: bool,
 }
 
 impl StripOperation {
-    pub fn new(source: Game, always_split: bool) -> Self {
+    pub fn new(source: Game, always_split: bool, is_fat32: bool) -> Self {
         let display_str = format!("Remove update partition from {}", source.title());
 
         Self {
             source,
             display_str,
             always_split,
+            is_fat32,
         }
     }
 
@@ -64,7 +63,7 @@ impl StripOperation {
                     scrub: ScrubLevel::UpdatePartition,
                 };
 
-                let must_split = self.always_split || !util::can_write_over_4gb(self.source.path());
+                let must_split = self.always_split || self.is_fat32;
 
                 let out_path = disc_info.disc_path().with_extension("wbfs.new");
                 let out_file = File::create(&out_path)?;

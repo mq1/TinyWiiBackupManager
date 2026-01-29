@@ -2,10 +2,70 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{message::Message, state::State};
+use derive_getters::Getters;
 use iced::Task;
 use std::path::Path;
 use sysinfo::Disks;
-use tempfile::NamedTempFile;
+
+const GIB: f64 = 1024.0 * 1024.0 * 1024.0;
+
+#[derive(Debug, Clone, Getters)]
+pub struct DriveInfo {
+    #[getter(copy)]
+    used_space: u64,
+    #[getter(copy)]
+    total_space: u64,
+    #[getter(copy)]
+    is_fat32: bool,
+}
+
+impl DriveInfo {
+    pub fn maybe_from_path(path: &Path) -> Option<Self> {
+        let disks = Disks::new_with_refreshed_list();
+        let path = path.canonicalize().ok()?;
+
+        let disk = disks
+            .iter()
+            .filter(|disk| path.starts_with(disk.mount_point()))
+            .max_by_key(|disk| disk.mount_point().as_os_str().len())?;
+
+        let total_space = disk.total_space();
+        let used_space = total_space - disk.available_space();
+
+        #[cfg(target_os = "macos")]
+        let is_fat32 = disk.file_system().to_str()? == "msdos";
+
+        #[cfg(target_os = "linux")]
+        let is_fat32 = disk.file_system().to_str()? == "vfat";
+
+        #[cfg(target_os = "windows")]
+        let is_fat32 = disk.file_system().to_str()? == "FAT32";
+
+        let info = Self {
+            used_space,
+            total_space,
+            is_fat32,
+        };
+
+        Some(info)
+    }
+
+    pub fn get_usage_string(&self) -> String {
+        #[allow(clippy::cast_precision_loss)]
+        let (used, total) = (self.used_space as f64, self.total_space as f64);
+
+        format!("{:.2}/{:.2} GiB", used / GIB, total / GIB)
+    }
+
+    pub fn get_task(state: &State) -> Task<Message> {
+        let mount_point = state.config.mount_point().clone();
+
+        Task::perform(
+            async move { DriveInfo::maybe_from_path(&mount_point) },
+            Message::GotDriveInfo,
+        )
+    }
+}
 
 pub fn sanitize(s: &str) -> String {
     let opts = sanitize_filename::Options {
@@ -17,68 +77,6 @@ pub fn sanitize(s: &str) -> String {
     sanitize_filename::sanitize_with_options(s, opts)
         .trim()
         .to_string()
-}
-
-pub fn get_drive_usage_task(state: &State) -> Task<Message> {
-    let mount_point = state.config.mount_point().clone();
-    Task::perform(
-        async move { get_drive_usage(&mount_point) },
-        Message::GotDriveUsage,
-    )
-}
-
-fn get_drive_usage(mount_point: &Path) -> String {
-    const GIB: f64 = 1024.0 * 1024.0 * 1024.0;
-
-    if mount_point.as_os_str().is_empty() {
-        return "0/0 GiB".to_string();
-    }
-
-    let disks = Disks::new_with_refreshed_list();
-
-    disks
-        .iter()
-        .filter(|disk| mount_point.starts_with(disk.mount_point()))
-        .max_by_key(|disk| disk.mount_point().as_os_str().len())
-        .map_or("0/0 GiB".to_string(), |disk| {
-            let total = disk.total_space();
-            let used = total - disk.available_space();
-
-            #[allow(clippy::cast_precision_loss)]
-            let (used, total) = (used as f64, total as f64);
-
-            format!("{:.2}/{:.2} GiB", used / GIB, total / GIB)
-        })
-}
-
-/// Returns Ok if we can create a file >4 GiB in this directory
-pub fn can_write_over_4gb(mount_point: &Path) -> bool {
-    use std::io::{Seek, SeekFrom, Write};
-
-    if mount_point.as_os_str().is_empty() {
-        return false;
-    }
-
-    // Create a temp file in the target directory
-    let Ok(tmp) = &mut NamedTempFile::new_in(mount_point) else {
-        return false;
-    };
-
-    // Seek to 4 GiB
-    if tmp
-        .as_file_mut()
-        .seek(SeekFrom::Start(4 * 1024 * 1024 * 1024))
-        .is_err()
-    {
-        return false;
-    }
-
-    // Write a single byte
-    if tmp.as_file_mut().write_all(&[0]).is_err() {
-        return false;
-    }
-
-    true
 }
 
 #[cfg(target_os = "macos")]

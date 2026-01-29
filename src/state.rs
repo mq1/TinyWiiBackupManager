@@ -22,7 +22,8 @@ use crate::{
     message::Message,
     notifications::Notifications,
     ui::{Screen, dialogs, lucide},
-    updater, util,
+    updater,
+    util::{self, DriveInfo},
 };
 use anyhow::anyhow;
 use iced::{
@@ -48,7 +49,7 @@ pub struct State {
     pub notifications: Notifications,
     pub show_wii: bool,
     pub show_gc: bool,
-    pub drive_usage: String,
+    pub drive_info: Option<DriveInfo>,
     pub osc_filter: String,
     pub hbc_filter: String,
     pub new_version: Option<Version>,
@@ -82,7 +83,7 @@ impl State {
             notifications: Notifications::new(),
             show_wii: true,
             show_gc: true,
-            drive_usage: String::new(),
+            drive_info: None,
             osc_filter: String::new(),
             hbc_filter: String::new(),
             new_version: None,
@@ -108,7 +109,7 @@ impl State {
             game_list::get_list_games_task(&initial_state),
             wiitdb::get_load_wiitdb_task(&initial_state),
             hbc::app_list::get_list_hbc_apps_task(&initial_state),
-            util::get_drive_usage_task(&initial_state),
+            DriveInfo::get_task(&initial_state),
             hbc::osc_list::get_load_osc_apps_task(&initial_state),
             updater::get_check_update_task(),
         ]);
@@ -209,7 +210,7 @@ impl State {
             Message::RefreshGamesAndApps => Task::batch(vec![
                 game_list::get_list_games_task(self),
                 hbc::app_list::get_list_hbc_apps_task(self),
-                util::get_drive_usage_task(self),
+                DriveInfo::get_task(self),
             ]),
             Message::UpdateGamesFilter(filter) => {
                 self.game_list.fuzzy_search(&filter);
@@ -324,8 +325,8 @@ impl State {
                 self.hbc_app_list.sort(SortBy::None, self.config.sort_by());
                 Task::none()
             }
-            Message::GotDriveUsage(usage) => {
-                self.drive_usage = usage;
+            Message::GotDriveInfo(drive_info) => {
+                self.drive_info = drive_info;
                 Task::none()
             }
             Message::AskInstallOscApp(app) => window::oldest()
@@ -415,9 +416,11 @@ impl State {
             }
             Message::AddGamesToTransferStack((paths, yes)) => {
                 if yes {
+                    let is_fat32 = self.drive_info.as_ref().is_some_and(DriveInfo::is_fat32);
+
                     for path in paths {
                         self.transfer_queue.push(TransferOperation::ConvertForWii(
-                            ConvertForWiiOperation::new(path, self.config.clone()),
+                            ConvertForWiiOperation::new(path, self.config.clone(), is_fat32),
                         ));
                     }
 
@@ -595,7 +598,9 @@ impl State {
                     self.notifications
                         .info(format!("Removing update partition from {}", game.title()));
 
-                    let op = StripOperation::new(game, self.config.always_split());
+                    let is_fat32 = self.drive_info.as_ref().is_some_and(DriveInfo::is_fat32);
+
+                    let op = StripOperation::new(game, self.config.always_split(), is_fat32);
                     self.transfer_queue.push(TransferOperation::Strip(op));
 
                     if self.status.is_empty() {
@@ -615,8 +620,10 @@ impl State {
                     self.notifications
                         .info("Removing update partition from all games, this may take some time!");
 
+                    let is_fat32 = self.drive_info.as_ref().is_some_and(DriveInfo::is_fat32);
+
                     for game in self.game_list.iter().cloned() {
-                        let op = StripOperation::new(game, self.config.always_split());
+                        let op = StripOperation::new(game, self.config.always_split(), is_fat32);
                         self.transfer_queue.push(TransferOperation::Strip(op));
                     }
 

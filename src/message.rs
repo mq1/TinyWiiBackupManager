@@ -6,6 +6,7 @@ use crate::{
     games::{disc_info::DiscInfo, game::Game, game_list::GameList, wiitdb::Datafile},
     hbc::{app_list::HbcAppList, osc::OscAppMeta, osc_list::OscAppList},
     ui::Screen,
+    util::DriveInfo,
 };
 use iced::widget::{Id, operation::AbsoluteOffset};
 use semver::Version;
@@ -29,7 +30,7 @@ pub enum Message {
     RefreshGamesAndApps,
     GotWiitdbDatafile(Result<(Datafile, bool), Arc<anyhow::Error>>),
     SelectMountPoint,
-    GotDriveUsage(String),
+    GotDriveInfo(Option<DriveInfo>),
     ChangeTheme,
     UpdateConfig(Config),
     MountPointChosen(Option<PathBuf>),

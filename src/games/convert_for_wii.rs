@@ -35,16 +35,18 @@ pub struct ConvertForWiiOperation {
     source_path: PathBuf,
     display_str: String,
     config: Config,
+    is_fat32: bool,
 }
 
 impl ConvertForWiiOperation {
-    pub fn new(source_path: PathBuf, config: Config) -> Self {
+    pub fn new(source_path: PathBuf, config: Config, is_fat32: bool) -> Self {
         let display_str = format!("⤒ Convert {}", source_path.display());
 
         Self {
             source_path,
             display_str,
             config,
+            is_fat32,
         }
     }
 
@@ -141,8 +143,7 @@ impl ConvertForWiiOperation {
                     (parent, out_path)
                 };
 
-                let must_split =
-                    is_wii && (self.config.always_split() || !util::can_write_over_4gb(&parent));
+                let must_split = is_wii && (self.config.always_split() || self.is_fat32);
 
                 if must_split && out_format == nod::common::Format::Iso {
                     out_path = out_path.with_extension("part0.iso");

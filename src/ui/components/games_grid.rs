@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{message::Message, state::State, ui::components};
+use crate::{message::Message, state::State, ui::components, util::DriveInfo};
 use iced::{
     Alignment, Element, Length, padding,
     widget::{Row, column, row, space, text},
@@ -26,12 +26,18 @@ pub fn view(state: &State) -> Element<'_, Message> {
         return row.into();
     }
 
+    let usage_str = state
+        .drive_info
+        .as_ref()
+        .map(DriveInfo::get_usage_string)
+        .unwrap_or_default();
+
     match (state.show_wii, state.show_gc) {
         (false, false) => row![
             text("").size(18),
             space::horizontal(),
             icon_hard_drive(),
-            text(&state.drive_usage).size(16),
+            text(usage_str).size(16),
         ]
         .align_y(Alignment::Center)
         .spacing(5)
@@ -61,7 +67,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
                     .size(18),
                     space::horizontal(),
                     icon_hard_drive(),
-                    text(&state.drive_usage).size(16),
+                    text(usage_str).size(16),
                 ]
                 .align_y(Alignment::Center)
                 .spacing(5)
@@ -94,7 +100,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
                     .size(18),
                     space::horizontal(),
                     icon_hard_drive(),
-                    text(&state.drive_usage).size(16),
+                    text(usage_str).size(16),
                 ]
                 .align_y(Alignment::Center)
                 .spacing(5)
@@ -139,7 +145,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
                     .size(18),
                     space::horizontal(),
                     icon_hard_drive(),
-                    text(&state.drive_usage).size(16),
+                    text(usage_str).size(16),
                 ]
                 .align_y(Alignment::Center)
                 .spacing(5)

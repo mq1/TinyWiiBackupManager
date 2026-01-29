@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{config::ViewAs, message::Message, state::State, ui::components};
+use crate::{config::ViewAs, message::Message, state::State, ui::components, util::DriveInfo};
 use iced::{
     Alignment, Element, Length, padding,
     widget::{column, container, row, scrollable, space, text},
@@ -28,6 +28,12 @@ pub fn view(state: &State) -> Element<'_, Message> {
         ViewAs::Table => components::hbc_table::view(state),
     };
 
+    let usage_str = state
+        .drive_info
+        .as_ref()
+        .map(DriveInfo::get_usage_string)
+        .unwrap_or_default();
+
     if state.hbc_filter.is_empty() {
         column![
             components::hbc_toolbar::view(state),
@@ -42,7 +48,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
                     .size(18),
                     space::horizontal(),
                     icon_hard_drive(),
-                    text(&state.drive_usage).size(16),
+                    text(usage_str).size(16),
                 ]
                 .align_y(Alignment::Center)
                 .spacing(5)

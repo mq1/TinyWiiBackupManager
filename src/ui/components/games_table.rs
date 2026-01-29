@@ -6,6 +6,7 @@ use crate::{
     message::Message,
     state::State,
     ui::{Screen, components::my_tooltip},
+    util::DriveInfo,
 };
 use iced::{
     Alignment, Element, Length, padding,
@@ -75,6 +76,12 @@ pub fn view(state: &State) -> Element<'_, Message> {
 
     let iter = state.game_list.iter();
 
+    let usage_str = state
+        .drive_info
+        .as_ref()
+        .map(DriveInfo::get_usage_string)
+        .unwrap_or_default();
+
     column![
         row![
             icon_gamepad_2().size(18),
@@ -86,7 +93,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
             .size(18),
             space::horizontal(),
             icon_hard_drive(),
-            text(&state.drive_usage).size(16),
+            text(usage_str).size(16),
         ]
         .align_y(Alignment::Center)
         .spacing(5)

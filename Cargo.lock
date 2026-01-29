@@ -4,7 +4,7 @@ version = 4
 
 [[package]]
 name = "TinyWiiBackupManager"
-version = "5.0.0-rc.4"
+version = "5.0.0-rc.5"
 dependencies = [
  "anyhow",
  "derive-getters",
@@ -31,7 +31,6 @@ dependencies = [
  "strum",
  "strum_macros",
  "sysinfo",
- "tempfile",
  "time",
  "walkdir",
  "wgpu",
