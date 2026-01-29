@@ -202,20 +202,31 @@ pub fn view(state: &State) -> Element<'_, Message> {
     .padding(10)
     .width(Length::Fill);
 
-    let mut col = column![
-        container(usbloader_gx).style(style::card),
-        container(wiiflow).style(style::card),
-        container(cheats).style(style::card),
-        container(cleanup).style(style::card),
-        container(wiiload).style(style::card),
-        container(manual_archive).style(style::card),
-    ]
-    .spacing(10)
-    .padding(padding::horizontal(10));
+    let mut col = if state.config.is_mount_point_valid() {
+        column![
+            container(usbloader_gx).style(style::card),
+            container(wiiflow).style(style::card),
+            container(cheats).style(style::card),
+            container(cleanup).style(style::card),
+            container(wiiload).style(style::card),
+            container(manual_archive).style(style::card),
+        ]
+        .spacing(10)
+        .padding(padding::horizontal(10))
+    } else {
+        column![
+            container(wiiload).style(style::card),
+            container(manual_archive).style(style::card),
+        ]
+        .spacing(10)
+        .padding(padding::horizontal(10))
+    };
 
     #[cfg(target_os = "macos")]
     {
-        col = col.push(container(macos).style(style::card));
+        if state.config.is_mount_point_valid() {
+            col = col.push(container(macos).style(style::card));
+        }
     }
 
     col = col.push(space());
