@@ -8,7 +8,7 @@ use crate::{
     message::Message,
     state::State,
 };
-use anyhow::{Result, anyhow};
+use anyhow::{Context, Result, anyhow};
 use iced::{
     Task,
     futures::TryFutureExt,
@@ -63,7 +63,10 @@ fn download_cheats_for_game(
         return Ok(format!("Cheats for {} already present", game.title()));
     }
 
-    let txtcode = source.get_txtcode(game.id())?;
+    let txtcode = source
+        .get_txtcode(game.id())
+        .context(format!("Failed to download cheats for {}", game.title()))?;
+
     fs::create_dir_all(parent)?;
     fs::write(&path, txtcode)?;
 
