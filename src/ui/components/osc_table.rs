@@ -12,10 +12,10 @@ pub fn view(state: &State) -> Element<'_, Message> {
     let t_columns = vec![
         table::column(text("Name").size(16), |app: &OscAppMeta| text(app.name())),
         table::column(text("Version").size(16), |app: &OscAppMeta| {
-            text(app.version())
+            container(text(app.version()).wrapping(text::Wrapping::WordOrGlyph)).max_width(100)
         }),
         table::column(text("Author").size(16), |app: &OscAppMeta| {
-            text(app.author()).width(150)
+            container(text(app.author()).wrapping(text::Wrapping::WordOrGlyph)).max_width(100)
         }),
         table::column(text("Actions").size(16), |app: &OscAppMeta| {
             row![

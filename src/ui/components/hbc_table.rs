@@ -14,7 +14,11 @@ pub fn view(state: &State) -> Element<'_, Message> {
             text(app.meta().name())
         }),
         table::column(text("Version").size(16), |app: &HbcApp| {
-            text(app.meta().version())
+            container(text(app.meta().version()).wrapping(text::Wrapping::WordOrGlyph))
+                .max_width(100)
+        }),
+        table::column(text("Author").size(16), |app: &HbcApp| {
+            container(text(app.meta().coder()).wrapping(text::Wrapping::WordOrGlyph)).max_width(100)
         }),
         table::column(text("Size").size(16), |app: &HbcApp| {
             text(app.size().to_string())
