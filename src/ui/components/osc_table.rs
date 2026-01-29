@@ -15,7 +15,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
             text(app.version())
         }),
         table::column(text("Author").size(16), |app: &OscAppMeta| {
-            text(app.author())
+            text(app.author()).width(150)
         }),
         table::column(text("Actions").size(16), |app: &OscAppMeta| {
             row![
