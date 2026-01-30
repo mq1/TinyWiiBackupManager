@@ -36,7 +36,8 @@ impl IdMap {
     }
 
     pub fn get_ghid(&self, game_id: GameID) -> Option<u32> {
-        self.ids.binary_search(&game_id).ok().map(|i| self.ghids[i])
+        let i = self.ids.binary_search(&game_id).ok()?;
+        unsafe { Some(*self.ghids.get_unchecked(i)) }
     }
 }
 
