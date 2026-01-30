@@ -4,6 +4,7 @@
 use crate::games::game_id::GameID;
 use crate::message::Message;
 use iced::Task;
+use std::mem::MaybeUninit;
 use std::str;
 use std::sync::LazyLock;
 
@@ -16,7 +17,7 @@ fn u24_le_to_u32(buf: [u8; 3]) -> u32 {
 }
 
 pub struct IdMap {
-    ids: Box<[GameID]>,
+    ids: [GameID; ID_COUNT],
     ghids: Box<[u32]>,
     titles: Box<[&'static str]>,
 }
@@ -36,6 +37,7 @@ impl IdMap {
 
 pub static ID_MAP: LazyLock<IdMap> = LazyLock::new(deserialize_id_map);
 
+/// lots of unsafe, we assume the input data is correct (it always is)
 fn deserialize_id_map() -> IdMap {
     // Decompress
     let serialized_id_map = zstd::bulk::decompress(COMPRESSED_ID_MAP, ID_MAP_BYTES_LEN)
@@ -46,7 +48,7 @@ fn deserialize_id_map() -> IdMap {
     // This allows us to store &str references without allocating new Strings.
     let input: &'static [u8] = Box::leak(serialized_id_map);
 
-    let mut ids = Box::<[GameID]>::new_uninit_slice(ID_COUNT);
+    let mut ids = MaybeUninit::<[GameID; ID_COUNT]>::uninit();
     let mut ghids = Box::<[u32]>::new_uninit_slice(ID_COUNT);
     let mut titles = Box::<[&'static str]>::new_uninit_slice(ID_COUNT);
 
@@ -57,7 +59,10 @@ fn deserialize_id_map() -> IdMap {
         // Parse game id (6 bytes)
         let gid_slice = &input[cursor..cursor + 6];
         let game_id: [u8; 6] = gid_slice.try_into().unwrap();
-        ids[i].write(game_id.into());
+        unsafe {
+            let ids_ptr = ids.as_mut_ptr().cast::<GameID>();
+            ids_ptr.add(i).write(GameID::from(game_id));
+        }
         cursor += 6;
 
         // Parse gamehacking id (3 bytes)
