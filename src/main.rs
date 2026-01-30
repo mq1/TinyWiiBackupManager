@@ -37,6 +37,10 @@ fn get_window_icon() -> Option<window::Icon> {
 }
 
 fn main() -> iced::Result {
+    unsafe {
+        env::set_var("WGPU_POWER_PREF", "none");
+    }
+
     let window = window::Settings {
         size: Size::new(800.0, 600.0),
         min_size: Some(Size::new(800.0, 600.0)),
