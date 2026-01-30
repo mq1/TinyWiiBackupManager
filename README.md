@@ -49,7 +49,7 @@
   - :ice_cream: scoop:\
     `scoop bucket add TinyWiiBackupManager https://github.com/mq1/TinyWiiBackupManager`\
     `scoop install TinyWiiBackupManager`
-  - :package: winget:\
+  - :package: winget (may not be up to date):\
     `winget install -e --id mq1.TinyWiiBackupManager`
 
 <br>

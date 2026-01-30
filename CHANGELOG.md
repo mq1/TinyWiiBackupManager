@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v5.0.0] - 2026-01-30
+
 ### Added
 
 - ⬇️ [TinyWiiBackupManagerInstaller](https://github.com/mq1/TinyWiiBackupManagerInstaller), an installer for windows that automatically picks the latest release of TinyWiiBackupManager, and the right asset (optimized for your CPU)
@@ -26,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🖥️ Use software rendering on windows 7
 - 🧵 Use a thread-pool to execute tasks concurrently
 - 🗜️ Compress .dol and .elf files before sending them via wiiload
+- 📝 titles.txt are embedded again in the executable; compression is applied, and deserialization is faster
+- 👾 Downloading cheats is now more reliable for the geckocodes.org and gamehacking.org sources
 
 ### Removed
 
@@ -45,5 +49,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 🖼️ TinyWiiBackupManager icon now shows up again on the windows exe
 
-[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v4.9.24...HEAD
+[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.0.0...HEAD
+[v5.0.0]: https://github.com/mq1/TinyWiiBackupManager/compare/v4.9.24...v5.0.0
 [v4.9.24]: https://github.com/mq1/TinyWiiBackupManager/compare/v4.9.23...v4.9.24
