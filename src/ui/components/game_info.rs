@@ -1,12 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    games::{disc_info::DiscInfo, game::Game},
-    message::Message,
-    state::State,
-    ui::style,
-};
+use crate::{games::game::Game, message::Message, state::State, ui::style};
 use iced::{
     Element, Length, padding,
     widget::{button, column, container, image, row, rule, scrollable, space, stack, text},
@@ -32,7 +27,15 @@ pub fn view<'a>(state: &State, game: &'a Game) -> Element<'a, Message> {
         ]
         .spacing(5)
         .padding(10),
-        Some(disc_info) => {
+        Some(Err(e)) => column![
+            row![icon_disc_3(), text("Disc info")].spacing(5),
+            rule::horizontal(1),
+            space(),
+            text!("Error: {e}")
+        ]
+        .spacing(5)
+        .padding(10),
+        Some(Ok(disc_info)) => {
             let block_size = match disc_info.block_size() {
                 None => text("Block Size: N/A"),
                 Some(size) => text!("Block Size: {size}"),
@@ -122,16 +125,24 @@ pub fn view<'a>(state: &State, game: &'a Game) -> Element<'a, Message> {
         }
     };
 
-    let wiitdb_info = match game.wiitdb_info() {
+    let game_info = match game.game_info() {
         None => column![
             row![icon_globe(), text("GameTDB Info")].spacing(5),
             rule::horizontal(1),
             space(),
-            text("GameTDB game info not found")
+            text("Loading GameTDB Info...")
         ]
         .spacing(5)
         .padding(10),
-        Some(info) => column![
+        Some(Err(e)) => column![
+            row![icon_globe(), text("GameTDB Info")].spacing(5),
+            rule::horizontal(1),
+            space(),
+            text!("Error: {e}")
+        ]
+        .spacing(5)
+        .padding(10),
+        Some(Ok(info)) => column![
             row![icon_globe(), text("GameTDB Info")].spacing(5),
             rule::horizontal(1),
             space(),
@@ -232,10 +243,8 @@ pub fn view<'a>(state: &State, game: &'a Game) -> Element<'a, Message> {
     .spacing(5)
     .padding(5);
 
-    if game
-        .disc_info()
-        .as_ref()
-        .is_some_and(DiscInfo::is_worth_stripping)
+    if let Some(Ok(disc_info)) = game.disc_info()
+        && disc_info.is_worth_stripping()
     {
         actions = actions.push(
             button(row![icon_file_minus_corner(), text("Remove update partition")].spacing(5))
@@ -268,7 +277,7 @@ pub fn view<'a>(state: &State, game: &'a Game) -> Element<'a, Message> {
         scrollable(
             column![
                 container(disc_info.width(Length::Fill)).style(style::card),
-                container(wiitdb_info.width(Length::Fill)).style(style::card)
+                container(game_info.width(Length::Fill)).style(style::card)
             ]
             .padding(padding::horizontal(10))
             .spacing(10)

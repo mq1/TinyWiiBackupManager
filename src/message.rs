@@ -3,7 +3,12 @@
 
 use crate::{
     config::{Config, SortBy},
-    games::{disc_info::DiscInfo, game::Game, game_list::GameList, wiitdb::Datafile},
+    games::{
+        disc_info::DiscInfo,
+        game::Game,
+        game_list::GameList,
+        wiitdb::{self},
+    },
     hbc::{app_list::HbcAppList, osc::OscAppMeta, osc_list::OscAppList},
     ui::Screen,
     util::DriveInfo,
@@ -28,7 +33,6 @@ pub enum Message {
 
     // Misc
     RefreshGamesAndApps,
-    GotWiitdbDatafile(Result<(Datafile, bool), Arc<anyhow::Error>>),
     SelectMountPoint,
     GotDriveInfo(Option<DriveInfo>),
     ChangeTheme,
@@ -71,6 +75,7 @@ pub enum Message {
     ChooseGameToArchiveManually,
     SetManualArchivingGame(Option<PathBuf>),
     RunManualGameArchiving,
+    GotGameInfo(Result<wiitdb::GameInfo, Arc<anyhow::Error>>),
 
     // HBC Apps
     GotHbcAppList(Result<HbcAppList, Arc<anyhow::Error>>),

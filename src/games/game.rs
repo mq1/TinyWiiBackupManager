@@ -2,12 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    games::{
-        disc_info::DiscInfo,
-        game_id::GameID,
-        id_map::ID_MAP,
-        wiitdb::{Datafile, GameInfo},
-    },
+    games::{disc_info::DiscInfo, game_id::GameID, id_map::ID_MAP, wiitdb::GameInfo},
     message::Message,
 };
 use anyhow::{Result, anyhow};
@@ -29,8 +24,8 @@ pub struct Game {
     title: String,
     #[getter(copy)]
     id: GameID,
-    disc_info: Option<DiscInfo>,
-    wiitdb_info: Option<GameInfo>,
+    disc_info: Option<Result<DiscInfo, String>>,
+    game_info: Option<Result<GameInfo, String>>,
 }
 
 impl PartialEq for Game {
@@ -69,7 +64,7 @@ impl Game {
             title,
             id,
             disc_info: None,
-            wiitdb_info: None,
+            game_info: None,
         })
     }
 
@@ -126,11 +121,11 @@ impl Game {
         )
     }
 
-    pub fn update_wiitdb_info(&mut self, wiitdb: &Datafile) {
-        self.wiitdb_info = wiitdb.get_game_info(self.id);
+    pub fn set_game_info(&mut self, res: Result<GameInfo, String>) {
+        self.game_info = Some(res);
     }
 
-    pub fn update_disc_info(&mut self, disc_info: DiscInfo) {
-        self.disc_info = Some(disc_info);
+    pub fn set_disc_info(&mut self, res: Result<DiscInfo, String>) {
+        self.disc_info = Some(res);
     }
 }

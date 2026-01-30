@@ -16,7 +16,7 @@ use crate::{
         strip::StripOperation,
         transfer::{TransferOperation, TransferQueue},
         txtcodes,
-        wiitdb::{self, Datafile},
+        wiitdb::{self},
     },
     hbc::{self, app_list::HbcAppList, osc::OscAppMeta, osc_list::OscAppList, wiiload},
     known_mount_points,
@@ -49,7 +49,6 @@ pub struct State {
     pub games_filter: String,
     pub hbc_app_list: HbcAppList,
     pub osc_app_list: OscAppList,
-    pub wiitdb: Option<Datafile>,
     pub notifications: Notifications,
     pub show_wii: bool,
     pub show_gc: bool,
@@ -83,7 +82,6 @@ impl State {
             games_filter: String::new(),
             hbc_app_list: HbcAppList::empty(),
             osc_app_list: OscAppList::empty(),
-            wiitdb: None,
             notifications: Notifications::new(),
             show_wii: true,
             show_gc: true,
@@ -116,7 +114,6 @@ impl State {
             DriveInfo::get_task(&initial_state),
             hbc::osc_list::get_load_osc_apps_task(&initial_state),
             updater::get_check_update_task(),
-            wiitdb::get_load_wiitdb_task(&initial_state),
         ]);
 
         (initial_state, tasks)
@@ -158,11 +155,9 @@ impl State {
             Message::GenericResult(Err(e))
             | Message::EmptyResult(Err(e))
             | Message::GenericError(e)
-            | Message::GotWiitdbDatafile(Err(e))
             | Message::GotOscAppList(Err(e))
             | Message::GotGameList(Err(e))
             | Message::GotLatestVersion(Err(e))
-            | Message::GotDiscInfo(Err(e))
             | Message::GotHbcAppList(Err(e)) => {
                 self.notifications.error(e);
                 Task::none()
@@ -172,13 +167,13 @@ impl State {
                 operation::scroll_to(self.games_scroll_id.clone(), self.games_scroll_offset)
             }
             Message::NavTo(Screen::GameInfo(mut game)) => {
-                if let Some(wiitdb) = &self.wiitdb {
-                    game.update_wiitdb_info(wiitdb);
-                }
+                let tasks = vec![
+                    game.get_load_disc_info_task(),
+                    wiitdb::get_get_game_info_task(self, &game),
+                ];
 
-                let task = game.get_load_disc_info_task();
                 self.screen = Screen::GameInfo(game);
-                task
+                Task::batch(tasks)
             }
             Message::NavTo(Screen::HbcApps) => {
                 self.screen = Screen::HbcApps;
@@ -229,16 +224,6 @@ impl State {
                     self.hbc_scroll_offset = offset;
                 } else if id == self.osc_scroll_id {
                     self.osc_scroll_offset = offset;
-                }
-
-                Task::none()
-            }
-            Message::GotWiitdbDatafile(Ok((wiitdb, downloaded))) => {
-                self.wiitdb = Some(wiitdb);
-
-                if downloaded {
-                    self.notifications
-                        .info("GameTDB Datafile (wiitdb.xml) downloaded successfully");
                 }
 
                 Task::none()
@@ -454,9 +439,16 @@ impl State {
                 self.transfer_queue.cancel_all();
                 self.update(Message::RefreshGamesAndApps)
             }
-            Message::GotDiscInfo(Ok(disc_info)) => {
+            Message::GotDiscInfo(res) => {
                 if let Screen::GameInfo(game) = &mut self.screen {
-                    game.update_disc_info(disc_info);
+                    game.set_disc_info(res.map_err(|e| e.to_string()));
+                }
+
+                Task::none()
+            }
+            Message::GotGameInfo(res) => {
+                if let Screen::GameInfo(game) = &mut self.screen {
+                    game.set_game_info(res.map_err(|e| e.to_string()));
                 }
 
                 Task::none()

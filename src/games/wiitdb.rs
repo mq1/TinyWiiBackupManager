@@ -1,11 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::games::game::Game;
 use crate::games::game_id::GameID;
 use crate::http_util;
 use crate::message::Message;
 use crate::state::State;
-use anyhow::Result;
+use anyhow::{Context, Result, bail};
 use iced::Task;
 use iced::futures::TryFutureExt;
 use serde::Deserialize;
@@ -13,7 +14,7 @@ use serde_with::{
     DefaultOnError, DisplayFromStr, StringWithSeparator, formats::CommaSeparator, serde_as,
 };
 use std::fs::{self, File};
-use std::io::{self, Cursor};
+use std::io::{self, BufReader, Cursor};
 use std::path::Path;
 use std::str::FromStr;
 use std::sync::Arc;
@@ -26,29 +27,6 @@ const DOWNLOAD_URL: &str = "https://www.gametdb.com/wiitdb.zip";
 pub struct Datafile {
     #[serde(rename = "game")]
     pub games: Box<[GameInfo]>,
-}
-
-impl Datafile {
-    pub fn load(path: &Path) -> Result<Self> {
-        let contents = fs::read_to_string(path)?;
-        let mut data = quick_xml::de::from_str::<Self>(&contents)?;
-
-        // We sort it now so we can binary search quickly
-        data.games.sort_unstable_by_key(|game| game.id);
-
-        Ok(data)
-    }
-
-    fn lookup(&self, game_id: GameID) -> Option<&GameInfo> {
-        self.games
-            .binary_search_by_key(&game_id, |game| game.id)
-            .ok()
-            .map(|i| &self.games[i])
-    }
-
-    pub fn get_game_info(&self, game_id: GameID) -> Option<GameInfo> {
-        self.lookup(game_id).cloned()
-    }
 }
 
 #[serde_as]
@@ -357,31 +335,38 @@ impl FromStr for Region {
     }
 }
 
-pub fn get_load_wiitdb_task(state: &State) -> Task<Message> {
-    let data_dir = state.data_dir.clone();
+pub fn get_get_game_info_task(state: &State, game: &Game) -> Task<Message> {
+    let mount_point = state.config.mount_point().clone();
+    let game_id = game.id();
 
     Task::perform(
-        async move { load_wiitdb(&data_dir) }.map_err(Arc::new),
-        Message::GotWiitdbDatafile,
+        async move { get_game_info(&mount_point, game_id) }.map_err(Arc::new),
+        Message::GotGameInfo,
     )
 }
 
-fn load_wiitdb(data_dir: &Path) -> Result<(Datafile, bool)> {
-    let mut downloaded = false;
-    let wiitdb_path = data_dir.join("wiitdb.xml");
+fn get_game_info(mount_point: &Path, game_id: GameID) -> Result<GameInfo> {
+    let path = mount_point
+        .join("apps")
+        .join("usbloader_gx")
+        .join("wiitdb.xml");
 
-    if !wiitdb_path.exists() {
-        let body = http_util::get(DOWNLOAD_URL)?;
-        let mut archive = ZipArchive::new(Cursor::new(body))?;
-        let mut datafile = archive.by_name("wiitdb.xml")?;
-        let mut out_file = File::create(&wiitdb_path)?;
-        io::copy(&mut datafile, &mut out_file)?;
-        downloaded = true;
+    if !path.exists() {
+        bail!("wiitdb.xml not found in drive; you can download it from the \"Toolbox\" page")
     }
 
-    let datafile = Datafile::load(&wiitdb_path)?;
+    let file = File::open(&path).context("failed to open wiitdb.xml")?;
+    let mut reader = BufReader::new(file);
+    let datafile: Datafile =
+        quick_xml::de::from_reader(&mut reader).context("failed to parse wiitdb.xml")?;
 
-    Ok((datafile, downloaded))
+    let game_info = datafile
+        .games
+        .into_iter()
+        .find(|g| g.id == game_id)
+        .context("game not found in wiitdb.xml")?;
+
+    Ok(game_info)
 }
 
 pub fn get_download_wiitdb_to_drive_task(state: &State) -> Task<Message> {
