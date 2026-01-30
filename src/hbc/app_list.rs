@@ -47,6 +47,11 @@ impl HbcAppList {
     }
 
     #[inline]
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut HbcApp> {
+        self.list.iter_mut()
+    }
+
+    #[inline]
     pub const fn total_size(&self) -> Size {
         self.total_size
     }

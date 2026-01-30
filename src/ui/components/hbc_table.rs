@@ -1,17 +1,36 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{hbc::app::HbcApp, message::Message, state::State, ui::Screen};
+use crate::{
+    hbc::app::HbcApp,
+    message::Message,
+    state::State,
+    ui::{Screen, components::my_tooltip},
+};
 use iced::{
     Alignment, Element, Length,
     widget::{button, container, row, table, text},
 };
-use lucide_icons::iced::{icon_info, icon_trash};
+use lucide_icons::iced::{icon_circle_arrow_up, icon_info, icon_trash};
 
 pub fn view(state: &State) -> Element<'_, Message> {
     let t_columns = vec![
         table::column(text("Name").size(16), |app: &HbcApp| {
-            text(app.meta().name())
+            let mut row = row![text(app.meta().name())].spacing(5);
+
+            if let Some(osc_i) = app.osc_i() {
+                let osc_app = state.osc_app_list.get_unchecked(osc_i);
+
+                if app.meta().version() != osc_app.version() {
+                    let btn = button(icon_circle_arrow_up())
+                        .style(button::text)
+                        .padding(0)
+                        .on_press_with(|| Message::AskInstallOscApp(osc_app.clone()));
+                    row = row.push(my_tooltip::view(btn, "Update to latest version"));
+                }
+            }
+
+            row
         }),
         table::column(text("Version").size(16), |app: &HbcApp| {
             container(text(app.meta().version()).wrapping(text::Wrapping::WordOrGlyph))

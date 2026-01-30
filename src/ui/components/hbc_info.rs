@@ -12,11 +12,11 @@ use iced::{
     widget::{button, column, container, image, row, rule, scrollable, space, stack, text},
 };
 use lucide_icons::iced::{
-    icon_calendar, icon_clipboard_list, icon_file_text, icon_folder, icon_globe, icon_info,
-    icon_tag, icon_trash, icon_waves, icon_weight,
+    icon_calendar, icon_circle_arrow_up, icon_clipboard_list, icon_file_text, icon_folder,
+    icon_globe, icon_info, icon_tag, icon_trash, icon_waves, icon_weight,
 };
 
-pub fn view<'a>(_state: &State, app: &'a HbcApp) -> Element<'a, Message> {
+pub fn view<'a>(state: &'a State, app: &'a HbcApp) -> Element<'a, Message> {
     let details = column![
         row![icon_info(), "Details"].spacing(5),
         rule::horizontal(1),
@@ -53,6 +53,32 @@ pub fn view<'a>(_state: &State, app: &'a HbcApp) -> Element<'a, Message> {
     .width(Length::Fill)
     .spacing(5);
 
+    let mut actions = row![
+        button(row![icon_globe(), text("OSC page")].spacing(5))
+            .style(style::rounded_button)
+            .on_press_with(|| Message::OpenThat(app.oscwii_uri())),
+    ]
+    .spacing(5)
+    .padding(5);
+
+    if let Some(osc_i) = app.osc_i() {
+        let osc_app = state.osc_app_list.get_unchecked(osc_i);
+
+        if app.meta().version() != osc_app.version() {
+            actions = actions.push(
+                button(row![icon_circle_arrow_up(), text("Update to latest version")].spacing(5))
+                    .style(style::rounded_button)
+                    .on_press_with(|| Message::AskInstallOscApp(osc_app.clone())),
+            );
+        }
+    }
+
+    actions = actions.push(
+        button(row![icon_trash(), text("Delete")].spacing(5))
+            .style(style::rounded_button)
+            .on_press_with(|| Message::AskDeleteDirConfirmation(app.path().clone())),
+    );
+
     let col = column![
         row![icon_waves().size(18), text(app.meta().name()).size(18)]
             .spacing(5)
@@ -78,16 +104,7 @@ pub fn view<'a>(_state: &State, app: &'a HbcApp) -> Element<'a, Message> {
         )
         .spacing(1)
         .height(Length::Fill),
-        row![
-            button(row![icon_globe(), text("Open OSC page")].spacing(5))
-                .style(style::rounded_button)
-                .on_press_with(|| Message::OpenThat(app.oscwii_uri())),
-            button(row![icon_trash(), text("Delete")].spacing(5))
-                .style(style::rounded_danger_button)
-                .on_press_with(|| Message::AskDeleteDirConfirmation(app.path().clone())),
-        ]
-        .spacing(5)
-        .padding(5)
+        actions
     ];
 
     match app.image_path() {

@@ -52,6 +52,8 @@ pub struct HbcApp {
     size: Size,
     path: PathBuf,
     image_path: Option<PathBuf>,
+    #[getter(copy)]
+    osc_i: Option<usize>,
 }
 
 impl PartialEq for HbcApp {
@@ -98,6 +100,7 @@ impl HbcApp {
             size: Size::from_bytes(size),
             path,
             image_path,
+            osc_i: None,
         })
     }
 
@@ -112,6 +115,10 @@ impl HbcApp {
             }
             None => "https://oscwii.org/404".into(),
         }
+    }
+
+    pub fn set_osc_i(&mut self, i: usize) {
+        self.osc_i = Some(i);
     }
 }
 

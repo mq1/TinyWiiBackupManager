@@ -30,10 +30,14 @@ impl OscAppList {
         }
     }
 
-    #[allow(unused)]
     #[inline]
-    pub fn count(&self) -> usize {
-        self.list.len()
+    pub fn is_empty(&self) -> bool {
+        self.list.is_empty()
+    }
+
+    #[inline]
+    pub fn get_unchecked(&self, i: usize) -> &OscAppMeta {
+        &self.list[i]
     }
 
     #[inline]

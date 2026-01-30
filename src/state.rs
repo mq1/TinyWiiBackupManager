@@ -291,7 +291,15 @@ impl State {
                 task1.chain(task2)
             }
             Message::GotOscAppList(Ok(app_list)) => {
+                // match installed apps
+                for app in self.hbc_app_list.iter_mut() {
+                    if let Some(i) = app_list.iter().position(|a| a.name() == app.meta().name()) {
+                        app.set_osc_i(i);
+                    }
+                }
+
                 self.osc_app_list = app_list;
+
                 Task::none()
             }
             Message::UpdateOscFilter(filter) => {
@@ -305,9 +313,23 @@ impl State {
 
                 covers::get_cache_cover3ds_task(self)
             }
-            Message::GotHbcAppList(Ok(app_list)) => {
+            Message::GotHbcAppList(Ok(mut app_list)) => {
+                // match osc apps
+                if !self.osc_app_list.is_empty() {
+                    for app in app_list.iter_mut() {
+                        if let Some(i) = self
+                            .osc_app_list
+                            .iter()
+                            .position(|a| a.name() == app.meta().name())
+                        {
+                            app.set_osc_i(i);
+                        }
+                    }
+                }
+
                 self.hbc_app_list = app_list;
                 self.hbc_app_list.sort(SortBy::None, self.config.sort_by());
+
                 Task::none()
             }
             Message::GotDriveInfo(drive_info) => {
