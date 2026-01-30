@@ -15,6 +15,10 @@ pub const LATEST_VERSION_DOWNLOAD_URL: &str =
     concat!(env!("CARGO_PKG_REPOSITORY"), "/releases/latest");
 
 fn check() -> Result<Option<Version>> {
+    if std::env::var("TWBM_DISABLE_UPDATES").is_ok_and(|v| v == "1") {
+        return Ok(None);
+    }
+
     let body = http_util::get_string(VERSION_URL)?;
 
     let latest_version = Version::parse(&body)?;
