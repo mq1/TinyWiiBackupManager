@@ -17,6 +17,11 @@ fn str_to_game_id(id: &str) -> Option<[u8; 6]> {
     }
 }
 
+fn u32_to_u24_le(n: u32) -> [u8; 3] {
+    let bytes = n.to_le_bytes();
+    [bytes[0], bytes[1], bytes[2]]
+}
+
 fn parse_titles_txt() -> Vec<([u8; 6], String)> {
     let mut title_map = Vec::new();
 
@@ -79,7 +84,7 @@ fn serialize_id_map() {
         let title_len: u8 = title.len().try_into().unwrap();
 
         out.write_all(&game_id).unwrap();
-        out.write_all(&ghid.to_le_bytes()).unwrap();
+        out.write_all(&u32_to_u24_le(ghid)).unwrap();
         out.write_all(&[title_len]).unwrap();
         out.write_all(title.as_bytes()).unwrap();
     }

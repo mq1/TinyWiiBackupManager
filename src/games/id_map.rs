@@ -11,6 +11,10 @@ const COMPRESSED_ID_MAP: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/id_ma
 
 include!(concat!(env!("OUT_DIR"), "/id_map_meta.rs"));
 
+fn u24_le_to_u32(buf: [u8; 3]) -> u32 {
+    u32::from_le_bytes([buf[0], buf[1], buf[2], 0])
+}
+
 pub struct IdMap {
     ids: Vec<GameID>,
     ghids: Vec<u32>,
@@ -53,11 +57,11 @@ fn deserialize_id_map() -> IdMap {
         ids.push(game_id.into());
         cursor += 6;
 
-        // Parse gamehacking id (4 bytes)
-        let gh_slice = &input[cursor..cursor + 4];
-        let gamehacking_id = u32::from_le_bytes(gh_slice.try_into().unwrap());
+        // Parse gamehacking id (3 bytes)
+        let gh_slice = &input[cursor..cursor + 3];
+        let gamehacking_id = u24_le_to_u32(gh_slice.try_into().unwrap());
         ghids.push(gamehacking_id);
-        cursor += 4;
+        cursor += 3;
 
         // Parse title len
         let str_len = input[cursor] as usize;
