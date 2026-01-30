@@ -17,6 +17,10 @@ pub fn get(url: &str) -> Result<Vec<u8>> {
     }
 
     let bytes = resp.into_bytes();
+    if bytes.is_empty() {
+        bail!("HTTP error: Empty response");
+    }
+
     Ok(bytes)
 }
 
@@ -30,6 +34,10 @@ pub fn get_string(url: &str) -> Result<String> {
     }
 
     let string = resp.as_str()?.to_string();
+    if string.is_empty() {
+        bail!("HTTP error: Empty response");
+    }
+
     Ok(string)
 }
 
@@ -60,5 +68,9 @@ pub fn send_form(url: &str, form: &str) -> Result<Vec<u8>> {
     }
 
     let bytes = resp.into_bytes();
+    if bytes.is_empty() {
+        bail!("HTTP error: Empty response");
+    }
+
     Ok(bytes)
 }
