@@ -27,11 +27,12 @@ impl IdMap {
     pub fn get_title(&self, game_id: GameID) -> Option<&str> {
         let i = self.ids.binary_search(&game_id).ok()?;
 
-        let start = self.title_offsets[i];
-        let len = self.data[start - 1] as usize;
-
-        let slice = &self.data[start..start + len];
-        unsafe { Some(str::from_utf8_unchecked(slice)) }
+        unsafe {
+            let start = *self.title_offsets.get_unchecked(i);
+            let len = *self.data.get_unchecked(start - 1) as usize;
+            let slice = self.data.get_unchecked(start..start + len);
+            Some(str::from_utf8_unchecked(slice))
+        }
     }
 
     pub fn get_ghid(&self, game_id: GameID) -> Option<u32> {
