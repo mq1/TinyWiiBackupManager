@@ -6,7 +6,8 @@ fi
 
 awk -v t="$1" '/^## \[/ && f {exit} $0 ~ "^## \\[" t {f=1; next} f' CHANGELOG.md
 
-echo "## :arrow_down: Recommended downloads for the majority of users\n"
+echo "## :arrow_down: Recommended downloads for the majority of users"
+echo ""
 echo "&rarr; [Windows Installer](https://github.com/mq1/TinyWiiBackupManagerInstaller/releases/latest/download/TinyWiiBackupManagerInstaller.exe)\\"
 echo "&rarr; [Windows x64 Standalone](https://github.com/mq1/TinyWiiBackupManager/releases/download/$1/TinyWiiBackupManager-$1-windows-x86_64.zip)\\"
 echo "&rarr; [macOS Universal Binary](https://github.com/mq1/TinyWiiBackupManager/releases/download/$1/TinyWiiBackupManager-$1-macos-universal.dmg)\\"
