@@ -17,8 +17,8 @@ for res in "${TARGET_RESOLUTIONS[@]}"; do
 done
 
 # Windows
-rm -f package/windows/TinyWiiBackupManager.ico
-magick assets/TinyWiiBackupManager-1024x1024.png ${MAGICK_ARGS} -resize 256x256 package/windows/TinyWiiBackupManager.ico
+rm -f package/windows/icon.ico package/windows/TinyWiiBackupManager-64x64.png
+magick assets/TinyWiiBackupManager-1024x1024.png ${MAGICK_ARGS} -define icon:auto-resize=16,24,32,48,256 package/windows/icon.ico
 magick assets/TinyWiiBackupManager-1024x1024.png ${MAGICK_ARGS} -resize 64x64 package/windows/TinyWiiBackupManager-64x64.png
 oxipng -sao6 package/windows/TinyWiiBackupManager-64x64.png
 
