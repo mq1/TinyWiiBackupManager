@@ -40,9 +40,16 @@ pub static ID_MAP: LazyLock<IdMap> = LazyLock::new(deserialize_id_map);
 /// lots of unsafe, we assume the input data is correct (it always is)
 fn deserialize_id_map() -> IdMap {
     // Decompress
-    let serialized_id_map = zstd::bulk::decompress(COMPRESSED_ID_MAP, ID_MAP_BYTES_LEN)
-        .expect("Failed to decompress ID map")
-        .into_boxed_slice();
+    let mut buf = Box::<[u8]>::new_uninit_slice(ID_MAP_BYTES_LEN);
+    let buf_slice: &mut [u8] =
+        unsafe { std::slice::from_raw_parts_mut(buf.as_mut_ptr().cast(), ID_MAP_BYTES_LEN) };
+
+    let n = zstd::bulk::decompress_to_buffer(COMPRESSED_ID_MAP, buf_slice)
+        .expect("Failed to decompress ID map");
+
+    assert!(n == ID_MAP_BYTES_LEN, "Failed to decompress ID map");
+
+    let serialized_id_map = unsafe { buf.assume_init() };
 
     // Leak the buffer to promote it to &'static [u8]
     // This allows us to store &str references without allocating new Strings.
