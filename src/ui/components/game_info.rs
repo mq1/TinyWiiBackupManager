@@ -31,7 +31,7 @@ pub fn view<'a>(state: &State, game: &'a Game) -> Element<'a, Message> {
             row![icon_disc_3(), text("Disc info")].spacing(5),
             rule::horizontal(1),
             space(),
-            text!("Error: {e}")
+            text(e)
         ]
         .spacing(5)
         .padding(10),
@@ -138,7 +138,7 @@ pub fn view<'a>(state: &State, game: &'a Game) -> Element<'a, Message> {
             row![icon_globe(), text("GameTDB Info")].spacing(5),
             rule::horizontal(1),
             space(),
-            text!("Error: {e}")
+            text(e)
         ]
         .spacing(5)
         .padding(10),
