@@ -2,9 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::message::Message;
-use anyhow::anyhow;
 use iced::{Task, font};
-use std::sync::Arc;
 
 include!(concat!(env!("OUT_DIR"), "/lucide_meta.rs"));
 const COMPRESSED_BYTES: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/lucide.ttf.zst"));
@@ -12,7 +10,7 @@ const COMPRESSED_BYTES: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/lucide
 pub fn get_load_lucide_task() -> Task<Message> {
     Task::future(async { load_lucide() })
         .then(font::load)
-        .map_err(|e| Arc::new(anyhow!("Failed to load lucide.ttf: {e:#?}")))
+        .map_err(|e| format!("Failed to load lucide.ttf: {e:#?}"))
         .map(Message::EmptyResult)
 }
 

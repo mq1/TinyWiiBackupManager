@@ -15,7 +15,6 @@ use iced::{
 use std::{
     fs,
     path::{Path, PathBuf},
-    sync::Arc,
 };
 
 fn download_banner_for_game(mount_point: &Path, game_id: GameID) -> Result<()> {
@@ -43,12 +42,12 @@ fn download_banner_for_game(mount_point: &Path, game_id: GameID) -> Result<()> {
 fn get_download_banners_sipper(
     mount_point: PathBuf,
     game_list: GameList,
-) -> impl Sipper<String, Arc<anyhow::Error>> {
+) -> impl Sipper<String, String> {
     sipper(async move |mut progress| {
         for game in game_list.iter().filter(|g| g.id().is_gc()) {
             if let Err(e) = download_banner_for_game(&mount_point, game.id()) {
-                let e = e.context(format!("Failed to download banner for {}", game.title()));
-                progress.send(Arc::new(e)).await;
+                let msg = format!("Failed to download banner for {}: {:#}", game.title(), e);
+                progress.send(msg).await;
             }
         }
 

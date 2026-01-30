@@ -23,7 +23,6 @@ use std::{
     fs::{self, File},
     io::{self, BufReader, BufWriter, Seek, Write},
     path::PathBuf,
-    sync::Arc,
     thread,
 };
 use zip::ZipArchive;
@@ -51,11 +50,11 @@ impl ConvertForWiiOperation {
     }
 
     #[allow(clippy::too_many_lines)]
-    pub fn run(mut self) -> impl Straw<Option<String>, String, Arc<anyhow::Error>> {
+    pub fn run(mut self) -> impl Straw<Option<String>, String, String> {
         sipper(async move |mut sender| {
             let (mut tx, mut rx) = mpsc::channel(1);
 
-            let handle = thread::spawn(move || -> Result<Option<String>> {
+            let handle = thread::spawn(move || -> Result<()> {
                 let mut files_to_remove = Vec::new();
                 if self.config.remove_sources_games() {
                     files_to_remove.push(self.source_path.clone());
@@ -153,7 +152,7 @@ impl ConvertForWiiOperation {
                     for path in files_to_remove {
                         fs::remove_file(path)?;
                     }
-                    return Ok(None);
+                    return Ok(());
                 }
 
                 fs::create_dir_all(&parent)?;
@@ -241,7 +240,7 @@ impl ConvertForWiiOperation {
                     fs::remove_file(path)?;
                 }
 
-                Ok(Some(format!("Converted {title}")))
+                Ok(())
             });
 
             while let Some(msg) = rx.next().await {
@@ -250,8 +249,9 @@ impl ConvertForWiiOperation {
 
             handle
                 .join()
-                .expect("Failed to convert game")
-                .map_err(Arc::new)
+                .expect("Failed to join thread")
+                .map(|()| None)
+                .map_err(|e| format!("Failed to convert game: {e:#}"))
         })
     }
 

@@ -12,7 +12,6 @@ use size::Size;
 use std::ffi::OsString;
 use std::fs::{self, File};
 use std::path::{Path, PathBuf};
-use std::sync::Arc;
 use time::PrimitiveDateTime;
 use time::macros::format_description;
 use zip::ZipArchive;
@@ -120,7 +119,8 @@ pub fn get_install_hbc_apps_task(state: &State, zip_paths: Vec<PathBuf>) -> Task
     let drive_path = state.config.mount_point().clone();
 
     Task::perform(
-        async move { install_hbc_apps(&zip_paths, &drive_path) }.map_err(Arc::new),
+        async move { install_hbc_apps(&zip_paths, &drive_path) }
+            .map_err(|e| format!("Failed to install apps: {e:#}")),
         Message::HbcAppsInstalled,
     )
 }

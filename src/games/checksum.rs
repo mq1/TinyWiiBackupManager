@@ -14,7 +14,7 @@ use nod::{
     read::{DiscOptions, DiscReader, PartitionEncryption},
     write::{DiscWriter, ProcessOptions, ScrubLevel},
 };
-use std::{sync::Arc, thread};
+use std::thread;
 
 #[derive(Debug, Clone)]
 pub struct ChecksumOperation {
@@ -32,11 +32,11 @@ impl ChecksumOperation {
         }
     }
 
-    pub fn run(self) -> impl Straw<Option<String>, String, Arc<anyhow::Error>> {
+    pub fn run(self) -> impl Straw<Option<String>, String, String> {
         sipper(async move |mut sender| {
             let (mut tx, mut rx) = mpsc::channel(1);
 
-            let handle = thread::spawn(move || -> Result<Option<String>> {
+            let handle = thread::spawn(move || -> Result<String> {
                 let disc_info = DiscInfo::try_from_game_dir(self.source.path())?;
 
                 let (processor_threads, preloader_threads) = get_threads_num();
@@ -86,7 +86,7 @@ impl ChecksumOperation {
                     )
                 };
 
-                Ok(Some(msg))
+                Ok(msg)
             });
 
             while let Some(msg) = rx.next().await {
@@ -95,8 +95,9 @@ impl ChecksumOperation {
 
             handle
                 .join()
-                .expect("Failed to checksum game")
-                .map_err(Arc::new)
+                .expect("Failed to join thread")
+                .map(Some)
+                .map_err(|e| format!("Failed to checksum game: {e:#}"))
         })
     }
 

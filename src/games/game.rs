@@ -13,7 +13,6 @@ use std::{
     ffi::{OsStr, OsString},
     fs,
     path::PathBuf,
-    sync::Arc,
 };
 
 #[derive(Debug, Clone, Getters)]
@@ -116,7 +115,8 @@ impl Game {
         let path = self.path.clone();
 
         Task::perform(
-            async move { DiscInfo::try_from_game_dir(&path) }.map_err(Arc::new),
+            async move { DiscInfo::try_from_game_dir(&path) }
+                .map_err(|e| format!("Failed to load disc info: {e:#}")),
             Message::GotDiscInfo,
         )
     }

@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use derive_getters::Getters;
-use std::fmt::Display;
 
 #[derive(Debug, Clone)]
 pub struct Notifications {
@@ -48,38 +47,38 @@ impl Notifications {
         self.list.clear();
     }
 
-    pub fn info(&mut self, text: impl Display) {
+    pub fn info(&mut self, text: String) {
         println!("INFO: {text}");
 
         self.last_id += 1;
 
         self.list.push(Notification {
             id: self.last_id,
-            text: text.to_string(),
+            text,
             level: NotificationLevel::Info,
         });
     }
 
-    pub fn error(&mut self, e: impl AsRef<anyhow::Error>) {
-        eprintln!("ERROR: {}", e.as_ref());
+    pub fn error(&mut self, text: String) {
+        eprintln!("ERROR: {text}");
 
         self.last_id += 1;
 
         self.list.push(Notification {
             id: self.last_id,
-            text: e.as_ref().to_string(),
+            text,
             level: NotificationLevel::Error,
         });
     }
 
-    pub fn success(&mut self, text: impl Display) {
+    pub fn success(&mut self, text: String) {
         println!("SUCCESS: {text}");
 
         self.last_id += 1;
 
         self.list.push(Notification {
             id: self.last_id,
-            text: text.to_string(),
+            text,
             level: NotificationLevel::Success,
         });
     }

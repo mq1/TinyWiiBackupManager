@@ -26,7 +26,6 @@ use crate::{
     updater,
     util::{DriveInfo, clean_old_files},
 };
-use anyhow::anyhow;
 use iced::{
     Subscription, Task, Theme,
     widget::{
@@ -36,7 +35,7 @@ use iced::{
     window,
 };
 use semver::Version;
-use std::{ffi::OsStr, path::PathBuf, sync::Arc};
+use std::{ffi::OsStr, path::PathBuf};
 
 #[cfg(target_os = "macos")]
 use crate::util::run_dot_clean;
@@ -106,7 +105,7 @@ impl State {
         };
 
         if known_mount_points::check(&initial_state) {
-            initial_state.notifications.info("New drive detected, a path normalization run is recommended\nYou can find it in the Toolbox page");
+            initial_state.notifications.info("New drive detected, a path normalization run is recommended\nYou can find it in the Toolbox page".to_string());
         }
 
         let tasks = Task::batch(vec![
@@ -263,7 +262,7 @@ impl State {
                     let _ = self.update(Message::UpdateConfig(new_config));
 
                     if known_mount_points::check(self) {
-                        self.notifications.info("New drive detected, a path normalization run is recommended\nYou can find it in the Toolbox page");
+                        self.notifications.info("New drive detected, a path normalization run is recommended\nYou can find it in the Toolbox page".to_string());
                     }
 
                     self.update(Message::RefreshGamesAndApps)
@@ -275,7 +274,8 @@ impl State {
                 .and_then(move |id| {
                     let path = path.clone();
                     window::run(id, move |id| {
-                        dialogs::delete_dir(id, &path).map_err(Arc::new)
+                        dialogs::delete_dir(id, &path)
+                            .map_err(|e| format!("Failed to delete directory: {e:#}"))
                     })
                 })
                 .map(Message::DirectoryDeleted),
@@ -350,7 +350,8 @@ impl State {
             Message::UpdateConfig(new_config) => {
                 self.config = new_config;
                 if let Err(e) = self.config.write() {
-                    self.notifications.error(Arc::new(e));
+                    self.notifications
+                        .error(format!("Failed to write config: {e:#}"));
                 }
                 Task::none()
             }
@@ -364,7 +365,7 @@ impl State {
             }
             Message::DownloadWiitdbToDrive => {
                 self.notifications
-                    .info("Downloading wiitdb.xml to drive...");
+                    .info("Downloading wiitdb.xml to drive...".to_string());
                 wiitdb::get_download_wiitdb_to_drive_task(self)
             }
             Message::ChooseHbcAppsToAdd => window::oldest()
@@ -422,7 +423,8 @@ impl State {
                 if let Some(task) = self.transfer_queue.pop_task() {
                     task
                 } else {
-                    self.notifications.success("Finished all game operations!");
+                    self.notifications
+                        .success("Finished all game transfers/conversions!".to_string());
                     Task::none()
                 }
             }
@@ -431,11 +433,11 @@ impl State {
                 Task::none()
             }
             Message::Transferred(Ok(msg)) => {
-                if let Some(msg) = msg {
-                    self.notifications.success(msg);
-                }
-
                 self.status.clear();
+
+                if let Some(msg) = msg {
+                    self.notifications.info(msg);
+                }
 
                 Task::batch(vec![
                     self.update(Message::StartTransfer),
@@ -446,20 +448,20 @@ impl State {
                 self.status.clear();
                 self.notifications.error(e);
                 self.notifications
-                    .error(Arc::new(anyhow!("Aborting queued game operations!")));
+                    .error("Aborting queued game operations!".to_string());
                 self.transfer_queue.cancel_all();
                 self.update(Message::RefreshGamesAndApps)
             }
             Message::GotDiscInfo(res) => {
                 if let Screen::GameInfo(game) = &mut self.screen {
-                    game.set_disc_info(res.map_err(|e| e.to_string()));
+                    game.set_disc_info(res.map_err(|e| e.clone()));
                 }
 
                 Task::none()
             }
             Message::GotGameInfo(res) => {
                 if let Screen::GameInfo(game) = &mut self.screen {
-                    game.set_wiitdb_info(res.map_err(|e| e.to_string()));
+                    game.set_wiitdb_info(res.map_err(|e| e.clone()));
                 }
 
                 Task::none()
@@ -467,18 +469,19 @@ impl State {
             #[cfg(target_os = "macos")]
             Message::RunDotClean => {
                 use iced::futures::TryFutureExt;
-                use std::sync::Arc;
 
                 let mount_point = self.config.mount_point().clone();
 
                 Task::perform(
-                    async move { run_dot_clean(mount_point) }.map_err(Arc::new),
+                    async move { run_dot_clean(mount_point) }
+                        .map_err(|e| format!("dot_clean failed: {e:#}")),
                     Message::GenericResult,
                 )
             }
             Message::OpenThat(uri) => {
                 if let Err(e) = open::that(&uri) {
-                    self.notifications.error(Arc::new(anyhow::Error::from(e)));
+                    self.notifications
+                        .error(format!("Failed to open {}: {:#}", uri.display(), e));
                 }
                 Task::none()
             }
@@ -511,7 +514,7 @@ impl State {
                         .map(Message::ArchiveGame)
                 } else {
                     self.notifications
-                        .error(Arc::new(anyhow!("Could not get game disc file")));
+                        .error("Failed to get source path for archive".to_string());
                     Task::none()
                 }
             }
@@ -527,13 +530,14 @@ impl State {
                 }
             }
             Message::DownloadCoversForUsbLoaderGx => {
-                self.notifications
-                    .info("Downloading covers for USB Loader GX, this may take some time!");
+                self.notifications.info(
+                    "Downloading covers for USB Loader GX, this may take some time!".to_string(),
+                );
                 covers::get_download_all_covers_task(self)
             }
             Message::DownloadCoversForWiiflow => {
                 self.notifications
-                    .info("Downloading covers for Wiiflow, this may take some time!");
+                    .info("Downloading covers for Wiiflow, this may take some time!".to_string());
                 covers::get_download_wiiflow_covers_task(self)
             }
             Message::CloseAllNotifications => {
@@ -543,20 +547,23 @@ impl State {
             Message::DownloadCheatsForGame(game) => {
                 self.notifications
                     .info(format!("Downloading cheats for {}...", game.title()));
-                txtcodes::get_download_cheats_for_game_task(self, game)
+                txtcodes::get_download_cheats_for_game_task(self, &game)
             }
             Message::DownloadCheatsForAllGames => {
                 self.notifications
-                    .info("Downloading cheats for all games, this may take some time!");
+                    .info("Downloading cheats for all games, this may take some time!".to_string());
                 txtcodes::get_download_cheats_for_all_games_task(self)
             }
             Message::DownloadBanners => {
-                self.notifications
-                    .info("Downloading banners for all GameCube games, this may take some time!");
+                self.notifications.info(
+                    "Downloading banners for all GameCube games, this may take some time!"
+                        .to_string(),
+                );
                 banners::get_download_banners_task(self)
             }
             Message::NormalizePaths => {
-                let res = dir_layout::normalize_paths(self.config.mount_point()).map_err(Arc::new);
+                let res = dir_layout::normalize_paths(self.config.mount_point())
+                    .map_err(|e| format!("Failed to normalize paths: {e:#}"));
                 let _ = self.update(Message::GenericResult(res));
                 self.update(Message::RefreshGamesAndApps)
             }
@@ -565,7 +572,8 @@ impl State {
                 .map(Message::Wiiload),
             Message::Wiiload(path) => {
                 if let Some(path) = path {
-                    self.notifications.info("Sending file to Wii...");
+                    self.notifications
+                        .info("Sending file to Wii...".to_string());
                     wiiload::get_send_via_wiiload_task(self, path)
                 } else {
                     Task::none()
@@ -573,7 +581,8 @@ impl State {
             }
             Message::WiiloadOsc(app) => {
                 let zip_url = app.assets().archive().url().clone();
-                self.notifications.info("Sending file to Wii...");
+                self.notifications
+                    .info("Sending file to Wii...".to_string());
                 wiiload::get_download_and_send_via_wiiload_task(self, zip_url)
             }
             Message::ConfirmStripGame(game) => window::oldest()
@@ -606,8 +615,10 @@ impl State {
                 .map(Message::StripAllGames),
             Message::StripAllGames(yes) => {
                 if yes {
-                    self.notifications
-                        .info("Removing update partition from all games, this may take some time!");
+                    self.notifications.info(
+                        "Removing update partition from all games, this may take some time!"
+                            .to_string(),
+                    );
 
                     let is_fat32 = self.drive_info.as_ref().is_some_and(DriveInfo::is_fat32);
 

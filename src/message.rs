@@ -15,14 +15,14 @@ use crate::{
 };
 use iced::widget::{Id, operation::AbsoluteOffset};
 use semver::Version;
-use std::{ffi::OsString, path::PathBuf, sync::Arc};
+use std::{ffi::OsString, path::PathBuf};
 
 #[derive(Debug, Clone)]
 pub enum Message {
     // Notification helpers
-    GenericResult(Result<String, Arc<anyhow::Error>>),
-    EmptyResult(Result<(), Arc<anyhow::Error>>),
-    GenericError(Arc<anyhow::Error>),
+    GenericResult(Result<String, String>),
+    EmptyResult(Result<(), String>),
+    GenericError(String),
     GenericSuccess(String),
     CloseNotification(usize),
     CloseAllNotifications,
@@ -40,12 +40,12 @@ pub enum Message {
     MountPointChosen(Option<PathBuf>),
     OpenThat(OsString),
     AskDeleteDirConfirmation(PathBuf),
-    DirectoryDeleted(Result<(), Arc<anyhow::Error>>),
-    GotLatestVersion(Result<Option<Version>, Arc<anyhow::Error>>),
+    DirectoryDeleted(Result<(), String>),
+    GotLatestVersion(Result<Option<Version>, String>),
     FileDropped(PathBuf),
 
     // Games
-    GotGameList(Result<GameList, Arc<anyhow::Error>>),
+    GotGameList(Result<GameList, String>),
     UpdateGamesFilter(String),
     ShowWii(bool),
     ShowGc(bool),
@@ -55,10 +55,10 @@ pub enum Message {
     AddGamesToTransferStack((Vec<PathBuf>, bool)),
     StartTransfer,
     CancelTransfer(usize),
-    GotDiscInfo(Result<DiscInfo, Arc<anyhow::Error>>),
+    GotDiscInfo(Result<DiscInfo, String>),
     SortGamesAndApps(SortBy),
     UpdateTransferStatus(String),
-    Transferred(Result<Option<String>, Arc<anyhow::Error>>),
+    Transferred(Result<Option<String>, String>),
     ChooseArchiveDest(Option<PathBuf>, String),
     ArchiveGame(Option<(PathBuf, String, PathBuf)>),
     DownloadCoversForUsbLoaderGx,
@@ -75,23 +75,23 @@ pub enum Message {
     ChooseGameToArchiveManually,
     SetManualArchivingGame(Option<PathBuf>),
     RunManualGameArchiving,
-    GotGameInfo(Result<wiitdb::GameInfo, Arc<anyhow::Error>>),
+    GotGameInfo(Result<wiitdb::GameInfo, String>),
 
     // HBC Apps
-    GotHbcAppList(Result<HbcAppList, Arc<anyhow::Error>>),
+    GotHbcAppList(Result<HbcAppList, String>),
     ChooseHbcAppsToAdd,
     AddHbcApps(Vec<PathBuf>),
-    HbcAppsInstalled(Result<String, Arc<anyhow::Error>>),
+    HbcAppsInstalled(Result<String, String>),
     UpdateHbcFilter(String),
     ChooseFileToWiiload,
     Wiiload(Option<PathBuf>),
 
     // OSC Apps
-    GotOscAppList(Result<OscAppList, Arc<anyhow::Error>>),
+    GotOscAppList(Result<OscAppList, String>),
     UpdateOscFilter(String),
     AskInstallOscApp(OscAppMeta),
     InstallOscApp((OscAppMeta, bool)),
-    AppInstalled(Result<String, Arc<anyhow::Error>>),
+    AppInstalled(Result<String, String>),
     WiiloadOsc(OscAppMeta),
 
     // Toolbox

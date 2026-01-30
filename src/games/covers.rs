@@ -16,7 +16,6 @@ use iced::{
 use std::{
     fs,
     path::{Path, PathBuf},
-    sync::Arc,
 };
 
 fn cache_cover3d(id: GameID, cache_dir: &Path) -> Result<()> {
@@ -173,7 +172,8 @@ pub fn get_cache_cover3ds_task(state: &State) -> Task<Message> {
     let game_list = state.game_list.clone();
 
     Task::perform(
-        async move { cache_cover3ds(&cache_dir, &game_list) }.map_err(Arc::new),
+        async move { cache_cover3ds(&cache_dir, &game_list) }
+            .map_err(|e| format!("Failed to cache covers: {e:#}")),
         Message::EmptyResult,
     )
 }
@@ -192,23 +192,31 @@ fn cache_cover3ds(cache_dir: &Path, game_list: &GameList) -> Result<()> {
 fn get_download_all_covers_sipper(
     game_list: GameList,
     mount_point: PathBuf,
-) -> impl Sipper<String, Arc<anyhow::Error>> {
+) -> impl Sipper<String, String> {
     sipper(async move |mut progress| {
         for game in game_list.iter() {
             if let Err(e) = download_cover3d(game.id(), &mount_point) {
-                progress.send(Arc::new(e)).await;
+                let msg = format!("Failed to download cover3d for {}: {:#}", game.title(), e);
+                progress.send(msg).await;
             }
 
             if let Err(e) = download_cover2d(game.id(), &mount_point) {
-                progress.send(Arc::new(e)).await;
+                let msg = format!("Failed to download cover2d for {}: {:#}", game.title(), e);
+                progress.send(msg).await;
             }
 
             if let Err(e) = download_coverfull(game.id(), &mount_point) {
-                progress.send(Arc::new(e)).await;
+                let msg = format!("Failed to download coverfull for {}: {:#}", game.title(), e);
+                progress.send(msg).await;
             }
 
             if let Err(e) = download_disc_cover(game.id(), &mount_point) {
-                progress.send(Arc::new(e)).await;
+                let msg = format!(
+                    "Failed to download disc cover for {}: {:#}",
+                    game.title(),
+                    e
+                );
+                progress.send(msg).await;
             }
         }
 
@@ -230,15 +238,17 @@ pub fn get_download_all_covers_task(state: &State) -> Task<Message> {
 fn get_download_wiiflow_covers_sipper(
     game_list: GameList,
     mount_point: PathBuf,
-) -> impl Sipper<String, Arc<anyhow::Error>> {
+) -> impl Sipper<String, String> {
     sipper(async move |mut progress| {
         for game in game_list.iter() {
             if let Err(e) = download_wiiflow_boxcover(game.id(), &mount_point) {
-                progress.send(Arc::new(e)).await;
+                let msg = format!("Failed to download boxcover for {}: {:#}", game.title(), e);
+                progress.send(msg).await;
             }
 
             if let Err(e) = download_wiiflow_cover(game.id(), &mount_point) {
-                progress.send(Arc::new(e)).await;
+                let msg = format!("Failed to download cover for {}: {:#}", game.title(), e);
+                progress.send(msg).await;
             }
         }
 

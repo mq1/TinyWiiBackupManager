@@ -8,7 +8,7 @@ use crate::{
     message::Message,
     state::State,
 };
-use anyhow::{Context, Result, anyhow};
+use anyhow::{Result, anyhow};
 use iced::{
     Task,
     futures::TryFutureExt,
@@ -17,7 +17,6 @@ use iced::{
 use std::{
     fs,
     path::{Path, PathBuf},
-    sync::Arc,
 };
 
 impl TxtCodesSource {
@@ -55,32 +54,33 @@ impl TxtCodesSource {
 fn download_cheats_for_game(
     mount_point: &Path,
     source: TxtCodesSource,
-    game: &Game,
-) -> Result<String> {
+    game_id: GameID,
+) -> Result<()> {
     let parent = mount_point.join("txtcodes");
-    let path = parent.join(game.id().as_str()).with_extension("txt");
+    let path = parent.join(game_id.as_str()).with_extension("txt");
 
     if path.exists() {
-        return Ok(format!("Cheats for {} already present", game.title()));
+        return Ok(());
     }
 
-    let txtcode = source
-        .get_txtcode(game.id())
-        .context(format!("Failed to download cheats for {}", game.title()))?;
+    let txtcode = source.get_txtcode(game_id)?;
 
     fs::create_dir_all(parent)?;
     fs::write(&path, txtcode)?;
 
-    Ok(format!("Cheats for {} downloaded", game.title()))
+    Ok(())
 }
 
-pub fn get_download_cheats_for_game_task(state: &State, game: Game) -> Task<Message> {
+pub fn get_download_cheats_for_game_task(state: &State, game: &Game) -> Task<Message> {
     let mount_point = state.config.mount_point().clone();
     let source = state.config.txt_codes_source();
+    let game_id = game.id();
+    let game_title = game.title().clone();
 
     Task::perform(
-        async move { download_cheats_for_game(&mount_point, source, &game) }.map_err(Arc::new),
-        Message::GenericResult,
+        async move { download_cheats_for_game(&mount_point, source, game_id) }
+            .map_err(move |e| format!("Failed to download cheats for {game_title}: {e:#}")),
+        Message::EmptyResult,
     )
 }
 
@@ -88,11 +88,12 @@ fn get_download_chats_for_all_games_sipper(
     mount_point: PathBuf,
     game_list: GameList,
     source: TxtCodesSource,
-) -> impl Sipper<String, Arc<anyhow::Error>> {
+) -> impl Sipper<String, String> {
     sipper(async move |mut progress| {
-        for game in game_list.into_iter() {
-            if let Err(e) = download_cheats_for_game(&mount_point, source, &game) {
-                progress.send(Arc::new(e)).await;
+        for game in game_list.iter() {
+            if let Err(e) = download_cheats_for_game(&mount_point, source, game.id()) {
+                let msg = format!("Failed to download cheats for {}: {}", game.title(), e);
+                progress.send(msg).await;
             }
         }
 

@@ -10,7 +10,6 @@ use size::Size;
 use std::{
     ffi::OsString,
     path::{Path, PathBuf},
-    sync::Arc,
 };
 use time::OffsetDateTime;
 
@@ -23,7 +22,8 @@ impl OscAppMeta {
         let app = self.clone();
 
         Task::perform(
-            async move { app.install(&mount_point) }.map_err(Arc::new),
+            async move { app.install(&mount_point) }
+                .map_err(|e| format!("Failed to install app: {e:#}")),
             Message::AppInstalled,
         )
     }

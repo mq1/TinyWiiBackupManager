@@ -17,7 +17,6 @@ use std::fs::{self, File};
 use std::io::{self, BufReader, Cursor};
 use std::path::Path;
 use std::str::FromStr;
-use std::sync::Arc;
 use zip::ZipArchive;
 
 const DOWNLOAD_URL: &str = "https://www.gametdb.com/wiitdb.zip";
@@ -340,7 +339,8 @@ pub fn get_get_game_info_task(state: &State, game: &Game) -> Task<Message> {
     let game_id = game.id();
 
     Task::perform(
-        async move { get_game_info(&mount_point, game_id) }.map_err(Arc::new),
+        async move { get_game_info(&mount_point, game_id) }
+            .map_err(|e| format!("Failed to get game info: {e:#}")),
         Message::GotGameInfo,
     )
 }
@@ -373,7 +373,8 @@ pub fn get_download_wiitdb_to_drive_task(state: &State) -> Task<Message> {
     let mount_point = state.config.mount_point().clone();
 
     Task::perform(
-        async move { download_wiitdb_to_drive(&mount_point) }.map_err(Arc::new),
+        async move { download_wiitdb_to_drive(&mount_point) }
+            .map_err(|e| format!("Failed to download wiitdb.xml: {e:#}")),
         Message::GenericResult,
     )
 }

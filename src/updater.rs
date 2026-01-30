@@ -5,7 +5,6 @@ use crate::{http_util, message::Message};
 use anyhow::Result;
 use iced::{Task, futures::TryFutureExt};
 use semver::Version;
-use std::sync::Arc;
 
 const VERSION_URL: &str = concat!(
     env!("CARGO_PKG_REPOSITORY"),
@@ -30,7 +29,7 @@ fn check() -> Result<Option<Version>> {
 
 pub fn get_check_update_task() -> Task<Message> {
     Task::perform(
-        async { check() }.map_err(Arc::new),
+        async { check() }.map_err(|e| format!("Failed to check for updates: {e:#}")),
         Message::GotLatestVersion,
     )
 }

@@ -18,7 +18,6 @@ use std::{
     fs::File,
     io::{BufWriter, Seek, Write},
     path::PathBuf,
-    sync::Arc,
     thread,
 };
 
@@ -42,11 +41,11 @@ impl ArchiveOperation {
         }
     }
 
-    pub fn run(self) -> impl Straw<Option<String>, String, Arc<anyhow::Error>> {
+    pub fn run(self) -> impl Straw<Option<String>, String, String> {
         sipper(async move |mut sender| {
             let (mut tx, mut rx) = mpsc::channel(1);
 
-            let handle = thread::spawn(move || -> Result<Option<String>> {
+            let handle = thread::spawn(move || -> Result<()> {
                 let Some(out_format) = ext_to_format(self.dest.extension()) else {
                     bail!("Unsupported extension");
                 };
@@ -99,7 +98,7 @@ impl ArchiveOperation {
 
                 out_writer.flush()?;
 
-                Ok(Some(format!("Archived {}", self.title)))
+                Ok(())
             });
 
             while let Some(msg) = rx.next().await {
@@ -108,8 +107,9 @@ impl ArchiveOperation {
 
             handle
                 .join()
-                .expect("Failed to archive game")
-                .map_err(Arc::new)
+                .expect("Failed to join thread")
+                .map(|()| None)
+                .map_err(|e| format!("Failed to archive game: {e:#}"))
         })
     }
 

@@ -10,7 +10,6 @@ use std::{
     io::{self, Cursor, Read, Seek},
     net::Ipv4Addr,
     path::{Path, PathBuf},
-    sync::Arc,
 };
 use zip::{CompressionMethod, ZipArchive, ZipWriter, write::SimpleFileOptions};
 
@@ -103,7 +102,8 @@ pub fn get_send_via_wiiload_task(state: &State, path: PathBuf) -> Task<Message> 
     let wii_ip = state.config.wii_ip().clone();
 
     Task::perform(
-        async move { send_via_wiiload(&wii_ip, &path) }.map_err(Arc::new),
+        async move { send_via_wiiload(&wii_ip, &path) }
+            .map_err(|e| format!("Failed to send file: {e:#}")),
         Message::GenericResult,
     )
 }
@@ -125,7 +125,8 @@ pub fn get_download_and_send_via_wiiload_task(state: &State, zip_url: String) ->
     let wii_ip = state.config.wii_ip().clone();
 
     Task::perform(
-        async move { download_and_send_via_wiiload(&wii_ip, &zip_url) }.map_err(Arc::new),
+        async move { download_and_send_via_wiiload(&wii_ip, &zip_url) }
+            .map_err(|e| format!("Failed to send file: {e:#}")),
         Message::GenericResult,
     )
 }

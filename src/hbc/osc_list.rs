@@ -5,7 +5,7 @@ use crate::{hbc::osc::OscAppMeta, http_util, message::Message, state::State};
 use anyhow::Result;
 use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
 use iced::{Task, futures::TryFutureExt};
-use std::{fs, path::Path, sync::Arc, time::Duration};
+use std::{fs, path::Path, time::Duration};
 
 const CONTENTS_URL: &str = "https://hbb1.oscwii.org/api/v4/contents";
 
@@ -72,7 +72,8 @@ pub fn get_load_osc_apps_task(state: &State) -> Task<Message> {
     let data_dir = state.data_dir.clone();
 
     Task::perform(
-        async move { load_osc_apps(&data_dir) }.map_err(Arc::new),
+        async move { load_osc_apps(&data_dir) }
+            .map_err(|e| format!("Failed to load OSC apps: {e:#}")),
         Message::GotOscAppList,
     )
 }
@@ -114,7 +115,8 @@ pub fn get_download_icons_task(state: &State) -> Task<Message> {
     let icons_dir = state.data_dir.join("osc-icons");
 
     Task::perform(
-        async move { download_icons(&app_list, &icons_dir) }.map_err(Arc::new),
+        async move { download_icons(&app_list, &icons_dir) }
+            .map_err(|e| format!("Failed to download OSC icons: {e:#}")),
         Message::EmptyResult,
     )
 }

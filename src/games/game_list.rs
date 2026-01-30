@@ -9,7 +9,6 @@ use size::Size;
 use std::{
     fs,
     path::{Path, PathBuf},
-    sync::Arc,
 };
 
 #[derive(Debug, Clone)]
@@ -67,11 +66,6 @@ impl GameList {
     #[inline]
     pub fn iter(&self) -> impl Iterator<Item = &Game> {
         self.list.iter()
-    }
-
-    #[inline]
-    pub fn into_iter(self) -> impl Iterator<Item = Game> {
-        self.list.into_iter()
     }
 
     #[inline]
@@ -209,7 +203,7 @@ pub fn get_list_games_task(state: &State) -> Task<Message> {
     let drive_path = state.config.mount_point().clone();
 
     Task::perform(
-        async move { list(&drive_path) }.map_err(Arc::new),
+        async move { list(&drive_path) }.map_err(|e| format!("Failed to list games: {e:#}")),
         Message::GotGameList,
     )
 }

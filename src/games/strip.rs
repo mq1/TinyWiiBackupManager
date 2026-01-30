@@ -19,7 +19,6 @@ use std::{
     fs::{self, File},
     io::{BufWriter, Seek, Write},
     path::PathBuf,
-    sync::Arc,
     thread,
 };
 
@@ -43,14 +42,14 @@ impl StripOperation {
         }
     }
 
-    pub fn run(self) -> impl Straw<Option<String>, String, Arc<anyhow::Error>> {
+    pub fn run(self) -> impl Straw<Option<String>, String, String> {
         sipper(async move |mut sender| {
             let (mut tx, mut rx) = mpsc::channel(1);
 
-            let handle = thread::spawn(move || -> Result<Option<String>> {
+            let handle = thread::spawn(move || -> Result<()> {
                 let disc_info = DiscInfo::try_from_game_dir(self.source.path())?;
                 if !disc_info.is_worth_stripping() {
-                    return Ok(None);
+                    return Ok(());
                 }
 
                 let (processor_threads, preloader_threads) = get_threads_num();
@@ -141,7 +140,7 @@ impl StripOperation {
                     fs::rename(overflow_path, disc_info.disc_path().with_extension("wbf1"))?;
                 }
 
-                Ok(Some(format!("Removed update partition from {game_title}")))
+                Ok(())
             });
 
             while let Some(msg) = rx.next().await {
@@ -150,8 +149,9 @@ impl StripOperation {
 
             handle
                 .join()
-                .expect("Failed to remove update partion")
-                .map_err(Arc::new)
+                .expect("Failed to join thread")
+                .map(|()| None)
+                .map_err(|e| format!("Failed to remove update partion: {e:#}"))
         })
     }
 
