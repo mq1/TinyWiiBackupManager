@@ -59,6 +59,7 @@ pub struct State {
     pub transfer_queue: TransferQueue,
     pub status: String,
     pub manual_archiving_game: Option<PathBuf>,
+    pub osc_icons_download_started: bool,
 
     // scroll positions
     pub games_scroll_id: Id,
@@ -92,6 +93,7 @@ impl State {
             transfer_queue: TransferQueue::new(),
             status: String::new(),
             manual_archiving_game: None,
+            osc_icons_download_started: false,
 
             // scroll positions
             games_scroll_id: Id::unique(),
@@ -158,7 +160,8 @@ impl State {
             | Message::GotOscAppList(Err(e))
             | Message::GotGameList(Err(e))
             | Message::GotLatestVersion(Err(e))
-            | Message::GotHbcAppList(Err(e)) => {
+            | Message::GotHbcAppList(Err(e))
+            | Message::DirectoryDeleted(Err(e)) => {
                 self.notifications.error(e);
                 Task::none()
             }
@@ -185,7 +188,17 @@ impl State {
             }
             Message::NavTo(Screen::Osc) => {
                 self.screen = Screen::Osc;
-                operation::scroll_to(self.osc_scroll_id.clone(), self.osc_scroll_offset)
+
+                let task1 =
+                    operation::scroll_to(self.osc_scroll_id.clone(), self.osc_scroll_offset);
+
+                if self.osc_icons_download_started {
+                    task1
+                } else {
+                    self.osc_icons_download_started = true;
+                    let task2 = hbc::osc_list::get_load_osc_apps_task(self);
+                    task1.chain(task2)
+                }
             }
             Message::NavTo(Screen::OscInfo(app)) => {
                 self.screen = Screen::OscInfo(app);
@@ -265,23 +278,20 @@ impl State {
                     })
                 })
                 .map(Message::DirectoryDeleted),
-            Message::DirectoryDeleted(res) => {
-                let mut tasks = vec![
-                    self.update(Message::EmptyResult(res)),
-                    self.update(Message::RefreshGamesAndApps),
-                ];
+            Message::DirectoryDeleted(Ok(())) => {
+                let task1 = match &self.screen {
+                    Screen::GameInfo(_) => self.update(Message::NavTo(Screen::Games)),
+                    Screen::HbcInfo(_) => self.update(Message::NavTo(Screen::HbcApps)),
+                    _ => Task::none(),
+                };
 
-                if let Screen::GameInfo(_) = &self.screen {
-                    tasks.push(self.update(Message::NavTo(Screen::Games)));
-                } else if let Screen::HbcInfo(_) = &self.screen {
-                    tasks.push(self.update(Message::NavTo(Screen::HbcApps)));
-                }
+                let task2 = self.update(Message::RefreshGamesAndApps);
 
-                Task::batch(tasks)
+                task1.chain(task2)
             }
             Message::GotOscAppList(Ok(app_list)) => {
                 self.osc_app_list = app_list;
-                hbc::osc_list::get_download_icons_task(self)
+                Task::none()
             }
             Message::UpdateOscFilter(filter) => {
                 self.osc_app_list.fuzzy_search(&filter);
@@ -317,10 +327,10 @@ impl State {
                     Task::none()
                 }
             }
-            Message::AppInstalled(res) => Task::batch(vec![
-                self.update(Message::GenericResult(res)),
-                self.update(Message::RefreshGamesAndApps),
-            ]),
+            Message::AppInstalled(res) => {
+                let _ = self.update(Message::GenericResult(res));
+                self.update(Message::RefreshGamesAndApps)
+            }
             Message::UpdateHbcFilter(filter) => {
                 self.hbc_app_list.fuzzy_search(&filter);
                 self.hbc_filter = filter;
@@ -366,10 +376,10 @@ impl State {
                     hbc::app::get_install_hbc_apps_task(self, apps)
                 }
             }
-            Message::HbcAppsInstalled(res) => Task::batch(vec![
-                self.update(Message::GenericResult(res)),
-                self.update(Message::RefreshGamesAndApps),
-            ]),
+            Message::HbcAppsInstalled(res) => {
+                let _ = self.update(Message::GenericResult(res));
+                self.update(Message::RefreshGamesAndApps)
+            }
             Message::ChooseGamesToAdd => window::oldest()
                 .and_then(|id| window::run(id, dialogs::choose_games))
                 .map(Message::ConfirmAddGamesToTransferStack),
@@ -546,11 +556,8 @@ impl State {
             }
             Message::NormalizePaths => {
                 let res = dir_layout::normalize_paths(self.config.mount_point()).map_err(Arc::new);
-
-                Task::batch(vec![
-                    self.update(Message::GenericResult(res)),
-                    self.update(Message::RefreshGamesAndApps),
-                ])
+                let _ = self.update(Message::GenericResult(res));
+                self.update(Message::RefreshGamesAndApps)
             }
             Message::ChooseFileToWiiload => window::oldest()
                 .and_then(|id| window::run(id, dialogs::choose_file_to_wiiload))
