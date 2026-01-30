@@ -459,7 +459,7 @@ impl State {
             }
             Message::GotGameInfo(res) => {
                 if let Screen::GameInfo(game) = &mut self.screen {
-                    game.set_game_info(res.map_err(|e| e.to_string()));
+                    game.set_wiitdb_info(res.map_err(|e| e.to_string()));
                 }
 
                 Task::none()

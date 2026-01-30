@@ -25,7 +25,7 @@ pub struct Game {
     #[getter(copy)]
     id: GameID,
     disc_info: Option<Result<DiscInfo, String>>,
-    game_info: Option<Result<GameInfo, String>>,
+    wiitdb_info: Option<Result<GameInfo, String>>,
 }
 
 impl PartialEq for Game {
@@ -64,7 +64,7 @@ impl Game {
             title,
             id,
             disc_info: None,
-            game_info: None,
+            wiitdb_info: None,
         })
     }
 
@@ -121,8 +121,8 @@ impl Game {
         )
     }
 
-    pub fn set_game_info(&mut self, res: Result<GameInfo, String>) {
-        self.game_info = Some(res);
+    pub fn set_wiitdb_info(&mut self, res: Result<GameInfo, String>) {
+        self.wiitdb_info = Some(res);
     }
 
     pub fn set_disc_info(&mut self, res: Result<DiscInfo, String>) {

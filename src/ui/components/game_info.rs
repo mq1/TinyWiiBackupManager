@@ -125,7 +125,7 @@ pub fn view<'a>(state: &State, game: &'a Game) -> Element<'a, Message> {
         }
     };
 
-    let game_info = match game.game_info() {
+    let game_info = match game.wiitdb_info() {
         None => column![
             row![icon_globe(), text("GameTDB Info")].spacing(5),
             rule::horizontal(1),
