@@ -17,17 +17,21 @@ fn u24_le_to_u32(buf: [u8; 3]) -> u32 {
 }
 
 pub struct IdMap {
+    data: Box<[u8]>,
     ids: [GameID; ID_COUNT],
     ghids: Box<[u32]>,
-    titles: Box<[&'static str]>,
+    title_offsets: Box<[usize]>,
 }
 
 impl IdMap {
     pub fn get_title(&self, game_id: GameID) -> Option<&str> {
-        self.ids
-            .binary_search(&game_id)
-            .ok()
-            .map(|i| self.titles[i])
+        let i = self.ids.binary_search(&game_id).ok()?;
+
+        let start = self.title_offsets[i];
+        let len = self.data[start - 1] as usize;
+
+        let slice = &self.data[start..start + len];
+        unsafe { Some(str::from_utf8_unchecked(slice)) }
     }
 
     pub fn get_ghid(&self, game_id: GameID) -> Option<u32> {
@@ -49,22 +53,18 @@ fn deserialize_id_map() -> IdMap {
 
     assert!(n == ID_MAP_BYTES_LEN, "Failed to decompress ID map");
 
-    let serialized_id_map = unsafe { buf.assume_init() };
-
-    // Leak the buffer to promote it to &'static [u8]
-    // This allows us to store &str references without allocating new Strings.
-    let input: &'static [u8] = Box::leak(serialized_id_map);
+    let data = unsafe { buf.assume_init() };
 
     let mut ids = MaybeUninit::<[GameID; ID_COUNT]>::uninit();
     let mut ghids = Box::<[u32]>::new_uninit_slice(ID_COUNT);
-    let mut titles = Box::<[&'static str]>::new_uninit_slice(ID_COUNT);
+    let mut title_offsets = Box::<[usize]>::new_uninit_slice(ID_COUNT);
 
     let mut cursor = 0;
     let mut i = 0;
 
     while i < ID_COUNT {
         // Parse game id (6 bytes)
-        let gid_slice = &input[cursor..cursor + 6];
+        let gid_slice = &data[cursor..cursor + 6];
         let game_id: [u8; 6] = gid_slice.try_into().unwrap();
         unsafe {
             let ids_ptr = ids.as_mut_ptr().cast::<GameID>();
@@ -73,19 +73,15 @@ fn deserialize_id_map() -> IdMap {
         cursor += 6;
 
         // Parse gamehacking id (3 bytes)
-        let gh_slice = &input[cursor..cursor + 3];
+        let gh_slice = &data[cursor..cursor + 3];
         let gamehacking_id = u24_le_to_u32(gh_slice.try_into().unwrap());
         ghids[i].write(gamehacking_id);
         cursor += 3;
 
-        // Parse title len
-        let str_len = input[cursor] as usize;
+        // Parse title
+        let str_len = data[cursor] as usize;
         cursor += 1;
-
-        // Parse title string
-        let title_slice = &input[cursor..cursor + str_len];
-        let title = unsafe { str::from_utf8_unchecked(title_slice) };
-        titles[i].write(title);
+        title_offsets[i].write(cursor);
 
         cursor += str_len;
         i += 1;
@@ -93,9 +89,14 @@ fn deserialize_id_map() -> IdMap {
 
     let ids = unsafe { ids.assume_init() };
     let ghids = unsafe { ghids.assume_init() };
-    let titles = unsafe { titles.assume_init() };
+    let title_offsets = unsafe { title_offsets.assume_init() };
 
-    IdMap { ids, ghids, titles }
+    IdMap {
+        data,
+        ids,
+        ghids,
+        title_offsets,
+    }
 }
 
 pub fn get_init_task() -> Task<Message> {
