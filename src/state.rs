@@ -24,7 +24,7 @@ use crate::{
     notifications::Notifications,
     ui::{Screen, dialogs, lucide},
     updater,
-    util::DriveInfo,
+    util::{DriveInfo, clean_old_files},
 };
 use anyhow::anyhow;
 use iced::{
@@ -74,6 +74,7 @@ impl State {
     pub fn new() -> (Self, Task<Message>) {
         let data_dir = get_data_dir().expect("Failed to get data dir");
         let config = Config::load(&data_dir);
+        clean_old_files(&data_dir);
 
         let mut initial_state = Self {
             screen: Screen::Games,
@@ -196,7 +197,7 @@ impl State {
                     task1
                 } else {
                     self.osc_icons_download_started = true;
-                    let task2 = hbc::osc_list::get_load_osc_apps_task(self);
+                    let task2 = hbc::osc_list::get_download_icons_task(self);
                     task1.chain(task2)
                 }
             }

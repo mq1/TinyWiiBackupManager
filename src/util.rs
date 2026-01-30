@@ -4,7 +4,7 @@
 use crate::{message::Message, state::State};
 use derive_getters::Getters;
 use iced::Task;
-use std::path::Path;
+use std::{fs, path::Path};
 use sysinfo::Disks;
 
 const GIB: u64 = 1024 * 1024 * 1024;
@@ -92,4 +92,19 @@ pub fn run_dot_clean(mount_point: std::path::PathBuf) -> anyhow::Result<String> 
         }
         Err(e) => Err(anyhow::anyhow!("dot_clean failed: {e}")),
     }
+}
+
+/// Leftovers from previous versions
+pub fn clean_old_files(data_dir: &Path) {
+    let wiitdb_path = data_dir.join("wiitdb.xml");
+    let _ = fs::remove_file(wiitdb_path);
+
+    let titles_path = data_dir.join("titles.txt");
+    let _ = fs::remove_file(titles_path);
+
+    let redump_wii_path = data_dir.join("redump-wii.dat");
+    let _ = fs::remove_file(redump_wii_path);
+
+    let redump_gc_path = data_dir.join("redump-gc.dat");
+    let _ = fs::remove_file(redump_gc_path);
 }
