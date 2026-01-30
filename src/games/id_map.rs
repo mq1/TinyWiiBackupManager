@@ -16,9 +16,9 @@ fn u24_le_to_u32(buf: [u8; 3]) -> u32 {
 }
 
 pub struct IdMap {
-    ids: Vec<GameID>,
-    ghids: Vec<u32>,
-    titles: Vec<&'static str>,
+    ids: Box<[GameID]>,
+    ghids: Box<[u32]>,
+    titles: Box<[&'static str]>,
 }
 
 impl IdMap {
@@ -39,28 +39,31 @@ pub static ID_MAP: LazyLock<IdMap> = LazyLock::new(deserialize_id_map);
 fn deserialize_id_map() -> IdMap {
     // Decompress
     let serialized_id_map = zstd::bulk::decompress(COMPRESSED_ID_MAP, ID_MAP_BYTES_LEN)
-        .expect("Failed to decompress ID map");
+        .expect("Failed to decompress ID map")
+        .into_boxed_slice();
 
     // Leak the buffer to promote it to &'static [u8]
     // This allows us to store &str references without allocating new Strings.
-    let input: &'static [u8] = Box::leak(serialized_id_map.into_boxed_slice());
+    let input: &'static [u8] = Box::leak(serialized_id_map);
 
-    let mut ids = Vec::with_capacity(ID_COUNT);
-    let mut ghids = Vec::with_capacity(ID_COUNT);
-    let mut titles = Vec::with_capacity(ID_COUNT);
+    let mut ids = Box::<[GameID]>::new_uninit_slice(ID_COUNT);
+    let mut ghids = Box::<[u32]>::new_uninit_slice(ID_COUNT);
+    let mut titles = Box::<[&'static str]>::new_uninit_slice(ID_COUNT);
 
     let mut cursor = 0;
-    while cursor < input.len() {
+    let mut i = 0;
+
+    while i < ID_COUNT {
         // Parse game id (6 bytes)
         let gid_slice = &input[cursor..cursor + 6];
         let game_id: [u8; 6] = gid_slice.try_into().unwrap();
-        ids.push(game_id.into());
+        ids[i].write(game_id.into());
         cursor += 6;
 
         // Parse gamehacking id (3 bytes)
         let gh_slice = &input[cursor..cursor + 3];
         let gamehacking_id = u24_le_to_u32(gh_slice.try_into().unwrap());
-        ghids.push(gamehacking_id);
+        ghids[i].write(gamehacking_id);
         cursor += 3;
 
         // Parse title len
@@ -70,10 +73,15 @@ fn deserialize_id_map() -> IdMap {
         // Parse title string
         let title_slice = &input[cursor..cursor + str_len];
         let title = unsafe { str::from_utf8_unchecked(title_slice) };
-        titles.push(title);
+        titles[i].write(title);
 
         cursor += str_len;
+        i += 1;
     }
+
+    let ids = unsafe { ids.assume_init() };
+    let ghids = unsafe { ghids.assume_init() };
+    let titles = unsafe { titles.assume_init() };
 
     IdMap { ids, ghids, titles }
 }
