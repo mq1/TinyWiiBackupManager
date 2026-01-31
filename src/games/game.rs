@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    games::{disc_info::DiscInfo, game_id::GameID, id_map::ID_MAP, wiitdb::GameInfo},
+    games::{disc_info::DiscInfo, game_id::GameID, id_map, wiitdb::GameInfo},
     message::Message,
 };
 use anyhow::{Result, anyhow};
@@ -50,7 +50,7 @@ impl Game {
         let id_str = id_str.strip_suffix(']')?;
         let id = GameID::try_from(id_str).ok()?;
 
-        let title = match ID_MAP.get_title(id) {
+        let title = match id_map::get_title(id) {
             Some(title) => title.to_string(),
             None => title_str.to_string(),
         };

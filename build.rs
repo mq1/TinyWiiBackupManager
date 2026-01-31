@@ -1,9 +1,11 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#![allow(clippy::cast_possible_truncation)]
+
 use lucide_icons::LUCIDE_FONT_BYTES;
 use regex::Regex;
-use std::io::Write;
+use std::fmt::Write;
 use std::path::Path;
 use std::{env, fs};
 
@@ -15,11 +17,6 @@ fn str_to_game_id(id: &str) -> Option<[u8; 6]> {
         4 => Some([id[0], id[1], id[2], id[3], 0, 0]),
         _ => None,
     }
-}
-
-fn u32_to_u24_le(n: u32) -> [u8; 3] {
-    let bytes = n.to_le_bytes();
-    [bytes[0], bytes[1], bytes[2]]
 }
 
 fn parse_titles_txt() -> Vec<([u8; 6], String)> {
@@ -66,38 +63,88 @@ fn parse_gamehacking_ids() -> Vec<([u8; 6], u32)> {
     id_map
 }
 
-fn serialize_id_map() {
+fn serialize_title_map() -> (usize, Vec<u32>) {
+    let title_map = parse_titles_txt();
+
+    let mut data = Vec::new();
+    let mut offsets = Vec::new();
+
+    let mut current_offset = 0;
+    for (_, title) in title_map {
+        offsets.push(current_offset);
+        current_offset += title.len() as u32;
+
+        let mut bytes = title.into_bytes();
+        data.append(&mut bytes);
+    }
+
+    let compressed = zstd::bulk::compress(&data, 19).unwrap();
+    let out_path = Path::new(&env::var("OUT_DIR").unwrap()).join("title_map.bin.zst");
+    fs::write(out_path, compressed).unwrap();
+
+    (data.len(), offsets)
+}
+
+fn make_id_map() {
     let title_map = parse_titles_txt();
     let gamehacking_ids = parse_gamehacking_ids();
 
-    let mut out = Vec::new();
-
-    let id_count = title_map.len();
-    for (game_id, title) in title_map {
+    let mut filled_ghids = Vec::new();
+    for (game_id, _) in &title_map {
         let ghid = gamehacking_ids
             .iter()
-            .find(|(id, _)| *id == game_id)
+            .find(|(id, _)| *id == *game_id)
             .map(|(_, ghid)| ghid)
             .copied()
             .unwrap_or(0);
 
-        let title_len: u8 = title.len().try_into().unwrap();
-
-        out.write_all(&game_id).unwrap();
-        out.write_all(&u32_to_u24_le(ghid)).unwrap();
-        out.write_all(&[title_len]).unwrap();
-        out.write_all(title.as_bytes()).unwrap();
+        filled_ghids.push(ghid);
     }
 
-    let compressed = zstd::bulk::compress(&out, 19).unwrap();
-    let out_path = Path::new(&env::var("OUT_DIR").unwrap()).join("id_map.bin.zst");
-    fs::write(out_path, compressed).unwrap();
+    let mut meta = String::new();
 
-    let meta = format!(
-        "const ID_COUNT: usize = {};\n#[allow(clippy::unreadable_literal)]\nconst ID_MAP_BYTES_LEN: usize = {};",
-        id_count,
-        out.len()
-    );
+    // Write ordered game ids
+    writeln!(meta, "#[allow(clippy::unreadable_literal)]").unwrap();
+    write!(meta, "const GAME_IDS: [[u8; 6]; {}] = [", title_map.len()).unwrap();
+    for (id, _) in &title_map {
+        write!(
+            meta,
+            "[{}, {}, {}, {}, {}, {}],",
+            id[0], id[1], id[2], id[3], id[4], id[5]
+        )
+        .unwrap();
+    }
+    writeln!(meta, "];").unwrap();
+
+    // Write ordered title offsets
+    let (titles_len, offsets) = serialize_title_map();
+    writeln!(meta, "#[allow(clippy::unreadable_literal)]").unwrap();
+    writeln!(meta, "const TITLES_LEN: usize = {titles_len};").unwrap();
+    writeln!(meta, "#[allow(clippy::unreadable_literal)]").unwrap();
+    write!(
+        meta,
+        "const TITLE_OFFSETS: [u32; {}] = [",
+        title_map.len() + 1
+    )
+    .unwrap();
+    for offset in offsets {
+        write!(meta, "{offset},",).unwrap();
+    }
+    writeln!(meta, "{}];", title_map.len()).unwrap();
+
+    // Write ordered gamehacking ids
+    writeln!(meta, "#[allow(clippy::unreadable_literal)]").unwrap();
+    write!(
+        meta,
+        "const GAMEHACKING_IDS: [u32; {}] = [",
+        title_map.len()
+    )
+    .unwrap();
+    for id in filled_ghids {
+        write!(meta, "{id},").unwrap();
+    }
+    writeln!(meta, "];").unwrap();
+
     let meta_out_path = Path::new(&env::var("OUT_DIR").unwrap()).join("id_map_meta.rs");
     fs::write(meta_out_path, meta).unwrap();
 }
@@ -121,7 +168,7 @@ fn main() {
     println!("cargo::rerun-if-changed=assets/wiitdb.txt");
     println!("cargo::rerun-if-changed=assets/gamehacking-ids.txt");
 
-    serialize_id_map();
+    make_id_map();
     compress_lucide();
 
     #[cfg(all(target_os = "macos", target_arch = "x86_64"))]

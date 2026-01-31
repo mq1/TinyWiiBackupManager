@@ -41,6 +41,11 @@ impl GameID {
     }
 
     #[inline]
+    pub const fn inner(self) -> [u8; 6] {
+        self.0
+    }
+
+    #[inline]
     pub const fn is_wii(self) -> bool {
         matches!(self.0[0], b'H' | b'R' | b'S' | b'W' | b'X')
     }
