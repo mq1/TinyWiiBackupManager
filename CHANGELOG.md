@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 🐛 #499 - TWBM not launching on Linux with hybrid graphics
 - ⬆️ TWBM_DISABLE_UPDATES=1 now works again
+- 💾 More comprehensive fat filesystem detection (used to trigger splitting)
 
 ## [v5.0.0] - 2026-01-30
 
