@@ -7,9 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v5.0.1] - 2026-01-31
+
 ### Added
 
-- 🖥️ Cpu rendering on linux (used as a fallback)
+- 🖥️ Cpu rendering on linux (used as a fallback) (#499)
 
 ### Changed
 
@@ -17,9 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- 🐛 #499 - TWBM not launching on Linux with hybrid graphics
+- 🐛 TWBM not launching on Linux with hybrid graphics (#499)
 - ⬆️ TWBM_DISABLE_UPDATES=1 now works again
-- 💾 More comprehensive fat filesystem detection (used to trigger splitting)
+- 💾 More aggressive fat filesystem detection (used to trigger splitting) (#501)
 
 ## [v5.0.0] - 2026-01-30
 
@@ -64,5 +66,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🖼️ TinyWiiBackupManager icon now shows up again on the windows exe
 
 [Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.0.0...HEAD
+[v5.0.1]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.0.0...v5.0.1
 [v5.0.0]: https://github.com/mq1/TinyWiiBackupManager/compare/v4.9.24...v5.0.0
 [v4.9.24]: https://github.com/mq1/TinyWiiBackupManager/compare/v4.9.23...v4.9.24
