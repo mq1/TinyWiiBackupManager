@@ -65,7 +65,11 @@ pub fn get_title(game_id: GameID) -> Option<&'static str> {
 pub fn get_ghid(game_id: GameID) -> Option<u32> {
     let inner = game_id.inner();
     let i = gameid_slice().binary_search_by_key(&inner, |id| *id).ok()?;
-    Some(get_ghid_at(i))
+
+    match get_ghid_at(i) {
+        0 => None,
+        ghid => Some(ghid),
+    }
 }
 
 pub fn get_init_task() -> Task<Message> {
