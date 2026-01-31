@@ -47,6 +47,7 @@ fn parse_gamehacking_ids() -> Vec<([u8; 6], u32)> {
 
     for i in 0..=70 {
         let filename = format!("assets/gamehacking/GameHacking.org - WII - Page {i}.html");
+        println!("cargo:rerun-if-changed={filename}");
         let contents = fs::read_to_string(filename).unwrap();
 
         for cap in re.captures_iter(&contents) {
@@ -132,9 +133,9 @@ fn compress_lucide() {
 }
 
 fn main() {
-    println!("cargo::rerun-if-changed=build.rs");
-    println!("cargo::rerun-if-changed=assets/wiitdb.txt");
-    println!("cargo::rerun-if-changed=assets/gamehacking-ids.txt");
+    println!("cargo:rerun-if-changed=build.rs");
+    println!("cargo:rerun-if-changed=assets/wiitdb.txt");
+    println!("cargo:rerun-if-changed=assets/gamehacking-ids.txt");
 
     make_id_map();
     compress_lucide();
