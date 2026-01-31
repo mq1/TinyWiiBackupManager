@@ -424,7 +424,7 @@ impl State {
             }
             Message::AddGamesToTransferStack((paths, yes)) => {
                 if yes {
-                    let is_fat32 = self.drive_info.as_ref().is_some_and(DriveInfo::is_fat32);
+                    let is_fat32 = self.drive_info.as_ref().is_none_or(DriveInfo::is_fat32);
 
                     for path in paths {
                         self.transfer_queue.push(TransferOperation::ConvertForWii(
