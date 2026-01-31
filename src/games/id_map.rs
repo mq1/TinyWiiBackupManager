@@ -16,9 +16,7 @@ const TITLES_OFFSET: usize = TITLE_LENGTHS_OFFSET + ID_MAP_LEN;
 
 static ID_MAP: LazyLock<Box<[u8]>> = LazyLock::new(|| {
     let mut buf = Box::<[u8]>::new_uninit_slice(DATA_SIZE);
-
-    let buf_slice: &mut [u8] =
-        unsafe { std::slice::from_raw_parts_mut(buf.as_mut_ptr().cast(), DATA_SIZE) };
+    let buf_slice = unsafe { std::slice::from_raw_parts_mut(buf.as_mut_ptr().cast(), DATA_SIZE) };
 
     let _ = zstd::bulk::decompress_to_buffer(COMPRESSED_ID_MAP, buf_slice)
         .expect("Failed to decompress id map");
