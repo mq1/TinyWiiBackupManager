@@ -23,12 +23,24 @@ static TITLE_MAP: LazyLock<Box<[u8]>> = LazyLock::new(|| {
     unsafe { buf.assume_init() }
 });
 
+static TITLE_OFFSETS: LazyLock<Box<[usize]>> = LazyLock::new(|| {
+    let mut offsets = Box::<[usize]>::new_uninit_slice(TITLES_LEN);
+
+    let mut cursor = 0;
+    for (i, len) in TITLES_LENGTHS.iter().enumerate() {
+        offsets[i].write(cursor);
+        cursor += *len as usize;
+    }
+
+    unsafe { offsets.assume_init() }
+});
+
 pub fn get_title(game_id: GameID) -> Option<&'static str> {
     let inner = game_id.inner();
 
     let i = GAME_IDS.binary_search_by_key(&inner, |id| *id).ok()?;
-    let offset = unsafe { *TITLE_OFFSETS.get_unchecked(i) } as usize;
-    let next_offset = unsafe { *TITLE_OFFSETS.get_unchecked(i + 1) } as usize;
+    let offset = unsafe { *TITLE_OFFSETS.get_unchecked(i) };
+    let next_offset = unsafe { *TITLE_OFFSETS.get_unchecked(i + 1) };
 
     let title = unsafe { str::from_utf8_unchecked(&TITLE_MAP[offset..next_offset]) };
     Some(title)
@@ -47,6 +59,7 @@ pub fn get_init_task() -> Task<Message> {
     Task::perform(
         async {
             LazyLock::force(&TITLE_MAP);
+            LazyLock::force(&TITLE_OFFSETS);
         },
         |()| Message::EmptyResult(Ok(())),
     )

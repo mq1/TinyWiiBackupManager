@@ -63,16 +63,14 @@ fn parse_gamehacking_ids() -> Vec<([u8; 6], u32)> {
     id_map
 }
 
-fn serialize_title_map() -> (usize, Vec<u32>) {
+fn serialize_title_map() -> (usize, Vec<u8>) {
     let title_map = parse_titles_txt();
 
     let mut data = Vec::new();
-    let mut offsets = Vec::new();
+    let mut lenghts = Vec::new();
 
-    let mut current_offset = 0;
     for (_, title) in title_map {
-        offsets.push(current_offset);
-        current_offset += title.len() as u32;
+        lenghts.push(title.len() as u8);
 
         let mut bytes = title.into_bytes();
         data.append(&mut bytes);
@@ -82,7 +80,7 @@ fn serialize_title_map() -> (usize, Vec<u32>) {
     let out_path = Path::new(&env::var("OUT_DIR").unwrap()).join("title_map.bin.zst");
     fs::write(out_path, compressed).unwrap();
 
-    (data.len(), offsets)
+    (data.len(), lenghts)
 }
 
 fn make_id_map() {
@@ -117,20 +115,15 @@ fn make_id_map() {
     writeln!(meta, "];").unwrap();
 
     // Write ordered title offsets
-    let (titles_len, offsets) = serialize_title_map();
+    let (titles_len, lengths) = serialize_title_map();
     writeln!(meta, "#[allow(clippy::unreadable_literal)]").unwrap();
     writeln!(meta, "const TITLES_LEN: usize = {titles_len};").unwrap();
     writeln!(meta, "#[allow(clippy::unreadable_literal)]").unwrap();
-    write!(
-        meta,
-        "const TITLE_OFFSETS: [u32; {}] = [",
-        title_map.len() + 1
-    )
-    .unwrap();
-    for offset in offsets {
-        write!(meta, "{offset},",).unwrap();
+    write!(meta, "const TITLES_LENGTHS: [u8; {}] = [", lengths.len()).unwrap();
+    for len in lengths {
+        write!(meta, "{len},",).unwrap();
     }
-    writeln!(meta, "{}];", title_map.len()).unwrap();
+    writeln!(meta, "];").unwrap();
 
     // Write ordered gamehacking ids
     writeln!(meta, "#[allow(clippy::unreadable_literal)]").unwrap();
