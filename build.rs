@@ -59,8 +59,6 @@ fn parse_gamehacking_ids() -> Vec<([u8; 6], u32)> {
         }
     }
 
-    id_map.sort_by_key(|(game_id, _)| *game_id);
-
     id_map
 }
 
