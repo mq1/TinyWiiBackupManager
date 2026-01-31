@@ -35,8 +35,12 @@ fn gameid_slice() -> &'static [[u8; 6]] {
 #[inline]
 fn get_ghid_at(i: usize) -> u32 {
     let offset = GAMEHACKING_IDS_OFFSET + i * 3;
-    let ptr = unsafe { ID_MAP.as_ptr().add(offset) };
-    (unsafe { ptr.cast::<u32>().read_unaligned() }) & 0x00FF_FFFF
+
+    let b1 = unsafe { *ID_MAP.get_unchecked(offset) };
+    let b2 = unsafe { *ID_MAP.get_unchecked(offset + 1) };
+    let b3 = unsafe { *ID_MAP.get_unchecked(offset + 2) };
+
+    u32::from_le_bytes([b1, b2, b3, 0])
 }
 
 static TITLES: LazyLock<Box<[&'static str]>> = LazyLock::new(|| {
