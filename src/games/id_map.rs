@@ -9,61 +9,76 @@ use std::sync::LazyLock;
 
 include!(concat!(env!("OUT_DIR"), "/id_map_meta.rs"));
 
-const COMPRESSED_TITLE_MAP: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/title_map.bin.zst"));
+const COMPRESSED_ID_MAP: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/id_map.bin.zst"));
+const GAMEHACKING_IDS_OFFSET: usize = ID_MAP_LEN * 6;
+const TITLE_LENGTHS_OFFSET: usize = GAMEHACKING_IDS_OFFSET + ID_MAP_LEN * 3;
+const TITLES_OFFSET: usize = TITLE_LENGTHS_OFFSET + ID_MAP_LEN;
 
-static TITLE_MAP: LazyLock<Box<[u8]>> = LazyLock::new(|| {
-    let mut buf = Box::<[u8]>::new_uninit_slice(TITLES_LEN);
+static ID_MAP: LazyLock<Box<[u8]>> = LazyLock::new(|| {
+    let mut buf = Box::<[u8]>::new_uninit_slice(DATA_SIZE);
+    let buf_slice = unsafe { std::slice::from_raw_parts_mut(buf.as_mut_ptr().cast(), DATA_SIZE) };
 
-    let buf_slice: &mut [u8] =
-        unsafe { std::slice::from_raw_parts_mut(buf.as_mut_ptr().cast(), TITLES_LEN) };
-
-    let _ = zstd::bulk::decompress_to_buffer(COMPRESSED_TITLE_MAP, buf_slice)
-        .expect("Failed to decompress title map");
+    let _ = zstd::bulk::decompress_to_buffer(COMPRESSED_ID_MAP, buf_slice)
+        .expect("Failed to decompress id map");
 
     unsafe { buf.assume_init() }
 });
 
-static TITLE_OFFSETS: LazyLock<Box<[usize]>> = LazyLock::new(|| {
-    let mut offsets = Box::<[usize]>::new_uninit_slice(TITLES_LEN);
+#[inline]
+fn gameid_slice() -> &'static [[u8; 6]] {
+    let ptr = ID_MAP.as_ptr().cast::<[u8; 6]>();
+    unsafe { std::slice::from_raw_parts(ptr, ID_MAP_LEN) }
+}
 
-    let mut cursor = 0;
-    for (i, len) in TITLES_LENGTHS.iter().enumerate() {
-        offsets[i].write(cursor);
-        cursor += *len as usize;
+#[inline]
+fn get_ghid_at(i: usize) -> u32 {
+    let offset = GAMEHACKING_IDS_OFFSET + i * 3;
+
+    let b1 = unsafe { *ID_MAP.get_unchecked(offset) };
+    let b2 = unsafe { *ID_MAP.get_unchecked(offset + 1) };
+    let b3 = unsafe { *ID_MAP.get_unchecked(offset + 2) };
+
+    u32::from_le_bytes([b1, b2, b3, 0])
+}
+
+static TITLES: LazyLock<Box<[&'static str]>> = LazyLock::new(|| {
+    let mut titles = Box::<[&'static str]>::new_uninit_slice(ID_MAP_LEN);
+
+    let data_ptr = unsafe { ID_MAP.as_ptr().add(TITLE_LENGTHS_OFFSET) };
+
+    let mut cursor = TITLES_OFFSET;
+    for i in 0..ID_MAP_LEN {
+        let title_end = cursor + unsafe { *data_ptr.add(i) } as usize;
+        let title = unsafe { str::from_utf8_unchecked(&ID_MAP[cursor..title_end]) };
+        titles[i].write(title);
+
+        cursor = title_end;
     }
 
-    unsafe { offsets.assume_init() }
+    unsafe { titles.assume_init() }
 });
 
 pub fn get_title(game_id: GameID) -> Option<&'static str> {
     let inner = game_id.inner();
-
-    let i = GAME_IDS.binary_search_by_key(&inner, |id| *id).ok()?;
-    let offset = unsafe { *TITLE_OFFSETS.get_unchecked(i) };
-    let next_offset = unsafe { *TITLE_OFFSETS.get_unchecked(i + 1) };
-
-    let title = unsafe { str::from_utf8_unchecked(&TITLE_MAP[offset..next_offset]) };
-    Some(title)
+    let i = gameid_slice().binary_search_by_key(&inner, |id| *id).ok()?;
+    Some(unsafe { *TITLES.get_unchecked(i) })
 }
 
 pub fn get_ghid(game_id: GameID) -> Option<u32> {
     let inner = game_id.inner();
+    let i = gameid_slice().binary_search_by_key(&inner, |id| *id).ok()?;
 
-    let i = GAME_IDS.binary_search_by_key(&inner, |id| *id).ok()?;
-    let ghid = unsafe { *GAMEHACKING_IDS.get_unchecked(i) };
-
-    if ghid == 0 {
-        return None;
+    match get_ghid_at(i) {
+        0 => None,
+        ghid => Some(ghid),
     }
-
-    Some(ghid)
 }
 
 pub fn get_init_task() -> Task<Message> {
     Task::perform(
         async {
-            LazyLock::force(&TITLE_MAP);
-            LazyLock::force(&TITLE_OFFSETS);
+            LazyLock::force(&ID_MAP);
+            LazyLock::force(&TITLES);
         },
         |()| Message::EmptyResult(Ok(())),
     )
