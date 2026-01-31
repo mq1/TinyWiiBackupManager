@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- 🖥️ Cpu rendering on linux (used as a fallback)
+
+### Changed
+
+- ⚡️ The linux build now uses vulkan (instead of opengl)
+
+### Fixed
+
+- 🐛 #499 - TWBM not launching on Linux with hybrid graphics
+- ⬆️ TWBM_DISABLE_UPDATES=1 now works again
+
 ## [v5.0.0] - 2026-01-30
 
 ### Added
