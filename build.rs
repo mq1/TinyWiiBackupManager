@@ -5,7 +5,7 @@
 
 use lucide_icons::LUCIDE_FONT_BYTES;
 use regex::Regex;
-use std::fmt::Write;
+use std::io::Write;
 use std::path::Path;
 use std::{env, fs};
 
@@ -63,26 +63,6 @@ fn parse_gamehacking_ids() -> Vec<([u8; 6], u32)> {
     id_map
 }
 
-fn serialize_title_map() -> (usize, Vec<u8>) {
-    let title_map = parse_titles_txt();
-
-    let mut data = Vec::new();
-    let mut lenghts = Vec::new();
-
-    for (_, title) in title_map {
-        lenghts.push(title.len() as u8);
-
-        let mut bytes = title.into_bytes();
-        data.append(&mut bytes);
-    }
-
-    let compressed = zstd::bulk::compress(&data, 19).unwrap();
-    let out_path = Path::new(&env::var("OUT_DIR").unwrap()).join("title_map.bin.zst");
-    fs::write(out_path, compressed).unwrap();
-
-    (data.len(), lenghts)
-}
-
 fn make_id_map() {
     let title_map = parse_titles_txt();
     let gamehacking_ids = parse_gamehacking_ids();
@@ -99,44 +79,39 @@ fn make_id_map() {
         filled_ghids.push(ghid);
     }
 
-    let mut meta = String::new();
+    let mut data = Vec::new();
 
     // Write ordered game ids
-    writeln!(meta, "#[allow(clippy::unreadable_literal)]").unwrap();
-    write!(meta, "const GAME_IDS: [[u8; 6]; {}] = [", title_map.len()).unwrap();
-    for (id, _) in &title_map {
-        write!(
-            meta,
-            "[{}, {}, {}, {}, {}, {}],",
-            id[0], id[1], id[2], id[3], id[4], id[5]
-        )
-        .unwrap();
+    for (game_id, _) in &title_map {
+        data.write_all(game_id).unwrap();
     }
-    writeln!(meta, "];").unwrap();
-
-    // Write ordered title offsets
-    let (titles_len, lengths) = serialize_title_map();
-    writeln!(meta, "#[allow(clippy::unreadable_literal)]").unwrap();
-    writeln!(meta, "const TITLES_LEN: usize = {titles_len};").unwrap();
-    writeln!(meta, "#[allow(clippy::unreadable_literal)]").unwrap();
-    write!(meta, "const TITLES_LENGTHS: [u8; {}] = [", lengths.len()).unwrap();
-    for len in lengths {
-        write!(meta, "{len},",).unwrap();
-    }
-    writeln!(meta, "];").unwrap();
 
     // Write ordered gamehacking ids
-    writeln!(meta, "#[allow(clippy::unreadable_literal)]").unwrap();
-    write!(
-        meta,
-        "const GAMEHACKING_IDS: [u32; {}] = [",
-        title_map.len()
-    )
-    .unwrap();
-    for id in filled_ghids {
-        write!(meta, "{id},").unwrap();
+    for id in &filled_ghids {
+        let id = id.to_le_bytes();
+        data.write_all(&[id[0], id[1], id[2]]).unwrap();
     }
-    writeln!(meta, "];").unwrap();
+
+    // Write ordered title lengths
+    for (_, title) in &title_map {
+        let len = title.len() as u8;
+        data.write_all(&[len]).unwrap();
+    }
+
+    // Write ordered titles
+    for (_, title) in &title_map {
+        data.write_all(title.as_bytes()).unwrap();
+    }
+
+    let compressed_data = zstd::bulk::compress(&data, 19).unwrap();
+    let out_path = Path::new(&env::var("OUT_DIR").unwrap()).join("id_map.bin.zst");
+    fs::write(out_path, compressed_data).unwrap();
+
+    let meta = format!(
+        "#[allow(clippy::unreadable_literal)]\nconst ID_MAP_LEN: usize = {};\n#[allow(clippy::unreadable_literal)]\nconst DATA_SIZE: usize = {};",
+        title_map.len(),
+        data.len()
+    );
 
     let meta_out_path = Path::new(&env::var("OUT_DIR").unwrap()).join("id_map_meta.rs");
     fs::write(meta_out_path, meta).unwrap();
