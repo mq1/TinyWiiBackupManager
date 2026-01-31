@@ -52,6 +52,10 @@ pub fn get_ghid(game_id: GameID) -> Option<u32> {
     let i = GAME_IDS.binary_search_by_key(&inner, |id| *id).ok()?;
     let ghid = unsafe { *GAMEHACKING_IDS.get_unchecked(i) };
 
+    if ghid == 0 {
+        return None;
+    }
+
     Some(ghid)
 }
 
