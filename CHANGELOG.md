@@ -7,9 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v5.0.2] - 2026-02-01
+
 ### Fixed
 
-- 💻 Fix twbm not starting on macOS < 12 (#504)
+- 💻 TWBM not starting on macOS < 12 (#504)
+- 🐛 Archive game dialog not showing different formats
 
 ## [v5.0.1] - 2026-01-31
 
@@ -69,7 +72,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 🖼️ TinyWiiBackupManager icon now shows up again on the windows exe
 
-[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.0.0...HEAD
+[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.0.2...HEAD
+[v5.0.2]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.0.1...v5.0.2
 [v5.0.1]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.0.0...v5.0.1
 [v5.0.0]: https://github.com/mq1/TinyWiiBackupManager/compare/v4.9.24...v5.0.0
 [v4.9.24]: https://github.com/mq1/TinyWiiBackupManager/compare/v4.9.23...v4.9.24
