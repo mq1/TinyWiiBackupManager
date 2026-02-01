@@ -5,54 +5,61 @@ use crate::{message::Message, state::State};
 use derive_getters::Getters;
 use iced::Task;
 use std::{fs, path::Path};
-use sysinfo::Disks;
 
 const GIB: u64 = 1024 * 1024 * 1024;
 
 #[derive(Debug, Clone, Getters)]
 pub struct DriveInfo {
     #[getter(copy)]
-    used_space: u64,
+    used_bytes: u64,
     #[getter(copy)]
-    total_space: u64,
+    total_bytes: u64,
     #[getter(copy)]
-    is_fat32: bool,
+    is_fat: bool,
 }
 
 impl DriveInfo {
+    #[cfg(unix)]
     pub fn maybe_from_path(path: &Path) -> Option<Self> {
-        let disks = Disks::new_with_refreshed_list();
-        let path = path.canonicalize().ok()?;
+        let stat = rustix::fs::statfs(path).ok()?;
 
-        let disk = disks
-            .iter()
-            .filter(|disk| path.starts_with(disk.mount_point()))
-            .max_by_key(|disk| disk.mount_point().as_os_str().len())?;
+        #[cfg(target_os = "linux")]
+        let block_size = stat.f_frsize as u64;
 
-        let total_space = disk.total_space();
-        let used_space = total_space - disk.available_space();
+        #[cfg(target_os = "macos")]
+        let block_size = u64::from(stat.f_bsize);
 
-        let fs_string = disk.file_system().to_string_lossy().to_ascii_lowercase();
-        let is_fat32 = matches!(
-            fs_string.as_str(),
-            "msdos" | "msdosfs" | "vfat" | "fat32" | "fat" | "fat12" | "fat16"
-        );
+        let total_bytes = stat.f_blocks * block_size;
+        let avail_bytes = stat.f_bavail * block_size;
+        let used_bytes = total_bytes - avail_bytes;
+
+        #[cfg(target_os = "linux")]
+        let is_fat = {
+            let f_type = stat.f_type as u32;
+            f_type == 0x4d44
+        };
+
+        #[cfg(target_os = "macos")]
+        let is_fat = {
+            let fs_type = unsafe { std::ffi::CStr::from_ptr(stat.f_fstypename.as_ptr()) };
+            fs_type.to_str().is_ok_and(|fs_type| fs_type == "msdos")
+        };
 
         let info = Self {
-            used_space,
-            total_space,
-            is_fat32,
+            used_bytes,
+            total_bytes,
+            is_fat,
         };
 
         Some(info)
     }
 
     pub fn get_usage_string(&self) -> String {
-        let used_whole = self.used_space / GIB;
-        let total_whole = self.total_space / GIB;
+        let used_whole = self.used_bytes / GIB;
+        let total_whole = self.total_bytes / GIB;
 
-        let used_fract = ((self.used_space % GIB) * 100) / GIB;
-        let total_fract = ((self.total_space % GIB) * 100) / GIB;
+        let used_fract = ((self.used_bytes % GIB) * 100) / GIB;
+        let total_fract = ((self.total_bytes % GIB) * 100) / GIB;
 
         format!("{used_whole}.{used_fract:02}/{total_whole}.{total_fract:02} GiB")
     }
