@@ -38,7 +38,7 @@ impl DriveInfo {
 
         let total_bytes = stat.f_blocks * block_size;
         let avail_bytes = stat.f_bavail * block_size;
-        let used_bytes = total_bytes - avail_bytes;
+        let used_bytes = total_bytes.saturating_sub(avail_bytes);
 
         #[cfg(target_os = "linux")]
         let is_fat32 = stat.f_type == FAT32_MAGIC;
@@ -66,7 +66,7 @@ impl DriveInfo {
             .find(|d| path.starts_with(d.mount_point()))?;
 
         let total_bytes = disk.total_space();
-        let used_bytes = total_bytes - disk.available_space();
+        let used_bytes = total_bytes.saturating_sub(disk.available_space());
 
         let is_fat32 = disk
             .file_system()
