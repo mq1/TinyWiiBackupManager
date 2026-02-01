@@ -109,11 +109,11 @@ impl State {
         }
 
         let tasks = Task::batch(vec![
+            game_list::get_list_games_task(&initial_state),
             id_map::get_init_task(),
             lucide::get_load_lucide_task(),
-            game_list::get_list_games_task(&initial_state),
-            hbc::app_list::get_list_hbc_apps_task(&initial_state),
             DriveInfo::get_task(&initial_state),
+            hbc::app_list::get_list_hbc_apps_task(&initial_state),
             hbc::osc_list::get_load_osc_apps_task(&initial_state),
             updater::get_check_update_task(),
         ]);
