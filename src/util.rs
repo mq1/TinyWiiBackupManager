@@ -67,8 +67,8 @@ impl DriveInfo {
             .into_iter()
             .find(|d| path.starts_with(d.mount_point()))?;
 
-        let total_space = disk.total_space();
-        let used_space = total_space - disk.available_space();
+        let total_bytes = disk.total_space();
+        let used_bytes = total_space - disk.available_space();
 
         let is_fat32 = disk
             .file_system()
@@ -76,8 +76,8 @@ impl DriveInfo {
             .is_some_and(|fs| fs == FAT32_MAGIC);
 
         let info = Self {
-            used_space,
-            total_space,
+            used_bytes,
+            total_bytes,
             is_fat32,
         };
 
