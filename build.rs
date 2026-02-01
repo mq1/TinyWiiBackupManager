@@ -91,11 +91,15 @@ fn make_id_map() {
         data.write_all(&[id[0], id[1], id[2]]).unwrap();
     }
 
-    // Write ordered title lengths
+    // Write ordered title offsets (+1)
+    let mut cursor = (data.len() + title_map.len() * 3 + 3) as u32;
     for (_, title) in &title_map {
-        let len = title.len() as u8;
-        data.write_all(&[len]).unwrap();
+        let bytes = cursor.to_le_bytes();
+        data.write_all(&[bytes[0], bytes[1], bytes[2]]).unwrap();
+        cursor += title.len() as u32;
     }
+    let bytes = cursor.to_le_bytes();
+    data.write_all(&[bytes[0], bytes[1], bytes[2]]).unwrap();
 
     // Write ordered titles
     for (_, title) in &title_map {
