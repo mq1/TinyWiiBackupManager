@@ -15,7 +15,7 @@ pub struct DriveInfo {
     #[getter(copy)]
     total_bytes: u64,
     #[getter(copy)]
-    is_fat: bool,
+    is_fat32: bool,
 }
 
 impl DriveInfo {
@@ -34,16 +34,16 @@ impl DriveInfo {
         let used_bytes = total_bytes - avail_bytes;
 
         #[cfg(target_os = "linux")]
-        let is_fat = stat.f_type == 0x4d44;
+        let is_fat32 = stat.f_type == 0x4d44;
 
         #[cfg(target_os = "macos")]
-        let is_fat =
+        let is_fat32 =
             stat.f_fstypename == [109, 115, 100, 111, 115, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
         let info = Self {
             used_bytes,
             total_bytes,
-            is_fat,
+            is_fat32,
         };
 
         println!("FSINFO: {info:?}");
@@ -52,7 +52,26 @@ impl DriveInfo {
     }
 
     #[cfg(windows)]
-    pub fn maybe_from_path(path: &Path) -> Option<Self> {}
+    pub fn maybe_from_path(path: &Path) -> Option<Self> {
+        let disks = sysinfo::Disks::new_with_refreshed_list();
+
+        let disk = disks
+            .into_iter()
+            .find(|d| path.starts_with(d.mount_point()))?;
+
+        let total_space = disk.total_space();
+        let used_space = total_space - disk.available_space();
+
+        let is_fat32 = disk.file_system().to_str().is_some_and(|fs| fs == "FAT32");
+
+        let info = Self {
+            used_space,
+            total_space,
+            is_fat32,
+        };
+
+        Some(info)
+    }
 
     pub fn get_usage_string(&self) -> String {
         let used_whole = self.used_bytes / GIB;
