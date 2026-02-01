@@ -1,9 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+// There is no reason for this code to be this low level
+// I just wanted to have some fun optimizing stuff
+
 use crate::games::game_id::GameID;
 use crate::message::Message;
 use iced::Task;
+use std::mem::MaybeUninit;
 use std::str;
 use std::sync::LazyLock;
 
@@ -37,21 +41,22 @@ fn get_ghid_at(i: usize) -> u32 {
     u32::from_le_bytes([b1, b2, b3, 0])
 }
 
-static TITLES: LazyLock<Box<[&'static str]>> = LazyLock::new(|| {
-    let mut titles = Box::<[&'static str]>::new_uninit_slice(ID_MAP_LEN);
+static TITLES: LazyLock<[&'static str; ID_MAP_LEN]> = LazyLock::new(|| {
+    let mut titles = [const { MaybeUninit::uninit() }; ID_MAP_LEN];
 
-    let data_ptr = unsafe { ID_MAP.as_ptr().add(TITLE_LENGTHS_OFFSET) };
+    let mut data_ptr = unsafe { ID_MAP.as_ptr().add(TITLE_LENGTHS_OFFSET) };
 
     let mut cursor = TITLES_OFFSET;
-    for i in 0..ID_MAP_LEN {
-        let title_end = cursor + unsafe { *data_ptr.add(i) } as usize;
+    for title_ref in &mut titles {
+        let title_end = cursor + unsafe { *data_ptr } as usize;
         let title = unsafe { str::from_utf8_unchecked(&ID_MAP[cursor..title_end]) };
-        titles[i].write(title);
+        title_ref.write(title);
 
+        data_ptr = unsafe { data_ptr.add(1) };
         cursor = title_end;
     }
 
-    unsafe { titles.assume_init() }
+    unsafe { std::mem::transmute(titles) }
 });
 
 pub fn get_title(game_id: GameID) -> Option<&'static str> {
