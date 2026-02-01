@@ -15,7 +15,7 @@ const FAT32_MAGIC: rustix::fs::FsWord = 0x4d44;
 const FAT32_MAGIC: [i8; 16] = [109, 115, 100, 111, 115, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
 #[cfg(windows)]
-const FAT32_MAGIC: &std::ffi::OsStr = std::ffi::OsStr::new("FAT32");
+const FAT32_MAGIC: &str = "FAT32";
 
 #[derive(Debug, Clone, Getters)]
 pub struct DriveInfo {
@@ -70,7 +70,10 @@ impl DriveInfo {
         let total_bytes = disk.total_space();
         let used_bytes = total_bytes - disk.available_space();
 
-        let is_fat32 = disk.file_system() == FAT32_MAGIC;
+        let is_fat32 = disk
+            .file_system()
+            .to_str()
+            .is_some_and(|fs| fs == FAT32_MAGIC);
 
         let info = Self {
             used_bytes,
