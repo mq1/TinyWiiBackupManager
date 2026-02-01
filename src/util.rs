@@ -6,8 +6,6 @@ use derive_getters::Getters;
 use iced::Task;
 use std::{fs, path::Path};
 
-const GIB: u64 = 1024 * 1024 * 1024;
-
 #[cfg(target_os = "linux")]
 const FAT32_MAGIC: rustix::fs::FsWord = 0x4d44;
 
@@ -87,13 +85,12 @@ impl DriveInfo {
     }
 
     pub fn get_usage_string(&self) -> String {
-        let used_whole = self.used_bytes / GIB;
-        let total_whole = self.total_bytes / GIB;
+        const GIB: f64 = 1024. * 1024. * 1024.;
 
-        let used_fract = ((self.used_bytes % GIB) * 100) / GIB;
-        let total_fract = ((self.total_bytes % GIB) * 100) / GIB;
+        #[allow(clippy::cast_precision_loss)]
+        let (used_bytes, total_bytes) = (self.used_bytes as f64, self.total_bytes as f64);
 
-        format!("{used_whole}.{used_fract:02}/{total_whole}.{total_fract:02} GiB")
+        format!("{:.2}/{:.2} GiB", used_bytes / GIB, total_bytes / GIB)
     }
 
     pub fn get_task(state: &State) -> Task<Message> {
