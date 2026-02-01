@@ -8,6 +8,15 @@ use std::{fs, path::Path};
 
 const GIB: u64 = 1024 * 1024 * 1024;
 
+#[cfg(target_os = "linux")]
+const FAT32_MAGIC: rustix::fs::FsWord = 0x4d44;
+
+#[cfg(target_os = "macos")]
+const FAT32_MAGIC: [i8; 16] = [109, 115, 100, 111, 115, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+#[cfg(target_os = "windows")]
+const FAT32_MAGIC: &str = "FAT32";
+
 #[derive(Debug, Clone, Getters)]
 pub struct DriveInfo {
     #[getter(copy)]
@@ -34,11 +43,10 @@ impl DriveInfo {
         let used_bytes = total_bytes - avail_bytes;
 
         #[cfg(target_os = "linux")]
-        let is_fat32 = stat.f_type == 0x4d44;
+        let is_fat32 = stat.f_type == FAT32_MAGIC;
 
         #[cfg(target_os = "macos")]
-        let is_fat32 =
-            stat.f_fstypename == [109, 115, 100, 111, 115, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        let is_fat32 = stat.f_fstypename == FAT32_MAGIC;
 
         let info = Self {
             used_bytes,
@@ -62,7 +70,10 @@ impl DriveInfo {
         let total_space = disk.total_space();
         let used_space = total_space - disk.available_space();
 
-        let is_fat32 = disk.file_system().to_str().is_some_and(|fs| fs == "FAT32");
+        let is_fat32 = disk
+            .file_system()
+            .to_str()
+            .is_some_and(|fs| fs == FAT32_MAGIC);
 
         let info = Self {
             used_space,
