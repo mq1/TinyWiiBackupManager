@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - macos-tiny-skia
     tags:
       - "v*.*.*"
     paths:
@@ -260,7 +261,7 @@ jobs:
           key: ${{ matrix.arch }}
 
       - name: Build binary
-        run: cargo build --release --locked --target ${{ matrix.target }}
+        run: cargo build --release --locked --target ${{ matrix.target }} --features "tiny-skia"
         env:
           RUSTFLAGS: -C link-arg=-mmacosx-version-min=${{ matrix.deployment_target }}
           CFLAGS: -O3 -flto -mmacosx-version-min=${{ matrix.deployment_target }}
