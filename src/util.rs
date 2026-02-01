@@ -68,7 +68,7 @@ impl DriveInfo {
             .find(|d| path.starts_with(d.mount_point()))?;
 
         let total_bytes = disk.total_space();
-        let used_bytes = total_space - disk.available_space();
+        let used_bytes = total_bytes - disk.available_space();
 
         let is_fat32 = disk
             .file_system()
