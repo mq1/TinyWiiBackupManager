@@ -33,7 +33,7 @@ directories = "6.0"
 anyhow = "1.0"
 size = { version = "0.5", features = ["serde"] }
 quick-xml = { version = "0.38", features = ["serialize"] }
-sysinfo = "0.37"
+sysinfo = "0.37" # Do not upgrade to 0.38, see #504
 open = "5.3"
 nod = "2.0.0-alpha.4"
 num_cpus = "1.17"
