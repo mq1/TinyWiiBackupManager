@@ -34,16 +34,11 @@ impl DriveInfo {
         let used_bytes = total_bytes - avail_bytes;
 
         #[cfg(target_os = "linux")]
-        let is_fat = {
-            let f_type = stat.f_type as u32;
-            f_type == 0x4d44
-        };
+        let is_fat = stat.f_type == 0x4d44;
 
         #[cfg(target_os = "macos")]
-        let is_fat = {
-            let fs_type = unsafe { std::ffi::CStr::from_ptr(stat.f_fstypename.as_ptr()) };
-            fs_type.to_str().is_ok_and(|fs_type| fs_type == "msdos")
-        };
+        let is_fat =
+            stat.f_fstypename == [109, 115, 100, 111, 115, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
         let info = Self {
             used_bytes,
@@ -51,8 +46,13 @@ impl DriveInfo {
             is_fat,
         };
 
+        println!("FSINFO: {info:?}");
+
         Some(info)
     }
+
+    #[cfg(windows)]
+    pub fn maybe_from_path(path: &Path) -> Option<Self> {}
 
     pub fn get_usage_string(&self) -> String {
         let used_whole = self.used_bytes / GIB;
