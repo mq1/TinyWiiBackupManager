@@ -59,15 +59,13 @@ impl DriveInfo {
 
     #[cfg(windows)]
     pub fn maybe_from_path(path: &Path) -> Option<Self> {
-        use winsafe::{GetDiskFreeSpaceEx, GetVolumeInformation, GetVolumePathName, prelude::*};
-
         let path = path.to_str()?;
-        let root_path = GetVolumePathName(path).ok()?;
+        let root_path = winsafe::GetVolumePathName(path).ok()?;
 
         let mut total_bytes = 0;
         let mut free_bytes = 0;
-        GetDiskFreeSpaceEx(
-            Some(root_path.to_str()),
+        winsafe::GetDiskFreeSpaceEx(
+            Some(root_path.as_str()),
             None,
             Some(&mut total_bytes),
             Some(&mut free_bytes),
@@ -76,7 +74,7 @@ impl DriveInfo {
         let used_bytes = total_bytes.saturating_sub(free_bytes);
 
         let mut file_system_name = String::new();
-        GetVolumeInformation(
+        winsafe::GetVolumeInformation(
             Some(root_path.as_str()),
             None,
             None,
