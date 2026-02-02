@@ -59,7 +59,7 @@ wiiload = "0.3"
 rustix = { version = "1.1", features = ["fs"] }
 
 [target.'cfg(windows)'.dependencies]
-winsafe = "0.0.27"
+winsafe = { version = "0.0.27", features = ["kernel"] }
 
 [target.'cfg(not(target_vendor = "pc"))'.dependencies.native-dialog]
 version = "0.9"
