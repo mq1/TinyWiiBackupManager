@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-#![allow(unused_mut)]
+#![allow(unused_mut, unused_assignments)]
 
 use crate::{message::Message, state::State};
 use derive_getters::Getters;
@@ -20,8 +20,8 @@ pub struct DriveInfo {
 
 impl DriveInfo {
     pub fn maybe_from_path(path: &Path) -> Option<Self> {
-        let mut avail_bytes;
-        let mut total_bytes;
+        let mut avail_bytes = 0;
+        let mut total_bytes = 0;
 
         #[cfg(unix)]
         {
