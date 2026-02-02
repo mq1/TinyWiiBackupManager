@@ -4487,9 +4487,9 @@ dependencies = [
 
 [[package]]
 name = "which-fs"
-version = "0.0.4"
+version = "0.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3c3fba09387e389f969a4f348af70654c360d7f395cfc4ac25bef6dd924c96d0"
+checksum = "935450e8a97ec656c533fd646eadd0f89e8d5dd927189d3b01e08fd7287d3210"
 dependencies = [
  "rustix 1.1.3",
  "windows 0.62.2",
@@ -4497,9 +4497,9 @@ dependencies = [
 
 [[package]]
 name = "wiiload"
-version = "0.3.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "81a6fd0cf8b45af894780bad16b12bbe4a33c3a852672267c69251812a3540e4"
+checksum = "d305f47485159bcb07e60c9a7245995b528527daa595f09f63698e605c83ab9c"
 dependencies = [
  "miniz_oxide 0.9.0",
  "thiserror 2.0.18",
