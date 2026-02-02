@@ -59,19 +59,34 @@ impl DriveInfo {
 
     #[cfg(windows)]
     pub fn maybe_from_path(path: &Path) -> Option<Self> {
-        let disks = sysinfo::Disks::new_with_refreshed_list();
+        let mut total_number_of_bytes = 0;
+        let mut total_number_of_free_bytes = 0;
+        winsafe::GetDiskFreeSpaceEx(
+            path.to_str(),
+            None,
+            Some(&mut total_number_of_bytes),
+            Some(&mut total_number_of_free_bytes),
+        )
+        .ok()?;
 
-        let disk = disks
-            .into_iter()
-            .find(|d| path.starts_with(d.mount_point()))?;
+        let drive_letter = path.to_string_lossy().chars().next()?;
+        let is_fat32 = if drive_letter.is_alphabetic() {
+            let root_path = format!("{drive_letter}:\\\\");
+            let mut file_system_name = String::new();
+            winsafe::GetVolumeInformation(
+                Some(root_path.as_str()),
+                None,
+                None,
+                None,
+                None,
+                Some(&mut file_system_name),
+            )
+            .ok()?;
 
-        let total_bytes = disk.total_space();
-        let used_bytes = total_bytes.saturating_sub(disk.available_space());
-
-        let is_fat32 = disk
-            .file_system()
-            .to_str()
-            .is_some_and(|fs| fs == FAT32_MAGIC);
+            file_system_name == FAT32_MAGIC
+        } else {
+            true
+        };
 
         let info = Self {
             used_bytes,
