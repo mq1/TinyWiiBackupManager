@@ -22,7 +22,7 @@ impl DriveInfo {
 
         let avail_bytes = stats.available_space();
         let total_bytes = stats.total_space();
-        let used_bytes = total_bytes - avail_bytes;
+        let used_bytes = total_bytes.saturating_sub(avail_bytes);
 
         let is_fat32 = which_fs::detect(path).ok()? == which_fs::FsKind::Fat32;
 
