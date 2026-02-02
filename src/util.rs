@@ -32,8 +32,6 @@ impl DriveInfo {
             is_fat32,
         };
 
-        println!("FSINFO: {info:?}");
-
         Some(info)
     }
 
