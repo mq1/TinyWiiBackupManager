@@ -122,10 +122,14 @@ impl State {
     }
 
     pub fn title(&self) -> String {
-        format!(
-            "TinyWiiBackupManager  ›  {}",
-            self.config.mount_point().display()
-        )
+        if self.config.is_mount_point_valid() {
+            format!(
+                "TinyWiiBackupManager  ›  {}",
+                self.config.mount_point().display()
+            )
+        } else {
+            "TinyWiiBackupManager  ›  No drive selected".to_string()
+        }
     }
 
     pub fn theme(&self) -> Option<Theme> {

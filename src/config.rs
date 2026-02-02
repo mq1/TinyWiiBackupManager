@@ -32,7 +32,7 @@ impl Config {
     }
 
     pub fn is_mount_point_valid(&self) -> bool {
-        !self.mount_point.as_os_str().is_empty() && self.mount_point.exists()
+        !self.mount_point.as_os_str().is_empty()
     }
 
     pub fn clone_with_always_split(&self, always_split: bool) -> Self {
