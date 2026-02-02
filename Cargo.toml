@@ -54,12 +54,8 @@ derive-getters = "0.5"
 walkdir = "2.5"
 fs_extra = "1.3"
 wiiload = "0.3"
-
-[target.'cfg(unix)'.dependencies]
-rustix = { version = "1.1", features = ["fs"] }
-
-[target.'cfg(windows)'.dependencies]
-winsafe = { version = "0.0.19", features = ["kernel"] }
+which-fs = "0.0.4"
+fs4 = { version = "0.13", default-features = false }
 
 [target.'cfg(not(target_vendor = "pc"))'.dependencies.native-dialog]
 version = "0.9"

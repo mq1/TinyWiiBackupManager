@@ -9,6 +9,7 @@ dependencies = [
  "anyhow",
  "derive-getters",
  "directories",
+ "fs4",
  "fs_extra",
  "fuzzy-matcher",
  "hex",
@@ -24,7 +25,6 @@ dependencies = [
  "open",
  "quick-xml",
  "regex",
- "rustix 1.1.3",
  "sanitize-filename",
  "semver",
  "serde",
@@ -36,9 +36,9 @@ dependencies = [
  "time",
  "walkdir",
  "wgpu",
+ "which-fs",
  "wiiload",
  "winresource",
- "winsafe",
  "zip",
  "zstd",
 ]
@@ -1217,6 +1217,16 @@ name = "formatx"
 version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d8866fac38f53fc87fa3ae1b09ddd723e0482f8fa74323518b4c59df2c55a00a"
+
+[[package]]
+name = "fs4"
+version = "0.13.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8640e34b88f7652208ce9e88b1a37a2ae95227d84abec377ccd3c5cfeb141ed4"
+dependencies = [
+ "rustix 1.1.3",
+ "windows-sys 0.59.0",
+]
 
 [[package]]
 name = "fs_extra"
@@ -4473,6 +4483,16 @@ dependencies = [
  "env_home",
  "rustix 1.1.3",
  "winsafe",
+]
+
+[[package]]
+name = "which-fs"
+version = "0.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3c3fba09387e389f969a4f348af70654c360d7f395cfc4ac25bef6dd924c96d0"
+dependencies = [
+ "rustix 1.1.3",
+ "windows 0.62.2",
 ]
 
 [[package]]

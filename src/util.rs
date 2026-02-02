@@ -6,15 +6,6 @@ use derive_getters::Getters;
 use iced::Task;
 use std::{fs, path::Path};
 
-#[cfg(target_os = "linux")]
-const FAT32_MAGIC: rustix::fs::FsWord = 0x4d44;
-
-#[cfg(target_os = "macos")]
-const FAT32_MAGIC: [i8; 16] = [109, 115, 100, 111, 115, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-
-#[cfg(windows)]
-const FAT32_MAGIC: &str = "FAT32";
-
 #[derive(Debug, Clone, Getters)]
 pub struct DriveInfo {
     #[getter(copy)]
@@ -26,64 +17,14 @@ pub struct DriveInfo {
 }
 
 impl DriveInfo {
-    #[cfg(unix)]
     pub fn maybe_from_path(path: &Path) -> Option<Self> {
-        let stat = rustix::fs::statfs(path).ok()?;
+        let stats = fs4::statvfs(path).ok()?;
 
-        #[cfg(target_os = "linux")]
-        let block_size = stat.f_frsize as u64;
+        let avail_bytes = stats.available_space();
+        let total_bytes = stats.total_space();
+        let used_bytes = total_bytes - avail_bytes;
 
-        #[cfg(target_os = "macos")]
-        let block_size = u64::from(stat.f_bsize);
-
-        let total_bytes = stat.f_blocks * block_size;
-        let avail_bytes = stat.f_bavail * block_size;
-        let used_bytes = total_bytes.saturating_sub(avail_bytes);
-
-        #[cfg(target_os = "linux")]
-        let is_fat32 = stat.f_type == FAT32_MAGIC;
-
-        #[cfg(target_os = "macos")]
-        let is_fat32 = stat.f_fstypename == FAT32_MAGIC;
-
-        let info = Self {
-            used_bytes,
-            total_bytes,
-            is_fat32,
-        };
-
-        println!("FSINFO: {info:?}");
-
-        Some(info)
-    }
-
-    #[cfg(windows)]
-    pub fn maybe_from_path(path: &Path) -> Option<Self> {
-        let path = path.to_str()?;
-        let root_path = winsafe::GetVolumePathName(path).ok()?;
-
-        let mut total_bytes = 0;
-        let mut avail_bytes = 0;
-        winsafe::GetDiskFreeSpaceEx(
-            Some(root_path.as_str()),
-            Some(&mut avail_bytes),
-            Some(&mut total_bytes),
-            None,
-        )
-        .ok()?;
-        let used_bytes = total_bytes.saturating_sub(avail_bytes);
-
-        let mut file_system_name = String::new();
-        winsafe::GetVolumeInformation(
-            Some(root_path.as_str()),
-            None,
-            None,
-            None,
-            None,
-            Some(&mut file_system_name),
-        )
-        .ok()?;
-        let is_fat32 = file_system_name == FAT32_MAGIC;
+        let is_fat32 = which_fs::detect(path).ok()? == which_fs::FsKind::Fat32;
 
         let info = Self {
             used_bytes,
