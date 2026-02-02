@@ -8,9 +8,6 @@ use derive_getters::Getters;
 use iced::Task;
 use std::{fs, path::Path};
 
-#[cfg(windows)]
-use std::os::windows::ffi::OsStrExt;
-
 #[derive(Debug, Clone, Getters)]
 pub struct DriveInfo {
     #[getter(copy)]
@@ -35,6 +32,8 @@ impl DriveInfo {
 
         #[cfg(windows)]
         {
+            use std::os::windows::ffi::OsStrExt;
+
             let path_wide = path
                 .as_os_str()
                 .encode_wide()
