@@ -4487,9 +4487,9 @@ dependencies = [
 
 [[package]]
 name = "which-fs"
-version = "0.0.5"
+version = "0.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "935450e8a97ec656c533fd646eadd0f89e8d5dd927189d3b01e08fd7287d3210"
+checksum = "91d5a2840ecbd9dbaf620115e75cd68654a5ae4a65b0201abbdfaa9ff125d5b4"
 dependencies = [
  "rustix 1.1.3",
  "windows 0.62.2",
