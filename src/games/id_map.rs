@@ -7,7 +7,6 @@
 use crate::games::game_id::GameID;
 use crate::message::Message;
 use iced::Task;
-use std::mem::MaybeUninit;
 use std::str;
 use std::sync::LazyLock;
 
@@ -32,17 +31,13 @@ fn gameid_slice() -> &'static [[u8; 6]] {
 
 #[inline]
 fn get_ghid_at(i: usize) -> u32 {
-    let offset = GAMEHACKING_IDS_OFFSET + i * 3;
-
-    let b1 = unsafe { *ID_MAP.get_unchecked(offset) };
-    let b2 = unsafe { *ID_MAP.get_unchecked(offset + 1) };
-    let b3 = unsafe { *ID_MAP.get_unchecked(offset + 2) };
-
-    u32::from_le_bytes([b1, b2, b3, 0])
+    let ptr = unsafe { ID_MAP.as_ptr().add(GAMEHACKING_IDS_OFFSET + i * 3) };
+    let raw = unsafe { ptr.cast::<u32>().read_unaligned() };
+    u32::from_le(raw) & 0x00FF_FFFF
 }
 
-static TITLES: LazyLock<[&'static str; ID_MAP_LEN]> = LazyLock::new(|| {
-    let mut titles = [const { MaybeUninit::uninit() }; ID_MAP_LEN];
+static TITLES: LazyLock<Box<[&'static str]>> = LazyLock::new(|| {
+    let mut titles = Box::new_uninit_slice(ID_MAP_LEN);
 
     let mut data_ptr = unsafe { ID_MAP.as_ptr().add(TITLE_LENGTHS_OFFSET) };
 
@@ -56,7 +51,7 @@ static TITLES: LazyLock<[&'static str; ID_MAP_LEN]> = LazyLock::new(|| {
         cursor = title_end;
     }
 
-    unsafe { std::mem::transmute(titles) }
+    unsafe { titles.assume_init() }
 });
 
 pub fn get_title(game_id: GameID) -> Option<&'static str> {
