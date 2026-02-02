@@ -18,10 +18,40 @@ pub struct DriveInfo {
 
 impl DriveInfo {
     pub fn maybe_from_path(path: &Path) -> Option<Self> {
-        let stats = fs4::statvfs(path).ok()?;
+        #[cfg(unix)]
+        let (avail_bytes, total_bytes) = {
+            let stat = rustix::fs::statvfs(path).ok()?;
+            (stat.f_bavail * stat.f_frsize, stat.f_blocks * stat.f_frsize)
+        };
 
-        let avail_bytes = stats.available_space();
-        let total_bytes = stats.total_space();
+        #[cfg(windows)]
+        let (avail_bytes, total_bytes) = {
+            use std::os::windows::ffi::OsStrExt;
+            use windows::Win32::Storage::FileSystem::GetDiskFreeSpaceExW;
+            use windows::core::PCWSTR;
+
+            let path_wide = path
+                .as_os_str()
+                .encode_wide()
+                .chain(std::iter::once(0))
+                .collect::<Vec<_>>();
+
+            let mut avail_bytes = 0;
+            let mut total_bytes = 0;
+
+            unsafe {
+                GetDiskFreeSpaceExW(
+                    PCWSTR(path_wide.as_ptr()),
+                    Some(&mut avail_bytes),
+                    Some(&mut total_bytes),
+                    None,
+                )
+                .ok()?;
+            }
+
+            (avail_bytes, total_bytes)
+        };
+
         let used_bytes = total_bytes.saturating_sub(avail_bytes);
 
         let is_fat32 = which_fs::detect(path).ok()? == which_fs::FsKind::Fat32;
