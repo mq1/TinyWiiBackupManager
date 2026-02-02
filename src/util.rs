@@ -59,34 +59,33 @@ impl DriveInfo {
 
     #[cfg(windows)]
     pub fn maybe_from_path(path: &Path) -> Option<Self> {
-        let mut total_number_of_bytes = 0;
-        let mut total_number_of_free_bytes = 0;
-        winsafe::GetDiskFreeSpaceEx(
-            path.to_str(),
+        use winsafe::{GetDiskFreeSpaceEx, GetVolumeInformation, GetVolumePathName, prelude::*};
+
+        let path = path.to_str()?;
+        let root_path = GetVolumePathName(path).ok()?;
+
+        let mut total_bytes = 0;
+        let mut free_bytes = 0;
+        GetDiskFreeSpaceEx(
+            Some(root_path.to_str()),
             None,
-            Some(&mut total_number_of_bytes),
-            Some(&mut total_number_of_free_bytes),
+            Some(&mut total_bytes),
+            Some(&mut free_bytes),
         )
         .ok()?;
+        let used_bytes = total_bytes.saturating_sub(free_bytes);
 
-        let drive_letter = path.to_string_lossy().chars().next()?;
-        let is_fat32 = if drive_letter.is_alphabetic() {
-            let root_path = format!("{drive_letter}:\\\\");
-            let mut file_system_name = String::new();
-            winsafe::GetVolumeInformation(
-                Some(root_path.as_str()),
-                None,
-                None,
-                None,
-                None,
-                Some(&mut file_system_name),
-            )
-            .ok()?;
-
-            file_system_name == FAT32_MAGIC
-        } else {
-            true
-        };
+        let mut file_system_name = String::new();
+        GetVolumeInformation(
+            Some(root_path.as_str()),
+            None,
+            None,
+            None,
+            None,
+            Some(&mut file_system_name),
+        )
+        .ok()?;
+        let is_fat32 = file_system_name == FAT32_MAGIC;
 
         let info = Self {
             used_bytes,
