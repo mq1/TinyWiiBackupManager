@@ -63,15 +63,15 @@ impl DriveInfo {
         let root_path = winsafe::GetVolumePathName(path).ok()?;
 
         let mut total_bytes = 0;
-        let mut free_bytes = 0;
+        let mut avail_bytes = 0;
         winsafe::GetDiskFreeSpaceEx(
             Some(root_path.as_str()),
-            None,
+            Some(&mut avail_bytes),
             Some(&mut total_bytes),
-            Some(&mut free_bytes),
+            None,
         )
         .ok()?;
-        let used_bytes = total_bytes.saturating_sub(free_bytes);
+        let used_bytes = total_bytes.saturating_sub(avail_bytes);
 
         let mut file_system_name = String::new();
         winsafe::GetVolumeInformation(
