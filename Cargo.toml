@@ -153,4 +153,3 @@ rust_2018_idioms = "deny"
 [lints.clippy]
 all = "warn"
 pedantic = "warn"
-case_sensitive_file_extension_comparisons = { level = "allow", priority = 1 }

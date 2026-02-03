@@ -15,13 +15,7 @@ pub fn scan_for_discs(path: PathBuf) -> Vec<PathBuf> {
         .into_iter()
         .filter_map(Result::ok)
         .filter(is_valid_entry)
-        .map(|e| e.path().to_path_buf())
-        .filter(|p| {
-            p.extension()
-                .and_then(OsStr::to_str)
-                .is_some_and(|ext| ext != "zip")
-                || does_this_zip_contain_a_disc(p)
-        })
+        .map(DirEntry::into_path)
         .collect()
 }
 
@@ -42,7 +36,17 @@ fn is_valid_entry(entry: &DirEntry) -> bool {
         return false;
     }
 
-    filename.ends_with(".zip") || is_disc_filename(filename)
+    let path = entry.path();
+
+    let Some(ext) = path.extension() else {
+        return false;
+    };
+
+    if ext.eq_ignore_ascii_case("zip") {
+        does_this_zip_contain_a_disc(path)
+    } else {
+        is_disc_ext(ext)
+    }
 }
 
 pub fn is_valid_disc_file(path: &Path) -> bool {
@@ -62,10 +66,14 @@ pub fn is_valid_disc_file(path: &Path) -> bool {
         return false;
     }
 
-    if filename.ends_with(".zip") {
+    let Some(ext) = path.extension() else {
+        return false;
+    };
+
+    if ext.eq_ignore_ascii_case("zip") {
         does_this_zip_contain_a_disc(path)
     } else {
-        is_disc_filename(filename)
+        is_disc_ext(ext)
     }
 }
 
@@ -82,19 +90,27 @@ fn does_this_zip_contain_a_disc(path: &Path) -> bool {
         return false;
     };
 
-    is_disc_filename(first_file.name())
+    let Some(enclosed_name) = first_file.enclosed_name() else {
+        return false;
+    };
+
+    let Some(ext) = enclosed_name.extension() else {
+        return false;
+    };
+
+    is_disc_ext(ext)
 }
 
-fn is_disc_filename(filename: &str) -> bool {
-    filename.ends_with(".gcm")
-        || filename.ends_with(".iso")
-        || filename.ends_with(".wbfs")
-        || filename.ends_with(".wia")
-        || filename.ends_with(".rvz")
-        || filename.ends_with(".ciso")
-        || filename.ends_with(".gcz")
-        || filename.ends_with(".tgc")
-        || filename.ends_with(".nfs")
+fn is_disc_ext(ext: &OsStr) -> bool {
+    ext.eq_ignore_ascii_case("gcm")
+        || ext.eq_ignore_ascii_case("iso")
+        || ext.eq_ignore_ascii_case("wbfs")
+        || ext.eq_ignore_ascii_case("wia")
+        || ext.eq_ignore_ascii_case("rvz")
+        || ext.eq_ignore_ascii_case("ciso")
+        || ext.eq_ignore_ascii_case("gcz")
+        || ext.eq_ignore_ascii_case("tgc")
+        || ext.eq_ignore_ascii_case("nfs")
 }
 
 pub fn get_threads_num() -> (usize, usize) {
