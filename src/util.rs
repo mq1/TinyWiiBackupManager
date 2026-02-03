@@ -32,7 +32,7 @@ impl DriveInfo {
         };
 
         #[cfg(windows)]
-        {
+        unsafe {
             use std::os::windows::ffi::OsStrExt;
 
             let path_wide = path
@@ -41,15 +41,13 @@ impl DriveInfo {
                 .chain(std::iter::once(0))
                 .collect::<Vec<_>>();
 
-            unsafe {
-                windows::Win32::Storage::FileSystem::GetDiskFreeSpaceExW(
-                    windows::core::PCWSTR(path_wide.as_ptr()),
-                    Some(&mut avail_bytes),
-                    Some(&mut total_bytes),
-                    None,
-                )
-                .ok()?;
-            }
+            windows::Win32::Storage::FileSystem::GetDiskFreeSpaceExW(
+                windows::core::PCWSTR(path_wide.as_ptr()),
+                Some(&mut avail_bytes),
+                Some(&mut total_bytes),
+                None,
+            )
+            .ok()?;
         };
 
         let used_bytes = total_bytes.saturating_sub(avail_bytes);

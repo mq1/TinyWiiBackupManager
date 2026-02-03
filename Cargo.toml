@@ -54,7 +54,7 @@ derive-getters = "0.5"
 walkdir = "2.5"
 fs_extra = "1.3"
 wiiload = "0.3"
-which-fs = "0.1"
+which-fs = "0.2"
 
 [target.'cfg(unix)'.dependencies]
 rustix = "1.1"
