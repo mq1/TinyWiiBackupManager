@@ -38,7 +38,7 @@ dependencies = [
  "wgpu",
  "which-fs",
  "wiiload",
- "windows 0.58.0",
+ "windows 0.62.2",
  "winresource",
  "zip",
  "zstd",
@@ -4478,9 +4478,9 @@ dependencies = [
 
 [[package]]
 name = "which-fs"
-version = "0.0.6"
+version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "91d5a2840ecbd9dbaf620115e75cd68654a5ae4a65b0201abbdfaa9ff125d5b4"
+checksum = "c6f62aebef3f719932b4a082f73d78f3bc51e6d6ac1058d86d6ee4e437780283"
 dependencies = [
  "rustix 1.1.3",
  "windows 0.62.2",

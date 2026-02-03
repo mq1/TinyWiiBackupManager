@@ -7,6 +7,7 @@ use crate::{message::Message, state::State};
 use derive_getters::Getters;
 use iced::Task;
 use std::{fs, path::Path};
+use which_fs::FsKind;
 
 #[derive(Debug, Clone, Getters)]
 pub struct DriveInfo {
@@ -53,7 +54,7 @@ impl DriveInfo {
 
         let used_bytes = total_bytes.saturating_sub(avail_bytes);
 
-        let is_fat32 = which_fs::detect(path).ok()? == which_fs::FsKind::Fat32;
+        let is_fat32 = FsKind::try_from_path(path).ok()? == FsKind::Fat32;
 
         let info = Self {
             used_bytes,
