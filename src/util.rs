@@ -16,7 +16,7 @@ pub struct DriveInfo {
     #[getter(copy)]
     total_bytes: u64,
     #[getter(copy)]
-    is_fat32: bool,
+    fs_kind: FsKind,
 }
 
 impl DriveInfo {
@@ -51,13 +51,12 @@ impl DriveInfo {
         };
 
         let used_bytes = total_bytes.saturating_sub(avail_bytes);
-
-        let is_fat32 = FsKind::try_from_path(path).ok()? == FsKind::Fat32;
+        let fs_kind = FsKind::try_from_path(path).ok()?;
 
         let info = Self {
             used_bytes,
             total_bytes,
-            is_fat32,
+            fs_kind,
         };
 
         Some(info)

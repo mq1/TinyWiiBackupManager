@@ -7,16 +7,63 @@ use iced::{
     widget::{button, column, container, row, rule, scrollable, space, text, text_input},
 };
 use lucide_icons::iced::{
-    icon_brush_cleaning, icon_cloud_download, icon_file_up, icon_hard_drive_download,
-    icon_image_down, icon_monitor_up, icon_play, icon_skull, icon_tool_case, icon_wand_sparkles,
-    icon_wifi_pen,
+    icon_brush_cleaning, icon_cloud_download, icon_file_up, icon_globe, icon_hard_drive,
+    icon_hard_drive_download, icon_image_down, icon_monitor_up, icon_play, icon_skull,
+    icon_tool_case, icon_wand_sparkles, icon_wifi_pen,
 };
+use which_fs::FsKind;
 
 #[cfg(target_os = "macos")]
 use lucide_icons::iced::icon_apple;
 
 #[allow(clippy::too_many_lines)]
 pub fn view(state: &State) -> Element<'_, Message> {
+    let drive_info = if let Some(info) = &state.drive_info {
+        let fs_comment = match info.fs_kind() {
+            FsKind::Fat32 => "✓ optimal choice for game backups and homebrew apps",
+            FsKind::Ntfs => "⚠ will work for game backups, but not for homebrew apps",
+            _ => "⚠ won't work for game backups and homebrew apps",
+        };
+
+        let mut col = column![
+            row![icon_hard_drive(), "Drive info"].spacing(5),
+            rule::horizontal(1),
+            space(),
+            text!("Usage: {}", info.get_usage_string()),
+            text!("Filesystem: {} ({})", info.fs_kind(), fs_comment),
+        ]
+        .spacing(5)
+        .padding(10)
+        .width(Length::Fill);
+
+        let should_reformat = info.fs_kind() != FsKind::Fat32;
+
+        if should_reformat {
+            col = col
+                .push(rule::horizontal(1))
+                .push(
+                button(row![icon_globe().style(text::primary), text("Drive formatting guide").style(text::primary)].spacing(5))
+                    .style(button::text)
+                    .padding(0)
+                    .on_press_with(|| Message::OpenThat(
+                            "https://gbatemp.net/threads/usb-loader-gx-troubleshooting-guide.617564/#fs".into(),
+                    )),
+                );
+        }
+
+        col
+    } else {
+        column![
+            row![icon_hard_drive(), "Drive info"].spacing(5),
+            rule::horizontal(1),
+            space(),
+            "Error: unable to get drive information"
+        ]
+        .spacing(5)
+        .padding(10)
+        .width(Length::Fill)
+    };
+
     let usbloader_gx = column![
         row![icon_wand_sparkles(), "USB Loader GX"].spacing(5),
         rule::horizontal(1),
@@ -204,6 +251,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
 
     let mut col = if state.config.is_mount_point_valid() {
         column![
+            container(drive_info).style(style::card),
             container(usbloader_gx).style(style::card),
             container(wiiflow).style(style::card),
             container(cheats).style(style::card),

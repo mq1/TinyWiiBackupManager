@@ -36,6 +36,7 @@ use iced::{
 };
 use semver::Version;
 use std::{ffi::OsStr, path::PathBuf};
+use which_fs::FsKind;
 
 #[cfg(target_os = "macos")]
 use crate::util::run_dot_clean;
@@ -428,7 +429,10 @@ impl State {
             }
             Message::AddGamesToTransferStack((paths, yes)) => {
                 if yes {
-                    let is_fat32 = self.drive_info.as_ref().is_none_or(DriveInfo::is_fat32);
+                    let is_fat32 = self
+                        .drive_info
+                        .as_ref()
+                        .is_some_and(|i| i.fs_kind() == FsKind::Fat32);
 
                     for path in paths {
                         self.transfer_queue.push(TransferOperation::ConvertForWii(
@@ -622,7 +626,10 @@ impl State {
                     self.notifications
                         .info(format!("Removing update partition from {}", game.title()));
 
-                    let is_fat32 = self.drive_info.as_ref().is_some_and(DriveInfo::is_fat32);
+                    let is_fat32 = self
+                        .drive_info
+                        .as_ref()
+                        .is_some_and(|i| i.fs_kind() == FsKind::Fat32);
 
                     let op = StripOperation::new(game, self.config.always_split(), is_fat32);
                     self.transfer_queue.push(TransferOperation::Strip(op));
@@ -646,7 +653,10 @@ impl State {
                             .to_string(),
                     );
 
-                    let is_fat32 = self.drive_info.as_ref().is_some_and(DriveInfo::is_fat32);
+                    let is_fat32 = self
+                        .drive_info
+                        .as_ref()
+                        .is_some_and(|i| i.fs_kind() == FsKind::Fat32);
 
                     for game in self.game_list.iter().cloned() {
                         let op = StripOperation::new(game, self.config.always_split(), is_fat32);
