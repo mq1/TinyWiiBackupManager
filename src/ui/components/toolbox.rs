@@ -29,14 +29,35 @@ pub fn view(state: &State) -> Element<'_, Message> {
             row![icon_hard_drive(), "Drive info"].spacing(5),
             rule::horizontal(1),
             space(),
-            text!("Usage: {}", info.get_usage_string()),
             text!("Filesystem: {} ({})", info.fs_kind(), fs_comment),
         ]
         .spacing(5)
         .padding(10)
         .width(Length::Fill);
 
-        let should_reformat = info.fs_kind() != FsKind::Fat32;
+        let should_reformat = if info.fs_kind() == FsKind::Fat32 {
+            let optimal_allocation_granularity = if info.total_bytes() <= 32 * 1024 * 1024 * 1024 {
+                info.allocation_granularity() == 32768
+            } else {
+                info.allocation_granularity() == 65536
+            };
+
+            let allocation_granularity_comment = if optimal_allocation_granularity {
+                "✓ optimal"
+            } else {
+                "⚠ not optimal, but will work"
+            };
+
+            col = col.push(text!(
+                "Allocation granularity: {} bytes ({})",
+                info.allocation_granularity(),
+                allocation_granularity_comment
+            ));
+
+            !optimal_allocation_granularity
+        } else {
+            true
+        };
 
         if should_reformat {
             col = col
