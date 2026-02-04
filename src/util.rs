@@ -16,48 +16,28 @@ pub struct DriveInfo {
     #[getter(copy)]
     total_bytes: u64,
     #[getter(copy)]
-    is_fat32: bool,
+    allocation_granularity: u64,
+    #[getter(copy)]
+    fs_kind: FsKind,
 }
 
 impl DriveInfo {
     pub fn maybe_from_path(path: &Path) -> Option<Self> {
-        let mut avail_bytes = 0;
-        let mut total_bytes = 0;
+        let stat = fs4::statvfs(path).ok()?;
 
-        #[cfg(unix)]
-        {
-            let stat = rustix::fs::statvfs(path).ok()?;
-            avail_bytes = stat.f_bavail * stat.f_frsize;
-            total_bytes = stat.f_blocks * stat.f_frsize;
-        };
-
-        #[cfg(windows)]
-        unsafe {
-            use std::os::windows::ffi::OsStrExt;
-
-            let path_wide = path
-                .as_os_str()
-                .encode_wide()
-                .chain(std::iter::once(0))
-                .collect::<Vec<_>>();
-
-            windows::Win32::Storage::FileSystem::GetDiskFreeSpaceExW(
-                windows::core::PCWSTR(path_wide.as_ptr()),
-                Some(&mut avail_bytes),
-                Some(&mut total_bytes),
-                None,
-            )
-            .ok()?;
-        };
-
+        let total_bytes = stat.total_space();
+        let avail_bytes = stat.available_space();
         let used_bytes = total_bytes.saturating_sub(avail_bytes);
+        let allocation_granularity = stat.allocation_granularity();
 
-        let is_fat32 = FsKind::try_from_path(path).ok()? == FsKind::Fat32;
+        // My library :)
+        let fs_kind = FsKind::try_from_path(path).ok()?;
 
         let info = Self {
             used_bytes,
             total_bytes,
-            is_fat32,
+            allocation_granularity,
+            fs_kind,
         };
 
         Some(info)
