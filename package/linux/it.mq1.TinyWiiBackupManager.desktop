@@ -1,9 +1,0 @@
-[Desktop Entry]
-Categories=Game;Utility;
-Comment=A tiny game backup and homebrew app manager for the Wii
-Exec=TinyWiiBackupManager
-Icon=it.mq1.TinyWiiBackupManager
-Name=TinyWiiBackupManager
-Terminal=false
-Type=Application
-StartupWMClass=TinyWiiBackupManager

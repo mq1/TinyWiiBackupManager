@@ -13,7 +13,6 @@ for res in "${TARGET_RESOLUTIONS[@]}"; do
   mkdir -p package/linux/icons/hicolor/${res}/apps
   magick assets/TinyWiiBackupManager-1024x1024.png ${MAGICK_ARGS} -resize ${res} package/linux/icons/hicolor/${res}/apps/it.mq1.TinyWiiBackupManager.png
   oxipng -sao6 package/linux/icons/hicolor/${res}/apps/it.mq1.TinyWiiBackupManager.png
-  cp package/linux/icons/hicolor/${res}/apps/it.mq1.TinyWiiBackupManager.png package/linux/icons/hicolor/${res}/apps/TinyWiiBackupManager.png
 done
 
 # Windows
