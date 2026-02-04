@@ -14,16 +14,26 @@ pub const SUPPORTED_DISC_EXTENSIONS: &[&str] = &[
 ];
 
 pub fn ext_to_format(ext: Option<&OsStr>) -> Option<Format> {
-    match ext.and_then(OsStr::to_str) {
-        Some("gcm" | "iso") => Some(Format::Iso),
-        Some("wbfs") => Some(Format::Wbfs),
-        Some("wia") => Some(Format::Wia),
-        Some("rvz") => Some(Format::Rvz),
-        Some("ciso") => Some(Format::Ciso),
-        Some("gcz") => Some(Format::Gcz),
-        Some("tgc") => Some(Format::Tgc),
-        Some("nfs") => Some(Format::Nfs),
-        _ => None,
+    let ext = ext?;
+
+    if ext.eq_ignore_ascii_case("gcm") || ext.eq_ignore_ascii_case("iso") {
+        Some(Format::Iso)
+    } else if ext.eq_ignore_ascii_case("wbfs") {
+        Some(Format::Wbfs)
+    } else if ext.eq_ignore_ascii_case("wia") {
+        Some(Format::Wia)
+    } else if ext.eq_ignore_ascii_case("rvz") {
+        Some(Format::Rvz)
+    } else if ext.eq_ignore_ascii_case("ciso") {
+        Some(Format::Ciso)
+    } else if ext.eq_ignore_ascii_case("gcz") {
+        Some(Format::Gcz)
+    } else if ext.eq_ignore_ascii_case("tgc") {
+        Some(Format::Tgc)
+    } else if ext.eq_ignore_ascii_case("nfs") {
+        Some(Format::Nfs)
+    } else {
+        None
     }
 }
 

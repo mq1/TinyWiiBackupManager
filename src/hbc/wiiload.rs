@@ -79,13 +79,13 @@ fn send_via_wiiload(wii_ip: &str, path: &Path) -> Result<String> {
         bail!("Failed to get filename")
     };
 
-    let Some(ext) = path.extension().and_then(OsStr::to_str) else {
+    let Some(ext) = path.extension() else {
         bail!("Failed to get extension")
     };
 
     let body = fs::read(path)?;
 
-    if ext == "zip" {
+    if ext.eq_ignore_ascii_case("zip") {
         let (body, excluded_files) = rebuild_zip(body)?;
         wiiload::send(filename, body, wii_ip)?;
         Ok(format!(

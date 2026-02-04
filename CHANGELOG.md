@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 📝 Display "No drive selected" on the title bar instead of an empty string
 
+### Fixed
+
+- 🖼️ KDE Plasma now correctly shows the app icon in title bar / overview
+
 ## [v5.0.2] - 2026-02-01
 
 ### Fixed

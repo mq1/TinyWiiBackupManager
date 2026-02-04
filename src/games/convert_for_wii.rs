@@ -19,7 +19,6 @@ use nod::{
     write::{DiscWriter, ProcessOptions, ScrubLevel},
 };
 use std::{
-    ffi::OsStr,
     fs::{self, File},
     io::{self, BufReader, BufWriter, Seek, Write},
     path::PathBuf,
@@ -63,8 +62,7 @@ impl ConvertForWiiOperation {
                 if self
                     .source_path
                     .extension()
-                    .and_then(OsStr::to_str)
-                    .is_some_and(|ext| ext == "zip")
+                    .is_some_and(|ext| ext.eq_ignore_ascii_case("zip"))
                 {
                     let _ = tx.try_send(format!("Unzipping {}", self.source_path.display()));
 

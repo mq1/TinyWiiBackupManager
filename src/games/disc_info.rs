@@ -105,9 +105,13 @@ impl DiscInfo {
             bail!("Part 1 file");
         }
 
-        if !filename.ends_with(".iso")
-            && !filename.ends_with(".wbfs")
-            && !filename.ends_with(".ciso")
+        let Some(ext) = disc_path.extension() else {
+            bail!("No file extension");
+        };
+
+        if !ext.eq_ignore_ascii_case("iso")
+            && !ext.eq_ignore_ascii_case("wbfs")
+            && !ext.eq_ignore_ascii_case("ciso")
         {
             bail!("Unsupported file extension");
         }

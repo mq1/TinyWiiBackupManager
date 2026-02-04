@@ -60,8 +60,7 @@ pub fn choose_hbc_apps(window: &dyn Window) -> Vec<PathBuf> {
         .into_iter()
         .filter(|p| {
             p.extension()
-                .and_then(OsStr::to_str)
-                .is_some_and(|ext| ext == "zip")
+                .is_some_and(|ext| ext.eq_ignore_ascii_case("zip"))
         })
         .collect()
 }

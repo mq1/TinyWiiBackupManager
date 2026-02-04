@@ -89,9 +89,13 @@ impl Game {
                 continue;
             }
 
-            if filename.ends_with(".iso")
-                || filename.ends_with(".wbfs")
-                || filename.ends_with(".ciso")
+            let Some(ext) = path.extension() else {
+                continue;
+            };
+
+            if ext.eq_ignore_ascii_case("iso")
+                || ext.eq_ignore_ascii_case("wbfs")
+                || ext.eq_ignore_ascii_case("ciso")
             {
                 return Ok(path);
             }
