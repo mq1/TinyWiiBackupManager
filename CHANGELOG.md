@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - 🖼️ KDE Plasma now correctly shows the app icon in title bar / overview
+- ⚡️ Windows drive probing should be faster and more reliable
 
 ## [v5.0.2] - 2026-02-01
 
