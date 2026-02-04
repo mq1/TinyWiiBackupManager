@@ -52,7 +52,7 @@ fn main() -> iced::Result {
         // wayland only
         #[cfg(target_os = "linux")]
         platform_specific: window::settings::PlatformSpecific {
-            application_id: "TinyWiiBackupManager".to_string(),
+            application_id: "it.mq1.TinyWiiBackupManager".to_string(),
             ..Default::default()
         },
 
