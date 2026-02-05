@@ -74,7 +74,7 @@ features = ["std", "parking_lot", "metal"]
 version = "27"
 optional = true
 default-features = false
-features = ["std", "parking_lot", "vulkan"]
+features = ["std", "parking_lot", "gles"]
 
 [target.'cfg(target_vendor = "pc")'.dependencies.wgpu]
 version = "27"
