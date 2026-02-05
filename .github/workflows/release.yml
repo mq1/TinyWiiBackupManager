@@ -135,43 +135,34 @@ jobs:
       matrix:
         include:
           - target: x86_64-pc-windows-gnullvm
-            features: wgpu native-tls
             arch: x86_64-v3
             rustflags: -C target-cpu=x86-64-v3 -L native=llvm-mingw-20251216-ucrt-macos-universal/x86_64-w64-mingw32/lib
             cflags: -march=x86-64-v3
             cxxflags: -march=x86-64-v3
             platform: windows
           - target: x86_64-pc-windows-gnullvm
-            features: wgpu native-tls
             arch: x86_64-v2
             rustflags: -C target-cpu=x86-64-v2 -L native=llvm-mingw-20251216-ucrt-macos-universal/x86_64-w64-mingw32/lib
             cflags: -march=x86-64-v2
             cxxflags: -march=x86-64-v2
             platform: windows
           - target: x86_64-pc-windows-gnullvm
-            features: wgpu native-tls
             arch: x86_64
             rustflags: -L native=llvm-mingw-20251216-ucrt-macos-universal/x86_64-w64-mingw32/lib
             platform: windows
           - target: aarch64-pc-windows-gnullvm
-            features: wgpu native-tls
             arch: arm64
             rustflags: -L native=llvm-mingw-20251216-ucrt-macos-universal/aarch64-w64-mingw32/lib
             platform: windows
           - target: i686-pc-windows-gnullvm
-            features: wgpu native-tls
             arch: x86
             rustflags: -L native=llvm-mingw-20251216-ucrt-macos-universal/i686-w64-mingw32/lib
             platform: windows
           - target: x86_64-win7-windows-gnu
-            features: tiny-skia bundled-tls
             arch: x86_64
-            rustflags: -C target-feature=+crt-static
             platform: windows7
           - target: i686-win7-windows-gnu
-            features: tiny-skia bundled-tls
             arch: x86
-            rustflags: -C target-feature=+crt-static
             platform: windows7
 
     steps:
@@ -199,18 +190,25 @@ jobs:
           rustup toolchain install 1.93 --component rust-src
           rustup default 1.93
 
-      - name: Build binary
+      - name: Build binary (windows)
+        if: matrix.platform == 'windows'
         run: |
           export PATH="$PWD/llvm-mingw-20251216-ucrt-ubuntu-22.04-x86_64/bin:$PATH"
-          cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "${{ matrix.features }}"
+          cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
         env:
           RUSTC_BOOTSTRAP: 1
           RUSTFLAGS: -C linker-plugin-lto ${{ matrix.rustflags }}
           CC: clang
           CXX: clang++
-          AR: llvm-ar
           CFLAGS: -O3 -flto ${{ matrix.cflags }}
           CXXFLAGS: -O3 -flto ${{ matrix.cxxflags }}
+
+      - name: Build binary (windows7)
+        if: matrix.platform == 'windows7'
+        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "tiny-skia bundled-tls"
+        env:
+          RUSTC_BOOTSTRAP: 1
+          RUSTFLAGS: -C target-feature=+crt-static
 
       - name: Package binary as zip
         run: |
