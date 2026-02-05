@@ -11,7 +11,7 @@ pub fn read_gameid<R: Read>(reader: &mut R, format: Format) -> Option<GameID> {
     let id_pos = match format {
         Format::Iso => 0,
         Format::Wbfs => 512,
-        Format::Rvz => 88,
+        Format::Rvz | Format::Wia => 88,
         Format::Ciso => 32768,
         _ => {
             return None;
