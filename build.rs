@@ -137,11 +137,13 @@ fn main() {
     make_id_map();
     compress_lucide();
 
-    #[cfg(all(target_os = "macos", target_arch = "x86_64"))]
-    println!("cargo:rustc-env=MACOSX_DEPLOYMENT_TARGET=10.13");
+    if env::var("TARGET").unwrap() == "x86_64-apple-darwin" {
+        println!("cargo:rustc-env=MACOSX_DEPLOYMENT_TARGET=10.13");
+    }
 
-    #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
-    println!("cargo:rustc-env=MACOSX_DEPLOYMENT_TARGET=11.0");
+    if env::var("TARGET").unwrap() == "aarch64-apple-darwin" {
+        println!("cargo:rustc-env=MACOSX_DEPLOYMENT_TARGET=11.0");
+    }
 
     #[cfg(windows)]
     {
