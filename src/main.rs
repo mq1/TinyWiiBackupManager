@@ -5,6 +5,7 @@
 
 mod config;
 mod data_dir;
+mod disc_util;
 mod games;
 mod hbc;
 mod http_util;

@@ -1,13 +1,14 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::games::game_id::GameID;
+use crate::{
+    disc_util,
+    games::{extensions::ext_to_format, game_id::GameID},
+};
 use anyhow::Result;
 use nod::read::{DiscOptions, DiscReader};
 use std::{
-    ffi::OsStr,
     fs::File,
-    io::{Cursor, Read},
     path::{Path, PathBuf},
 };
 use walkdir::{DirEntry, WalkDir};
@@ -44,7 +45,7 @@ pub fn maybe_path_to_entry(path: impl Into<PathBuf>) -> Option<(PathBuf, GameID)
     if ext.eq_ignore_ascii_case("zip") {
         let id = get_zipped_game_id(&path)?;
         Some((path, id))
-    } else if is_disc_ext(ext) {
+    } else if ext_to_format(ext).is_some() {
         let disc_reader = DiscReader::new(&path, &DiscOptions::default()).ok()?;
         let id = GameID::from(disc_reader.header().game_id);
         Some((path, id))
@@ -60,30 +61,10 @@ fn get_zipped_game_id(path: &Path) -> Option<GameID> {
     let mut first_file = archive.by_index(0).ok()?;
     let enclosed_name = first_file.enclosed_name()?;
     let ext = enclosed_name.extension()?;
-    if !is_disc_ext(ext) {
-        return None;
-    }
 
-    let mut buf = vec![0u8; 8 * 1024 * 1024].into_boxed_slice();
-    first_file.read_exact(&mut buf).ok()?;
-    let cursor = Cursor::new(buf);
-
-    let disc_reader =
-        DiscReader::new_from_non_cloneable_read(cursor, &DiscOptions::default()).ok()?;
-    let id = GameID::from(disc_reader.header().game_id);
+    let format = ext_to_format(ext)?;
+    let id = disc_util::read_gameid(&mut first_file, format).unwrap_or_default();
     Some(id)
-}
-
-fn is_disc_ext(ext: &OsStr) -> bool {
-    ext.eq_ignore_ascii_case("gcm")
-        || ext.eq_ignore_ascii_case("iso")
-        || ext.eq_ignore_ascii_case("wbfs")
-        || ext.eq_ignore_ascii_case("wia")
-        || ext.eq_ignore_ascii_case("rvz")
-        || ext.eq_ignore_ascii_case("ciso")
-        || ext.eq_ignore_ascii_case("gcz")
-        || ext.eq_ignore_ascii_case("tgc")
-        || ext.eq_ignore_ascii_case("nfs")
 }
 
 pub fn get_threads_num() -> (usize, usize) {

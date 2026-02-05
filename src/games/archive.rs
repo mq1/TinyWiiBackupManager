@@ -46,7 +46,11 @@ impl ArchiveOperation {
             let (mut tx, mut rx) = mpsc::channel(1);
 
             let handle = thread::spawn(move || -> Result<()> {
-                let Some(out_format) = ext_to_format(self.dest.extension()) else {
+                let Some(ext) = self.source.extension() else {
+                    bail!("Source file has no extension");
+                };
+
+                let Some(out_format) = ext_to_format(ext) else {
                     bail!("Unsupported extension");
                 };
 

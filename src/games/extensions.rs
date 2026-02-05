@@ -13,9 +13,7 @@ pub const SUPPORTED_DISC_EXTENSIONS: &[&str] = &[
     "gcm", "iso", "wbfs", "wia", "rvz", "ciso", "gcz", "tgc", "nfs",
 ];
 
-pub fn ext_to_format(ext: Option<&OsStr>) -> Option<Format> {
-    let ext = ext?;
-
+pub fn ext_to_format(ext: &OsStr) -> Option<Format> {
     if ext.eq_ignore_ascii_case("gcm") || ext.eq_ignore_ascii_case("iso") {
         Some(Format::Iso)
     } else if ext.eq_ignore_ascii_case("wbfs") {

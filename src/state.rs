@@ -417,14 +417,14 @@ impl State {
                 .and_then(|id| window::run(id, dialogs::choose_src_dir))
                 .map(Message::ConfirmAddGamesToTransferStack),
             Message::ConfirmAddGamesToTransferStack(mut entries) => {
+                // remove already installed games
+                entries.retain(|(_, id)| !self.game_list.iter().any(|g| g.id() == *id));
+
                 if entries.is_empty() {
                     window::oldest()
                         .and_then(|id| window::run(id, dialogs::no_new_games))
                         .discard()
                 } else {
-                    // remove already installed games
-                    entries.retain(|(_, id)| !self.game_list.iter().any(|g| g.id() == *id));
-
                     window::oldest()
                         .and_then(move |id| {
                             let entries = entries.clone();
