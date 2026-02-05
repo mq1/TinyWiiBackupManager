@@ -21,7 +21,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
     let drive_info = if let Some(info) = &state.drive_info {
         let fs_comment = match info.fs_kind() {
             FsKind::Fat32 => "✓ optimal choice for game backups and homebrew apps",
-            FsKind::Ntfs => "⚠ will work for game backups, but not for homebrew apps",
+            FsKind::Ntfs | FsKind::ExFat => "⚠ limited support for game backups and homebrew apps",
             _ => "⚠ won't work for game backups and homebrew apps",
         };
 
@@ -45,7 +45,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
             let allocation_granularity_comment = if optimal_allocation_granularity {
                 "✓ optimal"
             } else {
-                "⚠ not optimal, but will work"
+                "⚠ not optimal, but should work"
             };
 
             col = col.push(text!(
