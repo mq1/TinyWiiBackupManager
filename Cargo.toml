@@ -86,6 +86,7 @@ features = ["std", "parking_lot", "dx12"]
 regex = "1.12"
 lucide-icons = "0.563"
 zstd = "0.13"
+winresource = "0.1"
 
 [features]
 default = ["wgpu", "native-tls"]
@@ -93,9 +94,6 @@ wgpu = ["iced/wgpu-bare", "dep:wgpu"]
 tiny-skia = ["iced/tiny-skia"]
 native-tls = ["minreq/https-native"]
 bundled-tls = ["minreq/https-rustls"]
-
-[target.'cfg(windows)'.build-dependencies]
-winresource = "0.1"
 
 [profile.release]
 opt-level = 3

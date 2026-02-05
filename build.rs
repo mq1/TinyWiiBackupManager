@@ -137,16 +137,28 @@ fn main() {
     make_id_map();
     compress_lucide();
 
-    #[cfg(all(target_os = "macos", target_arch = "x86_64"))]
-    println!("cargo:rustc-env=MACOSX_DEPLOYMENT_TARGET=10.13");
+    if env::var("TARGET").unwrap() == "x86_64-apple-darwin" {
+        println!("cargo:rustc-env=MACOSX_DEPLOYMENT_TARGET=10.13");
+    }
 
-    #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
-    println!("cargo:rustc-env=MACOSX_DEPLOYMENT_TARGET=11.0");
+    if env::var("TARGET").unwrap() == "aarch64-apple-darwin" {
+        println!("cargo:rustc-env=MACOSX_DEPLOYMENT_TARGET=11.0");
+    }
 
-    #[cfg(windows)]
-    {
+    if env::var("CARGO_CFG_TARGET_FAMILY").unwrap() == "windows" {
         let mut res = winresource::WindowsResource::new();
         res.set_icon("package/windows/icon.ico");
+
+        if env::var("CARGO_CFG_TARGET_ENV").unwrap() == "gnullvm" {
+            println!("cargo:rustc-link-lib=static=unwind");
+        }
+
+        if env::var("CARGO_CFG_TARGET_ENV").unwrap() != "msvc" {
+            let arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
+            res.set_ar_path(&format!("{arch}-w64-mingw32-ar"))
+                .set_windres_path(&format!("{arch}-w64-mingw32-windres"));
+        }
+
         res.compile().unwrap();
     }
 }
