@@ -211,8 +211,6 @@ jobs:
           AR: llvm-ar
           CFLAGS: -O3 -flto ${{ matrix.cflags }}
           CXXFLAGS: -O3 -flto ${{ matrix.cxxflags }}
-          CARGO_TARGET_X86_64_WIN7_WINDOWS_GNU_LINKER: lld
-          CARGO_TARGET_I686_WIN7_WINDOWS_GNU_LINKER: lld
 
       - name: Package binary as zip
         run: |
