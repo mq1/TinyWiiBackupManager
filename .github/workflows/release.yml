@@ -129,7 +129,7 @@ jobs:
 
   build-windows:
     name: Build for Windows
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -181,9 +181,18 @@ jobs:
           fetch-depth: 1
 
       - name: Install llvm-mingw
+        if: matrix.platform == 'windows'
         run: |
           wget https://github.com/mstorsjo/llvm-mingw/releases/download/20251216/llvm-mingw-20251216-ucrt-ubuntu-22.04-x86_64.tar.xz
           tar xf llvm-mingw-20251216-ucrt-ubuntu-22.04-x86_64.tar.xz
+
+      - name: Install mingw-w64 (x86_64)
+        if: matrix.target == 'x86_64-win7-windows-gnu'
+        run: sudo apt-get install -y gcc-mingw-w64-x86-64
+
+      - name: Install mingw-w64 (i686)
+        if: matrix.target == 'i686-win7-windows-gnu'
+        run: sudo apt-get install -y gcc-mingw-w64-i686
 
       - name: Install Rust toolchain
         run: |
