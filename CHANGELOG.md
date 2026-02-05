@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - 📝 Display "No drive selected" on the title bar instead of an empty string
+- ⚡️ Reduce windows 10+ binary size
 
 ### Fixed
 
