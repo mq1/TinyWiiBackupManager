@@ -16,6 +16,7 @@ use crate::{
         strip::StripOperation,
         transfer::{TransferOperation, TransferQueue},
         txtcodes,
+        util::maybe_path_to_entry,
         wiitdb::{self},
     },
     hbc::{self, app_list::HbcAppList, osc::OscAppMeta, osc_list::OscAppList, wiiload},
@@ -415,14 +416,19 @@ impl State {
             Message::ChooseGamesSrcDir => window::oldest()
                 .and_then(|id| window::run(id, dialogs::choose_src_dir))
                 .map(Message::ConfirmAddGamesToTransferStack),
-            Message::ConfirmAddGamesToTransferStack(paths) => {
-                if paths.is_empty() {
-                    Task::none()
+            Message::ConfirmAddGamesToTransferStack(mut entries) => {
+                if entries.is_empty() {
+                    window::oldest()
+                        .and_then(|id| window::run(id, dialogs::no_new_games))
+                        .discard()
                 } else {
+                    // remove already installed games
+                    entries.retain(|(_, id)| !self.game_list.iter().any(|g| g.id() == *id));
+
                     window::oldest()
                         .and_then(move |id| {
-                            let paths = paths.clone();
-                            window::run(id, move |w| dialogs::confirm_add_games(w, paths))
+                            let entries = entries.clone();
+                            window::run(id, move |w| dialogs::confirm_add_games(w, entries))
                         })
                         .map(Message::AddGamesToTransferStack)
                 }
@@ -703,7 +709,14 @@ impl State {
                 }
             }
             Message::FileDropped(path) => match self.screen {
-                Screen::Games => self.update(Message::ConfirmAddGamesToTransferStack(vec![path])),
+                Screen::Games => {
+                    if let Some(entry) = maybe_path_to_entry(path) {
+                        self.update(Message::ConfirmAddGamesToTransferStack(vec![entry]))
+                    } else {
+                        self.notifications.error("Invalid file!".to_string());
+                        Task::none()
+                    }
+                }
                 Screen::HbcApps => self.update(Message::AddHbcApps(vec![path])),
                 _ => Task::none(),
             },

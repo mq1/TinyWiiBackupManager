@@ -6,6 +6,7 @@ use crate::{
     games::{
         disc_info::DiscInfo,
         game::Game,
+        game_id::GameID,
         game_list::GameList,
         wiitdb::{self},
     },
@@ -51,7 +52,7 @@ pub enum Message {
     ShowGc(bool),
     ChooseGamesToAdd,
     ChooseGamesSrcDir,
-    ConfirmAddGamesToTransferStack(Vec<PathBuf>),
+    ConfirmAddGamesToTransferStack(Vec<(PathBuf, GameID)>),
     AddGamesToTransferStack((Vec<PathBuf>, bool)),
     StartTransfer,
     CancelTransfer(usize),
