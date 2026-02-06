@@ -214,13 +214,13 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install mingw-w64 (x86_64)
+      - name: Install x86_64 dependencies
         if: matrix.arch == 'x86_64'
         run: sudo apt-get install -y gcc-mingw-w64-x86-64
 
-      - name: Install mingw-w64 (x86)
+      - name: Install x86 dependencies
         if: matrix.arch == 'x86'
-        run: sudo apt-get install -y gcc-mingw-w64-i686
+        run: sudo apt-get install -y gcc-mingw-w64-i686 libc6-dev-i386
 
       - name: Install Rust toolchain
         run: |
