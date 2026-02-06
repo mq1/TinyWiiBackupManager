@@ -135,41 +135,21 @@ jobs:
       matrix:
         include:
           - target: x86_64-pc-windows-msvc
-            features: wgpu native-tls
             arch: x86_64-v3
             rustflags: -C target-cpu=x86-64-v3
             cflags: /clang:-march=x86-64-v3
             cxxflags: /clang:-march=x86-64-v3
-            platform: windows
           - target: x86_64-pc-windows-msvc
-            features: wgpu native-tls
             arch: x86_64-v2
             rustflags: -C target-cpu=x86-64-v2
             cflags: /clang:-march=x86-64-v2
             cxxflags: /clang:-march=x86-64-v2
-            platform: windows
           - target: x86_64-pc-windows-msvc
-            features: wgpu native-tls
             arch: x86_64
-            platform: windows
           - target: aarch64-pc-windows-msvc
-            features: wgpu native-tls
             arch: arm64
-            platform: windows
           - target: i686-pc-windows-msvc
-            features: wgpu native-tls
             arch: x86
-            platform: windows
-          - target: x86_64-win7-windows-msvc
-            features: tiny-skia bundled-tls
-            arch: x86_64
-            rustflags: -C target-feature=+crt-static
-            platform: windows7
-          - target: i686-win7-windows-msvc
-            features: tiny-skia bundled-tls
-            arch: x86
-            rustflags: -C target-feature=+crt-static
-            platform: windows7
 
     steps:
       - name: Checkout
@@ -181,7 +161,6 @@ jobs:
         uses: KyleMayes/install-llvm-action@v2
         with:
           version: "21.1.8"
-          force-url: https://github.com/llvm/llvm-project/releases/download/llvmorg-21.1.8/LLVM-21.1.8-win64.exe
 
       - name: Install Rust toolchain
         shell: pwsh
@@ -191,7 +170,7 @@ jobs:
 
       - name: Build binary
         shell: pwsh
-        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "${{ matrix.features }}"
+        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
         env:
           RUSTC_BOOTSTRAP: 1
           RUSTFLAGS: -C linker-plugin-lto ${{ matrix.rustflags }}
@@ -203,20 +182,67 @@ jobs:
           CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: lld-link
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: lld-link
           CARGO_TARGET_I686_PC_WINDOWS_MSVC_LINKER: lld-link
-          CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_LINKER: lld-link
-          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_LINKER: lld-link
 
       - name: Package binary as zip
         shell: pwsh
         run: |
           New-Item -Path "dist" -ItemType Directory
           Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination TinyWiiBackupManager.exe
-          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
+          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v4
         with:
-          name: dist-${{ matrix.platform }}-${{ matrix.arch }}
+          name: dist-windows-${{ matrix.arch }}
+          path: dist/*
+
+  build-windows7:
+    name: Build for Windows 7
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-win7-windows-gnu
+            arch: x86_64
+          - target: i686-win7-windows-gnu
+            arch: x86
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Install mingw-w64 (x86_64)
+        if: matrix.arch == 'x86_64'
+        run: sudo apt-get install -y gcc-mingw-w64-x86-64
+
+      - name: Install mingw-w64 (x86)
+        if: matrix.arch == 'x86'
+        run: sudo apt-get install -y gcc-mingw-w64-i686
+
+      - name: Install Rust toolchain
+        run: |
+          rustup toolchain install 1.93 --component rust-src
+          rustup default 1.93
+
+      - name: Build binary
+        run: cargo build-Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "tiny-skia bundled-tls"
+        env:
+          RUSTC_BOOTSTRAP: 1
+          RUSTFLAGS: -C target-feature=+crt-static
+
+      - name: Package binary as zip
+        run: |
+          mkdir dist
+          cp "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" TinyWiiBackupManager.exe
+          zip -9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows7-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
+
+      - name: Upload Windows 7 distributables
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-windows7-${{ matrix.arch }}
           path: dist/*
 
   build-macos:
