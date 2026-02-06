@@ -7,9 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## Changed
+### Changed
 
 - 💄 title bar is now the same color as the side panel on Windows 11
+
+### Fixed
+
+- 💄 fix theme detection on windows
 
 ## [v5.1.0] - 2026-02-06
 
