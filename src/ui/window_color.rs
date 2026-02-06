@@ -2,9 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use iced::Window;
-use wgpu::rwh::RawWindowHandle;
 
+#[cfg(not(target_vendor = "pc"))]
+pub fn set(_window: &dyn Window) {}
+
+#[cfg(target_vendor = "pc")]
 pub fn set(window: &dyn Window) {
+    use wgpu::rwh::RawWindowHandle;
+
     let color = 0x0000FFu32;
 
     let handle = window.window_handle().unwrap().as_raw();
