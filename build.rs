@@ -151,14 +151,6 @@ fn main() {
         }
 
         let mut res = winresource::WindowsResource::new();
-
-        if std::env::var("CARGO_CFG_TARGET_ENV").unwrap() == "gnu" {
-            let arch = std::env::var("CARGO_CFG_TARGET_ARCH").unwrap();
-
-            res.set_ar_path(&format!("{arch}-w64-mingw32-ar"))
-                .set_windres_path(&format!("{arch}-w64-mingw32-windres"));
-        }
-
         res.set_icon("package/windows/icon.ico");
         res.compile().unwrap();
     }
