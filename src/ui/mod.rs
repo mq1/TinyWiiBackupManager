@@ -9,7 +9,7 @@ use crate::{
 };
 use iced::{
     Element, Length, padding,
-    widget::{Column, column, container, row, rule, stack, text},
+    widget::{Column, Stack, column, container, row, rule, stack, text},
 };
 
 mod components;
@@ -56,13 +56,19 @@ pub fn view(state: &State) -> Element<'_, Message> {
             .push(container(text(&state.status)).padding(padding::horizontal(10).vertical(5)));
     }
 
-    let root = stack![
-        container(row![].width(Length::Fill).height(Length::Fill)).style(style::nav_container),
-        container(col).style(style::root_container),
-        components::notifications::view(state)
-    ];
+    let mut stack = Stack::new();
 
-    let mut root = row![components::nav::view(state), root].into();
+    if cfg!(any(target_vendor = "pc", target_os = "macos")) {
+        stack = stack.push(
+            container(row![].width(Length::Fill).height(Length::Fill)).style(style::nav_container),
+        );
+    }
+
+    stack = stack
+        .push(container(col).style(style::root_container))
+        .push(components::notifications::view(state));
+
+    let mut root = row![components::nav::view(state), stack].into();
 
     if cfg!(target_os = "macos") {
         root = column![
