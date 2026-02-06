@@ -228,7 +228,7 @@ jobs:
           rustup default 1.93
 
       - name: Build binary
-        run: cargo build-Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "tiny-skia bundled-tls"
+        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "tiny-skia bundled-tls"
         env:
           RUSTC_BOOTSTRAP: 1
           RUSTFLAGS: -C target-feature=+crt-static
