@@ -13,7 +13,7 @@ pub fn set(window: &dyn Window, mode: iced::theme::Mode) {
     let color = match mode {
         iced::theme::Mode::Light => 0x0000FFu32,
         iced::theme::Mode::Dark => 0x000000u32,
-        iced::theme::Mode::System => 0x000000u32,
+        iced::theme::Mode::None => 0x000000u32,
     };
 
     let handle = window.window_handle().unwrap().as_raw();
