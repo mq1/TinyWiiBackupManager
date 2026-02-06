@@ -6,7 +6,6 @@ use crate::{
     games::{extensions::ext_to_format, game_id::GameID},
 };
 use anyhow::Result;
-use nod::read::{DiscOptions, DiscReader};
 use std::{
     fs::File,
     path::{Path, PathBuf},

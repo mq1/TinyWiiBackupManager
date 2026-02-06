@@ -418,7 +418,16 @@ impl State {
                 .map(Message::ConfirmAddGamesToTransferStack),
             Message::ConfirmAddGamesToTransferStack(mut entries) => {
                 // remove already installed games
-                entries.retain(|(_, id)| !self.game_list.iter().any(|g| g.id() == *id));
+                entries.retain(|(path, id)| {
+                    let is_multidisc = path.file_stem().and_then(OsStr::to_str).is_some_and(|s| {
+                        let s = s.to_ascii_lowercase();
+                        s.contains("disc 1") || s.contains("disc 2")
+                    });
+
+                    let is_installed = self.game_list.iter().any(|g| g.id() == *id);
+
+                    is_multidisc || !is_installed
+                });
 
                 if entries.is_empty() {
                     window::oldest()
