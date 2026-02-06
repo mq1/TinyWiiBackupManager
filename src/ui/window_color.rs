@@ -36,13 +36,12 @@ pub fn set(window: &dyn Window, mut theme: ThemePreference) {
         let hwnd = windows::Win32::Foundation::HWND(handle.hwnd.get() as *mut _);
 
         unsafe {
-            windows::Win32::Graphics::Dwm::DwmSetWindowAttribute(
+            let _ = windows::Win32::Graphics::Dwm::DwmSetWindowAttribute(
                 hwnd,
                 windows::Win32::Graphics::Dwm::DWMWA_CAPTION_COLOR,
                 (&raw const color).cast(),
                 4,
-            )
-            .unwrap();
+            );
         }
     }
 }
