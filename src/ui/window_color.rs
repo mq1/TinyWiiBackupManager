@@ -10,10 +10,10 @@ pub fn set(_window: &dyn Window, _mode: iced::theme::Mode) {}
 pub fn set(window: &dyn Window, mode: iced::theme::Mode) {
     use wgpu::rwh::RawWindowHandle;
 
-    let color = match mode {
-        iced::theme::Mode::Light => 0x0000FFu32,
-        iced::theme::Mode::Dark => 0x000000u32,
-        iced::theme::Mode::None => 0x000000u32,
+    let color: u32 = match mode {
+        iced::theme::Mode::Light => 0x0000FF,
+        iced::theme::Mode::Dark => 0x0000FF,
+        iced::theme::Mode::None => 0x0000FF,
     };
 
     let handle = window.window_handle().unwrap().as_raw();

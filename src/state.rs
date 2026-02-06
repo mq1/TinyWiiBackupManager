@@ -112,7 +112,7 @@ impl State {
 
         let set_window_color = window::oldest()
             .and_then(move |id| iced::system::theme().map(move |mode| (id, mode)))
-            .map(move |(id, mode)| window::run(id, move |w| window_color::set(w, mode)))
+            .then(move |(id, mode)| window::run(id, move |w| window_color::set(w, mode)))
             .discard();
 
         let tasks = Task::batch(vec![
