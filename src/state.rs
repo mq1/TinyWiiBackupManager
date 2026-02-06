@@ -77,7 +77,7 @@ impl State {
         let config = Config::load(&data_dir);
         clean_old_files(&data_dir);
 
-        #[allow(unused)]
+        #[cfg(target_vendor = "pc")]
         let theme = config.theme_preference();
 
         let mut initial_state = Self {
