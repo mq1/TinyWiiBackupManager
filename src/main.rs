@@ -42,9 +42,15 @@ fn main() -> iced::Result {
         env::set_var("WGPU_POWER_PREF", "none");
     }
 
+    let height = if cfg!(target_os = "macos") {
+        600.0 + 31.0
+    } else {
+        600.0
+    };
+
     let window = window::Settings {
-        size: Size::new(800.0, 600.0),
-        min_size: Some(Size::new(800.0, 600.0)),
+        size: Size::new(800.0, height),
+        min_size: Some(Size::new(800.0, height)),
 
         // x11 and windows only
         #[cfg(any(target_os = "windows", target_os = "linux"))]
@@ -54,6 +60,14 @@ fn main() -> iced::Result {
         #[cfg(target_os = "linux")]
         platform_specific: window::settings::PlatformSpecific {
             application_id: "it.mq1.TinyWiiBackupManager".to_string(),
+            ..Default::default()
+        },
+
+        // macos only
+        #[cfg(target_os = "macos")]
+        platform_specific: window::settings::PlatformSpecific {
+            titlebar_transparent: true,
+            fullsize_content_view: true,
             ..Default::default()
         },
 

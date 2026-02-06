@@ -8,8 +8,8 @@ use crate::{
     state::State,
 };
 use iced::{
-    Element, padding,
-    widget::{Column, container, row, rule, stack, text},
+    Element, Length, padding,
+    widget::{Column, column, container, row, rule, stack, text},
 };
 
 mod components;
@@ -37,7 +37,7 @@ pub enum Screen {
 pub fn view(state: &State) -> Element<'_, Message> {
     let mut col = Column::new();
 
-    if cfg!(target_vendor = "pc") {
+    if cfg!(any(target_vendor = "pc", target_os = "macos")) {
         col = col.push(rule::horizontal(1));
     }
 
@@ -60,11 +60,21 @@ pub fn view(state: &State) -> Element<'_, Message> {
             .push(container(text(&state.status)).padding(padding::horizontal(10).vertical(5)));
     }
 
-    let root = container(row![components::nav::view(state), rule::vertical(1), col])
-        .style(style::root_container);
+    let mut root: Element<'_, Message> =
+        container(row![components::nav::view(state), rule::vertical(1), col])
+            .style(style::root_container)
+            .into();
+
+    if cfg!(target_os = "macos") {
+        root = column![
+            container(row![].width(Length::Fill).height(31)).style(style::nav_container),
+            root
+        ]
+        .into();
+    }
 
     if state.notifications.is_empty() {
-        root.into()
+        root
     } else {
         stack![root, components::notifications::view(state)].into()
     }
