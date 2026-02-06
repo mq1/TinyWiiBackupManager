@@ -12,7 +12,7 @@ fn get_gameid_offset(format: Format) -> Option<u64> {
         Format::Iso => Some(0),
         Format::Wbfs => Some(512),
         Format::Rvz | Format::Wia => Some(88),
-        Format::Ciso => Some(32768),
+        Format::Ciso | Format::Tgc => Some(32768),
         _ => None,
     }
 }
