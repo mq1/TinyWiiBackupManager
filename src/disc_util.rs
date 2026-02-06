@@ -7,20 +7,22 @@ use crate::games::game_id::GameID;
 use nod::common::Format;
 use std::io::{self, Read};
 
+fn get_gameid_offset(format: Format) -> Option<u64> {
+    match format {
+        Format::Iso => Some(0),
+        Format::Wbfs => Some(512),
+        Format::Rvz | Format::Wia => Some(88),
+        Format::Ciso => Some(32768),
+        _ => None,
+    }
+}
+
 pub fn read_gameid<R: Read>(reader: &mut R, format: Format) -> Option<GameID> {
-    let id_pos = match format {
-        Format::Iso => 0,
-        Format::Wbfs => 512,
-        Format::Rvz | Format::Wia => 88,
-        Format::Ciso => 32768,
-        _ => {
-            return None;
-        }
-    };
+    let offset = get_gameid_offset(format)?;
 
     // skip to id position
-    if id_pos > 0 {
-        io::copy(&mut reader.take(id_pos), &mut io::sink()).ok()?;
+    if offset > 0 {
+        io::copy(&mut reader.take(offset), &mut io::sink()).ok()?;
     }
 
     // read and parse the id
