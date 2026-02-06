@@ -23,7 +23,7 @@ use crate::{
     known_mount_points,
     message::Message,
     notifications::Notifications,
-    ui::{Screen, dialogs, lucide},
+    ui::{self, Screen, dialogs, lucide},
     updater,
     util::{DriveInfo, clean_old_files},
 };
@@ -110,7 +110,12 @@ impl State {
             initial_state.notifications.info("New drive detected, a path normalization run is recommended\nYou can find it in the Toolbox page".to_string());
         }
 
+        let set_window_color = window::oldest()
+            .and_then(|id| window::run(id, ui::window::set_color))
+            .discard();
+
         let tasks = Task::batch(vec![
+            set_window_color,
             game_list::get_list_games_task(&initial_state),
             id_map::get_init_task(),
             lucide::get_load_lucide_task(),
