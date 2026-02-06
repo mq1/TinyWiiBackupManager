@@ -16,6 +16,7 @@ use crate::{
         strip::StripOperation,
         transfer::{TransferOperation, TransferQueue},
         txtcodes,
+        util::maybe_path_to_entry,
         wiitdb::{self},
     },
     hbc::{self, app_list::HbcAppList, osc::OscAppMeta, osc_list::OscAppList, wiiload},
@@ -415,14 +416,28 @@ impl State {
             Message::ChooseGamesSrcDir => window::oldest()
                 .and_then(|id| window::run(id, dialogs::choose_src_dir))
                 .map(Message::ConfirmAddGamesToTransferStack),
-            Message::ConfirmAddGamesToTransferStack(paths) => {
-                if paths.is_empty() {
-                    Task::none()
+            Message::ConfirmAddGamesToTransferStack(mut entries) => {
+                // remove already installed games
+                entries.retain(|(path, id)| {
+                    let is_multidisc = path.file_stem().and_then(OsStr::to_str).is_some_and(|s| {
+                        let s = s.to_ascii_lowercase();
+                        s.contains("disc 1") || s.contains("disc 2")
+                    });
+
+                    let is_installed = self.game_list.iter().any(|g| g.id() == *id);
+
+                    is_multidisc || !is_installed
+                });
+
+                if entries.is_empty() {
+                    window::oldest()
+                        .and_then(|id| window::run(id, dialogs::no_new_games))
+                        .discard()
                 } else {
                     window::oldest()
                         .and_then(move |id| {
-                            let paths = paths.clone();
-                            window::run(id, move |w| dialogs::confirm_add_games(w, paths))
+                            let entries = entries.clone();
+                            window::run(id, move |w| dialogs::confirm_add_games(w, entries))
                         })
                         .map(Message::AddGamesToTransferStack)
                 }
@@ -526,7 +541,7 @@ impl State {
                 Task::none()
             }
             Message::GotLatestVersion(Ok(None)) => {
-                println!("No new version of {} available", env!("CARGO_PKG_NAME"));
+                eprintln!("No new version of {} available", env!("CARGO_PKG_NAME"));
                 Task::none()
             }
             Message::UpdateTransferStatus(status) => {
@@ -703,7 +718,14 @@ impl State {
                 }
             }
             Message::FileDropped(path) => match self.screen {
-                Screen::Games => self.update(Message::ConfirmAddGamesToTransferStack(vec![path])),
+                Screen::Games => {
+                    if let Some(entry) = maybe_path_to_entry(path) {
+                        self.update(Message::ConfirmAddGamesToTransferStack(vec![entry]))
+                    } else {
+                        self.notifications.error("Invalid file!".to_string());
+                        Task::none()
+                    }
+                }
                 Screen::HbcApps => self.update(Message::AddHbcApps(vec![path])),
                 _ => Task::none(),
             },

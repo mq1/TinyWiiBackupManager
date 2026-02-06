@@ -1,116 +1,69 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::{
+    disc_util,
+    games::{extensions::ext_to_format, game_id::GameID},
+};
 use anyhow::Result;
 use std::{
-    ffi::OsStr,
     fs::File,
     path::{Path, PathBuf},
 };
 use walkdir::{DirEntry, WalkDir};
 use zip::ZipArchive;
 
-pub fn scan_for_discs(path: PathBuf) -> Vec<PathBuf> {
+pub fn scan_for_discs(path: PathBuf) -> Vec<(PathBuf, GameID)> {
     WalkDir::new(path)
         .into_iter()
         .filter_map(Result::ok)
-        .filter(is_valid_entry)
         .map(DirEntry::into_path)
+        .filter_map(maybe_path_to_entry)
         .collect()
 }
 
-fn is_valid_entry(entry: &DirEntry) -> bool {
-    if !entry.file_type().is_file() {
-        return false;
-    }
+pub fn maybe_path_to_entry(path: impl Into<PathBuf>) -> Option<(PathBuf, GameID)> {
+    let path = path.into();
 
-    let Some(filename) = entry.file_name().to_str() else {
-        return false;
-    };
-
-    if filename.starts_with('.') {
-        return false;
-    }
-
-    if filename.ends_with(".part1.iso") {
-        return false;
-    }
-
-    let path = entry.path();
-
-    let Some(ext) = path.extension() else {
-        return false;
-    };
-
-    if ext.eq_ignore_ascii_case("zip") {
-        does_this_zip_contain_a_disc(path)
-    } else {
-        is_disc_ext(ext)
-    }
-}
-
-pub fn is_valid_disc_file(path: &Path) -> bool {
     if !path.is_file() {
-        return false;
+        return None;
     }
 
-    let Some(filename) = path.file_name().and_then(OsStr::to_str) else {
-        return false;
-    };
+    let filename = path.file_name()?.to_str()?;
 
     if filename.starts_with('.') {
-        return false;
+        return None;
     }
 
     if filename.ends_with(".part1.iso") {
-        return false;
+        return None;
     }
 
-    let Some(ext) = path.extension() else {
-        return false;
-    };
+    let ext = path.extension()?;
 
     if ext.eq_ignore_ascii_case("zip") {
-        does_this_zip_contain_a_disc(path)
+        let id = get_zipped_game_id(&path)?;
+        Some((path, id))
+    } else if let Some(format) = ext_to_format(ext) {
+        let mut file = File::open(&path).ok()?;
+        let id = disc_util::read_gameid(&mut file, format).unwrap_or_default();
+        Some((path, id))
     } else {
-        is_disc_ext(ext)
+        None
     }
 }
 
-fn does_this_zip_contain_a_disc(path: &Path) -> bool {
-    let Ok(file) = File::open(path) else {
-        return false;
-    };
+fn get_zipped_game_id(path: &Path) -> Option<GameID> {
+    let file = File::open(path).ok()?;
+    let mut archive = ZipArchive::new(file).ok()?;
 
-    let Ok(mut archive) = ZipArchive::new(file) else {
-        return false;
-    };
+    let mut first_file = archive.by_index(0).ok()?;
+    let enclosed_name = first_file.enclosed_name()?;
+    let ext = enclosed_name.extension()?;
 
-    let Ok(first_file) = archive.by_index(0) else {
-        return false;
-    };
-
-    let Some(enclosed_name) = first_file.enclosed_name() else {
-        return false;
-    };
-
-    let Some(ext) = enclosed_name.extension() else {
-        return false;
-    };
-
-    is_disc_ext(ext)
-}
-
-fn is_disc_ext(ext: &OsStr) -> bool {
-    ext.eq_ignore_ascii_case("gcm")
-        || ext.eq_ignore_ascii_case("iso")
-        || ext.eq_ignore_ascii_case("wbfs")
-        || ext.eq_ignore_ascii_case("wia")
-        || ext.eq_ignore_ascii_case("rvz")
-        || ext.eq_ignore_ascii_case("ciso")
-        || ext.eq_ignore_ascii_case("gcz")
-        || ext.eq_ignore_ascii_case("tgc")
-        || ext.eq_ignore_ascii_case("nfs")
+    let format = ext_to_format(ext)?;
+    let id = disc_util::read_gameid(&mut first_file, format).unwrap_or_default();
+    Some(id)
 }
 
 pub fn get_threads_num() -> (usize, usize) {

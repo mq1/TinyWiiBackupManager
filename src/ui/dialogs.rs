@@ -3,6 +3,8 @@
 
 use crate::games::extensions::{SUPPORTED_DISC_EXTENSIONS, SUPPORTED_INPUT_EXTENSIONS};
 use crate::games::game::Game;
+use crate::games::game_id::GameID;
+use crate::games::util::maybe_path_to_entry;
 use crate::hbc::osc::OscAppMeta;
 use crate::{games, util};
 use anyhow::Result;
@@ -22,7 +24,7 @@ pub fn choose_mount_point(window: &dyn Window) -> Option<PathBuf> {
         .unwrap_or_default()
 }
 
-pub fn choose_games(window: &dyn Window) -> Vec<PathBuf> {
+pub fn choose_games(window: &dyn Window) -> Vec<(PathBuf, GameID)> {
     DialogBuilder::file()
         .set_title("Select games")
         .set_owner(&window)
@@ -31,11 +33,11 @@ pub fn choose_games(window: &dyn Window) -> Vec<PathBuf> {
         .show()
         .unwrap_or_default()
         .into_iter()
-        .filter(|p| games::util::is_valid_disc_file(p))
+        .filter_map(maybe_path_to_entry)
         .collect()
 }
 
-pub fn choose_src_dir(window: &dyn Window) -> Vec<PathBuf> {
+pub fn choose_src_dir(window: &dyn Window) -> Vec<(PathBuf, GameID)> {
     let dir = DialogBuilder::file()
         .set_title("Select a folder containing games")
         .set_owner(&window)
@@ -95,29 +97,28 @@ pub fn delete_dir(window: &dyn Window, path: &Path) -> Result<()> {
     Ok(())
 }
 
-pub fn confirm_add_games(window: &dyn Window, paths: Vec<PathBuf>) -> (Vec<PathBuf>, bool) {
+pub fn confirm_add_games(
+    window: &dyn Window,
+    entries: Vec<(PathBuf, GameID)>,
+) -> (Vec<PathBuf>, bool) {
     const MAX: usize = 20;
 
     let mut desc = String::new();
-    for path in paths.iter().take(MAX) {
+    for (path, id) in entries.iter().take(MAX) {
         let file_name = path
             .file_name()
             .and_then(OsStr::to_str)
             .unwrap_or("Invalid file name");
 
-        desc.push_str("• ");
-        desc.push_str(file_name);
-        desc.push('\n');
+        let _ = writeln!(desc, "• {} [{}]", file_name, id.as_str());
     }
 
-    let not_shown = paths.len().saturating_sub(MAX);
+    let not_shown = entries.len().saturating_sub(MAX);
     if not_shown > 0 {
-        desc.push_str("\n... and ");
-        let _ = write!(desc, "{not_shown}");
-        desc.push_str(" more");
+        let _ = writeln!(desc, "\n... and {not_shown} more");
     }
 
-    desc.push_str("\n\nAlready present games will be skipped\nAre you sure you want to continue?");
+    let _ = write!(desc, "\nAre you sure you want to continue?");
 
     let yes = DialogBuilder::message()
         .set_title("The following games will be added")
@@ -128,7 +129,21 @@ pub fn confirm_add_games(window: &dyn Window, paths: Vec<PathBuf>) -> (Vec<PathB
         .show()
         .unwrap_or_default();
 
+    let paths = entries.into_iter().map(|(path, _)| path).collect();
+
     (paths, yes)
+}
+
+pub fn no_new_games(window: &dyn Window) {
+    let _ = DialogBuilder::message()
+        .set_title("No new games to add")
+        .set_owner(&window)
+        .set_text(
+            "Either you didn't select any valid game, or all the games are already installed.",
+        )
+        .set_level(MessageLevel::Info)
+        .alert()
+        .show();
 }
 
 pub fn confirm_strip_game(window: &dyn Window, game: Game) -> (Game, bool) {

@@ -109,9 +109,7 @@ impl Game {
     }
 
     pub fn get_gametdb_uri(&self) -> OsString {
-        let mut uri = OsString::from("https://www.gametdb.com/Wii/");
-        uri.push(self.id.as_os_str());
-        uri
+        format!("https://www.gametdb.com/Wii/{}", self.id.as_str()).into()
     }
 
     pub fn get_load_disc_info_task(&mut self) -> Task<Message> {
