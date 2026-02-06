@@ -1,8 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::ffi::OsStr;
-
 #[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct GameID([u8; 6]);
 
@@ -73,15 +71,6 @@ impl GameID {
     #[inline]
     pub fn as_partial_str(&self) -> &str {
         std::str::from_utf8(&self.0[..3]).unwrap_or("invalid")
-    }
-
-    #[inline]
-    pub fn as_os_str(&self) -> &OsStr {
-        if self.0[4] == 0 {
-            unsafe { OsStr::from_encoded_bytes_unchecked(&self.0[..4]) }
-        } else {
-            unsafe { OsStr::from_encoded_bytes_unchecked(&self.0) }
-        }
     }
 
     pub const fn as_region_str(self) -> &'static str {
