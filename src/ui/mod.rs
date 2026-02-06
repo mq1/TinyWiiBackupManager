@@ -16,6 +16,7 @@ mod components;
 pub mod dialogs;
 pub mod lucide;
 mod style;
+pub mod window;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Screen {
