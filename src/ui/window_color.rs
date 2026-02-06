@@ -4,13 +4,17 @@
 use iced::Window;
 
 #[cfg(not(target_vendor = "pc"))]
-pub fn set(_window: &dyn Window) {}
+pub fn set(_window: &dyn Window, _mode: iced::theme::Mode) {}
 
 #[cfg(target_vendor = "pc")]
-pub fn set(window: &dyn Window) {
+pub fn set(window: &dyn Window, mode: iced::theme::Mode) {
     use wgpu::rwh::RawWindowHandle;
 
-    let color = 0x0000FFu32;
+    let color = match mode {
+        iced::theme::Mode::Light => 0x0000FFu32,
+        iced::theme::Mode::Dark => 0x000000u32,
+        iced::theme::Mode::System => 0x000000u32,
+    };
 
     let handle = window.window_handle().unwrap().as_raw();
 
