@@ -4,7 +4,7 @@
 use iced::Window;
 use wgpu::rwh::RawWindowHandle;
 
-pub fn set_color(window: &dyn Window) {
+pub fn set(window: &dyn Window) {
     let color = 0x0000FFu32;
 
     let handle = window.window_handle().unwrap().as_raw();

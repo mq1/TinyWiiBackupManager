@@ -23,7 +23,7 @@ use crate::{
     known_mount_points,
     message::Message,
     notifications::Notifications,
-    ui::{self, Screen, dialogs, lucide},
+    ui::{self, Screen, dialogs, lucide, window_color},
     updater,
     util::{DriveInfo, clean_old_files},
 };
@@ -111,7 +111,7 @@ impl State {
         }
 
         let set_window_color = window::oldest()
-            .and_then(|id| window::run(id, ui::window::set_color))
+            .and_then(|id| window::run(id, window_color::set))
             .discard();
 
         let tasks = Task::batch(vec![
