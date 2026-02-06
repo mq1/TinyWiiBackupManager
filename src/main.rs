@@ -71,6 +71,13 @@ fn main() -> iced::Result {
             ..Default::default()
         },
 
+        // windows only
+        #[cfg(target_os = "windows")]
+        platform_specific: window::settings::PlatformSpecific {
+            corner_preference: window::settings::platform::CornerPreference::Round,
+            ..Default::default()
+        },
+
         ..Default::default()
     };
 
