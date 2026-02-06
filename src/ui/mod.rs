@@ -37,10 +37,6 @@ pub enum Screen {
 pub fn view(state: &State) -> Element<'_, Message> {
     let mut col = Column::new();
 
-    if cfg!(any(target_vendor = "pc", target_os = "macos")) {
-        col = col.push(rule::horizontal(1));
-    }
-
     col = col.push(match &state.screen {
         Screen::Games => components::games::view(state),
         Screen::GameInfo(game) => components::game_info::view(state, game),
@@ -60,10 +56,13 @@ pub fn view(state: &State) -> Element<'_, Message> {
             .push(container(text(&state.status)).padding(padding::horizontal(10).vertical(5)));
     }
 
-    let mut root: Element<'_, Message> =
-        container(row![components::nav::view(state), rule::vertical(1), col])
-            .style(style::root_container)
-            .into();
+    let root = stack![
+        container(row![].width(Length::Fill).height(Length::Fill)).style(style::nav_container),
+        container(col).style(style::root_container),
+        components::notifications::view(state)
+    ];
+
+    let mut root = row![components::nav::view(state), root].into();
 
     if cfg!(target_os = "macos") {
         root = column![

@@ -8,7 +8,7 @@ use iced::{
 
 pub fn root_container(theme: &Theme) -> container::Style {
     let mut style = container::bordered_box(theme);
-    style.border.width = 0.0;
+    style.border.radius = border::radius(10);
     style
 }
 
