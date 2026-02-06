@@ -61,6 +61,10 @@ fs4 = { version = "0.13", default-features = false }
 version = ">=0.58, <=0.62"
 features = ["Win32_Graphics_Dwm"]
 
+[target.'cfg(target_vendor = "pc")'.dependencies.dark-light]
+version = "2.0"
+default-features = false
+
 [target.'cfg(not(target_vendor = "pc"))'.dependencies.native-dialog]
 version = "0.9"
 

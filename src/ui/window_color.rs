@@ -1,14 +1,33 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::config::ThemePreference;
 use iced::Window;
 use wgpu::rwh::RawWindowHandle;
 
-pub fn set(window: &dyn Window, mode: iced::theme::Mode) {
-    let color: u32 = match mode {
-        iced::theme::Mode::Light => 0xFFFFFF,
-        iced::theme::Mode::Dark => 0x312D2B,
-        iced::theme::Mode::None => 0xFFFFFF,
+pub fn set(window: &dyn Window, mut theme: ThemePreference) {
+    if theme == ThemePreference::System
+        && let Ok(mode) = dark_light::detect()
+    {
+        match mode {
+            dark_light::Mode::Light => {
+                theme = ThemePreference::Light;
+            }
+            dark_light::Mode::Dark => {
+                theme = ThemePreference::Dark;
+            }
+            dark_light::Mode::Unspecified => {
+                return;
+            }
+        }
+    }
+
+    let color: u32 = match theme {
+        ThemePreference::Light => 0xFFFFFF,
+        ThemePreference::Dark => 0x312D2B,
+        ThemePreference::System => {
+            return;
+        }
     };
 
     let handle = window.window_handle().unwrap().as_raw();
