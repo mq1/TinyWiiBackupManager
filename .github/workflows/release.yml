@@ -79,7 +79,9 @@ jobs:
 
       - name: Install x86 dependencies
         if: matrix.arch == 'x86'
-        run: sudo apt-get install -y libc6-dev-i386
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libc6-dev-i386
 
       - name: Install Rust toolchain
         run: |
@@ -213,6 +215,9 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 1
+
+      - name: Refresh apt
+        run: sudo apt-get update
 
       - name: Install x86_64 dependencies
         if: matrix.arch == 'x86_64'
