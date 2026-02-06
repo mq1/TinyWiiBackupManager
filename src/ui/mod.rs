@@ -9,7 +9,7 @@ use crate::{
 };
 use iced::{
     Element, padding,
-    widget::{column, container, row, rule, stack, text},
+    widget::{Column, column, container, row, rule, stack, text},
 };
 
 mod components;
@@ -33,7 +33,13 @@ pub enum Screen {
 }
 
 pub fn view(state: &State) -> Element<'_, Message> {
-    let mut col = column![match &state.screen {
+    let mut col = Column::new();
+
+    if cfg!(target_vendor = "pc") {
+        col = col.push(rule::horizontal(1));
+    }
+
+    col = col.push(match &state.screen {
         Screen::Games => components::games::view(state),
         Screen::GameInfo(game) => components::game_info::view(state, game),
         Screen::HbcApps => components::hbc::view(state),
@@ -44,7 +50,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
         Screen::Settings => components::settings::view(state),
         Screen::Transfer => components::transfer::view(state),
         Screen::About => components::about::view(state),
-    }];
+    });
 
     if !state.status.is_empty() {
         col = col
