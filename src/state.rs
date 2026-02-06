@@ -541,7 +541,7 @@ impl State {
                 Task::none()
             }
             Message::GotLatestVersion(Ok(None)) => {
-                println!("No new version of {} available", env!("CARGO_PKG_NAME"));
+                eprintln!("No new version of {} available", env!("CARGO_PKG_NAME"));
                 Task::none()
             }
             Message::UpdateTransferStatus(status) => {

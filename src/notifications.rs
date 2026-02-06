@@ -48,7 +48,7 @@ impl Notifications {
     }
 
     pub fn info(&mut self, text: String) {
-        println!("INFO: {text}");
+        eprintln!("INFO: {text}");
 
         self.last_id += 1;
 
@@ -72,7 +72,7 @@ impl Notifications {
     }
 
     pub fn success(&mut self, text: String) {
-        println!("SUCCESS: {text}");
+        eprintln!("SUCCESS: {text}");
 
         self.last_id += 1;
 
