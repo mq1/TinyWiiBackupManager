@@ -77,6 +77,9 @@ impl State {
         let config = Config::load(&data_dir);
         clean_old_files(&data_dir);
 
+        #[cfg(target_vendor = "pc")]
+        let theme = config.theme_preference();
+
         let mut initial_state = Self {
             screen: Screen::Games,
             data_dir,
@@ -110,6 +113,11 @@ impl State {
             initial_state.notifications.info("New drive detected, a path normalization run is recommended\nYou can find it in the Toolbox page".to_string());
         }
 
+        #[cfg(target_vendor = "pc")]
+        let set_window_color = window::oldest()
+            .and_then(move |id| window::run(id, move |w| crate::ui::window_color::set(w, theme)))
+            .discard();
+
         let tasks = Task::batch(vec![
             game_list::get_list_games_task(&initial_state),
             id_map::get_init_task(),
@@ -119,6 +127,9 @@ impl State {
             hbc::osc_list::get_load_osc_apps_task(&initial_state),
             updater::get_check_update_task(),
         ]);
+
+        #[cfg(target_vendor = "pc")]
+        let tasks = set_window_color.chain(tasks);
 
         (initial_state, tasks)
     }
@@ -138,7 +149,17 @@ impl State {
         match self.config.theme_preference() {
             ThemePreference::Light => Some(Theme::Light),
             ThemePreference::Dark => Some(Theme::Dark),
-            ThemePreference::System => None,
+            ThemePreference::System => {
+                #[cfg(target_vendor = "pc")]
+                match dark_light::detect() {
+                    Ok(dark_light::Mode::Light) => Some(Theme::Light),
+                    Ok(dark_light::Mode::Dark) => Some(Theme::Dark),
+                    _ => None,
+                }
+
+                #[cfg(not(target_vendor = "pc"))]
+                None
+            }
         }
     }
 
@@ -373,7 +394,21 @@ impl State {
                 };
 
                 let new_config = self.config.clone_with_theme_preference(new_theme_pref);
-                self.update(Message::UpdateConfig(new_config))
+                let _ = self.update(Message::UpdateConfig(new_config));
+
+                #[cfg(target_vendor = "pc")]
+                {
+                    window::oldest()
+                        .and_then(move |id| {
+                            window::run(id, move |w| {
+                                crate::ui::window_color::set(w, new_theme_pref)
+                            })
+                        })
+                        .discard()
+                }
+
+                #[cfg(not(target_vendor = "pc"))]
+                Task::none()
             }
             Message::UpdateConfig(new_config) => {
                 self.config = new_config;
