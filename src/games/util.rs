@@ -45,9 +45,9 @@ pub fn maybe_path_to_entry(path: impl Into<PathBuf>) -> Option<(PathBuf, GameID)
     if ext.eq_ignore_ascii_case("zip") {
         let id = get_zipped_game_id(&path)?;
         Some((path, id))
-    } else if ext_to_format(ext).is_some() {
-        let disc_reader = DiscReader::new(&path, &DiscOptions::default()).ok()?;
-        let id = GameID::from(disc_reader.header().game_id);
+    } else if let Some(format) = ext_to_format(ext) {
+        let mut file = File::open(&path).ok()?;
+        let id = disc_util::read_gameid(&mut file, format).unwrap_or_default();
         Some((path, id))
     } else {
         None

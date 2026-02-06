@@ -3,8 +3,14 @@
 
 use std::ffi::OsStr;
 
-#[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Default)]
+#[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct GameID([u8; 6]);
+
+impl Default for GameID {
+    fn default() -> Self {
+        Self([b'?'; 6])
+    }
+}
 
 impl From<[u8; 6]> for GameID {
     fn from(id: [u8; 6]) -> Self {
