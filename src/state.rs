@@ -118,11 +118,7 @@ impl State {
             .and_then(move |id| window::run(id, move |w| crate::ui::window_color::set(w, theme)))
             .discard();
 
-        #[cfg(not(target_vendor = "pc"))]
-        let set_window_color = Task::none();
-
         let tasks = Task::batch(vec![
-            set_window_color,
             game_list::get_list_games_task(&initial_state),
             id_map::get_init_task(),
             lucide::get_load_lucide_task(),
@@ -131,6 +127,9 @@ impl State {
             hbc::osc_list::get_load_osc_apps_task(&initial_state),
             updater::get_check_update_task(),
         ]);
+
+        #[cfg(target_vendor = "pc")]
+        let tasks = set_window_color.chain(tasks);
 
         (initial_state, tasks)
     }
