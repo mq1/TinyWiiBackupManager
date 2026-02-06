@@ -155,7 +155,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          fetch-depth:
+          fetch-depth: 1
 
       - name: Install LLVM and Clang
         uses: KyleMayes/install-llvm-action@v2
