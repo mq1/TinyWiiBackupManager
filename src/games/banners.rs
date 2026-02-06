@@ -44,7 +44,7 @@ fn get_download_banners_sipper(
     game_list: GameList,
 ) -> impl Sipper<String, String> {
     sipper(async move |mut progress| {
-        for game in game_list.iter().filter(|g| g.id().is_gc()) {
+        for game in game_list.iter().filter(|g| !g.is_wii()) {
             if let Err(e) = download_banner_for_game(&mount_point, game.id()) {
                 let msg = format!("Failed to download banner for {}: {:#}", game.title(), e);
                 progress.send(msg).await;

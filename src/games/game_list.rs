@@ -43,10 +43,10 @@ impl GameList {
         let mut gc_size = Size::from_bytes(0);
 
         for (i, game) in games.iter().enumerate() {
-            if game.id().is_wii() {
+            if game.is_wii() {
                 wii_indices.push(i);
                 wii_size += game.size();
-            } else if game.id().is_gc() {
+            } else {
                 gc_indices.push(i);
                 gc_size += game.size();
             }
@@ -167,9 +167,9 @@ impl GameList {
         self.wii_indices.clear();
         self.gc_indices.clear();
         for (i, game) in self.list.iter().enumerate() {
-            if game.id().is_wii() {
+            if game.is_wii() {
                 self.wii_indices.push(i);
-            } else if game.id().is_gc() {
+            } else {
                 self.gc_indices.push(i);
             }
         }

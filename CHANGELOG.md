@@ -20,8 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 🖼️ KDE Plasma now correctly shows the app icon in title bar / overview
 - ⚡️ Windows drive probing should be faster and more reliable
-- 🐛 Revert to using opengl on linux to improve compatibility
+- 🐛 Revert to using opengl on linux to improve compatibility (https://github.com/khcrysalis/Impactor/issues/103)
 - 💽 Adding games recursively that are ZIP archived unzips file in a directory (#518)
+- 🔧 Certain JD Mods Appearing in GameCube Section (#520)
 
 ## [v5.0.2] - 2026-02-01
 

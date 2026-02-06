@@ -50,16 +50,6 @@ impl GameID {
     }
 
     #[inline]
-    pub const fn is_wii(self) -> bool {
-        matches!(self.0[0], b'H' | b'R' | b'S' | b'W' | b'X')
-    }
-
-    #[inline]
-    pub const fn is_gc(self) -> bool {
-        matches!(self.0[0], b'D' | b'G')
-    }
-
-    #[inline]
     pub fn as_str(&self) -> &str {
         if self.0[4] == 0 {
             std::str::from_utf8(&self.0[..4]).unwrap_or("invalid")

@@ -12,7 +12,7 @@ use size::Size;
 use std::{
     ffi::{OsStr, OsString},
     fs,
-    path::PathBuf,
+    path::{Path, PathBuf},
 };
 
 #[derive(Debug, Clone, Getters)]
@@ -102,6 +102,13 @@ impl Game {
         }
 
         Err(anyhow!("No disc found"))
+    }
+
+    pub fn is_wii(&self) -> bool {
+        self.path
+            .parent()
+            .and_then(Path::file_name)
+            .is_some_and(|n| n == "wbfs")
     }
 
     pub fn get_path_uri(&self) -> OsString {
