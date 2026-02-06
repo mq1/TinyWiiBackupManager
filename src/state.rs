@@ -23,7 +23,7 @@ use crate::{
     known_mount_points,
     message::Message,
     notifications::Notifications,
-    ui::{Screen, dialogs, lucide, window_color},
+    ui::{Screen, dialogs, lucide},
     updater,
     util::{DriveInfo, clean_old_files},
 };
@@ -110,10 +110,14 @@ impl State {
             initial_state.notifications.info("New drive detected, a path normalization run is recommended\nYou can find it in the Toolbox page".to_string());
         }
 
+        #[cfg(target_vendor = "pc")]
         let set_window_color = window::oldest()
             .and_then(move |id| iced::system::theme().map(move |mode| (id, mode)))
-            .then(move |(id, mode)| window::run(id, move |w| window_color::set(w, mode)))
+            .then(move |(id, mode)| window::run(id, move |w| crate::ui::window_color::set(w, mode)))
             .discard();
+
+        #[cfg(not(target_vendor = "pc"))]
+        let set_window_color = Task::none();
 
         let tasks = Task::batch(vec![
             set_window_color,

@@ -2,14 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use iced::Window;
+use wgpu::rwh::RawWindowHandle;
 
-#[cfg(not(target_vendor = "pc"))]
-pub fn set(_window: &dyn Window, _mode: iced::theme::Mode) {}
-
-#[cfg(target_vendor = "pc")]
 pub fn set(window: &dyn Window, mode: iced::theme::Mode) {
-    use wgpu::rwh::RawWindowHandle;
-
     let color: u32 = match mode {
         iced::theme::Mode::Light => 0xFFFFFF,
         iced::theme::Mode::Dark => 0x312D2B,

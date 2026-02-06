@@ -9,13 +9,15 @@ use crate::{
 };
 use iced::{
     Element, padding,
-    widget::{Column, column, container, row, rule, stack, text},
+    widget::{Column, container, row, rule, stack, text},
 };
 
 mod components;
 pub mod dialogs;
 pub mod lucide;
 mod style;
+
+#[cfg(target_vendor = "pc")]
 pub mod window_color;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
