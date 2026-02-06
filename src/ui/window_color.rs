@@ -9,16 +9,10 @@ pub fn set(window: &dyn Window, mut theme: ThemePreference) {
     if theme == ThemePreference::System
         && let Ok(mode) = dark_light::detect()
     {
-        match mode {
-            dark_light::Mode::Light => {
-                theme = ThemePreference::Light;
-            }
-            dark_light::Mode::Dark => {
-                theme = ThemePreference::Dark;
-            }
-            dark_light::Mode::Unspecified => {
-                return;
-            }
+        if mode == dark_light::Mode::Light {
+            theme = ThemePreference::Light;
+        } else if mode == dark_light::Mode::Dark {
+            theme = ThemePreference::Dark;
         }
     }
 
