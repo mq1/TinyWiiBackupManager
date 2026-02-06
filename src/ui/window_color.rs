@@ -3,7 +3,9 @@
 
 use crate::config::ThemePreference;
 use iced::Window;
+use std::ffi::c_void;
 use wgpu::rwh::RawWindowHandle;
+use winsafe::{COLORREF, DwmAttr, HWND};
 
 pub fn set(window: &dyn Window, mut theme: ThemePreference) {
     if theme == ThemePreference::System
@@ -16,9 +18,9 @@ pub fn set(window: &dyn Window, mut theme: ThemePreference) {
         }
     }
 
-    let color: u32 = match theme {
-        ThemePreference::Light => 0xFFFFFF,
-        ThemePreference::Dark => 0x312D2B,
+    let color = match theme {
+        ThemePreference::Light => COLORREF::from_rgb(0xff, 0xff, 0xff),
+        ThemePreference::Dark => COLORREF::from_rgb(0x2b, 0x2d, 0x31),
         ThemePreference::System => {
             return;
         }
@@ -27,15 +29,9 @@ pub fn set(window: &dyn Window, mut theme: ThemePreference) {
     let handle = window.window_handle().unwrap().as_raw();
 
     if let RawWindowHandle::Win32(handle) = handle {
-        let hwnd = windows::Win32::Foundation::HWND(handle.hwnd.get() as *mut _);
-
-        unsafe {
-            let _ = windows::Win32::Graphics::Dwm::DwmSetWindowAttribute(
-                hwnd,
-                windows::Win32::Graphics::Dwm::DWMWA_CAPTION_COLOR,
-                (&raw const color).cast(),
-                4,
-            );
-        }
+        let hwnd_ptr = handle.hwnd.get() as *mut c_void;
+        let hwnd = unsafe { HWND::from_ptr(hwnd_ptr) };
+        let attr = DwmAttr::CaptionColor(color);
+        let _ = hwnd.DwmSetWindowAttribute(attr);
     }
 }

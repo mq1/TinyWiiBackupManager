@@ -40,8 +40,8 @@ dependencies = [
  "wgpu",
  "which-fs",
  "wiiload",
- "windows 0.62.2",
  "winresource",
+ "winsafe 0.0.27",
  "zip",
  "zstd",
 ]
@@ -4843,7 +4843,7 @@ dependencies = [
  "either",
  "env_home",
  "rustix 1.1.3",
- "winsafe",
+ "winsafe 0.0.19",
 ]
 
 [[package]]
@@ -5394,6 +5394,12 @@ name = "winsafe"
 version = "0.0.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d135d17ab770252ad95e9a872d365cf3090e3be864a34ab46f48555993efc904"
+
+[[package]]
+name = "winsafe"
+version = "0.0.27"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bcfff8264c3af1b0352006934e2265365ecb5a145aee88e770dc8b82e0456f4f"
 
 [[package]]
 name = "wit-bindgen"

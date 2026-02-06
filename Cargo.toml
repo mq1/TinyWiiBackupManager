@@ -57,9 +57,9 @@ wiiload = "0.3"
 which-fs = "0.2"
 fs4 = { version = "0.13", default-features = false }
 
-[target.'cfg(target_vendor = "pc")'.dependencies.windows]
-version = ">=0.58, <=0.62"
-features = ["Win32_Graphics_Dwm"]
+[target.'cfg(target_vendor = "pc")'.dependencies.winsafe]
+version = "0.0.27"
+features = ["dwm"]
 
 [target.'cfg(target_vendor = "pc")'.dependencies.dark-light]
 version = "2.0"
