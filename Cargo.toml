@@ -104,7 +104,7 @@ tiny-skia = ["iced/tiny-skia"]
 native-tls = ["minreq/https-native"]
 bundled-tls = ["minreq/https-rustls"]
 
-[profile.lto]
+[profile.release-lto]
 inherits = "release"
 opt-level = 3
 lto = true

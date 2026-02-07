@@ -93,7 +93,7 @@ jobs:
           chmod +x *.AppImage
 
       - name: Build binary
-        run: cargo build -Z build-std=std,panic_abort --profile lto --locked --target ${{ matrix.target }} --no-default-features --features "wgpu tiny-skia bundled-tls"
+        run: cargo build -Z build-std=std,panic_abort --profile release-lto --locked --target ${{ matrix.target }} --no-default-features --features "wgpu tiny-skia bundled-tls"
         env:
           RUSTC_BOOTSTRAP: 1
           RUSTFLAGS: -C linker-plugin-lto -C link-arg=-fuse-ld=lld-21 ${{ matrix.rustflags }}
@@ -109,7 +109,7 @@ jobs:
       - name: Package binary as tar.gz
         run: |
           mkdir dist
-          cp "target/${{ matrix.target }}/release/TinyWiiBackupManager" TinyWiiBackupManager
+          cp "target/${{ matrix.target }}/release-lto/TinyWiiBackupManager" TinyWiiBackupManager
           tar -I 'gzip -9' -cvf "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.tar.gz" TinyWiiBackupManager
 
       - name: Package binary as AppImage
@@ -170,7 +170,7 @@ jobs:
 
       - name: Build binary
         shell: pwsh
-        run: cargo build -Z build-std=std,panic_abort --profile lto --locked --target ${{ matrix.target }}
+        run: cargo build -Z build-std=std,panic_abort --profile release-lto --locked --target ${{ matrix.target }}
         env:
           RUSTC_BOOTSTRAP: 1
           RUSTFLAGS: -C linker-plugin-lto ${{ matrix.rustflags }}
@@ -187,7 +187,7 @@ jobs:
         shell: pwsh
         run: |
           New-Item -Path "dist" -ItemType Directory
-          Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination TinyWiiBackupManager.exe
+          Copy-Item -Path "target/${{ matrix.target }}/release-lto/TinyWiiBackupManager.exe" -Destination TinyWiiBackupManager.exe
           7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
 
       - name: Upload Windows distributables
@@ -281,7 +281,7 @@ jobs:
           key: ${{ matrix.arch }}
 
       - name: Build binary
-        run: cargo build --profile lto --locked --target ${{ matrix.target }}
+        run: cargo build --profile release-lto --locked --target ${{ matrix.target }}
         env:
           RUSTFLAGS: -C link-arg=-mmacosx-version-min=${{ matrix.deployment_target }}
           CFLAGS: -O3 -flto -mmacosx-version-min=${{ matrix.deployment_target }}
@@ -290,7 +290,7 @@ jobs:
       - name: Build macOS app bundle
         run: |
           mkdir -p TinyWiiBackupManager.app/Contents/MacOS TinyWiiBackupManager.app/Contents/Resources
-          cp "target/${{ matrix.target }}/release/TinyWiiBackupManager" TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
+          cp "target/${{ matrix.target }}/release-lto/TinyWiiBackupManager" TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
           sed 's/{{ VERSION_NAME }}/${{ env.VERSION_NAME }}/' package/macos/Info.plist > TinyWiiBackupManager.app/Contents/Info.plist
           cp package/macos/TinyWiiBackupManager.icns TinyWiiBackupManager.app/Contents/Resources/TinyWiiBackupManager.icns
 
