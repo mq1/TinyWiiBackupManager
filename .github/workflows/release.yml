@@ -205,20 +205,14 @@ jobs:
         include:
           - target: x86_64-win7-windows-msvc
             arch: x86_64
-            msvc_arch: amd64
           - target: i686-win7-windows-msvc
             arch: x86
-            msvc_arch: amd64_x86
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
           fetch-depth: 1
-
-      - name: Install build tools
-        shell: pwsh
-        run: choco install visualstudio2019buildtools visualstudio2019-workload-vctools windows-sdk-8.1
 
       - name: Install Rust toolchain
         shell: pwsh
@@ -228,20 +222,15 @@ jobs:
 
       - name: Build binary
         shell: pwsh
-        run: |
-          & "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvarsall.bat" ${{ matrix.msvc_arch }} 8.1
-          cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "win7"
+        run: cargo build -Z build-std=std,panic_abort --profile release-lto --locked --target ${{ matrix.target }} --no-default-features --features "win7"
         env:
           RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: -Clink-arg=/NODEFAULTLIB:combase.lib -Clink-arg=ole32.lib
-          CFLAGS: /D_WIN32_WINNT=0x0601 /DWINVER=0x0601
-          CXXFLAGS: /D_WIN32_WINNT=0x0601 /DWINVER=0x0601
 
       - name: Package binary as zip
         shell: pwsh
         run: |
           New-Item -Path "dist" -ItemType Directory
-          Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination TinyWiiBackupManager.exe
+          Copy-Item -Path "target/${{ matrix.target }}/release-lto/TinyWiiBackupManager.exe" -Destination TinyWiiBackupManager.exe
           7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows7-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
 
       - name: Upload Windows 7 distributables
