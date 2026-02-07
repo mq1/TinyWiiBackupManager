@@ -203,9 +203,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - target: x86_64-pc-windows-msvc
+          - target: x86_64-win7-windows-msvc
             arch: x86_64
-          - target: i686-pc-windows-msvc
+          - target: i686-win7-windows-msvc
             arch: x86
 
     steps:
@@ -214,6 +214,11 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Install LLVM and Clang
+        uses: KyleMayes/install-llvm-action@v2
+        with:
+          version: "21.1.8"
+
       - name: Install Rust toolchain
         shell: pwsh
         run: |
@@ -221,9 +226,15 @@ jobs:
           rustup default 1.93
 
       - name: Build binary
-        run: cargo build --profile release-lto --locked --target ${{ matrix.target }} --no-default-features --features "xp"
+        run: cargo build -Z build-std=std,panic_abort --profile release-lto --locked --target ${{ matrix.target }} --no-default-features --features "xp"
         env:
-          RUSTFLAGS: -Clink-args=/SUBSYSTEM:WINDOWS,5.1
+          RUSTC_BOOTSTRAP: 1
+          RUSTFLAGS: -Clink-args=/SUBSYSTEM:WINDOWS,5.1 -Clink-arg=/NODEFAULTLIB:combase.lib -Clink-arg=ole32.lib
+          CC: clang-cl
+          CXX: clang-cl
+          AR: llvm-lib
+          CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_LINKER: lld-link
+          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_LINKER: lld-link
 
       - name: Package binary as zip
         shell: pwsh
