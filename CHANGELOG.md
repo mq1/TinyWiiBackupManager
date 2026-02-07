@@ -12,11 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 💄 title bar is now the same color as the side panel on Windows 11 and macOS
 - 💄 title bar / nav bar ui is more consistent with the rest of twbm (Windows, macOS)
 - ⚡️ Revert to vulkan for linux builds
+- ⚡️ Faster path normalization
 
 ### Fixed
 
 - 💄 fix theme detection on windows
 - ❌ Wrong file formats when archiving games
+- 👤 Potentially fix some permission issues on windows
 
 ## [v5.1.0] - 2026-02-06
 

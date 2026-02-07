@@ -2,80 +2,64 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    games::{disc_info::DiscInfo, extensions::format_to_ext},
+    disc_util::read_disc_header_from_game_dir,
+    games::{extensions::format_to_ext, util::maybe_path_to_entry},
     util::sanitize,
 };
 use anyhow::Result;
 use nod::common::Format;
-use std::{ffi::OsStr, fs, path::Path};
+use std::{
+    ffi::OsStr,
+    fs::{self},
+    path::Path,
+};
 
-fn adopt_orphaned_discs(mount_point: &Path) -> Result<()> {
-    let all_files = fs::read_dir(mount_point.join("wbfs"))?
-        .chain(fs::read_dir(mount_point.join("games"))?)
+fn adopt_orphaned_discs(games_dir: &Path, is_wii: bool) -> Result<()> {
+    let all_discs = fs::read_dir(games_dir)?
         .filter_map(Result::ok)
-        .filter(|e| e.file_type().is_ok_and(|t| t.is_file()));
-
-    let all_discs = all_files
         .map(|e| e.path())
-        .map(DiscInfo::try_from_path)
-        .filter_map(Result::ok);
+        .filter_map(maybe_path_to_entry);
 
-    for disc in all_discs {
-        let title = if disc.is_wii() {
-            sanitize(disc.title())
+    for (path, format, game_id, title) in all_discs {
+        let Some(filename) = path.file_name().and_then(OsStr::to_str) else {
+            continue;
+        };
+
+        let title = if is_wii {
+            sanitize(&title)
         } else {
-            sanitize(disc.title())
+            sanitize(&title)
                 .replace(" game disc 1", "")
                 .replace(" game disc 2", "")
         };
 
-        let new_parent_name = format!("{} [{}]", title, disc.id().as_str());
+        let new_parent_name = format!("{} [{}]", title, game_id.as_str());
 
-        let new_parent = if disc.is_wii() {
-            mount_point.join("wbfs").join(new_parent_name)
+        let new_filename = if filename.ends_with(".part0.iso") {
+            format!("{}.part0.iso", game_id.as_str())
+        } else if is_wii {
+            format!("{}.{}", game_id.as_str(), format_to_ext(format))
         } else {
-            mount_point.join("games").join(new_parent_name)
+            format!("game.{}", format_to_ext(format))
         };
 
-        if new_parent.exists() {
-            continue;
-        }
-
-        let Some(orig_filename) = disc.disc_path().file_name().and_then(OsStr::to_str) else {
-            continue;
-        };
-
-        let new_filename = if orig_filename.ends_with(".part0.iso") {
-            format!("{}.part0.iso", disc.id().as_str())
-        } else if disc.is_wii() {
-            format!("{}.{}", disc.id().as_str(), format_to_ext(disc.format()))
-        } else {
-            match disc.disc_num() {
-                0 => format!("game.{}", format_to_ext(disc.format())),
-                n => format!("disc{}.{}", n + 1, format_to_ext(disc.format())),
-            }
-        };
-
+        let new_parent = games_dir.join(new_parent_name);
         let new_path = new_parent.join(&new_filename);
 
         fs::create_dir_all(&new_parent)?;
-        fs::rename(disc.disc_path(), &new_path)?;
+        fs::rename(&path, &new_path)?;
 
         // handle split files
-        if disc.format() == Format::Wbfs {
-            let wbf1_path = disc.disc_path().with_extension("wbf1");
+        if format == Format::Wbfs {
+            let wbf1_path = path.with_extension("wbf1");
             if wbf1_path.exists() {
                 let new_wbf1_path = new_path.with_extension("wbf1");
                 fs::rename(wbf1_path, new_wbf1_path)?;
             }
-        }
-        if orig_filename.ends_with(".part0.iso") {
-            let part1_orig = disc
-                .disc_path()
-                .with_file_name(orig_filename.replace(".part0.iso", ".part1.iso"));
+        } else if filename.ends_with(".part0.iso") {
+            let part1_orig = games_dir.join(filename.replace(".part0.iso", ".part1.iso"));
             if part1_orig.exists() {
-                let part1_new =
-                    new_path.with_file_name(new_filename.replace(".part0.iso", ".part1.iso"));
+                let part1_new = new_parent.join(new_filename.replace(".part0.iso", ".part1.iso"));
                 fs::rename(part1_orig, part1_new)?;
             }
         }
@@ -84,50 +68,47 @@ fn adopt_orphaned_discs(mount_point: &Path) -> Result<()> {
     Ok(())
 }
 
-fn readopt_parented_discs(mount_point: &Path) -> Result<()> {
-    let all_dirs = fs::read_dir(mount_point.join("wbfs"))?
-        .chain(fs::read_dir(mount_point.join("games"))?)
-        .filter_map(Result::ok)
-        .filter(|e| e.file_type().is_ok_and(|t| t.is_dir()));
-
-    let all_discs = all_dirs.filter_map(|e| {
-        let path = e.path();
-        let disc_info = DiscInfo::try_from_game_dir(&path).ok()?;
-        Some((disc_info, path))
+fn readopt_parented_discs(games_dir: &Path, is_wii: bool) -> Result<()> {
+    let all_game_dirs = fs::read_dir(games_dir)?.filter_map(|entry| {
+        let path = entry.ok()?.path();
+        let (format, game_id, title) = read_disc_header_from_game_dir(&path)?;
+        Some((path, format, game_id, title))
     });
 
-    for (disc, parent) in all_discs {
-        let title = if disc.is_wii() {
-            sanitize(disc.title())
+    for (path, _, game_id, title) in all_game_dirs {
+        let title = if is_wii {
+            sanitize(&title)
         } else {
-            sanitize(disc.title())
+            sanitize(&title)
                 .replace(" game disc 1", "")
                 .replace(" game disc 2", "")
         };
 
-        let new_parent_name = format!("{} [{}]", title, disc.id().as_str());
+        let new_filename = format!("{} [{}]", title, game_id.as_str());
+        let new_path = games_dir.join(new_filename);
 
-        let new_parent = if disc.is_wii() {
-            mount_point.join("wbfs").join(new_parent_name)
-        } else {
-            mount_point.join("games").join(new_parent_name)
-        };
-
-        if new_parent.exists() {
+        if new_path.exists() {
             continue;
         }
 
-        fs::rename(parent, &new_parent)?;
+        fs::rename(path, &new_path)?;
     }
 
     Ok(())
 }
 
 pub fn normalize_paths(mount_point: &Path) -> Result<String> {
-    fs::create_dir_all(mount_point.join("wbfs"))?;
-    fs::create_dir_all(mount_point.join("games"))?;
-    adopt_orphaned_discs(mount_point)?;
-    readopt_parented_discs(mount_point)?;
+    let wii_dir = mount_point.join("wbfs");
+    let gc_dir = mount_point.join("games");
+
+    fs::create_dir_all(&wii_dir)?;
+    fs::create_dir_all(&gc_dir)?;
+
+    adopt_orphaned_discs(&wii_dir, true)?;
+    adopt_orphaned_discs(&gc_dir, false)?;
+
+    readopt_parented_discs(&wii_dir, true)?;
+    readopt_parented_discs(&gc_dir, false)?;
 
     Ok("Paths successfully normalized".to_string())
 }

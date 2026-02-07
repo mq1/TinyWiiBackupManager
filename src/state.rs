@@ -755,6 +755,7 @@ impl State {
             Message::FileDropped(path) => match self.screen {
                 Screen::Games => {
                     if let Some(entry) = maybe_path_to_entry(path) {
+                        let entry = (entry.0, entry.2);
                         self.update(Message::ConfirmAddGamesToTransferStack(vec![entry]))
                     } else {
                         self.notifications.error("Invalid file!".to_string());

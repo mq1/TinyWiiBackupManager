@@ -6,7 +6,11 @@
 use crate::games::game_id::GameID;
 use anyhow::Result;
 use nod::common::Format;
-use std::io::{self, Read};
+use std::{
+    fs::{self, File},
+    io::{self, Read},
+    path::Path,
+};
 
 fn get_gameid_offset(format: Format) -> Option<u64> {
     match format {
@@ -28,11 +32,7 @@ fn get_title_offset(format: Format) -> Option<u64> {
     }
 }
 
-pub fn read_gameid<R: Read>(reader: &mut R) -> Option<GameID> {
-    read_gameid_and_title(reader).map(|(id, _)| id)
-}
-
-pub fn read_gameid_and_title<R: Read>(reader: &mut R) -> Option<(GameID, String)> {
+pub fn read_disc_header<R: Read>(reader: &mut R) -> Option<(Format, GameID, String)> {
     let (format, mut id_buf) = guess_format(reader).ok()?;
     let id_offset = get_gameid_offset(format)?;
     let title_offset = get_title_offset(format)?;
@@ -57,7 +57,7 @@ pub fn read_gameid_and_title<R: Read>(reader: &mut R) -> Option<(GameID, String)
     let title = String::from_utf8_lossy(&title_buf).to_string();
     eprintln!("Parsed Title: {title}");
 
-    Some((id, title))
+    Some((format, id, title))
 }
 
 pub fn guess_format<R: Read>(reader: &mut R) -> Result<(Format, [u8; 6])> {
@@ -76,4 +76,17 @@ pub fn guess_format<R: Read>(reader: &mut R) -> Result<(Format, [u8; 6])> {
     };
 
     Ok((format, id_buf))
+}
+
+pub fn read_disc_header_from_game_dir(path: &Path) -> Option<(Format, GameID, String)> {
+    for entry in fs::read_dir(path).ok()?.filter_map(Result::ok) {
+        let Ok(mut file) = File::open(entry.path()) else {
+            continue;
+        };
+        if let Some((format, id, title)) = read_disc_header(&mut file) {
+            return Some((format, id, title));
+        }
+    }
+
+    None
 }

@@ -2,10 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    disc_util,
+    disc_util::read_disc_header,
     games::{extensions::ext_to_format, game_id::GameID},
 };
 use anyhow::Result;
+use nod::common::Format;
 use std::{
     fs::File,
     path::{Path, PathBuf},
@@ -19,10 +20,11 @@ pub fn scan_for_discs(path: PathBuf) -> Vec<(PathBuf, GameID)> {
         .filter_map(Result::ok)
         .map(DirEntry::into_path)
         .filter_map(maybe_path_to_entry)
+        .map(|(path, _, id, _)| (path, id))
         .collect()
 }
 
-pub fn maybe_path_to_entry(path: impl Into<PathBuf>) -> Option<(PathBuf, GameID)> {
+pub fn maybe_path_to_entry(path: impl Into<PathBuf>) -> Option<(PathBuf, Format, GameID, String)> {
     let path = path.into();
 
     if !path.is_file() {
@@ -42,18 +44,18 @@ pub fn maybe_path_to_entry(path: impl Into<PathBuf>) -> Option<(PathBuf, GameID)
     let ext = path.extension()?;
 
     if ext.eq_ignore_ascii_case("zip") {
-        let id = get_zipped_game_id(&path)?;
-        Some((path, id))
+        let (format, id, title) = read_zipped_disc_header(&path)?;
+        Some((path, format, id, title))
     } else if ext_to_format(ext).is_some() {
         let mut file = File::open(&path).ok()?;
-        let id = disc_util::read_gameid(&mut file).unwrap_or_default();
-        Some((path, id))
+        let (format, id, title) = read_disc_header(&mut file).unwrap_or_default();
+        Some((path, format, id, title))
     } else {
         None
     }
 }
 
-fn get_zipped_game_id(path: &Path) -> Option<GameID> {
+fn read_zipped_disc_header(path: &Path) -> Option<(Format, GameID, String)> {
     let file = File::open(path).ok()?;
     let mut archive = ZipArchive::new(file).ok()?;
 
@@ -63,8 +65,8 @@ fn get_zipped_game_id(path: &Path) -> Option<GameID> {
 
     let _ = ext_to_format(ext)?;
 
-    let id = disc_util::read_gameid(&mut first_file).unwrap_or_default();
-    Some(id)
+    let (format, id, title) = read_disc_header(&mut first_file).unwrap_or_default();
+    Some((format, id, title))
 }
 
 pub fn get_threads_num() -> (usize, usize) {

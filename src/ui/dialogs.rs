@@ -34,6 +34,7 @@ pub fn choose_games(window: &dyn Window) -> Vec<(PathBuf, GameID)> {
         .unwrap_or_default()
         .into_iter()
         .filter_map(maybe_path_to_entry)
+        .map(|(path, _, id, _)| (path, id))
         .collect()
 }
 
