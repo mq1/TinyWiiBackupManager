@@ -13,3 +13,8 @@ echo "&rarr; [Windows x64 Standalone](https://github.com/mq1/TinyWiiBackupManage
 echo "&rarr; [macOS Universal Binary](https://github.com/mq1/TinyWiiBackupManager/releases/download/$1/TinyWiiBackupManager-$1-macos-universal.dmg)\\"
 echo "&rarr; [Linux Flatpak](https://flathub.org/apps/details/it.mq1.TinyWiiBackupManager)\\"
 echo "&rarr; [Linux x86_64 AppImage](https://github.com/mq1/TinyWiiBackupManager/releases/download/$1/TinyWiiBackupManager-$1-linux-x86_64.AppImage)"
+
+echo ""
+echo '> [!CAUTION]'
+echo '> windows7 builds are currently broken on windows < 8'
+echo '> Additional help is needed to sort this out #522'
