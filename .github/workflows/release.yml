@@ -164,15 +164,15 @@ jobs:
             features: tiny-skia bundled-tls
             arch: x86_64
             rustflags: -C target-feature=+crt-static -C link-args=/SUBSYSTEM:WINDOWS,6.01
-            cflags: /clang:-D_WIN32_WINNT=0x0601 /clang:-DWINVER=0x0601 /clang:-DNTDDI_VERSION=0x06010000
-            cxxflags: /clang:-D_WIN32_WINNT=0x0601 /clang:-DWINVER=0x0601 /clang:-DNTDDI_VERSION=0x06010000
+            cflags: /D_WIN32_WINNT=0x0601 /DWINVER=0x0601
+            cxxflags: /D_WIN32_WINNT=0x0601 /DWINVER=0x0601
             platform: windows7
           - target: i686-pc-windows-msvc
             features: tiny-skia bundled-tls
             arch: x86
             rustflags: -C target-feature=+crt-static -C link-args=/SUBSYSTEM:WINDOWS,6.01
-            cflags: /clang:-D_WIN32_WINNT=0x0601 /clang:-DWINVER=0x0601 /clang:-DNTDDI_VERSION=0x06010000
-            cxxflags: /clang:-D_WIN32_WINNT=0x0601 /clang:-DWINVER=0x0601 /clang:-DNTDDI_VERSION=0x06010000
+            cflags: /D_WIN32_WINNT=0x0601 /DWINVER=0x0601
+            cxxflags: /D_WIN32_WINNT=0x0601 /DWINVER=0x0601
             platform: windows7
 
     steps:
