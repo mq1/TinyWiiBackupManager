@@ -203,9 +203,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - target: x86_64-win7-windows-msvc
+          - target: x86_64-pc-windows-msvc
             arch: x86_64
-          - target: i686-win7-windows-msvc
+          - target: i686-pc-windows-msvc
             arch: x86
 
     steps:
@@ -238,9 +238,8 @@ jobs:
         run: pip3 install cargo-xwin
 
       - name: Build binary
-        run: cargo xwin build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "tiny-skia native-tls"
+        run: cargo xwin build --release --locked --target ${{ matrix.target }} --no-default-features --features "tiny-skia native-tls"
         env:
-          RUSTC_BOOTSTRAP: 1
           RUSTFLAGS: -C target-feature=+crt-static
           XWIN_ARCH: ${{ matrix.arch }}
           XWIN_VERSION: 16
@@ -249,8 +248,8 @@ jobs:
       - name: Package binary as zip
         run: |
           mkdir dist
-          cp target/${{ matrix.target }}/release/TinyWiiBackupManager.exe dist/TinyWiiBackupManager.exe
-          zip -9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows7-${{ matrix.arch }}.zip" dist/TinyWiiBackupManager.exe
+          cp target/${{ matrix.target }}/release/TinyWiiBackupManager.exe TinyWiiBackupManager.exe
+          zip -9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows7-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
 
       - name: Upload Windows 7 distributables
         uses: actions/upload-artifact@v4
