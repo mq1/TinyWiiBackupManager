@@ -203,9 +203,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - target: x86_64-win7-windows-msvc
+          - target: x86_64-pc-windows-msvc
             arch: x86_64
-          - target: i686-win7-windows-msvc
+          - target: i686-pc-windows-msvc
             arch: x86
 
     steps:
