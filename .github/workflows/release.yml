@@ -229,7 +229,7 @@ jobs:
         run: cargo build -Z build-std=std,panic_abort --profile release-lto --locked --target ${{ matrix.target }} --no-default-features --features "xp"
         env:
           RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: -Clink-args=/SUBSYSTEM:WINDOWS,5.1 -Clink-arg=/NODEFAULTLIB:combase.lib -Clink-arg=ole32.lib
+          RUSTFLAGS: -Clink-arg=/NODEFAULTLIB:combase.lib -Clink-arg=ole32.lib
           CC: clang-cl
           CXX: clang-cl
           AR: llvm-lib
