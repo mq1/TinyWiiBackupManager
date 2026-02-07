@@ -203,9 +203,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - target: x86_64-pc-windows-msvc
+          - target: x86_64-win7-windows-msvc
             arch: x86_64
-          - target: i686-pc-windows-msvc
+          - target: i686-win7-windows-msvc
             arch: x86
 
     steps:
@@ -217,13 +217,15 @@ jobs:
       - name: Install Rust toolchain
         shell: pwsh
         run: |
-          rustup toolchain install 1.93
+          rustup toolchain install 1.93 --component rust-src
           rustup default 1.93
-          rustup target add ${{ matrix.target }}
 
       - name: Build binary
         shell: pwsh
-        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "xp"
+        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "xp"
+        env:
+          RUSTC_BOOTSTRAP: 1
+          RUSTFLAGS: -C link-arg=/DELAYLOAD:combase.dll -C link-arg=/DELAYLOAD:ole32.dll
 
       - name: Package binary as zip
         shell: pwsh
