@@ -135,8 +135,10 @@ impl StripOperation {
                     overflow_writer.flush()?;
                 }
 
+                let _ = fs::remove_file(disc_info.disc_path());
                 fs::rename(out_path, disc_info.disc_path())?;
                 if let Some(overflow_path) = overflow_path.take() {
+                    let _ = fs::remove_file(disc_info.disc_path().with_extension("wbf1"));
                     fs::rename(overflow_path, disc_info.disc_path().with_extension("wbf1"))?;
                 }
 
