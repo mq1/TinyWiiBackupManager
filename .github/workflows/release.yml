@@ -225,8 +225,9 @@ jobs:
 
       - name: Install Rust toolchain
         run: |
-          rustup toolchain install 1.93 --component rust-src
+          rustup toolchain install 1.93
           rustup default 1.93
+          rustup target add ${{ matrix.target }}
 
       - name: Restore xwin cache
         uses: actions/cache@v5
