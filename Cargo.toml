@@ -104,16 +104,12 @@ tiny-skia = ["iced/tiny-skia"]
 native-tls = ["minreq/https-native"]
 bundled-tls = ["minreq/https-rustls"]
 
-[profile.release]
+[profile.lto]
 opt-level = 3
 lto = true
 codegen-units = 1
 strip = true
 panic = "abort"
-
-[profile.win7]
-inherits = "release"
-lto = false
 
 # Big UI dependencies (cargo bloat --release --crates)
 [profile.release.package.naga]
