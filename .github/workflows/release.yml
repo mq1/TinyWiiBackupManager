@@ -205,10 +205,10 @@ jobs:
         include:
           - target: x86_64-win7-windows-msvc
             arch: x86_64
-            msvc_arch: x64
+            msvc_arch: amd64
           - target: i686-win7-windows-msvc
             arch: x86
-            msvc_arch: x86
+            msvc_arch: amd64_x86
 
     steps:
       - name: Checkout
@@ -229,7 +229,7 @@ jobs:
       - name: Build binary
         shell: pwsh
         run: |
-          & "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvarsall.bat"
+          & "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvarsall.bat" ${{ matrix.msvc_arch }} 8.1
           cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "win7"
         env:
           RUSTC_BOOTSTRAP: 1
