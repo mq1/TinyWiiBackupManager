@@ -163,10 +163,12 @@ jobs:
           - target: x86_64-win7-windows-msvc
             features: tiny-skia bundled-tls
             arch: x86_64
+            rustflags: -C target-feature=+crt-static -C link-args=/SUBSYSTEM:WINDOWS,6.01
             platform: windows7
           - target: i686-win7-windows-msvc
             features: tiny-skia bundled-tls
             arch: x86
+            rustflags: -C target-feature=+crt-static -C link-args=/SUBSYSTEM:WINDOWS,6.01
             platform: windows7
 
     steps:
