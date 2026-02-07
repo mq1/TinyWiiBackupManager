@@ -113,35 +113,35 @@ strip = true
 panic = "abort"
 
 # Big UI dependencies (cargo bloat --release --crates)
-[profile.release.package.naga]
+[profile.release-lto.package.naga]
 opt-level = "z"
-[profile.release.package.wgpu-core]
+[profile.release-lto.package.wgpu-core]
 opt-level = "z"
-[profile.release.package.harfrust]
+[profile.release-lto.package.harfrust]
 opt-level = "z"
-[profile.release.package.skrifa]
+[profile.release-lto.package.skrifa]
 opt-level = "z"
-[profile.release.package.zeno]
+[profile.release-lto.package.zeno]
 opt-level = "z"
-[profile.release.package.read-fonts]
+[profile.release-lto.package.read-fonts]
 opt-level = "z"
-[profile.release.package.iced_winit]
+[profile.release-lto.package.iced_winit]
 opt-level = "z"
-[profile.release.package.wgpu]
+[profile.release-lto.package.wgpu]
 opt-level = "z"
-[profile.release.package.iced_wgpu]
+[profile.release-lto.package.iced_wgpu]
 opt-level = "z"
-[profile.release.package.wgpu-hal]
+[profile.release-lto.package.wgpu-hal]
 opt-level = "z"
-[profile.release.package.winit]
+[profile.release-lto.package.winit]
 opt-level = "z"
-[profile.release.package.cosmic-text]
+[profile.release-lto.package.cosmic-text]
 opt-level = "z"
-[profile.release.package.iced_widget]
+[profile.release-lto.package.iced_widget]
 opt-level = "z"
-[profile.release.package.image]
+[profile.release-lto.package.image]
 opt-level = "z"
-[profile.release.package.iced_graphics]
+[profile.release-lto.package.iced_graphics]
 opt-level = "z"
 
 [profile.dev.package."*"]
