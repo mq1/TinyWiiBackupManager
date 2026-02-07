@@ -203,9 +203,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - target: x86_64-win7-windows-msvc
+          - target: x86_64-pc-windows-msvc
             arch: x86_64
-          - target: i686-win7-windows-msvc
+          - target: i686-pc-windows-msvc
             arch: x86
 
     steps:
@@ -221,10 +221,9 @@ jobs:
           rustup default 1.93
 
       - name: Build binary
-        run: cargo build -Z build-std=std,panic_abort --profile release-lto --locked --target ${{ matrix.target }} --no-default-features --features "xp"
+        run: cargo build --profile release-lto --locked --target ${{ matrix.target }} --no-default-features --features "xp"
         env:
-          RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: -Ctarget-feature=+crt-static -Clink-args=/SUBSYSTEM:WINDOWS,5.1 -Clink-arg=/NODEFAULTLIB:combase.lib -Clink-arg=ole32.lib
+          RUSTFLAGS: -Clink-args=/SUBSYSTEM:WINDOWS,5.1
 
       - name: Package binary as zip
         shell: pwsh
