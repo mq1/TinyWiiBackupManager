@@ -221,16 +221,13 @@ jobs:
           rustup default 1.93
 
       - name: Build binary
-        run: cargo build -Z build-std=std,panic_abort --profile release-lto --locked --target ${{ matrix.target }} --no-default-features --features "xp"
-        env:
-          RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: -Clink-arg=/NODEFAULTLIB:combase.lib -Clink-arg=ole32.lib -Clink-arg=/DELAYLOAD:combase.dll -Clink-arg=delayimp.lib -Clink-arg=/FORCE:MULTIPLE
+        run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "xp"
 
       - name: Package binary as zip
         shell: pwsh
         run: |
           New-Item -Path "dist" -ItemType Directory
-          Copy-Item -Path "target/${{ matrix.target }}/release-lto/TinyWiiBackupManager.exe" -Destination TinyWiiBackupManager.exe
+          Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination TinyWiiBackupManager.exe
           7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
 
       - name: Upload Windows XP distributables
