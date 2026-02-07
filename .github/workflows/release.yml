@@ -218,7 +218,7 @@ jobs:
 
       - name: Install build tools
         shell: pwsh
-        run: choco install visualstudio2019buildtools
+        run: choco install visualstudio2019buildtools visualstudio2019-workload-vctools
 
       - name: Install Rust toolchain
         shell: pwsh
