@@ -241,7 +241,7 @@ jobs:
       - name: Build binary
         run: cargo xwin build --release --locked --target ${{ matrix.target }} --no-default-features --features "win7"
         env:
-          RUSTFLAGS: -Ctarget-feature=+crt-static -Clink-arg=/SUBSYSTEM:WINDOWS,6.1 -Clink-arg=/NODEFAULTLIB:combase.lib -Clink-arg=ole32.lib
+          RUSTFLAGS: -C target-feature=+crt-static -C link-args=/SUBSYSTEM:WINDOWS,6.1 -C link-arg=/NODEFAULTLIB:combase.lib -C link-arg=ole32.lib
           XWIN_ARCH: ${{ matrix.arch }}
           XWIN_VERSION: 16
           XWIN_CACHE_DIR: xwin-cache
