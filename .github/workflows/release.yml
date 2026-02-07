@@ -218,7 +218,7 @@ jobs:
 
       - name: Install build tools
         shell: pwsh
-        run: choco install visualstudio2019buildtools visualstudio2019-workload-vctools
+        run: choco install visualstudio2019buildtools visualstudio2019-workload-vctools windows-sdk-8.1
 
       - name: Install Rust toolchain
         shell: pwsh
@@ -233,6 +233,8 @@ jobs:
           cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "win7"
         env:
           RUSTC_BOOTSTRAP: 1
+          CFLAGS: /D_WIN32_WINNT=0x0601 /DWINVER=0x0601
+          CXXFLAGS: /D_WIN32_WINNT=0x0601 /DWINVER=0x0601
 
       - name: Package binary as zip
         shell: pwsh
