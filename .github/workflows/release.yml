@@ -196,8 +196,8 @@ jobs:
           name: dist-windows-${{ matrix.arch }}
           path: dist/*
 
-  build-xp:
-    name: Build for Windows XP
+  build-windows7:
+    name: Build for Windows 7
     runs-on: windows-2022
     strategy:
       fail-fast: false
@@ -205,14 +205,27 @@ jobs:
         include:
           - target: x86_64-win7-windows-msvc
             arch: x86_64
+            msvc_arch: x64
           - target: i686-win7-windows-msvc
             arch: x86
+            msvc_arch: x86
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
           fetch-depth: 1
+
+      - name: Install visual studio 2019
+        shell: pwsh
+        run: |
+          choco install visualstudio2019buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools"
+
+      - name: Setup MSVC 2019 Developer Command Prompt
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          vsversion: "2019" 
+          arch: ${{ matrix.msvc_arch }}
 
       - name: Install Rust toolchain
         shell: pwsh
@@ -222,22 +235,21 @@ jobs:
 
       - name: Build binary
         shell: pwsh
-        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "xp"
+        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "win7"
         env:
           RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: -C link-arg=/DELAYLOAD:combase.dll -C link-arg=/DELAYLOAD:ole32.dll
 
       - name: Package binary as zip
         shell: pwsh
         run: |
           New-Item -Path "dist" -ItemType Directory
           Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination TinyWiiBackupManager.exe
-          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
+          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows7-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
 
-      - name: Upload Windows XP distributables
+      - name: Upload Windows 7 distributables
         uses: actions/upload-artifact@v4
         with:
-          name: dist-xp-${{ matrix.arch }}
+          name: dist-windows7-${{ matrix.arch }}
           path: dist/*
 
   build-macos:
@@ -359,7 +371,7 @@ jobs:
     name: Create GitHub Release
     if: github.ref_type == 'tag'
     runs-on: ubuntu-slim
-    needs: [build-linux, build-windows, build-xp, build-macos, build-macos-universal]
+    needs: [build-linux, build-windows, build-windows7, build-macos, build-macos-universal]
     steps:
       - name: Checkout
         uses: actions/checkout@v6
