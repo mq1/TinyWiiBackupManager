@@ -163,25 +163,22 @@ jobs:
           - target: x86_64-win7-windows-msvc
             features: tiny-skia bundled-tls
             arch: x86_64
-            rustflags: -C target-feature=+crt-static
             platform: windows7
           - target: i686-win7-windows-msvc
             features: tiny-skia bundled-tls
             arch: x86
-            rustflags: -C target-feature=+crt-static
             platform: windows7
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          fetch-depth:
+          fetch-depth: 1
 
       - name: Install LLVM and Clang
         uses: KyleMayes/install-llvm-action@v2
         with:
           version: "21.1.8"
-          force-url: https://github.com/llvm/llvm-project/releases/download/llvmorg-21.1.8/LLVM-21.1.8-win64.exe
 
       - name: Install Rust toolchain
         shell: pwsh
