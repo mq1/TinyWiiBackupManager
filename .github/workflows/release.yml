@@ -196,16 +196,16 @@ jobs:
           name: dist-windows-${{ matrix.arch }}
           path: dist/*
 
-  build-windows7:
-    name: Build for Windows 7
-    runs-on: ubuntu-22.04
+  build-xp:
+    name: Build for Windows XP
+    runs-on: windows-2022
     strategy:
       fail-fast: false
       matrix:
         include:
-          - target: x86_64-pc-windows-gnu
+          - target: x86_64-pc-windows-msvc
             arch: x86_64
-          - target: i686-pc-windows-gnu
+          - target: i686-pc-windows-msvc
             arch: x86
 
     steps:
@@ -214,46 +214,27 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Refresh apt
-        run: sudo apt-get update
-
-      - name: Install x86_64 dependencies
-        if: matrix.arch == 'x86_64'
-        run: sudo apt-get install -y gcc-mingw-w64-x86-64
-
-      - name: Install x86 dependencies
-        if: matrix.arch == 'x86'
-        run: sudo apt-get install -y gcc-mingw-w64-i686
-
       - name: Install Rust toolchain
+        shell: pwsh
         run: |
-          rustup toolchain install 1.93 --component rust-src
+          rustup toolchain install 1.93
           rustup default 1.93
+          rustup target add ${{ matrix.target }}
 
       - name: Build binary
-        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "win7"
-        env:
-          RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: -C target-feature=+crt-static
-          CARGO_TARGET_X86_64_WIN7_WINDOWS_GNU_LINKER: x86_64-w64-mingw32-gcc
-          CC_x86_64_win7_windows_gnu: x86_64-w64-mingw32-gcc
-          CXX_x86_64_win7_windows_gnu: x86_64-w64-mingw32-g++
-          AR_x86_64_win7_windows_gnu: x86_64-w64-mingw32-ar
-          CARGO_TARGET_I686_WIN7_WINDOWS_GNU_LINKER: i686-w64-mingw32-gcc
-          CC_i686_win7_windows_gnu: i686-w64-mingw32-gcc
-          CXX_i686_win7_windows_gnu: i686-w64-mingw32-g++
-          AR_i686_win7_windows_gnu: i686-w64-mingw32-ar
+        run: cargo build --profile release-lto --locked --target ${{ matrix.target }} --no-default-features --features "xp"
 
       - name: Package binary as zip
+        shell: pwsh
         run: |
-          mkdir dist
-          cp target/${{ matrix.target }}/release/TinyWiiBackupManager.exe TinyWiiBackupManager.exe
-          zip -9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows7-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
+          New-Item -Path "dist" -ItemType Directory
+          Copy-Item -Path "target/${{ matrix.target }}/release-lto/TinyWiiBackupManager.exe" -Destination TinyWiiBackupManager.exe
+          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
 
-      - name: Upload Windows 7 distributables
+      - name: Upload Windows XP distributables
         uses: actions/upload-artifact@v4
         with:
-          name: dist-windows7-${{ matrix.arch }}
+          name: dist-xp-${{ matrix.arch }}
           path: dist/*
 
   build-macos:
@@ -375,7 +356,7 @@ jobs:
     name: Create GitHub Release
     if: github.ref_type == 'tag'
     runs-on: ubuntu-slim
-    needs: [build-linux, build-windows, build-windows7, build-macos, build-macos-universal]
+    needs: [build-linux, build-windows, build-xp, build-macos, build-macos-universal]
     steps:
       - name: Checkout
         uses: actions/checkout@v6

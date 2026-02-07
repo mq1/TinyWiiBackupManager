@@ -146,24 +146,9 @@ fn main() {
     }
 
     if env::var("CARGO_CFG_TARGET_FAMILY").unwrap() == "windows" {
-        if env::var("CARGO_FEATURE_WIN10").is_ok() {
-            static_vcruntime::metabuild();
-        }
+        thunk::thunk();
 
         let mut res = winresource::WindowsResource::new();
-
-        if std::env::var("CARGO_CFG_TARGET_ENV").unwrap() == "gnu" {
-            let target_arch = std::env::var("CARGO_CFG_TARGET_ARCH").unwrap();
-
-            if target_arch == "x86_64" {
-                res.set_ar_path("x86_64-w64-mingw32-ar")
-                    .set_windres_path("x86_64-w64-mingw32-windres");
-            } else if target_arch == "x86" {
-                res.set_ar_path("i686-w64-mingw32-ar")
-                    .set_windres_path("i686-w64-mingw32-windres");
-            }
-        }
-
         res.set_icon("package/windows/icon.ico");
         res.compile().unwrap();
     }

@@ -3,18 +3,6 @@
 
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
-#[cfg(feature = "win7")]
-#[unsafe(no_mangle)]
-pub unsafe extern "system" fn GetSystemTimePreciseAsFileTime(lp_file_time: *mut u64) {
-    unsafe extern "system" {
-        unsafe fn GetSystemTimeAsFileTime(lp: *mut u64);
-    }
-
-    unsafe {
-        GetSystemTimeAsFileTime(lp_file_time);
-    }
-}
-
 mod config;
 mod data_dir;
 mod disc_util;

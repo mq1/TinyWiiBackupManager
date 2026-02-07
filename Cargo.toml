@@ -66,14 +66,14 @@ regex = "1.12"
 lucide-icons = "0.563"
 zstd = "0.13"
 winresource = "0.1"
-static_vcruntime = "3.0"
+thunk-rs = { version = "0.3", default-features = false, features = ["subsystem_windows"] }
 
 [features]
 default = ["iced/tiny-skia", "minreq/https-native"]
 linux-appimage = ["iced/wgpu-bare", "wgpu/gles", "iced/tiny-skia", "minreq/https-rustls"]
 linux-flatpak = ["iced/wgpu-bare", "wgpu/gles", "iced/tiny-skia", "minreq/https-native"]
-win7 = ["iced/tiny-skia", "minreq/https-native"]
-win10 = ["iced/wgpu-bare", "wgpu/dx12", "minreq/https-native", "native-dialog/windows_dpi_awareness", "native-dialog/windows_visual_styles", "dep:winsafe", "dep:dark-light"]
+xp = ["iced/tiny-skia", "minreq/https-rustls", "thunk-rs/xp"]
+win10 = ["iced/wgpu-bare", "wgpu/dx12", "minreq/https-native", "native-dialog/windows_dpi_awareness", "native-dialog/windows_visual_styles", "dep:winsafe", "dep:dark-light", "thunk-rs/vc_ltl_only"]
 macos = ["iced/wgpu-bare", "wgpu/metal", "minreq/https-native"]
 
 [profile.release-lto]
