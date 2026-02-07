@@ -228,7 +228,7 @@ jobs:
         env:
           RUSTFLAGS: -C target-feature=+crt-static
           XWIN_ARCH: ${{ matrix.arch }}
-          XWIN_VERSION: "17.6"
+          XWIN_VERSION: 16
 
       - name: Package binary as zip
         run: |
