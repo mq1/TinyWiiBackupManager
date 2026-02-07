@@ -217,10 +217,12 @@ jobs:
       - name: Install Rust toolchain
         shell: pwsh
         run: |
-          rustup toolchain install 1.93 --component rust-src
+          rustup toolchain install 1.93
           rustup default 1.93
+          rustup target add ${{ matrix.target }}
 
       - name: Build binary
+        shell: pwsh
         run: cargo build --release --locked --target ${{ matrix.target }} --no-default-features --features "xp"
 
       - name: Package binary as zip
