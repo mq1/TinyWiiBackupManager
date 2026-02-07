@@ -214,11 +214,6 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install LLVM and Clang
-        uses: KyleMayes/install-llvm-action@v2
-        with:
-          version: "21.1.8"
-
       - name: Install Rust toolchain
         shell: pwsh
         run: |
@@ -229,12 +224,7 @@ jobs:
         run: cargo build -Z build-std=std,panic_abort --profile release-lto --locked --target ${{ matrix.target }} --no-default-features --features "xp"
         env:
           RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: -Clink-arg=/NODEFAULTLIB:combase.lib -Clink-arg=ole32.lib -Clink-arg=/FORCE:MULTIPLE
-          CC: clang-cl
-          CXX: clang-cl
-          AR: llvm-lib
-          CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_LINKER: lld-link
-          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_LINKER: lld-link
+          RUSTFLAGS: -Clink-arg=/NODEFAULTLIB:combase.lib -Clink-arg=ole32.lib -Clink-arg=/DELAYLOAD:combase.dll -Clink-arg=delayimp.lib -Clink-arg=/FORCE:MULTIPLE
 
       - name: Package binary as zip
         shell: pwsh
