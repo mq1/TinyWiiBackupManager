@@ -233,6 +233,7 @@ jobs:
           cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "win7"
         env:
           RUSTC_BOOTSTRAP: 1
+          RUSTFLAGS: -Clink-arg=/NODEFAULTLIB:combase.lib -Clink-arg=ole32.lib
           CFLAGS: /D_WIN32_WINNT=0x0601 /DWINVER=0x0601
           CXXFLAGS: /D_WIN32_WINNT=0x0601 /DWINVER=0x0601
 
