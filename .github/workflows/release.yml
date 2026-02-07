@@ -203,9 +203,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - target: x86_64-pc-windows-msvc
+          - target: x86_64-win7-windows-msvc
             arch: x86_64
-          - target: i686-pc-windows-msvc
+          - target: i686-win7-windows-msvc
             arch: x86
 
     steps:
@@ -223,16 +223,16 @@ jobs:
 
       - name: Install Rust toolchain
         run: |
-          rustup toolchain install 1.93
+          rustup toolchain install 1.93 --component rust-src
           rustup default 1.93
-          rustup target add ${{ matrix.target }}
 
       - name: Install cargo-xwin
         run: pip3 install cargo-xwin
 
       - name: Build binary
-        run: cargo xwin build --release --locked --target ${{ matrix.target }} --no-default-features --features "tiny-skia native-tls"
+        run: cargo xwin build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "tiny-skia native-tls"
         env:
+          RUSTC_BOOTSTRAP: 1
           RUSTFLAGS: -C target-feature=+crt-static
           XWIN_ARCH: ${{ matrix.arch }}
           XWIN_VERSION: 16
