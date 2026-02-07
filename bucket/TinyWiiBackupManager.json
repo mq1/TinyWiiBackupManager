@@ -11,15 +11,15 @@
   "architecture": {
     "64bit": {
       "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/v5.1.1/TinyWiiBackupManager-v5.1.1-windows-x86_64.zip",
-      "hash": "267ca79cba53bf28e073255bb5ff4df0ac86290ae8b0238420011ed0375236c3"
+      "hash": "f5f1e758acb61e270fd3c4fb83be7af249d33861a69bf22a0bc9a1e7bfb1ed74"
     },
     "arm64": {
       "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/v5.1.1/TinyWiiBackupManager-v5.1.1-windows-arm64.zip",
-      "hash": "340653479c70cf3ee66ebd7a35938ef11a84b3e401f895c04fdb2f23e4449ea6"
+      "hash": "b660903ed22468d80d8f977185bf52b8de8bb41b1dcaffcc8bdb85da3bfb85ea"
     },
     "32bit": {
       "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/v5.1.1/TinyWiiBackupManager-v5.1.1-windows-x86.zip",
-      "hash": "bc5d7e108b709ba2658c173a88dc11446d7d5706fe8cc11ec8a4e7f219c4f4f3"
+      "hash": "57d80cee9ba549bcdf233a45b45988bda45d32a5ddae6a16e8db7d82128af8cf"
     }
   }
 }
