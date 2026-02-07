@@ -146,9 +146,7 @@ fn main() {
     }
 
     if env::var("CARGO_CFG_TARGET_FAMILY").unwrap() == "windows" {
-        if env::var("CARGO_CFG_TARGET_VENDOR").unwrap() == "pc" {
-            static_vcruntime::metabuild();
-        }
+        static_vcruntime::metabuild();
 
         let mut res = winresource::WindowsResource::new();
         res.set_icon("package/windows/icon.ico");
