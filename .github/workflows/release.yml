@@ -224,6 +224,7 @@ jobs:
         run: cargo build -Z build-std=std,panic_abort --profile release-lto --locked --target ${{ matrix.target }} --no-default-features --features "xp"
         env:
           RUSTC_BOOTSTRAP: 1
+          RUSTFLAGS: -C link-args=/SUBSYSTEM:WINDOWS,5.1
 
       - name: Package binary as zip
         shell: pwsh
