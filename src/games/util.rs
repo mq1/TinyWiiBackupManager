@@ -44,9 +44,9 @@ pub fn maybe_path_to_entry(path: impl Into<PathBuf>) -> Option<(PathBuf, GameID)
     if ext.eq_ignore_ascii_case("zip") {
         let id = get_zipped_game_id(&path)?;
         Some((path, id))
-    } else if let Some(format) = ext_to_format(ext) {
+    } else if ext_to_format(ext).is_some() {
         let mut file = File::open(&path).ok()?;
-        let id = disc_util::read_gameid(&mut file, format).unwrap_or_default();
+        let id = disc_util::read_gameid(&mut file).unwrap_or_default();
         Some((path, id))
     } else {
         None
@@ -61,8 +61,9 @@ fn get_zipped_game_id(path: &Path) -> Option<GameID> {
     let enclosed_name = first_file.enclosed_name()?;
     let ext = enclosed_name.extension()?;
 
-    let format = ext_to_format(ext)?;
-    let id = disc_util::read_gameid(&mut first_file, format).unwrap_or_default();
+    let _ = ext_to_format(ext)?;
+
+    let id = disc_util::read_gameid(&mut first_file).unwrap_or_default();
     Some(id)
 }
 
