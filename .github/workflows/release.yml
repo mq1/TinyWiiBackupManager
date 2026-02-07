@@ -216,17 +216,9 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install visual studio 2019
+      - name: Install build tools
         shell: pwsh
-        run: |
-          choco install visualstudio2019buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended --quiet --norestart" -y
-
-      - name: Setup MSVC 2019 Developer Command Prompt
-        uses: ilammy/msvc-dev-cmd@v1
-        with:
-          vsversion: "2019" 
-          arch: ${{ matrix.msvc_arch }}
-          installPath: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools"
+        run: choco install visualstudio2019buildtools
 
       - name: Install Rust toolchain
         shell: pwsh
@@ -236,7 +228,9 @@ jobs:
 
       - name: Build binary
         shell: pwsh
-        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "win7"
+        run: |
+          & "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvarsall.bat"
+          cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "win7"
         env:
           RUSTC_BOOTSTRAP: 1
 
