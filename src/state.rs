@@ -113,7 +113,7 @@ impl State {
             initial_state.notifications.info("New drive detected, a path normalization run is recommended\nYou can find it in the Toolbox page".to_string());
         }
 
-        #[cfg(target_vendor = "pc")]
+        #[cfg(all(target_vendor = "pc", feature = "wgpu"))]
         let set_window_color = window::oldest()
             .and_then(move |id| window::run(id, move |w| crate::ui::window_color::set(w, theme)))
             .discard();
@@ -128,7 +128,7 @@ impl State {
             updater::get_check_update_task(),
         ]);
 
-        #[cfg(target_vendor = "pc")]
+        #[cfg(all(target_vendor = "pc", feature = "wgpu"))]
         let tasks = set_window_color.chain(tasks);
 
         (initial_state, tasks)
@@ -150,7 +150,7 @@ impl State {
             ThemePreference::Light => Some(Theme::Light),
             ThemePreference::Dark => Some(Theme::Dark),
             ThemePreference::System => {
-                #[cfg(target_vendor = "pc")]
+                #[cfg(all(target_vendor = "pc", feature = "wgpu"))]
                 match dark_light::detect() {
                     Ok(dark_light::Mode::Light) => Some(Theme::Light),
                     Ok(dark_light::Mode::Dark) => Some(Theme::Dark),
@@ -396,7 +396,7 @@ impl State {
                 let new_config = self.config.clone_with_theme_preference(new_theme_pref);
                 let _ = self.update(Message::UpdateConfig(new_config));
 
-                #[cfg(target_vendor = "pc")]
+                #[cfg(all(target_vendor = "pc", feature = "wgpu"))]
                 {
                     window::oldest()
                         .and_then(move |id| {
