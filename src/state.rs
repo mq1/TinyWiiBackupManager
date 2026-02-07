@@ -157,7 +157,7 @@ impl State {
                     _ => None,
                 }
 
-                #[cfg(not(target_vendor = "pc"))]
+                #[cfg(not(all(target_vendor = "pc", feature = "wgpu")))]
                 None
             }
         }
