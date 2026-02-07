@@ -17,7 +17,7 @@ pub mod dialogs;
 pub mod lucide;
 mod style;
 
-#[cfg(target_vendor = "pc")]
+#[cfg(feature = "win10")]
 pub mod window_color;
 
 #[derive(Debug, Clone, PartialEq, Eq)]

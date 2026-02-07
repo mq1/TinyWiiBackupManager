@@ -146,8 +146,8 @@ fn main() {
     }
 
     if env::var("CARGO_CFG_TARGET_FAMILY").unwrap() == "windows" {
-        if env::var("CARGO_CFG_TARGET_VENDOR").unwrap() == "pc" {
-            static_vcruntime::metabuild();
+        if env::var("CARGO_CFG_TARGET_ARCH").unwrap() != "aarch64" {
+            thunk::thunk();
         }
 
         let mut res = winresource::WindowsResource::new();
