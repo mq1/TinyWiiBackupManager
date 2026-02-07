@@ -43,7 +43,7 @@ fn main() -> iced::Result {
     }
 
     let height = if cfg!(target_os = "macos") {
-        600.0 + 31.0
+        600.0 + 32.0
     } else {
         600.0
     };

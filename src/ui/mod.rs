@@ -72,7 +72,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
 
     if cfg!(target_os = "macos") {
         root = column![
-            container(row![].width(Length::Fill).height(31)).style(style::nav_container),
+            container(row![].width(Length::Fill).height(32)).style(style::nav_container),
             root
         ]
         .into();

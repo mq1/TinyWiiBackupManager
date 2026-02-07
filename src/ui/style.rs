@@ -100,7 +100,7 @@ pub fn card(theme: &Theme) -> container::Style {
     let shadow_color = if theme.extended_palette().is_dark {
         Color::from_rgba8(100, 100, 100, 0.1)
     } else {
-        Color::from_rgba8(0, 0, 0, 0.1)
+        Color::from_rgba8(0, 0, 0, 0.05)
     };
 
     let shadow = Shadow {
@@ -122,7 +122,7 @@ pub fn heavy_card(theme: &Theme) -> container::Style {
     let shadow_color = if theme.extended_palette().is_dark {
         Color::from_rgba8(100, 100, 100, 0.2)
     } else {
-        Color::from_rgba8(0, 0, 0, 0.2)
+        Color::from_rgba8(0, 0, 0, 0.1)
     };
 
     let shadow = Shadow {
