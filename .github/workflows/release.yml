@@ -219,13 +219,14 @@ jobs:
       - name: Install visual studio 2019
         shell: pwsh
         run: |
-          choco install visualstudio2019buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools"
+          choco install visualstudio2019buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended --quiet --norestart" -y
 
       - name: Setup MSVC 2019 Developer Command Prompt
         uses: ilammy/msvc-dev-cmd@v1
         with:
           vsversion: "2019" 
           arch: ${{ matrix.msvc_arch }}
+          installPath: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools"
 
       - name: Install Rust toolchain
         shell: pwsh
