@@ -236,6 +236,7 @@ jobs:
           RUSTFLAGS: -C target-feature=+crt-static
           XWIN_ARCH: ${{ matrix.arch }}
           XWIN_VERSION: 16
+          AR: llvm-lib-21
 
       - name: Package binary as zip
         run: |
