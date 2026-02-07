@@ -146,7 +146,9 @@ fn main() {
     }
 
     if env::var("CARGO_CFG_TARGET_FAMILY").unwrap() == "windows" {
-        thunk::thunk();
+        if env::var("CARGO_CFG_TARGET_ARCH").unwrap() != "aarch64" {
+            thunk::thunk();
+        }
 
         let mut res = winresource::WindowsResource::new();
         res.set_icon("package/windows/icon.ico");
