@@ -220,6 +220,7 @@ jobs:
           chmod +x llvm.sh
           sudo ./llvm.sh 21
           sudo ln -sf $(which lld-21) /usr/bin/ld
+          sudo ln -sf $(which llvm-lib-21) /usr/bin/llvm-lib
 
       - name: Install Rust toolchain
         run: |
@@ -236,7 +237,6 @@ jobs:
           RUSTFLAGS: -C target-feature=+crt-static
           XWIN_ARCH: ${{ matrix.arch }}
           XWIN_VERSION: 16
-          AR: llvm-lib-21
 
       - name: Package binary as zip
         run: |
