@@ -146,7 +146,7 @@ fn main() {
     }
 
     if env::var("CARGO_CFG_TARGET_FAMILY").unwrap() == "windows" {
-        if env::var("CARGO_FEATURE_WIN7").is_ok() {
+        if env::var("CARGO_FEATURE_WIN10").is_ok() {
             static_vcruntime::metabuild();
         }
 
