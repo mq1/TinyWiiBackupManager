@@ -214,37 +214,35 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install LLVM 21
-        run: |
-          wget https://apt.llvm.org/llvm.sh
-          chmod +x llvm.sh
-          sudo ./llvm.sh 21
-          sudo ln -sf $(which lld-21) /usr/bin/ld
-          sudo ln -sf $(which llvm-lib-21) /usr/bin/llvm-lib
-          sudo ln -sf $(which llvm-rc-21) /usr/bin/llvm-rc
+      - name: Refresh apt
+        run: sudo apt-get update
+
+      - name: Install x86_64 dependencies
+        if: matrix.arch == 'x86_64'
+        run: sudo apt-get install -y gcc-mingw-w64-x86-64
+
+      - name: Install x86 dependencies
+        if: matrix.arch == 'x86'
+        run: sudo apt-get install -y gcc-mingw-w64-i686
 
       - name: Install Rust toolchain
         run: |
-          rustup toolchain install 1.93
+          rustup toolchain install 1.93 --component rust-src
           rustup default 1.93
-          rustup target add ${{ matrix.target }}
-
-      - name: Restore xwin cache
-        uses: actions/cache@v5
-        with:
-          path: xwin-cache
-          key: windows7-${{ matrix.arch }}-xwin
-
-      - name: Install cargo-xwin
-        run: pip3 install cargo-xwin
 
       - name: Build binary
-        run: cargo xwin build --release --locked --target ${{ matrix.target }} --no-default-features --features "win7"
+        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "win7"
         env:
-          RUSTFLAGS: -C target-feature=+crt-static -C link-args=/SUBSYSTEM:WINDOWS,6.1 -C link-arg=/NODEFAULTLIB:combase.lib -C link-arg=ole32.lib -C link-arg=/alternatename:GetSystemTimePreciseAsFileTime=GetSystemTimeAsFileTime
-          XWIN_ARCH: ${{ matrix.arch }}
-          XWIN_VERSION: 16
-          XWIN_CACHE_DIR: xwin-cache
+          RUSTC_BOOTSTRAP: 1
+          RUSTFLAGS: -C target-feature=+crt-static
+          CARGO_TARGET_X86_64_WIN7_WINDOWS_GNU_LINKER: x86_64-w64-mingw32-gcc
+          CC_x86_64_win7_windows_gnu: x86_64-w64-mingw32-gcc
+          CXX_x86_64_win7_windows_gnu: x86_64-w64-mingw32-g++
+          AR_x86_64_win7_windows_gnu: x86_64-w64-mingw32-ar
+          CARGO_TARGET_I686_WIN7_WINDOWS_GNU_LINKER: i686-w64-mingw32-gcc
+          CC_i686_win7_windows_gnu: i686-w64-mingw32-gcc
+          CXX_i686_win7_windows_gnu: i686-w64-mingw32-g++
+          AR_i686_win7_windows_gnu: i686-w64-mingw32-ar
 
       - name: Package binary as zip
         run: |
