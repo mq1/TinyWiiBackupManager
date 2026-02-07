@@ -111,6 +111,10 @@ codegen-units = 1
 strip = true
 panic = "abort"
 
+[profile.win7]
+inherits = "release"
+lto = false
+
 # Big UI dependencies (cargo bloat --release --crates)
 [profile.release.package.naga]
 opt-level = "z"

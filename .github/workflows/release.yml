@@ -224,7 +224,7 @@ jobs:
         run: pip3 install cargo-xwin
 
       - name: Build binary
-        run: cargo xwin build --release --locked --target ${{ matrix.target }} --no-default-features --features "tiny-skia bundled-tls"
+        run: cargo xwin build --profile win7 --locked --target ${{ matrix.target }} --no-default-features --features "tiny-skia native-tls"
         env:
           RUSTFLAGS: -C target-feature=+crt-static
           XWIN_ARCH: ${{ matrix.arch }}
