@@ -9,21 +9,21 @@ use std::io::{self, Read};
 
 fn get_gameid_offset(format: Format) -> Option<u64> {
     match format {
-        Format::Iso => Some(0),
+        Format::Iso | Format::Gcz => Some(0),
         Format::Wbfs => Some(512),
         Format::Rvz | Format::Wia => Some(88),
         Format::Ciso | Format::Tgc => Some(32768),
-        _ => None,
+        Format::Nfs => None,
     }
 }
 
 fn get_title_offset(format: Format) -> Option<u64> {
     match format {
-        Format::Iso => Some(32),
+        Format::Iso | Format::Gcz => Some(32),
         Format::Wbfs => Some(544),
         Format::Rvz | Format::Wia => Some(120),
         Format::Ciso | Format::Tgc => Some(32800),
-        _ => None,
+        Format::Nfs => None,
     }
 }
 
