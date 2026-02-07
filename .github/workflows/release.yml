@@ -221,6 +221,7 @@ jobs:
           sudo ./llvm.sh 21
           sudo ln -sf $(which lld-21) /usr/bin/ld
           sudo ln -sf $(which llvm-lib-21) /usr/bin/llvm-lib
+          sudo ln -sf $(which llvm-rc-21) /usr/bin/llvm-rc
 
       - name: Install Rust toolchain
         run: |
