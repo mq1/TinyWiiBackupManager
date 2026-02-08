@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- 🔄 Now using rfd as file/message dialog library, might improve reliability on linux/windows
+
 ## [v5.1.1] - 2026-02-07
 
 ### Changed
