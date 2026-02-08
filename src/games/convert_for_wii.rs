@@ -9,7 +9,7 @@ use crate::{
     },
     util,
 };
-use anyhow::{Result, anyhow, bail};
+use anyhow::{Result, bail};
 use iced::{
     futures::{StreamExt, channel::mpsc},
     task::{Straw, sipper},

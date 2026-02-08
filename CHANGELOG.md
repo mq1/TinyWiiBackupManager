@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v5.1.2] - 2026-02-08
+
 ### Fixed
 
 - 🔄 Now using rfd as file/message dialog library, might improve reliability on linux/windows
@@ -112,7 +114,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 🖼️ TinyWiiBackupManager icon now shows up again on the windows exe
 
-[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.1...HEAD
+[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.2...HEAD
+[v5.1.2]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.1...v5.1.2
 [v5.1.1]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.0...v5.1.1
 [v5.1.0]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.0.2...v5.1.0
 [v5.0.2]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.0.1...v5.0.2
