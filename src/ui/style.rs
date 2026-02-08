@@ -11,6 +11,8 @@ pub fn root_container(theme: &Theme) -> container::Style {
 
     if cfg!(any(target_vendor = "pc", target_os = "macos")) {
         style.border.radius = border::radius(0).top_left(10);
+    } else {
+        style.border.radius = border::radius(0);
     }
 
     style
