@@ -9,29 +9,34 @@ use crate::hbc::osc::OscAppMeta;
 use crate::{games, util};
 use anyhow::Result;
 use iced::Window;
-use native_dialog::{DialogBuilder, MessageLevel};
+use rfd::{FileDialog, MessageButtons, MessageDialog, MessageDialogResult, MessageLevel};
 use std::ffi::OsStr;
 use std::fmt::Write;
 use std::fs;
 use std::path::{Path, PathBuf};
 
+#[cfg(target_os = "macos")]
+const WARNING_LEVEL: MessageLevel = MessageLevel::Error;
+
+#[cfg(not(target_os = "macos"))]
+const WARNING_LEVEL: MessageLevel = MessageLevel::Warning;
+
 pub fn choose_mount_point(window: &dyn Window) -> Option<PathBuf> {
-    DialogBuilder::file()
+    FileDialog::new()
         .set_title("Select Drive/Mount Point")
-        .set_owner(&window)
-        .open_single_dir()
-        .show()
-        .unwrap_or_default()
+        .set_parent(&window)
+        .pick_folder()
 }
 
 pub fn choose_games(window: &dyn Window) -> Vec<(PathBuf, GameID)> {
-    DialogBuilder::file()
+    let unfiltered_paths = FileDialog::new()
         .set_title("Select games")
-        .set_owner(&window)
+        .set_parent(&window)
         .add_filter("NINTENDO OPTICAL DISC", SUPPORTED_INPUT_EXTENSIONS)
-        .open_multiple_file()
-        .show()
-        .unwrap_or_default()
+        .pick_files()
+        .unwrap_or_default();
+
+    unfiltered_paths
         .into_iter()
         .filter_map(maybe_path_to_entry)
         .map(|(path, _, id, _)| (path, id))
@@ -39,12 +44,10 @@ pub fn choose_games(window: &dyn Window) -> Vec<(PathBuf, GameID)> {
 }
 
 pub fn choose_src_dir(window: &dyn Window) -> Vec<(PathBuf, GameID)> {
-    let dir = DialogBuilder::file()
+    let dir = FileDialog::new()
         .set_title("Select a folder containing games")
-        .set_owner(&window)
-        .open_single_dir()
-        .show()
-        .unwrap_or_default();
+        .set_parent(&window)
+        .pick_folder();
 
     match dir {
         Some(dir) => games::util::scan_for_discs(dir),
@@ -53,13 +56,14 @@ pub fn choose_src_dir(window: &dyn Window) -> Vec<(PathBuf, GameID)> {
 }
 
 pub fn choose_hbc_apps(window: &dyn Window) -> Vec<PathBuf> {
-    DialogBuilder::file()
+    let unfiltered_paths = FileDialog::new()
         .set_title("Select Homebrew Channel Apps")
-        .set_owner(&window)
-        .add_filter("HBC App", ["zip"])
-        .open_multiple_file()
-        .show()
-        .unwrap_or_default()
+        .set_parent(&window)
+        .add_filter("HBC App", &["zip"])
+        .pick_files()
+        .unwrap_or_default();
+
+    unfiltered_paths
         .into_iter()
         .filter(|p| {
             p.extension()
@@ -69,29 +73,26 @@ pub fn choose_hbc_apps(window: &dyn Window) -> Vec<PathBuf> {
 }
 
 pub fn choose_file_to_wiiload(window: &dyn Window) -> Option<PathBuf> {
-    DialogBuilder::file()
+    FileDialog::new()
         .set_title("Select file to Wiiload")
-        .set_owner(&window)
-        .add_filter("HBC App", ["zip", "dol", "elf"])
-        .open_single_file()
-        .show()
-        .unwrap_or_default()
+        .set_parent(&window)
+        .add_filter("HBC App", &["zip", "dol", "elf"])
+        .pick_file()
 }
 
 pub fn delete_dir(window: &dyn Window, path: &Path) -> Result<()> {
-    let yes = DialogBuilder::message()
+    let res = MessageDialog::new()
+        .set_level(WARNING_LEVEL)
         .set_title("Delete directory")
-        .set_owner(&window)
-        .set_text(format!(
+        .set_description(format!(
             "Are you sure you want to delete {}?",
             path.display()
         ))
-        .set_level(MessageLevel::Warning)
-        .confirm()
-        .show()
-        .unwrap_or_default();
+        .set_buttons(MessageButtons::OkCancel)
+        .set_parent(&window)
+        .show();
 
-    if yes {
+    if res == MessageDialogResult::Ok {
         fs::remove_dir_all(path)?;
     }
 
@@ -121,79 +122,75 @@ pub fn confirm_add_games(
 
     let _ = write!(desc, "\nAre you sure you want to continue?");
 
-    let yes = DialogBuilder::message()
-        .set_title("The following games will be added")
-        .set_owner(&window)
-        .set_text(desc)
+    let res = MessageDialog::new()
         .set_level(MessageLevel::Info)
-        .confirm()
-        .show()
-        .unwrap_or_default();
+        .set_title("The following games will be added")
+        .set_description(desc)
+        .set_buttons(MessageButtons::OkCancel)
+        .set_parent(&window)
+        .show();
 
     let paths = entries.into_iter().map(|(path, _)| path).collect();
 
-    (paths, yes)
+    (paths, res == MessageDialogResult::Ok)
 }
 
 pub fn no_new_games(window: &dyn Window) {
-    let _ = DialogBuilder::message()
+    let _ = MessageDialog::new()
+        .set_level(WARNING_LEVEL)
         .set_title("No new games to add")
-        .set_owner(&window)
-        .set_text(
+        .set_description(
             "Either you didn't select any valid game, or all the games are already installed.",
         )
-        .set_level(MessageLevel::Info)
-        .alert()
+        .set_buttons(MessageButtons::Ok)
+        .set_parent(&window)
         .show();
 }
 
 pub fn confirm_strip_game(window: &dyn Window, game: Game) -> (Game, bool) {
-    let yes = DialogBuilder::message()
+    let res = MessageDialog::new()
+        .set_level(WARNING_LEVEL)
         .set_title("Remove update partition?")
-        .set_owner(&window)
-        .set_text(format!(
+        .set_description(format!(
             "Are you sure you want to remove the update partition from {}?\n\nThis is irreversible!", game.title()
         ))
-        .set_level(MessageLevel::Warning)
-        .confirm()
-        .show()
-        .unwrap_or_default();
+            .set_buttons(MessageButtons::OkCancel)
+        .set_parent(&window)
+        .show();
 
-    (game, yes)
+    (game, res == MessageDialogResult::Ok)
 }
 
 pub fn confirm_strip_all_games(window: &dyn Window) -> bool {
-    DialogBuilder::message()
+    let res = MessageDialog::new()
+        .set_level(WARNING_LEVEL)
         .set_title("Remove update partitions?")
-        .set_owner(&window)
-        .set_text("Are you sure you want to remove the update partitions from all .wbfs files?\n\nThis is irreversible!")
-        .set_level(MessageLevel::Warning)
-        .confirm()
-        .show()
-        .unwrap_or_default()
+        .set_description("Are you sure you want to remove the update partitions from all .wbfs files?\n\nThis is irreversible!")
+        .set_buttons(MessageButtons::OkCancel)
+        .set_parent(&window)
+        .show();
+
+    res == MessageDialogResult::Ok
 }
 
 pub fn choose_game_to_archive_manually(window: &dyn Window) -> Option<PathBuf> {
-    DialogBuilder::file()
+    FileDialog::new()
         .set_title("Select input disc file")
-        .set_owner(&window)
+        .set_parent(&window)
         .add_filter("Nintendo Optical Disc", SUPPORTED_DISC_EXTENSIONS)
-        .open_single_file()
-        .show()
-        .unwrap_or_default()
+        .pick_file()
 }
 
 pub fn confirm_install_osc_app(window: &dyn Window, app: OscAppMeta) -> (OscAppMeta, bool) {
-    let yes = DialogBuilder::message()
-        .set_title("Install OSC app")
-        .set_owner(&window)
-        .set_text(format!("Are you sure you want to install {}?", app.name()))
+    let res = MessageDialog::new()
         .set_level(MessageLevel::Info)
-        .confirm()
-        .show()
-        .unwrap_or_default();
+        .set_title("Install OSC app")
+        .set_description(format!("Are you sure you want to install {}?", app.name()))
+        .set_buttons(MessageButtons::OkCancel)
+        .set_parent(&window)
+        .show();
 
-    (app, yes)
+    (app, res == MessageDialogResult::Ok)
 }
 
 pub fn choose_archive_dest(
@@ -201,25 +198,20 @@ pub fn choose_archive_dest(
     source: PathBuf,
     title: String,
 ) -> Option<(PathBuf, String, PathBuf)> {
-    let window_title = format!("Archive {title}");
+    let window_title = format!(
+        "Archiving {title}\n\nSupported extensions: {}",
+        SUPPORTED_DISC_EXTENSIONS.join(", ")
+    );
 
     let default_file_name = format!("{}.rvz", util::sanitize(&title));
 
-    let path = DialogBuilder::file()
+    let path = FileDialog::new()
         .set_title(&window_title)
-        .set_owner(&window)
-        .add_filter("RVZ", ["rvz"])
-        .add_filter("ISO", ["iso"])
-        .add_filter("WBFS", ["wbfs"])
-        .add_filter("WIA", ["wia"])
-        .add_filter("CISO", ["ciso"])
-        .add_filter("GCZ", ["gcz"])
-        .add_filter("TGC", ["tgc"])
-        .add_filter("NFS", ["nfs"])
-        .set_filename(default_file_name)
-        .save_single_file()
-        .show()
-        .unwrap_or_default()?;
+        .set_parent(&window)
+        .add_filter("NINTENDO OPTICAL DISC", SUPPORTED_DISC_EXTENSIONS)
+        .set_file_name(default_file_name)
+        .set_can_create_directories(true)
+        .save_file()?;
 
     Some((source, title, path))
 }

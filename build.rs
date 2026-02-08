@@ -145,13 +145,16 @@ fn main() {
         println!("cargo:rustc-env=MACOSX_DEPLOYMENT_TARGET=11.0");
     }
 
-    if env::var("CARGO_CFG_TARGET_FAMILY").unwrap() == "windows" {
+    if env::var("CARGO_CFG_TARGET_OS").unwrap() == "windows" {
         if env::var("CARGO_CFG_TARGET_ARCH").unwrap() != "aarch64" {
             thunk::thunk();
         }
 
         let mut res = winresource::WindowsResource::new();
         res.set_icon("package/windows/icon.ico");
+        if env::var("CARGO_FEATURE_WIN10").is_ok() {
+            res.set_manifest_file("package/windows/TinyWiiBackupManager.exe.manifest");
+        }
         res.compile().unwrap();
     }
 }
