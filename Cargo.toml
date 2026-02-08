@@ -69,7 +69,7 @@ winresource = "0.1"
 thunk-rs = { version = "0.3", default-features = false, features = ["subsystem_windows"] }
 
 [features]
-default = ["iced/tiny-skia", "minreq/https-native"]
+default = []
 linux-appimage = ["iced/wgpu-bare", "wgpu/vulkan", "iced/tiny-skia", "minreq/https-rustls"]
 linux-flatpak = ["iced/wgpu-bare", "wgpu/vulkan", "iced/tiny-skia", "minreq/https-native"]
 win7 = ["iced/tiny-skia", "minreq/https-rustls", "thunk-rs/win7"]
