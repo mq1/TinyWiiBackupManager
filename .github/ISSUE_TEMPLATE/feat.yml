@@ -17,5 +17,5 @@ body:
     attributes:
       label: 🏴‍☠️ Piracy
       options:
-        - label: This feature request is absolutely not related to piracy
+        - label: This feature request is absolutely not related to piracy. I'm aware any mention of piracy would get this feature request deleted.
           required: true

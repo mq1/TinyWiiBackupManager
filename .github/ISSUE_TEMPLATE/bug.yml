@@ -17,7 +17,7 @@ body:
     attributes:
       label: 🏴‍☠️ Piracy
       options:
-        - label: This bug report is absolutely not related to piracy, and I legally own any game I'm having issues with
+        - label: This bug report is absolutely not related to piracy, and I legally own any game I'm having issues with. I'm aware any mention of piracy would get this issue report deleted.
           required: true
 
   - type: input
