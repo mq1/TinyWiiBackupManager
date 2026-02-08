@@ -9,7 +9,7 @@ use crate::{
     },
     util,
 };
-use anyhow::{Result, anyhow};
+use anyhow::{Result, anyhow, bail};
 use iced::{
     futures::{StreamExt, channel::mpsc},
     task::{Straw, sipper},
@@ -70,10 +70,10 @@ impl ConvertForWiiOperation {
                     let reader = BufReader::new(file);
                     let mut archive = ZipArchive::new(reader)?;
                     let mut archived_disc = archive.by_index(0)?;
-                    let parent = self
-                        .source_path
-                        .parent()
-                        .ok_or(anyhow!("No parent dir found"))?;
+
+                    let Some(parent) = self.source_path.parent() else {
+                        bail!("No parent dir found");
+                    };
 
                     let new_source_path = parent.join(archived_disc.name());
                     if !new_source_path.exists() {
