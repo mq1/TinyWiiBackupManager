@@ -15,6 +15,12 @@ use std::fmt::Write;
 use std::fs;
 use std::path::{Path, PathBuf};
 
+#[cfg(target_os = "macos")]
+const WARNING_LEVEL: MessageLevel = MessageLevel::Error;
+
+#[cfg(not(target_os = "macos"))]
+const WARNING_LEVEL: MessageLevel = MessageLevel::Warning;
+
 pub fn choose_mount_point(window: &dyn Window) -> Option<PathBuf> {
     FileDialog::new()
         .set_title("Select Drive/Mount Point")
@@ -76,7 +82,7 @@ pub fn choose_file_to_wiiload(window: &dyn Window) -> Option<PathBuf> {
 
 pub fn delete_dir(window: &dyn Window, path: &Path) -> Result<()> {
     let res = MessageDialog::new()
-        .set_level(MessageLevel::Warning)
+        .set_level(WARNING_LEVEL)
         .set_title("Delete directory")
         .set_description(format!(
             "Are you sure you want to delete {}?",
@@ -131,7 +137,7 @@ pub fn confirm_add_games(
 
 pub fn no_new_games(window: &dyn Window) {
     let _ = MessageDialog::new()
-        .set_level(MessageLevel::Info)
+        .set_level(WARNING_LEVEL)
         .set_title("No new games to add")
         .set_description(
             "Either you didn't select any valid game, or all the games are already installed.",
@@ -143,7 +149,7 @@ pub fn no_new_games(window: &dyn Window) {
 
 pub fn confirm_strip_game(window: &dyn Window, game: Game) -> (Game, bool) {
     let res = MessageDialog::new()
-        .set_level(MessageLevel::Warning)
+        .set_level(WARNING_LEVEL)
         .set_title("Remove update partition?")
         .set_description(format!(
             "Are you sure you want to remove the update partition from {}?\n\nThis is irreversible!", game.title()
@@ -157,7 +163,7 @@ pub fn confirm_strip_game(window: &dyn Window, game: Game) -> (Game, bool) {
 
 pub fn confirm_strip_all_games(window: &dyn Window) -> bool {
     let res = MessageDialog::new()
-        .set_level(MessageLevel::Warning)
+        .set_level(WARNING_LEVEL)
         .set_title("Remove update partitions?")
         .set_description("Are you sure you want to remove the update partitions from all .wbfs files?\n\nThis is irreversible!")
         .set_buttons(MessageButtons::OkCancel)
