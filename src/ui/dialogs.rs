@@ -198,22 +198,19 @@ pub fn choose_archive_dest(
     source: PathBuf,
     title: String,
 ) -> Option<(PathBuf, String, PathBuf)> {
-    let window_title = format!("Archive {title}");
+    let window_title = format!(
+        "Archiving {title}\n\nSupported extensions: {}",
+        SUPPORTED_DISC_EXTENSIONS.join(", ")
+    );
 
     let default_file_name = format!("{}.rvz", util::sanitize(&title));
 
     let path = FileDialog::new()
         .set_title(&window_title)
         .set_parent(&window)
-        .add_filter("RVZ", &["rvz"])
-        .add_filter("ISO", &["iso"])
-        .add_filter("WBFS", &["wbfs"])
-        .add_filter("WIA", &["wia"])
-        .add_filter("CISO", &["ciso"])
-        .add_filter("GCZ", &["gcz"])
-        .add_filter("TGC", &["tgc"])
-        .add_filter("NFS", &["nfs"])
+        .add_filter("NINTENDO OPTICAL DISC", SUPPORTED_DISC_EXTENSIONS)
         .set_file_name(default_file_name)
+        .set_can_create_directories(true)
         .save_file()?;
 
     Some((source, title, path))
