@@ -20,31 +20,35 @@ body:
         - label: This bug report is absolutely not related to piracy, and I legally own any game I'm having issues with
           required: true
 
-  - type: textarea
+  - type: input
     id: os
-    label: 💻 Which OS I am on
-    placeholder: ex. Windows 11
+    attributes:
+      label: 💻 Which OS I am on
+      placeholder: ex. Windows 11
     validations:
       required: true
 
-  - type: textarea
+  - type: input
     id: download
-    label: 📦 Which distribution did I download
-    placeholder: ex. TinyWiiBackupManager-v5.1.2-windows-x86_64.zip
+    attributes:
+      label: 📦 Which distribution did I download
+      placeholder: ex. TinyWiiBackupManager-v5.1.2-windows-x86_64.zip
     validations:
       required: true
 
-  - type: textarea
+  - type: input
     id: fs
-    label: 💽 Which filesystem is my drive on
-    placeholder: ex. FAT32
+    attributes:
+      label: 💽 Which filesystem is my drive on
+      placeholder: ex. FAT32
     validations:
       required: false
 
-  - type: textarea
+  - type: input
     id: games
-    label: 👾 I'm having issues with this game(s)
-    description: Insert here any game id of games you legally own
-    placeholder: ex. SMNP01
+    attributes:
+      label: 👾 I'm having issues with this game(s)
+      description: Insert here any game id of games you legally own
+      placeholder: ex. SMNP01
     validations:
       required: false
