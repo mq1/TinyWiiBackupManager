@@ -1,0 +1,21 @@
+name: Create Feature Request
+description: Suggest a feature to be implemented to TinyWiiBackupManager.
+title: '[Feature] '
+labels:
+  - enhancement
+
+body:
+  - type: textarea
+    id: text
+    attributes:
+      label: 🤔 Request
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: agreement
+    attributes:
+      label: 🏴‍☠️ Piracy
+      options:
+        - label: This feature request is absolutely not related to piracy
+          required: true
