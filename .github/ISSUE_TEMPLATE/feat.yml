@@ -1,4 +1,4 @@
-name: Create Feature Request
+name: 🤔 Create Feature Request
 description: Suggest a feature to be implemented to TinyWiiBackupManager.
 title: '[Feature] '
 labels:
@@ -8,7 +8,7 @@ body:
   - type: textarea
     id: text
     attributes:
-      label: 🤔 Request
+      label: 📝 Request
     validations:
       required: true
 

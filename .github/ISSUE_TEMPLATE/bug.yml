@@ -1,4 +1,4 @@
-name: Create Bug Report
+name: 🐛 Create Bug Report
 description: Report a bug or crash in TinyWiiBackupManager.
 title: '[Bug] '
 labels:
@@ -8,7 +8,7 @@ body:
   - type: textarea
     id: text
     attributes:
-      label: 🐛 Report
+      label: 📝 Report
     validations:
       required: true
 
