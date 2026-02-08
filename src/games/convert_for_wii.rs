@@ -53,7 +53,7 @@ impl ConvertForWiiOperation {
         sipper(async move |mut sender| {
             let (mut tx, mut rx) = mpsc::channel(1);
 
-            let handle = thread::spawn(move || -> Result<()> {
+            let handle = thread::spawn(move || -> Result<Vec<PathBuf>> {
                 let mut files_to_remove = Vec::new();
                 if self.config.remove_sources_games() {
                     files_to_remove.push(self.source_path.clone());
@@ -147,10 +147,7 @@ impl ConvertForWiiOperation {
                 }
 
                 if out_path.exists() {
-                    for path in files_to_remove {
-                        fs::remove_file(path)?;
-                    }
-                    return Ok(());
+                    return Ok(files_to_remove);
                 }
 
                 fs::create_dir_all(&parent)?;
@@ -234,22 +231,23 @@ impl ConvertForWiiOperation {
                     overflow_writer.flush()?;
                 }
 
-                for path in files_to_remove {
-                    fs::remove_file(path)?;
-                }
-
-                Ok(())
+                Ok(files_to_remove)
             });
 
             while let Some(msg) = rx.next().await {
                 sender.send(msg).await;
             }
 
-            handle
+            let files_to_remove = handle
                 .join()
                 .expect("Failed to join thread")
-                .map(|()| None)
-                .map_err(|e| format!("Failed to convert game: {e:#}"))
+                .map_err(|e| format!("Failed to convert game: {e:#}"))?;
+
+            for path in files_to_remove {
+                let _ = fs::remove_file(path);
+            }
+
+            Ok(None)
         })
     }
 

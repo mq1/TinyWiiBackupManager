@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 🔄 Now using rfd as file/message dialog library, might improve reliability on linux/windows
 - 💄 Wrong container rounding on linux (barely noticeable)
+- 👤 Potentially fix some permission issues on windows (pt.2)
 
 ## [v5.1.1] - 2026-02-07
 
