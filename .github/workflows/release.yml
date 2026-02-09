@@ -235,7 +235,9 @@ jobs:
         run: cargo build -Z build-std=std,panic_abort --profile release-lto --locked --target ${{ matrix.target }} --features win7
         env:
           RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: -C target-feature=+crt-static
+          RUSTFLAGS: -C target-feature=+crt-static -C link-args=-Wl,--major-subsystem-version=6,--minor-subsystem-version=1
+          CFLAGS: -D_WIN32_WINNT=0x0601 -DWINVER=0x0601 -Wl,--major-subsystem-version=6 -Wl,--minor-subsystem-version=1
+          CXXFLAGS: -D_WIN32_WINNT=0x0601 -DWINVER=0x0601 -Wl,--major-subsystem-version=6 -Wl,--minor-subsystem-version=1
           CARGO_TARGET_X86_64_WIN7_WINDOWS_GNU_LINKER: x86_64-w64-mingw32-gcc
           CC_x86_64_win7_windows_gnu: x86_64-w64-mingw32-gcc
           CXX_x86_64_win7_windows_gnu: x86_64-w64-mingw32-g++
