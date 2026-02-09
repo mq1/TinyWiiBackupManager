@@ -219,7 +219,7 @@ jobs:
 
       - name: Install dependencies
         shell: pwsh
-        run: choco install -y visualstudio2017buildtools visualstudio2017-workload-vctools
+        run: choco install -y vcbuildtools -ia "/InstallSelectableItems Win81SDK_CppBuildSKUV1"
 
       - name: Install Rust toolchain
         shell: pwsh
@@ -230,11 +230,11 @@ jobs:
       - name: Build binary
         shell: pwsh
         run: |
-          & "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Auxiliary\Build\vcvarsall.bat" ${{ matrix.msvc_arch }} 8.1
+          & "C:\Program Files (x86)\Microsoft Visual Studio\2015\BuildTools\VC\Auxiliary\Build\vcvarsall.bat" ${{ matrix.msvc_arch }} 8.1
           cargo build -Z build-std=std,panic_abort --profile release-lto --locked --target ${{ matrix.target }} --features win7
         env:
           RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: -C link-args=/D_WIN32_WINNT=0x0601 -C link-args=/DWINVER=0x0601
+          RUSTFLAGS: -C link-args=/SUBSYSTEM:WINDOWS,6.01
           CFLAGS: /D_WIN32_WINNT=0x0601 /DWINVER=0x0601
           CXXFLAGS: /D_WIN32_WINNT=0x0601 /DWINVER=0x0601
 
