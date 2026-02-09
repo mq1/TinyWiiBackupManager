@@ -137,24 +137,40 @@ fn main() {
     make_id_map();
     compress_lucide();
 
-    if env::var("TARGET").unwrap() == "x86_64-apple-darwin" {
-        println!("cargo:rustc-env=MACOSX_DEPLOYMENT_TARGET=10.13");
-    }
-
-    if env::var("TARGET").unwrap() == "aarch64-apple-darwin" {
-        println!("cargo:rustc-env=MACOSX_DEPLOYMENT_TARGET=11.0");
-    }
-
-    if env::var("CARGO_CFG_TARGET_OS").unwrap() == "windows" {
-        if env::var("CARGO_CFG_TARGET_ARCH").unwrap() != "aarch64" {
+    match env::var("TARGET").unwrap().as_str() {
+        "x86_64-apple-darwin" => {
+            println!("cargo:rustc-env=MACOSX_DEPLOYMENT_TARGET=10.13");
+        }
+        "aarch64-apple-darwin" => {
+            println!("cargo:rustc-env=MACOSX_DEPLOYMENT_TARGET=11.0");
+        }
+        "x86_64-pc-windows-msvc" | "i686-pc-windows-msvc" => {
             thunk::thunk();
-        }
-
-        let mut res = winresource::WindowsResource::new();
-        res.set_icon("package/windows/icon.ico");
-        if env::var("CARGO_FEATURE_WIN10").is_ok() {
+            let mut res = winresource::WindowsResource::new();
+            res.set_icon("package/windows/icon.ico");
             res.set_manifest_file("package/windows/TinyWiiBackupManager.exe.manifest");
+            res.compile().unwrap();
         }
-        res.compile().unwrap();
+        "aarch64-pc-windows-msvc" => {
+            let mut res = winresource::WindowsResource::new();
+            res.set_icon("package/windows/icon.ico");
+            res.set_manifest_file("package/windows/TinyWiiBackupManager.exe.manifest");
+            res.compile().unwrap();
+        }
+        "x86_64-win7-windows-gnu" => {
+            let mut res = winresource::WindowsResource::new();
+            res.set_ar_path("x86_64-w64-mingw32-ar");
+            res.set_windres_path("x86_64-w64-mingw32-windres");
+            res.set_icon("package/windows/icon.ico");
+            res.compile().unwrap();
+        }
+        "i686-win7-windows-gnu" => {
+            let mut res = winresource::WindowsResource::new();
+            res.set_ar_path("i686-w64-mingw32-ar");
+            res.set_windres_path("i686-w64-mingw32-windres");
+            res.set_icon("package/windows/icon.ico");
+            res.compile().unwrap();
+        }
+        _ => {}
     }
 }
