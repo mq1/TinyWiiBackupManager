@@ -157,17 +157,9 @@ fn main() {
             res.set_manifest_file("package/windows/TinyWiiBackupManager.exe.manifest");
             res.compile().unwrap();
         }
-        "x86_64-win7-windows-gnu" => {
+        "x86_64-win7-windows-msvc" | "i686-win7-windows-msvc" => {
+            thunk::thunk();
             let mut res = winresource::WindowsResource::new();
-            res.set_ar_path("x86_64-w64-mingw32-ar");
-            res.set_windres_path("x86_64-w64-mingw32-windres");
-            res.set_icon("package/windows/icon.ico");
-            res.compile().unwrap();
-        }
-        "i686-win7-windows-gnu" => {
-            let mut res = winresource::WindowsResource::new();
-            res.set_ar_path("i686-w64-mingw32-ar");
-            res.set_windres_path("i686-w64-mingw32-windres");
             res.set_icon("package/windows/icon.ico");
             res.compile().unwrap();
         }
