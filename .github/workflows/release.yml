@@ -219,11 +219,10 @@ jobs:
 
       - name: Install dependencies
         shell: pwsh
-        run: |
-          choco install -y visualstudio2017buildtools
-          choco install -y visualstudio2017-workload-vctools
+        run: choco install -y visualstudio2017buildtools visualstudio2017-workload-vctools
 
       - name: Install Rust toolchain
+        shell: pwsh
         run: |
           rustup toolchain install 1.93 --component rust-src
           rustup default 1.93
