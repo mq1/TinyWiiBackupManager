@@ -232,7 +232,7 @@ jobs:
           rustup default 1.93
 
       - name: Build binary
-        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --features win7
+        run: cargo build -Z build-std=std,panic_abort --profile release-lto --locked --target ${{ matrix.target }} --features win7
         env:
           RUSTC_BOOTSTRAP: 1
           CARGO_TARGET_X86_64_WIN7_WINDOWS_GNU_LINKER: x86_64-w64-mingw32-gcc
@@ -247,7 +247,7 @@ jobs:
       - name: Package binary as zip
         run: |
           mkdir dist
-          cp "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" TinyWiiBackupManager.exe
+          cp "target/${{ matrix.target }}/release-lto/TinyWiiBackupManager.exe" TinyWiiBackupManager.exe
           zip -9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows7-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
 
       - name: Upload Windows 7 distributables
