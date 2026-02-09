@@ -199,7 +199,7 @@ jobs:
 
   build-windows7:
     name: Build for Windows 7
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -235,11 +235,11 @@ jobs:
           CARGO_TARGET_X86_64_WIN7_WINDOWS_GNU_LINKER: x86_64-w64-mingw32-gcc-posix
           CC_x86_64_win7_windows_gnu: x86_64-w64-mingw32-gcc-posix
           CXX_x86_64_win7_windows_gnu: x86_64-w64-mingw32-g++-posix
-          AR_x86_64_win7_windows_gnu: x86_64-w64-mingw32-ar-posix
+          AR_x86_64_win7_windows_gnu: x86_64-w64-mingw32-ar
           CARGO_TARGET_I686_WIN7_WINDOWS_GNU_LINKER: i686-w64-mingw32-gcc-posix
           CC_i686_win7_windows_gnu: i686-w64-mingw32-gcc-posix
           CXX_i686_win7_windows_gnu: i686-w64-mingw32-g++-posix
-          AR_i686_win7_windows_gnu: i686-w64-mingw32-ar-posix
+          AR_i686_win7_windows_gnu: i686-w64-mingw32-ar
 
       - name: Package binary as zip
         run: |

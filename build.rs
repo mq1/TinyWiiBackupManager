@@ -159,14 +159,14 @@ fn main() {
         }
         "x86_64-win7-windows-gnu" => {
             let mut res = winresource::WindowsResource::new();
-            res.set_ar_path("x86_64-w64-mingw32-ar-posix");
+            res.set_ar_path("x86_64-w64-mingw32-ar");
             res.set_windres_path("x86_64-w64-mingw32-windres");
             res.set_icon("package/windows/icon.ico");
             res.compile().unwrap();
         }
         "i686-win7-windows-gnu" => {
             let mut res = winresource::WindowsResource::new();
-            res.set_ar_path("i686-w64-mingw32-ar-posix");
+            res.set_ar_path("i686-w64-mingw32-ar");
             res.set_windres_path("i686-w64-mingw32-windres");
             res.set_icon("package/windows/icon.ico");
             res.compile().unwrap();
