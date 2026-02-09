@@ -238,8 +238,7 @@ jobs:
           CFLAGS: -D_WIN32_WINNT=0x0601 -DWINVER=0x0601
           CXXFLAGS: -D_WIN32_WINNT=0x0601 -DWINVER=0x0601
           XWIN_ARCH: ${{ matrix.arch }}
-          XWIN_VERSION: 16
-          XWIN_SDK_VERSION: 8.1
+          XWIN_VERSION: 15
           XWIN_CACHE_DIR: xwin-cache
 
       - name: Package binary as zip
