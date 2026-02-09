@@ -219,7 +219,7 @@ jobs:
 
       - name: Install dependencies
         shell: pwsh
-        run: choco install -y visualstudio2017buildtools visualstudio2017-workload-vctools
+        run: choco install -y visualstudio2017buildtools --package-parameters "--add Microsoft.VisualStudio.Component.VC.140 --add Microsoft.VisualStudio.Component.Windows81SDK --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64"
 
       - name: Install Rust toolchain
         shell: pwsh
