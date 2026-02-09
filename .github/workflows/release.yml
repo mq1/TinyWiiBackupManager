@@ -215,16 +215,10 @@ jobs:
         with:
           fetch-depth: 1
       
-      - name: Refresh apt
-        run: sudo apt-get update
-
-      - name: Install x86_64 dependencies
-        if: matrix.arch == 'x86_64'
-        run: sudo apt-get install -y gcc-mingw-w64-x86-64
-
-      - name: Install x86 dependencies
-        if: matrix.arch == 'x86'
-        run: sudo apt-get install -y gcc-mingw-w64-i686
+      - name: Install cross compiler
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-mingw-w64
 
       - name: Install Rust toolchain
         run: |
@@ -235,18 +229,17 @@ jobs:
         run: cargo build -Z build-std=std,panic_abort --profile release-lto --locked --target ${{ matrix.target }} --features win7
         env:
           RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: -C target-feature=+crt-static -C link-args=-Wl,--major-subsystem-version=6,--minor-subsystem-version=1
+          RUSTFLAGS: -C link-args=-Wl,--major-subsystem-version=6,--minor-subsystem-version=1
           CFLAGS: -D_WIN32_WINNT=0x0601 -DWINVER=0x0601
           CXXFLAGS: -D_WIN32_WINNT=0x0601 -DWINVER=0x0601
-          LDFLAGS: -Wl,--major-subsystem-version=6,--minor-subsystem-version=1 -static
-          CARGO_TARGET_X86_64_WIN7_WINDOWS_GNU_LINKER: x86_64-w64-mingw32-gcc
-          CC_x86_64_win7_windows_gnu: x86_64-w64-mingw32-gcc
-          CXX_x86_64_win7_windows_gnu: x86_64-w64-mingw32-g++
-          AR_x86_64_win7_windows_gnu: x86_64-w64-mingw32-ar
-          CARGO_TARGET_I686_WIN7_WINDOWS_GNU_LINKER: i686-w64-mingw32-gcc
-          CC_i686_win7_windows_gnu: i686-w64-mingw32-gcc
-          CXX_i686_win7_windows_gnu: i686-w64-mingw32-g++
-          AR_i686_win7_windows_gnu: i686-w64-mingw32-ar
+          CARGO_TARGET_X86_64_WIN7_WINDOWS_GNU_LINKER: x86_64-w64-mingw32-gcc-posix
+          CC_x86_64_win7_windows_gnu: x86_64-w64-mingw32-gcc-posix
+          CXX_x86_64_win7_windows_gnu: x86_64-w64-mingw32-g++-posix
+          AR_x86_64_win7_windows_gnu: x86_64-w64-mingw32-ar-posix
+          CARGO_TARGET_I686_WIN7_WINDOWS_GNU_LINKER: i686-w64-mingw32-gcc-posix
+          CC_i686_win7_windows_gnu: i686-w64-mingw32-gcc-posix
+          CXX_i686_win7_windows_gnu: i686-w64-mingw32-g++-posix
+          AR_i686_win7_windows_gnu: i686-w64-mingw32-ar-posix
 
       - name: Package binary as zip
         run: |
