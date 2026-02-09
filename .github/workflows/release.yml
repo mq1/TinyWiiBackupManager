@@ -234,7 +234,7 @@ jobs:
         run: cargo xwin build -Z build-std=std,panic_abort --profile release-lto --locked --target ${{ matrix.target }} --features win7
         env:
           RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: -C target-feature=+crt-static -C link-args=/D_WIN32_WINNT=0x0601 -C link-args=/DWINVER=0x0601
+          RUSTFLAGS: -C link-args=/D_WIN32_WINNT=0x0601 -C link-args=/DWINVER=0x0601
           CFLAGS: -D_WIN32_WINNT=0x0601 -DWINVER=0x0601
           CXXFLAGS: -D_WIN32_WINNT=0x0601 -DWINVER=0x0601
           XWIN_ARCH: ${{ matrix.arch }}
