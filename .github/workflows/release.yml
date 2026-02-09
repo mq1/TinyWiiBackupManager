@@ -199,15 +199,17 @@ jobs:
 
   build-windows7:
     name: Build for Windows 7
-    runs-on: ubuntu-22.04
+    runs-on: windows-2022
     strategy:
       fail-fast: false
       matrix:
         include:
           - target: x86_64-win7-windows-msvc
             arch: x86_64
+            msvc_arch: amd64
           - target: i686-win7-windows-msvc
             arch: x86
+            msvc_arch: amd64_x86
 
     steps:
       - name: Checkout
@@ -215,15 +217,11 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Restore xwin cache
-        uses: actions/cache@v5
-        with:
-          path: xwin-cache
-          key: xwin-cache-${{ matrix.arch }}
-      
       - name: Install dependencies
+        shell: pwsh
         run: |
-          pip3 install cargo-xwin
+          choco install -y visualstudio2017buildtools
+          choco install -y visualstudio2017-workload-vctools
 
       - name: Install Rust toolchain
         run: |
@@ -231,21 +229,22 @@ jobs:
           rustup default 1.93
 
       - name: Build binary
-        run: cargo xwin build -Z build-std=std,panic_abort --profile release-lto --locked --target ${{ matrix.target }} --features win7
+        shell: pwsh
+        run: |
+          & "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Auxiliary\Build\vcvarsall.bat" ${{ matrix.msvc_arch }} 8.1
+          cargo build -Z build-std=std,panic_abort --profile release-lto --locked --target ${{ matrix.target }} --features win7
         env:
           RUSTC_BOOTSTRAP: 1
           RUSTFLAGS: -C link-args=/D_WIN32_WINNT=0x0601 -C link-args=/DWINVER=0x0601
-          CFLAGS: -D_WIN32_WINNT=0x0601 -DWINVER=0x0601
-          CXXFLAGS: -D_WIN32_WINNT=0x0601 -DWINVER=0x0601
-          XWIN_ARCH: ${{ matrix.arch }}
-          XWIN_VERSION: 16
-          XWIN_CACHE_DIR: xwin-cache
+          CFLAGS: /D_WIN32_WINNT=0x0601 /DWINVER=0x0601
+          CXXFLAGS: /D_WIN32_WINNT=0x0601 /DWINVER=0x0601
 
       - name: Package binary as zip
+        shell: pwsh
         run: |
-          mkdir dist
-          cp "target/${{ matrix.target }}/release-lto/TinyWiiBackupManager.exe" TinyWiiBackupManager.exe
-          zip -9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows7-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
+          New-Item -Path "dist" -ItemType Directory
+          Copy-Item -Path "target/${{ matrix.target }}/release-lto/TinyWiiBackupManager.exe" -Destination TinyWiiBackupManager.exe
+          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows7-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
 
       - name: Upload Windows 7 distributables
         uses: actions/upload-artifact@v4
