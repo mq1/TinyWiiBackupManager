@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- 💬 Custom (and more reliable) message dialog implementation
+
+### Fixed
+
+- 💬 Message dialog not showing on linux-AppImage + kde
+
 ## [v5.1.2] - 2026-02-08
 
 ### Fixed
