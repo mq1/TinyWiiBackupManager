@@ -45,6 +45,7 @@ pub enum Message {
     GotLatestVersion(Result<Option<Version>, String>),
     FileDropped(PathBuf),
     CloseDialog,
+    CloseDialogAndThen(Box<Message>),
 
     // Games
     GotGameList(Result<GameList, String>),

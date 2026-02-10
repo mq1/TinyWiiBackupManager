@@ -306,15 +306,12 @@ impl State {
                     .description(path.to_string_lossy())
                     .danger(true)
                     .ok(Message::DeleteDirConfirmed(path))
-                    .cancel(Message::CloseDialog)
                     .build();
 
                 self.message_dialog = Some(dialog);
                 Task::none()
             }
             Message::DeleteDirConfirmed(path) => {
-                self.message_dialog = None;
-
                 if let Err(e) = fs::remove_dir_all(path) {
                     self.notifications.error(e.to_string());
                 }
@@ -381,7 +378,6 @@ impl State {
                     .title("Install OSC App")
                     .description(format!("Are you sure you want to install {}?", app.name()))
                     .ok(Message::InstallOscApp(app))
-                    .cancel(Message::CloseDialog)
                     .build();
 
                 self.message_dialog = Some(dialog);
@@ -484,7 +480,6 @@ impl State {
                         .title("No new games to add")
                         .description("Either you didn't select any valid game, or all the games are already installed.")
                         .danger(true)
-                        .ok(Message::CloseDialog)
                         .build();
 
                     self.message_dialog = Some(dialog);
@@ -500,7 +495,6 @@ impl State {
                         .title("The following games will be added")
                         .description(desc)
                         .ok(Message::AddGamesToTransferStack(paths))
-                        .cancel(Message::CloseDialog)
                         .build();
 
                     self.message_dialog = Some(dialog);
@@ -509,8 +503,6 @@ impl State {
                 Task::none()
             }
             Message::AddGamesToTransferStack(paths) => {
-                self.message_dialog = None;
-
                 let is_fat32 = self
                     .drive_info
                     .as_ref()
@@ -701,15 +693,12 @@ impl State {
                     .description(format!("Are you sure you want to remove the update partition from {}?\n\nThis is irreversible!", game.title()))
                     .danger(true)
                     .ok(Message::StripGame(game))
-                    .cancel(Message::CloseDialog)
                     .build();
 
                 self.message_dialog = Some(dialog);
                 Task::none()
             }
             Message::StripGame(game) => {
-                self.message_dialog = None;
-
                 self.notifications
                     .info(format!("Removing update partition from {}", game.title()));
 
@@ -734,15 +723,12 @@ impl State {
                     .description("Are you sure you want to remove the update partitions from all .wbfs files?\n\nThis is irreversible!")
                     .danger(true)
                     .ok(Message::StripAllGames)
-                    .cancel(Message::CloseDialog)
                     .build();
 
                 self.message_dialog = Some(dialog);
                 Task::none()
             }
             Message::StripAllGames => {
-                self.message_dialog = None;
-
                 self.notifications.info(
                     "Removing update partition from all games, this may take some time!"
                         .to_string(),
@@ -810,6 +796,10 @@ impl State {
             Message::CloseDialog => {
                 self.message_dialog = None;
                 Task::none()
+            }
+            Message::CloseDialogAndThen(msg) => {
+                self.message_dialog = None;
+                self.update(*msg)
             }
         }
     }

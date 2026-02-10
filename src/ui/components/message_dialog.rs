@@ -16,23 +16,27 @@ pub struct MyMessageDialog {
     description: String,
     #[builder(default = false)]
     danger: bool,
-    ok: Message,
-    cancel: Option<Message>,
+    ok: Option<Message>,
 }
 
 impl MyMessageDialog {
     pub fn view(&self) -> Element<'_, Message> {
         let mut actions = row![space::horizontal()].spacing(5);
 
-        if let Some(cancel) = &self.cancel {
+        let mut ok_btn = button("Ok");
+
+        if let Some(ok) = &self.ok {
             actions = actions.push(
                 button("Cancel")
                     .style(style::rounded_secondary_button)
-                    .on_press(cancel.clone()),
+                    .on_press(Message::CloseDialog),
             );
+
+            ok_btn = ok_btn.on_press_with(|| Message::CloseDialogAndThen(Box::new(ok.clone())));
+        } else {
+            ok_btn = ok_btn.on_press(Message::CloseDialog);
         }
 
-        let mut ok_btn = button("Ok").on_press(self.ok.clone());
         if self.danger {
             ok_btn = ok_btn.style(style::rounded_danger_button);
         } else {
