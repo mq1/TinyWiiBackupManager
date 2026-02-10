@@ -305,7 +305,7 @@ impl State {
                     .title("Delete this directory?")
                     .description(path.to_string_lossy())
                     .danger(true)
-                    .ok(Message::DeleteDirConfirmed(path))
+                    .on_ok(Message::DeleteDirConfirmed(path))
                     .build();
 
                 self.message_dialog = Some(dialog);
@@ -377,7 +377,7 @@ impl State {
                     .icon(lucide_icons::Icon::Plus)
                     .title("Install OSC App")
                     .description(format!("Are you sure you want to install {}?", app.name()))
-                    .ok(Message::InstallOscApp(app))
+                    .on_ok(Message::InstallOscApp(app))
                     .build();
 
                 self.message_dialog = Some(dialog);
@@ -494,7 +494,7 @@ impl State {
                         .icon(lucide_icons::Icon::Plus)
                         .title("The following games will be added")
                         .description(desc)
-                        .ok(Message::AddGamesToTransferStack(paths))
+                        .on_ok(Message::AddGamesToTransferStack(paths))
                         .build();
 
                     self.message_dialog = Some(dialog);
@@ -692,7 +692,7 @@ impl State {
                     .title("Remove update partition?")
                     .description(format!("Are you sure you want to remove the update partition from {}?\n\nThis is irreversible!", game.title()))
                     .danger(true)
-                    .ok(Message::StripGame(game))
+                    .on_ok(Message::StripGame(game))
                     .build();
 
                 self.message_dialog = Some(dialog);
@@ -722,7 +722,7 @@ impl State {
                     .title("Remove update partitions?")
                     .description("Are you sure you want to remove the update partitions from all .wbfs files?\n\nThis is irreversible!")
                     .danger(true)
-                    .ok(Message::StripAllGames)
+                    .on_ok(Message::StripAllGames)
                     .build();
 
                 self.message_dialog = Some(dialog);

@@ -9,14 +9,14 @@ use iced::{
 };
 
 #[derive(Debug, Clone, Builder)]
-#[builder(on(String, into))]
+#[builder(on(String, into), on(Box<Message>, into))]
 pub struct MyMessageDialog {
     icon: lucide_icons::Icon,
     title: String,
     description: String,
     #[builder(default = false)]
     danger: bool,
-    ok: Option<Message>,
+    on_ok: Option<Box<Message>>,
 }
 
 impl MyMessageDialog {
@@ -25,14 +25,14 @@ impl MyMessageDialog {
 
         let mut ok_btn = button("Ok");
 
-        if let Some(ok) = &self.ok {
+        if let Some(on_ok) = &self.on_ok {
             actions = actions.push(
                 button("Cancel")
                     .style(style::rounded_secondary_button)
                     .on_press(Message::CloseDialog),
             );
 
-            ok_btn = ok_btn.on_press_with(|| Message::CloseDialogAndThen(Box::new(ok.clone())));
+            ok_btn = ok_btn.on_press_with(|| Message::CloseDialogAndThen(on_ok.clone()));
         } else {
             ok_btn = ok_btn.on_press(Message::CloseDialog);
         }
