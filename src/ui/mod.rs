@@ -9,13 +9,14 @@ use crate::{
 };
 use iced::{
     Element, Length, padding,
-    widget::{Column, Stack, column, container, row, rule, stack, text},
+    widget::{Column, column, container, row, rule, stack, text},
 };
 
 mod components;
 pub mod dialogs;
 pub mod lucide;
 mod style;
+pub use components::message_dialog::MyMessageDialog;
 
 #[cfg(feature = "win10")]
 pub mod window_color;
@@ -56,31 +57,33 @@ pub fn view(state: &State) -> Element<'_, Message> {
             .push(container(text(&state.status)).padding(padding::horizontal(10).vertical(5)));
     }
 
-    let mut stack = Stack::new();
-
-    if cfg!(any(target_vendor = "pc", target_os = "macos")) {
-        stack = stack.push(
+    let root: Element<'_, Message> = if cfg!(any(feature = "macos", feature = "win10")) {
+        stack![
             container(row![].width(Length::Fill).height(Length::Fill)).style(style::nav_container),
-        );
+            container(col).style(style::root_container)
+        ]
+        .into()
+    } else {
+        container(col).style(style::root_container).into()
+    };
+
+    let root = row![components::nav::view(state), root];
+
+    let mut stack = stack![root];
+    if let Some(message_dialog) = &state.message_dialog {
+        stack = stack.push(message_dialog.view());
     }
-
-    stack = stack
-        .push(container(col).style(style::root_container))
-        .push(components::notifications::view(state));
-
-    let mut root = row![components::nav::view(state), stack].into();
+    if !state.notifications.is_empty() {
+        stack = stack.push(components::notifications::view(state));
+    }
 
     if cfg!(target_os = "macos") {
-        root = column![
+        column![
             container(row![].width(Length::Fill).height(32)).style(style::nav_container),
-            root
+            stack
         ]
-        .into();
-    }
-
-    if state.notifications.is_empty() {
-        root
+        .into()
     } else {
-        stack![root, components::notifications::view(state)].into()
+        stack.into()
     }
 }

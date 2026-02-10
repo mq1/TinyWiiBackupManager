@@ -41,9 +41,11 @@ pub enum Message {
     MountPointChosen(Option<PathBuf>),
     OpenThat(OsString),
     AskDeleteDirConfirmation(PathBuf),
+    DeleteDirConfirmed(PathBuf),
     DirectoryDeleted(Result<(), String>),
     GotLatestVersion(Result<Option<Version>, String>),
     FileDropped(PathBuf),
+    CloseDialog,
 
     // Games
     GotGameList(Result<GameList, String>),
@@ -53,7 +55,7 @@ pub enum Message {
     ChooseGamesToAdd,
     ChooseGamesSrcDir,
     ConfirmAddGamesToTransferStack(Vec<(PathBuf, GameID)>),
-    AddGamesToTransferStack((Vec<PathBuf>, bool)),
+    AddGamesToTransferStack(Vec<PathBuf>),
     StartTransfer,
     CancelTransfer(usize),
     GotDiscInfo(Result<DiscInfo, String>),

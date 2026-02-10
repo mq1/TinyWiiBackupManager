@@ -60,6 +60,7 @@ fs4 = { version = "0.13", default-features = false }
 rfd = "0.17"
 winsafe = { version = "0.0.27", optional = true, features = ["dwm"] }
 dark-light = { version = "2.0", optional = true, default-features = false }
+bon = "3.8"
 
 [build-dependencies]
 regex = "1.12"

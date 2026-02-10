@@ -23,7 +23,7 @@ use crate::{
     known_mount_points,
     message::Message,
     notifications::Notifications,
-    ui::{Screen, dialogs, lucide},
+    ui::{MyMessageDialog, Screen, dialogs, lucide},
     updater,
     util::{DriveInfo, clean_old_files},
 };
@@ -35,8 +35,9 @@ use iced::{
     },
     window,
 };
+use itertools::Itertools;
 use semver::Version;
-use std::{ffi::OsStr, path::PathBuf};
+use std::{ffi::OsStr, fs, path::PathBuf};
 use which_fs::FsKind;
 
 #[cfg(target_os = "macos")]
@@ -44,6 +45,7 @@ use crate::util::run_dot_clean;
 
 pub struct State {
     pub screen: Screen,
+    pub message_dialog: Option<MyMessageDialog>,
     pub data_dir: PathBuf,
     pub config: Config,
     pub game_list: GameList,
@@ -82,6 +84,7 @@ impl State {
 
         let mut initial_state = Self {
             screen: Screen::Games,
+            message_dialog: None,
             data_dir,
             config,
             game_list: GameList::empty(),
@@ -297,15 +300,24 @@ impl State {
                     Task::none()
                 }
             }
-            Message::AskDeleteDirConfirmation(path) => window::oldest()
-                .and_then(move |id| {
-                    let path = path.clone();
-                    window::run(id, move |id| {
-                        dialogs::delete_dir(id, &path)
-                            .map_err(|e| format!("Failed to delete directory: {e:#}"))
-                    })
-                })
-                .map(Message::DirectoryDeleted),
+            Message::AskDeleteDirConfirmation(path) => {
+                let dialog = MyMessageDialog::builder()
+                    .icon(lucide_icons::Icon::FolderX)
+                    .title("Delete this directory?")
+                    .description(path.to_string_lossy())
+                    .ok(Message::DeleteDirConfirmed(path))
+                    .cancel(Message::CloseDialog)
+                    .build();
+
+                self.message_dialog = Some(dialog);
+                Task::none()
+            }
+            Message::DeleteDirConfirmed(path) => {
+                if let Err(e) = fs::remove_dir_all(path) {
+                    self.notifications.error(e.to_string());
+                }
+                Task::none()
+            }
             Message::DirectoryDeleted(Ok(())) => {
                 let task1 = match &self.screen {
                     Screen::GameInfo(_) => self.update(Message::NavTo(Screen::Games)),
@@ -465,36 +477,47 @@ impl State {
                 });
 
                 if entries.is_empty() {
-                    window::oldest()
-                        .and_then(|id| window::run(id, dialogs::no_new_games))
-                        .discard()
+                    let dialog = MyMessageDialog::builder()
+                        .icon(lucide_icons::Icon::X)
+                        .title("No new games to add")
+                        .description("Either you didn't select any valid game, or all the games are already installed.")
+                        .danger(true)
+                        .ok(Message::CloseDialog)
+                        .build();
+
+                    self.message_dialog = Some(dialog);
                 } else {
-                    window::oldest()
-                        .and_then(move |id| {
-                            let entries = entries.clone();
-                            window::run(id, move |w| dialogs::confirm_add_games(w, entries))
-                        })
-                        .map(Message::AddGamesToTransferStack)
+                    let paths = entries.into_iter().map(|(p, _)| p).collect::<Vec<_>>();
+                    let desc = paths.iter().map(|p| p.display()).join("\n• ");
+
+                    let dialog = MyMessageDialog::builder()
+                        .icon(lucide_icons::Icon::Plus)
+                        .title("The following games will be added")
+                        .description(format!("• {desc}\nAre you sure you want to continue?"))
+                        .danger(true)
+                        .ok(Message::AddGamesToTransferStack(paths))
+                        .cancel(Message::CloseDialog)
+                        .build();
+
+                    self.message_dialog = Some(dialog);
                 }
+
+                Task::none()
             }
-            Message::AddGamesToTransferStack((paths, yes)) => {
-                if yes {
-                    let is_fat32 = self
-                        .drive_info
-                        .as_ref()
-                        .is_some_and(|i| i.fs_kind() == FsKind::Fat32);
+            Message::AddGamesToTransferStack(paths) => {
+                let is_fat32 = self
+                    .drive_info
+                    .as_ref()
+                    .is_some_and(|i| i.fs_kind() == FsKind::Fat32);
 
-                    for path in paths {
-                        self.transfer_queue.push(TransferOperation::ConvertForWii(
-                            ConvertForWiiOperation::new(path, self.config.clone(), is_fat32),
-                        ));
-                    }
+                for path in paths {
+                    self.transfer_queue.push(TransferOperation::ConvertForWii(
+                        ConvertForWiiOperation::new(path, self.config.clone(), is_fat32),
+                    ));
+                }
 
-                    if self.status.is_empty() {
-                        self.update(Message::StartTransfer)
-                    } else {
-                        Task::none()
-                    }
+                if self.status.is_empty() {
+                    self.update(Message::StartTransfer)
                 } else {
                     Task::none()
                 }
@@ -765,6 +788,10 @@ impl State {
                 Screen::HbcApps => self.update(Message::AddHbcApps(vec![path])),
                 _ => Task::none(),
             },
+            Message::CloseDialog => {
+                self.message_dialog = None;
+                Task::none()
+            }
         }
     }
 
