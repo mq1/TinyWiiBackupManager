@@ -111,6 +111,25 @@ jobs:
           mkdir dist
           cp "target/${{ matrix.target }}/release-lto/TinyWiiBackupManager" TinyWiiBackupManager
           tar -I 'gzip -9' -cvf "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.tar.gz" TinyWiiBackupManager
+      
+      - name: get zenity-rs source
+        uses: actions/checkout@v6
+        with:
+          repository: QaidVoid/zenity-rs
+          ref: v0.2.1
+          path: zenity-rs
+          fetch-depth: 1
+
+      - name: build zenity-rs
+        run: |
+          cd zenity-rs
+          echo "[profile.release-lto]" >> Cargo.toml
+          echo "inherits = \"release\"" >> Cargo.toml
+          echo "panic = \"abort\"" >> Cargo.toml
+          cargo build -Z build-std=std,panic_abort -Z build-std-features="optimize_for_size" --profile release-lto --locked --target ${{ matrix.target }}
+          install -Dm0755 target/release-lto/zenity-rs ../package/linux/usr/bin/zenity
+        env:
+          RUSTC_BOOTSTRAP: 1
 
       - name: Package binary as AppImage
         run: |
