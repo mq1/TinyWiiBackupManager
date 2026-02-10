@@ -9,7 +9,7 @@ use crate::{
 };
 use iced::{
     Element, Length, padding,
-    widget::{Column, column, container, row, rule, stack, text},
+    widget::{Column, Stack, column, container, row, rule, text},
 };
 
 mod components;
@@ -36,6 +36,10 @@ pub enum Screen {
 }
 
 pub fn view(state: &State) -> Element<'_, Message> {
+    if let Some(message_dialog) = &state.message_dialog {
+        return message_dialog.view();
+    }
+
     let mut col = Column::new();
 
     col = col.push(match &state.screen {
@@ -57,33 +61,26 @@ pub fn view(state: &State) -> Element<'_, Message> {
             .push(container(text(&state.status)).padding(padding::horizontal(10).vertical(5)));
     }
 
-    let root: Element<'_, Message> = if cfg!(any(feature = "macos", feature = "win10")) {
-        stack![
+    let mut stack = Stack::new();
+    if cfg!(any(feature = "macos", feature = "win10")) {
+        stack = stack.push(
             container(row![].width(Length::Fill).height(Length::Fill)).style(style::nav_container),
-            container(col).style(style::root_container)
-        ]
-        .into()
-    } else {
-        container(col).style(style::root_container).into()
-    };
-
-    let root = row![components::nav::view(state), root];
-
-    let mut stack = stack![root];
-    if let Some(message_dialog) = &state.message_dialog {
-        stack = stack.push(message_dialog.view());
+        );
     }
+    stack = stack.push(container(col).style(style::root_container));
     if !state.notifications.is_empty() {
         stack = stack.push(components::notifications::view(state));
     }
 
+    let root = row![components::nav::view(state), stack];
+
     if cfg!(target_os = "macos") {
         column![
             container(row![].width(Length::Fill).height(32)).style(style::nav_container),
-            stack
+            root
         ]
         .into()
     } else {
-        stack.into()
+        root.into()
     }
 }

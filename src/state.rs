@@ -304,6 +304,7 @@ impl State {
                     .icon(lucide_icons::Icon::FolderX)
                     .title("Delete this directory?")
                     .description(path.to_string_lossy())
+                    .danger(true)
                     .ok(Message::DeleteDirConfirmed(path))
                     .cancel(Message::CloseDialog)
                     .build();
@@ -312,6 +313,8 @@ impl State {
                 Task::none()
             }
             Message::DeleteDirConfirmed(path) => {
+                self.message_dialog = None;
+
                 if let Err(e) = fs::remove_dir_all(path) {
                     self.notifications.error(e.to_string());
                 }
@@ -487,12 +490,15 @@ impl State {
                     self.message_dialog = Some(dialog);
                 } else {
                     let paths = entries.into_iter().map(|(p, _)| p).collect::<Vec<_>>();
-                    let desc = paths.iter().map(|p| p.display()).join("\n• ");
+                    let desc = paths
+                        .iter()
+                        .map(|p| format!("• {}", p.display()))
+                        .join("\n");
 
                     let dialog = MyMessageDialog::builder()
                         .icon(lucide_icons::Icon::Plus)
                         .title("The following games will be added")
-                        .description(format!("• {desc}\nAre you sure you want to continue?"))
+                        .description(desc)
                         .ok(Message::AddGamesToTransferStack(paths))
                         .cancel(Message::CloseDialog)
                         .build();
@@ -503,6 +509,8 @@ impl State {
                 Task::none()
             }
             Message::AddGamesToTransferStack(paths) => {
+                self.message_dialog = None;
+
                 let is_fat32 = self
                     .drive_info
                     .as_ref()
@@ -700,6 +708,8 @@ impl State {
                 Task::none()
             }
             Message::StripGame(game) => {
+                self.message_dialog = None;
+
                 self.notifications
                     .info(format!("Removing update partition from {}", game.title()));
 
@@ -731,6 +741,8 @@ impl State {
                 Task::none()
             }
             Message::StripAllGames => {
+                self.message_dialog = None;
+
                 self.notifications.info(
                     "Removing update partition from all games, this may take some time!"
                         .to_string(),

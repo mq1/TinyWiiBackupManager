@@ -5,7 +5,7 @@ use crate::{message::Message, ui::style};
 use bon::Builder;
 use iced::{
     Element, Length,
-    widget::{Text, button, column, container, row, rule, space, text},
+    widget::{Text, button, column, container, row, rule, scrollable, space, text},
 };
 
 #[derive(Debug, Clone, Builder)]
@@ -26,13 +26,13 @@ impl MyMessageDialog {
 
         if let Some(cancel) = &self.cancel {
             actions = actions.push(
-                button("cancel")
+                button("Cancel")
                     .style(style::rounded_secondary_button)
                     .on_press(cancel.clone()),
             );
         }
 
-        let mut ok_btn = button("ok").on_press(self.ok.clone());
+        let mut ok_btn = button("Ok").on_press(self.ok.clone());
         if self.danger {
             ok_btn = ok_btn.style(style::rounded_danger_button);
         } else {
@@ -42,19 +42,24 @@ impl MyMessageDialog {
         actions = actions.push(ok_btn);
 
         container(
-            column![
-                row![Text::from(self.icon), text(&self.title)].spacing(5),
-                rule::horizontal(1),
-                space(),
-                text(&self.description),
-                space(),
-                actions
-            ]
-            .spacing(5)
-            .padding(10),
+            container(
+                column![
+                    row![Text::from(self.icon), text(&self.title)].spacing(5),
+                    rule::horizontal(1),
+                    space(),
+                    scrollable(text(&self.description).width(Length::Fill)).height(Length::Fill),
+                    space(),
+                    actions
+                ]
+                .spacing(5)
+                .padding(10),
+            )
+            .style(style::card)
+            .center_x(600)
+            .center_y(400),
         )
-        .style(style::card)
         .center(Length::Fill)
+        .style(style::root_container)
         .into()
     }
 }
