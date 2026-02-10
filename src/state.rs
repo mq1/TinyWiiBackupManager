@@ -23,7 +23,7 @@ use crate::{
     known_mount_points,
     message::Message,
     notifications::Notifications,
-    ui::{Screen, dialogs, lucide},
+    ui::{MyMessageDialog, Screen, dialogs, lucide},
     updater,
     util::{DriveInfo, clean_old_files},
 };
@@ -35,8 +35,9 @@ use iced::{
     },
     window,
 };
+use itertools::Itertools;
 use semver::Version;
-use std::{ffi::OsStr, path::PathBuf};
+use std::{ffi::OsStr, fs, path::PathBuf};
 use which_fs::FsKind;
 
 #[cfg(target_os = "macos")]
@@ -44,6 +45,7 @@ use crate::util::run_dot_clean;
 
 pub struct State {
     pub screen: Screen,
+    pub message_dialog: Option<MyMessageDialog>,
     pub data_dir: PathBuf,
     pub config: Config,
     pub game_list: GameList,
@@ -82,6 +84,7 @@ impl State {
 
         let mut initial_state = Self {
             screen: Screen::Games,
+            message_dialog: None,
             data_dir,
             config,
             game_list: GameList::empty(),
@@ -187,8 +190,7 @@ impl State {
             | Message::GotOscAppList(Err(e))
             | Message::GotGameList(Err(e))
             | Message::GotLatestVersion(Err(e))
-            | Message::GotHbcAppList(Err(e))
-            | Message::DirectoryDeleted(Err(e)) => {
+            | Message::GotHbcAppList(Err(e)) => {
                 self.notifications.error(e);
                 Task::none()
             }
@@ -297,16 +299,26 @@ impl State {
                     Task::none()
                 }
             }
-            Message::AskDeleteDirConfirmation(path) => window::oldest()
-                .and_then(move |id| {
-                    let path = path.clone();
-                    window::run(id, move |id| {
-                        dialogs::delete_dir(id, &path)
-                            .map_err(|e| format!("Failed to delete directory: {e:#}"))
-                    })
-                })
-                .map(Message::DirectoryDeleted),
-            Message::DirectoryDeleted(Ok(())) => {
+            Message::AskDeleteDirConfirmation(path) => {
+                let dialog = MyMessageDialog::builder()
+                    .icon(lucide_icons::Icon::FolderX)
+                    .title("Delete this directory?")
+                    .description(path.to_string_lossy())
+                    .danger(true)
+                    .ok(Message::DeleteDirConfirmed(path))
+                    .cancel(Message::CloseDialog)
+                    .build();
+
+                self.message_dialog = Some(dialog);
+                Task::none()
+            }
+            Message::DeleteDirConfirmed(path) => {
+                self.message_dialog = None;
+
+                if let Err(e) = fs::remove_dir_all(path) {
+                    self.notifications.error(e.to_string());
+                }
+
                 let task1 = match &self.screen {
                     Screen::GameInfo(_) => self.update(Message::NavTo(Screen::Games)),
                     Screen::HbcInfo(_) => self.update(Message::NavTo(Screen::HbcApps)),
@@ -363,19 +375,21 @@ impl State {
                 self.drive_info = drive_info;
                 Task::none()
             }
-            Message::AskInstallOscApp(app) => window::oldest()
-                .and_then(move |id| {
-                    let app = app.clone();
-                    window::run(id, move |w| dialogs::confirm_install_osc_app(w, app))
-                })
-                .map(Message::InstallOscApp),
-            Message::InstallOscApp((app, yes)) => {
-                if yes {
-                    let base_dir = self.config.mount_point().clone();
-                    app.get_install_task(base_dir)
-                } else {
-                    Task::none()
-                }
+            Message::AskInstallOscApp(app) => {
+                let dialog = MyMessageDialog::builder()
+                    .icon(lucide_icons::Icon::Plus)
+                    .title("Install OSC App")
+                    .description(format!("Are you sure you want to install {}?", app.name()))
+                    .ok(Message::InstallOscApp(app))
+                    .cancel(Message::CloseDialog)
+                    .build();
+
+                self.message_dialog = Some(dialog);
+                Task::none()
+            }
+            Message::InstallOscApp(app) => {
+                let base_dir = self.config.mount_point().clone();
+                app.get_install_task(base_dir)
             }
             Message::AppInstalled(res) => {
                 let _ = self.update(Message::GenericResult(res));
@@ -465,36 +479,51 @@ impl State {
                 });
 
                 if entries.is_empty() {
-                    window::oldest()
-                        .and_then(|id| window::run(id, dialogs::no_new_games))
-                        .discard()
+                    let dialog = MyMessageDialog::builder()
+                        .icon(lucide_icons::Icon::X)
+                        .title("No new games to add")
+                        .description("Either you didn't select any valid game, or all the games are already installed.")
+                        .danger(true)
+                        .ok(Message::CloseDialog)
+                        .build();
+
+                    self.message_dialog = Some(dialog);
                 } else {
-                    window::oldest()
-                        .and_then(move |id| {
-                            let entries = entries.clone();
-                            window::run(id, move |w| dialogs::confirm_add_games(w, entries))
-                        })
-                        .map(Message::AddGamesToTransferStack)
+                    let paths = entries.into_iter().map(|(p, _)| p).collect::<Vec<_>>();
+                    let desc = paths
+                        .iter()
+                        .map(|p| format!("• {}", p.display()))
+                        .join("\n");
+
+                    let dialog = MyMessageDialog::builder()
+                        .icon(lucide_icons::Icon::Plus)
+                        .title("The following games will be added")
+                        .description(desc)
+                        .ok(Message::AddGamesToTransferStack(paths))
+                        .cancel(Message::CloseDialog)
+                        .build();
+
+                    self.message_dialog = Some(dialog);
                 }
+
+                Task::none()
             }
-            Message::AddGamesToTransferStack((paths, yes)) => {
-                if yes {
-                    let is_fat32 = self
-                        .drive_info
-                        .as_ref()
-                        .is_some_and(|i| i.fs_kind() == FsKind::Fat32);
+            Message::AddGamesToTransferStack(paths) => {
+                self.message_dialog = None;
 
-                    for path in paths {
-                        self.transfer_queue.push(TransferOperation::ConvertForWii(
-                            ConvertForWiiOperation::new(path, self.config.clone(), is_fat32),
-                        ));
-                    }
+                let is_fat32 = self
+                    .drive_info
+                    .as_ref()
+                    .is_some_and(|i| i.fs_kind() == FsKind::Fat32);
 
-                    if self.status.is_empty() {
-                        self.update(Message::StartTransfer)
-                    } else {
-                        Task::none()
-                    }
+                for path in paths {
+                    self.transfer_queue.push(TransferOperation::ConvertForWii(
+                        ConvertForWiiOperation::new(path, self.config.clone(), is_fat32),
+                    ));
+                }
+
+                if self.status.is_empty() {
+                    self.update(Message::StartTransfer)
                 } else {
                     Task::none()
                 }
@@ -665,59 +694,72 @@ impl State {
                     .info("Sending file to Wii...".to_string());
                 wiiload::get_download_and_send_via_wiiload_task(self, zip_url)
             }
-            Message::ConfirmStripGame(game) => window::oldest()
-                .and_then(move |id| {
-                    let game = game.clone();
-                    window::run(id, move |w| dialogs::confirm_strip_game(w, game))
-                })
-                .map(Message::StripGame),
-            Message::StripGame((game, yes)) => {
-                if yes {
-                    self.notifications
-                        .info(format!("Removing update partition from {}", game.title()));
+            Message::ConfirmStripGame(game) => {
+                let dialog = MyMessageDialog::builder()
+                    .icon(lucide_icons::Icon::FileMinusCorner)
+                    .title("Remove update partition?")
+                    .description(format!("Are you sure you want to remove the update partition from {}?\n\nThis is irreversible!", game.title()))
+                    .danger(true)
+                    .ok(Message::StripGame(game))
+                    .cancel(Message::CloseDialog)
+                    .build();
 
-                    let is_fat32 = self
-                        .drive_info
-                        .as_ref()
-                        .is_some_and(|i| i.fs_kind() == FsKind::Fat32);
+                self.message_dialog = Some(dialog);
+                Task::none()
+            }
+            Message::StripGame(game) => {
+                self.message_dialog = None;
 
-                    let op = StripOperation::new(game, self.config.always_split(), is_fat32);
-                    self.transfer_queue.push(TransferOperation::Strip(op));
+                self.notifications
+                    .info(format!("Removing update partition from {}", game.title()));
 
-                    if self.status.is_empty() {
-                        self.update(Message::StartTransfer)
-                    } else {
-                        Task::none()
-                    }
+                let is_fat32 = self
+                    .drive_info
+                    .as_ref()
+                    .is_some_and(|i| i.fs_kind() == FsKind::Fat32);
+
+                let op = StripOperation::new(game, self.config.always_split(), is_fat32);
+                self.transfer_queue.push(TransferOperation::Strip(op));
+
+                if self.status.is_empty() {
+                    self.update(Message::StartTransfer)
                 } else {
                     Task::none()
                 }
             }
-            Message::ConfirmStripAllGames => window::oldest()
-                .and_then(|id| window::run(id, dialogs::confirm_strip_all_games))
-                .map(Message::StripAllGames),
-            Message::StripAllGames(yes) => {
-                if yes {
-                    self.notifications.info(
-                        "Removing update partition from all games, this may take some time!"
-                            .to_string(),
-                    );
+            Message::ConfirmStripAllGames => {
+                let dialog = MyMessageDialog::builder()
+                    .icon(lucide_icons::Icon::FileMinusCorner)
+                    .title("Remove update partitions?")
+                    .description("Are you sure you want to remove the update partitions from all .wbfs files?\n\nThis is irreversible!")
+                    .danger(true)
+                    .ok(Message::StripAllGames)
+                    .cancel(Message::CloseDialog)
+                    .build();
 
-                    let is_fat32 = self
-                        .drive_info
-                        .as_ref()
-                        .is_some_and(|i| i.fs_kind() == FsKind::Fat32);
+                self.message_dialog = Some(dialog);
+                Task::none()
+            }
+            Message::StripAllGames => {
+                self.message_dialog = None;
 
-                    for game in self.game_list.iter().cloned() {
-                        let op = StripOperation::new(game, self.config.always_split(), is_fat32);
-                        self.transfer_queue.push(TransferOperation::Strip(op));
-                    }
+                self.notifications.info(
+                    "Removing update partition from all games, this may take some time!"
+                        .to_string(),
+                );
 
-                    if self.status.is_empty() {
-                        self.update(Message::StartTransfer)
-                    } else {
-                        Task::none()
-                    }
+                let is_fat32 = self
+                    .drive_info
+                    .as_ref()
+                    .is_some_and(|i| i.fs_kind() == FsKind::Fat32);
+
+                for game in self.game_list.iter().cloned() {
+                    let op = StripOperation::new(game, self.config.always_split(), is_fat32);
+                    self.transfer_queue.push(TransferOperation::Strip(op));
+                }
+
+                if self.status.is_empty() {
+                    self.update(Message::StartTransfer)
                 } else {
                     Task::none()
                 }
@@ -765,6 +807,10 @@ impl State {
                 Screen::HbcApps => self.update(Message::AddHbcApps(vec![path])),
                 _ => Task::none(),
             },
+            Message::CloseDialog => {
+                self.message_dialog = None;
+                Task::none()
+            }
         }
     }
 

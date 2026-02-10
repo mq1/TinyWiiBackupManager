@@ -9,7 +9,7 @@ use iced::{
 pub fn root_container(theme: &Theme) -> container::Style {
     let mut style = container::bordered_box(theme);
 
-    if cfg!(any(target_vendor = "pc", target_os = "macos")) {
+    if cfg!(any(feature = "macos", feature = "win10")) {
         style.border.radius = border::radius(0).top_left(10);
     } else {
         style.border.radius = border::radius(0);

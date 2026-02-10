@@ -111,7 +111,7 @@ jobs:
           mkdir dist
           cp "target/${{ matrix.target }}/release-lto/TinyWiiBackupManager" TinyWiiBackupManager
           tar -I 'gzip -9' -cvf "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.tar.gz" TinyWiiBackupManager
-
+      
       - name: Package binary as AppImage
         run: |
           cp -r package/linux AppDir
