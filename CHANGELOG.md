@@ -15,8 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- 💻 vcruntime is correclty statically linked on windows
-- 🪟 correct win10 sdk version
+- 💻 vcruntime is now correclty statically linked on windows
+- 🪟 using vs2022 instead of vs2026 (may improve compatibility with win < 11)
 
 ## [v5.1.4] - 2026-02-10
 
