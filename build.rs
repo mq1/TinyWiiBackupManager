@@ -166,6 +166,24 @@ fn main() {
             println!("cargo:rustc-link-search=native={}", lib_path.display());
         }
 
+        if env::var("CARGO_FEATURE_WIN7").is_ok() {
+            let vc_ltl_arch = match env::var("CARGO_CFG_TARGET_ARCH").unwrap().as_str() {
+                "x86" => "Win32",
+                "x86_64" => "x64",
+                _ => panic!("Unsupported architecture for vc-ltl5"),
+            };
+
+            let lib_path = Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap())
+                .join("VC-LTL-Binary")
+                .join("TargetPlatform")
+                .join("6.0.6000.0")
+                .join("lib")
+                .join(vc_ltl_arch);
+
+            assert!(lib_path.exists());
+            println!("cargo:rustc-link-search=native={}", lib_path.display());
+        }
+
         let mut res = winresource::WindowsResource::new();
         res.set_icon("package/windows/icon.ico");
         if env::var("CARGO_FEATURE_WIN10").is_ok() {
