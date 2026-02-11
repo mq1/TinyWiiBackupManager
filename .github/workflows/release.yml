@@ -219,11 +219,6 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install LLVM and Clang
-        uses: KyleMayes/install-llvm-action@v2
-        with:
-          version: "21.1.8"
-
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.93
         with:
@@ -241,11 +236,6 @@ jobs:
         env:
           RUSTC_BOOTSTRAP: 1
           RUSTFLAGS: -C link-arg=/SUBSYSTEM:WINDOWS,6.1
-          CC: clang-cl
-          CXX: clang-cl
-          AR: llvm-lib
-          CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_LINKER: lld-link
-          CARGO_TARGET_AARCH64_WIN7_WINDOWS_MSVC_LINKER: lld-link
 
       - name: Package binary as zip
         shell: pwsh
