@@ -172,7 +172,7 @@ jobs:
         shell: pwsh
         run: |
           Invoke-WebRequest -Uri "https://github.com/Chuyu-Team/VC-LTL5/releases/download/v5.3.1/VC-LTL-Binary.7z" -OutFile "VC-LTL-Binary.7z"
-          7z x "VC-LTL-Binary.7z"
+          7z x VC-LTL-Binary.7z -oVC-LTL-Binary
 
       - name: Build binary
         shell: pwsh
