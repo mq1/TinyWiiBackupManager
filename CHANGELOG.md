@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v5.1.5] - 2026-02-11
+
+### Changed
+
+- 📦 win7 builds are now called "legacy" builds
+
+### Fixed
+
+- 💻 vcruntime is correclty statically linked on windows
+- 🪟 correct win10 sdk version
+
 ## [v5.1.4] - 2026-02-10
 
 ### Fixed
@@ -131,7 +142,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 🖼️ TinyWiiBackupManager icon now shows up again on the windows exe
 
-[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.4...HEAD
+[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.5...HEAD
+[v5.1.5]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.4...v5.1.5
 [v5.1.4]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.3...v5.1.4
 [v5.1.3]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.2...v5.1.3
 [v5.1.2]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.1...v5.1.2

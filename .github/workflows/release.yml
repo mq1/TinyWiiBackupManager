@@ -82,9 +82,9 @@ jobs:
         run: sudo apt-get install -y libc6-dev-i386
 
       - name: Install Rust toolchain
-        run: |
-          rustup toolchain install 1.93 --component rust-src
-          rustup default 1.93
+        uses: dtolnay/rust-toolchain@1.93
+        with:
+          components: rust-src
 
       - name: Download LinuxDeploy
         run: |
@@ -129,7 +129,7 @@ jobs:
 
   build-windows:
     name: Build for Windows
-    runs-on: windows-2025-vs2026
+    runs-on: windows-2022
     strategy:
       fail-fast: false
       matrix:
@@ -163,10 +163,15 @@ jobs:
           version: "21.1.8"
 
       - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@1.93
+        with:
+          components: rust-src
+
+      - name: Download VC-LTL5
         shell: pwsh
         run: |
-          rustup toolchain install 1.93 --component rust-src
-          rustup default 1.93
+          Invoke-WebRequest -Uri "https://github.com/Chuyu-Team/VC-LTL5/releases/download/v5.3.1/VC-LTL-Binary.7z" -OutFile "VC-LTL-Binary.7z"
+          7z x VC-LTL-Binary.7z -oVC-LTL-Binary
 
       - name: Build binary
         shell: pwsh
@@ -196,8 +201,8 @@ jobs:
           name: dist-windows-${{ matrix.arch }}
           path: dist/*
 
-  build-windows7:
-    name: Build for Windows 7
+  build-windows-legacy:
+    name: Build for Windows Legacy
     runs-on: windows-2022
     strategy:
       fail-fast: false
@@ -215,28 +220,28 @@ jobs:
           fetch-depth: 1
 
       - name: Install Rust toolchain
-        shell: pwsh
-        run: |
-          rustup toolchain install 1.93 --component rust-src
-          rustup default 1.93
+        uses: dtolnay/rust-toolchain@1.93
+        with:
+          components: rust-src
 
       - name: Build binary
         shell: pwsh
         run: cargo build -Z build-std=std,panic_abort --profile release-lto --locked --target ${{ matrix.target }} --features win7
         env:
           RUSTC_BOOTSTRAP: 1
+          RUSTFLAGS: -C target-feature=+crt-static
 
       - name: Package binary as zip
         shell: pwsh
         run: |
           New-Item -Path "dist" -ItemType Directory
           Copy-Item -Path "target/${{ matrix.target }}/release-lto/TinyWiiBackupManager.exe" -Destination TinyWiiBackupManager.exe
-          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows7-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
+          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-legacy-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
 
-      - name: Upload Windows 7 distributables
+      - name: Upload Windows Legacy distributables
         uses: actions/upload-artifact@v4
         with:
-          name: dist-windows7-${{ matrix.arch }}
+          name: dist-windows-legacy-${{ matrix.arch }}
           path: dist/*
 
   build-macos:
@@ -260,10 +265,9 @@ jobs:
           fetch-depth: 1
 
       - name: Install Rust toolchain
-        run: |
-          rustup toolchain install 1.93
-          rustup default 1.93
-          rustup target add ${{ matrix.target }}
+        uses: dtolnay/rust-toolchain@1.93
+        with:
+          targets: ${{ matrix.target }}
 
       - name: Rust cache
         uses: Swatinem/rust-cache@v2
@@ -358,7 +362,7 @@ jobs:
     name: Create GitHub Release
     if: github.ref_type == 'tag'
     runs-on: ubuntu-slim
-    needs: [build-linux, build-windows, build-windows7, build-macos, build-macos-universal]
+    needs: [build-linux, build-windows, build-windows-legacy, build-macos, build-macos-universal]
     steps:
       - name: Checkout
         uses: actions/checkout@v6

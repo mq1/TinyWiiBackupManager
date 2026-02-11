@@ -21,5 +21,5 @@ echo "&rarr; [Linux x86_64 AppImage](https://github.com/mq1/TinyWiiBackupManager
 echo ""
 
 echo '> [!WARNING]'
-echo '> windows7 builds are currently broken on windows < 8'
+echo '> windows-legacy builds are currently broken on windows < 8'
 echo '> Additional help is needed to sort this out #522'
