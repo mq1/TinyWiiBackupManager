@@ -7,10 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v5.1.6] - 2026-02-12
+
+### Changed
+
+- 🔧 Revert to msvc on windows and gcc on linux to ensure better consistency and compatibility. More conservative compiler versions. Builds are also easier to reproduce. flatpak builds are more stable easier to mantain (as we can't pin the llvm version).
+
 ### Fixed
 
-- 🪶 Smaller windows-legacy builds
-- ⛱️ Disabled shadows on windows-legacy builds, should fix graphical glitches on win7
+- 🪶 Smaller windows and windows-legacy builds
+- ⛱️ Disabled shadows on windows-legacy builds, fixes graphical glitches on win7
 
 ## [v5.1.5] - 2026-02-11
 
@@ -147,7 +153,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 🖼️ TinyWiiBackupManager icon now shows up again on the windows exe
 
-[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.5...HEAD
+[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.6...HEAD
+[v5.1.6]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.5...v5.1.6
 [v5.1.5]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.4...v5.1.5
 [v5.1.4]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.3...v5.1.4
 [v5.1.3]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.2...v5.1.3
