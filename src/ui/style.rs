@@ -9,7 +9,7 @@ use iced::{
 pub fn root_container(theme: &Theme) -> container::Style {
     let mut style = container::bordered_box(theme);
 
-    if cfg!(any(feature = "macos", feature = "win10")) {
+    if cfg!(any(feature = "macos", feature = "windows")) {
         style.border.radius = border::radius(0).top_left(10);
     } else {
         style.border.radius = border::radius(0);
@@ -22,7 +22,7 @@ pub fn rounded_button(theme: &Theme, status: button::Status) -> button::Style {
     let mut style = button::primary(theme, status);
     style.border.radius = border::radius(30);
 
-    if cfg!(not(feature = "win7")) {
+    if cfg!(not(feature = "windows-legacy")) {
         let shadow_color = if theme.extended_palette().is_dark {
             Color::from_rgba8(100, 100, 100, 0.2)
         } else {
@@ -51,7 +51,7 @@ pub fn rounded_danger_button(theme: &Theme, status: button::Status) -> button::S
     let mut style = button::danger(theme, status);
     style.border.radius = border::radius(30);
 
-    if cfg!(not(feature = "win7")) {
+    if cfg!(not(feature = "windows-legacy")) {
         let shadow_color = if theme.extended_palette().is_dark {
             Color::from_rgba8(100, 100, 100, 0.2)
         } else {
@@ -107,7 +107,7 @@ pub fn card(theme: &Theme) -> container::Style {
     style.background = Some(Background::Color(bg));
     style.border.radius = border::radius(10);
 
-    if cfg!(not(feature = "win7")) {
+    if cfg!(not(feature = "windows-legacy")) {
         let shadow_color = if theme.extended_palette().is_dark {
             Color::from_rgba8(100, 100, 100, 0.1)
         } else {
@@ -131,7 +131,7 @@ pub fn heavy_card(theme: &Theme) -> container::Style {
     style.background = Some(Background::Color(bg));
     style.border.radius = border::radius(10);
 
-    if cfg!(not(feature = "win7")) {
+    if cfg!(not(feature = "windows-legacy")) {
         let shadow_color = if theme.extended_palette().is_dark {
             Color::from_rgba8(100, 100, 100, 0.2)
         } else {

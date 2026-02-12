@@ -1,6 +1,6 @@
 [package]
 name = "TinyWiiBackupManager"
-version = "5.1.5"
+version = "5.1.6"
 rust-version = "1.93"
 edition = "2024"
 authors = ["Manuel Quarneti <mq1@ik.me>"]
@@ -72,8 +72,8 @@ winresource = "0.1"
 default = []
 linux-appimage = ["iced/wgpu-bare", "wgpu/vulkan", "iced/tiny-skia", "minreq/https-rustls"]
 linux-flatpak = ["iced/wgpu-bare", "wgpu/vulkan", "iced/tiny-skia", "minreq/https-native"]
-win7 = ["iced/tiny-skia", "minreq/https-rustls"]
-win10 = ["iced/wgpu-bare", "wgpu/dx12", "minreq/https-native", "rfd/common-controls-v6", "dep:winsafe", "dep:dark-light"]
+windows-legacy = ["iced/tiny-skia", "minreq/https-rustls"]
+windows = ["iced/wgpu-bare", "wgpu/dx12", "minreq/https-native", "rfd/common-controls-v6", "dep:winsafe", "dep:dark-light"]
 macos = ["iced/wgpu-bare", "wgpu/metal", "minreq/https-native"]
 
 [profile.release-lto]

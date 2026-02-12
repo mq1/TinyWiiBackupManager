@@ -147,7 +147,7 @@ fn main() {
     }
 
     if env::var("CARGO_CFG_TARGET_OS").unwrap() == "windows" {
-        if env::var("CARGO_FEATURE_WIN10").is_ok() {
+        if env::var("CARGO_FEATURE_WINDOWS").is_ok() {
             let vc_ltl_arch = match env::var("CARGO_CFG_TARGET_ARCH").unwrap().as_str() {
                 "x86" => "Win32",
                 "x86_64" => "x64",
@@ -166,7 +166,7 @@ fn main() {
             println!("cargo:rustc-link-search=native={}", lib_path.display());
         }
 
-        if env::var("CARGO_FEATURE_WIN7").is_ok() {
+        if env::var("CARGO_FEATURE_WINDOWS_LEGACY").is_ok() {
             let vc_ltl_arch = match env::var("CARGO_CFG_TARGET_ARCH").unwrap().as_str() {
                 "x86" => "Win32",
                 "x86_64" => "x64",
@@ -186,7 +186,7 @@ fn main() {
 
         let mut res = winresource::WindowsResource::new();
         res.set_icon("package/windows/icon.ico");
-        if env::var("CARGO_FEATURE_WIN10").is_ok() {
+        if env::var("CARGO_FEATURE_WINDOWS").is_ok() {
             res.set_manifest_file("package/windows/TinyWiiBackupManager.exe.manifest");
         }
         res.compile().unwrap();
