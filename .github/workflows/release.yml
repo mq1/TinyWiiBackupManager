@@ -135,32 +135,32 @@ jobs:
       matrix:
         include:
           - target: x86_64-pc-windows-msvc
-            plaform: windows
+            platform: windows
             arch: x86_64-v3
             rustflags: -C target-cpu=x86-64-v3
             cflags: /arch:AVX2
             cxxflags: /arch:AVX2
           - target: x86_64-pc-windows-msvc
-            plaform: windows
+            platform: windows
             arch: x86_64-v2
             rustflags: -C target-cpu=x86-64-v2
             cflags: /arch:AVX
             cxxflags: /arch:AVX
           - target: x86_64-pc-windows-msvc
-            plaform: windows
+            platform: windows
             arch: x86_64
           - target: aarch64-pc-windows-msvc
-            plaform: windows
+            platform: windows
             arch: arm64
           - target: i686-pc-windows-msvc
-            plaform: windows
+            platform: windows
             arch: x86
           - target: x86_64-win7-windows-msvc
-            plaform: windows-legacy
+            platform: windows-legacy
             rustflags: -C link-arg=/SUBSYSTEM:WINDOWS,6.1
             arch: x86_64
           - target: i686-win7-windows-msvc
-            plaform: windows-legacy
+            platform: windows-legacy
             rustflags: -C link-arg=/SUBSYSTEM:WINDOWS,6.1
             arch: x86
 
@@ -183,7 +183,7 @@ jobs:
 
       - name: Build binary
         shell: pwsh
-        run: cargo build -Z build-std=std,panic_abort --profile release-lto --locked --target ${{ matrix.target }} --features "${{ matrix.platform }}"
+        run: cargo build -Z build-std=std,panic_abort --profile release-lto --locked --target ${{ matrix.target }} --features ${{ matrix.platform }}
         env:
           RUSTC_BOOTSTRAP: 1
           RUSTFLAGS: ${{ matrix.rustflags }}
