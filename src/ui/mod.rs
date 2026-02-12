@@ -18,7 +18,7 @@ pub mod lucide;
 mod style;
 pub use components::message_dialog::MyMessageDialog;
 
-#[cfg(feature = "win10")]
+#[cfg(feature = "windows")]
 pub mod window_color;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -62,7 +62,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
     }
 
     let mut stack = Stack::new();
-    if cfg!(any(feature = "macos", feature = "win10")) {
+    if cfg!(any(feature = "macos", feature = "windows")) {
         stack = stack.push(
             container(row![].width(Length::Fill).height(Length::Fill)).style(style::nav_container),
         );

@@ -135,20 +135,31 @@ jobs:
       matrix:
         include:
           - target: x86_64-pc-windows-msvc
+            plaform: windows
             arch: x86_64-v3
             rustflags: -C target-cpu=x86-64-v3
-            cflags: /clang:-march=x86-64-v3
-            cxxflags: /clang:-march=x86-64-v3
+            cflags: /arch:AVX2
+            cxxflags: /arch:AVX2
           - target: x86_64-pc-windows-msvc
+            plaform: windows
             arch: x86_64-v2
             rustflags: -C target-cpu=x86-64-v2
-            cflags: /clang:-march=x86-64-v2
-            cxxflags: /clang:-march=x86-64-v2
+            cflags: /arch:AVX
+            cxxflags: /arch:AVX
           - target: x86_64-pc-windows-msvc
+            plaform: windows
             arch: x86_64
           - target: aarch64-pc-windows-msvc
+            plaform: windows
             arch: arm64
           - target: i686-pc-windows-msvc
+            plaform: windows
+            arch: x86
+          - target: x86_64-win7-windows-msvc
+            plaform: windows-legacy
+            arch: x86_64
+          - target: i686-win7-windows-msvc
+            plaform: windows-legacy
             arch: x86
 
     steps:
@@ -156,11 +167,6 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 1
-
-      - name: Install LLVM and Clang
-        uses: KyleMayes/install-llvm-action@v2
-        with:
-          version: "21.1.8"
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.93
@@ -175,79 +181,24 @@ jobs:
 
       - name: Build binary
         shell: pwsh
-        run: cargo build -Z build-std=std,panic_abort --profile release-lto --locked --target ${{ matrix.target }} --features win10
+        run: cargo build -Z build-std=std,panic_abort --profile release-lto --locked --target ${{ matrix.target }} --features ${{ matrix.platform }}
         env:
           RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: -C linker-plugin-lto ${{ matrix.rustflags }}
-          CC: clang-cl
-          CXX: clang-cl
-          AR: llvm-lib
-          CFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link ${{ matrix.cflags }}
-          CXXFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link ${{ matrix.cxxflags }}
-          CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: lld-link
-          CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: lld-link
-          CARGO_TARGET_I686_PC_WINDOWS_MSVC_LINKER: lld-link
+          RUSTFLAGS: ${{ matrix.rustflags }}
+          CFLAGS: ${{ matrix.cflags }}
+          CXXFLAGS: ${{ matrix.cxxflags }}
 
       - name: Package binary as zip
         shell: pwsh
         run: |
           New-Item -Path "dist" -ItemType Directory
           Copy-Item -Path "target/${{ matrix.target }}/release-lto/TinyWiiBackupManager.exe" -Destination TinyWiiBackupManager.exe
-          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
+          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v4
         with:
-          name: dist-windows-${{ matrix.arch }}
-          path: dist/*
-
-  build-windows-legacy:
-    name: Build for Windows Legacy
-    runs-on: windows-2022
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - target: x86_64-win7-windows-msvc
-            arch: x86_64
-          - target: i686-win7-windows-msvc
-            arch: x86
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 1
-
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@1.93
-        with:
-          components: rust-src
-
-      - name: Download VC-LTL5
-        shell: pwsh
-        run: |
-          Invoke-WebRequest -Uri "https://github.com/Chuyu-Team/VC-LTL5/releases/download/v5.3.1/VC-LTL-Binary.7z" -OutFile "VC-LTL-Binary.7z"
-          7z x VC-LTL-Binary.7z -oVC-LTL-Binary
-
-      - name: Build binary
-        shell: pwsh
-        run: cargo build -Z build-std=std,panic_abort --profile release-lto --locked --target ${{ matrix.target }} --features win7
-        env:
-          RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: -C link-arg=/SUBSYSTEM:WINDOWS,6.1
-
-      - name: Package binary as zip
-        shell: pwsh
-        run: |
-          New-Item -Path "dist" -ItemType Directory
-          Copy-Item -Path "target/${{ matrix.target }}/release-lto/TinyWiiBackupManager.exe" -Destination TinyWiiBackupManager.exe
-          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-legacy-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
-
-      - name: Upload Windows Legacy distributables
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist-windows-legacy-${{ matrix.arch }}
+          name: dist-${{ matrix.platform }}-${{ matrix.arch }}
           path: dist/*
 
   build-macos:

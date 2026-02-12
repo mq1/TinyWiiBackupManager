@@ -79,7 +79,7 @@ impl State {
         let config = Config::load(&data_dir);
         clean_old_files(&data_dir);
 
-        #[cfg(feature = "win10")]
+        #[cfg(feature = "windows")]
         let theme = config.theme_preference();
 
         let mut initial_state = Self {
@@ -116,7 +116,7 @@ impl State {
             initial_state.notifications.info("New drive detected, a path normalization run is recommended\nYou can find it in the Toolbox page".to_string());
         }
 
-        #[cfg(feature = "win10")]
+        #[cfg(feature = "windows")]
         let set_window_color = window::oldest()
             .and_then(move |id| window::run(id, move |w| crate::ui::window_color::set(w, theme)))
             .discard();
@@ -131,7 +131,7 @@ impl State {
             updater::get_check_update_task(),
         ]);
 
-        #[cfg(feature = "win10")]
+        #[cfg(feature = "windows")]
         let tasks = set_window_color.chain(tasks);
 
         (initial_state, tasks)
@@ -153,14 +153,14 @@ impl State {
             ThemePreference::Light => Some(Theme::Light),
             ThemePreference::Dark => Some(Theme::Dark),
             ThemePreference::System => {
-                #[cfg(feature = "win10")]
+                #[cfg(feature = "windows")]
                 match dark_light::detect() {
                     Ok(dark_light::Mode::Light) => Some(Theme::Light),
                     Ok(dark_light::Mode::Dark) => Some(Theme::Dark),
                     _ => None,
                 }
 
-                #[cfg(not(feature = "win10"))]
+                #[cfg(not(feature = "windows"))]
                 None
             }
         }
@@ -406,18 +406,18 @@ impl State {
                 let new_config = self.config.clone_with_theme_preference(new_theme_pref);
                 let _ = self.update(Message::UpdateConfig(new_config));
 
-                #[cfg(feature = "win10")]
+                #[cfg(feature = "windows")]
                 {
                     window::oldest()
                         .and_then(move |id| {
                             window::run(id, move |w| {
-                                crate::ui::window_color::set(w, new_theme_pref)
+                                crate::ui::window_color::set(w, new_theme_pref);
                             })
                         })
                         .discard()
                 }
 
-                #[cfg(not(feature = "win10"))]
+                #[cfg(not(feature = "windows"))]
                 Task::none()
             }
             Message::UpdateConfig(new_config) => {
