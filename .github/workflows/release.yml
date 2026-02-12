@@ -157,9 +157,11 @@ jobs:
             arch: x86
           - target: x86_64-win7-windows-msvc
             plaform: windows-legacy
+            rustflags: -C link-arg=/SUBSYSTEM:WINDOWS,6.1
             arch: x86_64
           - target: i686-win7-windows-msvc
             plaform: windows-legacy
+            rustflags: -C link-arg=/SUBSYSTEM:WINDOWS,6.1
             arch: x86
 
     steps:
