@@ -70,13 +70,6 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install LLVM 21
-        run: |
-          wget https://apt.llvm.org/llvm.sh
-          chmod +x llvm.sh
-          sudo ./llvm.sh 21
-          sudo ln -sf $(which lld-21) /usr/bin/ld
-
       - name: Install x86 dependencies
         if: matrix.arch == 'x86'
         run: sudo apt-get install -y libc6-dev-i386
@@ -96,15 +89,7 @@ jobs:
         run: cargo build -Z build-std=std,panic_abort --profile release-lto --locked --target ${{ matrix.target }} --features linux-appimage
         env:
           RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: -C linker-plugin-lto -C link-arg=-fuse-ld=lld-21 ${{ matrix.rustflags }}
-          CC: clang-21
-          CXX: clang++-21
-          AR: llvm-ar-21
-          CFLAGS: -O3 -flto -fuse-ld=lld-21 ${{ matrix.cflags }}
-          CXXFLAGS: -O3 -flto -fuse-ld=lld-21 ${{ matrix.cxxflags }}
-          CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: clang-21
-          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: clang-21
-          CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER: clang-21
+          RUSTFLAGS: ${{ matrix.rustflags }}
 
       - name: Package binary as tar.gz
         run: |
