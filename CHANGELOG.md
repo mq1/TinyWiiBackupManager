@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - 🪶 Smaller windows-legacy builds
+- ⛱️ Disabled shadows on windows-legacy builds, should fix graphical glitches on win7
 
 ## [v5.1.5] - 2026-02-11
 

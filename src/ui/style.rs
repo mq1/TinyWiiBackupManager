@@ -19,21 +19,23 @@ pub fn root_container(theme: &Theme) -> container::Style {
 }
 
 pub fn rounded_button(theme: &Theme, status: button::Status) -> button::Style {
-    let shadow_color = if theme.extended_palette().is_dark {
-        Color::from_rgba8(100, 100, 100, 0.2)
-    } else {
-        Color::from_rgba8(0, 0, 0, 0.2)
-    };
-
-    let shadow = Shadow {
-        color: shadow_color,
-        offset: Vector::new(0.0, 0.0),
-        blur_radius: 10.0,
-    };
-
     let mut style = button::primary(theme, status);
     style.border.radius = border::radius(30);
-    style.shadow = shadow;
+
+    if cfg!(not(feature = "win7")) {
+        let shadow_color = if theme.extended_palette().is_dark {
+            Color::from_rgba8(100, 100, 100, 0.2)
+        } else {
+            Color::from_rgba8(0, 0, 0, 0.2)
+        };
+
+        style.shadow = Shadow {
+            color: shadow_color,
+            offset: Vector::new(0.0, 0.0),
+            blur_radius: 10.0,
+        };
+    }
+
     style
 }
 
@@ -46,21 +48,23 @@ pub fn rounded_secondary_button(theme: &Theme, status: button::Status) -> button
 }
 
 pub fn rounded_danger_button(theme: &Theme, status: button::Status) -> button::Style {
-    let shadow_color = if theme.extended_palette().is_dark {
-        Color::from_rgba8(100, 100, 100, 0.2)
-    } else {
-        Color::from_rgba8(0, 0, 0, 0.2)
-    };
-
-    let shadow = Shadow {
-        color: shadow_color,
-        offset: Vector::new(0.0, 0.0),
-        blur_radius: 10.0,
-    };
-
     let mut style = button::danger(theme, status);
     style.border.radius = border::radius(30);
-    style.shadow = shadow;
+
+    if cfg!(not(feature = "win7")) {
+        let shadow_color = if theme.extended_palette().is_dark {
+            Color::from_rgba8(100, 100, 100, 0.2)
+        } else {
+            Color::from_rgba8(0, 0, 0, 0.2)
+        };
+
+        style.shadow = Shadow {
+            color: shadow_color,
+            offset: Vector::new(0.0, 0.0),
+            blur_radius: 10.0,
+        };
+    }
+
     style
 }
 
@@ -99,44 +103,48 @@ pub fn nav_container(theme: &Theme) -> container::Style {
 pub fn card(theme: &Theme) -> container::Style {
     let bg = theme.palette().background;
 
-    let shadow_color = if theme.extended_palette().is_dark {
-        Color::from_rgba8(100, 100, 100, 0.1)
-    } else {
-        Color::from_rgba8(0, 0, 0, 0.05)
-    };
-
-    let shadow = Shadow {
-        color: shadow_color,
-        offset: Vector::new(0.0, 0.0),
-        blur_radius: 10.0,
-    };
-
     let mut style = container::bordered_box(theme);
     style.background = Some(Background::Color(bg));
     style.border.radius = border::radius(10);
-    style.shadow = shadow;
+
+    if cfg!(not(feature = "win7")) {
+        let shadow_color = if theme.extended_palette().is_dark {
+            Color::from_rgba8(100, 100, 100, 0.1)
+        } else {
+            Color::from_rgba8(0, 0, 0, 0.05)
+        };
+
+        style.shadow = Shadow {
+            color: shadow_color,
+            offset: Vector::new(0.0, 0.0),
+            blur_radius: 10.0,
+        };
+    }
+
     style
 }
 
 pub fn heavy_card(theme: &Theme) -> container::Style {
     let bg = theme.palette().background;
 
-    let shadow_color = if theme.extended_palette().is_dark {
-        Color::from_rgba8(100, 100, 100, 0.2)
-    } else {
-        Color::from_rgba8(0, 0, 0, 0.1)
-    };
-
-    let shadow = Shadow {
-        color: shadow_color,
-        offset: Vector::new(0.0, 0.0),
-        blur_radius: 10.0,
-    };
-
     let mut style = container::bordered_box(theme);
     style.background = Some(Background::Color(bg));
     style.border.radius = border::radius(10);
-    style.shadow = shadow;
+
+    if cfg!(not(feature = "win7")) {
+        let shadow_color = if theme.extended_palette().is_dark {
+            Color::from_rgba8(100, 100, 100, 0.2)
+        } else {
+            Color::from_rgba8(0, 0, 0, 0.1)
+        };
+
+        style.shadow = Shadow {
+            color: shadow_color,
+            offset: Vector::new(0.0, 0.0),
+            blur_radius: 10.0,
+        };
+    }
+
     style
 }
 
