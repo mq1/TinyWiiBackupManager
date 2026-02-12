@@ -119,8 +119,8 @@ impl ConvertForWiiOperation {
                     (parent, out_path)
                 } else {
                     let disc_name = match disc_reader.header().disc_num {
-                        0 => "game".to_string(),
-                        n => format!("game{}", n + 1),
+                        0 => format!("game.{}", format_to_ext(out_format)),
+                        n => format!("disc{}.{}", n + 1, format_to_ext(out_format)),
                     };
 
                     let title = util::sanitize(&title)
@@ -133,9 +133,7 @@ impl ConvertForWiiOperation {
                         .join("games")
                         .join(format!("{title} [{id}]"));
 
-                    let out_path = parent
-                        .join(disc_name)
-                        .with_extension(format_to_ext(out_format));
+                    let out_path = parent.join(disc_name);
 
                     (parent, out_path)
                 };

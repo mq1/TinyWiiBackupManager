@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v5.1.7] - 2026-02-12
+
+### Fixed
+
+- ✏️ Typo in gc disc2.iso file name (#536)
+
 ## [v5.1.6] - 2026-02-12
 
 ### Changed
@@ -153,7 +159,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 🖼️ TinyWiiBackupManager icon now shows up again on the windows exe
 
-[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.6...HEAD
+[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.7...HEAD
+[v5.1.7]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.6...v5.1.7
 [v5.1.6]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.5...v5.1.6
 [v5.1.5]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.4...v5.1.5
 [v5.1.4]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.3...v5.1.4
