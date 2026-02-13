@@ -145,11 +145,9 @@ jobs:
           - target: x86_64-win7-windows-msvc
             platform: windows-legacy
             arch: x86_64
-            rustflags: -C link-arg=/SUBSYSTEM:WINDOWS,6.1
           - target: i686-win7-windows-msvc
             platform: windows-legacy
             arch: x86
-            rustflags: -C link-arg=/SUBSYSTEM:WINDOWS,6.1
 
     steps:
       - name: Checkout
