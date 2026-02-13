@@ -167,21 +167,6 @@ fn main() {
         }
 
         if env::var("CARGO_FEATURE_WINDOWS_LEGACY").is_ok() {
-            let yy_thunks_arch = match env::var("CARGO_CFG_TARGET_ARCH").unwrap().as_str() {
-                "x86" => "x86",
-                "x86_64" => "x64",
-                _ => panic!("Unsupported architecture for yy-thunks"),
-            };
-
-            let obj_path = Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap())
-                .join("YY-Thunks-Objs")
-                .join("objs")
-                .join(yy_thunks_arch)
-                .join("YY_Thunks_for_Win7.obj");
-
-            assert!(obj_path.exists());
-            println!("cargo:rustc-link-arg=native={}", obj_path.display());
-
             let vc_ltl_arch = match env::var("CARGO_CFG_TARGET_ARCH").unwrap().as_str() {
                 "x86" => "Win32",
                 "x86_64" => "x64",
@@ -197,6 +182,21 @@ fn main() {
 
             assert!(lib_path.exists());
             println!("cargo:rustc-link-search=native={}", lib_path.display());
+
+            let yy_thunks_arch = match env::var("CARGO_CFG_TARGET_ARCH").unwrap().as_str() {
+                "x86" => "x86",
+                "x86_64" => "x64",
+                _ => panic!("Unsupported architecture for yy-thunks"),
+            };
+
+            let obj_path = Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap())
+                .join("YY-Thunks-Objs")
+                .join("objs")
+                .join(yy_thunks_arch)
+                .join("YY_Thunks_for_Win7.obj");
+
+            assert!(obj_path.exists());
+            println!("cargo:rustc-link-arg=native={}", obj_path.display());
         }
 
         let mut res = winresource::WindowsResource::new();
