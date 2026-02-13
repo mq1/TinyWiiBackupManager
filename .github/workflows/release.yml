@@ -124,32 +124,35 @@ jobs:
           - target: x86_64-pc-windows-msvc
             platform: windows
             arch: x86_64-v3
-            rustflags: -C target-cpu=x86-64-v3
+            rustflags: -C target-cpu=x86-64-v3 -C link-arg=/MT
             cflags: /arch:AVX2
             cxxflags: /arch:AVX2
           - target: x86_64-pc-windows-msvc
             platform: windows
             arch: x86_64-v2
-            rustflags: -C target-cpu=x86-64-v2
+            rustflags: -C target-cpu=x86-64-v2 -C link-arg=/MT
             cflags: /arch:AVX
             cxxflags: /arch:AVX
           - target: x86_64-pc-windows-msvc
             platform: windows
             arch: x86_64
+            rustflags: -C link-arg=/MT
           - target: aarch64-pc-windows-msvc
             platform: windows
             arch: arm64
+            rustflags: -C link-arg=/MT
           - target: i686-pc-windows-msvc
             platform: windows
             arch: x86
+            rustflags: -C link-arg=/MT
           - target: x86_64-win7-windows-msvc
             platform: windows-legacy
-            rustflags: -C link-arg=/SUBSYSTEM:WINDOWS,6.1
             arch: x86_64
+            rustflags: -C link-arg=/SUBSYSTEM:WINDOWS,6.1 -C link-arg=/MT
           - target: i686-win7-windows-msvc
             platform: windows-legacy
-            rustflags: -C link-arg=/SUBSYSTEM:WINDOWS,6.1
             arch: x86
+            rustflags: -C link-arg=/SUBSYSTEM:WINDOWS,6.1 -C link-arg=/MT
 
     steps:
       - name: Checkout
@@ -167,6 +170,13 @@ jobs:
         run: |
           Invoke-WebRequest -Uri "https://github.com/Chuyu-Team/VC-LTL5/releases/download/v5.3.1/VC-LTL-Binary.7z" -OutFile "VC-LTL-Binary.7z"
           7z x VC-LTL-Binary.7z -oVC-LTL-Binary
+
+      - name: Download YY-Thunks
+        if: matrix.platform == 'windows-legacy'
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://github.com/Chuyu-Team/YY-Thunks/releases/download/v1.1.10-Beta3/YY-Thunks-Objs.zip" -OutFile "YY-Thunks-Objs.zip"
+          7z x YY-Thunks-Objs.zip -oYY-Thunks-Objs
 
       - name: Build binary
         shell: pwsh

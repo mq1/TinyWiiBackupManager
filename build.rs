@@ -173,6 +173,15 @@ fn main() {
                 _ => panic!("Unsupported architecture for vc-ltl5"),
             };
 
+            let obj_path = Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap())
+                .join("YY-Thunks-Objs")
+                .join("objs")
+                .join(vc_ltl_arch)
+                .join("YY_Thunks_for_Win7.obj");
+
+            assert!(obj_path.exists());
+            println!("cargo:rustc-link-arg=native={}", obj_path.display());
+
             let lib_path = Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap())
                 .join("VC-LTL-Binary")
                 .join("TargetPlatform")
