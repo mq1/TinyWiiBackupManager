@@ -124,35 +124,32 @@ jobs:
           - target: x86_64-pc-windows-msvc
             platform: windows
             arch: x86_64-v3
-            rustflags: -C target-cpu=x86-64-v3 -C link-arg=/MT
+            rustflags: -C target-cpu=x86-64-v3
             cflags: /arch:AVX2
             cxxflags: /arch:AVX2
           - target: x86_64-pc-windows-msvc
             platform: windows
             arch: x86_64-v2
-            rustflags: -C target-cpu=x86-64-v2 -C link-arg=/MT
+            rustflags: -C target-cpu=x86-64-v2
             cflags: /arch:AVX
             cxxflags: /arch:AVX
           - target: x86_64-pc-windows-msvc
             platform: windows
             arch: x86_64
-            rustflags: -C link-arg=/MT
           - target: aarch64-pc-windows-msvc
             platform: windows
             arch: arm64
-            rustflags: -C link-arg=/MT
           - target: i686-pc-windows-msvc
             platform: windows
             arch: x86
-            rustflags: -C link-arg=/MT
           - target: x86_64-win7-windows-msvc
             platform: windows-legacy
             arch: x86_64
-            rustflags: -C link-arg=/SUBSYSTEM:WINDOWS,6.1 -C link-arg=/MT
+            rustflags: -C link-arg=/SUBSYSTEM:WINDOWS,6.1
           - target: i686-win7-windows-msvc
             platform: windows-legacy
             arch: x86
-            rustflags: -C link-arg=/SUBSYSTEM:WINDOWS,6.1 -C link-arg=/MT
+            rustflags: -C link-arg=/SUBSYSTEM:WINDOWS,6.1
 
     steps:
       - name: Checkout
