@@ -198,8 +198,7 @@ fn main() {
             assert!(obj_path.exists());
             println!("cargo:rustc-link-arg={}", obj_path.display());
 
-            println!("cargo:rustc-link-arg=/NODEFAULTLIB:combase.lib");
-            println!("cargo:rustc-link-arg=ole32.lib");
+            println!("cargo:rustc-link-arg=/DELAYLOAD:combase.dll");
             println!("cargo:rustc-link-arg=/SUBSYSTEM:WINDOWS,6.1");
         }
 
