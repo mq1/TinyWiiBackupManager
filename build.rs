@@ -196,7 +196,7 @@ fn main() {
                 .join("YY_Thunks_for_Win7.obj");
 
             assert!(obj_path.exists());
-            println!("cargo:rustc-link-arg=native={}", obj_path.display());
+            println!("cargo:rustc-link-arg={}", obj_path.display());
         }
 
         let mut res = winresource::WindowsResource::new();
