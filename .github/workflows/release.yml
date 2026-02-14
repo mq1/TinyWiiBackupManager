@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - win7-testing
+      - xp-testing
     tags:
       - "v*.*.*"
     paths:
