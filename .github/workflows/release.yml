@@ -145,11 +145,9 @@ jobs:
             arch: x86
           - target: x86_64-win7-windows-msvc
             platform: windows-legacy
-            rustflags: -C link-arg=/SUBSYSTEM:WINDOWS,6.1
             arch: x86_64
           - target: i686-win7-windows-msvc
             platform: windows-legacy
-            rustflags: -C link-arg=/SUBSYSTEM:WINDOWS,6.1
             arch: x86
 
     steps:
@@ -168,6 +166,13 @@ jobs:
         run: |
           Invoke-WebRequest -Uri "https://github.com/Chuyu-Team/VC-LTL5/releases/download/v5.3.1/VC-LTL-Binary.7z" -OutFile "VC-LTL-Binary.7z"
           7z x VC-LTL-Binary.7z -oVC-LTL-Binary
+
+      - name: Download YY-Thunks
+        if: matrix.platform == 'windows-legacy'
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://github.com/Chuyu-Team/YY-Thunks/releases/download/v1.1.9/YY-Thunks-Objs.zip" -OutFile "YY-Thunks-Objs.zip"
+          7z x YY-Thunks-Objs.zip -oYY-Thunks-Objs
 
       - name: Build binary
         shell: pwsh
