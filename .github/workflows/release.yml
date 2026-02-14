@@ -164,14 +164,14 @@ jobs:
       - name: Download VC-LTL5
         shell: pwsh
         run: |
-          Invoke-WebRequest -Uri "https://github.com/Chuyu-Team/VC-LTL5/releases/download/v5.3.1/VC-LTL-Binary.7z" -OutFile "VC-LTL-Binary.7z"
+          Invoke-WebRequest -Uri "https://github.com/Chuyu-Team/VC-LTL5/releases/latest/download/VC-LTL-Binary.7z" -OutFile "VC-LTL-Binary.7z"
           7z x VC-LTL-Binary.7z -oVC-LTL-Binary
 
       - name: Download YY-Thunks
         if: matrix.platform == 'windows-legacy'
         shell: pwsh
         run: |
-          Invoke-WebRequest -Uri "https://github.com/Chuyu-Team/YY-Thunks/releases/download/v1.1.9/YY-Thunks-Objs.zip" -OutFile "YY-Thunks-Objs.zip"
+          Invoke-WebRequest -Uri "https://github.com/Chuyu-Team/YY-Thunks/releases/latest/download/YY-Thunks-Objs.zip" -OutFile "YY-Thunks-Objs.zip"
           7z x YY-Thunks-Objs.zip -oYY-Thunks-Objs
 
       - name: Build binary
