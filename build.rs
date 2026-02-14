@@ -177,7 +177,7 @@ fn main() {
 
             let vc_ltl_platform = match arch.as_str() {
                 "x86" => "5.1.2600.0",
-                "x86_64" => "5.2.3790.1830",
+                "x86_64" => "5.2.3790.0",
                 _ => panic!("Unsupported architecture for vc-ltl5"),
             };
 
