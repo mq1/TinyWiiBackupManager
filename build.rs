@@ -147,8 +147,10 @@ fn main() {
     }
 
     if env::var("CARGO_CFG_TARGET_OS").unwrap() == "windows" {
+        let arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
+
         if env::var("CARGO_FEATURE_WINDOWS").is_ok() {
-            let vc_ltl_arch = match env::var("CARGO_CFG_TARGET_ARCH").unwrap().as_str() {
+            let vc_ltl_arch = match arch.as_str() {
                 "x86" => "Win32",
                 "x86_64" => "x64",
                 "aarch64" => "ARM64",
@@ -167,21 +169,49 @@ fn main() {
         }
 
         if env::var("CARGO_FEATURE_WINDOWS_LEGACY").is_ok() {
-            let vc_ltl_arch = match env::var("CARGO_CFG_TARGET_ARCH").unwrap().as_str() {
+            let vc_ltl_arch = match arch.as_str() {
                 "x86" => "Win32",
                 "x86_64" => "x64",
+                _ => panic!("Unsupported architecture for vc-ltl5"),
+            };
+
+            let vc_ltl_platform = match arch.as_str() {
+                "x86" => "5.1.2600.0",
+                "x86_64" => "5.2.3790.0",
                 _ => panic!("Unsupported architecture for vc-ltl5"),
             };
 
             let lib_path = Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap())
                 .join("VC-LTL-Binary")
                 .join("TargetPlatform")
-                .join("6.0.6000.0")
+                .join(vc_ltl_platform)
                 .join("lib")
                 .join(vc_ltl_arch);
 
             assert!(lib_path.exists());
             println!("cargo:rustc-link-search=native={}", lib_path.display());
+
+            let yy_thunks_arch = match arch.as_str() {
+                "x86" => "x86",
+                "x86_64" => "x64",
+                _ => panic!("Unsupported architecture for yy-thunks"),
+            };
+
+            let obj_path = Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap())
+                .join("YY-Thunks-Objs")
+                .join("objs")
+                .join(yy_thunks_arch)
+                .join("YY_Thunks_for_WinXP.obj");
+
+            assert!(obj_path.exists());
+            println!("cargo:rustc-link-arg={}", obj_path.display());
+
+            let subsystem = match arch.as_str() {
+                "x86" => "5.1",
+                "x86_64" => "5.2",
+                _ => panic!("Unsupported architecture for yy-thunks"),
+            };
+            println!("cargo:rustc-link-arg=/SUBSYSTEM:WINDOWS,{subsystem}");
         }
 
         let mut res = winresource::WindowsResource::new();
