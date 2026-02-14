@@ -45,8 +45,7 @@
 - **:window: Windows**:\
   :arrow_right: [Download installer](https://github.com/mq1/TinyWiiBackupManagerInstaller/releases/latest/download/TinyWiiBackupManagerInstaller.exe) (recommended for most users)\
   :arrow_right: [Download standalone binary](https://github.com/mq1/TinyWiiBackupManager/releases/latest)\
-  :warning: Windows 7-8-8.1 users should use the installer, or download the `windows-legacy` standalone binary.\
-  :warning: Running TinyWiiBackupManager on Windows 7 requires [VxKex](https://github.com/i486/VxKex).
+  :warning: Windows 7-8-8.1 users should use the installer, or download the `windows-legacy` standalone binary.
   
   - :ice_cream: scoop:\
     `scoop bucket add TinyWiiBackupManager https://github.com/mq1/TinyWiiBackupManager`\
