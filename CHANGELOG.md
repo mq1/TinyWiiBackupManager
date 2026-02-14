@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - 🪟 windows-legacy build now works on windows 7 without VxKex! (#522)
+- ⛱️ Remove shadows for now to avoid glitches when cpu rendering
 
 ## [v5.1.7] - 2026-02-12
 
