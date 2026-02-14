@@ -19,7 +19,12 @@ mod util;
 
 use crate::state::State;
 use iced::{Size, window};
-use std::env;
+
+#[cfg(feature = "windows-legacy")]
+#[link(name = "ole32")]
+unsafe extern "system" {
+    pub unsafe fn CoTaskMemFree(pv: *mut std::ffi::c_void);
+}
 
 #[cfg(any(target_os = "windows", target_os = "linux"))]
 #[inline]
@@ -39,7 +44,7 @@ fn get_window_icon() -> Option<window::Icon> {
 
 fn main() -> iced::Result {
     unsafe {
-        env::set_var("WGPU_POWER_PREF", "none");
+        std::env::set_var("WGPU_POWER_PREF", "none");
     }
 
     let height = if cfg!(target_os = "macos") {
