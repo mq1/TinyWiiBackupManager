@@ -74,17 +74,18 @@ pub fn confirm(
 
 pub fn pick_file(
     _: &dyn Window,
-    _: String,
+    title: String,
     _: impl IntoIterator<Item = (String, Vec<String>)>,
     on_picked: impl FnOnce(PathBuf) -> Message + 'static,
 ) -> Message {
-    let arg = "javascript:
-        var f=document.createElement('input');
-        f.type='file';
-        f.click();
-        if(f.value) WScript.Echo(f.value);
-        close();
-    ";
+    let arg = format!(
+        "javascript: \
+            var dlg = new ActiveXObject('UserAccounts.CommonDialog'); \
+            dlg.Title = '{}'; \
+            if (dlg.ShowOpen()) WScript.Echo(dlg.FileName); \
+            close();",
+        title.replace("'", "\\'").replace("\\", "\\\\"),
+    );
 
     let Ok(output) = Command::new("mshta").arg(arg).output() else {
         return Message::None;
