@@ -83,8 +83,7 @@ fn confirm(
 
     let res = Command::new("CScript")
         .arg("//Nologo")
-        .arg("//U")
-        .arg(format!("\"{}\"", vbs_path.display()))
+        .arg(vbs_path.to_string_lossy().to_string())
         .arg("test")
         .arg("text")
         .arg(level.as_str())
