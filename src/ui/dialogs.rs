@@ -30,10 +30,10 @@ fn confirm(
         .set_level(level)
         .confirm();
 
-    if dialog.show().unwrap_or(false) {
-        on_confirm
-    } else {
-        Message::None
+    match dialog.show() {
+        Ok(true) => on_confirm,
+        Ok(false) => Message::None,
+        Err(e) => Message::GenericError(e.to_string()),
     }
 }
 
@@ -49,8 +49,10 @@ fn alert(window: &dyn Window, title: String, text: Option<String>, level: Messag
 
     let dialog = dialog.alert();
 
-    let _ = dialog.show();
-    Message::None
+    match dialog.show() {
+        Ok(()) => Message::None,
+        Err(e) => Message::GenericError(e.to_string()),
+    }
 }
 
 fn pick_dir(
@@ -63,10 +65,10 @@ fn pick_dir(
         .set_title(title)
         .open_single_dir();
 
-    if let Some(path) = dialog.show().unwrap_or(None) {
-        on_picked(path)
-    } else {
-        Message::None
+    match dialog.show() {
+        Ok(Some(path)) => on_picked(path),
+        Ok(None) => Message::None,
+        Err(e) => Message::GenericError(e.to_string()),
     }
 }
 
@@ -82,10 +84,10 @@ fn pick_file(
         .add_filters(filters)
         .open_single_file();
 
-    if let Some(path) = dialog.show().unwrap_or(None) {
-        on_picked(path)
-    } else {
-        Message::None
+    match dialog.show() {
+        Ok(Some(path)) => on_picked(path),
+        Ok(None) => Message::None,
+        Err(e) => Message::GenericError(e.to_string()),
     }
 }
 
@@ -101,11 +103,10 @@ fn pick_files(
         .add_filters(filters)
         .open_multiple_file();
 
-    let paths = dialog.show().unwrap_or_default();
-    if paths.is_empty() {
-        Message::None
-    } else {
-        on_picked(paths)
+    match dialog.show() {
+        Ok(paths) if !paths.is_empty() => on_picked(paths),
+        Ok(_) => Message::None,
+        Err(e) => Message::GenericError(e.to_string()),
     }
 }
 
@@ -123,10 +124,10 @@ fn save_file(
         .set_filename(filename)
         .save_single_file();
 
-    if let Some(path) = dialog.show().unwrap_or(None) {
-        on_picked(path)
-    } else {
-        Message::None
+    match dialog.show() {
+        Ok(Some(path)) => on_picked(path),
+        Ok(None) => Message::None,
+        Err(e) => Message::GenericError(e.to_string()),
     }
 }
 
