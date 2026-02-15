@@ -28,12 +28,7 @@ pub fn confirm(
     }
 }
 
-pub fn alert(
-    window: &dyn Window,
-    title: String,
-    text: Option<String>,
-    level: MessageLevel,
-) -> Message {
+pub fn alert(window: &dyn Window, title: String, text: String, level: MessageLevel) -> Message {
     let mut dialog = DialogBuilder::message()
         .set_owner(&window)
         .set_title(title)
