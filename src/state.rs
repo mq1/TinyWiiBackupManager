@@ -292,10 +292,12 @@ impl State {
 
                 self.update(Message::RefreshGamesAndApps)
             }
-            Message::AskDeleteDirConfirmation(path) => {
-                let f = move |w| dialogs::confirm_delete_dir(w, path);
-                window::oldest().and_then(|id| window::run(id, f))
-            }
+            Message::AskDeleteDirConfirmation(path) => window::oldest().and_then(move |id| {
+                window::run(id, {
+                    let path = path.clone();
+                    move |w| dialogs::confirm_delete_dir(w, path)
+                })
+            }),
             Message::DeleteDirConfirmed(path) => {
                 if let Err(e) = fs::remove_dir_all(path) {
                     self.notifications.error(e.to_string());
@@ -357,10 +359,12 @@ impl State {
                 self.drive_info = drive_info;
                 Task::none()
             }
-            Message::AskInstallOscApp(app) => {
-                let f = move |w| dialogs::confirm_install_osc_app(w, app);
-                window::oldest().and_then(|id| window::run(id, f))
-            }
+            Message::AskInstallOscApp(app) => window::oldest().and_then(move |id| {
+                window::run(id, {
+                    let app = app.clone();
+                    move |w| dialogs::confirm_install_osc_app(w, app)
+                })
+            }),
             Message::InstallOscApp(app) => {
                 let base_dir = self.config.mount_point().clone();
                 app.get_install_task(base_dir)
@@ -460,8 +464,12 @@ impl State {
                 if entries.is_empty() {
                     window::oldest().and_then(|id| window::run(id, dialogs::no_new_games))
                 } else {
-                    let f = move |w| dialogs::confirm_add_games(w, entries);
-                    window::oldest().and_then(|id| window::run(id, f))
+                    window::oldest().and_then(move |id| {
+                        window::run(id, {
+                            let entries = entries.clone();
+                            move |w| dialogs::confirm_add_games(w, entries)
+                        })
+                    })
                 }
             }
             Message::AddGamesToTransferStack(paths) => {
@@ -566,10 +574,13 @@ impl State {
                 self.status = status;
                 Task::none()
             }
-            Message::ChooseArchiveDest(source, title) => {
-                let f = move |w| dialogs::pick_archive_dest(w, source, title);
-                window::oldest().and_then(|id| window::run(id, f))
-            }
+            Message::ChooseArchiveDest(source, title) => window::oldest().and_then(move |id| {
+                window::run(id, {
+                    let source = source.clone();
+                    let title = title.clone();
+                    move |w| dialogs::pick_archive_dest(w, source, title)
+                })
+            }),
             Message::ArchiveGame(source, title, dest) => {
                 let op = ArchiveOperation::new(source, title, dest);
                 self.transfer_queue.push(TransferOperation::Archive(op));
@@ -632,10 +643,12 @@ impl State {
                     .info("Sending file to Wii...".to_string());
                 wiiload::get_download_and_send_via_wiiload_task(self, zip_url)
             }
-            Message::ConfirmStripGame(game) => {
-                let f = move |w| dialogs::confirm_strip_game(w, game);
-                window::oldest().and_then(|id| window::run(id, f))
-            }
+            Message::ConfirmStripGame(game) => window::oldest().and_then(move |id| {
+                window::run(id, {
+                    let game = game.clone();
+                    move |w| dialogs::confirm_strip_game(w, game)
+                })
+            }),
             Message::StripGame(game) => {
                 self.notifications
                     .info(format!("Removing update partition from {}", game.title()));
