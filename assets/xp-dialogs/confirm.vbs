@@ -1,7 +1,7 @@
 ' SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 ' SPDX-License-Identifier: GPL-3.0-only
 
-' Usage: cscript confirm.vbs "title" "message" "Info|Warning|Error""
+' Usage: cscript confirm.vbs "title" "message" "Info|Warning|Error"
 ' Returns: yes|no
 
 Dim title, text, level, icon, result

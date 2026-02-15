@@ -1,11 +1,14 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use image::EncodableLayout;
+
 use crate::{data_dir::get_data_dir, message::Message};
 use std::{
     fs,
+    io::Write,
     path::{Path, PathBuf},
-    process::Command,
+    process::{Command, Stdio},
 };
 
 pub enum Level {
@@ -65,28 +68,38 @@ fn alert(title: String, text: String, level: Level) -> Message {
     Message::None
 }
 
-fn confirm(
-    data_dir: &Path,
-    title: &str,
-    text: &str,
-    level: &Level,
-    on_confirm: Message,
-) -> Message {
-    let vbs_path = data_dir.join("confirm.vbs");
-    let _ = fs::write(
-        &vbs_path,
-        include_bytes!("../../assets/xp-dialogs/confirm.vbs"),
-    );
+fn confirm(title: &str, text: &str, level: &Level, on_confirm: Message) -> Message {
+    let script = include_bytes!("../../assets/xp-dialogs/confirm.vbs");
 
-    let output = Command::new("cscript")
-        .arg("//NoLogo")
-        .arg(&vbs_path)
+    let res = Command::new("cscript")
+        .arg("//Nologo")
+        .arg("-")
         .arg(title)
         .arg(text)
         .arg(level.as_str())
-        .output();
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn();
 
-    let output = match output {
+    let mut child = match res {
+        Ok(child) => child,
+        Err(e) => {
+            return Message::GenericError(e.to_string());
+        }
+    };
+
+    let mut stdin = match child.stdin.take() {
+        Some(stdin) => stdin,
+        None => {
+            return Message::GenericError("Failed to get stdin".to_string());
+        }
+    };
+
+    if let Err(e) = stdin.write_all(script) {
+        return Message::GenericError(e.to_string());
+    }
+
+    let output = match child.wait_with_output() {
         Ok(output) => output,
         Err(e) => {
             return Message::GenericError(e.to_string());
@@ -197,11 +210,11 @@ fn save_file(
     }
 }
 
-pub fn confirm_strip_all_games(data_dir: &Path) -> Message {
+pub fn confirm_strip_all_games() -> Message {
     const TITLE: &str = "Remove update partitions?";
     const TEXT: &str = "Are you sure you want to remove the update partitions from all .wbfs files?\n\nThis is irreversible!";
     const LEVEL: &Level = &Level::Warning;
     let on_confirm = Message::StripAllGames;
 
-    confirm(data_dir, TITLE, TEXT, LEVEL, on_confirm)
+    confirm(TITLE, TEXT, LEVEL, on_confirm)
 }
