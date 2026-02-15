@@ -85,8 +85,8 @@ fn confirm(
         .arg("//Nologo")
         .arg("//U")
         .arg(&vbs_path)
-        .arg(title)
-        .arg(text)
+        .arg("test")
+        .arg("text")
         .arg(level.as_str())
         .output();
 
