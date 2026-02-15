@@ -4,23 +4,20 @@
 #![allow(clippy::needless_pass_by_value)]
 
 use crate::{data_dir::get_data_dir, message::Message};
-use iced::Window;
 use std::{fs, path::PathBuf, process::Command};
 
-#[allow(dead_code)]
-#[derive(Clone, Copy, Debug)]
-pub enum MessageLevel {
+pub enum Level {
     Info,
     Warning,
     Error,
 }
 
-impl MessageLevel {
-    pub fn as_str(&self) -> &'static str {
+impl Level {
+    fn as_str(&self) -> &'static str {
         match self {
-            MessageLevel::Info => "Info",
-            MessageLevel::Warning => "Warning",
-            MessageLevel::Error => "Error",
+            Level::Info => "Info",
+            Level::Warning => "Warning",
+            Level::Error => "Error",
         }
     }
 }
@@ -43,7 +40,7 @@ fn get_filter_string(filters: impl IntoIterator<Item = (String, Vec<String>)>) -
         .join("|")
 }
 
-pub fn alert(_: &dyn Window, title: String, text: String, level: MessageLevel) -> Message {
+fn alert(title: String, text: String, level: Level) -> Message {
     let data_dir = match get_data_dir() {
         Ok(dir) => dir,
         Err(_) => std::env::temp_dir(),
@@ -66,13 +63,7 @@ pub fn alert(_: &dyn Window, title: String, text: String, level: MessageLevel) -
     Message::None
 }
 
-pub fn confirm(
-    _: &dyn Window,
-    title: String,
-    text: String,
-    level: MessageLevel,
-    on_confirm: Message,
-) -> Message {
+fn confirm(title: String, text: String, level: Level, on_confirm: Message) -> Message {
     let data_dir = match get_data_dir() {
         Ok(dir) => dir,
         Err(_) => std::env::temp_dir(),
@@ -104,8 +95,7 @@ pub fn confirm(
     }
 }
 
-pub fn pick_file(
-    _: &dyn Window,
+fn pick_file(
     title: String,
     filters: impl IntoIterator<Item = (String, Vec<String>)>,
     on_picked: impl FnOnce(PathBuf) -> Message + 'static,
@@ -130,8 +120,7 @@ pub fn pick_file(
     }
 }
 
-pub fn pick_files(
-    _: &dyn Window,
+fn pick_files(
     title: String,
     filters: impl IntoIterator<Item = (String, Vec<String>)>,
     on_picked: impl FnOnce(Vec<PathBuf>) -> Message + 'static,
@@ -156,11 +145,7 @@ pub fn pick_files(
     }
 }
 
-pub fn pick_dir(
-    _: &dyn Window,
-    title: String,
-    on_picked: impl FnOnce(PathBuf) -> Message + 'static,
-) -> Message {
+fn pick_dir(title: String, on_picked: impl FnOnce(PathBuf) -> Message + 'static) -> Message {
     let title_escaped = title.replace('"', "\"\"");
 
     let arg = format!(
@@ -179,8 +164,7 @@ pub fn pick_dir(
     }
 }
 
-pub fn save_file(
-    _: &dyn Window,
+fn save_file(
     title: String,
     filters: impl IntoIterator<Item = (String, Vec<String>)>,
     filename: String,
@@ -205,4 +189,13 @@ pub fn save_file(
     } else {
         on_picked(PathBuf::from(path))
     }
+}
+
+pub fn confirm_strip_all_games() -> Message {
+    let title = "Remove update partitions?".to_string();
+    let text = "Are you sure you want to remove the update partitions from all .wbfs files?\n\nThis is irreversible!".to_string();
+    let level = Level::Warning;
+    let on_confirm = Message::StripAllGames;
+
+    confirm(title, text, level, on_confirm)
 }

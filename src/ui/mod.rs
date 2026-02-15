@@ -16,10 +16,7 @@ mod components;
 pub mod dialogs;
 pub mod lucide;
 mod style;
-
-#[cfg_attr(not(feature = "windows-legacy"), path = "modern_dialogs.rs")]
-#[cfg_attr(feature = "windows-legacy", path = "xp_dialogs.rs")]
-pub mod os_dialogs;
+pub mod xp_dialogs;
 
 #[cfg(feature = "windows")]
 pub mod window_color;

@@ -23,7 +23,7 @@ use crate::{
     known_mount_points,
     message::Message,
     notifications::Notifications,
-    ui::{Screen, dialogs, lucide},
+    ui::{Screen, dialogs, lucide, xp_dialogs},
     updater,
     util::{DriveInfo, clean_old_files},
 };
@@ -36,7 +36,11 @@ use iced::{
     window,
 };
 use semver::Version;
-use std::{ffi::OsStr, fs, path::PathBuf};
+use std::{
+    ffi::OsStr,
+    fs,
+    path::{Path, PathBuf},
+};
 use which_fs::FsKind;
 
 #[cfg(target_os = "macos")]
@@ -61,6 +65,7 @@ pub struct State {
     pub status: String,
     pub manual_archiving_game: PathBuf,
     pub osc_icons_download_started: bool,
+    pub is_xp: bool,
 
     // scroll positions
     pub games_scroll_id: Id,
@@ -79,6 +84,8 @@ impl State {
 
         #[cfg(feature = "windows")]
         let theme = config.theme_preference();
+
+        let is_xp = cfg!(feature = "windows-legacy") && !Path::new("C:\\Users").exists();
 
         let mut initial_state = Self {
             screen: Screen::Games,
@@ -99,6 +106,7 @@ impl State {
             status: String::new(),
             manual_archiving_game: PathBuf::new(),
             osc_icons_download_started: false,
+            is_xp,
 
             // scroll positions
             games_scroll_id: Id::unique(),
@@ -674,7 +682,12 @@ impl State {
                 }
             }
             Message::ConfirmStripAllGames => {
-                window::oldest().and_then(|id| window::run(id, dialogs::confirm_strip_all_games))
+                if self.is_xp {
+                    self.update(xp_dialogs::confirm_strip_all_games())
+                } else {
+                    window::oldest()
+                        .and_then(|id| window::run(id, dialogs::confirm_strip_all_games))
+                }
             }
             Message::StripAllGames => {
                 self.notifications.info(
