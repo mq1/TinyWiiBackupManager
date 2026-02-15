@@ -76,6 +76,6 @@ pub fn get_init_task() -> Task<Message> {
             LazyLock::force(&ID_MAP);
             LazyLock::force(&TITLES);
         },
-        |()| Message::EmptyResult(Ok(())),
+        |()| Message::None,
     )
 }

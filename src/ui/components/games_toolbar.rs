@@ -83,7 +83,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 .width(35)
                 .height(35)
                 .style(style::rounded_button)
-                .on_press(Message::ChooseGamesToAdd),
+                .on_press(Message::PickGames),
             "Add games",
         ))
         .push(my_tooltip::view(

@@ -95,7 +95,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 .style(style::inactive_nav_button)
                 .height(40)
                 .width(40)
-                .on_press(Message::SelectMountPoint),
+                .on_press(Message::PickMountPoint),
             "Select Drive/Mount Point",
         ))
         .push(my_tooltip::view(

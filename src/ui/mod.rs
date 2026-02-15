@@ -16,7 +16,6 @@ mod components;
 pub mod dialogs;
 pub mod lucide;
 mod style;
-pub use components::message_dialog::MyMessageDialog;
 
 #[cfg(feature = "windows")]
 pub mod window_color;
@@ -36,10 +35,6 @@ pub enum Screen {
 }
 
 pub fn view(state: &State) -> Element<'_, Message> {
-    if let Some(message_dialog) = &state.message_dialog {
-        return message_dialog.view();
-    }
-
     let mut col = Column::new();
 
     col = col.push(match &state.screen {
