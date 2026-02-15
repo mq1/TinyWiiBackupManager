@@ -64,9 +64,8 @@ fn alert(title: String, text: String, level: Level) -> Message {
 }
 
 fn confirm(title: String, text: String, level: Level, on_confirm: Message) -> Message {
-    let data_dir = match get_data_dir() {
-        Ok(dir) => dir,
-        Err(_) => std::env::temp_dir(),
+    let Some(data_dir) = std::env::var_os("TEMP").map(PathBuf::from) else {
+        return Message::None;
     };
 
     let vbs_path = data_dir.join("confirm.vbs");
