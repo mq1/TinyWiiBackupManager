@@ -74,12 +74,22 @@ pub fn confirm(
         "vbscript:Execute(\"Dim result: result = MsgBox(\"\"{text_escaped}\"\",{level},\"\"{title_escaped}\"\"): WScript.StdOut.Write result: close\")"
     );
 
-    let output = Command::new("mshta").arg(arg).output().ok();
+    let output = match Command::new("mshta").arg(arg).output() {
+        Ok(o) => o,
+        Err(e) => {
+            return Message::GenericError(e.to_string());
+        }
+    };
 
-    let status = output
-        .and_then(|o| String::from_utf8(o.stdout).ok())
-        .and_then(|s| s.trim().parse::<i32>().ok())
-        .unwrap_or(2);
+    let status = match String::from_utf8_lossy(&output.stdout)
+        .trim()
+        .parse::<i32>()
+    {
+        Ok(s) => s,
+        Err(e) => {
+            return Message::GenericError(e.to_string());
+        }
+    };
 
     if status == 1 {
         on_confirm
