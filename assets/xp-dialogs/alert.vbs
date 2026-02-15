@@ -3,10 +3,10 @@
 
 ' Usage: cscript confirm.vbs "title" "message" "Info|Warning|Error"
 
-Dim title, message, level, icon
+Dim title, text, level, icon
 
 title = WScript.Arguments(0)
-message = WScript.Arguments(1)
+text = WScript.Arguments(1)
 level = WScript.Arguments(2)
 
 Select Case level
@@ -18,5 +18,5 @@ Select Case level
         icon = vbCritical
 End Select
 
-MsgBox WScript.Arguments(1), vbOKOnly + icon, WScript.Arguments(0)
+MsgBox text, vbOKOnly + icon, title
 
