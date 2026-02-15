@@ -75,17 +75,22 @@ fn confirm(
     let script = include_bytes!("../../assets/xp-dialogs/confirm.vbs");
 
     let vbs_path = data_dir.join("confirm.vbs");
+    let vbs_path = match dunce::canonicalize(vbs_path) {
+        Ok(path) => path,
+        Err(e) => {
+            return Message::GenericError(e.to_string());
+        }
+    };
+
     let _ = fs::write(&vbs_path, script);
 
-    let cmd = format!(
-        "CScript //Nologo \"{}\" \"{}\" \"{}\" \"{}\"",
-        vbs_path.display(),
-        title,
-        text,
-        level.as_str()
-    );
-
-    let res = Command::new("cmd").arg("/C").arg(&cmd).output();
+    let res = Command::new("CScript")
+        .arg("//Nologo")
+        .arg(&vbs_path)
+        .arg(title)
+        .arg(text)
+        .arg(level.as_str())
+        .output();
 
     let output = match res {
         Ok(output) => output,
