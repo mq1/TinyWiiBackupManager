@@ -84,6 +84,16 @@ fn confirm(
 
     let _ = fs::write(&vbs_path, script);
 
+    let cmd_str = format!(
+        "CScript //Nologo \"{}\" \"{}\" \"{}\" \"{}\"",
+        vbs_path.display(),
+        title,
+        text,
+        level.as_str()
+    );
+    let log_path = data_dir.join("confirm.log");
+    let _ = fs::write(&log_path, cmd_str);
+
     let res = Command::new("CScript")
         .arg("//Nologo")
         .arg(&vbs_path)
