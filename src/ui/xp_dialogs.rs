@@ -1,10 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#![allow(clippy::needless_pass_by_value)]
+
 use crate::message::Message;
 use iced::Window;
 use std::{path::PathBuf, process::Command};
 
+#[allow(dead_code)]
 #[derive(Clone, Copy, Debug)]
 pub enum MessageLevel {
     Info,
@@ -24,8 +27,8 @@ pub fn alert(_: &dyn Window, title: String, text: String, level: MessageLevel) -
             var sh=new ActiveXObject('WScript.Shell'); \
             sh.Popup('{}',0,'{}',{}); \
             WScript.Quit(0);",
-        text.replace("\\", "\\\\").replace("'", "\\'"),
-        title.replace("\\", "\\\\").replace("'", "\\'"),
+        text.replace('\\', "\\\\").replace('\'', "\\'"),
+        title.replace('\\', "\\\\").replace('\'', "\\'"),
         level
     );
 
@@ -52,8 +55,8 @@ pub fn confirm(
             var sh=new ActiveXObject('WScript.Shell'); \
             var btn=sh.Popup('{}',0,'{}',{}); \
             WScript.Quit(btn);",
-        text.replace("\\", "\\\\").replace("'", "\\'"),
-        title.replace("\\", "\\\\").replace("'", "\\'"),
+        text.replace('\\', "\\\\").replace('\'', "\\'"),
+        title.replace('\\', "\\\\").replace('\'', "\\'"),
         level
     );
 
@@ -84,7 +87,7 @@ pub fn pick_file(
             dlg.Title = '{}'; \
             if (dlg.ShowOpen()) WScript.Echo(dlg.FileName); \
             WScript.Quit(0);",
-        title.replace("\\", "\\\\").replace("'", "\\'"),
+        title.replace('\\', "\\\\").replace('\'', "\\'"),
     );
 
     let Ok(output) = Command::new("mshta").arg(arg).output() else {
@@ -112,7 +115,7 @@ pub fn pick_files(
             dlg.Title = '{}'; \
             if (dlg.ShowOpen()) WScript.Echo(dlg.FileName); \
             WScript.Quit(0);",
-        title.replace("\\", "\\\\").replace("'", "\\'"),
+        title.replace('\\', "\\\\").replace('\'', "\\'"),
     );
 
     let Ok(output) = Command::new("mshta").arg(arg).output() else {
@@ -138,7 +141,7 @@ pub fn pick_dir(
             var f = sh.BrowseForFolder(0, '{}', 0); \
             if (f) WScript.Echo(f.self.Path); \
             WScript.Quit(0);",
-        title.replace("\\", "\\\\").replace("'", "\\'")
+        title.replace('\\', "\\\\").replace('\'', "\\'")
     );
 
     let Ok(output) = Command::new("mshta").arg(arg).output() else {
@@ -167,8 +170,8 @@ pub fn save_file(
             dlg.FileName = '{}'; \
             if (dlg.ShowSave()) WScript.Echo(dlg.FileName); \
             WScript.Quit(0);",
-        title.replace("\\", "\\\\").replace("'", "\\'"),
-        filename.replace("\\", "\\\\").replace("'", "\\'"),
+        title.replace('\\', "\\\\").replace('\'', "\\'"),
+        filename.replace('\\', "\\\\").replace('\'', "\\'"),
     );
 
     let Ok(output) = Command::new("mshta").arg(arg).output() else {
