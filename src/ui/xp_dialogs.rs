@@ -74,7 +74,7 @@ fn confirm(title: &str, text: &str, level: &Level, on_confirm: Message) -> Messa
 
     let res = Command::new("cscript.exe")
         .arg("//nologo")
-        .arg("-")
+        .arg("stdin:")
         .arg(title)
         .arg(text)
         .arg(level.as_str())
