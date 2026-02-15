@@ -124,3 +124,33 @@ pub fn pick_dir(
         on_picked(PathBuf::from(path))
     }
 }
+
+pub fn save_file(
+    _: &dyn Window,
+    title: String,
+    _: impl IntoIterator<Item = (String, Vec<String>)>,
+    filename: String,
+    on_picked: impl FnOnce(PathBuf) -> Message + 'static,
+) -> Message {
+    let arg = format!(
+        "javascript: \
+            var dlg = new ActiveXObject('UserAccounts.CommonDialog'); \
+            dlg.Title = '{}'; \
+            dlg.FileName = '{}'; \
+            if (dlg.ShowSave()) WScript.Echo(dlg.FileName); \
+            close();",
+        title.replace("'", "\\'").replace("\\", "\\\\"),
+        filename.replace("'", "\\'").replace("\\", "\\\\"),
+    );
+
+    let Ok(output) = Command::new("mshta").arg(arg).output() else {
+        return Message::None;
+    };
+
+    let path = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    if path.is_empty() {
+        Message::None
+    } else {
+        on_picked(PathBuf::from(path))
+    }
+}
