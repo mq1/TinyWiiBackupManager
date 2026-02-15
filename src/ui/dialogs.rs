@@ -37,13 +37,17 @@ fn confirm(
     }
 }
 
-fn alert(window: &dyn Window, title: String, text: String, level: MessageLevel) -> Message {
-    let dialog = DialogBuilder::message()
+fn alert(window: &dyn Window, title: String, text: Option<String>, level: MessageLevel) -> Message {
+    let mut dialog = DialogBuilder::message()
         .set_owner(&window)
         .set_title(title)
-        .set_text(text)
-        .set_level(level)
-        .alert();
+        .set_level(level);
+
+    if let Some(text) = text {
+        dialog = dialog.set_text(text);
+    }
+
+    let dialog = dialog.alert();
 
     let _ = dialog.show();
     Message::None
@@ -278,7 +282,7 @@ pub fn pick_archive_dest(window: &dyn Window, source: PathBuf, game_title: Strin
 
 pub fn no_new_games(window: &dyn Window) -> Message {
     let title = "No new games to add".to_string();
-    let text = "All selected games are already installed.".to_string();
+    let text = Some("All selected games are already installed.".to_string());
     let level = MessageLevel::Info;
 
     alert(window, title, text, level)
@@ -316,7 +320,7 @@ pub fn confirm_install_osc_app(window: &dyn Window, app: OscAppMeta) -> Message 
 
 pub fn no_archive_source(window: &dyn Window) -> Message {
     let title = "No archive source found".to_string();
-    let text = "No archive source found.".to_string();
+    let text = None;
     let level = MessageLevel::Warning;
 
     alert(window, title, text, level)
