@@ -15,6 +15,24 @@ pub enum MessageLevel {
     Error,
 }
 
+fn get_filter_string(filters: impl IntoIterator<Item = (String, Vec<String>)>) -> String {
+    filters
+        .into_iter()
+        .map(|(name, extensions)| {
+            format!(
+                "{}|{}",
+                name,
+                extensions
+                    .into_iter()
+                    .map(|ext| format!("*.{ext}"))
+                    .collect::<Vec<_>>()
+                    .join(";")
+            )
+        })
+        .collect::<Vec<_>>()
+        .join("|")
+}
+
 pub fn alert(_: &dyn Window, title: String, text: String, level: MessageLevel) -> Message {
     let level = match level {
         MessageLevel::Info => 64 + 256,
@@ -78,16 +96,18 @@ pub fn confirm(
 pub fn pick_file(
     _: &dyn Window,
     title: String,
-    _: impl IntoIterator<Item = (String, Vec<String>)>,
+    filters: impl IntoIterator<Item = (String, Vec<String>)>,
     on_picked: impl FnOnce(PathBuf) -> Message + 'static,
 ) -> Message {
     let arg = format!(
         "javascript: \
             var dlg = new ActiveXObject('UserAccounts.CommonDialog'); \
             dlg.Title = '{}'; \
+            dlg.Filter = '{}'; \
             if (dlg.ShowOpen()) WScript.Echo(dlg.FileName); \
             WScript.Quit(0);",
         title.replace('\\', "\\\\").replace('\'', "\\'"),
+        get_filter_string(filters),
     );
 
     let Ok(output) = Command::new("mshta").arg(arg).output() else {
@@ -106,16 +126,18 @@ pub fn pick_file(
 pub fn pick_files(
     _: &dyn Window,
     title: String,
-    _: impl IntoIterator<Item = (String, Vec<String>)>,
+    filters: impl IntoIterator<Item = (String, Vec<String>)>,
     on_picked: impl FnOnce(Vec<PathBuf>) -> Message + 'static,
 ) -> Message {
     let arg = format!(
         "javascript: \
             var dlg = new ActiveXObject('UserAccounts.CommonDialog'); \
             dlg.Title = '{}'; \
+            dlg.Filter = '{}'; \
             if (dlg.ShowOpen()) WScript.Echo(dlg.FileName); \
             WScript.Quit(0);",
         title.replace('\\', "\\\\").replace('\'', "\\'"),
+        get_filter_string(filters),
     );
 
     let Ok(output) = Command::new("mshta").arg(arg).output() else {
@@ -159,7 +181,7 @@ pub fn pick_dir(
 pub fn save_file(
     _: &dyn Window,
     title: String,
-    _: impl IntoIterator<Item = (String, Vec<String>)>,
+    filters: impl IntoIterator<Item = (String, Vec<String>)>,
     filename: String,
     on_picked: impl FnOnce(PathBuf) -> Message + 'static,
 ) -> Message {
@@ -168,10 +190,12 @@ pub fn save_file(
             var dlg = new ActiveXObject('UserAccounts.CommonDialog'); \
             dlg.Title = '{}'; \
             dlg.FileName = '{}'; \
+            dlg.Filter = '{}'; \
             if (dlg.ShowSave()) WScript.Echo(dlg.FileName); \
             WScript.Quit(0);",
         title.replace('\\', "\\\\").replace('\'', "\\'"),
         filename.replace('\\', "\\\\").replace('\'', "\\'"),
+        get_filter_string(filters),
     );
 
     let Ok(output) = Command::new("mshta").arg(arg).output() else {
