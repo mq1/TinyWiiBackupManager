@@ -5,7 +5,7 @@ use crate::{data_dir::get_data_dir, message::Message};
 use std::{
     fs,
     io::Write,
-    path::PathBuf,
+    path::{Path, PathBuf},
     process::{Command, Stdio},
 };
 
@@ -66,38 +66,31 @@ fn alert(title: String, text: String, level: Level) -> Message {
     Message::None
 }
 
-fn confirm(title: &str, text: &str, level: &Level, on_confirm: Message) -> Message {
+fn confirm(
+    data_dir: &Path,
+    title: &str,
+    text: &str,
+    level: &Level,
+    on_confirm: Message,
+) -> Message {
     #[cfg(feature = "windows-legacy")]
     let script = include_bytes!("../../assets/xp-dialogs/confirm.vbs");
     #[cfg(not(feature = "windows-legacy"))]
     let script = &[];
 
-    let res = Command::new("cscript.exe")
-        .arg("//nologo")
-        .arg("stdin:")
+    let vbs_path = data_dir.join("confirm.vbs");
+    let _ = fs::write(&vbs_path, script);
+
+    let res = Command::new("CScript")
+        .arg("//Nologo")
+        .arg("//U")
+        .arg(&vbs_path)
         .arg(title)
         .arg(text)
         .arg(level.as_str())
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .spawn();
+        .output();
 
-    let mut child = match res {
-        Ok(child) => child,
-        Err(e) => {
-            return Message::GenericError(e.to_string());
-        }
-    };
-
-    let Some(stdin) = &mut child.stdin else {
-        return Message::GenericError("Failed to get stdin".to_string());
-    };
-
-    if let Err(e) = stdin.write_all(script) {
-        return Message::GenericError(e.to_string());
-    }
-
-    let output = match child.wait_with_output() {
+    let output = match res {
         Ok(output) => output,
         Err(e) => {
             return Message::GenericError(e.to_string());
@@ -208,11 +201,11 @@ fn save_file(
     }
 }
 
-pub fn confirm_strip_all_games() -> Message {
+pub fn confirm_strip_all_games(data_dir: &Path) -> Message {
     const TITLE: &str = "Remove update partitions?";
     const TEXT: &str = "Are you sure you want to remove the update partitions from all .wbfs files?\n\nThis is irreversible!";
     const LEVEL: &Level = &Level::Warning;
     let on_confirm = Message::StripAllGames;
 
-    confirm(TITLE, TEXT, LEVEL, on_confirm)
+    confirm(data_dir, TITLE, TEXT, LEVEL, on_confirm)
 }
