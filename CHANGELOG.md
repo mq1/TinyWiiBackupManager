@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 🪟 Windows XP support! (windows-legacy build)
 
+### Changed
+
+- ⏪ Revert to native-dialog (from rfd): better ux on macos and linux+appimage+kde
+
 ## [v5.1.8] - 2026-02-14
 
 ### Fixed
@@ -101,7 +105,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 🖼️ KDE Plasma now correctly shows the app icon in title bar / overview
 - ⚡️ Windows drive probing should be faster and more reliable
-- 🐛 Revert to using opengl on linux to improve compatibility (https://github.com/khcrysalis/Impactor/issues/103)
+- 🐛 Revert to using opengl on linux to improve compatibility (<https://github.com/khcrysalis/Impactor/issues/103>)
 - 💽 Adding games recursively that are ZIP archived unzips file in a directory (#518, #468)
 - 🔧 Certain JD Mods Appearing in GameCube Section (#520)
 
