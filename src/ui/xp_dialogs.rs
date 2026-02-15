@@ -1,10 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-#![allow(clippy::needless_pass_by_value)]
-
 use crate::{data_dir::get_data_dir, message::Message};
-use std::{fs, path::PathBuf, process::Command};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+    process::Command,
+};
 
 pub enum Level {
     Info,
@@ -63,11 +65,13 @@ fn alert(title: String, text: String, level: Level) -> Message {
     Message::None
 }
 
-fn confirm(title: String, text: String, level: Level, on_confirm: Message) -> Message {
-    let Some(data_dir) = std::env::var_os("TEMP").map(PathBuf::from) else {
-        return Message::None;
-    };
-
+fn confirm(
+    data_dir: &Path,
+    title: &str,
+    text: &str,
+    level: &Level,
+    on_confirm: Message,
+) -> Message {
     let vbs_path = data_dir.join("confirm.vbs");
     let _ = fs::write(
         &vbs_path,
@@ -77,8 +81,8 @@ fn confirm(title: String, text: String, level: Level, on_confirm: Message) -> Me
     let output = Command::new("cscript")
         .arg("//NoLogo")
         .arg(&vbs_path)
-        .arg(&title)
-        .arg(&text)
+        .arg(title)
+        .arg(text)
         .arg(level.as_str())
         .output();
 
@@ -193,11 +197,11 @@ fn save_file(
     }
 }
 
-pub fn confirm_strip_all_games() -> Message {
-    let title = "Remove update partitions?".to_string();
-    let text = "Are you sure you want to remove the update partitions from all .wbfs files?\n\nThis is irreversible!".to_string();
-    let level = Level::Warning;
+pub fn confirm_strip_all_games(data_dir: &Path) -> Message {
+    const TITLE: &str = "Remove update partitions?";
+    const TEXT: &str = "Are you sure you want to remove the update partitions from all .wbfs files?\n\nThis is irreversible!";
+    const LEVEL: &Level = &Level::Warning;
     let on_confirm = Message::StripAllGames;
 
-    confirm(title, text, level, on_confirm)
+    confirm(data_dir, TITLE, TEXT, LEVEL, on_confirm)
 }
