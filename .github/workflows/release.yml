@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - native-dialog
+      - xp-dialogs
     tags:
       - "v*.*.*"
     paths:

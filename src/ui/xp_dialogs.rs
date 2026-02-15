@@ -99,10 +99,37 @@ pub fn pick_file(
     }
 }
 
-pub fn pick_dir(
+// we only pick one file at a time on xp for now
+pub fn pick_files(
     _: &dyn Window,
     title: String,
     _: impl IntoIterator<Item = (String, Vec<String>)>,
+    on_picked: impl FnOnce(Vec<PathBuf>) -> Message + 'static,
+) -> Message {
+    let arg = format!(
+        "javascript: \
+            var dlg = new ActiveXObject('UserAccounts.CommonDialog'); \
+            dlg.Title = '{}'; \
+            if (dlg.ShowOpen()) WScript.Echo(dlg.FileName); \
+            close();",
+        title.replace("'", "\\'").replace("\\", "\\\\"),
+    );
+
+    let Ok(output) = Command::new("mshta").arg(arg).output() else {
+        return Message::None;
+    };
+
+    let path = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    if path.is_empty() {
+        Message::None
+    } else {
+        on_picked(vec![PathBuf::from(path)])
+    }
+}
+
+pub fn pick_dir(
+    _: &dyn Window,
+    title: String,
     on_picked: impl FnOnce(PathBuf) -> Message + 'static,
 ) -> Message {
     let arg = format!(

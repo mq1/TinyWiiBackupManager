@@ -8,7 +8,9 @@ use crate::games::game::Game;
 use crate::games::game_id::GameID;
 use crate::hbc::osc::OscAppMeta;
 use crate::message::Message;
-use crate::ui::os_dialogs::{MessageLevel, alert, confirm, pick_dir, pick_file};
+use crate::ui::os_dialogs::{
+    MessageLevel, alert, confirm, pick_dir, pick_file, pick_files, save_file,
+};
 use crate::util;
 use iced::Window;
 use nod::common::Format;
