@@ -71,8 +71,8 @@ fn alert(title: String, text: String, level: Level) -> Message {
 fn confirm(title: &str, text: &str, level: &Level, on_confirm: Message) -> Message {
     let script = include_bytes!("../../assets/xp-dialogs/confirm.vbs");
 
-    let res = Command::new("cscript")
-        .arg("//Nologo")
+    let res = Command::new("cscript.exe")
+        .arg("//nologo")
         .arg("-")
         .arg(title)
         .arg(text)
