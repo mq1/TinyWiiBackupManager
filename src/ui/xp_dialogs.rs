@@ -35,19 +35,17 @@ fn get_filter_string(filters: impl IntoIterator<Item = (String, Vec<String>)>) -
 
 pub fn alert(_: &dyn Window, title: String, text: String, level: MessageLevel) -> Message {
     let level = match level {
-        MessageLevel::Info => 64 + 256,
-        MessageLevel::Warning => 48 + 256,
-        MessageLevel::Error => 16 + 256,
+        MessageLevel::Info => 64,
+        MessageLevel::Warning => 48,
+        MessageLevel::Error => 16,
     };
 
+    // Escape for VBScript: double quotes become doubled
+    let text_escaped = text.replace('"', "\"\"");
+    let title_escaped = title.replace('"', "\"\"");
+
     let arg = format!(
-        "javascript: \
-            var sh=new ActiveXObject('WScript.Shell'); \
-            sh.Popup('{}',0,'{}',{}); \
-            WScript.Quit(0);",
-        text.replace('\\', "\\\\").replace('\'', "\\'"),
-        title.replace('\\', "\\\\").replace('\'', "\\'"),
-        level
+        "vbscript:Execute(\"MsgBox \"\"{text_escaped}\"\",{level},\"\"{title_escaped}\"\": close\")"
     );
 
     let _ = Command::new("mshta").arg(arg).status();
@@ -63,27 +61,24 @@ pub fn confirm(
     on_confirm: Message,
 ) -> Message {
     let level = match level {
-        MessageLevel::Info => 64 + 1 + 256,
-        MessageLevel::Warning => 48 + 1 + 256,
-        MessageLevel::Error => 16 + 1 + 256,
+        MessageLevel::Info => 64 + 1,
+        MessageLevel::Warning => 48 + 1,
+        MessageLevel::Error => 16 + 1,
     };
 
+    // Escape for VBScript: double quotes become doubled
+    let text_escaped = text.replace('"', "\"\"");
+    let title_escaped = title.replace('"', "\"\"");
+
     let arg = format!(
-        "javascript: \
-            var sh=new ActiveXObject('WScript.Shell'); \
-            var btn=sh.Popup('{}',0,'{}',{}); \
-            WScript.Quit(btn);",
-        text.replace('\\', "\\\\").replace('\'', "\\'"),
-        title.replace('\\', "\\\\").replace('\'', "\\'"),
-        level
+        "vbscript:Execute(\"Dim result: result = MsgBox(\"\"{text_escaped}\"\",{level},\"\"{title_escaped}\"\"): WScript.StdOut.Write result: close\")"
     );
 
-    let status = Command::new("mshta")
-        .arg(arg)
-        .status()
-        .map(|s| s.code())
-        .ok()
-        .flatten()
+    let output = Command::new("mshta").arg(arg).output().ok();
+
+    let status = output
+        .and_then(|o| String::from_utf8(o.stdout).ok())
+        .and_then(|s| s.trim().parse::<i32>().ok())
         .unwrap_or(2);
 
     if status == 1 {
@@ -99,15 +94,12 @@ pub fn pick_file(
     filters: impl IntoIterator<Item = (String, Vec<String>)>,
     on_picked: impl FnOnce(PathBuf) -> Message + 'static,
 ) -> Message {
+    let title_escaped = title.replace('"', "\"\"");
+    let filter_str = get_filter_string(filters);
+    let filter_escaped = filter_str.replace('"', "\"\"");
+
     let arg = format!(
-        "javascript: \
-            var dlg = new ActiveXObject('UserAccounts.CommonDialog'); \
-            dlg.Title = '{}'; \
-            dlg.Filter = '{}'; \
-            if (dlg.ShowOpen()) WScript.Echo(dlg.FileName); \
-            WScript.Quit(0);",
-        title.replace('\\', "\\\\").replace('\'', "\\'"),
-        get_filter_string(filters),
+        "vbscript:Execute(\"Dim dlg: Set dlg = CreateObject(\"\"UserAccounts.CommonDialog\"\"): dlg.Title = \"\"{title_escaped}\"\": dlg.Filter = \"\"{filter_escaped}\"\": If dlg.ShowOpen Then WScript.StdOut.Write dlg.FileName: close\")"
     );
 
     let Ok(output) = Command::new("mshta").arg(arg).output() else {
@@ -122,22 +114,18 @@ pub fn pick_file(
     }
 }
 
-// we only pick one file at a time on xp for now
 pub fn pick_files(
     _: &dyn Window,
     title: String,
     filters: impl IntoIterator<Item = (String, Vec<String>)>,
     on_picked: impl FnOnce(Vec<PathBuf>) -> Message + 'static,
 ) -> Message {
+    let title_escaped = title.replace('"', "\"\"");
+    let filter_str = get_filter_string(filters);
+    let filter_escaped = filter_str.replace('"', "\"\"");
+
     let arg = format!(
-        "javascript: \
-            var dlg = new ActiveXObject('UserAccounts.CommonDialog'); \
-            dlg.Title = '{}'; \
-            dlg.Filter = '{}'; \
-            if (dlg.ShowOpen()) WScript.Echo(dlg.FileName); \
-            WScript.Quit(0);",
-        title.replace('\\', "\\\\").replace('\'', "\\'"),
-        get_filter_string(filters),
+        "vbscript:Execute(\"Dim dlg: Set dlg = CreateObject(\"\"UserAccounts.CommonDialog\"\"): dlg.Title = \"\"{title_escaped}\"\": dlg.Filter = \"\"{filter_escaped}\"\": If dlg.ShowOpen Then WScript.StdOut.Write dlg.FileName: close\")"
     );
 
     let Ok(output) = Command::new("mshta").arg(arg).output() else {
@@ -157,13 +145,10 @@ pub fn pick_dir(
     title: String,
     on_picked: impl FnOnce(PathBuf) -> Message + 'static,
 ) -> Message {
+    let title_escaped = title.replace('"', "\"\"");
+
     let arg = format!(
-        "javascript: \
-            var sh = new ActiveXObject('Shell.Application'); \
-            var f = sh.BrowseForFolder(0, '{}', 0); \
-            if (f) WScript.Echo(f.self.Path); \
-            WScript.Quit(0);",
-        title.replace('\\', "\\\\").replace('\'', "\\'")
+        "vbscript:Execute(\"Dim sh, f: Set sh = CreateObject(\"\"Shell.Application\"\"): Set f = sh.BrowseForFolder(0, \"\"{title_escaped}\"\", 0): If Not f Is Nothing Then WScript.StdOut.Write f.self.Path: close\")"
     );
 
     let Ok(output) = Command::new("mshta").arg(arg).output() else {
@@ -185,17 +170,13 @@ pub fn save_file(
     filename: String,
     on_picked: impl FnOnce(PathBuf) -> Message + 'static,
 ) -> Message {
+    let title_escaped = title.replace('"', "\"\"");
+    let filename_escaped = filename.replace('"', "\"\"");
+    let filter_str = get_filter_string(filters);
+    let filter_escaped = filter_str.replace('"', "\"\"");
+
     let arg = format!(
-        "javascript: \
-            var dlg = new ActiveXObject('UserAccounts.CommonDialog'); \
-            dlg.Title = '{}'; \
-            dlg.FileName = '{}'; \
-            dlg.Filter = '{}'; \
-            if (dlg.ShowSave()) WScript.Echo(dlg.FileName); \
-            WScript.Quit(0);",
-        title.replace('\\', "\\\\").replace('\'', "\\'"),
-        filename.replace('\\', "\\\\").replace('\'', "\\'"),
-        get_filter_string(filters),
+        "vbscript:Execute(\"Dim dlg: Set dlg = CreateObject(\"\"UserAccounts.CommonDialog\"\"): dlg.Title = \"\"{title_escaped}\"\": dlg.FileName = \"\"{filename_escaped}\"\": dlg.Filter = \"\"{filter_escaped}\"\": If dlg.ShowSave Then WScript.StdOut.Write dlg.FileName: close\")"
     );
 
     let Ok(output) = Command::new("mshta").arg(arg).output() else {
