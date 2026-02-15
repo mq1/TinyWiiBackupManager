@@ -3,9 +3,9 @@
 
 #![allow(clippy::needless_pass_by_value)]
 
-use crate::message::Message;
+use crate::{data_dir::get_data_dir, message::Message};
 use iced::Window;
-use std::{path::PathBuf, process::Command};
+use std::{fs, path::PathBuf, process::Command};
 
 #[allow(dead_code)]
 #[derive(Clone, Copy, Debug)]
@@ -13,6 +13,16 @@ pub enum MessageLevel {
     Info,
     Warning,
     Error,
+}
+
+impl MessageLevel {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            MessageLevel::Info => "Info",
+            MessageLevel::Warning => "Warning",
+            MessageLevel::Error => "Error",
+        }
+    }
 }
 
 fn get_filter_string(filters: impl IntoIterator<Item = (String, Vec<String>)>) -> String {
@@ -34,21 +44,24 @@ fn get_filter_string(filters: impl IntoIterator<Item = (String, Vec<String>)>) -
 }
 
 pub fn alert(_: &dyn Window, title: String, text: String, level: MessageLevel) -> Message {
-    let level = match level {
-        MessageLevel::Info => 64,
-        MessageLevel::Warning => 48,
-        MessageLevel::Error => 16,
+    let data_dir = match get_data_dir() {
+        Ok(dir) => dir,
+        Err(_) => std::env::temp_dir(),
     };
 
-    // Escape for VBScript: double quotes become doubled
-    let text_escaped = text.replace('"', "\"\"");
-    let title_escaped = title.replace('"', "\"\"");
-
-    let arg = format!(
-        "vbscript:Execute(\"MsgBox \"\"{text_escaped}\"\",{level},\"\"{title_escaped}\"\": close\")"
+    let vbs_path = data_dir.join("alert.vbs");
+    let _ = fs::write(
+        &vbs_path,
+        include_bytes!("../../assets/xp-dialogs/alert.vbs"),
     );
 
-    let _ = Command::new("mshta").arg(arg).status();
+    let _ = Command::new("cscript")
+        .arg("//NoLogo")
+        .arg(&vbs_path)
+        .arg(&title)
+        .arg(&text)
+        .arg(level.as_str())
+        .status();
 
     Message::None
 }
@@ -60,38 +73,31 @@ pub fn confirm(
     level: MessageLevel,
     on_confirm: Message,
 ) -> Message {
-    let level = match level {
-        MessageLevel::Info => 64 + 1,
-        MessageLevel::Warning => 48 + 1,
-        MessageLevel::Error => 16 + 1,
+    let data_dir = match get_data_dir() {
+        Ok(dir) => dir,
+        Err(_) => std::env::temp_dir(),
     };
 
-    // Escape for VBScript: double quotes become doubled
-    let text_escaped = text.replace('"', "\"\"");
-    let title_escaped = title.replace('"', "\"\"");
-
-    let arg = format!(
-        "vbscript:Execute(\"Dim result: result = MsgBox(\"\"{text_escaped}\"\",{level},\"\"{title_escaped}\"\"): WScript.Quit(result)\")",
+    let vbs_path = data_dir.join("confirm.vbs");
+    let _ = fs::write(
+        &vbs_path,
+        include_bytes!("../../assets/xp-dialogs/confirm.vbs"),
     );
 
-    let output = match Command::new("mshta").arg(arg).output() {
-        Ok(o) => o,
-        Err(e) => {
-            return Message::GenericError(e.to_string());
-        }
+    let output = Command::new("cscript")
+        .arg("//NoLogo")
+        .arg(&vbs_path)
+        .arg(&title)
+        .arg(&text)
+        .arg(level.as_str())
+        .output();
+
+    let Ok(output) = output else {
+        return Message::None;
     };
 
-    let status = match String::from_utf8_lossy(&output.stdout)
-        .trim()
-        .parse::<i32>()
-    {
-        Ok(s) => s,
-        Err(e) => {
-            return Message::GenericError(e.to_string());
-        }
-    };
-
-    if status == 1 {
+    let output = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    if output == "yes" {
         on_confirm
     } else {
         Message::None
