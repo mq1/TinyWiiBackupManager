@@ -53,7 +53,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
                 .width(35)
                 .height(35)
                 .style(style::rounded_button)
-                .on_press(Message::ChooseHbcAppsToAdd),
+                .on_press(Message::PickHbcApps),
             "Add Apps (.zip)",
         ))
         .spacing(10)

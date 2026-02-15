@@ -208,14 +208,15 @@ pub fn view(state: &State) -> Element<'_, Message> {
     .padding(10)
     .width(Length::Fill);
 
-    let manual_archive_button: Element<'_, Message> = if state.manual_archiving_game.is_some() {
-        button(row![icon_play(), "Archive"].spacing(5))
-            .style(style::rounded_button)
-            .on_press(Message::RunManualGameArchiving)
-            .into()
-    } else {
-        space().into()
-    };
+    let manual_archive_button: Element<'_, Message> =
+        if state.manual_archiving_game.as_os_str().is_empty() {
+            space().into()
+        } else {
+            button(row![icon_play(), "Archive"].spacing(5))
+                .style(style::rounded_button)
+                .on_press(Message::RunManualGameArchiving)
+                .into()
+        };
 
     let manual_archive = column![
         row![
@@ -234,14 +235,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
             button(icon_file_up())
                 .style(style::rounded_button)
                 .on_press(Message::ChooseGameToArchiveManually),
-            text(
-                state
-                    .manual_archiving_game
-                    .as_ref()
-                    .map_or("No game selected".to_string(), |p| p
-                        .to_string_lossy()
-                        .to_string())
-            ),
+            text(state.manual_archiving_game.to_string_lossy()),
             space::horizontal(),
             manual_archive_button
         ]

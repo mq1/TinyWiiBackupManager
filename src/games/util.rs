@@ -5,24 +5,12 @@ use crate::{
     disc_util::read_disc_header,
     games::{extensions::ext_to_format, game_id::GameID},
 };
-use anyhow::Result;
 use nod::common::Format;
 use std::{
     fs::File,
     path::{Path, PathBuf},
 };
-use walkdir::{DirEntry, WalkDir};
 use zip::ZipArchive;
-
-pub fn scan_for_discs(path: PathBuf) -> Vec<(PathBuf, GameID)> {
-    WalkDir::new(path)
-        .into_iter()
-        .filter_map(Result::ok)
-        .map(DirEntry::into_path)
-        .filter_map(maybe_path_to_entry)
-        .map(|(path, _, id, _)| (path, id))
-        .collect()
-}
 
 pub fn maybe_path_to_entry(path: impl Into<PathBuf>) -> Option<(PathBuf, Format, GameID, String)> {
     let path = path.into();

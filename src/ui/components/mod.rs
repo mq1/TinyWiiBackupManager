@@ -15,7 +15,6 @@ pub mod hbc_grid;
 pub mod hbc_info;
 pub mod hbc_table;
 pub mod hbc_toolbar;
-pub mod message_dialog;
 pub mod my_tooltip;
 pub mod nav;
 pub mod notification;

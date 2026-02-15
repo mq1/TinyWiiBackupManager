@@ -1,100 +1,327 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::games::extensions::{SUPPORTED_DISC_EXTENSIONS, SUPPORTED_INPUT_EXTENSIONS};
+use crate::games::extensions::{
+    SUPPORTED_DISC_EXTENSIONS, SUPPORTED_INPUT_EXTENSIONS, ext_to_format,
+};
+use crate::games::game::Game;
 use crate::games::game_id::GameID;
-use crate::games::util::maybe_path_to_entry;
-use crate::{games, util};
+use crate::hbc::osc::OscAppMeta;
+use crate::message::Message;
+use crate::util;
 use iced::Window;
-use rfd::FileDialog;
+use native_dialog::{DialogBuilder, MessageLevel};
+use nod::common::Format;
+use std::fmt::Write;
 use std::path::PathBuf;
+use walkdir::{DirEntry, WalkDir};
 
-pub fn choose_mount_point(window: &dyn Window) -> Option<PathBuf> {
-    FileDialog::new()
-        .set_title("Select Drive/Mount Point")
-        .set_parent(&window)
-        .pick_folder()
-}
+fn confirm(
+    window: &dyn Window,
+    title: String,
+    text: String,
+    level: MessageLevel,
+    on_confirm: Message,
+) -> Message {
+    let dialog = DialogBuilder::message()
+        .set_owner(&window)
+        .set_title(title)
+        .set_text(text)
+        .set_level(level)
+        .confirm();
 
-pub fn choose_games(window: &dyn Window) -> Vec<(PathBuf, GameID)> {
-    let unfiltered_paths = FileDialog::new()
-        .set_title("Select games")
-        .set_parent(&window)
-        .add_filter("NINTENDO OPTICAL DISC", SUPPORTED_INPUT_EXTENSIONS)
-        .pick_files()
-        .unwrap_or_default();
-
-    unfiltered_paths
-        .into_iter()
-        .filter_map(maybe_path_to_entry)
-        .map(|(path, _, id, _)| (path, id))
-        .collect()
-}
-
-pub fn choose_src_dir(window: &dyn Window) -> Vec<(PathBuf, GameID)> {
-    let dir = FileDialog::new()
-        .set_title("Select a folder containing games")
-        .set_parent(&window)
-        .pick_folder();
-
-    match dir {
-        Some(dir) => games::util::scan_for_discs(dir),
-        None => Vec::new(),
+    if dialog.show().unwrap_or(false) {
+        on_confirm
+    } else {
+        Message::None
     }
 }
 
-pub fn choose_hbc_apps(window: &dyn Window) -> Vec<PathBuf> {
-    let unfiltered_paths = FileDialog::new()
-        .set_title("Select Homebrew Channel Apps")
-        .set_parent(&window)
-        .add_filter("HBC App", &["zip"])
-        .pick_files()
-        .unwrap_or_default();
+fn alert(window: &dyn Window, title: String, text: Option<String>, level: MessageLevel) -> Message {
+    let mut dialog = DialogBuilder::message()
+        .set_owner(&window)
+        .set_title(title)
+        .set_level(level);
 
-    unfiltered_paths
-        .into_iter()
-        .filter(|p| {
-            p.extension()
-                .is_some_and(|ext| ext.eq_ignore_ascii_case("zip"))
-        })
-        .collect()
+    if let Some(text) = text {
+        dialog = dialog.set_text(text);
+    }
+
+    let dialog = dialog.alert();
+
+    let _ = dialog.show();
+    Message::None
 }
 
-pub fn choose_file_to_wiiload(window: &dyn Window) -> Option<PathBuf> {
-    FileDialog::new()
-        .set_title("Select file to Wiiload")
-        .set_parent(&window)
-        .add_filter("HBC App", &["zip", "dol", "elf"])
-        .pick_file()
-}
-
-pub fn choose_game_to_archive_manually(window: &dyn Window) -> Option<PathBuf> {
-    FileDialog::new()
-        .set_title("Select input disc file")
-        .set_parent(&window)
-        .add_filter("Nintendo Optical Disc", SUPPORTED_DISC_EXTENSIONS)
-        .pick_file()
-}
-
-pub fn choose_archive_dest(
+fn pick_dir(
     window: &dyn Window,
-    source: PathBuf,
     title: String,
-) -> Option<(PathBuf, String, PathBuf)> {
-    let window_title = format!(
-        "Archiving {title}\n\nSupported extensions: {}",
+    on_picked: impl FnOnce(PathBuf) -> Message + 'static,
+) -> Message {
+    let dialog = DialogBuilder::file()
+        .set_owner(&window)
+        .set_title(title)
+        .open_single_dir();
+
+    if let Some(path) = dialog.show().unwrap_or(None) {
+        on_picked(path)
+    } else {
+        Message::None
+    }
+}
+
+fn pick_file(
+    window: &dyn Window,
+    title: String,
+    filters: impl IntoIterator<Item = (String, Vec<String>)>,
+    on_picked: impl FnOnce(PathBuf) -> Message + 'static,
+) -> Message {
+    let dialog = DialogBuilder::file()
+        .set_owner(&window)
+        .set_title(title)
+        .add_filters(filters)
+        .open_single_file();
+
+    if let Some(path) = dialog.show().unwrap_or(None) {
+        on_picked(path)
+    } else {
+        Message::None
+    }
+}
+
+fn pick_files(
+    window: &dyn Window,
+    title: String,
+    filters: impl IntoIterator<Item = (String, Vec<String>)>,
+    on_picked: impl FnOnce(Vec<PathBuf>) -> Message + 'static,
+) -> Message {
+    let dialog = DialogBuilder::file()
+        .set_owner(&window)
+        .set_title(title)
+        .add_filters(filters)
+        .open_multiple_file();
+
+    let paths = dialog.show().unwrap_or_default();
+    if paths.is_empty() {
+        Message::None
+    } else {
+        on_picked(paths)
+    }
+}
+
+fn save_file(
+    window: &dyn Window,
+    title: String,
+    filters: impl IntoIterator<Item = (String, Vec<String>)>,
+    filename: String,
+    on_picked: impl FnOnce(PathBuf) -> Message + 'static,
+) -> Message {
+    let dialog = DialogBuilder::file()
+        .set_owner(&window)
+        .set_title(title)
+        .add_filters(filters)
+        .set_filename(filename)
+        .save_single_file();
+
+    if let Some(path) = dialog.show().unwrap_or(None) {
+        on_picked(path)
+    } else {
+        Message::None
+    }
+}
+
+pub fn confirm_delete_dir(window: &dyn Window, path: PathBuf) -> Message {
+    let title = "Delete Directory".to_string();
+    let text = format!("Are you sure you want to delete {}?", path.display());
+    let level = MessageLevel::Warning;
+    let on_confirm = Message::DeleteDirConfirmed(path);
+
+    confirm(window, title, text, level, on_confirm)
+}
+
+pub fn pick_mount_point(window: &dyn Window) -> Message {
+    let title = "Select Drive/Mount Point".to_string();
+    let on_picked = |path| Message::MountPointPicked(path);
+
+    pick_dir(window, title, on_picked)
+}
+
+pub fn pick_games(window: &dyn Window) -> Message {
+    let title = "Select Games".to_string();
+    let on_picked = |path| Message::ConfirmAddGamesToTransferStack(path);
+    let filters = [(
+        "Nintendo Optical Disc".to_string(),
+        SUPPORTED_INPUT_EXTENSIONS
+            .iter()
+            .map(std::string::ToString::to_string)
+            .collect(),
+    )];
+
+    pick_files(window, title, filters, on_picked)
+}
+
+pub fn pick_games_dir(window: &dyn Window) -> Message {
+    let title = "Select a folder containing games".to_string();
+    let on_picked = |path| {
+        let paths = WalkDir::new(path)
+            .into_iter()
+            .filter_map(Result::ok)
+            .filter(|entry| {
+                entry.file_type().is_file()
+                    && entry
+                        .file_name()
+                        .to_str()
+                        .is_some_and(|name| !name.starts_with('.'))
+                    && entry
+                        .path()
+                        .extension()
+                        .is_some_and(|ext| ext_to_format(ext).is_some())
+            })
+            .map(DirEntry::into_path)
+            .collect::<Vec<_>>();
+
+        if paths.is_empty() {
+            Message::None
+        } else {
+            Message::ConfirmAddGamesToTransferStack(paths)
+        }
+    };
+
+    pick_dir(window, title, on_picked)
+}
+
+pub fn confirm_add_games(
+    window: &dyn Window,
+    entries: Vec<(PathBuf, Format, GameID, String)>,
+) -> Message {
+    let title = "The following games will be added".to_string();
+
+    let text = {
+        const MAX: usize = 20;
+
+        let mut text = String::new();
+        for (_, _, id, game_title) in entries.iter().take(MAX) {
+            let _ = writeln!(text, "• {} [{}]", game_title, id.as_str());
+        }
+
+        let not_shown = entries.len().saturating_sub(MAX);
+        if not_shown > 0 {
+            let _ = writeln!(text, "\n... and {not_shown} more");
+        }
+
+        let _ = write!(text, "\nAre you sure you want to continue?");
+
+        text
+    };
+
+    let level = MessageLevel::Info;
+
+    let paths = entries
+        .into_iter()
+        .map(|(p, _, _, _)| p)
+        .collect::<Vec<_>>();
+
+    let on_confirm = Message::AddGamesToTransferStack(paths);
+
+    confirm(window, title, text, level, on_confirm)
+}
+
+pub fn pick_hbc_apps(window: &dyn Window) -> Message {
+    let title = "Select Homebrew Channel Apps".to_string();
+    let on_picked = |paths| Message::AddHbcApps(paths);
+    let filters = [("HBC App".to_string(), vec!["zip".to_string()])];
+
+    pick_files(window, title, filters, on_picked)
+}
+
+pub fn pick_hbc_app_to_wiiload(window: &dyn Window) -> Message {
+    let title = "Select HBC App to Wiiload".to_string();
+    let on_picked = |path| Message::Wiiload(path);
+    let filters = [(
+        "HBC App".to_string(),
+        vec!["zip".to_string(), "dol".to_string(), "elf".to_string()],
+    )];
+
+    pick_file(window, title, filters, on_picked)
+}
+
+pub fn pick_game_to_convert(window: &dyn Window) -> Message {
+    let title = "Select Game to Convert".to_string();
+    let on_picked = |path| Message::SetManualArchivingGame(path);
+    let filters = [(
+        "Nintendo Optical Disc".to_string(),
+        SUPPORTED_DISC_EXTENSIONS
+            .iter()
+            .map(std::string::ToString::to_string)
+            .collect(),
+    )];
+
+    pick_file(window, title, filters, on_picked)
+}
+
+pub fn pick_archive_dest(window: &dyn Window, source: PathBuf, game_title: String) -> Message {
+    let title = format!(
+        "Archiving {game_title}\n\nSupported extensions: {}",
         SUPPORTED_DISC_EXTENSIONS.join(", ")
     );
 
-    let default_file_name = format!("{}.rvz", util::sanitize(&title));
+    let filename = format!("{}.rvz", util::sanitize(&game_title));
 
-    let path = FileDialog::new()
-        .set_title(&window_title)
-        .set_parent(&window)
-        .add_filter("NINTENDO OPTICAL DISC", SUPPORTED_DISC_EXTENSIONS)
-        .set_file_name(default_file_name)
-        .set_can_create_directories(true)
-        .save_file()?;
+    let on_picked = move |path| Message::ArchiveGame(source, game_title, path);
 
-    Some((source, title, path))
+    let filters = [(
+        "Nintendo Optical Disc".to_string(),
+        SUPPORTED_DISC_EXTENSIONS
+            .iter()
+            .map(std::string::ToString::to_string)
+            .collect(),
+    )];
+
+    save_file(window, title, filters, filename, on_picked)
+}
+
+pub fn no_new_games(window: &dyn Window) -> Message {
+    let title = "No new games to add".to_string();
+    let text = Some("All selected games are already installed.".to_string());
+    let level = MessageLevel::Info;
+
+    alert(window, title, text, level)
+}
+
+pub fn confirm_strip_game(window: &dyn Window, game: Game) -> Message {
+    let title = "Remove update partition?".to_string();
+    let text = format!(
+        "Are you sure you want to remove the update partition from {}?\n\nThis is irreversible!",
+        game.title()
+    );
+    let level = MessageLevel::Warning;
+    let on_confirm = Message::StripGame(game);
+
+    confirm(window, title, text, level, on_confirm)
+}
+
+pub fn confirm_strip_all_games(window: &dyn Window) -> Message {
+    let title = "Remove update partitions?".to_string();
+    let text = "Are you sure you want to remove the update partitions from all .wbfs files?\n\nThis is irreversible!".to_string();
+    let level = MessageLevel::Warning;
+    let on_confirm = Message::StripAllGames;
+
+    confirm(window, title, text, level, on_confirm)
+}
+
+pub fn confirm_install_osc_app(window: &dyn Window, app: OscAppMeta) -> Message {
+    let title = "Install OSC App".to_string();
+    let text = format!("Are you sure you want to install {}?", app.name());
+    let level = MessageLevel::Info;
+    let on_confirm = Message::InstallOscApp(app);
+
+    confirm(window, title, text, level, on_confirm)
+}
+
+pub fn no_archive_source(window: &dyn Window) -> Message {
+    let title = "No archive source found".to_string();
+    let text = None;
+    let level = MessageLevel::Warning;
+
+    alert(window, title, text, level)
 }

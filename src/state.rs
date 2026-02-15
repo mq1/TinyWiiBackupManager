@@ -23,7 +23,7 @@ use crate::{
     known_mount_points,
     message::Message,
     notifications::Notifications,
-    ui::{MyMessageDialog, Screen, dialogs, lucide},
+    ui::{Screen, dialogs, lucide},
     updater,
     util::{DriveInfo, clean_old_files},
 };
@@ -35,7 +35,6 @@ use iced::{
     },
     window,
 };
-use itertools::Itertools;
 use semver::Version;
 use std::{ffi::OsStr, fs, path::PathBuf};
 use which_fs::FsKind;
@@ -45,7 +44,6 @@ use crate::util::run_dot_clean;
 
 pub struct State {
     pub screen: Screen,
-    pub message_dialog: Option<MyMessageDialog>,
     pub data_dir: PathBuf,
     pub config: Config,
     pub game_list: GameList,
@@ -61,7 +59,7 @@ pub struct State {
     pub new_version: Option<Version>,
     pub transfer_queue: TransferQueue,
     pub status: String,
-    pub manual_archiving_game: Option<PathBuf>,
+    pub manual_archiving_game: PathBuf,
     pub osc_icons_download_started: bool,
 
     // scroll positions
@@ -84,7 +82,6 @@ impl State {
 
         let mut initial_state = Self {
             screen: Screen::Games,
-            message_dialog: None,
             data_dir,
             config,
             game_list: GameList::empty(),
@@ -100,7 +97,7 @@ impl State {
             new_version: None,
             transfer_queue: TransferQueue::new(),
             status: String::new(),
-            manual_archiving_game: None,
+            manual_archiving_game: PathBuf::new(),
             osc_icons_download_started: false,
 
             // scroll positions
@@ -183,7 +180,7 @@ impl State {
                 self.notifications.success(s);
                 Task::none()
             }
-            Message::EmptyResult(Ok(())) => Task::none(),
+            Message::None | Message::EmptyResult(Ok(())) => Task::none(),
             Message::GenericResult(Err(e))
             | Message::EmptyResult(Err(e))
             | Message::GenericError(e)
@@ -282,35 +279,25 @@ impl State {
                 self.show_gc = show;
                 Task::none()
             }
-            Message::SelectMountPoint => window::oldest()
-                .and_then(|id| window::run(id, dialogs::choose_mount_point))
-                .map(Message::MountPointChosen),
-            Message::MountPointChosen(mount_point) => {
-                if let Some(mount_point) = mount_point {
-                    let new_config = self.config.clone_with_mount_point(mount_point);
-                    let _ = self.update(Message::UpdateConfig(new_config));
+            Message::PickMountPoint => {
+                window::oldest().and_then(|id| window::run(id, dialogs::pick_mount_point))
+            }
+            Message::MountPointPicked(mount_point) => {
+                let new_config = self.config.clone_with_mount_point(mount_point);
+                let _ = self.update(Message::UpdateConfig(new_config));
 
-                    if known_mount_points::check(self) {
-                        self.notifications.info("New drive detected, a path normalization run is recommended\nYou can find it in the Toolbox page".to_string());
-                    }
-
-                    self.update(Message::RefreshGamesAndApps)
-                } else {
-                    Task::none()
+                if known_mount_points::check(self) {
+                    self.notifications.info("New drive detected, a path normalization run is recommended\nYou can find it in the Toolbox page".to_string());
                 }
-            }
-            Message::AskDeleteDirConfirmation(path) => {
-                let dialog = MyMessageDialog::builder()
-                    .icon(lucide_icons::Icon::FolderX)
-                    .title("Delete this directory?")
-                    .description(path.to_string_lossy())
-                    .danger(true)
-                    .on_ok(Message::DeleteDirConfirmed(path))
-                    .build();
 
-                self.message_dialog = Some(dialog);
-                Task::none()
+                self.update(Message::RefreshGamesAndApps)
             }
+            Message::AskDeleteDirConfirmation(path) => window::oldest().and_then(move |id| {
+                window::run(id, {
+                    let path = path.clone();
+                    move |w| dialogs::confirm_delete_dir(w, path)
+                })
+            }),
             Message::DeleteDirConfirmed(path) => {
                 if let Err(e) = fs::remove_dir_all(path) {
                     self.notifications.error(e.to_string());
@@ -372,17 +359,12 @@ impl State {
                 self.drive_info = drive_info;
                 Task::none()
             }
-            Message::AskInstallOscApp(app) => {
-                let dialog = MyMessageDialog::builder()
-                    .icon(lucide_icons::Icon::Plus)
-                    .title("Install OSC App")
-                    .description(format!("Are you sure you want to install {}?", app.name()))
-                    .on_ok(Message::InstallOscApp(app))
-                    .build();
-
-                self.message_dialog = Some(dialog);
-                Task::none()
-            }
+            Message::AskInstallOscApp(app) => window::oldest().and_then(move |id| {
+                window::run(id, {
+                    let app = app.clone();
+                    move |w| dialogs::confirm_install_osc_app(w, app)
+                })
+            }),
             Message::InstallOscApp(app) => {
                 let base_dir = self.config.mount_point().clone();
                 app.get_install_task(base_dir)
@@ -441,9 +423,9 @@ impl State {
                     .info("Downloading wiitdb.xml to drive...".to_string());
                 wiitdb::get_download_wiitdb_to_drive_task(self)
             }
-            Message::ChooseHbcAppsToAdd => window::oldest()
-                .and_then(|id| window::run(id, dialogs::choose_hbc_apps))
-                .map(Message::AddHbcApps),
+            Message::PickHbcApps => {
+                window::oldest().and_then(|id| window::run(id, dialogs::pick_hbc_apps))
+            }
             Message::AddHbcApps(apps) => {
                 if apps.is_empty() {
                     Task::none()
@@ -455,15 +437,20 @@ impl State {
                 let _ = self.update(Message::GenericResult(res));
                 self.update(Message::RefreshGamesAndApps)
             }
-            Message::ChooseGamesToAdd => window::oldest()
-                .and_then(|id| window::run(id, dialogs::choose_games))
-                .map(Message::ConfirmAddGamesToTransferStack),
-            Message::ChooseGamesSrcDir => window::oldest()
-                .and_then(|id| window::run(id, dialogs::choose_src_dir))
-                .map(Message::ConfirmAddGamesToTransferStack),
-            Message::ConfirmAddGamesToTransferStack(mut entries) => {
+            Message::PickGames => {
+                window::oldest().and_then(|id| window::run(id, dialogs::pick_games))
+            }
+            Message::ChooseGamesSrcDir => {
+                window::oldest().and_then(|id| window::run(id, dialogs::pick_games_dir))
+            }
+            Message::ConfirmAddGamesToTransferStack(paths) => {
+                let mut entries = paths
+                    .into_iter()
+                    .filter_map(maybe_path_to_entry)
+                    .collect::<Vec<_>>();
+
                 // remove already installed games
-                entries.retain(|(path, id)| {
+                entries.retain(|(path, _, id, _)| {
                     let is_multidisc = path.file_stem().and_then(OsStr::to_str).is_some_and(|s| {
                         let s = s.to_ascii_lowercase();
                         s.contains("disc 1") || s.contains("disc 2")
@@ -475,32 +462,15 @@ impl State {
                 });
 
                 if entries.is_empty() {
-                    let dialog = MyMessageDialog::builder()
-                        .icon(lucide_icons::Icon::X)
-                        .title("No new games to add")
-                        .description("Either you didn't select any valid game, or all the games are already installed.")
-                        .danger(true)
-                        .build();
-
-                    self.message_dialog = Some(dialog);
+                    window::oldest().and_then(|id| window::run(id, dialogs::no_new_games))
                 } else {
-                    let paths = entries.into_iter().map(|(p, _)| p).collect::<Vec<_>>();
-                    let desc = paths
-                        .iter()
-                        .map(|p| format!("• {}", p.display()))
-                        .join("\n");
-
-                    let dialog = MyMessageDialog::builder()
-                        .icon(lucide_icons::Icon::Plus)
-                        .title("The following games will be added")
-                        .description(desc)
-                        .on_ok(Message::AddGamesToTransferStack(paths))
-                        .build();
-
-                    self.message_dialog = Some(dialog);
+                    window::oldest().and_then(move |id| {
+                        window::run(id, {
+                            let entries = entries.clone();
+                            move |w| dialogs::confirm_add_games(w, entries)
+                        })
+                    })
                 }
-
-                Task::none()
             }
             Message::AddGamesToTransferStack(paths) => {
                 let is_fat32 = self
@@ -605,22 +575,19 @@ impl State {
                 Task::none()
             }
             Message::ChooseArchiveDest(source, title) => {
-                if let Some(source) = source {
-                    window::oldest()
-                        .and_then(move |id| {
+                if source.as_os_str().is_empty() {
+                    window::oldest().and_then(|id| window::run(id, dialogs::no_archive_source))
+                } else {
+                    window::oldest().and_then(move |id| {
+                        window::run(id, {
                             let source = source.clone();
                             let title = title.clone();
-                            window::run(id, move |w| dialogs::choose_archive_dest(w, source, title))
+                            move |w| dialogs::pick_archive_dest(w, source, title)
                         })
-                        .map(Message::ArchiveGame)
-                } else {
-                    self.notifications
-                        .error("Failed to get source path for archive".to_string());
-                    Task::none()
+                    })
                 }
             }
-            Message::ArchiveGame(None) => Task::none(),
-            Message::ArchiveGame(Some((source, title, dest))) => {
+            Message::ArchiveGame(source, title, dest) => {
                 let op = ArchiveOperation::new(source, title, dest);
                 self.transfer_queue.push(TransferOperation::Archive(op));
 
@@ -668,17 +635,13 @@ impl State {
                 let _ = self.update(Message::GenericResult(res));
                 self.update(Message::RefreshGamesAndApps)
             }
-            Message::ChooseFileToWiiload => window::oldest()
-                .and_then(|id| window::run(id, dialogs::choose_file_to_wiiload))
-                .map(Message::Wiiload),
+            Message::ChooseFileToWiiload => {
+                window::oldest().and_then(|id| window::run(id, dialogs::pick_hbc_app_to_wiiload))
+            }
             Message::Wiiload(path) => {
-                if let Some(path) = path {
-                    self.notifications
-                        .info("Sending file to Wii...".to_string());
-                    wiiload::get_send_via_wiiload_task(self, path)
-                } else {
-                    Task::none()
-                }
+                self.notifications
+                    .info("Sending file to Wii...".to_string());
+                wiiload::get_send_via_wiiload_task(self, path)
             }
             Message::WiiloadOsc(app) => {
                 let zip_url = app.assets().archive().url().clone();
@@ -686,18 +649,12 @@ impl State {
                     .info("Sending file to Wii...".to_string());
                 wiiload::get_download_and_send_via_wiiload_task(self, zip_url)
             }
-            Message::ConfirmStripGame(game) => {
-                let dialog = MyMessageDialog::builder()
-                    .icon(lucide_icons::Icon::FileMinusCorner)
-                    .title("Remove update partition?")
-                    .description(format!("Are you sure you want to remove the update partition from {}?\n\nThis is irreversible!", game.title()))
-                    .danger(true)
-                    .on_ok(Message::StripGame(game))
-                    .build();
-
-                self.message_dialog = Some(dialog);
-                Task::none()
-            }
+            Message::ConfirmStripGame(game) => window::oldest().and_then(move |id| {
+                window::run(id, {
+                    let game = game.clone();
+                    move |w| dialogs::confirm_strip_game(w, game)
+                })
+            }),
             Message::StripGame(game) => {
                 self.notifications
                     .info(format!("Removing update partition from {}", game.title()));
@@ -717,16 +674,7 @@ impl State {
                 }
             }
             Message::ConfirmStripAllGames => {
-                let dialog = MyMessageDialog::builder()
-                    .icon(lucide_icons::Icon::FileMinusCorner)
-                    .title("Remove update partitions?")
-                    .description("Are you sure you want to remove the update partitions from all .wbfs files?\n\nThis is irreversible!")
-                    .danger(true)
-                    .on_ok(Message::StripAllGames)
-                    .build();
-
-                self.message_dialog = Some(dialog);
-                Task::none()
+                window::oldest().and_then(|id| window::run(id, dialogs::confirm_strip_all_games))
             }
             Message::StripAllGames => {
                 self.notifications.info(
@@ -763,44 +711,29 @@ impl State {
                     Task::none()
                 }
             }
-            Message::ChooseGameToArchiveManually => window::oldest()
-                .and_then(|id| window::run(id, dialogs::choose_game_to_archive_manually))
-                .map(Message::SetManualArchivingGame),
+            Message::ChooseGameToArchiveManually => {
+                window::oldest().and_then(|id| window::run(id, dialogs::pick_game_to_convert))
+            }
             Message::SetManualArchivingGame(game) => {
                 self.manual_archiving_game = game;
                 Task::none()
             }
             Message::RunManualGameArchiving => {
-                if let Some(path) = self.manual_archiving_game.take()
+                let path = &self.manual_archiving_game;
+
+                if !path.as_os_str().is_empty()
                     && let Some(title) = path.file_stem().and_then(OsStr::to_str)
                 {
-                    let title = title.to_string();
-                    self.update(Message::ChooseArchiveDest(Some(path), title))
+                    self.update(Message::ChooseArchiveDest(path.clone(), title.to_string()))
                 } else {
                     Task::none()
                 }
             }
             Message::FileDropped(path) => match self.screen {
-                Screen::Games => {
-                    if let Some(entry) = maybe_path_to_entry(path) {
-                        let entry = (entry.0, entry.2);
-                        self.update(Message::ConfirmAddGamesToTransferStack(vec![entry]))
-                    } else {
-                        self.notifications.error("Invalid file!".to_string());
-                        Task::none()
-                    }
-                }
+                Screen::Games => self.update(Message::ConfirmAddGamesToTransferStack(vec![path])),
                 Screen::HbcApps => self.update(Message::AddHbcApps(vec![path])),
                 _ => Task::none(),
             },
-            Message::CloseDialog => {
-                self.message_dialog = None;
-                Task::none()
-            }
-            Message::CloseDialogAndThen(msg) => {
-                self.message_dialog = None;
-                self.update(*msg)
-            }
         }
     }
 
