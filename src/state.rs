@@ -683,7 +683,7 @@ impl State {
             }
             Message::ConfirmStripAllGames => {
                 if self.is_xp {
-                    self.update(xp_dialogs::confirm_strip_all_games(&self.data_dir))
+                    self.update(xp_dialogs::confirm_strip_all_games())
                 } else {
                     window::oldest()
                         .and_then(|id| window::run(id, dialogs::confirm_strip_all_games))
