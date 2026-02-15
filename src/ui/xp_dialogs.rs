@@ -4,9 +4,8 @@
 use crate::{data_dir::get_data_dir, message::Message};
 use std::{
     fs,
-    io::Write,
     path::{Path, PathBuf},
-    process::{Command, Stdio},
+    process::Command,
 };
 
 pub enum Level {
@@ -73,19 +72,24 @@ fn confirm(
     level: &Level,
     on_confirm: Message,
 ) -> Message {
-    #[cfg(feature = "windows-legacy")]
     let script = include_bytes!("../../assets/xp-dialogs/confirm.vbs");
-    #[cfg(not(feature = "windows-legacy"))]
-    let script = &[];
 
     let vbs_path = data_dir.join("confirm.vbs");
     let _ = fs::write(&vbs_path, script);
 
+    let Some(vbs_path) = vbs_path
+        .canonicalize()
+        .ok()
+        .and_then(|p| p.to_str().map(str::to_string))
+    else {
+        return Message::GenericError("Failed to canonicalize path".to_string());
+    };
+
     let res = Command::new("CScript")
         .arg("//Nologo")
-        .arg(vbs_path.to_string_lossy().to_string())
-        .arg("test")
-        .arg("text")
+        .arg(&vbs_path)
+        .arg(title)
+        .arg(text)
         .arg(level.as_str())
         .output();
 
