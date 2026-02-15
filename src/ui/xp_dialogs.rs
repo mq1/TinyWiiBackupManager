@@ -77,21 +77,15 @@ fn confirm(
     let vbs_path = data_dir.join("confirm.vbs");
     let _ = fs::write(&vbs_path, script);
 
-    let Some(vbs_path) = vbs_path
-        .canonicalize()
-        .ok()
-        .and_then(|p| p.to_str().map(str::to_string))
-    else {
-        return Message::GenericError("Failed to canonicalize path".to_string());
-    };
+    let cmd = format!(
+        "CScript //Nologo \"{}\" \"{}\" \"{}\" \"{}\"",
+        vbs_path.display(),
+        title,
+        text,
+        level.as_str()
+    );
 
-    let res = Command::new("CScript")
-        .arg("//Nologo")
-        .arg(&vbs_path)
-        .arg(title)
-        .arg(text)
-        .arg(level.as_str())
-        .output();
+    let res = Command::new("cmd").arg("/C").arg(&cmd).output();
 
     let output = match res {
         Ok(output) => output,
