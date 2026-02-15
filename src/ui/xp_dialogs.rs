@@ -22,9 +22,9 @@ pub fn alert(_: &dyn Window, title: String, text: String, level: MessageLevel) -
     let arg = format!(
         "javascript:var sh=new ActiveXObject('WScript.Shell'); \
          sh.Popup('{}',0,'{}',{}); \
-         close();",
-        text.replace("'", "\\'").replace("\\", "\\\\"),
-        title.replace("'", "\\'").replace("\\", "\\\\"),
+         WScript.Quit(0);",
+        text.replace("\\", "\\\\").replace("'", "\\'"),
+        title.replace("\\", "\\\\").replace("'", "\\'"),
         level
     );
 
@@ -50,8 +50,8 @@ pub fn confirm(
         "javascript:var sh=new ActiveXObject('WScript.Shell'); \
          var btn=sh.Popup('{}',0,'{}',{}); \
          WScript.Quit(btn);",
-        text.replace("'", "\\'").replace("\\", "\\\\"),
-        title.replace("'", "\\'").replace("\\", "\\\\"),
+        text.replace("\\", "\\\\").replace("'", "\\'"),
+        title.replace("\\", "\\\\").replace("'", "\\'"),
         level
     );
 
