@@ -83,8 +83,8 @@ pub fn pick_file(
             var dlg = new ActiveXObject('UserAccounts.CommonDialog'); \
             dlg.Title = '{}'; \
             if (dlg.ShowOpen()) WScript.Echo(dlg.FileName); \
-            close();",
-        title.replace("'", "\\'").replace("\\", "\\\\"),
+            WScript.Quit(0);",
+        title.replace("\\", "\\\\").replace("'", "\\'"),
     );
 
     let Ok(output) = Command::new("mshta").arg(arg).output() else {
@@ -111,8 +111,8 @@ pub fn pick_files(
             var dlg = new ActiveXObject('UserAccounts.CommonDialog'); \
             dlg.Title = '{}'; \
             if (dlg.ShowOpen()) WScript.Echo(dlg.FileName); \
-            close();",
-        title.replace("'", "\\'").replace("\\", "\\\\"),
+            WScript.Quit(0);",
+        title.replace("\\", "\\\\").replace("'", "\\'"),
     );
 
     let Ok(output) = Command::new("mshta").arg(arg).output() else {
@@ -137,7 +137,7 @@ pub fn pick_dir(
             var sh = new ActiveXObject('Shell.Application'); \
             var f = sh.BrowseForFolder(0, '{}', 0); \
             if (f) WScript.Echo(f.self.Path); \
-            close();",
+            WScript.Quit(0);",
         title.replace("\\", "\\\\").replace("'", "\\'")
     );
 
@@ -166,9 +166,9 @@ pub fn save_file(
             dlg.Title = '{}'; \
             dlg.FileName = '{}'; \
             if (dlg.ShowSave()) WScript.Echo(dlg.FileName); \
-            close();",
-        title.replace("'", "\\'").replace("\\", "\\\\"),
-        filename.replace("'", "\\'").replace("\\", "\\\\"),
+            WScript.Quit(0);",
+        title.replace("\\", "\\\\").replace("'", "\\'"),
+        filename.replace("\\", "\\\\").replace("'", "\\'"),
     );
 
     let Ok(output) = Command::new("mshta").arg(arg).output() else {
