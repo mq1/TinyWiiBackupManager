@@ -1,13 +1,11 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use image::EncodableLayout;
-
 use crate::{data_dir::get_data_dir, message::Message};
 use std::{
     fs,
     io::Write,
-    path::{Path, PathBuf},
+    path::PathBuf,
     process::{Command, Stdio},
 };
 
@@ -69,7 +67,10 @@ fn alert(title: String, text: String, level: Level) -> Message {
 }
 
 fn confirm(title: &str, text: &str, level: &Level, on_confirm: Message) -> Message {
+    #[cfg(feature = "windows-legacy")]
     let script = include_bytes!("../../assets/xp-dialogs/confirm.vbs");
+    #[cfg(not(feature = "windows-legacy"))]
+    let script = &[];
 
     let res = Command::new("cscript.exe")
         .arg("//nologo")
@@ -88,11 +89,8 @@ fn confirm(title: &str, text: &str, level: &Level, on_confirm: Message) -> Messa
         }
     };
 
-    let mut stdin = match child.stdin.take() {
-        Some(stdin) => stdin,
-        None => {
-            return Message::GenericError("Failed to get stdin".to_string());
-        }
+    let Some(stdin) = &mut child.stdin else {
+        return Message::GenericError("Failed to get stdin".to_string());
     };
 
     if let Err(e) = stdin.write_all(script) {
