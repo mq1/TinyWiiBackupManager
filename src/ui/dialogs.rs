@@ -8,127 +8,13 @@ use crate::games::game::Game;
 use crate::games::game_id::GameID;
 use crate::hbc::osc::OscAppMeta;
 use crate::message::Message;
+use crate::ui::os_dialogs::{MessageLevel, alert, confirm};
 use crate::util;
 use iced::Window;
-use native_dialog::{DialogBuilder, MessageLevel};
 use nod::common::Format;
 use std::fmt::Write;
 use std::path::PathBuf;
 use walkdir::{DirEntry, WalkDir};
-
-fn confirm(
-    window: &dyn Window,
-    title: String,
-    text: String,
-    level: MessageLevel,
-    on_confirm: Message,
-) -> Message {
-    let dialog = DialogBuilder::message()
-        .set_owner(&window)
-        .set_title(title)
-        .set_text(text)
-        .set_level(level)
-        .confirm();
-
-    if dialog.show().unwrap_or(false) {
-        on_confirm
-    } else {
-        Message::None
-    }
-}
-
-fn alert(window: &dyn Window, title: String, text: Option<String>, level: MessageLevel) -> Message {
-    let mut dialog = DialogBuilder::message()
-        .set_owner(&window)
-        .set_title(title)
-        .set_level(level);
-
-    if let Some(text) = text {
-        dialog = dialog.set_text(text);
-    }
-
-    let dialog = dialog.alert();
-
-    let _ = dialog.show();
-    Message::None
-}
-
-fn pick_dir(
-    window: &dyn Window,
-    title: String,
-    on_picked: impl FnOnce(PathBuf) -> Message + 'static,
-) -> Message {
-    let dialog = DialogBuilder::file()
-        .set_owner(&window)
-        .set_title(title)
-        .open_single_dir();
-
-    if let Some(path) = dialog.show().unwrap_or(None) {
-        on_picked(path)
-    } else {
-        Message::None
-    }
-}
-
-fn pick_file(
-    window: &dyn Window,
-    title: String,
-    filters: impl IntoIterator<Item = (String, Vec<String>)>,
-    on_picked: impl FnOnce(PathBuf) -> Message + 'static,
-) -> Message {
-    let dialog = DialogBuilder::file()
-        .set_owner(&window)
-        .set_title(title)
-        .add_filters(filters)
-        .open_single_file();
-
-    if let Some(path) = dialog.show().unwrap_or(None) {
-        on_picked(path)
-    } else {
-        Message::None
-    }
-}
-
-fn pick_files(
-    window: &dyn Window,
-    title: String,
-    filters: impl IntoIterator<Item = (String, Vec<String>)>,
-    on_picked: impl FnOnce(Vec<PathBuf>) -> Message + 'static,
-) -> Message {
-    let dialog = DialogBuilder::file()
-        .set_owner(&window)
-        .set_title(title)
-        .add_filters(filters)
-        .open_multiple_file();
-
-    let paths = dialog.show().unwrap_or_default();
-    if paths.is_empty() {
-        Message::None
-    } else {
-        on_picked(paths)
-    }
-}
-
-fn save_file(
-    window: &dyn Window,
-    title: String,
-    filters: impl IntoIterator<Item = (String, Vec<String>)>,
-    filename: String,
-    on_picked: impl FnOnce(PathBuf) -> Message + 'static,
-) -> Message {
-    let dialog = DialogBuilder::file()
-        .set_owner(&window)
-        .set_title(title)
-        .add_filters(filters)
-        .set_filename(filename)
-        .save_single_file();
-
-    if let Some(path) = dialog.show().unwrap_or(None) {
-        on_picked(path)
-    } else {
-        Message::None
-    }
-}
 
 pub fn confirm_delete_dir(window: &dyn Window, path: PathBuf) -> Message {
     let title = "Delete Directory".to_string();
@@ -282,7 +168,7 @@ pub fn pick_archive_dest(window: &dyn Window, source: PathBuf, game_title: Strin
 
 pub fn no_new_games(window: &dyn Window) -> Message {
     let title = "No new games to add".to_string();
-    let text = Some("All selected games are already installed.".to_string());
+    let text = "All selected games are already installed.".to_string();
     let level = MessageLevel::Info;
 
     alert(window, title, text, level)
@@ -320,7 +206,7 @@ pub fn confirm_install_osc_app(window: &dyn Window, app: OscAppMeta) -> Message 
 
 pub fn no_archive_source(window: &dyn Window) -> Message {
     let title = "No archive source found".to_string();
-    let text = None;
+    let text = String::new();
     let level = MessageLevel::Warning;
 
     alert(window, title, text, level)
