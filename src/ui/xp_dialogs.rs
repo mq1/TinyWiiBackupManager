@@ -71,7 +71,7 @@ pub fn confirm(
     let title_escaped = title.replace('"', "\"\"");
 
     let arg = format!(
-        "vbscript:Execute(\"Dim result: result = MsgBox(\"\"{text_escaped}\"\",{level},\"\"{title_escaped}\"\"): WScript.StdOut.Write result: close\")"
+        "vbscript:Execute(\"Dim result: result = MsgBox(\"\"{text_escaped}\"\",{level},\"\"{title_escaped}\"\"): WScript.Quit(result)\")",
     );
 
     let output = match Command::new("mshta").arg(arg).output() {
