@@ -83,8 +83,11 @@ fn confirm(title: String, text: String, level: Level, on_confirm: Message) -> Me
         .arg(level.as_str())
         .output();
 
-    let Ok(output) = output else {
-        return Message::None;
+    let output = match output {
+        Ok(output) => output,
+        Err(e) => {
+            return Message::GenericError(e.to_string());
+        }
     };
 
     let output = String::from_utf8_lossy(&output.stdout).trim().to_string();
