@@ -3,7 +3,7 @@
 
 use crate::message::Message;
 use iced::Window;
-use std::process::Command;
+use std::{path::PathBuf, process::Command};
 
 #[derive(Clone, Copy, Debug)]
 pub enum MessageLevel {
@@ -20,9 +20,10 @@ pub fn alert(_: &dyn Window, title: String, text: String, level: MessageLevel) -
     };
 
     let arg = format!(
-        "javascript:var sh=new ActiveXObject('WScript.Shell'); \
-         sh.Popup('{}',0,'{}',{}); \
-         WScript.Quit(0);",
+        "javascript: \
+            var sh=new ActiveXObject('WScript.Shell'); \
+            sh.Popup('{}',0,'{}',{}); \
+            WScript.Quit(0);",
         text.replace("\\", "\\\\").replace("'", "\\'"),
         title.replace("\\", "\\\\").replace("'", "\\'"),
         level
@@ -47,9 +48,10 @@ pub fn confirm(
     };
 
     let arg = format!(
-        "javascript:var sh=new ActiveXObject('WScript.Shell'); \
-         var btn=sh.Popup('{}',0,'{}',{}); \
-         WScript.Quit(btn);",
+        "javascript: \
+            var sh=new ActiveXObject('WScript.Shell'); \
+            var btn=sh.Popup('{}',0,'{}',{}); \
+            WScript.Quit(btn);",
         text.replace("\\", "\\\\").replace("'", "\\'"),
         title.replace("\\", "\\\\").replace("'", "\\'"),
         level
@@ -67,5 +69,58 @@ pub fn confirm(
         on_confirm
     } else {
         Message::None
+    }
+}
+
+pub fn pick_file(
+    _: &dyn Window,
+    _: String,
+    _: impl IntoIterator<Item = (String, Vec<String>)>,
+    on_picked: impl FnOnce(PathBuf) -> Message + 'static,
+) -> Message {
+    let arg = "javascript:
+        var f=document.createElement('input');
+        f.type='file';
+        f.click();
+        if(f.value) WScript.Echo(f.value);
+        close();
+    ";
+
+    let Ok(output) = Command::new("mshta").arg(arg).output() else {
+        return Message::None;
+    };
+
+    let path = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    if path.is_empty() {
+        Message::None
+    } else {
+        on_picked(PathBuf::from(path))
+    }
+}
+
+pub fn pick_dir(
+    _: &dyn Window,
+    title: String,
+    _: impl IntoIterator<Item = (String, Vec<String>)>,
+    on_picked: impl FnOnce(PathBuf) -> Message + 'static,
+) -> Message {
+    let arg = format!(
+        "javascript: \
+            var sh = new ActiveXObject('Shell.Application'); \
+            var f = sh.BrowseForFolder(0, '{}', 0); \
+            if (f) WScript.Echo(f.self.Path); \
+            close();",
+        title.replace("\\", "\\\\").replace("'", "\\'")
+    );
+
+    let Ok(output) = Command::new("mshta").arg(arg).output() else {
+        return Message::None;
+    };
+
+    let path = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    if path.is_empty() {
+        Message::None
+    } else {
+        on_picked(PathBuf::from(path))
     }
 }
