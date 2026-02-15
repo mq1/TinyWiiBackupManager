@@ -574,13 +574,19 @@ impl State {
                 self.status = status;
                 Task::none()
             }
-            Message::ChooseArchiveDest(source, title) => window::oldest().and_then(move |id| {
-                window::run(id, {
-                    let source = source.clone();
-                    let title = title.clone();
-                    move |w| dialogs::pick_archive_dest(w, source, title)
-                })
-            }),
+            Message::ChooseArchiveDest(source, title) => {
+                if source.as_os_str().is_empty() {
+                    window::oldest().and_then(|id| window::run(id, dialogs::no_archive_source))
+                } else {
+                    window::oldest().and_then(move |id| {
+                        window::run(id, {
+                            let source = source.clone();
+                            let title = title.clone();
+                            move |w| dialogs::pick_archive_dest(w, source, title)
+                        })
+                    })
+                }
+            }
             Message::ArchiveGame(source, title, dest) => {
                 let op = ArchiveOperation::new(source, title, dest);
                 self.transfer_queue.push(TransferOperation::Archive(op));

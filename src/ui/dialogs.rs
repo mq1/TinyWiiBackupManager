@@ -97,7 +97,7 @@ fn pick_files(
         .add_filters(filters)
         .open_multiple_file();
 
-    let paths = dialog.show().unwrap_or(Vec::new());
+    let paths = dialog.show().unwrap_or_default();
     if paths.is_empty() {
         Message::None
     } else {
@@ -149,7 +149,7 @@ pub fn pick_games(window: &dyn Window) -> Message {
         "Nintendo Optical Disc".to_string(),
         SUPPORTED_INPUT_EXTENSIONS
             .iter()
-            .map(|ext| ext.to_string())
+            .map(std::string::ToString::to_string)
             .collect(),
     )];
 
@@ -248,7 +248,7 @@ pub fn pick_game_to_convert(window: &dyn Window) -> Message {
         "Nintendo Optical Disc".to_string(),
         SUPPORTED_DISC_EXTENSIONS
             .iter()
-            .map(|ext| ext.to_string())
+            .map(std::string::ToString::to_string)
             .collect(),
     )];
 
@@ -263,15 +263,13 @@ pub fn pick_archive_dest(window: &dyn Window, source: PathBuf, game_title: Strin
 
     let filename = format!("{}.rvz", util::sanitize(&game_title));
 
-    let source_clone = source.clone();
-    let game_title_clone = game_title.clone();
-    let on_picked = move |path| Message::ArchiveGame(source_clone, game_title_clone, path);
+    let on_picked = move |path| Message::ArchiveGame(source, game_title, path);
 
     let filters = [(
         "Nintendo Optical Disc".to_string(),
         SUPPORTED_DISC_EXTENSIONS
             .iter()
-            .map(|ext| ext.to_string())
+            .map(std::string::ToString::to_string)
             .collect(),
     )];
 
@@ -314,4 +312,12 @@ pub fn confirm_install_osc_app(window: &dyn Window, app: OscAppMeta) -> Message 
     let on_confirm = Message::InstallOscApp(app);
 
     confirm(window, title, text, level, on_confirm)
+}
+
+pub fn no_archive_source(window: &dyn Window) -> Message {
+    let title = "No archive source found".to_string();
+    let text = "No archive source found.".to_string();
+    let level = MessageLevel::Warning;
+
+    alert(window, title, text, level)
 }

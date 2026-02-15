@@ -209,13 +209,13 @@ pub fn view(state: &State) -> Element<'_, Message> {
     .width(Length::Fill);
 
     let manual_archive_button: Element<'_, Message> =
-        if !state.manual_archiving_game.as_os_str().is_empty() {
+        if state.manual_archiving_game.as_os_str().is_empty() {
+            space().into()
+        } else {
             button(row![icon_play(), "Archive"].spacing(5))
                 .style(style::rounded_button)
                 .on_press(Message::RunManualGameArchiving)
                 .into()
-        } else {
-            space().into()
         };
 
     let manual_archive = column![
