@@ -72,6 +72,7 @@ fn pick_dir(
     }
 }
 
+#[cfg(not(feature = "windows-legacy"))]
 fn pick_file(
     window: &dyn Window,
     title: String,
@@ -89,6 +90,33 @@ fn pick_file(
         Ok(None) => Message::None,
         Err(e) => Message::GenericError(e.to_string()),
     }
+}
+
+#[cfg(feature = "windows-legacy")]
+fn pick_file(
+    _window: &dyn Window,
+    _title: String,
+    _filters: impl IntoIterator<Item = (String, Vec<String>)>,
+    on_picked: impl FnOnce(PathBuf) -> Message + 'static,
+) -> Message {
+    let cmd = "mshta.exe \"about:<input type=file id=f><script>f.click();new ActiveXObject('Scripting.FileSystemObject').GetStandardStream(1).WriteLine(f.value);close();</script>\"";
+
+    let res = std::process::Command::new("cmd").args(["/C", cmd]).output();
+
+    let output = match res {
+        Ok(output) => output,
+        Err(e) => {
+            return Message::GenericError(e.to_string());
+        }
+    };
+
+    let path = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    if path.is_empty() {
+        return Message::None;
+    }
+
+    let path = PathBuf::from(path);
+    on_picked(path)
 }
 
 fn pick_files(

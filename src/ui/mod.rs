@@ -16,8 +16,6 @@ mod components;
 pub mod dialogs;
 pub mod lucide;
 mod style;
-
-#[cfg(feature = "windows")]
 pub mod window_color;
 
 #[derive(Debug, Clone, PartialEq, Eq)]

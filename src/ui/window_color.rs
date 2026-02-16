@@ -2,12 +2,17 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::config::ThemePreference;
-use iced::Window;
-use std::ffi::c_void;
-use wgpu::rwh::RawWindowHandle;
-use winsafe::{COLORREF, DwmAttr, HWND};
+use crate::message::Message;
+use iced::Task;
 
-pub fn set(window: &dyn Window, mut theme: ThemePreference) {
+#[cfg(feature = "windows")]
+pub fn set(mut theme: ThemePreference) -> Task<Message> {
+    use std::ffi::c_void;
+    use wgpu::rwh::RawWindowHandle;
+    use windows::Win32::Foundation::HWND;
+    use windows::Win32::Graphics::Dwm::DWMWA_CAPTION_COLOR;
+    use windows::Win32::Graphics::Dwm::DwmSetWindowAttribute;
+
     if theme == ThemePreference::System
         && let Ok(mode) = dark_light::detect()
     {
@@ -18,20 +23,35 @@ pub fn set(window: &dyn Window, mut theme: ThemePreference) {
         }
     }
 
-    let color = match theme {
-        ThemePreference::Light => COLORREF::from_rgb(0xff, 0xff, 0xff),
-        ThemePreference::Dark => COLORREF::from_rgb(0x2b, 0x2d, 0x31),
-        ThemePreference::System => {
-            return;
-        }
+    let color: u32 = match theme {
+        ThemePreference::Light => 0x00_FF_FF_FF,
+        ThemePreference::Dark => 0x00_31_2D_2B,
+        ThemePreference::System => return Task::none(),
     };
 
-    let handle = window.window_handle().unwrap().as_raw();
+    iced::window::oldest()
+        .and_then(move |id| {
+            iced::window::run(id, move |w| {
+                let handle = w.window_handle().unwrap().as_raw();
 
-    if let RawWindowHandle::Win32(handle) = handle {
-        let hwnd_ptr = handle.hwnd.get() as *mut c_void;
-        let hwnd = unsafe { HWND::from_ptr(hwnd_ptr) };
-        let attr = DwmAttr::CaptionColor(color);
-        let _ = hwnd.DwmSetWindowAttribute(attr);
-    }
+                if let RawWindowHandle::Win32(handle) = handle {
+                    let hwnd = HWND(handle.hwnd.get() as *mut _);
+
+                    unsafe {
+                        let _ = DwmSetWindowAttribute(
+                            hwnd,
+                            DWMWA_CAPTION_COLOR,
+                            &color as *const u32 as *const c_void,
+                            std::mem::size_of::<u32>() as u32,
+                        );
+                    }
+                }
+            })
+        })
+        .discard()
+}
+
+#[cfg(not(feature = "windows"))]
+pub fn set(_theme: ThemePreference) -> Task<Message> {
+    Task::none()
 }
