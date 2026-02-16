@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#[cfg(feature = "windows")]
+use crate::ui;
 use crate::{
     config::{Config, SortBy, ThemePreference},
     data_dir::get_data_dir,
@@ -77,7 +79,6 @@ impl State {
         let config = Config::load(&data_dir);
         clean_old_files(&data_dir);
 
-        #[cfg(feature = "windows")]
         let theme = config.theme_preference();
 
         let mut initial_state = Self {
@@ -113,10 +114,7 @@ impl State {
             initial_state.notifications.info("New drive detected, a path normalization run is recommended\nYou can find it in the Toolbox page".to_string());
         }
 
-        #[cfg(feature = "windows")]
-        let set_window_color = window::oldest()
-            .and_then(move |id| window::run(id, move |w| crate::ui::window_color::set(w, theme)))
-            .discard();
+        let set_window_color = ui::window_color::set(theme);
 
         let tasks = Task::batch(vec![
             game_list::get_list_games_task(&initial_state),
@@ -128,7 +126,6 @@ impl State {
             updater::get_check_update_task(),
         ]);
 
-        #[cfg(feature = "windows")]
         let tasks = set_window_color.chain(tasks);
 
         (initial_state, tasks)
@@ -388,19 +385,7 @@ impl State {
                 let new_config = self.config.clone_with_theme_preference(new_theme_pref);
                 let _ = self.update(Message::UpdateConfig(new_config));
 
-                #[cfg(feature = "windows")]
-                {
-                    window::oldest()
-                        .and_then(move |id| {
-                            window::run(id, move |w| {
-                                crate::ui::window_color::set(w, new_theme_pref);
-                            })
-                        })
-                        .discard()
-                }
-
-                #[cfg(not(feature = "windows"))]
-                Task::none()
+                ui::window_color::set(new_theme_pref)
             }
             Message::UpdateConfig(new_config) => {
                 self.config = new_config;
