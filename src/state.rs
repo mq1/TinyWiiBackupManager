@@ -1,8 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-#[cfg(feature = "windows")]
-use crate::ui;
 use crate::{
     config::{Config, SortBy, ThemePreference},
     data_dir::get_data_dir,
@@ -25,7 +23,7 @@ use crate::{
     known_mount_points,
     message::Message,
     notifications::Notifications,
-    ui::{Screen, dialogs, lucide},
+    ui::{Screen, dialogs, lucide, window_color},
     updater,
     util::{DriveInfo, clean_old_files},
 };
@@ -114,7 +112,7 @@ impl State {
             initial_state.notifications.info("New drive detected, a path normalization run is recommended\nYou can find it in the Toolbox page".to_string());
         }
 
-        let set_window_color = ui::window_color::set(theme);
+        let set_window_color = window_color::set(theme);
 
         let tasks = Task::batch(vec![
             game_list::get_list_games_task(&initial_state),
@@ -385,7 +383,7 @@ impl State {
                 let new_config = self.config.clone_with_theme_preference(new_theme_pref);
                 let _ = self.update(Message::UpdateConfig(new_config));
 
-                ui::window_color::set(new_theme_pref)
+                window_color::set(new_theme_pref)
             }
             Message::UpdateConfig(new_config) => {
                 self.config = new_config;
