@@ -99,24 +99,36 @@ fn pick_file(
     _filters: impl IntoIterator<Item = (String, Vec<String>)>,
     on_picked: impl FnOnce(PathBuf) -> Message + 'static,
 ) -> Message {
-    let cmd = "mshta.exe \"about:<input type=file id=f><script>f.click();new ActiveXObject('Scripting.FileSystemObject').GetStandardStream(1).WriteLine(f.value);close();</script>\"";
-
-    let res = std::process::Command::new("cmd").args(["/C", cmd]).output();
-
-    let output = match res {
-        Ok(output) => output,
-        Err(e) => {
-            return Message::GenericError(e.to_string());
-        }
+    use windows::{
+        Win32::UI::Controls::Dialogs::{
+            GetOpenFileNameW, OFN_EXPLORER, OFN_FILEMUSTEXIST, OFN_PATHMUSTEXIST, OPENFILENAMEW,
+        },
+        core::PWSTR,
     };
 
-    let path = String::from_utf8_lossy(&output.stdout).trim().to_string();
-    if path.is_empty() {
-        return Message::None;
-    }
+    let filter = "All Files\0*.*\0\0";
+    let filter_u16: Vec<u16> = filter.encode_utf16().collect();
+    let mut file_buffer = [0u16; 260];
 
-    let path = PathBuf::from(path);
-    on_picked(path)
+    unsafe {
+        let mut ofn = OPENFILENAMEW {
+            lStructSize: std::mem::size_of::<OPENFILENAMEW>() as u32,
+            lpstrFilter: PCWSTR(filter_u16.as_ptr()),
+            lpstrFile: PWSTR(file_buffer.as_mut_ptr()),
+            nMaxFile: file_buffer.len() as u32,
+            Flags: OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST,
+            ..Default::default()
+        };
+
+        let res = GetOpenFileNameW(&mut ofn);
+
+        if res.as_bool() {
+            let path = String::from_utf16_lossy(&file_buffer).trim_matches(char::from(0));
+            on_picked(PathBuf::from(path))
+        } else {
+            Message::None
+        }
+    }
 }
 
 fn pick_files(

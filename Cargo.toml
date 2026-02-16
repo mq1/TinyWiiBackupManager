@@ -73,7 +73,7 @@ winresource = "0.1"
 default = []
 linux-appimage = ["iced/wgpu-bare", "wgpu/vulkan", "iced/tiny-skia", "minreq/https-rustls"]
 linux-flatpak = ["iced/wgpu-bare", "wgpu/vulkan", "iced/tiny-skia", "minreq/https-native"]
-windows-legacy = ["iced/tiny-skia", "minreq/https-rustls"]
+windows-legacy = ["iced/tiny-skia", "minreq/https-rustls", "windows/Win32_UI_Controls_Dialogs"]
 windows = ["iced/wgpu-bare", "wgpu/dx12", "minreq/https-native", "dep:dark-light", "windows/Win32_Graphics_Dwm"]
 macos = ["iced/wgpu-bare", "wgpu/metal", "minreq/https-native"]
 
