@@ -100,6 +100,7 @@ fn pick_file(
     on_picked: impl FnOnce(PathBuf) -> Message + 'static,
 ) -> Message {
     use iced::window::raw_window_handle::RawWindowHandle;
+    use windows::Win32::Foundation::HWND;
     use windows::{
         Win32::UI::Controls::Dialogs::{
             GetOpenFileNameW, OFN_FILEMUSTEXIST, OFN_PATHMUSTEXIST, OPENFILENAMEW,
