@@ -110,7 +110,7 @@ fn pick_file(
     let filter_u16: Vec<u16> = filter.encode_utf16().collect();
     let mut file_buffer = [0u16; 260];
 
-    unsafe {
+    let yes = unsafe {
         let mut ofn = OPENFILENAMEW {
             lStructSize: std::mem::size_of::<OPENFILENAMEW>() as u32,
             lpstrFilter: PCWSTR(filter_u16.as_ptr()),
@@ -120,14 +120,14 @@ fn pick_file(
             ..Default::default()
         };
 
-        let res = GetOpenFileNameW(&mut ofn);
+        GetOpenFileNameW(&mut ofn).as_bool()
+    };
 
-        if res.as_bool() {
-            let path = String::from_utf16_lossy(&file_buffer).trim_matches(char::from(0));
-            on_picked(PathBuf::from(path))
-        } else {
-            Message::None
-        }
+    if yes {
+        let path = String::from_utf16_lossy(&file_buffer).trim_matches(char::from(0));
+        on_picked(PathBuf::from(path))
+    } else {
+        Message::None
     }
 }
 
