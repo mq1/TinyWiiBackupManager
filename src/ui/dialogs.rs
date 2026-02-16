@@ -164,6 +164,7 @@ fn pick_file(
     Message::None
 }
 
+#[cfg(not(feature = "windows-legacy"))]
 fn pick_files(
     window: &dyn Window,
     title: String,
@@ -181,6 +182,21 @@ fn pick_files(
         Ok(_) => Message::None,
         Err(e) => Message::GenericError(e.to_string()),
     }
+}
+
+#[cfg(feature = "windows-legacy")]
+fn pick_files(
+    window: &dyn Window,
+    title: String,
+    filters: impl IntoIterator<Item = (String, Vec<String>)>,
+    on_picked: impl FnOnce(Vec<PathBuf>) -> Message + 'static,
+) -> Message {
+    let on_picked_wrapper = |path: PathBuf| {
+        let paths = vec![path];
+        on_picked(paths)
+    };
+
+    pick_file(window, title, filters, on_picked_wrapper)
 }
 
 fn save_file(
