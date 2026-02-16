@@ -94,11 +94,12 @@ fn pick_file(
 
 #[cfg(feature = "windows-legacy")]
 fn pick_file(
-    _window: &dyn Window,
+    window: &dyn Window,
     _title: String,
     _filters: impl IntoIterator<Item = (String, Vec<String>)>,
     on_picked: impl FnOnce(PathBuf) -> Message + 'static,
 ) -> Message {
+    use iced::window::raw_window_handle::RawWindowHandle;
     use windows::{
         Win32::UI::Controls::Dialogs::{
             GetOpenFileNameW, OFN_FILEMUSTEXIST, OFN_PATHMUSTEXIST, OPENFILENAMEW,
@@ -110,25 +111,32 @@ fn pick_file(
     let filter_u16: Vec<u16> = filter.encode_utf16().collect();
     let mut file_buffer = [0u16; 260];
 
-    let yes = unsafe {
-        let mut ofn = OPENFILENAMEW {
-            lStructSize: std::mem::size_of::<OPENFILENAMEW>() as u32,
-            lpstrFilter: PCWSTR(filter_u16.as_ptr()),
-            lpstrFile: PWSTR(file_buffer.as_mut_ptr()),
-            nMaxFile: file_buffer.len() as u32,
-            Flags: OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST,
-            ..Default::default()
+    let handle = window.window_handle().unwrap().as_raw();
+
+    if let RawWindowHandle::Win32(handle) = handle {
+        let yes = unsafe {
+            let hwnd = HWND(handle.hwnd.get() as *mut _);
+
+            let mut ofn = OPENFILENAMEW {
+                lStructSize: std::mem::size_of::<OPENFILENAMEW>() as u32,
+                hwndOwner: hwnd,
+                lpstrFilter: PCWSTR(filter_u16.as_ptr()),
+                lpstrFile: PWSTR(file_buffer.as_mut_ptr()),
+                nMaxFile: file_buffer.len() as u32,
+                Flags: OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST,
+                ..Default::default()
+            };
+
+            GetOpenFileNameW(&mut ofn).as_bool()
         };
 
-        GetOpenFileNameW(&mut ofn).as_bool()
-    };
-
-    if yes {
-        let path = String::from_utf16_lossy(&file_buffer).trim_matches(char::from(0));
-        on_picked(PathBuf::from(path))
-    } else {
-        Message::None
+        if yes {
+            let path = String::from_utf16_lossy(&file_buffer).trim_matches(char::from(0));
+            return on_picked(PathBuf::from(path));
+        }
     }
+
+    Message::None
 }
 
 fn pick_files(
