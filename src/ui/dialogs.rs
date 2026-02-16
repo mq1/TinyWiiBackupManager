@@ -101,9 +101,9 @@ fn pick_file(
 ) -> Message {
     use windows::{
         Win32::UI::Controls::Dialogs::{
-            GetOpenFileNameW, OFN_EXPLORER, OFN_FILEMUSTEXIST, OFN_PATHMUSTEXIST, OPENFILENAMEW,
+            GetOpenFileNameW, OFN_FILEMUSTEXIST, OFN_PATHMUSTEXIST, OPENFILENAMEW,
         },
-        core::PWSTR,
+        core::{PCWSTR, PWSTR},
     };
 
     let filter = "All Files\0*.*\0\0";
