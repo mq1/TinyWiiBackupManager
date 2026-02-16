@@ -7,6 +7,7 @@ use iced::Task;
 
 #[cfg(feature = "windows")]
 pub fn set(mut theme: ThemePreference) -> Task<Message> {
+    use std::ffi::c_void;
     use wgpu::rwh::RawWindowHandle;
     use windows::Win32::Foundation::HWND;
     use windows::Win32::Graphics::Dwm::DWMWA_CAPTION_COLOR;
@@ -40,7 +41,7 @@ pub fn set(mut theme: ThemePreference) -> Task<Message> {
                         let _ = DwmSetWindowAttribute(
                             hwnd,
                             DWMWA_CAPTION_COLOR,
-                            &color as *const _ as *const _,
+                            &color as *const u32 as *const c_void,
                             std::mem::size_of::<u32>() as u32,
                         );
                     }
