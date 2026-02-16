@@ -115,9 +115,9 @@ fn pick_file(
     let handle = window.window_handle().unwrap().as_raw();
 
     if let RawWindowHandle::Win32(handle) = handle {
-        let yes = unsafe {
-            let hwnd = HWND(handle.hwnd.get() as *mut _);
+        let hwnd = HWND(handle.hwnd.get() as *mut _);
 
+        let yes = unsafe {
             let mut ofn = OPENFILENAMEW {
                 lStructSize: std::mem::size_of::<OPENFILENAMEW>() as u32,
                 hwndOwner: hwnd,
@@ -133,8 +133,8 @@ fn pick_file(
 
         if yes {
             let path = String::from_utf16_lossy(&file_buffer);
-            let trimmed = path.trim_matches(char::from(0)).to_string();
-            return on_picked(PathBuf::from(path));
+            let trimmed = path.trim_matches(char::from(0));
+            return on_picked(PathBuf::from(trimmed));
         }
     }
 
