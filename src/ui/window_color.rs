@@ -30,7 +30,7 @@ pub fn set(mut theme: ThemePreference) -> Task<Message> {
     };
 
     iced::window::oldest()
-        .and_then(|id| {
+        .and_then(move |id| {
             iced::window::run(id, move |w| {
                 let handle = w.window_handle().unwrap().as_raw();
 
