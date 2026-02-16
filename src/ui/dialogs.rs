@@ -16,6 +16,28 @@ use std::fmt::Write;
 use std::path::PathBuf;
 use walkdir::{DirEntry, WalkDir};
 
+#[cfg(feature = "windows-legacy")]
+fn get_filters_wide(filters: impl IntoIterator<Item = (String, Vec<String>)>) -> Vec<u16> {
+    let mut s = String::new();
+
+    for (name, extensions) in filters {
+        s.push_str(&name);
+        s.push('\0');
+
+        let extensions = extensions
+            .iter()
+            .map(|ext| format!("*.{ext}"))
+            .collect::<Vec<_>>()
+            .join(";");
+
+        s.push_str(&extensions);
+        s.push('\0');
+    }
+
+    s.push('\0');
+    s.encode_utf16().collect()
+}
+
 fn confirm(
     window: &dyn Window,
     title: String,
@@ -96,7 +118,7 @@ fn pick_file(
 fn pick_file(
     window: &dyn Window,
     title: String,
-    _filters: impl IntoIterator<Item = (String, Vec<String>)>,
+    filters: impl IntoIterator<Item = (String, Vec<String>)>,
     on_picked: impl FnOnce(PathBuf) -> Message + 'static,
 ) -> Message {
     use iced::window::raw_window_handle::RawWindowHandle;
@@ -109,9 +131,7 @@ fn pick_file(
     };
 
     let title_wide: Vec<u16> = title.encode_utf16().chain(std::iter::once(0)).collect();
-
-    let filter = "All Files\0*.*\0\0";
-    let filter_wide: Vec<u16> = filter.encode_utf16().chain(std::iter::once(0)).collect();
+    let filters_wide = get_filters_wide(filters);
     let mut file_buffer = [0u16; 260];
 
     let handle = window.window_handle().unwrap().as_raw();
@@ -123,7 +143,7 @@ fn pick_file(
             let mut ofn = OPENFILENAMEW {
                 lStructSize: std::mem::size_of::<OPENFILENAMEW>() as u32,
                 hwndOwner: hwnd,
-                lpstrFilter: PCWSTR(filter_wide.as_ptr()),
+                lpstrFilter: PCWSTR(filters_wide.as_ptr()),
                 lpstrFile: PWSTR(file_buffer.as_mut_ptr()),
                 nMaxFile: file_buffer.len() as u32,
                 lpstrTitle: PCWSTR(title_wide.as_ptr()),
