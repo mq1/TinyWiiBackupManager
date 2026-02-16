@@ -95,7 +95,7 @@ fn pick_file(
 #[cfg(feature = "windows-legacy")]
 fn pick_file(
     window: &dyn Window,
-    _title: String,
+    title: String,
     _filters: impl IntoIterator<Item = (String, Vec<String>)>,
     on_picked: impl FnOnce(PathBuf) -> Message + 'static,
 ) -> Message {
@@ -108,8 +108,10 @@ fn pick_file(
         core::{PCWSTR, PWSTR},
     };
 
+    let title_wide: Vec<u16> = title.encode_utf16().chain(std::iter::once(0)).collect();
+
     let filter = "All Files\0*.*\0\0";
-    let filter_u16: Vec<u16> = filter.encode_utf16().collect();
+    let filter_wide: Vec<u16> = filter.encode_utf16().chain(std::iter::once(0)).collect();
     let mut file_buffer = [0u16; 260];
 
     let handle = window.window_handle().unwrap().as_raw();
@@ -121,9 +123,10 @@ fn pick_file(
             let mut ofn = OPENFILENAMEW {
                 lStructSize: std::mem::size_of::<OPENFILENAMEW>() as u32,
                 hwndOwner: hwnd,
-                lpstrFilter: PCWSTR(filter_u16.as_ptr()),
+                lpstrFilter: PCWSTR(filter_wide.as_ptr()),
                 lpstrFile: PWSTR(file_buffer.as_mut_ptr()),
                 nMaxFile: file_buffer.len() as u32,
+                lpstrTitle: PCWSTR(title_wide.as_ptr()),
                 Flags: OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST,
                 ..Default::default()
             };
