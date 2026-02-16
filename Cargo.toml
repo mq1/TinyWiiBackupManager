@@ -61,7 +61,7 @@ native-dialog = "0.9"
 dark-light = { version = "2.0", optional = true, default-features = false }
 
 [target.'cfg(windows)'.dependencies]
-windows = { version = "0.62", features = ["Win32_Graphics_Dwm"] }
+windows = { version = "0.62" }
 
 [build-dependencies]
 regex = "1.12"
@@ -74,7 +74,7 @@ default = []
 linux-appimage = ["iced/wgpu-bare", "wgpu/vulkan", "iced/tiny-skia", "minreq/https-rustls"]
 linux-flatpak = ["iced/wgpu-bare", "wgpu/vulkan", "iced/tiny-skia", "minreq/https-native"]
 windows-legacy = ["iced/tiny-skia", "minreq/https-rustls"]
-windows = ["iced/wgpu-bare", "wgpu/dx12", "minreq/https-native", "dep:dark-light"]
+windows = ["iced/wgpu-bare", "wgpu/dx12", "minreq/https-native", "dep:dark-light", "windows/Win32_Graphics_Dwm"]
 macos = ["iced/wgpu-bare", "wgpu/metal", "minreq/https-native"]
 
 [profile.release-lto]
