@@ -131,7 +131,8 @@ fn pick_file(
         };
 
         if yes {
-            let path = String::from_utf16_lossy(&file_buffer).trim_matches(char::from(0));
+            let path = String::from_utf16_lossy(&file_buffer);
+            let trimmed = path.trim_matches(char::from(0)).to_string();
             return on_picked(PathBuf::from(path));
         }
     }
