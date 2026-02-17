@@ -18,11 +18,6 @@ use std::path::PathBuf;
 use walkdir::{DirEntry, WalkDir};
 
 pub fn confirm_delete_dir(window: &dyn Window, path: PathBuf) -> Message {
-    let window = match window.window_handle() {
-        Ok(window) => window,
-        Err(e) => return Message::GenericError(e.to_string()),
-    };
-
     let dialog = BlockingConfirmDialog {
         window,
         title: "Delete Directory",
@@ -38,11 +33,6 @@ pub fn confirm_delete_dir(window: &dyn Window, path: PathBuf) -> Message {
 }
 
 pub fn pick_mount_point(window: &dyn Window) -> Message {
-    let window = match window.window_handle() {
-        Ok(window) => window,
-        Err(e) => return Message::GenericError(e.to_string()),
-    };
-
     let dialog = BlockingPickDirectoryDialog {
         window,
         title: "Select Drive/Mount Point",
@@ -56,11 +46,6 @@ pub fn pick_mount_point(window: &dyn Window) -> Message {
 }
 
 pub fn pick_games(window: &dyn Window) -> Message {
-    let window = match window.window_handle() {
-        Ok(window) => window,
-        Err(e) => return Message::GenericError(e.to_string()),
-    };
-
     let dialog = BlockingPickFilesDialog {
         window,
         title: "Select a folder containing games",
@@ -76,11 +61,6 @@ pub fn pick_games(window: &dyn Window) -> Message {
 }
 
 pub fn pick_games_dir(window: &dyn Window) -> Message {
-    let window = match window.window_handle() {
-        Ok(window) => window,
-        Err(e) => return Message::GenericError(e.to_string()),
-    };
-
     let dialog = BlockingPickDirectoryDialog {
         window,
         title: "Select a folder containing games",
@@ -120,11 +100,6 @@ pub fn confirm_add_games(
     window: &dyn Window,
     entries: Vec<(PathBuf, Format, GameID, String)>,
 ) -> Message {
-    let window = match window.window_handle() {
-        Ok(window) => window,
-        Err(e) => return Message::GenericError(e.to_string()),
-    };
-
     let text = {
         const MAX: usize = 20;
 
@@ -163,11 +138,6 @@ pub fn confirm_add_games(
 }
 
 pub fn pick_hbc_apps(window: &dyn Window) -> Message {
-    let window = match window.window_handle() {
-        Ok(window) => window,
-        Err(e) => return Message::GenericError(e.to_string()),
-    };
-
     let dialog = BlockingPickFilesDialog {
         window,
         title: "Select Homebrew Channel Apps",
@@ -186,11 +156,6 @@ pub fn pick_hbc_apps(window: &dyn Window) -> Message {
 }
 
 pub fn pick_hbc_app_to_wiiload(window: &dyn Window) -> Message {
-    let window = match window.window_handle() {
-        Ok(window) => window,
-        Err(e) => return Message::GenericError(e.to_string()),
-    };
-
     let dialog = BlockingPickFilesDialog {
         window,
         title: "Select HBC App to Wiiload",
@@ -211,11 +176,6 @@ pub fn pick_hbc_app_to_wiiload(window: &dyn Window) -> Message {
 }
 
 pub fn pick_game_to_convert(window: &dyn Window) -> Message {
-    let window = match window.window_handle() {
-        Ok(window) => window,
-        Err(e) => return Message::GenericError(e.to_string()),
-    };
-
     let dialog = BlockingPickFilesDialog {
         window,
         title: "Select Game to Convert",
@@ -233,11 +193,6 @@ pub fn pick_game_to_convert(window: &dyn Window) -> Message {
 }
 
 pub fn pick_archive_dest(window: &dyn Window, source: PathBuf, game_title: String) -> Message {
-    let window = match window.window_handle() {
-        Ok(window) => window,
-        Err(e) => return Message::GenericError(e.to_string()),
-    };
-
     let dialog = BlockingSaveFileDialog {
         window,
         title: &format!(
@@ -255,11 +210,6 @@ pub fn pick_archive_dest(window: &dyn Window, source: PathBuf, game_title: Strin
 }
 
 pub fn no_new_games(window: &dyn Window) -> Message {
-    let window = match window.window_handle() {
-        Ok(window) => window,
-        Err(e) => return Message::GenericError(e.to_string()),
-    };
-
     let dialog = BlockingAlertDialog {
         window,
         title: "No new games to add",
@@ -274,11 +224,6 @@ pub fn no_new_games(window: &dyn Window) -> Message {
 }
 
 pub fn confirm_strip_game(window: &dyn Window, game: Game) -> Message {
-    let window = match window.window_handle() {
-        Ok(window) => window,
-        Err(e) => return Message::GenericError(e.to_string()),
-    };
-
     let dialog = BlockingConfirmDialog {
         window,
         title: "Remove update partition?",
@@ -297,11 +242,6 @@ pub fn confirm_strip_game(window: &dyn Window, game: Game) -> Message {
 }
 
 pub fn confirm_strip_all_games(window: &dyn Window) -> Message {
-    let window = match window.window_handle() {
-        Ok(window) => window,
-        Err(e) => return Message::GenericError(e.to_string()),
-    };
-
     let dialog = BlockingConfirmDialog {
         window,
         title: "Remove update partitions?",
@@ -317,11 +257,6 @@ pub fn confirm_strip_all_games(window: &dyn Window) -> Message {
 }
 
 pub fn confirm_install_osc_app(window: &dyn Window, app: OscAppMeta) -> Message {
-    let window = match window.window_handle() {
-        Ok(window) => window,
-        Err(e) => return Message::GenericError(e.to_string()),
-    };
-
     let dialog = BlockingConfirmDialog {
         window,
         title: "Install OSC App",
@@ -337,11 +272,6 @@ pub fn confirm_install_osc_app(window: &dyn Window, app: OscAppMeta) -> Message 
 }
 
 pub fn no_archive_source(window: &dyn Window) -> Message {
-    let window = match window.window_handle() {
-        Ok(window) => window,
-        Err(e) => return Message::GenericError(e.to_string()),
-    };
-
     let dialog = BlockingAlertDialog {
         window,
         title: "No archive source found",
