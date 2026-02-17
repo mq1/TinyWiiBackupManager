@@ -48,7 +48,7 @@ pub fn pick_mount_point(window: &dyn Window) -> Message {
 pub fn pick_games(window: &dyn Window) -> Message {
     let dialog = BlockingPickFilesDialog {
         window,
-        title: "Select a folder containing games",
+        title: "Select Games",
         multiple: true,
         filter: INPUT_DIALOG_FILTER,
     };
