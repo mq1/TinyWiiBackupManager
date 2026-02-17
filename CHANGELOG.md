@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 💬 Now using my ad-hoc developed library [blocking-dialog](https://github.com/mq1/blocking-dialog-rs) instead of rfd or native-dialog to show system dialogs / file pickers. This was needed to ensure windows xp compatibility
 
+### Fixed
+
+- 👻 Hidden file skipping (#540)
+
 ## [v5.1.8] - 2026-02-14
 
 ### Fixed

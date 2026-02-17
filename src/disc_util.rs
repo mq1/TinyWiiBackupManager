@@ -80,6 +80,10 @@ pub fn guess_format<R: Read>(reader: &mut R) -> Result<(Format, [u8; 6])> {
 
 pub fn read_disc_header_from_game_dir(path: &Path) -> Option<(Format, GameID, String)> {
     for entry in fs::read_dir(path).ok()?.filter_map(Result::ok) {
+        if entry.file_name().to_string_lossy().starts_with('.') {
+            continue;
+        }
+
         let Ok(mut file) = File::open(entry.path()) else {
             continue;
         };
