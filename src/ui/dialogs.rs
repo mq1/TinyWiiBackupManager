@@ -1,229 +1,129 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::games::extensions::{
-    SUPPORTED_DISC_EXTENSIONS, SUPPORTED_INPUT_EXTENSIONS, ext_to_format,
-};
+use crate::games::extensions::{INPUT_DIALOG_FILTER, OUTPUT_DIALOG_FILTER, ext_to_format};
 use crate::games::game::Game;
 use crate::games::game_id::GameID;
 use crate::hbc::osc::OscAppMeta;
 use crate::message::Message;
 use crate::util;
+use blocking_dialog::{
+    BlockingAlertDialog, BlockingConfirmDialog, BlockingDialogLevel, BlockingPickDirectoryDialog,
+    BlockingPickFilesDialog, BlockingPickFilesDialogFilter, BlockingSaveFileDialog,
+};
 use iced::Window;
-use native_dialog::{DialogBuilder, MessageLevel};
 use nod::common::Format;
 use std::fmt::Write;
 use std::path::PathBuf;
 use walkdir::{DirEntry, WalkDir};
 
-fn confirm(
-    window: &dyn Window,
-    title: String,
-    text: String,
-    level: MessageLevel,
-    on_confirm: Message,
-) -> Message {
-    let dialog = DialogBuilder::message()
-        .set_owner(&window)
-        .set_title(title)
-        .set_text(text)
-        .set_level(level)
-        .confirm();
-
-    match dialog.show() {
-        Ok(true) => on_confirm,
-        Ok(false) => Message::None,
-        Err(e) => Message::GenericError(e.to_string()),
-    }
-}
-
-fn alert(window: &dyn Window, title: String, text: Option<String>, level: MessageLevel) -> Message {
-    let mut dialog = DialogBuilder::message()
-        .set_owner(&window)
-        .set_title(title)
-        .set_level(level);
-
-    if let Some(text) = text {
-        dialog = dialog.set_text(text);
-    }
-
-    let dialog = dialog.alert();
-
-    match dialog.show() {
-        Ok(()) => Message::None,
-        Err(e) => Message::GenericError(e.to_string()),
-    }
-}
-
-fn pick_dir(
-    window: &dyn Window,
-    title: String,
-    on_picked: impl FnOnce(PathBuf) -> Message + 'static,
-) -> Message {
-    let dialog = DialogBuilder::file()
-        .set_owner(&window)
-        .set_title(title)
-        .open_single_dir();
-
-    match dialog.show() {
-        Ok(Some(path)) => on_picked(path),
-        Ok(None) => Message::None,
-        Err(e) => Message::GenericError(e.to_string()),
-    }
-}
-
-#[cfg(not(feature = "windows-legacy"))]
-fn pick_file(
-    window: &dyn Window,
-    title: String,
-    filters: impl IntoIterator<Item = (String, Vec<String>)>,
-    on_picked: impl FnOnce(PathBuf) -> Message + 'static,
-) -> Message {
-    let dialog = DialogBuilder::file()
-        .set_owner(&window)
-        .set_title(title)
-        .add_filters(filters)
-        .open_single_file();
-
-    match dialog.show() {
-        Ok(Some(path)) => on_picked(path),
-        Ok(None) => Message::None,
-        Err(e) => Message::GenericError(e.to_string()),
-    }
-}
-
-#[cfg(feature = "windows-legacy")]
-fn pick_file(
-    _window: &dyn Window,
-    _title: String,
-    _filters: impl IntoIterator<Item = (String, Vec<String>)>,
-    on_picked: impl FnOnce(PathBuf) -> Message + 'static,
-) -> Message {
-    let cmd = "mshta.exe \"about:<input type=file id=f><script>f.click();new ActiveXObject('Scripting.FileSystemObject').GetStandardStream(1).WriteLine(f.value);close();</script>\"";
-
-    let res = std::process::Command::new("cmd").args(["/C", cmd]).output();
-
-    let output = match res {
-        Ok(output) => output,
-        Err(e) => {
-            return Message::GenericError(e.to_string());
-        }
+pub fn confirm_delete_dir(window: &dyn Window, path: PathBuf) -> Message {
+    let window = match window.window_handle() {
+        Ok(window) => window,
+        Err(e) => return Message::GenericError(e.to_string()),
     };
 
-    let path = String::from_utf8_lossy(&output.stdout).trim().to_string();
-    if path.is_empty() {
-        return Message::None;
-    }
-
-    let path = PathBuf::from(path);
-    on_picked(path)
-}
-
-fn pick_files(
-    window: &dyn Window,
-    title: String,
-    filters: impl IntoIterator<Item = (String, Vec<String>)>,
-    on_picked: impl FnOnce(Vec<PathBuf>) -> Message + 'static,
-) -> Message {
-    let dialog = DialogBuilder::file()
-        .set_owner(&window)
-        .set_title(title)
-        .add_filters(filters)
-        .open_multiple_file();
+    let dialog = BlockingConfirmDialog {
+        window,
+        title: "Delete Directory",
+        message: &format!("Are you sure you want to delete {}?", path.display()),
+        level: BlockingDialogLevel::Warning,
+    };
 
     match dialog.show() {
-        Ok(paths) if !paths.is_empty() => on_picked(paths),
+        Ok(true) => Message::DeleteDirConfirmed(path),
+        Ok(false) => Message::None,
+        Err(e) => return Message::GenericError(e.to_string()),
+    }
+}
+
+pub fn pick_mount_point(window: &dyn Window) -> Message {
+    let window = match window.window_handle() {
+        Ok(window) => window,
+        Err(e) => return Message::GenericError(e.to_string()),
+    };
+
+    let dialog = BlockingPickDirectoryDialog {
+        window,
+        title: "Select Drive/Mount Point",
+    };
+
+    match dialog.show() {
+        Ok(Some(path)) => Message::MountPointPicked(path),
+        Ok(None) => Message::None,
+        Err(e) => Message::GenericError(e.to_string()),
+    }
+}
+
+pub fn pick_games(window: &dyn Window) -> Message {
+    let window = match window.window_handle() {
+        Ok(window) => window,
+        Err(e) => return Message::GenericError(e.to_string()),
+    };
+
+    let dialog = BlockingPickFilesDialog {
+        window,
+        title: "Select a folder containing games",
+        multiple: true,
+        filter: INPUT_DIALOG_FILTER,
+    };
+
+    match dialog.show() {
+        Ok(games) if !games.is_empty() => Message::ConfirmAddGamesToTransferStack(games),
         Ok(_) => Message::None,
         Err(e) => Message::GenericError(e.to_string()),
     }
 }
 
-fn save_file(
-    window: &dyn Window,
-    title: String,
-    filters: impl IntoIterator<Item = (String, Vec<String>)>,
-    filename: String,
-    on_picked: impl FnOnce(PathBuf) -> Message + 'static,
-) -> Message {
-    let dialog = DialogBuilder::file()
-        .set_owner(&window)
-        .set_title(title)
-        .add_filters(filters)
-        .set_filename(filename)
-        .save_single_file();
+pub fn pick_games_dir(window: &dyn Window) -> Message {
+    let window = match window.window_handle() {
+        Ok(window) => window,
+        Err(e) => return Message::GenericError(e.to_string()),
+    };
+
+    let dialog = BlockingPickDirectoryDialog {
+        window,
+        title: "Select a folder containing games",
+    };
 
     match dialog.show() {
-        Ok(Some(path)) => on_picked(path),
+        Ok(Some(path)) => {
+            let paths = WalkDir::new(path)
+                .into_iter()
+                .filter_map(Result::ok)
+                .filter(|entry| {
+                    entry.file_type().is_file()
+                        && entry
+                            .file_name()
+                            .to_str()
+                            .is_some_and(|name| !name.starts_with('.'))
+                        && entry
+                            .path()
+                            .extension()
+                            .is_some_and(|ext| ext_to_format(ext).is_some())
+                })
+                .map(DirEntry::into_path)
+                .collect::<Vec<_>>();
+
+            if paths.is_empty() {
+                Message::None
+            } else {
+                Message::ConfirmAddGamesToTransferStack(paths)
+            }
+        }
         Ok(None) => Message::None,
         Err(e) => Message::GenericError(e.to_string()),
     }
-}
-
-pub fn confirm_delete_dir(window: &dyn Window, path: PathBuf) -> Message {
-    let title = "Delete Directory".to_string();
-    let text = format!("Are you sure you want to delete {}?", path.display());
-    let level = MessageLevel::Warning;
-    let on_confirm = Message::DeleteDirConfirmed(path);
-
-    confirm(window, title, text, level, on_confirm)
-}
-
-pub fn pick_mount_point(window: &dyn Window) -> Message {
-    let title = "Select Drive/Mount Point".to_string();
-    let on_picked = |path| Message::MountPointPicked(path);
-
-    pick_dir(window, title, on_picked)
-}
-
-pub fn pick_games(window: &dyn Window) -> Message {
-    let title = "Select Games".to_string();
-    let on_picked = |path| Message::ConfirmAddGamesToTransferStack(path);
-    let filters = [(
-        "Nintendo Optical Disc".to_string(),
-        SUPPORTED_INPUT_EXTENSIONS
-            .iter()
-            .map(std::string::ToString::to_string)
-            .collect(),
-    )];
-
-    pick_files(window, title, filters, on_picked)
-}
-
-pub fn pick_games_dir(window: &dyn Window) -> Message {
-    let title = "Select a folder containing games".to_string();
-    let on_picked = |path| {
-        let paths = WalkDir::new(path)
-            .into_iter()
-            .filter_map(Result::ok)
-            .filter(|entry| {
-                entry.file_type().is_file()
-                    && entry
-                        .file_name()
-                        .to_str()
-                        .is_some_and(|name| !name.starts_with('.'))
-                    && entry
-                        .path()
-                        .extension()
-                        .is_some_and(|ext| ext_to_format(ext).is_some())
-            })
-            .map(DirEntry::into_path)
-            .collect::<Vec<_>>();
-
-        if paths.is_empty() {
-            Message::None
-        } else {
-            Message::ConfirmAddGamesToTransferStack(paths)
-        }
-    };
-
-    pick_dir(window, title, on_picked)
 }
 
 pub fn confirm_add_games(
     window: &dyn Window,
     entries: Vec<(PathBuf, Format, GameID, String)>,
 ) -> Message {
-    let title = "The following games will be added".to_string();
+    let window = match window.window_handle() {
+        Ok(window) => window,
+        Err(e) => return Message::GenericError(e.to_string()),
+    };
 
     let text = {
         const MAX: usize = 20;
@@ -243,114 +143,214 @@ pub fn confirm_add_games(
         text
     };
 
-    let level = MessageLevel::Info;
+    let dialog = BlockingConfirmDialog {
+        window,
+        title: "The following games will be added",
+        message: text.as_str(),
+        level: BlockingDialogLevel::Info,
+    };
 
     let paths = entries
         .into_iter()
         .map(|(p, _, _, _)| p)
         .collect::<Vec<_>>();
 
-    let on_confirm = Message::AddGamesToTransferStack(paths);
-
-    confirm(window, title, text, level, on_confirm)
+    match dialog.show() {
+        Ok(true) => Message::AddGamesToTransferStack(paths),
+        Ok(false) => Message::None,
+        Err(e) => Message::GenericError(e.to_string()),
+    }
 }
 
 pub fn pick_hbc_apps(window: &dyn Window) -> Message {
-    let title = "Select Homebrew Channel Apps".to_string();
-    let on_picked = |paths| Message::AddHbcApps(paths);
-    let filters = [("HBC App".to_string(), vec!["zip".to_string()])];
+    let window = match window.window_handle() {
+        Ok(window) => window,
+        Err(e) => return Message::GenericError(e.to_string()),
+    };
 
-    pick_files(window, title, filters, on_picked)
+    let dialog = BlockingPickFilesDialog {
+        window,
+        title: "Select Homebrew Channel Apps",
+        multiple: true,
+        filter: &[BlockingPickFilesDialogFilter {
+            name: "HBC App",
+            extensions: &["zip"],
+        }],
+    };
+
+    match dialog.show() {
+        Ok(hbc_apps) if !hbc_apps.is_empty() => Message::AddHbcApps(hbc_apps),
+        Ok(_) => Message::None,
+        Err(e) => Message::GenericError(e.to_string()),
+    }
 }
 
 pub fn pick_hbc_app_to_wiiload(window: &dyn Window) -> Message {
-    let title = "Select HBC App to Wiiload".to_string();
-    let on_picked = |path| Message::Wiiload(path);
-    let filters = [(
-        "HBC App".to_string(),
-        vec!["zip".to_string(), "dol".to_string(), "elf".to_string()],
-    )];
+    let window = match window.window_handle() {
+        Ok(window) => window,
+        Err(e) => return Message::GenericError(e.to_string()),
+    };
 
-    pick_file(window, title, filters, on_picked)
+    let dialog = BlockingPickFilesDialog {
+        window,
+        title: "Select HBC App to Wiiload",
+        multiple: false,
+        filter: &[BlockingPickFilesDialogFilter {
+            name: "HBC App",
+            extensions: &["zip", "dol", "elf"],
+        }],
+    };
+
+    match dialog.show() {
+        Ok(mut hbc_apps) => match hbc_apps.pop() {
+            Some(hbc_app) => Message::Wiiload(hbc_app),
+            None => Message::None,
+        },
+        Err(e) => Message::GenericError(e.to_string()),
+    }
 }
 
 pub fn pick_game_to_convert(window: &dyn Window) -> Message {
-    let title = "Select Game to Convert".to_string();
-    let on_picked = |path| Message::SetManualArchivingGame(path);
-    let filters = [(
-        "Nintendo Optical Disc".to_string(),
-        SUPPORTED_DISC_EXTENSIONS
-            .iter()
-            .map(std::string::ToString::to_string)
-            .collect(),
-    )];
+    let window = match window.window_handle() {
+        Ok(window) => window,
+        Err(e) => return Message::GenericError(e.to_string()),
+    };
 
-    pick_file(window, title, filters, on_picked)
+    let dialog = BlockingPickFilesDialog {
+        window,
+        title: "Select Game to Convert",
+        multiple: false,
+        filter: OUTPUT_DIALOG_FILTER,
+    };
+
+    match dialog.show() {
+        Ok(mut paths) => match paths.pop() {
+            Some(path) => Message::SetManualArchivingGame(path),
+            None => Message::None,
+        },
+        Err(e) => Message::GenericError(e.to_string()),
+    }
 }
 
 pub fn pick_archive_dest(window: &dyn Window, source: PathBuf, game_title: String) -> Message {
-    let title = format!(
-        "Archiving {game_title}\n\nSupported extensions: {}",
-        SUPPORTED_DISC_EXTENSIONS.join(", ")
-    );
+    let window = match window.window_handle() {
+        Ok(window) => window,
+        Err(e) => return Message::GenericError(e.to_string()),
+    };
 
-    let filename = format!("{}.rvz", util::sanitize(&game_title));
+    let dialog = BlockingSaveFileDialog {
+        window,
+        title: &format!(
+            "Select Destination for {game_title}\n\nSupported extensions: iso, wbfs, wia, rvz, ciso, gcz, tgc, nfs"
+        ),
+        default_filename: Some(&format!("{}.rvz", util::sanitize(&game_title))),
+        filter: OUTPUT_DIALOG_FILTER,
+    };
 
-    let on_picked = move |path| Message::ArchiveGame(source, game_title, path);
-
-    let filters = [(
-        "Nintendo Optical Disc".to_string(),
-        SUPPORTED_DISC_EXTENSIONS
-            .iter()
-            .map(std::string::ToString::to_string)
-            .collect(),
-    )];
-
-    save_file(window, title, filters, filename, on_picked)
+    match dialog.show() {
+        Ok(Some(path)) => Message::ArchiveGame(source, game_title, path),
+        Ok(None) => Message::None,
+        Err(e) => Message::GenericError(e.to_string()),
+    }
 }
 
 pub fn no_new_games(window: &dyn Window) -> Message {
-    let title = "No new games to add".to_string();
-    let text = Some("All selected games are already installed.".to_string());
-    let level = MessageLevel::Info;
+    let window = match window.window_handle() {
+        Ok(window) => window,
+        Err(e) => return Message::GenericError(e.to_string()),
+    };
 
-    alert(window, title, text, level)
+    let dialog = BlockingAlertDialog {
+        window,
+        title: "No new games to add",
+        message: "All selected games are already installed.",
+        level: BlockingDialogLevel::Info,
+    };
+
+    match dialog.show() {
+        Ok(()) => Message::None,
+        Err(e) => Message::GenericError(e.to_string()),
+    }
 }
 
 pub fn confirm_strip_game(window: &dyn Window, game: Game) -> Message {
-    let title = "Remove update partition?".to_string();
-    let text = format!(
-        "Are you sure you want to remove the update partition from {}?\n\nThis is irreversible!",
-        game.title()
-    );
-    let level = MessageLevel::Warning;
-    let on_confirm = Message::StripGame(game);
+    let window = match window.window_handle() {
+        Ok(window) => window,
+        Err(e) => return Message::GenericError(e.to_string()),
+    };
 
-    confirm(window, title, text, level, on_confirm)
+    let dialog = BlockingConfirmDialog {
+        window,
+        title: "Remove update partition?",
+        message: &format!(
+            "Are you sure you want to remove the update partition from {}?\n\nThis is irreversible!",
+            game.title()
+        ),
+        level: BlockingDialogLevel::Warning,
+    };
+
+    match dialog.show() {
+        Ok(true) => Message::StripGame(game),
+        Ok(false) => Message::None,
+        Err(e) => Message::GenericError(e.to_string()),
+    }
 }
 
 pub fn confirm_strip_all_games(window: &dyn Window) -> Message {
-    let title = "Remove update partitions?".to_string();
-    let text = "Are you sure you want to remove the update partitions from all .wbfs files?\n\nThis is irreversible!".to_string();
-    let level = MessageLevel::Warning;
-    let on_confirm = Message::StripAllGames;
+    let window = match window.window_handle() {
+        Ok(window) => window,
+        Err(e) => return Message::GenericError(e.to_string()),
+    };
 
-    confirm(window, title, text, level, on_confirm)
+    let dialog = BlockingConfirmDialog {
+        window,
+        title: "Remove update partitions?",
+        message: "Are you sure you want to remove the update partitions from all .wbfs files?\n\nThis is irreversible!",
+        level: BlockingDialogLevel::Warning,
+    };
+
+    match dialog.show() {
+        Ok(true) => Message::StripAllGames,
+        Ok(false) => Message::None,
+        Err(e) => Message::GenericError(e.to_string()),
+    }
 }
 
 pub fn confirm_install_osc_app(window: &dyn Window, app: OscAppMeta) -> Message {
-    let title = "Install OSC App".to_string();
-    let text = format!("Are you sure you want to install {}?", app.name());
-    let level = MessageLevel::Info;
-    let on_confirm = Message::InstallOscApp(app);
+    let window = match window.window_handle() {
+        Ok(window) => window,
+        Err(e) => return Message::GenericError(e.to_string()),
+    };
 
-    confirm(window, title, text, level, on_confirm)
+    let dialog = BlockingConfirmDialog {
+        window,
+        title: "Install OSC App",
+        message: &format!("Are you sure you want to install {}?", app.name()),
+        level: BlockingDialogLevel::Info,
+    };
+
+    match dialog.show() {
+        Ok(true) => Message::InstallOscApp(app),
+        Ok(false) => Message::None,
+        Err(e) => Message::GenericError(e.to_string()),
+    }
 }
 
 pub fn no_archive_source(window: &dyn Window) -> Message {
-    let title = "No archive source found".to_string();
-    let text = None;
-    let level = MessageLevel::Warning;
+    let window = match window.window_handle() {
+        Ok(window) => window,
+        Err(e) => return Message::GenericError(e.to_string()),
+    };
 
-    alert(window, title, text, level)
+    let dialog = BlockingAlertDialog {
+        window,
+        title: "No archive source found",
+        message: "No archive source was found for the selected game.",
+        level: BlockingDialogLevel::Error,
+    };
+
+    match dialog.show() {
+        Ok(()) => Message::None,
+        Err(e) => Message::GenericError(e.to_string()),
+    }
 }
