@@ -1,16 +1,87 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use blocking_dialog::BlockingPickFilesDialogFilter;
 use nod::common::{Compression, Format};
 use nod::write::FormatOptions;
 use std::ffi::OsStr;
 
-pub const SUPPORTED_INPUT_EXTENSIONS: &[&str] = &[
-    "gcm", "iso", "wbfs", "wia", "rvz", "ciso", "gcz", "tgc", "nfs", "zip",
+pub const INPUT_DIALOG_FILTER: &[BlockingPickFilesDialogFilter<'_>] = &[
+    BlockingPickFilesDialogFilter {
+        name: "ISO",
+        extensions: &["gcm", "iso"],
+    },
+    BlockingPickFilesDialogFilter {
+        name: "WBFS",
+        extensions: &["wbfs"],
+    },
+    BlockingPickFilesDialogFilter {
+        name: "WIA",
+        extensions: &["wia"],
+    },
+    BlockingPickFilesDialogFilter {
+        name: "RVZ",
+        extensions: &["rvz"],
+    },
+    BlockingPickFilesDialogFilter {
+        name: "CISO",
+        extensions: &["ciso"],
+    },
+    BlockingPickFilesDialogFilter {
+        name: "GCM",
+        extensions: &["gcm"],
+    },
+    BlockingPickFilesDialogFilter {
+        name: "GCZ",
+        extensions: &["gcz"],
+    },
+    BlockingPickFilesDialogFilter {
+        name: "TGC",
+        extensions: &["tgc"],
+    },
+    BlockingPickFilesDialogFilter {
+        name: "NFS",
+        extensions: &["nfs"],
+    },
+    BlockingPickFilesDialogFilter {
+        name: "ZIP",
+        extensions: &["zip"],
+    },
 ];
 
-pub const SUPPORTED_DISC_EXTENSIONS: &[&str] = &[
-    "gcm", "iso", "wbfs", "wia", "rvz", "ciso", "gcz", "tgc", "nfs",
+pub const OUTPUT_DIALOG_FILTER: &[BlockingPickFilesDialogFilter<'_>] = &[
+    BlockingPickFilesDialogFilter {
+        name: "ISO",
+        extensions: &["iso", "gcm"],
+    },
+    BlockingPickFilesDialogFilter {
+        name: "WBFS",
+        extensions: &["wbfs"],
+    },
+    BlockingPickFilesDialogFilter {
+        name: "WIA",
+        extensions: &["wia"],
+    },
+    BlockingPickFilesDialogFilter {
+        name: "RVZ",
+        extensions: &["rvz"],
+    },
+    BlockingPickFilesDialogFilter {
+        name: "CISO",
+        extensions: &["ciso"],
+    },
+    BlockingPickFilesDialogFilter {
+        name: "GCZ",
+        extensions: &["gcz"],
+    },
+    BlockingPickFilesDialogFilter {
+        name: "TGC",
+        extensions: &["tgc"],
+    },
+    BlockingPickFilesDialogFilter {
+        name: "NFS",
+        extensions: &["nfs"],
+    },
 ];
 
 pub fn ext_to_format(ext: &OsStr) -> Option<Format> {
