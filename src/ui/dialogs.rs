@@ -13,6 +13,7 @@ use blocking_dialog::{
 };
 use iced::Window;
 use nod::common::Format;
+use std::ffi::OsStr;
 use std::fmt::Write;
 use std::path::PathBuf;
 use walkdir::{DirEntry, WalkDir};
@@ -71,18 +72,26 @@ pub fn pick_games_dir(window: &dyn Window) -> Message {
             let paths = WalkDir::new(path)
                 .into_iter()
                 .filter_map(Result::ok)
-                .filter(|entry| {
-                    entry.file_type().is_file()
-                        && entry
-                            .file_name()
-                            .to_str()
-                            .is_some_and(|name| !name.starts_with('.'))
-                        && entry
-                            .path()
-                            .extension()
-                            .is_some_and(|ext| ext_to_format(ext).is_some())
-                })
                 .map(DirEntry::into_path)
+                .filter(|path| {
+                    if !path.is_file() {
+                        return false;
+                    }
+
+                    let Some(stem) = path.file_stem().and_then(OsStr::to_str) else {
+                        return false;
+                    };
+
+                    if stem.starts_with('.') {
+                        return false;
+                    }
+
+                    let Some(ext) = path.extension() else {
+                        return false;
+                    };
+
+                    ext.eq_ignore_ascii_case("zip") || ext_to_format(&ext).is_some()
+                })
                 .collect::<Vec<_>>();
 
             if paths.is_empty() {

@@ -515,9 +515,9 @@ dependencies = [
 
 [[package]]
 name = "blocking-dialog"
-version = "0.0.4"
+version = "0.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2820e62e0a8b1dc410e0052c4a1c385e10a5f60627ee6d88a3037291e3f4178e"
+checksum = "20afdec5c1fe2c67f951bda37e5d0a8e5ee7fe1079d36aee7757855a78918f10"
 dependencies = [
  "block2 0.6.2",
  "objc2 0.6.3",
