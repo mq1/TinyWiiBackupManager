@@ -205,7 +205,7 @@ pub fn pick_archive_dest(window: &dyn Window, source: PathBuf, game_title: Strin
     let dialog = BlockingSaveFileDialog {
         window,
         title: &format!(
-            "Select Destination for {game_title}\n\nSupported extensions: iso, wbfs, wia, rvz, ciso, gcz, tgc, nfs"
+            "Select Destination for {game_title} | Supported extensions: iso, wbfs, wia, rvz, ciso, gcz, tgc, nfs"
         ),
         default_filename: Some(&format!("{}.rvz", util::sanitize(&game_title))),
         filter: OUTPUT_DIALOG_FILTER,
