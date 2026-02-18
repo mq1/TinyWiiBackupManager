@@ -17,7 +17,7 @@
 
 - **Lightweight & Fast**: Native app, -O3, LTO, x86_64-v1/v2/v3 optimized builds
 - **Cross-Platform**:
-  - :window: Windows 7+ | x86 (32-bit), x86_64 (64-bit), arm64 (Qualcomm Snapdragon etc.)
+  - :window: Windows XP+ | x86 (32-bit), x86_64 (64-bit), arm64 (Qualcomm Snapdragon etc.)
   - :apple: macOS 10.13+ | x86_64 (Intel), arm64 (Apple Silicon/M1+)
   - :penguin: Linux | x86 (32-bit), x86_64 (64-bit), arm64 (Qualcomm Snapdragon, Raspberry PIs etc.)
 
@@ -45,7 +45,7 @@
 - **:window: Windows**:\
   :arrow_right: [Download installer](https://github.com/mq1/TinyWiiBackupManagerInstaller/releases/latest/download/TinyWiiBackupManagerInstaller.exe) (recommended for most users)\
   :arrow_right: [Download standalone binary](https://github.com/mq1/TinyWiiBackupManager/releases/latest)\
-  :warning: Windows 7-8-8.1 users should use the installer, or download the `windows-legacy` standalone binary.
+  :warning: Windows < 10 users should use the installer, or download the `windows-legacy` standalone binary.
   
   - :ice_cream: scoop:\
     `scoop bucket add TinyWiiBackupManager https://github.com/mq1/TinyWiiBackupManager`\

@@ -7,9 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v5.1.9] - 2026-02-18
+
 ### Added
 
-- 🪟 Experimental Windows XP support! (windows-legacy build)
+- 🪟 Experimental Windows XP and Vista support! (windows-legacy build)
 
 ### Changed
 
@@ -179,7 +181,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 🖼️ TinyWiiBackupManager icon now shows up again on the windows exe
 
-[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.8...HEAD
+[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.9...HEAD
+[v5.1.9]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.8...v5.1.9
 [v5.1.8]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.7...v5.1.8
 [v5.1.7]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.6...v5.1.7
 [v5.1.6]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.5...v5.1.6
