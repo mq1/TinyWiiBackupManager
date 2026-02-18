@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- 🪟 Windows XP support! (windows-legacy build)
+- 🪟 Experimental Windows XP support! (windows-legacy build)
 
 ### Changed
 
