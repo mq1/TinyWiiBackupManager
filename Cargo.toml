@@ -154,5 +154,4 @@ all = "warn"
 pedantic = "warn"
 
 [workspace.metadata.cross.target.i686-unknown-linux-gnu]
-image = "i386/debian:oldstable"
 pre-build = ["apt-get update && apt-get -y install libgtk3-dev"]
