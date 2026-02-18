@@ -74,8 +74,8 @@ jobs:
     steps:
       - name: Setup x86 container
         run: |
-          sudo apt-get update
-          sudo apt-get install nodejs
+          apt-get update
+          apt-get install sudo nodejs
       
       - name: Checkout
         uses: actions/checkout@v6
