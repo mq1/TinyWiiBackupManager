@@ -106,7 +106,6 @@ jobs:
           chmod +x *.AppImage *.sh
 
       - name: Build binary
-        if: matrix.arch != 'x86'
         run: |
           cargo build -Z build-std=std,panic_abort --profile release-lto --locked --target ${{ matrix.target }} --features linux-appimage
           cp "target/${{ matrix.target }}/release-lto/TinyWiiBackupManager" TinyWiiBackupManager
@@ -202,7 +201,7 @@ jobs:
         run: cargo build -Z build-std=std,panic_abort --profile release-lto --locked --target ${{ matrix.target }} --features ${{ matrix.platform }}
         env:
           RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: ${{ matrix.rustflags }} -C target-feature=+crt-static
+          RUSTFLAGS: ${{ matrix.rustflags }} -C target-feature=+crt-static -C linker=rust-lld.exe
           CFLAGS: ${{ matrix.cflags }}
           CXXFLAGS: ${{ matrix.cxxflags }}
 
