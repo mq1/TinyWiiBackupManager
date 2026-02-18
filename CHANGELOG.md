@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - 💬 Now using my ad-hoc developed library [blocking-dialog](https://github.com/mq1/blocking-dialog-rs) instead of rfd or native-dialog to show system dialogs / file pickers. This was needed to ensure windows xp compatibility
-- 📦 AppImage doesn't depend on zenity anymore
+- 📦 AppImage doesn't depend on zenity or xdg-desktop-portal anymore. consequently, the bundle size is bigger (flatpak and tarball not affected)
 - 📦 Disabled AppImage x86 builds for now (tarball still available)
 
 ### Fixed
