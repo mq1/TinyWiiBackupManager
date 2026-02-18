@@ -70,12 +70,16 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 1
+    
+      - name: Refresh apt
+        run: sudo apt-get update
+
+      - name: Install dependencies
+        run: sudo apt-get install -y libgtk-3-dev
 
       - name: Install x86 dependencies
         if: matrix.arch == 'x86'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libc6-dev-i386
+        run: sudo apt-get install -y libc6-dev-i386
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.93
@@ -103,7 +107,7 @@ jobs:
       - name: Package binary as AppImage
         run: |
           cp -r package/linux AppDir
-          ./${{ matrix.linuxdeploy-bin }} --appdir AppDir -e TinyWiiBackupManager --output appimage
+          ./${{ matrix.linuxdeploy-bin }} --appdir AppDir -e TinyWiiBackupManager --plugin gtk --output appimage
           mv TinyWiiBackupManager-*.AppImage "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
           mv TinyWiiBackupManager-*.AppImage.zsync "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage.zsync"
         env:
