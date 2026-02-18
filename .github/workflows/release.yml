@@ -76,17 +76,16 @@ jobs:
         if: matrix.arch == 'x86'
         run: |
           apt-get update
-          apt-get install -y nodejs libgtk-3-dev
-          ln -sf $(which node) /__e/node24/bin/node
+          apt-get install -y git libgtk-3-dev
 
       - name: Install dependencies
         if: matrix.arch != 'x86'
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev
-      
+
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: taiki-e/checkout-action@v1 # no nodejs dependency
         with:
           fetch-depth: 1
 
