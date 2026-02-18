@@ -119,6 +119,7 @@ jobs:
             apt-get update
             apt-get install -y curl build-essential libgtk-3-dev pkg-config
             curl https://sh.rustup.rs -sSf | sh -s -- -y
+            . $HOME/.cargo/env
             /root/.cargo/bin/cargo build --profile release-lto --locked --target i686-unknown-linux-gnu --features linux-appimage
             cp -r package/linux AppDir
             ./${{ matrix.linuxdeploy-bin }} --appdir AppDir -e TinyWiiBackupManager --plugin gtk --output appimage
