@@ -36,6 +36,7 @@ jobs:
           - target: x86_64-unknown-linux-gnu
             runner: ubuntu-22.04
             arch: x86_64-v3
+            ldai-arch: x86_64
             rustflags: -C target-cpu=x86-64-v3
             cflags: -march=x86-64-v3
             cxxflags: -march=x86-64-v3
@@ -44,6 +45,7 @@ jobs:
           - target: x86_64-unknown-linux-gnu
             runner: ubuntu-22.04
             arch: x86_64-v2
+            ldai-arch: x86_64
             rustflags: -C target-cpu=x86-64-v2
             cflags: -march=x86-64-v2
             cxxflags: -march=x86-64-v2
@@ -52,11 +54,13 @@ jobs:
           - target: x86_64-unknown-linux-gnu
             runner: ubuntu-22.04
             arch: x86_64
+            ldai-arch: x86_64
             linuxdeploy-bin: linuxdeploy-x86_64.AppImage
             linuxdeploy-ai-bin: linuxdeploy-plugin-appimage-x86_64.AppImage
           - target: aarch64-unknown-linux-gnu
             runner: ubuntu-22.04-arm
             arch: arm64
+            ldai-arch: aarch64
             linuxdeploy-bin: linuxdeploy-aarch64.AppImage
             linuxdeploy-ai-bin: linuxdeploy-plugin-appimage-aarch64.AppImage
           - target: i686-unknown-linux-gnu
@@ -90,8 +94,8 @@ jobs:
       - name: Download LinuxDeploy
         if: matrix.arch != 'x86'
         run: |
-          wget "https://github.com/linuxdeploy/linuxdeploy/releases/latest/download/linuxdeploy-${{ matrix.arch}}.AppImage"
-          wget "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/latest/download/linuxdeploy-plugin-appimage-${{ matrix.arch }}.AppImage"
+          wget "https://github.com/linuxdeploy/linuxdeploy/releases/latest/download/linuxdeploy-${{ matrix.ldai-arch}}.AppImage"
+          wget "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/latest/download/linuxdeploy-plugin-appimage-${{ matrix.ldai-arch }}.AppImage"
           wget "https://raw.githubusercontent.com/linuxdeploy/linuxdeploy-plugin-gtk/master/linuxdeploy-plugin-gtk.sh"
           chmod +x *.AppImage *.sh
 
@@ -115,7 +119,7 @@ jobs:
         if: matrix.arch != 'x86'
         run: |
           cp -r package/linux AppDir
-          ./linuxdeploy-${{ matrix.arch }}.AppImage --appdir AppDir -e TinyWiiBackupManager --plugin gtk --output appimage
+          ./linuxdeploy-${{ matrix.ldai-arch }}.AppImage --appdir AppDir -e TinyWiiBackupManager --plugin gtk --output appimage
           mv TinyWiiBackupManager-*.AppImage "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
           mv TinyWiiBackupManager-*.AppImage.zsync "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage.zsync"
         env:
