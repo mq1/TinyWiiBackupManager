@@ -111,15 +111,13 @@ jobs:
       - name: Build x86 binary and AppImage
         if: matrix.arch == 'x86'
         run: |
-          docker run -v $PWD:/io -w /io i386/debian:oldstable bash -c "
+          docker run -v $PWD:/io -w /io i386/rust:bookworm bash -c "
             set -e
             export LDAI_UPDATE_INFORMATION='gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync'
             export DEPLOY_GTK_VERSION=3
-            export PATH=/root/.cargo/bin:$PATH
 
             apt-get update
-            apt-get install -y curl build-essential libgtk-3-dev pkg-config
-            curl https://sh.rustup.rs -sSf | sh -s -- -y
+            apt-get install -y build-essential libgtk-3-dev pkg-config
             cargo build --profile release-lto --locked --target i686-unknown-linux-gnu --features linux-appimage
             ./${{ matrix.linuxdeploy-bin }} --appdir AppDir -e TinyWiiBackupManager --plugin gtk --output appimage
           "
