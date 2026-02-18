@@ -527,9 +527,9 @@ dependencies = [
 
 [[package]]
 name = "blocking-dialog"
-version = "0.0.8"
+version = "0.0.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b79b8f77966adf22a046b387110d9f3b9af1ccd120500df839a45eaa66bd6d21"
+checksum = "d38bd6d7b49908c6e7ec08835049faeb0f682a678928f6dfc84f0361e6d7d203"
 dependencies = [
  "block2 0.6.2",
  "objc2 0.6.3",
@@ -2585,9 +2585,9 @@ dependencies = [
 
 [[package]]
 name = "native-tls"
-version = "0.2.16"
+version = "0.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9d5d26952a508f321b4d3d2e80e78fc2603eaefcdf0c30783867f19586518bdc"
+checksum = "4f809093c63eb54651a1e6c19e0224c0c3c12793ef25d3800c625af2efed61d1"
 dependencies = [
  "libc",
  "log",
