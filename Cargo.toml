@@ -85,7 +85,7 @@ linux-flatpak = [
   "iced/wgpu-bare",
   "wgpu/vulkan",
   "iced/tiny-skia",
-  "minreq/https-native",
+  "minreq/https-rustls-probe",
   "blocking-dialog/xdg-portal",
 ]
 windows-legacy = ["iced/tiny-skia", "minreq/https-rustls"]
