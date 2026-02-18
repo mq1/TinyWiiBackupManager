@@ -114,6 +114,7 @@ jobs:
           RUSTFLAGS: ${{ matrix.rustflags }} -C link-arg=-fuse-ld=mold
           CFLAGS: ${{ matrix.cflags }}
           CXXFLAGS: ${{ matrix.cxxflags }}
+          PKG_CONFIG_ALLOW_CROSS: 1
 
       - name: Package binary as tar.gz
         run: |
