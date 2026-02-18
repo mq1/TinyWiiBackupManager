@@ -29,7 +29,6 @@ jobs:
   build-linux:
     name: Build for Linux
     runs-on: ${{ matrix.runner }}
-    container: ${{ matrix.container }}
     strategy:
       fail-fast: false
       matrix:
@@ -66,7 +65,6 @@ jobs:
             linuxdeploy-ai-bin: linuxdeploy-plugin-appimage-aarch64.AppImage
           - target: i686-unknown-linux-gnu
             runner: ubuntu-22.04
-            container: i386/debian:oldstable
             arch: x86
             linuxdeploy-bin: linuxdeploy-i386.AppImage
             linuxdeploy-ai-bin: linuxdeploy-plugin-appimage-i686.AppImage
