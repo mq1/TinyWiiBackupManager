@@ -527,9 +527,9 @@ dependencies = [
 
 [[package]]
 name = "blocking-dialog"
-version = "0.0.9"
+version = "0.0.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d38bd6d7b49908c6e7ec08835049faeb0f682a678928f6dfc84f0361e6d7d203"
+checksum = "f3c38a6841c8532e09ac52029dc610ed0d7782c80db4dee4a52c7e3839bd69e3"
 dependencies = [
  "block2 0.6.2",
  "objc2 0.6.3",
@@ -544,9 +544,9 @@ dependencies = [
 
 [[package]]
 name = "bumpalo"
-version = "3.19.1"
+version = "3.20.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5dd9dc738b7a8311c7ade152424974d8115f2cdad61e8dab8dac9f2362298510"
+checksum = "c81d250916401487680ed13b8b675660281dcfc3ab0121fe44c94bcab9eae2fb"
 
 [[package]]
 name = "bytemuck"
