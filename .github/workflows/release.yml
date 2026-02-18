@@ -124,11 +124,13 @@ jobs:
             cp \"target/${{ matrix.target }}/release-lto/TinyWiiBackupManager\" TinyWiiBackupManager
             ./${{ matrix.linuxdeploy-bin }} --appdir AppDir -e TinyWiiBackupManager --plugin gtk --output appimage
           "
+          sudo chown $(id -u):$(id -g) TinyWiiBackupManager
+          sudo chown $(id -u):$(id -g) TinyWiiBackupManager-*.AppImage
+          sudo chown $(id -u):$(id -g) TinyWiiBackupManager-*.AppImage.zsync
         
       - name: Package binary as tar.gz
         run: |
           mkdir dist
-          cp "target/${{ matrix.target }}/release-lto/TinyWiiBackupManager" TinyWiiBackupManager
           tar -I 'gzip -9' -cvf "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.tar.gz" TinyWiiBackupManager
       
       - name: Package binary as AppImage
