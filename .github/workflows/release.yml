@@ -73,7 +73,7 @@ jobs:
 
     steps:
       - name: Setup x86 container
-        if: matrix.arch = 'x86'
+        if: matrix.arch == 'x86'
         run: |
           apt-get update
           apt-get install sudo nodejs
