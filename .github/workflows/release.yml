@@ -107,7 +107,7 @@ jobs:
         
       - name: Build binary (x86)
         if: matrix.arch == 'x86'
-        run: cross build -Z --profile release-lto --locked --target ${{ matrix.target }} --features linux-appimage
+        run: cross build --profile release-lto --locked --target ${{ matrix.target }} --features linux-appimage
 
       - name: Package binary as tar.gz
         run: |
