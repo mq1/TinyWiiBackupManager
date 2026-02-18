@@ -6,83 +6,21 @@ use nod::common::{Compression, Format};
 use nod::write::FormatOptions;
 use std::ffi::OsStr;
 
-pub const INPUT_DIALOG_FILTER: &[BlockingPickFilesDialogFilter<'_>] = &[
-    BlockingPickFilesDialogFilter {
-        name: "ISO",
-        extensions: &["gcm", "iso"],
-    },
-    BlockingPickFilesDialogFilter {
-        name: "WBFS",
-        extensions: &["wbfs"],
-    },
-    BlockingPickFilesDialogFilter {
-        name: "WIA",
-        extensions: &["wia"],
-    },
-    BlockingPickFilesDialogFilter {
-        name: "RVZ",
-        extensions: &["rvz"],
-    },
-    BlockingPickFilesDialogFilter {
-        name: "CISO",
-        extensions: &["ciso"],
-    },
-    BlockingPickFilesDialogFilter {
-        name: "GCM",
-        extensions: &["gcm"],
-    },
-    BlockingPickFilesDialogFilter {
-        name: "GCZ",
-        extensions: &["gcz"],
-    },
-    BlockingPickFilesDialogFilter {
-        name: "TGC",
-        extensions: &["tgc"],
-    },
-    BlockingPickFilesDialogFilter {
-        name: "NFS",
-        extensions: &["nfs"],
-    },
-    BlockingPickFilesDialogFilter {
-        name: "ZIP",
-        extensions: &["zip"],
-    },
-];
+pub const INPUT_DIALOG_FILTER: &[BlockingPickFilesDialogFilter<'_>] =
+    &[BlockingPickFilesDialogFilter {
+        name: "Nintendo Optical Disc",
+        extensions: &[
+            "gcm", "iso", "wbfs", "wia", "rvz", "ciso", "gcz", "tgc", "nfs", "zip",
+        ],
+    }];
 
-pub const OUTPUT_DIALOG_FILTER: &[BlockingPickFilesDialogFilter<'_>] = &[
-    BlockingPickFilesDialogFilter {
-        name: "ISO",
-        extensions: &["iso", "gcm"],
-    },
-    BlockingPickFilesDialogFilter {
-        name: "WBFS",
-        extensions: &["wbfs"],
-    },
-    BlockingPickFilesDialogFilter {
-        name: "WIA",
-        extensions: &["wia"],
-    },
-    BlockingPickFilesDialogFilter {
-        name: "RVZ",
-        extensions: &["rvz"],
-    },
-    BlockingPickFilesDialogFilter {
-        name: "CISO",
-        extensions: &["ciso"],
-    },
-    BlockingPickFilesDialogFilter {
-        name: "GCZ",
-        extensions: &["gcz"],
-    },
-    BlockingPickFilesDialogFilter {
-        name: "TGC",
-        extensions: &["tgc"],
-    },
-    BlockingPickFilesDialogFilter {
-        name: "NFS",
-        extensions: &["nfs"],
-    },
-];
+pub const OUTPUT_DIALOG_FILTER: &[BlockingPickFilesDialogFilter<'_>] =
+    &[BlockingPickFilesDialogFilter {
+        name: "Nintendo Optical Disc",
+        extensions: &[
+            "gcm", "iso", "wbfs", "wia", "rvz", "ciso", "gcz", "tgc", "nfs",
+        ],
+    }];
 
 pub fn ext_to_format(ext: &OsStr) -> Option<Format> {
     if ext.eq_ignore_ascii_case("gcm") || ext.eq_ignore_ascii_case("iso") {
