@@ -72,21 +72,22 @@ jobs:
             linuxdeploy-ai-bin: linuxdeploy-plugin-appimage-i686.AppImage
 
     steps:
-      - name: Setup x86 container
+      - name: Install x86 dependencies
         if: matrix.arch == 'x86'
         run: |
           apt-get update
-          apt-get install sudo nodejs
+          apt-get install -y nodejs libgtk-3-dev
+
+      - name: Install dependencies
+        if: matrix.arch != 'x86'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev
       
       - name: Checkout
         uses: actions/checkout@v6
         with:
           fetch-depth: 1
-    
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.93
