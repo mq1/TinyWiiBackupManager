@@ -66,49 +66,48 @@ jobs:
           - target: i686-unknown-linux-gnu
             runner: ubuntu-22.04
             arch: x86
+            linuxdeploy-bin: linuxdeploy-i386.AppImage
+            linuxdeploy-ai-bin: linuxdeploy-plugin-appimage-i686.AppImage
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
           fetch-depth: 1
-    
+
       - name: Install dependencies
         if: matrix.arch != 'x86'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev
-
-      - name: Install x86 dependencies
-        if: matrix.arch == 'x86'
-        run: |
-          sudo dpkg --add-architecture i386
-          sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev:i386 gcc-multilib
+        run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.93
         with:
           components: rust-src
 
+      - name: Install cross
+        if: matrix.arch == 'x86'
+        run: cargo install cross --git https://github.com/cross-rs/cross
+
       - name: Download LinuxDeploy
         if: matrix.arch != 'x86'
         run: |
-          wget "https://github.com/linuxdeploy/linuxdeploy/releases/latest/download/linuxdeploy-${{ matrix.ldai-arch}}.AppImage"
-          wget "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/latest/download/linuxdeploy-plugin-appimage-${{ matrix.ldai-arch }}.AppImage"
+          wget "https://github.com/linuxdeploy/linuxdeploy/releases/latest/download/${{ matrix.linuxdeploy-bin }}"
+          wget "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/latest/download/${{ matrix.linuxdeploy-ai-bin }}"
           wget "https://raw.githubusercontent.com/linuxdeploy/linuxdeploy-plugin-gtk/master/linuxdeploy-plugin-gtk.sh"
           chmod +x *.AppImage *.sh
 
       - name: Build binary
+        if: matrix.arch != 'x86'
         run: cargo build -Z build-std=std,panic_abort --profile release-lto --locked --target ${{ matrix.target }} --features linux-appimage
         env:
           RUSTC_BOOTSTRAP: 1
           RUSTFLAGS: ${{ matrix.rustflags }}
           CFLAGS: ${{ matrix.cflags }}
           CXXFLAGS: ${{ matrix.cxxflags }}
-          DEPLOY_GTK_VERSION: 3
-          PKG_CONFIG_ALLOW_CROSS: ${{ matrix.arch == 'x86' && '1' || '' }}
-          PKG_CONFIG: ${{ matrix.arch == 'x86' && '/usr/lib/i386-linux-gnu/pkgconfig' || '' }}
+        
+      - name: Build binary (x86)
+        if: matrix.arch == 'x86'
+        run: cross build --profile release-lto --locked --target ${{ matrix.target }} --features linux-appimage
 
       - name: Package binary as tar.gz
         run: |
@@ -120,11 +119,12 @@ jobs:
         if: matrix.arch != 'x86'
         run: |
           cp -r package/linux AppDir
-          ./linuxdeploy-${{ matrix.ldai-arch }}.AppImage --appdir AppDir -e TinyWiiBackupManager --plugin gtk --output appimage
+          ./${{ matrix.linuxdeploy-bin }} --appdir AppDir -e TinyWiiBackupManager --plugin gtk --output appimage
           mv TinyWiiBackupManager-*.AppImage "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
           mv TinyWiiBackupManager-*.AppImage.zsync "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage.zsync"
         env:
           LDAI_UPDATE_INFORMATION: "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync"
+          DEPLOY_GTK_VERSION: 3
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v4
