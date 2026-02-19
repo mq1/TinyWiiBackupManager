@@ -14,12 +14,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🪨 Linux armv7 build (#551)
 - 🔧 Support for modded wii games >= 8gb (#501)
 
+### Changed
+
+- 🪶 More reliable linux dialogs (thanks to zenity-rs)
+
 ### Fixed
 
 - 📦 Correct tarball owner and group (linux dist)
 - 💥 Fix crash on linux + buggy vulkan drivers (#546)
 - 🐛 Thread panicked when adding a game (#553)
-- 🪶 Fixed regression: AppImage is small again as we don't bundle gtk3 anymore (thanks to zenity-rs)
+- 🪶 AppImage is small again as we don't bundle gtk3 anymore (thanks to zenity-rs)
 
 ## [v5.1.9] - 2026-02-18
 
