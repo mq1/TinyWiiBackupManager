@@ -99,14 +99,14 @@ jobs:
         run: |
           sudo dpkg --add-architecture i386
           sudo apt-get update
-          sudo apt-get install -y gcc-i686-linux-gnu libgtk-3-dev:i386
+          sudo apt-get install -y gcc-i686-linux-gnu binutils-i686-linux-gnu libgtk-3-dev:i386
 
       - name: Install armhf dependencies
         if: matrix.arch == 'armhf'
         run: |
           sudo dpkg --add-architecture armhf
           sudo apt-get update
-          sudo apt-get install -y gcc-arm-linux-gnueabihf libgtk-3-dev:armhf
+          sudo apt-get install -y gcc-arm-linux-gnueabihf binutils-arm-linux-gnueabihf libgtk-3-dev:armhf
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.93
@@ -142,10 +142,7 @@ jobs:
 
       - name: Package binary as AppImage
         if: matrix.arch != 'x86' && matrix.arch != 'armhf'
-        run: |
-          ./${{ matrix.linuxdeploy-bin }} --appdir AppDir -e TinyWiiBackupManager --plugin gtk --output appimage
-          cp TinyWiiBackupManager-*.AppImage "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
-          cp TinyWiiBackupManager-*.AppImage.zsync "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage.zsync"
+        run: ./${{ matrix.linuxdeploy-bin }} --appdir AppDir -e TinyWiiBackupManager --plugin gtk --output appimage
         env:
           LDAI_UPDATE_INFORMATION: "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync"
           DEPLOY_GTK_VERSION: 3
@@ -158,8 +155,7 @@ jobs:
             i386/debian:oldstable bash -c "set -e
               apt-get update && apt-get install -y build-essential libgtk-3-dev zsync file
               ./${{ matrix.linuxdeploy-bin }} --appdir AppDir -e TinyWiiBackupManager --plugin gtk --output appimage
-              cp TinyWiiBackupManager-*.AppImage \"dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage\"
-              cp TinyWiiBackupManager-*.AppImage.zsync \"dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage.zsync\"
+              chown 1001:1001 TinyWiiBackupManager-*.AppImag*
             "
 
       - name: Package armhf binary as AppImage
@@ -170,9 +166,13 @@ jobs:
             arm32v7/debian:oldstable bash -c "set -e
               apt-get update && apt-get install -y build-essential libgtk-3-dev zsync file
               ./${{ matrix.linuxdeploy-bin }} --appdir AppDir -e TinyWiiBackupManager --plugin gtk --output appimage
-              cp TinyWiiBackupManager-*.AppImage \"dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage\"
-              cp TinyWiiBackupManager-*.AppImage.zsync \"dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage.zsync\"
+              chown 1001:1001 TinyWiiBackupManager-*.AppImag*
             "
+
+      - name: Copy AppImage to dist
+        run: |
+          cp TinyWiiBackupManager-*.AppImage "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
+          cp TinyWiiBackupManager-*.AppImage.zsync "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage.zsync"
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v4
