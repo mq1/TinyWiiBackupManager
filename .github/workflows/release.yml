@@ -112,8 +112,6 @@ jobs:
           RUSTFLAGS: ${{ matrix.rustflags }}
           CFLAGS: ${{ matrix.cflags }}
           CXXFLAGS: ${{ matrix.cxxflags }}
-          PKG_CONFIG_ALLOW_CROSS: 1
-          PKG_CONFIG: ${{ matrix.pkg-config || 'pkg-config' }}
           CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER: i686-linux-gnu-gcc
           CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNUEABIHF_LINKER: arm-linux-gnueabihf-gcc
 
