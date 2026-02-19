@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 📦 Correct tarball owner and group (linux dist)
 - 💥 Fix crash on linux + buggy vulkan drivers (#546)
+- 🐛 thread panicked when adding a game (#553)
 
 ## [v5.1.9] - 2026-02-18
 

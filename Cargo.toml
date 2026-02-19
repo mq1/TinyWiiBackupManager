@@ -60,7 +60,7 @@ fs_extra = "1.3"
 wiiload = "0.3"
 which-fs = "0.2"
 fs4 = { version = "0.13", default-features = false }
-blocking-dialog = { version = "0.0.12", default-features = false }
+blocking-dialog = "0.1.0"
 dark-light = { version = "2.0", optional = true, default-features = false }
 
 [target.'cfg(windows)'.dependencies]
@@ -79,14 +79,12 @@ linux-appimage = [
   "wgpu/vulkan",
   "iced/tiny-skia",
   "minreq/https-rustls",
-  "blocking-dialog/gtk3",
 ]
 linux-flatpak = [
   "iced/wgpu-bare",
   "wgpu/vulkan",
   "iced/tiny-skia",
   "minreq/https-rustls-probe",
-  "blocking-dialog/xdg-portal",
 ]
 windows-legacy = ["iced/tiny-skia", "minreq/https-rustls"]
 windows = [

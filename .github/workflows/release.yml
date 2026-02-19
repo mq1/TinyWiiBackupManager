@@ -87,21 +87,19 @@ jobs:
         if: matrix.arch != 'x86' && matrix.arch != 'armhf'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev
+          sudo apt-get install -y libgtk-3-dev zenity
 
       - name: Install x86 dependencies
         if: matrix.arch == 'x86'
         run: |
-          sudo dpkg --add-architecture i386
           sudo apt-get update
-          sudo apt-get install -y gcc-i686-linux-gnu libgtk-3-dev:i386
+          sudo apt-get install -y gcc-i686-linux-gnu
 
       - name: Install armhf dependencies
         if: matrix.arch == 'armhf'
         run: |
-          sudo dpkg --add-architecture armhf
           sudo apt-get update
-          sudo apt-get install -y gcc-arm-linux-gnueabihf libgtk-3-dev:armhf
+          sudo apt-get install -y gcc-arm-linux-gnueabihf
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.93
@@ -137,7 +135,7 @@ jobs:
 
       - name: Package binary as AppImage
         if: matrix.arch != 'x86' && matrix.arch != 'armhf'
-        run: ./${{ matrix.linuxdeploy-bin }} --appdir AppDir -e TinyWiiBackupManager --plugin gtk --output appimage
+        run: ./${{ matrix.linuxdeploy-bin }} --appdir AppDir -e TinyWiiBackupManager -e zenity --plugin gtk --output appimage
         env:
           LDAI_UPDATE_INFORMATION: "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync"
           DEPLOY_GTK_VERSION: 3
@@ -148,8 +146,8 @@ jobs:
           docker run -v $PWD:/io -w /io -e DEPLOY_GTK_VERSION=3 -e APPIMAGE_EXTRACT_AND_RUN=1 \
             -e LDAI_UPDATE_INFORMATION='gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync' \
             i386/debian:oldstable bash -c "set -e
-              apt-get update && apt-get install -y build-essential libgtk-3-dev zsync file
-              ./${{ matrix.linuxdeploy-bin }} --appdir AppDir -e TinyWiiBackupManager --plugin gtk --output appimage
+              apt-get update && apt-get install -y build-essential zenity zsync file
+              ./${{ matrix.linuxdeploy-bin }} --appdir AppDir -e TinyWiiBackupManager -e zenity --plugin gtk --output appimage
             "
 
       - name: Package armhf binary as AppImage
@@ -158,8 +156,8 @@ jobs:
           docker run -v $PWD:/io -w /io -e DEPLOY_GTK_VERSION=3 -e APPIMAGE_EXTRACT_AND_RUN=1 \
             -e LDAI_UPDATE_INFORMATION='gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync' \
             arm32v7/debian:oldstable bash -c "set -e
-              apt-get update && apt-get install -y build-essential libgtk-3-dev zsync file
-              ./${{ matrix.linuxdeploy-bin }} --appdir AppDir -e TinyWiiBackupManager --plugin gtk --output appimage
+              apt-get update && apt-get install -y build-essential zenity zsync file
+              ./${{ matrix.linuxdeploy-bin }} --appdir AppDir -e TinyWiiBackupManager -e zenity --plugin gtk --output appimage
             "
 
       - name: Copy AppImage to dist
