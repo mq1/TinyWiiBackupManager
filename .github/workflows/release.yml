@@ -60,11 +60,13 @@ jobs:
             arch: x86
             appimage-arch: i686
             pkg-config: i686-linux-gnu-pkg-config
+            apt-deps: gcc-i686-linux-gnu
           - target: armv7-unknown-linux-gnueabihf
             runner: ubuntu-22.04-arm
             arch: armhf
             appimage-arch: armhf
             pkg-config: arm-linux-gnueabihf-pkg-config
+            apt-deps: gcc-arm-linux-gnueabihf
 
     steps:
       - name: Checkout
@@ -72,13 +74,8 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install x86 dependencies
-        if: matrix.arch == 'x86'
-        run: sudo apt-get update && sudo apt-get install -y gcc-i686-linux-gnu
-
-      - name: Install armhf dependencies
-        if: matrix.arch == 'armhf'
-        run: sudo apt-get update && sudo apt-get install -y gcc-arm-linux-gnueabihf
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y appstream ${{ matrix.apt-deps }}
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.93
