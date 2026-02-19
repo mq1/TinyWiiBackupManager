@@ -36,46 +36,35 @@ jobs:
           - target: x86_64-unknown-linux-gnu
             runner: ubuntu-22.04
             arch: x86_64-v3
-            ldai-arch: x86_64
+            appimage-arch: x86_64
             rustflags: -C target-cpu=x86-64-v3
             cflags: -march=x86-64-v3
             cxxflags: -march=x86-64-v3
-            linuxdeploy-bin: linuxdeploy-x86_64.AppImage
-            linuxdeploy-ai-bin: linuxdeploy-plugin-appimage-x86_64.AppImage
           - target: x86_64-unknown-linux-gnu
             runner: ubuntu-22.04
             arch: x86_64-v2
-            ldai-arch: x86_64
+            appimage-arch: x86_64
             rustflags: -C target-cpu=x86-64-v2
             cflags: -march=x86-64-v2
             cxxflags: -march=x86-64-v2
-            linuxdeploy-bin: linuxdeploy-x86_64.AppImage
-            linuxdeploy-ai-bin: linuxdeploy-plugin-appimage-x86_64.AppImage
           - target: x86_64-unknown-linux-gnu
             runner: ubuntu-22.04
             arch: x86_64
-            ldai-arch: x86_64
-            linuxdeploy-bin: linuxdeploy-x86_64.AppImage
-            linuxdeploy-ai-bin: linuxdeploy-plugin-appimage-x86_64.AppImage
+            appimage-arch: x86_64
           - target: aarch64-unknown-linux-gnu
             runner: ubuntu-22.04-arm
             arch: arm64
-            ldai-arch: aarch64
-            linuxdeploy-bin: linuxdeploy-aarch64.AppImage
-            linuxdeploy-ai-bin: linuxdeploy-plugin-appimage-aarch64.AppImage
+            appimage-arch: aarch64
           - target: i686-unknown-linux-gnu
             runner: ubuntu-22.04
             arch: x86
-            ldai-arch: i386
+            appimage-arch: i686
             pkg-config: i686-linux-gnu-pkg-config
-            linuxdeploy-bin: linuxdeploy-i386.AppImage
-            linuxdeploy-ai-bin: linuxdeploy-plugin-appimage-i686.AppImage
           - target: armv7-unknown-linux-gnueabihf
             runner: ubuntu-22.04-arm
             arch: armhf
+            appimage-arch: armhf
             pkg-config: arm-linux-gnueabihf-pkg-config
-            linuxdeploy-bin: linuxdeploy-armhf.AppImage
-            linuxdeploy-ai-bin: linuxdeploy-plugin-appimage-armhf.AppImage
 
     steps:
       - name: Checkout
@@ -96,21 +85,14 @@ jobs:
         with:
           components: rust-src
 
-      - name: setup dirs
+      - name: Download appimagetool
         run: |
-          cp -r package/linux AppDir
-          mkdir -p dist
-
-      - name: Download LinuxDeploy
-        run: |
-          wget "https://github.com/linuxdeploy/linuxdeploy/releases/latest/download/${{ matrix.linuxdeploy-bin }}"
-          wget "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/latest/download/${{ matrix.linuxdeploy-ai-bin }}"
-          chmod +x *.AppImage
+          wget "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-${{ matrix.appimage-arch }}.AppImage"
+          chmod +x appimagetool-${{ matrix.appimage-arch }}.AppImage
 
       - name: Build binary
         run: |
           cargo build -Z build-std=std,panic_abort --profile release-lto --locked --target ${{ matrix.target }} --features linux
-          install -m0755 "target/${{ matrix.target }}/release-lto/TinyWiiBackupManager" TinyWiiBackupManager
         env:
           RUSTC_BOOTSTRAP: 1
           RUSTFLAGS: ${{ matrix.rustflags }}
@@ -119,8 +101,16 @@ jobs:
           CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER: i686-linux-gnu-gcc
           CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNUEABIHF_LINKER: arm-linux-gnueabihf-gcc
 
+      - name: Setup directories
+        run: |
+          cp "target/${{ matrix.target }}/release-lto/TinyWiiBackupManager" TinyWiiBackupManager
+          cp -r package/linux AppDir
+          install -Dm0755 TinyWiiBackupManager AppDir/usr/bin/TinyWiiBackupManager
+          mkdir -p dist
+
       - name: Package binary as tar.gz
-        run: tar -I 'gzip -9' --owner=0 --group=0 -cvf "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.tar.gz" TinyWiiBackupManager
+        run: |
+          tar -I 'gzip -9' --owner=0 --group=0 --mode=0755 -cvf "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.tar.gz" TinyWiiBackupManager
 
       - name: build zenity-rs
         run: |
@@ -139,12 +129,12 @@ jobs:
 
       - name: Package binary as AppImage
         run: |
-          ./${{ matrix.linuxdeploy-bin }} --appdir AppDir -e TinyWiiBackupManager --output appimage
-          cp TinyWiiBackupManager-*.AppImage "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
-          cp TinyWiiBackupManager-*.AppImage.zsync "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage.zsync"
+          ./appimagetool-${{ matrix.appimage-arch }}.AppImage \
+            -u "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync" \
+            AppDir \
+            dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage
         env:
-          LDAI_UPDATE_INFORMATION: "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync"
-          ARCH: ${{ matrix.ldai-arch }}
+          ARCH: ${{ matrix.appimage-arch }}
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v4
