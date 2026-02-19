@@ -1,0 +1,81 @@
+#!/bin/sh
+
+# 1. Look for the actual system zenity binary to avoid an infinite loop
+REAL_ZENITY=""
+for path in /usr/bin/zenity /bin/zenity; do
+    if [ -x "$path" ]; then
+        REAL_ZENITY="$path"
+        break
+    fi
+done
+
+# If the real zenity exists, pass all arguments to it directly and exit
+if [ -n "$REAL_ZENITY" ]; then
+    exec "$REAL_ZENITY" "$@"
+fi
+
+# 2. If we reach here, zenity is not installed. Check for kdialog.
+if ! command -v kdialog >/dev/null 2>&1; then
+    echo "Error: Neither 'zenity' nor 'kdialog' are installed on this system." >&2
+    exit 1
+fi
+
+# 3. Translate zenity arguments to kdialog arguments
+DIALOG_TYPE="--info" # Default fallback
+TEXT=""
+TITLE=""
+
+# Parse the arguments provided to the script
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        --info|--warning|--error|--question|--entry|--file-selection)
+            DIALOG_TYPE="$1"
+            ;;
+        --text=*)
+            TEXT="${1#*=}"
+            ;;
+        --text)
+            TEXT="$2"
+            shift
+            ;;
+        --title=*)
+            TITLE="${1#*=}"
+            ;;
+        --title)
+            TITLE="$2"
+            shift
+            ;;
+        # Note: You can add more specific zenity arguments here if needed
+        *)
+            # Ignore unknown flags for the basic kdialog translation
+            ;;
+    esac
+    shift
+done
+
+# 4. Execute the mapped kdialog command
+# The ${TITLE:+--title "$TITLE"} syntax only adds the --title flag if TITLE is not empty
+case "$DIALOG_TYPE" in
+    --info)
+        kdialog ${TITLE:+--title "$TITLE"} --msgbox "$TEXT"
+        ;;
+    --warning)
+        # kdialog doesn't have a strict warning box, --sorry is the closest visual equivalent
+        kdialog ${TITLE:+--title "$TITLE"} --sorry "$TEXT"
+        ;;
+    --error)
+        kdialog ${TITLE:+--title "$TITLE"} --error "$TEXT"
+        ;;
+    --question)
+        # Returns 0 for Yes, 1 for No (matches zenity)
+        kdialog ${TITLE:+--title "$TITLE"} --yesno "$TEXT"
+        ;;
+    --entry)
+        # Echoes the input to stdout (matches zenity)
+        kdialog ${TITLE:+--title "$TITLE"} --inputbox "$TEXT"
+        ;;
+    --file-selection)
+        # Echoes the selected file path to stdout (matches zenity)
+        kdialog ${TITLE:+--title "$TITLE"} --getopenfilename
+        ;;
+esac
