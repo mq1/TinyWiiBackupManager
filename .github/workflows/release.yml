@@ -123,6 +123,10 @@ jobs:
           mkdir dist
           tar -I 'gzip -9' -cvf "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.tar.gz" TinyWiiBackupManager
 
+      - name: Remove 64 bit libraries
+        if: matrix.arch == 'x86'
+        run: sudo rm -rf /usr/lib/x86_64-linux-gnu
+
       - name: Package binary as AppImage
         run: |
           cp -r package/linux AppDir
@@ -133,8 +137,6 @@ jobs:
           LDAI_UPDATE_INFORMATION: "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync"
           DEPLOY_GTK_VERSION: 3
           ARCH: ${{ matrix.ldai-arch }}
-          PKG_CONFIG: ${{ matrix.arch == 'x86' && 'i686-linux-gnu-pkg-config' || 'pkg-config' }}
-          LD_GTK_LIBRARY_PATH: ${{ matrix.arch == 'x86' && '/usr/lib/i386-linux-gnu' || '' }}
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v4
@@ -206,7 +208,7 @@ jobs:
         run: cargo build -Z build-std=std,panic_abort --profile release-lto --locked --target ${{ matrix.target }} --features ${{ matrix.platform }}
         env:
           RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: ${{ matrix.rustflags }} -C target-feature=+crt-static -C linker=rust-lld.exe
+          RUSTFLAGS: ${{ matrix.rustflags }} -C target-feature=+crt-static
           CFLAGS: ${{ matrix.cflags }}
           CXXFLAGS: ${{ matrix.cxxflags }}
 
