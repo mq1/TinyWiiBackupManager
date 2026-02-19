@@ -42,11 +42,7 @@ fn get_window_icon() -> Option<window::Icon> {
     Some(icon)
 }
 
-fn main() -> iced::Result {
-    unsafe {
-        std::env::set_var("WGPU_POWER_PREF", "none");
-    }
-
+fn run_app() -> iced::Result {
     let height = if cfg!(target_os = "macos") {
         600.0 + 32.0
     } else {
@@ -91,12 +87,27 @@ fn main() -> iced::Result {
         ..Default::default()
     };
 
-    let app = iced::application(State::new, State::update, ui::view)
+    iced::application(State::new, State::update, ui::view)
         .window(window)
         .settings(settings)
         .title(State::title)
         .theme(State::theme)
-        .subscription(State::subscription);
+        .subscription(State::subscription)
+        .run()
+}
 
-    app.run()
+fn main() -> iced::Result {
+    unsafe {
+        std::env::set_var("WGPU_POWER_PREF", "none");
+    }
+
+    if run_app().is_err() {
+        unsafe {
+            std::env::set_var("WGPU_BACKEND", "gl");
+        }
+
+        run_app()
+    } else {
+        Ok(())
+    }
 }
