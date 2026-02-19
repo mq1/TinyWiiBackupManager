@@ -101,7 +101,7 @@ jobs:
       - name: Setup directories
         run: |
           cp "target/${{ matrix.target }}/release-lto/TinyWiiBackupManager" TinyWiiBackupManager
-          cp -r package/linux AppDir
+          cp -r package/linux TinyWiiBackupManager.AppDir
           install -Dm0755 TinyWiiBackupManager AppDir/usr/bin/TinyWiiBackupManager
           mkdir -p dist
 
@@ -126,9 +126,10 @@ jobs:
 
       - name: Package binary as AppImage
         run: |
+          export VERSION="${VERSION_NAME#v}"
           ./appimagetool-${{ matrix.appimage-arch }}.AppImage \
             -u "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync" \
-            AppDir \
+            TinyWiiBackupManager.AppDir \
             dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage
         env:
           ARCH: ${{ matrix.appimage-arch }}
