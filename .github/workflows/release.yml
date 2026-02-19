@@ -66,6 +66,7 @@ jobs:
           - target: i686-unknown-linux-gnu
             runner: ubuntu-22.04
             arch: x86
+            ldai-arch: i386
             linuxdeploy-bin: linuxdeploy-i386.AppImage
             linuxdeploy-ai-bin: linuxdeploy-plugin-appimage-i686.AppImage
 
@@ -132,6 +133,7 @@ jobs:
           LDAI_UPDATE_INFORMATION: "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync"
           DEPLOY_GTK_VERSION: 3
           LD_GTK_LIBRARY_PATH: ${{ matrix.arch == 'x86' && '/usr/lib/i386-linux-gnu' || '' }}
+          ARCH: ${{ matrix.ldai-arch }}
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v4
