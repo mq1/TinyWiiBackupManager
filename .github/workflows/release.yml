@@ -128,7 +128,7 @@ jobs:
           cd zenity-rs-0.2.1
           rm rust-toolchain.toml
           cargo build -Z build-std=std,panic_abort -Z build-std-features="optimize_for_size" --release --locked --target ${{ matrix.target }}
-          install -Dm0755 target/release/zenity-rs ../AppDir/usr/bin/zenity
+          install -Dm0755 target/${{ matrix.target }}/release/zenity-rs ../AppDir/usr/bin/zenity
         env:
           RUSTC_BOOTSTRAP: 1
           RUSTFLAGS: ${{ matrix.rustflags }}
