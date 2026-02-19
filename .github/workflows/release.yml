@@ -97,14 +97,14 @@ jobs:
         run: |
           sudo dpkg --add-architecture i386
           sudo apt-get update
-          sudo apt-get install -y libc6-dev-i386 libgtk-3-dev:i386
+          sudo apt-get install -y gcc-i686-linux-gnu libgtk-3-dev:i386
 
       - name: Install armhf dependencies
         if: matrix.arch == 'armhf'
         run: |
           sudo dpkg --add-architecture armhf
           sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev:armhf
+          sudo apt-get install -y gcc-arm-linux-gnueabi libgtk-3-dev:armhf
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.93
@@ -130,7 +130,7 @@ jobs:
           CFLAGS: ${{ matrix.cflags }}
           CXXFLAGS: ${{ matrix.cxxflags }}
           PKG_CONFIG_ALLOW_CROSS: 1
-          PKG_CONFIG: ${{ matrix.pkg-config }}
+          PKG_CONFIG: ${{ matrix.pkg-config || 'pkg-config' }}
 
       - name: Package binary as tar.gz
         run: |
