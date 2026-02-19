@@ -104,6 +104,7 @@ jobs:
           wget "https://github.com/linuxdeploy/linuxdeploy/releases/latest/download/${{ matrix.linuxdeploy-bin }}"
           wget "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/latest/download/${{ matrix.linuxdeploy-ai-bin }}"
           wget "https://raw.githubusercontent.com/linuxdeploy/linuxdeploy-plugin-gtk/master/linuxdeploy-plugin-gtk.sh"
+          cp -r package/linux AppDir
           chmod +x *.AppImage *.sh
 
       - name: Build binary
@@ -123,20 +124,29 @@ jobs:
           mkdir dist
           tar -I 'gzip -9' -cvf "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.tar.gz" TinyWiiBackupManager
 
-      - name: Remove 64 bit libraries
-        if: matrix.arch == 'x86'
-        run: sudo rm -rf /usr/lib/x86_64-linux-gnu
-
       - name: Package binary as AppImage
+        if: matrix.arch != 'x86'
         run: |
-          cp -r package/linux AppDir
           ./${{ matrix.linuxdeploy-bin }} --appdir AppDir -e TinyWiiBackupManager --plugin gtk --output appimage
           cp TinyWiiBackupManager-*.AppImage "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
           cp TinyWiiBackupManager-*.AppImage.zsync "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage.zsync"
         env:
           LDAI_UPDATE_INFORMATION: "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync"
           DEPLOY_GTK_VERSION: 3
-          ARCH: ${{ matrix.ldai-arch }}
+
+      - name: Package x86 binary as AppImage
+        if: matrix.arch == 'x86'
+        run: |
+          docker run -v $PWD:/io -w /io \
+            -e LDAI_UPDATE_INFORMATION='gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync' \
+            -e DEPLOY_GTK_VERSION=3 -e APPIMAGE_EXTRACT_AND_RUN=1 \
+            i386/debian:oldstable bash -c "
+              set -e
+              apt-get update && apt-get install -y --no-install-recommends libgtk-3-dev zsync
+              ./${{ matrix.linuxdeploy-bin }} --appdir AppDir -e TinyWiiBackupManager --plugin gtk --output appimage
+              cp TinyWiiBackupManager-*.AppImage \"dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage\"
+              cp TinyWiiBackupManager-*.AppImage.zsync \"dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage.zsync
+            "
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v4
