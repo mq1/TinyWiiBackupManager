@@ -110,7 +110,7 @@ jobs:
       - name: Build binary
         run: |
           cargo build -Z build-std=std,panic_abort --profile release-lto --locked --target ${{ matrix.target }} --features linux-appimage
-          cp "target/${{ matrix.target }}/release-lto/TinyWiiBackupManager" TinyWiiBackupManager
+          install -m0755 "target/${{ matrix.target }}/release-lto/TinyWiiBackupManager" TinyWiiBackupManager
         env:
           RUSTC_BOOTSTRAP: 1
           RUSTFLAGS: ${{ matrix.rustflags }} -C link-arg=-fuse-ld=mold
@@ -122,7 +122,7 @@ jobs:
       - name: Package binary as tar.gz
         run: |
           mkdir dist
-          tar -I 'gzip -9' -cvf "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.tar.gz" TinyWiiBackupManager
+          tar -I 'gzip -9' --owner=0 --group=0 -cvf "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.tar.gz" TinyWiiBackupManager
 
       - name: Package binary as AppImage
         if: matrix.arch != 'x86'
@@ -137,12 +137,10 @@ jobs:
       - name: Package x86 binary as AppImage
         if: matrix.arch == 'x86'
         run: |
-          docker run -v $PWD:/io -w /io \
+          docker run -v $PWD:/io -w /io -e DEPLOY_GTK_VERSION=3 -e APPIMAGE_EXTRACT_AND_RUN=1 \
             -e LDAI_UPDATE_INFORMATION='gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync' \
-            -e DEPLOY_GTK_VERSION=3 -e APPIMAGE_EXTRACT_AND_RUN=1 \
-            i386/debian:oldstable bash -c "
-              set -e
-              apt-get update && apt-get install -y --no-install-recommends libgtk-3-dev zsync
+            i386/debian:oldstable bash -c "set -e
+              apt-get update && apt-get install -y --no-install-recommends libgtk-3-dev zsync dpkg-dev
               ./${{ matrix.linuxdeploy-bin }} --appdir AppDir -e TinyWiiBackupManager --plugin gtk --output appimage
               cp TinyWiiBackupManager-*.AppImage \"dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage\"
               cp TinyWiiBackupManager-*.AppImage.zsync \"dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage.zsync
