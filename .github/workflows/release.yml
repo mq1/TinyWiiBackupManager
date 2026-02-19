@@ -96,12 +96,16 @@ jobs:
         with:
           components: rust-src
 
+      - name: setup dirs
+        run: |
+          cp -r package/linux AppDir
+          mkdir -p dist
+
       - name: Download LinuxDeploy
         run: |
           wget "https://github.com/linuxdeploy/linuxdeploy/releases/latest/download/${{ matrix.linuxdeploy-bin }}"
           wget "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/latest/download/${{ matrix.linuxdeploy-ai-bin }}"
           chmod +x *.AppImage
-          cp -r package/linux AppDir
 
       - name: Build binary
         run: |
@@ -116,9 +120,7 @@ jobs:
           CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNUEABIHF_LINKER: arm-linux-gnueabihf-gcc
 
       - name: Package binary as tar.gz
-        run: |
-          mkdir dist
-          tar -I 'gzip -9' --owner=0 --group=0 -cvf "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.tar.gz" TinyWiiBackupManager
+        run: tar -I 'gzip -9' --owner=0 --group=0 -cvf "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.tar.gz" TinyWiiBackupManager
 
       - name: build zenity-rs
         run: |
