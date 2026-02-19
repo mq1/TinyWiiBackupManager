@@ -140,7 +140,7 @@ jobs:
           docker run -v $PWD:/io -w /io -e DEPLOY_GTK_VERSION=3 -e APPIMAGE_EXTRACT_AND_RUN=1 \
             -e LDAI_UPDATE_INFORMATION='gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync' \
             i386/debian:oldstable bash -c "set -e
-              apt-get update && apt-get install -y --no-install-recommends libgtk-3-dev zsync dpkg-dev file
+              apt-get update && apt-get install -y build-essential libgtk-3-dev zsync
               ./${{ matrix.linuxdeploy-bin }} --appdir AppDir -e TinyWiiBackupManager --plugin gtk --output appimage
               cp TinyWiiBackupManager-*.AppImage \"dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage\"
               cp TinyWiiBackupManager-*.AppImage.zsync \"dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage.zsync\"
@@ -258,14 +258,10 @@ jobs:
         with:
           targets: ${{ matrix.target }}
 
-      - name: Rust cache
-        uses: Swatinem/rust-cache@v2
-        with:
-          key: ${{ matrix.arch }}
-
       - name: Build binary
-        run: cargo build --profile release-lto --locked --target ${{ matrix.target }} --features macos
+        run: cargo build -Z build-std=std,panic_abort --profile release-lto --locked --target ${{ matrix.target }} --features macos
         env:
+          RUSTC_BOOTSTRAP: 1
           RUSTFLAGS: -C link-arg=-mmacosx-version-min=${{ matrix.deployment_target }}
           CFLAGS: -O3 -flto -mmacosx-version-min=${{ matrix.deployment_target }}
           CXXFLAGS: -O3 -flto -mmacosx-version-min=${{ matrix.deployment_target }}
