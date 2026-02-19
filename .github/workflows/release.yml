@@ -116,7 +116,7 @@ jobs:
 
       - name: Build binary
         run: |
-          cargo build -Z build-std=std,panic_abort --profile release-lto --locked --target ${{ matrix.target }} --features linux-appimage
+          cargo build -Z build-std=std,panic_abort --profile release-lto --locked --target ${{ matrix.target }} --features linux
           install -m0755 "target/${{ matrix.target }}/release-lto/TinyWiiBackupManager" TinyWiiBackupManager
         env:
           RUSTC_BOOTSTRAP: 1
@@ -146,7 +146,7 @@ jobs:
           docker run -v $PWD:/io -w /io -e DEPLOY_GTK_VERSION=3 -e APPIMAGE_EXTRACT_AND_RUN=1 \
             -e LDAI_UPDATE_INFORMATION='gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync' \
             i386/debian:oldstable bash -c "set -e
-              apt-get update && apt-get install -y build-essential zenity zsync file
+              apt-get update && apt-get install -y pkg-config zenity zsync file
               ./${{ matrix.linuxdeploy-bin }} --appdir AppDir -e TinyWiiBackupManager -e /usr/bin/zenity --plugin gtk --output appimage
             "
 
@@ -156,7 +156,7 @@ jobs:
           docker run -v $PWD:/io -w /io -e DEPLOY_GTK_VERSION=3 -e APPIMAGE_EXTRACT_AND_RUN=1 \
             -e LDAI_UPDATE_INFORMATION='gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync' \
             arm32v7/debian:oldstable bash -c "set -e
-              apt-get update && apt-get install -y build-essential zenity zsync file
+              apt-get update && apt-get install -y pkg-config zenity zsync file
               ./${{ matrix.linuxdeploy-bin }} --appdir AppDir -e TinyWiiBackupManager -e /usr/bin/zenity --plugin gtk --output appimage
             "
 

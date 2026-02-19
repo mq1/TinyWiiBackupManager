@@ -1,6 +1,6 @@
 [package]
 name = "TinyWiiBackupManager"
-version = "5.1.9"
+version = "5.1.10"
 rust-version = "1.93"
 edition = "2024"
 authors = ["Manuel Quarneti <mq1@ik.me>"]
@@ -74,13 +74,7 @@ winresource = "0.1"
 
 [features]
 default = []
-linux-appimage = [
-  "iced/wgpu-bare",
-  "wgpu/vulkan",
-  "iced/tiny-skia",
-  "minreq/https-rustls",
-]
-linux-flatpak = [
+linux = [
   "iced/wgpu-bare",
   "wgpu/vulkan",
   "iced/tiny-skia",
