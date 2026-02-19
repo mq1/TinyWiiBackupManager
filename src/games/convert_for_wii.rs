@@ -149,84 +149,86 @@ impl ConvertForWiiOperation {
                 }
 
                 fs::create_dir_all(&parent)?;
-                let out_file = File::create(out_path)?;
-                let mut out_writer = BufWriter::new(out_file);
-                let mut overflow_writer: Option<BufWriter<File>> = None;
 
-                let out_opts = format_to_opts(out_format);
-                let disc_writer = DiscWriter::new(disc_reader, &out_opts)?;
+                let finalization = {
+                    let out_opts = format_to_opts(out_format);
+                    let process_opts = ProcessOptions {
+                        processor_threads,
+                        digest_crc32: true,
+                        digest_md5: false,
+                        digest_sha1: true,
+                        digest_xxh64: true,
+                        scrub: if self.config.scrub_update_partition() {
+                            ScrubLevel::UpdatePartition
+                        } else {
+                            ScrubLevel::None
+                        },
+                    };
 
-                let process_opts = ProcessOptions {
-                    processor_threads,
-                    digest_crc32: true,
-                    digest_md5: false,
-                    digest_sha1: true,
-                    digest_xxh64: true,
-                    scrub: if self.config.scrub_update_partition() {
-                        ScrubLevel::UpdatePartition
-                    } else {
-                        ScrubLevel::None
-                    },
-                };
+                    let mut out_writer = BufWriter::new(File::create(&out_path)?);
+                    let disc_writer = DiscWriter::new(disc_reader, &out_opts)?;
 
-                let mut prev_percentage = 100;
-                let mut bytes_written_in_first_split = 0;
-                let finalization = disc_writer.process(
-                    |data, progress, total| {
-                        if let Some(overflow_writer) = &mut overflow_writer {
-                            overflow_writer.write_all(&data)?;
-                        } else if must_split {
-                            let remaining_in_first_split =
-                                SPLIT_SIZE - bytes_written_in_first_split;
+                    let mut prev_percentage = 100;
 
-                            let bytes_to_write_count = data.len();
+                    // Track split state
+                    let mut current_split_idx: usize = 0;
+                    let mut current_file_size: usize = 0;
 
-                            if remaining_in_first_split < bytes_to_write_count {
-                                let overflow_path = if out_format == nod::common::Format::Wbfs {
-                                    parent.join(&id).with_extension("wbf1")
+                    let finalization = disc_writer.process(
+                        |data, progress, total| {
+                            if must_split {
+                                let remaining_in_split = SPLIT_SIZE - current_file_size;
+
+                                if data.len() > remaining_in_split {
+                                    // Fill the current file
+                                    out_writer.write_all(&data[..remaining_in_split])?;
+                                    out_writer.flush()?; // Ensure data is on disk before switching
+
+                                    // Prepare next split
+                                    current_split_idx += 1;
+                                    current_file_size = 0;
+
+                                    let ext = if out_format == nod::common::Format::Wbfs {
+                                        format!("wbf{}", current_split_idx)
+                                    } else {
+                                        format!("part{}.iso", current_split_idx)
+                                    };
+
+                                    // Swap the writer
+                                    let next_path = parent.join(&id).with_extension(ext);
+                                    out_writer = BufWriter::new(File::create(&next_path)?);
                                 } else {
-                                    parent.join(&id).with_extension("part1.iso")
-                                };
-
-                                let overflow_file = File::create(overflow_path)?;
-                                let overflow_writer =
-                                    overflow_writer.insert(BufWriter::new(overflow_file));
-
-                                #[allow(clippy::cast_possible_truncation)]
-                                out_writer.write_all(&data[..remaining_in_first_split])?;
-                                overflow_writer.write_all(&data[remaining_in_first_split..])?;
-
-                                // we don't update bytes_written_in_first_split as we won't access
-                                // it anymore; theoretically it should now be SPLIT_SIZE
+                                    // Everything fits
+                                    out_writer.write_all(&data)?;
+                                    current_file_size += data.len();
+                                }
                             } else {
                                 out_writer.write_all(&data)?;
-                                bytes_written_in_first_split += bytes_to_write_count;
                             }
-                        } else {
-                            out_writer.write_all(&data)?;
-                        }
 
-                        let progress_percentage = progress * 100 / total;
-                        if progress_percentage != prev_percentage {
-                            let _ = tx.try_send(format!(
-                                "⤒ Converting {title}  {progress_percentage:02}%"
-                            ));
-                            prev_percentage = progress_percentage;
-                        }
+                            let progress_percentage = progress * 100 / total;
+                            if progress_percentage != prev_percentage {
+                                let _ = tx.try_send(format!(
+                                    "⤒ Converting {title}  {progress_percentage:02}%"
+                                ));
+                                prev_percentage = progress_percentage;
+                            }
 
-                        Ok(())
-                    },
-                    &process_opts,
-                )?;
+                            Ok(())
+                        },
+                        &process_opts,
+                    )?;
+
+                    // Flush whatever file is currently open
+                    out_writer.flush()?;
+
+                    finalization
+                };
 
                 if !finalization.header.is_empty() {
-                    out_writer.rewind()?;
-                    out_writer.write_all(&finalization.header)?;
-                }
-
-                out_writer.flush()?;
-                if let Some(overflow_writer) = &mut overflow_writer {
-                    overflow_writer.flush()?;
+                    let mut first_file = File::options().write(true).open(&out_path)?;
+                    first_file.rewind()?;
+                    first_file.write_all(&finalization.header)?;
                 }
 
                 Ok(files_to_remove)

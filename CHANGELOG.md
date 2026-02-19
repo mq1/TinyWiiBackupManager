@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - 🪨 armv7 build (#551)
+- 🔧 support for modded wii games >= 8gb (#501)
 
 ### Fixed
 
