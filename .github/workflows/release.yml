@@ -97,14 +97,14 @@ jobs:
         run: |
           sudo dpkg --add-architecture i386
           sudo apt-get update
-          sudo apt-get install -y gcc-multilib libgtk-3-dev:i386
+          sudo apt-get install -y libc6-dev-i386 libgtk-3-dev:i386
 
       - name: Install armhf dependencies
         if: matrix.arch == 'armhf'
         run: |
           sudo dpkg --add-architecture armhf
           sudo apt-get update
-          sudo apt-get install -y gcc-multilib libgtk-3-dev:armhf
+          sudo apt-get install -y libgtk-3-dev:armhf
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.93
