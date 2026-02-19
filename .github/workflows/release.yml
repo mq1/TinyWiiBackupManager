@@ -127,10 +127,9 @@ jobs:
           wget -O zenity-rs-0.2.1.tar.gz https://github.com/QaidVoid/zenity-rs/archive/refs/tags/v0.2.1.tar.gz
           tar xf zenity-rs-0.2.1.tar.gz
           cd zenity-rs-0.2.1
-          cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }}
+          cargo build --release --target ${{ matrix.target }}
           install -Dm0755 target/release/zenity-rs ../AppDir/usr/bin/zenity
         env:
-          RUSTC_BOOTSTRAP: 1
           RUSTFLAGS: ${{ matrix.rustflags }}
           CFLAGS: ${{ matrix.cflags }}
           CXXFLAGS: ${{ matrix.cxxflags }}
