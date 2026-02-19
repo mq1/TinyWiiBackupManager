@@ -110,21 +110,6 @@ jobs:
         run: |
           tar -I 'gzip -9' --owner=0 --group=0 --mode=0755 -cvf "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.tar.gz" TinyWiiBackupManager
 
-      - name: build zenity-rs
-        run: |
-          wget -qO- https://github.com/QaidVoid/zenity-rs/archive/refs/tags/v0.2.1.tar.gz | tar xzf -
-          cd zenity-rs-0.2.1
-          rm rust-toolchain.toml
-          cargo build -Z build-std=std,panic_abort -Z build-std-features="optimize_for_size" --release --locked --target ${{ matrix.target }}
-          install -Dm0755 target/${{ matrix.target }}/release/zenity-rs ../TinyWiiBackupManager.AppDir/usr/bin/zenity-rs
-        env:
-          RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: ${{ matrix.rustflags }}
-          CFLAGS: ${{ matrix.cflags }}
-          CXXFLAGS: ${{ matrix.cxxflags }}
-          CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER: i686-linux-gnu-gcc
-          CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNUEABIHF_LINKER: arm-linux-gnueabihf-gcc
-
       - name: Package binary as AppImage
         run: |
           export VERSION="${VERSION_NAME#v}"
