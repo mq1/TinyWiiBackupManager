@@ -67,8 +67,13 @@ jobs:
             runner: ubuntu-22.04
             arch: x86
             ldai-arch: i386
+            pkg-config: i686-linux-gnu-pkg-config
             linuxdeploy-bin: linuxdeploy-i386.AppImage
             linuxdeploy-ai-bin: linuxdeploy-plugin-appimage-i686.AppImage
+          - target: armv7-unknown-linux-gnueabihf
+            runner: ubuntu-22.04-arm
+            arch: armhf
+            pkg-config: arm-linux-gnueabihf-pkg-config
 
     steps:
       - name: Checkout
@@ -82,7 +87,7 @@ jobs:
           make-default: false
 
       - name: Install dependencies
-        if: matrix.arch != 'x86'
+        if: matrix.arch != 'x86' && matrix.arch != 'armhf'
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev
@@ -94,12 +99,20 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y gcc-multilib libgtk-3-dev:i386
 
+      - name: Install armhf dependencies
+        if: matrix.arch == 'armhf'
+        run: |
+          sudo dpkg --add-architecture armhf
+          sudo apt-get update
+          sudo apt-get install -y gcc-multilib libgtk-3-dev:armhf
+
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.93
         with:
           components: rust-src
 
       - name: Download LinuxDeploy
+        if: matrix.arch != 'armhf'
         run: |
           wget "https://github.com/linuxdeploy/linuxdeploy/releases/latest/download/${{ matrix.linuxdeploy-bin }}"
           wget "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/latest/download/${{ matrix.linuxdeploy-ai-bin }}"
@@ -116,8 +129,8 @@ jobs:
           RUSTFLAGS: ${{ matrix.rustflags }} -C link-arg=-fuse-ld=mold
           CFLAGS: ${{ matrix.cflags }}
           CXXFLAGS: ${{ matrix.cxxflags }}
-          PKG_CONFIG_ALLOW_CROSS: ${{ matrix.arch == 'x86' && '1' || '0' }}
-          PKG_CONFIG: ${{ matrix.arch == 'x86' && 'i686-linux-gnu-pkg-config' || 'pkg-config' }}
+          PKG_CONFIG_ALLOW_CROSS: 1
+          PKG_CONFIG: ${{ matrix.pkg-config }}
 
       - name: Package binary as tar.gz
         run: |
@@ -125,7 +138,7 @@ jobs:
           tar -I 'gzip -9' --owner=0 --group=0 -cvf "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.tar.gz" TinyWiiBackupManager
 
       - name: Package binary as AppImage
-        if: matrix.arch != 'x86'
+        if: matrix.arch != 'x86' && matrix.arch != 'armhf'
         run: |
           ./${{ matrix.linuxdeploy-bin }} --appdir AppDir -e TinyWiiBackupManager --plugin gtk --output appimage
           cp TinyWiiBackupManager-*.AppImage "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
@@ -256,7 +269,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.93
         with:
-          targets: ${{ matrix.target }}
+          components: rust-src
 
       - name: Build binary
         run: cargo build -Z build-std=std,panic_abort --profile release-lto --locked --target ${{ matrix.target }} --features macos
