@@ -2,4 +2,4 @@
 
 APPDIR="$(dirname "$(readlink -f "$0")")"
 export PATH="$APPDIR/usr/bin:$PATH"
-exec "$APPDIR/usr/bin/my-app"
+exec "$APPDIR/usr/bin/TinyWiiBackupManager"

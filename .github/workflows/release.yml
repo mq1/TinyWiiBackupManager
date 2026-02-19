@@ -131,7 +131,7 @@ jobs:
             -u "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync" \
             TinyWiiBackupManager.AppDir \
             dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage
-          cp *.zsync dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage.zsync
+          cp *.zsync dist/
         env:
           ARCH: ${{ matrix.appimage-arch }}
 
