@@ -132,38 +132,22 @@ jobs:
           mkdir dist
           tar -I 'gzip -9' --owner=0 --group=0 -cvf "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.tar.gz" TinyWiiBackupManager
 
+      - name: build zenity-rs
+        run: |
+          wget -O zenity-rs-0.2.1.tar.gz https://github.com/QaidVoid/zenity-rs/archive/refs/tags/v0.2.1.tar.gz
+          tar xf zenity-rs-0.2.1.tar.gz
+          cd zenity-rs-0.2.1
+          cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
+          install -Dm0755 target/release/zenity-rs ../AppDir/usr/bin/zenity
+
       - name: Package binary as AppImage
-        if: matrix.arch != 'x86' && matrix.arch != 'armhf'
-        run: ./${{ matrix.linuxdeploy-bin }} --appdir AppDir -e TinyWiiBackupManager -e /usr/bin/zenity --output appimage
-        env:
-          LDAI_UPDATE_INFORMATION: "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync"
-          DEPLOY_GTK_VERSION: 3
-
-      - name: Package x86 binary as AppImage
-        if: matrix.arch == 'x86'
         run: |
-          docker run -v $PWD:/io -w /io -e DEPLOY_GTK_VERSION=3 -e APPIMAGE_EXTRACT_AND_RUN=1 \
-            -e LDAI_UPDATE_INFORMATION='gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync' \
-            i386/debian:oldstable bash -c "set -e
-              apt-get update && apt-get install -y pkg-config zenity zsync file
-              ./${{ matrix.linuxdeploy-bin }} --appdir AppDir -e TinyWiiBackupManager -e /usr/bin/zenity --output appimage
-            "
-
-      - name: Package armhf binary as AppImage
-        if: matrix.arch == 'armhf'
-        run: |
-          docker run -v $PWD:/io -w /io -e DEPLOY_GTK_VERSION=3 -e APPIMAGE_EXTRACT_AND_RUN=1 \
-            -e LDAI_UPDATE_INFORMATION='gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync' \
-            arm32v7/debian:oldstable bash -c "set -e
-              apt-get update && apt-get install -y pkg-config zenity zsync file
-              ./${{ matrix.linuxdeploy-bin }} --appdir AppDir -e TinyWiiBackupManager -e /usr/bin/zenity --output appimage
-            "
-
-      - name: Copy AppImage to dist
-        run: |
-          sudo chown $(id -u):$(id -g) TinyWiiBackupManager-*.AppImag*
+          ./${{ matrix.linuxdeploy-bin }} --appdir AppDir -e TinyWiiBackupManager --output appimage
           cp TinyWiiBackupManager-*.AppImage "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
           cp TinyWiiBackupManager-*.AppImage.zsync "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage.zsync"
+        env:
+          LDAI_UPDATE_INFORMATION: "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync"
+          ARCH: ${{ matrix.ldai-arch }}
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v4
