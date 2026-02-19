@@ -526,7 +526,7 @@ dependencies = [
 [[package]]
 name = "blocking-dialog"
 version = "0.2.0"
-source = "git+https://github.com/mq1/blocking-dialog-rs.git#9438ea651c1c08c080cfd2c85c4dc0de633fd784"
+source = "git+https://github.com/mq1/blocking-dialog-rs.git#824e5f96f2f37a38306c08b038c9f7f3f15dbe3f"
 dependencies = [
  "block2 0.6.2",
  "objc2 0.6.3",
@@ -5839,7 +5839,7 @@ dependencies = [
 [[package]]
 name = "zenity-rs"
 version = "0.2.1"
-source = "git+https://github.com/mq1/zenity-rs.git#26dc98018f576a627dc1d9178b2edba24d1b11c5"
+source = "git+https://github.com/mq1/zenity-rs.git#3e05ccd77230738054427fed33d7ced27d371226"
 dependencies = [
  "ab_glyph",
  "bitflags 2.11.0",
