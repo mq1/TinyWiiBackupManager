@@ -102,7 +102,7 @@ jobs:
         run: |
           cp "target/${{ matrix.target }}/release-lto/TinyWiiBackupManager" TinyWiiBackupManager
           cp -r package/linux TinyWiiBackupManager.AppDir
-          install -Dm0755 TinyWiiBackupManager AppDir/usr/bin/TinyWiiBackupManager
+          install -Dm0755 TinyWiiBackupManager TinyWiiBackupManager.AppDir/usr/bin/TinyWiiBackupManager
           mkdir -p dist
 
       - name: Package binary as tar.gz
@@ -115,7 +115,7 @@ jobs:
           cd zenity-rs-0.2.1
           rm rust-toolchain.toml
           cargo build -Z build-std=std,panic_abort -Z build-std-features="optimize_for_size" --release --locked --target ${{ matrix.target }}
-          install -Dm0755 target/${{ matrix.target }}/release/zenity-rs ../AppDir/usr/bin/zenity
+          install -Dm0755 target/${{ matrix.target }}/release/zenity-rs ../TinyWiiBackupManager.AppDir/usr/bin/zenity
         env:
           RUSTC_BOOTSTRAP: 1
           RUSTFLAGS: ${{ matrix.rustflags }}
