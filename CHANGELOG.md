@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- 🪶 AppImage is small again as we don't bundle gtk3 anymore (either zenity or kdialog required)
+- 🪶 AppImage is small again as gtk3 isn't bundled anymore (either zenity or kdialog required)
 
 ### Fixed
 
