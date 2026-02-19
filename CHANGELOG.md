@@ -7,16 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v5.1.10] - 2026-02-19
+
 ### Added
 
-- 🪨 armv7 build (#551)
-- 🔧 support for modded wii games >= 8gb (#501)
+- 🪨 Linux armv7 build (#551)
+- 🔧 Support for modded wii games >= 8gb (#501)
 
 ### Fixed
 
 - 📦 Correct tarball owner and group (linux dist)
 - 💥 Fix crash on linux + buggy vulkan drivers (#546)
-- 🐛 thread panicked when adding a game (#553)
+- 🐛 Thread panicked when adding a game (#553)
 
 ## [v5.1.9] - 2026-02-18
 
@@ -192,7 +194,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 🖼️ TinyWiiBackupManager icon now shows up again on the windows exe
 
-[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.9...HEAD
+[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.10...HEAD
+[v5.1.10]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.9...v5.1.10
 [v5.1.9]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.8...v5.1.9
 [v5.1.8]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.7...v5.1.8
 [v5.1.7]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.6...v5.1.7
