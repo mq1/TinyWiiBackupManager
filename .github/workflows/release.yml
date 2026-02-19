@@ -37,7 +37,7 @@ jobs:
             runner: ubuntu-22.04
             arch: x86_64-v3
             ldai-arch: x86_64
-            rustflags: -C target-cpu=x86-64-v3 -C link-arg=-fuse-ld=mold
+            rustflags: -C target-cpu=x86-64-v3
             cflags: -march=x86-64-v3
             cxxflags: -march=x86-64-v3
             linuxdeploy-bin: linuxdeploy-x86_64.AppImage
@@ -46,7 +46,7 @@ jobs:
             runner: ubuntu-22.04
             arch: x86_64-v2
             ldai-arch: x86_64
-            rustflags: -C target-cpu=x86-64-v2 -C link-arg=-fuse-ld=mold
+            rustflags: -C target-cpu=x86-64-v2
             cflags: -march=x86-64-v2
             cxxflags: -march=x86-64-v2
             linuxdeploy-bin: linuxdeploy-x86_64.AppImage
@@ -55,14 +55,12 @@ jobs:
             runner: ubuntu-22.04
             arch: x86_64
             ldai-arch: x86_64
-            rustflags: -C link-arg=-fuse-ld=mold
             linuxdeploy-bin: linuxdeploy-x86_64.AppImage
             linuxdeploy-ai-bin: linuxdeploy-plugin-appimage-x86_64.AppImage
           - target: aarch64-unknown-linux-gnu
             runner: ubuntu-22.04-arm
             arch: arm64
             ldai-arch: aarch64
-            rustflags: -C link-arg=-fuse-ld=mold
             linuxdeploy-bin: linuxdeploy-aarch64.AppImage
             linuxdeploy-ai-bin: linuxdeploy-plugin-appimage-aarch64.AppImage
           - target: i686-unknown-linux-gnu
@@ -84,12 +82,6 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 1
-
-      - name: install mold
-        if: matrix.arch != 'x86' && matrix.arch != 'armhf'
-        uses: rui314/setup-mold@v1
-        with:
-          make-default: false
 
       - name: Install dependencies
         if: matrix.arch != 'x86' && matrix.arch != 'armhf'
