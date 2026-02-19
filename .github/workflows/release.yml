@@ -124,15 +124,12 @@ jobs:
 
       - name: build zenity-rs
         run: |
-          wget -O zenity-rs-0.2.1.tar.gz https://github.com/QaidVoid/zenity-rs/archive/refs/tags/v0.2.1.tar.gz
-          tar xf zenity-rs-0.2.1.tar.gz
+          wget -qO- https://github.com/QaidVoid/zenity-rs/archive/refs/tags/v0.2.1.tar.gz | tar xzf -
           cd zenity-rs-0.2.1
-          cargo build --release --target ${{ matrix.target }}
+          rm .rust-toolchain.toml
+          cargo build -Z build-std=std,panic_abort -Z build-std-features="optimize_for_size" --release --locked --target ${{ matrix.target }}
           install -Dm0755 target/release/zenity-rs ../AppDir/usr/bin/zenity
         env:
-          RUSTFLAGS: ${{ matrix.rustflags }}
-          CFLAGS: ${{ matrix.cflags }}
-          CXXFLAGS: ${{ matrix.cxxflags }}
           CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER: i686-linux-gnu-gcc
           CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNUEABIHF_LINKER: arm-linux-gnueabihf-gcc
 
