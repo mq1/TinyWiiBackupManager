@@ -100,8 +100,8 @@ jobs:
         run: |
           wget "https://github.com/linuxdeploy/linuxdeploy/releases/latest/download/${{ matrix.linuxdeploy-bin }}"
           wget "https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/latest/download/${{ matrix.linuxdeploy-ai-bin }}"
-          cp -r package/linux AppDir
           chmod +x *.AppImage
+          cp -r package/linux AppDir
 
       - name: Build binary
         run: |
