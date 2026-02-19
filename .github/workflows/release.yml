@@ -139,6 +139,13 @@ jobs:
           cd zenity-rs-0.2.1
           cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
           install -Dm0755 target/release/zenity-rs ../AppDir/usr/bin/zenity
+        env:
+          RUSTC_BOOTSTRAP: 1
+          RUSTFLAGS: ${{ matrix.rustflags }}
+          CFLAGS: ${{ matrix.cflags }}
+          CXXFLAGS: ${{ matrix.cxxflags }}
+          CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER: i686-linux-gnu-gcc
+          CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNUEABIHF_LINKER: arm-linux-gnueabihf-gcc
 
       - name: Package binary as AppImage
         run: |
