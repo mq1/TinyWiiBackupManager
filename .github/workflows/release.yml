@@ -126,7 +126,7 @@ jobs:
         run: |
           wget -qO- https://github.com/QaidVoid/zenity-rs/archive/refs/tags/v0.2.1.tar.gz | tar xzf -
           cd zenity-rs-0.2.1
-          rm .rust-toolchain.toml
+          rm rust-toolchain.toml
           cargo build -Z build-std=std,panic_abort -Z build-std-features="optimize_for_size" --release --locked --target ${{ matrix.target }}
           install -Dm0755 target/release/zenity-rs ../AppDir/usr/bin/zenity
         env:
