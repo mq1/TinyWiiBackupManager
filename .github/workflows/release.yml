@@ -135,7 +135,7 @@ jobs:
 
       - name: Package binary as AppImage
         if: matrix.arch != 'x86' && matrix.arch != 'armhf'
-        run: ./${{ matrix.linuxdeploy-bin }} --appdir AppDir -e TinyWiiBackupManager -e zenity --plugin gtk --output appimage
+        run: ./${{ matrix.linuxdeploy-bin }} --appdir AppDir -e TinyWiiBackupManager -e /usr/bin/zenity --plugin gtk --output appimage
         env:
           LDAI_UPDATE_INFORMATION: "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync"
           DEPLOY_GTK_VERSION: 3
@@ -147,7 +147,7 @@ jobs:
             -e LDAI_UPDATE_INFORMATION='gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync' \
             i386/debian:oldstable bash -c "set -e
               apt-get update && apt-get install -y build-essential zenity zsync file
-              ./${{ matrix.linuxdeploy-bin }} --appdir AppDir -e TinyWiiBackupManager -e zenity --plugin gtk --output appimage
+              ./${{ matrix.linuxdeploy-bin }} --appdir AppDir -e TinyWiiBackupManager -e /usr/bin/zenity --plugin gtk --output appimage
             "
 
       - name: Package armhf binary as AppImage
@@ -157,7 +157,7 @@ jobs:
             -e LDAI_UPDATE_INFORMATION='gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync' \
             arm32v7/debian:oldstable bash -c "set -e
               apt-get update && apt-get install -y build-essential zenity zsync file
-              ./${{ matrix.linuxdeploy-bin }} --appdir AppDir -e TinyWiiBackupManager -e zenity --plugin gtk --output appimage
+              ./${{ matrix.linuxdeploy-bin }} --appdir AppDir -e TinyWiiBackupManager -e /usr/bin/zenity --plugin gtk --output appimage
             "
 
       - name: Copy AppImage to dist
