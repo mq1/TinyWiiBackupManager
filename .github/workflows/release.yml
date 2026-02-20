@@ -39,15 +39,15 @@ jobs:
             arch: x86_64-v3
             appimage-arch: x86_64
             rustflags: -C target-cpu=x86-64-v3
-            cflags: -march=x86-64-v3
-            cxxflags: -march=x86-64-v3
+            cflags: -mcpu=x86_64_v3
+            cxxflags: -mcpu=x86_64_v3
           - target: x86_64-unknown-linux-gnu
             runner: ubuntu-22.04
             arch: x86_64-v2
             appimage-arch: x86_64
             rustflags: -C target-cpu=x86-64-v2
-            cflags: -march=x86-64-v2
-            cxxflags: -march=x86-64-v2
+            cflags: -mcpu=x86_64_v2
+            cxxflags: -mcpu=x86_64_v2
           - target: x86_64-unknown-linux-gnu
             runner: ubuntu-22.04
             arch: x86_64
@@ -60,14 +60,10 @@ jobs:
             runner: ubuntu-22.04
             arch: x86
             appimage-arch: i686
-            pkg-config: i686-linux-gnu-pkg-config
-            apt-deps: gcc-i686-linux-gnu
           - target: armv7-unknown-linux-gnueabihf
             runner: ubuntu-22.04-arm
             arch: armhf
             appimage-arch: armhf
-            pkg-config: arm-linux-gnueabihf-pkg-config
-            apt-deps: gcc-arm-linux-gnueabihf
 
     steps:
       - name: Checkout
@@ -76,7 +72,10 @@ jobs:
           fetch-depth: 1
 
       - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y appstream ${{ matrix.apt-deps }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y appstream
+          pip3 install cargo-zigbuild
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.93
@@ -90,14 +89,12 @@ jobs:
 
       - name: Build binary
         run: |
-          cargo build -Z build-std=std,panic_abort --profile release-lto --locked --target ${{ matrix.target }} --features linux
+          cargo zigbuild -Z build-std=std,panic_abort --profile release-lto --locked --target ${{ matrix.target }}.2.17 --features linux
         env:
           RUSTC_BOOTSTRAP: 1
           RUSTFLAGS: ${{ matrix.rustflags }}
           CFLAGS: ${{ matrix.cflags }}
           CXXFLAGS: ${{ matrix.cxxflags }}
-          CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER: i686-linux-gnu-gcc
-          CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNUEABIHF_LINKER: arm-linux-gnueabihf-gcc
 
       - name: Setup directories
         run: |
