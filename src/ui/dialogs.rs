@@ -131,7 +131,7 @@ pub fn confirm_add_games(
             let _ = writeln!(text, "\n... and {not_shown} more");
         }
 
-        let _ = write!(text, "\nAre you sure you want to continue?");
+        text.push_str("\nAre you sure you want to continue?");
 
         text
     };
