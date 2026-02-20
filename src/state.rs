@@ -62,8 +62,7 @@ pub struct State {
     pub status: String,
     pub manual_archiving_game: PathBuf,
     pub osc_icons_download_started: bool,
-    pub alert: Option<(String, String, BlockingDialogLevel)>, // (title, description, level)
-    pub confirm: Option<(String, String, BlockingDialogLevel, Box<Message>)>, // (title, description, level, callback)
+    pub message_box: Option<(String, String, BlockingDialogLevel, Option<Box<Message>>)>,
 
     // scroll positions
     pub games_scroll_id: Id,
@@ -101,8 +100,7 @@ impl State {
             status: String::new(),
             manual_archiving_game: PathBuf::new(),
             osc_icons_download_started: false,
-            alert: None,
-            confirm: None,
+            message_box: None,
 
             // scroll positions
             games_scroll_id: Id::unique(),
@@ -722,21 +720,18 @@ impl State {
                 Screen::HbcApps => self.update(Message::AddHbcApps(vec![path])),
                 _ => Task::none(),
             },
-            Message::OpenAlert(title, description, level) => {
-                self.alert = Some((title, description, level));
+            Message::OpenMessageBox(title, description, level, callback) => {
+                self.message_box = Some((title, description, level, callback));
                 Task::none()
             }
-            Message::CloseAlert => {
-                self.alert = None;
-                Task::none()
-            }
-            Message::OpenConfirm(title, description, level, callback) => {
-                self.confirm = Some((title, description, level, callback));
-                Task::none()
-            }
-            Message::CloseConfirm => {
-                self.confirm = None;
-                Task::none()
+            Message::CloseMessageBox(callback) => {
+                self.message_box = None;
+
+                if let Some(msg) = callback {
+                    self.update(*msg)
+                } else {
+                    Task::none()
+                }
             }
         }
     }

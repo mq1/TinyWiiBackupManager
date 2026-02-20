@@ -45,12 +45,8 @@ pub enum Message {
     GotLatestVersion(Result<Option<Version>, String>),
     FileDropped(PathBuf),
     None,
-
-    // Dialog utils (linux)
-    OpenAlert(String, String, BlockingDialogLevel),
-    CloseAlert,
-    OpenConfirm(String, String, BlockingDialogLevel, Box<Message>),
-    CloseConfirm,
+    OpenMessageBox(String, String, BlockingDialogLevel, Option<Box<Message>>),
+    CloseMessageBox(Option<Box<Message>>),
 
     // Games
     GotGameList(Result<GameList, String>),

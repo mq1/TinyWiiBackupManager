@@ -19,12 +19,12 @@ use std::path::PathBuf;
 use walkdir::{DirEntry, WalkDir};
 
 pub fn confirm_delete_dir(window: &dyn Window, path: PathBuf) -> Message {
-    if cfg!(target_os = "linux") {
-        return Message::OpenConfirm(
+    if cfg!(feature = "linux") {
+        return Message::OpenMessageBox(
             "Delete Directory".to_string(),
             format!("Are you sure you want to delete {}?", path.display()),
             BlockingDialogLevel::Warning,
-            Box::new(Message::DeleteDirConfirmed(path)),
+            Some(Box::new(Message::DeleteDirConfirmed(path))),
         );
     }
 
@@ -119,7 +119,7 @@ pub fn confirm_add_games(
     entries: Vec<(PathBuf, Format, GameID, String)>,
 ) -> Message {
     let text = {
-        const MAX: usize = 20;
+        const MAX: usize = 10;
 
         let mut text = String::new();
         for (_, _, id, game_title) in entries.iter().take(MAX) {
@@ -141,12 +141,12 @@ pub fn confirm_add_games(
         .map(|(p, _, _, _)| p)
         .collect::<Vec<_>>();
 
-    if cfg!(target_os = "linux") {
-        return Message::OpenConfirm(
+    if cfg!(feature = "linux") {
+        return Message::OpenMessageBox(
             "The following games will be added".to_string(),
             text,
             BlockingDialogLevel::Info,
-            Box::new(Message::AddGamesToTransferStack(paths)),
+            Some(Box::new(Message::AddGamesToTransferStack(paths))),
         );
     }
 
@@ -237,11 +237,12 @@ pub fn pick_archive_dest(window: &dyn Window, source: PathBuf, game_title: Strin
 }
 
 pub fn no_new_games(window: &dyn Window) -> Message {
-    if cfg!(target_os = "linux") {
-        return Message::OpenAlert(
+    if cfg!(feature = "linux") {
+        return Message::OpenMessageBox(
             "No new games to add".to_string(),
             "All selected games are already installed.".to_string(),
             BlockingDialogLevel::Info,
+            None,
         );
     }
 
@@ -259,15 +260,15 @@ pub fn no_new_games(window: &dyn Window) -> Message {
 }
 
 pub fn confirm_strip_game(window: &dyn Window, game: Game) -> Message {
-    if cfg!(target_os = "linux") {
-        return Message::OpenConfirm(
+    if cfg!(feature = "linux") {
+        return Message::OpenMessageBox(
             "Remove update partition?".to_string(),
             format!(
                 "Are you sure you want to remove the update partition from {}?\n\nThis is irreversible!",
                 game.title()
             ),
             BlockingDialogLevel::Warning,
-            Box::new(Message::StripGame(game)),
+            Some(Box::new(Message::StripGame(game))),
         );
     }
 
@@ -289,12 +290,12 @@ pub fn confirm_strip_game(window: &dyn Window, game: Game) -> Message {
 }
 
 pub fn confirm_strip_all_games(window: &dyn Window) -> Message {
-    if cfg!(target_os = "linux") {
-        return Message::OpenConfirm(
+    if cfg!(feature = "linux") {
+        return Message::OpenMessageBox(
             "Remove update partitions?".to_string(),
             "Are you sure you want to remove the update partitions from all .wbfs files?\n\nThis is irreversible!".to_string(),
             BlockingDialogLevel::Warning,
-            Box::new(Message::StripAllGames),
+            Some(Box::new(Message::StripAllGames)),
         );
     }
 
@@ -313,12 +314,12 @@ pub fn confirm_strip_all_games(window: &dyn Window) -> Message {
 }
 
 pub fn confirm_install_osc_app(window: &dyn Window, app: OscAppMeta) -> Message {
-    if cfg!(target_os = "linux") {
-        return Message::OpenConfirm(
+    if cfg!(feature = "linux") {
+        return Message::OpenMessageBox(
             "Install OSC App".to_string(),
             format!("Are you sure you want to install {}?", app.name()),
             BlockingDialogLevel::Info,
-            Box::new(Message::InstallOscApp(app)),
+            Some(Box::new(Message::InstallOscApp(app))),
         );
     }
 
@@ -337,11 +338,12 @@ pub fn confirm_install_osc_app(window: &dyn Window, app: OscAppMeta) -> Message 
 }
 
 pub fn no_archive_source(window: &dyn Window) -> Message {
-    if cfg!(target_os = "linux") {
-        return Message::OpenAlert(
+    if cfg!(feature = "linux") {
+        return Message::OpenMessageBox(
             "No archive source found".to_string(),
             "No archive source was found for the selected game.".to_string(),
             BlockingDialogLevel::Error,
+            None,
         );
     }
 

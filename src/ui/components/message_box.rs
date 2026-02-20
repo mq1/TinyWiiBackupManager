@@ -21,8 +21,34 @@ pub fn view<'a>(
     title: &'a str,
     description: &'a str,
     level: BlockingDialogLevel,
-    message: &'a Box<Message>,
+    message: &'a Option<Box<Message>>,
 ) -> Element<'a, Message> {
+    let actions = if let Some(msg) = message {
+        let style = match level {
+            BlockingDialogLevel::Info => style::rounded_button,
+            BlockingDialogLevel::Warning => style::rounded_danger_button,
+            BlockingDialogLevel::Error => style::rounded_danger_button,
+        };
+
+        row![
+            space::horizontal(),
+            button("Cancel")
+                .style(style::rounded_secondary_button)
+                .on_press(Message::CloseMessageBox(None)),
+            button("OK")
+                .style(style)
+                .on_press_with(|| Message::CloseMessageBox(Some(msg.clone())))
+        ]
+        .spacing(5)
+    } else {
+        row![
+            space::horizontal(),
+            button("OK")
+                .style(style::rounded_button)
+                .on_press(Message::CloseMessageBox(None))
+        ]
+    };
+
     container(
         container(
             column![
@@ -31,12 +57,7 @@ pub fn view<'a>(
                 space(),
                 description,
                 space::vertical(),
-                row![
-                    space::horizontal(),
-                    button("Cancel").on_press(Message::CloseConfirm),
-                    button("OK").on_press_with(|| message.as_ref().clone())
-                ]
-                .spacing(5)
+                actions
             ]
             .spacing(5)
             .padding(10),

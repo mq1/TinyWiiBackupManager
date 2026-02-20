@@ -33,12 +33,8 @@ pub enum Screen {
 }
 
 pub fn view(state: &State) -> Element<'_, Message> {
-    if let Some((title, description, level)) = &state.alert {
-        return components::alert::view(title, description, *level);
-    }
-
-    if let Some((title, description, level, callback)) = &state.confirm {
-        return components::confirm::view(title, description, *level, callback);
+    if let Some((ref title, ref description, level, ref callback)) = state.message_box {
+        return components::message_box::view(title, description, level, callback);
     }
 
     let mut col = Column::new();
