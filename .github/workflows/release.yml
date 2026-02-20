@@ -38,14 +38,14 @@ jobs:
             runner: ubuntu-22.04
             arch: x86_64-v3
             appimage-arch: x86_64
-            rustflags: -C target-cpu=x86-64-v3
+            rustflags: -C target-cpu=x86_64_v3
             cflags: -march=x86-64-v3
             cxxflags: -march=x86-64-v3
           - target: x86_64-unknown-linux-gnu
             runner: ubuntu-22.04
             arch: x86_64-v2
             appimage-arch: x86_64
-            rustflags: -C target-cpu=x86-64-v2
+            rustflags: -C target-cpu=x86_64_v2
             cflags: -march=x86-64-v2
             cxxflags: -march=x86-64-v2
           - target: x86_64-unknown-linux-gnu
@@ -80,7 +80,6 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.93
         with:
-          targets: ${{ matrix.target }}
           components: rust-src
 
       - name: Download appimagetool
