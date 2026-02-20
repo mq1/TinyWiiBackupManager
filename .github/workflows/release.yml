@@ -80,6 +80,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.93
         with:
+          targets: ${{ matrix.target }}
           components: rust-src
 
       - name: Download appimagetool
@@ -89,7 +90,7 @@ jobs:
 
       - name: Build binary
         run: |
-          cargo build -Z build-std=std,panic_abort --profile release-lto --locked --target ${{ matrix.target }}.2.17 --features linux
+          cargo zigbuild -Z build-std=std,panic_abort --profile release-lto --locked --target ${{ matrix.target }}.2.17 --features linux
         env:
           RUSTC_BOOTSTRAP: 1
           RUSTFLAGS: ${{ matrix.rustflags }}
