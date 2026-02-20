@@ -26,7 +26,7 @@ pub fn view<'a>(
     let actions = if let Some(msg) = message {
         let style = match level {
             BlockingDialogLevel::Info => style::rounded_button,
-            BlockingDialogLevel::Warning => style::rounded_danger_button,
+            BlockingDialogLevel::Warning => style::rounded_warning_button,
             BlockingDialogLevel::Error => style::rounded_danger_button,
         };
 
