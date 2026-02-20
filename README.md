@@ -64,7 +64,7 @@
 
 - **:penguin: Linux**\
   :arrow_right: [Download on Flathub](https://flathub.org/apps/it.mq1.TinyWiiBackupManager) (recommended for most users)\
-  :arrow_right: [Download latest AppImage/tarball](https://github.com/mq1/TinyWiiBackupManager/releases/latest) (zenity or kdialog may be required)
+  :arrow_right: [Download latest AppImage/tarball](https://github.com/mq1/TinyWiiBackupManager/releases/latest)
 
 <br>
 
