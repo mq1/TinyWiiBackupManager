@@ -537,7 +537,7 @@ dependencies = [
 [[package]]
 name = "blocking-dialog"
 version = "0.1.0"
-source = "git+https://github.com/mq1/blocking-dialog-rs.git?branch=ashpd#542545c265e89cb723e340b93e597fd77c779154"
+source = "git+https://github.com/mq1/blocking-dialog-rs.git?branch=ashpd#e0c28c46f0aa5e757f4fad1bcebaf461a2c0b390"
 dependencies = [
  "ashpd 0.13.0-alpha",
  "block2 0.6.2",
