@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- 🐧 Linux builds now run on glibc 2.17+
+
 ## [v5.1.10] - 2026-02-19
 
 ### Added
