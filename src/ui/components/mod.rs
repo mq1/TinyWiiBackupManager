@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 pub mod about;
+pub mod alert;
+pub mod confirm;
 pub mod developers;
 pub mod game_card;
 pub mod game_info;

@@ -13,6 +13,7 @@ use crate::{
     ui::Screen,
     util::DriveInfo,
 };
+use blocking_dialog::BlockingDialogLevel;
 use iced::widget::{Id, operation::AbsoluteOffset};
 use semver::Version;
 use std::{ffi::OsString, path::PathBuf};
@@ -44,6 +45,12 @@ pub enum Message {
     GotLatestVersion(Result<Option<Version>, String>),
     FileDropped(PathBuf),
     None,
+
+    // Dialog utils (linux)
+    OpenAlert(String, String, BlockingDialogLevel),
+    CloseAlert,
+    OpenConfirm(String, String, BlockingDialogLevel, Box<Message>),
+    CloseConfirm,
 
     // Games
     GotGameList(Result<GameList, String>),

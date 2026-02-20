@@ -27,6 +27,7 @@ use crate::{
     updater,
     util::{DriveInfo, clean_old_files},
 };
+use blocking_dialog::BlockingDialogLevel;
 use iced::{
     Subscription, Task, Theme,
     widget::{
@@ -61,6 +62,8 @@ pub struct State {
     pub status: String,
     pub manual_archiving_game: PathBuf,
     pub osc_icons_download_started: bool,
+    pub alert: Option<(String, String, BlockingDialogLevel)>, // (title, description, level)
+    pub confirm: Option<(String, String, BlockingDialogLevel, Box<Message>)>, // (title, description, level, callback)
 
     // scroll positions
     pub games_scroll_id: Id,
@@ -98,6 +101,8 @@ impl State {
             status: String::new(),
             manual_archiving_game: PathBuf::new(),
             osc_icons_download_started: false,
+            alert: None,
+            confirm: None,
 
             // scroll positions
             games_scroll_id: Id::unique(),
@@ -717,6 +722,22 @@ impl State {
                 Screen::HbcApps => self.update(Message::AddHbcApps(vec![path])),
                 _ => Task::none(),
             },
+            Message::OpenAlert(title, description, level) => {
+                self.alert = Some((title, description, level));
+                Task::none()
+            }
+            Message::CloseAlert => {
+                self.alert = None;
+                Task::none()
+            }
+            Message::OpenConfirm(title, description, level, callback) => {
+                self.confirm = Some((title, description, level, callback));
+                Task::none()
+            }
+            Message::CloseConfirm => {
+                self.confirm = None;
+                Task::none()
+            }
         }
     }
 
