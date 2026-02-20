@@ -203,6 +203,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "ashpd"
+version = "0.13.0-alpha"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ffcab78216685a013098833afaaf7fffa509e7f3b5b1931473b2288198a14d47"
+dependencies = [
+ "enumflags2",
+ "futures-util",
+ "getrandom 0.3.4",
+ "serde",
+ "serde_repr",
+ "url",
+ "zbus",
+]
+
+[[package]]
 name = "async-broadcast"
 version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -522,10 +537,11 @@ dependencies = [
 [[package]]
 name = "blocking-dialog"
 version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8a3ff6da81b2a6fa9e94f0774dd1c38b35a7f00065191056fca6b352adc1fff2"
+source = "git+https://github.com/mq1/blocking-dialog-rs.git?branch=ashpd#542545c265e89cb723e340b93e597fd77c779154"
 dependencies = [
+ "ashpd 0.13.0-alpha",
  "block2 0.6.2",
+ "futures",
  "objc2 0.6.3",
  "objc2-app-kit 0.3.2",
  "objc2-foundation 0.3.2",
@@ -533,6 +549,7 @@ dependencies = [
  "raw-window-handle",
  "rfd",
  "thiserror 2.0.18",
+ "uuid",
  "windows 0.62.2",
 ]
 
@@ -946,7 +963,7 @@ version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "18e1a09f280e29a8b00bc7e81eca5ac87dca0575639c9422a5fa25a07bb884b8"
 dependencies = [
- "ashpd",
+ "ashpd 0.10.3",
  "async-std",
  "objc2 0.5.2",
  "objc2-foundation 0.2.2",
@@ -4495,6 +4512,7 @@ version = "1.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b672338555252d43fd2240c714dc444b8c6fb0a5c5335e65a07bba7742735ddb"
 dependencies = [
+ "getrandom 0.4.1",
  "js-sys",
  "serde_core",
  "wasm-bindgen",
