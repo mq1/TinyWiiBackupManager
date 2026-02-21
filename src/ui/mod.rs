@@ -1,6 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+mod components;
+pub mod dialogs;
+pub mod lucide;
+mod style;
+pub mod window_color;
+
 use crate::{
     games::game::Game,
     hbc::{app::HbcApp, osc::OscAppMeta},
@@ -12,11 +18,8 @@ use iced::{
     widget::{Column, Stack, column, container, row, rule, text},
 };
 
-mod components;
-pub mod dialogs;
-pub mod lucide;
-mod style;
-pub mod window_color;
+#[cfg(target_os = "linux")]
+pub use components::message_box::Level as MessageBoxLevel;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Screen {
@@ -81,12 +84,4 @@ pub fn view(state: &State) -> Element<'_, Message> {
     } else {
         root.into()
     }
-}
-
-#[cfg(target_os = "linux")]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Level {
-    Info,
-    Warning,
-    Error,
 }

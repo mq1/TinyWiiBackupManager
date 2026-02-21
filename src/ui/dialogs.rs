@@ -22,14 +22,14 @@ use walkdir::{DirEntry, WalkDir};
 use blocking_dialog::{BlockingAlertDialog, BlockingConfirmDialog, BlockingDialogLevel};
 
 #[cfg(target_os = "linux")]
-use crate::ui::Level;
+use crate::ui::MessageBoxLevel;
 
 #[cfg(target_os = "linux")]
 pub fn confirm_delete_dir(_window: &dyn Window, path: PathBuf) -> Message {
     Message::OpenMessageBox(
         "Delete Directory".to_string(),
         format!("Are you sure you want to delete {}?", path.display()),
-        Level::Warning,
+        MessageBoxLevel::Warning,
         Some(Box::new(Message::DeleteDirConfirmed(path))),
     )
 }
@@ -153,7 +153,7 @@ pub fn confirm_add_games(
     Message::OpenMessageBox(
         "The following games will be added".to_string(),
         text,
-        Level::Info,
+        MessageBoxLevel::Info,
         Some(Box::new(Message::AddGamesToTransferStack(paths))),
     )
 }
@@ -277,7 +277,7 @@ pub fn no_new_games(_window: &dyn Window) -> Message {
     Message::OpenMessageBox(
         "No new games to add".to_string(),
         "All selected games are already installed.".to_string(),
-        Level::Info,
+        MessageBoxLevel::Info,
         None,
     )
 }
@@ -305,7 +305,7 @@ pub fn confirm_strip_game(_window: &dyn Window, game: Game) -> Message {
             "Are you sure you want to remove the update partition from {}?\n\nThis is irreversible!",
             game.title()
         ),
-        Level::Warning,
+        MessageBoxLevel::Warning,
         Some(Box::new(Message::StripGame(game))),
     )
 }
@@ -334,7 +334,7 @@ pub fn confirm_strip_all_games(_window: &dyn Window) -> Message {
     Message::OpenMessageBox(
         "Remove update partitions?".to_string(),
         "Are you sure you want to remove the update partitions from all .wbfs files?\n\nThis is irreversible!".to_string(),
-        Level::Warning,
+        MessageBoxLevel::Warning,
         Some(Box::new(Message::StripAllGames)),
     )
 }
@@ -360,7 +360,7 @@ pub fn confirm_install_osc_app(_window: &dyn Window, app: OscAppMeta) -> Message
     Message::OpenMessageBox(
         "Install OSC App".to_string(),
         format!("Are you sure you want to install {}?", app.name()),
-        Level::Info,
+        MessageBoxLevel::Info,
         Some(Box::new(Message::InstallOscApp(app))),
     )
 }
@@ -386,7 +386,7 @@ pub fn no_archive_source(_window: &dyn Window) -> Message {
     Message::OpenMessageBox(
         "No archive source found".to_string(),
         "No archive source was found for the selected game.".to_string(),
-        Level::Error,
+        MessageBoxLevel::Error,
         None,
     )
 }

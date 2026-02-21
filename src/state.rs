@@ -40,7 +40,7 @@ use std::{ffi::OsStr, fs, path::PathBuf};
 use which_fs::FsKind;
 
 #[cfg(target_os = "linux")]
-use crate::ui::Level;
+use crate::ui::MessageBoxLevel;
 
 #[cfg(target_os = "macos")]
 use crate::util::run_dot_clean;
@@ -75,7 +75,7 @@ pub struct State {
 
     // message box state (Linux only)
     #[cfg(target_os = "linux")]
-    pub message_box: Option<(String, String, Level, Option<Box<Message>>)>,
+    pub message_box: Option<(String, String, MessgeBoxLevel, Option<Box<Message>>)>,
 }
 
 impl State {

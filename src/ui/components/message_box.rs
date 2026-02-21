@@ -1,15 +1,19 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    message::Message,
-    ui::{Level, style},
-};
+use crate::{message::Message, ui::style};
 use iced::{
     Element, Length,
     widget::{Text, button, column, container, row, rule, space},
 };
 use lucide_icons::iced::{icon_circle_x, icon_info, icon_triangle_alert};
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Level {
+    Info,
+    Warning,
+    Error,
+}
 
 fn get_icon<'a>(level: Level) -> Text<'a> {
     match level {
