@@ -25,7 +25,7 @@ use blocking_dialog::{BlockingAlertDialog, BlockingConfirmDialog, BlockingDialog
 use crate::ui::Level;
 
 #[cfg(target_os = "linux")]
-pub fn confirm_delete_dir(window: &dyn Window, path: PathBuf) -> Message {
+pub fn confirm_delete_dir(_window: &dyn Window, path: PathBuf) -> Message {
     Message::OpenMessageBox(
         "Delete Directory".to_string(),
         format!("Are you sure you want to delete {}?", path.display()),
@@ -124,7 +124,7 @@ pub fn pick_games_dir(window: &dyn Window) -> Message {
 
 #[cfg(target_os = "linux")]
 pub fn confirm_add_games(
-    window: &dyn Window,
+    _window: &dyn Window,
     entries: Vec<(PathBuf, Format, GameID, String)>,
 ) -> Message {
     let text = {
@@ -273,7 +273,7 @@ pub fn pick_archive_dest(window: &dyn Window, source: PathBuf, game_title: Strin
 }
 
 #[cfg(target_os = "linux")]
-pub fn no_new_games(window: &dyn Window) -> Message {
+pub fn no_new_games(_window: &dyn Window) -> Message {
     Message::OpenMessageBox(
         "No new games to add".to_string(),
         "All selected games are already installed.".to_string(),
@@ -298,7 +298,7 @@ pub fn no_new_games(window: &dyn Window) -> Message {
 }
 
 #[cfg(target_os = "linux")]
-pub fn confirm_strip_game(window: &dyn Window, game: Game) -> Message {
+pub fn confirm_strip_game(_window: &dyn Window, game: Game) -> Message {
     Message::OpenMessageBox(
         "Remove update partition?".to_string(),
         format!(
@@ -330,7 +330,7 @@ pub fn confirm_strip_game(window: &dyn Window, game: Game) -> Message {
 }
 
 #[cfg(target_os = "linux")]
-pub fn confirm_strip_all_games(window: &dyn Window) -> Message {
+pub fn confirm_strip_all_games(_window: &dyn Window) -> Message {
     Message::OpenMessageBox(
         "Remove update partitions?".to_string(),
         "Are you sure you want to remove the update partitions from all .wbfs files?\n\nThis is irreversible!".to_string(),
@@ -356,7 +356,7 @@ pub fn confirm_strip_all_games(window: &dyn Window) -> Message {
 }
 
 #[cfg(target_os = "linux")]
-pub fn confirm_install_osc_app(window: &dyn Window, app: OscAppMeta) -> Message {
+pub fn confirm_install_osc_app(_window: &dyn Window, app: OscAppMeta) -> Message {
     Message::OpenMessageBox(
         "Install OSC App".to_string(),
         format!("Are you sure you want to install {}?", app.name()),
@@ -382,7 +382,7 @@ pub fn confirm_install_osc_app(window: &dyn Window, app: OscAppMeta) -> Message 
 }
 
 #[cfg(target_os = "linux")]
-pub fn no_archive_source(window: &dyn Window) -> Message {
+pub fn no_archive_source(_window: &dyn Window) -> Message {
     Message::OpenMessageBox(
         "No archive source found".to_string(),
         "No archive source was found for the selected game.".to_string(),
