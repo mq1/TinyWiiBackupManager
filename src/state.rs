@@ -27,7 +27,6 @@ use crate::{
     updater,
     util::{DriveInfo, clean_old_files},
 };
-use blocking_dialog::BlockingDialogLevel;
 use iced::{
     Subscription, Task, Theme,
     widget::{
@@ -39,6 +38,9 @@ use iced::{
 use semver::Version;
 use std::{ffi::OsStr, fs, path::PathBuf};
 use which_fs::FsKind;
+
+#[cfg(target_os = "linux")]
+use crate::ui::MessageBoxLevel;
 
 #[cfg(target_os = "macos")]
 use crate::util::run_dot_clean;
@@ -62,7 +64,6 @@ pub struct State {
     pub status: String,
     pub manual_archiving_game: PathBuf,
     pub osc_icons_download_started: bool,
-    pub message_box: Option<(String, String, BlockingDialogLevel, Option<Box<Message>>)>,
 
     // scroll positions
     pub games_scroll_id: Id,
@@ -71,6 +72,10 @@ pub struct State {
     pub hbc_scroll_offset: AbsoluteOffset,
     pub osc_scroll_id: Id,
     pub osc_scroll_offset: AbsoluteOffset,
+
+    // message box state (Linux only)
+    #[cfg(target_os = "linux")]
+    pub message_box: Option<(String, String, MessageBoxLevel, Option<Box<Message>>)>,
 }
 
 impl State {
@@ -100,7 +105,6 @@ impl State {
             status: String::new(),
             manual_archiving_game: PathBuf::new(),
             osc_icons_download_started: false,
-            message_box: None,
 
             // scroll positions
             games_scroll_id: Id::unique(),
@@ -109,6 +113,10 @@ impl State {
             hbc_scroll_offset: AbsoluteOffset::default(),
             osc_scroll_id: Id::unique(),
             osc_scroll_offset: AbsoluteOffset::default(),
+
+            // message box state (Linux only)
+            #[cfg(target_os = "linux")]
+            message_box: None,
         };
 
         if known_mount_points::check(&initial_state) {
@@ -720,10 +728,12 @@ impl State {
                 Screen::HbcApps => self.update(Message::AddHbcApps(vec![path])),
                 _ => Task::none(),
             },
+            #[cfg(target_os = "linux")]
             Message::OpenMessageBox(title, description, level, callback) => {
                 self.message_box = Some((title, description, level, callback));
                 Task::none()
             }
+            #[cfg(target_os = "linux")]
             Message::CloseMessageBox(callback) => {
                 self.message_box = None;
 

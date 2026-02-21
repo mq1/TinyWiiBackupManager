@@ -1,6 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+mod components;
+pub mod dialogs;
+pub mod lucide;
+mod style;
+pub mod window_color;
+
 use crate::{
     games::game::Game,
     hbc::{app::HbcApp, osc::OscAppMeta},
@@ -12,11 +18,8 @@ use iced::{
     widget::{Column, Stack, column, container, row, rule, text},
 };
 
-mod components;
-pub mod dialogs;
-pub mod lucide;
-mod style;
-pub mod window_color;
+#[cfg(target_os = "linux")]
+pub use components::message_box::Level as MessageBoxLevel;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Screen {
@@ -33,8 +36,9 @@ pub enum Screen {
 }
 
 pub fn view(state: &State) -> Element<'_, Message> {
+    #[cfg(target_os = "linux")]
     if let Some((ref title, ref description, level, ref callback)) = state.message_box {
-        return components::message_box::view(title, description, level, callback);
+        return components::message_box::view(title, description, level, callback.as_deref());
     }
 
     let mut col = Column::new();
