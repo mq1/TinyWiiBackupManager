@@ -42,10 +42,33 @@ fn get_window_icon() -> Option<window::Icon> {
     Some(icon)
 }
 
+#[cfg(feature = "linux")]
+fn check_gpu() {
+    let instance = wgpu::Instance::default();
+
+    let adapter =
+        iced::futures::executor::block_on(instance.request_adapter(&wgpu::RequestAdapterOptions {
+            power_preference: wgpu::PowerPreference::None,
+            compatible_surface: None,
+            force_fallback_adapter: false,
+        }));
+
+    if !adapter.is_ok_and(|a| a.features().contains(wgpu::Features::SHADER_F16)) {
+        eprintln!("Device does not support FP16, disabling vulkan backend");
+
+        unsafe {
+            std::env::set_var("WGPU_BACKEND", "gl");
+        }
+    }
+}
+
 fn main() -> iced::Result {
     unsafe {
         std::env::set_var("WGPU_POWER_PREF", "none");
     }
+
+    #[cfg(feature = "linux")]
+    check_gpu();
 
     let height = if cfg!(target_os = "macos") {
         600.0 + 32.0
