@@ -21,7 +21,7 @@ pub fn view<'a>(
     title: &'a str,
     description: &'a str,
     level: BlockingDialogLevel,
-    message: &'a Option<Box<Message>>,
+    message: Option<&'a Message>,
 ) -> Element<'a, Message> {
     let actions = if let Some(msg) = message {
         let style = match level {
@@ -37,7 +37,7 @@ pub fn view<'a>(
                 .on_press(Message::CloseMessageBox(None)),
             button("OK")
                 .style(style)
-                .on_press_with(|| Message::CloseMessageBox(Some(msg.clone())))
+                .on_press_with(|| Message::CloseMessageBox(Some(Box::new(msg.clone())))),
         ]
         .spacing(5)
     } else {

@@ -32,6 +32,7 @@ pub fn rounded_secondary_button(theme: &Theme, status: button::Status) -> button
     style
 }
 
+#[cfg(target_os = "linux")]
 pub fn rounded_warning_button(theme: &Theme, status: button::Status) -> button::Style {
     let mut style = button::warning(theme, status);
     style.border.radius = border::radius(30);

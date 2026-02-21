@@ -33,8 +33,9 @@ pub enum Screen {
 }
 
 pub fn view(state: &State) -> Element<'_, Message> {
+    #[cfg(target_os = "linux")]
     if let Some((ref title, ref description, level, ref callback)) = state.message_box {
-        return components::message_box::view(title, description, level, callback);
+        return components::message_box::view(title, description, level, callback.as_deref());
     }
 
     let mut col = Column::new();

@@ -189,9 +189,9 @@ impl ConvertForWiiOperation {
                                     current_file_size = 0;
 
                                     let ext = if out_format == nod::common::Format::Wbfs {
-                                        format!("wbf{}", current_split_idx)
+                                        format!("wbf{current_split_idx}")
                                     } else {
-                                        format!("part{}.iso", current_split_idx)
+                                        format!("part{current_split_idx}.iso")
                                     };
 
                                     // Swap the writer

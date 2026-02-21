@@ -13,10 +13,12 @@ use crate::{
     ui::Screen,
     util::DriveInfo,
 };
-use blocking_dialog::BlockingDialogLevel;
 use iced::widget::{Id, operation::AbsoluteOffset};
 use semver::Version;
 use std::{ffi::OsString, path::PathBuf};
+
+#[cfg(target_os = "linux")]
+use blocking_dialog::BlockingDialogLevel;
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -45,8 +47,6 @@ pub enum Message {
     GotLatestVersion(Result<Option<Version>, String>),
     FileDropped(PathBuf),
     None,
-    OpenMessageBox(String, String, BlockingDialogLevel, Option<Box<Message>>),
-    CloseMessageBox(Option<Box<Message>>),
 
     // Games
     GotGameList(Result<GameList, String>),
@@ -102,4 +102,10 @@ pub enum Message {
     DownloadWiitdbToDrive,
     #[cfg(target_os = "macos")]
     RunDotClean,
+
+    // Message Box
+    #[cfg(target_os = "linux")]
+    OpenMessageBox(String, String, BlockingDialogLevel, Option<Box<Message>>),
+    #[cfg(target_os = "linux")]
+    CloseMessageBox(Option<Box<Message>>),
 }
