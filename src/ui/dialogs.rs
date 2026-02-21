@@ -8,7 +8,7 @@ use crate::hbc::osc::OscAppMeta;
 use crate::message::Message;
 use crate::util;
 use blocking_dialog::{
-    BlockingAlertDialog, BlockingConfirmDialog, BlockingDialogLevel, BlockingPickDirectoryDialog,
+    BlockingAlertDialog, BlockingConfirmDialog, BlockingPickDirectoryDialog,
     BlockingPickFilesDialog, BlockingPickFilesDialogFilter, BlockingSaveFileDialog,
 };
 use iced::Window;
@@ -18,12 +18,18 @@ use std::fmt::Write;
 use std::path::PathBuf;
 use walkdir::{DirEntry, WalkDir};
 
+#[cfg(any(target_os = "windows", target_os = "macos"))]
+use blocking_dialog::BlockingDialogLevel;
+
+#[cfg(target_os = "linux")]
+use crate::ui::components::message_box::Level;
+
 #[cfg(target_os = "linux")]
 pub fn confirm_delete_dir(window: &dyn Window, path: PathBuf) -> Message {
     Message::OpenMessageBox(
         "Delete Directory".to_string(),
         format!("Are you sure you want to delete {}?", path.display()),
-        BlockingDialogLevel::Warning,
+        Level::Warning,
         Some(Box::new(Message::DeleteDirConfirmed(path))),
     )
 }
@@ -147,7 +153,7 @@ pub fn confirm_add_games(
     Message::OpenMessageBox(
         "The following games will be added".to_string(),
         text,
-        BlockingDialogLevel::Info,
+        Level::Info,
         Some(Box::new(Message::AddGamesToTransferStack(paths))),
     )
 }
@@ -271,7 +277,7 @@ pub fn no_new_games(window: &dyn Window) -> Message {
     Message::OpenMessageBox(
         "No new games to add".to_string(),
         "All selected games are already installed.".to_string(),
-        BlockingDialogLevel::Info,
+        Level::Info,
         None,
     )
 }
@@ -299,7 +305,7 @@ pub fn confirm_strip_game(window: &dyn Window, game: Game) -> Message {
             "Are you sure you want to remove the update partition from {}?\n\nThis is irreversible!",
             game.title()
         ),
-        BlockingDialogLevel::Warning,
+        Level::Warning,
         Some(Box::new(Message::StripGame(game))),
     )
 }
@@ -328,7 +334,7 @@ pub fn confirm_strip_all_games(window: &dyn Window) -> Message {
     Message::OpenMessageBox(
         "Remove update partitions?".to_string(),
         "Are you sure you want to remove the update partitions from all .wbfs files?\n\nThis is irreversible!".to_string(),
-        BlockingDialogLevel::Warning,
+        Level::Warning,
         Some(Box::new(Message::StripAllGames)),
     )
 }
@@ -354,7 +360,7 @@ pub fn confirm_install_osc_app(window: &dyn Window, app: OscAppMeta) -> Message 
     Message::OpenMessageBox(
         "Install OSC App".to_string(),
         format!("Are you sure you want to install {}?", app.name()),
-        BlockingDialogLevel::Info,
+        Level::Info,
         Some(Box::new(Message::InstallOscApp(app))),
     )
 }
@@ -380,7 +386,7 @@ pub fn no_archive_source(window: &dyn Window) -> Message {
     Message::OpenMessageBox(
         "No archive source found".to_string(),
         "No archive source was found for the selected game.".to_string(),
-        BlockingDialogLevel::Error,
+        Level::Error,
         None,
     )
 }

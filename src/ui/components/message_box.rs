@@ -2,41 +2,48 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{message::Message, ui::style};
-use blocking_dialog::BlockingDialogLevel;
 use iced::{
     Element, Length,
     widget::{Text, button, column, container, row, rule, space},
 };
 use lucide_icons::iced::{icon_circle_x, icon_info, icon_triangle_alert};
 
-fn get_icon<'a>(level: BlockingDialogLevel) -> Text<'a> {
+pub enum Level {
+    Info,
+    Warning,
+    Error,
+}
+
+fn get_icon<'a>(level: Level) -> Text<'a> {
     match level {
-        BlockingDialogLevel::Info => icon_info(),
-        BlockingDialogLevel::Warning => icon_triangle_alert(),
-        BlockingDialogLevel::Error => icon_circle_x(),
+        Level::Info => icon_info(),
+        Level::Warning => icon_triangle_alert(),
+        Level::Error => icon_circle_x(),
+    }
+}
+
+fn get_style(level: Level) -> style::RoundedButton {
+    match level {
+        Level::Info => style::rounded_button,
+        Level::Warning => style::rounded_warning_button,
+        Level::Error => style::rounded_danger_button,
     }
 }
 
 pub fn view<'a>(
     title: &'a str,
     description: &'a str,
-    level: BlockingDialogLevel,
+    level: Level,
     message: Option<&'a Message>,
 ) -> Element<'a, Message> {
     let actions = if let Some(msg) = message {
-        let style = match level {
-            BlockingDialogLevel::Info => style::rounded_button,
-            BlockingDialogLevel::Warning => style::rounded_warning_button,
-            BlockingDialogLevel::Error => style::rounded_danger_button,
-        };
-
         row![
             space::horizontal(),
             button("Cancel")
                 .style(style::rounded_secondary_button)
                 .on_press(Message::CloseMessageBox(None)),
             button("OK")
-                .style(style)
+                .style(get_style(level))
                 .on_press_with(|| Message::CloseMessageBox(Some(Box::new(msg.clone())))),
         ]
         .spacing(5)
