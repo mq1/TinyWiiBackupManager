@@ -19,8 +19,8 @@
 - **Cross-Platform**:
   - :window: Windows XP+ | x86 (32-bit), x86_64 (64-bit), arm64 (Qualcomm Snapdragon etc.)
   - :apple: macOS 10.13+ | x86_64 (Intel), arm64 (Apple Silicon/M1+)
-  - :penguin: Linux | x86 (32-bit), x86_64 (64-bit), armhf/arm64 (Qualcomm Snapdragon, Rockchip, Raspberry PIs etc.)
-
+  - :penguin: Linux 3.2+ (glibc 2.17+) | x86 (32-bit), x86_64 (64-bit), armhf/arm64 (Qualcomm Snapdragon, Rockchip, Raspberry PIs etc.)
+  
 #### :video_game: Game Management
 
 - **Games view**: Manage your Wii and GameCube games
@@ -64,7 +64,7 @@
 
 - **:penguin: Linux**\
   :arrow_right: [Download on Flathub](https://flathub.org/apps/it.mq1.TinyWiiBackupManager) (recommended for most users)\
-  :arrow_right: [Download latest AppImage/tarball](https://github.com/mq1/TinyWiiBackupManager/releases/latest) (zenity or kdialog may be required)
+  :arrow_right: [Download latest AppImage/tarball](https://github.com/mq1/TinyWiiBackupManager/releases/latest)
 
 <br>
 

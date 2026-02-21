@@ -7,9 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v5.1.11] - 2026-02-20
+
+### Added
+
+- 🐧 Linux builds now run on glibc 2.17+ (thanks to cargo-zigbuild)
+
 ### Changed
 
-- 🐧 Linux builds now run on glibc 2.17+
+- 📦 AppImages now don't depend on zenity or kdialog (re-added custom message box only for linux builds)
+
+### Fixed
+
+- 🐛 Linux AppImage: stops after parsing title/titleid (#555)
 
 ## [v5.1.10] - 2026-02-19
 
@@ -202,7 +212,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 🖼️ TinyWiiBackupManager icon now shows up again on the windows exe
 
-[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.10...HEAD
+[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.11...HEAD
+[v5.1.11]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.10...v5.1.11
 [v5.1.10]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.9...v5.1.10
 [v5.1.9]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.8...v5.1.9
 [v5.1.8]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.7...v5.1.8
