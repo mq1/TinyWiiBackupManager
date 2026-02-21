@@ -75,7 +75,7 @@ pub struct State {
 
     // message box state (Linux only)
     #[cfg(target_os = "linux")]
-    pub message_box: Option<(String, String, MessgeBoxLevel, Option<Box<Message>>)>,
+    pub message_box: Option<(String, String, MessageBoxLevel, Option<Box<Message>>)>,
 }
 
 impl State {
