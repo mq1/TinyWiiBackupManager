@@ -82,3 +82,11 @@ pub fn view(state: &State) -> Element<'_, Message> {
         root.into()
     }
 }
+
+#[cfg(target_os = "linux")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Level {
+    Info,
+    Warning,
+    Error,
+}

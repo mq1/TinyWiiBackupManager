@@ -8,8 +8,8 @@ use crate::hbc::osc::OscAppMeta;
 use crate::message::Message;
 use crate::util;
 use blocking_dialog::{
-    BlockingAlertDialog, BlockingConfirmDialog, BlockingPickDirectoryDialog,
-    BlockingPickFilesDialog, BlockingPickFilesDialogFilter, BlockingSaveFileDialog,
+    BlockingPickDirectoryDialog, BlockingPickFilesDialog, BlockingPickFilesDialogFilter,
+    BlockingSaveFileDialog,
 };
 use iced::Window;
 use nod::common::Format;
@@ -19,10 +19,10 @@ use std::path::PathBuf;
 use walkdir::{DirEntry, WalkDir};
 
 #[cfg(any(target_os = "windows", target_os = "macos"))]
-use blocking_dialog::BlockingDialogLevel;
+use blocking_dialog::{BlockingAlertDialog, BlockingConfirmDialog, BlockingDialogLevel};
 
 #[cfg(target_os = "linux")]
-use crate::ui::components::message_box::Level;
+use crate::ui::Level;
 
 #[cfg(target_os = "linux")]
 pub fn confirm_delete_dir(window: &dyn Window, path: PathBuf) -> Message {

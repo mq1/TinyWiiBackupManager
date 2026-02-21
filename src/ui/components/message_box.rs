@@ -8,12 +8,6 @@ use iced::{
 };
 use lucide_icons::iced::{icon_circle_x, icon_info, icon_triangle_alert};
 
-pub enum Level {
-    Info,
-    Warning,
-    Error,
-}
-
 fn get_icon<'a>(level: Level) -> Text<'a> {
     match level {
         Level::Info => icon_info(),
@@ -22,7 +16,7 @@ fn get_icon<'a>(level: Level) -> Text<'a> {
     }
 }
 
-fn get_style(level: Level) -> style::RoundedButton {
+fn get_style(level: Level) -> button::Style {
     match level {
         Level::Info => style::rounded_button,
         Level::Warning => style::rounded_warning_button,

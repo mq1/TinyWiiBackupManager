@@ -18,7 +18,7 @@ use semver::Version;
 use std::{ffi::OsString, path::PathBuf};
 
 #[cfg(target_os = "linux")]
-use crate::ui::components::message_box::Level;
+use crate::ui::Level;
 
 #[derive(Debug, Clone)]
 pub enum Message {

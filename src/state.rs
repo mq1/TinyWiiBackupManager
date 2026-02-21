@@ -40,7 +40,7 @@ use std::{ffi::OsStr, fs, path::PathBuf};
 use which_fs::FsKind;
 
 #[cfg(target_os = "linux")]
-use crate::ui::components::message_box::Level;
+use crate::Level;
 
 #[cfg(target_os = "macos")]
 use crate::util::run_dot_clean;
