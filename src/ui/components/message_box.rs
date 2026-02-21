@@ -1,7 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{message::Message, ui::style};
+use crate::{
+    message::Message,
+    ui::{Level, style},
+};
 use iced::{
     Element, Length,
     widget::{Text, button, column, container, row, rule, space},
@@ -16,7 +19,7 @@ fn get_icon<'a>(level: Level) -> Text<'a> {
     }
 }
 
-fn get_style(level: Level) -> button::Style {
+fn get_style(level: Level) -> fn(&iced::Theme, button::Status) -> button::Style {
     match level {
         Level::Info => style::rounded_button,
         Level::Warning => style::rounded_warning_button,
