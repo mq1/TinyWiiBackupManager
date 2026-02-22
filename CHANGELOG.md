@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- 🐧 Linux builds now use vulkan on newer gpus and opengl on older gpus (#546)
+
 ## [v5.1.11] - 2026-02-20
 
 ### Added
