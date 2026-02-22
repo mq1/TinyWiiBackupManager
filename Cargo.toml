@@ -77,7 +77,7 @@ default = []
 linux = [
   "iced/wgpu-bare",
   "wgpu/vulkan",
-  "iced/tiny-skia",
+  "wgpu/gles",
   "minreq/https-rustls-probe",
 ]
 windows-legacy = ["iced/tiny-skia", "minreq/https-rustls"]
