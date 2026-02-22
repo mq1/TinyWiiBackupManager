@@ -293,6 +293,7 @@ jobs:
 
       - name: Create DMGs (assets from sindresorhus/create-dmg)
         run: |
+          mkdir dist
           appdmg package/macos/appdmg-x86_64.json "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-x86_64.dmg"
           appdmg package/macos/appdmg-arm64.json "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-arm64.dmg"
           appdmg package/macos/appdmg-universal.json "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-universal.dmg"
