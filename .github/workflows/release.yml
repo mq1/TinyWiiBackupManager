@@ -295,9 +295,12 @@ jobs:
 
       - name: Create DMGs
         run: |
-          create-dmg --no-code-sign dist-macos-arm64/TinyWiiBackupManager.app "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-arm64.dmg"
-          create-dmg --no-code-sign dist-macos-x86_64/TinyWiiBackupManager.app "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-x86_64.dmg"
-          create-dmg --no-code-sign TinyWiiBackupManager.app "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-universal.dmg"
+          create-dmg --no-code-sign dist-macos-arm64/TinyWiiBackupManager.app
+          mv "TinyWiiBackupManager ${{ env.VERSION_NAME }}.dmg" "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-arm64.dmg"
+          create-dmg --no-code-sign dist-macos-x86_64/TinyWiiBackupManager.app
+          mv "TinyWiiBackupManager ${{ env.VERSION_NAME }}.dmg" "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-x86_64.dmg"
+          create-dmg --no-code-sign TinyWiiBackupManager.app
+          mv "TinyWiiBackupManager ${{ env.VERSION_NAME }}.dmg" "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-universal.dmg"
 
       - name: Upload distrubutables
         uses: actions/upload-artifact@v4
