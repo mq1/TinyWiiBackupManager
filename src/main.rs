@@ -48,12 +48,18 @@ fn check_gpu() {
 
     let adapter =
         iced::futures::executor::block_on(instance.request_adapter(&wgpu::RequestAdapterOptions {
-            power_preference: wgpu::PowerPreference::None,
+            power_preference: wgpu::PowerPreference::LowPower,
             compatible_surface: None,
             force_fallback_adapter: false,
         }));
 
-    if !adapter.is_ok_and(|a| a.features().contains(wgpu::Features::SHADER_F16)) {
+    if adapter.is_ok_and(|a| a.features().contains(wgpu::Features::SHADER_F16)) {
+        eprintln!("Device supports FP16, enabling vulkan backend");
+
+        unsafe {
+            std::env::set_var("WGPU_POWER_PREF", "low");
+        }
+    } else {
         eprintln!("Device does not support FP16, disabling vulkan backend");
 
         unsafe {
@@ -63,18 +69,14 @@ fn check_gpu() {
 }
 
 fn main() -> iced::Result {
-    unsafe {
-        std::env::set_var("WGPU_POWER_PREF", "none");
-    }
-
     #[cfg(feature = "linux")]
     check_gpu();
 
-    let height = if cfg!(target_os = "macos") {
-        600.0 + 32.0
-    } else {
-        600.0
-    };
+    #[cfg(feature = "macos")]
+    let height = 600.0 + 32.0; // compensate for titlebar height on macOS
+
+    #[cfg(not(feature = "macos"))]
+    let height = 600.0;
 
     let window = window::Settings {
         size: Size::new(800.0, height),

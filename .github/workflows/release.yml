@@ -21,7 +21,7 @@ permissions:
   contents: write
 
 env:
-  VERSION_NAME: ${{ github.ref_type == 'tag' && github.ref_name[1:] || github.sha }}
+  VERSION_NAME: ${{ github.ref_type == 'tag' && replace(github.ref_name, 'v', '') || github.sha }}
 
 jobs:
   # ==================================================================================

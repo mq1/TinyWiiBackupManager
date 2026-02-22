@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v5.1.13] - 2026-02-22
+
+### Changed
+
+- 📦 macOS binaries are now only packaged as DMGs to avoid cluttering the artifact list. They should also be a little smaller
+
+### Fixed
+
+- 🐧 Linux builds now trigger the cpu renderer more easily to avoid rare crashes (#561)
+
 ## [v5.1.12] - 2026-02-22
 
 ### Fixed
@@ -218,7 +228,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 🖼️ TinyWiiBackupManager icon now shows up again on the windows exe
 
-[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.12...HEAD
+[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.13...HEAD
+[v5.1.13]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.12...v5.1.13
 [v5.1.12]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.11...v5.1.12
 [v5.1.11]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.10...v5.1.11
 [v5.1.10]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.9...v5.1.10

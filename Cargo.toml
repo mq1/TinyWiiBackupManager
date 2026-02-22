@@ -52,8 +52,8 @@ zip = { version = "8.0", default-features = false, features = [
 fuzzy-matcher = "0.3"
 zstd = "0.13"
 minreq = "2.14"
-strum = "0.27"
-strum_macros = "0.27"
+strum = "0.28"
+strum_macros = "0.28"
 derive-getters = "0.5"
 walkdir = "2.5"
 fs_extra = "1.3"
@@ -76,8 +76,8 @@ winresource = "0.1"
 default = []
 linux = [
   "iced/wgpu-bare",
+  "iced/tiny-skia",
   "wgpu/vulkan",
-  "wgpu/gles",
   "minreq/https-rustls-probe",
 ]
 windows-legacy = ["iced/tiny-skia", "minreq/https-rustls"]
