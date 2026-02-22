@@ -28,7 +28,7 @@ wgpu = { version = "27", optional = true, default-features = false, features = [
   "std",
   "parking_lot",
 ] }
-lucide-icons = { version = "0.563", features = ["iced"] }
+lucide-icons = { version = "0.575", features = ["iced"] }
 image = { version = "0.25", default-features = false, features = ["png"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
@@ -68,7 +68,7 @@ windows = { version = "0.62" }
 
 [build-dependencies]
 regex = "1.12"
-lucide-icons = "0.563"
+lucide-icons = "0.575"
 zstd = "0.13"
 winresource = "0.1"
 
