@@ -21,7 +21,7 @@ permissions:
   contents: write
 
 env:
-  VERSION_NAME: ${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
+  VERSION_NAME: ${{ github.ref_type == 'tag' && github.ref_name[1:] || github.sha }}
 
 jobs:
   # ==================================================================================
@@ -105,7 +105,7 @@ jobs:
 
       - name: Package binary as tar.gz
         run: |
-          tar -I 'gzip -9' --owner=0 --group=0 --mode=0755 -cvf "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.tar.gz" TinyWiiBackupManager
+          tar -I 'gzip -9' --owner=0 --group=0 --mode=0755 -cvf "dist/TinyWiiBackupManager-v${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.tar.gz" TinyWiiBackupManager
 
       - name: Package binary as AppImage
         run: |
@@ -113,7 +113,7 @@ jobs:
           ./appimagetool-${{ matrix.appimage-arch }}.AppImage \
             -u "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync" \
             TinyWiiBackupManager.AppDir \
-            dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage
+            dist/TinyWiiBackupManager-v${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage
           cp *.zsync dist/
         env:
           ARCH: ${{ matrix.appimage-arch }}
@@ -197,7 +197,7 @@ jobs:
         run: |
           New-Item -Path "dist" -ItemType Directory
           Copy-Item -Path "target/${{ matrix.target }}/release-lto/TinyWiiBackupManager.exe" -Destination TinyWiiBackupManager.exe
-          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
+          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-v${{ env.VERSION_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v4
@@ -249,23 +249,16 @@ jobs:
         run: |
           mkdir dist
           ditto -c -k --sequesterRsrc --keepParent --zlibCompressionLevel 9 \
-            TinyWiiBackupManager.app \
-            "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-${{ matrix.arch }}.zip"
-
-      - name: Create dmg
-        run: |
-          npx -y appdmg@0.6.6 \
-            package/macos/appdmg.json \
-            "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-${{ matrix.arch }}.dmg"
+            TinyWiiBackupManager.app "dist/TinyWiiBackupManager-v${{ env.VERSION_NAME }}-macos-${{ matrix.arch }}.zip"
 
       - name: Upload macOS distributables
         uses: actions/upload-artifact@v4
         with:
-          name: dist-macos-${{ matrix.arch }}
+          name: build-macos-${{ matrix.arch }}
           path: dist/*
 
-  build-macos-universal:
-    name: Build macOS dmg (Universal2)
+  package-macos:
+    name: Package Universal2 macOS app and DMGs
     runs-on: macos-26
     needs: [build-macos]
 
@@ -278,33 +271,30 @@ jobs:
       - name: Download macOS .app distributables
         uses: actions/download-artifact@v7
         with:
-          pattern: "dist-macos-*"
+          pattern: "build-macos-*"
 
       - name: Extract the .zip distributables
         run: |
-          ditto -x -k "dist-macos-arm64/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-arm64.zip" .
-          ditto -x -k "dist-macos-x86_64/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-x86_64.zip" dist-macos-x86_64
+          ditto -x -k "build-macos-arm64/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-arm64.zip" build-macos-arm64
+          ditto -x -k "build-macos-x86_64/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-x86_64.zip" build-macos-x86_64
+          cp -r build-macos-arm64/TinyWiiBackupManager.app TinyWiiBackupManager.app
 
       - name: Create the Universal2 app
         run: |
           lipo -create \
             -output TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager \
-            TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager \
-            dist-macos-x86_64/TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
+            build-macos-arm64/TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager \
+            build-macos-x86_64/TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
           codesign --force --deep -s - TinyWiiBackupManager.app
 
-      - name: zip the app
-        run: |
-          mkdir dist
-          ditto -c -k --sequesterRsrc --keepParent --zlibCompressionLevel 9 \
-            TinyWiiBackupManager.app \
-            "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-universal.zip"
+      - name: Install appdmg
+        run: npm i -g appdmg
 
-      - name: Create dmg (assets from sindresorhus/create-dmg)
+      - name: Create DMGs (assets from sindresorhus/create-dmg)
         run: |
-          npx -y appdmg@0.6.6 \
-            package/macos/appdmg.json \
-            "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-universal.dmg"
+          appdmg package/macos/appdmg-x86_64.json "dist/TinyWiiBackupManager-v${{ env.VERSION_NAME }}-macos-x86_64.dmg"
+          appdmg package/macos/appdmg-arm64.json "dist/TinyWiiBackupManager-v${{ env.VERSION_NAME }}-macos-arm64.dmg"
+          appdmg package/macos/appdmg-universal.json "dist/TinyWiiBackupManager-v${{ env.VERSION_NAME }}-macos-universal.dmg"
 
       - name: Upload macOS distributables
         uses: actions/upload-artifact@v4
@@ -319,7 +309,7 @@ jobs:
     name: Create GitHub Release
     if: github.ref_type == 'tag'
     runs-on: ubuntu-slim
-    needs: [build-linux, build-windows, build-macos, build-macos-universal]
+    needs: [build-linux, build-windows, package-macos]
     steps:
       - name: Checkout
         uses: actions/checkout@v6

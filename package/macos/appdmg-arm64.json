@@ -8,14 +8,14 @@
       "height": 400
     }
   },
-  "format": "UDBZ",
+  "format": "ULMO",
   "filesystem": "APFS",
   "contents": [
     {
       "x": 180,
       "y": 170,
       "type": "file",
-      "path": "../../TinyWiiBackupManager.app"
+      "path": "../../build-macos-arm64/TinyWiiBackupManager.app"
     },
     {
       "x": 480,
