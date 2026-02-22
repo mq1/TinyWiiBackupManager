@@ -20,10 +20,18 @@ on:
 permissions:
   contents: write
 
-env:
-  VERSION_NAME: ${{ github.ref_type == 'tag' && replace(github.ref_name, 'v', '') || github.sha }}
-
 jobs:
+  set-version-name:
+    name: Set version name
+    runs-on: ubuntu-slim
+    steps:
+      - run: |
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            echo "VERSION_NAME=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
+          else
+            echo "VERSION_NAME=${{ github.sha }}" >> $GITHUB_ENV
+          fi
+  
   # ==================================================================================
   #  Build & Bundle Jobs: Run the platform-specific build scripts.
   # ==================================================================================
