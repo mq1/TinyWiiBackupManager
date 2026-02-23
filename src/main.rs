@@ -101,8 +101,8 @@ fn main() -> iced::Result {
             ..Default::default()
         },
 
-        // windows only
-        #[cfg(target_os = "windows")]
+        // windows 11 only
+        #[cfg(target_vendor = "pc")]
         platform_specific: window::settings::PlatformSpecific {
             corner_preference: window::settings::platform::CornerPreference::Round,
             ..Default::default()
