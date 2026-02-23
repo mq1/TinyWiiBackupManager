@@ -20,7 +20,7 @@ mod util;
 use crate::state::State;
 use iced::{Size, window};
 
-#[cfg(feature = "windows-legacy")]
+#[cfg(target_vendor = "pc")]
 #[link(name = "ole32")]
 unsafe extern "system" {
     pub unsafe fn CoTaskMemFree(pv: *mut std::ffi::c_void);
@@ -42,7 +42,7 @@ fn get_window_icon() -> Option<window::Icon> {
     Some(icon)
 }
 
-#[cfg(feature = "linux")]
+#[cfg(target_os = "linux")]
 fn check_gpu() {
     let instance = wgpu::Instance::default();
 
@@ -69,13 +69,13 @@ fn check_gpu() {
 }
 
 fn main() -> iced::Result {
-    #[cfg(feature = "linux")]
+    #[cfg(target_os = "linux")]
     check_gpu();
 
-    #[cfg(feature = "macos")]
+    #[cfg(target_os = "macos")]
     let height = 600.0 + 32.0; // compensate for titlebar height on macOS
 
-    #[cfg(not(feature = "macos"))]
+    #[cfg(not(target_os = "macos"))]
     let height = 600.0;
 
     let window = window::Settings {

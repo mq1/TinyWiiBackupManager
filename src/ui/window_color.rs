@@ -5,7 +5,7 @@ use crate::config::ThemePreference;
 use crate::message::Message;
 use iced::Task;
 
-#[cfg(feature = "windows")]
+#[cfg(target_vendor = "pc")]
 pub fn set(mut theme: ThemePreference) -> Task<Message> {
     use std::ffi::c_void;
     use wgpu::rwh::RawWindowHandle;
@@ -51,7 +51,7 @@ pub fn set(mut theme: ThemePreference) -> Task<Message> {
         .discard()
 }
 
-#[cfg(not(feature = "windows"))]
+#[cfg(not(target_vendor = "pc"))]
 pub fn set(_theme: ThemePreference) -> Task<Message> {
     Task::none()
 }

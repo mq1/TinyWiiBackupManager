@@ -63,7 +63,7 @@ pub fn view(state: &State) -> Element<'_, Message> {
     }
 
     let mut stack = Stack::new();
-    if cfg!(any(feature = "macos", feature = "windows")) {
+    if cfg!(any(target_os = "macos", target_vendor = "pc")) {
         stack = stack.push(
             container(row![].width(Length::Fill).height(Length::Fill)).style(style::nav_container),
         );

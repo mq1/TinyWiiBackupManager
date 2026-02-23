@@ -15,19 +15,7 @@ OriginalFilename = "TinyWiiBackupManager.exe"
 LegalCopyright = "Copyright © 2026 Manuel Quarneti. Licensed under GPL-3.0-only."
 
 [dependencies]
-iced = { version = "0.14", default-features = false, features = [
-  "thread-pool",
-  "sipper",
-  "image-without-codecs",
-  "linux-theme-detection",
-  "x11",
-  "wayland",
-] }
 iced_palace = "0.14"
-wgpu = { version = "27", optional = true, default-features = false, features = [
-  "std",
-  "parking_lot",
-] }
 lucide-icons = { version = "0.575", features = ["iced"] }
 image = { version = "0.25", default-features = false, features = ["png"] }
 serde = { version = "1.0", features = ["derive"] }
@@ -51,7 +39,6 @@ zip = { version = "8.0", default-features = false, features = [
 ] }
 fuzzy-matcher = "0.3"
 zstd = "0.13"
-minreq = "2.14"
 strum = "0.28"
 strum_macros = "0.28"
 derive-getters = "0.5"
@@ -61,10 +48,69 @@ wiiload = "0.3"
 which-fs = "0.2"
 fs4 = { version = "0.13", default-features = false }
 blocking-dialog = "0.2.0"
-dark-light = { version = "2.0", optional = true, default-features = false }
 
-[target.'cfg(windows)'.dependencies]
-windows = { version = "0.62" }
+
+# ========================
+# OS SPECIFIC DEPENDENCIES
+# ========================
+
+[target.'cfg(target_vendor = "pc")'.dependencies]
+iced = { version = "0.14", default-features = false, features = [
+  "thread-pool",
+  "sipper",
+  "image-without-codecs",
+  "wgpu-bare",
+] }
+wgpu = { version = "27", default-features = false, features = [
+  "std",
+  "parking_lot",
+  "dx12",
+] }
+windows = { version = "0.62", features = ["Win32_Graphics_Dwm"] }
+dark-light = "2.0"
+minreq = { version = "2.14", features = ["https-native"] }
+
+[target.'cfg(target_vendor = "win7")'.dependencies]
+iced = { version = "0.14", default-features = false, features = [
+  "thread-pool",
+  "sipper",
+  "image-without-codecs",
+  "tiny-skia",
+] }
+minreq = { version = "2.14", features = ["https-rustls"] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+iced = { version = "0.14", default-features = false, features = [
+  "thread-pool",
+  "sipper",
+  "image-without-codecs",
+  "linux-theme-detection",
+  "x11",
+  "wayland",
+  "wgpu-bare",
+  "tiny-skia",
+] }
+wgpu = { version = "27", default-features = false, features = [
+  "std",
+  "parking_lot",
+  "vulkan",
+] }
+minreq = { version = "2.14", features = ["https-rustls-probe"] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+iced = { version = "0.14", default-features = false, features = [
+  "thread-pool",
+  "sipper",
+  "image-without-codecs",
+  "wgpu-bare",
+] }
+wgpu = { version = "27", default-features = false, features = [
+  "std",
+  "parking_lot",
+  "metal",
+] }
+minreq = { version = "2.14", features = ["https-native"] }
+
 
 [build-dependencies]
 regex = "1.12"
@@ -72,26 +118,7 @@ lucide-icons = "0.575"
 zstd = "0.13"
 winresource = "0.1"
 
-[features]
-default = []
-linux = [
-  "iced/wgpu-bare",
-  "iced/tiny-skia",
-  "wgpu/vulkan",
-  "minreq/https-rustls-probe",
-]
-windows-legacy = ["iced/tiny-skia", "minreq/https-rustls"]
-windows = [
-  "iced/wgpu-bare",
-  "wgpu/dx12",
-  "minreq/https-native",
-  "dep:dark-light",
-  "windows/Win32_Graphics_Dwm",
-]
-macos = ["iced/wgpu-bare", "wgpu/metal", "minreq/https-native"]
-
-[profile.release-lto]
-inherits = "release"
+[profile.release]
 opt-level = 3
 lto = true
 codegen-units = 1
@@ -99,35 +126,35 @@ strip = true
 panic = "abort"
 
 # Big UI dependencies (cargo bloat --release --crates)
-[profile.release-lto.package.naga]
+[profile.release.package.naga]
 opt-level = "z"
-[profile.release-lto.package.wgpu-core]
+[profile.release.package.wgpu-core]
 opt-level = "z"
-[profile.release-lto.package.harfrust]
+[profile.release.package.harfrust]
 opt-level = "z"
-[profile.release-lto.package.skrifa]
+[profile.release.package.skrifa]
 opt-level = "z"
-[profile.release-lto.package.zeno]
+[profile.release.package.zeno]
 opt-level = "z"
-[profile.release-lto.package.read-fonts]
+[profile.release.package.read-fonts]
 opt-level = "z"
-[profile.release-lto.package.iced_winit]
+[profile.release.package.iced_winit]
 opt-level = "z"
-[profile.release-lto.package.wgpu]
+[profile.release.package.wgpu]
 opt-level = "z"
-[profile.release-lto.package.iced_wgpu]
+[profile.release.package.iced_wgpu]
 opt-level = "z"
-[profile.release-lto.package.wgpu-hal]
+[profile.release.package.wgpu-hal]
 opt-level = "z"
-[profile.release-lto.package.winit]
+[profile.release.package.winit]
 opt-level = "z"
-[profile.release-lto.package.cosmic-text]
+[profile.release.package.cosmic-text]
 opt-level = "z"
-[profile.release-lto.package.iced_widget]
+[profile.release.package.iced_widget]
 opt-level = "z"
-[profile.release-lto.package.image]
+[profile.release.package.image]
 opt-level = "z"
-[profile.release-lto.package.iced_graphics]
+[profile.release.package.iced_graphics]
 opt-level = "z"
 
 [profile.dev.package."*"]

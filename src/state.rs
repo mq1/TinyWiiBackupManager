@@ -156,14 +156,14 @@ impl State {
             ThemePreference::Light => Some(Theme::Light),
             ThemePreference::Dark => Some(Theme::Dark),
             ThemePreference::System => {
-                #[cfg(feature = "windows")]
+                #[cfg(target_vendor = "pc")]
                 match dark_light::detect() {
                     Ok(dark_light::Mode::Light) => Some(Theme::Light),
                     Ok(dark_light::Mode::Dark) => Some(Theme::Dark),
                     _ => None,
                 }
 
-                #[cfg(not(feature = "windows"))]
+                #[cfg(not(target_vendor = "pc"))]
                 None
             }
         }
