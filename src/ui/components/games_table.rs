@@ -70,7 +70,10 @@ pub fn view(state: &State) -> Element<'_, Message> {
             .into();
     }
 
-    let iter = state.game_list.iter();
+    let iter = state
+        .game_list
+        .iter()
+        .filter(|game| state.show_wii && game.is_wii() || state.show_gc && !game.is_wii());
 
     let usage_str = state
         .drive_info

@@ -12,12 +12,14 @@ use size::Size;
 use std::{
     ffi::{OsStr, OsString},
     fs,
-    path::{Path, PathBuf},
+    path::PathBuf,
 };
 
 #[derive(Debug, Clone, Getters)]
 pub struct Game {
     path: PathBuf,
+    #[getter(copy)]
+    is_wii: bool,
     #[getter(copy)]
     size: Size,
     title: String,
@@ -36,7 +38,7 @@ impl PartialEq for Game {
 impl Eq for Game {}
 
 impl Game {
-    pub fn maybe_from_path(path: PathBuf) -> Option<Self> {
+    pub fn maybe_from_path(path: PathBuf, is_wii: bool) -> Option<Self> {
         if !path.is_dir() {
             return None;
         }
@@ -59,6 +61,7 @@ impl Game {
 
         Some(Self {
             path,
+            is_wii,
             size: Size::from_bytes(size),
             title,
             id,
@@ -102,13 +105,6 @@ impl Game {
         }
 
         Err(anyhow!("No disc found"))
-    }
-
-    pub fn is_wii(&self) -> bool {
-        self.path
-            .parent()
-            .and_then(Path::file_name)
-            .is_some_and(|n| n == "wbfs")
     }
 
     pub fn get_path_uri(&self) -> OsString {

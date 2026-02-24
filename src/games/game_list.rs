@@ -15,9 +15,9 @@ use std::{
 pub struct GameList {
     list: Box<[Game]>,
     total_size: Size,
-    wii_indices: Vec<usize>,
+    wii_count: usize,
     wii_size: Size,
-    gc_indices: Vec<usize>,
+    gc_count: usize,
     gc_size: Size,
     filtered_indices: Box<[(usize, i64)]>,
 }
@@ -27,37 +27,39 @@ impl GameList {
         Self {
             list: Box::new([]),
             total_size: Size::from_bytes(0),
-            wii_indices: Vec::new(),
+            wii_count: 0,
             wii_size: Size::from_bytes(0),
-            gc_indices: Vec::new(),
+            gc_count: 0,
             gc_size: Size::from_bytes(0),
             filtered_indices: Box::new([]),
         }
     }
 
-    pub fn new(games: Vec<Game>) -> Self {
-        let mut wii_indices = Vec::new();
+    pub fn new(games: impl Into<Box<[Game]>>) -> Self {
+        let list = games.into();
+
+        let mut wii_count = 0;
         let mut wii_size = Size::from_bytes(0);
 
-        let mut gc_indices = Vec::new();
+        let mut gc_count = 0;
         let mut gc_size = Size::from_bytes(0);
 
-        for (i, game) in games.iter().enumerate() {
+        for game in &list {
             if game.is_wii() {
-                wii_indices.push(i);
+                wii_count += 1;
                 wii_size += game.size();
             } else {
-                gc_indices.push(i);
+                gc_count += 1;
                 gc_size += game.size();
             }
         }
 
         Self {
-            list: games.into_boxed_slice(),
+            list,
             total_size: wii_size + gc_size,
-            wii_indices,
+            wii_count,
             wii_size,
-            gc_indices,
+            gc_count,
             gc_size,
             filtered_indices: Box::new([]),
         }
@@ -66,16 +68,6 @@ impl GameList {
     #[inline]
     pub fn iter(&self) -> impl Iterator<Item = &Game> {
         self.list.iter()
-    }
-
-    #[inline]
-    pub fn iter_wii(&self) -> impl Iterator<Item = &Game> {
-        self.wii_indices.iter().copied().map(|i| &self.list[i])
-    }
-
-    #[inline]
-    pub fn iter_gc(&self) -> impl Iterator<Item = &Game> {
-        self.gc_indices.iter().copied().map(|i| &self.list[i])
     }
 
     #[inline]
@@ -92,27 +84,27 @@ impl GameList {
     }
 
     #[inline]
-    pub const fn wii_count(&self) -> usize {
-        self.wii_indices.len()
+    pub fn wii_count(&self) -> usize {
+        self.wii_count
     }
 
     #[inline]
-    pub const fn gc_count(&self) -> usize {
-        self.gc_indices.len()
+    pub fn gc_count(&self) -> usize {
+        self.gc_count
     }
 
     #[inline]
-    pub const fn total_size(&self) -> Size {
+    pub fn total_size(&self) -> Size {
         self.total_size
     }
 
     #[inline]
-    pub const fn wii_size(&self) -> Size {
+    pub fn wii_size(&self) -> Size {
         self.wii_size
     }
 
     #[inline]
-    pub const fn gc_size(&self) -> Size {
+    pub fn gc_size(&self) -> Size {
         self.gc_size
     }
 
@@ -162,17 +154,6 @@ impl GameList {
                     .sort_unstable_by_key(|a| std::cmp::Reverse(a.size()));
             }
         }
-
-        // Indices lists need to be recalculated
-        self.wii_indices.clear();
-        self.gc_indices.clear();
-        for (i, game) in self.list.iter().enumerate() {
-            if game.is_wii() {
-                self.wii_indices.push(i);
-            } else {
-                self.gc_indices.push(i);
-            }
-        }
     }
 
     pub fn fuzzy_search(&mut self, query: &str) {
@@ -213,14 +194,14 @@ fn list(drive_path: &Path) -> Result<GameList> {
     let gc_path = drive_path.join("games");
 
     let mut games = Vec::new();
-    read_game_dir(wii_path, &mut games)?;
-    read_game_dir(gc_path, &mut games)?;
+    read_game_dir(wii_path, true, &mut games)?;
+    read_game_dir(gc_path, false, &mut games)?;
 
     let game_list = GameList::new(games);
     Ok(game_list)
 }
 
-fn read_game_dir(game_dir: PathBuf, games: &mut Vec<Game>) -> Result<()> {
+fn read_game_dir(game_dir: PathBuf, is_wii: bool, games: &mut Vec<Game>) -> Result<()> {
     if !game_dir.exists() {
         return Ok(());
     }
@@ -228,7 +209,7 @@ fn read_game_dir(game_dir: PathBuf, games: &mut Vec<Game>) -> Result<()> {
     let entries = fs::read_dir(game_dir)?;
     for entry in entries.filter_map(Result::ok) {
         let path = entry.path();
-        if let Some(game) = Game::maybe_from_path(path) {
+        if let Some(game) = Game::maybe_from_path(path, is_wii) {
             games.push(game);
         }
     }

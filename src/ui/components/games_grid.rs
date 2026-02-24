@@ -46,7 +46,8 @@ pub fn view(state: &State) -> Element<'_, Message> {
         (true, false) => {
             let cards = state
                 .game_list
-                .iter_wii()
+                .iter()
+                .filter(|g| g.is_wii())
                 .map(|g| components::game_card::view(state, g));
 
             let row = cards
@@ -79,7 +80,8 @@ pub fn view(state: &State) -> Element<'_, Message> {
         (false, true) => {
             let cards = state
                 .game_list
-                .iter_gc()
+                .iter()
+                .filter(|g| !g.is_wii())
                 .map(|g| components::game_card::view(state, g));
 
             let row = cards
@@ -112,7 +114,8 @@ pub fn view(state: &State) -> Element<'_, Message> {
         (true, true) => {
             let wii_cards = state
                 .game_list
-                .iter_wii()
+                .iter()
+                .filter(|g| g.is_wii())
                 .map(|g| components::game_card::view(state, g));
 
             let wii_row = wii_cards
@@ -124,7 +127,8 @@ pub fn view(state: &State) -> Element<'_, Message> {
 
             let gc_cards = state
                 .game_list
-                .iter_gc()
+                .iter()
+                .filter(|g| !g.is_wii())
                 .map(|g| components::game_card::view(state, g));
 
             let gc_row = gc_cards
