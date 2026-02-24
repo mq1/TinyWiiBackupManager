@@ -20,7 +20,7 @@ mod util;
 use crate::state::State;
 use iced::{Size, window};
 
-#[cfg(target_vendor = "pc")]
+#[cfg(target_vendor = "win7")]
 #[link(name = "ole32")]
 unsafe extern "system" {
     pub unsafe fn CoTaskMemFree(pv: *mut std::ffi::c_void);
