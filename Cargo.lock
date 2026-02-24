@@ -522,7 +522,7 @@ dependencies = [
 [[package]]
 name = "blocking-dialog"
 version = "0.2.0"
-source = "git+https://github.com/mq1/blocking-dialog-rs.git?branch=less-com#47005e701d91999e747ed68c6e760c9db821b63d"
+source = "git+https://github.com/mq1/blocking-dialog-rs.git?branch=less-com#f7e975f16ece998a93ba51cd64fb8de183cb5a90"
 dependencies = [
  "block2 0.6.2",
  "objc2 0.6.3",
