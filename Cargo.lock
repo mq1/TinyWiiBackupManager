@@ -4,7 +4,7 @@ version = 4
 
 [[package]]
 name = "TinyWiiBackupManager"
-version = "5.1.13"
+version = "5.1.14"
 dependencies = [
  "anyhow",
  "blocking-dialog",
@@ -521,8 +521,9 @@ dependencies = [
 
 [[package]]
 name = "blocking-dialog"
-version = "0.2.0"
-source = "git+https://github.com/mq1/blocking-dialog-rs.git?branch=less-com#dd11ce62f2322a298628371bb95bd79be36288b3"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dc1f2817112f47407e1e0f7ef6cbc2311905ff4952fe1ef8b9da0dd0abf04159"
 dependencies = [
  "block2 0.6.2",
  "objc2 0.6.3",
