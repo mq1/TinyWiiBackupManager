@@ -69,18 +69,6 @@ fn check_gpu() {
 }
 
 fn main() -> iced::Result {
-    #[cfg(target_os = "windows")]
-    unsafe {
-        let res = windows::Win32::System::Com::CoInitializeEx(
-            None,
-            windows::Win32::System::Com::COINIT_APARTMENTTHREADED,
-        );
-
-        if res.0 != 0 {
-            panic!("Failed to initialize COM library");
-        }
-    }
-
     #[cfg(target_os = "linux")]
     check_gpu();
 
