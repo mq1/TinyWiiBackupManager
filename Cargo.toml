@@ -67,7 +67,7 @@ wgpu = { version = "27", default-features = false, features = [
   "parking_lot",
   "dx12",
 ] }
-windows = { version = "0.62", features = ["Win32_Graphics_Dwm"] }
+windows = { version = "0.62", features = ["Win32_Graphics_Dwm", "Win32_System_Com"] }
 dark-light = "2.0"
 minreq = { version = "2.14", features = ["https-native"] }
 
@@ -79,6 +79,7 @@ iced = { version = "0.14", default-features = false, features = [
   "tiny-skia",
 ] }
 minreq = { version = "2.14", features = ["https-rustls"] }
+windows = { version = "0.62", features = ["Win32_System_Com"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 iced = { version = "0.14", default-features = false, features = [

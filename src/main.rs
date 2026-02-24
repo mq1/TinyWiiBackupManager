@@ -20,7 +20,7 @@ mod util;
 use crate::state::State;
 use iced::{Size, window};
 
-#[cfg(target_vendor = "pc")]
+#[cfg(target_vendor = "win7")]
 #[link(name = "ole32")]
 unsafe extern "system" {
     pub unsafe fn CoTaskMemFree(pv: *mut std::ffi::c_void);
@@ -69,6 +69,15 @@ fn check_gpu() {
 }
 
 fn main() -> iced::Result {
+    #[cfg(target_os = "windows")]
+    unsafe {
+        windows::Win32::System::Com::CoInitializeEx(
+            None,
+            windows::Win32::System::Com::COINIT_APARTMENTTHREADED,
+        )
+        .expect("Failed to initialize COM library");
+    }
+
     #[cfg(target_os = "linux")]
     check_gpu();
 
