@@ -17,7 +17,7 @@ use crate::{
         transfer::{TransferOperation, TransferQueue},
         txtcodes,
         util::maybe_path_to_entry,
-        wiitdb::{self},
+        wiitdb,
     },
     hbc::{self, app_list::HbcAppList, osc::OscAppMeta, osc_list::OscAppList, wiiload},
     known_mount_points,
@@ -432,39 +432,18 @@ impl State {
                 self.update(Message::RefreshGamesAndApps)
             }
             Message::PickGames => {
-                window::oldest().and_then(|id| window::run(id, dialogs::pick_games))
+                let existing_ids = self.game_list.iter().map(|g| g.id()).collect::<Vec<_>>();
+                window::oldest().and_then(move |id| {
+                    let existing_ids = existing_ids.clone();
+                    window::run(id, move |w| dialogs::pick_games(w, existing_ids))
+                })
             }
             Message::ChooseGamesSrcDir => {
-                window::oldest().and_then(|id| window::run(id, dialogs::pick_games_dir))
-            }
-            Message::ConfirmAddGamesToTransferStack(paths) => {
-                let mut entries = paths
-                    .into_iter()
-                    .filter_map(maybe_path_to_entry)
-                    .collect::<Vec<_>>();
-
-                // remove already installed games
-                entries.retain(|(path, _, id, _)| {
-                    let is_multidisc = path.file_stem().and_then(OsStr::to_str).is_some_and(|s| {
-                        let s = s.to_ascii_lowercase();
-                        s.contains("disc 1") || s.contains("disc 2")
-                    });
-
-                    let is_installed = self.game_list.iter().any(|g| g.id() == *id);
-
-                    is_multidisc || !is_installed
-                });
-
-                if entries.is_empty() {
-                    window::oldest().and_then(|id| window::run(id, dialogs::no_new_games))
-                } else {
-                    window::oldest().and_then(move |id| {
-                        window::run(id, {
-                            let entries = entries.clone();
-                            move |w| dialogs::confirm_add_games(w, entries)
-                        })
-                    })
-                }
+                let existing_ids = self.game_list.iter().map(|g| g.id()).collect::<Vec<_>>();
+                window::oldest().and_then(move |id| {
+                    let existing_ids = existing_ids.clone();
+                    window::run(id, move |w| dialogs::pick_games_dir(w, existing_ids))
+                })
             }
             Message::AddGamesToTransferStack(paths) => {
                 let is_fat32 = self
@@ -724,10 +703,26 @@ impl State {
                 }
             }
             Message::FileDropped(path) => match self.screen {
-                Screen::Games => self.update(Message::ConfirmAddGamesToTransferStack(vec![path])),
+                Screen::Games => self.update(Message::GameDropped(path)),
                 Screen::HbcApps => self.update(Message::AddHbcApps(vec![path])),
                 _ => Task::none(),
             },
+            Message::GameDropped(path) => {
+                let Some((path, _, id, _)) = maybe_path_to_entry(path) else {
+                    return Task::done(Message::GenericError("Invalid game".to_string()));
+                };
+
+                let is_multidisc = path.file_stem().and_then(OsStr::to_str).is_some_and(|s| {
+                    let s = s.to_ascii_lowercase();
+                    s.contains("disc 1") || s.contains("disc 2")
+                });
+                let is_installed = self.game_list.iter().any(|g| g.id() == id);
+                if !is_multidisc && is_installed {
+                    return Task::done(Message::GenericError("Game already installed".to_string()));
+                }
+
+                self.update(Message::AddGamesToTransferStack(vec![path]))
+            }
             #[cfg(target_os = "linux")]
             Message::OpenMessageBox(title, description, level, callback) => {
                 self.message_box = Some((title, description, level, callback));
