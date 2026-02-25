@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v5.1.15] - 2026-02-25
+
 ### Fixed
 
 - 🐛 "Show Wii Games" and "Show GameCube Games" toggle filters don't do anything on Windows (#566)
@@ -239,7 +241,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 🖼️ TinyWiiBackupManager icon now shows up again on the windows exe
 
-[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.14...HEAD
+[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.15...HEAD
+[v5.1.15]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.14...v5.1.15
 [v5.1.14]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.13...v5.1.14
 [v5.1.13]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.12...v5.1.13
 [v5.1.12]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.11...v5.1.12
