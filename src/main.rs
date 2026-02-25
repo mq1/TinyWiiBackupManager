@@ -26,16 +26,6 @@ unsafe extern "system" {
     pub unsafe fn CoTaskMemFree(pv: *mut std::ffi::c_void);
 }
 
-#[cfg(target_os = "windows")]
-fn init_thread() {
-    unsafe {
-        let _ = windows::Win32::System::Com::CoInitializeEx(
-            None,
-            windows::Win32::System::Com::COINIT_APARTMENTTHREADED,
-        );
-    }
-}
-
 #[cfg(any(target_os = "windows", target_os = "linux"))]
 #[inline]
 fn get_window_icon() -> Option<window::Icon> {
@@ -79,9 +69,6 @@ fn check_gpu() {
 }
 
 fn main() -> iced::Result {
-    #[cfg(target_os = "windows")]
-    init_thread();
-
     #[cfg(target_os = "linux")]
     check_gpu();
 
