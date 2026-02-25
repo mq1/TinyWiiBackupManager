@@ -55,7 +55,7 @@ pub enum Message {
     ShowGc(bool),
     PickGames,
     ChooseGamesSrcDir,
-    ConfirmAddGamesToTransferStack(Vec<PathBuf>),
+    GameDropped(PathBuf),
     AddGamesToTransferStack(Vec<PathBuf>),
     StartTransfer,
     CancelTransfer(usize),

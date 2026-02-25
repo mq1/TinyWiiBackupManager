@@ -4,6 +4,7 @@
 use crate::games::extensions::{INPUT_DIALOG_FILTER, OUTPUT_DIALOG_FILTER, ext_to_format};
 use crate::games::game::Game;
 use crate::games::game_id::GameID;
+use crate::games::util::maybe_path_to_entry;
 use crate::hbc::osc::OscAppMeta;
 use crate::message::Message;
 use crate::util;
@@ -63,7 +64,7 @@ pub fn pick_mount_point(window: &dyn Window) -> Message {
     }
 }
 
-pub fn pick_games(window: &dyn Window) -> Message {
+pub fn pick_games(window: &dyn Window, existing_ids: Vec<GameID>) -> Message {
     let dialog = BlockingPickFilesDialog {
         window,
         title: "Select Games",
@@ -71,59 +72,96 @@ pub fn pick_games(window: &dyn Window) -> Message {
         filter: INPUT_DIALOG_FILTER,
     };
 
-    match dialog.show() {
-        Ok(games) if !games.is_empty() => Message::ConfirmAddGamesToTransferStack(games),
-        Ok(_) => Message::None,
-        Err(e) => Message::GenericError(e.to_string()),
+    let paths = match dialog.show() {
+        Ok(paths) => paths,
+        Err(e) => return Message::GenericError(e.to_string()),
+    };
+
+    let mut entries = paths
+        .into_iter()
+        .filter_map(maybe_path_to_entry)
+        .collect::<Vec<_>>();
+
+    // remove already installed games
+    entries.retain(|(path, _, id, _)| {
+        let is_multidisc = path.file_stem().and_then(OsStr::to_str).is_some_and(|s| {
+            let s = s.to_ascii_lowercase();
+            s.contains("disc 1") || s.contains("disc 2")
+        });
+
+        let is_installed = existing_ids.contains(id);
+
+        is_multidisc || !is_installed
+    });
+
+    if entries.is_empty() {
+        no_new_games(window)
+    } else {
+        confirm_add_games(window, entries)
     }
 }
 
-pub fn pick_games_dir(window: &dyn Window) -> Message {
+pub fn pick_games_dir(window: &dyn Window, existing_ids: Vec<GameID>) -> Message {
     let dialog = BlockingPickDirectoryDialog {
         window,
         title: "Select a folder containing games",
     };
 
-    match dialog.show() {
-        Ok(Some(path)) => {
-            let paths = WalkDir::new(path)
-                .into_iter()
-                .filter_map(Result::ok)
-                .map(DirEntry::into_path)
-                .filter(|path| {
-                    if !path.is_file() {
-                        return false;
-                    }
+    let paths = match dialog.show() {
+        Ok(Some(path)) => WalkDir::new(path)
+            .into_iter()
+            .filter_map(Result::ok)
+            .map(DirEntry::into_path)
+            .filter(|path| {
+                if !path.is_file() {
+                    return false;
+                }
 
-                    let Some(stem) = path.file_stem().and_then(OsStr::to_str) else {
-                        return false;
-                    };
+                let Some(stem) = path.file_stem().and_then(OsStr::to_str) else {
+                    return false;
+                };
 
-                    if stem.starts_with('.') {
-                        return false;
-                    }
+                if stem.starts_with('.') {
+                    return false;
+                }
 
-                    let Some(ext) = path.extension() else {
-                        return false;
-                    };
+                let Some(ext) = path.extension() else {
+                    return false;
+                };
 
-                    ext.eq_ignore_ascii_case("zip") || ext_to_format(ext).is_some()
-                })
-                .collect::<Vec<_>>();
+                ext.eq_ignore_ascii_case("zip") || ext_to_format(ext).is_some()
+            })
+            .collect::<Vec<_>>(),
+        Ok(None) => Vec::new(),
+        Err(e) => return Message::GenericError(e.to_string()),
+    };
 
-            if paths.is_empty() {
-                Message::None
-            } else {
-                Message::ConfirmAddGamesToTransferStack(paths)
-            }
-        }
-        Ok(None) => Message::None,
-        Err(e) => Message::GenericError(e.to_string()),
+    let mut entries = paths
+        .into_iter()
+        .filter_map(maybe_path_to_entry)
+        .collect::<Vec<_>>();
+
+    // remove already installed games
+    entries.retain(|(path, _, id, _)| {
+        let is_multidisc = path.file_stem().and_then(OsStr::to_str).is_some_and(|s| {
+            let s = s.to_ascii_lowercase();
+            s.contains("disc 1") || s.contains("disc 2")
+        });
+
+        let is_installed = existing_ids.contains(id);
+
+        is_multidisc || !is_installed
+    });
+
+    if entries.is_empty() {
+        no_new_games(window)
+    } else {
+        confirm_add_games(window, entries)
     }
 }
 
 #[cfg(target_os = "linux")]
-pub fn confirm_add_games(
+fn confirm_add_games(
     _window: &dyn Window,
     entries: Vec<(PathBuf, Format, GameID, String)>,
 ) -> Message {
@@ -159,7 +197,7 @@ pub fn confirm_add_games(
 }
 
 #[cfg(any(target_os = "windows", target_os = "macos"))]
-pub fn confirm_add_games(
+fn confirm_add_games(
     window: &dyn Window,
     entries: Vec<(PathBuf, Format, GameID, String)>,
 ) -> Message {
