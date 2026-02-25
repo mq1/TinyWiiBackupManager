@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - 🐛 "Show Wii Games" and "Show GameCube Games" toggle filters don't do anything on Windows (#566)
+- 🐛 Pop-up windows do not appear (#567)
 
 ## [v5.1.14] - 2026-02-24
 
