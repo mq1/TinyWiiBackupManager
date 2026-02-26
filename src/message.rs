@@ -3,22 +3,15 @@
 
 use crate::{
     config::{Config, SortBy},
-    games::{
-        disc_info::DiscInfo,
-        game::Game,
-        game_list::GameList,
-        wiitdb::{self},
-    },
+    games::{disc_info::DiscInfo, game::Game, game_list::GameList, wiitdb},
     hbc::{app_list::HbcAppList, osc::OscAppMeta, osc_list::OscAppList},
     ui::Screen,
     util::DriveInfo,
 };
 use iced::widget::{Id, operation::AbsoluteOffset};
+use rfd::MessageLevel;
 use semver::Version;
 use std::{ffi::OsString, path::PathBuf};
-
-#[cfg(target_os = "linux")]
-use crate::ui::MessageBoxLevel;
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -103,9 +96,6 @@ pub enum Message {
     #[cfg(target_os = "macos")]
     RunDotClean,
 
-    // Message Box
-    #[cfg(target_os = "linux")]
-    OpenMessageBox(String, String, MessageBoxLevel, Option<Box<Message>>),
-    #[cfg(target_os = "linux")]
+    OpenMessageBox(String, String, MessageLevel, Option<Box<Message>>),
     CloseMessageBox(Option<Box<Message>>),
 }

@@ -1,26 +1,23 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use blocking_dialog::BlockingPickFilesDialogFilter;
 use nod::common::{Compression, Format};
 use nod::write::FormatOptions;
 use std::ffi::OsStr;
 
-pub const INPUT_DIALOG_FILTER: &[BlockingPickFilesDialogFilter<'_>] =
-    &[BlockingPickFilesDialogFilter {
-        name: "Nintendo Optical Disc",
-        extensions: &[
-            "gcm", "iso", "wbfs", "wia", "rvz", "ciso", "gcz", "tgc", "nfs", "zip",
-        ],
-    }];
+pub const INPUT_DIALOG_FILTER: (&str, &[&str]) = (
+    "Nintendo Optical Disc",
+    &[
+        "gcm", "iso", "wbfs", "wia", "rvz", "ciso", "gcz", "tgc", "nfs", "zip",
+    ],
+);
 
-pub const OUTPUT_DIALOG_FILTER: &[BlockingPickFilesDialogFilter<'_>] =
-    &[BlockingPickFilesDialogFilter {
-        name: "Nintendo Optical Disc",
-        extensions: &[
-            "gcm", "iso", "wbfs", "wia", "rvz", "ciso", "gcz", "tgc", "nfs",
-        ],
-    }];
+pub const OUTPUT_DIALOG_FILTER: (&str, &[&str]) = (
+    "Nintendo Optical Disc",
+    &[
+        "gcm", "iso", "wbfs", "wia", "rvz", "ciso", "gcz", "tgc", "nfs",
+    ],
+);
 
 pub fn ext_to_format(ext: &OsStr) -> Option<Format> {
     if ext.eq_ignore_ascii_case("gcm") || ext.eq_ignore_ascii_case("iso") {

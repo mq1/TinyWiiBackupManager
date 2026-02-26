@@ -15,6 +15,7 @@ pub mod hbc_grid;
 pub mod hbc_info;
 pub mod hbc_table;
 pub mod hbc_toolbar;
+pub mod message_box;
 pub mod my_tooltip;
 pub mod nav;
 pub mod notification;
@@ -30,6 +31,3 @@ pub mod sort_by;
 pub mod toolbox;
 pub mod transfer;
 pub mod view_as;
-
-#[cfg(target_os = "linux")]
-pub mod message_box;

@@ -4,37 +4,31 @@
 use crate::{message::Message, ui::style};
 use iced::{
     Element, Length,
-    widget::{Text, button, column, container, row, rule, space},
+    widget::{Text, button, column, container, row, rule, scrollable, space},
 };
 use lucide_icons::iced::{icon_circle_x, icon_info, icon_triangle_alert};
+use rfd::MessageLevel;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Level {
-    Info,
-    Warning,
-    Error,
-}
-
-fn get_icon<'a>(level: Level) -> Text<'a> {
+fn get_icon<'a>(level: MessageLevel) -> Text<'a> {
     match level {
-        Level::Info => icon_info(),
-        Level::Warning => icon_triangle_alert(),
-        Level::Error => icon_circle_x(),
+        MessageLevel::Info => icon_info(),
+        MessageLevel::Warning => icon_triangle_alert(),
+        MessageLevel::Error => icon_circle_x(),
     }
 }
 
-fn get_style(level: Level) -> fn(&iced::Theme, button::Status) -> button::Style {
+fn get_style(level: MessageLevel) -> fn(&iced::Theme, button::Status) -> button::Style {
     match level {
-        Level::Info => style::rounded_button,
-        Level::Warning => style::rounded_warning_button,
-        Level::Error => style::rounded_danger_button,
+        MessageLevel::Info => style::rounded_button,
+        MessageLevel::Warning => style::rounded_warning_button,
+        MessageLevel::Error => style::rounded_danger_button,
     }
 }
 
 pub fn view<'a>(
     title: &'a str,
     description: &'a str,
-    level: Level,
+    level: MessageLevel,
     message: Option<&'a Message>,
 ) -> Element<'a, Message> {
     let actions = if let Some(msg) = message {
@@ -63,8 +57,9 @@ pub fn view<'a>(
                 row![get_icon(level), title].spacing(5),
                 rule::horizontal(1),
                 space(),
-                description,
-                space::vertical(),
+                scrollable(description)
+                    .width(Length::Fill)
+                    .height(Length::Fill),
                 actions
             ]
             .spacing(5)
