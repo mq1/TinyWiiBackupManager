@@ -17,9 +17,9 @@
 
 - **Lightweight & Fast**: Native app, -O3, LTO, x86_64-v1/v2/v3 optimized builds
 - **Cross-Platform**:
-  - :window: Windows XP+ | x86 (32-bit), x86_64 (64-bit), arm64 (Qualcomm Snapdragon etc.)
+  - :window: Windows XP+ | x86 (32-bit), x86_64 (64-bit), arm64 (Qualcomm Snapdragon, NVIDIA N1X, etc.)
   - :apple: macOS 10.13+ | x86_64 (Intel), arm64 (Apple Silicon/M1+)
-  - :penguin: Linux 3.2+ (glibc 2.17+) | x86 (32-bit), x86_64 (64-bit), armhf/arm64 (Raspberry PIs etc.)
+  - :penguin: Linux 3.2+ (glibc 2.17+) | x86 (32-bit), x86_64 (64-bit), armhf/arm64 (Qualcomm Snapdragon, Raspberry PIs, etc.)
 
 #### :video_game: Game Management
 
