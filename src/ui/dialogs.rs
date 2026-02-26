@@ -10,11 +10,14 @@ use crate::message::Message;
 use crate::util;
 use iced::Window;
 use nod::common::Format;
-use rfd::{FileDialog, MessageLevel};
+use rfd::MessageLevel;
 use std::ffi::OsStr;
 use std::fmt::Write;
 use std::path::PathBuf;
 use walkdir::{DirEntry, WalkDir};
+
+#[cfg(not(target_vendor = "win7"))]
+use rfd::FileDialog;
 
 #[cfg(target_vendor = "win7")]
 use crate::ui::xp_dialogs;
@@ -238,7 +241,7 @@ pub fn pick_archive_dest(window: &dyn Window, source: PathBuf, game_title: Strin
         .pick_file();
 
     #[cfg(target_vendor = "win7")]
-    let res = xp_dialogs::pick_file(window, &title, OUTPUT_DIALOG_FILTER);
+    let res = xp_dialogs::save_file(window, &title, OUTPUT_DIALOG_FILTER, &filename);
 
     match res {
         Some(path) => Message::ArchiveGame(source, game_title, path),
