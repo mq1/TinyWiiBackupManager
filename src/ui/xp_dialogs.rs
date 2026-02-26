@@ -6,10 +6,10 @@ use iced::window::raw_window_handle::RawWindowHandle;
 use std::ffi::c_void;
 use std::path::PathBuf;
 use windows::Win32::Foundation::HWND;
-use windows::Win32::System::Com::CoTaskMemFree;
+use windows::Win32::System::Com::{COINIT_APARTMENTTHREADED, CoInitializeEx, CoTaskMemFree};
 use windows::Win32::UI::Controls::Dialogs::{
-    GetOpenFileNameW, OFN_ALLOWMULTISELECT, OFN_EXPLORER, OFN_FILEMUSTEXIST, OFN_OVERWRITEPROMPT,
-    OFN_PATHMUSTEXIST, OPENFILENAMEW,
+    GetOpenFileNameW, GetSaveFileNameW, OFN_ALLOWMULTISELECT, OFN_EXPLORER, OFN_FILEMUSTEXIST,
+    OFN_OVERWRITEPROMPT, OFN_PATHMUSTEXIST, OPENFILENAMEW,
 };
 use windows::Win32::UI::Shell::{
     BIF_RETURNONLYFSDIRS, BROWSEINFOW, SHBrowseForFolderW, SHGetPathFromIDListW,
@@ -25,8 +25,11 @@ pub fn pick_dir(window: &dyn Window, title: &str) -> Option<PathBuf> {
         return None;
     };
 
-    let hwnd = HWND(handle.hwnd.get() as *mut c_void);
+    // Ensure COM is initialized for this thread before using Shell APIs.
+    // Safe to call multiple times (returns S_FALSE if already initialized).
+    let _ = unsafe { CoInitializeEx(None, COINIT_APARTMENTTHREADED) };
 
+    let hwnd = HWND(handle.hwnd.get() as *mut c_void);
     let title_wide = widen(title);
 
     let mut browse_info = BROWSEINFOW {
@@ -48,7 +51,7 @@ pub fn pick_dir(window: &dyn Window, title: &str) -> Option<PathBuf> {
     let success = unsafe { SHGetPathFromIDListW(pidl_guard.0 as *const _, &mut pszpath) };
 
     if success.as_bool() {
-        Some(PathBuf::from(unwiden(pszpath)))
+        Some(PathBuf::from(unwiden(&pszpath)))
     } else {
         None
     }
@@ -68,7 +71,7 @@ pub fn pick_file(window: &dyn Window, title: &str, filter: (&str, &[&str])) -> O
 
     let hwnd = HWND(handle.hwnd.get() as *mut c_void);
 
-    let mut file_buffer = vec![0u16; 260];
+    let mut file_buffer = vec![0u16; 32_768];
 
     let result = unsafe {
         let mut ofn = OPENFILENAMEW {
@@ -86,7 +89,7 @@ pub fn pick_file(window: &dyn Window, title: &str, filter: (&str, &[&str])) -> O
     };
 
     if result {
-        Some(PathBuf::from(unwiden(file_buffer)))
+        Some(PathBuf::from(unwiden(&file_buffer)))
     } else {
         None
     }
@@ -149,7 +152,7 @@ pub fn save_file(
 
     let hwnd = HWND(handle.hwnd.get() as *mut c_void);
 
-    let mut file_buffer = vec![0u16; 260];
+    let mut file_buffer = vec![0u16; 32_768];
 
     let filename_wide = widen(filename);
     file_buffer[..filename_wide.len()].copy_from_slice(&filename_wide);
@@ -166,11 +169,11 @@ pub fn save_file(
             ..Default::default()
         };
 
-        GetOpenFileNameW(&mut ofn).as_bool()
+        GetSaveFileNameW(&mut ofn).as_bool()
     };
 
     if result {
-        Some(PathBuf::from(unwiden(file_buffer)))
+        Some(PathBuf::from(unwiden(&file_buffer)))
     } else {
         None
     }
@@ -190,10 +193,9 @@ fn widen<S: AsRef<str>>(s: S) -> Vec<u16> {
         .collect()
 }
 
-fn unwiden<I: IntoIterator<Item = u16>>(s: I) -> String {
-    let vec = s.into_iter().collect::<Vec<u16>>();
-    let s = String::from_utf16_lossy(&vec);
-    s.trim_matches(char::from(0)).to_string()
+fn unwiden(buffer: &[u16]) -> String {
+    let len = buffer.iter().position(|&c| c == 0).unwrap_or(buffer.len());
+    String::from_utf16_lossy(&buffer[..len])
 }
 
 fn get_filter_utf16(filter: (&str, &[&str])) -> Vec<u16> {
