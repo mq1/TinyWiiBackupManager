@@ -7,6 +7,9 @@ pub mod lucide;
 mod style;
 pub mod window_color;
 
+#[cfg(target_vendor = "win7")]
+pub mod xp_dialogs;
+
 use crate::{
     games::game::Game,
     hbc::{app::HbcApp, osc::OscAppMeta},

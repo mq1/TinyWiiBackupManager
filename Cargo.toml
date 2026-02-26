@@ -78,6 +78,11 @@ iced = { version = "0.14", default-features = false, features = [
   "tiny-skia",
 ] }
 minreq = { version = "2.14", features = ["https-rustls"] }
+windows = { version = "0.62", features = [
+  "Win32_UI_Controls_Dialogs",
+  "Win32_UI_Shell_Common",
+  "Win32_System_Com",
+] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 iced = { version = "0.14", default-features = false, features = [

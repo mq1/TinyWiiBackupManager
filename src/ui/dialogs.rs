@@ -16,6 +16,9 @@ use std::fmt::Write;
 use std::path::PathBuf;
 use walkdir::{DirEntry, WalkDir};
 
+#[cfg(target_vendor = "win7")]
+use crate::ui::xp_dialogs;
+
 pub fn confirm_delete_dir(path: PathBuf) -> Message {
     Message::OpenMessageBox(
         "Delete Directory".to_string(),
@@ -26,10 +29,14 @@ pub fn confirm_delete_dir(path: PathBuf) -> Message {
 }
 
 pub fn pick_mount_point(window: &dyn Window) -> Message {
+    #[cfg(not(target_vendor = "win7"))]
     let res = FileDialog::new()
         .set_parent(window)
         .set_title("Select Drive/Mount Point")
         .pick_folder();
+
+    #[cfg(target_vendor = "win7")]
+    let res = xp_dialogs::pick_dir(window, "Select Drive/Mount Point");
 
     match res {
         Some(path) => Message::MountPointPicked(path),
@@ -38,12 +45,16 @@ pub fn pick_mount_point(window: &dyn Window) -> Message {
 }
 
 pub fn pick_games(window: &dyn Window, existing_ids: &[GameID]) -> Message {
+    #[cfg(not(target_vendor = "win7"))]
     let paths = FileDialog::new()
         .set_parent(window)
         .set_title("Select Games")
         .add_filter(INPUT_DIALOG_FILTER.0, INPUT_DIALOG_FILTER.1)
         .pick_files()
         .unwrap_or_default();
+
+    #[cfg(target_vendor = "win7")]
+    let paths = xp_dialogs::pick_files(window, "Select Games", INPUT_DIALOG_FILTER);
 
     let mut entries = paths
         .into_iter()
@@ -70,10 +81,14 @@ pub fn pick_games(window: &dyn Window, existing_ids: &[GameID]) -> Message {
 }
 
 pub fn pick_games_dir(window: &dyn Window, existing_ids: &[GameID]) -> Message {
+    #[cfg(not(target_vendor = "win7"))]
     let res = FileDialog::new()
         .set_parent(window)
         .set_title("Select a folder containing games")
         .pick_folder();
+
+    #[cfg(target_vendor = "win7")]
+    let res = xp_dialogs::pick_dir(window, "Select a folder containing games");
 
     let paths = match res {
         Some(path) => WalkDir::new(path)
@@ -148,12 +163,20 @@ fn confirm_add_games(entries: Vec<(PathBuf, Format, GameID, String)>) -> Message
 }
 
 pub fn pick_hbc_apps(window: &dyn Window) -> Message {
+    #[cfg(not(target_vendor = "win7"))]
     let paths = FileDialog::new()
         .set_parent(window)
         .set_title("Select Homebrew Channel Apps")
         .add_filter("HBC App", &["zip"])
         .pick_files()
         .unwrap_or_default();
+
+    #[cfg(target_vendor = "win7")]
+    let paths = xp_dialogs::pick_files(
+        window,
+        "Select Homebrew Channel Apps",
+        ("HBC App", &["zip"]),
+    );
 
     if paths.is_empty() {
         Message::None
@@ -163,11 +186,19 @@ pub fn pick_hbc_apps(window: &dyn Window) -> Message {
 }
 
 pub fn pick_hbc_app_to_wiiload(window: &dyn Window) -> Message {
+    #[cfg(not(target_vendor = "win7"))]
     let res = FileDialog::new()
         .set_parent(window)
         .set_title("Select HBC App to Wiiload")
         .add_filter("HBC App", &["zip", "dol", "elf"])
         .pick_file();
+
+    #[cfg(target_vendor = "win7")]
+    let res = xp_dialogs::pick_file(
+        window,
+        "Select HBC App to Wiiload",
+        ("HBC App", &["zip", "dol", "elf"]),
+    );
 
     match res {
         Some(path) => Message::Wiiload(path),
@@ -176,11 +207,15 @@ pub fn pick_hbc_app_to_wiiload(window: &dyn Window) -> Message {
 }
 
 pub fn pick_game_to_convert(window: &dyn Window) -> Message {
+    #[cfg(not(target_vendor = "win7"))]
     let res = FileDialog::new()
         .set_parent(window)
         .set_title("Select Game to Convert")
         .add_filter(OUTPUT_DIALOG_FILTER.0, OUTPUT_DIALOG_FILTER.1)
         .pick_file();
+
+    #[cfg(target_vendor = "win7")]
+    let res = xp_dialogs::pick_file(window, "Select Game to Convert", OUTPUT_DIALOG_FILTER);
 
     match res {
         Some(path) => Message::SetManualArchivingGame(path),
@@ -194,6 +229,7 @@ pub fn pick_archive_dest(window: &dyn Window, source: PathBuf, game_title: Strin
     );
     let filename = format!("{}.rvz", util::sanitize(&game_title));
 
+    #[cfg(not(target_vendor = "win7"))]
     let res = FileDialog::new()
         .set_parent(window)
         .set_title(&title)
@@ -201,13 +237,16 @@ pub fn pick_archive_dest(window: &dyn Window, source: PathBuf, game_title: Strin
         .set_file_name(&filename)
         .pick_file();
 
+    #[cfg(target_vendor = "win7")]
+    let res = xp_dialogs::pick_file(window, &title, OUTPUT_DIALOG_FILTER);
+
     match res {
         Some(path) => Message::ArchiveGame(source, game_title, path),
         None => Message::None,
     }
 }
 
-pub fn no_new_games() -> Message {
+fn no_new_games() -> Message {
     Message::OpenMessageBox(
         "No new games to add".to_string(),
         "All selected games are already installed.".to_string(),
