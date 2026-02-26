@@ -31,7 +31,7 @@ body:
   - type: input
     id: download
     attributes:
-      label: 📦 Which distribution did I download
+      label: 📦 Which package did I download
       placeholder: ex. TinyWiiBackupManager-v5.1.2-windows-x86_64.zip
     validations:
       required: true
