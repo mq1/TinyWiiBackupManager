@@ -1,6 +1,6 @@
 [package]
 name = "TinyWiiBackupManager"
-version = "5.1.15"
+version = "5.1.16"
 rust-version = "1.93"
 edition = "2024"
 authors = ["Manuel Quarneti <mq1@ik.me>"]
@@ -47,8 +47,7 @@ fs_extra = "1.3"
 wiiload = "0.3"
 which-fs = "0.2"
 fs4 = { version = "0.13", default-features = false }
-blocking-dialog = "0.2.2"
-#blocking-dialog = { git = "https://github.com/mq1/blocking-dialog-rs.git", branch = "dev" }
+rfd = "0.17"
 
 
 # ========================
@@ -67,7 +66,7 @@ wgpu = { version = "27", default-features = false, features = [
   "parking_lot",
   "dx12",
 ] }
-windows = { version = "0.62", features = ["Win32_Graphics_Dwm", "Win32_System_Com"] }
+windows = { version = "0.62", features = ["Win32_Graphics_Dwm"] }
 dark-light = "2.0"
 minreq = { version = "2.14", features = ["https-native"] }
 
@@ -79,7 +78,11 @@ iced = { version = "0.14", default-features = false, features = [
   "tiny-skia",
 ] }
 minreq = { version = "2.14", features = ["https-rustls"] }
-windows = { version = "0.62", features = ["Win32_System_Com"] }
+windows = { version = "0.62", features = [
+  "Win32_UI_Controls_Dialogs",
+  "Win32_UI_Shell_Common",
+  "Win32_System_Com",
+] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 iced = { version = "0.14", default-features = false, features = [

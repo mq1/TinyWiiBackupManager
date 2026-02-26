@@ -35,12 +35,10 @@ use iced::{
     },
     window,
 };
+use rfd::MessageLevel;
 use semver::Version;
 use std::{ffi::OsStr, fs, path::PathBuf};
 use which_fs::FsKind;
-
-#[cfg(target_os = "linux")]
-use crate::ui::MessageBoxLevel;
 
 #[cfg(target_os = "macos")]
 use crate::util::run_dot_clean;
@@ -73,9 +71,8 @@ pub struct State {
     pub osc_scroll_id: Id,
     pub osc_scroll_offset: AbsoluteOffset,
 
-    // message box state (Linux only)
-    #[cfg(target_os = "linux")]
-    pub message_box: Option<(String, String, MessageBoxLevel, Option<Box<Message>>)>,
+    // message box state
+    pub message_box: Option<(String, String, MessageLevel, Option<Box<Message>>)>,
 }
 
 impl State {
@@ -114,8 +111,7 @@ impl State {
             osc_scroll_id: Id::unique(),
             osc_scroll_offset: AbsoluteOffset::default(),
 
-            // message box state (Linux only)
-            #[cfg(target_os = "linux")]
+            // message box state
             message_box: None,
         };
 
@@ -298,12 +294,9 @@ impl State {
 
                 self.update(Message::RefreshGamesAndApps)
             }
-            Message::AskDeleteDirConfirmation(path) => window::oldest().and_then(move |id| {
-                window::run(id, {
-                    let path = path.clone();
-                    move |w| dialogs::confirm_delete_dir(w, path)
-                })
-            }),
+            Message::AskDeleteDirConfirmation(path) => {
+                self.update(dialogs::confirm_delete_dir(path))
+            }
             Message::DeleteDirConfirmed(path) => {
                 if let Err(e) = fs::remove_dir_all(path) {
                     self.notifications.error(e.to_string());
@@ -365,12 +358,7 @@ impl State {
                 self.drive_info = drive_info;
                 Task::none()
             }
-            Message::AskInstallOscApp(app) => window::oldest().and_then(move |id| {
-                window::run(id, {
-                    let app = app.clone();
-                    move |w| dialogs::confirm_install_osc_app(w, app)
-                })
-            }),
+            Message::AskInstallOscApp(app) => self.update(dialogs::confirm_install_osc_app(app)),
             Message::InstallOscApp(app) => {
                 let base_dir = self.config.mount_point().clone();
                 app.get_install_task(base_dir)
@@ -432,17 +420,19 @@ impl State {
                 self.update(Message::RefreshGamesAndApps)
             }
             Message::PickGames => {
-                let existing_ids = self.game_list.iter().map(|g| g.id()).collect::<Vec<_>>();
+                let existing_ids = self.game_list.iter().map(Game::id).collect::<Vec<_>>();
+
                 window::oldest().and_then(move |id| {
                     let existing_ids = existing_ids.clone();
-                    window::run(id, move |w| dialogs::pick_games(w, existing_ids))
+                    window::run(id, move |w| dialogs::pick_games(w, &existing_ids))
                 })
             }
             Message::ChooseGamesSrcDir => {
-                let existing_ids = self.game_list.iter().map(|g| g.id()).collect::<Vec<_>>();
+                let existing_ids = self.game_list.iter().map(Game::id).collect::<Vec<_>>();
+
                 window::oldest().and_then(move |id| {
                     let existing_ids = existing_ids.clone();
-                    window::run(id, move |w| dialogs::pick_games_dir(w, existing_ids))
+                    window::run(id, move |w| dialogs::pick_games_dir(w, &existing_ids))
                 })
             }
             Message::AddGamesToTransferStack(paths) => {
@@ -549,7 +539,7 @@ impl State {
             }
             Message::ChooseArchiveDest(source, title) => {
                 if source.as_os_str().is_empty() {
-                    window::oldest().and_then(|id| window::run(id, dialogs::no_archive_source))
+                    self.update(dialogs::no_archive_source())
                 } else {
                     window::oldest().and_then(move |id| {
                         window::run(id, {
@@ -622,12 +612,7 @@ impl State {
                     .info("Sending file to Wii...".to_string());
                 wiiload::get_download_and_send_via_wiiload_task(self, zip_url)
             }
-            Message::ConfirmStripGame(game) => window::oldest().and_then(move |id| {
-                window::run(id, {
-                    let game = game.clone();
-                    move |w| dialogs::confirm_strip_game(w, game)
-                })
-            }),
+            Message::ConfirmStripGame(game) => self.update(dialogs::confirm_strip_game(game)),
             Message::StripGame(game) => {
                 self.notifications
                     .info(format!("Removing update partition from {}", game.title()));
@@ -646,9 +631,7 @@ impl State {
                     Task::none()
                 }
             }
-            Message::ConfirmStripAllGames => {
-                window::oldest().and_then(|id| window::run(id, dialogs::confirm_strip_all_games))
-            }
+            Message::ConfirmStripAllGames => self.update(dialogs::confirm_strip_all_games()),
             Message::StripAllGames => {
                 self.notifications.info(
                     "Removing update partition from all games, this may take some time!"
@@ -723,12 +706,10 @@ impl State {
 
                 self.update(Message::AddGamesToTransferStack(vec![path]))
             }
-            #[cfg(target_os = "linux")]
             Message::OpenMessageBox(title, description, level, callback) => {
                 self.message_box = Some((title, description, level, callback));
                 Task::none()
             }
-            #[cfg(target_os = "linux")]
             Message::CloseMessageBox(callback) => {
                 self.message_box = None;
 
