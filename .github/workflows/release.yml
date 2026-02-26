@@ -141,8 +141,8 @@ jobs:
             platform: windows
             arch: x86_64-v2
             rustflags: -C target-cpu=x86-64-v2
-            cflags: /arch:AVX
-            cxxflags: /arch:AVX
+            cflags: /arch:SSE4.2
+            cxxflags: /arch:SSE4.2
           - target: x86_64-pc-windows-msvc
             platform: windows
             arch: x86_64
