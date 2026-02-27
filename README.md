@@ -66,7 +66,7 @@
   :arrow_right: [Download on Flathub](https://flathub.org/apps/it.mq1.TinyWiiBackupManager) (recommended for most users)\
   :arrow_right: [Download latest AppImage/tarball](https://github.com/mq1/TinyWiiBackupManager/releases/latest)\
   :zap: You can check if your system supports the x86_64-vX optimized binaries by running:\
-  `/lib64/ld-linux-x86-64.so.2 --help | grep x86-64-v`
+  `ld.so --help | grep x86-64-v`
 
 <br>
 
