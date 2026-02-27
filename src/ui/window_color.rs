@@ -4,7 +4,7 @@
 use crate::config::ThemePreference;
 use crate::message::Message;
 use iced::Task;
-use iced::window::raw_window_handle::RawWindowHandle;
+use iced::window::{self, raw_window_handle::RawWindowHandle};
 use std::ffi::c_void;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Graphics::Dwm::DWMWA_CAPTION_COLOR;
@@ -27,12 +27,14 @@ pub fn set(mut theme: ThemePreference) -> Task<Message> {
         ThemePreference::System => return Task::none(),
     };
 
-    iced::window::oldest()
+    window::oldest()
         .and_then(move |id| {
-            iced::window::run(id, move |w| {
-                let handle = w.window_handle().unwrap().as_raw();
+            window::run(id, move |w| {
+                let Ok(handle) = w.window_handle() else {
+                    return;
+                };
 
-                if let RawWindowHandle::Win32(handle) = handle {
+                if let RawWindowHandle::Win32(handle) = handle.as_raw() {
                     let hwnd = HWND(handle.hwnd.get() as *mut _);
 
                     unsafe {
