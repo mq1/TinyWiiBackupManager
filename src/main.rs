@@ -53,22 +53,18 @@ fn check_gpu() {
             force_fallback_adapter: false,
         }));
 
-    if adapter.is_ok_and(|a| a.features().contains(wgpu::Features::SHADER_F16)) {
-        eprintln!("Device supports FP16, enabling vulkan backend");
-
+    if !adapter.is_ok_and(|a| a.features().contains(wgpu::Features::SHADER_F16)) {
         unsafe {
-            std::env::set_var("WGPU_POWER_PREF", "low");
-        }
-    } else {
-        eprintln!("Device does not support FP16, disabling vulkan backend");
-
-        unsafe {
-            std::env::set_var("WGPU_BACKEND", "gl");
+            std::env::set_var("ICED_BACKEND", "tiny-skia");
         }
     }
 }
 
 fn main() -> iced::Result {
+    unsafe {
+        std::env::set_var("WGPU_POWER_PREF", "low");
+    }
+
     #[cfg(target_os = "linux")]
     check_gpu();
 

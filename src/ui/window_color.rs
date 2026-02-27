@@ -7,8 +7,8 @@ use iced::Task;
 
 #[cfg(target_vendor = "pc")]
 pub fn set(mut theme: ThemePreference) -> Task<Message> {
+    use iced::window::raw_window_handle::RawWindowHandle;
     use std::ffi::c_void;
-    use wgpu::rwh::RawWindowHandle;
     use windows::Win32::Foundation::HWND;
     use windows::Win32::Graphics::Dwm::DWMWA_CAPTION_COLOR;
     use windows::Win32::Graphics::Dwm::DwmSetWindowAttribute;
