@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v5.1.19] - 2026-02-27
+
+### Fixed
+
+- ✂️ Split writing not working correctly sometimes
+
 ## [v5.1.18] - 2026-02-26
 
 ### Fixed
@@ -259,7 +265,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 🖼️ TinyWiiBackupManager icon now shows up again on the windows exe
 
-[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.18...HEAD
+[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.19...HEAD
+[v5.1.19]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.18...v5.1.19
 [v5.1.18]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.17...v5.1.18
 [v5.1.17]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.16...v5.1.17
 [v5.1.16]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.15...v5.1.16

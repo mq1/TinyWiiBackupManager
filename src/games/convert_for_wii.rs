@@ -197,6 +197,7 @@ impl ConvertForWiiOperation {
                                     // Swap the writer
                                     let next_path = parent.join(&id).with_extension(ext);
                                     out_writer = BufWriter::new(File::create(&next_path)?);
+                                    out_writer.write_all(&data[remaining_in_split..])?;
                                 } else {
                                     // Everything fits
                                     out_writer.write_all(&data)?;
@@ -226,6 +227,7 @@ impl ConvertForWiiOperation {
                 };
 
                 if !finalization.header.is_empty() {
+                    eprintln!("Writing header to {}", out_path.display());
                     let mut first_file = File::options().write(true).open(&out_path)?;
                     first_file.rewind()?;
                     first_file.write_all(&finalization.header)?;
