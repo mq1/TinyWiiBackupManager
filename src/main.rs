@@ -43,17 +43,21 @@ fn get_window_icon() -> Option<window::Icon> {
 }
 
 #[cfg(target_os = "linux")]
-fn check_gpu() {
+async fn f16_gpu_fix() {
     let instance = wgpu::Instance::default();
 
-    let adapter =
-        iced::futures::executor::block_on(instance.request_adapter(&wgpu::RequestAdapterOptions {
-            power_preference: wgpu::PowerPreference::LowPower,
-            compatible_surface: None,
-            force_fallback_adapter: false,
-        }));
+    let adapter_options = wgpu::RequestAdapterOptions {
+        power_preference: wgpu::PowerPreference::from_env()
+            .unwrap_or(wgpu::PowerPreference::HighPerformance),
+        compatible_surface: None,
+        force_fallback_adapter: false,
+    };
 
-    if !adapter.is_ok_and(|a| a.features().contains(wgpu::Features::SHADER_F16)) {
+    let Ok(adapter) = instance.request_adapter(&adapter_options).await else {
+        return;
+    };
+
+    if !adapter.features().contains(wgpu::Features::SHADER_F16) {
         unsafe {
             std::env::set_var("ICED_BACKEND", "tiny-skia");
         }
@@ -61,12 +65,8 @@ fn check_gpu() {
 }
 
 fn main() -> iced::Result {
-    unsafe {
-        std::env::set_var("WGPU_POWER_PREF", "low");
-    }
-
     #[cfg(target_os = "linux")]
-    check_gpu();
+    iced::futures::executor::block_on(f16_gpu_fix());
 
     #[cfg(target_os = "macos")]
     let height = 600.0 + 32.0; // compensate for titlebar height on macOS
