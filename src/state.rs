@@ -23,7 +23,7 @@ use crate::{
     known_mount_points,
     message::Message,
     notifications::Notifications,
-    ui::{Screen, dialogs, lucide, window_color},
+    ui::{Screen, dialogs, lucide},
     updater,
     util::{DriveInfo, clean_old_files},
 };
@@ -42,6 +42,9 @@ use which_fs::FsKind;
 
 #[cfg(target_os = "macos")]
 use crate::util::run_dot_clean;
+
+#[cfg(target_vendor = "pc")]
+use crate::ui::window_color;
 
 pub struct State {
     pub screen: Screen,
@@ -81,6 +84,7 @@ impl State {
         let config = Config::load(&data_dir);
         clean_old_files(&data_dir);
 
+        #[cfg(target_vendor = "pc")]
         let theme = config.theme_preference();
 
         let mut initial_state = Self {
@@ -119,6 +123,7 @@ impl State {
             initial_state.notifications.info("New drive detected, a path normalization run is recommended\nYou can find it in the Toolbox page".to_string());
         }
 
+        #[cfg(target_vendor = "pc")]
         let set_window_color = window_color::set(theme);
 
         let tasks = Task::batch(vec![
@@ -131,6 +136,7 @@ impl State {
             updater::get_check_update_task(),
         ]);
 
+        #[cfg(target_vendor = "pc")]
         let tasks = set_window_color.chain(tasks);
 
         (initial_state, tasks)
@@ -380,9 +386,12 @@ impl State {
                 };
 
                 let new_config = self.config.clone_with_theme_preference(new_theme_pref);
-                let _ = self.update(Message::UpdateConfig(new_config));
+                let task = self.update(Message::UpdateConfig(new_config));
 
-                window_color::set(new_theme_pref)
+                #[cfg(target_vendor = "pc")]
+                let task = task.chain(window_color::set(new_theme_pref));
+
+                task
             }
             Message::UpdateConfig(new_config) => {
                 self.config = new_config;

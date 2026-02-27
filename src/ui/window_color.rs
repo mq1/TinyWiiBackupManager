@@ -4,15 +4,13 @@
 use crate::config::ThemePreference;
 use crate::message::Message;
 use iced::Task;
+use iced::window::raw_window_handle::RawWindowHandle;
+use std::ffi::c_void;
+use windows::Win32::Foundation::HWND;
+use windows::Win32::Graphics::Dwm::DWMWA_CAPTION_COLOR;
+use windows::Win32::Graphics::Dwm::DwmSetWindowAttribute;
 
-#[cfg(target_vendor = "pc")]
 pub fn set(mut theme: ThemePreference) -> Task<Message> {
-    use iced::window::raw_window_handle::RawWindowHandle;
-    use std::ffi::c_void;
-    use windows::Win32::Foundation::HWND;
-    use windows::Win32::Graphics::Dwm::DWMWA_CAPTION_COLOR;
-    use windows::Win32::Graphics::Dwm::DwmSetWindowAttribute;
-
     if theme == ThemePreference::System
         && let Ok(mode) = dark_light::detect()
     {
@@ -49,9 +47,4 @@ pub fn set(mut theme: ThemePreference) -> Task<Message> {
             })
         })
         .discard()
-}
-
-#[cfg(not(target_vendor = "pc"))]
-pub fn set(_theme: ThemePreference) -> Task<Message> {
-    Task::none()
 }

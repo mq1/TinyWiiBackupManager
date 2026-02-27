@@ -5,6 +5,8 @@ mod components;
 pub mod dialogs;
 pub mod lucide;
 mod style;
+
+#[cfg(target_vendor = "pc")]
 pub mod window_color;
 
 #[cfg(target_vendor = "win7")]
