@@ -43,10 +43,10 @@
 ## :arrow_down: Downloads
 
 - **:window: Windows**:\
-  :arrow_right: [Download installer](https://github.com/mq1/TinyWiiBackupManagerInstaller/releases/latest/download/TinyWiiBackupManagerInstaller.exe) (recommended for most users)\
+  :arrow_right: [Download installer](https://github.com/mq1/TinyWiiBackupManagerInstaller/releases/latest/download/TinyWiiBackupManagerInstaller.exe) (recommended for most users, automatic x86_64-vX detection)\
   :arrow_right: [Download standalone binary](https://github.com/mq1/TinyWiiBackupManager/releases/latest)\
   :warning: Windows < 10 users should use the installer, or download the `windows-legacy` standalone binary.
-  
+
   - :ice_cream: scoop:\
     `scoop bucket add TinyWiiBackupManager https://github.com/mq1/TinyWiiBackupManager`\
     `scoop install TinyWiiBackupManager`
@@ -64,7 +64,9 @@
 
 - **:penguin: Linux**\
   :arrow_right: [Download on Flathub](https://flathub.org/apps/it.mq1.TinyWiiBackupManager) (recommended for most users)\
-  :arrow_right: [Download latest AppImage/tarball](https://github.com/mq1/TinyWiiBackupManager/releases/latest)
+  :arrow_right: [Download latest AppImage/tarball](https://github.com/mq1/TinyWiiBackupManager/releases/latest)\
+  :zap: You can check if your system supports the x86_64-vX optimized binaries by running:\
+  `/lib64/ld-linux-x86-64.so.2 --help | grep x86-64-v`
 
 <br>
 
