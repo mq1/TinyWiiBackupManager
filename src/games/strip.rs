@@ -5,7 +5,7 @@ use crate::games::{
     convert_for_wii::SPLIT_SIZE, disc_info::DiscInfo, extensions::format_to_opts, game::Game,
     util::get_threads_num,
 };
-use anyhow::Result;
+use anyhow::{Result, anyhow};
 use iced::{
     futures::{StreamExt, channel::mpsc},
     task::{Straw, sipper},
@@ -18,7 +18,7 @@ use nod::{
 use split_write::SplitWriter;
 use std::{
     fs,
-    io::{Seek, Write},
+    io::{BufWriter, Seek, Write},
     num::NonZeroU64,
     thread,
 };
@@ -91,7 +91,10 @@ impl StripOperation {
                 let dest_dir = self.source.path().clone();
 
                 let file_count = {
-                    let mut out_writer = SplitWriter::new(dest_dir, get_file_name, split_size);
+                    let mut out_writer = BufWriter::with_capacity(
+                        32_768,
+                        SplitWriter::new(dest_dir, get_file_name, split_size),
+                    );
 
                     let mut prev_percentage = 100;
                     let finalization = disc_writer.process(
@@ -119,7 +122,10 @@ impl StripOperation {
                     }
 
                     out_writer.flush()?;
-                    out_writer.file_count()
+                    out_writer
+                        .into_inner()
+                        .map_err(|_| anyhow!("Failed to get inner split writer"))?
+                        .file_count()
                 };
 
                 for i in 0..file_count {

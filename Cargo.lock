@@ -4044,7 +4044,7 @@ dependencies = [
 [[package]]
 name = "split-write"
 version = "0.0.1"
-source = "git+https://github.com/mq1/split-write-rs#955593e6d8965b46aeeea0fdb1071fe569cb25a5"
+source = "git+https://github.com/mq1/split-write-rs#cd10afea92eeda7ef06d95392d9df4e5e6cda25b"
 
 [[package]]
 name = "stable_deref_trait"

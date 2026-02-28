@@ -79,10 +79,9 @@ impl ConvertForWiiOperation {
 
                     let new_source_path = parent.join(archived_disc.name());
                     if !new_source_path.exists() {
-                        let out = File::create(&new_source_path)?;
-                        let mut writer = BufWriter::new(out);
-                        io::copy(&mut archived_disc, &mut writer)?;
-                        writer.flush()?;
+                        let mut out = File::create(&new_source_path)?;
+                        io::copy(&mut archived_disc, &mut out)?;
+                        out.flush()?;
                         files_to_remove.push(new_source_path.clone());
                     }
 
@@ -178,7 +177,11 @@ impl ConvertForWiiOperation {
                     NonZeroU64::MAX
                 };
 
-                let mut out_writer = SplitWriter::new(parent_dir, get_file_name, split_size);
+                let mut out_writer = BufWriter::with_capacity(
+                    32_768,
+                    SplitWriter::new(parent_dir, get_file_name, split_size),
+                );
+
                 let disc_writer = DiscWriter::new(disc_reader, &out_opts)?;
 
                 let mut prev_percentage = 100;
