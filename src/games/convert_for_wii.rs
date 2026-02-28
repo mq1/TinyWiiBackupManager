@@ -18,15 +18,17 @@ use nod::{
     read::{DiscOptions, DiscReader, PartitionEncryption},
     write::{DiscWriter, ProcessOptions, ScrubLevel},
 };
+use split_write::SplitWriter;
 use std::{
     fs::{self, File},
     io::{self, BufReader, BufWriter, Seek, Write},
+    num::NonZeroU64,
     path::PathBuf,
     thread,
 };
 use zip::ZipArchive;
 
-pub const SPLIT_SIZE: usize = 4_294_934_528; // 4 GiB - 32 KiB (fits on a u32)
+pub const SPLIT_SIZE: NonZeroU64 = NonZeroU64::new(4 * 1024 * 1024 * 1024 - 32 * 1024).unwrap(); // 4 GiB - 32 KiB
 
 #[derive(Debug, Clone)]
 pub struct ConvertForWiiOperation {
@@ -95,9 +97,11 @@ impl ConvertForWiiOperation {
                 };
 
                 let disc_reader = DiscReader::new(&self.source_path, &disc_opts)?;
-                let is_wii = disc_reader.header().is_wii();
-                let title = disc_reader.header().game_title_str().to_string();
-                let id = disc_reader.header().game_id_str().to_string();
+                let header = disc_reader.header();
+                let is_wii = header.is_wii();
+                let title = header.game_title_str().to_string();
+                let id = header.game_id_str().to_string();
+                let disc_num = header.disc_num;
 
                 let out_format = if is_wii {
                     self.config.wii_output_format()
@@ -105,134 +109,102 @@ impl ConvertForWiiOperation {
                     self.config.gc_output_format()
                 };
 
-                let (parent, mut out_path) = if is_wii {
-                    let title = util::sanitize(&title);
-
-                    let parent = self
-                        .config
+                let parent_dir = if is_wii {
+                    self.config
                         .mount_point()
                         .join("wbfs")
-                        .join(format!("{title} [{id}]"));
-
-                    let out_path = parent.join(&id).with_extension(format_to_ext(out_format));
-
-                    (parent, out_path)
+                        .join(format!("{title} [{id}]"))
                 } else {
-                    let disc_name = match disc_reader.header().disc_num {
-                        0 => format!("game.{}", format_to_ext(out_format)),
-                        n => format!("disc{}.{}", n + 1, format_to_ext(out_format)),
-                    };
-
                     let title = util::sanitize(&title)
                         .replace(" game disc 1", "")
                         .replace(" game disc 2", "");
 
-                    let parent = self
-                        .config
+                    self.config
                         .mount_point()
                         .join("games")
-                        .join(format!("{title} [{id}]"));
-
-                    let out_path = parent.join(disc_name);
-
-                    (parent, out_path)
+                        .join(format!("{title} [{id}]"))
                 };
 
                 let must_split = is_wii && (self.config.always_split() || self.is_fat32);
 
-                if must_split && out_format == nod::common::Format::Iso {
-                    out_path = out_path.with_extension("part0.iso");
-                }
+                let get_file_name = |i| {
+                    if is_wii {
+                        let ext = if out_format == nod::common::Format::Wbfs {
+                            match i {
+                                0 => "wbfs".to_string(),
+                                n => format!("wbf{n}"),
+                            }
+                        } else if must_split {
+                            format!("part{i}.iso")
+                        } else {
+                            "iso".to_string()
+                        };
 
-                if out_path.exists() {
+                        format!("{id}.{ext}")
+                    } else {
+                        let file_stem = match disc_num {
+                            0 => "game".to_string(),
+                            n => format!("disc{n}"),
+                        };
+
+                        let ext = format_to_ext(out_format);
+                        format!("{file_stem}.{ext}")
+                    }
+                };
+
+                if parent_dir.join(get_file_name(0)).exists() {
                     return Ok(files_to_remove);
                 }
 
-                fs::create_dir_all(&parent)?;
+                fs::create_dir_all(&parent_dir)?;
 
-                let finalization = {
-                    let out_opts = format_to_opts(out_format);
-                    let process_opts = ProcessOptions {
-                        processor_threads,
-                        digest_crc32: true,
-                        digest_md5: false,
-                        digest_sha1: true,
-                        digest_xxh64: true,
-                        scrub: if self.config.scrub_update_partition() {
-                            ScrubLevel::UpdatePartition
-                        } else {
-                            ScrubLevel::None
-                        },
-                    };
-
-                    let mut out_writer = BufWriter::new(File::create(&out_path)?);
-                    let disc_writer = DiscWriter::new(disc_reader, &out_opts)?;
-
-                    let mut prev_percentage = 100;
-
-                    // Track split state
-                    let mut current_split_idx: usize = 0;
-                    let mut current_file_size: usize = 0;
-
-                    let finalization = disc_writer.process(
-                        |data, progress, total| {
-                            if must_split {
-                                let remaining_in_split = SPLIT_SIZE - current_file_size;
-
-                                if data.len() > remaining_in_split {
-                                    // Fill the current file
-                                    out_writer.write_all(&data[..remaining_in_split])?;
-                                    out_writer.flush()?; // Ensure data is on disk before switching
-
-                                    // Prepare next split
-                                    current_split_idx += 1;
-                                    current_file_size = 0;
-
-                                    let ext = if out_format == nod::common::Format::Wbfs {
-                                        format!("wbf{current_split_idx}")
-                                    } else {
-                                        format!("part{current_split_idx}.iso")
-                                    };
-
-                                    // Swap the writer
-                                    let next_path = parent.join(&id).with_extension(ext);
-                                    out_writer = BufWriter::new(File::create(&next_path)?);
-                                    out_writer.write_all(&data[remaining_in_split..])?;
-                                } else {
-                                    // Everything fits
-                                    out_writer.write_all(&data)?;
-                                    current_file_size += data.len();
-                                }
-                            } else {
-                                out_writer.write_all(&data)?;
-                            }
-
-                            let progress_percentage = progress * 100 / total;
-                            if progress_percentage != prev_percentage {
-                                let _ = tx.try_send(format!(
-                                    "⤒ Converting {title}  {progress_percentage:02}%"
-                                ));
-                                prev_percentage = progress_percentage;
-                            }
-
-                            Ok(())
-                        },
-                        &process_opts,
-                    )?;
-
-                    // Flush whatever file is currently open
-                    out_writer.flush()?;
-
-                    finalization
+                let out_opts = format_to_opts(out_format);
+                let process_opts = ProcessOptions {
+                    processor_threads,
+                    digest_crc32: true,
+                    digest_md5: false,
+                    digest_sha1: true,
+                    digest_xxh64: true,
+                    scrub: if self.config.scrub_update_partition() {
+                        ScrubLevel::UpdatePartition
+                    } else {
+                        ScrubLevel::None
+                    },
                 };
 
+                let split_size = if must_split {
+                    SPLIT_SIZE
+                } else {
+                    NonZeroU64::MAX
+                };
+
+                let mut out_writer = SplitWriter::new(parent_dir, get_file_name, split_size);
+                let disc_writer = DiscWriter::new(disc_reader, &out_opts)?;
+
+                let mut prev_percentage = 100;
+                let finalization = disc_writer.process(
+                    |data, progress, total| {
+                        out_writer.write_all(&data)?;
+
+                        let progress_percentage = progress * 100 / total;
+                        if progress_percentage != prev_percentage {
+                            let _ = tx.try_send(format!(
+                                "⤒ Converting {title}  {progress_percentage:02}%"
+                            ));
+                            prev_percentage = progress_percentage;
+                        }
+
+                        Ok(())
+                    },
+                    &process_opts,
+                )?;
+
                 if !finalization.header.is_empty() {
-                    eprintln!("Writing header to {}", out_path.display());
-                    let mut first_file = File::options().write(true).open(&out_path)?;
-                    first_file.rewind()?;
-                    first_file.write_all(&finalization.header)?;
+                    out_writer.rewind()?;
+                    out_writer.write_all(&finalization.header)?;
                 }
 
+                out_writer.flush()?;
                 Ok(files_to_remove)
             });
 

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- ⚡️ Write files in 32kb chunks (potentially improving write performance)
+
 ## [v5.1.19] - 2026-02-27
 
 ### Fixed

@@ -15,10 +15,11 @@ use nod::{
     read::{DiscOptions, DiscReader, PartitionEncryption},
     write::{DiscWriter, ProcessOptions, ScrubLevel},
 };
+use split_write::SplitWriter;
 use std::{
-    fs::{self, File},
-    io::{BufWriter, Seek, Write},
-    path::PathBuf,
+    fs,
+    io::{Seek, Write},
+    num::NonZeroU64,
     thread,
 };
 
@@ -64,67 +65,52 @@ impl StripOperation {
 
                 let must_split = self.always_split || self.is_fat32;
 
-                let out_path = disc_info.disc_path().with_extension("wbfs.new");
-                let mut overflow_path: Option<PathBuf> = None;
-
-                {
-                    let out_file = File::create(&out_path)?;
-                    let mut out_writer = BufWriter::new(out_file);
-                    let mut overflow_writer: Option<BufWriter<File>> = None;
-
-                    let disc_opts = DiscOptions {
-                        partition_encryption: PartitionEncryption::Original,
-                        preloader_threads,
+                let get_file_name = |i| {
+                    let ext = match i {
+                        0 => "wbfs".to_string(),
+                        n => format!("wbf{n}"),
                     };
-                    let disc_reader = DiscReader::new(disc_info.disc_path(), &disc_opts)?;
 
-                    let out_opts = format_to_opts(Format::Wbfs);
-                    let disc_writer = DiscWriter::new(disc_reader, &out_opts)?;
+                    format!("{}.{ext}.new", self.source.id().as_str())
+                };
+
+                let split_size = if must_split {
+                    SPLIT_SIZE
+                } else {
+                    NonZeroU64::MAX
+                };
+
+                let disc_opts = DiscOptions {
+                    partition_encryption: PartitionEncryption::Original,
+                    preloader_threads,
+                };
+                let disc_reader = DiscReader::new(disc_info.disc_path(), &disc_opts)?;
+
+                let out_opts = format_to_opts(Format::Wbfs);
+                let disc_writer = DiscWriter::new(disc_reader, &out_opts)?;
+                let dest_dir = self.source.path().clone();
+
+                let file_count = {
+                    let mut out_writer = SplitWriter::new(dest_dir, get_file_name, split_size);
 
                     let mut prev_percentage = 100;
-                    let mut bytes_written_in_first_split = 0;
-                    let game_title = self.source.title();
                     let finalization = disc_writer.process(
-                    |data, progress, total| {
-                            if let Some(overflow_writer) = &mut overflow_writer {
-                                overflow_writer.write_all(&data)?;
-                            } else if must_split {
-                                let remaining_in_first_split =
-                                    SPLIT_SIZE - bytes_written_in_first_split;
-
-                                let bytes_to_write_count = data.len();
-
-                                if remaining_in_first_split < bytes_to_write_count {
-                                    let overflow_path = overflow_path.insert(disc_info.disc_path().with_extension("wbf1.new"));
-                                    let overflow_file = File::create(overflow_path)?;
-                                    let overflow_writer =
-                                        overflow_writer.insert(BufWriter::new(overflow_file));
-
-                                    #[allow(clippy::cast_possible_truncation)]
-                                    out_writer.write_all(&data[..remaining_in_first_split])?;
-                                    overflow_writer.write_all(&data[remaining_in_first_split..])?;
-
-                                    // we don't update bytes_written_in_first_split as we won't access
-                                    // it anymore; theoretically it should now be SPLIT_SIZE
-                                } else {
-                                    out_writer.write_all(&data)?;
-                                    bytes_written_in_first_split += bytes_to_write_count;
-                                }
-                            } else {
-                                out_writer.write_all(&data)?;
-                            }
+                        |data, progress, total| {
+                            out_writer.write_all(&data)?;
 
                             let progress_percentage = progress * 100 / total;
                             if progress_percentage != prev_percentage {
                                 let _ = tx.try_send(format!(
-                                    "Remove update partition from {game_title}  {progress_percentage:02}%"
+                                    "Remove update partition from {}  {:02}%",
+                                    self.source.title(),
+                                    progress_percentage
                                 ));
                                 prev_percentage = progress_percentage;
                             }
 
                             Ok(())
                         },
-                    &process_opts,
+                        &process_opts,
                     )?;
 
                     if !finalization.header.is_empty() {
@@ -133,16 +119,17 @@ impl StripOperation {
                     }
 
                     out_writer.flush()?;
-                    if let Some(overflow_writer) = &mut overflow_writer {
-                        overflow_writer.flush()?;
-                    }
-                }
+                    out_writer.file_count()
+                };
 
-                let _ = fs::remove_file(disc_info.disc_path());
-                fs::rename(out_path, disc_info.disc_path())?;
-                if let Some(overflow_path) = overflow_path.take() {
-                    let _ = fs::remove_file(disc_info.disc_path().with_extension("wbf1"));
-                    fs::rename(overflow_path, disc_info.disc_path().with_extension("wbf1"))?;
+                for i in 0..file_count {
+                    let file_name = get_file_name(i);
+                    let original_file_name = file_name.strip_suffix(".new").unwrap().to_string();
+                    let out_path = self.source.path().join(file_name);
+                    let original_path = self.source.path().join(original_file_name);
+
+                    let _ = fs::remove_file(&original_path);
+                    fs::rename(&out_path, &original_path)?;
                 }
 
                 Ok(())
