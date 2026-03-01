@@ -4043,9 +4043,9 @@ dependencies = [
 
 [[package]]
 name = "split-write"
-version = "0.0.1"
+version = "0.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6b2e31342f80977c197e1dc32321bdffa0eacd99c16f87111e1bf987836805ae"
+checksum = "c0cef263a84903e4453ffed520f5819b677b16e5bce0274a2ed9e1b6de62cfa6"
 
 [[package]]
 name = "stable_deref_trait"

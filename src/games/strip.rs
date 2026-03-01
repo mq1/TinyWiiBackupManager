@@ -18,7 +18,7 @@ use nod::{
 use split_write::SplitWriter;
 use std::{
     fs,
-    io::{BufWriter, Seek, Write},
+    io::{BufWriter, Write},
     num::NonZeroU64,
     thread,
 };
@@ -93,7 +93,7 @@ impl StripOperation {
                 let file_count = {
                     let mut out_writer = BufWriter::with_capacity(
                         32_768,
-                        SplitWriter::new(dest_dir, get_file_name, split_size),
+                        SplitWriter::try_new(dest_dir, get_file_name, split_size)?,
                     );
 
                     let mut prev_percentage = 100;
@@ -116,16 +116,16 @@ impl StripOperation {
                         &process_opts,
                     )?;
 
+                    let mut split_writer = out_writer
+                        .into_inner()
+                        .map_err(|_| anyhow!("Failed to get inner split writer"))?;
+
                     if !finalization.header.is_empty() {
-                        out_writer.rewind()?;
-                        out_writer.write_all(&finalization.header)?;
+                        split_writer.write_header(&finalization.header)?;
                     }
 
-                    out_writer.flush()?;
-                    out_writer
-                        .into_inner()
-                        .map_err(|_| anyhow!("Failed to get inner split writer"))?
-                        .file_count()
+                    split_writer.flush()?;
+                    split_writer.file_count()
                 };
 
                 for i in 0..file_count {

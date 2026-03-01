@@ -9,7 +9,7 @@ use crate::{
     },
     util,
 };
-use anyhow::{Result, bail};
+use anyhow::{Result, anyhow, bail};
 use iced::{
     futures::{StreamExt, channel::mpsc},
     task::{Straw, sipper},
@@ -21,7 +21,7 @@ use nod::{
 use split_write::SplitWriter;
 use std::{
     fs::{self, File},
-    io::{self, BufReader, BufWriter, Seek, Write},
+    io::{self, BufReader, BufWriter, Write},
     num::NonZeroU64,
     path::PathBuf,
     thread,
@@ -179,7 +179,7 @@ impl ConvertForWiiOperation {
 
                 let mut out_writer = BufWriter::with_capacity(
                     32_768,
-                    SplitWriter::new(parent_dir, get_file_name, split_size),
+                    SplitWriter::try_new(parent_dir, get_file_name, split_size)?,
                 );
 
                 let disc_writer = DiscWriter::new(disc_reader, &out_opts)?;
@@ -202,12 +202,15 @@ impl ConvertForWiiOperation {
                     &process_opts,
                 )?;
 
+                let mut split_writer = out_writer
+                    .into_inner()
+                    .map_err(|_| anyhow!("Failed to get inner split writer"))?;
+
                 if !finalization.header.is_empty() {
-                    out_writer.rewind()?;
-                    out_writer.write_all(&finalization.header)?;
+                    split_writer.write_header(&finalization.header)?;
                 }
 
-                out_writer.flush()?;
+                split_writer.flush()?;
                 Ok(files_to_remove)
             });
 
