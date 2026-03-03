@@ -108,19 +108,14 @@ impl ConvertForWiiOperation {
                     self.config.gc_output_format()
                 };
 
-                let parent_dir = if is_wii {
-                    self.config
-                        .mount_point()
-                        .join("wbfs")
-                        .join(format!("{title} [{id}]"))
-                } else {
+                let parent_dir = {
                     let title = util::sanitize(&title)
                         .replace(" game disc 1", "")
                         .replace(" game disc 2", "");
 
                     self.config
                         .mount_point()
-                        .join("games")
+                        .join(if is_wii { "wbfs" } else { "games" })
                         .join(format!("{title} [{id}]"))
                 };
 
