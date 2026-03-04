@@ -42,31 +42,83 @@
 
 ## :arrow_down: Downloads
 
-- **:window: Windows**:\
-  :arrow_right: [Download installer](https://github.com/mq1/TinyWiiBackupManagerInstaller/releases/latest/download/TinyWiiBackupManagerInstaller.exe) (recommended for most users, automatic x86_64-vX detection)\
-  :arrow_right: [Download standalone binary](https://github.com/mq1/TinyWiiBackupManager/releases/latest)\
-  :warning: Windows < 10 users should use the installer, or download the `windows-legacy` standalone binary.
+<table>
+  <thead>
+    <tr>
+      <th width="9999px">:window: Windows</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        :arrow_right: <a href="https://github.com/mq1/TinyWiiBackupManagerInstaller/releases/latest/download/TinyWiiBackupManagerInstaller.exe">Download installer</a> (recommended for most users, automatic x86_64-vX detection)
+        <br>
+        :arrow_right: <a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest">Download standalone binary</a>
+        <br>
+        <br>
+        :warning: Windows < 10 users should use the installer, or download the <code>windows-legacy</code> standalone binary.
+        <br>
+        <br>
+        <ul>
+          <li>
+            :ice_cream: scoop:
+            <br>
+            <code>scoop bucket add TinyWiiBackupManager https://github.com/mq1/TinyWiiBackupManager</code>
+            <br>
+            <code>scoop install TinyWiiBackupManager</code>
+          </li>
+          <li>
+            :package: winget:
+            <br>
+            <code>winget install -e --id mq1.TinyWiiBackupManager</code>
+          </li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
 
-  - :ice_cream: scoop:\
-    `scoop bucket add TinyWiiBackupManager https://github.com/mq1/TinyWiiBackupManager`\
-    `scoop install TinyWiiBackupManager`
-  - :package: winget:\
-    `winget install -e --id mq1.TinyWiiBackupManager`
+<table>
+  <thead>
+    <tr>
+      <th width="9999px">:apple: macOS</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        :arrow_right: <a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest">Download latest DMG</a> (Universal Binary recommended for most users)
+        <br>
+        <br>
+        :warning: The app is not notarized, you must allow it manually after installing by running this command in Terminal:
+        <br>
+        <code>xattr -rd com.apple.quarantine /Applications/TinyWiiBackupManager.app</code>
+      </td>
+    </tr>
+  </tbody>
+</table>
 
-<br>
-
-- **:apple: macOS**\
-  :arrow_right: [Download latest dmg/zip](https://github.com/mq1/TinyWiiBackupManager/releases/latest) (_universal.dmg_ recommended for most users)\
-  :warning: The app is not notarized, you must allow it manually after installing by running this command in Terminal:\
-  `xattr -rd com.apple.quarantine /Applications/TinyWiiBackupManager.app`
-
-<br>
-
-- **:penguin: Linux**\
-  :arrow_right: [Download on Flathub](https://flathub.org/apps/it.mq1.TinyWiiBackupManager) (recommended for most users)\
-  :arrow_right: [Download latest AppImage/tarball](https://github.com/mq1/TinyWiiBackupManager/releases/latest)\
-  :zap: You can check if your system supports the x86_64-vX optimized binaries by running:\
-  `ld.so --help | grep x86-64-v`
+<table>
+  <thead>
+    <tr>
+      <th width="9999px">:penguin: Linux</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        :arrow_right: <a href="https://flathub.org/apps/it.mq1.TinyWiiBackupManager">Download on Flathub</a> (recommended for most users)
+        <br>
+        :arrow_right: <a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest">Download latest AppImage/tarball</a>
+        <br>
+        <br>
+        :zap: You can check if your system supports the x86_64-vX optimized binaries by running:
+        <br>
+        <code>ld.so --help | grep x86-64-v</code>
+      </td>
+    </tr>
+  </tbody>
+</table>
 
 <br>
 
