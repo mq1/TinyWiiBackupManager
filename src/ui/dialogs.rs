@@ -238,7 +238,7 @@ pub fn pick_archive_dest(window: &dyn Window, source: PathBuf, game_title: Strin
         .set_title(&title)
         .add_filter(OUTPUT_DIALOG_FILTER.0, OUTPUT_DIALOG_FILTER.1)
         .set_file_name(&filename)
-        .pick_file();
+        .save_file();
 
     #[cfg(target_vendor = "win7")]
     let res = xp_dialogs::save_file(window, &title, OUTPUT_DIALOG_FILTER, &filename);

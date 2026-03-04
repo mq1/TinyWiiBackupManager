@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v5.1.22] - 2026-03-04
+
+### Fixed
+
+- 🐛 Archive Game to PC Option doesn't work (#574)
+
 ## [v5.1.21] - 2026-03-03
 
 ### Fixed
@@ -278,7 +284,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 🖼️ TinyWiiBackupManager icon now shows up again on the windows exe
 
-[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.21...HEAD
+[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.22...HEAD
+[v5.1.22]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.21...v5.1.22
 [v5.1.21]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.20...v5.1.21
 [v5.1.20]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.19...v5.1.20
 [v5.1.19]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.18...v5.1.19
