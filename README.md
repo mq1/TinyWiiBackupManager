@@ -57,22 +57,20 @@
         <br>
         <br>
         :warning: Windows < 10 users should use the installer, or download the <code>windows-legacy</code> standalone binary.
+      </td>
+    </tr>
+    <tr>
+      <td>
+        :ice_cream: scoop:
+        <br>
+        <code>scoop bucket add TinyWiiBackupManager https://github.com/mq1/TinyWiiBackupManager</code>
+        <br>
+        <code>scoop install TinyWiiBackupManager</code>
         <br>
         <br>
-        <ul>
-          <li>
-            :ice_cream: scoop:
-            <br>
-            <code>scoop bucket add TinyWiiBackupManager https://github.com/mq1/TinyWiiBackupManager</code>
-            <br>
-            <code>scoop install TinyWiiBackupManager</code>
-          </li>
-          <li>
-            :package: winget:
-            <br>
-            <code>winget install -e --id mq1.TinyWiiBackupManager</code>
-          </li>
-        </ul>
+        :package: winget:
+        <br>
+        <code>winget install -e --id mq1.TinyWiiBackupManager</code>
       </td>
     </tr>
   </tbody>
