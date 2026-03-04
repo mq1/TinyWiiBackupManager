@@ -44,7 +44,7 @@
 
 <table>
   <tr>
-    <th width="9999px">:window: Windows</th>
+    <td width="9999px"><strong>:window: Windows</strong></td>
   </tr>
   <tr>
     <td>
@@ -72,7 +72,7 @@
 
 <table>
   <tr>
-    <th width="9999px">:apple: macOS</th>
+    <td width="9999px"><strong>:apple: macOS</strong></td>
   </tr>
   <tr>
     <td>
@@ -88,7 +88,7 @@
 
 <table>
   <tr>
-    <th width="9999px">:penguin: Linux</th>
+    <td width="9999px"><strong>:penguin: Linux</strong></td>
   </tr>
   <tr>
     <td>
