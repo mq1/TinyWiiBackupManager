@@ -24,7 +24,7 @@ serde_with = "3.16"
 directories = "6.0"
 anyhow = "1.0"
 size = { version = "0.5", features = ["serde"] }
-quick-xml = { version = "0.38", features = ["serialize"] }
+quick-xml = { version = "0.39", features = ["serialize"] }
 open = "5.3"
 #nod = "2.0.0-alpha.4"
 nod = { git = "https://github.com/mq1/nod.git" }
@@ -48,7 +48,7 @@ wiiload = "0.3"
 which-fs = "0.2"
 fs4 = { version = "0.13", default-features = false }
 rfd = "0.17"
-split-write = "0.0.2"
+split-write = "0.0.3"
 
 
 # ========================
