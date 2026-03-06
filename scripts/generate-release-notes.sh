@@ -1,19 +1,26 @@
 #!/bin/bash
 
 if ! grep -Fq "## [$1]" CHANGELOG.md; then
-  exit
+  exit 1
 fi
 
 awk -v t="$1" '/^## \[/ && f {exit} $0 ~ "^## \\[" t {f=1; next} f' CHANGELOG.md
 
-echo "---"
+cat <<EOF
+<br> 
 
-echo ""
-
-echo "### :arrow_down: Recommended downloads for the majority of users"
-echo ""
-echo "&rarr; [Windows Installer](https://github.com/mq1/TinyWiiBackupManagerInstaller/releases/latest/download/TinyWiiBackupManagerInstaller.exe)\\"
-echo "&rarr; [Windows x64 Standalone](https://github.com/mq1/TinyWiiBackupManager/releases/download/$1/TinyWiiBackupManager-$1-windows-x86_64.zip)\\"
-echo "&rarr; [macOS Universal Binary](https://github.com/mq1/TinyWiiBackupManager/releases/download/$1/TinyWiiBackupManager-$1-macos-universal.dmg)\\"
-echo "&rarr; [Linux Flatpak](https://flathub.org/apps/details/it.mq1.TinyWiiBackupManager)\\"
-echo "&rarr; [Linux x86_64 AppImage](https://github.com/mq1/TinyWiiBackupManager/releases/download/$1/TinyWiiBackupManager-$1-linux-x86_64.AppImage)"
+<table>
+  <tr>
+    <td width="9999px"><strong>:arrow_down: Recommended downloads</strong></td>
+  </tr>
+  <tr>
+    <td>
+    :window: <a href="https://github.com/mq1/TinyWiiBackupManager/releases/download/$1/TinyWiiBackupManager-$1-windows-x86_64.zip">Windows x64 Standalone</a>
+    <br>
+    :apple: <a href="https://github.com/mq1/TinyWiiBackupManager/releases/download/$1/TinyWiiBackupManager-$1-macos-universal.dmg">macOS Universal Binary</a>
+    <br>
+    :penguin: <a href="https://github.com/mq1/TinyWiiBackupManager/releases/download/$1/TinyWiiBackupManager-$1-linux-x86_64.AppImage">Linux x86_64 AppImage</a>
+    </td>
+  </tr>
+</table>
+EOF
