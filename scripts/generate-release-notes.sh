@@ -4,7 +4,7 @@ if ! grep -Fq "## [$1]" CHANGELOG.md; then
   exit 1
 fi
 
-sed -n "/^## \[$1\]/,/^## \[/{/^## \[/d;p;}" CHANGELOG.md
+awk "/^## \[$1\]/{f=1;next} /^## \[/{f=0} f" CHANGELOG.md
 
 cat <<EOF
 <br> 
