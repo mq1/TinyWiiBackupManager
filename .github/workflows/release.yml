@@ -135,14 +135,14 @@ jobs:
             platform: windows
             arch: x86_64-v3
             rustflags: -C target-cpu=x86-64-v3
-            cflags: /clang:-march=x86-64-v3
-            cxxflags: /clang:-march=x86-64-v3
+            cflags: -march=x86-64-v3
+            cxxflags: -march=x86-64-v3
           - target: x86_64-pc-windows-msvc
             platform: windows
             arch: x86_64-v2
             rustflags: -C target-cpu=x86-64-v2
-            cflags: /clang:-march=x86-64-v2
-            cxxflags: /clang:-march=x86-64-v2
+            cflags: -march=x86-64-v2
+            cxxflags: -march=x86-64-v2
           - target: x86_64-pc-windows-msvc
             platform: windows
             arch: x86_64
@@ -195,8 +195,8 @@ jobs:
         env:
           RUSTC_BOOTSTRAP: 1
           RUSTFLAGS: ${{ matrix.rustflags }} -C target-feature=+crt-static
-          CFLAGS: ${{ matrix.cflags }} /clang:-O3 /clang:-flto
-          CXXFLAGS: ${{ matrix.cxxflags }} /clang:-O3 /clang:-flto
+          CFLAGS: ${{ matrix.cflags }} -O3 -flto
+          CXXFLAGS: ${{ matrix.cxxflags }} -O3 -flto
 
       - name: Package binary as zip
         shell: pwsh
