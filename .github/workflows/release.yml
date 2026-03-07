@@ -193,11 +193,17 @@ jobs:
         run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
         env:
           RUSTC_BOOTSTRAP: 1
-          CC: ${{ env.LLVM_PATH }}\bin\clang-cl.exe
-          CXX: ${{ env.LLVM_PATH }}\bin\clang-cl.exe
-          RUSTFLAGS: ${{ matrix.rustflags }} -C target-feature=+crt-static
-          CFLAGS: ${{ matrix.cflags }} /clang:-O3
-          CXXFLAGS: ${{ matrix.cxxflags }} /clang:-O3
+          CC: clang-cl
+          CXX: clang-cl
+          AR: llvm-lib
+          CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: lld-link
+          CARGO_TARGET_I686_PC_WINDOWS_MSVC_LINKER: lld-link
+          CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: lld-link
+          CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_LINKER: lld-link
+          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_LINKER: lld-link
+          RUSTFLAGS: ${{ matrix.rustflags }} -C target-feature=+crt-static -C linker-plugin-lto -C link-arg=/FORCE:MULTIPLE
+          CFLAGS: ${{ matrix.cflags }} /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
+          CXXFLAGS: ${{ matrix.cxxflags }} /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
 
       - name: Package binary as zip
         shell: pwsh
