@@ -14,7 +14,7 @@
         <p>✨ Features</p>
         <ul>
             <li>Lightweight &amp; Fast: Native app, -O3, LTO, x86_64-v1/v2/v3 optimized builds (AppImage only)</li>
-            <li>Cross-Platform: Windows 7+ (x86, x64, arm64), macOS 10.12+ (x64, arm64), Linux (x86, x64, arm64)</li>
+            <li>Cross-Platform: Windows XP+ (x86, x64, arm64), macOS 10.13+ (x64, arm64), Linux (x86, x64, arm64)</li>
         </ul>
         <p>🎮 Game Management</p>
         <ul>
@@ -53,11 +53,14 @@
     <url type="vcs-browser">https://github.com/mq1/TinyWiiBackupManager</url>
     <screenshots>
         <screenshot type="default">
-            <image>https://github.com/mq1/TinyWiiBackupManager/blob/v5.1.22/assets/screenshot.png?raw=true</image>
+            <image>https://github.com/mq1/TinyWiiBackupManager/blob/v5.1.23/assets/screenshot.png?raw=true</image>
             <caption>TinyWiiBackupManager</caption>
         </screenshot>
     </screenshots>
     <releases>
+        <release version="5.1.23" date="2026-03-07">
+            <url type="details">https://github.com/mq1/TinyWiiBackupManager/releases/tag/v5.1.23</url>
+        </release>
         <release version="5.1.22" date="2026-03-04">
             <url type="details">https://github.com/mq1/TinyWiiBackupManager/releases/tag/v5.1.22</url>
         </release>
