@@ -234,7 +234,7 @@ jobs:
 
       - name: Build binary
         run: |
-          docker run --rm -it -v $(pwd):/io -w /io ghcr.io/rust-cross/cargo-zigbuild \
+          docker run -v $(pwd):/io -w /io ghcr.io/rust-cross/cargo-zigbuild \
             cargo zigbuild --release --locked --target ${{ matrix.target }}
 
       - name: Upload macOS binaries
