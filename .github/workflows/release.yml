@@ -197,8 +197,8 @@ jobs:
           CXX: ${{ env.LLVM_PATH }}\bin\clang-cl.exe
           AR: ${{ env.LLVM_PATH }}\bin\llvm-lib.exe
           RUSTFLAGS: ${{ matrix.rustflags }} -C target-feature=+crt-static -C linker-plugin-lto -C linker=${{ env.LLVM_PATH }}\bin\lld-link.exe
-          CFLAGS: ${{ matrix.cflags }} /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
-          CXXFLAGS: ${{ matrix.cxxflags }} /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
+          CFLAGS: ${{ matrix.cflags }} /clang:-O3 /clang:-flto /clang:-fuse-ld=${{ env.LLVM_PATH }}\bin\lld-link.exe
+          CXXFLAGS: ${{ matrix.cxxflags }} /clang:-O3 /clang:-flto /clang:-fuse-ld=${{ env.LLVM_PATH }}\bin\lld-link.exe
 
       - name: Package binary as zip
         shell: pwsh
