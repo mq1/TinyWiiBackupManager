@@ -95,8 +95,8 @@ jobs:
         env:
           RUSTC_BOOTSTRAP: 1
           RUSTFLAGS: ${{ matrix.rustflags }}
-          CFLAGS: ${{ matrix.cflags }} -O3 -flto
-          CXXFLAGS: ${{ matrix.cxxflags }} -O3 -flto
+          CFLAGS: ${{ matrix.cflags }}
+          CXXFLAGS: ${{ matrix.cxxflags }}
 
       - name: Setup directories
         run: |
@@ -244,8 +244,6 @@ jobs:
         run: cargo zigbuild -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
         env:
           RUSTC_BOOTSTRAP: 1
-          CFLAGS: -O3 -flto
-          CXXFLAGS: -O3 -flto
 
       - name: Upload macOS distributables
         uses: actions/upload-artifact@v4
