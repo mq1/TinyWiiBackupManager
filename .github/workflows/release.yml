@@ -201,7 +201,7 @@ jobs:
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: lld-link
           CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_LINKER: lld-link
           CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_LINKER: lld-link
-          RUSTFLAGS: ${{ matrix.rustflags }} -C target-feature=+crt-static -C linker-plugin-lto
+          RUSTFLAGS: ${{ matrix.rustflags }} -C target-feature=+crt-static -C linker-plugin-lto -C link-arg=/FORCE:MULTIPLE
           CFLAGS: ${{ matrix.cflags }} /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
           CXXFLAGS: ${{ matrix.cxxflags }} /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
 
