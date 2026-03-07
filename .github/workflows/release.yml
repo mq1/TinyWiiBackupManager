@@ -196,7 +196,12 @@ jobs:
           CC: clang-cl
           CXX: clang-cl
           AR: llvm-lib
-          RUSTFLAGS: ${{ matrix.rustflags }} -C target-feature=+crt-static -C linker-plugin-lto -C linker=lld-link
+          CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: lld-link
+          CARGO_TARGET_I686_PC_WINDOWS_MSVC_LINKER: lld-link
+          CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: lld-link
+          CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_LINKER: lld-link
+          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_LINKER: lld-link
+          RUSTFLAGS: ${{ matrix.rustflags }} -C target-feature=+crt-static -C linker-plugin-lto
           CFLAGS: ${{ matrix.cflags }} /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
           CXXFLAGS: ${{ matrix.cxxflags }} /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
 
