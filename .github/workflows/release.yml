@@ -196,8 +196,8 @@ jobs:
           CC: ${{ env.LLVM_PATH }}\bin\clang-cl.exe
           CXX: ${{ env.LLVM_PATH }}\bin\clang-cl.exe
           RUSTFLAGS: ${{ matrix.rustflags }} -C target-feature=+crt-static
-          CFLAGS: ${{ matrix.cflags }} /clang:-O3 -flto
-          CXXFLAGS: ${{ matrix.cxxflags }} /clang:-O3 -flto
+          CFLAGS: ${{ matrix.cflags }} /clang:-O3
+          CXXFLAGS: ${{ matrix.cxxflags }} /clang:-O3
 
       - name: Package binary as zip
         shell: pwsh
