@@ -35,33 +35,33 @@ jobs:
       matrix:
         include:
           - target: x86_64-unknown-linux-gnu
-            runner: ubuntu-22.04
+            runner: ubuntu-24.04
             arch: x86_64-v3
             appimage-arch: x86_64
             rustflags: -C target-cpu=x86-64-v3
             cflags: -mcpu=x86_64_v3
             cxxflags: -mcpu=x86_64_v3
           - target: x86_64-unknown-linux-gnu
-            runner: ubuntu-22.04
+            runner: ubuntu-24.04
             arch: x86_64-v2
             appimage-arch: x86_64
             rustflags: -C target-cpu=x86-64-v2
             cflags: -mcpu=x86_64_v2
             cxxflags: -mcpu=x86_64_v2
           - target: x86_64-unknown-linux-gnu
-            runner: ubuntu-22.04
+            runner: ubuntu-24.04
             arch: x86_64
             appimage-arch: x86_64
           - target: aarch64-unknown-linux-gnu
-            runner: ubuntu-22.04-arm
+            runner: ubuntu-24.04-arm
             arch: arm64
             appimage-arch: aarch64
           - target: i686-unknown-linux-gnu
-            runner: ubuntu-22.04
+            runner: ubuntu-24.04
             arch: x86
             appimage-arch: i686
           - target: armv7-unknown-linux-gnueabihf
-            runner: ubuntu-22.04-arm
+            runner: ubuntu-24.04-arm
             arch: armhf
             appimage-arch: armhf
 
@@ -75,12 +75,14 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y appstream
-          pip3 install cargo-zigbuild
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.93
         with:
           components: rust-src
+
+      - name: Install cargo-zigbuild
+        run: pip3 install cargo-zigbuild
 
       - name: Download appimagetool
         run: |
@@ -93,8 +95,8 @@ jobs:
         env:
           RUSTC_BOOTSTRAP: 1
           RUSTFLAGS: ${{ matrix.rustflags }}
-          CFLAGS: ${{ matrix.cflags }}
-          CXXFLAGS: ${{ matrix.cxxflags }}
+          CFLAGS: ${{ matrix.cflags }} -O3 -flto
+          CXXFLAGS: ${{ matrix.cxxflags }} -O3 -flto
 
       - name: Setup directories
         run: |
@@ -214,17 +216,15 @@ jobs:
 
   build-macos:
     name: Build for macOS
-    runs-on: macos-26
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
         include:
           - target: aarch64-apple-darwin
             arch: arm64
-            deployment_target: 11.0
           - target: x86_64-apple-darwin
             arch: x86_64
-            deployment_target: 10.13
 
     steps:
       - name: Checkout
@@ -237,33 +237,21 @@ jobs:
         with:
           components: rust-src
 
+      - name: Install cargo-zigbuild
+        run: pip3 install cargo-zigbuild
+
       - name: Build binary
-        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
+        run: cargo zigbuild -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
         env:
           RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: -C link-arg=-mmacosx-version-min=${{ matrix.deployment_target }}
-          CFLAGS: -O3 -flto -mmacosx-version-min=${{ matrix.deployment_target }}
-          CXXFLAGS: -O3 -flto -mmacosx-version-min=${{ matrix.deployment_target }}
-
-      - name: Build macOS app bundle
-        run: |
-          plain_ver="${VERSION_NAME#v}" # Remove leading 'v'
-          mkdir -p TinyWiiBackupManager.app/Contents/MacOS TinyWiiBackupManager.app/Contents/Resources
-          cp "target/${{ matrix.target }}/release/TinyWiiBackupManager" TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
-          sed "s/{{ VERSION_NAME }}/$plain_ver/" package/macos/Info.plist > TinyWiiBackupManager.app/Contents/Info.plist
-          cp package/macos/TinyWiiBackupManager.icns TinyWiiBackupManager.app/Contents/Resources/TinyWiiBackupManager.icns
-
-      - name: zip the app
-        run: |
-          mkdir dist
-          ditto -c -k --sequesterRsrc --keepParent --zlibCompressionLevel 9 \
-            TinyWiiBackupManager.app "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-${{ matrix.arch }}.zip"
+          CFLAGS: -O3 -flto
+          CXXFLAGS: -O3 -flto
 
       - name: Upload macOS distributables
         uses: actions/upload-artifact@v4
         with:
           name: build-macos-${{ matrix.arch }}
-          path: dist/*
+          path: target/${{ matrix.target }}/release/TinyWiiBackupManager
 
   package-macos:
     name: Package Universal2 macOS app and DMGs
@@ -281,19 +269,33 @@ jobs:
         with:
           pattern: "build-macos-*"
 
-      - name: Extract the .zip distributables
+      - name: Make universal binary
         run: |
-          ditto -x -k "build-macos-arm64/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-arm64.zip" build-macos-arm64
-          ditto -x -k "build-macos-x86_64/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-x86_64.zip" build-macos-x86_64
-          cp -r build-macos-arm64/TinyWiiBackupManager.app TinyWiiBackupManager.app
+          mkdir build-macos-universal
+          lipo -create build-macos-arm64/TinyWiiBackupManager build-macos-x86_64/TinyWiiBackupManager -output build-macos-universal/TinyWiiBackupManager
 
-      - name: Create the Universal2 app
+      - name: Create .app bundles
         run: |
-          lipo -create \
-            -output TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager \
-            build-macos-arm64/TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager \
-            build-macos-x86_64/TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
-          codesign --force --deep -s - TinyWiiBackupManager.app
+          plain_ver="${VERSION_NAME#v}" # Remove leading 'v'
+          sed -i "" "s/{{ VERSION_NAME }}/$plain_ver/" package/macos/Info.plist
+
+          install -Dm0644 package/macos/Info.plist build-macos-universal/TinyWiiBackupManager.app/Contents/Info.plist
+          install -Dm0644 package/macos/Info.plist build-macos-arm64/TinyWiiBackupManager.app/Contents/Info.plist
+          install -Dm0644 package/macos/Info.plist build-macos-x86_64/TinyWiiBackupManager.app/Contents/Info.plist
+
+          install -Dm0644 package/macos/TinyWiiBackupManager.icns build-macos-universal/TinyWiiBackupManager.app/Contents/Resources/TinyWiiBackupManager.icns
+          install -Dm0644 package/macos/TinyWiiBackupManager.icns build-macos-arm64/TinyWiiBackupManager.app/Contents/Resources/TinyWiiBackupManager.icns
+          install -Dm0644 package/macos/TinyWiiBackupManager.icns build-macos-x86_64/TinyWiiBackupManager.app/Contents/Resources/TinyWiiBackupManager.icns
+
+          install -Dm0755 build-macos-universal/TinyWiiBackupManager build-macos-universal/TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
+          install -Dm0755 build-macos-arm64/TinyWiiBackupManager build-macos-arm64/TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
+          install -Dm0755 build-macos-x86_64/TinyWiiBackupManager build-macos-x86_64/TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
+
+      - name: Sign apps
+        run: |
+          codesign --force --deep -s - build-macos-universal/TinyWiiBackupManager.app
+          codesign --force --deep -s - build-macos-arm64/TinyWiiBackupManager.app
+          codesign --force --deep -s - build-macos-x86_64/TinyWiiBackupManager.app
 
       - name: Install appdmg
         run: npm i -g appdmg
@@ -301,14 +303,14 @@ jobs:
       - name: Create DMGs (assets from sindresorhus/create-dmg)
         run: |
           mkdir dist
+          appdmg package/macos/appdmg-universal.json "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-universal.dmg"
           appdmg package/macos/appdmg-x86_64.json "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-x86_64.dmg"
           appdmg package/macos/appdmg-arm64.json "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-arm64.dmg"
-          appdmg package/macos/appdmg-universal.json "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-universal.dmg"
 
       - name: Upload macOS distributables
         uses: actions/upload-artifact@v4
         with:
-          name: dist-macos-universal
+          name: dist-macos-all
           path: dist/*
 
   # ==================================================================================

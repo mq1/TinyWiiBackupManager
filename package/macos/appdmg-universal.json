@@ -15,7 +15,7 @@
       "x": 180,
       "y": 170,
       "type": "file",
-      "path": "../../TinyWiiBackupManager.app"
+      "path": "../../build-macos-universal/TinyWiiBackupManager.app"
     },
     {
       "x": 480,
