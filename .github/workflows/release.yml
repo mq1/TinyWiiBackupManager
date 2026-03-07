@@ -232,27 +232,19 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@1.93
-        with:
-          components: rust-src
-
-      - name: Install cargo-zigbuild
-        run: pip3 install cargo-zigbuild
-
       - name: Build binary
-        run: cargo zigbuild -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
-        env:
-          RUSTC_BOOTSTRAP: 1
+        run: |
+          docker run --rm -it -v $(pwd):/io -w /io ghcr.io/rust-cross/cargo-zigbuild \
+            cargo zigbuild --release --locked --target ${{ matrix.target }}
 
-      - name: Upload macOS distributables
+      - name: Upload macOS binaries
         uses: actions/upload-artifact@v4
         with:
           name: build-macos-${{ matrix.arch }}
           path: target/${{ matrix.target }}/release/TinyWiiBackupManager
 
   package-macos:
-    name: Package Universal2 macOS app and DMGs
+    name: Package DMGs
     runs-on: macos-26
     needs: [build-macos]
 
