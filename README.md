@@ -106,6 +106,34 @@
 
 <br>
 
+## :snowflake: Nix / NixOS (flake)
+
+You can build and run TinyWiiBackupManager directly with Nix flakes.
+
+From a local checkout:
+
+```bash
+nix build path:.#default
+nix run path:.#default
+```
+
+Install to your user profile:
+
+```bash
+nix profile install github:mq1/TinyWiiBackupManager
+```
+
+Open the development shell:
+
+```bash
+nix develop path:.#default
+```
+
+> [!NOTE]
+> Make sure flakes are enabled in your Nix configuration (`experimental-features = nix-command flakes`).
+
+<br>
+
 ## :page_facing_up: Additional Info
 
 For useful tips, check out the [Wiki](https://github.com/mq1/TinyWiiBackupManager/wiki)
