@@ -26,8 +26,7 @@ anyhow = "1.0"
 size = { version = "0.5", features = ["serde"] }
 quick-xml = { version = "0.39", features = ["serialize"] }
 open = "5.3"
-#nod = "2.0.0-alpha.4"
-nod = { git = "https://github.com/mq1/nod.git" }
+nod = "2.0.0-alpha.6"
 num_cpus = "1.17"
 semver = "1.0"
 hex = "0.4"
