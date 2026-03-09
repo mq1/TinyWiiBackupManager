@@ -25,33 +25,43 @@ pub fn pick_dir(window: &dyn Window, title: &str) -> Option<PathBuf> {
         return None;
     };
 
-    // Ensure COM is initialized for this thread before using Shell APIs.
-    // Safe to call multiple times (returns S_FALSE if already initialized).
-    let _ = unsafe { CoInitializeEx(None, COINIT_APARTMENTTHREADED) };
+    let hwnd = handle.hwnd.get();
 
-    let hwnd = HWND(handle.hwnd.get() as *mut c_void);
-    let title_wide = widen(title);
+    let thread_join_handle = std::thread::spawn(move || {
+        // Ensure COM is initialized for this thread before using Shell APIs.
+        // Safe to call multiple times (returns S_FALSE if already initialized).
+        let _ = unsafe { CoInitializeEx(None, COINIT_APARTMENTTHREADED) };
 
-    let mut browse_info = BROWSEINFOW {
-        hwndOwner: hwnd,
-        lpszTitle: PCWSTR(title_wide.as_ptr()),
-        ulFlags: BIF_RETURNONLYFSDIRS,
-        ..Default::default()
-    };
+        let hwnd = HWND(hwnd as *mut c_void);
+        let title_wide = widen(title);
 
-    let raw_pidl = unsafe { SHBrowseForFolderW(&mut browse_info) };
+        let mut browse_info = BROWSEINFOW {
+            hwndOwner: hwnd,
+            lpszTitle: PCWSTR(title_wide.as_ptr()),
+            ulFlags: BIF_RETURNONLYFSDIRS,
+            ..Default::default()
+        };
 
-    if raw_pidl.is_null() {
-        return None;
-    }
+        let pidl = unsafe { SHBrowseForFolderW(&mut browse_info) };
 
-    let pidl_guard = Pidl(raw_pidl as *mut _);
+        if pidl.is_null() {
+            return None;
+        }
 
-    let mut pszpath = [0u16; 260];
-    let success = unsafe { SHGetPathFromIDListW(pidl_guard.0 as *const _, &mut pszpath) };
+        let mut buf = [0u16; 260];
+        let success = unsafe { SHGetPathFromIDListW(pidl as *const _, &mut buf) };
 
-    if success.as_bool() {
-        Some(PathBuf::from(unwiden(&pszpath)))
+        unsafe {
+            CoTaskMemFree(Some(pidl as *const _));
+        }
+
+        (success.as_bool(), buf)
+    });
+
+    let (success, buf) = thread_join_handle.join().unwrap();
+
+    if success {
+        Some(PathBuf::from(unwiden(&buf)))
     } else {
         None
     }
@@ -176,13 +186,6 @@ pub fn save_file(
         Some(PathBuf::from(unwiden(&file_buffer)))
     } else {
         None
-    }
-}
-
-struct Pidl(*mut std::ffi::c_void);
-impl Drop for Pidl {
-    fn drop(&mut self) {
-        unsafe { CoTaskMemFree(Some(self.0)) };
     }
 }
 
