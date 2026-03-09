@@ -97,7 +97,7 @@ pub fn pick_files(title: &str, filter: (&str, &[&str])) -> Vec<PathBuf> {
     }
 }
 
-pub unsafe fn save_file(title: &str, filter: (&str, &[&str]), filename: &str) -> Option<PathBuf> {
+pub fn save_file(title: &str, filter: (&str, &[&str]), filename: &str) -> Option<PathBuf> {
     let title_wide = widen(title);
     let filter_wide = get_filter_utf16(filter);
     let filename_wide = widen(filename);
