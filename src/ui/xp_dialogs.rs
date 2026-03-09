@@ -16,41 +16,24 @@ use windows::Win32::UI::Shell::{
 };
 use windows::core::{PCWSTR, PWSTR};
 
-pub fn pick_dir(window: &dyn Window, title: &str) -> Option<PathBuf> {
-    let Ok(handle) = window.window_handle() else {
-        return None;
-    };
-
-    let RawWindowHandle::Win32(handle) = handle.as_raw() else {
-        return None;
-    };
-
+pub unsafe fn pick_dir(title: &str) -> Option<PathBuf> {
     let hwnd = handle.hwnd.get();
     let title_wide = widen(title);
 
-    let thread_join_handle = std::thread::spawn(move || unsafe {
-        let _ = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
+    let _ = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
 
-        let mut browse_info = BROWSEINFOW {
-            hwndOwner: HWND(hwnd as *mut _),
-            lpszTitle: PCWSTR(title_wide.as_ptr()),
-            ulFlags: BIF_RETURNONLYFSDIRS | BIF_EDITBOX | BIF_NEWDIALOGSTYLE,
-            ..Default::default()
-        };
+    let mut browse_info = BROWSEINFOW {
+        lpszTitle: PCWSTR(title_wide.as_ptr()),
+        ulFlags: BIF_RETURNONLYFSDIRS | BIF_EDITBOX | BIF_NEWDIALOGSTYLE,
+        ..Default::default()
+    };
 
-        let pidl = SHBrowseForFolderW(&mut browse_info);
+    let pidl = SHBrowseForFolderW(&mut browse_info);
 
-        let mut buf = [0u16; 260];
-        let success = SHGetPathFromIDListW(pidl as *const _, &mut buf);
+    let mut buf = [0u16; 260];
+    let success = SHGetPathFromIDListW(pidl as *const _, &mut buf);
 
-        CoTaskMemFree(Some(pidl as *const _));
-
-        (success, buf)
-    });
-
-    let (success, buf) = thread_join_handle
-        .join()
-        .expect("Failed to join pick_dir thread");
+    CoTaskMemFree(Some(pidl as *const _));
 
     if success.as_bool() {
         Some(PathBuf::from(unwiden(&buf)))
@@ -59,41 +42,23 @@ pub fn pick_dir(window: &dyn Window, title: &str) -> Option<PathBuf> {
     }
 }
 
-pub fn pick_file(window: &dyn Window, title: &str, filter: (&str, &[&str])) -> Option<PathBuf> {
-    let Ok(handle) = window.window_handle() else {
-        return None;
-    };
-
-    let RawWindowHandle::Win32(handle) = handle.as_raw() else {
-        return None;
-    };
-
-    let hwnd = handle.hwnd.get();
+pub unsafe fn pick_file(title: &str, filter: (&str, &[&str])) -> Option<PathBuf> {
     let title_wide = widen(title);
     let filter_wide = get_filter_utf16(filter);
 
-    let thread_join_handle = std::thread::spawn(move || unsafe {
-        let mut buf = [0u16; 260];
+    let mut buf = [0u16; 260];
 
-        let mut ofn = OPENFILENAMEW {
-            lStructSize: std::mem::size_of::<OPENFILENAMEW>() as u32,
-            hwndOwner: HWND(hwnd as *mut _),
-            lpstrFilter: PCWSTR(filter_wide.as_ptr()),
-            lpstrFile: PWSTR(buf.as_mut_ptr()),
-            nMaxFile: buf.len() as u32,
-            lpstrTitle: PCWSTR(title_wide.as_ptr()),
-            Flags: OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_EXPLORER,
-            ..Default::default()
-        };
+    let mut ofn = OPENFILENAMEW {
+        lStructSize: std::mem::size_of::<OPENFILENAMEW>() as u32,
+        lpstrFilter: PCWSTR(filter_wide.as_ptr()),
+        lpstrFile: PWSTR(buf.as_mut_ptr()),
+        nMaxFile: buf.len() as u32,
+        lpstrTitle: PCWSTR(title_wide.as_ptr()),
+        Flags: OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_EXPLORER,
+        ..Default::default()
+    };
 
-        let success = GetOpenFileNameW(&mut ofn);
-
-        (success, buf)
-    });
-
-    let (success, buf) = thread_join_handle
-        .join()
-        .expect("Failed to join pick_file thread");
+    let success = GetOpenFileNameW(&mut ofn);
 
     if success.as_bool() {
         Some(PathBuf::from(unwiden(&buf)))
@@ -102,41 +67,23 @@ pub fn pick_file(window: &dyn Window, title: &str, filter: (&str, &[&str])) -> O
     }
 }
 
-pub fn pick_files(window: &dyn Window, title: &str, filter: (&str, &[&str])) -> Vec<PathBuf> {
-    let Ok(handle) = window.window_handle() else {
-        return Vec::new();
-    };
-
-    let RawWindowHandle::Win32(handle) = handle.as_raw() else {
-        return Vec::new();
-    };
-
-    let hwnd = handle.hwnd.get();
+pub unsafe fn pick_files(title: &str, filter: (&str, &[&str])) -> Vec<PathBuf> {
     let title_wide = widen(title);
     let filter_wide = get_filter_utf16(filter);
 
-    let thread_join_handle = std::thread::spawn(move || unsafe {
-        let mut buf = vec![0u16; 32_768];
+    let mut buf = vec![0u16; 32_768];
 
-        let mut ofn = OPENFILENAMEW {
-            lStructSize: std::mem::size_of::<OPENFILENAMEW>() as u32,
-            hwndOwner: HWND(hwnd as *mut _),
-            lpstrFilter: PCWSTR(filter_wide.as_ptr()),
-            lpstrFile: PWSTR(buf.as_mut_ptr()),
-            nMaxFile: buf.len() as u32,
-            lpstrTitle: PCWSTR(title_wide.as_ptr()),
-            Flags: OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_EXPLORER | OFN_ALLOWMULTISELECT,
-            ..Default::default()
-        };
+    let mut ofn = OPENFILENAMEW {
+        lStructSize: std::mem::size_of::<OPENFILENAMEW>() as u32,
+        lpstrFilter: PCWSTR(filter_wide.as_ptr()),
+        lpstrFile: PWSTR(buf.as_mut_ptr()),
+        nMaxFile: buf.len() as u32,
+        lpstrTitle: PCWSTR(title_wide.as_ptr()),
+        Flags: OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_EXPLORER | OFN_ALLOWMULTISELECT,
+        ..Default::default()
+    };
 
-        let success = GetOpenFileNameW(&mut ofn);
-
-        (success, buf)
-    });
-
-    let (success, buf) = thread_join_handle
-        .join()
-        .expect("Failed to join pick_files thread");
+    let success = GetOpenFileNameW(&mut ofn);
 
     if success.as_bool() {
         parse_multi_select(&buf)
@@ -145,48 +92,25 @@ pub fn pick_files(window: &dyn Window, title: &str, filter: (&str, &[&str])) -> 
     }
 }
 
-pub fn save_file(
-    window: &dyn Window,
-    title: &str,
-    filter: (&str, &[&str]),
-    filename: &str,
-) -> Option<PathBuf> {
-    let Ok(handle) = window.window_handle() else {
-        return None;
-    };
-
-    let RawWindowHandle::Win32(handle) = handle.as_raw() else {
-        return None;
-    };
-
-    let hwnd = handle.hwnd.get();
+pub unsafe fn save_file(title: &str, filter: (&str, &[&str]), filename: &str) -> Option<PathBuf> {
     let title_wide = widen(title);
     let filter_wide = get_filter_utf16(filter);
     let filename_wide = widen(filename);
 
-    let thread_join_handle = std::thread::spawn(move || unsafe {
-        let mut buf = [0u16; 260];
-        buf[..filename_wide.len()].copy_from_slice(&filename_wide);
+    let mut buf = [0u16; 260];
+    buf[..filename_wide.len()].copy_from_slice(&filename_wide);
 
-        let mut ofn = OPENFILENAMEW {
-            lStructSize: std::mem::size_of::<OPENFILENAMEW>() as u32,
-            hwndOwner: HWND(hwnd as *mut _),
-            lpstrFilter: PCWSTR(filter_wide.as_ptr()),
-            lpstrFile: PWSTR(buf.as_mut_ptr()),
-            nMaxFile: buf.len() as u32,
-            lpstrTitle: PCWSTR(title_wide.as_ptr()),
-            Flags: OFN_EXPLORER | OFN_OVERWRITEPROMPT,
-            ..Default::default()
-        };
+    let mut ofn = OPENFILENAMEW {
+        lStructSize: std::mem::size_of::<OPENFILENAMEW>() as u32,
+        lpstrFilter: PCWSTR(filter_wide.as_ptr()),
+        lpstrFile: PWSTR(buf.as_mut_ptr()),
+        nMaxFile: buf.len() as u32,
+        lpstrTitle: PCWSTR(title_wide.as_ptr()),
+        Flags: OFN_EXPLORER | OFN_OVERWRITEPROMPT,
+        ..Default::default()
+    };
 
-        let success = GetSaveFileNameW(&mut ofn);
-
-        (success, buf)
-    });
-
-    let (success, buf) = thread_join_handle
-        .join()
-        .expect("Failed to join save_file thread");
+    let success = GetSaveFileNameW(&mut ofn);
 
     if success.as_bool() {
         Some(PathBuf::from(unwiden(&buf)))
