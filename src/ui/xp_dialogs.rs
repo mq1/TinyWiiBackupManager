@@ -7,11 +7,12 @@ use std::path::PathBuf;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::System::Com::{COINIT_APARTMENTTHREADED, CoInitializeEx, CoTaskMemFree};
 use windows::Win32::UI::Controls::Dialogs::{
-    BIF_EDITBOX, BIF_NEWDIALOGSTYLE, GetOpenFileNameW, GetSaveFileNameW, OFN_ALLOWMULTISELECT,
-    OFN_EXPLORER, OFN_FILEMUSTEXIST, OFN_OVERWRITEPROMPT, OFN_PATHMUSTEXIST, OPENFILENAMEW,
+    GetOpenFileNameW, GetSaveFileNameW, OFN_ALLOWMULTISELECT, OFN_EXPLORER, OFN_FILEMUSTEXIST,
+    OFN_OVERWRITEPROMPT, OFN_PATHMUSTEXIST, OPENFILENAMEW,
 };
 use windows::Win32::UI::Shell::{
-    BIF_RETURNONLYFSDIRS, BROWSEINFOW, SHBrowseForFolderW, SHGetPathFromIDListW,
+    BIF_EDITBOX, BIF_NEWDIALOGSTYLE, BIF_RETURNONLYFSDIRS, BROWSEINFOW, SHBrowseForFolderW,
+    SHGetPathFromIDListW,
 };
 use windows::core::{PCWSTR, PWSTR};
 
@@ -169,7 +170,7 @@ pub fn save_file(
 
         let mut ofn = OPENFILENAMEW {
             lStructSize: std::mem::size_of::<OPENFILENAMEW>() as u32,
-            hwndOwner: hwnd,
+            hwndOwner: HWND(hwnd as *mut _),
             lpstrFilter: PCWSTR(filter_wide.as_ptr()),
             lpstrFile: PWSTR(buf.as_mut_ptr()),
             nMaxFile: buf.len() as u32,
