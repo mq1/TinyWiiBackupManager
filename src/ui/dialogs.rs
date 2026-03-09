@@ -39,7 +39,7 @@ pub fn pick_mount_point(window: &dyn Window) -> Message {
         .pick_folder();
 
     #[cfg(target_vendor = "win7")]
-    let res = xp_dialogs::pick_dir(window, "Select Drive/Mount Point");
+    let res = xp_dialogs::pick_dir("Select Drive/Mount Point");
 
     match res {
         Some(path) => Message::MountPointPicked(path),
@@ -57,7 +57,7 @@ pub fn pick_games(window: &dyn Window, existing_ids: &[GameID]) -> Message {
         .unwrap_or_default();
 
     #[cfg(target_vendor = "win7")]
-    let paths = xp_dialogs::pick_files(window, "Select Games", INPUT_DIALOG_FILTER);
+    let paths = xp_dialogs::pick_files("Select Games", INPUT_DIALOG_FILTER);
 
     let mut entries = paths
         .into_iter()
@@ -91,7 +91,7 @@ pub fn pick_games_dir(window: &dyn Window, existing_ids: &[GameID]) -> Message {
         .pick_folder();
 
     #[cfg(target_vendor = "win7")]
-    let res = xp_dialogs::pick_dir(window, "Select a folder containing games");
+    let res = xp_dialogs::pick_dir("Select a folder containing games");
 
     let paths = match res {
         Some(path) => WalkDir::new(path)
@@ -175,11 +175,7 @@ pub fn pick_hbc_apps(window: &dyn Window) -> Message {
         .unwrap_or_default();
 
     #[cfg(target_vendor = "win7")]
-    let paths = xp_dialogs::pick_files(
-        window,
-        "Select Homebrew Channel Apps",
-        ("HBC App", &["zip"]),
-    );
+    let paths = xp_dialogs::pick_files("Select Homebrew Channel Apps", ("HBC App", &["zip"]));
 
     if paths.is_empty() {
         Message::None
@@ -198,7 +194,6 @@ pub fn pick_hbc_app_to_wiiload(window: &dyn Window) -> Message {
 
     #[cfg(target_vendor = "win7")]
     let res = xp_dialogs::pick_file(
-        window,
         "Select HBC App to Wiiload",
         ("HBC App", &["zip", "dol", "elf"]),
     );
@@ -218,7 +213,7 @@ pub fn pick_game_to_convert(window: &dyn Window) -> Message {
         .pick_file();
 
     #[cfg(target_vendor = "win7")]
-    let res = xp_dialogs::pick_file(window, "Select Game to Convert", OUTPUT_DIALOG_FILTER);
+    let res = xp_dialogs::pick_file("Select Game to Convert", OUTPUT_DIALOG_FILTER);
 
     match res {
         Some(path) => Message::SetManualArchivingGame(path),
@@ -241,7 +236,7 @@ pub fn pick_archive_dest(window: &dyn Window, source: PathBuf, game_title: Strin
         .save_file();
 
     #[cfg(target_vendor = "win7")]
-    let res = xp_dialogs::save_file(window, &title, OUTPUT_DIALOG_FILTER, &filename);
+    let res = xp_dialogs::save_file(&title, OUTPUT_DIALOG_FILTER, &filename);
 
     match res {
         Some(path) => Message::ArchiveGame(source, game_title, path),
