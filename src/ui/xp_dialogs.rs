@@ -16,24 +16,25 @@ use windows::Win32::UI::Shell::{
 };
 use windows::core::{PCWSTR, PWSTR};
 
-pub unsafe fn pick_dir(title: &str) -> Option<PathBuf> {
-    let hwnd = handle.hwnd.get();
+pub fn pick_dir(title: &str) -> Option<PathBuf> {
     let title_wide = widen(title);
-
-    let _ = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
-
-    let mut browse_info = BROWSEINFOW {
-        lpszTitle: PCWSTR(title_wide.as_ptr()),
-        ulFlags: BIF_RETURNONLYFSDIRS | BIF_EDITBOX | BIF_NEWDIALOGSTYLE,
-        ..Default::default()
-    };
-
-    let pidl = SHBrowseForFolderW(&mut browse_info);
-
     let mut buf = [0u16; 260];
-    let success = SHGetPathFromIDListW(pidl as *const _, &mut buf);
 
-    CoTaskMemFree(Some(pidl as *const _));
+    let success = unsafe {
+        let _ = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
+
+        let mut browse_info = BROWSEINFOW {
+            lpszTitle: PCWSTR(title_wide.as_ptr()),
+            ulFlags: BIF_RETURNONLYFSDIRS | BIF_EDITBOX | BIF_NEWDIALOGSTYLE,
+            ..Default::default()
+        };
+
+        let pidl = SHBrowseForFolderW(&mut browse_info);
+        let success = SHGetPathFromIDListW(pidl as *const _, &mut buf);
+        CoTaskMemFree(Some(pidl as *const _));
+
+        success
+    };
 
     if success.as_bool() {
         Some(PathBuf::from(unwiden(&buf)))
@@ -42,23 +43,25 @@ pub unsafe fn pick_dir(title: &str) -> Option<PathBuf> {
     }
 }
 
-pub unsafe fn pick_file(title: &str, filter: (&str, &[&str])) -> Option<PathBuf> {
+pub fn pick_file(title: &str, filter: (&str, &[&str])) -> Option<PathBuf> {
     let title_wide = widen(title);
     let filter_wide = get_filter_utf16(filter);
 
     let mut buf = [0u16; 260];
 
-    let mut ofn = OPENFILENAMEW {
-        lStructSize: std::mem::size_of::<OPENFILENAMEW>() as u32,
-        lpstrFilter: PCWSTR(filter_wide.as_ptr()),
-        lpstrFile: PWSTR(buf.as_mut_ptr()),
-        nMaxFile: buf.len() as u32,
-        lpstrTitle: PCWSTR(title_wide.as_ptr()),
-        Flags: OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_EXPLORER,
-        ..Default::default()
-    };
+    let success = unsafe {
+        let mut ofn = OPENFILENAMEW {
+            lStructSize: std::mem::size_of::<OPENFILENAMEW>() as u32,
+            lpstrFilter: PCWSTR(filter_wide.as_ptr()),
+            lpstrFile: PWSTR(buf.as_mut_ptr()),
+            nMaxFile: buf.len() as u32,
+            lpstrTitle: PCWSTR(title_wide.as_ptr()),
+            Flags: OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_EXPLORER,
+            ..Default::default()
+        };
 
-    let success = GetOpenFileNameW(&mut ofn);
+        GetOpenFileNameW(&mut ofn)
+    };
 
     if success.as_bool() {
         Some(PathBuf::from(unwiden(&buf)))
@@ -67,23 +70,25 @@ pub unsafe fn pick_file(title: &str, filter: (&str, &[&str])) -> Option<PathBuf>
     }
 }
 
-pub unsafe fn pick_files(title: &str, filter: (&str, &[&str])) -> Vec<PathBuf> {
+pub fn pick_files(title: &str, filter: (&str, &[&str])) -> Vec<PathBuf> {
     let title_wide = widen(title);
     let filter_wide = get_filter_utf16(filter);
 
     let mut buf = vec![0u16; 32_768];
 
-    let mut ofn = OPENFILENAMEW {
-        lStructSize: std::mem::size_of::<OPENFILENAMEW>() as u32,
-        lpstrFilter: PCWSTR(filter_wide.as_ptr()),
-        lpstrFile: PWSTR(buf.as_mut_ptr()),
-        nMaxFile: buf.len() as u32,
-        lpstrTitle: PCWSTR(title_wide.as_ptr()),
-        Flags: OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_EXPLORER | OFN_ALLOWMULTISELECT,
-        ..Default::default()
-    };
+    let success = unsafe {
+        let mut ofn = OPENFILENAMEW {
+            lStructSize: std::mem::size_of::<OPENFILENAMEW>() as u32,
+            lpstrFilter: PCWSTR(filter_wide.as_ptr()),
+            lpstrFile: PWSTR(buf.as_mut_ptr()),
+            nMaxFile: buf.len() as u32,
+            lpstrTitle: PCWSTR(title_wide.as_ptr()),
+            Flags: OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_EXPLORER | OFN_ALLOWMULTISELECT,
+            ..Default::default()
+        };
 
-    let success = GetOpenFileNameW(&mut ofn);
+        GetOpenFileNameW(&mut ofn)
+    };
 
     if success.as_bool() {
         parse_multi_select(&buf)
@@ -100,17 +105,19 @@ pub unsafe fn save_file(title: &str, filter: (&str, &[&str]), filename: &str) ->
     let mut buf = [0u16; 260];
     buf[..filename_wide.len()].copy_from_slice(&filename_wide);
 
-    let mut ofn = OPENFILENAMEW {
-        lStructSize: std::mem::size_of::<OPENFILENAMEW>() as u32,
-        lpstrFilter: PCWSTR(filter_wide.as_ptr()),
-        lpstrFile: PWSTR(buf.as_mut_ptr()),
-        nMaxFile: buf.len() as u32,
-        lpstrTitle: PCWSTR(title_wide.as_ptr()),
-        Flags: OFN_EXPLORER | OFN_OVERWRITEPROMPT,
-        ..Default::default()
-    };
+    let success = unsafe {
+        let mut ofn = OPENFILENAMEW {
+            lStructSize: std::mem::size_of::<OPENFILENAMEW>() as u32,
+            lpstrFilter: PCWSTR(filter_wide.as_ptr()),
+            lpstrFile: PWSTR(buf.as_mut_ptr()),
+            nMaxFile: buf.len() as u32,
+            lpstrTitle: PCWSTR(title_wide.as_ptr()),
+            Flags: OFN_EXPLORER | OFN_OVERWRITEPROMPT,
+            ..Default::default()
+        };
 
-    let success = GetSaveFileNameW(&mut ofn);
+        GetSaveFileNameW(&mut ofn)
+    };
 
     if success.as_bool() {
         Some(PathBuf::from(unwiden(&buf)))
