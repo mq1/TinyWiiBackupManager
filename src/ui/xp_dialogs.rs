@@ -26,17 +26,15 @@ pub fn pick_dir(window: &dyn Window, title: &str) -> Option<PathBuf> {
     };
 
     let hwnd = handle.hwnd.get();
+    let title_wide = widen(title);
 
     let thread_join_handle = std::thread::spawn(move || {
         // Ensure COM is initialized for this thread before using Shell APIs.
         // Safe to call multiple times (returns S_FALSE if already initialized).
         let _ = unsafe { CoInitializeEx(None, COINIT_APARTMENTTHREADED) };
 
-        let hwnd = HWND(hwnd as *mut c_void);
-        let title_wide = widen(title);
-
         let mut browse_info = BROWSEINFOW {
-            hwndOwner: hwnd,
+            hwndOwner: HWND(hwnd as *mut _),
             lpszTitle: PCWSTR(title_wide.as_ptr()),
             ulFlags: BIF_RETURNONLYFSDIRS,
             ..Default::default()
@@ -51,12 +49,12 @@ pub fn pick_dir(window: &dyn Window, title: &str) -> Option<PathBuf> {
             CoTaskMemFree(Some(pidl as *const _));
         }
 
-        (success.as_bool(), buf)
+        (success, buf)
     });
 
     let (success, buf) = thread_join_handle.join().unwrap();
 
-    if success {
+    if success.as_bool() {
         Some(PathBuf::from(unwiden(&buf)))
     } else {
         None
