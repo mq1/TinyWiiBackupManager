@@ -164,7 +164,7 @@ pub fn save_file(
     let filename_wide = widen(filename);
 
     let thread_join_handle = std::thread::spawn(move || unsafe {
-        let mut buf = vec![0u16; 32_768];
+        let mut buf = [0u16; 260];
         buf[..filename_wide.len()].copy_from_slice(&filename_wide);
 
         let mut ofn = OPENFILENAMEW {
