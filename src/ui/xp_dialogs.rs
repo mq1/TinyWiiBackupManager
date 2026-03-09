@@ -7,8 +7,8 @@ use std::path::PathBuf;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::System::Com::{COINIT_APARTMENTTHREADED, CoInitializeEx, CoTaskMemFree};
 use windows::Win32::UI::Controls::Dialogs::{
-    BIF_USENEWUI, GetOpenFileNameW, GetSaveFileNameW, OFN_ALLOWMULTISELECT, OFN_EXPLORER,
-    OFN_FILEMUSTEXIST, OFN_OVERWRITEPROMPT, OFN_PATHMUSTEXIST, OPENFILENAMEW,
+    BIF_EDITBOX, BIF_NEWDIALOGSTYLE, GetOpenFileNameW, GetSaveFileNameW, OFN_ALLOWMULTISELECT,
+    OFN_EXPLORER, OFN_FILEMUSTEXIST, OFN_OVERWRITEPROMPT, OFN_PATHMUSTEXIST, OPENFILENAMEW,
 };
 use windows::Win32::UI::Shell::{
     BIF_RETURNONLYFSDIRS, BROWSEINFOW, SHBrowseForFolderW, SHGetPathFromIDListW,
@@ -33,7 +33,7 @@ pub fn pick_dir(window: &dyn Window, title: &str) -> Option<PathBuf> {
         let mut browse_info = BROWSEINFOW {
             hwndOwner: HWND(hwnd as *mut _),
             lpszTitle: PCWSTR(title_wide.as_ptr()),
-            ulFlags: BIF_RETURNONLYFSDIRS | BIF_USENEWUI,
+            ulFlags: BIF_RETURNONLYFSDIRS | BIF_EDITBOX | BIF_NEWDIALOGSTYLE,
             ..Default::default()
         };
 
