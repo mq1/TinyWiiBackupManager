@@ -71,27 +71,35 @@ pub fn pick_file(window: &dyn Window, title: &str, filter: (&str, &[&str])) -> O
         return None;
     };
 
-    let hwnd = HWND(handle.hwnd.get() as *mut c_void);
+    let hwnd = handle.hwnd.get();
 
-    let mut file_buffer = vec![0u16; 32_768];
+    let thread_join_handle = std::thread::spawn(move || unsafe {
+        let _ = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
 
-    let result = unsafe {
+        let mut buf = vec![0u16; 260];
+
         let mut ofn = OPENFILENAMEW {
             lStructSize: std::mem::size_of::<OPENFILENAMEW>() as u32,
-            hwndOwner: hwnd,
+            hwndOwner: HWND(hwnd as *mut _),
             lpstrFilter: PCWSTR(filter_wide.as_ptr()),
-            lpstrFile: PWSTR(file_buffer.as_mut_ptr()),
-            nMaxFile: file_buffer.len() as u32,
+            lpstrFile: PWSTR(buf.as_mut_ptr()),
+            nMaxFile: buf.len() as u32,
             lpstrTitle: PCWSTR(title_wide.as_ptr()),
             Flags: OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_EXPLORER,
             ..Default::default()
         };
 
-        GetOpenFileNameW(&mut ofn).as_bool()
-    };
+        let success = GetOpenFileNameW(&mut ofn);
 
-    if result {
-        Some(PathBuf::from(unwiden(&file_buffer)))
+        (success, buf)
+    });
+
+    let (success, buf) = thread_join_handle
+        .join()
+        .expect("Failed to join pick_file thread");
+
+    if success.as_bool() {
+        Some(PathBuf::from(unwiden(&buf)))
     } else {
         None
     }
