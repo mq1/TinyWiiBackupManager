@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v5.1.24] - 2026-03-09
+
+### Fixed
+
+- 💀 Occasional deadlocks when showing dialogs on windows-legacy
+
 ## [v5.1.23] - 2026-03-07
 
 ### Changed
@@ -290,7 +296,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 🖼️ TinyWiiBackupManager icon now shows up again on the windows exe
 
-[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.23...HEAD
+[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.24...HEAD
+[v5.1.24]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.23...v5.1.24
 [v5.1.23]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.22...v5.1.23
 [v5.1.22]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.21...v5.1.22
 [v5.1.21]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.20...v5.1.21
