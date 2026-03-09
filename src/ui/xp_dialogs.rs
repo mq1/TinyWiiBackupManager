@@ -44,10 +44,6 @@ pub fn pick_dir(window: &dyn Window, title: &str) -> Option<PathBuf> {
 
         let pidl = unsafe { SHBrowseForFolderW(&mut browse_info) };
 
-        if pidl.is_null() {
-            return None;
-        }
-
         let mut buf = [0u16; 260];
         let success = unsafe { SHGetPathFromIDListW(pidl as *const _, &mut buf) };
 
