@@ -1,10 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use iced::Window;
-use iced::window::raw_window_handle::RawWindowHandle;
 use std::path::PathBuf;
-use windows::Win32::Foundation::HWND;
 use windows::Win32::System::Com::{COINIT_APARTMENTTHREADED, CoInitializeEx, CoTaskMemFree};
 use windows::Win32::UI::Controls::Dialogs::{
     GetOpenFileNameW, GetSaveFileNameW, OFN_ALLOWMULTISELECT, OFN_EXPLORER, OFN_FILEMUSTEXIST,
