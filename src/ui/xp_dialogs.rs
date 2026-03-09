@@ -28,10 +28,8 @@ pub fn pick_dir(window: &dyn Window, title: &str) -> Option<PathBuf> {
     let hwnd = handle.hwnd.get();
     let title_wide = widen(title);
 
-    let thread_join_handle = std::thread::spawn(move || {
-        // Ensure COM is initialized for this thread before using Shell APIs.
-        // Safe to call multiple times (returns S_FALSE if already initialized).
-        let _ = unsafe { CoInitializeEx(None, COINIT_APARTMENTTHREADED) };
+    let thread_join_handle = std::thread::spawn(move || unsafe {
+        let _ = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
 
         let mut browse_info = BROWSEINFOW {
             hwndOwner: HWND(hwnd as *mut _),
@@ -40,19 +38,19 @@ pub fn pick_dir(window: &dyn Window, title: &str) -> Option<PathBuf> {
             ..Default::default()
         };
 
-        let pidl = unsafe { SHBrowseForFolderW(&mut browse_info) };
+        let pidl = SHBrowseForFolderW(&mut browse_info);
 
         let mut buf = [0u16; 260];
-        let success = unsafe { SHGetPathFromIDListW(pidl as *const _, &mut buf) };
+        let success = SHGetPathFromIDListW(pidl as *const _, &mut buf);
 
-        unsafe {
-            CoTaskMemFree(Some(pidl as *const _));
-        }
+        CoTaskMemFree(Some(pidl as *const _));
 
         (success, buf)
     });
 
-    let (success, buf) = thread_join_handle.join().unwrap();
+    let (success, buf) = thread_join_handle
+        .join()
+        .expect("Failed to join pick_dir thread");
 
     if success.as_bool() {
         Some(PathBuf::from(unwiden(&buf)))
