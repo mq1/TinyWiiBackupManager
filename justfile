@@ -278,3 +278,20 @@ print-scoop-manifest version-name:
 
   print(json.dumps(manifest, indent=2))
 
+[script("python3")]
+update-winget version-name:
+  import subprocess
+
+  subprocess.check_output([
+      "komac",
+      "update",
+      "mq1.TinyWiiBackupManager",
+      "--version",
+      "{{ version-name }}".removeprefix("v"),
+      "--urls",
+      "https://github.com/mq1/TinyWiiBackupManager/releases/download/{{ version-name }}/TinyWiiBackupManager-{{ version-name }}-windows-x86_64.zip",
+      "https://github.com/mq1/TinyWiiBackupManager/releases/download/{{ version-name }}/TinyWiiBackupManager-{{ version-name }}-windows-arm64.zip",
+      "https://github.com/mq1/TinyWiiBackupManager/releases/download/{{ version-name }}/TinyWiiBackupManager-{{ version-name }}-windows-x86.zip",
+      "--submit"
+  ])
+
