@@ -248,3 +248,34 @@ print-changes version-name:
     </tr>
   </table>""")
 
+[script("python3")]
+print-scoop-manifest version-name:
+  import urllib.request, json
+
+  manifest = {
+      "$schema": "https://raw.githubusercontent.com/ScoopInstaller/Scoop/master/schema.json",
+      "version": "{{ version-name }}".removeprefix("v"),
+      "description": "A tiny game backup and homebrew app manager for the Wii",
+      "homepage": "https://github.com/mq1/TinyWiiBackupManager",
+      "license": "GPL-3.0-only",
+      "shortcuts": [["TinyWiiBackupManager.exe", "TinyWiiBackupManager"]],
+      "architecture": {
+          "64bit": { "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/{{ version-name }}/TinyWiiBackupManager-{{ version-name }}-windows-x86_64.zip" },
+          "arm64": { "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/{{ version-name }}/TinyWiiBackupManager-{{ version-name }}-windows-arm64.zip" },
+          "32bit": { "url": "https://github.com/mq1/TinyWiiBackupManager/releases/download/{{ version-name }}/TinyWiiBackupManager-{{ version-name }}-windows-x86.zip" }
+      }
+  }
+
+  with urllib.request.urlopen("https://api.github.com/repos/mq1/TinyWiiBackupManager/releases/tags/{{ version-name }}") as response:
+      data = json.load(response)
+
+  for asset in data["assets"]:
+      if asset["name"] == "TinyWiiBackupManager-{{ version-name }}-windows-x86_64.zip":
+          manifest["architecture"]["64bit"]["hash"] = asset["digest"].removeprefix("sha256:")
+      elif asset["name"] == "TinyWiiBackupManager-{{ version-name }}-windows-arm64.zip":
+          manifest["architecture"]["arm64"]["hash"] = asset["digest"].removeprefix("sha256:")
+      elif asset["name"] == "TinyWiiBackupManager-{{ version-name }}-windows-x86.zip":
+          manifest["architecture"]["32bit"]["hash"] = asset["digest"].removeprefix("sha256:")
+
+  print(json.dumps(manifest, indent=2))
+
