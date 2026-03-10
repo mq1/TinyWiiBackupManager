@@ -54,15 +54,12 @@ package-linux-tarball version-name arch:
     -cvf "dist/TinyWiiBackupManager-{{ version-name }}-linux-{{ arch }}.tar.gz" \
     TinyWiiBackupManager
 
-package-linux-appdir:
-  #!/bin/bash
-  cp -r package/linux TinyWiiBackupManager.AppDir
-  install -Dm0755 TinyWiiBackupManager TinyWiiBackupManager.AppDir/usr/bin/TinyWiiBackupManager
-
 package-linux-appimage version-name arch appimagetool appimage-arch:
   #!/bin/bash
   export VERSION={{ version }}
   export ARCH={{ appimage-arch }}
+  cp -r package/linux TinyWiiBackupManager.AppDir
+  install -Dm0755 TinyWiiBackupManager TinyWiiBackupManager.AppDir/usr/bin/TinyWiiBackupManager
   mkdir -p dist
   {{ appimagetool }} \
     -u "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*{{ arch }}.AppImage.zsync" \
