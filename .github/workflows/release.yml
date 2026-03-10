@@ -271,9 +271,7 @@ jobs:
           merge-multiple: true # This places all matching artifacts into a single 'dist' directory
 
       - name: Create version.txt
-        run: |
-          plain_ver="${VERSION_NAME#v}" # Remove leading 'v'
-          echo -n "$plain_ver" > version.txt  # Write without line break
+        run: echo -n $(yq '.package.version' Cargo.toml) > version.txt # Write without line break
 
       - name: Generate release notes
         run: just print-changes $VERSION_NAME > BODY.md
