@@ -251,7 +251,7 @@ jobs:
         run: |
           just build-macos ${{ matrix.target }}
           just package-macos-app ${{ matrix.target }}
-          just zip-macps-app ${{ env.VERSION_NAME }} ${{ matrix.dist-name }}
+          just zip-macos-app ${{ env.VERSION_NAME }} ${{ matrix.dist-name }}
 
       - name: Upload macOS distributables
         uses: actions/upload-artifact@v4
