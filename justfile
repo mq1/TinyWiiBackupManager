@@ -7,7 +7,7 @@ build-linux-x86_64:
   #!/bin/bash
   export RUSTC_BOOTSTRAP=1
   cargo zigbuild -Z build-std=std,panic_abort --release --locked --target x86_64-unknown-linux-gnu.2.17
-  cp target/x86_64-unknown-linux-gnu.2.17/release/TinyWiiBackupManager .
+  cp target/x86_64-unknown-linux-gnu/release/TinyWiiBackupManager .
 
 build-linux-x86_64-v2:
   #!/bin/bash
@@ -15,7 +15,7 @@ build-linux-x86_64-v2:
   export RUSTFLAGS="-C target-cpu=x86-64-v2"
   export CFLAGS="-mcpu=x86_64_v2"
   cargo zigbuild -Z build-std=std,panic_abort --release --locked --target x86_64-unknown-linux-gnu.2.17
-  cp target/x86_64-unknown-linux-gnu.2.17/release/TinyWiiBackupManager .
+  cp target/x86_64-unknown-linux-gnu/release/TinyWiiBackupManager .
 
 build-linux-x86_64-v3:
   #!/bin/bash
@@ -23,25 +23,25 @@ build-linux-x86_64-v3:
   export RUSTFLAGS="-C target-cpu=x86-64-v3"
   export CFLAGS="-mcpu=x86_64_v3"
   cargo zigbuild -Z build-std=std,panic_abort --release --locked --target x86_64-unknown-linux-gnu.2.17
-  cp target/x86_64-unknown-linux-gnu.2.17/release/TinyWiiBackupManager .
+  cp target/x86_64-unknown-linux-gnu/release/TinyWiiBackupManager .
 
 build-linux-x86:
   #!/bin/bash
   export RUSTC_BOOTSTRAP=1
   cargo zigbuild -Z build-std=std,panic_abort --release --locked --target i686-unknown-linux-gnu.2.17
-  cp target/i686-unknown-linux-gnu.2.17/release/TinyWiiBackupManager .
+  cp target/i686-unknown-linux-gnu/release/TinyWiiBackupManager .
 
 build-linux-arm64:
   #!/bin/bash
   export RUSTC_BOOTSTRAP=1
   cargo zigbuild -Z build-std=std,panic_abort --release --locked --target aarch64-unknown-linux-gnu.2.17
-  cp target/aarch64-unknown-linux-gnu.2.17/release/TinyWiiBackupManager .
+  cp target/aarch64-unknown-linux-gnu/release/TinyWiiBackupManager .
 
 build-linux-armhf:
   #!/bin/bash
   export RUSTC_BOOTSTRAP=1
   cargo zigbuild -Z build-std=std,panic_abort --release --locked --target armv7-unknown-linux-gnueabihf.2.17
-  cp target/armv7-unknown-linux-gnueabihf.2.17/release/TinyWiiBackupManager .
+  cp target/armv7-unknown-linux-gnueabihf/release/TinyWiiBackupManager .
 
 package-linux-tarball version-name arch:
   #!/bin/bash
