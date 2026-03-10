@@ -148,7 +148,7 @@ jobs:
         shell: pwsh
         run: |
           just build-${{ matrix.platform }}-${{ matrix.arch }}
-          just package-windows-zip ${{ env.VERSION_NAME }} ${{ matrix.arch }}
+          just package-windows-zip ${{ env.VERSION_NAME }} ${{ matrix.platform }} ${{ matrix.arch }}
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v4
