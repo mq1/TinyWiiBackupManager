@@ -60,7 +60,7 @@ jobs:
           fetch-depth: 1
 
       - name: Install just
-        uses: extractions/setup-just@v3
+        uses: taiki-e/install-action@just
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.93
@@ -126,7 +126,7 @@ jobs:
           fetch-depth: 1
 
       - name: Install just
-        uses: extractions/setup-just@v3
+        uses: taiki-e/install-action@just
 
       - name: Install LLVM and Clang
         uses: KyleMayes/install-llvm-action@v2
@@ -180,7 +180,7 @@ jobs:
           fetch-depth: 1
 
       - name: Install just
-        uses: extractions/setup-just@v3
+        uses: taiki-e/install-action@just
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.93
