@@ -9,14 +9,14 @@
 [script("bash")]
 build-linux-x86_64:
   #!/bin/bash
-  set -euxo pipefail
+  set -euo pipefail
   export RUSTC_BOOTSTRAP=1
   cargo zigbuild -Z build-std=std,panic_abort --release --locked --target x86_64-unknown-linux-gnu.2.17
   cp target/x86_64-unknown-linux-gnu/release/TinyWiiBackupManager .
 
 [script("bash")]
 build-linux-x86_64-v2:
-  set -euxo pipefail
+  set -euo pipefail
   export RUSTC_BOOTSTRAP=1
   export RUSTFLAGS="-C target-cpu=x86-64-v2"
   export CFLAGS="-mcpu=x86_64_v2"
@@ -25,7 +25,7 @@ build-linux-x86_64-v2:
 
 [script("bash")]
 build-linux-x86_64-v3:
-  set -euxo pipefail
+  set -euo pipefail
   export RUSTC_BOOTSTRAP=1
   export RUSTFLAGS="-C target-cpu=x86-64-v3"
   export CFLAGS="-mcpu=x86_64_v3"
@@ -34,28 +34,28 @@ build-linux-x86_64-v3:
 
 [script("bash")]
 build-linux-x86:
-  set -euxo pipefail
+  set -euo pipefail
   export RUSTC_BOOTSTRAP=1
   cargo zigbuild -Z build-std=std,panic_abort --release --locked --target i686-unknown-linux-gnu.2.17
   cp target/i686-unknown-linux-gnu/release/TinyWiiBackupManager .
 
 [script("bash")]
 build-linux-arm64:
-  set -euxo pipefail
+  set -euo pipefail
   export RUSTC_BOOTSTRAP=1
   cargo zigbuild -Z build-std=std,panic_abort --release --locked --target aarch64-unknown-linux-gnu.2.17
   cp target/aarch64-unknown-linux-gnu/release/TinyWiiBackupManager .
 
 [script("bash")]
 build-linux-armhf:
-  set -euxo pipefail
+  set -euo pipefail
   export RUSTC_BOOTSTRAP=1
   cargo zigbuild -Z build-std=std,panic_abort --release --locked --target armv7-unknown-linux-gnueabihf.2.17
   cp target/armv7-unknown-linux-gnueabihf/release/TinyWiiBackupManager .
 
 [script("bash")]
 package-linux-tarball version-name arch:
-  set -euxo pipefail
+  set -euo pipefail
   mkdir -p dist
   tar \
     -I 'gzip -9' \
@@ -67,7 +67,7 @@ package-linux-tarball version-name arch:
 
 [script("bash")]
 package-linux-appimage version-name arch appimagetool appimage-arch:
-  set -euxo pipefail
+  set -euo pipefail
   export VERSION=$(yq '.package.version' Cargo.toml)
   export ARCH={{ appimage-arch }}
   cp -r package/linux TinyWiiBackupManager.AppDir
@@ -183,7 +183,7 @@ package-windows-zip version-name platform arch:
 
 [script("zsh")]
 build-macos-arm64:
-  set -euxo pipefail
+  set -euo pipefail
   export RUSTC_BOOTSTRAP=1
   export RUSTFLAGS="-C link-arg=-mmacosx-version-min=11.0"
   export CFLAGS="-O3 -flto"
@@ -192,7 +192,7 @@ build-macos-arm64:
 
 [script("zsh")]
 build-macos-x86_64:
-  set -euxo pipefail
+  set -euo pipefail
   export RUSTC_BOOTSTRAP=1
   export RUSTFLAGS="-C link-arg=-mmacosx-version-min=10.13"
   export CFLAGS="-O3 -flto"
@@ -201,7 +201,7 @@ build-macos-x86_64:
 
 [script("zsh")]
 package-macos-app:
-  set -euxo pipefail
+  set -euo pipefail
   mkdir -p TinyWiiBackupManager.app/Contents/MacOS TinyWiiBackupManager.app/Contents/Resources
   cp TinyWiiBackupManager TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
   cp package/macos/TinyWiiBackupManager.icns TinyWiiBackupManager.app/Contents/Resources/TinyWiiBackupManager.icns
@@ -210,7 +210,7 @@ package-macos-app:
 
 [script("zsh")]
 zip-macos-app version-name arch:
-  set -euxo pipefail
+  set -euo pipefail
   mkdir out
   ditto -c -k \
     --sequesterRsrc \
