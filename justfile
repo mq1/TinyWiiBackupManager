@@ -9,6 +9,24 @@ export CFLAGS_aarch64_apple_darwin := "-O3 -flto"
 export CARGO_TARGET_X86_64_APPLE_DARWIN_RUSTFLAGS := "-C link-arg=-mmacosx-version-min=10.13"
 export CFLAGS_x86_64_apple_darwin := "-O3 -flto"
 
+build-linux-x86_64:
+  cargo zigbuild -Z build-std=std,panic_abort --release --locked --target x86_64-unknown-linux-gnu.2.17
+
+build-linux-x86_64-v2:
+  RUSTFLAGS="-C target-cpu=x86-64-v2" CFLAGS="-mcpu=x86_64_v2" cargo zigbuild -Z build-std=std,panic_abort --release --locked --target x86_64-unknown-linux-gnu.2.17
+
+build-linux-x86_64-v3:
+  RUSTFLAGS="-C target-cpu=x86-64-v3" CFLAGS="-mcpu=x86_64_v3" cargo zigbuild -Z build-std=std,panic_abort --release --locked --target x86_64-unknown-linux-gnu.2.17
+
+build-linux-x86:
+  cargo zigbuild -Z build-std=std,panic_abort --release --locked --target i686-unknown-linux-gnu.2.17
+
+build-linux-arm64:
+  cargo zigbuild -Z build-std=std,panic_abort --release --locked --target aarch64-unknown-linux-gnu.2.17
+
+build-linux-armhf:
+  cargo zigbuild -Z build-std=std,panic_abort --release --locked --target armv7-unknown-linux-gnueabihf.2.17
+
 build-macos target:
   cargo build -Z build-std=std,panic_abort --release --locked --target {{ target }}
 
@@ -21,5 +39,10 @@ package-macos-app target:
 
 zip-macos-app version-name dist-name:
   mkdir out
-  ditto -c -k --sequesterRsrc --keepParent --zlibCompressionLevel 9 TinyWiiBackupManager.app "out/TinyWiiBackupManager-{{ version-name }}-{{ dist-name }}.zip"
+  ditto -c -k \
+    --sequesterRsrc \
+    --keepParent \
+    --zlibCompressionLevel 9 \
+    TinyWiiBackupManager.app \
+    "out/TinyWiiBackupManager-{{ version-name }}-{{ dist-name }}.zip"
 

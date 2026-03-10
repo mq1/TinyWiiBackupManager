@@ -38,16 +38,10 @@ jobs:
             runner: ubuntu-22.04
             arch: x86_64-v3
             appimage-arch: x86_64
-            rustflags: -C target-cpu=x86-64-v3
-            cflags: -mcpu=x86_64_v3
-            cxxflags: -mcpu=x86_64_v3
           - target: x86_64-unknown-linux-gnu
             runner: ubuntu-22.04
             arch: x86_64-v2
             appimage-arch: x86_64
-            rustflags: -C target-cpu=x86-64-v2
-            cflags: -mcpu=x86_64_v2
-            cxxflags: -mcpu=x86_64_v2
           - target: x86_64-unknown-linux-gnu
             runner: ubuntu-22.04
             arch: x86_64
@@ -71,16 +65,19 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y appstream
-          pip3 install cargo-zigbuild
+      - name: Install just
+        uses: extractions/setup-just@v3
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.93
         with:
           components: rust-src
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y appstream
+          pip3 install cargo-zigbuild
 
       - name: Download appimagetool
         run: |
@@ -88,13 +85,7 @@ jobs:
           chmod +x appimagetool-${{ matrix.appimage-arch }}.AppImage
 
       - name: Build binary
-        run: |
-          cargo zigbuild -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}.2.17
-        env:
-          RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: ${{ matrix.rustflags }}
-          CFLAGS: ${{ matrix.cflags }}
-          CXXFLAGS: ${{ matrix.cxxflags }}
+        run: just build-linux-${{ matrix.arch }}
 
       - name: Setup directories
         run: |
