@@ -227,11 +227,11 @@ zip-macos-app version-name arch:
 [script("python3")]
 print-changes version-name:
   with open("CHANGELOG.md") as f:
-    grab=False
-    for line in f:
-        if line.startswith(f"## [{{ version-name }}]"): grab=True; continue
-        if grab and line.startswith("## ["): break
-        if grab: print(line, end="")
+      grab=False
+      for line in f:
+          if line.startswith(f"## [{{ version-name }}]"): grab=True; continue
+          if grab and line.startswith("## ["): break
+          if grab: print(line, end="")
 
   print(f"""<br>
 
