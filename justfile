@@ -224,16 +224,16 @@ zip-macos-app version-name arch:
 # RELEASE UTILITIES
 # =================
 
-[script("bash")]
+[script("python3")]
 print-changes version-name:
-  if ! grep -Fq "## [{{ version-name }}]" CHANGELOG.md; then
-    exit 1
-  fi
+  with open("CHANGELOG.md") as f:
+    grab=False
+    for line in f:
+        if line.startswith(f"## [{{ version-name }}]"): grab=True; continue
+        if grab and line.startswith("## ["): break
+        if grab: print(line, end="")
 
-  awk "/^## \[{{ version-name }}\]/{f=1;next} /^## \[/{f=0} f" CHANGELOG.md
-
-  cat <<EOF
-  <br> 
+  print(f"""<br>
 
   <table>
     <tr>
@@ -241,12 +241,10 @@ print-changes version-name:
     </tr>
     <tr>
       <td>
-        :window: <a href="https://github.com/mq1/TinyWiiBackupManager/releases/download/{{ version-name }}/TinyWiiBackupManager-{{ version-name }}-windows-x86_64.zip">Windows x64 Standalone</a>
-        <br>
-        :apple: <a href="https://github.com/mq1/TinyWiiBackupManager/releases/download/{{ version-name }}/TinyWiiBackupManager-{{ version-name }}-macos-universal.dmg">macOS Universal Binary</a>
-        <br>
+        :window: <a href="https://github.com/mq1/TinyWiiBackupManager/releases/download/{{ version-name }}/TinyWiiBackupManager-{{ version-name }}-windows-x86_64.zip">Windows x64 Standalone</a><br>
+        :apple: <a href="https://github.com/mq1/TinyWiiBackupManager/releases/download/{{ version-name }}/TinyWiiBackupManager-{{ version-name }}-macos-universal.dmg">macOS Universal Binary</a><br>
         :penguin: <a href="https://github.com/mq1/TinyWiiBackupManager/releases/download/{{ version-name }}/TinyWiiBackupManager-{{ version-name }}-linux-x86_64.AppImage">Linux x86_64 AppImage</a>
       </td>
     </tr>
-  </table>
-  EOF
+  </table>""")
+
