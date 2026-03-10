@@ -260,6 +260,9 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
+      - name: Install just
+        uses: taiki-e/install-action@just
+
       - name: Download distributables
         uses: actions/download-artifact@v7
         with:
@@ -273,7 +276,7 @@ jobs:
           echo -n "$plain_ver" > version.txt  # Write without line break
 
       - name: Generate release notes
-        run: ./scripts/generate-release-notes.sh $VERSION_NAME > BODY.md
+        run: just print-changes $VERSION_NAME > BODY.md
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
