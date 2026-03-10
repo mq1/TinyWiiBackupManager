@@ -13,6 +13,7 @@ on:
       - "Cargo.toml"
       - "Cargo.lock"
       - "package/**"
+      - "justfile"
       - ".github/workflows/release.yml"
   pull_request:
   workflow_dispatch:
