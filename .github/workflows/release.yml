@@ -92,24 +92,31 @@ jobs:
 
   build-windows:
     name: Build for Windows
-    runs-on: windows-2022
+    runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - platform: windows
+          - runner: windows-2025
+            platform: windows
             arch: x86_64-v3
-          - platform: windows
+          - runner: windows-2025
+            platform: windows
             arch: x86_64-v2
-          - platform: windows
+          - runner: windows-2025
+            platform: windows
             arch: x86_64
-          - platform: windows
+          - runner: windows-11-arm
+            platform: windows
             arch: arm64
-          - platform: windows
+          - runner: windows-2025
+            platform: windows
             arch: x86
-          - platform: windows-legacy
+          - runner: windows-2022
+            platform: windows-legacy
             arch: x86_64
-          - platform: windows-legacy
+          - runner: windows-2022
+            platform: windows-legacy
             arch: x86
 
     steps:
