@@ -97,38 +97,19 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - target: x86_64-pc-windows-msvc
-            platform: windows
+          - platform: windows
             arch: x86_64-v3
-            rustflags: -C target-cpu=x86-64-v3 -C linker-plugin-lto
-            cflags: /clang:-march=x86-64-v3 /clang:-flto /clang:-fuse-ld=lld-link
-            cxxflags: /clang:-march=x86-64-v3 /clang:-flto /clang:-fuse-ld=lld-link
-          - target: x86_64-pc-windows-msvc
-            platform: windows
+          - platform: windows
             arch: x86_64-v2
-            rustflags: -C target-cpu=x86-64-v2 -C linker-plugin-lto
-            cflags: /clang:-march=x86-64-v2 /clang:-flto /clang:-fuse-ld=lld-link
-            cxxflags: /clang:-march=x86-64-v2 /clang:-flto /clang:-fuse-ld=lld-link
-          - target: x86_64-pc-windows-msvc
-            platform: windows
+          - platform: windows
             arch: x86_64
-            rustflags: -C linker-plugin-lto
-            cflags: /clang:-flto /clang:-fuse-ld=lld-link
-            cxxflags: /clang:-flto /clang:-fuse-ld=lld-link
-          - target: aarch64-pc-windows-msvc
-            platform: windows
+          - platform: windows
             arch: arm64
-            rustflags: -C linker-plugin-lto
-            cflags: /clang:-flto /clang:-fuse-ld=lld-link
-            cxxflags: /clang:-flto /clang:-fuse-ld=lld-link
-          - target: i686-pc-windows-msvc
-            platform: windows
+          - platform: windows
             arch: x86
-          - target: x86_64-win7-windows-msvc
-            platform: windows-legacy
+          - platform: windows-legacy
             arch: x86_64
-          - target: i686-win7-windows-msvc
-            platform: windows-legacy
+          - platform: windows-legacy
             arch: x86
 
     steps:
@@ -136,6 +117,9 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 1
+
+      - name: Install just
+        uses: extractions/setup-just@v3
 
       - name: Install LLVM and Clang
         uses: KyleMayes/install-llvm-action@v2
@@ -160,26 +144,11 @@ jobs:
           Invoke-WebRequest -Uri "https://github.com/Chuyu-Team/YY-Thunks/releases/latest/download/YY-Thunks-Objs.zip" -OutFile "YY-Thunks-Objs.zip"
           7z x YY-Thunks-Objs.zip -oYY-Thunks-Objs
 
-      - name: Build binary
-        shell: pwsh
-        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
-        env:
-          RUSTC_BOOTSTRAP: 1
-          CC: clang-cl
-          CXX: clang-cl
-          AR: llvm-lib
-          CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: lld-link
-          CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: lld-link
-          RUSTFLAGS: ${{ matrix.rustflags }} -C target-feature=+crt-static
-          CFLAGS: ${{ matrix.cflags }} /clang:-O3
-          CXXFLAGS: ${{ matrix.cxxflags }} /clang:-O3
-
-      - name: Package binary as zip
+      - name: Build and package binary
         shell: pwsh
         run: |
-          New-Item -Path "dist" -ItemType Directory
-          Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination TinyWiiBackupManager.exe
-          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
+          just build-${{ matrix.platform }}-${{ matrix.arch }}
+          just package-windows-zip ${{ env.VERSION_NAME }} ${{ matrix.arch }}
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v4

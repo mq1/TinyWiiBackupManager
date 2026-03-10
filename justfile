@@ -3,6 +3,7 @@
 
 version := `cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version'`
 
+
 build-linux-x86_64:
   #!/bin/bash
   export RUSTC_BOOTSTRAP=1
@@ -66,6 +67,84 @@ package-linux-appimage version-name arch appimagetool appimage-arch:
     TinyWiiBackupManager.AppDir \
     dist/TinyWiiBackupManager-{{ version-name }}-linux-{{ arch }}.AppImage
   cp *.zsync dist/
+
+
+build-windows-x86_64:
+  #!pwsh
+  $Env:RUSTC_BOOTSTRAP = "1"
+  $Env:RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto"
+  $Env:CFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
+  $Env:CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER = "lld-link"
+  $Env:CC = "clang-cl"
+  $Env:AR = "llvm-lib"
+  cargo build -Z build-std=std,panic_abort --release --locked --target x86_64-pc-windows-msvc
+  Copy-Item target/x86_64-pc-windows-msvc/release/TinyWiiBackupManager.exe .
+
+build-windows-x86_64-v2:
+  #!pwsh
+  $Env:RUSTC_BOOTSTRAP = "1"
+  $Env:RUSTFLAGS = "-C target-feature=+crt-static -C target-cpu=x86-64-v2 -C linker-plugin-lto"
+  $Env:CFLAGS = "/clang:-O3 /clang:-march=x86-64-v2 /clang:-flto /clang:-fuse-ld=lld-link"
+  $Env:CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER = "lld-link"
+  $Env:CC = "clang-cl"
+  $Env:AR = "llvm-lib"
+  cargo build -Z build-std=std,panic_abort --release --locked --target x86_64-pc-windows-msvc
+  Copy-Item target/x86_64-pc-windows-msvc/release/TinyWiiBackupManager.exe .
+
+build-windows-x86_64-v3:
+  #!pwsh
+  $Env:RUSTC_BOOTSTRAP = "1"
+  $Env:RUSTFLAGS = "-C target-feature=+crt-static -C target-cpu=x86-64-v3 -C linker-plugin-lto"
+  $Env:CFLAGS = "/clang:-O3 /clang:-march=x86-64-v3 /clang:-flto /clang:-fuse-ld=lld-link"
+  $Env:CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER = "lld-link"
+  $Env:CC = "clang-cl"
+  $Env:AR = "llvm-lib"
+  cargo build -Z build-std=std,panic_abort --release --locked --target x86_64-pc-windows-msvc
+  Copy-Item target/x86_64-pc-windows-msvc/release/TinyWiiBackupManager.exe .
+
+build-windows-arm64:
+  #!pwsh
+  $Env:RUSTC_BOOTSTRAP = "1"
+  $Env:RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto"
+  $Env:CFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
+  $Env:CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER = "lld-link"
+  $Env:CC = "clang-cl"
+  $Env:AR = "llvm-lib"
+  cargo build -Z build-std=std,panic_abort --release --locked --target aarch64-pc-windows-msvc
+  Copy-Item target/aarch64-pc-windows-msvc/release/TinyWiiBackupManager.exe .
+
+build-windows-x86:
+  #!pwsh
+  $Env:RUSTC_BOOTSTRAP = "1"
+  $Env:RUSTFLAGS = "-C target-feature=+crt-static"
+  $Env:CFLAGS = "/clang:-O3"
+  $Env:CC = "clang-cl"
+  cargo build -Z build-std=std,panic_abort --release --locked --target i686-pc-windows-msvc
+  Copy-Item target/i686-pc-windows-msvc/release/TinyWiiBackupManager.exe .
+
+build-windows-legacy-x86_64:
+  #!pwsh
+  $Env:RUSTC_BOOTSTRAP = "1"
+  $Env:RUSTFLAGS = "-C target-feature=+crt-static"
+  $Env:CFLAGS = "/clang:-O3"
+  $Env:CC = "clang-cl"
+  cargo build -Z build-std=std,panic_abort --release --locked --target x86_64-win7-windows-msvc
+  Copy-Item target/x86_64-pc-windows-msvc/release/TinyWiiBackupManager.exe .
+
+build-windows-legacy-x86:
+  #!pwsh
+  $Env:RUSTC_BOOTSTRAP = "1"
+  $Env:RUSTFLAGS = "-C target-feature=+crt-static"
+  $Env:CFLAGS = "/clang:-O3"
+  $Env:CC = "clang-cl"
+  cargo build -Z build-std=std,panic_abort --release --locked --target i686-win7-windows-msvc
+  Copy-Item target/win7-pc-windows-msvc/release/TinyWiiBackupManager.exe .
+
+package-windows-zip version-name platform arch:
+  #!pwsh
+  New-Item -Path "dist" -ItemType Directory
+  7z a -tzip -mx=9 "dist/TinyWiiBackupManager-{{ version-name }}-{{ platform }}-{{ arch }}.zip" TinyWiiBackupManager.exe
+
 
 build-macos-arm64:
   #!/bin/bash
