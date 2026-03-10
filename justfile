@@ -1,8 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 # SPDX-License-Identifier: GPL-3.0-only
 
-version := `python3 -c "import tomllib; print(tomllib.load(open('Cargo.toml','rb'))['package']['version'])"`
-
 export RUSTC_BOOTSTRAP := "1"
 export CARGO_TARGET_AARCH64_APPLE_DARWIN_RUSTFLAGS := "-C link-arg=-mmacosx-version-min=11.0"
 export CFLAGS_aarch64_apple_darwin := "-O3 -flto"
@@ -13,10 +11,16 @@ build-linux-x86_64:
   cargo zigbuild -Z build-std=std,panic_abort --release --locked --target x86_64-unknown-linux-gnu.2.17
 
 build-linux-x86_64-v2:
-  RUSTFLAGS="-C target-cpu=x86-64-v2" CFLAGS="-mcpu=x86_64_v2" cargo zigbuild -Z build-std=std,panic_abort --release --locked --target x86_64-unknown-linux-gnu.2.17
+  #!/bin/bash
+  export RUSTFLAGS="-C target-cpu=x86-64-v2"
+  export CFLAGS="-mcpu=x86_64_v2"
+  cargo zigbuild -Z build-std=std,panic_abort --release --locked --target x86_64-unknown-linux-gnu.2.17
 
 build-linux-x86_64-v3:
-  RUSTFLAGS="-C target-cpu=x86-64-v3" CFLAGS="-mcpu=x86_64_v3" cargo zigbuild -Z build-std=std,panic_abort --release --locked --target x86_64-unknown-linux-gnu.2.17
+  #!/bin/bash
+  export RUSTFLAGS="-C target-cpu=x86-64-v3"
+  export CFLAGS="-mcpu=x86_64_v3"
+  cargo zigbuild -Z build-std=std,panic_abort --release --locked --target x86_64-unknown-linux-gnu.2.17
 
 build-linux-x86:
   cargo zigbuild -Z build-std=std,panic_abort --release --locked --target i686-unknown-linux-gnu.2.17
@@ -31,11 +35,13 @@ build-macos target:
   cargo build -Z build-std=std,panic_abort --release --locked --target {{ target }}
 
 package-macos-app target:
+  #!/bin/bash
+  VERSION=$(python3 -c "import tomllib; print(tomllib.load(open('Cargo.toml','rb'))['package']['version'])")
   mkdir -p TinyWiiBackupManager.app/Contents/MacOS TinyWiiBackupManager.app/Contents/Resources
   cp "target/{{ target }}/release/TinyWiiBackupManager" TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
   cp package/macos/TinyWiiBackupManager.icns TinyWiiBackupManager.app/Contents/Resources/TinyWiiBackupManager.icns
   cp package/macos/Info.plist TinyWiiBackupManager.app/Contents/Info.plist
-  /usr/libexec/PlistBuddy -c "Add :CFBundleShortVersionString string {{ version }}" TinyWiiBackupManager.app/Contents/Info.plist
+  /usr/libexec/PlistBuddy -c "Add :CFBundleShortVersionString string $VERSION" TinyWiiBackupManager.app/Contents/Info.plist
 
 zip-macos-app version-name dist-name:
   mkdir out
