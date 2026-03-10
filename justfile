@@ -8,7 +8,6 @@
 
 [script("bash")]
 build-linux-x86_64:
-  #!/bin/bash
   set -euo pipefail
   export RUSTC_BOOTSTRAP=1
   cargo zigbuild -Z build-std=std,panic_abort --release --locked --target x86_64-unknown-linux-gnu.2.17
