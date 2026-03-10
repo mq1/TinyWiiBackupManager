@@ -219,10 +219,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - target: aarch64-apple-darwin
-            arch: arm64
-          - target: x86_64-apple-darwin
-            arch: x86_64
+          - arch: arm64
+          - arch: x86_64
 
     steps:
       - name: Checkout
@@ -241,7 +239,7 @@ jobs:
       - name: Build and package
         run: |
           just build-macos-${{ matrix.arch }}
-          just package-macos-app ${{ matrix.target }}
+          just package-macos-app-${{ matrix.arch }}
           just zip-macos-app ${{ env.VERSION_NAME }} ${{ matrix.arch }}
 
       - name: Upload macOS distributables

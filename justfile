@@ -49,11 +49,20 @@ build-macos-x86_64:
   export CFLAGS="-O3 -flto"
   cargo build -Z build-std=std,panic_abort --release --locked --target x86_64-apple-darwin
 
-package-macos-app target:
+package-macos-app-arm64:
   #!/bin/bash
   VERSION=$(python3 -c "import tomllib; print(tomllib.load(open('Cargo.toml','rb'))['package']['version'])")
   mkdir -p TinyWiiBackupManager.app/Contents/MacOS TinyWiiBackupManager.app/Contents/Resources
-  cp "target/{{ target }}/release/TinyWiiBackupManager" TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
+  cp "target/aarch64-apple-darwin/release/TinyWiiBackupManager" TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
+  cp package/macos/TinyWiiBackupManager.icns TinyWiiBackupManager.app/Contents/Resources/TinyWiiBackupManager.icns
+  cp package/macos/Info.plist TinyWiiBackupManager.app/Contents/Info.plist
+  /usr/libexec/PlistBuddy -c "Add :CFBundleShortVersionString string $VERSION" TinyWiiBackupManager.app/Contents/Info.plist
+
+package-macos-app-x86_64:
+  #!/bin/bash
+  VERSION=$(python3 -c "import tomllib; print(tomllib.load(open('Cargo.toml','rb'))['package']['version'])")
+  mkdir -p TinyWiiBackupManager.app/Contents/MacOS TinyWiiBackupManager.app/Contents/Resources
+  cp "target/x86_64-apple-darwin/release/TinyWiiBackupManager" TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
   cp package/macos/TinyWiiBackupManager.icns TinyWiiBackupManager.app/Contents/Resources/TinyWiiBackupManager.icns
   cp package/macos/Info.plist TinyWiiBackupManager.app/Contents/Info.plist
   /usr/libexec/PlistBuddy -c "Add :CFBundleShortVersionString string $VERSION" TinyWiiBackupManager.app/Contents/Info.plist
