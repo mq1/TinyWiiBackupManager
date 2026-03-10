@@ -161,6 +161,7 @@ build-windows-legacy-x86:
 package-windows-zip version-name platform arch:
   #!pwsh
   $ErrorActionPreference = "Stop"
+  $PSNativeCommandUseErrorActionPreference = $true
   New-Item -Path "dist" -ItemType Directory
   7z a -tzip -mx=9 "dist/TinyWiiBackupManager-{{ version-name }}-{{ platform }}-{{ arch }}.zip" TinyWiiBackupManager.exe
 
