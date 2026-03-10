@@ -125,7 +125,7 @@ build-windows-x86:
   #!pwsh
   $ErrorActionPreference = "Stop"
   $Env:RUSTC_BOOTSTRAP = "1"
-  $Env:RUSTFLAGS = "-C target-feature=+crt-static -C linker=lld-link -C linker-flavor=lld-link"
+  $Env:RUSTFLAGS = "-C target-feature=+crt-static"
   $Env:CFLAGS = "/clang:-O3"
   $Env:CC = "clang-cl"
   cargo build -Z build-std=std,panic_abort --release --locked --target i686-pc-windows-msvc
@@ -135,7 +135,7 @@ build-windows-legacy-x86_64:
   #!pwsh
   $ErrorActionPreference = "Stop"
   $Env:RUSTC_BOOTSTRAP = "1"
-  $Env:RUSTFLAGS = "-C target-feature=+crt-static -C linker=lld-link -C linker-flavor=lld-link"
+  $Env:RUSTFLAGS = "-C target-feature=+crt-static"
   $Env:CFLAGS = "/clang:-O3"
   $Env:CC = "clang-cl"
   cargo build -Z build-std=std,panic_abort --release --locked --target x86_64-win7-windows-msvc
@@ -145,7 +145,7 @@ build-windows-legacy-x86:
   #!pwsh
   $ErrorActionPreference = "Stop"
   $Env:RUSTC_BOOTSTRAP = "1"
-  $Env:RUSTFLAGS = "-C target-feature=+crt-static -C linker=lld-link -C linker-flavor=lld-link"
+  $Env:RUSTFLAGS = "-C target-feature=+crt-static"
   $Env:CFLAGS = "/clang:-O3"
   $Env:CC = "clang-cl"
   cargo build -Z build-std=std,panic_abort --release --locked --target i686-win7-windows-msvc
