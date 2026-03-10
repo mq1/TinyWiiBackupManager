@@ -3,6 +3,7 @@
 
 version := `python3 -c "import tomllib; print(tomllib.load(open('Cargo.toml','rb'))['package']['version'])"`
 
+export RUSTC_BOOTSTRAP := "1"
 export CARGO_TARGET_AARCH64_APPLE_DARWIN_RUSTFLAGS := "-C link-arg=-mmacosx-version-min=11.0"
 export CFLAGS_aarch64_apple_darwin := "-O3 -flto"
 export CARGO_TARGET_X86_64_APPLE_DARWIN_RUSTFLAGS := "-C link-arg=-mmacosx-version-min=10.13"
