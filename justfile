@@ -122,7 +122,7 @@ build-windows-arm64:
   $Env:CFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
   $Env:CC = "clang-cl"
   $Env:AR = "llvm-lib"
-  cargo --config 'target.aarch64-pc-windows-msvc.linker = "lld-link"' build -Z build-std=std,panic_abort --release --locked --target x86_64-pc-windows-msvc
+  cargo --config 'target.aarch64-pc-windows-msvc.linker = "lld-link"' build -Z build-std=std,panic_abort --release --locked --target aarch64-pc-windows-msvc
   Copy-Item target/aarch64-pc-windows-msvc/release/TinyWiiBackupManager.exe .
 
 build-windows-x86:
