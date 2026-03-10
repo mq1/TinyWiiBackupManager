@@ -229,11 +229,9 @@ jobs:
       matrix:
         include:
           - target: aarch64-apple-darwin
-            arch: arm64
-            deployment_target: 11.0
+            dist-name: macos-arm64
           - target: x86_64-apple-darwin
-            arch: x86_64
-            deployment_target: 10.13
+            dist-name: macos-x86_64
 
     steps:
       - name: Checkout
@@ -241,37 +239,30 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Install just
+        uses: extractions/setup-just@v3
+
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.93
         with:
           components: rust-src
 
       - name: Build binary
-        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
-        env:
-          RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: -C link-arg=-mmacosx-version-min=${{ matrix.deployment_target }}
-          CFLAGS: -O3 -flto -mmacosx-version-min=${{ matrix.deployment_target }}
-          CXXFLAGS: -O3 -flto -mmacosx-version-min=${{ matrix.deployment_target }}
+        run: just build-macos ${{ matrix.target }}
 
-      - name: Build macOS app bundle
-        run: |
-          plain_ver="${VERSION_NAME#v}" # Remove leading 'v'
-          mkdir -p TinyWiiBackupManager.app/Contents/MacOS TinyWiiBackupManager.app/Contents/Resources
-          cp "target/${{ matrix.target }}/release/TinyWiiBackupManager" TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
-          sed "s/{{ VERSION_NAME }}/$plain_ver/" package/macos/Info.plist > TinyWiiBackupManager.app/Contents/Info.plist
-          cp package/macos/TinyWiiBackupManager.icns TinyWiiBackupManager.app/Contents/Resources/TinyWiiBackupManager.icns
+      - name: Package macos .app
+        run: just package-macos-app ${{ matrix.target }}
 
       - name: zip the app
         run: |
           mkdir dist
           ditto -c -k --sequesterRsrc --keepParent --zlibCompressionLevel 9 \
-            TinyWiiBackupManager.app "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-${{ matrix.arch }}.zip"
+            TinyWiiBackupManager.app "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-${{ matrix.dist-name }}.zip"
 
       - name: Upload macOS distributables
         uses: actions/upload-artifact@v4
         with:
-          name: build-macos-${{ matrix.arch }}
+          name: build-${{ matrix.dist-name }}
           path: dist/*
 
   package-macos:
