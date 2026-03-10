@@ -34,34 +34,22 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - target: x86_64-unknown-linux-gnu
-            runner: ubuntu-22.04
+          - runner: ubuntu-22.04
             arch: x86_64-v3
             appimage-arch: x86_64
-            rustflags: -C target-cpu=x86-64-v3
-            cflags: -mcpu=x86_64_v3
-            cxxflags: -mcpu=x86_64_v3
-          - target: x86_64-unknown-linux-gnu
-            runner: ubuntu-22.04
+          - runner: ubuntu-22.04
             arch: x86_64-v2
             appimage-arch: x86_64
-            rustflags: -C target-cpu=x86-64-v2
-            cflags: -mcpu=x86_64_v2
-            cxxflags: -mcpu=x86_64_v2
-          - target: x86_64-unknown-linux-gnu
-            runner: ubuntu-22.04
+          - runner: ubuntu-22.04
             arch: x86_64
             appimage-arch: x86_64
-          - target: aarch64-unknown-linux-gnu
-            runner: ubuntu-22.04-arm
+          - runner: ubuntu-22.04-arm
             arch: arm64
             appimage-arch: aarch64
-          - target: i686-unknown-linux-gnu
-            runner: ubuntu-22.04
+          - runner: ubuntu-22.04
             arch: x86
             appimage-arch: i686
-          - target: armv7-unknown-linux-gnueabihf
-            runner: ubuntu-22.04-arm
+          - runner: ubuntu-22.04-arm
             arch: armhf
             appimage-arch: armhf
 
@@ -71,52 +59,30 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y appstream
-          pip3 install cargo-zigbuild
+      - name: Install just
+        uses: taiki-e/install-action@just
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.93
         with:
           components: rust-src
 
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y appstream
+          pip3 install cargo-zigbuild
+
       - name: Download appimagetool
         run: |
           wget "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-${{ matrix.appimage-arch }}.AppImage"
           chmod +x appimagetool-${{ matrix.appimage-arch }}.AppImage
 
-      - name: Build binary
+      - name: Build and package binary
         run: |
-          cargo zigbuild -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}.2.17
-        env:
-          RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: ${{ matrix.rustflags }}
-          CFLAGS: ${{ matrix.cflags }}
-          CXXFLAGS: ${{ matrix.cxxflags }}
-
-      - name: Setup directories
-        run: |
-          cp "target/${{ matrix.target }}/release/TinyWiiBackupManager" TinyWiiBackupManager
-          cp -r package/linux TinyWiiBackupManager.AppDir
-          install -Dm0755 TinyWiiBackupManager TinyWiiBackupManager.AppDir/usr/bin/TinyWiiBackupManager
-          mkdir -p dist
-
-      - name: Package binary as tar.gz
-        run: |
-          tar -I 'gzip -9' --owner=0 --group=0 --mode=0755 -cvf "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.tar.gz" TinyWiiBackupManager
-
-      - name: Package binary as AppImage
-        run: |
-          export VERSION="${VERSION_NAME#v}"
-          ./appimagetool-${{ matrix.appimage-arch }}.AppImage \
-            -u "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync" \
-            TinyWiiBackupManager.AppDir \
-            dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage
-          cp *.zsync dist/
-        env:
-          ARCH: ${{ matrix.appimage-arch }}
+          just build-linux-${{ matrix.arch }}
+          just package-linux-tarball ${{ env.VERSION_NAME }} ${{ matrix.arch }}
+          just package-linux-appimage ${{ env.VERSION_NAME }} ${{ matrix.arch }} ./appimagetool-${{ matrix.appimage-arch }}.AppImage ${{ matrix.appimage-arch }}
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v4
@@ -126,42 +92,30 @@ jobs:
 
   build-windows:
     name: Build for Windows
-    runs-on: windows-2022
+    runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - target: x86_64-pc-windows-msvc
+          - runner: windows-2025
             platform: windows
             arch: x86_64-v3
-            rustflags: -C target-cpu=x86-64-v3 -C linker-plugin-lto
-            cflags: /clang:-march=x86-64-v3 /clang:-flto /clang:-fuse-ld=lld-link
-            cxxflags: /clang:-march=x86-64-v3 /clang:-flto /clang:-fuse-ld=lld-link
-          - target: x86_64-pc-windows-msvc
+          - runner: windows-2025
             platform: windows
             arch: x86_64-v2
-            rustflags: -C target-cpu=x86-64-v2 -C linker-plugin-lto
-            cflags: /clang:-march=x86-64-v2 /clang:-flto /clang:-fuse-ld=lld-link
-            cxxflags: /clang:-march=x86-64-v2 /clang:-flto /clang:-fuse-ld=lld-link
-          - target: x86_64-pc-windows-msvc
+          - runner: windows-2025
             platform: windows
             arch: x86_64
-            rustflags: -C linker-plugin-lto
-            cflags: /clang:-flto /clang:-fuse-ld=lld-link
-            cxxflags: /clang:-flto /clang:-fuse-ld=lld-link
-          - target: aarch64-pc-windows-msvc
+          - runner: windows-11-arm
             platform: windows
             arch: arm64
-            rustflags: -C linker-plugin-lto
-            cflags: /clang:-flto /clang:-fuse-ld=lld-link
-            cxxflags: /clang:-flto /clang:-fuse-ld=lld-link
-          - target: i686-pc-windows-msvc
+          - runner: windows-2025
             platform: windows
             arch: x86
-          - target: x86_64-win7-windows-msvc
+          - runner: windows-2022
             platform: windows-legacy
             arch: x86_64
-          - target: i686-win7-windows-msvc
+          - runner: windows-2022
             platform: windows-legacy
             arch: x86
 
@@ -170,6 +124,9 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 1
+
+      - name: Install just
+        uses: taiki-e/install-action@just
 
       - name: Install LLVM and Clang
         uses: KyleMayes/install-llvm-action@v2
@@ -194,26 +151,11 @@ jobs:
           Invoke-WebRequest -Uri "https://github.com/Chuyu-Team/YY-Thunks/releases/latest/download/YY-Thunks-Objs.zip" -OutFile "YY-Thunks-Objs.zip"
           7z x YY-Thunks-Objs.zip -oYY-Thunks-Objs
 
-      - name: Build binary
-        shell: pwsh
-        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
-        env:
-          RUSTC_BOOTSTRAP: 1
-          CC: clang-cl
-          CXX: clang-cl
-          AR: llvm-lib
-          CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: lld-link
-          CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: lld-link
-          RUSTFLAGS: ${{ matrix.rustflags }} -C target-feature=+crt-static
-          CFLAGS: ${{ matrix.cflags }} /clang:-O3
-          CXXFLAGS: ${{ matrix.cxxflags }} /clang:-O3
-
-      - name: Package binary as zip
+      - name: Build and package binary
         shell: pwsh
         run: |
-          New-Item -Path "dist" -ItemType Directory
-          Copy-Item -Path "target/${{ matrix.target }}/release/TinyWiiBackupManager.exe" -Destination TinyWiiBackupManager.exe
-          7z a -tzip -mx=9 "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
+          just build-${{ matrix.platform }}-${{ matrix.arch }}
+          just package-windows-zip ${{ env.VERSION_NAME }} ${{ matrix.platform }} ${{ matrix.arch }}
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v4
@@ -228,12 +170,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - target: aarch64-apple-darwin
-            arch: arm64
-            deployment_target: 11.0
-          - target: x86_64-apple-darwin
-            arch: x86_64
-            deployment_target: 10.13
+          - arch: arm64
+          - arch: x86_64
 
     steps:
       - name: Checkout
@@ -241,38 +179,25 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Install just
+        uses: taiki-e/install-action@just
+
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.93
         with:
           components: rust-src
 
-      - name: Build binary
-        run: cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
-        env:
-          RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: -C link-arg=-mmacosx-version-min=${{ matrix.deployment_target }}
-          CFLAGS: -O3 -flto -mmacosx-version-min=${{ matrix.deployment_target }}
-          CXXFLAGS: -O3 -flto -mmacosx-version-min=${{ matrix.deployment_target }}
-
-      - name: Build macOS app bundle
+      - name: Build and package
         run: |
-          plain_ver="${VERSION_NAME#v}" # Remove leading 'v'
-          mkdir -p TinyWiiBackupManager.app/Contents/MacOS TinyWiiBackupManager.app/Contents/Resources
-          cp "target/${{ matrix.target }}/release/TinyWiiBackupManager" TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
-          sed "s/{{ VERSION_NAME }}/$plain_ver/" package/macos/Info.plist > TinyWiiBackupManager.app/Contents/Info.plist
-          cp package/macos/TinyWiiBackupManager.icns TinyWiiBackupManager.app/Contents/Resources/TinyWiiBackupManager.icns
-
-      - name: zip the app
-        run: |
-          mkdir dist
-          ditto -c -k --sequesterRsrc --keepParent --zlibCompressionLevel 9 \
-            TinyWiiBackupManager.app "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-${{ matrix.arch }}.zip"
+          just build-macos-${{ matrix.arch }}
+          just package-macos-app
+          just zip-macos-app ${{ env.VERSION_NAME }} ${{ matrix.arch }}
 
       - name: Upload macOS distributables
         uses: actions/upload-artifact@v4
         with:
           name: build-macos-${{ matrix.arch }}
-          path: dist/*
+          path: out/*
 
   package-macos:
     name: Package Universal2 macOS app and DMGs
