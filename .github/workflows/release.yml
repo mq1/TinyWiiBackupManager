@@ -247,23 +247,17 @@ jobs:
         with:
           components: rust-src
 
-      - name: Build binary
-        run: just build-macos ${{ matrix.target }}
-
-      - name: Package macos .app
-        run: just package-macos-app ${{ matrix.target }}
-
-      - name: zip the app
+      - name: Build and package
         run: |
-          mkdir dist
-          ditto -c -k --sequesterRsrc --keepParent --zlibCompressionLevel 9 \
-            TinyWiiBackupManager.app "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-${{ matrix.dist-name }}.zip"
+          just build-macos ${{ matrix.target }}
+          just package-macos-app ${{ matrix.target }}
+          just zip-macps-app ${{ env.VERSION_NAME }} ${{ matrix.dist-name }}
 
       - name: Upload macOS distributables
         uses: actions/upload-artifact@v4
         with:
           name: build-${{ matrix.dist-name }}
-          path: dist/*
+          path: out/*
 
   package-macos:
     name: Package Universal2 macOS app and DMGs

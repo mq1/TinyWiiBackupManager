@@ -17,5 +17,9 @@ package-macos-app target:
   cp "target/{{ target }}/release/TinyWiiBackupManager" TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
   cp package/macos/TinyWiiBackupManager.icns TinyWiiBackupManager.app/Contents/Resources/TinyWiiBackupManager.icns
   cp package/macos/Info.plist TinyWiiBackupManager.app/Contents/Info.plist
-  /usr/libexec/PlistBuddy -c "Add :CFBundleShortVersionString {{ version }}" TinyWiiBackupManager.app/Contents/Info.plist
+  /usr/libexec/PlistBuddy -c "Add :CFBundleShortVersionString string {{ version }}" TinyWiiBackupManager.app/Contents/Info.plist
+
+zip-macos-app version-name dist-name:
+  mkdir out
+  ditto -c -k --sequesterRsrc --keepParent --zlibCompressionLevel 9 TinyWiiBackupManager.app "out/TinyWiiBackupManager-{{ version-name }}-{{ dist-name }}.zip"
 
