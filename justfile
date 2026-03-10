@@ -13,8 +13,8 @@ build-macos target:
   cargo build -Z build-std=std,panic_abort --release --locked --target {{ target }}
 
 package-macos-app target:
-  install -Dm0755 "target/{{ target }}/release/TinyWiiBackupManager" TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
-  install -Dm0644 package/macos/TinyWiiBackupManager.icns TinyWiiBackupManager.app/Contents/Resources/TinyWiiBackupManager.icns
-  install -Dm0644 package/macos/Info.plist TinyWiiBackupManager.app/Contents/Info.plist
+  install -dm0755 "target/{{ target }}/release/TinyWiiBackupManager" TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
+  install -dm0644 package/macos/TinyWiiBackupManager.icns TinyWiiBackupManager.app/Contents/Resources/TinyWiiBackupManager.icns
+  install -dm0644 package/macos/Info.plist TinyWiiBackupManager.app/Contents/Info.plist
   /usr/libexec/PlistBuddy -c "Add :CFBundleShortVersionString {{ version }}" TinyWiiBackupManager.app/Contents/Info.plist
 
