@@ -83,10 +83,11 @@ build-windows-x86_64:
   $PSNativeCommandUseErrorActionPreference = $true
   $Env:RUSTC_BOOTSTRAP = "1"
   $Env:RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto"
+  $Env:CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER = "lld-link"
   $Env:CFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
   $Env:CC = "clang-cl"
   $Env:AR = "llvm-lib"
-  cargo --config 'target.x86_64-pc-windows-msvc.linker = "lld-link"' build -Z build-std=std,panic_abort --release --locked --target x86_64-pc-windows-msvc
+  cargo build -Z build-std=std,panic_abort --release --locked --target x86_64-pc-windows-msvc
   Copy-Item target/x86_64-pc-windows-msvc/release/TinyWiiBackupManager.exe .
 
 build-windows-x86_64-v2:
@@ -95,10 +96,11 @@ build-windows-x86_64-v2:
   $PSNativeCommandUseErrorActionPreference = $true
   $Env:RUSTC_BOOTSTRAP = "1"
   $Env:RUSTFLAGS = "-C target-feature=+crt-static -C target-cpu=x86-64-v2 -C linker-plugin-lto"
+  $Env:CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER = "lld-link"
   $Env:CFLAGS = "/clang:-O3 /clang:-march=x86-64-v2 /clang:-flto /clang:-fuse-ld=lld-link"
   $Env:CC = "clang-cl"
   $Env:AR = "llvm-lib"
-  cargo --config 'target.x86_64-pc-windows-msvc.linker = "lld-link"' build -Z build-std=std,panic_abort --release --locked --target x86_64-pc-windows-msvc
+  cargo build -Z build-std=std,panic_abort --release --locked --target x86_64-pc-windows-msvc
   Copy-Item target/x86_64-pc-windows-msvc/release/TinyWiiBackupManager.exe .
 
 build-windows-x86_64-v3:
@@ -107,10 +109,11 @@ build-windows-x86_64-v3:
   $PSNativeCommandUseErrorActionPreference = $true
   $Env:RUSTC_BOOTSTRAP = "1"
   $Env:RUSTFLAGS = "-C target-feature=+crt-static -C target-cpu=x86-64-v3 -C linker-plugin-lto"
+  $Env:CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER = "lld-link"
   $Env:CFLAGS = "/clang:-O3 /clang:-march=x86-64-v3 /clang:-flto /clang:-fuse-ld=lld-link"
   $Env:CC = "clang-cl"
   $Env:AR = "llvm-lib"
-  cargo --config 'target.x86_64-pc-windows-msvc.linker = "lld-link"' build -Z build-std=std,panic_abort --release --locked --target x86_64-pc-windows-msvc
+  cargo build -Z build-std=std,panic_abort --release --locked --target x86_64-pc-windows-msvc
   Copy-Item target/x86_64-pc-windows-msvc/release/TinyWiiBackupManager.exe .
 
 build-windows-arm64:
@@ -119,10 +122,11 @@ build-windows-arm64:
   $PSNativeCommandUseErrorActionPreference = $true
   $Env:RUSTC_BOOTSTRAP = "1"
   $Env:RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto"
+  $Env:CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER = "lld-link"
   $Env:CFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
   $Env:CC = "clang-cl"
   $Env:AR = "llvm-lib"
-  cargo --config 'target.aarch64-pc-windows-msvc.linker = "lld-link"' build -Z build-std=std,panic_abort --release --locked --target aarch64-pc-windows-msvc
+  cargo build -Z build-std=std,panic_abort --release --locked --target aarch64-pc-windows-msvc
   Copy-Item target/aarch64-pc-windows-msvc/release/TinyWiiBackupManager.exe .
 
 build-windows-x86:
