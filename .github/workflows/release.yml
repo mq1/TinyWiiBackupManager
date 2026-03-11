@@ -81,7 +81,7 @@ jobs:
 
       - name: Install armhf dependencies
         if: matrix.arch == 'armhf'
-        run: sudo apt-get install -y gcc-arm-linux-gnueabihf
+        run: sudo apt-get install -y libc6-dev-armhf-cross
 
       - name: Download appimagetool
         run: |

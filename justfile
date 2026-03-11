@@ -61,7 +61,7 @@ build-linux-armhf:
     CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNU_LINKER="clang-21" \
     CC="clang-21" \
     AR="llvm-ar-21" \
-    CFLAGS="-O3 -flto" \
+    CFLAGS="-O3 -flto --target armv7-unknown-linux-gnueabihf --sysroot=/usr/arm-linux-gnueabihf" \
     cargo build -Z build-std=std,panic_abort --release --locked --target armv7-unknown-linux-gnueabihf
   cp target/armv7-unknown-linux-gnueabihf/release/TinyWiiBackupManager .
 
