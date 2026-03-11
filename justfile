@@ -30,6 +30,12 @@ export CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_RUSTFLAGS := "-C target-feature=+crt-
 export CC_i686_win7_windows_msvc := "clang-cl"
 export CFLAGS_i686_win7_windows_msvc := "/clang:-O3"
 
+export CARGO_TARGET_AARCH64_APPLE_DARWIN_RUSTFLAGS := "-C link-arg=-mmacosx-version-min=10.13"
+export CFLAGS_aarch64_apple_darwin := "-O3"
+
+export CARGO_TARGET_X86_64_APPLE_DARWIN_RUSTFLAGS := "-C link-arg=-mmacosx-version-min=10.13"
+export CFLAGS_aarch64_apple_darwin := "-O3"
+
 # ===========
 # LINUX BUILD
 # ===========
@@ -62,12 +68,16 @@ build-linux-armhf:
 
 package-linux-tarball version-name arch:
   mkdir -p dist
-  tar -I 'gzip -9' --owner=0 --group=0 --mode=0755 \
+  tar \
+    -I 'gzip -9' \
+    --owner=0 \
+    --group=0 \
+    --mode=0755 \
     -cvf "dist/TinyWiiBackupManager-{{ version-name }}-linux-{{ arch }}.tar.gz" \
     TinyWiiBackupManager
 
 package-linux-appimage $VERSION_NAME arch appimagetool appimage-arch:
-  cp -r package/linux TinyWiiBackupManager.AppDir
+  cp -r package/linux/AppDir TinyWiiBackupManager.AppDir
   install -Dm0755 TinyWiiBackupManager TinyWiiBackupManager.AppDir/usr/bin/TinyWiiBackupManager
   mkdir -p dist
   VERSION="${VERSION_NAME#v}" \
@@ -122,38 +132,24 @@ package-windows-zip version-name platform arch:
 # MACOS BUILD
 # ===========
 
-[script("zsh")]
 build-macos-arm64:
-  set -euo pipefail
-  export RUSTC_BOOTSTRAP=1
-  export RUSTFLAGS="-C link-arg=-mmacosx-version-min=11.0"
-  export CFLAGS="-O3 -flto"
-  export MACOSX_DEPLOYMENT_TARGET="11.0"
-  cargo build -Z build-std=std,panic_abort --release --locked --target aarch64-apple-darwin
+  MACOSX_DEPLOYMENT_TARGET="11.0" \
+    cargo build -Z build-std=std,panic_abort --release --locked --target aarch64-apple-darwin
   cp target/aarch64-apple-darwin/release/TinyWiiBackupManager .
 
-[script("zsh")]
 build-macos-x86_64:
-  set -euo pipefail
-  export RUSTC_BOOTSTRAP=1
-  export RUSTFLAGS="-C link-arg=-mmacosx-version-min=10.13"
-  export CFLAGS="-O3 -flto"
-  export MACOSX_DEPLOYMENT_TARGET="10.13"
-  cargo build -Z build-std=std,panic_abort --release --locked --target x86_64-apple-darwin
+  MACOSX_DEPLOYMENT_TARGET="10.13" \
+    cargo build -Z build-std=std,panic_abort --release --locked --target x86_64-apple-darwin
   cp target/x86_64-apple-darwin/release/TinyWiiBackupManager .
 
-[script("zsh")]
-package-macos-app:
-  set -euo pipefail
+package-macos-app $VERSION_NAME:
   mkdir -p TinyWiiBackupManager.app/Contents/MacOS TinyWiiBackupManager.app/Contents/Resources
   cp TinyWiiBackupManager TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
   cp package/macos/TinyWiiBackupManager.icns TinyWiiBackupManager.app/Contents/Resources/TinyWiiBackupManager.icns
   cp package/macos/Info.plist TinyWiiBackupManager.app/Contents/Info.plist
-  /usr/libexec/PlistBuddy -c "Add :CFBundleShortVersionString string $(yq '.package.version' Cargo.toml)" TinyWiiBackupManager.app/Contents/Info.plist
+  /usr/libexec/PlistBuddy -c "Add :CFBundleShortVersionString string ${VERSION_NAME#v}" TinyWiiBackupManager.app/Contents/Info.plist
 
-[script("zsh")]
 zip-macos-app version-name arch:
-  set -euo pipefail
   mkdir out
   ditto -c -k \
     --sequesterRsrc \
