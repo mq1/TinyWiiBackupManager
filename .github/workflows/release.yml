@@ -75,6 +75,14 @@ jobs:
           sudo ./llvm.sh 21
           sudo ln -sf $(which lld-21) /usr/bin/ld
 
+      - name: Install x86 dependencies
+        if: matrix.arch == 'x86'
+        run: sudo apt-get install -y libc6-dev-i386
+
+      - name: Install armhf dependencies
+        if: matrix.arch == 'armhf'
+        run: sudo apt-get install -y libc6-dev-armhf-cross
+
       - name: Download appimagetool
         run: |
           wget "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-${{ matrix.appimage-arch }}.AppImage"
