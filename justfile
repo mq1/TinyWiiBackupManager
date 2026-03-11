@@ -1,74 +1,49 @@
 # SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 # SPDX-License-Identifier: GPL-3.0-only
 
+set shell := ["bash", "-uc"]
+set windows-shell := ["powershell.exe", "-NoLogo", "-Command"]
+
+export VERSION := `yq '.package.version' Cargo.toml`
+export RUSTC_BOOTSTRAP := "1"
 
 # ===========
 # LINUX BUILD
 # ===========
 
-[script("bash")]
 build-linux-x86_64:
-  set -euo pipefail
-  export RUSTC_BOOTSTRAP=1
   cargo zigbuild -Z build-std=std,panic_abort --release --locked --target x86_64-unknown-linux-gnu.2.17
   cp target/x86_64-unknown-linux-gnu/release/TinyWiiBackupManager .
 
-[script("bash")]
 build-linux-x86_64-v2:
-  set -euo pipefail
-  export RUSTC_BOOTSTRAP=1
-  export RUSTFLAGS="-C target-cpu=x86-64-v2"
-  export CFLAGS="-mcpu=x86_64_v2"
-  cargo zigbuild -Z build-std=std,panic_abort --release --locked --target x86_64-unknown-linux-gnu.2.17
+  RUSTFLAGS="-C target-cpu=x86-64-v2" CFLAGS="-mcpu=x86_64_v2" \
+    cargo zigbuild -Z build-std=std,panic_abort --release --locked --target x86_64-unknown-linux-gnu.2.17
   cp target/x86_64-unknown-linux-gnu/release/TinyWiiBackupManager .
 
-[script("bash")]
 build-linux-x86_64-v3:
-  set -euo pipefail
-  export RUSTC_BOOTSTRAP=1
-  export RUSTFLAGS="-C target-cpu=x86-64-v3"
-  export CFLAGS="-mcpu=x86_64_v3"
-  cargo zigbuild -Z build-std=std,panic_abort --release --locked --target x86_64-unknown-linux-gnu.2.17
+  RUSTFLAGS="-C target-cpu=x86-64-v3" CFLAGS="-mcpu=x86_64_v3" \
+    cargo zigbuild -Z build-std=std,panic_abort --release --locked --target x86_64-unknown-linux-gnu.2.17
   cp target/x86_64-unknown-linux-gnu/release/TinyWiiBackupManager .
 
-[script("bash")]
 build-linux-x86:
-  set -euo pipefail
-  export RUSTC_BOOTSTRAP=1
   cargo zigbuild -Z build-std=std,panic_abort --release --locked --target i686-unknown-linux-gnu.2.17
   cp target/i686-unknown-linux-gnu/release/TinyWiiBackupManager .
 
-[script("bash")]
 build-linux-arm64:
-  set -euo pipefail
-  export RUSTC_BOOTSTRAP=1
   cargo zigbuild -Z build-std=std,panic_abort --release --locked --target aarch64-unknown-linux-gnu.2.17
   cp target/aarch64-unknown-linux-gnu/release/TinyWiiBackupManager .
 
-[script("bash")]
 build-linux-armhf:
-  set -euo pipefail
-  export RUSTC_BOOTSTRAP=1
   cargo zigbuild -Z build-std=std,panic_abort --release --locked --target armv7-unknown-linux-gnueabihf.2.17
   cp target/armv7-unknown-linux-gnueabihf/release/TinyWiiBackupManager .
 
-[script("bash")]
 package-linux-tarball version-name arch:
-  set -euo pipefail
   mkdir -p dist
-  tar \
-    -I 'gzip -9' \
-    --owner=0 \
-    --group=0 \
-    --mode=0755 \
+  tar -I 'gzip -9' --owner=0 --group=0 --mode=0755 \
     -cvf "dist/TinyWiiBackupManager-{{ version-name }}-linux-{{ arch }}.tar.gz" \
     TinyWiiBackupManager
 
-[script("bash")]
-package-linux-appimage version-name arch appimagetool appimage-arch:
-  set -euo pipefail
-  export VERSION=$(yq '.package.version' Cargo.toml)
-  export ARCH={{ appimage-arch }}
+package-linux-appimage version-name arch appimagetool $ARCH:
   cp -r package/linux TinyWiiBackupManager.AppDir
   install -Dm0755 TinyWiiBackupManager TinyWiiBackupManager.AppDir/usr/bin/TinyWiiBackupManager
   mkdir -p dist
