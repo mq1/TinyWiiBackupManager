@@ -86,7 +86,7 @@ jobs:
           just package-linux-appimage ${{ env.VERSION_NAME }} ${{ matrix.arch }} ./appimagetool-${{ matrix.appimage-arch }}.AppImage ${{ matrix.appimage-arch }}
 
       - name: Upload Linux distributables
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dist-linux-${{ matrix.arch }}
           path: dist/*
@@ -159,7 +159,7 @@ jobs:
           just package-windows-zip ${{ env.VERSION_NAME }} ${{ matrix.platform }} ${{ matrix.arch }}
 
       - name: Upload Windows distributables
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dist-${{ matrix.platform }}-${{ matrix.arch }}
           path: dist/*
@@ -195,7 +195,7 @@ jobs:
           just zip-macos-app ${{ env.VERSION_NAME }} ${{ matrix.arch }}
 
       - name: Upload macOS distributables
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: build-macos-${{ matrix.arch }}
           path: out/*
@@ -212,7 +212,7 @@ jobs:
           fetch-depth: 1
 
       - name: Download macOS .app distributables
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           pattern: "build-macos-*"
 
@@ -241,7 +241,7 @@ jobs:
           appdmg package/macos/appdmg-universal.json "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-universal.dmg"
 
       - name: Upload macOS distributables
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dist-macos-universal
           path: dist/*
@@ -265,7 +265,7 @@ jobs:
         uses: taiki-e/install-action@just
 
       - name: Download distributables
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           path: dist
           pattern: "dist-*" # This pattern will match all final distributable artifacts
