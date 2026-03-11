@@ -20,12 +20,6 @@ mod util;
 use crate::state::State;
 use iced::{Size, window};
 
-#[cfg(target_vendor = "win7")]
-#[link(name = "ole32")]
-unsafe extern "system" {
-    pub unsafe fn CoTaskMemFree(pv: *mut std::ffi::c_void);
-}
-
 #[cfg(any(target_os = "windows", target_os = "linux"))]
 #[inline]
 fn get_window_icon() -> Option<window::Icon> {

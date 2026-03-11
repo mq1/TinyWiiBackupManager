@@ -31,6 +31,7 @@ pub fn confirm_delete_dir(path: PathBuf) -> Message {
     )
 }
 
+#[allow(unused_variables)]
 pub fn pick_mount_point(window: &dyn Window) -> Message {
     #[cfg(not(target_vendor = "win7"))]
     let res = FileDialog::new()
@@ -47,6 +48,7 @@ pub fn pick_mount_point(window: &dyn Window) -> Message {
     }
 }
 
+#[allow(unused_variables)]
 pub fn pick_games(window: &dyn Window, existing_ids: &[GameID]) -> Message {
     #[cfg(not(target_vendor = "win7"))]
     let paths = FileDialog::new()
@@ -83,6 +85,7 @@ pub fn pick_games(window: &dyn Window, existing_ids: &[GameID]) -> Message {
     }
 }
 
+#[allow(unused_variables)]
 pub fn pick_games_dir(window: &dyn Window, existing_ids: &[GameID]) -> Message {
     #[cfg(not(target_vendor = "win7"))]
     let res = FileDialog::new()
@@ -165,6 +168,7 @@ fn confirm_add_games(entries: Vec<(PathBuf, Format, GameID, String)>) -> Message
     )
 }
 
+#[allow(unused_variables)]
 pub fn pick_hbc_apps(window: &dyn Window) -> Message {
     #[cfg(not(target_vendor = "win7"))]
     let paths = FileDialog::new()
@@ -184,6 +188,7 @@ pub fn pick_hbc_apps(window: &dyn Window) -> Message {
     }
 }
 
+#[allow(unused_variables)]
 pub fn pick_hbc_app_to_wiiload(window: &dyn Window) -> Message {
     #[cfg(not(target_vendor = "win7"))]
     let res = FileDialog::new()
@@ -204,6 +209,7 @@ pub fn pick_hbc_app_to_wiiload(window: &dyn Window) -> Message {
     }
 }
 
+#[allow(unused_variables)]
 pub fn pick_game_to_convert(window: &dyn Window) -> Message {
     #[cfg(not(target_vendor = "win7"))]
     let res = FileDialog::new()
@@ -221,6 +227,7 @@ pub fn pick_game_to_convert(window: &dyn Window) -> Message {
     }
 }
 
+#[allow(unused_variables)]
 pub fn pick_archive_dest(window: &dyn Window, source: PathBuf, game_title: String) -> Message {
     let title = format!(
         "Select Destination for {game_title} | Supported extensions: iso, wbfs, wia, rvz, ciso, gcz, tgc, nfs"

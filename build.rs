@@ -140,78 +140,7 @@ fn main() {
 
     let target = env::var("TARGET").unwrap();
 
-    if target == "x86_64-apple-darwin" {
-        println!("cargo:rustc-env=MACOSX_DEPLOYMENT_TARGET=10.13");
-    } else if target == "aarch64-apple-darwin" {
-        println!("cargo:rustc-env=MACOSX_DEPLOYMENT_TARGET=11.0");
-    }
-
     if target.contains("-windows-") {
-        if target.contains("-pc-") {
-            let vc_ltl_arch = match target.as_str() {
-                "i686-pc-windows-msvc" => "Win32",
-                "x86_64-pc-windows-msvc" => "x64",
-                "aarch64-pc-windows-msvc" => "ARM64",
-                _ => panic!("Unsupported architecture for vc-ltl5"),
-            };
-
-            let lib_path = Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap())
-                .join("VC-LTL-Binary")
-                .join("TargetPlatform")
-                .join("10.0.19041.0")
-                .join("lib")
-                .join(vc_ltl_arch);
-
-            assert!(lib_path.exists());
-            println!("cargo:rustc-link-search=native={}", lib_path.display());
-        }
-
-        if target.contains("-win7-") {
-            let vc_ltl_arch = match target.as_str() {
-                "i686-win7-windows-msvc" => "Win32",
-                "x86_64-win7-windows-msvc" => "x64",
-                _ => panic!("Unsupported architecture for vc-ltl5"),
-            };
-
-            let vc_ltl_platform = match target.as_str() {
-                "i686-win7-windows-msvc" => "5.1.2600.0",
-                "x86_64-win7-windows-msvc" => "5.2.3790.0",
-                _ => panic!("Unsupported architecture for vc-ltl5"),
-            };
-
-            let lib_path = Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap())
-                .join("VC-LTL-Binary")
-                .join("TargetPlatform")
-                .join(vc_ltl_platform)
-                .join("lib")
-                .join(vc_ltl_arch);
-
-            assert!(lib_path.exists());
-            println!("cargo:rustc-link-search=native={}", lib_path.display());
-
-            let yy_thunks_arch = match target.as_str() {
-                "i686-win7-windows-msvc" => "x86",
-                "x86_64-win7-windows-msvc" => "x64",
-                _ => panic!("Unsupported architecture for yy-thunks"),
-            };
-
-            let obj_path = Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap())
-                .join("YY-Thunks-Objs")
-                .join("objs")
-                .join(yy_thunks_arch)
-                .join("YY_Thunks_for_WinXP.obj");
-
-            assert!(obj_path.exists());
-            println!("cargo:rustc-link-arg={}", obj_path.display());
-
-            let subsystem = match target.as_str() {
-                "i686-win7-windows-msvc" => "5.1",
-                "x86_64-win7-windows-msvc" => "5.2",
-                _ => panic!("Unsupported architecture for yy-thunks"),
-            };
-            println!("cargo:rustc-link-arg=/SUBSYSTEM:WINDOWS,{subsystem}");
-        }
-
         let mut res = winresource::WindowsResource::new();
         res.set_icon("package/windows/icon.ico");
         if target.contains("-pc-") {

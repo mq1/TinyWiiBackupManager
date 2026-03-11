@@ -88,7 +88,7 @@ build-windows-x86_64:
   $ErrorActionPreference = "Stop"
   $PSNativeCommandUseErrorActionPreference = $true
   $Env:RUSTC_BOOTSTRAP = "1"
-  $Env:RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto"
+  $Env:RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -L native=VC-LTL-Binary/TargetPlatform/10.0.19041.0/lib/x64"
   $Env:CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER = "lld-link"
   $Env:CFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
   $Env:CC = "clang-cl"
@@ -101,7 +101,7 @@ build-windows-x86_64-v2:
   $ErrorActionPreference = "Stop"
   $PSNativeCommandUseErrorActionPreference = $true
   $Env:RUSTC_BOOTSTRAP = "1"
-  $Env:RUSTFLAGS = "-C target-feature=+crt-static -C target-cpu=x86-64-v2 -C linker-plugin-lto"
+  $Env:RUSTFLAGS = "-C target-feature=+crt-static -C target-cpu=x86-64-v2 -C linker-plugin-lto -L native=VC-LTL-Binary/TargetPlatform/10.0.19041.0/lib/x64"
   $Env:CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER = "lld-link"
   $Env:CFLAGS = "/clang:-O3 /clang:-march=x86-64-v2 /clang:-flto /clang:-fuse-ld=lld-link"
   $Env:CC = "clang-cl"
@@ -114,7 +114,7 @@ build-windows-x86_64-v3:
   $ErrorActionPreference = "Stop"
   $PSNativeCommandUseErrorActionPreference = $true
   $Env:RUSTC_BOOTSTRAP = "1"
-  $Env:RUSTFLAGS = "-C target-feature=+crt-static -C target-cpu=x86-64-v3 -C linker-plugin-lto"
+  $Env:RUSTFLAGS = "-C target-feature=+crt-static -C target-cpu=x86-64-v3 -C linker-plugin-lto -L native=VC-LTL-Binary/TargetPlatform/10.0.19041.0/lib/x64"
   $Env:CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER = "lld-link"
   $Env:CFLAGS = "/clang:-O3 /clang:-march=x86-64-v3 /clang:-flto /clang:-fuse-ld=lld-link"
   $Env:CC = "clang-cl"
@@ -127,7 +127,7 @@ build-windows-arm64:
   $ErrorActionPreference = "Stop"
   $PSNativeCommandUseErrorActionPreference = $true
   $Env:RUSTC_BOOTSTRAP = "1"
-  $Env:RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto"
+  $Env:RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -L native=VC-LTL-Binary/TargetPlatform/10.0.19041.0/lib/ARM64"
   $Env:CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER = "lld-link"
   $Env:CFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
   $Env:CC = "clang-cl"
@@ -140,7 +140,7 @@ build-windows-x86:
   $ErrorActionPreference = "Stop"
   $PSNativeCommandUseErrorActionPreference = $true
   $Env:RUSTC_BOOTSTRAP = "1"
-  $Env:RUSTFLAGS = "-C target-feature=+crt-static"
+  $Env:RUSTFLAGS = "-C target-feature=+crt-static -L native=VC-LTL-Binary/TargetPlatform/10.0.19041.0/lib/Win32"
   $Env:CFLAGS = "/clang:-O3"
   $Env:CC = "clang-cl"
   cargo build -Z build-std=std,panic_abort --release --locked --target i686-pc-windows-msvc
@@ -151,7 +151,7 @@ build-windows-legacy-x86_64:
   $ErrorActionPreference = "Stop"
   $PSNativeCommandUseErrorActionPreference = $true
   $Env:RUSTC_BOOTSTRAP = "1"
-  $Env:RUSTFLAGS = "-C target-feature=+crt-static"
+  $Env:RUSTFLAGS = "-C target-feature=+crt-static -l dylib=ole32 -L native=VC-LTL-Binary/TargetPlatform/5.2.3790.0/lib/x64 -C link-arg=YY-Thunks-Objs/objs/x64/YY_Thunks_for_WinXP.obj -C link-arg=/SUBSYSTEM:WINDOWS,5.2"
   $Env:CFLAGS = "/clang:-O3"
   $Env:CC = "clang-cl"
   cargo build -Z build-std=std,panic_abort --release --locked --target x86_64-win7-windows-msvc
@@ -162,7 +162,7 @@ build-windows-legacy-x86:
   $ErrorActionPreference = "Stop"
   $PSNativeCommandUseErrorActionPreference = $true
   $Env:RUSTC_BOOTSTRAP = "1"
-  $Env:RUSTFLAGS = "-C target-feature=+crt-static"
+  $Env:RUSTFLAGS = "-C target-feature=+crt-static -l dylib=ole32 -L native=VC-LTL-Binary/TargetPlatform/5.1.2600.0/lib/Win32 -C link-arg=YY-Thunks-Objs/objs/x86/YY_Thunks_for_WinXP.obj -C link-arg=/SUBSYSTEM:WINDOWS,5.1"
   $Env:CFLAGS = "/clang:-O3"
   $Env:CC = "clang-cl"
   cargo build -Z build-std=std,panic_abort --release --locked --target i686-win7-windows-msvc
@@ -186,6 +186,7 @@ build-macos-arm64:
   export RUSTC_BOOTSTRAP=1
   export RUSTFLAGS="-C link-arg=-mmacosx-version-min=11.0"
   export CFLAGS="-O3 -flto"
+  export MACOSX_DEPLOYMENT_TARGET="11.0"
   cargo build -Z build-std=std,panic_abort --release --locked --target aarch64-apple-darwin
   cp target/aarch64-apple-darwin/release/TinyWiiBackupManager .
 
@@ -195,6 +196,7 @@ build-macos-x86_64:
   export RUSTC_BOOTSTRAP=1
   export RUSTFLAGS="-C link-arg=-mmacosx-version-min=10.13"
   export CFLAGS="-O3 -flto"
+  export MACOSX_DEPLOYMENT_TARGET="10.13"
   cargo build -Z build-std=std,panic_abort --release --locked --target x86_64-apple-darwin
   cp target/x86_64-apple-darwin/release/TinyWiiBackupManager .
 
