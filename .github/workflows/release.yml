@@ -68,11 +68,20 @@ jobs:
         with:
           components: rust-src
 
-      - name: Install dependencies
+      - name: Install LLVM and Clang
         run: |
-          sudo apt-get update
-          sudo apt-get install -y appstream
-          pip3 install cargo-zigbuild
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 21
+          sudo ln -sf $(which lld-21) /usr/bin/ld
+
+      - name: Install x86 dependencies
+        if: matrix.arch == 'x86'
+        run: sudo apt-get install -y libc6-dev-i386
+
+      - name: Install armhf dependencies
+        if: matrix.arch == 'armhf'
+        run: sudo apt-get install -y gcc-arm-linux-gnueabihf
 
       - name: Download appimagetool
         run: |
@@ -191,7 +200,7 @@ jobs:
       - name: Build and package
         run: |
           just build-macos-${{ matrix.arch }}
-          just package-macos-app
+          just package-macos-app ${{ env.VERSION_NAME }}
           just zip-macos-app ${{ env.VERSION_NAME }} ${{ matrix.arch }}
 
       - name: Upload macOS distributables
