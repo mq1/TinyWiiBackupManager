@@ -6,6 +6,18 @@ set windows-shell := ["powershell.exe", "-NoLogo", "-Command"]
 
 export RUSTC_BOOTSTRAP := "1"
 
+export CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER := "clang-21"
+export CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS := "-C linker-plugin-lto -C link-arg=-fuse-ld=lld-21"
+export CC_x86_64_unknown_linux_gnu := "clang-21"
+export AR_x86_64_unknown_linux_gnu := "llvm-ar"
+export CFLAGS_x86_64_unknown_linux_gnu := "-O3 -flto"
+
+export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER := "clang-21"
+export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_RUSTFLAGS := "-C linker-plugin-lto -C link-arg=-fuse-ld=lld-21"
+export CC_aarch64_unknown_linux_gnu := "clang-21"
+export AR_aarch64_unknown_linux_gnu := "llvm-ar"
+export CFLAGS_aarch64_unknown_linux_gnu := "-O3 -flto"
+
 export CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER := "lld-link"
 export CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_RUSTFLAGS := "-C target-feature=+crt-static -C linker-plugin-lto -L native=VC-LTL-Binary\\TargetPlatform\\10.0.19041.0\\lib\\x64"
 export CC_x86_64_pc_windows_msvc := "clang-cl"
@@ -41,26 +53,26 @@ export CFLAGS_x86_64_apple_darwin := "-O3"
 # ===========
 
 build-linux-x86_64:
-  cargo zigbuild -Z build-std=std,panic_abort --release --locked --target x86_64-unknown-linux-gnu.2.17
+  cargo build -Z build-std=std,panic_abort --release --locked --target x86_64-unknown-linux-gnu
   cp target/x86_64-unknown-linux-gnu/release/TinyWiiBackupManager .
 
 build-linux-x86_64-v2:
   RUSTFLAGS="-C target-cpu=x86-64-v2" CFLAGS="-mcpu=x86_64_v2" \
-    cargo zigbuild -Z build-std=std,panic_abort --release --locked --target x86_64-unknown-linux-gnu.2.17
+    cargo build -Z build-std=std,panic_abort --release --locked --target x86_64-unknown-linux-gnu
   cp target/x86_64-unknown-linux-gnu/release/TinyWiiBackupManager .
 
 build-linux-x86_64-v3:
   RUSTFLAGS="-C target-cpu=x86-64-v3" CFLAGS="-mcpu=x86_64_v3" \
-    cargo zigbuild -Z build-std=std,panic_abort --release --locked --target x86_64-unknown-linux-gnu.2.17
+    cargo build -Z build-std=std,panic_abort --release --locked --target x86_64-unknown-linux-gnu
   cp target/x86_64-unknown-linux-gnu/release/TinyWiiBackupManager .
+
+build-linux-arm64:
+  cargo build -Z build-std=std,panic_abort --release --locked --target aarch64-unknown-linux-gnu
+  cp target/aarch64-unknown-linux-gnu/release/TinyWiiBackupManager .
 
 build-linux-x86:
   cargo zigbuild -Z build-std=std,panic_abort --release --locked --target i686-unknown-linux-gnu.2.17
   cp target/i686-unknown-linux-gnu/release/TinyWiiBackupManager .
-
-build-linux-arm64:
-  cargo zigbuild -Z build-std=std,panic_abort --release --locked --target aarch64-unknown-linux-gnu.2.17
-  cp target/aarch64-unknown-linux-gnu/release/TinyWiiBackupManager .
 
 build-linux-armhf:
   cargo zigbuild -Z build-std=std,panic_abort --release --locked --target armv7-unknown-linux-gnueabihf.2.17

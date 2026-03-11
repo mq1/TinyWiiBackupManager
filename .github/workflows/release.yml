@@ -68,7 +68,14 @@ jobs:
         with:
           components: rust-src
 
+      - name: Install LLVM and Clang
+        if: matrix.arch != 'x86' && matrix.arch != 'armhf'
+        uses: KyleMayes/install-llvm-action@v2
+        with:
+          version: "21"
+
       - name: Install cargo-zigbuild
+        if: matrix.arch == 'x86' || matrix.arch == 'armhf'
         run: pip3 install cargo-zigbuild
 
       - name: Download appimagetool
