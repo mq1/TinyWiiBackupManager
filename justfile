@@ -18,7 +18,7 @@ export CC_aarch64_pc_windows_msvc := "clang-cl"
 export AR_aarch64_pc_windows_msvc := "llvm-lib"
 export CFLAGS_aarch64_pc_windows_msvc := "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
 
-export CARGO_TARGET_I686_PC_WINDOWS_MSVC_RUSTFLAGS := "-C target-feature=+crt-static -C linker-plugin-lto -L native=VC-LTL-Binary\\TargetPlatform\\10.0.19041.0\\lib\\Win32"
+export CARGO_TARGET_I686_PC_WINDOWS_MSVC_RUSTFLAGS := "-C target-feature=+crt-static -L native=VC-LTL-Binary\\TargetPlatform\\10.0.19041.0\\lib\\Win32"
 export CC_i686_pc_windows_msvc := "clang-cl"
 export CFLAGS_i686_pc_windows_msvc := "/clang:-O3"
 
