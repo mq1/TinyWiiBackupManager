@@ -58,7 +58,7 @@ build-linux-x86:
 
 build-linux-armhf:
   RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=lld-21" \
-    CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNU_LINKER="clang-21" \
+    CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNUEABIHF_LINKER="clang-21" \
     CC="clang-21" \
     AR="llvm-ar-21" \
     CFLAGS="-O3 -flto" \
