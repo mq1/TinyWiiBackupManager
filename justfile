@@ -26,7 +26,7 @@ export CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_RUSTFLAGS := "-C target-feature=+cr
 export CC_x86_64_win7_windows_msvc := "clang-cl"
 export CFLAGS_x86_64_win7_windows_msvc := "/clang:-O3"
 
-export CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_RUSTFLAGS := "-C target-feature=+crt-static -l dylib=ole32 -L native=VC-LTL-Binary\TargetPlatform\\5.1.2600.0\\lib\\Win32 -C link-arg=YY-Thunks-Objs\\objs\\x86\\YY_Thunks_for_WinXP.obj -C link-arg=/SUBSYSTEM:WINDOWS,5.1"
+export CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_RUSTFLAGS := "-C target-feature=+crt-static -l dylib=ole32 -L native=VC-LTL-Binary\\TargetPlatform\\5.1.2600.0\\lib\\Win32 -C link-arg=YY-Thunks-Objs\\objs\\x86\\YY_Thunks_for_WinXP.obj -C link-arg=/SUBSYSTEM:WINDOWS,5.1"
 export CC_i686_win7_windows_msvc := "clang-cl"
 export CFLAGS_i686_win7_windows_msvc := "/clang:-O3"
 
