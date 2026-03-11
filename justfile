@@ -4,7 +4,6 @@
 set shell := ["bash", "-uc"]
 set windows-shell := ["powershell.exe", "-NoLogo", "-Command"]
 
-export VERSION := `yq '.package.version' Cargo.toml`
 export RUSTC_BOOTSTRAP := "1"
 
 # ===========
@@ -47,7 +46,7 @@ package-linux-appimage version-name arch appimagetool $ARCH:
   cp -r package/linux TinyWiiBackupManager.AppDir
   install -Dm0755 TinyWiiBackupManager TinyWiiBackupManager.AppDir/usr/bin/TinyWiiBackupManager
   mkdir -p dist
-  {{ appimagetool }} \
+  VERSION=$(yq '.package.version' Cargo.toml) {{ appimagetool }} \
     -u "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*{{ arch }}.AppImage.zsync" \
     TinyWiiBackupManager.AppDir \
     dist/TinyWiiBackupManager-{{ version-name }}-linux-{{ arch }}.AppImage
