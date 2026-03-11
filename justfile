@@ -12,7 +12,8 @@ export RUSTC_BOOTSTRAP := "1"
 # ===========
 
 build-linux-x86_64:
-  RUSTFLAGS="-C linker=clang-21 -C linker-plugin-lto -C link-arg=-fuse-ld=lld-21" \
+  RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=lld-21" \
+    CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER="clang-21" \
     CC="clang-21" \
     AR="llvm-ar-21" \
     CFLAGS="-O3 -flto" \
@@ -20,7 +21,8 @@ build-linux-x86_64:
   cp target/x86_64-unknown-linux-gnu/release/TinyWiiBackupManager .
 
 build-linux-x86_64-v2:
-  RUSTFLAGS="-C linker=clang-21 -C linker-plugin-lto -C link-arg=-fuse-ld=lld-21 -C target-cpu=x86-64-v2" \
+  RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=lld-21 -C target-cpu=x86-64-v2" \
+    CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER="clang-21" \
     CC="clang-21" \
     AR="llvm-ar-21" \
     CFLAGS="-O3 -flto -march=x86-64-v2" \
@@ -28,7 +30,8 @@ build-linux-x86_64-v2:
   cp target/x86_64-unknown-linux-gnu/release/TinyWiiBackupManager .
 
 build-linux-x86_64-v3:
-  RUSTFLAGS="-C linker=clang-21 -C linker-plugin-lto -C link-arg=-fuse-ld=lld-21 -C target-cpu=x86-64-v3" \
+  RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=lld-21 -C target-cpu=x86-64-v3" \
+    CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER="clang-21" \
     CC="clang-21" \
     AR="llvm-ar-21" \
     CFLAGS="-O3 -flto -march=x86-64-v3" \
@@ -36,7 +39,8 @@ build-linux-x86_64-v3:
   cp target/x86_64-unknown-linux-gnu/release/TinyWiiBackupManager .
 
 build-linux-arm64:
-  RUSTFLAGS="-C linker=clang-21 -C linker-plugin-lto -C link-arg=-fuse-ld=lld-21" \
+  RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=lld-21" \
+    CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER="clang-21" \
     CC="clang-21" \
     AR="llvm-ar-21" \
     CFLAGS="-O3 -flto" \
@@ -44,7 +48,8 @@ build-linux-arm64:
   cp target/aarch64-unknown-linux-gnu/release/TinyWiiBackupManager .
 
 build-linux-x86:
-  RUSTFLAGS="-C linker=clang-21 -C linker-plugin-lto -C link-arg=-fuse-ld=lld-21" \
+  RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=lld-21" \
+    CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER="clang-21" \
     CC="clang-21" \
     AR="llvm-ar-21" \
     CFLAGS="-O3 -flto --target=i686-unknown-linux-gnu" \
@@ -52,7 +57,8 @@ build-linux-x86:
   cp target/i686-unknown-linux-gnu/release/TinyWiiBackupManager .
 
 build-linux-armhf:
-  RUSTFLAGS="-C linker=clang-21 -C linker-plugin-lto -C link-arg=-fuse-ld=lld-21" \
+  RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=lld-21" \
+    CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNU_LINKER="clang-21" \
     CC="clang-21" \
     AR="llvm-ar-21" \
     CFLAGS="-O3 -flto --target=armv7-unknown-linux-gnueabihf" \
@@ -87,7 +93,8 @@ package-linux-appimage $VERSION_NAME arch appimagetool appimage-arch:
 # =============
 
 build-windows-x86_64:
-  $Env:RUSTFLAGS = "-C target-feature=+crt-static -C linker=lld-link -C linker-plugin-lto -L native=VC-LTL-Binary\\TargetPlatform\\10.0.19041.0\\lib\\x64"; \
+  $Env:RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -L native=VC-LTL-Binary\\TargetPlatform\\10.0.19041.0\\lib\\x64"; \
+    $Env:CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER = "lld-link"; \
     $Env:CC = "clang-cl"; \
     $Env:AR = "llvm-lib"; \
     $Env:CFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"; \
@@ -95,7 +102,8 @@ build-windows-x86_64:
   Copy-Item target\x86_64-pc-windows-msvc\release\TinyWiiBackupManager.exe .
 
 build-windows-x86_64-v2:
-  $Env:RUSTFLAGS = "-C target-cpu=x86-64-v2 -C target-feature=+crt-static -C linker=lld-link -C linker-plugin-lto -L native=VC-LTL-Binary\\TargetPlatform\\10.0.19041.0\\lib\\x64"; \
+  $Env:RUSTFLAGS = "-C target-cpu=x86-64-v2 -C target-feature=+crt-static -C linker-plugin-lto -L native=VC-LTL-Binary\\TargetPlatform\\10.0.19041.0\\lib\\x64"; \
+    $Env:CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER = "lld-link"; \
     $Env:CC = "clang-cl"; \
     $Env:AR = "llvm-lib"; \
     $Env:CFLAGS = "/clang:-march=x86-64-v2 /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"; \
@@ -103,7 +111,8 @@ build-windows-x86_64-v2:
   Copy-Item target\x86_64-pc-windows-msvc\release\TinyWiiBackupManager.exe .
 
 build-windows-x86_64-v3:
-  $Env:RUSTFLAGS = "-C target-cpu=x86-64-v3 -C target-feature=+crt-static -C linker=lld-link -C linker-plugin-lto -L native=VC-LTL-Binary\\TargetPlatform\\10.0.19041.0\\lib\\x64"; \
+  $Env:RUSTFLAGS = "-C target-cpu=x86-64-v3 -C target-feature=+crt-static -C linker-plugin-lto -L native=VC-LTL-Binary\\TargetPlatform\\10.0.19041.0\\lib\\x64"; \
+    $Env:CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER = "lld-link"; \
     $Env:CC = "clang-cl"; \
     $Env:AR = "llvm-lib"; \
     $Env:CFLAGS = "/clang:-march=x86-64-v3 /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"; \
@@ -111,7 +120,8 @@ build-windows-x86_64-v3:
   Copy-Item target\x86_64-pc-windows-msvc\release\TinyWiiBackupManager.exe .
 
 build-windows-arm64:
-  $Env:RUSTFLAGS = "-C target-feature=+crt-static -C linker=lld-link -C linker-plugin-lto -L native=VC-LTL-Binary\\TargetPlatform\\10.0.19041.0\\lib\\ARM64"; \
+  $Env:RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -L native=VC-LTL-Binary\\TargetPlatform\\10.0.19041.0\\lib\\ARM64"; \
+    $Env:CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER = "lld-link"; \
     $Env:CC = "clang-cl"; \
     $Env:AR = "llvm-lib"; \
     $Env:CFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"; \
