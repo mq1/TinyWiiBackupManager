@@ -34,7 +34,7 @@ export CARGO_TARGET_AARCH64_APPLE_DARWIN_RUSTFLAGS := "-C link-arg=-mmacosx-vers
 export CFLAGS_aarch64_apple_darwin := "-O3"
 
 export CARGO_TARGET_X86_64_APPLE_DARWIN_RUSTFLAGS := "-C link-arg=-mmacosx-version-min=10.13"
-export CFLAGS_aarch64_apple_darwin := "-O3"
+export CFLAGS_x86_64_apple_darwin := "-O3"
 
 # ===========
 # LINUX BUILD
