@@ -88,92 +88,92 @@ build-windows-x86_64:
   $ErrorActionPreference = "Stop"
   $PSNativeCommandUseErrorActionPreference = $true
   $Env:RUSTC_BOOTSTRAP = "1"
-  $Env:RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -L native=VC-LTL-Binary/TargetPlatform/10.0.19041.0/lib/x64"
+  $Env:RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -L native=VC-LTL-Binary\TargetPlatform\10.0.19041.0\lib\x64"
   $Env:CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER = "lld-link"
   $Env:CFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
   $Env:CC = "clang-cl"
   $Env:AR = "llvm-lib"
   cargo build -Z build-std=std,panic_abort --release --locked --target x86_64-pc-windows-msvc
-  Copy-Item target/x86_64-pc-windows-msvc/release/TinyWiiBackupManager.exe .
+  Copy-Item target\x86_64-pc-windows-msvc\release\TinyWiiBackupManager.exe .
 
 [script("pwsh")]
 build-windows-x86_64-v2:
   $ErrorActionPreference = "Stop"
   $PSNativeCommandUseErrorActionPreference = $true
   $Env:RUSTC_BOOTSTRAP = "1"
-  $Env:RUSTFLAGS = "-C target-feature=+crt-static -C target-cpu=x86-64-v2 -C linker-plugin-lto -L native=VC-LTL-Binary/TargetPlatform/10.0.19041.0/lib/x64"
+  $Env:RUSTFLAGS = "-C target-feature=+crt-static -C target-cpu=x86-64-v2 -C linker-plugin-lto -L native=VC-LTL-Binary\TargetPlatform\10.0.19041.0\lib\x64"
   $Env:CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER = "lld-link"
   $Env:CFLAGS = "/clang:-O3 /clang:-march=x86-64-v2 /clang:-flto /clang:-fuse-ld=lld-link"
   $Env:CC = "clang-cl"
   $Env:AR = "llvm-lib"
   cargo build -Z build-std=std,panic_abort --release --locked --target x86_64-pc-windows-msvc
-  Copy-Item target/x86_64-pc-windows-msvc/release/TinyWiiBackupManager.exe .
+  Copy-Item target\x86_64-pc-windows-msvc\release\TinyWiiBackupManager.exe .
 
 [script("pwsh")]
 build-windows-x86_64-v3:
   $ErrorActionPreference = "Stop"
   $PSNativeCommandUseErrorActionPreference = $true
   $Env:RUSTC_BOOTSTRAP = "1"
-  $Env:RUSTFLAGS = "-C target-feature=+crt-static -C target-cpu=x86-64-v3 -C linker-plugin-lto -L native=VC-LTL-Binary/TargetPlatform/10.0.19041.0/lib/x64"
+  $Env:RUSTFLAGS = "-C target-feature=+crt-static -C target-cpu=x86-64-v3 -C linker-plugin-lto -L native=VC-LTL-Binary\TargetPlatform\10.0.19041.0\lib\x64"
   $Env:CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER = "lld-link"
   $Env:CFLAGS = "/clang:-O3 /clang:-march=x86-64-v3 /clang:-flto /clang:-fuse-ld=lld-link"
   $Env:CC = "clang-cl"
   $Env:AR = "llvm-lib"
   cargo build -Z build-std=std,panic_abort --release --locked --target x86_64-pc-windows-msvc
-  Copy-Item target/x86_64-pc-windows-msvc/release/TinyWiiBackupManager.exe .
+  Copy-Item target\x86_64-pc-windows-msvc\release\TinyWiiBackupManager.exe .
 
 [script("pwsh")]
 build-windows-arm64:
   $ErrorActionPreference = "Stop"
   $PSNativeCommandUseErrorActionPreference = $true
   $Env:RUSTC_BOOTSTRAP = "1"
-  $Env:RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -L native=VC-LTL-Binary/TargetPlatform/10.0.19041.0/lib/ARM64"
+  $Env:RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -L native=VC-LTL-Binary\TargetPlatform\10.0.19041.0\lib\ARM64"
   $Env:CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER = "lld-link"
   $Env:CFLAGS = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
   $Env:CC = "clang-cl"
   $Env:AR = "llvm-lib"
   cargo build -Z build-std=std,panic_abort --release --locked --target aarch64-pc-windows-msvc
-  Copy-Item target/aarch64-pc-windows-msvc/release/TinyWiiBackupManager.exe .
+  Copy-Item target\aarch64-pc-windows-msvc\release\TinyWiiBackupManager.exe .
 
 [script("pwsh")]
 build-windows-x86:
   $ErrorActionPreference = "Stop"
   $PSNativeCommandUseErrorActionPreference = $true
   $Env:RUSTC_BOOTSTRAP = "1"
-  $Env:RUSTFLAGS = "-C target-feature=+crt-static -L native=VC-LTL-Binary/TargetPlatform/10.0.19041.0/lib/Win32"
+  $Env:RUSTFLAGS = "-C target-feature=+crt-static -L native=VC-LTL-Binary\TargetPlatform\10.0.19041.0\lib\Win32"
   $Env:CFLAGS = "/clang:-O3"
   $Env:CC = "clang-cl"
   cargo build -Z build-std=std,panic_abort --release --locked --target i686-pc-windows-msvc
-  Copy-Item target/i686-pc-windows-msvc/release/TinyWiiBackupManager.exe .
+  Copy-Item target\i686-pc-windows-msvc\release\TinyWiiBackupManager.exe .
 
 [script("pwsh")]
 build-windows-legacy-x86_64:
   $ErrorActionPreference = "Stop"
   $PSNativeCommandUseErrorActionPreference = $true
   $Env:RUSTC_BOOTSTRAP = "1"
-  $Env:RUSTFLAGS = "-C target-feature=+crt-static -l dylib=ole32 -L native=VC-LTL-Binary/TargetPlatform/5.2.3790.0/lib/x64 -C link-arg=YY-Thunks-Objs/objs/x64/YY_Thunks_for_WinXP.obj -C link-arg=/SUBSYSTEM:WINDOWS,5.2"
+  $Env:RUSTFLAGS = "-C target-feature=+crt-static -l dylib=ole32 -L native=VC-LTL-Binary\TargetPlatform\5.2.3790.0\lib\x64 -C link-arg=YY-Thunks-Objs\objs\x64\YY_Thunks_for_WinXP.obj -C link-arg=/SUBSYSTEM:WINDOWS,5.2"
   $Env:CFLAGS = "/clang:-O3"
   $Env:CC = "clang-cl"
   cargo build -Z build-std=std,panic_abort --release --locked --target x86_64-win7-windows-msvc
-  Copy-Item target/x86_64-win7-windows-msvc/release/TinyWiiBackupManager.exe .
+  Copy-Item target\x86_64-win7-windows-msvc\release\TinyWiiBackupManager.exe .
 
 [script("pwsh")]
 build-windows-legacy-x86:
   $ErrorActionPreference = "Stop"
   $PSNativeCommandUseErrorActionPreference = $true
   $Env:RUSTC_BOOTSTRAP = "1"
-  $Env:RUSTFLAGS = "-C target-feature=+crt-static -l dylib=ole32 -L native=VC-LTL-Binary/TargetPlatform/5.1.2600.0/lib/Win32 -C link-arg=YY-Thunks-Objs/objs/x86/YY_Thunks_for_WinXP.obj -C link-arg=/SUBSYSTEM:WINDOWS,5.1"
+  $Env:RUSTFLAGS = "-C target-feature=+crt-static -l dylib=ole32 -L native=VC-LTL-Binary\TargetPlatform\5.1.2600.0\lib\Win32 -C link-arg=YY-Thunks-Objs\objs\x86\YY_Thunks_for_WinXP.obj -C link-arg=/SUBSYSTEM:WINDOWS,5.1"
   $Env:CFLAGS = "/clang:-O3"
   $Env:CC = "clang-cl"
   cargo build -Z build-std=std,panic_abort --release --locked --target i686-win7-windows-msvc
-  Copy-Item target/i686-win7-windows-msvc/release/TinyWiiBackupManager.exe .
+  Copy-Item target\i686-win7-windows-msvc\release\TinyWiiBackupManager.exe .
 
 [script("pwsh")]
 package-windows-zip version-name platform arch:
   $ErrorActionPreference = "Stop"
   $PSNativeCommandUseErrorActionPreference = $true
   New-Item -Path "dist" -ItemType Directory
-  7z a -tzip -mx=9 "dist/TinyWiiBackupManager-{{ version-name }}-{{ platform }}-{{ arch }}.zip" TinyWiiBackupManager.exe
+  7z a -tzip -mx=9 "dist\TinyWiiBackupManager-{{ version-name }}-{{ platform }}-{{ arch }}.zip" TinyWiiBackupManager.exe
 
 
 # ===========
