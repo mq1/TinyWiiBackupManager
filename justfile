@@ -12,7 +12,7 @@ export RUSTC_BOOTSTRAP := "1"
 # ===========
 
 build-linux-x86_64:
-  CARGO_TARGET_X86_64_RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=lld-21" \
+  CARGO_TARGET_X86_64_RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=lld-21 -C link-arg=--target=x86_64-unknown-linux-gnu" \
     CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER="clang-21" \
     CC_x86_64_unknown_linux_gnu="clang-21" \
     AR_x86_64_unknown_linux_gnu="llvm-ar-21" \
@@ -21,7 +21,7 @@ build-linux-x86_64:
   cp target/x86_64-unknown-linux-gnu/release/TinyWiiBackupManager .
 
 build-linux-x86_64-v2:
-  CARGO_TARGET_X86_64_RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=lld-21 -C target-cpu=x86-64-v2" \
+  CARGO_TARGET_X86_64_RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=lld-21 -C link-arg=--target=x86_64-unknown-linux-gnu -C target-cpu=x86-64-v2" \
     CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER="clang-21" \
     CC_x86_64_unknown_linux_gnu="clang-21" \
     AR_x86_64_unknown_linux_gnu="llvm-ar-21" \
@@ -30,7 +30,7 @@ build-linux-x86_64-v2:
   cp target/x86_64-unknown-linux-gnu/release/TinyWiiBackupManager .
 
 build-linux-x86_64-v3:
-  CARGO_TARGET_X86_64_RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=lld-21 -C target-cpu=x86-64-v3" \
+  CARGO_TARGET_X86_64_RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=lld-21 -C link-arg=--target=x86_64-unknown-linux-gnu -C target-cpu=x86-64-v3" \
     CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER="clang-21" \
     CC_x86_64_unknown_linux_gnu="clang-21" \
     AR_x86_64_unknown_linux_gnu="llvm-ar-21" \
@@ -39,7 +39,7 @@ build-linux-x86_64-v3:
   cp target/x86_64-unknown-linux-gnu/release/TinyWiiBackupManager .
 
 build-linux-arm64:
-  CARGO_TARGET_AARCH64_RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=lld-21" \
+  CARGO_TARGET_AARCH64_RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=lld-21 -C link-arg=--target=aarch64-unknown-linux-gnu" \
     CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER="clang-21" \
     CC_aarch64_unknown_linux_gnu="clang-21" \
     AR_aarch64_unknown_linux_gnu="llvm-ar-21" \

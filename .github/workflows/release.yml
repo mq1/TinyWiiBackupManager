@@ -73,15 +73,6 @@ jobs:
           wget https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
           sudo ./llvm.sh 21
-          sudo ln -sf $(which lld-21) /usr/bin/ld
-
-      - name: Install x86 dependencies
-        if: matrix.arch == 'x86'
-        run: sudo apt-get install -y gcc-multilib
-
-      - name: Install armhf dependencies
-        if: matrix.arch == 'armhf'
-        run: sudo apt-get install -y gcc-arm-linux-gnueabihf
 
       - name: Download appimagetool
         run: |
