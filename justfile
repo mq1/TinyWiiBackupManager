@@ -151,7 +151,7 @@ build-windows-legacy-x86_64:
   $ErrorActionPreference = "Stop"
   $PSNativeCommandUseErrorActionPreference = $true
   $Env:RUSTC_BOOTSTRAP = "1"
-  $Env:RUSTFLAGS = "-C target-feature=+crt-static"
+  $Env:RUSTFLAGS = "-C target-feature=+crt-static -l ole32"
   $Env:CFLAGS = "/clang:-O3"
   $Env:CC = "clang-cl"
   cargo build -Z build-std=std,panic_abort --release --locked --target x86_64-win7-windows-msvc
@@ -162,7 +162,7 @@ build-windows-legacy-x86:
   $ErrorActionPreference = "Stop"
   $PSNativeCommandUseErrorActionPreference = $true
   $Env:RUSTC_BOOTSTRAP = "1"
-  $Env:RUSTFLAGS = "-C target-feature=+crt-static"
+  $Env:RUSTFLAGS = "-C target-feature=+crt-static -l ole32"
   $Env:CFLAGS = "/clang:-O3"
   $Env:CC = "clang-cl"
   cargo build -Z build-std=std,panic_abort --release --locked --target i686-win7-windows-msvc
