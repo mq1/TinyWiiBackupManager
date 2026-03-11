@@ -37,7 +37,7 @@ zip = { version = "8.2", default-features = false, features = [
   "deflate-flate2",
 ] }
 fuzzy-matcher = "0.3"
-zstd = "0.13"
+zstd = { version = "0.13", features = ["fat-lto"] }
 strum = "0.28"
 strum_macros = "0.28"
 derive-getters = "0.5"
