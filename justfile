@@ -12,43 +12,43 @@ export RUSTC_BOOTSTRAP := "1"
 # ===========
 
 build-linux-x86_64:
-  RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=lld-21" \
+  CARGO_TARGET_X86_64_RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=lld-21" \
     CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER="clang-21" \
-    CC="clang-21" \
-    AR="llvm-ar-21" \
-    CFLAGS="-O3 -flto" \
+    CC_x86_64_unknown_linux_gnu="clang-21" \
+    AR_x86_64_unknown_linux_gnu="llvm-ar-21" \
+    CFLAGS_x86_64_unknown_linux_gnu="-O3 -flto" \
     cargo build -Z build-std=std,panic_abort --release --locked --target x86_64-unknown-linux-gnu
   cp target/x86_64-unknown-linux-gnu/release/TinyWiiBackupManager .
 
 build-linux-x86_64-v2:
-  RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=lld-21 -C target-cpu=x86-64-v2" \
+  CARGO_TARGET_X86_64_RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=lld-21 -C target-cpu=x86-64-v2" \
     CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER="clang-21" \
-    CC="clang-21" \
-    AR="llvm-ar-21" \
-    CFLAGS="-O3 -flto -march=x86-64-v2" \
+    CC_x86_64_unknown_linux_gnu="clang-21" \
+    AR_x86_64_unknown_linux_gnu="llvm-ar-21" \
+    CFLAGS_x86_64_unknown_linux_gnu="-O3 -flto -march=x86-64-v2" \
     cargo build -Z build-std=std,panic_abort --release --locked --target x86_64-unknown-linux-gnu
   cp target/x86_64-unknown-linux-gnu/release/TinyWiiBackupManager .
 
 build-linux-x86_64-v3:
-  RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=lld-21 -C target-cpu=x86-64-v3" \
+  CARGO_TARGET_X86_64_RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=lld-21 -C target-cpu=x86-64-v3" \
     CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER="clang-21" \
-    CC="clang-21" \
-    AR="llvm-ar-21" \
-    CFLAGS="-O3 -flto -march=x86-64-v3" \
+    CC_x86_64_unknown_linux_gnu="clang-21" \
+    AR_x86_64_unknown_linux_gnu="llvm-ar-21" \
+    CFLAGS_x86_64_unknown_linux_gnu="-O3 -flto -march=x86-64-v3" \
     cargo build -Z build-std=std,panic_abort --release --locked --target x86_64-unknown-linux-gnu
   cp target/x86_64-unknown-linux-gnu/release/TinyWiiBackupManager .
 
 build-linux-arm64:
-  RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=lld-21" \
+  CARGO_TARGET_AARCH64_RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=lld-21" \
     CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER="clang-21" \
-    CC="clang-21" \
-    AR="llvm-ar-21" \
-    CFLAGS="-O3 -flto" \
+    CC_aarch64_unknown_linux_gnu="clang-21" \
+    AR_aarch64_unknown_linux_gnu="llvm-ar-21" \
+    CFLAGS_aarch64_unknown_linux_gnu="-O3 -flto" \
     cargo build -Z build-std=std,panic_abort --release --locked --target aarch64-unknown-linux-gnu
   cp target/aarch64-unknown-linux-gnu/release/TinyWiiBackupManager .
 
 build-linux-x86:
-  RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=lld-21" \
+  CARGO_TARGET_I686_RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=lld-21" \
     CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER="clang-21" \
     CC_i686_unknown_linux_gnu="clang-21" \
     AR_i686_unknown_linux_gnu="llvm-ar-21" \
@@ -57,7 +57,7 @@ build-linux-x86:
   cp target/i686-unknown-linux-gnu/release/TinyWiiBackupManager .
 
 build-linux-armhf:
-  RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=lld-21" \
+  CARGO_TARGET_ARMV7_RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=lld-21" \
     CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNUEABIHF_LINKER="clang-21" \
     CC_armv7_unknown_linux_gnueabihf="clang-21" \
     AR_armv7_unknown_linux_gnueabihf="llvm-ar-21" \
