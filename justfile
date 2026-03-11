@@ -30,9 +30,10 @@ export CC_aarch64_pc_windows_msvc := "clang-cl"
 export AR_aarch64_pc_windows_msvc := "llvm-lib"
 export CFLAGS_aarch64_pc_windows_msvc := "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
 
-export CARGO_TARGET_I686_PC_WINDOWS_MSVC_RUSTFLAGS := "-C target-feature=+crt-static -L native=VC-LTL-Binary\\TargetPlatform\\10.0.19041.0\\lib\\Win32"
+export CARGO_TARGET_I686_PC_WINDOWS_MSVC_RUSTFLAGS := "-C target-feature=+crt-static -C linker-plugin-lto -L native=VC-LTL-Binary\\TargetPlatform\\10.0.19041.0\\lib\\Win32"
 export CC_i686_pc_windows_msvc := "clang-cl"
-export CFLAGS_i686_pc_windows_msvc := "/clang:-O3"
+export AR_aarch64_pc_windows_msvc := "llvm-lib"
+export CFLAGS_i686_pc_windows_msvc := "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
 
 export CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_RUSTFLAGS := "-C target-feature=+crt-static -l dylib=ole32 -L native=VC-LTL-Binary\\TargetPlatform\\5.2.3790.0\\lib\\x64 -C link-arg=YY-Thunks-Objs\\objs\\x64\\YY_Thunks_for_WinXP.obj -C link-arg=/SUBSYSTEM:WINDOWS,5.2"
 export CC_x86_64_win7_windows_msvc := "clang-cl"
@@ -71,11 +72,11 @@ build-linux-arm64:
   cp target/aarch64-unknown-linux-gnu/release/TinyWiiBackupManager .
 
 build-linux-x86:
-  cargo zigbuild -Z build-std=std,panic_abort --release --locked --target i686-unknown-linux-gnu.2.17
+  cargo build -Z build-std=std,panic_abort --release --locked --target i686-unknown-linux-gnu
   cp target/i686-unknown-linux-gnu/release/TinyWiiBackupManager .
 
 build-linux-armhf:
-  cargo zigbuild -Z build-std=std,panic_abort --release --locked --target armv7-unknown-linux-gnueabihf.2.17
+  cargo build -Z build-std=std,panic_abort --release --locked --target armv7-unknown-linux-gnueabihf
   cp target/armv7-unknown-linux-gnueabihf/release/TinyWiiBackupManager .
 
 package-linux-tarball version-name arch:
