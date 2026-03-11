@@ -77,11 +77,11 @@ jobs:
 
       - name: Install x86 dependencies
         if: matrix.arch == 'x86'
-        run: sudo apt-get install -y libc6-dev-i386
+        run: sudo apt-get install -y gcc-multilib
 
       - name: Install armhf dependencies
         if: matrix.arch == 'armhf'
-        run: sudo apt-get install -y libc6-dev-armhf-cross
+        run: sudo apt-get install -y gcc-arm-linux-gnueabihf
 
       - name: Download appimagetool
         run: |
