@@ -59,18 +59,22 @@ jobs:
             arch: armhf
             appimage-arch: armhf
             platform: linux
-          - runner: ubuntu-24.04
+          - runner: ubuntu-22.04
             arch: x86_64
             platform: linux-musl
-          - runner: ubuntu-24.04-arm
+            targets: x86_64-unknown-linux-musl
+          - runner: ubuntu-22.04-arm
             arch: arm64
             platform: linux-musl
-          - runner: ubuntu-24.04
+            targets: aarch64-unknown-linux-musl
+          - runner: ubuntu-22.04
             arch: x86
             platform: linux-musl
-          - runner: ubuntu-24.04-arm
+            targets: i686-unknown-linux-musl
+          - runner: ubuntu-22.04-arm
             arch: armhf
             platform: linux-musl
+            targets: armv7-unknown-linux-musleabihf
 
     steps:
       - name: Checkout
@@ -84,6 +88,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.93
         with:
+          targets: ${{ matrix.targets }}
           components: rust-src
 
       - name: Install LLVM and Clang
