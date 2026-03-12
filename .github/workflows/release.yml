@@ -38,21 +38,43 @@ jobs:
           - runner: ubuntu-22.04
             arch: x86_64-v3
             appimage-arch: x86_64
+            platform: linux
           - runner: ubuntu-22.04
             arch: x86_64-v2
             appimage-arch: x86_64
+            platform: linux
           - runner: ubuntu-22.04
             arch: x86_64
             appimage-arch: x86_64
+            platform: linux
           - runner: ubuntu-22.04-arm
             arch: arm64
             appimage-arch: aarch64
+            platform: linux
           - runner: ubuntu-22.04
             arch: x86
             appimage-arch: i686
+            platform: linux
           - runner: ubuntu-22.04-arm
             arch: armhf
             appimage-arch: armhf
+            platform: linux
+          - runner: ubuntu-22.04
+            arch: x86_64
+            platform: linux-musl
+            targets: x86_64-unknown-linux-musl
+          - runner: ubuntu-22.04-arm
+            arch: arm64
+            platform: linux-musl
+            targets: aarch64-unknown-linux-musl
+          - runner: ubuntu-22.04
+            arch: x86
+            platform: linux-musl
+            targets: i686-unknown-linux-musl
+          - runner: ubuntu-22.04-arm
+            arch: armhf
+            platform: linux-musl
+            targets: armv7-unknown-linux-musleabihf
 
     steps:
       - name: Checkout
@@ -66,6 +88,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.93
         with:
+          targets: ${{ matrix.targets }}
           components: rust-src
 
       - name: Install LLVM and Clang
@@ -84,20 +107,26 @@ jobs:
         run: sudo apt-get install -y gcc-arm-linux-gnueabihf
 
       - name: Download appimagetool
+        if: matrix.platform == 'linux'
         run: |
           wget "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-${{ matrix.appimage-arch }}.AppImage"
           chmod +x appimagetool-${{ matrix.appimage-arch }}.AppImage
 
-      - name: Build and package binary
-        run: |
-          just build-linux-${{ matrix.arch }}
-          just package-linux-tarball ${{ env.VERSION_NAME }} ${{ matrix.arch }}
-          just package-linux-appimage ${{ env.VERSION_NAME }} ${{ matrix.arch }} ./appimagetool-${{ matrix.appimage-arch }}.AppImage ${{ matrix.appimage-arch }}
+      - name: Build binary
+        run: just build-${{ matrix.platform }}-${{ matrix.arch }}
+
+      - name: Package AppImage
+        if: matrix.platform == 'linux'
+        run: just package-linux-appimage ${{ env.VERSION_NAME }} ${{ matrix.arch }} ./appimagetool-${{ matrix.appimage-arch }}.AppImage ${{ matrix.appimage-arch }}
+
+      - name: Package linux-musl Tarball
+        if: matrix.platform == 'linux-musl'
+        run: just package-tarball ${{ env.VERSION_NAME }} linux-musl ${{ matrix.arch }}
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v7
         with:
-          name: dist-linux-${{ matrix.arch }}
+          name: dist-${{ matrix.platform }}-${{ matrix.arch }}
           path: dist/*
 
   build-windows:
