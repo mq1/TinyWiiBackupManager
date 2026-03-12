@@ -101,6 +101,10 @@ jobs:
         if: matrix.arch == 'armhf'
         run: sudo apt-get install -y gcc-arm-linux-gnueabihf
 
+      - name: Install musl dependencies
+        if: matrix.platform == 'linux-musl'
+        run: sudo apt-get install -y musl-dev
+
       - name: Download appimagetool
         if: matrix.platform == 'linux'
         run: |
