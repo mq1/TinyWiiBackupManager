@@ -116,7 +116,7 @@ jobs:
 
       - name: Package linux-musl Tarball
         if: matrix.platform == 'linux-musl'
-        run: just package-linux-tarball ${{ env.VERSION_NAME }} linux-musl ${{ matrix.arch }}
+        run: just package-tarball ${{ env.VERSION_NAME }} linux-musl ${{ matrix.arch }}
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v7
