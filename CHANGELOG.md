@@ -7,10 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v5.1.25] - 2026-03-12
+
 ### Added
 
 - 💪 linux-musl builds (slightly slower, extended compatibility)
-- 🛠️ Added a [justfile](https://github.com/mq1/TinyWiiBackupManager/blob/main/justfile) with build scripts for anyone wanting to reproduce the builds by themselves
+- 🛠️ Added a [justfile](https://github.com/mq1/TinyWiiBackupManager/blob/main/justfile) with build scripts for anyone wanting to easily reproduce the builds by themselves
 
 ### Changed
 
@@ -305,7 +307,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 🖼️ TinyWiiBackupManager icon now shows up again on the windows exe
 
-[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.24...HEAD
+[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.25...HEAD
+[v5.1.25]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.24...v5.1.25
 [v5.1.24]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.23...v5.1.24
 [v5.1.23]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.22...v5.1.23
 [v5.1.22]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.21...v5.1.22
