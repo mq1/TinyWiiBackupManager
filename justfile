@@ -101,7 +101,7 @@ build-linux-musl-armhf:
     cargo build -Z build-std=std,panic_abort --release --locked --target armv7-unknown-linux-musleabihf
   cp target/armv7-unknown-linux-musleabihf/release/TinyWiiBackupManager .
 
-package-linux-tarball version-name platform arch:
+package-tarball version-name platform arch:
   mkdir -p dist
   tar \
     -I 'gzip -9' \
