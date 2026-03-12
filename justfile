@@ -65,14 +65,50 @@ build-linux-armhf:
     cargo build -Z build-std=std,panic_abort --release --locked --target armv7-unknown-linux-gnueabihf
   cp target/armv7-unknown-linux-gnueabihf/release/TinyWiiBackupManager .
 
-package-linux-tarball version-name arch:
+build-linux-musl-x86_64:
+  CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=lld-21 -C link-arg=--target=x86_64-unknown-linux-musl" \
+    CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER="clang-21" \
+    CC_x86_64_unknown_linux_musl="clang-21" \
+    AR_x86_64_unknown_linux_musl="llvm-ar-21" \
+    CFLAGS_x86_64_unknown_linux_musl="-O3 -flto" \
+    cargo build -Z build-std=std,panic_abort --release --locked --target x86_64-unknown-linux-musl
+  cp target/x86_64-unknown-linux-musl/release/TinyWiiBackupManager .
+
+build-linux-musl-arm64:
+  CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=lld-21 -C link-arg=--target=aarch64-unknown-linux-musl" \
+    CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER="clang-21" \
+    CC_aarch64_unknown_linux_musl="clang-21" \
+    AR_aarch64_unknown_linux_musl="llvm-ar-21" \
+    CFLAGS_aarch64_unknown_linux_musl="-O3 -flto" \
+    cargo build -Z build-std=std,panic_abort --release --locked --target aarch64-unknown-linux-musl
+  cp target/aarch64-unknown-linux-musl/release/TinyWiiBackupManager .
+
+build-linux-musl-x86:
+  CARGO_TARGET_I686_UNKNOWN_LINUX_MUSL_RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=lld-21 -C link-arg=--target=i686-unknown-linux-musl" \
+    CARGO_TARGET_I686_UNKNOWN_LINUX_MUSL_LINKER="clang-21" \
+    CC_i686_unknown_linux_musl="clang-21" \
+    AR_i686_unknown_linux_musl="llvm-ar-21" \
+    CFLAGS_i686_unknown_linux_musl="-O3 -flto" \
+    cargo build -Z build-std=std,panic_abort --release --locked --target i686-unknown-linux-musl
+  cp target/i686-unknown-linux-musl/release/TinyWiiBackupManager .
+
+build-linux-musl-armhf:
+  CARGO_TARGET_ARMV7_UNKNOWN_LINUX_MUSLEABIHF_RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=lld-21 -C link-arg=--target=armv7-unknown-linux-musleabihf" \
+    CARGO_TARGET_ARMV7_UNKNOWN_LINUX_MUSLEABIHF_LINKER="clang-21" \
+    CC_armv7_unknown_linux_musleabihf="clang-21" \
+    AR_armv7_unknown_linux_musleabihf="llvm-ar-21" \
+    CFLAGS_armv7_unknown_linux_musleabihf="-O3 -flto" \
+    cargo build -Z build-std=std,panic_abort --release --locked --target armv7-unknown-linux-musleabihf
+  cp target/armv7-unknown-linux-musleabihf/release/TinyWiiBackupManager .
+
+package-linux-tarball version-name platform arch:
   mkdir -p dist
   tar \
     -I 'gzip -9' \
     --owner=0 \
     --group=0 \
     --mode=0755 \
-    -cvf "dist/TinyWiiBackupManager-{{ version-name }}-linux-{{ arch }}.tar.gz" \
+    -cvf "dist/TinyWiiBackupManager-{{ version-name }}-{{ platform }}-{{ arch }}.tar.gz" \
     TinyWiiBackupManager
 
 package-linux-appimage $VERSION_NAME arch appimagetool appimage-arch:
