@@ -59,16 +59,16 @@ jobs:
             arch: armhf
             appimage-arch: armhf
             platform: linux
-          - runner: ubuntu-22.04
+          - runner: ubuntu-24.04
             arch: x86_64
             platform: linux-musl
-          - runner: ubuntu-22.04-arm
+          - runner: ubuntu-24.04-arm
             arch: arm64
             platform: linux-musl
-          - runner: ubuntu-22.04
+          - runner: ubuntu-24.04
             arch: x86
             platform: linux-musl
-          - runner: ubuntu-22.04-arm
+          - runner: ubuntu-24.04-arm
             arch: armhf
             platform: linux-musl
 
@@ -103,7 +103,7 @@ jobs:
 
       - name: Install musl dependencies
         if: matrix.platform == 'linux-musl'
-        run: sudo apt-get install -y musl-dev
+        run: sudo apt-get install -y musl-dev musl-tools
 
       - name: Download appimagetool
         if: matrix.platform == 'linux'
