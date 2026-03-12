@@ -71,7 +71,7 @@ build-linux-musl-x86_64:
     CC_x86_64_unknown_linux_musl="clang-21" \
     AR_x86_64_unknown_linux_musl="llvm-ar-21" \
     CFLAGS_x86_64_unknown_linux_musl="-O3 -flto" \
-    cargo build -Z build-std=std,panic_abort --release --locked --target x86_64-unknown-linux-musl
+    cargo build --release --locked --target x86_64-unknown-linux-musl
   cp target/x86_64-unknown-linux-musl/release/TinyWiiBackupManager .
 
 build-linux-musl-arm64:
