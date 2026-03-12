@@ -108,7 +108,7 @@ jobs:
           chmod +x appimagetool-${{ matrix.appimage-arch }}.AppImage
 
       - name: Build binary
-        run: just build-linux-${{ matrix.arch }}
+        run: just build-${{ matrix.platform }}-${{ matrix.arch }}
 
       - name: Package AppImage
         if: matrix.platform == 'linux'
