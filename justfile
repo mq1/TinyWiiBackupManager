@@ -275,13 +275,12 @@ print-scoop-manifest version-name:
       data = json.load(response)
 
   for asset in data["assets"]:
-      match asset["name"]:
-          case "TinyWiiBackupManager-{{ version-name }}-windows-x86_64.zip":
-              manifest["architecture"]["64bit"]["hash"] = asset["digest"].removeprefix("sha256:")
-          case "TinyWiiBackupManager-{{ version-name }}-windows-arm64.zip":
-              manifest["architecture"]["arm64"]["hash"] = asset["digest"].removeprefix("sha256:")
-          case "TinyWiiBackupManager-{{ version-name }}-windows-x86.zip":
-              manifest["architecture"]["32bit"]["hash"] = asset["digest"].removeprefix("sha256:")
+      if asset["name"] == "TinyWiiBackupManager-{{ version-name }}-windows-x86_64.zip":
+          manifest["architecture"]["64bit"]["hash"] = asset["digest"].removeprefix("sha256:")
+      elif asset["name"] == "TinyWiiBackupManager-{{ version-name }}-windows-arm64.zip":
+          manifest["architecture"]["arm64"]["hash"] = asset["digest"].removeprefix("sha256:")
+      elif asset["name"] == "TinyWiiBackupManager-{{ version-name }}-windows-x86.zip":
+          manifest["architecture"]["32bit"]["hash"] = asset["digest"].removeprefix("sha256:")
 
   print(json.dumps(manifest, indent=2))
 
