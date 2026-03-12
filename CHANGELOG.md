@@ -10,11 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - 💪 linux-musl builds (slightly slower, extended compatibility)
+- 🛠️ Added a [justfile](https://github.com/mq1/TinyWiiBackupManager/blob/main/justfile) with build scripts for anyone wanting to reproduce the builds by themselves
 
 ### Changed
 
 - ⚡️ Reverted to using linker-plugin-lto on linux (all targets). This bumps the min required glibc version to 2.35 (this won't affect most users), rvz performance should improve. In the rare case this doesn't work for you, I'm now providing linux-musl builds (slightly slower, extended compatibility).
-- 🛠️ Added a [justfile](https://github.com/mq1/TinyWiiBackupManager/blob/main/justfile) with build scripts for anyone wanting to reproduce the builds by themselves
 
 ## [v5.1.24] - 2026-03-09
 
