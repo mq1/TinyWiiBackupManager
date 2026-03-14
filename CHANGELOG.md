@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- 📦 All linux builds are now built on Ubuntu 20.04, improving compatibility with older OSes
+- 📦 All linux builds are now built on Ubuntu 20.04, improving compatibility with older OSes (glibc 2.31+)
 - 📦 Removed broken linux-musl builds
 - ⚡️ Use clang-21 on macOS to compile zstd (might improve rvz performance)
 
