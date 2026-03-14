@@ -70,13 +70,10 @@ jobs:
         with:
           components: rust-src
 
-      - name: Install LLVM and Clang
+      - name: Install dependencies
         run: |
-          wget https://apt.llvm.org/llvm.sh
-          chmod +x llvm.sh
-          ./llvm.sh 21
-          ln -sf $(which clang-21) /usr/bin/cc
-          ln -sf $(which lld-21) /usr/bin/ld
+          sudo apt-get update
+          sudo apt-get install -y wget
 
       - name: Install x86 dependencies
         if: matrix.arch == 'x86'
@@ -85,6 +82,14 @@ jobs:
       - name: Install armhf dependencies
         if: matrix.arch == 'armhf'
         run: apt-get install -y gcc-arm-linux-gnueabihf
+
+      - name: Install LLVM and Clang
+        run: |
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          ./llvm.sh 21
+          ln -sf $(which clang-21) /usr/bin/cc
+          ln -sf $(which lld-21) /usr/bin/ld
 
       - name: Download appimagetool
         run: |
