@@ -20,7 +20,7 @@ mod util;
 use crate::state::State;
 use iced::{Size, window};
 
-#[cfg(target_os = "linux")]
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 #[global_allocator]
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
