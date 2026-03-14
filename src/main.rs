@@ -20,6 +20,10 @@ mod util;
 use crate::state::State;
 use iced::{Size, window};
 
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+#[global_allocator]
+static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
+
 #[cfg(any(target_os = "windows", target_os = "linux"))]
 #[inline]
 fn get_window_icon() -> Option<window::Icon> {
