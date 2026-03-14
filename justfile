@@ -82,6 +82,7 @@ package-linux-appimage $VERSION_NAME arch appimagetool appimage-arch:
   VERSION="${VERSION_NAME#v}" \
     ARCH="{{ appimage-arch }}" \
     {{ appimagetool }} \
+    --appimage-extract-and-run \
     -u "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*{{ arch }}.AppImage.zsync" \
     TinyWiiBackupManager.AppDir \
     "dist/TinyWiiBackupManager-${VERSION_NAME}-linux-{{ arch }}.AppImage"
