@@ -48,7 +48,6 @@ which-fs = "0.2"
 fs4 = { version = "0.13", default-features = false }
 rfd = "0.17"
 split-write = "0.0.3"
-mimalloc = { version = "0.1", optional = true }
 
 # ========================
 # OS SPECIFIC DEPENDENCIES
@@ -122,10 +121,6 @@ regex = "1.12"
 lucide-icons = "0.575"
 zstd = "0.13"
 winresource = "0.1"
-
-[features]
-default = []
-mimalloc = ["dep:mimalloc"]
 
 [profile.release]
 opt-level = 3
