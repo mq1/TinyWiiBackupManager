@@ -73,7 +73,7 @@ jobs:
       - name: Install dependencies
         run: |
           apt-get update
-          apt-get install -y wget
+          apt-get install -y lsb-release wget software-properties-common gnupg
 
       - name: Install x86 dependencies
         if: matrix.arch == 'x86'
