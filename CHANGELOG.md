@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- 📦 All linux builds now statically link musl libc (improved compatibility with older OSes with old glibc versions). mimalloc is now used instead of the default musl allocator to improve performance.
+
 ## [v5.1.25] - 2026-03-12
 
 ### Added

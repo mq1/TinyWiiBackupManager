@@ -101,6 +101,7 @@ wgpu = { version = "27", default-features = false, features = [
   "vulkan",
 ] }
 minreq = { version = "2.14", features = ["https-rustls-probe"] }
+mimalloc = "0.1"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 iced = { version = "0.14", default-features = false, features = [
