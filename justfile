@@ -197,6 +197,7 @@ package-windows-zip version-name platform arch:
 build-macos-arm64:
   MACOSX_DEPLOYMENT_TARGET="11.0" \
     CARGO_TARGET_AARCH64_APPLE_DARWIN_RUSTFLAGS="-C link-arg=-mmacosx-version-min=11.0" \
+    CC_aarch64_apple_darwin="/opt/homebrew/opt/llvm@21/bin/clang" \
     CFLAGS_aarch64_apple_darwin="-O3" \
     cargo build -Z build-std=std,panic_abort --release --locked --target aarch64-apple-darwin
   cp target/aarch64-apple-darwin/release/TinyWiiBackupManager .
@@ -204,6 +205,7 @@ build-macos-arm64:
 build-macos-x86_64:
   MACOSX_DEPLOYMENT_TARGET="10.13" \
     CARGO_TARGET_X86_64_APPLE_DARWIN_RUSTFLAGS="-C link-arg=-mmacosx-version-min=10.13" \
+    CC_aarch64_apple_darwin="/opt/homebrew/opt/llvm@21/bin/clang" \
     CFLAGS_x86_64_apple_darwin="-O3" \
     cargo build -Z build-std=std,panic_abort --release --locked --target x86_64-apple-darwin
   cp target/x86_64-apple-darwin/release/TinyWiiBackupManager .

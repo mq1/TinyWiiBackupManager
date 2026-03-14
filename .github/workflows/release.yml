@@ -221,6 +221,9 @@ jobs:
       - name: Install just
         uses: taiki-e/install-action@just
 
+      - name: Install LLVM and Clang
+        run: brew install llvm@21
+
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.93
         with:
