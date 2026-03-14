@@ -17,7 +17,7 @@ build-linux-x86_64:
     CC_x86_64_unknown_linux_musl="clang-21" \
     AR_x86_64_unknown_linux_musl="llvm-ar-21" \
     CFLAGS_x86_64_unknown_linux_musl="-O3 -flto" \
-    cargo build -Z build-std=std,panic_abort --release --locked --target x86_64-unknown-linux-musl
+    cargo build -Z build-std=std,panic_abort --release --locked --target x86_64-unknown-linux-musl --features mimalloc
   cp target/x86_64-unknown-linux-musl/release/TinyWiiBackupManager .
 
 build-linux-x86_64-v2:
@@ -26,7 +26,7 @@ build-linux-x86_64-v2:
     CC_x86_64_unknown_linux_musl="clang-21" \
     AR_x86_64_unknown_linux_musl="llvm-ar-21" \
     CFLAGS_x86_64_unknown_linux_musl="-O3 -flto -march=x86-64-v2" \
-    cargo build -Z build-std=std,panic_abort --release --locked --target x86_64-unknown-linux-musl
+    cargo build -Z build-std=std,panic_abort --release --locked --target x86_64-unknown-linux-musl --features mimalloc
   cp target/x86_64-unknown-linux-musl/release/TinyWiiBackupManager .
 
 build-linux-x86_64-v3:
@@ -35,7 +35,7 @@ build-linux-x86_64-v3:
     CC_x86_64_unknown_linux_musl="clang-21" \
     AR_x86_64_unknown_linux_musl="llvm-ar-21" \
     CFLAGS_x86_64_unknown_linux_musl="-O3 -flto -march=x86-64-v3" \
-    cargo build -Z build-std=std,panic_abort --release --locked --target x86_64-unknown-linux-musl
+    cargo build -Z build-std=std,panic_abort --release --locked --target x86_64-unknown-linux-musl --features mimalloc
   cp target/x86_64-unknown-linux-musl/release/TinyWiiBackupManager .
 
 build-linux-arm64:
@@ -44,7 +44,7 @@ build-linux-arm64:
     CC_aarch64_unknown_linux_musl="clang-21" \
     AR_aarch64_unknown_linux_musl="llvm-ar-21" \
     CFLAGS_aarch64_unknown_linux_musl="-O3 -flto" \
-    cargo build -Z build-std=std,panic_abort --release --locked --target aarch64-unknown-linux-musl
+    cargo build -Z build-std=std,panic_abort --release --locked --target aarch64-unknown-linux-musl --features mimalloc
   cp target/aarch64-unknown-linux-musl/release/TinyWiiBackupManager .
 
 build-linux-x86:
