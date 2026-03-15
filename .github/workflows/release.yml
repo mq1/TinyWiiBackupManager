@@ -67,7 +67,7 @@ jobs:
         run: docker run -v "$(pwd):/io" -w /io builder scripts/build-linux.sh ${{ matrix.arch }}
 
       - name: Package AppImage
-        run: scripts/package-linux-appimage.sh ${{ env.VERSION_NAME }} ${{ matrix.arch }} ${{ matrix.appimage-arch }}
+        run: scripts/package-linux.sh ${{ env.VERSION_NAME }} ${{ matrix.arch }} ${{ matrix.appimage-arch }}
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v7
@@ -172,14 +172,13 @@ jobs:
       - name: Build and package
         run: |
           scripts/build-macos.sh ${{ matrix.arch }}
-          scripts/package-macos.sh ${{ env.VERSION_NAME }}
-          scripts/zip-macos-app.sh ${{ env.VERSION_NAME }} ${{ matrix.arch }}
+          scripts/package-macos.sh ${{ env.VERSION_NAME }} ${{ matrix.arch }}
 
       - name: Upload macOS distributables
         uses: actions/upload-artifact@v7
         with:
           name: build-macos-${{ matrix.arch }}
-          path: out/*
+          path: dist/*
 
   package-macos:
     name: Package Universal2 macOS app and DMGs

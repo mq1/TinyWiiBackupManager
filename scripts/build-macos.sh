@@ -4,9 +4,11 @@
 
 set -euo pipefail
 
+ARCH=$1
+
 export RUSTC_BOOTSTRAP=1
 
-case $1 in
+case $ARCH in
 arm64)
   export MACOSX_DEPLOYMENT_TARGET="11.0"
   export CARGO_TARGET_AARCH64_APPLE_DARWIN_RUSTFLAGS="-C link-arg=-mmacosx-version-min=11.0"
