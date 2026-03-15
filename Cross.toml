@@ -60,7 +60,7 @@ pre-build = [
 
 [target.armv7-unknown-linux-gnueabihf]
 image.name = "ubuntu:20.04"
-image.toolchain = "arm64=armv7-unknown-linux-gnueabihf"
+image.toolchain = "armv7-unknown-linux-gnueabihf"
 pre-build = [
   "apt-get update",
   "apt-get install -y lsb-release wget software-properties-common gnupg ca-certificates",
