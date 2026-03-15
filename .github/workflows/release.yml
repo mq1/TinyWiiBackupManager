@@ -61,11 +61,16 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@1.93
+        with:
+          components: rust-src
+
       - name: Install just
         uses: taiki-e/install-action@just
 
       - name: Install cross
-        uses: taiki-e/install-action@cross
+        run: cargo install cross --git https://github.com/cross-rs/cross
 
       - name: Download appimagetool
         run: |
