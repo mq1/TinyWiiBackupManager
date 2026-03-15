@@ -13,7 +13,7 @@ on:
       - "Cargo.toml"
       - "Cargo.lock"
       - "package/**"
-      - "justfile"
+      - "scripts/**"
       - ".github/workflows/release.yml"
   pull_request:
   workflow_dispatch:
@@ -31,8 +31,6 @@ jobs:
   build-linux:
     name: Build for Linux
     runs-on: ${{ matrix.runner }}
-    container:
-      image: ubuntu:20.04
     strategy:
       fail-fast: false
       matrix:
@@ -62,45 +60,14 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install just
-        uses: taiki-e/install-action@just
-
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@1.93
-        with:
-          components: rust-src
-
-      - name: Install dependencies
-        run: |
-          apt-get update
-          apt-get install -y lsb-release wget software-properties-common gnupg
-
-      - name: Install x86 dependencies
-        if: matrix.arch == 'x86'
-        run: apt-get install -y libc6-dev-i386
-
-      - name: Install armhf dependencies
-        if: matrix.arch == 'armhf'
-        run: apt-get install -y gcc-arm-linux-gnueabihf
-
-      - name: Install LLVM and Clang
-        run: |
-          wget https://apt.llvm.org/llvm.sh
-          chmod +x llvm.sh
-          ./llvm.sh 21
-          ln -sf $(which clang-21) /usr/bin/cc
-          ln -sf $(which lld-21) /usr/bin/ld
-
-      - name: Download appimagetool
-        run: |
-          wget "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-${{ matrix.appimage-arch }}.AppImage"
-          chmod +x appimagetool-${{ matrix.appimage-arch }}.AppImage
+      - name: Build Docker image
+        run: docker build -t builder -f containers/Dockerfile.${{ matrix.arch }} .
 
       - name: Build binary
-        run: just build-linux-${{ matrix.arch }}
+        run: docker run -v "$(pwd):/io" -w /io builder scripts/build-linux-${{ matrix.arch }}.sh
 
       - name: Package AppImage
-        run: just package-linux-appimage ${{ env.VERSION_NAME }} ${{ matrix.arch }} ./appimagetool-${{ matrix.appimage-arch }}.AppImage ${{ matrix.appimage-arch }}
+        run: scripts/package-linux-appimage.sh ${{ env.VERSION_NAME }} ${{ matrix.arch }} ${{ matrix.appimage-arch }}
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v7
@@ -143,9 +110,6 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install just
-        uses: taiki-e/install-action@just
-
       - name: Install LLVM and Clang
         uses: KyleMayes/install-llvm-action@v2
         with:
@@ -172,8 +136,8 @@ jobs:
       - name: Build and package binary
         shell: pwsh
         run: |
-          just build-${{ matrix.platform }}-${{ matrix.arch }}
-          just package-windows-zip ${{ env.VERSION_NAME }} ${{ matrix.platform }} ${{ matrix.arch }}
+          .\scripts\build-${{ matrix.platform }}-${{ matrix.arch }}.ps1
+          .\scripts\package-windows.ps1 -VersionName ${{ env.VERSION_NAME }} -Platform ${{ matrix.platform }} -Arch ${{ matrix.arch }}
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v7
@@ -197,9 +161,6 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install just
-        uses: taiki-e/install-action@just
-
       - name: Install LLVM and Clang
         run: brew install llvm@21
 
@@ -210,9 +171,9 @@ jobs:
 
       - name: Build and package
         run: |
-          just build-macos-${{ matrix.arch }}
-          just package-macos-app ${{ env.VERSION_NAME }}
-          just zip-macos-app ${{ env.VERSION_NAME }} ${{ matrix.arch }}
+          scripts/build-macos-${{ matrix.arch }}.sh
+          scripts/package-macos.sh ${{ env.VERSION_NAME }}
+          scripts/zip-macos-app.sh ${{ env.VERSION_NAME }} ${{ matrix.arch }}
 
       - name: Upload macOS distributables
         uses: actions/upload-artifact@v7
@@ -281,9 +242,6 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
-      - name: Install just
-        uses: taiki-e/install-action@just
-
       - name: Download distributables
         uses: actions/download-artifact@v8
         with:
@@ -295,7 +253,7 @@ jobs:
         run: echo -n $(yq '.package.version' Cargo.toml) > version.txt # Write without line break
 
       - name: Generate release notes
-        run: just print-changes $VERSION_NAME > BODY.md
+        run: scripts/print-changes.py $VERSION_NAME > BODY.md
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
