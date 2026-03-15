@@ -62,7 +62,7 @@ pre-build = [
 
 [target.armv7-unknown-linux-gnueabihf]
 image.name = "ubuntu:20.04"
-image.toolchain = ["linux/arm64=armv7-unknown-linux-gnueabihf"]
+image.toolchain = ["linux/arm/v7=armv7-unknown-linux-gnueabihf"]
 runner = "qemu-user"
 pre-build = [
   "apt-get update",
