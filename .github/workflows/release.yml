@@ -64,7 +64,7 @@ jobs:
         run: docker build -t builder -f containers/Dockerfile.${{ matrix.arch }} .
 
       - name: Build binary
-        run: docker run -v "$(pwd):/io" -w /io builder scripts/build-linux-${{ matrix.arch }}.sh
+        run: docker run -v "$(pwd):/io" -w /io builder scripts/build-linux.sh ${{ matrix.arch }}
 
       - name: Package AppImage
         run: scripts/package-linux-appimage.sh ${{ env.VERSION_NAME }} ${{ matrix.arch }} ${{ matrix.appimage-arch }}
@@ -136,7 +136,7 @@ jobs:
       - name: Build and package binary
         shell: pwsh
         run: |
-          .\scripts\build-${{ matrix.platform }}-${{ matrix.arch }}.ps1
+          .\scripts\build-windows.ps1 -Platform ${{ matrix.platform }} -Arch ${{ matrix.arch }}
           .\scripts\package-windows.ps1 -VersionName ${{ env.VERSION_NAME }} -Platform ${{ matrix.platform }} -Arch ${{ matrix.arch }}
 
       - name: Upload Windows distributables
@@ -171,7 +171,7 @@ jobs:
 
       - name: Build and package
         run: |
-          scripts/build-macos-${{ matrix.arch }}.sh
+          scripts/build-macos.sh ${{ matrix.arch }}
           scripts/package-macos.sh ${{ env.VERSION_NAME }}
           scripts/zip-macos-app.sh ${{ env.VERSION_NAME }} ${{ matrix.arch }}
 
