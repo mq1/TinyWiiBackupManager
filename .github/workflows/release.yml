@@ -198,16 +198,17 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           pattern: "dist-macos-*"
+          merge-multiple: true
 
       - name: Create the Universal2 app
         run: |
           # Mount arm64 DMG and copy the app
-          hdiutil mount dist-macos-arm64/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-arm64.dmg
+          hdiutil mount TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-arm64.dmg
           cp -r /Volumes/TinyWiiBackupManager/TinyWiiBackupManager.app TinyWiiBackupManager.app
           hdiutil unmount /Volumes/TinyWiiBackupManager
 
           # Mount x86_64 DMG and extract the binary
-          hdiutil mount dist-macos-x86_64/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-x86_64.dmg
+          hdiutil mount TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-x86_64.dmg
           cp /Volumes/TinyWiiBackupManager/TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager TinyWiiBackupManager-x86_64
           hdiutil unmount /Volumes/TinyWiiBackupManager
 
