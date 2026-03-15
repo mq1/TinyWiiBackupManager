@@ -27,7 +27,7 @@ switch ($Platform) {
       }
     }
   }
-  Default {
+  "windows" {
     switch ($Arch) {
       "arm64" {
         $Target = "aarch64-pc-windows-msvc"
