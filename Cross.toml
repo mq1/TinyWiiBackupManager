@@ -18,6 +18,7 @@ passthrough = [
 [target.x86_64-unknown-linux-gnu]
 image.name = "ubuntu:20.04"
 image.toolchain = "x86_64-unknown-linux-gnu"
+runner = "native"
 pre-build = [
   "apt-get update",
   "apt-get install -y lsb-release wget software-properties-common gnupg ca-certificates",
@@ -32,7 +33,7 @@ pre-build = [
 [target.aarch64-unknown-linux-gnu]
 image.name = "ubuntu:20.04"
 image.toolchain = "aarch64-unknown-linux-gnu"
-
+runner = "native"
 pre-build = [
   "apt-get update",
   "apt-get install -y lsb-release wget software-properties-common gnupg ca-certificates",
@@ -47,6 +48,7 @@ pre-build = [
 [target.i686-unknown-linux-gnu]
 image.name = "ubuntu:20.04"
 image.toolchain = "i686-unknown-linux-gnu"
+runner = "native"
 pre-build = [
   "apt-get update",
   "apt-get install -y lsb-release wget software-properties-common gnupg ca-certificates libc6-dev-i386",
@@ -61,6 +63,7 @@ pre-build = [
 [target.armv7-unknown-linux-gnueabihf]
 image.name = "ubuntu:20.04"
 image.toolchain = "armv7-unknown-linux-gnueabihf"
+runner = "qemu-user"
 pre-build = [
   "apt-get update",
   "apt-get install -y lsb-release wget software-properties-common gnupg ca-certificates",
