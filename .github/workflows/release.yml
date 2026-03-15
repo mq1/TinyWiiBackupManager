@@ -88,16 +88,11 @@ jobs:
           ln -sf $(which clang-21) /usr/bin/cc
           ln -sf $(which lld-21) /usr/bin/ld
 
-      - name: Download appimagetool
-        run: |
-          wget "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-${{ matrix.appimage-arch }}.AppImage"
-          chmod +x appimagetool-${{ matrix.appimage-arch }}.AppImage
-
       - name: Build binary
         run: scripts/build-linux-${{ matrix.arch }}.sh
 
       - name: Package AppImage
-        run: scripts/package-linux-appimage.sh ${{ env.VERSION_NAME }} ${{ matrix.arch }} ./appimagetool-${{ matrix.appimage-arch }}.AppImage ${{ matrix.appimage-arch }}
+        run: scripts/package-linux-appimage.sh ${{ env.VERSION_NAME }} ${{ matrix.arch }} ${{ matrix.appimage-arch }}
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v7
