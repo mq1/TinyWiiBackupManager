@@ -4,7 +4,7 @@ FROM ubuntu:20.04
 RUN dpkg --add-architecture armhf
 
 # Install dependencies
-RUN apt-get update && apt-get install -y lsb-release wget software-properties-common gnupg libc6-dev:armhf
+RUN apt-get update && apt-get install -y lsb-release wget software-properties-common gnupg gcc-arm-linux-gnueabihf libc6-dev:armhf
 
 # Install LLVM 21
 RUN wget https://apt.llvm.org/llvm.sh && \
