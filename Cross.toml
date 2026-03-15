@@ -16,7 +16,6 @@ passthrough = [
 ]
 
 [target.x86_64-unknown-linux-gnu]
-build-std = ["std", "panic_abort"]
 image = "amd64/ubuntu:20.04"
 runner = "native"
 pre-build = [
@@ -31,7 +30,6 @@ pre-build = [
 ]
 
 [target.aarch64-unknown-linux-gnu]
-build-std = ["std", "panic_abort"]
 image = "arm64v8/ubuntu:20.04"
 runner = "native"
 pre-build = [
@@ -46,7 +44,6 @@ pre-build = [
 ]
 
 [target.i686-unknown-linux-gnu]
-build-std = ["std", "panic_abort"]
 image = "amd64/ubuntu:20.04"
 runner = "native"
 pre-build = [
@@ -61,7 +58,6 @@ pre-build = [
 ]
 
 [target.armv7-unknown-linux-gnueabihf]
-build-std = ["std", "panic_abort"]
 image = "arm32v7/ubuntu:20.04"
 runner = "qemu-user"
 pre-build = [

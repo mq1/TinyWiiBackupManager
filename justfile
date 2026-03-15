@@ -17,7 +17,7 @@ build-linux-x86_64:
     CC_x86_64_unknown_linux_gnu="clang-21" \
     AR_x86_64_unknown_linux_gnu="llvm-ar-21" \
     CFLAGS_x86_64_unknown_linux_gnu="-O3 -flto" \
-    cross build --release --locked --target x86_64-unknown-linux-gnu
+    cross build -Z build-std=std,panic_abort --release --locked --target x86_64-unknown-linux-gnu
   cp target/x86_64-unknown-linux-gnu/release/TinyWiiBackupManager .
 
 build-linux-x86_64-v2:
@@ -26,7 +26,7 @@ build-linux-x86_64-v2:
     CC_x86_64_unknown_linux_gnu="clang-21" \
     AR_x86_64_unknown_linux_gnu="llvm-ar-21" \
     CFLAGS_x86_64_unknown_linux_gnu="-O3 -flto -march=x86-64-v2" \
-    cross build --release --locked --target x86_64-unknown-linux-gnu 
+    cross build -Z build-std=std,panic_abort --release --locked --target x86_64-unknown-linux-gnu 
   cp target/x86_64-unknown-linux-gnu/release/TinyWiiBackupManager .
 
 build-linux-x86_64-v3:
@@ -35,7 +35,7 @@ build-linux-x86_64-v3:
     CC_x86_64_unknown_linux_gnu="clang-21" \
     AR_x86_64_unknown_linux_gnu="llvm-ar-21" \
     CFLAGS_x86_64_unknown_linux_gnu="-O3 -flto -march=x86-64-v3" \
-    cross build --release --locked --target x86_64-unknown-linux-gnu
+    cross build -Z build-std=std,panic_abort --release --locked --target x86_64-unknown-linux-gnu
   cp target/x86_64-unknown-linux-gnu/release/TinyWiiBackupManager .
 
 build-linux-arm64:
@@ -44,7 +44,7 @@ build-linux-arm64:
     CC_aarch64_unknown_linux_gnu="clang-21" \
     AR_aarch64_unknown_linux_gnu="llvm-ar-21" \
     CFLAGS_aarch64_unknown_linux_gnu="-O3 -flto" \
-    cross build --release --locked --target aarch64-unknown-linux-gnu
+    cross build -Z build-std=std,panic_abort --release --locked --target aarch64-unknown-linux-gnu
   cp target/aarch64-unknown-linux-gnu/release/TinyWiiBackupManager .
 
 build-linux-x86:
@@ -53,7 +53,7 @@ build-linux-x86:
     CC_i686_unknown_linux_gnu="clang-21" \
     AR_i686_unknown_linux_gnu="llvm-ar-21" \
     CFLAGS_i686_unknown_linux_gnu="-O3 -flto" \
-    cross build --release --locked --target i686-unknown-linux-gnu
+    cross build -Z build-std=std,panic_abort --release --locked --target i686-unknown-linux-gnu
   cp target/i686-unknown-linux-gnu/release/TinyWiiBackupManager .
 
 build-linux-armhf:
@@ -62,7 +62,7 @@ build-linux-armhf:
     CC_armv7_unknown_linux_gnueabihf="clang-21" \
     AR_armv7_unknown_linux_gnueabihf="llvm-ar-21" \
     CFLAGS_armv7_unknown_linux_gnueabihf="-O3 -flto" \
-    cross build --release --locked --target armv7-unknown-linux-gnueabihf
+    cross build -Z build-std=std,panic_abort --release --locked --target armv7-unknown-linux-gnueabihf
   cp target/armv7-unknown-linux-gnueabihf/release/TinyWiiBackupManager .
 
 package-linux-tarball version-name arch:
