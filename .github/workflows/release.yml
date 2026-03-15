@@ -39,39 +39,27 @@ jobs:
           - runner: ubuntu-24.04
             arch: x86_64-v3
             appimage-arch: x86_64
-            targets: x86_64-unknown-linux-gnu
           - runner: ubuntu-24.04
             arch: x86_64-v2
             appimage-arch: x86_64
-            targets: x86_64-unknown-linux-gnu
           - runner: ubuntu-24.04
             arch: x86_64
             appimage-arch: x86_64
-            targets: x86_64-unknown-linux-gnu
           - runner: ubuntu-24.04-arm
             arch: arm64
             appimage-arch: aarch64
-            targets: aarch64-unknown-linux-gnu
           - runner: ubuntu-24.04
             arch: x86
             appimage-arch: i686
-            targets: i686-unknown-linux-gnu
           - runner: ubuntu-24.04-arm
             arch: armhf
             appimage-arch: armhf
-            targets: armv7-unknown-linux-gnueabihf
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
           fetch-depth: 1
-
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@1.93
-        with:
-          components: rust-src
-          targets: ${{ matrix.targets }}
 
       - name: Install just
         uses: taiki-e/install-action@just
