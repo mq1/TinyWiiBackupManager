@@ -13,6 +13,11 @@ RUN wget https://apt.llvm.org/llvm.sh && \
 # Install Rust
 RUN wget https://static.rust-lang.org/rustup/rustup-init.sh && \
     chmod +x rustup-init.sh && \
-    ./rustup-init.sh -y --default-toolchain 1.93 && \
-    rustup component add rust-src
+    ./rustup-init.sh -y --default-toolchain 1.93
+
+# Add rust to path
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+# Install rust-src
+RUN rustup component add rust-src
 
