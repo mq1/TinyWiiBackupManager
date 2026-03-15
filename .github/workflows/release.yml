@@ -64,10 +64,10 @@ jobs:
         run: docker build -t builder -f containers/Dockerfile.${{ matrix.arch }} .
 
       - name: Build binary
-        run: docker run -v "$(pwd):/io" -w /io builder scripts/build-linux-${{ matrix.arch }}.sh
+        run: docker run -v "$(pwd):/io" -w /io builder scripts/build-linux.sh ${{ matrix.arch }}
 
       - name: Package AppImage
-        run: scripts/package-linux-appimage.sh ${{ env.VERSION_NAME }} ${{ matrix.arch }} ${{ matrix.appimage-arch }}
+        run: scripts/package-linux.sh ${{ env.VERSION_NAME }} ${{ matrix.arch }} ${{ matrix.appimage-arch }}
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v7
@@ -136,7 +136,7 @@ jobs:
       - name: Build and package binary
         shell: pwsh
         run: |
-          .\scripts\build-${{ matrix.platform }}-${{ matrix.arch }}.ps1
+          .\scripts\build-windows.ps1 -Platform ${{ matrix.platform }} -Arch ${{ matrix.arch }}
           .\scripts\package-windows.ps1 -VersionName ${{ env.VERSION_NAME }} -Platform ${{ matrix.platform }} -Arch ${{ matrix.arch }}
 
       - name: Upload Windows distributables
@@ -169,20 +169,22 @@ jobs:
         with:
           components: rust-src
 
+      - name: Install appdmg
+        run: npm i -g appdmg
+
       - name: Build and package
         run: |
-          scripts/build-macos-${{ matrix.arch }}.sh
-          scripts/package-macos.sh ${{ env.VERSION_NAME }}
-          scripts/zip-macos-app.sh ${{ env.VERSION_NAME }} ${{ matrix.arch }}
+          scripts/build-macos.sh ${{ matrix.arch }}
+          scripts/package-macos.sh ${{ env.VERSION_NAME }} ${{ matrix.arch }}
 
       - name: Upload macOS distributables
         uses: actions/upload-artifact@v7
         with:
-          name: build-macos-${{ matrix.arch }}
-          path: out/*
+          name: dist-macos-${{ matrix.arch }}
+          path: dist/*
 
-  package-macos:
-    name: Package Universal2 macOS app and DMGs
+  build-macos-universal:
+    name: Build for macOS (Universal)
     runs-on: macos-26
     needs: [build-macos]
 
@@ -192,34 +194,39 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Download macOS .app distributables
+      - name: Download macOS distributables
         uses: actions/download-artifact@v8
         with:
-          pattern: "build-macos-*"
-
-      - name: Extract the .zip distributables
-        run: |
-          ditto -x -k "build-macos-arm64/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-arm64.zip" build-macos-arm64
-          ditto -x -k "build-macos-x86_64/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-x86_64.zip" build-macos-x86_64
-          cp -r build-macos-arm64/TinyWiiBackupManager.app TinyWiiBackupManager.app
+          pattern: "dist-macos-*"
+          merge-multiple: true
 
       - name: Create the Universal2 app
         run: |
+          # Mount arm64 DMG and copy the app
+          hdiutil mount TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-arm64.dmg
+          cp -r /Volumes/TinyWiiBackupManager/TinyWiiBackupManager.app TinyWiiBackupManager.app
+          hdiutil unmount /Volumes/TinyWiiBackupManager
+
+          # Mount x86_64 DMG and extract the binary
+          hdiutil mount TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-x86_64.dmg
+          cp /Volumes/TinyWiiBackupManager/TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager TinyWiiBackupManager-x86_64
+          hdiutil unmount /Volumes/TinyWiiBackupManager
+
+          # Create the Universal binary
           lipo -create \
             -output TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager \
-            build-macos-arm64/TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager \
-            build-macos-x86_64/TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
+            TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager \
+            TinyWiiBackupManager-x86_64
+          
           codesign --force --deep -s - TinyWiiBackupManager.app
 
       - name: Install appdmg
         run: npm i -g appdmg
 
-      - name: Create DMGs (assets from sindresorhus/create-dmg)
+      - name: Create Universal DMG
         run: |
           mkdir dist
-          appdmg package/macos/appdmg-x86_64.json "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-x86_64.dmg"
-          appdmg package/macos/appdmg-arm64.json "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-arm64.dmg"
-          appdmg package/macos/appdmg-universal.json "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-universal.dmg"
+          appdmg package/macos/appdmg-arm64.json "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-universal.dmg"
 
       - name: Upload macOS distributables
         uses: actions/upload-artifact@v7
@@ -234,7 +241,7 @@ jobs:
     name: Create GitHub Release
     if: github.ref_type == 'tag'
     runs-on: ubuntu-slim
-    needs: [build-linux, build-windows, package-macos]
+    needs: [build-linux, build-windows, build-macos, build-macos-universal]
     steps:
       - name: Checkout
         uses: actions/checkout@v6
