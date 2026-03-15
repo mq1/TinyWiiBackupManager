@@ -17,7 +17,7 @@ passthrough = [
 
 [target.x86_64-unknown-linux-gnu]
 image.name = "ubuntu:20.04"
-image.toolchain = ["x86_64-unknown-linux-gnu"]
+image.toolchain = ["linux/amd64=x86_64-unknown-linux-gnu"]
 runner = "native"
 pre-build = [
   "apt-get update",
@@ -32,7 +32,7 @@ pre-build = [
 
 [target.aarch64-unknown-linux-gnu]
 image.name = "ubuntu:20.04"
-image.toolchain = ["aarch64-unknown-linux-gnu"]
+image.toolchain = ["linux/arm64=aarch64-unknown-linux-gnu"]
 runner = "native"
 pre-build = [
   "apt-get update",
@@ -47,7 +47,7 @@ pre-build = [
 
 [target.i686-unknown-linux-gnu]
 image.name = "ubuntu:20.04"
-image.toolchain = ["i686-unknown-linux-gnu"]
+image.toolchain = ["linux/amd64=i686-unknown-linux-gnu"]
 runner = "native"
 pre-build = [
   "apt-get update",
@@ -62,7 +62,7 @@ pre-build = [
 
 [target.armv7-unknown-linux-gnueabihf]
 image.name = "ubuntu:20.04"
-image.toolchain = ["armv7-unknown-linux-gnueabihf"]
+image.toolchain = ["linux/arm64=armv7-unknown-linux-gnueabihf"]
 runner = "qemu-user"
 pre-build = [
   "apt-get update",
