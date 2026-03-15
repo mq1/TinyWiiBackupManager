@@ -1,7 +1,7 @@
 FROM ubuntu:20.04
 
 # Install dependencies
-RUN apt-get update && apt-get install -y lsb-release wget software-properties-common gnupg libc6-dev-i386 gcc-arm-linux-gnueabihf
+RUN apt-get update && apt-get install -y lsb-release wget software-properties-common gnupg
 
 # Install LLVM 21
 RUN wget https://apt.llvm.org/llvm.sh && \
