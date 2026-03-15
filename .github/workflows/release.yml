@@ -32,7 +32,6 @@ jobs:
     name: Build for Linux
     runs-on: ${{ matrix.runner }}
     container:
-      image: ubuntu:20.04
     strategy:
       fail-fast: false
       matrix:
@@ -62,34 +61,16 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install just
-        uses: taiki-e/install-action@just
-
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.93
         with:
           components: rust-src
 
-      - name: Install dependencies
-        run: |
-          apt-get update
-          apt-get install -y lsb-release wget software-properties-common gnupg
+      - name: Install just
+        uses: taiki-e/install-action@just
 
-      - name: Install x86 dependencies
-        if: matrix.arch == 'x86'
-        run: apt-get install -y libc6-dev-i386
-
-      - name: Install armhf dependencies
-        if: matrix.arch == 'armhf'
-        run: apt-get install -y gcc-arm-linux-gnueabihf
-
-      - name: Install LLVM and Clang
-        run: |
-          wget https://apt.llvm.org/llvm.sh
-          chmod +x llvm.sh
-          ./llvm.sh 21
-          ln -sf $(which clang-21) /usr/bin/cc
-          ln -sf $(which lld-21) /usr/bin/ld
+      - name: Install cross
+        uses: taiki-e/install-action@cross
 
       - name: Download appimagetool
         run: |

@@ -1,0 +1,27 @@
+[build]
+pre-build = [
+  "apt-get update",
+  "apt-get install -y lsb-release wget software-properties-common gnupg ca-certificates",
+  "wget https://apt.llvm.org/llvm.sh",
+  "chmod +x llvm.sh",
+  "./llvm.sh 21",
+  "rm llvm.sh",
+  "ln -sf /usr/bin/clang-21 /usr/bin/cc",
+  "ln -sf /usr/bin/lld-21 /usr/bin/ld",
+]
+
+[build.env]
+passthrough = [
+  "CC_x86_64_unknown_linux_gnu",
+  "AR_x86_64_unknown_linux_gnu",
+  "CFLAGS_x86_64_unknown_linux_gnu",
+  "CC_aarch64_unknown_linux_gnu",
+  "AR_aarch64_unknown_linux_gnu",
+  "CFLAGS_aarch64_unknown_linux_gnu",
+  "CC_i686_unknown_linux_gnu",
+  "AR_i686_unknown_linux_gnu",
+  "CFLAGS_i686_unknown_linux_gnu",
+  "CC_armv7_unknown_linux_gnueabihf",
+  "AR_armv7_unknown_linux_gnueabihf",
+  "CFLAGS_armv7_unknown_linux_gnueabihf",
+]
