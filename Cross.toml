@@ -1,4 +1,5 @@
 [build]
+image = "ubuntu:20.04"
 pre-build = [
   "apt-get update",
   "apt-get install -y lsb-release wget software-properties-common gnupg ca-certificates",
@@ -12,6 +13,7 @@ pre-build = [
 
 [build.env]
 passthrough = [
+  "RUSTC_BOOTSTRAP",
   "CC_x86_64_unknown_linux_gnu",
   "AR_x86_64_unknown_linux_gnu",
   "CFLAGS_x86_64_unknown_linux_gnu",
