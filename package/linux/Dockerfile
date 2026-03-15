@@ -1,17 +1,11 @@
 FROM ubuntu:20.04
 
-# Install dependencies
-RUN apt-get update && apt-get install -y lsb-release wget software-properties-common gnupg
-
-# Install x86 dependencies
+# Add cross architectures
 RUN dpkg --add-architecture i386 && \
-    apt-get update && \
-    apt-get install -y libc6-dev:i386
+    dpkg --add-architecture armhf
 
-# Install armhf dependencies
-RUN dpkg --add-architecture armhf && \
-    apt-get update && \
-    apt-get install -y libc6-dev:armhf
+# Install dependencies
+RUN apt-get update && apt-get install -y lsb-release wget software-properties-common gnupg libc6-dev:i386 libc6-dev:armhf
 
 # Install LLVM 21
 RUN wget https://apt.llvm.org/llvm.sh && \
