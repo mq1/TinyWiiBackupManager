@@ -3,7 +3,7 @@
 
 $ErrorActionPreference = "Stop"
 
-param (
+param(
   [string]$Platform,
   [string]$Arch
 )
