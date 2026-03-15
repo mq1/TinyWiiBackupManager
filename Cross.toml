@@ -16,7 +16,7 @@ passthrough = [
 ]
 
 [target.x86_64-unknown-linux-gnu]
-image = "amd64/ubuntu:20.04"
+image = "ubuntu:20.04"
 pre-build = [
   "apt-get update",
   "apt-get install -y lsb-release wget software-properties-common gnupg ca-certificates",
@@ -29,7 +29,7 @@ pre-build = [
 ]
 
 [target.aarch64-unknown-linux-gnu]
-image = "arm64v8/ubuntu:20.04"
+image = "ubuntu:20.04"
 pre-build = [
   "apt-get update",
   "apt-get install -y lsb-release wget software-properties-common gnupg ca-certificates",
@@ -42,7 +42,7 @@ pre-build = [
 ]
 
 [target.i686-unknown-linux-gnu]
-image = "amd64/ubuntu:20.04"
+image = "ubuntu:20.04"
 pre-build = [
   "apt-get update",
   "apt-get install -y lsb-release wget software-properties-common gnupg ca-certificates libc6-dev-i386",
@@ -55,7 +55,7 @@ pre-build = [
 ]
 
 [target.armv7-unknown-linux-gnueabihf]
-image = "arm32v7/ubuntu:20.04"
+image = "ubuntu:20.04"
 pre-build = [
   "apt-get update",
   "apt-get install -y lsb-release wget software-properties-common gnupg ca-certificates",
