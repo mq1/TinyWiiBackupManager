@@ -1,0 +1,18 @@
+FROM ubuntu:20.04
+
+# Install dependencies
+RUN apt-get update && apt-get install -y lsb-release wget software-properties-common gnupg libc6-dev-i386 gcc-arm-linux-gnueabihf
+
+# Install LLVM 21
+RUN wget https://apt.llvm.org/llvm.sh && \
+    chmod +x llvm.sh && \
+    ./llvm.sh 21 && \
+    ln -sf $(which clang-21) /usr/bin/cc && \
+    ln -sf $(which lld-21) /usr/bin/ld
+
+# Install Rust
+RUN wget https://static.rust-lang.org/rustup/rustup-init.sh && \
+    chmod +x rustup-init.sh && \
+    ./rustup-init.sh -y --default-toolchain 1.93 && \
+    rustup component add rust-src
+
