@@ -14,9 +14,4 @@ cp package/macos/Info.plist TinyWiiBackupManager.app/Contents/Info.plist
 /usr/libexec/PlistBuddy -c "Add :CFBundleShortVersionString string ${VERSION_NAME#v}" TinyWiiBackupManager.app/Contents/Info.plist
 
 mkdir -p dist
-ditto -c -k \
-  --sequesterRsrc \
-  --keepParent \
-  --zlibCompressionLevel 9 \
-  TinyWiiBackupManager.app \
-  "dist/TinyWiiBackupManager-${VERSION_NAME}-macos-${ARCH}.zip"
+appdmg package/macos/appdmg-${ARCH}.json "dist/TinyWiiBackupManager-${VERSION_NAME}-macos-${ARCH}.dmg"
