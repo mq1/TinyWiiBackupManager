@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v5.1.27] - 2026-03-16
+
+### Fixed
+
+- Gamecube multi-disc games are apparently not handled properly or consistently (#594)
+
 ## [v5.1.26] - 2026-03-14
 
 ### Changed
@@ -315,7 +321,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 🖼️ TinyWiiBackupManager icon now shows up again on the windows exe
 
-[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.26...HEAD
+[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.27...HEAD
+[v5.1.27]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.26...v5.1.27
 [v5.1.26]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.25...v5.1.26
 [v5.1.25]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.24...v5.1.25
 [v5.1.24]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.23...v5.1.24

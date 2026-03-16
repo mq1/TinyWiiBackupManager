@@ -111,7 +111,9 @@ impl ConvertForWiiOperation {
                 let parent_dir = {
                     let title = util::sanitize(&title)
                         .replace(" game disc 1", "")
-                        .replace(" game disc 2", "");
+                        .replace(" game disc 2", "")
+                        .replace("TALES OF SYMPHONIA 1", "TALES OF SYMPHONIA")
+                        .replace("TALES OF SYMPHONIA 2", "TALES OF SYMPHONIA");
 
                     self.config
                         .mount_point()
@@ -138,7 +140,7 @@ impl ConvertForWiiOperation {
                     } else {
                         let file_stem = match disc_num {
                             0 => "game".to_string(),
-                            n => format!("disc{n}"),
+                            n => format!("disc{}", n + 1),
                         };
 
                         let ext = format_to_ext(out_format);
