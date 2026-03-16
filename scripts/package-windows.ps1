@@ -2,9 +2,9 @@
 # SPDX-License-Identifier: GPL-3.0-only
 
 param(
-    [string]$VersionName,
-    [string]$Platform,
-    [string]$Arch
+  [string]$VersionName,
+  [string]$Platform,
+  [string]$Arch
 )
 
 $ErrorActionPreference = "Stop"
