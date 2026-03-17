@@ -18,12 +18,6 @@ impl From<[u8; 6]> for GameID {
     }
 }
 
-impl From<GameID> for [u8; 6] {
-    fn from(val: GameID) -> Self {
-        val.0
-    }
-}
-
 impl TryFrom<&str> for GameID {
     type Error = usize;
 
@@ -41,11 +35,6 @@ impl TryFrom<&str> for GameID {
 }
 
 impl GameID {
-    #[inline]
-    pub const fn empty() -> Self {
-        Self([0; 6])
-    }
-
     #[inline]
     pub fn as_str(&self) -> &str {
         if self.0[4] == 0 {
