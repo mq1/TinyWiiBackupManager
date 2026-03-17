@@ -8,10 +8,10 @@ use std::path::Path;
 use std::{env, fs};
 
 #[derive(Serialize)]
-struct GameEntry<'a> {
+struct GameEntry {
     id: [u8; 6],
     ghid: u32,
-    title: &'a str,
+    title: String,
 }
 
 fn str_to_game_id(id: &str) -> Option<[u8; 6]> {
@@ -72,22 +72,22 @@ fn make_id_map() {
     let gamehacking_ids = parse_gamehacking_ids();
 
     let mut entries = Vec::new();
-    for (game_id, title) in &title_map {
+    for (game_id, title) in title_map {
         let ghid = gamehacking_ids
             .iter()
-            .find(|(id, _)| *id == *game_id)
+            .find(|(id, _)| *id == game_id)
             .map(|(_, ghid)| ghid)
             .copied()
             .unwrap_or(0);
 
         entries.push(GameEntry {
-            id: *game_id,
+            id: game_id,
             ghid,
             title,
         });
     }
 
-    let data = postcard::to_allocvec(&entries).unwrap();
+    let data = postcard::to_stdvec(&entries).unwrap();
 
     let compressed_data = zstd::bulk::compress(&data, 19).unwrap();
     let out_path = Path::new(&env::var("OUT_DIR").unwrap()).join("id_map.bin.zst");

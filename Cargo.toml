@@ -122,7 +122,7 @@ regex = "1.12"
 lucide-icons = "0.575"
 zstd = "0.13"
 winresource = "0.1"
-postcard = { version = "1.1", features = ["alloc"] }
+postcard = { version = "1.1", features = ["use-std"] }
 serde = { version = "1.0", features = ["derive"] }
 
 [profile.release]

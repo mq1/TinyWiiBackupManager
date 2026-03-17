@@ -10,29 +10,24 @@ use std::sync::LazyLock;
 include!(concat!(env!("OUT_DIR"), "/id_map_meta.rs"));
 
 #[derive(Deserialize)]
-struct GameEntry<'a> {
+struct GameEntry {
     id: [u8; 6],
     ghid: u32,
-    title: &'a str,
+    title: String,
 }
 
 const COMPRESSED_ID_MAP: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/id_map.bin.zst"));
 
-static ID_MAP: LazyLock<Vec<GameEntry<'static>>> = LazyLock::new(|| {
-    let decompressed = zstd::bulk::decompress(COMPRESSED_ID_MAP, DATA_SIZE)
-        .expect("Failed to decompress id map")
-        .into_boxed_slice();
-
-    let static_bytes: &'static [u8] = Box::leak(decompressed);
-
-    postcard::from_bytes(static_bytes).expect("Failed to deserialize id map")
+static ID_MAP: LazyLock<Vec<GameEntry>> = LazyLock::new(|| {
+    let bytes = zstd::bulk::decompress(COMPRESSED_ID_MAP, DATA_SIZE).unwrap();
+    postcard::from_bytes(&bytes).unwrap()
 });
 
 pub fn get_title(game_id: GameID) -> Option<&'static str> {
     let inner = game_id.inner();
     let i = ID_MAP.binary_search_by_key(&inner, |entry| entry.id).ok()?;
 
-    Some(ID_MAP[i].title)
+    Some(&ID_MAP[i].title)
 }
 
 pub fn get_ghid(game_id: GameID) -> Option<u32> {
