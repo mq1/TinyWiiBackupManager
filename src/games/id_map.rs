@@ -16,31 +16,33 @@ struct GameEntry {
     title: String,
 }
 
-const COMPRESSED_ID_MAP: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/id_map.bin.zst"));
+#[derive(Deserialize)]
+pub struct IdMap(Box<[GameEntry]>);
 
-static ID_MAP: LazyLock<Vec<GameEntry>> = LazyLock::new(|| {
+impl<'a> IdMap {
+    pub fn get_title(&'a self, id: GameID) -> Option<&'a str> {
+        let i = self.0.binary_search_by_key(&id, |entry| entry.id).ok()?;
+        let entry = &self.0[i];
+
+        Some(&entry.title)
+    }
+
+    pub fn get_ghid(&self, id: GameID) -> Option<u32> {
+        let i = self.0.binary_search_by_key(&id, |entry| entry.id).ok()?;
+        let entry = &self.0[i];
+
+        match entry.ghid {
+            0 => None,
+            ghid => Some(ghid),
+        }
+    }
+}
+
+pub static ID_MAP: LazyLock<IdMap> = LazyLock::new(|| {
+    const COMPRESSED_ID_MAP: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/id_map.bin.zst"));
     let bytes = zstd::bulk::decompress(COMPRESSED_ID_MAP, DATA_SIZE).unwrap();
     postcard::from_bytes(&bytes).unwrap()
 });
-
-pub fn get_title(game_id: GameID) -> Option<&'static str> {
-    let i = ID_MAP
-        .binary_search_by_key(&game_id, |entry| entry.id)
-        .ok()?;
-
-    Some(&ID_MAP[i].title)
-}
-
-pub fn get_ghid(game_id: GameID) -> Option<u32> {
-    let i = ID_MAP
-        .binary_search_by_key(&game_id, |entry| entry.id)
-        .ok()?;
-
-    match ID_MAP[i].ghid {
-        0 => None,
-        ghid => Some(ghid),
-    }
-}
 
 pub fn get_init_task() -> Task<Message> {
     Task::perform(async { LazyLock::force(&ID_MAP) }, |_| Message::None).discard()
