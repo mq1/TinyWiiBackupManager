@@ -1,7 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-#[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub struct GameID([u8; 6]);
 
 impl Default for GameID {

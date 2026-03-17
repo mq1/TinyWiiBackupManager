@@ -1,13 +1,18 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-#![allow(clippy::cast_possible_truncation)]
-
 use lucide_icons::LUCIDE_FONT_BYTES;
 use regex::Regex;
-use std::io::Write;
+use serde::Serialize;
 use std::path::Path;
 use std::{env, fs};
+
+#[derive(Serialize)]
+struct GameEntry<'a> {
+    id: [u8; 6],
+    ghid: u32,
+    title: &'a str,
+}
 
 fn str_to_game_id(id: &str) -> Option<[u8; 6]> {
     let id = id.as_bytes();
@@ -66,8 +71,8 @@ fn make_id_map() {
     let title_map = parse_titles_txt();
     let gamehacking_ids = parse_gamehacking_ids();
 
-    let mut filled_ghids = Vec::new();
-    for (game_id, _) in &title_map {
+    let mut entries = Vec::new();
+    for (game_id, title) in &title_map {
         let ghid = gamehacking_ids
             .iter()
             .find(|(id, _)| *id == *game_id)
@@ -75,40 +80,21 @@ fn make_id_map() {
             .copied()
             .unwrap_or(0);
 
-        filled_ghids.push(ghid);
+        entries.push(GameEntry {
+            id: *game_id,
+            ghid,
+            title,
+        });
     }
 
-    let mut data = Vec::new();
-
-    // Write ordered game ids
-    for (game_id, _) in &title_map {
-        data.write_all(game_id).unwrap();
-    }
-
-    // Write ordered gamehacking ids
-    for id in &filled_ghids {
-        let id = id.to_le_bytes();
-        data.write_all(&[id[0], id[1], id[2]]).unwrap();
-    }
-
-    // Write ordered title lengths
-    for (_, title) in &title_map {
-        let len = title.len() as u8;
-        data.write_all(&[len]).unwrap();
-    }
-
-    // Write ordered titles
-    for (_, title) in &title_map {
-        data.write_all(title.as_bytes()).unwrap();
-    }
+    let data = postcard::to_allocvec(&entries).unwrap();
 
     let compressed_data = zstd::bulk::compress(&data, 19).unwrap();
     let out_path = Path::new(&env::var("OUT_DIR").unwrap()).join("id_map.bin.zst");
     fs::write(out_path, compressed_data).unwrap();
 
     let meta = format!(
-        "#[allow(clippy::unreadable_literal)]\nconst ID_MAP_LEN: usize = {};\n#[allow(clippy::unreadable_literal)]\nconst DATA_SIZE: usize = {};",
-        title_map.len(),
+        "#[allow(clippy::unreadable_literal)]\nconst DATA_SIZE: usize = {};",
         data.len()
     );
 
