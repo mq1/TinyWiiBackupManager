@@ -47,11 +47,6 @@ impl GameID {
     }
 
     #[inline]
-    pub const fn inner(self) -> [u8; 6] {
-        self.0
-    }
-
-    #[inline]
     pub fn as_str(&self) -> &str {
         if self.0[4] == 0 {
             std::str::from_utf8(&self.0[..4]).unwrap_or("invalid")
