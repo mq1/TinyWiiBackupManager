@@ -19,8 +19,8 @@ struct GameEntry {
 #[derive(Deserialize)]
 pub struct IdMap(Box<[GameEntry]>);
 
-impl<'a> IdMap {
-    pub fn get_title(&'a self, id: GameID) -> Option<&'a str> {
+impl IdMap {
+    pub fn get_title(&self, id: GameID) -> Option<&str> {
         let i = self.0.binary_search_by_key(&id, |entry| entry.id).ok()?;
         let entry = &self.0[i];
 
