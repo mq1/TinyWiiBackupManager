@@ -11,7 +11,7 @@ include!(concat!(env!("OUT_DIR"), "/id_map_meta.rs"));
 
 #[derive(Deserialize)]
 struct GameEntry {
-    id: [u8; 6],
+    id: GameID,
     ghid: u32,
     title: String,
 }
@@ -24,15 +24,17 @@ static ID_MAP: LazyLock<Vec<GameEntry>> = LazyLock::new(|| {
 });
 
 pub fn get_title(game_id: GameID) -> Option<&'static str> {
-    let inner = game_id.inner();
-    let i = ID_MAP.binary_search_by_key(&inner, |entry| entry.id).ok()?;
+    let i = ID_MAP
+        .binary_search_by_key(&game_id, |entry| entry.id)
+        .ok()?;
 
     Some(&ID_MAP[i].title)
 }
 
 pub fn get_ghid(game_id: GameID) -> Option<u32> {
-    let inner = game_id.inner();
-    let i = ID_MAP.binary_search_by_key(&inner, |entry| entry.id).ok()?;
+    let i = ID_MAP
+        .binary_search_by_key(&game_id, |entry| entry.id)
+        .ok()?;
 
     match ID_MAP[i].ghid {
         0 => None,
