@@ -88,9 +88,11 @@ fn make_id_map() {
 
     let data = postcard::to_stdvec(&entries).unwrap();
 
-    let compressed_data = zstd::bulk::compress(&data, 19).unwrap();
-    let out_path = Path::new(&env::var("OUT_DIR").unwrap()).join("id_map.bin.zst");
-    fs::write(out_path, compressed_data).unwrap();
+    #[cfg(feature = "compress-idmap")]
+    let data = zstd::bulk::compress(&data, 19).unwrap();
+
+    let out_path = Path::new(&env::var("OUT_DIR").unwrap()).join("id_map.bin");
+    fs::write(out_path, &data).unwrap();
 
     let meta = format!(
         "#[allow(clippy::unreadable_literal)]\nconst DATA_SIZE: usize = {};",

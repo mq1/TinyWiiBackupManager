@@ -32,9 +32,12 @@ impl IdMap {
 }
 
 pub static ID_MAP: LazyLock<IdMap> = LazyLock::new(|| {
-    const COMPRESSED_ID_MAP: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/id_map.bin.zst"));
-    let bytes = zstd::bulk::decompress(COMPRESSED_ID_MAP, DATA_SIZE).unwrap();
-    postcard::from_bytes(&bytes).unwrap()
+    let bytes = include_bytes!(concat!(env!("OUT_DIR"), "/id_map.bin"));
+
+    #[cfg(feature = "compress-idmap")]
+    let bytes = &zstd::bulk::decompress(bytes, DATA_SIZE).unwrap();
+
+    postcard::from_bytes(bytes).unwrap()
 });
 
 pub fn get_init_task() -> Task<Message> {

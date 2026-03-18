@@ -59,5 +59,5 @@ x86_64-v3)
   ;;
 esac
 
-cargo build -Z build-std=std,panic_abort --release --locked --target $TARGET
+cargo build -Z build-std=std,panic_abort --release --locked --target $TARGET --no-default-features
 cp target/$TARGET/release/TinyWiiBackupManager .
