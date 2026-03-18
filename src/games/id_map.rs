@@ -10,31 +10,21 @@ use std::sync::LazyLock;
 include!(concat!(env!("OUT_DIR"), "/id_map_meta.rs"));
 
 #[derive(Deserialize)]
-struct GameEntry {
+pub struct GameEntry {
     id: GameID,
-    ghid: u32,
-    title: String,
+    pub ghid: Option<u32>,
+    pub title: String,
 }
 
 #[derive(Deserialize)]
 pub struct IdMap(Box<[GameEntry]>);
 
 impl IdMap {
-    pub fn get_title(&self, id: GameID) -> Option<&str> {
-        let i = self.0.binary_search_by_key(&id, |entry| entry.id).ok()?;
-        let entry = &self.0[i];
-
-        Some(&entry.title)
-    }
-
-    pub fn get_ghid(&self, id: GameID) -> Option<u32> {
-        let i = self.0.binary_search_by_key(&id, |entry| entry.id).ok()?;
-        let entry = &self.0[i];
-
-        match entry.ghid {
-            0 => None,
-            ghid => Some(ghid),
-        }
+    pub fn get(&self, id: GameID) -> Option<&GameEntry> {
+        self.0
+            .binary_search_by_key(&id, |entry| entry.id)
+            .ok()
+            .map(|i| &self.0[i])
     }
 }
 

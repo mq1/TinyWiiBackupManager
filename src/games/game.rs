@@ -52,8 +52,8 @@ impl Game {
         let id_str = id_str.strip_suffix(']')?;
         let id = GameID::try_from(id_str).ok()?;
 
-        let title = match ID_MAP.get_title(id) {
-            Some(title) => title.to_string(),
+        let title = match ID_MAP.get(id) {
+            Some(entry) => entry.title.clone(),
             None => title_str.to_string(),
         };
 

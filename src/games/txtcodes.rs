@@ -32,7 +32,8 @@ impl TxtCodesSource {
             }
             Self::GameHacking => {
                 let gamehacking_id = ID_MAP
-                    .get_ghid(game_id)
+                    .get(game_id)
+                    .and_then(|e| e.ghid)
                     .ok_or(anyhow!("Could not find gamehacks id"))?;
 
                 let form = format!(

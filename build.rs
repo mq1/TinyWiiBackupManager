@@ -10,7 +10,7 @@ use std::{env, fs};
 #[derive(Serialize)]
 struct GameEntry {
     id: [u8; 6],
-    ghid: u32,
+    ghid: Option<u32>,
     title: String,
 }
 
@@ -77,8 +77,7 @@ fn make_id_map() {
             .iter()
             .find(|(id, _)| *id == game_id)
             .map(|(_, ghid)| ghid)
-            .copied()
-            .unwrap_or(0);
+            .copied();
 
         entries.push(GameEntry {
             id: game_id,
