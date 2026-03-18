@@ -24,10 +24,10 @@ pub struct IdMap(Box<[GameEntry]>);
 
 impl IdMap {
     pub fn get(&self, id: GameID) -> Option<&GameEntry> {
-        self.0
-            .binary_search_by_key(&id, |entry| entry.id)
-            .ok()
-            .map(|i| &self.0[i])
+        match self.0.binary_search_by_key(&id, |entry| entry.id) {
+            Ok(i) => Some(&self.0[i]),
+            Err(_) => None,
+        }
     }
 }
 
