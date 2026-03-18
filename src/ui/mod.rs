@@ -23,6 +23,8 @@ use iced::{
     widget::{Column, Stack, column, container, row, rule, text},
 };
 
+pub const NEW_DRIVE_TEXT: &str = "New drive detected (or a breaking TWBM update has been installed), a path normalization run is recommended\nYou can find it in the Toolbox page";
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Screen {
     Games,

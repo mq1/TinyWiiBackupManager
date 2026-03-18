@@ -22,7 +22,7 @@ use crate::{
     hbc::{self, app_list::HbcAppList, osc::OscAppMeta, osc_list::OscAppList, wiiload},
     message::Message,
     notifications::Notifications,
-    ui::{Screen, dialogs, lucide},
+    ui::{NEW_DRIVE_TEXT, Screen, dialogs, lucide},
     updater,
     util::{DriveInfo, clean_old_files},
 };
@@ -121,7 +121,7 @@ impl State {
         };
 
         if is_new_drive {
-            initial_state.notifications.info("New drive detected, a path normalization run is recommended\nYou can find it in the Toolbox page".to_string());
+            initial_state.notifications.info(NEW_DRIVE_TEXT.to_string());
         }
 
         #[cfg(target_vendor = "pc")]
@@ -295,7 +295,7 @@ impl State {
                 let mut new_config = self.config.clone_with_mount_point(mount_point);
 
                 if new_config.check_mount_point() {
-                    self.notifications.info("New drive detected, a path normalization run is recommended\nYou can find it in the Toolbox page".to_string());
+                    self.notifications.info(NEW_DRIVE_TEXT.to_string());
                 }
 
                 let _ = self.update(Message::UpdateConfig(new_config));
