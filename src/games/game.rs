@@ -53,7 +53,7 @@ impl Game {
         let id = GameID::try_from(id_str).ok()?;
 
         let title = match ID_MAP.get(id) {
-            Some(entry) => entry.title.clone(),
+            Some(entry) => entry.title().clone(),
             None => title_str.to_string(),
         };
 

@@ -3,12 +3,17 @@
 
 use crate::{
     config::TxtCodesSource,
-    games::{game::Game, game_id::GameID, game_list::GameList, id_map::ID_MAP},
+    games::{
+        game::Game,
+        game_id::GameID,
+        game_list::GameList,
+        id_map::{GameEntry, ID_MAP},
+    },
     http_util,
     message::Message,
     state::State,
 };
-use anyhow::{Result, anyhow};
+use anyhow::{Result, bail};
 use iced::{
     Task,
     futures::TryFutureExt,
@@ -31,10 +36,9 @@ impl TxtCodesSource {
                 http_util::get(&url)
             }
             Self::GameHacking => {
-                let gamehacking_id = ID_MAP
-                    .get(game_id)
-                    .and_then(|e| e.ghid)
-                    .ok_or(anyhow!("Could not find gamehacks id"))?;
+                let Some(gamehacking_id) = ID_MAP.get(game_id).and_then(GameEntry::ghid) else {
+                    bail!("Could not find gamehacks id");
+                };
 
                 let form = format!(
                     "format=Text&filename={}&sysID=22&gamID={}&download=true",

@@ -3,17 +3,20 @@
 
 use crate::games::game_id::GameID;
 use crate::message::Message;
+use derive_getters::Getters;
 use iced::Task;
 use serde::Deserialize;
 use std::sync::LazyLock;
 
 include!(concat!(env!("OUT_DIR"), "/id_map_meta.rs"));
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Getters)]
 pub struct GameEntry {
+    #[getter(copy)]
     id: GameID,
-    pub ghid: Option<u32>,
-    pub title: String,
+    #[getter(copy)]
+    ghid: Option<u32>,
+    title: String,
 }
 
 #[derive(Deserialize)]
