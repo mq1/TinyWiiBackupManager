@@ -94,7 +94,7 @@
     <td>
       :arrow_right: <a href="https://flathub.org/apps/it.mq1.TinyWiiBackupManager">Download on Flathub</a> (recommended for most users)
       <br>
-      :arrow_right: <a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest">Download latest AppImage/tarball</a>
+      :arrow_right: <a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest">Download latest AppImage</a>
       <br>
       <br>
       :zap: You can check if your system supports the x86_64-vX optimized binaries by running:
