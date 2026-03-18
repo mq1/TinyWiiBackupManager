@@ -3,8 +3,12 @@
 
 use crate::{
     disc_util::read_disc_header_from_game_dir,
-    games::{extensions::format_to_ext, util::maybe_path_to_entry},
-    util::sanitize,
+    games::{
+        extensions::format_to_ext,
+        id_map::{GameEntry, ID_MAP},
+        util::maybe_path_to_entry,
+    },
+    util,
 };
 use anyhow::Result;
 use nod::common::Format;
@@ -25,15 +29,10 @@ fn adopt_orphaned_discs(games_dir: &Path, is_wii: bool) -> Result<()> {
             continue;
         };
 
-        let title = if is_wii {
-            sanitize(&title)
-        } else {
-            sanitize(&title)
-                .replace(" game disc 1", "")
-                .replace(" game disc 2", "")
-        };
+        let display_title = ID_MAP.get(game_id).map_or(&title, GameEntry::title);
+        let display_title = util::sanitize(display_title);
 
-        let new_parent_name = format!("{} [{}]", title, game_id.as_str());
+        let new_parent_name = format!("{} [{}]", display_title, game_id.as_str());
 
         let new_filename = if filename.ends_with(".part0.iso") {
             format!("{}.part0.iso", game_id.as_str())
@@ -68,7 +67,7 @@ fn adopt_orphaned_discs(games_dir: &Path, is_wii: bool) -> Result<()> {
     Ok(())
 }
 
-fn readopt_parented_discs(games_dir: &Path, is_wii: bool) -> Result<()> {
+fn readopt_parented_discs(games_dir: &Path) -> Result<()> {
     let all_game_dirs = fs::read_dir(games_dir)?.filter_map(|entry| {
         let path = entry.ok()?.path();
         let (format, game_id, title) = read_disc_header_from_game_dir(&path)?;
@@ -76,15 +75,10 @@ fn readopt_parented_discs(games_dir: &Path, is_wii: bool) -> Result<()> {
     });
 
     for (path, _, game_id, title) in all_game_dirs {
-        let title = if is_wii {
-            sanitize(&title)
-        } else {
-            sanitize(&title)
-                .replace(" game disc 1", "")
-                .replace(" game disc 2", "")
-        };
+        let display_title = ID_MAP.get(game_id).map_or(&title, GameEntry::title);
+        let display_title = util::sanitize(display_title);
 
-        let new_filename = format!("{} [{}]", title, game_id.as_str());
+        let new_filename = format!("{} [{}]", display_title, game_id.as_str());
         let new_path = games_dir.join(new_filename);
 
         if new_path.exists() {
@@ -107,8 +101,8 @@ pub fn normalize_paths(mount_point: &Path) -> Result<String> {
     adopt_orphaned_discs(&wii_dir, true)?;
     adopt_orphaned_discs(&gc_dir, false)?;
 
-    readopt_parented_discs(&wii_dir, true)?;
-    readopt_parented_discs(&gc_dir, false)?;
+    readopt_parented_discs(&wii_dir)?;
+    readopt_parented_discs(&gc_dir)?;
 
     Ok("Paths successfully normalized".to_string())
 }

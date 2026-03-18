@@ -112,12 +112,12 @@ impl ConvertForWiiOperation {
 
                 let parent_dir = {
                     let display_title = ID_MAP.get(id).map_or(&title, GameEntry::title);
-                    let dir_name = util::sanitize(display_title);
+                    let display_title = util::sanitize(display_title);
 
                     self.config
                         .mount_point()
                         .join(if is_wii { "wbfs" } else { "games" })
-                        .join(format!("{} [{}]", dir_name, id.as_str()))
+                        .join(format!("{} [{}]", display_title, id.as_str()))
                 };
 
                 let must_split = is_wii && (self.config.always_split() || self.is_fat32);
