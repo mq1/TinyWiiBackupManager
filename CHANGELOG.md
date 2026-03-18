@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- 📝 Game folders are now named after the titles.txt naming scheme (clearer naming). This should also fix gamecube multi-disc games being put in different dirs.
+
 ## [v5.1.27] - 2026-03-16
 
 ### Fixed

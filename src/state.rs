@@ -20,7 +20,6 @@ use crate::{
         wiitdb,
     },
     hbc::{self, app_list::HbcAppList, osc::OscAppMeta, osc_list::OscAppList, wiiload},
-    known_mount_points,
     message::Message,
     notifications::Notifications,
     ui::{Screen, dialogs, lucide},
@@ -81,8 +80,10 @@ pub struct State {
 impl State {
     pub fn new() -> (Self, Task<Message>) {
         let data_dir = get_data_dir().expect("Failed to get data dir");
-        let config = Config::load(&data_dir);
         clean_old_files(&data_dir);
+
+        let mut config = Config::load(&data_dir);
+        let is_new_drive = config.check_mount_point();
 
         #[cfg(target_vendor = "pc")]
         let theme = config.theme_preference();
@@ -119,7 +120,7 @@ impl State {
             message_box: None,
         };
 
-        if known_mount_points::check(&initial_state) {
+        if is_new_drive {
             initial_state.notifications.info("New drive detected, a path normalization run is recommended\nYou can find it in the Toolbox page".to_string());
         }
 
@@ -291,13 +292,13 @@ impl State {
                 window::oldest().and_then(|id| window::run(id, dialogs::pick_mount_point))
             }
             Message::MountPointPicked(mount_point) => {
-                let new_config = self.config.clone_with_mount_point(mount_point);
-                let _ = self.update(Message::UpdateConfig(new_config));
+                let mut new_config = self.config.clone_with_mount_point(mount_point);
 
-                if known_mount_points::check(self) {
+                if new_config.check_mount_point() {
                     self.notifications.info("New drive detected, a path normalization run is recommended\nYou can find it in the Toolbox page".to_string());
                 }
 
+                let _ = self.update(Message::UpdateConfig(new_config));
                 self.update(Message::RefreshGamesAndApps)
             }
             Message::AskDeleteDirConfirmation(path) => {

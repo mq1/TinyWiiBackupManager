@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use lucide_icons::LUCIDE_FONT_BYTES;
 use regex::Regex;
 use serde::Serialize;
 use std::path::Path;
@@ -72,21 +71,17 @@ fn make_id_map() {
     let gamehacking_ids = parse_gamehacking_ids();
 
     let mut entries = Vec::new();
-    for (game_id, title) in title_map {
+    for (id, title) in title_map {
         let ghid = gamehacking_ids
             .iter()
-            .find(|(id, _)| *id == game_id)
-            .map(|(_, ghid)| ghid)
-            .copied();
+            .find(|(game_id, _)| *game_id == id)
+            .map(|(_, ghid)| *ghid);
 
-        entries.push(GameEntry {
-            id: game_id,
-            ghid,
-            title,
-        });
+        entries.push(GameEntry { id, ghid, title });
     }
 
     let data = postcard::to_stdvec(&entries).unwrap();
+    let uncompressed_size = data.len();
 
     #[cfg(feature = "compress-idmap")]
     let data = zstd::bulk::compress(&data, 19).unwrap();
@@ -95,8 +90,7 @@ fn make_id_map() {
     fs::write(out_path, &data).unwrap();
 
     let meta = format!(
-        "#[allow(clippy::unreadable_literal)]\nconst DATA_SIZE: usize = {};",
-        data.len()
+        "#[allow(clippy::unreadable_literal)]\nconst UNCOMPRESSED_SIZE: usize = {uncompressed_size};",
     );
 
     let meta_out_path = Path::new(&env::var("OUT_DIR").unwrap()).join("id_map_meta.rs");
@@ -104,15 +98,19 @@ fn make_id_map() {
 }
 
 fn compress_lucide() {
-    let out_path = Path::new(&env::var("OUT_DIR").unwrap()).join("lucide.ttf.zst");
+    let out_path = Path::new(&env::var("OUT_DIR").unwrap()).join("lucide.ttf");
     let meta_out_path = Path::new(&env::var("OUT_DIR").unwrap()).join("lucide_meta.rs");
 
-    let bytes = zstd::bulk::compress(LUCIDE_FONT_BYTES, 19).unwrap();
+    let bytes = lucide_icons::LUCIDE_FONT_BYTES;
+    let uncompressed_size = bytes.len();
+
+    #[cfg(feature = "compress-idmap")]
+    let bytes = zstd::bulk::compress(bytes, 19).unwrap();
+
     fs::write(out_path, bytes).unwrap();
 
     let meta = format!(
-        "#[allow(clippy::unreadable_literal)]\nconst LUCIDE_BYTES_LEN: usize = {};",
-        LUCIDE_FONT_BYTES.len()
+        "#[allow(clippy::unreadable_literal)]\nconst UNCOMPRESSED_SIZE: usize = {uncompressed_size};",
     );
     fs::write(meta_out_path, meta).unwrap();
 }

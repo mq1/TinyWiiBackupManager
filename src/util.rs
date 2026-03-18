@@ -106,4 +106,7 @@ pub fn clean_old_files(data_dir: &Path) {
 
     let redump_gc_path = data_dir.join("redump-gc.dat");
     let _ = fs::remove_file(redump_gc_path);
+
+    let known_mount_points_path = data_dir.join("known-mount-points.txt");
+    let _ = fs::remove_file(known_mount_points_path);
 }
