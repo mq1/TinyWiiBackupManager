@@ -52,10 +52,10 @@ impl Game {
         let id_str = id_str.strip_suffix(']')?;
         let id = GameID::try_from(id_str).ok()?;
 
-        let title = match ID_MAP.get(id) {
-            Some(entry) => entry.title().clone(),
-            None => title_str.to_string(),
-        };
+        let title = ID_MAP
+            .get(id)
+            .map_or(title_str, |e| e.title().as_str())
+            .to_string();
 
         let size = fs_extra::dir::get_size(&path).unwrap_or(0);
 

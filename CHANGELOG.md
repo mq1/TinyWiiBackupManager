@@ -7,9 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v5.2.0] - 2026-03-18
+
 ### Changed
 
-- 📝 Game folders are now named after the titles.txt naming scheme (clearer naming). This should also fix gamecube multi-disc games being put in different dirs.
+- 📝 Game folders are now named after the titles.txt naming scheme (clearer naming). This should also fix gamecube multi-disc games being put in different dirs. A path normalization run is recommended for this update.
 
 ## [v5.1.27] - 2026-03-16
 
@@ -325,7 +327,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 🖼️ TinyWiiBackupManager icon now shows up again on the windows exe
 
-[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.27...HEAD
+[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.2.0...HEAD
+[v5.2.0]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.27...v5.2.0
 [v5.1.27]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.26...v5.1.27
 [v5.1.26]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.25...v5.1.26
 [v5.1.25]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.24...v5.1.25
