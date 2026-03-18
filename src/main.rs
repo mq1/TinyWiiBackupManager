@@ -9,7 +9,6 @@ mod disc_util;
 mod games;
 mod hbc;
 mod http_util;
-mod known_mount_points;
 mod message;
 mod notifications;
 mod state;

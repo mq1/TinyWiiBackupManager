@@ -35,6 +35,18 @@ impl Config {
         !self.mount_point.as_os_str().is_empty()
     }
 
+    /// Returns true if the notification should be shown
+    pub fn check_mount_point(&mut self) -> bool {
+        let new = self.known_drives.iter().all(|p| p != &self.mount_point);
+
+        if new {
+            self.known_drives.push(self.mount_point.clone());
+            let _ = self.write();
+        }
+
+        new
+    }
+
     pub fn clone_with_always_split(&self, always_split: bool) -> Self {
         let mut config = self.clone();
         config.always_split = always_split;
@@ -159,6 +171,9 @@ pub struct Config {
     #[serde(default = "default_gc_output_format", with = "FormatDef")]
     #[getter(copy)]
     gc_output_format: nod::common::Format,
+
+    #[serde(default)]
+    known_drives: Vec<PathBuf>,
 }
 
 impl Default for Config {
@@ -177,6 +192,7 @@ impl Default for Config {
             gc_output_format: nod::common::Format::Iso,
             theme_preference: ThemePreference::System,
             txt_codes_source: TxtCodesSource::WebArchive,
+            known_drives: Vec::new(),
         }
     }
 }

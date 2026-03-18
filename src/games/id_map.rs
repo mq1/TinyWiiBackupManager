@@ -35,7 +35,7 @@ pub static ID_MAP: LazyLock<IdMap> = LazyLock::new(|| {
     let bytes = include_bytes!(concat!(env!("OUT_DIR"), "/id_map.bin"));
 
     #[cfg(feature = "compress-idmap")]
-    let bytes = &zstd::bulk::decompress(bytes, DATA_SIZE).unwrap();
+    let bytes = &zstd::bulk::decompress(bytes, UNCOMPRESSED_SIZE).unwrap();
 
     postcard::from_bytes(bytes).unwrap()
 });

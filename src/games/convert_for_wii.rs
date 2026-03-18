@@ -5,6 +5,8 @@ use crate::{
     config::Config,
     games::{
         extensions::{format_to_ext, format_to_opts},
+        game_id::GameID,
+        id_map::{GameEntry, ID_MAP},
         util::get_threads_num,
     },
     util,
@@ -99,7 +101,7 @@ impl ConvertForWiiOperation {
                 let header = disc_reader.header();
                 let is_wii = header.is_wii();
                 let title = header.game_title_str().to_string();
-                let id = header.game_id_str().to_string();
+                let id = GameID::from(header.game_id);
                 let disc_num = header.disc_num;
 
                 let out_format = if is_wii {
@@ -109,16 +111,13 @@ impl ConvertForWiiOperation {
                 };
 
                 let parent_dir = {
-                    let title = util::sanitize(&title)
-                        .replace(" game disc 1", "")
-                        .replace(" game disc 2", "")
-                        .replace("TALES OF SYMPHONIA 1", "TALES OF SYMPHONIA")
-                        .replace("TALES OF SYMPHONIA 2", "TALES OF SYMPHONIA");
+                    let display_title = ID_MAP.get(id).map_or(&title, GameEntry::title);
+                    let dir_name = util::sanitize(display_title);
 
                     self.config
                         .mount_point()
                         .join(if is_wii { "wbfs" } else { "games" })
-                        .join(format!("{title} [{id}]"))
+                        .join(format!("{} [{}]", dir_name, id.as_str()))
                 };
 
                 let must_split = is_wii && (self.config.always_split() || self.is_fat32);
@@ -136,7 +135,7 @@ impl ConvertForWiiOperation {
                             "iso".to_string()
                         };
 
-                        format!("{id}.{ext}")
+                        format!("{}.{}", id.as_str(), ext)
                     } else {
                         let file_stem = match disc_num {
                             0 => "game".to_string(),
