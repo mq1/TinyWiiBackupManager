@@ -47,7 +47,7 @@ wiiload = "0.3"
 which-fs = "0.2"
 fs4 = { version = "0.13", default-features = false }
 rfd = "0.17"
-split-write = "0.0.3"
+split-write = "0.1"
 postcard = "1.1"
 
 # ========================

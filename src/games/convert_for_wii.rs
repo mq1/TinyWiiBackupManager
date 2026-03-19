@@ -24,13 +24,13 @@ use split_write::SplitWriter;
 use std::{
     fs::{self, File},
     io::{self, BufReader, BufWriter, Write},
-    num::NonZeroU64,
+    num::NonZeroUsize,
     path::PathBuf,
     thread,
 };
 use zip::ZipArchive;
 
-pub const SPLIT_SIZE: NonZeroU64 = NonZeroU64::new(4 * 1024 * 1024 * 1024 - 32 * 1024).unwrap(); // 4 GiB - 32 KiB
+pub const SPLIT_SIZE: NonZeroUsize = NonZeroUsize::new(4_294_934_528).unwrap(); // 4 GiB - 32 KiB
 
 #[derive(Debug, Clone)]
 pub struct ConvertForWiiOperation {
@@ -120,7 +120,9 @@ impl ConvertForWiiOperation {
                         .join(format!("{} [{}]", display_title, id.as_str()))
                 };
 
-                let must_split = is_wii && (self.config.always_split() || self.is_fat32);
+                let must_split = cfg!(target_pointer_width = "32")
+                    || self.is_fat32
+                    || (is_wii && self.config.always_split());
 
                 let get_file_name = |i| {
                     if is_wii {
@@ -170,12 +172,12 @@ impl ConvertForWiiOperation {
                 let split_size = if must_split {
                     SPLIT_SIZE
                 } else {
-                    NonZeroU64::MAX
+                    NonZeroUsize::MAX
                 };
 
                 let mut out_writer = BufWriter::with_capacity(
                     32_768,
-                    SplitWriter::try_new(parent_dir, get_file_name, split_size)?,
+                    SplitWriter::create(parent_dir, get_file_name, split_size)?,
                 );
 
                 let disc_writer = DiscWriter::new(disc_reader, &out_opts)?;
