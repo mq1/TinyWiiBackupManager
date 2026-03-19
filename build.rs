@@ -104,7 +104,7 @@ fn compress_lucide() {
     let bytes = lucide_icons::LUCIDE_FONT_BYTES;
     let uncompressed_size = bytes.len();
 
-    #[cfg(feature = "compress-idmap")]
+    #[cfg(feature = "compress-data")]
     let bytes = zstd::bulk::compress(bytes, 19).unwrap();
 
     fs::write(out_path, bytes).unwrap();
