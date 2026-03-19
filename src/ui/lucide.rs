@@ -17,12 +17,12 @@ pub fn get_load_lucide_task() -> Task<Message> {
 async fn get_font_bytes() -> Vec<u8> {
     let bytes = include_bytes!(concat!(env!("OUT_DIR"), "/lucide.ttf"));
 
-    #[cfg(feature = "compress-idmap")]
+    #[cfg(feature = "compress-data")]
     {
         zstd::bulk::decompress(bytes, UNCOMPRESSED_SIZE).unwrap()
     }
 
-    #[cfg(not(feature = "compress-idmap"))]
+    #[cfg(not(feature = "compress-data"))]
     {
         bytes.to_vec()
     }

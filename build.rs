@@ -83,7 +83,7 @@ fn make_id_map() {
     let data = postcard::to_stdvec(&entries).unwrap();
     let uncompressed_size = data.len();
 
-    #[cfg(feature = "compress-idmap")]
+    #[cfg(feature = "compress-data")]
     let data = zstd::bulk::compress(&data, 19).unwrap();
 
     let out_path = Path::new(&env::var("OUT_DIR").unwrap()).join("id_map.bin");

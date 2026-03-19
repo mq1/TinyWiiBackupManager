@@ -39,9 +39,11 @@ switch ($Platform) {
       }
       "x86" {
         $Target = "i686-pc-windows-msvc"
-        $Env:CARGO_TARGET_I686_PC_WINDOWS_MSVC_RUSTFLAGS = "-C target-feature=+crt-static -L native=VC-LTL-Binary\TargetPlatform\10.0.19041.0\lib\Win32"
+        $Env:CARGO_TARGET_I686_PC_WINDOWS_MSVC_RUSTFLAGS = "-C target-feature=+crt-static -C linker-plugin-lto -L native=VC-LTL-Binary\TargetPlatform\10.0.19041.0\lib\Win32"
+        $Env:CARGO_TARGET_I686_PC_WINDOWS_MSVC_LINKER = "lld-link"
         $Env:CC_i686_pc_windows_msvc = "clang-cl"
-        $Env:CFLAGS_i686_pc_windows_msvc = "/clang:-O3"
+        $Env:AR_i686_pc_windows_msvc = "llvm-lib"
+        $Env:CFLAGS_i686_pc_windows_msvc = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
       }
       "x86_64" {
         $Target = "x86_64-pc-windows-msvc"
