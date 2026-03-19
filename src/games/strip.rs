@@ -19,7 +19,6 @@ use split_write::SplitWriter;
 use std::{
     fs,
     io::{BufWriter, Write},
-    num::NonZeroUsize,
     thread,
 };
 
@@ -63,8 +62,7 @@ impl StripOperation {
                     scrub: ScrubLevel::UpdatePartition,
                 };
 
-                let must_split =
-                    cfg!(target_pointer_width = "32") || self.always_split || self.is_fat32;
+                let must_split = self.always_split || self.is_fat32;
 
                 let get_file_name = |i| {
                     let ext = match i {
@@ -75,11 +73,7 @@ impl StripOperation {
                     format!("{}.{ext}.new", self.source.id().as_str())
                 };
 
-                let split_size = if must_split {
-                    SPLIT_SIZE
-                } else {
-                    NonZeroUsize::MAX
-                };
+                let split_size = if must_split { Some(SPLIT_SIZE) } else { None };
 
                 let disc_opts = DiscOptions {
                     partition_encryption: PartitionEncryption::Original,

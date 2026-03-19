@@ -120,9 +120,7 @@ impl ConvertForWiiOperation {
                         .join(format!("{} [{}]", display_title, id.as_str()))
                 };
 
-                let must_split = cfg!(target_pointer_width = "32")
-                    || self.is_fat32
-                    || (is_wii && self.config.always_split());
+                let must_split = is_wii && (self.config.always_split() || self.is_fat32);
 
                 let get_file_name = |i| {
                     if is_wii {
@@ -169,11 +167,7 @@ impl ConvertForWiiOperation {
                     },
                 };
 
-                let split_size = if must_split {
-                    SPLIT_SIZE
-                } else {
-                    NonZeroUsize::MAX
-                };
+                let split_size = if must_split { Some(SPLIT_SIZE) } else { None };
 
                 let mut out_writer = BufWriter::with_capacity(
                     32_768,
