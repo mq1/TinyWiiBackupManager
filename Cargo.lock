@@ -2148,9 +2148,9 @@ dependencies = [
 
 [[package]]
 name = "itoa"
-version = "1.0.17"
+version = "1.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "92ecc6618181def0457392ccd0ee51198e065e016d1d527a7ac1b6dc7c1f09d2"
+checksum = "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682"
 
 [[package]]
 name = "jni"
@@ -4136,9 +4136,9 @@ dependencies = [
 
 [[package]]
 name = "split-write"
-version = "0.2.1"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "72aa1c365b49fdf24d08eaa4564cd6a06472bf85bac890228bc554a02778ae62"
+checksum = "c3009ece90b526b59949b586f0af05c06843cb6faf8cf6afa479898d931971dc"
 
 [[package]]
 name = "stable_deref_trait"
