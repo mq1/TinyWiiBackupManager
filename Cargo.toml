@@ -34,7 +34,7 @@ hex = "0.4"
 itertools = "0.14"
 time = { version = "0.3", features = ["macros", "parsing", "serde"] }
 sanitize-filename = "0.7.0-beta"
-zip = { version = "8.2", default-features = false, features = [
+zip = { version = "8.4", default-features = false, features = [
   "deflate-flate2",
 ] }
 fuzzy-matcher = "0.3"
