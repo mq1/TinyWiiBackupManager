@@ -37,22 +37,16 @@ jobs:
         include:
           - runner: ubuntu-24.04
             arch: x86_64-v3
-            appimage-arch: x86_64
           - runner: ubuntu-24.04
             arch: x86_64-v2
-            appimage-arch: x86_64
           - runner: ubuntu-24.04
             arch: x86_64
-            appimage-arch: x86_64
           - runner: ubuntu-24.04-arm
             arch: arm64
-            appimage-arch: aarch64
           - runner: ubuntu-24.04
             arch: x86
-            appimage-arch: i686
           - runner: ubuntu-24.04-arm
             arch: armhf
-            appimage-arch: armhf
 
     steps:
       - name: Checkout
@@ -60,14 +54,24 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Build Docker image
-        run: docker build -t builder -f containers/Dockerfile.${{ matrix.arch }} .
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: containers/Dockerfile.${{ runner.arch }}
+          load: true
+          tags: builder
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Build binary
         run: docker run -v "$(pwd):/io" -w /io builder scripts/build-linux.sh ${{ matrix.arch }}
 
       - name: Package AppImage
-        run: scripts/package-linux.sh ${{ env.VERSION_NAME }} ${{ matrix.arch }} ${{ matrix.appimage-arch }}
+        run: scripts/package-linux.sh ${{ env.VERSION_NAME }} ${{ matrix.arch }}
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v7
