@@ -123,11 +123,8 @@ pub fn save_file(title: &str, filter: (&str, &[&str]), filename: &str) -> Option
     }
 }
 
-fn widen<S: AsRef<str>>(s: S) -> Vec<u16> {
-    s.as_ref()
-        .encode_utf16()
-        .chain(std::iter::once(0))
-        .collect()
+fn widen(text: &str) -> Vec<u16> {
+    text.encode_utf16().chain(std::iter::once(0)).collect()
 }
 
 fn unwiden(buffer: &[u16]) -> String {
@@ -151,7 +148,7 @@ fn get_filter_utf16(filter: (&str, &[&str])) -> Vec<u16> {
     s.push_str(&extensions);
     s.push(char::from(0));
 
-    widen(s)
+    widen(&s)
 }
 
 fn parse_multi_select(buffer: &[u16]) -> Vec<PathBuf> {
