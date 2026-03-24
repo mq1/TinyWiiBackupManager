@@ -1,8 +1,5 @@
 FROM ubuntu:20.04
 
-# Make AppImages work
-ENV APPIMAGE_EXTRACT_AND_RUN=1
-
 # Enable x86 packages
 RUN dpkg --add-architecture i386
 
@@ -32,4 +29,7 @@ RUN wget https://github.com/AppImage/AppImageKit/releases/download/continuous/ap
     chmod +x /usr/bin/appimagetool-x86_64.AppImage && \
     wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-i686.AppImage -O /usr/bin/appimagetool-i686.AppImage && \
     chmod +x /usr/bin/appimagetool-i686.AppImage
+
+# Make AppImages work
+ENV APPIMAGE_EXTRACT_AND_RUN=1
 

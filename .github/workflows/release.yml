@@ -14,6 +14,7 @@ on:
       - "Cargo.lock"
       - "package/**"
       - "scripts/**"
+      - "containers/**"
       - ".github/workflows/release.yml"
   pull_request:
   workflow_dispatch:

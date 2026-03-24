@@ -1,8 +1,5 @@
 FROM ubuntu:20.04
 
-# Make AppImages work
-ENV APPIMAGE_EXTRACT_AND_RUN=1
-
 # Enable armhf packages
 RUN dpkg --add-architecture armhf
 
@@ -32,4 +29,7 @@ RUN wget https://github.com/AppImage/AppImageKit/releases/download/continuous/ap
     chmod +x /usr/bin/appimagetool-aarch64.AppImage && \
     wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-armhf.AppImage -O /usr/bin/appimagetool-armhf.AppImage && \
     chmod +x /usr/bin/appimagetool-armhf.AppImage
+
+# Make AppImages work
+ENV APPIMAGE_EXTRACT_AND_RUN=1
 
