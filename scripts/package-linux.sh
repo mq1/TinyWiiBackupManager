@@ -2,6 +2,8 @@
 # SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 # SPDX-License-Identifier: GPL-3.0-only
 
+set -euo pipefail
+
 VERSION_NAME=$1
 export VERSION="${VERSION_NAME#v}"
 
