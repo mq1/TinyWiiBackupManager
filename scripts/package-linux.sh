@@ -25,7 +25,7 @@ cp -r package/linux/AppDir TinyWiiBackupManager.AppDir
 install -Dm0755 TinyWiiBackupManager TinyWiiBackupManager.AppDir/usr/bin/TinyWiiBackupManager
 
 mkdir -p dist
-"/usr/bin/appimagetool-$ARCH" \
+"/usr/bin/appimagetool-$ARCH.AppImage" \
   -u "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*$ARCH_NAME.AppImage.zsync" \
   TinyWiiBackupManager.AppDir \
   "dist/TinyWiiBackupManager-${VERSION_NAME}-linux-$ARCH_NAME.AppImage"
