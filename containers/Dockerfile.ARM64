@@ -1,5 +1,8 @@
 FROM ubuntu:20.04
 
+# Make AppImages work
+ENV APPIMAGE_EXTRACT_AND_RUN=1
+
 # Enable armhf packages
 RUN dpkg --add-architecture armhf
 
