@@ -66,7 +66,7 @@ jobs:
           load: true
           tags: builder
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-to: type=gha
 
       - name: Build binary
         run: docker run -v "$(pwd):/io" -w /io builder scripts/build-linux.sh ${{ matrix.arch }}
