@@ -27,6 +27,6 @@ RUN rustup component add rust-src
 # Install appimagetool (aarch64 and armhf)
 RUN wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-aarch64.AppImage -O /usr/bin/appimagetool-aarch64.AppImage && \
     chmod +x /usr/bin/appimagetool-aarch64.AppImage && \
-    wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-armhf.AppImage -O /usr/bin/appimagetool-i686.AppImage && \
+    wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-armhf.AppImage -O /usr/bin/appimagetool-armhf.AppImage && \
     chmod +x /usr/bin/appimagetool-armhf.AppImage
 
