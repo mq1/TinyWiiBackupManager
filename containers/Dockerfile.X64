@@ -24,12 +24,3 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 # Install rust-src
 RUN rustup component add rust-src
 
-# Install appimagetool (x86_64 and i686)
-RUN wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage -O /usr/bin/appimagetool-x86_64.AppImage && \
-    chmod +x /usr/bin/appimagetool-x86_64.AppImage && \
-    wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-i686.AppImage -O /usr/bin/appimagetool-i686.AppImage && \
-    chmod +x /usr/bin/appimagetool-i686.AppImage
-
-# Make AppImages work
-ENV APPIMAGE_EXTRACT_AND_RUN=1
-

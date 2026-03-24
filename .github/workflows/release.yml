@@ -72,7 +72,7 @@ jobs:
         run: docker run -v "$(pwd):/io" -w /io builder scripts/build-linux.sh ${{ matrix.arch }}
 
       - name: Package AppImage
-        run: docker run -v "$(pwd):/io" -w /io builder scripts/package-linux.sh ${{ env.VERSION_NAME }} ${{ matrix.arch }}
+        run: ./scripts/package-linux.sh ${{ env.VERSION_NAME }} ${{ matrix.arch }}
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v7
