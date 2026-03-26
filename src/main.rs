@@ -14,10 +14,22 @@ mod window_color;
 mod xp_dialogs;
 
 use crate::data_dir::get_data_dir;
-use anyhow::Result;
+use anyhow::{Result, bail};
 use slint::{SharedString, ToSharedString};
+use std::process::Command;
 
 slint::include_modules!();
+
+fn restart_with_sw_rendering() -> Result<()> {
+    let exe = std::env::current_exe()?;
+
+    let mut cmd = Command::new(exe);
+    cmd.env("SLINT_BACKEND", "winit-software");
+
+    let _ = cmd.spawn()?;
+
+    Ok(())
+}
 
 fn main() -> Result<()> {
     let app = AppWindow::new()?;
@@ -57,6 +69,13 @@ fn main() -> Result<()> {
             Err(e) => e.to_shared_string(),
         });
 
-    app.run()?;
+    if let Err(e) = app.run() {
+        if std::env::var("SLINT_BACKEND").unwrap_or_default() == "winit-software" {
+            bail!(e);
+        }
+
+        return restart_with_sw_rendering();
+    }
+
     Ok(())
 }
