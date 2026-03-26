@@ -37,7 +37,7 @@ export enum ThemePreference {
     Dark,
 }
 
-@rust-attr(derive(serde::Serialize, serde::Deserialize, derive_getters::Getters))
+@rust-attr(derive(serde::Serialize, serde::Deserialize))
 @rust-attr(serde(default))
 export struct ConfigContents {
     always_split: bool,
@@ -55,7 +55,6 @@ export struct ConfigContents {
     known_drives: [string],
 }
 
-@rust-attr(derive(derive_getters::Getters))
 export struct Config {
     path: string,
     contents: ConfigContents,
