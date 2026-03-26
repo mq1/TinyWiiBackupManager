@@ -1,0 +1,36 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { Palette } from "std-widgets.slint";
+import { IconDisplay, Icon } from "@lucide";
+
+export component NavbarButton inherits Rectangle {
+    in property <bool> active: false;
+    in property <Icon> icon;
+    callback clicked;
+
+    pure function get_background() -> color {
+        if active {
+            Palette.selection-background
+        } else if ta.has-hover {
+            Palette.alternate-background
+        } else {
+            transparent
+        }
+    }
+
+    width: 40px;
+    height: 40px;
+    border-radius: self.width / 2;
+    clip: true;
+    background: get_background();
+
+    IconDisplay {
+        icon: icon;
+        stroke: Palette.foreground;
+    }
+
+    ta := TouchArea {
+        clicked => clicked();
+    }
+}

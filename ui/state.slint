@@ -1,0 +1,55 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { Page, Config, Message, IconButtonKind } from "types.slint";
+import { Rust } from "rust.slint";
+import { Palette } from "std-widgets.slint";
+
+export global State {
+    in property <string> version;
+    in-out property <Page> current_page;
+    in property <string> data_dir;
+    in-out property <Config> config;
+    out property <Message> message;
+
+    // ↑ Model
+    // ---------
+    // ↓ Update
+
+    public function info(info: string) {
+        if !info.is-empty {
+            message.text = info;
+            message.button = IconButtonKind.Primary;
+        }
+    }
+
+    public function warn(warn: string) {
+        if !warn.is-empty {
+            message.text = warn;
+            message.button = IconButtonKind.Warning;
+        }
+    }
+
+    public function err(err: string) {
+        if !err.is-empty {
+            message.text = err;
+            message.button = IconButtonKind.Danger;
+        }
+    }
+
+    public function dismiss() {
+        message.text = "";
+    }
+
+    public function pick_mount_point() {
+        let mount_point = Rust.pick_mount_point();
+        if !mount_point.is-empty {
+            config.contents.mount_point = mount_point;
+            err(Rust.write_config(config));
+        }
+    }
+
+    public function write_config() {
+        err(Rust.write_config(config));
+    }
+}

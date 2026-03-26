@@ -1,0 +1,10 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { Config } from "types.slint";
+
+export global Rust {
+    pure callback open(string) -> string;
+    pure callback pick_mount_point() -> string;
+    pure callback write_config(Config) -> string;
+}

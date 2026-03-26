@@ -1,0 +1,50 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { Rust } from "../rust.slint";
+import { Palette, StyleMetrics } from "std-widgets.slint";
+import { IconDisplay, Icon, IconSet } from "@lucide";
+import { State } from "../state.slint";
+
+export component Link inherits Rectangle {
+    in property <string> label;
+    in property <string> uri;
+    in property <Icon> icon: IconSet.Globe;
+
+    height: t.height;
+    width: 17px + t.width;
+
+    IconDisplay {
+        icon: icon;
+        stroke: Palette.accent-background;
+        size: 14px;
+        x: 0px;
+        y: -1px;
+    }
+
+    t := Text {
+        text: label;
+        color: Palette.accent-background;
+        x: 17px;
+        y: 0px;
+    }
+
+    Rectangle {
+        x: 1px;
+        y: t.height + 1px;
+        height: 1px;
+        width: 15px + t.width;
+        background: Palette.accent-background;
+    }
+
+    TouchArea {
+        x: 0px;
+        y: 0px;
+        height: t.height;
+        width: 17px + t.width;
+        mouse-cursor: pointer;
+        clicked => {
+            State.err(Rust.open(uri));
+        }
+    }
+}

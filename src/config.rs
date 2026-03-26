@@ -1,260 +1,70 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::{Config, ConfigContents};
 use anyhow::Result;
-use derive_getters::Getters;
-use serde::{Deserialize, Serialize};
-use std::{
-    fs,
-    path::{Path, PathBuf},
-};
+use slint::{Model, SharedString, ToSharedString, VecModel};
+use std::{fs, path::Path};
 
 impl Config {
+    #[must_use] 
     pub fn load(data_dir: &Path) -> Self {
         let path = data_dir.join("config.json");
         let bytes = fs::read(&path).unwrap_or_default();
-        let mut config = serde_json::from_slice::<Self>(&bytes).unwrap_or_default();
-        config.path = path;
+        let mut contents = serde_json::from_slice::<ConfigContents>(&bytes).unwrap_or_default();
 
         // Invalidate invalid mount_point
-        if !config.mount_point.exists() {
-            config.mount_point.clear();
+        if !contents.is_mount_point_valid() {
+            contents.mount_point = SharedString::new();
         }
 
-        config
+        Self {
+            path: path.to_string_lossy().to_shared_string(),
+            contents,
+        }
     }
 
     pub fn write(&self) -> Result<()> {
-        let bytes = serde_json::to_vec_pretty(&self)?;
+        let bytes = serde_json::to_vec_pretty(&self.contents)?;
         fs::write(&self.path, &bytes)?;
 
         Ok(())
     }
 
-    pub fn is_mount_point_valid(&self) -> bool {
-        !self.mount_point.as_os_str().is_empty()
-    }
-
     /// Returns true if the notification should be shown
     pub fn check_mount_point(&mut self) -> bool {
-        let new = self.known_drives.iter().all(|p| p != &self.mount_point);
+        if !self.contents.is_mount_point_valid() {
+            return false;
+        }
 
-        if new {
-            self.known_drives.push(self.mount_point.clone());
+        let is_new = self
+            .contents
+            .known_drives
+            .iter()
+            .all(|p| p != self.contents.mount_point.as_str());
+
+        if is_new {
+            self.contents
+                .known_drives
+                .as_any()
+                .downcast_ref::<VecModel<SharedString>>()
+                .unwrap()
+                .push(self.contents.mount_point.clone());
+
             let _ = self.write();
         }
 
-        new
-    }
-
-    pub fn clone_with_always_split(&self, always_split: bool) -> Self {
-        let mut config = self.clone();
-        config.always_split = always_split;
-        config
-    }
-
-    pub fn clone_with_mount_point(&self, mount_point: PathBuf) -> Self {
-        let mut config = self.clone();
-        config.mount_point = mount_point;
-        config
-    }
-
-    pub fn clone_with_remove_sources_apps(&self, remove_sources_apps: bool) -> Self {
-        let mut config = self.clone();
-        config.remove_sources_apps = remove_sources_apps;
-        config
-    }
-
-    pub fn clone_with_remove_sources_games(&self, remove_sources_games: bool) -> Self {
-        let mut config = self.clone();
-        config.remove_sources_games = remove_sources_games;
-        config
-    }
-
-    pub fn clone_with_scrub_update_partition(&self, scrub_update_partition: bool) -> Self {
-        let mut config = self.clone();
-        config.scrub_update_partition = scrub_update_partition;
-        config
-    }
-
-    pub fn clone_with_sort_by(&self, sort_by: SortBy) -> Self {
-        let mut config = self.clone();
-        config.sort_by = sort_by;
-        config
-    }
-
-    pub fn clone_with_view_as(&self, view_as: ViewAs) -> Self {
-        let mut config = self.clone();
-        config.view_as = view_as;
-        config
-    }
-
-    pub fn clone_with_wii_ip(&self, wii_ip: String) -> Self {
-        let mut config = self.clone();
-        config.wii_ip = wii_ip;
-        config
-    }
-
-    pub fn clone_with_theme_preference(&self, theme_preference: ThemePreference) -> Self {
-        let mut config = self.clone();
-        config.theme_preference = theme_preference;
-        config
-    }
-
-    pub fn clone_with_wii_output_format(&self, wii_output_format: nod::common::Format) -> Self {
-        let mut config = self.clone();
-        config.wii_output_format = wii_output_format;
-        config
-    }
-
-    pub fn clone_with_gc_output_format(&self, gc_output_format: nod::common::Format) -> Self {
-        let mut config = self.clone();
-        config.gc_output_format = gc_output_format;
-        config
-    }
-
-    pub fn clone_with_txt_codes_source(&self, txt_codes_source: TxtCodesSource) -> Self {
-        let mut config = self.clone();
-        config.txt_codes_source = txt_codes_source;
-        config
+        is_new
     }
 }
-#[allow(clippy::struct_excessive_bools)]
-#[derive(Debug, Clone, Serialize, Deserialize, Getters)]
-#[serde(rename_all = "snake_case")]
-pub struct Config {
-    #[serde(skip)]
-    path: PathBuf,
 
-    #[serde(default)]
-    #[getter(copy)]
-    always_split: bool,
-
-    #[serde(default)]
-    mount_point: PathBuf,
-
-    #[serde(default)]
-    #[getter(copy)]
-    remove_sources_apps: bool,
-
-    #[serde(default)]
-    #[getter(copy)]
-    remove_sources_games: bool,
-
-    #[serde(default)]
-    #[getter(copy)]
-    scrub_update_partition: bool,
-
-    #[serde(default)]
-    #[getter(copy)]
-    sort_by: SortBy,
-
-    #[serde(default)]
-    #[getter(copy)]
-    view_as: ViewAs,
-
-    #[serde(default = "default_wii_ip")]
-    wii_ip: String,
-
-    #[serde(default)]
-    #[getter(copy)]
-    txt_codes_source: TxtCodesSource,
-
-    #[serde(default)]
-    #[getter(copy)]
-    theme_preference: ThemePreference,
-
-    #[serde(default = "default_wii_output_format", with = "FormatDef")]
-    #[getter(copy)]
-    wii_output_format: nod::common::Format,
-
-    #[serde(default = "default_gc_output_format", with = "FormatDef")]
-    #[getter(copy)]
-    gc_output_format: nod::common::Format,
-
-    #[serde(default)]
-    known_drives: Vec<PathBuf>,
-}
-
-impl Default for Config {
-    fn default() -> Self {
-        Self {
-            path: PathBuf::new(),
-            always_split: false,
-            mount_point: PathBuf::new(),
-            remove_sources_apps: false,
-            remove_sources_games: false,
-            scrub_update_partition: false,
-            sort_by: SortBy::NameAscending,
-            view_as: ViewAs::Grid,
-            wii_ip: "192.168.1.100".to_string(),
-            wii_output_format: nod::common::Format::Wbfs,
-            gc_output_format: nod::common::Format::Iso,
-            theme_preference: ThemePreference::System,
-            txt_codes_source: TxtCodesSource::WebArchive,
-            known_drives: Vec::new(),
+impl ConfigContents {
+    #[must_use] 
+    pub fn is_mount_point_valid(&self) -> bool {
+        if self.mount_point.is_empty() {
+            return false;
         }
+
+        Path::new(&self.mount_point).exists()
     }
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
-#[serde(rename_all = "snake_case")]
-pub enum SortBy {
-    #[default]
-    NameAscending,
-    NameDescending,
-    SizeAscending,
-    SizeDescending,
-    None,
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
-#[serde(rename_all = "lowercase")]
-pub enum ViewAs {
-    #[default]
-    Grid,
-    Table,
-}
-
-#[derive(Serialize, Deserialize)]
-#[serde(remote = "nod::common::Format", rename_all = "lowercase")]
-pub enum FormatDef {
-    Iso,
-    Ciso,
-    Gcz,
-    Nfs,
-    Rvz,
-    Wbfs,
-    Wia,
-    Tgc,
-}
-
-const fn default_wii_output_format() -> nod::common::Format {
-    nod::common::Format::Wbfs
-}
-
-const fn default_gc_output_format() -> nod::common::Format {
-    nod::common::Format::Iso
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
-#[serde(rename_all = "lowercase")]
-pub enum ThemePreference {
-    #[default]
-    System,
-    Light,
-    Dark,
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
-#[serde(rename_all = "snake_case")]
-pub enum TxtCodesSource {
-    #[default]
-    WebArchive,
-    GameHacking,
-    Rc24,
-}
-
-fn default_wii_ip() -> String {
-    "192.168.1.100".to_string()
 }

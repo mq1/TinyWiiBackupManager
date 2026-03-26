@@ -1,0 +1,14 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { Styles } from "../styles.slint";
+import { Palette } from "std-widgets.slint";
+
+export component Card inherits Rectangle {
+    background: Styles.card_bg();
+    border-color: Palette.border;
+    border-width: 1px;
+    border-radius: 10px;
+
+    @children
+}

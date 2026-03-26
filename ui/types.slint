@@ -1,0 +1,74 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+@rust-attr(derive(serde::Serialize, serde::Deserialize))
+export enum Page {
+    Games,
+    Settings,
+    About,
+}
+
+@rust-attr(derive(serde::Serialize, serde::Deserialize))
+export enum SortBy { 
+    NameAscending,
+    NameDescending,
+    SizeAscending,
+    SizeDescending,
+    None,
+}
+
+@rust-attr(derive(serde::Serialize, serde::Deserialize))
+export enum ViewAs {
+  Grid,
+  Table,
+}
+
+@rust-attr(derive(serde::Serialize, serde::Deserialize))
+export enum TxtCodesSource {
+    WebArchive,
+    GameHacking,
+    Rc24,
+}
+
+@rust-attr(derive(serde::Serialize, serde::Deserialize))
+export enum ThemePreference {
+    System,
+    Light,
+    Dark,
+}
+
+@rust-attr(derive(serde::Serialize, serde::Deserialize, derive_getters::Getters))
+@rust-attr(serde(default))
+export struct ConfigContents {
+    always_split: bool,
+    mount_point: string,
+    remove_sources_apps: bool,
+    remove_sources_games: bool,
+    scrub_update_partition: bool,
+    sort_by: SortBy,
+    view_as: ViewAs,
+    wii_ip: string,
+    txt_codes_source: TxtCodesSource,
+    theme_preference: ThemePreference,
+    wii_output_format: string,
+    gc_output_format: string,
+    known_drives: [string],
+}
+
+@rust-attr(derive(derive_getters::Getters))
+export struct Config {
+    path: string,
+    contents: ConfigContents,
+}
+
+export enum IconButtonKind {
+    Primary,
+    Secondary,
+    Warning,
+    Danger,
+}
+
+export struct Message {
+    text: string,
+    button: IconButtonKind,
+}

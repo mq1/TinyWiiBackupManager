@@ -1,115 +1,62 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod config;
 mod data_dir;
-mod disc_util;
-mod games;
-mod hbc;
-mod http_util;
-mod message;
-mod notifications;
-mod state;
-mod ui;
-mod updater;
-mod util;
+mod dialogs;
 
-use crate::state::State;
-use iced::{Size, window};
+#[cfg(target_vendor = "pc")]
+mod window_color;
 
-#[cfg(any(target_os = "windows", target_os = "linux"))]
-#[inline]
-fn get_window_icon() -> Option<window::Icon> {
-    let rgba8_bytes = image::load_from_memory_with_format(
-        include_bytes!("../package/windows/TinyWiiBackupManager-64x64.png"),
-        image::ImageFormat::Png,
-    )
-    .expect("Failed to load app icon")
-    .into_rgba8()
-    .into_vec();
+#[cfg(target_vendor = "win7")]
+mod xp_dialogs;
 
-    let icon = window::icon::from_rgba(rgba8_bytes, 64, 64).expect("Failed to create window icon");
+use crate::data_dir::get_data_dir;
+use anyhow::Result;
+use slint::{SharedString, ToSharedString};
 
-    Some(icon)
-}
+slint::include_modules!();
 
-#[cfg(target_os = "linux")]
-async fn f16_gpu_fix() {
-    let instance = wgpu::Instance::default();
+fn main() -> Result<()> {
+    let app = AppWindow::new()?;
+    let data_dir = get_data_dir()?;
+    let config = Config::load(&data_dir);
 
-    let adapter_options = wgpu::RequestAdapterOptions {
-        power_preference: wgpu::PowerPreference::from_env()
-            .unwrap_or(wgpu::PowerPreference::HighPerformance),
-        compatible_surface: None,
-        force_fallback_adapter: false,
-    };
+    #[cfg(target_vendor = "pc")]
+    let _ = window_color::set(app.window(), config.contents.theme_preference);
 
-    let Ok(adapter) = instance.request_adapter(&adapter_options).await else {
-        return;
-    };
+    app.global::<State<'_>>()
+        .set_version(env!("CARGO_PKG_VERSION").into());
 
-    if !adapter.features().contains(wgpu::Features::SHADER_F16) {
-        unsafe {
-            std::env::set_var("ICED_BACKEND", "tiny-skia");
+    app.global::<State<'_>>()
+        .set_data_dir(data_dir.to_string_lossy().to_shared_string());
+
+    app.global::<State<'_>>().set_config(config);
+
+    app.global::<Rust<'_>>()
+        .on_open(|uri| match open::that(&uri) {
+            Ok(()) => SharedString::new(),
+            Err(e) => e.to_shared_string(),
+        });
+
+    let weak = app.as_weak();
+    app.global::<Rust<'_>>().on_pick_mount_point(move || {
+        let app = weak.upgrade().unwrap();
+
+        match dialogs::pick_mount_point(app.window()) {
+            Some(path) => path.to_string_lossy().to_shared_string(),
+            None => SharedString::new(),
         }
-    }
-}
+    });
 
-fn main() -> iced::Result {
-    #[cfg(target_os = "linux")]
-    iced::futures::executor::block_on(f16_gpu_fix());
+    app.global::<Rust<'_>>()
+        .on_write_config(|config| match config.write() {
+            Ok(()) => SharedString::new(),
+            Err(e) => e.to_shared_string(),
+        });
 
-    #[cfg(target_os = "macos")]
-    let height = 600.0 + 32.0; // compensate for titlebar height on macOS
-
-    #[cfg(not(target_os = "macos"))]
-    let height = 600.0;
-
-    let window = window::Settings {
-        size: Size::new(800.0, height),
-        min_size: Some(Size::new(800.0, height)),
-
-        // x11 and windows only
-        #[cfg(any(target_os = "windows", target_os = "linux"))]
-        icon: get_window_icon(),
-
-        // wayland only
-        #[cfg(target_os = "linux")]
-        platform_specific: window::settings::PlatformSpecific {
-            application_id: "it.mq1.TinyWiiBackupManager".to_string(),
-            ..Default::default()
-        },
-
-        // macos only
-        #[cfg(target_os = "macos")]
-        platform_specific: window::settings::PlatformSpecific {
-            titlebar_transparent: true,
-            fullsize_content_view: true,
-            ..Default::default()
-        },
-
-        // windows 11 only
-        #[cfg(target_vendor = "pc")]
-        platform_specific: window::settings::PlatformSpecific {
-            corner_preference: window::settings::platform::CornerPreference::Round,
-            ..Default::default()
-        },
-
-        ..Default::default()
-    };
-
-    let settings = iced::Settings {
-        default_text_size: 14.into(),
-        ..Default::default()
-    };
-
-    iced::application(State::new, State::update, ui::view)
-        .window(window)
-        .settings(settings)
-        .title(State::title)
-        .theme(State::theme)
-        .subscription(State::subscription)
-        .run()
+    app.run()?;
+    Ok(())
 }

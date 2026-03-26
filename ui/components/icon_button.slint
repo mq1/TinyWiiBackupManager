@@ -1,0 +1,90 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { Icon, IconDisplay, IconSet } from "@lucide";
+import { HorizontalBox, Palette } from "std-widgets.slint";
+import { IconButtonKind } from "../types.slint";
+
+export component IconButton inherits Rectangle {
+    in property <string> label;
+    in property <Icon> icon: IconSet.WifiZero;
+    in property <IconButtonKind> kind: IconButtonKind.Secondary;
+
+    callback clicked;
+
+    pure function get_bg() -> color {
+        if kind == IconButtonKind.Primary && !t.has-hover {
+            Palette.accent-background
+        } else if kind == IconButtonKind.Primary && Palette.color-scheme == ColorScheme.light {
+            Palette.accent-background.darker(0.1)
+        } else if kind == IconButtonKind.Primary {
+            Palette.accent-background.brighter(0.1)
+        } else if kind == IconButtonKind.Secondary && !t.has-hover {
+            Palette.alternate-background
+        } else if kind == IconButtonKind.Secondary && Palette.color-scheme == ColorScheme.light {
+            Palette.alternate-background.darker(0.1)
+        } else if kind == IconButtonKind.Secondary {
+            Palette.alternate-background.brighter(0.1)
+        } else if kind == IconButtonKind.Warning && !t.has-hover {
+            Colors.yellow
+        } else if kind == IconButtonKind.Warning && Palette.color-scheme == ColorScheme.light {
+            Colors.yellow.darker(0.1)
+        } else if kind == IconButtonKind.Warning {
+            Colors.yellow.brighter(0.1)
+        } else if kind == IconButtonKind.Danger && !t.has-hover {
+            Colors.red
+        } else if kind == IconButtonKind.Danger && Palette.color-scheme == ColorScheme.light {
+            Colors.red.darker(0.1)
+        } else if kind == IconButtonKind.Danger {
+            Colors.red.brighter(0.1)
+        } else {
+            transparent
+        }
+    }
+
+    pure function get_border_color() -> color {
+        if kind == IconButtonKind.Secondary {
+            Palette.border
+        } else {
+            transparent
+        }
+    }
+
+    pure function get_border_width() -> length {
+        if kind == IconButtonKind.Secondary {
+            1px
+        } else {
+            0px
+        }
+    }
+
+    background: get_bg();
+    border-color: get_border_color();
+    border-width: get_border_width();
+    border-radius: 10px;
+
+    h := HorizontalLayout {
+        padding-top: 8px;
+        padding-bottom: 8px;
+        padding-left: 9px;
+        padding-right: 9px;
+        spacing: 3px;
+
+        if icon != IconSet.WifiZero: IconDisplay {
+            icon: icon;
+            stroke: Palette.accent-foreground;
+            size: 14px;
+        }
+
+        Text {
+            text: label;
+            color: Palette.accent-foreground;
+        }
+    }
+
+    t := TouchArea {
+        clicked => clicked();
+        width: h.width;
+        height: h.height;
+    }
+}

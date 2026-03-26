@@ -1,0 +1,56 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { Button, VerticalBox, Palette } from "std-widgets.slint";
+import { IconSet } from "@lucide";
+import { Page } from "types.slint";
+import { State } from "state.slint";
+import { NavbarButton } from "components/navbar_button.slint";
+
+export component Navbar inherits VerticalLayout {
+    alignment: LayoutAlignment.space-between;
+
+    VerticalBox {
+        NavbarButton {
+            active: State.current_page == Page.Games;
+            icon: IconSet.Gamepad2;
+            clicked => {
+                State.current_page = Page.Games;
+            }
+        }
+
+        NavbarButton {
+            active: State.current_page == Page.Settings;
+            icon: IconSet.Settings;
+            clicked => {
+                State.current_page = Page.Settings;
+            }
+        }
+    }
+
+    VerticalBox {
+        NavbarButton {
+            icon: IconSet.HardDrive;
+            clicked => State.pick_mount_point();
+        }
+
+        NavbarButton {
+            icon: IconSet.SunMoon;
+            clicked => {
+                if Palette.color-scheme == ColorScheme.light {
+                    Palette.color-scheme = ColorScheme.dark;
+                } else {
+                    Palette.color-scheme = ColorScheme.light;
+                }
+            }
+        }
+
+        NavbarButton {
+            active: State.current_page == Page.About;
+            icon: IconSet.Info;
+            clicked => {
+                State.current_page = Page.About;
+            }
+        }
+    }
+}

@@ -1,0 +1,135 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { VerticalBox, Palette, HorizontalBox, Button } from "std-widgets.slint";
+import { Styles } from "styles.slint";
+import { State } from "state.slint";
+import { IconDisplay, IconSet } from "@lucide";
+import { Link } from "components/link.slint";
+import { Rust } from "rust.slint";
+import { Card } from "components/card.slint";
+import { HorizontalLine } from "components/horizontal_line.slint";
+
+export component AboutPage inherits VerticalLayout {
+    alignment: space-between;
+
+    HorizontalBox { }
+
+    HorizontalLayout {
+        alignment: center;
+
+        Card {
+            width: 600px;
+
+            VerticalBox {
+                HorizontalBox {
+                    Image {
+                        source: @image-url("../assets/TinyWiiBackupManager-256x256.png");
+                        width: 128px;
+                        height: 128px;
+                    }
+
+                    VerticalBox {
+                        alignment: center;
+
+                        Text {
+                            text: "TinyWiiBackupManager v" + State.version;
+                            font-size: 18px;
+                            font-weight: 700;
+                        }
+
+                        HorizontalLayout {
+                            Text {
+                                text: "Copyright © 2026 Manuel Quarneti    ";
+                            }
+
+                            Link {
+                                label: "github/mq1";
+                                uri: "https://github.com/mq1";
+                            }
+                        }
+
+                        Link {
+                            label: "GPL-3.0-only";
+                            uri: "https://www.gnu.org/licenses/gpl-3.0.html";
+                            icon: IconSet.Scale;
+                        }
+                    }
+                }
+
+                HorizontalBox {
+                    VerticalLayout {
+                        alignment: center;
+
+                        IconDisplay {
+                            icon: IconSet.TriangleAlert;
+                            stroke: Palette.foreground;
+                        }
+                    }
+
+                    Text {
+                        text: "TinyWiiBackupManager is intended strictly for legal homebrew use and is not affiliated with or endorsed by Nintendo. Use of TinyWiiBackupManager for pirated or unauthorized copies of games is strictly prohibited.";
+                        wrap: word-wrap;
+                    }
+                }
+
+                HorizontalLine { }
+
+                HorizontalLayout {
+                    IconDisplay {
+                        icon: IconSet.Heart;
+                        stroke: Palette.foreground;
+                        size: 15px;
+                    }
+
+                    Text {
+                        text: " Special thanks to";
+                        font-size: 16px;
+                    }
+                }
+
+                HorizontalLayout {
+                    Link {
+                        label: "Luke Street";
+                        uri: "https://github.com/encounter";
+                        icon: IconSet.Triangle;
+                    }
+
+                    Text {
+                        text: " for developing nod and helping TWBM leverage it effectively.";
+                    }
+                }
+
+                HorizontalLayout {
+                    Link {
+                        label: "blackb0x";
+                        uri: "https://github.com/wiidev";
+                        icon: IconSet.WandSparkles;
+                    }
+
+                    Text {
+                        text: " for invaluable feedback and advice during TWBM's development.";
+                    }
+                }
+            }
+        }
+    }
+
+    HorizontalBox {
+        Link {
+            label: "Data directory";
+            uri: State.data_dir;
+            icon: IconSet.Folder;
+        }
+
+        Link {
+            label: "Source code";
+            uri: "https://github.com/mq1/TinyWiiBackupManager";
+        }
+
+        Link {
+            label: "Wiki";
+            uri: "https://github.com/mq1/TinyWiiBackupManager/wiki";
+        }
+    }
+}

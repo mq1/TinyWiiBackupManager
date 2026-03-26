@@ -1,0 +1,43 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { VerticalBox, HorizontalBox, Palette } from "std-widgets.slint";
+import { State } from "state.slint";
+import { IconButton } from "components/icon_button.slint";
+import { IconSet } from "@lucide";
+import { Card } from "components/card.slint";
+
+export component MessagePage inherits VerticalBox {
+    alignment: center;
+
+    HorizontalBox {
+        alignment: center;
+
+        Card {
+            width: 500px;
+            height: 400px;
+
+            VerticalBox {
+                Text {
+                    text: State.message.text;
+                }
+
+                Rectangle {
+                    border-color: Palette.border;
+                    border-width: 1px;
+                    height: 1px;
+                }
+
+                HorizontalLayout {
+                    alignment: end;
+
+                    IconButton {
+                        label: "OK";
+                        kind: State.message.button;
+                        clicked => State.dismiss();
+                    }
+                }
+            }
+        }
+    }
+}
