@@ -6,8 +6,17 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Enable x86 packages
 RUN dpkg --add-architecture i386
 
-# Install dependencies
-RUN apt-get update && apt-get install -y lsb-release wget software-properties-common gnupg pkg-config gcc-multilib libc6-dev:i386
+# Refresh APT
+RUN apt-get update
+
+# Install LLVM dependencies
+RUN apt-get install -y lsb-release wget software-properties-common gnupg
+
+# Install cross dependencies
+RUN apt-get install -y gcc-multilib libc6-dev:i386
+
+# Install slint dependencies
+RUN apt-get install -y apt install pkg-config libfontconfig-dev
 
 # Install LLVM 21
 RUN wget https://apt.llvm.org/llvm.sh && \

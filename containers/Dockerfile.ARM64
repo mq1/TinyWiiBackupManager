@@ -6,8 +6,17 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Enable armhf packages
 RUN dpkg --add-architecture armhf
 
-# Install dependencies
-RUN apt-get update && apt-get install -y lsb-release wget software-properties-common gnupg pkg-config gcc-arm-linux-gnueabihf libc6-dev:armhf
+# Refresh APT
+RUN apt-get update
+
+# Install LLVM dependencies
+RUN apt-get install -y lsb-release wget software-properties-common gnupg
+
+# Install cross dependencies
+RUN apt-get install -y gcc-arm-linux-gnueabihf libc6-dev:armhf
+
+# Install slint dependencies
+RUN apt-get install -y apt install pkg-config libfontconfig-dev
 
 # Install LLVM 21
 RUN wget https://apt.llvm.org/llvm.sh && \
