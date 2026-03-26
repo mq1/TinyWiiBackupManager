@@ -1,5 +1,8 @@
 FROM ubuntu:20.04
 
+# Disable interactive mode
+DEBIAN_FRONTEND=noninteractive
+
 # Enable armhf packages
 RUN dpkg --add-architecture armhf
 
