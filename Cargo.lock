@@ -12,6 +12,7 @@ dependencies = [
  "lucide-slint",
  "minreq",
  "open",
+ "raw-window-handle",
  "rfd",
  "serde",
  "serde_json",

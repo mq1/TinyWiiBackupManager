@@ -8,7 +8,7 @@ use std::path::PathBuf;
 use rfd::FileDialog;
 
 #[cfg(target_vendor = "win7")]
-use crate::ui::xp_dialogs;
+use crate::xp_dialogs;
 
 pub fn pick_mount_point(window: &Window) -> Option<PathBuf> {
     #[cfg(not(target_vendor = "win7"))]

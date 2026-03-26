@@ -18,6 +18,7 @@ slint = { git = "https://github.com/slint-ui/slint.git", rev = "86c1659", featur
   "serde",
   "raw-window-handle-06",
 ] }
+raw-window-handle = "0.6"
 anyhow = "1.0"
 open = "5.3"
 directories = "6.0"

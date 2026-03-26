@@ -3,6 +3,7 @@
 
 use crate::ThemePreference;
 use anyhow::{Result, bail};
+use raw_window_handle::{HasWindowHandle, RawWindowHandle};
 use slint::Window;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Graphics::Dwm::DWMWA_CAPTION_COLOR;
@@ -27,7 +28,7 @@ pub fn set(window: &Window, mut theme: ThemePreference) -> Result<()> {
         ThemePreference::System => bail!("Could not determine system theme"),
     };
 
-    let RawWindowHandle::Win32(handle) = window.window_handle().as_raw() else {
+    let RawWindowHandle::Win32(handle) = window.window_handle().window_handle()?.as_raw() else {
         bail!("Could not get window handle");
     };
 
