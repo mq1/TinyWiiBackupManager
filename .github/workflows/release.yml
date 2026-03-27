@@ -63,7 +63,7 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
-          file: containers/Dockerfile.${{ runner.arch }}
+          file: containers/Dockerfile.${{ matrix.arch }}
           load: true
           tags: builder
           cache-from: type=gha

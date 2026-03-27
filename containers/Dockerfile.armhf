@@ -3,8 +3,8 @@ FROM ubuntu:20.04
 # Disable interactive mode
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Enable x86 packages
-RUN dpkg --add-architecture i386
+# Enable armhf packages
+RUN dpkg --add-architecture armhf
 
 # Refresh APT
 RUN apt-get update
@@ -13,10 +13,10 @@ RUN apt-get update
 RUN apt-get install -y lsb-release wget software-properties-common gnupg
 
 # Install cross dependencies
-RUN apt-get install -y gcc-multilib libc6-dev:i386
+RUN apt-get install -y gcc-arm-linux-gnueabihf libc6-dev:armhf
 
 # Install slint dependencies
-RUN apt-get install -y pkg-config libfontconfig1-dev libfontconfig1-dev:i386 pkg-config-i686-linux-gnu
+RUN apt-get install -y libfontconfig1-dev:armhf pkg-config-arm-linux-gnueabihf
 
 # Install LLVM 21
 RUN wget https://apt.llvm.org/llvm.sh && \
