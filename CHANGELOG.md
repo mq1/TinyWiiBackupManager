@@ -7,9 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- 🍎 Re-added macOS 10.12 compatibility
+
 ### Changed
 
-- ⚡️ Better UI performance (especially on old GPUs)
+- ⚡️ Better UI performance (especially on old GPUs and VMs)
 
 ## [v5.2.1] - 2026-03-19
 
