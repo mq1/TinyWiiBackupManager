@@ -14,7 +14,6 @@ on:
       - "Cargo.toml"
       - "Cargo.lock"
       - "package/**"
-      - "scripts/**"
       - "containers/**"
       - ".github/workflows/release.yml"
   pull_request:
@@ -28,7 +27,7 @@ env:
 
 jobs:
   # ==================================================================================
-  #  Build & Bundle Jobs: Run the platform-specific build scripts.
+  #  Build & Bundle Jobs
   # ==================================================================================
   build-linux:
     name: Build for Linux
@@ -39,16 +38,32 @@ jobs:
         include:
           - runner: ubuntu-24.04
             arch: x86_64-v3
+            target: x86_64-unknown-linux-gnu
+            rustflags: "-C target-cpu=x86-64-v3"
+            cflags: "-march=x86-64-v3"
+            appimage-arch: x86_64
           - runner: ubuntu-24.04
             arch: x86_64-v2
+            target: x86_64-unknown-linux-gnu
+            rustflags: "-C target-cpu=x86-64-v2"
+            cflags: "-march=x86-64-v2"
+            appimage-arch: x86_64
           - runner: ubuntu-24.04
             arch: x86_64
+            target: x86_64-unknown-linux-gnu
+            appimage-arch: x86_64
           - runner: ubuntu-24.04-arm
             arch: arm64
+            target: aarch64-unknown-linux-gnu
+            appimage-arch: aarch64
           - runner: ubuntu-24.04
             arch: x86
+            target: i686-unknown-linux-gnu
+            appimage-arch: i686
           - runner: ubuntu-24.04-arm
             arch: armhf
+            target: armv7-unknown-linux-gnueabihf
+            appimage-arch: armhf
 
     steps:
       - name: Checkout
@@ -59,11 +74,33 @@ jobs:
       - name: Build Docker image
         run: docker build -t builder -f containers/Dockerfile.${{ matrix.arch }} .
 
+      - name: Download appimagetool
+        run: |
+          wget "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-${{ matrix.appimage-arch }}.AppImage" -O appimagetool
+          chmod +x appimagetool
+
       - name: Build binary
-        run: docker run -v "$(pwd):/io" -w /io builder scripts/build-linux.sh ${{ matrix.arch }}
+        run: |
+          docker run \
+            -v "$(pwd):/io" \
+            -w /io \
+            -e RUSTC_BOOTSTRAP=1 \
+            -e RUSTFLAGS="${{ matrix.rustflags }}" \
+            -e CFLAGS="${{ matrix.cflags }}" \
+            builder \
+            cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features
+          cp target/${{ matrix.target }}/release/TinyWiiBackupManager .
 
       - name: Package AppImage
-        run: ./scripts/package-linux.sh ${{ env.VERSION_NAME }} ${{ matrix.arch }}
+        run: |
+          cp -rP package/linux/AppDir TinyWiiBackupManager.AppDir
+          install -Dm0755 TinyWiiBackupManager TinyWiiBackupManager.AppDir/usr/bin/TinyWiiBackupManager
+          mkdir -p dist
+          cd dist
+          ../appimagetool \
+            -u "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync" \
+            ../TinyWiiBackupManager.AppDir \
+            "TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v7
@@ -81,24 +118,35 @@ jobs:
           - runner: windows-2025
             platform: windows
             arch: x86_64-v3
+            target: x86_64-pc-windows-msvc
+            rustflags: "-C target-cpu=x86-64-v3"
+            cflags: "/clang:-march=x86-64-v3"
           - runner: windows-2025
             platform: windows
             arch: x86_64-v2
+            target: x86_64-pc-windows-msvc
+            rustflags: "-C target-cpu=x86-64-v2"
+            cflags: "/clang:-march=x86-64-v2"
           - runner: windows-2025
             platform: windows
             arch: x86_64
+            target: x86_64-pc-windows-msvc
           - runner: windows-11-arm
             platform: windows
             arch: arm64
+            target: aarch64-pc-windows-msvc
           - runner: windows-2025
             platform: windows
             arch: x86
+            target: i686-pc-windows-msvc
           - runner: windows-2022
             platform: windows-legacy
             arch: x86_64
+            target: x86_64-win7-windows-msvc
           - runner: windows-2022
             platform: windows-legacy
             arch: x86
+            target: i686-win7-windows-msvc
 
     steps:
       - name: Checkout
@@ -129,11 +177,21 @@ jobs:
           Invoke-WebRequest -Uri "https://github.com/Chuyu-Team/YY-Thunks/releases/latest/download/YY-Thunks-Objs.zip" -OutFile "YY-Thunks-Objs.zip"
           7z x YY-Thunks-Objs.zip -oYY-Thunks-Objs
 
-      - name: Build and package binary
+      - name: Build binary
         shell: pwsh
         run: |
-          .\scripts\build-windows.ps1 -Platform ${{ matrix.platform }} -Arch ${{ matrix.arch }}
-          .\scripts\package-windows.ps1 -VersionName ${{ env.VERSION_NAME }} -Platform ${{ matrix.platform }} -Arch ${{ matrix.arch }}
+          cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
+          Copy-Item "target\${{ matrix.target }}\release\TinyWiiBackupManager.exe" .
+        env:
+          RUSTC_BOOTSTRAP: 1
+          RUSTFLAGS: ${{ matrix.rustflags }}
+          CFLAGS: ${{ matrix.cflags }}
+
+      - name: Package binary
+        shell: pwsh
+        run: |
+          New-Item -Path "dist" -ItemType Directory -Force
+          7z a -tzip -mx=9 "dist\TinyWiiBackupManager-${{ env.VERSION_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v7
@@ -149,7 +207,9 @@ jobs:
       matrix:
         include:
           - arch: arm64
+            target: aarch64-apple-darwin
           - arch: x86_64
+            target: x86_64-apple-darwin
 
     steps:
       - name: Checkout
@@ -168,10 +228,22 @@ jobs:
       - name: Install appdmg
         run: npm i -g appdmg
 
-      - name: Build and package
+      - name: Build binary
         run: |
-          scripts/build-macos.sh ${{ matrix.arch }}
-          scripts/package-macos.sh ${{ env.VERSION_NAME }} ${{ matrix.arch }}
+          cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
+          cp target/${{ matrix.target }}/release/TinyWiiBackupManager .
+        env:
+          RUSTC_BOOTSTRAP: 1
+
+      - name: Package DMG
+        run: |
+          VERSION_NAME="${{ env.VERSION_NAME }}"
+          cp -r package/macos/App TinyWiiBackupManager.app
+          mkdir -p TinyWiiBackupManager.app/Contents/MacOS
+          cp TinyWiiBackupManager TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
+          /usr/libexec/PlistBuddy -c "Add :CFBundleShortVersionString string ${VERSION_NAME#v}" TinyWiiBackupManager.app/Contents/Info.plist
+          mkdir -p dist
+          appdmg package/macos/appdmg-${{ matrix.arch }}.json "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-${{ matrix.arch }}.dmg"
 
       - name: Upload macOS distributables
         uses: actions/upload-artifact@v7

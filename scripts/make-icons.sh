@@ -46,3 +46,4 @@ oxipng -sao6 package/macos/TinyWiiBackupManager.iconset/icon_512x512.png
 magick assets/TinyWiiBackupManager-1024x1024.png ${MAGICK_ARGS} -resize 1024x1024 package/macos/TinyWiiBackupManager.iconset/icon_512x512@2x.png
 oxipng -sao6 package/macos/TinyWiiBackupManager.iconset/icon_512x512@2x.png
 iconutil -c icns package/macos/TinyWiiBackupManager.iconset
+mv package/macos/TinyWiiBackupManager.icns package/macos/App/Contents/Resources/
