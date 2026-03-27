@@ -5,6 +5,7 @@ import { VerticalBox } from "std-widgets.slint";
 import { IconSet } from "@lucide";
 import { State } from "state.slint";
 import { Setting } from "components/setting.slint";
+import { BoolSetting } from "components/bool_setting.slint";
 
 export component SettingsPage inherits VerticalBox {
     alignment: start;
@@ -23,6 +24,28 @@ export component SettingsPage inherits VerticalBox {
             { value: "iso", label: "ISO (very large)" },
         ];
         active_value <=> State.config.contents.wii_output_format;
-        changed => State.write_config();
+    }
+
+    Setting {
+        icon: IconSet.Disc3;
+        label: "GameCube output format";
+        items: [
+            { value: "iso", label: "WBFS (recommended)" },
+            {
+                value: "ciso",
+                label: "CISO (much smaller, slightly slower, less metadata in game loaders)"
+            },
+        ];
+        active_value <=> State.config.contents.gc_output_format;
+    }
+
+    BoolSetting {
+        icon: IconSet.SquareSplitHorizontal;
+        label: "Split output";
+        items: [
+            { value: false, label: "Only when needed (recommended)" },
+            { value: true, label: "Always 4GB-32KB" },
+        ];
+        active_value <=> State.config.contents.always_split;
     }
 }

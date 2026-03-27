@@ -8,39 +8,6 @@ export enum Page {
 }
 
 @rust-attr(derive(serde::Serialize, serde::Deserialize))
-@rust-attr(serde(rename_all = "snake_case"))
-export enum SortBy { 
-    NameAscending,
-    NameDescending,
-    SizeAscending,
-    SizeDescending,
-    None,
-}
-
-@rust-attr(derive(serde::Serialize, serde::Deserialize))
-@rust-attr(serde(rename_all = "snake_case"))
-export enum ViewAs {
-  Grid,
-  Table,
-}
-
-@rust-attr(derive(serde::Serialize, serde::Deserialize))
-@rust-attr(serde(rename_all = "snake_case"))
-export enum TxtCodesSource {
-    WebArchive,
-    GameHacking,
-    Rc24,
-}
-
-@rust-attr(derive(serde::Serialize, serde::Deserialize))
-@rust-attr(serde(rename_all = "snake_case"))
-export enum ThemePreference {
-    System,
-    Light,
-    Dark,
-}
-
-@rust-attr(derive(serde::Serialize, serde::Deserialize))
 @rust-attr(serde(default, rename_all = "snake_case"))
 export struct ConfigContents {
     always_split: bool,
@@ -48,11 +15,11 @@ export struct ConfigContents {
     remove_sources_apps: bool,
     remove_sources_games: bool,
     scrub_update_partition: bool,
-    sort_by: SortBy,
-    view_as: ViewAs,
+    sort_by: string,
+    view_as: string,
     wii_ip: string,
-    txt_codes_source: TxtCodesSource,
-    theme_preference: ThemePreference,
+    txt_codes_source: string,
+    theme_preference: string,
     wii_output_format: string,
     gc_output_format: string,
     known_drives: [string],

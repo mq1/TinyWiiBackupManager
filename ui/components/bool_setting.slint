@@ -7,11 +7,11 @@ import { HorizontalLine } from "horizontal_line.slint";
 import { Card } from "card.slint";
 import { State } from "../state.slint";
 
-export component Setting inherits Card {
+export component BoolSetting inherits Card {
     in property <string> label;
     in property <Icon> icon;
-    in property <[{value: string, label: string}]> items;
-    in-out property <string> active_value;
+    in property <[{value: bool, label: string}]> items;
+    in-out property <bool> active_value;
 
     width: 100%;
 

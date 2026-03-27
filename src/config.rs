@@ -3,7 +3,7 @@
 
 use crate::{Config, ConfigContents};
 use anyhow::Result;
-use slint::{Model, SharedString, ToSharedString, VecModel};
+use slint::{Model, ModelRc, SharedString, ToSharedString, VecModel};
 use std::{fs, path::Path};
 
 impl Config {
@@ -11,7 +11,8 @@ impl Config {
     pub fn load(data_dir: &Path) -> Self {
         let path = data_dir.join("config.json");
         let bytes = fs::read(&path).unwrap_or_default();
-        let mut contents = serde_json::from_slice::<ConfigContents>(&bytes).unwrap_or_default();
+        let mut contents = serde_json::from_slice::<ConfigContents>(&bytes)
+            .unwrap_or(ConfigContents::my_default());
 
         // Invalidate invalid mount_point
         if !contents.is_mount_point_valid() {
@@ -67,5 +68,24 @@ impl ConfigContents {
         }
 
         Path::new(&self.mount_point).exists()
+    }
+
+    #[must_use]
+    pub fn my_default() -> Self {
+        Self {
+            always_split: false,
+            mount_point: SharedString::new(),
+            remove_sources_apps: false,
+            remove_sources_games: false,
+            scrub_update_partition: false,
+            sort_by: "name_descending".to_shared_string(),
+            view_as: "grid".to_shared_string(),
+            wii_ip: "192.168.1.100".to_shared_string(),
+            txt_codes_source: "web_archive".to_shared_string(),
+            theme_preference: "system".to_shared_string(),
+            wii_output_format: "wbfs".to_shared_string(),
+            gc_output_format: "iso".to_shared_string(),
+            known_drives: ModelRc::new(VecModel::default()),
+        }
     }
 }
