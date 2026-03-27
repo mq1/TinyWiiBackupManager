@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-@rust-attr(derive(serde::Serialize, serde::Deserialize))
 export enum Page {
     Games,
     Settings,
@@ -9,6 +8,7 @@ export enum Page {
 }
 
 @rust-attr(derive(serde::Serialize, serde::Deserialize))
+@rust-attr(serde(rename_all = "snake_case"))
 export enum SortBy { 
     NameAscending,
     NameDescending,
@@ -18,12 +18,14 @@ export enum SortBy {
 }
 
 @rust-attr(derive(serde::Serialize, serde::Deserialize))
+@rust-attr(serde(rename_all = "snake_case"))
 export enum ViewAs {
   Grid,
   Table,
 }
 
 @rust-attr(derive(serde::Serialize, serde::Deserialize))
+@rust-attr(serde(rename_all = "snake_case"))
 export enum TxtCodesSource {
     WebArchive,
     GameHacking,
@@ -31,6 +33,7 @@ export enum TxtCodesSource {
 }
 
 @rust-attr(derive(serde::Serialize, serde::Deserialize))
+@rust-attr(serde(rename_all = "snake_case"))
 export enum ThemePreference {
     System,
     Light,
@@ -38,7 +41,7 @@ export enum ThemePreference {
 }
 
 @rust-attr(derive(serde::Serialize, serde::Deserialize))
-@rust-attr(serde(default))
+@rust-attr(serde(default, rename_all = "snake_case"))
 export struct ConfigContents {
     always_split: bool,
     mount_point: string,
