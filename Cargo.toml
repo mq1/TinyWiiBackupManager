@@ -63,3 +63,5 @@ rust_2018_idioms = "deny"
 [lints.clippy]
 all = "warn"
 pedantic = "warn"
+missing-errors-doc = { level = "allow", priority = 1 }
+missing-panics-doc = { level = "allow", priority = 1 }

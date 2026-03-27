@@ -25,11 +25,6 @@ impl Config {
     }
 
     /// Writes the config into config.json
-    ///
-    /// # Errors
-    /// Returns an error if:
-    /// * `serde_json` fails to serialize the string
-    /// * `std::fs::write` fails
     pub fn write(&self) -> Result<()> {
         let bytes = serde_json::to_vec_pretty(&self.contents)?;
         fs::write(&self.path, &bytes)?;
@@ -38,9 +33,6 @@ impl Config {
     }
 
     /// Returns true if the notification should be shown
-    ///
-    /// # Panics
-    /// Panics if `self.contents.known_drives` is not a `VecModel<SharedString>`
     pub fn check_mount_point(&mut self) -> bool {
         if !self.contents.is_mount_point_valid() {
             return false;
