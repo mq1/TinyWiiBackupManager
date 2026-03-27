@@ -7,6 +7,7 @@ set -euo pipefail
 ARCH=$1
 
 export RUSTC_BOOTSTRAP=1
+export PKG_CONFIG_ALLOW_CROSS=1
 
 case $ARCH in
 arm64)
@@ -15,7 +16,6 @@ arm64)
   export CC_aarch64_unknown_linux_gnu="clang-21"
   export AR_aarch64_unknown_linux_gnu="llvm-ar-21"
   export CFLAGS_aarch64_unknown_linux_gnu="-O3 -flto --target=aarch64-linux-gnu"
-  export PKG_CONFIG_ALLOW_CROSS=1
   export PKG_CONFIG="/usr/bin/aarch64-linux-gnu-pkg-config"
   export PKG_CONFIG_PATH="/usr/lib/aarch64-linux-gnu/pkgconfig"
   TARGET="aarch64-unknown-linux-gnu"
@@ -26,7 +26,6 @@ armhf)
   export CC_armv7_unknown_linux_gnueabihf="clang-21"
   export AR_armv7_unknown_linux_gnueabihf="llvm-ar-21"
   export CFLAGS_armv7_unknown_linux_gnueabihf="-O3 -flto --target=arm-linux-gnueabihf"
-  export PKG_CONFIG_ALLOW_CROSS=1
   export PKG_CONFIG="/usr/bin/arm-linux-gnueabihf-pkg-config"
   export PKG_CONFIG_PATH="/usr/lib/arm-linux-gnueabihf/pkgconfig"
   TARGET="armv7-unknown-linux-gnueabihf"
@@ -37,7 +36,6 @@ x86)
   export CC_i686_unknown_linux_gnu="clang-21"
   export AR_i686_unknown_linux_gnu="llvm-ar-21"
   export CFLAGS_i686_unknown_linux_gnu="-O3 -flto --target=i686-linux-gnu"
-  export PKG_CONFIG_ALLOW_CROSS=1
   export PKG_CONFIG="/usr/bin/i686-linux-gnu-pkg-config"
   export PKG_CONFIG_PATH="/usr/lib/i386-linux-gnu/pkgconfig"
   TARGET="i686-unknown-linux-gnu"
@@ -48,7 +46,6 @@ x86_64)
   export CC_x86_64_unknown_linux_gnu="clang-21"
   export AR_x86_64_unknown_linux_gnu="llvm-ar-21"
   export CFLAGS_x86_64_unknown_linux_gnu="-O3 -flto --target=x86_64-linux-gnu"
-  export PKG_CONFIG_ALLOW_CROSS=1
   export PKG_CONFIG="/usr/bin/x86_64-linux-gnu-pkg-config"
   export PKG_CONFIG_PATH="/usr/lib/x86_64-linux-gnu/pkgconfig"
   TARGET="x86_64-unknown-linux-gnu"
@@ -59,7 +56,6 @@ x86_64-v2)
   export CC_x86_64_unknown_linux_gnu="clang-21"
   export AR_x86_64_unknown_linux_gnu="llvm-ar-21"
   export CFLAGS_x86_64_unknown_linux_gnu="-O3 -flto -march=x86-64-v2 --target=x86_64-linux-gnu"
-  export PKG_CONFIG_ALLOW_CROSS=1
   export PKG_CONFIG="/usr/bin/x86_64-linux-gnu-pkg-config"
   export PKG_CONFIG_PATH="/usr/lib/x86_64-linux-gnu/pkgconfig"
   TARGET="x86_64-unknown-linux-gnu"
@@ -70,7 +66,6 @@ x86_64-v3)
   export CC_x86_64_unknown_linux_gnu="clang-21"
   export AR_x86_64_unknown_linux_gnu="llvm-ar-21"
   export CFLAGS_x86_64_unknown_linux_gnu="-O3 -flto -march=x86-64-v3 --target=x86_64-linux-gnu"
-  export PKG_CONFIG_ALLOW_CROSS=1
   export PKG_CONFIG="/usr/bin/x86_64-linux-gnu-pkg-config"
   export PKG_CONFIG_PATH="/usr/lib/x86_64-linux-gnu/pkgconfig"
   TARGET="x86_64-unknown-linux-gnu"
