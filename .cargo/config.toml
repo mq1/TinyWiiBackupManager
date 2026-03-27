@@ -50,7 +50,7 @@ rustflags = [
   "-C",
   "link-arg=-fuse-ld=lld-21",
   "-C",
-  "link-arg=--target=aarch64-unknown-linux-gnu",
+  "link-arg=--target=x86_64-linux-gnu",
 ]
 
 [target.i686-unknown-linux-gnu]
@@ -61,7 +61,7 @@ rustflags = [
   "-C",
   "link-arg=-fuse-ld=lld-21",
   "-C",
-  "link-arg=--target=i686-unknown-linux-gnu",
+  "link-arg=--target=i686-linux-gnu",
 ]
 
 [target.aarch64-unknown-linux-gnu]
@@ -72,7 +72,7 @@ rustflags = [
   "-C",
   "link-arg=-fuse-ld=lld-21",
   "-C",
-  "link-arg=--target=aarch64-unknown-linux-gnu",
+  "link-arg=--target=aarch64-linux-gnu",
 ]
 
 [target.armv7-unknown-linux-gnueabihf]
@@ -83,7 +83,7 @@ rustflags = [
   "-C",
   "link-arg=-fuse-ld=lld-21",
   "-C",
-  "link-arg=--target=armv7-unknown-linux-gnueabihf",
+  "link-arg=--target=arm-linux-gnueabihf",
 ]
 
 [target.x86_64-pc-windows-msvc]
