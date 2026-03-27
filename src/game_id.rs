@@ -32,9 +32,8 @@ impl GameID {
     #[must_use]
     pub fn as_raw(&self) -> [u8; 6] {
         let bytes = self.inner.as_bytes();
-        let len = bytes.len().min(6);
         let mut buf = [0; 6];
-        buf[..len].copy_from_slice(&bytes[..len]);
+        buf[..bytes.len()].copy_from_slice(bytes);
         buf
     }
 
