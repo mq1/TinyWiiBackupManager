@@ -13,7 +13,7 @@ RUN apt-get update
 RUN apt-get install -y lsb-release wget software-properties-common gnupg
 
 # Install cross dependencies
-RUN apt-get install -y gcc-multilib libc6-dev:i386
+RUN apt-get install -y gcc-i686-linux-gnu libc6-dev:i386
 
 # Install slint dependencies
 RUN apt-get install -y pkg-config libfontconfig-dev:i386
