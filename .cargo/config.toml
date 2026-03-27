@@ -1,6 +1,4 @@
 [env]
-PKG_CONFIG_ALLOW_CROSS = 1
-
 CC_x86_64_unknown_linux_gnu = "clang-21"
 AR_x86_64_unknown_linux_gnu = "llvm-ar-21"
 CFLAGS_x86_64_unknown_linux_gnu = "-O3 -flto"

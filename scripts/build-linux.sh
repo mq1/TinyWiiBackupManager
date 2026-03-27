@@ -13,9 +13,11 @@ arm64)
   TARGET="aarch64-unknown-linux-gnu"
   ;;
 armhf)
+  export PKG_CONFIG_ALLOW_CROSS=1
   TARGET="armv7-unknown-linux-gnueabihf"
   ;;
 x86)
+  export PKG_CONFIG_ALLOW_CROSS=1
   TARGET="i686-unknown-linux-gnu"
   ;;
 x86_64)
