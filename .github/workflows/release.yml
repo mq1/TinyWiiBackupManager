@@ -56,18 +56,8 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
-      - name: Build and push
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          file: containers/Dockerfile.${{ matrix.arch }}
-          load: true
-          tags: builder
-          cache-from: type=gha
-          cache-to: type=gha
+      - name: Build Docker image
+        run: docker build -t builder -f containers/Dockerfile.${{ matrix.arch }} .
 
       - name: Build binary
         run: docker run -v "$(pwd):/io" -w /io builder scripts/build-linux.sh ${{ matrix.arch }}
