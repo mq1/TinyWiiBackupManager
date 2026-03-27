@@ -2,11 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import { VerticalBox } from "std-widgets.slint";
-import { Card } from "components/card.slint";
-import { Radio } from "components/radio.slint";
 import { IconSet } from "@lucide";
 import { State } from "state.slint";
-
+import { Setting } from "components/setting.slint";
 
 export component SettingsPage inherits VerticalBox {
     alignment: start;
@@ -17,18 +15,14 @@ export component SettingsPage inherits VerticalBox {
         font-weight: 700;
     }
 
-    Card {
-        width: 100%;
-
-        Radio {
-            icon: IconSet.Disc3;
-            label: "Wii output format";
-            items: [
-                { value: "wbfs", label: "WBFS (recommended)" },
-                { value: "iso", label: "ISO (very large)" },
-            ];
-            active_value <=> State.config.contents.wii_output_format;
-            changed => State.write_config();
-        }
+    Setting {
+        icon: IconSet.Disc3;
+        label: "Wii output format";
+        items: [
+            { value: "wbfs", label: "WBFS (recommended)" },
+            { value: "iso", label: "ISO (very large)" },
+        ];
+        active_value <=> State.config.contents.wii_output_format;
+        changed => State.write_config();
     }
 }

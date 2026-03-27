@@ -1,0 +1,62 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { VerticalBox, Palette } from "std-widgets.slint";
+import { Icon, IconDisplay, IconSet } from "@lucide";
+import { HorizontalLine } from "horizontal_line.slint";
+import { Card } from "card.slint";
+
+export struct RadioItem {
+    value: string,
+    label: string,
+}
+
+export component Setting inherits Card {
+    in property <string> label;
+    in property <Icon> icon;
+    in property <[RadioItem]> items;
+    in-out property <string> active_value;
+
+    callback changed;
+
+    width: 100%;
+
+    VerticalBox {
+        height: 100%;
+
+        HorizontalLayout {
+            IconDisplay {
+                icon: icon;
+                stroke: Palette.foreground;
+                size: 14px;
+            }
+
+            Text {
+                text: " " + label;
+            }
+        }
+
+        HorizontalLine { }
+
+        for item in items: radio_item := Rectangle {
+            HorizontalLayout {
+                IconDisplay {
+                    icon: item.value == active_value ? IconSet.Disc : IconSet.Circle;
+                    stroke: item.value == active_value ? Palette.accent-background : Palette.foreground;
+                    size: 14px;
+                }
+
+                Text {
+                    text: " " + item.label;
+                }
+            }
+
+            TouchArea {
+                clicked => {
+                    active_value = item.value;
+                    changed();
+                }
+            }
+        }
+    }
+}
