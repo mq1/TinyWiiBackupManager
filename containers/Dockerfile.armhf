@@ -16,7 +16,7 @@ RUN apt-get install -y lsb-release wget software-properties-common gnupg
 RUN apt-get install -y gcc-arm-linux-gnueabihf libc6-dev:armhf
 
 # Install slint dependencies
-RUN apt-get install -y libfontconfig-dev:armhf pkg-config-arm-linux-gnueabihf
+RUN apt-get install -y pkg-config libfontconfig-dev:armhf
 
 # Install LLVM 21
 RUN wget https://apt.llvm.org/llvm.sh && \

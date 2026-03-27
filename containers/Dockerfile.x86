@@ -16,7 +16,7 @@ RUN apt-get install -y lsb-release wget software-properties-common gnupg
 RUN apt-get install -y gcc-multilib libc6-dev:i386
 
 # Install slint dependencies
-RUN apt-get install -y libfontconfig-dev:i386 pkg-config-i686-linux-gnu
+RUN apt-get install -y pkg-config libfontconfig-dev:i386
 
 # Install LLVM 21
 RUN wget https://apt.llvm.org/llvm.sh && \
