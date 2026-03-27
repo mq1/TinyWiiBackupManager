@@ -83,7 +83,7 @@ rustflags = [
   "-C",
   "link-arg=-fuse-ld=lld-21",
   "-C",
-  "link-arg=--target=armv7-linux-gnueabihf",
+  "link-arg=--target=arm-linux-gnueabihf",
 ]
 
 [target.x86_64-pc-windows-msvc]
