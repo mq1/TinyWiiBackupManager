@@ -16,8 +16,10 @@ impl TryFrom<&str> for GameID {
     type Error = usize;
 
     fn try_from(s: &str) -> Result<Self, Self::Error> {
-        if s.len() != 6 && s.len() != 4 {
-            return Err(s.len());
+        let len = s.len();
+
+        if !matches!(len, 6 | 4) {
+            return Err(len);
         }
 
         Ok(Self {
