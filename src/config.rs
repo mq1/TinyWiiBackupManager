@@ -7,7 +7,7 @@ use slint::{Model, SharedString, ToSharedString, VecModel};
 use std::{fs, path::Path};
 
 impl Config {
-    #[must_use] 
+    #[must_use]
     pub fn load(data_dir: &Path) -> Self {
         let path = data_dir.join("config.json");
         let bytes = fs::read(&path).unwrap_or_default();
@@ -24,6 +24,12 @@ impl Config {
         }
     }
 
+    /// Writes the config into config.json
+    ///
+    /// # Errors
+    /// Returns an error if:
+    /// * `serde_json` fails to serialize the string
+    /// * `std::fs::write` fails
     pub fn write(&self) -> Result<()> {
         let bytes = serde_json::to_vec_pretty(&self.contents)?;
         fs::write(&self.path, &bytes)?;
@@ -32,6 +38,9 @@ impl Config {
     }
 
     /// Returns true if the notification should be shown
+    ///
+    /// # Panics
+    /// Panics if `self.contents.known_drives` is not a `VecModel<SharedString>`
     pub fn check_mount_point(&mut self) -> bool {
         if !self.contents.is_mount_point_valid() {
             return false;
@@ -59,7 +68,7 @@ impl Config {
 }
 
 impl ConfigContents {
-    #[must_use] 
+    #[must_use]
     pub fn is_mount_point_valid(&self) -> bool {
         if self.mount_point.is_empty() {
             return false;
