@@ -23,6 +23,8 @@ armhf)
   export CC_armv7_unknown_linux_gnueabihf="clang-21"
   export AR_armv7_unknown_linux_gnueabihf="llvm-ar-21"
   export CFLAGS_armv7_unknown_linux_gnueabihf="-O3 -flto"
+  export PKG_CONFIG_ALLOW_CROSS=1
+  export PKG_CONFIG_PATH=/usr/lib/armhf-linux-gnu/pkgconfig
   TARGET="armv7-unknown-linux-gnueabihf"
   ;;
 x86)
@@ -31,6 +33,8 @@ x86)
   export CC_i686_unknown_linux_gnu="clang-21"
   export AR_i686_unknown_linux_gnu="llvm-ar-21"
   export CFLAGS_i686_unknown_linux_gnu="-O3 -flto"
+  export PKG_CONFIG_ALLOW_CROSS=1
+  export PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig
   TARGET="i686-unknown-linux-gnu"
   ;;
 x86_64)
