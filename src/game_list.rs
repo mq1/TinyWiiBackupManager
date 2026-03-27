@@ -1,11 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::game::Game;
+use crate::Game;
 use anyhow::Result;
 use derive_getters::Getters;
 use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
-use size::Size;
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -15,11 +14,11 @@ use std::{
 pub struct GameList {
     #[getter(skip)]
     list: Box<[Game]>,
-    total_size: Size,
+    total_size: f32,
     wii_count: usize,
-    wii_size: Size,
+    wii_size: f32,
     gc_count: usize,
-    gc_size: Size,
+    gc_size: f32,
     #[getter(skip)]
     filtered_indices: Box<[(usize, i64)]>,
 }
@@ -28,11 +27,11 @@ impl GameList {
     pub fn empty() -> Self {
         Self {
             list: Box::new([]),
-            total_size: Size::from_bytes(0),
+            total_size: 0.,
             wii_count: 0,
-            wii_size: Size::from_bytes(0),
+            wii_size: 0.,
             gc_count: 0,
-            gc_size: Size::from_bytes(0),
+            gc_size: 0.,
             filtered_indices: Box::new([]),
         }
     }
@@ -46,18 +45,18 @@ impl GameList {
         read_game_dir(gc_path, false, &mut games)?;
 
         let mut wii_count = 0;
-        let mut wii_size = Size::from_bytes(0);
+        let mut wii_size = 0.;
 
         let mut gc_count = 0;
-        let mut gc_size = Size::from_bytes(0);
+        let mut gc_size = 0.;
 
         for game in &games {
-            if game.is_wii() {
+            if game.is_wii {
                 wii_count += 1;
-                wii_size += game.size();
+                wii_size += game.size;
             } else {
                 gc_count += 1;
-                gc_size += game.size();
+                gc_size += game.size;
             }
         }
 
@@ -93,16 +92,16 @@ impl GameList {
     pub fn sort(&mut self, sort_by: &str) {
         match sort_by {
             "name_ascending" => {
-                self.list.sort_unstable_by(|a, b| a.title().cmp(b.title()));
+                self.list.sort_unstable_by(|a, b| a.title.cmp(&b.title));
             }
             "name_descending" => {
-                self.list.sort_unstable_by(|a, b| b.title().cmp(a.title()));
+                self.list.sort_unstable_by(|a, b| b.title.cmp(&a.title));
             }
             "size_ascending" => {
-                self.list.sort_unstable_by(|a, b| a.size().cmp(b.size()));
+                self.list.sort_unstable_by(|a, b| a.size.total_cmp(&b.size));
             }
             "size_descending" => {
-                self.list.sort_unstable_by(|a, b| b.size().cmp(a.size()));
+                self.list.sort_unstable_by(|a, b| b.size.total_cmp(&a.size));
             }
             _ => {}
         }
@@ -116,8 +115,8 @@ impl GameList {
             .iter()
             .enumerate()
             .filter_map(|(i, game)| {
-                let title_score = matcher.fuzzy_match(game.title(), query);
-                let id_score = matcher.fuzzy_match(&game.id().inner, query);
+                let title_score = matcher.fuzzy_match(&game.title, query);
+                let id_score = matcher.fuzzy_match(&game.id, query);
 
                 match (title_score, id_score) {
                     (Some(s1), Some(s2)) => Some((i, s1 + s2)),
@@ -140,7 +139,7 @@ fn read_game_dir(game_dir: PathBuf, is_wii: bool, games: &mut Vec<Game>) -> Resu
     let entries = fs::read_dir(game_dir)?;
     for entry in entries.filter_map(Result::ok) {
         let path = entry.path();
-        if let Some(game) = Game::maybe_from_path(path, is_wii) {
+        if let Some(game) = Game::maybe_from_path(&path, is_wii) {
             games.push(game);
         }
     }

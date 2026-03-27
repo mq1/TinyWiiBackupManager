@@ -1,35 +1,17 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{GameID, id_map::ID_MAP};
+use crate::{Game, id_map::ID_MAP};
 use anyhow::{Result, anyhow};
-use derive_getters::Getters;
-use size::Size;
+use slint::ToSharedString;
 use std::{
     ffi::{OsStr, OsString},
     fs,
-    path::PathBuf,
+    path::{Path, PathBuf},
 };
 
-#[derive(Debug, Clone, Getters)]
-pub struct Game {
-    path: PathBuf,
-    is_wii: bool,
-    size: Size,
-    title: String,
-    id: GameID,
-}
-
-impl PartialEq for Game {
-    fn eq(&self, other: &Self) -> bool {
-        self.path() == other.path()
-    }
-}
-
-impl Eq for Game {}
-
 impl Game {
-    pub fn maybe_from_path(path: PathBuf, is_wii: bool) -> Option<Self> {
+    pub fn maybe_from_path(path: &Path, is_wii: bool) -> Option<Self> {
         if !path.is_dir() {
             return None;
         }
@@ -40,22 +22,27 @@ impl Game {
         }
 
         let (title_str, id_str) = filename.split_once(" [")?;
-        let id_str = id_str.strip_suffix(']')?;
-        let id = GameID::try_from(id_str).ok()?;
+        let id = id_str.strip_suffix(']')?;
+        if !matches!(id.len(), 4 | 6) {
+            return None;
+        }
 
-        let title = ID_MAP
-            .get(&id)
-            .map_or(title_str, |e| e.title().as_str())
-            .to_string();
+        let title = match ID_MAP.get(id) {
+            Some(e) => e.title().to_shared_string(),
+            None => title_str.to_shared_string(),
+        };
 
-        let size = fs_extra::dir::get_size(&path).unwrap_or(0);
+        let size = fs_extra::dir::get_size(path).unwrap_or(0);
+
+        #[allow(clippy::cast_precision_loss)]
+        let size = size as f32;
 
         Some(Self {
-            path,
+            path: path.to_string_lossy().to_shared_string(),
             is_wii,
-            size: Size::from_bytes(size),
+            size,
             title,
-            id,
+            id: id.to_shared_string(),
         })
     }
 
@@ -96,11 +83,57 @@ impl Game {
         Err(anyhow!("No disc found"))
     }
 
-    pub fn get_path_uri(&self) -> OsString {
-        self.path.as_os_str().to_os_string()
+    #[must_use]
+    pub fn get_gametdb_uri(&self) -> OsString {
+        format!("https://www.gametdb.com/Wii/{}", &self.id).into()
     }
 
-    pub fn get_gametdb_uri(&self) -> OsString {
-        format!("https://www.gametdb.com/Wii/{}", &self.id.inner).into()
+    #[must_use]
+    pub fn partial_id(&self) -> &str {
+        &self.id[0..3]
+    }
+
+    #[must_use]
+    pub fn region_str(&self) -> &'static str {
+        let region_char = self.id.chars().nth(3);
+
+        match region_char {
+            Some('A') => "System Wii Channels (i.e. Mii Channel)",
+            Some('B') => "Ufouria: The Saga (NA)",
+            Some('D') => "Germany",
+            Some('E') => "USA",
+            Some('F') => "France",
+            Some('H') => "Netherlands / Europe alternate languages",
+            Some('I') => "Italy",
+            Some('J') => "Japan",
+            Some('K') => "Korea",
+            Some('L') => "Japanese import to Europe, Australia and other PAL regions",
+            Some('M') => "American import to Europe, Australia and other PAL regions",
+            Some('N') => "Japanese import to USA and other NTSC regions",
+            Some('P') => "Europe and other PAL regions such as Australia",
+            Some('Q') => "Japanese Virtual Console import to Korea",
+            Some('R') => "Russia",
+            Some('S') => "Spain",
+            Some('T') => "American Virtual Console import to Korea",
+            Some('U') => "Australia / Europe alternate languages",
+            Some('V') => "Scandinavia",
+            Some('W') => "Republic of China (Taiwan) / Hong Kong / Macau",
+            Some('X' | 'Y' | 'Z') => "Europe alternate languages / US special releases",
+            _ => "Unknown",
+        }
+    }
+
+    #[must_use]
+    pub fn lang_str(&self) -> &'static str {
+        let region_char = self.id.chars().nth(3);
+
+        match region_char {
+            Some('E' | 'N') => "US",
+            Some('J') => "JA",
+            Some('K' | 'Q' | 'T') => "KO",
+            Some('R') => "RU",
+            Some('W') => "ZH",
+            _ => "EN",
+        }
     }
 }

@@ -7,7 +7,6 @@ mod config;
 mod data_dir;
 mod dialogs;
 mod game;
-mod game_id;
 mod game_list;
 mod id_map;
 

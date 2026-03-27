@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::GameID;
 use derive_getters::Getters;
 use serde::Deserialize;
 use std::sync::LazyLock;
@@ -20,10 +19,12 @@ pub struct GameEntry {
 pub struct IdMap(Box<[GameEntry]>);
 
 impl IdMap {
-    pub fn get(&self, id: &GameID) -> Option<&GameEntry> {
-        let raw = id.as_raw();
+    pub fn get(&self, id: &str) -> Option<&GameEntry> {
+        let bytes = id.as_bytes();
+        let mut buf = [0; 6];
+        buf[..bytes.len()].copy_from_slice(bytes);
 
-        match self.0.binary_search_by_key(&raw, |entry| entry.id) {
+        match self.0.binary_search_by_key(&buf, |entry| entry.id) {
             Ok(i) => Some(&self.0[i]),
             Err(_) => None,
         }
