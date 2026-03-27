@@ -24,7 +24,7 @@ armhf)
   export AR_armv7_unknown_linux_gnueabihf="llvm-ar-21"
   export CFLAGS_unknown_linux_gnueabihf="-O3 -flto"
   export PKG_CONFIG_armv7_unknown_linux_gnueabihf="arm-linux-gnueabihf-pkg-config"
-  export PKG_CONFIG_PATH_armv7_unknown_linux_gnueabihf=/usr/lib/arm-linux-gnueabihf/pkgconfig
+  export PKG_CONFIG_PATH_armv7_unknown_linux_gnueabihf="/usr/lib/arm-linux-gnueabihf/pkgconfig"
   TARGET="armv7-unknown-linux-gnueabihf"
   ;;
 x86)
@@ -34,7 +34,7 @@ x86)
   export AR_i686_unknown_linux_gnu="llvm-ar-21"
   export CFLAGS_i686_unknown_linux_gnu="-O3 -flto"
   export PKG_CONFIG_i686_unknown_linux_gnu="i686-linux-gnu-pkg-config"
-  export PKG_CONFIG_PATH_i686_unknown_linux_gnu=/usr/lib/i386-linux-gnu/pkgconfig
+  export PKG_CONFIG_PATH_i686_unknown_linux_gnu="/usr/lib/i386-linux-gnu/pkgconfig"
   TARGET="i686-unknown-linux-gnu"
   ;;
 x86_64)
