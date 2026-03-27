@@ -27,6 +27,7 @@ impl TryFrom<&str> for GameID {
 }
 
 impl GameID {
+    #[must_use]
     pub fn as_raw(&self) -> [u8; 6] {
         let bytes = self.inner.as_bytes();
         let len = bytes.len().min(6);
@@ -35,10 +36,12 @@ impl GameID {
         buf
     }
 
+    #[must_use]
     pub fn as_partial_str(&self) -> &str {
         &self.inner[0..3]
     }
 
+    #[must_use]
     pub fn as_region_str(&self) -> &'static str {
         let region_char = self.inner.chars().nth(3);
 
@@ -63,18 +66,19 @@ impl GameID {
             Some('U') => "Australia / Europe alternate languages",
             Some('V') => "Scandinavia",
             Some('W') => "Republic of China (Taiwan) / Hong Kong / Macau",
-            Some('X') | Some('Y') | Some('Z') => "Europe alternate languages / US special releases",
+            Some('X' | 'Y' | 'Z') => "Europe alternate languages / US special releases",
             _ => "Unknown",
         }
     }
 
+    #[must_use]
     pub fn as_lang_str(&self) -> &'static str {
         let region_char = self.inner.chars().nth(3);
 
         match region_char {
-            Some('E') | Some('N') => "US",
+            Some('E' | 'N') => "US",
             Some('J') => "JA",
-            Some('K') | Some('Q') | Some('T') => "KO",
+            Some('K' | 'Q' | 'T') => "KO",
             Some('R') => "RU",
             Some('W') => "ZH",
             _ => "EN",
