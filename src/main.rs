@@ -37,7 +37,7 @@ fn main() -> Result<()> {
     let config = Config::load(&data_dir);
 
     #[cfg(target_vendor = "pc")]
-    let _ = window_color::set(app.window(), config.contents.theme_preference);
+    let _ = window_color::set(app.window(), &config.contents.theme_preference);
 
     app.global::<State<'_>>()
         .set_version(env!("CARGO_PKG_VERSION").into());

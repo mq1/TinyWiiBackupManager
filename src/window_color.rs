@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::ThemePreference;
 use anyhow::{Result, bail};
 use raw_window_handle::{HasWindowHandle, RawWindowHandle};
 use slint::Window;
@@ -9,23 +8,20 @@ use windows::Win32::Foundation::HWND;
 use windows::Win32::Graphics::Dwm::DWMWA_CAPTION_COLOR;
 use windows::Win32::Graphics::Dwm::DwmSetWindowAttribute;
 
-pub fn set(window: &Window, mut theme: ThemePreference) -> Result<()> {
-    if theme == ThemePreference::System {
-        match dark_light::detect() {
-            Ok(dark_light::Mode::Light) => {
-                theme = ThemePreference::Light;
-            }
-            Ok(dark_light::Mode::Dark) => {
-                theme = ThemePreference::Dark;
-            }
-            _ => {}
-        }
-    }
+pub fn set(window: &Window, theme_preference: &str) -> Result<()> {
+    let is_dark = match theme_preference {
+        "dark" => true,
+        "light" => false,
+        _ => match dark_light::detect() {
+            Ok(dark_light::Mode::Dark) => true,
+            Ok(dark_light::Mode::Light) => false,
+            _ => bail!("Could not determine system theme"),
+        },
+    };
 
-    let color: u32 = match theme {
-        ThemePreference::Light => 0x00_ff_ff_ff,
-        ThemePreference::Dark => 0x00_1e_1e_1e,
-        ThemePreference::System => bail!("Could not determine system theme"),
+    let color: u32 = match is_dark {
+        true => 0x00_1e_1e_1e,
+        false => 0x00_ff_ff_ff,
     };
 
     let RawWindowHandle::Win32(handle) = window.window_handle().window_handle()?.as_raw() else {
