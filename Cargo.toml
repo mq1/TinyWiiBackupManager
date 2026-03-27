@@ -14,7 +14,13 @@ OriginalFilename = "TinyWiiBackupManager.exe"
 LegalCopyright = "Copyright © 2026 Manuel Quarneti. Licensed under GPL-3.0-only."
 
 [dependencies]
-slint = { git = "https://github.com/slint-ui/slint.git", rev = "86c1659", features = [
+slint = { git = "https://github.com/slint-ui/slint.git", rev = "f4493b6", default-features = false, features = [
+  "accessibility",
+  "backend-winit",
+  "compat-1-2",
+  "renderer-femtovg",
+  "renderer-software",
+  "std",
   "serde",
   "raw-window-handle-06",
 ] }
@@ -46,7 +52,7 @@ minreq = { version = "2.14", features = ["https-rustls-probe"] }
 minreq = { version = "2.14", features = ["https-native"] }
 
 [build-dependencies]
-slint-build = { git = "https://github.com/slint-ui/slint.git", rev = "86c1659" }
+slint-build = { git = "https://github.com/slint-ui/slint.git", rev = "f4493b6" }
 lucide-slint = "1.7"
 winresource = "0.1"
 
