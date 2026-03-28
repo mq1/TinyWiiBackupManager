@@ -12,6 +12,7 @@ import { State } from "state.slint";
 import { Rust } from "rust.slint";
 import { MessagePage } from "message-page.slint";
 import { VerticalLine } from "components/vertical-line.slint";
+import { Card } from "components/card.slint";
 
 export * from "types.slint";
 export { State, Rust }
@@ -40,16 +41,35 @@ export component AppWindow inherits Window {
                 if State.current-page == Page.About: AboutPage { }
             }
 
-            if !State.hint.is-empty || !State.status.is-empty: HorizontalLayout {
+            if !State.status.is-empty: HorizontalLayout {
                 VerticalLine {
                     width: 2px;
                 }
 
                 HorizontalBox {
                     Text {
-                        text: !State.hint.is-empty ? ("Hint: " + State.hint) : State.status;
+                        text: State.status;
                     }
                 }
+            }
+        }
+    }
+
+    if !State.tooltip.a-text.is-empty: Card {
+        x: State.tooltip.b-mouse-x + t.preferred-width + 18px > root.width ? State.tooltip.b-mouse-x - t.preferred-width - 18px : State.tooltip.b-mouse-x;
+        y: State.tooltip.c-mouse-y;
+
+        width: t.preferred-width + 18px;
+        height: t.preferred-height + 16px;
+
+        HorizontalLayout {
+            padding-top: 8px;
+            padding-bottom: 8px;
+            padding-left: 9px;
+            padding-right: 9px;
+
+            t := Text {
+                text: State.tooltip.a-text;
             }
         }
     }

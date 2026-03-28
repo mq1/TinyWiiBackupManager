@@ -31,7 +31,7 @@ export component Navbar inherits VerticalLayout {
     VerticalBox {
         NavbarButton {
             icon: IconSet.HardDrive;
-            hint: "select a drive";
+            tooltip: "Select a drive";
             clicked => State.pick-mount-point();
         }
 
