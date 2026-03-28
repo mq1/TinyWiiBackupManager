@@ -40,13 +40,13 @@ fn restart_with_sw_rendering() -> Result<()> {
 }
 
 fn main() -> Result<()> {
+    // Decompress idmap
+    let _ = std::thread::spawn(|| LazyLock::force(&ID_MAP));
+
     let app = AppWindow::new()?;
     let data_dir = get_data_dir()?;
     let config = Config::load(&data_dir);
     let mount_point = PathBuf::from(&config.contents.mount_point);
-
-    // Decompress idmap
-    let _ = std::thread::spawn(|| LazyLock::force(&ID_MAP));
 
     #[cfg(target_vendor = "pc")]
     let _ = window_color::set(app.window(), &config.contents.theme_preference);
