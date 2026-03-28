@@ -63,7 +63,7 @@ fn main() -> Result<()> {
         .set_drive_usage(util::get_drive_usage(&mount_point));
 
     app.global::<State<'_>>()
-        .set_game_list(GameList::new(&mount_point));
+        .set_game_list(GameList::new(&mount_point, &data_dir));
 
     app.global::<Rust<'_>>()
         .on_open(|uri| match open::that(&uri) {

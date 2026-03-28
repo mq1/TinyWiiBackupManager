@@ -4,6 +4,8 @@
 import { Card } from "card.slint";
 import { Game } from "../types.slint";
 import { VerticalBox } from "std-widgets.slint";
+import { IconButton } from "icon_button.slint";
+import { IconSet } from "@lucide";
 
 export global GameCardConsts {
     out property <length> width: 165px;
@@ -19,8 +21,46 @@ export component GameCard inherits Card {
     height: GameCardConsts.height;
 
     VerticalBox {
+        HorizontalLayout {
+            Text {
+                text: game.id;
+                wrap: no-wrap;
+            }
+
+            Text {
+                text: game.size-gib + " GiB";
+                wrap: no-wrap;
+                horizontal-alignment: right;
+            }
+        }
+
+        Image {
+            source: game.cover;
+            height: 93px;
+        }
+
         Text {
             text: game.title;
+            horizontal-alignment: center;
+            wrap: no-wrap;
+            overflow: elide;
+        }
+
+        HorizontalLayout {
+            spacing: 5px;
+
+            IconButton {
+                label: "Info";
+                icon: IconSet.Info;
+            }
+
+            IconButton {
+                icon: IconSet.HardDriveDownload;
+            }
+
+            IconButton {
+                icon: IconSet.Trash;
+            }
         }
     }
 }

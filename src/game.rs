@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{Game, id_map::ID_MAP};
+use crate::{Game, id_map::ID_MAP, util::GIB};
 use anyhow::{Result, anyhow};
-use slint::ToSharedString;
+use slint::{Image, ToSharedString};
 use std::{
     ffi::{OsStr, OsString},
     fs,
@@ -11,7 +11,7 @@ use std::{
 };
 
 impl Game {
-    pub fn maybe_from_path(path: &Path, is_wii: bool) -> Option<Self> {
+    pub fn maybe_from_path(path: &Path, is_wii: bool, data_dir: &Path) -> Option<Self> {
         if !path.is_dir() {
             return None;
         }
@@ -35,14 +35,18 @@ impl Game {
         let size = fs_extra::dir::get_size(path).unwrap_or(0);
 
         #[allow(clippy::cast_precision_loss)]
-        let size = size as f32;
+        let size_gib = (size as f32 / GIB * 100.).round() / 100.;
+
+        let cover_path = data_dir.join("covers").join(format!("{id}.png"));
+        let cover = Image::load_from_path(&cover_path).unwrap_or_default();
 
         Some(Self {
             path: path.to_string_lossy().to_shared_string(),
             is_wii,
-            size,
+            size_gib,
             title,
             id: id.to_shared_string(),
+            cover,
         })
     }
 

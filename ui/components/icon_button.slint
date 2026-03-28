@@ -58,6 +58,14 @@ export component IconButton inherits Rectangle {
         }
     }
 
+    pure function get_stroke() -> color {
+        if kind == IconButtonKind.Secondary {
+            Palette.foreground
+        } else {
+            Palette.accent-foreground
+        }
+    }
+
     background: get_bg();
     border-color: get_border_color();
     border-width: get_border_width();
@@ -72,13 +80,14 @@ export component IconButton inherits Rectangle {
 
         if icon != IconSet.WifiZero: IconDisplay {
             icon: icon;
-            stroke: Palette.accent-foreground;
+            stroke: get_stroke();
             size: 14px;
         }
 
-        Text {
+        if !label.is-empty: Text {
             text: label;
-            color: Palette.accent-foreground;
+            color: get_stroke();
+            horizontal-alignment: center;
         }
     }
 

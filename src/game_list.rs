@@ -12,13 +12,13 @@ use std::{
 
 impl GameList {
     #[must_use]
-    pub fn new(drive_path: &Path) -> Self {
+    pub fn new(drive_path: &Path, data_dir: &Path) -> Self {
         let wii_path = drive_path.join("wbfs");
         let gc_path = drive_path.join("games");
 
         let mut games = Vec::new();
-        let _ = read_game_dir(wii_path, true, &mut games);
-        let _ = read_game_dir(gc_path, false, &mut games);
+        let _ = read_game_dir(wii_path, true, &mut games, data_dir);
+        let _ = read_game_dir(gc_path, false, &mut games, data_dir);
 
         let mut wii_count = 0;
         let mut wii_size = 0.;
@@ -29,10 +29,10 @@ impl GameList {
         for game in &games {
             if game.is_wii {
                 wii_count += 1;
-                wii_size += game.size;
+                wii_size += game.size_gib;
             } else {
                 gc_count += 1;
-                gc_size += game.size;
+                gc_size += game.size_gib;
             }
         }
 
@@ -51,8 +51,8 @@ impl GameList {
         let f: fn(&Game, &Game) -> std::cmp::Ordering = match sort_by {
             "name_ascending" => |a, b| a.title.cmp(&b.title),
             "name_descending" => |a, b| b.title.cmp(&a.title),
-            "size_ascending" => |a, b| a.size.total_cmp(&b.size),
-            "size_descending" => |a, b| b.size.total_cmp(&a.size),
+            "size_ascending" => |a, b| a.size_gib.total_cmp(&b.size_gib),
+            "size_descending" => |a, b| b.size_gib.total_cmp(&a.size_gib),
             _ => |_, _| std::cmp::Ordering::Equal,
         };
 
@@ -97,7 +97,12 @@ impl GameList {
     }
 }
 
-fn read_game_dir(game_dir: PathBuf, is_wii: bool, games: &mut Vec<Game>) -> Result<()> {
+fn read_game_dir(
+    game_dir: PathBuf,
+    is_wii: bool,
+    games: &mut Vec<Game>,
+    data_dir: &Path,
+) -> Result<()> {
     if !game_dir.exists() {
         return Ok(());
     }
@@ -105,7 +110,7 @@ fn read_game_dir(game_dir: PathBuf, is_wii: bool, games: &mut Vec<Game>) -> Resu
     let entries = fs::read_dir(game_dir)?;
     for entry in entries.filter_map(Result::ok) {
         let path = entry.path();
-        if let Some(game) = Game::maybe_from_path(&path, is_wii) {
+        if let Some(game) = Game::maybe_from_path(&path, is_wii, data_dir) {
             games.push(game);
         }
     }

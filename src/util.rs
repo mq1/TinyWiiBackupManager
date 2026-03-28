@@ -3,9 +3,9 @@
 
 use std::path::Path;
 
-pub fn get_drive_usage(path: &Path) -> (f32, f32) {
-    const GIB: f32 = 1024. * 1024. * 1024.;
+pub const GIB: f32 = 1024. * 1024. * 1024.;
 
+pub fn get_drive_usage(path: &Path) -> (f32, f32) {
     let Ok(stat) = fs4::statvfs(path) else {
         return (0., 0.);
     };
@@ -15,10 +15,10 @@ pub fn get_drive_usage(path: &Path) -> (f32, f32) {
     let used_bytes = total_bytes.saturating_sub(avail_bytes);
 
     #[allow(clippy::cast_precision_loss)]
-    let used = (used_bytes as f32 / GIB * 100.).round() / 100.;
+    let used_gib = (used_bytes as f32 / GIB * 100.).round() / 100.;
 
     #[allow(clippy::cast_precision_loss)]
-    let total = (total_bytes as f32 / GIB * 100.).round() / 100.;
+    let total_gib = (total_bytes as f32 / GIB * 100.).round() / 100.;
 
-    (used, total)
+    (used_gib, total_gib)
 }
