@@ -4,7 +4,7 @@
 use crate::{Game, GameList};
 use anyhow::Result;
 use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
-use slint::{Model, ModelExt, ModelRc, VecModel};
+use slint::{Model, ModelRc, VecModel};
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -78,8 +78,8 @@ impl GameList {
                 let id_score = matcher.fuzzy_match(&game.id, query);
 
                 match (title_score, id_score) {
-                    (Some(s1), Some(s2)) => Some((game.clone(), s1 + s2)),
-                    (Some(s1), None) | (None, Some(s1)) => Some((game.clone(), s1)),
+                    (Some(s1), Some(s2)) => Some((game, s1 + s2)),
+                    (Some(s1), None) | (None, Some(s1)) => Some((game, s1)),
                     (None, None) => None,
                 }
             })
