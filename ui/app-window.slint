@@ -40,27 +40,14 @@ export component AppWindow inherits Window {
                 if State.current-page == Page.About: AboutPage { }
             }
 
-            if !State.hint.is-empty: HorizontalLayout {
+            if !State.hint.is-empty || !State.status.is-empty: HorizontalLayout {
                 VerticalLine {
                     width: 2px;
                 }
 
                 HorizontalBox {
                     Text {
-                        text: "Hint: " + State.hint;
-                    }
-                }
-            }
-
-            if State.hint.is-empty && !State.status.is-empty: HorizontalLayout {
-                VerticalLine {
-                    width: 2px;
-                }
-
-                HorizontalBox {
-
-                    Text {
-                        text: State.status;
+                        text: !State.hint.is-empty ? ("Hint: " + State.hint) : State.status;
                     }
                 }
             }
