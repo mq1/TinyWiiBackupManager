@@ -52,17 +52,17 @@ export component GameCard inherits Card {
             IconButton {
                 label: "Info";
                 icon: IconSet.Info;
-                tooltip: "Show game info";
+                hint: "shows \"" + game.title + "\" informations";
             }
 
             IconButton {
                 icon: IconSet.HardDriveDownload;
-                tooltip: "Archive game to PC";
+                hint: "archives \"" + game.title + "\" to PC";
             }
 
             IconButton {
                 icon: IconSet.Trash;
-                tooltip: "Delete game    ";
+                hint: "deletes \"" + game.title + "\", freeing " + game.size-gib + " GiB";
             }
         }
     }

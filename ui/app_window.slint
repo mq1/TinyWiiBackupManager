@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { Button, VerticalBox, Palette } from "std-widgets.slint";
+import { Button, VerticalBox, Palette, HorizontalBox } from "std-widgets.slint";
 import { Navbar } from "components/navbar.slint";
 import { GamesPage } from "games_page.slint";
 import { SettingsPage } from "settings_page.slint";
@@ -11,6 +11,7 @@ import { Styles } from "styles.slint";
 import { State } from "state.slint";
 import { Rust } from "rust.slint";
 import { MessagePage } from "message_page.slint";
+import { VerticalLine } from "components/vertical_line.slint";
 
 export * from "types.slint";
 export { State, Rust }
@@ -27,15 +28,42 @@ export component AppWindow inherits Window {
     if State.message.text.is-empty: HorizontalLayout {
         Navbar { }
 
-        Rectangle {
-            background: Palette.background;
-            border-top-left-radius: 10px;
-            border-width: 1px;
-            border-color: Palette.border;
+        VerticalLayout {
+            Rectangle {
+                background: Palette.background;
+                border-top-left-radius: 10px;
+                border-width: 1px;
+                border-color: Palette.border;
 
-            if State.current_page == Page.Games: GamesPage { }
-            if State.current_page == Page.Settings: SettingsPage { }
-            if State.current_page == Page.About: AboutPage { }
+                if State.current_page == Page.Games: GamesPage { }
+                if State.current_page == Page.Settings: SettingsPage { }
+                if State.current_page == Page.About: AboutPage { }
+            }
+
+            if !State.hint.is-empty: HorizontalLayout {
+                VerticalLine {
+                    width: 2px;
+                }
+
+                HorizontalBox {
+                    Text {
+                        text: "Hint: " + State.hint;
+                    }
+                }
+            }
+
+            if State.hint.is-empty && !State.status.is-empty: HorizontalLayout {
+                VerticalLine {
+                    width: 2px;
+                }
+
+                HorizontalBox {
+
+                    Text {
+                        text: State.status;
+                    }
+                }
+            }
         }
     }
 }

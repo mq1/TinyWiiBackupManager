@@ -5,12 +5,13 @@ import { Icon, IconDisplay, IconSet } from "@lucide";
 import { HorizontalBox, Palette } from "std-widgets.slint";
 import { IconButtonKind } from "../types.slint";
 import { Card } from "card.slint";
+import { State } from "../state.slint";
 
 export component IconButton inherits Rectangle {
     in property <string> label;
     in property <Icon> icon: IconSet.WifiZero;
     in property <IconButtonKind> kind: IconButtonKind.Secondary;
-    in property <string> tooltip;
+    in property <string> hint;
 
     callback clicked;
 
@@ -93,28 +94,17 @@ export component IconButton inherits Rectangle {
         }
     }
 
-    Card {
-        visible: t.has-hover;
-        y: h.y - 40px;
-
-        width: tooltip-text.preferred-width + 18px;
-        height: tooltip-text.preferred-height + 16px;
-
-        HorizontalLayout {
-            padding-top: 8px;
-            padding-bottom: 8px;
-            padding-left: 9px;
-            padding-right: 9px;
-
-            tooltip-text := Text {
-                text: tooltip;
-            }
-        }
-    }
-
     t := TouchArea {
         clicked => clicked();
         width: h.width;
         height: h.height;
+
+        changed has-hover => {
+            if self.has-hover {
+                State.hint = hint;
+            } else {
+                State.hint = "";
+            }
+        }
     }
 }
