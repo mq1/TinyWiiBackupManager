@@ -4,7 +4,7 @@
 use crate::{Game, GameList};
 use anyhow::Result;
 use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
-use slint::{Model, ModelRc, VecModel};
+use slint::{Model, ModelExt, ModelRc, VecModel};
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -47,25 +47,20 @@ impl GameList {
     }
 
     pub fn sort(&mut self, sort_by: &str) {
+        let f: fn(&Game, &Game) -> std::cmp::Ordering = match sort_by {
+            "name_ascending" => |a, b| a.title.cmp(&b.title),
+            "name_descending" => |a, b| b.title.cmp(&a.title),
+            "size_ascending" => |a, b| a.size.total_cmp(&b.size),
+            "size_descending" => |a, b| b.size.total_cmp(&a.size),
+            _ => {
+                return;
+            }
+        };
+
         let mut games = self.games.iter().collect::<Vec<_>>();
+        games.sort_by(f);
 
-        match sort_by {
-            "name_ascending" => {
-                games.sort_unstable_by(|a, b| a.title.cmp(&b.title));
-            }
-            "name_descending" => {
-                games.sort_unstable_by(|a, b| b.title.cmp(&a.title));
-            }
-            "size_ascending" => {
-                games.sort_unstable_by(|a, b| a.size.total_cmp(&b.size));
-            }
-            "size_descending" => {
-                games.sort_unstable_by(|a, b| b.size.total_cmp(&a.size));
-            }
-            _ => {}
-        }
-
-        self.filtered_games
+        self.games
             .as_any()
             .downcast_ref::<VecModel<Game>>()
             .unwrap()
