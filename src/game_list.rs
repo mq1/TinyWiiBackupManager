@@ -79,7 +79,10 @@ impl GameList {
                 continue;
             }
 
-            let score = title_score.unwrap_or(0) + id_score.unwrap_or(0);
+            let score = title_score
+                .unwrap_or(0)
+                .saturating_add(id_score.unwrap_or(0));
+
             games.push((game, score));
         }
 
