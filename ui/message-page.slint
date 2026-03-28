@@ -6,6 +6,7 @@ import { State } from "state.slint";
 import { IconButton } from "components/icon-button.slint";
 import { IconSet } from "@lucide";
 import { Card } from "components/card.slint";
+import { MessageKind, IconButtonKind } from "types.slint";
 
 export component MessagePage inherits VerticalBox {
     alignment: center;
@@ -30,11 +31,30 @@ export component MessagePage inherits VerticalBox {
 
                 HorizontalLayout {
                     alignment: end;
+                    spacing: 5px;
 
-                    IconButton {
-                        label: "OK";
-                        kind: State.message.button;
+                    if State.message.kind == MessageKind.Info: IconButton {
+                        label: "Ok";
+                        kind: IconButtonKind.Primary;
                         clicked => State.dismiss();
+                    }
+
+                    if State.message.kind == MessageKind.Error: IconButton {
+                        label: "Ok";
+                        kind: IconButtonKind.Warning;
+                        clicked => State.dismiss();
+                    }
+
+                    if State.message.kind == MessageKind.DeleteDir: IconButton {
+                        label: "Cancel";
+                        kind: IconButtonKind.Secondary;
+                        clicked => State.dismiss();
+                    }
+
+                    if State.message.kind == MessageKind.DeleteDir: IconButton {
+                        label: "Delete";
+                        kind: IconButtonKind.Danger;
+                        clicked => State.delete-dir(State.message.data);
                     }
                 }
             }

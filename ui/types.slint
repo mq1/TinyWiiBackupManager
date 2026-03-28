@@ -37,9 +37,16 @@ export enum IconButtonKind {
     Danger,
 }
 
+export enum MessageKind {
+    Info,
+    Error,
+    DeleteDir,
+}
+
 export struct Message {
     text: string,
-    button: IconButtonKind,
+    kind: MessageKind,
+    data: string,
 }
 
 export struct Game {

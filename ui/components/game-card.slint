@@ -2,10 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import { Card } from "card.slint";
-import { Game } from "../types.slint";
+import { Game, MessageKind } from "../types.slint";
 import { VerticalBox } from "std-widgets.slint";
 import { IconButton } from "icon-button.slint";
 import { IconSet } from "@lucide";
+import { State } from "../state.slint";
 
 export global GameCardConsts {
     out property <length> width: 165px;
@@ -63,6 +64,11 @@ export component GameCard inherits Card {
             IconButton {
                 icon: IconSet.Trash;
                 tooltip: "Delete game";
+                clicked => {
+                    State.message.kind = MessageKind.DeleteDir;
+                    State.message.text = "Are you sure you want to delete \"" + game.title + "\"?\nThis is irreversible!";
+                    State.message.data = game.path;
+                }
             }
         }
     }

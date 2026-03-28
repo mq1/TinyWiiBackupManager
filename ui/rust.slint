@@ -8,4 +8,5 @@ export global Rust {
     pure callback pick-mount-point() -> string;
     pure callback write-config(Config) -> string;
     pure callback get-drive-usage(string) -> {a-used: float, b-total: float};
+    pure callback delete-dir(string) -> string;
 }

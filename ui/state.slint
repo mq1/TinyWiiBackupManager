@@ -1,7 +1,14 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { Page, Config, Message, IconButtonKind, GameList } from "types.slint";
+import {
+    Page,
+    Config,
+    Message,
+    IconButtonKind,
+    GameList,
+    MessageKind,
+} from "types.slint";
 import { Rust } from "rust.slint";
 import { Palette } from "std-widgets.slint";
 
@@ -10,7 +17,7 @@ export global State {
     in-out property <Page> current-page;
     in property <string> data-dir;
     in-out property <Config> config;
-    out property <Message> message;
+    in-out property <Message> message;
     in-out property <{a-used: float, b-total: float}> drive-usage;
     in property <GameList> game-list;
     in property <string> status;
@@ -23,21 +30,16 @@ export global State {
     public function info(info: string) {
         if !info.is-empty {
             message.text = info;
-            message.button = IconButtonKind.Primary;
-        }
-    }
-
-    public function warn(warn: string) {
-        if !warn.is-empty {
-            message.text = warn;
-            message.button = IconButtonKind.Warning;
+            message.kind = MessageKind.Info;
+            message.data = "";
         }
     }
 
     public function err(err: string) {
         if !err.is-empty {
             message.text = err;
-            message.button = IconButtonKind.Danger;
+            message.kind = MessageKind.Error;
+            message.data = "";
         }
     }
 
@@ -56,5 +58,10 @@ export global State {
 
     public function write-config() {
         err(Rust.write-config(config));
+    }
+
+    public function delete-dir(path: string) {
+        dismiss();
+        err(Rust.delete-dir(path));
     }
 }

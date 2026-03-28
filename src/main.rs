@@ -21,6 +21,7 @@ use crate::{data_dir::get_data_dir, id_map::ID_MAP};
 use anyhow::{Result, bail};
 use slint::{SharedString, ToSharedString};
 use std::{
+    fs,
     path::{Path, PathBuf},
     process::Command,
     sync::LazyLock,
@@ -89,6 +90,12 @@ fn main() -> Result<()> {
 
     app.global::<Rust<'_>>()
         .on_get_drive_usage(|path| util::get_drive_usage(Path::new(&path)));
+
+    app.global::<Rust<'_>>()
+        .on_delete_dir(|path| match fs::remove_dir_all(path) {
+            Ok(()) => SharedString::new(),
+            Err(e) => e.to_shared_string(),
+        });
 
     if let Err(e) = app.run() {
         if std::env::var("SLINT_BACKEND").unwrap_or_default() == "winit-software" {
