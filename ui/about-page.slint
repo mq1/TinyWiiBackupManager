@@ -8,7 +8,7 @@ import { IconDisplay, IconSet } from "@lucide";
 import { Link } from "components/link.slint";
 import { Rust } from "rust.slint";
 import { Card } from "components/card.slint";
-import { HorizontalLine } from "components/horizontal_line.slint";
+import { HorizontalLine } from "components/horizontal-line.slint";
 
 export component AboutPage inherits VerticalLayout {
     alignment: space-between;
@@ -118,7 +118,7 @@ export component AboutPage inherits VerticalLayout {
     HorizontalBox {
         Link {
             label: "Data directory";
-            uri: State.data_dir;
+            uri: State.data-dir;
             icon: IconSet.Folder;
         }
 

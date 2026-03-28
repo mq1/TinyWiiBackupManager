@@ -105,7 +105,7 @@ fn main() {
         .with_library_paths(library)
         .with_style("cupertino".into());
 
-    slint_build::compile_with_config("ui/app_window.slint", config).unwrap();
+    slint_build::compile_with_config("ui/app-window.slint", config).unwrap();
 
     let target = env::var("TARGET").unwrap();
 

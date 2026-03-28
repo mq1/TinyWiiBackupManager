@@ -5,25 +5,25 @@ import { Button, VerticalBox, Palette } from "std-widgets.slint";
 import { IconSet } from "@lucide";
 import { Page } from "../types.slint";
 import { State } from "../state.slint";
-import { NavbarButton } from "navbar_button.slint";
+import { NavbarButton } from "navbar-button.slint";
 
 export component Navbar inherits VerticalLayout {
     alignment: LayoutAlignment.space-between;
 
     VerticalBox {
         NavbarButton {
-            active: State.current_page == Page.Games;
+            active: State.current-page == Page.Games;
             icon: IconSet.Gamepad2;
             clicked => {
-                State.current_page = Page.Games;
+                State.current-page = Page.Games;
             }
         }
 
         NavbarButton {
-            active: State.current_page == Page.Settings;
+            active: State.current-page == Page.Settings;
             icon: IconSet.Settings;
             clicked => {
-                State.current_page = Page.Settings;
+                State.current-page = Page.Settings;
             }
         }
     }
@@ -31,7 +31,7 @@ export component Navbar inherits VerticalLayout {
     VerticalBox {
         NavbarButton {
             icon: IconSet.HardDrive;
-            clicked => State.pick_mount_point();
+            clicked => State.pick-mount-point();
         }
 
         NavbarButton {
@@ -46,10 +46,10 @@ export component Navbar inherits VerticalLayout {
         }
 
         NavbarButton {
-            active: State.current_page == Page.About;
+            active: State.current-page == Page.About;
             icon: IconSet.Info;
             clicked => {
-                State.current_page = Page.About;
+                State.current-page = Page.About;
             }
         }
     }

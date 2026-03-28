@@ -3,7 +3,7 @@
 
 import { VerticalBox, ScrollView, HorizontalBox } from "std-widgets.slint";
 import { State } from "state.slint";
-import { GameCard, GameCardConsts } from "components/game_card.slint";
+import { GameCard, GameCardConsts } from "components/game-card.slint";
 
 export component GamesPage inherits VerticalLayout {
     alignment: start;
@@ -19,13 +19,13 @@ export component GamesPage inherits VerticalLayout {
     ScrollView {
         height: parent.height - 40px;
 
-        property <int> columns: Math.max(1, Math.floor((self.width - 20px) / GameCardConsts.spaced_width));
+        property <int> columns: Math.max(1, Math.floor((self.width - 20px) / GameCardConsts.spaced-width));
 
-        for game[i] in State.game_list.games: GameCard {
+        for game[i] in State.game-list.games: GameCard {
             game: game;
 
-            x: 12px + mod(i, columns) * GameCardConsts.spaced_width;
-            y: Math.floor(i / columns) * GameCardConsts.spaced_height;
+            x: 12px + mod(i, columns) * GameCardConsts.spaced-width;
+            y: Math.floor(i / columns) * GameCardConsts.spaced-height;
         }
     }
 }

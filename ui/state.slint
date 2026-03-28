@@ -7,12 +7,12 @@ import { Palette } from "std-widgets.slint";
 
 export global State {
     in property <string> version;
-    in-out property <Page> current_page;
-    in property <string> data_dir;
+    in-out property <Page> current-page;
+    in property <string> data-dir;
     in-out property <Config> config;
     out property <Message> message;
-    in-out property <{a_used: float, b_total: float}> drive_usage;
-    in property <GameList> game_list;
+    in-out property <{a-used: float, b-total: float}> drive-usage;
+    in property <GameList> game-list;
     in property <string> status;
     in property <string> hint;
 
@@ -45,16 +45,16 @@ export global State {
         message.text = "";
     }
 
-    public function pick_mount_point() {
-        let mount_point = Rust.pick_mount_point();
-        if !mount_point.is-empty {
-            config.contents.mount_point = mount_point;
-            err(Rust.write_config(config));
-            drive_usage = Rust.get_drive_usage(mount_point);
+    public function pick-mount-point() {
+        let mount-point = Rust.pick-mount-point();
+        if !mount-point.is-empty {
+            config.contents.mount-point = mount-point;
+            err(Rust.write-config(config));
+            drive-usage = Rust.get-drive-usage(mount-point);
         }
     }
 
-    public function write_config() {
-        err(Rust.write_config(config));
+    public function write-config() {
+        err(Rust.write-config(config));
     }
 }

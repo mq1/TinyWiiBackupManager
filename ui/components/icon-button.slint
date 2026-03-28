@@ -15,7 +15,7 @@ export component IconButton inherits Rectangle {
 
     callback clicked;
 
-    pure function get_bg() -> color {
+    pure function get-bg() -> color {
         if kind == IconButtonKind.Primary && !t.has-hover {
             Palette.accent-background
         } else if kind == IconButtonKind.Primary && Palette.color-scheme == ColorScheme.light {
@@ -45,7 +45,7 @@ export component IconButton inherits Rectangle {
         }
     }
 
-    pure function get_border_color() -> color {
+    pure function get-border-color() -> color {
         if kind == IconButtonKind.Secondary {
             Palette.border
         } else {
@@ -53,7 +53,7 @@ export component IconButton inherits Rectangle {
         }
     }
 
-    pure function get_border_width() -> length {
+    pure function get-border-width() -> length {
         if kind == IconButtonKind.Secondary {
             1px
         } else {
@@ -61,7 +61,7 @@ export component IconButton inherits Rectangle {
         }
     }
 
-    pure function get_stroke() -> color {
+    pure function get-stroke() -> color {
         if kind == IconButtonKind.Secondary {
             Palette.foreground
         } else {
@@ -69,9 +69,9 @@ export component IconButton inherits Rectangle {
         }
     }
 
-    background: get_bg();
-    border-color: get_border_color();
-    border-width: get_border_width();
+    background: get-bg();
+    border-color: get-border-color();
+    border-width: get-border-width();
     border-radius: 10px;
 
     h := HorizontalLayout {
@@ -83,13 +83,13 @@ export component IconButton inherits Rectangle {
 
         if icon != IconSet.WifiZero: IconDisplay {
             icon: icon;
-            stroke: get_stroke();
+            stroke: get-stroke();
             size: 14px;
         }
 
         if !label.is-empty: Text {
             text: label;
-            color: get_stroke();
+            color: get-stroke();
             horizontal-alignment: center;
         }
     }

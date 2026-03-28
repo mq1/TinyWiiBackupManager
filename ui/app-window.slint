@@ -3,15 +3,15 @@
 
 import { Button, VerticalBox, Palette, HorizontalBox } from "std-widgets.slint";
 import { Navbar } from "components/navbar.slint";
-import { GamesPage } from "games_page.slint";
-import { SettingsPage } from "settings_page.slint";
-import { AboutPage } from "about_page.slint";
+import { GamesPage } from "games-page.slint";
+import { SettingsPage } from "settings-page.slint";
+import { AboutPage } from "about-page.slint";
 import { Page } from "types.slint";
 import { Styles } from "styles.slint";
 import { State } from "state.slint";
 import { Rust } from "rust.slint";
-import { MessagePage } from "message_page.slint";
-import { VerticalLine } from "components/vertical_line.slint";
+import { MessagePage } from "message-page.slint";
+import { VerticalLine } from "components/vertical-line.slint";
 
 export * from "types.slint";
 export { State, Rust }
@@ -19,8 +19,8 @@ export { State, Rust }
 export component AppWindow inherits Window {
     min-width: 800px;
     min-height: 600px;
-    background: Styles.card_bg();
-    title: "TinyWiiBackupManager  ›  " + (State.config.contents.mount_point.is-empty ? "No drive selected" : State.config.contents.mount_point) + "  (" + State.drive_usage.a_used + "/" + State.drive_usage.b_total + " GiB)";
+    background: Styles.card-bg();
+    title: "TinyWiiBackupManager  ›  " + (State.config.contents.mount-point.is-empty ? "No drive selected" : State.config.contents.mount-point) + "  (" + State.drive-usage.a-used + "/" + State.drive-usage.b-total + " GiB)";
     default-font-size: 14px;
 
     if !State.message.text.is-empty: MessagePage { }
@@ -35,9 +35,9 @@ export component AppWindow inherits Window {
                 border-width: 1px;
                 border-color: Palette.border;
 
-                if State.current_page == Page.Games: GamesPage { }
-                if State.current_page == Page.Settings: SettingsPage { }
-                if State.current_page == Page.About: AboutPage { }
+                if State.current-page == Page.Games: GamesPage { }
+                if State.current-page == Page.Settings: SettingsPage { }
+                if State.current-page == Page.About: AboutPage { }
             }
 
             if !State.hint.is-empty: HorizontalLayout {

@@ -5,7 +5,7 @@ import { Config } from "types.slint";
 
 export global Rust {
     pure callback open(string) -> string;
-    pure callback pick_mount_point() -> string;
-    pure callback write_config(Config) -> string;
-    pure callback get_drive_usage(string) -> {a_used: float, b_total: float};
+    pure callback pick-mount-point() -> string;
+    pure callback write-config(Config) -> string;
+    pure callback get-drive-usage(string) -> {a-used: float, b-total: float};
 }

@@ -4,14 +4,14 @@
 import { Card } from "card.slint";
 import { Game } from "../types.slint";
 import { VerticalBox } from "std-widgets.slint";
-import { IconButton } from "icon_button.slint";
+import { IconButton } from "icon-button.slint";
 import { IconSet } from "@lucide";
 
 export global GameCardConsts {
     out property <length> width: 165px;
-    out property <length> spaced_width: width + 10px;
+    out property <length> spaced-width: width + 10px;
     out property <length> height: 205px;
-    out property <length> spaced_height: height + 10px;
+    out property <length> spaced-height: height + 10px;
 }
 
 export component GameCard inherits Card {

@@ -3,7 +3,7 @@
 
 import { VerticalBox, Palette } from "std-widgets.slint";
 import { Icon, IconDisplay, IconSet } from "@lucide";
-import { HorizontalLine } from "horizontal_line.slint";
+import { HorizontalLine } from "horizontal-line.slint";
 import { Card } from "card.slint";
 import { State } from "../state.slint";
 
@@ -11,7 +11,7 @@ export component Setting inherits Card {
     in property <string> label;
     in property <Icon> icon;
     in property <[{value: string, label: string}]> items;
-    in-out property <string> active_value;
+    in-out property <string> active-value;
 
     width: 100%;
 
@@ -35,8 +35,8 @@ export component Setting inherits Card {
         for item in items: Rectangle {
             HorizontalLayout {
                 IconDisplay {
-                    icon: item.value == active_value ? IconSet.Disc : IconSet.Circle;
-                    stroke: item.value == active_value ? Palette.accent-background : Palette.foreground;
+                    icon: item.value == active-value ? IconSet.Disc : IconSet.Circle;
+                    stroke: item.value == active-value ? Palette.accent-background : Palette.foreground;
                     size: 14px;
                 }
 
@@ -47,8 +47,8 @@ export component Setting inherits Card {
 
             TouchArea {
                 clicked => {
-                    active_value = item.value;
-                    State.write_config();
+                    active-value = item.value;
+                    State.write-config();
                 }
             }
         }

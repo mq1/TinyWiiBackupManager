@@ -9,7 +9,7 @@ export component NavbarButton inherits Rectangle {
     in property <Icon> icon;
     callback clicked;
 
-    pure function get_background() -> color {
+    pure function get-background() -> color {
         if active {
             Palette.selection-background
         } else if ta.has-hover {
@@ -23,7 +23,7 @@ export component NavbarButton inherits Rectangle {
     height: 40px;
     border-radius: self.width / 2;
     clip: true;
-    background: get_background();
+    background: get-background();
 
     IconDisplay {
         icon: icon;

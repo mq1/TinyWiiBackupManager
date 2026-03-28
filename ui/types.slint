@@ -10,19 +10,19 @@ export enum Page {
 @rust-attr(derive(serde::Serialize, serde::Deserialize))
 @rust-attr(serde(default, rename_all = "snake_case"))
 export struct ConfigContents {
-    always_split: bool,
-    mount_point: string,
-    remove_sources_apps: bool,
-    remove_sources_games: bool,
-    scrub_update_partition: bool,
-    sort_by: string,
-    view_as: string,
-    wii_ip: string,
-    txt_codes_source: string,
-    theme_preference: string,
-    wii_output_format: string,
-    gc_output_format: string,
-    known_drives: [string],
+    always-split: bool,
+    mount-point: string,
+    remove-sources-apps: bool,
+    remove-sources-games: bool,
+    scrub-update-partition: bool,
+    sort-by: string,
+    view-as: string,
+    wii-ip: string,
+    txt-codes-source: string,
+    theme-preference: string,
+    wii-output-format: string,
+    gc-output-format: string,
+    known-drives: [string],
 }
 
 export struct Config {
@@ -44,8 +44,8 @@ export struct Message {
 
 export struct Game {
     path: string,
-    is_wii: bool,
-    size_gib: float,
+    is-wii: bool,
+    size-gib: float,
     title: string,
     id: string,
     cover: image,
@@ -53,10 +53,10 @@ export struct Game {
 
 export struct GameList {
     games: [Game],
-    filtered_games: [Game],
-    total_size: float,
-    wii_count: int,
-    wii_size: float,
-    gc_count: int,
-    gc_size: float,
+    filtered-games: [Game],
+    total-size: float,
+    wii-count: int,
+    wii-size: float,
+    gc-count: int,
+    gc-size: float,
 }

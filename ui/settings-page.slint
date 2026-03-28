@@ -5,7 +5,7 @@ import { VerticalBox, ScrollView } from "std-widgets.slint";
 import { IconSet } from "@lucide";
 import { State } from "state.slint";
 import { Setting } from "components/setting.slint";
-import { BoolSetting } from "components/bool_setting.slint";
+import { BoolSetting } from "components/bool-setting.slint";
 
 export component SettingsPage inherits VerticalLayout {
     alignment: start;
@@ -33,7 +33,7 @@ export component SettingsPage inherits VerticalLayout {
                     { value: "wbfs", label: "WBFS (recommended)" },
                     { value: "iso", label: "ISO (very large)" },
                 ];
-                active_value <=> State.config.contents.wii_output_format;
+                active-value <=> State.config.contents.wii-output-format;
             }
 
             Setting {
@@ -46,7 +46,7 @@ export component SettingsPage inherits VerticalLayout {
                         label: "CISO (much smaller, slightly slower, less metadata in game loaders)"
                     },
                 ];
-                active_value <=> State.config.contents.gc_output_format;
+                active-value <=> State.config.contents.gc-output-format;
             }
 
             BoolSetting {
@@ -56,7 +56,7 @@ export component SettingsPage inherits VerticalLayout {
                     { value: false, label: "Only when needed (recommended)" },
                     { value: true, label: "Always 4GB-32KB" },
                 ];
-                active_value <=> State.config.contents.always_split;
+                active-value <=> State.config.contents.always-split;
             }
 
             BoolSetting {
@@ -69,7 +69,7 @@ export component SettingsPage inherits VerticalLayout {
                         label: "Yes (saves some space; update partition is zeroed, but still there)"
                     },
                 ];
-                active_value <=> State.config.contents.scrub_update_partition;
+                active-value <=> State.config.contents.scrub-update-partition;
             }
 
             BoolSetting {
@@ -79,7 +79,7 @@ export component SettingsPage inherits VerticalLayout {
                     { value: false, label: "No (recommended)" },
                     { value: true, label: "Yes" },
                 ];
-                active_value <=> State.config.contents.remove_sources_games;
+                active-value <=> State.config.contents.remove-sources-games;
             }
 
             BoolSetting {
@@ -89,18 +89,18 @@ export component SettingsPage inherits VerticalLayout {
                     { value: false, label: "No (recommended)" },
                     { value: true, label: "Yes" },
                 ];
-                active_value <=> State.config.contents.remove_sources_apps;
+                active-value <=> State.config.contents.remove-sources-apps;
             }
 
             Setting {
                 icon: IconSet.Skull;
                 label: "Cheat codes source";
                 items: [
-                    { value: "web_archive", label: "geckocodes.org_201909 archive (recommended)" },
-                    { value: "game_hacking", label: "gamehacking.org (up to date)" },
+                    { value: "web-archive", label: "geckocodes.org-201909 archive (recommended)" },
+                    { value: "game-hacking", label: "gamehacking.org (up to date)" },
                     { value: "rc24", label: "codes.rc24.xyz" },
                 ];
-                active_value <=> State.config.contents.txt_codes_source;
+                active-value <=> State.config.contents.txt-codes-source;
             }
         }
     }
