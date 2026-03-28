@@ -19,7 +19,7 @@ export component GamesPage inherits VerticalLayout {
     ScrollView {
         height: parent.height - 40px;
 
-        property <int> columns: Math.max(1, Math.floor(self.width / (GameCardConsts.width + 10px)));
+        property <int> columns: Math.max(1, Math.floor((self.width - 10px) / (GameCardConsts.width + 10px)));
 
         for game[i] in State.game_list.games: GameCard {
             game: game;
