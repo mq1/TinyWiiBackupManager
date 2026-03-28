@@ -21,7 +21,7 @@ impl Game {
             return None;
         }
 
-        let (title_str, id_str) = filename.split_once(" [")?;
+        let (title_str, id_str) = filename.split_once('[')?;
         let id = id_str.strip_suffix(']')?;
         if !matches!(id.len(), 4 | 6) {
             return None;
@@ -29,7 +29,7 @@ impl Game {
 
         let title = match ID_MAP.get(id) {
             Some(e) => e.title.to_shared_string(),
-            None => title_str.to_shared_string(),
+            None => title_str.trim().to_shared_string(),
         };
 
         let size = fs_extra::dir::get_size(path).unwrap_or(0);
