@@ -24,7 +24,11 @@ target/
 
 dist/
 out/
-VC-LTL-Binary.zip
+VC-LTL-Binary.7z
 VC-LTL-Binary/
-TinyWiiBackupManager.app
+YY-Thunks-Lib.zip
+YY-Thunks-Lib/
+TinyWiiBackupManager
+TinyWiiBackupManager.exe
+TinyWiiBackupManager.app/
 
