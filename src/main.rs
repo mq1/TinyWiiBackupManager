@@ -17,12 +17,13 @@ mod window_color;
 #[cfg(target_vendor = "win7")]
 mod xp_dialogs;
 
-use crate::data_dir::get_data_dir;
+use crate::{data_dir::get_data_dir, id_map::ID_MAP};
 use anyhow::{Result, bail};
 use slint::{SharedString, ToSharedString};
 use std::{
     path::{Path, PathBuf},
     process::Command,
+    sync::LazyLock,
 };
 
 slint::include_modules!();
@@ -43,6 +44,9 @@ fn main() -> Result<()> {
     let data_dir = get_data_dir()?;
     let config = Config::load(&data_dir);
     let mount_point = PathBuf::from(&config.contents.mount_point);
+
+    // Decompress idmap
+    let _ = std::thread::spawn(|| LazyLock::force(&ID_MAP));
 
     #[cfg(target_vendor = "pc")]
     let _ = window_color::set(app.window(), &config.contents.theme_preference);
