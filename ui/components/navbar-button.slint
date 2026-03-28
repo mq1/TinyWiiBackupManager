@@ -3,10 +3,13 @@
 
 import { Palette } from "std-widgets.slint";
 import { IconDisplay, Icon } from "@lucide";
+import { State } from "../state.slint";
 
 export component NavbarButton inherits Rectangle {
     in property <bool> active: false;
     in property <Icon> icon;
+    in property <string> hint;
+
     callback clicked;
 
     pure function get-background() -> color {
@@ -32,5 +35,13 @@ export component NavbarButton inherits Rectangle {
 
     ta := TouchArea {
         clicked => clicked();
+
+        changed has-hover => {
+            if self.has-hover {
+                State.hint = hint;
+            } else {
+                State.hint = "";
+            }
+        }
     }
 }
