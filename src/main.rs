@@ -9,6 +9,7 @@ mod dialogs;
 mod game;
 mod game_list;
 mod id_map;
+mod util;
 
 #[cfg(target_vendor = "pc")]
 mod window_color;
@@ -19,7 +20,7 @@ mod xp_dialogs;
 use crate::data_dir::get_data_dir;
 use anyhow::{Result, bail};
 use slint::{SharedString, ToSharedString};
-use std::process::Command;
+use std::{path::Path, process::Command};
 
 slint::include_modules!();
 
@@ -48,6 +49,11 @@ fn main() -> Result<()> {
     app.global::<State<'_>>()
         .set_data_dir(data_dir.to_string_lossy().to_shared_string());
 
+    app.global::<State<'_>>()
+        .set_drive_usage(util::get_drive_usage(Path::new(
+            &config.contents.mount_point,
+        )));
+
     app.global::<State<'_>>().set_config(config);
 
     app.global::<Rust<'_>>()
@@ -71,6 +77,9 @@ fn main() -> Result<()> {
             Ok(()) => SharedString::new(),
             Err(e) => e.to_shared_string(),
         });
+
+    app.global::<Rust<'_>>()
+        .on_get_drive_usage(|path| util::get_drive_usage(Path::new(&path)));
 
     if let Err(e) = app.run() {
         if std::env::var("SLINT_BACKEND").unwrap_or_default() == "winit-software" {

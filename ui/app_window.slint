@@ -19,7 +19,7 @@ export component AppWindow inherits Window {
     min-width: 800px;
     min-height: 600px;
     background: Styles.card_bg();
-    title: "TinyWiiBackupManager  ›  " + (State.config.contents.mount_point.is-empty ? "No drive selected" : State.config.contents.mount_point);
+    title: "TinyWiiBackupManager  ›  " + (State.config.contents.mount_point.is-empty ? "No drive selected" : State.config.contents.mount_point) + "  (" + State.drive_usage.a_used + "/" + State.drive_usage.b_total + " GiB)";
     default-font-size: 14px;
 
     if !State.message.text.is-empty: MessagePage { }

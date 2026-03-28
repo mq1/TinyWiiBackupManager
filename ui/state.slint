@@ -11,6 +11,7 @@ export global State {
     in property <string> data_dir;
     in-out property <Config> config;
     out property <Message> message;
+    in-out property <{a_used: float, b_total: float}> drive_usage;
 
     // ↑ Model
     // ---------
@@ -46,6 +47,7 @@ export global State {
         if !mount_point.is-empty {
             config.contents.mount_point = mount_point;
             err(Rust.write_config(config));
+            drive_usage = Rust.get_drive_usage(mount_point);
         }
     }
 
