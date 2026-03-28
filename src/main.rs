@@ -20,7 +20,10 @@ mod xp_dialogs;
 use crate::data_dir::get_data_dir;
 use anyhow::{Result, bail};
 use slint::{SharedString, ToSharedString};
-use std::{path::Path, process::Command};
+use std::{
+    path::{Path, PathBuf},
+    process::Command,
+};
 
 slint::include_modules!();
 
@@ -39,6 +42,7 @@ fn main() -> Result<()> {
     let app = AppWindow::new()?;
     let data_dir = get_data_dir()?;
     let config = Config::load(&data_dir);
+    let mount_point = PathBuf::from(&config.contents.mount_point);
 
     #[cfg(target_vendor = "pc")]
     let _ = window_color::set(app.window(), &config.contents.theme_preference);
@@ -49,12 +53,13 @@ fn main() -> Result<()> {
     app.global::<State<'_>>()
         .set_data_dir(data_dir.to_string_lossy().to_shared_string());
 
-    app.global::<State<'_>>()
-        .set_drive_usage(util::get_drive_usage(Path::new(
-            &config.contents.mount_point,
-        )));
-
     app.global::<State<'_>>().set_config(config);
+
+    app.global::<State<'_>>()
+        .set_drive_usage(util::get_drive_usage(&mount_point));
+
+    app.global::<State<'_>>()
+        .set_game_list(GameList::new(&mount_point));
 
     app.global::<Rust<'_>>()
         .on_open(|uri| match open::that(&uri) {

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { Page, Config, Message, IconButtonKind } from "types.slint";
+import { Page, Config, Message, IconButtonKind, GameList } from "types.slint";
 import { Rust } from "rust.slint";
 import { Palette } from "std-widgets.slint";
 
@@ -12,6 +12,7 @@ export global State {
     in-out property <Config> config;
     out property <Message> message;
     in-out property <{a_used: float, b_total: float}> drive_usage;
+    in property <GameList> game_list;
 
     // ↑ Model
     // ---------

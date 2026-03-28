@@ -1,0 +1,24 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { Card } from "card.slint";
+import { Game } from "../types.slint";
+import { VerticalBox } from "std-widgets.slint";
+
+export global GameCardConsts {
+    out property <length> width: 170px;
+    out property <length> height: 205px;
+}
+
+export component GameCard inherits Card {
+    in property <Game> game;
+
+    width: GameCardConsts.width;
+    height: GameCardConsts.height;
+
+    VerticalBox {
+        Text {
+            text: game.title;
+        }
+    }
+}

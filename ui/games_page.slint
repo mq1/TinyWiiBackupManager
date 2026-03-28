@@ -1,11 +1,31 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { VerticalBox } from "std-widgets.slint";
+import { VerticalBox, ScrollView, HorizontalBox } from "std-widgets.slint";
+import { State } from "state.slint";
+import { GameCard, GameCardConsts } from "components/game_card.slint";
 
-export component GamesPage inherits VerticalBox {
-    Text {
-        text: "Games";
+export component GamesPage inherits VerticalLayout {
+    alignment: start;
+
+    VerticalBox {
+        Text {
+            text: "Games";
+            font-size: 18px;
+            font-weight: 600;
+        }
+    }
+
+    ScrollView {
+        height: parent.height - 40px;
+
+        property <int> columns: Math.max(1, Math.floor(self.width / (GameCardConsts.width + 10px)));
+
+        for game[i] in State.game_list.games: GameCard {
+            game: game;
+
+            x: 10px + mod(i, columns) * (GameCardConsts.width + 10px);
+            y: Math.floor(i / columns) * (GameCardConsts.height + 10px);
+        }
     }
 }
-

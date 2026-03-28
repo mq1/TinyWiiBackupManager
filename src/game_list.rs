@@ -11,13 +11,14 @@ use std::{
 };
 
 impl GameList {
-    pub fn new(drive_path: &Path) -> Result<Self> {
+    #[must_use]
+    pub fn new(drive_path: &Path) -> Self {
         let wii_path = drive_path.join("wbfs");
         let gc_path = drive_path.join("games");
 
         let mut games = Vec::new();
-        read_game_dir(wii_path, true, &mut games)?;
-        read_game_dir(gc_path, false, &mut games)?;
+        let _ = read_game_dir(wii_path, true, &mut games);
+        let _ = read_game_dir(gc_path, false, &mut games);
 
         let mut wii_count = 0;
         let mut wii_size = 0.;
@@ -35,15 +36,15 @@ impl GameList {
             }
         }
 
-        Ok(Self {
-            games: ModelRc::new(VecModel::from(games)),
-            filtered_games: ModelRc::new(VecModel::from(Vec::new())),
+        Self {
+            games: ModelRc::from(games.as_slice()),
+            filtered_games: ModelRc::from([]),
             total_size: wii_size + gc_size,
             wii_count,
             wii_size,
             gc_count,
             gc_size,
-        })
+        }
     }
 
     pub fn sort(&mut self, sort_by: &str) {
