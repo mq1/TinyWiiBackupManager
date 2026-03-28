@@ -1,18 +1,16 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use derive_getters::Getters;
 use serde::Deserialize;
 use std::sync::LazyLock;
 
 include!(concat!(env!("OUT_DIR"), "/id_map_meta.rs"));
 
-#[derive(Deserialize, Getters)]
+#[derive(Deserialize)]
 pub struct GameEntry {
-    #[getter(skip)]
     id: [u8; 6],
-    ghid: Option<u32>,
-    title: String,
+    pub ghid: Option<u32>,
+    pub title: String,
 }
 
 #[derive(Deserialize)]

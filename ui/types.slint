@@ -49,3 +49,13 @@ export struct Game {
     title: string,
     id: string,
 }
+
+export struct GameList {
+    games: [Game],
+    filtered_games: [Game],
+    total_size: float,
+    wii_count: int,
+    wii_size: float,
+    gc_count: int,
+    gc_size: float,
+}

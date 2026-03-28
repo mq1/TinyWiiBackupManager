@@ -28,7 +28,7 @@ impl Game {
         }
 
         let title = match ID_MAP.get(id) {
-            Some(e) => e.title().to_shared_string(),
+            Some(e) => e.title.to_shared_string(),
             None => title_str.to_shared_string(),
         };
 

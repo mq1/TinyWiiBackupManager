@@ -1,41 +1,16 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::Game;
+use crate::{Game, GameList};
 use anyhow::Result;
-use derive_getters::Getters;
 use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
+use slint::{Model, ModelRc, VecModel};
 use std::{
     fs,
     path::{Path, PathBuf},
 };
 
-#[derive(Debug, Clone, Getters)]
-pub struct GameList {
-    #[getter(skip)]
-    list: Box<[Game]>,
-    total_size: f32,
-    wii_count: usize,
-    wii_size: f32,
-    gc_count: usize,
-    gc_size: f32,
-    #[getter(skip)]
-    filtered_indices: Box<[(usize, i64)]>,
-}
-
 impl GameList {
-    pub fn empty() -> Self {
-        Self {
-            list: Box::new([]),
-            total_size: 0.,
-            wii_count: 0,
-            wii_size: 0.,
-            gc_count: 0,
-            gc_size: 0.,
-            filtered_indices: Box::new([]),
-        }
-    }
-
     pub fn new(drive_path: &Path) -> Result<Self> {
         let wii_path = drive_path.join("wbfs");
         let gc_path = drive_path.join("games");
@@ -61,73 +36,69 @@ impl GameList {
         }
 
         Ok(Self {
-            list: games.into_boxed_slice(),
+            games: ModelRc::new(VecModel::from(games)),
+            filtered_games: ModelRc::new(VecModel::from(Vec::new())),
             total_size: wii_size + gc_size,
             wii_count,
             wii_size,
             gc_count,
             gc_size,
-            filtered_indices: Box::new([]),
         })
     }
 
-    #[inline]
-    pub fn iter(&self) -> impl Iterator<Item = &Game> {
-        self.list.iter()
-    }
-
-    #[inline]
-    pub fn iter_filtered(&self) -> impl Iterator<Item = &Game> {
-        self.filtered_indices
-            .iter()
-            .copied()
-            .map(|(i, _score)| &self.list[i])
-    }
-
-    #[inline]
-    pub fn total_count(&self) -> usize {
-        self.list.len()
-    }
-
     pub fn sort(&mut self, sort_by: &str) {
+        let mut games = self.games.iter().collect::<Vec<_>>();
+
         match sort_by {
             "name_ascending" => {
-                self.list.sort_unstable_by(|a, b| a.title.cmp(&b.title));
+                games.sort_unstable_by(|a, b| a.title.cmp(&b.title));
             }
             "name_descending" => {
-                self.list.sort_unstable_by(|a, b| b.title.cmp(&a.title));
+                games.sort_unstable_by(|a, b| b.title.cmp(&a.title));
             }
             "size_ascending" => {
-                self.list.sort_unstable_by(|a, b| a.size.total_cmp(&b.size));
+                games.sort_unstable_by(|a, b| a.size.total_cmp(&b.size));
             }
             "size_descending" => {
-                self.list.sort_unstable_by(|a, b| b.size.total_cmp(&a.size));
+                games.sort_unstable_by(|a, b| b.size.total_cmp(&a.size));
             }
             _ => {}
         }
+
+        self.filtered_games
+            .as_any()
+            .downcast_ref::<VecModel<Game>>()
+            .unwrap()
+            .set_vec(games);
     }
 
     pub fn fuzzy_search(&mut self, query: &str) {
         let matcher = SkimMatcherV2::default();
 
-        self.filtered_indices = self
-            .list
+        let mut games = self
+            .games
             .iter()
-            .enumerate()
-            .filter_map(|(i, game)| {
+            .filter_map(|game| {
                 let title_score = matcher.fuzzy_match(&game.title, query);
                 let id_score = matcher.fuzzy_match(&game.id, query);
 
                 match (title_score, id_score) {
-                    (Some(s1), Some(s2)) => Some((i, s1 + s2)),
-                    (Some(s1), None) | (None, Some(s1)) => Some((i, s1)),
+                    (Some(s1), Some(s2)) => Some((game.clone(), s1 + s2)),
+                    (Some(s1), None) | (None, Some(s1)) => Some((game.clone(), s1)),
                     (None, None) => None,
                 }
             })
-            .collect();
+            .collect::<Vec<_>>();
 
-        self.filtered_indices
-            .sort_unstable_by_key(|(_, score)| *score);
+        games.sort_unstable_by_key(|(_, score)| *score);
+
+        let games = games.into_iter().map(|(game, _)| game).collect::<Vec<_>>();
+
+        self.filtered_games
+            .as_any()
+            .downcast_ref::<VecModel<Game>>()
+            .unwrap()
+            .set_vec(games);
     }
 }
 

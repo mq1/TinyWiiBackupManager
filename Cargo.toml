@@ -32,7 +32,6 @@ serde = "1.0"
 serde_json = "1.0"
 rfd = "0.17"
 fuzzy-matcher = "0.3"
-derive-getters = { version = "0.5", features = ["auto_copy_getters"] }
 postcard = { version = "1.1", features = ["use-std"] }
 zstd = { version = "0.13", optional = true }
 fs_extra = "1.3"
