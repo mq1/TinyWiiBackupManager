@@ -95,44 +95,40 @@ impl Game {
 
     #[must_use]
     pub fn region_str(&self) -> &'static str {
-        let region_char = self.id.chars().nth(3);
-
-        match region_char {
-            Some('A') => "System Wii Channels (i.e. Mii Channel)",
-            Some('B') => "Ufouria: The Saga (NA)",
-            Some('D') => "Germany",
-            Some('E') => "USA",
-            Some('F') => "France",
-            Some('H') => "Netherlands / Europe alternate languages",
-            Some('I') => "Italy",
-            Some('J') => "Japan",
-            Some('K') => "Korea",
-            Some('L') => "Japanese import to Europe, Australia and other PAL regions",
-            Some('M') => "American import to Europe, Australia and other PAL regions",
-            Some('N') => "Japanese import to USA and other NTSC regions",
-            Some('P') => "Europe and other PAL regions such as Australia",
-            Some('Q') => "Japanese Virtual Console import to Korea",
-            Some('R') => "Russia",
-            Some('S') => "Spain",
-            Some('T') => "American Virtual Console import to Korea",
-            Some('U') => "Australia / Europe alternate languages",
-            Some('V') => "Scandinavia",
-            Some('W') => "Republic of China (Taiwan) / Hong Kong / Macau",
-            Some('X' | 'Y' | 'Z') => "Europe alternate languages / US special releases",
+        match self.id.as_bytes()[3] {
+            b'A' => "System Wii Channels (i.e. Mii Channel)",
+            b'B' => "Ufouria: The Saga (NA)",
+            b'D' => "Germany",
+            b'E' => "USA",
+            b'F' => "France",
+            b'H' => "Netherlands / Europe alternate languages",
+            b'I' => "Italy",
+            b'J' => "Japan",
+            b'K' => "Korea",
+            b'L' => "Japanese import to Europe, Australia and other PAL regions",
+            b'M' => "American import to Europe, Australia and other PAL regions",
+            b'N' => "Japanese import to USA and other NTSC regions",
+            b'P' => "Europe and other PAL regions such as Australia",
+            b'Q' => "Japanese Virtual Console import to Korea",
+            b'R' => "Russia",
+            b'S' => "Spain",
+            b'T' => "American Virtual Console import to Korea",
+            b'U' => "Australia / Europe alternate languages",
+            b'V' => "Scandinavia",
+            b'W' => "Republic of China (Taiwan) / Hong Kong / Macau",
+            b'X' | b'Y' | b'Z' => "Europe alternate languages / US special releases",
             _ => "Unknown",
         }
     }
 
     #[must_use]
     pub fn lang_str(&self) -> &'static str {
-        let region_char = self.id.chars().nth(3);
-
-        match region_char {
-            Some('E' | 'N') => "US",
-            Some('J') => "JA",
-            Some('K' | 'Q' | 'T') => "KO",
-            Some('R') => "RU",
-            Some('W') => "ZH",
+        match self.id.as_bytes()[3] {
+            b'E' | b'N' => "US",
+            b'J' => "JA",
+            b'K' | b'Q' | b'T' => "KO",
+            b'R' => "RU",
+            b'W' => "ZH",
             _ => "EN",
         }
     }
