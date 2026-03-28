@@ -52,9 +52,7 @@ impl GameList {
             "name_descending" => |a, b| b.title.cmp(&a.title),
             "size_ascending" => |a, b| a.size.total_cmp(&b.size),
             "size_descending" => |a, b| b.size.total_cmp(&a.size),
-            _ => {
-                return;
-            }
+            _ => |_, _| std::cmp::Ordering::Equal,
         };
 
         let mut games = self.games.iter().collect::<Vec<_>>();
