@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - ⚡️ Better UI performance (especially on old GPUs and VMs)
 - 🪶 Reduced UI resource usage
+- 💄 Minor UI refinements
 
 ## [v5.2.1] - 2026-03-19
 
