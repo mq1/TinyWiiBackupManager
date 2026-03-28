@@ -89,7 +89,7 @@ jobs:
             -e RUSTFLAGS="${{ matrix.rustflags }}" \
             -e CFLAGS="${{ matrix.cflags }}" \
             builder \
-            cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features
+            cargo --config cargo-config.toml build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features
           cp target/${{ matrix.target }}/release/TinyWiiBackupManager .
 
       - name: Package AppImage
@@ -181,7 +181,7 @@ jobs:
       - name: Build binary
         shell: pwsh
         run: |
-          cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
+          cargo --config cargo-config.toml build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
           Copy-Item "target\${{ matrix.target }}\release\TinyWiiBackupManager.exe" .
         env:
           RUSTC_BOOTSTRAP: 1
@@ -231,7 +231,7 @@ jobs:
 
       - name: Build binary
         run: |
-          cargo build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
+          cargo --config cargo-config.toml build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
           cp target/${{ matrix.target }}/release/TinyWiiBackupManager .
         env:
           RUSTC_BOOTSTRAP: 1
