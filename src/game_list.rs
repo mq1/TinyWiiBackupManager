@@ -70,20 +70,18 @@ impl GameList {
     pub fn fuzzy_search(&mut self, query: &str) {
         let matcher = SkimMatcherV2::default();
 
-        let mut games = self
-            .games
-            .iter()
-            .filter_map(|game| {
-                let title_score = matcher.fuzzy_match(&game.title, query);
-                let id_score = matcher.fuzzy_match(&game.id, query);
+        let mut games = Vec::new();
+        for game in self.games.iter() {
+            let title_score = matcher.fuzzy_match(&game.title, query);
+            let id_score = matcher.fuzzy_match(&game.id, query);
 
-                match (title_score, id_score) {
-                    (Some(s1), Some(s2)) => Some((game, s1 + s2)),
-                    (Some(s1), None) | (None, Some(s1)) => Some((game, s1)),
-                    (None, None) => None,
-                }
-            })
-            .collect::<Vec<_>>();
+            if title_score.is_none() && id_score.is_none() {
+                continue;
+            }
+
+            let score = title_score.unwrap_or(0) + id_score.unwrap_or(0);
+            games.push((game, score));
+        }
 
         games.sort_unstable_by_key(|(_, score)| *score);
 
