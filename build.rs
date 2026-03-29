@@ -13,14 +13,11 @@ struct GameEntry {
     title: String,
 }
 
-fn str_to_game_id(id: &str) -> Option<[u8; 6]> {
-    let id = id.as_bytes();
-
-    match id.len() {
-        6 => Some([id[0], id[1], id[2], id[3], id[4], id[5]]),
-        4 => Some([id[0], id[1], id[2], id[3], 0, 0]),
-        _ => None,
-    }
+fn parse_gameid(id: &str) -> [u8; 6] {
+    let bytes = id.as_bytes();
+    let mut buf = [0; 6];
+    buf[..bytes.len()].copy_from_slice(bytes);
+    buf
 }
 
 fn parse_titles_txt() -> Vec<([u8; 6], String)> {
@@ -33,9 +30,9 @@ fn parse_titles_txt() -> Vec<([u8; 6], String)> {
     let _ = lines.next();
 
     for line in lines {
-        let (game_id, title) = line.split_once(" = ").unwrap();
-        let game_id = str_to_game_id(game_id).unwrap();
-        title_map.push((game_id, title.to_string()));
+        let (gameid, title) = line.split_once(" = ").unwrap();
+        let gameid = parse_gameid(gameid);
+        title_map.push((gameid, title.to_string()));
     }
 
     title_map.sort_by_key(|(game_id, _)| *game_id);
@@ -55,11 +52,13 @@ fn parse_gamehacking_ids() -> Vec<([u8; 6], u32)> {
         let contents = fs::read_to_string(filename).unwrap();
 
         for cap in re.captures_iter(&contents) {
-            if let Some(game_id) = str_to_game_id(&cap[2])
-                && let Ok(ghid) = cap[1].parse()
-            {
-                id_map.push((game_id, ghid));
+            if cap[1].is_empty() || cap[2].is_empty() {
+                continue;
             }
+
+            let gameid = parse_gameid(&cap[2]);
+            let ghid = cap[1].parse().unwrap();
+            id_map.push((gameid, ghid));
         }
     }
 
