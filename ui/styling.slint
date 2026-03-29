@@ -12,11 +12,4 @@ export global MyPalette {
     out property <brush> selection-background: Palette.selection-background;
     out property <brush> accent-background: Palette.accent-background;
     out property <brush> accent-foreground: Palette.accent-foreground;
-
-    out property <brush> primary-hover: Palette.color-scheme == ColorScheme.light ? Palette.accent-background.darker(0.1) : Palette.accent-background.brighter(0.2);
-    out property <brush> secondary-hover: Palette.color-scheme == ColorScheme.light ? Palette.alternate-background.darker(0.1) : Palette.alternate-background.brighter(0.2);
-    out property <brush> warning-background: Colors.yellow;
-    out property <brush> warning-hover: Palette.color-scheme == ColorScheme.light ? Colors.yellow.darker(0.1) : Colors.yellow.brighter(0.2);
-    out property <brush> danger-background: Colors.red;
-    out property <brush> danger-hover: Palette.color-scheme == ColorScheme.light ? Colors.red.darker(0.1) : Colors.red.brighter(0.2);
 }

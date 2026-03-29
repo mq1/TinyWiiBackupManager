@@ -18,13 +18,13 @@ export component IconButton inherits Rectangle {
 
     pure function get-bg() -> brush {
         if kind == IconButtonKind.Primary {
-            t.has-hover ? MyPalette.primary-hover : MyPalette.accent-background
+            t.has-hover ? MyPalette.accent-background.darker(0.2) : MyPalette.accent-background
         } else if kind == IconButtonKind.Secondary {
-            t.has-hover ? MyPalette.secondary-hover : MyPalette.alternate-background
+            t.has-hover ? MyPalette.alternate-background.darker(0.2) : MyPalette.alternate-background
         } else if kind == IconButtonKind.Warning {
-            t.has-hover ? MyPalette.warning-hover : MyPalette.warning-background
+            t.has-hover ? Colors.yellow.darker(0.2) : Colors.yellow
         } else if kind == IconButtonKind.Danger {
-            t.has-hover ? MyPalette.danger-hover : MyPalette.danger-background
+            t.has-hover ? Colors.red.darker(0.2) : Colors.red
         } else {
             transparent
         }
