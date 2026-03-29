@@ -7,13 +7,20 @@ export component MyLineEdit inherits Rectangle {
     in-out property <string> text;
     in property <string> placeholder-text;
 
-    t := TextInput {
-        text <=> text;
-    }
+    height: t.preferred-height;
 
     Text {
+        x: 0;
+        y: 0;
+        horizontal-alignment: left;
         visible: t.text.is-empty;
         text: placeholder-text;
         color: MyPalette.foreground.transparentize(0.5);
+    }
+
+    t := TextInput {
+        x: 0;
+        y: 0;
+        text <=> text;
     }
 }
