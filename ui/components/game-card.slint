@@ -8,18 +8,11 @@ import { IconButton } from "icon-button.slint";
 import { IconSet } from "@lucide";
 import { State } from "../state.slint";
 
-export global GameCardConsts {
-    out property <length> width: 165px;
-    out property <length> spaced-width: width + 10px;
-    out property <length> height: 205px;
-    out property <length> spaced-height: height + 10px;
-}
-
 export component GameCard inherits Card {
     in property <Game> game;
 
-    width: GameCardConsts.width;
-    height: GameCardConsts.height;
+    width: 168px;
+    height: 205px;
 
     VerticalBox {
         HorizontalLayout {

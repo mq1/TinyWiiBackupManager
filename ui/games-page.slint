@@ -1,9 +1,15 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { VerticalBox, ScrollView, HorizontalBox } from "std-widgets.slint";
+import {
+    VerticalBox,
+    ScrollView,
+    HorizontalBox,
+    Palette,
+} from "std-widgets.slint";
 import { State } from "state.slint";
-import { GameCard, GameCardConsts } from "components/game-card.slint";
+import { GameCard } from "components/game-card.slint";
+import { IconSet, IconDisplay } from "@lucide";
 
 export component GamesPage inherits VerticalLayout {
     alignment: start;
@@ -18,14 +24,65 @@ export component GamesPage inherits VerticalLayout {
 
     ScrollView {
         height: parent.height - 40px;
+        viewport-height: v.preferred-height;
 
-        property <int> columns: Math.max(1, Math.floor((self.width - 20px) / GameCardConsts.spaced-width));
+        v := VerticalLayout {
+            padding: 5px;
 
-        for game[i] in State.game-list.games: GameCard {
-            game: game;
+            HorizontalLayout {
+                padding-left: 5px;
+                padding-bottom: 5px;
 
-            x: 12px + mod(i, columns) * GameCardConsts.spaced-width;
-            y: Math.floor(i / columns) * GameCardConsts.spaced-height;
+                IconDisplay {
+                    icon: IconSet.Pointer;
+                    size: 18px;
+                    stroke: Palette.foreground;
+                }
+
+                Text {
+                    text: " Wii games";
+                    font-size: 18px;
+                    font-weight: 600;
+                }
+            }
+
+            FlexBoxLayout {
+                for game[i] in State.game-list.games: HorizontalLayout {
+                    padding: game.is-wii ? 5px : 0px;
+
+                    if game.is-wii: GameCard {
+                        game: game;
+                    }
+                }
+            }
+
+            HorizontalLayout {
+                padding-left: 5px;
+                padding-top: 20px;
+                padding-bottom: 5px;
+
+                IconDisplay {
+                    icon: IconSet.Box;
+                    size: 18px;
+                    stroke: Palette.foreground;
+                }
+
+                Text {
+                    text: " GameCube games";
+                    font-size: 18px;
+                    font-weight: 600;
+                }
+            }
+
+            FlexBoxLayout {
+                for game[i] in State.game-list.games: HorizontalLayout {
+                    padding: game.is-wii ? 0px : 5px;
+
+                    if !game.is-wii: GameCard {
+                        game: game;
+                    }
+                }
+            }
         }
     }
 }
