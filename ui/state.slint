@@ -19,7 +19,7 @@ export global State {
     in-out property <Config> config;
     in-out property <Message> message;
     in-out property <{a-used: float, b-total: float}> drive-usage;
-    in property <GameList> game-list;
+    in-out property <GameList> game-list;
     in property <string> status;
     in property <{a-text: string, b-mouse-x: length, c-mouse-y: length}> tooltip;
 
@@ -53,6 +53,7 @@ export global State {
             config.contents.mount-point = mount-point;
             err(Rust.write-config(config));
             drive-usage = Rust.get-drive-usage(mount-point);
+            game-list = Rust.get-game-list(mount-point);
         }
     }
 
@@ -63,5 +64,7 @@ export global State {
     public function delete-dir(path: string) {
         dismiss();
         err(Rust.delete-dir(path));
+        drive-usage = Rust.get-drive-usage(config.contents.mount-point);
+        game-list = Rust.get-game-list(config.contents.mount-point);
     }
 }
