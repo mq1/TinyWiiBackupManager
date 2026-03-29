@@ -11,10 +11,10 @@ import { MyPalette } from "../styling.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { State } from "../state.slint";
 import { VerticalLine } from "vertical-line.slint";
+import { MyLineEdit } from "my-line-edit.slint";
 
 export component GameFilter inherits Card {
     width: 200px;
-    clip: true;
 
     HorizontalLayout {
         VerticalBox {
@@ -27,17 +27,12 @@ export component GameFilter inherits Card {
             }
         }
 
-        VerticalLine { }
+        VerticalBox {
+            alignment: center;
 
-        Rectangle {
-            clip: true;
-
-            LineEdit {
-                height: 40px;
-                width: 165px;
-
-                placeholder-text: "Search by Title/ID";
+            MyLineEdit {
                 text <=> State.game-filter;
+                placeholder-text: "Search by Title/ID";
                 changed text => {
                     State.filter-games();
                 }
