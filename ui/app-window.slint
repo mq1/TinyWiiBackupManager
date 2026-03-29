@@ -20,7 +20,7 @@ export { State, Rust }
 export component AppWindow inherits Window {
     min-width: 800px;
     min-height: 600px;
-    background: Styles.card-bg();
+    background: State.message.text.is-empty ? Styles.card-bg() : Palette.background;
     title: "TinyWiiBackupManager  ›  " + (State.config.contents.mount-point.is-empty ? "No drive selected" : State.config.contents.mount-point) + "  (" + State.drive-usage.a-used + "/" + State.drive-usage.b-total + " GiB)";
     default-font-size: 14px;
 
