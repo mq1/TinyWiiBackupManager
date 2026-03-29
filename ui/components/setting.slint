@@ -1,7 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { VerticalBox, Palette } from "std-widgets.slint";
+import { VerticalBox } from "std-widgets.slint";
+import { MyPalette } from "../styling.slint";
 import { Icon, IconDisplay, IconSet } from "@lucide";
 import { HorizontalLine } from "horizontal-line.slint";
 import { Card } from "card.slint";
@@ -21,7 +22,7 @@ export component Setting inherits Card {
         HorizontalLayout {
             IconDisplay {
                 icon: icon;
-                stroke: Palette.foreground;
+                stroke: MyPalette.foreground;
                 size: 14px;
             }
 
@@ -36,7 +37,7 @@ export component Setting inherits Card {
             HorizontalLayout {
                 IconDisplay {
                     icon: item.value == active-value ? IconSet.Disc : IconSet.Circle;
-                    stroke: item.value == active-value ? Palette.accent-background : Palette.foreground;
+                    stroke: item.value == active-value ? MyPalette.accent-background : MyPalette.foreground;
                     size: 14px;
                 }
 

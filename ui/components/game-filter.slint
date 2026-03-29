@@ -4,10 +4,10 @@
 import { Card } from "card.slint";
 import {
     LineEdit,
-    Palette,
     HorizontalBox,
     VerticalBox,
 } from "std-widgets.slint";
+import { MyPalette } from "../styling.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { State } from "../state.slint";
 import { VerticalLine } from "vertical-line.slint";
@@ -23,7 +23,7 @@ export component GameFilter inherits Card {
             IconDisplay {
                 icon: IconSet.Search;
                 size: 14px;
-                stroke: Palette.foreground;
+                stroke: MyPalette.foreground;
             }
         }
 

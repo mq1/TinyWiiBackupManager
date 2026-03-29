@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { VerticalBox, Palette, HorizontalBox, Button } from "std-widgets.slint";
-import { Styles } from "styles.slint";
+import { VerticalBox, HorizontalBox, Button } from "std-widgets.slint";
 import { State } from "state.slint";
+import { MyPalette } from "styling.slint";
 import { IconDisplay, IconSet } from "@lucide";
 import { Link } from "components/link.slint";
 import { Rust } from "rust.slint";
@@ -63,7 +63,7 @@ export component AboutPage inherits VerticalLayout {
 
                         IconDisplay {
                             icon: IconSet.TriangleAlert;
-                            stroke: Palette.foreground;
+                            stroke: MyPalette.foreground;
                         }
                     }
 
@@ -78,7 +78,7 @@ export component AboutPage inherits VerticalLayout {
                 HorizontalLayout {
                     IconDisplay {
                         icon: IconSet.Heart;
-                        stroke: Palette.foreground;
+                        stroke: MyPalette.foreground;
                         size: 15px;
                     }
 

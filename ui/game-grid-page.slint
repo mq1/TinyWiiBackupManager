@@ -5,9 +5,9 @@ import {
     VerticalBox,
     ScrollView,
     HorizontalBox,
-    Palette,
 } from "std-widgets.slint";
 import { State } from "state.slint";
+import { MyPalette } from "styling.slint";
 import { GameCard } from "components/game-card.slint";
 import { GameFilter } from "components/game-filter.slint";
 import { IconSet, IconDisplay } from "@lucide";
@@ -33,7 +33,7 @@ export component GameGridPage inherits VerticalLayout {
                 IconDisplay {
                     icon: IconSet.Pointer;
                     size: 18px;
-                    stroke: Palette.foreground;
+                    stroke: MyPalette.foreground;
                 }
 
                 Text {
@@ -61,7 +61,7 @@ export component GameGridPage inherits VerticalLayout {
                 IconDisplay {
                     icon: IconSet.Box;
                     size: 18px;
-                    stroke: Palette.foreground;
+                    stroke: MyPalette.foreground;
                 }
 
                 Text {

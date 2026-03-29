@@ -11,6 +11,7 @@ import {
     Game,
 } from "types.slint";
 import { Rust } from "rust.slint";
+import { MyPalette } from "styling.slint";
 import { Palette } from "std-widgets.slint";
 
 export global State {
@@ -80,5 +81,9 @@ export global State {
         } else {
             filtered-games = Rust.filter-games(game-list.games, game-filter);
         }
+    }
+
+    public function toggle-dark-mode() {
+        Palette.color-scheme = Palette.color-scheme == ColorScheme.dark ? ColorScheme.light : ColorScheme.dark;
     }
 }

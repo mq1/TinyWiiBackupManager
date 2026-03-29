@@ -1,8 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { VerticalBox, HorizontalBox, Palette } from "std-widgets.slint";
+import { VerticalBox, HorizontalBox } from "std-widgets.slint";
 import { State } from "state.slint";
+import { MyPalette } from "styling.slint";
 import { IconButton } from "components/icon-button.slint";
 import { IconSet } from "@lucide";
 import { Card } from "components/card.slint";
@@ -24,7 +25,7 @@ export component MessagePage inherits VerticalBox {
                 }
 
                 Rectangle {
-                    border-color: Palette.border;
+                    border-color: MyPalette.border;
                     border-width: 1px;
                     height: 1px;
                 }

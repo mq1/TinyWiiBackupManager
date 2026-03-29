@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import { Rust } from "../rust.slint";
-import { Palette, StyleMetrics } from "std-widgets.slint";
+import { StyleMetrics } from "std-widgets.slint";
+import { MyPalette } from "../styling.slint";
 import { IconDisplay, Icon, IconSet } from "@lucide";
 import { State } from "../state.slint";
 
@@ -16,7 +17,7 @@ export component Link inherits Rectangle {
 
     IconDisplay {
         icon: icon;
-        stroke: Palette.accent-background;
+        stroke: MyPalette.accent-background;
         size: 14px;
         x: 0px;
         y: -1px;
@@ -24,7 +25,7 @@ export component Link inherits Rectangle {
 
     t := Text {
         text: label;
-        color: Palette.accent-background;
+        color: MyPalette.accent-background;
         x: 17px;
         y: 0px;
     }
@@ -34,7 +35,7 @@ export component Link inherits Rectangle {
         y: t.height + 1px;
         height: 1px;
         width: 15px + t.width;
-        background: Palette.accent-background;
+        background: MyPalette.accent-background;
     }
 
     TouchArea {

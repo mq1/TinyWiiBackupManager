@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { Palette } from "std-widgets.slint";
+import { MyPalette } from "../styling.slint";
 import { IconDisplay, Icon } from "@lucide";
 import { State } from "../state.slint";
 
@@ -14,9 +14,9 @@ export component NavbarButton inherits Rectangle {
 
     pure function get-background() -> color {
         if active {
-            Palette.selection-background
+            MyPalette.selection-background
         } else if ta.has-hover {
-            Palette.alternate-background
+            MyPalette.alternate-background
         } else {
             transparent
         }
@@ -30,7 +30,7 @@ export component NavbarButton inherits Rectangle {
 
     IconDisplay {
         icon: icon;
-        stroke: Palette.foreground;
+        stroke: MyPalette.foreground;
     }
 
     ta := TouchArea {

@@ -1,0 +1,15 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { Palette } from "std-widgets.slint";
+
+export global MyPalette {
+    out property <brush> background: Palette.background;
+    out property <brush> foreground: Palette.foreground;
+    out property <brush> card-background: Palette.color-scheme == ColorScheme.dark ? #1e1e1e : #ffffff;
+    out property <brush> alternate-background: Palette.alternate-background;
+    out property <brush> border: Palette.border.with-alpha(0.2);
+    out property <brush> selection-background: Palette.selection-background.with-alpha(0.5);
+    out property <brush> accent-background: Palette.accent-background;
+    out property <brush> accent-foreground: Palette.accent-foreground;
+}
