@@ -33,6 +33,7 @@ export component GameGridPage inherits VerticalLayout {
 
                     TooltipArea {
                         tooltip: "Show Wii";
+                        width: 14px;
 
                         IconDisplay {
                             icon: IconSet.Pointer;
@@ -46,9 +47,14 @@ export component GameGridPage inherits VerticalLayout {
                         checked: State.show-gc;
                     }
 
-                    IconDisplay {
-                        icon: IconSet.Box;
-                        size: 14px;
+                    TooltipArea {
+                        tooltip: "Show GameCube";
+                        width: 14px;
+
+                        IconDisplay {
+                            icon: IconSet.Box;
+                            size: 14px;
+                        }
                     }
                 }
             }
