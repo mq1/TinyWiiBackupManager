@@ -50,7 +50,15 @@ export component IconButton inherits Rectangle {
         if kind == IconButtonKind.Secondary {
             MyPalette.foreground
         } else {
-            MyPalette.accent-foreground
+            Colors.white
+        }
+    }
+
+    pure function get-font-weight() -> int {
+        if kind == IconButtonKind.Secondary {
+            400
+        } else {
+            600
         }
     }
 
@@ -77,6 +85,7 @@ export component IconButton inherits Rectangle {
             text: label;
             color: get-stroke();
             horizontal-alignment: center;
+            font-weight: get-font-weight();
         }
     }
 

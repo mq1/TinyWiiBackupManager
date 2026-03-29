@@ -8,8 +8,8 @@ export global MyPalette {
     out property <brush> foreground: Palette.foreground;
     out property <brush> card-background: Palette.color-scheme == ColorScheme.light ? #ffffff : #1e1e1e;
     out property <brush> alternate-background: Palette.alternate-background;
-    out property <brush> border: Palette.border.with-alpha(0.2);
-    out property <brush> selection-background: Palette.selection-background.with-alpha(0.5);
+    out property <brush> border: Palette.border.transparentize(-0.5);
+    out property <brush> selection-background: Palette.selection-background;
     out property <brush> accent-background: Palette.accent-background;
     out property <brush> accent-foreground: Palette.accent-foreground;
 
