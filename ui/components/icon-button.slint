@@ -16,31 +16,15 @@ export component IconButton inherits Rectangle {
 
     callback clicked;
 
-    pure function get-bg() -> color {
-        if kind == IconButtonKind.Primary && !t.has-hover {
-            MyPalette.accent-background
-        } else if kind == IconButtonKind.Primary && Palette.color-scheme == ColorScheme.light {
-            MyPalette.accent-background.darker(0.1)
-        } else if kind == IconButtonKind.Primary {
-            MyPalette.accent-background.brighter(0.1)
-        } else if kind == IconButtonKind.Secondary && !t.has-hover {
-            MyPalette.alternate-background
-        } else if kind == IconButtonKind.Secondary && Palette.color-scheme == ColorScheme.light {
-            MyPalette.alternate-background.darker(0.1)
+    pure function get-bg() -> brush {
+        if kind == IconButtonKind.Primary {
+            t.has-hover ? MyPalette.primary-hover : MyPalette.accent-background
         } else if kind == IconButtonKind.Secondary {
-            MyPalette.alternate-background.brighter(0.1)
-        } else if kind == IconButtonKind.Warning && !t.has-hover {
-            Colors.yellow
-        } else if kind == IconButtonKind.Warning && Palette.color-scheme == ColorScheme.light {
-            Colors.yellow.darker(0.1)
+            t.has-hover ? MyPalette.secondary-hover : MyPalette.alternate-background
         } else if kind == IconButtonKind.Warning {
-            Colors.yellow.brighter(0.1)
-        } else if kind == IconButtonKind.Danger && !t.has-hover {
-            Colors.red
-        } else if kind == IconButtonKind.Danger && Palette.color-scheme == ColorScheme.light {
-            Colors.red.darker(0.1)
+            t.has-hover ? MyPalette.warning-hover : MyPalette.warning-background
         } else if kind == IconButtonKind.Danger {
-            Colors.red.brighter(0.1)
+            t.has-hover ? MyPalette.danger-hover : MyPalette.danger-background
         } else {
             transparent
         }
@@ -62,7 +46,7 @@ export component IconButton inherits Rectangle {
         }
     }
 
-    pure function get-stroke() -> color {
+    pure function get-stroke() -> brush {
         if kind == IconButtonKind.Secondary {
             MyPalette.foreground
         } else {
