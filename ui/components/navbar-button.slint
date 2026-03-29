@@ -4,18 +4,16 @@
 import { MyPalette } from "../styling.slint";
 import { IconDisplay, Icon } from "@lucide";
 import { State } from "../state.slint";
+import { TooltipArea } from "tooltip-area.slint";
 
-export component NavbarButton inherits Rectangle {
+export component NavbarButton inherits TooltipArea {
     in property <bool> active: false;
     in property <Icon> icon;
-    in property <string> tooltip;
-
-    callback clicked;
 
     pure function get-background() -> color {
         if active {
             MyPalette.selection-background
-        } else if ta.has-hover {
+        } else if self.has-hover {
             MyPalette.alternate-background
         } else {
             transparent
@@ -31,26 +29,5 @@ export component NavbarButton inherits Rectangle {
     IconDisplay {
         icon: icon;
         stroke: MyPalette.foreground;
-    }
-
-    ta := TouchArea {
-        clicked => clicked();
-
-        pointer-event(event) => {
-            if event.kind == PointerEventKind.move {
-                State.tooltip.b-mouse-x = self.absolute-position.x + self.mouse-x;
-                State.tooltip.c-mouse-y = self.absolute-position.y + self.mouse-y;
-            }
-        }
-
-        changed has-hover => {
-            if self.has-hover {
-                State.tooltip.a-text = tooltip;
-                State.tooltip.b-mouse-x = self.absolute-position.x + self.mouse-x;
-                State.tooltip.c-mouse-y = self.absolute-position.y + self.mouse-y;
-            } else {
-                State.tooltip.a-text = "";
-            }
-        }
     }
 }

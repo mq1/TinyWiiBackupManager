@@ -57,9 +57,9 @@ export component AppWindow inherits Window {
         }
     }
 
-    if !State.tooltip.a-text.is-empty: Card {
-        x: State.tooltip.b-mouse-x + t.preferred-width + 18px > root.width ? State.tooltip.b-mouse-x - t.preferred-width - 18px : State.tooltip.b-mouse-x;
-        y: State.tooltip.c-mouse-y;
+    if !State.tooltip.text.is-empty: Card {
+        x: State.tooltip.mouse-x + t.preferred-width + 18px > root.width ? State.tooltip.mouse-x - t.preferred-width - 18px : State.tooltip.mouse-x;
+        y: State.tooltip.mouse-y;
 
         width: t.preferred-width + 18px;
         height: t.preferred-height + 16px;
@@ -71,7 +71,7 @@ export component AppWindow inherits Window {
             padding-right: 9px;
 
             t := Text {
-                text: State.tooltip.a-text;
+                text: State.tooltip.text;
             }
         }
     }
