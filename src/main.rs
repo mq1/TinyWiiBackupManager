@@ -9,6 +9,7 @@ mod dialogs;
 mod game;
 mod game_list;
 mod id_map;
+mod results;
 mod util;
 
 #[cfg(target_vendor = "pc")]
@@ -68,10 +69,7 @@ fn main() -> Result<()> {
         .set_game_list(GameList::new(&mount_point, data_dir));
 
     app.global::<Rust<'_>>()
-        .on_open(|uri| match open::that(&uri) {
-            Ok(()) => SharedString::new(),
-            Err(e) => e.to_shared_string(),
-        });
+        .on_open(|uri| open::that(&uri).into());
 
     let weak = app.as_weak();
     app.global::<Rust<'_>>().on_pick_mount_point(move || {
@@ -84,19 +82,13 @@ fn main() -> Result<()> {
     });
 
     app.global::<Rust<'_>>()
-        .on_write_config(|config| match config.write() {
-            Ok(()) => SharedString::new(),
-            Err(e) => e.to_shared_string(),
-        });
+        .on_write_config(|config| config.write().into());
 
     app.global::<Rust<'_>>()
         .on_get_drive_usage(|path| util::get_drive_usage(Path::new(&path)));
 
     app.global::<Rust<'_>>()
-        .on_delete_dir(|path| match fs::remove_dir_all(path) {
-            Ok(()) => SharedString::new(),
-            Err(e) => e.to_shared_string(),
-        });
+        .on_delete_dir(|path| fs::remove_dir_all(path).into());
 
     app.global::<Rust<'_>>()
         .on_get_game_list(|path| GameList::new(Path::new(&path), data_dir));

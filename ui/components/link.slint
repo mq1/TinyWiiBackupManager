@@ -44,7 +44,8 @@ export component Link inherits Rectangle {
         width: 17px + t.width;
         mouse-cursor: pointer;
         clicked => {
-            State.err(Rust.open(uri));
+            let res = Rust.open(uri);
+            State.err(res.err);
         }
     }
 }

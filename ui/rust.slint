@@ -1,13 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { Config, GameList } from "types.slint";
+import { Config, GameList, EmptyResult } from "types.slint";
 
 export global Rust {
-    pure callback open(string) -> string;
+    pure callback open(string) -> EmptyResult;
     pure callback pick-mount-point() -> string;
-    pure callback write-config(Config) -> string;
+    pure callback write-config(Config) -> EmptyResult;
     pure callback get-drive-usage(string) -> {a-used: float, b-total: float};
-    pure callback delete-dir(string) -> string;
+    pure callback delete-dir(string) -> EmptyResult;
     pure callback get-game-list(string) -> GameList;
 }

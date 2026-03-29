@@ -47,23 +47,25 @@ export global State {
         message.text = "";
     }
 
+    public function write-config() {
+        let res = Rust.write-config(config);
+        err(res.err);
+    }
+
     public function pick-mount-point() {
         let mount-point = Rust.pick-mount-point();
         if !mount-point.is-empty {
             config.contents.mount-point = mount-point;
-            err(Rust.write-config(config));
+            write-config();
             drive-usage = Rust.get-drive-usage(mount-point);
             game-list = Rust.get-game-list(mount-point);
         }
     }
 
-    public function write-config() {
-        err(Rust.write-config(config));
-    }
-
     public function delete-dir(path: string) {
         dismiss();
-        err(Rust.delete-dir(path));
+        let res = Rust.delete-dir(path);
+        err(res.err);
         drive-usage = Rust.get-drive-usage(config.contents.mount-point);
         game-list = Rust.get-game-list(config.contents.mount-point);
     }
