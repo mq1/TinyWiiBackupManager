@@ -71,4 +71,8 @@ export global State {
         drive-usage = Rust.get-drive-usage(config.contents.mount-point);
         game-list = Rust.get-game-list(config.contents.mount-point);
     }
+
+    public function filter-games(filter: string) {
+        game-list = Rust.filter-games(game-list, filter);
+    }
 }

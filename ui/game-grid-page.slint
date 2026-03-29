@@ -9,17 +9,14 @@ import {
 } from "std-widgets.slint";
 import { State } from "state.slint";
 import { GameCard } from "components/game-card.slint";
+import { GameFilter } from "components/game-filter.slint";
 import { IconSet, IconDisplay } from "@lucide";
 
 export component GameGridPage inherits VerticalLayout {
     alignment: start;
 
-    VerticalBox {
-        Text {
-            text: "Games";
-            font-size: 18px;
-            font-weight: 600;
-        }
+    HorizontalBox {
+        GameFilter { }
     }
 
     ScrollView {
@@ -29,7 +26,7 @@ export component GameGridPage inherits VerticalLayout {
         v := VerticalLayout {
             padding: 5px;
 
-            HorizontalLayout {
+            if State.game-list.filtered-games.length == 0: HorizontalLayout {
                 padding-left: 5px;
                 padding-bottom: 5px;
 
@@ -46,7 +43,7 @@ export component GameGridPage inherits VerticalLayout {
                 }
             }
 
-            FlexBoxLayout {
+            if State.game-list.filtered-games.length == 0: FlexBoxLayout {
                 for game[i] in State.game-list.games: HorizontalLayout {
                     padding: game.is-wii ? 5px : 0px;
 
@@ -56,7 +53,7 @@ export component GameGridPage inherits VerticalLayout {
                 }
             }
 
-            HorizontalLayout {
+            if State.game-list.filtered-games.length == 0: HorizontalLayout {
                 padding-left: 5px;
                 padding-top: 20px;
                 padding-bottom: 5px;
@@ -74,11 +71,19 @@ export component GameGridPage inherits VerticalLayout {
                 }
             }
 
-            FlexBoxLayout {
+            if State.game-list.filtered-games.length == 0: FlexBoxLayout {
                 for game[i] in State.game-list.games: HorizontalLayout {
                     padding: game.is-wii ? 0px : 5px;
 
                     if !game.is-wii: GameCard {
+                        game: game;
+                    }
+                }
+            }
+
+            if State.game-list.filtered-games.length > 0: FlexBoxLayout {
+                for game[i] in State.game-list.filtered-games: HorizontalLayout {
+                    GameCard {
                         game: game;
                     }
                 }

@@ -93,6 +93,12 @@ fn main() -> Result<()> {
     app.global::<Rust<'_>>()
         .on_get_game_list(|path| GameList::new(Path::new(&path), data_dir));
 
+    app.global::<Rust<'_>>()
+        .on_filter_games(|mut game_list, query| {
+            game_list.fuzzy_search(&query);
+            game_list
+        });
+
     if let Err(e) = app.run() {
         if std::env::var("SLINT_BACKEND").unwrap_or_default() == "winit-software" {
             bail!(e);

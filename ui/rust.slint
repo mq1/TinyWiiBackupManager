@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { Config, GameList, EmptyResult } from "types.slint";
+import { Config, GameList, EmptyResult, Game } from "types.slint";
 
 export global Rust {
     pure callback open(string) -> EmptyResult;
@@ -10,4 +10,5 @@ export global Rust {
     pure callback get-drive-usage(string) -> {a-used: float, b-total: float};
     pure callback delete-dir(string) -> EmptyResult;
     pure callback get-game-list(string) -> GameList;
+    pure callback filter-games(GameList, string) -> GameList;
 }

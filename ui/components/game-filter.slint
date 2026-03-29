@@ -1,0 +1,35 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { Card } from "card.slint";
+import {
+    LineEdit,
+    Palette,
+    HorizontalBox,
+    VerticalBox,
+} from "std-widgets.slint";
+import { IconSet, IconDisplay } from "@lucide";
+import { State } from "../state.slint";
+
+export component GameFilter inherits Card {
+    width: 200px;
+
+    HorizontalLayout {
+        VerticalBox {
+            alignment: center;
+
+            IconDisplay {
+                icon: IconSet.Search;
+                size: 14px;
+                stroke: Palette.foreground;
+            }
+        }
+
+        LineEdit {
+            placeholder-text: "Search by Title/ID";
+            edited(text) => {
+                State.filter-games(text);
+            }
+        }
+    }
+}
