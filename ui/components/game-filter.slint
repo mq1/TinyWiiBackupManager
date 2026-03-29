@@ -10,7 +10,6 @@ import {
 import { MyPalette } from "../styling.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { State } from "../state.slint";
-import { VerticalLine } from "vertical-line.slint";
 
 export component GameFilter inherits Card {
     width: 200px;
@@ -27,20 +26,13 @@ export component GameFilter inherits Card {
             }
         }
 
-        VerticalLine { }
+        LineEdit {
+            width: 175px;
 
-        Rectangle {
-            clip: true;
-
-            LineEdit {
-                height: 40px;
-                width: 165px;
-
-                placeholder-text: "Search by Title/ID";
-                text <=> State.game-filter;
-                changed text => {
-                    State.filter-games();
-                }
+            placeholder-text: "Search by Title/ID";
+            text <=> State.game-filter;
+            changed text => {
+                State.filter-games();
             }
         }
     }
