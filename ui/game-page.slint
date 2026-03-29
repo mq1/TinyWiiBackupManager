@@ -1,0 +1,36 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { VerticalBox, ScrollView, Palette } from "std-widgets.slint";
+import { Game } from "types.slint";
+import { IconSet } from "@lucide";
+import { State } from "state.slint";
+import { Link } from "components/link.slint";
+
+export component GamePage inherits VerticalLayout {
+    alignment: start;
+
+    VerticalBox {
+        Text {
+            text: State.current-game.title;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        Link {
+            icon: IconSet.Folder;
+            label: "Path: " + State.current-game.path;
+            uri: State.current-game.path;
+        }
+    }
+
+    ScrollView {
+        height: parent.height - 40px;
+
+        VerticalBox {
+            padding-top: 0px;
+            padding-right: 20px;
+            height: 100%;
+        }
+    }
+}

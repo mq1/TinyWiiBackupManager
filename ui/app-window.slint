@@ -3,7 +3,7 @@
 
 import { Button, VerticalBox, Palette, HorizontalBox } from "std-widgets.slint";
 import { Navbar } from "components/navbar.slint";
-import { GamesPage } from "games-page.slint";
+import { GameGridPage } from "game-grid-page.slint";
 import { SettingsPage } from "settings-page.slint";
 import { AboutPage } from "about-page.slint";
 import { Page } from "types.slint";
@@ -13,6 +13,7 @@ import { Rust } from "rust.slint";
 import { MessagePage } from "message-page.slint";
 import { VerticalLine } from "components/vertical-line.slint";
 import { Card } from "components/card.slint";
+import { GamePage } from "game-page.slint";
 
 export * from "types.slint";
 export { State, Rust }
@@ -36,9 +37,10 @@ export component AppWindow inherits Window {
                 border-width: 1px;
                 border-color: Palette.border;
 
-                if State.current-page == Page.Games: GamesPage { }
+                if State.current-page == Page.GameGrid: GameGridPage { }
                 if State.current-page == Page.Settings: SettingsPage { }
                 if State.current-page == Page.About: AboutPage { }
+                if State.current-page == Page.Game: GamePage { }
             }
 
             if !State.status.is-empty: HorizontalLayout {

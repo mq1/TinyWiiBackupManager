@@ -8,6 +8,7 @@ import {
     IconButtonKind,
     GameList,
     MessageKind,
+    Game,
 } from "types.slint";
 import { Rust } from "rust.slint";
 import { Palette } from "std-widgets.slint";
@@ -15,6 +16,7 @@ import { Palette } from "std-widgets.slint";
 export global State {
     in property <string> version;
     in-out property <Page> current-page;
+    in-out property <Game> current-game;
     in property <string> data-dir;
     in-out property <Config> config;
     in-out property <Message> message;

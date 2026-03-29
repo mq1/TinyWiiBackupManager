@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import { Card } from "card.slint";
-import { Game, MessageKind } from "../types.slint";
+import { Game, MessageKind, Page } from "../types.slint";
 import { VerticalBox } from "std-widgets.slint";
 import { IconButton } from "icon-button.slint";
 import { IconSet } from "@lucide";
@@ -47,6 +47,10 @@ export component GameCard inherits Card {
                 label: "Info";
                 icon: IconSet.Info;
                 tooltip: "Game info";
+                clicked => {
+                    State.current-page = Page.Game;
+                    State.current-game = game;
+                }
             }
 
             IconButton {

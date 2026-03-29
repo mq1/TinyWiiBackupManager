@@ -12,10 +12,10 @@ export component Navbar inherits VerticalLayout {
 
     VerticalBox {
         NavbarButton {
-            active: State.current-page == Page.Games;
+            active: State.current-page == Page.GameGrid;
             icon: IconSet.Gamepad2;
             clicked => {
-                State.current-page = Page.Games;
+                State.current-page = Page.GameGrid;
             }
         }
 
