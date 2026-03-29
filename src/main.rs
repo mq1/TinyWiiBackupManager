@@ -17,7 +17,7 @@ mod window_color;
 #[cfg(target_vendor = "win7")]
 mod xp_dialogs;
 
-use crate::{data_dir::DATA_DIR, id_map::ID_MAP};
+use crate::{data_dir::get_data_dir, id_map::ID_MAP};
 use anyhow::{Result, bail};
 use slint::{SharedString, ToSharedString};
 use std::{
@@ -44,8 +44,10 @@ fn main() -> Result<()> {
     // Decompress idmap
     let _ = std::thread::spawn(|| LazyLock::force(&ID_MAP));
 
+    let data_dir = Box::leak(Box::new(get_data_dir()?));
+
     let app = AppWindow::new()?;
-    let config = Config::load(&DATA_DIR);
+    let config = Config::load(data_dir);
     let mount_point = PathBuf::from(&config.contents.mount_point);
 
     #[cfg(target_vendor = "pc")]
@@ -55,7 +57,7 @@ fn main() -> Result<()> {
         .set_version(env!("CARGO_PKG_VERSION").into());
 
     app.global::<State<'_>>()
-        .set_data_dir(DATA_DIR.to_string_lossy().to_shared_string());
+        .set_data_dir(data_dir.to_string_lossy().to_shared_string());
 
     app.global::<State<'_>>().set_config(config);
 
@@ -63,7 +65,7 @@ fn main() -> Result<()> {
         .set_drive_usage(util::get_drive_usage(&mount_point));
 
     app.global::<State<'_>>()
-        .set_game_list(GameList::new(&mount_point, &DATA_DIR));
+        .set_game_list(GameList::new(&mount_point, data_dir));
 
     app.global::<Rust<'_>>()
         .on_open(|uri| match open::that(&uri) {
@@ -97,7 +99,7 @@ fn main() -> Result<()> {
         });
 
     app.global::<Rust<'_>>()
-        .on_get_game_list(|path| GameList::new(Path::new(&path), &DATA_DIR));
+        .on_get_game_list(|path| GameList::new(Path::new(&path), data_dir));
 
     if let Err(e) = app.run() {
         if std::env::var("SLINT_BACKEND").unwrap_or_default() == "winit-software" {
