@@ -38,7 +38,6 @@ impl GameList {
 
         Self {
             games: ModelRc::from(games.as_slice()),
-            filtered_games: ModelRc::from([]),
             total_size: wii_size + gc_size,
             wii_count,
             wii_size,
@@ -65,36 +64,6 @@ impl GameList {
             .unwrap()
             .set_vec(games);
     }
-
-    pub fn fuzzy_search(&mut self, query: &str) {
-        let matcher = SkimMatcherV2::default();
-
-        let mut games = Vec::new();
-        for game in self.games.iter() {
-            let title_score = matcher.fuzzy_match(&game.title, query);
-            let id_score = matcher.fuzzy_match(&game.id, query);
-
-            if title_score.is_none() && id_score.is_none() {
-                continue;
-            }
-
-            let score = title_score
-                .unwrap_or(0)
-                .saturating_add(id_score.unwrap_or(0));
-
-            games.push((game, score));
-        }
-
-        games.sort_unstable_by_key(|(_, score)| *score);
-
-        let games = games.into_iter().map(|(game, _)| game).collect::<Vec<_>>();
-
-        self.filtered_games
-            .as_any()
-            .downcast_ref::<VecModel<Game>>()
-            .unwrap()
-            .set_vec(games);
-    }
 }
 
 fn read_game_dir(
@@ -116,4 +85,28 @@ fn read_game_dir(
     }
 
     Ok(())
+}
+
+pub fn fuzzy_search<G: IntoIterator<Item = Game>>(games: G, query: &str) -> Vec<Game> {
+    let matcher = SkimMatcherV2::default();
+
+    let mut filtered_games = Vec::new();
+    for game in games {
+        let title_score = matcher.fuzzy_match(&game.title, query);
+        let id_score = matcher.fuzzy_match(&game.id, query);
+
+        if title_score.is_none() && id_score.is_none() {
+            continue;
+        }
+
+        let score = title_score
+            .unwrap_or(0)
+            .saturating_add(id_score.unwrap_or(0));
+
+        filtered_games.push((game, score));
+    }
+
+    filtered_games.sort_unstable_by_key(|(_, score)| *score);
+
+    filtered_games.into_iter().map(|(game, _)| game).collect()
 }

@@ -22,6 +22,7 @@ export global State {
     in-out property <Message> message;
     in-out property <{a-used: float, b-total: float}> drive-usage;
     in-out property <GameList> game-list;
+    in-out property <[Game]> filtered-games;
     in property <string> status;
     in property <{a-text: string, b-mouse-x: length, c-mouse-y: length}> tooltip;
 
@@ -73,6 +74,6 @@ export global State {
     }
 
     public function filter-games(filter: string) {
-        game-list = Rust.filter-games(game-list, filter);
+        filtered-games = Rust.filter-games(game-list.games, filter);
     }
 }

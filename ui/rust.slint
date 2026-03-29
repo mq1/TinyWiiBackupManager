@@ -10,5 +10,5 @@ export global Rust {
     pure callback get-drive-usage(string) -> {a-used: float, b-total: float};
     pure callback delete-dir(string) -> EmptyResult;
     pure callback get-game-list(string) -> GameList;
-    pure callback filter-games(GameList, string) -> GameList;
+    pure callback filter-games([Game], string) -> [Game];
 }

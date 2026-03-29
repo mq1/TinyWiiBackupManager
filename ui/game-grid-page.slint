@@ -26,7 +26,7 @@ export component GameGridPage inherits VerticalLayout {
         v := VerticalLayout {
             padding: 5px;
 
-            if State.game-list.filtered-games.length == 0: HorizontalLayout {
+            if State.filtered-games.length == 0: HorizontalLayout {
                 padding-left: 5px;
                 padding-bottom: 5px;
 
@@ -43,7 +43,7 @@ export component GameGridPage inherits VerticalLayout {
                 }
             }
 
-            if State.game-list.filtered-games.length == 0: FlexBoxLayout {
+            if State.filtered-games.length == 0: FlexBoxLayout {
                 for game[i] in State.game-list.games: HorizontalLayout {
                     padding: game.is-wii ? 5px : 0px;
 
@@ -53,7 +53,7 @@ export component GameGridPage inherits VerticalLayout {
                 }
             }
 
-            if State.game-list.filtered-games.length == 0: HorizontalLayout {
+            if State.filtered-games.length == 0: HorizontalLayout {
                 padding-left: 5px;
                 padding-top: 20px;
                 padding-bottom: 5px;
@@ -71,7 +71,7 @@ export component GameGridPage inherits VerticalLayout {
                 }
             }
 
-            if State.game-list.filtered-games.length == 0: FlexBoxLayout {
+            if State.filtered-games.length == 0: FlexBoxLayout {
                 for game[i] in State.game-list.games: HorizontalLayout {
                     padding: game.is-wii ? 0px : 5px;
 
@@ -81,8 +81,8 @@ export component GameGridPage inherits VerticalLayout {
                 }
             }
 
-            if State.game-list.filtered-games.length > 0: FlexBoxLayout {
-                for game[i] in State.game-list.filtered-games: HorizontalLayout {
+            if State.filtered-games.length > 0: FlexBoxLayout {
+                for game[i] in State.filtered-games: HorizontalLayout {
                     GameCard {
                         game: game;
                     }

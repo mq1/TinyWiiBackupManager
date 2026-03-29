@@ -20,11 +20,12 @@ mod xp_dialogs;
 
 use crate::{data_dir::get_data_dir, id_map::ID_MAP};
 use anyhow::{Result, bail};
-use slint::{SharedString, ToSharedString};
+use slint::{Model, ModelRc, SharedString, ToSharedString, VecModel};
 use std::{
     fs,
     path::{Path, PathBuf},
     process::Command,
+    rc::Rc,
     sync::LazyLock,
 };
 
@@ -93,11 +94,11 @@ fn main() -> Result<()> {
     app.global::<Rust<'_>>()
         .on_get_game_list(|path| GameList::new(Path::new(&path), data_dir));
 
-    app.global::<Rust<'_>>()
-        .on_filter_games(|mut game_list, query| {
-            game_list.fuzzy_search(&query);
-            game_list
-        });
+    app.global::<Rust<'_>>().on_filter_games(|games, query| {
+        let games = game_list::fuzzy_search(games.iter(), &query);
+        let model = VecModel::from(games);
+        ModelRc::from(Rc::new(model))
+    });
 
     if let Err(e) = app.run() {
         if std::env::var("SLINT_BACKEND").unwrap_or_default() == "winit-software" {
