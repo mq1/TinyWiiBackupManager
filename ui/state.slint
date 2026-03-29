@@ -23,6 +23,7 @@ export global State {
     in-out property <{a-used: float, b-total: float}> drive-usage;
     in-out property <GameList> game-list;
     in-out property <[Game]> filtered-games;
+    in-out property <string> game-filter;
     in property <string> status;
     in property <{a-text: string, b-mouse-x: length, c-mouse-y: length}> tooltip;
 
@@ -73,7 +74,11 @@ export global State {
         game-list = Rust.get-game-list(config.contents.mount-point);
     }
 
-    public function filter-games(filter: string) {
-        filtered-games = Rust.filter-games(game-list.games, filter);
+    public function filter-games() {
+        if game-filter.is-empty {
+            filtered-games = [];
+        } else {
+            filtered-games = Rust.filter-games(game-list.games, game-filter);
+        }
     }
 }
