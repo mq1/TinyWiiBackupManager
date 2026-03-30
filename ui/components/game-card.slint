@@ -5,8 +5,9 @@ import { Card } from "card.slint";
 import { Game, MessageKind, Page } from "../types.slint";
 import { VerticalBox } from "std-widgets.slint";
 import { IconButton } from "icon-button.slint";
-import { IconSet } from "@lucide";
+import { IconSet, IconDisplay } from "@lucide";
 import { State } from "../state.slint";
+import { MyPalette } from "../styling.slint";
 
 export component GameCard inherits Card {
     in property <Game> game;
@@ -16,9 +17,19 @@ export component GameCard inherits Card {
 
     VerticalBox {
         HorizontalLayout {
-            Text {
-                text: game.id;
-                wrap: no-wrap;
+            alignment: space-between;
+
+            HorizontalLayout {
+                IconDisplay {
+                    icon: IconSet.Tag;
+                    size: 13px;
+                    stroke: MyPalette.foreground;
+                }
+
+                Text {
+                    text: " " + game.id;
+                    wrap: no-wrap;
+                }
             }
 
             Text {
