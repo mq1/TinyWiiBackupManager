@@ -4,6 +4,7 @@
 use std::path::Path;
 
 pub const GIB: f32 = 1024. * 1024. * 1024.;
+pub const MIB: f32 = 1024. * 1024.;
 
 pub fn get_drive_usage(path: &Path) -> (f32, f32) {
     let Ok(stat) = fs4::statvfs(path) else {

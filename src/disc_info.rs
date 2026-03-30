@@ -1,13 +1,16 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::DiscInfo;
+use crate::{
+    DiscInfo,
+    game::region,
+    util::{GIB, MIB},
+};
 use anyhow::{Result, anyhow, bail};
 use nod::{
     common::{Format, PartitionKind},
     read::{DiscOptions, DiscReader, PartitionEncryption, PartitionOptions},
 };
-use size::Size;
 use slint::ToSharedString;
 use std::{ffi::OsStr, fs, path::Path};
 
@@ -78,12 +81,20 @@ impl DiscInfo {
         let meta = disc.meta();
 
         let block_size = match meta.block_size {
-            Some(size) => Size::from_bytes(size).to_shared_string(),
+            Some(size) => {
+                #[allow(clippy::cast_precision_loss)]
+                let size_mib = size as f32 / MIB;
+                format!("{size_mib:.2} MiB").to_shared_string()
+            }
             None => "N/A".to_shared_string(),
         };
 
         let disc_size = match meta.disc_size {
-            Some(size) => Size::from_bytes(size).to_shared_string(),
+            Some(size) => {
+                #[allow(clippy::cast_precision_loss)]
+                let size_gib = size as f32 / GIB;
+                format!("{size_gib:.2} GiB").to_shared_string()
+            }
             None => "N/A".to_shared_string(),
         };
 
@@ -111,6 +122,7 @@ impl DiscInfo {
             // discheader
             id: header.game_id_str().to_shared_string(),
             title: header.game_title_str().to_shared_string(),
+            region: region(header.game_id).to_shared_string(),
             is_wii: header.is_wii(),
             is_gc: header.is_gamecube(),
             disc_num: header.disc_num.into(),
