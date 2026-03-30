@@ -70,6 +70,37 @@ export struct GameList {
     gc-size: float,
 }
 
+export struct DiscInfo {
+    // discheader
+    id: string,
+    title: string,
+    is_wii: bool,
+    is_gc: bool,
+    disc_num: int,
+    disc_version: int,
+
+    // discmeta
+    format: string,
+    compression: string,
+    block_size: string,
+    decrypted: bool,
+    needs_hash_recovery: bool,
+    lossless: bool,
+    disc_size: string,
+    crc32: string,
+    md5: string,
+    sha1: string,
+    xxh64: string,
+
+    // misc
+    is_worth_stripping: bool,
+} 
+
 export struct EmptyResult {
+    err: string,
+}
+
+export struct DiscInfoResult {
+    value: DiscInfo,
     err: string,
 }

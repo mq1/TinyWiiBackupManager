@@ -6,6 +6,7 @@
 mod config;
 mod data_dir;
 mod dialogs;
+mod disc_info;
 mod game;
 mod game_list;
 mod id_map;
@@ -109,6 +110,9 @@ fn main() -> Result<()> {
         let model = VecModel::from(games);
         ModelRc::from(Rc::new(model))
     });
+
+    app.global::<Rust<'_>>()
+        .on_get_disc_info(|game_dir| DiscInfo::try_from_game_dir(Path::new(&game_dir)).into());
 
     if let Err(e) = app.run() {
         if std::env::var("SLINT_BACKEND").unwrap_or_default() == "winit-software" {

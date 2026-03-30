@@ -3,9 +3,12 @@
 
 import { VerticalBox, ScrollView, Palette } from "std-widgets.slint";
 import { Game } from "types.slint";
-import { IconSet } from "@lucide";
+import { IconSet, IconDisplay } from "@lucide";
 import { State } from "state.slint";
 import { Link } from "components/link.slint";
+import { Card } from "components/card.slint";
+import { HorizontalLine } from "components/horizontal-line.slint";
+import { MyPalette } from "styling.slint";
 
 export component GamePage inherits VerticalLayout {
     alignment: start;
@@ -30,6 +33,34 @@ export component GamePage inherits VerticalLayout {
             padding-top: 0px;
             padding-right: 20px;
             height: 100%;
+
+            Card {
+                height: i.preferred-height;
+
+                i := VerticalBox {
+                    HorizontalLayout {
+                        IconDisplay {
+                            icon: IconSet.Disc3;
+                            stroke: MyPalette.foreground;
+                            size: 14px;
+                        }
+
+                        Text {
+                            text: " Disc info";
+                        }
+                    }
+
+                    HorizontalLine { }
+
+                    Text {
+                        text: "ID: " + State.current-disc-info.id;
+                    }
+
+                    Text {
+                        text: "Title: " + State.current-disc-info.title;
+                    }
+                }
+            }
         }
     }
 }

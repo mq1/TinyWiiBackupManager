@@ -57,8 +57,7 @@ export component GameCard inherits Card {
                 label: "Info";
                 icon: IconSet.Info;
                 clicked => {
-                    State.current-page = Page.Game;
-                    State.current-game = game;
+                    State.open-game-info(game);
                 }
             }
 
