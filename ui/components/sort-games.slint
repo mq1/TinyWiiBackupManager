@@ -7,6 +7,7 @@ import { IconDisplay, IconSet } from "@lucide";
 import { TooltipArea } from "tooltip-area.slint";
 import { State } from "../state.slint";
 import { MyPalette } from "../styling.slint";
+import { VerticalLine } from "vertical-line.slint";
 
 export component SortGames inherits Card {
     pure function get-bg(sort-by: string, hovered: bool) -> color {
@@ -21,7 +22,7 @@ export component SortGames inherits Card {
 
     HorizontalLayout {
         Rectangle {
-            width: 80px;
+            width: 83px;
             height: 38px;
             clip: true;
             border-radius: 10px;
@@ -58,14 +59,19 @@ export component SortGames inherits Card {
                 }
 
                 IconDisplay {
-                    icon: IconSet.ArrowDownZA;
+                    icon: IconSet.ArrowUpAZ;
                     size: 14px;
                     stroke: MyPalette.foreground;
                 }
             }
 
+            VerticalLine {
+                x: 41px;
+                y: 0;
+            }
+
             TooltipArea {
-                x: 40px;
+                x: 43px;
                 y: 0;
                 width: 20px;
                 height: 38px;
@@ -84,7 +90,7 @@ export component SortGames inherits Card {
             }
 
             TooltipArea {
-                x: 60px;
+                x: 63px;
                 y: 0;
                 width: 20px;
                 height: 38px;
@@ -96,7 +102,7 @@ export component SortGames inherits Card {
                 }
 
                 IconDisplay {
-                    icon: IconSet.ArrowDown10;
+                    icon: IconSet.ArrowUp01;
                     size: 14px;
                     stroke: MyPalette.foreground;
                 }
