@@ -10,43 +10,59 @@ import { State } from "../state.slint";
 import { MyPalette } from "../styling.slint";
 
 export component ShowWiiGc inherits Card {
-    HorizontalBox {
-        CheckBox {
-            checked <=> State.config.contents.show-wii;
-            changed checked => {
-                State.write-config();
-            }
+    height: 38px;
+    width: 100px;
+
+    CheckBox {
+        x: 10px;
+        y: parent.height / 2 - self.height / 2;
+
+        checked <=> State.config.contents.show-wii;
+        changed checked => {
+            State.write-config();
         }
+    }
 
-        TooltipArea {
-            tooltip: "Show Wii";
-            width: 14px;
+    TooltipArea {
+        x: 30px;
+        y: 0;
 
-            IconDisplay {
-                icon: IconSet.Pointer;
-                size: 14px;
-                stroke: MyPalette.foreground;
-            }
+        tooltip: "Show Wii";
+        width: 14px;
+
+        IconDisplay {
+            icon: IconSet.Pointer;
+            size: 14px;
+            stroke: MyPalette.foreground;
         }
+    }
 
-        VerticalLine { }
+    VerticalLine {
+        x: 49px;
+        y: 0;
+    }
 
-        CheckBox {
-            checked <=> State.config.contents.show-gc;
-            changed checked => {
-                State.write-config();
-            }
+    CheckBox {
+        x: 58px;
+        y: parent.height / 2 - self.height / 2;
+
+        checked <=> State.config.contents.show-gc;
+        changed checked => {
+            State.write-config();
         }
+    }
 
-        TooltipArea {
-            tooltip: "Show GameCube";
-            width: 14px;
+    TooltipArea {
+        x: 78px;
+        y: 0;
 
-            IconDisplay {
-                icon: IconSet.Box;
-                size: 14px;
-                stroke: MyPalette.foreground;
-            }
+        tooltip: "Show GameCube";
+        width: 14px;
+
+        IconDisplay {
+            icon: IconSet.Box;
+            size: 14px;
+            stroke: MyPalette.foreground;
         }
     }
 }
