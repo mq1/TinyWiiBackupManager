@@ -1,0 +1,37 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { GameFilter } from "game-filter.slint";
+import { ShowWiiGc } from "show-wii-gc.slint";
+import { HorizontalBox } from "std-widgets.slint";
+import { IconButton } from "icon-button.slint";
+import { IconButtonKind } from "../types.slint";
+import { IconSet } from "@lucide";
+import { State } from "../state.slint";
+
+export component GamesToolbar inherits HorizontalBox {
+    alignment: space-between;
+
+    GameFilter { }
+
+    HorizontalLayout {
+        spacing: 10px;
+
+        ShowWiiGc { }
+
+        VerticalLayout {
+            alignment: center;
+
+            IconButton {
+                icon: IconSet.RotateCw;
+                tooltip: "Refresh games and apps";
+                rounded: true;
+                kind: IconButtonKind.Primary;
+                font-size: 18px;
+                clicked => {
+                    State.refresh-all();
+                }
+            }
+        }
+    }
+}

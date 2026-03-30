@@ -57,24 +57,6 @@ export global State {
         err(res.err);
     }
 
-    public function pick-mount-point() {
-        let mount-point = Rust.pick-mount-point();
-        if !mount-point.is-empty {
-            config.contents.mount-point = mount-point;
-            write-config();
-            drive-usage = Rust.get-drive-usage(mount-point);
-            game-list = Rust.get-game-list(mount-point);
-        }
-    }
-
-    public function delete-dir(path: string) {
-        dismiss();
-        let res = Rust.delete-dir(path);
-        err(res.err);
-        drive-usage = Rust.get-drive-usage(config.contents.mount-point);
-        game-list = Rust.get-game-list(config.contents.mount-point);
-    }
-
     public function filter-games() {
         if game-filter.is-empty {
             filtered-games = [];
@@ -85,5 +67,27 @@ export global State {
 
     public function toggle-dark-mode() {
         Palette.color-scheme = Palette.color-scheme == ColorScheme.dark ? ColorScheme.light : ColorScheme.dark;
+    }
+
+    public function refresh-all() {
+        drive-usage = Rust.get-drive-usage(config.contents.mount-point);
+        game-list = Rust.get-game-list(config.contents.mount-point);
+        filtered-games = [];
+    }
+
+    public function pick-mount-point() {
+        let mount-point = Rust.pick-mount-point();
+        if !mount-point.is-empty {
+            config.contents.mount-point = mount-point;
+            write-config();
+            refresh-all();
+        }
+    }
+
+    public function delete-dir(path: string) {
+        dismiss();
+        let res = Rust.delete-dir(path);
+        err(res.err);
+        refresh-all();
     }
 }

@@ -1,34 +1,17 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import {
-    VerticalBox,
-    ScrollView,
-    HorizontalBox,
-    CheckBox,
-} from "std-widgets.slint";
+import { ScrollView } from "std-widgets.slint";
 import { State } from "state.slint";
 import { MyPalette } from "styling.slint";
 import { GameCard } from "components/game-card.slint";
-import { GameFilter } from "components/game-filter.slint";
 import { IconSet, IconDisplay } from "@lucide";
-import { Card } from "components/card.slint";
-import { VerticalLine } from "components/vertical-line.slint";
-import { TooltipArea } from "components/tooltip-area.slint";
-import { ShowWiiGc } from "components/show-wii-gc.slint";
+import { GamesToolbar } from "components/games-toolbar.slint";
 
 export component GameGridPage inherits VerticalLayout {
     alignment: start;
 
-    HorizontalBox {
-        alignment: space-between;
-
-        GameFilter { }
-
-        HorizontalLayout {
-            ShowWiiGc { }
-        }
-    }
+    GamesToolbar { }
 
     ScrollView {
         height: parent.height - 40px;

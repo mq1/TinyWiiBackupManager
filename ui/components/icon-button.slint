@@ -13,6 +13,8 @@ export component IconButton inherits TooltipArea {
     in property <string> label;
     in property <Icon> icon: IconSet.WifiZero;
     in property <IconButtonKind> kind: IconButtonKind.Secondary;
+    in property <bool> rounded: false;
+    in property <length> font-size: 14px;
 
     pure function get-bg() -> brush {
         if kind == IconButtonKind.Primary {
@@ -60,30 +62,35 @@ export component IconButton inherits TooltipArea {
         }
     }
 
+    pure function get-radius() -> length {
+        if rounded {
+            self.width / 2;
+        } else {
+            10px
+        }
+    }
+
     background: get-bg();
     border-color: get-border-color();
     border-width: get-border-width();
-    border-radius: 10px;
+    border-radius: get-radius();
     height: self.min-height;
 
     h := HorizontalLayout {
-        padding-top: 8px;
-        padding-bottom: 8px;
-        padding-left: 9px;
-        padding-right: 9px;
-        spacing: 3px;
+        padding: 8px;
 
         if icon != IconSet.WifiZero: IconDisplay {
             icon: icon;
             stroke: get-stroke();
-            size: 14px;
+            size: font-size;
         }
 
         if !label.is-empty: Text {
-            text: label;
+            text: (icon == IconSet.WifiZero ? "" : " ") + label;
             color: get-stroke();
             horizontal-alignment: center;
             font-weight: get-font-weight();
+            font-size: font-size;
         }
     }
 }

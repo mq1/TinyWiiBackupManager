@@ -13,7 +13,6 @@ export component GameCard inherits Card {
     in property <Game> game;
 
     width: 168px;
-    height: 205px;
 
     VerticalBox {
         HorizontalLayout {
@@ -57,7 +56,6 @@ export component GameCard inherits Card {
             IconButton {
                 label: "Info";
                 icon: IconSet.Info;
-                tooltip: "Game info";
                 clicked => {
                     State.current-page = Page.Game;
                     State.current-game = game;
