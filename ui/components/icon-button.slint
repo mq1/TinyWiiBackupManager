@@ -76,21 +76,26 @@ export component IconButton inherits TooltipArea {
     border-radius: get-radius();
     height: self.min-height;
 
-    h := HorizontalLayout {
+    HorizontalLayout {
         padding: 8px;
+        alignment: center;
 
-        if icon != IconSet.WifiZero: IconDisplay {
-            icon: icon;
-            stroke: get-stroke();
-            size: font-size;
-        }
+        VerticalLayout {
+            alignment: center;
 
-        if !label.is-empty: Text {
-            text: (icon == IconSet.WifiZero ? "" : " ") + label;
-            color: get-stroke();
-            horizontal-alignment: center;
-            font-weight: get-font-weight();
-            font-size: font-size;
+            if icon != IconSet.WifiZero: IconDisplay {
+                icon: icon;
+                stroke: get-stroke();
+                size: font-size;
+            }
+
+            if !label.is-empty: Text {
+                text: (icon == IconSet.WifiZero ? "" : " ") + label;
+                color: get-stroke();
+                horizontal-alignment: center;
+                font-weight: get-font-weight();
+                font-size: font-size;
+            }
         }
     }
 }

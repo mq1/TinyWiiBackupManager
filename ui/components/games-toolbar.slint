@@ -8,6 +8,7 @@ import { IconButton } from "icon-button.slint";
 import { IconButtonKind } from "../types.slint";
 import { IconSet } from "@lucide";
 import { State } from "../state.slint";
+import { SortGames } from "sort-games.slint";
 
 export component GamesToolbar inherits HorizontalBox {
     alignment: space-between;
@@ -19,6 +20,8 @@ export component GamesToolbar inherits HorizontalBox {
 
         ShowWiiGc { }
 
+        SortGames { }
+
         VerticalLayout {
             alignment: center;
 
@@ -28,6 +31,8 @@ export component GamesToolbar inherits HorizontalBox {
                 rounded: true;
                 kind: IconButtonKind.Primary;
                 font-size: 18px;
+                width: 34px;
+                height: 34px;
                 clicked => {
                     State.refresh-all();
                 }
