@@ -20,93 +20,89 @@ export component SortGames inherits Card {
         }
     }
 
-    HorizontalLayout {
-        Rectangle {
-            width: 83px;
-            height: 38px;
-            clip: true;
-            border-radius: 10px;
+    width: 83px;
+    height: 38px;
+    clip: true;
+    border-radius: 10px;
 
-            TooltipArea {
-                x: 0;
-                y: 0;
-                width: 20px;
-                height: 38px;
+    TooltipArea {
+        x: 0;
+        y: 0;
+        width: 20px;
+        height: 38px;
 
-                tooltip: "Sort by name (A→Z)";
-                background: get-bg("name_ascending", self.has-hover);
-                clicked => {
-                    State.apply-sorting("name_ascending");
-                }
+        tooltip: "Sort by name (A→Z)";
+        background: get-bg("name_ascending", self.has-hover);
+        clicked => {
+            State.apply-sorting("name_ascending");
+        }
 
-                IconDisplay {
-                    icon: IconSet.ArrowDownAZ;
-                    size: 14px;
-                    stroke: MyPalette.foreground;
-                }
-            }
+        IconDisplay {
+            icon: IconSet.ArrowDownAZ;
+            size: 14px;
+            stroke: MyPalette.foreground;
+        }
+    }
 
-            TooltipArea {
-                x: 20px;
-                y: 0;
-                width: 20px;
-                height: 38px;
+    TooltipArea {
+        x: 20px;
+        y: 0;
+        width: 20px;
+        height: 38px;
 
-                tooltip: "Sort by name (Z→A)";
-                background: get-bg("name_descending", self.has-hover);
-                clicked => {
-                    State.apply-sorting("name_descending");
-                }
+        tooltip: "Sort by name (Z→A)";
+        background: get-bg("name_descending", self.has-hover);
+        clicked => {
+            State.apply-sorting("name_descending");
+        }
 
-                IconDisplay {
-                    icon: IconSet.ArrowUpAZ;
-                    size: 14px;
-                    stroke: MyPalette.foreground;
-                }
-            }
+        IconDisplay {
+            icon: IconSet.ArrowUpAZ;
+            size: 14px;
+            stroke: MyPalette.foreground;
+        }
+    }
 
-            VerticalLine {
-                x: 41px;
-                y: 0;
-            }
+    VerticalLine {
+        x: 41px;
+        y: 0;
+    }
 
-            TooltipArea {
-                x: 43px;
-                y: 0;
-                width: 20px;
-                height: 38px;
+    TooltipArea {
+        x: 43px;
+        y: 0;
+        width: 20px;
+        height: 38px;
 
-                tooltip: "Sort by size (small→large)";
-                background: get-bg("size_ascending", self.has-hover);
-                clicked => {
-                    State.apply-sorting("size_ascending");
-                }
+        tooltip: "Sort by size (small→large)";
+        background: get-bg("size_ascending", self.has-hover);
+        clicked => {
+            State.apply-sorting("size_ascending");
+        }
 
-                IconDisplay {
-                    icon: IconSet.ArrowDown01;
-                    size: 14px;
-                    stroke: MyPalette.foreground;
-                }
-            }
+        IconDisplay {
+            icon: IconSet.ArrowDown01;
+            size: 14px;
+            stroke: MyPalette.foreground;
+        }
+    }
 
-            TooltipArea {
-                x: 63px;
-                y: 0;
-                width: 20px;
-                height: 38px;
+    TooltipArea {
+        x: 63px;
+        y: 0;
+        width: 20px;
+        height: 38px;
 
-                tooltip: "Sort by size (large→small)";
-                background: get-bg("size_descending", self.has-hover);
-                clicked => {
-                    State.apply-sorting("size_descending");
-                }
+        tooltip: "Sort by size (large→small)";
+        background: get-bg("size_descending", self.has-hover);
+        clicked => {
+            State.apply-sorting("size_descending");
+        }
 
-                IconDisplay {
-                    icon: IconSet.ArrowUp01;
-                    size: 14px;
-                    stroke: MyPalette.foreground;
-                }
-            }
+        IconDisplay {
+            icon: IconSet.ArrowUp01;
+            size: 14px;
+            stroke: MyPalette.foreground;
         }
     }
 }
