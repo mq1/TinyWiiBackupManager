@@ -9,7 +9,7 @@ export global Rust {
     pure callback write-config(Config) -> EmptyResult;
     pure callback get-drive-usage(string) -> {a-used: float, b-total: float};
     pure callback delete-dir(string) -> EmptyResult;
-    pure callback get-game-list(string) -> GameList;
+    pure callback get-game-list(string, string) -> GameList;
     pure callback filter-games([Game], string) -> [Game];
     pure callback sort-games([Game], string) -> [Game];
 }

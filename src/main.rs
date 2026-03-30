@@ -61,13 +61,16 @@ fn main() -> Result<()> {
     app.global::<State<'_>>()
         .set_data_dir(data_dir.to_string_lossy().to_shared_string());
 
+    app.global::<State<'_>>().set_game_list(GameList::new(
+        &mount_point,
+        data_dir,
+        &config.contents.sort_by,
+    ));
+
     app.global::<State<'_>>().set_config(config);
 
     app.global::<State<'_>>()
         .set_drive_usage(util::get_drive_usage(&mount_point));
-
-    app.global::<State<'_>>()
-        .set_game_list(GameList::new(&mount_point, data_dir));
 
     app.global::<Rust<'_>>()
         .on_open(|uri| open::that(&uri).into());
@@ -92,7 +95,7 @@ fn main() -> Result<()> {
         .on_delete_dir(|path| fs::remove_dir_all(path).into());
 
     app.global::<Rust<'_>>()
-        .on_get_game_list(|path| GameList::new(Path::new(&path), data_dir));
+        .on_get_game_list(|path, sort_by| GameList::new(Path::new(&path), data_dir, &sort_by));
 
     app.global::<Rust<'_>>().on_filter_games(|games, query| {
         let games = game_list::fuzzy_search(games.iter(), &query);
