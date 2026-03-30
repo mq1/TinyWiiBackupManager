@@ -9,7 +9,7 @@ import {
     GameList,
     MessageKind,
     Game,
-    DiscInfo,
+    DiscInfoResult,
 } from "types.slint";
 import { Rust } from "rust.slint";
 import { MyPalette } from "styling.slint";
@@ -19,7 +19,7 @@ export global State {
     in property <string> version;
     in-out property <Page> current-page;
     in-out property <Game> current-game;
-    in-out property <DiscInfo> current-disc-info;
+    in-out property <DiscInfoResult> current-disc-info;
     in property <string> data-dir;
     in-out property <Config> config;
     in-out property <Message> message;
@@ -101,13 +101,6 @@ export global State {
     public function open-game-info(game: Game) {
         current-page = Page.Game;
         current-game = game;
-
-        let res = Rust.get-disc-info(current-game.path);
-        if res.err.is-empty {
-            current-disc-info = res.value;
-        } else {
-            current-disc-info = { };
-            err(res.err);
-        }
+        current-disc-info = Rust.get-disc-info(current-game.path);
     }
 }

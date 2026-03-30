@@ -1,7 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { VerticalBox, ScrollView, Palette } from "std-widgets.slint";
+import {
+    VerticalBox,
+    ScrollView,
+    Palette,
+    HorizontalBox,
+} from "std-widgets.slint";
 import { Game } from "types.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { State } from "state.slint";
@@ -34,7 +39,23 @@ export component GamePage inherits VerticalLayout {
             padding-right: 20px;
             height: 100%;
 
-            Card {
+            if !State.current-disc-info.err.is-empty: Card {
+                HorizontalBox {
+                    spacing: 0px;
+
+                    IconDisplay {
+                        icon: IconSet.TriangleAlert;
+                        stroke: MyPalette.foreground;
+                        size: 14px;
+                    }
+
+                    Text {
+                        text: " " + State.current-disc-info.err;
+                    }
+                }
+            }
+
+            if State.current-disc-info.err.is-empty: Card {
                 height: i.preferred-height;
 
                 i := VerticalBox {
@@ -53,11 +74,11 @@ export component GamePage inherits VerticalLayout {
                     HorizontalLine { }
 
                     Text {
-                        text: "ID: " + State.current-disc-info.id;
+                        text: "ID: " + State.current-disc-info.value.id;
                     }
 
                     Text {
-                        text: "Title: " + State.current-disc-info.title;
+                        text: "Title: " + State.current-disc-info.value.title;
                     }
                 }
             }
