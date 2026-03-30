@@ -1,0 +1,21 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+
+import { GamesToolbar } from "components/games-toolbar.slint";
+import { ScrollView } from "std-widgets.slint";
+
+export component GameTablePage inherits VerticalLayout {
+    alignment: start;
+
+    GamesToolbar { }
+
+    ScrollView {
+        height: parent.height - 40px;
+        viewport-height: v.preferred-height;
+
+        v := VerticalLayout {
+            padding: 5px;
+        }
+    }
+}

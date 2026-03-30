@@ -1,0 +1,60 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { Card } from "card.slint";
+import { TooltipArea } from "tooltip-area.slint";
+import { IconSet, IconDisplay } from "@lucide";
+import { MyPalette } from "../styling.slint";
+import { State } from "../state.slint";
+
+export component ViewAs inherits Card {
+    pure function get-bg(view-as-table: bool, hovered: bool) -> color {
+        if State.config.contents.view-as-table == view-as-table {
+            MyPalette.selection-background
+        } else if hovered {
+            MyPalette.alternate-background
+        } else {
+            transparent
+        }
+    }
+
+    height: 38px;
+    clip: true;
+    border-radius: 10px;
+
+    HorizontalLayout {
+        TooltipArea {
+            width: 25px;
+            height: 38px;
+
+            tooltip: "View as grid";
+            background: get-bg(false, self.has-hover);
+            clicked => {
+                State.config.contents.view-as-table = false;
+            }
+
+            IconDisplay {
+                icon: IconSet.LayoutGrid;
+                size: 14px;
+                stroke: MyPalette.foreground;
+            }
+        }
+
+        TooltipArea {
+            width: 25px;
+            height: 38px;
+
+            tooltip: "View as table";
+            background: get-bg(true, self.has-hover);
+            clicked => {
+                State.config.contents.view-as-table = true;
+            }
+
+            IconDisplay {
+                icon: IconSet.Table;
+                size: 14px;
+                stroke: MyPalette.foreground;
+            }
+        }
+    }
+}

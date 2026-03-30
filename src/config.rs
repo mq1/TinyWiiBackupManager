@@ -79,7 +79,7 @@ impl ConfigContents {
             remove_sources_games: false,
             scrub_update_partition: false,
             sort_by: "name_descending".to_shared_string(),
-            view_as: "grid".to_shared_string(),
+            view_as_table: false,
             wii_ip: "192.168.1.100".to_shared_string(),
             txt_codes_source: "web_archive".to_shared_string(),
             theme_preference: "system".to_shared_string(),
