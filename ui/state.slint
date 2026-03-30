@@ -90,4 +90,9 @@ export global State {
         err(res.err);
         refresh-all();
     }
+
+    public function apply-sorting(sort-by: string) {
+        config.contents.sort-by = sort-by;
+        game-list.games = Rust.sort-games(game-list.games, sort-by);
+    }
 }

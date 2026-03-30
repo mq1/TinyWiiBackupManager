@@ -100,6 +100,13 @@ fn main() -> Result<()> {
         ModelRc::from(Rc::new(model))
     });
 
+    app.global::<Rust<'_>>().on_sort_games(|games, sort_by| {
+        let games = games.iter().collect::<Vec<_>>();
+        let games = game_list::sort(games, &sort_by);
+        let model = VecModel::from(games);
+        ModelRc::from(Rc::new(model))
+    });
+
     if let Err(e) = app.run() {
         if std::env::var("SLINT_BACKEND").unwrap_or_default() == "winit-software" {
             bail!(e);
