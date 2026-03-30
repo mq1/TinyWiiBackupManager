@@ -15,6 +15,7 @@ import { IconSet, IconDisplay } from "@lucide";
 import { Card } from "components/card.slint";
 import { VerticalLine } from "components/vertical-line.slint";
 import { TooltipArea } from "components/tooltip-area.slint";
+import { ShowWiiGc } from "components/show-wii-gc.slint";
 
 export component GameGridPage inherits VerticalLayout {
     alignment: start;
@@ -25,39 +26,7 @@ export component GameGridPage inherits VerticalLayout {
         GameFilter { }
 
         HorizontalLayout {
-            Card {
-                HorizontalBox {
-                    CheckBox {
-                        checked: State.show-wii;
-                    }
-
-                    TooltipArea {
-                        tooltip: "Show Wii";
-                        width: 14px;
-
-                        IconDisplay {
-                            icon: IconSet.Pointer;
-                            size: 14px;
-                        }
-                    }
-
-                    VerticalLine { }
-
-                    CheckBox {
-                        checked: State.show-gc;
-                    }
-
-                    TooltipArea {
-                        tooltip: "Show GameCube";
-                        width: 14px;
-
-                        IconDisplay {
-                            icon: IconSet.Box;
-                            size: 14px;
-                        }
-                    }
-                }
-            }
+            ShowWiiGc { }
         }
     }
 
@@ -68,7 +37,7 @@ export component GameGridPage inherits VerticalLayout {
         v := VerticalLayout {
             padding: 5px;
 
-            if State.game-filter.is-empty: HorizontalLayout {
+            if State.game-filter.is-empty && State.config.contents.show-wii: HorizontalLayout {
                 padding-left: 5px;
                 padding-bottom: 5px;
 
@@ -79,12 +48,12 @@ export component GameGridPage inherits VerticalLayout {
                 }
 
                 Text {
-                    text: " Wii games";
+                    text: " Wii games: " + State.game-list.wii-count + " found (" + State.game-list.wii-size + " GiB)";
                     font-size: 18px;
                 }
             }
 
-            if State.game-filter.is-empty: FlexBoxLayout {
+            if State.game-filter.is-empty && State.config.contents.show-wii: FlexBoxLayout {
                 for game[i] in State.game-list.games: HorizontalLayout {
                     padding: game.is-wii ? 5px : 0px;
 
@@ -94,9 +63,12 @@ export component GameGridPage inherits VerticalLayout {
                 }
             }
 
-            if State.game-filter.is-empty: HorizontalLayout {
+            if State.game-filter.is-empty && State.config.contents.show-wii && State.config.contents.show-gc: HorizontalLayout {
+                padding: 10px;
+            }
+
+            if State.game-filter.is-empty && State.config.contents.show-gc: HorizontalLayout {
                 padding-left: 5px;
-                padding-top: 20px;
                 padding-bottom: 5px;
 
                 IconDisplay {
@@ -106,12 +78,12 @@ export component GameGridPage inherits VerticalLayout {
                 }
 
                 Text {
-                    text: " GameCube games";
+                    text: " GameCube games: " + State.game-list.gc-count + " found (" + State.game-list.gc-size + " GiB)";
                     font-size: 18px;
                 }
             }
 
-            if State.game-filter.is-empty: FlexBoxLayout {
+            if State.game-filter.is-empty && State.config.contents.show-gc: FlexBoxLayout {
                 for game[i] in State.game-list.games: HorizontalLayout {
                     padding: game.is-wii ? 0px : 5px;
 

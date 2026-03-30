@@ -85,6 +85,8 @@ impl ConfigContents {
             theme_preference: "system".to_shared_string(),
             wii_output_format: "wbfs".to_shared_string(),
             gc_output_format: "iso".to_shared_string(),
+            show_wii: true,
+            show_gc: true,
             known_drives: ModelRc::new(VecModel::default()),
         }
     }

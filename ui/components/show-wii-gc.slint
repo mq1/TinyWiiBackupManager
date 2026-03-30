@@ -1,0 +1,52 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { Card } from "card.slint";
+import { HorizontalBox, CheckBox } from "std-widgets.slint";
+import { TooltipArea } from "tooltip-area.slint";
+import { VerticalLine } from "vertical-line.slint";
+import { IconDisplay, IconSet } from "@lucide";
+import { State } from "../state.slint";
+import { MyPalette } from "../styling.slint";
+
+export component ShowWiiGc inherits Card {
+    HorizontalBox {
+        CheckBox {
+            checked <=> State.config.contents.show-wii;
+            changed checked => {
+                State.write-config();
+            }
+        }
+
+        TooltipArea {
+            tooltip: "Show Wii";
+            width: 14px;
+
+            IconDisplay {
+                icon: IconSet.Pointer;
+                size: 14px;
+                stroke: MyPalette.foreground;
+            }
+        }
+
+        VerticalLine { }
+
+        CheckBox {
+            checked <=> State.config.contents.show-gc;
+            changed checked => {
+                State.write-config();
+            }
+        }
+
+        TooltipArea {
+            tooltip: "Show GameCube";
+            width: 14px;
+
+            IconDisplay {
+                icon: IconSet.Box;
+                size: 14px;
+                stroke: MyPalette.foreground;
+            }
+        }
+    }
+}
