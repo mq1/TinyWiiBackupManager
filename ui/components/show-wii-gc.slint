@@ -11,58 +11,48 @@ import { MyPalette } from "../styling.slint";
 
 export component ShowWiiGc inherits Card {
     height: 38px;
-    width: 100px;
 
-    CheckBox {
-        x: 10px;
-        y: parent.height / 2 - self.height / 2;
+    HorizontalLayout {
+        padding-left: 7px;
+        padding-right: 5px;
+        spacing: 5px;
 
-        checked <=> State.config.contents.show-wii;
-        changed checked => {
-            State.write-config();
+        CheckBox {
+            checked <=> State.config.contents.show-wii;
+            changed checked => {
+                State.write-config();
+            }
         }
-    }
 
-    TooltipArea {
-        x: 30px;
-        y: 0;
+        TooltipArea {
+            tooltip: "Show Wii";
+            width: 14px;
 
-        tooltip: "Show Wii";
-        width: 14px;
-
-        IconDisplay {
-            icon: IconSet.Pointer;
-            size: 14px;
-            stroke: MyPalette.foreground;
+            IconDisplay {
+                icon: IconSet.Pointer;
+                size: 14px;
+                stroke: MyPalette.foreground;
+            }
         }
-    }
 
-    VerticalLine {
-        x: 49px;
-        y: 0;
-    }
+        VerticalLine { }
 
-    CheckBox {
-        x: 58px;
-        y: parent.height / 2 - self.height / 2;
-
-        checked <=> State.config.contents.show-gc;
-        changed checked => {
-            State.write-config();
+        CheckBox {
+            checked <=> State.config.contents.show-gc;
+            changed checked => {
+                State.write-config();
+            }
         }
-    }
 
-    TooltipArea {
-        x: 78px;
-        y: 0;
+        TooltipArea {
+            tooltip: "Show GameCube";
+            width: 14px;
 
-        tooltip: "Show GameCube";
-        width: 14px;
-
-        IconDisplay {
-            icon: IconSet.Box;
-            size: 14px;
-            stroke: MyPalette.foreground;
+            IconDisplay {
+                icon: IconSet.Box;
+                size: 14px;
+                stroke: MyPalette.foreground;
+            }
         }
     }
 }
