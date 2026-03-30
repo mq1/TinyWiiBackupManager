@@ -99,7 +99,7 @@ impl DiscInfo {
         };
 
         let crc32 = match meta.crc32 {
-            Some(crc) => format!("{crc:02x}").to_shared_string(),
+            Some(crc) => hex::encode(crc.to_be_bytes()).to_shared_string(),
             None => "N/A".to_shared_string(),
         };
 
@@ -114,7 +114,7 @@ impl DiscInfo {
         };
 
         let xxh64 = match meta.xxh64 {
-            Some(xxh) => format!("{xxh:02x}").to_shared_string(),
+            Some(xxh) => hex::encode(xxh.to_be_bytes()).to_shared_string(),
             None => "N/A".to_shared_string(),
         };
 
