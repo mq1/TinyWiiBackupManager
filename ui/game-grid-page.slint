@@ -36,7 +36,7 @@ export component GameGridPage inherits VerticalLayout {
                 }
             }
 
-            if State.game-filter.is-empty && State.config.contents.show-wii: FlexBoxLayout {
+            if State.game-filter.is-empty && State.config.contents.show-wii: FlexboxLayout {
                 for game[i] in State.game-list.games: HorizontalLayout {
                     padding: game.is-wii ? 5px : 0px;
 
@@ -66,7 +66,7 @@ export component GameGridPage inherits VerticalLayout {
                 }
             }
 
-            if State.game-filter.is-empty && State.config.contents.show-gc: FlexBoxLayout {
+            if State.game-filter.is-empty && State.config.contents.show-gc: FlexboxLayout {
                 for game[i] in State.game-list.games: HorizontalLayout {
                     padding: game.is-wii ? 0px : 5px;
 
@@ -76,7 +76,7 @@ export component GameGridPage inherits VerticalLayout {
                 }
             }
 
-            if !State.game-filter.is-empty: FlexBoxLayout {
+            if !State.game-filter.is-empty: FlexboxLayout {
                 for game[i] in State.filtered-games: HorizontalLayout {
                     padding: 5px;
 
