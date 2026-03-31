@@ -129,6 +129,17 @@ fn main() -> Result<()> {
             ModelRc::from(Rc::new(model))
         });
 
+    let weak = app.as_weak();
+    app.global::<Rust<'_>>().on_start_conversion(move |queue| {
+        let queue = queue
+            .as_any()
+            .downcast_ref::<VecModel<QueuedConversion>>()
+            .unwrap();
+
+        let conv = queue.remove(0);
+        conv.run(weak.clone());
+    });
+
     if let Err(e) = app.run() {
         if std::env::var("SLINT_BACKEND").unwrap_or_default() == "winit-software" {
             bail!(e);

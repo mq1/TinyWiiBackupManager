@@ -118,7 +118,8 @@ export global State {
     }
 
     public function conversion-confirmed() {
-        if !is-converting {
+        if !is-converting && conversion-queue.length > 0 {
+            Rust.start-conversion(conversion-queue);
         }
     }
 }
