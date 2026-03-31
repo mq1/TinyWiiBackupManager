@@ -36,7 +36,7 @@ impl QueuedConversion {
         let flags = ConversionFlags::from_bits_truncate(self.flags);
 
         let mut files_to_remove = Vec::new();
-        if flags.intersects(ConversionFlags::IS_FOR_DRIVE | ConversionFlags::REMOVE_SOURCES) {
+        if flags.contains(ConversionFlags::IS_FOR_DRIVE | ConversionFlags::REMOVE_SOURCES) {
             files_to_remove.push(in_path.clone());
         }
 
