@@ -1,14 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::extensions::INPUT_DIALOG_FILTER;
 use slint::Window;
 use std::path::PathBuf;
 
 #[cfg(not(target_vendor = "win7"))]
 use rfd::FileDialog;
 
-#[cfg(not(target_vendor = "win7"))]
-use crate::extensions::INPUT_DIALOG_FILTER;
 #[cfg(target_vendor = "win7")]
 use crate::xp_dialogs;
 
