@@ -7,7 +7,7 @@ use std::sync::LazyLock;
 include!(concat!(env!("OUT_DIR"), "/id_map_meta.rs"));
 
 #[derive(Debug, Copy, Clone, Eq, Ord, PartialEq, PartialOrd, Deserialize)]
-struct GameID([u8; 6]);
+pub struct GameID([u8; 6]);
 
 impl From<[u8; 6]> for GameID {
     fn from(id: [u8; 6]) -> Self {
