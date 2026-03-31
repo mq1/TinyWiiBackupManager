@@ -44,12 +44,12 @@ export enum MessageKind {
     Info,
     Error,
     DeleteDir,
+    GamesPicked,
 }
 
 export struct Message {
     text: string,
     kind: MessageKind,
-    data: string,
 }
 
 export struct Game {
@@ -109,8 +109,12 @@ export struct DiscInfoResult {
 export struct QueuedConversion {
     in-path: string,
     out-path: string,
-    conf: ConfigContents,
     is-fat32: bool,
+    always-split: bool,
+    remove-sources: bool,
+    scrub-update: bool,
+    wii-output-format: string,
+    gc-output-format: string,
 }
 
 export struct DriveInfo {

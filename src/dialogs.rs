@@ -7,6 +7,8 @@ use std::path::PathBuf;
 #[cfg(not(target_vendor = "win7"))]
 use rfd::FileDialog;
 
+#[cfg(not(target_vendor = "win7"))]
+use crate::extensions::INPUT_DIALOG_FILTER;
 #[cfg(target_vendor = "win7")]
 use crate::xp_dialogs;
 
@@ -21,4 +23,19 @@ pub fn pick_mount_point(window: &Window) -> Option<PathBuf> {
     let res = xp_dialogs::pick_dir("Select Drive/Mount Point");
 
     res
+}
+
+pub fn pick_games(window: &Window) -> Vec<PathBuf> {
+    #[cfg(not(target_vendor = "win7"))]
+    let paths = FileDialog::new()
+        .set_parent(&window.window_handle())
+        .set_title("Select Games")
+        .add_filter(INPUT_DIALOG_FILTER.0, INPUT_DIALOG_FILTER.1)
+        .pick_files()
+        .unwrap_or_default();
+
+    #[cfg(target_vendor = "win7")]
+    let paths = xp_dialogs::pick_files("Select Games", INPUT_DIALOG_FILTER);
+
+    paths
 }

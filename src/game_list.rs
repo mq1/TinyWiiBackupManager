@@ -6,7 +6,7 @@ use anyhow::Result;
 use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
 use slint::{ModelRc, VecModel};
 use std::{
-    fs,
+    fs::{self},
     path::{Path, PathBuf},
     rc::Rc,
 };

@@ -55,7 +55,13 @@ export component MessagePage inherits VerticalBox {
                     if State.message.kind == MessageKind.DeleteDir: IconButton {
                         label: "Delete";
                         kind: IconButtonKind.Danger;
-                        clicked => State.delete-dir(State.message.data);
+                        clicked => State.delete-dir();
+                    }
+
+                    if State.message.kind == MessageKind.GamesPicked: IconButton {
+                        label: "Ok";
+                        kind: IconButtonKind.Primary;
+                        clicked => State.conversion-confirmed();
                     }
                 }
             }

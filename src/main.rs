@@ -8,12 +8,14 @@ mod convert;
 mod data_dir;
 mod dialogs;
 mod disc_info;
+mod disc_util;
 mod drive_info;
 mod extensions;
 mod game;
 mod game_list;
 mod id_map;
 mod results;
+mod transfer_queue;
 mod util;
 
 #[cfg(target_vendor = "pc")]
@@ -116,6 +118,16 @@ fn main() -> Result<()> {
 
     app.global::<Rust<'_>>()
         .on_get_disc_info(|game_dir| DiscInfo::try_from_game_dir(Path::new(&game_dir)).into());
+
+    let weak = app.as_weak();
+    app.global::<Rust<'_>>()
+        .on_pick_games(move |game_list, conf, drive_info| {
+            let app = weak.upgrade().unwrap();
+            let paths = dialogs::pick_games(app.window());
+            let queue = transfer_queue::make_queue(paths, &game_list, &conf, &drive_info);
+            let model = VecModel::from(queue);
+            ModelRc::from(Rc::new(model))
+        });
 
     if let Err(e) = app.run() {
         if std::env::var("SLINT_BACKEND").unwrap_or_default() == "winit-software" {

@@ -8,6 +8,8 @@ import {
     Game,
     DiscInfoResult,
     DriveInfo,
+    QueuedConversion,
+    ConfigContents,
 } from "types.slint";
 
 export global Rust {
@@ -20,4 +22,5 @@ export global Rust {
     pure callback filter-games([Game], string) -> [Game];
     pure callback sort-games([Game], string) -> [Game];
     pure callback get-disc-info(string) -> DiscInfoResult;
+    pure callback pick-games(GameList, ConfigContents, DriveInfo) -> [QueuedConversion];
 }

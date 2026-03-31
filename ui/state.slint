@@ -33,6 +33,8 @@ export global State {
     in property <{text: string, mouse-x: length, mouse-y: length}> tooltip;
     in-out property <[QueuedConversion]> conversion-queue;
     in-out property <bool> is-converting;
+    in-out property <string> deleting-dir;
+    in-out property <[QueuedConversion]> adding-games;
 
     // ↑ Model
     // ---------
@@ -42,7 +44,6 @@ export global State {
         if !info.is-empty {
             message.text = info;
             message.kind = MessageKind.Info;
-            message.data = "";
         }
     }
 
@@ -50,7 +51,6 @@ export global State {
         if !err.is-empty {
             message.text = err;
             message.kind = MessageKind.Error;
-            message.data = "";
         }
     }
 
@@ -90,9 +90,9 @@ export global State {
         }
     }
 
-    public function delete-dir(path: string) {
+    public function delete-dir() {
         dismiss();
-        let res = Rust.delete-dir(path);
+        let res = Rust.delete-dir(deleting-dir);
         err(res.err);
         refresh-all();
     }
@@ -106,5 +106,19 @@ export global State {
         current-page = Page.Game;
         current-game = game;
         current-disc-info = Rust.get-disc-info(current-game.path);
+    }
+
+    public function pick-games() {
+        let games = Rust.pick-games(game-list, config.contents, drive-info);
+        if games.length > 0 {
+            message.text = "Picked " + games.length + " games";
+            message.kind = MessageKind.GamesPicked;
+            adding-games = games;
+        }
+    }
+
+    public function conversion-confirmed() {
+        if !is-converting {
+        }
     }
 }

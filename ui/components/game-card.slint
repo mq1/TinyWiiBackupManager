@@ -72,7 +72,7 @@ export component GameCard inherits Card {
                 clicked => {
                     State.message.kind = MessageKind.DeleteDir;
                     State.message.text = "Are you sure you want to delete \"" + game.title + "\"?\nThis is irreversible!";
-                    State.message.data = game.path;
+                    State.deleting-dir = game.path;
                 }
             }
         }
