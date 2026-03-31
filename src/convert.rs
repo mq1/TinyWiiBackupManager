@@ -270,6 +270,7 @@ impl QueuedConversion {
 
             let _ = weak.upgrade_in_event_loop(|app| {
                 app.global::<State<'_>>().set_is_converting(false);
+                app.global::<State<'_>>().set_status(SharedString::new());
             });
         });
     }
