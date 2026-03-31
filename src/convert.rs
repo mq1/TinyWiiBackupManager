@@ -127,7 +127,7 @@ impl Conversion {
         let disc_num = header.disc_num;
 
         let must_split =
-            is_for_drive && is_wii && self.flags.contains(Flags::ALWAYS_SPLIT | Flags::IS_FAT32);
+            is_for_drive && is_wii && self.flags.intersects(Flags::ALWAYS_SPLIT | Flags::IS_FAT32);
 
         // if we're converting a game for the wii, create the parent dir
         // we know we're converting for the wii as in-path is the mount point (a directory)
