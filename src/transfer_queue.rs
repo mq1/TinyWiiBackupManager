@@ -6,7 +6,7 @@ use slint::{Model, ToSharedString};
 use std::{fs::File, path::PathBuf};
 
 impl QueuedConversion {
-    #[must_use] 
+    #[must_use]
     pub fn display_string(&self) -> String {
         format!("• {}", &self.in_path)
     }
