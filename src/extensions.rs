@@ -3,7 +3,6 @@
 
 use nod::common::{Compression, Format};
 use nod::write::FormatOptions;
-use std::ffi::OsStr;
 
 pub const INPUT_DIALOG_FILTER: (&str, &[&str]) = (
     "Nintendo Optical Disc",
@@ -19,7 +18,7 @@ pub const OUTPUT_DIALOG_FILTER: (&str, &[&str]) = (
     ],
 );
 
-pub fn ext_to_format(ext: &OsStr) -> Option<Format> {
+pub fn ext_to_format(ext: &str) -> Option<Format> {
     if ext.eq_ignore_ascii_case("gcm") || ext.eq_ignore_ascii_case("iso") {
         Some(Format::Iso)
     } else if ext.eq_ignore_ascii_case("wbfs") {

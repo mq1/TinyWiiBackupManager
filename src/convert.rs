@@ -8,7 +8,9 @@ use crate::{
     util::{self, get_threads_num},
 };
 use anyhow::{Result, anyhow, bail};
+use bitflags::bitflags;
 use nod::{
+    common::Format,
     read::{DiscOptions, DiscReader, PartitionEncryption},
     write::{DiscWriter, ProcessOptions, ScrubLevel},
 };
@@ -26,29 +28,46 @@ use zip::ZipArchive;
 
 pub const SPLIT_SIZE: NonZeroUsize = NonZeroUsize::new(4_294_934_528).unwrap(); // 4 GiB - 32 KiB
 
-#[allow(clippy::struct_excessive_bools)]
+bitflags! {
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    struct Flags: u8 {
+        const IS_FAT32 = 1;
+        const ALWAYS_SPLIT = 1 << 1;
+        const REMOVE_SOURCES = 1 << 2;
+        const SCRUB_UPDATE = 1 << 3;
+    }
+}
+
+#[derive(Debug, Clone)]
 struct Conversion {
     in_path: PathBuf,
     out_path: PathBuf,
-    is_fat32: bool,
-    wii_output_format: String,
-    gc_output_format: String,
-    always_split: bool,
-    remove_sources_games: bool,
-    scrub_update_partition: bool,
+    wii_output_format: Format,
+    gc_output_format: Format,
+    flags: Flags,
 }
 
 impl From<&QueuedConversion> for Conversion {
     fn from(value: &QueuedConversion) -> Self {
+        let in_path = PathBuf::from(&value.in_path);
+        let out_path = PathBuf::from(&value.out_path);
+
+        let wii_output_format =
+            ext_to_format(&value.conf.wii_output_format).unwrap_or(Format::Wbfs);
+        let gc_output_format = ext_to_format(&value.conf.gc_output_format).unwrap_or(Format::Iso);
+
+        let mut flags = Flags::empty();
+        flags.set(Flags::IS_FAT32, value.is_fat32);
+        flags.set(Flags::ALWAYS_SPLIT, value.conf.always_split);
+        flags.set(Flags::REMOVE_SOURCES, value.conf.remove_sources_games);
+        flags.set(Flags::SCRUB_UPDATE, value.conf.scrub_update_partition);
+
         Self {
-            in_path: PathBuf::from(&value.in_path),
-            out_path: PathBuf::from(&value.out_path),
-            is_fat32: value.is_fat32,
-            wii_output_format: value.conf.wii_output_format.to_string(),
-            gc_output_format: value.conf.gc_output_format.to_string(),
-            always_split: value.conf.always_split,
-            remove_sources_games: value.conf.remove_sources_games,
-            scrub_update_partition: value.conf.scrub_update_partition,
+            in_path,
+            out_path,
+            wii_output_format,
+            gc_output_format,
+            flags,
         }
     }
 }
@@ -59,7 +78,7 @@ impl Conversion {
         let is_for_drive = self.out_path.is_dir();
 
         let mut files_to_remove = Vec::new();
-        if self.remove_sources_games && is_for_drive {
+        if is_for_drive && self.flags.contains(Flags::REMOVE_SOURCES) {
             files_to_remove.push(self.in_path.clone());
         }
 
@@ -107,9 +126,12 @@ impl Conversion {
         let id_str = header.game_id_str().to_string();
         let disc_num = header.disc_num;
 
+        let must_split =
+            is_for_drive && is_wii && self.flags.contains(Flags::ALWAYS_SPLIT | Flags::IS_FAT32);
+
         // if we're converting a game for the wii, create the parent dir
         // we know we're converting for the wii as in-path is the mount point (a directory)
-        let (parent, get_file_name) = if is_for_drive {
+        let (parent, get_file_name, out_format) = if is_for_drive {
             let display_title = ID_MAP.get(id).map_or(&title, |e| &e.title);
             let sanitized_title = util::sanitize(display_title);
 
@@ -120,28 +142,30 @@ impl Conversion {
 
             fs::create_dir_all(&parent)?;
 
-            let f: Box<dyn Fn(usize) -> String> = if is_wii {
-                match self.wii_output_format.as_str() {
-                    "wbfs" => Box::new(|i| match i {
+            if is_wii {
+                let f: Box<dyn Fn(usize) -> String> = match self.wii_output_format {
+                    Format::Wbfs => Box::new(|i| match i {
                         0 => format!("{id_str}.wbfs"),
                         n => format!("{id_str}.wbf{n}"),
                     }),
                     _ => {
-                        if self.always_split || self.is_fat32 {
+                        if must_split {
                             Box::new(|i| format!("{id_str}.part{i}.iso"))
                         } else {
                             Box::new(|_| format!("{id_str}.iso"))
                         }
                     }
-                }
+                };
+
+                (parent, f, self.wii_output_format)
             } else {
-                match disc_num {
+                let f: Box<dyn Fn(usize) -> String> = match disc_num {
                     0 => Box::new(|_| format!("game.{}", self.gc_output_format)),
                     n => Box::new(move |_| format!("disc{}.{}", n + 1, self.gc_output_format)),
-                }
-            };
+                };
 
-            (parent, f)
+                (parent, f, self.gc_output_format)
+            }
         } else {
             let Some(parent) = self.out_path.parent() else {
                 bail!("No parent dir found");
@@ -156,13 +180,18 @@ impl Conversion {
                 bail!("No filename found");
             };
 
+            let Some(out_format) = self
+                .out_path
+                .extension()
+                .and_then(OsStr::to_str)
+                .and_then(ext_to_format)
+            else {
+                bail!("Invalid output format");
+            };
+
             let f: Box<dyn Fn(usize) -> String> = Box::new(move |_| filename.clone());
 
-            (parent.to_path_buf(), f)
-        };
-
-        let Some(out_format) = self.out_path.extension().and_then(ext_to_format) else {
-            bail!("Invalid output extension");
+            (parent.to_path_buf(), f, out_format)
         };
 
         let out_opts = format_to_opts(out_format);
@@ -172,18 +201,14 @@ impl Conversion {
             digest_md5: false,
             digest_sha1: true,
             digest_xxh64: true,
-            scrub: if self.scrub_update_partition {
+            scrub: if self.flags.contains(Flags::SCRUB_UPDATE) {
                 ScrubLevel::UpdatePartition
             } else {
                 ScrubLevel::None
             },
         };
 
-        let split_size = if is_for_drive && is_wii && (self.is_fat32 || self.always_split) {
-            Some(SPLIT_SIZE)
-        } else {
-            None
-        };
+        let split_size = if must_split { Some(SPLIT_SIZE) } else { None };
 
         let mut out_writer = BufWriter::with_capacity(
             32_768,

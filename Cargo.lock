@@ -7,6 +7,7 @@ name = "TinyWiiBackupManager"
 version = "5.3.0"
 dependencies = [
  "anyhow",
+ "bitflags 2.11.0",
  "dark-light",
  "directories",
  "fs4",
