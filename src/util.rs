@@ -1,25 +1,31 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::path::Path;
-
 pub const GIB: f32 = 1024. * 1024. * 1024.;
 pub const MIB: f32 = 1024. * 1024.;
 
-pub fn get_drive_usage(path: &Path) -> (f32, f32) {
-    let Ok(stat) = fs4::statvfs(path) else {
-        return (0., 0.);
+pub fn sanitize(s: &str) -> String {
+    let opts = sanitize_filename::Options {
+        truncate: true,
+        windows: true,
+        replacement: "",
     };
 
-    let total_bytes = stat.total_space();
-    let avail_bytes = stat.available_space();
-    let used_bytes = total_bytes.saturating_sub(avail_bytes);
+    sanitize_filename::sanitize_with_options(s, opts)
+        .trim()
+        .to_string()
+}
 
-    #[allow(clippy::cast_precision_loss)]
-    let used_gib = (used_bytes as f32 / GIB * 100.).round() / 100.;
+pub fn get_threads_num() -> (usize, usize) {
+    let cpus = num_cpus::get();
 
-    #[allow(clippy::cast_precision_loss)]
-    let total_gib = (total_bytes as f32 / GIB * 100.).round() / 100.;
+    let preloader_threads = match cpus {
+        0..=4 => 1,
+        5..=8 => 2,
+        _ => 4,
+    };
 
-    (used_gib, total_gib)
+    let processor_threads = cpus - preloader_threads;
+
+    (preloader_threads, processor_threads)
 }

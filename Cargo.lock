@@ -16,17 +16,22 @@ dependencies = [
  "lucide-slint",
  "minreq",
  "nod",
+ "num_cpus",
  "open",
  "postcard",
  "raw-window-handle",
  "regex",
  "rfd",
+ "sanitize-filename",
  "serde",
  "serde_json",
  "slint",
  "slint-build",
+ "split-write",
+ "which-fs",
  "windows 0.62.2",
  "winresource",
+ "zip",
  "zstd",
 ]
 
@@ -3454,6 +3459,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "num_cpus"
+version = "1.17.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "91df4bbde75afed763b708b7eee1e8e7651e02d97f6d5dd763e89367e957b23b"
+dependencies = [
+ "hermit-abi 0.5.2",
+ "libc",
+]
+
+[[package]]
 name = "num_enum"
 version = "0.7.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4761,6 +4776,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "sanitize-filename"
+version = "0.7.0-beta"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "889fe19c32b4d5d42e588152757b960d1a5fca06303a583bcf3f9c920b8b1fc7"
+
+[[package]]
 name = "schannel"
 version = "0.1.29"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5253,6 +5274,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "split-write"
+version = "0.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "37511b4f11e05ce80505e3d985638dfea6e438d83df0b9804d09cabc9ae3a4ea"
+
+[[package]]
 name = "stable_deref_trait"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5670,6 +5697,12 @@ dependencies = [
  "bincode",
  "serde",
 ]
+
+[[package]]
+name = "typed-path"
+version = "0.12.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8e28f89b80c87b8fb0cf04ab448d5dd0dd0ade2f8891bae878de66a75a28600e"
 
 [[package]]
 name = "typenum"
@@ -6197,6 +6230,16 @@ name = "weezl"
 version = "0.1.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a28ac98ddc8b9274cb41bb4d9d4d5c425b6020c50c46f25559911905610b4a88"
+
+[[package]]
+name = "which-fs"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e54b373b3307b4ea2f1f262e10baf33e3e4b0afabb44ba1b6440c9d21c859313"
+dependencies = [
+ "rustix 1.1.4",
+ "windows 0.62.2",
+]
 
 [[package]]
 name = "winapi-util"
@@ -7162,6 +7205,19 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "zip"
+version = "8.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7756d0206d058333667493c4014f545f4b9603c4330ccd6d9b3f86dcab59f7d9"
+dependencies = [
+ "crc32fast",
+ "flate2",
+ "indexmap",
+ "memchr",
+ "typed-path",
 ]
 
 [[package]]

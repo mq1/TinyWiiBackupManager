@@ -4,9 +4,12 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod config;
+mod convert;
 mod data_dir;
 mod dialogs;
 mod disc_info;
+mod drive_info;
+mod extensions;
 mod game;
 mod game_list;
 mod id_map;
@@ -71,7 +74,7 @@ fn main() -> Result<()> {
     app.global::<State<'_>>().set_config(config);
 
     app.global::<State<'_>>()
-        .set_drive_usage(util::get_drive_usage(&mount_point));
+        .set_drive_info(DriveInfo::from_path(&mount_point));
 
     app.global::<Rust<'_>>()
         .on_open(|uri| open::that(&uri).into());
@@ -90,7 +93,7 @@ fn main() -> Result<()> {
         .on_write_config(|config| config.write().into());
 
     app.global::<Rust<'_>>()
-        .on_get_drive_usage(|path| util::get_drive_usage(Path::new(&path)));
+        .on_get_drive_info(|path| DriveInfo::from_path(&path));
 
     app.global::<Rust<'_>>()
         .on_delete_dir(|path| fs::remove_dir_all(path).into());

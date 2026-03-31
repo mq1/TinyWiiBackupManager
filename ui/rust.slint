@@ -7,13 +7,14 @@ import {
     EmptyResult,
     Game,
     DiscInfoResult,
+    DriveInfo,
 } from "types.slint";
 
 export global Rust {
     pure callback open(string) -> EmptyResult;
     pure callback pick-mount-point() -> string;
+    pure callback get-drive-info(string) -> DriveInfo;
     pure callback write-config(Config) -> EmptyResult;
-    pure callback get-drive-usage(string) -> {a-used: float, b-total: float};
     pure callback delete-dir(string) -> EmptyResult;
     pure callback get-game-list(string, string) -> GameList;
     pure callback filter-games([Game], string) -> [Game];

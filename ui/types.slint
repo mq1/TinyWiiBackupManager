@@ -105,3 +105,16 @@ export struct DiscInfoResult {
     value: DiscInfo,
     err: string,
 }
+
+export struct QueuedConversion {
+    in-path: string,
+    out-path: string,
+    conf: ConfigContents,
+    is-fat32: bool,
+}
+
+export struct DriveInfo {
+    used-gib: float,
+    total-gib: float,
+    fs-kind: string,
+}

@@ -10,6 +10,7 @@ import {
     MessageKind,
     Game,
     DiscInfoResult,
+    DriveInfo,
 } from "types.slint";
 import { Rust } from "rust.slint";
 import { MyPalette } from "styling.slint";
@@ -23,7 +24,7 @@ export global State {
     in property <string> data-dir;
     in-out property <Config> config;
     in-out property <Message> message;
-    in-out property <{a-used: float, b-total: float}> drive-usage;
+    in-out property <DriveInfo> drive-info;
     in-out property <GameList> game-list;
     in-out property <[Game]> filtered-games;
     in-out property <string> game-filter;
@@ -72,15 +73,15 @@ export global State {
     }
 
     public function refresh-all() {
-        drive-usage = Rust.get-drive-usage(config.contents.mount-point);
+        drive-info = Rust.get-drive-info(config.contents.mount-point);
         game-list = Rust.get-game-list(config.contents.mount-point, config.contents.sort-by);
         filtered-games = [];
     }
 
     public function pick-mount-point() {
-        let mount-point = Rust.pick-mount-point();
-        if !mount-point.is-empty {
-            config.contents.mount-point = mount-point;
+        let path = Rust.pick-mount-point();
+        if !path.is-empty {
+            config.contents.mount-point = path;
             write-config();
             refresh-all();
         }
