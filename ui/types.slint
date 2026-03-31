@@ -109,12 +109,9 @@ export struct DiscInfoResult {
 export struct QueuedConversion {
     in-path: string,
     out-path: string,
-    is-fat32: bool,
-    always-split: bool,
-    remove-sources: bool,
-    scrub-update: bool,
     wii-output-format: string,
     gc-output-format: string,
+    flags: int,
 }
 
 export struct DriveInfo {

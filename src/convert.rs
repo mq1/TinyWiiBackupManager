@@ -5,6 +5,7 @@ use crate::{
     AppWindow, QueuedConversion, State,
     extensions::{ext_to_format, format_to_opts},
     id_map::ID_MAP,
+    transfer_queue::ConversionFlags,
     util::{self, get_threads_num},
 };
 use anyhow::{Result, anyhow, bail};
@@ -32,10 +33,10 @@ impl QueuedConversion {
     pub fn perform(&self, weak: &Weak<AppWindow>) -> Result<()> {
         let mut in_path = PathBuf::from(&self.in_path);
         let out_path = Path::new(&self.out_path);
-        let is_for_drive = out_path.is_dir();
+        let flags = ConversionFlags::from_bits_truncate(self.flags);
 
         let mut files_to_remove = Vec::new();
-        if is_for_drive && self.remove_sources {
+        if flags.intersects(ConversionFlags::IS_FOR_DRIVE | ConversionFlags::REMOVE_SOURCES) {
             files_to_remove.push(in_path.clone());
         }
 
@@ -82,11 +83,13 @@ impl QueuedConversion {
         let id_str = header.game_id_str().to_string();
         let disc_num = header.disc_num;
 
-        let must_split = is_for_drive && is_wii && (self.always_split || self.is_fat32);
+        let must_split = flags.contains(ConversionFlags::IS_FOR_DRIVE)
+            && is_wii
+            && flags.intersects(ConversionFlags::ALWAYS_SPLIT | ConversionFlags::IS_FAT32);
 
         // if we're converting a game for the wii, create the parent dir
         // we know we're converting for the wii as in-path is the mount point (a directory)
-        let (parent, get_file_name, out_format) = if is_for_drive {
+        let (parent, get_file_name, out_format) = if flags.contains(ConversionFlags::IS_FOR_DRIVE) {
             let display_title = ID_MAP.get(id).map_or(&title, |e| &e.title);
             let sanitized_title = util::sanitize(display_title);
 
@@ -169,7 +172,7 @@ impl QueuedConversion {
             digest_md5: false,
             digest_sha1: true,
             digest_xxh64: true,
-            scrub: if self.scrub_update {
+            scrub: if flags.contains(ConversionFlags::SCRUB_UPDATE) {
                 ScrubLevel::UpdatePartition
             } else {
                 ScrubLevel::None
