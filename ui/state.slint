@@ -11,6 +11,7 @@ import {
     Game,
     DiscInfoResult,
     DriveInfo,
+    QueuedConversion,
 } from "types.slint";
 import { Rust } from "rust.slint";
 import { MyPalette } from "styling.slint";
@@ -30,6 +31,8 @@ export global State {
     in-out property <string> game-filter;
     in property <string> status;
     in property <{text: string, mouse-x: length, mouse-y: length}> tooltip;
+    in-out property <[QueuedConversion]> conversion-queue;
+    in-out property <bool> is-converting;
 
     // ↑ Model
     // ---------

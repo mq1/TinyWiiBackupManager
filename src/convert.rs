@@ -258,11 +258,10 @@ impl Conversion {
 
 impl QueuedConversion {
     pub fn run(&self, weak: Weak<AppWindow>) {
-        let status = format!("⤒ Converting {}", self.in_path).to_shared_string();
         weak.upgrade()
             .unwrap()
             .global::<State<'_>>()
-            .set_status(status);
+            .set_is_converting(true);
 
         let conv = Conversion::from(self);
 
@@ -270,7 +269,7 @@ impl QueuedConversion {
             let _ = conv.perform(&weak);
 
             let _ = weak.upgrade_in_event_loop(|app| {
-                app.global::<State<'_>>().set_status(SharedString::new());
+                app.global::<State<'_>>().set_is_converting(false);
             });
         });
     }
