@@ -33,7 +33,9 @@ impl QueuedConversion {
     pub fn perform(&self, weak: &Weak<AppWindow>) -> Result<()> {
         let mut in_path = PathBuf::from(&self.in_path);
         let out_path = Path::new(&self.out_path);
-        let flags = ConversionFlags::from_bits_truncate(self.flags);
+        let Some(flags) = ConversionFlags::from_bits(self.flags) else {
+            bail!("Invalid conversion flags");
+        }
 
         let mut files_to_remove = Vec::new();
         if flags.contains(ConversionFlags::IS_FOR_DRIVE | ConversionFlags::REMOVE_SOURCES) {
