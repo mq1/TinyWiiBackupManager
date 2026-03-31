@@ -109,17 +109,17 @@ export global State {
     }
 
     public function pick-games() {
-        let games = Rust.pick-games(game-list, config.contents, drive-info);
-        if games.length > 0 {
-            message.text = "Picked " + games.length + " games";
+        let res = Rust.pick-games(game-list, config.contents, drive-info);
+        if res.a.length > 0 {
+            message.text = "Picked " + res.a.length + " games, are you sure you want to continue?\n\n" + res.b;
             message.kind = MessageKind.GamesPicked;
-            adding-games = games;
+            adding-games = res.a;
         }
     }
 
-    public function conversion-confirmed() {
-        if !is-converting && conversion-queue.length > 0 {
-            Rust.start-conversion(conversion-queue);
+    public function conversion-confirmed(to-queue: [QueuedConversion]) {
+        if !is-converting {
+            conversion-queue = Rust.start-conversion(conversion-queue, to-queue);
         }
     }
 }

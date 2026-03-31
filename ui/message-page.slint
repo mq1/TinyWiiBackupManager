@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { VerticalBox, HorizontalBox } from "std-widgets.slint";
+import { VerticalBox, HorizontalBox, ScrollView } from "std-widgets.slint";
 import { State } from "state.slint";
 import { MyPalette } from "styling.slint";
 import { IconButton } from "components/icon-button.slint";
@@ -20,8 +20,14 @@ export component MessagePage inherits VerticalBox {
             height: 400px;
 
             VerticalBox {
-                Text {
-                    text: State.message.text;
+                ScrollView {
+                    VerticalLayout {
+                        alignment: start;
+
+                        Text {
+                            text: State.message.text;
+                        }
+                    }
                 }
 
                 Rectangle {
@@ -46,7 +52,7 @@ export component MessagePage inherits VerticalBox {
                         clicked => State.dismiss();
                     }
 
-                    if State.message.kind == MessageKind.DeleteDir: IconButton {
+                    if State.message.kind == MessageKind.DeleteDir || State.message.kind == MessageKind.GamesPicked: IconButton {
                         label: "Cancel";
                         kind: IconButtonKind.Secondary;
                         clicked => State.dismiss();
@@ -61,7 +67,11 @@ export component MessagePage inherits VerticalBox {
                     if State.message.kind == MessageKind.GamesPicked: IconButton {
                         label: "Ok";
                         kind: IconButtonKind.Primary;
-                        clicked => State.conversion-confirmed();
+                        clicked => {
+                            State.conversion-confirmed(State.adding-games);
+                            State.adding-games = [];
+                            State.dismiss();
+                        }
                     }
                 }
             }

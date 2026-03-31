@@ -28,16 +28,33 @@ export component GamesToolbar inherits HorizontalBox {
         VerticalLayout {
             alignment: center;
 
-            IconButton {
-                icon: IconSet.RotateCw;
-                tooltip: "Refresh games and apps";
-                rounded: true;
-                kind: IconButtonKind.Primary;
-                font-size: 18px;
-                width: 34px;
-                height: 34px;
-                clicked => {
-                    State.refresh-all();
+            HorizontalLayout {
+                spacing: 10px;
+
+                IconButton {
+                    icon: IconSet.RotateCw;
+                    tooltip: "Refresh games and apps";
+                    rounded: true;
+                    kind: IconButtonKind.Primary;
+                    font-size: 18px;
+                    width: 34px;
+                    height: 34px;
+                    clicked => {
+                        State.refresh-all();
+                    }
+                }
+
+                IconButton {
+                    icon: IconSet.Plus;
+                    tooltip: "Add new games";
+                    rounded: true;
+                    kind: IconButtonKind.Primary;
+                    font-size: 18px;
+                    width: 34px;
+                    height: 34px;
+                    clicked => {
+                        State.pick-games();
+                    }
                 }
             }
         }

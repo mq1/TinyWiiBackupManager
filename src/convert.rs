@@ -13,7 +13,7 @@ use nod::{
     read::{DiscOptions, DiscReader, PartitionEncryption},
     write::{DiscWriter, ProcessOptions, ScrubLevel},
 };
-use slint::{ComponentHandle, SharedString, ToSharedString, Weak};
+use slint::{ComponentHandle, ModelRc, SharedString, ToSharedString, Weak};
 use split_write::SplitWriter;
 use std::{
     ffi::OsStr,
@@ -192,7 +192,7 @@ impl QueuedConversion {
 
                 let progress_percentage = progress * 100 / total;
                 if progress_percentage != prev_percentage {
-                    let status = format!("⤒ Converting {title}  {progress_percentage:02}%")
+                    let status = format!("⤒  Converting {title}  {progress_percentage:02}%")
                         .to_shared_string();
                     let _ = weak.upgrade_in_event_loop(move |app| {
                         app.global::<State<'_>>().set_status(status);
@@ -237,7 +237,8 @@ impl QueuedConversion {
             let _ = weak.upgrade_in_event_loop(|app| {
                 app.global::<State<'_>>().set_is_converting(false);
                 app.global::<State<'_>>().set_status(SharedString::new());
-                app.global::<State<'_>>().invoke_conversion_confirmed();
+                app.global::<State<'_>>()
+                    .invoke_conversion_confirmed(ModelRc::from([]));
             });
         });
     }

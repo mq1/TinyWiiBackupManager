@@ -5,6 +5,13 @@ use crate::{ConfigContents, DriveInfo, GameList, QueuedConversion, disc_util};
 use slint::{Model, ToSharedString};
 use std::{fs::File, path::PathBuf};
 
+impl QueuedConversion {
+    #[must_use] 
+    pub fn display_string(&self) -> String {
+        format!("• {}", &self.in_path)
+    }
+}
+
 pub fn make_queue(
     paths: Vec<PathBuf>,
     game_list: &GameList,

@@ -125,20 +125,29 @@ fn main() -> Result<()> {
             let app = weak.upgrade().unwrap();
             let paths = dialogs::pick_games(app.window());
             let queue = transfer_queue::make_queue(paths, &game_list, &conf, &drive_info);
+            let display_string = queue
+                .iter()
+                .map(QueuedConversion::display_string)
+                .collect::<Vec<_>>()
+                .join("\n");
             let model = VecModel::from(queue);
-            ModelRc::from(Rc::new(model))
+            (ModelRc::from(Rc::new(model)), display_string.into())
         });
 
     let weak = app.as_weak();
-    app.global::<Rust<'_>>().on_start_conversion(move |queue| {
-        let queue = queue
-            .as_any()
-            .downcast_ref::<VecModel<QueuedConversion>>()
-            .unwrap();
+    app.global::<Rust<'_>>()
+        .on_start_conversion(move |conversion_queue, to_queue| {
+            let mut new_queue = Vec::new();
+            new_queue.extend(conversion_queue.iter());
+            new_queue.extend(to_queue.iter());
 
-        let conv = queue.remove(0);
-        conv.run(weak.clone());
-    });
+            if let Some(conv) = new_queue.pop() {
+                conv.run(weak.clone());
+            }
+
+            let model = VecModel::from(new_queue);
+            ModelRc::from(Rc::new(model))
+        });
 
     if let Err(e) = app.run() {
         if std::env::var("SLINT_BACKEND").unwrap_or_default() == "winit-software" {
