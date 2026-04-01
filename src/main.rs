@@ -151,7 +151,7 @@ fn main() -> Result<()> {
         }
     });
 
-    state::handle_callbacks(&app.global::<State<'_>>());
+    app.global::<State<'_>>().handle_callbacks();
 
     if let Err(e) = app.run() {
         if std::env::var("SLINT_BACKEND").unwrap_or_default() == "winit-software" {

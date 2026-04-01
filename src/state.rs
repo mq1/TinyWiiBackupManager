@@ -4,17 +4,19 @@
 use crate::{Notification, State};
 use slint::{Global, Model, VecModel};
 
-pub fn handle_callbacks(state: &State<'_>) {
-    let weak = state.as_weak();
-    state.on_close_notification(move |i| {
-        let state = weak.upgrade().unwrap();
+impl State<'_> {
+    pub fn handle_callbacks(&self) {
+        let weak = self.as_weak();
+        self.on_close_notification(move |i| {
+            let state = weak.upgrade().unwrap();
 
-        #[allow(clippy::cast_sign_loss)]
-        state
-            .get_notifications()
-            .as_any()
-            .downcast_ref::<VecModel<Notification>>()
-            .unwrap()
-            .remove(i as usize);
-    });
+            #[allow(clippy::cast_sign_loss)]
+            state
+                .get_notifications()
+                .as_any()
+                .downcast_ref::<VecModel<Notification>>()
+                .unwrap()
+                .remove(i as usize);
+        });
+    }
 }
