@@ -45,6 +45,7 @@ export global State {
 
     callback close-notification(int);
     callback apply-sorting();
+    callback add-to-queue();
 
     public function info(info: string) {
         if !info.is-empty {
@@ -116,10 +117,6 @@ export global State {
             message.kind = MessageKind.GamesPicked;
             adding-games = res.a;
         }
-    }
-
-    public function add-to-queue(new: [QueuedConversion]) {
-        conversion-queue = Rust.merge-queues(conversion-queue, new);
     }
 
     public function conversion-confirmed() {

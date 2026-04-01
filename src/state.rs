@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{Game, Notification, State, game_list};
+use crate::{Game, Notification, QueuedConversion, State, game_list};
 use slint::{Global, Model, VecModel};
 
 impl State<'_> {
@@ -33,6 +33,26 @@ impl State<'_> {
                 .downcast_ref::<VecModel<Game>>()
                 .unwrap()
                 .set_vec(games);
+        });
+
+        let weak = self.as_weak();
+        self.on_add_to_queue(move || {
+            let state = weak.upgrade().unwrap();
+
+            let queue = state.get_conversion_queue();
+            let queue = queue
+                .as_any()
+                .downcast_ref::<VecModel<QueuedConversion>>()
+                .unwrap();
+
+            let new = state.get_adding_games();
+            let new = new
+                .as_any()
+                .downcast_ref::<VecModel<QueuedConversion>>()
+                .unwrap();
+
+            queue.extend(new.iter());
+            new.clear();
         });
     }
 }

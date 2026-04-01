@@ -125,13 +125,6 @@ fn main() -> Result<()> {
             (ModelRc::from(queue.as_slice()), display_string.into())
         });
 
-    app.global::<Rust<'_>>().on_merge_queues(|a, b| {
-        let mut queue = Vec::new();
-        queue.extend(a.iter());
-        queue.extend(b.iter());
-        ModelRc::from(queue.as_slice())
-    });
-
     let weak = app.global::<State<'_>>().as_weak();
     app.global::<Rust<'_>>().on_start_conversion(move |queue| {
         let queue = queue
