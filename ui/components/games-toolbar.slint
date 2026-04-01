@@ -39,9 +39,7 @@ export component GamesToolbar inherits HorizontalBox {
                     font-size: 18px;
                     width: 34px;
                     height: 34px;
-                    clicked => {
-                        State.refresh-all();
-                    }
+                    clicked => State.refresh-all();
                 }
 
                 IconButton {
@@ -52,8 +50,20 @@ export component GamesToolbar inherits HorizontalBox {
                     font-size: 18px;
                     width: 34px;
                     height: 34px;
+                    clicked => State.pick-games();
+                }
+
+                IconButton {
+                    icon: IconSet.MessageCircle;
+                    rounded: true;
+                    kind: IconButtonKind.Primary;
+                    font-size: 18px;
+                    width: 34px;
+                    height: 34px;
                     clicked => {
-                        State.pick-games();
+                        let first = { text: "a", critical: false };
+                        let second = { text: "b", critical: true };
+                        State.notifications = [first, second];
                     }
                 }
             }

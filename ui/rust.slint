@@ -25,4 +25,5 @@ export global Rust {
     pure callback pick-games(GameList, ConfigContents, DriveInfo) -> {a: [QueuedConversion], b: string};
     pure callback merge-queues([QueuedConversion], [QueuedConversion]) -> [QueuedConversion];
     pure callback start-conversion([QueuedConversion]) -> [QueuedConversion];
+    pure callback close-notification(int);
 }

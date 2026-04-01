@@ -149,6 +149,11 @@ fn main() -> Result<()> {
         ModelRc::from(queue.as_slice())
     });
 
+    let weak = app.global::<State<'_>>().as_weak();
+    app.global::<Rust<'_>>().on_close_notification(move |i| {
+        weak.upgrade().unwrap().close_notification(i);
+    });
+
     if let Err(e) = app.run() {
         if std::env::var("SLINT_BACKEND").unwrap_or_default() == "winit-software" {
             bail!(e);

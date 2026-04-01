@@ -15,6 +15,7 @@ import { VerticalLine } from "components/vertical-line.slint";
 import { Card } from "components/card.slint";
 import { GamePage } from "game-page.slint";
 import { GameTablePage } from "game-table-page.slint";
+import { Notifications } from "components/notifications.slint";
 
 export * from "types.slint";
 export { State, Rust }
@@ -57,6 +58,11 @@ export component AppWindow inherits Window {
                 }
             }
         }
+    }
+
+    if State.notifications.length > 0: Notifications {
+        x: root.width - self.width;
+        y: root.height - self.height;
     }
 
     if !State.tooltip.text.is-empty: Card {

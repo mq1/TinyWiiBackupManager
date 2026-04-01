@@ -15,7 +15,6 @@ export component IconButton inherits TooltipArea {
     in property <IconButtonKind> kind: IconButtonKind.Secondary;
     in property <bool> rounded: false;
     in property <length> font-size: 14px;
-
     pure function get-bg() -> brush {
         if kind == IconButtonKind.Primary {
             self.has-hover ? MyPalette.accent-background.darker(0.2) : MyPalette.accent-background
@@ -74,28 +73,28 @@ export component IconButton inherits TooltipArea {
     border-color: get-border-color();
     border-width: get-border-width();
     border-radius: get-radius();
-    height: self.min-height;
+    height: 30px;
 
-    VerticalLayout {
+    HorizontalLayout {
+        spacing: 10px;
         alignment: center;
-        padding: 8px;
 
-        HorizontalLayout {
+        if icon != IconSet.WifiZero: VerticalLayout {
             alignment: center;
 
-            if icon != IconSet.WifiZero: IconDisplay {
+            IconDisplay {
                 icon: icon;
                 stroke: get-stroke();
                 size: font-size;
             }
+        }
 
-            if !label.is-empty: Text {
-                text: (icon == IconSet.WifiZero ? "" : " ") + label;
-                color: get-stroke();
-                horizontal-alignment: center;
-                font-weight: get-font-weight();
-                font-size: font-size;
-            }
+        if !label.is-empty: Text {
+            text: label;
+            color: get-stroke();
+            vertical-alignment: center;
+            font-weight: get-font-weight();
+            font-size: font-size;
         }
     }
 }

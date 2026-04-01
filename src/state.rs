@@ -32,4 +32,13 @@ impl State<'_> {
 
         self.notify(new);
     }
+
+    pub fn close_notification(&self, i: i32) {
+        #[allow(clippy::cast_sign_loss)]
+        self.get_notifications()
+            .as_any()
+            .downcast_ref::<VecModel<Notification>>()
+            .unwrap()
+            .remove(i as usize);
+    }
 }
