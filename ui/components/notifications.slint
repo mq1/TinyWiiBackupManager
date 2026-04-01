@@ -6,7 +6,6 @@ import { State } from "../state.slint";
 import { Card } from "card.slint";
 import { IconButton } from "icon-button.slint";
 import { IconSet } from "@lucide";
-import { Rust } from "../rust.slint";
 
 export component Notifications inherits VerticalBox {
     width: self.preferred-width;
@@ -20,7 +19,7 @@ export component Notifications inherits VerticalBox {
 
             IconButton {
                 icon: IconSet.X;
-                clicked => Rust.close-notification(i);
+                clicked => State.close-notification(i);
                 rounded: true;
                 width: 20px;
                 height: 20px;

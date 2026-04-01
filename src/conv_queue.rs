@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    ConfigContents, DriveInfo, GameList, QueuedConversion, State,
+    ConfigContents, DriveInfo, GameList, Notification, QueuedConversion, State,
     convert::{Conversion, ConversionFlags},
     disc_util,
 };
-use slint::{Model, SharedString, ToSharedString, Weak};
+use slint::{Model, SharedString, ToSharedString, VecModel, Weak};
 use std::{fs::File, path::PathBuf};
 
 impl QueuedConversion {
@@ -14,7 +14,17 @@ impl QueuedConversion {
         let mut conv = match <Conversion>::try_from(self) {
             Ok(conv) => conv,
             Err(e) => {
-                weak.upgrade().unwrap().notify_err(e.to_shared_string());
+                weak.upgrade()
+                    .unwrap()
+                    .get_notifications()
+                    .as_any()
+                    .downcast_ref::<VecModel<Notification>>()
+                    .unwrap()
+                    .push(Notification {
+                        text: e.to_shared_string(),
+                        critical: true,
+                    });
+
                 return;
             }
         };
@@ -26,7 +36,15 @@ impl QueuedConversion {
 
             let _ = weak.upgrade_in_event_loop(|state| {
                 if let Err(e) = res {
-                    state.notify_err(e.to_shared_string());
+                    state
+                        .get_notifications()
+                        .as_any()
+                        .downcast_ref::<VecModel<Notification>>()
+                        .unwrap()
+                        .push(Notification {
+                            text: e.to_shared_string(),
+                            critical: true,
+                        });
                 }
 
                 state.set_is_converting(false);

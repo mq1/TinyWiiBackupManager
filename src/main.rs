@@ -16,7 +16,6 @@ mod game;
 mod game_list;
 mod id_map;
 mod results;
-mod state;
 mod util;
 
 #[cfg(target_vendor = "pc")]
@@ -27,7 +26,7 @@ mod xp_dialogs;
 
 use crate::{data_dir::get_data_dir, id_map::ID_MAP};
 use anyhow::{Result, bail};
-use slint::{Model, ModelRc, SharedString, ToSharedString};
+use slint::{Model, ModelRc, SharedString, ToSharedString, VecModel};
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -149,10 +148,15 @@ fn main() -> Result<()> {
         ModelRc::from(queue.as_slice())
     });
 
-    let weak = app.global::<State<'_>>().as_weak();
-    app.global::<Rust<'_>>().on_close_notification(move |i| {
-        weak.upgrade().unwrap().close_notification(i);
-    });
+    app.global::<Rust<'_>>()
+        .on_close_notification(|notifications, i| {
+            #[allow(clippy::cast_sign_loss)]
+            notifications
+                .as_any()
+                .downcast_ref::<VecModel<Notification>>()
+                .unwrap()
+                .remove(i as usize);
+        });
 
     if let Err(e) = app.run() {
         if std::env::var("SLINT_BACKEND").unwrap_or_default() == "winit-software" {

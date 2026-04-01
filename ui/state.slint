@@ -129,4 +129,8 @@ export global State {
             conversion-queue = Rust.start-conversion(conversion-queue);
         }
     }
+
+    public function close-notification(i: int) {
+        Rust.close-notification(notifications, i);
+    }
 }
