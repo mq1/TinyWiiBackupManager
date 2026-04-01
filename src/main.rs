@@ -31,7 +31,6 @@ use std::{
     fs,
     path::{Path, PathBuf},
     process::Command,
-    rc::Rc,
     sync::LazyLock,
 };
 

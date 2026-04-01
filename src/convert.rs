@@ -14,7 +14,7 @@ use nod::{
     read::{DiscOptions, DiscReader, PartitionEncryption},
     write::{DiscWriter, ProcessOptions, ScrubLevel},
 };
-use slint::{ComponentHandle, Model, ToSharedString, Weak};
+use slint::{ComponentHandle, ToSharedString, Weak};
 use split_write::SplitWriter;
 use std::{
     ffi::OsStr,

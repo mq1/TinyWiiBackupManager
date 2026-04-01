@@ -6,7 +6,7 @@ use crate::{
     convert::{Conversion, ConversionFlags},
     disc_util,
 };
-use slint::{ComponentHandle, Model, ModelRc, SharedString, ToSharedString, Weak};
+use slint::{ComponentHandle, Model, SharedString, ToSharedString, Weak};
 use std::{fs::File, path::PathBuf};
 
 impl QueuedConversion {
