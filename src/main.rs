@@ -16,6 +16,7 @@ mod game;
 mod game_list;
 mod id_map;
 mod results;
+mod state;
 mod util;
 
 #[cfg(target_vendor = "pc")]
@@ -150,18 +151,7 @@ fn main() -> Result<()> {
         }
     });
 
-    let weak = app.global::<State<'_>>().as_weak();
-    app.global::<Rust<'_>>().on_close_notification(move |i| {
-        let state = weak.upgrade().unwrap();
-
-        #[allow(clippy::cast_sign_loss)]
-        state
-            .get_notifications()
-            .as_any()
-            .downcast_ref::<VecModel<Notification>>()
-            .unwrap()
-            .remove(i as usize);
-    });
+    state::handle_callbacks(&app.global::<State<'_>>());
 
     if let Err(e) = app.run() {
         if std::env::var("SLINT_BACKEND").unwrap_or_default() == "winit-software" {

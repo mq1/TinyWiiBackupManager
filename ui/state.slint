@@ -43,6 +43,8 @@ export global State {
     // ---------
     // ↓ Update
 
+    callback close-notification(int);
+
     public function info(info: string) {
         if !info.is-empty {
             message.text = info;
@@ -128,9 +130,5 @@ export global State {
         if !is-converting {
             Rust.start-conversion(conversion-queue);
         }
-    }
-
-    public function close-notification(i: int) {
-        Rust.close-notification(i);
     }
 }
