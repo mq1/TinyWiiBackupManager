@@ -4,72 +4,74 @@
 use crate::{Game, Notification, QueuedConversion, State, game_list};
 use slint::{Global, Model, VecModel};
 
-macro_rules! connect {
-    ($self:expr, $register:ident($($arg:ident),*) => $handler:ident) => {{
-        let weak = $self.as_weak();
-        $self.$register(move |$($arg),*| weak.upgrade().unwrap().$handler($($arg),*));
-    }};
-}
-
 impl State<'_> {
     pub fn handle_callbacks(&self) {
-        connect!(self, on_close_notification(i) => close_notification);
-        connect!(self, on_apply_sorting() => apply_sorting);
-        connect!(self, on_add_to_queue() => add_to_queue);
-        connect!(self, on_start_conversion() => start_conversion);
-    }
+        let weak = self.as_weak();
+        self.on_close_notification(move |i| {
+            let state = weak.upgrade().unwrap();
 
-    #[allow(clippy::cast_sign_loss)]
-    pub fn close_notification(&self, i: i32) {
-        self.get_notifications()
-            .as_any()
-            .downcast_ref::<VecModel<Notification>>()
-            .unwrap()
-            .remove(i as usize);
-    }
+            let notifications = state.get_notifications();
+            let notifications = notifications
+                .as_any()
+                .downcast_ref::<VecModel<Notification>>()
+                .unwrap();
 
-    pub fn apply_sorting(&self) {
-        let games = self.get_game_list().games;
-        let games = games.as_any().downcast_ref::<VecModel<Game>>().unwrap();
+            #[allow(clippy::cast_sign_loss)]
+            notifications.remove(i as usize);
+        });
 
-        let sort_by = self.get_config().contents.sort_by;
-        let mut sorted = games.iter().collect::<Vec<_>>();
-        game_list::sort(&mut sorted, &sort_by);
+        let weak = self.as_weak();
+        self.on_apply_sorting(move || {
+            let state = weak.upgrade().unwrap();
 
-        games.set_vec(sorted);
-    }
+            let games = state.get_game_list().games;
+            let games = games.as_any().downcast_ref::<VecModel<Game>>().unwrap();
 
-    pub fn add_to_queue(&self) {
-        let queue = self.get_conversion_queue();
-        let queue = queue
-            .as_any()
-            .downcast_ref::<VecModel<QueuedConversion>>()
-            .unwrap();
+            let sort_by = state.get_config().contents.sort_by;
+            let mut sorted = games.iter().collect::<Vec<_>>();
+            game_list::sort(&mut sorted, &sort_by);
 
-        let adding = self.get_adding_games();
-        let adding = adding
-            .as_any()
-            .downcast_ref::<VecModel<QueuedConversion>>()
-            .unwrap();
+            games.set_vec(sorted);
+        });
 
-        queue.extend(adding.iter());
-        adding.clear();
-    }
+        let weak = self.as_weak();
+        self.on_add_to_queue(move || {
+            let state = weak.upgrade().unwrap();
 
-    pub fn start_conversion(&self) {
-        if self.get_is_converting() {
-            return;
-        }
+            let queue = state.get_conversion_queue();
+            let queue = queue
+                .as_any()
+                .downcast_ref::<VecModel<QueuedConversion>>()
+                .unwrap();
 
-        let queue = self.get_conversion_queue();
-        let queue = queue
-            .as_any()
-            .downcast_ref::<VecModel<QueuedConversion>>()
-            .unwrap();
+            let adding = state.get_adding_games();
+            let adding = adding
+                .as_any()
+                .downcast_ref::<VecModel<QueuedConversion>>()
+                .unwrap();
 
-        if queue.row_count() > 0 {
-            let conv = queue.remove(0);
-            conv.run(self.as_weak());
-        }
+            queue.extend(adding.iter());
+            adding.clear();
+        });
+
+        let weak = self.as_weak();
+        self.on_start_conversion(move || {
+            let state = weak.upgrade().unwrap();
+
+            if state.get_is_converting() {
+                return;
+            }
+
+            let queue = state.get_conversion_queue();
+            let queue = queue
+                .as_any()
+                .downcast_ref::<VecModel<QueuedConversion>>()
+                .unwrap();
+
+            if queue.row_count() > 0 {
+                let conv = queue.remove(0);
+                conv.run(state.as_weak());
+            }
+        });
     }
 }

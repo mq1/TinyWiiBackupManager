@@ -49,7 +49,7 @@ impl QueuedConversion {
 
                 state.set_is_converting(false);
                 state.set_status(SharedString::new());
-                state.start_conversion();
+                state.invoke_start_conversion();
             });
         });
     }
