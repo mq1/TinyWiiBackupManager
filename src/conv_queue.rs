@@ -14,8 +14,7 @@ impl QueuedConversion {
         let mut conv = match <Conversion>::try_from(self) {
             Ok(conv) => conv,
             Err(e) => {
-                weak.upgrade().unwrap().invoke_err(e.to_shared_string());
-
+                weak.upgrade().unwrap().notify_err(e.to_shared_string());
                 return;
             }
         };
@@ -23,9 +22,13 @@ impl QueuedConversion {
         weak.upgrade().unwrap().set_is_converting(true);
 
         let _ = std::thread::spawn(move || {
-            let _ = conv.perform(&weak);
+            let res = conv.perform(&weak);
 
             let _ = weak.upgrade_in_event_loop(|state| {
+                if let Err(e) = res {
+                    state.notify_err(e.to_shared_string());
+                }
+
                 state.set_is_converting(false);
                 state.set_status(SharedString::new());
                 state.invoke_conversion_confirmed();

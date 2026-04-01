@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+import { Icon } from "@lucide";
+
 export enum Page {
     Games,
     Settings,
@@ -118,4 +120,9 @@ export struct DriveInfo {
     used-gib: float,
     total-gib: float,
     fs-kind: string,
+}
+
+export struct Notification {
+    text: string,
+    critical: bool,
 }

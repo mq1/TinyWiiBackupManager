@@ -16,6 +16,7 @@ mod game;
 mod game_list;
 mod id_map;
 mod results;
+mod state;
 mod util;
 
 #[cfg(target_vendor = "pc")]

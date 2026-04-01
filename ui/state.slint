@@ -12,10 +12,12 @@ import {
     DiscInfoResult,
     DriveInfo,
     QueuedConversion,
+    Notification,
 } from "types.slint";
 import { Rust } from "rust.slint";
 import { MyPalette } from "styling.slint";
 import { Palette } from "std-widgets.slint";
+import { IconSet } from "@lucide";
 
 export global State {
     in property <string> version;
@@ -35,6 +37,7 @@ export global State {
     in-out property <bool> is-converting;
     in-out property <string> deleting-dir;
     in-out property <[QueuedConversion]> adding-games;
+    in-out property <[Notification]> notifications;
 
     // ↑ Model
     // ---------
