@@ -1,14 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{fs::File, path::PathBuf};
-
 use crate::{
     AppWindow, ConfigContents, DriveInfo, GameList, QueuedConversion, State,
     convert::{Conversion, ConversionFlags},
     disc_util,
 };
 use slint::{ComponentHandle, Model, ModelRc, SharedString, ToSharedString, Weak};
+use std::{fs::File, path::PathBuf};
 
 impl QueuedConversion {
     pub fn run(&self, weak: Weak<AppWindow>) {

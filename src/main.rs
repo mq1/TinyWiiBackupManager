@@ -26,7 +26,7 @@ mod xp_dialogs;
 
 use crate::{data_dir::get_data_dir, id_map::ID_MAP};
 use anyhow::{Result, bail};
-use slint::{Model, ModelRc, SharedString, ToSharedString, VecModel};
+use slint::{Model, ModelRc, SharedString, ToSharedString};
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -105,15 +105,13 @@ fn main() -> Result<()> {
 
     app.global::<Rust<'_>>().on_filter_games(|games, query| {
         let games = game_list::fuzzy_search(games.iter(), &query);
-        let model = VecModel::from(games);
-        ModelRc::from(Rc::new(model))
+        ModelRc::from(games.as_slice())
     });
 
     app.global::<Rust<'_>>().on_sort_games(|games, sort_by| {
         let games = games.iter().collect::<Vec<_>>();
         let games = game_list::sort(games, &sort_by);
-        let model = VecModel::from(games);
-        ModelRc::from(Rc::new(model))
+        ModelRc::from(games.as_slice())
     });
 
     app.global::<Rust<'_>>()
@@ -130,24 +128,26 @@ fn main() -> Result<()> {
                 .map(QueuedConversion::display_string)
                 .collect::<Vec<_>>()
                 .join("\n");
-            let model = VecModel::from(queue);
-            (ModelRc::from(Rc::new(model)), display_string.into())
+            (ModelRc::from(queue.as_slice()), display_string.into())
         });
+
+    app.global::<Rust<'_>>().on_merge_queues(|a, b| {
+        let mut queue = Vec::new();
+        queue.extend(a.iter());
+        queue.extend(b.iter());
+        ModelRc::from(queue.as_slice())
+    });
 
     let weak = app.as_weak();
-    app.global::<Rust<'_>>()
-        .on_start_conversion(move |conversion_queue, to_queue| {
-            let mut new_queue = Vec::new();
-            new_queue.extend(conversion_queue.iter());
-            new_queue.extend(to_queue.iter());
+    app.global::<Rust<'_>>().on_start_conversion(move |queue| {
+        let mut queue = queue.iter().collect::<Vec<_>>();
 
-            if let Some(conv) = new_queue.pop() {
-                conv.run(weak.clone());
-            }
+        if let Some(conv) = queue.pop() {
+            conv.run(weak.clone());
+        }
 
-            let model = VecModel::from(new_queue);
-            ModelRc::from(Rc::new(model))
-        });
+        ModelRc::from(queue.as_slice())
+    });
 
     if let Err(e) = app.run() {
         if std::env::var("SLINT_BACKEND").unwrap_or_default() == "winit-software" {

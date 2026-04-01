@@ -68,8 +68,9 @@ export component MessagePage inherits VerticalBox {
                         label: "Ok";
                         kind: IconButtonKind.Primary;
                         clicked => {
-                            State.conversion-confirmed(State.adding-games);
+                            State.add-to-queue(State.adding-games);
                             State.adding-games = [];
+                            State.conversion-confirmed();
                             State.dismiss();
                         }
                     }

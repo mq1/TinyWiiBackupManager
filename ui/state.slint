@@ -117,9 +117,13 @@ export global State {
         }
     }
 
-    public function conversion-confirmed(to-queue: [QueuedConversion]) {
+    public function add-to-queue(new: [QueuedConversion]) {
+        conversion-queue = Rust.merge-queues(conversion-queue, new);
+    }
+
+    public function conversion-confirmed() {
         if !is-converting {
-            conversion-queue = Rust.start-conversion(conversion-queue, to-queue);
+            conversion-queue = Rust.start-conversion(conversion-queue);
         }
     }
 }

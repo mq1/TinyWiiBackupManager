@@ -23,5 +23,6 @@ export global Rust {
     pure callback sort-games([Game], string) -> [Game];
     pure callback get-disc-info(string) -> DiscInfoResult;
     pure callback pick-games(GameList, ConfigContents, DriveInfo) -> {a: [QueuedConversion], b: string};
-    pure callback start-conversion([QueuedConversion], [QueuedConversion]) -> [QueuedConversion];
+    pure callback merge-queues([QueuedConversion], [QueuedConversion]) -> [QueuedConversion];
+    pure callback start-conversion([QueuedConversion]) -> [QueuedConversion];
 }

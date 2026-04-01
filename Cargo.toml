@@ -92,6 +92,10 @@ panic = "abort"
 [profile.dev.build-override]
 opt-level = 3
 
+# speed up conversions in dev builds
+[profile.dev.package."*"]
+opt-level = 3
+
 [lints.rust]
 rust_2018_idioms = "deny"
 
