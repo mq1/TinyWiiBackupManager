@@ -2,39 +2,33 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    AppWindow, ConfigContents, DriveInfo, GameList, QueuedConversion, State,
+    ConfigContents, DriveInfo, GameList, QueuedConversion, State,
     convert::{Conversion, ConversionFlags},
     disc_util,
 };
-use slint::{ComponentHandle, Model, SharedString, ToSharedString, Weak};
+use slint::{Model, SharedString, ToSharedString, Weak};
 use std::{fs::File, path::PathBuf};
 
 impl QueuedConversion {
-    pub fn run(&self, weak: Weak<AppWindow>) {
+    pub fn run(&self, weak: Weak<State<'static>>) {
         let mut conv = match <Conversion>::try_from(self) {
             Ok(conv) => conv,
             Err(e) => {
-                weak.upgrade()
-                    .unwrap()
-                    .global::<State<'_>>()
-                    .invoke_err(e.to_shared_string());
+                weak.upgrade().unwrap().invoke_err(e.to_shared_string());
 
                 return;
             }
         };
 
-        weak.upgrade()
-            .unwrap()
-            .global::<State<'_>>()
-            .set_is_converting(true);
+        weak.upgrade().unwrap().set_is_converting(true);
 
         let _ = std::thread::spawn(move || {
             let _ = conv.perform(&weak);
 
-            let _ = weak.upgrade_in_event_loop(|app| {
-                app.global::<State<'_>>().set_is_converting(false);
-                app.global::<State<'_>>().set_status(SharedString::new());
-                app.global::<State<'_>>().invoke_conversion_confirmed();
+            let _ = weak.upgrade_in_event_loop(|state| {
+                state.set_is_converting(false);
+                state.set_status(SharedString::new());
+                state.invoke_conversion_confirmed();
             });
         });
     }

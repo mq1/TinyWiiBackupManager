@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    AppWindow, QueuedConversion, State,
+    QueuedConversion, State,
     extensions::{ext_to_format, format_to_opts},
     id_map::ID_MAP,
     util::{self, get_threads_num},
@@ -14,7 +14,7 @@ use nod::{
     read::{DiscOptions, DiscReader, PartitionEncryption},
     write::{DiscWriter, ProcessOptions, ScrubLevel},
 };
-use slint::{ComponentHandle, ToSharedString, Weak};
+use slint::{ToSharedString, Weak};
 use split_write::SplitWriter;
 use std::{
     ffi::OsStr,
@@ -71,7 +71,7 @@ impl TryFrom<&QueuedConversion> for Conversion {
 
 impl Conversion {
     #[allow(clippy::too_many_lines)]
-    pub fn perform(&mut self, weak: &Weak<AppWindow>) -> Result<()> {
+    pub fn perform(&mut self, weak: &Weak<State<'static>>) -> Result<()> {
         let mut files_to_remove = Vec::new();
         if self
             .flags
@@ -86,8 +86,7 @@ impl Conversion {
             .is_some_and(|ext| ext.eq_ignore_ascii_case("zip"))
         {
             let status = format!("Unzipping {}", self.in_path.display()).to_shared_string();
-            let _ =
-                weak.upgrade_in_event_loop(move |app| app.global::<State<'_>>().set_status(status));
+            let _ = weak.upgrade_in_event_loop(move |state| state.set_status(status));
 
             let file = File::open(&self.in_path)?;
             let reader = BufReader::new(file);
@@ -240,9 +239,7 @@ impl Conversion {
                 if progress_percentage != prev_percentage {
                     let status = format!("⤒  Converting {title}  {progress_percentage:02}%")
                         .to_shared_string();
-                    let _ = weak.upgrade_in_event_loop(move |app| {
-                        app.global::<State<'_>>().set_status(status);
-                    });
+                    let _ = weak.upgrade_in_event_loop(move |state| state.set_status(status));
 
                     prev_percentage = progress_percentage;
                 }

@@ -137,7 +137,7 @@ fn main() -> Result<()> {
         ModelRc::from(queue.as_slice())
     });
 
-    let weak = app.as_weak();
+    let weak = app.global::<State<'_>>().as_weak();
     app.global::<Rust<'_>>().on_start_conversion(move |queue| {
         let mut queue = queue.iter().collect::<Vec<_>>();
 
