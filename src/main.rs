@@ -108,12 +108,6 @@ fn main() -> Result<()> {
         ModelRc::from(games.as_slice())
     });
 
-    app.global::<Rust<'_>>().on_sort_games(|games, sort_by| {
-        let games = games.iter().collect::<Vec<_>>();
-        let games = game_list::sort(games, &sort_by);
-        ModelRc::from(games.as_slice())
-    });
-
     app.global::<Rust<'_>>()
         .on_get_disc_info(|game_dir| DiscInfo::try_from_game_dir(Path::new(&game_dir)).into());
 

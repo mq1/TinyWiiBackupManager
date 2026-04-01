@@ -37,7 +37,7 @@ impl GameList {
             }
         }
 
-        let games = sort(games, sort_by);
+        sort(&mut games, sort_by);
         let model = VecModel::from(games);
 
         Self {
@@ -96,7 +96,7 @@ pub fn fuzzy_search<G: IntoIterator<Item = Game>>(games: G, query: &str) -> Vec<
     filtered_games.into_iter().map(|(game, _)| game).collect()
 }
 
-pub fn sort(mut games: Vec<Game>, sort_by: &str) -> Vec<Game> {
+pub fn sort(games: &mut Vec<Game>, sort_by: &str) {
     let compare: fn(&Game, &Game) -> std::cmp::Ordering = match sort_by {
         "name_ascending" => |a, b| a.title.cmp(&b.title),
         "name_descending" => |a, b| b.title.cmp(&a.title),
@@ -106,6 +106,4 @@ pub fn sort(mut games: Vec<Game>, sort_by: &str) -> Vec<Game> {
     };
 
     games.sort_by(compare);
-
-    games
 }

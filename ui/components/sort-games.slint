@@ -32,7 +32,8 @@ export component SortGames inherits Card {
             tooltip: "Sort by name (A→Z)";
             background: get-bg("name_ascending", self.has-hover);
             clicked => {
-                State.apply-sorting("name_ascending");
+                State.config.contents.sort-by = "name_ascending";
+                State.apply-sorting();
             }
 
             IconDisplay {
@@ -49,7 +50,8 @@ export component SortGames inherits Card {
             tooltip: "Sort by name (Z→A)";
             background: get-bg("name_descending", self.has-hover);
             clicked => {
-                State.apply-sorting("name_descending");
+                State.config.contents.sort-by = "name_descending";
+                State.apply-sorting();
             }
 
             IconDisplay {
@@ -68,7 +70,8 @@ export component SortGames inherits Card {
             tooltip: "Sort by size (small→large)";
             background: get-bg("size_ascending", self.has-hover);
             clicked => {
-                State.apply-sorting("size_ascending");
+                State.config.contents.sort-by = "size_ascending";
+                State.apply-sorting();
             }
 
             IconDisplay {
@@ -85,7 +88,8 @@ export component SortGames inherits Card {
             tooltip: "Sort by size (large→small)";
             background: get-bg("size_descending", self.has-hover);
             clicked => {
-                State.apply-sorting("size_descending");
+                State.config.contents.sort-by = "size_descending";
+                State.apply-sorting();
             }
 
             IconDisplay {
