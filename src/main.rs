@@ -27,7 +27,7 @@ mod xp_dialogs;
 
 use crate::{data_dir::get_data_dir, id_map::ID_MAP};
 use anyhow::{Result, bail};
-use slint::{Model, ModelRc, SharedString, ToSharedString, VecModel};
+use slint::{Model, ModelRc, SharedString, ToSharedString};
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -124,19 +124,6 @@ fn main() -> Result<()> {
                 .join("\n");
             (ModelRc::from(queue.as_slice()), display_string.into())
         });
-
-    let weak = app.global::<State<'_>>().as_weak();
-    app.global::<Rust<'_>>().on_start_conversion(move |queue| {
-        let queue = queue
-            .as_any()
-            .downcast_ref::<VecModel<QueuedConversion>>()
-            .unwrap();
-
-        if queue.row_count() > 0 {
-            let conv = queue.remove(0);
-            conv.run(weak.clone());
-        }
-    });
 
     app.global::<State<'_>>().handle_callbacks();
 

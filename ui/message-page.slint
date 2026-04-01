@@ -69,7 +69,7 @@ export component MessagePage inherits VerticalBox {
                         kind: IconButtonKind.Primary;
                         clicked => {
                             State.add-to-queue();
-                            State.conversion-confirmed();
+                            State.start-conversion();
                             State.dismiss();
                         }
                     }

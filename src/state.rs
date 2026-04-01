@@ -54,5 +54,25 @@ impl State<'_> {
             queue.extend(new.iter());
             new.clear();
         });
+
+        let weak = self.as_weak();
+        self.on_start_conversion(move || weak.upgrade().unwrap().start_conversion());
+    }
+
+    pub fn start_conversion(&self) {
+        if self.get_is_converting() {
+            return;
+        }
+
+        let queue = self.get_conversion_queue();
+        let queue = queue
+            .as_any()
+            .downcast_ref::<VecModel<QueuedConversion>>()
+            .unwrap();
+
+        if queue.row_count() > 0 {
+            let conv = queue.remove(0);
+            conv.run(self.as_weak());
+        }
     }
 }

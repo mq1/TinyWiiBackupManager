@@ -46,6 +46,7 @@ export global State {
     callback close-notification(int);
     callback apply-sorting();
     callback add-to-queue();
+    callback start-conversion();
 
     public function info(info: string) {
         if !info.is-empty {
@@ -116,12 +117,6 @@ export global State {
             message.text = "Picked " + res.a.length + " games, are you sure you want to continue?\n\n" + res.b;
             message.kind = MessageKind.GamesPicked;
             adding-games = res.a;
-        }
-    }
-
-    public function conversion-confirmed() {
-        if !is-converting {
-            Rust.start-conversion(conversion-queue);
         }
     }
 }
