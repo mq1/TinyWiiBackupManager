@@ -4,6 +4,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod config;
+mod conv_queue;
 mod convert;
 mod data_dir;
 mod dialogs;
@@ -15,7 +16,6 @@ mod game;
 mod game_list;
 mod id_map;
 mod results;
-mod transfer_queue;
 mod util;
 
 #[cfg(target_vendor = "pc")]
@@ -124,7 +124,7 @@ fn main() -> Result<()> {
         .on_pick_games(move |game_list, conf, drive_info| {
             let app = weak.upgrade().unwrap();
             let paths = dialogs::pick_games(app.window());
-            let queue = transfer_queue::make_queue(paths, &game_list, &conf, &drive_info);
+            let queue = QueuedConversion::make_queue(paths, &game_list, &conf, &drive_info);
             let display_string = queue
                 .iter()
                 .map(QueuedConversion::display_string)
