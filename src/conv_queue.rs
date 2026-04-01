@@ -46,7 +46,7 @@ impl QueuedConversion {
         format!("• {}", &self.in_path)
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn make_queue(
         paths: Vec<PathBuf>,
         game_list: &GameList,
