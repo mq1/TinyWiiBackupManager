@@ -150,15 +150,18 @@ fn main() -> Result<()> {
         }
     });
 
-    app.global::<Rust<'_>>()
-        .on_close_notification(|notifications, i| {
-            #[allow(clippy::cast_sign_loss)]
-            notifications
-                .as_any()
-                .downcast_ref::<VecModel<Notification>>()
-                .unwrap()
-                .remove(i as usize);
-        });
+    let weak = app.global::<State<'_>>().as_weak();
+    app.global::<Rust<'_>>().on_close_notification(move |i| {
+        let state = weak.upgrade().unwrap();
+
+        #[allow(clippy::cast_sign_loss)]
+        state
+            .get_notifications()
+            .as_any()
+            .downcast_ref::<VecModel<Notification>>()
+            .unwrap()
+            .remove(i as usize);
+    });
 
     if let Err(e) = app.run() {
         if std::env::var("SLINT_BACKEND").unwrap_or_default() == "winit-software" {
