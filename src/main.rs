@@ -139,13 +139,15 @@ fn main() -> Result<()> {
 
     let weak = app.global::<State<'_>>().as_weak();
     app.global::<Rust<'_>>().on_start_conversion(move |queue| {
-        let mut queue = queue.iter().collect::<Vec<_>>();
+        let queue = queue
+            .as_any()
+            .downcast_ref::<VecModel<QueuedConversion>>()
+            .unwrap();
 
-        if let Some(conv) = queue.pop() {
+        if queue.row_count() > 0 {
+            let conv = queue.remove(0);
             conv.run(weak.clone());
         }
-
-        ModelRc::from(queue.as_slice())
     });
 
     app.global::<Rust<'_>>()

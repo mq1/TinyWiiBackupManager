@@ -126,7 +126,7 @@ export global State {
 
     public function conversion-confirmed() {
         if !is-converting {
-            conversion-queue = Rust.start-conversion(conversion-queue);
+            Rust.start-conversion(conversion-queue);
         }
     }
 
