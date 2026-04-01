@@ -4,19 +4,19 @@
 use crate::{Game, Notification, QueuedConversion, State, game_list};
 use slint::{Global, Model, VecModel};
 
+macro_rules! connect {
+    ($self:expr, $register:ident($($arg:ident),*) => $handler:ident) => {{
+        let weak = $self.as_weak();
+        $self.$register(move |$($arg),*| weak.upgrade().unwrap().$handler($($arg),*));
+    }};
+}
+
 impl State<'_> {
     pub fn handle_callbacks(&self) {
-        let weak = self.as_weak();
-        self.on_close_notification(move |i| weak.upgrade().unwrap().close_notification(i));
-
-        let weak = self.as_weak();
-        self.on_apply_sorting(move || weak.upgrade().unwrap().apply_sorting());
-
-        let weak = self.as_weak();
-        self.on_add_to_queue(move || weak.upgrade().unwrap().add_to_queue());
-
-        let weak = self.as_weak();
-        self.on_start_conversion(move || weak.upgrade().unwrap().start_conversion());
+        connect!(self, on_close_notification(i) => close_notification);
+        connect!(self, on_apply_sorting() => apply_sorting);
+        connect!(self, on_add_to_queue() => add_to_queue);
+        connect!(self, on_start_conversion() => start_conversion);
     }
 
     #[allow(clippy::cast_sign_loss)]
