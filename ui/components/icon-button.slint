@@ -76,8 +76,10 @@ export component IconButton inherits TooltipArea {
     height: 30px;
 
     HorizontalLayout {
-        spacing: 10px;
+        spacing: 5px;
         alignment: center;
+        padding-left: label.is-empty ? 5px : 10px;
+        padding-right: label.is-empty ? 5px : 10px;
 
         if icon != IconSet.WifiZero: VerticalLayout {
             alignment: center;
