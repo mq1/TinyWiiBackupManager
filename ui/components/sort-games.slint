@@ -8,9 +8,10 @@ import { TooltipArea } from "tooltip-area.slint";
 import { State } from "../state.slint";
 import { MyPalette } from "../styling.slint";
 import { VerticalLine } from "vertical-line.slint";
+import { SortBy } from "../types.slint";
 
 export component SortGames inherits Card {
-    pure function get-bg(sort-by: string, hovered: bool) -> color {
+    pure function get-bg(sort-by: SortBy, hovered: bool) -> color {
         if State.config.contents.sort-by == sort-by {
             MyPalette.selection-background
         } else if hovered {
@@ -30,9 +31,9 @@ export component SortGames inherits Card {
             height: 38px;
 
             tooltip: "Sort by name (A→Z)";
-            background: get-bg("name_ascending", self.has-hover);
+            background: get-bg(SortBy.NameAscending, self.has-hover);
             clicked => {
-                State.config.contents.sort-by = "name_ascending";
+                State.config.contents.sort-by = SortBy.NameAscending;
                 State.apply-sorting();
             }
 
@@ -48,9 +49,9 @@ export component SortGames inherits Card {
             height: 38px;
 
             tooltip: "Sort by name (Z→A)";
-            background: get-bg("name_descending", self.has-hover);
+            background: get-bg(SortBy.NameDescending, self.has-hover);
             clicked => {
-                State.config.contents.sort-by = "name_descending";
+                State.config.contents.sort-by = SortBy.NameDescending;
                 State.apply-sorting();
             }
 
@@ -68,9 +69,9 @@ export component SortGames inherits Card {
             height: 38px;
 
             tooltip: "Sort by size (small→large)";
-            background: get-bg("size_ascending", self.has-hover);
+            background: get-bg(SortBy.SizeAscending, self.has-hover);
             clicked => {
-                State.config.contents.sort-by = "size_ascending";
+                State.config.contents.sort-by = SortBy.SizeAscending;
                 State.apply-sorting();
             }
 
@@ -86,9 +87,9 @@ export component SortGames inherits Card {
             height: 38px;
 
             tooltip: "Sort by size (large→small)";
-            background: get-bg("size_descending", self.has-hover);
+            background: get-bg(SortBy.SizeDescending, self.has-hover);
             clicked => {
-                State.config.contents.sort-by = "size_descending";
+                State.config.contents.sort-by = SortBy.SizeDescending;
                 State.apply-sorting();
             }
 

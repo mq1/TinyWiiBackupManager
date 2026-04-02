@@ -1,13 +1,20 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { Icon } from "@lucide";
-
 export enum Page {
     Games,
     Settings,
     About,
     Game,
+}
+
+@rust-attr(derive(serde::Serialize, serde::Deserialize))
+@rust-attr(serde(rename_all = "snake_case"))
+export enum SortBy {
+    NameAscending,
+    NameDescending,
+    SizeAscending,
+    SizeDescending,
 }
 
 @rust-attr(derive(serde::Serialize, serde::Deserialize))
@@ -18,7 +25,7 @@ export struct ConfigContents {
     remove-sources-apps: bool,
     remove-sources-games: bool,
     scrub-update-partition: bool,
-    sort-by: string,
+    sort-by: SortBy,
     view-as-table: bool,
     wii-ip: string,
     txt-codes-source: string,
@@ -126,3 +133,4 @@ export struct Notification {
     text: string,
     critical: bool,
 }
+

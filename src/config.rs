@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{Config, ConfigContents};
+use crate::{Config, ConfigContents, SortBy};
 use anyhow::Result;
 use slint::{Model, ModelRc, SharedString, ToSharedString, VecModel};
 use std::{fs, path::Path};
@@ -78,7 +78,7 @@ impl ConfigContents {
             remove_sources_apps: false,
             remove_sources_games: false,
             scrub_update_partition: false,
-            sort_by: "name_descending".to_shared_string(),
+            sort_by: SortBy::NameAscending,
             view_as_table: false,
             wii_ip: "192.168.1.100".to_shared_string(),
             txt_codes_source: "web_archive".to_shared_string(),
