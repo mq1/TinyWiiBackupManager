@@ -1,11 +1,35 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{Game, SortBy, State, slint_ext::MyModelExt};
+use crate::{Game, Notification, SortBy, State, slint_ext::MyModelExt};
 use slint::Global;
 
 impl State<'_> {
     pub fn handle_callbacks(&self) {
+        let weak = self.as_weak();
+        self.on_notify_info(move |text| {
+            let state = weak.upgrade().unwrap();
+
+            let notification = Notification {
+                text,
+                critical: false,
+            };
+
+            state.get_notifications().push(notification);
+        });
+
+        let weak = self.as_weak();
+        self.on_notify_err(move |text| {
+            let state = weak.upgrade().unwrap();
+
+            let notification = Notification {
+                text,
+                critical: true,
+            };
+
+            state.get_notifications().push(notification);
+        });
+
         let weak = self.as_weak();
         self.on_close_notification(move |i| {
             let state = weak.upgrade().unwrap();
