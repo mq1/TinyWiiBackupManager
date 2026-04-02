@@ -1,9 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::slint_ext::MyModelExt;
-use crate::{Game, State, game_list};
-use slint::{Global, Model, VecModel};
+use crate::{Game, State, slint_ext::MyModelExt};
+use slint::Global;
 
 impl State<'_> {
     pub fn handle_callbacks(&self) {
@@ -17,14 +16,16 @@ impl State<'_> {
         self.on_apply_sorting(move || {
             let state = weak.upgrade().unwrap();
 
-            let games = state.get_game_list().games;
-            let games = games.as_any().downcast_ref::<VecModel<Game>>().unwrap();
-
             let sort_by = state.get_config().contents.sort_by;
-            let mut sorted = games.iter().collect::<Vec<_>>();
-            game_list::sort(&mut sorted, &sort_by);
+            let compare: fn(&Game, &Game) -> std::cmp::Ordering = match sort_by.as_str() {
+                "name_ascending" => |a, b| a.title.cmp(&b.title),
+                "name_descending" => |a, b| b.title.cmp(&a.title),
+                "size_ascending" => |a, b| a.size_gib.total_cmp(&b.size_gib),
+                "size_descending" => |a, b| b.size_gib.total_cmp(&a.size_gib),
+                _ => |_, _| std::cmp::Ordering::Equal,
+            };
 
-            games.set_vec(sorted);
+            state.get_game_list().games.sort_by(compare);
         });
 
         let weak = self.as_weak();

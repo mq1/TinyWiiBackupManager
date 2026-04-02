@@ -95,15 +95,3 @@ pub fn fuzzy_search<G: IntoIterator<Item = Game>>(games: G, query: &str) -> Vec<
 
     filtered_games.into_iter().map(|(game, _)| game).collect()
 }
-
-pub fn sort(games: &mut Vec<Game>, sort_by: &str) {
-    let compare: fn(&Game, &Game) -> std::cmp::Ordering = match sort_by {
-        "name_ascending" => |a, b| a.title.cmp(&b.title),
-        "name_descending" => |a, b| b.title.cmp(&a.title),
-        "size_ascending" => |a, b| a.size_gib.total_cmp(&b.size_gib),
-        "size_descending" => |a, b| b.size_gib.total_cmp(&a.size_gib),
-        _ => |_, _| std::cmp::Ordering::Equal,
-    };
-
-    games.sort_by(compare);
-}

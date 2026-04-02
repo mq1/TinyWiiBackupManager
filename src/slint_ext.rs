@@ -9,6 +9,7 @@ pub trait MyModelExt<T> {
     fn pop_first(&self) -> Option<T>;
     fn remove(&self, index: i32) -> T;
     fn append(&self, other: Self);
+    fn sort_by(&self, compare: impl FnMut(&T, &T) -> std::cmp::Ordering);
 }
 
 impl<T: 'static> MyModelExt<T> for ModelRc<T> {
@@ -46,5 +47,14 @@ impl<T: 'static> MyModelExt<T> for ModelRc<T> {
         while let Some(item) = other.pop() {
             self.push(item);
         }
+    }
+
+    fn sort_by(&self, compare: impl FnMut(&T, &T) -> std::cmp::Ordering) {
+        let mut v = self.iter().collect::<Vec<_>>();
+        v.sort_unstable_by(compare);
+        self.as_any()
+            .downcast_ref::<VecModel<T>>()
+            .unwrap()
+            .set_vec(v);
     }
 }
