@@ -101,7 +101,7 @@ fn main() -> Result<()> {
         .on_delete_dir(|path| fs::remove_dir_all(path).into());
 
     app.global::<Rust<'_>>()
-        .on_get_game_list(|path, sort_by| GameList::new(Path::new(&path), data_dir, &sort_by));
+        .on_get_game_list(|path| GameList::new(Path::new(&path), data_dir));
 
     app.global::<Rust<'_>>().on_filter_games(|games, query| {
         let games = game_list::fuzzy_search(games.iter(), &query);

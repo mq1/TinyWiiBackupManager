@@ -86,6 +86,7 @@ export global State {
     public function refresh-all() {
         drive-info = Rust.get-drive-info(config.contents.mount-point);
         game-list = Rust.get-game-list(config.contents.mount-point, config.contents.sort-by);
+        apply-sorting();
         filtered-games = [];
     }
 
