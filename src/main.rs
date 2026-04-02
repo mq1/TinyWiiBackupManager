@@ -16,7 +16,6 @@ mod game;
 mod game_list;
 mod id_map;
 mod results;
-mod slint_ext;
 mod state;
 mod util;
 
