@@ -68,13 +68,12 @@ fn main() -> Result<()> {
     app.global::<State<'_>>()
         .set_data_dir(data_dir.to_string_lossy().to_shared_string());
 
-    app.global::<State<'_>>().set_game_list(GameList::new(
-        &mount_point,
-        data_dir,
-        &config.contents.sort_by,
-    ));
+    app.global::<State<'_>>()
+        .set_game_list(GameList::new(&mount_point, data_dir));
 
     app.global::<State<'_>>().set_config(config);
+
+    app.global::<State<'_>>().invoke_apply_sorting();
 
     app.global::<State<'_>>()
         .set_drive_info(DriveInfo::from_path(&mount_point));

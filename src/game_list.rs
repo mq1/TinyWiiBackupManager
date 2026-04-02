@@ -13,7 +13,7 @@ use std::{
 
 impl GameList {
     #[must_use]
-    pub fn new(drive_path: &Path, data_dir: &Path, sort_by: &str) -> Self {
+    pub fn new(drive_path: &Path, data_dir: &Path) -> Self {
         let wii_path = drive_path.join("wbfs");
         let gc_path = drive_path.join("games");
 
@@ -37,7 +37,6 @@ impl GameList {
             }
         }
 
-        sort(&mut games, sort_by);
         let model = VecModel::from(games);
 
         Self {
