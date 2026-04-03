@@ -148,6 +148,22 @@ fn main() -> Result<()> {
                 .remove(i as usize);
         });
 
+    app.global::<Rust<'_>>().on_add_to_queue(|queue, new| {
+        let model = queue
+            .as_any()
+            .downcast_ref::<VecModel<QueuedConversion>>()
+            .unwrap();
+
+        let new_model = new
+            .as_any()
+            .downcast_ref::<VecModel<QueuedConversion>>()
+            .unwrap();
+
+        while new.row_count() > 0 {
+            model.push(new_model.remove(new.row_count() - 1));
+        }
+    });
+
     app.global::<State<'_>>().handle_callbacks();
 
     if let Err(e) = app.run() {

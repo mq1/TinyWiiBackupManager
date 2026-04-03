@@ -40,7 +40,6 @@ export global State {
     // ---------
     // ↓ Update
 
-    callback add-to-queue();
     callback start-conversion();
 
     public function notify(notification: Notification) {
@@ -107,5 +106,9 @@ export global State {
 
     public function close-notification(i: int) {
         Rust.close-notification(notifications, i);
+    }
+
+    public function add-to-queue() {
+        Rust.add-to-queue(conversion-queue, adding-games);
     }
 }

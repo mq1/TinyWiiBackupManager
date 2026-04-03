@@ -2,23 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{Notification, QueuedConversion, State};
-use slint::{Global, Model, ModelRc, VecModel};
+use slint::{Global, Model, VecModel};
 
 impl State<'_> {
     pub fn handle_callbacks(&self) {
-        let weak = self.as_weak();
-        self.on_add_to_queue(move || {
-            let state = weak.upgrade().unwrap();
-
-            let model = state.get_conversion_queue();
-            model
-                .as_any()
-                .downcast_ref::<VecModel<QueuedConversion>>()
-                .unwrap()
-                .extend(state.get_adding_games().iter());
-            state.set_adding_games(ModelRc::default());
-        });
-
         let weak = self.as_weak();
         self.on_start_conversion(move || {
             let state = weak.upgrade().unwrap();
