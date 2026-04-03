@@ -43,8 +43,7 @@ export global State {
     // ---------
     // ↓ Update
 
-    callback notify-info(string);
-    callback notify-err(string);
+    callback notify(Notification);
     callback close-notification(int);
     callback apply-sorting();
     callback add-to-queue();

@@ -15,6 +15,7 @@ mod extensions;
 mod game;
 mod game_list;
 mod id_map;
+mod notification;
 mod results;
 mod state;
 mod util;

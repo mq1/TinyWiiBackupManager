@@ -7,37 +7,9 @@ use slint::{Global, Model, ModelRc, VecModel};
 impl State<'_> {
     pub fn handle_callbacks(&self) {
         let weak = self.as_weak();
-        self.on_notify_info(move |text| {
+        self.on_notify(move |notification| {
             let state = weak.upgrade().unwrap();
-
-            let notification = Notification {
-                text,
-                critical: false,
-            };
-
-            let model = state.get_notifications();
-            model
-                .as_any()
-                .downcast_ref::<VecModel<Notification>>()
-                .unwrap()
-                .push(notification);
-        });
-
-        let weak = self.as_weak();
-        self.on_notify_err(move |text| {
-            let state = weak.upgrade().unwrap();
-
-            let notification = Notification {
-                text,
-                critical: true,
-            };
-
-            let model = state.get_notifications();
-            model
-                .as_any()
-                .downcast_ref::<VecModel<Notification>>()
-                .unwrap()
-                .push(notification);
+            state.push_notification(notification);
         });
 
         let weak = self.as_weak();
@@ -109,5 +81,14 @@ impl State<'_> {
                 conv.run(weak.clone());
             }
         });
+    }
+
+    pub fn push_notification(&self, notification: Notification) {
+        let model = self.get_notifications();
+        model
+            .as_any()
+            .downcast_ref::<VecModel<Notification>>()
+            .unwrap()
+            .push(notification);
     }
 }

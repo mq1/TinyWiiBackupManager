@@ -14,10 +14,7 @@ impl QueuedConversion {
         let mut conv = match <Conversion>::try_from(self) {
             Ok(conv) => conv,
             Err(e) => {
-                weak.upgrade()
-                    .unwrap()
-                    .invoke_notify_err(e.to_shared_string());
-
+                weak.upgrade().unwrap().push_notification(e.into());
                 return;
             }
         };
@@ -32,7 +29,7 @@ impl QueuedConversion {
                 state.set_status(SharedString::new());
 
                 if let Err(e) = res {
-                    state.invoke_notify_err(e.to_shared_string());
+                    state.push_notification(e.into());
                 } else {
                     state.invoke_start_conversion();
                 }
