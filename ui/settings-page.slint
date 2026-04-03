@@ -101,6 +101,21 @@ export component SettingsPage inherits VerticalLayout {
                 ];
                 active-value <=> State.config.contents.txt-codes-source;
             }
+
+            Setting {
+                icon: IconSet.SunMoon;
+                label: "Theme";
+                items: [
+                    { value: "system", label: "System (requires restart)" },
+                    { value: "light", label: "Light" },
+                    { value: "dark", label: "Dark" },
+                ];
+                active-value <=> State.config.contents.theme-preference;
+
+                changed active-value => {
+                    State.apply-theme();
+                }
+            }
         }
     }
 }

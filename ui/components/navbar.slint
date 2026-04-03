@@ -36,13 +36,6 @@ export component Navbar inherits VerticalLayout {
         }
 
         NavbarButton {
-            icon: IconSet.SunMoon;
-            clicked => {
-                State.toggle-dark-mode();
-            }
-        }
-
-        NavbarButton {
             active: State.current-page == Page.About;
             icon: IconSet.Info;
             clicked => {

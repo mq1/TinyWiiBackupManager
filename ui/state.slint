@@ -61,8 +61,12 @@ export global State {
         }
     }
 
-    public function toggle-dark-mode() {
-        Palette.color-scheme = Palette.color-scheme == ColorScheme.dark ? ColorScheme.light : ColorScheme.dark;
+    public function apply-theme() {
+        if config.contents.theme-preference == "light" {
+            Palette.color-scheme = ColorScheme.light;
+        } else if config.contents.theme-preference == "dark" {
+            Palette.color-scheme = ColorScheme.dark;
+        }
     }
 
     public function apply-sorting() {

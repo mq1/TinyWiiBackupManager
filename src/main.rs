@@ -77,6 +77,8 @@ fn main() -> Result<()> {
 
     app.global::<State<'_>>().set_config(config);
 
+    app.global::<State<'_>>().invoke_apply_theme();
+
     app.global::<State<'_>>()
         .set_drive_info(DriveInfo::from_path(&mount_point));
 
