@@ -5,7 +5,8 @@ import { VerticalBox, HorizontalBox } from "std-widgets.slint";
 import { State } from "../state.slint";
 import { Card } from "card.slint";
 import { IconButton } from "icon-button.slint";
-import { IconSet } from "@lucide";
+import { IconSet, IconDisplay } from "@lucide";
+import { MyPalette } from "../styling.slint";
 
 export component Notifications inherits VerticalBox {
     width: self.preferred-width;
@@ -16,6 +17,25 @@ export component Notifications inherits VerticalBox {
 
         h := HorizontalLayout {
             padding: 5px;
+            spacing: 10px;
+
+            VerticalLayout {
+                alignment: center;
+                width: 14px;
+                padding-left: 5px;
+                padding-right: 10px;
+
+                IconDisplay {
+                    icon: notification.critical ? IconSet.TriangleAlert : IconSet.Info;
+                    size: 14px;
+                    stroke: MyPalette.foreground;
+                }
+            }
+
+            Text {
+                text: notification.text;
+                vertical-alignment: center;
+            }
 
             IconButton {
                 icon: IconSet.X;
@@ -23,11 +43,6 @@ export component Notifications inherits VerticalBox {
                 rounded: true;
                 width: 20px;
                 height: 20px;
-            }
-
-            Text {
-                text: "  " + notification.text;
-                vertical-alignment: center;
             }
         }
     }
