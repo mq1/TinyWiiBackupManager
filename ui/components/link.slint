@@ -46,7 +46,9 @@ export component Link inherits Rectangle {
         mouse-cursor: pointer;
         clicked => {
             let res = Rust.open(uri);
-            State.err(res.err);
+            if !res.err.is-empty {
+                State.notify({ text: res.err, critical: true });
+            }
         }
     }
 }

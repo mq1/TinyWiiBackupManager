@@ -38,11 +38,6 @@ impl QueuedConversion {
     }
 
     #[must_use]
-    pub fn display_string(&self) -> String {
-        format!("• {}", &self.in_path)
-    }
-
-    #[must_use]
     pub fn make_queue(
         paths: Vec<PathBuf>,
         game_list: &GameList,

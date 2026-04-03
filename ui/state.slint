@@ -7,7 +7,6 @@ import {
     Message,
     IconButtonKind,
     GameList,
-    MessageKind,
     Game,
     DiscInfoResult,
     DriveInfo,
@@ -49,27 +48,11 @@ export global State {
     callback add-to-queue();
     callback start-conversion();
 
-    public function info(info: string) {
-        if !info.is-empty {
-            message.text = info;
-            message.kind = MessageKind.Info;
-        }
-    }
-
-    public function err(err: string) {
-        if !err.is-empty {
-            message.text = err;
-            message.kind = MessageKind.Error;
-        }
-    }
-
-    public function dismiss() {
-        message.text = "";
-    }
-
     public function write-config() {
         let res = Rust.write-config(config);
-        err(res.err);
+        if !res.err.is-empty {
+            notify({ text: res.err, critical: true });
+        }
     }
 
     public function filter-games() {
@@ -101,10 +84,12 @@ export global State {
     }
 
     public function delete-dir() {
-        dismiss();
         let res = Rust.delete-dir(deleting-dir);
-        err(res.err);
+        if !res.err.is-empty {
+            notify({ text: res.err, critical: true });
+        }
         refresh-all();
+        deleting-dir = "";
     }
 
     public function open-game-info(game: Game) {
@@ -114,11 +99,6 @@ export global State {
     }
 
     public function pick-games() {
-        let res = Rust.pick-games(game-list, config.contents, drive-info);
-        if res.a.length > 0 {
-            message.text = "Picked " + res.a.length + " games, are you sure you want to continue?\n\n" + res.b;
-            message.kind = MessageKind.GamesPicked;
-            adding-games = res.a;
-        }
+        adding-games = Rust.pick-games(game-list, config.contents, drive-info);
     }
 }

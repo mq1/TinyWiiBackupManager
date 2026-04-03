@@ -28,11 +28,12 @@ mod xp_dialogs;
 
 use crate::{data_dir::get_data_dir, id_map::ID_MAP};
 use anyhow::{Result, bail};
-use slint::{Model, ModelRc, SharedString, ToSharedString};
+use slint::{Model, ModelRc, SharedString, ToSharedString, VecModel};
 use std::{
     fs,
     path::{Path, PathBuf},
     process::Command,
+    rc::Rc,
     sync::LazyLock,
 };
 
@@ -117,12 +118,8 @@ fn main() -> Result<()> {
             let app = weak.upgrade().unwrap();
             let paths = dialogs::pick_games(app.window());
             let queue = QueuedConversion::make_queue(paths, &game_list, &conf, &drive_info);
-            let display_string = queue
-                .iter()
-                .map(QueuedConversion::display_string)
-                .collect::<Vec<_>>()
-                .join("\n");
-            (ModelRc::from(queue.as_slice()), display_string.into())
+            let model = VecModel::from(queue);
+            ModelRc::from(Rc::new(model))
         });
 
     app.global::<State<'_>>().handle_callbacks();

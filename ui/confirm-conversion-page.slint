@@ -5,12 +5,12 @@ import { VerticalBox, HorizontalBox, ScrollView } from "std-widgets.slint";
 import { State } from "state.slint";
 import { MyPalette } from "styling.slint";
 import { IconButton } from "components/icon-button.slint";
-import { IconSet, IconDisplay } from "@lucide";
+import { IconSet } from "@lucide";
 import { Card } from "components/card.slint";
 import { IconButtonKind } from "types.slint";
 import { HorizontalLine } from "components/horizontal-line.slint";
 
-export component MessagePage inherits VerticalBox {
+export component ConfirmConversionPage inherits VerticalBox {
     alignment: center;
 
     HorizontalBox {
@@ -21,17 +21,18 @@ export component MessagePage inherits VerticalBox {
             height: 400px;
 
             VerticalBox {
-                HorizontalLayout {
-                    spacing: 10px;
+                ScrollView {
+                    VerticalLayout {
+                        alignment: start;
+                        spacing: 5px;
 
-                    IconDisplay {
-                        icon: State.message.critical ? IconSet.TriangleAlert : IconSet.Info;
-                        stroke: MyPalette.foreground;
-                        size: 14px;
-                    }
+                        Text {
+                            text: "Picked \{State.adding-games.length} games, are you sure you want to continue?\n\n";
+                        }
 
-                    Text {
-                        text: State.message.text;
+                        for game in State.adding-games: Text {
+                            text: "• \{game.in-path}";
+                        }
                     }
                 }
 
@@ -42,10 +43,19 @@ export component MessagePage inherits VerticalBox {
                     spacing: 10px;
 
                     IconButton {
-                        label: "  Ok  ";
-                        kind: State.message.critical ? IconButtonKind.Warning : IconButtonKind.Primary;
+                        label: "  Cancel  ";
+                        kind: IconButtonKind.Secondary;
                         clicked => {
-                            State.message.text = "";
+                            State.adding-games = [];
+                        }
+                    }
+
+                    IconButton {
+                        label: "  Ok  ";
+                        kind: IconButtonKind.Primary;
+                        clicked => {
+                            State.add-to-queue();
+                            State.start-conversion();
                         }
                     }
                 }

@@ -16,6 +16,8 @@ import { Card } from "components/card.slint";
 import { GamePage } from "game-page.slint";
 import { GameTablePage } from "game-table-page.slint";
 import { Notifications } from "components/notifications.slint";
+import { ConfirmConversionPage } from "confirm-conversion-page.slint";
+import { DeleteDirPage } from "delete-dir-page.slint";
 
 export * from "types.slint";
 export { State, Rust }
@@ -23,13 +25,20 @@ export { State, Rust }
 export component AppWindow inherits Window {
     min-width: 800px;
     min-height: 600px;
-    background: State.message.text.is-empty ? MyPalette.card-background : MyPalette.background;
+    background: is-fullscreen-page() ? MyPalette.card-background : MyPalette.background;
     title: "TinyWiiBackupManager  ›  " + (State.config.contents.mount-point.is-empty ? "No drive selected" : State.config.contents.mount-point) + "  (" + State.drive-info.used-gib + "/" + State.drive-info.total-gib + " GiB)";
     default-font-size: 14px;
 
-    if !State.message.text.is-empty: MessagePage { }
+    pure function is-fullscreen-page() -> bool {
+        State.message.text.is-empty && State.adding-games.length == 0 && State.deleting-dir.is-empty
+    }
 
-    if State.message.text.is-empty: HorizontalLayout {
+    // Fullscreen pages
+    if !State.message.text.is-empty: MessagePage { }
+    if State.adding-games.length > 0: ConfirmConversionPage { }
+    if !State.deleting-dir.is-empty: DeleteDirPage { }
+
+    if is-fullscreen-page(): HorizontalLayout {
         Navbar { }
 
         VerticalLayout {
