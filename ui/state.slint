@@ -40,9 +40,12 @@ export global State {
     // ---------
     // ↓ Update
 
-    callback notify(Notification);
     callback add-to-queue();
     callback start-conversion();
+
+    public function notify(notification: Notification) {
+        Rust.add-notification(notifications, notification);
+    }
 
     public function write-config() {
         let res = Rust.write-config(config);

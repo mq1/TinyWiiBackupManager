@@ -130,6 +130,15 @@ fn main() -> Result<()> {
     });
 
     app.global::<Rust<'_>>()
+        .on_add_notification(|notifications, notification| {
+            notifications
+                .as_any()
+                .downcast_ref::<VecModel<Notification>>()
+                .unwrap()
+                .push(notification);
+        });
+
+    app.global::<Rust<'_>>()
         .on_close_notification(|notifications, i| {
             #[allow(clippy::cast_sign_loss)]
             notifications

@@ -7,12 +7,6 @@ use slint::{Global, Model, ModelRc, VecModel};
 impl State<'_> {
     pub fn handle_callbacks(&self) {
         let weak = self.as_weak();
-        self.on_notify(move |notification| {
-            let state = weak.upgrade().unwrap();
-            state.push_notification(notification);
-        });
-
-        let weak = self.as_weak();
         self.on_add_to_queue(move || {
             let state = weak.upgrade().unwrap();
 
