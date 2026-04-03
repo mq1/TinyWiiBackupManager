@@ -69,12 +69,13 @@ fn main() -> Result<()> {
     app.global::<State<'_>>()
         .set_data_dir(data_dir.to_string_lossy().to_shared_string());
 
-    app.global::<State<'_>>()
-        .set_game_list(GameList::new(&mount_point, data_dir));
+    app.global::<State<'_>>().set_game_list(GameList::new(
+        &mount_point,
+        data_dir,
+        config.contents.sort_by,
+    ));
 
     app.global::<State<'_>>().set_config(config);
-
-    app.global::<State<'_>>().invoke_apply_sorting();
 
     app.global::<State<'_>>()
         .set_drive_info(DriveInfo::from_path(&mount_point));
@@ -102,7 +103,7 @@ fn main() -> Result<()> {
         .on_delete_dir(|path| fs::remove_dir_all(path).into());
 
     app.global::<Rust<'_>>()
-        .on_get_game_list(|path| GameList::new(Path::new(&path), data_dir));
+        .on_get_game_list(|path, sort_by| GameList::new(Path::new(&path), data_dir, sort_by));
 
     app.global::<Rust<'_>>().on_filter_games(|games, query| {
         let games = game_list::fuzzy_search(games.iter(), &query);
@@ -121,6 +122,12 @@ fn main() -> Result<()> {
             let model = VecModel::from(queue);
             ModelRc::from(Rc::new(model))
         });
+
+    app.global::<Rust<'_>>().on_sort_games(|games, sort_by| {
+        let compare = game::get_compare_fn(sort_by);
+        let model = games.sort_by(compare);
+        ModelRc::from(Rc::new(model))
+    });
 
     app.global::<State<'_>>().handle_callbacks();
 

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{Game, id_map::ID_MAP, util::GIB};
+use crate::{Game, SortBy, id_map::ID_MAP, util::GIB};
 use anyhow::{Result, anyhow};
 use slint::{Image, ToSharedString};
 use std::{
@@ -134,5 +134,14 @@ pub fn region(id: [u8; 6]) -> &'static str {
         b'W' => "Republic of China (Taiwan) / Hong Kong / Macau",
         b'X' | b'Y' | b'Z' => "Europe alternate languages / US special releases",
         _ => "Unknown",
+    }
+}
+
+pub fn get_compare_fn(sort_by: SortBy) -> fn(&Game, &Game) -> std::cmp::Ordering {
+    match sort_by {
+        SortBy::NameAscending => |a, b| a.title.cmp(&b.title),
+        SortBy::NameDescending => |a, b| b.title.cmp(&a.title),
+        SortBy::SizeAscending => |a, b| a.size_gib.total_cmp(&b.size_gib),
+        SortBy::SizeDescending => |a, b| b.size_gib.total_cmp(&a.size_gib),
     }
 }

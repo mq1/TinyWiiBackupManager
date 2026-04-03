@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{Game, GameList};
+use crate::{Game, GameList, SortBy, game};
 use anyhow::Result;
 use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
 use slint::{ModelRc, VecModel};
@@ -13,7 +13,7 @@ use std::{
 
 impl GameList {
     #[must_use]
-    pub fn new(drive_path: &Path, data_dir: &Path) -> Self {
+    pub fn new(drive_path: &Path, data_dir: &Path, sort_by: SortBy) -> Self {
         let wii_path = drive_path.join("wbfs");
         let gc_path = drive_path.join("games");
 
@@ -37,6 +37,7 @@ impl GameList {
             }
         }
 
+        games.sort_by(game::get_compare_fn(sort_by));
         let model = VecModel::from(games);
 
         Self {

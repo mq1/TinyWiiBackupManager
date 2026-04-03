@@ -42,7 +42,6 @@ export global State {
 
     callback notify(Notification);
     callback close-notification(int);
-    callback apply-sorting();
     callback add-to-queue();
     callback start-conversion();
 
@@ -65,9 +64,13 @@ export global State {
         Palette.color-scheme = Palette.color-scheme == ColorScheme.dark ? ColorScheme.light : ColorScheme.dark;
     }
 
+    public function apply-sorting() {
+        game-list.games = Rust.sort-games(game-list.games, config.contents.sort-by);
+    }
+
     public function refresh-all() {
         drive-info = Rust.get-drive-info(config.contents.mount-point);
-        game-list = Rust.get-game-list(config.contents.mount-point);
+        game-list = Rust.get-game-list(config.contents.mount-point, config.contents.sort-by);
         apply-sorting();
         filtered-games = [];
     }

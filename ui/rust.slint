@@ -11,6 +11,7 @@ import {
     QueuedConversion,
     ConfigContents,
     Notification,
+    SortBy,
 } from "types.slint";
 
 export global Rust {
@@ -19,8 +20,9 @@ export global Rust {
     pure callback get-drive-info(string) -> DriveInfo;
     pure callback write-config(Config) -> EmptyResult;
     pure callback delete-dir(string) -> EmptyResult;
-    pure callback get-game-list(string) -> GameList;
+    pure callback get-game-list(string, SortBy) -> GameList;
     pure callback filter-games([Game], string) -> [Game];
     pure callback get-disc-info(string) -> DiscInfoResult;
     pure callback pick-games(GameList, ConfigContents, DriveInfo) -> [QueuedConversion];
+    pure callback sort-games([Game], SortBy) -> [Game];
 }
