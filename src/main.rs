@@ -109,7 +109,8 @@ fn main() -> Result<()> {
 
     app.global::<Rust<'_>>().on_filter_games(|games, query| {
         let games = game_list::fuzzy_search(games.iter(), &query);
-        ModelRc::from(games.as_slice())
+        let model = VecModel::from(games);
+        ModelRc::from(Rc::new(model))
     });
 
     app.global::<Rust<'_>>()
