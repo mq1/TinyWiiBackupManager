@@ -10,11 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - 🍎 Restored macOS 10.12 compatibility
+- 💄 Accent color now follows system theme (again)
 
 ### Changed
 
 - ⚡️ Better UI performance (especially on old GPUs and VMs)
 - 🪶 Reduced UI resource usage
+- 🕶️ Dark/light mode switch is now in the Settings page
 - 💄 Minor UI refinements
 
 ## [v5.2.1] - 2026-03-19
