@@ -115,10 +115,11 @@ fn main() -> Result<()> {
 
     let weak = app.as_weak();
     app.global::<Rust<'_>>()
-        .on_pick_games(move |game_list, conf, drive_info| {
+        .on_pick_games(move |existing_games, conf, drive_info| {
             let app = weak.upgrade().unwrap();
             let paths = dialogs::pick_games(app.window());
-            let queue = QueuedConversion::make_queue(paths, &game_list, &conf, &drive_info);
+            let queue =
+                QueuedConversion::make_queue(paths, existing_games.iter(), &conf, &drive_info);
             let model = VecModel::from(queue);
             ModelRc::from(Rc::new(model))
         });

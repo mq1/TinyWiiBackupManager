@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    ConfigContents, DriveInfo, GameList, QueuedConversion, State,
+    ConfigContents, DriveInfo, Game, QueuedConversion, State,
     convert::{Conversion, ConversionFlags},
     disc_util,
 };
@@ -40,7 +40,7 @@ impl QueuedConversion {
     #[must_use]
     pub fn make_queue(
         paths: Vec<PathBuf>,
-        game_list: &GameList,
+        existing_games: impl IntoIterator<Item = Game>,
         conf: &ConfigContents,
         drive_info: &DriveInfo,
     ) -> Vec<QueuedConversion> {
@@ -55,7 +55,8 @@ impl QueuedConversion {
             .collect::<Vec<_>>();
 
         // keep only new games
-        entries.retain(|(_, _, id, _)| game_list.games.iter().all(|g| g.id != *id));
+        let existing_ids = existing_games.into_iter().map(|g| g.id).collect::<Vec<_>>();
+        entries.retain(|(_, _, id, _)| existing_ids.iter().all(|existing| existing != id));
 
         let mut queue = Vec::new();
         for (path, _, _, _) in entries {
