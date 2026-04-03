@@ -65,21 +65,7 @@ impl State<'_> {
         let weak = self.as_weak();
         self.on_start_conversion(move || {
             let state = weak.upgrade().unwrap();
-
-            if state.get_is_converting() {
-                return;
-            }
-
-            let model = state.get_conversion_queue();
-            let model = model
-                .as_any()
-                .downcast_ref::<VecModel<QueuedConversion>>()
-                .unwrap();
-
-            if model.row_count() > 0 {
-                let conv = model.remove(0);
-                conv.run(weak.clone());
-            }
+            state.start_conversion();
         });
     }
 
@@ -90,5 +76,22 @@ impl State<'_> {
             .downcast_ref::<VecModel<Notification>>()
             .unwrap()
             .push(notification);
+    }
+
+    pub fn start_conversion(&self) {
+        if self.get_is_converting() {
+            return;
+        }
+
+        let model = self.get_conversion_queue();
+        let model = model
+            .as_any()
+            .downcast_ref::<VecModel<QueuedConversion>>()
+            .unwrap();
+
+        if model.row_count() > 0 {
+            let conv = model.remove(0);
+            conv.run(self.as_weak());
+        }
     }
 }

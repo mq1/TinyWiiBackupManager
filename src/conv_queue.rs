@@ -31,7 +31,7 @@ impl QueuedConversion {
                 if let Err(e) = res {
                     state.push_notification(e.into());
                 } else {
-                    state.invoke_start_conversion();
+                    state.start_conversion();
                 }
             });
         });
