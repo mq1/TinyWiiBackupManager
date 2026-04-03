@@ -10,7 +10,6 @@ import { Page } from "types.slint";
 import { State } from "state.slint";
 import { MyPalette } from "styling.slint";
 import { Rust } from "rust.slint";
-import { MessagePage } from "message-page.slint";
 import { VerticalLine } from "components/vertical-line.slint";
 import { Card } from "components/card.slint";
 import { GamePage } from "game-page.slint";
@@ -30,11 +29,10 @@ export component AppWindow inherits Window {
     default-font-size: 14px;
 
     pure function is-fullscreen-page() -> bool {
-        State.message.text.is-empty && State.adding-games.length == 0 && State.deleting-dir.is-empty
+        State.adding-games.length == 0 && State.deleting-dir.is-empty
     }
 
     // Fullscreen pages
-    if !State.message.text.is-empty: MessagePage { }
     if State.adding-games.length > 0: ConfirmConversionPage { }
     if !State.deleting-dir.is-empty: DeleteDirPage { }
 
