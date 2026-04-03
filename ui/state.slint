@@ -104,6 +104,10 @@ export global State {
         adding-games = Rust.pick-games(game-list.games, config.contents, drive-info);
     }
 
+    public function pick-games-r() {
+        adding-games = Rust.pick-games-r(game-list.games, config.contents, drive-info);
+    }
+
     public function close-notification(i: int) {
         Rust.close-notification(notifications, i);
     }

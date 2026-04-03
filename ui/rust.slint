@@ -24,6 +24,7 @@ export global Rust {
     pure callback filter-games([Game], string) -> [Game];
     pure callback get-disc-info(string) -> DiscInfoResult;
     pure callback pick-games([Game], ConfigContents, DriveInfo) -> [QueuedConversion];
+    pure callback pick-games-r([Game], ConfigContents, DriveInfo) -> [QueuedConversion];
     pure callback sort-games([Game], SortBy) -> [Game];
     pure callback add-notification([Notification], Notification);
     pure callback close-notification([Notification], int);

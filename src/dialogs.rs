@@ -4,6 +4,7 @@
 use crate::extensions::INPUT_DIALOG_FILTER;
 use slint::Window;
 use std::path::PathBuf;
+use walkdir::WalkDir;
 
 #[cfg(not(target_vendor = "win7"))]
 use rfd::FileDialog;
@@ -35,6 +36,37 @@ pub fn pick_games(window: &Window) -> Vec<PathBuf> {
 
     #[cfg(target_vendor = "win7")]
     let paths = xp_dialogs::pick_files("Select Games", INPUT_DIALOG_FILTER);
+
+    paths
+}
+
+pub fn pick_games_r(window: &Window) -> Vec<PathBuf> {
+    #[cfg(not(target_vendor = "win7"))]
+    let res = FileDialog::new()
+        .set_parent(&window.window_handle())
+        .set_title("Select folder (games will be searched recursively)")
+        .pick_folder();
+
+    #[cfg(target_vendor = "win7")]
+    let res = xp_dialogs::pick_dir("Select folder (games will be searched recursively)");
+
+    let mut paths = Vec::new();
+
+    let Some(res) = res else {
+        return paths;
+    };
+
+    for entry in WalkDir::new(res).into_iter().filter_map(Result::ok) {
+        if entry.file_type().is_file()
+            && let Some(ext) = entry.path().extension()
+            && INPUT_DIALOG_FILTER
+                .1
+                .iter()
+                .any(|e| ext.eq_ignore_ascii_case(e))
+        {
+            paths.push(entry.into_path());
+        }
+    }
 
     paths
 }

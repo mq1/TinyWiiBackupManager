@@ -29,6 +29,7 @@ dependencies = [
  "slint",
  "slint-build",
  "split-write",
+ "walkdir",
  "which-fs",
  "windows 0.62.2",
  "winresource",

@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    ConfigContents, DriveInfo, Game, QueuedConversion, State,
+    ConfigContents, DriveInfo, QueuedConversion, State,
     convert::{Conversion, ConversionFlags},
     disc_util,
 };
-use slint::{Model, SharedString, ToSharedString, Weak};
+use slint::{SharedString, ToSharedString, Weak};
 use std::{fs::File, path::PathBuf};
 
 impl QueuedConversion {
@@ -40,7 +40,7 @@ impl QueuedConversion {
     #[must_use]
     pub fn make_queue(
         paths: Vec<PathBuf>,
-        existing_games: impl IntoIterator<Item = Game>,
+        existing_ids: Vec<SharedString>,
         conf: &ConfigContents,
         drive_info: &DriveInfo,
     ) -> Vec<QueuedConversion> {
@@ -55,7 +55,6 @@ impl QueuedConversion {
             .collect::<Vec<_>>();
 
         // keep only new games
-        let existing_ids = existing_games.into_iter().map(|g| g.id).collect::<Vec<_>>();
         entries.retain(|(_, _, id, _)| existing_ids.iter().all(|existing| existing != id));
 
         let mut queue = Vec::new();
