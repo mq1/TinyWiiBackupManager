@@ -129,6 +129,16 @@ fn main() -> Result<()> {
         ModelRc::from(Rc::new(model))
     });
 
+    app.global::<Rust<'_>>()
+        .on_close_notification(|notifications, i| {
+            #[allow(clippy::cast_sign_loss)]
+            notifications
+                .as_any()
+                .downcast_ref::<VecModel<Notification>>()
+                .unwrap()
+                .remove(i as usize);
+        });
+
     app.global::<State<'_>>().handle_callbacks();
 
     if let Err(e) = app.run() {

@@ -13,20 +13,6 @@ impl State<'_> {
         });
 
         let weak = self.as_weak();
-        self.on_close_notification(move |i| {
-            let state = weak.upgrade().unwrap();
-
-            let model = state.get_notifications();
-
-            #[allow(clippy::cast_sign_loss)]
-            model
-                .as_any()
-                .downcast_ref::<VecModel<Notification>>()
-                .unwrap()
-                .remove(i as usize);
-        });
-
-        let weak = self.as_weak();
         self.on_add_to_queue(move || {
             let state = weak.upgrade().unwrap();
 

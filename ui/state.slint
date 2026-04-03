@@ -41,7 +41,6 @@ export global State {
     // ↓ Update
 
     callback notify(Notification);
-    callback close-notification(int);
     callback add-to-queue();
     callback start-conversion();
 
@@ -101,5 +100,9 @@ export global State {
 
     public function pick-games() {
         adding-games = Rust.pick-games(game-list, config.contents, drive-info);
+    }
+
+    public function close-notification(i: int) {
+        Rust.close-notification(notifications, i);
     }
 }
