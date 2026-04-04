@@ -6,7 +6,7 @@ import {
     GameList,
     EmptyResult,
     Game,
-    DiscInfoResult,
+    DiscInfo,
     DriveInfo,
     QueuedConversion,
     ConfigContents,
@@ -22,7 +22,7 @@ export global Rust {
     pure callback delete-dir(string) -> EmptyResult;
     pure callback get-game-list(string, SortBy) -> GameList;
     pure callback filter-games([Game], string) -> [Game];
-    pure callback get-disc-info(string) -> DiscInfoResult;
+    pure callback get-disc-info(string) -> DiscInfo;
     pure callback pick-games([Game], ConfigContents, DriveInfo) -> [QueuedConversion];
     pure callback pick-games-r([Game], ConfigContents, DriveInfo) -> [QueuedConversion];
     pure callback sort-games([Game], SortBy) -> [Game];

@@ -31,6 +31,8 @@ dependencies = [
  "split-write",
  "walkdir",
  "which-fs",
+ "wii-disc-info",
+ "wiiload",
  "windows 0.62.2",
  "winresource",
  "zip",
@@ -1566,7 +1568,7 @@ dependencies = [
  "bit_field",
  "half",
  "lebe",
- "miniz_oxide",
+ "miniz_oxide 0.8.9",
  "rayon-core",
  "smallvec",
  "zune-inflate",
@@ -1661,7 +1663,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "843fba2746e448b37e26a819579957415c8cef339bf08564fe8b7ddbd959573c"
 dependencies = [
  "crc32fast",
- "miniz_oxide",
+ "miniz_oxide 0.8.9",
 ]
 
 [[package]]
@@ -3231,6 +3233,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "miniz_oxide"
+version = "0.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b63fbc4a50860e98e7b2aa7804ded1db5cbc3aff9193adaff57a6931bf7c4b4c"
+dependencies = [
+ "adler2",
+]
+
+[[package]]
 name = "minreq"
 version = "2.14.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3373,7 +3384,7 @@ dependencies = [
  "liblzma-sys",
  "lru",
  "md-5",
- "miniz_oxide",
+ "miniz_oxide 0.8.9",
  "polonius-the-crab",
  "sha1",
  "simple_moving_average",
@@ -4114,7 +4125,7 @@ dependencies = [
  "crc32fast",
  "fdeflate",
  "flate2",
- "miniz_oxide",
+ "miniz_oxide 0.8.9",
 ]
 
 [[package]]
@@ -4127,7 +4138,7 @@ dependencies = [
  "crc32fast",
  "fdeflate",
  "flate2",
- "miniz_oxide",
+ "miniz_oxide 0.8.9",
 ]
 
 [[package]]
@@ -6242,6 +6253,22 @@ checksum = "e54b373b3307b4ea2f1f262e10baf33e3e4b0afabb44ba1b6440c9d21c859313"
 dependencies = [
  "rustix 1.1.4",
  "windows 0.62.2",
+]
+
+[[package]]
+name = "wii-disc-info"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "521c35346869b601952706dfc2ce246669859d34a7f191e531e10af53ad12f00"
+
+[[package]]
+name = "wiiload"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d305f47485159bcb07e60c9a7245995b528527daa595f09f63698e605c83ab9c"
+dependencies = [
+ "miniz_oxide 0.9.1",
+ "thiserror 2.0.18",
 ]
 
 [[package]]

@@ -81,7 +81,7 @@ export component GamePage inherits VerticalLayout {
                         }
 
                         Text {
-                            text: " ID: " + State.current-disc-info.value.id;
+                            text: " Game ID: " + State.current-disc-info.game-id;
                         }
                     }
 
@@ -93,7 +93,7 @@ export component GamePage inherits VerticalLayout {
                         }
 
                         Text {
-                            text: " Embedded title: " + State.current-disc-info.value.title;
+                            text: " Game title: " + State.current-disc-info.game-title;
                         }
                     }
 
@@ -105,7 +105,7 @@ export component GamePage inherits VerticalLayout {
                         }
 
                         Text {
-                            text: " Region (inferred from ID): " + State.current-disc-info.value.region;
+                            text: " Region (inferred from ID): " + State.current-disc-info.region;
                         }
                     }
 
@@ -117,7 +117,7 @@ export component GamePage inherits VerticalLayout {
                         }
 
                         Text {
-                            text: " Is Wii: " + (State.current-disc-info.value.is-wii ? "yes" : "no");
+                            text: " Is Wii: " + (State.current-disc-info.is-wii ? "yes" : "no");
                         }
                     }
 
@@ -129,7 +129,7 @@ export component GamePage inherits VerticalLayout {
                         }
 
                         Text {
-                            text: " Is GameCube: " + (State.current-disc-info.value.is-gc ? "yes" : "no");
+                            text: " Is GameCube: " + (State.current-disc-info.is-gc ? "yes" : "no");
                         }
                     }
 
@@ -141,7 +141,7 @@ export component GamePage inherits VerticalLayout {
                         }
 
                         Text {
-                            text: " Disc number: " + State.current-disc-info.value.disc-num;
+                            text: " Disc number: " + State.current-disc-info.disc-number;
                         }
                     }
 
@@ -153,139 +153,7 @@ export component GamePage inherits VerticalLayout {
                         }
 
                         Text {
-                            text: " Disc version: " + State.current-disc-info.value.disc-version;
-                        }
-                    }
-
-                    HorizontalLayout {
-                        IconDisplay {
-                            icon: IconSet.Disc3;
-                            stroke: MyPalette.foreground;
-                            size: 14px;
-                        }
-
-                        Text {
-                            text: " Format: " + State.current-disc-info.value.format;
-                        }
-                    }
-
-                    HorizontalLayout {
-                        IconDisplay {
-                            icon: IconSet.FileArchive;
-                            stroke: MyPalette.foreground;
-                            size: 14px;
-                        }
-
-                        Text {
-                            text: " Compression: " + State.current-disc-info.value.compression;
-                        }
-                    }
-
-                    HorizontalLayout {
-                        IconDisplay {
-                            icon: IconSet.RulerDimensionLine;
-                            stroke: MyPalette.foreground;
-                            size: 14px;
-                        }
-
-                        Text {
-                            text: " Block size: " + State.current-disc-info.value.block-size;
-                        }
-                    }
-
-                    HorizontalLayout {
-                        IconDisplay {
-                            icon: IconSet.LockOpen;
-                            stroke: MyPalette.foreground;
-                            size: 14px;
-                        }
-
-                        Text {
-                            text: " Decrypted: " + (State.current-disc-info.value.decrypted ? "yes" : "no");
-                        }
-                    }
-
-                    HorizontalLayout {
-                        IconDisplay {
-                            icon: IconSet.TriangleAlert;
-                            stroke: MyPalette.foreground;
-                            size: 14px;
-                        }
-
-                        Text {
-                            text: " Needs Hash Recovery: " + (State.current-disc-info.value.needs-hash-recovery ? "yes" : "no");
-                        }
-                    }
-
-                    HorizontalLayout {
-                        IconDisplay {
-                            icon: IconSet.BadgeCheck;
-                            stroke: MyPalette.foreground;
-                            size: 14px;
-                        }
-
-                        Text {
-                            text: " Lossless: " + (State.current-disc-info.value.lossless ? "yes" : "no");
-                        }
-                    }
-
-                    HorizontalLayout {
-                        IconDisplay {
-                            icon: IconSet.Weight;
-                            stroke: MyPalette.foreground;
-                            size: 14px;
-                        }
-
-                        Text {
-                            text: " Disc size: " + State.current-disc-info.value.disc-size;
-                        }
-                    }
-
-                    HorizontalLayout {
-                        IconDisplay {
-                            icon: IconSet.FingerprintPattern;
-                            stroke: MyPalette.foreground;
-                            size: 14px;
-                        }
-
-                        Text {
-                            text: " CRC32: " + State.current-disc-info.value.crc32;
-                        }
-                    }
-
-                    HorizontalLayout {
-                        IconDisplay {
-                            icon: IconSet.FingerprintPattern;
-                            stroke: MyPalette.foreground;
-                            size: 14px;
-                        }
-
-                        Text {
-                            text: " MD5: " + State.current-disc-info.value.md5;
-                        }
-                    }
-
-                    HorizontalLayout {
-                        IconDisplay {
-                            icon: IconSet.FingerprintPattern;
-                            stroke: MyPalette.foreground;
-                            size: 14px;
-                        }
-
-                        Text {
-                            text: " SHA1: " + State.current-disc-info.value.sha1;
-                        }
-                    }
-
-                    HorizontalLayout {
-                        IconDisplay {
-                            icon: IconSet.FingerprintPattern;
-                            stroke: MyPalette.foreground;
-                            size: 14px;
-                        }
-
-                        Text {
-                            text: " XXH64: " + State.current-disc-info.value.xxh64;
+                            text: " Disc version: " + State.current-disc-info.disc-version;
                         }
                     }
                 }

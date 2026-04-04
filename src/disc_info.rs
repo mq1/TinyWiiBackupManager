@@ -1,18 +1,18 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    DiscInfo,
-    game::region,
-    util::{GIB, MIB},
-};
+use crate::DiscInfo;
 use anyhow::{Result, anyhow, bail};
 use nod::{
     common::{Format, PartitionKind},
     read::{DiscOptions, DiscReader, PartitionEncryption, PartitionOptions},
 };
-use slint::ToSharedString;
-use std::{ffi::OsStr, fs, path::Path};
+use slint::{SharedString, ToSharedString};
+use std::{
+    ffi::OsStr,
+    fs::{self, File},
+    path::Path,
+};
 
 const DISC_OPTS: DiscOptions = DiscOptions {
     partition_encryption: PartitionEncryption::Original,
@@ -74,82 +74,31 @@ impl DiscInfo {
             bail!("Unsupported file extension");
         }
 
-        let disc = DiscReader::new(disc_path, &DISC_OPTS)?;
-        let is_worth_stripping = is_worth_stripping(&disc);
-
-        let header = disc.header();
-        let meta = disc.meta();
-
-        let block_size = match meta.block_size {
-            Some(size) => {
-                #[allow(clippy::cast_precision_loss)]
-                let size_mib = size as f32 / MIB;
-                format!("{size_mib:.2} MiB").to_shared_string()
-            }
-            None => "N/A".to_shared_string(),
-        };
-
-        let disc_size = match meta.disc_size {
-            Some(size) => {
-                #[allow(clippy::cast_precision_loss)]
-                let size_gib = size as f32 / GIB;
-                format!("{size_gib:.2} GiB").to_shared_string()
-            }
-            None => "N/A".to_shared_string(),
-        };
-
-        let crc32 = match meta.crc32 {
-            Some(crc) => hex::encode(crc.to_be_bytes()).to_shared_string(),
-            None => "N/A".to_shared_string(),
-        };
-
-        let md5 = match meta.md5 {
-            Some(md5) => hex::encode(md5).to_shared_string(),
-            None => "N/A".to_shared_string(),
-        };
-
-        let sha1 = match meta.sha1 {
-            Some(sha) => hex::encode(sha).to_shared_string(),
-            None => "N/A".to_shared_string(),
-        };
-
-        let xxh64 = match meta.xxh64 {
-            Some(xxh) => hex::encode(xxh.to_be_bytes()).to_shared_string(),
-            None => "N/A".to_shared_string(),
-        };
+        let mut f = File::open(disc_path)?;
+        let meta = wii_disc_info::query(&mut f)?;
+        let is_worth_scrubbing = is_worth_scrubbing(disc_path);
 
         Ok(Self {
-            // discheader
-            id: header.game_id_str().to_shared_string(),
-            title: header.game_title_str().to_shared_string(),
-            region: region(header.game_id).to_shared_string(),
-            is_wii: header.is_wii(),
-            is_gc: header.is_gamecube(),
-            disc_num: header.disc_num.into(),
-            disc_version: header.disc_version.into(),
-
-            // discmeta
-            format: meta.format.to_shared_string(),
-            compression: meta.compression.to_shared_string(),
-            block_size,
-            decrypted: meta.decrypted,
-            needs_hash_recovery: meta.needs_hash_recovery,
-            lossless: meta.lossless,
-            disc_size,
-            crc32,
-            md5,
-            sha1,
-            xxh64,
-
-            // misc
-            is_worth_stripping,
+            game_id: meta.game_id().to_shared_string(),
+            game_title: meta.game_title().to_shared_string(),
+            region: meta.region().to_shared_string(),
+            is_wii: meta.is_wii(),
+            is_gc: meta.is_gc(),
+            disc_number: meta.disc_number().into(),
+            disc_version: meta.disc_version().into(),
+            err: SharedString::new(),
+            is_worth_scrubbing,
         })
     }
 }
 
-// Returns true if the disc is worth stripping
+// Returns true if the disc is worth scrubbing (update partion)
 // Currently checks if the update partition is >= 8 MiB
-pub fn is_worth_stripping(disc: &DiscReader) -> bool {
+pub fn is_worth_scrubbing(disc_path: &Path) -> bool {
+    let Ok(disc) = DiscReader::new(disc_path, &DISC_OPTS) else {
+        return false;
+    };
+
     if disc.meta().format == Format::Wbfs
         && let Ok(mut update_reader) =
             disc.open_partition_kind(PartitionKind::Update, &PartitionOptions::default())

@@ -9,7 +9,6 @@ mod convert;
 mod data_dir;
 mod dialogs;
 mod disc_info;
-mod disc_util;
 mod drive_info;
 mod extensions;
 mod game;

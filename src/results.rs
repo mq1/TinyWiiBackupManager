@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{DiscInfo, DiscInfoResult, EmptyResult};
-use slint::{SharedString, ToSharedString};
+use crate::{DiscInfo, EmptyResult};
+use slint::ToSharedString;
 
 impl<E> From<Result<(), E>> for EmptyResult
 where
@@ -18,19 +18,16 @@ where
     }
 }
 
-impl<E> From<Result<DiscInfo, E>> for DiscInfoResult
+impl<E> From<Result<DiscInfo, E>> for DiscInfo
 where
     E: ToSharedString,
 {
     fn from(result: Result<DiscInfo, E>) -> Self {
         match result {
-            Ok(info) => DiscInfoResult {
-                value: info,
-                err: SharedString::new(),
-            },
-            Err(e) => DiscInfoResult {
-                value: DiscInfo::default(),
+            Ok(info) => info,
+            Err(e) => DiscInfo {
                 err: e.to_shared_string(),
+                ..DiscInfo::default()
             },
         }
     }

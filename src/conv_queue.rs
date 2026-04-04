@@ -4,7 +4,6 @@
 use crate::{
     ConfigContents, DriveInfo, QueuedConversion, State,
     convert::{Conversion, ConversionFlags},
-    disc_util,
 };
 use slint::{SharedString, ToSharedString, Weak};
 use std::{fs::File, path::PathBuf};
@@ -49,16 +48,16 @@ impl QueuedConversion {
             .into_iter()
             .filter_map(|p| {
                 let mut f = File::open(&p).ok()?;
-                let (format, id, title) = disc_util::read_disc_header(&mut f)?;
-                Some((p, format, id, title))
+                let meta = wii_disc_info::query(&mut f).ok()?;
+                Some((p, meta))
             })
             .collect::<Vec<_>>();
 
         // keep only new games
-        entries.retain(|(_, _, id, _)| existing_ids.iter().all(|existing| existing != id));
+        entries.retain(|(_, meta)| existing_ids.iter().all(|id| id != &meta.game_id()));
 
         let mut queue = Vec::new();
-        for (path, _, _, _) in entries {
+        for (path, _) in entries {
             let mut flags = ConversionFlags::IS_FOR_DRIVE;
             flags.set(ConversionFlags::IS_FAT32, drive_info.fs_kind == "FAT32");
             flags.set(ConversionFlags::REMOVE_SOURCES, conf.remove_sources_games);

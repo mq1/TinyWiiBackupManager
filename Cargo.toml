@@ -14,6 +14,13 @@ OriginalFilename = "TinyWiiBackupManager.exe"
 LegalCopyright = "Copyright © 2026 Manuel Quarneti. Licensed under GPL-3.0-only."
 
 [dependencies]
+
+# My crates (MIT or Apache-2.0)
+which-fs = "0.2"
+split-write = "0.2"
+wii-disc-info = "0.2"
+wiiload = "0.3"
+
 slint = { git = "https://github.com/slint-ui/slint.git", rev = "57b2004", default-features = false, features = [
   "accessibility",
   "backend-winit",
@@ -38,13 +45,11 @@ zstd = { version = "0.13", optional = true }
 fs_extra = "1.3"
 fs4 = { version = "0.13", default-features = false }
 hex = "0.4"
-split-write = "0.2"
 zip = { version = "8.5", default-features = false, features = [
   "deflate-flate2",
 ] }
 sanitize-filename = "0.7.0-beta"
 num_cpus = "1.17"
-which-fs = "0.2"
 bitflags = "2.11"
 walkdir = "2.5"
 
