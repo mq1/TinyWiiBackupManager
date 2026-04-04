@@ -14,14 +14,36 @@ export component Navbar inherits VerticalLayout {
         NavbarButton {
             active: State.current-page == Page.Games;
             icon: IconSet.Gamepad2;
+            tooltip: "Games";
             clicked => {
                 State.current-page = Page.Games;
             }
         }
 
         NavbarButton {
+            active: false;
+            icon: IconSet.Waves;
+            icon2: IconSet.Bubbles;
+            tooltip: "Homebrew apps";
+        }
+
+        NavbarButton {
+            active: false;
+            icon: IconSet.Waves;
+            icon2: IconSet.ArrowBigDown;
+            tooltip: "Open Shop Channel";
+        }
+
+        NavbarButton {
+            active: false;
+            icon: IconSet.ToolCase;
+            tooltip: "Tools and utilities";
+        }
+
+        NavbarButton {
             active: State.current-page == Page.Settings;
             icon: IconSet.Settings;
+            tooltip: "Settings";
             clicked => {
                 State.current-page = Page.Settings;
             }
@@ -38,6 +60,7 @@ export component Navbar inherits VerticalLayout {
         NavbarButton {
             active: State.current-page == Page.About;
             icon: IconSet.Info;
+            tooltip: "About TinyWiiBackupManager";
             clicked => {
                 State.current-page = Page.About;
             }
