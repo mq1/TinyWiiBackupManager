@@ -50,7 +50,6 @@ export component AppWindow inherits Window {
                 if State.current-page == Page.Games && State.config.contents.view-as-table: GameTablePage { }
                 if State.current-page == Page.Settings: SettingsPage { }
                 if State.current-page == Page.About: AboutPage { }
-                if State.current-page == Page.Game: GamePage { }
             }
 
             if !State.status.is-empty: HorizontalLayout {
@@ -64,6 +63,31 @@ export component AppWindow inherits Window {
                     }
                 }
             }
+        }
+    }
+
+    if !State.current-game.path.is-empty: Rectangle {
+        x: 0px;
+        y: 0px;
+        width: 100%;
+        height: 100%;
+        background: MyPalette.overlay;
+
+        TouchArea {
+            x: 0px;
+            y: 0px;
+            width: parent.width;
+            height: parent.height;
+            clicked => {
+                State.current-game.path = "";
+            }
+        }
+
+        GamePage {
+            x: (root.width - self.width) / 2;
+            y: (root.height - self.height) / 2;
+            width: 600px;
+            height: 400px;
         }
     }
 

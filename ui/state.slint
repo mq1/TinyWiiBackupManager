@@ -99,7 +99,6 @@ export global State {
     }
 
     public function open-game-info(game: Game) {
-        current-page = Page.Game;
         current-game = game;
         current-disc-info = Rust.get-disc-info(current-game.path);
     }

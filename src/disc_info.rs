@@ -39,8 +39,6 @@ impl DiscInfo {
             if let Ok(disc_info) = Self::try_from_path(&disc_path) {
                 return Ok(disc_info);
             }
-
-            eprintln!("Skipping non-disc file: {}", disc_path.display());
         }
 
         Err(anyhow!("No disc file found in {}", game_dir.display()))
@@ -78,6 +76,9 @@ impl DiscInfo {
         let meta = wii_disc_info::Meta::read(&mut f)?;
         let is_worth_scrubbing = is_worth_scrubbing(disc_path);
 
+        let crc32_path = disc_path.with_file_name(format!("{}.crc32", meta.game_id()));
+        let crc32 = fs::read_to_string(crc32_path).unwrap_or_default();
+
         Ok(Self {
             format: meta.format().to_shared_string(),
             game_id: meta.game_id().to_shared_string(),
@@ -87,8 +88,9 @@ impl DiscInfo {
             is_gc: meta.is_gc(),
             disc_number: meta.disc_number().into(),
             disc_version: meta.disc_version().into(),
-            err: SharedString::new(),
             is_worth_scrubbing,
+            crc32: crc32.trim().to_shared_string(),
+            err: SharedString::new(),
         })
     }
 }

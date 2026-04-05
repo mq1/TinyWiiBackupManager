@@ -15,159 +15,144 @@ import { Card } from "components/card.slint";
 import { HorizontalLine } from "components/horizontal-line.slint";
 import { MyPalette } from "styling.slint";
 
-export component GamePage inherits VerticalLayout {
-    alignment: start;
-
-    VerticalBox {
-        Text {
-            text: State.current-game.title;
-            font-size: 18px;
-        }
-
-        Link {
-            icon: IconSet.Folder;
-            label: "Path: " + State.current-game.path;
-            uri: State.current-game.path;
-        }
-    }
-
-    ScrollView {
-        height: parent.height - 40px;
+export component GamePage inherits Card {
+    VerticalLayout {
+        alignment: start;
 
         VerticalBox {
-            padding-top: 0px;
-            padding-right: 20px;
-            height: 100%;
+            Text {
+                text: State.current-game.title;
+                font-size: 18px;
+                overflow: elide;
+            }
 
-            if !State.current-disc-info.err.is-empty: Card {
-                HorizontalBox {
-                    spacing: 0px;
+            Link {
+                icon: IconSet.Folder;
+                label: "Path: " + State.current-game.path;
+                uri: State.current-game.path;
+            }
+        }
 
-                    IconDisplay {
-                        icon: IconSet.TriangleAlert;
-                        stroke: MyPalette.foreground;
-                        size: 14px;
-                    }
+        if !State.current-disc-info.err.is-empty: HorizontalBox {
+            spacing: 0px;
 
-                    Text {
-                        text: " " + State.current-disc-info.err;
-                    }
+            IconDisplay {
+                icon: IconSet.TriangleAlert;
+                stroke: MyPalette.foreground;
+                size: 14px;
+            }
+
+            Text {
+                text: " " + State.current-disc-info.err;
+            }
+        }
+
+        if State.current-disc-info.err.is-empty: VerticalBox {
+            HorizontalLayout {
+                IconDisplay {
+                    icon: IconSet.FileQuestionMark;
+                    stroke: MyPalette.foreground;
+                    size: 14px;
+                }
+
+                Text {
+                    text: " Format: " + State.current-disc-info.format;
                 }
             }
 
-            if State.current-disc-info.err.is-empty: Card {
-                height: i.preferred-height;
+            HorizontalLayout {
+                IconDisplay {
+                    icon: IconSet.Tag;
+                    stroke: MyPalette.foreground;
+                    size: 14px;
+                }
 
-                i := VerticalBox {
-                    HorizontalLayout {
-                        IconDisplay {
-                            icon: IconSet.Disc3;
-                            stroke: MyPalette.foreground;
-                            size: 14px;
-                        }
+                Text {
+                    text: " Game ID: " + State.current-disc-info.game-id;
+                }
+            }
 
-                        Text {
-                            text: " Disc info";
-                        }
-                    }
+            HorizontalLayout {
+                IconDisplay {
+                    icon: IconSet.NotebookPen;
+                    stroke: MyPalette.foreground;
+                    size: 14px;
+                }
 
-                    HorizontalLine { }
+                Text {
+                    text: " Game title: " + State.current-disc-info.game-title;
+                }
+            }
 
-                    HorizontalLayout {
-                        IconDisplay {
-                            icon: IconSet.FileQuestionMark;
-                            stroke: MyPalette.foreground;
-                            size: 14px;
-                        }
+            HorizontalLayout {
+                IconDisplay {
+                    icon: IconSet.Globe;
+                    stroke: MyPalette.foreground;
+                    size: 14px;
+                }
 
-                        Text {
-                            text: " Format: " + State.current-disc-info.format;
-                        }
-                    }
+                Text {
+                    text: " Region: " + State.current-disc-info.region;
+                }
+            }
 
-                    HorizontalLayout {
-                        IconDisplay {
-                            icon: IconSet.Tag;
-                            stroke: MyPalette.foreground;
-                            size: 14px;
-                        }
+            HorizontalLayout {
+                IconDisplay {
+                    icon: IconSet.Pointer;
+                    stroke: MyPalette.foreground;
+                    size: 14px;
+                }
 
-                        Text {
-                            text: " Game ID: " + State.current-disc-info.game-id;
-                        }
-                    }
+                Text {
+                    text: " Is Wii: " + (State.current-disc-info.is-wii ? "yes" : "no");
+                }
+            }
 
-                    HorizontalLayout {
-                        IconDisplay {
-                            icon: IconSet.NotebookPen;
-                            stroke: MyPalette.foreground;
-                            size: 14px;
-                        }
+            HorizontalLayout {
+                IconDisplay {
+                    icon: IconSet.Box;
+                    stroke: MyPalette.foreground;
+                    size: 14px;
+                }
 
-                        Text {
-                            text: " Game title: " + State.current-disc-info.game-title;
-                        }
-                    }
+                Text {
+                    text: " Is GameCube: " + (State.current-disc-info.is-gc ? "yes" : "no");
+                }
+            }
 
-                    HorizontalLayout {
-                        IconDisplay {
-                            icon: IconSet.Globe;
-                            stroke: MyPalette.foreground;
-                            size: 14px;
-                        }
+            HorizontalLayout {
+                IconDisplay {
+                    icon: IconSet.Hash;
+                    stroke: MyPalette.foreground;
+                    size: 14px;
+                }
 
-                        Text {
-                            text: " Region (inferred from ID): " + State.current-disc-info.region;
-                        }
-                    }
+                Text {
+                    text: " Disc number: " + State.current-disc-info.disc-number;
+                }
+            }
 
-                    HorizontalLayout {
-                        IconDisplay {
-                            icon: IconSet.Pointer;
-                            stroke: MyPalette.foreground;
-                            size: 14px;
-                        }
+            HorizontalLayout {
+                IconDisplay {
+                    icon: IconSet.Pin;
+                    stroke: MyPalette.foreground;
+                    size: 14px;
+                }
 
-                        Text {
-                            text: " Is Wii: " + (State.current-disc-info.is-wii ? "yes" : "no");
-                        }
-                    }
+                Text {
+                    text: " Disc version: " + State.current-disc-info.disc-version;
+                }
+            }
 
-                    HorizontalLayout {
-                        IconDisplay {
-                            icon: IconSet.Box;
-                            stroke: MyPalette.foreground;
-                            size: 14px;
-                        }
+            HorizontalLayout {
+                IconDisplay {
+                    icon: IconSet.FingerprintPattern;
+                    stroke: MyPalette.foreground;
+                    size: 14px;
+                }
 
-                        Text {
-                            text: " Is GameCube: " + (State.current-disc-info.is-gc ? "yes" : "no");
-                        }
-                    }
-
-                    HorizontalLayout {
-                        IconDisplay {
-                            icon: IconSet.Hash;
-                            stroke: MyPalette.foreground;
-                            size: 14px;
-                        }
-
-                        Text {
-                            text: " Disc number: " + State.current-disc-info.disc-number;
-                        }
-                    }
-
-                    HorizontalLayout {
-                        IconDisplay {
-                            icon: IconSet.Pin;
-                            stroke: MyPalette.foreground;
-                            size: 14px;
-                        }
-
-                        Text {
-                            text: " Disc version: " + State.current-disc-info.disc-version;
-                        }
-                    }
+                Text {
+                    text: " CRC32: " + (State.current-disc-info.crc32.is-empty ? "N/A" : State.current-disc-info.crc32);
                 }
             }
         }
