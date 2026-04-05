@@ -167,24 +167,36 @@ export component GameInfoModal inherits Card {
         VerticalLayout {
             HorizontalLine { }
 
-            HorizontalBox {
-                alignment: end;
+            HorizontalLayout {
+                alignment: space-between;
 
-                IconButton {
-                    label: State.current-game.calculated-crc32.is-empty ? "CRC32" : State.current-game.calculated-crc32;
-                    icon: IconSet.FingerprintPattern;
-                    clicked => {
-                        if State.current-game.calculated-crc32.is-empty {
-                            State.checksum(State.current-game);
-                        }
-                    };
+                VerticalBox {
+                    alignment: center;
+                    padding-left: 15px;
+
+                    Link {
+                        uri: "https://www.gametdb.com/Wii/" + State.current-game.id;
+                        label: "GameTDB page";
+                    }
                 }
 
-                IconButton {
-                    label: "Close";
-                    kind: IconButtonKind.Primary;
-                    clicked => {
-                        State.current-game.path = "";
+                HorizontalBox {
+                    IconButton {
+                        label: State.current-game.calculated-crc32.is-empty ? "CRC32" : State.current-game.calculated-crc32;
+                        icon: IconSet.FingerprintPattern;
+                        clicked => {
+                            if State.current-game.calculated-crc32.is-empty {
+                                State.checksum(State.current-game);
+                            }
+                        };
+                    }
+
+                    IconButton {
+                        label: "Close";
+                        kind: IconButtonKind.Primary;
+                        clicked => {
+                            State.current-game.path = "";
+                        }
                     }
                 }
             }
