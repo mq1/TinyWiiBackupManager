@@ -26,15 +26,15 @@ export global State {
     in-out property <Config> config;
     in-out property <DriveInfo> drive-info;
     in-out property <GameList> game-list;
-    in-out property <[Game]> filtered-games;
+    in-out property <[Game]> filtered-games: [];
     in-out property <string> game-filter;
-    in property <string> status;
+    in property <string> status: "";
     in property <{text: string, mouse-x: length, mouse-y: length}> tooltip;
-    in-out property <[QueuedConversion]> conversion-queue;
-    in-out property <bool> is-converting;
-    in-out property <string> deleting-dir;
-    in-out property <[QueuedConversion]> adding-games;
-    in-out property <[Notification]> notifications;
+    in-out property <[QueuedConversion]> conversion-queue: [];
+    in-out property <bool> is-converting: false;
+    in-out property <string> deleting-dir: "";
+    in-out property <[QueuedConversion]> adding-games: [];
+    in-out property <[Notification]> notifications: [];
 
     // ↑ Model
     // ---------

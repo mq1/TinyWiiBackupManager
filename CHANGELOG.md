@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 🍎 Restored macOS 10.12 compatibility
 - 💄 Accent color now follows system theme (again)
+- 📝 Game directories now contain a <ID>.crc32 with the crc32 of the game file. You can easily comare this with the output of `crc32`.
 
 ### Changed
 

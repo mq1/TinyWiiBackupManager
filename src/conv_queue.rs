@@ -26,6 +26,7 @@ impl QueuedConversion {
             let _ = weak.upgrade_in_event_loop(|state| {
                 state.set_is_converting(false);
                 state.set_status(SharedString::new());
+                state.invoke_refresh_all();
 
                 if let Err(e) = res {
                     state.push_notification(e.into());

@@ -9,6 +9,7 @@ use crate::{
 };
 use anyhow::{Result, anyhow, bail};
 use bitflags::bitflags;
+use crc32fast::Hasher;
 use nod::{
     common::Format,
     read::{DiscOptions, DiscReader, PartitionEncryption},
@@ -115,15 +116,13 @@ impl Conversion {
             preloader_threads,
         };
 
-        let disc_reader = DiscReader::new(&self.in_path, &disc_opts)?;
-        let header = disc_reader.header();
-        let is_wii = header.is_wii();
-        let title = header.game_title_str().to_string();
-        let id = header.game_id;
-        let id_str = header.game_id_str().to_string();
-        let disc_num = header.disc_num;
+        let meta = {
+            let file = File::open(&self.in_path)?;
+            let mut reader = BufReader::new(file);
+            wii_disc_info::Meta::read(&mut reader)?
+        };
 
-        let must_split = is_wii
+        let must_split = meta.is_wii()
             && self.flags.contains(ConversionFlags::IS_FOR_DRIVE)
             && self
                 .flags
@@ -133,27 +132,29 @@ impl Conversion {
         // we know we're converting for the wii as in-path is the mount point (a directory)
         let (parent, get_file_name, out_format) =
             if self.flags.contains(ConversionFlags::IS_FOR_DRIVE) {
-                let display_title = ID_MAP.get(id).map_or(&title, |e| &e.title);
+                let display_title = ID_MAP
+                    .get(meta.game_id())
+                    .map_or(meta.game_title(), |e| &e.title);
                 let sanitized_title = util::sanitize(display_title);
 
                 let parent = self
                     .out_path
-                    .join(if is_wii { "wbfs" } else { "games" })
-                    .join(format!("{sanitized_title} [{id_str}]"));
+                    .join(if meta.is_wii() { "wbfs" } else { "games" })
+                    .join(format!("{} [{}]", sanitized_title, meta.game_id()));
 
                 fs::create_dir_all(&parent)?;
 
-                if is_wii {
+                if meta.is_wii() {
                     let f: Box<dyn Fn(usize) -> String> = match self.wii_output_format {
                         Format::Wbfs => Box::new(|i| match i {
-                            0 => format!("{id_str}.wbfs"),
-                            n => format!("{id_str}.wbf{n}"),
+                            0 => format!("{}.wbfs", meta.game_id()),
+                            n => format!("{}.wbf{n}", meta.game_id()),
                         }),
                         Format::Iso => {
                             if must_split {
-                                Box::new(|i| format!("{id_str}.part{i}.iso"))
+                                Box::new(|i| format!("{}.part{}.iso", meta.game_id(), i))
                             } else {
-                                Box::new(|_| format!("{id_str}.iso"))
+                                Box::new(|_| format!("{}.iso", meta.game_id()))
                             }
                         }
                         _ => {
@@ -164,11 +165,11 @@ impl Conversion {
                     (parent, f, self.wii_output_format)
                 } else {
                     let f: Box<dyn Fn(usize) -> String> = match self.gc_output_format {
-                        Format::Iso => match disc_num {
+                        Format::Iso => match meta.disc_number() {
                             0 => Box::new(|_| "game.iso".to_string()),
                             n => Box::new(move |_| format!("disc{}.iso", n + 1)),
                         },
-                        Format::Ciso => match disc_num {
+                        Format::Ciso => match meta.disc_number() {
                             0 => Box::new(|_| "game.ciso".to_string()),
                             n => Box::new(move |_| format!("disc{}.ciso", n + 1)),
                         },
@@ -207,38 +208,46 @@ impl Conversion {
                 (parent.to_path_buf(), f, out_format)
             };
 
+        let scrub = if self.flags.contains(ConversionFlags::SCRUB_UPDATE) {
+            ScrubLevel::UpdatePartition
+        } else {
+            ScrubLevel::None
+        };
+
         let out_opts = format_to_opts(out_format);
         let process_opts = ProcessOptions {
             processor_threads,
-            digest_crc32: true,
-            digest_md5: false,
-            digest_sha1: true,
-            digest_xxh64: true,
-            scrub: if self.flags.contains(ConversionFlags::SCRUB_UPDATE) {
-                ScrubLevel::UpdatePartition
-            } else {
-                ScrubLevel::None
-            },
+            scrub,
+            ..Default::default()
         };
 
         let split_size = if must_split { Some(SPLIT_SIZE) } else { None };
+
+        let hash_path = parent.join(format!("{}.crc32", meta.game_id()));
 
         let mut out_writer = BufWriter::with_capacity(
             32_768,
             SplitWriter::create(parent, get_file_name, split_size)?,
         );
 
+        let disc_reader = DiscReader::new(&self.in_path, &disc_opts)?;
         let disc_writer = DiscWriter::new(disc_reader, &out_opts)?;
+        let mut hasher = Hasher::new();
 
         let mut prev_percentage = 100;
         let finalization = disc_writer.process(
             |data, progress, total| {
                 out_writer.write_all(&data)?;
+                hasher.update(&data);
 
                 let progress_percentage = progress * 100 / total;
                 if progress_percentage != prev_percentage {
-                    let status = format!("⤒  Converting {title}  {progress_percentage:02}%")
-                        .to_shared_string();
+                    let status = format!(
+                        "⤒  Converting {}  {:02}%",
+                        meta.game_title(),
+                        progress_percentage
+                    )
+                    .to_shared_string();
                     let _ = weak.upgrade_in_event_loop(move |state| state.set_status(status));
 
                     prev_percentage = progress_percentage;
@@ -258,6 +267,9 @@ impl Conversion {
         }
 
         split_writer.flush()?;
+
+        let checksum = hasher.finalize();
+        fs::write(hash_path, format!("{checksum:08x}"))?;
 
         for path in files_to_remove {
             let _ = fs::remove_file(path);
