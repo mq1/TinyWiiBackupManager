@@ -41,7 +41,7 @@ impl DiscInfo {
             }
         }
 
-        Err(anyhow!("No disc file found in {}", game_dir.display()))
+        Err(anyhow!("No disc file found"))
     }
 
     pub fn try_from_path(disc_path: &Path) -> Result<Self> {

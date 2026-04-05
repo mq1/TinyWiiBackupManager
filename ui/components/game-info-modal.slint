@@ -202,4 +202,11 @@ export component GameInfoModal inherits Card {
             }
         }
     }
+
+    Image {
+        source: State.current-game.cover;
+        height: 200px;
+        x: parent.width - 180px;
+        y: 90px;
+    }
 }
