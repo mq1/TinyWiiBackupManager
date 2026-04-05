@@ -73,11 +73,13 @@ export component IconButton inherits TooltipArea {
     border-color: get-border-color();
     border-width: get-border-width();
     border-radius: get-radius();
-    height: 30px;
+    height: 27px;
 
     HorizontalLayout {
         alignment: center;
         spacing: 5px;
+        padding-left: label.is-empty ? 0px : 10px;
+        padding-right: label.is-empty ? 0px : 10px;
 
         if icon != IconSet.WifiZero: VerticalLayout {
             alignment: center;

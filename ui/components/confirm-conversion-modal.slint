@@ -1,0 +1,61 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { VerticalBox, HorizontalBox, ScrollView } from "std-widgets.slint";
+import { State } from "../state.slint";
+import { MyPalette } from "../styling.slint";
+import { IconButton } from "icon-button.slint";
+import { IconSet } from "@lucide";
+import { Card } from "card.slint";
+import { IconButtonKind } from "../types.slint";
+import { HorizontalLine } from "horizontal-line.slint";
+
+export component ConfirmConversionModal inherits Card {
+    VerticalLayout {
+        alignment: space-between;
+
+        VerticalBox {
+            alignment: start;
+
+            ScrollView {
+                VerticalLayout {
+                    alignment: start;
+                    spacing: 5px;
+
+                    Text {
+                        text: "Picked \{State.adding-games.length} games, are you sure you want to continue?\n\n";
+                    }
+
+                    for game in State.adding-games: Text {
+                        text: "• \{game.in-path}";
+                    }
+                }
+            }
+        }
+
+        VerticalLayout {
+            HorizontalLine { }
+
+            HorizontalBox {
+                alignment: end;
+
+                IconButton {
+                    label: "Cancel";
+                    clicked => {
+                        State.adding-games = [];
+                    }
+                }
+
+                IconButton {
+                    label: "Ok";
+                    kind: IconButtonKind.Primary;
+                    icon: IconSet.Rocket;
+                    clicked => {
+                        State.add-to-queue();
+                        State.start-conversion();
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,188 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import {
+    VerticalBox,
+    ScrollView,
+    Palette,
+    HorizontalBox,
+} from "std-widgets.slint";
+import { Game, IconButtonKind } from "../types.slint";
+import { IconSet, IconDisplay } from "@lucide";
+import { State } from "../state.slint";
+import { Link } from "link.slint";
+import { Card } from "card.slint";
+import { HorizontalLine } from "horizontal-line.slint";
+import { MyPalette } from "../styling.slint";
+import { IconButton } from "icon-button.slint";
+
+export component GameInfoModal inherits Card {
+    VerticalLayout {
+        alignment: space-between;
+
+        VerticalLayout {
+            alignment: start;
+
+            VerticalBox {
+                Text {
+                    text: State.current-game.title;
+                    font-size: 18px;
+                    overflow: elide;
+                }
+
+                Link {
+                    icon: IconSet.Folder;
+                    label: "Path: " + State.current-game.path;
+                    uri: State.current-game.path;
+                }
+            }
+
+            if !State.current-disc-info.err.is-empty: HorizontalBox {
+                spacing: 0px;
+
+                IconDisplay {
+                    icon: IconSet.TriangleAlert;
+                    stroke: MyPalette.foreground;
+                    size: 14px;
+                }
+
+                Text {
+                    text: " " + State.current-disc-info.err;
+                }
+            }
+
+            if State.current-disc-info.err.is-empty: VerticalBox {
+                height: self.max-height;
+
+                HorizontalLayout {
+                    IconDisplay {
+                        icon: IconSet.FileQuestionMark;
+                        stroke: MyPalette.foreground;
+                        size: 14px;
+                    }
+
+                    Text {
+                        text: " Format: " + State.current-disc-info.format;
+                    }
+                }
+
+                HorizontalLayout {
+                    IconDisplay {
+                        icon: IconSet.Tag;
+                        stroke: MyPalette.foreground;
+                        size: 14px;
+                    }
+
+                    Text {
+                        text: " Game ID: " + State.current-disc-info.game-id;
+                    }
+                }
+
+                HorizontalLayout {
+                    IconDisplay {
+                        icon: IconSet.NotebookPen;
+                        stroke: MyPalette.foreground;
+                        size: 14px;
+                    }
+
+                    Text {
+                        text: " Game title: " + State.current-disc-info.game-title;
+                    }
+                }
+
+                HorizontalLayout {
+                    IconDisplay {
+                        icon: IconSet.Globe;
+                        stroke: MyPalette.foreground;
+                        size: 14px;
+                    }
+
+                    Text {
+                        text: " Region: " + State.current-disc-info.region;
+                    }
+                }
+
+                HorizontalLayout {
+                    IconDisplay {
+                        icon: IconSet.Pointer;
+                        stroke: MyPalette.foreground;
+                        size: 14px;
+                    }
+
+                    Text {
+                        text: " Is Wii: " + (State.current-disc-info.is-wii ? "yes" : "no");
+                    }
+                }
+
+                HorizontalLayout {
+                    IconDisplay {
+                        icon: IconSet.Box;
+                        stroke: MyPalette.foreground;
+                        size: 14px;
+                    }
+
+                    Text {
+                        text: " Is GameCube: " + (State.current-disc-info.is-gc ? "yes" : "no");
+                    }
+                }
+
+                HorizontalLayout {
+                    IconDisplay {
+                        icon: IconSet.Hash;
+                        stroke: MyPalette.foreground;
+                        size: 14px;
+                    }
+
+                    Text {
+                        text: " Disc number: " + State.current-disc-info.disc-number;
+                    }
+                }
+
+                HorizontalLayout {
+                    IconDisplay {
+                        icon: IconSet.Pin;
+                        stroke: MyPalette.foreground;
+                        size: 14px;
+                    }
+
+                    Text {
+                        text: " Disc version: " + State.current-disc-info.disc-version;
+                    }
+                }
+
+                HorizontalLayout {
+                    IconDisplay {
+                        icon: IconSet.FingerprintPattern;
+                        stroke: MyPalette.foreground;
+                        size: 14px;
+                    }
+
+                    Text {
+                        text: " CRC32: " + (State.current-disc-info.crc32.is-empty ? "N/A" : State.current-disc-info.crc32);
+                    }
+                }
+            }
+        }
+
+        VerticalLayout {
+            HorizontalLine { }
+
+            HorizontalBox {
+                alignment: end;
+
+                IconButton {
+                    label: "CRC32";
+                    icon: IconSet.FingerprintPattern;
+                }
+
+                IconButton {
+                    label: "Close";
+                    kind: IconButtonKind.Primary;
+                    clicked => {
+                        State.current-game.path = "";
+                    }
+                }
+            }
+        }
+    }
+}

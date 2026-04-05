@@ -1,0 +1,48 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { VerticalBox, HorizontalBox, ScrollView } from "std-widgets.slint";
+import { State } from "../state.slint";
+import { MyPalette } from "../styling.slint";
+import { IconButton } from "icon-button.slint";
+import { HorizontalLine } from "horizontal-line.slint";
+import { IconSet } from "@lucide";
+import { Card } from "card.slint";
+import { IconButtonKind } from "../types.slint";
+
+export component DeletingDirModal inherits Card {
+    VerticalLayout {
+        alignment: space-between;
+
+        VerticalBox {
+            alignment: start;
+
+            Text {
+                text: "Are you sure you want to delete \"\{State.deleting-dir}\"?\n\nThis is irreversible!!";
+                wrap: char-wrap;
+            }
+        }
+
+        VerticalLayout {
+            HorizontalLine { }
+
+            HorizontalBox {
+                alignment: end;
+
+                IconButton {
+                    label: "Cancel";
+                    clicked => {
+                        State.deleting-dir = "";
+                    }
+                }
+
+                IconButton {
+                    label: "Delete";
+                    icon: IconSet.Trash;
+                    kind: IconButtonKind.Danger;
+                    clicked => State.delete-dir();
+                }
+            }
+        }
+    }
+}

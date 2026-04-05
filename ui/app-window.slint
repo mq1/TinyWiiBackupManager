@@ -12,11 +12,13 @@ import { MyPalette } from "styling.slint";
 import { Rust } from "rust.slint";
 import { VerticalLine } from "components/vertical-line.slint";
 import { Card } from "components/card.slint";
-import { GamePage } from "game-page.slint";
 import { GameTablePage } from "game-table-page.slint";
 import { Notifications } from "components/notifications.slint";
-import { ConfirmConversionPage } from "confirm-conversion-page.slint";
-import { DeleteDirPage } from "delete-dir-page.slint";
+import { GameInfoModal } from "components/game-info-modal.slint";
+import { DeletingDirModal } from "components/deleting-dir-modal.slint";
+import {
+    ConfirmConversionModal,
+} from "components/confirm-conversion-modal.slint";
 
 export * from "types.slint";
 export { State, Rust }
@@ -24,19 +26,15 @@ export { State, Rust }
 export component AppWindow inherits Window {
     min-width: 800px;
     min-height: 600px;
-    background: is-fullscreen-page() ? MyPalette.card-background : MyPalette.background;
+    background: MyPalette.card-background;
     title: "TinyWiiBackupManager  ›  " + (State.config.contents.mount-point.is-empty ? "No drive selected" : State.config.contents.mount-point) + "  (" + State.drive-info.used-gib + "/" + State.drive-info.total-gib + " GiB)";
     default-font-size: 14px;
 
-    pure function is-fullscreen-page() -> bool {
-        State.adding-games.length == 0 && State.deleting-dir.is-empty
+    pure function is-modal-open() -> bool {
+        !State.current-game.path.is-empty || State.adding-games.length > 0 || !State.deleting-dir.is-empty
     }
 
-    // Fullscreen pages
-    if State.adding-games.length > 0: ConfirmConversionPage { }
-    if !State.deleting-dir.is-empty: DeleteDirPage { }
-
-    if is-fullscreen-page(): HorizontalLayout {
+    HorizontalLayout {
         Navbar { }
 
         VerticalLayout {
@@ -66,7 +64,7 @@ export component AppWindow inherits Window {
         }
     }
 
-    if !State.current-game.path.is-empty: Rectangle {
+    if is-modal-open(): Rectangle {
         x: 0px;
         y: 0px;
         width: 100%;
@@ -78,16 +76,17 @@ export component AppWindow inherits Window {
             y: 0px;
             width: parent.width;
             height: parent.height;
-            clicked => {
-                State.current-game.path = "";
-            }
         }
 
-        GamePage {
+        Rectangle {
             x: (root.width - self.width) / 2;
             y: (root.height - self.height) / 2;
             width: 600px;
             height: 400px;
+
+            if !State.current-game.path.is-empty: GameInfoModal { }
+            if State.adding-games.length > 0: ConfirmConversionModal { }
+            if !State.deleting-dir.is-empty: DeletingDirModal { }
         }
     }
 
