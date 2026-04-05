@@ -30,6 +30,7 @@ dependencies = [
  "slint",
  "slint-build",
  "split-write",
+ "tempfile",
  "walkdir",
  "which-fs",
  "wii-disc-info",

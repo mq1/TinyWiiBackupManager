@@ -20,10 +20,11 @@ use split_write::SplitWriter;
 use std::{
     ffi::OsStr,
     fs::{self, File},
-    io::{self, BufReader, BufWriter, Write},
+    io::{self, BufReader, BufWriter, Read, Seek, Write},
     num::NonZeroUsize,
     path::PathBuf,
 };
+use tempfile::tempfile;
 use zip::ZipArchive;
 
 pub const SPLIT_SIZE: NonZeroUsize = NonZeroUsize::new(4_294_934_528).unwrap(); // 4 GiB - 32 KiB
@@ -232,13 +233,13 @@ impl Conversion {
 
         let disc_reader = DiscReader::new(&self.in_path, &disc_opts)?;
         let disc_writer = DiscWriter::new(disc_reader, &out_opts)?;
-        let mut hasher = Hasher::new();
+        let mut tmpfile = tempfile()?;
 
         let mut prev_percentage = 100;
         let finalization = disc_writer.process(
             |data, progress, total| {
                 out_writer.write_all(&data)?;
-                hasher.update(&data);
+                tmpfile.write_all(&data)?;
 
                 let progress_percentage = progress * 100 / total;
                 if progress_percentage != prev_percentage {
@@ -264,12 +265,35 @@ impl Conversion {
 
         if !finalization.header.is_empty() {
             split_writer.write_header(&finalization.header)?;
+            tmpfile.rewind()?;
+            tmpfile.write_all(&finalization.header)?;
         }
 
         split_writer.flush()?;
+        tmpfile.flush()?;
 
-        let checksum = hasher.finalize();
-        fs::write(hash_path, format!("{checksum:08x}"))?;
+        // checksum
+        {
+            let status = format!("Calculating CRC32 for {}", meta.game_title()).to_shared_string();
+            let _ = weak.upgrade_in_event_loop(move |state| {
+                state.set_status(status);
+            });
+
+            tmpfile.rewind()?;
+            let mut hasher = Hasher::new();
+
+            let mut buf = [0u8; 32_768];
+            loop {
+                let n = tmpfile.read(&mut buf)?;
+                if n == 0 {
+                    break;
+                }
+                hasher.update(&buf[..n]);
+            }
+
+            let checksum = hasher.finalize();
+            fs::write(hash_path, format!("{checksum:08x}"))?;
+        }
 
         for path in files_to_remove {
             let _ = fs::remove_file(path);
