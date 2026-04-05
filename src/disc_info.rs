@@ -80,6 +80,7 @@ impl DiscInfo {
         let crc32 = fs::read_to_string(crc32_path).unwrap_or_default();
 
         Ok(Self {
+            path: disc_path.to_string_lossy().to_shared_string(),
             format: meta.format().to_shared_string(),
             game_id: meta.game_id().to_shared_string(),
             game_title: meta.game_title().to_shared_string(),

@@ -1,7 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{Notification, QueuedConversion, State};
+use std::path::PathBuf;
+
+use crate::{Notification, QueuedConversion, State, checksum};
 use slint::{Global, Model, VecModel};
 
 impl State<'_> {
@@ -10,6 +12,21 @@ impl State<'_> {
         self.on_start_conversion(move || {
             let state = weak.upgrade().unwrap();
             state.start_conversion();
+        });
+
+        let weak = self.as_weak();
+        self.on_checksum(move |game| {
+            let weak = weak.clone();
+            let game_dir = PathBuf::from(&game.path);
+            let is_wii = game.is_wii;
+            let game_id = game.id.to_string();
+            let _ = std::thread::spawn(move || {
+                if let Err(e) = checksum::perform(game_dir, is_wii, &game_id, &weak) {
+                    let _ = weak.upgrade_in_event_loop(move |state| {
+                        state.push_notification(e.into());
+                    });
+                }
+            });
         });
     }
 

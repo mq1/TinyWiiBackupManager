@@ -55,6 +55,7 @@ export struct Game {
     title: string,
     id: string,
     cover: image,
+    calculated-crc32: string,
 }
 
 export struct GameList {
@@ -68,6 +69,7 @@ export struct GameList {
 
 export struct DiscInfo {
     err: string,
+    path: string,
     format: string,
     game-id: string,
     game-title: string,

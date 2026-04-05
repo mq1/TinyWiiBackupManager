@@ -3,7 +3,7 @@
 
 use crate::{Game, SortBy, id_map::ID_MAP, util::GIB};
 use anyhow::{Result, anyhow};
-use slint::{Image, ToSharedString};
+use slint::{Image, SharedString, ToSharedString};
 use std::{
     ffi::{OsStr, OsString},
     fs,
@@ -47,6 +47,7 @@ impl Game {
             title,
             id: id.to_shared_string(),
             cover,
+            calculated_crc32: SharedString::new(),
         })
     }
 

@@ -171,8 +171,13 @@ export component GameInfoModal inherits Card {
                 alignment: end;
 
                 IconButton {
-                    label: "CRC32";
+                    label: State.current-game.calculated-crc32.is-empty ? "CRC32" : State.current-game.calculated-crc32;
                     icon: IconSet.FingerprintPattern;
+                    clicked => {
+                        if State.current-game.calculated-crc32.is-empty {
+                            State.checksum(State.current-game);
+                        }
+                    };
                 }
 
                 IconButton {
