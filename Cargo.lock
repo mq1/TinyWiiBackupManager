@@ -6257,9 +6257,12 @@ dependencies = [
 
 [[package]]
 name = "wii-disc-info"
-version = "0.3.0"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b5901a631cf01755f43e6b30c589eb4447a4cd6cbd2adf9ea8df7b5e5c32b9c6"
+checksum = "f8fe03bcd773b71851879f3d0af35e04e80c4223b8ef8b47c720d9a5853c841e"
+dependencies = [
+ "arrayvec",
+]
 
 [[package]]
 name = "wiiload"

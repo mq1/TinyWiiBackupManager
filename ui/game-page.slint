@@ -75,6 +75,18 @@ export component GamePage inherits VerticalLayout {
 
                     HorizontalLayout {
                         IconDisplay {
+                            icon: IconSet.FileQuestionMark;
+                            stroke: MyPalette.foreground;
+                            size: 14px;
+                        }
+
+                        Text {
+                            text: " Format: " + State.current-disc-info.format;
+                        }
+                    }
+
+                    HorizontalLayout {
+                        IconDisplay {
                             icon: IconSet.Tag;
                             stroke: MyPalette.foreground;
                             size: 14px;

@@ -75,10 +75,11 @@ impl DiscInfo {
         }
 
         let mut f = File::open(disc_path)?;
-        let meta = wii_disc_info::query(&mut f)?;
+        let meta = wii_disc_info::Meta::read(&mut f)?;
         let is_worth_scrubbing = is_worth_scrubbing(disc_path);
 
         Ok(Self {
+            format: meta.format().to_shared_string(),
             game_id: meta.game_id().to_shared_string(),
             game_title: meta.game_title().to_shared_string(),
             region: meta.region().to_shared_string(),

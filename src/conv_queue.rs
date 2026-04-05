@@ -48,7 +48,7 @@ impl QueuedConversion {
             .into_iter()
             .filter_map(|p| {
                 let mut f = File::open(&p).ok()?;
-                let meta = wii_disc_info::query(&mut f).ok()?;
+                let meta = wii_disc_info::Meta::read(&mut f).ok()?;
                 Some((p, meta))
             })
             .collect::<Vec<_>>();

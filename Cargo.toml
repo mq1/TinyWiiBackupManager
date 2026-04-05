@@ -18,7 +18,7 @@ LegalCopyright = "Copyright © 2026 Manuel Quarneti. Licensed under GPL-3.0-only
 # My crates (MIT or Apache-2.0)
 which-fs = "0.2"
 split-write = "0.2"
-wii-disc-info = "0.3"
+wii-disc-info = "0.4"
 wiiload = "0.3"
 
 slint = { git = "https://github.com/slint-ui/slint.git", rev = "57b2004", default-features = false, features = [
