@@ -50,6 +50,7 @@ fn restart_with_sw_rendering() -> Result<()> {
     Ok(())
 }
 
+#[allow(clippy::too_many_lines)]
 fn main() -> Result<()> {
     // Decompress idmap
     let _ = std::thread::spawn(|| LazyLock::force(&ID_MAP));
@@ -122,7 +123,7 @@ fn main() -> Result<()> {
             let app = weak.upgrade().unwrap();
             let paths = dialogs::pick_games(app.window());
             let existing_ids = existing_games.iter().map(|g| g.id).collect::<Vec<_>>();
-            let queue = QueuedConversion::make_queue(paths, existing_ids, &conf, &drive_info);
+            let queue = QueuedConversion::make_queue(paths, &existing_ids, &conf, &drive_info);
             let model = VecModel::from(queue);
             ModelRc::from(Rc::new(model))
         });
@@ -133,7 +134,7 @@ fn main() -> Result<()> {
             let app = weak.upgrade().unwrap();
             let paths = dialogs::pick_games_r(app.window());
             let existing_ids = existing_games.iter().map(|g| g.id).collect::<Vec<_>>();
-            let queue = QueuedConversion::make_queue(paths, existing_ids, &conf, &drive_info);
+            let queue = QueuedConversion::make_queue(paths, &existing_ids, &conf, &drive_info);
             let model = VecModel::from(queue);
             ModelRc::from(Rc::new(model))
         });

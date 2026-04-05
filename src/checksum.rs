@@ -29,7 +29,7 @@ fn hash_file(hasher: &mut Hasher, path: &Path, weak: &Weak<State<'static>>) -> R
         progress += len as u64;
 
         let percentage = progress * 100 / size;
-        let percentage = format!("{}%", percentage).to_shared_string();
+        let percentage = format!("{percentage}%").to_shared_string();
 
         let _ = weak.upgrade_in_event_loop(move |state| {
             let mut game = state.get_current_game();

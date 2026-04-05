@@ -53,7 +53,6 @@ num_cpus = "1.17"
 bitflags = "2.11"
 walkdir = "2.5"
 crc32fast = "1.5"
-tempfile = "3.27"
 
 [target.'cfg(target_vendor = "pc")'.dependencies]
 minreq = { version = "2.14", features = ["https-native"] }

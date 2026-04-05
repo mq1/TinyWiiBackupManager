@@ -20,14 +20,14 @@ use split_write::SplitWriter;
 use std::{
     ffi::OsStr,
     fs::{self, File},
-    io::{self, BufReader, BufWriter, Read, Seek, Write},
+    io::{self, BufReader, BufWriter, Write},
     num::NonZeroUsize,
     path::PathBuf,
 };
-use tempfile::tempfile;
 use zip::ZipArchive;
 
 pub const SPLIT_SIZE: NonZeroUsize = NonZeroUsize::new(4_294_934_528).unwrap(); // 4 GiB - 32 KiB
+const MAX_HEADER_SIZE: usize = 66_064; // WBFS header
 
 bitflags! {
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -233,13 +233,26 @@ impl Conversion {
 
         let disc_reader = DiscReader::new(&self.in_path, &disc_opts)?;
         let disc_writer = DiscWriter::new(disc_reader, &out_opts)?;
-        let mut tmpfile = tempfile()?;
+        let mut head_buffer = Vec::with_capacity(MAX_HEADER_SIZE);
+        let mut hasher = Hasher::new();
 
         let mut prev_percentage = 100;
         let finalization = disc_writer.process(
             |data, progress, total| {
                 out_writer.write_all(&data)?;
-                tmpfile.write_all(&data)?;
+
+                let data_len = data.len();
+                let mut data_offset = 0;
+
+                if head_buffer.len() < MAX_HEADER_SIZE {
+                    let take = (MAX_HEADER_SIZE - head_buffer.len()).min(data_len);
+                    head_buffer.extend_from_slice(&data[..take]);
+                    data_offset += take;
+                }
+
+                if data_offset < data_len {
+                    hasher.update(&data[data_offset..]);
+                }
 
                 let progress_percentage = progress * 100 / total;
                 if progress_percentage != prev_percentage {
@@ -265,35 +278,16 @@ impl Conversion {
 
         if !finalization.header.is_empty() {
             split_writer.write_header(&finalization.header)?;
-            tmpfile.rewind()?;
-            tmpfile.write_all(&finalization.header)?;
+            head_buffer[..finalization.header.len()].copy_from_slice(&finalization.header);
         }
 
         split_writer.flush()?;
-        tmpfile.flush()?;
 
-        // checksum
-        {
-            let status = format!("Calculating CRC32 for {}", meta.game_title()).to_shared_string();
-            let _ = weak.upgrade_in_event_loop(move |state| {
-                state.set_status(status);
-            });
-
-            tmpfile.rewind()?;
-            let mut hasher = Hasher::new();
-
-            let mut buf = [0u8; 32_768];
-            loop {
-                let n = tmpfile.read(&mut buf)?;
-                if n == 0 {
-                    break;
-                }
-                hasher.update(&buf[..n]);
-            }
-
-            let checksum = hasher.finalize();
-            fs::write(hash_path, format!("{checksum:08x}"))?;
-        }
+        let mut final_hasher = Hasher::new();
+        final_hasher.update(&head_buffer);
+        final_hasher.combine(&hasher);
+        let checksum = final_hasher.finalize();
+        fs::write(hash_path, format!("{checksum:08x}"))?;
 
         for path in files_to_remove {
             let _ = fs::remove_file(path);

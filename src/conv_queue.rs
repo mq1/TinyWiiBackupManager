@@ -40,7 +40,7 @@ impl QueuedConversion {
     #[must_use]
     pub fn make_queue(
         paths: Vec<PathBuf>,
-        existing_ids: Vec<SharedString>,
+        existing_ids: &[SharedString],
         conf: &ConfigContents,
         drive_info: &DriveInfo,
     ) -> Vec<QueuedConversion> {
@@ -55,7 +55,7 @@ impl QueuedConversion {
             .collect::<Vec<_>>();
 
         // keep only new games
-        entries.retain(|(_, meta)| existing_ids.iter().all(|id| id != &meta.game_id()));
+        entries.retain(|(_, meta)| existing_ids.iter().all(|id| id != meta.game_id()));
 
         let mut queue = Vec::new();
         for (path, _) in entries {
