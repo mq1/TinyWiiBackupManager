@@ -95,9 +95,7 @@ codegen-units = 1
 strip = true
 panic = "abort"
 
-# optimize slint runtime for size
-[profile.release.package.i-slint-core]
-opt-level = "z"
+# optimize big ui dependencies for size
 [profile.release.package.harfrust]
 opt-level = "z"
 [profile.release.package.usvg]
@@ -108,29 +106,13 @@ opt-level = "z"
 opt-level = "z"
 [profile.release.package.rustybuzz]
 opt-level = "z"
-[profile.release.package.i-slint-renderer-software]
-opt-level = "z"
 [profile.release.package.zune-jpeg]
 opt-level = "z"
 [profile.release.package.read-fonts]
 opt-level = "z"
-[profile.release.package.tiny-skia]
-opt-level = "z"
 [profile.release.package.image-webp]
 opt-level = "z"
-[profile.release.package.parley]
-opt-level = "z"
 [profile.release.package.ttf-parser]
-opt-level = "z"
-[profile.release.package.winit]
-opt-level = "z"
-[profile.release.package.accesskit_macos]
-opt-level = "z"
-[profile.release.package.fontique]
-opt-level = "z"
-[profile.release.package.image]
-opt-level = "z"
-[profile.release.package.accesskit_consumer]
 opt-level = "z"
 
 # speed up slint compiler in dev builds
