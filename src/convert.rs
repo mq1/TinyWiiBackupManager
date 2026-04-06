@@ -27,7 +27,7 @@ use std::{
 use zip::ZipArchive;
 
 pub const SPLIT_SIZE: NonZeroUsize = NonZeroUsize::new(4_294_934_528).unwrap(); // 4 GiB - 32 KiB
-const MAX_HEADER_SIZE: usize = 66_064; // WBFS header
+const HEADER_SIZE: usize = 131_072;
 
 bitflags! {
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -233,7 +233,7 @@ impl Conversion {
 
         let disc_reader = DiscReader::new(&self.in_path, &disc_opts)?;
         let disc_writer = DiscWriter::new(disc_reader, &out_opts)?;
-        let mut head_buffer = Vec::with_capacity(MAX_HEADER_SIZE);
+        let mut head_buffer = Vec::with_capacity(HEADER_SIZE);
         let mut hasher = Hasher::new();
 
         let mut prev_percentage = 100;
@@ -241,17 +241,13 @@ impl Conversion {
             |data, progress, total| {
                 out_writer.write_all(&data)?;
 
-                let data_len = data.len();
-                let mut data_offset = 0;
-
-                if head_buffer.len() < MAX_HEADER_SIZE {
-                    let take = (MAX_HEADER_SIZE - head_buffer.len()).min(data_len);
-                    head_buffer.extend_from_slice(&data[..take]);
-                    data_offset += take;
-                }
-
-                if data_offset < data_len {
-                    hasher.update(&data[data_offset..]);
+                let remaining_in_head = HEADER_SIZE.saturating_sub(head_buffer.len());
+                if remaining_in_head > 0 {
+                    let to_write = remaining_in_head.min(data.len());
+                    head_buffer.extend_from_slice(&data[..to_write]);
+                    hasher.update(&data[to_write..]);
+                } else {
+                    hasher.update(&data);
                 }
 
                 let progress_percentage = progress * 100 / total;
