@@ -18,7 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ⚡️ Better UI performance (especially on old GPUs and VMs)
 - 🪶 Reduced UI resource usage
 - 🕶️ Dark/light mode switch is now in the Settings page
-- 💄 Minor UI refinements
+- 💄 UI refinements, TinyWiiBackupManager should feel more polished
+
+### Removed (open an issue if you need any of these)
+
+- 📝 Removed gametdb info from the game info modal. A gametdb page link is still available with more complete/up to date info.
+- 📝 Removed nkit metadata from the game info modal. https://github.com/encounter/nod is the recommended tool for this.
 
 ## [v5.2.1] - 2026-03-19
 
