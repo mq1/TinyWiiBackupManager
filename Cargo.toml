@@ -134,8 +134,6 @@ opt-level = "z"
 opt-level = "z"
 [profile.release.package.image]
 opt-level = "z"
-[profile.release.package.swash]
-opt-level = "z"
 [profile.release.package.accesskit_consumer]
 opt-level = "z"
 
