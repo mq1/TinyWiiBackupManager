@@ -15,7 +15,7 @@ on:
       - "Cargo.lock"
       - "package/**"
       - "containers/**"
-      - ".cargo/config.toml"
+      - "cargo-config.toml"
       - ".github/workflows/release.yml"
   pull_request:
   workflow_dispatch:
