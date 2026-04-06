@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{Game, Notification, QueuedConversion, State, checksum, covers};
+use crate::{checksum, covers, Notification, QueuedConversion, State};
 use slint::{Global, Model, ModelRc, VecModel};
 use std::{
     path::{Path, PathBuf},
