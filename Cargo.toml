@@ -114,13 +114,9 @@ opt-level = "z"
 opt-level = "z"
 [profile.release.package.read-fonts]
 opt-level = "z"
-[profile.release.package.i-slint-backend-winit]
-opt-level = "z"
 [profile.release.package.tiny-skia]
 opt-level = "z"
 [profile.release.package.image-webp]
-opt-level = "z"
-[profile.release.package.resvg]
 opt-level = "z"
 [profile.release.package.parley]
 opt-level = "z"
