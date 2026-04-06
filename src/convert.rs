@@ -87,8 +87,10 @@ impl Conversion {
             .extension()
             .is_some_and(|ext| ext.eq_ignore_ascii_case("zip"))
         {
-            let status = format!("Unzipping {}", self.in_path.display()).to_shared_string();
-            let _ = weak.upgrade_in_event_loop(move |state| state.set_status(status));
+            let status = format!("Unzipping {}", self.in_path.display());
+            let _ = weak.upgrade_in_event_loop(move |state| {
+                state.set_status(status.to_shared_string());
+            });
 
             let file = File::open(&self.in_path)?;
             let reader = BufReader::new(file);
@@ -256,9 +258,10 @@ impl Conversion {
                         "⤒  Converting {}  {:02}%",
                         meta.game_title(),
                         progress_percentage
-                    )
-                    .to_shared_string();
-                    let _ = weak.upgrade_in_event_loop(move |state| state.set_status(status));
+                    );
+                    let _ = weak.upgrade_in_event_loop(move |state| {
+                        state.set_status(status.to_shared_string());
+                    });
 
                     prev_percentage = progress_percentage;
                 }

@@ -182,10 +182,10 @@ export component GameInfoModal inherits Card {
 
                 HorizontalBox {
                     IconButton {
-                        label: State.current-game.calculated-crc32.is-empty ? "CRC32" : State.current-game.calculated-crc32;
+                        label: State.current-game-crc32.is-empty ? "CRC32" : State.current-game-crc32;
                         icon: IconSet.FingerprintPattern;
                         clicked => {
-                            if State.current-game.calculated-crc32.is-empty {
+                            if State.current-game-crc32.is-empty {
                                 State.checksum(State.current-game);
                             }
                         };
@@ -196,6 +196,7 @@ export component GameInfoModal inherits Card {
                         kind: IconButtonKind.Primary;
                         clicked => {
                             State.current-game.path = "";
+                            State.current-game-crc32 = "";
                         }
                     }
                 }

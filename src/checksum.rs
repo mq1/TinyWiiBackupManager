@@ -29,12 +29,10 @@ fn hash_file(hasher: &mut Hasher, path: &Path, weak: &Weak<State<'static>>) -> R
         progress += len as u64;
 
         let percentage = progress * 100 / size;
-        let percentage = format!("{percentage}%").to_shared_string();
+        let percentage = format!("{percentage}%");
 
         let _ = weak.upgrade_in_event_loop(move |state| {
-            let mut game = state.get_current_game();
-            game.calculated_crc32 = percentage;
-            state.set_current_game(game);
+            state.set_current_game_crc32(percentage.to_shared_string());
         });
     }
     Ok(())
@@ -110,11 +108,8 @@ pub fn perform(
         fs::write(crc32_path, &crc32)?;
     }
 
-    let crc32 = crc32.to_shared_string();
     let _ = weak.upgrade_in_event_loop(move |state| {
-        let mut game = state.get_current_game();
-        game.calculated_crc32 = crc32;
-        state.set_current_game(game);
+        state.set_current_game_crc32(crc32.to_shared_string());
     });
 
     Ok(())
