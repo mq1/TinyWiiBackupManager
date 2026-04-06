@@ -97,11 +97,11 @@ panic = "abort"
 
 # speed up slint compiler in dev builds
 [profile.dev.build-override]
-opt-level = 3
+opt-level = 2
 
 # speed up conversions in dev builds
 [profile.dev.package."*"]
-opt-level = 3
+opt-level = 2
 
 [lints.rust]
 rust_2018_idioms = "deny"
