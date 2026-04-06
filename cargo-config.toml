@@ -24,7 +24,8 @@ CFLAGS_aarch64_pc_windows_msvc = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-li
 AR_aarch64_pc_windows_msvc = "llvm-lib"
 
 CC_i686_pc_windows_msvc = "clang-cl"
-CFLAGS_i686_pc_windows_msvc = "/clang:-O3"
+CFLAGS_i686_pc_windows_msvc = "/clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link"
+AR_i686_pc_windows_msvc = "llvm-lib"
 
 CC_x86_64_win7_windows_msvc = "clang-cl"
 CFLAGS_x86_64_win7_windows_msvc = "/clang:-O3"
