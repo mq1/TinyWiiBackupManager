@@ -15,9 +15,13 @@ fn hash_file(hasher: &mut Hasher, path: &Path, weak: &Weak<State<'static>>) -> R
     let mut f = File::open(path)?;
     let size = f.metadata()?.len();
 
+    if size == 0 {
+        bail!("File is empty");
+    }
+
     let mut progress = 0;
-    let mut prev_percentage = 100;
-    let mut buf = [0; 8192];
+    let mut next_threshold = size / 100;
+    let mut buf = vec![0; 128 * 1024];
     loop {
         let n = f.read(&mut buf)?;
         if n == 0 {
@@ -27,14 +31,15 @@ fn hash_file(hasher: &mut Hasher, path: &Path, weak: &Weak<State<'static>>) -> R
 
         progress += n as u64;
 
-        let progress_percentage = progress * 100 / size;
-        if progress_percentage != prev_percentage {
-            let status = format!("{progress_percentage}%");
-            let _ = weak.upgrade_in_event_loop(move |state| {
-                state.set_current_game_crc32(status.to_shared_string());
-            });
+        if progress >= next_threshold {
+            let current_percentage = progress * 100 / size;
+            next_threshold = (current_percentage + 1) * size / 100;
 
-            prev_percentage = progress_percentage;
+            let _ = weak.upgrade_in_event_loop(move |state| {
+                let mut status = current_percentage.to_shared_string();
+                status.push_str("%");
+                state.set_current_game_crc32(status);
+            });
         }
     }
     Ok(())
