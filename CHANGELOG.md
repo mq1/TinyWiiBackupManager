@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🕶️ Dark/light mode switch is now in the Settings page
 - 💄 UI refinements, TinyWiiBackupManager should feel more polished
 
-### Removed (open an issue if you need any of these)
+### Removed (open an issue if you need any of these, but I consider them out of scope for TinyWiiBackupManager)
 
 - 📝 Removed gametdb info from the game info modal. A gametdb page link is still available with more complete/up to date info.
 - 📝 Removed nkit metadata from the game info modal. https://github.com/encounter/nod is the recommended tool for this.
