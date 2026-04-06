@@ -98,7 +98,7 @@ impl State<'_> {
             game.reload_cover(data_dir);
         }
 
-        model.games = ModelRc::new(Rc::new(VecModel::from(games)));
+        model.games = ModelRc::from(Rc::new(VecModel::from(games)));
         self.set_game_list(model);
     }
 }
