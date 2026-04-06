@@ -7,27 +7,25 @@ use crc32fast::Hasher;
 use slint::{ToSharedString, Weak};
 use std::{
     fs::{self, File},
-    io::{BufRead, BufReader},
+    io::Read,
     path::{Path, PathBuf},
 };
 
 fn hash_file(hasher: &mut Hasher, path: &Path, weak: &Weak<State<'static>>) -> Result<()> {
-    let f = File::open(path)?;
+    let mut f = File::open(path)?;
     let size = f.metadata()?.len();
 
     let mut progress = 0;
-    let mut reader = BufReader::new(f);
     let mut prev_percentage = 100;
+    let mut buf = [0; 8192];
     loop {
-        let buffer = reader.fill_buf()?;
-        if buffer.is_empty() {
+        let n = f.read(&mut buf)?;
+        if n == 0 {
             break;
         }
-        hasher.update(buffer);
-        let len = buffer.len();
-        reader.consume(len);
+        hasher.update(&buf[..n]);
 
-        progress += len as u64;
+        progress += n as u64;
 
         let progress_percentage = progress * 100 / size;
         if progress_percentage != prev_percentage {
