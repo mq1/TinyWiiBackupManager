@@ -17,6 +17,7 @@ fn hash_file(hasher: &mut Hasher, path: &Path, weak: &Weak<State<'static>>) -> R
 
     let mut progress = 0;
     let mut reader = BufReader::new(f);
+    let mut prev_percentage = 100;
     loop {
         let buffer = reader.fill_buf()?;
         if buffer.is_empty() {
@@ -28,12 +29,15 @@ fn hash_file(hasher: &mut Hasher, path: &Path, weak: &Weak<State<'static>>) -> R
 
         progress += len as u64;
 
-        let percentage = progress * 100 / size;
-        let percentage = format!("{percentage}%");
+        let progress_percentage = progress * 100 / size;
+        if progress_percentage != prev_percentage {
+            let status = format!("{progress_percentage}%");
+            let _ = weak.upgrade_in_event_loop(move |state| {
+                state.set_current_game_crc32(status.to_shared_string());
+            });
 
-        let _ = weak.upgrade_in_event_loop(move |state| {
-            state.set_current_game_crc32(percentage.to_shared_string());
-        });
+            prev_percentage = progress_percentage;
+        }
     }
     Ok(())
 }
