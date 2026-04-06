@@ -5,7 +5,7 @@ use crate::{Game, SortBy, id_map::ID_MAP, util::GIB};
 use anyhow::{Result, anyhow};
 use slint::{Image, SharedString, ToSharedString};
 use std::{
-    ffi::{OsStr, OsString},
+    ffi::OsStr,
     fs,
     path::{Path, PathBuf},
 };
@@ -88,53 +88,10 @@ impl Game {
         Err(anyhow!("No disc found"))
     }
 
-    #[must_use]
-    pub fn get_gametdb_uri(&self) -> OsString {
-        format!("https://www.gametdb.com/Wii/{}", &self.id).into()
-    }
-
-    #[must_use]
-    pub fn partial_id(&self) -> &str {
-        &self.id[0..3]
-    }
-
-    #[must_use]
-    pub fn lang_str(&self) -> &'static str {
-        match self.id.as_bytes()[3] {
-            b'E' | b'N' => "US",
-            b'J' => "JA",
-            b'K' | b'Q' | b'T' => "KO",
-            b'R' => "RU",
-            b'W' => "ZH",
-            _ => "EN",
-        }
-    }
-}
-
-pub fn region(id: [u8; 6]) -> &'static str {
-    match id[3] {
-        b'A' => "System Wii Channels (i.e. Mii Channel)",
-        b'B' => "Ufouria: The Saga (NA)",
-        b'D' => "Germany",
-        b'E' => "USA",
-        b'F' => "France",
-        b'H' => "Netherlands / Europe alternate languages",
-        b'I' => "Italy",
-        b'J' => "Japan",
-        b'K' => "Korea",
-        b'L' => "Japanese import to Europe, Australia and other PAL regions",
-        b'M' => "American import to Europe, Australia and other PAL regions",
-        b'N' => "Japanese import to USA and other NTSC regions",
-        b'P' => "Europe and other PAL regions such as Australia",
-        b'Q' => "Japanese Virtual Console import to Korea",
-        b'R' => "Russia",
-        b'S' => "Spain",
-        b'T' => "American Virtual Console import to Korea",
-        b'U' => "Australia / Europe alternate languages",
-        b'V' => "Scandinavia",
-        b'W' => "Republic of China (Taiwan) / Hong Kong / Macau",
-        b'X' | b'Y' | b'Z' => "Europe alternate languages / US special releases",
-        _ => "Unknown",
+    pub fn reload_cover(&mut self, data_dir: &Path) {
+        let cover_path = data_dir.join("covers").join(format!("{}.png", self.id));
+        let cover = Image::load_from_path(&cover_path).unwrap_or_default();
+        self.cover = cover;
     }
 }
 

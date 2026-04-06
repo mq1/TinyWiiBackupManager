@@ -42,6 +42,7 @@ export global State {
 
     callback start-conversion();
     callback checksum(Game);
+    callback cache-covers();
 
     public function notify(notification: Notification) {
         Rust.add-notification(notifications, notification);
@@ -79,6 +80,7 @@ export global State {
         game-list = Rust.get-game-list(config.contents.mount-point, config.contents.sort-by);
         apply-sorting();
         filtered-games = [];
+        cache-covers();
     }
 
     public function pick-mount-point() {

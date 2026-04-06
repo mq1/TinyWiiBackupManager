@@ -1,10 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::path::PathBuf;
-
-use crate::{Notification, QueuedConversion, State, checksum};
+use crate::{Game, Notification, QueuedConversion, State, checksum, covers};
 use slint::{Global, Model, VecModel};
+use std::path::{Path, PathBuf};
 
 impl State<'_> {
     pub fn handle_callbacks(&self) {
@@ -27,6 +26,12 @@ impl State<'_> {
                     });
                 }
             });
+        });
+
+        let weak = self.as_weak();
+        self.on_cache_covers(move || {
+            let state = weak.upgrade().unwrap();
+            state.cache_covers();
         });
     }
 
@@ -54,5 +59,46 @@ impl State<'_> {
             let conv = model.remove(0);
             conv.run(self.as_weak());
         }
+    }
+
+    pub fn cache_covers(&self) {
+        let ids = self
+            .get_game_list()
+            .games
+            .iter()
+            .map(|g| g.id.to_string())
+            .collect::<Vec<_>>();
+
+        let data_dir = PathBuf::from(&self.get_data_dir());
+
+        let weak = self.as_weak();
+        let _ = std::thread::spawn(move || {
+            for game_id in ids {
+                if let Err(e) = covers::cache_cover(&game_id, &data_dir) {
+                    eprintln!("Failed to cache cover for {}: {}", game_id, e);
+                }
+                let _ = weak.upgrade_in_event_loop(move |state| {
+                    state.reload_covers();
+                });
+            }
+        });
+    }
+
+    pub fn reload_covers(&self) {
+        let model = self.get_game_list().games;
+        let mut games = model.iter().collect::<Vec<_>>();
+
+        let data_dir = self.get_data_dir();
+        let data_dir = Path::new(&data_dir);
+
+        for game in &mut games {
+            game.reload_cover(data_dir);
+        }
+
+        model
+            .as_any()
+            .downcast_ref::<VecModel<Game>>()
+            .unwrap()
+            .set_vec(games);
     }
 }

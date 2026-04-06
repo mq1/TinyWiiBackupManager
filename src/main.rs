@@ -7,6 +7,7 @@ mod checksum;
 mod config;
 mod conv_queue;
 mod convert;
+mod covers;
 mod data_dir;
 mod dialogs;
 mod disc_info;
@@ -38,6 +39,8 @@ use std::{
 };
 
 slint::include_modules!();
+
+const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 
 fn restart_with_sw_rendering() -> Result<()> {
     let exe = std::env::current_exe()?;
@@ -75,6 +78,8 @@ fn main() -> Result<()> {
         data_dir,
         config.contents.sort_by,
     ));
+
+    app.global::<State<'_>>().cache_covers();
 
     app.global::<State<'_>>().set_config(config);
 
