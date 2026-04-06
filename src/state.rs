@@ -2,8 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{Game, Notification, QueuedConversion, State, checksum, covers};
-use slint::{Global, Model, VecModel};
-use std::path::{Path, PathBuf};
+use slint::{Global, Model, ModelRc, VecModel};
+use std::{
+    path::{Path, PathBuf},
+    rc::Rc,
+};
 
 impl State<'_> {
     pub fn handle_callbacks(&self) {
@@ -85,8 +88,8 @@ impl State<'_> {
     }
 
     pub fn reload_covers(&self) {
-        let model = self.get_game_list().games;
-        let mut games = model.iter().collect::<Vec<_>>();
+        let mut model = self.get_game_list();
+        let mut games = model.games.iter().collect::<Vec<_>>();
 
         let data_dir = self.get_data_dir();
         let data_dir = Path::new(&data_dir);
@@ -95,10 +98,7 @@ impl State<'_> {
             game.reload_cover(data_dir);
         }
 
-        model
-            .as_any()
-            .downcast_ref::<VecModel<Game>>()
-            .unwrap()
-            .set_vec(games);
+        model.games = ModelRc::new(Rc::new(VecModel::from(games)));
+        self.set_game_list(model);
     }
 }
