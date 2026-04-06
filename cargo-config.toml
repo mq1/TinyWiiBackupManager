@@ -60,10 +60,6 @@ rustflags = [
   "link-arg=/STACK:8000000",
   "-C",
   "linker-plugin-lto",
-  "-C",
-  "target-feature=+crt-static",
-  "-L",
-  "native=VC-LTL-Binary\\TargetPlatform\\10.0.19041.0\\lib\\x64",
 ]
 
 [target.aarch64-pc-windows-msvc]
@@ -73,10 +69,6 @@ rustflags = [
   "link-arg=/STACK:8000000",
   "-C",
   "linker-plugin-lto",
-  "-C",
-  "target-feature=+crt-static",
-  "-L",
-  "native=VC-LTL-Binary\\TargetPlatform\\10.0.19041.0\\lib\\ARM64",
 ]
 
 [target.i686-pc-windows-msvc]
@@ -84,9 +76,7 @@ rustflags = [
   "-C",
   "link-arg=/STACK:8000000",
   "-C",
-  "target-feature=+crt-static",
-  "-L",
-  "native=VC-LTL-Binary\\TargetPlatform\\10.0.19041.0\\lib\\Win32",
+  "linker-plugin-lto",
 ]
 
 [target.x86_64-win7-windows-msvc]
