@@ -165,7 +165,7 @@ jobs:
         shell: pwsh
         run: |
           New-Item -Path "dist" -ItemType Directory -Force
-          7z a -tzip -mx=9 "dist\TinyWiiBackupManager-${{ env.VERSION_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
+          upx --lzma -9 -o "dist\TinyWiiBackupManager-${{ env.VERSION_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}.exe" TinyWiiBackupManager.exe
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v7

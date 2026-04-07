@@ -36,7 +36,6 @@ dependencies = [
  "windows 0.62.2",
  "winresource",
  "zip",
- "zstd",
 ]
 
 [[package]]

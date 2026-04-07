@@ -41,7 +41,6 @@ serde_json = "1.0"
 rfd = "0.17"
 fuzzy-matcher = "0.3"
 postcard = "1.1"
-zstd = { version = "0.13", optional = true }
 fs_extra = "1.3"
 fs4 = { version = "0.13", default-features = false }
 hex = "0.4"
@@ -69,14 +68,12 @@ slint-build = { git = "https://github.com/slint-ui/slint.git", rev = "facf74f" }
 lucide-slint = "1.7"
 winresource = "0.1"
 regex = "1.12"
-zstd = { version = "0.13", optional = true }
 postcard = { version = "1.1", features = ["use-std"] }
 serde = { version = "1.0", features = ["derive"] }
 
 
 [features]
-default = ["compress-idmap", "https-native"]
-compress-idmap = ["dep:zstd"]
+default = ["https-native"]
 https-native = ["minreq/https-native"]
 https-rustls = ["minreq/https-rustls"]
 https-rustls-probe = ["minreq/https-rustls-probe"]
