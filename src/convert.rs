@@ -238,7 +238,7 @@ impl Conversion {
         let mut head_buffer = Vec::with_capacity(HEADER_SIZE);
         let mut hasher = Hasher::new();
 
-        let mut prev_percentage = 100;
+        let mut next_threshold = 0;
         let finalization = disc_writer.process(
             |data, progress, total| {
                 out_writer.write_all(&data)?;
@@ -252,18 +252,18 @@ impl Conversion {
                     hasher.update(&data);
                 }
 
-                let progress_percentage = progress * 100 / total;
-                if progress_percentage != prev_percentage {
+                if progress >= next_threshold {
+                    let current_percentage = progress * 100 / total;
+                    next_threshold = (current_percentage + 1) * total / 100;
+
                     let status = format!(
                         "⤒  Converting {}  {:02}%",
                         meta.game_title(),
-                        progress_percentage
+                        current_percentage
                     );
                     let _ = weak.upgrade_in_event_loop(move |state| {
                         state.set_status(status.to_shared_string());
                     });
-
-                    prev_percentage = progress_percentage;
                 }
 
                 Ok(())
