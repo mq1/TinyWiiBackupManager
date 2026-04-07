@@ -38,33 +38,17 @@ jobs:
       matrix:
         include:
           - runner: ubuntu-24.04
-            arch: x86_64-v3
-            target: x86_64-unknown-linux-gnu
-            rustflags: "-C target-cpu=x86-64-v3"
-            cflags: "-march=x86-64-v3"
-            appimage-arch: x86_64
-          - runner: ubuntu-24.04
-            arch: x86_64-v2
-            target: x86_64-unknown-linux-gnu
-            rustflags: "-C target-cpu=x86-64-v2"
-            cflags: "-march=x86-64-v2"
-            appimage-arch: x86_64
-          - runner: ubuntu-24.04
             arch: x86_64
             target: x86_64-unknown-linux-gnu
-            appimage-arch: x86_64
           - runner: ubuntu-24.04-arm
-            arch: arm64
+            arch: aarch64
             target: aarch64-unknown-linux-gnu
-            appimage-arch: aarch64
           - runner: ubuntu-24.04
-            arch: x86
+            arch: i686
             target: i686-unknown-linux-gnu
-            appimage-arch: i686
           - runner: ubuntu-24.04-arm
             arch: armhf
             target: armv7-unknown-linux-gnueabihf
-            appimage-arch: armhf
 
     steps:
       - name: Checkout
@@ -77,19 +61,13 @@ jobs:
 
       - name: Download appimagetool
         run: |
-          wget "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-${{ matrix.appimage-arch }}.AppImage" -O appimagetool
+          wget "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-${{ matrix.arch }}.AppImage" -O appimagetool
           chmod +x appimagetool
 
       - name: Build binary
         run: |
-          docker run \
-            -v "$(pwd):/io" \
-            -w /io \
-            -e RUSTC_BOOTSTRAP=1 \
-            -e RUSTFLAGS="${{ matrix.rustflags }}" \
-            -e CFLAGS="${{ matrix.cflags }}" \
-            builder \
-            cargo --config cargo-config.toml build -Z build-std=std,panic_abort -Z build-std-features="optimize_for_size" --release --locked --target ${{ matrix.target }} --no-default-features
+          docker run -v "$(pwd):/io" -w /io builder \
+            cargo --config cargo-config.toml build -Z build-std=std,panic_abort -Z build-std-features="optimize_for_size" --release --locked --target ${{ matrix.target }} --no-default-features --features "https-rustls-probe"
           cp target/${{ matrix.target }}/release/TinyWiiBackupManager .
 
       - name: Package AppImage
@@ -102,6 +80,9 @@ jobs:
             -u "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync" \
             ../TinyWiiBackupManager.AppDir \
             "TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
+        env:
+          VERSION: ${{ env.VERSION_NAME }}
+          ARCH: ${{ matrix.arch }}
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v7
@@ -118,36 +99,29 @@ jobs:
         include:
           - runner: windows-2025
             platform: windows
-            arch: x86_64-v3
+            arch: x64
             target: x86_64-pc-windows-msvc
-            rustflags: "-C target-cpu=x86-64-v3"
-            cflags: "/clang:-march=x86-64-v3"
-          - runner: windows-2025
-            platform: windows
-            arch: x86_64-v2
-            target: x86_64-pc-windows-msvc
-            rustflags: "-C target-cpu=x86-64-v2"
-            cflags: "/clang:-march=x86-64-v2"
-          - runner: windows-2025
-            platform: windows
-            arch: x86_64
-            target: x86_64-pc-windows-msvc
+            features: compress-idmap https-native
           - runner: windows-11-arm
             platform: windows
             arch: arm64
             target: aarch64-pc-windows-msvc
+            features: compress-idmap https-native
           - runner: windows-2025
             platform: windows
             arch: x86
             target: i686-pc-windows-msvc
+            features: https-rustls
           - runner: windows-2022
             platform: windows-legacy
-            arch: x86_64
+            arch: x64
             target: x86_64-win7-windows-msvc
+            features: https-rustls
           - runner: windows-2022
             platform: windows-legacy
             arch: x86
             target: i686-win7-windows-msvc
+            features: https-rustls
 
     steps:
       - name: Checkout
@@ -182,12 +156,10 @@ jobs:
       - name: Build binary
         shell: pwsh
         run: |
-          cargo --config cargo-config.toml build -Z build-std=std,panic_abort -Z build-std-features="optimize_for_size" --release --locked --target ${{ matrix.target }}
+          cargo --config cargo-config.toml build -Z build-std=std,panic_abort -Z build-std-features="optimize_for_size" --release --locked --target ${{ matrix.target }} --no-default-features --features "${{ matrix.features }}"
           Copy-Item "target\${{ matrix.target }}\release\TinyWiiBackupManager.exe" .
         env:
           RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: ${{ matrix.rustflags }}
-          CFLAGS: ${{ matrix.cflags }}
 
       - name: Package binary
         shell: pwsh

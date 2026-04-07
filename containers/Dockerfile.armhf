@@ -39,3 +39,5 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 # Install rust-src
 RUN rustup component add rust-src
 
+# Enable build-std
+ENV RUSTC_BOOTSTRAP=1

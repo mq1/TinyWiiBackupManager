@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🕶️ Dark/light mode switch is now in the Settings page
 - 💄 UI refinements, TinyWiiBackupManager should feel more polished
 - 🪟 Windows 10+ build doesn't statically link to the vcruntime anymore. This makes TWBM depend on vcruntime140.dll, but most Windows 10+ systems should already have it installed anyway.
+- 📦 Dist assets are now named more clearly, a more familiar arch name is used for each OS. Note to myself: make a PR to modmii to mirror this.
+- 🪶 Builds are now optimized for size (-Oz). Zstd is still optimized for speed (-O3).
 
 ### Removed
 
@@ -27,6 +29,7 @@ Open an issue if you need any of these, but I consider them out of scope for Tin
 
 - 📝 Removed gametdb info from the game info modal. A gametdb page link is still available with more complete/up to date info.
 - 📝 Removed nkit metadata from the game info modal. https://github.com/encounter/nod is the recommended tool for this.
+- ⚡️ x86_64-vX builds: zstd should already enable modern CPU features with runtime dispatch, so there should be no need for separate builds.
 
 ## [v5.2.1] - 2026-03-19
 
