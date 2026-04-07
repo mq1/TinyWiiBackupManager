@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { Button, VerticalBox, HorizontalBox } from "std-widgets.slint";
+import { Button, VerticalBox, HorizontalBox, Palette } from "std-widgets.slint";
 import { Navbar } from "components/navbar.slint";
 import { GameGridPage } from "game-grid-page.slint";
 import { SettingsPage } from "settings-page.slint";
@@ -24,6 +24,8 @@ export * from "types.slint";
 export { State, Rust }
 
 export component AppWindow inherits Window {
+    out property <bool> is-dark: Palette.color-scheme == ColorScheme.dark;
+
     min-width: 800px;
     min-height: 600px;
     background: MyPalette.card-background;

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{checksum, covers, Notification, QueuedConversion, State};
+use crate::{Notification, QueuedConversion, State, checksum, covers};
 use slint::{Global, Model, ModelRc, VecModel};
 use std::{
     path::{Path, PathBuf},
@@ -78,7 +78,7 @@ impl State<'_> {
         let _ = std::thread::spawn(move || {
             for game_id in ids {
                 if let Err(e) = covers::cache_cover(&game_id, &data_dir) {
-                    eprintln!("Failed to cache cover for {}: {}", game_id, e);
+                    eprintln!("Failed to cache cover for {game_id}: {e}");
                 }
                 let _ = weak.upgrade_in_event_loop(move |state| {
                     state.reload_covers();

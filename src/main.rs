@@ -29,7 +29,7 @@ mod xp_dialogs;
 
 use crate::{data_dir::get_data_dir, id_map::ID_MAP};
 use anyhow::{Result, bail};
-use slint::{Model, ModelRc, SharedString, ToSharedString, VecModel};
+use slint::{ComponentHandle, Model, ModelRc, SharedString, ToSharedString, VecModel};
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -64,9 +64,6 @@ fn main() -> Result<()> {
     let config = Config::load(data_dir);
     let mount_point = PathBuf::from(&config.contents.mount_point);
 
-    #[cfg(target_vendor = "pc")]
-    let _ = window_color::set(app.window(), &config.contents.theme_preference);
-
     app.global::<State<'_>>()
         .set_version(env!("CARGO_PKG_VERSION").into());
 
@@ -84,6 +81,9 @@ fn main() -> Result<()> {
     app.global::<State<'_>>().set_config(config);
 
     app.global::<State<'_>>().invoke_apply_theme();
+
+    #[cfg(target_vendor = "pc")]
+    window_color::set(app.window(), app.get_is_dark());
 
     app.global::<State<'_>>()
         .set_drive_info(DriveInfo::from_path(&mount_point));
