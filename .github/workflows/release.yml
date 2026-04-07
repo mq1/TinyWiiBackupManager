@@ -155,6 +155,7 @@ jobs:
           7z x YY-Thunks-Objs.zip -oYY-Thunks-Objs
 
       - name: Download UPX
+        if: matrix.arch != 'arm64'
         shell: pwsh
         run: choco install upx
 
@@ -167,10 +168,18 @@ jobs:
           RUSTC_BOOTSTRAP: 1
 
       - name: Package binary
+        if: matrix.arch != 'arm64'
         shell: pwsh
         run: |
           New-Item -Path "dist" -ItemType Directory -Force
           upx --lzma -9 -o "dist\TinyWiiBackupManager-${{ env.VERSION_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}.exe" TinyWiiBackupManager.exe
+
+      - name: Package binary (no UPX)
+        if: matrix.arch == 'arm64'
+        shell: pwsh
+        run: |
+          New-Item -Path "dist" -ItemType Directory -Force
+          Copy-Item TinyWiiBackupManager.exe "dist\TinyWiiBackupManager-${{ env.VERSION_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}.exe"
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v7
