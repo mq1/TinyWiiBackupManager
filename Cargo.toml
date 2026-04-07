@@ -80,18 +80,11 @@ https-rustls-probe = ["minreq/https-rustls-probe"]
 
 
 [profile.release]
-opt-level = "z"
+opt-level = 3
 lto = true
 codegen-units = 1
 strip = true
 panic = "abort"
-
-[profile.release.package.zstd]
-opt-level = 3
-[profile.release.package.zstd-safe]
-opt-level = 3
-[profile.release.package.zstd-sys]
-opt-level = 3
 
 # speed up slint compiler in dev builds
 [profile.dev.build-override]

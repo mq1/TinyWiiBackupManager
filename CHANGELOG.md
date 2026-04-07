@@ -21,7 +21,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 💄 UI refinements, TinyWiiBackupManager should feel more polished
 - 🪟 Windows 10+ build doesn't statically link to the vcruntime anymore. This makes TWBM depend on vcruntime140.dll, but most Windows 10+ systems should already have it installed anyway.
 - 📦 Dist assets are now named more clearly, a more familiar arch name is used for each OS. Note to myself: make a PR to modmii to mirror this.
-- 🪶 Builds are now optimized for size (-Oz). Zstd is still optimized for speed (-O3).
 - 📦 Windows builds are now distributed as UPX packed executables instead of zip files, so you don't need to unpack the binary before running it.
 
 ### Removed
