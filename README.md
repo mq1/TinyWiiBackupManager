@@ -48,9 +48,9 @@
   </tr>
   <tr>
     <td>
-      :arrow_right: <a href="https://github.com/mq1/TinyWiiBackupManagerInstaller/releases/latest/download/TinyWiiBackupManagerInstaller.exe">Download installer</a> (recommended for most users, automatic arch detection)
+      :arrow_right: <a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest">Download standalone binary (recommended for most users)</a>
       <br>
-      :arrow_right: <a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest">Download standalone binary</a>
+      :arrow_right: <a href="https://github.com/mq1/TinyWiiBackupManagerInstaller/releases/latest/download/TinyWiiBackupManagerInstaller.exe">Download installer</a> (automatic arch detection)
       <br>
       <br>
       :warning: Windows < 10 users should download the <code>windows-legacy</code> standalone binary.
