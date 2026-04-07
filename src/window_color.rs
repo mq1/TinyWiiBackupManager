@@ -14,10 +14,10 @@ pub fn set(window: &Window, is_dark: bool) {
         0x00_ff_ff_ff
     };
 
-    let Ok(handle) = window.window_handle().window_handle() else {
+    let handle = window.window_handle();
+    let Ok(handle) = handle.window_handle() else {
         return;
     };
-
     let RawWindowHandle::Win32(handle) = handle.as_raw() else {
         return;
     };
