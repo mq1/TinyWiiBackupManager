@@ -29,7 +29,7 @@ print(f"""<br>
     </tr>
     <tr>
         <td>
-            :window: <a href="https://github.com/mq1/TinyWiiBackupManager/releases/download/{version_name}/TinyWiiBackupManager-{version_name}-windows-x64.zip">Windows x64 Standalone</a><br>
+            :window: <a href="https://github.com/mq1/TinyWiiBackupManager/releases/download/{version_name}/TinyWiiBackupManager-{version_name}-windows-x64.exe">Windows x64 Standalone</a><br>
             :apple: <a href="https://github.com/mq1/TinyWiiBackupManager/releases/download/{version_name}/TinyWiiBackupManager-{version_name}-macos-universal.dmg">macOS Universal Binary</a><br>
             :penguin: <a href="https://github.com/mq1/TinyWiiBackupManager/releases/download/{version_name}/TinyWiiBackupManager-{version_name}-linux-x86_64.AppImage">Linux x86_64 AppImage</a>
         </td>
