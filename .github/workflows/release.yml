@@ -77,6 +77,7 @@ jobs:
           mkdir -p dist
           cd dist
           ../appimagetool \
+            --comp zstd --mksquashfs-opt -Xcompression-level --mksquashfs-opt 19 \
             -u "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync" \
             ../TinyWiiBackupManager.AppDir \
             "TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
@@ -101,12 +102,12 @@ jobs:
             platform: windows
             arch: x64
             target: x86_64-pc-windows-msvc
-            features: compress-idmap https-native
+            features: https-native
           - runner: windows-11-arm
             platform: windows
             arch: arm64
             target: aarch64-pc-windows-msvc
-            features: compress-idmap https-native
+            features: https-native
           - runner: windows-2025
             platform: windows
             arch: x86
@@ -153,6 +154,11 @@ jobs:
           Invoke-WebRequest -Uri "https://github.com/Chuyu-Team/YY-Thunks/releases/latest/download/YY-Thunks-Objs.zip" -OutFile "YY-Thunks-Objs.zip"
           7z x YY-Thunks-Objs.zip -oYY-Thunks-Objs
 
+      - name: Download UPX
+        if: matrix.arch != 'arm64'
+        shell: pwsh
+        run: choco install upx
+
       - name: Build binary
         shell: pwsh
         run: |
@@ -162,10 +168,18 @@ jobs:
           RUSTC_BOOTSTRAP: 1
 
       - name: Package binary
+        if: matrix.arch != 'arm64'
         shell: pwsh
         run: |
           New-Item -Path "dist" -ItemType Directory -Force
-          7z a -tzip -mx=9 "dist\TinyWiiBackupManager-${{ env.VERSION_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}.zip" TinyWiiBackupManager.exe
+          upx --lzma -9 -o "dist\TinyWiiBackupManager-${{ env.VERSION_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}.exe" TinyWiiBackupManager.exe
+
+      - name: Package binary (no UPX)
+        if: matrix.arch == 'arm64'
+        shell: pwsh
+        run: |
+          New-Item -Path "dist" -ItemType Directory -Force
+          Copy-Item TinyWiiBackupManager.exe "dist\TinyWiiBackupManager-${{ env.VERSION_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}.exe"
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v7
