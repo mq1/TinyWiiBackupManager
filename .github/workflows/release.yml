@@ -172,7 +172,7 @@ jobs:
         shell: pwsh
         run: |
           New-Item -Path "dist" -ItemType Directory -Force
-          upx --lzma -9 -o "dist\TinyWiiBackupManager-${{ env.VERSION_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}.exe" TinyWiiBackupManager.exe
+          upx -9 -o "dist\TinyWiiBackupManager-${{ env.VERSION_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}.exe" TinyWiiBackupManager.exe
 
       - name: Package binary (no UPX)
         if: matrix.arch == 'arm64'
