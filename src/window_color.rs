@@ -32,6 +32,4 @@ pub fn set(window: &Window, is_dark: bool) {
             std::mem::size_of::<u32>() as u32,
         );
     }
-
-    Ok(())
 }
