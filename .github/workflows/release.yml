@@ -153,6 +153,10 @@ jobs:
           Invoke-WebRequest -Uri "https://github.com/Chuyu-Team/YY-Thunks/releases/latest/download/YY-Thunks-Objs.zip" -OutFile "YY-Thunks-Objs.zip"
           7z x YY-Thunks-Objs.zip -oYY-Thunks-Objs
 
+      - name: Download UPX
+        shell: pwsh
+        run: choco install upx
+
       - name: Build binary
         shell: pwsh
         run: |
