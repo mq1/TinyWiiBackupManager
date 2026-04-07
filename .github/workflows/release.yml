@@ -101,12 +101,12 @@ jobs:
             platform: windows
             arch: x64
             target: x86_64-pc-windows-msvc
-            features: compress-idmap https-native
+            features: https-native
           - runner: windows-11-arm
             platform: windows
             arch: arm64
             target: aarch64-pc-windows-msvc
-            features: compress-idmap https-native
+            features: https-native
           - runner: windows-2025
             platform: windows
             arch: x86
