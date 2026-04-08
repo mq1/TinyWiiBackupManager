@@ -21,10 +21,10 @@ mod results;
 mod state;
 mod util;
 
-#[cfg(target_vendor = "pc")]
+#[cfg(windows)]
 mod window_color;
 
-#[cfg(target_vendor = "win7")]
+#[cfg(windows)]
 mod xp_dialogs;
 
 use crate::{data_dir::get_data_dir, id_map::ID_MAP};
@@ -220,7 +220,7 @@ fn main() -> Result<()> {
         return restart_with_sw_rendering();
     }
 
-    #[cfg(target_vendor = "pc")]
+    #[cfg(windows)]
     window_color::set(app.window(), app.get_is_dark());
 
     Ok(())

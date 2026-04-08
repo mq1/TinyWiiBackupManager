@@ -54,13 +54,9 @@ walkdir = "2.5"
 crc32fast = "1.5"
 minreq = "2.14"
 
-[target.'cfg(target_vendor = "pc")'.dependencies.windows]
+[target.'cfg(windows)'.dependencies.windows]
 version = "0.62"
-features = ["Win32_Graphics_Dwm"]
-
-[target.'cfg(target_vendor = "win7")'.dependencies.windows]
-version = "0.62"
-features = ["Win32_UI_Controls_Dialogs", "Win32_UI_Shell_Common", "Win32_System_Com"]
+features = ["Win32_Graphics_Dwm", "Win32_UI_Controls_Dialogs", "Win32_UI_Shell_Common", "Win32_System_Com"]
 
 
 [build-dependencies]
