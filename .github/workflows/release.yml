@@ -140,15 +140,12 @@ jobs:
         include:
           - runner: windows-11-arm
             arch: arm64
-            os: 10
             target: aarch64-pc-windows-msvc
           - runner: windows-2022
             arch: x64
-            os: xp
             target: x86_64-pc-windows-msvc
           - runner: windows-2022
             arch: x86
-            os: xp
             target: i686-pc-windows-msvc
 
     steps:
@@ -173,16 +170,19 @@ jobs:
           key: ${{ matrix.target }}
 
       - name: Install thunk
+        if: matrix.arch != 'arm64'
         shell: pwsh
-        run: cargo install thunk-cli --git https://github.com/felixmaker/thunk
+        run: cargo install thunk-cli
 
       - name: Download VC-LTL5
+        if: matrix.arch != 'arm64'
         shell: pwsh
         run: |
           Invoke-WebRequest -Uri "https://github.com/Chuyu-Team/VC-LTL5/releases/latest/download/VC-LTL-Binary.7z" -OutFile "VC-LTL-Binary.7z"
           7z x VC-LTL-Binary.7z -oVC-LTL-Binary
 
       - name: Download YY-Thunks
+        if: matrix.arch != 'arm64'
         shell: pwsh
         run: |
           Invoke-WebRequest -Uri "https://github.com/Chuyu-Team/YY-Thunks/releases/latest/download/YY-Thunks-Objs.zip" -OutFile "YY-Thunks-Objs.zip"
@@ -193,30 +193,26 @@ jobs:
         shell: pwsh
         run: choco install upx
 
-      - name: Build binary
+      - name: Build and package binary (x64 && x86)
+        if: matrix.arch != 'arm64'
         shell: pwsh
         run: |
-          thunk --os ${{ matrix.os }} --arch ${{ matrix.arch }} --subsystem windows -- --release
-          Copy-Item "target\win${{ matrix.os }}_build\release\TinyWiiBackupManager.exe" .
+          thunk --os xp --arch ${{ matrix.arch }} --subsystem windows -- --release
+          New-Item -Path "dist" -ItemType Directory -Force
+          upx --best --lzma -o "dist\TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.exe" "target\winxp_build\release\TinyWiiBackupManager.exe"
         env:
           CC: clang-cl
           CFLAGS: /clang:-O3
           VC_LTL: VC-LTL-Binary
           YY_THUNKS: YY-Thunks-Objs
 
-      - name: Package binary (UPX)
-        if: matrix.arch != 'arm64'
-        shell: pwsh
-        run: |
-          New-Item -Path "dist" -ItemType Directory -Force
-          upx --best --lzma -o "dist\TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.exe" "TinyWiiBackupManager.exe" .
-
-      - name: Package binary (no UPX)
+      - name: Build and package binary (arm64)
         if: matrix.arch == 'arm64'
         shell: pwsh
         run: |
+          cargo build --release --target ${{ matrix.target }}
           New-Item -Path "dist" -ItemType Directory -Force
-          Copy-Item "TinyWiiBackupManager.exe" "dist\TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.exe"
+          Copy-Item "target\${{ matrix.target }}\release\TinyWiiBackupManager.exe" "dist\TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.exe"
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v7
