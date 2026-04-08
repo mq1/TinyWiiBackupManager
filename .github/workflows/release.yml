@@ -258,9 +258,6 @@ jobs:
         with:
           key: ${{ matrix.target }}
 
-      - name: Install appdmg
-        run: npm i -g appdmg
-
       - name: Build binary
         run: |
           cargo build --release --target ${{ matrix.target }}
