@@ -217,7 +217,10 @@ jobs:
           Copy-Item "target\${{ matrix.target }}\release\TinyWiiBackupManager.exe" "dist\TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.exe"
         env:
           CC: clang-cl
-          CFLAGS: /clang:-O3
+          AR: llvm-lib
+          RUSTFLAGS: -C linker-plugin-lto
+          CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: lld-link
+          CFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v7
