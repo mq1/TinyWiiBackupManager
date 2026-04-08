@@ -53,9 +53,6 @@
       :arrow_right: <a href="https://github.com/mq1/TinyWiiBackupManagerInstaller/releases/latest/download/TinyWiiBackupManagerInstaller.exe">Download installer</a> (automatic arch detection)
       <br>
       <br>
-      :warning: Windows < 10 users should download the <code>windows-legacy</code> standalone binary.
-      <br>
-      <br>
       :ice_cream: scoop:
       <br>
       <code>scoop bucket add TinyWiiBackupManager https://github.com/mq1/TinyWiiBackupManager</code>
