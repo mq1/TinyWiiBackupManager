@@ -21,7 +21,7 @@ split-write = "0.2"
 wii-disc-info = "0.4"
 wiiload = "0.3"
 
-slint = { git = "https://github.com/slint-ui/slint.git", rev = "e27d0d1", default-features = false, features = [
+slint = { git = "https://github.com/slint-ui/slint.git", rev = "3bd5cc7", default-features = false, features = [
   "accessibility",
   "backend-winit",
   "compat-1-2",
@@ -32,7 +32,7 @@ slint = { git = "https://github.com/slint-ui/slint.git", rev = "e27d0d1", defaul
   "raw-window-handle-06",
 ] }
 raw-window-handle = "0.6"
-nod = { git = "https://github.com/mq1/nod.git" }
+nod = { git = "https://github.com/encounter/nod.git", rev = "be1c809" }
 anyhow = "1.0"
 open = "5.3"
 directories = "6.0"
@@ -60,7 +60,7 @@ features = ["Win32_Graphics_Dwm", "Win32_UI_Controls_Dialogs", "Win32_UI_Shell_C
 
 
 [build-dependencies]
-slint-build = { git = "https://github.com/slint-ui/slint.git", rev = "e27d0d1" }
+slint-build = { git = "https://github.com/slint-ui/slint.git", rev = "3bd5cc7" }
 lucide-slint = "1.7"
 winresource = "0.1"
 regex = "1.12"
