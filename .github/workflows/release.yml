@@ -98,31 +98,15 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - runner: windows-2025
-            platform: windows
-            arch: x64
-            target: x86_64-pc-windows-msvc
-            features: https-native
           - runner: windows-11-arm
-            platform: windows
             arch: arm64
             target: aarch64-pc-windows-msvc
-            features: https-native
-          - runner: windows-2025
-            platform: windows
-            arch: x86
-            target: i686-pc-windows-msvc
-            features: https-rustls
           - runner: windows-2022
-            platform: windows-legacy
             arch: x64
             target: x86_64-win7-windows-msvc
-            features: https-rustls
           - runner: windows-2022
-            platform: windows-legacy
             arch: x86
             target: i686-win7-windows-msvc
-            features: https-rustls
 
     steps:
       - name: Checkout
@@ -141,14 +125,12 @@ jobs:
           components: rust-src
 
       - name: Download VC-LTL5
-        if: matrix.platform == 'windows-legacy'
         shell: pwsh
         run: |
           Invoke-WebRequest -Uri "https://github.com/Chuyu-Team/VC-LTL5/releases/latest/download/VC-LTL-Binary.7z" -OutFile "VC-LTL-Binary.7z"
           7z x VC-LTL-Binary.7z -oVC-LTL-Binary
 
       - name: Download YY-Thunks
-        if: matrix.platform == 'windows-legacy'
         shell: pwsh
         run: |
           Invoke-WebRequest -Uri "https://github.com/Chuyu-Team/YY-Thunks/releases/latest/download/YY-Thunks-Objs.zip" -OutFile "YY-Thunks-Objs.zip"
@@ -162,7 +144,7 @@ jobs:
       - name: Build binary
         shell: pwsh
         run: |
-          cargo --config cargo-config.toml build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "${{ matrix.features }}"
+          cargo --config cargo-config.toml build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
           Copy-Item "target\${{ matrix.target }}\release\TinyWiiBackupManager.exe" .
         env:
           RUSTC_BOOTSTRAP: 1
@@ -172,19 +154,19 @@ jobs:
         shell: pwsh
         run: |
           New-Item -Path "dist" -ItemType Directory -Force
-          upx --best --lzma -o "dist\TinyWiiBackupManager-${{ env.VERSION_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}.exe" TinyWiiBackupManager.exe
+          upx --best --lzma -o "dist\TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.exe" TinyWiiBackupManager.exe
 
       - name: Package binary (no UPX)
         if: matrix.arch == 'arm64'
         shell: pwsh
         run: |
           New-Item -Path "dist" -ItemType Directory -Force
-          Copy-Item TinyWiiBackupManager.exe "dist\TinyWiiBackupManager-${{ env.VERSION_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}.exe"
+          Copy-Item TinyWiiBackupManager.exe "dist\TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.exe"
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v7
         with:
-          name: dist-${{ matrix.platform }}-${{ matrix.arch }}
+          name: dist-windows-${{ matrix.arch }}
           path: dist/*
 
   build-macos:
