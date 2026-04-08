@@ -1,9 +1,11 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-#[cfg(not(target_vendor = "win7"))]
-use crate::extensions::OUTPUT_DIALOG_FILTER;
-use crate::{Game, extensions::INPUT_DIALOG_FILTER, util};
+use crate::{
+    Game,
+    extensions::{INPUT_DIALOG_FILTER, OUTPUT_DIALOG_FILTER},
+    util,
+};
 use slint::Window;
 use std::path::PathBuf;
 use walkdir::WalkDir;
