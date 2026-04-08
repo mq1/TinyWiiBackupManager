@@ -103,9 +103,7 @@ fn main() {
 
         let mut res = winresource::WindowsResource::new();
         res.set_icon("package/windows/icon.ico");
-        if target.contains("-pc-") {
-            res.set_manifest_file("package/windows/TinyWiiBackupManager.exe.manifest");
-        }
+        res.set_manifest_file("package/windows/TinyWiiBackupManager.exe.manifest");
         res.compile().unwrap();
     }
 }
