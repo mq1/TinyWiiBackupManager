@@ -17,9 +17,9 @@ use windows::core::{PCWSTR, PWSTR};
 
 const MAX_PATH_LARGE: usize = 0x8000;
 
-pub fn pick_dir<W: HasWindowHandle>(window: &W, title: &str) -> Option<PathBuf> {
+pub fn pick_dir<W: HasWindowHandle + ?Sized>(window: &W, title: &str) -> Option<PathBuf> {
     let title_wide = widen(title);
-    let mut buf = [0u16; MAX_PATH];
+    let mut buf = [0u16; usize::from(MAX_PATH)];
 
     let Ok(handle) = window.window_handle() else {
         return None;
