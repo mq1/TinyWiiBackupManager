@@ -52,7 +52,7 @@ num_cpus = "1.17"
 bitflags = "2.11"
 walkdir = "2.5"
 crc32fast = "1.5"
-minreq = "2.14"
+minreq = { version = "2.14", features = ["https-native"] }
 
 [target.'cfg(target_vendor = "pc")'.dependencies.windows]
 version = "0.62"
@@ -70,13 +70,6 @@ winresource = "0.1"
 regex = "1.12"
 postcard = { version = "1.1", features = ["use-std"] }
 serde = { version = "1.0", features = ["derive"] }
-
-
-[features]
-default = ["https-native"]
-https-native = ["minreq/https-native"]
-https-rustls = ["minreq/https-rustls"]
-https-rustls-probe = ["minreq/https-rustls-probe"]
 
 
 [profile.release]
