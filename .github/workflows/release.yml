@@ -138,11 +138,11 @@ jobs:
           - runner: windows-2022
             arch: x64
             os: xp
-            target: x86_64-win7-windows-msvc
+            target: x86_64-pc-windows-msvc
           - runner: windows-2022
             arch: x86
             os: xp
-            target: i686-win7-windows-msvc
+            target: i686-pc-windows-msvc
 
     steps:
       - name: Checkout
