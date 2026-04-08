@@ -32,6 +32,9 @@ Open an issue if you need any of these, but I consider them out of scope for Tin
 - ⚡️ Removed x86_64-vX builds: zstd should already enable modern CPU features with runtime dispatch, so there should be no need for separate builds.
 - 📦 Removed macos-x86_64 and macos-arm64 builds: the universal binary works on both architectures and is only slightly larger.
 - 📦 Dropped linux ~2020 support (ubuntu 20.04), any linux distro ~2022 (ubuntu 22.04) or newer should work fine.
+- 📝 Removed suggested downloads in the releases page now that we have way less - and easier to navigate - assets
+- 🍨 Removed scoop package now that winget seems to work consistently
+- 📦 Deprecated TinyWiiBackupManagerInstaller, as the windows builds have been unified
 
 ## [v5.2.1] - 2026-03-19
 

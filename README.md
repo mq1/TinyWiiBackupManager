@@ -48,16 +48,7 @@
   </tr>
   <tr>
     <td>
-      :arrow_right: <a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest">Download standalone binary (recommended for most users)</a>
-      <br>
-      :arrow_right: <a href="https://github.com/mq1/TinyWiiBackupManagerInstaller/releases/latest/download/TinyWiiBackupManagerInstaller.exe">Download installer</a> (automatic arch detection)
-      <br>
-      <br>
-      :ice_cream: scoop:
-      <br>
-      <code>scoop bucket add TinyWiiBackupManager https://github.com/mq1/TinyWiiBackupManager</code>
-      <br>
-      <code>scoop install TinyWiiBackupManager</code>
+      :arrow_right: <a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest">Download standalone binary</a>
       <br>
       <br>
       :package: winget:
@@ -73,7 +64,7 @@
   </tr>
   <tr>
     <td>
-      :arrow_right: <a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest">Download latest DMG</a> (Universal Binary recommended for most users)
+      :arrow_right: <a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest">Download universal DMG</a>
       <br>
       <br>
       :warning: The app is not notarized, you must allow it manually after installing by running this command in Terminal:
@@ -91,7 +82,7 @@
     <td>
       :arrow_right: <a href="https://flathub.org/apps/it.mq1.TinyWiiBackupManager">Download on Flathub</a> (recommended for most users)
       <br>
-      :arrow_right: <a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest">Download latest AppImage</a>
+      :arrow_right: <a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest">Download AppImage</a>
     </td>
   </tr>
 </table>

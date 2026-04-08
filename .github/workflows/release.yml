@@ -343,8 +343,8 @@ jobs:
       - name: Create version.txt
         run: echo -n $(yq '.package.version' Cargo.toml) > version.txt # Write without line break
 
-      - name: Generate release notes
-        run: scripts/print-changes.py $VERSION_NAME > BODY.md
+      - name: Extract release notes
+        run: awk '/## \[${{ env.VERSION_NAME }}\]/{p=1; print; next} /^## \[/{p=0} p' CHANGELOG.md > BODY.md
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
