@@ -69,14 +69,14 @@ jobs:
         run: |
           sudo dpkg --add-architecture i386
           sudo apt-get update
-          sudo apt-get install -y gcc-i686-linux-gnu libc6-dev:i386 libfontconfig-dev:i386
+          sudo apt-get install -y gcc-i686-linux-gnu libc6-dev:i386 libfontconfig-dev:i386 pkg-config-i686-linux-gnu
 
       - name: Install armhf dependencies
         if: matrix.arch == 'armhf'
         run: |
           sudo dpkg --add-architecture armhf
           sudo apt-get update
-          sudo apt-get install -y gcc-arm-linux-gnueabihf libc6-dev:armhf libfontconfig-dev:armhf
+          sudo apt-get install -y gcc-arm-linux-gnueabihf libc6-dev:armhf libfontconfig-dev:armhf pkg-config-arm-linux-gnueabihf
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.94
@@ -98,11 +98,12 @@ jobs:
           cargo build --release --target ${{ matrix.target }} --no-default-features --features "https-bundled"
           cp target/${{ matrix.target }}/release/TinyWiiBackupManager .
         env:
-          PKG_CONFIG_ALLOW_CROSS: 1
           CC: clang-21
           AR: llvm-ar-21
           CFLAGS_x86_64-unknown-linux-gnu: -O3 -flto
           CFLAGS_aarch64-unknown-linux-gnu: -O3 -flto
+          PKG_CONFIG_i686-unknown-linux-gnu: i686-linux-gnu-pkg-config
+          PKG_CONFIG_armv7-unknown-linux-gnueabihf: arm-linux-gnueabihf-pkg-config
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -C linker-plugin-lto -C link-arg=-fuse-ld=lld
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -C linker-plugin-lto -C link-arg=-fuse-ld=lld
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: clang-21
