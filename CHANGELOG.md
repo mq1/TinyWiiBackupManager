@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🪶 Reduced UI resource usage
 - 🕶️ Dark/light mode switch is now in the Settings page
 - 💄 UI refinements, TinyWiiBackupManager should feel more polished
-- 🪟 Windows 10+ build doesn't statically link to the vcruntime anymore. This makes TWBM depend on vcruntime140.dll, but most Windows 10+ systems should already have it installed anyway.
+- 🪟 Removed windows-legacy builds, standard windows builds should now work on xp+
 - 📦 Dist assets are now named more clearly, a more familiar arch name is used for each OS. Note to myself: make a PR to modmii to mirror this.
 - 📦 Windows builds are now distributed as UPX packed executables instead of zip files, so you don't even need to unzip the binary before running it anymore.
 
