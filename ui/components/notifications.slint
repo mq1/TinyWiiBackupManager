@@ -13,17 +13,16 @@ export component Notifications inherits VerticalBox {
     height: self.preferred-height;
 
     for notification[i] in State.notifications: Card {
-        width: h.preferred-width + 10px;
+        height: 40px;
 
         h := HorizontalLayout {
-            padding: 5px;
             spacing: 10px;
+            padding-left: 10px;
+            padding-right: 10px;
 
             VerticalLayout {
                 alignment: center;
                 width: 14px;
-                padding-left: 5px;
-                padding-right: 10px;
 
                 IconDisplay {
                     icon: notification.critical ? IconSet.TriangleAlert : IconSet.Info;
@@ -37,12 +36,16 @@ export component Notifications inherits VerticalBox {
                 vertical-alignment: center;
             }
 
-            IconButton {
-                icon: IconSet.X;
-                clicked => State.close-notification(i);
-                rounded: true;
-                width: 20px;
-                height: 20px;
+            VerticalLayout {
+                alignment: center;
+
+                IconButton {
+                    icon: IconSet.X;
+                    clicked => State.close-notification(i);
+                    rounded: true;
+                    height: 24px;
+                    width: 24px;
+                }
             }
         }
     }

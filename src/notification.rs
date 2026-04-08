@@ -12,3 +12,12 @@ impl From<anyhow::Error> for Notification {
         }
     }
 }
+
+impl From<&str> for Notification {
+    fn from(value: &str) -> Self {
+        Notification {
+            text: value.to_shared_string(),
+            critical: false,
+        }
+    }
+}

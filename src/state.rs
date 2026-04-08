@@ -61,6 +61,8 @@ impl State<'_> {
         if model.row_count() > 0 {
             let conv = model.remove(0);
             conv.run(self.as_weak());
+        } else {
+            self.push_notification("All conversions completed!".into());
         }
     }
 
