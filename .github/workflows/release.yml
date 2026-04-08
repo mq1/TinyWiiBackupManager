@@ -202,7 +202,7 @@ jobs:
           }
 
           thunk --os ${{ matrix.os }} --arch ${{ matrix.arch }} --subsystem windows -- --release
-          Copy-Item "target\win${{ matrix.os }}_build\TinyWiiBackupManager.exe" .
+          Copy-Item "target\win${{ matrix.os }}_build\release\TinyWiiBackupManager.exe" .
         env:
           CC: clang-cl
           CFLAGS: /clang:-O3
