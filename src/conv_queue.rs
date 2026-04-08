@@ -2,11 +2,15 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    ConfigContents, DriveInfo, QueuedConversion, State,
+    ConfigContents, DriveInfo, Game, QueuedConversion, State,
     convert::{Conversion, ConversionFlags},
 };
+use anyhow::Result;
 use slint::{SharedString, ToSharedString, Weak};
-use std::{fs::File, path::PathBuf};
+use std::{
+    fs::File,
+    path::{Path, PathBuf},
+};
 
 impl QueuedConversion {
     pub fn run(&self, weak: Weak<State<'static>>) {
@@ -59,7 +63,8 @@ impl QueuedConversion {
 
         let mut queue = Vec::new();
         for (path, _) in entries {
-            let mut flags = ConversionFlags::IS_FOR_DRIVE;
+            let mut flags = ConversionFlags::empty();
+            flags.set(ConversionFlags::IS_FOR_DRIVE, true);
             flags.set(ConversionFlags::IS_FAT32, drive_info.fs_kind == "FAT32");
             flags.set(ConversionFlags::REMOVE_SOURCES, conf.remove_sources_games);
             flags.set(ConversionFlags::SCRUB_UPDATE, conf.scrub_update_partition);
@@ -75,5 +80,17 @@ impl QueuedConversion {
         }
 
         queue
+    }
+
+    pub fn new_archive(game: &Game, out_path: &Path) -> Result<Self> {
+        let conv = QueuedConversion {
+            in_path: game.get_disc_path()?.to_string_lossy().to_shared_string(),
+            out_path: out_path.to_string_lossy().to_shared_string(),
+            wii_output_format: "iso".to_shared_string(),
+            gc_output_format: "iso".to_shared_string(),
+            flags: 0,
+        };
+
+        Ok(conv)
     }
 }

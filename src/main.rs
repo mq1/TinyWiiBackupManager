@@ -82,9 +82,6 @@ fn main() -> Result<()> {
 
     app.global::<State<'_>>().invoke_apply_theme();
 
-    #[cfg(target_vendor = "pc")]
-    window_color::set(app.window(), app.get_is_dark());
-
     app.global::<State<'_>>()
         .set_drive_info(DriveInfo::from_path(&mount_point));
 
@@ -185,6 +182,34 @@ fn main() -> Result<()> {
         }
     });
 
+    let weak = app.as_weak();
+    app.global::<Rust<'_>>()
+        .on_archive_game(move |queue, game| {
+            let app = weak.unwrap();
+            let mut result = EmptyResult::default();
+
+            let Some(out_path) = dialogs::save_game(app.window(), &game) else {
+                result.err.push_str("No output path selected");
+                return result;
+            };
+
+            let conv = match QueuedConversion::new_archive(&game, &out_path) {
+                Ok(conv) => conv,
+                Err(e) => {
+                    result.err = e.to_shared_string();
+                    return result;
+                }
+            };
+
+            let model = queue
+                .as_any()
+                .downcast_ref::<VecModel<QueuedConversion>>()
+                .unwrap();
+
+            model.push(conv);
+            result
+        });
+
     app.global::<State<'_>>().handle_callbacks();
 
     if let Err(e) = app.run() {
@@ -194,6 +219,9 @@ fn main() -> Result<()> {
 
         return restart_with_sw_rendering();
     }
+
+    #[cfg(target_vendor = "pc")]
+    window_color::set(app.window(), app.get_is_dark());
 
     Ok(())
 }

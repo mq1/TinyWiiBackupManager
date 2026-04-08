@@ -1,7 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::extensions::INPUT_DIALOG_FILTER;
+#[cfg(not(target_vendor = "win7"))]
+use crate::extensions::OUTPUT_DIALOG_FILTER;
+use crate::{Game, extensions::INPUT_DIALOG_FILTER, util};
 use slint::Window;
 use std::path::PathBuf;
 use walkdir::WalkDir;
@@ -69,4 +71,26 @@ pub fn pick_games_r(window: &Window) -> Vec<PathBuf> {
     }
 
     paths
+}
+
+pub fn save_game(window: &Window, game: &Game) -> Option<PathBuf> {
+    let title = format!(
+        "Select Destination for {} | Supported extensions: iso, wbfs, wia, rvz, ciso, gcz, tgc, nfs",
+        &game.title
+    );
+
+    let filename = format!("{}.rvz", util::sanitize(&game.title));
+
+    #[cfg(not(target_vendor = "win7"))]
+    let res = FileDialog::new()
+        .set_parent(&window.window_handle())
+        .set_title(title)
+        .set_file_name(filename)
+        .add_filter(OUTPUT_DIALOG_FILTER.0, OUTPUT_DIALOG_FILTER.1)
+        .save_file();
+
+    #[cfg(target_vendor = "win7")]
+    let res = xp_dialogs::save_file(&title, OUTPUT_DIALOG_FILTER, &filename);
+
+    res
 }

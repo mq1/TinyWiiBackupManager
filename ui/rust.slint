@@ -29,4 +29,5 @@ export global Rust {
     pure callback add-notification([Notification], Notification);
     pure callback close-notification([Notification], int);
     pure callback add-to-queue([QueuedConversion], [QueuedConversion]);
+    pure callback archive-game([QueuedConversion], Game) -> EmptyResult;
 }

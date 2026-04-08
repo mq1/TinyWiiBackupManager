@@ -121,4 +121,13 @@ export global State {
     public function add-to-queue() {
         Rust.add-to-queue(conversion-queue, adding-games);
     }
+
+    public function archive-game(game: Game) {
+        let res = Rust.archive-game(conversion-queue, game);
+        if !res.err.is-empty {
+            notify({ text: res.err, critical: true });
+        } else {
+            start-conversion();
+        }
+    }
 }

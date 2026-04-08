@@ -64,6 +64,9 @@ export component GameCard inherits Card {
             IconButton {
                 icon: IconSet.HardDriveDownload;
                 tooltip: "Archive to PC";
+                clicked => {
+                    State.archive-game(game);
+                }
             }
 
             IconButton {
