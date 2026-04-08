@@ -183,7 +183,6 @@ jobs:
           7z x VC-LTL-Binary.7z -oVC-LTL-Binary
 
       - name: Download YY-Thunks
-        if: matrix.arch != 'arm64'
         shell: pwsh
         run: |
           Invoke-WebRequest -Uri "https://github.com/Chuyu-Team/YY-Thunks/releases/latest/download/YY-Thunks-Objs.zip" -OutFile "YY-Thunks-Objs.zip"
@@ -197,16 +196,13 @@ jobs:
       - name: Build binary
         shell: pwsh
         run: |
-          if ("${{ matrix.arch }}" -ne "arm64") {
-            $Env:YY_THUNKS = "YY-Thunks-Objs"
-          }
-
           thunk --os ${{ matrix.os }} --arch ${{ matrix.arch }} --subsystem windows -- --release
           Copy-Item "target\win${{ matrix.os }}_build\release\TinyWiiBackupManager.exe" .
         env:
           CC: clang-cl
           CFLAGS: /clang:-O3
           VC_LTL: VC-LTL-Binary
+          YY_THUNKS: YY-Thunks-Objs
 
       - name: Package binary (UPX)
         if: matrix.arch != 'arm64'
