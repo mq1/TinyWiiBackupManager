@@ -98,6 +98,7 @@ jobs:
           cargo build --release --target ${{ matrix.target }}
           cp target/${{ matrix.target }}/release/TinyWiiBackupManager .
         env:
+          PKG_CONFIG_ALLOW_CROSS: 1
           CC: clang-21
           AR: llvm-ar-21
           CFLAGS_x86_64-unknown-linux-gnu: -O3 -flto
@@ -201,8 +202,8 @@ jobs:
         env:
           CC: clang-cl
           CFLAGS: /clang:-O3
-          VC_LTL: .\VC-LTL-Binary
-          YY_THUNKS: ${{ matrix.arch == 'arm64' && '' || '.\YY-Thunks-Objs' }}
+          VC_LTL: VC-LTL-Binary
+          YY_THUNKS: ${{ matrix.arch == 'arm64' && '' || 'YY-Thunks-Objs' }}
 
       - name: Package binary (UPX)
         if: matrix.arch != 'arm64'
