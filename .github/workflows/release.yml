@@ -204,6 +204,7 @@ jobs:
         env:
           CC: clang-cl
           CFLAGS: /clang:-O3
+          RUSTFLAGS: -l dylib=ole32
           VC_LTL: VC-LTL-Binary
           YY_THUNKS: YY-Thunks-Objs
 
