@@ -97,6 +97,10 @@ fn main() {
     let target = env::var("TARGET").unwrap();
 
     if target.contains("-windows-") {
+        if target.contains("x86_64") || target.contains("i686") {
+            println!("cargo:rustc-link-lib=dylib=ole32");
+        }
+
         let mut res = winresource::WindowsResource::new();
         res.set_icon("package/windows/icon.ico");
         if target.contains("-pc-") {
