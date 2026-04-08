@@ -140,7 +140,7 @@ jobs:
         include:
           - runner: windows-11-arm
             arch: arm64
-            os: win10
+            os: 10
             target: aarch64-pc-windows-msvc
           - runner: windows-2022
             arch: x64
