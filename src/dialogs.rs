@@ -39,7 +39,8 @@ pub fn pick_games(window: &Window) -> Vec<PathBuf> {
         .unwrap_or_default();
 
     #[cfg(windows)]
-    let paths = xp_dialogs::pick_files("Select Games", INPUT_DIALOG_FILTER);
+    let paths =
+        xp_dialogs::pick_files(&window.window_handle(), "Select Games", INPUT_DIALOG_FILTER);
 
     paths
 }
