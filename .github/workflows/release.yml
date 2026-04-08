@@ -213,6 +213,9 @@ jobs:
           cargo build --release --target ${{ matrix.target }}
           New-Item -Path "dist" -ItemType Directory -Force
           Copy-Item "target\${{ matrix.target }}\release\TinyWiiBackupManager.exe" "dist\TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.exe"
+        env:
+          CC: clang-cl
+          CFLAGS: /clang:-O3
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v7
