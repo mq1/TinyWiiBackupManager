@@ -197,14 +197,16 @@ jobs:
       - name: Build binary
         shell: pwsh
         run: |
+          if (${{ matrix.arch }} -ne "arm64") {
+            $Env:YY_THUNKS = "YY-Thunks-Objs"
+          }
+
           thunk --os ${{ matrix.os }} --arch ${{ matrix.arch }} --subsystem windows -- --release
           Copy-Item "target\win${{ matrix.os }}_build\TinyWiiBackupManager.exe" .
         env:
-          RUST_BACKTRACE: ${{ matrix.arch == 'arm64' && '1' || '0' }}
           CC: clang-cl
           CFLAGS: /clang:-O3
           VC_LTL: VC-LTL-Binary
-          YY_THUNKS: ${{ matrix.arch == 'arm64' && '' || 'YY-Thunks-Objs' }}
 
       - name: Package binary (UPX)
         if: matrix.arch != 'arm64'
