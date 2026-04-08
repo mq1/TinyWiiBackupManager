@@ -106,10 +106,10 @@ pub fn pick_files<W: HasWindowHandle + ?Sized>(
     let mut buf = vec![0u16; MAX_PATH_LARGE];
 
     let Ok(handle) = window.window_handle() else {
-        return None;
+        return Vec::new();
     };
     let RawWindowHandle::Win32(handle) = handle.as_raw() else {
-        return None;
+        return Vec::new();
     };
     let hwnd = HWND(handle.hwnd.get() as *mut _);
 
