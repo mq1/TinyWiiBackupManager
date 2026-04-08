@@ -34,7 +34,7 @@ Open an issue if you need any of these, but I consider them out of scope for Tin
 - 📦 Dropped linux ~2020 support (ubuntu 20.04), any linux distro ~2022 (ubuntu 22.04) or newer should work fine.
 - 📝 Removed suggested downloads in the releases page now that we have way less - and easier to navigate - assets
 - 🍨 Removed scoop package now that winget seems to work consistently
-- 📦 Deprecated TinyWiiBackupManagerInstaller, as the windows builds have been unified
+- 📦 Deprecated TinyWiiBackupManagerInstaller, as the windows builds have been unified. I'll continue to work, but it's a bit useless now.
 
 ## [v5.2.1] - 2026-03-19
 
