@@ -197,7 +197,7 @@ jobs:
       - name: Build binary
         shell: pwsh
         run: |
-          if (${{ matrix.arch }} -ne "arm64") {
+          if ("${{ matrix.arch }}" -ne "arm64") {
             $Env:YY_THUNKS = "YY-Thunks-Objs"
           }
 
