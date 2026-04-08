@@ -4,7 +4,7 @@
 use crate::{
     QueuedConversion, State,
     extensions::{ext_to_format, format_to_opts},
-    id_map::ID_MAP,
+    id_map,
     util::{self, get_threads_num},
 };
 use anyhow::{Result, anyhow, bail};
@@ -135,9 +135,8 @@ impl Conversion {
         // we know we're converting for the wii as in-path is the mount point (a directory)
         let (parent, get_file_name, out_format) =
             if self.flags.contains(ConversionFlags::IS_FOR_DRIVE) {
-                let display_title = ID_MAP
-                    .get(meta.game_id())
-                    .map_or(meta.game_title(), |e| &e.title);
+                let display_title =
+                    id_map::get(meta.game_id()).map_or(meta.game_title(), |e| &e.title);
                 let sanitized_title = util::sanitize(display_title);
 
                 let parent = self

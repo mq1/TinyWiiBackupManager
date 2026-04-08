@@ -27,7 +27,7 @@ mod window_color;
 #[cfg(windows)]
 mod xp_dialogs;
 
-use crate::{data_dir::get_data_dir, id_map::ID_MAP};
+use crate::data_dir::get_data_dir;
 use anyhow::{Result, bail};
 use slint::{ComponentHandle, Model, ModelRc, SharedString, ToSharedString, VecModel};
 use std::{
@@ -35,7 +35,6 @@ use std::{
     path::{Path, PathBuf},
     process::Command,
     rc::Rc,
-    sync::LazyLock,
 };
 
 slint::include_modules!();
@@ -55,9 +54,6 @@ fn restart_with_sw_rendering() -> Result<()> {
 
 #[allow(clippy::too_many_lines)]
 fn main() -> Result<()> {
-    // Decompress idmap
-    let _ = std::thread::spawn(|| LazyLock::force(&ID_MAP));
-
     let data_dir = Box::leak(Box::new(get_data_dir()?));
 
     let app = AppWindow::new()?;
