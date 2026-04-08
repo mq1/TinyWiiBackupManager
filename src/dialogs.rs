@@ -10,27 +10,27 @@ use slint::Window;
 use std::path::PathBuf;
 use walkdir::WalkDir;
 
-#[cfg(not(target_vendor = "win7"))]
+#[cfg(unix)]
 use rfd::FileDialog;
 
-#[cfg(target_vendor = "win7")]
+#[cfg(windows)]
 use crate::xp_dialogs;
 
 pub fn pick_mount_point(window: &Window) -> Option<PathBuf> {
-    #[cfg(not(target_vendor = "win7"))]
+    #[cfg(unix)]
     let res = FileDialog::new()
         .set_parent(&window.window_handle())
         .set_title("Select Drive/Mount Point")
         .pick_folder();
 
-    #[cfg(target_vendor = "win7")]
+    #[cfg(windows)]
     let res = xp_dialogs::pick_dir("Select Drive/Mount Point");
 
     res
 }
 
 pub fn pick_games(window: &Window) -> Vec<PathBuf> {
-    #[cfg(not(target_vendor = "win7"))]
+    #[cfg(unix)]
     let paths = FileDialog::new()
         .set_parent(&window.window_handle())
         .set_title("Select Games")
@@ -38,20 +38,20 @@ pub fn pick_games(window: &Window) -> Vec<PathBuf> {
         .pick_files()
         .unwrap_or_default();
 
-    #[cfg(target_vendor = "win7")]
+    #[cfg(windows)]
     let paths = xp_dialogs::pick_files("Select Games", INPUT_DIALOG_FILTER);
 
     paths
 }
 
 pub fn pick_games_r(window: &Window) -> Vec<PathBuf> {
-    #[cfg(not(target_vendor = "win7"))]
+    #[cfg(unix)]
     let res = FileDialog::new()
         .set_parent(&window.window_handle())
         .set_title("Select folder (games will be searched recursively)")
         .pick_folder();
 
-    #[cfg(target_vendor = "win7")]
+    #[cfg(windows)]
     let res = xp_dialogs::pick_dir("Select folder (games will be searched recursively)");
 
     let mut paths = Vec::new();
@@ -83,7 +83,7 @@ pub fn save_game(window: &Window, game: &Game) -> Option<PathBuf> {
 
     let filename = format!("{}.rvz", util::sanitize(&game.title));
 
-    #[cfg(not(target_vendor = "win7"))]
+    #[cfg(unix)]
     let res = FileDialog::new()
         .set_parent(&window.window_handle())
         .set_title(title)
@@ -91,7 +91,7 @@ pub fn save_game(window: &Window, game: &Game) -> Option<PathBuf> {
         .add_filter(OUTPUT_DIALOG_FILTER.0, OUTPUT_DIALOG_FILTER.1)
         .save_file();
 
-    #[cfg(target_vendor = "win7")]
+    #[cfg(windows)]
     let res = xp_dialogs::save_file(&title, OUTPUT_DIALOG_FILTER, &filename);
 
     res

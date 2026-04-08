@@ -37,16 +37,16 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - runner: ubuntu-24.04
+          - runner: ubuntu-22.04
             arch: x86_64
             target: x86_64-unknown-linux-gnu
-          - runner: ubuntu-24.04-arm
+          - runner: ubuntu-22.04-arm
             arch: aarch64
             target: aarch64-unknown-linux-gnu
-          - runner: ubuntu-24.04
+          - runner: ubuntu-22.04
             arch: i686
             target: i686-unknown-linux-gnu
-          - runner: ubuntu-24.04-arm
+          - runner: ubuntu-22.04-arm
             arch: armhf
             target: armv7-unknown-linux-gnueabihf
 
@@ -56,8 +56,37 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Build Docker image
-        run: docker build -t builder -f containers/Dockerfile.${{ matrix.arch }} .
+      - name: Install LLVM and Clang
+        run: |
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 21
+          sudo ln -sf $(which clang-21) /usr/bin/cc
+          sudo ln -sf $(which lld-21) /usr/bin/ld
+
+      - name: Install i686 dependencies
+        if: matrix.arch == 'i686'
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install -y gcc-i686-linux-gnu libc6-dev:i386 libfontconfig-dev:i386 pkg-config:i386
+
+      - name: Install armhf dependencies
+        if: matrix.arch == 'armhf'
+        run: |
+          sudo dpkg --add-architecture armhf
+          sudo apt-get update
+          sudo apt-get install -y gcc-arm-linux-gnueabihf libc6-dev:armhf libfontconfig-dev:armhf pkg-config:armhf
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@1.94
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
 
       - name: Download appimagetool
         run: |
@@ -66,9 +95,21 @@ jobs:
 
       - name: Build binary
         run: |
-          docker run -v "$(pwd):/io" -w /io builder \
-            cargo --config cargo-config.toml build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }} --no-default-features --features "https-rustls-probe"
+          cargo build --release --target ${{ matrix.target }} --no-default-features --features "https-bundled"
           cp target/${{ matrix.target }}/release/TinyWiiBackupManager .
+        env:
+          CC: clang-21
+          AR: llvm-ar-21
+          CFLAGS_x86_64-unknown-linux-gnu: -O3 -flto
+          CFLAGS_aarch64-unknown-linux-gnu: -O3 -flto
+          PKG_CONFIG_i686-unknown-linux-gnu: /usr/bin/i686-pc-linux-gnu-pkg-config
+          PKG_CONFIG_armv7-unknown-linux-gnueabihf: /usr/bin/arm-unknown-linux-gnueabihf-pkg-config
+          CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -C linker-plugin-lto -C link-arg=-fuse-ld=lld
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -C linker-plugin-lto -C link-arg=-fuse-ld=lld
+          CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: clang-21
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: clang-21
+          CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER: i686-linux-gnu-gcc
+          CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNUEABIHF_LINKER: arm-linux-gnueabihf-gcc
 
       - name: Package AppImage
         run: |
@@ -103,10 +144,10 @@ jobs:
             target: aarch64-pc-windows-msvc
           - runner: windows-2022
             arch: x64
-            target: x86_64-win7-windows-msvc
+            target: x86_64-pc-windows-msvc
           - runner: windows-2022
             arch: x86
-            target: i686-win7-windows-msvc
+            target: i686-pc-windows-msvc
 
     steps:
       - name: Checkout
@@ -122,15 +163,27 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.94
         with:
-          components: rust-src
+          targets: ${{ matrix.target }}
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+
+      - name: Install thunk
+        if: matrix.arch != 'arm64'
+        shell: pwsh
+        run: cargo install thunk-cli
 
       - name: Download VC-LTL5
+        if: matrix.arch != 'arm64'
         shell: pwsh
         run: |
           Invoke-WebRequest -Uri "https://github.com/Chuyu-Team/VC-LTL5/releases/latest/download/VC-LTL-Binary.7z" -OutFile "VC-LTL-Binary.7z"
           7z x VC-LTL-Binary.7z -oVC-LTL-Binary
 
       - name: Download YY-Thunks
+        if: matrix.arch != 'arm64'
         shell: pwsh
         run: |
           Invoke-WebRequest -Uri "https://github.com/Chuyu-Team/YY-Thunks/releases/latest/download/YY-Thunks-Objs.zip" -OutFile "YY-Thunks-Objs.zip"
@@ -141,27 +194,29 @@ jobs:
         shell: pwsh
         run: choco install upx
 
-      - name: Build binary
-        shell: pwsh
-        run: |
-          cargo --config cargo-config.toml build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
-          Copy-Item "target\${{ matrix.target }}\release\TinyWiiBackupManager.exe" .
-        env:
-          RUSTC_BOOTSTRAP: 1
-
-      - name: Package binary
+      - name: Build and package binary (x64 && x86)
         if: matrix.arch != 'arm64'
         shell: pwsh
         run: |
+          thunk --os xp --arch ${{ matrix.arch }} --subsystem windows -- --release
           New-Item -Path "dist" -ItemType Directory -Force
-          upx --best --lzma -o "dist\TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.exe" TinyWiiBackupManager.exe
+          upx --best --lzma -o "dist\TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.exe" "target\winxp_build\${{ matrix.target }}\release\TinyWiiBackupManager.exe"
+        env:
+          CC: clang-cl
+          CFLAGS: /clang:-O3
+          VC_LTL: VC-LTL-Binary
+          YY_THUNKS: YY-Thunks-Objs
 
-      - name: Package binary (no UPX)
+      - name: Build and package binary (arm64)
         if: matrix.arch == 'arm64'
         shell: pwsh
         run: |
+          cargo build --release --target ${{ matrix.target }}
           New-Item -Path "dist" -ItemType Directory -Force
-          Copy-Item TinyWiiBackupManager.exe "dist\TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.exe"
+          Copy-Item "target\${{ matrix.target }}\release\TinyWiiBackupManager.exe" "dist\TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.exe"
+        env:
+          CC: clang-cl
+          CFLAGS: /clang:-O3
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v7
@@ -193,17 +248,23 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.94
         with:
-          components: rust-src
+          targets: ${{ matrix.target }}
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
 
       - name: Install appdmg
         run: npm i -g appdmg
 
       - name: Build binary
         run: |
-          cargo --config cargo-config.toml build -Z build-std=std,panic_abort --release --locked --target ${{ matrix.target }}
+          cargo build --release --target ${{ matrix.target }}
           cp target/${{ matrix.target }}/release/TinyWiiBackupManager .
         env:
-          RUSTC_BOOTSTRAP: 1
+          CC: /opt/homebrew/opt/llvm@21/bin/clang
+          CFLAGS: -O3
 
       - name: Package DMG
         run: |

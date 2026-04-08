@@ -3113,8 +3113,6 @@ dependencies = [
  "native-tls",
  "rustls",
  "rustls-native-certs",
- "rustls-webpki",
- "webpki-roots",
 ]
 
 [[package]]
@@ -6058,12 +6056,6 @@ dependencies = [
  "url",
  "web-sys",
 ]
-
-[[package]]
-name = "webpki-roots"
-version = "0.25.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5f20c57d8d7db6d3b86154206ae5d8fba62dd39573114de97c2cb0578251f8e1"
 
 [[package]]
 name = "weezl"
