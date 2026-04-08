@@ -254,7 +254,7 @@ jobs:
 
       - name: Build binary
         run: |
-          cargo --release --target ${{ matrix.target }}
+          cargo build --release --target ${{ matrix.target }}
           cp target/${{ matrix.target }}/release/TinyWiiBackupManager .
         env:
           CC: /opt/homebrew/opt/llvm@21/bin/clang
