@@ -10,7 +10,10 @@ import { NavbarButton } from "navbar-button.slint";
 export component Navbar inherits VerticalLayout {
     alignment: LayoutAlignment.space-between;
 
-    VerticalBox {
+    VerticalLayout {
+        padding: 10px;
+        spacing: 10px;
+
         NavbarButton {
             active: State.current-page == Page.Games;
             icon: IconSet.Gamepad2;
@@ -50,7 +53,10 @@ export component Navbar inherits VerticalLayout {
         }
     }
 
-    VerticalBox {
+    VerticalLayout {
+        padding: 10px;
+        spacing: 10px;
+
         NavbarButton {
             icon: IconSet.HardDrive;
             tooltip: "Select a drive";
