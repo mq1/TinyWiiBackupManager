@@ -69,14 +69,14 @@ jobs:
         run: |
           sudo dpkg --add-architecture i386
           sudo apt-get update
-          sudo apt-get install -y gcc-i686-linux-gnu libc6-dev:i386 libfontconfig-dev:i386
+          sudo apt-get install -y gcc-i686-linux-gnu libc6-dev:i386 libfontconfig-dev:i386 libssl-dev:i386
 
       - name: Install armhf dependencies
         if: matrix.arch == 'armhf'
         run: |
           sudo dpkg --add-architecture armhf
           sudo apt-get update
-          sudo apt-get install -y gcc-arm-linux-gnueabihf libc6-dev:armhf libfontconfig-dev:armhf
+          sudo apt-get install -y gcc-arm-linux-gnueabihf libc6-dev:armhf libfontconfig-dev:armhf libssl-dev:armhf
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.94
@@ -200,6 +200,7 @@ jobs:
           thunk --os ${{ matrix.os }} --arch ${{ matrix.arch }} --subsystem windows -- --release
           Copy-Item "target\win${{ matrix.os }}_build\TinyWiiBackupManager.exe" .
         env:
+          RUST_BACKTRACE: ${{ matrix.arch == 'arm64' && '1' || '0' }}
           CC: clang-cl
           CFLAGS: /clang:-O3
           VC_LTL: VC-LTL-Binary
