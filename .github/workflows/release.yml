@@ -300,6 +300,7 @@ jobs:
             -output TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager \
             build-macos-arm64/TinyWiiBackupManager \
             build-macos-x86_64/TinyWiiBackupManager
+          chmod 755 TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
 
       - name: Sign the .app bundle
         run: codesign --force --deep -s - TinyWiiBackupManager.app
