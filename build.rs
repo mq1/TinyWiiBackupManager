@@ -98,6 +98,7 @@ fn main() {
 
     if target.contains("-windows-") {
         if target.contains("x86_64") || target.contains("i686") {
+            // this makes twbm work on windows < 8
             println!("cargo:rustc-link-lib=dylib=ole32");
         }
 
