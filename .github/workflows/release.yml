@@ -269,21 +269,11 @@ jobs:
           CC: /opt/homebrew/opt/llvm@21/bin/clang
           CFLAGS: -O3
 
-      - name: Package DMG
-        run: |
-          VERSION_NAME="${{ env.VERSION_NAME }}"
-          cp -r package/macos/App TinyWiiBackupManager.app
-          mkdir -p TinyWiiBackupManager.app/Contents/MacOS
-          cp TinyWiiBackupManager TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
-          /usr/libexec/PlistBuddy -c "Add :CFBundleShortVersionString string ${VERSION_NAME#v}" TinyWiiBackupManager.app/Contents/Info.plist
-          mkdir -p dist
-          appdmg package/macos/appdmg-${{ matrix.arch }}.json "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-${{ matrix.arch }}.dmg"
-
-      - name: Upload macOS distributables
+      - name: Upload macOS binaries
         uses: actions/upload-artifact@v7
         with:
-          name: dist-macos-${{ matrix.arch }}
-          path: dist/*
+          name: build-macos-${{ matrix.arch }}
+          path: target/${{ matrix.target }}/release/TinyWiiBackupManager
 
   build-macos-universal:
     name: Build for macOS (Universal)
@@ -296,31 +286,26 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Download macOS distributables
+      - name: Download macOS binaries
         uses: actions/download-artifact@v8
         with:
-          pattern: "dist-macos-*"
-          merge-multiple: true
+          pattern: "build-macos-*"
 
-      - name: Create the Universal2 app
+      - name: Create the .app bundle
         run: |
-          # Mount arm64 DMG and copy the app
-          hdiutil mount TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-arm64.dmg
-          cp -r /Volumes/TinyWiiBackupManager/TinyWiiBackupManager.app TinyWiiBackupManager.app
-          hdiutil unmount /Volumes/TinyWiiBackupManager
+          cp -r package/macos/App TinyWiiBackupManager.app
+          mkdir -p TinyWiiBackupManager.app/Contents/MacOS
+          /usr/libexec/PlistBuddy -c "Add :CFBundleShortVersionString string ${VERSION_NAME#v}" TinyWiiBackupManager.app/Contents/Info.plist
 
-          # Mount x86_64 DMG and extract the binary
-          hdiutil mount TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-x86_64.dmg
-          cp /Volumes/TinyWiiBackupManager/TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager TinyWiiBackupManager-x86_64
-          hdiutil unmount /Volumes/TinyWiiBackupManager
-
-          # Create the Universal binary
+      - name: Build the fat binary
+        run: |
           lipo -create \
             -output TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager \
-            TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager \
-            TinyWiiBackupManager-x86_64
+            build-macos-arm64/TinyWiiBackupManager \
+            build-macos-x86_64/TinyWiiBackupManager
 
-          codesign --force --deep -s - TinyWiiBackupManager.app
+      - name: Sign the .app bundle
+        run: codesign --force --deep -s - TinyWiiBackupManager.app
 
       - name: Install appdmg
         run: npm i -g appdmg
@@ -328,7 +313,7 @@ jobs:
       - name: Create Universal DMG
         run: |
           mkdir dist
-          appdmg package/macos/appdmg-arm64.json "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-universal.dmg"
+          appdmg package/macos/appdmg.json "dist/TinyWiiBackupManager-${{ env.VERSION_NAME }}-macos-universal.dmg"
 
       - name: Upload macOS distributables
         uses: actions/upload-artifact@v7
