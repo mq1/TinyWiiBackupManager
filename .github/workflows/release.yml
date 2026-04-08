@@ -199,7 +199,7 @@ jobs:
         run: |
           thunk --os xp --arch ${{ matrix.arch }} --subsystem windows -- --release
           New-Item -Path "dist" -ItemType Directory -Force
-          upx --best --lzma -o "dist\TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.exe" "target\winxp_build\release\TinyWiiBackupManager.exe"
+          upx --best --lzma -o "dist\TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.exe" "target\winxp_build\${{ matrix.target }}\release\TinyWiiBackupManager.exe"
         env:
           CC: clang-cl
           CFLAGS: /clang:-O3
