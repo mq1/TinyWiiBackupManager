@@ -102,8 +102,8 @@ jobs:
           AR: llvm-ar-21
           CFLAGS_x86_64-unknown-linux-gnu: -O3 -flto
           CFLAGS_aarch64-unknown-linux-gnu: -O3 -flto
-          PKG_CONFIG_i686-unknown-linux-gnu: i686-linux-gnu-pkg-config
-          PKG_CONFIG_armv7-unknown-linux-gnueabihf: arm-linux-gnueabihf-pkg-config
+          PKG_CONFIG_i686-unknown-linux-gnu: /usr/bin/i686-pc-linux-gnu-pkg-config
+          PKG_CONFIG_armv7-unknown-linux-gnueabihf: /usr/bin/arm-unknown-linux-gnueabihf-pkg-config
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -C linker-plugin-lto -C link-arg=-fuse-ld=lld
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -C linker-plugin-lto -C link-arg=-fuse-ld=lld
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: clang-21
