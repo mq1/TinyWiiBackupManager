@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{Game, SortBy, id_map::ID_MAP, util::GIB};
+use crate::{Game, SortBy, id_map, util::GIB};
 use anyhow::{Result, anyhow};
 use slint::{Image, ToSharedString};
 use std::{
@@ -27,7 +27,7 @@ impl Game {
             return None;
         }
 
-        let title = match ID_MAP.get(id) {
+        let title = match id_map::get(id) {
             Some(e) => e.title.to_shared_string(),
             None => title_str.trim().to_shared_string(),
         };

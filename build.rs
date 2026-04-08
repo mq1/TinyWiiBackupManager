@@ -2,11 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use regex::Regex;
-use serde::Serialize;
 use std::path::Path;
 use std::{collections::HashMap, env, fs, path::PathBuf};
 
-#[derive(Serialize)]
+#[derive(rkyv::Archive, rkyv::Serialize)]
 struct GameEntry {
     id: [u8; 6],
     ghid: Option<u32>,
@@ -79,7 +78,7 @@ fn make_id_map() {
         entries.push(GameEntry { id, ghid, title });
     }
 
-    let data = postcard::to_stdvec(&entries).unwrap();
+    let data = rkyv::to_bytes::<rkyv::rancor::Error>(&entries).unwrap();
     let out_path = Path::new(&env::var("OUT_DIR").unwrap()).join("id_map.bin");
     fs::write(out_path, &data).unwrap();
 }
