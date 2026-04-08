@@ -29,7 +29,9 @@ Open an issue if you need any of these, but I consider them out of scope for Tin
 
 - 📝 Removed gametdb info from the game info modal. A gametdb page link is still available with more complete/up to date info.
 - 📝 Removed nkit metadata from the game info modal. https://github.com/encounter/nod is the recommended tool for this.
-- ⚡️ x86_64-vX builds: zstd should already enable modern CPU features with runtime dispatch, so there should be no need for separate builds.
+- ⚡️ Removed x86_64-vX builds: zstd should already enable modern CPU features with runtime dispatch, so there should be no need for separate builds.
+- 📦 Removed macos-x86_64 and macos-arm64 builds: the universal binary works on both architectures and is only slightly larger.
+- 📦 Dropped linux ~2020 support (ubuntu 20.04), any linux distro ~2022 (ubuntu 22.04) or newer should work fine.
 
 ## [v5.2.1] - 2026-03-19
 
