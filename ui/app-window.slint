@@ -24,8 +24,6 @@ export * from "types.slint";
 export { State, Rust }
 
 export component AppWindow inherits Window {
-    out property <bool> is-dark: Palette.color-scheme == ColorScheme.dark;
-
     min-width: 800px;
     min-height: 600px;
     background: MyPalette.card-background;
@@ -34,6 +32,15 @@ export component AppWindow inherits Window {
 
     pure function is-modal-open() -> bool {
         !State.current-game.path.is-empty || State.adding-games.length > 0 || !State.deleting-dir.is-empty
+    }
+
+    Timer {
+        interval: 100ms;
+        running: true;
+        triggered() => {
+            Rust.set-window-color(Palette.color-scheme == ColorScheme.dark);
+            self.running = false;
+        }
     }
 
     HorizontalLayout {

@@ -206,6 +206,15 @@ fn main() -> Result<()> {
             result
         });
 
+    #[cfg(windows)]
+    {
+        let weak = app.as_weak();
+        app.global::<Rust<'_>>().on_set_window_color(|is_dark| {
+            let app = weak.upgrade().unwrap();
+            window_color::set(&app.window(), app.get_is_dark());
+        });
+    }
+
     app.global::<State<'_>>().handle_callbacks();
 
     if let Err(e) = app.run() {
@@ -215,9 +224,6 @@ fn main() -> Result<()> {
 
         return restart_with_sw_rendering();
     }
-
-    #[cfg(windows)]
-    window_color::set(app.window(), app.get_is_dark());
 
     Ok(())
 }

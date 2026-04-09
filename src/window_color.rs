@@ -2,26 +2,23 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use raw_window_handle::{HasWindowHandle, RawWindowHandle};
-use slint::Window;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Graphics::Dwm::DWMWA_CAPTION_COLOR;
 use windows::Win32::Graphics::Dwm::DwmSetWindowAttribute;
 
-pub fn set(window: &Window, is_dark: bool) {
+pub fn set<W: HasWindowHandle + ?Sized>(window: &W, is_dark: bool) {
     let color: u32 = if is_dark {
         0x00_1e_1e_1e
     } else {
         0x00_ff_ff_ff
     };
 
-    let handle = window.window_handle();
-    let Ok(handle) = handle.window_handle() else {
+    let Ok(handle) = window.window_handle() else {
         return;
     };
     let RawWindowHandle::Win32(handle) = handle.as_raw() else {
         return;
     };
-
     let hwnd = HWND(handle.hwnd.get() as *mut _);
 
     unsafe {
