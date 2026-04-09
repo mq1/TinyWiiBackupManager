@@ -209,10 +209,11 @@ fn main() -> Result<()> {
     #[cfg(windows)]
     {
         let weak = app.as_weak();
-        app.global::<Rust<'_>>().on_set_window_color(|is_dark| {
-            let app = weak.upgrade().unwrap();
-            window_color::set(app.window(), is_dark);
-        });
+        app.global::<Rust<'_>>()
+            .on_set_window_color(move |is_dark| {
+                let app = weak.upgrade().unwrap();
+                window_color::set(app.window(), is_dark);
+            });
     }
 
     app.global::<State<'_>>().handle_callbacks();

@@ -19,6 +19,7 @@ dependencies = [
  "nod",
  "num_cpus",
  "open",
+ "raw-window-handle",
  "regex",
  "rfd",
  "rkyv",

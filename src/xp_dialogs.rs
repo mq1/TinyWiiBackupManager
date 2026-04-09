@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use raw_window_handle::RawWindowHandle;
 use std::path::PathBuf;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::System::Com::{COINIT_APARTMENTTHREADED, CoInitializeEx, CoTaskMemFree};
@@ -18,7 +19,7 @@ const MAX_PATH: usize = 260;
 const MAX_PATH_LARGE: usize = 32_768;
 
 pub fn get_hwnd(window: &slint::Window) -> Option<HWND> {
-    let handle = windows.window_handle();
+    let handle = window.window_handle();
     let handle = handle.window_handle().ok()?;
     let RawWindowHandle::Win32(handle) = handle.as_raw() else {
         return None;
