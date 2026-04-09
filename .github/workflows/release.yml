@@ -200,12 +200,7 @@ jobs:
           upx --best --lzma -o "dist\TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.exe" "target\winxp_build\${{ matrix.target }}\release\TinyWiiBackupManager.exe"
         env:
           CC: clang-cl
-          AR: llvm-lib
-          CARGO_TARGET_X64_64_PC_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto
-          CARGO_TARGET_I686_PC_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto
-          CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: lld-link
-          CARGO_TARGET_I686_PC_WINDOWS_MSVC_LINKER: lld-link
-          CFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
+          CFLAGS: /clang:-O3
           VC_LTL: VC-LTL-Binary
           YY_THUNKS: YY-Thunks-Objs
 
@@ -219,7 +214,7 @@ jobs:
         env:
           CC: clang-cl
           AR: llvm-lib
-          CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto
+          RUSTFLAGS: -C linker-plugin-lto
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: lld-link
           CFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
 
