@@ -18,6 +18,6 @@ export global MyPalette {
     out property <brush> selection-background: Palette.accent-background.transparentize(0.6);
     out property <brush> accent-background: Palette.accent-background;
     out property <brush> accent-foreground: is-dark() ? oklch(0.145, 0, 0) : oklch(0.985, 0, 0);
-    out property <brush> overlay: background.transparentize(0.2);
+    out property <brush> overlay: background.darker(0.5).transparentize(0.5);
     out property <brush> destructive: is-dark() ? oklch(0.704, 0.191, 22.216) : oklch(0.577, 0.245, 27.325);
 }
