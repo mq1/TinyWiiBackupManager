@@ -3,7 +3,11 @@
 
 use rkyv::vec::ArchivedVec;
 
-const DATA: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/id_map.bin"));
+#[repr(align(4))]
+struct Aligned<const N: usize>([u8; N]);
+
+const DATA: Aligned<{ include_bytes!(concat!(env!("OUT_DIR"), "/id_map.bin")).len() }> =
+    Aligned(*include_bytes!(concat!(env!("OUT_DIR"), "/id_map.bin")));
 
 #[derive(rkyv::Archive, rkyv::Deserialize)]
 pub struct GameEntry {
@@ -17,7 +21,7 @@ pub fn get(id: &str) -> Option<&ArchivedGameEntry> {
     let mut buf = [0; 6];
     buf[..id.len()].copy_from_slice(id);
 
-    let map = unsafe { rkyv::access_unchecked::<ArchivedVec<ArchivedGameEntry>>(DATA) };
+    let map = unsafe { rkyv::access_unchecked::<ArchivedVec<ArchivedGameEntry>>(&DATA.0) };
     let i = map.binary_search_by_key(&buf, |entry| entry.id).ok()?;
     let entry = &map[i];
 
