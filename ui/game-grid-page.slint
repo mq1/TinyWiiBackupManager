@@ -8,13 +8,17 @@ import { GameCard } from "components/game-card.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { GamesToolbar } from "components/games-toolbar.slint";
 
-export component GameGridPage inherits VerticalLayout {
-    alignment: start;
-
-    GamesToolbar { }
+export component GameGridPage inherits Rectangle {
+    toolbar := GamesToolbar {
+        x: 10px;
+        y: 10px;
+        width: parent.width - 20px;
+    }
 
     ScrollView {
-        height: parent.height - 40px;
+        x: 0px;
+        y: toolbar.height + 20px;
+        height: parent.height - toolbar.height - 20px;
         viewport-height: v.preferred-height;
 
         v := VerticalLayout {
