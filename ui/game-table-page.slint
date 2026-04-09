@@ -9,6 +9,7 @@ import { IconButton } from "components/icon-button.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { Card } from "components/card.slint";
 import { MyPalette } from "styling.slint";
+import { VerticalLine } from "components/vertical-line.slint";
 
 export component GameTablePage inherits Rectangle {
     toolbar := GamesToolbar {
@@ -56,43 +57,56 @@ export component GameTablePage inherits Rectangle {
                                 Text {
                                     height: 28px;
                                     vertical-alignment: center;
-                                    text: "\{game.title} [\{game.id}] (\{game.size-gib} GiB)";
+                                    text: "\{game.title} [\{game.id}]";
+                                    overflow: elide;
                                 }
                             }
 
-                            VerticalLayout {
-                                alignment: center;
+                            HorizontalLayout {
+                                spacing: 5px;
 
-                                HorizontalLayout {
-                                    spacing: 5px;
+                                Text {
+                                    height: 28px;
+                                    vertical-alignment: center;
+                                    text: "\{game.size-gib} GiB";
+                                }
 
-                                    IconButton {
-                                        tooltip: "Game info";
-                                        icon: IconSet.Info;
-                                        height: 24px;
-                                        width: 24px;
-                                        clicked => {
-                                            State.open-game-info(game);
+                                VerticalLine { }
+
+                                VerticalLayout {
+                                    alignment: center;
+
+                                    HorizontalLayout {
+                                        spacing: 5px;
+
+                                        IconButton {
+                                            tooltip: "Game info";
+                                            icon: IconSet.Info;
+                                            height: 24px;
+                                            width: 24px;
+                                            clicked => {
+                                                State.open-game-info(game);
+                                            }
                                         }
-                                    }
 
-                                    IconButton {
-                                        icon: IconSet.HardDriveDownload;
-                                        tooltip: "Archive to PC";
-                                        height: 24px;
-                                        width: 24px;
-                                        clicked => {
-                                            State.archive-game(game);
+                                        IconButton {
+                                            icon: IconSet.HardDriveDownload;
+                                            tooltip: "Archive to PC";
+                                            height: 24px;
+                                            width: 24px;
+                                            clicked => {
+                                                State.archive-game(game);
+                                            }
                                         }
-                                    }
 
-                                    IconButton {
-                                        icon: IconSet.Trash;
-                                        tooltip: "Delete game";
-                                        height: 24px;
-                                        width: 24px;
-                                        clicked => {
-                                            State.deleting-dir = game.path;
+                                        IconButton {
+                                            icon: IconSet.Trash;
+                                            tooltip: "Delete game";
+                                            height: 24px;
+                                            width: 24px;
+                                            clicked => {
+                                                State.deleting-dir = game.path;
+                                            }
                                         }
                                     }
                                 }
