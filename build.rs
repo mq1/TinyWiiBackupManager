@@ -2,14 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use regex::Regex;
+use std::num::NonZeroU32;
 use std::path::Path;
 use std::{collections::HashMap, env, fmt::Write, fs, path::PathBuf};
-
-struct GameEntry {
-    id: [u8; 6],
-    ghid: Option<u32>,
-    title: String,
-}
 
 fn parse_gameid(id: &str) -> [u8; 6] {
     let bytes = id.as_bytes();
@@ -38,7 +33,7 @@ fn parse_titles_txt() -> Vec<([u8; 6], String)> {
     title_map
 }
 
-fn parse_gamehacking_ids() -> Vec<([u8; 6], u32)> {
+fn parse_gamehacking_ids() -> Vec<([u8; 6], NonZeroU32)> {
     let mut id_map = Vec::new();
 
     let re =
@@ -55,7 +50,11 @@ fn parse_gamehacking_ids() -> Vec<([u8; 6], u32)> {
             }
 
             let gameid = parse_gameid(&cap[2]);
-            let ghid = cap[1].parse().unwrap();
+            let ghid = cap[1].parse::<u32>().unwrap();
+            let Some(ghid) = NonZeroU32::new(ghid) else {
+                continue;
+            };
+
             id_map.push((gameid, ghid));
         }
     }
@@ -73,15 +72,14 @@ fn make_id_map() {
             .iter()
             .find(|(gameid, _)| *gameid == id)
             .map(|(_, ghid)| *ghid);
-        entries.push(GameEntry { id, ghid, title });
+        entries.push((id, ghid, title));
     }
 
     let mut code = String::from("pub static GAMES: &[GameEntry] = &[");
-    for entry in entries {
+    for (id, ghid, title) in entries {
         write!(
             code,
-            "GameEntry {{ id: {:?}, ghid: {:?}, title: {:?} }},",
-            entry.id, entry.ghid, entry.title
+            "GameEntry {{ id: {id:?}, ghid: {ghid:?}, title: {title:?} }},",
         )
         .unwrap();
     }

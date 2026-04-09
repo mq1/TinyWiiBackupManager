@@ -1,10 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::num::NonZeroU32;
+
 #[derive(Clone, Copy)]
 pub struct GameEntry {
     id: [u8; 6],
-    pub ghid: Option<u32>,
+    pub ghid: Option<NonZeroU32>,
     pub title: &'static str,
 }
 
