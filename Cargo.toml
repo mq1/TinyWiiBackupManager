@@ -31,7 +31,12 @@ slint = { git = "https://github.com/slint-ui/slint.git", branch = "pre-release/1
   "serde",
   "raw-window-handle-06",
 ] }
-nod = { git = "https://github.com/encounter/nod.git", rev = "be1c809" }
+nod = { git = "https://github.com/encounter/nod.git", rev = "be1c809", default-features = false, features = [
+  "threading",
+  "compress-zstd-vendored",
+  "compress-lzma-vendored",
+  "compres-zlib-vendored",
+] }
 anyhow = "1.0"
 open = "5.3"
 directories = "6.0"

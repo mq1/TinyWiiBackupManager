@@ -188,34 +188,34 @@ jobs:
         shell: pwsh
         run: choco install upx
 
-      - name: Build and package binary (x64 && x86)
+      - name: Build binary
+        shell: pwsh
+        run: |
+          cargo build --release --target ${{ matrix.target }}
+        env:
+          CC: clang-cl
+          AR: llvm-lib
+          CFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
+          CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto -l dylib=ole32 -C link-arg=/FORCE:MULTIPLE -C link-arg=/SUBSYSTEM:WINDOWS,5.2 -L VC-LTL-Binary\TargetPlatform\5.2.3790.0\lib\x64 -L YY-Thunks-Lib\Lib\5.2.3790.1830\x64
+          CARGO_TARGET_I686_PC_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto -l dylib=ole32 -C link-arg=/FORCE:MULTIPLE -C link-arg=/SUBSYSTEM:WINDOWS,5.1 -L VC-LTL-Binary\TargetPlatform\5.1.2600.0\lib\Win32 -L YY-Thunks-Lib\Lib\5.1.2600.0\x86
+          CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto
+          CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: lld-link
+          CARGO_TARGET_I686_PC_WINDOWS_MSVC_LINKER: lld-link
+          CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: lld-link
+
+      - name: Package binary (UPX)
         if: matrix.arch != 'arm64'
         shell: pwsh
         run: |
-          cargo build --release --target ${{ matrix.target }}
           New-Item -Path "dist" -ItemType Directory -Force
           upx --best --lzma -o "dist\TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.exe" "target\${{ matrix.target }}\release\TinyWiiBackupManager.exe"
-        env:
-          CC: clang-cl
-          AR: llvm-lib
-          RUSTFLAGS: -C linker-plugin-lto -l dylib=ole32 -C link-arg=/FORCE:MULTIPLE ${{ matrix.rustflags }}
-          CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: lld-link
-          CARGO_TARGET_I686_PC_WINDOWS_MSVC_LINKER: lld-link
-          CFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
 
-      - name: Build and package binary (arm64)
+      - name: Package binary (no UPX)
         if: matrix.arch == 'arm64'
         shell: pwsh
         run: |
-          cargo build --release --target ${{ matrix.target }}
           New-Item -Path "dist" -ItemType Directory -Force
           Copy-Item "target\${{ matrix.target }}\release\TinyWiiBackupManager.exe" "dist\TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.exe"
-        env:
-          CC: clang-cl
-          AR: llvm-lib
-          RUSTFLAGS: -C linker-plugin-lto
-          CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: lld-link
-          CFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v7
