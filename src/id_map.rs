@@ -18,9 +18,8 @@ pub fn get(id: &str) -> Option<&ArchivedGameEntry> {
     buf[..id.len()].copy_from_slice(id);
 
     let map = unsafe { rkyv::access_unchecked::<ArchivedVec<ArchivedGameEntry>>(DATA) };
+    let i = map.binary_search_by_key(&buf, |entry| entry.id).ok()?;
+    let entry = &map[i];
 
-    match map.binary_search_by_key(&id, |entry| &entry.id) {
-        Ok(i) => Some(&map[i]),
-        Err(_) => None,
-    }
+    Some(entry)
 }
