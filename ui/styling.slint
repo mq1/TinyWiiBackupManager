@@ -4,13 +4,20 @@
 import { Palette } from "std-widgets.slint";
 
 export global MyPalette {
-    out property <brush> background: Palette.background;
-    out property <brush> foreground: Palette.foreground;
+    pure function is-dark() -> bool {
+        Palette.color-scheme == ColorScheme.dark
+    }
+
+    // this is the macos window color
     out property <brush> card-background: Palette.color-scheme == ColorScheme.light ? #ffffff : #1e1e1e;
-    out property <brush> alternate-background: Palette.alternate-background;
-    out property <brush> border: Palette.border.transparentize(-0.5);
+
+    // inspired by shadcn/ui b0
+    out property <brush> background: is-dark() ? oklch(0.269, 0, 0) : oklch(0.97, 0, 0);
+    out property <brush> foreground: is-dark() ? oklch(0.985, 0, 0) : oklch(0.145, 0, 0);
+    out property <brush> border: is-dark() ? oklch(1, 0, 0, 10%) : oklch(0.922, 0, 0);
     out property <brush> selection-background: Palette.accent-background.transparentize(0.6);
     out property <brush> accent-background: Palette.accent-background;
-    out property <brush> accent-foreground: Palette.accent-foreground;
-    out property <brush> overlay: Palette.background.transparentize(0.2);
+    out property <brush> accent-foreground: is-dark() ? oklch(0.145, 0, 0) : oklch(0.985, 0, 0);
+    out property <brush> overlay: background.transparentize(0.2);
+    out property <brush> destructive: is-dark() ? oklch(0.704, 0.191, 22.216) : oklch(0.577, 0.245, 27.325);
 }

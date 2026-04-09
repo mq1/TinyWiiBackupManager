@@ -15,7 +15,7 @@ export component NavbarButton inherits TooltipArea {
         if active {
             MyPalette.selection-background
         } else if self.has-hover {
-            MyPalette.alternate-background
+            MyPalette.background
         } else {
             transparent
         }
@@ -35,6 +35,6 @@ export component NavbarButton inherits TooltipArea {
     if icon2 != IconSet.WifiZero: IconDisplay {
         icon: icon2;
         stroke: MyPalette.foreground;
-        stroke-fill: MyPalette.alternate-background;
+        stroke-fill: MyPalette.background;
     }
 }

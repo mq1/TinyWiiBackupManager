@@ -18,14 +18,10 @@ export component IconButton inherits TooltipArea {
     pure function get-bg() -> brush {
         if kind == IconButtonKind.Primary {
             self.has-hover ? MyPalette.accent-background.darker(0.2) : MyPalette.accent-background
-        } else if kind == IconButtonKind.Secondary {
-            self.has-hover ? MyPalette.alternate-background.darker(0.2) : MyPalette.alternate-background
-        } else if kind == IconButtonKind.Warning {
-            self.has-hover ? Colors.darkgoldenrod.darker(0.2) : Colors.darkgoldenrod;
-        } else if kind == IconButtonKind.Danger {
-            self.has-hover ? Colors.red.darker(0.2) : Colors.red
+        } else if kind == IconButtonKind.Destructive {
+            self.has-hover ? MyPalette.destructive.darker(0.2) : MyPalette.destructive;
         } else {
-            transparent
+            self.has-hover ? MyPalette.background.darker(0.1) : MyPalette.background;
         }
     }
 
@@ -49,7 +45,7 @@ export component IconButton inherits TooltipArea {
         if kind == IconButtonKind.Secondary {
             MyPalette.foreground
         } else {
-            Colors.white
+            MyPalette.accent-foreground
         }
     }
 

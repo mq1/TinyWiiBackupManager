@@ -87,9 +87,7 @@ fn main() {
     make_id_map();
 
     let library = HashMap::from([("lucide".to_string(), PathBuf::from(lucide_slint::lib()))]);
-    let config = slint_build::CompilerConfiguration::new()
-        .with_library_paths(library)
-        .with_style("cupertino".into());
+    let config = slint_build::CompilerConfiguration::new().with_library_paths(library);
 
     slint_build::compile_with_config("ui/app-window.slint", config).unwrap();
 
