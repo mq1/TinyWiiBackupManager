@@ -730,6 +730,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1e748733b7cbc798e1434b6ac524f0c1ff2ab456fe201501e6497c8417a4fc33"
 
 [[package]]
+name = "bzip2-sys"
+version = "0.1.13+1.0.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "225bff33b2141874fe80d71e07d6eec4f85c5c216453dd96388240f96e1acc14"
+dependencies = [
+ "cc",
+ "pkg-config",
+]
+
+[[package]]
 name = "calloop"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3186,13 +3196,14 @@ dependencies = [
 [[package]]
 name = "nod"
 version = "2.0.0-alpha.8"
-source = "git+https://github.com/encounter/nod.git?rev=be1c809#be1c809b9f2c0d919bacbb9eaa4665e800b95fc7"
+source = "git+https://github.com/encounter/nod.git#be1c809b9f2c0d919bacbb9eaa4665e800b95fc7"
 dependencies = [
  "adler2",
  "aes",
  "base16ct",
  "block-padding",
  "bytes",
+ "bzip2-sys",
  "cbc",
  "crc32fast",
  "crossbeam-channel",
