@@ -21,7 +21,7 @@ split-write = "0.2"
 wii-disc-info = "0.4"
 wiiload = "0.3"
 
-slint = { git = "https://github.com/slint-ui/slint.git", rev = "3bd5cc7", default-features = false, features = [
+slint = { git = "https://github.com/slint-ui/slint.git", branch = "pre-release/1.16", default-features = false, features = [
   "accessibility",
   "backend-winit",
   "compat-1-2",
@@ -63,7 +63,7 @@ windows = { version = "0.62", features = [
 ] }
 
 [build-dependencies]
-slint-build = { git = "https://github.com/slint-ui/slint.git", rev = "3bd5cc7" }
+slint-build = { git = "https://github.com/slint-ui/slint.git", branch = "pre-release/1.16" }
 lucide-slint = "1.7"
 winresource = "0.1"
 regex = "1.12"

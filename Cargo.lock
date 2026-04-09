@@ -921,7 +921,7 @@ dependencies = [
 [[package]]
 name = "const-field-offset"
 version = "0.2.0"
-source = "git+https://github.com/slint-ui/slint.git?rev=3bd5cc7#3bd5cc79a44165b8c83e0228e299deaffdab1878"
+source = "git+https://github.com/slint-ui/slint.git?branch=pre-release%2F1.16#1ce013b5bcb4e06fe738a70b74547b0f30488bdf"
 dependencies = [
  "const-field-offset-macro",
  "field-offset",
@@ -930,7 +930,7 @@ dependencies = [
 [[package]]
 name = "const-field-offset-macro"
 version = "0.2.0"
-source = "git+https://github.com/slint-ui/slint.git?rev=3bd5cc7#3bd5cc79a44165b8c83e0228e299deaffdab1878"
+source = "git+https://github.com/slint-ui/slint.git?branch=pre-release%2F1.16#1ce013b5bcb4e06fe738a70b74547b0f30488bdf"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2057,7 +2057,7 @@ dependencies = [
 [[package]]
 name = "i-slint-backend-linuxkms"
 version = "1.16.0"
-source = "git+https://github.com/slint-ui/slint.git?rev=3bd5cc7#3bd5cc79a44165b8c83e0228e299deaffdab1878"
+source = "git+https://github.com/slint-ui/slint.git?branch=pre-release%2F1.16#1ce013b5bcb4e06fe738a70b74547b0f30488bdf"
 dependencies = [
  "bytemuck",
  "calloop 0.14.4",
@@ -2078,7 +2078,7 @@ dependencies = [
 [[package]]
 name = "i-slint-backend-selector"
 version = "1.16.0"
-source = "git+https://github.com/slint-ui/slint.git?rev=3bd5cc7#3bd5cc79a44165b8c83e0228e299deaffdab1878"
+source = "git+https://github.com/slint-ui/slint.git?branch=pre-release%2F1.16#1ce013b5bcb4e06fe738a70b74547b0f30488bdf"
 dependencies = [
  "cfg-if",
  "i-slint-backend-linuxkms",
@@ -2092,7 +2092,7 @@ dependencies = [
 [[package]]
 name = "i-slint-backend-winit"
 version = "1.16.0"
-source = "git+https://github.com/slint-ui/slint.git?rev=3bd5cc7#3bd5cc79a44165b8c83e0228e299deaffdab1878"
+source = "git+https://github.com/slint-ui/slint.git?branch=pre-release%2F1.16#1ce013b5bcb4e06fe738a70b74547b0f30488bdf"
 dependencies = [
  "accesskit",
  "accesskit_winit",
@@ -2138,7 +2138,7 @@ dependencies = [
 [[package]]
 name = "i-slint-common"
 version = "1.16.0"
-source = "git+https://github.com/slint-ui/slint.git?rev=3bd5cc7#3bd5cc79a44165b8c83e0228e299deaffdab1878"
+source = "git+https://github.com/slint-ui/slint.git?branch=pre-release%2F1.16#1ce013b5bcb4e06fe738a70b74547b0f30488bdf"
 dependencies = [
  "derive_more",
  "fontique",
@@ -2150,7 +2150,7 @@ dependencies = [
 [[package]]
 name = "i-slint-compiler"
 version = "1.16.0"
-source = "git+https://github.com/slint-ui/slint.git?rev=3bd5cc7#3bd5cc79a44165b8c83e0228e299deaffdab1878"
+source = "git+https://github.com/slint-ui/slint.git?branch=pre-release%2F1.16#1ce013b5bcb4e06fe738a70b74547b0f30488bdf"
 dependencies = [
  "annotate-snippets",
  "by_address",
@@ -2182,7 +2182,7 @@ dependencies = [
 [[package]]
 name = "i-slint-core"
 version = "1.16.0"
-source = "git+https://github.com/slint-ui/slint.git?rev=3bd5cc7#3bd5cc79a44165b8c83e0228e299deaffdab1878"
+source = "git+https://github.com/slint-ui/slint.git?branch=pre-release%2F1.16#1ce013b5bcb4e06fe738a70b74547b0f30488bdf"
 dependencies = [
  "auto_enums",
  "bitflags 2.11.0",
@@ -2230,7 +2230,7 @@ dependencies = [
 [[package]]
 name = "i-slint-core-macros"
 version = "1.16.0"
-source = "git+https://github.com/slint-ui/slint.git?rev=3bd5cc7#3bd5cc79a44165b8c83e0228e299deaffdab1878"
+source = "git+https://github.com/slint-ui/slint.git?branch=pre-release%2F1.16#1ce013b5bcb4e06fe738a70b74547b0f30488bdf"
 dependencies = [
  "quote",
  "serde_json",
@@ -2240,7 +2240,7 @@ dependencies = [
 [[package]]
 name = "i-slint-renderer-femtovg"
 version = "1.16.0"
-source = "git+https://github.com/slint-ui/slint.git?rev=3bd5cc7#3bd5cc79a44165b8c83e0228e299deaffdab1878"
+source = "git+https://github.com/slint-ui/slint.git?branch=pre-release%2F1.16#1ce013b5bcb4e06fe738a70b74547b0f30488bdf"
 dependencies = [
  "cfg-if",
  "const-field-offset",
@@ -2261,7 +2261,7 @@ dependencies = [
 [[package]]
 name = "i-slint-renderer-skia"
 version = "1.16.0"
-source = "git+https://github.com/slint-ui/slint.git?rev=3bd5cc7#3bd5cc79a44165b8c83e0228e299deaffdab1878"
+source = "git+https://github.com/slint-ui/slint.git?branch=pre-release%2F1.16#1ce013b5bcb4e06fe738a70b74547b0f30488bdf"
 dependencies = [
  "bytemuck",
  "cfg-if",
@@ -2297,7 +2297,7 @@ dependencies = [
 [[package]]
 name = "i-slint-renderer-software"
 version = "1.16.0"
-source = "git+https://github.com/slint-ui/slint.git?rev=3bd5cc7#3bd5cc79a44165b8c83e0228e299deaffdab1878"
+source = "git+https://github.com/slint-ui/slint.git?branch=pre-release%2F1.16#1ce013b5bcb4e06fe738a70b74547b0f30488bdf"
 dependencies = [
  "bytemuck",
  "clru",
@@ -4931,7 +4931,7 @@ checksum = "0c790de23124f9ab44544d7ac05d60440adc586479ce501c1d6d7da3cd8c9cf5"
 [[package]]
 name = "slint"
 version = "1.16.0"
-source = "git+https://github.com/slint-ui/slint.git?rev=3bd5cc7#3bd5cc79a44165b8c83e0228e299deaffdab1878"
+source = "git+https://github.com/slint-ui/slint.git?branch=pre-release%2F1.16#1ce013b5bcb4e06fe738a70b74547b0f30488bdf"
 dependencies = [
  "const-field-offset",
  "i-slint-backend-selector",
@@ -4952,7 +4952,7 @@ dependencies = [
 [[package]]
 name = "slint-build"
 version = "1.16.0"
-source = "git+https://github.com/slint-ui/slint.git?rev=3bd5cc7#3bd5cc79a44165b8c83e0228e299deaffdab1878"
+source = "git+https://github.com/slint-ui/slint.git?branch=pre-release%2F1.16#1ce013b5bcb4e06fe738a70b74547b0f30488bdf"
 dependencies = [
  "derive_more",
  "fontique",
@@ -4964,7 +4964,7 @@ dependencies = [
 [[package]]
 name = "slint-macros"
 version = "1.16.0"
-source = "git+https://github.com/slint-ui/slint.git?rev=3bd5cc7#3bd5cc79a44165b8c83e0228e299deaffdab1878"
+source = "git+https://github.com/slint-ui/slint.git?branch=pre-release%2F1.16#1ce013b5bcb4e06fe738a70b74547b0f30488bdf"
 dependencies = [
  "i-slint-compiler",
  "proc-macro2",
@@ -5757,7 +5757,7 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 [[package]]
 name = "vtable"
 version = "0.4.0"
-source = "git+https://github.com/slint-ui/slint.git?rev=3bd5cc7#3bd5cc79a44165b8c83e0228e299deaffdab1878"
+source = "git+https://github.com/slint-ui/slint.git?branch=pre-release%2F1.16#1ce013b5bcb4e06fe738a70b74547b0f30488bdf"
 dependencies = [
  "const-field-offset",
  "portable-atomic",
@@ -5768,7 +5768,7 @@ dependencies = [
 [[package]]
 name = "vtable-macro"
 version = "0.4.0"
-source = "git+https://github.com/slint-ui/slint.git?rev=3bd5cc7#3bd5cc79a44165b8c83e0228e299deaffdab1878"
+source = "git+https://github.com/slint-ui/slint.git?branch=pre-release%2F1.16#1ce013b5bcb4e06fe738a70b74547b0f30488bdf"
 dependencies = [
  "proc-macro2",
  "quote",
