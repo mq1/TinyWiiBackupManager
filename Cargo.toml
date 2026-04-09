@@ -72,6 +72,7 @@ regex = "1.12"
 default = ["https-system"]
 https-system = ["minreq/https-native"]
 https-bundled = ["minreq/https-rustls-probe"]
+rust-analyzer = []
 
 
 [profile.release]

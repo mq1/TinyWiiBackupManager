@@ -8,7 +8,11 @@ pub struct GameEntry {
     pub title: &'static str,
 }
 
+#[cfg(not(feature = "rust-analyzer"))]
 include!(concat!(env!("OUT_DIR"), "/id_map_generated.rs"));
+
+#[cfg(feature = "rust-analyzer")]
+const GAMES: &[GameEntry] = &[];
 
 pub fn get(id: &str) -> Option<&'static GameEntry> {
     let mut buf = [0; 6];
