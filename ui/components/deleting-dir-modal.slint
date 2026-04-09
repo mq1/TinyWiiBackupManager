@@ -11,37 +11,41 @@ import { Card } from "card.slint";
 import { IconButtonKind } from "../types.slint";
 
 export component DeletingDirModal inherits Card {
-    VerticalLayout {
-        alignment: space-between;
+    width: 600px;
+    height: 400px;
 
-        VerticalBox {
-            alignment: start;
+    Text {
+        y: 20px;
+        x: 20px;
+        width: parent.width - 40px;
+        text: "Are you sure you want to delete \"\{State.deleting-dir}\"?\n\nThis is irreversible!!";
+        wrap: char-wrap;
+    }
 
-            Text {
-                text: "Are you sure you want to delete \"\{State.deleting-dir}\"?\n\nThis is irreversible!!";
-                wrap: char-wrap;
+    toolbar := VerticalLayout {
+        height: self.min-height;
+        x: 0px;
+        y: parent.height - self.height;
+
+        HorizontalLine { }
+
+        HorizontalLayout {
+            spacing: 10px;
+            padding: 10px;
+            alignment: end;
+
+            IconButton {
+                label: "Cancel";
+                clicked => {
+                    State.deleting-dir = "";
+                }
             }
-        }
 
-        VerticalLayout {
-            HorizontalLine { }
-
-            HorizontalBox {
-                alignment: end;
-
-                IconButton {
-                    label: "Cancel";
-                    clicked => {
-                        State.deleting-dir = "";
-                    }
-                }
-
-                IconButton {
-                    label: "Delete";
-                    icon: IconSet.Trash;
-                    kind: IconButtonKind.Danger;
-                    clicked => State.delete-dir();
-                }
+            IconButton {
+                label: "Delete";
+                icon: IconSet.Trash;
+                kind: IconButtonKind.Danger;
+                clicked => State.delete-dir();
             }
         }
     }
