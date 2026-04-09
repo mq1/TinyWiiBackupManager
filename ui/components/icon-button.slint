@@ -14,6 +14,7 @@ export component IconButton inherits TooltipArea {
     in property <Icon> icon: IconSet.WifiZero;
     in property <IconButtonKind> kind: IconButtonKind.Secondary;
     in property <bool> rounded: false;
+    in property <bool> squared: false;
     in property <length> font-size: 14px;
     pure function get-bg() -> brush {
         if kind == IconButtonKind.Primary {
@@ -26,7 +27,7 @@ export component IconButton inherits TooltipArea {
     }
 
     pure function get-border-color() -> color {
-        if kind == IconButtonKind.Secondary {
+        if kind == IconButtonKind.Secondary && !squared {
             MyPalette.border
         } else {
             transparent
@@ -34,7 +35,7 @@ export component IconButton inherits TooltipArea {
     }
 
     pure function get-border-width() -> length {
-        if kind == IconButtonKind.Secondary {
+        if kind == IconButtonKind.Secondary && !squared {
             1px
         } else {
             0px
@@ -60,6 +61,8 @@ export component IconButton inherits TooltipArea {
     pure function get-radius() -> length {
         if rounded {
             self.width / 2;
+        } else if squared {
+            0px
         } else {
             10px
         }
