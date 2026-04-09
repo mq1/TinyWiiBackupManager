@@ -35,7 +35,7 @@ nod = { git = "https://github.com/encounter/nod.git", rev = "be1c809", default-f
   "threading",
   "compress-zstd-vendored",
   "compress-lzma-vendored",
-  "compres-zlib-vendored",
+  "compress-zlib-vendored",
 ] }
 anyhow = "1.0"
 open = "5.3"
