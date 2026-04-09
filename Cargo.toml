@@ -31,7 +31,6 @@ slint = { git = "https://github.com/slint-ui/slint.git", rev = "3bd5cc7", defaul
   "serde",
   "raw-window-handle-06",
 ] }
-raw-window-handle = "0.6"
 nod = { git = "https://github.com/encounter/nod.git", rev = "be1c809" }
 anyhow = "1.0"
 open = "5.3"
@@ -54,15 +53,14 @@ walkdir = "2.5"
 crc32fast = "1.5"
 minreq = "2.14"
 
-[target.'cfg(windows)'.dependencies.windows]
-version = "0.62"
-features = [
+[target.'cfg(windows)'.dependencies]
+raw-window-handle = "0.6"
+windows = { version = "0.62", features = [
   "Win32_Graphics_Dwm",
   "Win32_UI_Controls_Dialogs",
   "Win32_UI_Shell_Common",
   "Win32_System_Com",
-]
-
+] }
 
 [build-dependencies]
 slint-build = { git = "https://github.com/slint-ui/slint.git", rev = "3bd5cc7" }
