@@ -1,29 +1,23 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use rkyv::vec::ArchivedVec;
-
-#[repr(align(4))]
-struct Aligned<const N: usize>([u8; N]);
-
-const DATA: Aligned<{ include_bytes!(concat!(env!("OUT_DIR"), "/id_map.bin")).len() }> =
-    Aligned(*include_bytes!(concat!(env!("OUT_DIR"), "/id_map.bin")));
-
-#[derive(rkyv::Archive, rkyv::Deserialize)]
+#[derive(Clone, Copy)]
 pub struct GameEntry {
     id: [u8; 6],
     pub ghid: Option<u32>,
-    pub title: String,
+    pub title: &'static str,
 }
 
-pub fn get(id: &str) -> Option<&ArchivedGameEntry> {
-    let id = id.as_bytes();
-    let mut buf = [0; 6];
-    buf[..id.len()].copy_from_slice(id);
+include!(concat!(env!("OUT_DIR"), "/id_map_generated.rs"));
 
-    let map = unsafe { rkyv::access_unchecked::<ArchivedVec<ArchivedGameEntry>>(&DATA.0) };
-    let i = map.binary_search_by_key(&buf, |entry| entry.id).ok()?;
-    let entry = &map[i];
+pub fn get(id: &str) -> Option<&'static GameEntry> {
+    let mut buf = [0; 6];
+    let bytes = id.as_bytes();
+    let len = bytes.len().min(6);
+    buf[..len].copy_from_slice(&bytes[..len]);
+
+    let i = GAMES.binary_search_by_key(&buf, |e| e.id).ok()?;
+    let entry = &GAMES[i];
 
     Some(entry)
 }

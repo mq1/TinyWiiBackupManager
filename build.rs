@@ -3,9 +3,8 @@
 
 use regex::Regex;
 use std::path::Path;
-use std::{collections::HashMap, env, fs, path::PathBuf};
+use std::{collections::HashMap, env, fmt::Write, fs, path::PathBuf};
 
-#[derive(rkyv::Archive, rkyv::Serialize)]
 struct GameEntry {
     id: [u8; 6],
     ghid: Option<u32>,
@@ -72,15 +71,24 @@ fn make_id_map() {
     for (id, title) in title_map {
         let ghid = gamehacking_ids
             .iter()
-            .find(|(game_id, _)| *game_id == id)
+            .find(|(gameid, _)| *gameid == id)
             .map(|(_, ghid)| *ghid);
-
         entries.push(GameEntry { id, ghid, title });
     }
 
-    let data = rkyv::to_bytes::<rkyv::rancor::Error>(&entries).unwrap();
-    let out_path = Path::new(&env::var("OUT_DIR").unwrap()).join("id_map.bin");
-    fs::write(out_path, &data).unwrap();
+    let mut code = String::from("pub static GAMES: &[GameEntry] = &[");
+    for entry in entries {
+        write!(
+            code,
+            "GameEntry {{ id: {:?}, ghid: {:?}, title: {:?} }},",
+            entry.id, entry.ghid, entry.title
+        )
+        .unwrap();
+    }
+    code.push_str("];\n");
+
+    let out_path = Path::new(&env::var("OUT_DIR").unwrap()).join("id_map_generated.rs");
+    fs::write(out_path, code).unwrap();
 }
 
 fn main() {
