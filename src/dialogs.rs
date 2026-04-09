@@ -24,7 +24,7 @@ pub fn pick_mount_point(window: &Window) -> Option<PathBuf> {
         .pick_folder();
 
     #[cfg(windows)]
-    let res = xp_dialogs::pick_dir(&window.window_handle(), "Select Drive/Mount Point");
+    let res = xp_dialogs::pick_dir(&window, "Select Drive/Mount Point");
 
     res
 }
@@ -39,8 +39,7 @@ pub fn pick_games(window: &Window) -> Vec<PathBuf> {
         .unwrap_or_default();
 
     #[cfg(windows)]
-    let paths =
-        xp_dialogs::pick_files(&window.window_handle(), "Select Games", INPUT_DIALOG_FILTER);
+    let paths = xp_dialogs::pick_files(&window, "Select Games", INPUT_DIALOG_FILTER);
 
     paths
 }
@@ -54,7 +53,7 @@ pub fn pick_games_r(window: &Window) -> Vec<PathBuf> {
 
     #[cfg(windows)]
     let res = xp_dialogs::pick_dir(
-        &window.window_handle(),
+        &window,
         "Select folder (games will be searched recursively)",
     );
 
@@ -96,12 +95,7 @@ pub fn save_game(window: &Window, game: &Game) -> Option<PathBuf> {
         .save_file();
 
     #[cfg(windows)]
-    let res = xp_dialogs::save_file(
-        &window.window_handle(),
-        &title,
-        OUTPUT_DIALOG_FILTER,
-        &filename,
-    );
+    let res = xp_dialogs::save_file(&window, &title, OUTPUT_DIALOG_FILTER, &filename);
 
     res
 }

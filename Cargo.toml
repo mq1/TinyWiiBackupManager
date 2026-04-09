@@ -31,7 +31,6 @@ slint = { git = "https://github.com/slint-ui/slint.git", rev = "3bd5cc7", defaul
   "serde",
   "raw-window-handle-06",
 ] }
-raw-window-handle = "0.6"
 nod = { git = "https://github.com/encounter/nod.git", rev = "be1c809" }
 anyhow = "1.0"
 open = "5.3"
