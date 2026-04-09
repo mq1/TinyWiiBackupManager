@@ -41,6 +41,7 @@ export component GameInfoModal inherits Card {
         if !State.current-disc-info.err.is-empty: HorizontalLayout {
             spacing: 5px;
             padding: 20px;
+            alignment: center;
 
             IconDisplay {
                 icon: IconSet.TriangleAlert;
@@ -214,7 +215,7 @@ export component GameInfoModal inherits Card {
                 padding-left: 15px;
 
                 Link {
-                    uri: "https://www.gametdb.com/Wii/" + State.current-game.id;
+                    uri: "https://www.gametdb.com/Wii/\{State.current-game.id}";
                     label: "GameTDB page";
                 }
             }
