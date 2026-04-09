@@ -73,29 +73,31 @@ export component AppWindow inherits Window {
         }
     }
 
+    if is-modal-open(): TouchArea {
+        x: 0px;
+        y: 0px;
+        width: root.width;
+        height: root.height;
+    }
+
     if is-modal-open(): Rectangle {
         x: 0px;
         y: 0px;
-        width: 100%;
-        height: 100%;
+        width: root.width;
+        height: root.height;
         background: MyPalette.overlay;
 
-        TouchArea {
-            x: 0px;
-            y: 0px;
-            width: parent.width;
-            height: parent.height;
-        }
-
-        Rectangle {
+        if !State.current-game.path.is-empty: GameInfoModal {
             x: (root.width - self.width) / 2;
             y: (root.height - self.height) / 2;
-            width: 600px;
-            height: 400px;
-
-            if !State.current-game.path.is-empty: GameInfoModal { }
-            if State.adding-games.length > 0: ConfirmConversionModal { }
-            if !State.deleting-dir.is-empty: DeletingDirModal { }
+        }
+        if State.adding-games.length > 0: ConfirmConversionModal {
+            x: (root.width - self.width) / 2;
+            y: (root.height - self.height) / 2;
+        }
+        if !State.deleting-dir.is-empty: DeletingDirModal {
+            x: (root.width - self.width) / 2;
+            y: (root.height - self.height) / 2;
         }
     }
 

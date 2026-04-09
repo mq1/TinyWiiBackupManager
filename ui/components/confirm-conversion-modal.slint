@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { VerticalBox, HorizontalBox, ScrollView } from "std-widgets.slint";
+import { ScrollView } from "std-widgets.slint";
 import { State } from "../state.slint";
 import { MyPalette } from "../styling.slint";
 import { IconButton } from "icon-button.slint";
@@ -11,51 +11,55 @@ import { IconButtonKind } from "../types.slint";
 import { HorizontalLine } from "horizontal-line.slint";
 
 export component ConfirmConversionModal inherits Card {
-    VerticalLayout {
-        alignment: space-between;
+    width: 600px;
+    height: 400px;
 
-        VerticalBox {
+    ScrollView {
+        height: parent.height - toolbar.height;
+        x: 0px;
+        y: 0px;
+
+        VerticalLayout {
             alignment: start;
+            padding: 10px;
+            spacing: 5px;
 
-            ScrollView {
-                height: 324px;
+            Text {
+                text: "Picked \{State.adding-games.length} games, are you sure you want to continue?\n";
+            }
 
-                VerticalLayout {
-                    alignment: start;
-                    spacing: 5px;
-
-                    Text {
-                        text: "Picked \{State.adding-games.length} games, are you sure you want to continue?\n\n";
-                    }
-
-                    for game in State.adding-games: Text {
-                        text: "• \{game.in-path}";
-                    }
-                }
+            for game in State.adding-games: Text {
+                text: "• \{game.in-path}";
             }
         }
+    }
 
-        toolbar := VerticalLayout {
-            HorizontalLine { }
+    toolbar := VerticalLayout {
+        height: self.min-height;
+        x: 0px;
+        y: parent.height - self.height;
 
-            HorizontalBox {
-                alignment: end;
+        HorizontalLine { }
 
-                IconButton {
-                    label: "Cancel";
-                    clicked => {
-                        State.adding-games = [];
-                    }
+        HorizontalLayout {
+            alignment: end;
+            padding: 10px;
+            spacing: 10px;
+
+            IconButton {
+                label: "Cancel";
+                clicked => {
+                    State.adding-games = [];
                 }
+            }
 
-                IconButton {
-                    label: "Ok";
-                    kind: IconButtonKind.Primary;
-                    icon: IconSet.Rocket;
-                    clicked => {
-                        State.add-to-queue();
-                        State.start-conversion();
-                    }
+            IconButton {
+                label: "Ok";
+                kind: IconButtonKind.Primary;
+                icon: IconSet.Rocket;
+                clicked => {
+                    State.add-to-queue();
+                    State.start-conversion();
                 }
             }
         }
