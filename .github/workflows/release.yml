@@ -143,8 +143,10 @@ jobs:
             target: aarch64-pc-windows-msvc
           - arch: x64
             target: x86_64-pc-windows-msvc
+            rustflags: -C link-arg=/SUBSYSTEM:WINDOWS,5.2 -L VC-LTL-Binary\TargetPlatform\5.2.3790.0\lib\x64 -L YY-Thunks-Lib\Lib\5.2.3790.1830\x64
           - arch: x86
             target: i686-pc-windows-msvc
+            rustflags: -C link-arg=/SUBSYSTEM:WINDOWS,5.1 -L VC-LTL-Binary\TargetPlatform\5.1.2600.0\lib\Win32 -L YY-Thunks-Lib\Lib\5.1.2600.0\x86
 
     steps:
       - name: Checkout
@@ -167,11 +169,6 @@ jobs:
         with:
           key: ${{ matrix.target }}
 
-      - name: Install thunk
-        if: matrix.arch != 'arm64'
-        shell: pwsh
-        run: cargo install thunk-cli
-
       - name: Download VC-LTL5
         if: matrix.arch != 'arm64'
         shell: pwsh
@@ -183,8 +180,8 @@ jobs:
         if: matrix.arch != 'arm64'
         shell: pwsh
         run: |
-          Invoke-WebRequest -Uri "https://github.com/Chuyu-Team/YY-Thunks/releases/latest/download/YY-Thunks-Objs.zip" -OutFile "YY-Thunks-Objs.zip"
-          7z x YY-Thunks-Objs.zip -oYY-Thunks-Objs
+          Invoke-WebRequest -Uri "https://github.com/Chuyu-Team/YY-Thunks/releases/latest/download/YY-Thunks-Lib.zip" -OutFile "YY-Thunks-Lib.zip"
+          7z x YY-Thunks-Lib.zip -oYY-Thunks-Lib
 
       - name: Download UPX
         if: matrix.arch != 'arm64'
@@ -195,14 +192,16 @@ jobs:
         if: matrix.arch != 'arm64'
         shell: pwsh
         run: |
-          thunk --os xp --arch ${{ matrix.arch }} --subsystem windows -- --release
+          cargo build --release --target ${{ matrix.target }}
           New-Item -Path "dist" -ItemType Directory -Force
-          upx --best --lzma -o "dist\TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.exe" "target\winxp_build\${{ matrix.target }}\release\TinyWiiBackupManager.exe"
+          upx --best --lzma -o "dist\TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.exe" "target\${{ matrix.target }}\release\TinyWiiBackupManager.exe"
         env:
           CC: clang-cl
-          CFLAGS: /clang:-O3
-          VC_LTL: VC-LTL-Binary
-          YY_THUNKS: YY-Thunks-Objs
+          AR: llvm-lib
+          RUSTFLAGS: -C linker-plugin-lto -l dylib=ole32 -C link-arg=/FORCE:MULTIPLE ${{ matrix.rustflags }}
+          CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: lld-link
+          CARGO_TARGET_I686_PC_WINDOWS_MSVC_LINKER: lld-link
+          CFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
 
       - name: Build and package binary (arm64)
         if: matrix.arch == 'arm64'
