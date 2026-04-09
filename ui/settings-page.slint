@@ -2,32 +2,39 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import { ScrollView } from "std-widgets.slint";
-import { IconSet } from "@lucide";
+import { IconSet, IconDisplay } from "@lucide";
 import { State } from "state.slint";
 import { Setting } from "components/setting.slint";
 import { BoolSetting } from "components/bool-setting.slint";
+import { MyPalette } from "styling.slint";
 
 export component SettingsPage inherits VerticalLayout {
     alignment: start;
 
-    Rectangle {
-        height: 43px;
+    HorizontalLayout {
+        spacing: 5px;
+        padding: 10px;
+        padding-top: 15px;
+
+        IconDisplay {
+            icon: IconSet.ChevronRight;
+            size: 18px;
+            stroke: MyPalette.foreground;
+        }
 
         Text {
-            x: 15px;
-            y: 15px;
-
             text: "Settings";
             font-size: 18px;
         }
     }
 
     ScrollView {
-        height: parent.height - 43px;
+        height: root.height - 18px - 15px - 10px;
 
         VerticalLayout {
+            width: 100%;
             padding-left: 10px;
-            padding-right: 20px;
+            padding-right: 15px;
             padding-bottom: 10px;
             spacing: 10px;
 
