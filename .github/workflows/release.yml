@@ -134,19 +134,16 @@ jobs:
 
   build-windows:
     name: Build for Windows
-    runs-on: ${{ matrix.runner }}
+    runs-on: windows-2022
     strategy:
       fail-fast: false
       matrix:
         include:
-          - runner: windows-11-arm
-            arch: arm64
+          - arch: arm64
             target: aarch64-pc-windows-msvc
-          - runner: windows-2022
-            arch: x64
+          - arch: x64
             target: x86_64-pc-windows-msvc
-          - runner: windows-2022
-            arch: x86
+          - arch: x86
             target: i686-pc-windows-msvc
 
     steps:
@@ -203,7 +200,12 @@ jobs:
           upx --best --lzma -o "dist\TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.exe" "target\winxp_build\${{ matrix.target }}\release\TinyWiiBackupManager.exe"
         env:
           CC: clang-cl
-          CFLAGS: /clang:-O3
+          AR: llvm-lib
+          CARGO_TARGET_X64_64_PC_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto
+          CARGO_TARGET_I686_PC_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto
+          CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: lld-link
+          CARGO_TARGET_I686_PC_WINDOWS_MSVC_LINKER: lld-link
+          CFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
           VC_LTL: VC-LTL-Binary
           YY_THUNKS: YY-Thunks-Objs
 
@@ -217,7 +219,7 @@ jobs:
         env:
           CC: clang-cl
           AR: llvm-lib
-          RUSTFLAGS: -C linker-plugin-lto
+          CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: lld-link
           CFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
 
