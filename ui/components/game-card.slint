@@ -3,7 +3,6 @@
 
 import { Card } from "card.slint";
 import { Game, Page } from "../types.slint";
-import { VerticalBox } from "std-widgets.slint";
 import { IconButton } from "icon-button.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { State } from "../state.slint";
@@ -14,11 +13,16 @@ export component GameCard inherits Card {
 
     width: 168px;
 
-    VerticalBox {
+    VerticalLayout {
+        padding: 10px;
+        spacing: 10px;
+
         HorizontalLayout {
             alignment: space-between;
 
             HorizontalLayout {
+                spacing: 5px;
+
                 IconDisplay {
                     icon: IconSet.Tag;
                     size: 13px;
@@ -26,13 +30,13 @@ export component GameCard inherits Card {
                 }
 
                 Text {
-                    text: " " + game.id;
+                    text: game.id;
                     wrap: no-wrap;
                 }
             }
 
             Text {
-                text: game.size-gib + " GiB";
+                text: "\{game.size-gib} GiB";
                 wrap: no-wrap;
                 horizontal-alignment: right;
             }

@@ -11,6 +11,7 @@ use std::{
 };
 
 impl Game {
+    #[must_use]
     pub fn maybe_from_path(path: &Path, is_wii: bool, data_dir: &Path) -> Option<Self> {
         if !path.is_dir() {
             return None;

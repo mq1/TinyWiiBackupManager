@@ -3,7 +3,6 @@
 
 import { GameFilter } from "game-filter.slint";
 import { ShowWiiGc } from "show-wii-gc.slint";
-import { HorizontalBox } from "std-widgets.slint";
 import { IconButton } from "icon-button.slint";
 import { IconButtonKind } from "../types.slint";
 import { IconSet } from "@lucide";
@@ -12,7 +11,8 @@ import { SortGames } from "sort-games.slint";
 import { ViewAs } from "view-as.slint";
 import { TooltipArea } from "tooltip-area.slint";
 
-export component GamesToolbar inherits HorizontalBox {
+export component GamesToolbar inherits HorizontalLayout {
+    padding: 10px;
     alignment: space-between;
 
     GameFilter { }

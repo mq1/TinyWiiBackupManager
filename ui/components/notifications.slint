@@ -1,16 +1,16 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { VerticalBox, HorizontalBox } from "std-widgets.slint";
 import { State } from "../state.slint";
 import { Card } from "card.slint";
 import { IconButton } from "icon-button.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { MyPalette } from "../styling.slint";
 
-export component Notifications inherits VerticalBox {
+export component Notifications inherits VerticalLayout {
     width: self.preferred-width;
     height: self.preferred-height;
+    padding: 10px;
 
     for notification[i] in State.notifications: Card {
         height: 40px;

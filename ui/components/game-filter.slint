@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import { Card } from "card.slint";
-import { LineEdit, HorizontalBox, VerticalBox } from "std-widgets.slint";
+import { LineEdit } from "std-widgets.slint";
 import { MyPalette } from "../styling.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { State } from "../state.slint";
@@ -13,7 +13,10 @@ export component GameFilter inherits Card {
     height: 38px;
 
     HorizontalLayout {
-        VerticalBox {
+        spacing: 10px;
+
+        VerticalLayout {
+            padding-left: 15px;
             alignment: center;
 
             IconDisplay {
