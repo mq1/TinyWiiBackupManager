@@ -11,6 +11,7 @@ on:
     paths:
       - "build.rs"
       - "src/**"
+      - "ui/**"
       - "Cargo.toml"
       - "Cargo.lock"
       - "package/**"

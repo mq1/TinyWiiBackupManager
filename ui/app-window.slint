@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { Button, VerticalBox, HorizontalBox, Palette } from "std-widgets.slint";
+import { Palette } from "std-widgets.slint";
 import { Navbar } from "components/navbar.slint";
 import { GameGridPage } from "game-grid-page.slint";
 import { SettingsPage } from "settings-page.slint";
@@ -60,11 +60,11 @@ export component AppWindow inherits Window {
             }
 
             if !State.status.is-empty: HorizontalLayout {
-                VerticalLine {
-                    width: 2px;
-                }
+                VerticalLine { }
 
-                HorizontalBox {
+                HorizontalLayout {
+                    padding: 10px;
+
                     Text {
                         text: State.status;
                     }

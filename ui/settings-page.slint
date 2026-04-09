@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { VerticalBox, ScrollView } from "std-widgets.slint";
+import { ScrollView } from "std-widgets.slint";
 import { IconSet } from "@lucide";
 import { State } from "state.slint";
 import { Setting } from "components/setting.slint";
@@ -10,20 +10,26 @@ import { BoolSetting } from "components/bool-setting.slint";
 export component SettingsPage inherits VerticalLayout {
     alignment: start;
 
-    VerticalBox {
+    Rectangle {
+        height: 43px;
+
         Text {
+            x: 15px;
+            y: 15px;
+
             text: "Settings";
             font-size: 18px;
         }
     }
 
     ScrollView {
-        height: parent.height - 40px;
+        height: parent.height - 43px;
 
-        VerticalBox {
-            padding-top: 0px;
+        VerticalLayout {
+            padding-left: 10px;
             padding-right: 20px;
-            height: 100%;
+            padding-bottom: 10px;
+            spacing: 10px;
 
             Setting {
                 icon: IconSet.Disc3;

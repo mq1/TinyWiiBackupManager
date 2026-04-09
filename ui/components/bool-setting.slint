@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { VerticalBox } from "std-widgets.slint";
 import { MyPalette } from "../styling.slint";
 import { Icon, IconDisplay, IconSet } from "@lucide";
 import { HorizontalLine } from "horizontal-line.slint";
@@ -16,10 +15,13 @@ export component BoolSetting inherits Card {
 
     width: 100%;
 
-    VerticalBox {
-        height: 100%;
+    VerticalLayout {
+        padding: 10px;
+        spacing: 10px;
 
         HorizontalLayout {
+            spacing: 5px;
+
             IconDisplay {
                 icon: icon;
                 stroke: MyPalette.foreground;
@@ -27,7 +29,7 @@ export component BoolSetting inherits Card {
             }
 
             Text {
-                text: " " + label;
+                text: label;
             }
         }
 
@@ -35,6 +37,8 @@ export component BoolSetting inherits Card {
 
         for item in items: Rectangle {
             HorizontalLayout {
+                spacing: 5px;
+
                 IconDisplay {
                     icon: item.value == active-value ? IconSet.Disc : IconSet.Circle;
                     stroke: item.value == active-value ? MyPalette.accent-background : MyPalette.foreground;
@@ -42,7 +46,7 @@ export component BoolSetting inherits Card {
                 }
 
                 Text {
-                    text: " " + item.label;
+                    text: item.label;
                 }
             }
 
