@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { VerticalBox, HorizontalBox, Button } from "std-widgets.slint";
 import { State } from "state.slint";
 import { MyPalette } from "styling.slint";
 import { IconDisplay, IconSet } from "@lucide";
@@ -10,112 +9,125 @@ import { Rust } from "rust.slint";
 import { Card } from "components/card.slint";
 import { HorizontalLine } from "components/horizontal-line.slint";
 
-export component AboutPage inherits VerticalLayout {
-    alignment: space-between;
+export component AboutPage inherits Rectangle {
+    Card {
+        width: 600px;
+        height: self.min-height;
+        x: parent.width / 2 - self.width / 2;
+        y: parent.height / 2 - self.height / 2;
 
-    HorizontalBox { }
+        VerticalLayout {
+            padding: 20px;
+            spacing: 10px;
+            alignment: start;
 
-    HorizontalLayout {
-        alignment: center;
+            HorizontalLayout {
+                padding: 10px;
+                spacing: 10px;
 
-        Card {
-            width: 600px;
+                Image {
+                    source: @image-url("../assets/TinyWiiBackupManager-256x256.png");
+                    width: 128px;
+                    height: 128px;
+                }
 
-            VerticalBox {
-                HorizontalBox {
-                    Image {
-                        source: @image-url("../assets/TinyWiiBackupManager-256x256.png");
-                        width: 128px;
-                        height: 128px;
+                VerticalLayout {
+                    padding: 10px;
+                    spacing: 10px;
+                    alignment: center;
+
+                    Text {
+                        text: "TinyWiiBackupManager v\{State.version}";
+                        font-size: 18px;
+                        font-weight: 700;
                     }
 
-                    VerticalBox {
-                        alignment: center;
+                    HorizontalLayout {
+                        spacing: 50px;
 
                         Text {
-                            text: "TinyWiiBackupManager v" + State.version;
-                            font-size: 18px;
-                            font-weight: 700;
-                        }
-
-                        HorizontalLayout {
-                            Text {
-                                text: "Copyright © 2026 Manuel Quarneti    ";
-                            }
-
-                            Link {
-                                label: "github/mq1";
-                                uri: "https://github.com/mq1";
-                            }
+                            text: "Copyright © 2026 Manuel Quarneti";
                         }
 
                         Link {
-                            label: "GPL-3.0-only";
-                            uri: "https://www.gnu.org/licenses/gpl-3.0.html";
-                            icon: IconSet.Scale;
-                        }
-                    }
-                }
-
-                HorizontalBox {
-                    VerticalLayout {
-                        alignment: center;
-
-                        IconDisplay {
-                            icon: IconSet.TriangleAlert;
-                            stroke: MyPalette.foreground;
+                            label: "github/mq1";
+                            uri: "https://github.com/mq1";
                         }
                     }
 
-                    Text {
-                        text: "TinyWiiBackupManager is intended strictly for legal homebrew use and is not affiliated with or endorsed by Nintendo. Use of TinyWiiBackupManager for pirated or unauthorized copies of games is strictly prohibited.";
-                        wrap: word-wrap;
+                    Link {
+                        label: "GPL-3.0-only";
+                        uri: "https://www.gnu.org/licenses/gpl-3.0.html";
+                        icon: IconSet.Scale;
                     }
                 }
+            }
 
-                HorizontalLine { }
+            HorizontalLayout {
+                spacing: 10px;
 
-                HorizontalLayout {
+                VerticalLayout {
+                    alignment: center;
+
                     IconDisplay {
-                        icon: IconSet.Heart;
+                        icon: IconSet.TriangleAlert;
                         stroke: MyPalette.foreground;
-                        size: 15px;
-                    }
-
-                    Text {
-                        text: " Special thanks to";
-                        font-size: 16px;
                     }
                 }
 
-                HorizontalLayout {
-                    Link {
-                        label: "Luke Street";
-                        uri: "https://github.com/encounter";
-                        icon: IconSet.Triangle;
-                    }
+                Text {
+                    text: "TinyWiiBackupManager is intended strictly for legal homebrew use and is not affiliated with or endorsed by Nintendo. Use of TinyWiiBackupManager for pirated or unauthorized copies of games is strictly prohibited.";
+                    wrap: word-wrap;
+                }
+            }
 
-                    Text {
-                        text: " for developing nod and helping TWBM leverage it effectively.";
-                    }
+            HorizontalLine { }
+
+            HorizontalLayout {
+                IconDisplay {
+                    icon: IconSet.Heart;
+                    stroke: MyPalette.foreground;
+                    size: 15px;
                 }
 
-                HorizontalLayout {
-                    Link {
-                        label: "blackb0x";
-                        uri: "https://github.com/wiidev";
-                        icon: IconSet.WandSparkles;
-                    }
+                Text {
+                    text: " Special thanks to";
+                    font-size: 16px;
+                }
+            }
 
-                    Text {
-                        text: " for invaluable feedback and advice during TWBM's development.";
-                    }
+            HorizontalLayout {
+                Link {
+                    label: "Luke Street";
+                    uri: "https://github.com/encounter";
+                    icon: IconSet.Triangle;
+                }
+
+                Text {
+                    text: " for developing nod and helping TWBM leverage it effectively.";
+                }
+            }
+
+            HorizontalLayout {
+                Link {
+                    label: "blackb0x";
+                    uri: "https://github.com/wiidev";
+                    icon: IconSet.WandSparkles;
+                }
+
+                Text {
+                    text: " for invaluable feedback and advice during TWBM's development.";
                 }
             }
         }
     }
 
-    HorizontalBox {
+    HorizontalLayout {
+        x: 10px;
+        y: parent.height - self.min-height - 10px;
+
+        spacing: 10px;
+
         Link {
             label: "Data directory";
             uri: State.data-dir;
