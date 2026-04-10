@@ -1,10 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::borrow::Cow;
+
 pub const GIB: f32 = 1024. * 1024. * 1024.;
 pub const MIB: f32 = 1024. * 1024.;
 
-pub fn sanitize(s: &str) -> String {
+pub fn sanitize<'a>(s: &'a str) -> Cow<'a, str> {
     let opts = sanitize_filename::Options {
         truncate: true,
         windows: true,
@@ -12,8 +14,6 @@ pub fn sanitize(s: &str) -> String {
     };
 
     sanitize_filename::sanitize_with_options(s, opts)
-        .trim()
-        .to_string()
 }
 
 pub fn get_threads_num() -> (usize, usize) {
