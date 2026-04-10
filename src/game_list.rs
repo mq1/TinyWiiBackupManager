@@ -70,7 +70,7 @@ fn read_game_dir(
     Ok(())
 }
 
-pub fn fuzzy_search(games: ModelRc<Game>, query: &str) -> ModelRc<Game> {
+pub fn fuzzy_search(games: &ModelRc<Game>, query: &str) -> ModelRc<Game> {
     let matcher = SkimMatcherV2::default();
 
     let mut filtered_games = Vec::new();
@@ -89,8 +89,10 @@ pub fn fuzzy_search(games: ModelRc<Game>, query: &str) -> ModelRc<Game> {
 
     filtered_games.sort_unstable_by_key(|(_, score)| *score);
 
-    let filtered_games = filtered_games.into_iter().map(|(game, _)| game);
-    let model = VecModel::from_iter(filtered_games);
+    let filtered_games = filtered_games
+        .into_iter()
+        .map(|(game, _)| game)
+        .collect::<VecModel<_>>();
 
-    ModelRc::from(Rc::new(model))
+    ModelRc::from(Rc::new(filtered_games))
 }

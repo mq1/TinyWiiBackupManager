@@ -6,6 +6,7 @@ use slint::ToSharedString;
 use std::{fs, path::Path};
 
 impl HbcApp {
+    #[must_use]
     pub fn maybe_from_path(path: &Path) -> Option<Self> {
         if !path.is_dir() {
             return None;

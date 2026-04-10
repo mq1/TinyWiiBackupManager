@@ -41,7 +41,7 @@ fn read_apps_dir(apps_dir: &Path, apps: &mut Vec<HbcApp>) -> Result<()> {
     Ok(())
 }
 
-pub fn fuzzy_search(apps: ModelRc<HbcApp>, query: &str) -> ModelRc<HbcApp> {
+pub fn fuzzy_search(apps: &ModelRc<HbcApp>, query: &str) -> ModelRc<HbcApp> {
     let matcher = SkimMatcherV2::default();
 
     let mut filtered_apps = Vec::new();
@@ -60,8 +60,10 @@ pub fn fuzzy_search(apps: ModelRc<HbcApp>, query: &str) -> ModelRc<HbcApp> {
 
     filtered_apps.sort_unstable_by_key(|(_, score)| *score);
 
-    let filtered_apps = filtered_apps.into_iter().map(|(app, _)| app);
-    let model = VecModel::from_iter(filtered_apps);
+    let filtered_apps = filtered_apps
+        .into_iter()
+        .map(|(app, _)| app)
+        .collect::<VecModel<_>>();
 
-    ModelRc::from(Rc::new(model))
+    ModelRc::from(Rc::new(filtered_apps))
 }

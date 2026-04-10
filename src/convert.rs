@@ -3,7 +3,7 @@
 
 use crate::{
     QueuedConversion, State,
-    extensions::{ext_to_format, format_to_opts},
+    extensions::{ext_to_format, format_to_opts, str_to_format},
     id_map,
     util::{self, get_threads_num},
 };
@@ -55,9 +55,9 @@ impl TryFrom<&QueuedConversion> for Conversion {
         let in_path = PathBuf::from(&q.in_path);
         let out_path = PathBuf::from(&q.out_path);
         let wii_output_format =
-            ext_to_format(&q.wii_output_format).ok_or(anyhow!("Invalid output format"))?;
+            str_to_format(&q.wii_output_format).ok_or(anyhow!("Invalid output format"))?;
         let gc_output_format =
-            ext_to_format(&q.gc_output_format).ok_or(anyhow!("Invalid output format"))?;
+            str_to_format(&q.gc_output_format).ok_or(anyhow!("Invalid output format"))?;
         let flags =
             ConversionFlags::from_bits(q.flags).ok_or(anyhow!("Invalid conversion flags"))?;
 
@@ -136,7 +136,7 @@ impl Conversion {
         let (parent, get_file_name, out_format) =
             if self.flags.contains(ConversionFlags::IS_FOR_DRIVE) {
                 let display_title =
-                    id_map::get(meta.game_id()).map_or(meta.game_title(), |e| &e.title);
+                    id_map::get(meta.game_id()).map_or(meta.game_title(), |e| e.title);
                 let sanitized_title = util::sanitize(display_title);
 
                 let parent = self
@@ -196,12 +196,7 @@ impl Conversion {
                     bail!("No filename found");
                 };
 
-                let Some(out_format) = self
-                    .out_path
-                    .extension()
-                    .and_then(OsStr::to_str)
-                    .and_then(ext_to_format)
-                else {
+                let Some(out_format) = self.out_path.extension().and_then(ext_to_format) else {
                     bail!("Invalid output format");
                 };
 

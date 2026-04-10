@@ -75,7 +75,8 @@ fn make_id_map() {
         entries.push((id, ghid, title));
     }
 
-    let mut code = String::from("const GAMES:&[GameEntry]=unsafe{&[");
+    let mut code =
+        String::from("#[allow(clippy::unreadable_literal)]\nconst GAMES:&[GameEntry]=unsafe{&[");
     for (id, ghid, title) in entries {
         match ghid {
             Some(ghid) => {
