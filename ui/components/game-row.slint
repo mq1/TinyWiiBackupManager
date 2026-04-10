@@ -8,73 +8,82 @@ import { Game } from "../types.slint";
 import { MyPalette } from "../styling.slint";
 import { State } from "../state.slint";
 
-export component GameRow inherits HorizontalLayout {
+export component GameRow inherits Rectangle {
     in property <Game> game;
 
-    alignment: space-between;
-    padding-left: 5px;
+    height: 24px;
 
-    HorizontalLayout {
-        spacing: 5px;
-
-        VerticalLayout {
-            alignment: center;
-
-            IconDisplay {
-                icon: game.is-wii ? IconSet.Pointer : IconSet.Box;
-                size: 14px;
-                stroke: MyPalette.foreground;
-            }
-        }
-
-        Text {
-            height: 24px;
-            vertical-alignment: center;
-            text: "\{game.title} [\{game.id}]";
-            overflow: elide;
-        }
+    IconDisplay {
+        x: 5px;
+        y: 5px;
+        icon: game.is-wii ? IconSet.Pointer : IconSet.Box;
+        size: 14px;
+        stroke: MyPalette.foreground;
     }
 
-    HorizontalLayout {
-        Text {
-            height: 24px;
-            vertical-alignment: center;
-            text: "\{game.size-gib} GiB  ";
-        }
+    Text {
+        x: 5px + 14px + 5px;
+        y: 5px;
+        text: "\{game.title} [\{game.id}]";
+        overflow: elide;
+    }
 
-        VerticalLine { }
+    Text {
+        x: parent.width - 75px - self.preferred-width - 5px;
+        y: 5px;
+        text: "\{game.size-gib} GiB";
+    }
 
-        IconButton {
-            tooltip: "Game info";
-            icon: IconSet.Info;
-            height: 24px;
-            width: 24px;
-            squared: true;
-            clicked => State.open-game-info(game);
-        }
+    VerticalLine {
+        x: parent.width - 75px;
+        y: 0px;
+        height: 24px;
+    }
 
-        VerticalLine { }
+    IconButton {
+        x: parent.width - 74px;
+        y: 0px;
+        tooltip: "Game info";
+        icon: IconSet.Info;
+        height: 24px;
+        width: 24px;
+        squared: true;
+        clicked => State.open-game-info(game);
+    }
 
-        IconButton {
-            icon: IconSet.HardDriveDownload;
-            tooltip: "Archive to PC";
-            height: 24px;
-            width: 24px;
-            squared: true;
-            clicked => State.archive-game(game);
-        }
+    VerticalLine {
+        x: parent.width - 50px;
+        y: 0px;
+        height: 24px;
+    }
 
-        VerticalLine { }
+    IconButton {
+        x: parent.width - 49px;
+        y: 0px;
+        icon: IconSet.HardDriveDownload;
+        tooltip: "Archive to PC";
+        height: 24px;
+        width: 24px;
+        squared: true;
+        clicked => State.archive-game(game);
+    }
 
-        IconButton {
-            icon: IconSet.Trash;
-            tooltip: "Delete game";
-            height: 24px;
-            width: 24px;
-            squared: true;
-            clicked => {
-                State.deleting-dir = game.path;
-            }
+    VerticalLine {
+        x: parent.width - 25px;
+        y: 0px;
+        height: 24px;
+    }
+
+    IconButton {
+        x: parent.width - 24px;
+        y: 0px;
+        icon: IconSet.Trash;
+        tooltip: "Delete game";
+        height: 24px;
+        width: 24px;
+        squared: true;
+        clicked => {
+            State.deleting-dir = game.path;
         }
     }
 }
