@@ -224,7 +224,7 @@ export component GameInfoModal inherits Card {
                 padding: 10px;
                 spacing: 10px;
 
-                IconButton {
+                if State.current-disc-info.err.is-empty: IconButton {
                     label: State.current-game-crc32.is-empty ? "CRC32" : State.current-game-crc32;
                     icon: IconSet.FingerprintPattern;
                     clicked => {
