@@ -64,7 +64,7 @@ windows = { version = "0.62", features = [
 
 [build-dependencies]
 slint-build = { git = "https://github.com/slint-ui/slint.git", branch = "pre-release/1.16" }
-lucide-slint = "1.7"
+lucide-slint = "1.8"
 winresource = "0.1"
 regex = "1.12"
 
