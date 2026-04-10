@@ -11,6 +11,7 @@ import {
     DiscInfo,
     QueuedConversion,
     Notification,
+    HbcAppList,
 } from "types.slint";
 import { Rust } from "rust.slint";
 import { MyPalette } from "styling.slint";
@@ -22,14 +23,13 @@ export global State {
     in-out property <Game> current-game;
     in-out property <string> current-game-crc32: "";
     in-out property <DiscInfo> current-disc-info;
-    in property <string> data-dir;
+    in-out property <string> data-dir;
     in-out property <Config> config;
     in-out property <DriveInfo> drive-info;
     in-out property <GameList> game-list;
-    in-out property <[Game]> filtered-games: [];
-    in-out property <string> game-filter;
-    in property <string> status: "";
-    in property <{text: string, mouse-x: length, mouse-y: length}> tooltip;
+    in-out property <HbcAppList> hbc-app-list;
+    in-out property <string> status: "";
+    in-out property <{ text: string, mouse-x: length, mouse-y: length}> tooltip;
     in-out property <[QueuedConversion]> conversion-queue: [];
     in-out property <bool> is-converting: false;
     in-out property <string> deleting-dir: "";
@@ -56,10 +56,10 @@ export global State {
     }
 
     public function filter-games() {
-        if game-filter.is-empty {
-            filtered-games = [];
+        if game-list.filter.is-empty {
+            game-list.filtered-games = [];
         } else {
-            filtered-games = Rust.filter-games(game-list.games, game-filter);
+            game-list.filtered-games = Rust.filter-games(game-list.games, game-list.filter);
         }
     }
 
@@ -79,7 +79,7 @@ export global State {
         drive-info = Rust.get-drive-info(config.contents.mount-point);
         game-list = Rust.get-game-list(config.contents.mount-point, config.contents.sort-by);
         apply-sorting();
-        filtered-games = [];
+        filter-games();
         cache-covers();
     }
 

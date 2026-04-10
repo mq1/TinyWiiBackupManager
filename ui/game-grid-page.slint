@@ -24,9 +24,10 @@ export component GameGridPage inherits Rectangle {
         v := VerticalLayout {
             padding: 5px;
 
-            if State.game-filter.is-empty && State.config.contents.show-wii: HorizontalLayout {
+            if State.game-list.filter.is-empty && State.config.contents.show-wii: HorizontalLayout {
                 padding-left: 5px;
                 padding-bottom: 5px;
+                spacing: 5px;
 
                 IconDisplay {
                     icon: IconSet.Pointer;
@@ -35,12 +36,12 @@ export component GameGridPage inherits Rectangle {
                 }
 
                 Text {
-                    text: " Wii games: " + State.game-list.wii-count + " found (" + State.game-list.wii-size + " GiB)";
+                    text: "Wii games: \{State.game-list.wii-count} found (\{State.game-list.wii-size.to-fixed(2)} GiB)";
                     font-size: 18px;
                 }
             }
 
-            if State.game-filter.is-empty && State.config.contents.show-wii: FlexboxLayout {
+            if State.game-list.filter.is-empty && State.config.contents.show-wii: FlexboxLayout {
                 for game[i] in State.game-list.games: HorizontalLayout {
                     padding: game.is-wii ? 5px : 0px;
 
@@ -50,13 +51,14 @@ export component GameGridPage inherits Rectangle {
                 }
             }
 
-            if State.game-filter.is-empty && State.config.contents.show-wii && State.config.contents.show-gc: HorizontalLayout {
+            if State.game-list.filter.is-empty && State.config.contents.show-wii && State.config.contents.show-gc: HorizontalLayout {
                 padding: 10px;
             }
 
-            if State.game-filter.is-empty && State.config.contents.show-gc: HorizontalLayout {
+            if State.game-list.filter.is-empty && State.config.contents.show-gc: HorizontalLayout {
                 padding-left: 5px;
                 padding-bottom: 5px;
+                spacing: 5px;
 
                 IconDisplay {
                     icon: IconSet.Box;
@@ -65,12 +67,12 @@ export component GameGridPage inherits Rectangle {
                 }
 
                 Text {
-                    text: " GameCube games: " + State.game-list.gc-count + " found (" + State.game-list.gc-size + " GiB)";
+                    text: "GameCube games: \{State.game-list.gc-count} found (\{State.game-list.gc-size.to-fixed(2)} GiB)";
                     font-size: 18px;
                 }
             }
 
-            if State.game-filter.is-empty && State.config.contents.show-gc: FlexboxLayout {
+            if State.game-list.filter.is-empty && State.config.contents.show-gc: FlexboxLayout {
                 for game[i] in State.game-list.games: HorizontalLayout {
                     padding: game.is-wii ? 0px : 5px;
 
@@ -80,8 +82,8 @@ export component GameGridPage inherits Rectangle {
                 }
             }
 
-            if !State.game-filter.is-empty: FlexboxLayout {
-                for game[i] in State.filtered-games: HorizontalLayout {
+            if !State.game-list.filter.is-empty: FlexboxLayout {
+                for game[i] in State.game-list.filtered-games: HorizontalLayout {
                     padding: 5px;
 
                     GameCard {

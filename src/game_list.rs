@@ -4,7 +4,7 @@
 use crate::{Game, GameList, SortBy, game};
 use anyhow::Result;
 use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
-use slint::{ModelRc, VecModel};
+use slint::{ModelRc, SharedString, VecModel};
 use std::{fs, path::Path, rc::Rc};
 
 impl GameList {
@@ -38,6 +38,8 @@ impl GameList {
 
         Self {
             games: ModelRc::from(Rc::new(model)),
+            filter: SharedString::new(),
+            filtered_games: ModelRc::default(),
             total_size: wii_size + gc_size,
             wii_count,
             wii_size,

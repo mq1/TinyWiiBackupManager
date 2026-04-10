@@ -3,7 +3,7 @@
 
 use crate::{HbcApp, HbcAppList, SortBy, hbc_app};
 use anyhow::Result;
-use slint::{ModelRc, VecModel};
+use slint::{ModelRc, SharedString, VecModel};
 use std::{fs, path::Path, rc::Rc};
 
 impl HbcAppList {
@@ -21,6 +21,8 @@ impl HbcAppList {
 
         Self {
             apps: ModelRc::from(Rc::new(model)),
+            filter: SharedString::new(),
+            filtered_apps: ModelRc::default(),
             total_size,
         }
     }

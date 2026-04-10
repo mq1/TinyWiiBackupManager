@@ -74,6 +74,9 @@ fn main() -> Result<()> {
         config.contents.sort_by,
     ));
 
+    app.global::<State<'_>>()
+        .set_hbc_app_list(HbcAppList::new(&mount_point, config.contents.sort_by));
+
     app.global::<State<'_>>().cache_covers();
 
     app.global::<State<'_>>().set_config(config);
