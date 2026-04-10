@@ -115,6 +115,9 @@ fn main() -> Result<()> {
         .on_filter_games(|games, query| game_list::fuzzy_search(games, &query));
 
     app.global::<Rust<'_>>()
+        .on_filter_hbc_apps(|apps, query| hbc_app_list::fuzzy_search(apps, &query));
+
+    app.global::<Rust<'_>>()
         .on_get_disc_info(|game_dir| DiscInfo::try_from_game_dir(Path::new(&game_dir)).into());
 
     let weak = app.as_weak();

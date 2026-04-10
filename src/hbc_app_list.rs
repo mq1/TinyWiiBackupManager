@@ -3,7 +3,8 @@
 
 use crate::{HbcApp, HbcAppList, SortBy, hbc_app};
 use anyhow::Result;
-use slint::{ModelRc, SharedString, VecModel};
+use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
+use slint::{Model, ModelRc, SharedString, VecModel};
 use std::{fs, path::Path, rc::Rc};
 
 impl HbcAppList {
@@ -38,4 +39,29 @@ fn read_apps_dir(apps_dir: &Path, apps: &mut Vec<HbcApp>) -> Result<()> {
     }
 
     Ok(())
+}
+
+pub fn fuzzy_search(apps: ModelRc<HbcApp>, query: &str) -> ModelRc<HbcApp> {
+    let matcher = SkimMatcherV2::default();
+
+    let mut filtered_apps = Vec::new();
+    for app in apps.iter() {
+        let name_score = matcher.fuzzy_match(&app.meta.name, query);
+        let coder_score = matcher.fuzzy_match(&app.meta.coder, query);
+
+        let score = match (name_score, coder_score) {
+            (Some(a), Some(b)) => a.saturating_add(b),
+            (Some(a), None) | (None, Some(a)) => a,
+            (None, None) => continue,
+        };
+
+        filtered_apps.push((app, score));
+    }
+
+    filtered_apps.sort_unstable_by_key(|(_, score)| *score);
+
+    let filtered_apps = filtered_apps.into_iter().map(|(app, _)| app);
+    let model = VecModel::from_iter(filtered_apps);
+
+    ModelRc::from(Rc::new(model))
 }
