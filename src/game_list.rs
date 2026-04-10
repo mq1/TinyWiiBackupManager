@@ -78,13 +78,11 @@ pub fn fuzzy_search<G: IntoIterator<Item = Game>>(games: G, query: &str) -> Vec<
         let title_score = matcher.fuzzy_match(&game.title, query);
         let id_score = matcher.fuzzy_match(&game.id, query);
 
-        if title_score.is_none() && id_score.is_none() {
-            continue;
-        }
-
-        let score = title_score
-            .unwrap_or(0)
-            .saturating_add(id_score.unwrap_or(0));
+        let score = match (title_score, id_score) {
+            (Some(a), Some(b)) => a.saturating_add(b),
+            (Some(a), None) | (None, Some(a)) => a,
+            (None, None) => continue,
+        };
 
         filtered_games.push((game, score));
     }
