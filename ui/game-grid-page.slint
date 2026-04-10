@@ -42,7 +42,7 @@ export component GameGridPage inherits Rectangle {
             }
 
             if State.game-list.filter.is-empty && State.config.contents.show-wii: FlexboxLayout {
-                for game[i] in State.game-list.games: HorizontalLayout {
+                for game in State.game-list.games: HorizontalLayout {
                     padding: game.is-wii ? 5px : 0px;
 
                     if game.is-wii: GameCard {
@@ -73,7 +73,7 @@ export component GameGridPage inherits Rectangle {
             }
 
             if State.game-list.filter.is-empty && State.config.contents.show-gc: FlexboxLayout {
-                for game[i] in State.game-list.games: HorizontalLayout {
+                for game in State.game-list.games: HorizontalLayout {
                     padding: game.is-wii ? 0px : 5px;
 
                     if !game.is-wii: GameCard {
@@ -83,7 +83,7 @@ export component GameGridPage inherits Rectangle {
             }
 
             if !State.game-list.filter.is-empty: FlexboxLayout {
-                for game[i] in State.game-list.filtered-games: HorizontalLayout {
+                for game in State.game-list.filtered-games: HorizontalLayout {
                     padding: 5px;
 
                     GameCard {

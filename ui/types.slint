@@ -3,6 +3,7 @@
 
 export enum Page {
     Games,
+    HbcApps,
     Settings,
     About,
 }
@@ -82,6 +83,7 @@ export struct HbcApp {
     path: string,
     size-mib: float,
     meta: HbcAppMeta,
+    icon: image,
 }
 
 export struct HbcAppList {

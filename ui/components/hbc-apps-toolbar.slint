@@ -1,25 +1,22 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { GameFilter } from "game-filter.slint";
-import { ShowWiiGc } from "show-wii-gc.slint";
 import { IconButton } from "icon-button.slint";
 import { IconButtonKind } from "../types.slint";
 import { IconSet } from "@lucide";
 import { State } from "../state.slint";
-import { SortGamesAndHbcApps } from "sort-games-and-hbc-apps.slint";
 import { ViewAs } from "view-as.slint";
+import { HbcAppsFilter } from "hbc-apps-filter.slint";
+import { SortGamesAndHbcApps } from "sort-games-and-hbc-apps.slint";
 
-export component GamesToolbar inherits HorizontalLayout {
+export component HbcAppsToolbar inherits HorizontalLayout {
     alignment: space-between;
     height: self.min-height;
 
-    GameFilter { }
+    HbcAppsFilter { }
 
     HorizontalLayout {
         spacing: 10px;
-
-        ShowWiiGc { }
 
         SortGamesAndHbcApps { }
 
@@ -44,24 +41,12 @@ export component GamesToolbar inherits HorizontalLayout {
 
                 IconButton {
                     icon: IconSet.Plus;
-                    tooltip: "Add new games";
+                    tooltip: "Add new apps";
                     rounded: true;
                     kind: IconButtonKind.Primary;
                     font-size: 18px;
                     width: 34px;
                     height: 34px;
-                    clicked => State.pick-games();
-                }
-
-                IconButton {
-                    icon: IconSet.FolderPlus;
-                    tooltip: "Add new games from a folder (recursively)";
-                    rounded: true;
-                    kind: IconButtonKind.Primary;
-                    font-size: 18px;
-                    width: 34px;
-                    height: 34px;
-                    clicked => State.pick-games-r();
                 }
             }
         }

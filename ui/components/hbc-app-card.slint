@@ -2,14 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import { Card } from "card.slint";
-import { Game } from "../types.slint";
+import { HbcApp } from "../types.slint";
 import { IconButton } from "icon-button.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { State } from "../state.slint";
 import { MyPalette } from "../styling.slint";
 
-export component GameCard inherits Card {
-    in property <Game> game;
+export component HbcAppCard inherits Card {
+    in property <HbcApp> app;
 
     width: 171px;
 
@@ -24,31 +24,31 @@ export component GameCard inherits Card {
                 spacing: 5px;
 
                 IconDisplay {
-                    icon: IconSet.Tag;
+                    icon: IconSet.Milestone;
                     size: 13px;
                     stroke: MyPalette.foreground;
                 }
 
                 Text {
-                    text: game.id;
+                    text: app.meta.version;
                     wrap: no-wrap;
                 }
             }
 
             Text {
-                text: "\{game.size-gib.to-fixed(2)} GiB";
+                text: "\{app.size-mib.to-fixed(2)} MiB";
                 wrap: no-wrap;
                 horizontal-alignment: right;
             }
         }
 
         Image {
-            source: game.cover;
-            height: 93px;
+            source: app.icon;
+            height: 48px;
         }
 
         Text {
-            text: game.title;
+            text: app.meta.name;
             horizontal-alignment: center;
             wrap: no-wrap;
             overflow: elide;
@@ -60,24 +60,13 @@ export component GameCard inherits Card {
             IconButton {
                 label: "Info";
                 icon: IconSet.Info;
-                clicked => {
-                    State.open-game-info(game);
-                }
-            }
-
-            IconButton {
-                icon: IconSet.HardDriveDownload;
-                tooltip: "Archive to PC";
-                clicked => {
-                    State.archive-game(game);
-                }
             }
 
             IconButton {
                 icon: IconSet.Trash;
-                tooltip: "Delete game";
+                tooltip: "Delete app";
                 clicked => {
-                    State.deleting-dir = game.path;
+                    State.deleting-dir = app.path;
                 }
             }
         }

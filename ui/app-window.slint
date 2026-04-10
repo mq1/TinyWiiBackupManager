@@ -19,6 +19,7 @@ import { DeletingDirModal } from "components/deleting-dir-modal.slint";
 import {
     ConfirmConversionModal,
 } from "components/confirm-conversion-modal.slint";
+import { HbcAppsGridPage } from "hbc-apps-grid-page.slint";
 
 export * from "types.slint";
 export { State, Rust }
@@ -48,6 +49,7 @@ export component AppWindow inherits Window {
 
                 if State.current-page == Page.Games && !State.config.contents.view-as-table: GameGridPage { }
                 if State.current-page == Page.Games && State.config.contents.view-as-table: GameTablePage { }
+                if State.current-page == Page.HbcApps && !State.config.contents.view-as-table: HbcAppsGridPage { }
                 if State.current-page == Page.Settings: SettingsPage { }
                 if State.current-page == Page.About: AboutPage { }
             }

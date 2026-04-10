@@ -1,0 +1,65 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { ScrollView } from "std-widgets.slint";
+import { State } from "state.slint";
+import { MyPalette } from "styling.slint";
+import { IconSet, IconDisplay } from "@lucide";
+import { HbcAppsToolbar } from "components/hbc-apps-toolbar.slint";
+import { HbcAppCard } from "components/hbc-app-card.slint";
+
+export component HbcAppsGridPage inherits Rectangle {
+    toolbar := HbcAppsToolbar {
+        x: 10px;
+        y: 10px;
+        width: parent.width - 20px;
+    }
+
+    ScrollView {
+        x: 0px;
+        y: toolbar.height + 20px;
+        height: parent.height - toolbar.height - 20px;
+        viewport-height: v.preferred-height;
+
+        v := VerticalLayout {
+            padding: 5px;
+
+            if State.hbc-app-list.filter.is-empty: HorizontalLayout {
+                padding-left: 5px;
+                padding-bottom: 5px;
+                spacing: 5px;
+
+                IconDisplay {
+                    icon: IconSet.Pointer;
+                    size: 18px;
+                    stroke: MyPalette.foreground;
+                }
+
+                Text {
+                    text: "Homebrew Channel apps: \{State.hbc-app-list.apps.length} found (\{State.hbc-app-list.total-size.to-fixed(2)} MiB)";
+                    font-size: 18px;
+                }
+            }
+
+            if State.hbc-app-list.filter.is-empty: FlexboxLayout {
+                for app in State.hbc-app-list.apps: HorizontalLayout {
+                    padding: 5px;
+
+                    HbcAppCard {
+                        app: app;
+                    }
+                }
+            }
+
+            if !State.hbc-app-list.filter.is-empty: FlexboxLayout {
+                for app in State.hbc-app-list.filtered-apps: HorizontalLayout {
+                    padding: 5px;
+
+                    HbcAppCard {
+                        app: app;
+                    }
+                }
+            }
+        }
+    }
+}
