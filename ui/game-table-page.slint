@@ -5,11 +5,10 @@ import { GamesToolbar } from "components/games-toolbar.slint";
 import { ScrollView } from "std-widgets.slint";
 import { State } from "state.slint";
 import { HorizontalLine } from "components/horizontal-line.slint";
-import { IconButton } from "components/icon-button.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { Card } from "components/card.slint";
 import { MyPalette } from "styling.slint";
-import { VerticalLine } from "components/vertical-line.slint";
+import { GameRow } from "components/game-row.slint";
 
 export component GameTablePage inherits Rectangle {
     toolbar := GamesToolbar {
@@ -36,81 +35,12 @@ export component GameTablePage inherits Rectangle {
                     spacing: 5px;
 
                     if (game.is-wii && State.config.contents.show-wii) || (!game.is-wii && State.config.contents.show-gc): VerticalLayout {
-                        HorizontalLayout {
-                            alignment: space-between;
-                            padding-left: 5px;
-
-                            HorizontalLayout {
-                                spacing: 5px;
-
-                                VerticalLayout {
-                                    alignment: center;
-
-                                    IconDisplay {
-                                        icon: game.is-wii ? IconSet.Pointer : IconSet.Box;
-                                        size: 14px;
-                                        stroke: MyPalette.foreground;
-                                    }
-                                }
-
-                                Text {
-                                    height: 24px;
-                                    vertical-alignment: center;
-                                    text: "\{game.title} [\{game.id}]";
-                                    overflow: elide;
-                                }
-                            }
-
-                            HorizontalLayout {
-                                Text {
-                                    height: 24px;
-                                    vertical-alignment: center;
-                                    text: "\{game.size-gib} GiB  ";
-                                }
-
-                                VerticalLine { }
-
-                                IconButton {
-                                    tooltip: "Game info";
-                                    icon: IconSet.Info;
-                                    height: 24px;
-                                    width: 24px;
-                                    squared: true;
-                                    clicked => {
-                                        State.open-game-info(game);
-                                    }
-                                }
-
-                                VerticalLine { }
-
-                                IconButton {
-                                    icon: IconSet.HardDriveDownload;
-                                    tooltip: "Archive to PC";
-                                    height: 24px;
-                                    width: 24px;
-                                    squared: true;
-                                    clicked => {
-                                        State.archive-game(game);
-                                    }
-                                }
-
-                                VerticalLine { }
-
-                                IconButton {
-                                    icon: IconSet.Trash;
-                                    tooltip: "Delete game";
-                                    height: 24px;
-                                    width: 24px;
-                                    squared: true;
-                                    clicked => {
-                                        State.deleting-dir = game.path;
-                                    }
-                                }
-                            }
+                        GameRow {
+                            game: game;
                         }
 
                         HorizontalLine {
-                            background: MyPalette.foreground.transparentize(0.5);
+                            background: MyPalette.border.mix(MyPalette.foreground, 0.8);
                         }
                     }
                 }
