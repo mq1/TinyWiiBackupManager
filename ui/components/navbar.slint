@@ -23,7 +23,7 @@ export component Navbar inherits VerticalLayout {
         }
 
         NavbarButton {
-            active: false;
+            active: State.current-page == Page.HbcApps;
             icon: IconSet.Waves;
             icon2: IconSet.Bubbles;
             tooltip: "Homebrew apps";
