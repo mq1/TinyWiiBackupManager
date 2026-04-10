@@ -5,19 +5,36 @@ import { GameFilter } from "game-filter.slint";
 import { ShowWiiGc } from "show-wii-gc.slint";
 import { IconButton } from "icon-button.slint";
 import { IconButtonKind } from "../types.slint";
-import { IconSet } from "@lucide";
+import { IconSet, IconDisplay } from "@lucide";
 import { State } from "../state.slint";
 import { SortGamesAndHbcApps } from "sort-games-and-hbc-apps.slint";
 import { ViewAs } from "view-as.slint";
+import { MyPalette } from "../styling.slint";
 
 export component GamesToolbar inherits HorizontalLayout {
     alignment: space-between;
-    height: self.min-height;
+    height: 38px;
 
-    GameFilter { }
+    HorizontalLayout {
+        padding-top: 10px;
+        spacing: 5px;
+
+        IconDisplay {
+            icon: IconSet.ChevronRight;
+            size: 18px;
+            stroke: MyPalette.foreground;
+        }
+
+        Text {
+            text: "\{State.game-list.games.length} Game\{State.game-list.games.length == 1 ? "" : "s"} (\{State.game-list.total-size.to-fixed(2)} GiB)";
+            font-size: 18px;
+        }
+    }
 
     HorizontalLayout {
         spacing: 10px;
+
+        GameFilter { }
 
         ShowWiiGc { }
 

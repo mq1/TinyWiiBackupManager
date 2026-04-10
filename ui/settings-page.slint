@@ -8,13 +8,11 @@ import { Setting } from "components/setting.slint";
 import { BoolSetting } from "components/bool-setting.slint";
 import { MyPalette } from "styling.slint";
 
-export component SettingsPage inherits VerticalLayout {
-    alignment: start;
-
+export component SettingsPage inherits Rectangle {
     HorizontalLayout {
+        x: 10px;
+        y: 20px;
         spacing: 5px;
-        padding: 10px;
-        padding-top: 15px;
 
         IconDisplay {
             icon: IconSet.ChevronRight;
@@ -29,7 +27,9 @@ export component SettingsPage inherits VerticalLayout {
     }
 
     ScrollView {
-        height: root.height - 18px - 15px - 10px;
+        x: 0px;
+        y: 38px + 20px;
+        height: root.height - 38px - 30px;
 
         VerticalLayout {
             width: 100%;

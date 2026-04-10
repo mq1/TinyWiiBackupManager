@@ -16,80 +16,33 @@ export component GameGridPage inherits Rectangle {
     }
 
     ScrollView {
-        x: 0px;
-        y: toolbar.height + 20px;
+        x: 5px;
+        y: toolbar.height + 15px;
         height: parent.height - toolbar.height - 20px;
-        viewport-height: v.preferred-height;
+        width: parent.width - 10px;
 
-        v := VerticalLayout {
-            padding: 5px;
+        if State.game-list.filter.is-empty: FlexboxLayout {
+            width: parent.width;
+            align-content: start;
 
-            if State.game-list.filter.is-empty && State.config.contents.show-wii: HorizontalLayout {
-                padding-left: 5px;
-                padding-bottom: 5px;
-                spacing: 5px;
+            for game in State.game-list.games: HorizontalLayout {
+                padding: (game.is-wii && State.config.contents.show-wii) || (!game.is-wii && State.config.contents.show-gc) ? 5px : 0px;
 
-                IconDisplay {
-                    icon: IconSet.Pointer;
-                    size: 18px;
-                    stroke: MyPalette.foreground;
-                }
-
-                Text {
-                    text: "Wii games: \{State.game-list.wii-count} found (\{State.game-list.wii-size.to-fixed(2)} GiB)";
-                    font-size: 18px;
+                if (game.is-wii && State.config.contents.show-wii) || (!game.is-wii && State.config.contents.show-gc): GameCard {
+                    game: game;
                 }
             }
+        }
 
-            if State.game-list.filter.is-empty && State.config.contents.show-wii: FlexboxLayout {
-                for game in State.game-list.games: HorizontalLayout {
-                    padding: game.is-wii ? 5px : 0px;
+        if !State.game-list.filter.is-empty: FlexboxLayout {
+            x: 5px;
+            y: 5px;
+            width: parent.width - 10px;
+            spacing: 10px;
+            align-content: start;
 
-                    if game.is-wii: GameCard {
-                        game: game;
-                    }
-                }
-            }
-
-            if State.game-list.filter.is-empty && State.config.contents.show-wii && State.config.contents.show-gc: HorizontalLayout {
-                padding: 10px;
-            }
-
-            if State.game-list.filter.is-empty && State.config.contents.show-gc: HorizontalLayout {
-                padding-left: 5px;
-                padding-bottom: 5px;
-                spacing: 5px;
-
-                IconDisplay {
-                    icon: IconSet.Box;
-                    size: 18px;
-                    stroke: MyPalette.foreground;
-                }
-
-                Text {
-                    text: "GameCube games: \{State.game-list.gc-count} found (\{State.game-list.gc-size.to-fixed(2)} GiB)";
-                    font-size: 18px;
-                }
-            }
-
-            if State.game-list.filter.is-empty && State.config.contents.show-gc: FlexboxLayout {
-                for game in State.game-list.games: HorizontalLayout {
-                    padding: game.is-wii ? 0px : 5px;
-
-                    if !game.is-wii: GameCard {
-                        game: game;
-                    }
-                }
-            }
-
-            if !State.game-list.filter.is-empty: FlexboxLayout {
-                for game in State.game-list.filtered-games: HorizontalLayout {
-                    padding: 5px;
-
-                    GameCard {
-                        game: game;
-                    }
-                }
+            for game in State.game-list.filtered-games: GameCard {
+                game: game;
             }
         }
     }

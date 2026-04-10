@@ -3,7 +3,6 @@
 
 use std::num::NonZeroU32;
 
-#[derive(Clone, Copy)]
 pub struct GameEntry {
     id: [u8; 6],
     pub ghid: Option<NonZeroU32>,

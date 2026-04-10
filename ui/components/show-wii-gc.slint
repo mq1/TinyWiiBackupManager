@@ -4,30 +4,48 @@
 import { Card } from "card.slint";
 import { CheckBox } from "std-widgets.slint";
 import { TooltipArea } from "tooltip-area.slint";
-import { VerticalLine } from "vertical-line.slint";
 import { IconDisplay, IconSet } from "@lucide";
 import { State } from "../state.slint";
 import { MyPalette } from "../styling.slint";
+import { VerticalLine } from "vertical-line.slint";
 
 export component ShowWiiGc inherits Card {
+    pure function get-bg(checked: bool, hovered: bool) -> color {
+        if checked {
+            MyPalette.selection-background
+        } else if hovered {
+            MyPalette.background
+        } else {
+            transparent
+        }
+    }
+
     height: 38px;
+    clip: true;
+    border-radius: 10px;
 
     HorizontalLayout {
-        padding-left: 7px;
-        padding-right: 5px;
-        spacing: 5px;
-
-        CheckBox {
-            checked <=> State.config.contents.show-wii;
-            toggled => State.write-config();
-        }
-
         TooltipArea {
+            width: 24px;
+            height: 38px;
+
             tooltip: "Show Wii";
-            width: 14px;
+            background: get-bg(State.config.contents.show-wii, self.has-hover);
+            clicked => {
+                State.config.contents.show-wii = !State.config.contents.show-wii;
+                State.write-config();
+            }
 
             IconDisplay {
                 icon: IconSet.Pointer;
+                size: 14px;
+                stroke: MyPalette.foreground;
+            }
+
+            if State.config.contents.show-wii: IconDisplay {
+                x: 6px;
+                y: 24px;
+                icon: IconSet.Check;
                 size: 14px;
                 stroke: MyPalette.foreground;
             }
@@ -35,17 +53,27 @@ export component ShowWiiGc inherits Card {
 
         VerticalLine { }
 
-        CheckBox {
-            checked <=> State.config.contents.show-gc;
-            toggled => State.write-config();
-        }
-
         TooltipArea {
+            width: 24px;
+            height: 38px;
+
             tooltip: "Show GameCube";
-            width: 14px;
+            background: get-bg(State.config.contents.show-gc, self.has-hover);
+            clicked => {
+                State.config.contents.show-gc = !State.config.contents.show-gc;
+                State.write-config();
+            }
 
             IconDisplay {
                 icon: IconSet.Box;
+                size: 14px;
+                stroke: MyPalette.foreground;
+            }
+
+            if State.config.contents.show-gc: IconDisplay {
+                x: 6px;
+                y: 24px;
+                icon: IconSet.Check;
                 size: 14px;
                 stroke: MyPalette.foreground;
             }
