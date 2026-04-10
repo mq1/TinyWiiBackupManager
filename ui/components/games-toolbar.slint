@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { GameFilter } from "game-filter.slint";
 import { ShowWiiGc } from "show-wii-gc.slint";
 import { IconButton } from "icon-button.slint";
 import { IconButtonKind } from "../types.slint";
@@ -26,15 +25,13 @@ export component GamesToolbar inherits HorizontalLayout {
         }
 
         Text {
-            text: "\{State.game-list.games.length} Game\{State.game-list.games.length == 1 ? "" : "s"} (\{State.game-list.total-size.to-fixed(2)} GiB)";
+            text: "Games";
             font-size: 18px;
         }
     }
 
     HorizontalLayout {
         spacing: 10px;
-
-        GameFilter { }
 
         ShowWiiGc { }
 

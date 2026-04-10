@@ -17,21 +17,7 @@ impl GameList {
         let _ = read_game_dir(&wii_path, true, &mut games, data_dir);
         let _ = read_game_dir(&gc_path, false, &mut games, data_dir);
 
-        let mut wii_count = 0;
-        let mut wii_size = 0.;
-
-        let mut gc_count = 0;
-        let mut gc_size = 0.;
-
-        for game in &games {
-            if game.is_wii {
-                wii_count += 1;
-                wii_size += game.size_gib;
-            } else {
-                gc_count += 1;
-                gc_size += game.size_gib;
-            }
-        }
+        let total_size = games.iter().fold(0., |acc, game| acc + game.size_gib);
 
         games.sort_by(game::get_compare_fn(sort_by));
         let model = VecModel::from(games);
@@ -40,11 +26,7 @@ impl GameList {
             games: ModelRc::from(Rc::new(model)),
             filter: SharedString::new(),
             filtered_games: ModelRc::default(),
-            total_size: wii_size + gc_size,
-            wii_count,
-            wii_size,
-            gc_count,
-            gc_size,
+            total_size,
         }
     }
 }

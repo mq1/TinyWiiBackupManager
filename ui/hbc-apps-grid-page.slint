@@ -7,6 +7,7 @@ import { MyPalette } from "styling.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { HbcAppsToolbar } from "components/hbc-apps-toolbar.slint";
 import { HbcAppCard } from "components/hbc-app-card.slint";
+import { HbcAppsFilter } from "components/hbc-apps-filter.slint";
 
 export component HbcAppsGridPage inherits Rectangle {
     toolbar := HbcAppsToolbar {
@@ -21,23 +22,36 @@ export component HbcAppsGridPage inherits Rectangle {
         height: parent.height - toolbar.height - 20px;
         width: parent.width;
 
-        if State.hbc-app-list.filter.is-empty: FlexboxLayout {
-            x: 10px;
-            width: parent.width - 20px;
-            spacing: 10px;
+        VerticalLayout {
+            padding: 10px;
 
-            for app in State.hbc-app-list.apps: HbcAppCard {
-                app: app;
+            HorizontalLayout {
+                alignment: space-between;
+
+                HbcAppsFilter { }
+
+                HorizontalLayout {
+                    Text {
+                        vertical-alignment: center;
+                        text: "\{State.hbc-app-list.apps.length} apps  |  \{State.hbc-app-list.total-size.to-fixed(2)} MiB";
+                    }
+                }
             }
-        }
 
-        if !State.hbc-app-list.filter.is-empty: FlexboxLayout {
-            x: 10px;
-            width: parent.width - 20px;
-            spacing: 10px;
+            if State.hbc-app-list.filter.is-empty: FlexboxLayout {
+                spacing: 10px;
 
-            for app in State.hbc-app-list.filtered-apps: HbcAppCard {
-                app: app;
+                for app in State.hbc-app-list.apps: HbcAppCard {
+                    app: app;
+                }
+            }
+
+            if !State.hbc-app-list.filter.is-empty: FlexboxLayout {
+                spacing: 10px;
+
+                for app in State.hbc-app-list.filtered-apps: HbcAppCard {
+                    app: app;
+                }
             }
         }
     }

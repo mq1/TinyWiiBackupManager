@@ -7,6 +7,7 @@ import { MyPalette } from "styling.slint";
 import { GameCard } from "components/game-card.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { GamesToolbar } from "components/games-toolbar.slint";
+import { GameFilter } from "components/game-filter.slint";
 
 export component GameGridPage inherits Rectangle {
     toolbar := GamesToolbar {
@@ -16,33 +17,51 @@ export component GameGridPage inherits Rectangle {
     }
 
     ScrollView {
-        x: 5px;
         y: toolbar.height + 15px;
-        height: parent.height - toolbar.height - 20px;
-        width: parent.width - 10px;
+        height: parent.height - toolbar.height - 15px;
+        width: parent.width;
 
-        if State.game-list.filter.is-empty: FlexboxLayout {
-            width: parent.width;
-            align-content: start;
+        VerticalLayout {
+            x: 5px;
+            alignment: start;
+            width: parent.width - 10px;
 
-            for game in State.game-list.games: HorizontalLayout {
-                padding: (game.is-wii && State.config.contents.show-wii) || (!game.is-wii && State.config.contents.show-gc) ? 5px : 0px;
+            HorizontalLayout {
+                alignment: space-between;
+                padding: 5px;
 
-                if (game.is-wii && State.config.contents.show-wii) || (!game.is-wii && State.config.contents.show-gc): GameCard {
-                    game: game;
+                GameFilter { }
+
+                HorizontalLayout {
+                    Text {
+                        vertical-alignment: center;
+                        text: "\{State.game-list.games.length} games  |  \{State.game-list.total-size.to-fixed(2)} GiB";
+                    }
                 }
             }
-        }
 
-        if !State.game-list.filter.is-empty: FlexboxLayout {
-            x: 5px;
-            y: 5px;
-            width: parent.width - 10px;
-            spacing: 10px;
-            align-content: start;
+            if State.game-list.filter.is-empty: FlexboxLayout {
+                width: parent.width;
+                align-content: start;
 
-            for game in State.game-list.filtered-games: GameCard {
-                game: game;
+                for game in State.game-list.games: HorizontalLayout {
+                    padding: (game.is-wii && State.config.contents.show-wii) || (!game.is-wii && State.config.contents.show-gc) ? 5px : 0px;
+
+                    if (game.is-wii && State.config.contents.show-wii) || (!game.is-wii && State.config.contents.show-gc): GameCard {
+                        game: game;
+                    }
+                }
+            }
+
+            if !State.game-list.filter.is-empty: FlexboxLayout {
+                padding: 5px;
+                width: parent.width;
+                spacing: 10px;
+                align-content: start;
+
+                for game in State.game-list.filtered-games: GameCard {
+                    game: game;
+                }
             }
         }
     }
