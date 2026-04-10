@@ -75,11 +75,16 @@ fn make_id_map() {
         entries.push((id, ghid, title));
     }
 
-    let mut code = String::from("pub static GAMES: &[GameEntry] = &[");
+    let mut code = String::from("const GAMES: &[GameEntry] = &[");
     for (id, ghid, title) in entries {
+        let ghid_str = match ghid {
+            Some(ghid) => &format!("Some(NonZeroU32::new({}).unwrap())", ghid.get()),
+            None => "None",
+        };
+
         write!(
             code,
-            "GameEntry {{ id: {id:?}, ghid: {ghid:?}, title: {title:?} }},",
+            "GameEntry {{ id: {id:?}, ghid: {ghid_str}, title: {title:?} }},",
         )
         .unwrap();
     }
