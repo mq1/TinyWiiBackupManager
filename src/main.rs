@@ -15,6 +15,8 @@ mod drive_info;
 mod extensions;
 mod game;
 mod game_list;
+mod hbc_app;
+mod hbc_app_list;
 mod id_map;
 mod notification;
 mod results;

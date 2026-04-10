@@ -36,7 +36,7 @@ export component GameCard inherits Card {
             }
 
             Text {
-                text: "\{game.size-gib} GiB";
+                text: "\{game.size-gib.to-fixed(2)} GiB";
                 wrap: no-wrap;
                 horizontal-alignment: right;
             }

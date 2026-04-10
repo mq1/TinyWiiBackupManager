@@ -31,7 +31,7 @@ export component GameRow inherits Rectangle {
     Text {
         x: parent.width - 75px - self.preferred-width - 5px;
         y: 5px;
-        text: "\{game.size-gib} GiB";
+        text: "\{game.size-gib.to-fixed(3)} GiB";
     }
 
     VerticalLine {

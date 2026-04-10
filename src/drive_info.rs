@@ -32,10 +32,10 @@ fn get_usage(path: &Path) -> (f32, f32) {
     let used_bytes = total_bytes.saturating_sub(avail_bytes);
 
     #[allow(clippy::cast_precision_loss)]
-    let used_gib = (used_bytes as f32 / GIB * 100.).round() / 100.;
+    let used_gib = used_bytes as f32 / GIB;
 
     #[allow(clippy::cast_precision_loss)]
-    let total_gib = (total_bytes as f32 / GIB * 100.).round() / 100.;
+    let total_gib = total_bytes as f32 / GIB;
 
     (used_gib, total_gib)
 }

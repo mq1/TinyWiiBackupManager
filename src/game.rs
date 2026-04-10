@@ -36,7 +36,7 @@ impl Game {
         let size = fs_extra::dir::get_size(path).unwrap_or(0);
 
         #[allow(clippy::cast_precision_loss)]
-        let size_gib = (size as f32 / GIB * 100.).round() / 100.;
+        let size_gib = size as f32 / GIB;
 
         let cover_path = data_dir.join("covers").join(format!("{id}.png"));
         let cover = Image::load_from_path(&cover_path).unwrap_or_default();

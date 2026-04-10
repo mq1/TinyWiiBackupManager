@@ -27,7 +27,7 @@ export component AppWindow inherits Window {
     min-width: 800px;
     min-height: 600px;
     background: MyPalette.card-background;
-    title: "TinyWiiBackupManager  ›  " + (State.config.contents.mount-point.is-empty ? "No drive selected" : State.config.contents.mount-point) + "  (" + State.drive-info.used-gib + "/" + State.drive-info.total-gib + " GiB)";
+    title: "TinyWiiBackupManager  ›  \{State.config.contents.mount-point.is-empty ? "No drive selected" : State.config.contents.mount-point}  (\{State.drive-info.used-gib.to-fixed(2)}/\{State.drive-info.total-gib.to-fixed(2)} GiB)";
     default-font-size: 14px;
 
     pure function is-modal-open() -> bool {

@@ -5,11 +5,7 @@ use crate::{Game, GameList, SortBy, game};
 use anyhow::Result;
 use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
 use slint::{ModelRc, VecModel};
-use std::{
-    fs::{self},
-    path::{Path, PathBuf},
-    rc::Rc,
-};
+use std::{fs, path::Path, rc::Rc};
 
 impl GameList {
     #[must_use]
@@ -18,8 +14,8 @@ impl GameList {
         let gc_path = drive_path.join("games");
 
         let mut games = Vec::new();
-        let _ = read_game_dir(wii_path, true, &mut games, data_dir);
-        let _ = read_game_dir(gc_path, false, &mut games, data_dir);
+        let _ = read_game_dir(&wii_path, true, &mut games, data_dir);
+        let _ = read_game_dir(&gc_path, false, &mut games, data_dir);
 
         let mut wii_count = 0;
         let mut wii_size = 0.;
@@ -52,7 +48,7 @@ impl GameList {
 }
 
 fn read_game_dir(
-    game_dir: PathBuf,
+    game_dir: &Path,
     is_wii: bool,
     games: &mut Vec<Game>,
     data_dir: &Path,

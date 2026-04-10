@@ -65,6 +65,28 @@ export struct GameList {
     gc-size: float,
 }
 
+@rust-attr(derive(serde::Deserialize))
+@rust-attr(serde(default, rename_all = "snake_case"))
+export struct HbcAppMeta {
+    name: string,
+    coder: string,
+    version: string,
+    release-date: string,
+    short-description: string,
+    long-description: string,
+}
+
+export struct HbcApp {
+    path: string,
+    size-mib: float,
+    meta: HbcAppMeta,
+}
+
+export struct HbcAppList {
+    apps: [HbcApp],
+    total-size: float,
+}
+
 export struct DiscInfo {
     err: string,
     path: string,
