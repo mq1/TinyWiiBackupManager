@@ -63,8 +63,7 @@ impl QueuedConversion {
 
         let mut queue = Vec::new();
         for (path, _) in entries {
-            let mut flags = ConversionFlags::empty();
-            flags.set(ConversionFlags::IS_FOR_DRIVE, true);
+            let mut flags = ConversionFlags::IS_FOR_DRIVE;
             flags.set(ConversionFlags::IS_FAT32, drive_info.fs_kind == "FAT32");
             flags.set(ConversionFlags::REMOVE_SOURCES, conf.remove_sources_games);
             flags.set(ConversionFlags::SCRUB_UPDATE, conf.scrub_update_partition);
