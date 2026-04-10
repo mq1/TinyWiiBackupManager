@@ -75,20 +75,22 @@ fn make_id_map() {
         entries.push((id, ghid, title));
     }
 
-    let mut code = String::from("const GAMES: &[GameEntry] = unsafe {&[");
+    let mut code = String::from("const GAMES:&[GameEntry]=unsafe{&[");
     for (id, ghid, title) in entries {
-        let ghid_str = match ghid {
-            Some(ghid) => &format!("Some(NonZeroU32::new_unchecked({}))", ghid.get()),
-            None => "None",
-        };
-
-        write!(
-            code,
-            "GameEntry {{ id: {id:?}, ghid: {ghid_str}, title: {title:?} }},",
-        )
-        .unwrap();
+        match ghid {
+            Some(ghid) => {
+                write!(
+                    code,
+                    "GameEntry{{id:{id:?},ghid:Some(NonZeroU32::new_unchecked({ghid})),title:{title:?}}},"
+                )
+                .unwrap();
+            }
+            None => {
+                write!(code, "GameEntry{{id:{id:?},ghid:None,title:{title:?}}},").unwrap();
+            }
+        }
     }
-    code.push_str("]};\n");
+    code.push_str("]};");
 
     let out_path = Path::new(&env::var("OUT_DIR").unwrap()).join("id_map_generated.rs");
     fs::write(out_path, code).unwrap();
