@@ -7,7 +7,7 @@ import { GameGridPage } from "game-grid-page.slint";
 import { SettingsPage } from "settings-page.slint";
 import { AboutPage } from "about-page.slint";
 import { Page } from "types.slint";
-import { State } from "state.slint";
+import { State, InitializeState } from "state.slint";
 import { MyPalette } from "styling.slint";
 import { Rust } from "rust.slint";
 import { VerticalLine } from "components/vertical-line.slint";
@@ -34,14 +34,7 @@ export component AppWindow inherits Window {
         !State.current-game.path.is-empty || State.adding-games.length > 0 || !State.deleting-dir.is-empty
     }
 
-    Timer {
-        interval: 100ms;
-        running: true;
-        triggered() => {
-            Rust.set-window-color(Palette.color-scheme == ColorScheme.dark);
-            self.running = false;
-        }
-    }
+    InitializeState { }
 
     HorizontalLayout {
         Navbar { }

@@ -30,6 +30,9 @@ impl Config {
         let bytes = serde_json::to_vec_pretty(&self.contents)?;
         fs::write(&self.path, &bytes)?;
 
+        #[cfg(debug_assertions)]
+        eprintln!("INFO: Wrote config to {}", self.path);
+
         Ok(())
     }
 

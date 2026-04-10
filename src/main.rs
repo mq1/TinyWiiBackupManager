@@ -32,12 +32,7 @@ mod xp_dialogs;
 use crate::data_dir::get_data_dir;
 use anyhow::{Result, bail};
 use slint::{ComponentHandle, Model, ModelRc, SharedString, ToSharedString, VecModel};
-use std::{
-    fs,
-    path::{Path, PathBuf},
-    process::Command,
-    rc::Rc,
-};
+use std::{fs, path::Path, process::Command, rc::Rc};
 
 slint::include_modules!();
 
@@ -57,10 +52,7 @@ fn restart_with_sw_rendering() -> Result<()> {
 #[allow(clippy::too_many_lines)]
 fn main() -> Result<()> {
     let data_dir = Box::leak(Box::new(get_data_dir()?));
-
     let app = AppWindow::new()?;
-    let config = Config::load(data_dir);
-    let mount_point = PathBuf::from(&config.contents.mount_point);
 
     app.global::<State<'_>>()
         .set_version(env!("CARGO_PKG_VERSION").into());
@@ -68,23 +60,8 @@ fn main() -> Result<()> {
     app.global::<State<'_>>()
         .set_data_dir(data_dir.to_string_lossy().to_shared_string());
 
-    app.global::<State<'_>>().set_game_list(GameList::new(
-        &mount_point,
-        data_dir,
-        config.contents.sort_by,
-    ));
-
-    app.global::<State<'_>>()
-        .set_hbc_app_list(HbcAppList::new(&mount_point, config.contents.sort_by));
-
-    app.global::<State<'_>>().cache_covers();
-
-    app.global::<State<'_>>().set_config(config);
-
-    app.global::<State<'_>>().invoke_apply_theme();
-
-    app.global::<State<'_>>()
-        .set_drive_info(DriveInfo::from_path(&mount_point));
+    app.global::<Rust<'_>>()
+        .on_load_config(|| Config::load(data_dir));
 
     app.global::<Rust<'_>>()
         .on_open(|uri| open::that(&uri).into());
@@ -110,6 +87,9 @@ fn main() -> Result<()> {
 
     app.global::<Rust<'_>>()
         .on_get_game_list(|path, sort_by| GameList::new(Path::new(&path), data_dir, sort_by));
+
+    app.global::<Rust<'_>>()
+        .on_get_hbc_app_list(|path, sort_by| HbcAppList::new(Path::new(&path), sort_by));
 
     app.global::<Rust<'_>>()
         .on_filter_games(|games, query| game_list::fuzzy_search(&games, &query));

@@ -19,9 +19,7 @@ export component ShowWiiGc inherits Card {
 
         CheckBox {
             checked <=> State.config.contents.show-wii;
-            changed checked => {
-                State.write-config();
-            }
+            toggled => State.write-config();
         }
 
         TooltipArea {
@@ -39,9 +37,7 @@ export component ShowWiiGc inherits Card {
 
         CheckBox {
             checked <=> State.config.contents.show-gc;
-            changed checked => {
-                State.write-config();
-            }
+            toggled => State.write-config();
         }
 
         TooltipArea {

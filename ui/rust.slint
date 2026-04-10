@@ -13,15 +13,18 @@ import {
     Notification,
     SortBy,
     HbcApp,
+    HbcAppList,
 } from "types.slint";
 
 export global Rust {
     pure callback open(string) -> EmptyResult;
     pure callback pick-mount-point() -> string;
     pure callback get-drive-info(string) -> DriveInfo;
+    pure callback load-config() -> Config;
     pure callback write-config(Config) -> EmptyResult;
     pure callback delete-dir(string) -> EmptyResult;
     pure callback get-game-list(string, SortBy) -> GameList;
+    pure callback get-hbc-app-list(string, SortBy) -> HbcAppList;
     pure callback filter-games([Game], string) -> [Game];
     pure callback filter-hbc-apps([HbcApp], string) -> [HbcApp];
     pure callback get-disc-info(string) -> DiscInfo;

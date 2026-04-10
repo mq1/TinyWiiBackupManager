@@ -48,6 +48,10 @@ export global State {
         Rust.add-notification(notifications, notification);
     }
 
+    public function load-config() {
+        config = Rust.load-config();
+    }
+
     public function write-config() {
         let res = Rust.write-config(config);
         if !res.err.is-empty {
@@ -63,11 +67,21 @@ export global State {
         }
     }
 
+    public function filter-hbc-apps() {
+        if hbc-app-list.filter.is-empty {
+            hbc-app-list.filtered-apps = [];
+        } else {
+            hbc-app-list.filtered-apps = Rust.filter-hbc-apps(hbc-app-list.apps, hbc-app-list.filter);
+        }
+    }
+
     public function apply-theme() {
         if config.contents.theme-preference == "light" {
             Palette.color-scheme = ColorScheme.light;
+            Rust.set-window-color(false);
         } else if config.contents.theme-preference == "dark" {
             Palette.color-scheme = ColorScheme.dark;
+            Rust.set-window-color(true);
         }
     }
 
@@ -78,8 +92,7 @@ export global State {
     public function refresh-all() {
         drive-info = Rust.get-drive-info(config.contents.mount-point);
         game-list = Rust.get-game-list(config.contents.mount-point, config.contents.sort-by);
-        apply-sorting();
-        filter-games();
+        hbc-app-list = Rust.get-hbc-app-list(config.contents.mount-point, config.contents.sort-by);
         cache-covers();
     }
 
@@ -128,6 +141,20 @@ export global State {
             notify({ text: res.err, critical: true });
         } else {
             start-conversion();
+        }
+    }
+}
+
+export component InitializeState {
+    Timer {
+        interval: 100ms;
+        running: true;
+        triggered => {
+            State.load-config();
+            State.apply-theme();
+            State.refresh-all();
+
+            self.running = false;
         }
     }
 }
