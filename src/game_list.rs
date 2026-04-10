@@ -4,7 +4,7 @@
 use crate::{Game, GameList, SortBy, game};
 use anyhow::Result;
 use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
-use slint::{ModelRc, SharedString, VecModel};
+use slint::{Model, ModelRc, SharedString, VecModel};
 use std::{fs, path::Path, rc::Rc};
 
 impl GameList {
@@ -70,11 +70,11 @@ fn read_game_dir(
     Ok(())
 }
 
-pub fn fuzzy_search<G: IntoIterator<Item = Game>>(games: G, query: &str) -> Vec<Game> {
+pub fn fuzzy_search(games: ModelRc<Game>, query: &str) -> ModelRc<Game> {
     let matcher = SkimMatcherV2::default();
 
     let mut filtered_games = Vec::new();
-    for game in games {
+    for game in games.iter() {
         let title_score = matcher.fuzzy_match(&game.title, query);
         let id_score = matcher.fuzzy_match(&game.id, query);
 
@@ -89,5 +89,8 @@ pub fn fuzzy_search<G: IntoIterator<Item = Game>>(games: G, query: &str) -> Vec<
 
     filtered_games.sort_unstable_by_key(|(_, score)| *score);
 
-    filtered_games.into_iter().map(|(game, _)| game).collect()
+    let filtered_games = filtered_games.into_iter().map(|(game, _)| game);
+    let model = VecModel::from_iter(filtered_games);
+
+    ModelRc::from(Rc::new(model))
 }

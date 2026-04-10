@@ -111,11 +111,8 @@ fn main() -> Result<()> {
     app.global::<Rust<'_>>()
         .on_get_game_list(|path, sort_by| GameList::new(Path::new(&path), data_dir, sort_by));
 
-    app.global::<Rust<'_>>().on_filter_games(|games, query| {
-        let games = game_list::fuzzy_search(games.iter(), &query);
-        let model = VecModel::from(games);
-        ModelRc::from(Rc::new(model))
-    });
+    app.global::<Rust<'_>>()
+        .on_filter_games(|games, query| game_list::fuzzy_search(games, &query));
 
     app.global::<Rust<'_>>()
         .on_get_disc_info(|game_dir| DiscInfo::try_from_game_dir(Path::new(&game_dir)).into());
