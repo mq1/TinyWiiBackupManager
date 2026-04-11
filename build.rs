@@ -41,7 +41,6 @@ fn parse_gamehacking_ids() -> Vec<([u8; 6], NonZeroU32)> {
 
     for i in 0..=70 {
         let filename = format!("assets/gamehacking/GameHacking.org - WII - Page {i}.html");
-        println!("cargo:rerun-if-changed={filename}");
         let contents = fs::read_to_string(filename).unwrap();
 
         for cap in re.captures_iter(&contents) {
@@ -75,8 +74,7 @@ fn make_id_map() {
         entries.push((id, ghid, title));
     }
 
-    let mut code =
-        String::from("#[allow(clippy::unreadable_literal)]\nconst GAMES:&[GameEntry]=unsafe{&[");
+    let mut code = String::from("const GAMES:&[GameEntry]=unsafe{&[");
     for (id, ghid, title) in entries {
         match ghid {
             Some(ghid) => {
@@ -98,6 +96,11 @@ fn make_id_map() {
 }
 
 fn main() {
+    println!("cargo::rerun-if-changed=build.rs");
+    println!("cargo::rerun-if-changed=assets/wiitdb.txt");
+    println!("cargo::rerun-if-changed=assets/gamehacking/**");
+    println!("cargo::rerun-if-changed=ui/**");
+
     make_id_map();
 
     let library = HashMap::from([("lucide".to_string(), PathBuf::from(lucide_slint::lib()))]);
