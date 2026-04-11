@@ -31,6 +31,7 @@ export component ViewAs inherits Card {
             background: get-bg(false, self.has-hover);
             clicked => {
                 State.config.contents.view-as-table = false;
+                State.write-config();
             }
 
             IconDisplay {
@@ -48,6 +49,7 @@ export component ViewAs inherits Card {
             background: get-bg(true, self.has-hover);
             clicked => {
                 State.config.contents.view-as-table = true;
+                State.write-config();
             }
 
             IconDisplay {

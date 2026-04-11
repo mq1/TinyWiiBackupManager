@@ -34,6 +34,7 @@ export component SortGamesAndHbcApps inherits Card {
             clicked => {
                 State.config.contents.sort-by = SortBy.NameAscending;
                 State.apply-sorting();
+                State.write-config();
             }
 
             IconDisplay {
@@ -52,6 +53,7 @@ export component SortGamesAndHbcApps inherits Card {
             clicked => {
                 State.config.contents.sort-by = SortBy.NameDescending;
                 State.apply-sorting();
+                State.write-config();
             }
 
             IconDisplay {
@@ -72,6 +74,7 @@ export component SortGamesAndHbcApps inherits Card {
             clicked => {
                 State.config.contents.sort-by = SortBy.SizeAscending;
                 State.apply-sorting();
+                State.write-config();
             }
 
             IconDisplay {
@@ -90,6 +93,7 @@ export component SortGamesAndHbcApps inherits Card {
             clicked => {
                 State.config.contents.sort-by = SortBy.SizeDescending;
                 State.apply-sorting();
+                State.write-config();
             }
 
             IconDisplay {
