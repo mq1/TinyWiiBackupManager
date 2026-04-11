@@ -19,7 +19,8 @@ import { DeletingDirModal } from "components/deleting-dir-modal.slint";
 import {
     ConfirmConversionModal,
 } from "components/confirm-conversion-modal.slint";
-import { HbcAppsGridPage } from "hbc-apps-grid-page.slint";
+import { HomebrewAppsGridPage } from "homebrew-apps-grid-page.slint";
+import { HomebrewAppInfoModal } from "components/homebrew-app-info-modal.slint";
 
 export * from "types.slint";
 export { State, Rust }
@@ -32,7 +33,7 @@ export component AppWindow inherits Window {
     default-font-size: 14px;
 
     pure function is-modal-open() -> bool {
-        !State.current-game.path.is-empty || State.adding-games.length > 0 || !State.deleting-dir.is-empty
+        !State.current-game.path.is-empty || !State.current-homebrew-app.path.is-empty || State.adding-games.length > 0 || !State.deleting-dir.is-empty
     }
 
     InitializeState { }
@@ -49,7 +50,7 @@ export component AppWindow inherits Window {
 
                 if State.current-page == Page.Games && !State.config.contents.view-as-table: GameGridPage { }
                 if State.current-page == Page.Games && State.config.contents.view-as-table: GameTablePage { }
-                if State.current-page == Page.HbcApps && !State.config.contents.view-as-table: HbcAppsGridPage { }
+                if State.current-page == Page.HomebrewApps && !State.config.contents.view-as-table: HomebrewAppsGridPage { }
                 if State.current-page == Page.Settings: SettingsPage { }
                 if State.current-page == Page.About: AboutPage { }
             }
@@ -83,6 +84,10 @@ export component AppWindow inherits Window {
         background: MyPalette.overlay;
 
         if !State.current-game.path.is-empty: GameInfoModal {
+            x: (root.width - self.width) / 2;
+            y: (root.height - self.height) / 2;
+        }
+        if !State.current-homebrew-app.path.is-empty: HomebrewAppInfoModal {
             x: (root.width - self.width) / 2;
             y: (root.height - self.height) / 2;
         }

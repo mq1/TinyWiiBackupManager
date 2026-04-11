@@ -5,12 +5,12 @@ import { ScrollView } from "std-widgets.slint";
 import { State } from "state.slint";
 import { MyPalette } from "styling.slint";
 import { IconSet, IconDisplay } from "@lucide";
-import { HbcAppsToolbar } from "components/hbc-apps-toolbar.slint";
-import { HbcAppCard } from "components/hbc-app-card.slint";
-import { HbcAppsFilter } from "components/hbc-apps-filter.slint";
+import { HomebrewAppsToolbar } from "components/homebrew-apps-toolbar.slint";
+import { HomebrewAppCard } from "components/homebrew-app-card.slint";
+import { HomebrewAppsFilter } from "components/homebrew-apps-filter.slint";
 
-export component HbcAppsGridPage inherits Rectangle {
-    toolbar := HbcAppsToolbar {
+export component HomebrewAppsGridPage inherits Rectangle {
+    toolbar := HomebrewAppsToolbar {
         x: 10px;
         y: 10px;
         width: parent.width - 20px;
@@ -29,28 +29,28 @@ export component HbcAppsGridPage inherits Rectangle {
                 alignment: space-between;
                 padding-bottom: 10px;
 
-                HbcAppsFilter { }
+                HomebrewAppsFilter { }
 
                 HorizontalLayout {
                     Text {
                         vertical-alignment: center;
-                        text: "\{State.hbc-app-list.apps.length} app\{State.hbc-app-list.apps.length == 1 ? "" : "s"}   ~ \{State.hbc-app-list.total-size.to-fixed(2)} MiB";
+                        text: "\{State.homebrew-app-list.apps.length} app\{State.homebrew-app-list.apps.length == 1 ? "" : "s"}   ~ \{State.homebrew-app-list.total-size.to-fixed(2)} MiB";
                     }
                 }
             }
 
-            if State.hbc-app-list.filter.is-empty: FlexboxLayout {
+            if State.homebrew-app-list.filter.is-empty: FlexboxLayout {
                 spacing: 10px;
 
-                for app in State.hbc-app-list.apps: HbcAppCard {
+                for app in State.homebrew-app-list.apps: HomebrewAppCard {
                     app: app;
                 }
             }
 
-            if !State.hbc-app-list.filter.is-empty: FlexboxLayout {
+            if !State.homebrew-app-list.filter.is-empty: FlexboxLayout {
                 spacing: 10px;
 
-                for app in State.hbc-app-list.filtered-apps: HbcAppCard {
+                for app in State.homebrew-app-list.filtered-apps: HomebrewAppCard {
                     app: app;
                 }
             }

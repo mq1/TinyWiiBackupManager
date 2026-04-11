@@ -2,14 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import { Card } from "card.slint";
-import { HbcApp } from "../types.slint";
+import { HomebrewApp } from "../types.slint";
 import { IconButton } from "icon-button.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { State } from "../state.slint";
 import { MyPalette } from "../styling.slint";
 
-export component HbcAppCard inherits Card {
-    in property <HbcApp> app;
+export component HomebrewAppCard inherits Card {
+    in property <HomebrewApp> app;
 
     width: 171px;
 
@@ -60,6 +60,9 @@ export component HbcAppCard inherits Card {
             IconButton {
                 label: "Info";
                 icon: IconSet.Info;
+                clicked => {
+                    State.current-homebrew-app = app;
+                }
             }
 
             IconButton {

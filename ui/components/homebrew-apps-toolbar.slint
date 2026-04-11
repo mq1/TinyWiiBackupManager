@@ -6,10 +6,10 @@ import { IconButtonKind } from "../types.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { State } from "../state.slint";
 import { ViewAs } from "view-as.slint";
-import { SortGamesAndHbcApps } from "sort-games-and-hbc-apps.slint";
+import { SortGamesAndHomebrewApps } from "sort-games-and-homebrew-apps.slint";
 import { MyPalette } from "../styling.slint";
 
-export component HbcAppsToolbar inherits HorizontalLayout {
+export component HomebrewAppsToolbar inherits HorizontalLayout {
     alignment: space-between;
     height: 38px;
 
@@ -32,7 +32,7 @@ export component HbcAppsToolbar inherits HorizontalLayout {
     HorizontalLayout {
         spacing: 10px;
 
-        SortGamesAndHbcApps { }
+        SortGamesAndHomebrewApps { }
 
         ViewAs { }
 

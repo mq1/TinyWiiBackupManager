@@ -3,7 +3,7 @@
 
 export enum Page {
     Games,
-    HbcApps,
+    HomebrewApps,
     Settings,
     About,
 }
@@ -66,7 +66,7 @@ export struct GameList {
 
 @rust-attr(derive(serde::Deserialize))
 @rust-attr(serde(default, rename_all = "snake_case"))
-export struct HbcAppMeta {
+export struct HomebrewAppMeta {
     name: string,
     coder: string,
     version: string,
@@ -75,17 +75,18 @@ export struct HbcAppMeta {
     long-description: string,
 }
 
-export struct HbcApp {
+export struct HomebrewApp {
     path: string,
+    slug: string,
     size-mib: float,
-    meta: HbcAppMeta,
+    meta: HomebrewAppMeta,
     icon: image,
 }
 
-export struct HbcAppList {
-    apps: [HbcApp],
+export struct HomebrewAppList {
+    apps: [HomebrewApp],
     filter: string,
-    filtered-apps: [HbcApp],
+    filtered-apps: [HomebrewApp],
     total-size: float,
 }
 

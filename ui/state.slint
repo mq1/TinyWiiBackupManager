@@ -11,7 +11,8 @@ import {
     DiscInfo,
     QueuedConversion,
     Notification,
-    HbcAppList,
+    HomebrewAppList,
+    HomebrewApp,
 } from "types.slint";
 import { Rust } from "rust.slint";
 import { MyPalette } from "styling.slint";
@@ -27,7 +28,8 @@ export global State {
     in-out property <Config> config;
     in-out property <DriveInfo> drive-info;
     in-out property <GameList> game-list;
-    in-out property <HbcAppList> hbc-app-list;
+    in-out property <HomebrewAppList> homebrew-app-list;
+    in-out property <HomebrewApp> current-homebrew-app;
     in-out property <string> status: "";
     in-out property <{ text: string, mouse-x: length, mouse-y: length}> tooltip;
     in-out property <[QueuedConversion]> conversion-queue: [];
@@ -67,11 +69,11 @@ export global State {
         }
     }
 
-    public function filter-hbc-apps() {
-        if hbc-app-list.filter.is-empty {
-            hbc-app-list.filtered-apps = [];
+    public function filter-homebrew-apps() {
+        if homebrew-app-list.filter.is-empty {
+            homebrew-app-list.filtered-apps = [];
         } else {
-            hbc-app-list.filtered-apps = Rust.filter-hbc-apps(hbc-app-list.apps, hbc-app-list.filter);
+            homebrew-app-list.filtered-apps = Rust.filter-homebrew-apps(homebrew-app-list.apps, homebrew-app-list.filter);
         }
     }
 
@@ -91,7 +93,7 @@ export global State {
     public function refresh-all() {
         drive-info = Rust.get-drive-info(config.contents.mount-point);
         game-list = Rust.get-game-list(config.contents.mount-point, config.contents.sort-by);
-        hbc-app-list = Rust.get-hbc-app-list(config.contents.mount-point, config.contents.sort-by);
+        homebrew-app-list = Rust.get-homebrew-app-list(config.contents.mount-point, config.contents.sort-by);
         cache-covers();
     }
 

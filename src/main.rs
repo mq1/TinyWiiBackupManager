@@ -15,8 +15,8 @@ mod drive_info;
 mod extensions;
 mod game;
 mod game_list;
-mod hbc_app;
-mod hbc_app_list;
+mod homebrew_app;
+mod homebrew_app_list;
 mod id_map;
 mod notification;
 mod results;
@@ -89,13 +89,13 @@ fn main() -> Result<()> {
         .on_get_game_list(|path, sort_by| GameList::new(Path::new(&path), data_dir, sort_by));
 
     app.global::<Rust<'_>>()
-        .on_get_hbc_app_list(|path, sort_by| HbcAppList::new(Path::new(&path), sort_by));
+        .on_get_homebrew_app_list(|path, sort_by| HomebrewAppList::new(Path::new(&path), sort_by));
 
     app.global::<Rust<'_>>()
         .on_filter_games(|games, query| game_list::fuzzy_search(&games, &query));
 
     app.global::<Rust<'_>>()
-        .on_filter_hbc_apps(|apps, query| hbc_app_list::fuzzy_search(&apps, &query));
+        .on_filter_homebrew_apps(|apps, query| homebrew_app_list::fuzzy_search(&apps, &query));
 
     app.global::<Rust<'_>>()
         .on_get_disc_info(|game_dir| DiscInfo::try_from_game_dir(Path::new(&game_dir)).into());

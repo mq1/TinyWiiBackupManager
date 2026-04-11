@@ -1,13 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{HbcApp, HbcAppList, SortBy, hbc_app};
+use crate::{HomebrewApp, HomebrewAppList, SortBy, homebrew_app};
 use anyhow::Result;
 use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
 use slint::{Model, ModelRc, SharedString, VecModel};
 use std::{fs, path::Path, rc::Rc};
 
-impl HbcAppList {
+impl HomebrewAppList {
     #[must_use]
     pub fn new(drive_path: &Path, sort_by: SortBy) -> Self {
         let apps_path = drive_path.join("apps");
@@ -17,7 +17,7 @@ impl HbcAppList {
 
         let total_size = apps.iter().fold(0., |acc, app| acc + app.size_mib);
 
-        apps.sort_by(hbc_app::get_compare_fn(sort_by));
+        apps.sort_by(homebrew_app::get_compare_fn(sort_by));
         let model = VecModel::from(apps);
 
         Self {
@@ -29,11 +29,11 @@ impl HbcAppList {
     }
 }
 
-fn read_apps_dir(apps_dir: &Path, apps: &mut Vec<HbcApp>) -> Result<()> {
+fn read_apps_dir(apps_dir: &Path, apps: &mut Vec<HomebrewApp>) -> Result<()> {
     let entries = fs::read_dir(apps_dir)?;
     for entry in entries.filter_map(Result::ok) {
         let path = entry.path();
-        if let Some(game) = HbcApp::maybe_from_path(&path) {
+        if let Some(game) = HomebrewApp::maybe_from_path(&path) {
             apps.push(game);
         }
     }
@@ -41,7 +41,7 @@ fn read_apps_dir(apps_dir: &Path, apps: &mut Vec<HbcApp>) -> Result<()> {
     Ok(())
 }
 
-pub fn fuzzy_search(apps: &ModelRc<HbcApp>, query: &str) -> ModelRc<HbcApp> {
+pub fn fuzzy_search(apps: &ModelRc<HomebrewApp>, query: &str) -> ModelRc<HomebrewApp> {
     let matcher = SkimMatcherV2::default();
 
     let mut filtered_apps = Vec::new();

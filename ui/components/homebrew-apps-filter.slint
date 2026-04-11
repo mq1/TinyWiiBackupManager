@@ -8,7 +8,7 @@ import { IconSet, IconDisplay } from "@lucide";
 import { State } from "../state.slint";
 import { MyLineEdit } from "my-line-edit.slint";
 
-export component HbcAppsFilter inherits Card {
+export component HomebrewAppsFilter inherits Card {
     width: 210px;
     height: 38px;
 
@@ -30,9 +30,9 @@ export component HbcAppsFilter inherits Card {
             alignment: center;
 
             MyLineEdit {
-                text <=> State.hbc-app-list.filter;
+                text <=> State.homebrew-app-list.filter;
                 placeholder-text: "Search by Name/Author";
-                changed text => State.filter-hbc-apps();
+                changed text => State.filter-homebrew-apps();
             }
         }
     }

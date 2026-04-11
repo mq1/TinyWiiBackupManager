@@ -9,7 +9,7 @@ import { MyPalette } from "../styling.slint";
 import { VerticalLine } from "vertical-line.slint";
 import { SortBy } from "../types.slint";
 
-export component SortGamesAndHbcApps inherits Card {
+export component SortGamesAndHomebrewApps inherits Card {
     pure function get-bg(sort-by: SortBy, hovered: bool) -> color {
         if State.config.contents.sort-by == sort-by {
             MyPalette.selection-background

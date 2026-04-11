@@ -40,7 +40,6 @@ export component GameInfoModal inherits Card {
 
         if !State.current-disc-info.err.is-empty: HorizontalLayout {
             spacing: 5px;
-            padding: 20px;
             alignment: center;
 
             IconDisplay {
@@ -57,10 +56,11 @@ export component GameInfoModal inherits Card {
         if State.current-disc-info.err.is-empty: HorizontalLayout {
             alignment: space-between;
             padding-right: 10px;
+            padding-left: 20px;
 
             VerticalLayout {
                 spacing: 5px;
-                padding: 20px;
+                alignment: center;
 
                 HorizontalLayout {
                     spacing: 5px;
@@ -189,15 +189,17 @@ export component GameInfoModal inherits Card {
                 }
             }
 
-            Image {
-                source: State.current-game.cover;
-                height: 200px;
+            VerticalLayout {
+                alignment: center;
+
+                Image {
+                    source: State.current-game.cover;
+                    height: 200px;
+                }
             }
         }
 
-        VerticalLayout {
-            padding-top: 10px;
-        }
+        VerticalLayout { }
     }
 
     toolbar := VerticalLayout {

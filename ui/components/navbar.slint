@@ -23,12 +23,12 @@ export component Navbar inherits VerticalLayout {
         }
 
         NavbarButton {
-            active: State.current-page == Page.HbcApps;
+            active: State.current-page == Page.HomebrewApps;
             icon: IconSet.Waves;
             icon2: IconSet.Bubbles;
             tooltip: "Homebrew apps";
             clicked => {
-                State.current-page = Page.HbcApps;
+                State.current-page = Page.HomebrewApps;
             }
         }
 
