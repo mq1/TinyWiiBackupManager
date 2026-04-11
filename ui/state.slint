@@ -78,11 +78,10 @@ export global State {
     public function apply-theme() {
         if config.contents.theme-preference == "light" {
             Palette.color-scheme = ColorScheme.light;
-            Rust.set-window-color(false);
         } else if config.contents.theme-preference == "dark" {
             Palette.color-scheme = ColorScheme.dark;
-            Rust.set-window-color(true);
         }
+        Rust.set-window-color(Palette.color-scheme == ColorScheme.dark);
     }
 
     public function apply-sorting() {
