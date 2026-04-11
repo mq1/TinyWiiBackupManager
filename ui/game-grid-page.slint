@@ -35,7 +35,7 @@ export component GameGridPage inherits Rectangle {
                 HorizontalLayout {
                     Text {
                         vertical-alignment: center;
-                        text: "\{State.game-list.games.length} games  |  \{State.game-list.total-size.to-fixed(2)} GiB";
+                        text: "\{State.game-list.games.length} game\{State.game-list.games.length == 1 ? "" : "s"}   ~ \{State.game-list.total-size.to-fixed(2)} GiB";
                     }
                 }
             }

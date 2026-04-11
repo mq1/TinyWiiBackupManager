@@ -18,8 +18,8 @@ export component HbcAppsGridPage inherits Rectangle {
 
     ScrollView {
         x: 0px;
-        y: toolbar.height + 20px;
-        height: parent.height - toolbar.height - 20px;
+        y: toolbar.height + 10px;
+        height: parent.height - toolbar.height - 10px;
         width: parent.width;
 
         VerticalLayout {
@@ -27,13 +27,14 @@ export component HbcAppsGridPage inherits Rectangle {
 
             HorizontalLayout {
                 alignment: space-between;
+                padding-bottom: 10px;
 
                 HbcAppsFilter { }
 
                 HorizontalLayout {
                     Text {
                         vertical-alignment: center;
-                        text: "\{State.hbc-app-list.apps.length} apps  |  \{State.hbc-app-list.total-size.to-fixed(2)} MiB";
+                        text: "\{State.hbc-app-list.apps.length} app\{State.hbc-app-list.apps.length == 1 ? "" : "s"}   ~ \{State.hbc-app-list.total-size.to-fixed(2)} MiB";
                     }
                 }
             }
