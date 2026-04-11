@@ -21,7 +21,6 @@ dependencies = [
  "open",
  "quick-xml 0.39.2",
  "raw-window-handle",
- "regex",
  "rfd",
  "sanitize-filename",
  "serde",

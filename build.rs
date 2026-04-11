@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use regex::Regex;
 use std::num::NonZeroU32;
 use std::path::Path;
 use std::{collections::HashMap, env, fmt::Write, fs, path::PathBuf};
@@ -36,25 +35,24 @@ fn parse_titles_txt() -> Vec<([u8; 6], String)> {
 fn parse_gamehacking_ids() -> Vec<([u8; 6], NonZeroU32)> {
     let mut id_map = Vec::new();
 
-    let re =
-        Regex::new(r#"(?s)href="/game/(\d+)"[^>]*>.*?<td[^>]*>\s*([A-Z0-9]+)\s*</td>"#).unwrap();
-
     for i in 0..=70 {
         let filename = format!("assets/gamehacking/GameHacking.org - WII - Page {i}.html");
         let contents = fs::read_to_string(filename).unwrap();
 
-        for cap in re.captures_iter(&contents) {
-            if cap[1].is_empty() || cap[2].is_empty() {
-                continue;
+        let mut pos = 0;
+        while let Some(match_start) = contents[pos..].find("<a href=\"game/") {
+            let ghid_start = match_start + 15;
+            let ghid_end = contents[ghid_start..].find('"').unwrap();
+            pos = contents[ghid_end..].find("<td").unwrap();
+            let gameid_start = contents[pos..].find('>').unwrap() + 1;
+            pos = contents[gameid_start..].find("</td>").unwrap();
+
+            let gameid = &contents[gameid_start..pos];
+            if matches!(gameid.len(), 4 | 6)
+                && let Ok(ghid) = contents[ghid_start..ghid_end].parse()
+            {
+                id_map.push((parse_gameid(gameid), NonZeroU32::new(ghid).unwrap()));
             }
-
-            let gameid = parse_gameid(&cap[2]);
-            let ghid = cap[1].parse::<u32>().unwrap();
-            let Some(ghid) = NonZeroU32::new(ghid) else {
-                continue;
-            };
-
-            id_map.push((gameid, ghid));
         }
     }
 
