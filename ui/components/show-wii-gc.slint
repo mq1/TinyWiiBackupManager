@@ -18,8 +18,11 @@ export component ShowWiiGc inherits Card {
         spacing: 5px;
 
         CheckBox {
-            checked <=> State.config.contents.show-wii;
-            toggled => State.write-config();
+            checked: State.config.contents.show-wii;
+            toggled => {
+                State.config.contents.show-wii = self.checked;
+                State.write-config();
+            }
         }
 
         TooltipArea {
@@ -36,8 +39,11 @@ export component ShowWiiGc inherits Card {
         VerticalLine { }
 
         CheckBox {
-            checked <=> State.config.contents.show-gc;
-            toggled => State.write-config();
+            checked: State.config.contents.show-gc;
+            toggled => {
+                State.config.contents.show-gc = self.checked;
+                State.write-config();
+            }
         }
 
         TooltipArea {
