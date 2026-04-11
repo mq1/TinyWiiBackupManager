@@ -19,7 +19,7 @@ export component HomebrewAppInfoModal inherits Card {
         x: 0px;
         y: 0px;
         height: parent.height - toolbar.height;
-        alignment: space-between;
+        alignment: start;
 
         VerticalLayout {
             padding: 20px;
@@ -40,11 +40,12 @@ export component HomebrewAppInfoModal inherits Card {
 
         HorizontalLayout {
             alignment: space-between;
+            padding-right: 20px;
 
             VerticalLayout {
                 spacing: 5px;
                 padding: 20px;
-                alignment: center;
+                alignment: start;
 
                 HorizontalLayout {
                     spacing: 5px;
@@ -109,7 +110,7 @@ export component HomebrewAppInfoModal inherits Card {
 
                 ScrollView {
                     preferred-width: v.preferred-width;
-                    height: 100px;
+                    height: v.preferred-height;
 
                     v := VerticalLayout {
                         Text {
@@ -120,14 +121,9 @@ export component HomebrewAppInfoModal inherits Card {
                 }
             }
 
-            VerticalLayout {
-                padding: 20px;
-                alignment: center;
-
-                Image {
-                    source: State.current-homebrew-app.icon;
-                    height: 96px;
-                }
+            Image {
+                source: State.current-homebrew-app.icon;
+                height: 96px;
             }
         }
 
