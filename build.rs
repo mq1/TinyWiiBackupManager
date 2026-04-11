@@ -39,18 +39,22 @@ fn parse_gamehacking_ids() -> Vec<([u8; 6], NonZeroU32)> {
         let filename = format!("assets/gamehacking/GameHacking.org - WII - Page {i}.html");
         let contents = fs::read_to_string(filename).unwrap();
 
-        let mut pos = 0;
-        while let Some(match_start) = contents[pos..].find("<a href=\"game/") {
-            let ghid_start = match_start + 15;
-            let ghid_end = contents[ghid_start..].find('"').unwrap();
-            pos = contents[ghid_end..].find("<td").unwrap();
-            let gameid_start = contents[pos..].find('>').unwrap() + 1;
-            pos = contents[gameid_start..].find("</td>").unwrap();
+        let matches = contents.match_indices("<a href=\"game/");
+        for (i, _) in matches {
+            let window = &contents[i..];
 
-            let gameid = &contents[gameid_start..pos];
-            if matches!(gameid.len(), 4 | 6)
-                && let Ok(ghid) = contents[ghid_start..ghid_end].parse()
-            {
+            let ghid_start = 15;
+            let ghid_end = window.find("\">").unwrap();
+
+            let Ok(ghid) = window[ghid_start..ghid_end].parse() else {
+                continue;
+            };
+
+            let (gameid_start, _) = window.match_indices("\">").nth(2).unwrap();
+            let (gameid_end, _) = window.match_indices("</td>").nth(2).unwrap();
+            let gameid = &window[gameid_start + 1..gameid_end];
+
+            if matches!(gameid.len(), 4 | 6) {
                 id_map.push((parse_gameid(gameid), NonZeroU32::new(ghid).unwrap()));
             }
         }
