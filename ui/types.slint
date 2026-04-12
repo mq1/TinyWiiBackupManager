@@ -110,13 +110,15 @@ export struct EmptyResult {
 }
 
 export struct QueuedConversion {
-    game_title: string,
-    game_id: string,
     in-path: string,
     out-path: string,
     wii-output-format: string,
     gc-output-format: string,
     flags: int,
+    game-title: string,
+    game-id: string,
+    is-wii: bool,
+    disc-number: int,
 }
 
 export struct DriveInfo {

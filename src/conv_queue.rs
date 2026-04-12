@@ -8,24 +8,20 @@ use crate::{
 use anyhow::Result;
 use slint::{SharedString, ToSharedString, Weak};
 use std::{
+    ffi::OsStr,
     fs::File,
     path::{Path, PathBuf},
 };
+use zip::ZipArchive;
 
 impl QueuedConversion {
     pub fn run(&self, weak: Weak<State<'static>>) {
-        let mut conv = match <Conversion>::try_from(self) {
-            Ok(conv) => conv,
-            Err(e) => {
-                weak.upgrade().unwrap().push_notification(e.into());
-                return;
-            }
-        };
+        let mut conv = Conversion::new(self, weak.clone());
 
         weak.upgrade().unwrap().set_is_converting(true);
 
         let _ = std::thread::spawn(move || {
-            let res = conv.perform(&weak);
+            let res = conv.perform();
 
             let _ = weak.upgrade_in_event_loop(|state| {
                 state.set_is_converting(false);
@@ -53,7 +49,19 @@ impl QueuedConversion {
             .into_iter()
             .filter_map(|p| {
                 let mut f = File::open(&p).ok()?;
-                let meta = wii_disc_info::Meta::read(&mut f).ok()?;
+
+                let meta = if p
+                    .extension()
+                    .and_then(OsStr::to_str)
+                    .is_some_and(|ext| ext.eq_ignore_ascii_case("zip"))
+                {
+                    let mut archive = ZipArchive::new(&mut f).ok()?;
+                    let mut disc = archive.by_index(0).ok()?;
+                    wii_disc_info::Meta::read(&mut disc).ok()?
+                } else {
+                    wii_disc_info::Meta::read(&mut f).ok()?
+                };
+
                 Some((p, meta))
             })
             .collect::<Vec<_>>();
@@ -64,14 +72,28 @@ impl QueuedConversion {
         let mut queue = Vec::new();
         for (path, meta) in entries {
             let mut flags = ConversionFlags::IS_FOR_DRIVE;
-            flags.set(ConversionFlags::IS_FAT32, drive_info.fs_kind == "FAT32");
-            flags.set(ConversionFlags::REMOVE_SOURCES, conf.remove_sources_games);
-            flags.set(ConversionFlags::SCRUB_UPDATE, conf.scrub_update_partition);
-            flags.set(ConversionFlags::ALWAYS_SPLIT, conf.always_split);
+
+            if drive_info.fs_kind == "FAT32" {
+                flags |= ConversionFlags::IS_FAT32;
+            }
+
+            if conf.remove_sources_games {
+                flags |= ConversionFlags::REMOVE_SOURCES;
+            }
+
+            if conf.scrub_update_partition {
+                flags |= ConversionFlags::SCRUB_UPDATE;
+            }
+
+            if conf.always_split {
+                flags |= ConversionFlags::ALWAYS_SPLIT;
+            }
 
             queue.push(QueuedConversion {
                 game_title: meta.game_title().to_shared_string(),
                 game_id: meta.game_id().to_shared_string(),
+                disc_number: meta.disc_number() as i32,
+                is_wii: meta.is_wii(),
                 in_path: path.to_string_lossy().to_shared_string(),
                 out_path: conf.mount_point.clone(),
                 wii_output_format: conf.wii_output_format.clone(),
@@ -87,11 +109,41 @@ impl QueuedConversion {
         let conv = QueuedConversion {
             game_title: game.title.clone(),
             game_id: game.id.clone(),
+            disc_number: 0, // doesn't matter
+            is_wii: game.is_wii,
             in_path: game.get_disc_path()?.to_string_lossy().to_shared_string(),
             out_path: out_path.to_string_lossy().to_shared_string(),
             wii_output_format: "iso".to_shared_string(),
             gc_output_format: "iso".to_shared_string(),
             flags: 0,
+        };
+
+        Ok(conv)
+    }
+
+    pub fn new_scrub(game: &Game, conf: &ConfigContents, drive_info: &DriveInfo) -> Result<Self> {
+        let mut flags = ConversionFlags::IS_FOR_DRIVE
+            | ConversionFlags::SCRUB_UPDATE
+            | ConversionFlags::IS_SCRUB_OPERATION;
+
+        if drive_info.fs_kind == "FAT32" {
+            flags |= ConversionFlags::IS_FAT32;
+        }
+
+        if conf.always_split {
+            flags |= ConversionFlags::ALWAYS_SPLIT;
+        }
+
+        let conv = QueuedConversion {
+            game_title: game.title.clone(),
+            game_id: game.id.clone(),
+            disc_number: 0, // doesn't matter
+            is_wii: game.is_wii,
+            in_path: game.get_disc_path()?.to_string_lossy().to_shared_string(),
+            out_path: conf.mount_point.clone(),
+            wii_output_format: "wbfs".to_shared_string(),
+            gc_output_format: "iso".to_shared_string(),
+            flags: flags.bits(),
         };
 
         Ok(conv)

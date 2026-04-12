@@ -37,6 +37,7 @@ bitflags! {
         const REMOVE_SOURCES = 1 << 2;
         const SCRUB_UPDATE = 1 << 3;
         const ALWAYS_SPLIT = 1 << 4;
+        const IS_SCRUB_OPERATION = 1 << 5;
     }
 }
 
@@ -46,71 +47,51 @@ pub struct Conversion {
     wii_output_format: Format,
     gc_output_format: Format,
     flags: ConversionFlags,
+    is_wii: bool,
+    game_id: String,
+    game_title: String,
+    disc_number: i32,
+    files_to_remove: Vec<PathBuf>,
+    weak: Weak<State<'static>>,
 }
 
-impl TryFrom<&QueuedConversion> for Conversion {
-    type Error = anyhow::Error;
-
-    fn try_from(q: &QueuedConversion) -> Result<Self, Self::Error> {
+impl Conversion {
+    pub fn new(q: &QueuedConversion, weak: Weak<State<'static>>) -> Self {
         let in_path = PathBuf::from(&q.in_path);
         let out_path = PathBuf::from(&q.out_path);
-        let wii_output_format =
-            str_to_format(&q.wii_output_format).ok_or(anyhow!("Invalid output format"))?;
-        let gc_output_format =
-            str_to_format(&q.gc_output_format).ok_or(anyhow!("Invalid output format"))?;
-        let flags =
-            ConversionFlags::from_bits(q.flags).ok_or(anyhow!("Invalid conversion flags"))?;
+        let wii_output_format = str_to_format(&q.wii_output_format).unwrap_or(Format::Wbfs);
+        let gc_output_format = str_to_format(&q.gc_output_format).unwrap_or(Format::Iso);
+        let flags = ConversionFlags::from_bits(q.flags).unwrap();
 
-        Ok(Self {
+        let is_wii = q.is_wii;
+        let game_id = q.game_id.to_string();
+        let game_title = q.game_title.to_string();
+        let disc_number = q.disc_number;
+
+        let mut files_to_remove = Vec::new();
+        if flags.contains(ConversionFlags::IS_FOR_DRIVE)
+            && flags.contains(ConversionFlags::REMOVE_SOURCES)
+        {
+            files_to_remove.push(in_path.clone());
+        }
+
+        Self {
             in_path,
             out_path,
             wii_output_format,
             gc_output_format,
             flags,
-        })
+            is_wii,
+            game_id,
+            game_title,
+            disc_number,
+            files_to_remove,
+            weak,
+        }
     }
-}
 
-impl Conversion {
-    #[allow(clippy::too_many_lines)]
-    pub fn perform(&mut self, weak: &Weak<State<'static>>) -> Result<()> {
-        let mut files_to_remove = Vec::new();
-        if self
-            .flags
-            .contains(ConversionFlags::IS_FOR_DRIVE | ConversionFlags::REMOVE_SOURCES)
-        {
-            files_to_remove.push(self.in_path.clone());
-        }
-
-        if self
-            .in_path
-            .extension()
-            .is_some_and(|ext| ext.eq_ignore_ascii_case("zip"))
-        {
-            let status = format!("Unzipping {}", self.in_path.display());
-            let _ = weak.upgrade_in_event_loop(move |state| {
-                state.set_status(status.to_shared_string());
-            });
-
-            let file = File::open(&self.in_path)?;
-            let reader = BufReader::new(file);
-            let mut archive = ZipArchive::new(reader)?;
-            let mut archived_disc = archive.by_index(0)?;
-
-            let Some(parent) = self.in_path.parent() else {
-                bail!("No parent dir found");
-            };
-
-            let new_in_path = parent.join(archived_disc.name());
-            if !new_in_path.exists() {
-                let mut out = File::create(&new_in_path)?;
-                io::copy(&mut archived_disc, &mut out)?;
-                out.flush()?;
-                files_to_remove.push(new_in_path.clone());
-            }
-
-            self.in_path = new_in_path;
-        }
+    pub fn perform(&mut self) -> Result<()> {
+        self.unzip()?;
 
         let (processor_threads, preloader_threads) = get_threads_num();
 
@@ -119,44 +100,46 @@ impl Conversion {
             preloader_threads,
         };
 
-        let meta = {
-            let file = File::open(&self.in_path)?;
-            let mut reader = BufReader::new(file);
-            wii_disc_info::Meta::read(&mut reader)?
-        };
-
-        let must_split = meta.is_wii()
+        let must_split = self.is_wii
             && self.flags.contains(ConversionFlags::IS_FOR_DRIVE)
-            && self
-                .flags
-                .intersects(ConversionFlags::ALWAYS_SPLIT | ConversionFlags::IS_FAT32);
+            && (self.flags.contains(ConversionFlags::ALWAYS_SPLIT)
+                || self.flags.contains(ConversionFlags::IS_FAT32));
 
         // if we're converting a game for the wii, create the parent dir
         // we know we're converting for the wii as in-path is the mount point (a directory)
         let (parent, get_file_name, out_format) =
             if self.flags.contains(ConversionFlags::IS_FOR_DRIVE) {
-                let display_title =
-                    id_map::get(meta.game_id()).map_or(meta.game_title(), |e| e.title);
+                let display_title: &str =
+                    id_map::get(&self.game_id).map_or(&self.game_title, |e| e.title);
                 let sanitized_title = util::sanitize(display_title);
+
+                let scrub_suffix = if self.flags.contains(ConversionFlags::IS_SCRUB_OPERATION) {
+                    " SCRUB"
+                } else {
+                    ""
+                };
 
                 let parent = self
                     .out_path
-                    .join(if meta.is_wii() { "wbfs" } else { "games" })
-                    .join(format!("{} [{}]", sanitized_title, meta.game_id()));
+                    .join(if self.is_wii { "wbfs" } else { "games" })
+                    .join(format!(
+                        "{} [{}]{}",
+                        sanitized_title, &self.game_id, scrub_suffix
+                    ));
 
                 fs::create_dir_all(&parent)?;
 
-                if meta.is_wii() {
+                if self.is_wii {
                     let f: Box<dyn Fn(usize) -> String> = match self.wii_output_format {
                         Format::Wbfs => Box::new(|i| match i {
-                            0 => format!("{}.wbfs", meta.game_id()),
-                            n => format!("{}.wbf{n}", meta.game_id()),
+                            0 => format!("{}.wbfs", &self.game_id),
+                            n => format!("{}.wbf{n}", &self.game_id),
                         }),
                         Format::Iso => {
                             if must_split {
-                                Box::new(|i| format!("{}.part{}.iso", meta.game_id(), i))
+                                Box::new(|i| format!("{}.part{}.iso", &self.game_id, i))
                             } else {
-                                Box::new(|_| format!("{}.iso", meta.game_id()))
+                                Box::new(|_| format!("{}.iso", &self.game_id))
                             }
                         }
                         _ => {
@@ -167,11 +150,11 @@ impl Conversion {
                     (parent, f, self.wii_output_format)
                 } else {
                     let f: Box<dyn Fn(usize) -> String> = match self.gc_output_format {
-                        Format::Iso => match meta.disc_number() {
+                        Format::Iso => match self.disc_number {
                             0 => Box::new(|_| "game.iso".to_string()),
                             n => Box::new(move |_| format!("disc{}.iso", n + 1)),
                         },
-                        Format::Ciso => match meta.disc_number() {
+                        Format::Ciso => match self.disc_number {
                             0 => Box::new(|_| "game.ciso".to_string()),
                             n => Box::new(move |_| format!("disc{}.ciso", n + 1)),
                         },
@@ -220,11 +203,11 @@ impl Conversion {
 
         let split_size = if must_split { Some(SPLIT_SIZE) } else { None };
 
-        let hash_path = parent.join(format!("{}.crc32", meta.game_id()));
+        let hash_path = parent.join(format!("{}.crc32", &self.game_id));
 
         let mut out_writer = BufWriter::with_capacity(
             32_768,
-            SplitWriter::create(parent, get_file_name, split_size)?,
+            SplitWriter::create(&parent, get_file_name, split_size)?,
         );
 
         let disc_reader = DiscReader::new(&self.in_path, &disc_opts)?;
@@ -258,10 +241,9 @@ impl Conversion {
 
                     let status = format!(
                         "⤒  Converting {}  {:02}%",
-                        meta.game_title(),
-                        current_percentage
+                        &self.game_title, current_percentage
                     );
-                    let _ = weak.upgrade_in_event_loop(move |state| {
+                    let _ = self.weak.upgrade_in_event_loop(move |state| {
                         state.set_status(status.to_shared_string());
                     });
                 }
@@ -293,9 +275,63 @@ impl Conversion {
             fs::write(hash_path, format!("{checksum:08x}"))?;
         }
 
-        for path in files_to_remove {
+        for path in &self.files_to_remove {
             let _ = fs::remove_file(path);
         }
+
+        // If we're in a scrub operation, remove the original directory and rename the new one
+        if self.flags.contains(ConversionFlags::IS_SCRUB_OPERATION)
+            && let Some(og_parent) = self.in_path.parent()
+        {
+            fs::remove_dir_all(og_parent)?;
+
+            let new_dirname = parent
+                .file_name()
+                .and_then(OsStr::to_str)
+                .ok_or(anyhow!("Invalid filename"))?
+                .trim_end_matches(" SCRUB");
+
+            let new_dir_path = parent.with_file_name(new_dirname);
+
+            fs::rename(parent, new_dir_path)?;
+        }
+
+        Ok(())
+    }
+
+    fn unzip(&mut self) -> Result<()> {
+        let is_zip = self
+            .in_path
+            .extension()
+            .is_some_and(|ext| ext.eq_ignore_ascii_case("zip"));
+
+        if !is_zip {
+            return Ok(());
+        }
+
+        let status = format!("Unzipping {}", self.in_path.display());
+        let _ = self.weak.upgrade_in_event_loop(move |state| {
+            state.set_status(status.to_shared_string());
+        });
+
+        let file = File::open(&self.in_path)?;
+        let reader = BufReader::new(file);
+        let mut archive = ZipArchive::new(reader)?;
+        let mut archived_disc = archive.by_index(0)?;
+
+        let Some(parent) = self.in_path.parent() else {
+            bail!("No parent dir found");
+        };
+
+        let new_in_path = parent.join(archived_disc.name());
+        if !new_in_path.exists() {
+            let mut out = File::create(&new_in_path)?;
+            io::copy(&mut archived_disc, &mut out)?;
+            out.flush()?;
+            self.files_to_remove.push(new_in_path.clone());
+        }
+
+        self.in_path = new_in_path;
 
         Ok(())
     }
