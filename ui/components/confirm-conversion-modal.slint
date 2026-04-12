@@ -29,7 +29,8 @@ export component ConfirmConversionModal inherits Card {
             }
 
             for game in State.adding-games: Text {
-                text: "• \{game.in-path}";
+                text: "• \{game.game-title} [\{game.game-id}]";
+                overflow: elide;
             }
         }
     }

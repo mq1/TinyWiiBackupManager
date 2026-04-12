@@ -62,7 +62,7 @@ impl QueuedConversion {
         entries.retain(|(_, meta)| existing_ids.iter().all(|id| id != meta.game_id()));
 
         let mut queue = Vec::new();
-        for (path, _) in entries {
+        for (path, meta) in entries {
             let mut flags = ConversionFlags::IS_FOR_DRIVE;
             flags.set(ConversionFlags::IS_FAT32, drive_info.fs_kind == "FAT32");
             flags.set(ConversionFlags::REMOVE_SOURCES, conf.remove_sources_games);
@@ -70,6 +70,8 @@ impl QueuedConversion {
             flags.set(ConversionFlags::ALWAYS_SPLIT, conf.always_split);
 
             queue.push(QueuedConversion {
+                game_title: meta.game_title().to_shared_string(),
+                game_id: meta.game_id().to_shared_string(),
                 in_path: path.to_string_lossy().to_shared_string(),
                 out_path: conf.mount_point.clone(),
                 wii_output_format: conf.wii_output_format.clone(),
@@ -83,6 +85,8 @@ impl QueuedConversion {
 
     pub fn new_archive(game: &Game, out_path: &Path) -> Result<Self> {
         let conv = QueuedConversion {
+            game_title: game.title.clone(),
+            game_id: game.id.clone(),
             in_path: game.get_disc_path()?.to_string_lossy().to_shared_string(),
             out_path: out_path.to_string_lossy().to_shared_string(),
             wii_output_format: "iso".to_shared_string(),
