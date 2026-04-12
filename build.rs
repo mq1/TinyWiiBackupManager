@@ -33,30 +33,30 @@ fn parse_titles_txt() -> Vec<([u8; 6], String)> {
 }
 
 fn parse_gamehacking_ids() -> Vec<([u8; 6], NonZeroU32)> {
+    const GHID_ANCHOR: &str = "href=\"/game/";
+    const GAMEID_ANCHOR: &str = "<td class=\"text-center\">";
+
     let mut id_map = Vec::new();
 
     for i in 0..=70 {
         let filename = format!("assets/gamehacking/GameHacking.org - WII - Page {i}.html");
-        let contents = fs::read_to_string(filename).unwrap();
+        let content = fs::read_to_string(&filename).unwrap();
 
-        let matches = contents.match_indices("<a href=\"game/");
-        for (i, _) in matches {
-            let window = &contents[i..];
+        let mut current_slice = &content[..];
+        while let Some(ghid_pos) = current_slice.find(GHID_ANCHOR) {
+            current_slice = &current_slice[ghid_pos + GHID_ANCHOR.len()..];
 
-            let ghid_start = 15;
-            let ghid_end = window.find("\">").unwrap();
+            let quote_pos = current_slice.find('"').unwrap();
+            let ghid_str = &current_slice[..quote_pos];
+            let ghid = ghid_str.parse::<u32>().unwrap();
 
-            let Ok(ghid) = window[ghid_start..ghid_end].parse() else {
-                continue;
-            };
+            let gameid_pos = current_slice.find(GAMEID_ANCHOR).unwrap();
+            current_slice = &current_slice[gameid_pos + GAMEID_ANCHOR.len()..];
+            let td_close_pos = current_slice.find('<').unwrap();
+            let gameid_str = current_slice[..td_close_pos].trim();
+            let gameid = parse_gameid(gameid_str);
 
-            let (gameid_start, _) = window.match_indices("\">").nth(2).unwrap();
-            let (gameid_end, _) = window.match_indices("</td>").nth(2).unwrap();
-            let gameid = &window[gameid_start + 1..gameid_end];
-
-            if matches!(gameid.len(), 4 | 6) {
-                id_map.push((parse_gameid(gameid), NonZeroU32::new(ghid).unwrap()));
-            }
+            id_map.push((gameid, NonZeroU32::new(ghid).unwrap()));
         }
     }
 
