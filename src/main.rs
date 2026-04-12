@@ -192,6 +192,27 @@ fn main() -> Result<()> {
             result
         });
 
+    app.global::<Rust<'_>>()
+        .on_scrub_game(move |queue, game, conf, drive_info| {
+            let mut result = EmptyResult::default();
+
+            let conv = match QueuedConversion::new_scrub(&game, &conf, &drive_info) {
+                Ok(conv) => conv,
+                Err(e) => {
+                    result.err = e.to_shared_string();
+                    return result;
+                }
+            };
+
+            let model = queue
+                .as_any()
+                .downcast_ref::<VecModel<QueuedConversion>>()
+                .unwrap();
+
+            model.push(conv);
+            result
+        });
+
     #[cfg(windows)]
     {
         let weak = app.as_weak();

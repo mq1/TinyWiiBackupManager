@@ -22,6 +22,7 @@ export global State {
     in property <string> version;
     in-out property <Page> current-page;
     in-out property <Game> current-game;
+    in-out property <Game> scrubbing-game;
     in-out property <string> current-game-crc32: "";
     in-out property <DiscInfo> current-disc-info;
     in-out property <string> data-dir;
@@ -112,7 +113,6 @@ export global State {
             notify({ text: res.err, critical: true });
         }
         refresh-all();
-        deleting-dir = "";
     }
 
     public function open-game-info(game: Game) {
@@ -138,6 +138,15 @@ export global State {
 
     public function archive-game(game: Game) {
         let res = Rust.archive-game(conversion-queue, game);
+        if !res.err.is-empty {
+            notify({ text: res.err, critical: true });
+        } else {
+            start-conversion();
+        }
+    }
+
+    public function scrub-game() {
+        let res = Rust.scrub-game(conversion-queue, scrubbing-game, config.contents, drive-info);
         if !res.err.is-empty {
             notify({ text: res.err, critical: true });
         } else {

@@ -36,5 +36,5 @@ export global Rust {
     pure callback add-to-queue([QueuedConversion], [QueuedConversion]);
     pure callback archive-game([QueuedConversion], Game) -> EmptyResult;
     pure callback set-window-color(bool);
-    pure callback scrub-game([QueuedConversion], Game) -> EmptyResult;
+    pure callback scrub-game([QueuedConversion], Game, ConfigContents, DriveInfo) -> EmptyResult;
 }

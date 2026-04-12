@@ -230,6 +230,9 @@ export component GameInfoModal inherits Card {
                     label: "Scrub";
                     tooltip: "Remove update partition to save space";
                     icon: IconSet.Shredder;
+                    clicked => {
+                        State.scrubbing-game = State.current-game;
+                    }
                 }
 
                 if State.current-disc-info.err.is-empty: IconButton {
