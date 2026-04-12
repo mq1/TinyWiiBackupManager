@@ -54,6 +54,9 @@ fn parse_gamehacking_ids() -> Vec<([u8; 6], NonZeroU32)> {
             current_slice = &current_slice[gameid_pos + GAMEID_ANCHOR.len()..];
             let td_close_pos = current_slice.find('<').unwrap();
             let gameid_str = current_slice[..td_close_pos].trim();
+            if !matches!(gameid_str.len(), 4 | 6) {
+                continue;
+            }
             let gameid = parse_gameid(gameid_str);
 
             id_map.push((gameid, NonZeroU32::new(ghid).unwrap()));
