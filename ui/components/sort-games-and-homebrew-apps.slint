@@ -6,12 +6,11 @@ import { IconDisplay, IconSet } from "@lucide";
 import { TooltipArea } from "tooltip-area.slint";
 import { State } from "../state.slint";
 import { MyPalette } from "../styling.slint";
-import { VerticalLine } from "vertical-line.slint";
 import { SortBy } from "../types.slint";
 
 export component SortGamesAndHomebrewApps inherits Card {
-    pure function get-bg(sort-by: SortBy, hovered: bool) -> color {
-        if State.config.contents.sort-by == sort-by {
+    pure function get-bg(current-sort-by: bool, hovered: bool) -> color {
+        if current-sort-by {
             MyPalette.selection-background
         } else if hovered {
             MyPalette.background
@@ -29,16 +28,20 @@ export component SortGamesAndHomebrewApps inherits Card {
             width: 24px;
             height: 38px;
 
-            tooltip: "Sort by name (A→Z)";
-            background: get-bg(SortBy.NameAscending, self.has-hover);
+            tooltip: "Sort by name";
+            background: get-bg(State.config.contents.sort-by == SortBy.NameAscending || State.config.contents.sort-by == SortBy.NameDescending, self.has-hover);
             clicked => {
-                State.config.contents.sort-by = SortBy.NameAscending;
+                if State.config.contents.sort-by == SortBy.NameAscending {
+                    State.config.contents.sort-by = SortBy.NameDescending;
+                } else {
+                    State.config.contents.sort-by = SortBy.NameAscending;
+                }
+
                 State.apply-sorting();
-                State.write-config();
             }
 
             IconDisplay {
-                icon: IconSet.ArrowDownAZ;
+                icon: State.config.contents.sort-by == SortBy.NameDescending ? IconSet.ArrowUpAZ : IconSet.ArrowDownAZ;
                 size: 14px;
                 stroke: MyPalette.foreground;
             }
@@ -48,56 +51,20 @@ export component SortGamesAndHomebrewApps inherits Card {
             width: 24px;
             height: 38px;
 
-            tooltip: "Sort by name (Z→A)";
-            background: get-bg(SortBy.NameDescending, self.has-hover);
+            tooltip: "Sort by size";
+            background: get-bg(State.config.contents.sort-by == SortBy.SizeAscending || State.config.contents.sort-by == SortBy.SizeDescending, self.has-hover);
             clicked => {
-                State.config.contents.sort-by = SortBy.NameDescending;
+                if State.config.contents.sort-by == SortBy.SizeAscending {
+                    State.config.contents.sort-by = SortBy.SizeDescending;
+                } else {
+                    State.config.contents.sort-by = SortBy.SizeAscending;
+                }
+
                 State.apply-sorting();
-                State.write-config();
             }
 
             IconDisplay {
-                icon: IconSet.ArrowUpAZ;
-                size: 14px;
-                stroke: MyPalette.foreground;
-            }
-        }
-
-        VerticalLine { }
-
-        TooltipArea {
-            width: 24px;
-            height: 38px;
-
-            tooltip: "Sort by size (small→large)";
-            background: get-bg(SortBy.SizeAscending, self.has-hover);
-            clicked => {
-                State.config.contents.sort-by = SortBy.SizeAscending;
-                State.apply-sorting();
-                State.write-config();
-            }
-
-            IconDisplay {
-                icon: IconSet.ArrowDown01;
-                size: 14px;
-                stroke: MyPalette.foreground;
-            }
-        }
-
-        TooltipArea {
-            width: 24px;
-            height: 38px;
-
-            tooltip: "Sort by size (large→small)";
-            background: get-bg(SortBy.SizeDescending, self.has-hover);
-            clicked => {
-                State.config.contents.sort-by = SortBy.SizeDescending;
-                State.apply-sorting();
-                State.write-config();
-            }
-
-            IconDisplay {
-                icon: IconSet.ArrowUp01;
+                icon: State.config.contents.sort-by == SortBy.SizeDescending ? IconSet.ArrowUp01 : IconSet.ArrowDown01;
                 size: 14px;
                 stroke: MyPalette.foreground;
             }

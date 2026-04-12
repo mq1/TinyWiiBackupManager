@@ -27,12 +27,21 @@ export component ShowWiiGc inherits Card {
 
         TooltipArea {
             tooltip: "Show Wii";
-            width: 14px;
+            width: wii.preferred-width;
 
-            IconDisplay {
-                icon: IconSet.Pointer;
-                size: 14px;
-                stroke: MyPalette.foreground;
+            wii := HorizontalLayout {
+                y: 38px / 2 - wii.preferred-height / 2;
+                spacing: 3px;
+
+                IconDisplay {
+                    icon: IconSet.Pointer;
+                    size: 14px;
+                    stroke: MyPalette.foreground;
+                }
+
+                Text {
+                    text: "Wii";
+                }
             }
         }
 
@@ -48,12 +57,21 @@ export component ShowWiiGc inherits Card {
 
         TooltipArea {
             tooltip: "Show GameCube";
-            width: 14px;
+            width: gc.preferred-width;
 
-            IconDisplay {
-                icon: IconSet.Box;
-                size: 14px;
-                stroke: MyPalette.foreground;
+            gc := HorizontalLayout {
+                y: 38px / 2 - gc.preferred-height / 2;
+                spacing: 3px;
+
+                IconDisplay {
+                    icon: IconSet.Box;
+                    size: 14px;
+                    stroke: MyPalette.foreground;
+                }
+
+                Text {
+                    text: "GC";
+                }
             }
         }
     }
