@@ -8,17 +8,15 @@ export global MyPalette {
         Palette.color-scheme == ColorScheme.dark
     }
 
-    out property <brush> accent-background: Palette.accent-background;
-    out property <brush> selection-background: Palette.accent-background.transparentize(0.6);
- 
     // this is the macos window color
     out property <brush> card-background: Palette.color-scheme == ColorScheme.light ? #ffffff : #1e1e1e;
 
-    // inspired by shadcn/ui b0
-    out property <brush> background: is-dark() ? oklch(0.269, 0, 0) : oklch(0.97, 0, 0);
-    out property <brush> foreground: is-dark() ? oklch(0.985, 0, 0) : oklch(0.145, 0, 0);
-    out property <brush> border: is-dark() ? oklch(1, 0, 0, 10%) : oklch(0.922, 0, 0);
-    out property <brush> accent-foreground: is-dark() ? oklch(0.145, 0, 0) : oklch(0.985, 0, 0);
-    out property <brush> destructive: is-dark() ? oklch(0.704, 0.191, 22.216) : oklch(0.577, 0.245, 27.325);
-    out property <brush> overlay: background.darker(0.5).transparentize(0.5);
+    out property <brush> accent-background: Palette.accent-background;
+    out property <brush> selection-background: Palette.accent-background.transparentize(0.6);
+    out property <brush> background: Palette.background.mix(Palette.alternate-background, 0.7);
+    out property <brush> foreground: Palette.foreground;
+    out property <brush> border: Palette.border.transparentize(0.7);
+    out property <brush> accent-foreground: Palette.accent-foreground;
+    out property <brush> overlay: Palette.alternate-background.darker(0.5).transparentize(0.5);
+    out property <brush> destructive: red;
 }
