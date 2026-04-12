@@ -1,0 +1,20 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { MyPalette } from "../styling.slint";
+import { GameFilter } from "game-filter.slint";
+import { State } from "../state.slint";
+
+export component GamesOtherToolbar inherits HorizontalLayout {
+    alignment: space-between;
+    height: 38px;
+
+    GameFilter { }
+
+    Text {
+        height: parent.height;
+        vertical-alignment: center;
+        horizontal-alignment: end;
+        text: "\{State.game-list.games.length} game\{State.game-list.games.length == 1 ? "" : "s"}   ~ \{State.game-list.total-size.to-fixed(2)} GiB";
+    }
+}

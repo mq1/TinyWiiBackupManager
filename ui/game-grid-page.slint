@@ -7,7 +7,7 @@ import { MyPalette } from "styling.slint";
 import { GameCard } from "components/game-card.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { GamesToolbar } from "components/games-toolbar.slint";
-import { GameFilter } from "components/game-filter.slint";
+import { GamesOtherToolbar } from "components/games-other-toolbar.slint";
 
 export component GameGridPage inherits Rectangle {
     toolbar := GamesToolbar {
@@ -25,19 +25,10 @@ export component GameGridPage inherits Rectangle {
             x: 5px;
             alignment: start;
             width: parent.width - 10px;
+            spacing: 10px;
 
-            HorizontalLayout {
-                alignment: space-between;
+            GamesOtherToolbar {
                 padding: 5px;
-
-                GameFilter { }
-
-                HorizontalLayout {
-                    Text {
-                        vertical-alignment: center;
-                        text: "\{State.game-list.games.length} game\{State.game-list.games.length == 1 ? "" : "s"}   ~ \{State.game-list.total-size.to-fixed(2)} GiB";
-                    }
-                }
             }
 
             if State.game-list.filter.is-empty: FlexboxLayout {

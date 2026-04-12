@@ -1,0 +1,66 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { IconSet, IconDisplay } from "@lucide";
+import { VerticalLine } from "vertical-line.slint";
+import { IconButton } from "icon-button.slint";
+import { HomebrewApp } from "../types.slint";
+import { MyPalette } from "../styling.slint";
+import { State } from "../state.slint";
+
+export component HomebrewAppRow inherits Rectangle {
+    in property <HomebrewApp> app;
+
+    height: 24px;
+
+    Text {
+        x: 5px;
+        y: 5px;
+        text: "\{app.meta.name} (\{app.meta.version})";
+        overflow: elide;
+    }
+
+    Text {
+        x: parent.width - 50px - self.preferred-width - 5px;
+        y: 5px;
+        text: "\{app.size-mib.to-fixed(2)} MiB";
+    }
+
+    VerticalLine {
+        x: parent.width - 50px;
+        y: 0px;
+        height: 24px;
+    }
+
+    IconButton {
+        x: parent.width - 49px;
+        y: 0px;
+        tooltip: "App info";
+        icon: IconSet.Info;
+        height: 24px;
+        width: 24px;
+        squared: true;
+        clicked => {
+            State.current-homebrew-app = app;
+        }
+    }
+
+    VerticalLine {
+        x: parent.width - 25px;
+        y: 0px;
+        height: 24px;
+    }
+
+    IconButton {
+        x: parent.width - 24px;
+        y: 0px;
+        icon: IconSet.Trash;
+        tooltip: "Delete app";
+        height: 24px;
+        width: 24px;
+        squared: true;
+        clicked => {
+            State.deleting-dir = app.path;
+        }
+    }
+}

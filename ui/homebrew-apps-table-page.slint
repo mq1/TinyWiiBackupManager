@@ -1,23 +1,25 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { GamesToolbar } from "components/games-toolbar.slint";
 import { ScrollView } from "std-widgets.slint";
 import { State } from "state.slint";
 import { HorizontalLine } from "components/horizontal-line.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { Card } from "components/card.slint";
 import { MyPalette } from "styling.slint";
-import { GameRow } from "components/game-row.slint";
-import { GamesOtherToolbar } from "components/games-other-toolbar.slint";
+import { HomebrewAppsToolbar } from "components/homebrew-apps-toolbar.slint";
+import {
+    HomebrewAppsOtherToolbar,
+} from "components/homebrew-apps-other-toolbar.slint";
+import { HomebrewAppRow } from "components/homebrew-app-row.slint";
 
-export component GameTablePage inherits VerticalLayout {
+export component HomebrewAppsTablePage inherits VerticalLayout {
     padding: 10px;
     spacing: 10px;
 
-    GamesToolbar { }
+    HomebrewAppsToolbar { }
 
-    GamesOtherToolbar { }
+    HomebrewAppsOtherToolbar { }
 
     Card {
         height: parent.height - 38px * 2 - 40px;
@@ -27,14 +29,12 @@ export component GameTablePage inherits VerticalLayout {
             height: parent.height;
 
             VerticalLayout {
-                for game in State.game-list.games: HorizontalLayout {
-                    if (game.is-wii && State.config.contents.show-wii) || (!game.is-wii && State.config.contents.show-gc): VerticalLayout {
-                        GameRow {
-                            game: game;
-                        }
-
-                        HorizontalLine { }
+                for app in State.homebrew-app-list.apps: VerticalLayout {
+                    HomebrewAppRow {
+                        app: app;
                     }
+
+                    HorizontalLine { }
                 }
             }
         }

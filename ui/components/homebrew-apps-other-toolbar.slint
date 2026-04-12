@@ -1,0 +1,20 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { MyPalette } from "../styling.slint";
+import { HomebrewAppsFilter } from "homebrew-apps-filter.slint";
+import { State } from "../state.slint";
+
+export component HomebrewAppsOtherToolbar inherits HorizontalLayout {
+    alignment: space-between;
+    height: 38px;
+
+    HomebrewAppsFilter { }
+
+    Text {
+        height: parent.height;
+        vertical-alignment: center;
+        horizontal-alignment: end;
+        text: "\{State.homebrew-app-list.apps.length} app\{State.homebrew-app-list.apps.length == 1 ? "" : "s"}   ~ \{State.homebrew-app-list.total-size.to-fixed(2)} MiB";
+    }
+}

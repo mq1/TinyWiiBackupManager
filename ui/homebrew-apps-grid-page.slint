@@ -7,7 +7,9 @@ import { MyPalette } from "styling.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { HomebrewAppsToolbar } from "components/homebrew-apps-toolbar.slint";
 import { HomebrewAppCard } from "components/homebrew-app-card.slint";
-import { HomebrewAppsFilter } from "components/homebrew-apps-filter.slint";
+import {
+    HomebrewAppsOtherToolbar,
+} from "components/homebrew-apps-other-toolbar.slint";
 
 export component HomebrewAppsGridPage inherits Rectangle {
     toolbar := HomebrewAppsToolbar {
@@ -24,20 +26,9 @@ export component HomebrewAppsGridPage inherits Rectangle {
 
         VerticalLayout {
             padding: 10px;
+            spacing: 10px;
 
-            HorizontalLayout {
-                alignment: space-between;
-                padding-bottom: 10px;
-
-                HomebrewAppsFilter { }
-
-                HorizontalLayout {
-                    Text {
-                        vertical-alignment: center;
-                        text: "\{State.homebrew-app-list.apps.length} app\{State.homebrew-app-list.apps.length == 1 ? "" : "s"}   ~ \{State.homebrew-app-list.total-size.to-fixed(2)} MiB";
-                    }
-                }
-            }
+            HomebrewAppsOtherToolbar { }
 
             if State.homebrew-app-list.filter.is-empty: FlexboxLayout {
                 spacing: 10px;
