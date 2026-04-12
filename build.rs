@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::num::NonZeroU32;
 use std::path::Path;
 use std::{collections::HashMap, env, fmt::Write, fs, path::PathBuf};
 
@@ -32,7 +31,7 @@ fn parse_titles_txt() -> Vec<([u8; 6], String)> {
     title_map
 }
 
-fn parse_gamehacking_ids() -> Vec<([u8; 6], NonZeroU32)> {
+fn parse_gamehacking_ids() -> Vec<([u8; 6], u32)> {
     const GHID_ANCHOR: &str = "href=\"/game/";
     const GAMEID_ANCHOR: &str = "<td class=\"text-center\">";
 
@@ -48,7 +47,10 @@ fn parse_gamehacking_ids() -> Vec<([u8; 6], NonZeroU32)> {
 
             let quote_pos = current_slice.find('"').unwrap();
             let ghid_str = &current_slice[..quote_pos];
-            let ghid = ghid_str.parse::<u32>().unwrap();
+            let ghid = ghid_str.parse().unwrap();
+            if ghid == 0 {
+                continue;
+            }
 
             let gameid_pos = current_slice.find(GAMEID_ANCHOR).unwrap();
             current_slice = &current_slice[gameid_pos + GAMEID_ANCHOR.len()..];
@@ -59,7 +61,7 @@ fn parse_gamehacking_ids() -> Vec<([u8; 6], NonZeroU32)> {
             }
             let gameid = parse_gameid(gameid_str);
 
-            id_map.push((gameid, NonZeroU32::new(ghid).unwrap()));
+            id_map.push((gameid, ghid));
         }
     }
 
@@ -79,22 +81,11 @@ fn make_id_map() {
         entries.push((id, ghid, title));
     }
 
-    let mut code = String::from("const GAMES:&[GameEntry]=unsafe{&[");
+    let mut code = String::from("const GAMES:&[GameEntry]=&[");
     for (id, ghid, title) in entries {
-        match ghid {
-            Some(ghid) => {
-                write!(
-                    code,
-                    "GameEntry{{id:{id:?},ghid:Some(NonZeroU32::new_unchecked({ghid})),title:{title:?}}},"
-                )
-                .unwrap();
-            }
-            None => {
-                write!(code, "GameEntry{{id:{id:?},ghid:None,title:{title:?}}},").unwrap();
-            }
-        }
+        write!(code, "g({id:?},{ghid:?},{title:?}),").unwrap();
     }
-    code.push_str("]};");
+    code.push_str("];");
 
     let out_path = Path::new(&env::var("OUT_DIR").unwrap()).join("id_map_generated.rs");
     fs::write(out_path, code).unwrap();

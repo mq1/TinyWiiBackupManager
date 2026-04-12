@@ -10,6 +10,22 @@ pub struct GameEntry {
 }
 
 #[cfg(not(feature = "rust-analyzer"))]
+const fn g(id: [u8; 6], ghid: Option<u32>, title: &'static str) -> GameEntry {
+    match ghid {
+        Some(ghid) => GameEntry {
+            id,
+            ghid: Some(unsafe { NonZeroU32::new_unchecked(ghid) }),
+            title,
+        },
+        None => GameEntry {
+            id,
+            ghid: None,
+            title,
+        },
+    }
+}
+
+#[cfg(not(feature = "rust-analyzer"))]
 include!(concat!(env!("OUT_DIR"), "/id_map_generated.rs"));
 
 #[cfg(feature = "rust-analyzer")]
