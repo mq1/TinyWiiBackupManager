@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - ⚡️ Better UI performance (especially on old GPUs and VMs)
 - 🪶 Reduced UI resource usage
+- ️️️️️⚡️ Faster disc info reading
 - 🕶️ Dark/light mode switch is now in the Settings page
 - 💄 UI refinements, TinyWiiBackupManager should feel more polished
 - 🪟 Removed windows-legacy builds, standard windows builds should now work on xp+

@@ -20,6 +20,7 @@ mod homebrew_app_list;
 mod id_map;
 mod notification;
 mod results;
+mod scrubbing;
 mod state;
 mod util;
 

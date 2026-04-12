@@ -1,22 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::DiscInfo;
+use crate::{DiscInfo, scrubbing::is_worth_scrubbing};
 use anyhow::{Result, anyhow, bail};
-use nod::{
-    common::{Format, PartitionKind},
-    read::{DiscOptions, DiscReader, PartitionEncryption, PartitionOptions},
-};
 use slint::{SharedString, ToSharedString};
 use std::{
     ffi::OsStr,
     fs::{self, File},
     path::Path,
-};
-
-const DISC_OPTS: DiscOptions = DiscOptions {
-    partition_encryption: PartitionEncryption::Original,
-    preloader_threads: 0,
 };
 
 impl DiscInfo {
@@ -74,7 +65,12 @@ impl DiscInfo {
 
         let mut f = File::open(disc_path)?;
         let meta = wii_disc_info::Meta::read(&mut f)?;
-        let is_worth_scrubbing = is_worth_scrubbing(disc_path);
+
+        let is_worth_scrubbing = if meta.format() == wii_disc_info::Format::Wbfs {
+            is_worth_scrubbing(&mut f)
+        } else {
+            false
+        };
 
         let crc32_path = disc_path.with_file_name(format!("{}.crc32", meta.game_id()));
         let crc32 = fs::read_to_string(crc32_path).unwrap_or_default();
@@ -94,31 +90,4 @@ impl DiscInfo {
             err: SharedString::new(),
         })
     }
-}
-
-// Returns true if the disc is worth scrubbing (update partion)
-// Currently checks if the update partition is >= 8 MiB
-pub fn is_worth_scrubbing(disc_path: &Path) -> bool {
-    let Ok(disc) = DiscReader::new(disc_path, &DISC_OPTS) else {
-        return false;
-    };
-
-    if disc.meta().format == Format::Wbfs
-        && let Ok(mut update_reader) =
-            disc.open_partition_kind(PartitionKind::Update, &PartitionOptions::default())
-    {
-        let mut non_empty_blocks = 0u8;
-
-        let mut block_buf = vec![0u8; 2 * 1024 * 1024].into_boxed_slice(); // 2 MB
-        while update_reader.read_exact(&mut block_buf[..]).is_ok() {
-            if block_buf.iter().any(|b| *b != 0) {
-                non_empty_blocks += 1;
-                if non_empty_blocks > 4 {
-                    return true;
-                }
-            }
-        }
-    }
-
-    false
 }
