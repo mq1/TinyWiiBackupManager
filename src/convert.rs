@@ -3,7 +3,7 @@
 
 use crate::{
     QueuedConversion, State,
-    extensions::{ext_to_format, format_to_opts, str_to_format},
+    extensions::{ext_to_format, format_to_opts},
     id_map,
     util::{self, get_threads_num},
 };
@@ -38,16 +38,16 @@ bitflags! {
         const SCRUB_UPDATE = 1 << 3;
         const ALWAYS_SPLIT = 1 << 4;
         const IS_SCRUB_OPERATION = 1 << 5;
+        const OUTPUT_WII_ISO = 1 << 6;
+        const OUTPUT_GC_ISO = 1 << 7;
+        const IS_WII = 1 << 8;
     }
 }
 
 pub struct Conversion {
     in_path: PathBuf,
     out_path: PathBuf,
-    wii_output_format: Format,
-    gc_output_format: Format,
     flags: ConversionFlags,
-    is_wii: bool,
     game_id: String,
     game_title: String,
     disc_number: i32,
@@ -59,11 +59,8 @@ impl Conversion {
     pub fn new(q: &QueuedConversion, weak: Weak<State<'static>>) -> Self {
         let in_path = PathBuf::from(&q.in_path);
         let out_path = PathBuf::from(&q.out_path);
-        let wii_output_format = str_to_format(&q.wii_output_format).unwrap_or(Format::Wbfs);
-        let gc_output_format = str_to_format(&q.gc_output_format).unwrap_or(Format::Iso);
         let flags = ConversionFlags::from_bits(q.flags).unwrap();
 
-        let is_wii = q.is_wii;
         let game_id = q.game_id.to_string();
         let game_title = q.game_title.to_string();
         let disc_number = q.disc_number;
@@ -78,10 +75,7 @@ impl Conversion {
         Self {
             in_path,
             out_path,
-            wii_output_format,
-            gc_output_format,
             flags,
-            is_wii,
             game_id,
             game_title,
             disc_number,
@@ -100,7 +94,7 @@ impl Conversion {
             preloader_threads,
         };
 
-        let must_split = self.is_wii
+        let must_split = self.flags.contains(ConversionFlags::IS_WII)
             && self.flags.contains(ConversionFlags::IS_FOR_DRIVE)
             && (self.flags.contains(ConversionFlags::ALWAYS_SPLIT)
                 || self.flags.contains(ConversionFlags::IS_FAT32));
@@ -121,7 +115,11 @@ impl Conversion {
 
                 let parent = self
                     .out_path
-                    .join(if self.is_wii { "wbfs" } else { "games" })
+                    .join(if self.flags.contains(ConversionFlags::IS_WII) {
+                        "wbfs"
+                    } else {
+                        "games"
+                    })
                     .join(format!(
                         "{} [{}]{}",
                         sanitized_title, &self.game_id, scrub_suffix
@@ -129,41 +127,45 @@ impl Conversion {
 
                 fs::create_dir_all(&parent)?;
 
-                if self.is_wii {
-                    let f: Box<dyn Fn(usize) -> String> = match self.wii_output_format {
-                        Format::Wbfs => Box::new(|i| match i {
-                            0 => format!("{}.wbfs", &self.game_id),
-                            n => format!("{}.wbf{n}", &self.game_id),
-                        }),
-                        Format::Iso => {
-                            if must_split {
+                if self.flags.contains(ConversionFlags::IS_WII) {
+                    let (f, out_format): (Box<dyn Fn(usize) -> String>, _) =
+                        if self.flags.contains(ConversionFlags::OUTPUT_WII_ISO) {
+                            let f: Box<dyn Fn(usize) -> String> = if must_split {
                                 Box::new(|i| format!("{}.part{}.iso", &self.game_id, i))
                             } else {
                                 Box::new(|_| format!("{}.iso", &self.game_id))
-                            }
-                        }
-                        _ => {
-                            bail!("Invalid output format");
-                        }
-                    };
+                            };
 
-                    (parent, f, self.wii_output_format)
+                            (f, Format::Iso)
+                        } else {
+                            let f: Box<dyn Fn(usize) -> String> = Box::new(|i| match i {
+                                0 => format!("{}.wbfs", &self.game_id),
+                                n => format!("{}.wbf{n}", &self.game_id),
+                            });
+
+                            (f, Format::Wbfs)
+                        };
+
+                    (parent, f, out_format)
                 } else {
-                    let f: Box<dyn Fn(usize) -> String> = match self.gc_output_format {
-                        Format::Iso => match self.disc_number {
-                            0 => Box::new(|_| "game.iso".to_string()),
-                            n => Box::new(move |_| format!("disc{}.iso", n + 1)),
-                        },
-                        Format::Ciso => match self.disc_number {
-                            0 => Box::new(|_| "game.ciso".to_string()),
-                            n => Box::new(move |_| format!("disc{}.ciso", n + 1)),
-                        },
-                        _ => {
-                            bail!("Invalid output format");
-                        }
-                    };
+                    let (f, out_format): (Box<dyn Fn(usize) -> String>, _) =
+                        if self.flags.contains(ConversionFlags::OUTPUT_GC_ISO) {
+                            let f: Box<dyn Fn(usize) -> String> = match self.disc_number {
+                                0 => Box::new(|_| "game.iso".to_string()),
+                                n => Box::new(move |_| format!("disc{}.iso", n + 1)),
+                            };
 
-                    (parent, f, self.gc_output_format)
+                            (f, Format::Iso)
+                        } else {
+                            let f: Box<dyn Fn(usize) -> String> = match self.disc_number {
+                                0 => Box::new(|_| "game.ciso".to_string()),
+                                n => Box::new(move |_| format!("disc{}.ciso", n + 1)),
+                            };
+
+                            (f, Format::Ciso)
+                        };
+
+                    (parent, f, out_format)
                 }
             } else {
                 let Some(parent) = self.out_path.parent() else {

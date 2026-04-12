@@ -89,15 +89,24 @@ impl QueuedConversion {
                 flags |= ConversionFlags::ALWAYS_SPLIT;
             }
 
+            if conf.wii_output_format == "iso" {
+                flags |= ConversionFlags::OUTPUT_WII_ISO;
+            }
+
+            if conf.gc_output_format == "iso" {
+                flags |= ConversionFlags::OUTPUT_GC_ISO;
+            }
+
+            if meta.is_wii() {
+                flags |= ConversionFlags::IS_WII;
+            }
+
             queue.push(QueuedConversion {
                 game_title: meta.game_title().to_shared_string(),
                 game_id: meta.game_id().to_shared_string(),
                 disc_number: meta.disc_number() as i32,
-                is_wii: meta.is_wii(),
                 in_path: path.to_string_lossy().to_shared_string(),
                 out_path: conf.mount_point.clone(),
-                wii_output_format: conf.wii_output_format.clone(),
-                gc_output_format: conf.gc_output_format.clone(),
                 flags: flags.bits(),
             });
         }
@@ -110,11 +119,8 @@ impl QueuedConversion {
             game_title: game.title.clone(),
             game_id: game.id.clone(),
             disc_number: 0, // doesn't matter
-            is_wii: game.is_wii,
             in_path: game.get_disc_path()?.to_string_lossy().to_shared_string(),
             out_path: out_path.to_string_lossy().to_shared_string(),
-            wii_output_format: "iso".to_shared_string(),
-            gc_output_format: "iso".to_shared_string(),
             flags: 0,
         };
 
@@ -134,15 +140,24 @@ impl QueuedConversion {
             flags |= ConversionFlags::ALWAYS_SPLIT;
         }
 
+        if conf.wii_output_format == "iso" {
+            flags |= ConversionFlags::OUTPUT_WII_ISO;
+        }
+
+        if conf.gc_output_format == "iso" {
+            flags |= ConversionFlags::OUTPUT_GC_ISO;
+        }
+
+        if game.is_wii {
+            flags |= ConversionFlags::IS_WII;
+        }
+
         let conv = QueuedConversion {
             game_title: game.title.clone(),
             game_id: game.id.clone(),
             disc_number: 0, // doesn't matter
-            is_wii: game.is_wii,
             in_path: game.get_disc_path()?.to_string_lossy().to_shared_string(),
             out_path: conf.mount_point.clone(),
-            wii_output_format: "wbfs".to_shared_string(),
-            gc_output_format: "iso".to_shared_string(),
             flags: flags.bits(),
         };
 
