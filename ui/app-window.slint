@@ -28,7 +28,7 @@ export { State, Rust }
 export component AppWindow inherits Window {
     min-width: 800px;
     min-height: 600px;
-    background: MyPalette.card-background;
+    background: MyPalette.background;
     title: "TinyWiiBackupManager  ›  \{State.drive-info.label.is-empty ? "No drive selected" : State.drive-info.label}  (\{State.drive-info.used-gib.to-fixed(2)}/\{State.drive-info.total-gib.to-fixed(2)} GiB)";
     default-font-size: 14px;
 
@@ -43,7 +43,7 @@ export component AppWindow inherits Window {
 
         VerticalLayout {
             Rectangle {
-                background: MyPalette.background;
+                background: MyPalette.alternate-background;
                 border-top-left-radius: 10px;
                 border-width: 1px;
                 border-color: MyPalette.border;

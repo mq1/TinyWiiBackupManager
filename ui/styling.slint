@@ -9,13 +9,13 @@ export global MyPalette {
     }
 
     // this is the macos window color
-    out property <brush> card-background: Palette.color-scheme == ColorScheme.light ? #ffffff : #1e1e1e;
+    out property <brush> background: Palette.color-scheme == ColorScheme.light ? #ffffff : #1e1e1e;
 
     out property <brush> accent-background: Palette.accent-background;
     out property <brush> selection-background: Palette.accent-background.transparentize(0.6);
-    out property <brush> background: Palette.background.mix(Palette.alternate-background, 0.7);
+    out property <brush> alternate-background: is-dark() ? Palette.alternate-background.darker(0.1) : Palette.alternate-background.brighter(0.03);
     out property <brush> foreground: Palette.foreground;
-    out property <brush> border: Palette.border.transparentize(0.7);
+    out property <brush> border: is-dark() ? Palette.border : Palette.border.transparentize(0.7);
     out property <brush> accent-foreground: Palette.accent-foreground;
     out property <brush> overlay: Palette.alternate-background.darker(0.5).transparentize(0.5);
     out property <brush> destructive: red;

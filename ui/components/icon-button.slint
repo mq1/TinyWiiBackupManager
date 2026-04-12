@@ -22,7 +22,7 @@ export component IconButton inherits TooltipArea {
         } else if kind == IconButtonKind.Destructive {
             self.has-hover ? MyPalette.destructive.darker(0.2) : MyPalette.destructive;
         } else {
-            self.has-hover ? MyPalette.background.darker(0.1) : MyPalette.background;
+            self.has-hover ? MyPalette.alternate-background.darker(0.1) : MyPalette.alternate-background;
         }
     }
 
