@@ -35,10 +35,10 @@ impl State<'_> {
         self.on_load_osc_contents(move || {
             let weak = weak.clone();
             let _ = std::thread::spawn(move || {
-                let bytes = OscContents::fetch(&data_dir);
+                let raw = OscContents::fetch(&data_dir);
                 let _ = weak.upgrade_in_event_loop(move |state| {
-                    let res = match bytes {
-                        Ok(bytes) => OscContents::load(bytes).into(),
+                    let res = match raw {
+                        Ok(raw) => OscContents::load(raw).into(),
                         Err(e) => Err(e).into(),
                     };
 
