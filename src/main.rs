@@ -3,6 +3,7 @@
 
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod archive;
 mod checksum;
 mod config;
 mod conv_queue;
@@ -20,7 +21,8 @@ mod homebrew_app_list;
 mod id_map;
 mod notification;
 mod results;
-mod scrubbing;
+mod scrub;
+mod standard_conversion;
 mod state;
 mod util;
 
@@ -103,22 +105,22 @@ fn main() -> Result<()> {
 
     let weak = app.as_weak();
     app.global::<Rust<'_>>()
-        .on_pick_games(move |existing_games, conf, drive_info| {
+        .on_pick_games(move |existing_games| {
             let app = weak.upgrade().unwrap();
             let paths = dialogs::pick_games(app.window());
             let existing_ids = existing_games.iter().map(|g| g.id).collect::<Vec<_>>();
-            let queue = QueuedConversion::make_queue(paths, &existing_ids, &conf, &drive_info);
+            let queue = QueuedConversion::make_queue(paths, &existing_ids);
             let model = VecModel::from(queue);
             ModelRc::from(Rc::new(model))
         });
 
     let weak = app.as_weak();
     app.global::<Rust<'_>>()
-        .on_pick_games_r(move |existing_games, conf, drive_info| {
+        .on_pick_games_r(move |existing_games| {
             let app = weak.upgrade().unwrap();
             let paths = dialogs::pick_games_r(app.window());
             let existing_ids = existing_games.iter().map(|g| g.id).collect::<Vec<_>>();
-            let queue = QueuedConversion::make_queue(paths, &existing_ids, &conf, &drive_info);
+            let queue = QueuedConversion::make_queue(paths, &existing_ids);
             let model = VecModel::from(queue);
             ModelRc::from(Rc::new(model))
         });
@@ -165,52 +167,22 @@ fn main() -> Result<()> {
     });
 
     let weak = app.as_weak();
-    app.global::<Rust<'_>>()
-        .on_archive_game(move |queue, game| {
-            let app = weak.unwrap();
-            let mut result = EmptyResult::default();
+    app.global::<Rust<'_>>().on_pick_archive_dest(move |game| {
+        let app = weak.unwrap();
 
-            let Some(out_path) = dialogs::save_game(app.window(), &game) else {
-                result.err.push_str("No output path selected");
-                return result;
-            };
-
-            let conv = match QueuedConversion::new_archive(&game, &out_path) {
-                Ok(conv) => conv,
-                Err(e) => {
-                    result.err = e.to_shared_string();
-                    return result;
-                }
-            };
-
-            let model = queue
-                .as_any()
-                .downcast_ref::<VecModel<QueuedConversion>>()
-                .unwrap();
-
-            model.push(conv);
-            result
-        });
+        match dialogs::save_game(app.window(), &game) {
+            Some(path) => path.to_string_lossy().to_shared_string(),
+            None => SharedString::new(),
+        }
+    });
 
     app.global::<Rust<'_>>()
-        .on_scrub_game(move |queue, game, conf, drive_info| {
-            let mut result = EmptyResult::default();
-
-            let conv = match QueuedConversion::new_scrub(&game, &conf, &drive_info) {
-                Ok(conv) => conv,
-                Err(e) => {
-                    result.err = e.to_shared_string();
-                    return result;
-                }
-            };
-
-            let model = queue
+        .on_add_to_conversion_queue(move |queue, queued| {
+            queue
                 .as_any()
                 .downcast_ref::<VecModel<QueuedConversion>>()
-                .unwrap();
-
-            model.push(conv);
-            result
+                .unwrap()
+                .push(queued);
         });
 
     #[cfg(windows)]

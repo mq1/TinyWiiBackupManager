@@ -2,13 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{Game, SortBy, id_map, util::GIB};
-use anyhow::{Result, anyhow};
 use slint::{Image, ToSharedString};
-use std::{
-    ffi::OsStr,
-    fs,
-    path::{Path, PathBuf},
-};
+use std::path::Path;
 
 impl Game {
     #[must_use]
@@ -49,43 +44,6 @@ impl Game {
             id: id.to_shared_string(),
             cover,
         })
-    }
-
-    pub fn get_disc_path(&self) -> Result<PathBuf> {
-        let entries = fs::read_dir(&self.path)?;
-
-        for entry in entries.filter_map(Result::ok) {
-            if !entry.file_type().is_ok_and(|t| t.is_file()) {
-                continue;
-            }
-
-            let path = entry.path();
-
-            let Some(filename) = path.file_name().and_then(OsStr::to_str) else {
-                continue;
-            };
-
-            if filename.starts_with('.') {
-                continue;
-            }
-
-            if filename.ends_with(".part1.iso") {
-                continue;
-            }
-
-            let Some(ext) = path.extension() else {
-                continue;
-            };
-
-            if ext.eq_ignore_ascii_case("iso")
-                || ext.eq_ignore_ascii_case("wbfs")
-                || ext.eq_ignore_ascii_case("ciso")
-            {
-                return Ok(path);
-            }
-        }
-
-        Err(anyhow!("No disc found"))
     }
 
     pub fn reload_cover(&mut self, data_dir: &Path) {

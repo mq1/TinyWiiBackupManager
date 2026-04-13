@@ -13,6 +13,7 @@ import {
     Notification,
     HomebrewAppList,
     HomebrewApp,
+    ConversionKind,
 } from "types.slint";
 import { Rust } from "rust.slint";
 import { MyPalette } from "styling.slint";
@@ -121,11 +122,11 @@ export global State {
     }
 
     public function pick-games() {
-        adding-games = Rust.pick-games(game-list.games, config.contents, drive-info);
+        adding-games = Rust.pick-games(game-list.games);
     }
 
     public function pick-games-r() {
-        adding-games = Rust.pick-games-r(game-list.games, config.contents, drive-info);
+        adding-games = Rust.pick-games-r(game-list.games);
     }
 
     public function close-notification(i: int) {
@@ -137,21 +138,20 @@ export global State {
     }
 
     public function archive-game(game: Game) {
-        let res = Rust.archive-game(conversion-queue, game);
-        if !res.err.is-empty {
-            notify({ text: res.err, critical: true });
-        } else {
+        let path = Rust.pick-archive-dest(game);
+        if !path.is-empty {
+            let archive = { game-title: game.title, in_path: game.path, out_path: path };
+            let queued = { kind: ConversionKind.Archive, archive: archive };
+            Rust.add-to-conversion-queue(conversion-queue, queued);
             start-conversion();
         }
     }
 
     public function scrub-game() {
-        let res = Rust.scrub-game(conversion-queue, scrubbing-game, config.contents, drive-info);
-        if !res.err.is-empty {
-            notify({ text: res.err, critical: true });
-        } else {
-            start-conversion();
-        }
+        let scrub = { game: scrubbing-game };
+        let queued = { kind: ConversionKind.Scrub, scrub: scrub };
+        Rust.add-to-conversion-queue(conversion-queue, queued);
+        start-conversion();
     }
 }
 

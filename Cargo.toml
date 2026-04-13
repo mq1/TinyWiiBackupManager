@@ -47,7 +47,6 @@ zip = { version = "8.5", default-features = false, features = [
 ] }
 sanitize-filename = "0.7.0-beta"
 num_cpus = "1.17"
-bitflags = "2.11"
 walkdir = "2.5"
 crc32fast = "1.5"
 minreq = "2.14"

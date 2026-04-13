@@ -81,7 +81,8 @@ fn make_id_map() {
         entries.push((id, ghid, title));
     }
 
-    let mut code = String::from("const GAMES:&[GameEntry]=&[");
+    let mut code =
+        String::from("#[allow(clippy::unreadable_literal)]\nconst GAMES:&[GameEntry]=&[");
     for (id, ghid, title) in entries {
         write!(code, "g({id:?},{ghid:?},{title:?}),").unwrap();
     }

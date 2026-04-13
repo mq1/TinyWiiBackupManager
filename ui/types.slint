@@ -109,13 +109,35 @@ export struct EmptyResult {
     err: string,
 }
 
-export struct QueuedConversion {
+export enum ConversionKind {
+    Standard,
+    Archive,
+    Scrub,
+}
+
+export struct QueuedStandardConversion {
     in-path: string,
-    out-path: string,
-    flags: int,
+    is-wii: bool,
     game-title: string,
     game-id: string,
     disc-number: int,
+}
+
+export struct QueuedArchiveConversion {
+    game-title: string,
+    in-path: string,
+    out-path: string,
+}
+
+export struct QueuedScrubConversion {
+    game: Game,
+}
+
+export struct QueuedConversion {
+    kind: ConversionKind,
+    standard: QueuedStandardConversion,
+    archive: QueuedArchiveConversion,
+    scrub: QueuedScrubConversion,
 }
 
 export struct DriveInfo {

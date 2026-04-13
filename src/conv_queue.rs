@@ -2,28 +2,26 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    ConfigContents, DriveInfo, Game, QueuedConversion, State,
-    convert::{Conversion, ConversionFlags},
+    ConversionKind, QueuedConversion, QueuedStandardConversion, State, convert::Conversion,
 };
-use anyhow::Result;
 use slint::{SharedString, ToSharedString, Weak};
-use std::{
-    ffi::OsStr,
-    fs::File,
-    path::{Path, PathBuf},
-};
+use std::{ffi::OsStr, fs::File, path::PathBuf};
 use zip::ZipArchive;
 
 impl QueuedConversion {
     pub fn run(&self, weak: Weak<State<'static>>) {
-        let mut conv = Conversion::new(self, weak.clone());
+        let (conf, drive_info) = {
+            let state = weak.upgrade().unwrap();
+            state.set_is_converting(true);
+            (state.get_config().contents, state.get_drive_info())
+        };
 
-        weak.upgrade().unwrap().set_is_converting(true);
+        let mut conv = Conversion::new(self, &conf, &drive_info);
 
         let _ = std::thread::spawn(move || {
-            let res = conv.perform();
+            let res = conv.perform(&weak);
 
-            let _ = weak.upgrade_in_event_loop(|state| {
+            let _ = weak.upgrade_in_event_loop(move |state| {
                 state.set_is_converting(false);
                 state.set_status(SharedString::new());
                 state.invoke_refresh_all();
@@ -38,12 +36,7 @@ impl QueuedConversion {
     }
 
     #[must_use]
-    pub fn make_queue(
-        paths: Vec<PathBuf>,
-        existing_ids: &[SharedString],
-        conf: &ConfigContents,
-        drive_info: &DriveInfo,
-    ) -> Vec<QueuedConversion> {
+    pub fn make_queue(paths: Vec<PathBuf>, existing_ids: &[SharedString]) -> Vec<Self> {
         // parse discs
         let mut entries = paths
             .into_iter()
@@ -71,96 +64,23 @@ impl QueuedConversion {
 
         let mut queue = Vec::new();
         for (path, meta) in entries {
-            let mut flags = ConversionFlags::IS_FOR_DRIVE;
-
-            if drive_info.fs_kind == "FAT32" {
-                flags |= ConversionFlags::IS_FAT32;
-            }
-
-            if conf.remove_sources_games {
-                flags |= ConversionFlags::REMOVE_SOURCES;
-            }
-
-            if conf.scrub_update_partition {
-                flags |= ConversionFlags::SCRUB_UPDATE;
-            }
-
-            if conf.always_split {
-                flags |= ConversionFlags::ALWAYS_SPLIT;
-            }
-
-            if conf.wii_output_format == "iso" {
-                flags |= ConversionFlags::OUTPUT_WII_ISO;
-            }
-
-            if conf.gc_output_format == "iso" {
-                flags |= ConversionFlags::OUTPUT_GC_ISO;
-            }
-
-            if meta.is_wii() {
-                flags |= ConversionFlags::IS_WII;
-            }
-
-            queue.push(QueuedConversion {
+            let queued = QueuedStandardConversion {
                 game_title: meta.game_title().to_shared_string(),
                 game_id: meta.game_id().to_shared_string(),
-                disc_number: meta.disc_number() as i32,
                 in_path: path.to_string_lossy().to_shared_string(),
-                out_path: conf.mount_point.clone(),
-                flags: flags.bits(),
-            });
+                is_wii: meta.is_wii(),
+                disc_number: i32::from(meta.disc_number()),
+            };
+
+            let queued = QueuedConversion {
+                kind: ConversionKind::Standard,
+                standard: queued,
+                ..Default::default()
+            };
+
+            queue.push(queued);
         }
 
         queue
-    }
-
-    pub fn new_archive(game: &Game, out_path: &Path) -> Result<Self> {
-        let conv = QueuedConversion {
-            game_title: game.title.clone(),
-            game_id: game.id.clone(),
-            disc_number: 0, // doesn't matter
-            in_path: game.get_disc_path()?.to_string_lossy().to_shared_string(),
-            out_path: out_path.to_string_lossy().to_shared_string(),
-            flags: 0,
-        };
-
-        Ok(conv)
-    }
-
-    pub fn new_scrub(game: &Game, conf: &ConfigContents, drive_info: &DriveInfo) -> Result<Self> {
-        let mut flags = ConversionFlags::IS_FOR_DRIVE
-            | ConversionFlags::SCRUB_UPDATE
-            | ConversionFlags::IS_SCRUB_OPERATION;
-
-        if drive_info.fs_kind == "FAT32" {
-            flags |= ConversionFlags::IS_FAT32;
-        }
-
-        if conf.always_split {
-            flags |= ConversionFlags::ALWAYS_SPLIT;
-        }
-
-        if conf.wii_output_format == "iso" {
-            flags |= ConversionFlags::OUTPUT_WII_ISO;
-        }
-
-        if conf.gc_output_format == "iso" {
-            flags |= ConversionFlags::OUTPUT_GC_ISO;
-        }
-
-        if game.is_wii {
-            flags |= ConversionFlags::IS_WII;
-        }
-
-        let conv = QueuedConversion {
-            game_title: game.title.clone(),
-            game_id: game.id.clone(),
-            disc_number: 0, // doesn't matter
-            in_path: game.get_disc_path()?.to_string_lossy().to_shared_string(),
-            out_path: conf.mount_point.clone(),
-            flags: flags.bits(),
-        };
-
-        Ok(conv)
     }
 }

@@ -28,8 +28,8 @@ export component ConfirmConversionModal inherits Card {
                 text: "Picked \{State.adding-games.length} games, are you sure you want to continue?\n";
             }
 
-            for game in State.adding-games: Text {
-                text: "• \{game.game-title} [\{game.game-id}]";
+            for queued in State.adding-games: Text {
+                text: "• \{queued.standard.game-title} [\{queued.standard.game-id}]";
                 overflow: elide;
             }
         }

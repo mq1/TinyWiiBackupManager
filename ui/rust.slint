@@ -14,6 +14,7 @@ import {
     SortBy,
     HomebrewApp,
     HomebrewAppList,
+    QueuedScrubConversion,
 } from "types.slint";
 
 export global Rust {
@@ -28,13 +29,13 @@ export global Rust {
     pure callback filter-games([Game], string) -> [Game];
     pure callback filter-homebrew-apps([HomebrewApp], string) -> [HomebrewApp];
     pure callback get-disc-info(string) -> DiscInfo;
-    pure callback pick-games([Game], ConfigContents, DriveInfo) -> [QueuedConversion];
-    pure callback pick-games-r([Game], ConfigContents, DriveInfo) -> [QueuedConversion];
+    pure callback pick-games([Game]) -> [QueuedConversion];
+    pure callback pick-games-r([Game]) -> [QueuedConversion];
     pure callback sort-games([Game], SortBy) -> [Game];
     pure callback add-notification([Notification], Notification);
     pure callback close-notification([Notification], int);
     pure callback add-to-queue([QueuedConversion], [QueuedConversion]);
-    pure callback archive-game([QueuedConversion], Game) -> EmptyResult;
+    pure callback pick-archive-dest(Game) -> string;
     pure callback set-window-color(bool);
-    pure callback scrub-game([QueuedConversion], Game, ConfigContents, DriveInfo) -> EmptyResult;
+    pure callback add-to-conversion-queue([QueuedConversion], QueuedConversion);
 }
