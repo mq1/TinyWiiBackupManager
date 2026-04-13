@@ -138,7 +138,7 @@ export global State {
     }
 
     public function start-conversion() {
-        if conversion-queue.length > 0 {
+        if !is-converting && conversion-queue.length > 0 {
             is-converting = true;
             Rust.run-conversion(conversion-queue, config.contents, drive-info);
         } else {
