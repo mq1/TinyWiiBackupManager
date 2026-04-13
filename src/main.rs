@@ -6,7 +6,6 @@
 mod archive;
 mod checksum;
 mod config;
-mod conv_queue;
 mod convert;
 mod covers;
 mod data_dir;
@@ -32,7 +31,7 @@ mod window_color;
 #[cfg(windows)]
 mod xp_dialogs;
 
-use crate::data_dir::get_data_dir;
+use crate::{convert::Conversion, data_dir::get_data_dir};
 use anyhow::{Result, bail};
 use slint::{ComponentHandle, Model, ModelRc, SharedString, ToSharedString, VecModel};
 use std::{fs, path::Path, process::Command, rc::Rc};
@@ -109,7 +108,8 @@ fn main() -> Result<()> {
             let app = weak.upgrade().unwrap();
             let paths = dialogs::pick_games(app.window());
             let existing_ids = existing_games.iter().map(|g| g.id).collect::<Vec<_>>();
-            let queue = QueuedConversion::make_queue(paths, &existing_ids);
+            let queue: Vec<QueuedConversion> =
+                standard_conversion::make_queue(paths, &existing_ids);
             let model = VecModel::from(queue);
             ModelRc::from(Rc::new(model))
         });
@@ -120,7 +120,7 @@ fn main() -> Result<()> {
             let app = weak.upgrade().unwrap();
             let paths = dialogs::pick_games_r(app.window());
             let existing_ids = existing_games.iter().map(|g| g.id).collect::<Vec<_>>();
-            let queue = QueuedConversion::make_queue(paths, &existing_ids);
+            let queue = standard_conversion::make_queue(paths, &existing_ids);
             let model = VecModel::from(queue);
             ModelRc::from(Rc::new(model))
         });
@@ -183,6 +183,27 @@ fn main() -> Result<()> {
                 .downcast_ref::<VecModel<QueuedConversion>>()
                 .unwrap()
                 .push(queued);
+        });
+
+    let weak = app.global::<State<'_>>().as_weak();
+    app.global::<Rust<'_>>()
+        .on_run_conversion(move |queue, conf, drive_info| {
+            let queue = queue
+                .as_any()
+                .downcast_ref::<VecModel<QueuedConversion>>()
+                .unwrap();
+
+            let queued = queue.remove(0);
+            let mut conv = Conversion::new(&queued, &conf, &drive_info);
+
+            let weak = weak.clone();
+            let _ = std::thread::spawn(move || {
+                let res = conv.perform(&weak);
+
+                let _ = weak.upgrade_in_event_loop(move |state| {
+                    state.invoke_finished_converting(res.into());
+                });
+            });
         });
 
     #[cfg(windows)]

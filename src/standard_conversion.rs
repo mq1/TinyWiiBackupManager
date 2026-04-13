@@ -8,18 +8,19 @@ use nod::{
     read::{DiscOptions, DiscReader, PartitionEncryption},
     write::{DiscWriter, ProcessOptions, ScrubLevel},
 };
-use slint::{ToSharedString, Weak};
+use slint::{SharedString, ToSharedString, Weak};
 use split_write::SplitWriter;
 use zip::ZipArchive;
 
 use crate::{
-    ConfigContents, DriveInfo, QueuedStandardConversion, State,
+    ConfigContents, ConversionKind, DriveInfo, QueuedConversion, QueuedStandardConversion, State,
     convert::{HEADER_SIZE, SPLIT_SIZE},
     extensions::format_to_opts,
     id_map,
     util::{self, get_threads_num},
 };
 use std::{
+    ffi::OsStr,
     fs::{self, File},
     io::{self, BufWriter, Write},
     path::PathBuf,
@@ -252,4 +253,52 @@ impl StandardConversion {
 
         Ok(())
     }
+}
+
+pub fn make_queue(paths: Vec<PathBuf>, existing_ids: &[SharedString]) -> Vec<QueuedConversion> {
+    // parse discs
+    let mut entries = paths
+        .into_iter()
+        .filter_map(|p| {
+            let mut f = File::open(&p).ok()?;
+
+            let meta = if p
+                .extension()
+                .and_then(OsStr::to_str)
+                .is_some_and(|ext| ext.eq_ignore_ascii_case("zip"))
+            {
+                let mut archive = ZipArchive::new(&mut f).ok()?;
+                let mut disc = archive.by_index(0).ok()?;
+                wii_disc_info::Meta::read(&mut disc).ok()?
+            } else {
+                wii_disc_info::Meta::read(&mut f).ok()?
+            };
+
+            Some((p, meta))
+        })
+        .collect::<Vec<_>>();
+
+    // keep only new games
+    entries.retain(|(_, meta)| existing_ids.iter().all(|id| id != meta.game_id()));
+
+    let mut queue = Vec::new();
+    for (path, meta) in entries {
+        let queued = QueuedStandardConversion {
+            game_title: meta.game_title().to_shared_string(),
+            game_id: meta.game_id().to_shared_string(),
+            in_path: path.to_string_lossy().to_shared_string(),
+            is_wii: meta.is_wii(),
+            disc_number: i32::from(meta.disc_number()),
+        };
+
+        let queued = QueuedConversion {
+            kind: ConversionKind::Standard,
+            standard: queued,
+            ..Default::default()
+        };
+
+        queue.push(queued);
+    }
+
+    queue
 }

@@ -14,6 +14,7 @@ import {
     HomebrewAppList,
     HomebrewApp,
     ConversionKind,
+    EmptyResult,
 } from "types.slint";
 import { Rust } from "rust.slint";
 import { MyPalette } from "styling.slint";
@@ -44,7 +45,6 @@ export global State {
     // ---------
     // ↓ Update
 
-    callback start-conversion();
     callback checksum(Game);
     callback cache-covers();
 
@@ -135,6 +135,25 @@ export global State {
 
     public function add-to-queue() {
         Rust.add-to-queue(conversion-queue, adding-games);
+    }
+
+    public function start-conversion() {
+        if conversion-queue.length > 0 {
+            is-converting = true;
+            Rust.run-conversion(conversion-queue, config.contents, drive-info);
+        } else {
+            notify({ text: "All conversions finished", critical: false });
+        }
+    }
+
+    public function finished-converting(res: EmptyResult) {
+        if !res.err.is-empty {
+            notify({ text: res.err, critical: true });
+        }
+        is-converting = false;
+        status = "";
+        refresh-all();
+        start-conversion();
     }
 
     public function archive-game(game: Game) {

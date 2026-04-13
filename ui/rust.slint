@@ -38,4 +38,5 @@ export global Rust {
     pure callback pick-archive-dest(Game) -> string;
     pure callback set-window-color(bool);
     pure callback add-to-conversion-queue([QueuedConversion], QueuedConversion);
+    pure callback run-conversion([QueuedConversion], ConfigContents, DriveInfo);
 }
