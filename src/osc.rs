@@ -15,31 +15,32 @@ use std::{
 const CONTENTS_URL: &str = "https://hbb1.oscwii.org/api/v4/contents";
 
 impl OscContents {
-    pub fn fetch(data_dir: &Path) -> Result<Vec<u8>> {
+    pub fn fetch(data_dir: &Path) -> Result<String> {
         let cached_contents_path = data_dir.join("osc-cache.json");
 
         let needs_to_be_downloaded = !cached_contents_path.exists()
             || (cached_contents_path.metadata()?.modified()?
                 < (SystemTime::now() - Duration::from_hours(24)));
 
-        let bytes = if needs_to_be_downloaded {
+        let raw = if needs_to_be_downloaded {
             let resp = minreq::get(CONTENTS_URL)
                 .with_header("User-Agent", USER_AGENT)
                 .send()?;
 
-            let bytes = resp.into_bytes();
-            fs::write(cached_contents_path, &bytes)?;
+            let raw = String::from_utf8(resp.into_bytes())?;
+            fs::write(cached_contents_path, &raw)?;
 
-            bytes
+            raw
         } else {
-            fs::read(cached_contents_path)?
+            fs::read_to_string(cached_contents_path)?
         };
 
-        Ok(bytes)
+        Ok(raw)
     }
 
-    pub fn load(bytes: Vec<u8>) -> Result<Self> {
-        let apps = serde_json::from_slice::<Vec<OscAppMeta>>(&bytes)?;
+    pub fn load(raw: String) -> Result<Self> {
+        let sanitized = raw.replace("\\\"", "''");
+        let apps = serde_json::from_str::<Vec<OscAppMeta>>(&sanitized)?;
         let icons = vec![Image::default(); apps.len()];
         let apps = ModelRc::from(Rc::new(VecModel::from(apps)));
         let icons = ModelRc::from(Rc::new(VecModel::from(icons)));
