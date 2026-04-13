@@ -151,7 +151,7 @@ pub fn is_worth_scrubbing<R: Read + Seek>(disc_reader: &mut R) -> Result<bool> {
     let mut buf = [0u8; 4];
 
     // check if the first partition is an update one
-    disc_reader.seek(SeekFrom::Start(0x240024))?;
+    disc_reader.seek(SeekFrom::Start(0x0024_0024))?;
     disc_reader.read_exact(&mut buf)?;
     if buf != [0, 0, 0, 1] {
         return Ok(false);

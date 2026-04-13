@@ -26,6 +26,7 @@ use std::{
     time::{Duration, Instant},
 };
 
+#[allow(clippy::struct_excessive_bools)]
 pub struct StandardConversion {
     pub in_path: PathBuf,
     pub drive_path: PathBuf,
