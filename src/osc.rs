@@ -39,11 +39,15 @@ impl OscContents {
     }
 
     pub fn load(bytes: Vec<u8>) -> Result<Self> {
-        let contents = serde_json::from_slice::<Vec<OscAppMeta>>(&bytes)?;
-        let apps = ModelRc::from(Rc::new(VecModel::from(contents)));
+        let apps = serde_json::from_slice::<Vec<OscAppMeta>>(&bytes)?;
+        let icons = vec![Image::default(); apps.len()];
+        let apps = ModelRc::from(Rc::new(VecModel::from(apps)));
+        let icons = ModelRc::from(Rc::new(VecModel::from(icons)));
+
         let contents = Self {
             apps,
             err: SharedString::new(),
+            icons,
         };
 
         Ok(contents)
@@ -88,10 +92,8 @@ pub fn load_icons(apps: &ModelRc<OscAppMeta>, data_dir: &Path, weak: Weak<State<
                     );
                     let icon = Image::from_rgba8(buffer);
 
-                    let model = state.get_osc_contents().apps;
-                    let mut app = model.row_data(i).unwrap();
-                    app.icon = icon;
-                    model.set_row_data(i, app);
+                    let model = state.get_osc_contents().icons;
+                    model.set_row_data(i, icon);
                 });
             }
 
