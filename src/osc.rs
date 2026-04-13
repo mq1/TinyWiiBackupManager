@@ -39,7 +39,7 @@ impl OscContents {
     }
 
     pub fn load(raw: String) -> Result<Self> {
-        let sanitized = raw.replace("\\\"", "''");
+        let sanitized = raw.replace("\\\"", "”");
         let apps = serde_json::from_str::<Vec<OscAppMeta>>(&sanitized)?;
         let icons = vec![Image::default(); apps.len()];
         let apps = ModelRc::from(Rc::new(VecModel::from(apps)));
