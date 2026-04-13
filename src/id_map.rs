@@ -33,9 +33,7 @@ const GAMES: &[GameEntry] = &[];
 
 pub fn get(id: &str) -> Option<&'static GameEntry> {
     let mut buf = [0; 6];
-    let bytes = id.as_bytes();
-    let len = bytes.len().min(6);
-    buf[..len].copy_from_slice(&bytes[..len]);
+    buf[..id.len()].copy_from_slice(id.as_bytes());
 
     let i = GAMES.binary_search_by_key(&buf, |e| e.id).ok()?;
     let entry = &GAMES[i];
