@@ -19,6 +19,7 @@ mod homebrew_app;
 mod homebrew_app_list;
 mod id_map;
 mod notification;
+mod osc;
 mod results;
 mod scrub;
 mod standard_conversion;
@@ -48,7 +49,7 @@ fn restart_with_sw_rendering() -> Result<()> {
 
     let _ = cmd.spawn()?;
 
-    Ok(())
+    std::process::exit(0);
 }
 
 #[allow(clippy::too_many_lines)]
@@ -216,7 +217,7 @@ fn main() -> Result<()> {
             });
     }
 
-    app.global::<State<'_>>().handle_callbacks();
+    app.global::<State<'_>>().handle_callbacks(data_dir);
 
     if let Err(e) = app.run() {
         if std::env::var("SLINT_BACKEND").unwrap_or_default() == "winit-software" {

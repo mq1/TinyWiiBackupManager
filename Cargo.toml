@@ -51,6 +51,7 @@ walkdir = "2.5"
 crc32fast = "1.5"
 minreq = "2.14"
 quick-xml = { version = "0.39", features = ["serialize"] }
+image = { version = "0.25", default-features = false, features = ["png"] }
 
 [target.'cfg(windows)'.dependencies]
 raw-window-handle = "0.6"

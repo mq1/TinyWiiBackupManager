@@ -151,3 +151,32 @@ export struct Notification {
     text: string,
     critical: bool,
 }
+
+@rust-attr(derive(serde::Deserialize))
+@rust-attr(serde(default))
+export struct OscAppMetaAsset {
+    url: string,
+}
+
+@rust-attr(derive(serde::Deserialize))
+@rust-attr(serde(default))
+export struct OscAppMetaAssets {
+    icon: OscAppMetaAsset,
+    archive: OscAppMetaAsset,
+}
+
+@rust-attr(derive(serde::Deserialize))
+@rust-attr(serde(default))
+export struct OscAppMeta {
+    slug: string,
+    name: string,
+    author: string,
+    version: string,
+    assets: OscAppMetaAssets,
+    icon: image,
+}
+
+export struct OscContents {
+    err: string,
+    apps: [OscAppMeta],
+}

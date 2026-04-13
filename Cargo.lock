@@ -13,6 +13,7 @@ dependencies = [
  "fs_extra",
  "fuzzy-matcher",
  "hex",
+ "image",
  "lucide-slint",
  "minreq",
  "nod",

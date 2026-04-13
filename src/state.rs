@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{Notification, State, checksum, covers};
+use crate::{Notification, OscContents, State, checksum, covers};
 use slint::{Global, Model, ModelRc, VecModel};
 use std::{
     path::{Path, PathBuf},
@@ -9,7 +9,7 @@ use std::{
 };
 
 impl State<'_> {
-    pub fn handle_callbacks(&self) {
+    pub fn handle_callbacks(&self, data_dir: &'static Path) {
         let weak = self.as_weak();
         self.on_checksum(move |game| {
             let weak = weak.clone();
@@ -29,6 +29,22 @@ impl State<'_> {
         self.on_cache_covers(move || {
             let state = weak.upgrade().unwrap();
             state.cache_covers();
+        });
+
+        let weak = self.as_weak();
+        self.on_load_osc_contents(move || {
+            let weak = weak.clone();
+            let _ = std::thread::spawn(move || {
+                let bytes = OscContents::fetch(&data_dir);
+                let _ = weak.upgrade_in_event_loop(move |state| {
+                    let res = match bytes {
+                        Ok(bytes) => OscContents::load(bytes).into(),
+                        Err(e) => Err(e).into(),
+                    };
+
+                    state.invoke_got_osc_contents(res);
+                });
+            });
         });
     }
 
