@@ -152,14 +152,14 @@ pub fn is_worth_scrubbing<R: Read + Seek>(disc_reader: &mut R) -> Result<bool> {
 
     // check if the first partition is an update one
     disc_reader.seek(SeekFrom::Start(0x240024))?;
-    disc_reader.read(&mut buf)?;
+    disc_reader.read_exact(&mut buf)?;
     if buf != [0, 0, 0, 1] {
         return Ok(false);
     }
 
     // check if the update data is unmapped
     disc_reader.seek(SeekFrom::Start(0x302))?;
-    disc_reader.read(&mut buf)?;
+    disc_reader.read_exact(&mut buf)?;
     let worth_it = buf != [0, 0, 0, 0];
 
     Ok(worth_it)
