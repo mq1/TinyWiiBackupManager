@@ -82,6 +82,14 @@ export global State {
         }
     }
 
+    public function filter-osc() {
+        if osc-contents.filter.is-empty {
+            osc-contents.filtered-apps = [];
+        } else {
+            osc-contents.filtered-apps = Rust.filter-osc(osc-contents.apps, osc-contents.filter);
+        }
+    }
+
     public function apply-theme() {
         if config.contents.theme-preference == "light" {
             Palette.color-scheme = ColorScheme.light;

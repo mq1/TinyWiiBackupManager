@@ -4,6 +4,7 @@
 export enum Page {
     Games,
     HomebrewApps,
+    Osc,
     Settings,
     About,
 }
@@ -173,10 +174,14 @@ export struct OscAppMeta {
     author: string,
     version: string,
     assets: OscAppMetaAssets,
+    uncompressed-size: int,
 }
 
 export struct OscContents {
     err: string,
     apps: [OscAppMeta],
     icons: [image],
+    filter: string,
+    filtered-apps: [OscAppMeta],
+    last-refresh: { hour: int, minute: int},
 }

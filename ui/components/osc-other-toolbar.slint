@@ -1,0 +1,20 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { MyPalette } from "../styling.slint";
+import { State } from "../state.slint";
+import { OscFilter } from "osc-filter.slint";
+
+export component OscOtherToolbar inherits HorizontalLayout {
+    alignment: space-between;
+    height: 38px;
+
+    OscFilter { }
+
+    Text {
+        height: parent.height;
+        vertical-alignment: center;
+        horizontal-alignment: end;
+        text: "refreshed \{State.osc-contents.last-refresh.hour} hours and \{State.osc-contents.last-refresh.minute} minutes ago";
+    }
+}

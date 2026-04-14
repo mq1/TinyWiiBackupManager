@@ -23,6 +23,7 @@ import { HomebrewAppsGridPage } from "homebrew-apps-grid-page.slint";
 import { HomebrewAppInfoModal } from "components/homebrew-app-info-modal.slint";
 import { HomebrewAppsTablePage } from "homebrew-apps-table-page.slint";
 import { ScrubbingGameModal } from "components/scrubbing-game-modal.slint";
+import { OscGridPage } from "osc-grid-page.slint";
 
 export * from "types.slint";
 export { State, Rust }
@@ -54,6 +55,7 @@ export component AppWindow inherits Window {
                 if State.current-page == Page.Games && State.config.contents.view-as-table: GameTablePage { }
                 if State.current-page == Page.HomebrewApps && !State.config.contents.view-as-table: HomebrewAppsGridPage { }
                 if State.current-page == Page.HomebrewApps && State.config.contents.view-as-table: HomebrewAppsTablePage { }
+                if State.current-page == Page.Osc && !State.config.contents.view-as-table: OscGridPage { }
                 if State.current-page == Page.Settings: SettingsPage { }
                 if State.current-page == Page.About: AboutPage { }
             }

@@ -16,6 +16,7 @@ import {
     HomebrewAppList,
     QueuedScrubConversion,
     OscContents,
+    OscAppMeta,
 } from "types.slint";
 
 export global Rust {
@@ -29,6 +30,7 @@ export global Rust {
     pure callback get-homebrew-app-list(string, SortBy) -> HomebrewAppList;
     pure callback filter-games([Game], string) -> [Game];
     pure callback filter-homebrew-apps([HomebrewApp], string) -> [HomebrewApp];
+    pure callback filter-osc([OscAppMeta], string) -> [OscAppMeta];
     pure callback get-disc-info(string) -> DiscInfo;
     pure callback pick-games([Game]) -> [QueuedConversion];
     pure callback pick-games-r([Game]) -> [QueuedConversion];

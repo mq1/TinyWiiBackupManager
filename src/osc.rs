@@ -3,26 +3,31 @@
 
 use crate::{OscAppMeta, OscContents, State, USER_AGENT};
 use anyhow::Result;
+use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
 use image::ImageFormat;
 use slint::{Image, Model, ModelRc, Rgba8Pixel, SharedPixelBuffer, SharedString, VecModel, Weak};
 use std::{
     fs,
     path::Path,
     rc::Rc,
-    time::{Duration, SystemTime},
+    time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
 const CONTENTS_URL: &str = "https://hbb1.oscwii.org/api/v4/contents";
 
 impl OscContents {
-    pub fn fetch(data_dir: &Path) -> Result<String> {
+    pub fn fetch(data_dir: &Path) -> Result<(String, SystemTime)> {
         let cached_contents_path = data_dir.join("osc-cache.json");
 
-        let needs_to_be_downloaded = !cached_contents_path.exists()
-            || (cached_contents_path.metadata()?.modified()?
-                < (SystemTime::now() - Duration::from_hours(24)));
+        let last_refresh = cached_contents_path
+            .metadata()
+            .ok()
+            .and_then(|m| m.modified().ok())
+            .unwrap_or(UNIX_EPOCH);
 
-        let raw = if needs_to_be_downloaded {
+        let should_refresh = last_refresh < SystemTime::now() - Duration::from_hours(24);
+
+        if should_refresh {
             let resp = minreq::get(CONTENTS_URL)
                 .with_header("User-Agent", USER_AGENT)
                 .send()?;
@@ -30,25 +35,31 @@ impl OscContents {
             let raw = String::from_utf8(resp.into_bytes())?;
             fs::write(cached_contents_path, &raw)?;
 
-            raw
+            Ok((raw, SystemTime::now()))
         } else {
-            fs::read_to_string(cached_contents_path)?
-        };
-
-        Ok(raw)
+            let raw = fs::read_to_string(cached_contents_path)?;
+            Ok((raw, last_refresh))
+        }
     }
 
-    pub fn load(raw: String) -> Result<Self> {
-        let sanitized = raw.replace("\\\"", "”");
+    pub fn load(raw: String, last_refresh: SystemTime) -> Result<Self> {
+        let sanitized = raw.replace("\\\"", "”"); // for some reason slint doesn't like this
         let apps = serde_json::from_str::<Vec<OscAppMeta>>(&sanitized)?;
         let icons = vec![Image::default(); apps.len()];
         let apps = ModelRc::from(Rc::new(VecModel::from(apps)));
         let icons = ModelRc::from(Rc::new(VecModel::from(icons)));
 
+        let elapsed_mins = last_refresh.elapsed().unwrap_or_default().as_secs() / 60;
+        let elapsed_hours = (elapsed_mins / 60) as i32;
+        let elapsed_mins = (elapsed_mins % 60) as i32;
+
         let contents = Self {
             apps,
             err: SharedString::new(),
             icons,
+            last_refresh: (elapsed_hours, elapsed_mins),
+            filter: SharedString::new(),
+            filtered_apps: ModelRc::default(),
         };
 
         Ok(contents)
@@ -107,4 +118,31 @@ pub fn load_icons(apps: &ModelRc<OscAppMeta>, data_dir: &Path, weak: Weak<State<
             });
         }
     });
+}
+
+pub fn fuzzy_search(apps: &ModelRc<OscAppMeta>, query: &str) -> ModelRc<OscAppMeta> {
+    let matcher = SkimMatcherV2::default();
+
+    let mut filtered_apps = Vec::new();
+    for app in apps.iter() {
+        let name_score = matcher.fuzzy_match(&app.name, query);
+        let author_score = matcher.fuzzy_match(&app.author, query);
+
+        let score = match (name_score, author_score) {
+            (Some(a), Some(b)) => a.saturating_add(b),
+            (Some(a), None) | (None, Some(a)) => a,
+            (None, None) => continue,
+        };
+
+        filtered_apps.push((app, score));
+    }
+
+    filtered_apps.sort_unstable_by_key(|(_, score)| *score);
+
+    let filtered_apps = filtered_apps
+        .into_iter()
+        .map(|(app, _)| app)
+        .collect::<VecModel<_>>();
+
+    ModelRc::from(Rc::new(filtered_apps))
 }

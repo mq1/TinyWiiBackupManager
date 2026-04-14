@@ -20,8 +20,9 @@ export component GameGridPage inherits Rectangle {
         y: toolbar.height + 15px;
         height: parent.height - toolbar.height - 15px;
         width: parent.width;
+        viewport-height: v.preferred-height;
 
-        VerticalLayout {
+        v := VerticalLayout {
             x: 5px;
             alignment: start;
             width: parent.width - 10px;

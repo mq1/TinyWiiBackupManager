@@ -1,0 +1,39 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { Card } from "card.slint";
+import { LineEdit } from "std-widgets.slint";
+import { MyPalette } from "../styling.slint";
+import { IconSet, IconDisplay } from "@lucide";
+import { State } from "../state.slint";
+import { MyLineEdit } from "my-line-edit.slint";
+
+export component OscFilter inherits Card {
+    width: 210px;
+    height: 38px;
+
+    HorizontalLayout {
+        spacing: 10px;
+
+        VerticalLayout {
+            padding-left: 15px;
+            alignment: center;
+
+            IconDisplay {
+                icon: IconSet.Search;
+                size: 14px;
+                stroke: MyPalette.foreground;
+            }
+        }
+
+        VerticalLayout {
+            alignment: center;
+
+            MyLineEdit {
+                text <=> State.osc-contents.filter;
+                placeholder-text: "Search by Name/Author";
+                changed text => State.filter-osc();
+            }
+        }
+    }
+}

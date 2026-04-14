@@ -2,17 +2,22 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import { Card } from "card.slint";
-import { HomebrewApp } from "../types.slint";
+import { OscAppMeta } from "../types.slint";
 import { IconButton } from "icon-button.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { State } from "../state.slint";
 import { MyPalette } from "../styling.slint";
 
-export component HomebrewAppCard inherits Card {
-    in property <HomebrewApp> app;
+export component OscAppCard inherits Card {
+    in property <OscAppMeta> app;
+    in property <image> icon;
 
     width: 171px;
     height: self.min-height;
+
+    pure function get-size-mib() -> float {
+        app.uncompressed-size / 1024.0 / 1024.0
+    }
 
     VerticalLayout {
         padding: 10px;
@@ -31,25 +36,25 @@ export component HomebrewAppCard inherits Card {
                 }
 
                 Text {
-                    text: app.meta.version;
+                    text: app.version;
                     wrap: no-wrap;
                 }
             }
 
             Text {
-                text: "\{app.size-mib.to-fixed(2)} MiB";
+                text: "\{get-size-mib().to-fixed(2)} MiB";
                 wrap: no-wrap;
                 horizontal-alignment: right;
             }
         }
 
         Image {
-            source: app.icon;
+            source: icon;
             height: 48px;
         }
 
         Text {
-            text: app.meta.name;
+            text: app.name;
             horizontal-alignment: center;
             wrap: no-wrap;
             overflow: elide;
@@ -61,17 +66,11 @@ export component HomebrewAppCard inherits Card {
             IconButton {
                 label: "Info";
                 icon: IconSet.Info;
-                clicked => {
-                    State.current-homebrew-app = app;
-                }
             }
 
             IconButton {
-                icon: IconSet.Trash;
-                tooltip: "Delete app";
-                clicked => {
-                    State.deleting-dir = app.path;
-                }
+                icon: IconSet.MonitorUp;
+                tooltip: "Wiiload";
             }
         }
     }

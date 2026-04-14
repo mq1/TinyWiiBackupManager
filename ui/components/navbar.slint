@@ -33,10 +33,13 @@ export component Navbar inherits VerticalLayout {
         }
 
         NavbarButton {
-            active: false;
+            active: State.current-page == Page.Osc;
             icon: IconSet.Waves;
             icon2: IconSet.ArrowBigDown;
             tooltip: "Open Shop Channel";
+            clicked => {
+                State.current-page = Page.Osc;
+            }
         }
 
         NavbarButton {

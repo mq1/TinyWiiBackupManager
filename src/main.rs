@@ -101,6 +101,9 @@ fn main() -> Result<()> {
         .on_filter_homebrew_apps(|apps, query| homebrew_app_list::fuzzy_search(&apps, &query));
 
     app.global::<Rust<'_>>()
+        .on_filter_osc(|apps, query| osc::fuzzy_search(&apps, &query));
+
+    app.global::<Rust<'_>>()
         .on_get_disc_info(|game_dir| DiscInfo::try_from_game_dir(Path::new(&game_dir)).into());
 
     let weak = app.as_weak();

@@ -5,14 +5,12 @@ import { ScrollView } from "std-widgets.slint";
 import { State } from "state.slint";
 import { MyPalette } from "styling.slint";
 import { IconSet, IconDisplay } from "@lucide";
-import { HomebrewAppsToolbar } from "components/homebrew-apps-toolbar.slint";
-import { HomebrewAppCard } from "components/homebrew-app-card.slint";
-import {
-    HomebrewAppsOtherToolbar,
-} from "components/homebrew-apps-other-toolbar.slint";
+import { OscToolbar } from "components/osc-toolbar.slint";
+import { OscOtherToolbar } from "components/osc-other-toolbar.slint";
+import { OscAppCard } from "components/osc-app-card.slint";
 
-export component HomebrewAppsGridPage inherits Rectangle {
-    toolbar := HomebrewAppsToolbar {
+export component OscGridPage inherits Rectangle {
+    toolbar := OscToolbar {
         x: 10px;
         y: 10px;
         width: parent.width - 20px;
@@ -29,21 +27,23 @@ export component HomebrewAppsGridPage inherits Rectangle {
             padding: 10px;
             spacing: 10px;
 
-            HomebrewAppsOtherToolbar { }
+            OscOtherToolbar { }
 
-            if State.homebrew-app-list.filter.is-empty: FlexboxLayout {
+            if State.osc-contents.filter.is-empty: FlexboxLayout {
                 spacing: 10px;
 
-                for app in State.homebrew-app-list.apps: HomebrewAppCard {
+                for app[i] in State.osc-contents.apps: OscAppCard {
                     app: app;
+                    icon: State.osc-contents.icons[i];
                 }
             }
 
-            if !State.homebrew-app-list.filter.is-empty: FlexboxLayout {
+            if !State.osc-contents.filter.is-empty: FlexboxLayout {
                 spacing: 10px;
 
-                for app in State.homebrew-app-list.filtered-apps: HomebrewAppCard {
+                for app[i] in State.osc-contents.filtered-apps: OscAppCard {
                     app: app;
+                    icon: State.osc-contents.icons[i];
                 }
             }
         }
