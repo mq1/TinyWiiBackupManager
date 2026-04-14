@@ -9,22 +9,19 @@ import { OscToolbar } from "components/osc-toolbar.slint";
 import { OscOtherToolbar } from "components/osc-other-toolbar.slint";
 import { OscAppCard } from "components/osc-app-card.slint";
 
-export component OscGridPage inherits Rectangle {
-    toolbar := OscToolbar {
-        x: 10px;
-        y: 10px;
-        width: parent.width - 20px;
+export component OscGridPage inherits VerticalLayout {
+    HorizontalLayout {
+        padding: 10px;
+        OscToolbar { }
     }
 
     ScrollView {
-        x: 0px;
-        y: toolbar.height + 10px;
-        height: parent.height - toolbar.height - 10px;
         width: parent.width;
         viewport-height: v.preferred-height;
 
         v := VerticalLayout {
             padding: 10px;
+            padding-top: 0px;
             spacing: 10px;
 
             OscOtherToolbar { }

@@ -27,20 +27,21 @@ export component OscToolbar inherits HorizontalLayout {
             text: "Open Shop Channel";
             font-size: 18px;
         }
-    }
-
-    HorizontalLayout {
-        spacing: 10px;
 
         VerticalLayout {
-            height: parent.height;
             alignment: center;
+            height: 18px;
+            padding-left: 20px;
 
             Link {
                 uri: "https://oscwii.org/";
                 label: "oscwii.org";
             }
         }
+    }
+
+    HorizontalLayout {
+        spacing: 10px;
 
         ViewAs { }
     }
