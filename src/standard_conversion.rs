@@ -204,6 +204,8 @@ impl StandardConversion {
         }
 
         split_writer.flush()?;
+        drop(split_writer);
+        drop(disc_writer);
 
         let mut final_hasher = Hasher::new();
         final_hasher.update(&head_buffer);
