@@ -155,7 +155,7 @@ pub fn fuzzy_search(apps: &ModelRc<OscAppMeta>, query: &str) -> ModelRc<OscAppMe
         filtered_apps.push((app, score));
     }
 
-    filtered_apps.sort_unstable_by_key(|(_, score)| *score);
+    filtered_apps.sort_unstable_by_key(|(_, score)| -*score);
 
     let filtered_apps = filtered_apps
         .into_iter()

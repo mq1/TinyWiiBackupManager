@@ -58,7 +58,7 @@ pub fn fuzzy_search(apps: &ModelRc<HomebrewApp>, query: &str) -> ModelRc<Homebre
         filtered_apps.push((app, score));
     }
 
-    filtered_apps.sort_unstable_by_key(|(_, score)| *score);
+    filtered_apps.sort_unstable_by_key(|(_, score)| -*score);
 
     let filtered_apps = filtered_apps
         .into_iter()

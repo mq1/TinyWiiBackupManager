@@ -64,7 +64,7 @@ pub fn fuzzy_search(games: &ModelRc<Game>, query: &str) -> ModelRc<Game> {
         filtered_games.push((game, score));
     }
 
-    filtered_games.sort_unstable_by_key(|(_, score)| *score);
+    filtered_games.sort_unstable_by_key(|(_, score)| -*score);
 
     let filtered_games = filtered_games
         .into_iter()
