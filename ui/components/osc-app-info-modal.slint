@@ -10,6 +10,7 @@ import { Card } from "card.slint";
 import { HorizontalLine } from "horizontal-line.slint";
 import { MyPalette } from "../styling.slint";
 import { IconButton } from "icon-button.slint";
+import { Developers } from "../developers.slint";
 
 export component OscAppInfoModal inherits Card {
     width: 600px;
@@ -78,13 +79,13 @@ export component OscAppInfoModal inherits Card {
                     spacing: 5px;
 
                     IconDisplay {
-                        icon: IconSet.UserStar;
+                        icon: Developers.get-icon(State.current-osc-app.author);
                         stroke: MyPalette.foreground;
                         size: 14px;
                     }
 
                     Text {
-                        text: "Coder: \{State.current-osc-app.author}";
+                        text: "Author: \{State.current-osc-app.author}";
                     }
                 }
 

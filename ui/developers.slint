@@ -1,0 +1,16 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { IconSet, Icon } from "@lucide";
+
+export global Developers {
+    public pure function get-icon(name: string) -> Icon {
+        if name == "blackb0x" || name == "USB Loader GX Team" {
+            IconSet.WandSparkles
+        } else if name == "Aep" {
+            IconSet.Metronome
+        } else {
+            IconSet.UserStar
+        }
+    }
+}
