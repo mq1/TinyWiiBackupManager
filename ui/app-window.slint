@@ -25,6 +25,7 @@ import { HomebrewAppsTablePage } from "homebrew-apps-table-page.slint";
 import { ScrubbingGameModal } from "components/scrubbing-game-modal.slint";
 import { OscGridPage } from "osc-grid-page.slint";
 import { OscTablePage } from "osc-table-page.slint";
+import { OscAppInfoModal } from "components/osc-app-info-modal.slint";
 
 export * from "types.slint";
 export { State, Rust }
@@ -37,7 +38,7 @@ export component AppWindow inherits Window {
     default-font-size: 14px;
 
     pure function is-modal-open() -> bool {
-        !State.current-game.path.is-empty || !State.current-homebrew-app.path.is-empty || State.adding-games.length > 0 || !State.deleting-dir.is-empty || !State.scrubbing-game.path.is-empty
+        !State.current-game.path.is-empty || !State.current-homebrew-app.path.is-empty || State.adding-games.length > 0 || !State.deleting-dir.is-empty || !State.scrubbing-game.path.is-empty || !State.current-osc-app.slug.is-empty
     }
 
     InitializeState { }
@@ -107,6 +108,10 @@ export component AppWindow inherits Window {
             y: (root.height - self.height) / 2;
         }
         if !State.deleting-dir.is-empty: DeletingDirModal {
+            x: (root.width - self.width) / 2;
+            y: (root.height - self.height) / 2;
+        }
+        if !State.current-osc-app.slug.is-empty: OscAppInfoModal {
             x: (root.width - self.width) / 2;
             y: (root.height - self.height) / 2;
         }

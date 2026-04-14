@@ -29,18 +29,16 @@ export component OscGridPage inherits VerticalLayout {
             if State.osc-contents.filter.is-empty: FlexboxLayout {
                 spacing: 10px;
 
-                for app[i] in State.osc-contents.apps: OscAppCard {
+                for app in State.osc-contents.apps: OscAppCard {
                     app: app;
-                    icon: State.osc-contents.icons[i];
                 }
             }
 
             if !State.osc-contents.filter.is-empty: FlexboxLayout {
                 spacing: 10px;
 
-                for app[i] in State.osc-contents.filtered-apps: OscAppCard {
+                for app in State.osc-contents.filtered-apps: OscAppCard {
                     app: app;
-                    icon: State.osc-contents.icons[i];
                 }
             }
         }

@@ -5,12 +5,16 @@ use crate::{OscAppMeta, OscContents, State, USER_AGENT, data_dir::DATA_DIR};
 use anyhow::Result;
 use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
 use image::ImageFormat;
-use slint::{Image, Model, ModelRc, Rgba8Pixel, SharedPixelBuffer, SharedString, VecModel, Weak};
+use slint::{
+    Image, Model, ModelRc, Rgba8Pixel, SharedPixelBuffer, SharedString, ToSharedString, VecModel,
+    Weak,
+};
 use std::{
     fs,
     rc::Rc,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
+use time::UtcDateTime;
 
 const CONTENTS_URL: &str = "https://hbb1.oscwii.org/api/v4/contents";
 
@@ -43,8 +47,20 @@ impl OscContents {
     }
 
     pub fn load(raw: String, last_refresh: SystemTime) -> Result<Self> {
-        let sanitized = raw.replace("\\\"", "”"); // for some reason slint doesn't like this
-        let apps = serde_json::from_str::<Vec<OscAppMeta>>(&sanitized)?;
+        let escaped = escape_str(&raw);
+        let mut apps = serde_json::from_str::<Vec<OscAppMeta>>(&escaped).unwrap();
+
+        #[allow(clippy::cast_possible_truncation)]
+        for (i, app) in apps.iter_mut().enumerate() {
+            app.i = i as i32;
+
+            if let Ok(release_date) = UtcDateTime::from_unix_timestamp(app.release_date) {
+                app.release_date_display = release_date.date().to_shared_string();
+            } else {
+                app.release_date_display = app.release_date.to_shared_string();
+            }
+        }
+
         let icons = vec![Image::default(); apps.len()];
         let apps = ModelRc::from(Rc::new(VecModel::from(apps)));
         let icons = ModelRc::from(Rc::new(VecModel::from(icons)));
@@ -69,7 +85,7 @@ impl OscContents {
 pub fn load_icons(apps: &ModelRc<OscAppMeta>, weak: Weak<State<'static>>) {
     let icon_urls = apps
         .iter()
-        .map(|app| (app.slug.to_string(), app.assets.icon.url.to_string()))
+        .map(|app| (app.i, app.slug.to_string(), app.assets.icon.url.to_string()))
         .collect::<Vec<_>>();
 
     let cache_dir = DATA_DIR.join("osc-icons");
@@ -78,7 +94,7 @@ pub fn load_icons(apps: &ModelRc<OscAppMeta>, weak: Weak<State<'static>>) {
         let res = || -> Result<()> {
             fs::create_dir_all(&cache_dir)?;
 
-            for (i, (slug, url)) in icon_urls.iter().enumerate() {
+            for (i, slug, url) in icon_urls {
                 let icon_path = cache_dir.join(format!("{slug}.png"));
 
                 let bytes = if !icon_path.exists() {
@@ -105,7 +121,7 @@ pub fn load_icons(apps: &ModelRc<OscAppMeta>, weak: Weak<State<'static>>) {
                     let icon = Image::from_rgba8(buffer);
 
                     let model = state.get_osc_contents().icons;
-                    model.set_row_data(i, icon);
+                    model.set_row_data(i as usize, icon);
                 });
             }
 
@@ -147,4 +163,12 @@ pub fn fuzzy_search(apps: &ModelRc<OscAppMeta>, query: &str) -> ModelRc<OscAppMe
         .collect::<VecModel<_>>();
 
     ModelRc::from(Rc::new(filtered_apps))
+}
+
+// for some reason slint strings don't work without this
+fn escape_str(s: &str) -> String {
+    s.replace("\\\\", "/")
+        .replace("\\\"", "'")
+        .replace("\\n", "    ")
+        .replace("\\t", "    ")
 }

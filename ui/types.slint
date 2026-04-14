@@ -168,6 +168,13 @@ export struct OscAppMetaAssets {
 
 @rust-attr(derive(serde::Deserialize))
 @rust-attr(serde(default))
+export struct OscAppMetaDescription {
+    short: string,
+    long: string,
+}
+
+@rust-attr(derive(serde::Deserialize))
+@rust-attr(serde(default))
 export struct OscAppMeta {
     slug: string,
     name: string,
@@ -175,6 +182,10 @@ export struct OscAppMeta {
     version: string,
     assets: OscAppMetaAssets,
     uncompressed-size: int,
+    release-date: duration,
+    description: OscAppMetaDescription,
+    release-date-display: string,
+    i: int,
 }
 
 export struct OscContents {

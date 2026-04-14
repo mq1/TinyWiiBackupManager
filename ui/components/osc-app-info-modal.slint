@@ -1,0 +1,153 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { ScrollView, Palette } from "std-widgets.slint";
+import { OscAppMeta, IconButtonKind } from "../types.slint";
+import { IconSet, IconDisplay } from "@lucide";
+import { State } from "../state.slint";
+import { Link } from "link.slint";
+import { Card } from "card.slint";
+import { HorizontalLine } from "horizontal-line.slint";
+import { MyPalette } from "../styling.slint";
+import { IconButton } from "icon-button.slint";
+
+export component OscAppInfoModal inherits Card {
+    width: 600px;
+    height: 400px;
+
+    VerticalLayout {
+        x: 0px;
+        y: 0px;
+        height: parent.height - toolbar.height;
+        alignment: start;
+
+        VerticalLayout {
+            padding: 20px;
+            spacing: 10px;
+
+            Text {
+                text: State.current-osc-app.name;
+                font-size: 18px;
+                overflow: elide;
+            }
+
+            Link {
+                label: "https://oscwii.org/library/app/\{State.current-osc-app.slug}";
+                uri: "https://oscwii.org/library/app/\{State.current-osc-app.slug}";
+            }
+        }
+
+        HorizontalLayout {
+            alignment: space-between;
+            padding-right: 20px;
+
+            VerticalLayout {
+                spacing: 5px;
+                padding: 20px;
+                alignment: start;
+
+                HorizontalLayout {
+                    spacing: 5px;
+
+                    IconDisplay {
+                        icon: IconSet.Tag;
+                        stroke: MyPalette.foreground;
+                        size: 14px;
+                    }
+
+                    Text {
+                        text: "Version: \{State.current-osc-app.version}";
+                    }
+                }
+
+                HorizontalLayout {
+                    spacing: 5px;
+
+                    IconDisplay {
+                        icon: IconSet.Calendar;
+                        stroke: MyPalette.foreground;
+                        size: 14px;
+                    }
+
+                    Text {
+                        text: "Release date: \{State.current-osc-app.release-date-display}";
+                    }
+                }
+
+                HorizontalLayout {
+                    spacing: 5px;
+
+                    IconDisplay {
+                        icon: IconSet.UserStar;
+                        stroke: MyPalette.foreground;
+                        size: 14px;
+                    }
+
+                    Text {
+                        text: "Coder: \{State.current-osc-app.author}";
+                    }
+                }
+
+                HorizontalLayout {
+                    spacing: 5px;
+
+                    IconDisplay {
+                        icon: IconSet.NotepadText;
+                        stroke: MyPalette.foreground;
+                        size: 14px;
+                    }
+
+                    Text {
+                        text: "Description: \{State.current-osc-app.description.short}";
+                    }
+                }
+
+                HorizontalLayout {
+                    padding: 5px;
+                    HorizontalLine { }
+                }
+
+                ScrollView {
+                    preferred-width: v.preferred-width;
+                    height: v.preferred-height;
+
+                    v := VerticalLayout {
+                        Text {
+                            text: State.current-osc-app.description.long;
+                            wrap: word-wrap;
+                        }
+                    }
+                }
+            }
+
+            Image {
+                source: State.osc-contents.icons[State.current-osc-app.i];
+                height: 96px;
+            }
+        }
+
+        VerticalLayout { }
+    }
+
+    toolbar := VerticalLayout {
+        height: self.min-height;
+        x: 0px;
+        y: parent.height - self.height;
+
+        HorizontalLine { }
+
+        HorizontalLayout {
+            alignment: end;
+            padding: 10px;
+            spacing: 10px;
+
+            IconButton {
+                label: "Close";
+                kind: IconButtonKind.Primary;
+                clicked => {
+                    State.current-osc-app.slug = "";
+                }
+            }
+        }
+    }
+}

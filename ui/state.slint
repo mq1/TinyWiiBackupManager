@@ -16,6 +16,7 @@ import {
     ConversionKind,
     EmptyResult,
     OscContents,
+    OscAppMeta,
 } from "types.slint";
 import { Rust } from "rust.slint";
 import { MyPalette } from "styling.slint";
@@ -43,6 +44,7 @@ export global State {
     in-out property <[Notification]> notifications: [];
     in-out property <OscContents> osc-contents;
     in-out property <bool> osc-icons-loading-started: false;
+    in-out property <OscAppMeta> current-osc-app;
 
     // ↑ Model
     // ---------

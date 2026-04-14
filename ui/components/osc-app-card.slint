@@ -10,7 +10,6 @@ import { MyPalette } from "../styling.slint";
 
 export component OscAppCard inherits Card {
     in property <OscAppMeta> app;
-    in property <image> icon;
 
     width: 172px;
     height: self.min-height;
@@ -46,7 +45,7 @@ export component OscAppCard inherits Card {
         }
 
         Image {
-            source: icon;
+            source: State.osc-contents.icons[app.i];
             height: 48px;
         }
 
@@ -63,6 +62,9 @@ export component OscAppCard inherits Card {
             IconButton {
                 label: "Info";
                 icon: IconSet.Info;
+                clicked => {
+                    State.current-osc-app = app;
+                }
             }
 
             IconButton {

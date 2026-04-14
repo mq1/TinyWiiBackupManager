@@ -20,6 +20,8 @@ impl HomebrewApp {
         let meta_path = path.join("meta.xml");
         let meta = fs::read_to_string(&meta_path).ok()?;
         let mut meta = quick_xml::de::from_str::<HomebrewAppMeta>(&meta).ok()?;
+
+        // some apps seem to place " " in front of the name to prioritize themselves when sorting
         meta.name = meta.name.trim().to_shared_string();
 
         let size = fs_extra::dir::get_size(path).unwrap_or(0);
