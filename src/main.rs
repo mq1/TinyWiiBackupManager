@@ -23,7 +23,6 @@ mod osc;
 mod results;
 mod scrub;
 mod standard_conversion;
-mod state;
 mod util;
 
 #[cfg(windows)]
@@ -37,7 +36,7 @@ use anyhow::{Result, bail};
 use slint::{ComponentHandle, Model, ModelRc, SharedString, ToSharedString, VecModel};
 use std::{
     fs::{self, File},
-    path::Path,
+    path::{Path, PathBuf},
     process::Command,
     rc::Rc,
 };
@@ -245,6 +244,69 @@ fn main() -> Result<()> {
             res.into()
         });
 
+    let weak = app.global::<State<'_>>().as_weak();
+    app.global::<Rust<'_>>()
+        .on_load_osc_contents(move |force_refresh| {
+            let weak = weak.clone();
+            let _ = std::thread::spawn(move || {
+                let res = OscContents::fetch(force_refresh);
+                let _ = weak.upgrade_in_event_loop(move |state| {
+                    let res = match res {
+                        Ok((raw, last_refresh)) => OscContents::load(raw, last_refresh).into(),
+                        Err(e) => Err(e).into(),
+                    };
+
+                    state.invoke_got_osc_contents(res);
+                    if force_refresh {
+                        state.invoke_load_osc_icons();
+                    }
+                });
+            });
+        });
+
+    let weak = app.global::<State<'_>>().as_weak();
+    app.global::<Rust<'_>>().on_cache_covers(move || {
+        let ids = weak
+            .upgrade()
+            .unwrap()
+            .get_game_list()
+            .games
+            .iter()
+            .map(|g| g.id.to_string())
+            .collect::<Vec<_>>();
+
+        let weak = weak.clone();
+        let _ = std::thread::spawn(move || {
+            for game_id in ids {
+                if let Err(e) = covers::cache_cover(&game_id) {
+                    eprintln!("ERR: Failed to cache cover for {game_id}: {e}");
+                }
+
+                let _ = weak.upgrade_in_event_loop(move |state| {
+                    let mut game_list = state.get_game_list();
+                    game_list.reload_cover(&game_id);
+                    state.set_game_list(game_list);
+                });
+            }
+        });
+    });
+
+    let weak = app.global::<State<'_>>().as_weak();
+    app.global::<Rust<'_>>().on_checksum(move |game| {
+        let game_dir = PathBuf::from(&game.path);
+        let is_wii = game.is_wii;
+        let game_id = game.id.to_string();
+
+        let weak = weak.clone();
+        let _ = std::thread::spawn(move || {
+            if let Err(e) = checksum::perform(game_dir, is_wii, &game_id, &weak) {
+                let _ = weak.upgrade_in_event_loop(move |state| {
+                    state.invoke_notify_err(e.to_shared_string());
+                });
+            }
+        });
+    });
+
     #[cfg(windows)]
     {
         let weak = app.as_weak();
@@ -254,8 +316,6 @@ fn main() -> Result<()> {
                 window_color::set(app.window(), is_dark);
             });
     }
-
-    app.global::<State<'_>>().handle_callbacks();
 
     if let Err(e) = app.run() {
         if std::env::var("SLINT_BACKEND").unwrap_or_default() == "winit-software" {

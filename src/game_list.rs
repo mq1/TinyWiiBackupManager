@@ -29,6 +29,26 @@ impl GameList {
             total_size,
         }
     }
+
+    pub fn reload_cover(&mut self, gameid: &str) {
+        for (i, mut game) in self.games.iter().enumerate() {
+            if game.id.as_str() == gameid {
+                game.reload_cover();
+                self.games.set_row_data(i, game);
+
+                break;
+            }
+        }
+
+        for (i, mut game) in self.filtered_games.iter().enumerate() {
+            if game.id.as_str() == gameid {
+                game.reload_cover();
+                self.filtered_games.set_row_data(i, game);
+
+                break;
+            }
+        }
+    }
 }
 
 fn read_game_dir(game_dir: &Path, is_wii: bool, games: &mut Vec<Game>) -> Result<()> {

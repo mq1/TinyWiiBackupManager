@@ -130,7 +130,7 @@ pub fn load_icons(apps: &ModelRc<OscAppMeta>, weak: Weak<State<'static>>) {
 
         if let Err(e) = res {
             let _ = weak.upgrade_in_event_loop(move |state| {
-                state.push_notification(e.into());
+                state.invoke_notify_err(e.to_shared_string());
             });
         }
     });

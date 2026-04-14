@@ -46,16 +46,12 @@ export global State {
     in-out property <bool> osc-icons-loading-started: false;
     in-out property <OscAppMeta> current-osc-app;
 
-    // ↑ Model
-    // ---------
-    // ↓ Update
+    public function notify-info(text: string) {
+        Rust.add-notification(notifications, { text: text, critical: false });
+    }
 
-    callback checksum(Game);
-    callback cache-covers();
-    callback load-osc-contents(bool);
-
-    public function notify(notification: Notification) {
-        Rust.add-notification(notifications, notification);
+    public function notify-err(text: string) {
+        Rust.add-notification(notifications, { text: text, critical: true });
     }
 
     public function load-config() {
@@ -65,7 +61,7 @@ export global State {
     public function write-config() {
         let res = Rust.write-config(config);
         if !res.err.is-empty {
-            notify({ text: res.err, critical: true });
+            notify-err(res.err);
         }
     }
 
@@ -110,7 +106,7 @@ export global State {
         drive-info = Rust.get-drive-info(config.contents.mount-point);
         game-list = Rust.get-game-list(config.contents.mount-point, config.contents.sort-by);
         homebrew-app-list = Rust.get-homebrew-app-list(config.contents.mount-point, config.contents.sort-by);
-        cache-covers();
+        Rust.cache-covers();
     }
 
     public function pick-mount-point() {
@@ -125,7 +121,7 @@ export global State {
     public function delete-dir() {
         let res = Rust.delete-dir(deleting-dir);
         if !res.err.is-empty {
-            notify({ text: res.err, critical: true });
+            notify-err(res.err);
         }
         refresh-all();
     }
@@ -156,13 +152,13 @@ export global State {
             is-converting = true;
             Rust.run-conversion(conversion-queue, config.contents, drive-info);
         } else {
-            notify({ text: "All conversions finished", critical: false });
+            notify-info("All conversions finished");
         }
     }
 
     public function finished-converting(res: EmptyResult) {
         if !res.err.is-empty {
-            notify({ text: res.err, critical: true });
+            notify-err(res.err);
         }
         is-converting = false;
         status = "";
@@ -189,7 +185,7 @@ export global State {
 
     public function got-osc-contents(contents: OscContents) {
         if !contents.err.is-empty {
-            notify({ text: contents.err, critical: true });
+            notify-err(contents.err);
         } else {
             osc-contents = contents;
         }
@@ -204,16 +200,16 @@ export global State {
 
     public function force-osc-refresh() {
         osc-icons-loading-started = false;
-        load-osc-contents(true);
+        Rust.load-osc-contents(true);
     }
 
     public function install-homebrew-apps() {
         let res = Rust.install-homebrew-apps(config.contents.mount-point);
         if !res.err.is-empty {
-            notify({ text: res.err, critical: true });
+            notify-err(res.err);
         } else {
             if res.app-count > 0 {
-                notify({ text: "Installed " + res.app-count + " homebrew apps", critical: false });
+                notify-info("Installed " + res.app-count + " homebrew apps");
             }
         }
 
@@ -229,7 +225,7 @@ export component InitializeState {
             State.load-config();
             State.apply-theme();
             State.refresh-all();
-            State.load-osc-contents(false);
+            Rust.load-osc-contents(false);
 
             self.running = false;
         }
