@@ -12,28 +12,48 @@ import { GameRow } from "components/game-row.slint";
 import { GamesOtherToolbar } from "components/games-other-toolbar.slint";
 
 export component GameTablePage inherits VerticalLayout {
-    padding: 10px;
-    spacing: 10px;
+    VerticalLayout {
+        padding: 10px;
+        spacing: 10px;
 
-    GamesToolbar { }
+        GamesToolbar { }
 
-    GamesOtherToolbar { }
+        GamesOtherToolbar { }
+    }
 
-    Card {
-        height: parent.height - 38px * 2 - 40px;
-        clip: true;
+    ScrollView {
+        width: parent.width;
+        viewport-height: v.preferred-height;
 
-        ScrollView {
-            height: parent.height;
+        v := VerticalLayout {
+            padding: 10px;
+            padding-top: 0px;
 
-            VerticalLayout {
-                for game in State.game-list.games: HorizontalLayout {
-                    if (game.is-wii && State.config.contents.show-wii) || (!game.is-wii && State.config.contents.show-gc): VerticalLayout {
-                        GameRow {
-                            game: game;
+            Card {
+                clip: true;
+                height: v2.preferred-height;
+
+                v2 := VerticalLayout {
+                    if State.game-list.filter.is-empty: VerticalLayout {
+                        for game in State.game-list.games: HorizontalLayout {
+                            if (game.is-wii && State.config.contents.show-wii) || (!game.is-wii && State.config.contents.show-gc): VerticalLayout {
+                                GameRow {
+                                    game: game;
+                                }
+
+                                HorizontalLine { }
+                            }
                         }
+                    }
 
-                        HorizontalLine { }
+                    if !State.game-list.filter.is-empty: VerticalLayout {
+                        for game in State.game-list.filtered-games: VerticalLayout {
+                            GameRow {
+                                game: game;
+                            }
+
+                            HorizontalLine { }
+                        }
                     }
                 }
             }

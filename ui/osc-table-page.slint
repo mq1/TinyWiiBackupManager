@@ -7,20 +7,18 @@ import { HorizontalLine } from "components/horizontal-line.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { Card } from "components/card.slint";
 import { MyPalette } from "styling.slint";
-import { HomebrewAppsToolbar } from "components/homebrew-apps-toolbar.slint";
-import {
-    HomebrewAppsOtherToolbar,
-} from "components/homebrew-apps-other-toolbar.slint";
-import { HomebrewAppRow } from "components/homebrew-app-row.slint";
+import { OscToolbar } from "components/osc-toolbar.slint";
+import { OscOtherToolbar } from "components/osc-other-toolbar.slint";
+import { OscAppRow } from "components/osc-app-row.slint";
 
-export component HomebrewAppsTablePage inherits VerticalLayout {
+export component OscTablePage inherits VerticalLayout {
     VerticalLayout {
         padding: 10px;
         spacing: 10px;
 
-        HomebrewAppsToolbar { }
+        OscToolbar { }
 
-        HomebrewAppsOtherToolbar { }
+        OscOtherToolbar { }
     }
 
     ScrollView {
@@ -36,9 +34,9 @@ export component HomebrewAppsTablePage inherits VerticalLayout {
                 height: v2.preferred-height;
 
                 v2 := VerticalLayout {
-                    if State.homebrew-app-list.filter.is-empty: VerticalLayout {
-                        for app in State.homebrew-app-list.apps: VerticalLayout {
-                            HomebrewAppRow {
+                    if State.osc-contents.filter.is-empty: VerticalLayout {
+                        for app in State.osc-contents.apps: VerticalLayout {
+                            OscAppRow {
                                 app: app;
                             }
 
@@ -46,9 +44,9 @@ export component HomebrewAppsTablePage inherits VerticalLayout {
                         }
                     }
 
-                    if !State.homebrew-app-list.filter.is-empty: VerticalLayout {
-                        for app in State.homebrew-app-list.filtered-apps: VerticalLayout {
-                            HomebrewAppRow {
+                    if !State.osc-contents.filter.is-empty: VerticalLayout {
+                        for app in State.osc-contents.filtered-apps: VerticalLayout {
+                            OscAppRow {
                                 app: app;
                             }
 

@@ -20,18 +20,13 @@ export component GameGridPage inherits VerticalLayout {
         viewport-height: v.preferred-height;
 
         v := VerticalLayout {
-            x: 5px;
-            alignment: start;
-            width: parent.width - 10px;
-            spacing: 10px;
-
             GamesOtherToolbar {
-                padding: 5px;
+                padding: 10px;
                 padding-top: 0px;
             }
 
             if State.game-list.filter.is-empty: FlexboxLayout {
-                width: parent.width;
+                padding: 5px;
                 align-content: start;
 
                 for game in State.game-list.games: HorizontalLayout {
@@ -44,8 +39,7 @@ export component GameGridPage inherits VerticalLayout {
             }
 
             if !State.game-list.filter.is-empty: FlexboxLayout {
-                padding: 5px;
-                width: parent.width;
+                padding: 10px;
                 spacing: 10px;
                 align-content: start;
 

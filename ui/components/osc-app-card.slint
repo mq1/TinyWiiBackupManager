@@ -12,12 +12,8 @@ export component OscAppCard inherits Card {
     in property <OscAppMeta> app;
     in property <image> icon;
 
-    width: 171px;
+    width: 172px;
     height: self.min-height;
-
-    pure function get-size-mib() -> float {
-        app.uncompressed-size / 1024.0 / 1024.0
-    }
 
     VerticalLayout {
         padding: 10px;
@@ -43,7 +39,7 @@ export component OscAppCard inherits Card {
             }
 
             Text {
-                text: "\{get-size-mib().to-fixed(2)} MiB";
+                text: "\{(app.uncompressed-size / 1024.0 / 1024.0).to-fixed(2)} MiB";
                 wrap: no-wrap;
                 horizontal-alignment: right;
             }

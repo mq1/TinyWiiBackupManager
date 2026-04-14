@@ -126,12 +126,14 @@ pub fn fuzzy_search(apps: &ModelRc<OscAppMeta>, query: &str) -> ModelRc<OscAppMe
     let mut filtered_apps = Vec::new();
     for app in apps.iter() {
         let name_score = matcher.fuzzy_match(&app.name, query);
+        let slug_score = matcher.fuzzy_match(&app.slug, query);
         let author_score = matcher.fuzzy_match(&app.author, query);
 
-        let score = match (name_score, author_score) {
-            (Some(a), Some(b)) => a.saturating_add(b),
-            (Some(a), None) | (None, Some(a)) => a,
-            (None, None) => continue,
+        let score = match (name_score, slug_score, author_score) {
+            (Some(a), Some(b), Some(c)) => a + b + c,
+            (Some(a), Some(b), None) | (Some(a), None, Some(b)) | (None, Some(a), Some(b)) => a + b,
+            (Some(a), None, None) | (None, Some(a), None) | (None, None, Some(a)) => a,
+            (None, None, None) => 0,
         };
 
         filtered_apps.push((app, score));
