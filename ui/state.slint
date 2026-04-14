@@ -206,6 +206,19 @@ export global State {
         osc-icons-loading-started = false;
         load-osc-contents(true);
     }
+
+    public function install-homebrew-apps() {
+        let res = Rust.install-homebrew-apps(config.contents.mount-point);
+        if !res.err.is-empty {
+            notify({ text: res.err, critical: true });
+        } else {
+            if res.app-count > 0 {
+                notify({ text: "Installed " + res.app-count + " homebrew apps", critical: false });
+            }
+        }
+
+        refresh-all();
+    }
 }
 
 export component InitializeState {

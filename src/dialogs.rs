@@ -99,3 +99,18 @@ pub fn save_game(window: &Window, game: &Game) -> Option<PathBuf> {
 
     res
 }
+
+pub fn pick_homebrew_apps(window: &Window) -> Vec<PathBuf> {
+    #[cfg(unix)]
+    let paths = FileDialog::new()
+        .set_parent(&window.window_handle())
+        .set_title("Select Homebrew apps")
+        .add_filter("ZIP", &["zip"])
+        .pick_files()
+        .unwrap_or_default();
+
+    #[cfg(windows)]
+    let paths = xp_dialogs::pick_files(&window, "Select Homebrew apps", ("ZIP", &["zip"]));
+
+    paths
+}

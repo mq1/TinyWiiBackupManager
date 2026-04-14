@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{DiscInfo, EmptyResult, OscContents};
-use slint::ToSharedString;
+use crate::{DiscInfo, EmptyResult, InstallHomebrewAppsResult, OscContents};
+use slint::{SharedString, ToSharedString};
 
 impl<E> From<Result<(), E>> for EmptyResult
 where
@@ -43,6 +43,25 @@ where
             Err(e) => OscContents {
                 err: e.to_shared_string(),
                 ..OscContents::default()
+            },
+        }
+    }
+}
+
+impl<E> From<Result<usize, E>> for InstallHomebrewAppsResult
+where
+    E: ToSharedString,
+{
+    fn from(result: Result<usize, E>) -> Self {
+        #[allow(clippy::cast_possible_truncation)]
+        match result {
+            Ok(count) => InstallHomebrewAppsResult {
+                app_count: count as i32,
+                err: SharedString::new(),
+            },
+            Err(e) => InstallHomebrewAppsResult {
+                app_count: 0,
+                err: e.to_shared_string(),
             },
         }
     }

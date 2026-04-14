@@ -196,3 +196,8 @@ export struct OscContents {
     filtered-apps: [OscAppMeta],
     last-refresh: { hour: int, minute: int},
 }
+
+export struct InstallHomebrewAppsResult {
+    app-count: int,
+    err: string,
+}

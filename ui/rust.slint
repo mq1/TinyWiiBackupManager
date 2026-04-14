@@ -17,6 +17,7 @@ import {
     QueuedScrubConversion,
     OscContents,
     OscAppMeta,
+    InstallHomebrewAppsResult,
 } from "types.slint";
 
 export global Rust {
@@ -43,4 +44,5 @@ export global Rust {
     pure callback add-to-conversion-queue([QueuedConversion], QueuedConversion);
     pure callback run-conversion([QueuedConversion], ConfigContents, DriveInfo);
     pure callback load-osc-icons([OscAppMeta]);
+    pure callback install-homebrew-apps(string) -> InstallHomebrewAppsResult;
 }

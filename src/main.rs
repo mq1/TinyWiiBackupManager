@@ -35,7 +35,13 @@ mod xp_dialogs;
 use crate::{convert::Conversion, data_dir::DATA_DIR};
 use anyhow::{Result, bail};
 use slint::{ComponentHandle, Model, ModelRc, SharedString, ToSharedString, VecModel};
-use std::{fs, path::Path, process::Command, rc::Rc};
+use std::{
+    fs::{self, File},
+    path::Path,
+    process::Command,
+    rc::Rc,
+};
+use zip::ZipArchive;
 
 slint::include_modules!();
 
@@ -216,6 +222,28 @@ fn main() -> Result<()> {
     app.global::<Rust<'_>>().on_load_osc_icons(move |apps| {
         osc::load_icons(&apps, weak.clone());
     });
+
+    let weak = app.as_weak();
+    app.global::<Rust<'_>>()
+        .on_install_homebrew_apps(move |mount_point| {
+            let app = weak.upgrade().unwrap();
+            let paths = dialogs::pick_homebrew_apps(app.window());
+            let mount_point = Path::new(&mount_point);
+
+            let res = || -> Result<usize> {
+                let count = paths.len();
+
+                for path in paths {
+                    let mut f = File::open(path)?;
+                    let mut archive = ZipArchive::new(&mut f)?;
+                    archive.extract(mount_point)?;
+                }
+
+                Ok(count)
+            }();
+
+            res.into()
+        });
 
     #[cfg(windows)]
     {
