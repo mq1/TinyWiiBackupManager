@@ -1,13 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{Game, SortBy, id_map, util::GIB};
+use crate::{Game, SortBy, data_dir::DATA_DIR, id_map, util::GIB};
 use slint::{Image, ToSharedString};
 use std::path::Path;
 
 impl Game {
     #[must_use]
-    pub fn maybe_from_path(path: &Path, is_wii: bool, data_dir: &Path) -> Option<Self> {
+    pub fn maybe_from_path(path: &Path, is_wii: bool) -> Option<Self> {
         if !path.is_dir() {
             return None;
         }
@@ -33,7 +33,7 @@ impl Game {
         #[allow(clippy::cast_precision_loss)]
         let size_gib = size as f32 / GIB;
 
-        let cover_path = data_dir.join("covers").join(format!("{id}.png"));
+        let cover_path = DATA_DIR.join("covers").join(format!("{id}.png"));
         let cover = Image::load_from_path(&cover_path).unwrap_or_default();
 
         Some(Self {
@@ -46,8 +46,8 @@ impl Game {
         })
     }
 
-    pub fn reload_cover(&mut self, data_dir: &Path) {
-        let cover_path = data_dir.join("covers").join(format!("{}.png", self.id));
+    pub fn reload_cover(&mut self) {
+        let cover_path = DATA_DIR.join("covers").join(format!("{}.png", self.id));
         let cover = Image::load_from_path(&cover_path).unwrap_or_default();
         self.cover = cover;
     }

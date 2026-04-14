@@ -50,7 +50,7 @@ export global State {
 
     callback checksum(Game);
     callback cache-covers();
-    callback load-osc-contents();
+    callback load-osc-contents(bool);
 
     public function notify(notification: Notification) {
         Rust.add-notification(notifications, notification);
@@ -199,6 +199,11 @@ export global State {
             Rust.load-osc-icons(osc-contents.apps);
         }
     }
+
+    public function force-osc-refresh() {
+        osc-icons-loading-started = false;
+        load-osc-contents(true);
+    }
 }
 
 export component InitializeState {
@@ -209,7 +214,7 @@ export component InitializeState {
             State.load-config();
             State.apply-theme();
             State.refresh-all();
-            State.load-osc-contents();
+            State.load-osc-contents(false);
 
             self.running = false;
         }

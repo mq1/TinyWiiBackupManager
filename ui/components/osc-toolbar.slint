@@ -44,5 +44,20 @@ export component OscToolbar inherits HorizontalLayout {
         spacing: 10px;
 
         ViewAs { }
+
+        VerticalLayout {
+            alignment: center;
+
+            IconButton {
+                icon: IconSet.RotateCw;
+                tooltip: "Force refresh (automatic refreshes are performed every 24 hours)";
+                rounded: true;
+                kind: IconButtonKind.Primary;
+                font-size: 18px;
+                width: 34px;
+                height: 34px;
+                clicked => State.force-osc-refresh();
+            }
+        }
     }
 }

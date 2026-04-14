@@ -3,13 +3,10 @@
 
 use crate::{Notification, OscContents, State, checksum, covers};
 use slint::{Global, Model, ModelRc, VecModel};
-use std::{
-    path::{Path, PathBuf},
-    rc::Rc,
-};
+use std::{path::PathBuf, rc::Rc};
 
 impl State<'_> {
-    pub fn handle_callbacks(&self, data_dir: &'static Path) {
+    pub fn handle_callbacks(&self) {
         let weak = self.as_weak();
         self.on_checksum(move |game| {
             let weak = weak.clone();
@@ -32,10 +29,10 @@ impl State<'_> {
         });
 
         let weak = self.as_weak();
-        self.on_load_osc_contents(move || {
+        self.on_load_osc_contents(move |force_refresh| {
             let weak = weak.clone();
             let _ = std::thread::spawn(move || {
-                let res = OscContents::fetch(&data_dir);
+                let res = OscContents::fetch(force_refresh);
                 let _ = weak.upgrade_in_event_loop(move |state| {
                     let res = match res {
                         Ok((raw, last_refresh)) => OscContents::load(raw, last_refresh).into(),
@@ -43,6 +40,9 @@ impl State<'_> {
                     };
 
                     state.invoke_got_osc_contents(res);
+                    if force_refresh {
+                        state.invoke_load_osc_icons();
+                    }
                 });
             });
         });
@@ -65,12 +65,10 @@ impl State<'_> {
             .map(|g| g.id.to_string())
             .collect::<Vec<_>>();
 
-        let data_dir = PathBuf::from(&self.get_data_dir());
-
         let weak = self.as_weak();
         let _ = std::thread::spawn(move || {
             for game_id in ids {
-                if let Err(e) = covers::cache_cover(&game_id, &data_dir) {
+                if let Err(e) = covers::cache_cover(&game_id) {
                     eprintln!("Failed to cache cover for {game_id}: {e}");
                 }
                 let _ = weak.upgrade_in_event_loop(move |state| {
@@ -84,11 +82,8 @@ impl State<'_> {
         let mut model = self.get_game_list();
         let mut games = model.games.iter().collect::<Vec<_>>();
 
-        let data_dir = self.get_data_dir();
-        let data_dir = Path::new(&data_dir);
-
         for game in &mut games {
-            game.reload_cover(data_dir);
+            game.reload_cover();
         }
 
         model.games = ModelRc::from(Rc::new(VecModel::from(games)));

@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::USER_AGENT;
+use crate::{USER_AGENT, data_dir::DATA_DIR};
 use anyhow::Result;
-use std::{fs, path::Path};
+use std::fs;
 
 #[must_use]
 pub fn lang_str(game_id: &str) -> &'static str {
@@ -19,8 +19,8 @@ pub fn lang_str(game_id: &str) -> &'static str {
     }
 }
 
-pub fn cache_cover(game_id: &str, data_dir: &Path) -> Result<()> {
-    let parent = data_dir.join("covers");
+pub fn cache_cover(game_id: &str) -> Result<()> {
+    let parent = DATA_DIR.join("covers");
     if !parent.exists() {
         fs::create_dir_all(&parent)?;
     }

@@ -1,14 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{OscAppMeta, OscContents, State, USER_AGENT};
+use crate::{OscAppMeta, OscContents, State, USER_AGENT, data_dir::DATA_DIR};
 use anyhow::Result;
 use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
 use image::ImageFormat;
 use slint::{Image, Model, ModelRc, Rgba8Pixel, SharedPixelBuffer, SharedString, VecModel, Weak};
 use std::{
     fs,
-    path::Path,
     rc::Rc,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
@@ -16,8 +15,8 @@ use std::{
 const CONTENTS_URL: &str = "https://hbb1.oscwii.org/api/v4/contents";
 
 impl OscContents {
-    pub fn fetch(data_dir: &Path) -> Result<(String, SystemTime)> {
-        let cached_contents_path = data_dir.join("osc-cache.json");
+    pub fn fetch(force_refresh: bool) -> Result<(String, SystemTime)> {
+        let cached_contents_path = DATA_DIR.join("osc-cache.json");
 
         let last_refresh = cached_contents_path
             .metadata()
@@ -25,7 +24,8 @@ impl OscContents {
             .and_then(|m| m.modified().ok())
             .unwrap_or(UNIX_EPOCH);
 
-        let should_refresh = last_refresh < SystemTime::now() - Duration::from_hours(24);
+        let should_refresh =
+            force_refresh || last_refresh < SystemTime::now() - Duration::from_hours(24);
 
         if should_refresh {
             let resp = minreq::get(CONTENTS_URL)
@@ -66,13 +66,13 @@ impl OscContents {
     }
 }
 
-pub fn load_icons(apps: &ModelRc<OscAppMeta>, data_dir: &Path, weak: Weak<State<'static>>) {
+pub fn load_icons(apps: &ModelRc<OscAppMeta>, weak: Weak<State<'static>>) {
     let icon_urls = apps
         .iter()
         .map(|app| (app.slug.to_string(), app.assets.icon.url.to_string()))
         .collect::<Vec<_>>();
 
-    let cache_dir = data_dir.join("osc-icons");
+    let cache_dir = DATA_DIR.join("osc-icons");
 
     let _ = std::thread::spawn(move || {
         let res = || -> Result<()> {

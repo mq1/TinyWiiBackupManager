@@ -1,15 +1,15 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{Config, ConfigContents, SortBy};
+use crate::{Config, ConfigContents, SortBy, data_dir::DATA_DIR};
 use anyhow::Result;
 use slint::{Model, ModelRc, SharedString, ToSharedString, VecModel};
 use std::{fs, path::Path};
 
 impl Config {
     #[must_use]
-    pub fn load(data_dir: &Path) -> Self {
-        let path = data_dir.join("config.json");
+    pub fn load() -> Self {
+        let path = DATA_DIR.join("config.json");
         let bytes = fs::read(&path).unwrap_or_default();
         let mut contents = serde_json::from_slice::<ConfigContents>(&bytes)
             .unwrap_or(ConfigContents::my_default());

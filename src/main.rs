@@ -66,8 +66,7 @@ fn main() -> Result<()> {
     app.global::<State<'_>>()
         .set_data_dir(DATA_DIR.to_string_lossy().to_shared_string());
 
-    app.global::<Rust<'_>>()
-        .on_load_config(|| Config::load(&DATA_DIR));
+    app.global::<Rust<'_>>().on_load_config(|| Config::load());
 
     app.global::<Rust<'_>>()
         .on_open(|uri| open::that(&uri).into());
@@ -92,7 +91,7 @@ fn main() -> Result<()> {
         .on_delete_dir(|path| fs::remove_dir_all(path).into());
 
     app.global::<Rust<'_>>()
-        .on_get_game_list(|path, sort_by| GameList::new(Path::new(&path), &DATA_DIR, sort_by));
+        .on_get_game_list(|path, sort_by| GameList::new(Path::new(&path), sort_by));
 
     app.global::<Rust<'_>>()
         .on_get_homebrew_app_list(|path, sort_by| HomebrewAppList::new(Path::new(&path), sort_by));
@@ -215,7 +214,7 @@ fn main() -> Result<()> {
 
     let weak = app.global::<State<'_>>().as_weak();
     app.global::<Rust<'_>>().on_load_osc_icons(move |apps| {
-        osc::load_icons(&apps, &DATA_DIR, weak.clone());
+        osc::load_icons(&apps, weak.clone());
     });
 
     #[cfg(windows)]
@@ -228,7 +227,7 @@ fn main() -> Result<()> {
             });
     }
 
-    app.global::<State<'_>>().handle_callbacks(&DATA_DIR);
+    app.global::<State<'_>>().handle_callbacks();
 
     if let Err(e) = app.run() {
         if std::env::var("SLINT_BACKEND").unwrap_or_default() == "winit-software" {

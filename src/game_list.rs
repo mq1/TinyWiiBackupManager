@@ -9,13 +9,13 @@ use std::{fs, path::Path, rc::Rc};
 
 impl GameList {
     #[must_use]
-    pub fn new(drive_path: &Path, data_dir: &Path, sort_by: SortBy) -> Self {
+    pub fn new(drive_path: &Path, sort_by: SortBy) -> Self {
         let wii_path = drive_path.join("wbfs");
         let gc_path = drive_path.join("games");
 
         let mut games = Vec::new();
-        let _ = read_game_dir(&wii_path, true, &mut games, data_dir);
-        let _ = read_game_dir(&gc_path, false, &mut games, data_dir);
+        let _ = read_game_dir(&wii_path, true, &mut games);
+        let _ = read_game_dir(&gc_path, false, &mut games);
 
         let total_size = games.iter().fold(0., |acc, game| acc + game.size_gib);
 
@@ -31,12 +31,7 @@ impl GameList {
     }
 }
 
-fn read_game_dir(
-    game_dir: &Path,
-    is_wii: bool,
-    games: &mut Vec<Game>,
-    data_dir: &Path,
-) -> Result<()> {
+fn read_game_dir(game_dir: &Path, is_wii: bool, games: &mut Vec<Game>) -> Result<()> {
     if !game_dir.exists() {
         return Ok(());
     }
@@ -44,7 +39,7 @@ fn read_game_dir(
     let entries = fs::read_dir(game_dir)?;
     for entry in entries.filter_map(Result::ok) {
         let path = entry.path();
-        if let Some(game) = Game::maybe_from_path(&path, is_wii, data_dir) {
+        if let Some(game) = Game::maybe_from_path(&path, is_wii) {
             games.push(game);
         }
     }
