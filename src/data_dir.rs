@@ -3,9 +3,11 @@
 
 use anyhow::{Result, anyhow};
 use directories::ProjectDirs;
-use std::{env, ffi::OsStr, fs, path::PathBuf};
+use std::{env, ffi::OsStr, fs, path::PathBuf, sync::LazyLock};
 
-pub fn get_data_dir() -> Result<PathBuf> {
+pub static DATA_DIR: LazyLock<PathBuf> = LazyLock::new(|| get_data_dir().unwrap_or_default());
+
+fn get_data_dir() -> Result<PathBuf> {
     let data_dir = if is_portable() {
         let parent = get_exe_parent()?;
         parent.join("TinyWiiBackupManager-data")

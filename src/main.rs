@@ -32,7 +32,7 @@ mod window_color;
 #[cfg(windows)]
 mod xp_dialogs;
 
-use crate::{convert::Conversion, data_dir::get_data_dir};
+use crate::{convert::Conversion, data_dir::DATA_DIR};
 use anyhow::{Result, bail};
 use slint::{ComponentHandle, Model, ModelRc, SharedString, ToSharedString, VecModel};
 use std::{fs, path::Path, process::Command, rc::Rc};
@@ -54,17 +54,20 @@ fn restart_with_sw_rendering() -> Result<()> {
 
 #[allow(clippy::too_many_lines)]
 fn main() -> Result<()> {
-    let data_dir = Box::leak(Box::new(get_data_dir()?));
+    if DATA_DIR.as_os_str().is_empty() {
+        bail!("Failed to get data dir");
+    }
+
     let app = AppWindow::new()?;
 
     app.global::<State<'_>>()
         .set_version(env!("CARGO_PKG_VERSION").into());
 
     app.global::<State<'_>>()
-        .set_data_dir(data_dir.to_string_lossy().to_shared_string());
+        .set_data_dir(DATA_DIR.to_string_lossy().to_shared_string());
 
     app.global::<Rust<'_>>()
-        .on_load_config(|| Config::load(data_dir));
+        .on_load_config(|| Config::load(&DATA_DIR));
 
     app.global::<Rust<'_>>()
         .on_open(|uri| open::that(&uri).into());
@@ -89,7 +92,7 @@ fn main() -> Result<()> {
         .on_delete_dir(|path| fs::remove_dir_all(path).into());
 
     app.global::<Rust<'_>>()
-        .on_get_game_list(|path, sort_by| GameList::new(Path::new(&path), data_dir, sort_by));
+        .on_get_game_list(|path, sort_by| GameList::new(Path::new(&path), &DATA_DIR, sort_by));
 
     app.global::<Rust<'_>>()
         .on_get_homebrew_app_list(|path, sort_by| HomebrewAppList::new(Path::new(&path), sort_by));
@@ -210,6 +213,11 @@ fn main() -> Result<()> {
             });
         });
 
+    let weak = app.global::<State<'_>>().as_weak();
+    app.global::<Rust<'_>>().on_load_osc_icons(move |apps| {
+        osc::load_icons(&apps, &DATA_DIR, weak.clone());
+    });
+
     #[cfg(windows)]
     {
         let weak = app.as_weak();
@@ -220,7 +228,7 @@ fn main() -> Result<()> {
             });
     }
 
-    app.global::<State<'_>>().handle_callbacks(data_dir);
+    app.global::<State<'_>>().handle_callbacks(&DATA_DIR);
 
     if let Err(e) = app.run() {
         if std::env::var("SLINT_BACKEND").unwrap_or_default() == "winit-software" {

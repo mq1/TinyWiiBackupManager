@@ -42,6 +42,7 @@ export global State {
     in-out property <[QueuedConversion]> adding-games: [];
     in-out property <[Notification]> notifications: [];
     in-out property <OscContents> osc-contents;
+    in-out property <bool> osc-icons-loading-started: false;
 
     // ↑ Model
     // ---------
@@ -189,6 +190,13 @@ export global State {
             notify({ text: contents.err, critical: true });
         } else {
             osc-contents = contents;
+        }
+    }
+
+    public function load-osc-icons() {
+        if !osc-icons-loading-started {
+            osc-icons-loading-started = true;
+            Rust.load-osc-icons(osc-contents.apps);
         }
     }
 }
