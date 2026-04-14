@@ -69,7 +69,7 @@ impl OscContents {
 pub fn load_icons(apps: &ModelRc<OscAppMeta>, data_dir: &Path, weak: Weak<State<'static>>) {
     let icon_urls = apps
         .iter()
-        .map(|app| app.assets.icon.url.to_string())
+        .map(|app| (app.slug.to_string(), app.assets.icon.url.to_string()))
         .collect::<Vec<_>>();
 
     let cache_dir = data_dir.join("osc-icons");
@@ -78,8 +78,8 @@ pub fn load_icons(apps: &ModelRc<OscAppMeta>, data_dir: &Path, weak: Weak<State<
         let res = || -> Result<()> {
             fs::create_dir_all(&cache_dir)?;
 
-            for (i, url) in icon_urls.iter().enumerate() {
-                let icon_path = cache_dir.join(format!("{i}.png"));
+            for (i, (slug, url)) in icon_urls.iter().enumerate() {
+                let icon_path = cache_dir.join(format!("{slug}.png"));
 
                 let bytes = if !icon_path.exists() {
                     let resp = minreq::get(url)
