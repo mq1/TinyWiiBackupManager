@@ -35,12 +35,11 @@ fn parse_date(raw: &str) -> Result<SharedString> {
         bail!("too short");
     }
 
-    let mut date = SharedString::new();
-    date.push_str(&raw[0..4]);
-    date.push_str("-");
-    date.push_str(&raw[4..6]);
-    date.push_str("-");
-    date.push_str(&raw[6..8]);
+    let year = &raw[0..4];
+    let month = &raw[4..6];
+    let day = &raw[6..8];
+
+    let date = format!("{year}-{month}-{day}").to_shared_string();
 
     Ok(date)
 }
