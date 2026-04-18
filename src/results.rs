@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{DiscInfo, EmptyResult, InstallHomebrewAppsResult, OscContents};
+use crate::{DiscInfo, EmptyResult, InstallHomebrewAppsResult};
 use slint::{SharedString, ToSharedString};
 
 impl<E> From<Result<(), E>> for EmptyResult
@@ -28,21 +28,6 @@ where
             Err(e) => DiscInfo {
                 err: e.to_shared_string(),
                 ..DiscInfo::default()
-            },
-        }
-    }
-}
-
-impl<E> From<Result<OscContents, E>> for OscContents
-where
-    E: ToSharedString,
-{
-    fn from(result: Result<OscContents, E>) -> Self {
-        match result {
-            Ok(info) => info,
-            Err(e) => OscContents {
-                err: e.to_shared_string(),
-                ..OscContents::default()
             },
         }
     }

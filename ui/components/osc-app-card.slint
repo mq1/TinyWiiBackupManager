@@ -2,14 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import { Card } from "card.slint";
-import { OscAppMeta } from "../types.slint";
+import { OscApp } from "../types.slint";
 import { IconButton } from "icon-button.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { State } from "../state.slint";
 import { MyPalette } from "../styling.slint";
 
 export component OscAppCard inherits Card {
-    in property <OscAppMeta> app;
+    in property <OscApp> app;
 
     width: 172px;
     height: self.min-height;
@@ -31,27 +31,26 @@ export component OscAppCard inherits Card {
                 }
 
                 Text {
-                    text: app.version;
+                    text: app.meta.version;
                     wrap: no-wrap;
                     overflow: elide;
                 }
             }
 
             Text {
-                text: "\{(app.uncompressed-size / 1024.0 / 1024.0).to-fixed(2)} MiB";
+                text: "\{(app.meta.uncompressed-size / 1024.0 / 1024.0).to-fixed(2)} MiB";
                 wrap: no-wrap;
                 horizontal-alignment: right;
             }
         }
 
         Image {
-            // TODO
-            //source: State.osc-contents.icons[app.i];
+            source: app.icon;
             height: 48px;
         }
 
         Text {
-            text: app.name;
+            text: app.meta.name;
             horizontal-alignment: center;
             wrap: no-wrap;
             overflow: elide;

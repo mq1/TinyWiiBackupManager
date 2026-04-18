@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{Game, HomebrewApp, OscAppMeta, SortBy, State, game, homebrew_app, osc};
+use crate::{Game, HomebrewApp, OscApp, SortBy, State, game, homebrew_app, osc};
 use slint::{FilterModel, ModelRc, SharedString, SortModel, VecModel};
 use std::{cell::RefCell, cmp::Ordering, rc::Rc};
 
@@ -13,7 +13,7 @@ pub struct AppModel {
 
     pub games: Rc<VecModel<Game>>,
     pub homebrew_apps: Rc<VecModel<HomebrewApp>>,
-    pub osc_apps: Rc<VecModel<OscAppMeta>>,
+    pub osc_apps: Rc<VecModel<OscApp>>,
 
     pub sorted_games: Rc<SortedModel<Game>>,
     pub sorted_homebrew_apps: Rc<SortedModel<HomebrewApp>>,
@@ -26,8 +26,7 @@ pub struct AppModel {
     pub filtered_homebrew_apps: Rc<FilteredModel<HomebrewApp>>,
 
     // osc_apps is not sorted, just filtered
-    pub filtered_osc_apps:
-        Rc<FilterModel<Rc<VecModel<OscAppMeta>>, Box<dyn Fn(&OscAppMeta) -> bool>>>,
+    pub filtered_osc_apps: Rc<FilterModel<Rc<VecModel<OscApp>>, Box<dyn Fn(&OscApp) -> bool>>>,
 }
 
 impl AppModel {

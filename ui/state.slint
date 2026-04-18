@@ -5,18 +5,15 @@ import {
     Page,
     Config,
     IconButtonKind,
-    GameList,
     Game,
     DriveInfo,
     DiscInfo,
     QueuedConversion,
     Notification,
-    HomebrewAppList,
     HomebrewApp,
     ConversionKind,
     EmptyResult,
-    OscContents,
-    OscAppMeta,
+    OscApp,
     Tooltip,
 } from "types.slint";
 import { Rust } from "rust.slint";
@@ -45,10 +42,10 @@ export global State {
     in-out property <string> deleting-dir: "";
     in-out property <[QueuedConversion]> adding-games: [];
     in-out property <[Notification]> notifications: [];
-    in-out property <[OscAppMeta]> osc-apps;
+    in-out property <[OscApp]> osc-apps;
     in-out property <string> osc-apps-filter;
     in-out property <bool> osc-icons-loading-started: false;
-    in-out property <OscAppMeta> current-osc-app;
+    in-out property <OscApp> current-osc-app;
     in-out property <string> last-osc-refresh: "";
 
     public function notify-info(text: string) {
@@ -178,10 +175,6 @@ export global State {
         let queued = { kind: ConversionKind.Scrub, scrub: scrub };
         Rust.add-to-conversion-queue(conversion-queue, queued);
         start-conversion();
-    }
-
-    public function got-osc-contents(contents: OscContents) {
-        // TODO
     }
 
     public function load-osc-icons() {

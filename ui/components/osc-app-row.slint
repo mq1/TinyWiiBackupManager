@@ -4,26 +4,26 @@
 import { IconSet, IconDisplay } from "@lucide";
 import { VerticalLine } from "vertical-line.slint";
 import { IconButton } from "icon-button.slint";
-import { OscAppMeta } from "../types.slint";
+import { OscApp } from "../types.slint";
 import { MyPalette } from "../styling.slint";
 import { State } from "../state.slint";
 
 export component OscAppRow inherits Rectangle {
-    in property <OscAppMeta> app;
+    in property <OscApp> app;
 
     height: 24px;
 
     Text {
         x: 5px;
         y: 5px;
-        text: "\{app.name} (\{app.version})";
+        text: "\{app.meta.name} (\{app.meta.version})";
         overflow: elide;
     }
 
     Text {
         x: parent.width - 50px - self.preferred-width - 5px;
         y: 5px;
-        text: "\{(app.uncompressed-size / 1024.0 / 1024.0).to-fixed(2)} MiB";
+        text: "\{(app.meta.uncompressed-size / 1024.0 / 1024.0).to-fixed(2)} MiB";
     }
 
     VerticalLine {

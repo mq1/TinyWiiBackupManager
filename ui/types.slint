@@ -59,13 +59,6 @@ export struct Game {
     search-term: string,
 }
 
-export struct GameList {
-    games: [Game],
-    filter: string,
-    filtered-games: [Game],
-    total-size: float,
-}
-
 @rust-attr(derive(serde::Deserialize))
 @rust-attr(serde(default, rename_all = "snake_case"))
 export struct HomebrewAppMeta {
@@ -84,13 +77,6 @@ export struct HomebrewApp {
     meta: HomebrewAppMeta,
     icon: image,
     search-term: string,
-}
-
-export struct HomebrewAppList {
-    apps: [HomebrewApp],
-    filter: string,
-    filtered-apps: [HomebrewApp],
-    total-size: float,
 }
 
 export struct DiscInfo {
@@ -185,18 +171,14 @@ export struct OscAppMeta {
     assets: OscAppMetaAssets,
     uncompressed-size: int,
     release-date: duration, // rust i64
-    release-date-display: string,
     description: OscAppMetaDescription,
-    search-term: string,
 }
 
-export struct OscContents {
-    err: string,
-    apps: [OscAppMeta],
-    icons: [image],
-    filter: string,
-    filtered-apps: [OscAppMeta],
-    last-refresh: { hour: int, minute: int},
+export struct OscApp {
+    meta: OscAppMeta,
+    search-term: string,
+    release-date: string,
+    icon: image,
 }
 
 export struct InstallHomebrewAppsResult {

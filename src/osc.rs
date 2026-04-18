@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{OscAppMeta, USER_AGENT, data_dir::DATA_DIR};
+use crate::{OscApp, OscAppMeta, USER_AGENT, data_dir::DATA_DIR};
 use anyhow::Result;
-use slint::{SharedString, ToSharedString};
+use slint::{Image, SharedString, ToSharedString};
 use std::{
     cell::RefCell,
     fs,
@@ -14,7 +14,8 @@ use time::UtcDateTime;
 
 const CONTENTS_URL: &str = "https://hbb1.oscwii.org/api/v4/contents";
 
-pub fn load_contents(force_refresh: bool) -> Result<(Vec<OscAppMeta>, i32, i32)> {
+pub fn load_contents(force_refresh: bool) -> Result<(Vec<OscApp>, i32, i32)> {
+    let icons_dir = DATA_DIR.join("osc-icons");
     let cached_contents_path = DATA_DIR.join("osc-cache.json");
 
     let last_refresh = cached_contents_path
@@ -41,21 +42,29 @@ pub fn load_contents(force_refresh: bool) -> Result<(Vec<OscAppMeta>, i32, i32)>
     };
 
     let escaped = escape_str(&raw);
-    let mut apps = serde_json::from_str::<Vec<OscAppMeta>>(&escaped)?;
+    let apps = serde_json::from_str::<Vec<OscAppMeta>>(&escaped)?;
 
-    #[allow(clippy::cast_possible_truncation)]
-    for app in &mut apps {
-        app.release_date_display = match UtcDateTime::from_unix_timestamp(app.release_date) {
-            Ok(datetime) => datetime.date().to_shared_string(),
-            Err(_) => app.release_date.to_shared_string(),
-        };
+    let apps = apps
+        .into_iter()
+        .map(|meta| {
+            let release_date = match UtcDateTime::from_unix_timestamp(meta.release_date) {
+                Ok(datetime) => datetime.date().to_shared_string(),
+                Err(_) => meta.release_date.to_shared_string(),
+            };
 
-        let search_term = format!("{}\0{}", app.slug, app.name)
-            .to_lowercase()
-            .to_shared_string();
+            let search_term = format!("{}\0{}", meta.slug, meta.name).to_shared_string();
 
-        app.search_term = search_term;
-    }
+            let icon_path = icons_dir.join(format!("{}.png", meta.slug));
+            let icon = Image::load_from_path(&icon_path).unwrap_or_default();
+
+            OscApp {
+                release_date,
+                icon,
+                search_term,
+                meta,
+            }
+        })
+        .collect();
 
     let elapsed_mins = last_refresh.elapsed().unwrap_or_default().as_secs() / 60;
     let elapsed_hours = (elapsed_mins / 60) as i32;
@@ -128,9 +137,7 @@ fn escape_str(s: &str) -> String {
         .replace("\\t", "    ")
 }
 
-pub fn get_filter_fn(
-    query_lowercase: Rc<RefCell<SharedString>>,
-) -> Box<dyn Fn(&OscAppMeta) -> bool> {
+pub fn get_filter_fn(query_lowercase: Rc<RefCell<SharedString>>) -> Box<dyn Fn(&OscApp) -> bool> {
     Box::new(move |app| {
         let query_lowercase = query_lowercase.borrow();
 
