@@ -185,7 +185,7 @@ export global State {
     public function force-osc-refresh() {
         osc-icons-loading-started = false;
         let last_refresh = Rust.load-osc-apps(true);
-        last-osc-refresh = last_refresh.h + ":" + last_refresh.min + " ago";
+        last-osc-refresh = last_refresh.h + "hours and" + last_refresh.min + "minutes ago";
     }
 
     public function install-homebrew-apps() {
@@ -211,7 +211,7 @@ export component InitializeState {
             State.refresh-all();
 
             let last_refresh = Rust.load-osc-apps(false);
-            State.last-osc-refresh = last_refresh.h + ":" + last_refresh.min + " ago";
+            State.last-osc-refresh = last_refresh.h + "hours and" + last_refresh.min + "minutes ago";
 
             self.running = false;
         }
