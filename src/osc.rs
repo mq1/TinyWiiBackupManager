@@ -45,11 +45,10 @@ pub fn load_contents(force_refresh: bool) -> Result<(Vec<OscAppMeta>, i32, i32)>
 
     #[allow(clippy::cast_possible_truncation)]
     for app in &mut apps {
-        if let Ok(release_date) = app.release_date.parse()
-            && let Ok(release_date) = UtcDateTime::from_unix_timestamp(release_date)
-        {
-            app.release_date = release_date.date().to_shared_string();
-        }
+        app.release_date_display = match UtcDateTime::from_unix_timestamp(app.release_date) {
+            Ok(datetime) => datetime.date().to_shared_string(),
+            Err(_) => app.release_date.to_shared_string(),
+        };
 
         let search_term = format!("{}\0{}", app.slug, app.name)
             .to_lowercase()

@@ -184,7 +184,8 @@ export struct OscAppMeta {
     version: string,
     assets: OscAppMetaAssets,
     uncompressed-size: int,
-    release-date: string,
+    release-date: duration, // rust i64
+    release-date-display: string,
     description: OscAppMetaDescription,
     search-term: string,
 }
