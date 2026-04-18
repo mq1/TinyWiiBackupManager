@@ -101,56 +101,38 @@ fn main() -> Result<()> {
     app.global::<Rust<'_>>()
         .on_delete_dir(|path| fs::remove_dir_all(path).into());
 
-    let games = model.games.clone();
+    let set_games = model.set_games();
     app.global::<Rust<'_>>().on_load_games(move |path| {
         let path = Path::new(&path);
-
         let new = game::scan_drive(path);
-        games.clear();
-        games.extend(new);
+        set_games(new);
     });
 
-    let homebrew_apps = model.homebrew_apps.clone();
+    let set_homebrew_apps = model.set_homebrew_apps();
     app.global::<Rust<'_>>().on_load_homebrew_apps(move |path| {
         let path = Path::new(&path);
-
         let new = homebrew_app::scan_drive(path).unwrap_or_default();
-        homebrew_apps.clear();
-        homebrew_apps.extend(new);
+        set_homebrew_apps(new);
     });
 
-    let osc_apps = model.osc_apps.clone();
+    let set_osc_apps = model.set_osc_apps();
     app.global::<Rust<'_>>()
         .on_load_osc_apps(move |force_refresh| {
             let (new, h, min) = osc::load_contents(force_refresh).unwrap_or_default();
-            osc_apps.clear();
-            osc_apps.extend(new);
+            set_osc_apps(new);
             (h, min)
         });
 
-    let games_filter = model.games_filter.clone();
-    let filtered_games = model.filtered_games.clone();
-    app.global::<Rust<'_>>()
-        .on_filter_games(move |query_lowercase| {
-            *games_filter.borrow_mut() = query_lowercase;
-            filtered_games.reset();
-        });
+    let set_games_filter = model.set_games_filter();
+    app.global::<Rust<'_>>().on_filter_games(set_games_filter);
 
-    let homebrew_apps_filter = model.homebrew_apps_filter.clone();
-    let filtered_homebrew_apps = model.filtered_homebrew_apps.clone();
+    let set_homebrew_apps_filter = model.set_homebrew_apps_filter();
     app.global::<Rust<'_>>()
-        .on_filter_homebrew_apps(move |query_lowercase| {
-            *homebrew_apps_filter.borrow_mut() = query_lowercase;
-            filtered_homebrew_apps.reset();
-        });
+        .on_filter_homebrew_apps(set_homebrew_apps_filter);
 
-    let osc_apps_filter = model.osc_apps_filter.clone();
-    let filtered_osc_apps = model.filtered_osc_apps.clone();
+    let set_osc_apps_filter = model.set_osc_apps_filter();
     app.global::<Rust<'_>>()
-        .on_filter_osc_apps(move |query_lowercase| {
-            *osc_apps_filter.borrow_mut() = query_lowercase;
-            filtered_osc_apps.reset();
-        });
+        .on_filter_osc_apps(set_osc_apps_filter);
 
     app.global::<Rust<'_>>()
         .on_get_disc_info(|game_dir| DiscInfo::try_from_game_dir(Path::new(&game_dir)).into());
@@ -178,14 +160,8 @@ fn main() -> Result<()> {
             ModelRc::from(Rc::new(model))
         });
 
-    let sort_by = model.sort_by.clone();
-    let sorted_games = model.sorted_games.clone();
-    let sorted_homebrew_apps = model.sorted_homebrew_apps.clone();
-    app.global::<Rust<'_>>().on_sort(move |new_sort_by| {
-        *sort_by.borrow_mut() = new_sort_by;
-        sorted_games.reset();
-        sorted_homebrew_apps.reset();
-    });
+    let set_sort_by = model.set_sort_by();
+    app.global::<Rust<'_>>().on_sort(set_sort_by);
 
     app.global::<Rust<'_>>()
         .on_add_notification(|notifications, notification| {

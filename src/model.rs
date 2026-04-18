@@ -9,24 +9,24 @@ type SortedModel<T> = SortModel<Rc<VecModel<T>>, Box<dyn Fn(&T, &T) -> Ordering>
 type FilteredModel<T> = FilterModel<Rc<SortedModel<T>>, Box<dyn Fn(&T) -> bool>>;
 
 pub struct AppModel {
-    pub sort_by: Rc<RefCell<SortBy>>,
+    sort_by: Rc<RefCell<SortBy>>,
 
-    pub games: Rc<VecModel<Game>>,
-    pub homebrew_apps: Rc<VecModel<HomebrewApp>>,
-    pub osc_apps: Rc<VecModel<OscApp>>,
+    games: Rc<VecModel<Game>>,
+    homebrew_apps: Rc<VecModel<HomebrewApp>>,
+    osc_apps: Rc<VecModel<OscApp>>,
 
-    pub sorted_games: Rc<SortedModel<Game>>,
-    pub sorted_homebrew_apps: Rc<SortedModel<HomebrewApp>>,
+    sorted_games: Rc<SortedModel<Game>>,
+    sorted_homebrew_apps: Rc<SortedModel<HomebrewApp>>,
 
-    pub games_filter: Rc<RefCell<SharedString>>,
-    pub homebrew_apps_filter: Rc<RefCell<SharedString>>,
-    pub osc_apps_filter: Rc<RefCell<SharedString>>,
+    games_filter: Rc<RefCell<SharedString>>,
+    homebrew_apps_filter: Rc<RefCell<SharedString>>,
+    osc_apps_filter: Rc<RefCell<SharedString>>,
 
-    pub filtered_games: Rc<FilteredModel<Game>>,
-    pub filtered_homebrew_apps: Rc<FilteredModel<HomebrewApp>>,
+    filtered_games: Rc<FilteredModel<Game>>,
+    filtered_homebrew_apps: Rc<FilteredModel<HomebrewApp>>,
 
     // osc_apps is not sorted, just filtered
-    pub filtered_osc_apps: Rc<FilterModel<Rc<VecModel<OscApp>>, Box<dyn Fn(&OscApp) -> bool>>>,
+    filtered_osc_apps: Rc<FilterModel<Rc<VecModel<OscApp>>, Box<dyn Fn(&OscApp) -> bool>>>,
 }
 
 impl AppModel {
@@ -81,5 +81,74 @@ impl AppModel {
         state.set_games(ModelRc::from(self.filtered_games.clone()));
         state.set_homebrew_apps(ModelRc::from(self.filtered_homebrew_apps.clone()));
         state.set_osc_apps(ModelRc::from(self.filtered_osc_apps.clone()));
+    }
+
+    pub fn set_sort_by(&self) -> Box<dyn Fn(SortBy)> {
+        let sort_by = self.sort_by.clone();
+        let sorted_games = self.sorted_games.clone();
+        let sorted_homebrew_apps = self.sorted_homebrew_apps.clone();
+
+        Box::new(move |new| {
+            *sort_by.borrow_mut() = new;
+            sorted_games.reset();
+            sorted_homebrew_apps.reset();
+        })
+    }
+
+    pub fn set_games_filter(&self) -> Box<dyn Fn(SharedString)> {
+        let games_filter = self.games_filter.clone();
+        let filtered_games = self.filtered_games.clone();
+
+        Box::new(move |new| {
+            *games_filter.borrow_mut() = new;
+            filtered_games.reset();
+        })
+    }
+
+    pub fn set_homebrew_apps_filter(&self) -> Box<dyn Fn(SharedString)> {
+        let homebrew_apps_filter = self.homebrew_apps_filter.clone();
+        let filtered_homebrew_apps = self.filtered_homebrew_apps.clone();
+
+        Box::new(move |new| {
+            *homebrew_apps_filter.borrow_mut() = new;
+            filtered_homebrew_apps.reset();
+        })
+    }
+
+    pub fn set_osc_apps_filter(&self) -> Box<dyn Fn(SharedString)> {
+        let osc_apps_filter = self.osc_apps_filter.clone();
+        let filtered_osc_apps = self.filtered_osc_apps.clone();
+
+        Box::new(move |new| {
+            *osc_apps_filter.borrow_mut() = new;
+            filtered_osc_apps.reset();
+        })
+    }
+
+    pub fn set_games(&self) -> Box<dyn Fn(Vec<Game>)> {
+        let games = self.games.clone();
+
+        Box::new(move |new| {
+            games.clear();
+            games.extend(new);
+        })
+    }
+
+    pub fn set_homebrew_apps(&self) -> Box<dyn Fn(Vec<HomebrewApp>)> {
+        let homebrew_apps = self.homebrew_apps.clone();
+
+        Box::new(move |new| {
+            homebrew_apps.clear();
+            homebrew_apps.extend(new);
+        })
+    }
+
+    pub fn set_osc_apps(&self) -> Box<dyn Fn(Vec<OscApp>)> {
+        let osc_apps = self.osc_apps.clone();
+
+        Box::new(move |new| {
+            osc_apps.clear();
+            osc_apps.extend(new);
+        })
     }
 }
