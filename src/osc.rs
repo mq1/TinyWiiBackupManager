@@ -1,13 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{OscAppMeta, OscContents, State, USER_AGENT, data_dir::DATA_DIR};
+use crate::{OscAppMeta, OscContents, USER_AGENT, data_dir::DATA_DIR};
 use anyhow::Result;
-use image::ImageFormat;
-use slint::{
-    Image, Model, ModelRc, Rgba8Pixel, SharedPixelBuffer, SharedString, ToSharedString, VecModel,
-    Weak,
-};
+use slint::{Image, ModelRc, SharedString, ToSharedString, VecModel};
 use std::{
     cell::RefCell,
     fs,

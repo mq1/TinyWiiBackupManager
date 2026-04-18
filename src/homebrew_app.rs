@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{HomebrewApp, HomebrewAppMeta, SortBy, util::MIB};
+use anyhow::Result;
 use slint::{Image, SharedString, ToSharedString};
 use std::{cell::RefCell, cmp::Ordering, fs, path::Path, rc::Rc};
 
@@ -44,13 +45,18 @@ impl HomebrewApp {
     }
 }
 
-pub fn get_compare_fn(sort_by: SortBy) -> Box<dyn Fn(&HomebrewApp, &HomebrewApp) -> Ordering> {
-    match sort_by {
-        SortBy::NameAscending => Box::new(|a, b| a.meta.name.cmp(&b.meta.name)),
-        SortBy::NameDescending => Box::new(|a, b| b.meta.name.cmp(&a.meta.name)),
-        SortBy::SizeAscending => Box::new(|a, b| a.size_mib.total_cmp(&b.size_mib)),
-        SortBy::SizeDescending => Box::new(|a, b| b.size_mib.total_cmp(&a.size_mib)),
-    }
+pub fn get_compare_fn(
+    sort_by: Rc<RefCell<SortBy>>,
+) -> Box<dyn Fn(&HomebrewApp, &HomebrewApp) -> Ordering> {
+    Box::new(move |a, b| {
+        let sort_by = sort_by.borrow();
+        match *sort_by {
+            SortBy::NameAscending => a.meta.name.cmp(&b.meta.name),
+            SortBy::NameDescending => b.meta.name.cmp(&a.meta.name),
+            SortBy::SizeAscending => a.size_mib.total_cmp(&b.size_mib),
+            SortBy::SizeDescending => b.size_mib.total_cmp(&a.size_mib),
+        }
+    })
 }
 
 pub fn get_filter_fn(
@@ -69,4 +75,21 @@ pub fn get_filter_fn(
         name_lowercase.contains(query_lowercase.as_str())
             || slug_lowercase.contains(query_lowercase.as_str())
     })
+}
+
+pub fn scan_drive(root_dir: &Path) -> Vec<HomebrewApp> {
+    let mut apps = Vec::new();
+
+    let Ok(entries) = fs::read_dir(root_dir.join("apps")) else {
+        return apps;
+    };
+
+    for entry in entries.filter_map(Result::ok) {
+        let path = entry.path();
+        if let Some(game) = HomebrewApp::maybe_from_path(&path) {
+            apps.push(game);
+        }
+    }
+
+    apps
 }

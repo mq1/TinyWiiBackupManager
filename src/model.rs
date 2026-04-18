@@ -9,6 +9,8 @@ type SortedModel<T> = SortModel<Rc<VecModel<T>>, Box<dyn Fn(&T, &T) -> Ordering>
 type FilteredModel<T> = FilterModel<Rc<SortedModel<T>>, Box<dyn Fn(&T) -> bool>>;
 
 pub struct AppModel {
+    pub sort_by: Rc<RefCell<SortBy>>,
+
     pub games: Rc<VecModel<Game>>,
     pub homebrew_apps: Rc<VecModel<HomebrewApp>>,
     pub osc_apps: Rc<VecModel<OscAppMeta>>,
@@ -30,12 +32,14 @@ pub struct AppModel {
 
 impl AppModel {
     pub fn new(sort_by: SortBy) -> Self {
+        let sort_by = Rc::new(RefCell::new(sort_by));
+
         let games = Rc::new(VecModel::from(Vec::new()));
         let homebrew_apps = Rc::new(VecModel::from(Vec::new()));
         let osc_apps = Rc::new(VecModel::from(Vec::new()));
 
-        let compare_games = game::get_compare_fn(sort_by);
-        let compare_homebrew_apps = homebrew_app::get_compare_fn(sort_by);
+        let compare_games = game::get_compare_fn(sort_by.clone());
+        let compare_homebrew_apps = homebrew_app::get_compare_fn(sort_by.clone());
 
         let sorted_games = Rc::new(SortModel::new(games.clone(), compare_games));
         let sorted_homebrew_apps =
@@ -59,6 +63,7 @@ impl AppModel {
         ));
 
         Self {
+            sort_by,
             games,
             homebrew_apps,
             osc_apps,

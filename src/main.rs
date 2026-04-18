@@ -15,7 +15,6 @@ mod drive_info;
 mod extensions;
 mod game;
 mod homebrew_app;
-mod homebrew_app_list;
 mod id_map;
 mod model;
 mod notification;
@@ -33,7 +32,7 @@ mod xp_dialogs;
 
 use crate::{convert::Conversion, data_dir::DATA_DIR, model::AppModel};
 use anyhow::{Result, bail};
-use slint::{ComponentHandle, FilterModel, Model, ModelRc, SharedString, ToSharedString, VecModel};
+use slint::{ComponentHandle, Model, ModelRc, SharedString, ToSharedString, VecModel};
 use std::{
     fs::{self, File},
     path::{Path, PathBuf},
@@ -77,7 +76,7 @@ fn main() -> Result<()> {
     app.global::<State<'_>>()
         .set_data_dir(DATA_DIR.to_string_lossy().to_shared_string());
 
-    app.global::<Rust<'_>>().on_load_config(|| Config::load());
+    app.global::<Rust<'_>>().on_load_config(Config::load);
 
     app.global::<Rust<'_>>()
         .on_open(|uri| open::that(&uri).into());
@@ -110,8 +109,14 @@ fn main() -> Result<()> {
         games.extend(new);
     });
 
-    app.global::<Rust<'_>>()
-        .on_get_homebrew_app_list(|path, sort_by| HomebrewAppList::new(Path::new(&path), sort_by));
+    let homebrew_apps = model.homebrew_apps.clone();
+    app.global::<Rust<'_>>().on_load_homebrew_apps(move |path| {
+        let path = Path::new(&path);
+
+        let new = homebrew_app::scan_drive(path);
+        homebrew_apps.clear();
+        homebrew_apps.extend(new);
+    });
 
     let games_filter = model.games_filter.clone();
     let filtered_games = model.filtered_games.clone();
@@ -147,10 +152,13 @@ fn main() -> Result<()> {
             ModelRc::from(Rc::new(model))
         });
 
-    app.global::<Rust<'_>>().on_sort_games(|games, sort_by| {
-        let compare = game::get_compare_fn(sort_by);
-        let model = games.sort_by(compare);
-        ModelRc::from(Rc::new(model))
+    let sort_by = model.sort_by.clone();
+    let sorted_games = model.sorted_games.clone();
+    let sorted_homebrew_apps = model.sorted_homebrew_apps.clone();
+    app.global::<Rust<'_>>().on_sort(move |new_sort_by| {
+        *sort_by.borrow_mut() = new_sort_by;
+        sorted_games.reset();
+        sorted_homebrew_apps.reset();
     });
 
     app.global::<Rust<'_>>()
@@ -228,8 +236,8 @@ fn main() -> Result<()> {
             });
         });
 
-    let weak = app.global::<State<'_>>().as_weak();
-    app.global::<Rust<'_>>().on_load_osc_icons(move |apps| {
+    let _weak = app.global::<State<'_>>().as_weak();
+    app.global::<Rust<'_>>().on_load_osc_icons(move |_apps| {
         // TODO
         //osc::load_icons(&apps, weak.clone());
     });

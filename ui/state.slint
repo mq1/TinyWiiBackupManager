@@ -91,7 +91,7 @@ export global State {
     }
 
     public function apply-sorting() {
-        // TODO
+        Rust.sort(State.config.contents.sort-by);
     }
 
     public function refresh-all() {

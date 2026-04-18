@@ -54,13 +54,16 @@ impl Game {
     }
 }
 
-pub fn get_compare_fn(sort_by: SortBy) -> Box<dyn Fn(&Game, &Game) -> Ordering> {
-    match sort_by {
-        SortBy::NameAscending => Box::new(|a, b| a.title.cmp(&b.title)),
-        SortBy::NameDescending => Box::new(|a, b| b.title.cmp(&a.title)),
-        SortBy::SizeAscending => Box::new(|a, b| a.size_gib.total_cmp(&b.size_gib)),
-        SortBy::SizeDescending => Box::new(|a, b| b.size_gib.total_cmp(&a.size_gib)),
-    }
+pub fn get_compare_fn(sort_by: Rc<RefCell<SortBy>>) -> Box<dyn Fn(&Game, &Game) -> Ordering> {
+    Box::new(move |a, b| {
+        let sort_by = sort_by.borrow();
+        match *sort_by {
+            SortBy::NameAscending => a.title.cmp(&b.title),
+            SortBy::NameDescending => b.title.cmp(&a.title),
+            SortBy::SizeAscending => a.size_gib.total_cmp(&b.size_gib),
+            SortBy::SizeDescending => b.size_gib.total_cmp(&a.size_gib),
+        }
+    })
 }
 
 pub fn get_filter_fn(query_lowercase: Rc<RefCell<SharedString>>) -> Box<dyn Fn(&Game) -> bool> {
