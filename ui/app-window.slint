@@ -6,7 +6,7 @@ import { Navbar } from "components/navbar.slint";
 import { GameGridPage } from "game-grid-page.slint";
 import { SettingsPage } from "settings-page.slint";
 import { AboutPage } from "about-page.slint";
-import { Page } from "types.slint";
+import { Page, ViewAs } from "types.slint";
 import { State, InitializeState } from "state.slint";
 import { MyPalette } from "styling.slint";
 import { Rust } from "rust.slint";
@@ -53,12 +53,12 @@ export component AppWindow inherits Window {
                 border-width: 1px;
                 border-color: MyPalette.border;
 
-                if State.current-page == Page.Games && !State.config.contents.view-as-table: GameGridPage { }
-                if State.current-page == Page.Games && State.config.contents.view-as-table: GameTablePage { }
-                if State.current-page == Page.HomebrewApps && !State.config.contents.view-as-table: HomebrewAppsGridPage { }
-                if State.current-page == Page.HomebrewApps && State.config.contents.view-as-table: HomebrewAppsTablePage { }
-                if State.current-page == Page.Osc && !State.config.contents.view-as-table: OscGridPage { }
-                if State.current-page == Page.Osc && State.config.contents.view-as-table: OscTablePage { }
+                if State.current-page == Page.Games && State.config.contents.view-as == ViewAs.Grid: GameGridPage { }
+                if State.current-page == Page.Games && State.config.contents.view-as == ViewAs.Table: GameTablePage { }
+                if State.current-page == Page.HomebrewApps && State.config.contents.view-as == ViewAs.Grid: HomebrewAppsGridPage { }
+                if State.current-page == Page.HomebrewApps && State.config.contents.view-as == ViewAs.Table: HomebrewAppsTablePage { }
+                if State.current-page == Page.Osc && State.config.contents.view-as == ViewAs.Grid: OscGridPage { }
+                if State.current-page == Page.Osc && State.config.contents.view-as == ViewAs.Table: OscTablePage { }
                 if State.current-page == Page.Settings: SettingsPage { }
                 if State.current-page == Page.About: AboutPage { }
             }

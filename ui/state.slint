@@ -15,6 +15,7 @@ import {
     EmptyResult,
     OscApp,
     Tooltip,
+    ThemePreference,
 } from "types.slint";
 import { Rust } from "rust.slint";
 import { MyPalette } from "styling.slint";
@@ -80,9 +81,9 @@ export global State {
     }
 
     public function apply-theme() {
-        if config.contents.theme-preference == "light" {
+        if config.contents.theme-preference == ThemePreference.Light {
             Palette.color-scheme = ColorScheme.light;
-        } else if config.contents.theme-preference == "dark" {
+        } else if config.contents.theme-preference == ThemePreference.Dark {
             Palette.color-scheme = ColorScheme.dark;
         }
         Rust.set-window-color(Palette.color-scheme == ColorScheme.dark);

@@ -19,6 +19,44 @@ export enum SortBy {
 }
 
 @rust-attr(derive(serde::Serialize, serde::Deserialize))
+@rust-attr(serde(rename_all = "lowercase"))
+export enum ViewAs {
+    Grid,
+    Table,
+}
+
+@rust-attr(derive(serde::Serialize, serde::Deserialize))
+@rust-attr(serde(rename_all = "lowercase"))
+export enum ThemePreference {
+    System,
+    Light,
+    Dark,
+}
+
+@rust-attr(derive(serde::Serialize, serde::Deserialize))
+@rust-attr(serde(rename_all = "lowercase"))
+export enum WiiOutputFormat {
+    Wbfs,
+    Iso,
+}
+
+@rust-attr(derive(serde::Serialize, serde::Deserialize))
+@rust-attr(serde(rename_all = "lowercase"))
+export enum GcOutputFormat {
+    Iso,
+    Ciso,
+}
+
+@rust-attr(derive(serde::Serialize, serde::Deserialize))
+@rust-attr(serde(rename_all = "lowercase"))
+export enum TxtCodesSource {
+    WebArchive,
+    GameHacking,
+    Rc24,
+}
+
+
+@rust-attr(derive(serde::Serialize, serde::Deserialize))
 @rust-attr(serde(default, rename_all = "snake_case"))
 export struct ConfigContents {
     always-split: bool,
@@ -27,15 +65,15 @@ export struct ConfigContents {
     remove-sources-games: bool,
     scrub-update-partition: bool,
     sort-by: SortBy,
-    view-as-table: bool,
+    view-as: ViewAs,
     wii-ip: string,
-    txt-codes-source: string,
-    theme-preference: string,
-    wii-output-format: string,
-    gc-output-format: string,
+    txt-codes-source: TxtCodesSource,
+    theme-preference: ThemePreference,
+    wii-output-format: WiiOutputFormat,
+    gc-output-format: GcOutputFormat,
+    known-drives: [string],
     show-wii: bool,
     show-gc: bool,
-    known-drives: [string],
 }
 
 export struct Config {

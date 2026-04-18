@@ -13,7 +13,8 @@ use split_write::SplitWriter;
 use zip::ZipArchive;
 
 use crate::{
-    ConfigContents, ConversionKind, DriveInfo, QueuedConversion, QueuedStandardConversion, State,
+    ConfigContents, ConversionKind, DriveInfo, GcOutputFormat, QueuedConversion,
+    QueuedStandardConversion, State, WiiOutputFormat,
     convert::{HEADER_SIZE, SPLIT_SIZE},
     extensions::format_to_opts,
     id_map,
@@ -37,8 +38,8 @@ pub struct StandardConversion {
     pub disc_number: i32,
     pub always_split: bool,
     pub is_fat32: bool,
-    pub output_wii_iso: bool,
-    pub output_gc_iso: bool,
+    pub wii_output_format: WiiOutputFormat,
+    pub gc_output_format: GcOutputFormat,
     pub scrub: bool,
     pub files_to_remove: Vec<PathBuf>,
 }
@@ -63,8 +64,8 @@ impl StandardConversion {
             disc_number: queued.disc_number,
             always_split: conf.always_split,
             is_fat32: drive_info.fs_kind == "FAT32",
-            output_wii_iso: conf.wii_output_format == "iso",
-            output_gc_iso: conf.gc_output_format == "iso",
+            wii_output_format: conf.wii_output_format,
+            gc_output_format: conf.gc_output_format,
             scrub: conf.scrub_update_partition,
             files_to_remove,
         }
@@ -90,45 +91,38 @@ impl StandardConversion {
 
         let get_file_name = |i| {
             if self.is_wii {
-                if self.output_wii_iso {
-                    if should_split {
-                        format!("{}.part{i}.iso", &self.game_id)
-                    } else {
-                        format!("{}.iso", &self.game_id)
+                match self.wii_output_format {
+                    WiiOutputFormat::Iso => {
+                        if should_split {
+                            format!("{}.part{i}.iso", &self.game_id)
+                        } else {
+                            format!("{}.iso", &self.game_id)
+                        }
                     }
-                } else {
-                    match i {
+                    WiiOutputFormat::Wbfs => match i {
                         0 => format!("{}.wbfs", &self.game_id),
                         n => format!("{}.wbf{n}", &self.game_id),
-                    }
+                    },
                 }
             } else {
-                if self.output_gc_iso {
-                    match self.disc_number {
+                match self.gc_output_format {
+                    GcOutputFormat::Iso => match self.disc_number {
                         0 => "game.iso".to_string(),
                         n => format!("disc{}.iso", n + 1),
-                    }
-                } else {
-                    match self.disc_number {
+                    },
+
+                    GcOutputFormat::Ciso => match self.disc_number {
                         0 => "game.ciso".to_string(),
                         n => format!("disc{}.ciso", n + 1),
-                    }
+                    },
                 }
             }
         };
 
-        let out_format = if self.is_wii {
-            if self.output_wii_iso {
-                Format::Iso
-            } else {
-                Format::Wbfs
-            }
-        } else {
-            if self.output_gc_iso {
-                Format::Iso
-            } else {
-                Format::Ciso
-            }
+        let out_format = match (self.is_wii, self.wii_output_format, self.gc_output_format) {
+            (true, WiiOutputFormat::Iso, _) | (false, _, GcOutputFormat::Iso) => Format::Iso,
+            (true, WiiOutputFormat::Wbfs, _) => Format::Wbfs,
+            (false, _, GcOutputFormat::Ciso) => Format::Ciso,
         };
 
         let scrub = if self.scrub {

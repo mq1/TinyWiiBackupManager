@@ -7,11 +7,13 @@ import { HorizontalLine } from "horizontal-line.slint";
 import { Card } from "card.slint";
 import { State } from "../state.slint";
 
-export component Setting inherits Card {
+export component SettingCard inherits Card {
     in property <string> label;
     in property <Icon> icon;
-    in property <[{value: string, label: string}]> items;
-    in-out property <string> active-value;
+    in property <[string]> items;
+    in property <int> active-item;
+
+    callback selected(int);
 
     width: 100%;
 
@@ -35,26 +37,23 @@ export component Setting inherits Card {
 
         HorizontalLine { }
 
-        for item in items: Rectangle {
+        for item[i] in items: Rectangle {
             HorizontalLayout {
                 spacing: 5px;
 
                 IconDisplay {
-                    icon: item.value == active-value ? IconSet.Disc : IconSet.Circle;
-                    stroke: item.value == active-value ? MyPalette.accent-background : MyPalette.foreground;
+                    icon: i == active-item ? IconSet.Disc : IconSet.Circle;
+                    stroke: i == active-item ? MyPalette.accent-background : MyPalette.foreground;
                     size: 14px;
                 }
 
                 Text {
-                    text: item.label;
+                    text: item;
                 }
             }
 
             TouchArea {
-                clicked => {
-                    active-value = item.value;
-                    State.write-config();
-                }
+                clicked => selected(i);
             }
         }
     }

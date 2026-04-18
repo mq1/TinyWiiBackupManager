@@ -4,9 +4,14 @@
 import { ScrollView } from "std-widgets.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { State } from "state.slint";
-import { Setting } from "components/setting.slint";
-import { BoolSetting } from "components/bool-setting.slint";
+import { SettingCard } from "components/setting-card.slint";
 import { MyPalette } from "styling.slint";
+import {
+    WiiOutputFormat,
+    GcOutputFormat,
+    TxtCodesSource,
+    ThemePreference,
+} from "types.slint";
 
 export component SettingsPage inherits Rectangle {
     HorizontalLayout {
@@ -38,95 +43,149 @@ export component SettingsPage inherits Rectangle {
             padding-bottom: 10px;
             spacing: 10px;
 
-            Setting {
+            SettingCard {
                 icon: IconSet.Disc3;
                 label: "Wii output format";
-                items: [
-                    { value: "wbfs", label: "WBFS (recommended)" },
-                    { value: "iso", label: "ISO (very large)" },
-                ];
-                active-value <=> State.config.contents.wii-output-format;
+                items: ["WBFS (recommended)", "ISO (very large)"];
+                active-item: State.config.contents.wii-output-format == WiiOutputFormat.Wbfs ? 0 : 1;
+
+                selected(i) => {
+                    if i == 0 {
+                        State.config.contents.wii-output-format = WiiOutputFormat.Wbfs;
+                    } else {
+                        State.config.contents.wii-output-format = WiiOutputFormat.Iso;
+                    }
+
+                    State.write-config();
+                }
             }
 
-            Setting {
+            SettingCard {
                 icon: IconSet.Disc3;
                 label: "GameCube output format";
                 items: [
-                    { value: "iso", label: "ISO (recommended)" },
-                    {
-                        value: "ciso",
-                        label: "CISO (much smaller, slightly slower, less metadata in game loaders)"
-                    },
+                    "ISO (recommended)",
+                    "CISO (much smaller, slightly slower, less metadata in game loaders)"
                 ];
-                active-value <=> State.config.contents.gc-output-format;
+                active-item: State.config.contents.gc-output-format == GcOutputFormat.Iso ? 0 : 1;
+
+                selected(i) => {
+                    if i == 0 {
+                        State.config.contents.gc-output-format = GcOutputFormat.Iso;
+                    } else {
+                        State.config.contents.gc-output-format = GcOutputFormat.Ciso;
+                    }
+
+                    State.write-config();
+                }
             }
 
-            BoolSetting {
+            SettingCard {
                 icon: IconSet.SquareSplitHorizontal;
                 label: "Split output";
-                items: [
-                    { value: false, label: "Only when needed (recommended)" },
-                    { value: true, label: "Always 4GB-32KB" },
-                ];
-                active-value <=> State.config.contents.always-split;
+                items: ["Only when needed (recommended)", "Always 4GB-32KB"];
+                active-item: State.config.contents.always-split ? 1 : 0;
+
+                selected(i) => {
+                    State.config.contents.always-split = i == 1;
+                    State.write-config();
+                }
             }
 
-            BoolSetting {
+            SettingCard {
                 icon: IconSet.FileMinusCorner;
                 label: "Remove update partition on WBFS/CISO";
                 items: [
-                    { value: false, label: "No (recommended)" },
-                    {
-                        value: true,
-                        label: "Yes (saves some space; update partition is zeroed, but still there)"
-                    },
+                    "No (recommended)",
+                    "Yes (saves some space; update partition is zeroed, but still there)"
                 ];
-                active-value <=> State.config.contents.scrub-update-partition;
+                active-item: State.config.contents.scrub-update-partition ? 1 : 0;
+
+                selected(i) => {
+                    State.config.contents.scrub-update-partition = i == 1;
+                    State.write-config();
+                }
             }
 
-            BoolSetting {
+            SettingCard {
                 icon: IconSet.Trash;
                 label: "Delete sources when adding games";
-                items: [
-                    { value: false, label: "No (recommended)" },
-                    { value: true, label: "Yes" },
-                ];
-                active-value <=> State.config.contents.remove-sources-games;
+                items: ["No (recommended)", "Yes"];
+                active-item: State.config.contents.remove-sources-games ? 1 : 0;
+
+                selected(i) => {
+                    State.config.contents.remove-sources-games = i == 1;
+                    State.write-config();
+                }
             }
 
-            BoolSetting {
+            SettingCard {
                 icon: IconSet.Trash;
                 label: "Delete sources when adding apps";
-                items: [
-                    { value: false, label: "No (recommended)" },
-                    { value: true, label: "Yes" },
-                ];
-                active-value <=> State.config.contents.remove-sources-apps;
+                items: ["No (recommended)", "Yes"];
+                active-item: State.config.contents.remove-sources-apps ? 1 : 0;
             }
 
-            Setting {
+            SettingCard {
+                pure function get-active-item() -> int {
+                    if State.config.contents.txt-codes-source == TxtCodesSource.WebArchive {
+                        0
+                    } else if State.config.contents.txt-codes-source == TxtCodesSource.GameHacking {
+                        1
+                    } else {
+                        2
+                    }
+                }
+
                 icon: IconSet.Skull;
                 label: "Cheat codes source";
                 items: [
-                    { value: "web-archive", label: "geckocodes.org-201909 archive (recommended)" },
-                    { value: "game-hacking", label: "gamehacking.org (up to date)" },
-                    { value: "rc24", label: "codes.rc24.xyz" },
+                    "geckocodes.org-201909 archive (recommended)",
+                    "gamehacking.org (up to date)",
+                    "codes.rc24.xyz",
                 ];
-                active-value <=> State.config.contents.txt-codes-source;
+                active-item: get-active-item();
+
+                selected(i) => {
+                    if i == 0 {
+                        State.config.contents.txt-codes-source = TxtCodesSource.WebArchive;
+                    } else if i == 1 {
+                        State.config.contents.txt-codes-source = TxtCodesSource.GameHacking;
+                    } else {
+                        State.config.contents.txt-codes-source = TxtCodesSource.Rc24;
+                    }
+
+                    State.write-config();
+                }
             }
 
-            Setting {
+            SettingCard {
+                pure function get-active-item() -> int {
+                    if State.config.contents.theme-preference == ThemePreference.System {
+                        0
+                    } else if State.config.contents.theme-preference == ThemePreference.Light {
+                        1
+                    } else {
+                        2
+                    }
+                }
+
                 icon: IconSet.SunMoon;
                 label: "Theme";
-                items: [
-                    { value: "system", label: "System (requires restart)" },
-                    { value: "light", label: "Light" },
-                    { value: "dark", label: "Dark" },
-                ];
-                active-value <=> State.config.contents.theme-preference;
+                items: ["System (requires restart)", "Light", "Dark"];
+                active-item: get-active-item();
 
-                changed active-value => {
+                selected(i) => {
+                    if i == 0 {
+                        State.config.contents.theme-preference = ThemePreference.System;
+                    } else if i == 1 {
+                        State.config.contents.theme-preference = ThemePreference.Light;
+                    } else {
+                        State.config.contents.theme-preference = ThemePreference.Dark;
+                    }
+
                     State.apply-theme();
+                    State.write-config();
                 }
             }
         }

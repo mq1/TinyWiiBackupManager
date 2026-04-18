@@ -6,10 +6,11 @@ import { TooltipArea } from "tooltip-area.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { MyPalette } from "../styling.slint";
 import { State } from "../state.slint";
+import { ViewAs } from "../types.slint";
 
 export component ViewAs inherits Card {
-    pure function get-bg(view-as-table: bool, hovered: bool) -> color {
-        if State.config.contents.view-as-table == view-as-table {
+    pure function get-bg(view-as: ViewAs, hovered: bool) -> color {
+        if State.config.contents.view-as == view-as {
             MyPalette.selection-background
         } else if hovered {
             MyPalette.alternate-background
@@ -28,9 +29,9 @@ export component ViewAs inherits Card {
             height: 38px;
 
             tooltip: "View as grid";
-            background: get-bg(false, self.has-hover);
+            background: get-bg(ViewAs.Grid, self.has-hover);
             clicked => {
-                State.config.contents.view-as-table = false;
+                State.config.contents.view-as = ViewAs.Grid;
                 State.write-config();
             }
 
@@ -46,9 +47,9 @@ export component ViewAs inherits Card {
             height: 38px;
 
             tooltip: "View as table";
-            background: get-bg(true, self.has-hover);
+            background: get-bg(ViewAs.Table, self.has-hover);
             clicked => {
-                State.config.contents.view-as-table = true;
+                State.config.contents.view-as = ViewAs.Table;
                 State.write-config();
             }
 

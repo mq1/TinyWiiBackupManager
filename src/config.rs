@@ -1,7 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{Config, ConfigContents, SortBy, data_dir::DATA_DIR};
+use crate::{
+    Config, ConfigContents, GcOutputFormat, SortBy, ThemePreference, TxtCodesSource, ViewAs,
+    WiiOutputFormat, data_dir::DATA_DIR,
+};
 use anyhow::Result;
 use slint::{Model, ModelRc, SharedString, ToSharedString, VecModel};
 use std::{fs, path::Path};
@@ -82,12 +85,12 @@ impl ConfigContents {
             remove_sources_games: false,
             scrub_update_partition: false,
             sort_by: SortBy::NameAscending,
-            view_as_table: false,
+            view_as: ViewAs::Grid,
             wii_ip: "192.168.1.100".to_shared_string(),
-            txt_codes_source: "web_archive".to_shared_string(),
-            theme_preference: "system".to_shared_string(),
-            wii_output_format: "wbfs".to_shared_string(),
-            gc_output_format: "iso".to_shared_string(),
+            txt_codes_source: TxtCodesSource::WebArchive,
+            theme_preference: ThemePreference::System,
+            wii_output_format: WiiOutputFormat::Wbfs,
+            gc_output_format: GcOutputFormat::Iso,
             show_wii: true,
             show_gc: true,
             known_drives: ModelRc::new(VecModel::default()),
