@@ -34,24 +34,12 @@ export component OscTablePage inherits VerticalLayout {
                 height: v2.preferred-height;
 
                 v2 := VerticalLayout {
-                    if State.osc-contents.filter.is-empty: VerticalLayout {
-                        for app in State.osc-contents.apps: VerticalLayout {
-                            OscAppRow {
-                                app: app;
-                            }
-
-                            HorizontalLine { }
+                    for app in State.osc-apps: VerticalLayout {
+                        OscAppRow {
+                            app: app;
                         }
-                    }
 
-                    if !State.osc-contents.filter.is-empty: VerticalLayout {
-                        for app in State.osc-contents.filtered-apps: VerticalLayout {
-                            OscAppRow {
-                                app: app;
-                            }
-
-                            HorizontalLine { }
-                        }
+                        HorizontalLine { }
                     }
                 }
             }

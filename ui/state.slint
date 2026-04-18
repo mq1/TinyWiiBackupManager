@@ -17,6 +17,7 @@ import {
     EmptyResult,
     OscContents,
     OscAppMeta,
+    Tooltip,
 } from "types.slint";
 import { Rust } from "rust.slint";
 import { MyPalette } from "styling.slint";
@@ -32,17 +33,20 @@ export global State {
     in-out property <string> data-dir;
     in-out property <Config> config;
     in-out property <DriveInfo> drive-info;
-    in-out property <GameList> game-list;
-    in-out property <HomebrewAppList> homebrew-app-list;
+    in-out property <[Game]> games;
+    in-out property <string> games-filter;
+    in-out property <[HomebrewApp]> homebrew-apps;
+    in-out property <string> homebrew-apps-filter;
     in-out property <HomebrewApp> current-homebrew-app;
     in-out property <string> status: "";
-    in-out property <{ text: string, mouse-x: length, mouse-y: length}> tooltip;
+    in-out property <Tooltip> tooltip;
     in-out property <[QueuedConversion]> conversion-queue: [];
     in-out property <bool> is-converting: false;
     in-out property <string> deleting-dir: "";
     in-out property <[QueuedConversion]> adding-games: [];
     in-out property <[Notification]> notifications: [];
-    in-out property <OscContents> osc-contents;
+    in-out property <[OscAppMeta]> osc-apps;
+    in-out property <string> osc-apps-filter;
     in-out property <bool> osc-icons-loading-started: false;
     in-out property <OscAppMeta> current-osc-app;
 
@@ -66,27 +70,15 @@ export global State {
     }
 
     public function filter-games() {
-        if game-list.filter.is-empty {
-            game-list.filtered-games = [];
-        } else {
-            game-list.filtered-games = Rust.filter-games(game-list.games, game-list.filter);
-        }
+        // TODO
     }
 
     public function filter-homebrew-apps() {
-        if homebrew-app-list.filter.is-empty {
-            homebrew-app-list.filtered-apps = [];
-        } else {
-            homebrew-app-list.filtered-apps = Rust.filter-homebrew-apps(homebrew-app-list.apps, homebrew-app-list.filter);
-        }
+        // TODO
     }
 
     public function filter-osc() {
-        if osc-contents.filter.is-empty {
-            osc-contents.filtered-apps = [];
-        } else {
-            osc-contents.filtered-apps = Rust.filter-osc(osc-contents.apps, osc-contents.filter);
-        }
+        // TODO
     }
 
     public function apply-theme() {
@@ -99,14 +91,15 @@ export global State {
     }
 
     public function apply-sorting() {
-        game-list.games = Rust.sort-games(game-list.games, config.contents.sort-by);
+        // TODO
     }
 
     public function refresh-all() {
-        drive-info = Rust.get-drive-info(config.contents.mount-point);
-        game-list = Rust.get-game-list(config.contents.mount-point, config.contents.sort-by);
-        homebrew-app-list = Rust.get-homebrew-app-list(config.contents.mount-point, config.contents.sort-by);
-        Rust.cache-covers();
+        // TODO
+        //drive-info = Rust.get-drive-info(config.contents.mount-point);
+        //game-list = Rust.get-game-list(config.contents.mount-point, config.contents.sort-by);
+        //homebrew-app-list = Rust.get-homebrew-app-list(config.contents.mount-point, config.contents.sort-by);
+        //Rust.cache-covers();
     }
 
     public function pick-mount-point() {
@@ -132,11 +125,13 @@ export global State {
     }
 
     public function pick-games() {
-        adding-games = Rust.pick-games(game-list.games);
+        // TODO
+        //adding-games = Rust.pick-games(game-list.games);
     }
 
     public function pick-games-r() {
-        adding-games = Rust.pick-games-r(game-list.games);
+        // TODO
+        //adding-games = Rust.pick-games-r(game-list.games);
     }
 
     public function close-notification(i: int) {
@@ -184,18 +179,11 @@ export global State {
     }
 
     public function got-osc-contents(contents: OscContents) {
-        if !contents.err.is-empty {
-            notify-err(contents.err);
-        } else {
-            osc-contents = contents;
-        }
+        // TODO
     }
 
     public function load-osc-icons() {
-        if !osc-icons-loading-started {
-            osc-icons-loading-started = true;
-            Rust.load-osc-icons(osc-contents.apps);
-        }
+        // TODO
     }
 
     public function force-osc-refresh() {
@@ -222,7 +210,6 @@ export component InitializeState {
         interval: 100ms;
         running: true;
         triggered => {
-            State.load-config();
             State.apply-theme();
             State.refresh-all();
             Rust.load-osc-contents(false);

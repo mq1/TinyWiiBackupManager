@@ -36,24 +36,12 @@ export component HomebrewAppsTablePage inherits VerticalLayout {
                 height: v2.preferred-height;
 
                 v2 := VerticalLayout {
-                    if State.homebrew-app-list.filter.is-empty: VerticalLayout {
-                        for app in State.homebrew-app-list.apps: VerticalLayout {
-                            HomebrewAppRow {
-                                app: app;
-                            }
-
-                            HorizontalLine { }
+                    for app in State.homebrew-apps: VerticalLayout {
+                        HomebrewAppRow {
+                            app: app;
                         }
-                    }
 
-                    if !State.homebrew-app-list.filter.is-empty: VerticalLayout {
-                        for app in State.homebrew-app-list.filtered-apps: VerticalLayout {
-                            HomebrewAppRow {
-                                app: app;
-                            }
-
-                            HorizontalLine { }
-                        }
+                        HorizontalLine { }
                     }
                 }
             }

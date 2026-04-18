@@ -82,6 +82,8 @@ impl OscContents {
     }
 }
 
+// TODO
+#[cfg(false)]
 pub fn load_icons(apps: &ModelRc<OscAppMeta>, weak: Weak<State<'static>>) {
     let icon_urls = apps
         .iter()

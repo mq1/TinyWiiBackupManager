@@ -10,6 +10,8 @@ import { GamesToolbar } from "components/games-toolbar.slint";
 import { GamesOtherToolbar } from "components/games-other-toolbar.slint";
 
 export component GameGridPage inherits VerticalLayout {
+    private property <int> col-count: max(1, floor((self.width - 10px) / (172px + 10px)));
+
     HorizontalLayout {
         padding: 10px;
         GamesToolbar { }
@@ -20,30 +22,19 @@ export component GameGridPage inherits VerticalLayout {
         viewport-height: v.preferred-height;
 
         v := VerticalLayout {
-            GamesOtherToolbar {
-                padding: 10px;
-                padding-top: 0px;
-            }
+            padding: 10px;
+            padding-top: 0px;
+            spacing: 10px;
 
-            if State.game-list.filter.is-empty: FlexboxLayout {
-                padding: 5px;
-                align-content: start;
+            GamesOtherToolbar { }
 
-                for game in State.game-list.games: HorizontalLayout {
-                    padding: (game.is-wii && State.config.contents.show-wii) || (!game.is-wii && State.config.contents.show-gc) ? 5px : 0px;
-
-                    if (game.is-wii && State.config.contents.show-wii) || (!game.is-wii && State.config.contents.show-gc): GameCard {
-                        game: game;
-                    }
-                }
-            }
-
-            if !State.game-list.filter.is-empty: FlexboxLayout {
-                padding: 10px;
+            GridLayout {
                 spacing: 10px;
-                align-content: start;
 
-                for game in State.game-list.filtered-games: GameCard {
+                for game[i] in State.games: GameCard {
+                    row: i / col-count;
+                    col: mod(i, col-count);
+
                     game: game;
                 }
             }

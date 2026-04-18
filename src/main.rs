@@ -18,6 +18,7 @@ mod game_list;
 mod homebrew_app;
 mod homebrew_app_list;
 mod id_map;
+mod model;
 mod notification;
 mod osc;
 mod results;
@@ -31,7 +32,7 @@ mod window_color;
 #[cfg(windows)]
 mod xp_dialogs;
 
-use crate::{convert::Conversion, data_dir::DATA_DIR};
+use crate::{convert::Conversion, data_dir::DATA_DIR, model::AppModel};
 use anyhow::{Result, bail};
 use slint::{ComponentHandle, Model, ModelRc, SharedString, ToSharedString, VecModel};
 use std::{
@@ -63,7 +64,13 @@ fn main() -> Result<()> {
         bail!("Failed to get data dir");
     }
 
+    let config = Config::load();
+
+    let model = AppModel::new(config.contents.sort_by);
     let app = AppWindow::new()?;
+
+    app.global::<State<'_>>().set_config(config);
+    model.init_state(&app.global());
 
     app.global::<State<'_>>()
         .set_version(env!("CARGO_PKG_VERSION").into());
@@ -219,7 +226,8 @@ fn main() -> Result<()> {
 
     let weak = app.global::<State<'_>>().as_weak();
     app.global::<Rust<'_>>().on_load_osc_icons(move |apps| {
-        osc::load_icons(&apps, weak.clone());
+        // TODO
+        //osc::load_icons(&apps, weak.clone());
     });
 
     let weak = app.as_weak();
@@ -264,7 +272,10 @@ fn main() -> Result<()> {
             });
         });
 
+    // TODO
+    #[cfg(false)]
     let weak = app.global::<State<'_>>().as_weak();
+    #[cfg(false)]
     app.global::<Rust<'_>>().on_cache_covers(move || {
         let ids = weak
             .upgrade()

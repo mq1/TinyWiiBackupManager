@@ -3,7 +3,7 @@
 
 use crate::{HomebrewApp, HomebrewAppMeta, SortBy, util::MIB};
 use slint::{Image, ToSharedString};
-use std::{fs, path::Path};
+use std::{cmp::Ordering, fs, path::Path};
 
 impl HomebrewApp {
     #[must_use]
@@ -44,11 +44,11 @@ impl HomebrewApp {
     }
 }
 
-pub fn get_compare_fn(sort_by: SortBy) -> fn(&HomebrewApp, &HomebrewApp) -> std::cmp::Ordering {
+pub fn get_compare_fn(sort_by: SortBy) -> Box<dyn Fn(&HomebrewApp, &HomebrewApp) -> Ordering> {
     match sort_by {
-        SortBy::NameAscending => |a, b| a.meta.name.cmp(&b.meta.name),
-        SortBy::NameDescending => |a, b| b.meta.name.cmp(&a.meta.name),
-        SortBy::SizeAscending => |a, b| a.size_mib.total_cmp(&b.size_mib),
-        SortBy::SizeDescending => |a, b| b.size_mib.total_cmp(&a.size_mib),
+        SortBy::NameAscending => Box::new(|a, b| a.meta.name.cmp(&b.meta.name)),
+        SortBy::NameDescending => Box::new(|a, b| b.meta.name.cmp(&a.meta.name)),
+        SortBy::SizeAscending => Box::new(|a, b| a.size_mib.total_cmp(&b.size_mib)),
+        SortBy::SizeDescending => Box::new(|a, b| b.size_mib.total_cmp(&a.size_mib)),
     }
 }

@@ -14,23 +14,7 @@ OriginalFilename = "TinyWiiBackupManager.exe"
 LegalCopyright = "Copyright © 2026 Manuel Quarneti. Licensed under GPL-3.0-only."
 
 [dependencies]
-
-# My crates (MIT OR Apache-2.0)
-which-fs = "0.2"
-split-write = "0.2"
-wii-disc-info = "0.4"
-wiiload = "0.3"
-
-slint = { git = "https://github.com/slint-ui/slint.git", branch = "pre-release/1.16", default-features = false, features = [
-  "accessibility",
-  "backend-winit",
-  "compat-1-2",
-  "renderer-femtovg",
-  "renderer-software",
-  "std",
-  "serde",
-  "raw-window-handle-06",
-] }
+slint = { version = "1.16", features = ["serde", "raw-window-handle-06"] }
 nod = { git = "https://github.com/encounter/nod.git" }
 anyhow = "1.0"
 open = "5.3"
@@ -54,6 +38,12 @@ quick-xml = { version = "0.39", features = ["serialize"] }
 image = { version = "0.25", default-features = false, features = ["png"] }
 time = "0.3"
 
+# My crates (MIT OR Apache-2.0)
+which-fs = "0.2"
+split-write = "0.2"
+wii-disc-info = "0.4"
+wiiload = "0.3"
+
 [target.'cfg(windows)'.dependencies]
 raw-window-handle = "0.6"
 windows = { version = "0.62", features = [
@@ -64,7 +54,7 @@ windows = { version = "0.62", features = [
 ] }
 
 [build-dependencies]
-slint-build = { git = "https://github.com/slint-ui/slint.git", branch = "pre-release/1.16" }
+slint-build = "1.16"
 lucide-slint = "1.8"
 winresource = "0.1"
 
@@ -92,10 +82,10 @@ opt-level = 2
 opt-level = 2
 
 [lints.rust]
-rust_2018_idioms = "deny"
+rust_2018_idioms = { level = "deny", priority = 1 }
 
 [lints.clippy]
-all = "warn"
-pedantic = "warn"
-missing-errors-doc = { level = "allow", priority = 1 }
-missing-panics-doc = { level = "allow", priority = 1 }
+all = { level = "warn", priority = 1 }
+pedantic = { level = "warn", priority = 1 }
+missing-errors-doc = { level = "allow", priority = 2 }
+missing-panics-doc = { level = "allow", priority = 2 }

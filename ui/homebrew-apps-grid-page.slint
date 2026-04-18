@@ -12,6 +12,8 @@ import {
 } from "components/homebrew-apps-other-toolbar.slint";
 
 export component HomebrewAppsGridPage inherits VerticalLayout {
+    private property <int> col-count: max(1, floor((self.width - 10px) / (172px + 10px)));
+
     HorizontalLayout {
         padding: 10px;
         HomebrewAppsToolbar { }
@@ -28,18 +30,13 @@ export component HomebrewAppsGridPage inherits VerticalLayout {
 
             HomebrewAppsOtherToolbar { }
 
-            if State.homebrew-app-list.filter.is-empty: FlexboxLayout {
+            GridLayout {
                 spacing: 10px;
 
-                for app in State.homebrew-app-list.apps: HomebrewAppCard {
-                    app: app;
-                }
-            }
+                for app[i] in State.homebrew-apps: HomebrewAppCard {
+                    row: i / col-count;
+                    col: mod(i, col-count);
 
-            if !State.homebrew-app-list.filter.is-empty: FlexboxLayout {
-                spacing: 10px;
-
-                for app in State.homebrew-app-list.filtered-apps: HomebrewAppCard {
                     app: app;
                 }
             }

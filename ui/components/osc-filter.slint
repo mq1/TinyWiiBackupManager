@@ -30,7 +30,7 @@ export component OscFilter inherits Card {
             alignment: center;
 
             MyLineEdit {
-                text <=> State.osc-contents.filter;
+                text <=> State.osc-apps-filter;
                 placeholder-text: "Search by Name/Author";
                 changed text => State.filter-osc();
             }

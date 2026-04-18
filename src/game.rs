@@ -3,7 +3,7 @@
 
 use crate::{Game, SortBy, data_dir::DATA_DIR, id_map, util::GIB};
 use slint::{Image, ToSharedString};
-use std::path::Path;
+use std::{cmp::Ordering, path::Path};
 
 impl Game {
     #[must_use]
@@ -53,11 +53,11 @@ impl Game {
     }
 }
 
-pub fn get_compare_fn(sort_by: SortBy) -> fn(&Game, &Game) -> std::cmp::Ordering {
+pub fn get_compare_fn(sort_by: SortBy) -> Box<dyn Fn(&Game, &Game) -> Ordering> {
     match sort_by {
-        SortBy::NameAscending => |a, b| a.title.cmp(&b.title),
-        SortBy::NameDescending => |a, b| b.title.cmp(&a.title),
-        SortBy::SizeAscending => |a, b| a.size_gib.total_cmp(&b.size_gib),
-        SortBy::SizeDescending => |a, b| b.size_gib.total_cmp(&a.size_gib),
+        SortBy::NameAscending => Box::new(|a, b| a.title.cmp(&b.title)),
+        SortBy::NameDescending => Box::new(|a, b| b.title.cmp(&a.title)),
+        SortBy::SizeAscending => Box::new(|a, b| a.size_gib.total_cmp(&b.size_gib)),
+        SortBy::SizeDescending => Box::new(|a, b| b.size_gib.total_cmp(&a.size_gib)),
     }
 }

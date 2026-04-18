@@ -34,26 +34,12 @@ export component GameTablePage inherits VerticalLayout {
                 height: v2.preferred-height;
 
                 v2 := VerticalLayout {
-                    if State.game-list.filter.is-empty: VerticalLayout {
-                        for game in State.game-list.games: HorizontalLayout {
-                            if (game.is-wii && State.config.contents.show-wii) || (!game.is-wii && State.config.contents.show-gc): VerticalLayout {
-                                GameRow {
-                                    game: game;
-                                }
-
-                                HorizontalLine { }
-                            }
+                    for game in State.games: VerticalLayout {
+                        GameRow {
+                            game: game;
                         }
-                    }
 
-                    if !State.game-list.filter.is-empty: VerticalLayout {
-                        for game in State.game-list.filtered-games: VerticalLayout {
-                            GameRow {
-                                game: game;
-                            }
-
-                            HorizontalLine { }
-                        }
+                        HorizontalLine { }
                     }
                 }
             }

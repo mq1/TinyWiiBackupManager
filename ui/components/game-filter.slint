@@ -30,7 +30,7 @@ export component GameFilter inherits Card {
             alignment: center;
 
             MyLineEdit {
-                text <=> State.game-list.filter;
+                text <=> State.games-filter;
                 placeholder-text: "Search by Title/ID";
                 changed text => State.filter-games();
             }

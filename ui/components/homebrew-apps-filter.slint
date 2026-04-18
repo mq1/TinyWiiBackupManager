@@ -30,7 +30,7 @@ export component HomebrewAppsFilter inherits Card {
             alignment: center;
 
             MyLineEdit {
-                text <=> State.homebrew-app-list.filter;
+                text <=> State.homebrew-apps-filter;
                 placeholder-text: "Search by Name/Author";
                 changed text => State.filter-homebrew-apps();
             }
