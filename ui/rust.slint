@@ -21,13 +21,14 @@ import {
 } from "types.slint";
 
 export global Rust {
+    callback load-games(string);
+
     callback open(string) -> EmptyResult;
     callback pick-mount-point() -> string;
     callback get-drive-info(string) -> DriveInfo;
     callback load-config() -> Config;
     callback write-config(Config) -> EmptyResult;
     callback delete-dir(string) -> EmptyResult;
-    callback get-game-list(string, SortBy) -> GameList;
     callback get-homebrew-app-list(string, SortBy) -> HomebrewAppList;
     callback filter-games([Game], string) -> [Game];
     callback filter-homebrew-apps([HomebrewApp], string) -> [HomebrewApp];

@@ -95,6 +95,8 @@ export global State {
     }
 
     public function refresh-all() {
+        Rust.load-games(config.contents.mount-point);
+
         // TODO
         //drive-info = Rust.get-drive-info(config.contents.mount-point);
         //game-list = Rust.get-game-list(config.contents.mount-point, config.contents.sort-by);

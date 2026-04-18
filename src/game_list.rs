@@ -2,70 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{Game, GameList, SortBy, game};
-use anyhow::Result;
 use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
 use slint::{Model, ModelRc, SharedString, VecModel};
 use std::{fs, path::Path, rc::Rc};
-
-impl GameList {
-    #[must_use]
-    pub fn new(drive_path: &Path, sort_by: SortBy) -> Self {
-        let wii_path = drive_path.join("wbfs");
-        let gc_path = drive_path.join("games");
-
-        let mut games = Vec::new();
-        let _ = read_game_dir(&wii_path, true, &mut games);
-        let _ = read_game_dir(&gc_path, false, &mut games);
-
-        let total_size = games.iter().fold(0., |acc, game| acc + game.size_gib);
-
-        games.sort_by(game::get_compare_fn(sort_by));
-        let model = VecModel::from(games);
-
-        Self {
-            games: ModelRc::from(Rc::new(model)),
-            filter: SharedString::new(),
-            filtered_games: ModelRc::default(),
-            total_size,
-        }
-    }
-
-    pub fn reload_cover(&mut self, gameid: &str) {
-        for (i, mut game) in self.games.iter().enumerate() {
-            if game.id.as_str() == gameid {
-                game.reload_cover();
-                self.games.set_row_data(i, game);
-
-                break;
-            }
-        }
-
-        for (i, mut game) in self.filtered_games.iter().enumerate() {
-            if game.id.as_str() == gameid {
-                game.reload_cover();
-                self.filtered_games.set_row_data(i, game);
-
-                break;
-            }
-        }
-    }
-}
-
-fn read_game_dir(game_dir: &Path, is_wii: bool, games: &mut Vec<Game>) -> Result<()> {
-    if !game_dir.exists() {
-        return Ok(());
-    }
-
-    let entries = fs::read_dir(game_dir)?;
-    for entry in entries.filter_map(Result::ok) {
-        let path = entry.path();
-        if let Some(game) = Game::maybe_from_path(&path, is_wii) {
-            games.push(game);
-        }
-    }
-
-    Ok(())
-}
 
 pub fn fuzzy_search(games: &ModelRc<Game>, query: &str) -> ModelRc<Game> {
     let matcher = SkimMatcherV2::default();

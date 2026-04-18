@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{Game, SortBy, data_dir::DATA_DIR, id_map, util::GIB};
+use anyhow::Result;
 use slint::{Image, ToSharedString};
-use std::{cmp::Ordering, path::Path};
+use std::{cmp::Ordering, fs, path::Path};
 
 impl Game {
     #[must_use]
@@ -60,4 +61,25 @@ pub fn get_compare_fn(sort_by: SortBy) -> Box<dyn Fn(&Game, &Game) -> Ordering> 
         SortBy::SizeAscending => Box::new(|a, b| a.size_gib.total_cmp(&b.size_gib)),
         SortBy::SizeDescending => Box::new(|a, b| b.size_gib.total_cmp(&a.size_gib)),
     }
+}
+
+fn scan_dir(dir: &Path, is_wii: bool, games: &mut Vec<Game>) -> Result<()> {
+    let entries = fs::read_dir(dir)?;
+    for entry in entries.filter_map(Result::ok) {
+        let path = entry.path();
+        if let Some(game) = Game::maybe_from_path(&path, is_wii) {
+            games.push(game);
+        }
+    }
+
+    Ok(())
+}
+
+pub fn scan_drive(root_path: &Path) -> Vec<Game> {
+    let mut games = Vec::new();
+
+    let _ = scan_dir(&root_path.join("wbfs"), true, &mut games);
+    let _ = scan_dir(&root_path.join("games"), false, &mut games);
+
+    games
 }

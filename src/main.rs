@@ -102,8 +102,14 @@ fn main() -> Result<()> {
     app.global::<Rust<'_>>()
         .on_delete_dir(|path| fs::remove_dir_all(path).into());
 
-    app.global::<Rust<'_>>()
-        .on_get_game_list(|path, sort_by| GameList::new(Path::new(&path), sort_by));
+    let games = model.games.clone();
+    app.global::<Rust<'_>>().on_load_games(move |path| {
+        let path = Path::new(&path);
+
+        let new = game::scan_drive(path);
+        games.clear();
+        games.extend(new);
+    });
 
     app.global::<Rust<'_>>()
         .on_get_homebrew_app_list(|path, sort_by| HomebrewAppList::new(Path::new(&path), sort_by));
