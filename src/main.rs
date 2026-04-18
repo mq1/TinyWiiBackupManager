@@ -105,38 +105,39 @@ fn main() -> Result<()> {
     app.global::<Rust<'_>>()
         .on_delete_dir(|path| fs::remove_dir_all(path).into());
 
-    let set_games = model.set_games();
+    let model_clone = model.clone();
     app.global::<Rust<'_>>().on_load_games(move |path| {
         let path = Path::new(&path);
         let new = game::scan_drive(path);
-        set_games(new);
+        model_clone.set_games(new);
     });
 
-    let set_homebrew_apps = model.set_homebrew_apps();
+    let model_clone = model.clone();
     app.global::<Rust<'_>>().on_load_homebrew_apps(move |path| {
         let path = Path::new(&path);
         let new = homebrew_app::scan_drive(path).unwrap_or_default();
-        set_homebrew_apps(new);
+        model_clone.set_homebrew_apps(new);
     });
 
-    let set_osc_apps = model.set_osc_apps();
+    let model_clone = model.clone();
     app.global::<Rust<'_>>()
         .on_load_osc_apps(move |force_refresh| {
             let (new, h, min) = osc::load_contents(force_refresh).unwrap_or_default();
-            set_osc_apps(new);
+            model_clone.set_osc_apps(new);
             (h, min)
         });
 
-    let set_games_filter = model.set_games_filter();
-    app.global::<Rust<'_>>().on_filter_games(set_games_filter);
-
-    let set_homebrew_apps_filter = model.set_homebrew_apps_filter();
+    let model_clone = model.clone();
     app.global::<Rust<'_>>()
-        .on_filter_homebrew_apps(set_homebrew_apps_filter);
+        .on_filter_games(move |filter| model_clone.set_games_filter(filter));
 
-    let set_osc_apps_filter = model.set_osc_apps_filter();
+    let model_clone = model.clone();
     app.global::<Rust<'_>>()
-        .on_filter_osc_apps(set_osc_apps_filter);
+        .on_filter_homebrew_apps(move |filter| model_clone.set_homebrew_apps_filter(filter));
+
+    let model_clone = model.clone();
+    app.global::<Rust<'_>>()
+        .on_filter_osc_apps(move |filter| model_clone.set_osc_apps_filter(filter));
 
     app.global::<Rust<'_>>()
         .on_get_disc_info(|game_dir| DiscInfo::try_from_game_dir(Path::new(&game_dir)).into());
@@ -164,14 +165,17 @@ fn main() -> Result<()> {
             ModelRc::from(Rc::new(model))
         });
 
-    let set_sort_by = model.set_sort_by();
-    app.global::<Rust<'_>>().on_sort(set_sort_by);
+    let model_clone = model.clone();
+    app.global::<Rust<'_>>()
+        .on_sort(move |sort_by| model_clone.sort(sort_by));
 
-    let set_show_wii = model.set_show_wii();
-    app.global::<Rust<'_>>().on_set_show_wii(set_show_wii);
+    let model_clone = model.clone();
+    app.global::<Rust<'_>>()
+        .on_set_show_wii(move |show_wii| model_clone.set_show_wii(show_wii));
 
-    let set_show_gc = model.set_show_gc();
-    app.global::<Rust<'_>>().on_set_show_gc(set_show_gc);
+    let model_clone = model.clone();
+    app.global::<Rust<'_>>()
+        .on_set_show_gc(move |show_gc| model_clone.set_show_gc(show_gc));
 
     app.global::<Rust<'_>>()
         .on_add_notification(|notifications, notification| {
