@@ -70,7 +70,7 @@ export global State {
     }
 
     public function filter-games() {
-        // TODO
+        Rust.filter-games(State.games-filter.to-lowercase());
     }
 
     public function filter-homebrew-apps() {

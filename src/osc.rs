@@ -3,13 +3,13 @@
 
 use crate::{OscAppMeta, OscContents, State, USER_AGENT, data_dir::DATA_DIR};
 use anyhow::Result;
-use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
 use image::ImageFormat;
 use slint::{
     Image, Model, ModelRc, Rgba8Pixel, SharedPixelBuffer, SharedString, ToSharedString, VecModel,
     Weak,
 };
 use std::{
+    cell::RefCell,
     fs,
     rc::Rc,
     time::{Duration, SystemTime, UNIX_EPOCH},
@@ -138,39 +138,28 @@ pub fn load_icons(apps: &ModelRc<OscAppMeta>, weak: Weak<State<'static>>) {
     });
 }
 
-pub fn fuzzy_search(apps: &ModelRc<OscAppMeta>, query: &str) -> ModelRc<OscAppMeta> {
-    let matcher = SkimMatcherV2::default();
-
-    let mut filtered_apps = Vec::new();
-    for app in apps.iter() {
-        let name_score = matcher.fuzzy_match(&app.name, query);
-        let slug_score = matcher.fuzzy_match(&app.slug, query);
-        let author_score = matcher.fuzzy_match(&app.author, query);
-
-        let score = match (name_score, slug_score, author_score) {
-            (Some(a), Some(b), Some(c)) => a + b + c,
-            (Some(a), Some(b), None) | (Some(a), None, Some(b)) | (None, Some(a), Some(b)) => a + b,
-            (Some(a), None, None) | (None, Some(a), None) | (None, None, Some(a)) => a,
-            (None, None, None) => 0,
-        };
-
-        filtered_apps.push((app, score));
-    }
-
-    filtered_apps.sort_unstable_by_key(|(_, score)| -*score);
-
-    let filtered_apps = filtered_apps
-        .into_iter()
-        .map(|(app, _)| app)
-        .collect::<VecModel<_>>();
-
-    ModelRc::from(Rc::new(filtered_apps))
-}
-
 // for some reason slint strings don't work without this
 fn escape_str(s: &str) -> String {
     s.replace("\\\\", "/")
         .replace("\\\"", "'")
         .replace("\\n", "    ")
         .replace("\\t", "    ")
+}
+
+pub fn get_filter_fn(
+    query_lowercase: Rc<RefCell<SharedString>>,
+) -> Box<dyn Fn(&OscAppMeta) -> bool> {
+    Box::new(move |app| {
+        let query_lowercase = query_lowercase.borrow();
+
+        if query_lowercase.is_empty() {
+            return true;
+        }
+
+        let name_lowercase = app.name.to_lowercase();
+        let slug_lowercase = app.slug.to_lowercase();
+
+        name_lowercase.contains(query_lowercase.as_str())
+            || slug_lowercase.contains(query_lowercase.as_str())
+    })
 }

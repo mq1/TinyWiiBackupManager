@@ -14,7 +14,6 @@ mod disc_info;
 mod drive_info;
 mod extensions;
 mod game;
-mod game_list;
 mod homebrew_app;
 mod homebrew_app_list;
 mod id_map;
@@ -34,7 +33,7 @@ mod xp_dialogs;
 
 use crate::{convert::Conversion, data_dir::DATA_DIR, model::AppModel};
 use anyhow::{Result, bail};
-use slint::{ComponentHandle, Model, ModelRc, SharedString, ToSharedString, VecModel};
+use slint::{ComponentHandle, FilterModel, Model, ModelRc, SharedString, ToSharedString, VecModel};
 use std::{
     fs::{self, File},
     path::{Path, PathBuf},
@@ -114,14 +113,13 @@ fn main() -> Result<()> {
     app.global::<Rust<'_>>()
         .on_get_homebrew_app_list(|path, sort_by| HomebrewAppList::new(Path::new(&path), sort_by));
 
+    let games_filter = model.games_filter.clone();
+    let filtered_games = model.filtered_games.clone();
     app.global::<Rust<'_>>()
-        .on_filter_games(|games, query| game_list::fuzzy_search(&games, &query));
-
-    app.global::<Rust<'_>>()
-        .on_filter_homebrew_apps(|apps, query| homebrew_app_list::fuzzy_search(&apps, &query));
-
-    app.global::<Rust<'_>>()
-        .on_filter_osc(|apps, query| osc::fuzzy_search(&apps, &query));
+        .on_filter_games(move |query_lowercase| {
+            *games_filter.borrow_mut() = query_lowercase;
+            filtered_games.reset();
+        });
 
     app.global::<Rust<'_>>()
         .on_get_disc_info(|game_dir| DiscInfo::try_from_game_dir(Path::new(&game_dir)).into());

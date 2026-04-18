@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{HomebrewApp, HomebrewAppMeta, SortBy, util::MIB};
-use slint::{Image, ToSharedString};
-use std::{cmp::Ordering, fs, path::Path};
+use slint::{Image, SharedString, ToSharedString};
+use std::{cell::RefCell, cmp::Ordering, fs, path::Path, rc::Rc};
 
 impl HomebrewApp {
     #[must_use]
@@ -51,4 +51,22 @@ pub fn get_compare_fn(sort_by: SortBy) -> Box<dyn Fn(&HomebrewApp, &HomebrewApp)
         SortBy::SizeAscending => Box::new(|a, b| a.size_mib.total_cmp(&b.size_mib)),
         SortBy::SizeDescending => Box::new(|a, b| b.size_mib.total_cmp(&a.size_mib)),
     }
+}
+
+pub fn get_filter_fn(
+    query_lowercase: Rc<RefCell<SharedString>>,
+) -> Box<dyn Fn(&HomebrewApp) -> bool> {
+    Box::new(move |app| {
+        let query_lowercase = query_lowercase.borrow();
+
+        if query_lowercase.is_empty() {
+            return true;
+        }
+
+        let name_lowercase = app.meta.name.to_lowercase();
+        let slug_lowercase = app.slug.to_lowercase();
+
+        name_lowercase.contains(query_lowercase.as_str())
+            || slug_lowercase.contains(query_lowercase.as_str())
+    })
 }

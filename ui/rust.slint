@@ -22,6 +22,7 @@ import {
 
 export global Rust {
     callback load-games(string);
+    callback filter-games(string);
 
     callback open(string) -> EmptyResult;
     callback pick-mount-point() -> string;
@@ -30,7 +31,6 @@ export global Rust {
     callback write-config(Config) -> EmptyResult;
     callback delete-dir(string) -> EmptyResult;
     callback get-homebrew-app-list(string, SortBy) -> HomebrewAppList;
-    callback filter-games([Game], string) -> [Game];
     callback filter-homebrew-apps([HomebrewApp], string) -> [HomebrewApp];
     callback filter-osc([OscAppMeta], string) -> [OscAppMeta];
     callback get-disc-info(string) -> DiscInfo;

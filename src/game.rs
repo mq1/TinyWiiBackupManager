@@ -3,8 +3,8 @@
 
 use crate::{Game, SortBy, data_dir::DATA_DIR, id_map, util::GIB};
 use anyhow::Result;
-use slint::{Image, ToSharedString};
-use std::{cmp::Ordering, fs, path::Path};
+use slint::{Image, SharedString, ToSharedString};
+use std::{cell::RefCell, cmp::Ordering, fs, path::Path, rc::Rc};
 
 impl Game {
     #[must_use]
@@ -61,6 +61,22 @@ pub fn get_compare_fn(sort_by: SortBy) -> Box<dyn Fn(&Game, &Game) -> Ordering> 
         SortBy::SizeAscending => Box::new(|a, b| a.size_gib.total_cmp(&b.size_gib)),
         SortBy::SizeDescending => Box::new(|a, b| b.size_gib.total_cmp(&a.size_gib)),
     }
+}
+
+pub fn get_filter_fn(query_lowercase: Rc<RefCell<SharedString>>) -> Box<dyn Fn(&Game) -> bool> {
+    Box::new(move |game| {
+        let query_lowercase = query_lowercase.borrow();
+
+        if query_lowercase.is_empty() {
+            return true;
+        }
+
+        let game_title_lowercase = game.title.to_lowercase();
+        let game_id_lowercase = game.id.to_lowercase();
+
+        game_title_lowercase.contains(query_lowercase.as_str())
+            || game_id_lowercase.contains(query_lowercase.as_str())
+    })
 }
 
 fn scan_dir(dir: &Path, is_wii: bool, games: &mut Vec<Game>) -> Result<()> {
