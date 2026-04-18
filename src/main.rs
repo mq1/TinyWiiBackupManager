@@ -15,6 +15,7 @@ mod drive_info;
 mod extensions;
 mod game;
 mod homebrew_app;
+mod homebrew_app_meta;
 mod id_map;
 mod model;
 mod notification;
@@ -113,10 +114,19 @@ fn main() -> Result<()> {
     app.global::<Rust<'_>>().on_load_homebrew_apps(move |path| {
         let path = Path::new(&path);
 
-        let new = homebrew_app::scan_drive(path);
+        let new = homebrew_app::scan_drive(path).unwrap_or_default();
         homebrew_apps.clear();
         homebrew_apps.extend(new);
     });
+
+    let osc_apps = model.osc_apps.clone();
+    app.global::<Rust<'_>>()
+        .on_load_osc_apps(move |force_refresh| {
+            let (new, h, min) = osc::load_contents(force_refresh).unwrap_or_default();
+            osc_apps.clear();
+            osc_apps.extend(new);
+            (h, min)
+        });
 
     let games_filter = model.games_filter.clone();
     let filtered_games = model.filtered_games.clone();
@@ -124,6 +134,22 @@ fn main() -> Result<()> {
         .on_filter_games(move |query_lowercase| {
             *games_filter.borrow_mut() = query_lowercase;
             filtered_games.reset();
+        });
+
+    let homebrew_apps_filter = model.homebrew_apps_filter.clone();
+    let filtered_homebrew_apps = model.filtered_homebrew_apps.clone();
+    app.global::<Rust<'_>>()
+        .on_filter_homebrew_apps(move |query_lowercase| {
+            *homebrew_apps_filter.borrow_mut() = query_lowercase;
+            filtered_homebrew_apps.reset();
+        });
+
+    let osc_apps_filter = model.osc_apps_filter.clone();
+    let filtered_osc_apps = model.filtered_osc_apps.clone();
+    app.global::<Rust<'_>>()
+        .on_filter_osc_apps(move |query_lowercase| {
+            *osc_apps_filter.borrow_mut() = query_lowercase;
+            filtered_osc_apps.reset();
         });
 
     app.global::<Rust<'_>>()
@@ -262,26 +288,6 @@ fn main() -> Result<()> {
             }();
 
             res.into()
-        });
-
-    let weak = app.global::<State<'_>>().as_weak();
-    app.global::<Rust<'_>>()
-        .on_load_osc_contents(move |force_refresh| {
-            let weak = weak.clone();
-            let _ = std::thread::spawn(move || {
-                let res = OscContents::fetch(force_refresh);
-                let _ = weak.upgrade_in_event_loop(move |state| {
-                    let res = match res {
-                        Ok((raw, last_refresh)) => OscContents::load(raw, last_refresh).into(),
-                        Err(e) => Err(e).into(),
-                    };
-
-                    state.invoke_got_osc_contents(res);
-                    if force_refresh {
-                        state.invoke_load_osc_icons();
-                    }
-                });
-            });
         });
 
     // TODO

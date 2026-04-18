@@ -29,13 +29,17 @@ impl Game {
             None => title_str.trim().to_shared_string(),
         };
 
-        let size = fs_extra::dir::get_size(path).unwrap_or(0);
+        let size = fs_extra::dir::get_size(path).ok()?;
 
         #[allow(clippy::cast_precision_loss)]
         let size_gib = size as f32 / GIB;
 
         let cover_path = DATA_DIR.join("covers").join(format!("{id}.png"));
         let cover = Image::load_from_path(&cover_path).unwrap_or_default();
+
+        let search_term = format!("{}\0{}", title, id)
+            .to_lowercase()
+            .to_shared_string();
 
         Some(Self {
             path: path.to_string_lossy().to_shared_string(),
@@ -44,6 +48,7 @@ impl Game {
             title,
             id: id.to_shared_string(),
             cover,
+            search_term,
         })
     }
 
@@ -74,11 +79,7 @@ pub fn get_filter_fn(query_lowercase: Rc<RefCell<SharedString>>) -> Box<dyn Fn(&
             return true;
         }
 
-        let game_title_lowercase = game.title.to_lowercase();
-        let game_id_lowercase = game.id.to_lowercase();
-
-        game_title_lowercase.contains(query_lowercase.as_str())
-            || game_id_lowercase.contains(query_lowercase.as_str())
+        game.search_term.contains(query_lowercase.as_str())
     })
 }
 

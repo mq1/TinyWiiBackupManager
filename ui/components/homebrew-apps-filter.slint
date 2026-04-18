@@ -31,7 +31,7 @@ export component HomebrewAppsFilter inherits Card {
 
             MyLineEdit {
                 text <=> State.homebrew-apps-filter;
-                placeholder-text: "Search by Name/Author";
+                placeholder-text: "Search by Name";
                 changed text => State.filter-homebrew-apps();
             }
         }

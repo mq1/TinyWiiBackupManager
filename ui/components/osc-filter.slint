@@ -31,8 +31,8 @@ export component OscFilter inherits Card {
 
             MyLineEdit {
                 text <=> State.osc-apps-filter;
-                placeholder-text: "Search by Name/Author";
-                changed text => State.filter-osc();
+                placeholder-text: "Search by Name";
+                changed text => State.filter-osc-apps();
             }
         }
     }

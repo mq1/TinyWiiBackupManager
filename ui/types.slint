@@ -56,6 +56,7 @@ export struct Game {
     title: string,
     id: string,
     cover: image,
+    search-term: string,
 }
 
 export struct GameList {
@@ -82,6 +83,7 @@ export struct HomebrewApp {
     size-mib: float,
     meta: HomebrewAppMeta,
     icon: image,
+    search-term: string,
 }
 
 export struct HomebrewAppList {
@@ -182,10 +184,9 @@ export struct OscAppMeta {
     version: string,
     assets: OscAppMetaAssets,
     uncompressed-size: int,
-    release-date: duration,
+    release-date: string,
     description: OscAppMetaDescription,
-    release-date-display: string,
-    i: int,
+    search-term: string,
 }
 
 export struct OscContents {

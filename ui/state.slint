@@ -49,6 +49,7 @@ export global State {
     in-out property <string> osc-apps-filter;
     in-out property <bool> osc-icons-loading-started: false;
     in-out property <OscAppMeta> current-osc-app;
+    in-out property <string> last-osc-refresh: "";
 
     public function notify-info(text: string) {
         Rust.add-notification(notifications, { text: text, critical: false });
@@ -74,11 +75,11 @@ export global State {
     }
 
     public function filter-homebrew-apps() {
-        // TODO
+        Rust.filter-homebrew-apps(State.homebrew-apps-filter.to-lowercase());
     }
 
-    public function filter-osc() {
-        // TODO
+    public function filter-osc-apps() {
+        Rust.filter-osc-apps(State.osc-apps-filter.to-lowercase());
     }
 
     public function apply-theme() {
@@ -96,11 +97,10 @@ export global State {
 
     public function refresh-all() {
         Rust.load-games(config.contents.mount-point);
+        Rust.load-homebrew-apps(config.contents.mount-point);
 
         // TODO
         //drive-info = Rust.get-drive-info(config.contents.mount-point);
-        //game-list = Rust.get-game-list(config.contents.mount-point, config.contents.sort-by);
-        //homebrew-app-list = Rust.get-homebrew-app-list(config.contents.mount-point, config.contents.sort-by);
         //Rust.cache-covers();
     }
 
@@ -190,7 +190,8 @@ export global State {
 
     public function force-osc-refresh() {
         osc-icons-loading-started = false;
-        Rust.load-osc-contents(true);
+        let last_refresh = Rust.load-osc-apps(true);
+        last-osc-refresh = last_refresh.h + ":" + last_refresh.min + " ago";
     }
 
     public function install-homebrew-apps() {
@@ -214,7 +215,9 @@ export component InitializeState {
         triggered => {
             State.apply-theme();
             State.refresh-all();
-            Rust.load-osc-contents(false);
+
+            let last_refresh = Rust.load-osc-apps(false);
+            State.last-osc-refresh = last_refresh.h + ":" + last_refresh.min + " ago";
 
             self.running = false;
         }

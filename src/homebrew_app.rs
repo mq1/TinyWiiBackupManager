@@ -25,7 +25,7 @@ impl HomebrewApp {
         // some apps seem to place " " in front of the name to prioritize themselves when sorting
         meta.name = meta.name.trim().to_shared_string();
 
-        let size = fs_extra::dir::get_size(path).unwrap_or(0);
+        let size = fs_extra::dir::get_size(path).ok()?;
 
         #[allow(clippy::cast_precision_loss)]
         let size_mib = size as f32 / MIB;
@@ -33,12 +33,17 @@ impl HomebrewApp {
         let icon_path = path.join("icon.png");
         let icon = Image::load_from_path(&icon_path).unwrap_or_default();
 
+        let search_term = format!("{}\0{}", filename, meta.name)
+            .to_lowercase()
+            .to_shared_string();
+
         let app = Self {
             path: path.to_string_lossy().to_shared_string(),
             slug: filename.to_shared_string(),
             meta,
             size_mib,
             icon,
+            search_term,
         };
 
         Some(app)
@@ -69,27 +74,20 @@ pub fn get_filter_fn(
             return true;
         }
 
-        let name_lowercase = app.meta.name.to_lowercase();
-        let slug_lowercase = app.slug.to_lowercase();
-
-        name_lowercase.contains(query_lowercase.as_str())
-            || slug_lowercase.contains(query_lowercase.as_str())
+        app.search_term.contains(query_lowercase.as_str())
     })
 }
 
-pub fn scan_drive(root_dir: &Path) -> Vec<HomebrewApp> {
+pub fn scan_drive(root_dir: &Path) -> Result<Vec<HomebrewApp>> {
     let mut apps = Vec::new();
+    let apps_dir = root_dir.join("apps");
 
-    let Ok(entries) = fs::read_dir(root_dir.join("apps")) else {
-        return apps;
-    };
-
-    for entry in entries.filter_map(Result::ok) {
+    for entry in fs::read_dir(&apps_dir)?.filter_map(Result::ok) {
         let path = entry.path();
         if let Some(game) = HomebrewApp::maybe_from_path(&path) {
             apps.push(game);
         }
     }
 
-    apps
+    Ok(apps)
 }

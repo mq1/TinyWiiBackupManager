@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{OscAppMeta, OscContents, USER_AGENT, data_dir::DATA_DIR};
+use crate::{OscAppMeta, USER_AGENT, data_dir::DATA_DIR};
 use anyhow::Result;
-use slint::{Image, ModelRc, SharedString, ToSharedString, VecModel};
+use slint::{SharedString, ToSharedString};
 use std::{
     cell::RefCell,
     fs,
@@ -14,68 +14,55 @@ use time::UtcDateTime;
 
 const CONTENTS_URL: &str = "https://hbb1.oscwii.org/api/v4/contents";
 
-impl OscContents {
-    pub fn fetch(force_refresh: bool) -> Result<(String, SystemTime)> {
-        let cached_contents_path = DATA_DIR.join("osc-cache.json");
+pub fn load_contents(force_refresh: bool) -> Result<(Vec<OscAppMeta>, i32, i32)> {
+    let cached_contents_path = DATA_DIR.join("osc-cache.json");
 
-        let last_refresh = cached_contents_path
-            .metadata()
-            .ok()
-            .and_then(|m| m.modified().ok())
-            .unwrap_or(UNIX_EPOCH);
+    let last_refresh = cached_contents_path
+        .metadata()
+        .ok()
+        .and_then(|m| m.modified().ok())
+        .unwrap_or(UNIX_EPOCH);
 
-        let should_refresh =
-            force_refresh || last_refresh < SystemTime::now() - Duration::from_hours(24);
+    let a_day_ago = SystemTime::now() - Duration::from_hours(24);
+    let should_refresh = force_refresh || last_refresh < a_day_ago;
 
-        if should_refresh {
-            let resp = minreq::get(CONTENTS_URL)
-                .with_header("User-Agent", USER_AGENT)
-                .send()?;
+    let (raw, last_refresh) = if should_refresh {
+        let resp = minreq::get(CONTENTS_URL)
+            .with_header("User-Agent", USER_AGENT)
+            .send()?;
 
-            let raw = String::from_utf8(resp.into_bytes())?;
-            fs::write(cached_contents_path, &raw)?;
+        let raw = String::from_utf8(resp.into_bytes())?;
+        fs::write(cached_contents_path, &raw)?;
 
-            Ok((raw, SystemTime::now()))
-        } else {
-            let raw = fs::read_to_string(cached_contents_path)?;
-            Ok((raw, last_refresh))
-        }
-    }
+        (raw, SystemTime::now())
+    } else {
+        let raw = fs::read_to_string(cached_contents_path)?;
+        (raw, last_refresh)
+    };
 
-    pub fn load(raw: String, last_refresh: SystemTime) -> Result<Self> {
-        let escaped = escape_str(&raw);
-        let mut apps = serde_json::from_str::<Vec<OscAppMeta>>(&escaped).unwrap();
+    let escaped = escape_str(&raw);
+    let mut apps = serde_json::from_str::<Vec<OscAppMeta>>(&escaped)?;
 
-        #[allow(clippy::cast_possible_truncation)]
-        for (i, app) in apps.iter_mut().enumerate() {
-            app.i = i as i32;
-
-            if let Ok(release_date) = UtcDateTime::from_unix_timestamp(app.release_date) {
-                app.release_date_display = release_date.date().to_shared_string();
-            } else {
-                app.release_date_display = app.release_date.to_shared_string();
-            }
+    #[allow(clippy::cast_possible_truncation)]
+    for app in &mut apps {
+        if let Ok(release_date) = app.release_date.parse()
+            && let Ok(release_date) = UtcDateTime::from_unix_timestamp(release_date)
+        {
+            app.release_date = release_date.date().to_shared_string();
         }
 
-        let icons = vec![Image::default(); apps.len()];
-        let apps = ModelRc::from(Rc::new(VecModel::from(apps)));
-        let icons = ModelRc::from(Rc::new(VecModel::from(icons)));
+        let search_term = format!("{}\0{}", app.slug, app.name)
+            .to_lowercase()
+            .to_shared_string();
 
-        let elapsed_mins = last_refresh.elapsed().unwrap_or_default().as_secs() / 60;
-        let elapsed_hours = (elapsed_mins / 60) as i32;
-        let elapsed_mins = (elapsed_mins % 60) as i32;
-
-        let contents = Self {
-            apps,
-            err: SharedString::new(),
-            icons,
-            last_refresh: (elapsed_hours, elapsed_mins),
-            filter: SharedString::new(),
-            filtered_apps: ModelRc::default(),
-        };
-
-        Ok(contents)
+        app.search_term = search_term;
     }
+
+    let elapsed_mins = last_refresh.elapsed().unwrap_or_default().as_secs() / 60;
+    let elapsed_hours = (elapsed_mins / 60) as i32;
+    let elapsed_mins = (elapsed_mins % 60) as i32;
+
+    Ok((apps, elapsed_hours, elapsed_mins))
 }
 
 // TODO
@@ -152,10 +139,6 @@ pub fn get_filter_fn(
             return true;
         }
 
-        let name_lowercase = app.name.to_lowercase();
-        let slug_lowercase = app.slug.to_lowercase();
-
-        name_lowercase.contains(query_lowercase.as_str())
-            || slug_lowercase.contains(query_lowercase.as_str())
+        app.search_term.contains(query_lowercase.as_str())
     })
 }
