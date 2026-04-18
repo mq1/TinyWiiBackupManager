@@ -71,8 +71,22 @@ pub fn get_compare_fn(sort_by: Rc<RefCell<SortBy>>) -> Box<dyn Fn(&Game, &Game) 
     })
 }
 
-pub fn get_filter_fn(query_lowercase: Rc<RefCell<SharedString>>) -> Box<dyn Fn(&Game) -> bool> {
+pub fn get_filter_fn(
+    query_lowercase: Rc<RefCell<SharedString>>,
+    show_wii: Rc<RefCell<bool>>,
+    show_gc: Rc<RefCell<bool>>,
+) -> Box<dyn Fn(&Game) -> bool> {
     Box::new(move |game| {
+        let show_wii = show_wii.borrow();
+        if !*show_wii && game.is_wii {
+            return false;
+        }
+
+        let show_gc = show_gc.borrow();
+        if !*show_gc && !game.is_wii {
+            return false;
+        }
+
         let query_lowercase = query_lowercase.borrow();
 
         if query_lowercase.is_empty() {

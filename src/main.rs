@@ -65,7 +65,11 @@ fn main() -> Result<()> {
 
     let config = Config::load();
 
-    let model = AppModel::new(config.contents.sort_by);
+    let model = AppModel::new(
+        config.contents.sort_by,
+        config.contents.show_wii,
+        config.contents.show_gc,
+    );
     let app = AppWindow::new()?;
 
     app.global::<State<'_>>().set_config(config);
@@ -162,6 +166,12 @@ fn main() -> Result<()> {
 
     let set_sort_by = model.set_sort_by();
     app.global::<Rust<'_>>().on_sort(set_sort_by);
+
+    let set_show_wii = model.set_show_wii();
+    app.global::<Rust<'_>>().on_set_show_wii(set_show_wii);
+
+    let set_show_gc = model.set_show_gc();
+    app.global::<Rust<'_>>().on_set_show_gc(set_show_gc);
 
     app.global::<Rust<'_>>()
         .on_add_notification(|notifications, notification| {

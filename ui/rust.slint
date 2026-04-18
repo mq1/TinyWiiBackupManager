@@ -25,6 +25,8 @@ export global Rust {
     callback load-homebrew-apps(string);
     callback sort(SortBy);
     callback load-osc-apps(bool) -> { h: int, min: int};
+    callback set-show-wii(bool);
+    callback set-show-gc(bool);
 
     callback open(string) -> EmptyResult;
     callback pick-mount-point() -> string;

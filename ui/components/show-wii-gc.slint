@@ -8,6 +8,7 @@ import { VerticalLine } from "vertical-line.slint";
 import { IconDisplay, IconSet } from "@lucide";
 import { State } from "../state.slint";
 import { MyPalette } from "../styling.slint";
+import { Rust } from "../rust.slint";
 
 export component ShowWiiGc inherits Card {
     height: 38px;
@@ -22,6 +23,7 @@ export component ShowWiiGc inherits Card {
             toggled => {
                 State.config.contents.show-wii = self.checked;
                 State.write-config();
+                Rust.set-show-wii(self.checked);
             }
         }
 
@@ -43,6 +45,7 @@ export component ShowWiiGc inherits Card {
             toggled => {
                 State.config.contents.show-gc = self.checked;
                 State.write-config();
+                Rust.set-show-gc(self.checked);
             }
         }
 

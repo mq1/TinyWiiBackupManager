@@ -7,9 +7,13 @@ use std::{cell::RefCell, cmp::Ordering, rc::Rc};
 
 type SortedModel<T> = SortModel<Rc<VecModel<T>>, Box<dyn Fn(&T, &T) -> Ordering>>;
 type FilteredModel<T> = FilterModel<Rc<SortedModel<T>>, Box<dyn Fn(&T) -> bool>>;
+type JustFilteredModel<T> = FilterModel<Rc<VecModel<T>>, Box<dyn Fn(&T) -> bool>>;
 
 pub struct AppModel {
     sort_by: Rc<RefCell<SortBy>>,
+
+    show_wii: Rc<RefCell<bool>>,
+    show_gc: Rc<RefCell<bool>>,
 
     games: Rc<VecModel<Game>>,
     homebrew_apps: Rc<VecModel<HomebrewApp>>,
@@ -24,14 +28,14 @@ pub struct AppModel {
 
     filtered_games: Rc<FilteredModel<Game>>,
     filtered_homebrew_apps: Rc<FilteredModel<HomebrewApp>>,
-
-    // osc_apps is not sorted, just filtered
-    filtered_osc_apps: Rc<FilterModel<Rc<VecModel<OscApp>>, Box<dyn Fn(&OscApp) -> bool>>>,
+    filtered_osc_apps: Rc<JustFilteredModel<OscApp>>,
 }
 
 impl AppModel {
-    pub fn new(sort_by: SortBy) -> Self {
+    pub fn new(sort_by: SortBy, show_wii: bool, show_gc: bool) -> Self {
         let sort_by = Rc::new(RefCell::new(sort_by));
+        let show_wii = Rc::new(RefCell::new(show_wii));
+        let show_gc = Rc::new(RefCell::new(show_gc));
 
         let games = Rc::new(VecModel::from(Vec::new()));
         let homebrew_apps = Rc::new(VecModel::from(Vec::new()));
@@ -50,7 +54,7 @@ impl AppModel {
 
         let filtered_games = Rc::new(FilterModel::new(
             sorted_games.clone(),
-            game::get_filter_fn(games_filter.clone()),
+            game::get_filter_fn(games_filter.clone(), show_wii.clone(), show_gc.clone()),
         ));
         let filtered_homebrew_apps = Rc::new(FilterModel::new(
             sorted_homebrew_apps.clone(),
@@ -63,6 +67,8 @@ impl AppModel {
 
         Self {
             sort_by,
+            show_wii,
+            show_gc,
             games,
             homebrew_apps,
             osc_apps,
@@ -92,6 +98,26 @@ impl AppModel {
             *sort_by.borrow_mut() = new;
             sorted_games.reset();
             sorted_homebrew_apps.reset();
+        })
+    }
+
+    pub fn set_show_wii(&self) -> Box<dyn Fn(bool)> {
+        let show_wii = self.show_wii.clone();
+        let filtered_games = self.filtered_games.clone();
+
+        Box::new(move |new| {
+            *show_wii.borrow_mut() = new;
+            filtered_games.reset();
+        })
+    }
+
+    pub fn set_show_gc(&self) -> Box<dyn Fn(bool)> {
+        let show_gc = self.show_gc.clone();
+        let filtered_games = self.filtered_games.clone();
+
+        Box::new(move |new| {
+            *show_gc.borrow_mut() = new;
+            filtered_games.reset();
         })
     }
 
