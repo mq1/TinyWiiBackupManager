@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::HomebrewAppMeta;
-use anyhow::{Result, bail};
+use anyhow::Result;
 use slint::{SharedString, ToSharedString};
 use std::{fs, path::Path};
 
@@ -12,10 +12,7 @@ impl HomebrewAppMeta {
         let mut meta = quick_xml::de::from_str::<HomebrewAppMeta>(&meta)?;
 
         meta.name = parse_name(meta.name);
-
-        if let Ok(date) = parse_date(&meta.release_date) {
-            meta.release_date = date;
-        }
+        meta.release_date = parse_date(meta.release_date);
 
         Ok(meta)
     }
@@ -30,16 +27,14 @@ fn parse_name(raw: SharedString) -> SharedString {
     }
 }
 
-fn parse_date(raw: &str) -> Result<SharedString> {
-    if raw.len() < 8 {
-        bail!("too short");
+fn parse_date(raw: SharedString) -> SharedString {
+    if raw.len() >= 8 {
+        let year = &raw[0..4];
+        let month = &raw[4..6];
+        let day = &raw[6..8];
+
+        format!("{year}-{month}-{day}").to_shared_string()
+    } else {
+        raw
     }
-
-    let year = &raw[0..4];
-    let month = &raw[4..6];
-    let day = &raw[6..8];
-
-    let date = format!("{year}-{month}-{day}").to_shared_string();
-
-    Ok(date)
 }
