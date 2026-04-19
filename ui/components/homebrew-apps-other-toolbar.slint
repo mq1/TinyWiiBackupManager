@@ -3,9 +3,12 @@
 
 import { MyPalette } from "../styling.slint";
 import { HomebrewAppsFilter } from "homebrew-apps-filter.slint";
-import { State } from "../state.slint";
+import { HomebrewApp } from "../types.slint";
 
 export component HomebrewAppsOtherToolbar inherits HorizontalLayout {
+    in property <[HomebrewApp]> apps;
+    in property <float> total-size-mib: 0; // TODO
+
     alignment: space-between;
     height: 38px;
     padding-right: 10px;
@@ -16,7 +19,6 @@ export component HomebrewAppsOtherToolbar inherits HorizontalLayout {
         height: parent.height;
         vertical-alignment: center;
         horizontal-alignment: end;
-        // TODO
-        //text: "\{State.homebrew-app-list.apps.length} app\{State.homebrew-app-list.apps.length == 1 ? "" : "s"}   ~ \{State.homebrew-app-list.total-size.to-fixed(2)} MiB";
+        text: "\{apps.length} app\{apps.length == 1 ? "" : "s"}   ~ \{total-size-mib.to-fixed(2)} MiB";
     }
 }

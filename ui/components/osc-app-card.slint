@@ -5,11 +5,12 @@ import { Card } from "card.slint";
 import { OscApp } from "../types.slint";
 import { IconButton } from "icon-button.slint";
 import { IconSet, IconDisplay } from "@lucide";
-import { State } from "../state.slint";
 import { MyPalette } from "../styling.slint";
 
 export component OscAppCard inherits Card {
     in property <OscApp> app;
+
+    callback open-info();
 
     width: 172px;
     height: self.min-height;
@@ -62,9 +63,7 @@ export component OscAppCard inherits Card {
             IconButton {
                 label: "Info";
                 icon: IconSet.Info;
-                clicked => {
-                    State.current-osc-app = app;
-                }
+                clicked => open-info();
             }
 
             IconButton {

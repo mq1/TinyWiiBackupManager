@@ -5,11 +5,13 @@ import { Card } from "card.slint";
 import { HomebrewApp } from "../types.slint";
 import { IconButton } from "icon-button.slint";
 import { IconSet, IconDisplay } from "@lucide";
-import { State } from "../state.slint";
 import { MyPalette } from "../styling.slint";
+import { Rust } from "../rust.slint";
 
 export component HomebrewAppCard inherits Card {
     in property <HomebrewApp> app;
+
+    callback open-info();
 
     width: 172px;
     height: self.min-height;
@@ -62,17 +64,13 @@ export component HomebrewAppCard inherits Card {
             IconButton {
                 label: "Info";
                 icon: IconSet.Info;
-                clicked => {
-                    State.current-homebrew-app = app;
-                }
+                clicked => open-info();
             }
 
             IconButton {
                 icon: IconSet.Trash;
                 tooltip: "Delete app";
-                clicked => {
-                    State.deleting-dir = app.path;
-                }
+                clicked => Rust.delete-homebrew-app(app);
             }
         }
     }

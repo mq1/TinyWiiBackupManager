@@ -14,6 +14,8 @@ import { OscApp } from "types.slint";
 export component OscTablePage inherits VerticalLayout {
     in property <[OscApp]> apps;
 
+    callback open-info(int);
+
     VerticalLayout {
         padding: 10px;
         spacing: 10px;
@@ -36,9 +38,10 @@ export component OscTablePage inherits VerticalLayout {
                 height: v2.preferred-height;
 
                 v2 := VerticalLayout {
-                    for app in osc-apps: VerticalLayout {
+                    for app[i] in apps: VerticalLayout {
                         OscAppRow {
                             app: app;
+                            open-info() => open-info(i);
                         }
 
                         HorizontalLine { }

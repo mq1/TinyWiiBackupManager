@@ -6,10 +6,11 @@ import { VerticalLine } from "vertical-line.slint";
 import { IconButton } from "icon-button.slint";
 import { OscApp } from "../types.slint";
 import { MyPalette } from "../styling.slint";
-import { State } from "../state.slint";
 
 export component OscAppRow inherits Rectangle {
     in property <OscApp> app;
+
+    callback open-info();
 
     height: 24px;
 
@@ -40,9 +41,7 @@ export component OscAppRow inherits Rectangle {
         height: 24px;
         width: 24px;
         squared: true;
-        clicked => {
-            State.current-osc-app = app;
-        }
+        clicked => open-info();
     }
 
     VerticalLine {

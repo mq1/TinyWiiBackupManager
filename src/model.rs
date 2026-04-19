@@ -14,7 +14,7 @@ type JustFilteredModel<T> = FilterModel<Rc<VecModel<T>>, Box<dyn Fn(&T) -> bool>
 
 #[derive(Clone)]
 pub struct AppModel {
-    config: Rc<RefCell<Config>>,
+    config: Rc<VecModel<Config>>,
 
     games: Rc<VecModel<Game>>,
     homebrew_apps: Rc<VecModel<HomebrewApp>>,
@@ -42,7 +42,7 @@ pub struct AppModel {
 
 impl AppModel {
     pub fn new(config: Config) -> Self {
-        let config = Rc::new(RefCell::new(config));
+        let config = Rc::new(VecModel::from(vec![config]));
 
         let games = Rc::new(VecModel::from(Vec::new()));
         let homebrew_apps = Rc::new(VecModel::from(Vec::new()));
@@ -116,45 +116,62 @@ impl AppModel {
     }
 
     pub fn set_view_as(&self, view_as: ViewAs) {
-        self.config.borrow_mut().view_as = view_as;
-        if let Err(e) = self.config.write() {
+        let mut config = self.config.remove(0);
+        config.view_as = view_as;
+
+        if let Err(e) = config.write() {
             self.notifications.push(e.into());
         }
+
+        self.config.push(config);
     }
 
     pub fn set_sort_by(&self, sort_by: SortBy) {
-        self.config.borrow_mut().sort_by = sort_by;
-        if let Err(e) = self.config.write() {
+        let mut config = self.config.remove(0);
+        config.sort_by = sort_by;
+
+        if let Err(e) = config.write() {
             self.notifications.push(e.into());
         }
 
+        self.config.push(config);
         self.sorted_games.reset();
         self.sorted_homebrew_apps.reset();
     }
 
     pub fn set_show_wii(&self, show_wii: bool) {
-        self.config.borrow_mut().show_wii = show_wii;
-        if let Err(e) = self.config.write() {
+        let mut config = self.config.remove(0);
+        config.show_wii = show_wii;
+
+        if let Err(e) = config.write() {
             self.notifications.push(e.into());
         }
 
+        self.config.push(config);
         self.filtered_games.reset();
     }
 
     pub fn set_show_gc(&self, show_gc: bool) {
-        self.config.borrow_mut().show_gc = show_gc;
-        if let Err(e) = self.config.write() {
+        let mut config = self.config.remove(0);
+        config.show_gc = show_gc;
+
+        if let Err(e) = config.write() {
             self.notifications.push(e.into());
         }
 
+        self.config.push(config);
         self.filtered_games.reset();
     }
 
     pub fn set_mount_point(&self, mount_point: PathBuf) {
-        self.config.borrow_mut().mount_point = mount_point.to_string_lossy().to_shared_string();
-        if let Err(e) = self.config.write() {
+        let mut config = self.config.remove(0);
+        config.mount_point = mount_point.to_string_lossy().to_shared_string();
+
+        if let Err(e) = config.write() {
             self.notifications.push(e.into());
         }
+
+        self.config.push(config);
 
         // TODO reload games + apps
     }

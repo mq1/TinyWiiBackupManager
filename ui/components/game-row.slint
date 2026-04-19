@@ -6,10 +6,12 @@ import { VerticalLine } from "vertical-line.slint";
 import { IconButton } from "icon-button.slint";
 import { Game } from "../types.slint";
 import { MyPalette } from "../styling.slint";
-import { State } from "../state.slint";
+import { Rust } from "../rust.slint";
 
 export component GameRow inherits Rectangle {
     in property <Game> game;
+
+    callback open-info();
 
     height: 24px;
 
@@ -48,7 +50,7 @@ export component GameRow inherits Rectangle {
         height: 24px;
         width: 24px;
         squared: true;
-        clicked => State.open-game-info(game);
+        clicked => open-info();
     }
 
     VerticalLine {
@@ -65,7 +67,7 @@ export component GameRow inherits Rectangle {
         height: 24px;
         width: 24px;
         squared: true;
-        clicked => State.archive-game(game);
+        clicked => Rust.archive-game(game);
     }
 
     VerticalLine {
@@ -82,8 +84,6 @@ export component GameRow inherits Rectangle {
         height: 24px;
         width: 24px;
         squared: true;
-        clicked => {
-            State.deleting-dir = game.path;
-        }
+        clicked => Rust.delete-game(game);
     }
 }

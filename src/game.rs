@@ -73,10 +73,12 @@ pub fn get_compare_fn(sort_by: Rc<RefCell<SortBy>>) -> Box<dyn Fn(&Game, &Game) 
 
 pub fn get_filter_fn(
     query_lowercase: Rc<RefCell<SharedString>>,
-    config: Rc<RefCell<Config>>,
+    config: Rc<VecModel<Config>>,
 ) -> Box<dyn Fn(&Game) -> bool> {
     Box::new(move |game| {
-        let config = config.borrow();
+        let Some(config) = config.row_data(0) else {
+            return true;
+        };
 
         if !config.contents.show_wii && game.is_wii {
             return false;

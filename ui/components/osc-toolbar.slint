@@ -1,15 +1,17 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { IconButton } from "icon-button.slint";
-import { IconButtonKind } from "../types.slint";
+import { IconButton, IconButtonKind } from "icon-button.slint";
+import { Config } from "../types.slint";
 import { IconSet, IconDisplay } from "@lucide";
-import { State } from "../state.slint";
 import { ViewAs } from "view-as.slint";
 import { MyPalette } from "../styling.slint";
 import { Link } from "link.slint";
+import { Rust } from "../rust.slint";
 
 export component OscToolbar inherits HorizontalLayout {
+    in property <Config> config;
+
     alignment: space-between;
     height: 38px;
 
@@ -43,7 +45,9 @@ export component OscToolbar inherits HorizontalLayout {
     HorizontalLayout {
         spacing: 10px;
 
-        ViewAs { }
+        ViewAs {
+            config: config;
+        }
 
         VerticalLayout {
             alignment: center;
@@ -56,7 +60,7 @@ export component OscToolbar inherits HorizontalLayout {
                 font-size: 18px;
                 width: 34px;
                 height: 34px;
-                clicked => State.force-osc-refresh();
+                clicked => Rust.force-osc-refresh();
             }
         }
     }

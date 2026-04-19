@@ -7,16 +7,22 @@ import { IconSet, IconDisplay } from "@lucide";
 import { OscToolbar } from "components/osc-toolbar.slint";
 import { OscOtherToolbar } from "components/osc-other-toolbar.slint";
 import { OscAppCard } from "components/osc-app-card.slint";
-import { OscApp } from "types.slint";
+import { OscApp, Config } from "types.slint";
 
 export component OscGridPage inherits VerticalLayout {
     in property <[OscApp]> apps;
+    in property <Config> config;
+
+    callback open-info(int);
 
     private property <int> col-count: max(1, floor((self.width - 10px) / (172px + 10px)));
 
     HorizontalLayout {
         padding: 10px;
-        OscToolbar { }
+
+        OscToolbar {
+            config: config;
+        }
     }
 
     ScrollView {
@@ -33,11 +39,12 @@ export component OscGridPage inherits VerticalLayout {
             GridLayout {
                 spacing: 10px;
 
-                for app[i] in osc-apps: OscAppCard {
+                for app[i] in apps: OscAppCard {
                     row: i / col-count;
                     col: mod(i, col-count);
 
                     app: app;
+                    open-info() => open-info(i);
                 }
             }
         }

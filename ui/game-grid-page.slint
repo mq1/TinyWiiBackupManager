@@ -7,19 +7,22 @@ import { GameCard } from "components/game-card.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { GamesToolbar } from "components/games-toolbar.slint";
 import { GamesOtherToolbar } from "components/games-other-toolbar.slint";
-import { Game } from "types.slint";
+import { Game, Config } from "types.slint";
 
 export component GameGridPage inherits VerticalLayout {
     in property <[Game]> games;
+    in property <Config> config;
 
     callback open-info(int);
-    callback delete(int);
 
     private property <int> col-count: max(1, floor((self.width - 10px) / (172px + 10px)));
 
     HorizontalLayout {
         padding: 10px;
-        GamesToolbar { }
+
+        GamesToolbar {
+            config: config;
+        }
     }
 
     ScrollView {
@@ -42,7 +45,6 @@ export component GameGridPage inherits VerticalLayout {
 
                     game: game;
                     open-info() => open-info(i);
-                    delete() => delete(i);
                 }
             }
         }

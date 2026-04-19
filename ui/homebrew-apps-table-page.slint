@@ -11,18 +11,25 @@ import {
     HomebrewAppsOtherToolbar,
 } from "components/homebrew-apps-other-toolbar.slint";
 import { HomebrewAppRow } from "components/homebrew-app-row.slint";
-import { HomebrewApp } from "types.slint";
+import { HomebrewApp, Config } from "types.slint";
 
 export component HomebrewAppsTablePage inherits VerticalLayout {
     in property <[HomebrewApp]> apps;
+    in property <Config> config;
+
+    callback open-info(int);
 
     VerticalLayout {
         padding: 10px;
         spacing: 10px;
 
-        HomebrewAppsToolbar { }
+        HomebrewAppsToolbar {
+            config: config;
+        }
 
-        HomebrewAppsOtherToolbar { }
+        HomebrewAppsOtherToolbar {
+            apps: apps;
+        }
     }
 
     ScrollView {
@@ -38,9 +45,10 @@ export component HomebrewAppsTablePage inherits VerticalLayout {
                 height: v2.preferred-height;
 
                 v2 := VerticalLayout {
-                    for app in homebrew-apps: VerticalLayout {
+                    for app[i] in apps: VerticalLayout {
                         HomebrewAppRow {
                             app: app;
+                            open-info() => open-info(i);
                         }
 
                         HorizontalLine { }

@@ -32,8 +32,8 @@ export global Rust {
     callback cancel-conversions();
     callback set-always-split(bool);
     callback set-scrub-update-partition(bool);
-    callback set-delete-sources-games(bool);
-    callback set-delete-sources-apps(bool);
+    callback set-remove-sources-games(bool);
+    callback set-remove-sources-apps(bool);
     callback set-txt-codes-source(TxtCodesSource);
     callback set-theme-preference(ThemePreference);
     callback set-mount-point(string);
@@ -44,4 +44,8 @@ export global Rust {
     callback delete-homebrew-app(HomebrewApp);
     callback pick-games(bool);
     callback open-that(string);
+    callback close-notification(int);
+    callback pick-homebrew-apps();
+    callback force-osc-refresh();
+    callback checksum(Game);
 }

@@ -18,133 +18,135 @@ export component OscAppInfoModal inherits Modal {
     callback closed();
 
     VerticalLayout {
-        x: 0px;
-        y: 0px;
-        height: parent.height - toolbar.height;
-        alignment: start;
+        spacing: 10px;
+        alignment: space-between;
 
         VerticalLayout {
-            padding: 20px;
-            spacing: 10px;
-
-            Text {
-                text: app.meta.name;
-                font-size: 18px;
-                overflow: elide;
-            }
-
-            Link {
-                label: "https://oscwii.org/library/app/\{app.meta.slug}";
-                uri: "https://oscwii.org/library/app/\{app.meta.slug}";
-            }
-        }
-
-        HorizontalLayout {
             alignment: space-between;
-            padding-right: 20px;
 
             VerticalLayout {
-                spacing: 5px;
                 padding: 20px;
-                alignment: start;
+                spacing: 10px;
 
-                HorizontalLayout {
+                Text {
+                    text: app.meta.name;
+                    font-size: 18px;
+                    overflow: elide;
+                }
+
+                Link {
+                    label: "https://oscwii.org/library/app/\{app.meta.slug}";
+                    uri: "https://oscwii.org/library/app/\{app.meta.slug}";
+                }
+            }
+
+            HorizontalLayout {
+                alignment: space-between;
+                padding-right: 20px;
+
+                VerticalLayout {
                     spacing: 5px;
+                    padding: 20px;
+                    alignment: start;
 
-                    IconDisplay {
-                        icon: IconSet.Tag;
-                        stroke: MyPalette.foreground;
-                        size: 14px;
-                    }
+                    HorizontalLayout {
+                        spacing: 5px;
 
-                    Text {
-                        text: "Version: \{app.meta.version}";
-                    }
-                }
+                        IconDisplay {
+                            icon: IconSet.Tag;
+                            stroke: MyPalette.foreground;
+                            size: 14px;
+                        }
 
-                HorizontalLayout {
-                    spacing: 5px;
-
-                    IconDisplay {
-                        icon: IconSet.Calendar;
-                        stroke: MyPalette.foreground;
-                        size: 14px;
-                    }
-
-                    Text {
-                        text: "Release date: \{app.release-date}";
-                    }
-                }
-
-                HorizontalLayout {
-                    spacing: 5px;
-
-                    IconDisplay {
-                        icon: Developers.get-icon(app.meta.author);
-                        stroke: MyPalette.foreground;
-                        size: 14px;
-                    }
-
-                    Text {
-                        text: "Author: \{app.meta.author}";
-                    }
-                }
-
-                HorizontalLayout {
-                    spacing: 5px;
-
-                    IconDisplay {
-                        icon: IconSet.NotepadText;
-                        stroke: MyPalette.foreground;
-                        size: 14px;
-                    }
-
-                    Text {
-                        text: "Description: \{app.meta.description.short}";
-                    }
-                }
-
-                HorizontalLayout {
-                    padding: 5px;
-                    HorizontalLine { }
-                }
-
-                ScrollView {
-                    preferred-width: v.preferred-width;
-                    height: v.preferred-height;
-
-                    v := VerticalLayout {
                         Text {
-                            text: app.meta.description.long;
-                            wrap: word-wrap;
+                            text: "Version: \{app.meta.version}";
+                        }
+                    }
+
+                    HorizontalLayout {
+                        spacing: 5px;
+
+                        IconDisplay {
+                            icon: IconSet.Calendar;
+                            stroke: MyPalette.foreground;
+                            size: 14px;
+                        }
+
+                        Text {
+                            text: "Release date: \{app.release-date}";
+                        }
+                    }
+
+                    HorizontalLayout {
+                        spacing: 5px;
+
+                        IconDisplay {
+                            icon: Developers.get-icon(app.meta.author);
+                            stroke: MyPalette.foreground;
+                            size: 14px;
+                        }
+
+                        Text {
+                            text: "Author: \{app.meta.author}";
+                        }
+                    }
+
+                    HorizontalLayout {
+                        spacing: 5px;
+
+                        IconDisplay {
+                            icon: IconSet.NotepadText;
+                            stroke: MyPalette.foreground;
+                            size: 14px;
+                        }
+
+                        Text {
+                            text: "Description: \{app.meta.description.short}";
+                        }
+                    }
+
+                    HorizontalLayout {
+                        padding: 5px;
+                        HorizontalLine { }
+                    }
+
+                    ScrollView {
+                        preferred-width: v.preferred-width;
+                        height: v.preferred-height;
+
+                        v := VerticalLayout {
+                            Text {
+                                text: app.meta.description.long;
+                                wrap: word-wrap;
+                            }
                         }
                     }
                 }
+
+                Image {
+                    source: app.icon;
+                    height: 96px;
+                }
             }
 
-            Image {
-                source: app.icon;
-                height: 96px;
-            }
+            VerticalLayout { }
         }
 
-        VerticalLayout { }
-    }
+        VerticalLayout {
+            height: self.min-height;
 
-    VerticalLayout {
-        height: self.min-height;
+            HorizontalLine { }
 
-        HorizontalLine { }
+            HorizontalLayout {
+                alignment: end;
+                padding: 10px;
+                spacing: 10px;
 
-        HorizontalLayout {
-            alignment: end;
-            padding: 10px;
-            spacing: 10px;
-
-            IconButton {
-                label: "Close";
-                kind: IconButtonKind.Primary;
-                clicked => closed();
+                IconButton {
+                    label: "Close";
+                    kind: IconButtonKind.Primary;
+                    clicked => closed();
+                }
             }
         }
     }
