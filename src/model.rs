@@ -6,7 +6,12 @@ use crate::{
     ThemePreference, ViewAs, game, homebrew_app, osc,
 };
 use slint::{FilterModel, ModelRc, SharedString, SortModel, ToSharedString, VecModel};
-use std::{cell::RefCell, cmp::Ordering, path::PathBuf, rc::Rc};
+use std::{
+    cell::{Ref, RefCell},
+    cmp::Ordering,
+    path::PathBuf,
+    rc::Rc,
+};
 
 type SortedModel<T> = SortModel<Rc<VecModel<T>>, Box<dyn Fn(&T, &T) -> Ordering>>;
 type FilteredModel<T> = FilterModel<Rc<SortedModel<T>>, Box<dyn Fn(&T) -> bool>>;
@@ -100,11 +105,11 @@ impl AppModel {
         app.set_notifications(ModelRc::from(self.notifications.clone()));
         app.set_conversion_queue(ModelRc::from(self.conversion_queue.clone()));
         app.set_conversion_queue_buffer(ModelRc::from(self.conversion_queue_buffer.clone()));
-        app.set_config(self.config());
+        app.set_config(self.config().clone());
     }
 
-    pub fn config(&self) -> Config {
-        self.config.borrow().clone()
+    pub fn config(&self) -> Ref<'_, Config> {
+        self.config.borrow()
     }
 
     pub fn set_view_as(&self, view_as: ViewAs) {

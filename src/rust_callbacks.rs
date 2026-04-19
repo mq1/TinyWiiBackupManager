@@ -3,7 +3,7 @@
 
 use crate::{AppWindow, Rust, dialogs, game, homebrew_app, model::AppModel, osc};
 use slint::ComponentHandle;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 impl Rust<'_> {
     pub fn register_callbacks(&self, state: &AppModel, app: &AppWindow) {
@@ -24,7 +24,7 @@ impl Rust<'_> {
                 state_clone.set_mount_point(path);
             }
 
-            app.set_config(state_clone.config());
+            app.set_config(state_clone.config().clone());
         });
 
         let state_clone = state.clone();
@@ -33,7 +33,7 @@ impl Rust<'_> {
             state_clone.set_view_as(view_as);
 
             let app = weak.upgrade().unwrap();
-            app.set_config(state_clone.config());
+            app.set_config(state_clone.config().clone());
         });
 
         let state_clone = state.clone();
@@ -42,21 +42,17 @@ impl Rust<'_> {
             state_clone.set_sort_by(sort_by);
 
             let app = weak.upgrade().unwrap();
-            app.set_config(state_clone.config());
+            app.set_config(state_clone.config().clone());
         });
 
         let state_clone = state.clone();
-        self.on_load_games(move |path| {
-            let path = Path::new(&path);
-            let new = game::scan_drive(path);
-            state_clone.set_games(new);
-        });
+        self.on_refresh_all(move || {
+            let root_path = PathBuf::from(&state_clone.config().contents.mount_point);
+            let new_games = game::scan_drive(&root_path);
+            let new_apps = homebrew_app::scan_drive(&root_path);
 
-        let state_clone = state.clone();
-        self.on_load_homebrew_apps(move |path| {
-            let path = Path::new(&path);
-            let new = homebrew_app::scan_drive(path).unwrap_or_default();
-            state_clone.set_homebrew_apps(new);
+            state_clone.set_games(new_games);
+            state_clone.set_homebrew_apps(new_apps);
         });
 
         let state_clone = state.clone();
@@ -81,7 +77,7 @@ impl Rust<'_> {
             state_clone.set_sort_by(sort_by);
 
             let app = weak.upgrade().unwrap();
-            app.set_config(state_clone.config());
+            app.set_config(state_clone.config().clone());
         });
 
         let state_clone = state.clone();
@@ -90,7 +86,7 @@ impl Rust<'_> {
             state_clone.set_show_wii(show_wii);
 
             let app = weak.upgrade().unwrap();
-            app.set_config(state_clone.config());
+            app.set_config(state_clone.config().clone());
         });
 
         let state_clone = state.clone();
@@ -99,7 +95,7 @@ impl Rust<'_> {
             state_clone.set_show_gc(show_gc);
 
             let app = weak.upgrade().unwrap();
-            app.set_config(state_clone.config());
+            app.set_config(state_clone.config().clone());
         });
 
         let state_clone = state.clone();
@@ -114,13 +110,17 @@ impl Rust<'_> {
             state_clone.set_theme_preference(theme_preference);
 
             let app = weak.upgrade().unwrap();
-            app.set_config(state_clone.config());
-
-            #[cfg(windows)]
-            {
-                let window_handle = app.window().window_handle();
-                crate::window_color::set(&window_handle, theme_preference);
-            }
+            app.set_config(state_clone.config().clone());
         });
+
+        #[cfg(windows)]
+        {
+            let weak = app.as_weak();
+            self.on_set_window_color(move |is_dark| {
+                let app = weak.upgrade().unwrap();
+                let window_handle = app.window().window_handle();
+                crate::window_color::set(&window_handle, is_dark);
+            });
+        }
     }
 }

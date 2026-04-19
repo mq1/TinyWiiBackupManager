@@ -16,6 +16,7 @@ import {
     Config,
     QueuedConversion,
     DriveInfo,
+    ThemePreference,
 } from "types.slint";
 import { MyPalette } from "styling.slint";
 import { Rust } from "rust.slint";
@@ -71,6 +72,22 @@ export component AppWindow inherits Window {
     in property <[DriveInfo]> drive-info;
     in property <[QueuedConversion]> conversion-queue;
     in property <[QueuedConversion]> conversion-queue-buffer;
+
+    // Initialize
+    Timer {
+        interval: 1ms;
+        running: true;
+        triggered => {
+            if config.contents.theme-preference == ThemePreference.Light {
+                Palette.color-scheme = ColorScheme.light;
+            } else if config.contents.theme-preference == ThemePreference.Dark {
+                Palette.color-scheme = ColorScheme.dark;
+            }
+            Rust.set-window-color(Palette.color-scheme == ColorScheme.dark);
+            Rust.refresh-all();
+            self.running = false;
+        }
+    }
 
     HorizontalLayout {
         Navbar {

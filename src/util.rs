@@ -1,13 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use anyhow::{Result, anyhow};
 use std::{
     borrow::Cow,
     ffi::OsStr,
     path::{Path, PathBuf},
 };
-
-use anyhow::{Result, anyhow};
 
 pub const GIB: f32 = 1024. * 1024. * 1024.;
 pub const MIB: f32 = 1024. * 1024.;

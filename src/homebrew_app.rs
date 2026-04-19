@@ -79,16 +79,20 @@ pub fn get_filter_fn(
     })
 }
 
-pub fn scan_drive(root_dir: &Path) -> Result<Vec<HomebrewApp>> {
+pub fn scan_drive(root_dir: &Path) -> Vec<HomebrewApp> {
     let mut apps = Vec::new();
     let apps_dir = root_dir.join("apps");
 
-    for entry in fs::read_dir(&apps_dir)?.filter_map(Result::ok) {
+    let Ok(entries) = fs::read_dir(&apps_dir) else {
+        return apps;
+    };
+
+    for entry in entries.filter_map(Result::ok) {
         let path = entry.path();
         if let Some(game) = HomebrewApp::maybe_from_path(&path) {
             apps.push(game);
         }
     }
 
-    Ok(apps)
+    apps
 }

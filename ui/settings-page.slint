@@ -177,9 +177,11 @@ export component SettingsPage inherits Rectangle {
                         Rust.set-theme-preference(ThemePreference.System);
                     } else if i == 1 {
                         Rust.set-theme-preference(ThemePreference.Light);
+                        Rust.set-window-color(false);
                         Palette.color-scheme = ColorScheme.light;
                     } else {
                         Rust.set-theme-preference(ThemePreference.Dark);
+                        Rust.set-window-color(true);
                         Palette.color-scheme = ColorScheme.dark;
                     }
                 }
