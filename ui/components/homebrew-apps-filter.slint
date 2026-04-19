@@ -5,8 +5,8 @@ import { Card } from "card.slint";
 import { LineEdit } from "std-widgets.slint";
 import { MyPalette } from "../styling.slint";
 import { IconSet, IconDisplay } from "@lucide";
-import { State } from "../state.slint";
 import { MyLineEdit } from "my-line-edit.slint";
+import { Rust } from "../rust.slint";
 
 export component HomebrewAppsFilter inherits Card {
     width: 210px;
@@ -30,9 +30,8 @@ export component HomebrewAppsFilter inherits Card {
             alignment: center;
 
             MyLineEdit {
-                text <=> State.homebrew-apps-filter;
                 placeholder-text: "Search by Name";
-                changed text => State.filter-homebrew-apps();
+                edited() => Rust.filter-homebrew-apps(self.text);
             }
         }
     }

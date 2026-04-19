@@ -5,11 +5,14 @@ import { Card } from "card.slint";
 import { Game } from "../types.slint";
 import { IconButton } from "icon-button.slint";
 import { IconSet, IconDisplay } from "@lucide";
-import { State } from "../state.slint";
 import { MyPalette } from "../styling.slint";
+import { Rust } from "../rust.slint";
 
 export component GameCard inherits Card {
     in property <Game> game;
+
+    callback open-info();
+    callback delete();
 
     width: 172px;
     height: self.min-height;
@@ -61,25 +64,19 @@ export component GameCard inherits Card {
             IconButton {
                 label: "Info";
                 icon: IconSet.Info;
-                clicked => {
-                    State.open-game-info(game);
-                }
+                clicked => open-info();
             }
 
             IconButton {
                 icon: IconSet.HardDriveDownload;
                 tooltip: "Archive to PC";
-                clicked => {
-                    State.archive-game(game);
-                }
+                clicked => Rust.archive-game(game);
             }
 
             IconButton {
                 icon: IconSet.Trash;
                 tooltip: "Delete game";
-                clicked => {
-                    State.deleting-dir = game.path;
-                }
+                clicked => delete();
             }
         }
     }

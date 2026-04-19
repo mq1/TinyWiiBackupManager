@@ -2,15 +2,17 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import { ShowWiiGc } from "show-wii-gc.slint";
-import { IconButton } from "icon-button.slint";
-import { IconButtonKind } from "../types.slint";
+import { IconButton, IconButtonKind } from "icon-button.slint";
 import { IconSet, IconDisplay } from "@lucide";
-import { State } from "../state.slint";
 import { SortGamesAndHomebrewApps } from "sort-games-and-homebrew-apps.slint";
 import { ViewAs } from "view-as.slint";
 import { MyPalette } from "../styling.slint";
+import { Rust } from "../rust.slint";
+import { Config } from "../types.slint";
 
 export component GamesToolbar inherits HorizontalLayout {
+    in property <Config> config;
+
     alignment: space-between;
     height: 38px;
 
@@ -33,9 +35,13 @@ export component GamesToolbar inherits HorizontalLayout {
     HorizontalLayout {
         spacing: 10px;
 
-        ShowWiiGc { }
+        ShowWiiGc {
+            config: config;
+        }
 
-        SortGamesAndHomebrewApps { }
+        SortGamesAndHomebrewApps {
+            config: config;
+        }
 
         ViewAs { }
 
@@ -53,7 +59,7 @@ export component GamesToolbar inherits HorizontalLayout {
                     font-size: 18px;
                     width: 34px;
                     height: 34px;
-                    clicked => State.refresh-all();
+                    clicked => Rust.refresh-all();
                 }
 
                 IconButton {
@@ -64,7 +70,7 @@ export component GamesToolbar inherits HorizontalLayout {
                     font-size: 18px;
                     width: 34px;
                     height: 34px;
-                    clicked => State.pick-games();
+                    clicked => Rust.pick-games(false);
                 }
 
                 IconButton {
@@ -75,7 +81,7 @@ export component GamesToolbar inherits HorizontalLayout {
                     font-size: 18px;
                     width: 34px;
                     height: 34px;
-                    clicked => State.pick-games-r();
+                    clicked => Rust.pick-games(true);
                 }
             }
         }

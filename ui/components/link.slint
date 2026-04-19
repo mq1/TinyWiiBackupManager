@@ -5,7 +5,6 @@ import { Rust } from "../rust.slint";
 import { StyleMetrics } from "std-widgets.slint";
 import { MyPalette } from "../styling.slint";
 import { IconDisplay, Icon, IconSet } from "@lucide";
-import { State } from "../state.slint";
 
 export component Link inherits Rectangle {
     in property <string> label;
@@ -45,11 +44,6 @@ export component Link inherits Rectangle {
         height: t.height;
         width: 17px + t.width;
         mouse-cursor: pointer;
-        clicked => {
-            let res = Rust.open(uri);
-            if !res.err.is-empty {
-                State.notify-err(res.err);
-            }
-        }
+        clicked => Rust.open-that(uri);
     }
 }

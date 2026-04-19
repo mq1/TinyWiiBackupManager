@@ -2,19 +2,20 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import { ScrollView, Palette } from "std-widgets.slint";
-import { OscAppMeta, IconButtonKind } from "../types.slint";
+import { OscApp } from "../types.slint";
 import { IconSet, IconDisplay } from "@lucide";
-import { State } from "../state.slint";
 import { Link } from "link.slint";
 import { Card } from "card.slint";
 import { HorizontalLine } from "horizontal-line.slint";
 import { MyPalette } from "../styling.slint";
-import { IconButton } from "icon-button.slint";
+import { IconButton, IconButtonKind } from "icon-button.slint";
 import { Developers } from "../developers.slint";
+import { Modal } from "modal.slint";
 
-export component OscAppInfoModal inherits Card {
-    width: 600px;
-    height: 400px;
+export component OscAppInfoModal inherits Modal {
+    in property <OscApp> app;
+
+    callback closed();
 
     VerticalLayout {
         x: 0px;
@@ -27,14 +28,14 @@ export component OscAppInfoModal inherits Card {
             spacing: 10px;
 
             Text {
-                text: State.current-osc-app.meta.name;
+                text: app.meta.name;
                 font-size: 18px;
                 overflow: elide;
             }
 
             Link {
-                label: "https://oscwii.org/library/app/\{State.current-osc-app.meta.slug}";
-                uri: "https://oscwii.org/library/app/\{State.current-osc-app.meta.slug}";
+                label: "https://oscwii.org/library/app/\{app.meta.slug}";
+                uri: "https://oscwii.org/library/app/\{app.meta.slug}";
             }
         }
 
@@ -57,7 +58,7 @@ export component OscAppInfoModal inherits Card {
                     }
 
                     Text {
-                        text: "Version: \{State.current-osc-app.meta.version}";
+                        text: "Version: \{app.meta.version}";
                     }
                 }
 
@@ -71,7 +72,7 @@ export component OscAppInfoModal inherits Card {
                     }
 
                     Text {
-                        text: "Release date: \{State.current-osc-app.release-date}";
+                        text: "Release date: \{app.release-date}";
                     }
                 }
 
@@ -79,13 +80,13 @@ export component OscAppInfoModal inherits Card {
                     spacing: 5px;
 
                     IconDisplay {
-                        icon: Developers.get-icon(State.current-osc-app.meta.author);
+                        icon: Developers.get-icon(app.meta.author);
                         stroke: MyPalette.foreground;
                         size: 14px;
                     }
 
                     Text {
-                        text: "Author: \{State.current-osc-app.meta.author}";
+                        text: "Author: \{app.meta.author}";
                     }
                 }
 
@@ -99,7 +100,7 @@ export component OscAppInfoModal inherits Card {
                     }
 
                     Text {
-                        text: "Description: \{State.current-osc-app.meta.description.short}";
+                        text: "Description: \{app.meta.description.short}";
                     }
                 }
 
@@ -114,7 +115,7 @@ export component OscAppInfoModal inherits Card {
 
                     v := VerticalLayout {
                         Text {
-                            text: State.current-osc-app.meta.description.long;
+                            text: app.meta.description.long;
                             wrap: word-wrap;
                         }
                     }
@@ -122,7 +123,7 @@ export component OscAppInfoModal inherits Card {
             }
 
             Image {
-                source: State.current-osc-app.icon;
+                source: app.icon;
                 height: 96px;
             }
         }
@@ -130,10 +131,8 @@ export component OscAppInfoModal inherits Card {
         VerticalLayout { }
     }
 
-    toolbar := VerticalLayout {
+    VerticalLayout {
         height: self.min-height;
-        x: 0px;
-        y: parent.height - self.height;
 
         HorizontalLine { }
 
@@ -145,9 +144,7 @@ export component OscAppInfoModal inherits Card {
             IconButton {
                 label: "Close";
                 kind: IconButtonKind.Primary;
-                clicked => {
-                    State.current-osc-app.meta.slug = "";
-                }
+                clicked => closed();
             }
         }
     }

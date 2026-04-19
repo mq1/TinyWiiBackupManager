@@ -5,8 +5,8 @@ import { Card } from "card.slint";
 import { LineEdit } from "std-widgets.slint";
 import { MyPalette } from "../styling.slint";
 import { IconSet, IconDisplay } from "@lucide";
-import { State } from "../state.slint";
 import { MyLineEdit } from "my-line-edit.slint";
+import { Rust } from "../rust.slint";
 
 export component GameFilter inherits Card {
     width: 210px;
@@ -30,9 +30,8 @@ export component GameFilter inherits Card {
             alignment: center;
 
             MyLineEdit {
-                text <=> State.games-filter;
                 placeholder-text: "Search by Title/ID";
-                changed text => State.filter-games();
+                edited() => Rust.filter-games(self.text);
             }
         }
     }

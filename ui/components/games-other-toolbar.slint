@@ -3,9 +3,12 @@
 
 import { MyPalette } from "../styling.slint";
 import { GameFilter } from "game-filter.slint";
-import { State } from "../state.slint";
+import { Game } from "../types.slint";
 
 export component GamesOtherToolbar inherits HorizontalLayout {
+    in property <[Game]> games;
+    in property <float> total-size-gib: 0; // TODO
+
     alignment: space-between;
     height: 38px;
     padding-right: 20px;
@@ -16,7 +19,6 @@ export component GamesOtherToolbar inherits HorizontalLayout {
         height: parent.height;
         vertical-alignment: center;
         horizontal-alignment: end;
-        // TODO
-        //text: "\{State.game-list.games.length} game\{State.game-list.games.length == 1 ? "" : "s"}   ~ \{State.game-list.total-size.to-fixed(2)} GiB";
+        text: "\{games.length} game\{games.length == 1 ? "" : "s"}   ~ \{total-size-gib.to-fixed(2)} GiB";
     }
 }

@@ -8,8 +8,8 @@ export global MyPalette {
         Palette.color-scheme == ColorScheme.dark
     }
 
-    // this is the macos window color
-    out property <brush> background: Palette.color-scheme == ColorScheme.light ? #ffffff : #1e1e1e;
+    // this is the macos window color. on windows 11 we set this in window_color.rs
+    out property <brush> background: is-dark() ? #1e1e1e : #ffffff;
 
     out property <brush> accent-background: Palette.accent-background;
     out property <brush> selection-background: Palette.accent-background.transparentize(0.6);

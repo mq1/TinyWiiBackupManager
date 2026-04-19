@@ -16,7 +16,7 @@ export component Navbar inherits VerticalLayout {
         spacing: 10px;
 
         NavbarButton {
-            active: State.current-page == Page.Games;
+            active: current-page == Page.Games;
             icon: IconSet.Gamepad2;
             tooltip: "Games";
             clicked => {
@@ -25,7 +25,7 @@ export component Navbar inherits VerticalLayout {
         }
 
         NavbarButton {
-            active: State.current-page == Page.HomebrewApps;
+            active: current-page == Page.HomebrewApps;
             icon: IconSet.Waves;
             icon2: IconSet.Bubbles;
             tooltip: "Homebrew apps";
@@ -35,7 +35,7 @@ export component Navbar inherits VerticalLayout {
         }
 
         NavbarButton {
-            active: State.current-page == Page.Osc;
+            active: current-page == Page.Osc;
             icon: IconSet.Waves;
             icon2: IconSet.ArrowBigDown;
             tooltip: "Open Shop Channel";
@@ -51,7 +51,7 @@ export component Navbar inherits VerticalLayout {
         }
 
         NavbarButton {
-            active: State.current-page == Page.Settings;
+            active: current-page == Page.Settings;
             icon: IconSet.Settings;
             tooltip: "Settings";
             clicked => {
@@ -71,7 +71,7 @@ export component Navbar inherits VerticalLayout {
         }
 
         NavbarButton {
-            active: State.current-page == Page.About;
+            active: current-page == Page.About;
             icon: IconSet.Info;
             tooltip: "About TinyWiiBackupManager";
             clicked => {

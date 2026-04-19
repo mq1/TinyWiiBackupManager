@@ -34,6 +34,7 @@ pub struct AppModel {
     notifications: Rc<VecModel<Notification>>,
 
     conversion_queue: Rc<VecModel<QueuedConversion>>,
+    conversion_queue_buffer: Rc<VecModel<QueuedConversion>>,
 
     // it's a VecModel for reactivity, but holds a single value
     status: Rc<VecModel<SharedString>>,
@@ -74,6 +75,7 @@ impl AppModel {
         let notifications = Rc::new(VecModel::from(Vec::new()));
 
         let conversion_queue = Rc::new(VecModel::from(Vec::new()));
+        let conversion_queue_buffer = Rc::new(VecModel::from(Vec::new()));
 
         let status = Rc::new(VecModel::from(Vec::new()));
 
@@ -92,6 +94,7 @@ impl AppModel {
             filtered_osc_apps,
             notifications,
             conversion_queue,
+            conversion_queue_buffer,
             status,
         }
     }
@@ -145,6 +148,19 @@ impl AppModel {
         }
 
         self.filtered_games.reset();
+    }
+
+    pub fn set_mount_point(&self, mount_point: PathBuf) {
+        self.config.borrow_mut().mount_point = mount_point.to_string_lossy().to_shared_string();
+        if let Err(e) = self.config.write() {
+            self.notifications.push(e.into());
+        }
+
+        // TODO reload games + apps
+    }
+
+    pub fn refresh_all(&self) {
+        // TODO reload games + apps
     }
 
     pub fn set_games_filter(&self, filter: SharedString) {

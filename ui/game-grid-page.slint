@@ -12,6 +12,9 @@ import { Game } from "types.slint";
 export component GameGridPage inherits VerticalLayout {
     in property <[Game]> games;
 
+    callback open-info(int);
+    callback delete(int);
+
     private property <int> col-count: max(1, floor((self.width - 10px) / (172px + 10px)));
 
     HorizontalLayout {
@@ -38,6 +41,8 @@ export component GameGridPage inherits VerticalLayout {
                     col: mod(i, col-count);
 
                     game: game;
+                    open-info() => open-info(i);
+                    delete() => delete(i);
                 }
             }
         }

@@ -2,164 +2,163 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import { ScrollView, Palette } from "std-widgets.slint";
-import { HomebrewApp, IconButtonKind } from "../types.slint";
+import { HomebrewApp } from "../types.slint";
 import { IconSet, IconDisplay } from "@lucide";
-import { State } from "../state.slint";
 import { Link } from "link.slint";
 import { Card } from "card.slint";
 import { HorizontalLine } from "horizontal-line.slint";
 import { MyPalette } from "../styling.slint";
-import { IconButton } from "icon-button.slint";
+import { IconButton, IconButtonKind } from "icon-button.slint";
 import { Developers } from "../developers.slint";
+import { Modal } from "modal.slint";
 
-export component HomebrewAppInfoModal inherits Card {
-    width: 600px;
-    height: 400px;
+export component HomebrewAppInfoModal inherits Modal {
+    in property <HomebrewApp> app;
+
+    callback closed();
 
     VerticalLayout {
-        x: 0px;
-        y: 0px;
-        height: parent.height - toolbar.height;
-        alignment: start;
+        spacing: 10px;
+        alignment: space-between;
 
         VerticalLayout {
-            padding: 20px;
-            spacing: 10px;
-
-            Text {
-                text: State.current-homebrew-app.meta.name;
-                font-size: 18px;
-                overflow: elide;
-            }
-
-            Link {
-                icon: IconSet.Folder;
-                label: "Path: \{State.current-homebrew-app.path}";
-                uri: State.current-homebrew-app.path;
-            }
-        }
-
-        HorizontalLayout {
             alignment: space-between;
-            padding-right: 20px;
 
             VerticalLayout {
-                spacing: 5px;
                 padding: 20px;
-                alignment: start;
+                spacing: 10px;
 
-                HorizontalLayout {
-                    spacing: 5px;
-
-                    IconDisplay {
-                        icon: IconSet.Tag;
-                        stroke: MyPalette.foreground;
-                        size: 14px;
-                    }
-
-                    Text {
-                        text: "Version: \{State.current-homebrew-app.meta.version}";
-                    }
+                Text {
+                    text: app.meta.name;
+                    font-size: 18px;
+                    overflow: elide;
                 }
-
-                HorizontalLayout {
-                    spacing: 5px;
-
-                    IconDisplay {
-                        icon: IconSet.Calendar;
-                        stroke: MyPalette.foreground;
-                        size: 14px;
-                    }
-
-                    Text {
-                        text: "Release date: \{State.current-homebrew-app.meta.release-date}";
-                    }
-                }
-
-                HorizontalLayout {
-                    spacing: 5px;
-
-                    IconDisplay {
-                        icon: Developers.get-icon(State.current-homebrew-app.meta.coder);
-                        stroke: MyPalette.foreground;
-                        size: 14px;
-                    }
-
-                    Text {
-                        text: "Coder: \{State.current-homebrew-app.meta.coder}";
-                    }
-                }
-
-                HorizontalLayout {
-                    spacing: 5px;
-
-                    IconDisplay {
-                        icon: IconSet.NotepadText;
-                        stroke: MyPalette.foreground;
-                        size: 14px;
-                    }
-
-                    Text {
-                        text: "Description: \{State.current-homebrew-app.meta.short-description}";
-                    }
-                }
-
-                HorizontalLayout {
-                    padding: 5px;
-                    HorizontalLine { }
-                }
-
-                ScrollView {
-                    preferred-width: v.preferred-width;
-                    height: v.preferred-height;
-
-                    v := VerticalLayout {
-                        Text {
-                            text: State.current-homebrew-app.meta.long-description;
-                            wrap: word-wrap;
-                        }
-                    }
-                }
-            }
-
-            Image {
-                source: State.current-homebrew-app.icon;
-                height: 96px;
-            }
-        }
-
-        VerticalLayout { }
-    }
-
-    toolbar := VerticalLayout {
-        height: self.min-height;
-        x: 0px;
-        y: parent.height - self.height;
-
-        HorizontalLine { }
-
-        HorizontalLayout {
-            alignment: space-between;
-
-            VerticalLayout {
-                alignment: center;
-                padding-left: 15px;
 
                 Link {
-                    uri: "https://oscwii.org/library/app/\{State.current-homebrew-app.slug}";
-                    label: "Open Shop Channel page";
+                    icon: IconSet.Folder;
+                    label: "Path: \{app.path}";
+                    uri: app.path;
                 }
             }
 
             HorizontalLayout {
-                padding: 10px;
-                spacing: 10px;
+                alignment: space-between;
+                padding-right: 20px;
 
-                IconButton {
-                    label: "Close";
-                    kind: IconButtonKind.Primary;
-                    clicked => {
-                        State.current-homebrew-app.path = "";
+                VerticalLayout {
+                    spacing: 5px;
+                    padding: 20px;
+                    alignment: start;
+
+                    HorizontalLayout {
+                        spacing: 5px;
+
+                        IconDisplay {
+                            icon: IconSet.Tag;
+                            stroke: MyPalette.foreground;
+                            size: 14px;
+                        }
+
+                        Text {
+                            text: "Version: \{app.meta.version}";
+                        }
+                    }
+
+                    HorizontalLayout {
+                        spacing: 5px;
+
+                        IconDisplay {
+                            icon: IconSet.Calendar;
+                            stroke: MyPalette.foreground;
+                            size: 14px;
+                        }
+
+                        Text {
+                            text: "Release date: \{app.meta.release-date}";
+                        }
+                    }
+
+                    HorizontalLayout {
+                        spacing: 5px;
+
+                        IconDisplay {
+                            icon: Developers.get-icon(app.meta.coder);
+                            stroke: MyPalette.foreground;
+                            size: 14px;
+                        }
+
+                        Text {
+                            text: "Coder: \{app.meta.coder}";
+                        }
+                    }
+
+                    HorizontalLayout {
+                        spacing: 5px;
+
+                        IconDisplay {
+                            icon: IconSet.NotepadText;
+                            stroke: MyPalette.foreground;
+                            size: 14px;
+                        }
+
+                        Text {
+                            text: "Description: \{app.meta.short-description}";
+                        }
+                    }
+
+                    HorizontalLayout {
+                        padding: 5px;
+                        HorizontalLine { }
+                    }
+
+                    ScrollView {
+                        preferred-width: v.preferred-width;
+                        height: v.preferred-height;
+
+                        v := VerticalLayout {
+                            Text {
+                                text: app.meta.long-description;
+                                wrap: word-wrap;
+                            }
+                        }
+                    }
+                }
+
+                Image {
+                    source: app.icon;
+                    height: 96px;
+                }
+            }
+
+            VerticalLayout { }
+        }
+
+        VerticalLayout {
+            height: self.min-height;
+
+            HorizontalLine { }
+
+            HorizontalLayout {
+                alignment: space-between;
+
+                VerticalLayout {
+                    alignment: center;
+                    padding-left: 15px;
+
+                    Link {
+                        uri: "https://oscwii.org/library/app/\{app.slug}";
+                        label: "Open Shop Channel page";
+                    }
+                }
+
+                HorizontalLayout {
+                    padding: 10px;
+                    spacing: 10px;
+
+                    IconButton {
+                        label: "Close";
+                        kind: IconButtonKind.Primary;
+                        clicked => closed();
                     }
                 }
             }

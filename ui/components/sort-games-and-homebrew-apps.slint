@@ -4,11 +4,14 @@
 import { Card } from "card.slint";
 import { IconDisplay, IconSet } from "@lucide";
 import { TooltipArea } from "tooltip-area.slint";
-import { State } from "../state.slint";
+import { Config } from "../types.slint";
 import { MyPalette } from "../styling.slint";
 import { SortBy } from "../types.slint";
+import { Rust } from "../rust.slint";
 
 export component SortGamesAndHomebrewApps inherits Card {
+    in property <Config> config;
+
     pure function get-bg(current-sort-by: bool, hovered: bool) -> color {
         if current-sort-by {
             MyPalette.selection-background
@@ -29,19 +32,17 @@ export component SortGamesAndHomebrewApps inherits Card {
             height: 38px;
 
             tooltip: "Sort by name";
-            background: get-bg(State.config.contents.sort-by == SortBy.NameAscending || State.config.contents.sort-by == SortBy.NameDescending, self.has-hover);
+            background: get-bg(config.contents.sort-by == SortBy.NameAscending || config.contents.sort-by == SortBy.NameDescending, self.has-hover);
             clicked => {
-                if State.config.contents.sort-by == SortBy.NameAscending {
-                    State.config.contents.sort-by = SortBy.NameDescending;
+                if config.contents.sort-by == SortBy.NameAscending {
+                    Rust.set-sort-by(SortBy.NameDescending);
                 } else {
-                    State.config.contents.sort-by = SortBy.NameAscending;
+                    Rust.set-sort-by(SortBy.NameAscending);
                 }
-
-                State.apply-sorting();
             }
 
             IconDisplay {
-                icon: State.config.contents.sort-by == SortBy.NameDescending ? IconSet.ArrowUpAZ : IconSet.ArrowDownAZ;
+                icon: config.contents.sort-by == SortBy.NameDescending ? IconSet.ArrowUpAZ : IconSet.ArrowDownAZ;
                 size: 14px;
                 stroke: MyPalette.foreground;
             }
@@ -52,19 +53,17 @@ export component SortGamesAndHomebrewApps inherits Card {
             height: 38px;
 
             tooltip: "Sort by size";
-            background: get-bg(State.config.contents.sort-by == SortBy.SizeAscending || State.config.contents.sort-by == SortBy.SizeDescending, self.has-hover);
+            background: get-bg(config.contents.sort-by == SortBy.SizeAscending || config.contents.sort-by == SortBy.SizeDescending, self.has-hover);
             clicked => {
-                if State.config.contents.sort-by == SortBy.SizeAscending {
-                    State.config.contents.sort-by = SortBy.SizeDescending;
+                if config.contents.sort-by == SortBy.SizeAscending {
+                    Rust.set-sort-by(SortBy.SizeDescending);
                 } else {
-                    State.config.contents.sort-by = SortBy.SizeAscending;
+                    Rust.set-sort-by(SortBy.SizeAscending);
                 }
-
-                State.apply-sorting();
             }
 
             IconDisplay {
-                icon: State.config.contents.sort-by == SortBy.SizeDescending ? IconSet.ArrowUp01 : IconSet.ArrowDown01;
+                icon: config.contents.sort-by == SortBy.SizeDescending ? IconSet.ArrowUp01 : IconSet.ArrowDown01;
                 size: 14px;
                 stroke: MyPalette.foreground;
             }

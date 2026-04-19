@@ -4,8 +4,10 @@
 import { MyPalette } from "../styling.slint";
 
 export component MyLineEdit inherits Rectangle {
-    in-out property <string> text;
+    out property <string> text;
     in property <string> placeholder-text;
+
+    callback edited();
 
     height: t.preferred-height;
 
@@ -22,5 +24,6 @@ export component MyLineEdit inherits Rectangle {
         x: 0;
         y: 0;
         text <=> text;
+        edited() => edited();
     }
 }

@@ -53,11 +53,12 @@ export component AppWindow inherits Window {
     default-font-size: 14px;
 
     private property <Page> current-page;
-    private property <string> deleting-dir;
-    private property <[QueuedConversion]> conversion-queue-buffer;
     private property <int> current-game-i: -1;
     private property <int> current-homebrew-app-i: -1;
     private property <int> current-osc-app-i: -1;
+    private property <int> game-to-scrub: -1;
+    private property <int> game-to-delete: -1;
+    private property <int> homebrew-app-to-delete: -1;
 
     in property <Config> config;
     in property <[Game]> games;
@@ -67,6 +68,7 @@ export component AppWindow inherits Window {
     in property <[DriveInfo]> drive-info;
     in property <[string]> status;
     in property <[string]> crc32-status;
+    in property <[QueuedConversion]> conversion-queue-buffer;
 
     HorizontalLayout {
         Navbar {
@@ -82,6 +84,12 @@ export component AppWindow inherits Window {
 
                 if current-page == Page.Games && config.contents.view-as == ViewAs.Grid: GameGridPage {
                     games: games;
+                    open-info(i) => {
+                        current-game-i = i;
+                    }
+                    delete(i) => {
+                        game-to-delete = i;
+                    }
                 }
                 if current-page == Page.Games && config.contents.view-as == ViewAs.Table: GameTablePage { }
                 if current-page == Page.HomebrewApps && config.contents.view-as == ViewAs.Grid: HomebrewAppsGridPage { }
@@ -108,24 +116,47 @@ export component AppWindow inherits Window {
         }
     }
 
-    if !deleting-dir.is-empty: ConfirmationModal {
+    if game-to-delete >= 0: ConfirmationModal {
+        message: "Are you sure you want to delete \{games[game-to-delete].title}? This action cannot be undone.";
+
         cancelled => {
-            deleting-dir = "";
+            game-to-delete = -1;
         }
         confirmed => {
-            Rust.delete_dir(deleting-dir);
-            deleting-dir = "";
+            Rust.delete-game(games[game-to-delete]);
+            game-to-delete = -1;
+        }
+    }
+
+    if homebrew-app-to-delete >= 0: ConfirmationModal {
+        message: "Are you sure you want to delete \{homebrew-apps[homebrew-app-to-delete].meta.name}? This action cannot be undone.";
+
+        cancelled => {
+            homebrew-app-to-delete = -1;
+        }
+        confirmed => {
+            Rust.delete-homebrew-app(homebrew-apps[homebrew-app-to-delete]);
+            homebrew-app-to-delete = -1;
+        }
+    }
+
+    if game-to-scrub >= 0: ConfirmationModal {
+        message: "Are you sure you want to scrub \{games[game-to-scrub].title}? This action cannot be undone.";
+
+        cancelled => {
+            game-to-scrub = -1;
+        }
+        confirmed => {
+            Rust.scrub-game(games[game-to-scrub]);
+            game-to-scrub = -1;
         }
     }
 
     if conversion-queue-buffer.length > 0: ConfirmationModal {
-        cancelled => {
-            conversion-queue-buffer = [];
-        }
-        confirmed => {
-            Rust.add-conversions-to-queue(conversion-queue-buffer);
-            conversion-queue-buffer = [];
-        }
+        message: "Are you sure you want to add \{conversion-queue-buffer.length} conversions to the queue?";
+
+        cancelled => Rust.cancel-conversions();
+        confirmed => Rust.confirm-conversions();
     }
 
     if current-game-i >= 0: GameInfoModal {
@@ -136,26 +167,17 @@ export component AppWindow inherits Window {
         }
     }
 
-    if is-modal-open(): Rectangle {
-        x: 0px;
-        y: 0px;
-        width: root.width;
-        height: root.height;
-        background: MyPalette.overlay;
-
-        if !State.scrubbing-game.path.is-empty: ScrubbingGameModal {
-            x: (root.width - self.width) / 2;
-            y: (root.height - self.height) / 2;
+    if current-homebrew-app-i >= 0: HomebrewAppInfoModal {
+        app: homebrew-apps[current-homebrew-app-i];
+        closed => {
+            current-homebrew-app-i = -1;
         }
+    }
 
-        if !State.current-homebrew-app.path.is-empty: HomebrewAppInfoModal {
-            x: (root.width - self.width) / 2;
-            y: (root.height - self.height) / 2;
-        }
-
-        if !State.current-osc-app.meta.slug.is-empty: OscAppInfoModal {
-            x: (root.width - self.width) / 2;
-            y: (root.height - self.height) / 2;
+    if current-osc-app-i >= 0: OscAppInfoModal {
+        app: osc-apps[current-osc-app-i];
+        closed => {
+            current-osc-app-i = -1;
         }
     }
 
