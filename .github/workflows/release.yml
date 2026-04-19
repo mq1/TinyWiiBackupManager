@@ -154,6 +154,7 @@ jobs:
           fetch-depth: 1
 
       - name: Install LLVM
+        shell: pwsh
         run: choco install llvm --version 22.1.0 -y
 
       - name: Install Rust toolchain
