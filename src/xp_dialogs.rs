@@ -18,8 +18,8 @@ use windows::core::{PCWSTR, PWSTR};
 const MAX_PATH: usize = 260;
 const MAX_PATH_LARGE: usize = 32_768;
 
-pub fn get_hwnd(window: &slint::WindowHandle) -> Option<HWND> {
-    let handle = handle.window_handle().ok()?;
+pub fn get_hwnd(window_handle: &slint::WindowHandle) -> Option<HWND> {
+    let handle = window_handle.window_handle().ok()?;
     let RawWindowHandle::Win32(handle) = handle.as_raw() else {
         return None;
     };
@@ -29,11 +29,11 @@ pub fn get_hwnd(window: &slint::WindowHandle) -> Option<HWND> {
     Some(hwnd)
 }
 
-pub fn pick_dir(window: &slint::WindowHandle, title: &str) -> Option<PathBuf> {
+pub fn pick_dir(window_handle: &slint::WindowHandle, title: &str) -> Option<PathBuf> {
     let title_wide = widen(title);
     let mut buf = [0u16; MAX_PATH];
 
-    let hwnd = get_hwnd(window)?;
+    let hwnd = get_hwnd(window_handle)?;
 
     let success = unsafe {
         let _ = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
@@ -60,7 +60,7 @@ pub fn pick_dir(window: &slint::WindowHandle, title: &str) -> Option<PathBuf> {
 }
 
 pub fn pick_file(
-    window: &slint::WindowHandle,
+    window_handle: &slint::WindowHandle,
     title: &str,
     filter: (&str, &[&str]),
 ) -> Option<PathBuf> {
@@ -68,7 +68,7 @@ pub fn pick_file(
     let filter_wide = get_filter_utf16(filter);
     let mut buf = [0u16; MAX_PATH_LARGE];
 
-    let hwnd = get_hwnd(window)?;
+    let hwnd = get_hwnd(window_handle)?;
 
     let success = unsafe {
         let mut ofn = OPENFILENAMEW {
@@ -93,7 +93,7 @@ pub fn pick_file(
 }
 
 pub fn pick_files(
-    window: &slint::WindowHandle,
+    window_handle: &slint::WindowHandle,
     title: &str,
     filter: (&str, &[&str]),
 ) -> Vec<PathBuf> {
@@ -101,7 +101,7 @@ pub fn pick_files(
     let filter_wide = get_filter_utf16(filter);
     let mut buf = vec![0u16; MAX_PATH_LARGE];
 
-    let Some(hwnd) = get_hwnd(window) else {
+    let Some(hwnd) = get_hwnd(window_handle) else {
         return Vec::new();
     };
 
@@ -128,7 +128,7 @@ pub fn pick_files(
 }
 
 pub fn save_file(
-    window: &slint::WindowHandle,
+    window_handle: &slint::WindowHandle,
     title: &str,
     filter: (&str, &[&str]),
     filename: &str,
@@ -140,7 +140,7 @@ pub fn save_file(
     let mut buf = [0u16; MAX_PATH_LARGE];
     buf[..filename_wide.len()].copy_from_slice(&filename_wide);
 
-    let hwnd = get_hwnd(window)?;
+    let hwnd = get_hwnd(window_handle)?;
 
     let success = unsafe {
         let mut ofn = OPENFILENAMEW {
