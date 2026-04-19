@@ -33,7 +33,7 @@ mod xp_dialogs;
 
 use crate::{data_dir::DATA_DIR, model::AppModel};
 use anyhow::{Result, bail};
-use slint::ComponentHandle;
+use slint::{ComponentHandle, ModelRc};
 use std::process::Command;
 
 slint::include_modules!();
@@ -59,7 +59,15 @@ fn main() -> Result<()> {
 
     let config = Config::load();
     let app = AppWindow::new()?;
-    let state = AppModel::new(&app, config);
+    let state = AppModel::new(config.clone());
+
+    app.set_games(ModelRc::from(state.games()));
+    app.set_homebrew_apps(ModelRc::from(state.homebrew_apps()));
+    app.set_osc_apps(ModelRc::from(state.osc_apps()));
+    app.set_notifications(ModelRc::from(state.notifications()));
+    app.set_conversion_queue(ModelRc::from(state.conversion_queue()));
+    app.set_conversion_queue_buffer(ModelRc::from(state.conversion_queue_buffer()));
+    app.set_config(config);
 
     app.global::<Rust<'_>>()
         .register_callbacks(&state, app.window());

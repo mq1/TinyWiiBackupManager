@@ -2,12 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    AppWindow, Config, Game, HomebrewApp, Notification, OscApp, QueuedConversion, SortBy, ViewAs,
-    game, homebrew_app, osc,
+    Config, Game, HomebrewApp, Notification, OscApp, QueuedConversion, SortBy, ViewAs, game,
+    homebrew_app, osc,
 };
-use slint::{
-    ComponentHandle, FilterModel, ModelRc, SharedString, SortModel, ToSharedString, VecModel, Weak,
-};
+use slint::{FilterModel, SharedString, SortModel, ToSharedString, VecModel};
 use std::{cell::RefCell, cmp::Ordering, path::PathBuf, rc::Rc};
 
 type SortedModel<T> = SortModel<Rc<VecModel<T>>, Box<dyn Fn(&T, &T) -> Ordering>>;
@@ -16,8 +14,6 @@ type JustFilteredModel<T> = FilterModel<Rc<VecModel<T>>, Box<dyn Fn(&T) -> bool>
 
 #[derive(Clone)]
 pub struct AppModel {
-    weak: Weak<AppWindow>,
-
     config: Rc<RefCell<Config>>,
 
     games: Rc<VecModel<Game>>,
@@ -42,7 +38,7 @@ pub struct AppModel {
 }
 
 impl AppModel {
-    pub fn new(app: &AppWindow, config: Config) -> Self {
+    pub fn new(config: Config) -> Self {
         let config = Rc::new(RefCell::new(config));
 
         let games = Rc::new(VecModel::from(Vec::new()));
@@ -78,8 +74,7 @@ impl AppModel {
         let conversion_queue = Rc::new(VecModel::from(Vec::new()));
         let conversion_queue_buffer = Rc::new(VecModel::from(Vec::new()));
 
-        let state = Self {
-            weak: app.as_weak(),
+        Self {
             config,
             games,
             homebrew_apps,
@@ -95,17 +90,7 @@ impl AppModel {
             notifications,
             conversion_queue,
             conversion_queue_buffer,
-        };
-
-        app.set_games(ModelRc::from(state.games()));
-        app.set_homebrew_apps(ModelRc::from(state.homebrew_apps()));
-        app.set_osc_apps(ModelRc::from(state.osc_apps()));
-        app.set_notifications(ModelRc::from(state.notifications()));
-        app.set_conversion_queue(ModelRc::from(state.conversion_queue()));
-        app.set_conversion_queue_buffer(ModelRc::from(state.conversion_queue_buffer()));
-        app.set_config(state.config.borrow().clone());
-
-        state
+        }
     }
 
     pub fn games(&self) -> Rc<FilteredModel<Game>> {
