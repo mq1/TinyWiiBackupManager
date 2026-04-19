@@ -53,18 +53,9 @@ export component AppWindow inherits Window {
     in property <[Notification]> notifications;
     in property <[string]> status;
 
-    function pick-mount-point() {
-        let mount_point = Rust.pick-mount-point();
-        if !mount_point.is-empty {
-            config.contents.mount-point = mount_point;
-            Rust.set-config(config);
-        }
-    }
-
     HorizontalLayout {
         Navbar {
             current-page <=> current-page;
-            pick-mount-point => pick-mount-point();
         }
 
         VerticalLayout {
@@ -82,7 +73,9 @@ export component AppWindow inherits Window {
                 if current-page == Page.HomebrewApps && config.contents.view-as == ViewAs.Table: HomebrewAppsTablePage { }
                 if current-page == Page.Osc && config.contents.view-as == ViewAs.Grid: OscGridPage { }
                 if current-page == Page.Osc && config.contents.view-as == ViewAs.Table: OscTablePage { }
-                if current-page == Page.Settings: SettingsPage { }
+                if current-page == Page.Settings: SettingsPage {
+                    config: config;
+                }
                 if current-page == Page.About: AboutPage { }
             }
 

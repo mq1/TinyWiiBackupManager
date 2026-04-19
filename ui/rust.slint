@@ -7,6 +7,8 @@ import {
     QueuedConversion,
     WiiOutputFormat,
     GcOutputFormat,
+    TxtCodesSource,
+    ThemePreference,
 } from "types.slint";
 
 export global Rust {
@@ -18,11 +20,18 @@ export global Rust {
     callback load-osc-apps(bool) -> { h: int, min: int};
     callback set-show-wii(bool);
     callback set-show-gc(bool);
-    callback pick-mount-point() -> string;
+    callback pick-mount-point();
     callback delete-dir(string);
     callback set-view-as(ViewAs);
     callback set-sort-by(SortBy);
     callback set-wii-output-format(WiiOutputFormat);
     callback set-gc-output-format(GcOutputFormat);
     callback add-conversions-to-queue([QueuedConversion]);
+    callback set-always-split(bool);
+    callback set-scrub-update-partition(bool);
+    callback set-delete-sources-games(bool);
+    callback set-delete-sources-apps(bool);
+    callback set-txt-codes-source(TxtCodesSource);
+    callback set-theme-preference(ThemePreference);
+    callback set-mount-point(string);
 }

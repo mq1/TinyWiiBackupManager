@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { ScrollView } from "std-widgets.slint";
+import { ScrollView, Palette } from "std-widgets.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { SettingCard } from "components/setting-card.slint";
 import { MyPalette } from "styling.slint";
@@ -83,11 +83,11 @@ export component SettingsPage inherits Rectangle {
                 icon: IconSet.SquareSplitHorizontal;
                 label: "Split output";
                 items: ["Only when needed (recommended)", "Always 4GB-32KB"];
-                active-item: State.config.contents.always-split ? 1 : 0;
+                active-item: config.contents.always-split ? 1 : 0;
 
                 selected(i) => {
-                    State.config.contents.always-split = i == 1;
-                    State.write-config();
+                    let always-split = i == 1;
+                    Rust.set-always-split(always-split);
                 }
             }
 
@@ -98,11 +98,11 @@ export component SettingsPage inherits Rectangle {
                     "No (recommended)",
                     "Yes (saves some space; update partition is zeroed, but still there)"
                 ];
-                active-item: State.config.contents.scrub-update-partition ? 1 : 0;
+                active-item: config.contents.scrub-update-partition ? 1 : 0;
 
                 selected(i) => {
-                    State.config.contents.scrub-update-partition = i == 1;
-                    State.write-config();
+                    let scrub-update-partition = i == 1;
+                    Rust.set-scrub-update-partition(scrub-update-partition);
                 }
             }
 
@@ -110,11 +110,11 @@ export component SettingsPage inherits Rectangle {
                 icon: IconSet.Trash;
                 label: "Delete sources when adding games";
                 items: ["No (recommended)", "Yes"];
-                active-item: State.config.contents.remove-sources-games ? 1 : 0;
+                active-item: config.contents.remove-sources-games ? 1 : 0;
 
                 selected(i) => {
-                    State.config.contents.remove-sources-games = i == 1;
-                    State.write-config();
+                    let remove-sources-games = i == 1;
+                    Rust.set-remove-sources-games(remove-sources-games);
                 }
             }
 
@@ -122,14 +122,14 @@ export component SettingsPage inherits Rectangle {
                 icon: IconSet.Trash;
                 label: "Delete sources when adding apps";
                 items: ["No (recommended)", "Yes"];
-                active-item: State.config.contents.remove-sources-apps ? 1 : 0;
+                active-item: config.contents.remove-sources-apps ? 1 : 0;
             }
 
             SettingCard {
                 pure function get-active-item() -> int {
-                    if State.config.contents.txt-codes-source == TxtCodesSource.WebArchive {
+                    if config.contents.txt-codes-source == TxtCodesSource.WebArchive {
                         0
-                    } else if State.config.contents.txt-codes-source == TxtCodesSource.GameHacking {
+                    } else if config.contents.txt-codes-source == TxtCodesSource.GameHacking {
                         1
                     } else {
                         2
@@ -147,22 +147,20 @@ export component SettingsPage inherits Rectangle {
 
                 selected(i) => {
                     if i == 0 {
-                        State.config.contents.txt-codes-source = TxtCodesSource.WebArchive;
+                        Rust.set-txt-codes-source(TxtCodesSource.WebArchive);
                     } else if i == 1 {
-                        State.config.contents.txt-codes-source = TxtCodesSource.GameHacking;
+                        Rust.set-txt-codes-source(TxtCodesSource.GameHacking);
                     } else {
-                        State.config.contents.txt-codes-source = TxtCodesSource.Rc24;
+                        Rust.set-txt-codes-source(TxtCodesSource.Rc24);
                     }
-
-                    State.write-config();
                 }
             }
 
             SettingCard {
                 pure function get-active-item() -> int {
-                    if State.config.contents.theme-preference == ThemePreference.System {
+                    if config.contents.theme-preference == ThemePreference.System {
                         0
-                    } else if State.config.contents.theme-preference == ThemePreference.Light {
+                    } else if config.contents.theme-preference == ThemePreference.Light {
                         1
                     } else {
                         2
@@ -176,15 +174,14 @@ export component SettingsPage inherits Rectangle {
 
                 selected(i) => {
                     if i == 0 {
-                        State.config.contents.theme-preference = ThemePreference.System;
+                        Rust.set-theme-preference(ThemePreference.System);
                     } else if i == 1 {
-                        State.config.contents.theme-preference = ThemePreference.Light;
+                        Rust.set-theme-preference(ThemePreference.Light);
+                        Palette.color-scheme = ColorScheme.Light;
                     } else {
-                        State.config.contents.theme-preference = ThemePreference.Dark;
+                        Rust.set-theme-preference(ThemePreference.Dark);
+                        Palette.color-scheme = ColorScheme.Dark;
                     }
-
-                    State.apply-theme();
-                    State.write-config();
                 }
             }
         }

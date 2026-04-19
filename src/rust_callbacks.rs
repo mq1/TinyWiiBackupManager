@@ -1,19 +1,18 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::Rust;
+use crate::{Rust, model::AppModel};
+use slint::WindowHandle;
 
 impl Rust {
-    pub fn register_callbacks(&self) {
+    pub fn register_callbacks(&self, state: &AppModel, window: WindowHandle) {
         self.on_open(|uri| open::that(&uri).into());
 
-        let weak = app.as_weak();
+        let state_clone = state.clone();
+        let window_clone = window.clone();
         self.on_pick_mount_point(move || {
-            let app = weak.upgrade().unwrap();
-
-            match dialogs::pick_mount_point(app.window()) {
-                Some(path) => path.to_string_lossy().to_shared_string(),
-                None => SharedString::new(),
+            if let Some(path) = dialogs::pick_mount_point(window_clone) {
+                state_clone.set_mount_point(path);
             }
         });
 

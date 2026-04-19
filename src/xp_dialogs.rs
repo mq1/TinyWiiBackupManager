@@ -18,8 +18,7 @@ use windows::core::{PCWSTR, PWSTR};
 const MAX_PATH: usize = 260;
 const MAX_PATH_LARGE: usize = 32_768;
 
-pub fn get_hwnd(window: &slint::Window) -> Option<HWND> {
-    let handle = window.window_handle();
+pub fn get_hwnd(window: &slint::WindowHandle) -> Option<HWND> {
     let handle = handle.window_handle().ok()?;
     let RawWindowHandle::Win32(handle) = handle.as_raw() else {
         return None;
@@ -30,7 +29,7 @@ pub fn get_hwnd(window: &slint::Window) -> Option<HWND> {
     Some(hwnd)
 }
 
-pub fn pick_dir(window: &slint::Window, title: &str) -> Option<PathBuf> {
+pub fn pick_dir(window: &slint::WindowHandle, title: &str) -> Option<PathBuf> {
     let title_wide = widen(title);
     let mut buf = [0u16; MAX_PATH];
 
@@ -60,7 +59,11 @@ pub fn pick_dir(window: &slint::Window, title: &str) -> Option<PathBuf> {
     }
 }
 
-pub fn pick_file(window: &slint::Window, title: &str, filter: (&str, &[&str])) -> Option<PathBuf> {
+pub fn pick_file(
+    window: &slint::WindowHandle,
+    title: &str,
+    filter: (&str, &[&str]),
+) -> Option<PathBuf> {
     let title_wide = widen(title);
     let filter_wide = get_filter_utf16(filter);
     let mut buf = [0u16; MAX_PATH_LARGE];
@@ -89,7 +92,11 @@ pub fn pick_file(window: &slint::Window, title: &str, filter: (&str, &[&str])) -
     }
 }
 
-pub fn pick_files(window: &slint::Window, title: &str, filter: (&str, &[&str])) -> Vec<PathBuf> {
+pub fn pick_files(
+    window: &slint::WindowHandle,
+    title: &str,
+    filter: (&str, &[&str]),
+) -> Vec<PathBuf> {
     let title_wide = widen(title);
     let filter_wide = get_filter_utf16(filter);
     let mut buf = vec![0u16; MAX_PATH_LARGE];
@@ -121,7 +128,7 @@ pub fn pick_files(window: &slint::Window, title: &str, filter: (&str, &[&str])) 
 }
 
 pub fn save_file(
-    window: &slint::Window,
+    window: &slint::WindowHandle,
     title: &str,
     filter: (&str, &[&str]),
     filename: &str,

@@ -6,7 +6,7 @@ use crate::{
     extensions::{INPUT_DIALOG_FILTER, OUTPUT_DIALOG_FILTER},
     util,
 };
-use slint::Window;
+use slint::WindowHandle;
 use std::path::PathBuf;
 use walkdir::WalkDir;
 
@@ -16,10 +16,10 @@ use rfd::FileDialog;
 #[cfg(windows)]
 use crate::xp_dialogs;
 
-pub fn pick_mount_point(window: &Window) -> Option<PathBuf> {
+pub fn pick_mount_point(window: &WindowHandle) -> Option<PathBuf> {
     #[cfg(unix)]
     let res = FileDialog::new()
-        .set_parent(&window.window_handle())
+        .set_parent(window)
         .set_title("Select Drive/Mount Point")
         .pick_folder();
 
