@@ -1,12 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::xp_dialogs::get_hwnd;
+use crate::{ThemePreference, xp_dialogs::get_hwnd};
 use windows::Win32::Graphics::Dwm::DWMWA_CAPTION_COLOR;
 use windows::Win32::Graphics::Dwm::DwmSetWindowAttribute;
 
-pub fn set(window: &slint::WindowHandle, is_dark: bool) {
-    let color: u32 = if is_dark {
+pub fn set(window: &slint::WindowHandle, theme_preference: ThemePreference) {
+    let color: u32 = if theme_preference == ThemePreference::Dark {
         0x00_1e_1e_1e
     } else {
         0x00_ff_ff_ff

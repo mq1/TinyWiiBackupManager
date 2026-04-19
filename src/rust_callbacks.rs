@@ -5,6 +5,12 @@ use crate::{AppWindow, Rust, dialogs, game, homebrew_app, model::AppModel, osc};
 use slint::ComponentHandle;
 use std::path::Path;
 
+#[cfg(windows)]
+mod window_color;
+
+#[cfg(windows)]
+mod xp_dialogs;
+
 impl Rust<'_> {
     pub fn register_callbacks(&self, state: &AppModel, app: &AppWindow) {
         let state_clone = state.clone();
@@ -108,12 +114,19 @@ impl Rust<'_> {
             state_clone.close_notification(i as usize);
         });
 
-        #[cfg(windows)]
-        {
-            let window_handle = app.window().window_handle();
-            self.on_set_window_color(move |is_dark| {
-                window_color::set(&window_handle, is_dark);
-            });
-        }
+        let state_clone = state.clone();
+        let weak = app.as_weak();
+        self.on_set_theme_preference(move |theme_preference| {
+            state_clone.set_theme_preference(theme_preference);
+
+            let app = weak.upgrade().unwrap();
+            app.set_config(state_clone.config());
+
+            #[cfg(windows)]
+            {
+                let window_handle = app.window().window_handle();
+                window_color::set(&window_handle, theme_preference);
+            }
+        });
     }
 }

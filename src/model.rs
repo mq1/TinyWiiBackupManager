@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    AppWindow, Config, Game, HomebrewApp, Notification, OscApp, QueuedConversion, SortBy, ViewAs,
-    game, homebrew_app, osc,
+    AppWindow, Config, Game, HomebrewApp, Notification, OscApp, QueuedConversion, SortBy,
+    ThemePreference, ViewAs, game, homebrew_app, osc,
 };
 use slint::{FilterModel, ModelRc, SharedString, SortModel, ToSharedString, VecModel};
 use std::{cell::RefCell, cmp::Ordering, path::PathBuf, rc::Rc};
@@ -144,6 +144,14 @@ impl AppModel {
         }
 
         self.filtered_games.reset();
+    }
+
+    pub fn set_theme_preference(&self, theme_preference: ThemePreference) {
+        self.config.borrow_mut().contents.theme_preference = theme_preference;
+
+        if let Err(e) = self.config.borrow().write() {
+            self.notifications.push(e.into());
+        }
     }
 
     pub fn set_mount_point(&self, mount_point: PathBuf) {
