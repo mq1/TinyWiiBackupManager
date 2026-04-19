@@ -26,9 +26,9 @@ impl Rust<'_> {
 
             if let Some(path) = dialogs::pick_mount_point(&window_handle) {
                 config.contents.mount_point = path.to_string_lossy().to_shared_string();
+                state_clone.set_config(config);
             }
 
-            state_clone.set_config(config);
             config
         });
 
