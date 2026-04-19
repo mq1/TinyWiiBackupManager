@@ -1,0 +1,55 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { Modal } from "modal.slint";
+import { ScrollView } from "std-widgets.slint";
+import { HorizontalLine } from "horizontal-line.slint";
+import { IconButton, IconButtonKind } from "icon-button.slint";
+import { Icon, IconSet } from "@lucide";
+
+export component ConfirmationModal inherits Modal {
+    in property <string> message;
+    in property <bool> destructive: false;
+    in property <Icon> btn-icon: IconSet.WifiZero;
+
+    callback cancelled();
+    callback confirmed();
+
+    VerticalLayout {
+        spacing: 10px;
+        alignment: space-between;
+
+        ScrollView {
+            VerticalLayout {
+                padding: 20px;
+
+                Text {
+                    text: message;
+                }
+            }
+        }
+
+        VerticalLayout {
+            HorizontalLine { }
+
+            HorizontalLayout {
+                alignment: end;
+                padding: 20px;
+                padding-top: 10px;
+                spacing: 10px;
+
+                IconButton {
+                    label: "Cancel";
+                    clicked => cancelled();
+                }
+
+                IconButton {
+                    label: "Ok";
+                    kind: destructive ? IconButtonKind.Destructive : IconButtonKind.Primary;
+                    icon: btn-icon;
+                    clicked => confirmed();
+                }
+            }
+        }
+    }
+}

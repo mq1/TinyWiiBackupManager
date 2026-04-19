@@ -6,11 +6,13 @@ import { CheckBox } from "std-widgets.slint";
 import { TooltipArea } from "tooltip-area.slint";
 import { VerticalLine } from "vertical-line.slint";
 import { IconDisplay, IconSet } from "@lucide";
-import { State } from "../state.slint";
 import { MyPalette } from "../styling.slint";
 import { Rust } from "../rust.slint";
+import { Config } from "../types.slint";
 
 export component ShowWiiGc inherits Card {
+    in-out property <Config> config;
+
     height: 38px;
 
     HorizontalLayout {
@@ -19,11 +21,10 @@ export component ShowWiiGc inherits Card {
         spacing: 5px;
 
         CheckBox {
-            checked: State.config.contents.show-wii;
+            checked: config.contents.show-wii;
             toggled => {
-                State.config.contents.show-wii = self.checked;
-                State.write-config();
-                Rust.set-show-wii(self.checked);
+                config.contents.show-wii = self.checked;
+                Rust.set-config(config);
             }
         }
 
@@ -41,11 +42,10 @@ export component ShowWiiGc inherits Card {
         VerticalLine { }
 
         CheckBox {
-            checked: State.config.contents.show-gc;
+            checked: config.contents.show-gc;
             toggled => {
-                State.config.contents.show-gc = self.checked;
-                State.write-config();
-                Rust.set-show-gc(self.checked);
+                config.contents.show-gc = self.checked;
+                Rust.set-config(config);
             }
         }
 

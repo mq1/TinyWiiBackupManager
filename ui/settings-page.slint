@@ -3,7 +3,6 @@
 
 import { ScrollView } from "std-widgets.slint";
 import { IconSet, IconDisplay } from "@lucide";
-import { State } from "state.slint";
 import { SettingCard } from "components/setting-card.slint";
 import { MyPalette } from "styling.slint";
 import {
@@ -11,9 +10,13 @@ import {
     GcOutputFormat,
     TxtCodesSource,
     ThemePreference,
+    Config,
 } from "types.slint";
+import { Rust } from "rust.slint";
 
 export component SettingsPage inherits Rectangle {
+    in property <Config> config;
+
     HorizontalLayout {
         x: 10px;
         y: 20px;
@@ -47,16 +50,14 @@ export component SettingsPage inherits Rectangle {
                 icon: IconSet.Disc3;
                 label: "Wii output format";
                 items: ["WBFS (recommended)", "ISO (very large)"];
-                active-item: State.config.contents.wii-output-format == WiiOutputFormat.Wbfs ? 0 : 1;
+                active-item: config.contents.wii-output-format == WiiOutputFormat.Wbfs ? 0 : 1;
 
                 selected(i) => {
                     if i == 0 {
-                        State.config.contents.wii-output-format = WiiOutputFormat.Wbfs;
+                        Rust.set-wii-output-format(WiiOutputFormat.Wbfs);
                     } else {
-                        State.config.contents.wii-output-format = WiiOutputFormat.Iso;
+                        Rust.set-wii-output-format(WiiOutputFormat.Iso);
                     }
-
-                    State.write-config();
                 }
             }
 
@@ -67,16 +68,14 @@ export component SettingsPage inherits Rectangle {
                     "ISO (recommended)",
                     "CISO (much smaller, slightly slower, less metadata in game loaders)"
                 ];
-                active-item: State.config.contents.gc-output-format == GcOutputFormat.Iso ? 0 : 1;
+                active-item: config.contents.gc-output-format == GcOutputFormat.Iso ? 0 : 1;
 
                 selected(i) => {
                     if i == 0 {
-                        State.config.contents.gc-output-format = GcOutputFormat.Iso;
+                        Rust.set-gc-output-format(GcOutputFormat.Iso);
                     } else {
-                        State.config.contents.gc-output-format = GcOutputFormat.Ciso;
+                        Rust.set-gc-output-format(GcOutputFormat.Ciso);
                     }
-
-                    State.write-config();
                 }
             }
 

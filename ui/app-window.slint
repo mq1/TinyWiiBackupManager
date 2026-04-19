@@ -6,8 +6,16 @@ import { Navbar } from "components/navbar.slint";
 import { GameGridPage } from "game-grid-page.slint";
 import { SettingsPage } from "settings-page.slint";
 import { AboutPage } from "about-page.slint";
-import { Page, ViewAs } from "types.slint";
-import { State, InitializeState } from "state.slint";
+import {
+    Page,
+    ViewAs,
+    Game,
+    HomebrewApp,
+    OscApp,
+    Notification,
+    Config,
+    QueuedConversion,
+} from "types.slint";
 import { MyPalette } from "styling.slint";
 import { Rust } from "rust.slint";
 import { VerticalLine } from "components/vertical-line.slint";
@@ -15,10 +23,6 @@ import { Card } from "components/card.slint";
 import { GameTablePage } from "game-table-page.slint";
 import { Notifications } from "components/notifications.slint";
 import { GameInfoModal } from "components/game-info-modal.slint";
-import { DeletingDirModal } from "components/deleting-dir-modal.slint";
-import {
-    ConfirmConversionModal,
-} from "components/confirm-conversion-modal.slint";
 import { HomebrewAppsGridPage } from "homebrew-apps-grid-page.slint";
 import { HomebrewAppInfoModal } from "components/homebrew-app-info-modal.slint";
 import { HomebrewAppsTablePage } from "homebrew-apps-table-page.slint";
@@ -26,9 +30,10 @@ import { ScrubbingGameModal } from "components/scrubbing-game-modal.slint";
 import { OscGridPage } from "osc-grid-page.slint";
 import { OscTablePage } from "osc-table-page.slint";
 import { OscAppInfoModal } from "components/osc-app-info-modal.slint";
+import { ConfirmationModal } from "components/confirmation-modal.slint";
 
 export * from "types.slint";
-export { State, Rust }
+export { Rust }
 
 export component AppWindow inherits Window {
     min-width: 800px;
@@ -37,14 +42,30 @@ export component AppWindow inherits Window {
     title: "TinyWiiBackupManager  ›  \{State.drive-info.label.is-empty ? "No drive selected" : State.drive-info.label}  (\{State.drive-info.used-gib.to-fixed(2)}/\{State.drive-info.total-gib.to-fixed(2)} GiB)";
     default-font-size: 14px;
 
-    pure function is-modal-open() -> bool {
-        !State.current-game.path.is-empty || !State.current-homebrew-app.path.is-empty || State.adding-games.length > 0 || !State.deleting-dir.is-empty || !State.scrubbing-game.path.is-empty || !State.current-osc-app.meta.slug.is-empty
+    private property <Page> current-page;
+    private property <string> deleting-dir;
+    private property <[QueuedConversion]> conversion-queue-buffer;
+
+    in property <Config> config;
+    in property <[Game]> games;
+    in property <[HomebrewApp]> homebrew-apps;
+    in property <[OscApp]> osc-apps;
+    in property <[Notification]> notifications;
+    in property <[string]> status;
+
+    function pick-mount-point() {
+        let mount_point = Rust.pick-mount-point();
+        if !mount_point.is-empty {
+            config.contents.mount-point = mount_point;
+            Rust.set-config(config);
+        }
     }
 
-    InitializeState { }
-
     HorizontalLayout {
-        Navbar { }
+        Navbar {
+            current-page <=> current-page;
+            pick-mount-point => pick-mount-point();
+        }
 
         VerticalLayout {
             Rectangle {
@@ -53,27 +74,49 @@ export component AppWindow inherits Window {
                 border-width: 1px;
                 border-color: MyPalette.border;
 
-                if State.current-page == Page.Games && State.config.contents.view-as == ViewAs.Grid: GameGridPage { }
-                if State.current-page == Page.Games && State.config.contents.view-as == ViewAs.Table: GameTablePage { }
-                if State.current-page == Page.HomebrewApps && State.config.contents.view-as == ViewAs.Grid: HomebrewAppsGridPage { }
-                if State.current-page == Page.HomebrewApps && State.config.contents.view-as == ViewAs.Table: HomebrewAppsTablePage { }
-                if State.current-page == Page.Osc && State.config.contents.view-as == ViewAs.Grid: OscGridPage { }
-                if State.current-page == Page.Osc && State.config.contents.view-as == ViewAs.Table: OscTablePage { }
-                if State.current-page == Page.Settings: SettingsPage { }
-                if State.current-page == Page.About: AboutPage { }
+                if current-page == Page.Games && config.contents.view-as == ViewAs.Grid: GameGridPage {
+                    games: games;
+                }
+                if current-page == Page.Games && config.contents.view-as == ViewAs.Table: GameTablePage { }
+                if current-page == Page.HomebrewApps && config.contents.view-as == ViewAs.Grid: HomebrewAppsGridPage { }
+                if current-page == Page.HomebrewApps && config.contents.view-as == ViewAs.Table: HomebrewAppsTablePage { }
+                if current-page == Page.Osc && config.contents.view-as == ViewAs.Grid: OscGridPage { }
+                if current-page == Page.Osc && config.contents.view-as == ViewAs.Table: OscTablePage { }
+                if current-page == Page.Settings: SettingsPage { }
+                if current-page == Page.About: AboutPage { }
             }
 
-            if !State.status.is-empty: HorizontalLayout {
+            if status.length > 0: HorizontalLayout {
                 VerticalLine { }
 
                 HorizontalLayout {
                     padding: 10px;
 
                     Text {
-                        text: State.status;
+                        text: status[0];
                     }
                 }
             }
+        }
+    }
+
+    if !deleting-dir.is-empty: ConfirmationModal {
+        cancelled => {
+            deleting-dir = "";
+        }
+        confirmed => {
+            Rust.delete_dir(deleting-dir);
+            deleting-dir = "";
+        }
+    }
+
+    if conversion-queue-buffer.length > 0: ConfirmationModal {
+        cancelled => {
+            conversion-queue-buffer = [];
+        }
+        confirmed => {
+            Rust.add-conversions-to-queue(conversion-queue-buffer);
+            conversion-queue-buffer = [];
         }
     }
 
@@ -103,23 +146,18 @@ export component AppWindow inherits Window {
             x: (root.width - self.width) / 2;
             y: (root.height - self.height) / 2;
         }
-        if State.adding-games.length > 0: ConfirmConversionModal {
-            x: (root.width - self.width) / 2;
-            y: (root.height - self.height) / 2;
-        }
-        if !State.deleting-dir.is-empty: DeletingDirModal {
-            x: (root.width - self.width) / 2;
-            y: (root.height - self.height) / 2;
-        }
+
         if !State.current-osc-app.meta.slug.is-empty: OscAppInfoModal {
             x: (root.width - self.width) / 2;
             y: (root.height - self.height) / 2;
         }
     }
 
-    if State.notifications.length > 0: Notifications {
+    if notifications.length > 0: Notifications {
         x: root.width - self.width;
         y: root.height - self.height;
+
+        notifications: notifications;
     }
 
     if !State.tooltip.text.is-empty: Card {

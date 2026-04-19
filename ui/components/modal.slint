@@ -1,0 +1,38 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { MyPalette } from "../styling.slint";
+import { Card } from "card.slint";
+
+export component Modal inherits Rectangle {
+    height: 100%;
+    width: 100%;
+
+    // block input in the main view
+    TouchArea {
+        x: 0px;
+        y: 0px;
+        width: root.width;
+        height: root.height;
+    }
+
+    // darken the main view to signal that the input is blocked
+    Rectangle {
+        x: 0px;
+        y: 0px;
+        width: root.width;
+        height: root.height;
+        background: MyPalette.overlay;
+    }
+
+    // the actual modal
+    Card {
+        width: 600px;
+        height: 400px;
+
+        x: (root.width - self.width) / 2;
+        y: (root.height - self.height) / 2;
+
+        @children
+    }
+}

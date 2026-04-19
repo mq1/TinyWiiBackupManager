@@ -1,9 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{Game, HomebrewApp, OscApp, SortBy, State, game, homebrew_app, osc};
+use crate::{
+    AppWindow, Config, Game, HomebrewApp, Notification, OscApp, QueuedConversion, SortBy, ViewAs,
+    game, homebrew_app, osc,
+};
 use slint::{FilterModel, ModelRc, SharedString, SortModel, VecModel};
-use std::{cell::RefCell, cmp::Ordering, rc::Rc};
+use std::{cell::RefCell, cmp::Ordering, ops::Deref, rc::Rc};
 
 type SortedModel<T> = SortModel<Rc<VecModel<T>>, Box<dyn Fn(&T, &T) -> Ordering>>;
 type FilteredModel<T> = FilterModel<Rc<SortedModel<T>>, Box<dyn Fn(&T) -> bool>>;
@@ -11,10 +14,7 @@ type JustFilteredModel<T> = FilterModel<Rc<VecModel<T>>, Box<dyn Fn(&T) -> bool>
 
 #[derive(Clone)]
 pub struct AppModel {
-    sort_by: Rc<RefCell<SortBy>>,
-
-    show_wii: Rc<RefCell<bool>>,
-    show_gc: Rc<RefCell<bool>>,
+    config: Rc<RefCell<Config>>,
 
     games: Rc<VecModel<Game>>,
     homebrew_apps: Rc<VecModel<HomebrewApp>>,
@@ -30,13 +30,18 @@ pub struct AppModel {
     filtered_games: Rc<FilteredModel<Game>>,
     filtered_homebrew_apps: Rc<FilteredModel<HomebrewApp>>,
     filtered_osc_apps: Rc<JustFilteredModel<OscApp>>,
+
+    notifications: Rc<VecModel<Notification>>,
+
+    conversion_queue: Rc<VecModel<QueuedConversion>>,
+
+    // it's a VecModel for reactivity, but holds a single value
+    status: Rc<VecModel<SharedString>>,
 }
 
 impl AppModel {
-    pub fn new(sort_by: SortBy, show_wii: bool, show_gc: bool) -> Self {
-        let sort_by = Rc::new(RefCell::new(sort_by));
-        let show_wii = Rc::new(RefCell::new(show_wii));
-        let show_gc = Rc::new(RefCell::new(show_gc));
+    pub fn new(config: Config) -> Self {
+        let config = Rc::new(RefCell::new(config));
 
         let games = Rc::new(VecModel::from(Vec::new()));
         let homebrew_apps = Rc::new(VecModel::from(Vec::new()));
@@ -55,7 +60,7 @@ impl AppModel {
 
         let filtered_games = Rc::new(FilterModel::new(
             sorted_games.clone(),
-            game::get_filter_fn(games_filter.clone(), show_wii.clone(), show_gc.clone()),
+            game::get_filter_fn(games_filter.clone(), config.clone()),
         ));
         let filtered_homebrew_apps = Rc::new(FilterModel::new(
             sorted_homebrew_apps.clone(),
@@ -66,10 +71,14 @@ impl AppModel {
             osc::get_filter_fn(osc_apps_filter.clone()),
         ));
 
+        let notifications = Rc::new(VecModel::from(Vec::new()));
+
+        let conversion_queue = Rc::new(VecModel::from(Vec::new()));
+
+        let status = Rc::new(VecModel::from(Vec::new()));
+
         Self {
-            sort_by,
-            show_wii,
-            show_gc,
+            config,
             games,
             homebrew_apps,
             osc_apps,
@@ -81,29 +90,61 @@ impl AppModel {
             filtered_games,
             filtered_homebrew_apps,
             filtered_osc_apps,
+            notifications,
+            conversion_queue,
+            status,
         }
     }
 
-    pub fn init_state(&self, state: &State<'_>) {
-        state.set_games(ModelRc::from(self.filtered_games.clone()));
-        state.set_homebrew_apps(ModelRc::from(self.filtered_homebrew_apps.clone()));
-        state.set_osc_apps(ModelRc::from(self.filtered_osc_apps.clone()));
+    pub fn games(&self) -> Rc<FilteredModel<Game>> {
+        self.filtered_games.clone()
     }
 
-    pub fn sort(&self, sort_by: SortBy) {
-        *self.sort_by.borrow_mut() = sort_by;
+    pub fn homebrew_apps(&self) -> Rc<FilteredModel<HomebrewApp>> {
+        self.filtered_homebrew_apps.clone()
+    }
+
+    pub fn osc_apps(&self) -> Rc<JustFilteredModel<OscApp>> {
+        self.filtered_osc_apps.clone()
+    }
+
+    pub fn notifications(&self) -> Rc<VecModel<Notification>> {
+        self.notifications.clone()
+    }
+
+    pub fn set_view_as(&self, view_as: ViewAs) {
+        self.config.borrow_mut().view_as = view_as;
+        if let Err(e) = self.config.write() {
+            self.notifications.push(e.into());
+        }
+    }
+
+    pub fn set_sort_by(&self, sort_by: SortBy) {
+        self.config.borrow_mut().sort_by = sort_by;
+        if let Err(e) = self.config.write() {
+            self.notifications.push(e.into());
+        }
+
         self.sorted_games.reset();
         self.sorted_homebrew_apps.reset();
     }
 
     pub fn set_show_wii(&self, show_wii: bool) {
-        *self.show_wii.borrow_mut() = show_wii;
+        self.config.borrow_mut().show_wii = show_wii;
+        if let Err(e) = self.config.write() {
+            self.notifications.push(e.into());
+        }
+
         self.filtered_games.reset();
     }
 
     pub fn set_show_gc(&self, show_gc: bool) {
-        *self.show_gc.borrow_mut() = show_gc;
-        self.filtered_homebrew_apps.reset();
+        self.config.borrow_mut().show_gc = show_gc;
+        if let Err(e) = self.config.write() {
+            self.notifications.push(e.into());
+        }
+
+        self.filtered_games.reset();
     }
 
     pub fn set_games_filter(&self, filter: SharedString) {
@@ -134,5 +175,41 @@ impl AppModel {
     pub fn set_osc_apps(&self, osc_apps: Vec<OscApp>) {
         self.osc_apps.clear();
         self.osc_apps.extend(osc_apps);
+    }
+
+    pub fn add_notification(&self, notification: Notification) {
+        self.notifications.push(notification);
+    }
+
+    pub fn close_notification(&self, index: usize) {
+        self.notifications.remove(index);
+    }
+
+    pub fn add_conversions_to_queue(
+        &self,
+        conversions: impl IntoIterator<Item = QueuedConversion>,
+    ) {
+        self.conversion_queue.extend(conversions);
+    }
+
+    pub fn remove_queued_conversion(&self, index: usize) {
+        self.conversion_queue.remove(index);
+    }
+
+    pub fn clear_conversion_queue(&self) {
+        self.conversion_queue.clear();
+    }
+
+    pub fn conversion_queue(&self) -> Rc<VecModel<QueuedConversion>> {
+        self.conversion_queue.clone()
+    }
+
+    pub fn status(&self) -> Rc<VecModel<SharedString>> {
+        self.status.clone()
+    }
+
+    pub fn set_status(&self, status: SharedString) {
+        self.status.clear();
+        self.status.push(status);
     }
 }

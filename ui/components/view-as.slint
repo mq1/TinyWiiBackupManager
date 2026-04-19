@@ -5,12 +5,15 @@ import { Card } from "card.slint";
 import { TooltipArea } from "tooltip-area.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { MyPalette } from "../styling.slint";
-import { State } from "../state.slint";
 import { ViewAs } from "../types.slint";
+import { Config } from "../types.slint";
+import { Rust } from "../rust.slint";
 
 export component ViewAs inherits Card {
+    in property <Config> config;
+
     pure function get-bg(view-as: ViewAs, hovered: bool) -> color {
-        if State.config.contents.view-as == view-as {
+        if config.contents.view-as == view-as {
             MyPalette.selection-background
         } else if hovered {
             MyPalette.alternate-background
@@ -31,8 +34,8 @@ export component ViewAs inherits Card {
             tooltip: "View as grid";
             background: get-bg(ViewAs.Grid, self.has-hover);
             clicked => {
-                State.config.contents.view-as = ViewAs.Grid;
-                State.write-config();
+                config.contents.view-as = ViewAs.Grid;
+                Rust.set-config(config);
             }
 
             IconDisplay {
@@ -49,8 +52,8 @@ export component ViewAs inherits Card {
             tooltip: "View as table";
             background: get-bg(ViewAs.Table, self.has-hover);
             clicked => {
-                State.config.contents.view-as = ViewAs.Table;
-                State.write-config();
+                config.contents.view-as = ViewAs.Table;
+                Rust.set-config(config);
             }
 
             IconDisplay {

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{Game, SortBy, data_dir::DATA_DIR, id_map, util::GIB};
+use crate::{Config, Game, SortBy, data_dir::DATA_DIR, id_map, util::GIB};
 use anyhow::Result;
 use slint::{Image, SharedString, ToSharedString};
 use std::{cell::RefCell, cmp::Ordering, fs, path::Path, rc::Rc};
@@ -73,17 +73,16 @@ pub fn get_compare_fn(sort_by: Rc<RefCell<SortBy>>) -> Box<dyn Fn(&Game, &Game) 
 
 pub fn get_filter_fn(
     query_lowercase: Rc<RefCell<SharedString>>,
-    show_wii: Rc<RefCell<bool>>,
-    show_gc: Rc<RefCell<bool>>,
+    config: Rc<RefCell<Config>>,
 ) -> Box<dyn Fn(&Game) -> bool> {
     Box::new(move |game| {
-        let show_wii = show_wii.borrow();
-        if !*show_wii && game.is_wii {
+        let config = config.borrow();
+
+        if !config.contents.show_wii && game.is_wii {
             return false;
         }
 
-        let show_gc = show_gc.borrow();
-        if !*show_gc && !game.is_wii {
+        if !config.contents.show_gc && !game.is_wii {
             return false;
         }
 

@@ -2,19 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import {
-    Config,
-    EmptyResult,
-    Game,
-    DiscInfo,
-    DriveInfo,
-    QueuedConversion,
-    ConfigContents,
-    Notification,
+    ViewAs,
     SortBy,
-    HomebrewApp,
-    QueuedScrubConversion,
-    OscAppMeta,
-    InstallHomebrewAppsResult,
+    QueuedConversion,
+    WiiOutputFormat,
+    GcOutputFormat,
 } from "types.slint";
 
 export global Rust {
@@ -23,29 +15,14 @@ export global Rust {
     callback filter-homebrew-apps(string);
     callback filter-osc-apps(string);
     callback load-homebrew-apps(string);
-    callback sort(SortBy);
     callback load-osc-apps(bool) -> { h: int, min: int};
     callback set-show-wii(bool);
     callback set-show-gc(bool);
-
-    callback open(string) -> EmptyResult;
     callback pick-mount-point() -> string;
-    callback get-drive-info(string) -> DriveInfo;
-    callback load-config() -> Config;
-    callback write-config(Config) -> EmptyResult;
-    callback delete-dir(string) -> EmptyResult;
-    callback get-disc-info(string) -> DiscInfo;
-    callback pick-games([Game]) -> [QueuedConversion];
-    callback pick-games-r([Game]) -> [QueuedConversion];
-    callback add-notification([Notification], Notification);
-    callback close-notification([Notification], int);
-    callback add-to-queue([QueuedConversion], [QueuedConversion]);
-    callback pick-archive-dest(Game) -> string;
-    callback set-window-color(bool);
-    callback add-to-conversion-queue([QueuedConversion], QueuedConversion);
-    callback run-conversion([QueuedConversion], ConfigContents, DriveInfo);
-    callback load-osc-icons([OscAppMeta]);
-    callback install-homebrew-apps(string) -> InstallHomebrewAppsResult;
-    callback cache-covers();
-    callback checksum(Game);
+    callback delete-dir(string);
+    callback set-view-as(ViewAs);
+    callback set-sort-by(SortBy);
+    callback set-wii-output-format(WiiOutputFormat);
+    callback set-gc-output-format(GcOutputFormat);
+    callback add-conversions-to-queue([QueuedConversion]);
 }

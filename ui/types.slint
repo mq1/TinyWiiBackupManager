@@ -81,12 +81,6 @@ export struct Config {
     contents: ConfigContents,
 }
 
-export enum IconButtonKind {
-    Primary,
-    Secondary,
-    Destructive,
-}
-
 export struct Game {
     path: string,
     is-wii: bool,
@@ -130,10 +124,6 @@ export struct DiscInfo {
     disc-version: int,
     crc32: string,
     is-worth-scrubbing: bool,
-}
-
-export struct EmptyResult {
-    err: string,
 }
 
 export enum ConversionKind {

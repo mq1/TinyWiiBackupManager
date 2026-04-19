@@ -54,9 +54,6 @@ impl Config {
         if is_new {
             self.contents
                 .known_drives
-                .as_any()
-                .downcast_ref::<VecModel<SharedString>>()
-                .unwrap()
                 .push(self.contents.mount_point.clone());
 
             let _ = self.write();

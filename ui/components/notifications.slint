@@ -1,19 +1,22 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { State } from "../state.slint";
 import { Card } from "card.slint";
 import { IconButton } from "icon-button.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { MyPalette } from "../styling.slint";
+import { Notification } from "../types.slint";
+import { Rust } from "../rust.slint";
 
 export component Notifications inherits VerticalLayout {
+    in property <[Notification]> notifications;
+
     width: self.preferred-width;
     height: self.preferred-height;
     padding: 10px;
     spacing: 5px;
 
-    for notification[i] in State.notifications: Card {
+    for notification[i] in notifications: Card {
         height: 40px;
 
         h := HorizontalLayout {
@@ -42,7 +45,7 @@ export component Notifications inherits VerticalLayout {
 
                 IconButton {
                     icon: IconSet.X;
-                    clicked => State.close-notification(i);
+                    clicked => Rust.close-notification(i);
                     rounded: true;
                     height: 24px;
                     width: 24px;

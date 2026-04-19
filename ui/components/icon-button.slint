@@ -4,10 +4,14 @@
 import { Icon, IconDisplay, IconSet } from "@lucide";
 import { Palette } from "std-widgets.slint";
 import { MyPalette } from "../styling.slint";
-import { IconButtonKind } from "../types.slint";
 import { Card } from "card.slint";
-import { State } from "../state.slint";
 import { TooltipArea } from "tooltip-area.slint";
+
+export enum IconButtonKind {
+    Primary,
+    Secondary,
+    Destructive,
+}
 
 export component IconButton inherits TooltipArea {
     in property <string> label;
