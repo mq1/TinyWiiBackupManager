@@ -15,21 +15,34 @@ impl Rust<'_> {
         });
 
         let state_clone = state.clone();
-        let window_handle = app.window().window_handle();
+        let weak = app.as_weak();
         self.on_pick_mount_point(move || {
+            let app = weak.upgrade().unwrap();
+            let window_handle = app.window().window_handle();
+
             if let Some(path) = dialogs::pick_mount_point(&window_handle) {
                 state_clone.set_mount_point(path);
             }
+
+            app.set_config(state_clone.config());
         });
 
         let state_clone = state.clone();
+        let weak = app.as_weak();
         self.on_set_view_as(move |view_as| {
             state_clone.set_view_as(view_as);
+
+            let app = weak.upgrade().unwrap();
+            app.set_config(state_clone.config());
         });
 
         let state_clone = state.clone();
+        let weak = app.as_weak();
         self.on_set_sort_by(move |sort_by| {
             state_clone.set_sort_by(sort_by);
+
+            let app = weak.upgrade().unwrap();
+            app.set_config(state_clone.config());
         });
 
         let state_clone = state.clone();
@@ -63,16 +76,35 @@ impl Rust<'_> {
         self.on_filter_osc_apps(move |filter| state_clone.set_osc_apps_filter(filter));
 
         let state_clone = state.clone();
-        self.on_set_sort_by(move |sort_by| state_clone.set_sort_by(sort_by));
+        let weak = app.as_weak();
+        self.on_set_sort_by(move |sort_by| {
+            state_clone.set_sort_by(sort_by);
+
+            let app = weak.upgrade().unwrap();
+            app.set_config(state_clone.config());
+        });
 
         let state_clone = state.clone();
-        self.on_set_show_wii(move |show_wii| state_clone.set_show_wii(show_wii));
+        let weak = app.as_weak();
+        self.on_set_show_wii(move |show_wii| {
+            state_clone.set_show_wii(show_wii);
+
+            let app = weak.upgrade().unwrap();
+            app.set_config(state_clone.config());
+        });
 
         let state_clone = state.clone();
-        self.on_set_show_gc(move |show_gc| state_clone.set_show_gc(show_gc));
+        let weak = app.as_weak();
+        self.on_set_show_gc(move |show_gc| {
+            state_clone.set_show_gc(show_gc);
+
+            let app = weak.upgrade().unwrap();
+            app.set_config(state_clone.config());
+        });
 
         let state_clone = state.clone();
         self.on_close_notification(move |i| {
+            #[allow(clippy::cast_possible_truncation)]
             state_clone.close_notification(i as usize);
         });
 

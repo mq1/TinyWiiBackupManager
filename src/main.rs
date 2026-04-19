@@ -59,10 +59,9 @@ fn main() -> Result<()> {
 
     let config = Config::load();
     let app = AppWindow::new()?;
-    let state = AppModel::new(config.clone());
+    let state = AppModel::new(config);
 
-    app.set_config(config);
-    state.wire(&app);
+    state.init_app(&app);
 
     app.global::<Rust<'_>>().register_callbacks(&state, &app);
 

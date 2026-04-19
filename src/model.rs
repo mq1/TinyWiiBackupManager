@@ -93,13 +93,18 @@ impl AppModel {
         }
     }
 
-    pub fn wire(&self, app: &AppWindow) {
+    pub fn init_app(&self, app: &AppWindow) {
         app.set_games(ModelRc::from(self.filtered_games.clone()));
         app.set_homebrew_apps(ModelRc::from(self.filtered_homebrew_apps.clone()));
         app.set_osc_apps(ModelRc::from(self.filtered_osc_apps.clone()));
         app.set_notifications(ModelRc::from(self.notifications.clone()));
         app.set_conversion_queue(ModelRc::from(self.conversion_queue.clone()));
         app.set_conversion_queue_buffer(ModelRc::from(self.conversion_queue_buffer.clone()));
+        app.set_config(self.config());
+    }
+
+    pub fn config(&self) -> Config {
+        self.config.borrow().clone()
     }
 
     pub fn set_view_as(&self, view_as: ViewAs) {
