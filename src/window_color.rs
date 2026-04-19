@@ -5,7 +5,7 @@ use crate::xp_dialogs::get_hwnd;
 use windows::Win32::Graphics::Dwm::DWMWA_CAPTION_COLOR;
 use windows::Win32::Graphics::Dwm::DwmSetWindowAttribute;
 
-pub fn set(window: &slint::Window, is_dark: bool) {
+pub fn set(window: &slint::WindowHandle, is_dark: bool) {
     let color: u32 = if is_dark {
         0x00_1e_1e_1e
     } else {

@@ -1,12 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{Rust, dialogs, game, homebrew_app, model::AppModel, osc};
-use slint::Window;
+use crate::{AppWindow, Rust, dialogs, game, homebrew_app, model::AppModel, osc};
+use slint::ComponentHandle;
 use std::path::Path;
 
 impl Rust<'_> {
-    pub fn register_callbacks(&self, state: &AppModel, window: &Window) {
+    pub fn register_callbacks(&self, state: &AppModel, app: &AppWindow) {
         let state_clone = state.clone();
         self.on_open_that(move |uri| {
             if let Err(e) = open::that(uri) {
@@ -15,7 +15,7 @@ impl Rust<'_> {
         });
 
         let state_clone = state.clone();
-        let window_handle = window.window_handle();
+        let window_handle = app.window().window_handle();
         self.on_pick_mount_point(move || {
             if let Some(path) = dialogs::pick_mount_point(&window_handle) {
                 state_clone.set_mount_point(path);
@@ -78,10 +78,9 @@ impl Rust<'_> {
 
         #[cfg(windows)]
         {
-            let weak = app.as_weak();
+            let window_handle = app.window().window_handle();
             self.on_set_window_color(move |is_dark| {
-                let app = weak.upgrade().unwrap();
-                window_color::set(app.window(), is_dark);
+                window_color::set(&window_handle, is_dark);
             });
         }
     }

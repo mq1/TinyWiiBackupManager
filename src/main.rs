@@ -69,8 +69,7 @@ fn main() -> Result<()> {
     app.set_conversion_queue_buffer(ModelRc::from(state.conversion_queue_buffer()));
     app.set_config(config);
 
-    app.global::<Rust<'_>>()
-        .register_callbacks(&state, app.window());
+    app.global::<Rust<'_>>().register_callbacks(&state, &app);
 
     if let Err(e) = app.run() {
         if std::env::var("SLINT_BACKEND").unwrap_or_default() == "winit-software" {
