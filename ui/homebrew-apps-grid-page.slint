@@ -9,8 +9,11 @@ import { HomebrewAppCard } from "components/homebrew-app-card.slint";
 import {
     HomebrewAppsOtherToolbar,
 } from "components/homebrew-apps-other-toolbar.slint";
+import { HomebrewApp } from "types.slint";
 
 export component HomebrewAppsGridPage inherits VerticalLayout {
+    in property <[HomebrewApp]> apps;
+
     private property <int> col-count: max(1, floor((self.width - 10px) / (172px + 10px)));
 
     HorizontalLayout {
@@ -32,7 +35,7 @@ export component HomebrewAppsGridPage inherits VerticalLayout {
             GridLayout {
                 spacing: 10px;
 
-                for app[i] in State.homebrew-apps: HomebrewAppCard {
+                for app[i] in homebrew-apps: HomebrewAppCard {
                     row: i / col-count;
                     col: mod(i, col-count);
 

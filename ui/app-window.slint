@@ -45,6 +45,9 @@ export component AppWindow inherits Window {
     private property <Page> current-page;
     private property <string> deleting-dir;
     private property <[QueuedConversion]> conversion-queue-buffer;
+    private property <int> current-game-i: -1;
+    private property <int> current-homebrew-app-i: -1;
+    private property <int> current-osc-app-i: -1;
 
     in property <Config> config;
     in property <[Game]> games;
@@ -52,6 +55,7 @@ export component AppWindow inherits Window {
     in property <[OscApp]> osc-apps;
     in property <[Notification]> notifications;
     in property <[string]> status;
+    in property <[string]> crc32-status;
 
     HorizontalLayout {
         Navbar {
@@ -113,11 +117,12 @@ export component AppWindow inherits Window {
         }
     }
 
-    if is-modal-open(): TouchArea {
-        x: 0px;
-        y: 0px;
-        width: root.width;
-        height: root.height;
+    if current-game-i >= 0: GameInfoModal {
+        game: games[current-game-i];
+        closed => {
+            current-game-i = -1;
+            Rust.clear-crc32-status();
+        }
     }
 
     if is-modal-open(): Rectangle {
@@ -131,10 +136,7 @@ export component AppWindow inherits Window {
             x: (root.width - self.width) / 2;
             y: (root.height - self.height) / 2;
         }
-        if State.scrubbing-game.path.is-empty && !State.current-game.path.is-empty: GameInfoModal {
-            x: (root.width - self.width) / 2;
-            y: (root.height - self.height) / 2;
-        }
+
         if !State.current-homebrew-app.path.is-empty: HomebrewAppInfoModal {
             x: (root.width - self.width) / 2;
             y: (root.height - self.height) / 2;

@@ -3,15 +3,17 @@
 
 import { GamesToolbar } from "components/games-toolbar.slint";
 import { ScrollView } from "std-widgets.slint";
-import { State } from "state.slint";
 import { HorizontalLine } from "components/horizontal-line.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { Card } from "components/card.slint";
 import { MyPalette } from "styling.slint";
 import { GameRow } from "components/game-row.slint";
 import { GamesOtherToolbar } from "components/games-other-toolbar.slint";
+import { Game } from "types.slint";
 
 export component GameTablePage inherits VerticalLayout {
+    in property <[Game]> games;
+
     VerticalLayout {
         padding: 10px;
         spacing: 10px;
@@ -34,7 +36,7 @@ export component GameTablePage inherits VerticalLayout {
                 height: v2.preferred-height;
 
                 v2 := VerticalLayout {
-                    for game in State.games: VerticalLayout {
+                    for game in games: VerticalLayout {
                         GameRow {
                             game: game;
                         }

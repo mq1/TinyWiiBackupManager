@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import { ScrollView } from "std-widgets.slint";
-import { State } from "state.slint";
 import { HorizontalLine } from "components/horizontal-line.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { Card } from "components/card.slint";
@@ -10,8 +9,11 @@ import { MyPalette } from "styling.slint";
 import { OscToolbar } from "components/osc-toolbar.slint";
 import { OscOtherToolbar } from "components/osc-other-toolbar.slint";
 import { OscAppRow } from "components/osc-app-row.slint";
+import { OscApp } from "types.slint";
 
 export component OscTablePage inherits VerticalLayout {
+    in property <[OscApp]> apps;
+
     VerticalLayout {
         padding: 10px;
         spacing: 10px;
@@ -34,7 +36,7 @@ export component OscTablePage inherits VerticalLayout {
                 height: v2.preferred-height;
 
                 v2 := VerticalLayout {
-                    for app in State.osc-apps: VerticalLayout {
+                    for app in osc-apps: VerticalLayout {
                         OscAppRow {
                             app: app;
                         }

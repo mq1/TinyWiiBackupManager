@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import { ScrollView } from "std-widgets.slint";
-import { State } from "state.slint";
 import { HorizontalLine } from "components/horizontal-line.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { Card } from "components/card.slint";
@@ -12,8 +11,11 @@ import {
     HomebrewAppsOtherToolbar,
 } from "components/homebrew-apps-other-toolbar.slint";
 import { HomebrewAppRow } from "components/homebrew-app-row.slint";
+import { HomebrewApp } from "types.slint";
 
 export component HomebrewAppsTablePage inherits VerticalLayout {
+    in property <[HomebrewApp]> apps;
+
     VerticalLayout {
         padding: 10px;
         spacing: 10px;
@@ -36,7 +38,7 @@ export component HomebrewAppsTablePage inherits VerticalLayout {
                 height: v2.preferred-height;
 
                 v2 := VerticalLayout {
-                    for app in State.homebrew-apps: VerticalLayout {
+                    for app in homebrew-apps: VerticalLayout {
                         HomebrewAppRow {
                             app: app;
                         }

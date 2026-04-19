@@ -81,6 +81,20 @@ export struct Config {
     contents: ConfigContents,
 }
 
+export struct DiscInfo {
+    err: string,
+    path: string,
+    format: string,
+    game-id: string,
+    game-title: string,
+    region: string,
+    is-wii: bool,
+    is-gc: bool,
+    disc-number: int,
+    disc-version: int,
+    is-worth-scrubbing: bool,
+}
+
 export struct Game {
     path: string,
     is-wii: bool,
@@ -89,6 +103,8 @@ export struct Game {
     id: string,
     cover: image,
     search-term: string,
+    disc-info: DiscInfo,
+    crc32: string,
 }
 
 @rust-attr(derive(serde::Deserialize))
@@ -109,21 +125,6 @@ export struct HomebrewApp {
     meta: HomebrewAppMeta,
     icon: image,
     search-term: string,
-}
-
-export struct DiscInfo {
-    err: string,
-    path: string,
-    format: string,
-    game-id: string,
-    game-title: string,
-    region: string,
-    is-wii: bool,
-    is-gc: bool,
-    disc-number: int,
-    disc-version: int,
-    crc32: string,
-    is-worth-scrubbing: bool,
 }
 
 export enum ConversionKind {
