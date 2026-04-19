@@ -12,7 +12,6 @@ dependencies = [
  "fs4",
  "fs_extra",
  "hex",
- "image",
  "lucide-slint",
  "minreq",
  "nod",
