@@ -10,7 +10,7 @@ import { SortBy } from "../types.slint";
 import { Rust } from "../rust.slint";
 
 export component SortGamesAndHomebrewApps inherits Card {
-    in property <Config> config;
+    in-out property <Config> config;
 
     pure function get-bg(current-sort-by: bool, hovered: bool) -> color {
         if current-sort-by {
@@ -35,10 +35,11 @@ export component SortGamesAndHomebrewApps inherits Card {
             background: get-bg(config.contents.sort-by == SortBy.NameAscending || config.contents.sort-by == SortBy.NameDescending, self.has-hover);
             clicked => {
                 if config.contents.sort-by == SortBy.NameAscending {
-                    Rust.set-sort-by(SortBy.NameDescending);
+                    config.contents.sort-by = SortBy.NameDescending;
                 } else {
-                    Rust.set-sort-by(SortBy.NameAscending);
+                    config.contents.sort-by = SortBy.NameAscending;
                 }
+                Rust.set-config(config);
             }
 
             IconDisplay {
@@ -56,10 +57,11 @@ export component SortGamesAndHomebrewApps inherits Card {
             background: get-bg(config.contents.sort-by == SortBy.SizeAscending || config.contents.sort-by == SortBy.SizeDescending, self.has-hover);
             clicked => {
                 if config.contents.sort-by == SortBy.SizeAscending {
-                    Rust.set-sort-by(SortBy.SizeDescending);
+                    config.contents.sort-by = SortBy.SizeDescending;
                 } else {
-                    Rust.set-sort-by(SortBy.SizeAscending);
+                    config.contents.sort-by = SortBy.SizeAscending;
                 }
+                Rust.set-config(config);
             }
 
             IconDisplay {

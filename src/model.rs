@@ -2,16 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    AppWindow, Config, Game, HomebrewApp, Notification, OscApp, QueuedConversion, SortBy,
-    ThemePreference, ViewAs, game, homebrew_app, osc,
+    AppWindow, Config, Game, HomebrewApp, Notification, OscApp, QueuedConversion, game,
+    homebrew_app, osc,
 };
-use slint::{FilterModel, ModelRc, SharedString, SortModel, ToSharedString, VecModel};
-use std::{
-    cell::{Ref, RefCell},
-    cmp::Ordering,
-    path::PathBuf,
-    rc::Rc,
-};
+use slint::{FilterModel, ModelRc, SharedString, SortModel, VecModel};
+use std::{cell::RefCell, cmp::Ordering, rc::Rc};
 
 type SortedModel<T> = SortModel<Rc<VecModel<T>>, Box<dyn Fn(&T, &T) -> Ordering>>;
 type FilteredModel<T> = FilterModel<Rc<SortedModel<T>>, Box<dyn Fn(&T) -> bool>>;
@@ -43,7 +38,7 @@ pub struct AppModel {
 }
 
 impl AppModel {
-    pub fn new(config: Config) -> Self {
+    pub fn new(config: Config, app: &AppWindow) -> Self {
         let config = Rc::new(RefCell::new(config));
 
         let games = Rc::new(VecModel::from(Vec::new()));
@@ -79,6 +74,13 @@ impl AppModel {
         let conversion_queue = Rc::new(VecModel::from(Vec::new()));
         let conversion_queue_buffer = Rc::new(VecModel::from(Vec::new()));
 
+        app.set_games(ModelRc::from(filtered_games.clone()));
+        app.set_homebrew_apps(ModelRc::from(filtered_homebrew_apps.clone()));
+        app.set_osc_apps(ModelRc::from(filtered_osc_apps.clone()));
+        app.set_notifications(ModelRc::from(notifications.clone()));
+        app.set_conversion_queue(ModelRc::from(conversion_queue.clone()));
+        app.set_conversion_queue_buffer(ModelRc::from(conversion_queue_buffer.clone()));
+
         Self {
             config,
             games,
@@ -98,80 +100,28 @@ impl AppModel {
         }
     }
 
-    pub fn init_app(&self, app: &AppWindow) {
-        app.set_games(ModelRc::from(self.filtered_games.clone()));
-        app.set_homebrew_apps(ModelRc::from(self.filtered_homebrew_apps.clone()));
-        app.set_osc_apps(ModelRc::from(self.filtered_osc_apps.clone()));
-        app.set_notifications(ModelRc::from(self.notifications.clone()));
-        app.set_conversion_queue(ModelRc::from(self.conversion_queue.clone()));
-        app.set_conversion_queue_buffer(ModelRc::from(self.conversion_queue_buffer.clone()));
-        app.set_config(self.config().clone());
+    pub fn config(&self) -> Config {
+        self.config.borrow().clone()
     }
 
-    pub fn config(&self) -> Ref<'_, Config> {
-        self.config.borrow()
-    }
+    pub fn set_config(&self, config: Config) {
+        let old_config = self.config.replace(config);
+        let config = self.config.borrow();
 
-    pub fn set_view_as(&self, view_as: ViewAs) {
-        self.config.borrow_mut().contents.view_as = view_as;
-
-        if let Err(e) = self.config.borrow().write() {
-            self.notifications.push(e.into());
-        }
-    }
-
-    pub fn set_sort_by(&self, sort_by: SortBy) {
-        self.config.borrow_mut().contents.sort_by = sort_by;
-
-        if let Err(e) = self.config.borrow().write() {
-            self.notifications.push(e.into());
+        if old_config.contents.sort_by != config.contents.sort_by {
+            self.sorted_games.reset();
+            self.sorted_homebrew_apps.reset();
         }
 
-        self.sorted_games.reset();
-        self.sorted_homebrew_apps.reset();
-    }
-
-    pub fn set_show_wii(&self, show_wii: bool) {
-        self.config.borrow_mut().contents.show_wii = show_wii;
-
-        if let Err(e) = self.config.borrow().write() {
-            self.notifications.push(e.into());
+        if old_config.contents.show_wii != config.contents.show_wii
+            || old_config.contents.show_gc != config.contents.show_gc
+        {
+            self.filtered_games.reset();
         }
 
-        self.filtered_games.reset();
-    }
-
-    pub fn set_show_gc(&self, show_gc: bool) {
-        self.config.borrow_mut().contents.show_gc = show_gc;
-
-        if let Err(e) = self.config.borrow().write() {
-            self.notifications.push(e.into());
+        if let Err(e) = config.write() {
+            self.add_notification(e.into());
         }
-
-        self.filtered_games.reset();
-    }
-
-    pub fn set_theme_preference(&self, theme_preference: ThemePreference) {
-        self.config.borrow_mut().contents.theme_preference = theme_preference;
-
-        if let Err(e) = self.config.borrow().write() {
-            self.notifications.push(e.into());
-        }
-    }
-
-    pub fn set_mount_point(&self, mount_point: PathBuf) {
-        self.config.borrow_mut().contents.mount_point =
-            mount_point.to_string_lossy().to_shared_string();
-
-        if let Err(e) = self.config.borrow().write() {
-            self.notifications.push(e.into());
-        }
-
-        // TODO reload games + apps
-    }
-
-    pub fn refresh_all(&self) {
-        // TODO reload games + apps
     }
 
     pub fn set_games_filter(&self, filter: SharedString) {

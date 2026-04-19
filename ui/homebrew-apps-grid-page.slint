@@ -13,7 +13,7 @@ import { HomebrewApp, Config } from "types.slint";
 
 export component HomebrewAppsGridPage inherits VerticalLayout {
     in property <[HomebrewApp]> apps;
-    in property <Config> config;
+    in-out property <Config> config;
 
     callback open-info(int);
 
@@ -23,7 +23,7 @@ export component HomebrewAppsGridPage inherits VerticalLayout {
         padding: 10px;
 
         HomebrewAppsToolbar {
-            config: config;
+            config <=> config;
         }
     }
 

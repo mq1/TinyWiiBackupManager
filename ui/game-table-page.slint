@@ -13,7 +13,7 @@ import { Game, Config } from "types.slint";
 
 export component GameTablePage inherits VerticalLayout {
     in property <[Game]> games;
-    in property <Config> config;
+    in-out property <Config> config;
 
     callback open-info(int);
 
@@ -22,7 +22,7 @@ export component GameTablePage inherits VerticalLayout {
         spacing: 10px;
 
         GamesToolbar {
-            config: config;
+            config <=> config;
         }
 
         GamesOtherToolbar { }

@@ -59,11 +59,11 @@ fn main() -> Result<()> {
 
     let config = Config::load();
     let app = AppWindow::new()?;
-    let state = AppModel::new(config);
+    app.set_config(config.clone());
+    let state = AppModel::new(config, &app);
 
-    state.init_app(&app);
-
-    app.global::<Rust<'_>>().register_callbacks(&state, &app);
+    app.global::<Rust<'_>>()
+        .register_callbacks(&state, app.window());
 
     if let Err(e) = app.run() {
         if std::env::var("SLINT_BACKEND").unwrap_or_default() == "winit-software" {

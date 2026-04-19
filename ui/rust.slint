@@ -11,6 +11,7 @@ import {
     ThemePreference,
     Game,
     HomebrewApp,
+    Config,
 } from "types.slint";
 
 export global Rust {
@@ -18,23 +19,11 @@ export global Rust {
     callback filter-homebrew-apps(string);
     callback filter-osc-apps(string);
     callback load-osc-apps(bool) -> { h: int, min: int};
-    callback set-show-wii(bool);
-    callback set-show-gc(bool);
-    callback pick-mount-point();
+    callback set-config(Config);
+    callback pick-mount-point() -> Config;
     callback refresh-all();
-    callback set-view-as(ViewAs);
-    callback set-sort-by(SortBy);
-    callback set-wii-output-format(WiiOutputFormat);
-    callback set-gc-output-format(GcOutputFormat);
     callback confirm-conversions();
     callback cancel-conversions();
-    callback set-always-split(bool);
-    callback set-scrub-update-partition(bool);
-    callback set-remove-sources-games(bool);
-    callback set-remove-sources-apps(bool);
-    callback set-txt-codes-source(TxtCodesSource);
-    callback set-theme-preference(ThemePreference);
-    callback set-mount-point(string);
     callback clear-crc32-status();
     callback archive-game(Game);
     callback scrub-game(Game);

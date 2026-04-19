@@ -9,10 +9,11 @@ import { MyPalette } from "styling.slint";
 import { OscToolbar } from "components/osc-toolbar.slint";
 import { OscOtherToolbar } from "components/osc-other-toolbar.slint";
 import { OscAppRow } from "components/osc-app-row.slint";
-import { OscApp } from "types.slint";
+import { OscApp, Config } from "types.slint";
 
 export component OscTablePage inherits VerticalLayout {
     in property <[OscApp]> apps;
+    in-out property <Config> config;
 
     callback open-info(int);
 
@@ -20,7 +21,9 @@ export component OscTablePage inherits VerticalLayout {
         padding: 10px;
         spacing: 10px;
 
-        OscToolbar { }
+        OscToolbar {
+            config <=> config;
+        }
 
         OscOtherToolbar { }
     }

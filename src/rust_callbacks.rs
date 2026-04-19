@@ -1,12 +1,17 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{AppWindow, Rust, dialogs, game, homebrew_app, model::AppModel, osc};
-use slint::ComponentHandle;
-use std::path::{Path, PathBuf};
+use crate::{Rust, dialogs, game, homebrew_app, model::AppModel, osc};
+use slint::ToSharedString;
+use std::path::Path;
 
 impl Rust<'_> {
-    pub fn register_callbacks(&self, state: &AppModel, app: &AppWindow) {
+    pub fn register_callbacks(&self, state: &AppModel, window: &slint::Window) {
+        let state_clone = state.clone();
+        self.on_set_config(move |config| {
+            state_clone.set_config(config);
+        });
+
         let state_clone = state.clone();
         self.on_open_that(move |uri| {
             if let Err(e) = open::that(uri) {
@@ -15,41 +20,23 @@ impl Rust<'_> {
         });
 
         let state_clone = state.clone();
-        let weak = app.as_weak();
+        let window_handle = window.window_handle();
         self.on_pick_mount_point(move || {
-            let app = weak.upgrade().unwrap();
-            let window_handle = app.window().window_handle();
+            let mut config = state_clone.config();
 
             if let Some(path) = dialogs::pick_mount_point(&window_handle) {
-                state_clone.set_mount_point(path);
+                config.contents.mount_point = path.to_string_lossy().to_shared_string();
             }
 
-            app.set_config(state_clone.config().clone());
-        });
-
-        let state_clone = state.clone();
-        let weak = app.as_weak();
-        self.on_set_view_as(move |view_as| {
-            state_clone.set_view_as(view_as);
-
-            let app = weak.upgrade().unwrap();
-            app.set_config(state_clone.config().clone());
-        });
-
-        let state_clone = state.clone();
-        let weak = app.as_weak();
-        self.on_set_sort_by(move |sort_by| {
-            state_clone.set_sort_by(sort_by);
-
-            let app = weak.upgrade().unwrap();
-            app.set_config(state_clone.config().clone());
+            config
         });
 
         let state_clone = state.clone();
         self.on_refresh_all(move || {
-            let root_path = PathBuf::from(&state_clone.config().contents.mount_point);
-            let new_games = game::scan_drive(&root_path);
-            let new_apps = homebrew_app::scan_drive(&root_path);
+            let config = state_clone.config();
+            let root_path = Path::new(&config.contents.mount_point);
+            let new_games = game::scan_drive(root_path);
+            let new_apps = homebrew_app::scan_drive(root_path);
 
             state_clone.set_games(new_games);
             state_clone.set_homebrew_apps(new_apps);
@@ -72,53 +59,15 @@ impl Rust<'_> {
         self.on_filter_osc_apps(move |filter| state_clone.set_osc_apps_filter(filter));
 
         let state_clone = state.clone();
-        let weak = app.as_weak();
-        self.on_set_sort_by(move |sort_by| {
-            state_clone.set_sort_by(sort_by);
-
-            let app = weak.upgrade().unwrap();
-            app.set_config(state_clone.config().clone());
-        });
-
-        let state_clone = state.clone();
-        let weak = app.as_weak();
-        self.on_set_show_wii(move |show_wii| {
-            state_clone.set_show_wii(show_wii);
-
-            let app = weak.upgrade().unwrap();
-            app.set_config(state_clone.config().clone());
-        });
-
-        let state_clone = state.clone();
-        let weak = app.as_weak();
-        self.on_set_show_gc(move |show_gc| {
-            state_clone.set_show_gc(show_gc);
-
-            let app = weak.upgrade().unwrap();
-            app.set_config(state_clone.config().clone());
-        });
-
-        let state_clone = state.clone();
         self.on_close_notification(move |i| {
-            #[allow(clippy::cast_possible_truncation)]
+            #[allow(clippy::cast_sign_loss)]
             state_clone.close_notification(i as usize);
-        });
-
-        let state_clone = state.clone();
-        let weak = app.as_weak();
-        self.on_set_theme_preference(move |theme_preference| {
-            state_clone.set_theme_preference(theme_preference);
-
-            let app = weak.upgrade().unwrap();
-            app.set_config(state_clone.config().clone());
         });
 
         #[cfg(windows)]
         {
-            let weak = app.as_weak();
+            let window_handle = window.window_handle();
             self.on_set_window_color(move |is_dark| {
-                let app = weak.upgrade().unwrap();
-                let window_handle = app.window().window_handle();
                 crate::window_color::set(&window_handle, is_dark);
             });
         }

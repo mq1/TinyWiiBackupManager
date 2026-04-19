@@ -15,7 +15,7 @@ import {
 import { Rust } from "rust.slint";
 
 export component SettingsPage inherits Rectangle {
-    in property <Config> config;
+    in-out property <Config> config;
 
     HorizontalLayout {
         x: 10px;
@@ -54,10 +54,11 @@ export component SettingsPage inherits Rectangle {
 
                 selected(i) => {
                     if i == 0 {
-                        Rust.set-wii-output-format(WiiOutputFormat.Wbfs);
+                        config.contents.wii-output-format = WiiOutputFormat.Wbfs;
                     } else {
-                        Rust.set-wii-output-format(WiiOutputFormat.Iso);
+                        config.contents.wii-output-format = WiiOutputFormat.Iso;
                     }
+                    Rust.set-config(config);
                 }
             }
 
@@ -72,10 +73,11 @@ export component SettingsPage inherits Rectangle {
 
                 selected(i) => {
                     if i == 0 {
-                        Rust.set-gc-output-format(GcOutputFormat.Iso);
+                        config.contents.gc-output-format = GcOutputFormat.Iso;
                     } else {
-                        Rust.set-gc-output-format(GcOutputFormat.Ciso);
+                        config.contents.gc-output-format = GcOutputFormat.Ciso;
                     }
+                    Rust.set-config(config);
                 }
             }
 
@@ -86,8 +88,8 @@ export component SettingsPage inherits Rectangle {
                 active-item: config.contents.always-split ? 1 : 0;
 
                 selected(i) => {
-                    let always-split = i == 1;
-                    Rust.set-always-split(always-split);
+                    config.contents.always-split = i == 1;
+                    Rust.set-config(config);
                 }
             }
 
@@ -101,8 +103,8 @@ export component SettingsPage inherits Rectangle {
                 active-item: config.contents.scrub-update-partition ? 1 : 0;
 
                 selected(i) => {
-                    let scrub-update-partition = i == 1;
-                    Rust.set-scrub-update-partition(scrub-update-partition);
+                    config.contents.scrub-update-partition = i == 1;
+                    Rust.set-config(config);
                 }
             }
 
@@ -113,8 +115,8 @@ export component SettingsPage inherits Rectangle {
                 active-item: config.contents.remove-sources-games ? 1 : 0;
 
                 selected(i) => {
-                    let remove-sources-games = i == 1;
-                    Rust.set-remove-sources-games(remove-sources-games);
+                    config.contents.remove-sources-games = i == 1;
+                    Rust.set-config(config);
                 }
             }
 
@@ -147,12 +149,13 @@ export component SettingsPage inherits Rectangle {
 
                 selected(i) => {
                     if i == 0 {
-                        Rust.set-txt-codes-source(TxtCodesSource.WebArchive);
+                        config.contents.txt-codes-source = TxtCodesSource.WebArchive;
                     } else if i == 1 {
-                        Rust.set-txt-codes-source(TxtCodesSource.GameHacking);
+                        config.contents.txt-codes-source = TxtCodesSource.GameHacking;
                     } else {
-                        Rust.set-txt-codes-source(TxtCodesSource.Rc24);
+                        config.contents.txt-codes-source = TxtCodesSource.Rc24;
                     }
+                    Rust.set-config(config);
                 }
             }
 
@@ -174,16 +177,17 @@ export component SettingsPage inherits Rectangle {
 
                 selected(i) => {
                     if i == 0 {
-                        Rust.set-theme-preference(ThemePreference.System);
+                        config.contents.theme-preference = ThemePreference.System;
                     } else if i == 1 {
-                        Rust.set-theme-preference(ThemePreference.Light);
-                        Rust.set-window-color(false);
+                        config.contents.theme-preference = ThemePreference.Light;
                         Palette.color-scheme = ColorScheme.light;
+                        Rust.set-window-color(false);
                     } else {
-                        Rust.set-theme-preference(ThemePreference.Dark);
-                        Rust.set-window-color(true);
+                        config.contents.theme-preference = ThemePreference.Dark;
                         Palette.color-scheme = ColorScheme.dark;
+                        Rust.set-window-color(true);
                     }
+                    Rust.set-config(config);
                 }
             }
         }

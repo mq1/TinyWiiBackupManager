@@ -15,7 +15,7 @@ import { HomebrewApp, Config } from "types.slint";
 
 export component HomebrewAppsTablePage inherits VerticalLayout {
     in property <[HomebrewApp]> apps;
-    in property <Config> config;
+    in-out property <Config> config;
 
     callback open-info(int);
 
@@ -24,7 +24,7 @@ export component HomebrewAppsTablePage inherits VerticalLayout {
         spacing: 10px;
 
         HomebrewAppsToolbar {
-            config: config;
+            config <=> config;
         }
 
         HomebrewAppsOtherToolbar {
