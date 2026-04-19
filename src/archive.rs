@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    QueuedArchiveConversion, State,
+    AppWindow, QueuedArchiveConversion,
     extensions::{ext_to_format, format_to_opts},
     util::get_threads_num,
 };
@@ -34,7 +34,7 @@ impl ArchiveConversion {
         }
     }
 
-    pub fn perform(&self, weak: &Weak<State<'static>>) -> Result<()> {
+    pub fn perform(&self, weak: &Weak<AppWindow>) -> Result<()> {
         let in_path = Path::new(&self.in_path);
         let out_path = Path::new(&self.out_path);
         let out_ext = out_path.extension().ok_or(anyhow!("No extension"))?;
@@ -63,8 +63,8 @@ impl ArchiveConversion {
         let mut out_writer = BufWriter::with_capacity(32_768, File::create(out_path)?);
 
         let status = format!("⤓  Archiving {}  (starting)", &self.game_title);
-        let _ = weak.upgrade_in_event_loop(move |state| {
-            state.set_status(status.to_shared_string());
+        let _ = weak.upgrade_in_event_loop(move |app| {
+            app.set_status(status.to_shared_string());
         });
 
         let mut last_update = Instant::now();

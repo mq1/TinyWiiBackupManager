@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{Config, Game, SortBy, data_dir::DATA_DIR, id_map, util::GIB};
+use crate::{Config, DiscInfo, Game, SortBy, data_dir::DATA_DIR, id_map, util::GIB};
 use anyhow::Result;
 use slint::{Image, SharedString, ToSharedString};
 use std::{cell::RefCell, cmp::Ordering, fs, path::Path, rc::Rc};
@@ -37,9 +37,7 @@ impl Game {
         let cover_path = DATA_DIR.join("covers").join(format!("{id}.png"));
         let cover = Image::load_from_path(&cover_path).unwrap_or_default();
 
-        let search_term = format!("{}\0{}", title, id)
-            .to_lowercase()
-            .to_shared_string();
+        let search_term = format!("{title}\0{id}").to_lowercase().to_shared_string();
 
         Some(Self {
             path: path.to_string_lossy().to_shared_string(),
@@ -49,6 +47,8 @@ impl Game {
             id: id.to_shared_string(),
             cover,
             search_term,
+            crc32: SharedString::new(),
+            disc_info: DiscInfo::default(),
         })
     }
 
@@ -59,10 +59,11 @@ impl Game {
     }
 }
 
-pub fn get_compare_fn(sort_by: Rc<RefCell<SortBy>>) -> Box<dyn Fn(&Game, &Game) -> Ordering> {
+pub fn get_compare_fn(config: Rc<RefCell<Config>>) -> Box<dyn Fn(&Game, &Game) -> Ordering> {
     Box::new(move |a, b| {
-        let sort_by = sort_by.borrow();
-        match *sort_by {
+        let config = config.borrow();
+
+        match config.contents.sort_by {
             SortBy::NameAscending => a.title.cmp(&b.title),
             SortBy::NameDescending => b.title.cmp(&a.title),
             SortBy::SizeAscending => a.size_gib.total_cmp(&b.size_gib),
@@ -73,12 +74,10 @@ pub fn get_compare_fn(sort_by: Rc<RefCell<SortBy>>) -> Box<dyn Fn(&Game, &Game) 
 
 pub fn get_filter_fn(
     query_lowercase: Rc<RefCell<SharedString>>,
-    config: Rc<VecModel<Config>>,
+    config: Rc<RefCell<Config>>,
 ) -> Box<dyn Fn(&Game) -> bool> {
     Box::new(move |game| {
-        let Some(config) = config.row_data(0) else {
-            return true;
-        };
+        let config = config.borrow();
 
         if !config.contents.show_wii && game.is_wii {
             return false;

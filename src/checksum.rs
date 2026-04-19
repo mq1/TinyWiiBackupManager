@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::State;
+use crate::AppWindow;
 use anyhow::{Result, bail};
 use crc32fast::Hasher;
 use slint::{ToSharedString, Weak};
@@ -9,9 +9,10 @@ use std::{
     fs::{self, File},
     io::Read,
     path::{Path, PathBuf},
+    time::{Duration, Instant},
 };
 
-fn hash_file(hasher: &mut Hasher, path: &Path, weak: &Weak<State<'static>>) -> Result<()> {
+fn hash_file(hasher: &mut Hasher, path: &Path, weak: &Weak<AppWindow>) -> Result<()> {
     let mut f = File::open(path)?;
     let size = f.metadata()?.len();
 
@@ -20,7 +21,7 @@ fn hash_file(hasher: &mut Hasher, path: &Path, weak: &Weak<State<'static>>) -> R
     }
 
     let mut progress = 0;
-    let mut next_threshold = size / 100;
+    let mut last_update = Instant::now();
     let mut buf = vec![0; 128 * 1024];
     loop {
         let n = f.read(&mut buf)?;
@@ -31,14 +32,15 @@ fn hash_file(hasher: &mut Hasher, path: &Path, weak: &Weak<State<'static>>) -> R
 
         progress += n as u64;
 
-        if progress >= next_threshold {
+        if last_update.elapsed() > Duration::from_millis(200) {
             let current_percentage = progress * 100 / size;
-            next_threshold = (current_percentage + 1) * size / 100;
-
             let status = format!("{current_percentage}%");
-            let _ = weak.upgrade_in_event_loop(move |state| {
-                state.set_current_game_crc32(status.to_shared_string());
+
+            let _ = weak.upgrade_in_event_loop(move |app| {
+                app.set_status(status.to_shared_string());
             });
+
+            last_update = Instant::now();
         }
     }
     Ok(())
@@ -48,7 +50,7 @@ pub fn perform(
     game_dir: impl Into<PathBuf>,
     is_wii: bool,
     game_id: impl AsRef<str>,
-    weak: &Weak<State<'static>>,
+    weak: &Weak<AppWindow>,
 ) -> Result<()> {
     let game_dir = game_dir.into();
     let mut hasher = Hasher::new();
@@ -114,8 +116,8 @@ pub fn perform(
         fs::write(crc32_path, &crc32)?;
     }
 
-    let _ = weak.upgrade_in_event_loop(move |state| {
-        state.set_current_game_crc32(crc32.to_shared_string());
+    let _ = weak.upgrade_in_event_loop(move |app| {
+        app.set_crc32_status(crc32.to_shared_string());
     });
 
     Ok(())

@@ -20,7 +20,7 @@ impl HomebrewAppMeta {
 
 // some apps seem to place " " in front of the name to prioritize themselves when sorting
 fn parse_name(raw: SharedString) -> SharedString {
-    if raw.chars().next() == Some(' ') {
+    if raw.starts_with(' ') {
         raw[1..].to_shared_string()
     } else {
         raw

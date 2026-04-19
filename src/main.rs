@@ -20,7 +20,6 @@ mod id_map;
 mod model;
 mod notification;
 mod osc;
-mod results;
 mod rust_callbacks;
 mod scrub;
 mod standard_conversion;
@@ -32,32 +31,14 @@ mod window_color;
 #[cfg(windows)]
 mod xp_dialogs;
 
-use crate::{convert::Conversion, data_dir::DATA_DIR, model::AppModel};
+use crate::{data_dir::DATA_DIR, model::AppModel};
 use anyhow::{Result, bail};
-use slint::{ComponentHandle, Model, ModelRc, SharedString, ToSharedString, VecModel};
-use std::{
-    fs::{self, File},
-    path::{Path, PathBuf},
-    process::Command,
-    rc::Rc,
-};
-use zip::ZipArchive;
+use slint::ComponentHandle;
+use std::process::Command;
 
 slint::include_modules!();
 
 const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
-
-impl AppWindow {
-    pub fn wire(&self, state: &AppModel) {
-        self.set_games(ModelRc::from(state.games()));
-        self.set_homebrew_apps(ModelRc::from(state.homebrew_apps()));
-        self.set_osc_apps(ModelRc::from(state.osc_apps()));
-        self.set_notifications(ModelRc::from(state.notifications()));
-        self.set_conversion_queue(ModelRc::from(state.conversion_queue()));
-        self.set_config(state.config());
-        self.set_status(state.status());
-    }
-}
 
 fn restart_with_sw_rendering() -> Result<()> {
     let exe = std::env::current_exe()?;
@@ -77,12 +58,11 @@ fn main() -> Result<()> {
     }
 
     let config = Config::load();
-
-    let state = AppModel::new(config);
     let app = AppWindow::new()?;
-    app.wire(&state);
+    let state = AppModel::new(&app, config);
 
-    app.global::<Rust<'_>>().register_callbacks();
+    app.global::<Rust<'_>>()
+        .register_callbacks(&state, app.window());
 
     if let Err(e) = app.run() {
         if std::env::var("SLINT_BACKEND").unwrap_or_default() == "winit-software" {

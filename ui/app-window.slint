@@ -61,14 +61,15 @@ export component AppWindow inherits Window {
 
     in property <string> app-version;
     in property <string> data-dir;
-    in property <[Config]> config;
+    in property <Config> config;
+    in property <string> status;
+    in property <string> crc32-status;
     in property <[Game]> games;
     in property <[HomebrewApp]> homebrew-apps;
     in property <[OscApp]> osc-apps;
     in property <[Notification]> notifications;
     in property <[DriveInfo]> drive-info;
-    in property <[string]> status;
-    in property <[string]> crc32-status;
+    in property <[QueuedConversion]> conversion-queue;
     in property <[QueuedConversion]> conversion-queue-buffer;
 
     HorizontalLayout {
@@ -83,35 +84,35 @@ export component AppWindow inherits Window {
                 border-width: 1px;
                 border-color: MyPalette.border;
 
-                if current-page == Page.Games && config[0].contents.view-as == ViewAs.Grid: GameGridPage {
+                if current-page == Page.Games && config.contents.view-as == ViewAs.Grid: GameGridPage {
                     games: games;
-                    config: config[0];
+                    config: config;
                     open-info(i) => {
                         current-game-i = i;
                     }
                 }
-                if current-page == Page.Games && config[0].contents.view-as == ViewAs.Table: GameTablePage {
+                if current-page == Page.Games && config.contents.view-as == ViewAs.Table: GameTablePage {
                     games: games;
                     open-info(i) => {
                         current-game-i = i;
                     }
                 }
-                if current-page == Page.HomebrewApps && config[0].contents.view-as == ViewAs.Grid: HomebrewAppsGridPage {
+                if current-page == Page.HomebrewApps && config.contents.view-as == ViewAs.Grid: HomebrewAppsGridPage {
                     apps: homebrew-apps;
                     open-info(i) => {
                         current-homebrew-app-i = i;
                     }
                 }
-                if current-page == Page.HomebrewApps && config[0].contents.view-as == ViewAs.Table: HomebrewAppsTablePage {
+                if current-page == Page.HomebrewApps && config.contents.view-as == ViewAs.Table: HomebrewAppsTablePage {
                     apps: homebrew-apps;
                     open-info(i) => {
                         current-homebrew-app-i = i;
                     }
                 }
-                if current-page == Page.Osc && config[0].contents.view-as == ViewAs.Grid: OscGridPage { }
-                if current-page == Page.Osc && config[0].contents.view-as == ViewAs.Table: OscTablePage { }
+                if current-page == Page.Osc && config.contents.view-as == ViewAs.Grid: OscGridPage { }
+                if current-page == Page.Osc && config.contents.view-as == ViewAs.Table: OscTablePage { }
                 if current-page == Page.Settings: SettingsPage {
-                    config: config[0];
+                    config: config;
                 }
                 if current-page == Page.About: AboutPage {
                     app-version: app-version;
@@ -119,14 +120,14 @@ export component AppWindow inherits Window {
                 }
             }
 
-            if status.length > 0: HorizontalLayout {
+            if !status.is-empty: HorizontalLayout {
                 VerticalLine { }
 
                 HorizontalLayout {
                     padding: 10px;
 
                     Text {
-                        text: status[0];
+                        text: status;
                     }
                 }
             }

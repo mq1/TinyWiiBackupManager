@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{HomebrewApp, HomebrewAppMeta, SortBy, util::MIB};
+use crate::{Config, HomebrewApp, HomebrewAppMeta, SortBy, util::MIB};
 use anyhow::Result;
 use slint::{Image, SharedString, ToSharedString};
 use std::{cell::RefCell, cmp::Ordering, fs, path::Path, rc::Rc};
@@ -51,11 +51,12 @@ impl HomebrewApp {
 }
 
 pub fn get_compare_fn(
-    sort_by: Rc<RefCell<SortBy>>,
+    config: Rc<RefCell<Config>>,
 ) -> Box<dyn Fn(&HomebrewApp, &HomebrewApp) -> Ordering> {
     Box::new(move |a, b| {
-        let sort_by = sort_by.borrow();
-        match *sort_by {
+        let config = config.borrow();
+
+        match config.contents.sort_by {
             SortBy::NameAscending => a.meta.name.cmp(&b.meta.name),
             SortBy::NameDescending => b.meta.name.cmp(&a.meta.name),
             SortBy::SizeAscending => a.size_mib.total_cmp(&b.size_mib),

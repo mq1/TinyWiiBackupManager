@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    ConfigContents, ConversionKind, DriveInfo, QueuedConversion, State, archive::ArchiveConversion,
-    scrub::ScrubConversion, standard_conversion::StandardConversion,
+    AppWindow, ConfigContents, ConversionKind, DriveInfo, QueuedConversion,
+    archive::ArchiveConversion, scrub::ScrubConversion, standard_conversion::StandardConversion,
 };
 use anyhow::Result;
 use slint::Weak;
@@ -31,7 +31,7 @@ impl Conversion {
         }
     }
 
-    pub fn perform(&mut self, weak: &Weak<State<'static>>) -> Result<()> {
+    pub fn perform(&mut self, weak: &Weak<AppWindow>) -> Result<()> {
         match self {
             Conversion::Scrub(scrub) => scrub.perform(weak),
             Conversion::Archive(archive) => archive.perform(weak),

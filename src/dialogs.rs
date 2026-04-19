@@ -16,44 +16,44 @@ use rfd::FileDialog;
 #[cfg(windows)]
 use crate::xp_dialogs;
 
-pub fn pick_mount_point(window: &WindowHandle) -> Option<PathBuf> {
+pub fn pick_mount_point(window_handle: &WindowHandle) -> Option<PathBuf> {
     #[cfg(unix)]
     let res = FileDialog::new()
-        .set_parent(window)
+        .set_parent(window_handle)
         .set_title("Select Drive/Mount Point")
         .pick_folder();
 
     #[cfg(windows)]
-    let res = xp_dialogs::pick_dir(&window, "Select Drive/Mount Point");
+    let res = xp_dialogs::pick_dir(window_handle, "Select Drive/Mount Point");
 
     res
 }
 
-pub fn pick_games(window: &Window) -> Vec<PathBuf> {
+pub fn pick_games(window_handle: &WindowHandle) -> Vec<PathBuf> {
     #[cfg(unix)]
     let paths = FileDialog::new()
-        .set_parent(&window.window_handle())
+        .set_parent(window_handle)
         .set_title("Select Games")
         .add_filter(INPUT_DIALOG_FILTER.0, INPUT_DIALOG_FILTER.1)
         .pick_files()
         .unwrap_or_default();
 
     #[cfg(windows)]
-    let paths = xp_dialogs::pick_files(&window, "Select Games", INPUT_DIALOG_FILTER);
+    let paths = xp_dialogs::pick_files(window_handle, "Select Games", INPUT_DIALOG_FILTER);
 
     paths
 }
 
-pub fn pick_games_r(window: &Window) -> Vec<PathBuf> {
+pub fn pick_games_r(window_handle: &WindowHandle) -> Vec<PathBuf> {
     #[cfg(unix)]
     let res = FileDialog::new()
-        .set_parent(&window.window_handle())
+        .set_parent(window_handle)
         .set_title("Select folder (games will be searched recursively)")
         .pick_folder();
 
     #[cfg(windows)]
     let res = xp_dialogs::pick_dir(
-        &window,
+        window_handle,
         "Select folder (games will be searched recursively)",
     );
 
@@ -78,7 +78,7 @@ pub fn pick_games_r(window: &Window) -> Vec<PathBuf> {
     paths
 }
 
-pub fn save_game(window: &Window, game: &Game) -> Option<PathBuf> {
+pub fn save_game(window_handle: &WindowHandle, game: &Game) -> Option<PathBuf> {
     let title = format!(
         "Select Destination for {} | Supported extensions: iso, wbfs, wia, rvz, ciso, gcz, tgc, nfs",
         &game.title
@@ -88,29 +88,29 @@ pub fn save_game(window: &Window, game: &Game) -> Option<PathBuf> {
 
     #[cfg(unix)]
     let res = FileDialog::new()
-        .set_parent(&window.window_handle())
+        .set_parent(window_handle)
         .set_title(title)
         .set_file_name(filename)
         .add_filter(OUTPUT_DIALOG_FILTER.0, OUTPUT_DIALOG_FILTER.1)
         .save_file();
 
     #[cfg(windows)]
-    let res = xp_dialogs::save_file(&window, &title, OUTPUT_DIALOG_FILTER, &filename);
+    let res = xp_dialogs::save_file(window_handle, &title, OUTPUT_DIALOG_FILTER, &filename);
 
     res
 }
 
-pub fn pick_homebrew_apps(window: &Window) -> Vec<PathBuf> {
+pub fn pick_homebrew_apps(window_handle: &WindowHandle) -> Vec<PathBuf> {
     #[cfg(unix)]
     let paths = FileDialog::new()
-        .set_parent(&window.window_handle())
+        .set_parent(window_handle)
         .set_title("Select Homebrew apps")
         .add_filter("ZIP", &["zip"])
         .pick_files()
         .unwrap_or_default();
 
     #[cfg(windows)]
-    let paths = xp_dialogs::pick_files(&window, "Select Homebrew apps", ("ZIP", &["zip"]));
+    let paths = xp_dialogs::pick_files(window_handle, "Select Homebrew apps", ("ZIP", &["zip"]));
 
     paths
 }

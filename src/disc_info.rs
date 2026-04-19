@@ -69,9 +69,6 @@ impl DiscInfo {
         let is_worth_scrubbing = (meta.format() == wii_disc_info::Format::Wbfs)
             && is_worth_scrubbing(&mut f).unwrap_or(false);
 
-        let crc32_path = disc_path.with_file_name(format!("{}.crc32", meta.game_id()));
-        let crc32 = fs::read_to_string(crc32_path).unwrap_or_default();
-
         Ok(Self {
             path: disc_path.to_string_lossy().to_shared_string(),
             format: meta.format().to_shared_string(),
@@ -83,7 +80,6 @@ impl DiscInfo {
             disc_number: meta.disc_number().into(),
             disc_version: meta.disc_version().into(),
             is_worth_scrubbing,
-            crc32: crc32.trim().to_shared_string(),
             err: SharedString::new(),
         })
     }

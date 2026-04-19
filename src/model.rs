@@ -5,8 +5,10 @@ use crate::{
     AppWindow, Config, Game, HomebrewApp, Notification, OscApp, QueuedConversion, SortBy, ViewAs,
     game, homebrew_app, osc,
 };
-use slint::{FilterModel, ModelRc, SharedString, SortModel, VecModel};
-use std::{cell::RefCell, cmp::Ordering, ops::Deref, rc::Rc};
+use slint::{
+    ComponentHandle, FilterModel, ModelRc, SharedString, SortModel, ToSharedString, VecModel, Weak,
+};
+use std::{cell::RefCell, cmp::Ordering, path::PathBuf, rc::Rc};
 
 type SortedModel<T> = SortModel<Rc<VecModel<T>>, Box<dyn Fn(&T, &T) -> Ordering>>;
 type FilteredModel<T> = FilterModel<Rc<SortedModel<T>>, Box<dyn Fn(&T) -> bool>>;
@@ -14,7 +16,9 @@ type JustFilteredModel<T> = FilterModel<Rc<VecModel<T>>, Box<dyn Fn(&T) -> bool>
 
 #[derive(Clone)]
 pub struct AppModel {
-    config: Rc<VecModel<Config>>,
+    weak: Weak<AppWindow>,
+
+    config: Rc<RefCell<Config>>,
 
     games: Rc<VecModel<Game>>,
     homebrew_apps: Rc<VecModel<HomebrewApp>>,
@@ -35,21 +39,18 @@ pub struct AppModel {
 
     conversion_queue: Rc<VecModel<QueuedConversion>>,
     conversion_queue_buffer: Rc<VecModel<QueuedConversion>>,
-
-    // it's a VecModel for reactivity, but holds a single value
-    status: Rc<VecModel<SharedString>>,
 }
 
 impl AppModel {
-    pub fn new(config: Config) -> Self {
-        let config = Rc::new(VecModel::from(vec![config]));
+    pub fn new(app: &AppWindow, config: Config) -> Self {
+        let config = Rc::new(RefCell::new(config));
 
         let games = Rc::new(VecModel::from(Vec::new()));
         let homebrew_apps = Rc::new(VecModel::from(Vec::new()));
         let osc_apps = Rc::new(VecModel::from(Vec::new()));
 
-        let compare_games = game::get_compare_fn(sort_by.clone());
-        let compare_homebrew_apps = homebrew_app::get_compare_fn(sort_by.clone());
+        let compare_games = game::get_compare_fn(config.clone());
+        let compare_homebrew_apps = homebrew_app::get_compare_fn(config.clone());
 
         let sorted_games = Rc::new(SortModel::new(games.clone(), compare_games));
         let sorted_homebrew_apps =
@@ -77,9 +78,8 @@ impl AppModel {
         let conversion_queue = Rc::new(VecModel::from(Vec::new()));
         let conversion_queue_buffer = Rc::new(VecModel::from(Vec::new()));
 
-        let status = Rc::new(VecModel::from(Vec::new()));
-
-        Self {
+        let state = Self {
+            weak: app.as_weak(),
             config,
             games,
             homebrew_apps,
@@ -95,8 +95,17 @@ impl AppModel {
             notifications,
             conversion_queue,
             conversion_queue_buffer,
-            status,
-        }
+        };
+
+        app.set_games(ModelRc::from(state.games()));
+        app.set_homebrew_apps(ModelRc::from(state.homebrew_apps()));
+        app.set_osc_apps(ModelRc::from(state.osc_apps()));
+        app.set_notifications(ModelRc::from(state.notifications()));
+        app.set_conversion_queue(ModelRc::from(state.conversion_queue()));
+        app.set_conversion_queue_buffer(ModelRc::from(state.conversion_queue_buffer()));
+        app.set_config(state.config.borrow().clone());
+
+        state
     }
 
     pub fn games(&self) -> Rc<FilteredModel<Game>> {
@@ -116,62 +125,51 @@ impl AppModel {
     }
 
     pub fn set_view_as(&self, view_as: ViewAs) {
-        let mut config = self.config.remove(0);
-        config.view_as = view_as;
+        self.config.borrow_mut().contents.view_as = view_as;
 
-        if let Err(e) = config.write() {
+        if let Err(e) = self.config.borrow().write() {
             self.notifications.push(e.into());
         }
-
-        self.config.push(config);
     }
 
     pub fn set_sort_by(&self, sort_by: SortBy) {
-        let mut config = self.config.remove(0);
-        config.sort_by = sort_by;
+        self.config.borrow_mut().contents.sort_by = sort_by;
 
-        if let Err(e) = config.write() {
+        if let Err(e) = self.config.borrow().write() {
             self.notifications.push(e.into());
         }
 
-        self.config.push(config);
         self.sorted_games.reset();
         self.sorted_homebrew_apps.reset();
     }
 
     pub fn set_show_wii(&self, show_wii: bool) {
-        let mut config = self.config.remove(0);
-        config.show_wii = show_wii;
+        self.config.borrow_mut().contents.show_wii = show_wii;
 
-        if let Err(e) = config.write() {
+        if let Err(e) = self.config.borrow().write() {
             self.notifications.push(e.into());
         }
 
-        self.config.push(config);
         self.filtered_games.reset();
     }
 
     pub fn set_show_gc(&self, show_gc: bool) {
-        let mut config = self.config.remove(0);
-        config.show_gc = show_gc;
+        self.config.borrow_mut().contents.show_gc = show_gc;
 
-        if let Err(e) = config.write() {
+        if let Err(e) = self.config.borrow().write() {
             self.notifications.push(e.into());
         }
 
-        self.config.push(config);
         self.filtered_games.reset();
     }
 
     pub fn set_mount_point(&self, mount_point: PathBuf) {
-        let mut config = self.config.remove(0);
-        config.mount_point = mount_point.to_string_lossy().to_shared_string();
+        self.config.borrow_mut().contents.mount_point =
+            mount_point.to_string_lossy().to_shared_string();
 
-        if let Err(e) = config.write() {
+        if let Err(e) = self.config.borrow().write() {
             self.notifications.push(e.into());
         }
-
-        self.config.push(config);
 
         // TODO reload games + apps
     }
@@ -237,12 +235,7 @@ impl AppModel {
         self.conversion_queue.clone()
     }
 
-    pub fn status(&self) -> Rc<VecModel<SharedString>> {
-        self.status.clone()
-    }
-
-    pub fn set_status(&self, status: SharedString) {
-        self.status.clear();
-        self.status.push(status);
+    pub fn conversion_queue_buffer(&self) -> Rc<VecModel<QueuedConversion>> {
+        self.conversion_queue_buffer.clone()
     }
 }
