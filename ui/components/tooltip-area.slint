@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { State } from "../state.slint";
+import { Tooltip } from "../tooltip.slint";
 
 export component TooltipArea inherits Rectangle {
     in property <string> tooltip;
@@ -18,24 +18,24 @@ export component TooltipArea inherits Rectangle {
         height: r.height;
 
         clicked => {
-            State.tooltip.text = "";
+            Tooltip.text = "";
             clicked();
         }
 
         pointer-event(event) => {
             if event.kind == PointerEventKind.move {
-                State.tooltip.mouse-x = self.absolute-position.x + self.mouse-x;
-                State.tooltip.mouse-y = self.absolute-position.y + self.mouse-y;
+                Tooltip.mouse-x = self.absolute-position.x + self.mouse-x;
+                Tooltip.mouse-y = self.absolute-position.y + self.mouse-y;
             }
         }
 
         changed has-hover => {
             if self.has-hover {
-                State.tooltip.text = tooltip;
-                State.tooltip.mouse-x = self.absolute-position.x + self.mouse-x;
-                State.tooltip.mouse-y = self.absolute-position.y + self.mouse-y;
+                Tooltip.text = tooltip;
+                Tooltip.mouse-x = self.absolute-position.x + self.mouse-x;
+                Tooltip.mouse-y = self.absolute-position.y + self.mouse-y;
             } else {
-                State.tooltip.text = "";
+                Tooltip.text = "";
             }
         }
     }

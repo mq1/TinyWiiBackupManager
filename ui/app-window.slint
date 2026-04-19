@@ -15,6 +15,7 @@ import {
     Notification,
     Config,
     QueuedConversion,
+    DriveInfo,
 } from "types.slint";
 import { MyPalette } from "styling.slint";
 import { Rust } from "rust.slint";
@@ -31,15 +32,24 @@ import { OscGridPage } from "osc-grid-page.slint";
 import { OscTablePage } from "osc-table-page.slint";
 import { OscAppInfoModal } from "components/osc-app-info-modal.slint";
 import { ConfirmationModal } from "components/confirmation-modal.slint";
+import { Tooltip } from "tooltip.slint";
 
 export * from "types.slint";
 export { Rust }
 
 export component AppWindow inherits Window {
+    pure function get-window-title() -> string {
+        if drive-info.length == 0 {
+            "TinyWiiBackupManager  ›  No drive selected"
+        } else {
+            "TinyWiiBackupManager  ›  \{drive-info[0].label}  (\{drive-info[0].used-gib.to-fixed(2)}/\{drive-info[0].total-gib.to-fixed(2)} GiB)"
+        }
+    }
+
     min-width: 800px;
     min-height: 600px;
     background: MyPalette.background;
-    title: "TinyWiiBackupManager  ›  \{State.drive-info.label.is-empty ? "No drive selected" : State.drive-info.label}  (\{State.drive-info.used-gib.to-fixed(2)}/\{State.drive-info.total-gib.to-fixed(2)} GiB)";
+    title: get-window-title();
     default-font-size: 14px;
 
     private property <Page> current-page;
@@ -54,6 +64,7 @@ export component AppWindow inherits Window {
     in property <[HomebrewApp]> homebrew-apps;
     in property <[OscApp]> osc-apps;
     in property <[Notification]> notifications;
+    in property <[DriveInfo]> drive-info;
     in property <[string]> status;
     in property <[string]> crc32-status;
 
@@ -155,9 +166,9 @@ export component AppWindow inherits Window {
         notifications: notifications;
     }
 
-    if !State.tooltip.text.is-empty: Card {
-        x: State.tooltip.mouse-x + t.preferred-width + 18px > root.width ? State.tooltip.mouse-x - t.preferred-width - 18px : State.tooltip.mouse-x;
-        y: State.tooltip.mouse-y;
+    if !Tooltip.text.is-empty: Card {
+        x: Tooltip.mouse-x + t.preferred-width + 18px > root.width ? Tooltip.mouse-x - t.preferred-width - 18px : Tooltip.mouse-x;
+        y: Tooltip.mouse-y;
 
         width: t.preferred-width + 18px;
         height: t.preferred-height + 16px;
@@ -169,7 +180,7 @@ export component AppWindow inherits Window {
             padding-right: 9px;
 
             t := Text {
-                text: State.tooltip.text;
+                text: Tooltip.text;
             }
         }
     }
