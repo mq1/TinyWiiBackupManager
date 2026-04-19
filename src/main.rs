@@ -25,6 +25,12 @@ mod scrub;
 mod standard_conversion;
 mod util;
 
+#[cfg(windows)]
+mod window_color;
+
+#[cfg(windows)]
+mod xp_dialogs;
+
 use crate::{data_dir::DATA_DIR, model::AppModel};
 use anyhow::{Result, bail};
 use slint::ComponentHandle;
