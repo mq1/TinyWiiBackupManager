@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    Config, Game, HomebrewApp, Notification, OscApp, QueuedConversion, SortBy, ViewAs, game,
-    homebrew_app, osc,
+    AppWindow, Config, Game, HomebrewApp, Notification, OscApp, QueuedConversion, SortBy, ViewAs,
+    game, homebrew_app, osc,
 };
-use slint::{FilterModel, SharedString, SortModel, ToSharedString, VecModel};
+use slint::{FilterModel, ModelRc, SharedString, SortModel, ToSharedString, VecModel};
 use std::{cell::RefCell, cmp::Ordering, path::PathBuf, rc::Rc};
 
 type SortedModel<T> = SortModel<Rc<VecModel<T>>, Box<dyn Fn(&T, &T) -> Ordering>>;
@@ -93,20 +93,13 @@ impl AppModel {
         }
     }
 
-    pub fn games(&self) -> Rc<FilteredModel<Game>> {
-        self.filtered_games.clone()
-    }
-
-    pub fn homebrew_apps(&self) -> Rc<FilteredModel<HomebrewApp>> {
-        self.filtered_homebrew_apps.clone()
-    }
-
-    pub fn osc_apps(&self) -> Rc<JustFilteredModel<OscApp>> {
-        self.filtered_osc_apps.clone()
-    }
-
-    pub fn notifications(&self) -> Rc<VecModel<Notification>> {
-        self.notifications.clone()
+    pub fn wire(&self, app: &AppWindow) {
+        app.set_games(ModelRc::from(self.filtered_games.clone()));
+        app.set_homebrew_apps(ModelRc::from(self.filtered_homebrew_apps.clone()));
+        app.set_osc_apps(ModelRc::from(self.filtered_osc_apps.clone()));
+        app.set_notifications(ModelRc::from(self.notifications.clone()));
+        app.set_conversion_queue(ModelRc::from(self.conversion_queue.clone()));
+        app.set_conversion_queue_buffer(ModelRc::from(self.conversion_queue_buffer.clone()));
     }
 
     pub fn set_view_as(&self, view_as: ViewAs) {
@@ -214,13 +207,5 @@ impl AppModel {
 
     pub fn clear_conversion_queue(&self) {
         self.conversion_queue.clear();
-    }
-
-    pub fn conversion_queue(&self) -> Rc<VecModel<QueuedConversion>> {
-        self.conversion_queue.clone()
-    }
-
-    pub fn conversion_queue_buffer(&self) -> Rc<VecModel<QueuedConversion>> {
-        self.conversion_queue_buffer.clone()
     }
 }
