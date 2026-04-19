@@ -28,6 +28,7 @@ impl Rust<'_> {
                 config.contents.mount_point = path.to_string_lossy().to_shared_string();
             }
 
+            state_clone.set_config(config);
             config
         });
 
