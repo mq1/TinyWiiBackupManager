@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    AppWindow, Config, Game, HomebrewApp, Notification, OscApp, QueuedConversion, SortBy, game,
-    homebrew_app, mirrored::Mirrored, osc,
+    AppWindow, Config, Game, GcOutputFormat, HomebrewApp, Notification, OscApp, QueuedConversion,
+    SortBy, ThemePreference, TxtCodesSource, ViewAs, WiiOutputFormat, game, homebrew_app,
+    mirrored::Mirrored, osc,
 };
 use slint::{FilterModel, ModelRc, SharedString, SortModel, ToSharedString, VecModel};
 use std::{
@@ -126,6 +127,96 @@ impl AppModel {
     pub fn set_mount_point(&self, mount_point: PathBuf) {
         self.config.edit(|config| {
             config.contents.mount_point = mount_point.to_string_lossy().to_shared_string();
+        });
+
+        if let Err(e) = self.config.borrow().write() {
+            self.add_notification(e.into());
+        }
+    }
+
+    pub fn set_wii_output_format(&self, wii_output_format: WiiOutputFormat) {
+        self.config.edit(|config| {
+            config.contents.wii_output_format = wii_output_format;
+        });
+
+        if let Err(e) = self.config.borrow().write() {
+            self.add_notification(e.into());
+        }
+    }
+
+    pub fn set_gc_output_format(&self, gc_output_format: GcOutputFormat) {
+        self.config.edit(|config| {
+            config.contents.gc_output_format = gc_output_format;
+        });
+
+        if let Err(e) = self.config.borrow().write() {
+            self.add_notification(e.into());
+        }
+    }
+
+    pub fn set_always_split(&self, always_split: bool) {
+        self.config.edit(|config| {
+            config.contents.always_split = always_split;
+        });
+
+        if let Err(e) = self.config.borrow().write() {
+            self.add_notification(e.into());
+        }
+    }
+
+    pub fn set_scrub_update_partition(&self, scrub_update_partition: bool) {
+        self.config.edit(|config| {
+            config.contents.scrub_update_partition = scrub_update_partition;
+        });
+
+        if let Err(e) = self.config.borrow().write() {
+            self.add_notification(e.into());
+        }
+    }
+
+    pub fn set_remove_sources_games(&self, remove_sources_games: bool) {
+        self.config.edit(|config| {
+            config.contents.remove_sources_games = remove_sources_games;
+        });
+
+        if let Err(e) = self.config.borrow().write() {
+            self.add_notification(e.into());
+        }
+    }
+
+    pub fn set_remove_sources_apps(&self, remove_sources_apps: bool) {
+        self.config.edit(|config| {
+            config.contents.remove_sources_apps = remove_sources_apps;
+        });
+
+        if let Err(e) = self.config.borrow().write() {
+            self.add_notification(e.into());
+        }
+    }
+
+    pub fn set_txt_codes_source(&self, txt_codes_source: TxtCodesSource) {
+        self.config.edit(|config| {
+            config.contents.txt_codes_source = txt_codes_source;
+        });
+
+        if let Err(e) = self.config.borrow().write() {
+            self.add_notification(e.into());
+        }
+    }
+
+    pub fn set_theme_preference(&self, theme_preference: ThemePreference) {
+        self.config.edit(|config| {
+            config.contents.theme_preference = theme_preference;
+        });
+
+        if let Err(e) = self.config.borrow().write() {
+            self.add_notification(e.into());
+        }
+    }
+
+    pub fn set_view_as(&self, view_as: ViewAs) {
+        self.config.edit(|config| {
+            config.contents.view_as = view_as;
         });
 
         if let Err(e) = self.config.borrow().write() {

@@ -22,6 +22,66 @@ impl Rust<'_> {
         });
 
         let state_clone = state.clone();
+        self.on_set_wii_output_format(move |format| {
+            state_clone.set_wii_output_format(format);
+        });
+
+        let state_clone = state.clone();
+        self.on_set_gc_output_format(move |format| {
+            state_clone.set_gc_output_format(format);
+        });
+
+        let state_clone = state.clone();
+        self.on_set_always_split(move |always_split| {
+            state_clone.set_always_split(always_split);
+        });
+
+        let state_clone = state.clone();
+        self.on_set_scrub_update_partition(move |scrub_update_partition| {
+            state_clone.set_scrub_update_partition(scrub_update_partition);
+        });
+
+        let state_clone = state.clone();
+        self.on_set_remove_sources_games(move |remove_sources_games| {
+            state_clone.set_remove_sources_games(remove_sources_games);
+        });
+
+        let state_clone = state.clone();
+        self.on_set_remove_sources_apps(move |remove_sources_apps| {
+            state_clone.set_remove_sources_apps(remove_sources_apps);
+        });
+
+        let state_clone = state.clone();
+        self.on_set_txt_codes_source(move |source| {
+            state_clone.set_txt_codes_source(source);
+        });
+
+        let state_clone = state.clone();
+        self.on_set_theme_preference(move |theme_preference| {
+            state_clone.set_theme_preference(theme_preference);
+        });
+
+        let state_clone = state.clone();
+        self.on_set_view_as(move |format| {
+            state_clone.set_view_as(format);
+        });
+
+        let state_clone = state.clone();
+        self.on_set_sort_by(move |sort_by| {
+            state_clone.set_sort_by(sort_by);
+        });
+
+        let state_clone = state.clone();
+        self.on_set_show_wii(move |show_wii| {
+            state_clone.set_show_wii(show_wii);
+        });
+
+        let state_clone = state.clone();
+        self.on_set_show_gc(move |show_gc| {
+            state_clone.set_show_gc(show_gc);
+        });
+
+        let state_clone = state.clone();
         self.on_refresh_all(move || {
             let (new_games, new_apps) = {
                 let config = state_clone.borrow_config();
@@ -44,13 +104,19 @@ impl Rust<'_> {
         });
 
         let state_clone = state.clone();
-        self.on_filter_games(move |filter| state_clone.set_games_filter(filter));
+        self.on_filter_games(move |filter| {
+            state_clone.set_games_filter(filter);
+        });
 
         let state_clone = state.clone();
-        self.on_filter_homebrew_apps(move |filter| state_clone.set_homebrew_apps_filter(filter));
+        self.on_filter_homebrew_apps(move |filter| {
+            state_clone.set_homebrew_apps_filter(filter);
+        });
 
         let state_clone = state.clone();
-        self.on_filter_osc_apps(move |filter| state_clone.set_osc_apps_filter(filter));
+        self.on_filter_osc_apps(move |filter| {
+            state_clone.set_osc_apps_filter(filter);
+        });
 
         let state_clone = state.clone();
         self.on_close_notification(move |i| {
