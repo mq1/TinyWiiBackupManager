@@ -165,8 +165,50 @@ impl Rust<'_> {
         });
 
         let state_clone = state.clone();
+        let weak = self.as_weak();
         self.on_confirm_conversion_queue_buffer(move || {
             state_clone.confirm_conversion_queue_buffer();
+
+            if !state_clone.is_converting()
+                && let Some(mut conv) = state_clone.pop_conversion()
+            {
+                state_clone.set_is_converting(true);
+                let weak = weak.clone();
+
+                let _ = std::thread::spawn(move || {
+                    let res = conv.perform(&weak);
+
+                    let _ = weak.upgrade_in_event_loop(move |rust| {
+                        if let Err(e) = res {
+                            rust.invoke_notify_error(e.to_shared_string());
+                        }
+
+                        rust.invoke_conversion_finished();
+                    });
+                });
+            }
+        });
+
+        let state_clone = state.clone();
+        let weak = self.as_weak();
+        self.on_conversion_finished(move || {
+            if let Some(mut conv) = state_clone.pop_conversion() {
+                let weak = weak.clone();
+
+                let _ = std::thread::spawn(move || {
+                    let res = conv.perform(&weak);
+
+                    let _ = weak.upgrade_in_event_loop(move |rust| {
+                        if let Err(e) = res {
+                            rust.invoke_notify_error(e.to_shared_string());
+                        }
+
+                        rust.invoke_conversion_finished();
+                    });
+                });
+            } else {
+                state_clone.set_is_converting(false);
+            }
         });
 
         let state_clone = state.clone();

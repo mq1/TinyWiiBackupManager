@@ -3,8 +3,8 @@
 
 use crate::{
     AppWindow, Config, DriveInfo, Game, GcOutputFormat, HomebrewApp, Notification, OscApp,
-    QueuedConversion, SortBy, ThemePreference, TxtCodesSource, ViewAs, WiiOutputFormat, game,
-    homebrew_app, mirrored::Mirrored, osc,
+    QueuedConversion, SortBy, ThemePreference, TxtCodesSource, ViewAs, WiiOutputFormat,
+    convert::Conversion, game, homebrew_app, mirrored::Mirrored, osc,
 };
 use slint::{FilterModel, Model, ModelRc, SharedString, SortModel, ToSharedString, VecModel};
 use std::{
@@ -43,6 +43,8 @@ pub struct AppModel {
 
     conversion_queue: Rc<VecModel<QueuedConversion>>,
     conversion_queue_buffer: Rc<VecModel<QueuedConversion>>,
+
+    is_converting: Rc<RefCell<bool>>,
 }
 
 impl AppModel {
@@ -112,6 +114,7 @@ impl AppModel {
             notifications,
             conversion_queue,
             conversion_queue_buffer,
+            is_converting: Rc::new(RefCell::new(false)),
         }
     }
 
@@ -322,5 +325,26 @@ impl AppModel {
 
     pub fn set_drive_info(&self, drive_info: DriveInfo) {
         self.drive_info.set(drive_info);
+    }
+
+    pub fn is_converting(&self) -> bool {
+        *self.is_converting.borrow()
+    }
+
+    pub fn set_is_converting(&self, is_converting: bool) {
+        *self.is_converting.borrow_mut() = is_converting;
+    }
+
+    pub fn pop_conversion(&self) -> Option<Conversion> {
+        if self.conversion_queue.row_count() == 0 {
+            return None;
+        }
+
+        let queued = self.conversion_queue.remove(0);
+        let conf = &self.config.borrow().contents;
+        let drive_info = self.drive_info.borrow();
+
+        let conv = Conversion::new(&queued, conf, &drive_info);
+        Some(conv)
     }
 }
