@@ -72,7 +72,7 @@ impl ArchiveConversion {
             |data, progress, total| {
                 out_writer.write_all(&data)?;
 
-                if last_update.elapsed() > Duration::from_millis(200) {
+                if last_update.elapsed() > Duration::from_millis(100) {
                     let current_percentage = progress * 100 / total;
 
                     let status = format!(

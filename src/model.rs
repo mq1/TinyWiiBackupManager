@@ -20,9 +20,7 @@ type JustFilteredModel<T> = FilterModel<Rc<VecModel<T>>, Box<dyn Fn(&T) -> bool>
 
 #[derive(Clone)]
 pub struct AppModel {
-    config: Rc<Mirrored<Config, AppWindow>>,
-    status: Rc<Mirrored<SharedString, AppWindow>>,
-    crc32_status: Rc<Mirrored<SharedString, AppWindow>>,
+    config: Rc<Mirrored<Config>>,
 
     games: Rc<VecModel<Game>>,
     homebrew_apps: Rc<VecModel<HomebrewApp>>,
@@ -48,16 +46,6 @@ pub struct AppModel {
 impl AppModel {
     pub fn new(config: Config, app: &AppWindow) -> Self {
         let config = Rc::new(Mirrored::new(config, app, AppWindow::set_config));
-        let status = Rc::new(Mirrored::new(
-            SharedString::new(),
-            app,
-            AppWindow::set_status,
-        ));
-        let crc32_status = Rc::new(Mirrored::new(
-            SharedString::new(),
-            app,
-            AppWindow::set_crc32_status,
-        ));
 
         let games = Rc::new(VecModel::from(Vec::new()));
         let homebrew_apps = Rc::new(VecModel::from(Vec::new()));
@@ -101,8 +89,6 @@ impl AppModel {
 
         Self {
             config,
-            status,
-            crc32_status,
             games,
             homebrew_apps,
             osc_apps,

@@ -1,21 +1,18 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use slint::{ComponentHandle, StrongHandle, Weak};
+use crate::AppWindow;
+use slint::{ComponentHandle, Weak};
 use std::cell::{Ref, RefCell};
 
-pub struct Mirrored<T, A: StrongHandle> {
+pub struct Mirrored<T> {
     inner: RefCell<T>,
-    weak: Weak<A>,
-    update_fn: fn(&A, T),
+    weak: Weak<AppWindow>,
+    update_fn: fn(&AppWindow, T),
 }
 
-impl<T, A> Mirrored<T, A>
-where
-    T: Clone,
-    A: StrongHandle + ComponentHandle,
-{
-    pub fn new(inner: T, app: &A, update_fn: fn(&A, T)) -> Self {
+impl<T: Clone> Mirrored<T> {
+    pub fn new(inner: T, app: &AppWindow, update_fn: fn(&AppWindow, T)) -> Self {
         let m = Mirrored {
             inner: RefCell::new(inner),
             weak: app.as_weak(),
@@ -37,7 +34,7 @@ where
 
     pub fn edit<E>(&self, f: E)
     where
-        E: Fn(&mut T) -> (),
+        E: Fn(&mut T),
     {
         f(&mut self.inner.borrow_mut());
         self.sync();

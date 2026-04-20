@@ -2,8 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    AppWindow, Config, DiscInfo, Game, SortBy, data_dir::DATA_DIR, id_map, mirrored::Mirrored,
-    util::GIB,
+    Config, DiscInfo, Game, SortBy, data_dir::DATA_DIR, id_map, mirrored::Mirrored, util::GIB,
 };
 use anyhow::Result;
 use slint::{Image, SharedString, ToSharedString};
@@ -62,9 +61,7 @@ impl Game {
     }
 }
 
-pub fn get_compare_fn(
-    config: Rc<Mirrored<Config, AppWindow>>,
-) -> Box<dyn Fn(&Game, &Game) -> Ordering> {
+pub fn get_compare_fn(config: Rc<Mirrored<Config>>) -> Box<dyn Fn(&Game, &Game) -> Ordering> {
     Box::new(move |a, b| {
         let config = config.borrow();
 
@@ -79,7 +76,7 @@ pub fn get_compare_fn(
 
 pub fn get_filter_fn(
     query_lowercase: Rc<RefCell<SharedString>>,
-    config: Rc<Mirrored<Config, AppWindow>>,
+    config: Rc<Mirrored<Config>>,
 ) -> Box<dyn Fn(&Game) -> bool> {
     Box::new(move |game| {
         let config = config.borrow();

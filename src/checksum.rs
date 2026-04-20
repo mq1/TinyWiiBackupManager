@@ -32,12 +32,12 @@ fn hash_file(hasher: &mut Hasher, path: &Path, weak: &Weak<AppWindow>) -> Result
 
         progress += n as u64;
 
-        if last_update.elapsed() > Duration::from_millis(200) {
+        if last_update.elapsed() > Duration::from_millis(100) {
             let current_percentage = progress * 100 / size;
             let status = format!("{current_percentage}%");
 
             let _ = weak.upgrade_in_event_loop(move |app| {
-                app.set_status(status.to_shared_string());
+                app.set_crc32_status(status.to_shared_string());
             });
 
             last_update = Instant::now();

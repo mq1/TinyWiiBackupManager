@@ -64,7 +64,6 @@ export component AppWindow inherits Window {
     in property <string> app-version;
     in property <string> data-dir;
     in property <string> status;
-    in property <string> crc32-status;
     in property <[Game]> games;
     in property <[HomebrewApp]> homebrew-apps;
     in property <[OscApp]> osc-apps;
@@ -72,6 +71,10 @@ export component AppWindow inherits Window {
     in property <[DriveInfo]> drive-info;
     in property <[QueuedConversion]> conversion-queue;
     in property <[QueuedConversion]> conversion-queue-buffer;
+
+    in-out property <string> crc32-status;
+
+    callback notify-error(string);
 
     // Initialize
     Timer {
@@ -211,9 +214,10 @@ export component AppWindow inherits Window {
 
     if current-game-i >= 0: GameInfoModal {
         game: games[current-game-i];
+        crc32-status: crc32-status;
         closed => {
             current-game-i = -1;
-            Rust.clear-crc32-status();
+            crc32-status = "";
         }
     }
 
