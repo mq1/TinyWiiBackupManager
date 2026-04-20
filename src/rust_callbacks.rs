@@ -91,9 +91,13 @@ impl Rust<'_> {
                 let config = state_clone.borrow_config();
                 let root_path = Path::new(&config.contents.mount_point);
 
+                let p = root_path.to_path_buf();
+                let join = std::thread::spawn(move || DriveInfo::from_path(&p));
+
                 let new_games = game::scan_drive(root_path);
                 let new_apps = homebrew_app::scan_drive(root_path);
-                let drive_info = DriveInfo::from_path(root_path);
+
+                let drive_info = join.join().unwrap();
 
                 (new_games, new_apps, drive_info)
             };
