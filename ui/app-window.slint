@@ -207,8 +207,8 @@ export component AppWindow inherits Window {
     if conversion-queue-buffer.length > 0: ConfirmationModal {
         message: "Are you sure you want to add \{conversion-queue-buffer.length} conversions to the queue?";
 
-        cancelled => Rust.cancel-conversions();
-        confirmed => Rust.confirm-conversions();
+        cancelled => Rust.clear-conversion-queue-buffer();
+        confirmed => Rust.confirm-conversion-queue-buffer();
     }
 
     if current-game-i >= 0: GameInfoModal {

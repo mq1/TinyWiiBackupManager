@@ -164,6 +164,16 @@ impl Rust<'_> {
             state_clone.set_conversion_queue_buffer(new);
         });
 
+        let state_clone = state.clone();
+        self.on_confirm_conversion_queue_buffer(move || {
+            state_clone.confirm_conversion_queue_buffer();
+        });
+
+        let state_clone = state.clone();
+        self.on_clear_conversion_queue_buffer(move || {
+            state_clone.clear_conversion_queue_buffer();
+        });
+
         #[cfg(windows)]
         {
             let window_handle = window.window_handle();
