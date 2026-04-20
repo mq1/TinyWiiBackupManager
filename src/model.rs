@@ -2,11 +2,16 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    AppWindow, Config, Game, HomebrewApp, Notification, OscApp, QueuedConversion, game,
-    homebrew_app, osc,
+    AppWindow, Config, Game, HomebrewApp, Notification, OscApp, QueuedConversion, SortBy, game,
+    homebrew_app, mirrored::Mirrored, osc,
 };
-use slint::{FilterModel, ModelRc, SharedString, SortModel, VecModel};
-use std::{cell::RefCell, cmp::Ordering, rc::Rc};
+use slint::{FilterModel, ModelRc, SharedString, SortModel, ToSharedString, VecModel};
+use std::{
+    cell::{Ref, RefCell},
+    cmp::Ordering,
+    path::PathBuf,
+    rc::Rc,
+};
 
 type SortedModel<T> = SortModel<Rc<VecModel<T>>, Box<dyn Fn(&T, &T) -> Ordering>>;
 type FilteredModel<T> = FilterModel<Rc<SortedModel<T>>, Box<dyn Fn(&T) -> bool>>;
@@ -14,7 +19,9 @@ type JustFilteredModel<T> = FilterModel<Rc<VecModel<T>>, Box<dyn Fn(&T) -> bool>
 
 #[derive(Clone)]
 pub struct AppModel {
-    config: Rc<RefCell<Config>>,
+    config: Rc<Mirrored<Config, AppWindow>>,
+    status: Rc<Mirrored<SharedString, AppWindow>>,
+    crc32_status: Rc<Mirrored<SharedString, AppWindow>>,
 
     games: Rc<VecModel<Game>>,
     homebrew_apps: Rc<VecModel<HomebrewApp>>,
@@ -39,7 +46,17 @@ pub struct AppModel {
 
 impl AppModel {
     pub fn new(config: Config, app: &AppWindow) -> Self {
-        let config = Rc::new(RefCell::new(config));
+        let config = Rc::new(Mirrored::new(config, app, AppWindow::set_config));
+        let status = Rc::new(Mirrored::new(
+            SharedString::new(),
+            app,
+            AppWindow::set_status,
+        ));
+        let crc32_status = Rc::new(Mirrored::new(
+            SharedString::new(),
+            app,
+            AppWindow::set_crc32_status,
+        ));
 
         let games = Rc::new(VecModel::from(Vec::new()));
         let homebrew_apps = Rc::new(VecModel::from(Vec::new()));
@@ -83,6 +100,8 @@ impl AppModel {
 
         Self {
             config,
+            status,
+            crc32_status,
             games,
             homebrew_apps,
             osc_apps,
@@ -100,26 +119,53 @@ impl AppModel {
         }
     }
 
-    pub fn config(&self) -> Config {
-        self.config.borrow().clone()
+    pub fn borrow_config(&self) -> Ref<'_, Config> {
+        self.config.borrow()
     }
 
-    pub fn set_config(&self, config: Config) {
-        let old_config = self.config.replace(config);
-        let config = self.config.borrow();
+    pub fn set_mount_point(&self, mount_point: PathBuf) {
+        self.config.edit(|config| {
+            config.contents.mount_point = mount_point.to_string_lossy().to_shared_string();
+        });
 
-        if old_config.contents.sort_by != config.contents.sort_by {
-            self.sorted_games.reset();
-            self.sorted_homebrew_apps.reset();
+        if let Err(e) = self.config.borrow().write() {
+            self.add_notification(e.into());
         }
+    }
 
-        if old_config.contents.show_wii != config.contents.show_wii
-            || old_config.contents.show_gc != config.contents.show_gc
-        {
-            self.filtered_games.reset();
+    pub fn set_sort_by(&self, sort_by: SortBy) {
+        self.config.edit(|config| {
+            config.contents.sort_by = sort_by;
+        });
+
+        self.sorted_games.reset();
+        self.sorted_homebrew_apps.reset();
+
+        if let Err(e) = self.config.borrow().write() {
+            self.add_notification(e.into());
         }
+    }
 
-        if let Err(e) = config.write() {
+    pub fn set_show_wii(&self, show_wii: bool) {
+        self.config.edit(|config| {
+            config.contents.show_wii = show_wii;
+        });
+
+        self.filtered_games.reset();
+
+        if let Err(e) = self.config.borrow().write() {
+            self.add_notification(e.into());
+        }
+    }
+
+    pub fn set_show_gc(&self, show_gc: bool) {
+        self.config.edit(|config| {
+            config.contents.show_gc = show_gc;
+        });
+
+        self.filtered_games.reset();
+
+        if let Err(e) = self.config.borrow().write() {
             self.add_notification(e.into());
         }
     }

@@ -11,7 +11,7 @@ import { Rust } from "../rust.slint";
 import { Config } from "../types.slint";
 
 export component GamesToolbar inherits HorizontalLayout {
-    in-out property <Config> config;
+    in property <Config> config;
 
     alignment: space-between;
     height: 38px;
@@ -36,15 +36,15 @@ export component GamesToolbar inherits HorizontalLayout {
         spacing: 10px;
 
         ShowWiiGc {
-            config <=> config;
+            config: config;
         }
 
         SortGamesAndHomebrewApps {
-            config <=> config;
+            config: config;
         }
 
         ViewAs {
-            config <=> config;
+            config: config;
         }
 
         VerticalLayout {

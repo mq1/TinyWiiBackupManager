@@ -19,8 +19,6 @@ export global Rust {
     callback filter-homebrew-apps(string);
     callback filter-osc-apps(string);
     callback load-osc-apps(bool) -> { h: int, min: int};
-    callback set-config(Config);
-    callback pick-mount-point() -> Config;
     callback refresh-all();
     callback confirm-conversions();
     callback cancel-conversions();
@@ -36,4 +34,19 @@ export global Rust {
     callback force-osc-refresh();
     callback checksum(Game);
     callback set-window-color(bool);
+
+    // config
+    callback set-wii-output-format(WiiOutputFormat);
+    callback set-gc-output-format(GcOutputFormat);
+    callback set-always-split(bool);
+    callback set-scrub-update-partition(bool);
+    callback set-remove-sources-games(bool);
+    callback set-remove-sources-apps(bool);
+    callback set-txt-codes-source(TxtCodesSource);
+    callback set-theme-preference(ThemePreference);
+    callback set-view-as(ViewAs);
+    callback set-sort-by(SortBy);
+    callback set-show-wii(bool);
+    callback set-show-gc(bool);
+    callback pick-mount-point();
 }

@@ -10,7 +10,7 @@ import { Config } from "../types.slint";
 import { Rust } from "../rust.slint";
 
 export component ViewAs inherits Card {
-    in-out property <Config> config;
+    in property <Config> config;
 
     pure function get-bg(view-as: ViewAs, hovered: bool) -> color {
         if config.contents.view-as == view-as {
@@ -33,10 +33,7 @@ export component ViewAs inherits Card {
 
             tooltip: "View as grid";
             background: get-bg(ViewAs.Grid, self.has-hover);
-            clicked => {
-                config.contents.view-as = ViewAs.Grid;
-                Rust.set-config(config);
-            }
+            clicked => Rust.set-view-as(ViewAs.Grid);
 
             IconDisplay {
                 icon: IconSet.LayoutGrid;
@@ -51,10 +48,7 @@ export component ViewAs inherits Card {
 
             tooltip: "View as table";
             background: get-bg(ViewAs.Table, self.has-hover);
-            clicked => {
-                config.contents.view-as = ViewAs.Table;
-                Rust.set-config(config);
-            }
+            clicked => Rust.set-view-as(ViewAs.Table);
 
             IconDisplay {
                 icon: IconSet.Table;

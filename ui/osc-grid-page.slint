@@ -11,7 +11,7 @@ import { OscApp, Config } from "types.slint";
 
 export component OscGridPage inherits VerticalLayout {
     in property <[OscApp]> apps;
-    in-out property <Config> config;
+    in property <Config> config;
 
     callback open-info(int);
 
@@ -21,7 +21,7 @@ export component OscGridPage inherits VerticalLayout {
         padding: 10px;
 
         OscToolbar {
-            config <=> config;
+            config: config;
         }
     }
 

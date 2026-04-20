@@ -1,7 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{Config, HomebrewApp, HomebrewAppMeta, SortBy, util::MIB};
+use crate::{
+    AppWindow, Config, HomebrewApp, HomebrewAppMeta, SortBy, mirrored::Mirrored, util::MIB,
+};
 use anyhow::Result;
 use slint::{Image, SharedString, ToSharedString};
 use std::{cell::RefCell, cmp::Ordering, fs, path::Path, rc::Rc};
@@ -51,7 +53,7 @@ impl HomebrewApp {
 }
 
 pub fn get_compare_fn(
-    config: Rc<RefCell<Config>>,
+    config: Rc<Mirrored<Config, AppWindow>>,
 ) -> Box<dyn Fn(&HomebrewApp, &HomebrewApp) -> Ordering> {
     Box::new(move |a, b| {
         let config = config.borrow();

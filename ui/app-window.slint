@@ -60,8 +60,7 @@ export component AppWindow inherits Window {
     private property <int> game-to-delete: -1;
     private property <int> homebrew-app-to-delete: -1;
 
-    in-out property <Config> config;
-
+    in property <Config> config;
     in property <string> app-version;
     in property <string> data-dir;
     in property <string> status;
@@ -104,48 +103,48 @@ export component AppWindow inherits Window {
 
                 if current-page == Page.Games && config.contents.view-as == ViewAs.Grid: GameGridPage {
                     games: games;
-                    config <=> config;
+                    config: config;
                     open-info(i) => {
                         current-game-i = i;
                     }
                 }
                 if current-page == Page.Games && config.contents.view-as == ViewAs.Table: GameTablePage {
                     games: games;
-                    config <=> config;
+                    config: config;
                     open-info(i) => {
                         current-game-i = i;
                     }
                 }
                 if current-page == Page.HomebrewApps && config.contents.view-as == ViewAs.Grid: HomebrewAppsGridPage {
                     apps: homebrew-apps;
-                    config <=> config;
+                    config: config;
                     open-info(i) => {
                         current-homebrew-app-i = i;
                     }
                 }
                 if current-page == Page.HomebrewApps && config.contents.view-as == ViewAs.Table: HomebrewAppsTablePage {
                     apps: homebrew-apps;
-                    config <=> config;
+                    config: config;
                     open-info(i) => {
                         current-homebrew-app-i = i;
                     }
                 }
                 if current-page == Page.Osc && config.contents.view-as == ViewAs.Grid: OscGridPage {
                     apps: osc-apps;
-                    config <=> config;
+                    config: config;
                     open-info(i) => {
                         current-osc-app-i = i;
                     }
                 }
                 if current-page == Page.Osc && config.contents.view-as == ViewAs.Table: OscTablePage {
                     apps: osc-apps;
-                    config <=> config;
+                    config: config;
                     open-info(i) => {
                         current-osc-app-i = i;
                     }
                 }
                 if current-page == Page.Settings: SettingsPage {
-                    config <=> config;
+                    config: config;
                 }
                 if current-page == Page.About: AboutPage {
                     app-version: app-version;

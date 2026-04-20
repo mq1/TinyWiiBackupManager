@@ -8,7 +8,7 @@ import { Rust } from "../rust.slint";
 
 export component Navbar inherits VerticalLayout {
     in-out property <Page> current-page: Page.Games;
-    in-out property <Config> config;
+    in property <Config> config;
 
     alignment: LayoutAlignment.space-between;
 
@@ -69,7 +69,7 @@ export component Navbar inherits VerticalLayout {
             icon: IconSet.HardDrive;
             tooltip: "Select a drive";
             clicked => {
-                config = Rust.pick-mount-point();
+                Rust.pick-mount-point();
                 Rust.refresh-all();
             }
         }

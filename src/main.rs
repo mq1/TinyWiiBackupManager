@@ -17,6 +17,7 @@ mod game;
 mod homebrew_app;
 mod homebrew_app_meta;
 mod id_map;
+mod mirrored;
 mod model;
 mod notification;
 mod osc;

@@ -10,7 +10,7 @@ import { Link } from "link.slint";
 import { Rust } from "../rust.slint";
 
 export component OscToolbar inherits HorizontalLayout {
-    in-out property <Config> config;
+    in property <Config> config;
 
     alignment: space-between;
     height: 38px;
@@ -46,7 +46,7 @@ export component OscToolbar inherits HorizontalLayout {
         spacing: 10px;
 
         ViewAs {
-            config <=> config;
+            config: config;
         }
 
         VerticalLayout {

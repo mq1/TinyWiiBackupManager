@@ -13,7 +13,7 @@ import { OscApp, Config } from "types.slint";
 
 export component OscTablePage inherits VerticalLayout {
     in property <[OscApp]> apps;
-    in-out property <Config> config;
+    in property <Config> config;
 
     callback open-info(int);
 
@@ -22,7 +22,7 @@ export component OscTablePage inherits VerticalLayout {
         spacing: 10px;
 
         OscToolbar {
-            config <=> config;
+            config: config;
         }
 
         OscOtherToolbar { }

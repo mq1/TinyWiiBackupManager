@@ -11,7 +11,7 @@ import { Game, Config } from "types.slint";
 
 export component GameGridPage inherits VerticalLayout {
     in property <[Game]> games;
-    in-out property <Config> config;
+    in property <Config> config;
 
     callback open-info(int);
 
@@ -21,7 +21,7 @@ export component GameGridPage inherits VerticalLayout {
         padding: 10px;
 
         GamesToolbar {
-            config <=> config;
+            config: config;
         }
     }
 

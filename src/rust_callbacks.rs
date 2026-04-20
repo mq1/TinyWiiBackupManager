@@ -2,16 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{Rust, dialogs, game, homebrew_app, model::AppModel, osc};
-use slint::ToSharedString;
 use std::path::Path;
 
 impl Rust<'_> {
     pub fn register_callbacks(&self, state: &AppModel, window: &slint::Window) {
-        let state_clone = state.clone();
-        self.on_set_config(move |config| {
-            state_clone.set_config(config);
-        });
-
         let state_clone = state.clone();
         self.on_open_that(move |uri| {
             if let Err(e) = open::that(uri) {
@@ -22,22 +16,21 @@ impl Rust<'_> {
         let state_clone = state.clone();
         let window_handle = window.window_handle();
         self.on_pick_mount_point(move || {
-            let mut config = state_clone.config();
-
             if let Some(path) = dialogs::pick_mount_point(&window_handle) {
-                config.contents.mount_point = path.to_string_lossy().to_shared_string();
-                state_clone.set_config(config.clone());
+                state_clone.set_mount_point(path);
             }
-
-            config
         });
 
         let state_clone = state.clone();
         self.on_refresh_all(move || {
-            let config = state_clone.config();
-            let root_path = Path::new(&config.contents.mount_point);
-            let new_games = game::scan_drive(root_path);
-            let new_apps = homebrew_app::scan_drive(root_path);
+            let (new_games, new_apps) = {
+                let config = state_clone.borrow_config();
+                let root_path = Path::new(&config.contents.mount_point);
+                let new_games = game::scan_drive(root_path);
+                let new_apps = homebrew_app::scan_drive(root_path);
+
+                (new_games, new_apps)
+            };
 
             state_clone.set_games(new_games);
             state_clone.set_homebrew_apps(new_apps);
