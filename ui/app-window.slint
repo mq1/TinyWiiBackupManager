@@ -63,7 +63,6 @@ export component AppWindow inherits Window {
     in property <Config> config;
     in property <string> app-version;
     in property <string> data-dir;
-    in property <string> status;
     in property <DriveInfo> drive-info;
     in property <[Game]> games;
     in property <[HomebrewApp]> homebrew-apps;
@@ -71,10 +70,6 @@ export component AppWindow inherits Window {
     in property <[Notification]> notifications;
     in property <[QueuedConversion]> conversion-queue;
     in property <[QueuedConversion]> conversion-queue-buffer;
-
-    in-out property <string> crc32-status;
-
-    callback notify-error(string);
 
     // Initialize
     Timer {
@@ -159,14 +154,14 @@ export component AppWindow inherits Window {
                 }
             }
 
-            if !status.is-empty: HorizontalLayout {
+            if !Rust.status.is-empty: HorizontalLayout {
                 VerticalLine { }
 
                 HorizontalLayout {
                     padding: 10px;
 
                     Text {
-                        text: status;
+                        text: Rust.status;
                     }
                 }
             }
@@ -218,10 +213,9 @@ export component AppWindow inherits Window {
 
     if current-game-i >= 0: GameInfoModal {
         game: games[current-game-i];
-        crc32-status: crc32-status;
         closed => {
             current-game-i = -1;
-            crc32-status = "";
+            Rust.crc32-status = "";
         }
     }
 

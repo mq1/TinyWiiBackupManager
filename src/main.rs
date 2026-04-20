@@ -63,12 +63,8 @@ fn main() -> Result<()> {
     app.set_config(config.clone());
     let state = AppModel::new(config, &app);
 
-    app.global::<Rust<'_>>().register_callbacks(&state, &app);
-
-    let state_clone = state.clone();
-    app.on_notify_error(move |e| {
-        state_clone.add_notification(Notification::error(e));
-    });
+    app.global::<Rust<'_>>()
+        .register_callbacks(&state, app.window());
 
     if let Err(e) = app.run() {
         if std::env::var("SLINT_BACKEND").unwrap_or_default() == "winit-software" {

@@ -39,4 +39,9 @@ impl<T: Clone> Mirrored<T> {
         f(&mut self.inner.borrow_mut());
         self.sync();
     }
+
+    pub fn set(&self, value: T) {
+        *self.inner.borrow_mut() = value;
+        self.sync();
+    }
 }

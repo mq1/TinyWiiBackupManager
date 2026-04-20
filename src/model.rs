@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    AppWindow, Config, Game, GcOutputFormat, HomebrewApp, Notification, OscApp, QueuedConversion,
-    SortBy, ThemePreference, TxtCodesSource, ViewAs, WiiOutputFormat, game, homebrew_app,
-    mirrored::Mirrored, osc,
+    AppWindow, Config, DriveInfo, Game, GcOutputFormat, HomebrewApp, Notification, OscApp,
+    QueuedConversion, SortBy, ThemePreference, TxtCodesSource, ViewAs, WiiOutputFormat, game,
+    homebrew_app, mirrored::Mirrored, osc,
 };
-use slint::{FilterModel, ModelRc, SharedString, SortModel, ToSharedString, VecModel};
+use slint::{FilterModel, Model, ModelRc, SharedString, SortModel, ToSharedString, VecModel};
 use std::{
     cell::{Ref, RefCell},
     cmp::Ordering,
@@ -21,6 +21,8 @@ type JustFilteredModel<T> = FilterModel<Rc<VecModel<T>>, Box<dyn Fn(&T) -> bool>
 #[derive(Clone)]
 pub struct AppModel {
     config: Rc<Mirrored<Config>>,
+
+    drive_info: Rc<Mirrored<DriveInfo>>,
 
     games: Rc<VecModel<Game>>,
     homebrew_apps: Rc<VecModel<HomebrewApp>>,
@@ -46,6 +48,12 @@ pub struct AppModel {
 impl AppModel {
     pub fn new(config: Config, app: &AppWindow) -> Self {
         let config = Rc::new(Mirrored::new(config, app, AppWindow::set_config));
+
+        let drive_info = Rc::new(Mirrored::new(
+            DriveInfo::default(),
+            app,
+            AppWindow::set_drive_info,
+        ));
 
         let games = Rc::new(VecModel::from(Vec::new()));
         let homebrew_apps = Rc::new(VecModel::from(Vec::new()));
@@ -89,6 +97,7 @@ impl AppModel {
 
         Self {
             config,
+            drive_info,
             games,
             homebrew_apps,
             osc_apps,
@@ -285,11 +294,18 @@ impl AppModel {
         self.notifications.remove(index);
     }
 
-    pub fn add_conversions_to_queue(
-        &self,
-        conversions: impl IntoIterator<Item = QueuedConversion>,
-    ) {
-        self.conversion_queue.extend(conversions);
+    pub fn set_conversion_queue_buffer(&self, new: Vec<QueuedConversion>) {
+        self.conversion_queue_buffer.set_vec(new);
+    }
+
+    pub fn confirm_conversion_queue_buffer(&self) {
+        self.conversion_queue
+            .extend(self.conversion_queue_buffer.iter());
+        self.conversion_queue_buffer.clear();
+    }
+
+    pub fn clear_conversion_queue_buffer(&self) {
+        self.conversion_queue_buffer.clear();
     }
 
     pub fn remove_queued_conversion(&self, index: usize) {
@@ -298,5 +314,13 @@ impl AppModel {
 
     pub fn clear_conversion_queue(&self) {
         self.conversion_queue.clear();
+    }
+
+    pub fn existing_ids(&self) -> Vec<String> {
+        self.games.iter().map(|g| g.id.to_string()).collect()
+    }
+
+    pub fn set_drive_info(&self, drive_info: DriveInfo) {
+        self.drive_info.set(drive_info);
     }
 }

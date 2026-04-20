@@ -2,13 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    AppWindow, DriveInfo, Rust, checksum, dialogs, game, homebrew_app, model::AppModel, osc,
+    DriveInfo, Rust, checksum, dialogs, game, homebrew_app, model::AppModel, osc,
+    standard_conversion,
 };
-use slint::{ComponentHandle, ToSharedString};
+use slint::{Global, ToSharedString, Window};
 use std::path::Path;
 
 impl Rust<'_> {
-    pub fn register_callbacks(&self, state: &AppModel, app: &AppWindow) {
+    pub fn register_callbacks(&self, state: &AppModel, window: &Window) {
         let state_clone = state.clone();
         self.on_open_that(move |uri| {
             if let Err(e) = open::that(uri) {
@@ -17,7 +18,7 @@ impl Rust<'_> {
         });
 
         let state_clone = state.clone();
-        let window_handle = app.window().window_handle();
+        let window_handle = window.window_handle();
         self.on_pick_mount_point(move || {
             if let Some(path) = dialogs::pick_mount_point(&window_handle) {
                 state_clone.set_mount_point(path);
@@ -85,7 +86,6 @@ impl Rust<'_> {
         });
 
         let state_clone = state.clone();
-        let weak = app.as_weak();
         self.on_refresh_all(move || {
             let (new_games, new_apps, drive_info) = {
                 let config = state_clone.borrow_config();
@@ -100,7 +100,7 @@ impl Rust<'_> {
 
             state_clone.set_games(new_games);
             state_clone.set_homebrew_apps(new_apps);
-            weak.upgrade().unwrap().set_drive_info(drive_info);
+            state_clone.set_drive_info(drive_info);
         });
 
         let state_clone = state.clone();
@@ -131,21 +131,42 @@ impl Rust<'_> {
             state_clone.close_notification(i as usize);
         });
 
-        let weak = app.as_weak();
+        let weak = self.as_weak();
         self.on_checksum(move |game| {
             let weak = weak.clone();
             let _ = std::thread::spawn(move || {
                 if let Err(e) = checksum::perform(&game.path, game.is_wii, &game.id, &weak) {
-                    let _ = weak.upgrade_in_event_loop(move |app| {
-                        app.invoke_notify_error(e.to_shared_string());
+                    let _ = weak.upgrade_in_event_loop(move |rust| {
+                        rust.invoke_notify_error(e.to_shared_string());
                     });
                 }
             });
         });
 
+        let state_clone = state.clone();
+        self.on_notify_error(move |e| {
+            state_clone.add_notification(crate::Notification::error(e));
+        });
+
+        let state_clone = state.clone();
+        let window_handle = window.window_handle();
+        self.on_pick_games(move |recursively| {
+            let paths = if recursively {
+                dialogs::pick_games_r(&window_handle)
+            } else {
+                dialogs::pick_games(&window_handle)
+            };
+
+            let existing_ids = state_clone.existing_ids();
+
+            let new = standard_conversion::make_queue(paths, &existing_ids);
+
+            state_clone.set_conversion_queue_buffer(new);
+        });
+
         #[cfg(windows)]
         {
-            let window_handle = app.window().window_handle();
+            let window_handle = window.window_handle();
             self.on_set_window_color(move |is_dark| {
                 crate::window_color::set(&window_handle, is_dark);
             });

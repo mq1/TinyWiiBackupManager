@@ -8,13 +8,13 @@ use nod::{
     read::{DiscOptions, DiscReader, PartitionEncryption},
     write::{DiscWriter, ProcessOptions, ScrubLevel},
 };
-use slint::{SharedString, ToSharedString, Weak};
+use slint::{ToSharedString, Weak};
 use split_write::SplitWriter;
 use zip::ZipArchive;
 
 use crate::{
-    AppWindow, ConfigContents, ConversionKind, DriveInfo, GcOutputFormat, QueuedConversion,
-    QueuedStandardConversion, WiiOutputFormat,
+    ConfigContents, ConversionKind, DriveInfo, GcOutputFormat, QueuedConversion,
+    QueuedStandardConversion, Rust, WiiOutputFormat,
     convert::{HEADER_SIZE, SPLIT_SIZE},
     extensions::format_to_opts,
     id_map,
@@ -71,7 +71,7 @@ impl StandardConversion {
         }
     }
 
-    pub fn perform(&mut self, weak: &Weak<AppWindow>) -> Result<()> {
+    pub fn perform(&mut self, weak: &Weak<Rust<'static>>) -> Result<()> {
         self.unzip(weak)?;
 
         let (processor_threads, preloader_threads) = get_threads_num();
@@ -176,8 +176,8 @@ impl StandardConversion {
                         "⤒  Converting {}  {:02}%",
                         &self.game_title, current_percentage
                     );
-                    let _ = weak.upgrade_in_event_loop(move |state| {
-                        state.set_status(status.to_shared_string());
+                    let _ = weak.upgrade_in_event_loop(move |rust| {
+                        rust.set_status(status.to_shared_string());
                     });
 
                     last_update = Instant::now();
@@ -214,7 +214,7 @@ impl StandardConversion {
         Ok(())
     }
 
-    fn unzip(&mut self, weak: &Weak<AppWindow>) -> Result<()> {
+    fn unzip(&mut self, weak: &Weak<Rust<'static>>) -> Result<()> {
         let is_zip = self
             .in_path
             .extension()
@@ -225,8 +225,8 @@ impl StandardConversion {
         }
 
         let status = format!("Unzipping {}", self.in_path.display());
-        let _ = weak.upgrade_in_event_loop(move |app| {
-            app.set_status(status.to_shared_string());
+        let _ = weak.upgrade_in_event_loop(move |rust| {
+            rust.set_status(status.to_shared_string());
         });
 
         let mut f = File::open(&self.in_path)?;
@@ -251,7 +251,7 @@ impl StandardConversion {
     }
 }
 
-pub fn make_queue(paths: Vec<PathBuf>, existing_ids: &[SharedString]) -> Vec<QueuedConversion> {
+pub fn make_queue(paths: Vec<PathBuf>, existing_ids: &[String]) -> Vec<QueuedConversion> {
     // parse discs
     let mut entries = paths
         .into_iter()

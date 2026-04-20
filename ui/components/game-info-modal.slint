@@ -14,7 +14,6 @@ import { Modal } from "modal.slint";
 
 export component GameInfoModal inherits Modal {
     in property <Game> game;
-    in property <string> crc32-status;
 
     callback closed();
 
@@ -236,10 +235,10 @@ export component GameInfoModal inherits Modal {
                     }
 
                     if game.disc-info.err.is-empty: IconButton {
-                        label: crc32-status.is-empty ? "CRC32" : crc32-status;
+                        label: Rust.crc32-status.is-empty ? "CRC32" : Rust.crc32-status;
                         icon: IconSet.FingerprintPattern;
                         clicked => {
-                            if crc32-status.is-empty {
+                            if Rust.crc32-status.is-empty {
                                 Rust.checksum(game);
                             }
                         };
