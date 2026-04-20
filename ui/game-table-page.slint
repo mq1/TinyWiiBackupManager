@@ -9,11 +9,12 @@ import { Card } from "components/card.slint";
 import { MyPalette } from "styling.slint";
 import { GameRow } from "components/game-row.slint";
 import { GamesOtherToolbar } from "components/games-other-toolbar.slint";
-import { Game, Config } from "types.slint";
+import { Game, Config, DriveInfo } from "types.slint";
 
 export component GameTablePage inherits VerticalLayout {
     in property <[Game]> games;
     in property <Config> config;
+    in property <DriveInfo> drive-info;
 
     callback open-info(int);
 
@@ -25,7 +26,10 @@ export component GameTablePage inherits VerticalLayout {
             config: config;
         }
 
-        GamesOtherToolbar { }
+        GamesOtherToolbar {
+            games: games;
+            drive-info: drive-info;
+        }
     }
 
     ScrollView {

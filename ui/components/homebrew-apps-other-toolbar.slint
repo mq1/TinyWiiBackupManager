@@ -3,11 +3,11 @@
 
 import { MyPalette } from "../styling.slint";
 import { HomebrewAppsFilter } from "homebrew-apps-filter.slint";
-import { HomebrewApp } from "../types.slint";
+import { HomebrewApp, DriveInfo } from "../types.slint";
 
 export component HomebrewAppsOtherToolbar inherits HorizontalLayout {
     in property <[HomebrewApp]> apps;
-    in property <float> total-size-mib: 0; // TODO
+    in property <DriveInfo> drive-info;
 
     alignment: space-between;
     height: 38px;
@@ -19,6 +19,6 @@ export component HomebrewAppsOtherToolbar inherits HorizontalLayout {
         height: parent.height;
         vertical-alignment: center;
         horizontal-alignment: end;
-        text: "\{apps.length} app\{apps.length == 1 ? "" : "s"}   ~ \{total-size-mib.to-fixed(2)} MiB";
+        text: "\{apps.length} app\{apps.length == 1 ? "" : "s"}   ~ \{drive-info.apps-mib.to-fixed(2)} MiB";
     }
 }

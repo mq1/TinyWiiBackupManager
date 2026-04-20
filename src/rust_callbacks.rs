@@ -1,8 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{AppWindow, Rust, checksum, dialogs, game, homebrew_app, model::AppModel, osc};
-use slint::{ComponentHandle, Global, ToSharedString};
+use crate::{
+    AppWindow, DriveInfo, Rust, checksum, dialogs, game, homebrew_app, model::AppModel, osc,
+};
+use slint::{ComponentHandle, ToSharedString};
 use std::path::Path;
 
 impl Rust<'_> {
@@ -83,18 +85,22 @@ impl Rust<'_> {
         });
 
         let state_clone = state.clone();
+        let weak = app.as_weak();
         self.on_refresh_all(move || {
-            let (new_games, new_apps) = {
+            let (new_games, new_apps, drive_info) = {
                 let config = state_clone.borrow_config();
                 let root_path = Path::new(&config.contents.mount_point);
+
                 let new_games = game::scan_drive(root_path);
                 let new_apps = homebrew_app::scan_drive(root_path);
+                let drive_info = DriveInfo::from_path(root_path);
 
-                (new_games, new_apps)
+                (new_games, new_apps, drive_info)
             };
 
             state_clone.set_games(new_games);
             state_clone.set_homebrew_apps(new_apps);
+            weak.upgrade().unwrap().set_drive_info(drive_info);
         });
 
         let state_clone = state.clone();

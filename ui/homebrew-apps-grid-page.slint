@@ -9,11 +9,12 @@ import { HomebrewAppCard } from "components/homebrew-app-card.slint";
 import {
     HomebrewAppsOtherToolbar,
 } from "components/homebrew-apps-other-toolbar.slint";
-import { HomebrewApp, Config } from "types.slint";
+import { HomebrewApp, Config, DriveInfo } from "types.slint";
 
 export component HomebrewAppsGridPage inherits VerticalLayout {
     in property <[HomebrewApp]> apps;
     in property <Config> config;
+    in property <DriveInfo> drive-info;
 
     callback open-info(int);
 
@@ -38,6 +39,7 @@ export component HomebrewAppsGridPage inherits VerticalLayout {
 
             HomebrewAppsOtherToolbar {
                 apps: apps;
+                drive-info: drive-info;
             }
 
             GridLayout {

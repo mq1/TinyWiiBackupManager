@@ -7,11 +7,12 @@ import { GameCard } from "components/game-card.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { GamesToolbar } from "components/games-toolbar.slint";
 import { GamesOtherToolbar } from "components/games-other-toolbar.slint";
-import { Game, Config } from "types.slint";
+import { Game, Config, DriveInfo } from "types.slint";
 
 export component GameGridPage inherits VerticalLayout {
     in property <[Game]> games;
     in property <Config> config;
+    in property <DriveInfo> drive-info;
 
     callback open-info(int);
 
@@ -34,7 +35,10 @@ export component GameGridPage inherits VerticalLayout {
             padding-top: 0px;
             spacing: 10px;
 
-            GamesOtherToolbar { }
+            GamesOtherToolbar {
+                games: games;
+                drive-info: drive-info;
+            }
 
             GridLayout {
                 spacing: 10px;
