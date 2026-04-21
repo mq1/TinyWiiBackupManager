@@ -325,6 +325,10 @@ impl AppModel {
         Some(conv)
     }
 
+    pub fn push_conversion(&self, queued: QueuedConversion) {
+        self.conversion_queue.push(queued);
+    }
+
     pub fn set_status(&self, status: SharedString) {
         self.status.set(status);
     }

@@ -53,7 +53,6 @@ fn restart_with_sw_rendering() -> Result<()> {
     std::process::exit(0);
 }
 
-#[allow(clippy::too_many_lines)]
 fn main() -> Result<()> {
     if DATA_DIR.as_os_str().is_empty() {
         bail!("Failed to get data dir");

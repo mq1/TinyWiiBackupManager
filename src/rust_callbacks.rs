@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    DriveInfo, Notification, Rust, checksum, dialogs, game, homebrew_app, model::AppModel, osc,
-    standard_conversion,
+    ConversionKind, DriveInfo, Notification, QueuedArchiveConversion, QueuedConversion, Rust,
+    checksum, dialogs, game, homebrew_app, model::AppModel, osc, standard_conversion,
 };
 use slint::{Global, SharedString, ToSharedString, Window};
 use std::path::Path;
@@ -217,6 +217,26 @@ impl Rust<'_> {
         let state_clone = state.clone();
         self.on_set_crc32_status(move |status| {
             state_clone.set_crc32_status(status);
+        });
+
+        let state_clone = state.clone();
+        let window_handle = window.window_handle();
+        self.on_archive_game(move |game| {
+            let out_path = dialogs::save_game(&window_handle, &game);
+            if let Some(out_path) = out_path {
+                let archive = QueuedArchiveConversion {
+                    game_title: game.title.clone(),
+                    in_path: game.path.clone(),
+                    out_path: out_path.to_string_lossy().to_shared_string(),
+                };
+                let conv = QueuedConversion {
+                    kind: ConversionKind::Archive,
+                    archive,
+                    ..Default::default()
+                };
+
+                state_clone.push_conversion(conv);
+            }
         });
 
         #[cfg(windows)]
