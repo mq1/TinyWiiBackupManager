@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    ConversionKind, DriveInfo, Notification, QueuedArchiveConversion, QueuedConversion, Rust,
-    checksum, dialogs, game, homebrew_app, model::AppModel, osc, standard_conversion,
+    ConversionKind, DriveInfo, Notification, QueuedArchiveConversion, QueuedConversion,
+    QueuedScrubConversion, Rust, checksum, dialogs, game, homebrew_app, model::AppModel, osc,
+    standard_conversion,
 };
 use slint::{Global, SharedString, ToSharedString, Window};
 use std::path::Path;
@@ -221,14 +222,17 @@ impl Rust<'_> {
 
         let state_clone = state.clone();
         let window_handle = window.window_handle();
+        let weak = self.as_weak();
         self.on_archive_game(move |game| {
             let out_path = dialogs::save_game(&window_handle, &game);
+
             if let Some(out_path) = out_path {
                 let archive = QueuedArchiveConversion {
                     game_title: game.title.clone(),
                     in_path: game.path.clone(),
                     out_path: out_path.to_string_lossy().to_shared_string(),
                 };
+
                 let conv = QueuedConversion {
                     kind: ConversionKind::Archive,
                     archive,
@@ -236,6 +240,28 @@ impl Rust<'_> {
                 };
 
                 state_clone.push_conversion(conv);
+                if !state_clone.is_converting() {
+                    state_clone.set_is_converting(true);
+                    weak.upgrade().unwrap().invoke_trigger_conversion();
+                }
+            }
+        });
+
+        let state_clone = state.clone();
+        let weak = self.as_weak();
+        self.on_scrub_game(move |game| {
+            let scrub = QueuedScrubConversion { game };
+
+            let conv = QueuedConversion {
+                kind: ConversionKind::Scrub,
+                scrub,
+                ..Default::default()
+            };
+
+            state_clone.push_conversion(conv);
+            if !state_clone.is_converting() {
+                state_clone.set_is_converting(true);
+                weak.upgrade().unwrap().invoke_trigger_conversion();
             }
         });
 
