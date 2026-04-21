@@ -191,7 +191,6 @@ impl Rust<'_> {
 
                     let _ = weak.upgrade_in_event_loop(move |rust| {
                         rust.invoke_set_status(SharedString::new());
-                        rust.invoke_set_crc32_status(SharedString::new());
 
                         if let Err(e) = res {
                             rust.invoke_notify_error(e.to_shared_string());
