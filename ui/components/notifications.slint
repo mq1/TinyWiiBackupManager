@@ -5,18 +5,16 @@ import { Card } from "card.slint";
 import { IconButton } from "icon-button.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { MyPalette } from "../styling.slint";
-import { Notification } from "../types.slint";
 import { Rust } from "../rust.slint";
+import { MirroredProperties } from "../mirrored-properties.slint";
 
 export component Notifications inherits VerticalLayout {
-    in property <[Notification]> notifications;
-
     width: self.preferred-width;
     height: self.preferred-height;
     padding: 10px;
     spacing: 5px;
 
-    for notification[i] in notifications: Card {
+    for notification[i] in MirroredProperties.notifications: Card {
         height: 40px;
 
         h := HorizontalLayout {

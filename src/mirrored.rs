@@ -1,47 +1,44 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::AppWindow;
-use slint::{ComponentHandle, Weak};
+use slint::{StrongHandle, Weak};
 use std::cell::{Ref, RefCell};
 
 pub struct Mirrored<T> {
     inner: RefCell<T>,
-    weak: Weak<AppWindow>,
-    update_fn: fn(&AppWindow, T),
+    update_fn: RefCell<Box<dyn Fn(T)>>,
 }
 
 impl<T: Clone> Mirrored<T> {
-    pub fn new(inner: T, app: &AppWindow, update_fn: fn(&AppWindow, T)) -> Self {
-        let m = Mirrored {
+    pub fn new(inner: T) -> Self {
+        Mirrored {
             inner: RefCell::new(inner),
-            weak: app.as_weak(),
-            update_fn,
-        };
+            update_fn: RefCell::new(Box::new(|_| {})),
+        }
+    }
 
-        m.sync();
-        m
+    pub fn wire<S: StrongHandle + 'static>(&self, weak: Weak<S>, set_fn: impl Fn(&S, T) + 'static) {
+        *self.update_fn.borrow_mut() = Box::new(move |new| {
+            set_fn(&weak.upgrade().unwrap(), new);
+        });
+        (self.update_fn.borrow())(self.inner.borrow().clone());
     }
 
     pub fn borrow(&self) -> Ref<'_, T> {
         self.inner.borrow()
     }
 
-    fn sync(&self) {
-        let app = self.weak.upgrade().unwrap();
-        (self.update_fn)(&app, self.inner.borrow().clone());
-    }
-
     pub fn edit<E>(&self, f: E)
     where
         E: Fn(&mut T),
     {
-        f(&mut self.inner.borrow_mut());
-        self.sync();
+        let mut inner = self.inner.borrow_mut();
+        f(&mut inner);
+        (self.update_fn.borrow())(inner.clone());
     }
 
     pub fn set(&self, value: T) {
-        *self.inner.borrow_mut() = value;
-        self.sync();
+        *self.inner.borrow_mut() = value.clone();
+        (self.update_fn.borrow())(value);
     }
 }

@@ -6,11 +6,9 @@ import { IconDisplay, IconSet } from "@lucide";
 import { Link } from "components/link.slint";
 import { Card } from "components/card.slint";
 import { HorizontalLine } from "components/horizontal-line.slint";
+import { MirroredProperties } from "mirrored-properties.slint";
 
 export component AboutPage inherits Rectangle {
-    in property <string> app-version;
-    in property <string> data-dir;
-
     Card {
         width: 600px;
         height: self.min-height;
@@ -38,7 +36,7 @@ export component AboutPage inherits Rectangle {
                     alignment: center;
 
                     Text {
-                        text: "TinyWiiBackupManager v\{app-version}";
+                        text: "TinyWiiBackupManager v\{MirroredProperties.app-version}";
                         font-size: 18px;
                         font-weight: 700;
                     }
@@ -131,7 +129,7 @@ export component AboutPage inherits Rectangle {
 
         Link {
             label: "Data directory";
-            uri: data-dir;
+            uri: MirroredProperties.data-dir;
             icon: IconSet.Folder;
         }
 

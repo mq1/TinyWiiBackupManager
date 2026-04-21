@@ -33,16 +33,17 @@ import { OscTablePage } from "osc-table-page.slint";
 import { OscAppInfoModal } from "components/osc-app-info-modal.slint";
 import { ConfirmationModal } from "components/confirmation-modal.slint";
 import { Tooltip } from "tooltip.slint";
+import { MirroredProperties } from "mirrored-properties.slint";
 
 export * from "types.slint";
-export { Rust }
+export { Rust, MirroredProperties }
 
 export component AppWindow inherits Window {
     pure function get-window-title() -> string {
-        if drive-info.label.is-empty {
+        if MirroredProperties.drive-info.label.is-empty {
             "TinyWiiBackupManager  ›  No drive selected"
         } else {
-            "TinyWiiBackupManager  ›  \{drive-info.label}  (\{drive-info.used-gib.to-fixed(2)}/\{drive-info.total-gib.to-fixed(2)} GiB)"
+            "TinyWiiBackupManager  ›  \{MirroredProperties.drive-info.label}  (\{MirroredProperties.drive-info.used-gib.to-fixed(2)}/\{MirroredProperties.drive-info.total-gib.to-fixed(2)} GiB)"
         }
     }
 
@@ -60,25 +61,14 @@ export component AppWindow inherits Window {
     private property <int> game-to-delete: -1;
     private property <int> homebrew-app-to-delete: -1;
 
-    in property <Config> config;
-    in property <string> app-version;
-    in property <string> data-dir;
-    in property <DriveInfo> drive-info;
-    in property <[Game]> games;
-    in property <[HomebrewApp]> homebrew-apps;
-    in property <[OscApp]> osc-apps;
-    in property <[Notification]> notifications;
-    in property <[QueuedConversion]> conversion-queue;
-    in property <[QueuedConversion]> conversion-queue-buffer;
-
     // Initialize
     Timer {
         interval: 1ms;
         running: true;
         triggered => {
-            if config.contents.theme-preference == ThemePreference.Light {
+            if MirroredProperties.config.contents.theme-preference == ThemePreference.Light {
                 Palette.color-scheme = ColorScheme.light;
-            } else if config.contents.theme-preference == ThemePreference.Dark {
+            } else if MirroredProperties.config.contents.theme-preference == ThemePreference.Dark {
                 Palette.color-scheme = ColorScheme.dark;
             }
             Rust.set-window-color(Palette.color-scheme == ColorScheme.dark);
@@ -99,69 +89,48 @@ export component AppWindow inherits Window {
                 border-width: 1px;
                 border-color: MyPalette.border;
 
-                if current-page == Page.Games && config.contents.view-as == ViewAs.Grid: GameGridPage {
-                    games: games;
-                    config: config;
-                    drive-info: drive-info;
+                if current-page == Page.Games && MirroredProperties.config.contents.view-as == ViewAs.Grid: GameGridPage {
                     open-info(i) => {
                         current-game-i = i;
                     }
                 }
-                if current-page == Page.Games && config.contents.view-as == ViewAs.Table: GameTablePage {
-                    games: games;
-                    config: config;
-                    drive-info: drive-info;
+                if current-page == Page.Games && MirroredProperties.config.contents.view-as == ViewAs.Table: GameTablePage {
                     open-info(i) => {
                         current-game-i = i;
                     }
                 }
-                if current-page == Page.HomebrewApps && config.contents.view-as == ViewAs.Grid: HomebrewAppsGridPage {
-                    apps: homebrew-apps;
-                    config: config;
-                    drive-info: drive-info;
+                if current-page == Page.HomebrewApps && MirroredProperties.config.contents.view-as == ViewAs.Grid: HomebrewAppsGridPage {
                     open-info(i) => {
                         current-homebrew-app-i = i;
                     }
                 }
-                if current-page == Page.HomebrewApps && config.contents.view-as == ViewAs.Table: HomebrewAppsTablePage {
-                    apps: homebrew-apps;
-                    config: config;
-                    drive-info: drive-info;
+                if current-page == Page.HomebrewApps && MirroredProperties.config.contents.view-as == ViewAs.Table: HomebrewAppsTablePage {
                     open-info(i) => {
                         current-homebrew-app-i = i;
                     }
                 }
-                if current-page == Page.Osc && config.contents.view-as == ViewAs.Grid: OscGridPage {
-                    apps: osc-apps;
-                    config: config;
+                if current-page == Page.Osc && MirroredProperties.config.contents.view-as == ViewAs.Grid: OscGridPage {
                     open-info(i) => {
                         current-osc-app-i = i;
                     }
                 }
-                if current-page == Page.Osc && config.contents.view-as == ViewAs.Table: OscTablePage {
-                    apps: osc-apps;
-                    config: config;
+                if current-page == Page.Osc && MirroredProperties.config.contents.view-as == ViewAs.Table: OscTablePage {
                     open-info(i) => {
                         current-osc-app-i = i;
                     }
                 }
-                if current-page == Page.Settings: SettingsPage {
-                    config: config;
-                }
-                if current-page == Page.About: AboutPage {
-                    app-version: app-version;
-                    data-dir: data-dir;
-                }
+                if current-page == Page.Settings: SettingsPage { }
+                if current-page == Page.About: AboutPage { }
             }
 
-            if !Rust.status.is-empty: HorizontalLayout {
+            if !MirroredProperties.status.is-empty: HorizontalLayout {
                 VerticalLine { }
 
                 HorizontalLayout {
                     padding: 10px;
 
                     Text {
-                        text: Rust.status;
+                        text: MirroredProperties.status;
                     }
                 }
             }
@@ -169,75 +138,73 @@ export component AppWindow inherits Window {
     }
 
     if game-to-delete >= 0: ConfirmationModal {
-        message: "Are you sure you want to delete \{games[game-to-delete].title}? This action cannot be undone.";
+        message: "Are you sure you want to delete \{MirroredProperties.games[game-to-delete].title}? This action cannot be undone.";
 
         cancelled => {
             game-to-delete = -1;
         }
         confirmed => {
-            Rust.delete-game(games[game-to-delete]);
+            Rust.delete-game(MirroredProperties.games[game-to-delete]);
             game-to-delete = -1;
         }
     }
 
     if homebrew-app-to-delete >= 0: ConfirmationModal {
-        message: "Are you sure you want to delete \{homebrew-apps[homebrew-app-to-delete].meta.name}? This action cannot be undone.";
+        message: "Are you sure you want to delete \{MirroredProperties.homebrew-apps[homebrew-app-to-delete].meta.name}? This action cannot be undone.";
 
         cancelled => {
             homebrew-app-to-delete = -1;
         }
         confirmed => {
-            Rust.delete-homebrew-app(homebrew-apps[homebrew-app-to-delete]);
+            Rust.delete-homebrew-app(MirroredProperties.homebrew-apps[homebrew-app-to-delete]);
             homebrew-app-to-delete = -1;
         }
     }
 
     if game-to-scrub >= 0: ConfirmationModal {
-        message: "Are you sure you want to scrub \{games[game-to-scrub].title}? This action cannot be undone.";
+        message: "Are you sure you want to scrub \{MirroredProperties.games[game-to-scrub].title}? This action cannot be undone.";
 
         cancelled => {
             game-to-scrub = -1;
         }
         confirmed => {
-            Rust.scrub-game(games[game-to-scrub]);
+            Rust.scrub-game(MirroredProperties.games[game-to-scrub]);
             game-to-scrub = -1;
         }
     }
 
-    if conversion-queue-buffer.length > 0: ConfirmationModal {
-        message: "Are you sure you want to add \{conversion-queue-buffer.length} conversions to the queue?";
+    if MirroredProperties.conversion-queue-buffer.length > 0: ConfirmationModal {
+        message: "Are you sure you want to add \{MirroredProperties.conversion-queue-buffer.length} conversions to the queue?";
 
         cancelled => Rust.clear-conversion-queue-buffer();
         confirmed => Rust.confirm-conversion-queue-buffer();
     }
 
     if current-game-i >= 0: GameInfoModal {
-        game: games[current-game-i];
+        game: MirroredProperties.games[current-game-i];
         closed => {
             current-game-i = -1;
-            Rust.crc32-status = "";
+            Rust.set-crc32-status("");
         }
     }
 
     if current-homebrew-app-i >= 0: HomebrewAppInfoModal {
-        app: homebrew-apps[current-homebrew-app-i];
+        app: MirroredProperties.homebrew-apps[current-homebrew-app-i];
         closed => {
             current-homebrew-app-i = -1;
         }
     }
 
     if current-osc-app-i >= 0: OscAppInfoModal {
-        app: osc-apps[current-osc-app-i];
+        app: MirroredProperties.osc-apps[current-osc-app-i];
         closed => {
             current-osc-app-i = -1;
         }
     }
 
-    if notifications.length > 0: Notifications {
+    if MirroredProperties.notifications.length > 0: Notifications {
         x: root.width - self.width;
         y: root.height - self.height;
-
-        notifications: notifications;
     }
 
     if !Tooltip.text.is-empty: Card {

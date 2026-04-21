@@ -2,17 +2,12 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    AppWindow, Config, DriveInfo, Game, GcOutputFormat, HomebrewApp, Notification, OscApp,
-    QueuedConversion, SortBy, ThemePreference, TxtCodesSource, ViewAs, WiiOutputFormat,
-    convert::Conversion, game, homebrew_app, mirrored::Mirrored, osc,
+    Config, DriveInfo, Game, GcOutputFormat, HomebrewApp, Notification, OscApp, QueuedConversion,
+    SortBy, ThemePreference, TxtCodesSource, ViewAs, WiiOutputFormat, convert::Conversion, game,
+    homebrew_app, mirrored::Mirrored, osc,
 };
-use slint::{FilterModel, Model, ModelRc, SharedString, SortModel, ToSharedString, VecModel};
-use std::{
-    cell::{Ref, RefCell},
-    cmp::Ordering,
-    path::PathBuf,
-    rc::Rc,
-};
+use slint::{FilterModel, Model, SharedString, SortModel, ToSharedString, VecModel};
+use std::{cell::RefCell, cmp::Ordering, path::PathBuf, rc::Rc};
 
 type SortedModel<T> = SortModel<Rc<VecModel<T>>, Box<dyn Fn(&T, &T) -> Ordering>>;
 type FilteredModel<T> = FilterModel<Rc<SortedModel<T>>, Box<dyn Fn(&T) -> bool>>;
@@ -21,8 +16,9 @@ type JustFilteredModel<T> = FilterModel<Rc<VecModel<T>>, Box<dyn Fn(&T) -> bool>
 #[derive(Clone)]
 pub struct AppModel {
     config: Rc<Mirrored<Config>>,
-
     drive_info: Rc<Mirrored<DriveInfo>>,
+    status: Rc<Mirrored<SharedString>>,
+    crc32_status: Rc<Mirrored<SharedString>>,
 
     games: Rc<VecModel<Game>>,
     homebrew_apps: Rc<VecModel<HomebrewApp>>,
@@ -48,14 +44,12 @@ pub struct AppModel {
 }
 
 impl AppModel {
-    pub fn new(config: Config, app: &AppWindow) -> Self {
-        let config = Rc::new(Mirrored::new(config, app, AppWindow::set_config));
+    pub fn new(config: Config) -> Self {
+        let config = Rc::new(Mirrored::new(config));
+        let drive_info = Rc::new(Mirrored::new(DriveInfo::default()));
 
-        let drive_info = Rc::new(Mirrored::new(
-            DriveInfo::default(),
-            app,
-            AppWindow::set_drive_info,
-        ));
+        let status = Rc::new(Mirrored::new(SharedString::new()));
+        let crc32_status = Rc::new(Mirrored::new(SharedString::new()));
 
         let games = Rc::new(VecModel::from(Vec::new()));
         let homebrew_apps = Rc::new(VecModel::from(Vec::new()));
@@ -90,15 +84,10 @@ impl AppModel {
         let conversion_queue = Rc::new(VecModel::from(Vec::new()));
         let conversion_queue_buffer = Rc::new(VecModel::from(Vec::new()));
 
-        app.set_games(ModelRc::from(filtered_games.clone()));
-        app.set_homebrew_apps(ModelRc::from(filtered_homebrew_apps.clone()));
-        app.set_osc_apps(ModelRc::from(filtered_osc_apps.clone()));
-        app.set_notifications(ModelRc::from(notifications.clone()));
-        app.set_conversion_queue(ModelRc::from(conversion_queue.clone()));
-        app.set_conversion_queue_buffer(ModelRc::from(conversion_queue_buffer.clone()));
-
         Self {
             config,
+            status,
+            crc32_status,
             drive_info,
             games,
             homebrew_apps,
@@ -116,10 +105,6 @@ impl AppModel {
             conversion_queue_buffer,
             is_converting: Rc::new(RefCell::new(false)),
         }
-    }
-
-    pub fn borrow_config(&self) -> Ref<'_, Config> {
-        self.config.borrow()
     }
 
     pub fn set_mount_point(&self, mount_point: PathBuf) {
@@ -319,16 +304,8 @@ impl AppModel {
         self.conversion_queue.clear();
     }
 
-    pub fn existing_ids(&self) -> Vec<String> {
-        self.games.iter().map(|g| g.id.to_string()).collect()
-    }
-
     pub fn set_drive_info(&self, drive_info: DriveInfo) {
         self.drive_info.set(drive_info);
-    }
-
-    pub fn is_converting(&self) -> bool {
-        *self.is_converting.borrow()
     }
 
     pub fn set_is_converting(&self, is_converting: bool) {
@@ -346,5 +323,64 @@ impl AppModel {
 
         let conv = Conversion::new(&queued, conf, &drive_info);
         Some(conv)
+    }
+
+    pub fn set_status(&self, status: SharedString) {
+        self.status.set(status);
+    }
+
+    pub fn set_crc32_status(&self, status: SharedString) {
+        self.crc32_status.set(status);
+    }
+}
+
+// Getters
+impl AppModel {
+    pub fn config(&self) -> &Mirrored<Config> {
+        &self.config
+    }
+
+    pub fn drive_info(&self) -> &Mirrored<DriveInfo> {
+        &self.drive_info
+    }
+
+    pub fn games(&self) -> Rc<FilteredModel<Game>> {
+        self.filtered_games.clone()
+    }
+
+    pub fn homebrew_apps(&self) -> Rc<FilteredModel<HomebrewApp>> {
+        self.filtered_homebrew_apps.clone()
+    }
+
+    pub fn osc_apps(&self) -> Rc<JustFilteredModel<OscApp>> {
+        self.filtered_osc_apps.clone()
+    }
+
+    pub fn notifications(&self) -> Rc<VecModel<Notification>> {
+        self.notifications.clone()
+    }
+
+    pub fn conversion_queue(&self) -> Rc<VecModel<QueuedConversion>> {
+        self.conversion_queue.clone()
+    }
+
+    pub fn conversion_queue_buffer(&self) -> Rc<VecModel<QueuedConversion>> {
+        self.conversion_queue_buffer.clone()
+    }
+
+    pub fn existing_ids(&self) -> Vec<String> {
+        self.games.iter().map(|g| g.id.to_string()).collect()
+    }
+
+    pub fn is_converting(&self) -> bool {
+        *self.is_converting.borrow()
+    }
+
+    pub fn status(&self) -> &Mirrored<SharedString> {
+        &self.status
+    }
+
+    pub fn crc32_status(&self) -> &Mirrored<SharedString> {
+        &self.crc32_status
     }
 }

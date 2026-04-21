@@ -18,6 +18,7 @@ mod homebrew_app;
 mod homebrew_app_meta;
 mod id_map;
 mod mirrored;
+mod mirrored_properties;
 mod model;
 mod notification;
 mod osc;
@@ -60,8 +61,9 @@ fn main() -> Result<()> {
 
     let config = Config::load();
     let app = AppWindow::new()?;
-    app.set_config(config.clone());
-    let state = AppModel::new(config, &app);
+    let state = AppModel::new(config);
+
+    app.global::<MirroredProperties<'_>>().link(&state);
 
     app.global::<Rust<'_>>()
         .register_callbacks(&state, app.window());

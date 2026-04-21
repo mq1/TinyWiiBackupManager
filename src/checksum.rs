@@ -37,7 +37,7 @@ fn hash_file(hasher: &mut Hasher, path: &Path, weak: &Weak<Rust<'static>>) -> Re
             let status = format!("{current_percentage}%");
 
             let _ = weak.upgrade_in_event_loop(move |rust| {
-                rust.set_crc32_status(status.to_shared_string());
+                rust.invoke_set_crc32_status(status.to_shared_string());
             });
 
             last_update = Instant::now();
@@ -117,7 +117,7 @@ pub fn perform(
     }
 
     let _ = weak.upgrade_in_event_loop(move |rust| {
-        rust.set_crc32_status(crc32.to_shared_string());
+        rust.invoke_set_crc32_status(crc32.to_shared_string());
     });
 
     Ok(())

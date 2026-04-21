@@ -8,11 +8,8 @@ import { SortGamesAndHomebrewApps } from "sort-games-and-homebrew-apps.slint";
 import { ViewAs } from "view-as.slint";
 import { MyPalette } from "../styling.slint";
 import { Rust } from "../rust.slint";
-import { Config } from "../types.slint";
 
 export component GamesToolbar inherits HorizontalLayout {
-    in property <Config> config;
-
     alignment: space-between;
     height: 38px;
 
@@ -35,17 +32,11 @@ export component GamesToolbar inherits HorizontalLayout {
     HorizontalLayout {
         spacing: 10px;
 
-        ShowWiiGc {
-            config: config;
-        }
+        ShowWiiGc { }
 
-        SortGamesAndHomebrewApps {
-            config: config;
-        }
+        SortGamesAndHomebrewApps { }
 
-        ViewAs {
-            config: config;
-        }
+        ViewAs { }
 
         VerticalLayout {
             alignment: center;

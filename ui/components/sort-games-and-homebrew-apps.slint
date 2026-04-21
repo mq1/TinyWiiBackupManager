@@ -4,14 +4,12 @@
 import { Card } from "card.slint";
 import { IconDisplay, IconSet } from "@lucide";
 import { TooltipArea } from "tooltip-area.slint";
-import { Config } from "../types.slint";
 import { MyPalette } from "../styling.slint";
 import { SortBy } from "../types.slint";
 import { Rust } from "../rust.slint";
+import { MirroredProperties } from "../mirrored-properties.slint";
 
 export component SortGamesAndHomebrewApps inherits Card {
-    in property <Config> config;
-
     pure function get-bg(current-sort-by: bool, hovered: bool) -> color {
         if current-sort-by {
             MyPalette.selection-background
@@ -32,9 +30,9 @@ export component SortGamesAndHomebrewApps inherits Card {
             height: 38px;
 
             tooltip: "Sort by name";
-            background: get-bg(config.contents.sort-by == SortBy.NameAscending || config.contents.sort-by == SortBy.NameDescending, self.has-hover);
+            background: get-bg(MirroredProperties.config.contents.sort-by == SortBy.NameAscending || MirroredProperties.config.contents.sort-by == SortBy.NameDescending, self.has-hover);
             clicked => {
-                if config.contents.sort-by == SortBy.NameAscending {
+                if MirroredProperties.config.contents.sort-by == SortBy.NameAscending {
                     Rust.set-sort-by(SortBy.NameDescending);
                 } else {
                     Rust.set-sort-by(SortBy.NameAscending);
@@ -42,7 +40,7 @@ export component SortGamesAndHomebrewApps inherits Card {
             }
 
             IconDisplay {
-                icon: config.contents.sort-by == SortBy.NameDescending ? IconSet.ArrowUpAZ : IconSet.ArrowDownAZ;
+                icon: MirroredProperties.config.contents.sort-by == SortBy.NameDescending ? IconSet.ArrowUpAZ : IconSet.ArrowDownAZ;
                 size: 14px;
                 stroke: MyPalette.foreground;
             }
@@ -53,9 +51,9 @@ export component SortGamesAndHomebrewApps inherits Card {
             height: 38px;
 
             tooltip: "Sort by size";
-            background: get-bg(config.contents.sort-by == SortBy.SizeAscending || config.contents.sort-by == SortBy.SizeDescending, self.has-hover);
+            background: get-bg(MirroredProperties.config.contents.sort-by == SortBy.SizeAscending || MirroredProperties.config.contents.sort-by == SortBy.SizeDescending, self.has-hover);
             clicked => {
-                if config.contents.sort-by == SortBy.SizeAscending {
+                if MirroredProperties.config.contents.sort-by == SortBy.SizeAscending {
                     Rust.set-sort-by(SortBy.SizeDescending);
                 } else {
                     Rust.set-sort-by(SortBy.SizeAscending);
@@ -63,7 +61,7 @@ export component SortGamesAndHomebrewApps inherits Card {
             }
 
             IconDisplay {
-                icon: config.contents.sort-by == SortBy.SizeDescending ? IconSet.ArrowUp01 : IconSet.ArrowDown01;
+                icon: MirroredProperties.config.contents.sort-by == SortBy.SizeDescending ? IconSet.ArrowUp01 : IconSet.ArrowDown01;
                 size: 14px;
                 stroke: MyPalette.foreground;
             }

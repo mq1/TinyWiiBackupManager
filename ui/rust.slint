@@ -15,9 +15,6 @@ import {
 } from "types.slint";
 
 export global Rust {
-    in-out property <string> status;
-    in-out property <string> crc32-status;
-
     callback filter-games(string);
     callback filter-homebrew-apps(string);
     callback filter-osc-apps(string);
@@ -54,5 +51,7 @@ export global Rust {
 
     // util
     callback notify-error(string);
-    callback conversion-finished();
+    callback trigger-conversion();
+    callback set-status(string);
+    callback set-crc32-status(string);
 }

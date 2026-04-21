@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    DriveInfo, Rust, checksum, dialogs, game, homebrew_app, model::AppModel, osc,
+    DriveInfo, Notification, Rust, checksum, dialogs, game, homebrew_app, model::AppModel, osc,
     standard_conversion,
 };
-use slint::{Global, ToSharedString, Window};
+use slint::{Global, SharedString, ToSharedString, Window};
 use std::path::Path;
 
 impl Rust<'_> {
@@ -88,7 +88,7 @@ impl Rust<'_> {
         let state_clone = state.clone();
         self.on_refresh_all(move || {
             let (new_games, new_apps, drive_info) = {
-                let config = state_clone.borrow_config();
+                let config = state_clone.config().borrow();
                 let root_path = Path::new(&config.contents.mount_point);
 
                 let p = root_path.to_path_buf();
@@ -149,7 +149,7 @@ impl Rust<'_> {
 
         let state_clone = state.clone();
         self.on_notify_error(move |e| {
-            state_clone.add_notification(crate::Notification::error(e));
+            state_clone.add_notification(Notification::error(e));
         });
 
         let state_clone = state.clone();
@@ -173,29 +173,15 @@ impl Rust<'_> {
         self.on_confirm_conversion_queue_buffer(move || {
             state_clone.confirm_conversion_queue_buffer();
 
-            if !state_clone.is_converting()
-                && let Some(mut conv) = state_clone.pop_conversion()
-            {
+            if !state_clone.is_converting() {
                 state_clone.set_is_converting(true);
-                let weak = weak.clone();
-
-                let _ = std::thread::spawn(move || {
-                    let res = conv.perform(&weak);
-
-                    let _ = weak.upgrade_in_event_loop(move |rust| {
-                        if let Err(e) = res {
-                            rust.invoke_notify_error(e.to_shared_string());
-                        }
-
-                        rust.invoke_conversion_finished();
-                    });
-                });
+                weak.upgrade().unwrap().invoke_trigger_conversion();
             }
         });
 
         let state_clone = state.clone();
         let weak = self.as_weak();
-        self.on_conversion_finished(move || {
+        self.on_trigger_conversion(move || {
             if let Some(mut conv) = state_clone.pop_conversion() {
                 let weak = weak.clone();
 
@@ -203,11 +189,14 @@ impl Rust<'_> {
                     let res = conv.perform(&weak);
 
                     let _ = weak.upgrade_in_event_loop(move |rust| {
+                        rust.invoke_set_status(SharedString::new());
+                        rust.invoke_set_crc32_status(SharedString::new());
+
                         if let Err(e) = res {
                             rust.invoke_notify_error(e.to_shared_string());
                         }
 
-                        rust.invoke_conversion_finished();
+                        rust.invoke_trigger_conversion();
                     });
                 });
             } else {
@@ -218,6 +207,16 @@ impl Rust<'_> {
         let state_clone = state.clone();
         self.on_clear_conversion_queue_buffer(move || {
             state_clone.clear_conversion_queue_buffer();
+        });
+
+        let state_clone = state.clone();
+        self.on_set_status(move |status| {
+            state_clone.set_status(status);
+        });
+
+        let state_clone = state.clone();
+        self.on_set_crc32_status(move |status| {
+            state_clone.set_crc32_status(status);
         });
 
         #[cfg(windows)]

@@ -7,13 +7,9 @@ import { GameCard } from "components/game-card.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { GamesToolbar } from "components/games-toolbar.slint";
 import { GamesOtherToolbar } from "components/games-other-toolbar.slint";
-import { Game, Config, DriveInfo } from "types.slint";
+import { MirroredProperties } from "mirrored-properties.slint";
 
 export component GameGridPage inherits VerticalLayout {
-    in property <[Game]> games;
-    in property <Config> config;
-    in property <DriveInfo> drive-info;
-
     callback open-info(int);
 
     private property <int> col-count: max(1, floor((self.width - 10px) / (172px + 10px)));
@@ -21,9 +17,7 @@ export component GameGridPage inherits VerticalLayout {
     HorizontalLayout {
         padding: 10px;
 
-        GamesToolbar {
-            config: config;
-        }
+        GamesToolbar { }
     }
 
     ScrollView {
@@ -35,15 +29,12 @@ export component GameGridPage inherits VerticalLayout {
             padding-top: 0px;
             spacing: 10px;
 
-            GamesOtherToolbar {
-                games: games;
-                drive-info: drive-info;
-            }
+            GamesOtherToolbar { }
 
             GridLayout {
                 spacing: 10px;
 
-                for game[i] in games: GameCard {
+                for game[i] in MirroredProperties.games: GameCard {
                     row: i / col-count;
                     col: mod(i, col-count);
 

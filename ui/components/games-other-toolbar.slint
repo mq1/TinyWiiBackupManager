@@ -1,14 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { MyPalette } from "../styling.slint";
 import { GameFilter } from "game-filter.slint";
-import { Game, DriveInfo } from "../types.slint";
+import { MirroredProperties } from "../mirrored-properties.slint";
 
 export component GamesOtherToolbar inherits HorizontalLayout {
-    in property <[Game]> games;
-    in property <DriveInfo> drive-info;
-
     alignment: space-between;
     height: 38px;
     padding-right: 20px;
@@ -19,6 +15,6 @@ export component GamesOtherToolbar inherits HorizontalLayout {
         height: parent.height;
         vertical-alignment: center;
         horizontal-alignment: end;
-        text: "\{games.length} game\{games.length == 1 ? "" : "s"}   ~ \{drive-info.games-gib.to-fixed(2)} GiB";
+        text: "\{MirroredProperties.games.length} game\{MirroredProperties.games.length == 1 ? "" : "s"}   ~ \{MirroredProperties.drive-info.games-gib.to-fixed(2)} GiB";
     }
 }

@@ -9,27 +9,18 @@ import { Card } from "components/card.slint";
 import { MyPalette } from "styling.slint";
 import { GameRow } from "components/game-row.slint";
 import { GamesOtherToolbar } from "components/games-other-toolbar.slint";
-import { Game, Config, DriveInfo } from "types.slint";
+import { MirroredProperties } from "mirrored-properties.slint";
 
 export component GameTablePage inherits VerticalLayout {
-    in property <[Game]> games;
-    in property <Config> config;
-    in property <DriveInfo> drive-info;
-
     callback open-info(int);
 
     VerticalLayout {
         padding: 10px;
         spacing: 10px;
 
-        GamesToolbar {
-            config: config;
-        }
+        GamesToolbar { }
 
-        GamesOtherToolbar {
-            games: games;
-            drive-info: drive-info;
-        }
+        GamesOtherToolbar { }
     }
 
     ScrollView {
@@ -45,7 +36,7 @@ export component GameTablePage inherits VerticalLayout {
                 height: v2.preferred-height;
 
                 v2 := VerticalLayout {
-                    for game[i] in games: VerticalLayout {
+                    for game[i] in MirroredProperties.games: VerticalLayout {
                         GameRow {
                             game: game;
                             open-info => open-info(i);

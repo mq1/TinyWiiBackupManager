@@ -11,6 +11,7 @@ import { MyPalette } from "../styling.slint";
 import { IconButton, IconButtonKind } from "icon-button.slint";
 import { Rust } from "../rust.slint";
 import { Modal } from "modal.slint";
+import { MirroredProperties } from "../mirrored-properties.slint";
 
 export component GameInfoModal inherits Modal {
     in property <Game> game;
@@ -234,10 +235,10 @@ export component GameInfoModal inherits Modal {
                     }
 
                     if game.disc-info.err.is-empty: IconButton {
-                        label: Rust.crc32-status.is-empty ? "CRC32" : Rust.crc32-status;
+                        label: MirroredProperties.crc32-status.is-empty ? "CRC32" : MirroredProperties.crc32-status;
                         icon: IconSet.FingerprintPattern;
                         clicked => {
-                            if Rust.crc32-status.is-empty {
+                            if MirroredProperties.crc32-status.is-empty {
                                 Rust.checksum(game);
                             }
                         };

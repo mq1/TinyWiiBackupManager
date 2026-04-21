@@ -6,13 +6,10 @@ import { CheckBox } from "std-widgets.slint";
 import { TooltipArea } from "tooltip-area.slint";
 import { VerticalLine } from "vertical-line.slint";
 import { IconDisplay, IconSet } from "@lucide";
-import { MyPalette } from "../styling.slint";
 import { Rust } from "../rust.slint";
-import { Config } from "../types.slint";
+import { MirroredProperties } from "../mirrored-properties.slint";
 
 export component ShowWiiGc inherits Card {
-    in property <Config> config;
-
     height: 38px;
 
     HorizontalLayout {
@@ -21,7 +18,7 @@ export component ShowWiiGc inherits Card {
         spacing: 5px;
 
         CheckBox {
-            checked: config.contents.show-wii;
+            checked: MirroredProperties.config.contents.show-wii;
             toggled => Rust.set-show-wii(self.checked);
         }
 
@@ -39,7 +36,7 @@ export component ShowWiiGc inherits Card {
         VerticalLine { }
 
         CheckBox {
-            checked: config.contents.show-gc;
+            checked: MirroredProperties.config.contents.show-gc;
             toggled => Rust.set-show-gc(self.checked);
         }
 

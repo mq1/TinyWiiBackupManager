@@ -2,13 +2,12 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import { IconSet } from "@lucide";
-import { Page, Config } from "../types.slint";
+import { Page } from "../types.slint";
 import { NavbarButton } from "navbar-button.slint";
 import { Rust } from "../rust.slint";
 
 export component Navbar inherits VerticalLayout {
     in-out property <Page> current-page: Page.Games;
-    in property <Config> config;
 
     alignment: LayoutAlignment.space-between;
 

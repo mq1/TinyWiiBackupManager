@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import { IconButton, IconButtonKind } from "icon-button.slint";
-import { Config } from "../types.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { ViewAs } from "view-as.slint";
 import { MyPalette } from "../styling.slint";
@@ -10,8 +9,6 @@ import { Link } from "link.slint";
 import { Rust } from "../rust.slint";
 
 export component OscToolbar inherits HorizontalLayout {
-    in property <Config> config;
-
     alignment: space-between;
     height: 38px;
 
@@ -45,9 +42,7 @@ export component OscToolbar inherits HorizontalLayout {
     HorizontalLayout {
         spacing: 10px;
 
-        ViewAs {
-            config: config;
-        }
+        ViewAs { }
 
         VerticalLayout {
             alignment: center;

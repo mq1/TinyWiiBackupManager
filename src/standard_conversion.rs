@@ -177,7 +177,7 @@ impl StandardConversion {
                         &self.game_title, current_percentage
                     );
                     let _ = weak.upgrade_in_event_loop(move |rust| {
-                        rust.set_status(status.to_shared_string());
+                        rust.invoke_set_status(status.to_shared_string());
                     });
 
                     last_update = Instant::now();
@@ -226,7 +226,7 @@ impl StandardConversion {
 
         let status = format!("Unzipping {}", self.in_path.display());
         let _ = weak.upgrade_in_event_loop(move |rust| {
-            rust.set_status(status.to_shared_string());
+            rust.invoke_set_status(status.to_shared_string());
         });
 
         let mut f = File::open(&self.in_path)?;

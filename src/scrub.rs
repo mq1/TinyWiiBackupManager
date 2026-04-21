@@ -88,7 +88,7 @@ impl ScrubConversion {
 
         let status = format!("Scrubbing {}  (starting)", &self.game_title);
         let _ = weak.upgrade_in_event_loop(move |rust| {
-            rust.set_status(status.to_shared_string());
+            rust.invoke_set_status(status.to_shared_string());
         });
 
         let mut last_update = Instant::now();
@@ -111,7 +111,7 @@ impl ScrubConversion {
                     let status =
                         format!("Scrubbing {}  {:02}%", &self.game_title, current_percentage);
                     let _ = weak.upgrade_in_event_loop(move |state| {
-                        state.set_status(status.to_shared_string());
+                        state.invoke_set_status(status.to_shared_string());
                     });
 
                     last_update = Instant::now();

@@ -1,0 +1,27 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import {
+    Config,
+    DriveInfo,
+    Game,
+    HomebrewApp,
+    OscApp,
+    Notification,
+    QueuedConversion,
+} from "types.slint";
+
+export global MirroredProperties {
+    in-out property <Config> config;
+    in-out property <string> app-version;
+    in-out property <string> data-dir;
+    in-out property <DriveInfo> drive-info;
+    in-out property <[Game]> games;
+    in-out property <[HomebrewApp]> homebrew-apps;
+    in-out property <[OscApp]> osc-apps;
+    in-out property <[Notification]> notifications;
+    in-out property <[QueuedConversion]> conversion-queue;
+    in-out property <[QueuedConversion]> conversion-queue-buffer;
+    in-out property <string> status;
+    in-out property <string> crc32-status;
+}

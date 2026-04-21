@@ -9,21 +9,16 @@ import { MyPalette } from "styling.slint";
 import { OscToolbar } from "components/osc-toolbar.slint";
 import { OscOtherToolbar } from "components/osc-other-toolbar.slint";
 import { OscAppRow } from "components/osc-app-row.slint";
-import { OscApp, Config } from "types.slint";
+import { MirroredProperties } from "mirrored-properties.slint";
 
 export component OscTablePage inherits VerticalLayout {
-    in property <[OscApp]> apps;
-    in property <Config> config;
-
     callback open-info(int);
 
     VerticalLayout {
         padding: 10px;
         spacing: 10px;
 
-        OscToolbar {
-            config: config;
-        }
+        OscToolbar { }
 
         OscOtherToolbar { }
     }
@@ -41,7 +36,7 @@ export component OscTablePage inherits VerticalLayout {
                 height: v2.preferred-height;
 
                 v2 := VerticalLayout {
-                    for app[i] in apps: VerticalLayout {
+                    for app[i] in MirroredProperties.osc-apps: VerticalLayout {
                         OscAppRow {
                             app: app;
                             open-info() => open-info(i);

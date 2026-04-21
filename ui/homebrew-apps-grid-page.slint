@@ -9,13 +9,9 @@ import { HomebrewAppCard } from "components/homebrew-app-card.slint";
 import {
     HomebrewAppsOtherToolbar,
 } from "components/homebrew-apps-other-toolbar.slint";
-import { HomebrewApp, Config, DriveInfo } from "types.slint";
+import { MirroredProperties } from "mirrored-properties.slint";
 
 export component HomebrewAppsGridPage inherits VerticalLayout {
-    in property <[HomebrewApp]> apps;
-    in property <Config> config;
-    in property <DriveInfo> drive-info;
-
     callback open-info(int);
 
     private property <int> col-count: max(1, floor((self.width - 10px) / (172px + 10px)));
@@ -23,9 +19,7 @@ export component HomebrewAppsGridPage inherits VerticalLayout {
     HorizontalLayout {
         padding: 10px;
 
-        HomebrewAppsToolbar {
-            config: config;
-        }
+        HomebrewAppsToolbar { }
     }
 
     ScrollView {
@@ -37,15 +31,12 @@ export component HomebrewAppsGridPage inherits VerticalLayout {
             padding-top: 0px;
             spacing: 10px;
 
-            HomebrewAppsOtherToolbar {
-                apps: apps;
-                drive-info: drive-info;
-            }
+            HomebrewAppsOtherToolbar { }
 
             GridLayout {
                 spacing: 10px;
 
-                for app[i] in apps: HomebrewAppCard {
+                for app[i] in MirroredProperties.homebrew-apps: HomebrewAppCard {
                     row: i / col-count;
                     col: mod(i, col-count);
 
