@@ -110,8 +110,9 @@ export component OscAppInfoModal inherits Modal {
                     }
 
                     ScrollView {
-                        preferred-width: v.preferred-width;
-                        height: v.preferred-height;
+                        width: 400px;
+                        height: 100px;
+                        viewport-height: v.preferred-height;
 
                         v := VerticalLayout {
                             Text {
