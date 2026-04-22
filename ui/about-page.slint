@@ -122,8 +122,11 @@ export component AboutPage inherits Rectangle {
     }
 
     HorizontalLayout {
-        x: 10px;
-        y: parent.height - self.min-height - 10px;
+        width: self.min-width;
+        height: self.min-height;
+
+        x: parent.width - self.width - 20px;
+        y: parent.height - self.height - 20px;
 
         spacing: 10px;
 
