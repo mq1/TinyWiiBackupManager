@@ -3,6 +3,7 @@
 
 import { OscFilter } from "osc-filter.slint";
 import { Logic } from "../logic.slint";
+import { Link } from "link.slint";
 
 export component OscOtherToolbar inherits HorizontalLayout {
     alignment: space-between;
@@ -11,10 +12,21 @@ export component OscOtherToolbar inherits HorizontalLayout {
 
     OscFilter { }
 
-    Text {
+    VerticalLayout {
         height: parent.height;
-        vertical-alignment: center;
-        horizontal-alignment: end;
-        text: "refreshed \{Logic.osc-refreshed-x-hours-ago} hours and \{Logic.osc-refreshed-x-minutes-ago} minutes ago";
+        alignment: center;
+
+        HorizontalLayout {
+            spacing: 20px;
+
+            Text {
+                text: "refreshed \{Logic.osc-refreshed-x-hours-ago}h \{Logic.osc-refreshed-x-minutes-ago}m ago";
+            }
+
+            Link {
+                uri: "https://oscwii.org/";
+                label: "oscwii.org";
+            }
+        }
     }
 }
