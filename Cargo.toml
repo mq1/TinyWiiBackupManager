@@ -59,7 +59,7 @@ winresource = "0.1"
 
 [features]
 default = ["native-tls"]
-native-tls = ["ureq/native-tls"]
+native-tls = ["ureq/native-tls", "ureq/platform-verifier"]
 rustls = ["ureq/rustls"]
 rust-analyzer = []
 

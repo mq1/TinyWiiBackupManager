@@ -37,7 +37,7 @@ use slint::ComponentHandle;
 use std::{process::Command, sync::LazyLock};
 use ureq::{
     Agent,
-    tls::{TlsConfig, TlsProvider},
+    tls::{RootCerts, TlsConfig, TlsProvider},
 };
 
 slint::include_modules!();
@@ -51,9 +51,20 @@ const UREQ_AGENT: LazyLock<Agent> = LazyLock::new(|| {
     #[cfg(feature = "rustls")]
     let provider = TlsProvider::Rustls;
 
+    #[cfg(feature = "native-tls")]
+    let certs = RootCerts::PlatformVerifier;
+
+    #[cfg(feature = "rustls")]
+    let certs = RootCerts::WebPki;
+
     Agent::config_builder()
         .user_agent(USER_AGENT)
-        .tls_config(TlsConfig::builder().provider(provider).build())
+        .tls_config(
+            TlsConfig::builder()
+                .provider(provider)
+                .root_certs(certs)
+                .build(),
+        )
         .build()
         .new_agent()
 });
