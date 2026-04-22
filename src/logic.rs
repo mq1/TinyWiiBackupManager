@@ -4,7 +4,7 @@
 use crate::{
     Config, ConversionKind, DriveInfo, Logic, Notification, QueuedArchiveConversion,
     QueuedConversion, QueuedScrubConversion, checksum, convert::Conversion, dialogs, game,
-    homebrew_app, osc, standard_conversion,
+    homebrew_app, osc, standard_conversion, util,
 };
 use slint::{
     FilterModel, Global, Model, ModelRc, SharedString, SortModel, ToSharedString, VecModel, Window,
@@ -260,8 +260,8 @@ impl Logic<'_> {
             let weak = weak.clone();
             let _ = std::thread::spawn(move || {
                 if let Err(e) = checksum::perform(&game.path, game.is_wii, &game.id, &weak) {
-                    let _ = weak.upgrade_in_event_loop(move |rust| {
-                        rust.invoke_notify_error(e.to_shared_string());
+                    let _ = weak.upgrade_in_event_loop(move |logic| {
+                        logic.invoke_notify_error(e.to_shared_string());
                     });
                 }
             });
@@ -325,14 +325,14 @@ impl Logic<'_> {
             let _ = std::thread::spawn(move || {
                 let res = conv.perform(&weak);
 
-                let _ = weak.upgrade_in_event_loop(move |rust| {
-                    rust.invoke_set_status(SharedString::new());
+                let _ = weak.upgrade_in_event_loop(move |logic| {
+                    logic.invoke_set_status(SharedString::new());
 
                     if let Err(e) = res {
-                        rust.invoke_notify_error(e.to_shared_string());
+                        logic.invoke_notify_error(e.to_shared_string());
                     }
 
-                    rust.invoke_trigger_conversion();
+                    logic.invoke_trigger_conversion();
                 });
             });
         });
@@ -400,6 +400,19 @@ impl Logic<'_> {
             if !*is_converting {
                 *is_converting = true;
                 weak.upgrade().unwrap().invoke_trigger_conversion();
+            }
+        });
+
+        let window_handle = window.window_handle();
+        let config_clone = config.clone();
+        let notifications_clone = notifications.clone();
+        self.on_pick_homebrew_apps(move || {
+            let paths = dialogs::pick_homebrew_apps(&window_handle);
+            let config = config_clone.borrow();
+            let root_dir = Path::new(&config.contents.mount_point);
+
+            if let Err(e) = util::install_zips(root_dir, &paths) {
+                notifications_clone.push(e.into());
             }
         });
 

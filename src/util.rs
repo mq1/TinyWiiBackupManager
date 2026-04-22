@@ -5,8 +5,10 @@ use anyhow::{Result, anyhow};
 use std::{
     borrow::Cow,
     ffi::OsStr,
+    fs::File,
     path::{Path, PathBuf},
 };
+use zip::ZipArchive;
 
 pub const GIB: f32 = 1024. * 1024. * 1024.;
 pub const MIB: f32 = 1024. * 1024.;
@@ -70,4 +72,17 @@ pub fn get_disc_path(dir: &Path) -> Result<PathBuf> {
     }
 
     Err(anyhow!("No disc found"))
+}
+
+pub fn install_zips(
+    root_dir: &Path,
+    zips: impl IntoIterator<Item = impl AsRef<Path>>,
+) -> Result<()> {
+    for zip in zips {
+        let mut f = File::open(zip)?;
+        let mut archive = ZipArchive::new(&mut f)?;
+        archive.extract(root_dir)?
+    }
+
+    Ok(())
 }
