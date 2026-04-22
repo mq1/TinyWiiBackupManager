@@ -52,8 +52,8 @@ impl HomebrewApp {
 
 pub fn get_compare_fn(
     config: Rc<RefCell<Config>>,
-) -> Box<dyn Fn(&HomebrewApp, &HomebrewApp) -> Ordering> {
-    Box::new(move |a, b| {
+) -> impl Fn(&HomebrewApp, &HomebrewApp) -> Ordering {
+    move |a, b| {
         let config = config.borrow();
 
         match config.contents.sort_by {
@@ -62,13 +62,11 @@ pub fn get_compare_fn(
             SortBy::SizeAscending => a.size_mib.total_cmp(&b.size_mib),
             SortBy::SizeDescending => b.size_mib.total_cmp(&a.size_mib),
         }
-    })
+    }
 }
 
-pub fn get_filter_fn(
-    query_lowercase: Rc<RefCell<SharedString>>,
-) -> Box<dyn Fn(&HomebrewApp) -> bool> {
-    Box::new(move |app| {
+pub fn get_filter_fn(query_lowercase: Rc<RefCell<SharedString>>) -> impl Fn(&HomebrewApp) -> bool {
+    move |app| {
         let query_lowercase = query_lowercase.borrow();
 
         if query_lowercase.is_empty() {
@@ -76,7 +74,7 @@ pub fn get_filter_fn(
         }
 
         app.search_term.contains(query_lowercase.as_str())
-    })
+    }
 }
 
 pub fn scan_drive(root_dir: &Path) -> Vec<HomebrewApp> {

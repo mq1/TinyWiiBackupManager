@@ -59,8 +59,8 @@ impl Game {
     }
 }
 
-pub fn get_compare_fn(config: Rc<RefCell<Config>>) -> Box<dyn Fn(&Game, &Game) -> Ordering> {
-    Box::new(move |a, b| {
+pub fn get_compare_fn(config: Rc<RefCell<Config>>) -> impl Fn(&Game, &Game) -> Ordering {
+    move |a, b| {
         let config = config.borrow();
 
         match config.contents.sort_by {
@@ -69,14 +69,14 @@ pub fn get_compare_fn(config: Rc<RefCell<Config>>) -> Box<dyn Fn(&Game, &Game) -
             SortBy::SizeAscending => a.size_gib.total_cmp(&b.size_gib),
             SortBy::SizeDescending => b.size_gib.total_cmp(&a.size_gib),
         }
-    })
+    }
 }
 
 pub fn get_filter_fn(
     query_lowercase: Rc<RefCell<SharedString>>,
     config: Rc<RefCell<Config>>,
-) -> Box<dyn Fn(&Game) -> bool> {
-    Box::new(move |game| {
+) -> impl Fn(&Game) -> bool {
+    move |game| {
         let config = config.borrow();
 
         if !config.contents.show_wii && game.is_wii {
@@ -94,7 +94,7 @@ pub fn get_filter_fn(
         }
 
         game.search_term.contains(query_lowercase.as_str())
-    })
+    }
 }
 
 fn scan_dir(dir: &Path, is_wii: bool, games: &mut Vec<Game>) -> Result<()> {

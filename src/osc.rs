@@ -125,8 +125,8 @@ fn escape_str(s: &str) -> String {
         .replace("\\t", "    ")
 }
 
-pub fn get_filter_fn(query_lowercase: Rc<RefCell<SharedString>>) -> Box<dyn Fn(&OscApp) -> bool> {
-    Box::new(move |app| {
+pub fn get_filter_fn(query_lowercase: Rc<RefCell<SharedString>>) -> impl Fn(&OscApp) -> bool {
+    move |app| {
         let query_lowercase = query_lowercase.borrow();
 
         if query_lowercase.is_empty() {
@@ -134,5 +134,5 @@ pub fn get_filter_fn(query_lowercase: Rc<RefCell<SharedString>>) -> Box<dyn Fn(&
         }
 
         app.search_term.contains(query_lowercase.as_str())
-    })
+    }
 }
