@@ -96,7 +96,7 @@ jobs:
 
       - name: Build binary
         run: |
-          cargo build --release --target ${{ matrix.target }} --no-default-features --features "https-bundled"
+          cargo build --release --target ${{ matrix.target }} --no-default-features --features "rustls"
           cp target/${{ matrix.target }}/release/TinyWiiBackupManager .
         env:
           CC: clang-22

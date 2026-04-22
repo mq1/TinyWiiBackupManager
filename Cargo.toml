@@ -32,9 +32,9 @@ sanitize-filename = "0.7.0-beta"
 num_cpus = "1.17"
 walkdir = "2.5"
 crc32fast = "1.5"
-minreq = "2.14"
 quick-xml = { version = "0.39", features = ["serialize"] }
 time = "0.3"
+ureq = { version = "3.3", default-features = false, features = ["gzip"] }
 
 # My crates (MIT OR Apache-2.0)
 which-fs = "0.2"
@@ -58,9 +58,9 @@ winresource = "0.1"
 
 
 [features]
-default = ["https-system"]
-https-system = ["minreq/https-native"]
-https-bundled = ["minreq/https-rustls-probe"]
+default = ["native-tls"]
+native-tls = ["ureq/native-tls"]
+rustls = ["ureq/rustls"]
 rust-analyzer = []
 
 

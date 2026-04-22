@@ -314,6 +314,11 @@ impl Logic<'_> {
             notifications_clone.push(Notification::error(e));
         });
 
+        let notifications_clone = notifications.clone();
+        self.on_notify_info(move |e| {
+            notifications_clone.push(Notification::info(e));
+        });
+
         let window_handle = window.window_handle();
         let games_clone = games.clone();
         let conversion_queue_buffer_clone = conversion_queue_buffer.clone();

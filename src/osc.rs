@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{Logic, OscApp, OscAppMeta, USER_AGENT, data_dir::DATA_DIR};
+use crate::{Logic, OscApp, OscAppMeta, UREQ_AGENT, data_dir::DATA_DIR};
 use anyhow::{Result, bail};
 use slint::{Image, SharedString, ToSharedString, Weak};
 use std::{
@@ -27,14 +27,15 @@ pub fn load_contents(force_refresh: bool) -> Result<(Vec<OscApp>, i32, i32)> {
     let should_refresh = force_refresh || last_refresh < a_day_ago;
 
     let (raw, last_refresh) = if should_refresh {
-        let resp = minreq::get(CONTENTS_URL)
-            .with_header("User-Agent", USER_AGENT)
-            .send()?;
+        let body = UREQ_AGENT
+            .get(CONTENTS_URL)
+            .call()?
+            .body_mut()
+            .read_to_string()?;
 
-        let raw = String::from_utf8(resp.into_bytes())?;
-        fs::write(cached_contents_path, &raw)?;
+        fs::write(cached_contents_path, &body)?;
 
-        (raw, SystemTime::now())
+        (body, SystemTime::now())
     } else {
         let raw = fs::read_to_string(cached_contents_path)?;
         (raw, last_refresh)
@@ -79,20 +80,8 @@ fn download_icon(slug: &str, icon_url: &str) -> Result<()> {
         bail!("Icon already exists");
     }
 
-    let resp = minreq::get(icon_url)
-        .with_header("User-Agent", USER_AGENT)
-        .send()?;
-
-    if resp.status_code != 200 {
-        bail!("Failed to download {}", icon_url);
-    }
-
-    let bytes = resp.into_bytes();
-    if bytes.is_empty() {
-        bail!("Failed to download {}", icon_url);
-    }
-
-    fs::write(&icon_path, &bytes)?;
+    let body = UREQ_AGENT.get(icon_url).call()?.body_mut().read_to_vec()?;
+    fs::write(&icon_path, &body)?;
 
     Ok(())
 }

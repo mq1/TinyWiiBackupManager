@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use anyhow::{Result, anyhow, bail};
+use anyhow::{Result, anyhow};
 use std::{
     borrow::Cow,
     ffi::OsStr,
@@ -11,7 +11,7 @@ use std::{
 };
 use zip::ZipArchive;
 
-use crate::USER_AGENT;
+use crate::UREQ_AGENT;
 
 pub const GIB: f32 = 1024. * 1024. * 1024.;
 pub const MIB: f32 = 1024. * 1024.;
@@ -91,18 +91,13 @@ pub fn install_zips(
 }
 
 pub fn install_zip_from_url(url: &str, dest: &Path) -> Result<()> {
-    let resp = minreq::get(url)
-        .with_header("User-Agent", USER_AGENT)
-        .send()?;
-
-    if resp.status_code != 200 {
-        bail!("Failed to download {}", url);
-    }
-
-    let body = resp.into_bytes();
-    if !body.is_empty() {
-        bail!("Failed to download {}", url);
-    }
+    let body = UREQ_AGENT
+        .get(url)
+        .call()?
+        .body_mut()
+        .with_config()
+        .limit(100 * 1024 * 1024)
+        .read_to_vec()?;
 
     let mut reader = Cursor::new(body);
     let mut archive = ZipArchive::new(&mut reader)?;

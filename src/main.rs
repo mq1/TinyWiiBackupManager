@@ -34,11 +34,29 @@ mod xp_dialogs;
 use crate::data_dir::DATA_DIR;
 use anyhow::{Result, bail};
 use slint::ComponentHandle;
-use std::process::Command;
+use std::{process::Command, sync::LazyLock};
+use ureq::{
+    Agent,
+    tls::{TlsConfig, TlsProvider},
+};
 
 slint::include_modules!();
 
-const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
+const UREQ_AGENT: LazyLock<Agent> = LazyLock::new(|| {
+    const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
+
+    #[cfg(feature = "native-tls")]
+    let provider = TlsProvider::NativeTls;
+
+    #[cfg(feature = "rustls")]
+    let provider = TlsProvider::Rustls;
+
+    Agent::config_builder()
+        .user_agent(USER_AGENT)
+        .tls_config(TlsConfig::builder().provider(provider).build())
+        .build()
+        .new_agent()
+});
 
 fn restart_with_sw_rendering() -> Result<()> {
     let exe = std::env::current_exe()?;
