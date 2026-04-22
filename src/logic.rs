@@ -3,8 +3,8 @@
 
 use crate::{
     Config, ConversionKind, DriveInfo, Logic, Notification, QueuedArchiveConversion,
-    QueuedConversion, QueuedScrubConversion, checksum, convert::Conversion, data_dir::DATA_DIR,
-    dialogs, game, homebrew_app, osc, standard_conversion, util,
+    QueuedConversion, QueuedScrubConversion, checksum, convert::Conversion, covers,
+    data_dir::DATA_DIR, dialogs, game, homebrew_app, osc, standard_conversion, util,
 };
 use slint::{
     FilterModel, Global, Image, Model, ModelRc, SharedString, SortModel, ToSharedString, VecModel,
@@ -59,7 +59,8 @@ impl Logic<'_> {
         let conversion_queue_buffer = Rc::new(VecModel::from(Vec::new()));
 
         let is_converting = Rc::new(RefCell::new(false));
-        let is_loading_osc_icons = Rc::new(RefCell::new(false));
+        let is_downloading_osc_icons = Rc::new(RefCell::new(false));
+        let is_downloading_covers = Rc::new(RefCell::new(false));
 
         self.set_app_version(env!("CARGO_PKG_VERSION").to_shared_string());
         self.set_games(ModelRc::from(filtered_games.clone()));
@@ -204,9 +205,8 @@ impl Logic<'_> {
         let homebrew_apps_clone = homebrew_apps.clone();
         let config_clone = config.clone();
         let weak = self.as_weak();
+        let is_downloading_covers_clone = is_downloading_covers.clone();
         self.on_refresh_all(move || {
-            let logic = weak.upgrade().unwrap();
-
             let (new_games, new_apps, drive_info) = {
                 let config = config_clone.borrow();
                 let root_path = Path::new(&config.contents.mount_point);
@@ -222,16 +222,37 @@ impl Logic<'_> {
                 (new_games, new_apps, drive_info)
             };
 
+            let ids = new_games
+                .iter()
+                .map(|game| game.id.to_string())
+                .collect::<Vec<_>>();
+
             games_clone.set_vec(new_games);
             homebrew_apps_clone.set_vec(new_apps);
-            logic.set_drive_info(drive_info);
+            weak.upgrade().unwrap().set_drive_info(drive_info);
+
+            let mut is_downloading_covers = is_downloading_covers_clone.borrow_mut();
+            if !*is_downloading_covers {
+                *is_downloading_covers = true;
+                covers::download_covers(ids, weak.clone());
+            }
         });
 
         let osc_apps_clone = osc_apps.clone();
-        let is_loading_osc_icons_clone = is_loading_osc_icons.clone();
+        let is_downloading_osc_icons_clone = is_downloading_osc_icons.clone();
         let weak = self.as_weak();
         self.on_load_osc_apps(move |force_refresh| {
             let (new, hours, minutes) = osc::load_contents(force_refresh).unwrap_or_default();
+
+            let icon_urls = new
+                .iter()
+                .map(|app| {
+                    (
+                        app.meta.slug.to_string(),
+                        app.meta.assets.icon.url.to_string(),
+                    )
+                })
+                .collect::<Vec<_>>();
 
             osc_apps_clone.set_vec(new);
 
@@ -239,20 +260,11 @@ impl Logic<'_> {
             logic.set_osc_refreshed_x_hours_ago(hours);
             logic.set_osc_refreshed_x_minutes_ago(minutes);
 
-            let mut is_loading_osc_icons = is_loading_osc_icons_clone.borrow_mut();
-            if !*is_loading_osc_icons {
-                *is_loading_osc_icons = true;
+            let mut is_downloading_osc_icons = is_downloading_osc_icons_clone.borrow_mut();
+            if !*is_downloading_osc_icons {
+                *is_downloading_osc_icons = true;
 
-                let apps = osc_apps_clone
-                    .iter()
-                    .map(|a| a.meta.clone())
-                    .collect::<Vec<_>>();
-
-                let weak = weak.clone();
-
-                std::thread::spawn(move || {
-                    osc::load_icons(apps, weak);
-                });
+                osc::download_icons(icon_urls, weak.clone());
             }
         });
 
@@ -261,7 +273,7 @@ impl Logic<'_> {
             #[allow(clippy::cast_sign_loss)]
             let i = i as usize;
 
-            let mut app = osc_apps.row_data(i).unwrap();
+            let mut app = osc_apps_clone.row_data(i).unwrap();
             let icon_path = DATA_DIR.join(format!("osc-icons/{}.png", &app.meta.slug));
 
             if let Ok(icon) = Image::load_from_path(&icon_path) {
@@ -495,6 +507,25 @@ impl Logic<'_> {
                     });
                 }
             });
+        });
+
+        let games_clone = games.clone();
+        self.on_reload_cover(move |i| {
+            #[allow(clippy::cast_sign_loss)]
+            let i = i as usize;
+
+            let mut game = games_clone.row_data(i).unwrap();
+            let cover_path = DATA_DIR.join(format!("covers/{}.png", &game.id));
+
+            if let Ok(cover) = Image::load_from_path(&cover_path) {
+                game.cover = cover;
+                games_clone.set_row_data(i, game);
+            }
+        });
+
+        let is_downloading_covers_clone = is_downloading_covers.clone();
+        self.on_finished_downloading_covers(move || {
+            *is_downloading_covers_clone.borrow_mut() = false;
         });
 
         #[cfg(windows)]

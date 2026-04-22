@@ -1,12 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{UREQ_AGENT, data_dir::DATA_DIR};
-use anyhow::Result;
+use crate::{Logic, UREQ_AGENT, data_dir::DATA_DIR};
+use anyhow::{Result, bail};
+use slint::Weak;
 use std::fs;
 
 #[must_use]
-pub fn lang_str(game_id: &str) -> &'static str {
+fn lang_str(game_id: &str) -> &'static str {
     let region_char = game_id.chars().nth(3).unwrap_or('\0');
 
     match region_char {
@@ -19,29 +20,39 @@ pub fn lang_str(game_id: &str) -> &'static str {
     }
 }
 
-pub fn cache_cover(game_id: &str) -> Result<()> {
-    let parent = DATA_DIR.join("covers");
-    if !parent.exists() {
-        fs::create_dir_all(&parent)?;
+fn download_cover(game_id: &str) -> Result<()> {
+    let cover_path = DATA_DIR.join(format!("covers/{game_id}.png"));
+
+    if cover_path.exists() {
+        bail!("Cover already exists");
     }
 
-    let cover_path = parent.join(format!("{game_id}.png"));
+    let cover_url = format!(
+        "https://art.gametdb.com/wii/cover3D/{}/{}.png",
+        lang_str(game_id),
+        game_id,
+    );
 
-    if !cover_path.exists() {
-        let cover_url = format!(
-            "https://art.gametdb.com/wii/cover3D/{}/{}.png",
-            lang_str(game_id),
-            game_id,
-        );
-
-        let body = UREQ_AGENT
-            .get(&cover_url)
-            .call()?
-            .body_mut()
-            .read_to_vec()?;
-
-        fs::write(cover_path, &body)?;
-    }
+    let body = UREQ_AGENT.get(cover_url).call()?.body_mut().read_to_vec()?;
+    fs::write(&cover_path, &body)?;
 
     Ok(())
+}
+
+pub fn download_covers(ids: Vec<String>, weak: Weak<Logic<'static>>) {
+    let _ = fs::create_dir_all(DATA_DIR.join("covers"));
+
+    let _ = std::thread::spawn(move || {
+        for (i, game_id) in ids.iter().enumerate() {
+            if download_cover(game_id).is_ok() {
+                let _ = weak.upgrade_in_event_loop(move |logic| {
+                    logic.invoke_reload_cover(i as i32);
+                });
+            }
+        }
+
+        let _ = weak.upgrade_in_event_loop(move |logic| {
+            logic.invoke_finished_downloading_covers();
+        });
+    });
 }

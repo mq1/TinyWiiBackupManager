@@ -86,14 +86,8 @@ fn download_icon(slug: &str, icon_url: &str) -> Result<()> {
     Ok(())
 }
 
-pub fn load_icons(apps: impl IntoIterator<Item = OscAppMeta>, weak: Weak<Logic<'static>>) {
-    let icon_urls = apps
-        .into_iter()
-        .map(|app| (app.slug.to_string(), app.assets.icon.url.to_string()))
-        .collect::<Vec<_>>();
-
-    let cache_dir = DATA_DIR.join("osc-icons");
-    let _ = fs::create_dir_all(&cache_dir);
+pub fn download_icons(icon_urls: Vec<(String, String)>, weak: Weak<Logic<'static>>) {
+    let _ = fs::create_dir_all(DATA_DIR.join("osc-icons"));
 
     let _ = std::thread::spawn(move || {
         for (i, (slug, url)) in icon_urls.iter().enumerate() {
