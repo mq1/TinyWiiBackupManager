@@ -78,12 +78,3 @@ opt-level = 2
 # speed up conversions in dev builds
 [profile.dev.package."*"]
 opt-level = 2
-
-[lints.rust]
-rust_2018_idioms = { level = "deny", priority = 1 }
-
-[lints.clippy]
-all = { level = "warn", priority = 1 }
-pedantic = { level = "warn", priority = 1 }
-missing-errors-doc = { level = "allow", priority = 2 }
-missing-panics-doc = { level = "allow", priority = 2 }

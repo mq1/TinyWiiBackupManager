@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::Rust;
+use crate::Logic;
 use anyhow::{Result, bail};
 use crc32fast::Hasher;
 use slint::{ToSharedString, Weak};
@@ -12,7 +12,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-fn hash_file(hasher: &mut Hasher, path: &Path, weak: &Weak<Rust<'static>>) -> Result<()> {
+fn hash_file(hasher: &mut Hasher, path: &Path, weak: &Weak<Logic<'static>>) -> Result<()> {
     let mut f = File::open(path)?;
     let size = f.metadata()?.len();
 
@@ -36,8 +36,8 @@ fn hash_file(hasher: &mut Hasher, path: &Path, weak: &Weak<Rust<'static>>) -> Re
             let current_percentage = progress * 100 / size;
             let status = format!("{current_percentage}%");
 
-            let _ = weak.upgrade_in_event_loop(move |rust| {
-                rust.invoke_set_crc32_status(status.to_shared_string());
+            let _ = weak.upgrade_in_event_loop(move |logic| {
+                logic.invoke_set_crc32_status(status.to_shared_string());
             });
 
             last_update = Instant::now();
@@ -50,7 +50,7 @@ pub fn perform(
     game_dir: impl Into<PathBuf>,
     is_wii: bool,
     game_id: impl AsRef<str>,
-    weak: &Weak<Rust<'static>>,
+    weak: &Weak<Logic<'static>>,
 ) -> Result<()> {
     let game_dir = game_dir.into();
     let mut hasher = Hasher::new();
@@ -116,8 +116,8 @@ pub fn perform(
         fs::write(crc32_path, &crc32)?;
     }
 
-    let _ = weak.upgrade_in_event_loop(move |rust| {
-        rust.invoke_set_crc32_status(crc32.to_shared_string());
+    let _ = weak.upgrade_in_event_loop(move |logic| {
+        logic.invoke_set_crc32_status(crc32.to_shared_string());
     });
 
     Ok(())

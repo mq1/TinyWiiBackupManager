@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import { GameFilter } from "game-filter.slint";
-import { MirroredProperties } from "../mirrored-properties.slint";
+import { Logic } from "../logic.slint";
 
 export component GamesOtherToolbar inherits HorizontalLayout {
     alignment: space-between;
@@ -15,6 +15,6 @@ export component GamesOtherToolbar inherits HorizontalLayout {
         height: parent.height;
         vertical-alignment: center;
         horizontal-alignment: end;
-        text: "\{MirroredProperties.games.length} game\{MirroredProperties.games.length == 1 ? "" : "s"}   ~ \{MirroredProperties.drive-info.games-gib.to-fixed(2)} GiB";
+        text: "\{Logic.games.length} game\{Logic.games.length == 1 ? "" : "s"}   ~ \{Logic.drive-info.games-gib.to-fixed(2)} GiB";
     }
 }

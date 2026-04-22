@@ -9,9 +9,8 @@ import { Card } from "card.slint";
 import { HorizontalLine } from "horizontal-line.slint";
 import { MyPalette } from "../styling.slint";
 import { IconButton, IconButtonKind } from "icon-button.slint";
-import { Rust } from "../rust.slint";
 import { Modal } from "modal.slint";
-import { MirroredProperties } from "../mirrored-properties.slint";
+import { Logic } from "../logic.slint";
 
 export component GameInfoModal inherits Modal {
     in property <Game> game;
@@ -231,15 +230,15 @@ export component GameInfoModal inherits Modal {
                         label: "Scrub";
                         tooltip: "Remove update partition to save space";
                         icon: IconSet.Shredder;
-                        clicked => Rust.scrub-game(game);
+                        clicked => Logic.scrub-game(game);
                     }
 
                     if game.disc-info.err.is-empty: IconButton {
-                        label: MirroredProperties.crc32-status.is-empty ? "CRC32" : MirroredProperties.crc32-status;
+                        label: Logic.crc32-status.is-empty ? "CRC32" : Logic.crc32-status;
                         icon: IconSet.FingerprintPattern;
                         clicked => {
-                            if MirroredProperties.crc32-status.is-empty {
-                                Rust.checksum(game);
+                            if Logic.crc32-status.is-empty {
+                                Logic.checksum(game);
                             }
                         };
                     }

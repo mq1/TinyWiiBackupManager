@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#![warn(clippy::all, rust_2018_idioms)]
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod archive;
@@ -17,12 +18,9 @@ mod game;
 mod homebrew_app;
 mod homebrew_app_meta;
 mod id_map;
-mod mirrored;
-mod mirrored_properties;
-mod model;
+mod logic;
 mod notification;
 mod osc;
-mod rust_callbacks;
 mod scrub;
 mod standard_conversion;
 mod util;
@@ -33,7 +31,7 @@ mod window_color;
 #[cfg(windows)]
 mod xp_dialogs;
 
-use crate::{data_dir::DATA_DIR, model::AppModel};
+use crate::data_dir::DATA_DIR;
 use anyhow::{Result, bail};
 use slint::ComponentHandle;
 use std::process::Command;
@@ -60,12 +58,7 @@ fn main() -> Result<()> {
 
     let config = Config::load();
     let app = AppWindow::new()?;
-    let state = AppModel::new(config);
-
-    app.global::<MirroredProperties<'_>>().link(&state);
-
-    app.global::<Rust<'_>>()
-        .register_callbacks(&state, app.window());
+    app.global::<Logic<'_>>().init(config, app.window());
 
     if let Err(e) = app.run() {
         if std::env::var("SLINT_BACKEND").unwrap_or_default() == "winit-software" {

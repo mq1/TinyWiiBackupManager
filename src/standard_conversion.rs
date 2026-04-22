@@ -13,8 +13,8 @@ use split_write::SplitWriter;
 use zip::ZipArchive;
 
 use crate::{
-    ConfigContents, ConversionKind, DriveInfo, GcOutputFormat, QueuedConversion,
-    QueuedStandardConversion, Rust, WiiOutputFormat,
+    ConfigContents, ConversionKind, DriveInfo, GcOutputFormat, Logic, QueuedConversion,
+    QueuedStandardConversion, WiiOutputFormat,
     convert::{HEADER_SIZE, SPLIT_SIZE},
     extensions::format_to_opts,
     id_map,
@@ -71,7 +71,7 @@ impl StandardConversion {
         }
     }
 
-    pub fn perform(&mut self, weak: &Weak<Rust<'static>>) -> Result<()> {
+    pub fn perform(&mut self, weak: &Weak<Logic<'static>>) -> Result<()> {
         self.unzip(weak)?;
 
         let (processor_threads, preloader_threads) = get_threads_num();
@@ -176,8 +176,8 @@ impl StandardConversion {
                         "⤒  Converting {}  {:02}%",
                         &self.game_title, current_percentage
                     );
-                    let _ = weak.upgrade_in_event_loop(move |rust| {
-                        rust.invoke_set_status(status.to_shared_string());
+                    let _ = weak.upgrade_in_event_loop(move |logic| {
+                        logic.invoke_set_status(status.to_shared_string());
                     });
 
                     last_update = Instant::now();
@@ -214,7 +214,7 @@ impl StandardConversion {
         Ok(())
     }
 
-    fn unzip(&mut self, weak: &Weak<Rust<'static>>) -> Result<()> {
+    fn unzip(&mut self, weak: &Weak<Logic<'static>>) -> Result<()> {
         let is_zip = self
             .in_path
             .extension()
@@ -225,8 +225,8 @@ impl StandardConversion {
         }
 
         let status = format!("Unzipping {}", self.in_path.display());
-        let _ = weak.upgrade_in_event_loop(move |rust| {
-            rust.invoke_set_status(status.to_shared_string());
+        let _ = weak.upgrade_in_event_loop(move |logic| {
+            logic.invoke_set_status(status.to_shared_string());
         });
 
         let mut f = File::open(&self.in_path)?;

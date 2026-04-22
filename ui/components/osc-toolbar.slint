@@ -6,7 +6,7 @@ import { IconSet, IconDisplay } from "@lucide";
 import { ViewAs } from "view-as.slint";
 import { MyPalette } from "../styling.slint";
 import { Link } from "link.slint";
-import { Rust } from "../rust.slint";
+import { Logic } from "../logic.slint";
 
 export component OscToolbar inherits HorizontalLayout {
     alignment: space-between;
@@ -55,7 +55,7 @@ export component OscToolbar inherits HorizontalLayout {
                 font-size: 18px;
                 width: 34px;
                 height: 34px;
-                clicked => Rust.force-osc-refresh();
+                clicked => Logic.force-osc-refresh();
             }
         }
     }

@@ -9,7 +9,7 @@ import { Card } from "components/card.slint";
 import { MyPalette } from "styling.slint";
 import { GameRow } from "components/game-row.slint";
 import { GamesOtherToolbar } from "components/games-other-toolbar.slint";
-import { MirroredProperties } from "mirrored-properties.slint";
+import { Logic } from "logic.slint";
 
 export component GameTablePage inherits VerticalLayout {
     callback open-info(int);
@@ -36,7 +36,7 @@ export component GameTablePage inherits VerticalLayout {
                 height: v2.preferred-height;
 
                 v2 := VerticalLayout {
-                    for game[i] in MirroredProperties.games: VerticalLayout {
+                    for game[i] in Logic.games: VerticalLayout {
                         GameRow {
                             game: game;
                             open-info => open-info(i);

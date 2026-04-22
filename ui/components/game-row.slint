@@ -6,7 +6,7 @@ import { VerticalLine } from "vertical-line.slint";
 import { IconButton } from "icon-button.slint";
 import { Game } from "../types.slint";
 import { MyPalette } from "../styling.slint";
-import { Rust } from "../rust.slint";
+import { Logic } from "../logic.slint";
 
 export component GameRow inherits Rectangle {
     in property <Game> game;
@@ -67,7 +67,7 @@ export component GameRow inherits Rectangle {
         height: 24px;
         width: 24px;
         squared: true;
-        clicked => Rust.archive-game(game);
+        clicked => Logic.archive-game(game);
     }
 
     VerticalLine {
@@ -84,6 +84,6 @@ export component GameRow inherits Rectangle {
         height: 24px;
         width: 24px;
         squared: true;
-        clicked => Rust.delete-game(game);
+        clicked => Logic.delete-game(game);
     }
 }

@@ -5,7 +5,7 @@ import { Card } from "card.slint";
 import { MyPalette } from "../styling.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { MyLineEdit } from "my-line-edit.slint";
-import { Rust } from "../rust.slint";
+import { Logic } from "../logic.slint";
 
 export component HomebrewAppsFilter inherits Card {
     width: 210px;
@@ -30,7 +30,7 @@ export component HomebrewAppsFilter inherits Card {
 
             MyLineEdit {
                 placeholder-text: "Search by Name";
-                edited() => Rust.filter-homebrew-apps(self.text);
+                edited() => Logic.filter-homebrew-apps(self.text);
             }
         }
     }

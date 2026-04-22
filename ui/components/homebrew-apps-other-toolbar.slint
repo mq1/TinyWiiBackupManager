@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import { HomebrewAppsFilter } from "homebrew-apps-filter.slint";
-import { MirroredProperties } from "../mirrored-properties.slint";
+import { Logic } from "../logic.slint";
 
 export component HomebrewAppsOtherToolbar inherits HorizontalLayout {
     alignment: space-between;
@@ -15,6 +15,6 @@ export component HomebrewAppsOtherToolbar inherits HorizontalLayout {
         height: parent.height;
         vertical-alignment: center;
         horizontal-alignment: end;
-        text: "\{MirroredProperties.homebrew-apps.length} app\{MirroredProperties.homebrew-apps.length == 1 ? "" : "s"}   ~ \{MirroredProperties.drive-info.apps-mib.to-fixed(2)} MiB";
+        text: "\{Logic.homebrew-apps.length} app\{Logic.homebrew-apps.length == 1 ? "" : "s"}   ~ \{Logic.drive-info.apps-mib.to-fixed(2)} MiB";
     }
 }

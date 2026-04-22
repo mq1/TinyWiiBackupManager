@@ -6,7 +6,7 @@ import { HomebrewApp } from "../types.slint";
 import { IconButton } from "icon-button.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { MyPalette } from "../styling.slint";
-import { Rust } from "../rust.slint";
+import { Logic } from "../logic.slint";
 
 export component HomebrewAppCard inherits Card {
     in property <HomebrewApp> app;
@@ -70,7 +70,7 @@ export component HomebrewAppCard inherits Card {
             IconButton {
                 icon: IconSet.Trash;
                 tooltip: "Delete app";
-                clicked => Rust.delete-homebrew-app(app);
+                clicked => Logic.delete-homebrew-app(app);
             }
         }
     }

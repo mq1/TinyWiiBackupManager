@@ -2,19 +2,35 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import {
-    ViewAs,
-    SortBy,
+    Config,
+    DriveInfo,
+    Game,
+    HomebrewApp,
+    OscApp,
+    Notification,
     QueuedConversion,
     WiiOutputFormat,
     GcOutputFormat,
     TxtCodesSource,
     ThemePreference,
-    Game,
-    HomebrewApp,
-    Config,
+    ViewAs,
+    SortBy,
 } from "types.slint";
 
-export global Rust {
+export global Logic {
+    in-out property <Config> config;
+    in-out property <string> app-version;
+    in-out property <string> data-dir;
+    in-out property <DriveInfo> drive-info;
+    in-out property <[Game]> games;
+    in-out property <[HomebrewApp]> homebrew-apps;
+    in-out property <[OscApp]> osc-apps;
+    in-out property <[Notification]> notifications;
+    in-out property <[QueuedConversion]> conversion-queue;
+    in-out property <[QueuedConversion]> conversion-queue-buffer;
+    in-out property <string> status;
+    in-out property <string> crc32-status;
+
     callback filter-games(string);
     callback filter-homebrew-apps(string);
     callback filter-osc-apps(string);
@@ -50,6 +66,7 @@ export global Rust {
     callback set-show-gc(bool);
 
     // util
+    callback sync-config();
     callback notify-error(string);
     callback trigger-conversion();
     callback set-status(string);

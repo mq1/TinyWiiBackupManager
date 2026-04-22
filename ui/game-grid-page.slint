@@ -7,7 +7,7 @@ import { GameCard } from "components/game-card.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { GamesToolbar } from "components/games-toolbar.slint";
 import { GamesOtherToolbar } from "components/games-other-toolbar.slint";
-import { MirroredProperties } from "mirrored-properties.slint";
+import { Logic } from "logic.slint";
 
 export component GameGridPage inherits VerticalLayout {
     callback open-info(int);
@@ -34,7 +34,7 @@ export component GameGridPage inherits VerticalLayout {
             GridLayout {
                 spacing: 10px;
 
-                for game[i] in MirroredProperties.games: GameCard {
+                for game[i] in Logic.games: GameCard {
                     row: i / col-count;
                     col: mod(i, col-count);
 

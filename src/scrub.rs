@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    ConfigContents, DriveInfo, QueuedScrubConversion, Rust,
+    ConfigContents, DriveInfo, Logic, QueuedScrubConversion,
     convert::{HEADER_SIZE, SPLIT_SIZE},
     util::{get_disc_path, get_threads_num},
 };
@@ -45,7 +45,7 @@ impl ScrubConversion {
         }
     }
 
-    pub fn perform(&self, weak: &Weak<Rust<'static>>) -> Result<()> {
+    pub fn perform(&self, weak: &Weak<Logic<'static>>) -> Result<()> {
         let disc_path = get_disc_path(&self.game_dir)?;
         let game_dir_name = self.game_dir.file_name().ok_or(anyhow!("No file name"))?;
         let tmp_game_dir_name = format!("{} SCRUB", game_dir_name.to_string_lossy());
@@ -87,8 +87,8 @@ impl ScrubConversion {
         let mut head_buffer = Vec::with_capacity(HEADER_SIZE);
 
         let status = format!("Scrubbing {}  (starting)", &self.game_title);
-        let _ = weak.upgrade_in_event_loop(move |rust| {
-            rust.invoke_set_status(status.to_shared_string());
+        let _ = weak.upgrade_in_event_loop(move |logic| {
+            logic.invoke_set_status(status.to_shared_string());
         });
 
         let mut last_update = Instant::now();
@@ -110,8 +110,8 @@ impl ScrubConversion {
 
                     let status =
                         format!("Scrubbing {}  {:02}%", &self.game_title, current_percentage);
-                    let _ = weak.upgrade_in_event_loop(move |state| {
-                        state.invoke_set_status(status.to_shared_string());
+                    let _ = weak.upgrade_in_event_loop(move |logic| {
+                        logic.invoke_set_status(status.to_shared_string());
                     });
 
                     last_update = Instant::now();

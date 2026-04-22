@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { Rust } from "../rust.slint";
+import { Logic } from "../logic.slint";
 import { StyleMetrics } from "std-widgets.slint";
 import { MyPalette } from "../styling.slint";
 import { IconDisplay, Icon, IconSet } from "@lucide";
@@ -44,6 +44,6 @@ export component Link inherits Rectangle {
         height: t.height;
         width: 17px + t.width;
         mouse-cursor: pointer;
-        clicked => Rust.open-that(uri);
+        clicked => Logic.open-that(uri);
     }
 }

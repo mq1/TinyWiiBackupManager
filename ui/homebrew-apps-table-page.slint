@@ -11,7 +11,7 @@ import {
     HomebrewAppsOtherToolbar,
 } from "components/homebrew-apps-other-toolbar.slint";
 import { HomebrewAppRow } from "components/homebrew-app-row.slint";
-import { MirroredProperties } from "mirrored-properties.slint";
+import { Logic } from "logic.slint";
 
 export component HomebrewAppsTablePage inherits VerticalLayout {
     callback open-info(int);
@@ -38,7 +38,7 @@ export component HomebrewAppsTablePage inherits VerticalLayout {
                 height: v2.preferred-height;
 
                 v2 := VerticalLayout {
-                    for app[i] in MirroredProperties.homebrew-apps: VerticalLayout {
+                    for app[i] in Logic.homebrew-apps: VerticalLayout {
                         HomebrewAppRow {
                             app: app;
                             open-info() => open-info(i);

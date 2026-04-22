@@ -6,7 +6,7 @@ import { VerticalLine } from "vertical-line.slint";
 import { IconButton } from "icon-button.slint";
 import { HomebrewApp } from "../types.slint";
 import { MyPalette } from "../styling.slint";
-import { Rust } from "../rust.slint";
+import { Logic } from "../logic.slint";
 
 export component HomebrewAppRow inherits Rectangle {
     in property <HomebrewApp> app;
@@ -59,6 +59,6 @@ export component HomebrewAppRow inherits Rectangle {
         height: 24px;
         width: 24px;
         squared: true;
-        clicked => Rust.delete-homebrew-app(app);
+        clicked => Logic.delete-homebrew-app(app);
     }
 }

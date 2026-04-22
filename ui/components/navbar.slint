@@ -4,7 +4,7 @@
 import { IconSet } from "@lucide";
 import { Page } from "../types.slint";
 import { NavbarButton } from "navbar-button.slint";
-import { Rust } from "../rust.slint";
+import { Logic } from "../logic.slint";
 
 export component Navbar inherits VerticalLayout {
     in-out property <Page> current-page: Page.Games;
@@ -67,10 +67,7 @@ export component Navbar inherits VerticalLayout {
         NavbarButton {
             icon: IconSet.HardDrive;
             tooltip: "Select a drive";
-            clicked => {
-                Rust.pick-mount-point();
-                Rust.refresh-all();
-            }
+            clicked => Logic.pick-mount-point();
         }
 
         NavbarButton {

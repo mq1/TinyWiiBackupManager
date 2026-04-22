@@ -11,8 +11,7 @@ import {
     TxtCodesSource,
     ThemePreference,
 } from "types.slint";
-import { Rust } from "rust.slint";
-import { MirroredProperties } from "mirrored-properties.slint";
+import { Logic } from "logic.slint";
 
 export component SettingsPage inherits Rectangle {
     HorizontalLayout {
@@ -48,13 +47,13 @@ export component SettingsPage inherits Rectangle {
                 icon: IconSet.Disc3;
                 label: "Wii output format";
                 items: ["WBFS (recommended)", "ISO (very large)"];
-                active-item: MirroredProperties.config.contents.wii-output-format == WiiOutputFormat.Wbfs ? 0 : 1;
+                active-item: Logic.config.contents.wii-output-format == WiiOutputFormat.Wbfs ? 0 : 1;
 
                 selected(i) => {
                     if i == 0 {
-                        Rust.set-wii-output-format(WiiOutputFormat.Wbfs);
+                        Logic.set-wii-output-format(WiiOutputFormat.Wbfs);
                     } else {
-                        Rust.set-wii-output-format(WiiOutputFormat.Iso);
+                        Logic.set-wii-output-format(WiiOutputFormat.Iso);
                     }
                 }
             }
@@ -66,13 +65,13 @@ export component SettingsPage inherits Rectangle {
                     "ISO (recommended)",
                     "CISO (much smaller, slightly slower, less metadata in game loaders)"
                 ];
-                active-item: MirroredProperties.config.contents.gc-output-format == GcOutputFormat.Iso ? 0 : 1;
+                active-item: Logic.config.contents.gc-output-format == GcOutputFormat.Iso ? 0 : 1;
 
                 selected(i) => {
                     if i == 0 {
-                        Rust.set-gc-output-format(GcOutputFormat.Iso);
+                        Logic.set-gc-output-format(GcOutputFormat.Iso);
                     } else {
-                        Rust.set-gc-output-format(GcOutputFormat.Ciso);
+                        Logic.set-gc-output-format(GcOutputFormat.Ciso);
                     }
                 }
             }
@@ -81,10 +80,10 @@ export component SettingsPage inherits Rectangle {
                 icon: IconSet.SquareSplitHorizontal;
                 label: "Split output";
                 items: ["Only when needed (recommended)", "Always 4GB-32KB"];
-                active-item: MirroredProperties.config.contents.always-split ? 1 : 0;
+                active-item: Logic.config.contents.always-split ? 1 : 0;
 
                 selected(i) => {
-                    Rust.set-always-split(i == 1);
+                    Logic.set-always-split(i == 1);
                 }
             }
 
@@ -95,10 +94,10 @@ export component SettingsPage inherits Rectangle {
                     "No (recommended)",
                     "Yes (saves some space; update partition is zeroed, but still there)"
                 ];
-                active-item: MirroredProperties.config.contents.scrub-update-partition ? 1 : 0;
+                active-item: Logic.config.contents.scrub-update-partition ? 1 : 0;
 
                 selected(i) => {
-                    Rust.set-scrub-update-partition(i == 1);
+                    Logic.set-scrub-update-partition(i == 1);
                 }
             }
 
@@ -106,10 +105,10 @@ export component SettingsPage inherits Rectangle {
                 icon: IconSet.Trash;
                 label: "Delete sources when adding games";
                 items: ["No (recommended)", "Yes"];
-                active-item: MirroredProperties.config.contents.remove-sources-games ? 1 : 0;
+                active-item: Logic.config.contents.remove-sources-games ? 1 : 0;
 
                 selected(i) => {
-                    Rust.set-remove-sources-games(i == 1);
+                    Logic.set-remove-sources-games(i == 1);
                 }
             }
 
@@ -117,14 +116,14 @@ export component SettingsPage inherits Rectangle {
                 icon: IconSet.Trash;
                 label: "Delete sources when adding apps";
                 items: ["No (recommended)", "Yes"];
-                active-item: MirroredProperties.config.contents.remove-sources-apps ? 1 : 0;
+                active-item: Logic.config.contents.remove-sources-apps ? 1 : 0;
             }
 
             SettingCard {
                 pure function get-active-item() -> int {
-                    if MirroredProperties.config.contents.txt-codes-source == TxtCodesSource.WebArchive {
+                    if Logic.config.contents.txt-codes-source == TxtCodesSource.WebArchive {
                         0
-                    } else if MirroredProperties.config.contents.txt-codes-source == TxtCodesSource.GameHacking {
+                    } else if Logic.config.contents.txt-codes-source == TxtCodesSource.GameHacking {
                         1
                     } else {
                         2
@@ -142,20 +141,20 @@ export component SettingsPage inherits Rectangle {
 
                 selected(i) => {
                     if i == 0 {
-                        Rust.set-txt-codes-source(TxtCodesSource.WebArchive);
+                        Logic.set-txt-codes-source(TxtCodesSource.WebArchive);
                     } else if i == 1 {
-                        Rust.set-txt-codes-source(TxtCodesSource.GameHacking);
+                        Logic.set-txt-codes-source(TxtCodesSource.GameHacking);
                     } else {
-                        Rust.set-txt-codes-source(TxtCodesSource.Rc24);
+                        Logic.set-txt-codes-source(TxtCodesSource.Rc24);
                     }
                 }
             }
 
             SettingCard {
                 pure function get-active-item() -> int {
-                    if MirroredProperties.config.contents.theme-preference == ThemePreference.System {
+                    if Logic.config.contents.theme-preference == ThemePreference.System {
                         0
-                    } else if MirroredProperties.config.contents.theme-preference == ThemePreference.Light {
+                    } else if Logic.config.contents.theme-preference == ThemePreference.Light {
                         1
                     } else {
                         2
@@ -169,15 +168,15 @@ export component SettingsPage inherits Rectangle {
 
                 selected(i) => {
                     if i == 0 {
-                        Rust.set-theme-preference(ThemePreference.System);
+                        Logic.set-theme-preference(ThemePreference.System);
                     } else if i == 1 {
-                        Rust.set-theme-preference(ThemePreference.Light);
+                        Logic.set-theme-preference(ThemePreference.Light);
                         Palette.color-scheme = ColorScheme.light;
-                        Rust.set-window-color(false);
+                        Logic.set-window-color(false);
                     } else {
-                        Rust.set-theme-preference(ThemePreference.Dark);
+                        Logic.set-theme-preference(ThemePreference.Dark);
                         Palette.color-scheme = ColorScheme.dark;
-                        Rust.set-window-color(true);
+                        Logic.set-window-color(true);
                     }
                 }
             }

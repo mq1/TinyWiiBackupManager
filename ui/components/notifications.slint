@@ -5,8 +5,7 @@ import { Card } from "card.slint";
 import { IconButton } from "icon-button.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { MyPalette } from "../styling.slint";
-import { Rust } from "../rust.slint";
-import { MirroredProperties } from "../mirrored-properties.slint";
+import { Logic } from "../logic.slint";
 
 export component Notifications inherits VerticalLayout {
     width: self.preferred-width;
@@ -14,7 +13,7 @@ export component Notifications inherits VerticalLayout {
     padding: 10px;
     spacing: 5px;
 
-    for notification[i] in MirroredProperties.notifications: Card {
+    for notification[i] in Logic.notifications: Card {
         height: 40px;
 
         h := HorizontalLayout {
@@ -43,7 +42,7 @@ export component Notifications inherits VerticalLayout {
 
                 IconButton {
                     icon: IconSet.X;
-                    clicked => Rust.close-notification(i);
+                    clicked => Logic.close-notification(i);
                     rounded: true;
                     height: 24px;
                     width: 24px;

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    ConfigContents, ConversionKind, DriveInfo, QueuedConversion, Rust, archive::ArchiveConversion,
+    ConfigContents, ConversionKind, DriveInfo, Logic, QueuedConversion, archive::ArchiveConversion,
     scrub::ScrubConversion, standard_conversion::StandardConversion,
 };
 use anyhow::Result;
@@ -31,7 +31,7 @@ impl Conversion {
         }
     }
 
-    pub fn perform(&mut self, weak: &Weak<Rust<'static>>) -> Result<()> {
+    pub fn perform(&mut self, weak: &Weak<Logic<'static>>) -> Result<()> {
         match self {
             Conversion::Scrub(scrub) => scrub.perform(weak),
             Conversion::Archive(archive) => archive.perform(weak),

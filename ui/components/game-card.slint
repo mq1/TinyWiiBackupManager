@@ -6,7 +6,7 @@ import { Game } from "../types.slint";
 import { IconButton } from "icon-button.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { MyPalette } from "../styling.slint";
-import { Rust } from "../rust.slint";
+import { Logic } from "../logic.slint";
 
 export component GameCard inherits Card {
     in property <Game> game;
@@ -69,13 +69,13 @@ export component GameCard inherits Card {
             IconButton {
                 icon: IconSet.HardDriveDownload;
                 tooltip: "Archive to PC";
-                clicked => Rust.archive-game(game);
+                clicked => Logic.archive-game(game);
             }
 
             IconButton {
                 icon: IconSet.Trash;
                 tooltip: "Delete game";
-                clicked => Rust.delete-game(game);
+                clicked => Logic.delete-game(game);
             }
         }
     }

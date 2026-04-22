@@ -7,7 +7,7 @@ import { IconSet, IconDisplay } from "@lucide";
 import { SortGamesAndHomebrewApps } from "sort-games-and-homebrew-apps.slint";
 import { ViewAs } from "view-as.slint";
 import { MyPalette } from "../styling.slint";
-import { Rust } from "../rust.slint";
+import { Logic } from "../logic.slint";
 
 export component GamesToolbar inherits HorizontalLayout {
     alignment: space-between;
@@ -52,7 +52,7 @@ export component GamesToolbar inherits HorizontalLayout {
                     font-size: 18px;
                     width: 34px;
                     height: 34px;
-                    clicked => Rust.refresh-all();
+                    clicked => Logic.refresh-all();
                 }
 
                 IconButton {
@@ -63,7 +63,7 @@ export component GamesToolbar inherits HorizontalLayout {
                     font-size: 18px;
                     width: 34px;
                     height: 34px;
-                    clicked => Rust.pick-games(false);
+                    clicked => Logic.pick-games(false);
                 }
 
                 IconButton {
@@ -74,7 +74,7 @@ export component GamesToolbar inherits HorizontalLayout {
                     font-size: 18px;
                     width: 34px;
                     height: 34px;
-                    clicked => Rust.pick-games(true);
+                    clicked => Logic.pick-games(true);
                 }
             }
         }

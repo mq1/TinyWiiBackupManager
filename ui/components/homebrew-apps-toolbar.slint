@@ -6,7 +6,7 @@ import { IconSet, IconDisplay } from "@lucide";
 import { ViewAs } from "view-as.slint";
 import { SortGamesAndHomebrewApps } from "sort-games-and-homebrew-apps.slint";
 import { MyPalette } from "../styling.slint";
-import { Rust } from "../rust.slint";
+import { Logic } from "../logic.slint";
 
 export component HomebrewAppsToolbar inherits HorizontalLayout {
     alignment: space-between;
@@ -49,7 +49,7 @@ export component HomebrewAppsToolbar inherits HorizontalLayout {
                     font-size: 18px;
                     width: 34px;
                     height: 34px;
-                    clicked => Rust.refresh-all();
+                    clicked => Logic.refresh-all();
                 }
 
                 IconButton {
@@ -60,7 +60,7 @@ export component HomebrewAppsToolbar inherits HorizontalLayout {
                     font-size: 18px;
                     width: 34px;
                     height: 34px;
-                    clicked => Rust.pick-homebrew-apps();
+                    clicked => Logic.pick-homebrew-apps();
                 }
             }
         }

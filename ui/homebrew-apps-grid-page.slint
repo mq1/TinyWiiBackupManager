@@ -9,7 +9,7 @@ import { HomebrewAppCard } from "components/homebrew-app-card.slint";
 import {
     HomebrewAppsOtherToolbar,
 } from "components/homebrew-apps-other-toolbar.slint";
-import { MirroredProperties } from "mirrored-properties.slint";
+import { Logic } from "logic.slint";
 
 export component HomebrewAppsGridPage inherits VerticalLayout {
     callback open-info(int);
@@ -36,7 +36,7 @@ export component HomebrewAppsGridPage inherits VerticalLayout {
             GridLayout {
                 spacing: 10px;
 
-                for app[i] in MirroredProperties.homebrew-apps: HomebrewAppCard {
+                for app[i] in Logic.homebrew-apps: HomebrewAppCard {
                     row: i / col-count;
                     col: mod(i, col-count);
 

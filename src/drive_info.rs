@@ -10,6 +10,7 @@ use std::path::Path;
 use which_fs::FsKind;
 
 impl DriveInfo {
+    #[must_use]
     pub fn from_path(path: &Path) -> Self {
         if !path.is_dir() {
             return Self::default();
