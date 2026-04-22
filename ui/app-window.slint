@@ -38,18 +38,10 @@ export * from "types.slint";
 export { Logic }
 
 export component AppWindow inherits Window {
-    pure function get-window-title() -> string {
-        if Logic.drive-info.label.is-empty {
-            "TinyWiiBackupManager  ›  No drive selected"
-        } else {
-            "TinyWiiBackupManager  ›  \{Logic.drive-info.label}  (\{Logic.drive-info.used-gib.to-fixed(2)}/\{Logic.drive-info.total-gib.to-fixed(2)} GiB)"
-        }
-    }
-
     min-width: 800px;
     min-height: 600px;
     background: MyPalette.background;
-    title: get-window-title();
+    title: Logic.drive-info.label.is-empty ? "TinyWiiBackupManager  ›  No drive selected" : "TinyWiiBackupManager  ›  \{Logic.drive-info.label}  (\{Logic.drive-info.used-gib.to-fixed(2)}/\{Logic.drive-info.total-gib.to-fixed(2)} GiB)";
     default-font-size: 14px;
 
     private property <Page> current-page: Page.Games;
