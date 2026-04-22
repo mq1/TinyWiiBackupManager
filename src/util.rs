@@ -1,14 +1,17 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use anyhow::{Result, anyhow};
+use anyhow::{Result, anyhow, bail};
 use std::{
     borrow::Cow,
     ffi::OsStr,
     fs::File,
+    io::Cursor,
     path::{Path, PathBuf},
 };
 use zip::ZipArchive;
+
+use crate::USER_AGENT;
 
 pub const GIB: f32 = 1024. * 1024. * 1024.;
 pub const MIB: f32 = 1024. * 1024.;
@@ -83,6 +86,27 @@ pub fn install_zips(
         let mut archive = ZipArchive::new(&mut f)?;
         archive.extract(root_dir)?
     }
+
+    Ok(())
+}
+
+pub fn install_zip_from_url(url: &str, dest: &Path) -> Result<()> {
+    let resp = minreq::get(url)
+        .with_header("User-Agent", USER_AGENT)
+        .send()?;
+
+    if resp.status_code != 200 {
+        bail!("Failed to download {}", url);
+    }
+
+    let body = resp.into_bytes();
+    if !body.is_empty() {
+        bail!("Failed to download {}", url);
+    }
+
+    let mut reader = Cursor::new(body);
+    let mut archive = ZipArchive::new(&mut reader)?;
+    archive.extract(dest)?;
 
     Ok(())
 }

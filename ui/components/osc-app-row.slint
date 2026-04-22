@@ -6,6 +6,7 @@ import { VerticalLine } from "vertical-line.slint";
 import { IconButton } from "icon-button.slint";
 import { OscApp } from "../types.slint";
 import { MyPalette } from "../styling.slint";
+import { Logic } from "../logic.slint";
 
 export component OscAppRow inherits Rectangle {
     in property <OscApp> app;
@@ -28,6 +29,23 @@ export component OscAppRow inherits Rectangle {
     }
 
     VerticalLine {
+        x: parent.width - 75px;
+        y: 0px;
+        height: 24px;
+    }
+
+    IconButton {
+        x: parent.width - 74px;
+        y: 0px;
+        tooltip: "App info";
+        icon: IconSet.Info;
+        height: 24px;
+        width: 24px;
+        squared: true;
+        clicked => open-info();
+    }
+
+    VerticalLine {
         x: parent.width - 50px;
         y: 0px;
         height: 24px;
@@ -36,12 +54,12 @@ export component OscAppRow inherits Rectangle {
     IconButton {
         x: parent.width - 49px;
         y: 0px;
-        tooltip: "App info";
-        icon: IconSet.Info;
+        tooltip: "Install";
+        icon: IconSet.HardDriveDownload;
         height: 24px;
         width: 24px;
         squared: true;
-        clicked => open-info();
+        clicked => Logic.install-osc-app(app);
     }
 
     VerticalLine {

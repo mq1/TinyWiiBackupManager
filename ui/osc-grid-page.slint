@@ -20,7 +20,15 @@ export component OscGridPage inherits VerticalLayout {
         OscToolbar { }
     }
 
-    ScrollView {
+    if Logic.osc-apps.length == 0: HorizontalLayout {
+        padding-left: 20px;
+
+        Text {
+            text: "Loading...";
+        }
+    }
+
+    if Logic.osc-apps.length > 0: ScrollView {
         width: parent.width;
         viewport-height: v.preferred-height;
 

@@ -1,12 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { MyPalette } from "../styling.slint";
 import { OscFilter } from "osc-filter.slint";
+import { Logic } from "../logic.slint";
 
 export component OscOtherToolbar inherits HorizontalLayout {
-    in property <string> last-osc-refresh: ""; // TODO
-
     alignment: space-between;
     height: 38px;
     padding-right: 10px;
@@ -17,6 +15,6 @@ export component OscOtherToolbar inherits HorizontalLayout {
         height: parent.height;
         vertical-alignment: center;
         horizontal-alignment: end;
-        text: "refreshed \{last-osc-refresh}";
+        text: "refreshed \{Logic.osc-refreshed-x-hours-ago} hours and \{Logic.osc-refreshed-x-minutes-ago} minutes ago";
     }
 }

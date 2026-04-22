@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{OscApp, OscAppMeta, USER_AGENT, data_dir::DATA_DIR};
-use anyhow::Result;
-use slint::{Image, SharedString, ToSharedString};
+use crate::{Logic, OscApp, OscAppMeta, USER_AGENT, data_dir::DATA_DIR};
+use anyhow::{Result, bail};
+use slint::{Image, SharedString, ToSharedString, Weak};
 use std::{
     cell::RefCell,
     fs,
@@ -15,7 +15,6 @@ use time::UtcDateTime;
 const CONTENTS_URL: &str = "https://hbb1.oscwii.org/api/v4/contents";
 
 pub fn load_contents(force_refresh: bool) -> Result<(Vec<OscApp>, i32, i32)> {
-    let icons_dir = DATA_DIR.join("osc-icons");
     let cached_contents_path = DATA_DIR.join("osc-cache.json");
 
     let last_refresh = cached_contents_path
@@ -54,7 +53,7 @@ pub fn load_contents(force_refresh: bool) -> Result<(Vec<OscApp>, i32, i32)> {
 
             let search_term = format!("{}\0{}", meta.slug, meta.name).to_shared_string();
 
-            let icon_path = icons_dir.join(format!("{}.png", meta.slug));
+            let icon_path = DATA_DIR.join(format!("osc-icons/{}.png", meta.slug));
             let icon = Image::load_from_path(&icon_path).unwrap_or_default();
 
             OscApp {
@@ -73,58 +72,47 @@ pub fn load_contents(force_refresh: bool) -> Result<(Vec<OscApp>, i32, i32)> {
     Ok((apps, elapsed_hours, elapsed_mins))
 }
 
-// TODO
-#[cfg(false)]
-pub fn load_icons(apps: &ModelRc<OscAppMeta>, weak: Weak<State<'static>>) {
+fn download_icon(slug: &str, icon_url: &str) -> Result<()> {
+    let icon_path = DATA_DIR.join(format!("osc-icons/{slug}.png"));
+
+    if icon_path.exists() {
+        bail!("Icon already exists");
+    }
+
+    let resp = minreq::get(icon_url)
+        .with_header("User-Agent", USER_AGENT)
+        .send()?;
+
+    if resp.status_code != 200 {
+        bail!("Failed to download {}", icon_url);
+    }
+
+    let bytes = resp.into_bytes();
+    if bytes.is_empty() {
+        bail!("Failed to download {}", icon_url);
+    }
+
+    fs::write(&icon_path, &bytes)?;
+
+    Ok(())
+}
+
+pub fn load_icons(apps: impl IntoIterator<Item = OscAppMeta>, weak: Weak<Logic<'static>>) {
     let icon_urls = apps
-        .iter()
-        .map(|app| (app.i, app.slug.to_string(), app.assets.icon.url.to_string()))
+        .into_iter()
+        .map(|app| (app.slug.to_string(), app.assets.icon.url.to_string()))
         .collect::<Vec<_>>();
 
     let cache_dir = DATA_DIR.join("osc-icons");
+    let _ = fs::create_dir_all(&cache_dir);
 
     let _ = std::thread::spawn(move || {
-        let res = || -> Result<()> {
-            fs::create_dir_all(&cache_dir)?;
-
-            for (i, slug, url) in icon_urls {
-                let icon_path = cache_dir.join(format!("{slug}.png"));
-
-                let bytes = if !icon_path.exists() {
-                    let resp = minreq::get(url)
-                        .with_header("User-Agent", USER_AGENT)
-                        .send()?;
-
-                    let bytes = resp.into_bytes();
-                    fs::write(&icon_path, &bytes)?;
-                    bytes
-                } else {
-                    fs::read(&icon_path)?
-                };
-
-                let bytes =
-                    image::load_from_memory_with_format(&bytes, ImageFormat::Png)?.into_rgba8();
-
-                let _ = weak.upgrade_in_event_loop(move |state| {
-                    let buffer = SharedPixelBuffer::<Rgba8Pixel>::clone_from_slice(
-                        bytes.as_raw(),
-                        bytes.width(),
-                        bytes.height(),
-                    );
-                    let icon = Image::from_rgba8(buffer);
-
-                    let model = state.get_osc_contents().icons;
-                    model.set_row_data(i as usize, icon);
+        for (i, (slug, url)) in icon_urls.iter().enumerate() {
+            if download_icon(slug, url).is_ok() {
+                let _ = weak.upgrade_in_event_loop(move |logic| {
+                    logic.invoke_reload_osc_icon(i as i32);
                 });
             }
-
-            Ok(())
-        }();
-
-        if let Err(e) = res {
-            let _ = weak.upgrade_in_event_loop(move |state| {
-                state.invoke_notify_err(e.to_shared_string());
-            });
         }
     });
 }

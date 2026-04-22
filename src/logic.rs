@@ -3,13 +3,18 @@
 
 use crate::{
     Config, ConversionKind, DriveInfo, Logic, Notification, QueuedArchiveConversion,
-    QueuedConversion, QueuedScrubConversion, checksum, convert::Conversion, dialogs, game,
-    homebrew_app, osc, standard_conversion, util,
+    QueuedConversion, QueuedScrubConversion, checksum, convert::Conversion, data_dir::DATA_DIR,
+    dialogs, game, homebrew_app, osc, standard_conversion, util,
 };
 use slint::{
-    FilterModel, Global, Model, ModelRc, SharedString, SortModel, ToSharedString, VecModel, Window,
+    FilterModel, Global, Image, Model, ModelRc, SharedString, SortModel, ToSharedString, VecModel,
+    Window,
 };
-use std::{cell::RefCell, path::Path, rc::Rc};
+use std::{
+    cell::RefCell,
+    path::{Path, PathBuf},
+    rc::Rc,
+};
 
 impl Logic<'_> {
     pub fn init(&self, config: Config, window: &Window) {
@@ -54,6 +59,7 @@ impl Logic<'_> {
         let conversion_queue_buffer = Rc::new(VecModel::from(Vec::new()));
 
         let is_converting = Rc::new(RefCell::new(false));
+        let is_loading_osc_icons = Rc::new(RefCell::new(false));
 
         self.set_app_version(env!("CARGO_PKG_VERSION").to_shared_string());
         self.set_games(ModelRc::from(filtered_games.clone()));
@@ -221,11 +227,47 @@ impl Logic<'_> {
             logic.set_drive_info(drive_info);
         });
 
+        let osc_apps_clone = osc_apps.clone();
+        let is_loading_osc_icons_clone = is_loading_osc_icons.clone();
+        let weak = self.as_weak();
         self.on_load_osc_apps(move |force_refresh| {
-            let (new, h, min) = osc::load_contents(force_refresh).unwrap_or_default();
+            let (new, hours, minutes) = osc::load_contents(force_refresh).unwrap_or_default();
 
-            osc_apps.set_vec(new);
-            (h, min)
+            osc_apps_clone.set_vec(new);
+
+            let logic = weak.upgrade().unwrap();
+            logic.set_osc_refreshed_x_hours_ago(hours);
+            logic.set_osc_refreshed_x_minutes_ago(minutes);
+
+            let mut is_loading_osc_icons = is_loading_osc_icons_clone.borrow_mut();
+            if !*is_loading_osc_icons {
+                *is_loading_osc_icons = true;
+
+                let apps = osc_apps_clone
+                    .iter()
+                    .map(|a| a.meta.clone())
+                    .collect::<Vec<_>>();
+
+                let weak = weak.clone();
+
+                std::thread::spawn(move || {
+                    osc::load_icons(apps, weak);
+                });
+            }
+        });
+
+        let osc_apps_clone = osc_apps.clone();
+        self.on_reload_osc_icon(move |i| {
+            #[allow(clippy::cast_sign_loss)]
+            let i = i as usize;
+
+            let mut app = osc_apps.row_data(i).unwrap();
+            let icon_path = DATA_DIR.join(format!("osc-icons/{}.png", &app.meta.slug));
+
+            if let Ok(icon) = Image::load_from_path(&icon_path) {
+                app.icon = icon;
+                osc_apps_clone.set_row_data(i, app);
+            }
         });
 
         let games_filter_clone = games_filter.clone();
@@ -332,6 +374,7 @@ impl Logic<'_> {
                         logic.invoke_notify_error(e.to_shared_string());
                     }
 
+                    logic.invoke_refresh_all();
                     logic.invoke_trigger_conversion();
                 });
             });
@@ -406,6 +449,7 @@ impl Logic<'_> {
         let window_handle = window.window_handle();
         let config_clone = config.clone();
         let notifications_clone = notifications.clone();
+        let weak = self.as_weak();
         self.on_pick_homebrew_apps(move || {
             let paths = dialogs::pick_homebrew_apps(&window_handle);
             let config = config_clone.borrow();
@@ -413,7 +457,39 @@ impl Logic<'_> {
 
             if let Err(e) = util::install_zips(root_dir, &paths) {
                 notifications_clone.push(e.into());
+            } else {
+                let msg = format!("{} apps installed successfully", paths.len());
+                notifications_clone.push(Notification::info(msg));
+                weak.upgrade().unwrap().invoke_refresh_all();
             }
+        });
+
+        let config_clone = config.clone();
+        let notifications_clone = notifications.clone();
+        let weak = self.as_weak();
+        self.on_install_osc_app(move |app| {
+            let config = config_clone.borrow();
+            let root_dir = PathBuf::from(&config.contents.mount_point);
+
+            notifications_clone.push(Notification::info(format!("Installing {}", &app.meta.name)));
+
+            let weak = weak.clone();
+
+            std::thread::spawn(move || {
+                let res = util::install_zip_from_url(&app.meta.assets.archive.url, &root_dir);
+
+                if let Err(e) = res {
+                    let _ = weak.upgrade_in_event_loop(move |logic| {
+                        logic.invoke_notify_error(e.to_shared_string());
+                    });
+                } else {
+                    let msg = format!("{} installed successfully", &app.meta.name);
+                    let _ = weak.upgrade_in_event_loop(move |logic| {
+                        logic.invoke_notify_info(msg.to_shared_string());
+                        logic.invoke_refresh_all();
+                    });
+                }
+            });
         });
 
         #[cfg(windows)]

@@ -30,11 +30,13 @@ export global Logic {
     in-out property <[QueuedConversion]> conversion-queue-buffer;
     in-out property <string> status;
     in-out property <string> crc32-status;
+    in-out property <int> osc-refreshed-x-hours-ago;
+    in-out property <int> osc-refreshed-x-minutes-ago;
 
     callback filter-games(string);
     callback filter-homebrew-apps(string);
     callback filter-osc-apps(string);
-    callback load-osc-apps(bool) -> { h: int, min: int};
+    callback load-osc-apps(bool);
     callback refresh-all();
     callback confirm-conversion-queue-buffer();
     callback clear-conversion-queue-buffer();
@@ -46,7 +48,6 @@ export global Logic {
     callback open-that(string);
     callback close-notification(int);
     callback pick-homebrew-apps();
-    callback force-osc-refresh();
     callback checksum(Game);
     callback set-window-color(bool);
 
@@ -64,11 +65,14 @@ export global Logic {
     callback set-sort-by(SortBy);
     callback set-show-wii(bool);
     callback set-show-gc(bool);
+    callback install-osc-app(OscApp);
 
     // util
     callback sync-config();
     callback notify-error(string);
+    callback notify-info(string);
     callback trigger-conversion();
     callback set-status(string);
     callback set-crc32-status(string);
+    callback reload-osc-icon(int);
 }
