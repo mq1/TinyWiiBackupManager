@@ -97,7 +97,7 @@ jobs:
       - name: Build binary
         run: |
           cargo build --release --target ${{ matrix.target }} --no-default-features --features "rustls"
-          cp target/${{ matrix.target }}/release/TinyWiiBackupManager .
+          cp target/${{ matrix.target }}/release/twbm-gui TinyWiiBackupManager
         env:
           CC: clang-22
           AR: llvm-ar-22
@@ -190,6 +190,7 @@ jobs:
         shell: pwsh
         run: |
           cargo build --release --target ${{ matrix.target }}
+          Copy-Item -Path "target\${{ matrix.target }}\release\twbm-gui" -Destination "TinyWiiBackupManager"
         env:
           CC: clang-cl
           AR_aarch64-pc-windows-msvc: llvm-lib
@@ -206,14 +207,14 @@ jobs:
         shell: pwsh
         run: |
           New-Item -Path "dist" -ItemType Directory -Force
-          upx --best --lzma -o "dist\TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.exe" "target\${{ matrix.target }}\release\TinyWiiBackupManager.exe"
+          upx --best --lzma -o "dist\TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.exe" "TinyWiiBackupManager.exe"
 
       - name: Package binary (no UPX)
         if: matrix.arch == 'arm64'
         shell: pwsh
         run: |
           New-Item -Path "dist" -ItemType Directory -Force
-          Copy-Item "target\${{ matrix.target }}\release\TinyWiiBackupManager.exe" "dist\TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.exe"
+          Copy-Item "TinyWiiBackupManager.exe" "dist\TinyWiiBackupManager-${{ env.VERSION_NAME }}-windows-${{ matrix.arch }}.exe"
 
       - name: Upload Windows distributables
         uses: actions/upload-artifact@v7
@@ -255,7 +256,7 @@ jobs:
       - name: Build binary
         run: |
           cargo build --release --target ${{ matrix.target }}
-          cp target/${{ matrix.target }}/release/TinyWiiBackupManager .
+          cp target/${{ matrix.target }}/release/twbm-gui TinyWiiBackupManager
         env:
           CC: /opt/homebrew/opt/llvm@22/bin/clang
           CFLAGS: -O3
