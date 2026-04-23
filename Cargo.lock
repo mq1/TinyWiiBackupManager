@@ -7,6 +7,7 @@ name = "TinyWiiBackupManager"
 version = "6.0.0"
 dependencies = [
  "anyhow",
+ "arrayvec",
  "crc32fast",
  "directories",
  "fs4",

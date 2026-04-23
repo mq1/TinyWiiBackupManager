@@ -35,6 +35,7 @@ crc32fast = "1.5"
 quick-xml = { version = "0.39", features = ["serialize"] }
 time = "0.3"
 ureq = { version = "3.3", default-features = false, features = ["gzip"] }
+arrayvec = "0.7"
 
 # My crates (MIT OR Apache-2.0)
 which-fs = "0.2"

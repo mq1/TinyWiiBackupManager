@@ -6,6 +6,7 @@ use crate::{
     QueuedConversion, QueuedScrubConversion, checksum, convert::Conversion, covers,
     data_dir::DATA_DIR, dialogs, game, homebrew_app, osc, standard_conversion, util,
 };
+use arrayvec::ArrayString;
 use slint::{
     FilterModel, Global, Image, Model, ModelRc, SharedString, SortModel, ToSharedString, VecModel,
     Window,
@@ -224,7 +225,7 @@ impl Logic<'_> {
 
             let ids = new_games
                 .iter()
-                .map(|game| game.id.to_string())
+                .filter_map(|g| ArrayString::from(&g.id).ok())
                 .collect::<Vec<_>>();
 
             games_clone.set_vec(new_games);
