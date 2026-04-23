@@ -22,7 +22,7 @@ pub fn cache_contents(force: bool) -> Result<()> {
             .metadata()
             .ok()
             .and_then(|m| m.modified().ok())
-            .is_some_and(|t| t < SystemTime::now() - Duration::from_hours(24))
+            .is_some_and(|t| t > SystemTime::now() - Duration::from_hours(24))
     {
         return Ok(());
     }
