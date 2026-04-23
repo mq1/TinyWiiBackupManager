@@ -84,11 +84,13 @@ export component AppWindow inherits Window {
                 if current-page == Page.Games && Logic.config.contents.view-as == ViewAs.Grid: GameGridPage {
                     open-info(i) => {
                         current-game-i = i;
+                        Logic.load-game-info(i);
                     }
                 }
                 if current-page == Page.Games && Logic.config.contents.view-as == ViewAs.Table: GameTablePage {
                     open-info(i) => {
                         current-game-i = i;
+                        Logic.load-game-info(i);
                     }
                 }
                 if current-page == Page.HomebrewApps && Logic.config.contents.view-as == ViewAs.Grid: HomebrewAppsGridPage {

@@ -51,6 +51,9 @@ export global Logic {
     callback checksum(Game);
     callback set-window-color(bool);
     callback pair-homebrew-osc();
+    callback install-osc-app(OscApp);
+    callback download-osc-icons();
+    callback load-game-info(int);
 
     // config
     callback pick-mount-point();
@@ -66,8 +69,6 @@ export global Logic {
     callback set-sort-by(SortBy);
     callback set-show-wii(bool);
     callback set-show-gc(bool);
-    callback install-osc-app(OscApp);
-    callback download-osc-icons();
 
     // util
     callback sync-config();

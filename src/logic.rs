@@ -2,9 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    Config, ConversionKind, DriveInfo, Logic, Notification, QueuedArchiveConversion,
-    QueuedConversion, QueuedScrubConversion, checksum, convert::Conversion, covers,
-    data_dir::DATA_DIR, dialogs, game, homebrew_app, osc, standard_conversion, util,
+    Config, ConversionKind, DiscInfo, DriveInfo, Logic, Notification, QueuedArchiveConversion, QueuedConversion, QueuedScrubConversion, checksum, convert::Conversion, covers, data_dir::DATA_DIR, dialogs, game, homebrew_app, osc, standard_conversion, util
 };
 use arrayvec::ArrayString;
 use slint::{
@@ -12,9 +10,7 @@ use slint::{
     Window,
 };
 use std::{
-    cell::RefCell,
-    path::{Path, PathBuf},
-    rc::Rc,
+    cell::RefCell, fs, path::{Path, PathBuf}, rc::Rc
 };
 
 impl Logic<'_> {
@@ -572,6 +568,31 @@ impl Logic<'_> {
             }
 
             homebrew_apps_clone.set_vec(homebrew_apps);
+        });
+
+        let games_clone = games.clone();
+        self.on_load_game_info(move |i| {
+            #[allow(clippy::cast_sign_loss)]
+            let i = i as usize;
+
+            let mut game = games_clone.row_data(i).unwrap();
+
+            let game_dir = Path::new(&game.path);
+            game.disc_info = match DiscInfo::try_from_game_dir(game_dir) {
+                Ok(disc_info) => disc_info,
+                Err(e) => DiscInfo {
+                    err: e.to_shared_string(),
+                    ..Default::default()
+                },
+            };
+
+            let crc32_path = game_dir.join(format!("{}.crc32", &game.id));
+            game.crc32 = match fs::read_to_string(&crc32_path) {
+                Ok(crc32) => crc32.to_shared_string(),
+                Err(_) => SharedString::default(),
+            };
+
+            games_clone.set_row_data(i, game);
         });
 
         #[cfg(windows)]
