@@ -17,7 +17,6 @@ mod extensions;
 mod game;
 mod homebrew_app;
 mod homebrew_app_meta;
-mod id_map;
 mod logic;
 mod notification;
 mod osc;
@@ -43,7 +42,7 @@ use ureq::{
 slint::include_modules!();
 
 const UREQ_AGENT: LazyLock<Agent> = LazyLock::new(|| {
-    const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
+    const USER_AGENT: &str = concat!("TinyWiiBackupManager/", env!("CARGO_PKG_VERSION"));
 
     #[cfg(feature = "native-tls")]
     let provider = TlsProvider::NativeTls;

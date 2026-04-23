@@ -3,7 +3,7 @@
 
 use crate::{DiscInfo, scrub::is_worth_scrubbing};
 use anyhow::{Result, anyhow, bail};
-use slint::{SharedString, ToSharedString};
+use slint::ToSharedString;
 use std::{
     ffi::OsStr,
     fs::{self, File},

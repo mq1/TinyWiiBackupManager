@@ -1,10 +1,11 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{Config, DiscInfo, Game, SortBy, data_dir::DATA_DIR, id_map, util::GIB};
+use crate::{Config, DiscInfo, Game, SortBy, data_dir::DATA_DIR, util::GIB};
 use anyhow::Result;
 use slint::{Image, SharedString, ToSharedString};
 use std::{cell::RefCell, cmp::Ordering, fs, path::Path, rc::Rc};
+use twbm_core::id_map;
 
 impl Game {
     #[must_use]

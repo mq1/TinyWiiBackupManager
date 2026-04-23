@@ -3,41 +3,6 @@
 version = 4
 
 [[package]]
-name = "TinyWiiBackupManager"
-version = "6.0.0"
-dependencies = [
- "anyhow",
- "arrayvec",
- "crc32fast",
- "directories",
- "fs4",
- "fs_extra",
- "hex",
- "lucide-slint",
- "nod",
- "num_cpus",
- "open",
- "quick-xml 0.39.2",
- "raw-window-handle",
- "rfd",
- "sanitize-filename",
- "serde",
- "serde_json",
- "slint",
- "slint-build",
- "split-write",
- "time",
- "ureq",
- "walkdir",
- "which-fs",
- "wii-disc-info",
- "wiiload",
- "windows 0.62.2",
- "winresource",
- "zip",
-]
-
-[[package]]
 name = "ab_glyph"
 version = "0.2.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5486,6 +5451,46 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d2df906b07856748fa3f6e0ad0cbaa047052d4a7dd609e231c4f72cee8c36f31"
 dependencies = [
  "core_maths",
+]
+
+[[package]]
+name = "twbm-core"
+version = "6.0.0"
+
+[[package]]
+name = "twbm-gui"
+version = "6.0.0"
+dependencies = [
+ "anyhow",
+ "arrayvec",
+ "crc32fast",
+ "directories",
+ "fs4",
+ "fs_extra",
+ "hex",
+ "lucide-slint",
+ "nod",
+ "num_cpus",
+ "open",
+ "quick-xml 0.39.2",
+ "raw-window-handle",
+ "rfd",
+ "sanitize-filename",
+ "serde",
+ "serde_json",
+ "slint",
+ "slint-build",
+ "split-write",
+ "time",
+ "twbm-core",
+ "ureq",
+ "walkdir",
+ "which-fs",
+ "wii-disc-info",
+ "wiiload",
+ "windows 0.62.2",
+ "winresource",
+ "zip",
 ]
 
 [[package]]

@@ -1,0 +1,63 @@
+[package]
+name = "twbm-gui"
+version.workspace = true
+rust-version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description.workspace = true
+
+[package.metadata.winresource]
+OriginalFilename = "TinyWiiBackupManager.exe"
+LegalCopyright = "Copyright © 2026 Manuel Quarneti. Licensed under GPL-3.0-only."
+
+[dependencies]
+twbm-core = { path = "../core" }
+slint = { version = "1.16", features = ["serde", "raw-window-handle-06"] }
+nod = { git = "https://github.com/encounter/nod.git" }
+anyhow = "1.0"
+open = "5.3"
+directories = "6.0"
+serde = "1.0"
+serde_json = "1.0"
+rfd = "0.17"
+fs_extra = "1.3"
+fs4 = { version = "0.13", default-features = false }
+hex = "0.4"
+zip = { version = "8.5", default-features = false, features = [
+  "deflate-flate2",
+] }
+sanitize-filename = "0.7.0-beta"
+num_cpus = "1.17"
+walkdir = "2.5"
+crc32fast = "1.5"
+quick-xml = { version = "0.39", features = ["serialize"] }
+time = "0.3"
+ureq = { version = "3.3", default-features = false, features = ["gzip"] }
+arrayvec = "0.7"
+
+# My crates (MIT OR Apache-2.0)
+which-fs = "0.2"
+split-write = "0.2"
+wii-disc-info = "0.4"
+wiiload = "0.3"
+
+[target.'cfg(windows)'.dependencies]
+raw-window-handle = "0.6"
+windows = { version = "0.62", features = [
+  "Win32_Graphics_Dwm",
+  "Win32_UI_Controls_Dialogs",
+  "Win32_UI_Shell_Common",
+  "Win32_System_Com",
+] }
+
+[build-dependencies]
+slint-build = "1.16"
+lucide-slint = "1.8"
+winresource = "0.1"
+
+[features]
+default = ["native-tls"]
+native-tls = ["ureq/native-tls"]
+rustls = ["ureq/rustls"]

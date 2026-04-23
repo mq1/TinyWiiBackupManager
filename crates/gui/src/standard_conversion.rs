@@ -1,6 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::{
+    ConfigContents, ConversionKind, DriveInfo, GcOutputFormat, Logic, QueuedConversion,
+    QueuedStandardConversion, WiiOutputFormat,
+    convert::{HEADER_SIZE, SPLIT_SIZE},
+    extensions::format_to_opts,
+    util::{self, get_threads_num},
+};
 use anyhow::{Result, anyhow, bail};
 use crc32fast::Hasher;
 use nod::{
@@ -10,16 +17,6 @@ use nod::{
 };
 use slint::{ToSharedString, Weak};
 use split_write::SplitWriter;
-use zip::ZipArchive;
-
-use crate::{
-    ConfigContents, ConversionKind, DriveInfo, GcOutputFormat, Logic, QueuedConversion,
-    QueuedStandardConversion, WiiOutputFormat,
-    convert::{HEADER_SIZE, SPLIT_SIZE},
-    extensions::format_to_opts,
-    id_map,
-    util::{self, get_threads_num},
-};
 use std::{
     ffi::OsStr,
     fs::{self, File},
@@ -27,6 +24,8 @@ use std::{
     path::PathBuf,
     time::{Duration, Instant},
 };
+use twbm_core::id_map;
+use zip::ZipArchive;
 
 #[allow(clippy::struct_excessive_bools)]
 pub struct StandardConversion {

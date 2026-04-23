@@ -12,7 +12,7 @@ fn get_data_dir() -> Result<PathBuf> {
         let parent = get_exe_parent()?;
         parent.join("TinyWiiBackupManager-data")
     } else {
-        let proj = ProjectDirs::from("it", "mq1", env!("CARGO_PKG_NAME"))
+        let proj = ProjectDirs::from("it", "mq1", "TinyWiiBackupManager")
             .ok_or(anyhow!("Failed to get project dirs"))?;
 
         proj.data_dir().to_path_buf()

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::path::Path;
-use std::{collections::HashMap, env, fmt::Write, fs, path::PathBuf};
+use std::{env, fmt::Write, fs};
 
 fn parse_gameid(id: &str) -> [u8; 6] {
     let bytes = id.as_bytes();
@@ -14,7 +14,7 @@ fn parse_gameid(id: &str) -> [u8; 6] {
 fn parse_titles_txt() -> Vec<([u8; 6], String)> {
     let mut title_map = Vec::new();
 
-    let contents = fs::read_to_string("assets/wiitdb.txt").unwrap();
+    let contents = fs::read_to_string("../../assets/wiitdb.txt").unwrap();
     let mut lines = contents.lines();
 
     // skip heading
@@ -38,7 +38,7 @@ fn parse_gamehacking_ids() -> Vec<([u8; 6], u32)> {
     let mut id_map = Vec::new();
 
     for i in 0..=70 {
-        let filename = format!("assets/gamehacking/GameHacking.org - WII - Page {i}.html");
+        let filename = format!("../../assets/gamehacking/GameHacking.org - WII - Page {i}.html");
         let content = fs::read_to_string(&filename).unwrap();
 
         let mut current_slice = &content[..];
@@ -94,23 +94,8 @@ fn make_id_map() {
 
 fn main() {
     println!("cargo::rerun-if-changed=build.rs");
-    println!("cargo::rerun-if-changed=assets/wiitdb.txt");
-    println!("cargo::rerun-if-changed=assets/gamehacking/**");
-    println!("cargo::rerun-if-changed=ui/**");
+    println!("cargo::rerun-if-changed=../../assets/wiitdb.txt");
+    println!("cargo::rerun-if-changed=../../assets/gamehacking/**");
 
     make_id_map();
-
-    let library = HashMap::from([("lucide".to_string(), PathBuf::from(lucide_slint::lib()))]);
-    let config = slint_build::CompilerConfiguration::new().with_library_paths(library);
-
-    slint_build::compile_with_config("ui/app-window.slint", config).unwrap();
-
-    let target = env::var("TARGET").unwrap();
-
-    if target.contains("-windows-") {
-        let mut res = winresource::WindowsResource::new();
-        res.set_icon("package/windows/icon.ico");
-        res.set_manifest_file("package/windows/TinyWiiBackupManager.exe.manifest");
-        res.compile().unwrap();
-    }
 }
