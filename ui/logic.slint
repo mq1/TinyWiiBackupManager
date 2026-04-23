@@ -36,7 +36,7 @@ export global Logic {
     callback filter-games(string);
     callback filter-homebrew-apps(string);
     callback filter-osc-apps(string);
-    callback load-osc-apps(bool);
+    callback cache-osc-contents(bool);
     callback refresh-all();
     callback confirm-conversion-queue-buffer();
     callback clear-conversion-queue-buffer();
@@ -50,6 +50,7 @@ export global Logic {
     callback pick-homebrew-apps();
     callback checksum(Game);
     callback set-window-color(bool);
+    callback pair-homebrew-osc();
 
     // config
     callback pick-mount-point();
@@ -66,6 +67,7 @@ export global Logic {
     callback set-show-wii(bool);
     callback set-show-gc(bool);
     callback install-osc-app(OscApp);
+    callback download-osc-icons();
 
     // util
     callback sync-config();
@@ -77,4 +79,5 @@ export global Logic {
     callback reload-osc-icon(int);
     callback reload-cover(int);
     callback finished-downloading-covers();
+    callback osc-contents-cached();
 }

@@ -8,39 +8,41 @@ use std::{
     cell::RefCell,
     fs,
     rc::Rc,
-    time::{Duration, SystemTime, UNIX_EPOCH},
+    time::{Duration, SystemTime},
 };
 use time::UtcDateTime;
 
 const CONTENTS_URL: &str = "https://hbb1.oscwii.org/api/v4/contents";
 
-pub fn load_contents(force_refresh: bool) -> Result<(Vec<OscApp>, i32, i32)> {
+pub fn cache_contents(force: bool) -> Result<()> {
+    let cache_path = DATA_DIR.join("osc-cache.json");
+
+    if !force
+        && cache_path
+            .metadata()
+            .ok()
+            .and_then(|m| m.modified().ok())
+            .is_some_and(|t| t < SystemTime::now() - Duration::from_hours(24))
+    {
+        return Ok(());
+    }
+
+    let body = UREQ_AGENT
+        .get(CONTENTS_URL)
+        .call()?
+        .body_mut()
+        .read_to_string()?;
+
+    fs::write(&cache_path, body)?;
+    Ok(())
+}
+
+pub fn load_contents() -> Result<(Vec<OscApp>, i32, i32)> {
     let cached_contents_path = DATA_DIR.join("osc-cache.json");
 
-    let last_refresh = cached_contents_path
-        .metadata()
-        .ok()
-        .and_then(|m| m.modified().ok())
-        .unwrap_or(UNIX_EPOCH);
+    let last_refresh = cached_contents_path.metadata()?.modified()?;
 
-    let a_day_ago = SystemTime::now() - Duration::from_hours(24);
-    let should_refresh = force_refresh || last_refresh < a_day_ago;
-
-    let (raw, last_refresh) = if should_refresh {
-        let body = UREQ_AGENT
-            .get(CONTENTS_URL)
-            .call()?
-            .body_mut()
-            .read_to_string()?;
-
-        fs::write(cached_contents_path, &body)?;
-
-        (body, SystemTime::now())
-    } else {
-        let raw = fs::read_to_string(cached_contents_path)?;
-        (raw, last_refresh)
-    };
-
+    let raw = fs::read_to_string(&cached_contents_path)?;
     let escaped = escape_str(&raw);
     let apps = serde_json::from_str::<Vec<OscAppMeta>>(&escaped)?;
 
@@ -89,15 +91,13 @@ fn download_icon(slug: &str, icon_url: &str) -> Result<()> {
 pub fn download_icons(icon_urls: Vec<(String, String)>, weak: Weak<Logic<'static>>) {
     let _ = fs::create_dir_all(DATA_DIR.join("osc-icons"));
 
-    let _ = std::thread::spawn(move || {
-        for (i, (slug, url)) in icon_urls.iter().enumerate() {
-            if download_icon(slug, url).is_ok() {
-                let _ = weak.upgrade_in_event_loop(move |logic| {
-                    logic.invoke_reload_osc_icon(i as i32);
-                });
-            }
+    for (i, (slug, url)) in icon_urls.iter().enumerate() {
+        if download_icon(slug, url).is_ok() {
+            let _ = weak.upgrade_in_event_loop(move |logic| {
+                logic.invoke_reload_osc_icon(i as i32);
+            });
         }
-    });
+    }
 }
 
 // for some reason slint strings don't work without this

@@ -37,16 +37,15 @@ impl HomebrewApp {
             .to_lowercase()
             .to_shared_string();
 
-        let app = Self {
+        Some(Self {
             path: path.to_string_lossy().to_shared_string(),
             slug: filename.to_shared_string(),
             meta,
             size_mib,
             icon,
             search_term,
-        };
-
-        Some(app)
+            osc_i: -1,
+        })
     }
 }
 

@@ -7,11 +7,13 @@ import { IconButton } from "icon-button.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { MyPalette } from "../styling.slint";
 import { Logic } from "../logic.slint";
+import { TooltipArea } from "tooltip-area.slint";
 
 export component HomebrewAppCard inherits Card {
     in property <HomebrewApp> app;
-
     callback open-info();
+
+    private property <string> update: app.osc-i == -1 || Logic.osc-apps[app.osc-i].meta.version == app.meta.version ? "" : Logic.osc-apps[app.osc-i].meta.version;
 
     width: 172px;
     height: self.min-height;
@@ -36,6 +38,18 @@ export component HomebrewAppCard inherits Card {
                     text: app.meta.version;
                     wrap: no-wrap;
                     overflow: elide;
+                }
+
+                if !update.is-empty: TooltipArea {
+                    width: 13px;
+                    height: 13px;
+                    tooltip: "Update available: \{update}";
+
+                    IconDisplay {
+                        icon: IconSet.ArrowUp;
+                        size: 13px;
+                        stroke: MyPalette.foreground;
+                    }
                 }
             }
 
@@ -65,6 +79,12 @@ export component HomebrewAppCard inherits Card {
                 label: "Info";
                 icon: IconSet.Info;
                 clicked => open-info();
+            }
+
+            if !update.is-empty: IconButton {
+                icon: IconSet.ArrowUp;
+                tooltip: "Update app to \{update}";
+                clicked => Logic.install-osc-app(Logic.osc-apps[app.osc-i]);
             }
 
             IconButton {

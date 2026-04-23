@@ -41,9 +41,7 @@ export component Navbar inherits VerticalLayout {
             tooltip: "Open Shop Channel";
             clicked => {
                 current-page = Page.Osc;
-                if Logic.osc-apps.length == 0 {
-                    Logic.load-osc-apps(false)
-                }
+                Logic.download-osc-icons();
             }
         }
 

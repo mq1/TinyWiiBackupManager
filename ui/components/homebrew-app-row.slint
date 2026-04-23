@@ -7,25 +7,58 @@ import { IconButton } from "icon-button.slint";
 import { HomebrewApp } from "../types.slint";
 import { MyPalette } from "../styling.slint";
 import { Logic } from "../logic.slint";
+import { TooltipArea } from "tooltip-area.slint";
 
 export component HomebrewAppRow inherits Rectangle {
     in property <HomebrewApp> app;
-
     callback open-info();
+
+    private property <string> update: app.osc-i == -1 || Logic.osc-apps[app.osc-i].meta.version == app.meta.version ? "" : Logic.osc-apps[app.osc-i].meta.version;
 
     height: 24px;
 
-    Text {
+    name := Text {
         x: 5px;
         y: 5px;
         text: "\{app.meta.name} (\{app.meta.version})";
         overflow: elide;
     }
 
+    if !update.is-empty: TooltipArea {
+        x: 5px + name.preferred-width + 5px;
+        y: 5px;
+        width: 13px;
+        height: 13px;
+        tooltip: "Update available: \{update}";
+
+        IconDisplay {
+            icon: IconSet.ArrowUp;
+            size: 13px;
+            stroke: MyPalette.foreground;
+        }
+    }
+
     Text {
-        x: parent.width - 50px - self.preferred-width - 5px;
+        x: parent.width - 75px - self.preferred-width - 5px;
         y: 5px;
         text: "\{app.size-mib.to-fixed(2)} MiB";
+    }
+
+    VerticalLine {
+        x: parent.width - 75px;
+        y: 0px;
+        height: 24px;
+    }
+
+    IconButton {
+        x: parent.width - 74px;
+        y: 0px;
+        tooltip: "App info";
+        icon: IconSet.Info;
+        height: 24px;
+        width: 24px;
+        squared: true;
+        clicked => open-info();
     }
 
     VerticalLine {
@@ -34,15 +67,33 @@ export component HomebrewAppRow inherits Rectangle {
         height: 24px;
     }
 
-    IconButton {
+    if update.is-empty: TooltipArea {
+        tooltip: "App is up to date";
         x: parent.width - 49px;
         y: 0px;
-        tooltip: "App info";
-        icon: IconSet.Info;
+        height: 24px;
+        width: 24px;
+
+        IconDisplay {
+            x: (parent.width - self.width) / 2;
+            y: (parent.height - self.height) / 2;
+            icon: IconSet.CloudCheck;
+            size: 13px;
+            stroke: MyPalette.foreground;
+        }
+    }
+
+    if !update.is-empty: IconButton {
+        x: parent.width - 49px;
+        y: 0px;
+        tooltip: "Update app to \{update}";
+        icon: IconSet.ArrowUp;
         height: 24px;
         width: 24px;
         squared: true;
-        clicked => open-info();
+        clicked => {
+            Logic.install-osc-app(Logic.osc-apps[app.osc-i]);
+        }
     }
 
     VerticalLine {

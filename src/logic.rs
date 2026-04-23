@@ -208,6 +208,8 @@ impl Logic<'_> {
         let weak = self.as_weak();
         let is_downloading_covers_clone = is_downloading_covers.clone();
         self.on_refresh_all(move || {
+            let logic = weak.upgrade().unwrap();
+
             let (new_games, new_apps, drive_info) = {
                 let config = config_clone.borrow();
                 let root_path = Path::new(&config.contents.mount_point);
@@ -230,42 +232,70 @@ impl Logic<'_> {
 
             games_clone.set_vec(new_games);
             homebrew_apps_clone.set_vec(new_apps);
-            weak.upgrade().unwrap().set_drive_info(drive_info);
+            logic.set_drive_info(drive_info);
 
             let mut is_downloading_covers = is_downloading_covers_clone.borrow_mut();
             if !*is_downloading_covers {
                 *is_downloading_covers = true;
                 covers::download_covers(ids, weak.clone());
             }
+
+            logic.invoke_pair_homebrew_osc();
+        });
+
+        let weak = self.as_weak();
+        self.on_cache_osc_contents(move |force_refresh| {
+            let weak = weak.clone();
+
+            std::thread::spawn(move || {
+                let res = osc::cache_contents(force_refresh);
+
+                let _ = weak.upgrade_in_event_loop(|logic| {
+                    if let Err(e) = res {
+                        logic.invoke_notify_error(e.to_shared_string());
+                    } else {
+                        logic.invoke_osc_contents_cached();
+                    }
+                });
+            });
         });
 
         let osc_apps_clone = osc_apps.clone();
-        let is_downloading_osc_icons_clone = is_downloading_osc_icons.clone();
         let weak = self.as_weak();
-        self.on_load_osc_apps(move |force_refresh| {
-            let (new, hours, minutes) = osc::load_contents(force_refresh).unwrap_or_default();
+        self.on_osc_contents_cached(move || {
+            let logic = weak.upgrade().unwrap();
 
-            let icon_urls = new
-                .iter()
-                .map(|app| {
-                    (
-                        app.meta.slug.to_string(),
-                        app.meta.assets.icon.url.to_string(),
-                    )
-                })
-                .collect::<Vec<_>>();
+            let (new, hours, minutes) = osc::load_contents().unwrap_or_default();
 
             osc_apps_clone.set_vec(new);
-
-            let logic = weak.upgrade().unwrap();
             logic.set_osc_refreshed_x_hours_ago(hours);
             logic.set_osc_refreshed_x_minutes_ago(minutes);
 
+            logic.invoke_pair_homebrew_osc();
+        });
+
+        let is_downloading_osc_icons_clone = is_downloading_osc_icons.clone();
+        let osc_apps_clone = osc_apps.clone();
+        let weak = self.as_weak();
+        self.on_download_osc_icons(move || {
             let mut is_downloading_osc_icons = is_downloading_osc_icons_clone.borrow_mut();
             if !*is_downloading_osc_icons {
                 *is_downloading_osc_icons = true;
 
-                osc::download_icons(icon_urls, weak.clone());
+                let icon_urls = osc_apps_clone
+                    .iter()
+                    .map(|app| {
+                        (
+                            app.meta.slug.to_string(),
+                            app.meta.assets.icon.url.to_string(),
+                        )
+                    })
+                    .collect::<Vec<_>>();
+
+                let weak = weak.clone();
+                let _ = std::thread::spawn(move || {
+                    osc::download_icons(icon_urls, weak);
+                });
             }
         });
 
@@ -527,6 +557,21 @@ impl Logic<'_> {
         let is_downloading_covers_clone = is_downloading_covers.clone();
         self.on_finished_downloading_covers(move || {
             *is_downloading_covers_clone.borrow_mut() = false;
+        });
+
+        let homebrew_apps_clone = homebrew_apps.clone();
+        let osc_apps_clone = osc_apps.clone();
+        self.on_pair_homebrew_osc(move || {
+            let mut homebrew_apps = homebrew_apps_clone.iter().collect::<Vec<_>>();
+            let osc_apps = osc_apps_clone.iter().collect::<Vec<_>>();
+
+            for app in &mut homebrew_apps {
+                if let Some(osc_i) = osc_apps.iter().position(|a| a.meta.slug == app.slug) {
+                    app.osc_i = osc_i as i32;
+                }
+            }
+
+            homebrew_apps_clone.set_vec(homebrew_apps);
         });
 
         #[cfg(windows)]

@@ -64,6 +64,7 @@ export component AppWindow inherits Window {
             }
             Logic.set-window-color(Palette.color-scheme == ColorScheme.dark);
             Logic.refresh-all();
+            Logic.cache-osc-contents(false);
             self.running = false;
         }
     }
