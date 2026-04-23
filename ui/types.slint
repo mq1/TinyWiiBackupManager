@@ -82,7 +82,6 @@ export struct Config {
 }
 
 export struct DiscInfo {
-    err: string,
     path: string,
     format: string,
     game-id: string,
@@ -104,6 +103,7 @@ export struct Game {
     cover: image,
     search-term: string,
     disc-info: DiscInfo,
+    disc-info-err: string,
     crc32: string,
 }
 

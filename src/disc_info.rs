@@ -80,7 +80,6 @@ impl DiscInfo {
             disc_number: meta.disc_number().into(),
             disc_version: meta.disc_version().into(),
             is_worth_scrubbing,
-            err: SharedString::new(),
         })
     }
 }

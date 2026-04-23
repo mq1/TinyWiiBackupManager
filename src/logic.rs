@@ -578,19 +578,17 @@ impl Logic<'_> {
             let mut game = games_clone.row_data(i).unwrap();
 
             let game_dir = Path::new(&game.path);
-            game.disc_info = match DiscInfo::try_from_game_dir(game_dir) {
-                Ok(disc_info) => disc_info,
-                Err(e) => DiscInfo {
-                    err: e.to_shared_string(),
-                    ..Default::default()
+            match DiscInfo::try_from_game_dir(game_dir) {
+                Ok(disc_info) => {
+                    game.disc_info = disc_info;
                 },
+                Err(e) => {
+                    game.disc_info_err = e.to_shared_string();
+                }
             };
 
             let crc32_path = game_dir.join(format!("{}.crc32", &game.id));
-            game.crc32 = match fs::read_to_string(&crc32_path) {
-                Ok(crc32) => crc32.to_shared_string(),
-                Err(_) => SharedString::default(),
-            };
+            game.crc32 = fs::read_to_string(&crc32_path).unwrap_or_default().to_shared_string();
 
             games_clone.set_row_data(i, game);
         });

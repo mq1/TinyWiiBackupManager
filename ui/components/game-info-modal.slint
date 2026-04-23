@@ -40,7 +40,7 @@ export component GameInfoModal inherits Modal {
                 }
             }
 
-            if !game.disc-info.err.is-empty: HorizontalLayout {
+            if !game.disc-info-err.is-empty: HorizontalLayout {
                 spacing: 5px;
                 alignment: center;
 
@@ -51,11 +51,11 @@ export component GameInfoModal inherits Modal {
                 }
 
                 Text {
-                    text: game.disc-info.err;
+                    text: game.disc-info-err;
                 }
             }
 
-            if game.disc-info.err.is-empty: HorizontalLayout {
+            if game.disc-info-err.is-empty: HorizontalLayout {
                 alignment: space-between;
                 padding-right: 10px;
                 padding-left: 20px;
@@ -233,7 +233,7 @@ export component GameInfoModal inherits Modal {
                         clicked => Logic.scrub-game(game);
                     }
 
-                    if game.disc-info.err.is-empty: IconButton {
+                    if game.disc-info-err.is-empty: IconButton {
                         label: Logic.crc32-status.is-empty ? "CRC32" : Logic.crc32-status;
                         icon: IconSet.FingerprintPattern;
                         clicked => {

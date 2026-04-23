@@ -49,6 +49,7 @@ impl Game {
             search_term,
             crc32: SharedString::new(),
             disc_info: DiscInfo::default(),
+            disc_info_err: SharedString::new(),
         })
     }
 
