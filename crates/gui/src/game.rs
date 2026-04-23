@@ -1,67 +1,41 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{Config, DiscInfo, Game, SortBy, data_dir::DATA_DIR, util::GIB};
-use anyhow::Result;
+use crate::{Config, DisplayedGame, SortBy, data_dir::DATA_DIR, util::GIB};
 use slint::{Image, SharedString, ToSharedString};
-use std::{cell::RefCell, cmp::Ordering, fs, path::Path, rc::Rc};
-use twbm_core::id_map;
+use std::{cell::RefCell, cmp::Ordering, path::Path, rc::Rc};
+use twbm_core::game::Game;
 
-impl Game {
-    #[must_use]
-    pub fn maybe_from_path(path: &Path, is_wii: bool) -> Option<Self> {
-        if !path.is_dir() {
-            return None;
-        }
-
-        let filename = path.file_name()?.to_str()?;
-        if filename.starts_with('.') {
-            return None;
-        }
-
-        let (title_str, id_str) = filename.split_once('[')?;
-        let id = id_str.strip_suffix(']')?;
-        if !matches!(id.len(), 4 | 6) {
-            return None;
-        }
-
-        let title = match id_map::get(id) {
-            Some(e) => e.title.to_shared_string(),
-            None => title_str.trim().to_shared_string(),
-        };
-
-        let size = fs_extra::dir::get_size(path).ok()?;
-
-        #[allow(clippy::cast_precision_loss)]
-        let size_gib = size as f32 / GIB;
-
-        let cover_path = DATA_DIR.join("covers").join(format!("{id}.png"));
+impl From<Game> for DisplayedGame {
+    fn from(game: Game) -> Self {
+        let cover_path = DATA_DIR.join(format!("covers/{}.png", game.id));
         let cover = Image::load_from_path(&cover_path).unwrap_or_default();
+        let search_term = format!("{}\0{}", game.title, game.id);
 
-        let search_term = format!("{title}\0{id}").to_lowercase().to_shared_string();
-
-        Some(Self {
-            path: path.to_string_lossy().to_shared_string(),
-            is_wii,
-            size_gib,
-            title,
-            id: id.to_shared_string(),
+        Self {
+            id: game.id.to_shared_string(),
+            title: game.title.to_shared_string(),
+            path: game.path.to_string_lossy().to_shared_string(),
+            size_gib: game.size as f32 / GIB,
+            is_wii: game.is_wii,
+            search_term: search_term.to_shared_string(),
             cover,
-            search_term,
-            crc32: SharedString::new(),
-            disc_info: DiscInfo::default(),
-            disc_info_err: SharedString::new(),
-        })
+            ..Default::default()
+        }
     }
+}
 
+impl DisplayedGame {
     pub fn reload_cover(&mut self) {
-        let cover_path = DATA_DIR.join("covers").join(format!("{}.png", self.id));
+        let cover_path = DATA_DIR.join(format!("covers/{}.png", self.id));
         let cover = Image::load_from_path(&cover_path).unwrap_or_default();
         self.cover = cover;
     }
 }
 
-pub fn get_compare_fn(config: Rc<RefCell<Config>>) -> impl Fn(&Game, &Game) -> Ordering {
+pub fn get_compare_fn(
+    config: Rc<RefCell<Config>>,
+) -> impl Fn(&DisplayedGame, &DisplayedGame) -> Ordering {
     move |a, b| {
         let config = config.borrow();
 
@@ -77,7 +51,7 @@ pub fn get_compare_fn(config: Rc<RefCell<Config>>) -> impl Fn(&Game, &Game) -> O
 pub fn get_filter_fn(
     query_lowercase: Rc<RefCell<SharedString>>,
     config: Rc<RefCell<Config>>,
-) -> impl Fn(&Game) -> bool {
+) -> impl Fn(&DisplayedGame) -> bool {
     move |game| {
         let config = config.borrow();
 
@@ -99,23 +73,10 @@ pub fn get_filter_fn(
     }
 }
 
-fn scan_dir(dir: &Path, is_wii: bool, games: &mut Vec<Game>) -> Result<()> {
-    let entries = fs::read_dir(dir)?;
-    for entry in entries.filter_map(Result::ok) {
-        let path = entry.path();
-        if let Some(game) = Game::maybe_from_path(&path, is_wii) {
-            games.push(game);
-        }
-    }
+pub fn scan_drive(root_path: &Path) -> Vec<DisplayedGame> {
+    let wii_games = twbm_core::game::scan_dir(&root_path.join("wbfs"));
+    let gc_games = twbm_core::game::scan_dir(&root_path.join("games"));
 
-    Ok(())
-}
-
-pub fn scan_drive(root_path: &Path) -> Vec<Game> {
-    let mut games = Vec::new();
-
-    let _ = scan_dir(&root_path.join("wbfs"), true, &mut games);
-    let _ = scan_dir(&root_path.join("games"), false, &mut games);
-
-    games
+    let games_iter = wii_games.into_iter().chain(gc_games);
+    games_iter.map(DisplayedGame::from).collect()
 }

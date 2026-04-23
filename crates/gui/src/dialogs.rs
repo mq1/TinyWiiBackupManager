@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    Game,
+    DisplayedGame,
     extensions::{INPUT_DIALOG_FILTER, OUTPUT_DIALOG_FILTER},
     util,
 };
@@ -78,7 +78,7 @@ pub fn pick_games_r(window_handle: &WindowHandle) -> Vec<PathBuf> {
     paths
 }
 
-pub fn save_game(window_handle: &WindowHandle, game: &Game) -> Option<PathBuf> {
+pub fn save_game(window_handle: &WindowHandle, game: &DisplayedGame) -> Option<PathBuf> {
     let title = format!(
         "Select Destination for {} | Supported extensions: iso, wbfs, wia, rvz, ciso, gcz, tgc, nfs",
         &game.title

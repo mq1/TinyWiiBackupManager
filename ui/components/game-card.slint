@@ -2,14 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import { Card } from "card.slint";
-import { Game } from "../types.slint";
+import { DisplayedGame } from "../types.slint";
 import { IconButton } from "icon-button.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { MyPalette } from "../styling.slint";
 import { Logic } from "../logic.slint";
 
 export component GameCard inherits Card {
-    in property <Game> game;
+    in property <DisplayedGame> game;
 
     callback open-info();
 

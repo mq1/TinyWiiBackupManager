@@ -94,7 +94,7 @@ export struct DiscInfo {
     is-worth-scrubbing: bool,
 }
 
-export struct Game {
+export struct DisplayedGame {
     path: string,
     is-wii: bool,
     size-gib: float,
@@ -149,7 +149,7 @@ export struct QueuedArchiveConversion {
 }
 
 export struct QueuedScrubConversion {
-    game: Game,
+    game: DisplayedGame,
 }
 
 export struct QueuedConversion {

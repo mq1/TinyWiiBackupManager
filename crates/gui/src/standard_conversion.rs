@@ -24,7 +24,7 @@ use std::{
     path::PathBuf,
     time::{Duration, Instant},
 };
-use twbm_core::id_map;
+use twbm_core::{game_id::GameID, id_map};
 use zip::ZipArchive;
 
 #[allow(clippy::struct_excessive_bools)]
@@ -82,7 +82,11 @@ impl StandardConversion {
 
         let should_split = self.is_wii && (self.always_split || self.is_fat32);
 
-        let display_title: &str = id_map::get(&self.game_id).map_or(&self.game_title, |e| e.title);
+        let display_title = {
+            let id = GameID::new(&self.game_id).ok_or(anyhow!("Invalid game ID"))?;
+            id_map::get(id).map_or(self.game_title.as_str(), |e| e.title)
+        };
+
         let sanitized_title = util::sanitize(display_title);
         let parent_dir_name = if self.is_wii { "wbfs" } else { "games" };
         let game_dir_name = format!("{} [{}]", sanitized_title, &self.game_id);

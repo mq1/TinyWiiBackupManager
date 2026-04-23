@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import { ScrollView, Palette } from "std-widgets.slint";
-import { Game } from "../types.slint";
+import { DisplayedGame } from "../types.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { Link } from "link.slint";
 import { Card } from "card.slint";
@@ -13,7 +13,7 @@ import { Modal } from "modal.slint";
 import { Logic } from "../logic.slint";
 
 export component GameInfoModal inherits Modal {
-    in property <Game> game;
+    in property <DisplayedGame> game;
 
     callback closed();
 

@@ -4,7 +4,7 @@
 import {
     Config,
     DriveInfo,
-    Game,
+    DisplayedGame,
     HomebrewApp,
     OscApp,
     Notification,
@@ -22,7 +22,7 @@ export global Logic {
     in-out property <string> app-version;
     in-out property <string> data-dir;
     in-out property <DriveInfo> drive-info;
-    in-out property <[Game]> games;
+    in-out property <[DisplayedGame]> games;
     in-out property <[HomebrewApp]> homebrew-apps;
     in-out property <[OscApp]> osc-apps;
     in-out property <[Notification]> notifications;
@@ -40,15 +40,15 @@ export global Logic {
     callback refresh-all();
     callback confirm-conversion-queue-buffer();
     callback clear-conversion-queue-buffer();
-    callback archive-game(Game);
-    callback scrub-game(Game);
-    callback delete-game(Game);
+    callback archive-game(DisplayedGame);
+    callback scrub-game(DisplayedGame);
+    callback delete-game(DisplayedGame);
     callback delete-homebrew-app(HomebrewApp);
     callback pick-games(bool);
     callback open-that(string);
     callback close-notification(int);
     callback pick-homebrew-apps();
-    callback checksum(Game);
+    callback checksum(DisplayedGame);
     callback set-window-color(bool);
     callback pair-homebrew-osc();
     callback install-osc-app(OscApp);

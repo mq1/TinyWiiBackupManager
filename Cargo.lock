@@ -5463,6 +5463,7 @@ dependencies = [
 name = "twbm-core"
 version = "6.0.0"
 dependencies = [
+ "fs_extra",
  "radix_fmt",
 ]
 
