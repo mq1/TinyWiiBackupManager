@@ -4,14 +4,7 @@
 use std::path::Path;
 use std::{env, fmt::Write, fs};
 
-fn parse_gameid(id: &str) -> [u8; 6] {
-    let bytes = id.as_bytes();
-    let mut buf = [0; 6];
-    buf[..bytes.len()].copy_from_slice(bytes);
-    buf
-}
-
-fn parse_titles_txt() -> Vec<([u8; 6], String)> {
+fn parse_titles_txt() -> Vec<(u32, String)> {
     let mut title_map = Vec::new();
 
     let contents = fs::read_to_string("../../assets/wiitdb.txt").unwrap();
@@ -22,7 +15,7 @@ fn parse_titles_txt() -> Vec<([u8; 6], String)> {
 
     for line in lines {
         let (gameid, title) = line.split_once(" = ").unwrap();
-        let gameid = parse_gameid(gameid);
+        let gameid = u32::from_str_radix(gameid, 36).unwrap();
         title_map.push((gameid, title.to_string()));
     }
 
@@ -31,7 +24,7 @@ fn parse_titles_txt() -> Vec<([u8; 6], String)> {
     title_map
 }
 
-fn parse_gamehacking_ids() -> Vec<([u8; 6], u32)> {
+fn parse_gamehacking_ids() -> Vec<(u32, u32)> {
     const GHID_ANCHOR: &str = "href=\"/game/";
     const GAMEID_ANCHOR: &str = "<td class=\"text-center\">";
 
@@ -59,7 +52,7 @@ fn parse_gamehacking_ids() -> Vec<([u8; 6], u32)> {
             if !matches!(gameid_str.len(), 4 | 6) {
                 continue;
             }
-            let gameid = parse_gameid(gameid_str);
+            let gameid = u32::from_str_radix(gameid_str, 36).unwrap();
 
             id_map.push((gameid, ghid));
         }
@@ -84,7 +77,7 @@ fn make_id_map() {
     let mut code =
         String::from("#[allow(clippy::unreadable_literal)]\nconst GAMES:&[GameEntry]=&[");
     for (id, ghid, title) in entries {
-        write!(code, "g({id:?},{ghid:?},{title:?}),").unwrap();
+        write!(code, "g({id},{ghid:?},{title:?}),").unwrap();
     }
     code.push_str("];");
 

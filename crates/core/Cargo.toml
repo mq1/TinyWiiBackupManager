@@ -8,6 +8,9 @@ license.workspace = true
 repository.workspace = true
 description.workspace = true
 
+[dependencies]
+radix_fmt = "1.0"
+
 [features]
 default = []
 rust-analyzer = []
