@@ -5,8 +5,8 @@ use crate::DisplayedDiscInfo;
 use slint::ToSharedString;
 use twbm_core::disc_info::DiscInfo;
 
-impl DisplayedDiscInfo {
-    pub fn new(disc_info: &DiscInfo) -> Self {
+impl From<&DiscInfo> for DisplayedDiscInfo {
+    fn from(disc_info: &DiscInfo) -> Self {
         DisplayedDiscInfo {
             path: disc_info.path.to_string_lossy().to_shared_string(),
             game_title: disc_info.meta.game_title().to_shared_string(),

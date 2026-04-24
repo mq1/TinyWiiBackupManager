@@ -377,7 +377,7 @@ impl Logic<'_> {
 
                 let _ = weak.upgrade_in_event_loop(move |logic| match res {
                     Ok(crc32) => {
-                        logic.set_crc32_status(crc32.to_shared_string());
+                        logic.set_crc32_status(format!("{crc32:08x}").to_shared_string());
                     }
                     Err(e) => {
                         logic.invoke_notify_error(e.to_shared_string());
@@ -622,7 +622,7 @@ impl Logic<'_> {
             let (_, game) = games_clone.row_data(i as usize).unwrap();
 
             if let Some(info) = DiscInfo::from_game_dir(&game.path) {
-                let info = DisplayedDiscInfo::new(&info);
+                let info = DisplayedDiscInfo::from(&info);
                 weak.upgrade().unwrap().set_current_disc_info(info);
             }
         });
