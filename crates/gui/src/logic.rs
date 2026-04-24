@@ -447,10 +447,12 @@ impl Logic<'_> {
         let is_converting_clone = is_converting.clone();
         let config_clone = config.clone();
         let drive_info_clone = drive_info.clone();
+        let notifications_clone = notifications.clone();
         let weak = self.as_weak();
         self.on_trigger_conversion(move || {
             if conversion_queue_clone.row_count() == 0 {
                 *is_converting_clone.borrow_mut() = false;
+                notifications_clone.push(DisplayedNotification::info("Conversion queue empty"));
                 return;
             }
 
