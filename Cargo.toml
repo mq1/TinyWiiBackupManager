@@ -12,6 +12,9 @@ license = "GPL-3.0-only"
 repository = "https://github.com/mq1/TinyWiiBackupManager"
 description = "A tiny game backup and homebrew app manager for the Wii"
 
+[workspace.dependencies]
+anyhow = "1.0"
+
 [profile.release]
 opt-level = 3
 lto = true

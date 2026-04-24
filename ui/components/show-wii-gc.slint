@@ -17,7 +17,7 @@ export component ShowWiiGc inherits Card {
         spacing: 5px;
 
         CheckBox {
-            checked: Logic.config.contents.show-wii;
+            checked: Logic.config.show-wii;
             toggled => Logic.set-show-wii(self.checked);
         }
 
@@ -35,7 +35,7 @@ export component ShowWiiGc inherits Card {
         VerticalLine { }
 
         CheckBox {
-            checked: Logic.config.contents.show-gc;
+            checked: Logic.config.show-gc;
             toggled => Logic.set-show-gc(self.checked);
         }
 

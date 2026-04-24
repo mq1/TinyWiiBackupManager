@@ -1,13 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    DisplayedGame,
-    extensions::{INPUT_DIALOG_FILTER, OUTPUT_DIALOG_FILTER},
-    util,
-};
 use slint::WindowHandle;
 use std::path::PathBuf;
+use twbm_core::game::Game;
 use walkdir::WalkDir;
 
 #[cfg(unix)]
@@ -15,6 +11,20 @@ use rfd::FileDialog;
 
 #[cfg(windows)]
 use crate::xp_dialogs;
+
+pub const INPUT_DIALOG_FILTER: (&str, &[&str]) = (
+    "Nintendo Optical Disc",
+    &[
+        "gcm", "iso", "wbfs", "wia", "rvz", "ciso", "gcz", "tgc", "nfs", "zip",
+    ],
+);
+
+pub const OUTPUT_DIALOG_FILTER: (&str, &[&str]) = (
+    "Nintendo Optical Disc",
+    &[
+        "gcm", "iso", "wbfs", "wia", "rvz", "ciso", "gcz", "tgc", "nfs",
+    ],
+);
 
 pub fn pick_mount_point(window_handle: &WindowHandle) -> Option<PathBuf> {
     #[cfg(unix)]
@@ -78,13 +88,13 @@ pub fn pick_games_r(window_handle: &WindowHandle) -> Vec<PathBuf> {
     paths
 }
 
-pub fn save_game(window_handle: &WindowHandle, game: &DisplayedGame) -> Option<PathBuf> {
+pub fn save_game(window_handle: &WindowHandle, game: &Game) -> Option<PathBuf> {
     let title = format!(
         "Select Destination for {} | Supported extensions: iso, wbfs, wia, rvz, ciso, gcz, tgc, nfs",
         &game.title
     );
 
-    let filename = format!("{}.rvz", util::sanitize(&game.title));
+    let filename = format!("{}.rvz", twbm_core::util::sanitize(&game.title));
 
     #[cfg(unix)]
     let res = FileDialog::new()

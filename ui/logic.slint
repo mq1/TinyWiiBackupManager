@@ -2,36 +2,32 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import {
-    Config,
-    DriveInfo,
+    DisplayedConfig,
+    DisplayedDriveInfo,
     DisplayedGame,
-    HomebrewApp,
-    OscApp,
-    Notification,
+    DisplayedHomebrewApp,
+    DisplayedOscApp,
+    DisplayedNotification,
+    DisplayedDiscInfo,
     QueuedConversion,
-    WiiOutputFormat,
-    GcOutputFormat,
-    TxtCodesSource,
-    ThemePreference,
-    ViewAs,
-    SortBy,
 } from "types.slint";
 
 export global Logic {
-    in-out property <Config> config;
+    in-out property <DisplayedConfig> config;
     in-out property <string> app-version;
     in-out property <string> data-dir;
-    in-out property <DriveInfo> drive-info;
+    in-out property <DisplayedDriveInfo> drive-info;
     in-out property <[DisplayedGame]> games;
-    in-out property <[HomebrewApp]> homebrew-apps;
-    in-out property <[OscApp]> osc-apps;
-    in-out property <[Notification]> notifications;
+    in-out property <[DisplayedHomebrewApp]> homebrew-apps;
+    in-out property <[DisplayedOscApp]> osc-apps;
+    in-out property <[DisplayedNotification]> notifications;
     in-out property <[QueuedConversion]> conversion-queue;
     in-out property <[QueuedConversion]> conversion-queue-buffer;
     in-out property <string> status;
     in-out property <string> crc32-status;
     in-out property <int> osc-refreshed-x-hours-ago;
     in-out property <int> osc-refreshed-x-minutes-ago;
+    in-out property <DisplayedDiscInfo> current-disc-info;
 
     callback filter-games(string);
     callback filter-homebrew-apps(string);
@@ -40,33 +36,33 @@ export global Logic {
     callback refresh-all();
     callback confirm-conversion-queue-buffer();
     callback clear-conversion-queue-buffer();
-    callback archive-game(DisplayedGame);
-    callback scrub-game(DisplayedGame);
-    callback delete-game(DisplayedGame);
-    callback delete-homebrew-app(HomebrewApp);
+    callback archive-game(int);
+    callback scrub-game(int);
+    callback delete-game(int);
+    callback delete-homebrew-app(int);
     callback pick-games(bool);
     callback open-that(string);
     callback close-notification(int);
     callback pick-homebrew-apps();
-    callback checksum(DisplayedGame);
+    callback checksum(int);
     callback set-window-color(bool);
     callback pair-homebrew-osc();
-    callback install-osc-app(OscApp);
+    callback install-osc-app(int);
     callback download-osc-icons();
     callback load-game-info(int);
 
     // config
     callback pick-mount-point();
-    callback set-wii-output-format(WiiOutputFormat);
-    callback set-gc-output-format(GcOutputFormat);
+    callback set-wii-output-format(int);
+    callback set-gc-output-format(int);
     callback set-always-split(bool);
     callback set-scrub-update-partition(bool);
     callback set-remove-sources-games(bool);
     callback set-remove-sources-apps(bool);
-    callback set-txt-codes-source(TxtCodesSource);
-    callback set-theme-preference(ThemePreference);
-    callback set-view-as(ViewAs);
-    callback set-sort-by(SortBy);
+    callback set-txt-codes-source(int);
+    callback set-theme-preference(int);
+    callback set-view-as(int);
+    callback set-sort-by(int);
     callback set-show-wii(bool);
     callback set-show-gc(bool);
 

@@ -2,69 +2,21 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    DriveInfo,
+    DisplayedDriveInfo,
     util::{GIB, MIB},
 };
 use slint::ToSharedString;
-use std::path::Path;
-use which_fs::FsKind;
+use twbm_core::drive_info::DriveInfo;
 
-impl DriveInfo {
-    #[must_use]
-    pub fn from_path(path: &Path) -> Self {
-        if !path.is_dir() {
-            return Self::default();
-        }
-
-        let label = match path.file_name() {
-            Some(name) => name.to_string_lossy().to_shared_string(),
-            None => path.to_string_lossy().to_shared_string(),
-        };
-
-        let (used_gib, total_gib) = get_usage(path);
-        let fs_kind = FsKind::try_from_path(path)
-            .unwrap_or(FsKind::Unknown)
-            .to_shared_string();
-
-        let wii_games_dir = path.join("wbfs");
-        let wii_games_bytes = fs_extra::dir::get_size(&wii_games_dir).unwrap_or(0);
-        let gc_games_dir = path.join("games");
-        let gc_games_bytes = fs_extra::dir::get_size(&gc_games_dir).unwrap_or(0);
-
-        #[allow(clippy::cast_precision_loss)]
-        let games_gib = (wii_games_bytes + gc_games_bytes) as f32 / GIB;
-
-        let apps_dir = path.join("apps");
-        let apps_bytes = fs_extra::dir::get_size(&apps_dir).unwrap_or(0);
-
-        #[allow(clippy::cast_precision_loss)]
-        let apps_mib = apps_bytes as f32 / MIB;
-
+impl DisplayedDriveInfo {
+    pub fn new(drive_info: &DriveInfo) -> Self {
         Self {
-            label,
-            used_gib,
-            total_gib,
-            games_gib,
-            apps_mib,
-            fs_kind,
+            label: drive_info.label.to_shared_string(),
+            fs_kind: drive_info.fs_kind.to_shared_string(),
+            used_gib: drive_info.used_bytes as f32 / GIB,
+            total_gib: drive_info.total_bytes as f32 / GIB,
+            games_gib: drive_info.games_bytes as f32 / GIB,
+            apps_mib: drive_info.apps_bytes as f32 / MIB,
         }
     }
-}
-
-fn get_usage(path: &Path) -> (f32, f32) {
-    let Ok(stat) = fs4::statvfs(path) else {
-        return (0., 0.);
-    };
-
-    let total_bytes = stat.total_space();
-    let avail_bytes = stat.available_space();
-    let used_bytes = total_bytes.saturating_sub(avail_bytes);
-
-    #[allow(clippy::cast_precision_loss)]
-    let used_gib = used_bytes as f32 / GIB;
-
-    #[allow(clippy::cast_precision_loss)]
-    let total_gib = total_bytes as f32 / GIB;
-
-    (used_gib, total_gib)
 }

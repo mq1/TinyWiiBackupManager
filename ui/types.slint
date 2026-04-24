@@ -9,79 +9,26 @@ export enum Page {
     About,
 }
 
-@rust-attr(derive(serde::Serialize, serde::Deserialize))
-@rust-attr(serde(rename_all = "snake_case"))
-export enum SortBy {
-    NameAscending,
-    NameDescending,
-    SizeAscending,
-    SizeDescending,
-}
-
-@rust-attr(derive(serde::Serialize, serde::Deserialize))
-@rust-attr(serde(rename_all = "lowercase"))
-export enum ViewAs {
-    Grid,
-    Table,
-}
-
-@rust-attr(derive(serde::Serialize, serde::Deserialize))
-@rust-attr(serde(rename_all = "lowercase"))
-export enum ThemePreference {
-    System,
-    Light,
-    Dark,
-}
-
-@rust-attr(derive(serde::Serialize, serde::Deserialize))
-@rust-attr(serde(rename_all = "lowercase"))
-export enum WiiOutputFormat {
-    Wbfs,
-    Iso,
-}
-
-@rust-attr(derive(serde::Serialize, serde::Deserialize))
-@rust-attr(serde(rename_all = "lowercase"))
-export enum GcOutputFormat {
-    Iso,
-    Ciso,
-}
-
-@rust-attr(derive(serde::Serialize, serde::Deserialize))
-@rust-attr(serde(rename_all = "lowercase"))
-export enum TxtCodesSource {
-    WebArchive,
-    GameHacking,
-    Rc24,
-}
-
-
-@rust-attr(derive(serde::Serialize, serde::Deserialize))
-@rust-attr(serde(default, rename_all = "snake_case"))
-export struct ConfigContents {
-    always-split: bool,
+export struct DisplayedConfig {
+    path: string,
     mount-point: string,
+    always-split: bool,
     remove-sources-apps: bool,
     remove-sources-games: bool,
     scrub-update-partition: bool,
-    sort-by: SortBy,
-    view-as: ViewAs,
+    sort-by: int,
+    view-as: int,
     wii-ip: string,
-    txt-codes-source: TxtCodesSource,
-    theme-preference: ThemePreference,
-    wii-output-format: WiiOutputFormat,
-    gc-output-format: GcOutputFormat,
+    txt-codes-source: int,
+    theme-preference: int,
+    wii-output-format: int,
+    gc-output-format: int,
     known-drives: [string],
     show-wii: bool,
     show-gc: bool,
 }
 
-export struct Config {
-    path: string,
-    contents: ConfigContents,
-}
-
-export struct DiscInfo {
+export struct DisplayedDiscInfo {
     path: string,
     format: string,
     game-id: string,
@@ -92,9 +39,11 @@ export struct DiscInfo {
     disc-number: int,
     disc-version: int,
     is-worth-scrubbing: bool,
+    crc32: string,
 }
 
 export struct DisplayedGame {
+    idx: int,
     path: string,
     is-wii: bool,
     size-gib: float,
@@ -102,30 +51,22 @@ export struct DisplayedGame {
     id: string,
     cover: image,
     search-term: string,
-    disc-info: DiscInfo,
-    disc-info-err: string,
-    crc32: string,
 }
 
-@rust-attr(derive(serde::Deserialize))
-@rust-attr(serde(default, rename_all = "snake_case"))
-export struct HomebrewAppMeta {
+export struct DisplayedHomebrewApp {
+    idx: int,
+    path: string,
+    slug: string,
+    size-mib: float,
     name: string,
     coder: string,
     version: string,
     release-date: string,
     short-description: string,
     long-description: string,
-}
-
-export struct HomebrewApp {
-    path: string,
-    slug: string,
-    size-mib: float,
-    meta: HomebrewAppMeta,
     icon: image,
     search-term: string,
-    osc-i: int,
+    osc-idx: int,
 }
 
 export enum ConversionKind {
@@ -134,32 +75,13 @@ export enum ConversionKind {
     Scrub,
 }
 
-export struct QueuedStandardConversion {
-    in-path: string,
-    is-wii: bool,
-    game-title: string,
-    game-id: string,
-    disc-number: int,
-}
-
-export struct QueuedArchiveConversion {
-    game-title: string,
-    in-path: string,
-    out-path: string,
-}
-
-export struct QueuedScrubConversion {
-    game: DisplayedGame,
-}
-
 export struct QueuedConversion {
     kind: ConversionKind,
-    standard: QueuedStandardConversion,
-    archive: QueuedArchiveConversion,
-    scrub: QueuedScrubConversion,
+    path: string,
+    game-idx: int,
 }
 
-export struct DriveInfo {
+export struct DisplayedDriveInfo {
     label: string,
     used-gib: float,
     games-gib: float,
@@ -168,52 +90,22 @@ export struct DriveInfo {
     fs-kind: string,
 }
 
-export struct Notification {
+export struct DisplayedNotification {
     text: string,
     critical: bool,
 }
 
-@rust-attr(derive(serde::Deserialize))
-@rust-attr(serde(default))
-export struct OscAppMetaAsset {
-    url: string,
-}
-
-@rust-attr(derive(serde::Deserialize))
-@rust-attr(serde(default))
-export struct OscAppMetaAssets {
-    icon: OscAppMetaAsset,
-    archive: OscAppMetaAsset,
-}
-
-@rust-attr(derive(serde::Deserialize))
-@rust-attr(serde(default))
-export struct OscAppMetaDescription {
-    short: string,
-    long: string,
-}
-
-@rust-attr(derive(serde::Deserialize))
-@rust-attr(serde(default))
-export struct OscAppMeta {
+export struct DisplayedOscApp {
+    idx: int,
     slug: string,
     name: string,
     author: string,
     version: string,
-    assets: OscAppMetaAssets,
-    uncompressed-size: int,
-    release-date: duration, // rust i64
-    description: OscAppMetaDescription,
-}
-
-export struct OscApp {
-    meta: OscAppMeta,
+    uncompressed-size-mib: float,
+    release-date: string,
+    short-description: string,
+    long-description: string,
     search-term: string,
     release-date: string,
     icon: image,
-}
-
-export struct InstallHomebrewAppsResult {
-    app-count: int,
-    err: string,
 }

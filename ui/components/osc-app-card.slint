@@ -2,16 +2,16 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import { Card } from "card.slint";
-import { OscApp } from "../types.slint";
+import { DisplayedOscApp } from "../types.slint";
 import { IconButton } from "icon-button.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { MyPalette } from "../styling.slint";
-import { Logic } from "../logic.slint";
 
 export component OscAppCard inherits Card {
-    in property <OscApp> app;
+    in property <DisplayedOscApp> app;
 
     callback open-info();
+    callback install();
 
     width: 172px;
     height: self.min-height;
@@ -33,14 +33,14 @@ export component OscAppCard inherits Card {
                 }
 
                 Text {
-                    text: app.meta.version;
+                    text: app.version;
                     wrap: no-wrap;
                     overflow: elide;
                 }
             }
 
             Text {
-                text: "\{(app.meta.uncompressed-size / 1024.0 / 1024.0).to-fixed(2)} MiB";
+                text: "\{app.uncompressed-size-mib.to-fixed(2)} MiB";
                 wrap: no-wrap;
                 horizontal-alignment: right;
             }
@@ -52,7 +52,7 @@ export component OscAppCard inherits Card {
         }
 
         Text {
-            text: app.meta.name;
+            text: app.name;
             horizontal-alignment: center;
             wrap: no-wrap;
             overflow: elide;
@@ -70,7 +70,7 @@ export component OscAppCard inherits Card {
             IconButton {
                 icon: IconSet.HardDriveDownload;
                 tooltip: "Install";
-                clicked => Logic.install-osc-app(app);
+                clicked => install();
             }
 
             IconButton {

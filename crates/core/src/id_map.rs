@@ -10,19 +10,13 @@ pub struct GameEntry {
     pub title: &'static str,
 }
 
-#[cfg(not(feature = "rust-analyzer"))]
-const fn g(id: u32, ghid: Option<u32>, title: &'static str) -> GameEntry {
-    match ghid {
-        Some(ghid) => GameEntry {
-            id: GameID(id),
-            ghid: Some(unsafe { NonZeroU32::new_unchecked(ghid) }),
+impl GameEntry {
+    pub const fn new(id: u32, ghid: u32, title: &'static str) -> Self {
+        GameEntry {
+            id: GameID::from_u32(id),
+            ghid: NonZeroU32::new(ghid),
             title,
-        },
-        None => GameEntry {
-            id: GameID(id),
-            ghid: None,
-            title,
-        },
+        }
     }
 }
 

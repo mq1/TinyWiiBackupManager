@@ -11,6 +11,7 @@ import { Logic } from "logic.slint";
 
 export component GameGridPage inherits VerticalLayout {
     callback open-info(int);
+    callback delete-game(int);
 
     private property <int> col-count: max(1, floor((self.width - 10px) / (172px + 10px)));
 
@@ -40,6 +41,7 @@ export component GameGridPage inherits VerticalLayout {
 
                     game: game;
                     open-info() => open-info(i);
+                    delete() => delete-game(i);
                 }
             }
         }

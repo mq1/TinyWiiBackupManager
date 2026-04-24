@@ -1,16 +1,19 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{Config, DisplayedGame, SortBy, data_dir::DATA_DIR, util::GIB};
+use crate::{DisplayedGame, data_dir::DATA_DIR, util::GIB};
 use slint::{Image, SharedString, ToSharedString};
 use std::{cell::RefCell, cmp::Ordering, path::Path, rc::Rc};
-use twbm_core::game::Game;
+use twbm_core::{
+    config::{Config, SortBy},
+    game::Game,
+};
 
-impl From<Game> for DisplayedGame {
-    fn from(game: Game) -> Self {
+impl DisplayedGame {
+    pub fn new(game: &Game, idx: usize) -> Self {
         let cover_path = DATA_DIR.join(format!("covers/{}.png", game.id));
         let cover = Image::load_from_path(&cover_path).unwrap_or_default();
-        let search_term = format!("{}\0{}", game.title, game.id);
+        let search_term = format!("{}\0{}", game.title, game.id).to_lowercase();
 
         Self {
             id: game.id.to_shared_string(),
@@ -20,12 +23,10 @@ impl From<Game> for DisplayedGame {
             is_wii: game.is_wii,
             search_term: search_term.to_shared_string(),
             cover,
-            ..Default::default()
+            idx: idx as i32,
         }
     }
-}
 
-impl DisplayedGame {
     pub fn reload_cover(&mut self) {
         let cover_path = DATA_DIR.join(format!("covers/{}.png", self.id));
         let cover = Image::load_from_path(&cover_path).unwrap_or_default();
@@ -40,10 +41,10 @@ pub fn get_compare_fn(
         let config = config.borrow();
 
         match config.contents.sort_by {
-            SortBy::NameAscending => a.title.cmp(&b.title),
-            SortBy::NameDescending => b.title.cmp(&a.title),
-            SortBy::SizeAscending => a.size_gib.total_cmp(&b.size_gib),
-            SortBy::SizeDescending => b.size_gib.total_cmp(&a.size_gib),
+            SortBy::NameDescending => a.title.cmp(&b.title),
+            SortBy::NameAscending => b.title.cmp(&a.title),
+            SortBy::SizeDescending => a.size_gib.total_cmp(&b.size_gib),
+            SortBy::SizeAscending => b.size_gib.total_cmp(&a.size_gib),
         }
     }
 }
@@ -73,10 +74,9 @@ pub fn get_filter_fn(
     }
 }
 
-pub fn scan_drive(root_path: &Path) -> Vec<DisplayedGame> {
+pub fn scan_drive(root_path: &Path) -> Vec<Game> {
     let wii_games = twbm_core::game::scan_dir(&root_path.join("wbfs"));
     let gc_games = twbm_core::game::scan_dir(&root_path.join("games"));
 
-    let games_iter = wii_games.into_iter().chain(gc_games);
-    games_iter.map(DisplayedGame::from).collect()
+    wii_games.into_iter().chain(gc_games).collect()
 }

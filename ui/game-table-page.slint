@@ -13,6 +13,7 @@ import { Logic } from "logic.slint";
 
 export component GameTablePage inherits VerticalLayout {
     callback open-info(int);
+    callback delete-game(int);
 
     VerticalLayout {
         padding: 10px;
@@ -40,6 +41,7 @@ export component GameTablePage inherits VerticalLayout {
                         GameRow {
                             game: game;
                             open-info => open-info(i);
+                            delete() => delete-game(i);
                         }
 
                         HorizontalLine { }

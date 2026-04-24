@@ -5,12 +5,11 @@ import { Card } from "card.slint";
 import { TooltipArea } from "tooltip-area.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { MyPalette } from "../styling.slint";
-import { ViewAs } from "../types.slint";
 import { Logic } from "../logic.slint";
 
 export component ViewAs inherits Card {
-    pure function get-bg(view-as: ViewAs, hovered: bool) -> color {
-        if Logic.config.contents.view-as == view-as {
+    pure function get-bg(view-as: int, hovered: bool) -> color {
+        if Logic.config.view-as == view-as {
             MyPalette.selection-background
         } else if hovered {
             MyPalette.alternate-background
@@ -29,8 +28,8 @@ export component ViewAs inherits Card {
             height: 38px;
 
             tooltip: "View as grid";
-            background: get-bg(ViewAs.Grid, self.has-hover);
-            clicked => Logic.set-view-as(ViewAs.Grid);
+            background: get-bg(0, self.has-hover);
+            clicked => Logic.set-view-as(0);
 
             IconDisplay {
                 icon: IconSet.LayoutGrid;
@@ -44,8 +43,8 @@ export component ViewAs inherits Card {
             height: 38px;
 
             tooltip: "View as table";
-            background: get-bg(ViewAs.Table, self.has-hover);
-            clicked => Logic.set-view-as(ViewAs.Table);
+            background: get-bg(1, self.has-hover);
+            clicked => Logic.set-view-as(1);
 
             IconDisplay {
                 icon: IconSet.Table;

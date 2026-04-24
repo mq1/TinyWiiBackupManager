@@ -70,14 +70,16 @@ fn make_id_map() {
         let ghid = gamehacking_ids
             .iter()
             .find(|(gameid, _)| *gameid == id)
-            .map(|(_, ghid)| *ghid);
+            .map(|(_, ghid)| *ghid)
+            .unwrap_or(0);
+
         entries.push((id, ghid, title));
     }
 
     let mut code =
         String::from("#[allow(clippy::unreadable_literal)]\nconst GAMES:&[GameEntry]=&[");
     for (id, ghid, title) in entries {
-        write!(code, "g({id},{ghid:?},{title:?}),").unwrap();
+        write!(code, "GameEntry::new({id},{ghid},{title:?}),").unwrap();
     }
     code.push_str("];");
 

@@ -1609,12 +1609,12 @@ dependencies = [
 
 [[package]]
 name = "fs4"
-version = "0.13.1"
+version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8640e34b88f7652208ce9e88b1a37a2ae95227d84abec377ccd3c5cfeb141ed4"
+checksum = "4f8fa43de52e33bb8fc545448eb07d6e6248971c5d6b4947937e9395f6ff339d"
 dependencies = [
  "rustix 1.1.4",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -2027,9 +2027,9 @@ checksum = "6dbf3de79e51f3d586ab4cb9d5c3e2c14aa28ed23d180cf89b4df0454a69cc87"
 
 [[package]]
 name = "hybrid-array"
-version = "0.4.10"
+version = "0.4.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3944cf8cf766b40e2a1a333ee5e9b563f854d5fa49d6a8ca2764e97c6eddb214"
+checksum = "08d46837a0ed51fe95bd3b05de33cd64a1ee88fc797477ca48446872504507c5"
 dependencies = [
  "typenum",
 ]
@@ -2197,7 +2197,6 @@ dependencies = [
  "rgb",
  "scoped-tls-hkt",
  "scopeguard",
- "serde",
  "skrifa",
  "slab",
  "strum",
@@ -4493,9 +4492,9 @@ dependencies = [
 
 [[package]]
 name = "rustls"
-version = "0.23.38"
+version = "0.23.39"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "69f9466fb2c14ea04357e91413efb882e2a6d4a406e625449bc0a5d360d53a21"
+checksum = "7c2c118cb077cca2822033836dfb1b975355dfb784b5e8da48f7b6c5db74e60e"
 dependencies = [
  "log",
  "once_cell",
@@ -5463,8 +5462,26 @@ dependencies = [
 name = "twbm-core"
 version = "6.0.0"
 dependencies = [
+ "anyhow",
+ "arrayvec",
+ "crc32fast",
+ "fs4",
  "fs_extra",
+ "image",
+ "nod",
+ "num_cpus",
+ "num_enum",
+ "quick-xml 0.39.2",
  "radix_fmt",
+ "sanitize-filename",
+ "serde",
+ "serde_json",
+ "split-write",
+ "ureq",
+ "which-fs",
+ "wii-disc-info",
+ "wiiload",
+ "zip",
 ]
 
 [[package]]
@@ -5472,35 +5489,18 @@ name = "twbm-gui"
 version = "6.0.0"
 dependencies = [
  "anyhow",
- "arrayvec",
- "crc32fast",
  "directories",
- "fs4",
- "fs_extra",
- "hex",
  "lucide-slint",
- "nod",
- "num_cpus",
  "open",
- "quick-xml 0.39.2",
  "raw-window-handle",
  "rfd",
- "sanitize-filename",
- "serde",
- "serde_json",
  "slint",
  "slint-build",
- "split-write",
  "time",
  "twbm-core",
- "ureq",
  "walkdir",
- "which-fs",
- "wii-disc-info",
- "wiiload",
  "windows 0.62.2",
  "winresource",
- "zip",
 ]
 
 [[package]]

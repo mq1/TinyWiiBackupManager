@@ -16,6 +16,8 @@ export component GameInfoModal inherits Modal {
     in property <DisplayedGame> game;
 
     callback closed();
+    callback scrub();
+    callback checksum();
 
     VerticalLayout {
         alignment: stretch;
@@ -40,7 +42,7 @@ export component GameInfoModal inherits Modal {
                 }
             }
 
-            if !game.disc-info-err.is-empty: HorizontalLayout {
+            if Logic.current-disc-info.path.is-empty: HorizontalLayout {
                 spacing: 5px;
                 alignment: center;
 
@@ -51,11 +53,11 @@ export component GameInfoModal inherits Modal {
                 }
 
                 Text {
-                    text: game.disc-info-err;
+                    text: "Could not read disc info";
                 }
             }
 
-            if game.disc-info-err.is-empty: HorizontalLayout {
+            if !Logic.current-disc-info.path.is-empty: HorizontalLayout {
                 alignment: space-between;
                 padding-right: 10px;
                 padding-left: 20px;
@@ -74,7 +76,7 @@ export component GameInfoModal inherits Modal {
                         }
 
                         Text {
-                            text: "Format: \{game.disc-info.format}";
+                            text: "Format: \{Logic.current-disc-info.format}";
                         }
                     }
 
@@ -88,7 +90,7 @@ export component GameInfoModal inherits Modal {
                         }
 
                         Text {
-                            text: "Game ID: \{game.disc-info.game-id}";
+                            text: "Game ID: \{Logic.current-disc-info.game-id}";
                         }
                     }
 
@@ -102,7 +104,7 @@ export component GameInfoModal inherits Modal {
                         }
 
                         Text {
-                            text: "Game title: \{game.disc-info.game-title}";
+                            text: "Game title: \{Logic.current-disc-info.game-title}";
                         }
                     }
 
@@ -116,7 +118,7 @@ export component GameInfoModal inherits Modal {
                         }
 
                         Text {
-                            text: "Region: \{game.disc-info.region}";
+                            text: "Region: \{Logic.current-disc-info.region}";
                         }
                     }
 
@@ -130,7 +132,7 @@ export component GameInfoModal inherits Modal {
                         }
 
                         Text {
-                            text: "Is Wii: \{(game.disc-info.is-wii ? "yes" : "no")}";
+                            text: "Is Wii: \{(Logic.current-disc-info.is-wii ? "yes" : "no")}";
                         }
                     }
 
@@ -144,7 +146,7 @@ export component GameInfoModal inherits Modal {
                         }
 
                         Text {
-                            text: "Is GameCube: \{(game.disc-info.is-gc ? "yes" : "no")}";
+                            text: "Is GameCube: \{(Logic.current-disc-info.is-gc ? "yes" : "no")}";
                         }
                     }
 
@@ -158,7 +160,7 @@ export component GameInfoModal inherits Modal {
                         }
 
                         Text {
-                            text: "Disc number: \{game.disc-info.disc-number}";
+                            text: "Disc number: \{Logic.current-disc-info.disc-number}";
                         }
                     }
 
@@ -172,7 +174,7 @@ export component GameInfoModal inherits Modal {
                         }
 
                         Text {
-                            text: "Disc version: \{game.disc-info.disc-version}";
+                            text: "Disc version: \{Logic.current-disc-info.disc-version}";
                         }
                     }
 
@@ -186,7 +188,7 @@ export component GameInfoModal inherits Modal {
                         }
 
                         Text {
-                            text: "CRC32: \{(game.crc32.is-empty ? "N/A" : game.crc32)}";
+                            text: "CRC32: \{(Logic.current-disc-info.crc32.is-empty ? "N/A" : Logic.current-disc-info.crc32)}";
                         }
                     }
                 }
@@ -226,19 +228,19 @@ export component GameInfoModal inherits Modal {
                     padding: 10px;
                     spacing: 10px;
 
-                    if game.disc-info.is-worth-scrubbing: IconButton {
+                    if Logic.current-disc-info.is-worth-scrubbing: IconButton {
                         label: "Scrub";
                         tooltip: "Remove update partition to save space";
                         icon: IconSet.Shredder;
-                        clicked => Logic.scrub-game(game);
+                        clicked => scrub();
                     }
 
-                    if game.disc-info-err.is-empty: IconButton {
+                    if !Logic.current-disc-info.path.is-empty: IconButton {
                         label: Logic.crc32-status.is-empty ? "CRC32" : Logic.crc32-status;
                         icon: IconSet.FingerprintPattern;
                         clicked => {
                             if Logic.crc32-status.is-empty {
-                                Logic.checksum(game);
+                                checksum();
                             }
                         };
                     }

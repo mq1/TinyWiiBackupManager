@@ -12,6 +12,7 @@ export component GameRow inherits Rectangle {
     in property <DisplayedGame> game;
 
     callback open-info();
+    callback delete();
 
     height: 24px;
 
@@ -67,7 +68,7 @@ export component GameRow inherits Rectangle {
         height: 24px;
         width: 24px;
         squared: true;
-        clicked => Logic.archive-game(game);
+        clicked => Logic.archive-game(game.idx);
     }
 
     VerticalLine {
@@ -84,6 +85,6 @@ export component GameRow inherits Rectangle {
         height: 24px;
         width: 24px;
         squared: true;
-        clicked => Logic.delete-game(game);
+        clicked => delete();
     }
 }

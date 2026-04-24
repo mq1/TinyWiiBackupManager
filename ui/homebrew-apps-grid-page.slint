@@ -13,6 +13,7 @@ import { Logic } from "logic.slint";
 
 export component HomebrewAppsGridPage inherits VerticalLayout {
     callback open-info(int);
+    callback delete-app(int);
 
     private property <int> col-count: max(1, floor((self.width - 10px) / (172px + 10px)));
 
@@ -42,6 +43,7 @@ export component HomebrewAppsGridPage inherits VerticalLayout {
 
                     app: app;
                     open-info() => open-info(i);
+                    delete() => delete-app(i);
                 }
             }
         }

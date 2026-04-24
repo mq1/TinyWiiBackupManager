@@ -3,10 +3,12 @@
 
 use crate::{game_id::GameID, id_map};
 use std::{
+    ffi::OsStr,
     fs,
     path::{Path, PathBuf},
 };
 
+#[derive(Debug, Clone)]
 pub struct Game {
     pub id: GameID,
     pub title: String,
@@ -16,7 +18,7 @@ pub struct Game {
 }
 
 impl Game {
-    pub fn try_from_path(path: PathBuf) -> Option<Self> {
+    pub fn from_path(path: PathBuf) -> Option<Self> {
         let file_name = path.file_name()?.to_str()?;
 
         if file_name.starts_with(".") || !path.is_dir() {
@@ -42,6 +44,43 @@ impl Game {
             is_wii,
         })
     }
+
+    pub fn get_disc_path(&self) -> Option<PathBuf> {
+        let entries = self.path.read_dir().ok()?;
+
+        for entry in entries.filter_map(Result::ok) {
+            if !entry.file_type().is_ok_and(|t| t.is_file()) {
+                continue;
+            }
+
+            let path = entry.path();
+
+            let Some(filename) = path.file_name().and_then(OsStr::to_str) else {
+                continue;
+            };
+
+            if filename.starts_with('.') {
+                continue;
+            }
+
+            if filename.ends_with(".part1.iso") {
+                continue;
+            }
+
+            let Some(ext) = path.extension() else {
+                continue;
+            };
+
+            if ext.eq_ignore_ascii_case("iso")
+                || ext.eq_ignore_ascii_case("wbfs")
+                || ext.eq_ignore_ascii_case("ciso")
+            {
+                return Some(path);
+            }
+        }
+
+        None
+    }
 }
 
 pub fn scan_dir(path: &Path) -> Vec<Game> {
@@ -52,7 +91,7 @@ pub fn scan_dir(path: &Path) -> Vec<Game> {
     entries
         .filter_map(|entry| {
             let entry = entry.ok()?;
-            Game::try_from_path(entry.path())
+            Game::from_path(entry.path())
         })
         .collect()
 }

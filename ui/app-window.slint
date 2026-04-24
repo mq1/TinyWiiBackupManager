@@ -6,18 +6,7 @@ import { Navbar } from "components/navbar.slint";
 import { GameGridPage } from "game-grid-page.slint";
 import { SettingsPage } from "settings-page.slint";
 import { AboutPage } from "about-page.slint";
-import {
-    Page,
-    ViewAs,
-    DisplayedGame,
-    HomebrewApp,
-    OscApp,
-    Notification,
-    Config,
-    QueuedConversion,
-    DriveInfo,
-    ThemePreference,
-} from "types.slint";
+import { Page } from "types.slint";
 import { MyPalette } from "styling.slint";
 import { Logic } from "logic.slint";
 import { VerticalLine } from "components/vertical-line.slint";
@@ -57,9 +46,9 @@ export component AppWindow inherits Window {
         interval: 1ms;
         running: true;
         triggered => {
-            if Logic.config.contents.theme-preference == ThemePreference.Light {
+            if Logic.config.theme-preference == 1 {
                 Palette.color-scheme = ColorScheme.light;
-            } else if Logic.config.contents.theme-preference == ThemePreference.Dark {
+            } else if Logic.config.theme-preference == 2 {
                 Palette.color-scheme = ColorScheme.dark;
             }
             Logic.set-window-color(Palette.color-scheme == ColorScheme.dark);
@@ -81,34 +70,46 @@ export component AppWindow inherits Window {
                 border-width: 1px;
                 border-color: MyPalette.border;
 
-                if current-page == Page.Games && Logic.config.contents.view-as == ViewAs.Grid: GameGridPage {
+                if current-page == Page.Games && Logic.config.view-as == 0: GameGridPage {
                     open-info(i) => {
                         current-game-i = i;
-                        Logic.load-game-info(i);
+                        Logic.load-game-info(Logic.games[i].idx);
+                    }
+                    delete-game(i) => {
+                        game-to-delete = i;
                     }
                 }
-                if current-page == Page.Games && Logic.config.contents.view-as == ViewAs.Table: GameTablePage {
+                if current-page == Page.Games && Logic.config.view-as == 1: GameTablePage {
                     open-info(i) => {
                         current-game-i = i;
-                        Logic.load-game-info(i);
+                        Logic.load-game-info(Logic.games[i].idx);
+                    }
+                    delete-game(i) => {
+                        game-to-delete = i;
                     }
                 }
-                if current-page == Page.HomebrewApps && Logic.config.contents.view-as == ViewAs.Grid: HomebrewAppsGridPage {
+                if current-page == Page.HomebrewApps && Logic.config.view-as == 0: HomebrewAppsGridPage {
                     open-info(i) => {
                         current-homebrew-app-i = i;
                     }
+                    delete-app(i) => {
+                        homebrew-app-to-delete = i;
+                    }
                 }
-                if current-page == Page.HomebrewApps && Logic.config.contents.view-as == ViewAs.Table: HomebrewAppsTablePage {
+                if current-page == Page.HomebrewApps && Logic.config.view-as == 1: HomebrewAppsTablePage {
                     open-info(i) => {
                         current-homebrew-app-i = i;
                     }
+                    delete-app(i) => {
+                        homebrew-app-to-delete = i;
+                    }
                 }
-                if current-page == Page.Osc && Logic.config.contents.view-as == ViewAs.Grid: OscGridPage {
+                if current-page == Page.Osc && Logic.config.view-as == 0: OscGridPage {
                     open-info(i) => {
                         current-osc-app-i = i;
                     }
                 }
-                if current-page == Page.Osc && Logic.config.contents.view-as == ViewAs.Table: OscTablePage {
+                if current-page == Page.Osc && Logic.config.view-as == 1: OscTablePage {
                     open-info(i) => {
                         current-osc-app-i = i;
                     }
@@ -138,19 +139,19 @@ export component AppWindow inherits Window {
             game-to-delete = -1;
         }
         confirmed => {
-            Logic.delete-game(Logic.games[game-to-delete]);
+            Logic.delete-game(Logic.games[game-to-delete].idx);
             game-to-delete = -1;
         }
     }
 
     if homebrew-app-to-delete >= 0: ConfirmationModal {
-        message: "Are you sure you want to delete \{Logic.homebrew-apps[homebrew-app-to-delete].meta.name}? This action cannot be undone.";
+        message: "Are you sure you want to delete \{Logic.homebrew-apps[homebrew-app-to-delete].name}? This action cannot be undone.";
 
         cancelled => {
             homebrew-app-to-delete = -1;
         }
         confirmed => {
-            Logic.delete-homebrew-app(Logic.homebrew-apps[homebrew-app-to-delete]);
+            Logic.delete-homebrew-app(Logic.homebrew-apps[homebrew-app-to-delete].idx);
             homebrew-app-to-delete = -1;
         }
     }
@@ -162,8 +163,11 @@ export component AppWindow inherits Window {
             game-to-scrub = -1;
         }
         confirmed => {
-            Logic.scrub-game(Logic.games[game-to-scrub]);
+            Logic.scrub-game(Logic.games[game-to-scrub].idx);
             game-to-scrub = -1;
+            current-game-i = -1;
+            Logic.crc32-status = "";
+            Logic.current-disc-info = { };
         }
     }
 
@@ -178,8 +182,13 @@ export component AppWindow inherits Window {
         game: Logic.games[current-game-i];
         closed => {
             current-game-i = -1;
-            Logic.set-crc32-status("");
+            Logic.crc32-status = "";
+            Logic.current-disc-info = { };
         }
+        scrub => {
+            game-to-scrub = current-game-i;
+        }
+        checksum => Logic.checksum(Logic.games[current-game-i].idx);
     }
 
     if current-homebrew-app-i >= 0: HomebrewAppInfoModal {

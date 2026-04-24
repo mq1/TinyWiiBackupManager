@@ -4,23 +4,25 @@
 import { IconSet, IconDisplay } from "@lucide";
 import { VerticalLine } from "vertical-line.slint";
 import { IconButton } from "icon-button.slint";
-import { HomebrewApp } from "../types.slint";
+import { DisplayedHomebrewApp } from "../types.slint";
 import { MyPalette } from "../styling.slint";
 import { Logic } from "../logic.slint";
 import { TooltipArea } from "tooltip-area.slint";
 
 export component HomebrewAppRow inherits Rectangle {
-    in property <HomebrewApp> app;
-    callback open-info();
+    in property <DisplayedHomebrewApp> app;
 
-    private property <string> update: app.osc-i == -1 || Logic.osc-apps[app.osc-i].meta.version == app.meta.version ? "" : Logic.osc-apps[app.osc-i].meta.version;
+    callback open-info();
+    callback delete();
+
+    private property <string> update: app.osc-idx == -1 || Logic.osc-apps[app.osc-idx].version == app.version ? "" : Logic.osc-apps[app.osc-idx].version;
 
     height: 24px;
 
     name := Text {
         x: 5px;
         y: 5px;
-        text: "\{app.meta.name} (\{app.meta.version})";
+        text: "\{app.name} (\{app.version})";
         overflow: elide;
     }
 
@@ -91,9 +93,7 @@ export component HomebrewAppRow inherits Rectangle {
         height: 24px;
         width: 24px;
         squared: true;
-        clicked => {
-            Logic.install-osc-app(Logic.osc-apps[app.osc-i]);
-        }
+        clicked => Logic.install-osc-app(app.osc-idx);
     }
 
     VerticalLine {
@@ -110,6 +110,6 @@ export component HomebrewAppRow inherits Rectangle {
         height: 24px;
         width: 24px;
         squared: true;
-        clicked => Logic.delete-homebrew-app(app);
+        clicked => delete();
     }
 }

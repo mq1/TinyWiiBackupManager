@@ -5,7 +5,6 @@ import { Card } from "card.slint";
 import { IconDisplay, IconSet } from "@lucide";
 import { TooltipArea } from "tooltip-area.slint";
 import { MyPalette } from "../styling.slint";
-import { SortBy } from "../types.slint";
 import { Logic } from "../logic.slint";
 
 export component SortGamesAndHomebrewApps inherits Card {
@@ -29,17 +28,17 @@ export component SortGamesAndHomebrewApps inherits Card {
             height: 38px;
 
             tooltip: "Sort by name";
-            background: get-bg(Logic.config.contents.sort-by == SortBy.NameAscending || Logic.config.contents.sort-by == SortBy.NameDescending, self.has-hover);
+            background: get-bg(Logic.config.sort-by < 2, self.has-hover);
             clicked => {
-                if Logic.config.contents.sort-by == SortBy.NameAscending {
-                    Logic.set-sort-by(SortBy.NameDescending);
+                if Logic.config.sort-by == 0 {
+                    Logic.set-sort-by(1);
                 } else {
-                    Logic.set-sort-by(SortBy.NameAscending);
+                    Logic.set-sort-by(0);
                 }
             }
 
             IconDisplay {
-                icon: Logic.config.contents.sort-by == SortBy.NameDescending ? IconSet.ArrowUpAZ : IconSet.ArrowDownAZ;
+                icon: Logic.config.sort-by == 1 ? IconSet.ArrowUpAZ : IconSet.ArrowDownAZ;
                 size: 14px;
                 stroke: MyPalette.foreground;
             }
@@ -50,17 +49,17 @@ export component SortGamesAndHomebrewApps inherits Card {
             height: 38px;
 
             tooltip: "Sort by size";
-            background: get-bg(Logic.config.contents.sort-by == SortBy.SizeAscending || Logic.config.contents.sort-by == SortBy.SizeDescending, self.has-hover);
+            background: get-bg(Logic.config.sort-by >= 2, self.has-hover);
             clicked => {
-                if Logic.config.contents.sort-by == SortBy.SizeAscending {
-                    Logic.set-sort-by(SortBy.SizeDescending);
+                if Logic.config.sort-by == 2 {
+                    Logic.set-sort-by(3);
                 } else {
-                    Logic.set-sort-by(SortBy.SizeAscending);
+                    Logic.set-sort-by(2);
                 }
             }
 
             IconDisplay {
-                icon: Logic.config.contents.sort-by == SortBy.SizeDescending ? IconSet.ArrowUp01 : IconSet.ArrowDown01;
+                icon: Logic.config.sort-by == 3 ? IconSet.ArrowUp01 : IconSet.ArrowDown01;
                 size: 14px;
                 stroke: MyPalette.foreground;
             }

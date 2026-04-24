@@ -5,12 +5,6 @@ import { ScrollView, Palette } from "std-widgets.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { SettingCard } from "components/setting-card.slint";
 import { MyPalette } from "styling.slint";
-import {
-    WiiOutputFormat,
-    GcOutputFormat,
-    TxtCodesSource,
-    ThemePreference,
-} from "types.slint";
 import { Logic } from "logic.slint";
 
 export component SettingsPage inherits Rectangle {
@@ -47,15 +41,9 @@ export component SettingsPage inherits Rectangle {
                 icon: IconSet.Disc3;
                 label: "Wii output format";
                 items: ["WBFS (recommended)", "ISO (very large)"];
-                active-item: Logic.config.contents.wii-output-format == WiiOutputFormat.Wbfs ? 0 : 1;
+                active-item: Logic.config.wii-output-format;
 
-                selected(i) => {
-                    if i == 0 {
-                        Logic.set-wii-output-format(WiiOutputFormat.Wbfs);
-                    } else {
-                        Logic.set-wii-output-format(WiiOutputFormat.Iso);
-                    }
-                }
+                selected(i) => Logic.set-wii-output-format(i);
             }
 
             SettingCard {
@@ -65,26 +53,18 @@ export component SettingsPage inherits Rectangle {
                     "ISO (recommended)",
                     "CISO (much smaller, slightly slower, less metadata in game loaders)"
                 ];
-                active-item: Logic.config.contents.gc-output-format == GcOutputFormat.Iso ? 0 : 1;
+                active-item: Logic.config.gc-output-format;
 
-                selected(i) => {
-                    if i == 0 {
-                        Logic.set-gc-output-format(GcOutputFormat.Iso);
-                    } else {
-                        Logic.set-gc-output-format(GcOutputFormat.Ciso);
-                    }
-                }
+                selected(i) => Logic.set-gc-output-format(i);
             }
 
             SettingCard {
                 icon: IconSet.SquareSplitHorizontal;
                 label: "Split output";
                 items: ["Only when needed (recommended)", "Always 4GB-32KB"];
-                active-item: Logic.config.contents.always-split ? 1 : 0;
+                active-item: Logic.config.always-split ? 1 : 0;
 
-                selected(i) => {
-                    Logic.set-always-split(i == 1);
-                }
+                selected(i) => Logic.set-always-split(i == 1);
             }
 
             SettingCard {
@@ -94,42 +74,30 @@ export component SettingsPage inherits Rectangle {
                     "No (recommended)",
                     "Yes (saves some space; update partition is zeroed, but still there)"
                 ];
-                active-item: Logic.config.contents.scrub-update-partition ? 1 : 0;
+                active-item: Logic.config.scrub-update-partition ? 1 : 0;
 
-                selected(i) => {
-                    Logic.set-scrub-update-partition(i == 1);
-                }
+                selected(i) => Logic.set-scrub-update-partition(i == 1);
             }
 
             SettingCard {
                 icon: IconSet.Trash;
                 label: "Delete sources when adding games";
                 items: ["No (recommended)", "Yes"];
-                active-item: Logic.config.contents.remove-sources-games ? 1 : 0;
+                active-item: Logic.config.remove-sources-games ? 1 : 0;
 
-                selected(i) => {
-                    Logic.set-remove-sources-games(i == 1);
-                }
+                selected(i) => Logic.set-remove-sources-games(i == 1);
             }
 
             SettingCard {
                 icon: IconSet.Trash;
                 label: "Delete sources when adding apps";
                 items: ["No (recommended)", "Yes"];
-                active-item: Logic.config.contents.remove-sources-apps ? 1 : 0;
+                active-item: Logic.config.remove-sources-apps ? 1 : 0;
+
+                selected(i) => Logic.set-remove-sources-apps(i == 1);
             }
 
             SettingCard {
-                pure function get-active-item() -> int {
-                    if Logic.config.contents.txt-codes-source == TxtCodesSource.WebArchive {
-                        0
-                    } else if Logic.config.contents.txt-codes-source == TxtCodesSource.GameHacking {
-                        1
-                    } else {
-                        2
-                    }
-                }
-
                 icon: IconSet.Skull;
                 label: "Cheat codes source";
                 items: [
@@ -137,44 +105,24 @@ export component SettingsPage inherits Rectangle {
                     "gamehacking.org (up to date)",
                     "codes.rc24.xyz",
                 ];
-                active-item: get-active-item();
+                active-item: Logic.config.txt-codes-source;
 
-                selected(i) => {
-                    if i == 0 {
-                        Logic.set-txt-codes-source(TxtCodesSource.WebArchive);
-                    } else if i == 1 {
-                        Logic.set-txt-codes-source(TxtCodesSource.GameHacking);
-                    } else {
-                        Logic.set-txt-codes-source(TxtCodesSource.Rc24);
-                    }
-                }
+                selected(i) => Logic.set-txt-codes-source(i);
             }
 
             SettingCard {
-                pure function get-active-item() -> int {
-                    if Logic.config.contents.theme-preference == ThemePreference.System {
-                        0
-                    } else if Logic.config.contents.theme-preference == ThemePreference.Light {
-                        1
-                    } else {
-                        2
-                    }
-                }
-
                 icon: IconSet.SunMoon;
                 label: "Theme";
                 items: ["System (requires restart)", "Light", "Dark"];
-                active-item: get-active-item();
+                active-item: Logic.config.theme-preference;
 
                 selected(i) => {
-                    if i == 0 {
-                        Logic.set-theme-preference(ThemePreference.System);
-                    } else if i == 1 {
-                        Logic.set-theme-preference(ThemePreference.Light);
+                    Logic.set-theme-preference(i);
+
+                    if i == 1 {
                         Palette.color-scheme = ColorScheme.light;
                         Logic.set-window-color(false);
-                    } else {
-                        Logic.set-theme-preference(ThemePreference.Dark);
+                    } else if i == 2 {
                         Palette.color-scheme = ColorScheme.dark;
                         Logic.set-window-color(true);
                     }

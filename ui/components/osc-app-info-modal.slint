@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import { ScrollView, Palette } from "std-widgets.slint";
-import { OscApp } from "../types.slint";
+import { DisplayedOscApp } from "../types.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { Link } from "link.slint";
 import { Card } from "card.slint";
@@ -13,7 +13,7 @@ import { Developers } from "../developers.slint";
 import { Modal } from "modal.slint";
 
 export component OscAppInfoModal inherits Modal {
-    in property <OscApp> app;
+    in property <DisplayedOscApp> app;
 
     callback closed();
 
@@ -28,14 +28,14 @@ export component OscAppInfoModal inherits Modal {
                 spacing: 10px;
 
                 Text {
-                    text: app.meta.name;
+                    text: app.name;
                     font-size: 18px;
                     overflow: elide;
                 }
 
                 Link {
-                    label: "https://oscwii.org/library/app/\{app.meta.slug}";
-                    uri: "https://oscwii.org/library/app/\{app.meta.slug}";
+                    label: "https://oscwii.org/library/app/\{app.slug}";
+                    uri: "https://oscwii.org/library/app/\{app.slug}";
                 }
             }
 
@@ -58,7 +58,7 @@ export component OscAppInfoModal inherits Modal {
                         }
 
                         Text {
-                            text: "Version: \{app.meta.version}";
+                            text: "Version: \{app.version}";
                         }
                     }
 
@@ -80,13 +80,13 @@ export component OscAppInfoModal inherits Modal {
                         spacing: 5px;
 
                         IconDisplay {
-                            icon: Developers.get-icon(app.meta.author);
+                            icon: Developers.get-icon(app.author);
                             stroke: MyPalette.foreground;
                             size: 14px;
                         }
 
                         Text {
-                            text: "Author: \{app.meta.author}";
+                            text: "Author: \{app.author}";
                         }
                     }
 
@@ -100,7 +100,7 @@ export component OscAppInfoModal inherits Modal {
                         }
 
                         Text {
-                            text: "Description: \{app.meta.description.short}";
+                            text: "Description: \{app.short-description}";
                         }
                     }
 
@@ -116,7 +116,7 @@ export component OscAppInfoModal inherits Modal {
 
                         v := VerticalLayout {
                             Text {
-                                text: app.meta.description.long;
+                                text: app.long-description;
                                 wrap: word-wrap;
                             }
                         }

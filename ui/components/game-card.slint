@@ -12,6 +12,7 @@ export component GameCard inherits Card {
     in property <DisplayedGame> game;
 
     callback open-info();
+    callback delete();
 
     width: 172px;
     height: self.min-height;
@@ -69,13 +70,13 @@ export component GameCard inherits Card {
             IconButton {
                 icon: IconSet.HardDriveDownload;
                 tooltip: "Archive to PC";
-                clicked => Logic.archive-game(game);
+                clicked => Logic.archive-game(game.idx);
             }
 
             IconButton {
                 icon: IconSet.Trash;
                 tooltip: "Delete game";
-                clicked => Logic.delete-game(game);
+                clicked => delete();
             }
         }
     }

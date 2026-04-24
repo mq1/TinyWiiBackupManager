@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import { ScrollView, Palette } from "std-widgets.slint";
-import { HomebrewApp } from "../types.slint";
+import { DisplayedHomebrewApp } from "../types.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { Link } from "link.slint";
 import { Card } from "card.slint";
@@ -13,7 +13,7 @@ import { Developers } from "../developers.slint";
 import { Modal } from "modal.slint";
 
 export component HomebrewAppInfoModal inherits Modal {
-    in property <HomebrewApp> app;
+    in property <DisplayedHomebrewApp> app;
 
     callback closed();
 
@@ -28,7 +28,7 @@ export component HomebrewAppInfoModal inherits Modal {
                 spacing: 10px;
 
                 Text {
-                    text: app.meta.name;
+                    text: app.name;
                     font-size: 18px;
                     overflow: elide;
                 }
@@ -59,7 +59,7 @@ export component HomebrewAppInfoModal inherits Modal {
                         }
 
                         Text {
-                            text: "Version: \{app.meta.version}";
+                            text: "Version: \{app.version}";
                         }
                     }
 
@@ -73,7 +73,7 @@ export component HomebrewAppInfoModal inherits Modal {
                         }
 
                         Text {
-                            text: "Release date: \{app.meta.release-date}";
+                            text: "Release date: \{app.release-date}";
                         }
                     }
 
@@ -81,13 +81,13 @@ export component HomebrewAppInfoModal inherits Modal {
                         spacing: 5px;
 
                         IconDisplay {
-                            icon: Developers.get-icon(app.meta.coder);
+                            icon: Developers.get-icon(app.coder);
                             stroke: MyPalette.foreground;
                             size: 14px;
                         }
 
                         Text {
-                            text: "Coder: \{app.meta.coder}";
+                            text: "Coder: \{app.coder}";
                         }
                     }
 
@@ -101,7 +101,7 @@ export component HomebrewAppInfoModal inherits Modal {
                         }
 
                         Text {
-                            text: "Description: \{app.meta.short-description}";
+                            text: "Description: \{app.short-description}";
                         }
                     }
 
@@ -117,7 +117,7 @@ export component HomebrewAppInfoModal inherits Modal {
 
                         v := VerticalLayout {
                             Text {
-                                text: app.meta.long-description;
+                                text: app.long-description;
                                 wrap: word-wrap;
                             }
                         }

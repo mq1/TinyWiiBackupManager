@@ -15,6 +15,7 @@ import { Logic } from "logic.slint";
 
 export component HomebrewAppsTablePage inherits VerticalLayout {
     callback open-info(int);
+    callback delete-app(int);
 
     VerticalLayout {
         padding: 10px;
@@ -42,6 +43,7 @@ export component HomebrewAppsTablePage inherits VerticalLayout {
                         HomebrewAppRow {
                             app: app;
                             open-info() => open-info(i);
+                            delete() => delete-app(i);
                         }
 
                         HorizontalLine { }

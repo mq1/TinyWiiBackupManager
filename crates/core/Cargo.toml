@@ -11,7 +11,29 @@ description.workspace = true
 [dependencies]
 radix_fmt = "1.0"
 fs_extra = "1.3"
+serde = "1.0"
+serde_json = "1.0"
+quick-xml = { version = "0.39", features = ["serialize"] }
+anyhow = { workspace = true }
+arrayvec = "0.7"
+num_enum = "0.7"
+ureq = { version = "3.3", default-features = false, features = ["gzip"] }
+which-fs = "0.2"
+fs4 = { version = "1.0", default-features = false }
+image = { version = "0.25", default-features = false, features = ["png"] }
+zip = { version = "8.5", default-features = false, features = [
+    "deflate-flate2",
+] }
+wii-disc-info = "0.4"
+nod = { git = "https://github.com/encounter/nod.git" }
+crc32fast = "1.5"
+num_cpus = "1.17"
+sanitize-filename = "0.7.0-beta"
+split-write = "0.2"
+wiiload = "0.3"
 
 [features]
-default = []
+default = ["native-tls"]
+native-tls = ["ureq/native-tls"]
+rustls = ["ureq/rustls"]
 rust-analyzer = []

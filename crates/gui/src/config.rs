@@ -1,99 +1,67 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    Config, ConfigContents, GcOutputFormat, SortBy, ThemePreference, TxtCodesSource, ViewAs,
-    WiiOutputFormat, data_dir::DATA_DIR,
-};
-use anyhow::Result;
-use slint::{Model, ModelRc, SharedString, ToSharedString, VecModel};
-use std::{fs, path::Path};
+use crate::DisplayedConfig;
+use slint::{ModelRc, ToSharedString, VecModel};
+use std::{path::PathBuf, rc::Rc};
+use twbm_core::config::{Config, ConfigContents};
 
-impl Config {
-    #[must_use]
-    pub fn load() -> Self {
-        let path = DATA_DIR.join("config.json");
-        let bytes = fs::read(&path).unwrap_or_default();
-        let mut contents = serde_json::from_slice::<ConfigContents>(&bytes)
-            .unwrap_or(ConfigContents::my_default());
-
-        // Invalidate invalid mount_point
-        if !contents.is_mount_point_valid() {
-            contents.mount_point = SharedString::new();
-        }
-
-        Self {
-            path: path.to_string_lossy().to_shared_string(),
-            contents,
-        }
-    }
-
-    /// Writes the config into config.json
-    pub fn write(&self) -> Result<()> {
-        let bytes = serde_json::to_vec_pretty(&self.contents)?;
-        fs::write(&self.path, &bytes)?;
-
-        #[cfg(debug_assertions)]
-        eprintln!("INFO: Wrote config to {}", self.path);
-
-        Ok(())
-    }
-
-    /// Returns true if the notification should be shown
-    pub fn check_mount_point(&mut self) -> bool {
-        if !self.contents.is_mount_point_valid() {
-            return false;
-        }
-
-        let is_new = self
+impl From<&Config> for DisplayedConfig {
+    fn from(config: &Config) -> Self {
+        let known_drives = config
             .contents
             .known_drives
             .iter()
-            .all(|p| p != self.contents.mount_point.as_str());
+            .map(|d| d.to_string_lossy().to_shared_string())
+            .collect::<VecModel<_>>();
 
-        if is_new {
-            self.contents
-                .known_drives
-                .as_any()
-                .downcast_ref::<VecModel<SharedString>>()
-                .unwrap()
-                .push(self.contents.mount_point.clone());
-
-            let _ = self.write();
+        DisplayedConfig {
+            path: config.path.to_string_lossy().to_shared_string(),
+            mount_point: config
+                .contents
+                .mount_point
+                .to_string_lossy()
+                .to_shared_string(),
+            sort_by: config.contents.sort_by.into(),
+            always_split: config.contents.always_split,
+            gc_output_format: config.contents.gc_output_format.into(),
+            wii_output_format: config.contents.wii_output_format.into(),
+            remove_sources_apps: config.contents.remove_sources_apps,
+            remove_sources_games: config.contents.remove_sources_games,
+            scrub_update_partition: config.contents.scrub_update_partition,
+            show_gc: config.contents.show_gc,
+            show_wii: config.contents.show_wii,
+            txt_codes_source: config.contents.txt_codes_source.into(),
+            view_as: config.contents.view_as.into(),
+            wii_ip: config.contents.wii_ip.to_shared_string(),
+            theme_preference: config.contents.theme_preference.into(),
+            known_drives: ModelRc::from(Rc::new(known_drives)),
         }
-
-        is_new
     }
 }
 
-impl ConfigContents {
-    #[must_use]
-    pub fn is_mount_point_valid(&self) -> bool {
-        if self.mount_point.is_empty() {
-            return false;
-        }
+impl From<&DisplayedConfig> for Config {
+    fn from(config: &DisplayedConfig) -> Self {
+        let path = PathBuf::from(&config.path);
 
-        Path::new(&self.mount_point).exists()
-    }
+        let contents = ConfigContents {
+            always_split: config.always_split,
+            mount_point: PathBuf::from(&config.mount_point),
+            remove_sources_apps: config.remove_sources_apps,
+            remove_sources_games: config.remove_sources_games,
+            scrub_update_partition: config.scrub_update_partition,
+            wii_ip: config.wii_ip.to_string(),
+            show_wii: config.show_wii,
+            show_gc: config.show_gc,
+            known_drives: Vec::new(),
+            wii_output_format: config.wii_output_format.try_into().unwrap_or_default(),
+            gc_output_format: config.gc_output_format.try_into().unwrap_or_default(),
+            sort_by: config.sort_by.try_into().unwrap_or_default(),
+            view_as: config.view_as.try_into().unwrap_or_default(),
+            txt_codes_source: config.txt_codes_source.try_into().unwrap_or_default(),
+            theme_preference: config.theme_preference.try_into().unwrap_or_default(),
+        };
 
-    #[must_use]
-    pub fn my_default() -> Self {
-        Self {
-            always_split: false,
-            mount_point: SharedString::new(),
-            remove_sources_apps: false,
-            remove_sources_games: false,
-            scrub_update_partition: false,
-            sort_by: SortBy::NameAscending,
-            view_as: ViewAs::Grid,
-            wii_ip: "192.168.1.100".to_shared_string(),
-            txt_codes_source: TxtCodesSource::WebArchive,
-            theme_preference: ThemePreference::System,
-            wii_output_format: WiiOutputFormat::Wbfs,
-            gc_output_format: GcOutputFormat::Iso,
-            show_wii: true,
-            show_gc: true,
-            known_drives: ModelRc::new(VecModel::default()),
-        }
+        Self { path, contents }
     }
 }

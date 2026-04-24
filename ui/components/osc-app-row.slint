@@ -4,28 +4,28 @@
 import { IconSet, IconDisplay } from "@lucide";
 import { VerticalLine } from "vertical-line.slint";
 import { IconButton } from "icon-button.slint";
-import { OscApp } from "../types.slint";
+import { DisplayedOscApp } from "../types.slint";
 import { MyPalette } from "../styling.slint";
-import { Logic } from "../logic.slint";
 
 export component OscAppRow inherits Rectangle {
-    in property <OscApp> app;
+    in property <DisplayedOscApp> app;
 
     callback open-info();
+    callback install();
 
     height: 24px;
 
     Text {
         x: 5px;
         y: 5px;
-        text: "\{app.meta.name} (\{app.meta.version})";
+        text: "\{app.name} (\{app.version})";
         overflow: elide;
     }
 
     Text {
         x: parent.width - 50px - self.preferred-width - 5px;
         y: 5px;
-        text: "\{(app.meta.uncompressed-size / 1024.0 / 1024.0).to-fixed(2)} MiB";
+        text: "\{app.uncompressed-size-mib.to-fixed(2)} MiB";
     }
 
     VerticalLine {
@@ -59,7 +59,7 @@ export component OscAppRow inherits Rectangle {
         height: 24px;
         width: 24px;
         squared: true;
-        clicked => Logic.install-osc-app(app);
+        clicked => install();
     }
 
     VerticalLine {
