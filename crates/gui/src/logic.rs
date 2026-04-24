@@ -248,7 +248,7 @@ impl Logic<'_> {
             games_clone.set_vec(new_games.into_iter().enumerate().collect::<Vec<_>>());
             homebrew_apps_clone.set_vec(new_apps.into_iter().enumerate().collect::<Vec<_>>());
 
-            logic.set_drive_info(DisplayedDriveInfo::new(&drive_info));
+            logic.set_drive_info(DisplayedDriveInfo::from(&drive_info));
             *drive_info_clone.borrow_mut() = drive_info;
 
             let mut is_downloading_covers = is_downloading_covers_clone.borrow_mut();

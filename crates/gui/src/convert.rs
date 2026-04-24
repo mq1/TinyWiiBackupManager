@@ -3,6 +3,7 @@
 
 use crate::{ConversionKind, Logic, QueuedConversion};
 use slint::{Model, SharedString, ToSharedString, VecModel, Weak};
+use std::fmt::Write;
 use std::{path::PathBuf, rc::Rc};
 use twbm_core::{config::Config, drive_info::DriveInfo, game::Game};
 
@@ -41,7 +42,9 @@ impl Conversion {
                     .to_string();
                 let weak2 = weak.clone();
                 let update_progress = move |percentage| {
-                    let status = format!("Converting  {filename} {percentage}%",);
+                    let mut status = SharedString::new();
+                    write!(status, "Converting  {filename} {percentage}%").unwrap();
+
                     let _ = weak2.upgrade_in_event_loop(move |logic| {
                         logic.set_status(status.to_shared_string());
                     });
@@ -57,7 +60,9 @@ impl Conversion {
                     .to_string();
                 let weak2 = weak.clone();
                 let update_progress = move |percentage| {
-                    let status = format!("Archiving {filename}  {percentage}%",);
+                    let mut status = SharedString::new();
+                    write!(status, "Archiving  {filename} {percentage}%").unwrap();
+
                     let _ = weak2.upgrade_in_event_loop(move |logic| {
                         logic.set_status(status.to_shared_string());
                     });
@@ -69,7 +74,9 @@ impl Conversion {
                 let game_title = game.title.clone();
                 let weak2 = weak.clone();
                 let update_progress = move |percentage| {
-                    let status = format!("Scrubbing {game_title}  {percentage}%");
+                    let mut status = SharedString::new();
+                    write!(status, "Scrubbing  {game_title} {percentage}%").unwrap();
+
                     let _ = weak2.upgrade_in_event_loop(move |logic| {
                         logic.set_status(status.to_shared_string());
                     });

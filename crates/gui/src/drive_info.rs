@@ -8,8 +8,8 @@ use crate::{
 use slint::ToSharedString;
 use twbm_core::drive_info::DriveInfo;
 
-impl DisplayedDriveInfo {
-    pub fn new(drive_info: &DriveInfo) -> Self {
+impl From<&DriveInfo> for DisplayedDriveInfo {
+    fn from(drive_info: &DriveInfo) -> Self {
         Self {
             label: drive_info.label.to_shared_string(),
             fs_kind: drive_info.fs_kind.to_shared_string(),
