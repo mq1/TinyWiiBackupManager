@@ -190,7 +190,7 @@ jobs:
         shell: pwsh
         run: |
           cargo build --release --target ${{ matrix.target }}
-          Copy-Item -Path "target\${{ matrix.target }}\release\twbm-gui" -Destination "TinyWiiBackupManager"
+          Copy-Item -Path "target\${{ matrix.target }}\release\twbm-gui.exe" -Destination "TinyWiiBackupManager"
         env:
           CC: clang-cl
           AR_aarch64-pc-windows-msvc: llvm-lib

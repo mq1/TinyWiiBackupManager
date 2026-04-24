@@ -37,4 +37,7 @@ lucide-slint = "1.8"
 winresource = "0.1"
 
 [features]
+default = []
+native-tls = []
+rustls = []
 rust-analyzer = []
