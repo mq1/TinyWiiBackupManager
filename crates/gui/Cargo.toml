@@ -13,7 +13,7 @@ OriginalFilename = "TinyWiiBackupManager.exe"
 LegalCopyright = "Copyright © 2026 Manuel Quarneti. Licensed under GPL-3.0-only."
 
 [dependencies]
-twbm-core = { path = "../core" }
+twbm-core = { path = "../core", default-features = false }
 slint = { version = "1.16", features = ["raw-window-handle-06"] }
 anyhow = { workspace = true }
 open = "5.3"
@@ -37,7 +37,7 @@ lucide-slint = "1.8"
 winresource = "0.1"
 
 [features]
-default = []
-native-tls = []
-rustls = []
-rust-analyzer = []
+default = ["native-tls"]
+native-tls = ["twbm-core/native-tls"]
+rustls = ["twbm-core/rustls"]
+rust-analyzer = ["twbm-core/rust-analyzer"]
