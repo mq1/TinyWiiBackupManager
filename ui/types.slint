@@ -5,6 +5,7 @@ export enum Page {
     Games,
     HomebrewApps,
     Osc,
+    Toolbox,
     Settings,
     About,
 }
@@ -88,6 +89,7 @@ export struct DisplayedDriveInfo {
     apps-mib: float,
     total-gib: float,
     fs-kind: string,
+    allocation-granularity: int,
 }
 
 export struct DisplayedNotification {

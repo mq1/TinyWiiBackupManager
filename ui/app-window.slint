@@ -22,6 +22,7 @@ import { OscTablePage } from "osc-table-page.slint";
 import { OscAppInfoModal } from "components/osc-app-info-modal.slint";
 import { ConfirmationModal } from "components/confirmation-modal.slint";
 import { Tooltip } from "tooltip.slint";
+import { ToolboxPage } from "toolbox-page.slint";
 
 export * from "types.slint";
 export { Logic }
@@ -114,6 +115,7 @@ export component AppWindow inherits Window {
                         current-osc-app-i = i;
                     }
                 }
+                if current-page == Page.Toolbox: ToolboxPage { }
                 if current-page == Page.Settings: SettingsPage { }
                 if current-page == Page.About: AboutPage { }
             }

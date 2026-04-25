@@ -1,0 +1,95 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { IconSet, IconDisplay } from "@lucide";
+import { ScrollView } from "std-widgets.slint";
+import { MyPalette } from "styling.slint";
+import { Card } from "components/card.slint";
+import { HorizontalLine } from "components/horizontal-line.slint";
+import { Logic } from "logic.slint";
+import { Link } from "components/link.slint";
+
+export component ToolboxPage inherits VerticalLayout {
+    private property <int> optimal-allocation-granularity: (Logic.drive-info.total-gib <= 32 * 1024 * 1024 * 1024) ? 32768 : 65536;
+    private property <bool> is-optimal-allocation-granularity: Logic.drive-info.allocation-granularity == optimal-allocation-granularity;
+    private property <bool> should-reformat: Logic.drive-info.fs-kind != "FAT32" || !is-optimal-allocation-granularity;
+    private property <string> allocation-granularity-comment: is-optimal-allocation-granularity ? "✓ optimal" : "⚠ not optimal, but should work";
+
+    pure function fs-comment(fs-kind: string) -> string {
+        if fs-kind == "FAT32" {
+            "✓ optimal choice for game backups and homebrew apps"
+        } else if fs-kind == "NTFS" || fs-kind == "exFAT" {
+            "⚠ limited support for game backups and homebrew apps"
+        } else {
+            "⚠ won't work for game backups and homebrew apps"
+        }
+    }
+
+    HorizontalLayout {
+        height: 48px;
+        padding-top: 20px;
+        padding-left: 10px;
+        spacing: 5px;
+
+        IconDisplay {
+            icon: IconSet.ChevronRight;
+            size: 18px;
+            stroke: MyPalette.foreground;
+        }
+
+        Text {
+            text: "Toolbox";
+            font-size: 18px;
+        }
+    }
+
+    ScrollView {
+        VerticalLayout {
+            width: 100%;
+            padding: 10px;
+            padding-right: 15px;
+            spacing: 10px;
+            alignment: start;
+
+            Card {
+                VerticalLayout {
+                    padding: 10px;
+                    spacing: 10px;
+
+                    HorizontalLayout {
+                        spacing: 5px;
+
+                        IconDisplay {
+                            icon: IconSet.HardDrive;
+                            stroke: MyPalette.foreground;
+                            size: 14px;
+                        }
+
+                        Text {
+                            text: "Drive info";
+                        }
+
+                        HorizontalLayout {
+                            alignment: end;
+
+                            if should-reformat: Link {
+                                label: "Drive formatting guide";
+                                uri: "https://gbatemp.net/threads/usb-loader-gx-troubleshooting-guide.617564/#fs";
+                            }
+                        }
+                    }
+
+                    HorizontalLine { }
+
+                    Text {
+                        text: "Filesystem: \{Logic.drive-info.fs-kind}  (\{fs-comment(Logic.drive-info.fs-kind)})";
+                    }
+
+                    Text {
+                        text: "Allocation granularity: \{Logic.drive-info.allocation-granularity}  (\{allocation-granularity-comment})";
+                    }
+                }
+            }
+        }
+    }
+}

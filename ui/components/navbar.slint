@@ -49,6 +49,9 @@ export component Navbar inherits VerticalLayout {
             active: false;
             icon: IconSet.ToolCase;
             tooltip: "Tools and utilities";
+            clicked => {
+                current-page = Page.Toolbox;
+            }
         }
 
         NavbarButton {

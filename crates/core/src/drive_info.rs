@@ -15,6 +15,7 @@ pub struct DriveInfo {
     pub games_bytes: u64,
     pub apps_bytes: u64,
     pub fs_kind: FsKind,
+    pub allocation_granularity: u64,
 }
 
 impl DriveInfo {
@@ -31,6 +32,7 @@ impl DriveInfo {
         let total_bytes = stat.total_space();
         let avail_bytes = stat.available_space();
         let used_bytes = total_bytes.saturating_sub(avail_bytes);
+        let allocation_granularity = stat.allocation_granularity();
 
         let fs_kind = FsKind::try_from_path(path).unwrap_or(FsKind::Unknown);
 
@@ -50,6 +52,7 @@ impl DriveInfo {
             games_bytes,
             apps_bytes,
             fs_kind,
+            allocation_granularity,
         })
     }
 
@@ -61,6 +64,7 @@ impl DriveInfo {
             games_bytes: 0,
             apps_bytes: 0,
             fs_kind: FsKind::Unknown,
+            allocation_granularity: 0,
         }
     }
 }
