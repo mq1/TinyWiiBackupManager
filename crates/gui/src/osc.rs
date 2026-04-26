@@ -34,7 +34,7 @@ impl DisplayedOscApp {
     }
 }
 
-pub fn download_icons(apps: Vec<OscAppMeta>, weak: Weak<Logic<'static>>) {
+pub fn download_icons(apps: &[OscAppMeta], weak: Weak<Logic<'static>>) {
     let _ = fs::create_dir_all(DATA_DIR.join("osc-icons"));
 
     for (i, app) in apps.iter().enumerate() {

@@ -5,7 +5,7 @@ use anyhow::Result;
 use std::{
     fs::{self, File},
     io::{Read, Seek, SeekFrom},
-    path::{Path, PathBuf},
+    path::PathBuf,
 };
 use wii_disc_info::Meta;
 
@@ -18,28 +18,6 @@ pub struct DiscInfo {
 }
 
 impl DiscInfo {
-    pub fn from_game_dir(game_dir: &Path) -> Option<Self> {
-        if !game_dir.is_dir() {
-            return None;
-        }
-
-        let filename = game_dir.file_name()?.to_str()?;
-
-        if filename.starts_with('.') {
-            return None;
-        }
-
-        for entry in fs::read_dir(game_dir).ok()?.filter_map(Result::ok) {
-            let disc_path = entry.path();
-
-            if let Some(disc_info) = Self::from_path(disc_path) {
-                return Some(disc_info);
-            }
-        }
-
-        None
-    }
-
     pub fn from_path(path: PathBuf) -> Option<Self> {
         if !path.is_file() {
             return None;

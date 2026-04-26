@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{game_id::GameID, id_map};
+use arrayvec::ArrayString;
 use std::{
-    ffi::OsStr,
+    fmt::Write,
     fs,
     path::{Path, PathBuf},
 };
@@ -46,35 +47,26 @@ impl Game {
     }
 
     pub fn get_disc_path(&self) -> Option<PathBuf> {
-        let entries = self.path.read_dir().ok()?;
+        let mut wii_wbfs = ArrayString::<10>::new();
+        write!(&mut wii_wbfs, "{}.wbfs", self.id).ok()?;
 
-        for entry in entries.filter_map(Result::ok) {
-            if !entry.file_type().is_ok_and(|t| t.is_file()) {
-                continue;
-            }
+        let mut wii_iso = ArrayString::<9>::new();
+        write!(&mut wii_iso, "{}.iso", self.id).ok()?;
 
-            let path = entry.path();
+        let mut wii_part0_iso = ArrayString::<16>::new();
+        write!(&mut wii_part0_iso, "{}.part0.iso", self.id).ok()?;
 
-            let Some(filename) = path.file_name().and_then(OsStr::to_str) else {
-                continue;
-            };
+        let possible_filenames = [
+            wii_wbfs.as_str(),
+            wii_iso.as_str(),
+            wii_part0_iso.as_str(),
+            "game.iso",
+            "game.ciso",
+        ];
 
-            if filename.starts_with('.') {
-                continue;
-            }
-
-            if filename.ends_with(".part1.iso") {
-                continue;
-            }
-
-            let Some(ext) = path.extension() else {
-                continue;
-            };
-
-            if ext.eq_ignore_ascii_case("iso")
-                || ext.eq_ignore_ascii_case("wbfs")
-                || ext.eq_ignore_ascii_case("ciso")
-            {
+        for filename in possible_filenames {
+            let path = self.path.join(filename);
+            if path.is_file() {
                 return Some(path);
             }
         }

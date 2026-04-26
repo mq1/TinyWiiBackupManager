@@ -31,6 +31,7 @@ num_cpus = "1.17"
 sanitize-filename = "0.7.0-beta"
 split-write = "0.2"
 wiiload = "0.3"
+derive-getters = { version = "0.5", features = ["auto_copy_getters"] }
 
 [features]
 default = ["native-tls"]
