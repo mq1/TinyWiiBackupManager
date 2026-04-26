@@ -96,8 +96,7 @@ impl Logic<'_> {
         let state_clone = state.clone();
         self.on_pick_mount_point(move || {
             if let Some(path) = dialogs::pick_mount_point(&window_handle) {
-                let mut config = state_clone.config().borrow_mut();
-                config.contents.mount_point = path;
+                state_clone.config().borrow_mut().contents.mount_point = path;
 
                 let logic = weak.upgrade().unwrap();
                 logic.invoke_sync_config();
@@ -108,72 +107,80 @@ impl Logic<'_> {
         let state_clone = state.clone();
         let weak = self.as_weak();
         self.on_set_wii_output_format(move |format| {
-            let mut config = state_clone.config().borrow_mut();
-            config.contents.wii_output_format = format.try_into().unwrap_or_default();
+            state_clone.config().borrow_mut().contents.wii_output_format =
+                format.try_into().unwrap_or_default();
             weak.upgrade().unwrap().invoke_sync_config();
         });
 
         let state_clone = state.clone();
         let weak = self.as_weak();
         self.on_set_gc_output_format(move |format| {
-            let mut config = state_clone.config().borrow_mut();
-            config.contents.gc_output_format = format.try_into().unwrap_or_default();
+            state_clone.config().borrow_mut().contents.gc_output_format =
+                format.try_into().unwrap_or_default();
             weak.upgrade().unwrap().invoke_sync_config();
         });
 
         let state_clone = state.clone();
         let weak = self.as_weak();
         self.on_set_always_split(move |always_split| {
-            let mut config = state_clone.config().borrow_mut();
-            config.contents.always_split = always_split;
+            state_clone.config().borrow_mut().contents.always_split = always_split;
             weak.upgrade().unwrap().invoke_sync_config();
         });
 
         let state_clone = state.clone();
         let weak = self.as_weak();
         self.on_set_scrub_update_partition(move |scrub_update_partition| {
-            let mut config = state_clone.config().borrow_mut();
-            config.contents.scrub_update_partition = scrub_update_partition;
+            state_clone
+                .config()
+                .borrow_mut()
+                .contents
+                .scrub_update_partition = scrub_update_partition;
             weak.upgrade().unwrap().invoke_sync_config();
         });
 
         let state_clone = state.clone();
         let weak = self.as_weak();
         self.on_set_remove_sources_games(move |remove_sources_games| {
-            let mut config = state_clone.config().borrow_mut();
-            config.contents.remove_sources_games = remove_sources_games;
+            state_clone
+                .config()
+                .borrow_mut()
+                .contents
+                .remove_sources_games = remove_sources_games;
             weak.upgrade().unwrap().invoke_sync_config();
         });
 
         let state_clone = state.clone();
         let weak = self.as_weak();
         self.on_set_remove_sources_apps(move |remove_sources_apps| {
-            let mut config = state_clone.config().borrow_mut();
-            config.contents.remove_sources_apps = remove_sources_apps;
+            state_clone
+                .config()
+                .borrow_mut()
+                .contents
+                .remove_sources_apps = remove_sources_apps;
             weak.upgrade().unwrap().invoke_sync_config();
         });
 
         let state_clone = state.clone();
         let weak = self.as_weak();
         self.on_set_txt_codes_source(move |source| {
-            let mut config = state_clone.config().borrow_mut();
-            config.contents.txt_codes_source = source.try_into().unwrap_or_default();
+            state_clone.config().borrow_mut().contents.txt_codes_source =
+                source.try_into().unwrap_or_default();
             weak.upgrade().unwrap().invoke_sync_config();
         });
 
         let state_clone = state.clone();
         let weak = self.as_weak();
         self.on_set_theme_preference(move |theme_preference| {
-            let mut config = state_clone.config().borrow_mut();
-            config.contents.theme_preference = theme_preference.try_into().unwrap_or_default();
+            state_clone.config().borrow_mut().contents.theme_preference =
+                theme_preference.try_into().unwrap_or_default();
             weak.upgrade().unwrap().invoke_sync_config();
         });
 
         let state_clone = state.clone();
         let weak = self.as_weak();
         self.on_set_view_as(move |format| {
-            let mut config = state_clone.config().borrow_mut();
-            config.contents.view_as = format.try_into().unwrap_or_default();
+            state_clone.config().borrow_mut().contents.view_as =
+                format.try_into().unwrap_or_default();
             weak.upgrade().unwrap().invoke_sync_config();
         });
 
@@ -182,8 +189,8 @@ impl Logic<'_> {
         let sorted_homebrew_apps_clone = sorted_homebrew_apps.clone();
         let weak = self.as_weak();
         self.on_set_sort_by(move |sort_by| {
-            let mut config = state_clone.config().borrow_mut();
-            config.contents.sort_by = sort_by.try_into().unwrap_or_default();
+            state_clone.config().borrow_mut().contents.sort_by =
+                sort_by.try_into().unwrap_or_default();
             weak.upgrade().unwrap().invoke_sync_config();
 
             sorted_games_clone.reset();
@@ -194,8 +201,7 @@ impl Logic<'_> {
         let filtered_games_clone = filtered_games.clone();
         let weak = self.as_weak();
         self.on_set_show_wii(move |show_wii| {
-            let mut config = state_clone.config().borrow_mut();
-            config.contents.show_wii = show_wii;
+            state_clone.config().borrow_mut().contents.show_wii = show_wii;
             weak.upgrade().unwrap().invoke_sync_config();
 
             filtered_games_clone.reset();
@@ -205,8 +211,7 @@ impl Logic<'_> {
         let filtered_games_clone = filtered_games.clone();
         let weak = self.as_weak();
         self.on_set_show_gc(move |show_gc| {
-            let mut config = state_clone.config().borrow_mut();
-            config.contents.show_gc = show_gc;
+            state_clone.config().borrow_mut().contents.show_gc = show_gc;
             weak.upgrade().unwrap().invoke_sync_config();
 
             filtered_games_clone.reset();
