@@ -3,65 +3,50 @@
 
 use crate::{
     ConversionKind, DisplayedConfig, DisplayedDiscInfo, DisplayedDriveInfo, DisplayedGame,
-    DisplayedHomebrewApp, DisplayedNotification, DisplayedOscApp, Logic, QueuedConversion,
+    DisplayedHomebrewApp, DisplayedOscApp, Logic, Notification, QueuedConversion,
     convert::Conversion, covers, data_dir::DATA_DIR, dialogs, games, homebrew_apps, osc,
 };
 use slint::{
-    FilterModel, Global, Image, MapModel, Model, ModelRc, SharedString, SortModel, ToSharedString,
-    VecModel, Window,
+    FilterModel, Global, Image, Model, ModelRc, SharedString, SortModel, ToSharedString, VecModel,
+    Window,
 };
-use std::{
-    cell::RefCell,
-    path::{Path, PathBuf},
-    rc::Rc,
-};
+use std::{cell::RefCell, path::Path, rc::Rc};
 use twbm_core::{
-    checksum, config::Config, disc_info::DiscInfo, drive_info::DriveInfo, game::Game,
-    homebrew_app::HomebrewApp, osc::OscAppMeta,
+    app_state::AppState, checksum, config::Config, disc_info::DiscInfo, drive_info::DriveInfo,
+    game_id::GameID,
 };
 
 impl Logic<'_> {
     pub fn init(&self, config: Config, window: &Window) {
-        // MODEL
+        let displayed_config = DisplayedConfig::from(&config);
+        let state = Rc::new(RefCell::new(AppState::new(config)));
 
-        self.set_config(DisplayedConfig::from(&config));
-        let config = Rc::new(RefCell::new(config));
-
-        let games = Rc::new(VecModel::from(Vec::<(usize, Game)>::new()));
+        let games = Rc::new(VecModel::from(Vec::new()));
         let games_filter = Rc::new(RefCell::new(SharedString::new()));
-        let mapped_games = Rc::new(MapModel::new(games.clone(), |(idx, game)| {
-            DisplayedGame::new(&game, idx)
-        }));
         let sorted_games = Rc::new(SortModel::new(
-            mapped_games.clone(),
-            games::get_compare_fn(config.clone()),
+            games.clone(),
+            games::get_compare_fn(state.clone()),
         ));
         let filtered_games = Rc::new(FilterModel::new(
             sorted_games.clone(),
-            games::get_filter_fn(games_filter.clone(), config.clone()),
+            games::get_filter_fn(games_filter.clone(), state.clone()),
         ));
 
-        let homebrew_apps = Rc::new(VecModel::from(Vec::<(usize, HomebrewApp)>::new()));
+        let homebrew_apps = Rc::new(VecModel::from(Vec::new()));
         let homebrew_apps_filter = Rc::new(RefCell::new(SharedString::new()));
-        let mapped_homebrew_apps = Rc::new(MapModel::new(homebrew_apps.clone(), |(idx, app)| {
-            DisplayedHomebrewApp::new(&app, idx)
-        }));
         let sorted_homebrew_apps = Rc::new(SortModel::new(
-            mapped_homebrew_apps.clone(),
-            homebrew_apps::get_compare_fn(config.clone()),
+            homebrew_apps.clone(),
+            homebrew_apps::get_compare_fn(state.clone()),
         ));
         let filtered_homebrew_apps = Rc::new(FilterModel::new(
             sorted_homebrew_apps.clone(),
             homebrew_apps::get_filter_fn(homebrew_apps_filter.clone()),
         ));
 
-        let osc_apps = Rc::new(VecModel::from(Vec::<(usize, OscAppMeta)>::new()));
+        let osc_apps = Rc::new(VecModel::from(Vec::new()));
         let osc_apps_filter = Rc::new(RefCell::new(SharedString::new()));
-        let mapped_osc_apps = Rc::new(MapModel::new(osc_apps.clone(), |(idx, app)| {
-            DisplayedOscApp::new(&app, idx)
-        }));
         let filtered_osc_apps = Rc::new(FilterModel::new(
-            mapped_osc_apps.clone(),
+            osc_apps.clone(),
             osc::get_filter_fn(osc_apps_filter.clone()),
         ));
 
@@ -74,9 +59,8 @@ impl Logic<'_> {
         let is_downloading_osc_icons = Rc::new(RefCell::new(false));
         let is_downloading_covers = Rc::new(RefCell::new(false));
 
-        let drive_info = Rc::new(RefCell::new(DriveInfo::empty()));
-
         self.set_app_version(env!("CARGO_PKG_VERSION").to_shared_string());
+        self.set_config(displayed_config);
         self.set_games(ModelRc::from(filtered_games.clone()));
         self.set_homebrew_apps(ModelRc::from(filtered_homebrew_apps.clone()));
         self.set_osc_apps(ModelRc::from(filtered_osc_apps.clone()));
@@ -84,18 +68,18 @@ impl Logic<'_> {
         self.set_conversion_queue(ModelRc::from(conversion_queue.clone()));
         self.set_conversion_queue_buffer(ModelRc::from(conversion_queue_buffer.clone()));
 
-        // UPDATE
+        // Mutations
 
-        let config_clone = config.clone();
-        let notifications_clone = notifications.clone();
+        let state_clone = state.clone();
         let weak = self.as_weak();
+        let notifications_clone = notifications.clone();
         self.on_sync_config(move || {
             let logic = weak.upgrade().unwrap();
-            let config = &*config_clone.borrow();
-            let displayed_config = DisplayedConfig::from(config);
+            let state = state_clone.borrow();
+            let displayed_config = DisplayedConfig::from(state.config());
 
             logic.set_config(displayed_config);
-            if let Err(e) = config.write() {
+            if let Err(e) = state.config().write() {
                 notifications_clone.push(e.into());
             }
         });
@@ -109,10 +93,11 @@ impl Logic<'_> {
 
         let weak = self.as_weak();
         let window_handle = window.window_handle();
-        let config_clone = config.clone();
+        let state_clone = state.clone();
         self.on_pick_mount_point(move || {
             if let Some(path) = dialogs::pick_mount_point(&window_handle) {
-                config_clone.borrow_mut().contents.mount_point = path;
+                let mut state = state_clone.borrow_mut();
+                state.config_mut().contents.mount_point = path;
 
                 let logic = weak.upgrade().unwrap();
                 logic.invoke_sync_config();
@@ -120,117 +105,125 @@ impl Logic<'_> {
             }
         });
 
-        let config_clone = config.clone();
+        let state_clone = state.clone();
         let weak = self.as_weak();
         self.on_set_wii_output_format(move |format| {
-            config_clone.borrow_mut().contents.wii_output_format =
-                format.try_into().unwrap_or_default();
+            let mut state = state_clone.borrow_mut();
+            state.config_mut().contents.wii_output_format = format.try_into().unwrap_or_default();
             weak.upgrade().unwrap().invoke_sync_config();
         });
 
-        let config_clone = config.clone();
+        let state_clone = state.clone();
         let weak = self.as_weak();
         self.on_set_gc_output_format(move |format| {
-            config_clone.borrow_mut().contents.gc_output_format =
-                format.try_into().unwrap_or_default();
+            let mut state = state_clone.borrow_mut();
+            state.config_mut().contents.gc_output_format = format.try_into().unwrap_or_default();
             weak.upgrade().unwrap().invoke_sync_config();
         });
 
-        let config_clone = config.clone();
+        let state_clone = state.clone();
         let weak = self.as_weak();
         self.on_set_always_split(move |always_split| {
-            config_clone.borrow_mut().contents.always_split = always_split;
+            let mut state = state_clone.borrow_mut();
+            state.config_mut().contents.always_split = always_split;
             weak.upgrade().unwrap().invoke_sync_config();
         });
 
-        let config_clone = config.clone();
+        let state_clone = state.clone();
         let weak = self.as_weak();
         self.on_set_scrub_update_partition(move |scrub_update_partition| {
-            config_clone.borrow_mut().contents.scrub_update_partition = scrub_update_partition;
+            let mut state = state_clone.borrow_mut();
+            state.config_mut().contents.scrub_update_partition = scrub_update_partition;
             weak.upgrade().unwrap().invoke_sync_config();
         });
 
-        let config_clone = config.clone();
+        let state_clone = state.clone();
         let weak = self.as_weak();
         self.on_set_remove_sources_games(move |remove_sources_games| {
-            config_clone.borrow_mut().contents.remove_sources_games = remove_sources_games;
+            let mut state = state_clone.borrow_mut();
+            state.config_mut().contents.remove_sources_games = remove_sources_games;
             weak.upgrade().unwrap().invoke_sync_config();
         });
 
-        let config_clone = config.clone();
+        let state_clone = state.clone();
         let weak = self.as_weak();
         self.on_set_remove_sources_apps(move |remove_sources_apps| {
-            config_clone.borrow_mut().contents.remove_sources_apps = remove_sources_apps;
+            let mut state = state_clone.borrow_mut();
+            state.config_mut().contents.remove_sources_apps = remove_sources_apps;
             weak.upgrade().unwrap().invoke_sync_config();
         });
 
-        let config_clone = config.clone();
+        let state_clone = state.clone();
         let weak = self.as_weak();
         self.on_set_txt_codes_source(move |source| {
-            config_clone.borrow_mut().contents.txt_codes_source =
-                source.try_into().unwrap_or_default();
+            let mut state = state_clone.borrow_mut();
+            state.config_mut().contents.txt_codes_source = source.try_into().unwrap_or_default();
             weak.upgrade().unwrap().invoke_sync_config();
         });
 
-        let config_clone = config.clone();
+        let state_clone = state.clone();
         let weak = self.as_weak();
         self.on_set_theme_preference(move |theme_preference| {
-            config_clone.borrow_mut().contents.theme_preference =
+            let mut state = state_clone.borrow_mut();
+            state.config_mut().contents.theme_preference =
                 theme_preference.try_into().unwrap_or_default();
             weak.upgrade().unwrap().invoke_sync_config();
         });
 
-        let config_clone = config.clone();
+        let state_clone = state.clone();
         let weak = self.as_weak();
         self.on_set_view_as(move |format| {
-            config_clone.borrow_mut().contents.view_as = format.try_into().unwrap_or_default();
+            let mut state = state_clone.borrow_mut();
+            state.config_mut().contents.view_as = format.try_into().unwrap_or_default();
             weak.upgrade().unwrap().invoke_sync_config();
         });
 
-        let config_clone = config.clone();
+        let state_clone = state.clone();
         let sorted_games_clone = sorted_games.clone();
         let sorted_homebrew_apps_clone = sorted_homebrew_apps.clone();
         let weak = self.as_weak();
         self.on_set_sort_by(move |sort_by| {
-            config_clone.borrow_mut().contents.sort_by = sort_by.try_into().unwrap_or_default();
+            let mut state = state_clone.borrow_mut();
+            state.config_mut().contents.sort_by = sort_by.try_into().unwrap_or_default();
             weak.upgrade().unwrap().invoke_sync_config();
 
             sorted_games_clone.reset();
             sorted_homebrew_apps_clone.reset();
         });
 
-        let config_clone = config.clone();
+        let state_clone = state.clone();
         let filtered_games_clone = filtered_games.clone();
         let weak = self.as_weak();
         self.on_set_show_wii(move |show_wii| {
-            config_clone.borrow_mut().contents.show_wii = show_wii;
+            let mut state = state_clone.borrow_mut();
+            state.config_mut().contents.show_wii = show_wii;
             weak.upgrade().unwrap().invoke_sync_config();
 
             filtered_games_clone.reset();
         });
 
-        let config_clone = config.clone();
+        let state_clone = state.clone();
         let filtered_games_clone = filtered_games.clone();
         let weak = self.as_weak();
         self.on_set_show_gc(move |show_gc| {
-            config_clone.borrow_mut().contents.show_gc = show_gc;
+            let mut state = state_clone.borrow_mut();
+            state.config_mut().contents.show_gc = show_gc;
             weak.upgrade().unwrap().invoke_sync_config();
 
             filtered_games_clone.reset();
         });
 
-        let drive_info_clone = drive_info.clone();
         let games_clone = games.clone();
         let homebrew_apps_clone = homebrew_apps.clone();
-        let config_clone = config.clone();
+        let state_clone = state.clone();
         let weak = self.as_weak();
         let is_downloading_covers_clone = is_downloading_covers.clone();
         self.on_refresh_all(move || {
+            let mut state = state_clone.borrow_mut();
             let logic = weak.upgrade().unwrap();
 
             let (new_games, new_apps, drive_info) = {
-                let config = config_clone.borrow();
-                let root_path = Path::new(&config.contents.mount_point);
+                let root_path = Path::new(&state.config().contents.mount_point);
 
                 let p = root_path.to_path_buf();
                 let join = std::thread::spawn(move || DriveInfo::from_path(&p));
@@ -245,11 +238,27 @@ impl Logic<'_> {
 
             let ids = new_games.iter().map(|g| g.id).collect::<Vec<_>>();
 
-            games_clone.set_vec(new_games.into_iter().enumerate().collect::<Vec<_>>());
-            homebrew_apps_clone.set_vec(new_apps.into_iter().enumerate().collect::<Vec<_>>());
+            state.set_games(new_games);
+            state.set_homebrew_apps(new_apps);
+            state.set_drive_info(drive_info);
 
-            logic.set_drive_info(DisplayedDriveInfo::from(&drive_info));
-            *drive_info_clone.borrow_mut() = drive_info;
+            let new_games = state
+                .games()
+                .iter()
+                .enumerate()
+                .map(|(i, g)| DisplayedGame::new(g, i))
+                .collect::<Vec<_>>();
+            let new_apps = state
+                .homebrew_apps()
+                .iter()
+                .enumerate()
+                .map(|(i, a)| DisplayedHomebrewApp::new(a, i))
+                .collect::<Vec<_>>();
+            let drive_info = DisplayedDriveInfo::from(state.drive_info());
+
+            games_clone.set_vec(new_games);
+            homebrew_apps_clone.set_vec(new_apps);
+            logic.set_drive_info(drive_info);
 
             let mut is_downloading_covers = is_downloading_covers_clone.borrow_mut();
             if !*is_downloading_covers {
@@ -285,15 +294,26 @@ impl Logic<'_> {
             });
         });
 
+        let state_clone = state.clone();
         let osc_apps_clone = osc_apps.clone();
         let weak = self.as_weak();
         self.on_osc_contents_cached(move || {
+            let mut state = state_clone.borrow_mut();
             let logic = weak.upgrade().unwrap();
 
             let (new, hours, minutes) =
                 twbm_core::osc::load_contents(&DATA_DIR).unwrap_or_default();
 
-            osc_apps_clone.set_vec(new.into_iter().enumerate().collect::<Vec<_>>());
+            state.set_osc_apps(new);
+
+            let apps = state
+                .osc_apps()
+                .iter()
+                .enumerate()
+                .map(|(i, a)| DisplayedOscApp::new(a, i))
+                .collect::<Vec<_>>();
+
+            osc_apps_clone.set_vec(apps);
             logic.set_osc_refreshed_x_hours_ago(hours);
             logic.set_osc_refreshed_x_minutes_ago(minutes);
 
@@ -301,14 +321,16 @@ impl Logic<'_> {
         });
 
         let is_downloading_osc_icons_clone = is_downloading_osc_icons.clone();
-        let osc_apps_clone = osc_apps.clone();
+        let state_clone = state.clone();
         let weak = self.as_weak();
         self.on_download_osc_icons(move || {
+            let state = state_clone.borrow();
+
             let mut is_downloading_osc_icons = is_downloading_osc_icons_clone.borrow_mut();
             if !*is_downloading_osc_icons {
                 *is_downloading_osc_icons = true;
 
-                let apps = osc_apps_clone.iter().collect::<Vec<_>>();
+                let apps = state.osc_apps().to_vec();
 
                 let weak = weak.clone();
                 let _ = std::thread::spawn(move || {
@@ -317,17 +339,14 @@ impl Logic<'_> {
             }
         });
 
-        let mapped_osc_apps_clone = mapped_osc_apps.clone();
+        let osc_apps_clone = osc_apps.clone();
         self.on_reload_osc_icon(move |i| {
-            #[allow(clippy::cast_sign_loss)]
-            let i = i as usize;
-
-            let mut app = mapped_osc_apps_clone.row_data(i).unwrap();
+            let mut app = osc_apps_clone.row_data(i as usize).unwrap();
             let icon_path = DATA_DIR.join(format!("osc-icons/{}.png", &app.slug));
 
             if let Ok(icon) = Image::load_from_path(&icon_path) {
                 app.icon = icon;
-                mapped_osc_apps_clone.set_row_data(i, app);
+                osc_apps_clone.set_row_data(i as usize, app);
             }
         });
 
@@ -354,14 +373,14 @@ impl Logic<'_> {
 
         let notifications_clone = notifications.clone();
         self.on_close_notification(move |i| {
-            #[allow(clippy::cast_sign_loss)]
             notifications_clone.remove(i as usize);
         });
 
-        let games_clone = games.clone();
+        let state_clone = state.clone();
         let weak = self.as_weak();
         self.on_checksum(move |i| {
-            let (_, game) = games_clone.row_data(i as usize).unwrap();
+            let state = state_clone.borrow();
+            let game = state.games()[i as usize].clone();
             let weak = weak.clone();
 
             let _ = std::thread::spawn(move || {
@@ -388,33 +407,33 @@ impl Logic<'_> {
 
         let notifications_clone = notifications.clone();
         self.on_notify_error(move |e| {
-            notifications_clone.push(DisplayedNotification::error(e));
+            notifications_clone.push(Notification::error(e));
         });
 
         let notifications_clone = notifications.clone();
         self.on_notify_info(move |e| {
-            notifications_clone.push(DisplayedNotification::info(e));
+            notifications_clone.push(Notification::info(e));
         });
 
         let window_handle = window.window_handle();
-        let games_clone = games.clone();
+        let state_clone = state.clone();
         let conversion_queue_buffer_clone = conversion_queue_buffer.clone();
         self.on_pick_games(move |recursively| {
+            let state = state_clone.borrow();
+
             let paths = if recursively {
                 dialogs::pick_games_r(&window_handle)
             } else {
                 dialogs::pick_games(&window_handle)
             };
 
-            let existing_ids = games_clone
-                .iter()
-                .map(|(_, g)| g.id.to_string())
-                .collect::<Vec<_>>();
+            let existing_ids = state.games().iter().map(|g| g.id).collect::<Vec<_>>();
 
             let mut new = Vec::new();
             for path in paths {
                 if let Some(info) = DiscInfo::from_path(path)
-                    && existing_ids.iter().all(|id| id != info.meta.game_id())
+                    && let Some(game_id) = GameID::new(info.meta.game_id())
+                    && existing_ids.iter().all(|id| *id != game_id)
                 {
                     new.push(QueuedConversion {
                         kind: ConversionKind::Standard,
@@ -442,26 +461,26 @@ impl Logic<'_> {
             }
         });
 
-        let games_clone = games.clone();
+        let state_clone = state.clone();
         let conversion_queue_clone = conversion_queue.clone();
         let is_converting_clone = is_converting.clone();
-        let config_clone = config.clone();
-        let drive_info_clone = drive_info.clone();
         let notifications_clone = notifications.clone();
         let weak = self.as_weak();
         self.on_trigger_conversion(move || {
+            let state = state_clone.borrow();
+
             if conversion_queue_clone.row_count() == 0 {
                 *is_converting_clone.borrow_mut() = false;
-                notifications_clone.push(DisplayedNotification::info("Conversion queue empty"));
+                notifications_clone.push(Notification::info("Conversion queue empty"));
                 return;
             }
 
             let queued = conversion_queue_clone.remove(0);
-            let conv = Conversion::new(&queued, &games_clone);
+            let conv = Conversion::new(&queued, state.games());
 
             let weak = weak.clone();
-            let drive_info = *drive_info_clone.borrow();
-            let config = config_clone.borrow().clone();
+            let drive_info = *state.drive_info();
+            let config = state.config().clone();
 
             let _ = std::thread::spawn(move || {
                 conv.perform(config, drive_info, weak);
@@ -483,14 +502,15 @@ impl Logic<'_> {
             weak.upgrade().unwrap().set_crc32_status(status);
         });
 
-        let games_clone = games.clone();
+        let state_clone = state.clone();
         let window_handle = window.window_handle();
         let conversion_queue_clone = conversion_queue.clone();
         let is_converting_clone = is_converting.clone();
         let weak = self.as_weak();
         self.on_archive_game(move |i| {
-            let (_, game) = games_clone.row_data(i as usize).unwrap();
-            let out_path = dialogs::save_game(&window_handle, &game);
+            let state = state_clone.borrow();
+
+            let out_path = dialogs::save_game(&window_handle, &state.games()[i as usize]);
 
             if let Some(out_path) = out_path {
                 let queued = QueuedConversion {
@@ -528,37 +548,35 @@ impl Logic<'_> {
             }
         });
 
+        let state_clone = state.clone();
         let window_handle = window.window_handle();
-        let config_clone = config.clone();
         let notifications_clone = notifications.clone();
         let weak = self.as_weak();
         self.on_pick_homebrew_apps(move || {
+            let state = state_clone.borrow();
+
             let paths = dialogs::pick_homebrew_apps(&window_handle);
-            let config = config_clone.borrow();
-            let root_dir = Path::new(&config.contents.mount_point);
+            let root_dir = &state.config().contents.mount_point;
 
             if let Err(e) = twbm_core::util::install_zips(root_dir, &paths) {
                 notifications_clone.push(e.into());
             } else {
                 let msg = format!("{} apps installed successfully", paths.len());
-                notifications_clone.push(DisplayedNotification::info(msg));
+                notifications_clone.push(Notification::info(msg));
                 weak.upgrade().unwrap().invoke_refresh_all();
             }
         });
 
-        let osc_apps_clone = osc_apps.clone();
-        let config_clone = config.clone();
+        let state_clone = state.clone();
         let notifications_clone = notifications.clone();
         let weak = self.as_weak();
         self.on_install_osc_app(move |i| {
-            let (_, app) = osc_apps_clone.row_data(i as usize).unwrap();
-            let config = config_clone.borrow();
-            let root_dir = PathBuf::from(&config.contents.mount_point);
+            let state = state_clone.borrow();
 
-            notifications_clone.push(DisplayedNotification::info(format!(
-                "Installing {}",
-                &app.name
-            )));
+            let app = state.osc_apps()[i as usize].clone();
+            let root_dir = state.config().contents.mount_point.clone();
+
+            notifications_clone.push(Notification::info(format!("Installing {}", &app.name)));
 
             let weak = weak.clone();
 
@@ -579,17 +597,14 @@ impl Logic<'_> {
             });
         });
 
-        let mapped_games_clone = mapped_games.clone();
+        let games_clone = games.clone();
         self.on_reload_cover(move |i| {
-            #[allow(clippy::cast_sign_loss)]
-            let i = i as usize;
-
-            let mut game = mapped_games_clone.row_data(i).unwrap();
+            let mut game = games_clone.row_data(i as usize).unwrap();
             let cover_path = DATA_DIR.join(format!("covers/{}.png", &game.id));
 
             if let Ok(cover) = Image::load_from_path(&cover_path) {
                 game.cover = cover;
-                mapped_games_clone.set_row_data(i, game);
+                games_clone.set_row_data(i as usize, game);
             }
         });
 
@@ -598,30 +613,35 @@ impl Logic<'_> {
             *is_downloading_covers_clone.borrow_mut() = false;
         });
 
+        let state_clone = state.clone();
         let homebrew_apps_clone = homebrew_apps.clone();
-        let osc_apps_clone = osc_apps.clone();
         self.on_pair_homebrew_osc(move || {
-            let mut homebrew_apps = homebrew_apps_clone.iter().collect::<Vec<_>>();
-            let osc_apps = osc_apps_clone.iter().collect::<Vec<_>>();
+            let mut state = state_clone.borrow_mut();
 
-            for (_, app) in &mut homebrew_apps {
-                if let Some((osc_idx, _)) = osc_apps
+            for app in state.homebrew_apps_mut() {
+                if let Some(osc_idx) = osc_apps
                     .iter()
-                    .find(|(_, osc_app)| osc_app.name == app.meta.name)
+                    .position(|osc_app| osc_app.name == app.meta.name)
                 {
-                    app.osc_idx = *osc_idx as i32;
+                    app.osc_idx = osc_idx as i32;
                 }
             }
 
-            homebrew_apps_clone.set_vec(homebrew_apps);
+            let apps = state
+                .homebrew_apps()
+                .iter()
+                .enumerate()
+                .map(|(i, app)| DisplayedHomebrewApp::new(app, i))
+                .collect::<Vec<_>>();
+            homebrew_apps_clone.set_vec(apps);
         });
 
-        let games_clone = games.clone();
+        let state_clone = state.clone();
         let weak = self.as_weak();
         self.on_load_game_info(move |i| {
-            let (_, game) = games_clone.row_data(i as usize).unwrap();
+            let state = state_clone.borrow();
 
-            if let Some(info) = DiscInfo::from_game_dir(&game.path) {
+            if let Some(info) = DiscInfo::from_game_dir(&state.games()[i as usize].path) {
                 let info = DisplayedDiscInfo::from(&info);
                 weak.upgrade().unwrap().set_current_disc_info(info);
             }

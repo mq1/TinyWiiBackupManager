@@ -7,7 +7,7 @@ import {
     DisplayedGame,
     DisplayedHomebrewApp,
     DisplayedOscApp,
-    DisplayedNotification,
+    Notification,
     DisplayedDiscInfo,
     QueuedConversion,
 } from "types.slint";
@@ -20,7 +20,7 @@ export global Logic {
     in-out property <[DisplayedGame]> games;
     in-out property <[DisplayedHomebrewApp]> homebrew-apps;
     in-out property <[DisplayedOscApp]> osc-apps;
-    in-out property <[DisplayedNotification]> notifications;
+    in-out property <[Notification]> notifications;
     in-out property <[QueuedConversion]> conversion-queue;
     in-out property <[QueuedConversion]> conversion-queue-buffer;
     in-out property <string> status;

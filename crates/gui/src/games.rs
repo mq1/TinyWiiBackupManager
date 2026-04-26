@@ -4,10 +4,7 @@
 use crate::{DisplayedGame, data_dir::DATA_DIR, util::GIB};
 use slint::{Image, SharedString, ToSharedString};
 use std::{cell::RefCell, cmp::Ordering, path::Path, rc::Rc};
-use twbm_core::{
-    config::{Config, SortBy},
-    game::Game,
-};
+use twbm_core::{app_state::AppState, config::SortBy, game::Game};
 
 impl DisplayedGame {
     pub fn new(game: &Game, idx: usize) -> Self {
@@ -35,12 +32,12 @@ impl DisplayedGame {
 }
 
 pub fn get_compare_fn(
-    config: Rc<RefCell<Config>>,
+    state: Rc<RefCell<AppState>>,
 ) -> impl Fn(&DisplayedGame, &DisplayedGame) -> Ordering {
     move |a, b| {
-        let config = config.borrow();
+        let state = state.borrow();
 
-        match config.contents.sort_by {
+        match state.config().contents.sort_by {
             SortBy::NameDescending => a.title.cmp(&b.title),
             SortBy::NameAscending => b.title.cmp(&a.title),
             SortBy::SizeDescending => a.size_gib.total_cmp(&b.size_gib),
@@ -51,10 +48,11 @@ pub fn get_compare_fn(
 
 pub fn get_filter_fn(
     query_lowercase: Rc<RefCell<SharedString>>,
-    config: Rc<RefCell<Config>>,
+    state: Rc<RefCell<AppState>>,
 ) -> impl Fn(&DisplayedGame) -> bool {
     move |game| {
-        let config = config.borrow();
+        let state = state.borrow();
+        let config = state.config();
 
         if !config.contents.show_wii && game.is_wii {
             return false;

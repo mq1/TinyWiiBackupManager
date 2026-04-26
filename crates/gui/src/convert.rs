@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{ConversionKind, Logic, QueuedConversion};
-use slint::{Model, SharedString, ToSharedString, VecModel, Weak};
+use slint::{SharedString, ToSharedString, Weak};
 use std::fmt::Write;
-use std::{path::PathBuf, rc::Rc};
+use std::path::PathBuf;
 use twbm_core::{config::Config, drive_info::DriveInfo, game::Game};
 
 pub enum Conversion {
@@ -14,19 +14,19 @@ pub enum Conversion {
 }
 
 impl Conversion {
-    pub fn new(queued: &QueuedConversion, games: &Rc<VecModel<(usize, Game)>>) -> Self {
+    pub fn new(queued: &QueuedConversion, games: &[Game]) -> Self {
         match queued.kind {
             ConversionKind::Standard => {
                 let in_path = PathBuf::from(&queued.path);
                 Conversion::Standard(in_path)
             }
             ConversionKind::Archive => {
-                let (_, game) = games.row_data(queued.game_idx as usize).unwrap();
+                let game = games[queued.game_idx as usize].clone();
                 let out_path = PathBuf::from(&queued.path);
                 Conversion::Archive(game, out_path)
             }
             ConversionKind::Scrub => {
-                let (_, game) = games.row_data(queued.game_idx as usize).unwrap();
+                let game = games[queued.game_idx as usize].clone();
                 Conversion::Scrub(game)
             }
         }

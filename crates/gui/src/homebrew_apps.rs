@@ -4,10 +4,7 @@
 use crate::{DisplayedHomebrewApp, util::MIB};
 use slint::{Image, Rgba8Pixel, SharedPixelBuffer, SharedString, ToSharedString};
 use std::{cell::RefCell, cmp::Ordering, path::Path, rc::Rc};
-use twbm_core::{
-    config::{Config, SortBy},
-    homebrew_app::HomebrewApp,
-};
+use twbm_core::{app_state::AppState, config::SortBy, homebrew_app::HomebrewApp};
 
 impl DisplayedHomebrewApp {
     pub fn new(app: &HomebrewApp, idx: usize) -> Self {
@@ -40,12 +37,12 @@ impl DisplayedHomebrewApp {
 }
 
 pub fn get_compare_fn(
-    config: Rc<RefCell<Config>>,
+    state: Rc<RefCell<AppState>>,
 ) -> impl Fn(&DisplayedHomebrewApp, &DisplayedHomebrewApp) -> Ordering {
     move |a, b| {
-        let config = config.borrow();
+        let state = state.borrow();
 
-        match config.contents.sort_by {
+        match state.config().contents.sort_by {
             SortBy::NameDescending => a.name.cmp(&b.name),
             SortBy::NameAscending => b.name.cmp(&a.name),
             SortBy::SizeDescending => a.size_mib.total_cmp(&b.size_mib),

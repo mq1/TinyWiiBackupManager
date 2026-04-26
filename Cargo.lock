@@ -6103,11 +6103,12 @@ dependencies = [
 
 [[package]]
 name = "wii-disc-info"
-version = "0.4.0"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f8fe03bcd773b71851879f3d0af35e04e80c4223b8ef8b47c720d9a5853c841e"
+checksum = "e9c53c6423aaf3fb779ed5489e4018987f5821c2b8a579bddb43b073b9f68190"
 dependencies = [
  "arrayvec",
+ "derive_more",
 ]
 
 [[package]]

@@ -34,10 +34,10 @@ impl DisplayedOscApp {
     }
 }
 
-pub fn download_icons(apps: Vec<(usize, OscAppMeta)>, weak: Weak<Logic<'static>>) {
+pub fn download_icons(apps: Vec<OscAppMeta>, weak: Weak<Logic<'static>>) {
     let _ = fs::create_dir_all(DATA_DIR.join("osc-icons"));
 
-    for (i, app) in apps {
+    for (i, app) in apps.iter().enumerate() {
         if app.download_icon(&DATA_DIR).is_ok() {
             let _ = weak.upgrade_in_event_loop(move |logic| {
                 logic.invoke_reload_osc_icon(i as i32);
