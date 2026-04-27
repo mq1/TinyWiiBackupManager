@@ -84,12 +84,14 @@ export component HomebrewAppCard inherits Card {
             }
 
             if !update.is-empty: IconButton {
+                width: self.height + 1px;
                 icon: IconSet.ArrowUp;
                 tooltip: "Update app to \{update}";
                 clicked => Logic.install-osc-app(app.osc-idx);
             }
 
             IconButton {
+                width: self.height + 1px;
                 icon: IconSet.Trash;
                 tooltip: "Delete app";
                 clicked => delete();

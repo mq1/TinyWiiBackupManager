@@ -68,12 +68,14 @@ export component OscAppCard inherits Card {
             }
 
             IconButton {
+                width: self.height + 1px;
                 icon: IconSet.HardDriveDownload;
                 tooltip: "Install";
                 clicked => install();
             }
 
             IconButton {
+                width: self.height + 1px;
                 icon: IconSet.MonitorUp;
                 tooltip: "Wiiload";
             }

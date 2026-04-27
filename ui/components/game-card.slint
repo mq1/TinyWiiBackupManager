@@ -68,12 +68,14 @@ export component GameCard inherits Card {
             }
 
             IconButton {
+                width: self.height + 1px;
                 icon: IconSet.HardDriveDownload;
                 tooltip: "Archive to PC";
                 clicked => Logic.archive-game(game.idx);
             }
 
             IconButton {
+                width: self.height + 1px;
                 icon: IconSet.Trash;
                 tooltip: "Delete game";
                 clicked => delete();

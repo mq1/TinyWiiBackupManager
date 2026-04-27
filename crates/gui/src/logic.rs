@@ -17,8 +17,14 @@ use std::{
     rc::Rc,
 };
 use twbm_core::{
-    checksum, config::Config, disc_info::DiscInfo, drive_info::DriveInfo, game::Game,
-    game_id::GameID, homebrew_app::HomebrewApp, osc::OscAppMeta,
+    checksum,
+    config::Config,
+    disc_info::{DiscInfo, is_worth_scrubbing},
+    drive_info::DriveInfo,
+    game::Game,
+    game_id::GameID,
+    homebrew_app::HomebrewApp,
+    osc::OscAppMeta,
 };
 
 impl Logic<'_> {
@@ -702,6 +708,33 @@ impl Logic<'_> {
             }
 
             weak.upgrade().unwrap().invoke_refresh_all();
+        });
+
+        let games_clone = games.clone();
+        let weak = self.as_weak();
+        let notifications_clone = notifications.clone();
+        self.on_scrub_all_games(move || {
+            let to_scrub = games_clone
+                .borrow()
+                .iter()
+                .enumerate()
+                .filter_map(|(i, game)| {
+                    let disc_path = game.get_disc_path()?;
+                    let mut f = File::open(disc_path).ok()?;
+                    let worth = is_worth_scrubbing(&mut f).ok()?;
+                    worth.then_some(i as i32)
+                })
+                .collect::<Vec<_>>();
+
+            if to_scrub.is_empty() {
+                notifications_clone.push(Notification::info("No games need scrubbing"));
+                return;
+            }
+
+            let logic = weak.upgrade().unwrap();
+            for i in to_scrub {
+                logic.invoke_scrub_game(i);
+            }
         });
 
         #[cfg(windows)]

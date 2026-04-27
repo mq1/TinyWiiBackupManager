@@ -41,6 +41,7 @@ export component AppWindow inherits Window {
     private property <int> game-to-scrub: -1;
     private property <int> game-to-delete: -1;
     private property <int> homebrew-app-to-delete: -1;
+    private property <bool> scrubbing-all-games: false;
 
     // Initialize
     Timer {
@@ -115,7 +116,9 @@ export component AppWindow inherits Window {
                         current-osc-app-i = i;
                     }
                 }
-                if current-page == Page.Toolbox: ToolboxPage { }
+                if current-page == Page.Toolbox: ToolboxPage {
+                    scrubbing-all-games <=> scrubbing-all-games;
+                }
                 if current-page == Page.Settings: SettingsPage { }
                 if current-page == Page.About: AboutPage { }
             }
@@ -216,6 +219,20 @@ export component AppWindow inherits Window {
             current-game-i = -1;
             Logic.crc32-status = "";
             Logic.current-disc-info = { };
+        }
+    }
+
+    if scrubbing-all-games: ConfirmationModal {
+        Text {
+            text: "Are you sure you want to scrub all games?\nThis action cannot be undone.";
+        }
+
+        cancelled => {
+            scrubbing-all-games = false;
+        }
+        confirmed => {
+            Logic.scrub-all-games();
+            scrubbing-all-games = false;
         }
     }
 
