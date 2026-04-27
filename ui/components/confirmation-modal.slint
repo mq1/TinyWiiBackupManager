@@ -8,7 +8,6 @@ import { IconButton, IconButtonKind } from "icon-button.slint";
 import { Icon, IconSet } from "@lucide";
 
 export component ConfirmationModal inherits Modal {
-    in property <string> message;
     in property <bool> destructive: false;
     in property <Icon> btn-icon: IconSet.WifiZero;
 
@@ -22,11 +21,11 @@ export component ConfirmationModal inherits Modal {
             width: v.preferred-width;
 
             v := VerticalLayout {
+                alignment: start;
                 padding: 20px;
+                spacing: 5px;
 
-                Text {
-                    text: message;
-                }
+                @children
             }
         }
 

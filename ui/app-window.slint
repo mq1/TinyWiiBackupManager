@@ -134,37 +134,6 @@ export component AppWindow inherits Window {
         }
     }
 
-    if game-to-delete >= 0: ConfirmationModal {
-        message: "Are you sure you want to delete \{Logic.games[game-to-delete].title}?\nThis action cannot be undone.";
-
-        cancelled => {
-            game-to-delete = -1;
-        }
-        confirmed => {
-            Logic.delete-game(Logic.games[game-to-delete].idx);
-            game-to-delete = -1;
-        }
-    }
-
-    if homebrew-app-to-delete >= 0: ConfirmationModal {
-        message: "Are you sure you want to delete \{Logic.homebrew-apps[homebrew-app-to-delete].name}?\nThis action cannot be undone.";
-
-        cancelled => {
-            homebrew-app-to-delete = -1;
-        }
-        confirmed => {
-            Logic.delete-homebrew-app(Logic.homebrew-apps[homebrew-app-to-delete].idx);
-            homebrew-app-to-delete = -1;
-        }
-    }
-
-    if Logic.conversion-queue-buffer.length > 0: ConfirmationModal {
-        message: "Are you sure you want to add \{Logic.conversion-queue-buffer.length} conversions to the queue?";
-
-        cancelled => Logic.clear-conversion-queue-buffer();
-        confirmed => Logic.confirm-conversion-queue-buffer();
-    }
-
     if current-game-i >= 0: GameInfoModal {
         game: Logic.games[current-game-i];
         closed => {
@@ -178,21 +147,6 @@ export component AppWindow inherits Window {
         checksum => Logic.checksum(Logic.games[current-game-i].idx);
     }
 
-    if game-to-scrub >= 0: ConfirmationModal {
-        message: "Are you sure you want to scrub \{Logic.games[game-to-scrub].title}?\nThis action cannot be undone.";
-
-        cancelled => {
-            game-to-scrub = -1;
-        }
-        confirmed => {
-            Logic.scrub-game(Logic.games[game-to-scrub].idx);
-            game-to-scrub = -1;
-            current-game-i = -1;
-            Logic.crc32-status = "";
-            Logic.current-disc-info = { };
-        }
-    }
-
     if current-homebrew-app-i >= 0: HomebrewAppInfoModal {
         app: Logic.homebrew-apps[current-homebrew-app-i];
         closed => {
@@ -204,6 +158,64 @@ export component AppWindow inherits Window {
         app: Logic.osc-apps[current-osc-app-i];
         closed => {
             current-osc-app-i = -1;
+        }
+    }
+
+    if game-to-delete >= 0: ConfirmationModal {
+        Text {
+            text: "Are you sure you want to delete \{Logic.games[game-to-delete].title}?\nThis action cannot be undone.";
+        }
+
+        cancelled => {
+            game-to-delete = -1;
+        }
+        confirmed => {
+            Logic.delete-game(Logic.games[game-to-delete].idx);
+            game-to-delete = -1;
+        }
+    }
+
+    if homebrew-app-to-delete >= 0: ConfirmationModal {
+        Text {
+            text: "Are you sure you want to delete \{Logic.homebrew-apps[homebrew-app-to-delete].name}?\nThis action cannot be undone.";
+        }
+
+        cancelled => {
+            homebrew-app-to-delete = -1;
+        }
+        confirmed => {
+            Logic.delete-homebrew-app(Logic.homebrew-apps[homebrew-app-to-delete].idx);
+            homebrew-app-to-delete = -1;
+        }
+    }
+
+    if Logic.conversion-queue-buffer.length > 0: ConfirmationModal {
+        Text {
+            text: "Are you sure you want to add \{Logic.conversion-queue-buffer.length} conversions to the queue?";
+        }
+
+        for conv in Logic.conversion-queue-buffer: Text {
+            text: "• \{conv.in-path}";
+        }
+
+        cancelled => Logic.clear-conversion-queue-buffer();
+        confirmed => Logic.confirm-conversion-queue-buffer();
+    }
+
+    if game-to-scrub >= 0: ConfirmationModal {
+        Text {
+            text: "Are you sure you want to scrub \{Logic.games[game-to-scrub].title}?\nThis action cannot be undone.";
+        }
+
+        cancelled => {
+            game-to-scrub = -1;
+        }
+        confirmed => {
+            Logic.scrub-game(Logic.games[game-to-scrub].idx);
+            game-to-scrub = -1;
+            current-game-i = -1;
+            Logic.crc32-status = "";
+            Logic.current-disc-info = { };
         }
     }
 
