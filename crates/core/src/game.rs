@@ -47,10 +47,10 @@ impl Game {
     }
 
     pub fn get_disc_path(&self) -> Option<PathBuf> {
-        let mut wii_wbfs = ArrayString::<10>::new();
+        let mut wii_wbfs = ArrayString::<11>::new();
         write!(&mut wii_wbfs, "{}.wbfs", self.id).ok()?;
 
-        let mut wii_iso = ArrayString::<9>::new();
+        let mut wii_iso = ArrayString::<10>::new();
         write!(&mut wii_iso, "{}.iso", self.id).ok()?;
 
         let mut wii_part0_iso = ArrayString::<16>::new();
