@@ -28,8 +28,8 @@ use std::{
 
 pub fn perform(
     mut in_path: PathBuf,
-    config: Config,
-    drive_info: DriveInfo,
+    config: &Config,
+    drive_info: &DriveInfo,
     update_progress: &impl Fn(u8),
 ) -> Result<()> {
     let mut files_to_remove = Vec::new();

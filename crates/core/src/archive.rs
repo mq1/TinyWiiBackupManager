@@ -1,10 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    game::Game,
-    util::{ext_to_format, format_to_opts, get_threads_num},
-};
+use crate::util::{ext_to_format, format_to_opts, get_threads_num};
 use anyhow::{Result, anyhow};
 use nod::{
     read::{DiscOptions, DiscReader, PartitionEncryption},
@@ -13,11 +10,11 @@ use nod::{
 use std::{
     fs::File,
     io::{BufWriter, Seek, Write},
-    path::PathBuf,
+    path::Path,
     time::{Duration, Instant},
 };
 
-pub fn perform(game: Game, out_path: PathBuf, update_progress: &impl Fn(u8)) -> Result<()> {
+pub fn perform(in_path: &Path, out_path: &Path, update_progress: &impl Fn(u8)) -> Result<()> {
     let out_ext = out_path.extension().ok_or(anyhow!("No extension"))?;
     let out_format = ext_to_format(out_ext).ok_or(anyhow!("Invalid extension"))?;
 
@@ -38,7 +35,6 @@ pub fn perform(game: Game, out_path: PathBuf, update_progress: &impl Fn(u8)) -> 
         digest_xxh64: true,
     };
 
-    let in_path = game.get_disc_path().ok_or(anyhow!("No disc found"))?;
     let disc_reader = DiscReader::new(in_path, &disc_opts)?;
     let disc_writer = DiscWriter::new(disc_reader, &format_opts)?;
 

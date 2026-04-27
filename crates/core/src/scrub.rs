@@ -4,7 +4,6 @@
 use crate::{
     config::Config,
     drive_info::DriveInfo,
-    game::Game,
     util::{HEADER_SIZE, SPLIT_SIZE, get_threads_num},
 };
 use anyhow::{Result, anyhow};
@@ -18,21 +17,23 @@ use split_write::SplitWriter;
 use std::{
     fs,
     io::{BufWriter, Write},
+    path::Path,
     time::{Duration, Instant},
 };
 use which_fs::FsKind;
 
 pub fn perform(
-    game: Game,
-    config: Config,
-    drive_info: DriveInfo,
+    in_path: &Path,
+    game_id: &str,
+    config: &Config,
+    drive_info: &DriveInfo,
     update_progress: &impl Fn(u8),
 ) -> Result<()> {
-    let disc_path = game.get_disc_path().ok_or(anyhow!("No disc found"))?;
-    let game_dir_name = game.path.file_name().ok_or(anyhow!("No file name"))?;
+    let game_dir_path = in_path.parent().ok_or(anyhow!("No parent"))?;
+    let game_dir_name = game_dir_path.file_name().ok_or(anyhow!("No file name"))?;
     let tmp_game_dir_name = format!("{} SCRUB", game_dir_name.to_string_lossy());
-    let tmp_game_dir = game.path.with_file_name(tmp_game_dir_name);
-    let hash_path = tmp_game_dir.join(format!("{}.crc32", game.id));
+    let tmp_game_dir = game_dir_path.with_file_name(tmp_game_dir_name);
+    let hash_path = tmp_game_dir.join(format!("{game_id}.crc32"));
 
     let (processor_threads, preloader_threads) = get_threads_num();
     let disc_opts = DiscOptions {
@@ -50,14 +51,14 @@ pub fn perform(
     };
 
     let get_file_name = |i| match i {
-        0 => format!("{}.wbfs", game.id),
-        n => format!("{}.wbf{n}", game.id),
+        0 => format!("{game_id}.wbfs"),
+        n => format!("{game_id}.wbf{n}"),
     };
 
     let should_split = config.contents.always_split || (drive_info.fs_kind == FsKind::Fat32);
     let split_size = if should_split { Some(SPLIT_SIZE) } else { None };
 
-    let disc_reader = DiscReader::new(&disc_path, &disc_opts)?;
+    let disc_reader = DiscReader::new(in_path, &disc_opts)?;
     let disc_writer = DiscWriter::new(disc_reader, &FormatOptions::new(Format::Wbfs))?;
 
     fs::create_dir_all(&tmp_game_dir)?;
@@ -113,8 +114,8 @@ pub fn perform(
     let checksum = final_hasher.finalize();
     fs::write(hash_path, format!("{checksum:08x}"))?;
 
-    fs::remove_dir_all(&game.path)?;
-    fs::rename(tmp_game_dir, &game.path)?;
+    fs::remove_dir_all(game_dir_path)?;
+    fs::rename(tmp_game_dir, game_dir_path)?;
 
     Ok(())
 }

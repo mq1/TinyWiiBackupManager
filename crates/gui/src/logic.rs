@@ -433,8 +433,8 @@ impl Logic<'_> {
                 {
                     new.push(QueuedConversion {
                         kind: ConversionKind::Standard,
-                        path: info.path.to_string_lossy().to_shared_string(),
-                        game_idx: -1,
+                        in_path: info.path.to_string_lossy().to_shared_string(),
+                        ..Default::default()
                     });
                 }
             }
@@ -458,7 +458,6 @@ impl Logic<'_> {
         });
 
         let config_clone = config.clone();
-        let games_clone = games.clone();
         let drive_info_clone = drive_info.clone();
         let conversion_queue_clone = conversion_queue.clone();
         let is_converting_clone = is_converting.clone();
@@ -472,7 +471,7 @@ impl Logic<'_> {
             }
 
             let queued = conversion_queue_clone.remove(0);
-            let conv = Conversion::new(&queued, &games_clone.borrow());
+            let conv = Conversion::new(&queued);
 
             let weak = weak.clone();
             let drive_info = *drive_info_clone.borrow();
@@ -502,15 +501,26 @@ impl Logic<'_> {
         let window_handle = window.window_handle();
         let conversion_queue_clone = conversion_queue.clone();
         let is_converting_clone = is_converting.clone();
+        let notifications_clone = notifications.clone();
         let weak = self.as_weak();
         self.on_archive_game(move |i| {
-            let out_path = dialogs::save_game(&window_handle, &games_clone.borrow()[i as usize]);
+            let (in_path, out_path) = {
+                let game = &games_clone.borrow()[i as usize];
+                let Some(in_path) = game.get_disc_path() else {
+                    notifications_clone.push(Notification::error("No disc found for this game!"));
+                    return;
+                };
+                let out_path = dialogs::save_game(&window_handle, game);
+
+                (in_path, out_path)
+            };
 
             if let Some(out_path) = out_path {
                 let queued = QueuedConversion {
                     kind: ConversionKind::Archive,
-                    game_idx: i,
-                    path: out_path.to_string_lossy().to_shared_string(),
+                    in_path: in_path.to_string_lossy().to_shared_string(),
+                    out_path: out_path.to_string_lossy().to_shared_string(),
+                    ..Default::default()
                 };
 
                 conversion_queue_clone.push(queued);
@@ -523,14 +533,26 @@ impl Logic<'_> {
             }
         });
 
+        let games_clone = games.clone();
         let conversion_queue_clone = conversion_queue.clone();
         let is_converting_clone = is_converting.clone();
+        let notifications_clone = notifications.clone();
         let weak = self.as_weak();
         self.on_scrub_game(move |i| {
-            let conv = QueuedConversion {
-                kind: ConversionKind::Scrub,
-                game_idx: i,
-                path: SharedString::new(),
+            let conv = {
+                let game = &games_clone.borrow()[i as usize];
+                let Some(disc_path) = game.get_disc_path() else {
+                    notifications_clone.push(Notification::error("No disc path found for game"));
+                    return;
+                };
+
+                QueuedConversion {
+                    kind: ConversionKind::Scrub,
+                    in_path: disc_path.to_string_lossy().to_shared_string(),
+                    game_title: game.title.to_shared_string(),
+                    game_id: game.id.to_shared_string(),
+                    ..Default::default()
+                }
             };
 
             conversion_queue_clone.push(conv);
@@ -575,17 +597,15 @@ impl Logic<'_> {
             std::thread::spawn(move || {
                 let res = app.install(&root_dir);
 
-                if let Err(e) = res {
-                    let _ = weak.upgrade_in_event_loop(move |logic| {
+                let _ = weak.upgrade_in_event_loop(move |logic| {
+                    if let Err(e) = res {
                         logic.invoke_notify_error(e.to_shared_string());
-                    });
-                } else {
-                    let msg = format!("{} installed successfully", &app.name);
-                    let _ = weak.upgrade_in_event_loop(move |logic| {
+                    } else {
+                        let msg = format!("{} installed successfully", &app.name);
                         logic.invoke_notify_info(msg.to_shared_string());
                         logic.invoke_refresh_all();
-                    });
-                }
+                    }
+                });
             });
         });
 
