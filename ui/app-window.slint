@@ -135,7 +135,7 @@ export component AppWindow inherits Window {
     }
 
     if game-to-delete >= 0: ConfirmationModal {
-        message: "Are you sure you want to delete \{Logic.games[game-to-delete].title}? This action cannot be undone.";
+        message: "Are you sure you want to delete \{Logic.games[game-to-delete].title}?\nThis action cannot be undone.";
 
         cancelled => {
             game-to-delete = -1;
@@ -147,7 +147,7 @@ export component AppWindow inherits Window {
     }
 
     if homebrew-app-to-delete >= 0: ConfirmationModal {
-        message: "Are you sure you want to delete \{Logic.homebrew-apps[homebrew-app-to-delete].name}? This action cannot be undone.";
+        message: "Are you sure you want to delete \{Logic.homebrew-apps[homebrew-app-to-delete].name}?\nThis action cannot be undone.";
 
         cancelled => {
             homebrew-app-to-delete = -1;
@@ -155,21 +155,6 @@ export component AppWindow inherits Window {
         confirmed => {
             Logic.delete-homebrew-app(Logic.homebrew-apps[homebrew-app-to-delete].idx);
             homebrew-app-to-delete = -1;
-        }
-    }
-
-    if game-to-scrub >= 0: ConfirmationModal {
-        message: "Are you sure you want to scrub \{Logic.games[game-to-scrub].title}? This action cannot be undone.";
-
-        cancelled => {
-            game-to-scrub = -1;
-        }
-        confirmed => {
-            Logic.scrub-game(Logic.games[game-to-scrub].idx);
-            game-to-scrub = -1;
-            current-game-i = -1;
-            Logic.crc32-status = "";
-            Logic.current-disc-info = { };
         }
     }
 
@@ -191,6 +176,21 @@ export component AppWindow inherits Window {
             game-to-scrub = current-game-i;
         }
         checksum => Logic.checksum(Logic.games[current-game-i].idx);
+    }
+
+    if game-to-scrub >= 0: ConfirmationModal {
+        message: "Are you sure you want to scrub \{Logic.games[game-to-scrub].title}?\nThis action cannot be undone.";
+
+        cancelled => {
+            game-to-scrub = -1;
+        }
+        confirmed => {
+            Logic.scrub-game(Logic.games[game-to-scrub].idx);
+            game-to-scrub = -1;
+            current-game-i = -1;
+            Logic.crc32-status = "";
+            Logic.current-disc-info = { };
+        }
     }
 
     if current-homebrew-app-i >= 0: HomebrewAppInfoModal {

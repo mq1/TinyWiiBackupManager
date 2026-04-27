@@ -16,6 +16,7 @@ LegalCopyright = "Copyright © 2026 Manuel Quarneti. Licensed under GPL-3.0-only
 twbm-core = { path = "../core", default-features = false }
 slint = { version = "1.16", features = ["raw-window-handle-06"] }
 anyhow = { workspace = true }
+wii-disc-info = { workspace = true }
 open = "5.3"
 directories = "6.0"
 rfd = "0.17"

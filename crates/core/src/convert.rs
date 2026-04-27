@@ -123,6 +123,7 @@ pub fn perform(
 
     let hash_path = game_dir.join(format!("{game_id}.crc32"));
 
+    fs::create_dir_all(&game_dir)?;
     let mut out_writer = BufWriter::with_capacity(
         32_768,
         SplitWriter::create(&game_dir, get_file_name, split_size)?,

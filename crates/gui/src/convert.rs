@@ -45,7 +45,7 @@ impl Conversion {
                 let weak2 = weak.clone();
                 let update_progress = move |percentage| {
                     let mut status = SharedString::new();
-                    write!(status, "Converting  {filename} {percentage}%").unwrap();
+                    write!(status, "↑  Converting  {filename}  {percentage}%").unwrap();
 
                     let _ = weak2.upgrade_in_event_loop(move |logic| {
                         logic.set_status(status.to_shared_string());
@@ -63,7 +63,7 @@ impl Conversion {
                 let weak2 = weak.clone();
                 let update_progress = move |percentage| {
                     let mut status = SharedString::new();
-                    write!(status, "Archiving  {filename} {percentage}%").unwrap();
+                    write!(status, "↓  Archiving  {filename}  {percentage}%").unwrap();
 
                     let _ = weak2.upgrade_in_event_loop(move |logic| {
                         logic.set_status(status.to_shared_string());
@@ -76,7 +76,7 @@ impl Conversion {
                 let weak2 = weak.clone();
                 let update_progress = move |percentage| {
                     let mut status = SharedString::new();
-                    let _ = write!(status, "Scrubbing  {} {}%", &game_title, percentage);
+                    let _ = write!(status, "↔  Scrubbing  {}  {}%", &game_title, percentage);
 
                     let _ = weak2.upgrade_in_event_loop(move |logic| {
                         logic.set_status(status.to_shared_string());

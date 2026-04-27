@@ -10,7 +10,12 @@ use slint::{
     FilterModel, Global, Image, Model, ModelRc, SharedString, SortModel, ToSharedString, VecModel,
     Window,
 };
-use std::{cell::RefCell, path::Path, rc::Rc};
+use std::{
+    cell::RefCell,
+    fs::{self, File},
+    path::Path,
+    rc::Rc,
+};
 use twbm_core::{
     checksum, config::Config, disc_info::DiscInfo, drive_info::DriveInfo, game::Game,
     game_id::GameID, homebrew_app::HomebrewApp, osc::OscAppMeta,
@@ -427,13 +432,14 @@ impl Logic<'_> {
 
             let mut new = Vec::new();
             for path in paths {
-                if let Some(info) = DiscInfo::from_path(path)
-                    && let Some(game_id) = GameID::new(info.meta.game_id())
+                if let Ok(mut f) = File::open(&path)
+                    && let Ok(meta) = wii_disc_info::Meta::read(&mut f)
+                    && let Some(game_id) = GameID::new(meta.game_id())
                     && existing_ids.iter().all(|id| *id != game_id)
                 {
                     new.push(QueuedConversion {
                         kind: ConversionKind::Standard,
-                        in_path: info.path.to_string_lossy().to_shared_string(),
+                        in_path: path.to_string_lossy().to_shared_string(),
                         ..Default::default()
                     });
                 }
@@ -474,7 +480,7 @@ impl Logic<'_> {
             let conv = Conversion::new(&queued);
 
             let weak = weak.clone();
-            let drive_info = *drive_info_clone.borrow();
+            let drive_info = drive_info_clone.borrow().clone();
             let config = config_clone.borrow().clone();
 
             let _ = std::thread::spawn(move || {
@@ -571,9 +577,12 @@ impl Logic<'_> {
         self.on_pick_homebrew_apps(move || {
             let paths = dialogs::pick_homebrew_apps(&window_handle);
 
-            if let Err(e) =
-                twbm_core::util::install_zips(&config_clone.borrow().contents.mount_point, &paths)
-            {
+            let res = {
+                let config = config_clone.borrow();
+                twbm_core::util::install_zips(&config.contents.mount_point, &paths)
+            };
+
+            if let Err(e) = res {
                 notifications_clone.push(e.into());
             } else {
                 let msg = format!("{} apps installed successfully", paths.len());
@@ -659,6 +668,40 @@ impl Logic<'_> {
                 let info = DisplayedDiscInfo::from(&info);
                 weak.upgrade().unwrap().set_current_disc_info(info);
             }
+        });
+
+        let games_clone = games.clone();
+        let notifications_clone = notifications.clone();
+        let weak = self.as_weak();
+        self.on_delete_game(move |i| {
+            let res = {
+                let game = &games_clone.borrow()[i as usize];
+                fs::remove_dir_all(&game.path)
+            };
+
+            if let Err(e) = res {
+                notifications_clone.push(e.into());
+                return;
+            }
+
+            weak.upgrade().unwrap().invoke_refresh_all();
+        });
+
+        let homebrew_apps_clone = homebrew_apps.clone();
+        let notifications_clone = notifications.clone();
+        let weak = self.as_weak();
+        self.on_delete_homebrew_app(move |i| {
+            let res = {
+                let app = &homebrew_apps_clone.borrow()[i as usize];
+                fs::remove_dir_all(&app.path)
+            };
+
+            if let Err(e) = res {
+                notifications_clone.push(e.into());
+                return;
+            }
+
+            weak.upgrade().unwrap().invoke_refresh_all();
         });
 
         #[cfg(windows)]

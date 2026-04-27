@@ -19,28 +19,6 @@ pub struct DiscInfo {
 
 impl DiscInfo {
     pub fn from_path(path: PathBuf) -> Option<Self> {
-        if !path.is_file() {
-            return None;
-        }
-
-        let filename = path.file_name()?.to_str()?;
-
-        if filename.starts_with('.') {
-            return None;
-        }
-
-        if filename.ends_with(".part1.iso") {
-            return None;
-        }
-
-        let ext = path.extension()?;
-        if !ext.eq_ignore_ascii_case("iso")
-            && !ext.eq_ignore_ascii_case("wbfs")
-            && !ext.eq_ignore_ascii_case("ciso")
-        {
-            return None;
-        }
-
         let mut f = File::open(&path).ok()?;
         let meta = wii_disc_info::Meta::read(&mut f).ok()?;
 

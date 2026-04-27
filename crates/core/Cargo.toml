@@ -24,7 +24,7 @@ image = { version = "0.25", default-features = false, features = ["png"] }
 zip = { version = "8.5", default-features = false, features = [
     "deflate-flate2",
 ] }
-wii-disc-info = "0.5"
+wii-disc-info = { workspace = true }
 nod = { git = "https://github.com/encounter/nod.git" }
 crc32fast = "1.5"
 num_cpus = "1.17"

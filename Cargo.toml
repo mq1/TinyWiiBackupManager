@@ -14,6 +14,7 @@ description = "A tiny game backup and homebrew app manager for the Wii"
 
 [workspace.dependencies]
 anyhow = "1.0"
+wii-disc-info = "0.5"
 
 [profile.release]
 opt-level = 3

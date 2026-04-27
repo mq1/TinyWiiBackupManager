@@ -17,10 +17,11 @@ export component ConfirmationModal inherits Modal {
 
     VerticalLayout {
         spacing: 10px;
-        alignment: space-between;
 
         ScrollView {
-            VerticalLayout {
+            width: v.preferred-width;
+
+            v := VerticalLayout {
                 padding: 20px;
 
                 Text {
@@ -36,8 +37,7 @@ export component ConfirmationModal inherits Modal {
 
             HorizontalLayout {
                 alignment: end;
-                padding: 20px;
-                padding-top: 10px;
+                padding: 10px;
                 spacing: 10px;
 
                 IconButton {
