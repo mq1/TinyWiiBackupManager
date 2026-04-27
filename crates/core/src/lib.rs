@@ -15,6 +15,7 @@ pub mod game_id;
 pub mod homebrew_app;
 pub mod http;
 pub mod id_map;
+pub mod normalize_dir_layout;
 pub mod osc;
 pub mod scrub;
 pub mod util;

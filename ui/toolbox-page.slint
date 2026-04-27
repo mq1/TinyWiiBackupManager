@@ -121,6 +121,7 @@ export component ToolboxPage inherits VerticalLayout {
                         b := IconButton {
                             icon: IconSet.Play;
                             width: self.height;
+                            clicked => Logic.normalize-dir-layout();
                         }
 
                         Text {

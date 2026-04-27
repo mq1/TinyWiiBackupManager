@@ -24,6 +24,7 @@ use twbm_core::{
     game::Game,
     game_id::GameID,
     homebrew_app::HomebrewApp,
+    normalize_dir_layout,
     osc::OscAppMeta,
 };
 
@@ -734,6 +735,25 @@ impl Logic<'_> {
             let logic = weak.upgrade().unwrap();
             for i in to_scrub {
                 logic.invoke_scrub_game(i);
+            }
+        });
+
+        let notifications_clone = notifications.clone();
+        let config_clone = config.clone();
+        self.on_normalize_dir_layout(move || {
+            let res = {
+                let config = config_clone.borrow();
+                normalize_dir_layout::perform(&config.contents.mount_point)
+            };
+
+            if let Err(e) = res {
+                notifications_clone.push(Notification::error(format!(
+                    "Failed to normalize directory layout: {e}"
+                )));
+            } else {
+                notifications_clone.push(Notification::info(
+                    "Directory layout successfully normalized",
+                ));
             }
         });
 
