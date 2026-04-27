@@ -193,13 +193,15 @@ jobs:
           Copy-Item -Path "target\${{ matrix.target }}\release\twbm-gui.exe" -Destination "TinyWiiBackupManager.exe"
         env:
           CC: clang-cl
+          AR_x86_64-pc-windows-msvc: llvm-lib
           AR_aarch64-pc-windows-msvc: llvm-lib
-          CFLAGS_x86_64-pc-windows-msvc: /clang:-O3
+          CFLAGS_x86_64-pc-windows-msvc: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
           CFLAGS_i686-pc-windows-msvc: /clang:-O3
           CFLAGS_aarch64-pc-windows-msvc: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
-          CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_RUSTFLAGS: -l dylib=ole32 -C link-arg=/SUBSYSTEM:WINDOWS,5.2 -L VC-LTL-Binary\TargetPlatform\5.2.3790.0\lib\x64 -C link-arg=YY-Thunks-Objs\objs\x64\YY_Thunks_for_WinXP.obj
+          CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto -C link-arg=/FORCE:MULTIPLE -l dylib=ole32 -C link-arg=/SUBSYSTEM:WINDOWS,5.2 -L VC-LTL-Binary\TargetPlatform\5.2.3790.0\lib\x64 -C link-arg=YY-Thunks-Objs\objs\x64\YY_Thunks_for_WinXP.obj
           CARGO_TARGET_I686_PC_WINDOWS_MSVC_RUSTFLAGS: -l dylib=ole32 -C link-arg=/SUBSYSTEM:WINDOWS,5.1 -L VC-LTL-Binary\TargetPlatform\5.1.2600.0\lib\Win32 -C link-arg=YY-Thunks-Objs\objs\x86\YY_Thunks_for_WinXP.obj
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto
+          CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: lld-link
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: lld-link
 
       - name: Package binary (UPX)
@@ -240,8 +242,8 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install LLVM
-        run: brew install llvm@22
+      - name: Install LLVM and LLD
+        run: brew install llvm@22 lld@22
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.95
@@ -259,7 +261,11 @@ jobs:
           cp target/${{ matrix.target }}/release/twbm-gui TinyWiiBackupManager
         env:
           CC: /opt/homebrew/opt/llvm@22/bin/clang
-          CFLAGS: -O3
+          AR: /opt/homebrew/opt/llvm@22/bin/llvm-ar
+          CFLAGS: -O3 -flto
+          RUSTFLAGS: -C linker-plugin-lto -C link-arg=-fuse-ld=/opt/homebrew/opt/lld@22/bin/ld64.lld
+          CARGO_TARGET_AARCH64_APPLE_DARWIN_LINKER: ./macos-linker.sh
+          CARGO_TARGET_X86_64_APPLE_DARWIN_LINKER: ./macos-linker.sh
 
       - name: Upload macOS binaries
         uses: actions/upload-artifact@v7
