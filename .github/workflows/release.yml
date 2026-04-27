@@ -100,8 +100,10 @@ jobs:
           cp target/${{ matrix.target }}/release/twbm-gui TinyWiiBackupManager
         env:
           CC: clang-22
-          AR: llvm-ar-22
+          AR_x86_64-unknown-linux-gnu: llvm-ar-22
+          AR_aarch64-unknown-linux-gnu: llvm-ar-22
           CFLAGS_x86_64-unknown-linux-gnu: -O3 -flto
+          CFLAGS_i686-unknown-linux-gnu: -O3
           CFLAGS_aarch64-unknown-linux-gnu: -O3 -flto
           PKG_CONFIG_i686-unknown-linux-gnu: /usr/bin/i686-pc-linux-gnu-pkg-config
           PKG_CONFIG_armv7-unknown-linux-gnueabihf: /usr/bin/arm-unknown-linux-gnueabihf-pkg-config
