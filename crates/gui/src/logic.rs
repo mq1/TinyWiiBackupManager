@@ -479,7 +479,8 @@ impl Logic<'_> {
         self.on_trigger_conversion(move || {
             if conversion_queue_clone.row_count() == 0 {
                 *is_converting_clone.borrow_mut() = false;
-                notifications_clone.push(Notification::info("Conversion queue empty"));
+                let msg = SharedString::from("Conversion queue empty");
+                notifications_clone.push(Notification::info(msg));
                 return;
             }
 
@@ -520,7 +521,8 @@ impl Logic<'_> {
             let (in_path, out_path) = {
                 let game = &games_clone.borrow()[i as usize];
                 let Some(in_path) = game.get_disc_path() else {
-                    notifications_clone.push(Notification::error("No disc found for this game!"));
+                    let msg = SharedString::from("No disc found for this game!");
+                    notifications_clone.push(Notification::error(msg));
                     return;
                 };
                 let out_path = dialogs::save_game(&window_handle, game);
@@ -555,7 +557,8 @@ impl Logic<'_> {
             let conv = {
                 let game = &games_clone.borrow()[i as usize];
                 let Some(disc_path) = game.get_disc_path() else {
-                    notifications_clone.push(Notification::error("No disc path found for game"));
+                    let msg = slint::format!("No disc path found for game {}", game.title);
+                    notifications_clone.push(Notification::error(msg));
                     return;
                 };
 
@@ -592,7 +595,7 @@ impl Logic<'_> {
             if let Err(e) = res {
                 notifications_clone.push(e.into());
             } else {
-                let msg = format!("{} apps installed successfully", paths.len());
+                let msg = slint::format!("{} apps installed successfully", paths.len());
                 notifications_clone.push(Notification::info(msg));
                 weak.upgrade().unwrap().invoke_refresh_all();
             }
@@ -606,7 +609,8 @@ impl Logic<'_> {
             let app = osc_apps_clone.borrow()[i as usize].clone();
             let root_dir = config_clone.borrow().contents.mount_point.clone();
 
-            notifications_clone.push(Notification::info(format!("Installing {}", &app.name)));
+            let msg = slint::format!("Installing {}", &app.name);
+            notifications_clone.push(Notification::info(msg));
 
             let weak = weak.clone();
 
@@ -617,8 +621,8 @@ impl Logic<'_> {
                     if let Err(e) = res {
                         logic.invoke_notify_error(e.to_shared_string());
                     } else {
-                        let msg = format!("{} installed successfully", &app.name);
-                        logic.invoke_notify_info(msg.to_shared_string());
+                        let msg = slint::format!("{} installed successfully", &app.name);
+                        logic.invoke_notify_info(msg);
                         logic.invoke_refresh_all();
                     }
                 });
@@ -728,7 +732,8 @@ impl Logic<'_> {
                 .collect::<Vec<_>>();
 
             if to_scrub.is_empty() {
-                notifications_clone.push(Notification::info("No games need scrubbing"));
+                let msg = SharedString::from("No games need scrubbing");
+                notifications_clone.push(Notification::info(msg));
                 return;
             }
 
@@ -746,15 +751,17 @@ impl Logic<'_> {
                 normalize_dir_layout::perform(&config.contents.mount_point)
             };
 
-            if let Err(e) = res {
-                notifications_clone.push(Notification::error(format!(
-                    "Failed to normalize directory layout: {e}"
-                )));
-            } else {
-                notifications_clone.push(Notification::info(
-                    "Directory layout successfully normalized",
-                ));
-            }
+            let msg = match &res {
+                Ok(_) => SharedString::from("Directory layout successfully normalized"),
+                Err(e) => slint::format!("Failed to normalize directory layout: {}", e),
+            };
+
+            let notification = match res {
+                Ok(_) => Notification::info(msg),
+                Err(_) => Notification::error(msg),
+            };
+
+            notifications_clone.push(notification);
         });
 
         #[cfg(windows)]

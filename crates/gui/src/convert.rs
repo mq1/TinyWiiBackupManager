@@ -3,7 +3,6 @@
 
 use crate::{ConversionKind, Logic, QueuedConversion};
 use slint::{SharedString, ToSharedString, Weak};
-use std::fmt::Write;
 use std::path::PathBuf;
 use twbm_core::{config::Config, drive_info::DriveInfo};
 
@@ -44,11 +43,10 @@ impl Conversion {
                     .to_string();
                 let weak2 = weak.clone();
                 let update_progress = move |percentage| {
-                    let mut status = SharedString::new();
-                    write!(status, "↑  Converting  {filename}  {percentage}%").unwrap();
+                    let status = slint::format!("↑  Converting  {filename}  {percentage}%");
 
                     let _ = weak2.upgrade_in_event_loop(move |logic| {
-                        logic.set_status(status.to_shared_string());
+                        logic.set_status(status);
                     });
                 };
 
@@ -62,11 +60,10 @@ impl Conversion {
                     .to_string();
                 let weak2 = weak.clone();
                 let update_progress = move |percentage| {
-                    let mut status = SharedString::new();
-                    write!(status, "↓  Archiving  {filename}  {percentage}%").unwrap();
+                    let status = slint::format!("↓  Archiving  {filename}  {percentage}%");
 
                     let _ = weak2.upgrade_in_event_loop(move |logic| {
-                        logic.set_status(status.to_shared_string());
+                        logic.set_status(status);
                     });
                 };
 
@@ -75,11 +72,10 @@ impl Conversion {
             Conversion::Scrub(in_path, game_title, game_id) => {
                 let weak2 = weak.clone();
                 let update_progress = move |percentage| {
-                    let mut status = SharedString::new();
-                    let _ = write!(status, "↔  Scrubbing  {}  {}%", &game_title, percentage);
+                    let status = slint::format!("↔  Scrubbing  {game_title}  {percentage}%");
 
                     let _ = weak2.upgrade_in_event_loop(move |logic| {
-                        logic.set_status(status.to_shared_string());
+                        logic.set_status(status);
                     });
                 };
 

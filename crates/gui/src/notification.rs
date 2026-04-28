@@ -2,19 +2,19 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::Notification;
-use slint::ToSharedString;
+use slint::{SharedString, ToSharedString};
 
 impl Notification {
-    pub fn info(text: impl ToSharedString) -> Self {
+    pub fn info(text: SharedString) -> Self {
         Self {
-            text: text.to_shared_string(),
+            text,
             critical: false,
         }
     }
 
-    pub fn error(text: impl ToSharedString) -> Self {
+    pub fn error(text: SharedString) -> Self {
         Self {
-            text: text.to_shared_string(),
+            text,
             critical: true,
         }
     }
