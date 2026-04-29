@@ -5512,8 +5512,8 @@ dependencies = [
  "twbm-core",
  "walkdir",
  "wii-disc-info",
- "windows 0.62.2",
  "winresource",
+ "winsafe",
 ]
 
 [[package]]
@@ -6652,6 +6652,12 @@ dependencies = [
  "toml 1.1.2+spec-1.1.0",
  "version_check",
 ]
+
+[[package]]
+name = "winsafe"
+version = "0.0.27"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bcfff8264c3af1b0352006934e2265365ecb5a145aee88e770dc8b82e0456f4f"
 
 [[package]]
 name = "wit-bindgen"

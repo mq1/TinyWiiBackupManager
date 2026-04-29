@@ -2,16 +2,13 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use raw_window_handle::{HasWindowHandle, RawWindowHandle};
-use windows::Win32::Foundation::HWND;
-use windows::Win32::Graphics::Dwm::{DWMWA_CAPTION_COLOR, DwmSetWindowAttribute};
+use std::ffi::c_void;
+use winsafe::{COLORREF, DwmAttr, HWND};
+
+const LIGHT: COLORREF = COLORREF::from_rgb(0xff, 0xff, 0xff);
+const DARK: COLORREF = COLORREF::from_rgb(0x1e, 0x1e, 0x1e);
 
 pub fn set(window_handle: &slint::WindowHandle, is_dark: bool) {
-    let color: u32 = if is_dark {
-        0x00_1e_1e_1e
-    } else {
-        0x00_ff_ff_ff
-    };
-
     let Ok(handle) = window_handle.window_handle() else {
         return;
     };
@@ -20,14 +17,8 @@ pub fn set(window_handle: &slint::WindowHandle, is_dark: bool) {
         return;
     };
 
-    let hwnd = HWND(handle.hwnd.get() as *mut _);
-
-    unsafe {
-        let _ = DwmSetWindowAttribute(
-            hwnd,
-            DWMWA_CAPTION_COLOR,
-            &color as *const u32 as *const _,
-            std::mem::size_of::<u32>() as u32,
-        );
-    }
+    let hwnd = unsafe { HWND::from_ptr(handle.hwnd.get() as *mut c_void) };
+    let color = if is_dark { DARK } else { LIGHT };
+    let attr = DwmAttr::CaptionColor(color);
+    let _ = hwnd.DwmSetWindowAttribute(attr);
 }
