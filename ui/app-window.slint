@@ -46,15 +46,6 @@ export component AppWindow inherits Window {
 
     // Initialize
     Timer {
-        interval: 1ms;
-        running: true;
-        triggered => {
-            Logic.refresh-all();
-            self.running = false;
-        }
-    }
-
-    Timer {
         interval: 100ms;
         running: true;
         triggered => {

@@ -781,5 +781,8 @@ impl Logic<'_> {
                 crate::window_color::set(&window_handle, is_dark);
             });
         }
+
+        // Initialize
+        self.invoke_refresh_all();
     }
 }
