@@ -49,13 +49,21 @@ export component AppWindow inherits Window {
         interval: 1ms;
         running: true;
         triggered => {
+            Logic.refresh-all();
+            self.running = false;
+        }
+    }
+
+    Timer {
+        interval: 100ms;
+        running: true;
+        triggered => {
             if Logic.config.theme-preference == 1 {
                 Palette.color-scheme = ColorScheme.light;
             } else if Logic.config.theme-preference == 2 {
                 Palette.color-scheme = ColorScheme.dark;
             }
             Logic.set-window-color(Palette.color-scheme == ColorScheme.dark);
-            Logic.refresh-all();
             Logic.cache-osc-contents(false);
             self.running = false;
         }
