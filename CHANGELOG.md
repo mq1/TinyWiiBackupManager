@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- 🍎 Restored macOS 10.12 compatibility
+- 🍎 Restored macOS 10.12 compatibility (previous releases required macOS 10.13)
 - 💄 Accent color now follows system theme (again)
 - 📝 Game directories now contain a <ID>.crc32 with the crc32 of the game file instead of embedding the hashes in wbfs/ciso files. You can easily compare this with the output of `crc32` or any other external tool.
 - ✅ Checksums now work on update-partion-scubbed games
@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ️️️️️⚡️ Faster disc info reading
 - 🕶️ Dark/light mode switch is now in the Settings page
 - 💄 UI refinements, TinyWiiBackupManager should feel more polished
-- 🪟 Removed windows-legacy builds, standard windows builds should now work on xp+
+- 🪟 Removed windows-legacy builds, standard windows builds should now work on Vista+
 - 📦 Dist assets are now named more clearly, a more familiar arch name is used for each OS. Note to myself: make a PR to modmii to mirror this.
 - 📦 Windows builds are now distributed as UPX packed executables instead of zip files, so you don't even need to unzip the binary before running it anymore.
 
@@ -38,6 +38,7 @@ Open an issue if you need any of these, but I consider them out of scope for Tin
 - 📝 Removed suggested downloads in the releases page now that we have way less - and easier to navigate - assets
 - 🍨 Removed scoop package now that winget seems to work consistently
 - 📦 Deprecated TinyWiiBackupManagerInstaller, as the windows builds have been unified. I'll continue to work, but it's a bit useless now.
+- 😓 Windows XP is no longer supported (as maintaining a custom file dialog implementation is troublesome for me, and this already caused regressions in a prev TWBM release). TWBM now requires at least Windows Vista.
 - 🛜 Network features (https) won't probably work on older windows versions anymore. Game conversion will still work as expected.
 
 ## [v5.2.1] - 2026-03-19

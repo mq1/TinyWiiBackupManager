@@ -1,71 +1,41 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use rfd::FileDialog;
 use slint::WindowHandle;
 use std::path::PathBuf;
 use twbm_core::game::Game;
 use walkdir::WalkDir;
 
-#[cfg(unix)]
-use rfd::FileDialog;
+const INPUT_DIALOG_FILTER: &[&str] = &[
+    "gcm", "iso", "wbfs", "wia", "rvz", "ciso", "gcz", "tgc", "nfs", "zip",
+];
 
-#[cfg(windows)]
-use crate::xp_dialogs;
-
-pub const INPUT_DIALOG_FILTER: (&str, &[&str]) = (
-    "Nintendo Optical Disc",
-    &[
-        "gcm", "iso", "wbfs", "wia", "rvz", "ciso", "gcz", "tgc", "nfs", "zip",
-    ],
-);
-
-pub const OUTPUT_DIALOG_FILTER: (&str, &[&str]) = (
-    "Nintendo Optical Disc",
-    &[
-        "gcm", "iso", "wbfs", "wia", "rvz", "ciso", "gcz", "tgc", "nfs",
-    ],
-);
+const OUTPUT_DIALOG_FILTER: &[&str] = &[
+    "gcm", "iso", "wbfs", "wia", "rvz", "ciso", "gcz", "tgc", "nfs",
+];
 
 pub fn pick_mount_point(window_handle: &WindowHandle) -> Option<PathBuf> {
-    #[cfg(unix)]
-    let res = FileDialog::new()
+    FileDialog::new()
         .set_parent(window_handle)
         .set_title("Select Drive/Mount Point")
-        .pick_folder();
-
-    #[cfg(windows)]
-    let res = xp_dialogs::pick_dir(window_handle, "Select Drive/Mount Point");
-
-    res
+        .pick_folder()
 }
 
 pub fn pick_games(window_handle: &WindowHandle) -> Vec<PathBuf> {
-    #[cfg(unix)]
-    let paths = FileDialog::new()
+    FileDialog::new()
         .set_parent(window_handle)
         .set_title("Select Games")
-        .add_filter(INPUT_DIALOG_FILTER.0, INPUT_DIALOG_FILTER.1)
+        .add_filter("Nintendo Optical Disc", INPUT_DIALOG_FILTER)
         .pick_files()
-        .unwrap_or_default();
-
-    #[cfg(windows)]
-    let paths = xp_dialogs::pick_files(window_handle, "Select Games", INPUT_DIALOG_FILTER);
-
-    paths
+        .unwrap_or_default()
 }
 
 pub fn pick_games_r(window_handle: &WindowHandle) -> Vec<PathBuf> {
-    #[cfg(unix)]
     let res = FileDialog::new()
         .set_parent(window_handle)
         .set_title("Select folder (games will be searched recursively)")
         .pick_folder();
-
-    #[cfg(windows)]
-    let res = xp_dialogs::pick_dir(
-        window_handle,
-        "Select folder (games will be searched recursively)",
-    );
 
     let mut paths = Vec::new();
 
@@ -77,7 +47,6 @@ pub fn pick_games_r(window_handle: &WindowHandle) -> Vec<PathBuf> {
         if entry.file_type().is_file()
             && let Some(ext) = entry.path().extension()
             && INPUT_DIALOG_FILTER
-                .1
                 .iter()
                 .any(|e| ext.eq_ignore_ascii_case(e))
         {
@@ -90,37 +59,25 @@ pub fn pick_games_r(window_handle: &WindowHandle) -> Vec<PathBuf> {
 
 pub fn save_game(window_handle: &WindowHandle, game: &Game) -> Option<PathBuf> {
     let title = format!(
-        "Select Destination for {} | Supported extensions: iso, wbfs, wia, rvz, ciso, gcz, tgc, nfs",
+        "Select Destination for {} - Supported extensions: iso, wbfs, wia, rvz, ciso, gcz, tgc, nfs",
         &game.title
     );
 
     let filename = format!("{}.rvz", twbm_core::util::sanitize(&game.title));
 
-    #[cfg(unix)]
-    let res = FileDialog::new()
+    FileDialog::new()
         .set_parent(window_handle)
         .set_title(title)
         .set_file_name(filename)
-        .add_filter(OUTPUT_DIALOG_FILTER.0, OUTPUT_DIALOG_FILTER.1)
-        .save_file();
-
-    #[cfg(windows)]
-    let res = xp_dialogs::save_file(window_handle, &title, OUTPUT_DIALOG_FILTER, &filename);
-
-    res
+        .add_filter("Nintendo Optical Disc", OUTPUT_DIALOG_FILTER)
+        .save_file()
 }
 
 pub fn pick_homebrew_apps(window_handle: &WindowHandle) -> Vec<PathBuf> {
-    #[cfg(unix)]
-    let paths = FileDialog::new()
+    FileDialog::new()
         .set_parent(window_handle)
         .set_title("Select Homebrew apps")
         .add_filter("ZIP", &["zip"])
         .pick_files()
-        .unwrap_or_default();
-
-    #[cfg(windows)]
-    let paths = xp_dialogs::pick_files(window_handle, "Select Homebrew apps", ("ZIP", &["zip"]));
-
-    paths
+        .unwrap_or_default()
 }
