@@ -764,6 +764,16 @@ impl Logic<'_> {
             notifications_clone.push(notification);
         });
 
+        let conversion_queue_clone = conversion_queue.clone();
+        self.on_cancel_conversion(move |i| {
+            let _ = conversion_queue_clone.remove(i as usize);
+        });
+
+        let conversion_queue_clone = conversion_queue.clone();
+        self.on_cancel_all_conversions(move || {
+            conversion_queue_clone.clear();
+        });
+
         #[cfg(windows)]
         {
             let window_handle = window.window_handle();

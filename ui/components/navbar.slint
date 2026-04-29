@@ -68,6 +68,16 @@ export component Navbar inherits VerticalLayout {
         padding: 10px;
         spacing: 10px;
 
+        if Logic.conversion-queue.length > 0: NavbarButton {
+            active: current-page == Page.ConversionQueue;
+            icon: IconSet.RefreshCw;
+            tooltip: "Conversion queue";
+            rotate: true;
+            clicked => {
+                current-page = Page.ConversionQueue;
+            }
+        }
+
         NavbarButton {
             icon: IconSet.HardDrive;
             tooltip: "Select a drive";

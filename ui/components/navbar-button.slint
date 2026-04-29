@@ -7,6 +7,7 @@ import { TooltipArea } from "tooltip-area.slint";
 
 export component NavbarButton inherits TooltipArea {
     in property <bool> active: false;
+    in property <bool> rotate: false;
     in property <Icon> icon;
     in property <Icon> icon2: IconSet.WifiZero;
 
@@ -26,7 +27,13 @@ export component NavbarButton inherits TooltipArea {
     clip: true;
     background: get-background();
 
-    IconDisplay {
+    if rotate: IconDisplay {
+        icon: icon;
+        stroke: MyPalette.foreground;
+        transform-rotation: mod(animation-tick(), 3s) / 3s * 360deg;
+    }
+
+    if !rotate: IconDisplay {
         icon: icon;
         stroke: MyPalette.foreground;
     }

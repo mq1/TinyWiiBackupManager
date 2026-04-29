@@ -1,0 +1,48 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { ScrollView } from "std-widgets.slint";
+import { IconSet } from "@lucide";
+import { MyPalette } from "styling.slint";
+import { Logic } from "logic.slint";
+import { Card } from "components/card.slint";
+import { QueuedConversion } from "types.slint";
+import { ConversionRow } from "components/conversion-row.slint";
+import {
+    ConversionQueueToolbar,
+} from "components/conversion-queue-toolbar.slint";
+import { HorizontalLine } from "components/horizontal-line.slint";
+
+export component ConversionQueuePage inherits VerticalLayout {
+    HorizontalLayout {
+        padding: 10px;
+
+        ConversionQueueToolbar { }
+    }
+
+    ScrollView {
+        width: parent.width;
+        viewport-height: v.preferred-height;
+
+        v := VerticalLayout {
+            padding: 10px;
+            padding-top: 0px;
+
+            Card {
+                clip: true;
+                height: v2.preferred-height;
+
+                v2 := VerticalLayout {
+                    for conv[i] in Logic.conversion-queue: VerticalLayout {
+                        ConversionRow {
+                            conv: conv;
+                            cancel() => Logic.cancel-conversion(i);
+                        }
+
+                        HorizontalLine { }
+                    }
+                }
+            }
+        }
+    }
+}

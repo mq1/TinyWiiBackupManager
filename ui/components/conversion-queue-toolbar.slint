@@ -1,0 +1,39 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { IconButton, IconButtonKind } from "icon-button.slint";
+import { IconSet, IconDisplay } from "@lucide";
+import { MyPalette } from "../styling.slint";
+import { Logic } from "../logic.slint";
+
+export component ConversionQueueToolbar inherits HorizontalLayout {
+    alignment: space-between;
+    height: 38px;
+
+    HorizontalLayout {
+        padding-top: 10px;
+        spacing: 5px;
+
+        IconDisplay {
+            icon: IconSet.ChevronRight;
+            size: 18px;
+            stroke: MyPalette.foreground;
+        }
+
+        Text {
+            text: "Conversion queue";
+            font-size: 18px;
+        }
+    }
+
+    VerticalLayout {
+        alignment: center;
+
+        IconButton {
+            icon: IconSet.X;
+            label: "Cancel all conversions";
+            kind: IconButtonKind.Primary;
+            clicked => Logic.cancel-all-conversions();
+        }
+    }
+}

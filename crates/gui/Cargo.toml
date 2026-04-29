@@ -36,7 +36,7 @@ windows = { version = "0.62", features = [
 
 [build-dependencies]
 slint-build = "1.16"
-lucide-slint = "1.8"
+lucide-slint = "1.12"
 winresource = "0.1"
 
 [features]
