@@ -1,19 +1,19 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use anyhow::{Result, anyhow};
+use anyhow::{Result, bail};
 use directories::ProjectDirs;
-use std::{env, ffi::OsStr, fs, path::PathBuf, sync::LazyLock};
+use std::{env, fs, path::PathBuf, sync::LazyLock};
 
 pub static DATA_DIR: LazyLock<PathBuf> = LazyLock::new(|| get_data_dir().unwrap_or_default());
 
 fn get_data_dir() -> Result<PathBuf> {
-    let data_dir = if is_portable() {
-        let parent = get_exe_parent()?;
+    let data_dir = if let Some(parent) = is_portable() {
         parent.join("TinyWiiBackupManager-data")
     } else {
-        let proj = ProjectDirs::from("it", "mq1", "TinyWiiBackupManager")
-            .ok_or(anyhow!("Failed to get project dirs"))?;
+        let Some(proj) = ProjectDirs::from("it", "mq1", "TinyWiiBackupManager") else {
+            bail!("Failed to get project dirs")
+        };
 
         proj.data_dir().to_path_buf()
     };
@@ -22,21 +22,21 @@ fn get_data_dir() -> Result<PathBuf> {
     Ok(data_dir)
 }
 
-fn is_portable() -> bool {
-    match env::current_exe() {
-        Ok(exe) => exe
-            .file_name()
-            .and_then(OsStr::to_str)
-            .is_some_and(|name| name.contains("portable")),
-        Err(_) => false,
-    }
-}
+fn is_portable() -> Option<PathBuf> {
+    let Ok(exe) = env::current_exe() else {
+        return None;
+    };
 
-fn get_exe_parent() -> Result<PathBuf> {
-    let exe_path = env::current_exe()?;
-    let parent = exe_path
-        .parent()
-        .ok_or(anyhow!("Failed to get exe parent"))?;
+    let Some(name) = exe.file_name() else {
+        return None;
+    };
 
-    Ok(parent.to_path_buf())
+    let Some(parent) = exe.parent() else {
+        return None;
+    };
+
+    name.to_string_lossy()
+        .to_ascii_lowercase()
+        .contains("portable")
+        .then(|| parent.to_path_buf())
 }
