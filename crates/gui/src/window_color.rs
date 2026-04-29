@@ -3,7 +3,7 @@
 
 use raw_window_handle::{HasWindowHandle, RawWindowHandle};
 use std::ffi::c_void;
-use winsafe::{COLORREF, DwmAttr, HWND};
+use winsafe::{COLORREF, DwmAttr, HWND, co::DWMWCP};
 
 const LIGHT: COLORREF = COLORREF::from_rgb(0xff, 0xff, 0xff);
 const DARK: COLORREF = COLORREF::from_rgb(0x1e, 0x1e, 0x1e);
@@ -18,7 +18,22 @@ pub fn set(window_handle: &slint::WindowHandle, is_dark: bool) {
     };
 
     let hwnd = unsafe { HWND::from_ptr(handle.hwnd.get() as *mut c_void) };
+
+    // disable backdrop blur
+    let attr = DwmAttr::UseHostBackdropBrush(false);
+    let _ = hwnd.DwmSetWindowAttribute(attr);
+
+    // set window color to mimick macos
     let color = if is_dark { DARK } else { LIGHT };
     let attr = DwmAttr::CaptionColor(color);
+    let _ = hwnd.DwmSetWindowAttribute(attr);
+
+    // set immersive dark mode
+    let attr = DwmAttr::UseImmersiveDarkMode(is_dark);
+    let _ = hwnd.DwmSetWindowAttribute(attr);
+
+    // rounded corners
+    let dwmwcp = DWMWCP::ROUND;
+    let attr = DwmAttr::WindowCornerPreference(dwmwcp);
     let _ = hwnd.DwmSetWindowAttribute(attr);
 }
