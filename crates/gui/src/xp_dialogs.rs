@@ -4,10 +4,12 @@
 use raw_window_handle::{HasWindowHandle, RawWindowHandle};
 use std::path::PathBuf;
 use windows::Win32::Foundation::HWND;
-use windows::Win32::System::Com::{COINIT_APARTMENTTHREADED, CoInitializeEx, CoTaskMemFree};
+use windows::Win32::System::Com::{
+    COINIT_APARTMENTTHREADED, CoInitializeEx, CoTaskMemFree, CoUninitialize,
+};
 use windows::Win32::UI::Controls::Dialogs::{
     GetOpenFileNameW, GetSaveFileNameW, OFN_ALLOWMULTISELECT, OFN_EXPLORER, OFN_FILEMUSTEXIST,
-    OFN_OVERWRITEPROMPT, OFN_PATHMUSTEXIST, OPENFILENAMEW,
+    OFN_NOCHANGEDIR, OFN_OVERWRITEPROMPT, OFN_PATHMUSTEXIST, OPENFILENAMEW,
 };
 use windows::Win32::UI::Shell::{
     BIF_EDITBOX, BIF_NEWDIALOGSTYLE, BIF_RETURNONLYFSDIRS, BROWSEINFOW, SHBrowseForFolderW,
@@ -34,9 +36,10 @@ pub fn pick_dir(window_handle: &slint::WindowHandle, title: &str) -> Option<Path
     let mut buf = [0u16; MAX_PATH];
 
     let hwnd = get_hwnd(window_handle)?;
+    let mut result = None;
 
-    let success = unsafe {
-        let _ = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
+    unsafe {
+        let hr = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
 
         let mut browse_info = BROWSEINFOW {
             lpszTitle: PCWSTR(title_wide.as_ptr()),
@@ -46,17 +49,22 @@ pub fn pick_dir(window_handle: &slint::WindowHandle, title: &str) -> Option<Path
         };
 
         let pidl = SHBrowseForFolderW(&mut browse_info);
-        let success = SHGetPathFromIDListW(pidl as *const _, &mut buf);
-        CoTaskMemFree(Some(pidl as *const _));
 
-        success
+        if !pidl.is_null() {
+            let success = SHGetPathFromIDListW(pidl as *const _, &mut buf);
+            CoTaskMemFree(Some(pidl as *const _));
+
+            if success.as_bool() {
+                result = Some(PathBuf::from(unwiden(&buf)));
+            }
+        }
+
+        if hr.is_ok() {
+            CoUninitialize();
+        }
     };
 
-    if success.as_bool() {
-        Some(PathBuf::from(unwiden(&buf)))
-    } else {
-        None
-    }
+    result
 }
 
 pub fn pick_file(
@@ -66,7 +74,8 @@ pub fn pick_file(
 ) -> Option<PathBuf> {
     let title_wide = widen(title);
     let filter_wide = get_filter_utf16(filter);
-    let mut buf = [0u16; MAX_PATH_LARGE];
+
+    let mut buf = vec![0u16; MAX_PATH_LARGE];
 
     let hwnd = get_hwnd(window_handle)?;
 
@@ -78,7 +87,7 @@ pub fn pick_file(
             nMaxFile: buf.len() as u32,
             lpstrTitle: PCWSTR(title_wide.as_ptr()),
             hwndOwner: hwnd,
-            Flags: OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_EXPLORER,
+            Flags: OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_EXPLORER | OFN_NOCHANGEDIR,
             ..Default::default()
         };
 
@@ -113,7 +122,11 @@ pub fn pick_files(
             nMaxFile: buf.len() as u32,
             lpstrTitle: PCWSTR(title_wide.as_ptr()),
             hwndOwner: hwnd,
-            Flags: OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_EXPLORER | OFN_ALLOWMULTISELECT,
+            Flags: OFN_FILEMUSTEXIST
+                | OFN_PATHMUSTEXIST
+                | OFN_EXPLORER
+                | OFN_ALLOWMULTISELECT
+                | OFN_NOCHANGEDIR,
             ..Default::default()
         };
 
@@ -137,8 +150,10 @@ pub fn save_file(
     let filter_wide = get_filter_utf16(filter);
     let filename_wide = widen(filename);
 
-    let mut buf = [0u16; MAX_PATH_LARGE];
-    buf[..filename_wide.len()].copy_from_slice(&filename_wide);
+    let mut buf = vec![0u16; MAX_PATH_LARGE];
+
+    let len = filename_wide.len().min(buf.len());
+    buf[..len].copy_from_slice(&filename_wide[..len]);
 
     let hwnd = get_hwnd(window_handle)?;
 
@@ -150,7 +165,7 @@ pub fn save_file(
             nMaxFile: buf.len() as u32,
             lpstrTitle: PCWSTR(title_wide.as_ptr()),
             hwndOwner: hwnd,
-            Flags: OFN_EXPLORER | OFN_OVERWRITEPROMPT,
+            Flags: OFN_EXPLORER | OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR,
             ..Default::default()
         };
 
@@ -193,11 +208,18 @@ fn get_filter_utf16(filter: (&str, &[&str])) -> Vec<u16> {
 }
 
 fn parse_multi_select(buffer: &[u16]) -> Vec<PathBuf> {
-    let parts: Vec<String> = buffer
-        .split(|c| *c == 0)
-        .filter(|s| !s.is_empty())
-        .map(|s| String::from_utf16_lossy(s))
-        .collect();
+    let mut parts = Vec::new();
+    let mut start = 0;
+
+    for i in 0..buffer.len() {
+        if buffer[i] == 0 {
+            if i == start {
+                break;
+            }
+            parts.push(String::from_utf16_lossy(&buffer[start..i]));
+            start = i + 1;
+        }
+    }
 
     if parts.is_empty() {
         return vec![];
