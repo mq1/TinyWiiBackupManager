@@ -39,7 +39,7 @@ Open an issue if you need any of these, but I consider them out of scope for Tin
 - 📝 Removed suggested downloads in the releases page now that we have way less - and easier to navigate - assets
 - 🍨 Removed scoop package now that winget seems to work consistently
 - 📦 Deprecated TinyWiiBackupManagerInstaller, as the windows builds have been unified. I'll continue to work, but it's a bit useless now.
-- 😓 Windows XP is no longer supported (as maintaining a custom file dialog implementation is troublesome for me, and this already caused regressions in a prev TWBM release). TWBM now requires at least Windows Vista.
+- 😓 Windows XP and Vista are no longer supported (as maintaining a custom file dialog implementation is a hassle for me, and this already caused regressions in previous TWBM releases). TWBM now requires at least Windows 7.
 - 🛜 Network features (https) won't probably work on older windows versions anymore. Game conversion will still work as expected.
 
 ## [v5.2.1] - 2026-03-19

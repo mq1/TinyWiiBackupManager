@@ -84,12 +84,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.95
         with:
-          targets: ${{ matrix.target }}
-
-      - name: Rust cache
-        uses: Swatinem/rust-cache@v2
-        with:
-          key: ${{ matrix.target }}
+          components: rust-src
 
       - name: Download appimagetool
         run: |
@@ -98,9 +93,10 @@ jobs:
 
       - name: Build binary
         run: |
-          cargo build --release --target ${{ matrix.target }} --no-default-features --features "rustls"
+          cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features "rustls"
           cp target/${{ matrix.target }}/release/twbm-gui TinyWiiBackupManager
         env:
+          RUSTC_BOOTSTRAP: 1
           CC: clang-22
           AR_x86_64-unknown-linux-gnu: llvm-ar-22
           AR_aarch64-unknown-linux-gnu: llvm-ar-22
@@ -147,9 +143,9 @@ jobs:
           - arch: arm64
             target: aarch64-pc-windows-msvc
           - arch: x64
-            target: x86_64-pc-windows-msvc
+            target: x86_64-win7-windows-msvc
           - arch: x86
-            target: i686-pc-windows-msvc
+            target: i686-win7-windows-msvc
 
     steps:
       - name: Checkout
@@ -164,26 +160,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.95
         with:
-          targets: ${{ matrix.target }}
-
-      - name: Rust cache
-        uses: Swatinem/rust-cache@v2
-        with:
-          key: ${{ matrix.target }}
-
-      - name: Download VC-LTL5
-        if: matrix.arch != 'arm64'
-        shell: pwsh
-        run: |
-          Invoke-WebRequest -Uri "https://github.com/Chuyu-Team/VC-LTL5/releases/latest/download/VC-LTL-Binary.7z" -OutFile "VC-LTL-Binary.7z"
-          7z x VC-LTL-Binary.7z -oVC-LTL-Binary
-
-      - name: Download YY-Thunks
-        if: matrix.arch != 'arm64'
-        shell: pwsh
-        run: |
-          Invoke-WebRequest -Uri "https://github.com/Chuyu-Team/YY-Thunks/releases/latest/download/YY-Thunks-Objs.zip" -OutFile "YY-Thunks-Objs.zip"
-          7z x YY-Thunks-Objs.zip -oYY-Thunks-Objs
+          components: rust-src
 
       - name: Download UPX
         if: matrix.arch != 'arm64'
@@ -193,9 +170,10 @@ jobs:
       - name: Build binary
         shell: pwsh
         run: |
-          cargo build --release --target ${{ matrix.target }}
+          cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }}
           Copy-Item -Path "target\${{ matrix.target }}\release\twbm-gui.exe" -Destination "TinyWiiBackupManager.exe"
         env:
+          RUSTC_BOOTSTRAP: 1
           CC: clang-cl
           AR_x86_64-pc-windows-msvc: llvm-lib
           AR_aarch64-pc-windows-msvc: llvm-lib
@@ -252,18 +230,14 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.95
         with:
-          targets: ${{ matrix.target }}
-
-      - name: Rust cache
-        uses: Swatinem/rust-cache@v2
-        with:
-          key: ${{ matrix.target }}
+          components: rust-src
 
       - name: Build binary
         run: |
-          cargo build --release --target ${{ matrix.target }}
+          cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }}
           cp target/${{ matrix.target }}/release/twbm-gui TinyWiiBackupManager
         env:
+          RUSTC_BOOTSTRAP: 1
           CC: /opt/homebrew/opt/llvm@22/bin/clang
           AR: /opt/homebrew/opt/llvm@22/bin/llvm-ar
           CFLAGS: -O3 -flto
