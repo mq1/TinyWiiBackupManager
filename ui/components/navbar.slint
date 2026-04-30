@@ -26,7 +26,7 @@ export component Navbar inherits VerticalLayout {
 
         NavbarButton {
             active: current-page == Page.HomebrewApps;
-            icon: IconSet.Waves;
+            icon: IconSet.WavesHorizontal;
             icon2: IconSet.Bubbles;
             tooltip: "Homebrew apps";
             clicked => {
@@ -36,7 +36,7 @@ export component Navbar inherits VerticalLayout {
 
         NavbarButton {
             active: current-page == Page.Osc;
-            icon: IconSet.Waves;
+            icon: IconSet.WavesHorizontal;
             icon2: IconSet.ArrowBigDown;
             tooltip: "Open Shop Channel";
             clicked => {
@@ -76,6 +76,12 @@ export component Navbar inherits VerticalLayout {
             clicked => {
                 current-page = Page.ConversionQueue;
             }
+        }
+
+        if !Logic.latest-version.is-empty: NavbarButton {
+            icon: IconSet.BellPlus;
+            tooltip: "New TinyWiiBackupManager version available: \{Logic.latest-version}";
+            clicked => Logic.open-that("https://github.com/mq1/TinyWiiBackupManager/releases/latest");
         }
 
         NavbarButton {

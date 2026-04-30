@@ -774,6 +774,29 @@ impl Logic<'_> {
             conversion_queue_clone.clear();
         });
 
+        let weak = self.as_weak();
+        self.on_check_for_updates(move || {
+            let weak = weak.clone();
+
+            std::thread::spawn(move || {
+                let res = twbm_core::updates::check();
+
+                let _ = weak.upgrade_in_event_loop(move |logic| match res {
+                    Ok(Some(version)) => {
+                        let version = slint::format!("v{version}");
+                        logic.set_latest_version(version);
+                    }
+                    Ok(None) => {
+                        eprintln!("No updates available");
+                    }
+                    Err(e) => {
+                        let msg = slint::format!("Failed to check for updates: {e}");
+                        logic.invoke_notify_error(msg);
+                    }
+                });
+            });
+        });
+
         #[cfg(windows)]
         {
             self.on_set_window_color(move |is_dark| {

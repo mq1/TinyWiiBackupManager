@@ -28,7 +28,7 @@ winsafe = { version = "0.0.27", features = ["dwm"] }
 
 [build-dependencies]
 slint-build = "1.16"
-lucide-slint = "1.12"
+lucide-slint = "1.14"
 winresource = "0.1"
 
 [features]

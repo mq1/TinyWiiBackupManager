@@ -46,3 +46,7 @@ pub fn get_vec(url: &str) -> Result<Vec<u8>, ureq::Error> {
 pub fn get_string(url: &str) -> Result<String, ureq::Error> {
     AGENT.get(url).call()?.body_mut().read_to_string()
 }
+
+pub fn get_json<T: serde::de::DeserializeOwned>(url: &str) -> Result<T, ureq::Error> {
+    AGENT.get(url).call()?.body_mut().read_json()
+}

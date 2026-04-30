@@ -28,6 +28,7 @@ export global Logic {
     in-out property <int> osc-refreshed-x-hours-ago;
     in-out property <int> osc-refreshed-x-minutes-ago;
     in-out property <DisplayedDiscInfo> current-disc-info;
+    in-out property <string> latest-version;
 
     callback filter-games(string);
     callback filter-homebrew-apps(string);
@@ -54,6 +55,7 @@ export global Logic {
     callback normalize-dir-layout();
     callback cancel-conversion(int);
     callback cancel-all-conversions();
+    callback check-for-updates();
 
     // config
     callback pick-mount-point();

@@ -17,7 +17,7 @@ quick-xml = { version = "0.39", features = ["serialize"] }
 anyhow = { workspace = true }
 arrayvec = "0.7"
 num_enum = "0.7"
-ureq = { version = "3.3", default-features = false, features = ["gzip"] }
+ureq = { version = "3.3", default-features = false, features = ["gzip", "json"] }
 which-fs = "0.2"
 fs4 = { version = "1.0", default-features = false }
 image = { version = "0.25", default-features = false, features = ["png"] }
@@ -31,7 +31,7 @@ num_cpus = "1.17"
 sanitize-filename = "0.7.0-beta"
 split-write = "0.2"
 wiiload = "0.3"
-derive-getters = { version = "0.5", features = ["auto_copy_getters"] }
+semver = "1.0"
 
 [features]
 default = ["native-tls"]
