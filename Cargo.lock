@@ -5504,7 +5504,6 @@ dependencies = [
  "directories",
  "lucide-slint",
  "open",
- "raw-window-handle",
  "rfd",
  "slint",
  "slint-build",

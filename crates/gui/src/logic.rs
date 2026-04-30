@@ -776,9 +776,8 @@ impl Logic<'_> {
 
         #[cfg(windows)]
         {
-            let window_handle = window.window_handle();
             self.on_set_window_color(move |is_dark| {
-                crate::window_color::set(&window_handle, is_dark);
+                crate::window_color::set(is_dark);
             });
         }
 
