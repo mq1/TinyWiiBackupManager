@@ -67,14 +67,19 @@ jobs:
           sudo ln -sf $(which clang-22) /usr/bin/cc
           sudo ln -sf $(which lld-22) /usr/bin/ld
 
-      - name: Install 32-bit dependencies
-        if: matrix.arch == 'i686' || matrix.arch == 'armhf'
+      - name: Install i686 dependencies
+        if: matrix.arch == 'i686'
         run: |
-          sudo dpkg --add-architecture ${ARCH}
+          sudo dpkg --add-architecture i386
           sudo apt-get update
-          sudo apt-get install -y libc6-dev:${ARCH} libfontconfig-dev:${ARCH} pkg-config:${ARCH}
-        env:
-          ARCH: ${{ matrix.arch == 'i686' && 'i386' || matrix.arch }}
+          sudo apt-get install -y gcc-i686-linux-gnu libc6-dev:i386 libfontconfig-dev:i386 pkg-config:i386
+
+      - name: Install armhf dependencies
+        if: matrix.arch == 'armhf'
+        run: |
+          sudo dpkg --add-architecture armhf
+          sudo apt-get update
+          sudo apt-get install -y gcc-arm-linux-gnueabihf libc6-dev:armhf libfontconfig-dev:armhf pkg-config:armhf
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.95
