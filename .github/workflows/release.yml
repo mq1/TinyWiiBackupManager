@@ -180,8 +180,8 @@ jobs:
           CFLAGS_x86_64-pc-windows-msvc: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
           CFLAGS_i686-pc-windows-msvc: /clang:-O3
           CFLAGS_aarch64-pc-windows-msvc: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
-          CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto -C link-arg=/FORCE:MULTIPLE -l dylib=ole32 -C link-arg=/SUBSYSTEM:WINDOWS,6.0 -L VC-LTL-Binary\TargetPlatform\6.0.6000.0\lib\x64 -C link-arg=YY-Thunks-Objs\objs\x64\YY_Thunks_for_Vista.obj
-          CARGO_TARGET_I686_PC_WINDOWS_MSVC_RUSTFLAGS: -l dylib=ole32 -C link-arg=/SUBSYSTEM:WINDOWS,6.0 -L VC-LTL-Binary\TargetPlatform\6.0.6000.0\lib\Win32 -C link-arg=YY-Thunks-Objs\objs\x86\YY_Thunks_for_Vista.obj
+          CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto -C link-arg=/FORCE:MULTIPLE -l dylib=ole32
+          CARGO_TARGET_I686_PC_WINDOWS_MSVC_RUSTFLAGS: -l dylib=ole32
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto
           CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: lld-link
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: lld-link
