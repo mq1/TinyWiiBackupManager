@@ -6,7 +6,7 @@ use anyhow::Result;
 use semver::Version;
 
 const CURRENT_VERSION: &str = env!("CARGO_PKG_VERSION");
-const URL: &str = "https://github.com/mq1/TinyWiiBackupManager/releases/latest";
+const URL: &str = "https://api.github.com/repos/mq1/TinyWiiBackupManager/releases/latest";
 
 #[derive(serde::Deserialize)]
 struct Response {
