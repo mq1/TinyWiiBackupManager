@@ -12,19 +12,13 @@ const TLS_PROVIDER: TlsProvider = TlsProvider::NativeTls;
 #[cfg(all(feature = "rustls", not(feature = "native-tls")))]
 const TLS_PROVIDER: TlsProvider = TlsProvider::Rustls;
 
-#[cfg(all(feature = "native-tls", not(feature = "rustls")))]
-const ROOT_CERTS: RootCerts = RootCerts::PlatformVerifier;
-
-#[cfg(all(feature = "rustls", not(feature = "native-tls")))]
-const ROOT_CERTS: RootCerts = RootCerts::WebPki;
-
 fn make_agent() -> ureq::Agent {
     ureq::Agent::config_builder()
         .user_agent(USER_AGENT)
         .tls_config(
             TlsConfig::builder()
                 .provider(TLS_PROVIDER)
-                .root_certs(ROOT_CERTS)
+                .root_certs(RootCerts::PlatformVerifier)
                 .build(),
         )
         .build()

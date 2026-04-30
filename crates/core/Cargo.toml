@@ -36,5 +36,5 @@ semver = "1.0"
 [features]
 default = ["native-tls"]
 native-tls = ["ureq/native-tls"]
-rustls = ["ureq/rustls"]
+rustls = ["ureq/rustls", "ureq/platform-verifier"]
 rust-analyzer = []
