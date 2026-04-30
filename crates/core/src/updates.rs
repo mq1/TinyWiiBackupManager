@@ -14,6 +14,10 @@ struct Response {
 }
 
 pub fn check() -> Result<Option<Version>> {
+    if std::env::var("TWBM_DISABLE_UPDATES").is_ok_and(|v| v == "1") {
+        return Ok(None);
+    }
+
     if cfg!(debug_assertions) {
         return Ok(Some(Version::parse("999.0.0").unwrap()));
     }
