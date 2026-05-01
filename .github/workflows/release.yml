@@ -55,6 +55,11 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Install deps
+        run: |
+          apt-get update
+          apt-get install -y lsb-release wget software-properties-common gnupg
+
       - name: Install LLVM
         run: |
           wget https://apt.llvm.org/llvm.sh
