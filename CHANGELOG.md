@@ -30,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-Open an issue if you need any of these (explaining why you think X feature is important for TWBM), but I consider them out of scope for TinyWiiBackupManager.
+Open an issue if you need any of these (explaining why you think feature X is important for TWBM), but I consider them out of scope for TinyWiiBackupManager.
 
 - 📝 Removed gametdb info from the game info modal. A gametdb page link is still available with more complete/up to date info.
 - 📝 Removed nkit metadata from the game info modal. https://github.com/encounter/nod is the recommended tool for this.
