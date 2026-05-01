@@ -4,7 +4,7 @@
 use crate::{
     config::Config,
     drive_info::DriveInfo,
-    util::{HEADER_SIZE, SPLIT_SIZE, get_threads_num},
+    util::{BUF_SIZE, HEADER_SIZE, SPLIT_SIZE, get_threads_num},
 };
 use anyhow::{Result, anyhow};
 use crc32fast::Hasher;
@@ -18,7 +18,6 @@ use std::{
     fs,
     io::{BufWriter, Write},
     path::Path,
-    time::{Duration, Instant},
 };
 use which_fs::FsKind;
 
@@ -63,15 +62,15 @@ pub fn perform(
 
     fs::create_dir_all(&tmp_game_dir)?;
     let mut out_writer = BufWriter::with_capacity(
-        32_768,
+        BUF_SIZE,
         SplitWriter::create(&tmp_game_dir, get_file_name, split_size)?,
     );
     let mut hasher = Hasher::new();
     let mut head_buffer = Vec::with_capacity(HEADER_SIZE);
 
-    let mut last_update = Instant::now();
+    let mut last_percentage = 0;
     let finalization = disc_writer.process(
-        |data, progress, total| {
+        |data, progress, size| {
             out_writer.write_all(&data)?;
 
             let remaining_in_head = HEADER_SIZE.saturating_sub(head_buffer.len());
@@ -83,11 +82,11 @@ pub fn perform(
                 hasher.update(&data);
             }
 
-            if last_update.elapsed() > Duration::from_millis(100) {
-                let current_percentage = progress * 100 / total;
-                (update_progress)(current_percentage as u8);
+            let current_percentage = (progress * 100 / size) as u8;
 
-                last_update = Instant::now();
+            if current_percentage != last_percentage {
+                update_progress(current_percentage);
+                last_percentage = current_percentage;
             }
 
             Ok(())

@@ -1,6 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::{
+    config::{Config, GcOutputFormat, WiiOutputFormat},
+    drive_info::DriveInfo,
+    game_id::GameID,
+    id_map,
+    util::{self, BUF_SIZE, HEADER_SIZE, SPLIT_SIZE, get_threads_num},
+};
 use anyhow::{Result, anyhow, bail};
 use crc32fast::Hasher;
 use nod::{
@@ -9,22 +16,13 @@ use nod::{
     write::{DiscWriter, FormatOptions, ProcessOptions, ScrubLevel},
 };
 use split_write::SplitWriter;
-use which_fs::FsKind;
-use zip::ZipArchive;
-
-use crate::{
-    config::{Config, GcOutputFormat, WiiOutputFormat},
-    drive_info::DriveInfo,
-    game_id::GameID,
-    id_map,
-    util::{self, HEADER_SIZE, SPLIT_SIZE, get_threads_num},
-};
 use std::{
     fs::{self, File},
     io::{BufWriter, Read, Write},
     path::PathBuf,
-    time::{Duration, Instant},
 };
+use which_fs::FsKind;
+use zip::ZipArchive;
 
 pub fn perform(
     mut in_path: PathBuf,
@@ -125,17 +123,17 @@ pub fn perform(
 
     fs::create_dir_all(&game_dir)?;
     let mut out_writer = BufWriter::with_capacity(
-        32_768,
+        BUF_SIZE,
         SplitWriter::create(&game_dir, get_file_name, split_size)?,
     );
 
     let disc_writer = DiscWriter::new(disc_reader, &out_opts)?;
     let mut head_buffer = Vec::with_capacity(HEADER_SIZE);
     let mut hasher = Hasher::new();
+    let mut last_percentage = 0;
 
-    let mut last_update = Instant::now();
     let finalization = disc_writer.process(
-        |data, progress, total| {
+        |data, progress, size| {
             out_writer.write_all(&data)?;
 
             let remaining_in_head = HEADER_SIZE.saturating_sub(head_buffer.len());
@@ -147,15 +145,15 @@ pub fn perform(
                 hasher.update(&data);
             }
 
-            if last_update.elapsed() > Duration::from_millis(100) {
-                let current_percentage = if extracted {
-                    50 + progress * 50 / total
-                } else {
-                    progress * 100 / total
-                };
+            let current_percentage = if extracted {
+                (50 + progress * 50 / size) as u8
+            } else {
+                (progress * 100 / size) as u8
+            };
 
-                update_progress(current_percentage as u8);
-                last_update = Instant::now();
+            if current_percentage != last_percentage {
+                update_progress(current_percentage);
+                last_percentage = current_percentage;
             }
 
             Ok(())
@@ -214,25 +212,26 @@ fn unzip(
 
     let new_in_path = parent.join(archived_disc.name());
     if !new_in_path.exists() {
-        let len = archived_disc.size();
-        let mut buf = vec![0u8; 128 * 1024];
+        let size = archived_disc.size();
+        let mut buf = vec![0u8; BUF_SIZE];
         let mut out = File::create(&new_in_path)?;
-        let mut written = 0;
-        let mut last_update = Instant::now();
+        let mut progress = 0;
+        let mut last_percentage = 0;
 
         loop {
             let n = archived_disc.read(&mut buf)?;
             if n == 0 {
                 break;
             }
-
             out.write_all(&buf[..n])?;
-            written += n as u64;
 
-            if last_update.elapsed() > Duration::from_millis(100) {
-                let half_percentage = written * 50 / len;
-                update_progress(half_percentage as u8);
-                last_update = Instant::now();
+            progress += n as u64;
+
+            let current_percentage = (progress * 100 / size) as u8;
+
+            if current_percentage != last_percentage {
+                update_progress(current_percentage);
+                last_percentage = current_percentage;
             }
         }
 

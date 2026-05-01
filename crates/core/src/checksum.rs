@@ -1,14 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::game::Game;
+use crate::{game::Game, util::BUF_SIZE};
 use anyhow::{Result, bail};
 use crc32fast::Hasher;
 use std::{
     fs::{self, File},
     io::Read,
     path::Path,
-    time::{Duration, Instant},
 };
 
 pub fn perform(game: Game, update_progress: &impl Fn(u8)) -> Result<u32> {
@@ -87,8 +86,9 @@ fn hash_file(hasher: &mut Hasher, path: &Path, update_progress: &impl Fn(u8)) ->
     }
 
     let mut progress = 0;
-    let mut last_update = Instant::now();
-    let mut buf = vec![0; 128 * 1024];
+    let mut last_percentage = 0;
+    let mut buf = vec![0; BUF_SIZE];
+
     loop {
         let n = f.read(&mut buf)?;
         if n == 0 {
@@ -98,11 +98,13 @@ fn hash_file(hasher: &mut Hasher, path: &Path, update_progress: &impl Fn(u8)) ->
 
         progress += n as u64;
 
-        if last_update.elapsed() > Duration::from_millis(100) {
-            let current_percentage = progress * 100 / size;
-            update_progress(current_percentage as u8);
-            last_update = Instant::now();
+        let current_percentage = (progress * 100 / size) as u8;
+
+        if current_percentage != last_percentage {
+            update_progress(current_percentage);
+            last_percentage = current_percentage;
         }
     }
+
     Ok(())
 }
