@@ -4,22 +4,13 @@ FROM debian:bullseye
 RUN apt-get update && apt-get install -y lsb-release wget software-properties-common gnupg pkg-config libfontconfig1-dev libssl-dev
 
 # Install LLVM 22
-RUN wget https://apt.llvm.org/llvm.sh && \
-    chmod +x llvm.sh && \
-    ./llvm.sh 22
+RUN wget -qO- https://apt.llvm.org/llvm.sh | bash -s -- 22
 
 # Install Rust
-RUN wget https://static.rust-lang.org/rustup/rustup-init.sh && \
-    chmod +x rustup-init.sh && \
-    ./rustup-init.sh -y --default-toolchain 1.95
+RUN wget -qO- https://sh.rustup.rs | sh -s -- --profile minimal --default-toolchain 1.95 --component rust-src --no-modify-path
 
-# Add rust to path
+# Setup env vars
 ENV PATH="/root/.cargo/bin:${PATH}"
-
-# Add rust-src
-RUN rustup component add rust-src
-
-# Build env vars
 ENV RUSTC_BOOTSTRAP=1
 ENV CC=clang-22
 ENV AR=llvm-ar-22
