@@ -6,18 +6,12 @@ use ureq::tls::{RootCerts, TlsConfig, TlsProvider};
 
 const USER_AGENT: &str = concat!("TinyWiiBackupManager/", env!("CARGO_PKG_VERSION"));
 
-#[cfg(all(feature = "native-tls", not(feature = "rustls")))]
-const TLS_PROVIDER: TlsProvider = TlsProvider::NativeTls;
-
-#[cfg(all(feature = "rustls", not(feature = "native-tls")))]
-const TLS_PROVIDER: TlsProvider = TlsProvider::Rustls;
-
 fn make_agent() -> ureq::Agent {
     ureq::Agent::config_builder()
         .user_agent(USER_AGENT)
         .tls_config(
             TlsConfig::builder()
-                .provider(TLS_PROVIDER)
+                .provider(TlsProvider::NativeTls)
                 .root_certs(RootCerts::PlatformVerifier)
                 .build(),
         )

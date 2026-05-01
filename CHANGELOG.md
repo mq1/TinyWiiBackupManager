@@ -29,13 +29,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-Open an issue if you need any of these, but I consider them out of scope for TinyWiiBackupManager
+Open an issue if you need any of these (explaining why you think X feature is important for TWBM), but I consider them out of scope for TinyWiiBackupManager.
 
 - 📝 Removed gametdb info from the game info modal. A gametdb page link is still available with more complete/up to date info.
 - 📝 Removed nkit metadata from the game info modal. https://github.com/encounter/nod is the recommended tool for this.
 - ⚡️ Removed x86_64-vX builds: zstd should already enable modern CPU features with runtime dispatch, so there should be no need for separate builds.
 - 📦 Removed macos-x86_64 and macos-arm64 builds: the universal binary works on both architectures and is only slightly larger.
-- 📦 Dropped linux ~2020 support (ubuntu 20.04), any linux distro ~2022 (ubuntu 22.04) or newer should work fine.
 - 📝 Removed suggested downloads in the releases page now that we have way less - and easier to navigate - assets
 - 🍨 Removed scoop package now that winget seems to work consistently
 - 📦 Deprecated TinyWiiBackupManagerInstaller, as the windows builds have been unified. I'll continue to work, but it's a bit useless now.
