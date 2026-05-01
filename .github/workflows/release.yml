@@ -58,7 +58,7 @@ jobs:
       - name: Install deps
         run: |
           apt-get update
-          apt-get install -y lsb-release curl software-properties-common gnupg
+          apt-get install -y lsb-release curl software-properties-common gnupg pkg-config
 
       - name: Install LLVM
         run: |
@@ -95,7 +95,8 @@ jobs:
           install -Dm0755 TinyWiiBackupManager TinyWiiBackupManager.AppDir/usr/bin/TinyWiiBackupManager
           mkdir -p dist
           cd dist
-          VERSION=$(yq '.package.version' Cargo.toml) ../appimagetool \
+          export VERSION="${VERSION_NAME#v}"
+          ../appimagetool \
             --comp zstd --mksquashfs-opt -Xcompression-level --mksquashfs-opt 19 \
             -u "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync" \
             ../TinyWiiBackupManager.AppDir \
