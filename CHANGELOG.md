@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - ⚡️ Better UI performance (especially on old GPUs and VMs)
+- ⚡️ Restored linker-plugin-lto for all builds (might improve compression/decompression speed)
 - 🪶 Reduced UI resource usage
 - ️️️️️⚡️ Faster disc info reading
 - 🕶️ Dark/light mode switch is now in the Settings page
