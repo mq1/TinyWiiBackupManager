@@ -221,6 +221,55 @@ impl Logic<'_> {
             filtered_games_clone.reset();
         });
 
+        let config_clone = config.clone();
+        let window_handle = window.window_handle();
+        let weak = self.as_weak();
+        let notifications_clone = notifications.clone();
+        self.on_wiiload_local_file(move |wii_ip| {
+            config_clone.borrow_mut().contents.wii_ip = wii_ip.to_string();
+            let in_path = dialogs::pick_wiiload(&window_handle);
+
+            if let Some(in_path) = in_path {
+                notifications_clone.push(Notification::info(
+                    "Sending file to Wii...".to_shared_string(),
+                ));
+
+                let weak = weak.clone();
+
+                std::thread::spawn(move || {
+                    let res = twbm_core::wiiload::send(&wii_ip, &in_path);
+
+                    let _ = weak.upgrade_in_event_loop(move |logic| match res {
+                        Ok(msg) => logic.invoke_notify_info(msg.to_shared_string()),
+                        Err(e) => {
+                            let msg = slint::format!("Could not send file to Wii: {e}");
+                            logic.invoke_notify_error(msg)
+                        }
+                    });
+                });
+            }
+        });
+
+        let weak = self.as_weak();
+        let config_clone = config.clone();
+        self.on_wiiload_remote_file(move |wii_ip, url| {
+            config_clone.borrow_mut().contents.wii_ip = wii_ip.to_string();
+
+            let weak = weak.clone();
+
+            std::thread::spawn(move || {
+                let res = twbm_core::wiiload::download_then_send(&wii_ip, &url);
+
+                let _ = weak.upgrade_in_event_loop(move |logic| match res {
+                    Ok(msg) => logic.invoke_notify_info(msg.to_shared_string()),
+                    Err(e) => {
+                        let msg = slint::format!("Could not send file to Wii: {e}");
+                        logic.invoke_notify_error(msg)
+                    }
+                });
+            });
+        });
+
         let games_clone = games.clone();
         let homebrew_apps_clone = homebrew_apps.clone();
         let displayed_games_clone = displayed_games.clone();

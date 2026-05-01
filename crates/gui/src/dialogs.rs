@@ -81,3 +81,11 @@ pub fn pick_homebrew_apps(window_handle: &WindowHandle) -> Vec<PathBuf> {
         .pick_files()
         .unwrap_or_default()
 }
+
+pub fn pick_wiiload(window_handle: &WindowHandle) -> Option<PathBuf> {
+    FileDialog::new()
+        .set_parent(window_handle)
+        .set_title("Select Homebrew apps")
+        .add_filter("ZIP/DOL/ELF", &["zip", "dol", "elf"])
+        .pick_file()
+}

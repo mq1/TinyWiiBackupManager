@@ -20,3 +20,4 @@ pub mod osc;
 pub mod scrub;
 pub mod updates;
 pub mod util;
+pub mod wiiload;
