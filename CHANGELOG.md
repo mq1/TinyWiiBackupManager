@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ️️️️️⚡️ Faster disc info reading
 - 🕶️ Dark/light mode switch is now in the Settings page
 - 💄 UI refinements, TinyWiiBackupManager should feel more polished
-- 🪟 Removed windows-legacy builds, standard windows builds should now work on Vista+
+- 🪟 Removed windows-legacy builds, standard windows builds should now work on Windows 7+
 - 📦 Dist assets are now named more clearly, a more familiar arch name is used for each OS. Note to myself: make a PR to modmii to mirror this.
 - 📦 Windows builds are now distributed as UPX packed executables instead of zip files, so you don't even need to unzip the binary before running it anymore.
 - 💬 Windows dialogs should work more reliably on Windows < 10
