@@ -1,7 +1,7 @@
 FROM debian:bullseye
 
 # Install dependencies
-RUN apt-get update && apt-get install -y lsb-release wget software-properties-common gnupg pkg-config libfontconfig1-dev
+RUN apt-get update && apt-get install -y lsb-release wget software-properties-common gnupg pkg-config libfontconfig1-dev libssl-dev
 
 # Install LLVM 22
 RUN wget https://apt.llvm.org/llvm.sh && \
