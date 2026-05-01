@@ -58,7 +58,7 @@ jobs:
       - name: Install deps
         run: |
           apt-get update
-          apt-get install -y lsb-release curl software-properties-common gnupg file yq zsync pkg-config libfontconfig1-dev
+          apt-get install -y lsb-release curl software-properties-common gnupg file zsync pkg-config libfontconfig1-dev
 
       - name: Install LLVM
         run: |
@@ -95,7 +95,7 @@ jobs:
           install -Dm0755 TinyWiiBackupManager TinyWiiBackupManager.AppDir/usr/bin/TinyWiiBackupManager
           mkdir -p dist
           cd dist
-          export VERSION=$(yq '.package.version' Cargo.toml)
+          export VERSION=${VERSION_NAME#v}
           ../appimagetool \
             --comp zstd --mksquashfs-opt -Xcompression-level --mksquashfs-opt 19 \
             -u "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync" \
@@ -103,6 +103,7 @@ jobs:
             "TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
         env:
           ARCH: ${{ matrix.arch }}
+          VERSION_NAME: ${{ env.VERSION_NAME }}
           APPIMAGE_EXTRACT_AND_RUN: 1
 
       - name: Upload Linux distributables
