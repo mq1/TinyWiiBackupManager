@@ -9,17 +9,13 @@ on:
     tags:
       - "v*.*.*"
     paths:
-      - "crates/core/build.rs"
-      - "crates/gui/build.rs"
-      - "crates/core/src/**"
-      - "crates/gui/src/**"
-      - "ui/**"
-      - "Cargo.toml"
-      - "Cargo.lock"
-      - "crates/core/Cargo.toml"
-      - "crates/gui/Cargo.toml"
-      - "package/**"
       - ".github/workflows/release.yml"
+      - "Dockerfile"
+      - "**.rs"
+      - "**.slint"
+      - "**/Cargo.toml"
+      - "**/Cargo.lock"
+      - "package/**"
   pull_request:
   workflow_dispatch:
 
