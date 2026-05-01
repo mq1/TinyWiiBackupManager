@@ -16,6 +16,9 @@ RUN wget https://static.rust-lang.org/rustup/rustup-init.sh && \
 # Add rust to path
 ENV PATH="/root/.cargo/bin:${PATH}"
 
+# Add rust-src
+RUN rustup component add rust-src
+
 # Build env vars
 ENV RUSTC_BOOTSTRAP=1
 ENV CC=clang-22
