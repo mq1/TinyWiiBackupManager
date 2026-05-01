@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y lsb-release wget software-properties-co
 RUN wget -qO- https://apt.llvm.org/llvm.sh | bash -s -- 22
 
 # Install Rust
-RUN wget -qO- https://sh.rustup.rs | sh -s -- --profile minimal --default-toolchain 1.95 --component rust-src --no-modify-path
+RUN wget -qO- https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain 1.95 --component rust-src --no-modify-path
 
 # Setup env vars
 ENV PATH="/root/.cargo/bin:${PATH}"
