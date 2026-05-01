@@ -45,7 +45,7 @@ jobs:
             target: x86_64-unknown-linux-gnu
           - runner: ubuntu-22.04-arm
             arch: aarch64
-            target: aarch64-unknown-linux-gnuu
+            target: aarch64-unknown-linux-gnu
 
     steps:
       - name: Checkout
