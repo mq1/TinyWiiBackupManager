@@ -90,13 +90,12 @@ jobs:
           install -Dm0755 TinyWiiBackupManager TinyWiiBackupManager.AppDir/usr/bin/TinyWiiBackupManager
           mkdir -p dist
           cd dist
-          ../appimagetool \
+          VERSION=$(yq '.package.version' Cargo.toml) ../appimagetool \
             --comp zstd --mksquashfs-opt -Xcompression-level --mksquashfs-opt 19 \
             -u "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync" \
             ../TinyWiiBackupManager.AppDir \
             "TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
         env:
-          VERSION: ${{ env.VERSION_NAME }}
           ARCH: ${{ matrix.arch }}
 
       - name: Upload Linux distributables
