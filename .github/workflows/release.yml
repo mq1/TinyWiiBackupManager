@@ -73,7 +73,7 @@ jobs:
 
       - name: Download appimagetool
         run: |
-          wget "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-${{ matrix.arch }}.AppImage" -O appimagetool
+          curl -L "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-${{ matrix.arch }}.AppImage" -o appimagetool
           chmod +x appimagetool
 
       - name: Build binary
