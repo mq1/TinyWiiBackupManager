@@ -17,9 +17,9 @@
 
 - **Lightweight & Fast**: Native app written in Rust and Slint, no Electron!
 - **Cross-Platform**:
-  - :window: Windows 7+ | x86 (32-bit), x64 (64-bit), arm64 (Qualcomm Snapdragon etc.)
+  - :window: Windows 7+ | x64 (64-bit), arm64 (Qualcomm Snapdragon etc.)
   - :apple: macOS 10.12+ | x86_64 (Intel), arm64 (Apple Silicon/M1+)
-  - :penguin: Linux | i686 (32-bit), x86_64 (64-bit), armhf/arm64 (Raspberry PIs etc.)
+  - :penguin: Linux | x86_64 (64-bit), arm64 (Raspberry PIs etc.)
 
 #### :video_game: Game Management
 
