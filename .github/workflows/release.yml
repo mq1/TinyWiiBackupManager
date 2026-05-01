@@ -174,15 +174,13 @@ jobs:
         env:
           RUSTC_BOOTSTRAP: 1
           CC: clang-cl
-          AR_x86_64-win7-windows-msvc: llvm-lib
-          AR_aarch64-pc-windows-msvc: llvm-lib
-          CFLAGS_x86_64-win7-windows-msvc: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
-          CFLAGS_i686-win7-windows-msvc: /clang:-O3
-          CFLAGS_aarch64-pc-windows-msvc: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
+          AR: llvm-lib
+          CFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
           CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto -C link-arg=/FORCE:MULTIPLE -l dylib=ole32
-          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_RUSTFLAGS: -l dylib=ole32
+          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto -C link-arg=/FORCE:MULTIPLE -l dylib=ole32 -C link-arg=/machine:x86
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto
           CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_LINKER: lld-link
+          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_LINKER: lld-link
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: lld-link
 
       - name: Package binary (UPX)
