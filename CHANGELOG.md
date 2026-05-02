@@ -42,6 +42,7 @@ Open an issue if you need any of these (explaining why you think feature X is im
 - 😓 Windows XP and Vista are no longer supported (as maintaining a custom file dialog implementation is a hassle for me, and this already caused regressions in previous TWBM releases). TWBM now requires at least Windows 7.
 - 🛜 Network features (https) won't probably work on older windows versions anymore. Game conversion will still work as expected.
 - 🖥️ Removed support for 32-bit PCs. I think 32-bit releases can get downloaded by mistake by non-technical users instead of the proper 64 bit versions. And 32-bit PCs are not really used anymore tbh.
+- 📂 File drag-and-drop doesn't work in slint as of may 2026 (https://github.com/slint-ui/slint/discussions/9424, https://github.com/slint-ui/slint/issues/1967)
 
 ## [v5.2.1] - 2026-03-19
 
