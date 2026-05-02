@@ -22,7 +22,7 @@ impl DiscInfo {
         let mut f = File::open(&path).ok()?;
         let meta = wii_disc_info::Meta::read(&mut f).ok()?;
 
-        let is_worth_scrubbing = (meta.format() == wii_disc_info::Format::Wbfs)
+        let is_worth_scrubbing = meta.format() == wii_disc_info::Format::Wbfs
             && is_worth_scrubbing(&mut f).unwrap_or(false);
 
         let crc32_path = path.with_file_name(format!("{}.crc32", meta.game_id()));
