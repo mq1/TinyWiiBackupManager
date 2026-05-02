@@ -37,6 +37,7 @@ nod = { git = "https://github.com/encounter/nod.git", default-features = false, 
     "compress-lzma-vendored",
     "compress-zlib-vendored",
     "compress-zstd-vendored",
+    "threading"
 ] }
 
 [target.'cfg(not(all(target_os = "windows", target_arch = "x86")))'.dependencies]
