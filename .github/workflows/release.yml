@@ -69,7 +69,7 @@ jobs:
           docker run -i -v "$(pwd):/io" -w /io ${{ matrix.container }} bash -s <<EOF
             # Install dependencies
             apt-get update
-            apt-get install -y lsb-release wget software-properties-common gnupg pkg-config libfontconfig1-dev libssl-dev
+            apt-get install -y lsb-release wget software-properties-common gnupg pkg-config libfontconfig1-dev libssl-dev libatomic1
 
             # Install LLVM
             wget -qO- https://apt.llvm.org/llvm.sh | bash -s -- 22
