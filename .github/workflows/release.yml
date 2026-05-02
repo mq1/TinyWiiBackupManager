@@ -61,6 +61,7 @@ jobs:
         run: |
           docker run -v "$(pwd):/io" -w /io builder cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }}
           cp target/${{ matrix.target }}/release/twbm-gui TinyWiiBackupManager
+
       - name: Package AppImage
         run: |
           cp -rP package/linux/AppDir TinyWiiBackupManager.AppDir
@@ -93,6 +94,8 @@ jobs:
             target: aarch64-pc-windows-msvc
           - arch: x64
             target: x86_64-win7-windows-msvc
+          - arch: x86
+            target: i686-win7-windows-msvc
 
     steps:
       - name: Checkout
@@ -110,7 +113,7 @@ jobs:
           components: rust-src
 
       - name: Download UPX
-        if: matrix.arch == 'x64'
+        if: matrix.arch == 'x64' || matrix.arch == 'x86'
         shell: pwsh
         run: choco install upx
 
@@ -125,12 +128,14 @@ jobs:
           AR: llvm-lib
           CFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
           CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto -C link-arg=/FORCE:MULTIPLE -l dylib=ole32
+          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto -C link-arg=/FORCE:MULTIPLE -l dylib=ole32
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto
           CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_LINKER: lld-link
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: lld-link
+          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_LINKER: lld-link
 
       - name: Compress binary (UPX)
-        if: matrix.arch == 'x64'
+        if: matrix.arch == 'x64' || matrix.arch == 'x86'
         shell: pwsh
         run: upx --best --lzma "TinyWiiBackupManager.exe"
 

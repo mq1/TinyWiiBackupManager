@@ -25,10 +25,19 @@ zip = { version = "8.6", default-features = false, features = [
     "deflate-flate2",
 ] }
 wii-disc-info = { workspace = true }
-nod = { git = "https://github.com/encounter/nod.git" }
 crc32fast = "1.5"
 num_cpus = "1.17"
 sanitize-filename = "0.7.0-beta"
 split-write = "0.2"
 wiiload = "0.3"
 semver = "1.0"
+
+[target.i686-win7-windows-msvc.dependencies]
+nod = { git = "https://github.com/encounter/nod.git", default-features = false, features = [
+    "compress-lzma-vendored",
+    "compress-zlib-vendored",
+    "compress-zstd-vendored",
+] }
+
+[target.'cfg(not(target = "i686-pc-windows-msvc"))'.dependencies]
+nod = { git = "https://github.com/encounter/nod.git" }
