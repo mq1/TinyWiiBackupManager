@@ -5,6 +5,9 @@ import { MyPalette } from "../styling.slint";
 import { Card } from "card.slint";
 
 export component Modal inherits Rectangle {
+    in property <length> w: 600px;
+    in property <length> h: 400px;
+
     height: 100%;
     width: 100%;
 
@@ -27,8 +30,8 @@ export component Modal inherits Rectangle {
 
     // the actual modal
     Card {
-        width: 600px;
-        height: 400px;
+        width: w;
+        height: h;
 
         x: (root.width - self.width) / 2;
         y: (root.height - self.height) / 2;

@@ -1,0 +1,74 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { Modal } from "modal.slint";
+import { HorizontalLine } from "horizontal-line.slint";
+import { IconButton, IconButtonKind } from "icon-button.slint";
+import { IconSet } from "@lucide";
+import { Logic } from "../logic.slint";
+import { DisplayedOscApp } from "../types.slint";
+import { LineEdit } from "std-widgets.slint";
+
+export component WiiloadOscAppModal inherits Modal {
+    in property <DisplayedOscApp> app;
+    callback closed;
+
+    w: 300px;
+    h: 150px;
+
+    VerticalLayout {
+        VerticalLayout {
+            padding-left: 20px;
+            padding-right: 20px;
+            spacing: 10px;
+            alignment: center;
+
+            Text {
+                text: "Sending \{app.name} via Wiiload";
+            }
+
+            HorizontalLayout {
+                spacing: 10px;
+
+                VerticalLayout {
+                    alignment: center;
+
+                    Text {
+                        text: "Wii IP:";
+                    }
+                }
+
+                ip := LineEdit {
+                    text: Logic.config.wii-ip;
+                }
+            }
+        }
+
+        VerticalLayout {
+            height: self.min-height;
+
+            HorizontalLine { }
+
+            HorizontalLayout {
+                alignment: end;
+                padding: 10px;
+                spacing: 10px;
+
+                IconButton {
+                    label: "Cancel";
+                    clicked => closed();
+                }
+
+                IconButton {
+                    label: "Send";
+                    kind: IconButtonKind.Primary;
+                    icon: IconSet.MonitorUp;
+                    clicked => {
+                        Logic.wiiload-osc-app(ip.text, app.idx);
+                        closed();
+                    }
+                }
+            }
+        }
+    }
+}

@@ -62,7 +62,7 @@ fn rebuild_zip(body: Vec<u8>) -> Result<(Vec<u8>, Vec<String>)> {
     for filename in &app_files {
         let new_filename = filename.replace(&parent_filename, &new_parent_filename);
         writer.start_file(&new_filename, options)?;
-        let mut file = archive.by_name(&filename)?;
+        let mut file = archive.by_name(filename)?;
         io::copy(&mut file, &mut writer)?;
         eprintln!("Copied {filename} to {new_filename}");
     }
@@ -109,7 +109,7 @@ pub fn download_then_send(wii_ip: &str, zip_url: &str) -> Result<String> {
 
     let filename = zip_url
         .split('/')
-        .last()
+        .next_back()
         .ok_or_else(|| anyhow!("Failed to get filename from URL"))?;
 
     let body = http::get_vec(zip_url)?;

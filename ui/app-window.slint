@@ -24,6 +24,7 @@ import { ConfirmationModal } from "components/confirmation-modal.slint";
 import { Tooltip } from "tooltip.slint";
 import { ToolboxPage } from "toolbox-page.slint";
 import { ConversionQueuePage } from "conversion-queue.slint";
+import { WiiloadOscAppModal } from "components/wiiload-osc-app-modal.slint";
 
 export * from "types.slint";
 export { Logic }
@@ -43,6 +44,7 @@ export component AppWindow inherits Window {
     private property <int> game-to-delete: -1;
     private property <int> homebrew-app-to-delete: -1;
     private property <bool> scrubbing-all-games: false;
+    private property <int> wiiloading-osc-app: -1;
 
     // Initialize
     Timer {
@@ -111,10 +113,16 @@ export component AppWindow inherits Window {
                     open-info(i) => {
                         current-osc-app-i = i;
                     }
+                    wiiload(i) => {
+                        wiiloading-osc-app = i;
+                    }
                 }
                 if current-page == Page.Osc && Logic.config.view-as == 1: OscTablePage {
                     open-info(i) => {
                         current-osc-app-i = i;
+                    }
+                    wiiload(i) => {
+                        wiiloading-osc-app = i;
                     }
                 }
                 if current-page == Page.Toolbox: ToolboxPage {
@@ -235,6 +243,13 @@ export component AppWindow inherits Window {
         confirmed => {
             Logic.scrub-all-games();
             scrubbing-all-games = false;
+        }
+    }
+
+    if wiiloading-osc-app >= 0: WiiloadOscAppModal {
+        app: Logic.osc-apps[wiiloading-osc-app];
+        closed => {
+            wiiloading-osc-app = -1;
         }
     }
 

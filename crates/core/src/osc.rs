@@ -65,6 +65,10 @@ impl OscAppMeta {
 
         Ok(())
     }
+
+    pub fn wiiload(&self, wii_ip: &str) -> Result<String> {
+        crate::wiiload::download_then_send(wii_ip, &self.assets.archive.url)
+    }
 }
 
 pub fn cache_contents(data_dir: &Path, force: bool) -> Result<()> {

@@ -11,6 +11,7 @@ import { Logic } from "logic.slint";
 
 export component OscGridPage inherits VerticalLayout {
     callback open-info(int);
+    callback wiiload(int);
 
     private property <int> col-count: max(1, floor((self.width - 10px) / (172px + 10px)));
 
@@ -48,7 +49,8 @@ export component OscGridPage inherits VerticalLayout {
 
                     app: app;
                     open-info() => open-info(i);
-                    install() => Logic.install-osc-app(i);
+                    install() => Logic.install-osc-app(app.idx);
+                    wiiload() => wiiload(i);
                 }
             }
         }

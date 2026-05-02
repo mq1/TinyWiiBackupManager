@@ -12,6 +12,7 @@ export component OscAppCard inherits Card {
 
     callback open-info();
     callback install();
+    callback wiiload();
 
     width: 172px;
     height: self.min-height;
@@ -78,6 +79,7 @@ export component OscAppCard inherits Card {
                 width: self.height + 1px;
                 icon: IconSet.MonitorUp;
                 tooltip: "Wiiload";
+                clicked => wiiload();
             }
         }
     }

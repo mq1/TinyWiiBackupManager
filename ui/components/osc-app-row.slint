@@ -12,6 +12,7 @@ export component OscAppRow inherits Rectangle {
 
     callback open-info();
     callback install();
+    callback wiiload();
 
     height: 24px;
 
@@ -76,5 +77,6 @@ export component OscAppRow inherits Rectangle {
         height: 24px;
         width: 24px;
         squared: true;
+        clicked => wiiload();
     }
 }

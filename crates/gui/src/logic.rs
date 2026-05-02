@@ -227,15 +227,15 @@ impl Logic<'_> {
         let notifications_clone = notifications.clone();
         self.on_wiiload_local_file(move |wii_ip| {
             config_clone.borrow_mut().contents.wii_ip = wii_ip.to_string();
+            weak.upgrade().unwrap().invoke_sync_config();
+
             let in_path = dialogs::pick_wiiload(&window_handle);
 
             if let Some(in_path) = in_path {
-                notifications_clone.push(Notification::info(
-                    "Sending file to Wii...".to_shared_string(),
-                ));
+                let msg = slint::format!("Sending {} to Wii...", in_path.display());
+                notifications_clone.push(Notification::info(msg));
 
                 let weak = weak.clone();
-
                 std::thread::spawn(move || {
                     let res = twbm_core::wiiload::send(&wii_ip, &in_path);
 
@@ -252,13 +252,20 @@ impl Logic<'_> {
 
         let weak = self.as_weak();
         let config_clone = config.clone();
-        self.on_wiiload_remote_file(move |wii_ip, url| {
+        let osc_apps_clone = osc_apps.clone();
+        let notifications_clone = notifications.clone();
+        self.on_wiiload_osc_app(move |wii_ip, i| {
             config_clone.borrow_mut().contents.wii_ip = wii_ip.to_string();
+            weak.upgrade().unwrap().invoke_sync_config();
+
+            let app = osc_apps_clone.borrow()[i as usize].clone();
+
+            let msg = slint::format!("Sending {} to Wii...", app.name);
+            notifications_clone.push(Notification::info(msg));
 
             let weak = weak.clone();
-
             std::thread::spawn(move || {
-                let res = twbm_core::wiiload::download_then_send(&wii_ip, &url);
+                let res = app.wiiload(&wii_ip);
 
                 let _ = weak.upgrade_in_event_loop(move |logic| match res {
                     Ok(msg) => logic.invoke_notify_info(msg.to_shared_string()),
@@ -537,7 +544,7 @@ impl Logic<'_> {
             let conv = Conversion::new(&queued);
 
             let weak = weak.clone();
-            let drive_info = drive_info_clone.borrow().clone();
+            let drive_info = *drive_info_clone.borrow();
             let config = config_clone.borrow().clone();
 
             let _ = std::thread::spawn(move || {
