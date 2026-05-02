@@ -29,7 +29,7 @@ export component ConversionQueueToolbar inherits HorizontalLayout {
     VerticalLayout {
         alignment: center;
 
-        IconButton {
+        if Logic.conversion-queue.length > 0: IconButton {
             icon: IconSet.X;
             label: "Cancel all conversions";
             kind: IconButtonKind.Primary;
