@@ -39,18 +39,25 @@ jobs:
           - runner: ubuntu-22.04
             arch: x86_64
             target: x86_64-unknown-linux-gnu
+            container: debian:bullseye
           - runner: ubuntu-22.04-arm
             arch: aarch64
             target: aarch64-unknown-linux-gnu
+            container: debian:bullseye
+          - runner: ubuntu-22.04
+            arch: i686
+            target: i686-unknown-linux-gnu
+            container: i386/debian:bullseye
+          - runner: ubuntu-22.04-arm
+            arch: armhf
+            target: armv7-unknown-linux-gnueabihf
+            container: arm32v7/debian:bullseye
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
           fetch-depth: 1
-
-      - name: Build Docker image
-        run: docker build -t builder -f Dockerfile .
 
       - name: Download appimagetool
         run: |
@@ -59,7 +66,32 @@ jobs:
 
       - name: Build binary
         run: |
-          docker run -v "$(pwd):/io" -w /io builder cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }}
+          docker run -v "$(pwd):/io" -w /io ${{ matrix.container }} bash -s <<EOF
+            # Install dependencies
+            apt-get update
+            apt-get install -y lsb-release wget software-properties-common gnupg pkg-config libfontconfig1-dev libssl-dev
+
+            # Install LLVM
+            RUN wget -qO- https://apt.llvm.org/llvm.sh | bash -s -- 22
+
+            # Install Rust
+            wget -qO- https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain 1.95 --component rust-src --no-modify-path
+
+            # Configure build environment
+            export RUSTC_BOOTSTRAP=1
+            export CC=clang-22
+            export AR=llvm-ar-22
+            export CFLAGS="-O3 -flto"
+            export RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=lld-22"
+            export CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=clang-22
+            export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=clang-22
+            export CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER=clang-22
+            export CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNUEABIHF_LINKER=clang-22
+
+            # Actual build step
+            /root/.cargo/bin/cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }}
+          EOF
+
           cp target/${{ matrix.target }}/release/twbm-gui TinyWiiBackupManager
       - name: Package AppImage
         run: |
@@ -93,6 +125,8 @@ jobs:
             target: aarch64-pc-windows-msvc
           - arch: x64
             target: x86_64-win7-windows-msvc
+          - arch: x86
+            target: i686-win7-windows-msvc
 
     steps:
       - name: Checkout
@@ -110,7 +144,7 @@ jobs:
           components: rust-src
 
       - name: Download UPX
-        if: matrix.arch == 'x64'
+        if: matrix.arch == 'x64' || matrix.arch == 'x86'
         shell: pwsh
         run: choco install upx
 
@@ -125,12 +159,14 @@ jobs:
           AR: llvm-lib
           CFLAGS: /clang:-O3 /clang:-flto /clang:-fuse-ld=lld-link
           CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto -C link-arg=/FORCE:MULTIPLE -l dylib=ole32
+          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto -C link-arg=/FORCE:MULTIPLE -l dylib=ole32
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_RUSTFLAGS: -C linker-plugin-lto
           CARGO_TARGET_X86_64_WIN7_WINDOWS_MSVC_LINKER: lld-link
+          CARGO_TARGET_I686_WIN7_WINDOWS_MSVC_LINKER: lld-link
           CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: lld-link
 
       - name: Compress binary (UPX)
-        if: matrix.arch == 'x64'
+        if: matrix.arch == 'x64' || matrix.arch == 'x86'
         shell: pwsh
         run: upx --best --lzma "TinyWiiBackupManager.exe"
 
