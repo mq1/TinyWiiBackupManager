@@ -1,16 +1,18 @@
-FROM debian:bullseye
+FROM rust:1.95-bullseye
 
 # Install dependencies
-RUN apt-get update && apt-get install -y lsb-release wget software-properties-common gnupg pkg-config libfontconfig1-dev libssl-dev
+RUN apt-get update && \
+    apt-get install -y lsb-release wget software-properties-common gnupg pkg-config libfontconfig1-dev libssl-dev
 
 # Install LLVM 22
-RUN wget -qO- https://apt.llvm.org/llvm.sh | bash -s -- 22
+RUN wget https://apt.llvm.org/llvm.sh && \
+    chmod +x llvm.sh && \
+    ./llvm.sh 22
 
-# Install Rust
-RUN wget -qO- https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain 1.95 --component rust-src --no-modify-path
+# Install rust-src
+RUN rustup component add rust-src
 
 # Setup env vars
-ENV PATH="/root/.cargo/bin:${PATH}"
 ENV RUSTC_BOOTSTRAP=1
 ENV CC=clang-22
 ENV AR=llvm-ar-22

@@ -59,7 +59,7 @@ jobs:
 
       - name: Build binary
         run: |
-          docker run -v "$(pwd):/io" -w /io builder cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }}
+          docker run -v "$(pwd):/io" -w /io -u $(id -u):$(id -g) builder cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }}
           cp target/${{ matrix.target }}/release/twbm-gui TinyWiiBackupManager
 
       - name: Package AppImage
