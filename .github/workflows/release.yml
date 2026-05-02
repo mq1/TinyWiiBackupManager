@@ -72,7 +72,7 @@ jobs:
             apt-get install -y lsb-release wget software-properties-common gnupg pkg-config libfontconfig1-dev libssl-dev
 
             # Install LLVM
-            RUN wget -qO- https://apt.llvm.org/llvm.sh | bash -s -- 22
+            wget -qO- https://apt.llvm.org/llvm.sh | bash -s -- 22
 
             # Install Rust
             wget -qO- https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain 1.95 --component rust-src --no-modify-path
