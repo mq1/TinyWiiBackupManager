@@ -93,6 +93,7 @@ jobs:
           EOF
 
           cp target/${{ matrix.target }}/release/twbm-gui TinyWiiBackupManager
+
       - name: Package AppImage
         run: |
           cp -rP package/linux/AppDir TinyWiiBackupManager.AppDir
