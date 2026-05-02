@@ -778,11 +778,15 @@ impl Logic<'_> {
             let to_scrub = games_clone
                 .borrow()
                 .iter()
+                .filter(|g| g.is_wii)
                 .enumerate()
                 .filter_map(|(i, game)| {
                     let disc_path = game.get_disc_path()?;
                     let mut f = File::open(disc_path).ok()?;
-                    let worth = is_worth_scrubbing(&mut f).ok()?;
+                    let meta = wii_disc_info::Meta::read(&mut f).ok()?;
+                    let worth = meta.format() == wii_disc_info::Format::Wbfs
+                        && is_worth_scrubbing(&mut f).ok()?;
+
                     worth.then_some(i as i32)
                 })
                 .collect::<Vec<_>>();
