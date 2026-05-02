@@ -1,8 +1,9 @@
 FROM rust:1.95-bullseye
 
 # Install LLVM 22
-RUN wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc && \
-    add-apt-repository "deb http://apt.llvm.org/bullseye/ llvm-toolchain-bullseye-22 main" && \
+RUN wget -O /etc/apt/trusted.gpg.d/apt.llvm.org.asc https://apt.llvm.org/llvm-snapshot.gpg.key && \
+    echo "deb http://apt.llvm.org/bullseye/ llvm-toolchain-bullseye-22 main" > /etc/apt/sources.list.d/llvm.list && \
+    apt-get update && \
     apt-get install -y clang-22 lld-22
 
 # Install rust-src
