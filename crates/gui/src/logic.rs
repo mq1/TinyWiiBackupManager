@@ -226,14 +226,14 @@ impl Logic<'_> {
         let weak = self.as_weak();
         let notifications_clone = notifications.clone();
         self.on_wiiload_local_file(move |wii_ip| {
-            config_clone.borrow_mut().contents.wii_ip = wii_ip.to_string();
-            weak.upgrade().unwrap().invoke_sync_config();
-
             let in_path = dialogs::pick_wiiload(&window_handle);
 
             if let Some(in_path) = in_path {
                 let msg = slint::format!("Sending {} to Wii...", in_path.display());
                 notifications_clone.push(Notification::info(msg));
+
+                config_clone.borrow_mut().contents.wii_ip = wii_ip.to_string();
+                weak.upgrade().unwrap().invoke_sync_config();
 
                 let weak = weak.clone();
                 std::thread::spawn(move || {

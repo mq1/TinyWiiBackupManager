@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import { IconSet, IconDisplay } from "@lucide";
-import { ScrollView } from "std-widgets.slint";
+import { ScrollView, LineEdit } from "std-widgets.slint";
 import { MyPalette } from "styling.slint";
 import { Card } from "components/card.slint";
 import { HorizontalLine } from "components/horizontal-line.slint";
@@ -146,6 +146,66 @@ export component ToolboxPage inherits VerticalLayout {
                             height: b.height;
                             vertical-alignment: center;
                             text: "Remove the update partition from all .wbfs files";
+                        }
+                    }
+                }
+            }
+
+            Card {
+                VerticalLayout {
+                    padding: 10px;
+                    spacing: 10px;
+
+                    HorizontalLayout {
+                        spacing: 5px;
+
+                        IconDisplay {
+                            icon: IconSet.MonitorUp;
+                            stroke: MyPalette.foreground;
+                            size: 14px;
+                        }
+
+                        Text {
+                            text: "Wiiload";
+                        }
+                    }
+
+                    HorizontalLine { }
+
+                    Text {
+                        text: "Wiiload is a method of loading .dol and .elf files over the network.\nAlso, you can use Wiiload to install homebrew applications directly onto your SD card.\nIf the icon in the very bottom right of the Homebrew Channel is lit up, it should work for you.\nPressing the home button in the Homebrew Channel will reveal your Wii's IP.";
+                    }
+
+                    HorizontalLine { }
+
+                    HorizontalLayout {
+                        alignment: space-between;
+
+                        VerticalLayout {
+                            alignment: center;
+
+                            IconButton {
+                                icon: IconSet.FileUp;
+                                label: "Choose a zip/dol/elf";
+                                clicked => Logic.wiiload-local-file(ip.text);
+                            }
+                        }
+
+                        HorizontalLayout {
+                            spacing: 10px;
+
+                            VerticalLayout {
+                                alignment: center;
+
+                                Text {
+                                    text: "Wii IP:";
+                                }
+                            }
+
+                            ip := LineEdit {
+                                width: 200px;
+                                text: Logic.config.wii-ip;
+                            }
                         }
                     }
                 }
