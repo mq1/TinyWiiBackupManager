@@ -51,9 +51,7 @@
       :arrow_right: <a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest">Download standalone binary</a>
       <br>
       <br>
-      :package: winget:
-      <br>
-      <code>winget install -e --id mq1.TinyWiiBackupManager</code>
+      :package: <code>winget install -e --id mq1.TinyWiiBackupManager</code>
     </td>
   </tr>
 </table>
