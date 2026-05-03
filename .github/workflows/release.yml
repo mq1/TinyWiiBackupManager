@@ -55,6 +55,13 @@ jobs:
       - name: Install LLVM
         run: wget -qO- https://apt.llvm.org/llvm.sh | sudo bash -s -- 22
 
+      - name: Install i686 dependencies
+        if: matrix.arch == 'i686'
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install -y libfontconfig1-dev:i386
+
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.95
         with:
@@ -78,6 +85,7 @@ jobs:
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: clang-22
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: clang-22
           CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER: clang-22
+          PKG_CONFIG_PATH_i686_unknown_linux_gnu: /usr/lib/i386-linux-gnu/pkgconfig
 
       - name: Package AppImage
         run: |
