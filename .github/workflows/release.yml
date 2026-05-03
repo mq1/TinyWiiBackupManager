@@ -65,17 +65,6 @@ jobs:
           docker run -v "$(pwd):/io" -w /io rust:1.95-bullseye scripts/build-linux.sh ${{ matrix.target }}
           cp target/${{ matrix.target }}/release/twbm-gui TinyWiiBackupManager
 
-      - name: Build binary (32-bit)
-        if: matrix.arch == 'x86'
-        run: |
-          docker run -v "$(pwd):/io" -w /io rust:1.95-bullseye bash -c "
-            rustup component add rust-src &&
-            export RUSTC_BOOTSTRAP=1 &&
-            cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }}
-          "
-
-          cp target/${{ matrix.target }}/release/twbm-gui TinyWiiBackupManager
-
       - name: Package AppImage
         run: |
           cp -rP package/linux/AppDir TinyWiiBackupManager.AppDir
