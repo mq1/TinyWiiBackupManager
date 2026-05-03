@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::http;
+use crate::util::AGENT;
 use anyhow::{Result, bail};
 use serde::Deserialize;
 use std::{
@@ -51,14 +51,26 @@ impl OscAppMeta {
             bail!("Icon already exists");
         }
 
-        let body = http::get_vec(&self.assets.icon.url)?;
+        let body = AGENT
+            .get(&self.assets.icon.url)
+            .call()?
+            .body_mut()
+            .read_to_vec()?;
+
         fs::write(&icon_path, &body)?;
 
         Ok(())
     }
 
     pub fn install(&self, root_dir: &Path) -> Result<()> {
-        let body = http::get_vec(&self.assets.archive.url)?;
+        let body = AGENT
+            .get(&self.assets.archive.url)
+            .call()?
+            .body_mut()
+            .with_config()
+            .limit(100 * 1024 * 1024)
+            .read_to_vec()?;
+
         let mut reader = Cursor::new(body);
         let mut archive = ZipArchive::new(&mut reader)?;
         archive.extract(root_dir)?;
@@ -84,7 +96,12 @@ pub fn cache_contents(data_dir: &Path, force: bool) -> Result<()> {
         return Ok(());
     }
 
-    let body = http::get_string(CONTENTS_URL)?;
+    let body = AGENT
+        .get(CONTENTS_URL)
+        .call()?
+        .body_mut()
+        .read_to_string()?;
+
     fs::write(&cache_path, body)?;
 
     Ok(())

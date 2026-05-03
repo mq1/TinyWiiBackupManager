@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::http;
+use crate::util::AGENT;
 use anyhow::{Result, anyhow, bail};
 use std::{
     ffi::OsStr,
@@ -112,7 +112,13 @@ pub fn download_then_send(wii_ip: &str, zip_url: &str) -> Result<String> {
         .next_back()
         .ok_or_else(|| anyhow!("Failed to get filename from URL"))?;
 
-    let body = http::get_vec(zip_url)?;
+    let body = AGENT
+        .get(zip_url)
+        .call()?
+        .body_mut()
+        .with_config()
+        .limit(100 * 1024 * 1024)
+        .read_to_vec()?;
 
     let (body, excluded_files) = rebuild_zip(body)?;
     wiiload::send(filename, body, wii_ip)?;

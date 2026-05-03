@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::game_id::GameID;
-use crate::http;
+use crate::util::AGENT;
 use anyhow::{Result, bail};
 use arrayvec::ArrayString;
 use std::fmt::Write;
@@ -36,7 +36,7 @@ pub fn download_cover(game_id: GameID, data_dir: &Path) -> Result<()> {
         game_id,
     );
 
-    let body = http::get_vec(&cover_url)?;
+    let body = AGENT.get(&cover_url).call()?.body_mut().read_to_vec()?;
     fs::write(&cover_path, &body)?;
 
     Ok(())

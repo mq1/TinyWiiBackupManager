@@ -6,12 +6,28 @@ use nod::{
     common::{Compression, Format},
     write::FormatOptions,
 };
-use std::{borrow::Cow, ffi::OsStr, fs::File, num::NonZeroUsize, path::Path};
+use std::{borrow::Cow, ffi::OsStr, fs::File, num::NonZeroUsize, path::Path, sync::LazyLock};
+use ureq::tls::{RootCerts, TlsConfig, TlsProvider};
 use zip::ZipArchive;
 
 pub const SPLIT_SIZE: NonZeroUsize = NonZeroUsize::new(4_294_934_528).unwrap(); // 4 GiB - 32 KiB
 pub const HEADER_SIZE: usize = 131_072; // 128 KiB
 pub const BUF_SIZE: usize = 4_194_304; // 4 MiB
+
+pub static AGENT: LazyLock<ureq::Agent> = LazyLock::new(|| {
+    const USER_AGENT: &str = concat!("TinyWiiBackupManager/", env!("CARGO_PKG_VERSION"));
+
+    ureq::Agent::config_builder()
+        .user_agent(USER_AGENT)
+        .tls_config(
+            TlsConfig::builder()
+                .provider(TlsProvider::NativeTls)
+                .root_certs(RootCerts::PlatformVerifier)
+                .build(),
+        )
+        .build()
+        .new_agent()
+});
 
 pub fn sanitize(s: &str) -> Cow<'_, str> {
     let opts = sanitize_filename::Options {

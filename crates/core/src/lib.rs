@@ -13,7 +13,6 @@ pub mod drive_info;
 pub mod game;
 pub mod game_id;
 pub mod homebrew_app;
-pub mod http;
 pub mod id_map;
 pub mod normalize_dir_layout;
 pub mod osc;

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::http;
+use crate::util::AGENT;
 use anyhow::Result;
 use semver::Version;
 
@@ -18,7 +18,7 @@ pub fn check() -> Result<Option<Version>> {
         return Ok(None);
     }
 
-    let resp = http::get_json::<Response>(URL)?;
+    let resp = AGENT.get(URL).call()?.body_mut().read_json::<Response>()?;
 
     let version = match resp.tag_name.strip_prefix('v') {
         Some(v) => v,
