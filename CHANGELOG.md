@@ -27,7 +27,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 📦 Dist assets are now named more clearly, a more familiar arch name is used for each OS. Note to myself: make a PR to modmii to mirror this.
 - 📦 Windows builds are now distributed as UPX packed executables instead of zip files, so you don't even need to unzip the binary before running it anymore.
 - 💬 Windows dialogs should work more reliably on Windows < 10
-- 🐧 Linux builds now require glibc 2.35+ (~ ubuntu 22.04+)
 
 ### Removed
 
@@ -42,7 +41,8 @@ Open an issue if you need any of these (explaining why you think feature X is im
 - 📦 Deprecated TinyWiiBackupManagerInstaller, as the windows builds have been unified. I'll continue to work, but it's a bit useless now.
 - 😓 Windows XP and Vista are no longer supported (as maintaining a custom file dialog implementation is a hassle for me, and this already caused regressions in previous TWBM releases). TWBM now requires at least Windows 7.
 - 🛜 Network features (https) won't probably work on older windows versions anymore. Game conversion will still work as expected.
-- 🖥️ Removed 32-bit linux builds
+- 🖥️ Removed armhf build
+- 🐧 Dropped glibc 2.31 support. Linux builds now require glibc 2.35+ (~ ubuntu 22.04+)
 - 📂 File drag-and-drop doesn't work in slint as of may 2026 (https://github.com/slint-ui/slint/discussions/9424, https://github.com/slint-ui/slint/issues/1967)
 
 ## [v5.2.1] - 2026-03-19
