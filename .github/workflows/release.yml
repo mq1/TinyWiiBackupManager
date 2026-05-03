@@ -45,6 +45,7 @@ jobs:
           - runner: ubuntu-22.04
             arch: i686
             target: i686-unknown-linux-gnu
+            packages: gcc-multilib pkg-config:i386 libfontconfig1-dev:i386 libssl-dev:i386
 
     steps:
       - name: Checkout
@@ -52,15 +53,15 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install LLVM
-        run: wget -qO- https://apt.llvm.org/llvm.sh | sudo bash -s -- 22
-
-      - name: Install i686 dependencies
+      - name: Enable i386 architecture
         if: matrix.arch == 'i686'
+        run: sudo dpkg --add-architecture i386
+
+      - name: Install dependencies
         run: |
-          sudo dpkg --add-architecture i386
-          sudo apt-get update
-          sudo apt-get install -y gcc-multilib pkg-config:i386 libfontconfig1-dev:i386 libssl-dev:i386
+          sudo wget -O /etc/apt/trusted.gpg.d/apt.llvm.org.asc https://apt.llvm.org/llvm-snapshot.gpg.key
+          sudo add-apt-repository -y "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-22 main"
+          sudo apt-get install -y clang-22 lld-22 ${{ matrix.packages }}
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.95
