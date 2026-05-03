@@ -18,6 +18,7 @@ pub mod id_map;
 pub mod normalize_dir_layout;
 pub mod osc;
 pub mod scrub;
+pub mod txtcodes;
 pub mod updates;
 pub mod util;
 pub mod wiiload;

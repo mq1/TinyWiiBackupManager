@@ -228,6 +228,13 @@ export component GameInfoModal inherits Modal {
                     padding: 10px;
                     spacing: 10px;
 
+                    IconButton {
+                        label: "Get cheats";
+                        tooltip: "Download txtcodes (change the source in settings)";
+                        icon: IconSet.Skull;
+                        clicked => Logic.download-txtcodes(game.idx);
+                    }
+
                     if Logic.current-disc-info.is-worth-scrubbing: IconButton {
                         label: "Scrub";
                         tooltip: "Remove update partition to save space";

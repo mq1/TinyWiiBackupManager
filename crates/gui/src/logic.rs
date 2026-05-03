@@ -857,6 +857,34 @@ impl Logic<'_> {
             });
         });
 
+        let games_clone = games.clone();
+        let config_clone = config.clone();
+        let notifications_clone = notifications.clone();
+        let weak = self.as_weak();
+        self.on_download_txtcodes(move |i| {
+            let game_id = games_clone.borrow()[i as usize].id;
+            let config = config_clone.borrow().clone();
+
+            let msg = slint::format!("Downloading txtcodes for {game_id}");
+            notifications_clone.push(Notification::info(msg));
+
+            let weak = weak.clone();
+            std::thread::spawn(move || {
+                let res = twbm_core::txtcodes::download_cheats(game_id, &config);
+
+                let _ = weak.upgrade_in_event_loop(move |logic| match res {
+                    Ok(_) => {
+                        let msg = slint::format!("Downloaded txtcodes for {game_id}");
+                        logic.invoke_notify_info(msg);
+                    }
+                    Err(e) => {
+                        let msg = slint::format!("Failed to download txtcodes for {game_id}: {e}");
+                        logic.invoke_notify_error(msg);
+                    }
+                });
+            });
+        });
+
         #[cfg(windows)]
         {
             self.on_set_window_color(move |is_dark| {

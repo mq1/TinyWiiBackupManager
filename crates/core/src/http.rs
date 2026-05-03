@@ -38,3 +38,10 @@ pub fn get_string(url: &str) -> Result<String, ureq::Error> {
 pub fn get_json<T: serde::de::DeserializeOwned>(url: &str) -> Result<T, ureq::Error> {
     AGENT.get(url).call()?.body_mut().read_json()
 }
+
+pub fn send_form(
+    url: &str,
+    form: impl IntoIterator<Item = (impl AsRef<str>, impl AsRef<str>)>,
+) -> Result<String, ureq::Error> {
+    AGENT.post(url).send_form(form)?.body_mut().read_to_string()
+}
