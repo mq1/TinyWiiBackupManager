@@ -17,3 +17,6 @@ RUN if [ "$ARCH" = "i686" ]; then \
 
 # Install rust-src
 RUN rustup component add rust-src
+
+# Setup env vars
+ENV PKG_CONFIG_i686_unknown_linux_gnu=i686-pc-linux-gnu-pkg-config
