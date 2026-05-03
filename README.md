@@ -19,7 +19,7 @@
 - **Cross-Platform**:
   - :window: Windows 7+ | x86 (32-bit), x64 (64-bit), arm64 (Qualcomm Snapdragon etc.)
   - :apple: macOS 10.12+ | x86_64 (Intel), arm64 (Apple Silicon/M1+)
-  - :penguin: Linux (glibc 2.35+) | x86 (32-bit), x86_64 (64-bit), arm64 (Raspberry PIs etc.)
+  - :penguin: Linux (glibc 2.31+) | x86 (32-bit), x86_64 (64-bit), arm64 (Raspberry PIs etc.)
 
 #### :video_game: Game Management
 

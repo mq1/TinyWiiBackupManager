@@ -53,20 +53,8 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Enable i386 architecture
-        if: matrix.arch == 'i686'
-        run: sudo dpkg --add-architecture i386
-
-      - name: Install dependencies
-        run: |
-          sudo wget -O /etc/apt/trusted.gpg.d/apt.llvm.org.asc https://apt.llvm.org/llvm-snapshot.gpg.key
-          sudo add-apt-repository -y "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-22 main"
-          sudo apt-get install -y clang-22 lld-22 ${{ matrix.packages }}
-
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@1.95
-        with:
-          components: rust-src
+      - name: Build Docker image
+        run: docker build --build-arg ARCH=${{ matrix.arch }} -t builder .
 
       - name: Download appimagetool
         run: |
@@ -75,18 +63,20 @@ jobs:
 
       - name: Build binary
         run: |
-          cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }}
+          docker run \
+            -v "$(pwd):/io"
+            -w /io \
+            -e RUSTC_BOOTSTRAP=1 \
+            -e CC=clang-22 \
+            -e AR=llvm-ar-22 \
+            -e CFLAGS="-O3 -flto" \
+            -e RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=lld-22" \
+            -e CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=clang-22 \
+            -e CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=clang-22 \
+            -e CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER=clang-22 \
+            -e PKG_CONFIG_i686_unknown_linux_gnu=i686-pc-linux-gnu-pkg-config \
+            builder cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }}
           cp target/${{ matrix.target }}/release/twbm-gui TinyWiiBackupManager
-        env:
-          RUSTC_BOOTSTRAP: 1
-          CC: clang-22
-          AR: llvm-ar-22
-          CFLAGS: -O3 -flto
-          RUSTFLAGS: -C linker-plugin-lto -C link-arg=-fuse-ld=lld-22
-          CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: clang-22
-          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: clang-22
-          CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER: clang-22
-          PKG_CONFIG_i686_unknown_linux_gnu: i686-pc-linux-gnu-pkg-config
 
       - name: Package AppImage
         run: |
