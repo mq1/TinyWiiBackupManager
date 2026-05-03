@@ -60,7 +60,7 @@ jobs:
         run: |
           sudo dpkg --add-architecture i386
           sudo apt-get update
-          sudo apt-get install -y libfontconfig1-dev:i386
+          sudo apt-get install -y pkg-config:i386 libfontconfig1-dev:i386
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.95
@@ -85,8 +85,7 @@ jobs:
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: clang-22
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: clang-22
           CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER: clang-22
-          PKG_CONFIG_ALLOW_CROSS_i686_unknown_linux_gnu: 1
-          PKG_CONFIG_PATH_i686_unknown_linux_gnu: /usr/lib/i386-linux-gnu/pkgconfig
+          PKG_CONFIG_i686_unknown_linux_gnu: i686-pc-linux-gnu-pkg-config
 
       - name: Package AppImage
         run: |
