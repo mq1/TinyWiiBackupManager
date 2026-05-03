@@ -9,7 +9,7 @@ RUN wget -O /etc/apt/trusted.gpg.d/apt.llvm.org.asc https://apt.llvm.org/llvm-sn
     apt-get install -y clang-22 lld-22
 
 # Install i686 dependencies
-RUN [[ "$ARCH" == "i686" ]] && \
+RUN [ "$ARCH" = "i686" ] && \
     dpkg --add-architecture i386 && \
     apt-get update && \
     apt-get install -y gcc-multilib pkg-config:i386 libfontconfig1-dev:i386 libssl-dev:i386
