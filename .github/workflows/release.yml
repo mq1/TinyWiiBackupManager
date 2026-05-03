@@ -39,15 +39,12 @@ jobs:
           - runner: ubuntu-22.04
             arch: x86_64
             target: x86_64-unknown-linux-gnu
-            container: rust:1.95-bullseye
           - runner: ubuntu-22.04-arm
             arch: aarch64
             target: aarch64-unknown-linux-gnu
-            container: rust:1.95-bullseye
           - runner: ubuntu-22.04
             arch: i686
             target: i686-unknown-linux-gnu
-            container: i386/rust:1.95-bullseye
 
     steps:
       - name: Checkout
@@ -55,15 +52,27 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Install LLVM
+        run: wget -qO- https://apt.llvm.org/llvm.sh | sudo bash -s -- 22
+
       - name: Download appimagetool
         run: |
-          curl -L "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-${{ matrix.arch }}.AppImage" -o appimagetool
-          chmod +x appimagetool
+          wget "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-${{ matrix.arch }}.AppImage"
+          chmod +x appimagetool-${{ matrix.arch }}.AppImage
 
       - name: Build binary
         run: |
-          docker run -v "$(pwd):/io" -w /io rust:1.95-bullseye scripts/build-linux.sh ${{ matrix.target }}
+          cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }}
           cp target/${{ matrix.target }}/release/twbm-gui TinyWiiBackupManager
+        env:
+          RUSTC_BOOTSTRAP: 1
+          CC: clang-22
+          AR: llvm-ar-22
+          CFLAGS: -O3 -flto
+          RUSTFLAGS: -C linker-plugin-lto -C link-arg=-fuse-ld=lld-22
+          CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: clang-22
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: clang-22
+          CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER: clang-22
 
       - name: Package AppImage
         run: |
@@ -72,7 +81,7 @@ jobs:
           mkdir -p dist
           cd dist
           export VERSION=$(awk -F '"' '/^version/ {printf "%s", $2; exit}' Cargo.toml)
-          ../appimagetool \
+          ../appimagetool-${{ matrix.arch }}.AppImage \
             --comp zstd --mksquashfs-opt -Xcompression-level --mksquashfs-opt 19 \
             -u "gh-releases-zsync|mq1|TinyWiiBackupManager|latest|*${{ matrix.arch }}.AppImage.zsync" \
             ../TinyWiiBackupManager.AppDir \
