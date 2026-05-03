@@ -14,5 +14,6 @@ RUN if [ "$ARCH" = "i686" ]; then \
         apt-get update && \
         apt-get install -y gcc-multilib pkg-config:i386 libfontconfig1-dev:i386 libssl-dev:i386; \
     fi
+
 # Install rust-src
 RUN rustup component add rust-src
