@@ -64,7 +64,7 @@ jobs:
       - name: Build binary
         run: |
           docker run \
-            -v "$(pwd):/io"
+            -v "$(pwd):/io" \
             -w /io \
             -e RUSTC_BOOTSTRAP=1 \
             -e CC=clang-22 \
