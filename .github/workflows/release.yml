@@ -60,7 +60,7 @@ jobs:
         run: |
           sudo dpkg --add-architecture i386
           sudo apt-get update
-          sudo apt-get install -y pkg-config:i386 libfontconfig1-dev:i386 libssl-dev:i386
+          sudo apt-get install -y pkg-config:i386 libc6-dev:i386 libfontconfig1-dev:i386 libssl-dev:i386
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.95
