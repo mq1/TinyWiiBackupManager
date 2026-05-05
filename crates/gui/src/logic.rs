@@ -222,6 +222,14 @@ impl Logic<'_> {
         });
 
         let config_clone = config.clone();
+        let weak = self.as_weak();
+        self.on_set_preferred_language(move |preferred_language| {
+            config_clone.borrow_mut().contents.preferred_language =
+                preferred_language.try_into().unwrap_or_default();
+            weak.upgrade().unwrap().invoke_sync_config();
+        });
+
+        let config_clone = config.clone();
         let window_handle = window.window_handle();
         let weak = self.as_weak();
         let notifications_clone = notifications.clone();
@@ -332,8 +340,9 @@ impl Logic<'_> {
                 *is_downloading_covers = true;
 
                 let weak = weak.clone();
+                let preferred_language = config_clone.borrow().contents.preferred_language;
                 let _ = std::thread::spawn(move || {
-                    if let Err(e) = covers::download_covers(ids, weak.clone()) {
+                    if let Err(e) = covers::download_covers(ids, preferred_language, &weak) {
                         let _ = weak.upgrade_in_event_loop(move |logic| {
                             logic.invoke_notify_error(e.to_shared_string());
                         });

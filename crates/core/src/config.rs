@@ -8,6 +8,7 @@ use std::{
     fs,
     path::{Path, PathBuf},
 };
+use sys_locale::get_locale;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
@@ -77,6 +78,9 @@ pub struct ConfigContents {
 
     #[serde(default)]
     pub known_drives: Vec<PathBuf>,
+
+    #[serde(default)]
+    pub preferred_language: PreferredLanguage,
 }
 
 impl Default for ConfigContents {
@@ -97,6 +101,7 @@ impl Default for ConfigContents {
             show_wii: true,
             show_gc: true,
             known_drives: Vec::new(),
+            preferred_language: PreferredLanguage::default(),
         }
     }
 }
@@ -223,6 +228,66 @@ pub enum GcOutputFormat {
     #[default]
     Iso,
     Ciso,
+}
+
+#[derive(
+    Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, IntoPrimitive, TryFromPrimitive,
+)]
+#[serde(rename_all = "lowercase")]
+#[repr(i32)]
+pub enum PreferredLanguage {
+    English,
+    French,
+    German,
+    Spanish,
+    Italian,
+    Dutch,
+    Portuguese,
+    Swedish,
+    Danish,
+    Finnish,
+}
+
+impl Default for PreferredLanguage {
+    fn default() -> Self {
+        let Some(locale) = get_locale() else {
+            return PreferredLanguage::English;
+        };
+
+        if locale.len() < 2 {
+            return PreferredLanguage::English;
+        }
+
+        match &locale[..2] {
+            "fr" => PreferredLanguage::French,
+            "de" => PreferredLanguage::German,
+            "es" => PreferredLanguage::Spanish,
+            "it" => PreferredLanguage::Italian,
+            "nl" => PreferredLanguage::Dutch,
+            "pt" => PreferredLanguage::Portuguese,
+            "sv" => PreferredLanguage::Swedish,
+            "da" => PreferredLanguage::Danish,
+            "fi" => PreferredLanguage::Finnish,
+            _ => PreferredLanguage::English,
+        }
+    }
+}
+
+impl PreferredLanguage {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            PreferredLanguage::English => "EN",
+            PreferredLanguage::French => "FR",
+            PreferredLanguage::German => "DE",
+            PreferredLanguage::Spanish => "ES",
+            PreferredLanguage::Italian => "IT",
+            PreferredLanguage::Dutch => "NL",
+            PreferredLanguage::Portuguese => "PT",
+            PreferredLanguage::Swedish => "SW",
+            PreferredLanguage::Danish => "DK",
+            PreferredLanguage::Finnish => "FI",
+        }
+    }
 }
 
 fn default_wii_ip() -> String {

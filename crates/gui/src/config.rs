@@ -36,6 +36,7 @@ impl From<&Config> for DisplayedConfig {
             wii_ip: config.contents.wii_ip.to_shared_string(),
             theme_preference: config.contents.theme_preference.into(),
             known_drives: ModelRc::from(Rc::new(known_drives)),
+            preferred_language: config.contents.preferred_language.into(),
         }
     }
 }
@@ -60,6 +61,7 @@ impl From<&DisplayedConfig> for Config {
             view_as: config.view_as.try_into().unwrap_or_default(),
             txt_codes_source: config.txt_codes_source.try_into().unwrap_or_default(),
             theme_preference: config.theme_preference.try_into().unwrap_or_default(),
+            preferred_language: config.preferred_language.try_into().unwrap_or_default(),
         };
 
         Self { path, contents }

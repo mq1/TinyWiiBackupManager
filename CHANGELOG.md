@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 📝 Game directories now contain a <ID>.crc32 with the crc32 of the game file instead of embedding the hashes in wbfs/ciso files. You can easily compare this with the output of `crc32` or any other external tool.
 - ✅ Checksums now work on update-partion-scubbed games
 - 🔄 A button to force a cache refresh for Open Shop Channel data
+- 🖼️ Download PAL covers in your PC language (if available). configurable in settings.
 
 ### Changed
 

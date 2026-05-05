@@ -5474,6 +5474,7 @@ dependencies = [
  "serde",
  "serde_json",
  "split-write",
+ "sys-locale",
  "ureq",
  "which-fs",
  "wii-disc-info",

@@ -125,6 +125,26 @@ export component SettingsPage inherits VerticalLayout {
                     }
                 }
             }
+
+            SettingCard {
+                icon: IconSet.ImageDown;
+                label: "Preferred language for PAL covers";
+                items: [
+                    "English",
+                    "French",
+                    "German",
+                    "Spanish",
+                    "Italian",
+                    "Dutch",
+                    "Portuguese",
+                    "Swedish",
+                    "Danish",
+                    "Finnish"
+                ];
+                active-item: Logic.config.preferred-language;
+
+                selected(i) => Logic.set-preferred-language(i);
+            }
         }
     }
 }

@@ -31,6 +31,7 @@ sanitize-filename = "0.7.0-beta"
 split-write = "0.2"
 wiiload = "0.3"
 semver = "1.0"
+sys-locale = "0.3"
 
 [target.'cfg(all(target_os = "windows", target_arch = "x86"))'.dependencies]
 nod = { git = "https://github.com/encounter/nod.git", default-features = false, features = [
