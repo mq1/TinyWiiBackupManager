@@ -2,37 +2,19 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::Notification;
-use slint::{SharedString, ToSharedString};
+use slint::SharedString;
 
 impl Notification {
-    pub fn info(text: SharedString) -> Self {
+    pub fn info(text: impl Into<SharedString>) -> Self {
         Self {
-            text,
+            text: text.into(),
             critical: false,
         }
     }
 
-    pub fn error(text: SharedString) -> Self {
+    pub fn error(text: impl Into<SharedString>) -> Self {
         Self {
-            text,
-            critical: true,
-        }
-    }
-}
-
-impl From<anyhow::Error> for Notification {
-    fn from(value: anyhow::Error) -> Self {
-        Self {
-            text: value.to_shared_string(),
-            critical: true,
-        }
-    }
-}
-
-impl From<std::io::Error> for Notification {
-    fn from(value: std::io::Error) -> Self {
-        Self {
-            text: value.to_shared_string(),
+            text: text.into(),
             critical: true,
         }
     }

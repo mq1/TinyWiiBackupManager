@@ -94,3 +94,17 @@ pub fn format_to_opts(format: Format) -> FormatOptions {
         format => FormatOptions::new(format),
     }
 }
+
+#[cfg(target_os = "macos")]
+pub fn run_dot_clean(mount_point: &Path) -> Result<()> {
+    let status = std::process::Command::new("dot_clean")
+        .arg("-m")
+        .arg(mount_point)
+        .status()?;
+
+    if !status.success() {
+        anyhow::bail!("dot_clean failed with status {status}");
+    }
+
+    Ok(())
+}

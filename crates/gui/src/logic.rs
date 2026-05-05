@@ -98,14 +98,16 @@ impl Logic<'_> {
 
             logic.set_config(displayed_config);
             if let Err(e) = config.write() {
-                notifications_clone.push(e.into());
+                let msg = format!("Failed to save config: {e}");
+                notifications_clone.push(Notification::error(msg));
             }
         });
 
         let notifications_clone = notifications.clone();
         self.on_open_that(move |uri| {
             if let Err(e) = open::that(uri) {
-                notifications_clone.push(e.into());
+                let msg = format!("Failed to open URL: {e}");
+                notifications_clone.push(Notification::error(msg));
             }
         });
 
@@ -658,7 +660,8 @@ impl Logic<'_> {
             };
 
             if let Err(e) = res {
-                notifications_clone.push(e.into());
+                let msg = slint::format!("Failed to install apps: {e}");
+                notifications_clone.push(Notification::error(msg));
             } else {
                 let msg = slint::format!("{} apps installed successfully", paths.len());
                 notifications_clone.push(Notification::info(msg));
@@ -756,7 +759,8 @@ impl Logic<'_> {
             };
 
             if let Err(e) = res {
-                notifications_clone.push(e.into());
+                let msg = format!("Failed to delete game: {e}");
+                notifications_clone.push(Notification::error(msg));
                 return;
             }
 
@@ -773,7 +777,8 @@ impl Logic<'_> {
             };
 
             if let Err(e) = res {
-                notifications_clone.push(e.into());
+                let msg = format!("Failed to delete homebrew app: {e}");
+                notifications_clone.push(Notification::error(msg));
                 return;
             }
 
@@ -893,6 +898,30 @@ impl Logic<'_> {
                 });
             });
         });
+
+        #[cfg(target_os = "macos")]
+        {
+            let notifications_clone = notifications.clone();
+            let config_clone = config.clone();
+
+            self.on_run_dot_clean(move || {
+                let res = {
+                    let config = config_clone.borrow();
+                    twbm_core::util::run_dot_clean(&config.contents.mount_point)
+                };
+
+                match res {
+                    Ok(_) => {
+                        let msg = "Successfully ran dot_clean".to_shared_string();
+                        notifications_clone.push(Notification::info(msg));
+                    }
+                    Err(e) => {
+                        let msg = slint::format!("Failed to run dot_clean: {e}");
+                        notifications_clone.push(Notification::error(msg));
+                    }
+                }
+            });
+        }
 
         #[cfg(windows)]
         {
