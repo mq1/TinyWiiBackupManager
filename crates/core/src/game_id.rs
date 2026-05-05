@@ -27,16 +27,6 @@ impl GameID {
         Self(id)
     }
 
-    pub fn to_i32(self) -> i32 {
-        let bytes = self.0.to_ne_bytes();
-        i32::from_ne_bytes(bytes)
-    }
-
-    pub fn from_i32(id: i32) -> Self {
-        let bytes = id.to_ne_bytes();
-        Self(u32::from_ne_bytes(bytes))
-    }
-
     pub fn from_byte_string(b: [u8; 6]) -> Option<Self> {
         let s = ArrayString::from_byte_string(&b).ok()?;
         Self::new(&s)
