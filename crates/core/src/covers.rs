@@ -66,10 +66,11 @@ pub fn download_cover(
 
     let body = match get(&cover_url) {
         Ok(body) => body,
-        Err(_) => {
+        Err(_) if lang_str != "EN" => {
             let url = format!("https://art.gametdb.com/wii/cover3D/EN/{game_id}.png");
             get(&url)?
         }
+        Err(err) => return Err(err.into()),
     };
 
     fs::write(&cover_path, &body)?;
