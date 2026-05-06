@@ -8,8 +8,7 @@ use crate::{
     util::AGENT,
 };
 use anyhow::{Result, bail};
-use arrayvec::ArrayString;
-use std::{fmt::Write, fs};
+use std::fs;
 
 pub fn download_cheats(game_id: GameID, config: &Config) -> Result<()> {
     let code = match config.contents.txt_codes_source {
@@ -25,17 +24,11 @@ pub fn download_cheats(game_id: GameID, config: &Config) -> Result<()> {
                 bail!("Could not find gamehacking id");
             };
 
-            let mut filename = ArrayString::<6>::new();
-            write!(filename, "{game_id}")?;
-
-            let mut gam_id = ArrayString::<10>::new();
-            write!(gam_id, "{ghid}")?;
-
             let form = [
                 ("format", "Text"),
-                ("filename", filename.as_str()),
+                ("filename", &game_id.to_string()),
                 ("sysID", "22"),
-                ("gamID", gam_id.as_str()),
+                ("gamID", &ghid.to_string()),
                 ("download", "true"),
             ];
 
@@ -55,9 +48,8 @@ pub fn download_cheats(game_id: GameID, config: &Config) -> Result<()> {
     let parent_dir = config.contents.mount_point.join("txtcodes");
     fs::create_dir_all(&parent_dir)?;
 
-    let mut filename = ArrayString::<10>::new();
-    write!(filename, "{game_id}.txt")?;
-    let out_path = parent_dir.join(filename.as_str());
+    let filename = format!("{game_id}.txt");
+    let out_path = parent_dir.join(filename);
 
     fs::write(out_path, code)?;
 

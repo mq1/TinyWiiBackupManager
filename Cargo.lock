@@ -5459,7 +5459,6 @@ name = "twbm-core"
 version = "6.0.0"
 dependencies = [
  "anyhow",
- "arrayvec",
  "crc32fast",
  "fs4",
  "fs_extra",
@@ -6087,12 +6086,12 @@ dependencies = [
 
 [[package]]
 name = "wii-disc-info"
-version = "0.5.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e9c53c6423aaf3fb779ed5489e4018987f5821c2b8a579bddb43b073b9f68190"
+checksum = "ca8267f1726fb6b7976c5cd23c27d978e35095585f9ca209226e7f482f96a52b"
 dependencies = [
- "arrayvec",
  "derive_more",
+ "thiserror 2.0.18",
 ]
 
 [[package]]

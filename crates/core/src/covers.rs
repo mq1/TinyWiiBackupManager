@@ -5,17 +5,16 @@ use crate::config::PreferredLanguage;
 use crate::game_id::GameID;
 use crate::util::AGENT;
 use anyhow::{Result, bail};
-use arrayvec::ArrayString;
-use std::fmt::Write;
-use std::{fs, path::Path};
+use std::{fs, io::Write, path::Path};
 use wii_disc_info::RegionCode;
 
 #[must_use]
 fn lang_str(game_id: GameID, preferred: PreferredLanguage) -> &'static str {
-    let mut s = ArrayString::<6>::new();
-    write!(s, "{game_id}").unwrap();
-    let c = s.chars().nth(3).unwrap_or('\0');
-    let code = wii_disc_info::RegionCode::from(c);
+    let mut buf = [0u8; 6];
+    write!(&mut buf[..], "{game_id}").unwrap();
+    let char_byte = buf[3];
+
+    let code = wii_disc_info::RegionCode::from(char_byte);
 
     match code {
         RegionCode::SystemWiiChannels => "EN",
@@ -39,7 +38,7 @@ fn lang_str(game_id: GameID, preferred: PreferredLanguage) -> &'static str {
         RegionCode::Scandinavia => preferred.as_str(),
         RegionCode::RepublicOfChinaTaiwanHongKongMacau => "ZH",
         RegionCode::EuropeAlternateLanguagesUSSpecialReleases => preferred.as_str(),
-        RegionCode::Unknown(_) => "EN",
+        RegionCode::Unknown => "EN",
     }
 }
 
@@ -48,10 +47,8 @@ pub fn download_cover(
     covers_dir: &Path,
     preferred_language: PreferredLanguage,
 ) -> Result<()> {
-    let mut filename = ArrayString::<10>::new();
-    write!(&mut filename, "{game_id}.png")?;
-
-    let cover_path = covers_dir.join(filename);
+    let filename = format!("{game_id}.png");
+    let cover_path = covers_dir.join(&filename);
 
     if cover_path.exists() {
         bail!("Cover already exists");

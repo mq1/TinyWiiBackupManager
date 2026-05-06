@@ -2,9 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{game_id::GameID, id_map};
-use arrayvec::ArrayString;
 use std::{
-    fmt::Write,
     fs,
     path::{Path, PathBuf},
 };
@@ -47,14 +45,9 @@ impl Game {
     }
 
     pub fn get_disc_path(&self) -> Option<PathBuf> {
-        let mut wii_wbfs = ArrayString::<11>::new();
-        write!(&mut wii_wbfs, "{}.wbfs", self.id).ok()?;
-
-        let mut wii_iso = ArrayString::<10>::new();
-        write!(&mut wii_iso, "{}.iso", self.id).ok()?;
-
-        let mut wii_part0_iso = ArrayString::<16>::new();
-        write!(&mut wii_part0_iso, "{}.part0.iso", self.id).ok()?;
+        let wii_wbfs = format!("{}.wbfs", self.id);
+        let wii_iso = format!("{}.iso", self.id);
+        let wii_part0_iso = format!("{}.part0.iso", self.id);
 
         let possible_filenames = [
             wii_wbfs.as_str(),

@@ -2,14 +2,12 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use anyhow::{Result, bail};
-use arrayvec::ArrayString;
-use std::fmt::Write;
 use std::path::Path;
 use which_fs::FsKind;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct DriveInfo {
-    pub label: ArrayString<255>,
+    pub label: String,
     pub used_bytes: u64,
     pub total_bytes: u64,
     pub games_bytes: u64,
@@ -25,8 +23,7 @@ impl DriveInfo {
         }
 
         let label_osstr = path.file_name().unwrap_or(path.as_os_str());
-        let mut label = ArrayString::<255>::new();
-        write!(label, "{}", label_osstr.to_string_lossy())?;
+        let label = label_osstr.to_string_lossy().to_string();
 
         let stat = fs4::statvfs(path)?;
         let total_bytes = stat.total_space();
@@ -58,7 +55,7 @@ impl DriveInfo {
 
     pub fn empty() -> Self {
         Self {
-            label: ArrayString::new(),
+            label: String::new(),
             used_bytes: 0,
             total_bytes: 0,
             games_bytes: 0,

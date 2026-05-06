@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use arrayvec::ArrayString;
 use radix_fmt::Radix;
 use std::fmt;
 
@@ -28,8 +27,8 @@ impl GameID {
     }
 
     pub fn from_byte_string(b: [u8; 6]) -> Option<Self> {
-        let s = ArrayString::from_byte_string(&b).ok()?;
-        Self::new(&s)
+        let s = str::from_utf8(&b).ok()?;
+        Self::new(s)
     }
 }
 
