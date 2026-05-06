@@ -555,7 +555,7 @@ impl Logic<'_> {
             let conv = Conversion::new(&queued);
 
             let weak = weak.clone();
-            let drive_info = *drive_info_clone.borrow();
+            let drive_info = drive_info_clone.borrow().clone();
             let config = config_clone.borrow().clone();
 
             let _ = std::thread::spawn(move || {
