@@ -39,6 +39,7 @@ jobs:
         include:
           - runner: ubuntu-22.04
             arch: x86_64
+            target: x86_64-unknown-linux-gnu
           - runner: ubuntu-22.04-arm
             arch: aarch64
             target: aarch64-unknown-linux-gnu
