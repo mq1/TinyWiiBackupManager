@@ -89,13 +89,13 @@ jobs:
           RUSTC_BOOTSTRAP: 1
           CC: clang-22
           AR: llvm-ar-22
-          CFLAGS: -O3 -flto --sysroot=./sysroot
-          RUSTFLAGS: -C linker-plugin-lto -C link-arg=-fuse-ld=lld-22 -C link-arg=--sysroot=./sysroot
+          CFLAGS: -O3 -flto --sysroot=${{ github.workspace }}/sysroot
+          RUSTFLAGS: -C linker-plugin-lto -C link-arg=-fuse-ld=lld-22 -C link-arg=--sysroot=${{ github.workspace }}/sysroot
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: clang-22
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: clang-22
           CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER: clang-22
           PKG_CONFIG_ALLOW_CROSS: 1
-          PKG_CONFIG_SYSROOT_DIR: ./sysroot
+          PKG_CONFIG_SYSROOT_DIR: ${{ github.workspace }}/sysroot
 
       - name: Package AppImage
         run: |
