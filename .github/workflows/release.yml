@@ -52,6 +52,13 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Install i686 dependencies
+        if: matrix.arch == 'i686'
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install -y pkg-config:i386
+
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.94
         with:
@@ -74,6 +81,7 @@ jobs:
           CC: zig cc
           CFLAGS: -O3 -flto
           RUSTFLAGS: -C linker-plugin-lto
+          PKG_CONFIG_i686_unknown_linux_gnu: i686-pc-linux-gnu-pkg-config
 
       - name: Package AppImage
         run: |
@@ -180,7 +188,7 @@ jobs:
           components: rust-src
 
       - name: Install cargo-zigbuild
-        run: pip install cargo-zigbuild
+        run: brew install cargo-zigbuild
 
       - name: Install appdmg
         run: npm i -g appdmg
