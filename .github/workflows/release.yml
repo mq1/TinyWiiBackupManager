@@ -39,15 +39,15 @@ jobs:
           - runner: ubuntu-22.04
             arch: x86_64
             target: x86_64-unknown-linux-gnu
-            image: centos:7
+            image: quay.io/pypa/manylinux2014_x86_64
           - runner: ubuntu-22.04-arm
             arch: aarch64
             target: aarch64-unknown-linux-gnu
-            image: centos:7
+            image: quay.io/pypa/manylinux2014_aarch64
           - runner: ubuntu-22.04
             arch: i686
             target: i686-unknown-linux-gnu
-            image: i386/centos:7
+            image: quay.io/pypa/manylinux2014_i686
 
     steps:
       - name: Checkout
@@ -57,10 +57,7 @@ jobs:
 
       - name: Make sysroot
         run: |
-          docker run --name sysroot-container ${{ matrix.image }} bash -c "\
-            sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-* && \
-            sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-* && \
-            yum install -y glibc-devel fontconfig-devel freetype-devel libgcc"
+          docker create --name sysroot-container "${{ matrix.image }}"
           mkdir sysroot
           docker export sysroot-container | tar -C ./sysroot -xf -
 
