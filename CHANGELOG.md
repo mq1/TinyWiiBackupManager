@@ -15,7 +15,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ✅ Checksums now work on update-partion-scubbed games
 - 🔄 A button to force a cache refresh for Open Shop Channel data
 - 🖼️ Download PAL covers in your PC language (if available). configurable in settings.
-- 🐧 Linux AppImage builds now work on glibc 2.17+ (~ CentOS 7+)
 
 ### Changed
 
