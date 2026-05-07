@@ -55,17 +55,6 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install LLVM and symlinks
-        run: |
-          wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc
-          sudo add-apt-repository -y "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-22 main"
-          sudo apt-get install -y clang-22 lld-22 symlinks
-
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@1.95
-        with:
-          components: rust-src
-
       - name: Make sysroot
         run: |
           docker run --name sysroot-container ${{ matrix.image }} bash -c "\
@@ -74,7 +63,17 @@ jobs:
             yum install -y glibc-devel fontconfig-devel freetype-devel gcc"
           mkdir sysroot
           docker export sysroot-container | tar -C ./sysroot -xf -
-          symlinks -csr ./sysroot
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@1.95
+        with:
+          components: rust-src
+
+      - name: Install LLVM
+        run: |
+          wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc
+          sudo add-apt-repository -y "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-22 main"
+          sudo apt-get install -y clang-22 lld-22
 
       - name: Download appimagetool
         run: |
