@@ -30,3 +30,8 @@ winsafe = { version = "0.0.27", features = ["dwm"] }
 slint-build = "1.16"
 lucide-slint = "1.14"
 winresource = "0.1"
+
+[features]
+default = ["native-tls"]
+native-tls = ["twbm-core/native-tls"]
+rustls = ["twbm-core/rustls"]

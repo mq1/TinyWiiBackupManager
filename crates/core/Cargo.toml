@@ -16,7 +16,7 @@ serde_json = "1.0"
 quick-xml = { version = "0.39", features = ["serialize"] }
 anyhow = { workspace = true }
 num_enum = "0.7"
-ureq = { version = "3.3", default-features = false, features = ["gzip", "json", "native-tls"] }
+ureq = { version = "3.3", default-features = false, features = ["gzip", "json"] }
 which-fs = "0.2"
 fs4 = { version = "1.1", default-features = false }
 image = { version = "0.25", default-features = false, features = ["png"] }
@@ -42,3 +42,8 @@ nod = { git = "https://github.com/encounter/nod.git", default-features = false, 
 
 [target.'cfg(not(all(target_os = "windows", target_arch = "x86")))'.dependencies]
 nod = { git = "https://github.com/encounter/nod.git" }
+
+[features]
+default = ["native-tls"]
+native-tls = ["ureq/native-tls"]
+rustls = ["ureq/rustls", "ureq/platform-verifier"]

@@ -17,11 +17,17 @@ pub const BUF_SIZE: usize = 4_194_304; // 4 MiB
 pub static AGENT: LazyLock<ureq::Agent> = LazyLock::new(|| {
     const USER_AGENT: &str = concat!("TinyWiiBackupManager/", env!("CARGO_PKG_VERSION"));
 
+    #[cfg(feature = "native-tls")]
+    const PROVIDER: TlsProvider = TlsProvider::NativeTls;
+
+    #[cfg(feature = "rustls")]
+    const PROVIDER: TlsProvider = TlsProvider::Rustls;
+
     ureq::Agent::config_builder()
         .user_agent(USER_AGENT)
         .tls_config(
             TlsConfig::builder()
-                .provider(TlsProvider::NativeTls)
+                .provider(PROVIDER)
                 .root_certs(RootCerts::PlatformVerifier)
                 .build(),
         )

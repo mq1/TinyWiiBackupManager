@@ -10,7 +10,6 @@ on:
       - "v*.*.*"
     paths:
       - ".github/workflows/release.yml"
-      - "Dockerfile"
       - "**.rs"
       - "**.slint"
       - "**/Cargo.toml"
@@ -32,6 +31,8 @@ jobs:
   build-linux:
     name: Build for Linux
     runs-on: ${{ matrix.runner }}
+    container:
+      image: rust:1.95-bullseye
     strategy:
       fail-fast: false
       matrix:
@@ -45,7 +46,6 @@ jobs:
           - runner: ubuntu-22.04
             arch: i686
             target: i686-unknown-linux-gnu
-            packages: gcc-multilib pkg-config:i386 libfontconfig1-dev:i386 libssl-dev:i386
 
     steps:
       - name: Checkout
@@ -53,8 +53,22 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Build Docker image
-        run: docker build --build-arg ARCH=${{ matrix.arch }} -t builder .
+      - name: Install LLVM
+        run: |
+          wget -O /etc/apt/trusted.gpg.d/apt.llvm.org.asc https://apt.llvm.org/llvm-snapshot.gpg.key
+          echo "deb http://apt.llvm.org/bullseye/ llvm-toolchain-bullseye-22 main" > /etc/apt/sources.list.d/llvm.list
+          apt-get update
+          apt-get install -y clang-22 lld-22
+
+      - name: Install i686 dependencies
+        if: matrix.arch == 'i686'
+        run: |
+          dpkg --add-architecture i386
+          apt-get update
+          apt-get install -y gcc-multilib pkg-config:i386 libfontconfig1-dev:i386
+
+      - name: Install rust-src
+        run: rustup component add rust-src
 
       - name: Download appimagetool
         run: |
@@ -63,18 +77,18 @@ jobs:
 
       - name: Build binary
         run: |
-          docker run \
-            -v "$(pwd):/io" -w /io \
-            -e RUSTC_BOOTSTRAP=1 \
-            -e CC=clang-22 \
-            -e AR=llvm-ar-22 \
-            -e CFLAGS="-O3 -flto" \
-            -e RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=lld-22" \
-            -e CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=clang-22 \
-            -e CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=clang-22 \
-            -e CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER=clang-22 \
-            builder cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }}
+          cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features rustls
           cp target/${{ matrix.target }}/release/twbm-gui TinyWiiBackupManager
+        env:
+          RUSTC_BOOTSTRAP: 1
+          CC: clang-22
+          AR: llvm-ar-22
+          CFLAGS: -O3 -flto
+          RUSTFLAGS: -C linker-plugin-lto -C link-arg=-fuse-ld=lld-22
+          CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: clang-22
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: clang-22
+          CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER: clang-22
+          PKG_CONFIG_i686_unknown_linux_gnu: i686-pc-linux-gnu-pkg-config
 
       - name: Package AppImage
         run: |
@@ -90,6 +104,7 @@ jobs:
             "TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
         env:
           ARCH: ${{ matrix.arch }}
+          APPIMAGE_EXTRACT_AND_RUN: 1
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v7
@@ -230,7 +245,8 @@ jobs:
         run: |
           cp -r package/macos/App TinyWiiBackupManager.app
           mkdir -p TinyWiiBackupManager.app/Contents/MacOS
-          /usr/libexec/PlistBuddy -c "Add :CFBundleShortVersionString string ${VERSION_NAME#v}" TinyWiiBackupManager.app/Contents/Info.plist
+          VERSION=$(yq '.package.version' Cargo.toml)
+          /usr/libexec/PlistBuddy -c "Add :CFBundleShortVersionString string $VERSION" TinyWiiBackupManager.app/Contents/Info.plist
 
       - name: Build the fat binary
         run: |
