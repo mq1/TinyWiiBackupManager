@@ -39,15 +39,12 @@ jobs:
           - runner: ubuntu-22.04
             arch: x86_64
             target: x86_64-unknown-linux-gnu
-            image: quay.io/pypa/manylinux2014_x86_64
           - runner: ubuntu-22.04-arm
             arch: aarch64
             target: aarch64-unknown-linux-gnu
-            image: quay.io/pypa/manylinux2014_aarch64
           - runner: ubuntu-22.04
             arch: i686
             target: i686-unknown-linux-gnu
-            image: quay.io/pypa/manylinux2014_i686
 
     steps:
       - name: Checkout
@@ -55,25 +52,13 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Make sysroot
-        run: |
-          docker run --name sysroot-container ${{ matrix.image }} bash -c "\
-            sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-* && \
-            sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-* && \
-            yum install -y fontconfig-devel freetype-devel gcc"
-          mkdir sysroot
-          docker export sysroot-container | tar -C ./sysroot -xf -
-
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.95
         with:
           components: rust-src
 
-      - name: Install LLVM
-        run: |
-          wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc
-          sudo add-apt-repository -y "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-22 main"
-          sudo apt-get install -y clang-22 lld-22
+      - name: Install cargo-zigbuild
+        run: pip install cargo-zigbuild
 
       - name: Download appimagetool
         run: |
@@ -82,19 +67,13 @@ jobs:
 
       - name: Build binary
         run: |
-          cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features rustls
+          cargo zigbuild -Z build-std=std,panic_abort --release --target ${{ matrix.target }}.2.17 --no-default-features --features rustls
           cp target/${{ matrix.target }}/release/twbm-gui TinyWiiBackupManager
         env:
           RUSTC_BOOTSTRAP: 1
-          CC: clang-22
-          AR: llvm-ar-22
-          CFLAGS: -O3 -flto --sysroot=${{ github.workspace }}/sysroot
-          RUSTFLAGS: -C linker-plugin-lto -C link-arg=-fuse-ld=lld-22 -C link-arg=--sysroot=${{ github.workspace }}/sysroot
-          CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: clang-22
-          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: clang-22
-          CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER: clang-22
-          PKG_CONFIG_ALLOW_CROSS: 1
-          PKG_CONFIG_SYSROOT_DIR: ${{ github.workspace }}/sysroot
+          CC: zig cc
+          CFLAGS: -O3 -flto
+          RUSTFLAGS: -C linker-plugin-lto
 
       - name: Package AppImage
         run: |
