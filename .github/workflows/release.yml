@@ -68,7 +68,7 @@ jobs:
 
       - name: Make sysroot
         run: |
-          docker create --name sysroot-container ${{ matrix.image }}
+          docker run --name sysroot-container ${{ matrix.image }} yum install -y glibc-devel
           mkdir sysroot
           docker export sysroot-container | tar -C ./sysroot -xf -
           symlinks -csr ./sysroot
