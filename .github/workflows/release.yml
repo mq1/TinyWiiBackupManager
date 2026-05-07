@@ -39,15 +39,15 @@ jobs:
           - runner: ubuntu-22.04
             arch: x86_64
             target: x86_64-unknown-linux-gnu
-            docker-platform: linux/amd64
+            docker-arch: amd64
           - runner: ubuntu-22.04-arm
             arch: aarch64
             target: aarch64-unknown-linux-gnu
-            docker-platform: linux/arm64
+            docker-arch: arm64
           - runner: ubuntu-22.04
             arch: i686
             target: i686-unknown-linux-gnu
-            docker-platform: linux/i386
+            docker-arch: i386
 
     steps:
       - name: Checkout
@@ -68,7 +68,7 @@ jobs:
 
       - name: Make sysroot
         run: |
-          docker build --platform ${{ matrix.docker-platform }} -t sysroot-image .
+          docker build --build-arg ARCH=${{ matrix.docker-arch }} -t sysroot-image .
           docker create --name sysroot-container sysroot-image
           mkdir sysroot
           docker export sysroot-container | tar -C ./sysroot -xf -
