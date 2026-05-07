@@ -67,6 +67,9 @@ jobs:
           apt-get update
           apt-get install -y gcc-multilib pkg-config:i386 libfontconfig1-dev:i386
 
+      - name: Install rust-src
+        run: rustup component add rust-src
+
       - name: Download appimagetool
         run: |
           wget "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-${{ matrix.arch }}.AppImage"
