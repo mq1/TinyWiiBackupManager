@@ -53,7 +53,7 @@ jobs:
           fetch-depth: 1
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@1.95
+        uses: dtolnay/rust-toolchain@1.94
         with:
           components: rust-src
 
@@ -118,10 +118,10 @@ jobs:
 
       - name: Install LLVM
         shell: pwsh
-        run: choco install llvm --version 22.1.0 -y
+        run: choco install llvm --version 21.1.8 -y
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@1.95
+        uses: dtolnay/rust-toolchain@1.94
         with:
           components: rust-src
 
@@ -167,14 +167,6 @@ jobs:
   build-macos:
     name: Build for macOS
     runs-on: macos-26
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - arch: arm64
-            target: aarch64-apple-darwin
-          - arch: x86_64
-            target: x86_64-apple-darwin
 
     steps:
       - name: Checkout
@@ -182,68 +174,37 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install LLVM and LLD
-        run: brew install llvm@22 lld@22
-
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@1.95
+        uses: dtolnay/rust-toolchain@1.94
         with:
           components: rust-src
 
+      - name: Install cargo-zigbuild
+        run: pip install cargo-zigbuild
+
+      - name: Install appdmg
+        run: npm i -g appdmg
+
       - name: Build binary
         run: |
-          cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }}
-          cp target/${{ matrix.target }}/release/twbm-gui TinyWiiBackupManager
+          cargo zigbuild -Z build-std=std,panic_abort --release --target universal2-apple-darwin
+          cp target/universal2-apple-darwin/release/twbm-gui TinyWiiBackupManager
         env:
           RUSTC_BOOTSTRAP: 1
-          CC: /opt/homebrew/opt/llvm@22/bin/clang
-          AR: /opt/homebrew/opt/llvm@22/bin/llvm-ar
+          CC: zig cc
           CFLAGS: -O3 -flto
-          RUSTFLAGS: -C linker-plugin-lto -C link-arg=-fuse-ld=/opt/homebrew/opt/lld@22/bin/ld64.lld
-          CARGO_TARGET_AARCH64_APPLE_DARWIN_LINKER: ./macos-linker.sh
-          CARGO_TARGET_X86_64_APPLE_DARWIN_LINKER: ./macos-linker.sh
-
-      - name: Upload macOS binaries
-        uses: actions/upload-artifact@v7
-        with:
-          name: build-macos-${{ matrix.arch }}
-          path: TinyWiiBackupManager
-
-  build-macos-universal:
-    name: Build for macOS (Universal)
-    runs-on: macos-26
-    needs: [build-macos]
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 1
-
-      - name: Download macOS binaries
-        uses: actions/download-artifact@v8
-        with:
-          pattern: "build-macos-*"
+          RUSTFLAGS: -C linker-plugin-lto
 
       - name: Create the .app bundle
         run: |
           cp -r package/macos/App TinyWiiBackupManager.app
           mkdir -p TinyWiiBackupManager.app/Contents/MacOS
-          /usr/libexec/PlistBuddy -c "Add :CFBundleShortVersionString string ${VERSION_NAME#v}" TinyWiiBackupManager.app/Contents/Info.plist
-
-      - name: Build the fat binary
-        run: |
-          lipo -create \
-            -output TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager \
-            build-macos-arm64/TinyWiiBackupManager \
-            build-macos-x86_64/TinyWiiBackupManager
-          chmod 755 TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
+          VERSION=$(yq '.package.version' Cargo.toml)
+          /usr/libexec/PlistBuddy -c "Add :CFBundleShortVersionString string $VERSION" TinyWiiBackupManager.app/Contents/Info.plist
+          cp TinyWiiBackupManager TinyWiiBackupManager.app/Contents/MacOS/TinyWiiBackupManager
 
       - name: Sign the .app bundle
         run: codesign --force --deep -s - TinyWiiBackupManager.app
-
-      - name: Install appdmg
-        run: npm i -g appdmg
 
       - name: Create Universal DMG
         run: |
@@ -253,7 +214,7 @@ jobs:
       - name: Upload macOS distributables
         uses: actions/upload-artifact@v7
         with:
-          name: dist-macos-universal
+          name: dist-macos-universal2
           path: dist/*
 
   # ==================================================================================
@@ -263,7 +224,7 @@ jobs:
     name: Create GitHub Release
     if: github.ref_type == 'tag'
     runs-on: ubuntu-slim
-    needs: [build-linux, build-windows, build-macos, build-macos-universal]
+    needs: [build-linux, build-windows, build-macos]
     steps:
       - name: Checkout
         uses: actions/checkout@v6
