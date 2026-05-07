@@ -32,28 +32,39 @@ jobs:
     name: Build for Linux
     runs-on: ${{ matrix.runner }}
     container:
-      image: ${{ matrix.image }}
+      image: rust:1.95-bullseye
     strategy:
       fail-fast: false
       matrix:
         include:
           - runner: ubuntu-22.04
             arch: x86_64
-            image: debian:11
           - runner: ubuntu-22.04-arm
             arch: aarch64
             target: aarch64-unknown-linux-gnu
-            image: debian:11
           - runner: ubuntu-22.04
             arch: i686
             target: i686-unknown-linux-gnu
-            image: i386/debian:11
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
           fetch-depth: 1
+
+      - name: Install LLVM
+        run: |
+          wget -O /etc/apt/trusted.gpg.d/apt.llvm.org.asc https://apt.llvm.org/llvm-snapshot.gpg.key
+          echo "deb http://apt.llvm.org/bullseye/ llvm-toolchain-bullseye-22 main" > /etc/apt/sources.list.d/llvm.list
+          apt-get update
+          apt-get install -y clang-22 lld-22
+
+      - name: Install i686 dependencies
+        if: matrix.arch == 'i686'
+        run: |
+          dpkg --add-architecture i386
+          apt-get update
+          apt-get install -y gcc-multilib pkg-config:i386 libfontconfig1-dev:i386
 
       - name: Download appimagetool
         run: |
@@ -73,6 +84,7 @@ jobs:
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: clang-22
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: clang-22
           CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER: clang-22
+          PKG_CONFIG_i686_unknown_linux_gnu: i686-pc-linux-gnu-pkg-config
 
       - name: Package AppImage
         run: |
@@ -88,6 +100,7 @@ jobs:
             "TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
         env:
           ARCH: ${{ matrix.arch }}
+          APPIMAGE_EXTRACT_AND_RUN: 1
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v7
