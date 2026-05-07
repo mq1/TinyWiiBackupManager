@@ -80,7 +80,7 @@ jobs:
 
       - name: Build binary
         run: |
-          cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }}
+          cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features rustls
           cp target/${{ matrix.target }}/release/twbm-gui TinyWiiBackupManager
         env:
           RUSTC_BOOTSTRAP: 1
