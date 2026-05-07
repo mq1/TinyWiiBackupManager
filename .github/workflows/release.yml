@@ -68,7 +68,10 @@ jobs:
 
       - name: Make sysroot
         run: |
-          docker run --name sysroot-container ${{ matrix.image }} yum install -y glibc-devel
+          docker run --name sysroot-container ${{ matrix.image }} bash -c "\
+            sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-* && \
+            sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-* && \
+            yum install -y glibc-devel"
           mkdir sysroot
           docker export sysroot-container | tar -C ./sysroot -xf -
           symlinks -csr ./sysroot
