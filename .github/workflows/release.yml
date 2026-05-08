@@ -54,10 +54,11 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Download rustup-init
+      - name: Download Rust
         run: |
-          wget https://static.rust-lang.org/rustup/dist/${{ matrix.target }}/rustup-init
-          chmod +x rustup-init
+          export RUSTUP_HOME="$(pwd)/rustup"
+          export CARGO_HOME="$(pwd)/cargo"
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain 1.95 --component rust-src --no-modify-path
 
       - name: Download LLVM
         run: |
@@ -73,17 +74,15 @@ jobs:
         run: |
           docker run -v $(pwd):/io -w /io \
             -e RUSTC_BOOTSTRAP=1 \
-            -e CC=./llvm/bin/clang-22 \
-            -e AR=./llvm/bin/llvm-ar-22 \
+            -e CC=/io/llvm/bin/clang-22 \
+            -e AR=/io/llvm/bin/llvm-ar-22 \
             -e CFLAGS="-O3 -flto" \
-            -e RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=./llvm/bin/lld-22" \
-            -e CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=./llvm/bin/clang-22 \
-            -e CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=./llvm/bin/clang-22 \
-            -e CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER=./llvm/bin/clang-22 \
+            -e RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=/io/llvm/bin/lld-22" \
+            -e CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=/io/llvm/bin/clang-22 \
+            -e CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=/io/llvm/bin/clang-22 \
+            -e CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER=/io/llvm/bin/clang-22 \
             centos:7 bash -c "\
-              ./rustup-init -y --profile minimal --default-toolchain 1.95 --component rust-src --no-modify-path && \
-              . \$HOME/.cargo/env && \
-              cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features rustls \
+              /io/cargo/bin/cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features rustls \
             "
           cp target/${{ matrix.target }}/release/twbm-gui TinyWiiBackupManager
 
