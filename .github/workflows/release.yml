@@ -85,7 +85,7 @@ jobs:
               export RUSTUP_HOME=/io/rustup && \
               export CARGO_HOME=/io/cargo && \
               . \$HOME/.cargo/env && \
-              /io/cargo/bin/cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features rustls \
+              cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features rustls \
             "
           cp target/${{ matrix.target }}/release/twbm-gui TinyWiiBackupManager
 
