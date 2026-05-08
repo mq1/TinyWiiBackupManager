@@ -1,9 +1,0 @@
-{
-    "rust-analyzer.cargo.features": [
-        "rust-analyzer"
-    ],
-    "editor.formatOnSave": true,
-    "slint.libraryPaths": {
-        "lucide": "lucide-slint/lib.slint"
-    }
-}
