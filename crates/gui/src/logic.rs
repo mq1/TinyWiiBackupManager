@@ -928,29 +928,64 @@ impl Logic<'_> {
                     twbm_core::covers::download_all_covers_for_usbloadergx(&ids, &config)
                 };
 
-                match res {
+                let _ = weak.upgrade_in_event_loop(move |logic| match res {
                     Ok(failed_ids) if failed_ids.is_empty() => {
                         let msg = "All covers downloaded successfully".to_shared_string();
-                        let _ = weak.upgrade_in_event_loop(|logic| {
-                            logic.invoke_notify_info(msg);
-                        });
+                        logic.invoke_notify_info(msg);
                     }
                     Ok(failed_ids) => {
                         let failed_ids = twbm_core::game_id::make_list_string(&failed_ids);
                         let msg = slint::format!(
                             "Covers downloaded successfully\nThe following games may lack some covers: {failed_ids}"
                         );
-                        let _ = weak.upgrade_in_event_loop(move |logic| {
-                            logic.invoke_notify_error(msg);
-                        });
+                        logic.invoke_notify_error(msg);
                     }
                     Err(e) => {
                         let msg = slint::format!("Failed to download covers: {e}");
-                        let _ = weak.upgrade_in_event_loop(move |logic| {
-                            logic.invoke_notify_error(msg);
-                        });
+                        logic.invoke_notify_error(msg);
                     }
-                }
+                });
+            });
+        });
+
+        let games_clone = games.clone();
+        let config_clone = config.clone();
+        let weak = self.as_weak();
+        let notifications_clone = notifications.clone();
+        self.on_download_all_banners(move || {
+            let mount_point = config_clone.borrow().contents.mount_point.clone();
+
+            let ids = games_clone
+                .borrow()
+                .iter()
+                .filter(|g| !g.is_wii)
+                .map(|g| g.id)
+                .collect::<Vec<_>>();
+
+            let msg = slint::format!("Downloading banners for {} games", ids.len());
+            notifications_clone.push(Notification::info(msg));
+
+            let weak = weak.clone();
+            std::thread::spawn(move || {
+                let res = twbm_core::banners::download_banners(&mount_point, &ids);
+
+                let _ = weak.upgrade_in_event_loop(move |logic| match res {
+                    Ok(failed_ids) if failed_ids.is_empty() => {
+                        let msg = "All banners downloaded successfully".to_shared_string();
+                        logic.invoke_notify_info(msg);
+                    }
+                    Ok(failed_ids) => {
+                        let failed_ids = twbm_core::game_id::make_list_string(&failed_ids);
+                        let msg = slint::format!(
+                            "Banners downloaded successfully\nExcept the following: {failed_ids}"
+                        );
+                        logic.invoke_notify_error(msg);
+                    }
+                    Err(e) => {
+                        let msg = slint::format!("Failed to download banners: {e}");
+                        logic.invoke_notify_error(msg);
+                    }
+                });
             });
         });
 

@@ -4,6 +4,7 @@
 #![warn(clippy::all, rust_2018_idioms)]
 
 pub mod archive;
+pub mod banners;
 pub mod checksum;
 pub mod config;
 pub mod convert;

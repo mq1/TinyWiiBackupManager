@@ -109,7 +109,7 @@ export component ToolboxPage inherits VerticalLayout {
                         }
 
                         Text {
-                            text: "Covers";
+                            text: "Covers and banners";
                         }
                     }
 
@@ -144,6 +144,22 @@ export component ToolboxPage inherits VerticalLayout {
                             height: b.height;
                             vertical-alignment: center;
                             text: "Download covers for WiiFlow";
+                        }
+                    }
+
+                    HorizontalLayout {
+                        spacing: 10px;
+
+                        IconButton {
+                            icon: IconSet.Play;
+                            width: self.height;
+                            clicked => Logic.download-all-banners();
+                        }
+
+                        Text {
+                            height: b.height;
+                            vertical-alignment: center;
+                            text: "Download banners for GameCube games";
                         }
                     }
                 }
