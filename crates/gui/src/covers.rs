@@ -16,7 +16,7 @@ pub fn download_covers(
     fs::create_dir_all(&covers_dir)?;
 
     for (i, game_id) in ids.into_iter().enumerate() {
-        if download_cover(game_id, &covers_dir, preferred_language).is_ok() {
+        if download_cover(game_id, &covers_dir, preferred_language).unwrap_or(false) {
             let _ = weak.upgrade_in_event_loop(move |logic| {
                 logic.invoke_reload_cover(i as i32);
             });

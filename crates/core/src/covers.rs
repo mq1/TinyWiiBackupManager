@@ -4,9 +4,25 @@
 use crate::config::PreferredLanguage;
 use crate::game_id::GameID;
 use crate::util::AGENT;
-use anyhow::{Result, bail};
+use anyhow::Result;
+use derive_more::Display;
 use std::{fs, io::Write, path::Path};
 use wii_disc_info::RegionCode;
+
+#[derive(Debug, Clone, Copy, Display)]
+enum CoverType {
+    #[display("cover3D")]
+    Cover3D,
+
+    #[display("cover")]
+    Cover2D,
+
+    #[display("coverfull")]
+    CoverFull,
+
+    #[display("disc")]
+    Disc,
+}
 
 #[must_use]
 fn lang_str(game_id: GameID, preferred: PreferredLanguage) -> &'static str {
@@ -42,20 +58,21 @@ fn lang_str(game_id: GameID, preferred: PreferredLanguage) -> &'static str {
     }
 }
 
-pub fn download_cover(
+fn download(
     game_id: GameID,
-    covers_dir: &Path,
+    cover_type: CoverType,
+    dir: &Path,
     preferred_language: PreferredLanguage,
-) -> Result<()> {
+) -> Result<bool> {
     let filename = format!("{game_id}.png");
-    let cover_path = covers_dir.join(&filename);
+    let cover_path = dir.join(&filename);
 
     if cover_path.exists() {
-        bail!("Cover already exists");
+        return Ok(false);
     }
 
     let lang_str = lang_str(game_id, preferred_language);
-    let cover_url = format!("https://art.gametdb.com/wii/cover3D/{lang_str}/{game_id}.png");
+    let cover_url = format!("https://art.gametdb.com/wii/{cover_type}/{lang_str}/{game_id}.png");
 
     fn get(url: &str) -> Result<Vec<u8>, ureq::Error> {
         AGENT.get(url).call()?.body_mut().read_to_vec()
@@ -64,13 +81,77 @@ pub fn download_cover(
     let body = match get(&cover_url) {
         Ok(body) => body,
         Err(_) if lang_str != "EN" => {
-            let url = format!("https://art.gametdb.com/wii/cover3D/EN/{game_id}.png");
+            let url = format!("https://art.gametdb.com/wii/{cover_type}/EN/{game_id}.png");
             get(&url)?
         }
-        Err(err) => return Err(err.into()),
+        Err(e) => return Err(e.into()),
     };
 
-    fs::write(&cover_path, &body)?;
+    fs::write(&cover_path, body)?;
 
-    Ok(())
+    Ok(true)
+}
+
+pub fn download_cover(
+    game_id: GameID,
+    covers_dir: &Path,
+    preferred_language: PreferredLanguage,
+) -> Result<bool> {
+    download(game_id, CoverType::Cover3D, covers_dir, preferred_language)
+}
+
+pub fn download_all_covers_for_usbloadergx(
+    ids: &[GameID],
+    mount_point: &Path,
+    preferred_language: PreferredLanguage,
+) -> Result<Vec<GameID>> {
+    let covers_dir = mount_point.join("apps").join("usbloader_gx").join("images");
+
+    let pairs = [
+        (".", CoverType::Cover3D),
+        ("2D", CoverType::Cover2D),
+        ("full", CoverType::CoverFull),
+        ("disc", CoverType::Disc),
+    ];
+
+    let mut failed_ids = Vec::new();
+    for (subdir, cover_type) in pairs {
+        let dir = covers_dir.join(subdir);
+        fs::create_dir_all(&dir)?;
+
+        for game_id in ids {
+            if download(*game_id, cover_type, &dir, preferred_language).is_err() {
+                failed_ids.push(*game_id);
+            }
+        }
+    }
+
+    Ok(failed_ids)
+}
+
+pub fn download_all_covers_for_wiiflow(
+    ids: &[GameID],
+    mount_point: &Path,
+    preferred_language: PreferredLanguage,
+) -> Result<Vec<GameID>> {
+    let covers_dir = mount_point.join("wiiflow");
+
+    let pairs = [
+        ("boxcovers", CoverType::CoverFull),
+        ("covers", CoverType::Cover2D),
+    ];
+
+    let mut failed_ids = Vec::new();
+    for (subdir, cover_type) in pairs {
+        let dir = covers_dir.join(subdir);
+        fs::create_dir_all(&dir)?;
+
+        for game_id in ids {
+            if download(*game_id, cover_type, &dir, preferred_language).is_err() {
+                failed_ids.push(*game_id);
+            }
+        }
+    }
+
+    Ok(failed_ids)
 }
