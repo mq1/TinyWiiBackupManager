@@ -39,14 +39,17 @@ jobs:
             arch: x86_64
             llvm-arch: X64
             target: x86_64-unknown-linux-gnu
+            image: quay.io/pypa/manylinux2014_x86_64
           - runner: ubuntu-22.04-arm
             arch: aarch64
             llvm-arch: ARM64
             target: aarch64-unknown-linux-gnu
+            image: quay.io/pypa/manylinux2014_aarch64
           - runner: ubuntu-22.04
             arch: i686
             llvm-arch: X64
             target: i686-unknown-linux-gnu
+            image: quay.io/pypa/manylinux2014_i686
 
     steps:
       - name: Checkout
@@ -81,7 +84,7 @@ jobs:
             -e CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=/io/llvm/bin/clang-22 \
             -e CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=/io/llvm/bin/clang-22 \
             -e CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER=/io/llvm/bin/clang-22 \
-            centos:7 bash -c "\
+            ${{ matrix.image }} bash -c "\
               export RUSTUP_HOME=/io/rustup && \
               export CARGO_HOME=/io/cargo && \
               /io/cargo/bin/cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features rustls \
