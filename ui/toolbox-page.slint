@@ -13,7 +13,7 @@ import { IconButton } from "components/icon-button.slint";
 export component ToolboxPage inherits VerticalLayout {
     in-out property <bool> scrubbing-all-games;
 
-    private property <int> optimal-allocation-granularity: (Logic.drive-info.total-gib <= 32 * 1024 * 1024 * 1024) ? 32768 : 65536;
+    private property <int> optimal-allocation-granularity: (Logic.drive-info.total-gib <= 34359738368) ? 32768 : 65536;
     private property <bool> is-optimal-allocation-granularity: Logic.drive-info.allocation-granularity == optimal-allocation-granularity;
     private property <bool> should-reformat: Logic.drive-info.fs-kind != "FAT32" || !is-optimal-allocation-granularity;
     private property <string> allocation-granularity-comment: is-optimal-allocation-granularity ? "✓ optimal" : "⚠ not optimal, but should work";
