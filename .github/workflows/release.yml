@@ -84,7 +84,7 @@ jobs:
             centos:7 bash -c "\
               export RUSTUP_HOME=/io/rustup && \
               export CARGO_HOME=/io/cargo && \
-              . \$HOME/.cargo/env && \
+              . \$CARGO_HOME/env && \
               cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features rustls \
             "
           cp target/${{ matrix.target }}/release/twbm-gui TinyWiiBackupManager
