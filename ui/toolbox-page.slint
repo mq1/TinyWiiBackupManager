@@ -121,7 +121,7 @@ export component ToolboxPage inherits VerticalLayout {
                         b := IconButton {
                             icon: IconSet.Play;
                             width: self.height;
-                            clicked => Logic.download-all-covers-for-usbloadergx();
+                            clicked => Logic.download-all-covers(false);
                         }
 
                         Text {
@@ -137,7 +137,7 @@ export component ToolboxPage inherits VerticalLayout {
                         IconButton {
                             icon: IconSet.Play;
                             width: self.height;
-                            clicked => Logic.download-all-covers-for-wiiflow();
+                            clicked => Logic.download-all-covers(true);
                         }
 
                         Text {
