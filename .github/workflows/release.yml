@@ -82,7 +82,7 @@ jobs:
             -e CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER=./llvm/bin/clang-22 \
             centos:7 bash -c "\
               ./rustup-init -y --profile minimal --default-toolchain 1.95 --component rust-src --no-modify-path && \
-              . $HOME/.cargo/env && \
+              . \$HOME/.cargo/env && \
               cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features rustls \
             "
           cp target/${{ matrix.target }}/release/twbm-gui TinyWiiBackupManager
