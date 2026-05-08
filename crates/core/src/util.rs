@@ -66,7 +66,7 @@ pub fn install_zips(
     for zip in zips {
         let mut f = File::open(zip)?;
         let mut archive = ZipArchive::new(&mut f)?;
-        archive.extract(root_dir)?
+        archive.extract(root_dir)?;
     }
 
     Ok(())
