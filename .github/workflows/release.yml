@@ -60,7 +60,9 @@ jobs:
           components: rust-src
 
       - name: Download LLVM
-        run: wget -qO- https://github.com/llvm/llvm-project/releases/download/llvmorg-22.1.0/LLVM-22.1.0-Linux-${{ matrix.llvm-arch }}.tar.xz | tar -xf -
+        run: |
+          wget -qO- https://github.com/llvm/llvm-project/releases/download/llvmorg-22.1.0/LLVM-22.1.0-Linux-${{ matrix.llvm-arch }}.tar.xz | tar -xf -
+          mv LLVM-22.1.0-Linux-${{ matrix.llvm-arch }} llvm
 
       - name: Download appimagetool
         run: |
@@ -71,13 +73,13 @@ jobs:
         run: |
           docker run -v $(pwd):/io -w /io \
             -e RUSTC_BOOTSTRAP=1 \
-            -e CC=./LLVM-22.1.0-Linux-${{ matrix.llvm-arch }}/bin/clang-22 \
-            -e AR=./LLVM-22.1.0-Linux-${{ matrix.llvm-arch }}/bin/llvm-ar-22 \
+            -e CC=./llvm/bin/clang-22 \
+            -e AR=./llvm/bin/llvm-ar-22 \
             -e CFLAGS="-O3 -flto" \
-            -e RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=./LLVM-22.1.0-Linux-${{ matrix.llvm-arch }}/bin/lld-22" \
-            -e CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=./LLVM-22.1.0-Linux-${{ matrix.llvm-arch }}/bin/clang-22 \
-            -e CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=./LLVM-22.1.0-Linux-${{ matrix.llvm-arch }}/bin/clang-22 \
-            -e CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER=./LLVM-22.1.0-Linux-${{ matrix.llvm-arch }}/bin/clang-22 \
+            -e RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=./llvm/bin/lld-22" \
+            -e CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=./llvm/bin/clang-22 \
+            -e CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=./llvm/bin/clang-22 \
+            -e CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER=./llvm/bin/clang-22 \
             centos:7 bash -c "\
               ./.cargo/bin/cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features rustls\
             "
