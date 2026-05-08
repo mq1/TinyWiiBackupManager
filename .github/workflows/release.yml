@@ -295,18 +295,13 @@ jobs:
           merge-multiple: true # This places all matching artifacts into a single 'dist' directory
 
       - name: Create version.txt
-        run: echo -n $(yq '.package.version' Cargo.toml) > version.txt # Write without line break
-
-      - name: Extract release notes
-        run: awk '/## \[${{ env.VERSION_NAME }}\]/{p=1; print; next} /^## \[/{p=0} p' CHANGELOG.md > BODY.md
+        run: echo -n $(yq '.package.version' Cargo.toml) > dist/version.txt # Write without line break
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
-          files: |
-            dist/*
-            version.txt
-          body_path: BODY.md
+          files: dist/*
+          body_path: package/release-body.md
           prerelease: ${{ contains(env.VERSION_NAME, 'alpha') || contains(env.VERSION_NAME, 'beta') || contains(env.VERSION_NAME, 'rc') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
