@@ -31,20 +31,21 @@ jobs:
   build-linux:
     name: Build for Linux
     runs-on: ${{ matrix.runner }}
-    container:
-      image: rust:1.95-bullseye
     strategy:
       fail-fast: false
       matrix:
         include:
           - runner: ubuntu-22.04
             arch: x86_64
+            llvm-arch: X64
             target: x86_64-unknown-linux-gnu
           - runner: ubuntu-22.04-arm
             arch: aarch64
+            llvm-arch: ARM64
             target: aarch64-unknown-linux-gnu
           - runner: ubuntu-22.04
             arch: i686
+            llvm-arch: X64
             target: i686-unknown-linux-gnu
 
     steps:
@@ -53,22 +54,13 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install LLVM
-        run: |
-          wget -O /etc/apt/trusted.gpg.d/apt.llvm.org.asc https://apt.llvm.org/llvm-snapshot.gpg.key
-          echo "deb http://apt.llvm.org/bullseye/ llvm-toolchain-bullseye-22 main" > /etc/apt/sources.list.d/llvm.list
-          apt-get update
-          apt-get install -y clang-22 lld-22
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@1.95
+        with:
+          components: rust-src
 
-      - name: Install i686 dependencies
-        if: matrix.arch == 'i686'
-        run: |
-          dpkg --add-architecture i386
-          apt-get update
-          apt-get install -y gcc-multilib pkg-config:i386 libfontconfig1-dev:i386
-
-      - name: Install rust-src
-        run: rustup component add rust-src
+      - name: Download LLVM
+        run: wget -qO- https://github.com/llvm/llvm-project/releases/download/llvmorg-22.1.0/LLVM-22.1.0-Linux-${{ matrix.llvm-arch }}.tar.xz | tar -xf -
 
       - name: Download appimagetool
         run: |
@@ -77,18 +69,19 @@ jobs:
 
       - name: Build binary
         run: |
-          cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features rustls
+          docker run -v $(pwd):/io -w /io \
+            -e RUSTC_BOOTSTRAP=1 \
+            -e CC=./LLVM-22.1.0-Linux-${{ matrix.llvm-arch }}/bin/clang-22 \
+            -e AR=./LLVM-22.1.0-Linux-${{ matrix.llvm-arch }}/bin/llvm-ar-22 \
+            -e CFLAGS="-O3 -flto" \
+            -e RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=./LLVM-22.1.0-Linux-${{ matrix.llvm-arch }}/bin/lld-22" \
+            -e CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=./LLVM-22.1.0-Linux-${{ matrix.llvm-arch }}/bin/clang-22 \
+            -e CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=./LLVM-22.1.0-Linux-${{ matrix.llvm-arch }}/bin/clang-22 \
+            -e CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER=./LLVM-22.1.0-Linux-${{ matrix.llvm-arch }}/bin/clang-22 \
+            centos:7 bash -c "\
+              ./.cargo/bin/cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features rustls\
+            "
           cp target/${{ matrix.target }}/release/twbm-gui TinyWiiBackupManager
-        env:
-          RUSTC_BOOTSTRAP: 1
-          CC: clang-22
-          AR: llvm-ar-22
-          CFLAGS: -O3 -flto
-          RUSTFLAGS: -C linker-plugin-lto -C link-arg=-fuse-ld=lld-22
-          CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: clang-22
-          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: clang-22
-          CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER: clang-22
-          PKG_CONFIG_i686_unknown_linux_gnu: i686-pc-linux-gnu-pkg-config
 
       - name: Package AppImage
         run: |
