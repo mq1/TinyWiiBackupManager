@@ -76,6 +76,8 @@ jobs:
       - name: Build binary
         run: |
           docker run -v $(pwd):/io -w /io \
+            -e RUSTUP_HOME=/io/rustup \
+            -e CARGO_HOME=/io/cargo \
             -e RUSTC_BOOTSTRAP=1 \
             -e CC=/io/llvm/bin/clang-22 \
             -e AR=/io/llvm/bin/llvm-ar-22 \
@@ -85,8 +87,6 @@ jobs:
             -e CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=/io/llvm/bin/clang-22 \
             -e CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER=/io/llvm/bin/clang-22 \
             ${{ matrix.image }} bash -c "\
-              export RUSTUP_HOME=/io/rustup && \
-              export CARGO_HOME=/io/cargo && \
               /io/cargo/bin/cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features rustls \
             "
           cp target/${{ matrix.target }}/release/twbm-gui TinyWiiBackupManager
