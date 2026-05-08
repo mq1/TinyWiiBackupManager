@@ -54,15 +54,15 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@1.95
-        with:
-          components: rust-src
+      - name: Download rustup-init
+        run: |
+          wget https://static.rust-lang.org/rustup/dist/${{ matrix.target }}/rustup-init
+          chmod +x rustup-init
 
       - name: Download LLVM
         run: |
           wget -qO- https://github.com/llvm/llvm-project/releases/download/llvmorg-22.1.0/LLVM-22.1.0-Linux-${{ matrix.llvm-arch }}.tar.xz | tar -xJf -
-          echo "$(pwd)/LLVM-22.1.0-Linux-${{ matrix.llvm-arch }}/bin" >> $GITHUB_PATH
+          mv LLVM-22.1.0-Linux-${{ matrix.llvm-arch }} llvm
 
       - name: Download appimagetool
         run: |
@@ -72,7 +72,6 @@ jobs:
       - name: Build binary
         run: |
           docker run -v $(pwd):/io -w /io \
-            -e GITHUB_PATH="$GITHUB_PATH" \
             -e RUSTC_BOOTSTRAP=1 \
             -e CC=./llvm/bin/clang-22 \
             -e AR=./llvm/bin/llvm-ar-22 \
@@ -82,7 +81,8 @@ jobs:
             -e CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=./llvm/bin/clang-22 \
             -e CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER=./llvm/bin/clang-22 \
             centos:7 bash -c "\
-              export PATH=$GITHUB_PATH:$PATH && \
+              ./rustup-init.sh -y --profile minimal --default-toolchain 1.95 --component rust-src --no-modify-path && \
+              . $HOME/.cargo/env && \
               cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features rustls \
             "
           cp target/${{ matrix.target }}/release/twbm-gui TinyWiiBackupManager
