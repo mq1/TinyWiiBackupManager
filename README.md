@@ -63,11 +63,6 @@
   <tr>
     <td>
       :arrow_right: <a href="https://github.com/mq1/TinyWiiBackupManager/releases/latest">Download universal DMG</a>
-      <br>
-      <br>
-      :warning: The app is not notarized, you must allow it manually after installing by running this command in Terminal:
-      <br>
-      <code>xattr -rd com.apple.quarantine /Applications/TinyWiiBackupManager.app</code>
     </td>
   </tr>
 </table>
