@@ -97,7 +97,6 @@ jobs:
             "TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
         env:
           ARCH: ${{ matrix.arch }}
-          APPIMAGE_EXTRACT_AND_RUN: 1
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v7
