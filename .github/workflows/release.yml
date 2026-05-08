@@ -61,7 +61,7 @@ jobs:
 
       - name: Download LLVM
         run: |
-          wget -O- https://github.com/llvm/llvm-project/releases/download/llvmorg-22.1.0/LLVM-22.1.0-Linux-${{ matrix.llvm-arch }}.tar.xz | tar -xJf -
+          wget -qO- https://github.com/llvm/llvm-project/releases/download/llvmorg-22.1.0/LLVM-22.1.0-Linux-${{ matrix.llvm-arch }}.tar.xz | tar -xJf -
           echo "$(pwd)/LLVM-22.1.0-Linux-${{ matrix.llvm-arch }}/bin" >> $GITHUB_PATH
 
       - name: Download appimagetool
@@ -72,7 +72,7 @@ jobs:
       - name: Build binary
         run: |
           docker run -v $(pwd):/io -w /io \
-            -e GITHUB_PATH="$GITHUB_PATH"
+            -e GITHUB_PATH="$GITHUB_PATH" \
             -e RUSTC_BOOTSTRAP=1 \
             -e CC=./llvm/bin/clang-22 \
             -e AR=./llvm/bin/llvm-ar-22 \
