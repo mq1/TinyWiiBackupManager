@@ -899,6 +899,96 @@ impl Logic<'_> {
             });
         });
 
+        let games_clone = games.clone();
+        let config_clone = config.clone();
+        let weak = self.as_weak();
+        let notifications_clone = notifications.clone();
+        self.on_download_all_covers_for_usbloadergx(move || {
+            let config = config_clone.borrow().clone();
+
+            let ids = games_clone
+                .borrow()
+                .iter()
+                .map(|g| g.id)
+                .collect::<Vec<_>>();
+
+            notifications_clone.push(Notification::info("Downloading covers for USBLoaderGX..."));
+
+            let weak = weak.clone();
+            let _ = std::thread::spawn(move || {
+                let res = twbm_core::covers::download_all_covers_for_usbloadergx(&ids, &config);
+
+                match res {
+                    Ok(failed_ids) if failed_ids.is_empty() => {
+                        let msg = "All covers downloaded successfully".to_shared_string();
+                        let _ = weak.upgrade_in_event_loop(|logic| {
+                            logic.invoke_notify_info(msg);
+                        });
+                    }
+                    Ok(failed_ids) => {
+                        let failed_ids = twbm_core::game_id::make_list_string(&failed_ids);
+                        let msg = slint::format!(
+                            "Covers downloaded successfully\nThe following games may lack some covers: {failed_ids}"
+                        );
+                        let _ = weak.upgrade_in_event_loop(move |logic| {
+                            logic.invoke_notify_error(msg);
+                        });
+                    }
+                    Err(e) => {
+                        let msg = slint::format!("Failed to download covers: {e}");
+                        let _ = weak.upgrade_in_event_loop(move |logic| {
+                            logic.invoke_notify_error(msg);
+                        });
+                    }
+                }
+            });
+        });
+
+        let games_clone = games.clone();
+        let config_clone = config.clone();
+        let weak = self.as_weak();
+        let notifications_clone = notifications.clone();
+        self.on_download_all_covers_for_wiiflow(move || {
+            let config = config_clone.borrow().clone();
+
+            let ids = games_clone
+                .borrow()
+                .iter()
+                .map(|g| g.id)
+                .collect::<Vec<_>>();
+
+            notifications_clone.push(Notification::info("Downloading covers for WiiFlow..."));
+
+            let weak = weak.clone();
+            let _ = std::thread::spawn(move || {
+                let res = twbm_core::covers::download_all_covers_for_wiiflow(&ids, &config);
+
+                match res {
+                    Ok(failed_ids) if failed_ids.is_empty() => {
+                        let msg = "All covers downloaded successfully".to_shared_string();
+                        let _ = weak.upgrade_in_event_loop(move |logic| {
+                            logic.invoke_notify_info(msg);
+                        });
+                    }
+                    Ok(failed_ids) => {
+                        let failed_ids = twbm_core::game_id::make_list_string(&failed_ids);
+                        let msg = slint::format!(
+                            "Covers downloaded successfully\nThe following games may lack some covers: {failed_ids}"
+                        );
+                        let _ = weak.upgrade_in_event_loop(move |logic| {
+                            logic.invoke_notify_error(msg);
+                        });
+                    }
+                    Err(e) => {
+                        let msg = slint::format!("Failed to download covers: {e}");
+                        let _ = weak.upgrade_in_event_loop(move |logic| {
+                            logic.invoke_notify_error(msg);
+                        });
+                    }
+                }
+            });
+        });
+
         #[cfg(target_os = "macos")]
         {
             let notifications_clone = notifications.clone();

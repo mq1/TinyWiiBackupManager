@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::config::PreferredLanguage;
+use crate::config::{Config, PreferredLanguage};
 use crate::game_id::GameID;
 use crate::util::AGENT;
 use anyhow::Result;
@@ -10,7 +10,7 @@ use std::{fs, io::Write, path::Path};
 use wii_disc_info::RegionCode;
 
 #[derive(Debug, Clone, Copy, Display)]
-enum CoverType {
+pub enum CoverType {
     #[display("cover3D")]
     Cover3D,
 
@@ -58,7 +58,7 @@ fn lang_str(game_id: GameID, preferred: PreferredLanguage) -> &'static str {
     }
 }
 
-fn download(
+pub fn download_cover(
     game_id: GameID,
     cover_type: CoverType,
     dir: &Path,
@@ -92,20 +92,13 @@ fn download(
     Ok(true)
 }
 
-pub fn download_cover(
-    game_id: GameID,
-    covers_dir: &Path,
-    preferred_language: PreferredLanguage,
-) -> Result<bool> {
-    download(game_id, CoverType::Cover3D, covers_dir, preferred_language)
-}
-
-pub fn download_all_covers_for_usbloadergx(
-    ids: &[GameID],
-    mount_point: &Path,
-    preferred_language: PreferredLanguage,
-) -> Result<Vec<GameID>> {
-    let covers_dir = mount_point.join("apps").join("usbloader_gx").join("images");
+pub fn download_all_covers_for_usbloadergx(ids: &[GameID], config: &Config) -> Result<Vec<GameID>> {
+    let covers_dir = config
+        .contents
+        .mount_point
+        .join("apps")
+        .join("usbloader_gx")
+        .join("images");
 
     let pairs = [
         (".", CoverType::Cover3D),
@@ -120,7 +113,14 @@ pub fn download_all_covers_for_usbloadergx(
         fs::create_dir_all(&dir)?;
 
         for game_id in ids {
-            if download(*game_id, cover_type, &dir, preferred_language).is_err() {
+            if download_cover(
+                *game_id,
+                cover_type,
+                &dir,
+                config.contents.preferred_language,
+            )
+            .is_err()
+            {
                 failed_ids.push(*game_id);
             }
         }
@@ -129,12 +129,8 @@ pub fn download_all_covers_for_usbloadergx(
     Ok(failed_ids)
 }
 
-pub fn download_all_covers_for_wiiflow(
-    ids: &[GameID],
-    mount_point: &Path,
-    preferred_language: PreferredLanguage,
-) -> Result<Vec<GameID>> {
-    let covers_dir = mount_point.join("wiiflow");
+pub fn download_all_covers_for_wiiflow(ids: &[GameID], config: &Config) -> Result<Vec<GameID>> {
+    let covers_dir = config.contents.mount_point.join("wiiflow");
 
     let pairs = [
         ("boxcovers", CoverType::CoverFull),
@@ -147,7 +143,14 @@ pub fn download_all_covers_for_wiiflow(
         fs::create_dir_all(&dir)?;
 
         for game_id in ids {
-            if download(*game_id, cover_type, &dir, preferred_language).is_err() {
+            if download_cover(
+                *game_id,
+                cover_type,
+                &dir,
+                config.contents.preferred_language,
+            )
+            .is_err()
+            {
                 failed_ids.push(*game_id);
             }
         }

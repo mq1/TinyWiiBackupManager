@@ -109,7 +109,7 @@ export component ToolboxPage inherits VerticalLayout {
                         }
 
                         Text {
-                            text: "Cleanup";
+                            text: "Covers";
                         }
                     }
 
@@ -119,6 +119,61 @@ export component ToolboxPage inherits VerticalLayout {
                         spacing: 10px;
 
                         b := IconButton {
+                            icon: IconSet.Play;
+                            width: self.height;
+                            clicked => Logic.download-all-covers-for-usbloadergx();
+                        }
+
+                        Text {
+                            height: b.height;
+                            vertical-alignment: center;
+                            text: "Download covers for USB Loader GX";
+                        }
+                    }
+
+                    HorizontalLayout {
+                        spacing: 10px;
+
+                        IconButton {
+                            icon: IconSet.Play;
+                            width: self.height;
+                            clicked => Logic.download-all-covers-for-wiiflow();
+                        }
+
+                        Text {
+                            height: b.height;
+                            vertical-alignment: center;
+                            text: "Download covers for WiiFlow";
+                        }
+                    }
+                }
+            }
+
+            Card {
+                VerticalLayout {
+                    padding: 10px;
+                    spacing: 10px;
+
+                    HorizontalLayout {
+                        spacing: 5px;
+
+                        IconDisplay {
+                            icon: IconSet.BrushCleaning;
+                            stroke: MyPalette.foreground;
+                            size: 14px;
+                        }
+
+                        Text {
+                            text: "Cleanup";
+                        }
+                    }
+
+                    HorizontalLine { }
+
+                    HorizontalLayout {
+                        spacing: 10px;
+
+                        IconButton {
                             icon: IconSet.Play;
                             width: self.height;
                             clicked => Logic.normalize-dir-layout();
