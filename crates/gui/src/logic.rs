@@ -12,6 +12,7 @@ use slint::{
 };
 use std::{
     cell::RefCell,
+    ffi::OsStr,
     fs::{self, File},
     path::Path,
     rc::Rc,
@@ -592,7 +593,7 @@ impl Logic<'_> {
                     notifications_clone.push(Notification::error(msg));
                     return;
                 };
-                let out_path = dialogs::save_game(&window_handle, game);
+                let out_path = dialogs::save_game(&window_handle, &game.title);
 
                 (in_path, out_path)
             };
@@ -987,6 +988,39 @@ impl Logic<'_> {
                     }
                 });
             });
+        });
+
+        let conversion_queue_clone = conversion_queue.clone();
+        let is_converting_clone = is_converting.clone();
+        let window_handle = window.window_handle();
+        let weak = self.as_weak();
+        self.on_archive_manually(move || {
+            let Some(in_path) = dialogs::pick_game(&window_handle) else {
+                return;
+            };
+
+            let Some(stem) = in_path.file_stem().and_then(OsStr::to_str) else {
+                return;
+            };
+
+            let Some(out_path) = dialogs::save_game(&window_handle, stem) else {
+                return;
+            };
+
+            let queued = QueuedConversion {
+                kind: ConversionKind::Archive,
+                in_path: in_path.to_string_lossy().to_shared_string(),
+                out_path: out_path.to_string_lossy().to_shared_string(),
+                ..Default::default()
+            };
+
+            conversion_queue_clone.push(queued);
+
+            let mut is_converting = is_converting_clone.borrow_mut();
+            if !*is_converting {
+                *is_converting = true;
+                weak.upgrade().unwrap().invoke_trigger_conversion();
+            }
         });
 
         #[cfg(target_os = "macos")]

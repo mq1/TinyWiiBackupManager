@@ -282,6 +282,54 @@ export component ToolboxPage inherits VerticalLayout {
                 }
             }
 
+            Card {
+                VerticalLayout {
+                    padding: 10px;
+                    spacing: 10px;
+
+                    HorizontalLayout {
+                        spacing: 5px;
+
+                        IconDisplay {
+                            icon: IconSet.Shuffle;
+                            stroke: MyPalette.foreground;
+                            size: 14px;
+                        }
+
+                        Text {
+                            text: "Manual conversion (using NOD)";
+                        }
+
+                        HorizontalLayout {
+                            alignment: end;
+
+                            if should-reformat: Link {
+                                label: "https://github.com/encounter/nod";
+                                uri: "https://github.com/encounter/nod";
+                            }
+                        }
+                    }
+
+                    HorizontalLine { }
+
+                    HorizontalLayout {
+                        spacing: 10px;
+
+                        IconButton {
+                            icon: IconSet.Play;
+                            width: self.height;
+                            clicked => Logic.archive-manually();
+                        }
+
+                        Text {
+                            height: b.height;
+                            vertical-alignment: center;
+                            text: "Select in-path and out-path and run the conversion";
+                        }
+                    }
+                }
+            }
+
             if Platform.os == OperatingSystemType.macos: Card {
                 VerticalLayout {
                     padding: 10px;

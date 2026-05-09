@@ -4,7 +4,6 @@
 use rfd::FileDialog;
 use slint::WindowHandle;
 use std::path::PathBuf;
-use twbm_core::game::Game;
 use walkdir::WalkDir;
 
 const INPUT_DIALOG_FILTER: &[&str] = &[
@@ -20,6 +19,14 @@ pub fn pick_mount_point(window_handle: &WindowHandle) -> Option<PathBuf> {
         .set_parent(window_handle)
         .set_title("Select Drive/Mount Point")
         .pick_folder()
+}
+
+pub fn pick_game(window_handle: &WindowHandle) -> Option<PathBuf> {
+    FileDialog::new()
+        .set_parent(window_handle)
+        .set_title("Select Game")
+        .add_filter("Nintendo Optical Disc", INPUT_DIALOG_FILTER)
+        .pick_file()
 }
 
 pub fn pick_games(window_handle: &WindowHandle) -> Vec<PathBuf> {
@@ -57,13 +64,12 @@ pub fn pick_games_r(window_handle: &WindowHandle) -> Vec<PathBuf> {
     paths
 }
 
-pub fn save_game(window_handle: &WindowHandle, game: &Game) -> Option<PathBuf> {
+pub fn save_game(window_handle: &WindowHandle, game_title: &str) -> Option<PathBuf> {
     let title = format!(
-        "Select Destination for {} - Supported extensions: iso, wbfs, wia, rvz, ciso, gcz, tgc, nfs",
-        &game.title
+        "Select Destination for {game_title} - Supported extensions: iso, wbfs, wia, rvz, ciso, gcz, tgc, nfs",
     );
 
-    let filename = format!("{}.rvz", twbm_core::util::sanitize(&game.title));
+    let filename = format!("{}.rvz", twbm_core::util::sanitize(game_title));
 
     FileDialog::new()
         .set_parent(window_handle)
