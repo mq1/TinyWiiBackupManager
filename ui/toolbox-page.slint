@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { IconSet, IconDisplay } from "@lucide";
+import { IconSet, IconDisplay, Icon } from "@lucide";
 import { ScrollView, LineEdit } from "std-widgets.slint";
 import { MyPalette } from "styling.slint";
 import { Card } from "components/card.slint";
@@ -13,18 +13,41 @@ import { IconButton } from "components/icon-button.slint";
 export component ToolboxPage inherits VerticalLayout {
     in-out property <bool> scrubbing-all-games;
 
-    private property <int> optimal-allocation-granularity: (Logic.drive-info.total-gib <= 34359738368) ? 32768 : 65536;
+    private property <int> optimal-allocation-granularity: (Logic.drive-info.total-gib <= 32) ? 32768 : 65536;
     private property <bool> is-optimal-allocation-granularity: Logic.drive-info.allocation-granularity == optimal-allocation-granularity;
     private property <bool> should-reformat: Logic.drive-info.fs-kind != "FAT32" || !is-optimal-allocation-granularity;
-    private property <string> allocation-granularity-comment: is-optimal-allocation-granularity ? "✓ optimal" : "⚠ not optimal, but should work";
+
+    pure function fs-icon(fs-kind: string) -> Icon {
+        if fs-kind == "FAT32" {
+            IconSet.Check
+        } else {
+            IconSet.TriangleAlert
+        }
+    }
 
     pure function fs-comment(fs-kind: string) -> string {
         if fs-kind == "FAT32" {
-            "✓ optimal choice for game backups and homebrew apps"
+            "optimal choice for game backups and homebrew apps"
         } else if fs-kind == "NTFS" || fs-kind == "exFAT" {
-            "⚠ limited support for game backups and homebrew apps"
+            "limited support for game backups and homebrew apps"
         } else {
-            "⚠ won't work for game backups and homebrew apps"
+            "won't work for game backups and homebrew apps"
+        }
+    }
+
+    pure function allocation-granularity-icon(optimal: bool) -> Icon {
+        if optimal {
+            IconSet.Check
+        } else {
+            IconSet.TriangleAlert
+        }
+    }
+
+    pure function allocation-granularity-comment(optimal: bool) -> string {
+        if optimal {
+            "optimal"
+        } else {
+            "not optimal, but should work"
         }
     }
 
@@ -84,12 +107,30 @@ export component ToolboxPage inherits VerticalLayout {
 
                     HorizontalLine { }
 
-                    Text {
-                        text: "Filesystem: \{Logic.drive-info.fs-kind}  (\{fs-comment(Logic.drive-info.fs-kind)})";
+                    HorizontalLayout {
+                        spacing: 5px;
+
+                        IconDisplay {
+                            icon: fs-icon(Logic.drive-info.fs-kind);
+                            size: 14px;
+                        }
+
+                        Text {
+                            text: "Filesystem: \{Logic.drive-info.fs-kind}  (\{fs-comment(Logic.drive-info.fs-kind)})";
+                        }
                     }
 
-                    Text {
-                        text: "Allocation granularity: \{Logic.drive-info.allocation-granularity}  (\{allocation-granularity-comment})";
+                    HorizontalLayout {
+                        spacing: 5px;
+
+                        IconDisplay {
+                            icon: allocation-granularity-icon(is-optimal-allocation-granularity);
+                            size: 14px;
+                        }
+
+                        Text {
+                            text: "Allocation granularity: \{Logic.drive-info.allocation-granularity}  (\{allocation-granularity-comment(is-optimal-allocation-granularity)})";
+                        }
                     }
                 }
             }
