@@ -37,89 +37,105 @@ export component SettingsPage inherits VerticalLayout {
             SettingCard {
                 icon: IconSet.Disc3;
                 label: "Wii output format";
-                items: ["WBFS (recommended)", "ISO (very large)"];
+                items: [
+                    { value: "Wbfs", label: "WBFS (recommended)" },
+                    { value: "Iso", label: "ISO (very large)" }
+                ];
                 active-item: Logic.config.wii-output-format;
 
-                selected(i) => Logic.set-wii-output-format(i);
+                selected(value) => Logic.set-wii-output-format(value);
             }
 
             SettingCard {
                 icon: IconSet.Disc3;
                 label: "GameCube output format";
                 items: [
-                    "ISO (recommended)",
-                    "CISO (much smaller, slightly slower, less metadata in game loaders)"
+                    { value: "Iso", label: "ISO (recommended)" },
+                    {
+                        value: "Ciso",
+                        label: "CISO (much smaller, slightly slower, less metadata in game loaders)"
+                    }
                 ];
                 active-item: Logic.config.gc-output-format;
 
-                selected(i) => Logic.set-gc-output-format(i);
+                selected(value) => Logic.set-gc-output-format(value);
             }
 
             SettingCard {
                 icon: IconSet.SquareSplitHorizontal;
                 label: "Split output";
-                items: ["Only when needed (recommended)", "Always 4GB-32KB"];
-                active-item: Logic.config.always-split ? 1 : 0;
+                items: [
+                    { value: "false", label: "Only when needed (recommended)" },
+                    { value: "true", label: "Always 4GB-32KB" }
+                ];
+                active-item: Logic.config.always-split;
 
-                selected(i) => Logic.set-always-split(i == 1);
+                selected(value) => Logic.set-always-split(value);
             }
 
             SettingCard {
                 icon: IconSet.FileMinusCorner;
                 label: "Remove update partition on WBFS/CISO";
                 items: [
-                    "No (recommended)",
-                    "Yes (saves some space; update partition is zeroed, but still there)"
+                    { value: "false", label: "No (recommended)" },
+                    {
+                        value: "true",
+                        label: "Yes (saves some space; update partition is zeroed, but still there)"
+                    }
                 ];
-                active-item: Logic.config.scrub-update-partition ? 1 : 0;
+                active-item: Logic.config.scrub-update-partition;
 
-                selected(i) => Logic.set-scrub-update-partition(i == 1);
+                selected(value) => Logic.set-scrub-update-partition(value);
             }
 
             SettingCard {
                 icon: IconSet.Trash;
                 label: "Delete sources when adding games";
-                items: ["No (recommended)", "Yes"];
-                active-item: Logic.config.remove-sources-games ? 1 : 0;
+                items: [{ value: "false", label: "No (recommended)" }, { value: "true", label: "Yes" }];
+                active-item: Logic.config.remove-sources-games;
 
-                selected(i) => Logic.set-remove-sources-games(i == 1);
+                selected(value) => Logic.set-remove-sources-games(value);
             }
 
             SettingCard {
                 icon: IconSet.Trash;
                 label: "Delete sources when adding apps";
-                items: ["No (recommended)", "Yes"];
-                active-item: Logic.config.remove-sources-apps ? 1 : 0;
+                items: [{ value: "false", label: "No (recommended)" }, { value: "true", label: "Yes" }];
+                active-item: Logic.config.remove-sources-apps;
 
-                selected(i) => Logic.set-remove-sources-apps(i == 1);
+                selected(value) => Logic.set-remove-sources-apps(value);
             }
 
             SettingCard {
                 icon: IconSet.Skull;
                 label: "Cheat codes source";
                 items: [
-                    "geckocodes.org-201909 archive (recommended)",
-                    "gamehacking.org (up to date)",
-                    "codes.rc24.xyz",
+                    { value: "WebArchive", label: "geckocodes.org-201909 archive (recommended)" },
+                    { value: "GameHacking", label: "gamehacking.org (up to date)" },
+                    { value: "Rc24", label: "codes.rc24.xyz" }
                 ];
                 active-item: Logic.config.txt-codes-source;
 
-                selected(i) => Logic.set-txt-codes-source(i);
+                selected(value) => Logic.set-txt-codes-source(value);
             }
 
             SettingCard {
                 icon: IconSet.SunMoon;
                 label: "Theme";
-                items: ["System (requires restart)", "Light", "Dark"];
+                items: [
+                    { value: "System", label: "System (requires restart)" },
+                    { value: "Light", label: "Light" },
+                    { value: "Dark", label: "Dark" }
+                ];
                 active-item: Logic.config.theme-preference;
 
-                selected(i) => {
-                    Logic.set-theme-preference(i);
+                selected(value) => {
+                    Logic.set-theme-preference(value);
 
-                    if i == 1 {
+                    if value == "Light" {
                         Palette.color-scheme = ColorScheme.light;
                         Logic.set-window-color(false);
-                    } else if i == 2 {
+                    } else if value == "Dark" {
                         Palette.color-scheme = ColorScheme.dark;
                         Logic.set-window-color(true);
                     }
@@ -130,20 +146,20 @@ export component SettingsPage inherits VerticalLayout {
                 icon: IconSet.ImageDown;
                 label: "Preferred language for PAL covers";
                 items: [
-                    "English",
-                    "French",
-                    "German",
-                    "Spanish",
-                    "Italian",
-                    "Dutch",
-                    "Portuguese",
-                    "Swedish",
-                    "Danish",
-                    "Finnish"
+                    { value: "English", label: "English" },
+                    { value: "French", label: "French" },
+                    { value: "German", label: "German" },
+                    { value: "Spanish", label: "Spanish" },
+                    { value: "Italian", label: "Italian" },
+                    { value: "Dutch", label: "Dutch" },
+                    { value: "Portuguese", label: "Portuguese" },
+                    { value: "Swedish", label: "Swedish" },
+                    { value: "Danish", label: "Danish" },
+                    { value: "Finnish", label: "Finnish" }
                 ];
                 active-item: Logic.config.preferred-language;
 
-                selected(i) => Logic.set-preferred-language(i);
+                selected(value) => Logic.set-preferred-language(value);
             }
         }
     }

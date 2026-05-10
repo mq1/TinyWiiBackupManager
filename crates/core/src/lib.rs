@@ -9,6 +9,7 @@ pub mod checksum;
 pub mod config;
 pub mod convert;
 pub mod covers;
+pub mod data_dir;
 pub mod disc_info;
 pub mod drive_info;
 pub mod game;

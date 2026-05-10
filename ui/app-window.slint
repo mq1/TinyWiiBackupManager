@@ -75,7 +75,7 @@ export component AppWindow inherits Window {
                 border-width: 1px;
                 border-color: MyPalette.border;
 
-                if current-page == Page.Games && Logic.config.view-as == 0: GameGridPage {
+                if current-page == Page.Games && Logic.config.view-as == "Grid": GameGridPage {
                     open-info(i) => {
                         current-game-i = i;
                         Logic.load-game-info(Logic.games[i].idx);
@@ -84,7 +84,7 @@ export component AppWindow inherits Window {
                         game-to-delete = i;
                     }
                 }
-                if current-page == Page.Games && Logic.config.view-as == 1: GameTablePage {
+                if current-page == Page.Games && Logic.config.view-as == "Table": GameTablePage {
                     open-info(i) => {
                         current-game-i = i;
                         Logic.load-game-info(Logic.games[i].idx);
@@ -93,7 +93,7 @@ export component AppWindow inherits Window {
                         game-to-delete = i;
                     }
                 }
-                if current-page == Page.HomebrewApps && Logic.config.view-as == 0: HomebrewAppsGridPage {
+                if current-page == Page.HomebrewApps && Logic.config.view-as == "Grid": HomebrewAppsGridPage {
                     open-info(i) => {
                         current-homebrew-app-i = i;
                     }
@@ -101,7 +101,7 @@ export component AppWindow inherits Window {
                         homebrew-app-to-delete = i;
                     }
                 }
-                if current-page == Page.HomebrewApps && Logic.config.view-as == 1: HomebrewAppsTablePage {
+                if current-page == Page.HomebrewApps && Logic.config.view-as == "Table": HomebrewAppsTablePage {
                     open-info(i) => {
                         current-homebrew-app-i = i;
                     }
@@ -109,7 +109,7 @@ export component AppWindow inherits Window {
                         homebrew-app-to-delete = i;
                     }
                 }
-                if current-page == Page.Osc && Logic.config.view-as == 0: OscGridPage {
+                if current-page == Page.Osc && Logic.config.view-as == "Grid": OscGridPage {
                     open-info(i) => {
                         current-osc-app-i = i;
                     }
@@ -117,7 +117,7 @@ export component AppWindow inherits Window {
                         wiiloading-osc-app = i;
                     }
                 }
-                if current-page == Page.Osc && Logic.config.view-as == 1: OscTablePage {
+                if current-page == Page.Osc && Logic.config.view-as == "Table": OscTablePage {
                     open-info(i) => {
                         current-osc-app-i = i;
                     }

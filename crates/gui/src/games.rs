@@ -1,11 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{DisplayedGame, data_dir::DATA_DIR, util::GIB};
+use crate::{DisplayedGame, util::GIB};
 use slint::{Image, SharedString, ToSharedString};
 use std::{cell::RefCell, cmp::Ordering, path::Path, rc::Rc};
 use twbm_core::{
     config::{Config, SortBy},
+    data_dir::DATA_DIR,
     game::Game,
 };
 

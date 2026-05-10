@@ -5566,12 +5566,12 @@ dependencies = [
  "anyhow",
  "crc32fast",
  "derive_more",
+ "directories",
  "fs4",
  "fs_extra",
  "image",
  "nod",
  "num_cpus",
- "num_enum",
  "quick-xml",
  "radix_fmt",
  "sanitize-filename",
@@ -5592,7 +5592,6 @@ name = "twbm-gui"
 version = "6.0.0"
 dependencies = [
  "anyhow",
- "directories",
  "lucide-slint",
  "open",
  "rfd",

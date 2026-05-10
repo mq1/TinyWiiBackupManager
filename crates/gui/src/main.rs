@@ -7,7 +7,6 @@
 mod config;
 mod convert;
 mod covers;
-mod data_dir;
 mod dialogs;
 mod disc_info;
 mod drive_info;
@@ -21,11 +20,10 @@ mod util;
 #[cfg(windows)]
 mod window_color;
 
-use crate::data_dir::DATA_DIR;
 use anyhow::{Result, bail};
 use slint::ComponentHandle;
 use std::process::Command;
-use twbm_core::config::Config;
+use twbm_core::{config::Config, data_dir::DATA_DIR};
 
 slint::include_modules!();
 
@@ -45,7 +43,7 @@ fn main() -> Result<()> {
         bail!("Failed to get data dir");
     }
 
-    let config = Config::load(&DATA_DIR);
+    let config = Config::load();
     let app = AppWindow::new()?;
     app.global::<Logic<'_>>().init(config, app.window());
 

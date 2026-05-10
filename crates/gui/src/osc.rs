@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{DisplayedOscApp, Logic, data_dir::DATA_DIR, util::MIB};
+use crate::{DisplayedOscApp, Logic, util::MIB};
 use slint::{Image, SharedString, ToSharedString, Weak};
 use std::{cell::RefCell, fs, rc::Rc};
 use time::UtcDateTime;
-use twbm_core::osc::OscAppMeta;
+use twbm_core::{data_dir::DATA_DIR, osc::OscAppMeta};
 
 impl DisplayedOscApp {
     pub fn new(meta: &OscAppMeta, idx: usize) -> Self {

@@ -3,8 +3,8 @@
 
 use crate::DisplayedConfig;
 use slint::{ModelRc, ToSharedString, VecModel};
-use std::{path::PathBuf, rc::Rc};
-use twbm_core::config::{Config, ConfigContents};
+use std::rc::Rc;
+use twbm_core::config::Config;
 
 impl From<&Config> for DisplayedConfig {
     fn from(config: &Config) -> Self {
@@ -22,48 +22,21 @@ impl From<&Config> for DisplayedConfig {
                 .mount_point
                 .to_string_lossy()
                 .to_shared_string(),
-            sort_by: config.contents.sort_by.into(),
-            always_split: config.contents.always_split,
-            gc_output_format: config.contents.gc_output_format.into(),
-            wii_output_format: config.contents.wii_output_format.into(),
-            remove_sources_apps: config.contents.remove_sources_apps,
-            remove_sources_games: config.contents.remove_sources_games,
-            scrub_update_partition: config.contents.scrub_update_partition,
+            sort_by: config.contents.sort_by.to_shared_string(),
+            always_split: config.contents.always_split.to_shared_string(),
+            gc_output_format: config.contents.gc_output_format.to_shared_string(),
+            wii_output_format: config.contents.wii_output_format.to_shared_string(),
+            remove_sources_apps: config.contents.remove_sources_apps.to_shared_string(),
+            remove_sources_games: config.contents.remove_sources_games.to_shared_string(),
+            scrub_update_partition: config.contents.scrub_update_partition.to_shared_string(),
             show_gc: config.contents.show_gc,
             show_wii: config.contents.show_wii,
-            txt_codes_source: config.contents.txt_codes_source.into(),
-            view_as: config.contents.view_as.into(),
+            txt_codes_source: config.contents.txt_codes_source.to_shared_string(),
+            view_as: config.contents.view_as.to_shared_string(),
             wii_ip: config.contents.wii_ip.to_shared_string(),
-            theme_preference: config.contents.theme_preference.into(),
+            theme_preference: config.contents.theme_preference.to_shared_string(),
             known_drives: ModelRc::from(Rc::new(known_drives)),
-            preferred_language: config.contents.preferred_language.into(),
+            preferred_language: config.contents.preferred_language.to_shared_string(),
         }
-    }
-}
-
-impl From<&DisplayedConfig> for Config {
-    fn from(config: &DisplayedConfig) -> Self {
-        let path = PathBuf::from(&config.path);
-
-        let contents = ConfigContents {
-            always_split: config.always_split,
-            mount_point: PathBuf::from(&config.mount_point),
-            remove_sources_apps: config.remove_sources_apps,
-            remove_sources_games: config.remove_sources_games,
-            scrub_update_partition: config.scrub_update_partition,
-            wii_ip: config.wii_ip.to_string(),
-            show_wii: config.show_wii,
-            show_gc: config.show_gc,
-            known_drives: Vec::new(),
-            wii_output_format: config.wii_output_format.try_into().unwrap_or_default(),
-            gc_output_format: config.gc_output_format.try_into().unwrap_or_default(),
-            sort_by: config.sort_by.try_into().unwrap_or_default(),
-            view_as: config.view_as.try_into().unwrap_or_default(),
-            txt_codes_source: config.txt_codes_source.try_into().unwrap_or_default(),
-            theme_preference: config.theme_preference.try_into().unwrap_or_default(),
-            preferred_language: config.preferred_language.try_into().unwrap_or_default(),
-        };
-
-        Self { path, contents }
     }
 }

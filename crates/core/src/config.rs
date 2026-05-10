@@ -1,13 +1,11 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::data_dir::DATA_DIR;
 use anyhow::Result;
-use num_enum::{IntoPrimitive, TryFromPrimitive};
+use derive_more::{Display, FromStr};
 use serde::{Deserialize, Serialize};
-use std::{
-    fs,
-    path::{Path, PathBuf},
-};
+use std::{fs, path::PathBuf};
 use sys_locale::get_locale;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -17,8 +15,8 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn load(data_dir: &Path) -> Self {
-        let path = data_dir.join("config.json");
+    pub fn load() -> Self {
+        let path = DATA_DIR.join("config.json");
         let s = fs::read_to_string(&path).unwrap_or_default();
         let contents = serde_json::from_str(&s).unwrap_or_default();
 
@@ -106,20 +104,8 @@ impl Default for ConfigContents {
     }
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    Serialize,
-    Deserialize,
-    PartialEq,
-    Eq,
-    Default,
-    IntoPrimitive,
-    TryFromPrimitive,
-)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default, Display, FromStr)]
 #[serde(rename_all = "snake_case")]
-#[repr(i32)]
 pub enum SortBy {
     #[default]
     NameDescending,
@@ -128,40 +114,16 @@ pub enum SortBy {
     SizeAscending,
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    Serialize,
-    Deserialize,
-    PartialEq,
-    Eq,
-    Default,
-    IntoPrimitive,
-    TryFromPrimitive,
-)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default, Display, FromStr)]
 #[serde(rename_all = "lowercase")]
-#[repr(i32)]
 pub enum ViewAs {
     #[default]
     Grid,
     Table,
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    Serialize,
-    Deserialize,
-    PartialEq,
-    Eq,
-    Default,
-    IntoPrimitive,
-    TryFromPrimitive,
-)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default, Display, FromStr)]
 #[serde(rename_all = "lowercase")]
-#[repr(i32)]
 pub enum ThemePreference {
     #[default]
     System,
@@ -169,20 +131,8 @@ pub enum ThemePreference {
     Dark,
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    Serialize,
-    Deserialize,
-    PartialEq,
-    Eq,
-    Default,
-    IntoPrimitive,
-    TryFromPrimitive,
-)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default, Display, FromStr)]
 #[serde(rename_all = "snake_case")]
-#[repr(i32)]
 pub enum TxtCodesSource {
     #[default]
     WebArchive,
@@ -190,51 +140,24 @@ pub enum TxtCodesSource {
     Rc24,
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    Serialize,
-    Deserialize,
-    PartialEq,
-    Eq,
-    Default,
-    IntoPrimitive,
-    TryFromPrimitive,
-)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default, Display, FromStr)]
 #[serde(rename_all = "lowercase")]
-#[repr(i32)]
 pub enum WiiOutputFormat {
     #[default]
     Wbfs,
     Iso,
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    Serialize,
-    Deserialize,
-    PartialEq,
-    Eq,
-    Default,
-    IntoPrimitive,
-    TryFromPrimitive,
-)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default, Display, FromStr)]
 #[serde(rename_all = "lowercase")]
-#[repr(i32)]
 pub enum GcOutputFormat {
     #[default]
     Iso,
     Ciso,
 }
 
-#[derive(
-    Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, IntoPrimitive, TryFromPrimitive,
-)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Display, FromStr)]
 #[serde(rename_all = "lowercase")]
-#[repr(i32)]
 pub enum PreferredLanguage {
     English,
     French,

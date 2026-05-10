@@ -9,10 +9,10 @@ import { Card } from "card.slint";
 export component SettingCard inherits Card {
     in property <string> label;
     in property <Icon> icon;
-    in property <[string]> items;
-    in property <int> active-item;
+    in property <[{ value: string, label: string}]> items;
+    in property <string> active-item;
 
-    callback selected(int);
+    callback selected(string);
 
     width: 100%;
 
@@ -36,23 +36,23 @@ export component SettingCard inherits Card {
 
         HorizontalLine { }
 
-        for item[i] in items: Rectangle {
+        for item in items: Rectangle {
             HorizontalLayout {
                 spacing: 5px;
 
                 IconDisplay {
-                    icon: i == active-item ? IconSet.Disc : IconSet.Circle;
-                    stroke: i == active-item ? MyPalette.accent-background : MyPalette.foreground;
+                    icon: item.value == active-item ? IconSet.Disc : IconSet.Circle;
+                    stroke: item.value == active-item ? MyPalette.accent-background : MyPalette.foreground;
                     size: 14px;
                 }
 
                 Text {
-                    text: item;
+                    text: item.label;
                 }
             }
 
             TouchArea {
-                clicked => selected(i);
+                clicked => selected(item.value);
             }
         }
     }

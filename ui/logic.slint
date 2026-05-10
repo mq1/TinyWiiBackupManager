@@ -66,19 +66,19 @@ export global Logic {
 
     // config
     callback pick-mount-point();
-    callback set-wii-output-format(int);
-    callback set-gc-output-format(int);
-    callback set-always-split(bool);
-    callback set-scrub-update-partition(bool);
-    callback set-remove-sources-games(bool);
-    callback set-remove-sources-apps(bool);
-    callback set-txt-codes-source(int);
-    callback set-theme-preference(int);
-    callback set-view-as(int);
-    callback set-sort-by(int);
+    callback set-wii-output-format(string);
+    callback set-gc-output-format(string);
+    callback set-always-split(string);
+    callback set-scrub-update-partition(string);
+    callback set-remove-sources-games(string);
+    callback set-remove-sources-apps(string);
+    callback set-txt-codes-source(string);
+    callback set-theme-preference(string);
+    callback set-view-as(string);
+    callback set-sort-by(string);
     callback set-show-wii(bool);
     callback set-show-gc(bool);
-    callback set-preferred-language(int);
+    callback set-preferred-language(string);
 
     // util
     callback sync-config();

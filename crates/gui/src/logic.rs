@@ -4,7 +4,7 @@
 use crate::{
     ConversionKind, DisplayedConfig, DisplayedDiscInfo, DisplayedDriveInfo, DisplayedGame,
     DisplayedHomebrewApp, DisplayedOscApp, Logic, Notification, QueuedConversion,
-    convert::Conversion, covers, data_dir::DATA_DIR, dialogs, games, homebrew_apps, osc,
+    convert::Conversion, covers, dialogs, games, homebrew_apps, osc,
 };
 use slint::{
     FilterModel, Global, Image, Model, ModelRc, SharedString, SortModel, ToSharedString, VecModel,
@@ -20,6 +20,7 @@ use std::{
 use twbm_core::{
     checksum,
     config::Config,
+    data_dir::DATA_DIR,
     disc_info::{DiscInfo, is_worth_scrubbing},
     drive_info::DriveInfo,
     game::Game,
@@ -79,6 +80,7 @@ impl Logic<'_> {
         let is_downloading_covers = Rc::new(RefCell::new(false));
 
         self.set_app_version(env!("CARGO_PKG_VERSION").to_shared_string());
+        self.set_data_dir(DATA_DIR.to_string_lossy().to_shared_string());
         self.set_config(displayed_config);
         self.set_games(ModelRc::from(filtered_games.clone()));
         self.set_homebrew_apps(ModelRc::from(filtered_homebrew_apps.clone()));
@@ -128,52 +130,53 @@ impl Logic<'_> {
         let config_clone = config.clone();
         let weak = self.as_weak();
         self.on_set_wii_output_format(move |format| {
-            config_clone.borrow_mut().contents.wii_output_format =
-                format.try_into().unwrap_or_default();
+            config_clone.borrow_mut().contents.wii_output_format = format.as_str().parse().unwrap();
             weak.upgrade().unwrap().invoke_sync_config();
         });
 
         let config_clone = config.clone();
         let weak = self.as_weak();
         self.on_set_gc_output_format(move |format| {
-            config_clone.borrow_mut().contents.gc_output_format =
-                format.try_into().unwrap_or_default();
+            config_clone.borrow_mut().contents.gc_output_format = format.as_str().parse().unwrap();
             weak.upgrade().unwrap().invoke_sync_config();
         });
 
         let config_clone = config.clone();
         let weak = self.as_weak();
         self.on_set_always_split(move |always_split| {
-            config_clone.borrow_mut().contents.always_split = always_split;
+            config_clone.borrow_mut().contents.always_split =
+                always_split.as_str().parse().unwrap();
             weak.upgrade().unwrap().invoke_sync_config();
         });
 
         let config_clone = config.clone();
         let weak = self.as_weak();
         self.on_set_scrub_update_partition(move |scrub_update_partition| {
-            config_clone.borrow_mut().contents.scrub_update_partition = scrub_update_partition;
+            config_clone.borrow_mut().contents.scrub_update_partition =
+                scrub_update_partition.as_str().parse().unwrap();
             weak.upgrade().unwrap().invoke_sync_config();
         });
 
         let config_clone = config.clone();
         let weak = self.as_weak();
         self.on_set_remove_sources_games(move |remove_sources_games| {
-            config_clone.borrow_mut().contents.remove_sources_games = remove_sources_games;
+            config_clone.borrow_mut().contents.remove_sources_games =
+                remove_sources_games.as_str().parse().unwrap();
             weak.upgrade().unwrap().invoke_sync_config();
         });
 
         let config_clone = config.clone();
         let weak = self.as_weak();
         self.on_set_remove_sources_apps(move |remove_sources_apps| {
-            config_clone.borrow_mut().contents.remove_sources_apps = remove_sources_apps;
+            config_clone.borrow_mut().contents.remove_sources_apps =
+                remove_sources_apps.as_str().parse().unwrap();
             weak.upgrade().unwrap().invoke_sync_config();
         });
 
         let config_clone = config.clone();
         let weak = self.as_weak();
         self.on_set_txt_codes_source(move |source| {
-            config_clone.borrow_mut().contents.txt_codes_source =
-                source.try_into().unwrap_or_default();
+            config_clone.borrow_mut().contents.txt_codes_source = source.as_str().parse().unwrap();
             weak.upgrade().unwrap().invoke_sync_config();
         });
 
@@ -181,14 +184,14 @@ impl Logic<'_> {
         let weak = self.as_weak();
         self.on_set_theme_preference(move |theme_preference| {
             config_clone.borrow_mut().contents.theme_preference =
-                theme_preference.try_into().unwrap_or_default();
+                theme_preference.as_str().parse().unwrap();
             weak.upgrade().unwrap().invoke_sync_config();
         });
 
         let config_clone = config.clone();
         let weak = self.as_weak();
         self.on_set_view_as(move |format| {
-            config_clone.borrow_mut().contents.view_as = format.try_into().unwrap_or_default();
+            config_clone.borrow_mut().contents.view_as = format.as_str().parse().unwrap();
             weak.upgrade().unwrap().invoke_sync_config();
         });
 
@@ -197,7 +200,7 @@ impl Logic<'_> {
         let sorted_homebrew_apps_clone = sorted_homebrew_apps.clone();
         let weak = self.as_weak();
         self.on_set_sort_by(move |sort_by| {
-            config_clone.borrow_mut().contents.sort_by = sort_by.try_into().unwrap_or_default();
+            config_clone.borrow_mut().contents.sort_by = sort_by.as_str().parse().unwrap();
             weak.upgrade().unwrap().invoke_sync_config();
 
             sorted_games_clone.reset();
@@ -228,7 +231,7 @@ impl Logic<'_> {
         let weak = self.as_weak();
         self.on_set_preferred_language(move |preferred_language| {
             config_clone.borrow_mut().contents.preferred_language =
-                preferred_language.try_into().unwrap_or_default();
+                preferred_language.as_str().parse().unwrap();
             weak.upgrade().unwrap().invoke_sync_config();
         });
 

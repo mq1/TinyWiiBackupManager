@@ -28,17 +28,17 @@ export component SortGamesAndHomebrewApps inherits Card {
             height: 38px;
 
             tooltip: "Sort by name";
-            background: get-bg(Logic.config.sort-by < 2, self.has-hover);
+            background: get-bg(Logic.config.sort-by == "NameDescending" || Logic.config.sort-by == "NameAscending", self.has-hover);
             clicked => {
-                if Logic.config.sort-by == 0 {
-                    Logic.set-sort-by(1);
+                if Logic.config.sort-by == "NameDescending" {
+                    Logic.set-sort-by("NameAscending");
                 } else {
-                    Logic.set-sort-by(0);
+                    Logic.set-sort-by("NameDescending");
                 }
             }
 
             IconDisplay {
-                icon: Logic.config.sort-by == 1 ? IconSet.ArrowUpAZ : IconSet.ArrowDownAZ;
+                icon: Logic.config.sort-by == "NameAscending" ? IconSet.ArrowUpAZ : IconSet.ArrowDownAZ;
                 size: 14px;
                 stroke: MyPalette.foreground;
             }
@@ -49,17 +49,17 @@ export component SortGamesAndHomebrewApps inherits Card {
             height: 38px;
 
             tooltip: "Sort by size";
-            background: get-bg(Logic.config.sort-by >= 2, self.has-hover);
+            background: get-bg(Logic.config.sort-by == "SizeDescending" || Logic.config.sort-by == "SizeAscending", self.has-hover);
             clicked => {
-                if Logic.config.sort-by == 2 {
-                    Logic.set-sort-by(3);
+                if Logic.config.sort-by == "SizeDescending" {
+                    Logic.set-sort-by("SizeAscending");
                 } else {
-                    Logic.set-sort-by(2);
+                    Logic.set-sort-by("SizeDescending");
                 }
             }
 
             IconDisplay {
-                icon: Logic.config.sort-by == 3 ? IconSet.ArrowUp01 : IconSet.ArrowDown01;
+                icon: Logic.config.sort-by == "SizeAscending" ? IconSet.ArrowUp01 : IconSet.ArrowDown01;
                 size: 14px;
                 stroke: MyPalette.foreground;
             }

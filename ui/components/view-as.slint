@@ -8,8 +8,8 @@ import { MyPalette } from "../styling.slint";
 import { Logic } from "../logic.slint";
 
 export component ViewAs inherits Card {
-    pure function get-bg(view-as: int, hovered: bool) -> color {
-        if Logic.config.view-as == view-as {
+    pure function get-bg(current: bool, hovered: bool) -> color {
+        if current {
             MyPalette.selection-background
         } else if hovered {
             MyPalette.alternate-background
@@ -28,8 +28,8 @@ export component ViewAs inherits Card {
             height: 38px;
 
             tooltip: "View as grid";
-            background: get-bg(0, self.has-hover);
-            clicked => Logic.set-view-as(0);
+            background: get-bg(Logic.config.view-as == "Grid", self.has-hover);
+            clicked => Logic.set-view-as("Grid");
 
             IconDisplay {
                 icon: IconSet.LayoutGrid;
@@ -43,8 +43,8 @@ export component ViewAs inherits Card {
             height: 38px;
 
             tooltip: "View as table";
-            background: get-bg(1, self.has-hover);
-            clicked => Logic.set-view-as(1);
+            background: get-bg(Logic.config.view-as == "Table", self.has-hover);
+            clicked => Logic.set-view-as("Table");
 
             IconDisplay {
                 icon: IconSet.Table;

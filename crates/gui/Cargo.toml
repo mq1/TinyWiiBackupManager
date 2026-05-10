@@ -18,7 +18,6 @@ slint = { version = "1.16", features = ["raw-window-handle-06"] }
 anyhow = { workspace = true }
 wii-disc-info = { workspace = true }
 open = "5.3"
-directories = "6.0"
 walkdir = "2.5"
 time = "0.3"
 rfd = "0.17"
