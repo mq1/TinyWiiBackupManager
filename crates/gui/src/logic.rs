@@ -101,7 +101,7 @@ impl Logic<'_> {
 
             logic.set_config(displayed_config);
             if let Err(e) = config.write() {
-                let msg = format!("Failed to save config: {e}");
+                let msg = slint::format!("Failed to save config: {e}");
                 notifications_clone.push(Notification::error(msg));
             }
         });
@@ -109,7 +109,7 @@ impl Logic<'_> {
         let notifications_clone = notifications.clone();
         self.on_open_that(move |uri| {
             if let Err(e) = open::that(uri) {
-                let msg = format!("Failed to open URL: {e}");
+                let msg = slint::format!("Failed to open URL: {e}");
                 notifications_clone.push(Notification::error(msg));
             }
         });
@@ -463,9 +463,9 @@ impl Logic<'_> {
             let _ = std::thread::spawn(move || {
                 let weak2 = weak.clone();
                 let update_progress = move |percentage| {
-                    let status = format!("{percentage}%");
+                    let status = slint::format!("{percentage}%");
                     let _ = weak2.upgrade_in_event_loop(move |logic| {
-                        logic.set_crc32_status(status.to_shared_string());
+                        logic.set_crc32_status(status);
                     });
                 };
 
@@ -473,10 +473,12 @@ impl Logic<'_> {
 
                 let _ = weak.upgrade_in_event_loop(move |logic| match res {
                     Ok(crc32) => {
-                        logic.set_crc32_status(format!("{crc32:08x}").to_shared_string());
+                        let status = slint::format!("{crc32:08x}");
+                        logic.set_crc32_status(status);
                     }
                     Err(e) => {
-                        logic.invoke_notify_error(e.to_shared_string());
+                        let msg = slint::format!("Checksum failed: {e}");
+                        logic.invoke_notify_error(msg);
                     }
                 });
             });
@@ -592,7 +594,7 @@ impl Logic<'_> {
             let (in_path, out_path) = {
                 let game = &games_clone.borrow()[i as usize];
                 let Some(in_path) = game.get_disc_path() else {
-                    let msg = SharedString::from("No disc found for this game!");
+                    let msg = "No disc found for this game!";
                     notifications_clone.push(Notification::error(msg));
                     return;
                 };
@@ -763,7 +765,7 @@ impl Logic<'_> {
             };
 
             if let Err(e) = res {
-                let msg = format!("Failed to delete game: {e}");
+                let msg = slint::format!("Failed to delete game: {e}");
                 notifications_clone.push(Notification::error(msg));
                 return;
             }
@@ -781,7 +783,7 @@ impl Logic<'_> {
             };
 
             if let Err(e) = res {
-                let msg = format!("Failed to delete homebrew app: {e}");
+                let msg = slint::format!("Failed to delete homebrew app: {e}");
                 notifications_clone.push(Notification::error(msg));
                 return;
             }
@@ -810,7 +812,7 @@ impl Logic<'_> {
                 .collect::<Vec<_>>();
 
             if to_scrub.is_empty() {
-                let msg = SharedString::from("No games need scrubbing");
+                let msg = "No games need scrubbing";
                 notifications_clone.push(Notification::info(msg));
                 return;
             }
@@ -829,17 +831,16 @@ impl Logic<'_> {
                 normalize_dir_layout::perform(&config.contents.mount_point)
             };
 
-            let msg = match &res {
-                Ok(_) => SharedString::from("Directory layout successfully normalized"),
-                Err(e) => slint::format!("Failed to normalize directory layout: {}", e),
-            };
-
-            let notification = match res {
-                Ok(_) => Notification::info(msg),
-                Err(_) => Notification::error(msg),
-            };
-
-            notifications_clone.push(notification);
+            match &res {
+                Ok(_) => {
+                    let msg = "Directory layout successfully normalized";
+                    notifications_clone.push(Notification::info(msg));
+                }
+                Err(e) => {
+                    let msg = slint::format!("Failed to normalize directory layout: {e}");
+                    notifications_clone.push(Notification::error(msg));
+                }
+            }
         });
 
         let conversion_queue_clone = conversion_queue.clone();
@@ -1039,7 +1040,7 @@ impl Logic<'_> {
 
                 match res {
                     Ok(_) => {
-                        let msg = "Successfully ran dot_clean".to_shared_string();
+                        let msg = "Successfully ran dot_clean";
                         notifications_clone.push(Notification::info(msg));
                     }
                     Err(e) => {
