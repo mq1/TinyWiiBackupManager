@@ -7,6 +7,7 @@ use std::{
     fs,
     path::{Path, PathBuf},
 };
+use uuid::Uuid;
 
 #[derive(Debug, Clone, serde::Deserialize)]
 pub struct HomebrewAppMeta {
@@ -30,11 +31,11 @@ pub struct HomebrewAppMeta {
 
 #[derive(Debug, Clone)]
 pub struct HomebrewApp {
+    pub uuid: Uuid,
     pub path: PathBuf,
     pub meta: HomebrewAppMeta,
     pub size: u64,
     pub icon_rgba8: RgbaImage,
-    pub osc_idx: i32,
 }
 
 impl HomebrewApp {
@@ -54,11 +55,11 @@ impl HomebrewApp {
         let icon_rgba8 = icon.into_rgba8();
 
         Some(Self {
+            uuid: Uuid::now_v7(),
             path,
             meta,
             size,
             icon_rgba8,
-            osc_idx: -1,
         })
     }
 }

@@ -27,7 +27,7 @@ use twbm_core::{
     game_id::GameID,
     homebrew_app::HomebrewApp,
     normalize_dir_layout,
-    osc::OscAppMeta,
+    osc::OscApp,
 };
 use uuid::Uuid;
 
@@ -40,7 +40,7 @@ impl Logic<'_> {
 
         let games = Rc::new(RefCell::new(Vec::<Game>::new()));
         let homebrew_apps = Rc::new(RefCell::new(Vec::<HomebrewApp>::new()));
-        let osc_apps = Rc::new(RefCell::new(Vec::<OscAppMeta>::new()));
+        let osc_apps = Rc::new(RefCell::new(Vec::<OscApp>::new()));
 
         let displayed_games = Rc::new(VecModel::from(Vec::new()));
         let games_filter = Rc::new(RefCell::new(SharedString::new()));
@@ -269,13 +269,19 @@ impl Logic<'_> {
         let config_clone = config.clone();
         let osc_apps_clone = osc_apps.clone();
         let notifications_clone = notifications.clone();
-        self.on_wiiload_osc_app(move |wii_ip, i| {
+        self.on_wiiload_osc_app(move |wii_ip, uuid| {
+            let uuid = Uuid::parse_str(&uuid).unwrap();
+
             config_clone.borrow_mut().contents.wii_ip = wii_ip.to_string();
             weak.upgrade().unwrap().invoke_sync_config();
 
-            let app = osc_apps_clone.borrow()[i as usize].clone();
+            let app = {
+                let apps = osc_apps_clone.borrow();
+                let i = apps.binary_search_by_key(&uuid, |app| app.uuid).unwrap();
+                apps[i].clone()
+            };
 
-            let msg = slint::format!("Sending {} to Wii...", app.name);
+            let msg = slint::format!("Sending {} to Wii...", &app.meta.name);
             notifications_clone.push(Notification::info(msg));
 
             let weak = weak.clone();
@@ -327,8 +333,7 @@ impl Logic<'_> {
 
             let displayed_apps = new_apps
                 .iter()
-                .enumerate()
-                .map(|(i, a)| DisplayedHomebrewApp::new(a, i))
+                .map(DisplayedHomebrewApp::from)
                 .collect::<Vec<_>>();
 
             let displayed_drive_info = DisplayedDriveInfo::from(&drive_info);
@@ -385,11 +390,7 @@ impl Logic<'_> {
             let (new, hours, minutes) =
                 twbm_core::osc::load_contents(&DATA_DIR).unwrap_or_default();
 
-            let displayed_apps = new
-                .iter()
-                .enumerate()
-                .map(|(i, a)| DisplayedOscApp::new(a, i))
-                .collect::<Vec<_>>();
+            let displayed_apps = new.iter().map(DisplayedOscApp::from).collect::<Vec<_>>();
 
             *osc_apps_clone.borrow_mut() = new;
 
@@ -697,11 +698,18 @@ impl Logic<'_> {
         let config_clone = config.clone();
         let notifications_clone = notifications.clone();
         let weak = self.as_weak();
-        self.on_install_osc_app(move |i| {
-            let app = osc_apps_clone.borrow()[i as usize].clone();
+        self.on_install_osc_app(move |uuid| {
+            let uuid = Uuid::parse_str(&uuid).unwrap();
+
+            let app = {
+                let apps = osc_apps_clone.borrow();
+                let i = apps.binary_search_by_key(&uuid, |app| app.uuid).unwrap();
+                apps[i].clone()
+            };
+
             let root_dir = config_clone.borrow().contents.mount_point.clone();
 
-            let msg = slint::format!("Installing {}", &app.name);
+            let msg = slint::format!("Installing {}", &app.meta.name);
             notifications_clone.push(Notification::info(msg));
 
             let weak = weak.clone();
@@ -713,7 +721,7 @@ impl Logic<'_> {
                     if let Err(e) = res {
                         logic.invoke_notify_error(e.to_shared_string());
                     } else {
-                        let msg = slint::format!("{} installed successfully", &app.name);
+                        let msg = slint::format!("{} installed successfully", &app.meta.name);
                         logic.invoke_notify_info(msg);
                         logic.invoke_refresh_all();
                     }
@@ -741,23 +749,22 @@ impl Logic<'_> {
         let osc_apps_clone = osc_apps.clone();
         let displayed_homebrew_apps_clone = displayed_homebrew_apps.clone();
         self.on_pair_homebrew_osc(move || {
-            let mut homebrew_apps = homebrew_apps_clone.borrow_mut();
+            let homebrew_apps = homebrew_apps_clone.borrow();
             let osc_apps = osc_apps_clone.borrow();
 
-            for app in homebrew_apps.iter_mut() {
-                if let Some(osc_idx) = osc_apps
+            let mut displayed_apps = homebrew_apps
+                .iter()
+                .map(DisplayedHomebrewApp::from)
+                .collect::<Vec<_>>();
+
+            for app in &mut displayed_apps {
+                if let Some(osc_app) = osc_apps
                     .iter()
-                    .position(|osc_app| osc_app.name == app.meta.name)
+                    .find(|osc_app| osc_app.meta.name.as_str() == app.name.as_str())
                 {
-                    app.osc_idx = osc_idx as i32;
+                    app.osc_app = DisplayedOscApp::from(osc_app);
                 }
             }
-
-            let displayed_apps = homebrew_apps
-                .iter()
-                .enumerate()
-                .map(|(i, app)| DisplayedHomebrewApp::new(app, i))
-                .collect::<Vec<_>>();
 
             displayed_homebrew_apps_clone.set_vec(displayed_apps);
         });
@@ -804,9 +811,13 @@ impl Logic<'_> {
         let homebrew_apps_clone = homebrew_apps.clone();
         let notifications_clone = notifications.clone();
         let weak = self.as_weak();
-        self.on_delete_homebrew_app(move |i| {
+        self.on_delete_homebrew_app(move |uuid| {
+            let uuid = Uuid::parse_str(&uuid).unwrap();
+
             let res = {
-                let app = &homebrew_apps_clone.borrow()[i as usize];
+                let apps = homebrew_apps_clone.borrow();
+                let i = apps.binary_search_by_key(&uuid, |app| app.uuid).unwrap();
+                let app = &apps[i];
                 fs::remove_dir_all(&app.path)
             };
 
@@ -916,7 +927,7 @@ impl Logic<'_> {
             let game_id = {
                 let games = games_clone.borrow();
                 let i = games.binary_search_by_key(&uuid, |game| game.uuid).unwrap();
-                games[i as usize].id
+                games[i].id
             };
 
             let config = config_clone.borrow().clone();

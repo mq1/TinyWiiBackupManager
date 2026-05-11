@@ -40,7 +40,7 @@ export global Logic {
     callback archive-game(string);
     callback scrub-game(string);
     callback delete-game(string);
-    callback delete-homebrew-app(int);
+    callback delete-homebrew-app(string);
     callback pick-games(bool);
     callback open-that(string);
     callback close-notification(int);
@@ -48,7 +48,7 @@ export global Logic {
     callback checksum(string);
     callback set-window-color(bool);
     callback pair-homebrew-osc();
-    callback install-osc-app(int);
+    callback install-osc-app(string);
     callback download-osc-icons();
     callback load-game-info(string);
     callback scrub-all-games();
@@ -57,7 +57,7 @@ export global Logic {
     callback cancel-all-conversions();
     callback check-for-updates();
     callback wiiload-local-file(string);
-    callback wiiload-osc-app(string, int);
+    callback wiiload-osc-app(string, string);
     callback download-txtcodes(string);
     callback run-dot-clean();
     callback download-all-covers(bool);

@@ -197,7 +197,7 @@ export component AppWindow inherits Window {
             homebrew-app-to-delete = -1;
         }
         confirmed => {
-            Logic.delete-homebrew-app(Logic.homebrew-apps[homebrew-app-to-delete].idx);
+            Logic.delete-homebrew-app(Logic.homebrew-apps[homebrew-app-to-delete].uuid);
             homebrew-app-to-delete = -1;
         }
     }

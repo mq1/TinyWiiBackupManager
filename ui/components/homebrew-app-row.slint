@@ -15,7 +15,7 @@ export component HomebrewAppRow inherits Rectangle {
     callback open-info();
     callback delete();
 
-    private property <string> update: app.osc-idx == -1 || Logic.osc-apps[app.osc-idx].version == app.version ? "" : Logic.osc-apps[app.osc-idx].version;
+    private property <string> update: app.osc-app.version == app.version ? "" : app.osc-app.version;
 
     height: 24px;
 
@@ -93,7 +93,7 @@ export component HomebrewAppRow inherits Rectangle {
         height: 24px;
         width: 24px;
         squared: true;
-        clicked => Logic.install-osc-app(app.osc-idx);
+        clicked => Logic.install-osc-app(app.osc-app.uuid);
     }
 
     VerticalLine {

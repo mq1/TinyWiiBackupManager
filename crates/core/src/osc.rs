@@ -10,6 +10,7 @@ use std::{
     path::Path,
     time::{Duration, SystemTime},
 };
+use uuid::Uuid;
 use zip::ZipArchive;
 
 const CONTENTS_URL: &str = "https://hbb1.oscwii.org/api/v4/contents";
@@ -43,16 +44,29 @@ pub struct OscAppMeta {
     pub description: OscAppMetaDescription,
 }
 
-impl OscAppMeta {
+#[derive(Debug, Clone)]
+pub struct OscApp {
+    pub uuid: Uuid,
+    pub meta: OscAppMeta,
+}
+
+impl OscApp {
+    pub fn new(meta: OscAppMeta) -> Self {
+        Self {
+            uuid: Uuid::now_v7(),
+            meta,
+        }
+    }
+
     pub fn download_icon(&self, data_dir: &Path) -> Result<()> {
-        let icon_path = data_dir.join(format!("osc-icons/{}.png", self.slug));
+        let icon_path = data_dir.join(format!("osc-icons/{}.png", self.meta.slug));
 
         if icon_path.exists() {
             bail!("Icon already exists");
         }
 
         let body = AGENT
-            .get(&self.assets.icon.url)
+            .get(&self.meta.assets.icon.url)
             .call()?
             .body_mut()
             .read_to_vec()?;
@@ -64,7 +78,7 @@ impl OscAppMeta {
 
     pub fn install(&self, root_dir: &Path) -> Result<()> {
         let body = AGENT
-            .get(&self.assets.archive.url)
+            .get(&self.meta.assets.archive.url)
             .call()?
             .body_mut()
             .with_config()
@@ -79,7 +93,7 @@ impl OscAppMeta {
     }
 
     pub fn wiiload(&self, wii_ip: &str) -> Result<String> {
-        crate::wiiload::download_then_send(wii_ip, &self.assets.archive.url)
+        crate::wiiload::download_then_send(wii_ip, &self.meta.assets.archive.url)
     }
 }
 
@@ -107,13 +121,14 @@ pub fn cache_contents(data_dir: &Path, force: bool) -> Result<()> {
     Ok(())
 }
 
-pub fn load_contents(data_dir: &Path) -> Result<(Vec<OscAppMeta>, i32, i32)> {
+pub fn load_contents(data_dir: &Path) -> Result<(Vec<OscApp>, i32, i32)> {
     let cached_contents_path = data_dir.join("osc-cache.json");
 
     let last_refresh = cached_contents_path.metadata()?.modified()?;
 
     let raw = fs::read_to_string(&cached_contents_path)?;
     let apps = serde_json::from_str::<Vec<OscAppMeta>>(&raw)?;
+    let apps = apps.into_iter().map(OscApp::new).collect::<Vec<_>>();
 
     let elapsed_mins = last_refresh.elapsed().unwrap_or_default().as_secs() / 60;
     let elapsed_hours = (elapsed_mins / 60) as i32;

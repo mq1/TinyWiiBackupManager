@@ -15,7 +15,7 @@ export component HomebrewAppCard inherits Card {
     callback open-info();
     callback delete();
 
-    private property <string> update: app.osc-idx == -1 || Logic.osc-apps[app.osc-idx].version == app.version ? "" : Logic.osc-apps[app.osc-idx].version;
+    private property <string> update: app.osc-app.version == app.version ? "" : app.osc-app.version;
 
     width: 172px;
     height: self.min-height;
@@ -87,7 +87,7 @@ export component HomebrewAppCard inherits Card {
                 width: self.height + 1px;
                 icon: IconSet.ArrowUp;
                 tooltip: "Update app to \{update}";
-                clicked => Logic.install-osc-app(app.osc-idx);
+                clicked => Logic.install-osc-app(app.osc-app.uuid);
             }
 
             IconButton {

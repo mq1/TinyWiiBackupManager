@@ -56,8 +56,23 @@ export struct DisplayedGame {
     search-term: string,
 }
 
+export struct DisplayedOscApp {
+    uuid: string,
+    slug: string,
+    name: string,
+    author: string,
+    version: string,
+    uncompressed-size-mib: float,
+    release-date: string,
+    short-description: string,
+    long-description: string,
+    search-term: string,
+    release-date: string,
+    icon: image,
+}
+
 export struct DisplayedHomebrewApp {
-    idx: int,
+    uuid: string,
     path: string,
     slug: string,
     size-mib: float,
@@ -69,7 +84,7 @@ export struct DisplayedHomebrewApp {
     long-description: string,
     icon: image,
     search-term: string,
-    osc-idx: int,
+    osc-app: DisplayedOscApp,
 }
 
 export enum ConversionKind {
@@ -99,19 +114,4 @@ export struct DisplayedDriveInfo {
 export struct Notification {
     text: string,
     critical: bool,
-}
-
-export struct DisplayedOscApp {
-    idx: int,
-    slug: string,
-    name: string,
-    author: string,
-    version: string,
-    uncompressed-size-mib: float,
-    release-date: string,
-    short-description: string,
-    long-description: string,
-    search-term: string,
-    release-date: string,
-    icon: image,
 }

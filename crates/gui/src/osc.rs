@@ -5,36 +5,36 @@ use crate::{DisplayedOscApp, Logic, util::MIB};
 use slint::{Image, SharedString, ToSharedString, Weak};
 use std::{cell::RefCell, fs, rc::Rc};
 use time::UtcDateTime;
-use twbm_core::{data_dir::DATA_DIR, osc::OscAppMeta};
+use twbm_core::{data_dir::DATA_DIR, osc::OscApp};
 
-impl DisplayedOscApp {
-    pub fn new(meta: &OscAppMeta, idx: usize) -> Self {
-        let search_term = format!("{}\0{}", meta.name, meta.slug).to_lowercase();
-        let icon_path = DATA_DIR.join(format!("osc-icons/{}.png", meta.slug));
+impl From<&OscApp> for DisplayedOscApp {
+    fn from(app: &OscApp) -> Self {
+        let search_term = format!("{}\0{}", app.meta.name, app.meta.slug).to_lowercase();
+        let icon_path = DATA_DIR.join(format!("osc-icons/{}.png", app.meta.slug));
         let icon = Image::load_from_path(&icon_path).unwrap_or_default();
 
-        let release_date = match UtcDateTime::from_unix_timestamp(meta.release_date) {
+        let release_date = match UtcDateTime::from_unix_timestamp(app.meta.release_date) {
             Ok(date) => date.date().to_shared_string(),
-            Err(_) => meta.release_date.to_shared_string(),
+            Err(_) => app.meta.release_date.to_shared_string(),
         };
 
         Self {
-            idx: idx as i32,
-            slug: meta.slug.to_shared_string(),
+            uuid: app.uuid.to_shared_string(),
+            slug: app.meta.slug.to_shared_string(),
             icon,
-            name: meta.name.to_shared_string(),
-            version: meta.version.to_shared_string(),
+            name: app.meta.name.to_shared_string(),
+            version: app.meta.version.to_shared_string(),
             release_date,
-            short_description: meta.description.short.to_shared_string(),
-            long_description: meta.description.long.to_shared_string(),
+            short_description: app.meta.description.short.to_shared_string(),
+            long_description: app.meta.description.long.to_shared_string(),
             search_term: search_term.to_shared_string(),
-            author: meta.author.to_shared_string(),
-            uncompressed_size_mib: meta.uncompressed_size as f32 / MIB,
+            author: app.meta.author.to_shared_string(),
+            uncompressed_size_mib: app.meta.uncompressed_size as f32 / MIB,
         }
     }
 }
 
-pub fn download_icons(apps: &[OscAppMeta], weak: Weak<Logic<'static>>) {
+pub fn download_icons(apps: &[OscApp], weak: Weak<Logic<'static>>) {
     let _ = fs::create_dir_all(DATA_DIR.join("osc-icons"));
 
     for (i, app) in apps.iter().enumerate() {

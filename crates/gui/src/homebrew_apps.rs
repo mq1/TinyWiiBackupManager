@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{DisplayedHomebrewApp, util::MIB};
+use crate::{DisplayedHomebrewApp, DisplayedOscApp, util::MIB};
 use slint::{Image, Rgba8Pixel, SharedPixelBuffer, SharedString, ToSharedString};
 use std::{cell::RefCell, cmp::Ordering, path::Path, rc::Rc};
 use twbm_core::{
@@ -9,8 +9,8 @@ use twbm_core::{
     homebrew_app::HomebrewApp,
 };
 
-impl DisplayedHomebrewApp {
-    pub fn new(app: &HomebrewApp, idx: usize) -> Self {
+impl From<&HomebrewApp> for DisplayedHomebrewApp {
+    fn from(app: &HomebrewApp) -> Self {
         let buffer = SharedPixelBuffer::<Rgba8Pixel>::clone_from_slice(
             app.icon_rgba8.as_raw(),
             app.icon_rgba8.width(),
@@ -22,7 +22,7 @@ impl DisplayedHomebrewApp {
         let search_term = format!("{}\0{}", app.meta.name, slug).to_lowercase();
 
         Self {
-            idx: idx as i32,
+            uuid: app.uuid.to_shared_string(),
             slug: slug.to_shared_string(),
             path: app.path.to_string_lossy().to_shared_string(),
             size_mib: app.size as f32 / MIB,
@@ -34,8 +34,14 @@ impl DisplayedHomebrewApp {
             short_description: app.meta.short_description.to_shared_string(),
             long_description: app.meta.long_description.to_shared_string(),
             search_term: search_term.to_shared_string(),
-            osc_idx: app.osc_idx,
+            osc_app: DisplayedOscApp::default(),
         }
+    }
+}
+
+impl DisplayedHomebrewApp {
+    pub fn set_osc_app(&mut self, osc_app: DisplayedOscApp) {
+        self.osc_app = osc_app;
     }
 }
 
