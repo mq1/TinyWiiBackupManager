@@ -10,13 +10,14 @@ use twbm_core::{
     game::Game,
 };
 
-impl DisplayedGame {
-    pub fn new(game: &Game, idx: usize) -> Self {
+impl From<&Game> for DisplayedGame {
+    fn from(game: &Game) -> Self {
         let cover_path = DATA_DIR.join(format!("covers/{}.png", game.id));
         let cover = Image::load_from_path(&cover_path).unwrap_or_default();
         let search_term = format!("{}\0{}", game.title, game.id).to_lowercase();
 
         Self {
+            uuid: game.uuid.to_shared_string(),
             id: game.id.to_shared_string(),
             title: game.title.to_shared_string(),
             path: game.path.to_string_lossy().to_shared_string(),
@@ -24,10 +25,11 @@ impl DisplayedGame {
             is_wii: game.is_wii,
             search_term: search_term.to_shared_string(),
             cover,
-            idx: idx as i32,
         }
     }
+}
 
+impl DisplayedGame {
     pub fn reload_cover(&mut self) {
         let cover_path = DATA_DIR.join(format!("covers/{}.png", self.id));
         let cover = Image::load_from_path(&cover_path).unwrap_or_default();

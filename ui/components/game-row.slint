@@ -68,7 +68,7 @@ export component GameRow inherits Rectangle {
         height: 24px;
         width: 24px;
         squared: true;
-        clicked => Logic.archive-game(game.idx);
+        clicked => Logic.archive-game(game.uuid);
     }
 
     VerticalLine {

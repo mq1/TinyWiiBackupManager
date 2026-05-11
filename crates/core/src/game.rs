@@ -6,9 +6,11 @@ use std::{
     fs,
     path::{Path, PathBuf},
 };
+use uuid::Uuid;
 
 #[derive(Debug, Clone)]
 pub struct Game {
+    pub uuid: Uuid,
     pub id: GameID,
     pub title: String,
     pub path: PathBuf,
@@ -36,6 +38,7 @@ impl Game {
         let size = fs_extra::dir::get_size(&path).ok()?;
 
         Some(Self {
+            uuid: Uuid::now_v7(),
             id,
             title,
             path,

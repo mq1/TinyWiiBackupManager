@@ -29,6 +29,7 @@ use twbm_core::{
     normalize_dir_layout,
     osc::OscAppMeta,
 };
+use uuid::Uuid;
 
 impl Logic<'_> {
     pub fn init(&self, config: Config, window: &Window) {
@@ -321,8 +322,7 @@ impl Logic<'_> {
 
             let displayed_games = new_games
                 .iter()
-                .enumerate()
-                .map(|(i, g)| DisplayedGame::new(g, i))
+                .map(DisplayedGame::from)
                 .collect::<Vec<_>>();
 
             let displayed_apps = new_apps
@@ -456,8 +456,15 @@ impl Logic<'_> {
 
         let games_clone = games.clone();
         let weak = self.as_weak();
-        self.on_checksum(move |i| {
-            let game = games_clone.borrow()[i as usize].clone();
+        self.on_checksum(move |uuid| {
+            let uuid = Uuid::parse_str(&uuid).unwrap();
+
+            let game = {
+                let games = games_clone.borrow();
+                let i = games.binary_search_by_key(&uuid, |g| g.uuid).unwrap();
+                games[i].clone()
+            };
+
             let weak = weak.clone();
 
             let _ = std::thread::spawn(move || {
@@ -590,14 +597,20 @@ impl Logic<'_> {
         let is_converting_clone = is_converting.clone();
         let notifications_clone = notifications.clone();
         let weak = self.as_weak();
-        self.on_archive_game(move |i| {
+        self.on_archive_game(move |uuid| {
+            let uuid = Uuid::parse_str(&uuid).unwrap();
+
             let (in_path, out_path) = {
-                let game = &games_clone.borrow()[i as usize];
+                let games = games_clone.borrow();
+                let i = games.binary_search_by_key(&uuid, |game| game.uuid).unwrap();
+                let game = &games[i];
+
                 let Some(in_path) = game.get_disc_path() else {
                     let msg = "No disc found for this game!";
                     notifications_clone.push(Notification::error(msg));
                     return;
                 };
+
                 let out_path = dialogs::save_game(&window_handle, &game.title);
 
                 (in_path, out_path)
@@ -626,9 +639,14 @@ impl Logic<'_> {
         let is_converting_clone = is_converting.clone();
         let notifications_clone = notifications.clone();
         let weak = self.as_weak();
-        self.on_scrub_game(move |i| {
+        self.on_scrub_game(move |uuid| {
+            let uuid = Uuid::parse_str(&uuid).unwrap();
+
             let conv = {
-                let game = &games_clone.borrow()[i as usize];
+                let games = games_clone.borrow();
+                let i = games.binary_search_by_key(&uuid, |g| g.uuid).unwrap();
+                let game = &games[i];
+
                 let Some(disc_path) = game.get_disc_path() else {
                     let msg = slint::format!("No disc path found for game {}", game.title);
                     notifications_clone.push(Notification::error(msg));
@@ -746,8 +764,14 @@ impl Logic<'_> {
 
         let games_clone = games.clone();
         let weak = self.as_weak();
-        self.on_load_game_info(move |i| {
-            if let Some(disc_path) = games_clone.borrow()[i as usize].get_disc_path()
+        self.on_load_game_info(move |uuid| {
+            let uuid = Uuid::parse_str(&uuid).unwrap();
+
+            let games = games_clone.borrow();
+            let i = games.binary_search_by_key(&uuid, |game| game.uuid).unwrap();
+            let game = &games[i];
+
+            if let Some(disc_path) = game.get_disc_path()
                 && let Some(info) = DiscInfo::from_path(disc_path)
             {
                 let info = DisplayedDiscInfo::from(&info);
@@ -758,9 +782,13 @@ impl Logic<'_> {
         let games_clone = games.clone();
         let notifications_clone = notifications.clone();
         let weak = self.as_weak();
-        self.on_delete_game(move |i| {
+        self.on_delete_game(move |uuid| {
+            let uuid = Uuid::parse_str(&uuid).unwrap();
+
             let res = {
-                let game = &games_clone.borrow()[i as usize];
+                let games = games_clone.borrow();
+                let i = games.binary_search_by_key(&uuid, |game| game.uuid).unwrap();
+                let game = &games[i];
                 fs::remove_dir_all(&game.path)
             };
 
@@ -798,16 +826,18 @@ impl Logic<'_> {
             let to_scrub = games_clone
                 .borrow()
                 .iter()
-                .filter(|g| g.is_wii)
-                .enumerate()
-                .filter_map(|(i, game)| {
+                .filter_map(|game| {
+                    if !game.is_wii {
+                        return None;
+                    }
+
                     let disc_path = game.get_disc_path()?;
                     let mut f = File::open(disc_path).ok()?;
                     let meta = wii_disc_info::Meta::read(&mut f).ok()?;
                     let worth = meta.format() == wii_disc_info::Format::Wbfs
                         && is_worth_scrubbing(&mut f).ok()?;
 
-                    worth.then_some(i as i32)
+                    worth.then_some(game.uuid)
                 })
                 .collect::<Vec<_>>();
 
@@ -818,8 +848,8 @@ impl Logic<'_> {
             }
 
             let logic = weak.upgrade().unwrap();
-            for i in to_scrub {
-                logic.invoke_scrub_game(i);
+            for uuid in to_scrub {
+                logic.invoke_scrub_game(uuid.to_shared_string());
             }
         });
 
@@ -880,8 +910,15 @@ impl Logic<'_> {
         let config_clone = config.clone();
         let notifications_clone = notifications.clone();
         let weak = self.as_weak();
-        self.on_download_txtcodes(move |i| {
-            let game_id = games_clone.borrow()[i as usize].id;
+        self.on_download_txtcodes(move |uuid| {
+            let uuid = Uuid::parse_str(&uuid).unwrap();
+
+            let game_id = {
+                let games = games_clone.borrow();
+                let i = games.binary_search_by_key(&uuid, |game| game.uuid).unwrap();
+                games[i as usize].id
+            };
+
             let config = config_clone.borrow().clone();
 
             let msg = slint::format!("Downloading txtcodes for {game_id}");
