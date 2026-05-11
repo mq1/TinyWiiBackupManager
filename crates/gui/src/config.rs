@@ -2,20 +2,12 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::DisplayedConfig;
-use slint::{ModelRc, ToSharedString, VecModel};
-use std::rc::Rc;
+use slint::ToSharedString;
 use twbm_core::config::Config;
 
 impl From<&Config> for DisplayedConfig {
     fn from(config: &Config) -> Self {
-        let known_drives = config
-            .contents
-            .known_drives
-            .iter()
-            .map(|d| d.to_string_lossy().to_shared_string())
-            .collect::<VecModel<_>>();
-
-        DisplayedConfig {
+        Self {
             path: config.path.to_string_lossy().to_shared_string(),
             mount_point: config
                 .contents
@@ -35,7 +27,6 @@ impl From<&Config> for DisplayedConfig {
             view_as: config.contents.view_as.to_shared_string(),
             wii_ip: config.contents.wii_ip.to_shared_string(),
             theme_preference: config.contents.theme_preference.to_shared_string(),
-            known_drives: ModelRc::from(Rc::new(known_drives)),
             preferred_language: config.contents.preferred_language.to_shared_string(),
         }
     }

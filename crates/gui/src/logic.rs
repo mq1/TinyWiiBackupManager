@@ -30,8 +30,16 @@ use twbm_core::{
     osc::OscApp,
 };
 
+const NEW_DRIVE_TEXT: &str = "New drive detected (or a breaking TWBM update has been installed), a path normalization run is recommended\nYou can find it in the Toolbox page";
+
 impl Logic<'_> {
-    pub fn init(&self, config: Config, window: &Window) {
+    pub fn init(&self, mut config: Config, window: &Window) {
+        let notifications = Rc::new(VecModel::from(Vec::new()));
+
+        if config.check_mount_point() {
+            notifications.push(Notification::info(NEW_DRIVE_TEXT));
+        }
+
         let displayed_config = DisplayedConfig::from(&config);
         let config = Rc::new(RefCell::new(config));
 
@@ -69,8 +77,6 @@ impl Logic<'_> {
             displayed_osc_apps.clone(),
             osc::get_filter_fn(osc_apps_filter.clone()),
         ));
-
-        let notifications = Rc::new(VecModel::from(Vec::new()));
 
         let conversion_queue = Rc::new(VecModel::from(Vec::new()));
         let conversion_queue_buffer = Rc::new(VecModel::from(Vec::new()));
@@ -117,12 +123,23 @@ impl Logic<'_> {
         let weak = self.as_weak();
         let window_handle = window.window_handle();
         let config_clone = config.clone();
+        let notifications_clone = notifications.clone();
         self.on_pick_mount_point(move || {
             if let Some(path) = dialogs::pick_mount_point(&window_handle) {
-                config_clone.borrow_mut().contents.mount_point = path;
-
                 let logic = weak.upgrade().unwrap();
+
+                let new_drive = {
+                    let mut config = config_clone.borrow_mut();
+                    config.contents.mount_point = path;
+                    config.check_mount_point()
+                };
+
                 logic.invoke_sync_config();
+
+                if new_drive {
+                    notifications_clone.push(Notification::info(NEW_DRIVE_TEXT));
+                }
+
                 logic.invoke_refresh_all();
             }
         });

@@ -28,6 +28,24 @@ impl Config {
         fs::write(&self.path, s)?;
         Ok(())
     }
+
+    /// Returns true if the notification should be shown
+    pub fn check_mount_point(&mut self) -> bool {
+        let drive = &self.contents.mount_point;
+
+        if drive.as_os_str().is_empty() {
+            return false;
+        }
+
+        let new = self.contents.known_drives.iter().all(|p| p != drive);
+
+        if new {
+            self.contents.known_drives.push(drive.clone());
+            let _ = self.write();
+        }
+
+        new
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
