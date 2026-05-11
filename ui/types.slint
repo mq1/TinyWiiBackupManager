@@ -46,7 +46,7 @@ export struct DisplayedDiscInfo {
 }
 
 export struct DisplayedGame {
-    uuid: string,
+    uid: int,
     path: string,
     is-wii: bool,
     size-gib: float,
@@ -57,7 +57,7 @@ export struct DisplayedGame {
 }
 
 export struct DisplayedOscApp {
-    uuid: string,
+    uid: int,
     slug: string,
     name: string,
     author: string,
@@ -72,7 +72,7 @@ export struct DisplayedOscApp {
 }
 
 export struct DisplayedHomebrewApp {
-    uuid: string,
+    uid: int,
     path: string,
     slug: string,
     size-mib: float,

@@ -6,8 +6,10 @@ use serde::Deserialize;
 use std::{
     fs,
     path::{Path, PathBuf},
+    sync::atomic::{AtomicI32, Ordering},
 };
-use uuid::Uuid;
+
+static COUNTER: AtomicI32 = AtomicI32::new(i32::MIN);
 
 #[derive(Debug, Clone, serde::Deserialize)]
 pub struct HomebrewAppMeta {
@@ -31,7 +33,7 @@ pub struct HomebrewAppMeta {
 
 #[derive(Debug, Clone)]
 pub struct HomebrewApp {
-    pub uuid: Uuid,
+    pub uid: i32,
     pub path: PathBuf,
     pub meta: HomebrewAppMeta,
     pub size: u64,
@@ -54,8 +56,10 @@ impl HomebrewApp {
             image::load_from_memory_with_format(&icon_bytes, ImageFormat::Png).unwrap_or_default();
         let icon_rgba8 = icon.into_rgba8();
 
+        let uid = COUNTER.fetch_add(1, Ordering::SeqCst);
+
         Some(Self {
-            uuid: Uuid::now_v7(),
+            uid,
             path,
             meta,
             size,

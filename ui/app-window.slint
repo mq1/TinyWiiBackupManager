@@ -78,7 +78,7 @@ export component AppWindow inherits Window {
                 if current-page == Page.Games && Logic.config.view-as == "Grid": GameGridPage {
                     open-info(i) => {
                         current-game-i = i;
-                        Logic.load-game-info(Logic.games[i].uuid);
+                        Logic.load-game-info(Logic.games[i].uid);
                     }
                     delete-game(i) => {
                         game-to-delete = i;
@@ -87,7 +87,7 @@ export component AppWindow inherits Window {
                 if current-page == Page.Games && Logic.config.view-as == "Table": GameTablePage {
                     open-info(i) => {
                         current-game-i = i;
-                        Logic.load-game-info(Logic.games[i].uuid);
+                        Logic.load-game-info(Logic.games[i].uid);
                     }
                     delete-game(i) => {
                         game-to-delete = i;
@@ -157,7 +157,7 @@ export component AppWindow inherits Window {
         scrub => {
             game-to-scrub = current-game-i;
         }
-        checksum => Logic.checksum(Logic.games[current-game-i].uuid);
+        checksum => Logic.checksum(Logic.games[current-game-i].uid);
     }
 
     if current-homebrew-app-i >= 0: HomebrewAppInfoModal {
@@ -183,7 +183,7 @@ export component AppWindow inherits Window {
             game-to-delete = -1;
         }
         confirmed => {
-            Logic.delete-game(Logic.games[game-to-delete].uuid);
+            Logic.delete-game(Logic.games[game-to-delete].uid);
             game-to-delete = -1;
         }
     }
@@ -197,7 +197,7 @@ export component AppWindow inherits Window {
             homebrew-app-to-delete = -1;
         }
         confirmed => {
-            Logic.delete-homebrew-app(Logic.homebrew-apps[homebrew-app-to-delete].uuid);
+            Logic.delete-homebrew-app(Logic.homebrew-apps[homebrew-app-to-delete].uid);
             homebrew-app-to-delete = -1;
         }
     }
@@ -224,7 +224,7 @@ export component AppWindow inherits Window {
             game-to-scrub = -1;
         }
         confirmed => {
-            Logic.scrub-game(Logic.games[game-to-scrub].uuid);
+            Logic.scrub-game(Logic.games[game-to-scrub].uid);
             game-to-scrub = -1;
             current-game-i = -1;
             Logic.crc32-status = "";

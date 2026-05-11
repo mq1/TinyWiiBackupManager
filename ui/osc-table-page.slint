@@ -49,7 +49,7 @@ export component OscTablePage inherits VerticalLayout {
                         OscAppRow {
                             app: app;
                             open-info() => open-info(i);
-                            install() => Logic.install-osc-app(app.uuid);
+                            install() => Logic.install-osc-app(app.uid);
                             wiiload() => wiiload(i);
                         }
 

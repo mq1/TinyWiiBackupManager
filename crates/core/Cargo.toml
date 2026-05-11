@@ -32,7 +32,6 @@ semver = "1.0"
 sys-locale = "0.3"
 derive_more = { version = "2.1", features = ["display", "from_str"] }
 directories = "6.0"
-uuid = { workspace = true }
 
 [target.'cfg(all(target_os = "windows", target_arch = "x86"))'.dependencies]
 nod = { git = "https://github.com/encounter/nod.git", default-features = false, features = [

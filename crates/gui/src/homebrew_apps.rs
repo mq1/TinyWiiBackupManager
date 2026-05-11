@@ -22,7 +22,7 @@ impl From<&HomebrewApp> for DisplayedHomebrewApp {
         let search_term = format!("{}\0{}", app.meta.name, slug).to_lowercase();
 
         Self {
-            uuid: app.uuid.to_shared_string(),
+            uid: app.uid,
             slug: slug.to_shared_string(),
             path: app.path.to_string_lossy().to_shared_string(),
             size_mib: app.size as f32 / MIB,

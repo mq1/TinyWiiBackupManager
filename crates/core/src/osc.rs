@@ -8,12 +8,14 @@ use std::{
     fs,
     io::Cursor,
     path::Path,
+    sync::atomic::{AtomicI32, Ordering},
     time::{Duration, SystemTime},
 };
-use uuid::Uuid;
 use zip::ZipArchive;
 
 const CONTENTS_URL: &str = "https://hbb1.oscwii.org/api/v4/contents";
+
+static COUNTER: AtomicI32 = AtomicI32::new(i32::MIN);
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct OscAppMetaAsset {
@@ -46,16 +48,15 @@ pub struct OscAppMeta {
 
 #[derive(Debug, Clone)]
 pub struct OscApp {
-    pub uuid: Uuid,
+    pub uid: i32,
     pub meta: OscAppMeta,
 }
 
 impl OscApp {
     pub fn new(meta: OscAppMeta) -> Self {
-        Self {
-            uuid: Uuid::now_v7(),
-            meta,
-        }
+        let uid = COUNTER.fetch_add(1, Ordering::SeqCst);
+
+        Self { uid, meta }
     }
 
     pub fn download_icon(&self, data_dir: &Path) -> Result<()> {

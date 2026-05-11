@@ -19,7 +19,7 @@ impl From<&OscApp> for DisplayedOscApp {
         };
 
         Self {
-            uuid: app.uuid.to_shared_string(),
+            uid: app.uid,
             slug: app.meta.slug.to_shared_string(),
             icon,
             name: app.meta.name.to_shared_string(),

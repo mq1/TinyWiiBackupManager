@@ -5,12 +5,14 @@ use crate::{game_id::GameID, id_map};
 use std::{
     fs,
     path::{Path, PathBuf},
+    sync::atomic::{AtomicI32, Ordering},
 };
-use uuid::Uuid;
+
+static COUNTER: AtomicI32 = AtomicI32::new(i32::MIN);
 
 #[derive(Debug, Clone)]
 pub struct Game {
-    pub uuid: Uuid,
+    pub uid: i32,
     pub id: GameID,
     pub title: String,
     pub path: PathBuf,
@@ -37,8 +39,10 @@ impl Game {
 
         let size = fs_extra::dir::get_size(&path).ok()?;
 
+        let uid = COUNTER.fetch_add(1, Ordering::SeqCst);
+
         Some(Self {
-            uuid: Uuid::now_v7(),
+            uid,
             id,
             title,
             path,

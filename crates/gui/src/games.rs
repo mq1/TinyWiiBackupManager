@@ -17,7 +17,7 @@ impl From<&Game> for DisplayedGame {
         let search_term = format!("{}\0{}", game.title, game.id).to_lowercase();
 
         Self {
-            uuid: game.uuid.to_shared_string(),
+            uid: game.uid,
             id: game.id.to_shared_string(),
             title: game.title.to_shared_string(),
             path: game.path.to_string_lossy().to_shared_string(),

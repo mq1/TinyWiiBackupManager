@@ -232,7 +232,7 @@ export component GameInfoModal inherits Modal {
                         label: "Get cheats";
                         tooltip: "Download txtcodes (change the source in settings)";
                         icon: IconSet.Skull;
-                        clicked => Logic.download-txtcodes(game.uuid);
+                        clicked => Logic.download-txtcodes(game.uid);
                     }
 
                     if Logic.current-disc-info.is-worth-scrubbing: IconButton {

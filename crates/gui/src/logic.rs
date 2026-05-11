@@ -29,7 +29,6 @@ use twbm_core::{
     normalize_dir_layout,
     osc::OscApp,
 };
-use uuid::Uuid;
 
 impl Logic<'_> {
     pub fn init(&self, config: Config, window: &Window) {
@@ -269,15 +268,13 @@ impl Logic<'_> {
         let config_clone = config.clone();
         let osc_apps_clone = osc_apps.clone();
         let notifications_clone = notifications.clone();
-        self.on_wiiload_osc_app(move |wii_ip, uuid| {
-            let uuid = Uuid::parse_str(&uuid).unwrap();
-
+        self.on_wiiload_osc_app(move |wii_ip, uid| {
             config_clone.borrow_mut().contents.wii_ip = wii_ip.to_string();
             weak.upgrade().unwrap().invoke_sync_config();
 
             let app = {
                 let apps = osc_apps_clone.borrow();
-                let i = apps.binary_search_by_key(&uuid, |app| app.uuid).unwrap();
+                let i = apps.binary_search_by_key(&uid, |app| app.uid).unwrap();
                 apps[i].clone()
             };
 
@@ -457,12 +454,10 @@ impl Logic<'_> {
 
         let games_clone = games.clone();
         let weak = self.as_weak();
-        self.on_checksum(move |uuid| {
-            let uuid = Uuid::parse_str(&uuid).unwrap();
-
+        self.on_checksum(move |uid| {
             let game = {
                 let games = games_clone.borrow();
-                let i = games.binary_search_by_key(&uuid, |g| g.uuid).unwrap();
+                let i = games.binary_search_by_key(&uid, |g| g.uid).unwrap();
                 games[i].clone()
             };
 
@@ -598,12 +593,10 @@ impl Logic<'_> {
         let is_converting_clone = is_converting.clone();
         let notifications_clone = notifications.clone();
         let weak = self.as_weak();
-        self.on_archive_game(move |uuid| {
-            let uuid = Uuid::parse_str(&uuid).unwrap();
-
+        self.on_archive_game(move |uid| {
             let (in_path, out_path) = {
                 let games = games_clone.borrow();
-                let i = games.binary_search_by_key(&uuid, |game| game.uuid).unwrap();
+                let i = games.binary_search_by_key(&uid, |game| game.uid).unwrap();
                 let game = &games[i];
 
                 let Some(in_path) = game.get_disc_path() else {
@@ -640,12 +633,10 @@ impl Logic<'_> {
         let is_converting_clone = is_converting.clone();
         let notifications_clone = notifications.clone();
         let weak = self.as_weak();
-        self.on_scrub_game(move |uuid| {
-            let uuid = Uuid::parse_str(&uuid).unwrap();
-
+        self.on_scrub_game(move |uid| {
             let conv = {
                 let games = games_clone.borrow();
-                let i = games.binary_search_by_key(&uuid, |g| g.uuid).unwrap();
+                let i = games.binary_search_by_key(&uid, |g| g.uid).unwrap();
                 let game = &games[i];
 
                 let Some(disc_path) = game.get_disc_path() else {
@@ -698,12 +689,10 @@ impl Logic<'_> {
         let config_clone = config.clone();
         let notifications_clone = notifications.clone();
         let weak = self.as_weak();
-        self.on_install_osc_app(move |uuid| {
-            let uuid = Uuid::parse_str(&uuid).unwrap();
-
+        self.on_install_osc_app(move |uid| {
             let app = {
                 let apps = osc_apps_clone.borrow();
-                let i = apps.binary_search_by_key(&uuid, |app| app.uuid).unwrap();
+                let i = apps.binary_search_by_key(&uid, |app| app.uid).unwrap();
                 apps[i].clone()
             };
 
@@ -771,11 +760,9 @@ impl Logic<'_> {
 
         let games_clone = games.clone();
         let weak = self.as_weak();
-        self.on_load_game_info(move |uuid| {
-            let uuid = Uuid::parse_str(&uuid).unwrap();
-
+        self.on_load_game_info(move |uid| {
             let games = games_clone.borrow();
-            let i = games.binary_search_by_key(&uuid, |game| game.uuid).unwrap();
+            let i = games.binary_search_by_key(&uid, |game| game.uid).unwrap();
             let game = &games[i];
 
             if let Some(disc_path) = game.get_disc_path()
@@ -789,12 +776,10 @@ impl Logic<'_> {
         let games_clone = games.clone();
         let notifications_clone = notifications.clone();
         let weak = self.as_weak();
-        self.on_delete_game(move |uuid| {
-            let uuid = Uuid::parse_str(&uuid).unwrap();
-
+        self.on_delete_game(move |uid| {
             let res = {
                 let games = games_clone.borrow();
-                let i = games.binary_search_by_key(&uuid, |game| game.uuid).unwrap();
+                let i = games.binary_search_by_key(&uid, |game| game.uid).unwrap();
                 let game = &games[i];
                 fs::remove_dir_all(&game.path)
             };
@@ -811,12 +796,10 @@ impl Logic<'_> {
         let homebrew_apps_clone = homebrew_apps.clone();
         let notifications_clone = notifications.clone();
         let weak = self.as_weak();
-        self.on_delete_homebrew_app(move |uuid| {
-            let uuid = Uuid::parse_str(&uuid).unwrap();
-
+        self.on_delete_homebrew_app(move |uid| {
             let res = {
                 let apps = homebrew_apps_clone.borrow();
-                let i = apps.binary_search_by_key(&uuid, |app| app.uuid).unwrap();
+                let i = apps.binary_search_by_key(&uid, |app| app.uid).unwrap();
                 let app = &apps[i];
                 fs::remove_dir_all(&app.path)
             };
@@ -848,7 +831,7 @@ impl Logic<'_> {
                     let worth = meta.format() == wii_disc_info::Format::Wbfs
                         && is_worth_scrubbing(&mut f).ok()?;
 
-                    worth.then_some(game.uuid)
+                    worth.then_some(game.uid)
                 })
                 .collect::<Vec<_>>();
 
@@ -859,8 +842,8 @@ impl Logic<'_> {
             }
 
             let logic = weak.upgrade().unwrap();
-            for uuid in to_scrub {
-                logic.invoke_scrub_game(uuid.to_shared_string());
+            for uid in to_scrub {
+                logic.invoke_scrub_game(uid);
             }
         });
 
@@ -921,12 +904,10 @@ impl Logic<'_> {
         let config_clone = config.clone();
         let notifications_clone = notifications.clone();
         let weak = self.as_weak();
-        self.on_download_txtcodes(move |uuid| {
-            let uuid = Uuid::parse_str(&uuid).unwrap();
-
+        self.on_download_txtcodes(move |uid| {
             let game_id = {
                 let games = games_clone.borrow();
-                let i = games.binary_search_by_key(&uuid, |game| game.uuid).unwrap();
+                let i = games.binary_search_by_key(&uid, |game| game.uid).unwrap();
                 games[i].id
             };
 

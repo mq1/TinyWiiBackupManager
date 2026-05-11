@@ -21,7 +21,6 @@ open = "5.3"
 walkdir = "2.5"
 time = "0.3"
 rfd = "0.17"
-uuid = { workspace = true }
 
 [target.'cfg(windows)'.dependencies]
 winsafe = { version = "0.0.27", features = ["dwm"] }
