@@ -10,11 +10,11 @@ import { OscToolbar } from "components/osc-toolbar.slint";
 import { OscOtherToolbar } from "components/osc-other-toolbar.slint";
 import { OscAppRow } from "components/osc-app-row.slint";
 import { Logic } from "logic.slint";
-import { Action } from "types.slint";
+import { Action, DisplayedOscApp } from "types.slint";
 
 export component OscTablePage inherits VerticalLayout {
-    callback open-info(int);
-    callback wiiload(int);
+    callback open-info(DisplayedOscApp);
+    callback wiiload(DisplayedOscApp);
 
     VerticalLayout {
         padding: 10px;
@@ -49,9 +49,9 @@ export component OscTablePage inherits VerticalLayout {
                     for app[i] in Logic.osc-apps: VerticalLayout {
                         OscAppRow {
                             app: app;
-                            open-info() => open-info(i);
-                            install() => Logic.dispatch(Action.InstallOscApp, app.uid);
-                            wiiload() => wiiload(i);
+                            open-info() => open-info(app);
+                            install() => Logic.dispatch(Action.InstallOscApp, app.slug);
+                            wiiload() => wiiload(app);
                         }
 
                         HorizontalLine { }

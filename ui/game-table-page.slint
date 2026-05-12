@@ -10,10 +10,11 @@ import { MyPalette } from "styling.slint";
 import { GameRow } from "components/game-row.slint";
 import { GamesOtherToolbar } from "components/games-other-toolbar.slint";
 import { Logic } from "logic.slint";
+import { DisplayedGame } from "types.slint";
 
 export component GameTablePage inherits VerticalLayout {
-    callback open-info(int);
-    callback delete-game(int);
+    callback open-info(DisplayedGame);
+    callback delete-game(DisplayedGame);
 
     VerticalLayout {
         padding: 10px;
@@ -40,8 +41,8 @@ export component GameTablePage inherits VerticalLayout {
                     for game[i] in Logic.games: VerticalLayout {
                         GameRow {
                             game: game;
-                            open-info => open-info(i);
-                            delete() => delete-game(i);
+                            open-info => open-info(game);
+                            delete() => delete-game(game);
                         }
 
                         HorizontalLine { }

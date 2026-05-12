@@ -14,6 +14,7 @@ use std::{
     cell::RefCell,
     ffi::OsStr,
     fs::{self, File},
+    path::Path,
     rc::Rc,
 };
 use twbm_core::{
@@ -26,7 +27,7 @@ use twbm_core::{
     game_id::GameID,
     homebrew_app::HomebrewApp,
     normalize_dir_layout,
-    osc::OscApp,
+    osc::OscAppMeta,
 };
 
 const NEW_DRIVE_TEXT: &str = "New drive detected (or a breaking TWBM update has been installed), a path normalization run is recommended\nYou can find it in the Toolbox page";
@@ -40,7 +41,7 @@ impl Logic<'_> {
 
         let mut games = Vec::<Game>::new();
         let mut homebrew_apps = Vec::<HomebrewApp>::new();
-        let mut osc_apps = Vec::<OscApp>::new();
+        let mut osc_apps = Vec::<OscAppMeta>::new();
         let mut drive_info = DriveInfo::empty();
 
         let displayed_games = Rc::new(VecModel::from(Vec::new()));
@@ -244,14 +245,17 @@ impl Logic<'_> {
                 }
                 Action::WiiloadOscApp => {
                     let wii_ip = args.next().unwrap().to_string();
-                    let uid = args.next().unwrap().parse().unwrap();
+                    let slug = args.next().unwrap();
 
                     config.contents.wii_ip = wii_ip.clone();
 
-                    let i = osc_apps.binary_search_by_key(&uid, |app| app.uid).unwrap();
-                    let app = osc_apps[i].clone();
+                    let app = osc_apps
+                        .iter()
+                        .find(|app| app.slug == slug)
+                        .unwrap()
+                        .clone();
 
-                    let msg = slint::format!("Sending {} to Wii...", &app.meta.name);
+                    let msg = slint::format!("Sending {} to Wii...", &app.name);
                     notifications.push(Notification::info(msg));
 
                     let weak = weak.clone();
@@ -330,7 +334,7 @@ impl Logic<'_> {
                     for app in &mut displayed_apps {
                         if let Some(osc_app) = osc_apps
                             .iter()
-                            .find(|osc_app| osc_app.meta.name.as_str() == app.name.as_str())
+                            .find(|osc_app| osc_app.name.as_str() == app.name.as_str())
                         {
                             app.osc_app = DisplayedOscApp::from(osc_app);
                         }
@@ -463,10 +467,8 @@ impl Logic<'_> {
                     Vec::new()
                 }
                 Action::Checksum => {
-                    let uid = args.next().unwrap().parse().unwrap();
-
-                    let i = games.binary_search_by_key(&uid, |g| g.uid).unwrap();
-                    let game = games[i].clone();
+                    let path = Path::new(args.next().unwrap());
+                    let game = games.iter().find(|g| g.path == path).unwrap().clone();
 
                     let weak = weak.clone();
 
@@ -569,9 +571,8 @@ impl Logic<'_> {
                     Vec::new()
                 }
                 Action::ScrubGame => {
-                    let uid = args.next().unwrap().parse().unwrap();
-                    let i = games.binary_search_by_key(&uid, |g| g.uid).unwrap();
-                    let game = &games[i];
+                    let path = Path::new(args.next().unwrap());
+                    let game = games.iter().find(|g| g.path == path).unwrap();
 
                     let Some(disc_path) = game.get_disc_path() else {
                         let msg = slint::format!("No disc path found for game {}", game.title);
@@ -612,13 +613,16 @@ impl Logic<'_> {
                     vec![(Action::RefreshAll, SharedString::new())]
                 }
                 Action::InstallOscApp => {
-                    let uid = args.next().unwrap().parse().unwrap();
-                    let i = osc_apps.binary_search_by_key(&uid, |app| app.uid).unwrap();
-                    let app = osc_apps[i].clone();
+                    let slug = args.next().unwrap();
+                    let app = osc_apps
+                        .iter()
+                        .find(|app| app.slug == slug)
+                        .unwrap()
+                        .clone();
 
                     let root_dir = config.contents.mount_point.clone();
 
-                    let msg = slint::format!("Installing {}", &app.meta.name);
+                    let msg = slint::format!("Installing {}", &app.name);
                     notifications.push(Notification::info(msg));
 
                     let weak = weak.clone();
@@ -630,8 +634,7 @@ impl Logic<'_> {
                             if let Err(e) = res {
                                 logic.invoke_dispatch(Action::NotifyError, e.to_shared_string());
                             } else {
-                                let msg =
-                                    slint::format!("{} installed successfully", &app.meta.name);
+                                let msg = slint::format!("{} installed successfully", &app.name);
                                 logic.invoke_dispatch(Action::NotifyInfo, msg);
                             }
 
@@ -659,9 +662,8 @@ impl Logic<'_> {
                     Vec::new()
                 }
                 Action::DeleteGame => {
-                    let uid = args.next().unwrap().parse().unwrap();
-                    let i = games.binary_search_by_key(&uid, |g| g.uid).unwrap();
-                    let game = &games[i];
+                    let path = Path::new(args.next().unwrap());
+                    let game = games.iter().find(|g| g.path == path).unwrap();
 
                     if let Err(e) = fs::remove_dir_all(&game.path) {
                         let msg = slint::format!("Failed to delete game: {e}");
@@ -671,11 +673,8 @@ impl Logic<'_> {
                     vec![(Action::RefreshAll, SharedString::new())]
                 }
                 Action::DeleteHomebrewApp => {
-                    let uid = args.next().unwrap().parse().unwrap();
-                    let i = homebrew_apps
-                        .binary_search_by_key(&uid, |app| app.uid)
-                        .unwrap();
-                    let app = &homebrew_apps[i];
+                    let path = Path::new(args.next().unwrap());
+                    let app = homebrew_apps.iter().find(|app| app.path == path).unwrap();
 
                     if let Err(e) = fs::remove_dir_all(&app.path) {
                         let msg = slint::format!("Failed to delete homebrew app: {e}");
@@ -698,7 +697,7 @@ impl Logic<'_> {
                             let worth = meta.format() == wii_disc_info::Format::Wbfs
                                 && is_worth_scrubbing(&mut f).ok()?;
 
-                            worth.then_some(game.uid)
+                            worth.then_some(game.path.to_string_lossy().to_shared_string())
                         })
                         .collect::<Vec<_>>();
 
@@ -709,8 +708,8 @@ impl Logic<'_> {
                     }
 
                     to_scrub
-                        .iter()
-                        .map(|uid| (Action::ScrubGame, uid.to_shared_string()))
+                        .into_iter()
+                        .map(|path| (Action::ScrubGame, path))
                         .collect()
                 }
                 Action::NormalizeDirLayout => {
@@ -739,9 +738,9 @@ impl Logic<'_> {
                     Vec::new()
                 }
                 Action::DownloadTxtCodes => {
-                    let uid = args.next().unwrap().parse().unwrap();
-                    let i = games.binary_search_by_key(&uid, |game| game.uid).unwrap();
-                    let game_id = games[i].id;
+                    let path = Path::new(args.next().unwrap());
+                    let game = games.iter().find(|g| g.path == path).unwrap();
+                    let game_id = game.id;
 
                     let config = config.clone();
 
@@ -884,10 +883,8 @@ impl Logic<'_> {
                     Vec::new()
                 }
                 Action::LoadGameInfo => {
-                    let uid = args.next().unwrap().parse().unwrap();
-
-                    let i = games.binary_search_by_key(&uid, |game| game.uid).unwrap();
-                    let game = &games[i];
+                    let path = Path::new(args.next().unwrap());
+                    let game = games.iter().find(|g| g.path == path).unwrap();
 
                     if let Some(disc_path) = game.get_disc_path()
                         && let Some(info) = DiscInfo::from_path(disc_path)
@@ -899,10 +896,8 @@ impl Logic<'_> {
                     Vec::new()
                 }
                 Action::ArchiveGame => {
-                    let uid = args.next().unwrap().parse().unwrap();
-
-                    let i = games.binary_search_by_key(&uid, |game| game.uid).unwrap();
-                    let game = &games[i];
+                    let path = Path::new(args.next().unwrap());
+                    let game = games.iter().find(|g| g.path == path).unwrap();
 
                     let Some(in_path) = game.get_disc_path() else {
                         let msg = "No disc found for this game!";

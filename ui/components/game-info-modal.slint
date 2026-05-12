@@ -17,7 +17,6 @@ export component GameInfoModal inherits Modal {
 
     callback closed();
     callback scrub();
-    callback checksum();
 
     VerticalLayout {
         alignment: stretch;
@@ -232,7 +231,7 @@ export component GameInfoModal inherits Modal {
                         label: "Get cheats";
                         tooltip: "Download txtcodes (change the source in settings)";
                         icon: IconSet.Skull;
-                        clicked => Logic.dispatch(Action.DownloadTxtCodes, game.uid);
+                        clicked => Logic.dispatch(Action.DownloadTxtCodes, game.path);
                     }
 
                     if Logic.current-disc-info.is-worth-scrubbing: IconButton {
@@ -247,7 +246,7 @@ export component GameInfoModal inherits Modal {
                         icon: IconSet.FingerprintPattern;
                         clicked => {
                             if Logic.crc32-status.is-empty {
-                                checksum();
+                                Logic.dispatch(Action.Checksum, game.path);
                             }
                         };
                     }

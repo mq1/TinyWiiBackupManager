@@ -71,7 +71,7 @@ export component GameCard inherits Card {
                 width: self.height + 1px;
                 icon: IconSet.HardDriveDownload;
                 tooltip: "Archive to PC";
-                clicked => Logic.dispatch(Action.ArchiveGame, game.uid);
+                clicked => Logic.dispatch(Action.ArchiveGame, game.path);
             }
 
             IconButton {

@@ -88,7 +88,7 @@ export component HomebrewAppCard inherits Card {
                 width: self.height + 1px;
                 icon: IconSet.ArrowUp;
                 tooltip: "Update app to \{update}";
-                clicked => Logic.dispatch(Action.InstallOscApp, app.osc-app.uid);
+                clicked => Logic.dispatch(Action.InstallOscApp, app.osc-app.slug);
             }
 
             IconButton {

@@ -8,10 +8,11 @@ import { IconSet, IconDisplay } from "@lucide";
 import { GamesToolbar } from "components/games-toolbar.slint";
 import { GamesOtherToolbar } from "components/games-other-toolbar.slint";
 import { Logic } from "logic.slint";
+import { DisplayedGame } from "types.slint";
 
 export component GameGridPage inherits VerticalLayout {
-    callback open-info(int);
-    callback delete-game(int);
+    callback open-info(DisplayedGame);
+    callback delete-game(DisplayedGame);
 
     private property <int> col-count: max(1, floor((self.width - 10px) / (172px + 10px)));
 
@@ -40,8 +41,8 @@ export component GameGridPage inherits VerticalLayout {
                     col: mod(i, col-count);
 
                     game: game;
-                    open-info() => open-info(i);
-                    delete() => delete-game(i);
+                    open-info() => open-info(game);
+                    delete() => delete-game(game);
                 }
             }
         }

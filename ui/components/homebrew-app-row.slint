@@ -93,7 +93,7 @@ export component HomebrewAppRow inherits Rectangle {
         height: 24px;
         width: 24px;
         squared: true;
-        clicked => Logic.dispatch(Action.InstallOscApp, app.osc-app.uid);
+        clicked => Logic.dispatch(Action.InstallOscApp, app.osc-app.slug);
     }
 
     VerticalLine {
