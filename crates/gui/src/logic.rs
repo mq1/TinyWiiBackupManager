@@ -95,11 +95,9 @@ impl Logic<'_> {
 
         let weak = self.as_weak();
         let window_handle = window.window_handle();
-        let mut process_action = move |action: Action,
-                                       args: SharedString|
-              -> Vec<(Action, SharedString)> {
+        let mut process_action = move |action, args: SharedString| {
             let logic = weak.upgrade().unwrap();
-            let mut args = args.as_str().split('\0');
+            let mut args = args.split('\0');
 
             match action {
                 Action::NotifyInfo => {
