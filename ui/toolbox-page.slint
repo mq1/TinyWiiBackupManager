@@ -78,7 +78,7 @@ export component ToolboxPage inherits VerticalLayout {
             spacing: 10px;
             alignment: start;
 
-            Card {
+            if !Logic.config.mount-point.is-empty: Card {
                 VerticalLayout {
                     padding: 10px;
                     spacing: 10px;
@@ -138,7 +138,7 @@ export component ToolboxPage inherits VerticalLayout {
                 }
             }
 
-            Card {
+            if !Logic.config.mount-point.is-empty: Card {
                 VerticalLayout {
                     padding: 10px;
                     spacing: 10px;
@@ -162,7 +162,7 @@ export component ToolboxPage inherits VerticalLayout {
                     HorizontalLayout {
                         spacing: 10px;
 
-                        b := IconButton {
+                        IconButton {
                             icon: IconSet.Play;
                             width: self.height;
                             clicked => Logic.dispatch(Action.DownloadAllCovers, "false");
@@ -209,7 +209,7 @@ export component ToolboxPage inherits VerticalLayout {
                 }
             }
 
-            Card {
+            if !Logic.config.mount-point.is-empty: Card {
                 VerticalLayout {
                     padding: 10px;
                     spacing: 10px;
@@ -359,7 +359,7 @@ export component ToolboxPage inherits VerticalLayout {
                     HorizontalLayout {
                         spacing: 10px;
 
-                        IconButton {
+                        b := IconButton {
                             icon: IconSet.Play;
                             width: self.height;
                             clicked => Logic.dispatch(Action.ArchiveManually, "");
@@ -374,7 +374,7 @@ export component ToolboxPage inherits VerticalLayout {
                 }
             }
 
-            if Platform.os == OperatingSystemType.macos: Card {
+            if Platform.os == OperatingSystemType.macos && !Logic.config.mount-point.is-empty: Card {
                 VerticalLayout {
                     padding: 10px;
                     spacing: 10px;
