@@ -11,6 +11,7 @@ import { GameRow } from "components/game-row.slint";
 import { GamesOtherToolbar } from "components/games-other-toolbar.slint";
 import { Logic } from "logic.slint";
 import { DisplayedGame } from "types.slint";
+import { NoDrive } from "components/no-drive.slint";
 
 export component GameTablePage inherits VerticalLayout {
     callback open-info(DisplayedGame);
@@ -22,10 +23,12 @@ export component GameTablePage inherits VerticalLayout {
 
         GamesToolbar { }
 
-        GamesOtherToolbar { }
+        if !Logic.config.mount-point.is-empty: GamesOtherToolbar { }
     }
 
-    ScrollView {
+    if Logic.config.mount-point.is-empty: NoDrive { }
+
+    if !Logic.config.mount-point.is-empty: ScrollView {
         width: parent.width;
         viewport-height: v.preferred-height;
 

@@ -6,6 +6,7 @@ import { DisplayedOscApp } from "../types.slint";
 import { IconButton } from "icon-button.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { MyPalette } from "../styling.slint";
+import { Logic } from "../logic.slint";
 
 export component OscAppCard inherits Card {
     in property <DisplayedOscApp> app;
@@ -72,6 +73,7 @@ export component OscAppCard inherits Card {
                 width: self.height + 1px;
                 icon: IconSet.HardDriveDownload;
                 tooltip: "Install";
+                disabled: Logic.config.mount-point.is-empty;
                 clicked => install();
             }
 

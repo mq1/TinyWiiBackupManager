@@ -6,6 +6,7 @@ import { VerticalLine } from "vertical-line.slint";
 import { IconButton } from "icon-button.slint";
 import { DisplayedOscApp } from "../types.slint";
 import { MyPalette } from "../styling.slint";
+import { Logic } from "../logic.slint";
 
 export component OscAppRow inherits Rectangle {
     in property <DisplayedOscApp> app;
@@ -60,6 +61,7 @@ export component OscAppRow inherits Rectangle {
         height: 24px;
         width: 24px;
         squared: true;
+        disabled: Logic.config.mount-point.is-empty;
         clicked => install();
     }
 

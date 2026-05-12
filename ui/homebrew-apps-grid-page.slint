@@ -11,6 +11,7 @@ import {
 } from "components/homebrew-apps-other-toolbar.slint";
 import { Logic } from "logic.slint";
 import { DisplayedHomebrewApp } from "types.slint";
+import { NoDrive } from "components/no-drive.slint";
 
 export component HomebrewAppsGridPage inherits VerticalLayout {
     callback open-info(DisplayedHomebrewApp);
@@ -24,7 +25,9 @@ export component HomebrewAppsGridPage inherits VerticalLayout {
         HomebrewAppsToolbar { }
     }
 
-    ScrollView {
+    if Logic.config.mount-point.is-empty: NoDrive { }
+
+    if !Logic.config.mount-point.is-empty: ScrollView {
         width: parent.width;
         viewport-height: v.preferred-height;
 

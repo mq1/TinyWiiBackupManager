@@ -30,7 +30,7 @@ export component GamesToolbar inherits HorizontalLayout {
         }
     }
 
-    HorizontalLayout {
+    if !Logic.config.mount-point.is-empty: HorizontalLayout {
         spacing: 10px;
 
         ShowWiiGc { }

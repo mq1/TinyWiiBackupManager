@@ -13,6 +13,7 @@ import {
 import { HomebrewAppRow } from "components/homebrew-app-row.slint";
 import { Logic } from "logic.slint";
 import { DisplayedHomebrewApp } from "types.slint";
+import { NoDrive } from "components/no-drive.slint";
 
 export component HomebrewAppsTablePage inherits VerticalLayout {
     callback open-info(DisplayedHomebrewApp);
@@ -24,10 +25,12 @@ export component HomebrewAppsTablePage inherits VerticalLayout {
 
         HomebrewAppsToolbar { }
 
-        HomebrewAppsOtherToolbar { }
+        if !Logic.config.mount-point.is-empty: HomebrewAppsOtherToolbar { }
     }
 
-    ScrollView {
+    if Logic.config.mount-point.is-empty: NoDrive { }
+
+    if !Logic.config.mount-point.is-empty: ScrollView {
         width: parent.width;
         viewport-height: v.preferred-height;
 

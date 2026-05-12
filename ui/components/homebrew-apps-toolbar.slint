@@ -29,7 +29,7 @@ export component HomebrewAppsToolbar inherits HorizontalLayout {
         }
     }
 
-    HorizontalLayout {
+    if !Logic.config.mount-point.is-empty: HorizontalLayout {
         spacing: 10px;
 
         SortGamesAndHomebrewApps { }

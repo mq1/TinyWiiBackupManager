@@ -1,0 +1,34 @@
+// SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { IconSet, IconDisplay } from "@lucide";
+import { MyPalette } from "../styling.slint";
+
+export component NoDrive inherits VerticalLayout {
+    alignment: center;
+
+    HorizontalLayout {
+        spacing: 5px;
+        alignment: center;
+
+        IconDisplay {
+            icon: IconSet.MoveDownLeft;
+            stroke: MyPalette.foreground;
+            size: 14px;
+        }
+
+        Text {
+            text: "Click on";
+        }
+
+        IconDisplay {
+            icon: IconSet.HardDrive;
+            stroke: MyPalette.foreground;
+            size: 14px;
+        }
+
+        Text {
+            text: "to select a Drive/Mount Point";
+        }
+    }
+}
