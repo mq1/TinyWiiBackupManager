@@ -10,9 +10,7 @@ pub struct GameID(u32);
 
 impl GameID {
     pub const fn new(id_str: &str) -> Option<Self> {
-        let len = id_str.len();
-
-        if len != 4 && len != 6 {
+        if !matches!(id_str.len(), 4 | 6) {
             return None;
         }
 
