@@ -6,6 +6,7 @@ import { IconDisplay, IconSet } from "@lucide";
 import { TooltipArea } from "tooltip-area.slint";
 import { MyPalette } from "../styling.slint";
 import { Logic } from "../logic.slint";
+import { Action } from "../types.slint";
 
 export component SortGamesAndHomebrewApps inherits Card {
     pure function get-bg(current-sort-by: bool, hovered: bool) -> color {
@@ -31,9 +32,9 @@ export component SortGamesAndHomebrewApps inherits Card {
             background: get-bg(Logic.config.sort-by == "NameDescending" || Logic.config.sort-by == "NameAscending", self.has-hover);
             clicked => {
                 if Logic.config.sort-by == "NameDescending" {
-                    Logic.set-sort-by("NameAscending");
+                    Logic.dispatch(Action.SetSortBy, "NameAscending");
                 } else {
-                    Logic.set-sort-by("NameDescending");
+                    Logic.dispatch(Action.SetSortBy, "NameDescending");
                 }
             }
 
@@ -52,9 +53,9 @@ export component SortGamesAndHomebrewApps inherits Card {
             background: get-bg(Logic.config.sort-by == "SizeDescending" || Logic.config.sort-by == "SizeAscending", self.has-hover);
             clicked => {
                 if Logic.config.sort-by == "SizeDescending" {
-                    Logic.set-sort-by("SizeAscending");
+                    Logic.dispatch(Action.SetSortBy, "SizeAscending");
                 } else {
-                    Logic.set-sort-by("SizeDescending");
+                    Logic.dispatch(Action.SetSortBy, "SizeDescending");
                 }
             }
 

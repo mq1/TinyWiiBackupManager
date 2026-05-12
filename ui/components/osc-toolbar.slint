@@ -7,6 +7,7 @@ import { ViewAs } from "view-as.slint";
 import { MyPalette } from "../styling.slint";
 import { Link } from "link.slint";
 import { Logic } from "../logic.slint";
+import { Action } from "../types.slint";
 
 export component OscToolbar inherits HorizontalLayout {
     alignment: space-between;
@@ -44,7 +45,7 @@ export component OscToolbar inherits HorizontalLayout {
                 font-size: 18px;
                 width: 34px;
                 height: 34px;
-                clicked => Logic.cache-osc-contents(true);
+                clicked => Logic.dispatch(Action.CacheOscContents, "true");
             }
         }
     }

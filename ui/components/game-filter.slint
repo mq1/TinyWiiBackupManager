@@ -6,6 +6,7 @@ import { MyPalette } from "../styling.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { MyLineEdit } from "my-line-edit.slint";
 import { Logic } from "../logic.slint";
+import { Action } from "../types.slint";
 
 export component GameFilter inherits Card {
     width: 210px;
@@ -30,7 +31,7 @@ export component GameFilter inherits Card {
 
             MyLineEdit {
                 placeholder-text: "Search by Title/ID";
-                edited() => Logic.filter-games(self.text);
+                edited() => Logic.dispatch(Action.FilterGames, self.text);
             }
         }
     }

@@ -10,6 +10,7 @@ import {
     Notification,
     DisplayedDiscInfo,
     QueuedConversion,
+    Action,
 } from "types.slint";
 
 export global Logic {
@@ -30,65 +31,5 @@ export global Logic {
     in-out property <DisplayedDiscInfo> current-disc-info;
     in-out property <string> latest-version;
 
-    callback filter-games(string);
-    callback filter-homebrew-apps(string);
-    callback filter-osc-apps(string);
-    callback cache-osc-contents(bool);
-    callback refresh-all();
-    callback confirm-conversion-queue-buffer();
-    callback clear-conversion-queue-buffer();
-    callback archive-game(int);
-    callback scrub-game(int);
-    callback delete-game(int);
-    callback delete-homebrew-app(int);
-    callback pick-games(bool);
-    callback open-that(string);
-    callback close-notification(int);
-    callback pick-homebrew-apps();
-    callback checksum(int);
-    callback set-window-color(bool);
-    callback pair-homebrew-osc();
-    callback install-osc-app(int);
-    callback download-osc-icons();
-    callback load-game-info(int);
-    callback scrub-all-games();
-    callback normalize-dir-layout();
-    callback cancel-conversion(int);
-    callback cancel-all-conversions();
-    callback check-for-updates();
-    callback wiiload-local-file(string);
-    callback wiiload-osc-app(string, int);
-    callback download-txtcodes(int);
-    callback run-dot-clean();
-    callback download-all-covers(bool);
-    callback download-all-banners();
-    callback archive-manually();
-
-    // config
-    callback pick-mount-point();
-    callback set-wii-output-format(string);
-    callback set-gc-output-format(string);
-    callback set-always-split(string);
-    callback set-scrub-update-partition(string);
-    callback set-remove-sources-games(string);
-    callback set-remove-sources-apps(string);
-    callback set-txt-codes-source(string);
-    callback set-theme-preference(string);
-    callback set-view-as(string);
-    callback set-sort-by(string);
-    callback set-show-wii(bool);
-    callback set-show-gc(bool);
-    callback set-preferred-language(string);
-
-    // util
-    callback sync-config();
-    callback notify-error(string);
-    callback notify-info(string);
-    callback trigger-conversion();
-    callback set-status(string);
-    callback set-crc32-status(string);
-    callback reload-osc-icon(int);
-    callback reload-cover(int);
-    callback finished-downloading-covers();
-    callback osc-contents-cached();
+    callback dispatch(Action, string);
 }

@@ -6,6 +6,7 @@ import { TooltipArea } from "tooltip-area.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { MyPalette } from "../styling.slint";
 import { Logic } from "../logic.slint";
+import { Action } from "../types.slint";
 
 export component ViewAs inherits Card {
     pure function get-bg(current: bool, hovered: bool) -> color {
@@ -29,7 +30,7 @@ export component ViewAs inherits Card {
 
             tooltip: "View as grid";
             background: get-bg(Logic.config.view-as == "Grid", self.has-hover);
-            clicked => Logic.set-view-as("Grid");
+            clicked => Logic.dispatch(Action.SetViewAs, "Grid");
 
             IconDisplay {
                 icon: IconSet.LayoutGrid;
@@ -44,7 +45,7 @@ export component ViewAs inherits Card {
 
             tooltip: "View as table";
             background: get-bg(Logic.config.view-as == "Table", self.has-hover);
-            clicked => Logic.set-view-as("Table");
+            clicked => Logic.dispatch(Action.SetViewAs, "Table");
 
             IconDisplay {
                 icon: IconSet.Table;

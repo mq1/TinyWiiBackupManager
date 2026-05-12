@@ -3,7 +3,7 @@
 
 use crate::Logic;
 use anyhow::Result;
-use slint::Weak;
+use slint::{SharedString, ToSharedString, Weak};
 use std::fs;
 use twbm_core::{
     config::PreferredLanguage,
@@ -25,13 +25,16 @@ pub fn download_covers(
             .unwrap_or(false)
         {
             let _ = weak.upgrade_in_event_loop(move |logic| {
-                logic.invoke_reload_cover(i as i32);
+                logic.invoke_dispatch(crate::Action::ReloadCover, i.to_shared_string());
             });
         }
     }
 
     let _ = weak.upgrade_in_event_loop(move |logic| {
-        logic.invoke_finished_downloading_covers();
+        logic.invoke_dispatch(
+            crate::Action::FinishedDownloadingCovers,
+            SharedString::new(),
+        );
     });
 
     Ok(())

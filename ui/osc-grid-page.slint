@@ -8,6 +8,7 @@ import { OscToolbar } from "components/osc-toolbar.slint";
 import { OscOtherToolbar } from "components/osc-other-toolbar.slint";
 import { OscAppCard } from "components/osc-app-card.slint";
 import { Logic } from "logic.slint";
+import { Action } from "types.slint";
 
 export component OscGridPage inherits VerticalLayout {
     callback open-info(int);
@@ -49,7 +50,7 @@ export component OscGridPage inherits VerticalLayout {
 
                     app: app;
                     open-info() => open-info(i);
-                    install() => Logic.install-osc-app(app.uid);
+                    install() => Logic.dispatch(Action.InstallOscApp, app.uid);
                     wiiload() => wiiload(i);
                 }
             }

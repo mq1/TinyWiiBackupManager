@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{DisplayedOscApp, Logic, util::MIB};
+use crate::{Action, DisplayedOscApp, Logic, util::MIB};
 use slint::{Image, SharedString, ToSharedString, Weak};
 use std::{cell::RefCell, fs, rc::Rc};
 use time::UtcDateTime;
@@ -40,7 +40,7 @@ pub fn download_icons(apps: &[OscApp], weak: Weak<Logic<'static>>) {
     for (i, app) in apps.iter().enumerate() {
         if app.download_icon(&DATA_DIR).is_ok() {
             let _ = weak.upgrade_in_event_loop(move |logic| {
-                logic.invoke_reload_osc_icon(i as i32);
+                logic.invoke_dispatch(Action::ReloadOscIcon, i.to_shared_string());
             });
         }
     }

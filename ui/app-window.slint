@@ -6,7 +6,7 @@ import { Navbar } from "components/navbar.slint";
 import { GameGridPage } from "game-grid-page.slint";
 import { SettingsPage } from "settings-page.slint";
 import { AboutPage } from "about-page.slint";
-import { Page } from "types.slint";
+import { Page, Action } from "types.slint";
 import { MyPalette } from "styling.slint";
 import { Logic } from "logic.slint";
 import { VerticalLine } from "components/vertical-line.slint";
@@ -50,15 +50,23 @@ export component AppWindow inherits Window {
     Timer {
         interval: 100ms;
         running: true;
+
         triggered => {
-            if Logic.config.theme-preference == 1 {
+            if Logic.config.theme-preference == "Light" {
                 Palette.color-scheme = ColorScheme.light;
-            } else if Logic.config.theme-preference == 2 {
+            } else if Logic.config.theme-preference == "Dark" {
                 Palette.color-scheme = ColorScheme.dark;
             }
-            Logic.set-window-color(Palette.color-scheme == ColorScheme.dark);
-            Logic.cache-osc-contents(false);
-            Logic.check-for-updates();
+            if Palette.color-scheme == ColorScheme.dark {
+                Logic.dispatch(Action.SetWindowColor, "true");
+            } else {
+                Logic.dispatch(Action.SetWindowColor, "false");
+            }
+
+            Logic.dispatch(Action.CacheOscContents, "false");
+            Logic.dispatch(Action.CheckForUpdates, "");
+            Logic.dispatch(Action.CheckMountPoint, "");
+
             self.running = false;
         }
     }
@@ -78,7 +86,7 @@ export component AppWindow inherits Window {
                 if current-page == Page.Games && Logic.config.view-as == "Grid": GameGridPage {
                     open-info(i) => {
                         current-game-i = i;
-                        Logic.load-game-info(Logic.games[i].uid);
+                        Logic.dispatch(Action.LoadGameInfo, Logic.games[i].uid);
                     }
                     delete-game(i) => {
                         game-to-delete = i;
@@ -87,7 +95,7 @@ export component AppWindow inherits Window {
                 if current-page == Page.Games && Logic.config.view-as == "Table": GameTablePage {
                     open-info(i) => {
                         current-game-i = i;
-                        Logic.load-game-info(Logic.games[i].uid);
+                        Logic.dispatch(Action.LoadGameInfo, Logic.games[i].uid);
                     }
                     delete-game(i) => {
                         game-to-delete = i;
@@ -157,7 +165,7 @@ export component AppWindow inherits Window {
         scrub => {
             game-to-scrub = current-game-i;
         }
-        checksum => Logic.checksum(Logic.games[current-game-i].uid);
+        checksum => Logic.dispatch(Action.Checksum, Logic.games[current-game-i].uid);
     }
 
     if current-homebrew-app-i >= 0: HomebrewAppInfoModal {
@@ -183,7 +191,7 @@ export component AppWindow inherits Window {
             game-to-delete = -1;
         }
         confirmed => {
-            Logic.delete-game(Logic.games[game-to-delete].uid);
+            Logic.dispatch(Action.DeleteGame, Logic.games[game-to-delete].uid);
             game-to-delete = -1;
         }
     }
@@ -197,7 +205,7 @@ export component AppWindow inherits Window {
             homebrew-app-to-delete = -1;
         }
         confirmed => {
-            Logic.delete-homebrew-app(Logic.homebrew-apps[homebrew-app-to-delete].uid);
+            Logic.dispatch(Action.DeleteHomebrewApp, Logic.homebrew-apps[homebrew-app-to-delete].uid);
             homebrew-app-to-delete = -1;
         }
     }
@@ -211,8 +219,8 @@ export component AppWindow inherits Window {
             text: "• \{conv.in-path}";
         }
 
-        cancelled => Logic.clear-conversion-queue-buffer();
-        confirmed => Logic.confirm-conversion-queue-buffer();
+        cancelled => Logic.dispatch(Action.ClearConversionQueueBuffer, "");
+        confirmed => Logic.dispatch(Action.ConfirmConversionQueueBuffer, "");
     }
 
     if game-to-scrub >= 0: ConfirmationModal {
@@ -224,7 +232,7 @@ export component AppWindow inherits Window {
             game-to-scrub = -1;
         }
         confirmed => {
-            Logic.scrub-game(Logic.games[game-to-scrub].uid);
+            Logic.dispatch(Action.ScrubGame, Logic.games[game-to-scrub].uid);
             game-to-scrub = -1;
             current-game-i = -1;
             Logic.crc32-status = "";
@@ -241,7 +249,7 @@ export component AppWindow inherits Window {
             scrubbing-all-games = false;
         }
         confirmed => {
-            Logic.scrub-all-games();
+            Logic.dispatch(Action.ScrubAllGames, "");
             scrubbing-all-games = false;
         }
     }

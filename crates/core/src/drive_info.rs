@@ -53,7 +53,7 @@ impl DriveInfo {
         })
     }
 
-    pub fn empty() -> Self {
+    pub const fn empty() -> Self {
         Self {
             label: String::new(),
             used_bytes: 0,

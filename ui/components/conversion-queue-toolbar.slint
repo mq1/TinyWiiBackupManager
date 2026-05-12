@@ -5,6 +5,7 @@ import { IconButton, IconButtonKind } from "icon-button.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { MyPalette } from "../styling.slint";
 import { Logic } from "../logic.slint";
+import { Action } from "../types.slint";
 
 export component ConversionQueueToolbar inherits HorizontalLayout {
     alignment: space-between;
@@ -33,7 +34,7 @@ export component ConversionQueueToolbar inherits HorizontalLayout {
             icon: IconSet.X;
             label: "Cancel all conversions";
             kind: IconButtonKind.Primary;
-            clicked => Logic.cancel-all-conversions();
+            clicked => Logic.dispatch(Action.CancelAllConversions, "");
         }
     }
 }

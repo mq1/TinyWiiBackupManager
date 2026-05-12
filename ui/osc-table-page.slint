@@ -10,6 +10,7 @@ import { OscToolbar } from "components/osc-toolbar.slint";
 import { OscOtherToolbar } from "components/osc-other-toolbar.slint";
 import { OscAppRow } from "components/osc-app-row.slint";
 import { Logic } from "logic.slint";
+import { Action } from "types.slint";
 
 export component OscTablePage inherits VerticalLayout {
     callback open-info(int);
@@ -49,7 +50,7 @@ export component OscTablePage inherits VerticalLayout {
                         OscAppRow {
                             app: app;
                             open-info() => open-info(i);
-                            install() => Logic.install-osc-app(app.uid);
+                            install() => Logic.dispatch(Action.InstallOscApp, app.uid);
                             wiiload() => wiiload(i);
                         }
 

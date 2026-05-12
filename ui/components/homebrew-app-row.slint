@@ -4,7 +4,7 @@
 import { IconSet, IconDisplay } from "@lucide";
 import { VerticalLine } from "vertical-line.slint";
 import { IconButton } from "icon-button.slint";
-import { DisplayedHomebrewApp } from "../types.slint";
+import { DisplayedHomebrewApp, Action } from "../types.slint";
 import { MyPalette } from "../styling.slint";
 import { Logic } from "../logic.slint";
 import { TooltipArea } from "tooltip-area.slint";
@@ -93,7 +93,7 @@ export component HomebrewAppRow inherits Rectangle {
         height: 24px;
         width: 24px;
         squared: true;
-        clicked => Logic.install-osc-app(app.osc-app.uid);
+        clicked => Logic.dispatch(Action.InstallOscApp, app.osc-app.uid);
     }
 
     VerticalLine {

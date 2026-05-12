@@ -4,7 +4,7 @@
 import { IconSet, IconDisplay } from "@lucide";
 import { VerticalLine } from "vertical-line.slint";
 import { IconButton } from "icon-button.slint";
-import { DisplayedGame } from "../types.slint";
+import { DisplayedGame, Action } from "../types.slint";
 import { MyPalette } from "../styling.slint";
 import { Logic } from "../logic.slint";
 
@@ -68,7 +68,7 @@ export component GameRow inherits Rectangle {
         height: 24px;
         width: 24px;
         squared: true;
-        clicked => Logic.archive-game(game.uid);
+        clicked => Logic.dispatch(Action.ArchiveGame, game.uid);
     }
 
     VerticalLine {

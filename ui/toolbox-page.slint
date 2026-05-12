@@ -9,6 +9,7 @@ import { HorizontalLine } from "components/horizontal-line.slint";
 import { Logic } from "logic.slint";
 import { Link } from "components/link.slint";
 import { IconButton } from "components/icon-button.slint";
+import { Action } from "types.slint";
 
 export component ToolboxPage inherits VerticalLayout {
     in-out property <bool> scrubbing-all-games;
@@ -164,7 +165,7 @@ export component ToolboxPage inherits VerticalLayout {
                         b := IconButton {
                             icon: IconSet.Play;
                             width: self.height;
-                            clicked => Logic.download-all-covers(false);
+                            clicked => Logic.dispatch(Action.DownloadAllCovers, "false");
                         }
 
                         Text {
@@ -180,7 +181,7 @@ export component ToolboxPage inherits VerticalLayout {
                         IconButton {
                             icon: IconSet.Play;
                             width: self.height;
-                            clicked => Logic.download-all-covers(true);
+                            clicked => Logic.dispatch(Action.DownloadAllCovers, "true");
                         }
 
                         Text {
@@ -196,7 +197,7 @@ export component ToolboxPage inherits VerticalLayout {
                         IconButton {
                             icon: IconSet.Play;
                             width: self.height;
-                            clicked => Logic.download-all-banners();
+                            clicked => Logic.dispatch(Action.DownloadAllBanners, "");
                         }
 
                         Text {
@@ -235,7 +236,7 @@ export component ToolboxPage inherits VerticalLayout {
                         IconButton {
                             icon: IconSet.Play;
                             width: self.height;
-                            clicked => Logic.normalize-dir-layout();
+                            clicked => Logic.dispatch(Action.NormalizeDirLayout, "");
                         }
 
                         Text {
@@ -301,7 +302,7 @@ export component ToolboxPage inherits VerticalLayout {
                             IconButton {
                                 icon: IconSet.FileUp;
                                 label: "Choose a zip/dol/elf";
-                                clicked => Logic.wiiload-local-file(ip.text);
+                                clicked => Logic.dispatch(Action.WiiloadLocalFile, ip.text);
                             }
                         }
 
@@ -361,7 +362,7 @@ export component ToolboxPage inherits VerticalLayout {
                         IconButton {
                             icon: IconSet.Play;
                             width: self.height;
-                            clicked => Logic.archive-manually();
+                            clicked => Logic.dispatch(Action.ArchiveManually, "");
                         }
 
                         Text {
@@ -400,7 +401,7 @@ export component ToolboxPage inherits VerticalLayout {
                         IconButton {
                             icon: IconSet.Play;
                             width: self.height;
-                            clicked => Logic.run-dot-clean();
+                            clicked => Logic.dispatch(Action.RunDotClean, "");
                         }
 
                         Text {

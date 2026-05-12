@@ -12,6 +12,7 @@ import {
     ConversionQueueToolbar,
 } from "components/conversion-queue-toolbar.slint";
 import { HorizontalLine } from "components/horizontal-line.slint";
+import { Action } from "types.slint";
 
 export component ConversionQueuePage inherits VerticalLayout {
     HorizontalLayout {
@@ -36,7 +37,7 @@ export component ConversionQueuePage inherits VerticalLayout {
                     for conv[i] in Logic.conversion-queue: VerticalLayout {
                         ConversionRow {
                             conv: conv;
-                            cancel() => Logic.cancel-conversion(i);
+                            cancel() => Logic.dispatch(Action.CancelConversion, i);
                         }
 
                         HorizontalLine { }

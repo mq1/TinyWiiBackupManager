@@ -7,6 +7,7 @@ import { TooltipArea } from "tooltip-area.slint";
 import { VerticalLine } from "vertical-line.slint";
 import { IconDisplay, IconSet } from "@lucide";
 import { Logic } from "../logic.slint";
+import { Action } from "../types.slint";
 
 export component ShowWiiGc inherits Card {
     height: 38px;
@@ -18,7 +19,7 @@ export component ShowWiiGc inherits Card {
 
         CheckBox {
             checked: Logic.config.show-wii;
-            toggled => Logic.set-show-wii(self.checked);
+            toggled => Logic.dispatch(Action.ToggleShowWii, "");
         }
 
         TooltipArea {
@@ -36,7 +37,7 @@ export component ShowWiiGc inherits Card {
 
         CheckBox {
             checked: Logic.config.show-gc;
-            toggled => Logic.set-show-gc(self.checked);
+            toggled => Logic.dispatch(Action.ToggleShowGc, "");
         }
 
         TooltipArea {

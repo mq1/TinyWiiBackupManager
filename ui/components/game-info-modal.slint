@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import { ScrollView, Palette } from "std-widgets.slint";
-import { DisplayedGame } from "../types.slint";
+import { DisplayedGame, Action } from "../types.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { Link } from "link.slint";
 import { Card } from "card.slint";
@@ -232,7 +232,7 @@ export component GameInfoModal inherits Modal {
                         label: "Get cheats";
                         tooltip: "Download txtcodes (change the source in settings)";
                         icon: IconSet.Skull;
-                        clicked => Logic.download-txtcodes(game.uid);
+                        clicked => Logic.dispatch(Action.DownloadTxtCodes, game.uid);
                     }
 
                     if Logic.current-disc-info.is-worth-scrubbing: IconButton {
