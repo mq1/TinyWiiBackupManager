@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{ConversionKind, Logic, QueuedConversion};
-use slint::{SharedString, ToSharedString, Weak};
+use crate::{Action, ConversionKind, Logic, QueuedConversion};
+use slint::{SharedString, Weak};
 use std::path::PathBuf;
 use twbm_core::{config::Config, drive_info::DriveInfo};
 
@@ -90,15 +90,16 @@ impl Conversion {
         };
 
         let _ = weak.upgrade_in_event_loop(move |logic| {
-            logic.invoke_set_status(SharedString::new());
+            logic.invoke_dispatch(Action::SetStatus, SharedString::new());
 
             if let Err(e) = res {
-                logic.invoke_notify_error(e.to_shared_string());
+                let msg = slint::format!("Conversion failed: {e}");
+                logic.invoke_dispatch(Action::NotifyError, msg);
             } else {
-                logic.invoke_trigger_conversion();
+                logic.invoke_dispatch(Action::TriggerConversion, SharedString::new());
             }
 
-            logic.invoke_refresh_all();
+            logic.invoke_dispatch(Action::RefreshAll, SharedString::new());
         });
     }
 }

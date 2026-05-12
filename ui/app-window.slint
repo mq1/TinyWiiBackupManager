@@ -6,7 +6,13 @@ import { Navbar } from "components/navbar.slint";
 import { GameGridPage } from "game-grid-page.slint";
 import { SettingsPage } from "settings-page.slint";
 import { AboutPage } from "about-page.slint";
-import { Page } from "types.slint";
+import {
+    Page,
+    Action,
+    DisplayedGame,
+    DisplayedHomebrewApp,
+    DisplayedOscApp,
+} from "types.slint";
 import { MyPalette } from "styling.slint";
 import { Logic } from "logic.slint";
 import { VerticalLine } from "components/vertical-line.slint";
@@ -37,28 +43,36 @@ export component AppWindow inherits Window {
     default-font-size: 14px;
 
     private property <Page> current-page: Page.Games;
-    private property <int> current-game-i: -1;
-    private property <int> current-homebrew-app-i: -1;
-    private property <int> current-osc-app-i: -1;
-    private property <int> game-to-scrub: -1;
-    private property <int> game-to-delete: -1;
-    private property <int> homebrew-app-to-delete: -1;
+    private property <DisplayedGame> current-game;
+    private property <DisplayedHomebrewApp> current-homebrew-app;
+    private property <DisplayedOscApp> current-osc-app;
+    private property <bool> scrubbing-current-game: false;
+    private property <DisplayedGame> game-to-delete;
+    private property <DisplayedHomebrewApp> homebrew-app-to-delete;
     private property <bool> scrubbing-all-games: false;
-    private property <int> wiiloading-osc-app: -1;
+    private property <DisplayedOscApp> wiiloading-osc-app;
 
     // Initialize
     Timer {
         interval: 100ms;
         running: true;
+
         triggered => {
-            if Logic.config.theme-preference == 1 {
+            if Logic.config.theme-preference == "Light" {
                 Palette.color-scheme = ColorScheme.light;
-            } else if Logic.config.theme-preference == 2 {
+            } else if Logic.config.theme-preference == "Dark" {
                 Palette.color-scheme = ColorScheme.dark;
             }
-            Logic.set-window-color(Palette.color-scheme == ColorScheme.dark);
-            Logic.cache-osc-contents(false);
-            Logic.check-for-updates();
+            if Palette.color-scheme == ColorScheme.dark {
+                Logic.dispatch(Action.SetWindowColor, "true");
+            } else {
+                Logic.dispatch(Action.SetWindowColor, "false");
+            }
+
+            Logic.dispatch(Action.CacheOscContents, "false");
+            Logic.dispatch(Action.CheckForUpdates, "");
+            Logic.dispatch(Action.CheckMountPoint, "");
+
             self.running = false;
         }
     }
@@ -76,53 +90,53 @@ export component AppWindow inherits Window {
                 border-color: MyPalette.border;
 
                 if current-page == Page.Games && Logic.config.view-as == "Grid": GameGridPage {
-                    open-info(i) => {
-                        current-game-i = i;
-                        Logic.load-game-info(Logic.games[i].uid);
+                    open-info(game) => {
+                        current-game = game;
+                        Logic.dispatch(Action.LoadGameInfo, game.path);
                     }
-                    delete-game(i) => {
-                        game-to-delete = i;
+                    delete-game(game) => {
+                        game-to-delete = game;
                     }
                 }
                 if current-page == Page.Games && Logic.config.view-as == "Table": GameTablePage {
-                    open-info(i) => {
-                        current-game-i = i;
-                        Logic.load-game-info(Logic.games[i].uid);
+                    open-info(game) => {
+                        current-game = game;
+                        Logic.dispatch(Action.LoadGameInfo, game.path);
                     }
-                    delete-game(i) => {
-                        game-to-delete = i;
+                    delete-game(game) => {
+                        game-to-delete = game;
                     }
                 }
                 if current-page == Page.HomebrewApps && Logic.config.view-as == "Grid": HomebrewAppsGridPage {
-                    open-info(i) => {
-                        current-homebrew-app-i = i;
+                    open-info(app) => {
+                        current-homebrew-app = app;
                     }
-                    delete-app(i) => {
-                        homebrew-app-to-delete = i;
+                    delete-app(app) => {
+                        homebrew-app-to-delete = app;
                     }
                 }
                 if current-page == Page.HomebrewApps && Logic.config.view-as == "Table": HomebrewAppsTablePage {
-                    open-info(i) => {
-                        current-homebrew-app-i = i;
+                    open-info(app) => {
+                        current-homebrew-app = app;
                     }
-                    delete-app(i) => {
-                        homebrew-app-to-delete = i;
+                    delete-app(app) => {
+                        homebrew-app-to-delete = app;
                     }
                 }
                 if current-page == Page.Osc && Logic.config.view-as == "Grid": OscGridPage {
-                    open-info(i) => {
-                        current-osc-app-i = i;
+                    open-info(app) => {
+                        current-osc-app = app;
                     }
-                    wiiload(i) => {
-                        wiiloading-osc-app = i;
+                    wiiload(app) => {
+                        wiiloading-osc-app = app;
                     }
                 }
                 if current-page == Page.Osc && Logic.config.view-as == "Table": OscTablePage {
-                    open-info(i) => {
-                        current-osc-app-i = i;
+                    open-info(app) => {
+                        current-osc-app = app;
                     }
-                    wiiload(i) => {
-                        wiiloading-osc-app = i;
+                    wiiload(app) => {
+                        wiiloading-osc-app = app;
                     }
                 }
                 if current-page == Page.Toolbox: ToolboxPage {
@@ -147,58 +161,57 @@ export component AppWindow inherits Window {
         }
     }
 
-    if current-game-i >= 0: GameInfoModal {
-        game: Logic.games[current-game-i];
+    if !current-game.path.is-empty: GameInfoModal {
+        game: current-game;
         closed => {
-            current-game-i = -1;
+            current-game = { };
             Logic.crc32-status = "";
             Logic.current-disc-info = { };
         }
         scrub => {
-            game-to-scrub = current-game-i;
+            scrubbing-current-game = true;
         }
-        checksum => Logic.checksum(Logic.games[current-game-i].uid);
     }
 
-    if current-homebrew-app-i >= 0: HomebrewAppInfoModal {
-        app: Logic.homebrew-apps[current-homebrew-app-i];
+    if !current-homebrew-app.path.is-empty: HomebrewAppInfoModal {
+        app: current-homebrew-app;
         closed => {
-            current-homebrew-app-i = -1;
+            current-homebrew-app = { };
         }
     }
 
-    if current-osc-app-i >= 0: OscAppInfoModal {
-        app: Logic.osc-apps[current-osc-app-i];
+    if !current-osc-app.slug.is-empty: OscAppInfoModal {
+        app: current-osc-app;
         closed => {
-            current-osc-app-i = -1;
+            current-osc-app = { };
         }
     }
 
-    if game-to-delete >= 0: ConfirmationModal {
+    if !game-to-delete.path.is-empty: ConfirmationModal {
         Text {
-            text: "Are you sure you want to delete \{Logic.games[game-to-delete].title}?\nThis action cannot be undone.";
+            text: "Are you sure you want to delete \{game-to-delete.title}?\nThis action cannot be undone.";
         }
 
         cancelled => {
-            game-to-delete = -1;
+            game-to-delete = { };
         }
         confirmed => {
-            Logic.delete-game(Logic.games[game-to-delete].uid);
-            game-to-delete = -1;
+            Logic.dispatch(Action.DeleteGame, game-to-delete.path);
+            game-to-delete = { };
         }
     }
 
-    if homebrew-app-to-delete >= 0: ConfirmationModal {
+    if !homebrew-app-to-delete.name.is-empty: ConfirmationModal {
         Text {
-            text: "Are you sure you want to delete \{Logic.homebrew-apps[homebrew-app-to-delete].name}?\nThis action cannot be undone.";
+            text: "Are you sure you want to delete \{homebrew-app-to-delete.name}?\nThis action cannot be undone.";
         }
 
         cancelled => {
-            homebrew-app-to-delete = -1;
+            homebrew-app-to-delete = { };
         }
         confirmed => {
-            Logic.delete-homebrew-app(Logic.homebrew-apps[homebrew-app-to-delete].uid);
-            homebrew-app-to-delete = -1;
+            Logic.dispatch(Action.DeleteHomebrewApp, homebrew-app-to-delete.path);
+            homebrew-app-to-delete = { };
         }
     }
 
@@ -211,22 +224,22 @@ export component AppWindow inherits Window {
             text: "• \{conv.in-path}";
         }
 
-        cancelled => Logic.clear-conversion-queue-buffer();
-        confirmed => Logic.confirm-conversion-queue-buffer();
+        cancelled => Logic.dispatch(Action.ClearConversionQueueBuffer, "");
+        confirmed => Logic.dispatch(Action.ConfirmConversionQueueBuffer, "");
     }
 
-    if game-to-scrub >= 0: ConfirmationModal {
+    if scrubbing-current-game: ConfirmationModal {
         Text {
-            text: "Are you sure you want to scrub \{Logic.games[game-to-scrub].title}?\nThis action cannot be undone.";
+            text: "Are you sure you want to scrub \{current-game.title}?\nThis action cannot be undone.";
         }
 
         cancelled => {
-            game-to-scrub = -1;
+            scrubbing-current-game = false;
         }
         confirmed => {
-            Logic.scrub-game(Logic.games[game-to-scrub].uid);
-            game-to-scrub = -1;
-            current-game-i = -1;
+            Logic.dispatch(Action.ScrubGame, current-game.path);
+            scrubbing-current-game = false;
+            current-game = { };
             Logic.crc32-status = "";
             Logic.current-disc-info = { };
         }
@@ -241,15 +254,15 @@ export component AppWindow inherits Window {
             scrubbing-all-games = false;
         }
         confirmed => {
-            Logic.scrub-all-games();
+            Logic.dispatch(Action.ScrubAllGames, "");
             scrubbing-all-games = false;
         }
     }
 
-    if wiiloading-osc-app >= 0: WiiloadOscAppModal {
-        app: Logic.osc-apps[wiiloading-osc-app];
+    if !wiiloading-osc-app.slug.is-empty: WiiloadOscAppModal {
+        app: wiiloading-osc-app;
         closed => {
-            wiiloading-osc-app = -1;
+            wiiloading-osc-app = { };
         }
     }
 

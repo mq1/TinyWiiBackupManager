@@ -6,6 +6,7 @@ import { IconSet, IconDisplay } from "@lucide";
 import { SettingCard } from "components/setting-card.slint";
 import { MyPalette } from "styling.slint";
 import { Logic } from "logic.slint";
+import { Action } from "types.slint";
 
 export component SettingsPage inherits VerticalLayout {
     HorizontalLayout {
@@ -42,8 +43,7 @@ export component SettingsPage inherits VerticalLayout {
                     { value: "Iso", label: "ISO (very large)" }
                 ];
                 active-item: Logic.config.wii-output-format;
-
-                selected(value) => Logic.set-wii-output-format(value);
+                set-property: Action.SetWiiOutputFormat;
             }
 
             SettingCard {
@@ -57,8 +57,7 @@ export component SettingsPage inherits VerticalLayout {
                     }
                 ];
                 active-item: Logic.config.gc-output-format;
-
-                selected(value) => Logic.set-gc-output-format(value);
+                set-property: Action.SetGcOutputFormat;
             }
 
             SettingCard {
@@ -69,8 +68,7 @@ export component SettingsPage inherits VerticalLayout {
                     { value: "true", label: "Always 4GB-32KB" }
                 ];
                 active-item: Logic.config.always-split;
-
-                selected(value) => Logic.set-always-split(value);
+                set-property: Action.SetAlwaysSplit;
             }
 
             SettingCard {
@@ -84,8 +82,7 @@ export component SettingsPage inherits VerticalLayout {
                     }
                 ];
                 active-item: Logic.config.scrub-update-partition;
-
-                selected(value) => Logic.set-scrub-update-partition(value);
+                set-property: Action.SetScrubUpdatePartition;
             }
 
             SettingCard {
@@ -93,8 +90,7 @@ export component SettingsPage inherits VerticalLayout {
                 label: "Delete sources when adding games";
                 items: [{ value: "false", label: "No (recommended)" }, { value: "true", label: "Yes" }];
                 active-item: Logic.config.remove-sources-games;
-
-                selected(value) => Logic.set-remove-sources-games(value);
+                set-property: Action.SetRemoveSourcesGames;
             }
 
             SettingCard {
@@ -102,8 +98,7 @@ export component SettingsPage inherits VerticalLayout {
                 label: "Delete sources when adding apps";
                 items: [{ value: "false", label: "No (recommended)" }, { value: "true", label: "Yes" }];
                 active-item: Logic.config.remove-sources-apps;
-
-                selected(value) => Logic.set-remove-sources-apps(value);
+                set-property: Action.SetRemoveSourcesApps;
             }
 
             SettingCard {
@@ -115,8 +110,7 @@ export component SettingsPage inherits VerticalLayout {
                     { value: "Rc24", label: "codes.rc24.xyz" }
                 ];
                 active-item: Logic.config.txt-codes-source;
-
-                selected(value) => Logic.set-txt-codes-source(value);
+                set-property: Action.SetTxtCodesSource;
             }
 
             SettingCard {
@@ -128,16 +122,15 @@ export component SettingsPage inherits VerticalLayout {
                     { value: "Dark", label: "Dark" }
                 ];
                 active-item: Logic.config.theme-preference;
+                set-property: Action.SetThemePreference;
 
-                selected(value) => {
-                    Logic.set-theme-preference(value);
-
-                    if value == "Light" {
+                changed() => {
+                    if Logic.config.theme-preference == "Light" {
                         Palette.color-scheme = ColorScheme.light;
-                        Logic.set-window-color(false);
-                    } else if value == "Dark" {
+                        Logic.dispatch(Action.SetWindowColor, "false")
+                    } else if Logic.config.theme-preference == "Dark" {
                         Palette.color-scheme = ColorScheme.dark;
-                        Logic.set-window-color(true);
+                        Logic.dispatch(Action.SetWindowColor, "true")
                     }
                 }
             }
@@ -158,8 +151,7 @@ export component SettingsPage inherits VerticalLayout {
                     { value: "Finnish", label: "Finnish" }
                 ];
                 active-item: Logic.config.preferred-language;
-
-                selected(value) => Logic.set-preferred-language(value);
+                set-property: Action.SetPreferredLanguage;
             }
         }
     }

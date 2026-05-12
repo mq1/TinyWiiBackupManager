@@ -5,6 +5,7 @@ import { Logic } from "../logic.slint";
 import { StyleMetrics } from "std-widgets.slint";
 import { MyPalette } from "../styling.slint";
 import { IconDisplay, Icon, IconSet } from "@lucide";
+import { Action } from "../types.slint";
 
 export component Link inherits Rectangle {
     in property <string> label;
@@ -44,6 +45,6 @@ export component Link inherits Rectangle {
         height: t.height;
         width: 17px + t.width;
         mouse-cursor: pointer;
-        clicked => Logic.open-that(uri);
+        clicked => Logic.dispatch(Action.OpenThat, uri);
     }
 }

@@ -12,10 +12,11 @@ import {
 } from "components/homebrew-apps-other-toolbar.slint";
 import { HomebrewAppRow } from "components/homebrew-app-row.slint";
 import { Logic } from "logic.slint";
+import { DisplayedHomebrewApp } from "types.slint";
 
 export component HomebrewAppsTablePage inherits VerticalLayout {
-    callback open-info(int);
-    callback delete-app(int);
+    callback open-info(DisplayedHomebrewApp);
+    callback delete-app(DisplayedHomebrewApp);
 
     VerticalLayout {
         padding: 10px;
@@ -42,8 +43,8 @@ export component HomebrewAppsTablePage inherits VerticalLayout {
                     for app[i] in Logic.homebrew-apps: VerticalLayout {
                         HomebrewAppRow {
                             app: app;
-                            open-info() => open-info(i);
-                            delete() => delete-app(i);
+                            open-info() => open-info(app);
+                            delete() => delete-app(app);
                         }
 
                         HorizontalLine { }

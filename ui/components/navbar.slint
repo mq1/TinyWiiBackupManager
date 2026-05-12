@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import { IconSet } from "@lucide";
-import { Page } from "../types.slint";
+import { Page, Action } from "../types.slint";
 import { NavbarButton } from "navbar-button.slint";
 import { Logic } from "../logic.slint";
 
@@ -41,7 +41,7 @@ export component Navbar inherits VerticalLayout {
             tooltip: "Open Shop Channel";
             clicked => {
                 current-page = Page.Osc;
-                Logic.download-osc-icons();
+                Logic.dispatch(Action.DownloadOscIcons, "");
             }
         }
 
@@ -81,13 +81,17 @@ export component Navbar inherits VerticalLayout {
         if !Logic.latest-version.is-empty: NavbarButton {
             icon: IconSet.BellPlus;
             tooltip: "New TinyWiiBackupManager version available: \{Logic.latest-version}";
-            clicked => Logic.open-that("https://github.com/mq1/TinyWiiBackupManager/releases/latest");
+            clicked => Logic.dispatch(Action.OpenThat, "https://github.com/mq1/TinyWiiBackupManager/releases/latest");
         }
 
         NavbarButton {
             icon: IconSet.HardDrive;
             tooltip: "Select a drive";
-            clicked => Logic.pick-mount-point();
+            clicked => {
+                Logic.dispatch(Action.PickMountPoint, "");
+                Logic.dispatch(Action.RefreshAll, "");
+                Logic.dispatch(Action.PairHomebrewOsc, "");
+            }
         }
 
         NavbarButton {

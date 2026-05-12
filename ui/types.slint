@@ -45,7 +45,6 @@ export struct DisplayedDiscInfo {
 }
 
 export struct DisplayedGame {
-    uid: int,
     path: string,
     is-wii: bool,
     size-gib: float,
@@ -56,7 +55,6 @@ export struct DisplayedGame {
 }
 
 export struct DisplayedOscApp {
-    uid: int,
     slug: string,
     name: string,
     author: string,
@@ -71,7 +69,6 @@ export struct DisplayedOscApp {
 }
 
 export struct DisplayedHomebrewApp {
-    uid: int,
     path: string,
     slug: string,
     size-mib: float,
@@ -113,4 +110,66 @@ export struct DisplayedDriveInfo {
 export struct Notification {
     text: string,
     critical: bool,
+}
+
+export enum Action {
+    SyncConfig,
+    PickMountPoint,
+    ToggleShowWii,
+    ToggleShowGc,
+    SetWiiOutputFormat,
+    SetGcOutputFormat,
+    SetAlwaysSplit,
+    SetScrubUpdatePartition,
+    SetRemoveSourcesGames,
+    SetRemoveSourcesApps,
+    SetTxtCodesSource,
+    SetThemePreference,
+    SetViewAs,
+    SetSortBy,
+    SetPreferredLanguage,
+    RefreshAll,
+    NotifyInfo,
+    NotifyError,
+    PairHomebrewOsc,
+    OpenThat,
+    SetWindowColor,
+    DownloadOscIcons,
+    RunDotClean,
+    CheckForUpdates,
+    SetLatestVersion,
+    CacheOscContents,
+    OscContentsCached,
+    CloseNotification,
+    LoadGameInfo,
+    ArchiveGame,
+    Checksum,
+    ScrubGame,
+    ScrubAllGames,
+    DeleteGame,
+    DeleteHomebrewApp,
+    ClearConversionQueueBuffer,
+    ConfirmConversionQueueBuffer,
+    CheckMountPoint,
+    PickGames,
+    FilterGames,
+    FilterHomebrewApps,
+    FilterOscApps,
+    DownloadTxtCodes,
+    PickHomebrewApps,
+    InstallOscApp,
+    DownloadAllCovers,
+    DownloadAllBanners,
+    NormalizeDirLayout,
+    WiiloadLocalFile,
+    ArchiveManually,
+    CancelAllConversions,
+    CancelConversion,
+    WiiloadOscApp,
+    TriggerConversion,
+    ReloadOscIcon,
+    SetStatus,
+    ReloadCover,
+    FinishedDownloadingCovers,
+    SetCrc32Status
 }

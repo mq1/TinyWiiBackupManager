@@ -4,10 +4,7 @@
 use crate::{DisplayedHomebrewApp, DisplayedOscApp, util::MIB};
 use slint::{Image, Rgba8Pixel, SharedPixelBuffer, SharedString, ToSharedString};
 use std::{cell::RefCell, cmp::Ordering, path::Path, rc::Rc};
-use twbm_core::{
-    config::{Config, SortBy},
-    homebrew_app::HomebrewApp,
-};
+use twbm_core::{config::SortBy, homebrew_app::HomebrewApp};
 
 impl From<&HomebrewApp> for DisplayedHomebrewApp {
     fn from(app: &HomebrewApp) -> Self {
@@ -22,7 +19,6 @@ impl From<&HomebrewApp> for DisplayedHomebrewApp {
         let search_term = format!("{}\0{}", app.meta.name, slug).to_lowercase();
 
         Self {
-            uid: app.uid,
             slug: slug.to_shared_string(),
             path: app.path.to_string_lossy().to_shared_string(),
             size_mib: app.size as f32 / MIB,
@@ -46,17 +42,13 @@ impl DisplayedHomebrewApp {
 }
 
 pub fn get_compare_fn(
-    config: Rc<RefCell<Config>>,
+    sort_by: Rc<RefCell<SortBy>>,
 ) -> impl Fn(&DisplayedHomebrewApp, &DisplayedHomebrewApp) -> Ordering {
-    move |a, b| {
-        let config = config.borrow();
-
-        match config.contents.sort_by {
-            SortBy::NameDescending => a.name.cmp(&b.name),
-            SortBy::NameAscending => b.name.cmp(&a.name),
-            SortBy::SizeDescending => a.size_mib.total_cmp(&b.size_mib),
-            SortBy::SizeAscending => b.size_mib.total_cmp(&a.size_mib),
-        }
+    move |a, b| match *sort_by.borrow() {
+        SortBy::NameDescending => a.name.cmp(&b.name),
+        SortBy::NameAscending => b.name.cmp(&a.name),
+        SortBy::SizeDescending => a.size_mib.total_cmp(&b.size_mib),
+        SortBy::SizeAscending => b.size_mib.total_cmp(&a.size_mib),
     }
 }
 

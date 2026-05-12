@@ -4,11 +4,7 @@
 use crate::{DisplayedGame, util::GIB};
 use slint::{Image, SharedString, ToSharedString};
 use std::{cell::RefCell, cmp::Ordering, path::Path, rc::Rc};
-use twbm_core::{
-    config::{Config, SortBy},
-    data_dir::DATA_DIR,
-    game::Game,
-};
+use twbm_core::{config::SortBy, data_dir::DATA_DIR, game::Game};
 
 impl From<&Game> for DisplayedGame {
     fn from(game: &Game) -> Self {
@@ -17,7 +13,6 @@ impl From<&Game> for DisplayedGame {
         let search_term = format!("{}\0{}", game.title, game.id).to_lowercase();
 
         Self {
-            uid: game.uid,
             id: game.id.to_shared_string(),
             title: game.title.to_shared_string(),
             path: game.path.to_string_lossy().to_shared_string(),
@@ -38,32 +33,27 @@ impl DisplayedGame {
 }
 
 pub fn get_compare_fn(
-    config: Rc<RefCell<Config>>,
-) -> impl Fn(&DisplayedGame, &DisplayedGame) -> Ordering {
-    move |a, b| {
-        let config = config.borrow();
-
-        match config.contents.sort_by {
-            SortBy::NameDescending => a.title.cmp(&b.title),
-            SortBy::NameAscending => b.title.cmp(&a.title),
-            SortBy::SizeDescending => a.size_gib.total_cmp(&b.size_gib),
-            SortBy::SizeAscending => b.size_gib.total_cmp(&a.size_gib),
-        }
+    config: Rc<RefCell<SortBy>>,
+) -> impl Fn(&DisplayedGame, &DisplayedGame) -> Ordering + 'static {
+    move |a, b| match *config.borrow() {
+        SortBy::NameDescending => a.title.cmp(&b.title),
+        SortBy::NameAscending => b.title.cmp(&a.title),
+        SortBy::SizeDescending => a.size_gib.total_cmp(&b.size_gib),
+        SortBy::SizeAscending => b.size_gib.total_cmp(&a.size_gib),
     }
 }
 
 pub fn get_filter_fn(
     query_lowercase: Rc<RefCell<SharedString>>,
-    config: Rc<RefCell<Config>>,
+    show_wii: Rc<RefCell<bool>>,
+    show_gc: Rc<RefCell<bool>>,
 ) -> impl Fn(&DisplayedGame) -> bool {
     move |game| {
-        let config = config.borrow();
-
-        if !config.contents.show_wii && game.is_wii {
+        if !*show_wii.borrow() && game.is_wii {
             return false;
         }
 
-        if !config.contents.show_gc && !game.is_wii {
+        if !*show_gc.borrow() && !game.is_wii {
             return false;
         }
 

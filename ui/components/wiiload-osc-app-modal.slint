@@ -6,7 +6,7 @@ import { HorizontalLine } from "horizontal-line.slint";
 import { IconButton, IconButtonKind } from "icon-button.slint";
 import { IconSet } from "@lucide";
 import { Logic } from "../logic.slint";
-import { DisplayedOscApp } from "../types.slint";
+import { DisplayedOscApp, Action } from "../types.slint";
 import { LineEdit } from "std-widgets.slint";
 
 export component WiiloadOscAppModal inherits Modal {
@@ -64,7 +64,7 @@ export component WiiloadOscAppModal inherits Modal {
                     kind: IconButtonKind.Primary;
                     icon: IconSet.MonitorUp;
                     clicked => {
-                        Logic.wiiload-osc-app(ip.text, app.uid);
+                        Logic.dispatch(Action.WiiloadOscApp, ip.text + "\u{0}" + app.slug);
                         closed();
                     }
                 }
