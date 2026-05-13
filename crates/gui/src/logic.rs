@@ -10,6 +10,7 @@ use slint::{
     FilterModel, Global, Image, Model, ModelRc, SharedString, SortModel, ToSharedString, VecModel,
     Window,
 };
+use smallvec::SmallVec;
 use std::{
     cell::RefCell,
     ffi::OsStr,
@@ -97,7 +98,7 @@ impl Logic<'_> {
         let weak = self.as_weak();
         let window_handle = window.window_handle();
         let mut process_action =
-            move |action, args: &str, action_queue: &mut Vec<(Action, SharedString)>| {
+            move |action, args: &str, action_queue: &mut SmallVec<(Action, SharedString), 100>| {
                 let mut args = args.split('\0');
 
                 match action {
@@ -933,7 +934,7 @@ impl Logic<'_> {
                 }
             };
 
-        let mut action_queue = Vec::new();
+        let mut action_queue = SmallVec::new();
         self.on_dispatch(move |action, args| {
             action_queue.push((action, args));
 

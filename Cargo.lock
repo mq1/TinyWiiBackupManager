@@ -1446,7 +1446,7 @@ dependencies = [
  "lebe",
  "miniz_oxide 0.8.9",
  "rayon-core",
- "smallvec",
+ "smallvec 1.15.1",
  "zune-inflate",
 ]
 
@@ -1588,7 +1588,7 @@ dependencies = [
  "parlance",
  "read-fonts",
  "roxmltree",
- "smallvec",
+ "smallvec 1.15.1",
  "windows 0.62.2",
  "windows-core 0.62.2",
  "yeslogic-fontconfig-sys",
@@ -1971,7 +1971,7 @@ dependencies = [
  "bytemuck",
  "core_maths",
  "read-fonts",
- "smallvec",
+ "smallvec 1.15.1",
 ]
 
 [[package]]
@@ -2424,7 +2424,7 @@ dependencies = [
  "icu_normalizer_data",
  "icu_properties",
  "icu_provider",
- "smallvec",
+ "smallvec 1.15.1",
  "zerovec",
 ]
 
@@ -2505,7 +2505,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3b0875f23caa03898994f6ddc501886a45c7d3d62d04d2d90788d47be1b1e4de"
 dependencies = [
  "idna_adapter",
- "smallvec",
+ "smallvec 1.15.1",
  "utf8_iter",
 ]
 
@@ -2801,7 +2801,7 @@ checksum = "7564e90fe3c0d5771e1f0bc95322b21baaeaa0d9213fa6a0b61c99f8b17b3bfb"
 dependencies = [
  "arrayvec",
  "euclid",
- "smallvec",
+ "smallvec 1.15.1",
 ]
 
 [[package]]
@@ -4630,7 +4630,7 @@ dependencies = [
  "bytemuck",
  "core_maths",
  "log",
- "smallvec",
+ "smallvec 1.15.1",
  "ttf-parser",
  "unicode-bidi-mirroring",
  "unicode-ccc",
@@ -4972,6 +4972,12 @@ name = "smallvec"
 version = "1.15.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "67b1b7a3b5fe4f1376887184045fcf45c69e92af734b7aaddc05fb777b6fbd03"
+
+[[package]]
+name = "smallvec"
+version = "2.0.0-alpha.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ef784004ca8777809dcdad6ac37629f0a97caee4c685fcea805278d81dd8b857"
 
 [[package]]
 name = "smithay-client-toolkit"
@@ -5597,6 +5603,7 @@ dependencies = [
  "rfd",
  "slint",
  "slint-build",
+ "smallvec 2.0.0-alpha.12",
  "time",
  "twbm-core",
  "walkdir",
@@ -6012,7 +6019,7 @@ dependencies = [
  "downcast-rs",
  "rustix 1.1.4",
  "scoped-tls",
- "smallvec",
+ "smallvec 1.15.1",
  "wayland-sys",
 ]
 
