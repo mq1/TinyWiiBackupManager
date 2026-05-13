@@ -800,22 +800,22 @@ impl Logic<'_> {
                             let res = twbm_core::banners::download_banners(&mount_point, &ids);
 
                             let _ = weak.upgrade_in_event_loop(move |logic| match res {
-                            Ok(failed_ids) if failed_ids.is_empty() => {
-                                let msg = "All banners downloaded successfully".to_shared_string();
-                                logic.invoke_dispatch(Action::NotifyInfo, msg);
-                            }
-                            Ok(failed_ids) => {
-                                let failed_ids = twbm_core::game_id::make_list_string(&failed_ids);
-                                let msg = slint::format!(
-                                    "Banners downloaded successfully\nExcept the following: {failed_ids}"
-                                );
-                                logic.invoke_dispatch(Action::NotifyError, msg);
-                            }
-                            Err(e) => {
-                                let msg = slint::format!("Failed to download banners: {e}");
-                                logic.invoke_dispatch(Action::NotifyError, msg);
-                            }
-                        });
+                                Ok(failed_ids) if failed_ids.is_empty() => {
+                                    let msg = "All banners downloaded successfully".to_shared_string();
+                                    logic.invoke_dispatch(Action::NotifyInfo, msg);
+                                }
+                                Ok(failed_ids) => {
+                                    let failed_ids = twbm_core::game_id::make_list_string(&failed_ids);
+                                    let msg = slint::format!(
+                                        "Banners downloaded successfully\nExcept the following: {failed_ids}"
+                                    );
+                                    logic.invoke_dispatch(Action::NotifyError, msg);
+                                }
+                                Err(e) => {
+                                    let msg = slint::format!("Failed to download banners: {e}");
+                                    logic.invoke_dispatch(Action::NotifyError, msg);
+                                }
+                            });
                         });
                     }
                     Action::ArchiveManually => {
