@@ -195,12 +195,12 @@ impl Logic<'_> {
 
                         #[cfg(windows)]
                         match value {
-                            ThemePreference::System => {}
-                            ThemePreference::Light => {
+                            twbm_core::config::ThemePreference::System => {}
+                            twbm_core::config::ThemePreference::Light => {
                                 action_queue
                                     .push((Action::SetWindowColor, "false".to_shared_string()));
                             }
-                            ThemePreference::Dark => {
+                            twbm_core::config::ThemePreference::Dark => {
                                 action_queue
                                     .push((Action::SetWindowColor, "true".to_shared_string()));
                             }
