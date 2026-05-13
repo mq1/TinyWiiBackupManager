@@ -97,7 +97,6 @@ impl Logic<'_> {
         let weak = self.as_weak();
         let window_handle = window.window_handle();
         let mut process_action = move |action, args: SharedString| {
-            let logic = weak.upgrade().unwrap();
             let mut args = args.split('\0');
 
             match action {
@@ -114,6 +113,8 @@ impl Logic<'_> {
                     Vec::new()
                 }
                 Action::SyncConfig => {
+                    let logic = weak.upgrade().unwrap();
+
                     logic.set_config(DisplayedConfig::from(&config));
 
                     if let Err(e) = config.write() {
@@ -276,6 +277,8 @@ impl Logic<'_> {
                     vec![(Action::SyncConfig, SharedString::new())]
                 }
                 Action::RefreshAll => {
+                    let logic = weak.upgrade().unwrap();
+
                     let root_path = &config.contents.mount_point;
 
                     let new_games = games::scan_drive(root_path);
@@ -414,6 +417,8 @@ impl Logic<'_> {
                     Vec::new()
                 }
                 Action::OscContentsCached => {
+                    let logic = weak.upgrade().unwrap();
+
                     let (new, hours, minutes) =
                         twbm_core::osc::load_contents(&DATA_DIR).unwrap_or_default();
 
@@ -565,7 +570,9 @@ impl Logic<'_> {
                     Vec::new()
                 }
                 Action::SetCrc32Status => {
+                    let logic = weak.upgrade().unwrap();
                     let status = args.next().unwrap();
+
                     logic.set_crc32_status(status.to_shared_string());
 
                     Vec::new()
@@ -877,7 +884,9 @@ impl Logic<'_> {
                     Vec::new()
                 }
                 Action::SetLatestVersion => {
+                    let logic = weak.upgrade().unwrap();
                     let version = args.next().unwrap();
+
                     logic.set_latest_version(version.into());
 
                     Vec::new()
@@ -889,6 +898,7 @@ impl Logic<'_> {
                     if let Some(disc_path) = game.get_disc_path()
                         && let Some(info) = DiscInfo::from_path(disc_path)
                     {
+                        let logic = weak.upgrade().unwrap();
                         let info = DisplayedDiscInfo::from(&info);
                         logic.set_current_disc_info(info);
                     }
@@ -934,7 +944,9 @@ impl Logic<'_> {
                     Vec::new()
                 }
                 Action::SetStatus => {
+                    let logic = weak.upgrade().unwrap();
                     let status = args.next().unwrap();
+
                     logic.set_status(status.to_shared_string());
 
                     Vec::new()
