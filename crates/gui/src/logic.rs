@@ -129,6 +129,8 @@ impl Logic<'_> {
                         }
 
                         action_queue.push((Action::SyncConfig, SharedString::new()));
+                        action_queue.push((Action::RefreshAll, SharedString::new()));
+                        action_queue.push((Action::PairHomebrewOsc, SharedString::new()));
                     }
                     Action::ToggleShowWii => {
                         config.contents.show_wii = !config.contents.show_wii;

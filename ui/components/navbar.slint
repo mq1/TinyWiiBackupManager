@@ -87,11 +87,7 @@ export component Navbar inherits VerticalLayout {
         NavbarButton {
             icon: IconSet.HardDrive;
             tooltip: "Select a drive";
-            clicked => {
-                Logic.dispatch(Action.PickMountPoint, "");
-                Logic.dispatch(Action.RefreshAll, "");
-                Logic.dispatch(Action.PairHomebrewOsc, "");
-            }
+            clicked => Logic.dispatch(Action.PickMountPoint, "");
         }
 
         NavbarButton {
