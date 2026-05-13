@@ -50,34 +50,29 @@ fn main() -> Result<()> {
     let mut state = new_state();
 
     // Initialize UI state
-    {
-        let ui_state = app.global::<UiState<'_>>();
-        ui_state.set_app_version(env!("CARGO_PKG_VERSION").to_shared_string());
-        ui_state.set_data_dir(DATA_DIR.to_string_lossy().to_shared_string());
-        ui_state.set_config(DisplayedConfig::from(&state.config));
-        ui_state.set_games(ModelRc::from(state.filtered_games.clone()));
-        ui_state.set_homebrew_apps(ModelRc::from(state.filtered_homebrew_apps.clone()));
-        ui_state.set_osc_apps(ModelRc::from(state.filtered_osc_apps.clone()));
-        ui_state.set_notifications(ModelRc::from(state.notifications.clone()));
-        ui_state.set_conversion_queue(ModelRc::from(state.conversion_queue.clone()));
-        ui_state.set_conversion_queue_buffer(ModelRc::from(state.conversion_queue_buffer.clone()));
-    }
+    let ui_state = app.global::<UiState<'_>>();
+    ui_state.set_app_version(env!("CARGO_PKG_VERSION").to_shared_string());
+    ui_state.set_data_dir(DATA_DIR.to_string_lossy().to_shared_string());
+    ui_state.set_config(DisplayedConfig::from(&state.config));
+    ui_state.set_games(ModelRc::from(state.filtered_games.clone()));
+    ui_state.set_homebrew_apps(ModelRc::from(state.filtered_homebrew_apps.clone()));
+    ui_state.set_osc_apps(ModelRc::from(state.filtered_osc_apps.clone()));
+    ui_state.set_notifications(ModelRc::from(state.notifications.clone()));
+    ui_state.set_conversion_queue(ModelRc::from(state.conversion_queue.clone()));
+    ui_state.set_conversion_queue_buffer(ModelRc::from(state.conversion_queue_buffer.clone()));
 
     // Process messages
-    {
-        let mut message_queue = SmallVec::<_, 100>::new();
-        let weak = app.as_weak();
-        let dispatcher = app.global::<Dispatcher<'_>>();
-        dispatcher.on_dispatch(move |message, args| {
-            message_queue.push((message, args));
+    let mut message_queue = SmallVec::<_, 100>::new();
+    let weak = app.as_weak();
+    let dispatcher = app.global::<Dispatcher<'_>>();
+    dispatcher.on_dispatch(move |message, args| {
+        message_queue.push((message, args));
 
-            while let Some((message, args)) = message_queue.pop() {
-                update(&mut state, &weak, message, args, &mut message_queue);
-            }
-        });
-
-        dispatcher.invoke_dispatch(Message::RefreshAll, SharedString::new());
-    }
+        while let Some((message, args)) = message_queue.pop() {
+            update(&mut state, &weak, message, args, &mut message_queue);
+        }
+    });
+    dispatcher.invoke_dispatch(Message::RefreshAll, SharedString::new());
 
     if let Err(e) = app.run() {
         if std::env::var("SLINT_BACKEND").unwrap_or_default() == "winit-software" {
