@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{DisplayedHomebrewApp, DisplayedOscApp, util::MIB};
-use slint::{Image, Rgba8Pixel, SharedPixelBuffer, SharedString, ToSharedString};
+use slint::{Image, Rgba8Pixel, SharedPixelBuffer, ToSharedString};
 use std::{cell::RefCell, cmp::Ordering, path::Path, rc::Rc};
 use twbm_core::{config::SortBy, homebrew_app::HomebrewApp};
 
@@ -53,7 +53,7 @@ pub fn get_compare_fn(
 }
 
 pub fn get_filter_fn(
-    query_lowercase: Rc<RefCell<SharedString>>,
+    query_lowercase: Rc<RefCell<String>>,
 ) -> impl Fn(&DisplayedHomebrewApp) -> bool {
     move |app| {
         let query_lowercase = query_lowercase.borrow();
@@ -62,7 +62,7 @@ pub fn get_filter_fn(
             return true;
         }
 
-        app.search_term.contains(query_lowercase.as_str())
+        app.search_term.contains(&*query_lowercase)
     }
 }
 

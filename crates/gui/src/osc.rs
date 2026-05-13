@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{Action, DisplayedOscApp, Logic, util::MIB};
-use slint::{Image, SharedString, ToSharedString, Weak};
+use slint::{Image, ToSharedString, Weak};
 use std::{cell::RefCell, fs, rc::Rc};
 use time::UtcDateTime;
 use twbm_core::{data_dir::DATA_DIR, osc::OscAppMeta};
@@ -45,9 +45,7 @@ pub fn download_icons(apps: &[OscAppMeta], weak: Weak<Logic<'static>>) {
     }
 }
 
-pub fn get_filter_fn(
-    query_lowercase: Rc<RefCell<SharedString>>,
-) -> impl Fn(&DisplayedOscApp) -> bool {
+pub fn get_filter_fn(query_lowercase: Rc<RefCell<String>>) -> impl Fn(&DisplayedOscApp) -> bool {
     move |app| {
         let query_lowercase = query_lowercase.borrow();
 
@@ -55,6 +53,6 @@ pub fn get_filter_fn(
             return true;
         }
 
-        app.search_term.contains(query_lowercase.as_str())
+        app.search_term.contains(&*query_lowercase)
     }
 }

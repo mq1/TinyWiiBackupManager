@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{DisplayedGame, util::GIB};
-use slint::{Image, SharedString, ToSharedString};
+use slint::{Image, ToSharedString};
 use std::{cell::RefCell, cmp::Ordering, path::Path, rc::Rc};
 use twbm_core::{config::SortBy, data_dir::DATA_DIR, game::Game};
 
@@ -44,7 +44,7 @@ pub fn get_compare_fn(
 }
 
 pub fn get_filter_fn(
-    query_lowercase: Rc<RefCell<SharedString>>,
+    query_lowercase: Rc<RefCell<String>>,
     show_wii: Rc<RefCell<bool>>,
     show_gc: Rc<RefCell<bool>>,
 ) -> impl Fn(&DisplayedGame) -> bool {
@@ -63,7 +63,7 @@ pub fn get_filter_fn(
             return true;
         }
 
-        game.search_term.contains(query_lowercase.as_str())
+        game.search_term.contains(&*query_lowercase)
     }
 }
 
