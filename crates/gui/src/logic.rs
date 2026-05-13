@@ -98,7 +98,9 @@ impl Logic<'_> {
         let weak = self.as_weak();
         let window_handle = window.window_handle();
         let mut process_action =
-            move |action, args: &str, action_queue: &mut SmallVec<(Action, SharedString), 100>| {
+            move |action: Action,
+                  args: SharedString,
+                  action_queue: &mut SmallVec<(Action, SharedString), 100>| {
                 let mut args = args.split('\0');
 
                 match action {
@@ -939,7 +941,7 @@ impl Logic<'_> {
             action_queue.push((action, args));
 
             while let Some((action, args)) = action_queue.pop() {
-                process_action(action, &args, &mut action_queue);
+                process_action(action, args, &mut action_queue);
             }
         });
 
