@@ -24,12 +24,12 @@ use twbm_core::{
 
 const NEW_DRIVE_TEXT: &str = "New drive detected (or a breaking TWBM update has been installed), a path normalization run is recommended\nYou can find it in the Toolbox page";
 
-pub fn update<SG, SH, FG, FH, FO>(
+pub fn update<SG, SH, FG, FH, FO, const N: usize>(
     state: &mut State<SG, SH, FG, FH, FO>,
     weak: &Weak<AppWindow>,
     message: Message,
     args: SharedString,
-    message_queue: &mut SmallVec<(Message, SharedString), 100>,
+    message_queue: &mut SmallVec<(Message, SharedString), N>,
 ) where
     SG: FnMut(&DisplayedGame, &DisplayedGame) -> std::cmp::Ordering + 'static,
     SH: FnMut(&DisplayedHomebrewApp, &DisplayedHomebrewApp) -> std::cmp::Ordering + 'static,

@@ -65,7 +65,7 @@ fn main() -> Result<()> {
 
     // Process messages
     {
-        let mut message_queue = SmallVec::new();
+        let mut message_queue = SmallVec::<_, 100>::new();
         let weak = app.as_weak();
         let dispatcher = app.global::<Dispatcher<'_>>();
         dispatcher.on_dispatch(move |message, args| {
