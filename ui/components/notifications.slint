@@ -5,8 +5,8 @@ import { Card } from "card.slint";
 import { IconButton } from "icon-button.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { MyPalette } from "../styling.slint";
-import { Logic } from "../logic.slint";
-import { Action } from "../types.slint";
+import { UiState } from "../ui-state.slint";
+import { Message, Dispatcher } from "../messages.slint";
 
 export component Notifications inherits TouchArea {
     width: v.width;
@@ -18,7 +18,7 @@ export component Notifications inherits TouchArea {
         padding: 10px;
         spacing: 5px;
 
-        for notification[i] in Logic.notifications: Card {
+        for notification[i] in UiState.notifications: Card {
             height: 40px;
 
             h := HorizontalLayout {
@@ -47,7 +47,7 @@ export component Notifications inherits TouchArea {
 
                     IconButton {
                         icon: IconSet.X;
-                        clicked => Logic.dispatch(Action.CloseNotification, i);
+                        clicked => Dispatcher.dispatch(Message.CloseNotification, i);
                         rounded: true;
                         height: 24px;
                         width: 24px;

@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{Action, ConversionKind, Logic, QueuedConversion};
-use slint::{SharedString, Weak};
+use crate::{AppWindow, ConversionKind, Dispatcher, Message, QueuedConversion, UiState};
+use slint::{ComponentHandle, SharedString, Weak};
 use std::path::PathBuf;
 use twbm_core::{config::Config, drive_info::DriveInfo};
 
@@ -33,7 +33,7 @@ impl Conversion {
         }
     }
 
-    pub fn perform(self, config: Config, drive_info: DriveInfo, weak: Weak<Logic<'static>>) {
+    pub fn perform(self, config: Config, drive_info: DriveInfo, weak: Weak<AppWindow>) {
         let res = match self {
             Conversion::Standard(in_path) => {
                 let filename = in_path
@@ -45,8 +45,8 @@ impl Conversion {
                 let update_progress = move |percentage| {
                     let status = slint::format!("↑  Converting  {filename}  {percentage}%");
 
-                    let _ = weak2.upgrade_in_event_loop(move |logic| {
-                        logic.set_status(status);
+                    let _ = weak2.upgrade_in_event_loop(move |app| {
+                        app.global::<UiState<'_>>().set_status(status);
                     });
                 };
 
@@ -62,8 +62,8 @@ impl Conversion {
                 let update_progress = move |percentage| {
                     let status = slint::format!("↓  Archiving  {filename}  {percentage}%");
 
-                    let _ = weak2.upgrade_in_event_loop(move |logic| {
-                        logic.set_status(status);
+                    let _ = weak2.upgrade_in_event_loop(move |app| {
+                        app.global::<UiState<'_>>().set_status(status);
                     });
                 };
 
@@ -74,8 +74,8 @@ impl Conversion {
                 let update_progress = move |percentage| {
                     let status = slint::format!("↔  Scrubbing  {game_title}  {percentage}%");
 
-                    let _ = weak2.upgrade_in_event_loop(move |logic| {
-                        logic.set_status(status);
+                    let _ = weak2.upgrade_in_event_loop(move |app| {
+                        app.global::<UiState<'_>>().set_status(status);
                     });
                 };
 
@@ -89,17 +89,19 @@ impl Conversion {
             }
         };
 
-        let _ = weak.upgrade_in_event_loop(move |logic| {
-            logic.invoke_dispatch(Action::SetStatus, SharedString::new());
+        let _ = weak.upgrade_in_event_loop(move |app| {
+            let dispatcher = app.global::<Dispatcher<'_>>();
+
+            dispatcher.invoke_dispatch(Message::SetStatus, SharedString::new());
 
             if let Err(e) = res {
-                let msg = slint::format!("Conversion failed: {e}");
-                logic.invoke_dispatch(Action::NotifyError, msg);
+                let text = slint::format!("Conversion failed: {e}");
+                dispatcher.invoke_dispatch(Message::NotifyError, text);
             } else {
-                logic.invoke_dispatch(Action::TriggerConversion, SharedString::new());
+                dispatcher.invoke_dispatch(Message::TriggerConversion, SharedString::new());
             }
 
-            logic.invoke_dispatch(Action::RefreshAll, SharedString::new());
+            dispatcher.invoke_dispatch(Message::RefreshAll, SharedString::new());
         });
     }
 }

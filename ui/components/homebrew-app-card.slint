@@ -6,15 +6,12 @@ import { DisplayedHomebrewApp } from "../types.slint";
 import { IconButton } from "icon-button.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { MyPalette } from "../styling.slint";
-import { Logic } from "../logic.slint";
+import { UiState } from "../ui-state.slint";
 import { TooltipArea } from "tooltip-area.slint";
-import { Action } from "../types.slint";
+import { Message, Dispatcher } from "../messages.slint";
 
 export component HomebrewAppCard inherits Card {
     in property <DisplayedHomebrewApp> app;
-
-    callback open-info();
-    callback delete();
 
     private property <string> update: app.osc-app.version == app.version ? "" : app.osc-app.version;
 
@@ -81,21 +78,25 @@ export component HomebrewAppCard inherits Card {
             IconButton {
                 label: "Info";
                 icon: IconSet.Info;
-                clicked => open-info();
+                clicked => {
+                    UiState.current-homebrew-app = app;
+                }
             }
 
             if !update.is-empty: IconButton {
                 width: self.height + 1px;
                 icon: IconSet.ArrowUp;
                 tooltip: "Update app to \{update}";
-                clicked => Logic.dispatch(Action.InstallOscApp, app.osc-app.slug);
+                clicked => Dispatcher.dispatch(Message.InstallOscApp, app.osc-app.slug);
             }
 
             IconButton {
                 width: self.height + 1px;
                 icon: IconSet.Trash;
                 tooltip: "Delete app";
-                clicked => delete();
+                clicked => {
+                    UiState.homebrew-app-to-delete = app;
+                }
             }
         }
     }

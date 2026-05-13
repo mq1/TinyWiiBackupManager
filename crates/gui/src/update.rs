@@ -1,19 +1,18 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::{
+    AppWindow, ConversionKind, Dispatcher, DisplayedConfig, DisplayedDiscInfo, DisplayedDriveInfo,
+    DisplayedGame, DisplayedHomebrewApp, DisplayedOscApp, Message, Notification, QueuedConversion,
+    UiState, convert::Conversion, covers, dialogs, games, homebrew_apps, osc, state::State,
+};
+use slint::{ComponentHandle, Image, Model, SharedString, ToSharedString, Weak};
+use smallvec::SmallVec;
 use std::{
     ffi::OsStr,
     fs::{self, File},
     path::Path,
 };
-
-use crate::{
-    Action, ConversionKind, DisplayedConfig, DisplayedDiscInfo, DisplayedDriveInfo, DisplayedGame,
-    DisplayedHomebrewApp, DisplayedOscApp, Logic, Notification, QueuedConversion,
-    convert::Conversion, covers, dialogs, games, homebrew_apps, osc, state::State,
-};
-use slint::{Image, Model, SharedString, ToSharedString, Weak};
-use smallvec::SmallVec;
 use twbm_core::{
     checksum,
     data_dir::DATA_DIR,
@@ -27,11 +26,10 @@ const NEW_DRIVE_TEXT: &str = "New drive detected (or a breaking TWBM update has 
 
 pub fn update<SG, SH, FG, FH, FO>(
     state: &mut State<SG, SH, FG, FH, FO>,
-    weak: &Weak<Logic<'static>>,
-    window_handle: &slint::WindowHandle,
-    action: Action,
+    weak: &Weak<AppWindow>,
+    message: Message,
     args: SharedString,
-    action_queue: &mut SmallVec<(Action, SharedString), 100>,
+    message_queue: &mut SmallVec<(Message, SharedString), 100>,
 ) where
     SG: FnMut(&DisplayedGame, &DisplayedGame) -> std::cmp::Ordering + 'static,
     SH: FnMut(&DisplayedHomebrewApp, &DisplayedHomebrewApp) -> std::cmp::Ordering + 'static,
@@ -41,27 +39,31 @@ pub fn update<SG, SH, FG, FH, FO>(
 {
     let mut args = args.split('\0');
 
-    match action {
-        Action::NotifyInfo => {
-            let msg = args.next().unwrap();
-            state.notifications.push(Notification::info(msg));
+    match message {
+        Message::NotifyInfo => {
+            let text = args.next().unwrap();
+            state.notifications.push(Notification::info(text));
         }
-        Action::NotifyError => {
-            let msg = args.next().unwrap();
-            state.notifications.push(Notification::error(msg));
+        Message::NotifyError => {
+            let text = args.next().unwrap();
+            state.notifications.push(Notification::error(text));
         }
-        Action::SyncConfig => {
-            let logic = weak.upgrade().unwrap();
+        Message::SyncConfig => {
+            let app = weak.upgrade().unwrap();
 
-            logic.set_config(DisplayedConfig::from(&state.config));
+            app.global::<UiState<'_>>()
+                .set_config(DisplayedConfig::from(&state.config));
 
             if let Err(e) = state.config.write() {
-                let msg = slint::format!("Failed to write config: {e}");
-                state.notifications.push(Notification::error(msg));
+                let text = slint::format!("Failed to write config: {e}");
+                state.notifications.push(Notification::error(text));
             }
         }
-        Action::PickMountPoint => {
-            if let Some(path) = dialogs::pick_mount_point(window_handle) {
+        Message::PickMountPoint => {
+            let app = weak.upgrade().unwrap();
+            let window_handle = app.window().window_handle();
+
+            if let Some(path) = dialogs::pick_mount_point(&window_handle) {
                 state.config.contents.mount_point = path;
 
                 if state.config.check_mount_point() {
@@ -69,67 +71,67 @@ pub fn update<SG, SH, FG, FH, FO>(
                 }
             }
 
-            action_queue.push((Action::PairHomebrewOsc, SharedString::new()));
-            action_queue.push((Action::RefreshAll, SharedString::new()));
-            action_queue.push((Action::SyncConfig, SharedString::new()));
+            message_queue.push((Message::PairHomebrewOsc, SharedString::new()));
+            message_queue.push((Message::RefreshAll, SharedString::new()));
+            message_queue.push((Message::SyncConfig, SharedString::new()));
         }
-        Action::ToggleShowWii => {
+        Message::ToggleShowWii => {
             state.config.contents.show_wii = !state.config.contents.show_wii;
             *state.show_wii.borrow_mut() = state.config.contents.show_wii;
             state.filtered_games.reset();
 
-            action_queue.push((Action::SyncConfig, SharedString::new()));
+            message_queue.push((Message::SyncConfig, SharedString::new()));
         }
-        Action::ToggleShowGc => {
+        Message::ToggleShowGc => {
             state.config.contents.show_gc = !state.config.contents.show_gc;
             *state.show_gc.borrow_mut() = state.config.contents.show_gc;
             state.filtered_games.reset();
 
-            action_queue.push((Action::SyncConfig, SharedString::new()));
+            message_queue.push((Message::SyncConfig, SharedString::new()));
         }
-        Action::SetWiiOutputFormat => {
+        Message::SetWiiOutputFormat => {
             let value = args.next().unwrap().parse().unwrap();
             state.config.contents.wii_output_format = value;
 
-            action_queue.push((Action::SyncConfig, SharedString::new()));
+            message_queue.push((Message::SyncConfig, SharedString::new()));
         }
-        Action::SetGcOutputFormat => {
+        Message::SetGcOutputFormat => {
             let value = args.next().unwrap().parse().unwrap();
             state.config.contents.gc_output_format = value;
 
-            action_queue.push((Action::SyncConfig, SharedString::new()));
+            message_queue.push((Message::SyncConfig, SharedString::new()));
         }
-        Action::SetAlwaysSplit => {
+        Message::SetAlwaysSplit => {
             let value = args.next().unwrap().parse().unwrap();
             state.config.contents.always_split = value;
 
-            action_queue.push((Action::SyncConfig, SharedString::new()));
+            message_queue.push((Message::SyncConfig, SharedString::new()));
         }
-        Action::SetScrubUpdatePartition => {
+        Message::SetScrubUpdatePartition => {
             let value = args.next().unwrap().parse().unwrap();
             state.config.contents.scrub_update_partition = value;
 
-            action_queue.push((Action::SyncConfig, SharedString::new()));
+            message_queue.push((Message::SyncConfig, SharedString::new()));
         }
-        Action::SetRemoveSourcesGames => {
+        Message::SetRemoveSourcesGames => {
             let value = args.next().unwrap().parse().unwrap();
             state.config.contents.remove_sources_games = value;
 
-            action_queue.push((Action::SyncConfig, SharedString::new()));
+            message_queue.push((Message::SyncConfig, SharedString::new()));
         }
-        Action::SetRemoveSourcesApps => {
+        Message::SetRemoveSourcesApps => {
             let value = args.next().unwrap().parse().unwrap();
             state.config.contents.remove_sources_apps = value;
 
-            action_queue.push((Action::SyncConfig, SharedString::new()));
+            message_queue.push((Message::SyncConfig, SharedString::new()));
         }
-        Action::SetTxtCodesSource => {
+        Message::SetTxtCodesSource => {
             let value = args.next().unwrap().parse().unwrap();
             state.config.contents.txt_codes_source = value;
 
-            action_queue.push((Action::SyncConfig, SharedString::new()));
+            message_queue.push((Message::SyncConfig, SharedString::new()));
         }
-        Action::SetThemePreference => {
+        Message::SetThemePreference => {
             let value = args.next().unwrap().parse().unwrap();
             state.config.contents.theme_preference = value;
 
@@ -137,42 +139,44 @@ pub fn update<SG, SH, FG, FH, FO>(
             match value {
                 twbm_core::config::ThemePreference::System => {}
                 twbm_core::config::ThemePreference::Light => {
-                    action_queue.push((Action::SetWindowColor, "false".to_shared_string()));
+                    message_queue.push((Message::SetWindowColor, "false".to_shared_string()));
                 }
                 twbm_core::config::ThemePreference::Dark => {
-                    action_queue.push((Action::SetWindowColor, "true".to_shared_string()));
+                    message_queue.push((Message::SetWindowColor, "true".to_shared_string()));
                 }
             }
 
-            action_queue.push((Action::SyncConfig, SharedString::new()));
+            message_queue.push((Message::SyncConfig, SharedString::new()));
         }
-        Action::SetViewAs => {
+        Message::SetViewAs => {
             let value = args.next().unwrap().parse().unwrap();
             state.config.contents.view_as = value;
 
-            action_queue.push((Action::SyncConfig, SharedString::new()));
+            message_queue.push((Message::SyncConfig, SharedString::new()));
         }
-        Action::SetSortBy => {
+        Message::SetSortBy => {
             let value = args.next().unwrap().parse().unwrap();
             state.config.contents.sort_by = value;
             *state.sort_by.borrow_mut() = value;
             state.sorted_games.reset();
             state.sorted_homebrew_apps.reset();
 
-            action_queue.push((Action::SyncConfig, SharedString::new()));
+            message_queue.push((Message::SyncConfig, SharedString::new()));
         }
-        Action::SetPreferredLanguage => {
+        Message::SetPreferredLanguage => {
             let value = args.next().unwrap().parse().unwrap();
             state.config.contents.preferred_language = value;
 
-            action_queue.push((Action::SyncConfig, SharedString::new()));
+            message_queue.push((Message::SyncConfig, SharedString::new()));
         }
-        Action::WiiloadLocalFile => {
+        Message::WiiloadLocalFile => {
+            let app = weak.upgrade().unwrap();
+            let window_handle = app.window().window_handle();
             let wii_ip = args.next().unwrap().to_string();
 
-            if let Some(in_path) = dialogs::pick_wiiload(window_handle) {
-                let msg = slint::format!("Sending {} to Wii...", in_path.display());
-                state.notifications.push(Notification::info(msg));
+            if let Some(in_path) = dialogs::pick_wiiload(&window_handle) {
+                let text = slint::format!("Sending {} to Wii...", in_path.display());
+                state.notifications.push(Notification::info(text));
 
                 state.config.contents.wii_ip = wii_ip.clone();
 
@@ -180,21 +184,26 @@ pub fn update<SG, SH, FG, FH, FO>(
                 std::thread::spawn(move || {
                     let res = twbm_core::wiiload::send(&wii_ip, &in_path);
 
-                    let _ = weak.upgrade_in_event_loop(move |logic| match res {
-                        Ok(msg) => {
-                            logic.invoke_dispatch(Action::NotifyInfo, msg.to_shared_string())
-                        }
-                        Err(e) => {
-                            let msg = slint::format!("Could not send file to Wii: {e}");
-                            logic.invoke_dispatch(Action::NotifyError, msg)
+                    let _ = weak.upgrade_in_event_loop(move |app| {
+                        let dispatcher = app.global::<Dispatcher<'_>>();
+
+                        match res {
+                            Ok(text) => {
+                                dispatcher
+                                    .invoke_dispatch(Message::NotifyInfo, text.to_shared_string());
+                            }
+                            Err(e) => {
+                                let text = slint::format!("Could not send file to Wii: {e}");
+                                dispatcher.invoke_dispatch(Message::NotifyError, text);
+                            }
                         }
                     });
                 });
             }
 
-            action_queue.push((Action::SyncConfig, SharedString::new()));
+            message_queue.push((Message::SyncConfig, SharedString::new()));
         }
-        Action::WiiloadOscApp => {
+        Message::WiiloadOscApp => {
             let wii_ip = args.next().unwrap().to_string();
             let slug = args.next().unwrap();
 
@@ -207,26 +216,32 @@ pub fn update<SG, SH, FG, FH, FO>(
                 .unwrap()
                 .clone();
 
-            let msg = slint::format!("Sending {} to Wii...", &app.name);
-            state.notifications.push(Notification::info(msg));
+            let text = slint::format!("Sending {} to Wii...", &app.name);
+            state.notifications.push(Notification::info(text));
 
             let weak = weak.clone();
             std::thread::spawn(move || {
                 let res = app.wiiload(&wii_ip);
 
-                let _ = weak.upgrade_in_event_loop(move |logic| match res {
-                    Ok(msg) => logic.invoke_dispatch(Action::NotifyInfo, msg.to_shared_string()),
-                    Err(e) => {
-                        let msg = slint::format!("Could not send file to Wii: {e}");
-                        logic.invoke_dispatch(Action::NotifyError, msg)
+                let _ = weak.upgrade_in_event_loop(move |app| {
+                    let dispatcher = app.global::<Dispatcher<'_>>();
+
+                    match res {
+                        Ok(text) => {
+                            dispatcher.invoke_dispatch(Message::NotifyInfo, text.to_shared_string())
+                        }
+                        Err(e) => {
+                            let text = slint::format!("Could not send file to Wii: {e}");
+                            dispatcher.invoke_dispatch(Message::NotifyError, text)
+                        }
                     }
                 });
             });
 
-            action_queue.push((Action::SyncConfig, SharedString::new()));
+            message_queue.push((Message::SyncConfig, SharedString::new()));
         }
-        Action::RefreshAll => {
-            let logic = weak.upgrade().unwrap();
+        Message::RefreshAll => {
+            let app = weak.upgrade().unwrap();
 
             let root_path = &state.config.contents.mount_point;
 
@@ -254,7 +269,8 @@ pub fn update<SG, SH, FG, FH, FO>(
 
             state.displayed_games.set_vec(new_displayed_games);
             state.displayed_homebrew_apps.set_vec(new_displayed_apps);
-            logic.set_drive_info(new_displayed_drive_info);
+            app.global::<UiState<'_>>()
+                .set_drive_info(new_displayed_drive_info);
 
             if !state.is_downloading_covers {
                 state.is_downloading_covers = true;
@@ -266,17 +282,18 @@ pub fn update<SG, SH, FG, FH, FO>(
                     let res = covers::download_covers(ids, preferred_language, &weak);
 
                     if let Err(e) = res {
-                        let _ = weak.upgrade_in_event_loop(move |logic| {
-                            let msg = slint::format!("Could not download covers: {e}");
-                            logic.invoke_dispatch(Action::NotifyError, msg);
+                        let _ = weak.upgrade_in_event_loop(move |app| {
+                            let text = slint::format!("Could not download covers: {e}");
+                            app.global::<Dispatcher<'_>>()
+                                .invoke_dispatch(Message::NotifyError, text);
                         });
                     }
                 });
             }
 
-            action_queue.push((Action::PairHomebrewOsc, SharedString::new()));
+            message_queue.push((Message::PairHomebrewOsc, SharedString::new()));
         }
-        Action::PairHomebrewOsc => {
+        Message::PairHomebrewOsc => {
             let mut displayed_apps = state
                 .homebrew_apps
                 .iter()
@@ -295,15 +312,15 @@ pub fn update<SG, SH, FG, FH, FO>(
 
             state.displayed_homebrew_apps.set_vec(displayed_apps);
         }
-        Action::OpenThat => {
+        Message::OpenThat => {
             let uri = args.next().unwrap();
 
             if let Err(e) = open::that(uri) {
-                let msg = slint::format!("Failed to open URL: {e}");
-                state.notifications.push(Notification::error(msg));
+                let text = slint::format!("Failed to open URL: {e}");
+                state.notifications.push(Notification::error(text));
             }
         }
-        Action::DownloadOscIcons => {
+        Message::DownloadOscIcons => {
             if !state.is_downloading_osc_icons {
                 state.is_downloading_osc_icons = true;
 
@@ -315,46 +332,52 @@ pub fn update<SG, SH, FG, FH, FO>(
                 });
             }
         }
-        Action::CheckForUpdates => {
+        Message::CheckForUpdates => {
             let weak = weak.clone();
 
             std::thread::spawn(move || {
                 let res = twbm_core::updates::check();
 
-                let _ = weak.upgrade_in_event_loop(move |logic| match res {
-                    Ok(Some(version)) => {
-                        let value = slint::format!("v{version}");
-                        logic.invoke_dispatch(Action::SetLatestVersion, value);
-                    }
-                    Ok(None) => {
-                        eprintln!("No updates available");
-                    }
-                    Err(e) => {
-                        let msg = slint::format!("Failed to check for updates: {e}");
-                        logic.invoke_dispatch(Action::NotifyError, msg);
+                let _ = weak.upgrade_in_event_loop(move |app| {
+                    let dispatcher = app.global::<Dispatcher<'_>>();
+
+                    match res {
+                        Ok(Some(version)) => {
+                            let value = slint::format!("v{version}");
+                            dispatcher.invoke_dispatch(Message::SetLatestVersion, value);
+                        }
+                        Ok(None) => {
+                            eprintln!("No updates available");
+                        }
+                        Err(e) => {
+                            let text = slint::format!("Failed to check for updates: {e}");
+                            dispatcher.invoke_dispatch(Message::NotifyError, text);
+                        }
                     }
                 });
             });
         }
-        Action::CacheOscContents => {
+        Message::CacheOscContents => {
             let force_refresh = args.next().unwrap().parse().unwrap();
             let weak = weak.clone();
 
             std::thread::spawn(move || {
                 let res = twbm_core::osc::cache_contents(&DATA_DIR, force_refresh);
 
-                let _ = weak.upgrade_in_event_loop(|logic| {
+                let _ = weak.upgrade_in_event_loop(|app| {
+                    let dispatcher = app.global::<Dispatcher<'_>>();
+
                     if let Err(e) = res {
-                        let msg = slint::format!("Failed to cache OSC contents: {e}");
-                        logic.invoke_dispatch(Action::NotifyError, msg);
+                        let text = slint::format!("Failed to cache OSC contents: {e}");
+                        dispatcher.invoke_dispatch(Message::NotifyError, text);
                     } else {
-                        logic.invoke_dispatch(Action::OscContentsCached, SharedString::new());
+                        dispatcher.invoke_dispatch(Message::OscContentsCached, SharedString::new());
                     }
                 });
             });
         }
-        Action::OscContentsCached => {
-            let logic = weak.upgrade().unwrap();
+        Message::OscContentsCached => {
+            let app = weak.upgrade().unwrap();
 
             let (new, hours, minutes) =
                 twbm_core::osc::load_contents(&DATA_DIR).unwrap_or_default();
@@ -364,12 +387,14 @@ pub fn update<SG, SH, FG, FH, FO>(
             state.osc_apps = new;
 
             state.displayed_osc_apps.set_vec(displayed_apps);
-            logic.set_osc_refreshed_x_hours_ago(hours);
-            logic.set_osc_refreshed_x_minutes_ago(minutes);
 
-            action_queue.push((Action::PairHomebrewOsc, SharedString::new()));
+            let ui_state = app.global::<UiState<'_>>();
+            ui_state.set_osc_refreshed_x_hours_ago(hours);
+            ui_state.set_osc_refreshed_x_minutes_ago(minutes);
+
+            message_queue.push((Message::PairHomebrewOsc, SharedString::new()));
         }
-        Action::ReloadOscIcon => {
+        Message::ReloadOscIcon => {
             let i = args.next().unwrap().parse().unwrap();
             let mut app = state.displayed_osc_apps.row_data(i).unwrap();
             let icon_path = DATA_DIR.join(format!("osc-icons/{}.png", &app.slug));
@@ -379,26 +404,26 @@ pub fn update<SG, SH, FG, FH, FO>(
                 state.displayed_osc_apps.set_row_data(i, app);
             }
         }
-        Action::FilterGames => {
+        Message::FilterGames => {
             let filter = args.next().unwrap();
             *state.games_filter.borrow_mut() = filter.to_string();
             state.filtered_games.reset();
         }
-        Action::FilterHomebrewApps => {
+        Message::FilterHomebrewApps => {
             let filter = args.next().unwrap();
             *state.homebrew_apps_filter.borrow_mut() = filter.to_string();
             state.filtered_homebrew_apps.reset();
         }
-        Action::FilterOscApps => {
+        Message::FilterOscApps => {
             let filter = args.next().unwrap();
             *state.osc_apps_filter.borrow_mut() = filter.to_string();
             state.filtered_osc_apps.reset();
         }
-        Action::CloseNotification => {
+        Message::CloseNotification => {
             let i = args.next().unwrap().parse().unwrap();
             state.notifications.remove(i);
         }
-        Action::Checksum => {
+        Message::Checksum => {
             let path = Path::new(args.next().unwrap());
             let game = state.games.iter().find(|g| g.path == path).unwrap().clone();
 
@@ -408,32 +433,39 @@ pub fn update<SG, SH, FG, FH, FO>(
                 let weak2 = weak.clone();
                 let update_progress = move |percentage| {
                     let status = slint::format!("{percentage}%");
-                    let _ = weak2.upgrade_in_event_loop(move |logic| {
-                        logic.invoke_dispatch(Action::SetCrc32Status, status);
+                    let _ = weak2.upgrade_in_event_loop(move |app| {
+                        app.global::<Dispatcher<'_>>()
+                            .invoke_dispatch(Message::SetCrc32Status, status);
                     });
                 };
 
                 let res = checksum::perform(game, &update_progress);
 
-                let _ = weak.upgrade_in_event_loop(move |logic| match res {
-                    Ok(crc32) => {
-                        let status = slint::format!("{crc32:08x}");
-                        logic.invoke_dispatch(Action::SetCrc32Status, status);
-                    }
-                    Err(e) => {
-                        let msg = slint::format!("Checksum failed: {e}");
-                        logic.invoke_dispatch(Action::NotifyError, msg);
+                let _ = weak.upgrade_in_event_loop(move |app| {
+                    let dispatcher = app.global::<Dispatcher<'_>>();
+
+                    match res {
+                        Ok(crc32) => {
+                            let status = slint::format!("{crc32:08x}");
+                            dispatcher.invoke_dispatch(Message::SetCrc32Status, status);
+                        }
+                        Err(e) => {
+                            let text = slint::format!("Checksum failed: {e}");
+                            dispatcher.invoke_dispatch(Message::NotifyError, text);
+                        }
                     }
                 });
             });
         }
-        Action::PickGames => {
+        Message::PickGames => {
+            let app = weak.upgrade().unwrap();
+            let window_handle = app.window().window_handle();
             let recursively = args.next().unwrap().parse().unwrap();
 
             let paths = if recursively {
-                dialogs::pick_games_r(window_handle)
+                dialogs::pick_games_r(&window_handle)
             } else {
-                dialogs::pick_games(window_handle)
+                dialogs::pick_games(&window_handle)
             };
 
             let existing_ids = state.games.iter().map(|g| g.id).collect::<Vec<_>>();
@@ -455,7 +487,7 @@ pub fn update<SG, SH, FG, FH, FO>(
 
             state.conversion_queue_buffer.set_vec(new);
         }
-        Action::ConfirmConversionQueueBuffer => {
+        Message::ConfirmConversionQueueBuffer => {
             state
                 .conversion_queue
                 .extend(state.conversion_queue_buffer.iter());
@@ -463,14 +495,14 @@ pub fn update<SG, SH, FG, FH, FO>(
 
             if !state.is_converting {
                 state.is_converting = true;
-                action_queue.push((Action::TriggerConversion, SharedString::new()));
+                message_queue.push((Message::TriggerConversion, SharedString::new()));
             }
         }
-        Action::TriggerConversion => {
+        Message::TriggerConversion => {
             if state.conversion_queue.row_count() == 0 {
                 state.is_converting = false;
-                let msg = SharedString::from("Conversion queue empty");
-                state.notifications.push(Notification::info(msg));
+                let text = SharedString::from("Conversion queue empty");
+                state.notifications.push(Notification::info(text));
                 return;
             }
 
@@ -485,22 +517,23 @@ pub fn update<SG, SH, FG, FH, FO>(
                 conv.perform(config, drive_info, weak);
             });
         }
-        Action::ClearConversionQueueBuffer => {
+        Message::ClearConversionQueueBuffer => {
             state.conversion_queue_buffer.clear();
         }
-        Action::SetCrc32Status => {
-            let logic = weak.upgrade().unwrap();
+        Message::SetCrc32Status => {
+            let app = weak.upgrade().unwrap();
             let status = args.next().unwrap();
 
-            logic.set_crc32_status(status.to_shared_string());
+            app.global::<UiState<'_>>()
+                .set_crc32_status(status.to_shared_string());
         }
-        Action::ScrubGame => {
+        Message::ScrubGame => {
             let path = Path::new(args.next().unwrap());
             let game = state.games.iter().find(|g| g.path == path).unwrap();
 
             let Some(disc_path) = game.get_disc_path() else {
-                let msg = slint::format!("No disc path found for game {}", game.title);
-                state.notifications.push(Notification::error(msg));
+                let text = slint::format!("No disc path found for game {}", game.title);
+                state.notifications.push(Notification::error(text));
                 return;
             };
 
@@ -516,27 +549,29 @@ pub fn update<SG, SH, FG, FH, FO>(
 
             if !state.is_converting {
                 state.is_converting = true;
-                action_queue.push((Action::TriggerConversion, SharedString::new()));
+                message_queue.push((Message::TriggerConversion, SharedString::new()));
             }
         }
-        Action::PickHomebrewApps => {
-            let paths = dialogs::pick_homebrew_apps(window_handle);
+        Message::PickHomebrewApps => {
+            let app = weak.upgrade().unwrap();
+            let window_handle = app.window().window_handle();
+            let paths = dialogs::pick_homebrew_apps(&window_handle);
 
             let res = twbm_core::util::install_zips(&state.config.contents.mount_point, &paths);
 
             if let Err(e) = res {
-                let msg = slint::format!("Failed to install apps: {e}");
-                state.notifications.push(Notification::error(msg));
+                let text = slint::format!("Failed to install apps: {e}");
+                state.notifications.push(Notification::error(text));
             } else {
-                let msg = slint::format!("{} apps installed successfully", paths.len());
-                state.notifications.push(Notification::info(msg));
+                let text = slint::format!("{} apps installed successfully", paths.len());
+                state.notifications.push(Notification::info(text));
             }
 
-            action_queue.push((Action::RefreshAll, SharedString::new()));
+            message_queue.push((Message::RefreshAll, SharedString::new()));
         }
-        Action::InstallOscApp => {
+        Message::InstallOscApp => {
             let slug = args.next().unwrap();
-            let app = state
+            let osc_app_meta = state
                 .osc_apps
                 .iter()
                 .find(|app| app.slug == slug)
@@ -545,27 +580,29 @@ pub fn update<SG, SH, FG, FH, FO>(
 
             let root_dir = state.config.contents.mount_point.clone();
 
-            let msg = slint::format!("Installing {}", &app.name);
-            state.notifications.push(Notification::info(msg));
+            let text = slint::format!("Installing {}", &osc_app_meta.name);
+            state.notifications.push(Notification::info(text));
 
             let weak = weak.clone();
 
             std::thread::spawn(move || {
-                let res = app.install(&root_dir);
+                let res = osc_app_meta.install(&root_dir);
 
-                let _ = weak.upgrade_in_event_loop(move |logic| {
+                let _ = weak.upgrade_in_event_loop(move |app| {
+                    let dispatcher = app.global::<Dispatcher<'_>>();
+
                     if let Err(e) = res {
-                        logic.invoke_dispatch(Action::NotifyError, e.to_shared_string());
+                        dispatcher.invoke_dispatch(Message::NotifyError, e.to_shared_string());
                     } else {
-                        let msg = slint::format!("{} installed successfully", &app.name);
-                        logic.invoke_dispatch(Action::NotifyInfo, msg);
+                        let text = slint::format!("{} installed successfully", &osc_app_meta.name);
+                        dispatcher.invoke_dispatch(Message::NotifyInfo, text);
                     }
 
-                    logic.invoke_dispatch(Action::RefreshAll, SharedString::new());
+                    dispatcher.invoke_dispatch(Message::RefreshAll, SharedString::new());
                 });
             });
         }
-        Action::ReloadCover => {
+        Message::ReloadCover => {
             let i = args.next().unwrap().parse().unwrap();
             let mut game = state.displayed_games.row_data(i).unwrap();
             let cover_path = DATA_DIR.join(format!("covers/{}.png", &game.id));
@@ -575,21 +612,21 @@ pub fn update<SG, SH, FG, FH, FO>(
                 state.displayed_games.set_row_data(i, game);
             }
         }
-        Action::FinishedDownloadingCovers => {
+        Message::FinishedDownloadingCovers => {
             state.is_downloading_covers = false;
         }
-        Action::DeleteGame => {
+        Message::DeleteGame => {
             let path = Path::new(args.next().unwrap());
             let game = state.games.iter().find(|g| g.path == path).unwrap();
 
             if let Err(e) = fs::remove_dir_all(&game.path) {
-                let msg = slint::format!("Failed to delete game: {e}");
-                state.notifications.push(Notification::error(msg));
+                let text = slint::format!("Failed to delete game: {e}");
+                state.notifications.push(Notification::error(text));
             }
 
-            action_queue.push((Action::RefreshAll, SharedString::new()));
+            message_queue.push((Message::RefreshAll, SharedString::new()));
         }
-        Action::DeleteHomebrewApp => {
+        Message::DeleteHomebrewApp => {
             let path = Path::new(args.next().unwrap());
             let app = state
                 .homebrew_apps
@@ -598,13 +635,13 @@ pub fn update<SG, SH, FG, FH, FO>(
                 .unwrap();
 
             if let Err(e) = fs::remove_dir_all(&app.path) {
-                let msg = slint::format!("Failed to delete homebrew app: {e}");
-                state.notifications.push(Notification::error(msg));
+                let text = slint::format!("Failed to delete homebrew app: {e}");
+                state.notifications.push(Notification::error(text));
             }
 
-            action_queue.push((Action::RefreshAll, SharedString::new()));
+            message_queue.push((Message::RefreshAll, SharedString::new()));
         }
-        Action::ScrubAllGames => {
+        Message::ScrubAllGames => {
             let to_scrub = state
                 .games
                 .iter()
@@ -624,72 +661,77 @@ pub fn update<SG, SH, FG, FH, FO>(
                 .collect::<Vec<_>>();
 
             if to_scrub.is_empty() {
-                let msg = "No games need scrubbing";
-                state.notifications.push(Notification::info(msg));
+                let text = "No games need scrubbing";
+                state.notifications.push(Notification::info(text));
             }
 
             for path in to_scrub {
-                action_queue.push((Action::ScrubGame, path));
+                message_queue.push((Message::ScrubGame, path));
             }
         }
-        Action::NormalizeDirLayout => {
+        Message::NormalizeDirLayout => {
             match normalize_dir_layout::perform(&state.config.contents.mount_point) {
                 Ok(_) => {
-                    let msg = "Directory layout successfully normalized";
-                    state.notifications.push(Notification::info(msg));
+                    let text = "Directory layout successfully normalized";
+                    state.notifications.push(Notification::info(text));
                 }
                 Err(e) => {
-                    let msg = slint::format!("Failed to normalize directory layout: {e}");
-                    state.notifications.push(Notification::error(msg));
+                    let text = slint::format!("Failed to normalize directory layout: {e}");
+                    state.notifications.push(Notification::error(text));
                 }
             }
         }
-        Action::CancelConversion => {
+        Message::CancelConversion => {
             let i = args.next().unwrap().parse().unwrap();
             let _ = state.conversion_queue.remove(i);
         }
-        Action::CancelAllConversions => {
+        Message::CancelAllConversions => {
             state.conversion_queue.clear();
         }
-        Action::DownloadTxtCodes => {
+        Message::DownloadTxtCodes => {
             let path = Path::new(args.next().unwrap());
             let game = state.games.iter().find(|g| g.path == path).unwrap();
             let game_id = game.id;
 
             let config = state.config.clone();
 
-            let msg = slint::format!("Downloading txtcodes for {game_id}");
-            state.notifications.push(Notification::info(msg));
+            let text = slint::format!("Downloading txtcodes for {game_id}");
+            state.notifications.push(Notification::info(text));
 
             let weak = weak.clone();
             std::thread::spawn(move || {
                 let res = twbm_core::txtcodes::download_cheats(game_id, &config);
 
-                let _ = weak.upgrade_in_event_loop(move |logic| match res {
-                    Ok(_) => {
-                        let msg = slint::format!("Downloaded txtcodes for {game_id}");
-                        logic.invoke_dispatch(Action::NotifyInfo, msg);
-                    }
-                    Err(e) => {
-                        let msg = slint::format!("Failed to download txtcodes for {game_id}: {e}");
-                        logic.invoke_dispatch(Action::NotifyError, msg);
+                let _ = weak.upgrade_in_event_loop(move |app| {
+                    let dispatcher = app.global::<Dispatcher<'_>>();
+
+                    match res {
+                        Ok(_) => {
+                            let text = slint::format!("Downloaded txtcodes for {game_id}");
+                            dispatcher.invoke_dispatch(Message::NotifyInfo, text);
+                        }
+                        Err(e) => {
+                            let text =
+                                slint::format!("Failed to download txtcodes for {game_id}: {e}");
+                            dispatcher.invoke_dispatch(Message::NotifyError, text);
+                        }
                     }
                 });
             });
         }
-        Action::DownloadAllCovers => {
+        Message::DownloadAllCovers => {
             let for_wiiflow: bool = args.next().unwrap().parse().unwrap();
             let config = state.config.clone();
 
             let ids = state.games.iter().map(|g| g.id).collect::<Vec<_>>();
 
-            let msg = if for_wiiflow {
+            let text = if for_wiiflow {
                 "Downloading covers for WiiFlow..."
             } else {
                 "Downloading covers for USBLoaderGX..."
             };
 
-            state.notifications.push(Notification::info(msg));
+            state.notifications.push(Notification::info(text));
 
             let weak = weak.clone();
             let _ = std::thread::spawn(move || {
@@ -699,26 +741,30 @@ pub fn update<SG, SH, FG, FH, FO>(
                     twbm_core::covers::download_all_covers_for_usbloadergx(&ids, &config)
                 };
 
-                let _ = weak.upgrade_in_event_loop(move |logic| match res {
-                Ok(failed_ids) if failed_ids.is_empty() => {
-                    let msg = "All covers downloaded successfully".to_shared_string();
-                    logic.invoke_dispatch(Action::NotifyInfo, msg);
-                }
-                Ok(failed_ids) => {
-                    let failed_ids = twbm_core::game_id::make_list_string(&failed_ids);
-                    let msg = slint::format!(
-                        "Covers downloaded successfully\nThe following games may lack some covers: {failed_ids}"
-                    );
-                    logic.invoke_dispatch(Action::NotifyError, msg);
-                }
-                Err(e) => {
-                    let msg = slint::format!("Failed to download covers: {e}");
-                    logic.invoke_dispatch(Action::NotifyError, msg);
-                }
-            });
+                let _ = weak.upgrade_in_event_loop(move |app| {
+                    let dispatcher = app.global::<Dispatcher<'_>>();
+
+                    match res {
+                        Ok(failed_ids) if failed_ids.is_empty() => {
+                            let text = "All covers downloaded successfully".to_shared_string();
+                            dispatcher.invoke_dispatch(Message::NotifyInfo, text);
+                        }
+                        Ok(failed_ids) => {
+                            let failed_ids = twbm_core::game_id::make_list_string(&failed_ids);
+                            let text = slint::format!(
+                                "Covers downloaded successfully\nThe following games may lack some covers: {failed_ids}"
+                            );
+                            dispatcher.invoke_dispatch(Message::NotifyError, text);
+                        }
+                        Err(e) => {
+                            let text = slint::format!("Failed to download covers: {e}");
+                            dispatcher.invoke_dispatch(Message::NotifyError, text);
+                        }
+                    }
+                });
             });
         }
-        Action::DownloadAllBanners => {
+        Message::DownloadAllBanners => {
             let mount_point = state.config.contents.mount_point.clone();
 
             let ids = state
@@ -728,34 +774,41 @@ pub fn update<SG, SH, FG, FH, FO>(
                 .map(|g| g.id)
                 .collect::<Vec<_>>();
 
-            let msg = slint::format!("Downloading banners for {} games", ids.len());
-            state.notifications.push(Notification::info(msg));
+            let text = slint::format!("Downloading banners for {} games", ids.len());
+            state.notifications.push(Notification::info(text));
 
             let weak = weak.clone();
             std::thread::spawn(move || {
                 let res = twbm_core::banners::download_banners(&mount_point, &ids);
 
-                let _ = weak.upgrade_in_event_loop(move |logic| match res {
-                    Ok(failed_ids) if failed_ids.is_empty() => {
-                        let msg = "All banners downloaded successfully".to_shared_string();
-                        logic.invoke_dispatch(Action::NotifyInfo, msg);
-                    }
-                    Ok(failed_ids) => {
-                        let failed_ids = twbm_core::game_id::make_list_string(&failed_ids);
-                        let msg = slint::format!(
-                            "Banners downloaded successfully\nExcept the following: {failed_ids}"
-                        );
-                        logic.invoke_dispatch(Action::NotifyError, msg);
-                    }
-                    Err(e) => {
-                        let msg = slint::format!("Failed to download banners: {e}");
-                        logic.invoke_dispatch(Action::NotifyError, msg);
+                let _ = weak.upgrade_in_event_loop(move |app| {
+                    let dispatcher = app.global::<Dispatcher<'_>>();
+
+                    match res {
+                        Ok(failed_ids) if failed_ids.is_empty() => {
+                            let text = "All banners downloaded successfully".to_shared_string();
+                            dispatcher.invoke_dispatch(Message::NotifyInfo, text);
+                        }
+                        Ok(failed_ids) => {
+                            let failed_ids = twbm_core::game_id::make_list_string(&failed_ids);
+                            let text = slint::format!(
+                                "Banners downloaded successfully\nExcept the following: {failed_ids}"
+                            );
+                            dispatcher.invoke_dispatch(Message::NotifyError, text);
+                        }
+                        Err(e) => {
+                            let text = slint::format!("Failed to download banners: {e}");
+                            dispatcher.invoke_dispatch(Message::NotifyError, text);
+                        }
                     }
                 });
             });
         }
-        Action::ArchiveManually => {
-            let Some(in_path) = dialogs::pick_game(window_handle) else {
+        Message::ArchiveManually => {
+            let app = weak.upgrade().unwrap();
+            let window_handle = app.window().window_handle();
+
+            let Some(in_path) = dialogs::pick_game(&window_handle) else {
                 return;
             };
 
@@ -763,7 +816,7 @@ pub fn update<SG, SH, FG, FH, FO>(
                 return;
             };
 
-            let Some(out_path) = dialogs::save_game(window_handle, stem) else {
+            let Some(out_path) = dialogs::save_game(&window_handle, stem) else {
                 return;
             };
 
@@ -778,39 +831,42 @@ pub fn update<SG, SH, FG, FH, FO>(
 
             if !state.is_converting {
                 state.is_converting = true;
-                action_queue.push((Action::TriggerConversion, SharedString::new()));
+                message_queue.push((Message::TriggerConversion, SharedString::new()));
             }
         }
-        Action::SetLatestVersion => {
-            let logic = weak.upgrade().unwrap();
+        Message::SetLatestVersion => {
+            let app = weak.upgrade().unwrap();
             let version = args.next().unwrap();
 
-            logic.set_latest_version(version.into());
+            app.global::<UiState<'_>>()
+                .set_latest_version(version.into());
         }
-        Action::LoadGameInfo => {
+        Message::LoadGameInfo => {
             let path = Path::new(args.next().unwrap());
             let game = state.games.iter().find(|g| g.path == path).unwrap();
 
             if let Some(disc_path) = game.get_disc_path()
                 && let Some(info) = DiscInfo::from_path(disc_path)
             {
-                let logic = weak.upgrade().unwrap();
+                let app = weak.upgrade().unwrap();
                 let info = DisplayedDiscInfo::from(&info);
-                logic.set_current_disc_info(info);
+                app.global::<UiState<'_>>().set_current_disc_info(info);
             }
         }
-        Action::ArchiveGame => {
+        Message::ArchiveGame => {
+            let app = weak.upgrade().unwrap();
+            let window_handle = app.window().window_handle();
             let path = Path::new(args.next().unwrap());
             let game = state.games.iter().find(|g| g.path == path).unwrap();
 
             let Some(in_path) = game.get_disc_path() else {
-                let msg = "No disc found for this game!";
-                state.notifications.push(Notification::error(msg));
+                let text = "No disc found for this game!";
+                state.notifications.push(Notification::error(text));
 
                 return;
             };
 
-            let out_path = dialogs::save_game(window_handle, &game.title);
+            let out_path = dialogs::save_game(&window_handle, &game.title);
 
             if let Some(out_path) = out_path {
                 let queued = QueuedConversion {
@@ -824,30 +880,31 @@ pub fn update<SG, SH, FG, FH, FO>(
 
                 if !state.is_converting {
                     state.is_converting = true;
-                    action_queue.push((Action::TriggerConversion, SharedString::new()));
+                    message_queue.push((Message::TriggerConversion, SharedString::new()));
                 }
             }
         }
-        Action::CheckMountPoint => {
+        Message::CheckMountPoint => {
             if state.config.check_mount_point() {
                 state.notifications.push(Notification::info(NEW_DRIVE_TEXT));
             }
         }
-        Action::SetStatus => {
-            let logic = weak.upgrade().unwrap();
+        Message::SetStatus => {
+            let app = weak.upgrade().unwrap();
             let status = args.next().unwrap();
 
-            logic.set_status(status.to_shared_string());
+            app.global::<UiState<'_>>()
+                .set_status(status.to_shared_string());
         }
         #[cfg(windows)]
-        Action::SetWindowColor => {
+        Message::SetWindowColor => {
             let is_dark = args.next().unwrap().parse().unwrap();
             crate::window_color::set(is_dark);
         }
         #[cfg(not(windows))]
-        Action::SetWindowColor => {}
+        Message::SetWindowColor => {}
         #[cfg(target_os = "macos")]
-        Action::RunDotClean => {
+        Message::RunDotClean => {
             let res = {
                 let root_path = &state.config.contents.mount_point;
                 twbm_core::util::run_dot_clean(root_path)
@@ -855,16 +912,16 @@ pub fn update<SG, SH, FG, FH, FO>(
 
             match res {
                 Ok(_) => {
-                    let msg = "Successfully ran dot_clean";
-                    state.notifications.push(Notification::info(msg));
+                    let text = "Successfully ran dot_clean";
+                    state.notifications.push(Notification::info(text));
                 }
                 Err(e) => {
-                    let msg = slint::format!("Failed to run dot_clean: {e}");
-                    state.notifications.push(Notification::error(msg));
+                    let text = slint::format!("Failed to run dot_clean: {e}");
+                    state.notifications.push(Notification::error(text));
                 }
             }
         }
         #[cfg(not(target_os = "macos"))]
-        Action::RunDotClean => {}
+        Message::RunDotClean => {}
     }
 }

@@ -84,7 +84,7 @@ pub fn send(wii_ip: &str, path: &Path) -> Result<String> {
 
     let body = fs::read(path)?;
 
-    let msg = if ext.eq_ignore_ascii_case("zip") {
+    let text = if ext.eq_ignore_ascii_case("zip") {
         let (body, excluded_files) = rebuild_zip(body)?;
         wiiload::send(filename, body, wii_ip)?;
 
@@ -101,7 +101,7 @@ pub fn send(wii_ip: &str, path: &Path) -> Result<String> {
         "File sent successfully".to_string()
     };
 
-    Ok(msg)
+    Ok(text)
 }
 
 pub fn download_then_send(wii_ip: &str, zip_url: &str) -> Result<String> {
@@ -123,7 +123,7 @@ pub fn download_then_send(wii_ip: &str, zip_url: &str) -> Result<String> {
     let (body, excluded_files) = rebuild_zip(body)?;
     wiiload::send(filename, body, wii_ip)?;
 
-    let msg = if excluded_files.is_empty() {
+    let text = if excluded_files.is_empty() {
         "File sent successfully".to_string()
     } else {
         format!(
@@ -132,5 +132,5 @@ pub fn download_then_send(wii_ip: &str, zip_url: &str) -> Result<String> {
         )
     };
 
-    Ok(msg)
+    Ok(text)
 }

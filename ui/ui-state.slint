@@ -10,10 +10,20 @@ import {
     Notification,
     DisplayedDiscInfo,
     QueuedConversion,
-    Action,
+    Page,
 } from "types.slint";
 
-export global Logic {
+export global UiState {
+    in-out property <Page> current-page: Page.Games;
+    in-out property <DisplayedGame> current-game;
+    in-out property <DisplayedHomebrewApp> current-homebrew-app;
+    in-out property <DisplayedOscApp> current-osc-app;
+    in-out property <bool> scrubbing-current-game: false;
+    in-out property <DisplayedGame> game-to-delete;
+    in-out property <DisplayedHomebrewApp> homebrew-app-to-delete;
+    in-out property <bool> scrubbing-all-games: false;
+    in-out property <DisplayedOscApp> wiiloading-osc-app;
+
     in-out property <DisplayedConfig> config;
     in-out property <string> app-version;
     in-out property <string> data-dir;
@@ -30,6 +40,4 @@ export global Logic {
     in-out property <int> osc-refreshed-x-minutes-ago;
     in-out property <DisplayedDiscInfo> current-disc-info;
     in-out property <string> latest-version;
-
-    callback dispatch(Action, string);
 }

@@ -4,15 +4,13 @@
 import { IconSet, IconDisplay } from "@lucide";
 import { VerticalLine } from "vertical-line.slint";
 import { IconButton } from "icon-button.slint";
-import { DisplayedHomebrewApp, Action } from "../types.slint";
+import { DisplayedHomebrewApp } from "../types.slint";
 import { MyPalette } from "../styling.slint";
-import { Logic } from "../logic.slint";
+import { UiState } from "../ui-state.slint";
+import { Message, Dispatcher } from "../messages.slint";
 
 export component HomebrewAppRow inherits Rectangle {
     in property <DisplayedHomebrewApp> app;
-
-    callback open-info();
-    callback delete();
 
     private property <string> update: app.osc-app.version == app.version ? "" : app.osc-app.version;
 
@@ -45,7 +43,9 @@ export component HomebrewAppRow inherits Rectangle {
         height: 24px;
         width: 24px;
         squared: true;
-        clicked => open-info();
+        clicked => {
+            UiState.current-homebrew-app = app;
+        }
     }
 
     VerticalLine {
@@ -63,7 +63,7 @@ export component HomebrewAppRow inherits Rectangle {
         width: 24px;
         squared: true;
         disabled: update.is-empty;
-        clicked => Logic.dispatch(Action.InstallOscApp, app.osc-app.slug);
+        clicked => Dispatcher.dispatch(Message.InstallOscApp, app.osc-app.slug);
     }
 
     VerticalLine {
@@ -80,6 +80,8 @@ export component HomebrewAppRow inherits Rectangle {
         height: 24px;
         width: 24px;
         squared: true;
-        clicked => delete();
+        clicked => {
+            UiState.homebrew-app-to-delete = app;
+        }
     }
 }

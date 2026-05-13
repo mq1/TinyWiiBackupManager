@@ -9,14 +9,11 @@ import { HomebrewAppCard } from "components/homebrew-app-card.slint";
 import {
     HomebrewAppsOtherToolbar,
 } from "components/homebrew-apps-other-toolbar.slint";
-import { Logic } from "logic.slint";
+import { UiState } from "ui-state.slint";
 import { DisplayedHomebrewApp } from "types.slint";
 import { NoDrive } from "components/no-drive.slint";
 
 export component HomebrewAppsGridPage inherits VerticalLayout {
-    callback open-info(DisplayedHomebrewApp);
-    callback delete-app(DisplayedHomebrewApp);
-
     private property <int> col-count: max(1, floor((self.width - 10px) / (172px + 10px)));
 
     HorizontalLayout {
@@ -25,9 +22,9 @@ export component HomebrewAppsGridPage inherits VerticalLayout {
         HomebrewAppsToolbar { }
     }
 
-    if Logic.config.mount-point.is-empty: NoDrive { }
+    if UiState.config.mount-point.is-empty: NoDrive { }
 
-    if !Logic.config.mount-point.is-empty: ScrollView {
+    if !UiState.config.mount-point.is-empty: ScrollView {
         width: parent.width;
         viewport-height: v.preferred-height;
 
@@ -41,13 +38,11 @@ export component HomebrewAppsGridPage inherits VerticalLayout {
             GridLayout {
                 spacing: 10px;
 
-                for app[i] in Logic.homebrew-apps: HomebrewAppCard {
+                for app[i] in UiState.homebrew-apps: HomebrewAppCard {
                     row: i / col-count;
                     col: mod(i, col-count);
 
                     app: app;
-                    open-info() => open-info(app);
-                    delete() => delete-app(app);
                 }
             }
         }

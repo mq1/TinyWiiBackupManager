@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{Action, DisplayedOscApp, Logic, util::MIB};
-use slint::{Image, ToSharedString, Weak};
+use crate::{AppWindow, Dispatcher, DisplayedOscApp, Message, util::MIB};
+use slint::{ComponentHandle, Image, ToSharedString, Weak};
 use std::{cell::RefCell, fs, rc::Rc};
 use time::UtcDateTime;
 use twbm_core::{data_dir::DATA_DIR, osc::OscAppMeta};
@@ -33,13 +33,14 @@ impl From<&OscAppMeta> for DisplayedOscApp {
     }
 }
 
-pub fn download_icons(apps: &[OscAppMeta], weak: Weak<Logic<'static>>) {
+pub fn download_icons(apps: &[OscAppMeta], weak: Weak<AppWindow>) {
     let _ = fs::create_dir_all(DATA_DIR.join("osc-icons"));
 
     for (i, app) in apps.iter().enumerate() {
         if app.download_icon(&DATA_DIR).is_ok() {
-            let _ = weak.upgrade_in_event_loop(move |logic| {
-                logic.invoke_dispatch(Action::ReloadOscIcon, i.to_shared_string());
+            let _ = weak.upgrade_in_event_loop(move |app| {
+                app.global::<Dispatcher<'_>>()
+                    .invoke_dispatch(Message::ReloadOscIcon, i.to_shared_string());
             });
         }
     }

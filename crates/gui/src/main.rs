@@ -49,36 +49,35 @@ fn main() -> Result<()> {
     let app = AppWindow::new()?;
     let mut state = new_state();
 
-    let logic = app.global::<Logic<'_>>();
-    logic.set_app_version(env!("CARGO_PKG_VERSION").to_shared_string());
-    logic.set_data_dir(DATA_DIR.to_string_lossy().to_shared_string());
-    logic.set_config(DisplayedConfig::from(&state.config));
-    logic.set_games(ModelRc::from(state.filtered_games.clone()));
-    logic.set_homebrew_apps(ModelRc::from(state.filtered_homebrew_apps.clone()));
-    logic.set_osc_apps(ModelRc::from(state.filtered_osc_apps.clone()));
-    logic.set_notifications(ModelRc::from(state.notifications.clone()));
-    logic.set_conversion_queue(ModelRc::from(state.conversion_queue.clone()));
-    logic.set_conversion_queue_buffer(ModelRc::from(state.conversion_queue_buffer.clone()));
+    // Initialize UI state
+    {
+        let ui_state = app.global::<UiState<'_>>();
+        ui_state.set_app_version(env!("CARGO_PKG_VERSION").to_shared_string());
+        ui_state.set_data_dir(DATA_DIR.to_string_lossy().to_shared_string());
+        ui_state.set_config(DisplayedConfig::from(&state.config));
+        ui_state.set_games(ModelRc::from(state.filtered_games.clone()));
+        ui_state.set_homebrew_apps(ModelRc::from(state.filtered_homebrew_apps.clone()));
+        ui_state.set_osc_apps(ModelRc::from(state.filtered_osc_apps.clone()));
+        ui_state.set_notifications(ModelRc::from(state.notifications.clone()));
+        ui_state.set_conversion_queue(ModelRc::from(state.conversion_queue.clone()));
+        ui_state.set_conversion_queue_buffer(ModelRc::from(state.conversion_queue_buffer.clone()));
+    }
 
-    let mut action_queue = SmallVec::new();
-    let weak = logic.as_weak();
-    let window_handle = app.window().window_handle();
-    logic.on_dispatch(move |action, args| {
-        action_queue.push((action, args));
+    // Process messages
+    {
+        let mut message_queue = SmallVec::new();
+        let weak = app.as_weak();
+        let dispatcher = app.global::<Dispatcher<'_>>();
+        dispatcher.on_dispatch(move |message, args| {
+            message_queue.push((message, args));
 
-        while let Some((action, args)) = action_queue.pop() {
-            update(
-                &mut state,
-                &weak,
-                &window_handle,
-                action,
-                args,
-                &mut action_queue,
-            );
-        }
-    });
+            while let Some((message, args)) = message_queue.pop() {
+                update(&mut state, &weak, message, args, &mut message_queue);
+            }
+        });
 
-    logic.invoke_dispatch(Action::RefreshAll, SharedString::new());
+        dispatcher.invoke_dispatch(Message::RefreshAll, SharedString::new());
+    }
 
     if let Err(e) = app.run() {
         if std::env::var("SLINT_BACKEND").unwrap_or_default() == "winit-software" {

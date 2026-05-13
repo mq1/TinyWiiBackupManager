@@ -9,13 +9,10 @@ import { MyPalette } from "styling.slint";
 import { OscToolbar } from "components/osc-toolbar.slint";
 import { OscOtherToolbar } from "components/osc-other-toolbar.slint";
 import { OscAppRow } from "components/osc-app-row.slint";
-import { Logic } from "logic.slint";
-import { Action, DisplayedOscApp } from "types.slint";
+import { UiState } from "ui-state.slint";
+import { DisplayedOscApp } from "types.slint";
 
 export component OscTablePage inherits VerticalLayout {
-    callback open-info(DisplayedOscApp);
-    callback wiiload(DisplayedOscApp);
-
     VerticalLayout {
         padding: 10px;
         spacing: 10px;
@@ -25,7 +22,7 @@ export component OscTablePage inherits VerticalLayout {
         OscOtherToolbar { }
     }
 
-    if Logic.osc-apps.length == 0: HorizontalLayout {
+    if UiState.osc-apps.length == 0: HorizontalLayout {
         padding-left: 20px;
 
         Text {
@@ -33,7 +30,7 @@ export component OscTablePage inherits VerticalLayout {
         }
     }
 
-    if Logic.osc-apps.length > 0: ScrollView {
+    if UiState.osc-apps.length > 0: ScrollView {
         width: parent.width;
         viewport-height: v.preferred-height;
 
@@ -46,12 +43,9 @@ export component OscTablePage inherits VerticalLayout {
                 height: v2.preferred-height;
 
                 v2 := VerticalLayout {
-                    for app[i] in Logic.osc-apps: VerticalLayout {
+                    for app[i] in UiState.osc-apps: VerticalLayout {
                         OscAppRow {
                             app: app;
-                            open-info() => open-info(app);
-                            install() => Logic.dispatch(Action.InstallOscApp, app.slug);
-                            wiiload() => wiiload(app);
                         }
 
                         HorizontalLine { }

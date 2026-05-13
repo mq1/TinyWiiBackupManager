@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import { ScrollView, Palette } from "std-widgets.slint";
-import { DisplayedGame, Action } from "../types.slint";
+import { DisplayedGame } from "../types.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { Link } from "link.slint";
 import { Card } from "card.slint";
@@ -10,14 +10,10 @@ import { HorizontalLine } from "horizontal-line.slint";
 import { MyPalette } from "../styling.slint";
 import { IconButton, IconButtonKind } from "icon-button.slint";
 import { Modal } from "modal.slint";
-import { Logic } from "../logic.slint";
+import { UiState } from "../ui-state.slint";
+import { Message, Dispatcher } from "../messages.slint";
 
 export component GameInfoModal inherits Modal {
-    in property <DisplayedGame> game;
-
-    callback closed();
-    callback scrub();
-
     VerticalLayout {
         alignment: stretch;
 
@@ -29,19 +25,19 @@ export component GameInfoModal inherits Modal {
                 spacing: 10px;
 
                 Text {
-                    text: game.title;
+                    text: UiState.current-game.title;
                     font-size: 18px;
                     overflow: elide;
                 }
 
                 Link {
                     icon: IconSet.Folder;
-                    label: "Path: \{game.path}";
-                    uri: game.path;
+                    label: "Path: \{UiState.current-game.path}";
+                    uri: UiState.current-game.path;
                 }
             }
 
-            if Logic.current-disc-info.path.is-empty: HorizontalLayout {
+            if UiState.current-disc-info.path.is-empty: HorizontalLayout {
                 spacing: 5px;
                 alignment: center;
 
@@ -56,7 +52,7 @@ export component GameInfoModal inherits Modal {
                 }
             }
 
-            if !Logic.current-disc-info.path.is-empty: HorizontalLayout {
+            if !UiState.current-disc-info.path.is-empty: HorizontalLayout {
                 alignment: space-between;
                 padding-right: 10px;
                 padding-left: 20px;
@@ -75,7 +71,7 @@ export component GameInfoModal inherits Modal {
                         }
 
                         Text {
-                            text: "Format: \{Logic.current-disc-info.format}";
+                            text: "Format: \{UiState.current-disc-info.format}";
                         }
                     }
 
@@ -89,7 +85,7 @@ export component GameInfoModal inherits Modal {
                         }
 
                         Text {
-                            text: "Game ID: \{Logic.current-disc-info.game-id}";
+                            text: "Game ID: \{UiState.current-disc-info.game-id}";
                         }
                     }
 
@@ -103,7 +99,7 @@ export component GameInfoModal inherits Modal {
                         }
 
                         Text {
-                            text: "Game title: \{Logic.current-disc-info.game-title}";
+                            text: "Game title: \{UiState.current-disc-info.game-title}";
                         }
                     }
 
@@ -117,7 +113,7 @@ export component GameInfoModal inherits Modal {
                         }
 
                         Text {
-                            text: "Region: \{Logic.current-disc-info.region}";
+                            text: "Region: \{UiState.current-disc-info.region}";
                         }
                     }
 
@@ -131,7 +127,7 @@ export component GameInfoModal inherits Modal {
                         }
 
                         Text {
-                            text: "Is Wii: \{(Logic.current-disc-info.is-wii ? "yes" : "no")}";
+                            text: "Is Wii: \{(UiState.current-disc-info.is-wii ? "yes" : "no")}";
                         }
                     }
 
@@ -145,7 +141,7 @@ export component GameInfoModal inherits Modal {
                         }
 
                         Text {
-                            text: "Is GameCube: \{(Logic.current-disc-info.is-gc ? "yes" : "no")}";
+                            text: "Is GameCube: \{(UiState.current-disc-info.is-gc ? "yes" : "no")}";
                         }
                     }
 
@@ -159,7 +155,7 @@ export component GameInfoModal inherits Modal {
                         }
 
                         Text {
-                            text: "Disc number: \{Logic.current-disc-info.disc-number}";
+                            text: "Disc number: \{UiState.current-disc-info.disc-number}";
                         }
                     }
 
@@ -173,7 +169,7 @@ export component GameInfoModal inherits Modal {
                         }
 
                         Text {
-                            text: "Disc version: \{Logic.current-disc-info.disc-version}";
+                            text: "Disc version: \{UiState.current-disc-info.disc-version}";
                         }
                     }
 
@@ -187,7 +183,7 @@ export component GameInfoModal inherits Modal {
                         }
 
                         Text {
-                            text: "CRC32: \{(Logic.current-disc-info.crc32.is-empty ? "N/A" : Logic.current-disc-info.crc32)}";
+                            text: "CRC32: \{(UiState.current-disc-info.crc32.is-empty ? "N/A" : UiState.current-disc-info.crc32)}";
                         }
                     }
                 }
@@ -196,7 +192,7 @@ export component GameInfoModal inherits Modal {
                     alignment: center;
 
                     Image {
-                        source: game.cover;
+                        source: UiState.current-game.cover;
                         height: 200px;
                     }
                 }
@@ -218,7 +214,7 @@ export component GameInfoModal inherits Modal {
                     padding-left: 15px;
 
                     Link {
-                        uri: "https://www.gametdb.com/Wii/\{game.id}";
+                        uri: "https://www.gametdb.com/Wii/\{UiState.current-game.id}";
                         label: "GameTDB page";
                     }
                 }
@@ -231,22 +227,24 @@ export component GameInfoModal inherits Modal {
                         label: "Get cheats";
                         tooltip: "Download txtcodes (change the source in settings)";
                         icon: IconSet.Skull;
-                        clicked => Logic.dispatch(Action.DownloadTxtCodes, game.path);
+                        clicked => Dispatcher.dispatch(Message.DownloadTxtCodes, UiState.current-game.path);
                     }
 
-                    if Logic.current-disc-info.is-worth-scrubbing: IconButton {
+                    if UiState.current-disc-info.is-worth-scrubbing: IconButton {
                         label: "Scrub";
                         tooltip: "Remove update partition to save space";
                         icon: IconSet.Shredder;
-                        clicked => scrub();
+                        clicked => {
+                            UiState.scrubbing-current-game = true;
+                        }
                     }
 
-                    if !Logic.current-disc-info.path.is-empty: IconButton {
-                        label: Logic.crc32-status.is-empty ? "CRC32" : Logic.crc32-status;
+                    if !UiState.current-disc-info.path.is-empty: IconButton {
+                        label: UiState.crc32-status.is-empty ? "CRC32" : UiState.crc32-status;
                         icon: IconSet.FingerprintPattern;
                         clicked => {
-                            if Logic.crc32-status.is-empty {
-                                Logic.dispatch(Action.Checksum, game.path);
+                            if UiState.crc32-status.is-empty {
+                                Dispatcher.dispatch(Message.Checksum, UiState.current-game.path);
                             }
                         };
                     }
@@ -254,7 +252,11 @@ export component GameInfoModal inherits Modal {
                     IconButton {
                         label: "Close";
                         kind: IconButtonKind.Primary;
-                        clicked => closed();
+                        clicked => {
+                            UiState.current-game = { };
+                            UiState.crc32-status = "";
+                            UiState.current-disc-info = { };
+                        }
                     }
                 }
             }

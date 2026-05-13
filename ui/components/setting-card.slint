@@ -5,15 +5,15 @@ import { MyPalette } from "../styling.slint";
 import { Icon, IconDisplay, IconSet } from "@lucide";
 import { HorizontalLine } from "horizontal-line.slint";
 import { Card } from "card.slint";
-import { Logic } from "../logic.slint";
-import { Action } from "../types.slint";
+import { UiState } from "../ui-state.slint";
+import { Message, Dispatcher } from "../messages.slint";
 
 export component SettingCard inherits Card {
     in property <string> label;
     in property <Icon> icon;
     in property <[{ value: string, label: string}]> items;
     in property <string> active-item;
-    in property <Action> set-property;
+    in property <Message> set-property;
 
     callback changed();
 
@@ -57,7 +57,7 @@ export component SettingCard inherits Card {
             TouchArea {
                 clicked => {
                     if item.value != active-item {
-                        Logic.dispatch(set-property, item.value);
+                        Dispatcher.dispatch(set-property, item.value);
                         changed();
                     }
                 }

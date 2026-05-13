@@ -4,7 +4,7 @@
 import { ScrollView } from "std-widgets.slint";
 import { IconSet } from "@lucide";
 import { MyPalette } from "styling.slint";
-import { Logic } from "logic.slint";
+import { UiState } from "ui-state.slint";
 import { Card } from "components/card.slint";
 import { QueuedConversion } from "types.slint";
 import { ConversionRow } from "components/conversion-row.slint";
@@ -12,7 +12,7 @@ import {
     ConversionQueueToolbar,
 } from "components/conversion-queue-toolbar.slint";
 import { HorizontalLine } from "components/horizontal-line.slint";
-import { Action } from "types.slint";
+import { Message, Dispatcher } from "messages.slint";
 
 export component ConversionQueuePage inherits VerticalLayout {
     HorizontalLayout {
@@ -34,10 +34,10 @@ export component ConversionQueuePage inherits VerticalLayout {
                 height: v2.preferred-height;
 
                 v2 := VerticalLayout {
-                    for conv[i] in Logic.conversion-queue: VerticalLayout {
+                    for conv[i] in UiState.conversion-queue: VerticalLayout {
                         ConversionRow {
                             conv: conv;
-                            cancel() => Logic.dispatch(Action.CancelConversion, i);
+                            cancel() => Dispatcher.dispatch(Message.CancelConversion, i);
                         }
 
                         HorizontalLine { }

@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { Logic } from "../logic.slint";
+import { UiState } from "../ui-state.slint";
 import { StyleMetrics } from "std-widgets.slint";
 import { MyPalette } from "../styling.slint";
 import { IconDisplay, Icon, IconSet } from "@lucide";
-import { Action } from "../types.slint";
+import { Message, Dispatcher } from "../messages.slint";
 
 export component Link inherits Rectangle {
     in property <string> label;
@@ -45,6 +45,6 @@ export component Link inherits Rectangle {
         height: t.height;
         width: 17px + t.width;
         mouse-cursor: pointer;
-        clicked => Logic.dispatch(Action.OpenThat, uri);
+        clicked => Dispatcher.dispatch(Message.OpenThat, uri);
     }
 }

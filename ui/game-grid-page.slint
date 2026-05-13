@@ -7,14 +7,11 @@ import { GameCard } from "components/game-card.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { GamesToolbar } from "components/games-toolbar.slint";
 import { GamesOtherToolbar } from "components/games-other-toolbar.slint";
-import { Logic } from "logic.slint";
+import { UiState } from "ui-state.slint";
 import { DisplayedGame } from "types.slint";
 import { NoDrive } from "components/no-drive.slint";
 
 export component GameGridPage inherits VerticalLayout {
-    callback open-info(DisplayedGame);
-    callback delete-game(DisplayedGame);
-
     private property <int> col-count: max(1, floor((self.width - 10px) / (172px + 10px)));
 
     HorizontalLayout {
@@ -23,9 +20,9 @@ export component GameGridPage inherits VerticalLayout {
         GamesToolbar { }
     }
 
-    if Logic.config.mount-point.is-empty: NoDrive { }
+    if UiState.config.mount-point.is-empty: NoDrive { }
 
-    if !Logic.config.mount-point.is-empty: ScrollView {
+    if !UiState.config.mount-point.is-empty: ScrollView {
         width: parent.width;
         viewport-height: v.preferred-height;
 
@@ -39,13 +36,11 @@ export component GameGridPage inherits VerticalLayout {
             GridLayout {
                 spacing: 10px;
 
-                for game[i] in Logic.games: GameCard {
+                for game[i] in UiState.games: GameCard {
                     row: i / col-count;
                     col: mod(i, col-count);
 
                     game: game;
-                    open-info() => open-info(game);
-                    delete() => delete-game(game);
                 }
             }
         }

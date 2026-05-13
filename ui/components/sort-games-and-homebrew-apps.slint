@@ -5,8 +5,8 @@ import { Card } from "card.slint";
 import { IconDisplay, IconSet } from "@lucide";
 import { TooltipArea } from "tooltip-area.slint";
 import { MyPalette } from "../styling.slint";
-import { Logic } from "../logic.slint";
-import { Action } from "../types.slint";
+import { UiState } from "../ui-state.slint";
+import { Message, Dispatcher } from "../messages.slint";
 
 export component SortGamesAndHomebrewApps inherits Card {
     pure function get-bg(current-sort-by: bool, hovered: bool) -> color {
@@ -29,17 +29,17 @@ export component SortGamesAndHomebrewApps inherits Card {
             height: 38px;
 
             tooltip: "Sort by name";
-            background: get-bg(Logic.config.sort-by == "NameDescending" || Logic.config.sort-by == "NameAscending", self.has-hover);
+            background: get-bg(UiState.config.sort-by == "NameDescending" || UiState.config.sort-by == "NameAscending", self.has-hover);
             clicked => {
-                if Logic.config.sort-by == "NameDescending" {
-                    Logic.dispatch(Action.SetSortBy, "NameAscending");
+                if UiState.config.sort-by == "NameDescending" {
+                    Dispatcher.dispatch(Message.SetSortBy, "NameAscending");
                 } else {
-                    Logic.dispatch(Action.SetSortBy, "NameDescending");
+                    Dispatcher.dispatch(Message.SetSortBy, "NameDescending");
                 }
             }
 
             IconDisplay {
-                icon: Logic.config.sort-by == "NameAscending" ? IconSet.ArrowUpAZ : IconSet.ArrowDownAZ;
+                icon: UiState.config.sort-by == "NameAscending" ? IconSet.ArrowUpAZ : IconSet.ArrowDownAZ;
                 size: 14px;
                 stroke: MyPalette.foreground;
             }
@@ -50,17 +50,17 @@ export component SortGamesAndHomebrewApps inherits Card {
             height: 38px;
 
             tooltip: "Sort by size";
-            background: get-bg(Logic.config.sort-by == "SizeDescending" || Logic.config.sort-by == "SizeAscending", self.has-hover);
+            background: get-bg(UiState.config.sort-by == "SizeDescending" || UiState.config.sort-by == "SizeAscending", self.has-hover);
             clicked => {
-                if Logic.config.sort-by == "SizeDescending" {
-                    Logic.dispatch(Action.SetSortBy, "SizeAscending");
+                if UiState.config.sort-by == "SizeDescending" {
+                    Dispatcher.dispatch(Message.SetSortBy, "SizeAscending");
                 } else {
-                    Logic.dispatch(Action.SetSortBy, "SizeDescending");
+                    Dispatcher.dispatch(Message.SetSortBy, "SizeDescending");
                 }
             }
 
             IconDisplay {
-                icon: Logic.config.sort-by == "SizeAscending" ? IconSet.ArrowUp01 : IconSet.ArrowDown01;
+                icon: UiState.config.sort-by == "SizeAscending" ? IconSet.ArrowUp01 : IconSet.ArrowDown01;
                 size: 14px;
                 stroke: MyPalette.foreground;
             }

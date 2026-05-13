@@ -6,17 +6,15 @@ import { ScrollView, LineEdit } from "std-widgets.slint";
 import { MyPalette } from "styling.slint";
 import { Card } from "components/card.slint";
 import { HorizontalLine } from "components/horizontal-line.slint";
-import { Logic } from "logic.slint";
+import { UiState } from "ui-state.slint";
 import { Link } from "components/link.slint";
 import { IconButton } from "components/icon-button.slint";
-import { Action } from "types.slint";
+import { Message, Dispatcher } from "messages.slint";
 
 export component ToolboxPage inherits VerticalLayout {
-    in-out property <bool> scrubbing-all-games;
-
-    private property <int> optimal-allocation-granularity: (Logic.drive-info.total-gib <= 32) ? 32768 : 65536;
-    private property <bool> is-optimal-allocation-granularity: Logic.drive-info.allocation-granularity == optimal-allocation-granularity;
-    private property <bool> should-reformat: Logic.drive-info.fs-kind != "FAT32" || !is-optimal-allocation-granularity;
+    private property <int> optimal-allocation-granularity: (UiState.drive-info.total-gib <= 32) ? 32768 : 65536;
+    private property <bool> is-optimal-allocation-granularity: UiState.drive-info.allocation-granularity == optimal-allocation-granularity;
+    private property <bool> should-reformat: UiState.drive-info.fs-kind != "FAT32" || !is-optimal-allocation-granularity;
 
     pure function fs-icon(fs-kind: string) -> Icon {
         if fs-kind == "FAT32" {
@@ -78,7 +76,7 @@ export component ToolboxPage inherits VerticalLayout {
             spacing: 10px;
             alignment: start;
 
-            if !Logic.config.mount-point.is-empty: Card {
+            if !UiState.config.mount-point.is-empty: Card {
                 VerticalLayout {
                     padding: 10px;
                     spacing: 10px;
@@ -112,13 +110,13 @@ export component ToolboxPage inherits VerticalLayout {
                         spacing: 5px;
 
                         IconDisplay {
-                            icon: fs-icon(Logic.drive-info.fs-kind);
+                            icon: fs-icon(UiState.drive-info.fs-kind);
                             stroke: MyPalette.foreground;
                             size: 14px;
                         }
 
                         Text {
-                            text: "Filesystem: \{Logic.drive-info.fs-kind}  (\{fs-comment(Logic.drive-info.fs-kind)})";
+                            text: "Filesystem: \{UiState.drive-info.fs-kind}  (\{fs-comment(UiState.drive-info.fs-kind)})";
                         }
                     }
 
@@ -132,13 +130,13 @@ export component ToolboxPage inherits VerticalLayout {
                         }
 
                         Text {
-                            text: "Allocation granularity: \{Logic.drive-info.allocation-granularity}  (\{allocation-granularity-comment(is-optimal-allocation-granularity)})";
+                            text: "Allocation granularity: \{UiState.drive-info.allocation-granularity}  (\{allocation-granularity-comment(is-optimal-allocation-granularity)})";
                         }
                     }
                 }
             }
 
-            if !Logic.config.mount-point.is-empty: Card {
+            if !UiState.config.mount-point.is-empty: Card {
                 VerticalLayout {
                     padding: 10px;
                     spacing: 10px;
@@ -165,7 +163,7 @@ export component ToolboxPage inherits VerticalLayout {
                         IconButton {
                             icon: IconSet.Play;
                             width: self.height;
-                            clicked => Logic.dispatch(Action.DownloadAllCovers, "false");
+                            clicked => Dispatcher.dispatch(Message.DownloadAllCovers, "false");
                         }
 
                         Text {
@@ -181,7 +179,7 @@ export component ToolboxPage inherits VerticalLayout {
                         IconButton {
                             icon: IconSet.Play;
                             width: self.height;
-                            clicked => Logic.dispatch(Action.DownloadAllCovers, "true");
+                            clicked => Dispatcher.dispatch(Message.DownloadAllCovers, "true");
                         }
 
                         Text {
@@ -197,7 +195,7 @@ export component ToolboxPage inherits VerticalLayout {
                         IconButton {
                             icon: IconSet.Play;
                             width: self.height;
-                            clicked => Logic.dispatch(Action.DownloadAllBanners, "");
+                            clicked => Dispatcher.dispatch(Message.DownloadAllBanners, "");
                         }
 
                         Text {
@@ -209,7 +207,7 @@ export component ToolboxPage inherits VerticalLayout {
                 }
             }
 
-            if !Logic.config.mount-point.is-empty: Card {
+            if !UiState.config.mount-point.is-empty: Card {
                 VerticalLayout {
                     padding: 10px;
                     spacing: 10px;
@@ -236,7 +234,7 @@ export component ToolboxPage inherits VerticalLayout {
                         IconButton {
                             icon: IconSet.Play;
                             width: self.height;
-                            clicked => Logic.dispatch(Action.NormalizeDirLayout, "");
+                            clicked => Dispatcher.dispatch(Message.NormalizeDirLayout, "");
                         }
 
                         Text {
@@ -253,7 +251,7 @@ export component ToolboxPage inherits VerticalLayout {
                             icon: IconSet.Play;
                             width: self.height;
                             clicked => {
-                                scrubbing-all-games = true;
+                                UiState.scrubbing-all-games = true;
                             }
                         }
 
@@ -302,7 +300,7 @@ export component ToolboxPage inherits VerticalLayout {
                             IconButton {
                                 icon: IconSet.FileUp;
                                 label: "Choose a zip/dol/elf";
-                                clicked => Logic.dispatch(Action.WiiloadLocalFile, ip.text);
+                                clicked => Dispatcher.dispatch(Message.WiiloadLocalFile, ip.text);
                             }
                         }
 
@@ -319,7 +317,7 @@ export component ToolboxPage inherits VerticalLayout {
 
                             ip := LineEdit {
                                 width: 200px;
-                                text: Logic.config.wii-ip;
+                                text: UiState.config.wii-ip;
                             }
                         }
                     }
@@ -362,7 +360,7 @@ export component ToolboxPage inherits VerticalLayout {
                         b := IconButton {
                             icon: IconSet.Play;
                             width: self.height;
-                            clicked => Logic.dispatch(Action.ArchiveManually, "");
+                            clicked => Dispatcher.dispatch(Message.ArchiveManually, "");
                         }
 
                         Text {
@@ -374,7 +372,7 @@ export component ToolboxPage inherits VerticalLayout {
                 }
             }
 
-            if Platform.os == OperatingSystemType.macos && !Logic.config.mount-point.is-empty: Card {
+            if Platform.os == OperatingSystemType.macos && !UiState.config.mount-point.is-empty: Card {
                 VerticalLayout {
                     padding: 10px;
                     spacing: 10px;
@@ -401,7 +399,7 @@ export component ToolboxPage inherits VerticalLayout {
                         IconButton {
                             icon: IconSet.Play;
                             width: self.height;
-                            clicked => Logic.dispatch(Action.RunDotClean, "");
+                            clicked => Dispatcher.dispatch(Message.RunDotClean, "");
                         }
 
                         Text {

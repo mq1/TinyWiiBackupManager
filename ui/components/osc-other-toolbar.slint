@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import { OscFilter } from "osc-filter.slint";
-import { Logic } from "../logic.slint";
+import { UiState } from "../ui-state.slint";
 import { Link } from "link.slint";
 
 export component OscOtherToolbar inherits HorizontalLayout {
@@ -20,7 +20,7 @@ export component OscOtherToolbar inherits HorizontalLayout {
             spacing: 20px;
 
             Text {
-                text: "refreshed \{Logic.osc-refreshed-x-hours-ago}h \{Logic.osc-refreshed-x-minutes-ago}m ago";
+                text: "refreshed \{UiState.osc-refreshed-x-hours-ago}h \{UiState.osc-refreshed-x-minutes-ago}m ago";
             }
         }
     }

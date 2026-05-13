@@ -6,14 +6,11 @@ import { DisplayedOscApp } from "../types.slint";
 import { IconButton } from "icon-button.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { MyPalette } from "../styling.slint";
-import { Logic } from "../logic.slint";
+import { UiState } from "../ui-state.slint";
+import { Message, Dispatcher } from "../messages.slint";
 
 export component OscAppCard inherits Card {
     in property <DisplayedOscApp> app;
-
-    callback open-info();
-    callback install();
-    callback wiiload();
 
     width: 172px;
     height: self.min-height;
@@ -66,22 +63,26 @@ export component OscAppCard inherits Card {
             IconButton {
                 label: "Info";
                 icon: IconSet.Info;
-                clicked => open-info();
+                clicked => {
+                    UiState.current-osc-app = app;
+                }
             }
 
             IconButton {
                 width: self.height + 1px;
                 icon: IconSet.HardDriveDownload;
                 tooltip: "Install";
-                disabled: Logic.config.mount-point.is-empty;
-                clicked => install();
+                disabled: UiState.config.mount-point.is-empty;
+                clicked => Dispatcher.dispatch(Message.InstallOscApp, app.slug);
             }
 
             IconButton {
                 width: self.height + 1px;
                 icon: IconSet.MonitorUp;
                 tooltip: "Wiiload";
-                clicked => wiiload();
+                clicked => {
+                    UiState.wiiloading-osc-app = app;
+                }
             }
         }
     }

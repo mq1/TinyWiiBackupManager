@@ -4,15 +4,13 @@
 import { IconSet, IconDisplay } from "@lucide";
 import { VerticalLine } from "vertical-line.slint";
 import { IconButton } from "icon-button.slint";
-import { DisplayedGame, Action } from "../types.slint";
+import { DisplayedGame } from "../types.slint";
 import { MyPalette } from "../styling.slint";
-import { Logic } from "../logic.slint";
+import { UiState } from "../ui-state.slint";
+import { Message, Dispatcher } from "../messages.slint";
 
 export component GameRow inherits Rectangle {
     in property <DisplayedGame> game;
-
-    callback open-info();
-    callback delete();
 
     height: 24px;
 
@@ -51,7 +49,10 @@ export component GameRow inherits Rectangle {
         height: 24px;
         width: 24px;
         squared: true;
-        clicked => open-info();
+        clicked => {
+            Dispatcher.dispatch(Message.LoadGameInfo, game.path);
+            UiState.current-game = game;
+        }
     }
 
     VerticalLine {
@@ -68,7 +69,7 @@ export component GameRow inherits Rectangle {
         height: 24px;
         width: 24px;
         squared: true;
-        clicked => Logic.dispatch(Action.ArchiveGame, game.path);
+        clicked => Dispatcher.dispatch(Message.ArchiveGame, game.path);
     }
 
     VerticalLine {
@@ -85,6 +86,8 @@ export component GameRow inherits Rectangle {
         height: 24px;
         width: 24px;
         squared: true;
-        clicked => delete();
+        clicked => {
+            UiState.game-to-delete = game;
+        }
     }
 }

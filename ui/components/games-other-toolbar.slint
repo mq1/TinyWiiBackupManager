@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import { GameFilter } from "game-filter.slint";
-import { Logic } from "../logic.slint";
+import { UiState } from "../ui-state.slint";
 
 export component GamesOtherToolbar inherits HorizontalLayout {
     alignment: space-between;
@@ -15,6 +15,6 @@ export component GamesOtherToolbar inherits HorizontalLayout {
         height: parent.height;
         vertical-alignment: center;
         horizontal-alignment: end;
-        text: "\{Logic.games.length} game\{Logic.games.length == 1 ? "" : "s"}   ~ \{Logic.drive-info.games-gib.to-fixed(2)} GiB";
+        text: "\{UiState.games.length} game\{UiState.games.length == 1 ? "" : "s"}   ~ \{UiState.drive-info.games-gib.to-fixed(2)} GiB";
     }
 }

@@ -7,13 +7,10 @@ import { IconSet, IconDisplay } from "@lucide";
 import { OscToolbar } from "components/osc-toolbar.slint";
 import { OscOtherToolbar } from "components/osc-other-toolbar.slint";
 import { OscAppCard } from "components/osc-app-card.slint";
-import { Logic } from "logic.slint";
-import { Action, DisplayedOscApp } from "types.slint";
+import { UiState } from "ui-state.slint";
+import { DisplayedOscApp } from "types.slint";
 
 export component OscGridPage inherits VerticalLayout {
-    callback open-info(DisplayedOscApp);
-    callback wiiload(DisplayedOscApp);
-
     private property <int> col-count: max(1, floor((self.width - 10px) / (172px + 10px)));
 
     HorizontalLayout {
@@ -22,7 +19,7 @@ export component OscGridPage inherits VerticalLayout {
         OscToolbar { }
     }
 
-    if Logic.osc-apps.length == 0: HorizontalLayout {
+    if UiState.osc-apps.length == 0: HorizontalLayout {
         padding-left: 20px;
 
         Text {
@@ -30,7 +27,7 @@ export component OscGridPage inherits VerticalLayout {
         }
     }
 
-    if Logic.osc-apps.length > 0: ScrollView {
+    if UiState.osc-apps.length > 0: ScrollView {
         width: parent.width;
         viewport-height: v.preferred-height;
 
@@ -44,14 +41,11 @@ export component OscGridPage inherits VerticalLayout {
             GridLayout {
                 spacing: 10px;
 
-                for app[i] in Logic.osc-apps: OscAppCard {
+                for app[i] in UiState.osc-apps: OscAppCard {
                     row: i / col-count;
                     col: mod(i, col-count);
 
                     app: app;
-                    open-info() => open-info(app);
-                    install() => Logic.dispatch(Action.InstallOscApp, app.slug);
-                    wiiload() => wiiload(app);
                 }
             }
         }

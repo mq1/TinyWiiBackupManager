@@ -11,12 +11,9 @@ import { MyPalette } from "../styling.slint";
 import { IconButton, IconButtonKind } from "icon-button.slint";
 import { Developers } from "../developers.slint";
 import { Modal } from "modal.slint";
+import { UiState } from "../ui-state.slint";
 
 export component OscAppInfoModal inherits Modal {
-    in property <DisplayedOscApp> app;
-
-    callback closed();
-
     VerticalLayout {
         alignment: space-between;
 
@@ -28,14 +25,14 @@ export component OscAppInfoModal inherits Modal {
                 spacing: 10px;
 
                 Text {
-                    text: app.name;
+                    text: UiState.current-osc-app.name;
                     font-size: 18px;
                     overflow: elide;
                 }
 
                 Link {
-                    label: "https://oscwii.org/library/app/\{app.slug}";
-                    uri: "https://oscwii.org/library/app/\{app.slug}";
+                    label: "https://oscwii.org/library/app/\{UiState.current-osc-app.slug}";
+                    uri: "https://oscwii.org/library/app/\{UiState.current-osc-app.slug}";
                 }
             }
 
@@ -58,7 +55,7 @@ export component OscAppInfoModal inherits Modal {
                         }
 
                         Text {
-                            text: "Version: \{app.version}";
+                            text: "Version: \{UiState.current-osc-app.version}";
                         }
                     }
 
@@ -72,7 +69,7 @@ export component OscAppInfoModal inherits Modal {
                         }
 
                         Text {
-                            text: "Release date: \{app.release-date}";
+                            text: "Release date: \{UiState.current-osc-app.release-date}";
                         }
                     }
 
@@ -80,13 +77,13 @@ export component OscAppInfoModal inherits Modal {
                         spacing: 5px;
 
                         IconDisplay {
-                            icon: Developers.get-icon(app.author);
+                            icon: Developers.get-icon(UiState.current-osc-app.author);
                             stroke: MyPalette.foreground;
                             size: 14px;
                         }
 
                         Text {
-                            text: "Author: \{app.author}";
+                            text: "Author: \{UiState.current-osc-app.author}";
                         }
                     }
 
@@ -100,7 +97,7 @@ export component OscAppInfoModal inherits Modal {
                         }
 
                         Text {
-                            text: "Description: \{app.short-description}";
+                            text: "Description: \{UiState.current-osc-app.short-description}";
                         }
                     }
 
@@ -116,7 +113,7 @@ export component OscAppInfoModal inherits Modal {
 
                         v := VerticalLayout {
                             Text {
-                                text: app.long-description;
+                                text: UiState.current-osc-app.long-description;
                                 wrap: word-wrap;
                             }
                         }
@@ -124,7 +121,7 @@ export component OscAppInfoModal inherits Modal {
                 }
 
                 Image {
-                    source: app.icon;
+                    source: UiState.current-osc-app.icon;
                     height: 96px;
                 }
             }
@@ -145,7 +142,9 @@ export component OscAppInfoModal inherits Modal {
                 IconButton {
                     label: "Close";
                     kind: IconButtonKind.Primary;
-                    clicked => closed();
+                    clicked => {
+                        UiState.current-osc-app = { };
+                    }
                 }
             }
         }

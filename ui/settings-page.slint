@@ -5,8 +5,8 @@ import { ScrollView, Palette } from "std-widgets.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { SettingCard } from "components/setting-card.slint";
 import { MyPalette } from "styling.slint";
-import { Logic } from "logic.slint";
-import { Action } from "types.slint";
+import { UiState } from "ui-state.slint";
+import { Message, Dispatcher } from "messages.slint";
 
 export component SettingsPage inherits VerticalLayout {
     HorizontalLayout {
@@ -42,8 +42,8 @@ export component SettingsPage inherits VerticalLayout {
                     { value: "Wbfs", label: "WBFS (recommended)" },
                     { value: "Iso", label: "ISO (very large)" }
                 ];
-                active-item: Logic.config.wii-output-format;
-                set-property: Action.SetWiiOutputFormat;
+                active-item: UiState.config.wii-output-format;
+                set-property: Message.SetWiiOutputFormat;
             }
 
             SettingCard {
@@ -56,8 +56,8 @@ export component SettingsPage inherits VerticalLayout {
                         label: "CISO (much smaller, slightly slower, less metadata in game loaders)"
                     }
                 ];
-                active-item: Logic.config.gc-output-format;
-                set-property: Action.SetGcOutputFormat;
+                active-item: UiState.config.gc-output-format;
+                set-property: Message.SetGcOutputFormat;
             }
 
             SettingCard {
@@ -67,8 +67,8 @@ export component SettingsPage inherits VerticalLayout {
                     { value: "false", label: "Only when needed (recommended)" },
                     { value: "true", label: "Always 4GB-32KB" }
                 ];
-                active-item: Logic.config.always-split;
-                set-property: Action.SetAlwaysSplit;
+                active-item: UiState.config.always-split;
+                set-property: Message.SetAlwaysSplit;
             }
 
             SettingCard {
@@ -81,24 +81,24 @@ export component SettingsPage inherits VerticalLayout {
                         label: "Yes (saves some space; update partition is zeroed, but still there)"
                     }
                 ];
-                active-item: Logic.config.scrub-update-partition;
-                set-property: Action.SetScrubUpdatePartition;
+                active-item: UiState.config.scrub-update-partition;
+                set-property: Message.SetScrubUpdatePartition;
             }
 
             SettingCard {
                 icon: IconSet.Trash;
                 label: "Delete sources when adding games";
                 items: [{ value: "false", label: "No (recommended)" }, { value: "true", label: "Yes" }];
-                active-item: Logic.config.remove-sources-games;
-                set-property: Action.SetRemoveSourcesGames;
+                active-item: UiState.config.remove-sources-games;
+                set-property: Message.SetRemoveSourcesGames;
             }
 
             SettingCard {
                 icon: IconSet.Trash;
                 label: "Delete sources when adding apps";
                 items: [{ value: "false", label: "No (recommended)" }, { value: "true", label: "Yes" }];
-                active-item: Logic.config.remove-sources-apps;
-                set-property: Action.SetRemoveSourcesApps;
+                active-item: UiState.config.remove-sources-apps;
+                set-property: Message.SetRemoveSourcesApps;
             }
 
             SettingCard {
@@ -109,8 +109,8 @@ export component SettingsPage inherits VerticalLayout {
                     { value: "GameHacking", label: "gamehacking.org (up to date)" },
                     { value: "Rc24", label: "codes.rc24.xyz" }
                 ];
-                active-item: Logic.config.txt-codes-source;
-                set-property: Action.SetTxtCodesSource;
+                active-item: UiState.config.txt-codes-source;
+                set-property: Message.SetTxtCodesSource;
             }
 
             SettingCard {
@@ -121,13 +121,13 @@ export component SettingsPage inherits VerticalLayout {
                     { value: "Light", label: "Light" },
                     { value: "Dark", label: "Dark" }
                 ];
-                active-item: Logic.config.theme-preference;
-                set-property: Action.SetThemePreference;
+                active-item: UiState.config.theme-preference;
+                set-property: Message.SetThemePreference;
 
                 changed() => {
-                    if Logic.config.theme-preference == "Light" {
+                    if UiState.config.theme-preference == "Light" {
                         Palette.color-scheme = ColorScheme.light;
-                    } else if Logic.config.theme-preference == "Dark" {
+                    } else if UiState.config.theme-preference == "Dark" {
                         Palette.color-scheme = ColorScheme.dark;
                     }
                 }
@@ -148,8 +148,8 @@ export component SettingsPage inherits VerticalLayout {
                     { value: "Danish", label: "Danish" },
                     { value: "Finnish", label: "Finnish" }
                 ];
-                active-item: Logic.config.preferred-language;
-                set-property: Action.SetPreferredLanguage;
+                active-item: UiState.config.preferred-language;
+                set-property: Message.SetPreferredLanguage;
             }
         }
     }

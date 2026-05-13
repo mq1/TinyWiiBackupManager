@@ -6,7 +6,7 @@ import { IconDisplay, IconSet } from "@lucide";
 import { Link } from "components/link.slint";
 import { Card } from "components/card.slint";
 import { HorizontalLine } from "components/horizontal-line.slint";
-import { Logic } from "logic.slint";
+import { UiState } from "ui-state.slint";
 
 export component AboutPage inherits Rectangle {
     Card {
@@ -36,7 +36,7 @@ export component AboutPage inherits Rectangle {
                     alignment: center;
 
                     Text {
-                        text: "TinyWiiBackupManager v\{Logic.app-version}";
+                        text: "TinyWiiBackupManager v\{UiState.app-version}";
                         font-size: 18px;
                         font-weight: 700;
                     }
@@ -132,7 +132,7 @@ export component AboutPage inherits Rectangle {
 
         Link {
             label: "Data directory";
-            uri: Logic.data-dir;
+            uri: UiState.data-dir;
             icon: IconSet.Folder;
         }
 

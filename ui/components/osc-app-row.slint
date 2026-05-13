@@ -6,14 +6,11 @@ import { VerticalLine } from "vertical-line.slint";
 import { IconButton } from "icon-button.slint";
 import { DisplayedOscApp } from "../types.slint";
 import { MyPalette } from "../styling.slint";
-import { Logic } from "../logic.slint";
+import { UiState } from "../ui-state.slint";
+import { Message, Dispatcher } from "../messages.slint";
 
 export component OscAppRow inherits Rectangle {
     in property <DisplayedOscApp> app;
-
-    callback open-info();
-    callback install();
-    callback wiiload();
 
     height: 24px;
 
@@ -44,7 +41,9 @@ export component OscAppRow inherits Rectangle {
         height: 24px;
         width: 24px;
         squared: true;
-        clicked => open-info();
+        clicked => {
+            UiState.current-osc-app = app;
+        }
     }
 
     VerticalLine {
@@ -61,8 +60,8 @@ export component OscAppRow inherits Rectangle {
         height: 24px;
         width: 24px;
         squared: true;
-        disabled: Logic.config.mount-point.is-empty;
-        clicked => install();
+        disabled: UiState.config.mount-point.is-empty;
+        clicked => Dispatcher.dispatch(Message.InstallOscApp, app.slug);
     }
 
     VerticalLine {
@@ -79,6 +78,8 @@ export component OscAppRow inherits Rectangle {
         height: 24px;
         width: 24px;
         squared: true;
-        clicked => wiiload();
+        clicked => {
+            UiState.wiiloading-osc-app = app;
+        }
     }
 }

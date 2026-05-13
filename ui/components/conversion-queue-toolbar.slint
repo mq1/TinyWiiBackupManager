@@ -4,8 +4,8 @@
 import { IconButton, IconButtonKind } from "icon-button.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { MyPalette } from "../styling.slint";
-import { Logic } from "../logic.slint";
-import { Action } from "../types.slint";
+import { UiState } from "../ui-state.slint";
+import { Message, Dispatcher } from "../messages.slint";
 
 export component ConversionQueueToolbar inherits HorizontalLayout {
     alignment: space-between;
@@ -30,11 +30,11 @@ export component ConversionQueueToolbar inherits HorizontalLayout {
     VerticalLayout {
         alignment: center;
 
-        if Logic.conversion-queue.length > 0: IconButton {
+        if UiState.conversion-queue.length > 0: IconButton {
             icon: IconSet.X;
             label: "Cancel all conversions";
             kind: IconButtonKind.Primary;
-            clicked => Logic.dispatch(Action.CancelAllConversions, "");
+            clicked => Dispatcher.dispatch(Message.CancelAllConversions, "");
         }
     }
 }

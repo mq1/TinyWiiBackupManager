@@ -5,8 +5,8 @@ import { Card } from "card.slint";
 import { MyPalette } from "../styling.slint";
 import { IconSet, IconDisplay } from "@lucide";
 import { MyLineEdit } from "my-line-edit.slint";
-import { Logic } from "../logic.slint";
-import { Action } from "../types.slint";
+import { UiState } from "../ui-state.slint";
+import { Message, Dispatcher } from "../messages.slint";
 
 export component GameFilter inherits Card {
     width: 210px;
@@ -31,7 +31,7 @@ export component GameFilter inherits Card {
 
             MyLineEdit {
                 placeholder-text: "Search by Title/ID";
-                edited() => Logic.dispatch(Action.FilterGames, self.text);
+                edited() => Dispatcher.dispatch(Message.FilterGames, self.text);
             }
         }
     }

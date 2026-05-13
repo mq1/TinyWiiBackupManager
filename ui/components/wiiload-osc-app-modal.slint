@@ -5,14 +5,12 @@ import { Modal } from "modal.slint";
 import { HorizontalLine } from "horizontal-line.slint";
 import { IconButton, IconButtonKind } from "icon-button.slint";
 import { IconSet } from "@lucide";
-import { Logic } from "../logic.slint";
-import { DisplayedOscApp, Action } from "../types.slint";
+import { UiState } from "../ui-state.slint";
+import { DisplayedOscApp } from "../types.slint";
 import { LineEdit } from "std-widgets.slint";
+import { Message, Dispatcher } from "../messages.slint";
 
 export component WiiloadOscAppModal inherits Modal {
-    in property <DisplayedOscApp> app;
-    callback closed;
-
     w: 300px;
     h: 150px;
 
@@ -24,7 +22,7 @@ export component WiiloadOscAppModal inherits Modal {
             alignment: center;
 
             Text {
-                text: "Sending \{app.name} via Wiiload";
+                text: "Sending \{UiState.wiiloading-osc-app.name} via Wiiload";
             }
 
             HorizontalLayout {
@@ -39,7 +37,7 @@ export component WiiloadOscAppModal inherits Modal {
                 }
 
                 ip := LineEdit {
-                    text: Logic.config.wii-ip;
+                    text: UiState.config.wii-ip;
                 }
             }
         }
@@ -56,7 +54,9 @@ export component WiiloadOscAppModal inherits Modal {
 
                 IconButton {
                     label: "Cancel";
-                    clicked => closed();
+                    clicked => {
+                        UiState.wiiloading-osc-app = { };
+                    }
                 }
 
                 IconButton {
@@ -64,8 +64,8 @@ export component WiiloadOscAppModal inherits Modal {
                     kind: IconButtonKind.Primary;
                     icon: IconSet.MonitorUp;
                     clicked => {
-                        Logic.dispatch(Action.WiiloadOscApp, ip.text + "\u{0}" + app.slug);
-                        closed();
+                        Dispatcher.dispatch(Message.WiiloadOscApp, ip.text + "\u{0}" + UiState.wiiloading-osc-app.slug);
+                        UiState.wiiloading-osc-app = { };
                     }
                 }
             }

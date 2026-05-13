@@ -7,8 +7,8 @@ import { IconSet, IconDisplay } from "@lucide";
 import { SortGamesAndHomebrewApps } from "sort-games-and-homebrew-apps.slint";
 import { ViewAs } from "view-as.slint";
 import { MyPalette } from "../styling.slint";
-import { Logic } from "../logic.slint";
-import { Action } from "../types.slint";
+import { UiState } from "../ui-state.slint";
+import { Message, Dispatcher } from "../messages.slint";
 
 export component GamesToolbar inherits HorizontalLayout {
     alignment: space-between;
@@ -30,7 +30,7 @@ export component GamesToolbar inherits HorizontalLayout {
         }
     }
 
-    if !Logic.config.mount-point.is-empty: HorizontalLayout {
+    if !UiState.config.mount-point.is-empty: HorizontalLayout {
         spacing: 10px;
 
         ShowWiiGc { }
@@ -53,7 +53,7 @@ export component GamesToolbar inherits HorizontalLayout {
                     font-size: 18px;
                     width: 34px;
                     height: 34px;
-                    clicked => Logic.dispatch(Action.RefreshAll, "");
+                    clicked => Dispatcher.dispatch(Message.RefreshAll, "");
                 }
 
                 IconButton {
@@ -64,7 +64,7 @@ export component GamesToolbar inherits HorizontalLayout {
                     font-size: 18px;
                     width: 34px;
                     height: 34px;
-                    clicked => Logic.dispatch(Action.PickGames, "false");
+                    clicked => Dispatcher.dispatch(Message.PickGames, "false");
                 }
 
                 IconButton {
@@ -75,7 +75,7 @@ export component GamesToolbar inherits HorizontalLayout {
                     font-size: 18px;
                     width: 34px;
                     height: 34px;
-                    clicked => Logic.dispatch(Action.PickGames, "true");
+                    clicked => Dispatcher.dispatch(Message.PickGames, "true");
                 }
             }
         }
