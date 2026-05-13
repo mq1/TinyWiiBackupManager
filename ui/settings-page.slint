@@ -127,10 +127,8 @@ export component SettingsPage inherits VerticalLayout {
                 changed() => {
                     if Logic.config.theme-preference == "Light" {
                         Palette.color-scheme = ColorScheme.light;
-                        Logic.dispatch(Action.SetWindowColor, "false")
                     } else if Logic.config.theme-preference == "Dark" {
                         Palette.color-scheme = ColorScheme.dark;
-                        Logic.dispatch(Action.SetWindowColor, "true")
                     }
                 }
             }
