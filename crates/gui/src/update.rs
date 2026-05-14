@@ -488,7 +488,7 @@ pub fn update<SG, SH, FG, FH, FO, const N: usize>(
             for path in state.games_to_add.iter() {
                 let conv = QueuedConversion::Standard(PathBuf::from(&path));
                 let displayed_conv = conv.to_shared_string();
-                state.conversion_queue.push(conv);
+                state.conversion_queue.push_back(conv);
                 state.displayed_conversion_queue.push(displayed_conv);
             }
             state.games_to_add.clear();
@@ -533,7 +533,7 @@ pub fn update<SG, SH, FG, FH, FO, const N: usize>(
             let conv = QueuedConversion::Scrub(game);
             let displayed_conv = conv.to_shared_string();
 
-            state.conversion_queue.push(conv);
+            state.conversion_queue.push_back(conv);
             state.displayed_conversion_queue.push(displayed_conv);
 
             if !state.is_converting {
@@ -814,7 +814,7 @@ pub fn update<SG, SH, FG, FH, FO, const N: usize>(
             let conv = QueuedConversion::Archive(in_path, out_path);
             let displayed_conv = conv.to_shared_string();
 
-            state.conversion_queue.push(conv);
+            state.conversion_queue.push_back(conv);
             state.displayed_conversion_queue.push(displayed_conv);
 
             if !state.is_converting {
@@ -860,7 +860,7 @@ pub fn update<SG, SH, FG, FH, FO, const N: usize>(
                 let conv = QueuedConversion::Archive(in_path, out_path);
                 let displayed_conv = conv.to_shared_string();
 
-                state.conversion_queue.push(conv);
+                state.conversion_queue.push_back(conv);
                 state.displayed_conversion_queue.push(displayed_conv);
 
                 if !state.is_converting {
