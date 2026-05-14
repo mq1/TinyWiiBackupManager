@@ -6,7 +6,6 @@ import { IconSet } from "@lucide";
 import { MyPalette } from "styling.slint";
 import { UiState } from "ui-state.slint";
 import { Card } from "components/card.slint";
-import { QueuedConversion } from "types.slint";
 import { ConversionRow } from "components/conversion-row.slint";
 import {
     ConversionQueueToolbar,
@@ -36,7 +35,7 @@ export component ConversionQueuePage inherits VerticalLayout {
                 v2 := VerticalLayout {
                     for conv[i] in UiState.conversion-queue: VerticalLayout {
                         ConversionRow {
-                            conv: conv;
+                            label: conv;
                             cancel() => Dispatcher.dispatch(Message.CancelConversion, i);
                         }
 

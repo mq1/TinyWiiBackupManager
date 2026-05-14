@@ -9,7 +9,6 @@ import {
     DisplayedOscApp,
     Notification,
     DisplayedDiscInfo,
-    QueuedConversion,
     Page,
 } from "types.slint";
 
@@ -32,8 +31,8 @@ export global UiState {
     in-out property <[DisplayedHomebrewApp]> homebrew-apps;
     in-out property <[DisplayedOscApp]> osc-apps;
     in-out property <[Notification]> notifications;
-    in-out property <[QueuedConversion]> conversion-queue;
-    in-out property <[QueuedConversion]> conversion-queue-buffer;
+    in-out property <[string]> conversion-queue;
+    in-out property <[string]> games-to-add;
     in-out property <string> status;
     in-out property <string> crc32-status;
     in-out property <int> osc-refreshed-x-hours-ago;

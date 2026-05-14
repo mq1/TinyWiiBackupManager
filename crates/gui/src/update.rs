@@ -2,19 +2,20 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    AppWindow, ConversionKind, Dispatcher, DisplayedConfig, DisplayedDiscInfo, DisplayedDriveInfo,
-    DisplayedGame, DisplayedHomebrewApp, DisplayedOscApp, Message, Notification, QueuedConversion,
-    UiState, convert::Conversion, covers, dialogs, games, homebrew_apps, osc, state::State,
+    AppWindow, Dispatcher, DisplayedConfig, DisplayedDiscInfo, DisplayedDriveInfo, DisplayedGame,
+    DisplayedHomebrewApp, DisplayedOscApp, Message, Notification, UiState,
+    convert::perform_conversion, covers, dialogs, games, homebrew_apps, osc, state::State,
 };
 use slint::{ComponentHandle, Image, Model, SharedString, ToSharedString, Weak};
 use smallvec::SmallVec;
 use std::{
     ffi::OsStr,
     fs::{self, File},
-    path::Path,
+    path::{Path, PathBuf},
 };
 use twbm_core::{
     checksum,
+    conversion_queue::QueuedConversion,
     data_dir::DATA_DIR,
     disc_info::{DiscInfo, is_worth_scrubbing},
     drive_info::DriveInfo,
@@ -29,7 +30,7 @@ pub fn update<SG, SH, FG, FH, FO, const N: usize>(
     weak: &Weak<AppWindow>,
     message: Message,
     args: SharedString,
-    message_queue: &mut SmallVec<(Message, SharedString), N>,
+    message_queue: &mut SmallVec<[(Message, SharedString); N]>,
 ) where
     SG: FnMut(&DisplayedGame, &DisplayedGame) -> std::cmp::Ordering + 'static,
     SH: FnMut(&DisplayedHomebrewApp, &DisplayedHomebrewApp) -> std::cmp::Ordering + 'static,
@@ -470,28 +471,27 @@ pub fn update<SG, SH, FG, FH, FO, const N: usize>(
 
             let existing_ids = state.games.iter().map(|g| g.id).collect::<Vec<_>>();
 
-            let mut new = Vec::new();
+            state.games_to_add.clear();
             for path in paths {
                 if let Ok(mut f) = File::open(&path)
                     && let Ok(meta) = wii_disc_info::Meta::read(&mut f)
                     && let Some(game_id) = GameID::new(meta.game_id())
                     && existing_ids.iter().all(|id| *id != game_id)
                 {
-                    new.push(QueuedConversion {
-                        kind: ConversionKind::Standard,
-                        in_path: path.to_string_lossy().to_shared_string(),
-                        ..Default::default()
-                    });
+                    state
+                        .games_to_add
+                        .push(path.to_string_lossy().to_shared_string());
                 }
             }
-
-            state.conversion_queue_buffer.set_vec(new);
         }
-        Message::ConfirmConversionQueueBuffer => {
-            state
-                .conversion_queue
-                .extend(state.conversion_queue_buffer.iter());
-            state.conversion_queue_buffer.clear();
+        Message::ConfirmGamesToAdd => {
+            for path in state.games_to_add.iter() {
+                let conv = QueuedConversion::Standard(PathBuf::from(&path));
+                let displayed_conv = conv.to_shared_string();
+                state.conversion_queue.push(conv);
+                state.displayed_conversion_queue.push(displayed_conv);
+            }
+            state.games_to_add.clear();
 
             if !state.is_converting {
                 state.is_converting = true;
@@ -499,26 +499,28 @@ pub fn update<SG, SH, FG, FH, FO, const N: usize>(
             }
         }
         Message::TriggerConversion => {
-            if state.conversion_queue.row_count() == 0 {
+            let queue_len = state.conversion_queue.len();
+
+            if queue_len == 0 {
                 state.is_converting = false;
                 let text = SharedString::from("Conversion queue empty");
                 state.notifications.push(Notification::info(text));
                 return;
             }
 
-            let queued = state.conversion_queue.remove(0);
-            let conv = Conversion::new(&queued);
+            let conv = state.conversion_queue.remove(queue_len);
+            let _ = state.displayed_conversion_queue.remove(queue_len);
 
             let weak = weak.clone();
             let drive_info = state.drive_info.clone();
             let config = state.config.clone();
 
             let _ = std::thread::spawn(move || {
-                conv.perform(config, drive_info, weak);
+                perform_conversion(conv, config, drive_info, weak);
             });
         }
-        Message::ClearConversionQueueBuffer => {
-            state.conversion_queue_buffer.clear();
+        Message::ClearGamesToAdd => {
+            state.games_to_add.clear();
         }
         Message::SetCrc32Status => {
             let app = weak.upgrade().unwrap();
@@ -529,23 +531,13 @@ pub fn update<SG, SH, FG, FH, FO, const N: usize>(
         }
         Message::ScrubGame => {
             let path = Path::new(args.next().unwrap());
-            let game = state.games.iter().find(|g| g.path == path).unwrap();
+            let game = state.games.iter().find(|g| g.path == path).unwrap().clone();
 
-            let Some(disc_path) = game.get_disc_path() else {
-                let text = slint::format!("No disc path found for game {}", game.title);
-                state.notifications.push(Notification::error(text));
-                return;
-            };
-
-            let conv = QueuedConversion {
-                kind: ConversionKind::Scrub,
-                in_path: disc_path.to_string_lossy().to_shared_string(),
-                game_title: game.title.to_shared_string(),
-                game_id: game.id.to_shared_string(),
-                ..Default::default()
-            };
+            let conv = QueuedConversion::Scrub(game);
+            let displayed_conv = conv.to_shared_string();
 
             state.conversion_queue.push(conv);
+            state.displayed_conversion_queue.push(displayed_conv);
 
             if !state.is_converting {
                 state.is_converting = true;
@@ -684,9 +676,11 @@ pub fn update<SG, SH, FG, FH, FO, const N: usize>(
         Message::CancelConversion => {
             let i = args.next().unwrap().parse().unwrap();
             let _ = state.conversion_queue.remove(i);
+            let _ = state.displayed_conversion_queue.remove(i);
         }
         Message::CancelAllConversions => {
             state.conversion_queue.clear();
+            state.displayed_conversion_queue.clear();
         }
         Message::DownloadTxtCodes => {
             let path = Path::new(args.next().unwrap());
@@ -820,14 +814,11 @@ pub fn update<SG, SH, FG, FH, FO, const N: usize>(
                 return;
             };
 
-            let queued = QueuedConversion {
-                kind: ConversionKind::Archive,
-                in_path: in_path.to_string_lossy().to_shared_string(),
-                out_path: out_path.to_string_lossy().to_shared_string(),
-                ..Default::default()
-            };
+            let conv = QueuedConversion::Archive(in_path, out_path);
+            let displayed_conv = conv.to_shared_string();
 
-            state.conversion_queue.push(queued);
+            state.conversion_queue.push(conv);
+            state.displayed_conversion_queue.push(displayed_conv);
 
             if !state.is_converting {
                 state.is_converting = true;
@@ -869,14 +860,11 @@ pub fn update<SG, SH, FG, FH, FO, const N: usize>(
             let out_path = dialogs::save_game(&window_handle, &game.title);
 
             if let Some(out_path) = out_path {
-                let queued = QueuedConversion {
-                    kind: ConversionKind::Archive,
-                    in_path: in_path.to_string_lossy().to_shared_string(),
-                    out_path: out_path.to_string_lossy().to_shared_string(),
-                    ..Default::default()
-                };
+                let conv = QueuedConversion::Archive(in_path, out_path);
+                let displayed_conv = conv.to_shared_string();
 
-                state.conversion_queue.push(queued);
+                state.conversion_queue.push(conv);
+                state.displayed_conversion_queue.push(displayed_conv);
 
                 if !state.is_converting {
                     state.is_converting = true;

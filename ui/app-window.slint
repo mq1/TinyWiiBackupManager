@@ -136,17 +136,17 @@ export component AppWindow inherits Window {
         }
     }
 
-    if UiState.conversion-queue-buffer.length > 0: ConfirmationModal {
+    if UiState.games-to-add.length > 0: ConfirmationModal {
         Text {
-            text: "Are you sure you want to add \{UiState.conversion-queue-buffer.length} conversions to the queue?";
+            text: "Are you sure you want to add \{UiState.games-to-add.length} conversions to the queue?";
         }
 
-        for conv in UiState.conversion-queue-buffer: Text {
-            text: "• \{conv.in-path}";
+        for path in UiState.games-to-add: Text {
+            text: "• \{path}";
         }
 
-        cancelled => Dispatcher.dispatch(Message.ClearConversionQueueBuffer, "");
-        confirmed => Dispatcher.dispatch(Message.ConfirmConversionQueueBuffer, "");
+        cancelled => Dispatcher.dispatch(Message.ClearGamesToAdd, "");
+        confirmed => Dispatcher.dispatch(Message.ConfirmGamesToAdd, "");
     }
 
     if UiState.scrubbing-current-game: ConfirmationModal {

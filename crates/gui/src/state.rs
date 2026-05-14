@@ -2,13 +2,13 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    DisplayedGame, DisplayedHomebrewApp, DisplayedOscApp, Notification, QueuedConversion, games,
-    homebrew_apps, osc,
+    DisplayedGame, DisplayedHomebrewApp, DisplayedOscApp, Notification, games, homebrew_apps, osc,
 };
-use slint::{FilterModel, SortModel, VecModel};
+use slint::{FilterModel, SharedString, SortModel, VecModel};
 use std::{cell::RefCell, rc::Rc};
 use twbm_core::{
     config::{Config, SortBy},
+    conversion_queue::QueuedConversion,
     drive_info::DriveInfo,
     game::Game,
     homebrew_app::HomebrewApp,
@@ -44,8 +44,9 @@ where
     pub filtered_homebrew_apps:
         Rc<FilterModel<Rc<SortModel<Rc<VecModel<DisplayedHomebrewApp>>, SH>>, FH>>,
     pub filtered_osc_apps: Rc<FilterModel<Rc<VecModel<DisplayedOscApp>>, FO>>,
-    pub conversion_queue: Rc<VecModel<QueuedConversion>>,
-    pub conversion_queue_buffer: Rc<VecModel<QueuedConversion>>,
+    pub conversion_queue: Vec<QueuedConversion>,
+    pub displayed_conversion_queue: Rc<VecModel<SharedString>>,
+    pub games_to_add: Rc<VecModel<SharedString>>,
     pub notifications: Rc<VecModel<Notification>>,
     pub is_converting: bool,
     pub is_downloading_osc_icons: bool,
@@ -65,11 +66,6 @@ pub fn new_state() -> State<
     let sort_by = Rc::new(RefCell::new(config.contents.sort_by));
     let show_wii = Rc::new(RefCell::new(config.contents.show_wii));
     let show_gc = Rc::new(RefCell::new(config.contents.show_gc));
-
-    let games = Vec::<Game>::new();
-    let homebrew_apps = Vec::<HomebrewApp>::new();
-    let osc_apps = Vec::<OscAppMeta>::new();
-    let drive_info = DriveInfo::empty();
 
     let displayed_games = Rc::new(VecModel::from(Vec::new()));
     let games_filter = Rc::new(RefCell::new(String::new()));
@@ -100,8 +96,8 @@ pub fn new_state() -> State<
         osc::get_filter_fn(osc_apps_filter.clone()),
     ));
 
-    let conversion_queue = Rc::new(VecModel::from(Vec::new()));
-    let conversion_queue_buffer = Rc::new(VecModel::from(Vec::new()));
+    let displayed_conversion_queue = Rc::new(VecModel::from(Vec::new()));
+    let games_to_add = Rc::new(VecModel::from(Vec::new()));
     let notifications = Rc::new(VecModel::from(Vec::new()));
 
     State {
@@ -109,10 +105,10 @@ pub fn new_state() -> State<
         sort_by,
         show_wii,
         show_gc,
-        games,
-        homebrew_apps,
-        osc_apps,
-        drive_info,
+        games: Vec::new(),
+        homebrew_apps: Vec::new(),
+        osc_apps: Vec::new(),
+        drive_info: DriveInfo::empty(),
         displayed_games,
         games_filter,
         sorted_games,
@@ -124,8 +120,9 @@ pub fn new_state() -> State<
         displayed_osc_apps,
         osc_apps_filter,
         filtered_osc_apps,
-        conversion_queue,
-        conversion_queue_buffer,
+        conversion_queue: Vec::new(),
+        displayed_conversion_queue,
+        games_to_add,
         notifications,
         is_converting: false,
         is_downloading_osc_icons: false,

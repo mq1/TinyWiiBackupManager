@@ -7,6 +7,7 @@ pub mod archive;
 pub mod banners;
 pub mod checksum;
 pub mod config;
+pub mod conversion_queue;
 pub mod convert;
 pub mod covers;
 pub mod data_dir;

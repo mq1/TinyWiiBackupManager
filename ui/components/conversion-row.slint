@@ -3,31 +3,20 @@
 
 import { IconSet } from "@lucide";
 import { IconButton } from "icon-button.slint";
-import { QueuedConversion, ConversionKind } from "../types.slint";
 import { MyPalette } from "../styling.slint";
 import { UiState } from "../ui-state.slint";
 
 export component ConversionRow inherits Rectangle {
-    in property <QueuedConversion> conv;
+    in property <string> label;
 
     callback cancel();
-
-    pure function label(conv: QueuedConversion) -> string {
-        if conv.kind == ConversionKind.Standard {
-            "↑ Conversion: " + conv.in-path
-        } else if conv.kind == ConversionKind.Archive {
-            "↓ Archive: " + conv.out-path
-        } else {
-            "↔ Scrub: " + conv.game-title
-        }
-    }
 
     height: 24px;
 
     Text {
         x: 5px;
         y: 5px;
-        text: label(conv);
+        text: label;
         overflow: elide;
     }
 
