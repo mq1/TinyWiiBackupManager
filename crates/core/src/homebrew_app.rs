@@ -9,7 +9,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use crate::config::{Config, SortBy};
+use crate::config::SortBy;
 
 #[derive(Debug, Clone, serde::Deserialize)]
 pub struct HomebrewAppMeta {
@@ -98,8 +98,8 @@ pub fn scan_dir(path: &Path) -> Vec<HomebrewApp> {
         .collect()
 }
 
-pub fn get_compare_fn(config: &Config) -> impl FnMut(&HomebrewApp, &HomebrewApp) -> Ordering {
-    move |a, b| match config.contents.sort_by {
+pub fn get_compare_fn(sort_by: SortBy) -> impl FnMut(&HomebrewApp, &HomebrewApp) -> Ordering {
+    move |a, b| match sort_by {
         SortBy::NameDescending => a.meta.name.cmp(&b.meta.name),
         SortBy::NameAscending => b.meta.name.cmp(&a.meta.name),
         SortBy::SizeDescending => a.size.cmp(&b.size),

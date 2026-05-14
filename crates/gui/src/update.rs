@@ -199,19 +199,24 @@ impl State {
 
                 message_queue.push_back((Message::SyncConfig, SharedString::new()));
             }
+            Message::RefreshSorting => {
+                let compare_games = twbm_core::game::get_compare_fn(self.config.contents.sort_by);
+                self.games.sort_by(compare_games);
+
+                let compare_homebrew_apps =
+                    twbm_core::homebrew_app::get_compare_fn(self.config.contents.sort_by);
+                self.homebrew_apps.sort_by(compare_homebrew_apps);
+
+                message_queue.push_back((Message::RefreshDisplayedGames, SharedString::new()));
+                message_queue
+                    .push_back((Message::RefreshDisplayedHomebrewApps, SharedString::new()));
+            }
             Message::SetSortBy => {
                 let value = args.next().unwrap().parse().unwrap();
                 self.config.contents.sort_by = value;
 
-                let compare_games = twbm_core::game::get_compare_fn(&self.config);
-                self.games.sort_by(compare_games);
-
-                let compare_homebrew_apps = twbm_core::homebrew_app::get_compare_fn(&self.config);
-                self.homebrew_apps.sort_by(compare_homebrew_apps);
-
-                message_queue.push_back((Message::RefreshDisplayedGames, SharedString::new()));
-                message_queue.push_back((Message::RefreshDisplayedHomebrewApps, SharedString::new()));
                 message_queue.push_back((Message::SyncConfig, SharedString::new()));
+                message_queue.push_back((Message::RefreshSorting, SharedString::new()));
             }
             Message::SetPreferredLanguage => {
                 let value = args.next().unwrap().parse().unwrap();
@@ -330,9 +335,7 @@ impl State {
                     });
                 }
 
-                message_queue.push_back((Message::RefreshDisplayedGames, SharedString::new()));
-                message_queue
-                    .push_back((Message::RefreshDisplayedHomebrewApps, SharedString::new()));
+                message_queue.push_back((Message::RefreshSorting, SharedString::new()));
             }
             Message::OpenThat => {
                 let uri = args.next().unwrap();
