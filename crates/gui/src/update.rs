@@ -210,6 +210,8 @@ impl State {
                 self.homebrew_apps.sort_by(compare_homebrew_apps);
 
                 message_queue.push_back((Message::SyncConfig, SharedString::new()));
+                message_queue.push_back((Message::RefreshDisplayedGames, SharedString::new()));
+                message_queue.push_back((Message::RefreshDisplayedHomebrewApps, SharedString::new()));
             }
             Message::SetPreferredLanguage => {
                 let value = args.next().unwrap().parse().unwrap();
