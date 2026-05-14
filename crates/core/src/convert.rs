@@ -111,7 +111,7 @@ pub fn perform(
     let process_opts = ProcessOptions {
         processor_threads,
         scrub,
-        digest_crc32: false,
+        digest_crc32: true,
         digest_md5: false,
         digest_sha1: false,
         digest_xxh64: false,
