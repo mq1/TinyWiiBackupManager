@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{AppWindow, Dispatcher};
+use crate::{AppWindow, Dispatcher, Message};
 use anyhow::Result;
-use slint::{ComponentHandle, SharedString, ToSharedString, Weak};
+use slint::{ComponentHandle, SharedString, Weak};
 use std::fs;
 use twbm_core::{
     config::PreferredLanguage,
@@ -20,22 +20,20 @@ pub fn download_covers(
     let covers_dir = DATA_DIR.join("covers");
     fs::create_dir_all(&covers_dir)?;
 
-    for (i, game_id) in ids.into_iter().enumerate() {
+    for game_id in ids {
         if download_cover(game_id, CoverType::Cover3D, &covers_dir, preferred_language)
             .unwrap_or(false)
         {
             let _ = weak.upgrade_in_event_loop(move |app| {
                 app.global::<Dispatcher<'_>>()
-                    .invoke_dispatch(crate::Message::ReloadCover, i.to_shared_string());
+                    .invoke_dispatch(Message::RefreshDisplayedGames, SharedString::new());
             });
         }
     }
 
     let _ = weak.upgrade_in_event_loop(move |app| {
-        app.global::<Dispatcher<'_>>().invoke_dispatch(
-            crate::Message::FinishedDownloadingCovers,
-            SharedString::new(),
-        );
+        app.global::<Dispatcher<'_>>()
+            .invoke_dispatch(Message::FinishedDownloadingCovers, SharedString::new());
     });
 
     Ok(())

@@ -615,16 +615,6 @@ impl State {
                     });
                 });
             }
-            Message::ReloadCover => {
-                let i = args.next().unwrap().parse().unwrap();
-                let mut game = self.displayed_games.row_data(i).unwrap();
-                let cover_path = DATA_DIR.join(format!("covers/{}.png", &game.id));
-
-                if let Ok(cover) = Image::load_from_path(&cover_path) {
-                    game.cover = cover;
-                    self.displayed_games.set_row_data(i, game);
-                }
-            }
             Message::FinishedDownloadingCovers => {
                 self.is_downloading_covers = false;
             }
