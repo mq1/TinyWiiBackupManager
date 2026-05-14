@@ -407,17 +407,17 @@ pub fn update<SG, SH, FG, FH, FO, const N: usize>(
         }
         Message::FilterGames => {
             let filter = args.next().unwrap();
-            *state.games_filter.borrow_mut() = filter.to_string();
+            *state.games_filter.borrow_mut() = filter.to_lowercase();
             state.filtered_games.reset();
         }
         Message::FilterHomebrewApps => {
             let filter = args.next().unwrap();
-            *state.homebrew_apps_filter.borrow_mut() = filter.to_string();
+            *state.homebrew_apps_filter.borrow_mut() = filter.to_lowercase();
             state.filtered_homebrew_apps.reset();
         }
         Message::FilterOscApps => {
             let filter = args.next().unwrap();
-            *state.osc_apps_filter.borrow_mut() = filter.to_string();
+            *state.osc_apps_filter.borrow_mut() = filter.to_lowercase();
             state.filtered_osc_apps.reset();
         }
         Message::CloseNotification => {
