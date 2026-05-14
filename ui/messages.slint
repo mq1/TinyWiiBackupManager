@@ -20,7 +20,6 @@ export enum Message {
     RefreshAll,
     NotifyInfo,
     NotifyError,
-    PairHomebrewOsc,
     OpenThat,
     SetWindowColor,
     DownloadOscIcons,
@@ -60,7 +59,10 @@ export enum Message {
     SetStatus,
     ReloadCover,
     FinishedDownloadingCovers,
-    SetCrc32Status
+    SetCrc32Status,
+    RefreshDisplayedGames,
+    RefreshDisplayedHomebrewApps,
+    RefreshDisplayedOscApps,
 }
 
 export global Dispatcher {

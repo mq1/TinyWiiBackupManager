@@ -4,9 +4,12 @@
 use image::{ImageFormat, RgbaImage};
 use serde::Deserialize;
 use std::{
+    cmp::Ordering,
     fs,
     path::{Path, PathBuf},
 };
+
+use crate::config::{Config, SortBy};
 
 #[derive(Debug, Clone, serde::Deserialize)]
 pub struct HomebrewAppMeta {
@@ -34,6 +37,7 @@ pub struct HomebrewApp {
     pub meta: HomebrewAppMeta,
     pub size: u64,
     pub icon_rgba8: RgbaImage,
+    pub search_term: String,
 }
 
 impl HomebrewApp {
@@ -52,11 +56,14 @@ impl HomebrewApp {
             image::load_from_memory_with_format(&icon_bytes, ImageFormat::Png).unwrap_or_default();
         let icon_rgba8 = icon.into_rgba8();
 
+        let search_term = format!("{}\0{}", &meta.name, &meta.coder);
+
         Some(Self {
             path,
             meta,
             size,
             icon_rgba8,
+            search_term,
         })
     }
 }
@@ -89,4 +96,13 @@ pub fn scan_dir(path: &Path) -> Vec<HomebrewApp> {
             HomebrewApp::from_path(entry.path())
         })
         .collect()
+}
+
+pub fn get_compare_fn(config: &Config) -> impl FnMut(&HomebrewApp, &HomebrewApp) -> Ordering {
+    move |a, b| match config.contents.sort_by {
+        SortBy::NameDescending => a.meta.name.cmp(&b.meta.name),
+        SortBy::NameAscending => b.meta.name.cmp(&a.meta.name),
+        SortBy::SizeDescending => a.size.cmp(&b.size),
+        SortBy::SizeAscending => b.size.cmp(&a.size),
+    }
 }

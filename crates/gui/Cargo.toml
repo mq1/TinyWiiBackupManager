@@ -21,7 +21,6 @@ open = "5.3"
 walkdir = "2.5"
 time = "0.3"
 rfd = "0.17"
-smallvec = { version = "1.15", features = ["const_generics"] }
 
 [target.'cfg(windows)'.dependencies]
 winsafe = { version = "0.0.27", features = ["dwm"] }

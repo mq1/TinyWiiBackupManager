@@ -1,8 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{game_id::GameID, id_map};
+use crate::{
+    config::{Config, SortBy},
+    game_id::GameID,
+    id_map,
+};
 use std::{
+    cmp::Ordering,
     fs,
     path::{Path, PathBuf},
 };
@@ -14,6 +19,7 @@ pub struct Game {
     pub path: PathBuf,
     pub size: u64,
     pub is_wii: bool,
+    pub search_term: String,
 }
 
 impl Game {
@@ -35,12 +41,15 @@ impl Game {
 
         let size = fs_extra::dir::get_size(&path).ok()?;
 
+        let search_term = format!("{}\0{}", title, id).to_lowercase();
+
         Some(Self {
             id,
             title,
             path,
             size,
             is_wii,
+            search_term,
         })
     }
 
@@ -79,4 +88,13 @@ pub fn scan_dir(path: &Path) -> Vec<Game> {
             Game::from_path(entry.path())
         })
         .collect()
+}
+
+pub fn get_compare_fn(config: &Config) -> impl FnMut(&Game, &Game) -> Ordering {
+    |a, b| match config.contents.sort_by {
+        SortBy::NameDescending => a.title.cmp(&b.title),
+        SortBy::NameAscending => b.title.cmp(&a.title),
+        SortBy::SizeDescending => a.size.cmp(&b.size),
+        SortBy::SizeAscending => b.size.cmp(&a.size),
+    }
 }

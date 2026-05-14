@@ -5607,7 +5607,6 @@ dependencies = [
  "rfd",
  "slint",
  "slint-build",
- "smallvec",
  "time",
  "twbm-core",
  "walkdir",

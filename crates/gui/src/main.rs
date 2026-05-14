@@ -21,11 +21,10 @@ mod util;
 #[cfg(windows)]
 mod window_color;
 
-use crate::{state::new_state, update::update};
+use crate::state::State;
 use anyhow::{Result, bail};
 use slint::{ComponentHandle, ModelRc, SharedString, ToSharedString};
-use smallvec::SmallVec;
-use std::process::Command;
+use std::{collections::VecDeque, process::Command};
 use twbm_core::data_dir::DATA_DIR;
 
 slint::include_modules!();
@@ -47,29 +46,29 @@ fn main() -> Result<()> {
     }
 
     let app = AppWindow::new()?;
-    let mut state = new_state();
+    let mut state = State::new();
 
     // Initialize UI state
     let ui_state = app.global::<UiState<'_>>();
     ui_state.set_app_version(env!("CARGO_PKG_VERSION").to_shared_string());
     ui_state.set_data_dir(DATA_DIR.to_string_lossy().to_shared_string());
     ui_state.set_config(DisplayedConfig::from(&state.config));
-    ui_state.set_games(ModelRc::from(state.filtered_games.clone()));
-    ui_state.set_homebrew_apps(ModelRc::from(state.filtered_homebrew_apps.clone()));
-    ui_state.set_osc_apps(ModelRc::from(state.filtered_osc_apps.clone()));
+    ui_state.set_games(ModelRc::from(state.displayed_games.clone()));
+    ui_state.set_homebrew_apps(ModelRc::from(state.displayed_homebrew_apps.clone()));
+    ui_state.set_osc_apps(ModelRc::from(state.displayed_osc_apps.clone()));
     ui_state.set_notifications(ModelRc::from(state.notifications.clone()));
     ui_state.set_conversion_queue(ModelRc::from(state.displayed_conversion_queue.clone()));
     ui_state.set_games_to_add(ModelRc::from(state.games_to_add.clone()));
 
     // Process messages
-    let mut message_queue = SmallVec::<[_; 100]>::new();
+    let mut message_queue = VecDeque::new();
     let weak = app.as_weak();
     let dispatcher = app.global::<Dispatcher<'_>>();
     dispatcher.on_dispatch(move |message, args| {
-        message_queue.push((message, args));
+        message_queue.push_back((message, args));
 
-        while let Some((message, args)) = message_queue.pop() {
-            update(&mut state, &weak, message, args, &mut message_queue);
+        while let Some((message, args)) = message_queue.pop_front() {
+            state.update(&weak, message, args, &mut message_queue);
         }
     });
     dispatcher.invoke_dispatch(Message::RefreshAll, SharedString::new());
