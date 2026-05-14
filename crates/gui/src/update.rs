@@ -499,17 +499,14 @@ pub fn update<SG, SH, FG, FH, FO, const N: usize>(
             }
         }
         Message::TriggerConversion => {
-            let queue_len = state.conversion_queue.len();
-
-            if queue_len == 0 {
+            let Some(conv) = state.conversion_queue.pop_front() else {
                 state.is_converting = false;
-                let text = SharedString::from("Conversion queue empty");
+                let text = "Conversion queue empty";
                 state.notifications.push(Notification::info(text));
                 return;
-            }
+            };
 
-            let conv = state.conversion_queue.remove(queue_len);
-            let _ = state.displayed_conversion_queue.remove(queue_len);
+            let _ = state.displayed_conversion_queue.remove(0);
 
             let weak = weak.clone();
             let drive_info = state.drive_info.clone();

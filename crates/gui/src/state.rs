@@ -5,7 +5,7 @@ use crate::{
     DisplayedGame, DisplayedHomebrewApp, DisplayedOscApp, Notification, games, homebrew_apps, osc,
 };
 use slint::{FilterModel, SharedString, SortModel, VecModel};
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 use twbm_core::{
     config::{Config, SortBy},
     conversion_queue::QueuedConversion,
@@ -44,7 +44,7 @@ where
     pub filtered_homebrew_apps:
         Rc<FilterModel<Rc<SortModel<Rc<VecModel<DisplayedHomebrewApp>>, SH>>, FH>>,
     pub filtered_osc_apps: Rc<FilterModel<Rc<VecModel<DisplayedOscApp>>, FO>>,
-    pub conversion_queue: Vec<QueuedConversion>,
+    pub conversion_queue: VecDeque<QueuedConversion>,
     pub displayed_conversion_queue: Rc<VecModel<SharedString>>,
     pub games_to_add: Rc<VecModel<SharedString>>,
     pub notifications: Rc<VecModel<Notification>>,
@@ -120,7 +120,7 @@ pub fn new_state() -> State<
         displayed_osc_apps,
         osc_apps_filter,
         filtered_osc_apps,
-        conversion_queue: Vec::new(),
+        conversion_queue: VecDeque::new(),
         displayed_conversion_queue,
         games_to_add,
         notifications,
