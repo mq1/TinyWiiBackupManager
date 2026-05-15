@@ -30,19 +30,15 @@ impl State {
         &mut self,
         weak: &Weak<AppWindow>,
         message: Message,
-        args: SharedString,
+        payload: SharedString,
         message_queue: &mut VecDeque<(Message, SharedString)>,
     ) {
-        let mut args = args.split('\0');
-
         match message {
             Message::NotifyInfo => {
-                let text = args.next().unwrap();
-                self.notifications.push(Notification::info(text));
+                self.notifications.push(Notification::info(payload));
             }
             Message::NotifyError => {
-                let text = args.next().unwrap();
-                self.notifications.push(Notification::error(text));
+                self.notifications.push(Notification::error(payload));
             }
             Message::SyncConfig => {
                 let app = weak.upgrade().unwrap();
@@ -133,49 +129,49 @@ impl State {
                 message_queue.push_back((Message::SyncConfig, SharedString::new()));
             }
             Message::SetWiiOutputFormat => {
-                let value = args.next().unwrap().parse().unwrap();
+                let value = payload.parse().unwrap();
                 self.config.contents.wii_output_format = value;
 
                 message_queue.push_back((Message::SyncConfig, SharedString::new()));
             }
             Message::SetGcOutputFormat => {
-                let value = args.next().unwrap().parse().unwrap();
+                let value = payload.parse().unwrap();
                 self.config.contents.gc_output_format = value;
 
                 message_queue.push_back((Message::SyncConfig, SharedString::new()));
             }
             Message::SetAlwaysSplit => {
-                let value = args.next().unwrap().parse().unwrap();
+                let value = payload.parse().unwrap();
                 self.config.contents.always_split = value;
 
                 message_queue.push_back((Message::SyncConfig, SharedString::new()));
             }
             Message::SetScrubUpdatePartition => {
-                let value = args.next().unwrap().parse().unwrap();
+                let value = payload.parse().unwrap();
                 self.config.contents.scrub_update_partition = value;
 
                 message_queue.push_back((Message::SyncConfig, SharedString::new()));
             }
             Message::SetRemoveSourcesGames => {
-                let value = args.next().unwrap().parse().unwrap();
+                let value = payload.parse().unwrap();
                 self.config.contents.remove_sources_games = value;
 
                 message_queue.push_back((Message::SyncConfig, SharedString::new()));
             }
             Message::SetRemoveSourcesApps => {
-                let value = args.next().unwrap().parse().unwrap();
+                let value = payload.parse().unwrap();
                 self.config.contents.remove_sources_apps = value;
 
                 message_queue.push_back((Message::SyncConfig, SharedString::new()));
             }
             Message::SetTxtCodesSource => {
-                let value = args.next().unwrap().parse().unwrap();
+                let value = payload.parse().unwrap();
                 self.config.contents.txt_codes_source = value;
 
                 message_queue.push_back((Message::SyncConfig, SharedString::new()));
             }
             Message::SetThemePreference => {
-                let value = args.next().unwrap().parse().unwrap();
+                let value = payload.parse().unwrap();
                 self.config.contents.theme_preference = value;
 
                 #[cfg(windows)]
@@ -188,7 +184,7 @@ impl State {
                 message_queue.push_back((Message::SyncConfig, SharedString::new()));
             }
             Message::SetViewAs => {
-                let value = args.next().unwrap().parse().unwrap();
+                let value = payload.parse().unwrap();
                 self.config.contents.view_as = value;
 
                 message_queue.push_back((Message::SyncConfig, SharedString::new()));
@@ -206,14 +202,14 @@ impl State {
                     .push_back((Message::RefreshDisplayedHomebrewApps, SharedString::new()));
             }
             Message::SetSortBy => {
-                let value = args.next().unwrap().parse().unwrap();
+                let value = payload.parse().unwrap();
                 self.config.contents.sort_by = value;
 
                 message_queue.push_back((Message::SyncConfig, SharedString::new()));
                 message_queue.push_back((Message::RefreshSorting, SharedString::new()));
             }
             Message::SetPreferredLanguage => {
-                let value = args.next().unwrap().parse().unwrap();
+                let value = payload.parse().unwrap();
                 self.config.contents.preferred_language = value;
 
                 message_queue.push_back((Message::SyncConfig, SharedString::new()));
@@ -221,14 +217,14 @@ impl State {
             Message::WiiloadLocalFile => {
                 let app = weak.upgrade().unwrap();
                 let window_handle = app.window().window_handle();
-                let wii_ip = args.next().unwrap().to_string();
 
                 if let Some(in_path) = dialogs::pick_wiiload(&window_handle) {
                     let text = slint::format!("Sending {} to Wii...", in_path.display());
                     self.notifications.push(Notification::info(text));
 
-                    self.config.contents.wii_ip = wii_ip.clone();
+                    self.config.contents.wii_ip = payload.to_string();
 
+                    let wii_ip = payload.to_string();
                     let weak = weak.clone();
                     std::thread::spawn(move || {
                         let res = twbm_core::wiiload::send(&wii_ip, &in_path);
@@ -255,10 +251,9 @@ impl State {
                 message_queue.push_back((Message::SyncConfig, SharedString::new()));
             }
             Message::WiiloadOscApp => {
-                let wii_ip = args.next().unwrap().to_string();
-                let slug = args.next().unwrap();
+                let (wii_ip, slug) = payload.split_once(' ').unwrap();
 
-                self.config.contents.wii_ip = wii_ip.clone();
+                self.config.contents.wii_ip = wii_ip.to_string();
 
                 let app = self
                     .osc_apps
@@ -270,6 +265,7 @@ impl State {
                 let text = slint::format!("Sending {} to Wii...", &app.meta.name);
                 self.notifications.push(Notification::info(text));
 
+                let wii_ip = wii_ip.to_string();
                 let weak = weak.clone();
                 std::thread::spawn(move || {
                     let res = app.wiiload(&wii_ip);
@@ -339,9 +335,7 @@ impl State {
                 self.is_downloading_covers = false;
             }
             Message::OpenThat => {
-                let uri = args.next().unwrap();
-
-                if let Err(e) = open::that(uri) {
+                if let Err(e) = open::that(&payload) {
                     let text = slint::format!("Failed to open URL: {e}");
                     self.notifications.push(Notification::error(text));
                 }
@@ -384,7 +378,7 @@ impl State {
                 });
             }
             Message::CacheOscContents => {
-                let force_refresh = args.next().unwrap().parse().unwrap();
+                let force_refresh = payload.parse().unwrap();
                 let weak = weak.clone();
 
                 std::thread::spawn(move || {
@@ -420,7 +414,7 @@ impl State {
                     .push_back((Message::RefreshDisplayedHomebrewApps, SharedString::new()));
             }
             Message::ReloadOscIcon => {
-                let i = args.next().unwrap().parse().unwrap();
+                let i = payload.parse().unwrap();
                 let mut app = self.displayed_osc_apps.row_data(i).unwrap();
                 let icon_path = DATA_DIR.join(format!("osc-icons/{}.png", &app.slug));
 
@@ -430,27 +424,24 @@ impl State {
                 }
             }
             Message::FilterGames => {
-                let filter = args.next().unwrap();
-                self.games_filter = filter.to_lowercase();
+                self.games_filter = payload.to_lowercase();
                 message_queue.push_back((Message::RefreshDisplayedGames, SharedString::new()));
             }
             Message::FilterHomebrewApps => {
-                let filter = args.next().unwrap();
-                self.homebrew_apps_filter = filter.to_lowercase();
+                self.homebrew_apps_filter = payload.to_lowercase();
                 message_queue
                     .push_back((Message::RefreshDisplayedHomebrewApps, SharedString::new()));
             }
             Message::FilterOscApps => {
-                let filter = args.next().unwrap();
-                self.osc_apps_filter = filter.to_lowercase();
+                self.osc_apps_filter = payload.to_lowercase();
                 message_queue.push_back((Message::RefreshDisplayedOscApps, SharedString::new()));
             }
             Message::CloseNotification => {
-                let i = args.next().unwrap().parse().unwrap();
+                let i = payload.parse().unwrap();
                 self.notifications.remove(i);
             }
             Message::Checksum => {
-                let path = Path::new(args.next().unwrap());
+                let path = Path::new(&payload);
                 let game = self.games.iter().find(|g| g.path == path).unwrap().clone();
 
                 let weak = weak.clone();
@@ -486,7 +477,7 @@ impl State {
             Message::PickGames => {
                 let app = weak.upgrade().unwrap();
                 let window_handle = app.window().window_handle();
-                let recursively = args.next().unwrap().parse().unwrap();
+                let recursively = payload.parse().unwrap();
 
                 let paths = if recursively {
                     dialogs::pick_games_r(&window_handle)
@@ -545,13 +536,10 @@ impl State {
             }
             Message::SetCrc32Status => {
                 let app = weak.upgrade().unwrap();
-                let status = args.next().unwrap();
-
-                app.global::<UiState<'_>>()
-                    .set_crc32_status(status.to_shared_string());
+                app.global::<UiState<'_>>().set_crc32_status(payload);
             }
             Message::ScrubGame => {
-                let path = Path::new(args.next().unwrap());
+                let path = Path::new(&payload);
                 let game = self.games.iter().find(|g| g.path == path).unwrap().clone();
 
                 let conv = QueuedConversion::Scrub(game);
@@ -583,7 +571,8 @@ impl State {
                 message_queue.push_back((Message::RefreshAll, SharedString::new()));
             }
             Message::InstallOscApp => {
-                let slug = args.next().unwrap();
+                let slug = payload.as_str();
+
                 let osc_app = self
                     .osc_apps
                     .iter()
@@ -617,7 +606,7 @@ impl State {
                 });
             }
             Message::DeleteGame => {
-                let path = Path::new(args.next().unwrap());
+                let path = Path::new(&payload);
                 let game = self.games.iter().find(|g| g.path == path).unwrap();
 
                 if let Err(e) = fs::remove_dir_all(&game.path) {
@@ -628,7 +617,7 @@ impl State {
                 message_queue.push_back((Message::RefreshAll, SharedString::new()));
             }
             Message::DeleteHomebrewApp => {
-                let path = Path::new(args.next().unwrap());
+                let path = Path::new(&payload);
                 let app = self
                     .homebrew_apps
                     .iter()
@@ -683,7 +672,7 @@ impl State {
                 }
             }
             Message::CancelConversion => {
-                let i = args.next().unwrap().parse().unwrap();
+                let i = payload.parse().unwrap();
                 let _ = self.conversion_queue.remove(i);
                 let _ = self.displayed_conversion_queue.remove(i);
             }
@@ -692,7 +681,7 @@ impl State {
                 self.displayed_conversion_queue.clear();
             }
             Message::DownloadTxtCodes => {
-                let path = Path::new(args.next().unwrap());
+                let path = Path::new(&payload);
                 let game = self.games.iter().find(|g| g.path == path).unwrap();
                 let game_id = game.id;
 
@@ -724,7 +713,7 @@ impl State {
                 });
             }
             Message::DownloadAllCovers => {
-                let for_wiiflow = args.next().unwrap().parse().unwrap();
+                let for_wiiflow = payload.parse().unwrap();
                 let config = self.config.clone();
 
                 let ids = self.games.iter().map(|g| g.id).collect::<Vec<_>>();
@@ -837,13 +826,10 @@ impl State {
             }
             Message::SetLatestVersion => {
                 let app = weak.upgrade().unwrap();
-                let version = args.next().unwrap();
-
-                app.global::<UiState<'_>>()
-                    .set_latest_version(version.into());
+                app.global::<UiState<'_>>().set_latest_version(payload);
             }
             Message::LoadGameInfo => {
-                let path = Path::new(args.next().unwrap());
+                let path = Path::new(&payload);
                 let game = self.games.iter().find(|g| g.path == path).unwrap();
 
                 if let Some(disc_path) = game.get_disc_path()
@@ -855,9 +841,7 @@ impl State {
                 }
             }
             Message::ArchiveGame => {
-                let app = weak.upgrade().unwrap();
-                let window_handle = app.window().window_handle();
-                let path = Path::new(args.next().unwrap());
+                let path = Path::new(&payload);
                 let game = self.games.iter().find(|g| g.path == path).unwrap();
 
                 let Some(in_path) = game.get_disc_path() else {
@@ -867,6 +851,8 @@ impl State {
                     return;
                 };
 
+                let app = weak.upgrade().unwrap();
+                let window_handle = app.window().window_handle();
                 let out_path = dialogs::save_game(&window_handle, &game.title);
 
                 if let Some(out_path) = out_path {
@@ -889,14 +875,11 @@ impl State {
             }
             Message::SetStatus => {
                 let app = weak.upgrade().unwrap();
-                let status = args.next().unwrap();
-
-                app.global::<UiState<'_>>()
-                    .set_status(status.to_shared_string());
+                app.global::<UiState<'_>>().set_status(payload);
             }
             #[cfg(windows)]
             Message::SetWindowColor => {
-                let is_dark = args.next().unwrap().parse().unwrap();
+                let is_dark = payload.parse().unwrap();
                 crate::window_color::set(is_dark);
             }
             #[cfg(not(windows))]

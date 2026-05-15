@@ -64,7 +64,7 @@ export component WiiloadOscAppModal inherits Modal {
                     kind: IconButtonKind.Primary;
                     icon: IconSet.MonitorUp;
                     clicked => {
-                        Dispatcher.dispatch(Message.WiiloadOscApp, ip.text + "\u{0}" + UiState.wiiloading-osc-app.slug);
+                        Dispatcher.dispatch(Message.WiiloadOscApp, "\{ip.text} \{UiState.wiiloading-osc-app.slug}");
                         UiState.wiiloading-osc-app = { };
                     }
                 }
