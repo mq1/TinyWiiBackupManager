@@ -179,16 +179,10 @@ impl State {
                 self.config.contents.theme_preference = value;
 
                 #[cfg(windows)]
-                match value {
-                    twbm_core::config::ThemePreference::System => {}
-                    twbm_core::config::ThemePreference::Light => {
-                        message_queue
-                            .push_back((Message::SetWindowColor, "false".to_shared_string()));
-                    }
-                    twbm_core::config::ThemePreference::Dark => {
-                        message_queue
-                            .push_back((Message::SetWindowColor, "true".to_shared_string()));
-                    }
+                if value == twbm_core::config::ThemePreference::Light {
+                    crate::window_color::set(false);
+                } else if value == twbm_core::config::ThemePreference::Dark {
+                    crate::window_color::set(true);
                 }
 
                 message_queue.push_back((Message::SyncConfig, SharedString::new()));
