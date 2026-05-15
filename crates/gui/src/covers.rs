@@ -31,10 +31,5 @@ pub fn download_covers(
         }
     }
 
-    let _ = weak.upgrade_in_event_loop(move |app| {
-        app.global::<Dispatcher<'_>>()
-            .invoke_dispatch(Message::FinishedDownloadingCovers, SharedString::new());
-    });
-
     Ok(())
 }

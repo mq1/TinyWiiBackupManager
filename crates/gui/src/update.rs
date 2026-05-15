@@ -301,23 +301,23 @@ impl State {
 
                 let root_path = &self.config.contents.mount_point;
 
-                let new_games = games::scan_drive(root_path);
-                let new_apps = homebrew_apps::scan_drive(root_path);
-                let new_drive_info = DriveInfo::from_path(root_path).unwrap_or(DriveInfo::empty());
+                self.games = games::scan_drive(root_path);
+                self.homebrew_apps = homebrew_apps::scan_drive(root_path);
+                self.drive_info = DriveInfo::from_path(root_path).unwrap_or_default();
 
-                let ids = new_games.iter().map(|g| g.id).collect::<Vec<_>>();
-
-                let new_displayed_drive_info = DisplayedDriveInfo::from(&new_drive_info);
-
-                self.games = new_games;
-                self.homebrew_apps = new_apps;
-                self.drive_info = new_drive_info;
+                let new_displayed_drive_info = DisplayedDriveInfo::from(&self.drive_info);
 
                 app.global::<UiState<'_>>()
                     .set_drive_info(new_displayed_drive_info);
 
+                message_queue.push_back((Message::RefreshSorting, SharedString::new()));
+                message_queue.push_back((Message::DownloadCovers, SharedString::new()));
+            }
+            Message::DownloadCovers => {
                 if !self.is_downloading_covers {
                     self.is_downloading_covers = true;
+
+                    let ids = self.games.iter().map(|g| g.id).collect::<Vec<_>>();
 
                     let weak = weak.clone();
                     let preferred_language = self.config.contents.preferred_language;
@@ -325,17 +325,24 @@ impl State {
                     let _ = std::thread::spawn(move || {
                         let res = covers::download_covers(ids, preferred_language, &weak);
 
-                        if let Err(e) = res {
-                            let _ = weak.upgrade_in_event_loop(move |app| {
+                        let _ = weak.upgrade_in_event_loop(move |app| {
+                            let dispatcher = app.global::<Dispatcher<'_>>();
+
+                            if let Err(e) = res {
                                 let text = slint::format!("Could not download covers: {e}");
-                                app.global::<Dispatcher<'_>>()
-                                    .invoke_dispatch(Message::NotifyError, text);
-                            });
-                        }
+                                dispatcher.invoke_dispatch(Message::NotifyError, text);
+                            }
+
+                            dispatcher.invoke_dispatch(
+                                Message::FinishedDownloadingCovers,
+                                SharedString::new(),
+                            );
+                        });
                     });
                 }
-
-                message_queue.push_back((Message::RefreshSorting, SharedString::new()));
+            }
+            Message::FinishedDownloadingCovers => {
+                self.is_downloading_covers = false;
             }
             Message::OpenThat => {
                 let uri = args.next().unwrap();
@@ -615,9 +622,6 @@ impl State {
                     });
                 });
             }
-            Message::FinishedDownloadingCovers => {
-                self.is_downloading_covers = false;
-            }
             Message::DeleteGame => {
                 let path = Path::new(args.next().unwrap());
                 let game = self.games.iter().find(|g| g.path == path).unwrap();
@@ -726,7 +730,7 @@ impl State {
                 });
             }
             Message::DownloadAllCovers => {
-                let for_wiiflow: bool = args.next().unwrap().parse().unwrap();
+                let for_wiiflow = args.next().unwrap().parse().unwrap();
                 let config = self.config.clone();
 
                 let ids = self.games.iter().map(|g| g.id).collect::<Vec<_>>();

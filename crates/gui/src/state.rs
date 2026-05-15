@@ -37,7 +37,7 @@ impl State {
             games: Vec::new(),
             homebrew_apps: Vec::new(),
             osc_apps: Vec::new(),
-            drive_info: DriveInfo::empty(),
+            drive_info: DriveInfo::default(),
             displayed_games: Rc::new(VecModel::from(Vec::new())),
             displayed_homebrew_apps: Rc::new(VecModel::from(Vec::new())),
             displayed_osc_apps: Rc::new(VecModel::from(Vec::new())),

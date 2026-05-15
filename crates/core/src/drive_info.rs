@@ -5,7 +5,7 @@ use anyhow::{Result, bail};
 use std::path::Path;
 use which_fs::FsKind;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct DriveInfo {
     pub label: String,
     pub used_bytes: u64,
@@ -51,17 +51,5 @@ impl DriveInfo {
             fs_kind,
             allocation_granularity,
         })
-    }
-
-    pub const fn empty() -> Self {
-        Self {
-            label: String::new(),
-            used_bytes: 0,
-            total_bytes: 0,
-            games_bytes: 0,
-            apps_bytes: 0,
-            fs_kind: FsKind::Unknown,
-            allocation_granularity: 0,
-        }
     }
 }
