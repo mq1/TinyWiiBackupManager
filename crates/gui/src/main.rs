@@ -50,6 +50,9 @@ fn main() -> Result<()> {
         .with_winit_custom_application_handler(file_drop_handler)
         .select()?;
 
+    #[cfg(target_os = "linux")]
+    let _ = slint::set_xdg_app_id("it.mq1.TinyWiiBackupManager");
+
     let app = AppWindow::new()?;
     let dispatcher = app.global::<Dispatcher<'_>>();
 
