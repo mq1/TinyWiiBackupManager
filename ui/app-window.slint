@@ -41,6 +41,7 @@ export component AppWindow inherits Window {
     background: MyPalette.background;
     title: UiState.drive-info.label.is-empty ? "TinyWiiBackupManager  ›  No drive selected" : "TinyWiiBackupManager  ›  \{UiState.drive-info.label}  (\{UiState.drive-info.used-gib.to-fixed(2)}/\{UiState.drive-info.total-gib.to-fixed(2)} GiB)";
     default-font-size: 14px;
+    icon: @image-url("../package/windows/TinyWiiBackupManager-64x64.png");
 
     // Initialize
     Timer {
