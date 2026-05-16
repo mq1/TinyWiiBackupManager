@@ -28,7 +28,7 @@
 - **Automatic Splitting**: .wbfs file splitting when needed
 - **Partition Stripping**: Remove the update partition to save space
 - **Game Archiving**: Archive games using RVZ+zstd-19
-- **Integrity Checks**: Verify game data for corruption
+- **Integrity Checks**: Verify game files for corruption
 - **GameTDB**: Fetch covers and `wiitdb.xml` from GameTDB
 - **TxtCodes**: Download cheat codes from geckocodes.org (web archive), codes.rc24.xyz and gamehacking.org
 
