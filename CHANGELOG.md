@@ -45,7 +45,6 @@ Open an issue if you need any of these (explaining why you think feature X is im
 - 🛜 Network features (https) won't probably work on older windows versions anymore. Game conversion will still work as expected.
 - 🖥️ Removed armhf build
 - 🛠️ Bulk cheat downloading. Individual downloading is not affected.
-- 📂 File drag-and-drop doesn't work in slint as of may 2026 (https://github.com/slint-ui/slint/discussions/9424, https://github.com/slint-ui/slint/issues/1967)
 
 ## [v5.2.1] - 2026-03-19
 

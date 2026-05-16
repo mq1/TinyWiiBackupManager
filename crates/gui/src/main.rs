@@ -10,6 +10,7 @@ mod covers;
 mod dialogs;
 mod disc_info;
 mod drive_info;
+mod file_drop;
 mod games;
 mod homebrew_apps;
 mod notification;
@@ -21,9 +22,9 @@ mod util;
 #[cfg(windows)]
 mod window_color;
 
-use crate::state::State;
+use crate::{file_drop::FileDropHandler, state::State};
 use anyhow::{Result, bail};
-use slint::{ComponentHandle, ModelRc, SharedString, ToSharedString};
+use slint::{BackendSelector, ComponentHandle, ModelRc, SharedString, ToSharedString};
 use std::{collections::VecDeque, process::Command};
 use twbm_core::data_dir::DATA_DIR;
 
@@ -31,10 +32,8 @@ slint::include_modules!();
 
 fn restart_with_sw_rendering() -> Result<()> {
     let exe = std::env::current_exe()?;
-
     let mut cmd = Command::new(exe);
     cmd.env("SLINT_BACKEND", "winit-software");
-
     let _ = cmd.spawn()?;
 
     std::process::exit(0);
@@ -45,7 +44,20 @@ fn main() -> Result<()> {
         bail!("Failed to get data dir");
     }
 
+    let (file_drop_handler, file_drop_dispatcher) = FileDropHandler::new();
+
+    BackendSelector::new()
+        .with_winit_custom_application_handler(file_drop_handler)
+        .select()?;
+
     let app = AppWindow::new()?;
+    let dispatcher = app.global::<Dispatcher<'_>>();
+
+    // Enable file drop handling
+    file_drop_dispatcher
+        .borrow_mut()
+        .write(dispatcher.as_weak());
+
     let mut state = State::new();
 
     // Initialize UI state
@@ -59,8 +71,6 @@ fn main() -> Result<()> {
     ui_state.set_notifications(ModelRc::from(state.notifications.clone()));
     ui_state.set_conversion_queue(ModelRc::from(state.displayed_conversion_queue.clone()));
     ui_state.set_games_to_add(ModelRc::from(state.games_to_add.clone()));
-
-    let dispatcher = app.global::<Dispatcher<'_>>();
 
     // Process messages
     dispatcher.on_dispatch({

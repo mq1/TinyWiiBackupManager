@@ -3,7 +3,7 @@
 
 use crate::{
     AppWindow, Dispatcher, DisplayedConfig, DisplayedDiscInfo, DisplayedDriveInfo, DisplayedGame,
-    DisplayedHomebrewApp, DisplayedOscApp, Message, Notification, UiState,
+    DisplayedHomebrewApp, DisplayedOscApp, Message, Notification, Page, UiState,
     convert::perform_conversion, covers, dialogs, games, homebrew_apps, osc, state::State, util,
 };
 use slint::{ComponentHandle, Image, Model, SharedString, ToSharedString, Weak};
@@ -929,6 +929,37 @@ impl State {
                         }
                     });
                 });
+            }
+            Message::FileDropped => {
+                let app = weak.upgrade().unwrap();
+
+                match app.global::<UiState<'_>>().get_current_page() {
+                    Page::Games => {
+                        let game_id = {
+                            let Ok(mut file) = File::open(&payload) else {
+                                return;
+                            };
+
+                            let Ok(meta) = wii_disc_info::Meta::read(&mut file) else {
+                                return;
+                            };
+
+                            let Some(game_id) = GameID::new(meta.game_id()) else {
+                                return;
+                            };
+
+                            game_id
+                        };
+
+                        if self.games.iter().any(|g| g.id == game_id) {
+                            return;
+                        }
+
+                        self.games_to_add.clear();
+                        self.games_to_add.push(payload);
+                    }
+                    _ => {}
+                }
             }
             #[cfg(windows)]
             Message::SetWindowColorLight => {
