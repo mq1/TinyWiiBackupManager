@@ -19,9 +19,6 @@ ureq = { version = "3.3", default-features = false, features = ["gzip", "json"] 
 which-fs = "0.2"
 fs4 = { version = "1.1", default-features = false }
 image = { version = "0.25", default-features = false, features = ["png"] }
-zip = { version = "8.6", default-features = false, features = [
-    "deflate-flate2",
-] }
 wii-disc-info = { workspace = true }
 crc32fast = "1.5"
 num_cpus = "1.17"
@@ -32,6 +29,7 @@ semver = "1.0"
 sys-locale = "0.3"
 derive_more = { version = "2.1", features = ["display", "from_str"] }
 directories = "6.0"
+zip = { workspace = true }
 
 [target.'cfg(all(target_os = "windows", target_arch = "x86"))'.dependencies]
 nod = { git = "https://github.com/encounter/nod.git", default-features = false, features = [

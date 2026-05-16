@@ -5624,6 +5624,7 @@ dependencies = [
  "wii-disc-info",
  "winresource",
  "winsafe",
+ "zip",
 ]
 
 [[package]]

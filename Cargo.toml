@@ -15,6 +15,9 @@ description = "A tiny game backup and homebrew app manager for the Wii"
 [workspace.dependencies]
 anyhow = "1.0"
 wii-disc-info = "0.6"
+zip = { version = "8.6", default-features = false, features = [
+    "deflate-flate2",
+] }
 
 [profile.release]
 opt-level = 3

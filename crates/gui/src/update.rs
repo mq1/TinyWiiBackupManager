@@ -19,7 +19,6 @@ use twbm_core::{
     data_dir::DATA_DIR,
     disc_info::{DiscInfo, is_worth_scrubbing},
     drive_info::DriveInfo,
-    game_id::GameID,
     normalize_dir_layout,
 };
 
@@ -487,17 +486,12 @@ impl State {
 
                 let existing_ids = self.games.iter().map(|g| g.id).collect::<Vec<_>>();
 
+                let paths = paths
+                    .into_iter()
+                    .filter_map(|path| util::should_add_game(&path, &existing_ids));
+
                 self.games_to_add.clear();
-                for path in paths {
-                    if let Ok(mut f) = File::open(&path)
-                        && let Ok(meta) = wii_disc_info::Meta::read(&mut f)
-                        && let Some(game_id) = GameID::new(meta.game_id())
-                        && existing_ids.iter().all(|id| *id != game_id)
-                    {
-                        let path = path.to_string_lossy().to_shared_string();
-                        self.games_to_add.push(path);
-                    }
-                }
+                self.games_to_add.extend(paths);
             }
             Message::ConfirmGamesToAdd => {
                 for path in self.games_to_add.iter() {
@@ -933,32 +927,14 @@ impl State {
             Message::FileDropped => {
                 let app = weak.upgrade().unwrap();
 
-                match app.global::<UiState<'_>>().get_current_page() {
-                    Page::Games => {
-                        let game_id = {
-                            let Ok(mut file) = File::open(&payload) else {
-                                return;
-                            };
+                if app.global::<UiState<'_>>().get_current_page() == Page::Games {
+                    let path = Path::new(&payload);
+                    let existing_ids = self.games.iter().map(|g| g.id).collect::<Vec<_>>();
 
-                            let Ok(meta) = wii_disc_info::Meta::read(&mut file) else {
-                                return;
-                            };
-
-                            let Some(game_id) = GameID::new(meta.game_id()) else {
-                                return;
-                            };
-
-                            game_id
-                        };
-
-                        if self.games.iter().any(|g| g.id == game_id) {
-                            return;
-                        }
-
+                    if let Some(path) = util::should_add_game(path, &existing_ids) {
                         self.games_to_add.clear();
-                        self.games_to_add.push(payload);
+                        self.games_to_add.push(path);
                     }
-                    _ => {}
                 }
             }
             #[cfg(windows)]
