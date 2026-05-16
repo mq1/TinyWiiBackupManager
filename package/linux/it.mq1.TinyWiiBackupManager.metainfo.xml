@@ -13,8 +13,8 @@
         <p>‼️ TinyWiiBackupManager is intended strictly for legal homebrew use and is not affiliated with or endorsed by Nintendo. Use of TinyWiiBackupManager for pirated or unauthorized copies of games is strictly prohibited.</p>
         <p>✨ Features</p>
         <ul>
-            <li>Lightweight &amp; Fast: Native app, -O3, LTO, x86_64-v1/v2/v3 optimized builds (AppImage only)</li>
-            <li>Cross-Platform: Windows XP+ (x86, x64, arm64), macOS 10.13+ (x64, arm64), Linux (x86, x64, arm64)</li>
+            <li>Native app written in Rust and Slint, no Electron!</li>
+            <li>Cross-Platform: Windows 7+, macOS 10.12+, Linux (glibc 2.31+)</li>
         </ul>
         <p>🎮 Game Management</p>
         <ul>
@@ -53,11 +53,14 @@
     <url type="vcs-browser">https://github.com/mq1/TinyWiiBackupManager</url>
     <screenshots>
         <screenshot type="default">
-            <image>https://github.com/mq1/TinyWiiBackupManager/blob/v5.2.1/assets/screenshot.png?raw=true</image>
+            <image>https://github.com/mq1/TinyWiiBackupManager/blob/v6.0.0/assets/screenshot.png?raw=true</image>
             <caption>TinyWiiBackupManager</caption>
         </screenshot>
     </screenshots>
     <releases>
+        <release version="6.0.0" date="2026-05-16">
+            <url type="details">https://github.com/mq1/TinyWiiBackupManager/releases/tag/v6.0.0</url>
+        </release>
         <release version="5.2.1" date="2026-03-19">
             <url type="details">https://github.com/mq1/TinyWiiBackupManager/releases/tag/v5.2.1</url>
         </release>

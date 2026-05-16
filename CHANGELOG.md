@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v6.0.0] - 2026-05-16
+
 ### Added
 
 - 🍎 Restored macOS 10.12 compatibility (previous releases required macOS 10.13)
@@ -372,7 +374,8 @@ Open an issue if you need any of these (explaining why you think feature X is im
 
 - 🖼️ TinyWiiBackupManager icon now shows up again on the windows exe
 
-[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.2.1...HEAD
+[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.0.0...HEAD
+[v6.0.0]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.2.1...v6.0.0
 [v5.2.1]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.2.0...v5.2.1
 [v5.2.0]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.27...v5.2.0
 [v5.1.27]: https://github.com/mq1/TinyWiiBackupManager/compare/v5.1.26...v5.1.27
