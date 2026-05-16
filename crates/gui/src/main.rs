@@ -71,7 +71,7 @@ fn main() -> Result<()> {
             message_queue.push_back((message, payload));
 
             while let Some((message, payload)) = message_queue.pop_front() {
-                state.update(&weak, message, payload, &mut message_queue);
+                state.update(message, payload, &mut message_queue, &weak);
             }
         }
     });

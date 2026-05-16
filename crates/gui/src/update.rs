@@ -28,10 +28,10 @@ const NEW_DRIVE_TEXT: &str = "New drive detected (or a breaking TWBM update has 
 impl State {
     pub fn update(
         &mut self,
-        weak: &Weak<AppWindow>,
         message: Message,
         payload: SharedString,
         message_queue: &mut VecDeque<(Message, SharedString)>,
+        weak: &Weak<AppWindow>,
     ) {
         match message {
             Message::NotifyInfo => {
