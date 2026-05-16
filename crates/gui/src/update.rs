@@ -4,7 +4,7 @@
 use crate::{
     AppWindow, Dispatcher, DisplayedConfig, DisplayedDiscInfo, DisplayedDriveInfo, DisplayedGame,
     DisplayedHomebrewApp, DisplayedOscApp, Message, Notification, UiState,
-    convert::perform_conversion, covers, dialogs, games, homebrew_apps, osc, state::State,
+    convert::perform_conversion, covers, dialogs, games, homebrew_apps, osc, state::State, util,
 };
 use slint::{ComponentHandle, Image, Model, SharedString, ToSharedString, Weak};
 use std::{
@@ -494,8 +494,8 @@ impl State {
                         && let Some(game_id) = GameID::new(meta.game_id())
                         && existing_ids.iter().all(|id| *id != game_id)
                     {
-                        self.games_to_add
-                            .push(path.to_string_lossy().to_shared_string());
+                        let path = path.to_string_lossy().to_shared_string();
+                        self.games_to_add.push(path);
                     }
                 }
             }
@@ -712,50 +712,78 @@ impl State {
                     });
                 });
             }
-            Message::DownloadAllCovers => {
-                let for_wiiflow = payload.parse().unwrap();
+            Message::DownloadAllCoversForUsbLoaderGX => {
                 let config = self.config.clone();
 
                 let ids = self.games.iter().map(|g| g.id).collect::<Vec<_>>();
 
-                let text = if for_wiiflow {
-                    "Downloading covers for WiiFlow..."
-                } else {
-                    "Downloading covers for USBLoaderGX..."
-                };
-
+                let text = "Downloading covers for USBLoaderGX...";
                 self.notifications.push(Notification::info(text));
 
                 let weak = weak.clone();
                 let _ = std::thread::spawn(move || {
-                    let res = if for_wiiflow {
-                        twbm_core::covers::download_all_covers_for_wiiflow(&ids, &config)
-                    } else {
-                        twbm_core::covers::download_all_covers_for_usbloadergx(&ids, &config)
-                    };
+                    let res = twbm_core::covers::download_all_covers_for_usbloadergx(&ids, &config);
 
                     let _ = weak.upgrade_in_event_loop(move |app| {
-                    let dispatcher = app.global::<Dispatcher<'_>>();
+                        let dispatcher = app.global::<Dispatcher<'_>>();
 
-                    match res {
-                        Ok(failed_ids) if failed_ids.is_empty() => {
-                            let text = "All covers downloaded successfully".to_shared_string();
-                            dispatcher.invoke_dispatch(Message::NotifyInfo, text);
+                        match res {
+                            Ok(failed_ids) => {
+                                let payload = util::display_list(&failed_ids);
+                                dispatcher.invoke_dispatch(
+                                    Message::FinishedDownloadingAllCovers,
+                                    payload,
+                                );
+                            }
+                            Err(e) => {
+                                let text = slint::format!("Failed to download covers: {e}");
+                                dispatcher.invoke_dispatch(Message::NotifyError, text);
+                            }
                         }
-                        Ok(failed_ids) => {
-                            let failed_ids = twbm_core::game_id::make_list_string(&failed_ids);
-                            let text = slint::format!(
-                                "Covers downloaded successfully\nThe following games may lack some covers: {failed_ids}"
-                            );
-                            dispatcher.invoke_dispatch(Message::NotifyError, text);
-                        }
-                        Err(e) => {
-                            let text = slint::format!("Failed to download covers: {e}");
-                            dispatcher.invoke_dispatch(Message::NotifyError, text);
-                        }
-                    }
+                    });
                 });
+            }
+            Message::DownloadAllCoversForWiiFlow => {
+                let config = self.config.clone();
+
+                let ids = self.games.iter().map(|g| g.id).collect::<Vec<_>>();
+
+                let text = "Downloading covers for WiiFlow...";
+                self.notifications.push(Notification::info(text));
+
+                let weak = weak.clone();
+                let _ = std::thread::spawn(move || {
+                    let res = twbm_core::covers::download_all_covers_for_wiiflow(&ids, &config);
+
+                    let _ = weak.upgrade_in_event_loop(move |app| {
+                        let dispatcher = app.global::<Dispatcher<'_>>();
+
+                        match res {
+                            Ok(failed_ids) => {
+                                let payload = util::display_list(&failed_ids);
+                                dispatcher.invoke_dispatch(
+                                    Message::FinishedDownloadingAllCovers,
+                                    payload,
+                                );
+                            }
+                            Err(e) => {
+                                let text = slint::format!("Failed to download covers: {e}");
+                                dispatcher.invoke_dispatch(Message::NotifyError, text);
+                            }
+                        }
+                    });
                 });
+            }
+            Message::FinishedDownloadingAllCovers => {
+                let text = if payload.is_empty() {
+                    "All covers downloaded successfully".into()
+                } else {
+                    slint::format!(
+                        "Covers downloaded successfully\nThe following games may lack some covers: {payload}"
+                    )
+                };
+
+                self.notifications.push(Notification::info(text));
             }
             Message::DownloadAllBanners => {
                 let mount_point = self.config.contents.mount_point.clone();
@@ -783,7 +811,7 @@ impl State {
                             dispatcher.invoke_dispatch(Message::NotifyInfo, text);
                         }
                         Ok(failed_ids) => {
-                            let failed_ids = twbm_core::game_id::make_list_string(&failed_ids);
+                            let failed_ids = util::display_list(&failed_ids);
                             let text = slint::format!(
                                 "Banners downloaded successfully\nExcept the following: {failed_ids}"
                             );
@@ -877,13 +905,41 @@ impl State {
                 let app = weak.upgrade().unwrap();
                 app.global::<UiState<'_>>().set_status(payload);
             }
+            Message::DownloadWiitdbXml => {
+                self.notifications
+                    .push(Notification::info("Downloading wiitdb.xml..."));
+
+                let mount_point = self.config.contents.mount_point.clone();
+                let weak = weak.clone();
+                let _ = std::thread::spawn(move || {
+                    let res = twbm_core::util::download_wiitdb_xml(&mount_point);
+
+                    let _ = weak.upgrade_in_event_loop(|app| {
+                        let dispatcher = app.global::<Dispatcher<'_>>();
+
+                        match res {
+                            Ok(_) => {
+                                let text = "wiitdb.xml downloaded successfully.".into();
+                                dispatcher.invoke_dispatch(Message::NotifyInfo, text);
+                            }
+                            Err(e) => {
+                                let text = slint::format!("Failed to download wiitdb.xml: {e}");
+                                dispatcher.invoke_dispatch(Message::NotifyError, text);
+                            }
+                        }
+                    });
+                });
+            }
             #[cfg(windows)]
-            Message::SetWindowColor => {
-                let is_dark = payload.parse().unwrap();
-                crate::window_color::set(is_dark);
+            Message::SetWindowColorLight => {
+                crate::window_color::set(false);
+            }
+            #[cfg(windows)]
+            Message::SetWindowColorDark => {
+                crate::window_color::set(true);
             }
             #[cfg(not(windows))]
-            Message::SetWindowColor => {}
+            Message::SetWindowColorLight | Message::SetWindowColorDark => {}
             #[cfg(target_os = "macos")]
             Message::RunDotClean => {
                 let res = {

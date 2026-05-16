@@ -145,13 +145,13 @@ export component ToolboxPage inherits VerticalLayout {
                         spacing: 5px;
 
                         IconDisplay {
-                            icon: IconSet.ImageDown;
+                            icon: IconSet.Loader;
                             stroke: MyPalette.foreground;
                             size: 14px;
                         }
 
                         Text {
-                            text: "Covers and banners";
+                            text: "Game backup loaders";
                         }
                     }
 
@@ -163,7 +163,7 @@ export component ToolboxPage inherits VerticalLayout {
                         IconButton {
                             icon: IconSet.Play;
                             width: self.height;
-                            clicked => Dispatcher.dispatch(Message.DownloadAllCovers, "false");
+                            clicked => Dispatcher.dispatch(Message.DownloadAllCoversForUsbLoaderGX, "");
                         }
 
                         Text {
@@ -179,13 +179,13 @@ export component ToolboxPage inherits VerticalLayout {
                         IconButton {
                             icon: IconSet.Play;
                             width: self.height;
-                            clicked => Dispatcher.dispatch(Message.DownloadAllCovers, "true");
+                            clicked => Dispatcher.dispatch(Message.DownloadAllBanners, "");
                         }
 
                         Text {
                             height: b.height;
                             vertical-alignment: center;
-                            text: "Download covers for WiiFlow";
+                            text: "Download banners for USB Loader GX (GameCube games)";
                         }
                     }
 
@@ -195,13 +195,29 @@ export component ToolboxPage inherits VerticalLayout {
                         IconButton {
                             icon: IconSet.Play;
                             width: self.height;
-                            clicked => Dispatcher.dispatch(Message.DownloadAllBanners, "");
+                            clicked => Dispatcher.dispatch(Message.DownloadWiitdbXml, "");
                         }
 
                         Text {
                             height: b.height;
                             vertical-alignment: center;
-                            text: "Download banners for GameCube games";
+                            text: "Download wiitdb.xml for USB Loader GX";
+                        }
+                    }
+
+                    HorizontalLayout {
+                        spacing: 10px;
+
+                        IconButton {
+                            icon: IconSet.Play;
+                            width: self.height;
+                            clicked => Dispatcher.dispatch(Message.DownloadAllCoversForWiiFlow, "");
+                        }
+
+                        Text {
+                            height: b.height;
+                            vertical-alignment: center;
+                            text: "Download covers for WiiFlow";
                         }
                     }
                 }

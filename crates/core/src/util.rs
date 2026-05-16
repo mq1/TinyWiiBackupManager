@@ -6,7 +6,15 @@ use nod::{
     common::{Compression, Format},
     write::FormatOptions,
 };
-use std::{borrow::Cow, ffi::OsStr, fs::File, num::NonZeroUsize, path::Path, sync::LazyLock};
+use std::{
+    borrow::Cow,
+    ffi::OsStr,
+    fs::{self, File},
+    io,
+    num::NonZeroUsize,
+    path::Path,
+    sync::LazyLock,
+};
 use ureq::tls::{RootCerts, TlsConfig, TlsProvider};
 use zip::ZipArchive;
 
@@ -111,6 +119,28 @@ pub fn run_dot_clean(mount_point: &Path) -> Result<()> {
     if !status.success() {
         anyhow::bail!("dot_clean failed with status {status}");
     }
+
+    Ok(())
+}
+
+pub fn download_wiitdb_xml(root_dir: &Path) -> Result<()> {
+    // Download wiitdb
+    let mut resp = AGENT.get("https://www.gametdb.com/wiitdb.zip").call()?;
+    let body = resp.body_mut().read_to_vec()?;
+
+    // Open the archive
+    let mut cursor = io::Cursor::new(body);
+    let mut archive = ZipArchive::new(&mut cursor)?;
+    let mut datafile = archive.by_name("wiitdb.xml")?;
+
+    // Create the target directory.
+    let target_dir = root_dir.join("apps").join("usbloader_gx");
+    fs::create_dir_all(&target_dir)?;
+
+    // Extract wiitdb.xml
+    let target_path = target_dir.join("wiitdb.xml");
+    let mut out_file = File::create(&target_path)?;
+    io::copy(&mut datafile, &mut out_file)?;
 
     Ok(())
 }

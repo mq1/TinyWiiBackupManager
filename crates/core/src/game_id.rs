@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use radix_fmt::Radix;
-use std::fmt::{self, Write};
+use std::fmt;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(transparent)]
@@ -40,19 +40,4 @@ impl fmt::Display for GameID {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:#}", Radix::new(self.0, 36))
     }
-}
-
-pub fn make_list_string(list: &[GameID]) -> String {
-    let mut s = String::new();
-
-    let last_i = list.len() - 1;
-    for (i, id) in list.iter().enumerate() {
-        write!(&mut s, "{id}").unwrap();
-
-        if i != last_i {
-            s.push_str(", ");
-        }
-    }
-
-    s
 }

@@ -21,7 +21,8 @@ export enum Message {
     NotifyInfo,
     NotifyError,
     OpenThat,
-    SetWindowColor,
+    SetWindowColorLight,
+    SetWindowColorDark,
     DownloadOscIcons,
     RunDotClean,
     CheckForUpdates,
@@ -46,7 +47,8 @@ export enum Message {
     DownloadTxtCodes,
     PickHomebrewApps,
     InstallOscApp,
-    DownloadAllCovers,
+    DownloadAllCoversForUsbLoaderGX,
+    DownloadAllCoversForWiiFlow,
     DownloadAllBanners,
     NormalizeDirLayout,
     WiiloadLocalFile,
@@ -64,6 +66,8 @@ export enum Message {
     RefreshDisplayedOscApps,
     RefreshSorting,
     DownloadCovers,
+    DownloadWiitdbXml,
+    FinishedDownloadingAllCovers,
 }
 
 export global Dispatcher {

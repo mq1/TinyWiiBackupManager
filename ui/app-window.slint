@@ -54,9 +54,9 @@ export component AppWindow inherits Window {
                 Palette.color-scheme = ColorScheme.dark;
             }
             if Palette.color-scheme == ColorScheme.dark {
-                Dispatcher.dispatch(Message.SetWindowColor, "true");
+                Dispatcher.dispatch(Message.SetWindowColorDark, "");
             } else {
-                Dispatcher.dispatch(Message.SetWindowColor, "false");
+                Dispatcher.dispatch(Message.SetWindowColorLight, "");
             }
 
             Dispatcher.dispatch(Message.CacheOscContents, "false");
