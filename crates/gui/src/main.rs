@@ -60,17 +60,23 @@ fn main() -> Result<()> {
     ui_state.set_conversion_queue(ModelRc::from(state.displayed_conversion_queue.clone()));
     ui_state.set_games_to_add(ModelRc::from(state.games_to_add.clone()));
 
-    // Process messages
-    let mut message_queue = VecDeque::new();
-    let weak = app.as_weak();
     let dispatcher = app.global::<Dispatcher<'_>>();
-    dispatcher.on_dispatch(move |message, args| {
-        message_queue.push_back((message, args));
 
-        while let Some((message, args)) = message_queue.pop_front() {
-            state.update(&weak, message, args, &mut message_queue);
+    // Process messages
+    dispatcher.on_dispatch({
+        let weak = app.as_weak();
+        let mut message_queue = VecDeque::new();
+
+        move |message, args| {
+            message_queue.push_back((message, args));
+
+            while let Some((message, args)) = message_queue.pop_front() {
+                state.update(&weak, message, args, &mut message_queue);
+            }
         }
     });
+
+    // Initialize
     dispatcher.invoke_dispatch(Message::RefreshAll, SharedString::new());
 
     if let Err(e) = app.run() {
