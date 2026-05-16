@@ -67,11 +67,11 @@ fn main() -> Result<()> {
         let weak = app.as_weak();
         let mut message_queue = VecDeque::new();
 
-        move |message, args| {
-            message_queue.push_back((message, args));
+        move |message, payload| {
+            message_queue.push_back((message, payload));
 
-            while let Some((message, args)) = message_queue.pop_front() {
-                state.update(&weak, message, args, &mut message_queue);
+            while let Some((message, payload)) = message_queue.pop_front() {
+                state.update(&weak, message, payload, &mut message_queue);
             }
         }
     });
