@@ -44,6 +44,7 @@ Open an issue if you need any of these (explaining why you think feature X is im
 - 😓 Windows XP and Vista are no longer supported (as maintaining a custom file dialog implementation is a hassle for me, and this already caused regressions in previous TWBM releases). TWBM now requires at least Windows 7.
 - 🛜 Network features (https) won't probably work on older windows versions anymore. Game conversion will still work as expected.
 - 🖥️ Removed armhf build
+- 🛠️ Bulk cheat downloading. Individual downloading is not affected.
 - 📂 File drag-and-drop doesn't work in slint as of may 2026 (https://github.com/slint-ui/slint/discussions/9424, https://github.com/slint-ui/slint/issues/1967)
 
 ## [v5.2.1] - 2026-03-19
