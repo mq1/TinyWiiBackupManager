@@ -60,6 +60,7 @@ export component GameInfoModal inherits Modal {
                 VerticalLayout {
                     spacing: 5px;
                     alignment: center;
+                    y: parent.height - self.height - 10px;
 
                     HorizontalLayout {
                         spacing: 5px;
@@ -121,41 +122,17 @@ export component GameInfoModal inherits Modal {
                         spacing: 5px;
 
                         IconDisplay {
-                            icon: IconSet.Pointer;
+                            icon: IconSet.Gamepad;
                             stroke: MyPalette.foreground;
                             size: 14px;
                         }
 
-                        Text {
-                            text: "Is Wii: \{(UiState.current-disc-info.is-wii ? "yes" : "no")}";
-                        }
-                    }
-
-                    HorizontalLayout {
-                        spacing: 5px;
-
-                        IconDisplay {
-                            icon: IconSet.Box;
-                            stroke: MyPalette.foreground;
-                            size: 14px;
+                        if UiState.current-disc-info.is-gc : Text {
+                            text: "System: GameCube";
                         }
 
-                        Text {
-                            text: "Is GameCube: \{(UiState.current-disc-info.is-gc ? "yes" : "no")}";
-                        }
-                    }
-
-                    HorizontalLayout {
-                        spacing: 5px;
-
-                        IconDisplay {
-                            icon: IconSet.Hash;
-                            stroke: MyPalette.foreground;
-                            size: 14px;
-                        }
-
-                        Text {
-                            text: "Disc number: \{UiState.current-disc-info.disc-number}";
+                        if UiState.current-disc-info.is-wii : Text {
+                            text: "System: Wii";
                         }
                     }
 
