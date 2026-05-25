@@ -5582,7 +5582,7 @@ dependencies = [
 
 [[package]]
 name = "twbm-core"
-version = "6.0.3"
+version = "6.0.4"
 dependencies = [
  "anyhow",
  "crc32fast",
@@ -5610,7 +5610,7 @@ dependencies = [
 
 [[package]]
 name = "twbm-gui"
-version = "6.0.3"
+version = "6.0.4"
 dependencies = [
  "anyhow",
  "lucide-slint",

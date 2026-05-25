@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v6.0.4] - 2026-05-25
+
+### Fixed
+
+- 🐛 Unable to open application once downloaded (<https://github.com/mq1/TinyWiiBackupManager/issues/633>)
+
 ## [v6.0.3] - 2026-05-20
 
 ### Fixed
@@ -396,7 +402,8 @@ Open an issue if you need any of these (explaining why you think feature X is im
 
 - 🖼️ TinyWiiBackupManager icon now shows up again on the windows exe
 
-[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.0.3...HEAD
+[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.0.4...HEAD
+[v6.0.4]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.0.3...v6.0.4
 [v6.0.3]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.0.2...v6.0.3
 [v6.0.2]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.0.1...v6.0.2
 [v6.0.1]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.0.0...v6.0.1
