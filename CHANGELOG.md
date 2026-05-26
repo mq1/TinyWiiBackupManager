@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- 🐛 Open Shop Channel search function broken (<https://github.com/mq1/TinyWiiBackupManager/issues/635>)
+
 ## [v6.0.4] - 2026-05-25
 
 ### Fixed
