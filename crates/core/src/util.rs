@@ -21,7 +21,7 @@ use zip::ZipArchive;
 
 pub const SPLIT_SIZE: NonZeroUsize = NonZeroUsize::new(4_294_934_528).unwrap(); // 4 GiB - 32 KiB
 pub const HEADER_SIZE: usize = 131_072; // 128 KiB
-pub const BUF_SIZE: usize = 4_194_304; // 4 MiB
+pub const BUF_SIZE: usize = 65_536; // 64 KiB
 
 pub static AGENT: LazyLock<ureq::Agent> = LazyLock::new(|| {
     const USER_AGENT: &str = concat!("TinyWiiBackupManager/", env!("CARGO_PKG_VERSION"));
