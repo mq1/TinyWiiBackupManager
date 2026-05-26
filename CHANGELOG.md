@@ -7,9 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v6.0.5] - 2026-05-26
+
 ### Fixed
 
 - 🐛 Open Shop Channel search function broken (<https://github.com/mq1/TinyWiiBackupManager/issues/635>)
+- 🛠️ Write buffer size is now 64 KiB (should be more correct, and may improve <https://github.com/mq1/TinyWiiBackupManager/issues/637>)
 
 ## [v6.0.4] - 2026-05-25
 
@@ -406,7 +409,8 @@ Open an issue if you need any of these (explaining why you think feature X is im
 
 - 🖼️ TinyWiiBackupManager icon now shows up again on the windows exe
 
-[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.0.4...HEAD
+[Unreleased]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.0.5...HEAD
+[v6.0.5]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.0.4...v6.0.5
 [v6.0.4]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.0.3...v6.0.4
 [v6.0.3]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.0.2...v6.0.3
 [v6.0.2]: https://github.com/mq1/TinyWiiBackupManager/compare/v6.0.1...v6.0.2
