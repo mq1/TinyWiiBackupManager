@@ -123,7 +123,7 @@ pub fn load_contents(data_dir: &Path) -> Result<(Vec<OscApp>, i32, i32)> {
     let apps = apps
         .into_iter()
         .map(|meta| {
-            let search_term = format!("{}\0{}", &meta.name, &meta.author);
+            let search_term = format!("{}\0{}", &meta.name, &meta.author).to_lowercase();
             OscApp { meta, search_term }
         })
         .collect::<Vec<_>>();

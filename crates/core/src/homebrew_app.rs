@@ -56,7 +56,7 @@ impl HomebrewApp {
             image::load_from_memory_with_format(&icon_bytes, ImageFormat::Png).unwrap_or_default();
         let icon_rgba8 = icon.into_rgba8();
 
-        let search_term = format!("{}\0{}", &meta.name, &meta.coder);
+        let search_term = format!("{}\0{}", &meta.name, &meta.coder).to_lowercase();
 
         Some(Self {
             path,
