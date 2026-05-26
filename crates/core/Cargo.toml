@@ -34,8 +34,9 @@ directories = "6.0"
 zip = { workspace = true }
 deunicode = "1.6"
 
+# windows x86 has issues with bzip2 + lld
 [target.'cfg(all(target_os = "windows", target_arch = "x86"))'.dependencies]
-nod = { git = "https://github.com/encounter/nod.git", default-features = false, features = [
+nod = { version = "=2.0.0-alpha.9", default-features = false, features = [
   "compress-lzma-vendored",
   "compress-zlib-vendored",
   "compress-zstd-vendored",
@@ -43,7 +44,7 @@ nod = { git = "https://github.com/encounter/nod.git", default-features = false, 
 ] }
 
 [target.'cfg(not(all(target_os = "windows", target_arch = "x86")))'.dependencies]
-nod = { git = "https://github.com/encounter/nod.git" }
+nod = "=2.0.0-alpha.9"
 
 [features]
 default = ["native-tls"]
