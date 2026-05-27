@@ -33,6 +33,7 @@ derive_more = { version = "2.1", features = ["display", "from_str"] }
 directories = "6.0"
 zip = { workspace = true }
 deunicode = "1.6"
+rkyv = { version = "0.8", default-features = false, features = ["std"] }
 
 # windows x86 has issues with bzip2 + lld
 [target.'cfg(all(target_os = "windows", target_arch = "x86"))'.dependencies]
@@ -45,6 +46,9 @@ nod = { version = "=2.0.0-alpha.9", default-features = false, features = [
 
 [target.'cfg(not(all(target_os = "windows", target_arch = "x86")))'.dependencies]
 nod = "=2.0.0-alpha.9"
+
+[build-dependencies]
+rkyv = { version = "0.8", default-features = false, features = ["std"] }
 
 [features]
 default = ["native-tls"]

@@ -2,29 +2,24 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::game_id::GameID;
+use rkyv::{Archive, Deserialize, vec::ArchivedVec};
 use std::num::NonZeroU32;
 
+const BYTES: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/id_map.bin"));
+
+#[derive(Archive, Deserialize)]
 pub struct GameEntry {
-    id: GameID,
+    id: u32,
     pub ghid: Option<NonZeroU32>,
-    pub title: &'static str,
+    pub title: String,
 }
 
-impl GameEntry {
-    pub const fn new(id: u32, ghid: u32, title: &'static str) -> Self {
-        GameEntry {
-            id: GameID::from_u32(id),
-            ghid: NonZeroU32::new(ghid),
-            title,
-        }
-    }
-}
+pub fn get(id: GameID) -> Option<&'static ArchivedGameEntry> {
+    let archived = unsafe { rkyv::access_unchecked::<ArchivedVec<ArchivedGameEntry>>(BYTES) };
 
-include!(concat!(env!("OUT_DIR"), "/id_map_generated.rs"));
-
-pub fn get(id: GameID) -> Option<&'static GameEntry> {
-    let i = GAMES.binary_search_by_key(&id, |e| e.id).ok()?;
-    let entry = &GAMES[i];
+    let id = id.archived();
+    let i = archived.binary_search_by_key(&id, |e| e.id).ok()?;
+    let entry = &archived[i];
 
     Some(entry)
 }

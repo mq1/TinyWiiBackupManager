@@ -20,7 +20,10 @@ pub fn download_cheats(game_id: GameID, config: &Config) -> Result<()> {
             AGENT.get(url).call()?.body_mut().read_to_string()?
         }
         TxtCodesSource::GameHacking => {
-            let Some(ghid) = id_map::get(game_id).and_then(|entry| entry.ghid) else {
+            let Some(ghid) = id_map::get(game_id)
+                .and_then(|entry| entry.ghid.as_ref())
+                .map(|ghid| ghid.get())
+            else {
                 bail!("Could not find gamehacking id");
             };
 

@@ -48,7 +48,7 @@ fn adopt_orphaned_discs(games_dir: &Path, is_wii: bool) -> Result<()> {
             _ => continue,
         };
 
-        let display_title = id_map::get(game_id).map_or(meta.game_title(), |g| g.title);
+        let display_title = id_map::get(game_id).map_or(meta.game_title(), |g| &g.title);
         let new_parent_name = make_game_dir_name(game_id, display_title);
 
         let new_filename = if filename.ends_with(".part0.iso") {
