@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use radix_fmt::Radix;
-use rkyv::primitive::ArchivedU32;
 use std::fmt;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -25,19 +24,19 @@ impl GameID {
         Self(id)
     }
 
+    pub const fn to_u32(self) -> u32 {
+        self.0
+    }
+
     pub fn from_byte_string(b: [u8; 6]) -> Option<Self> {
         let s = str::from_utf8(&b).ok()?;
         Self::new(s)
     }
 
-    pub fn partial(&self) -> String {
+    pub fn partial(self) -> String {
         let mut s = self.to_string();
         s.truncate(3);
         s
-    }
-
-    pub fn archived(&self) -> ArchivedU32 {
-        ArchivedU32::from_native(self.0)
     }
 }
 
