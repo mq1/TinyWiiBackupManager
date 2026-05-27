@@ -17,9 +17,8 @@ pub struct GameEntry {
 pub fn get(id: GameID) -> Option<&'static ArchivedGameEntry> {
     let archived = unsafe { rkyv::access_unchecked::<ArchivedVec<ArchivedGameEntry>>(BYTES) };
 
-    let id = id.archived();
-    let i = archived.binary_search_by_key(&id, |e| e.id).ok()?;
-    let entry = &archived[i];
-
-    Some(entry)
+    match archived.binary_search_by_key(&id.archived(), |e| e.id) {
+        Ok(idx) => Some(&archived[idx]),
+        Err(_) => None,
+    }
 }
