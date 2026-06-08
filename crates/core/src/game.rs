@@ -7,7 +7,6 @@ use std::{
     fs,
     path::{Path, PathBuf},
 };
-use twbm_idmap::GameEntry;
 
 #[derive(Debug, Clone)]
 pub struct Game {
@@ -31,8 +30,7 @@ impl Game {
         let is_wii = matches!(id.chars().next(), Some('R' | 'S'));
         let id = GameID::new(&id[..id.len() - 1])?;
 
-        let title = GameEntry::lookup(id)
-            .map(|entry| entry.title())
+        let title = twbm_idmap::get_title(id)
             .unwrap_or_else(|| title.trim())
             .to_string();
 

@@ -42,3 +42,9 @@ impl AsRef<str> for GameID {
         unsafe { std::str::from_utf8_unchecked(&self.0[..end]) }
     }
 }
+
+impl From<[u8; 6]> for GameID {
+    fn from(value: [u8; 6]) -> Self {
+        Self(value)
+    }
+}

@@ -1,15 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::{game, game_id::GameID, util::make_game_dir_name};
 use anyhow::Result;
 use std::{
     ffi::OsStr,
     fs::{self, File},
     path::Path,
 };
-use twbm_idmap::GameEntry;
-
-use crate::{game, game_id::GameID, util::make_game_dir_name};
 
 fn adopt_orphaned_discs(games_dir: &Path, is_wii: bool) -> Result<()> {
     let all_discs = fs::read_dir(games_dir)?
@@ -49,11 +47,7 @@ fn adopt_orphaned_discs(games_dir: &Path, is_wii: bool) -> Result<()> {
             _ => continue,
         };
 
-        let display_title = GameEntry::lookup(game_id)
-            .map(|entry| entry.title())
-            .unwrap_or_else(|| meta.game_title());
-
-        let new_parent_name = make_game_dir_name(game_id, display_title);
+        let new_parent_name = make_game_dir_name(game_id, meta.game_title());
 
         let new_filename = if filename.ends_with(".part0.iso") {
             format!("{game_id}.part0.iso")

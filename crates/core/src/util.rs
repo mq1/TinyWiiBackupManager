@@ -2,14 +2,12 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use anyhow::Result;
-use deunicode::deunicode_char;
 use nod::{
     common::{Compression, Format},
     write::FormatOptions,
 };
 use std::{
     ffi::OsStr,
-    fmt::{Display, Write},
     fs::{self, File},
     io,
     num::NonZeroUsize,
@@ -18,6 +16,8 @@ use std::{
 };
 use ureq::tls::{RootCerts, TlsConfig, TlsProvider};
 use zip::ZipArchive;
+
+use crate::game_id::GameID;
 
 pub const SPLIT_SIZE: NonZeroUsize = NonZeroUsize::new(4_294_934_528).unwrap(); // 4 GiB - 32 KiB
 pub const HEADER_SIZE: usize = 131_072; // 128 KiB
@@ -140,29 +140,21 @@ fn is_valid_char(c: char) -> bool {
     c.is_ascii_alphanumeric() || " !#$%&'()+,-.;=@^_`{}~".contains(c)
 }
 
-pub fn sanitize_title(title: &str) -> String {
+pub fn sanitize_title(ascii_title: &str) -> String {
     let mut sanitized = String::with_capacity(64);
 
     let mut actual_title = false;
-    for c in title.chars() {
+    for c in ascii_title.chars() {
         if sanitized.len() >= 64 {
             break;
         }
 
-        if let Some(ascii) = deunicode_char(c) {
-            for ac in ascii.chars() {
-                if sanitized.len() >= 64 {
-                    break;
-                }
+        if c.is_ascii_alphanumeric() {
+            actual_title = true;
+        }
 
-                if ac.is_ascii_alphanumeric() {
-                    actual_title = true;
-                }
-
-                if actual_title && is_valid_char(ac) {
-                    sanitized.push(ac);
-                }
-            }
+        if actual_title && is_valid_char(c) {
+            sanitized.push(c);
         }
     }
 
@@ -176,8 +168,9 @@ pub fn sanitize_title(title: &str) -> String {
     sanitized
 }
 
-pub fn make_game_dir_name(id: impl Display, title: &str) -> String {
-    let mut dir_name = sanitize_title(title);
-    write!(&mut dir_name, " [{id}]").unwrap();
-    dir_name
+pub fn make_game_dir_name(game_id: GameID, fallback_title: &str) -> String {
+    let ascii_title = twbm_idmap::get_ascii_title(game_id).unwrap_or(fallback_title);
+    let sanitized_title = sanitize_title(&ascii_title);
+
+    format!("{sanitized_title} [{game_id}]")
 }
