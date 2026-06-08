@@ -277,7 +277,7 @@ impl State {
                                 .invoke_dispatch(Message::NotifyInfo, text.to_shared_string()),
                             Err(e) => {
                                 let text = slint::format!("Could not send file to Wii: {e}");
-                                dispatcher.invoke_dispatch(Message::NotifyError, text)
+                                dispatcher.invoke_dispatch(Message::NotifyError, text);
                             }
                         }
                     });
@@ -656,7 +656,7 @@ impl State {
             }
             Message::NormalizeDirLayout => {
                 match normalize_dir_layout::perform(&self.config.contents.mount_point) {
-                    Ok(_) => {
+                    Ok(()) => {
                         let text = "Directory layout successfully normalized";
                         self.notifications.push(Notification::info(text));
                     }
@@ -693,7 +693,7 @@ impl State {
                         let dispatcher = app.global::<Dispatcher<'_>>();
 
                         match res {
-                            Ok(_) => {
+                            Ok(()) => {
                                 let text = slint::format!("Downloaded txtcodes for {game_id}");
                                 dispatcher.invoke_dispatch(Message::NotifyInfo, text);
                             }
@@ -913,7 +913,7 @@ impl State {
                         let dispatcher = app.global::<Dispatcher<'_>>();
 
                         match res {
-                            Ok(_) => {
+                            Ok(()) => {
                                 let text = "wiitdb.xml downloaded successfully.".into();
                                 dispatcher.invoke_dispatch(Message::NotifyInfo, text);
                             }
@@ -961,7 +961,7 @@ impl State {
                 };
 
                 match res {
-                    Ok(_) => {
+                    Ok(()) => {
                         let text = "Successfully ran dot_clean";
                         self.notifications.push(Notification::info(text));
                     }

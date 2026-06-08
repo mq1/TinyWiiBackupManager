@@ -7,6 +7,7 @@ use std::path::Path;
 use twbm_core::homebrew_app::HomebrewApp;
 
 impl DisplayedHomebrewApp {
+    #[must_use]
     pub fn new(app: &HomebrewApp, osc_app: DisplayedOscApp) -> Self {
         let buffer = SharedPixelBuffer::<Rgba8Pixel>::clone_from_slice(
             app.icon_rgba8.as_raw(),

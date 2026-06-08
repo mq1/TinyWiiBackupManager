@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::game_id::GameID;
 use anyhow::Result;
 use nod::{
     common::{Compression, Format},
@@ -16,8 +17,6 @@ use std::{
 };
 use ureq::tls::{RootCerts, TlsConfig, TlsProvider};
 use zip::ZipArchive;
-
-use crate::game_id::GameID;
 
 pub const SPLIT_SIZE: NonZeroUsize = NonZeroUsize::new(4_294_934_528).unwrap(); // 4 GiB - 32 KiB
 pub const HEADER_SIZE: usize = 131_072; // 128 KiB
