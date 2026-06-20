@@ -1,24 +1,57 @@
-[workspace]
-resolver = "3"
-members = ["crates/core", "crates/gui"]
-default-members = ["crates/gui"]
-
-[workspace.package]
-version = "6.0.7"
-rust-version = "1.96"
+[package]
+name = "TinyWiiBackupManager"
+version = "7.0.0"
 edition = "2024"
+rust-version = "1.96"
 authors = ["Manuel Quarneti <mq1@ik.me>"]
 license = "GPL-3.0-only"
 repository = "https://github.com/mq1/TinyWiiBackupManager"
 description = "A tiny game backup and homebrew app manager for the Wii"
 
-[workspace.dependencies]
-anyhow = "1.0"
-wii-disc-info = "0.9"
-zip = { version = "8.6", default-features = false, features = [
-  "deflate-flate2",
+[dependencies]
+iced = { version = "0.14", default-features = false, features = [
+  "crisp",
+  "linux-theme-detection",
+  "tiny-skia",
+  "wayland",
+  "wgpu-bare",
+  "x11",
+  "thread-pool",
+] }
+lucide-icons = { version = "1.21", features = ["iced"] }
+anyhow = "1"
+getset = "0.1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+directories = "6.0"
+sys-locale = "0.3"
+size = "0.5"
+replace_with = "0.1"
+steel-core = "0.8"
+strum = { version = "0.28", features = ["derive"] }
+
+[target.'cfg(target_os = "windows")'.dependencies]
+wgpu = { version = "27.0", default-features = false, features = [
+  "std",
+  "parking_lot",
+  "dx12",
 ] }
 
+[target.'cfg(target_os = "linux")'.dependencies]
+wgpu = { version = "27.0", default-features = false, features = [
+  "std",
+  "parking_lot",
+  "vulkan",
+] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+wgpu = { version = "27.0", default-features = false, features = [
+  "std",
+  "parking_lot",
+  "metal",
+] }
+
+# Tiny and fast
 [profile.release]
 opt-level = 3
 lto = true
@@ -26,10 +59,6 @@ codegen-units = 1
 strip = true
 panic = "abort"
 
-# speed up slint compiler in dev builds
-[profile.dev.build-override]
-opt-level = 2
-
 # speed up conversions in dev builds
 [profile.dev.package."*"]
-opt-level = 2
+opt-level = 1
