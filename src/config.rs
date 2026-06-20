@@ -242,10 +242,12 @@ impl PreferredLanguage {
     }
 }
 
+#[inline]
 fn default_wii_ip() -> String {
     String::from("192.168.1.100")
 }
 
+#[inline]
 fn yes() -> bool {
     true
 }
