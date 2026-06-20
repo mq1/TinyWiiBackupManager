@@ -90,7 +90,7 @@ impl AppState {
                     format!("Failed to load games: {e}"),
                     NotificationLevel::Error,
                 );
-                self.with_notification(notification)
+                self.with_notification(notification).with_games(vec![])
             }
         }
     }
@@ -103,7 +103,7 @@ impl AppState {
             Err(e) => {
                 let label = format!("Failed to load plugins: {e}");
                 let notification = Notification::new(label, NotificationLevel::Error);
-                self.with_notification(notification)
+                self.with_notification(notification).with_plugins(vec![])
             }
         }
     }
