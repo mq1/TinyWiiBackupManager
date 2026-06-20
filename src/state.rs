@@ -16,6 +16,8 @@ use std::path::PathBuf;
 pub(crate) struct AppState {
     data_dir: PathBuf,
     config: Config,
+
+    #[getset(get = "pub")]
     notifications: Vec<Notification>,
 
     #[getset(get = "pub", set_with = "pub")]
@@ -99,7 +101,14 @@ impl AppState {
         let res = crate::plugins::list(&self.data_dir);
 
         match res {
-            Ok(plugins) => self.with_plugins(plugins),
+            Ok(plugins) => {
+                #[cfg(debug_assertions)]
+                for plugin in &plugins {
+                    eprintln!("{:#?}", plugin.meta());
+                }
+
+                self.with_plugins(plugins)
+            }
             Err(e) => {
                 let label = format!("Failed to load plugins: {e}");
                 let notification = Notification::new(label, NotificationLevel::Error);

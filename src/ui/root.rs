@@ -11,23 +11,28 @@ use crate::{
 };
 use iced::{
     Element, Length, border,
-    widget::{container, row},
+    widget::{container, row, stack},
 };
 
 pub fn view(state: &AppState) -> Element<'_, Message> {
-    row![
-        components::sidebar::view(state),
-        container(match state.current_page() {
-            Page::Games => pages::games::view(),
-            Page::Settings => pages::settings::view(),
-        })
-        .width(Length::Fill)
-        .height(Length::Fill)
-        .style(|theme| {
-            let mut base = container::bordered_box(theme);
-            base.border.radius = border::radius(10);
-            base
-        })
+    stack![
+        row![
+            components::sidebar::view(state),
+            container(match state.current_page() {
+                Page::Games => pages::games::view(),
+                Page::Settings => pages::settings::view(),
+            })
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .style(|theme| {
+                let mut base = container::bordered_box(theme);
+                base.border.radius = border::radius(10);
+                base
+            })
+        ],
+        container(components::notifications::view(state))
+            .align_right(Length::Fill)
+            .align_bottom(Length::Fill)
     ]
     .into()
 }
