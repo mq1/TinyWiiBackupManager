@@ -5,6 +5,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod config;
+mod drive_info;
 mod executor;
 mod games;
 mod messages;
@@ -29,6 +30,7 @@ pub fn main() -> Result<()> {
 
     let settings = iced::Settings {
         fonts: vec![LUCIDE_FONT_BYTES.into()],
+        id: Some(String::from("it.mq1.TinyWiiBackupManager")),
         ..Default::default()
     };
 
@@ -36,9 +38,21 @@ pub fn main() -> Result<()> {
         size: iced::Size::new(800., 600.),
         min_size: Some(iced::Size::new(800., 600.)),
 
+        #[cfg(target_vendor = "pc")]
+        platform_specific: window::settings::PlatformSpecific {
+            corner_preference: iced::window::settings::platform::CornerPreference::Round,
+            ..Default::default()
+        },
+
         #[cfg(target_os = "macos")]
         platform_specific: iced::window::settings::PlatformSpecific {
             titlebar_transparent: true,
+            ..Default::default()
+        },
+
+        #[cfg(target_os = "linux")]
+        platform_specific: window::settings::PlatformSpecific {
+            application_id: String::from("it.mq1.TinyWiiBackupManager"),
             ..Default::default()
         },
 
@@ -48,6 +62,7 @@ pub fn main() -> Result<()> {
     iced::application(boot, AppState::update, ui::root::view)
         .settings(settings)
         .window(window)
+        .title(ui::title)
         .executor::<DumbExecutor>()
         .run()?;
 

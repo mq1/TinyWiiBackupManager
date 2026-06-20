@@ -29,6 +29,8 @@ size = "0.5"
 replace_with = "0.1"
 steel-core = "0.8"
 strum = { version = "0.28", features = ["derive"] }
+fs4 = { version = "1.1", default-features = false }
+which-fs = "0.2"
 
 [target.'cfg(target_os = "windows")'.dependencies]
 wgpu = { version = "27.0", default-features = false, features = [

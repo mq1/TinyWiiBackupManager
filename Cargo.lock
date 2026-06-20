@@ -8,6 +8,7 @@ version = "7.0.0"
 dependencies = [
  "anyhow",
  "directories",
+ "fs4",
  "getset",
  "iced",
  "lucide-icons",
@@ -19,6 +20,7 @@ dependencies = [
  "strum",
  "sys-locale",
  "wgpu",
+ "which-fs",
 ]
 
 [[package]]
@@ -1084,6 +1086,16 @@ name = "foreign-types-shared"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "aa9a19cbb55df58761df49b23516a86d432839add4af60fc256da840f66ed35b"
+
+[[package]]
+name = "fs4"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7e72ed92b67c146290f88e9c89d60ca163ea417a446f61ffd7b72df3e7f1dfd5"
+dependencies = [
+ "rustix 1.1.4",
+ "windows-sys 0.61.2",
+]
 
 [[package]]
 name = "futures"
@@ -4292,6 +4304,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c789537cf2f7f55be8e6192f92e464174ee55f91af622777f7f1ceb0dbccd03e"
 dependencies = [
  "libc",
+]
+
+[[package]]
+name = "which-fs"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "40bd640a39e3e88f5e1067042aba98331aa985162c25d2507d2d0c00e1cf2b43"
+dependencies = [
+ "rustix 1.1.4",
+ "windows 0.62.2",
 ]
 
 [[package]]
