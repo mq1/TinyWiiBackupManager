@@ -87,6 +87,14 @@ impl Plugin {
 
         let _ = vm.run(self.code.clone())?;
         let res = vm.call_function_by_name_with_args_from_mut_slice("run", &mut [])?;
+
+        if let Some(label) = res.as_string() {
+            return Ok(Some(Notification::new(
+                label.as_str(),
+                NotificationLevel::Info,
+            )));
+        }
+
         let res = res.list_or_else(|| anyhow!("invalid return value"))?;
 
         let Some(label) = res.get(0) else {
