@@ -55,7 +55,7 @@ impl Plugin {
     pub fn load(path: PathBuf) -> Result<Self> {
         let mut vm = Engine::new_base();
         let code = fs::read_to_string(&path)?;
-        vm.run(code.clone())?;
+        let _ = vm.run(code.clone())?;
 
         let name = vm.extract("name")?;
         let version = vm.extract("version")?;
@@ -85,31 +85,29 @@ impl Plugin {
         vm.register_value("twbm/data-dir", environment.data_dir.into());
         vm.register_value("twbm/mount-point", environment.mount_point.into());
 
-        let res = vm.run(self.code.clone() + "(run)")?;
+        let _ = vm.run(self.code.clone())?;
+        let res = vm.call_function_by_name_with_args_from_mut_slice("run", &mut [])?;
+        let res = res.list_or_else(|| anyhow!("invalid return value"))?;
 
-        match &res[..] {
-            [] => Ok(None),
-            [label] => {
-                let label = label
-                    .as_string()
-                    .ok_or_else(|| anyhow!("invalid notification label"))?;
-                Ok(Some(Notification::new(
-                    label.as_str(),
-                    NotificationLevel::Info,
-                )))
-            }
-            [label, level] => {
-                let label = label
-                    .as_string()
-                    .ok_or_else(|| anyhow!("invalid notification label"))?;
-                let level = level
-                    .as_string()
-                    .and_then(|v| v.parse().ok())
-                    .ok_or_else(|| anyhow!("invalid notification level"))?;
-                Ok(Some(Notification::new(label.as_str(), level)))
-            }
-            _ => Err(anyhow!("invalid return value")),
-        }
+        let Some(label) = res.get(0) else {
+            return Ok(None);
+        };
+        let label = label
+            .as_string()
+            .ok_or_else(|| anyhow!("invalid notification label"))?;
+
+        let Some(level) = res.get(1) else {
+            return Ok(Some(Notification::new(
+                label.as_str(),
+                NotificationLevel::Info,
+            )));
+        };
+        let level = level
+            .as_string()
+            .and_then(|l| l.parse().ok())
+            .ok_or_else(|| anyhow!("invalid notification level"))?;
+
+        Ok(Some(Notification::new(label.as_str(), level)))
     }
 }
 
