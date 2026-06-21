@@ -5,12 +5,14 @@ use crate::messages::Message;
 use iced::{
     Background,
     border::Radius,
-    widget::{Button, button},
+    widget::{Button, button, stack},
 };
 use lucide_icons::Icon;
 
-pub fn view<'a>(icon: Icon, active: bool) -> Button<'a, Message> {
-    button(icon.widget().size(24).center())
+pub fn view<'a>(icons: &[Icon], active: bool) -> Button<'a, Message> {
+    let content = stack(icons.iter().map(|i| i.widget().size(24).center().into()));
+
+    button(content)
         .width(42)
         .height(42)
         .style(move |theme, status| {
