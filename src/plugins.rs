@@ -6,9 +6,10 @@ use anyhow::{Result, anyhow};
 use getset::{CloneGetters, Getters, WithSetters};
 use std::{
     fs,
+    iter::once,
     path::{Path, PathBuf},
 };
-use steel::steel_vm::engine::Engine;
+use steel::{SteelVal, steel_vm::engine::Engine};
 
 #[derive(Debug, Clone, Default, WithSetters)]
 pub struct PluginEnvironment {
@@ -17,6 +18,15 @@ pub struct PluginEnvironment {
 
     #[getset(set_with = "pub")]
     mount_point: String,
+}
+
+impl PluginEnvironment {
+    pub fn into_values(self) -> impl Iterator<Item = (String, SteelVal)> {
+        let data_dir = once(("twbm/data-dir".to_string(), self.data_dir.into()));
+        let mount_point = once(("twbm/mount-point".to_string(), self.mount_point.into()));
+
+        data_dir.chain(mount_point)
+    }
 }
 
 #[derive(Debug, Clone, Getters)]
@@ -53,7 +63,7 @@ pub struct Plugin {
 
 impl Plugin {
     pub fn load(path: PathBuf) -> Result<Self> {
-        let mut vm = Engine::new_base();
+        let mut vm = Engine::new();
         let code = fs::read_to_string(&path)?;
         let _ = vm.run(code.clone())?;
 
@@ -82,8 +92,8 @@ impl Plugin {
 
     pub fn run(&self, environment: PluginEnvironment) -> Result<Option<Notification>> {
         let mut vm = Engine::new();
-        vm.register_value("twbm/data-dir", environment.data_dir.into());
-        vm.register_value("twbm/mount-point", environment.mount_point.into());
+
+        vm.register_values(environment.into_values());
 
         let _ = vm.run(self.code.clone())?;
         let res = vm.call_function_by_name_with_args_from_mut_slice("run", &mut [])?;
