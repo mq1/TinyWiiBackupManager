@@ -105,12 +105,7 @@ impl Plugin {
             ))),
             Value::Table(res) => {
                 let label = res.get::<String>("label")?;
-                let level = res
-                    .get::<String>("level")
-                    .ok()
-                    .and_then(|l| l.parse().ok())
-                    .unwrap_or(NotificationLevel::Info);
-
+                let level = res.get::<String>("level")?.parse()?;
                 Ok(Some(Notification::new(label, level)))
             }
             _ => Err(anyhow!("Invalid return value from plugin")),
