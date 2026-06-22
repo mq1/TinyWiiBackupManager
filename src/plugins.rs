@@ -4,28 +4,20 @@
 use crate::notifications::{Notification, NotificationLevel};
 use anyhow::{Result, anyhow};
 use getset::{CloneGetters, Getters, WithSetters};
-use mlua::{Lua, ObjectLike, Table, Value};
+use mlua::{Lua, LuaSerdeExt, ObjectLike, Table, Value};
+use serde::Serialize;
 use std::{
     fs,
     path::{Path, PathBuf},
 };
 
-#[derive(Debug, Clone, Default, WithSetters)]
+#[derive(Debug, Clone, Default, Serialize, WithSetters)]
 pub struct PluginEnvironment {
     #[getset(set_with = "pub")]
     data_dir: String,
 
     #[getset(set_with = "pub")]
     mount_point: String,
-}
-
-impl PluginEnvironment {
-    pub fn into_table(self, lua: &Lua) -> Result<Table> {
-        let table = lua.create_table()?;
-        table.set("dataDir", self.data_dir)?;
-        table.set("mountPoint", self.mount_point)?;
-        Ok(table)
-    }
 }
 
 #[derive(Debug, Clone, Getters)]
@@ -90,11 +82,11 @@ impl Plugin {
         self.meta.runs_on.iter().any(|s| s == std::env::consts::OS)
     }
 
-    pub fn run(&self, environment: PluginEnvironment) -> Result<Option<Notification>> {
+    pub fn run(&self, environment: &PluginEnvironment) -> Result<Option<Notification>> {
         let lua = Lua::new();
         let plugin = lua.load(&self.code).eval::<Table>()?;
 
-        let environment = environment.into_table(&lua)?;
+        let environment = lua.to_value(environment)?;
         let res = plugin.call_function::<Value>("run", environment)?;
 
         match res {

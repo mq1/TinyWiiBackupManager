@@ -35,7 +35,7 @@ replace_with = "0.1"
 strum = { version = "0.28", features = ["derive"] }
 fs4 = { version = "1.1", default-features = false }
 which-fs = "0.2"
-mlua = { version = "0.11", features = ["lua54", "vendored", "anyhow"] }
+mlua = { version = "0.11", features = ["lua54", "vendored", "anyhow", "serde"] }
 ureq = { version = "3.3", default-features = false, features = [
   "gzip",
   "json",
