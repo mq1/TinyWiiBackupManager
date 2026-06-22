@@ -51,7 +51,7 @@ pub fn main() -> Result<()> {
         },
 
         #[cfg(target_os = "linux")]
-        platform_specific: window::settings::PlatformSpecific {
+        platform_specific: iced::window::settings::PlatformSpecific {
             application_id: String::from("it.mq1.TinyWiiBackupManager"),
             ..Default::default()
         },

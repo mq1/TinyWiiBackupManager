@@ -81,7 +81,7 @@ jobs:
       - name: Build binary
         run: |
           cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features rustls
-          cp target/${{ matrix.target }}/release/twbm-gui TinyWiiBackupManager
+          cp target/${{ matrix.target }}/release/TinyWiiBackupManager .
         env:
           RUSTC_BOOTSTRAP: 1
           CC: clang-22
@@ -153,7 +153,7 @@ jobs:
         shell: pwsh
         run: |
           cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }}
-          Copy-Item -Path "target\${{ matrix.target }}\release\twbm-gui.exe" -Destination "TinyWiiBackupManager.exe"
+          Copy-Item -Path "target\${{ matrix.target }}\release\TinyWiiBackupManager.exe" -Destination .
         env:
           RUSTC_BOOTSTRAP: 1
           CC: clang-cl
@@ -212,7 +212,7 @@ jobs:
       - name: Build binary
         run: |
           cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }}
-          cp target/${{ matrix.target }}/release/twbm-gui TinyWiiBackupManager
+          cp target/${{ matrix.target }}/release/TinyWiiBackupManager .
         env:
           RUSTC_BOOTSTRAP: 1
           CC: /opt/homebrew/opt/llvm@22/bin/clang

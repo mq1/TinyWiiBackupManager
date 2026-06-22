@@ -8,6 +8,11 @@ license = "GPL-3.0-only"
 repository = "https://github.com/mq1/TinyWiiBackupManager"
 description = "A tiny game backup and homebrew app manager for the Wii"
 
+[features]
+default = ["native-tls"]
+native-tls = ["ureq/native-tls"]
+rustls = ["ureq/rustls", "ureq/platform-verifier"]
+
 [dependencies]
 iced = { version = "0.14", default-features = false, features = [
   "crisp",
@@ -31,6 +36,22 @@ strum = { version = "0.28", features = ["derive"] }
 fs4 = { version = "1.1", default-features = false }
 which-fs = "0.2"
 mlua = { version = "0.11", features = ["lua54", "vendored", "anyhow"] }
+ureq = { version = "3.3", default-features = false, features = [
+  "gzip",
+  "json",
+] }
+
+# windows x86 has issues with bzip2 + lld
+[target.'cfg(all(target_os = "windows", target_arch = "x86"))'.dependencies]
+nod = { version = "=2.0.0-alpha.9", default-features = false, features = [
+  "compress-lzma-vendored",
+  "compress-zlib-vendored",
+  "compress-zstd-vendored",
+  "threading",
+] }
+
+[target.'cfg(not(all(target_os = "windows", target_arch = "x86")))'.dependencies]
+nod = "=2.0.0-alpha.9"
 
 [target.'cfg(target_os = "windows")'.dependencies]
 wgpu = { version = "27.0", default-features = false, features = [
