@@ -5,7 +5,7 @@ on:
     branches:
       - main
       - dev
-      - slint
+      - v7
     tags:
       - "v*.*.*"
     paths:
