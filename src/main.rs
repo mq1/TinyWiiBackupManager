@@ -38,8 +38,8 @@ pub fn main() -> Result<()> {
         size: iced::Size::new(800., 600.),
         min_size: Some(iced::Size::new(800., 600.)),
 
-        #[cfg(target_vendor = "pc")]
-        platform_specific: window::settings::PlatformSpecific {
+        #[cfg(target_os = "windows")]
+        platform_specific: iced::window::settings::PlatformSpecific {
             corner_preference: iced::window::settings::platform::CornerPreference::Round,
             ..Default::default()
         },
