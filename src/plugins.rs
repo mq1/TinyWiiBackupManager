@@ -2,14 +2,13 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::notifications::{Notification, NotificationLevel};
-use anyhow::{Result, anyhow};
+use anyhow::Result;
 use getset::{CloneGetters, Getters, WithSetters};
+use mlua::{Lua, ObjectLike, Table};
 use std::{
     fs,
-    iter::once,
     path::{Path, PathBuf},
 };
-use steel::{SteelVal, steel_vm::engine::Engine};
 
 #[derive(Debug, Clone, Default, WithSetters)]
 pub struct PluginEnvironment {
@@ -21,11 +20,11 @@ pub struct PluginEnvironment {
 }
 
 impl PluginEnvironment {
-    pub fn into_values(self) -> impl Iterator<Item = (String, SteelVal)> {
-        let data_dir = once(("twbm/data-dir".to_string(), self.data_dir.into()));
-        let mount_point = once(("twbm/mount-point".to_string(), self.mount_point.into()));
-
-        data_dir.chain(mount_point)
+    pub fn into_table(self, lua: &Lua) -> Result<Table> {
+        let table = lua.create_table()?;
+        table.set("dataDir", self.data_dir)?;
+        table.set("mountPoint", self.mount_point)?;
+        Ok(table)
     }
 }
 
@@ -63,16 +62,17 @@ pub struct Plugin {
 
 impl Plugin {
     pub fn load(path: PathBuf) -> Result<Self> {
-        let mut vm = Engine::new();
+        let lua = Lua::new();
         let code = fs::read_to_string(&path)?;
-        let _ = vm.run(code.clone())?;
+        let plugin = lua.load(&code).eval::<Table>()?;
 
-        let name = vm.extract("name")?;
-        let version = vm.extract("version")?;
-        let authors = vm.extract("authors")?;
-        let description = vm.extract("description")?;
-        let license = vm.extract("license")?;
-        let runs_on = vm.extract("runs-on")?;
+        let meta = plugin.get::<Table>("meta")?;
+        let name = meta.get("name")?;
+        let version = meta.get("version")?;
+        let authors = meta.get("authors")?;
+        let description = meta.get("description")?;
+        let license = meta.get("license")?;
+        let runs_on = meta.get("runsOn")?;
 
         let meta = PluginMeta {
             name,
@@ -91,41 +91,24 @@ impl Plugin {
     }
 
     pub fn run(&self, environment: PluginEnvironment) -> Result<Option<Notification>> {
-        let mut vm = Engine::new();
+        let lua = Lua::new();
+        let plugin = lua.load(&self.code).eval::<Table>()?;
 
-        vm.register_values(environment.into_values());
+        let environment = environment.into_table(&lua)?;
+        let res = plugin.call_function::<Table>("run", environment)?;
 
-        let _ = vm.run(self.code.clone())?;
-        let res = vm.call_function_by_name_with_args_from_mut_slice("run", &mut [])?;
-
-        if let Some(label) = res.as_string() {
-            return Ok(Some(Notification::new(
-                label.as_str(),
-                NotificationLevel::Info,
-            )));
+        if res.is_empty() {
+            return Ok(None);
         }
 
-        let res = res.list_or_else(|| anyhow!("invalid return value"))?;
-
-        let Some(label) = res.get(0) else {
-            return Ok(None);
-        };
-        let label = label
-            .as_string()
-            .ok_or_else(|| anyhow!("invalid notification label"))?;
-
-        let Some(level) = res.get(1) else {
-            return Ok(Some(Notification::new(
-                label.as_str(),
-                NotificationLevel::Info,
-            )));
-        };
-        let level = level
-            .as_string()
+        let label = res.get::<String>("label")?;
+        let level = res
+            .get::<String>("level")
+            .ok()
             .and_then(|l| l.parse().ok())
-            .ok_or_else(|| anyhow!("invalid notification level"))?;
+            .unwrap_or(NotificationLevel::Info);
 
-        Ok(Some(Notification::new(label.as_str(), level)))
+        Ok(Some(Notification::new(label, level)))
     }
 }
 
@@ -136,7 +119,7 @@ pub fn list(data_dir: &Path) -> Result<Vec<Plugin>> {
         let path = entry.ok()?.path();
         let stem = path.file_stem()?.to_str()?;
         let ext = path.extension()?.to_str()?;
-        (path.is_file() && !stem.starts_with('.') && ext == "scm").then_some(path)
+        (path.is_file() && !stem.starts_with('.') && ext == "lua").then_some(path)
     });
 
     paths.map(Plugin::load).collect()
