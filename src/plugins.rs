@@ -5,13 +5,14 @@ use crate::notifications::{Notification, NotificationLevel};
 use anyhow::{Result, anyhow};
 use getset::{CloneGetters, Getters, WithSetters};
 use mlua::{Lua, LuaSerdeExt, ObjectLike, Table, Value};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::{
     fs,
     path::{Path, PathBuf},
 };
 
-#[derive(Debug, Clone, Default, Serialize, WithSetters)]
+#[derive(Debug, Clone, Serialize, WithSetters)]
+#[serde(rename_all = "camelCase")]
 pub struct PluginEnvironment {
     #[getset(set_with = "pub")]
     data_dir: String,
@@ -20,7 +21,8 @@ pub struct PluginEnvironment {
     mount_point: String,
 }
 
-#[derive(Debug, Clone, Getters)]
+#[derive(Debug, Clone, Deserialize, Getters)]
+#[serde(rename_all = "camelCase")]
 pub struct PluginMeta {
     #[getset(get = "pub")]
     name: String,
@@ -58,22 +60,8 @@ impl Plugin {
         let code = fs::read_to_string(&path)?;
         let plugin = lua.load(&code).eval::<Table>()?;
 
-        let meta = plugin.get::<Table>("meta")?;
-        let name = meta.get("name")?;
-        let version = meta.get("version")?;
-        let authors = meta.get("authors")?;
-        let description = meta.get("description")?;
-        let license = meta.get("license")?;
-        let runs_on = meta.get("runsOn")?;
-
-        let meta = PluginMeta {
-            name,
-            description,
-            version,
-            authors,
-            license,
-            runs_on,
-        };
+        let meta = plugin.get("meta")?;
+        let meta = lua.from_value(meta)?;
 
         Ok(Self { path, meta, code })
     }
@@ -82,12 +70,12 @@ impl Plugin {
         self.meta.runs_on.iter().any(|s| s == std::env::consts::OS)
     }
 
-    pub fn run(&self, environment: &PluginEnvironment) -> Result<Option<Notification>> {
+    pub fn run(&self, env: &PluginEnvironment) -> Result<Option<Notification>> {
         let lua = Lua::new();
         let plugin = lua.load(&self.code).eval::<Table>()?;
 
-        let environment = lua.to_value(environment)?;
-        let res = plugin.call_function::<Value>("run", environment)?;
+        let env = lua.to_value(env)?;
+        let res = plugin.call_function::<Value>("run", env)?;
 
         match res {
             Value::Nil => Ok(None),
