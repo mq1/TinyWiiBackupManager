@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::notifications::{Notification, NotificationLevel};
-use anyhow::Result;
+use anyhow::{Result, anyhow};
 use getset::{CloneGetters, Getters, WithSetters};
-use mlua::{Lua, ObjectLike, Table};
+use mlua::{Lua, ObjectLike, Table, Value};
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -95,20 +95,26 @@ impl Plugin {
         let plugin = lua.load(&self.code).eval::<Table>()?;
 
         let environment = environment.into_table(&lua)?;
-        let res = plugin.call_function::<Table>("run", environment)?;
+        let res = plugin.call_function::<Value>("run", environment)?;
 
-        if res.is_empty() {
-            return Ok(None);
+        match res {
+            Value::Nil => Ok(None),
+            Value::String(label) => Ok(Some(Notification::new(
+                label.to_string_lossy(),
+                NotificationLevel::Info,
+            ))),
+            Value::Table(res) => {
+                let label = res.get::<String>("label")?;
+                let level = res
+                    .get::<String>("level")
+                    .ok()
+                    .and_then(|l| l.parse().ok())
+                    .unwrap_or(NotificationLevel::Info);
+
+                Ok(Some(Notification::new(label, level)))
+            }
+            _ => Err(anyhow!("Invalid return value from plugin")),
         }
-
-        let label = res.get::<String>("label")?;
-        let level = res
-            .get::<String>("level")
-            .ok()
-            .and_then(|l| l.parse().ok())
-            .unwrap_or(NotificationLevel::Info);
-
-        Ok(Some(Notification::new(label, level)))
     }
 }
 
