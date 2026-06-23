@@ -8,8 +8,6 @@ use ureq::tls::{RootCerts, TlsConfig, TlsProvider};
 const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 
 static AGENT: LazyLock<ureq::Agent> = LazyLock::new(|| {
-    const USER_AGENT: &str = concat!("TinyWiiBackupManager/", env!("CARGO_PKG_VERSION"));
-
     #[cfg(feature = "native-tls")]
     const PROVIDER: TlsProvider = TlsProvider::NativeTls;
 
