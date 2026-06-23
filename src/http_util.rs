@@ -29,10 +29,15 @@ static AGENT: LazyLock<ureq::Agent> = LazyLock::new(|| {
 });
 
 pub fn download_file(uri: &str, dest: impl AsRef<Path>) -> Result<()> {
-    let resp = AGENT.get(uri).call()?;
-    let body = resp.into_body().read_to_vec()?;
+    let bytes = AGENT
+        .get(uri)
+        .call()?
+        .body_mut()
+        .with_config()
+        .limit(100 * 1024 * 1024)
+        .read_to_vec()?;
 
-    fs::write(dest, body)?;
+    fs::write(dest, bytes)?;
 
     Ok(())
 }
