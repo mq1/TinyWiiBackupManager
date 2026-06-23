@@ -1,7 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::notifications::{Notification, NotificationLevel};
+use crate::{
+    http_util,
+    notifications::{Notification, NotificationLevel},
+};
 use anyhow::Result;
 use getset::{CloneGetters, Getters, WithSetters};
 use mlua::{Lua, LuaSerdeExt, ObjectLike, Table, Value};
@@ -73,6 +76,14 @@ impl Plugin {
     pub fn run(&self, env: &PluginEnvironment) -> Result<Option<Notification>> {
         let lua = Lua::new();
         let plugin = lua.load(&self.code).eval::<Table>()?;
+
+        // Register handy functions
+        let globals = lua.globals();
+
+        let download_file = lua.create_function(|_, (uri, dest): (String, String)| {
+            http_util::download_file(&uri, &dest).map_err(Into::into)
+        })?;
+        globals.set("downloadFile", download_file)?;
 
         let env = lua.to_value(env)?;
         let res = plugin.call_function::<Value>("run", env)?;

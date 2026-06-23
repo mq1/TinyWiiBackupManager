@@ -8,6 +8,7 @@ mod config;
 mod drive_info;
 mod executor;
 mod games;
+mod http_util;
 mod messages;
 mod notifications;
 mod plugins;
