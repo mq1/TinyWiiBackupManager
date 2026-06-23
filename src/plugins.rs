@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::notifications::{Notification, NotificationLevel};
-use anyhow::{Result, anyhow};
+use anyhow::Result;
 use getset::{CloneGetters, Getters, WithSetters};
 use mlua::{Lua, LuaSerdeExt, ObjectLike, Table, Value};
 use serde::{Deserialize, Serialize};
@@ -77,19 +77,15 @@ impl Plugin {
         let env = lua.to_value(env)?;
         let res = plugin.call_function::<Value>("run", env)?;
 
-        match res {
-            Value::Nil => Ok(None),
-            Value::String(label) => Ok(Some(Notification::new(
-                label.to_string_lossy(),
-                NotificationLevel::Info,
-            ))),
-            Value::Table(res) => {
-                let label = res.get::<String>("label")?;
-                let level = res.get::<String>("level")?.parse()?;
-                Ok(Some(Notification::new(label, level)))
-            }
-            _ => Err(anyhow!("Invalid return value from plugin")),
+        if res.is_nil() {
+            return Ok(None);
         }
+
+        if let Ok(label) = res.to_string() {
+            return Ok(Some(Notification::new(label, NotificationLevel::Info)));
+        }
+
+        Ok(Some(lua.from_value(res)?))
     }
 }
 
