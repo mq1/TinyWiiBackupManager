@@ -2,12 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    config::Config,
-    drive_info::DriveInfo,
-    games::game::Game,
-    notifications::Notifications,
-    plugins,
-    ui::pages::Page,
+    config::Config, drive_info::DriveInfo, games::game::Game, notifications::Notifications,
+    plugins, ui::pages::Page,
 };
 use anyhow::{Context, Result};
 use mlua::Lua;
@@ -80,16 +76,17 @@ impl AppState {
     }
 
     pub fn reload_plugins(&mut self) {
-        let res = || -> Result<Lua> {
-            let plugins = plugins::load_all(&self.data_dir).context("Failed to load plugins")?;
+        let res = || -> Result<()> {
+            self.plugins = plugins::load_all(&self.data_dir).context("Failed to load plugins")?;
             plugins::init_all(self)?;
-            Ok(plugins)
+            Ok(())
         }();
 
         match res {
-            Ok(plugins) => self.plugins = plugins,
+            Ok(()) => {}
             Err(e) => {
                 self.notifications.add(e);
+                self.plugins = Lua::new();
             }
         }
     }
