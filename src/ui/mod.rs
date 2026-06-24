@@ -8,12 +8,10 @@ pub mod pages;
 pub mod root;
 
 pub fn title(state: &AppState) -> String {
-    if let Some(drive_info) = state.drive_info() {
+    if let Some(drive_info) = &state.drive_info {
         format!(
             "TinyWiiBackupManager  ›  {}  ({}/{})",
-            drive_info.label(),
-            drive_info.used_size(),
-            drive_info.total_size()
+            drive_info.label, drive_info.used_size, drive_info.total_size
         )
     } else {
         String::from("TinyWiiBackupManager  ›  No drive selected")

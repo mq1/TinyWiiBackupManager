@@ -5,114 +5,91 @@ use crate::{
     config::Config,
     drive_info::DriveInfo,
     games::game::Game,
-    notifications::{Notification, NotificationLevel},
-    plugins::Plugin,
+    notifications::Notifications,
+    plugins,
     ui::pages::Page,
 };
-use getset::{CopyGetters, Getters, WithSetters};
+use anyhow::{Context, Result};
+use mlua::Lua;
 use std::path::PathBuf;
 
-#[derive(Getters, CopyGetters, WithSetters)]
 pub(crate) struct AppState {
-    data_dir: PathBuf,
-    config: Config,
-
-    #[getset(get = "pub")]
-    notifications: Vec<Notification>,
-
-    #[getset(get = "pub", set_with = "pub")]
-    drive_info: Option<DriveInfo>,
-
-    #[getset(set_with = "pub")]
-    games: Vec<Game>,
-
-    #[getset(set_with = "pub")]
-    plugins: Vec<Plugin>,
-
-    #[getset(get_copy = "pub", set_with = "pub")]
-    current_page: Page,
+    pub data_dir: PathBuf,
+    pub config: Config,
+    pub notifications: Notifications,
+    pub drive_info: Option<DriveInfo>,
+    pub games: Vec<Game>,
+    pub plugins: Lua,
+    pub current_page: Page,
 }
 
 impl AppState {
     pub fn new(data_dir: PathBuf) -> Self {
         let config = Config::load(&data_dir);
 
-        let initial = Self {
+        let mut initial = Self {
             data_dir,
             config,
-            notifications: Vec::new(),
+            notifications: Notifications::new(),
             drive_info: None,
             games: Vec::new(),
-            plugins: Vec::new(),
+            plugins: Lua::new(),
             current_page: Page::Games,
         };
 
+        initial.reload_games();
+        initial.reload_drive_info();
+        initial.reload_plugins();
+
         initial
-            .with_games_reloaded()
-            .with_plugins_reloaded()
-            .with_drive_info_reloaded()
     }
 
-    pub fn with_notification(mut self, notification: Notification) -> Self {
-        self.notifications.push(notification);
-        self
-    }
-
-    pub fn with_drive_info_reloaded(self) -> Self {
-        let mount_point = self.config.contents.mount_point();
+    pub fn reload_drive_info(&mut self) {
+        let mount_point = &self.config.contents.mount_point;
 
         if mount_point.as_os_str().is_empty() {
-            return self.with_drive_info(None);
+            self.drive_info = None;
+            return;
         }
 
-        let res = DriveInfo::try_from_path(mount_point);
+        let res = DriveInfo::try_from_path(mount_point).context("Failed to load drive info");
 
         match res {
-            Ok(drive_info) => self.with_drive_info(Some(drive_info)),
+            Ok(drive_info) => self.drive_info = Some(drive_info),
             Err(e) => {
-                let notification = Notification::new(
-                    format!("Failed to load drive info: {e}"),
-                    NotificationLevel::Error,
-                );
-                self.with_notification(notification).with_drive_info(None)
+                self.notifications.add(e);
+                self.drive_info = None;
             }
         }
     }
 
-    pub fn with_games_reloaded(self) -> Self {
+    pub fn reload_games(&mut self) {
         let res = crate::games::list(
-            self.config.contents.mount_point(),
-            self.config.contents.sort_by(),
-        );
+            &self.config.contents.mount_point,
+            self.config.contents.sort_by,
+        )
+        .context("Failed to load games");
 
         match res {
-            Ok(games) => self.with_games(games),
+            Ok(games) => self.games = games,
             Err(e) => {
-                let notification = Notification::new(
-                    format!("Failed to load games: {e}"),
-                    NotificationLevel::Error,
-                );
-                self.with_notification(notification).with_games(vec![])
+                self.notifications.add(e);
+                self.games.clear();
             }
         }
     }
 
-    pub fn with_plugins_reloaded(self) -> Self {
-        let res = crate::plugins::list(&self.data_dir);
+    pub fn reload_plugins(&mut self) {
+        let res = || -> Result<Lua> {
+            let plugins = plugins::load_all(&self.data_dir).context("Failed to load plugins")?;
+            plugins::init_all(self)?;
+            Ok(plugins)
+        }();
 
         match res {
-            Ok(plugins) => {
-                #[cfg(debug_assertions)]
-                for plugin in &plugins {
-                    eprintln!("{:#?}", plugin.meta());
-                }
-
-                self.with_plugins(plugins)
-            }
+            Ok(plugins) => self.plugins = plugins,
             Err(e) => {
-                let label = format!("Failed to load plugins: {e}");
-                let notification = Notification::new(label, NotificationLevel::Error);
-                self.with_notification(notification).with_plugins(vec![])
+                self.notifications.add(e);
             }
         }
     }

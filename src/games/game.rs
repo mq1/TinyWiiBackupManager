@@ -3,25 +3,15 @@
 
 use crate::games::game_id::GameID;
 use anyhow::{Result, anyhow, bail};
-use getset::{CopyGetters, Getters};
 use size::Size;
 use std::{ffi::OsStr, path::PathBuf};
 
-#[derive(Debug, Clone, Getters, CopyGetters)]
+#[derive(Debug, Clone)]
 pub struct Game {
-    #[getset(get = "pub")]
     path: PathBuf,
-
-    #[getset(get_copy = "pub")]
     id: GameID,
-
-    #[getset(get = "pub")]
-    title: String,
-
-    #[getset(get_copy = "pub")]
-    size: Size,
-
-    #[getset(get_copy = "pub")]
+    pub title: String,
+    pub size: Size,
     is_wii: bool,
 }
 

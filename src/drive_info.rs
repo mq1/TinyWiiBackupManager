@@ -3,32 +3,18 @@
 
 use crate::util;
 use anyhow::{Result, bail};
-use getset::{CopyGetters, Getters};
 use size::Size;
 use std::path::Path;
 use which_fs::FsKind;
 
-#[derive(Debug, Clone, Default, Getters, CopyGetters)]
+#[derive(Debug, Clone, Default)]
 pub struct DriveInfo {
-    #[getset(get = "pub")]
-    label: String,
-
-    #[getset(get_copy = "pub")]
-    used_size: Size,
-
-    #[getset(get_copy = "pub")]
-    total_size: Size,
-
-    #[getset(get_copy = "pub")]
+    pub label: String,
+    pub used_size: Size,
+    pub total_size: Size,
     games_size: Size,
-
-    #[getset(get_copy = "pub")]
     apps_size: Size,
-
-    #[getset(get_copy = "pub")]
     fs_kind: FsKind,
-
-    #[getset(get_copy = "pub")]
     allocation_granularity: u64,
 }
 

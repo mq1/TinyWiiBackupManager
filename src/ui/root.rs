@@ -18,7 +18,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
     stack![
         row![
             components::sidebar::view(state),
-            container(match state.current_page() {
+            container(match state.current_page {
                 Page::Games => pages::games::view(),
                 Page::Settings => pages::settings::view(),
             })

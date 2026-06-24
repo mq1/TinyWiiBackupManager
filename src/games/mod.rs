@@ -28,9 +28,9 @@ pub fn list(root_path: impl AsRef<Path>, sort_by: SortBy) -> Result<Vec<Game>> {
 
 pub fn sort(games: &mut [Game], sort_by: SortBy) {
     games.sort_unstable_by(|a, b| match sort_by {
-        SortBy::NameDescending => a.title().cmp(b.title()),
-        SortBy::NameAscending => b.title().cmp(a.title()),
-        SortBy::SizeDescending => a.size().cmp(&b.size()),
-        SortBy::SizeAscending => b.size().cmp(&a.size()),
+        SortBy::NameDescending => a.title.cmp(&b.title),
+        SortBy::NameAscending => b.title.cmp(&a.title),
+        SortBy::SizeDescending => a.size.cmp(&b.size),
+        SortBy::SizeAscending => b.size.cmp(&a.size),
     });
 }

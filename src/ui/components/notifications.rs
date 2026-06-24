@@ -9,9 +9,9 @@ use iced::{
 
 pub fn view<'a>(state: &'a AppState) -> Element<'a, Message> {
     let notifications = state
-        .notifications()
+        .notifications
         .iter()
-        .map(|notification| text(notification.label()).into());
+        .map(|notification| text(&notification.label).into());
 
     Column::from_iter(notifications).into()
 }
