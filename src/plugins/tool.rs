@@ -1,7 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use mlua::{FromLua, Function};
+use anyhow::{Result, anyhow};
+use marwood::cell::Cell;
 
 #[derive(Debug, Clone)]
 pub struct Tool {
@@ -9,22 +10,39 @@ pub struct Tool {
     pub description: String,
     pub icon: String,
     pub group: String,
-    pub run: Function,
+    pub run: Cell,
 }
 
-impl FromLua for Tool {
-    fn from_lua(value: mlua::Value, _: &mlua::Lua) -> mlua::Result<Self> {
-        let Some(table) = value.as_table() else {
-            return Err(mlua::Error::UserDataTypeMismatch);
-        };
+impl TryFrom<&Cell> for Tool {
+    type Error = anyhow::Error;
 
-        let name = table.get("name")?;
-        let description = table.get("description")?;
-        let icon = table.get("icon")?;
-        let group = table.get("group")?;
-        let run = table.get("run")?;
+    fn try_from(value: &Cell) -> Result<Self> {
+        let mut name = None;
+        let mut description = None;
+        let mut icon = None;
+        let mut group = None;
+        let mut run = None;
 
-        Ok(Tool {
+        for v in value {
+            let Cell::Pair(k, v) = v else { continue };
+
+            match k.as_symbol() {
+                Some("name") => name = Some(v.to_string()),
+                Some("description") => description = Some(v.to_string()),
+                Some("icon") => icon = Some(v.to_string()),
+                Some("group") => group = Some(v.to_string()),
+                Some("run") => run = Some(v.as_ref().clone()),
+                _ => {}
+            }
+        }
+
+        let name = name.ok_or_else(|| anyhow!("name not found"))?;
+        let description = description.ok_or_else(|| anyhow!("description not found"))?;
+        let icon = icon.ok_or_else(|| anyhow!("icon not found"))?;
+        let group = group.ok_or_else(|| anyhow!("group not found"))?;
+        let run = run.ok_or_else(|| anyhow!("run not found"))?;
+
+        Ok(Self {
             name,
             description,
             icon,

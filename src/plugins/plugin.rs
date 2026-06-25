@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::plugins::tool::Tool;
-use mlua::{FromLua, Lua, Value};
+use anyhow::{Result, anyhow};
+use marwood::cell::Cell;
 use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
@@ -18,26 +19,46 @@ pub struct Plugin {
     tools: Vec<Tool>,
 }
 
-impl FromLua for Plugin {
-    fn from_lua(value: Value, _: &Lua) -> mlua::Result<Self> {
-        let Some(table) = value.as_table() else {
-            return Err(mlua::Error::UserDataTypeMismatch);
-        };
+impl TryFrom<&Cell> for Plugin {
+    type Error = anyhow::Error;
 
-        let id = String::new();
-        let path = PathBuf::new();
+    fn try_from(value: &Cell) -> Result<Self> {
+        let mut name = None;
+        let mut version = None;
+        let mut authors = None;
+        let mut description = None;
+        let mut license = None;
+        let mut runs_on = None;
+        let mut tools = None;
 
-        let name = table.get("name")?;
-        let version = table.get("version")?;
-        let authors = table.get("authors")?;
-        let description = table.get("description")?;
-        let license = table.get("license")?;
-        let runs_on = table.get("runs_on")?;
-        let tools = table.get("tools")?;
+        for v in value {
+            let Cell::Pair(k, v) = v else { continue };
+
+            match k.as_symbol() {
+                Some("name") => name = Some(v.to_string()),
+                Some("version") => version = Some(v.to_string()),
+                Some("authors") => authors = Some(v.iter().map(Cell::to_string).collect()),
+                Some("description") => description = Some(v.to_string()),
+                Some("license") => license = Some(v.to_string()),
+                Some("runs-on") => runs_on = Some(v.iter().map(Cell::to_string).collect()),
+                Some("tools") => {
+                    tools = Some(v.iter().map(Tool::try_from).collect::<Result<Vec<_>>>()?)
+                }
+                _ => {}
+            }
+        }
+
+        let name = name.ok_or_else(|| anyhow!("name is required"))?;
+        let version = version.ok_or_else(|| anyhow!("version is required"))?;
+        let authors = authors.ok_or_else(|| anyhow!("authors is required"))?;
+        let description = description.ok_or_else(|| anyhow!("description is required"))?;
+        let license = license.ok_or_else(|| anyhow!("license is required"))?;
+        let runs_on = runs_on.ok_or_else(|| anyhow!("runs_on is required"))?;
+        let tools = tools.ok_or_else(|| anyhow!("tools is required"))?;
 
         Ok(Plugin {
-            id,
-            path,
+            id: String::new(),
+            path: PathBuf::new(),
             name,
             version,
             authors,
