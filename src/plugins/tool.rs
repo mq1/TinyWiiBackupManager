@@ -1,10 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::plugins::cell_ext::CellExt;
 use anyhow::{Result, anyhow};
 use marwood::cell::Cell;
-
-use crate::plugins::cell_ext::CellExt;
 
 #[derive(Debug, Clone)]
 pub struct Tool {

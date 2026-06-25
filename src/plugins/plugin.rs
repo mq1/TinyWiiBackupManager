@@ -67,7 +67,7 @@ impl TryFrom<PathBuf> for Plugin {
             .eval(&cell!("runs-on"))
             .ok()
             .and_then(|c| c.into_iter().map(Cell::into_string).collect())
-            .ok_or_else(|| anyhow!("runs_on is required"))?;
+            .ok_or_else(|| anyhow!("runs-on is required"))?;
 
         let tools = vm
             .eval(&cell!("tools"))
