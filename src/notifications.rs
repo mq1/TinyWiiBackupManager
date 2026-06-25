@@ -43,7 +43,7 @@ impl From<String> for Notification {
 impl From<anyhow::Error> for Notification {
     fn from(e: anyhow::Error) -> Self {
         Self {
-            label: e.to_string(),
+            label: format!("{e:?}"),
             level: NotificationLevel::Error,
         }
     }

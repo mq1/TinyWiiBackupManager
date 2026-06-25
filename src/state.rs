@@ -2,11 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    config::Config, drive_info::DriveInfo, games::game::Game, notifications::Notifications,
-    plugins, ui::pages::Page,
+    config::Config,
+    drive_info::DriveInfo,
+    games::game::Game,
+    notifications::Notifications,
+    plugins::{self, plugin::Plugin},
+    ui::pages::Page,
 };
-use anyhow::{Context, Result};
-use mlua::Lua;
+use anyhow::Context;
 use std::path::PathBuf;
 
 pub(crate) struct AppState {
@@ -15,7 +18,7 @@ pub(crate) struct AppState {
     pub notifications: Notifications,
     pub drive_info: Option<DriveInfo>,
     pub games: Vec<Game>,
-    pub plugins: Lua,
+    pub plugins: Vec<Plugin>,
     pub current_page: Page,
 }
 
@@ -29,7 +32,7 @@ impl AppState {
             notifications: Notifications::new(),
             drive_info: None,
             games: Vec::new(),
-            plugins: Lua::new(),
+            plugins: Vec::new(),
             current_page: Page::Games,
         };
 
@@ -76,17 +79,13 @@ impl AppState {
     }
 
     pub fn reload_plugins(&mut self) {
-        let res = || -> Result<()> {
-            self.plugins = plugins::load_all(&self.data_dir).context("Failed to load plugins")?;
-            plugins::init_all(self)?;
-            Ok(())
-        }();
+        let res = plugins::load(&self.data_dir).context("Failed to load plugins");
 
         match res {
-            Ok(()) => {}
+            Ok(plugins) => self.plugins = plugins,
             Err(e) => {
                 self.notifications.add(e);
-                self.plugins = Lua::new();
+                self.plugins = Vec::new();
             }
         }
     }
