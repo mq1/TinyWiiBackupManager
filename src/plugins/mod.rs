@@ -1,12 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+mod cell_ext;
 pub mod plugin;
 mod tool;
 
 use crate::plugins::plugin::Plugin;
-use anyhow::{Result, anyhow};
-use marwood::{cell::Cell, vm::Vm};
+use anyhow::Result;
 use std::{ffi::OsStr, fs, path::Path};
 
 pub fn load(data_dir: impl AsRef<Path>) -> Result<Vec<Plugin>> {
@@ -16,7 +16,6 @@ pub fn load(data_dir: impl AsRef<Path>) -> Result<Vec<Plugin>> {
         return Ok(Vec::new());
     }
 
-    let mut vm = Vm::new();
     let mut plugins = Vec::new();
 
     for entry in fs::read_dir(plugins_dir)?.filter_map(Result::ok) {
@@ -34,17 +33,7 @@ pub fn load(data_dir: impl AsRef<Path>) -> Result<Vec<Plugin>> {
             continue;
         }
 
-        let code = fs::read_to_string(&path)?;
-
-        let (plugin_cell, _) = vm
-            .eval_text(&code)
-            .map_err(|_| anyhow!("Failed to evaluate plugin: {}", path.display()))?;
-
-        let mut plugin = Plugin::try_from(&plugin_cell)?;
-
-        plugin.id = stem.to_string();
-        plugin.path = path;
-
+        let plugin = Plugin::try_from(path)?;
         plugins.push(plugin);
     }
 

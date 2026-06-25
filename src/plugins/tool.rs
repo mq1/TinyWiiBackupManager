@@ -4,6 +4,8 @@
 use anyhow::{Result, anyhow};
 use marwood::cell::Cell;
 
+use crate::plugins::cell_ext::CellExt;
+
 #[derive(Debug, Clone)]
 pub struct Tool {
     pub name: String,
@@ -17,40 +19,32 @@ impl TryFrom<&Cell> for Tool {
     type Error = anyhow::Error;
 
     fn try_from(value: &Cell) -> Result<Self> {
-        let mut name = None;
-        let mut description = None;
-        let mut icon = None;
-        let mut group = None;
-        let mut run = None;
-
-        for v in value {
-            let Some(k) = v.car().and_then(Cell::as_symbol) else {
-                continue;
-            };
-            let Some(v) = v.cdr() else { continue };
-
-            match k {
-                "name" => name = Some(v.to_string()),
-                "description" => description = Some(v.to_string()),
-                "icon" => icon = Some(v.to_string()),
-                "group" => group = Some(v.to_string()),
-                "run" => run = Some(v.clone()),
-                _ => {}
-            }
-        }
-
-        let name = name.ok_or_else(|| anyhow!("name not found"))?;
-        let description = description.ok_or_else(|| anyhow!("description not found"))?;
-        let icon = icon.ok_or_else(|| anyhow!("icon not found"))?;
-        let group = group.ok_or_else(|| anyhow!("group not found"))?;
-        let run = run.ok_or_else(|| anyhow!("run not found"))?;
+        let name = value
+            .get_alist_value("name")
+            .and_then(Cell::as_string)
+            .ok_or_else(|| anyhow!("name is required"))?;
+        let description = value
+            .get_alist_value("description")
+            .and_then(Cell::as_string)
+            .unwrap_or_default();
+        let icon = value
+            .get_alist_value("icon")
+            .and_then(Cell::as_string)
+            .unwrap_or_default();
+        let group = value
+            .get_alist_value("group")
+            .and_then(Cell::as_string)
+            .unwrap_or_default();
+        let run = value
+            .get_alist_value("run")
+            .ok_or_else(|| anyhow!("run is required"))?;
 
         Ok(Self {
-            name,
-            description,
-            icon,
-            group,
-            run,
+            name: name.to_string(),
+            description: description.to_string(),
+            icon: icon.to_string(),
+            group: group.to_string(),
+            run: run.clone(),
         })
     }
 }

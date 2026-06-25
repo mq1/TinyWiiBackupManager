@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::plugins::tool::Tool;
+use crate::plugins::{cell_ext::CellExt, tool::Tool};
 use anyhow::{Result, anyhow};
-use marwood::cell::Cell;
-use std::path::PathBuf;
+use marwood::{cell, cell::Cell, vm::Vm};
+use std::{ffi::OsStr, fs, path::PathBuf};
 
 #[derive(Debug, Clone)]
 pub struct Plugin {
@@ -19,51 +19,66 @@ pub struct Plugin {
     tools: Vec<Tool>,
 }
 
-impl TryFrom<&Cell> for Plugin {
+impl TryFrom<PathBuf> for Plugin {
     type Error = anyhow::Error;
 
-    fn try_from(value: &Cell) -> Result<Self> {
-        let mut name = None;
-        let mut version = None;
-        let mut authors = None;
-        let mut description = None;
-        let mut license = None;
-        let mut runs_on = None;
-        let mut tools = None;
+    fn try_from(path: PathBuf) -> Result<Self> {
+        let id = path
+            .file_stem()
+            .and_then(OsStr::to_str)
+            .ok_or_else(|| anyhow!("Invalid plugin path: {}", path.display()))?;
 
-        for v in value {
-            let Some(k) = v.car().and_then(Cell::as_symbol) else {
-                continue;
-            };
-            let Some(v) = v.cdr() else {
-                continue;
-            };
+        let code = fs::read_to_string(&path)?;
+        let mut vm = Vm::new();
 
-            match (k, v) {
-                ("name", v) => name = Some(v.to_string()),
-                ("version", v) => version = Some(v.to_string()),
-                ("authors", v) => authors = Some(v.iter().map(Cell::to_string).collect()),
-                ("description", v) => description = Some(v.to_string()),
-                ("license", v) => license = Some(v.to_string()),
-                ("runs-on", v) => runs_on = Some(v.iter().map(Cell::to_string).collect()),
-                ("tools", v) => {
-                    tools = Some(v.iter().map(Tool::try_from).collect::<Result<Vec<_>>>()?)
-                }
-                _ => {}
-            }
+        let mut next = Some(&code[..]);
+        while let Some(current) = next {
+            (_, next) = vm
+                .eval_text(current)
+                .map_err(|_| anyhow!("Failed to evaluate plugin: {}", path.display()))?;
         }
 
-        let name = name.ok_or_else(|| anyhow!("name is required"))?;
-        let version = version.ok_or_else(|| anyhow!("version is required"))?;
-        let authors = authors.ok_or_else(|| anyhow!("authors is required"))?;
-        let description = description.ok_or_else(|| anyhow!("description is required"))?;
-        let license = license.ok_or_else(|| anyhow!("license is required"))?;
-        let runs_on = runs_on.ok_or_else(|| anyhow!("runs_on is required"))?;
-        let tools = tools.ok_or_else(|| anyhow!("tools is required"))?;
+        let name = vm
+            .eval(&cell!("name"))
+            .ok()
+            .and_then(Cell::into_string)
+            .ok_or_else(|| anyhow!("name is required"))?;
+        let version = vm
+            .eval(&cell!("version"))
+            .ok()
+            .and_then(Cell::into_string)
+            .ok_or_else(|| anyhow!("version is required"))?;
+        let authors = vm
+            .eval(&cell!("authors"))
+            .ok()
+            .and_then(|c| c.into_iter().map(Cell::into_string).collect())
+            .ok_or_else(|| anyhow!("authors is required"))?;
+        let description = vm
+            .eval(&cell!("description"))
+            .ok()
+            .and_then(Cell::into_string)
+            .ok_or_else(|| anyhow!("description is required"))?;
+        let license = vm
+            .eval(&cell!("license"))
+            .ok()
+            .and_then(Cell::into_string)
+            .ok_or_else(|| anyhow!("license is required"))?;
+        let runs_on = vm
+            .eval(&cell!("runs-on"))
+            .ok()
+            .and_then(|c| c.into_iter().map(Cell::into_string).collect())
+            .ok_or_else(|| anyhow!("runs_on is required"))?;
+
+        let tools = vm
+            .eval(&cell!("tools"))
+            .map_err(|_| anyhow!("tools is required"))?
+            .into_iter()
+            .map(|t| Tool::try_from(&t))
+            .collect::<Result<Vec<Tool>, _>>()?;
 
         Ok(Plugin {
-            id: String::new(),
-            path: PathBuf::new(),
+            id: id.to_string(),
+            path,
             name,
             version,
             authors,
