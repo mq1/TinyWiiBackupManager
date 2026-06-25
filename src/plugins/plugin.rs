@@ -32,38 +32,21 @@ impl TryFrom<&Cell> for Plugin {
         let mut tools = None;
 
         for v in value {
-            let Cell::Pair(k, v) = v else { continue };
+            let Some(k) = v.car().and_then(Cell::as_symbol) else {
+                continue;
+            };
+            let Some(v) = v.cdr() else {
+                continue;
+            };
 
-            match (k.as_symbol(), v.as_ref()) {
-                (Some("name"), Cell::String(v)) => name = Some(v.clone()),
-                (Some("version"), Cell::String(v)) => version = Some(v.clone()),
-                (Some("authors"), v) => {
-                    authors = v
-                        .iter()
-                        .map(|v| {
-                            if let Cell::String(v) = v {
-                                Some(v.clone())
-                            } else {
-                                None
-                            }
-                        })
-                        .collect()
-                }
-                (Some("description"), Cell::String(v)) => description = Some(v.clone()),
-                (Some("license"), Cell::String(v)) => license = Some(v.clone()),
-                (Some("runs-on"), v) => {
-                    runs_on = v
-                        .iter()
-                        .map(|v| {
-                            if let Cell::String(v) = v {
-                                Some(v.clone())
-                            } else {
-                                None
-                            }
-                        })
-                        .collect()
-                }
-                (Some("tools"), v) => {
+            match (k, v) {
+                ("name", v) => name = Some(v.to_string()),
+                ("version", v) => version = Some(v.to_string()),
+                ("authors", v) => authors = Some(v.iter().map(Cell::to_string).collect()),
+                ("description", v) => description = Some(v.to_string()),
+                ("license", v) => license = Some(v.to_string()),
+                ("runs-on", v) => runs_on = Some(v.iter().map(Cell::to_string).collect()),
+                ("tools", v) => {
                     tools = Some(v.iter().map(Tool::try_from).collect::<Result<Vec<_>>>()?)
                 }
                 _ => {}

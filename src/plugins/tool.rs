@@ -24,14 +24,17 @@ impl TryFrom<&Cell> for Tool {
         let mut run = None;
 
         for v in value {
-            let Cell::Pair(k, v) = v else { continue };
+            let Some(k) = v.car().and_then(Cell::as_symbol) else {
+                continue;
+            };
+            let Some(v) = v.cdr() else { continue };
 
-            match (k.as_symbol(), v.as_ref()) {
-                (Some("name"), Cell::String(v)) => name = Some(v.clone()),
-                (Some("description"), Cell::String(v)) => description = Some(v.clone()),
-                (Some("icon"), Cell::String(v)) => icon = Some(v.clone()),
-                (Some("group"), Cell::String(v)) => group = Some(v.clone()),
-                (Some("run"), v) => run = Some(v.clone()),
+            match k {
+                "name" => name = Some(v.to_string()),
+                "description" => description = Some(v.to_string()),
+                "icon" => icon = Some(v.to_string()),
+                "group" => group = Some(v.to_string()),
+                "run" => run = Some(v.clone()),
                 _ => {}
             }
         }
