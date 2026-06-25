@@ -26,12 +26,12 @@ impl TryFrom<&Cell> for Tool {
         for v in value {
             let Cell::Pair(k, v) = v else { continue };
 
-            match k.as_symbol() {
-                Some("name") => name = Some(v.to_string()),
-                Some("description") => description = Some(v.to_string()),
-                Some("icon") => icon = Some(v.to_string()),
-                Some("group") => group = Some(v.to_string()),
-                Some("run") => run = Some(v.as_ref().clone()),
+            match (k.as_symbol(), v.as_ref()) {
+                (Some("name"), Cell::String(v)) => name = Some(v.clone()),
+                (Some("description"), Cell::String(v)) => description = Some(v.clone()),
+                (Some("icon"), Cell::String(v)) => icon = Some(v.clone()),
+                (Some("group"), Cell::String(v)) => group = Some(v.clone()),
+                (Some("run"), v) => run = Some(v.clone()),
                 _ => {}
             }
         }

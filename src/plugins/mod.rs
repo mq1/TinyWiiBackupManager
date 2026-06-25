@@ -6,7 +6,7 @@ mod tool;
 
 use crate::plugins::plugin::Plugin;
 use anyhow::{Result, anyhow};
-use marwood::vm::Vm;
+use marwood::{cell::Cell, vm::Vm};
 use std::{ffi::OsStr, fs, path::Path};
 
 pub fn load(data_dir: impl AsRef<Path>) -> Result<Vec<Plugin>> {
@@ -34,15 +34,11 @@ pub fn load(data_dir: impl AsRef<Path>) -> Result<Vec<Plugin>> {
             continue;
         }
 
-        println!("loading plugin: {}", path.display());
-
         let code = fs::read_to_string(&path)?;
 
-        let (plugin_cell, remaining) = vm
+        let (plugin_cell, _) = vm
             .eval_text(&code)
             .map_err(|_| anyhow!("Failed to evaluate plugin: {}", path.display()))?;
-
-        println!("remaining: {:?}", remaining);
 
         let mut plugin = Plugin::try_from(&plugin_cell)?;
 

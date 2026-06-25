@@ -34,14 +34,36 @@ impl TryFrom<&Cell> for Plugin {
         for v in value {
             let Cell::Pair(k, v) = v else { continue };
 
-            match k.as_symbol() {
-                Some("name") => name = Some(v.to_string()),
-                Some("version") => version = Some(v.to_string()),
-                Some("authors") => authors = Some(v.iter().map(Cell::to_string).collect()),
-                Some("description") => description = Some(v.to_string()),
-                Some("license") => license = Some(v.to_string()),
-                Some("runs-on") => runs_on = Some(v.iter().map(Cell::to_string).collect()),
-                Some("tools") => {
+            match (k.as_symbol(), v.as_ref()) {
+                (Some("name"), Cell::String(v)) => name = Some(v.clone()),
+                (Some("version"), Cell::String(v)) => version = Some(v.clone()),
+                (Some("authors"), v) => {
+                    authors = v
+                        .iter()
+                        .map(|v| {
+                            if let Cell::String(v) = v {
+                                Some(v.clone())
+                            } else {
+                                None
+                            }
+                        })
+                        .collect()
+                }
+                (Some("description"), Cell::String(v)) => description = Some(v.clone()),
+                (Some("license"), Cell::String(v)) => license = Some(v.clone()),
+                (Some("runs-on"), v) => {
+                    runs_on = v
+                        .iter()
+                        .map(|v| {
+                            if let Cell::String(v) = v {
+                                Some(v.clone())
+                            } else {
+                                None
+                            }
+                        })
+                        .collect()
+                }
+                (Some("tools"), v) => {
                     tools = Some(v.iter().map(Tool::try_from).collect::<Result<Vec<_>>>()?)
                 }
                 _ => {}
