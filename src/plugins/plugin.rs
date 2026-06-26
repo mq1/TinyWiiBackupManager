@@ -9,13 +9,13 @@ use std::path::PathBuf;
 pub struct Plugin {
     pub id: String,
     pub path: PathBuf,
-    name: String,
-    version: String,
-    authors: Vec<String>,
-    description: String,
-    license: String,
-    runs_on: Vec<String>,
-    tools: Vec<Tool>,
+    pub name: String,
+    pub version: String,
+    pub authors: Vec<String>,
+    pub description: String,
+    pub license: String,
+    pub runs_on: Vec<String>,
+    pub tools: Vec<Tool>,
 }
 
 impl FromLua for Plugin {

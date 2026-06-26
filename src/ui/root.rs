@@ -21,6 +21,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             container(match state.current_page {
                 Page::Games => pages::games::view(),
                 Page::Settings => pages::settings::view(),
+                Page::Plugins => pages::plugins::view(state),
             })
             .width(Length::Fill)
             .height(Length::Fill)
