@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use mlua::{FromLua, Function};
+use mlua::{FromLua, Function, Lua, Value};
 
 #[derive(Debug, Clone)]
 pub struct Tool {
@@ -13,10 +13,10 @@ pub struct Tool {
 }
 
 impl FromLua for Tool {
-    fn from_lua(value: mlua::Value, _: &mlua::Lua) -> mlua::Result<Self> {
-        let Some(table) = value.as_table() else {
-            return Err(mlua::Error::UserDataTypeMismatch);
-        };
+    fn from_lua(value: Value, _lua: &Lua) -> mlua::Result<Self> {
+        let table = value
+            .as_table()
+            .ok_or(mlua::Error::runtime("expected a table"))?;
 
         let name = table.get("name")?;
         let description = table.get("description")?;

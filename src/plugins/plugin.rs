@@ -9,6 +9,11 @@ use std::path::PathBuf;
 pub struct Plugin {
     pub id: String,
     pub path: PathBuf,
+    pub contents: PluginContents,
+}
+
+#[derive(Debug, Clone)]
+pub struct PluginContents {
     pub name: String,
     pub version: String,
     pub authors: Vec<String>,
@@ -18,14 +23,11 @@ pub struct Plugin {
     pub tools: Vec<Tool>,
 }
 
-impl FromLua for Plugin {
-    fn from_lua(value: Value, _: &Lua) -> mlua::Result<Self> {
-        let Some(table) = value.as_table() else {
-            return Err(mlua::Error::UserDataTypeMismatch);
-        };
-
-        let id = String::new();
-        let path = PathBuf::new();
+impl FromLua for PluginContents {
+    fn from_lua(value: Value, _lua: &Lua) -> mlua::Result<Self> {
+        let table = value
+            .as_table()
+            .ok_or(mlua::Error::runtime("expected a table"))?;
 
         let name = table.get("name")?;
         let version = table.get("version")?;
@@ -35,9 +37,7 @@ impl FromLua for Plugin {
         let runs_on = table.get("runs_on")?;
         let tools = table.get("tools")?;
 
-        Ok(Plugin {
-            id,
-            path,
+        Ok(PluginContents {
             name,
             version,
             authors,

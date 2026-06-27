@@ -12,12 +12,12 @@ pub fn view<'a>(plugin: &'a Plugin) -> Element<'a, Message> {
     card::view(
         row![
             icon_check(),
-            text(&plugin.name),
+            text(&plugin.contents.name),
             space().width(10),
             text('|').style(text::secondary),
             space().width(10),
             icon_tag(),
-            text(&plugin.version),
+            text(&plugin.contents.version),
         ]
         .spacing(5)
         .width(Length::Fill),
