@@ -9,7 +9,7 @@ impl MyPalette {
     pub fn card_bg(theme: &Theme) -> Background {
         match theme {
             Theme::Light => Background::Color(color!(0xffffff)),
-            Theme::Dark => Background::Color(color!(0x1e1e1e)),
+            Theme::Dark => Background::Color(color!(0x25252c)),
             _ => unreachable!(),
         }
     }
