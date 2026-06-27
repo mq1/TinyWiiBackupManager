@@ -6,6 +6,7 @@ use crate::state::AppState;
 mod components;
 pub mod pages;
 pub mod root;
+pub mod style;
 
 pub fn title(state: &AppState) -> String {
     if let Some(drive_info) = &state.drive_info {

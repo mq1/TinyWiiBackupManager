@@ -7,6 +7,7 @@ use crate::{
     ui::{
         components,
         pages::{self, Page},
+        style::MyPalette,
     },
 };
 use iced::{
@@ -15,7 +16,7 @@ use iced::{
 };
 
 pub fn view(state: &AppState) -> Element<'_, Message> {
-    stack![
+    container(stack![
         row![
             components::sidebar::view(state),
             container(match state.current_page {
@@ -34,6 +35,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         container(components::notifications::view(state))
             .align_right(Length::Fill)
             .align_bottom(Length::Fill)
-    ]
+    ])
+    .style(|theme| container::background(MyPalette::card_bg(theme)))
     .into()
 }
