@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::games::game_id::GameID;
+use crate::{games::game_id::GameID, util};
 use anyhow::{Result, anyhow, bail};
 use size::Size;
 use std::{ffi::OsStr, path::PathBuf};
@@ -45,7 +45,7 @@ impl Game {
             .ok_or_else(|| anyhow!("Invalid directory name"))?;
 
         let title = title_raw.trim().to_string();
-        let size = crate::util::get_dir_size(&path)?;
+        let size = util::misc::get_dir_size(&path)?;
 
         Ok(Self {
             path,

@@ -40,13 +40,13 @@ impl DriveInfo {
         let fs_kind = FsKind::try_from_path(path).unwrap_or(FsKind::Unknown);
 
         let wii_games_dir = path.join("wbfs");
-        let wii_games_size = util::get_dir_size(&wii_games_dir).unwrap_or_default();
+        let wii_games_size = util::misc::get_dir_size(&wii_games_dir).unwrap_or_default();
         let gc_games_dir = path.join("games");
-        let gc_games_size = util::get_dir_size(&gc_games_dir).unwrap_or_default();
+        let gc_games_size = util::misc::get_dir_size(&gc_games_dir).unwrap_or_default();
         let games_size = wii_games_size + gc_games_size;
 
         let apps_dir = path.join("apps");
-        let apps_size = util::get_dir_size(&apps_dir).unwrap_or_default();
+        let apps_size = util::misc::get_dir_size(&apps_dir).unwrap_or_default();
 
         Ok(Self {
             label,

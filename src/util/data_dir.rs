@@ -2,8 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use directories::ProjectDirs;
-use size::Size;
-use std::{io, path::PathBuf};
+use std::path::PathBuf;
 
 pub fn get_data_dir() -> Option<PathBuf> {
     let data_dir = if let Some(parent) = is_portable() {
@@ -25,22 +24,4 @@ fn is_portable() -> Option<PathBuf> {
         .to_ascii_lowercase()
         .contains("portable")
         .then(|| parent.to_path_buf())
-}
-
-pub fn get_dir_size(path: impl Into<PathBuf>) -> io::Result<Size> {
-    let mut size = 0;
-
-    let mut entries = vec![path.into()];
-    while let Some(entry) = entries.pop() {
-        let meta = entry.symlink_metadata()?;
-
-        if meta.is_file() {
-            size += meta.len();
-        } else if meta.is_dir() {
-            let new = entry.read_dir()?.filter_map(Result::ok).map(|e| e.path());
-            entries.extend(new);
-        }
-    }
-
-    Ok(Size::from_bytes(size))
 }

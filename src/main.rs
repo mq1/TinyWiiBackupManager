@@ -5,10 +5,8 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod config;
-mod drive_info;
 mod executor;
 mod games;
-mod http_util;
 mod messages;
 mod notifications;
 mod plugins;
@@ -24,7 +22,8 @@ use lucide_icons::LUCIDE_FONT_BYTES;
 use std::fs;
 
 pub fn main() -> Result<()> {
-    let data_dir = util::get_data_dir().ok_or_else(|| anyhow!("Unable to get data directory"))?;
+    let data_dir =
+        util::data_dir::get_data_dir().ok_or_else(|| anyhow!("Unable to get data directory"))?;
     fs::create_dir_all(&data_dir)?;
 
     let boot = move || AppState::new(data_dir.clone());

@@ -3,11 +3,11 @@
 
 use crate::{
     config::Config,
-    drive_info::DriveInfo,
     games::game::Game,
     notifications::Notifications,
     plugins::{self, plugin::Plugin},
     ui::pages::Page,
+    util::drive_info::DriveInfo,
 };
 use anyhow::Context;
 use std::path::PathBuf;
