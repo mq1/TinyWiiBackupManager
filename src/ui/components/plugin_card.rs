@@ -4,7 +4,7 @@
 use crate::{messages::Message, plugins::plugin::Plugin, ui::components::card};
 use iced::{
     Element, Length,
-    widget::{row, text},
+    widget::{row, space, text},
 };
 use lucide_icons::iced::{icon_check, icon_tag};
 
@@ -13,7 +13,9 @@ pub fn view<'a>(plugin: &'a Plugin) -> Element<'a, Message> {
         row![
             icon_check(),
             text(&plugin.name),
-            text("  |  ").style(text::secondary),
+            space().width(10),
+            text('|').style(text::secondary),
+            space().width(10),
             icon_tag(),
             text(&plugin.version),
         ]
