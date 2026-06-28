@@ -82,7 +82,7 @@ impl AppState {
 
     fn run_lua_function(&mut self, dumped_function: Vec<u8>) {
         let lua = Lua::new();
-        let state = RefCell::new(&mut *self);
+        let state = RefCell::new(self);
 
         let res = lua.scope(|scope| {
             let notify = scope.create_function_mut({
@@ -119,9 +119,11 @@ impl AppState {
             Ok(())
         });
 
+        let this = state.into_inner();
+
         if let Err(e) = res {
             let e = e.context("Failed to run lua function");
-            self.notifications.add(Notification::error(e));
+            this.notifications.add(Notification::error(e));
         }
     }
 
