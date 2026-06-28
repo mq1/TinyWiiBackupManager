@@ -7,10 +7,10 @@ use crate::{
     notifications::{Notification, Notifications},
     plugins::{self, plugin::Plugin},
     ui::pages::Page,
-    util::drive_info::DriveInfo,
+    util::{self, drive_info::DriveInfo},
 };
 use mlua::{ErrorContext, Lua, LuaSerdeExt, Value};
-use std::path::PathBuf;
+use std::{cell::RefCell, path::PathBuf};
 
 pub(crate) struct AppState {
     pub data_dir: PathBuf,
@@ -82,21 +82,36 @@ impl AppState {
 
     fn run_lua_function(&mut self, dumped_function: Vec<u8>) {
         let lua = Lua::new();
+        let state = RefCell::new(&mut *self);
 
         let res = lua.scope(|scope| {
-            let notify = scope.create_function_mut(|lua, notification: Value| {
-                let notification = if let Some(notification) = notification.as_string() {
-                    Notification::info(notification.to_string_lossy())
-                } else {
-                    lua.from_value(notification)?
-                };
+            let notify = scope.create_function_mut({
+                |lua, notification: Value| {
+                    let notification = if let Some(notification) = notification.as_string() {
+                        Notification::info(notification.to_string_lossy())
+                    } else {
+                        lua.from_value(notification)?
+                    };
 
-                self.notifications.add(notification);
-                Ok(())
+                    state.borrow_mut().notifications.add(notification);
+                    Ok(())
+                }
+            })?;
+
+            let download_file = scope.create_function_mut({
+                |_lua, (uri, dest): (String, String)| {
+                    let res = util::http::download_file(&uri, &dest);
+                    if let Err(e) = res {
+                        let e = e.context("Failed to download file");
+                        state.borrow_mut().notifications.add(Notification::error(e));
+                    }
+                    Ok(())
+                }
             })?;
 
             let twbm = lua.create_table()?;
             twbm.set("notify", notify)?;
+            twbm.set("download_file", download_file)?;
 
             let f = lua.load(dumped_function).into_function()?;
             f.call::<()>(twbm)?;
