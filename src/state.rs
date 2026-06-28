@@ -4,12 +4,12 @@
 use crate::{
     config::Config,
     games::game::Game,
-    notifications::Notifications,
+    notifications::{Notification, Notifications},
     plugins::{self, plugin::Plugin},
     ui::pages::Page,
     util::drive_info::DriveInfo,
 };
-use anyhow::Context;
+use mlua::{ErrorContext, Lua, LuaSerdeExt, Value};
 use std::path::PathBuf;
 
 pub(crate) struct AppState {
@@ -51,42 +51,62 @@ impl AppState {
             return;
         }
 
-        let res = DriveInfo::try_from_path(mount_point).context("Failed to load drive info");
-
-        match res {
-            Ok(drive_info) => self.drive_info = Some(drive_info),
-            Err(e) => {
-                self.notifications.add(e);
-                self.drive_info = None;
-            }
-        }
+        self.drive_info = DriveInfo::try_from_path(mount_point)
+            .map_err(|e| {
+                let e = e.context("Failed to load drive info");
+                self.notifications.add(Notification::error(e))
+            })
+            .ok();
     }
 
     pub fn reload_games(&mut self) {
-        let res = crate::games::list(
+        self.games = crate::games::list(
             &self.config.contents.mount_point,
             self.config.contents.sort_by,
         )
-        .context("Failed to load games");
-
-        match res {
-            Ok(games) => self.games = games,
-            Err(e) => {
-                self.notifications.add(e);
-                self.games.clear();
-            }
-        }
+        .map_err(|e| {
+            let e = e.context("Failed to load games");
+            self.notifications.add(Notification::error(e))
+        })
+        .unwrap_or_default();
     }
 
     pub fn reload_plugins(&mut self) {
-        let res = plugins::load(&self.data_dir).context("Failed to load plugins");
+        self.plugins = plugins::load(&self.data_dir)
+            .map_err(|e| {
+                let e = e.context("Failed to load plugins");
+                self.notifications.add(Notification::error(e))
+            })
+            .unwrap_or_default();
+    }
 
-        match res {
-            Ok(plugins) => self.plugins = plugins,
-            Err(e) => {
-                self.notifications.add(e);
-                self.plugins = Vec::new();
-            }
+    pub fn run_lua_function(&mut self, dumped_function: Vec<u8>) {
+        let lua = Lua::new();
+
+        let res = lua.scope(|scope| {
+            let notify = scope.create_function_mut(|lua, notification: Value| {
+                let notification = if let Some(notification) = notification.as_string() {
+                    Notification::info(notification.to_string_lossy())
+                } else {
+                    lua.from_value(notification)?
+                };
+
+                self.notifications.add(notification);
+                Ok(())
+            })?;
+
+            let twbm = lua.create_table()?;
+            twbm.set("notify", notify)?;
+
+            let f = lua.load(dumped_function).into_function()?;
+            f.call::<()>(twbm)?;
+
+            Ok(())
+        });
+
+        if let Err(e) = res {
+            let e = e.context("Failed to run lua function");
+            self.notifications.add(Notification::error(e));
         }
     }
 }

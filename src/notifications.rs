@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use derive_getters::Getters;
 use serde::Deserialize;
 use std::fmt;
 
@@ -24,31 +25,51 @@ impl fmt::Display for NotificationLevel {
     }
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Getters)]
 #[serde(rename_all = "snake_case")]
 pub struct Notification {
-    pub label: String,
-    pub level: NotificationLevel,
+    label: String,
+    level: NotificationLevel,
 }
 
-impl From<String> for Notification {
-    fn from(label: String) -> Self {
+impl Notification {
+    pub fn new(label: impl ToString, level: NotificationLevel) -> Self {
         Self {
-            label,
+            label: label.to_string(),
+            level,
+        }
+    }
+
+    pub fn info(label: impl ToString) -> Self {
+        Self {
+            label: label.to_string(),
             level: NotificationLevel::Info,
         }
     }
-}
 
-impl From<anyhow::Error> for Notification {
-    fn from(e: anyhow::Error) -> Self {
+    pub fn warning(label: impl ToString) -> Self {
         Self {
-            label: format!("{e:?}"),
+            label: label.to_string(),
+            level: NotificationLevel::Warning,
+        }
+    }
+
+    pub fn error(label: impl ToString) -> Self {
+        Self {
+            label: label.to_string(),
             level: NotificationLevel::Error,
+        }
+    }
+
+    pub fn success(label: impl ToString) -> Self {
+        Self {
+            label: label.to_string(),
+            level: NotificationLevel::Success,
         }
     }
 }
 
+#[repr(transparent)]
 pub struct Notifications(Vec<Notification>);
 
 impl Notifications {
@@ -56,9 +77,7 @@ impl Notifications {
         Self(Vec::new())
     }
 
-    pub fn add(&mut self, notification: impl Into<Notification>) {
-        let notification = notification.into();
-        eprintln!("{}: {}", notification.level, notification.label);
+    pub fn add(&mut self, notification: Notification) {
         self.0.push(notification);
     }
 

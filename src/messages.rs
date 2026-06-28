@@ -8,4 +8,5 @@ pub enum Message {
     NavigateTo(Page),
     RefreshGamesAndApps,
     RefreshPlugins,
+    RunLuaFunction(Vec<u8>),
 }

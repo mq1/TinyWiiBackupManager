@@ -4,10 +4,12 @@
 pub mod games;
 pub mod plugins;
 pub mod settings;
+pub mod toolbox;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Page {
     Games,
     Settings,
+    Toolbox,
     Plugins,
 }

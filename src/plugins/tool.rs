@@ -9,7 +9,7 @@ pub struct Tool {
     pub description: String,
     pub icon: String,
     pub group: String,
-    pub run: Function,
+    pub run: Vec<u8>,
 }
 
 impl FromLua for Tool {
@@ -22,7 +22,7 @@ impl FromLua for Tool {
         let description = table.get("description")?;
         let icon = table.get("icon")?;
         let group = table.get("group")?;
-        let run = table.get("run")?;
+        let run = table.get::<Function>("run")?.dump(true);
 
         Ok(Tool {
             name,

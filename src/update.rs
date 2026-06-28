@@ -10,6 +10,7 @@ impl AppState {
             Message::NavigateTo(page) => self.current_page = page,
             Message::RefreshGamesAndApps => self.reload_games(),
             Message::RefreshPlugins => self.reload_plugins(),
+            Message::RunLuaFunction(f) => self.run_lua_function(f),
         }
 
         Task::none()
