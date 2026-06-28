@@ -80,7 +80,7 @@ impl AppState {
             .unwrap_or_default();
     }
 
-    pub fn run_lua_function(&mut self, dumped_function: Vec<u8>) {
+    fn run_lua_function(&mut self, dumped_function: Vec<u8>) {
         let lua = Lua::new();
 
         let res = lua.scope(|scope| {
@@ -108,5 +108,16 @@ impl AppState {
             let e = e.context("Failed to run lua function");
             self.notifications.add(Notification::error(e));
         }
+    }
+
+    pub fn run_tool(&mut self, id: u32) {
+        let tool = self
+            .plugins
+            .iter()
+            .find_map(|p| p.contents.tools.iter().find(|t| t.id == id))
+            .expect("Tool not found");
+
+        let f = tool.run.clone();
+        self.run_lua_function(f);
     }
 }

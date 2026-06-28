@@ -8,13 +8,14 @@ use iced::{
 };
 
 pub fn view<'a>(state: &'a AppState) -> Element<'a, Message> {
-    let mut col = column![text("Games")].padding(10);
+    let mut col = column![text("Toolbox")].padding(10);
 
     for plugin in &state.plugins {
-        let tool = button(plugin.contents.tools[0].name.as_str())
-            .on_press_with(|| Message::RunLuaFunction(plugin.contents.tools[0].run.clone()));
+        for tool in &plugin.contents.tools {
+            let tool = button(tool.name.as_str()).on_press(Message::RunTool(tool.id));
 
-        col = col.push(tool);
+            col = col.push(tool);
+        }
     }
 
     col.into()

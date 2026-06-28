@@ -3,17 +3,22 @@
 
 use crate::plugins::tool::Tool;
 use mlua::{FromLua, Lua, Value};
-use std::path::PathBuf;
+use std::{
+    path::PathBuf,
+    sync::{Arc, LazyLock, Mutex},
+};
+
+pub static LAST_ID: LazyLock<Arc<Mutex<u32>>> = LazyLock::new(|| Arc::new(Mutex::new(u32::MAX)));
 
 #[derive(Debug, Clone)]
 pub struct Plugin {
-    pub id: String,
     pub path: PathBuf,
     pub contents: PluginContents,
 }
 
 #[derive(Debug, Clone)]
 pub struct PluginContents {
+    pub id: u32,
     pub name: String,
     pub version: String,
     pub authors: Vec<String>,
@@ -37,7 +42,14 @@ impl FromLua for PluginContents {
         let runs_on = table.get("runs_on")?;
         let tools = table.get("tools")?;
 
+        let id = {
+            let mut last_id = LAST_ID.lock().unwrap();
+            *last_id = last_id.wrapping_add(1);
+            *last_id
+        };
+
         Ok(PluginContents {
+            id,
             name,
             version,
             authors,

@@ -4,7 +4,7 @@
 pub mod plugin;
 mod tool;
 
-use crate::plugins::plugin::{Plugin, PluginContents};
+use crate::plugins::plugin::Plugin;
 use anyhow::Result;
 use mlua::Lua;
 use std::{ffi::OsStr, fs, path::Path};
@@ -35,13 +35,8 @@ pub fn load(data_dir: impl AsRef<Path>) -> Result<Vec<Plugin>> {
         }
 
         let code = fs::read_to_string(&path)?;
-        let contents = lua.load(&code).eval::<PluginContents>()?;
-
-        let plugin = Plugin {
-            id: stem.to_string(),
-            path,
-            contents,
-        };
+        let contents = lua.load(&code).eval()?;
+        let plugin = Plugin { path, contents };
 
         plugins.push(plugin);
     }
