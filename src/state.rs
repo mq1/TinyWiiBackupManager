@@ -87,7 +87,11 @@ impl AppState {
         let straw = plugins::run::run_tool(plugin, tool_i);
 
         Task::sip(straw, std::convert::identity, |res| {
-            Message::MaybeErrored(res.err().map(|e| e.to_string()))
+            if let Err(e) = res {
+                Message::Notify(Notification::error(e))
+            } else {
+                Message::NoOp
+            }
         })
     }
 }

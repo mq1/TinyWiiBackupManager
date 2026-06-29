@@ -7,10 +7,10 @@ use serde::Deserialize;
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Message {
+    NoOp,
     NavigateTo(Page),
     RefreshGamesAndApps,
     RefreshPlugins,
     RunTool(usize, usize),
     Notify(Notification),
-    MaybeErrored(Option<String>),
 }
