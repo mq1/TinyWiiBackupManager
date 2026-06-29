@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 pub mod plugin;
-mod tool;
+pub mod state_ext;
 
 use crate::plugins::plugin::Plugin;
 use anyhow::Result;
