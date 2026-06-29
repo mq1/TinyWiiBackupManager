@@ -83,18 +83,9 @@ impl AppState {
     pub fn run_tool(&mut self, plugin_i: usize, tool_i: usize) {
         let lua = Lua::new();
 
-        let plugin = &self.plugins[plugin_i];
-
-        let plugin = match lua.load(&plugin.code).eval::<Table>() {
-            Ok(plugin) => plugin,
-            Err(e) => {
-                let e = e.context("Failed to load plugin");
-                self.notifications.add(Notification::error(e));
-                return;
-            }
-        };
-
         let res = lua.scope(|scope| {
+            let plugin = lua.load(&self.plugins[plugin_i].code).eval::<Table>()?;
+
             let send_message = scope.create_function_mut({
                 |lua, message| {
                     let message = lua.from_value(message)?;
