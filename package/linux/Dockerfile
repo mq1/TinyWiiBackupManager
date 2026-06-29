@@ -8,6 +8,7 @@ RUN curl -sSL https://apt.llvm.org/llvm.sh | bash -s 22
 
 # Install Rust
 RUN curl -sSL https://static.rust-lang.org/rustup/rustup-init.sh | bash -s -- -y --default-toolchain 1.96 --profile minimal --component rust-src
+ENV PATH="/root/.cargo/bin:$PATH"
 
 # Install i686 dependencies
 RUN if [ "$TARGETARCH" = "amd64" ]; then apt-get install -y gcc-multilib; fi
