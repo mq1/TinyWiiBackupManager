@@ -4,19 +4,13 @@
 FROM ubuntu:20.04
 
 # Install LLVM
-RUN wget https://apt.llvm.org/llvm.sh && \
-    chmod +x llvm.sh && \
-    ./llvm.sh 22
+RUN curl -sSL https://apt.llvm.org/llvm.sh | bash -s 22
 
 # Install Rust
-RUN wget https://static.rust-lang.org/rustup/rustup-init.sh && \
-    chmod +x rustup-init.sh && \
-    ./rustup-init.sh -y --default-toolchain 1.96 --profile minimal --component rust-src
+RUN curl -sSL https://static.rust-lang.org/rustup/rustup-init.sh | bash -s -- -y --default-toolchain 1.96 --profile minimal --component rust-src
 
 # Install i686 dependencies
-RUN if [ "$TARGETARCH" = "amd64" ]; then \
-        apt-get install -y gcc-multilib; \
-    fi
+RUN if [ "$TARGETARCH" = "amd64" ]; then apt-get install -y gcc-multilib; fi
 
 ENV RUSTC_BOOTSTRAP=1
 ENV CC=clang-22
