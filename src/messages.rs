@@ -5,6 +5,7 @@ use crate::{notifications::Notification, ui::pages::Page};
 use serde::Deserialize;
 
 #[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum Message {
     NavigateTo(Page),
     RefreshGamesAndApps,
