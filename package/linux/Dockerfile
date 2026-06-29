@@ -17,10 +17,10 @@ RUN wget https://static.rust-lang.org/rustup/rustup-init.sh && \
     ./rustup-init.sh -y --default-toolchain 1.96 --profile minimal --component rust-src --no-modify-path
 
 # Install i686 dependencies
-RUN if [ "$TARGETARCH" = "amd64" ]; then \
+RUN if [ "$(uname -m)" = "x86_64" ]; then \
         dpkg --add-architecture i386 && \
         apt-get update && \
-        apt-get install -y gcc-multilib pkg-config:i386 libfontconfig1-dev:i386 libc6-dev:i386; \
+        apt-get install -y gcc-multilib; \
     fi
 
 ENV RUSTC_BOOTSTRAP=1
