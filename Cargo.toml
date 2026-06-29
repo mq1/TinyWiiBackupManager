@@ -43,7 +43,6 @@ ureq = { version = "3.3", default-features = false, features = [
   "gzip",
   "json",
 ] }
-derive-getters = { version = "0.5", features = ["auto_copy_getters"] }
 
 # windows x86 has issues with bzip2 + lld
 [target.'cfg(all(target_os = "windows", target_arch = "x86"))'.dependencies]
