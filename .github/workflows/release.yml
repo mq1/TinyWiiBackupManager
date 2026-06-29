@@ -11,9 +11,8 @@ on:
     paths:
       - ".github/workflows/release.yml"
       - "**.rs"
-      - "**.slint"
-      - "**/Cargo.toml"
-      - "**/Cargo.lock"
+      - "Cargo.toml"
+      - "Cargo.lock"
       - "package/**"
   pull_request:
   workflow_dispatch:
@@ -31,11 +30,6 @@ jobs:
   build-linux:
     name: Build for Linux
     runs-on: ${{ matrix.runner }}
-    container:
-      image: rust:1.96-bullseye
-    defaults:
-      run:
-        shell: bash
     strategy:
       fail-fast: false
       matrix:
@@ -58,20 +52,21 @@ jobs:
 
       - name: Install LLVM
         run: |
-          wget -O /etc/apt/trusted.gpg.d/apt.llvm.org.asc https://apt.llvm.org/llvm-snapshot.gpg.key
-          echo "deb http://apt.llvm.org/bullseye/ llvm-toolchain-bullseye-22 main" > /etc/apt/sources.list.d/llvm.list
-          apt-get update
-          apt-get install -y clang-22 lld-22
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 22
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@1.96
+        with:
+          components: rust-src
 
       - name: Install i686 dependencies
         if: matrix.arch == 'i686'
         run: |
           dpkg --add-architecture i386
           apt-get update
-          apt-get install -y gcc-multilib pkg-config:i386 libfontconfig1-dev:i386
-
-      - name: Install rust-src
-        run: rustup component add rust-src
+          apt-get install -y gcc-multilib pkg-config:i386
 
       - name: Download appimagetool
         run: |
@@ -107,7 +102,6 @@ jobs:
             "TinyWiiBackupManager-${{ env.VERSION_NAME }}-linux-${{ matrix.arch }}.AppImage"
         env:
           ARCH: ${{ matrix.arch }}
-          APPIMAGE_EXTRACT_AND_RUN: 1
 
       - name: Upload Linux distributables
         uses: actions/upload-artifact@v7
