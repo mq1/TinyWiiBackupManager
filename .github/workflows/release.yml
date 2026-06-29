@@ -50,7 +50,7 @@ jobs:
           fetch-depth: 1
 
       - name: Build docker image
-        run: docker build -t build package/linux
+        run: docker build -t cargo package/linux
 
       - name: Download appimagetool
         run: |
@@ -59,7 +59,7 @@ jobs:
 
       - name: Build binary
         run: |
-          docker run -v $(pwd):/io -w /io build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features rustls
+          docker run -v $(pwd):/io -w /io cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features rustls
           cp target/${{ matrix.target }}/release/TinyWiiBackupManager .
 
       - name: Package AppImage

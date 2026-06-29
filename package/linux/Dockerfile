@@ -18,7 +18,9 @@ RUN wget https://static.rust-lang.org/rustup/rustup-init.sh && \
 
 # Install i686 dependencies
 RUN if [ "$TARGETARCH" = "amd64" ]; then \
-        apt-get install -y gcc-multilib; \
+        dpkg --add-architecture i386 && \
+        apt-get update && \
+        apt-get install -y gcc-multilib pkg-config:i386; \
     fi
 
 ENV RUSTC_BOOTSTRAP=1
@@ -29,5 +31,6 @@ ENV RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=lld-22"
 ENV CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=clang-22
 ENV CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=clang-22
 ENV CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER=clang-22
+ENV PKG_CONFIG_i686_unknown_linux_gnu=i686-pc-linux-gnu-pkg-config
 
-ENTRYPOINT [ "/root/.cargo/bin/cargo", "build" ]
+ENTRYPOINT [ "/root/.cargo/bin/cargo" ]
