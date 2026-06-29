@@ -4,7 +4,7 @@
 FROM ubuntu:20.04
 
 # Install dependencies
-RUN apt-get update && apt-get install -y wget lsb-release
+RUN apt-get update && apt-get install -y lsb-release wget software-properties-common gnupg
 
 # Install LLVM
 RUN wget https://apt.llvm.org/llvm.sh && \
