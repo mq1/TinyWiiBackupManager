@@ -14,7 +14,7 @@ RUN wget https://apt.llvm.org/llvm.sh && \
 # Install Rust
 RUN wget https://static.rust-lang.org/rustup/rustup-init.sh && \
     chmod +x rustup-init.sh && \
-    ./rustup-init.sh -y --default-toolchain 1.96 --profile minimal --component rust-src
+    ./rustup-init.sh -y --default-toolchain 1.96 --profile minimal --component rust-src --no-modify-path
 
 # Install i686 dependencies
 RUN if [ "$TARGETARCH" = "amd64" ]; then \
@@ -29,3 +29,5 @@ ENV RUSTFLAGS="-C linker-plugin-lto -C link-arg=-fuse-ld=lld-22"
 ENV CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=clang-22
 ENV CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=clang-22
 ENV CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER=clang-22
+
+ENTRYPOINT [ "/root/.cargo/bin/cargo", "build" ]

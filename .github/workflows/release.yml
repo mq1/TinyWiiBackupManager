@@ -59,7 +59,7 @@ jobs:
 
       - name: Build binary
         run: |
-          docker run -v $(pwd):/io -w /io build cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features rustls
+          docker run -v $(pwd):/io -w /io build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features rustls
           cp target/${{ matrix.target }}/release/TinyWiiBackupManager .
 
       - name: Package AppImage
