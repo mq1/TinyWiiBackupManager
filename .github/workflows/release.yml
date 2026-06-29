@@ -45,27 +45,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
 
-      - name: Install LLVM
-        run: |
-          wget https://apt.llvm.org/llvm.sh
-          chmod +x llvm.sh
-          sudo ./llvm.sh 22
-
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@1.96
-        with:
-          components: rust-src
-
-      - name: Install i686 dependencies
-        if: matrix.arch == 'i686'
-        run: |
-          sudo dpkg --add-architecture i386
-          sudo apt-get update
-          sudo apt-get install -y gcc-multilib pkg-config:i386
+      - name: Build docker image
+        run: docker build -t build package/linux
 
       - name: Download appimagetool
         run: |
@@ -74,18 +59,8 @@ jobs:
 
       - name: Build binary
         run: |
-          cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features rustls
+          docker run -v $(pwd):/io -w /io build cargo build -Z build-std=std,panic_abort --release --target ${{ matrix.target }} --no-default-features --features rustls
           cp target/${{ matrix.target }}/release/TinyWiiBackupManager .
-        env:
-          RUSTC_BOOTSTRAP: 1
-          CC: clang-22
-          AR: llvm-ar-22
-          CFLAGS: -O3 -flto
-          RUSTFLAGS: -C linker-plugin-lto -C link-arg=-fuse-ld=lld-22
-          CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: clang-22
-          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: clang-22
-          CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER: clang-22
-          PKG_CONFIG_i686_unknown_linux_gnu: i686-pc-linux-gnu-pkg-config
 
       - name: Package AppImage
         run: |
@@ -124,7 +99,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
 
@@ -190,7 +165,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
 
@@ -228,7 +203,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
 
@@ -279,7 +254,7 @@ jobs:
     needs: [build-linux, build-windows, build-macos, build-macos-universal]
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
 
