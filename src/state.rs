@@ -9,8 +9,8 @@ use crate::{
     ui::pages::Page,
     util::{self, drive_info::DriveInfo},
 };
-use mlua::{ErrorContext, Lua, LuaSerdeExt, Value};
-use std::{cell::RefCell, path::PathBuf};
+use mlua::{ErrorContext, Lua, LuaSerdeExt};
+use std::path::PathBuf;
 
 pub(crate) struct AppState {
     pub data_dir: PathBuf,
@@ -82,35 +82,24 @@ impl AppState {
 
     fn run_lua_function(&mut self, dumped_function: Vec<u8>) {
         let lua = Lua::new();
-        let state = RefCell::new(self);
 
         let res = lua.scope(|scope| {
-            let notify = scope.create_function_mut({
-                |lua, notification: Value| {
-                    let notification = if let Some(notification) = notification.as_string() {
-                        Notification::info(notification.to_string_lossy())
-                    } else {
-                        lua.from_value(notification)?
-                    };
-
-                    state.borrow_mut().notifications.add(notification);
+            let send_message = scope.create_function_mut({
+                |lua, message| {
+                    let message = lua.from_value(message)?;
+                    let _ = self.update(message);
                     Ok(())
                 }
             })?;
 
             let download_file = scope.create_function_mut({
                 |_lua, (uri, dest): (String, String)| {
-                    let res = util::http::download_file(&uri, &dest);
-                    if let Err(e) = res {
-                        let e = e.context("Failed to download file");
-                        state.borrow_mut().notifications.add(Notification::error(e));
-                    }
-                    Ok(())
+                    util::http::download_file(&uri, &dest).map_err(Into::into)
                 }
             })?;
 
             let twbm = lua.create_table()?;
-            twbm.set("notify", notify)?;
+            twbm.set("send_message", send_message)?;
             twbm.set("download_file", download_file)?;
 
             let f = lua.load(dumped_function).into_function()?;
@@ -119,11 +108,9 @@ impl AppState {
             Ok(())
         });
 
-        let this = state.into_inner();
-
         if let Err(e) = res {
             let e = e.context("Failed to run lua function");
-            this.notifications.add(Notification::error(e));
+            self.notifications.add(Notification::error(e));
         }
     }
 
