@@ -10,6 +10,6 @@ pub enum Message {
     NavigateTo(Page),
     RefreshGamesAndApps,
     RefreshPlugins,
-    RunTool(u32),
+    RunTool(usize, usize),
     Notify(Notification),
 }

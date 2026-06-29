@@ -10,9 +10,9 @@ use iced::{
 pub fn view<'a>(state: &'a AppState) -> Element<'a, Message> {
     let mut col = column![text("Toolbox")].padding(10);
 
-    for plugin in &state.plugins {
-        for tool in &plugin.contents.tools {
-            let tool = button(tool.name.as_str()).on_press(Message::RunTool(tool.id));
+    for (plugin_i, plugin) in state.plugins.iter().enumerate() {
+        for (tool_i, tool) in plugin.meta.tools.iter().enumerate() {
+            let tool = button(tool.name.as_str()).on_press(Message::RunTool(plugin_i, tool_i));
 
             col = col.push(tool);
         }

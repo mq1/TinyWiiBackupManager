@@ -41,9 +41,9 @@ impl Notification {
         }
     }
 
-    pub fn error(label: impl ToString) -> Self {
+    pub fn error(e: impl Into<anyhow::Error>) -> Self {
         Self {
-            label: label.to_string(),
+            label: format!("{:?}", e.into()),
             level: NotificationLevel::Error,
         }
     }

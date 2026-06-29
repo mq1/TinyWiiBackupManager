@@ -6,7 +6,7 @@ mod tool;
 
 use crate::plugins::plugin::Plugin;
 use anyhow::Result;
-use mlua::Lua;
+use mlua::{Lua, LuaSerdeExt};
 use std::{ffi::OsStr, fs, path::Path};
 
 pub fn load(data_dir: impl AsRef<Path>) -> Result<Vec<Plugin>> {
@@ -35,8 +35,14 @@ pub fn load(data_dir: impl AsRef<Path>) -> Result<Vec<Plugin>> {
         }
 
         let code = fs::read_to_string(&path)?;
-        let contents = lua.load(&code).eval()?;
-        let plugin = Plugin { path, contents };
+        let meta_table = lua.load(&code).eval()?;
+
+        let meta = lua.from_value_with(
+            meta_table,
+            mlua::serde::de::Options::new().deny_unsupported_types(false),
+        )?;
+
+        let plugin = Plugin { path, meta, code };
 
         plugins.push(plugin);
     }

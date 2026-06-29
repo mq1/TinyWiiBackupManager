@@ -9,7 +9,7 @@ use crate::{
     ui::pages::Page,
     util::{self, drive_info::DriveInfo},
 };
-use mlua::{ErrorContext, Lua, LuaSerdeExt};
+use mlua::{ErrorContext, Function, Lua, LuaSerdeExt, Table};
 use std::path::PathBuf;
 
 pub(crate) struct AppState {
@@ -80,8 +80,19 @@ impl AppState {
             .unwrap_or_default();
     }
 
-    fn run_lua_function(&mut self, dumped_function: Vec<u8>) {
+    pub fn run_tool(&mut self, plugin_i: usize, tool_i: usize) {
         let lua = Lua::new();
+
+        let plugin = &self.plugins[plugin_i];
+
+        let plugin = match lua.load(&plugin.code).eval::<Table>() {
+            Ok(plugin) => plugin,
+            Err(e) => {
+                let e = e.context("Failed to load plugin");
+                self.notifications.add(Notification::error(e));
+                return;
+            }
+        };
 
         let res = lua.scope(|scope| {
             let send_message = scope.create_function_mut({
@@ -102,8 +113,9 @@ impl AppState {
             twbm.set("send_message", send_message)?;
             twbm.set("download_file", download_file)?;
 
-            let f = lua.load(dumped_function).into_function()?;
-            f.call::<()>(twbm)?;
+            let tools = plugin.get::<Vec<Table>>("tools")?;
+            let run = tools[tool_i].get::<Function>("run")?;
+            run.call::<()>(twbm)?;
 
             Ok(())
         });
@@ -112,16 +124,5 @@ impl AppState {
             let e = e.context("Failed to run lua function");
             self.notifications.add(Notification::error(e));
         }
-    }
-
-    pub fn run_tool(&mut self, id: u32) {
-        let tool = self
-            .plugins
-            .iter()
-            .find_map(|p| p.contents.tools.iter().find(|t| t.id == id))
-            .expect("Tool not found");
-
-        let f = tool.run.clone();
-        self.run_lua_function(f);
     }
 }

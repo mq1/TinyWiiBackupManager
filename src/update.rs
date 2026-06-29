@@ -10,7 +10,7 @@ impl AppState {
             Message::NavigateTo(page) => self.current_page = page,
             Message::RefreshGamesAndApps => self.reload_games(),
             Message::RefreshPlugins => self.reload_plugins(),
-            Message::RunTool(id) => self.run_tool(id),
+            Message::RunTool(plugin_i, tool_i) => self.run_tool(plugin_i, tool_i),
             Message::Notify(notification) => self.notifications.add(notification),
         }
 
