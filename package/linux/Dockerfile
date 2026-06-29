@@ -20,7 +20,7 @@ RUN wget https://static.rust-lang.org/rustup/rustup-init.sh && \
 RUN if [ "$TARGETARCH" = "amd64" ]; then \
         dpkg --add-architecture i386 && \
         apt-get update && \
-        apt-get install -y gcc-multilib pkg-config:i386; \
+        apt-get install -y gcc-multilib pkg-config:i386 libfontconfig1-dev:i386 libc6-dev:i386; \
     fi
 
 ENV RUSTC_BOOTSTRAP=1
