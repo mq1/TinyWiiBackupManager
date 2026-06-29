@@ -22,10 +22,11 @@ pub fn run_tool(plugin: Plugin, tool_i: usize) -> impl Straw<(), Message, anyhow
             }
         })?;
 
-        let download_file = lua.create_function(|_lua, (uri, dest): (String, String)| {
-            util::http::download_file(&uri, &dest)?;
-            Ok(())
-        })?;
+        let download_file =
+            lua.create_async_function(async |_lua, (uri, dest): (String, String)| {
+                util::http::download_file(&uri, &dest).await?;
+                Ok(())
+            })?;
 
         let twbm = lua.create_table()?;
         twbm.set("send_message", send_message)?;

@@ -5,7 +5,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod config;
-mod executor;
 mod games;
 mod messages;
 mod notifications;
@@ -15,7 +14,6 @@ mod ui;
 mod update;
 mod util;
 
-use crate::executor::DumbExecutor;
 use crate::state::AppState;
 use anyhow::{Result, anyhow};
 use lucide_icons::LUCIDE_FONT_BYTES;
@@ -63,7 +61,6 @@ pub fn main() -> Result<()> {
         .settings(settings)
         .window(window)
         .title(ui::title)
-        .executor::<DumbExecutor>()
         .run()?;
 
     Ok(())

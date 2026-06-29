@@ -10,8 +10,8 @@ description = "A tiny game backup and homebrew app manager for the Wii"
 
 [features]
 default = ["native-tls"]
-native-tls = ["ureq/native-tls"]
-rustls = ["ureq/rustls", "ureq/platform-verifier"]
+native-tls = ["bitreq/async-https-native-tls"]
+rustls = ["bitreq/async-https-rustls-probe"]
 
 [dependencies]
 iced = { version = "0.14", default-features = false, features = [
@@ -21,7 +21,7 @@ iced = { version = "0.14", default-features = false, features = [
   "wayland",
   "wgpu-bare",
   "x11",
-  "thread-pool",
+  "smol",
   "sipper",
 ] }
 lucide-icons = { version = "1.21", features = ["iced"] }
@@ -41,10 +41,8 @@ mlua = { version = "0.11", features = [
   "send",
   "async",
 ] }
-ureq = { version = "3.3", default-features = false, features = [
-  "gzip",
-  "json",
-] }
+bitreq = "0.3"
+async-compat = "0.2"
 
 # windows x86 has issues with bzip2 + lld
 [target.'cfg(all(target_os = "windows", target_arch = "x86"))'.dependencies]
@@ -79,7 +77,7 @@ wgpu = { version = "27.0", default-features = false, features = [
   "metal",
 ] }
 
-# Tiny and fast
+# tiny and fast
 [profile.release]
 opt-level = 3
 lto = true
