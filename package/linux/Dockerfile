@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 # SPDX-License-Identifier: GPL-3.0-only
 
-FROM ubuntu:20.04
+FROM debian:11
 
 # Install dependencies
 RUN apt-get update && apt-get install -y lsb-release wget software-properties-common gnupg
