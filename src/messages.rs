@@ -12,4 +12,5 @@ pub enum Message {
     RefreshPlugins,
     RunTool(usize, usize),
     Notify(Notification),
+    MaybeErrored(Option<String>),
 }

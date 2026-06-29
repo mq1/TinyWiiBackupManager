@@ -22,6 +22,7 @@ iced = { version = "0.14", default-features = false, features = [
   "wgpu-bare",
   "x11",
   "thread-pool",
+  "sipper",
 ] }
 lucide-icons = { version = "1.21", features = ["iced"] }
 anyhow = "1"
@@ -38,6 +39,7 @@ mlua = { version = "0.11", features = [
   "anyhow",
   "serde",
   "send",
+  "async",
 ] }
 ureq = { version = "3.3", default-features = false, features = [
   "gzip",

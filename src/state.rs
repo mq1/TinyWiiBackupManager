@@ -1,9 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use iced::Task;
+
 use crate::{
     config::Config,
     games::game::Game,
+    messages::Message,
     notifications::{Notification, Notifications},
     plugins::{self, plugin::Plugin},
     ui::pages::Page,
@@ -77,5 +80,14 @@ impl AppState {
                 self.notifications.add(Notification::error(e))
             })
             .unwrap_or_default();
+    }
+
+    pub fn run_tool(&self, plugin_i: usize, tool_i: usize) -> Task<Message> {
+        let plugin = self.plugins[plugin_i].clone();
+        let straw = plugins::run::run_tool(plugin, tool_i);
+
+        Task::sip(straw, std::convert::identity, |res| {
+            Message::MaybeErrored(res.err().map(|e| e.to_string()))
+        })
     }
 }
