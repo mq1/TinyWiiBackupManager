@@ -4,7 +4,7 @@
 use serde::Deserialize;
 use std::path::PathBuf;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct Plugin {
     pub path: PathBuf,
     pub meta: PluginMeta,

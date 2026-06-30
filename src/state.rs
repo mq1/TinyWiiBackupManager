@@ -1,17 +1,16 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use iced::Task;
-
 use crate::{
     config::Config,
-    games::game::Game,
+    games::{self, game::Game},
     messages::Message,
     notifications::{Notification, Notifications},
     plugins::{self, plugin::Plugin},
     ui::pages::Page,
     util::drive_info::DriveInfo,
 };
+use iced::Task;
 use std::path::PathBuf;
 
 pub(crate) struct AppState {
@@ -25,10 +24,10 @@ pub(crate) struct AppState {
 }
 
 impl AppState {
-    pub fn new(data_dir: PathBuf) -> Self {
+    pub fn new(data_dir: PathBuf) -> (Self, Task<Message>) {
         let config = Config::load(&data_dir);
 
-        let mut initial = Self {
+        let state = Self {
             data_dir,
             config,
             notifications: Notifications::new(),
@@ -38,51 +37,48 @@ impl AppState {
             current_page: Page::Games,
         };
 
-        initial.reload_games();
-        initial.reload_drive_info();
-        initial.reload_plugins();
+        let task = Task::batch([
+            state.get_games_task(),
+            state.get_drive_info_task(),
+            state.get_plugins_task(),
+        ]);
 
-        initial
+        (state, task)
     }
 
-    pub fn reload_drive_info(&mut self) {
-        let mount_point = &self.config.contents.mount_point;
+    pub fn get_games_task(&self) -> Task<Message> {
+        let mount_point = self.config.contents.mount_point.clone();
+        let sort_by = self.config.contents.sort_by;
+
+        Task::perform(games::list(mount_point, sort_by), |res| match res {
+            Ok(games) => Message::GotGames(games),
+            Err(e) => Message::CouldNotGetGames(e.to_string()),
+        })
+    }
+
+    pub fn get_plugins_task(&self) -> Task<Message> {
+        let data_dir = self.data_dir.clone();
+
+        Task::perform(plugins::load(data_dir), |res| match res {
+            Ok(plugins) => Message::GotPlugins(plugins),
+            Err(e) => Message::CouldNotGetPlugins(e.to_string()),
+        })
+    }
+
+    pub fn get_drive_info_task(&self) -> Task<Message> {
+        let mount_point = self.config.contents.mount_point.clone();
 
         if mount_point.as_os_str().is_empty() {
-            self.drive_info = None;
-            return;
+            return Task::none();
         }
 
-        self.drive_info = DriveInfo::try_from_path(mount_point)
-            .map_err(|e| {
-                let e = e.context("Failed to load drive info");
-                self.notifications.add(Notification::error(e))
-            })
-            .ok();
-    }
-
-    pub fn reload_games(&mut self) {
-        self.games = crate::games::list(
-            &self.config.contents.mount_point,
-            self.config.contents.sort_by,
-        )
-        .map_err(|e| {
-            let e = e.context("Failed to load games");
-            self.notifications.add(Notification::error(e))
+        Task::perform(DriveInfo::try_from_path(mount_point), |res| match res {
+            Ok(drive_info) => Message::GotDriveInfo(drive_info),
+            Err(e) => Message::CouldNotGetDriveInfo(e.to_string()),
         })
-        .unwrap_or_default();
     }
 
-    pub fn reload_plugins(&mut self) {
-        self.plugins = plugins::load(&self.data_dir)
-            .map_err(|e| {
-                let e = e.context("Failed to load plugins");
-                self.notifications.add(Notification::error(e))
-            })
-            .unwrap_or_default();
-    }
-
-    pub fn run_tool(&self, plugin_i: usize, tool_i: usize) -> Task<Message> {
+    pub fn run_tool_task(&self, plugin_i: usize, tool_i: usize) -> Task<Message> {
         let plugin = self.plugins[plugin_i].clone();
         let straw = plugins::run::run_tool(plugin, tool_i);
 

@@ -3,24 +3,46 @@
 
 use crate::{config::SortBy, games::game::Game};
 use anyhow::Result;
-use std::{fs, path::Path};
+use smol::{fs, stream::StreamExt};
+use std::path::Path;
 
 pub mod game;
 pub mod game_id;
 
-pub fn list(root_path: impl AsRef<Path>, sort_by: SortBy) -> Result<Vec<Game>> {
+async fn scan_dir(dir_path: &Path, is_wii: bool) -> Result<Vec<Game>> {
+    let mut games = Vec::new();
+
+    if !fs::metadata(dir_path)
+        .await
+        .map(|m| m.is_dir())
+        .unwrap_or(false)
+    {
+        return Ok(games);
+    }
+
+    while let Some(entry) = fs::read_dir(dir_path).await?.next().await {
+        if let Ok(entry) = entry
+            && let Ok(game) = Game::try_from_path(entry.path(), is_wii).await
+        {
+            games.push(game);
+        }
+    }
+
+    Ok(games)
+}
+
+pub async fn list(root_path: impl AsRef<Path>, sort_by: SortBy) -> Result<Vec<Game>> {
     let root_path = root_path.as_ref();
 
     let wii_dir = root_path.join("wbfs");
     let ngc_dir = root_path.join("games");
 
-    let wii_entries = fs::read_dir(&wii_dir)?.filter_map(Result::ok);
-    let ngc_entries = fs::read_dir(&ngc_dir)?.filter_map(Result::ok);
+    let wii_games = scan_dir(&wii_dir, true).await?;
+    let mut ngc_games = scan_dir(&ngc_dir, false).await?;
 
-    let wii_games = wii_entries.filter_map(|entry| Game::try_from_path(entry.path(), true).ok());
-    let ngc_games = ngc_entries.filter_map(|entry| Game::try_from_path(entry.path(), false).ok());
+    let mut all_games = wii_games;
+    all_games.append(&mut ngc_games);
 
-    let mut all_games = wii_games.chain(ngc_games).collect::<Vec<_>>();
     sort(&mut all_games, sort_by);
 
     Ok(all_games)

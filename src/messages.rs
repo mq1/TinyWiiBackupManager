@@ -1,7 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{notifications::Notification, ui::pages::Page};
+use crate::{
+    games::game::Game, notifications::Notification, plugins::plugin::Plugin, ui::pages::Page,
+    util::drive_info::DriveInfo,
+};
 use serde::Deserialize;
 
 #[derive(Debug, Clone, Deserialize)]
@@ -13,4 +16,10 @@ pub enum Message {
     RefreshPlugins,
     RunTool(usize, usize),
     Notify(Notification),
+    GotGames(Vec<Game>),
+    CouldNotGetGames(String),
+    GotPlugins(Vec<Plugin>),
+    CouldNotGetPlugins(String),
+    GotDriveInfo(DriveInfo),
+    CouldNotGetDriveInfo(String),
 }

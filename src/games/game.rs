@@ -3,10 +3,12 @@
 
 use crate::{games::game_id::GameID, util};
 use anyhow::{Result, anyhow, bail};
+use serde::Deserialize;
 use size::Size;
+use smol::fs;
 use std::{ffi::OsStr, path::PathBuf};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct Game {
     path: PathBuf,
     id: GameID,
@@ -16,11 +18,11 @@ pub struct Game {
 }
 
 impl Game {
-    pub fn try_from_path(path: impl Into<PathBuf>, is_wii: bool) -> Result<Self> {
+    pub async fn try_from_path(path: impl Into<PathBuf>, is_wii: bool) -> Result<Self> {
         let path = path.into();
 
         // Check if the path is a directory
-        if !path.is_dir() {
+        if !fs::metadata(&path).await?.is_dir() {
             bail!("Path is not a directory");
         }
 
@@ -41,11 +43,12 @@ impl Game {
         }
 
         // Parse the id
-        let id = GameID::new(&id_raw[..id_raw.len() - 1])
-            .ok_or_else(|| anyhow!("Invalid directory name"))?;
+        let id = id_raw[..id_raw.len() - 1]
+            .parse::<GameID>()
+            .map_err(|_| anyhow!("Invalid directory name"))?;
 
         let title = title_raw.trim().to_string();
-        let size = util::misc::get_dir_size(&path)?;
+        let size = util::misc::get_dir_size(&path).await;
 
         Ok(Self {
             path,
