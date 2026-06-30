@@ -41,9 +41,9 @@ impl Notification {
         }
     }
 
-    pub fn error(e: impl Into<anyhow::Error>) -> Self {
+    pub fn error(label: impl ToString) -> Self {
         Self {
-            label: format!("{:?}", e.into()),
+            label: label.to_string(),
             level: NotificationLevel::Error,
         }
     }
@@ -56,19 +56,22 @@ impl Notification {
     }
 }
 
+#[derive(Default)]
 #[repr(transparent)]
-pub struct Notifications(Vec<Notification>);
+pub struct Notifications {
+    list: Vec<Notification>,
+}
 
 impl Notifications {
     pub fn new() -> Self {
-        Self(Vec::new())
+        Self::default()
     }
 
     pub fn add(&mut self, notification: Notification) {
-        self.0.push(notification);
+        self.list.push(notification);
     }
 
     pub fn iter(&self) -> impl Iterator<Item = &Notification> {
-        self.0.iter()
+        self.list.iter()
     }
 }

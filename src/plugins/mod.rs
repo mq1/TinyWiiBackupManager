@@ -7,19 +7,28 @@ pub mod run;
 use crate::plugins::plugin::Plugin;
 use anyhow::Result;
 use mlua::{Lua, LuaSerdeExt};
-use std::{ffi::OsStr, fs, path::Path};
+use smol::{fs, stream::StreamExt};
+use std::{ffi::OsStr, path::Path};
 
-pub fn load(data_dir: impl AsRef<Path>) -> Result<Vec<Plugin>> {
+pub async fn load(data_dir: impl AsRef<Path>) -> Result<Vec<Plugin>> {
     let plugins_dir = data_dir.as_ref().join("plugins");
+    let mut plugins = Vec::new();
 
-    if !plugins_dir.is_dir() {
-        return Ok(Vec::new());
+    if !fs::metadata(&plugins_dir)
+        .await
+        .map(|m| m.is_dir())
+        .unwrap_or(false)
+    {
+        return Ok(plugins);
     }
 
     let lua = Lua::new();
-    let mut plugins = Vec::new();
 
-    for entry in fs::read_dir(plugins_dir)?.filter_map(Result::ok) {
+    while let Some(entry) = fs::read_dir(&plugins_dir).await?.next().await {
+        let Ok(entry) = entry else {
+            continue;
+        };
+
         let path = entry.path();
 
         let Some(stem) = path.file_stem().and_then(OsStr::to_str) else {
@@ -34,7 +43,7 @@ pub fn load(data_dir: impl AsRef<Path>) -> Result<Vec<Plugin>> {
             continue;
         }
 
-        let code = fs::read_to_string(&path)?;
+        let code = fs::read_to_string(&path).await?;
         let meta_table = lua.load(&code).eval()?;
 
         let meta = lua.from_value_with(

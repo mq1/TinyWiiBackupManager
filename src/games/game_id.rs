@@ -1,39 +1,47 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::fmt;
+use serde::Deserialize;
+use std::{fmt, str::FromStr};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
 #[repr(transparent)]
-pub struct GameID([u8; 6]);
+#[serde(transparent)]
+pub struct GameID {
+    inner: [u8; 6],
+}
 
 impl GameID {
-    pub fn new(id_str: impl AsRef<str>) -> Option<Self> {
-        let id_str = id_str.as_ref();
+    pub fn as_str(&self) -> &str {
+        let fifth = unsafe { *self.inner.get_unchecked(4) };
+        let end = if fifth == 0 { 4 } else { 6 };
+        unsafe { std::str::from_utf8_unchecked(&self.inner[..end]) }
+    }
 
-        let has_right_len = id_str.len() == 4 || id_str.len() == 6;
-        let has_valid_chars = id_str
+    pub fn as_partial_str(&self) -> &str {
+        unsafe { std::str::from_utf8_unchecked(&self.inner[..3]) }
+    }
+}
+
+impl FromStr for GameID {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let len = s.len();
+
+        let has_right_len = len == 4 || len == 6;
+        let has_valid_chars = s
             .chars()
             .all(|c| c.is_ascii_uppercase() || c.is_ascii_digit());
 
         if !has_right_len || !has_valid_chars {
-            return None;
+            return Err(());
         }
 
-        let mut id = [0; 6];
-        id[..id_str.len()].copy_from_slice(id_str.as_bytes());
+        let mut inner = [0; 6];
+        inner[..len].copy_from_slice(s.as_bytes());
 
-        Some(Self(id))
-    }
-
-    pub fn as_str(&self) -> &str {
-        let fifth = unsafe { *self.0.get_unchecked(4) };
-        let end = if fifth == 0 { 4 } else { 6 };
-        unsafe { std::str::from_utf8_unchecked(&self.0[..end]) }
-    }
-
-    pub fn as_partial_str(&self) -> &str {
-        unsafe { std::str::from_utf8_unchecked(&self.0[..3]) }
+        Ok(GameID { inner })
     }
 }
 
@@ -50,7 +58,7 @@ impl AsRef<str> for GameID {
 }
 
 impl From<[u8; 6]> for GameID {
-    fn from(value: [u8; 6]) -> Self {
-        Self(value)
+    fn from(inner: [u8; 6]) -> Self {
+        Self { inner }
     }
 }
