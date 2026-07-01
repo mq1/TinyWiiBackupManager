@@ -16,6 +16,7 @@ pub enum Message {
     RefreshPlugins,
     RunTool(usize, usize),
     Notify(Notification),
+    CloseNotification(usize),
     GotGames(Vec<Game>),
     CouldNotGetGames(String),
     GotPlugins(Vec<Plugin>),

@@ -55,23 +55,3 @@ impl Notification {
         }
     }
 }
-
-#[derive(Default)]
-#[repr(transparent)]
-pub struct Notifications {
-    list: Vec<Notification>,
-}
-
-impl Notifications {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    pub fn add(&mut self, notification: Notification) {
-        self.list.push(notification);
-    }
-
-    pub fn iter(&self) -> impl Iterator<Item = &Notification> {
-        self.list.iter()
-    }
-}

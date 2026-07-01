@@ -5,7 +5,7 @@ use crate::{
     config::Config,
     games::{self, game::Game},
     messages::Message,
-    notifications::{Notification, Notifications},
+    notifications::Notification,
     plugins::{self, plugin::Plugin},
     ui::pages::Page,
     util::drive_info::DriveInfo,
@@ -16,7 +16,7 @@ use std::path::PathBuf;
 pub(crate) struct AppState {
     pub data_dir: PathBuf,
     pub config: Config,
-    pub notifications: Notifications,
+    pub notifications: Vec<Notification>,
     pub drive_info: Option<DriveInfo>,
     pub games: Vec<Game>,
     pub plugins: Vec<Plugin>,
@@ -30,7 +30,7 @@ impl AppState {
         let state = Self {
             data_dir,
             config,
-            notifications: Notifications::new(),
+            notifications: Vec::new(),
             drive_info: None,
             games: Vec::new(),
             plugins: Vec::new(),

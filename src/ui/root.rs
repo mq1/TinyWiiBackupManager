@@ -5,9 +5,8 @@ use crate::{
     messages::Message,
     state::AppState,
     ui::{
-        components,
+        components, my_palette,
         pages::{self, Page},
-        style::MyPalette,
     },
 };
 use iced::{
@@ -37,6 +36,6 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             .align_right(Length::Fill)
             .align_bottom(Length::Fill)
     ])
-    .style(|theme| container::background(MyPalette::card_bg(theme)))
+    .style(|theme| container::background(my_palette::card_bg(theme)))
     .into()
 }

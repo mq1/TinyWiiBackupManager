@@ -13,7 +13,11 @@ impl AppState {
                 Task::none()
             }
             Message::Notify(notification) => {
-                self.notifications.add(notification);
+                self.notifications.push(notification);
+                Task::none()
+            }
+            Message::CloseNotification(idx) => {
+                self.notifications.remove(idx);
                 Task::none()
             }
             Message::RefreshGamesAndApps => self.get_games_task(),
@@ -23,7 +27,7 @@ impl AppState {
             }
             Message::CouldNotGetGames(e) => {
                 self.games.clear();
-                self.notifications.add(Notification::error(e));
+                self.notifications.push(Notification::error(e));
                 Task::none()
             }
             Message::RefreshPlugins => self.get_plugins_task(),
@@ -33,7 +37,7 @@ impl AppState {
             }
             Message::CouldNotGetPlugins(e) => {
                 self.plugins.clear();
-                self.notifications.add(Notification::error(e));
+                self.notifications.push(Notification::error(e));
                 Task::none()
             }
             Message::GotDriveInfo(drive_info) => {
@@ -42,7 +46,7 @@ impl AppState {
             }
             Message::CouldNotGetDriveInfo(e) => {
                 self.drive_info = None;
-                self.notifications.add(Notification::error(e));
+                self.notifications.push(Notification::error(e));
                 Task::none()
             }
             Message::RunTool(plugin_i, tool_i) => self.run_tool_task(plugin_i, tool_i),
