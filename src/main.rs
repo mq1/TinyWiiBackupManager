@@ -15,14 +15,12 @@ mod update;
 mod util;
 
 use crate::state::AppState;
-use anyhow::{Result, anyhow};
 use lucide_icons::LUCIDE_FONT_BYTES;
 use std::fs;
 
-pub fn main() -> Result<()> {
-    let data_dir =
-        util::data_dir::get_data_dir().ok_or_else(|| anyhow!("Unable to get data directory"))?;
-    fs::create_dir_all(&data_dir)?;
+pub fn main() -> iced::Result {
+    let data_dir = util::data_dir::get_data_dir().expect("Unable to get data directory");
+    fs::create_dir_all(&data_dir).expect("Unable to create data directory");
 
     let boot = move || AppState::new(data_dir.clone());
 
@@ -61,7 +59,5 @@ pub fn main() -> Result<()> {
         .settings(settings)
         .window(window)
         .title(ui::title)
-        .run()?;
-
-    Ok(())
+        .run()
 }

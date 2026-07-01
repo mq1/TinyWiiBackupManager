@@ -14,17 +14,14 @@ pub async fn load(data_dir: impl AsRef<Path>) -> Result<Vec<Plugin>> {
     let plugins_dir = data_dir.as_ref().join("plugins");
     let mut plugins = Vec::new();
 
-    if !fs::metadata(&plugins_dir)
-        .await
-        .map(|m| m.is_dir())
-        .unwrap_or(false)
-    {
+    if !fs::metadata(&plugins_dir).await.is_ok_and(|m| m.is_dir()) {
         return Ok(plugins);
     }
 
     let lua = Lua::new();
 
-    while let Some(entry) = fs::read_dir(&plugins_dir).await?.next().await {
+    let mut entries = fs::read_dir(&plugins_dir).await?;
+    while let Some(entry) = entries.next().await {
         let Ok(entry) = entry else {
             continue;
         };
@@ -39,7 +36,7 @@ pub async fn load(data_dir: impl AsRef<Path>) -> Result<Vec<Plugin>> {
             continue;
         };
 
-        if !path.is_file() || stem.starts_with('.') || ext != "lua" {
+        if stem.starts_with('.') || ext != "lua" {
             continue;
         }
 
