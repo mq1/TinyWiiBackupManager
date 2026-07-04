@@ -3,29 +3,27 @@
 
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
-use std::{
-    fs,
-    path::{Path, PathBuf},
-};
+use smol::fs;
+use std::path::{Path, PathBuf};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Config {
     pub path: PathBuf,
     pub contents: ConfigContents,
 }
 
 impl Config {
-    pub fn load(data_dir: &Path) -> Self {
-        let path = data_dir.join("config.json");
-        let s = fs::read_to_string(&path).unwrap_or_default();
+    pub async fn load(data_dir: impl AsRef<Path>) -> Self {
+        let path = data_dir.as_ref().join("config.json");
+        let s = fs::read_to_string(&path).await.unwrap_or_default();
         let contents = serde_json::from_str(&s).unwrap_or_default();
 
         Self { path, contents }
     }
 
-    pub fn write(&self) -> Result<()> {
+    pub async fn write(&self) -> Result<()> {
         let s = serde_json::to_string_pretty(&self.contents)?;
-        fs::write(&self.path, s)?;
+        fs::write(&self.path, s).await?;
         Ok(())
     }
 

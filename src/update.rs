@@ -21,6 +21,10 @@ impl AppState {
                 Task::none()
             }
             Message::RefreshGamesAndApps => self.get_games_task(),
+            Message::GotConfig(config) => {
+                self.config = config;
+                Task::none()
+            }
             Message::GotGames(games) => {
                 self.games = games;
                 Task::none()

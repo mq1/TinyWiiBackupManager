@@ -25,11 +25,9 @@ pub(crate) struct AppState {
 
 impl AppState {
     pub fn new(data_dir: PathBuf) -> (Self, Task<Message>) {
-        let config = Config::load(&data_dir);
-
         let state = Self {
             data_dir,
-            config,
+            config: Config::default(),
             notifications: Vec::new(),
             drive_info: None,
             games: Vec::new(),
@@ -37,13 +35,21 @@ impl AppState {
             current_page: Page::Games,
         };
 
-        let task = Task::batch([
+        let lazy = state.load_config_task();
+        let lazier = Task::batch([
             state.get_games_task(),
             state.get_drive_info_task(),
             state.get_plugins_task(),
         ]);
 
+        let task = lazy.chain(lazier);
+
         (state, task)
+    }
+
+    pub fn load_config_task(&self) -> Task<Message> {
+        let data_dir = self.data_dir.clone();
+        Task::perform(Config::load(data_dir), Message::GotConfig)
     }
 
     pub fn get_games_task(&self) -> Task<Message> {
