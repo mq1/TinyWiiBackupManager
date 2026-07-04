@@ -36,13 +36,10 @@ impl AppState {
         };
 
         let lazy = state.load_config_task();
-        let lazier = Task::batch([
-            state.get_games_task(),
-            state.get_drive_info_task(),
-            state.get_plugins_task(),
-        ]);
+        let lazier = Task::batch([state.get_games_task(), state.get_drive_info_task()]);
+        let laziest = state.get_plugins_task();
 
-        let task = lazy.chain(lazier);
+        let task = lazy.chain(lazier).chain(laziest);
 
         (state, task)
     }
