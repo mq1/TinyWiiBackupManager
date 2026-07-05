@@ -24,10 +24,10 @@ fn is_portable() -> bool {
 
 fn get_user_dir() -> Option<PathBuf> {
     let proj = ProjectDirs::from("it", "mq1", "TinyWiiBackupManager")?;
-    let data_dir = proj.data_dir().to_path_buf();
+    let data_dir = proj.data_dir();
 
-    fs::create_dir_all(&data_dir).ok()?;
-    Some(data_dir)
+    fs::create_dir_all(data_dir).ok()?;
+    Some(data_dir.to_path_buf())
 }
 
 fn get_portable_dir() -> Option<PathBuf> {
