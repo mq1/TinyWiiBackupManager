@@ -5,13 +5,11 @@ use directories::ProjectDirs;
 use std::{fs, path::PathBuf};
 
 pub fn get_data_dir() -> Option<PathBuf> {
-    let data_dir = if is_portable() {
-        get_portable_dir()?
+    if is_portable() {
+        get_portable_dir()
     } else {
-        get_user_dir().or(get_portable_dir())?
-    };
-
-    Some(data_dir)
+        get_user_dir().or(get_portable_dir())
+    }
 }
 
 fn is_portable() -> bool {
