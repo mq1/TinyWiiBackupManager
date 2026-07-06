@@ -34,8 +34,8 @@ sys-locale = "0.3"
 size = { version = "0.5", features = ["serde"] }
 fs4 = { version = "1.1", default-features = false }
 which-fs = "0.2"
-mlua = { version = "0.11", features = [
-  "lua55",
+mlua = { version = "0.12", features = [
+  "lua51",
   "vendored",
   "anyhow",
   "serde",
