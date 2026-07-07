@@ -12,6 +12,11 @@ impl AppState {
                 self.current_page = page;
                 Task::none()
             }
+            Message::PickMountPoint => self.pick_mount_point_task(),
+            Message::MountPointPicked(path) => {
+                self.config.contents.mount_point = path;
+                self.write_config_task()
+            }
             Message::Notify(notification) => {
                 self.notifications.push(notification);
                 Task::none()
@@ -22,8 +27,16 @@ impl AppState {
             }
             Message::RefreshGamesAndApps => self.get_games_task(),
             Message::GotConfig(config) => {
+                let new_mount_point =
+                    config.contents.mount_point != self.config.contents.mount_point;
+
                 self.config = config;
-                Task::none()
+
+                if new_mount_point {
+                    Task::batch([self.get_games_task(), self.get_drive_info_task()])
+                } else {
+                    Task::none()
+                }
             }
             Message::GotGames(games) => {
                 self.games = games;

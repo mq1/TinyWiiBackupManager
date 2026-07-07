@@ -25,6 +25,7 @@ iced = { version = "0.14", default-features = false, features = [
   "sipper",
 ] }
 lucide-icons = { version = "1.23", features = ["iced"] }
+rfd = "0.17"
 smol = "2"
 anyhow = "1"
 serde = { version = "1", features = ["derive"] }

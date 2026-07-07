@@ -6,12 +6,15 @@ use crate::{
     ui::pages::Page, util::drive_info::DriveInfo,
 };
 use serde::Deserialize;
+use std::path::PathBuf;
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Message {
     NoOp,
     NavigateTo(Page),
+    PickMountPoint,
+    MountPointPicked(PathBuf),
     RefreshGamesAndApps,
     RefreshPlugins,
     RunTool(usize, usize),

@@ -10,7 +10,6 @@ use which_fs::FsKind;
 
 #[derive(Debug, Clone, Default, Deserialize)]
 pub struct DriveInfo {
-    pub label: String,
     pub used_size: Size,
     pub total_size: Size,
     games_size: Size,
@@ -27,9 +26,6 @@ impl DriveInfo {
         if !path.is_dir() {
             bail!("Not a directory");
         }
-
-        let label_osstr = path.file_name().unwrap_or(path.as_os_str());
-        let label = label_osstr.to_string_lossy().to_string();
 
         let stat = fs4::statvfs(path)?;
 
@@ -51,7 +47,6 @@ impl DriveInfo {
         let apps_size = util::misc::get_dir_size(&apps_dir).await;
 
         Ok(Self {
-            label,
             used_size,
             total_size,
             games_size,

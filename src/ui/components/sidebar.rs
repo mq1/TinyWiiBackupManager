@@ -8,7 +8,7 @@ use crate::{
 };
 use iced::{
     Element,
-    widget::{column, space},
+    widget::{column, space, tooltip},
 };
 use lucide_icons::Icon;
 
@@ -25,6 +25,12 @@ pub fn view<'a>(state: &AppState) -> Element<'a, Message> {
         components::sidebar_button::view(&[Icon::Settings], state.current_page == Page::Settings)
             .on_press(Message::NavigateTo(Page::Settings)),
         space::vertical(),
+        tooltip(
+            components::sidebar_button::view(&[Icon::HardDrive], false)
+                .on_press(Message::PickMountPoint),
+            components::card::view("Select a drive"),
+            tooltip::Position::Right
+        ),
         components::sidebar_button::view(&[Icon::Info], false),
     ]
     .padding(10)

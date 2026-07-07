@@ -3,7 +3,7 @@
 
 use serde::Deserialize;
 
-pub mod games;
+pub mod game_grid;
 pub mod plugins;
 pub mod settings;
 pub mod toolbox;
