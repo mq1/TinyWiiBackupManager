@@ -101,15 +101,14 @@ pub fn download_all_covers_for_usbloadergx(ids: &[GameID], config: &Config) -> R
         .join("images");
 
     let pairs = [
-        (".", CoverType::Cover3D),
-        ("2D", CoverType::Cover2D),
-        ("full", CoverType::CoverFull),
-        ("disc", CoverType::Disc),
+        (covers_dir.clone(), CoverType::Cover3D),
+        (covers_dir.join("2D"), CoverType::Cover2D),
+        (covers_dir.join("full"), CoverType::CoverFull),
+        (covers_dir.join("disc"), CoverType::Disc),
     ];
 
     let mut failed_ids = Vec::new();
-    for (subdir, cover_type) in pairs {
-        let dir = covers_dir.join(subdir);
+    for (dir, cover_type) in pairs {
         fs::create_dir_all(&dir)?;
 
         for game_id in ids {
@@ -127,6 +126,39 @@ pub fn download_all_covers_for_usbloadergx(ids: &[GameID], config: &Config) -> R
     }
 
     Ok(failed_ids)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::ConfigContents;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    #[test]
+    fn usbloadergx_download_creates_expected_cover_directories() {
+        let nanos = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let mount = std::env::temp_dir().join(format!("twbm-covers-{nanos}"));
+        let config = Config {
+            path: mount.join("config.json"),
+            contents: ConfigContents {
+                mount_point: mount.clone(),
+                ..Default::default()
+            },
+        };
+
+        download_all_covers_for_usbloadergx(&[], &config).unwrap();
+
+        let covers_dir = mount.join("apps").join("usbloader_gx").join("images");
+        assert!(covers_dir.is_dir());
+        assert!(covers_dir.join("2D").is_dir());
+        assert!(covers_dir.join("full").is_dir());
+        assert!(covers_dir.join("disc").is_dir());
+
+        fs::remove_dir_all(mount).unwrap();
+    }
 }
 
 pub fn download_all_covers_for_wiiflow(ids: &[GameID], config: &Config) -> Result<Vec<GameID>> {
