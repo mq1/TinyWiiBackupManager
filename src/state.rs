@@ -24,9 +24,9 @@ pub(crate) struct AppState {
 }
 
 impl AppState {
-    pub fn new(data_dir: PathBuf) -> (Self, Task<Message>) {
+    pub fn new(data_dir: impl Into<PathBuf>) -> (Self, Task<Message>) {
         let state = Self {
-            data_dir,
+            data_dir: data_dir.into(),
             config: Config::default(),
             notifications: Vec::new(),
             drive_info: None,
