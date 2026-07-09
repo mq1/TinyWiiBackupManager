@@ -96,10 +96,9 @@ impl AppState {
         let straw = plugins::run::run_tool(plugin, tool_i);
 
         Task::sip(straw, std::convert::identity, |res| {
-            if let Err(e) = res {
-                Message::Notify(Notification::error(e))
-            } else {
-                Message::NoOp
+            match res {
+                Ok(()) => Message::NoOp,
+                Err(e) => Message::Notify(Notification::error(e.to_string()))
             }
         })
     }
