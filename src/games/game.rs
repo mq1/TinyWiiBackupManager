@@ -6,7 +6,10 @@ use anyhow::{Result, anyhow, bail};
 use serde::Deserialize;
 use size::Size;
 use smol::fs;
-use std::{ffi::OsStr, path::PathBuf};
+use std::{
+    ffi::OsStr,
+    path::{Path, PathBuf},
+};
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Game {
@@ -15,10 +18,15 @@ pub struct Game {
     pub title: String,
     pub size: Size,
     is_wii: bool,
+    pub cached_cover_path: PathBuf,
 }
 
 impl Game {
-    pub async fn try_from_path(path: impl Into<PathBuf>, is_wii: bool) -> Result<Self> {
+    pub async fn try_from_path(
+        path: impl Into<PathBuf>,
+        is_wii: bool,
+        covers_dir: &Path,
+    ) -> Result<Self> {
         let path = path.into();
 
         // Check if the path is a directory
@@ -31,6 +39,10 @@ impl Game {
             .file_name()
             .and_then(OsStr::to_str)
             .ok_or_else(|| anyhow!("Invalid directory name"))?;
+
+        if dir_name.starts_with('.') {
+            bail!("Hidden path");
+        }
 
         // Extract title and id from the directory name
         let (title_raw, id_raw) = dir_name
@@ -50,12 +62,15 @@ impl Game {
         let title = title_raw.trim().to_string();
         let size = util::misc::get_dir_size(&path).await;
 
+        let cached_cover_path = covers_dir.join(id.as_str()).with_extension("png");
+
         Ok(Self {
             path,
             id,
             title,
             size,
             is_wii,
+            cached_cover_path,
         })
     }
 }

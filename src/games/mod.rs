@@ -3,42 +3,50 @@
 
 use crate::{config::SortBy, games::game::Game};
 use anyhow::Result;
-use smol::{fs, stream::StreamExt};
+use futures::StreamExt;
+use smol::fs;
 use std::path::Path;
 
 pub mod game;
 pub mod game_id;
 
-async fn scan_dir(dir_path: &Path, is_wii: bool) -> Result<Vec<Game>> {
-    let mut games = Vec::new();
-
+async fn scan_dir(data_dir: &Path, dir_path: &Path, is_wii: bool) -> Result<Vec<Game>> {
     if !fs::metadata(dir_path)
         .await
         .map(|m| m.is_dir())
         .unwrap_or(false)
     {
-        return Ok(games);
+        return Ok(vec![]);
     }
 
-    while let Some(entry) = fs::read_dir(dir_path).await?.next().await {
-        if let Ok(entry) = entry
-            && let Ok(game) = Game::try_from_path(entry.path(), is_wii).await
-        {
-            games.push(game);
-        }
-    }
+    let covers_dir = data_dir.join("covers");
+    fs::create_dir_all(&covers_dir).await?;
+
+    let games = fs::read_dir(dir_path)
+        .await?
+        .filter_map(async |entry| {
+            let path = entry.ok()?.path();
+            Game::try_from_path(path, is_wii, &covers_dir).await.ok()
+        })
+        .collect()
+        .await;
 
     Ok(games)
 }
 
-pub async fn list(root_path: impl AsRef<Path>, sort_by: SortBy) -> Result<Vec<Game>> {
+pub async fn list(
+    data_dir: impl AsRef<Path>,
+    root_path: impl AsRef<Path>,
+    sort_by: SortBy,
+) -> Result<Vec<Game>> {
+    let data_dir = data_dir.as_ref();
     let root_path = root_path.as_ref();
 
     let wii_dir = root_path.join("wbfs");
     let ngc_dir = root_path.join("games");
 
-    let wii_games = scan_dir(&wii_dir, true).await?;
-    let mut ngc_games = scan_dir(&ngc_dir, false).await?;
+    let wii_games = scan_dir(data_dir, &wii_dir, true).await?;
+    let mut ngc_games = scan_dir(data_dir, &ngc_dir, false).await?;
 
     let mut all_games = wii_games;
     all_games.append(&mut ngc_games);

@@ -60,13 +60,17 @@ impl AppState {
     }
 
     pub fn get_games_task(&self) -> Task<Message> {
+        let data_dir = self.data_dir.clone();
         let mount_point = self.config.contents.mount_point.clone();
         let sort_by = self.config.contents.sort_by;
 
-        Task::perform(games::list(mount_point, sort_by), |res| match res {
-            Ok(games) => Message::GotGames(games),
-            Err(e) => Message::CouldNotGetGames(e.to_string()),
-        })
+        Task::perform(
+            games::list(data_dir, mount_point, sort_by),
+            |res| match res {
+                Ok(games) => Message::GotGames(games),
+                Err(e) => Message::CouldNotGetGames(e.to_string()),
+            },
+        )
     }
 
     pub fn get_plugins_task(&self) -> Task<Message> {
@@ -95,11 +99,9 @@ impl AppState {
         let plugin = self.plugins[plugin_i].clone();
         let straw = plugins::run::run_tool(plugin, tool_i);
 
-        Task::sip(straw, std::convert::identity, |res| {
-            match res {
-                Ok(()) => Message::NoOp,
-                Err(e) => Message::Notify(Notification::error(e.to_string()))
-            }
+        Task::sip(straw, std::convert::identity, |res| match res {
+            Ok(()) => Message::NoOp,
+            Err(e) => Message::Notify(Notification::error(e.to_string())),
         })
     }
 }

@@ -23,7 +23,10 @@ iced = { version = "0.14", default-features = false, features = [
   "x11",
   "smol",
   "sipper",
+  "image-without-codecs",
+  "advanced"
 ] }
+image = { version = "0.25", default-features = false, features = ["png"] }
 lucide-icons = { version = "1.23", features = ["iced"] }
 rfd = "0.17"
 smol = "2"
@@ -45,6 +48,7 @@ mlua = { version = "0.12", features = [
 ] }
 bitreq = "0.3"
 async-compat = "0.2"
+futures = "0.3"
 
 # windows x86 has issues with bzip2 + lld
 [target.'cfg(all(target_os = "windows", target_arch = "x86"))'.dependencies]
