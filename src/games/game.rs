@@ -14,10 +14,10 @@ use std::{
 #[derive(Debug, Clone, Deserialize)]
 pub struct Game {
     path: PathBuf,
-    id: GameID,
+    pub id: GameID,
     pub title: String,
     pub size: Size,
-    is_wii: bool,
+    pub is_wii: bool,
     pub cached_cover_path: PathBuf,
 }
 

@@ -24,6 +24,7 @@ pub fn main() -> iced::Result {
 
     let settings = iced::Settings {
         fonts: vec![LUCIDE_FONT_BYTES.into()],
+        default_text_size: 14.into(),
         id: Some(String::from("it.mq1.TinyWiiBackupManager")),
         ..Default::default()
     };
