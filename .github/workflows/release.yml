@@ -108,7 +108,7 @@ jobs:
         run: choco install llvm --version=22.1.7 -y
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@1.96
+        uses: dtolnay/rust-toolchain@1.97
         with:
           components: rust-src
 
@@ -173,7 +173,7 @@ jobs:
         run: brew install llvm@22 lld@22
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@1.96
+        uses: dtolnay/rust-toolchain@1.97
         with:
           components: rust-src
 

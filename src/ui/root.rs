@@ -5,16 +5,22 @@ use crate::{
     messages::Message,
     state::AppState,
     ui::{
-        components, my_palette,
+        components::{self, Modal},
+        my_palette,
         pages::{self, Page},
     },
 };
 use iced::{
     Element, Length, border,
-    widget::{container, row, stack},
+    widget::{container, row, stack, text},
 };
 
 pub fn view(state: &AppState) -> Element<'_, Message> {
+    let modal = match state.current_modal {
+        Some(Modal::GameInfo(game)) => components::game_info::view(&state.games[game]),
+        None => text("").into(),
+    };
+
     container(stack![
         row![
             components::sidebar::view(state),
@@ -32,6 +38,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                 base
             })
         ],
+        modal,
         container(components::notifications::view(state))
             .align_right(Length::Fill)
             .align_bottom(Length::Fill)

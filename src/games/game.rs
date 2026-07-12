@@ -13,7 +13,7 @@ use std::{
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Game {
-    path: PathBuf,
+    pub path: PathBuf,
     pub id: GameID,
     pub title: String,
     pub size: Size,

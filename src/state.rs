@@ -7,7 +7,7 @@ use crate::{
     messages::Message,
     notifications::Notification,
     plugins::{self, plugin::Plugin},
-    ui::{dialogs, pages::Page},
+    ui::{components::Modal, dialogs, pages::Page},
     util::drive_info::DriveInfo,
 };
 use iced::Task;
@@ -21,6 +21,7 @@ pub(crate) struct AppState {
     pub games: Vec<Game>,
     pub plugins: Vec<Plugin>,
     pub current_page: Page,
+    pub current_modal: Option<Modal>,
 }
 
 impl AppState {
@@ -33,6 +34,7 @@ impl AppState {
             games: Vec::new(),
             plugins: Vec::new(),
             current_page: Page::Games,
+            current_modal: None,
         };
 
         let task = state.load_config_task().chain(state.get_plugins_task());

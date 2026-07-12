@@ -10,8 +10,8 @@ use lucide_icons::Icon;
 
 pub fn view<'a>(label: Option<&'a str>, icon: Option<Icon>) -> Button<'a, Message> {
     let content = [
-        label.map(|l| text(l).into()),
         icon.map(|i| i.widget().into()),
+        label.map(|l| text(l).into()),
     ]
     .into_iter()
     .flatten()

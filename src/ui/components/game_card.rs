@@ -1,7 +1,11 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{games::game::Game, messages::Message, ui::components};
+use crate::{
+    games::game::Game,
+    messages::Message,
+    ui::components::{self, Modal},
+};
 use iced::{
     Alignment, Element,
     widget::{column, image, row, space, text},
@@ -9,7 +13,7 @@ use iced::{
 use iced_palace::widget::ellipsized_text;
 use lucide_icons::{Icon, iced::icon_tag};
 
-pub fn view<'a>(game: &'a Game) -> Element<'a, Message> {
+pub fn view<'a>((idx, game): (usize, &'a Game)) -> Element<'a, Message> {
     components::card::view(
         column![
             row![
@@ -22,7 +26,8 @@ pub fn view<'a>(game: &'a Game) -> Element<'a, Message> {
             image(&game.cached_cover_path).height(96),
             ellipsized_text(&game.title).wrapping(text::Wrapping::None),
             row![
-                components::my_button::view(Some("Info"), Some(Icon::Info)).on_press(Message::NoOp),
+                components::my_button::view(Some("Info"), Some(Icon::Info))
+                    .on_press(Message::OpenModal(Modal::GameInfo(idx))),
                 components::my_button::view(None, Some(Icon::HardDriveDownload)),
                 components::my_button::view(None, Some(Icon::Trash))
             ]

@@ -12,7 +12,12 @@ use iced::{
 };
 
 pub fn view<'a>(state: &'a AppState) -> Element<'a, Message> {
-    let content = state.games.iter().map(game_card::view).collect::<Row<_>>();
+    let content = state
+        .games
+        .iter()
+        .enumerate()
+        .map(game_card::view)
+        .collect::<Row<_>>();
 
     column![games_titlebar::view(), content]
         .padding(10)

@@ -1,7 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{messages::Message, notifications::Notification, state::AppState};
+use crate::{
+    messages::Message, notifications::Notification, state::AppState, ui::components::Modal,
+};
 use iced::Task;
 
 impl AppState {
@@ -67,6 +69,21 @@ impl AppState {
                 Task::none()
             }
             Message::RunTool(plugin_i, tool_i) => self.run_tool_task(plugin_i, tool_i),
+            Message::Open(url) => {
+                if let Err(e) = open::that(url) {
+                    self.notifications.push(Notification::error(e.to_string()));
+                }
+
+                Task::none()
+            }
+            Message::OpenModal(modal) => {
+                self.current_modal = Some(modal);
+                Task::none()
+            }
+            Message::CloseModal => {
+                self.current_modal = None;
+                Task::none()
+            }
         }
     }
 }
