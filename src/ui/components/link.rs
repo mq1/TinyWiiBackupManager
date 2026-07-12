@@ -3,8 +3,8 @@
 
 use crate::messages::Message;
 use iced::{
-    Element,
-    widget::{rich_text, span},
+    Element, Length,
+    advanced::Widget,lumn, container, row, text},
 };
 use std::{borrow::Cow, ffi::OsStr};
 
