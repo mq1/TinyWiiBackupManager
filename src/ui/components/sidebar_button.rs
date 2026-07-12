@@ -4,7 +4,7 @@
 use crate::messages::Message;
 use iced::{
     Background,
-    border::Radius,
+    border::radius,
     widget::{Button, button, stack},
 };
 use lucide_icons::Icon;
@@ -20,7 +20,7 @@ pub fn view<'a>(icons: &[Icon], active: bool) -> Button<'a, Message> {
 
             let mut base = button::text(theme, status);
 
-            base.border.radius = Radius::new(24);
+            base.border.radius = radius(24);
 
             if active {
                 base.background = Some(Background::Color(palette.primary.scale_alpha(0.5)));

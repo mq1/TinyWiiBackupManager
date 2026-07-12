@@ -4,8 +4,9 @@
 pub mod card;
 pub mod game_card;
 pub mod games_titlebar;
+pub mod my_button;
 pub mod notifications;
 pub mod plugin_card;
 pub mod plugins_titlebar;
 pub mod sidebar;
-mod sidebar_button;
+pub mod sidebar_button;

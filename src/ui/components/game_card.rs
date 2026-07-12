@@ -4,10 +4,10 @@
 use crate::{games::game::Game, messages::Message, ui::components};
 use iced::{
     Alignment, Element,
-    widget::{button, column, image, row, space, text},
+    widget::{column, image, row, space, text},
 };
 use iced_palace::widget::ellipsized_text;
-use lucide_icons::iced::icon_tag;
+use lucide_icons::{Icon, iced::icon_tag};
 
 pub fn view<'a>(game: &'a Game) -> Element<'a, Message> {
     components::card::view(
@@ -21,7 +21,12 @@ pub fn view<'a>(game: &'a Game) -> Element<'a, Message> {
             .spacing(5),
             image(&game.cached_cover_path).height(96),
             ellipsized_text(&game.title).wrapping(text::Wrapping::None),
-            row![button("Info"), button("A"), button("D")].spacing(5)
+            row![
+                components::my_button::view(Some("Info"), Some(Icon::Info)).on_press(Message::NoOp),
+                components::my_button::view(None, Some(Icon::HardDriveDownload)),
+                components::my_button::view(None, Some(Icon::Trash))
+            ]
+            .spacing(5)
         ]
         .align_x(Alignment::Center)
         .padding(5)
