@@ -6,6 +6,7 @@ use iced::{Background, Color, Theme, color};
 pub const RED: Color = color!(0xff0000);
 pub const GREEN: Color = color!(0x00ff00);
 pub const BLUE: Color = color!(0x0000ff);
+pub const LIGHT_BLUE: Color = color!(0x00ffff);
 pub const YELLOW: Color = color!(0xffff00);
 
 pub fn card_bg(theme: &Theme) -> Background {

@@ -7,7 +7,7 @@ use crate::{
     state::AppState,
     ui::{
         components,
-        my_palette::{BLUE, GREEN, RED, YELLOW},
+        my_palette::{GREEN, LIGHT_BLUE, RED, YELLOW},
     },
 };
 use iced::{
@@ -23,7 +23,7 @@ pub fn view<'a>(state: &'a AppState) -> Element<'a, Message> {
         .enumerate()
         .map(|(i, notification)| {
             let icon = match notification.level {
-                NotificationLevel::Info => icon_info().color(BLUE.scale_alpha(0.5)),
+                NotificationLevel::Info => icon_info().color(LIGHT_BLUE.scale_alpha(0.5)),
                 NotificationLevel::Warning => icon_alert_triangle().color(YELLOW.scale_alpha(0.5)),
                 NotificationLevel::Error => icon_x().color(RED.scale_alpha(0.5)),
                 NotificationLevel::Success => icon_check().color(GREEN.scale_alpha(0.5)),

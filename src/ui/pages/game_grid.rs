@@ -17,7 +17,8 @@ pub fn view<'a>(state: &'a AppState) -> Element<'a, Message> {
         .iter()
         .enumerate()
         .map(game_card::view)
-        .collect::<Row<_>>();
+        .collect::<Row<_>>()
+        .spacing(10);
 
     column![games_titlebar::view(), content]
         .padding(10)
