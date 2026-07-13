@@ -16,12 +16,17 @@ use iced::{
 };
 
 pub fn view(state: &AppState) -> Element<'_, Message> {
-    let modal = match state.current_modal {
-        Some(Modal::GameInfo(game)) => components::game_info::view(&state.games[game]),
+    let modal: Element<_> = match state.current_modal {
+        Some(modal) => container(match modal {
+            Modal::GameInfo(game) => components::game_info::view(&state.games[game]),
+        })
+        .center(Length::Fill)
+        .style(|theme| {
+            container::transparent(theme).background(theme.palette().background.scale_alpha(0.5))
+        })
+        .into(),
         None => text("").into(),
     };
-
-    let modal = container(modal).center(Length::Fill);
 
     container(stack![
         row![
