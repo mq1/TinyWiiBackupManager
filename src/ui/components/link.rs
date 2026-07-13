@@ -6,10 +6,16 @@ use iced::{
     Element, Length,
     widget::{button, column, container, row, text},
 };
+use lucide_icons::Icon;
 use std::{borrow::Cow, ffi::OsStr};
 
-pub fn view<'a>(label: impl Into<Cow<'a, str>>, url: &'a OsStr) -> Element<'a, Message> {
-    let label = text(label.into());
+pub fn view<'a>(
+    label: impl Into<Cow<'a, str>>,
+    icon: Option<Icon>,
+    url: &'a OsStr,
+) -> Element<'a, Message> {
+    let label = row![icon.unwrap_or(Icon::Globe).widget(), text(label.into())].spacing(5);
+
     let underline = container(row![].height(1).width(Length::Fill)).style(|theme| {
         let mut base = container::bordered_box(theme);
         base.border.color = theme.palette().primary;

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    messages::Message, notifications::Notification, state::AppState, ui::components::Modal,
+    messages::Message, notifications::Notification, state::AppState,
 };
 use iced::Task;
 

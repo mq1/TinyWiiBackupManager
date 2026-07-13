@@ -31,3 +31,11 @@ pub fn view<'a>(label: Option<&'a str>, icon: Option<Icon>) -> Button<'a, Messag
         base
     })
 }
+
+pub fn primary<'a>(label: Option<&'a str>, icon: Option<Icon>) -> Button<'a, Message> {
+    view(label, icon).style(|theme, status| {
+        let mut base = button::primary(theme, status);
+        base.border.radius = 12.into();
+        base
+    })
+}

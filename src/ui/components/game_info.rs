@@ -1,17 +1,42 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{games::game::Game, messages::Message, ui::components};
+use crate::{
+    games::game::Game,
+    messages::Message,
+    ui::components::{self, my_button},
+};
 use iced::{
     Element,
-    widget::{button, column, row, text},
+    widget::{column, row, rule, space, text},
 };
+use lucide_icons::Icon;
 
 pub fn view<'a>(game: &'a Game) -> Element<'a, Message> {
-    components::card::view(column![
-        text(&game.title),
-        components::link::view(game.path.to_string_lossy(), game.path.as_os_str()),
-        row![button("Close").on_press(Message::CloseModal)]
-    ])
+    components::card::view(
+        column![
+            column![
+                text(&game.title).size(18),
+                components::link::view(
+                    game.path.to_string_lossy(),
+                    Some(Icon::Folder),
+                    game.path.as_os_str()
+                ),
+            ]
+            .spacing(10)
+            .padding(20),
+            space::vertical(),
+            rule::horizontal(1),
+            row![
+                space::horizontal(),
+                my_button::primary(Some("Close"), None).on_press(Message::CloseModal)
+            ]
+            .spacing(10)
+            .padding(10)
+        ]
+        .width(600)
+        .height(400),
+    )
+    .padding(0)
     .into()
 }

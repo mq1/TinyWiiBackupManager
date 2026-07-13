@@ -21,6 +21,8 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
         None => text("").into(),
     };
 
+    let modal = container(modal).center(Length::Fill);
+
     container(stack![
         row![
             components::sidebar::view(state),
