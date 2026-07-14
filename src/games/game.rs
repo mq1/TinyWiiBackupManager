@@ -3,7 +3,6 @@
 
 use crate::{games::game_id::GameID, util};
 use anyhow::{Result, anyhow, bail};
-use serde::Deserialize;
 use size::Size;
 use smol::fs;
 use std::{
@@ -11,7 +10,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct Game {
     pub path: PathBuf,
     pub id: GameID,
@@ -72,6 +71,30 @@ impl Game {
             is_wii,
             cached_cover_path,
         })
+    }
+
+    pub async fn get_disc_path(&self) -> Option<PathBuf> {
+        let wii_wbfs = format!("{}.wbfs", self.id);
+        let wii_iso = format!("{}.iso", self.id);
+        let wii_part0_iso = format!("{}.part0.iso", self.id);
+
+        let possible_filenames = [
+            wii_wbfs.as_str(),
+            wii_iso.as_str(),
+            wii_part0_iso.as_str(),
+            "game.iso",
+            "game.ciso",
+        ];
+
+        for filename in possible_filenames {
+            let path = self.path.join(filename);
+
+            if fs::metadata(&path).await.is_ok_and(|meta| meta.is_file()) {
+                return Some(path);
+            }
+        }
+
+        None
     }
 }
 

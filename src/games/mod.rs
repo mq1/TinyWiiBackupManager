@@ -6,6 +6,7 @@ use anyhow::Result;
 use smol::{fs, stream::StreamExt};
 use std::path::Path;
 
+pub mod covers;
 pub mod game;
 pub mod game_id;
 

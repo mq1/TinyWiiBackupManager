@@ -16,9 +16,11 @@ use iced::{
 };
 
 pub fn view(state: &AppState) -> Element<'_, Message> {
-    let modal: Element<_> = match state.current_modal {
+    let modal: Element<_> = match &state.current_modal {
         Some(modal) => container(match modal {
-            Modal::GameInfo(game) => components::game_info::view(&state.games[game]),
+            Modal::GameInfo((idx, disc_info)) => {
+                components::game_info::view(&state.games[*idx], disc_info.as_deref())
+            }
         })
         .center(Length::Fill)
         .style(|theme| {

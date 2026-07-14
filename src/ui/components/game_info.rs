@@ -12,7 +12,16 @@ use iced::{
 };
 use lucide_icons::Icon;
 
-pub fn view<'a>(game: &'a Game) -> Element<'a, Message> {
+pub fn view<'a>(
+    game: &'a Game,
+    disc_info: Option<&'a wii_disc_info::Meta>,
+) -> Element<'a, Message> {
+    let content = if let Some(disc_info) = disc_info {
+        text!("Region: {}", disc_info.region())
+    } else {
+        text("No disc info available")
+    };
+
     components::card::view(
         column![
             column![
@@ -25,6 +34,8 @@ pub fn view<'a>(game: &'a Game) -> Element<'a, Message> {
             ]
             .spacing(10)
             .padding(20),
+            space::vertical(),
+            content,
             space::vertical(),
             rule::horizontal(1),
             row![

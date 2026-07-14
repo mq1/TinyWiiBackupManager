@@ -3,18 +3,16 @@
 
 use crate::util;
 use anyhow::{Result, bail};
-use serde::Deserialize;
 use size::Size;
 use std::path::Path;
 use which_fs::FsKind;
 
-#[derive(Debug, Clone, Default, Deserialize)]
+#[derive(Debug, Clone, Default)]
 pub struct DriveInfo {
     pub used_size: Size,
     pub total_size: Size,
     games_size: Size,
     apps_size: Size,
-    #[serde(skip)]
     fs_kind: FsKind,
     allocation_granularity: u64,
 }

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    messages::Message, notifications::Notification, state::AppState,
+    messages::Message, notifications::Notification, state::AppState, ui::components::Modal,
 };
 use iced::Task;
 
@@ -76,12 +76,19 @@ impl AppState {
 
                 Task::none()
             }
-            Message::OpenModal(modal) => {
-                self.current_modal = Some(modal);
-                Task::none()
+            Message::OpenGameInfo(idx) => {
+                self.current_modal = Some(Modal::GameInfo((idx, None)));
+                self.get_disc_info_task(idx)
             }
             Message::CloseModal => {
                 self.current_modal = None;
+                Task::none()
+            }
+            Message::GotDiscInfo(new_meta) => {
+                if let Some(Modal::GameInfo((_, meta))) = &mut self.current_modal {
+                    *meta = Some(new_meta);
+                }
+
                 Task::none()
             }
         }

@@ -1,11 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    games::game::Game,
-    messages::Message,
-    ui::components::{self, Modal},
-};
+use crate::{games::game::Game, messages::Message, ui::components};
 use iced::{
     Alignment, Element,
     widget::{column, image, row, space, text},
@@ -27,7 +23,7 @@ pub fn view<'a>((idx, game): (usize, &'a Game)) -> Element<'a, Message> {
             ellipsized_text(&game.title).wrapping(text::Wrapping::None),
             row![
                 components::my_button::view(Some("Info"), Some(Icon::Info))
-                    .on_press(Message::OpenModal(Modal::GameInfo(idx))),
+                    .on_press(Message::OpenGameInfo(idx)),
                 components::my_button::view(None, Some(Icon::HardDriveDownload)),
                 components::my_button::view(None, Some(Icon::Trash))
             ]

@@ -2,12 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    config::Config,
-    games::game::Game,
-    notifications::Notification,
-    plugins::plugin::Plugin,
-    ui::{components::Modal, pages::Page},
-    util::drive_info::DriveInfo,
+    config::Config, games::game::Game, notifications::Notification, plugins::plugin::Plugin,
+    ui::pages::Page, util::drive_info::DriveInfo,
 };
 use serde::Deserialize;
 use std::{ffi::OsString, path::PathBuf};
@@ -25,13 +21,18 @@ pub enum Message {
     Notify(Notification),
     CloseNotification(usize),
     GotConfig(Config),
+    #[serde(skip)]
     GotGames(Vec<Game>),
     CouldNotGetGames(String),
     GotPlugins(Vec<Plugin>),
     CouldNotGetPlugins(String),
+    #[serde(skip)]
     GotDriveInfo(DriveInfo),
     CouldNotGetDriveInfo(String),
     Open(OsString),
-    OpenModal(Modal),
+    #[serde(skip)]
+    OpenGameInfo(usize),
     CloseModal,
+    #[serde(skip)]
+    GotDiscInfo(Box<wii_disc_info::Meta>),
 }

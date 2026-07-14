@@ -10,7 +10,9 @@ use crate::{
     ui::{components::Modal, dialogs, pages::Page},
     util::drive_info::DriveInfo,
 };
+use anyhow::anyhow;
 use iced::Task;
+use smol::fs::File;
 use std::path::PathBuf;
 
 pub(crate) struct AppState {
@@ -105,5 +107,27 @@ impl AppState {
             Ok(()) => Message::NoOp,
             Err(e) => Message::Notify(Notification::error(e.to_string())),
         })
+    }
+
+    pub fn get_disc_info_task(&self, game_i: usize) -> Task<Message> {
+        let game = self.games[game_i].clone();
+
+        Task::perform(
+            async move {
+                let disc_path = game
+                    .get_disc_path()
+                    .await
+                    .ok_or_else(|| anyhow!("Disc not found"))?;
+
+                let mut file = File::open(&disc_path).await?;
+                let meta = wii_disc_info::Meta::read(&mut file).await?;
+
+                Ok(meta)
+            },
+            |res: Result<_, anyhow::Error>| match res {
+                Ok(meta) => Message::GotDiscInfo(Box::new(meta)),
+                Err(e) => Message::Notify(Notification::error(e.to_string())),
+            },
+        )
     }
 }
