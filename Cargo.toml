@@ -49,7 +49,6 @@ mlua = { version = "0.12", features = [
 ] }
 bitreq = "0.3"
 async-compat = "0.2"
-futures = "0.3"
 open = "5"
 
 # windows x86 has issues with bzip2 + lld

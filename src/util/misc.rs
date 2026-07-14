@@ -16,16 +16,17 @@ pub async fn get_dir_size(path: impl Into<PathBuf>) -> Size {
 
         if meta.is_file() {
             size += meta.len();
-        } else if meta.is_dir() {
-            let Ok(mut new_entries) = fs::read_dir(&entry).await else {
-                continue;
-            };
+        } else if meta.is_dir()
+            && let Ok(new_entries) = fs::read_dir(&entry).await
+        {
+            let new_entries = new_entries
+                .collect::<Vec<_>>()
+                .await
+                .into_iter()
+                .filter_map(Result::ok)
+                .map(|entry| entry.path());
 
-            while let Some(new_entry) = new_entries.next().await {
-                if let Ok(new_entry) = new_entry {
-                    entries.push(new_entry.path());
-                }
-            }
+            entries.extend(new_entries);
         }
     }
 

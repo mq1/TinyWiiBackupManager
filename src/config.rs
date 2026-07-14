@@ -28,7 +28,7 @@ impl Config {
     }
 
     /// Returns true if the notification should be shown
-    pub fn check_mount_point(&mut self) -> bool {
+    pub async fn check_mount_point(&mut self) -> bool {
         let drive = &self.contents.mount_point;
 
         if drive.as_os_str().is_empty() {
@@ -39,7 +39,7 @@ impl Config {
 
         if new {
             self.contents.known_drives.push(drive.clone());
-            let _ = self.write();
+            let _ = self.write().await;
         }
 
         new
