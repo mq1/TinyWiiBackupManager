@@ -4380,7 +4380,7 @@ dependencies = [
 [[package]]
 name = "wii-disc-info"
 version = "0.9.2"
-source = "git+https://github.com/mq1/wii-disc-info-rs?branch=async#ae559e1442ec593d1dcf215ad827690a193d11b7"
+source = "git+https://github.com/mq1/wii-disc-info-rs?branch=async#eac00664a3ba4645dc24a81fe15979a21a92885a"
 dependencies = [
  "futures-lite",
  "miniz_oxide 0.9.1",
