@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - dev
+      - v7
     tags:
       - "v*.*.*"
     paths:
