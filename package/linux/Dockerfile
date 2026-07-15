@@ -4,7 +4,7 @@
 FROM debian:11
 
 # Install dependencies
-RUN apt-get update && apt-get install -y lsb-release wget software-properties-common gnupg
+RUN apt-get update && apt-get install -y lsb-release wget software-properties-common gnupg cmake
 
 # Install LLVM
 RUN wget https://apt.llvm.org/llvm.sh && \
