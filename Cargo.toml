@@ -53,7 +53,7 @@ wii-disc-info = { git = "https://github.com/mq1/wii-disc-info-rs", branch = "asy
 
 # windows x86 has issues with bzip2 + lld
 [target.'cfg(all(target_os = "windows", target_arch = "x86"))'.dependencies]
-nod = { version = "=2.0.0-alpha.9", default-features = false, features = [
+nod = { git = "https://github.com/wiidev/nod", branch = "fix-block-handling", default-features = false, features = [
   "compress-lzma-vendored",
   "compress-zlib-vendored",
   "compress-zstd-vendored",
@@ -61,7 +61,7 @@ nod = { version = "=2.0.0-alpha.9", default-features = false, features = [
 ] }
 
 [target.'cfg(not(all(target_os = "windows", target_arch = "x86")))'.dependencies]
-nod = "=2.0.0-alpha.9"
+nod = { git = "https://github.com/wiidev/nod", branch = "fix-block-handling" }
 
 [target.'cfg(target_os = "windows")'.dependencies]
 wgpu = { version = "27.0", default-features = false, features = [
