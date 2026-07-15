@@ -9,9 +9,9 @@ repository = "https://github.com/mq1/TinyWiiBackupManager"
 description = "A tiny game backup and homebrew app manager for the Wii"
 
 [features]
-default = ["native-tls"]
-native-tls = ["bitreq/async-https-native-tls"]
-rustls = ["bitreq/async-https-rustls-probe"]
+default = ["native-https"]
+native-https = ["isahc/native-tls"]
+static-https = ["isahc/static-curl", "isahc/rustls-tls"]
 
 [dependencies]
 iced = { version = "0.14", default-features = false, features = [
@@ -47,8 +47,7 @@ mlua = { version = "0.12", features = [
   "send",
   "async",
 ] }
-bitreq = "0.3"
-async-compat = "0.2"
+isahc = { version = "2", default-features = false }
 open = "5"
 wii-disc-info = { git = "https://github.com/mq1/wii-disc-info-rs", branch = "async" }
 
