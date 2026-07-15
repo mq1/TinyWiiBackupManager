@@ -4,7 +4,7 @@
 FROM debian:11
 
 # Install dependencies
-RUN apt-get update && apt-get install -y lsb-release wget software-properties-common gnupg libssl-dev
+RUN apt-get update && apt-get install -y lsb-release wget software-properties-common gnupg perl
 
 # Install LLVM
 RUN wget https://apt.llvm.org/llvm.sh && \
@@ -18,9 +18,9 @@ RUN wget https://static.rust-lang.org/rustup/rustup-init.sh && \
 
 # Install i686 dependencies
 RUN if [ "$(uname -m)" = "x86_64" ]; then \
-        dpkg --add-architecture i386 &&\
-	apt-get update &&\
-        apt-get install -y gcc-multilib libssl-dev:i386;\
+        dpkg --add-architecture i386 && \
+	apt-get update && \
+        apt-get install -y gcc-multilib perl:i386; \
     fi
 
 ENV RUSTC_BOOTSTRAP=1
