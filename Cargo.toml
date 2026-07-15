@@ -11,7 +11,7 @@ description = "A tiny game backup and homebrew app manager for the Wii"
 [features]
 default = ["native-https"]
 native-https = ["isahc/native-tls"]
-static-https = ["isahc/static-curl", "isahc/native-tls-static"]
+static-https = ["isahc/static-curl", "isahc/rustls-tls"]
 
 [dependencies]
 iced = { version = "0.14", default-features = false, features = [

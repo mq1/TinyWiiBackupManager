@@ -172,13 +172,6 @@ jobs:
 
       - name: Install LLVM and LLD
         run: brew install llvm@22 lld@22
-      
-      - if: matrix.arch == 'x86_64'
-        name: Install x86_64 Homebrew + OpenSSL (for cross-compiling to x86_64-apple-darwin)
-        run: |
-          # Bootstrap a separate x86_64 Homebrew under Rosetta (installs to /usr/local)
-          arch -x86_64 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-          arch -x86_64 /usr/local/bin/brew install openssl@3
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.97
@@ -197,9 +190,6 @@ jobs:
           RUSTFLAGS: -C linker-plugin-lto -C link-arg=-fuse-ld=/opt/homebrew/opt/lld@22/bin/ld64.lld
           CARGO_TARGET_AARCH64_APPLE_DARWIN_LINKER: ./macos-linker.sh
           CARGO_TARGET_X86_64_APPLE_DARWIN_LINKER: ./macos-linker.sh
-          X86_64_APPLE_DARWIN_OPENSSL_DIR: /usr/local/opt/openssl@3
-          PKG_CONFIG_ALLOW_CROSS: "1"
-          PKG_CONFIG_PATH_x86_64-apple-darwin: /usr/local/opt/openssl@3/lib/pkgconfig
 
       - name: Upload macOS binaries
         uses: actions/upload-artifact@v7
