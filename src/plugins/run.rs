@@ -5,7 +5,7 @@ use crate::{messages::Message, plugins::plugin::Plugin, util};
 use iced::task::{Straw, sipper};
 use mlua::{Function, Lua, LuaSerdeExt, Table};
 
-fn make_app_interface<S, F>(lua: &Lua, send_message: S) -> Result<Table, mlua::Error>
+fn make_app_interface<S, F>(lua: &Lua, send_message: S) -> mlua::Result<Table>
 where
     S: (FnMut(Message) -> F) + Clone + Send + 'static,
     F: Future<Output = ()> + Send,
