@@ -20,6 +20,7 @@ dependencies = [
  "rfd",
  "serde",
  "serde_json",
+ "sipper",
  "size",
  "smol",
  "sys-locale",
@@ -2140,9 +2141,9 @@ dependencies = [
 
 [[package]]
 name = "lucide-icons"
-version = "1.24.0"
+version = "1.25.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fc788cd197371c8775ecd589009350ea71dbc3a5709b2495c032670dcfed320d"
+checksum = "029a7582875d762cacb18cb1255779e8efb2fc78081a4fc1ddc65b49b4d42aa0"
 dependencies = [
  "iced",
 ]

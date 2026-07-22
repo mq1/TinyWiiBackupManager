@@ -3,9 +3,10 @@
 
 use serde::Deserialize;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum NotificationLevel {
+    #[default]
     Info,
     Warning,
     Error,
@@ -16,6 +17,7 @@ pub enum NotificationLevel {
 #[serde(rename_all = "snake_case")]
 pub struct Notification {
     pub label: String,
+    #[serde(default)]
     pub level: NotificationLevel,
 }
 

@@ -15,20 +15,21 @@ static-https = ["isahc/static-curl", "isahc/native-tls-static"]
 
 [dependencies]
 iced = { version = "0.14", default-features = false, features = [
-  "crisp",
-  "linux-theme-detection",
-  "tiny-skia",
-  "wayland",
-  "wgpu-bare",
-  "x11",
-  "smol",
-  "sipper",
-  "image-without-codecs",
-  "advanced"
+    "crisp",
+    "linux-theme-detection",
+    "tiny-skia",
+    "wayland",
+    "wgpu-bare",
+    "x11",
+    "smol",
+    "sipper",
+    "image-without-codecs",
+    "advanced",
 ] }
 iced_palace = "0.14"
 image = { version = "0.25", default-features = false, features = ["png"] }
-lucide-icons = { version = "1.23", features = ["iced"] }
+lucide-icons = { version = "1.25", features = ["iced"] }
+sipper = "0.1"
 rfd = "0.17"
 smol = "2"
 anyhow = "1"
@@ -40,12 +41,12 @@ size = { version = "0.5", features = ["serde"] }
 fs4 = { version = "1.1", default-features = false }
 which-fs = "0.2"
 mlua = { version = "0.12", features = [
-  "lua51",
-  "vendored",
-  "anyhow",
-  "serde",
-  "send",
-  "async",
+    "lua51",
+    "vendored",
+    "anyhow",
+    "serde",
+    "send",
+    "async",
 ] }
 isahc = { version = "2", default-features = false }
 open = "5"
@@ -54,10 +55,10 @@ wii-disc-info = { git = "https://github.com/mq1/wii-disc-info-rs", branch = "asy
 # windows x86 has issues with bzip2 + lld
 [target.'cfg(all(target_os = "windows", target_arch = "x86"))'.dependencies]
 nod = { git = "https://github.com/wiidev/nod", branch = "fix-block-handling", default-features = false, features = [
-  "compress-lzma-vendored",
-  "compress-zlib-vendored",
-  "compress-zstd-vendored",
-  "threading",
+    "compress-lzma-vendored",
+    "compress-zlib-vendored",
+    "compress-zstd-vendored",
+    "threading",
 ] }
 
 [target.'cfg(not(all(target_os = "windows", target_arch = "x86")))'.dependencies]
@@ -65,23 +66,23 @@ nod = { git = "https://github.com/wiidev/nod", branch = "fix-block-handling" }
 
 [target.'cfg(target_os = "windows")'.dependencies]
 wgpu = { version = "27.0", default-features = false, features = [
-  "std",
-  "parking_lot",
-  "dx12",
+    "std",
+    "parking_lot",
+    "dx12",
 ] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 wgpu = { version = "27.0", default-features = false, features = [
-  "std",
-  "parking_lot",
-  "vulkan",
+    "std",
+    "parking_lot",
+    "vulkan",
 ] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 wgpu = { version = "27.0", default-features = false, features = [
-  "std",
-  "parking_lot",
-  "metal",
+    "std",
+    "parking_lot",
+    "metal",
 ] }
 
 # tiny and fast

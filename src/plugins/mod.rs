@@ -8,10 +8,12 @@ use crate::plugins::plugin::Plugin;
 use anyhow::Result;
 use mlua::{Lua, LuaSerdeExt};
 use smol::{fs, stream::StreamExt};
-use std::{ffi::OsStr, path::Path};
+use std::{ffi::OsStr, path::PathBuf};
 
-pub async fn load(data_dir: impl AsRef<Path>) -> Result<Vec<Plugin>> {
-    let plugins_dir = data_dir.as_ref().join("plugins");
+pub async fn load(data_dir: impl Into<PathBuf>) -> Result<Vec<Plugin>> {
+    let mut plugins_dir = data_dir.into();
+    plugins_dir.push("plugins");
+
     let mut plugins = Vec::new();
 
     if !fs::metadata(&plugins_dir).await.is_ok_and(|m| m.is_dir()) {
