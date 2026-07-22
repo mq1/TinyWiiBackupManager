@@ -4,22 +4,19 @@
 use crate::{messages::Message, plugins::plugin::Plugin, util};
 use iced::task::{Straw, sipper};
 use mlua::{Function, Lua, LuaSerdeExt, Table};
+use sipper::Sender;
 
-fn make_app_interface<S, F>(lua: &Lua, send_message: S) -> mlua::Result<Table>
-where
-    S: (FnMut(Message) -> F) + Clone + Send + 'static,
-    F: Future<Output = ()> + Send,
-{
+fn make_app_interface(lua: &Lua, sender: Sender<Message>) -> mlua::Result<Table> {
     let twbm = lua.create_table()?;
 
     twbm.set(
         "notify",
         lua.create_async_function(move |lua, notification| {
-            let mut send_message = send_message.clone();
+            let mut sender = sender.clone();
 
             async move {
                 let notification = lua.from_value(notification)?;
-                send_message(Message::Notify(notification)).await;
+                sender.send(Message::Notify(notification)).await;
                 Ok(())
             }
         })?,
@@ -42,12 +39,7 @@ pub fn run_tool(plugin: Plugin, tool_i: usize) -> impl Straw<(), Message, anyhow
     sipper(async move |sender| {
         let lua = Lua::new();
 
-        let send_message = move |message| {
-            let mut sender = sender.clone();
-            async move { sender.send(message).await }
-        };
-
-        let twbm = make_app_interface(&lua, send_message)?;
+        let twbm = make_app_interface(&lua, sender)?;
         lua.globals().set("twbm", twbm)?;
 
         let ctx = lua.create_table()?;

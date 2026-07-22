@@ -20,6 +20,7 @@ dependencies = [
  "rfd",
  "serde",
  "serde_json",
+ "sipper",
  "size",
  "smol",
  "sys-locale",
