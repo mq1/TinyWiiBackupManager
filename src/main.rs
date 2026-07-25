@@ -8,7 +8,6 @@ mod config;
 mod games;
 mod messages;
 mod notifications;
-mod plugins;
 mod state;
 mod ui;
 mod update;

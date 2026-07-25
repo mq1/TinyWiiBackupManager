@@ -6,7 +6,6 @@ use crate::{
     games::{self, game::Game},
     messages::Message,
     notifications::Notification,
-    plugins::{self, plugin::Plugin},
     ui::{components::Modal, dialogs, pages::Page},
     util::drive_info::DriveInfo,
 };
@@ -21,7 +20,6 @@ pub(crate) struct AppState {
     pub notifications: Vec<Notification>,
     pub drive_info: Option<DriveInfo>,
     pub games: Vec<Game>,
-    pub plugins: Vec<Plugin>,
     pub current_page: Page,
     pub current_modal: Option<Modal>,
 }
@@ -34,12 +32,11 @@ impl AppState {
             notifications: Vec::new(),
             drive_info: None,
             games: Vec::new(),
-            plugins: Vec::new(),
             current_page: Page::Games,
             current_modal: None,
         };
 
-        let task = state.load_config_task().chain(state.get_plugins_task());
+        let task = state.load_config_task();
 
         (state, task)
     }
@@ -77,15 +74,6 @@ impl AppState {
         )
     }
 
-    pub fn get_plugins_task(&self) -> Task<Message> {
-        let data_dir = self.data_dir.clone();
-
-        Task::perform(plugins::load(data_dir), |res| match res {
-            Ok(plugins) => Message::GotPlugins(plugins),
-            Err(e) => Message::CouldNotGetPlugins(e.to_string()),
-        })
-    }
-
     pub fn get_drive_info_task(&self) -> Task<Message> {
         let mount_point = &self.config.contents.mount_point;
         if mount_point.as_os_str().is_empty() {
@@ -96,16 +84,6 @@ impl AppState {
         Task::perform(DriveInfo::try_from_path(mount_point), |res| match res {
             Ok(drive_info) => Message::GotDriveInfo(drive_info),
             Err(e) => Message::CouldNotGetDriveInfo(e.to_string()),
-        })
-    }
-
-    pub fn run_tool_task(&self, plugin_i: usize, tool_i: usize) -> Task<Message> {
-        let plugin = self.plugins[plugin_i].clone();
-        let straw = plugins::run::run_tool(plugin, tool_i);
-
-        Task::sip(straw, std::convert::identity, |res| match res {
-            Ok(()) => Message::NoOp,
-            Err(e) => Message::Notify(Notification::error(e.to_string())),
         })
     }
 

@@ -37,7 +37,6 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                 Page::Games => pages::game_grid::view(state),
                 Page::Settings => pages::settings::view(),
                 Page::Toolbox => pages::toolbox::view(state),
-                Page::Plugins => pages::plugins::view(state),
             })
             .width(Length::Fill)
             .height(Length::Fill)

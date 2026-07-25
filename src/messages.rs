@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    config::Config, games::game::Game, notifications::Notification, plugins::plugin::Plugin,
-    ui::pages::Page, util::drive_info::DriveInfo,
+    config::Config, games::game::Game, notifications::Notification, ui::pages::Page,
+    util::drive_info::DriveInfo,
 };
 use std::{ffi::OsString, path::PathBuf};
 
@@ -14,15 +14,11 @@ pub enum Message {
     PickMountPoint,
     MountPointPicked(PathBuf),
     RefreshGamesAndApps,
-    RefreshPlugins,
-    RunTool(usize, usize),
     Notify(Notification),
     CloseNotification(usize),
     GotConfig(Config),
     GotGames(Vec<Game>),
     CouldNotGetGames(String),
-    GotPlugins(Vec<Plugin>),
-    CouldNotGetPlugins(String),
     GotDriveInfo(DriveInfo),
     CouldNotGetDriveInfo(String),
     Open(OsString),

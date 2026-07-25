@@ -8,8 +8,6 @@ pub mod games_titlebar;
 pub mod link;
 pub mod my_button;
 pub mod notifications;
-pub mod plugin_card;
-pub mod plugins_titlebar;
 pub mod sidebar;
 pub mod sidebar_button;
 
