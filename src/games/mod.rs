@@ -1,8 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{config::SortBy, games::game::Game};
-use anyhow::Result;
+use crate::{config::SortBy, errors::Error, games::game::Game};
 use smol::{fs, stream::StreamExt};
 use std::path::Path;
 
@@ -29,7 +28,7 @@ pub async fn list(
     data_dir: impl AsRef<Path>,
     root_path: impl AsRef<Path>,
     sort_by: SortBy,
-) -> Result<Vec<Game>> {
+) -> Result<Vec<Game>, Error> {
     let data_dir = data_dir.as_ref();
     let root_path = root_path.as_ref();
 

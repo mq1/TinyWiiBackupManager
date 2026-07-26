@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use anyhow::Result;
+use crate::errors::Error;
 use isahc::{AsyncReadResponseExt, HttpClient};
 use smol::fs;
 use std::{path::Path, sync::LazyLock};
@@ -15,7 +15,7 @@ static CLIENT: LazyLock<HttpClient> = LazyLock::new(|| {
         .unwrap()
 });
 
-pub async fn download_file(uri: &str, dest: impl AsRef<Path>) -> Result<()> {
+pub async fn download_file(uri: &str, dest: impl AsRef<Path>) -> Result<(), Error> {
     let body = CLIENT.get_async(uri).await?.bytes().await?;
     fs::write(dest, body).await?;
 

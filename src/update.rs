@@ -19,10 +19,6 @@ impl AppState {
                 self.config.contents.mount_point = path;
                 self.write_config_task()
             }
-            Message::Notify(notification) => {
-                self.notifications.push(notification);
-                Task::none()
-            }
             Message::CloseNotification(idx) => {
                 self.notifications.remove(idx);
                 Task::none()
@@ -40,27 +36,27 @@ impl AppState {
                     Task::none()
                 }
             }
-            Message::GotGames(games) => {
+            Message::GotGames(Ok(games)) => {
                 self.games = games;
                 Task::none()
             }
-            Message::CouldNotGetGames(e) => {
+            Message::GotGames(Err(e)) => {
                 self.games.clear();
                 self.notifications.push(Notification::error(e));
                 Task::none()
             }
-            Message::GotDriveInfo(drive_info) => {
+            Message::GotDriveInfo(Ok(drive_info)) => {
                 self.drive_info = Some(drive_info);
                 Task::none()
             }
-            Message::CouldNotGetDriveInfo(e) => {
+            Message::GotDriveInfo(Err(e)) => {
                 self.drive_info = None;
                 self.notifications.push(Notification::error(e));
                 Task::none()
             }
             Message::Open(url) => {
                 if let Err(e) = open::that(url) {
-                    self.notifications.push(Notification::error(e.to_string()));
+                    self.notifications.push(Notification::error(e));
                 }
 
                 Task::none()
@@ -73,11 +69,20 @@ impl AppState {
                 self.current_modal = None;
                 Task::none()
             }
-            Message::GotDiscInfo(new_meta) => {
+            Message::GotDiscInfo(Ok(new_meta)) => {
                 if let Some(Modal::GameInfo((_, meta))) = &mut self.current_modal {
                     *meta = Some(new_meta);
                 }
 
+                Task::none()
+            }
+            Message::GotDiscInfo(Err(e)) => {
+                self.notifications.push(Notification::error(e));
+                Task::none()
+            }
+            Message::WroteConfig(Ok(())) => Task::none(),
+            Message::WroteConfig(Err(e)) => {
+                self.notifications.push(Notification::error(e));
                 Task::none()
             }
         }

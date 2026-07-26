@@ -3,13 +3,13 @@
 
 use crate::{
     config::Config,
+    errors::Error,
     games::{self, game::Game},
     messages::Message,
     notifications::Notification,
     ui::{components::Modal, dialogs, pages::Page},
     util::drive_info::DriveInfo,
 };
-use anyhow::anyhow;
 use iced::Task;
 use smol::fs::File;
 use std::path::PathBuf;
@@ -43,10 +43,7 @@ impl AppState {
 
     pub fn write_config_task(&self) -> Task<Message> {
         let config = self.config.clone();
-        Task::perform(async move { config.write().await }, |res| match res {
-            Ok(()) => Message::NoOp,
-            Err(e) => Message::Notify(Notification::error(e.to_string())),
-        })
+        Task::perform(async move { config.write().await }, Message::WroteConfig)
     }
 
     pub fn load_config_task(&self) -> Task<Message> {
@@ -67,10 +64,7 @@ impl AppState {
 
         Task::perform(
             games::list(data_dir, mount_point, sort_by),
-            |res| match res {
-                Ok(games) => Message::GotGames(games),
-                Err(e) => Message::CouldNotGetGames(e.to_string()),
-            },
+            Message::GotGames,
         )
     }
 
@@ -81,10 +75,7 @@ impl AppState {
         }
 
         let mount_point = mount_point.clone();
-        Task::perform(DriveInfo::try_from_path(mount_point), |res| match res {
-            Ok(drive_info) => Message::GotDriveInfo(drive_info),
-            Err(e) => Message::CouldNotGetDriveInfo(e.to_string()),
-        })
+        Task::perform(DriveInfo::try_from_path(mount_point), Message::GotDriveInfo)
     }
 
     pub fn get_disc_info_task(&self, game_i: usize) -> Task<Message> {
@@ -92,20 +83,14 @@ impl AppState {
 
         Task::perform(
             async move {
-                let disc_path = game
-                    .get_disc_path()
-                    .await
-                    .ok_or_else(|| anyhow!("Disc not found"))?;
+                let disc_path = game.get_disc_path().await.ok_or(Error::DiscNotFound)?;
 
                 let mut file = File::open(&disc_path).await?;
                 let meta = wii_disc_info::Meta::read(&mut file).await?;
 
-                Ok(meta)
+                Ok(Box::new(meta))
             },
-            |res: Result<_, anyhow::Error>| match res {
-                Ok(meta) => Message::GotDiscInfo(Box::new(meta)),
-                Err(e) => Message::Notify(Notification::error(e.to_string())),
-            },
+            Message::GotDiscInfo,
         )
     }
 }

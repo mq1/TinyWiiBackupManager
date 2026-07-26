@@ -1,8 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::util;
-use anyhow::{Result, bail};
+use crate::{errors::Error, util};
 use size::Size;
 use std::path::Path;
 use which_fs::FsKind;
@@ -18,11 +17,11 @@ pub struct DriveInfo {
 }
 
 impl DriveInfo {
-    pub async fn try_from_path(path: impl AsRef<Path>) -> Result<Self> {
+    pub async fn try_from_path(path: impl AsRef<Path>) -> Result<Self, Error> {
         let path = path.as_ref();
 
         if !path.is_dir() {
-            bail!("Not a directory");
+            return Err(Error::NotADirectory);
         }
 
         let stat = fs4::statvfs(path)?;

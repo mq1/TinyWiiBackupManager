@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use anyhow::Result;
+use crate::errors::Error;
 use serde::{Deserialize, Serialize};
 use smol::fs;
 use std::path::{Path, PathBuf};
@@ -21,7 +21,7 @@ impl Config {
         Self { path, contents }
     }
 
-    pub async fn write(&self) -> Result<()> {
+    pub async fn write(&self) -> Result<(), Error> {
         let s = serde_json::to_string_pretty(&self.contents)?;
         fs::write(&self.path, s).await?;
         Ok(())

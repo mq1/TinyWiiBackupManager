@@ -6,7 +6,6 @@ version = 4
 name = "TinyWiiBackupManager"
 version = "6.1.0"
 dependencies = [
- "anyhow",
  "async_zip",
  "directories",
  "fs4",
@@ -24,6 +23,7 @@ dependencies = [
  "size",
  "smol",
  "sys-locale",
+ "thiserror 2.0.19",
  "wgpu",
  "which-fs",
  "wii-disc-info",
@@ -123,12 +123,6 @@ checksum = "819e7219dbd41043ac279b19830f2efc897156490d7fd6ea916720117ee66311"
 dependencies = [
  "libc",
 ]
-
-[[package]]
-name = "anyhow"
-version = "1.0.104"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "330a5ed07fa54e4702c9d6c4174f74427fc0ef6e214bbd677ae50a5099946470"
 
 [[package]]
 name = "arrayref"

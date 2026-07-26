@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::errors::Error;
 use serde::Deserialize;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Default)]
@@ -43,9 +44,9 @@ impl Notification {
         }
     }
 
-    pub fn error(label: impl ToString) -> Self {
+    pub fn error(err: impl Into<Error>) -> Self {
         Self {
-            label: label.to_string(),
+            label: err.into().to_string(),
             level: NotificationLevel::Error,
         }
     }
