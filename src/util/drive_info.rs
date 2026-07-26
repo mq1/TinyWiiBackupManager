@@ -21,7 +21,7 @@ impl DriveInfo {
         let path = path.as_ref();
 
         if !path.is_dir() {
-            return Err(Error::NotADirectory);
+            return Err(Error::NotADir);
         }
 
         let stat = fs4::statvfs(path)?;

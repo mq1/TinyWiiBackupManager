@@ -21,10 +21,10 @@ pub enum Error {
     InvalidDirName,
 
     #[error("Path is not a directory")]
-    NotADirectory,
+    NotADir,
 
-    #[error("Hidden file or directory")]
-    HiddenFileOrDir,
+    #[error("Hidden directory")]
+    HiddenDir,
 }
 
 impl From<std::io::Error> for Error {

@@ -29,7 +29,7 @@ impl Game {
 
         // Check if the path is a directory
         if !fs::metadata(&path).await?.is_dir() {
-            return Err(Error::NotADirectory);
+            return Err(Error::NotADir);
         }
 
         // Get the directory name
@@ -39,7 +39,7 @@ impl Game {
             .ok_or(Error::InvalidDirName)?;
 
         if dir_name.starts_with('.') {
-            return Err(Error::HiddenFileOrDir);
+            return Err(Error::HiddenDir);
         }
 
         // Extract title and id from the directory name
