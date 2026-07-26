@@ -11,22 +11,21 @@ use crate::{
     },
 };
 use iced::{
-    Element, Length, border,
-    widget::{container, row, stack, text},
+    Color, Element, Length, border,
+    widget::{container, opaque, row, stack, text},
 };
 
 pub fn view(state: &AppState) -> Element<'_, Message> {
     let modal: Element<_> = match &state.current_modal {
-        Some(modal) => container(match modal {
-            Modal::GameInfo((idx, disc_info)) => {
-                components::game_info::view(&state.games[*idx], disc_info.as_deref())
-            }
-        })
-        .center(Length::Fill)
-        .style(|theme| {
-            container::transparent(theme).background(theme.palette().background.scale_alpha(0.5))
-        })
-        .into(),
+        Some(modal) => opaque(
+            container(match modal {
+                Modal::GameInfo((idx, disc_info)) => {
+                    components::game_info::view(&state.games[*idx], disc_info.as_deref())
+                }
+            })
+            .center(Length::Fill)
+            .style(|theme| container::transparent(theme).background(Color::BLACK.scale_alpha(0.7))),
+        ),
         None => text("").into(),
     };
 
