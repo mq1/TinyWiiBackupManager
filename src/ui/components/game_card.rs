@@ -9,7 +9,7 @@ use iced::{
 use iced_palace::widget::ellipsized_text;
 use lucide_icons::{Icon, iced::icon_tag};
 
-pub fn view<'a>((idx, game): (usize, &'a Game)) -> Element<'a, Message> {
+pub fn view((idx, game): (usize, &Game)) -> Element<'_, Message> {
     components::card::view(
         column![
             row![

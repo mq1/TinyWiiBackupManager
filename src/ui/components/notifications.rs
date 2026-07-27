@@ -16,7 +16,7 @@ use iced::{
 };
 use lucide_icons::iced::{icon_alert_triangle, icon_check, icon_info, icon_x};
 
-pub fn view<'a>(state: &'a AppState) -> Element<'a, Message> {
+pub fn view(state: &AppState) -> Element<'_, Message> {
     state
         .notifications
         .iter()

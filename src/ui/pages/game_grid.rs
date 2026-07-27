@@ -11,7 +11,7 @@ use iced::{
     widget::{Row, column},
 };
 
-pub fn view<'a>(state: &'a AppState) -> Element<'a, Message> {
+pub fn view(state: &AppState) -> Element<'_, Message> {
     let content = state
         .games
         .iter()

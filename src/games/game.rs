@@ -53,7 +53,7 @@ impl Game {
         // Parse the id
         let id = id_raw[..id_raw.len() - 1]
             .parse::<GameID>()
-            .map_err(|_| Error::InvalidDirName)?;
+            .map_err(|()| Error::InvalidDirName)?;
 
         let title = title_raw.trim().to_string();
         let size = util::misc::get_dir_size(&path).await;

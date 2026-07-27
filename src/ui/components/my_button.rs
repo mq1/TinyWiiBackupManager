@@ -8,7 +8,7 @@ use iced::{
 };
 use lucide_icons::Icon;
 
-pub fn view<'a>(label: Option<&'a str>, icon: Option<Icon>) -> Button<'a, Message> {
+pub fn view(label: Option<&str>, icon: Option<Icon>) -> Button<'_, Message> {
     let content = [
         icon.map(|i| i.widget().into()),
         label.map(|l| text(l).into()),
@@ -32,7 +32,7 @@ pub fn view<'a>(label: Option<&'a str>, icon: Option<Icon>) -> Button<'a, Messag
     })
 }
 
-pub fn primary<'a>(label: Option<&'a str>, icon: Option<Icon>) -> Button<'a, Message> {
+pub fn primary(label: Option<&str>, icon: Option<Icon>) -> Button<'_, Message> {
     view(label, icon).style(|theme, status| {
         let mut base = button::primary(theme, status);
         base.border.radius = 12.into();

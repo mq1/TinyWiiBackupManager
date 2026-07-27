@@ -7,7 +7,7 @@ use iced::{
     widget::{column, text},
 };
 
-pub fn view<'a>(_state: &'a AppState) -> Element<'a, Message> {
+pub fn view(_state: &AppState) -> Element<'_, Message> {
     let col = column![text("Toolbox")].padding(10);
 
     col.into()
