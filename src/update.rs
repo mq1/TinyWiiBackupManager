@@ -9,13 +9,13 @@ use iced::Task;
 impl AppState {
     pub fn update(&mut self, message: Message) -> Task<Message> {
         match message {
-            Message::NoOp => Task::none(),
             Message::NavigateTo(page) => {
                 self.current_page = page;
                 Task::none()
             }
             Message::PickMountPoint => self.pick_mount_point_task(),
-            Message::MountPointPicked(path) => {
+            Message::MountPointPicked(None) => Task::none(),
+            Message::MountPointPicked(Some(path)) => {
                 self.config.contents.mount_point = path;
                 self.write_config_task()
             }

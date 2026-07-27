@@ -8,10 +8,9 @@ use std::{ffi::OsString, path::PathBuf};
 
 #[derive(Debug, Clone)]
 pub enum Message {
-    NoOp,
     NavigateTo(Page),
     PickMountPoint,
-    MountPointPicked(PathBuf),
+    MountPointPicked(Option<PathBuf>),
     RefreshGamesAndApps,
     CloseNotification(usize),
     GotConfig(Config),

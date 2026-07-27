@@ -54,7 +54,7 @@ impl AppState {
     pub fn pick_mount_point_task(&self) -> Task<Message> {
         iced::window::oldest()
             .and_then(|id| iced::window::run(id, dialogs::pick_mount_point))
-            .map(|res| res.map_or(Message::NoOp, Message::MountPointPicked))
+            .map(Message::MountPointPicked)
     }
 
     pub fn get_games_task(&self) -> Task<Message> {
