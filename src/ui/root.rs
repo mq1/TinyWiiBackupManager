@@ -12,24 +12,11 @@ use crate::{
 };
 use iced::{
     Color, Element, Length, border,
-    widget::{container, opaque, row, stack, text},
+    widget::{Stack, container, opaque, row},
 };
 
 pub fn view(state: &AppState) -> Element<'_, Message> {
-    let modal: Element<_> = match &state.current_modal {
-        Some(modal) => opaque(
-            container(match modal {
-                Modal::GameInfo((idx, disc_info)) => {
-                    components::game_info::view(&state.games[*idx], disc_info.as_deref())
-                }
-            })
-            .center(Length::Fill)
-            .style(|theme| container::transparent(theme).background(Color::BLACK.scale_alpha(0.7))),
-        ),
-        None => text("").into(),
-    };
-
-    container(stack![
+    let content = Some(
         row![
             components::sidebar::view(state),
             container(match state.current_page {
@@ -44,12 +31,32 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
                 base.border.radius = border::radius(10);
                 base
             })
-        ],
-        modal,
+        ]
+        .into(),
+    );
+
+    let modal = state.current_modal.as_ref().map(|modal| {
+        opaque(
+            container(match modal {
+                Modal::GameInfo((idx, disc_info)) => {
+                    components::game_info::view(&state.games[*idx], disc_info.as_deref())
+                }
+            })
+            .center(Length::Fill)
+            .style(|theme| container::transparent(theme).background(Color::BLACK.scale_alpha(0.7))),
+        )
+    });
+
+    let notifications = (!state.notifications.is_empty()).then(|| {
         container(components::notifications::view(state))
             .align_right(Length::Fill)
             .align_bottom(Length::Fill)
-    ])
-    .style(|theme| container::background(my_palette::card_bg(theme)))
-    .into()
+            .into()
+    });
+
+    let stack = Stack::with_children([content, modal, notifications].into_iter().flatten());
+
+    container(stack)
+        .style(|theme| container::background(my_palette::card_bg(theme)))
+        .into()
 }
