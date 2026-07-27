@@ -84,10 +84,8 @@ impl AppState {
         Task::perform(
             async move {
                 let disc_path = game.get_disc_path().await.ok_or(Error::DiscNotFound)?;
-
                 let mut file = File::open(&disc_path).await?;
                 let meta = wii_disc_info::Meta::read(&mut file).await?;
-
                 Ok(Box::new(meta))
             },
             Message::GotDiscInfo,

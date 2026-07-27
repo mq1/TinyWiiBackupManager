@@ -14,6 +14,9 @@ pub enum Error {
     #[error("HTTP error: {0}")]
     Http(#[from] isahc::Error),
 
+    #[error(transparent)]
+    WiiDiscInfo(#[from] wii_disc_info::errors::Error),
+
     #[error("Disc not found")]
     DiscNotFound,
 
