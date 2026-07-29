@@ -1,20 +1,17 @@
 // SPDX-FileCopyrightText: 2026 Manuel Quarneti <mq1@ik.me>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use serde::Deserialize;
 use std::{fmt, str::FromStr};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(transparent)]
-#[serde(transparent)]
 pub struct GameID {
     inner: [u8; 6],
 }
 
 impl GameID {
     pub fn as_str(&self) -> &str {
-        let fifth = unsafe { *self.inner.get_unchecked(4) };
-        let end = if fifth == 0 { 4 } else { 6 };
+        let end = if self.inner[4] == 0 { 4 } else { 6 };
         unsafe { std::str::from_utf8_unchecked(&self.inner[..end]) }
     }
 
@@ -30,6 +27,7 @@ impl FromStr for GameID {
         let len = s.len();
 
         let has_right_len = len == 4 || len == 6;
+
         let has_valid_chars = s
             .chars()
             .all(|c| c.is_ascii_uppercase() || c.is_ascii_digit());
