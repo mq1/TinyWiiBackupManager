@@ -5,6 +5,7 @@ use crate::{errors::Error, games::game_id::GameID, util};
 use size::Size;
 use smol::fs;
 use std::{
+    borrow::Cow,
     ffi::OsStr,
     path::{Path, PathBuf},
 };
@@ -13,7 +14,7 @@ use std::{
 pub struct Game {
     pub path: PathBuf,
     pub id: GameID,
-    pub title: String,
+    pub title: Cow<'static, str>,
     pub size: Size,
     pub is_wii: bool,
     pub cached_cover_path: PathBuf,
@@ -45,17 +46,20 @@ impl Game {
         // Extract title and id from the directory name
         let (title_raw, id_raw) = dir_name.split_once('[').ok_or(Error::InvalidDirName)?;
 
-        // Check if the id is enclosed in square brackets
-        if !id_raw.ends_with(']') {
+        let Some(id_raw) = id_raw.strip_suffix(']') else {
             return Err(Error::InvalidDirName);
-        }
+        };
 
         // Parse the id
-        let id = id_raw[..id_raw.len() - 1]
+        let id = id_raw
             .parse::<GameID>()
             .map_err(|()| Error::InvalidDirName)?;
 
-        let title = title_raw.trim().to_string();
+        // get the pretty title
+        let title = twbm_idmap::get_title(id)
+            .map(Cow::Borrowed)
+            .unwrap_or_else(|| Cow::Owned(title_raw.trim().to_string()));
+
         let size = util::misc::get_dir_size(&path).await;
 
         let cached_cover_path = covers_dir.join(id.as_str()).with_extension("png");
