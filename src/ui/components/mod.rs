@@ -5,6 +5,8 @@ pub mod card;
 pub mod game_card;
 pub mod game_info;
 pub mod games_titlebar;
+pub mod homebrew_app_card;
+pub mod homebrew_apps_titlebar;
 pub mod link;
 pub mod my_button;
 pub mod notifications;

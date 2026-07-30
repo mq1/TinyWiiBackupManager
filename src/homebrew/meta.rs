@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::errors::Error;
-use std::{fs, io, path::PathBuf};
+use std::{fs, path::PathBuf};
 
 fn get_value(contents: &str, start_pattern: &str, end_pattern: &str) -> Option<String> {
     let start = contents.find(start_pattern)?;

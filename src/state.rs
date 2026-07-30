@@ -5,6 +5,7 @@ use crate::{
     config::Config,
     errors::Error,
     games::{self, game::Game},
+    homebrew::homebrew_app::HomebrewApp,
     messages::Message,
     notifications::Notification,
     ui::{components::Modal, dialogs, pages::Page},
@@ -20,6 +21,7 @@ pub(crate) struct AppState {
     pub notifications: Vec<Notification>,
     pub drive_info: Option<DriveInfo>,
     pub games: Vec<Game>,
+    pub homebrew_apps: Vec<HomebrewApp>,
     pub current_page: Page,
     pub current_modal: Option<Modal>,
 }
@@ -32,6 +34,7 @@ impl AppState {
             notifications: Vec::new(),
             drive_info: None,
             games: Vec::new(),
+            homebrew_apps: Vec::new(),
             current_page: Page::Games,
             current_modal: None,
         };

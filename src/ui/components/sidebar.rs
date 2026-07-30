@@ -16,7 +16,11 @@ pub fn view<'a>(state: &AppState) -> Element<'a, Message> {
     column![
         components::sidebar_button::view(&[Icon::Gamepad2], state.current_page == Page::Games)
             .on_press(Message::NavigateTo(Page::Games)),
-        components::sidebar_button::view(&[Icon::Waves, Icon::Bubbles], false),
+        components::sidebar_button::view(
+            &[Icon::Waves, Icon::Bubbles],
+            state.current_page == Page::HomebrewApps
+        )
+        .on_press(Message::NavigateTo(Page::HomebrewApps)),
         components::sidebar_button::view(&[Icon::Waves, Icon::ArrowBigDown], false),
         components::sidebar_button::view(&[Icon::ToolCase], state.current_page == Page::Toolbox)
             .on_press(Message::NavigateTo(Page::Toolbox)),

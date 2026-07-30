@@ -21,6 +21,7 @@ pub fn view(state: &AppState) -> Element<'_, Message> {
             components::sidebar::view(state),
             container(match state.current_page {
                 Page::Games => pages::game_grid::view(state),
+                Page::HomebrewApps => pages::homebrew_app_grid::view(state),
                 Page::Settings => pages::settings::view(),
                 Page::Toolbox => pages::toolbox::view(state),
             })

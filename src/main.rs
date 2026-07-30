@@ -7,6 +7,7 @@
 mod config;
 mod errors;
 mod games;
+mod homebrew;
 mod messages;
 mod notifications;
 mod state;
