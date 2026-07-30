@@ -4,5 +4,5 @@
 const BYTES: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/sha1_list.bin"));
 
 pub fn is_known(sha1: &[u8; 20]) -> bool {
-    unsafe { BYTES.as_chunks_unchecked().contains(sha1) }
+    unsafe { BYTES.as_chunks_unchecked().binary_search(sha1).is_ok() }
 }
