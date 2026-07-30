@@ -17,7 +17,7 @@ fn extract_sha1_list(dat_path: &str, set: &mut BTreeSet<[u8; 20]>) {
         let next_quote = remaining.find('"').unwrap();
         let sha1 = &remaining[..next_quote];
 
-        assert!(sha1.len() == 40);
+        assert_eq!(sha1.len(), 40);
 
         let mut sha1_bytes = [0u8; 20];
         hex::decode_to_slice(sha1, &mut sha1_bytes).unwrap();

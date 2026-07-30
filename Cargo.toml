@@ -35,10 +35,10 @@ smol = "2"
 thiserror = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-directories = "6.0"
+directories = "6"
 sys-locale = "0.3"
 size = { version = "0.5", features = ["serde"] }
-fs4 = { version = "1.1", default-features = false }
+fs4 = { version = "1", default-features = false }
 which-fs = "0.2"
 isahc = { version = "2", default-features = false }
 open = "5"

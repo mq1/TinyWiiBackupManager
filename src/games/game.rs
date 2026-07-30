@@ -57,8 +57,7 @@ impl Game {
 
         // get the pretty title
         let title = twbm_idmap::get_title(id)
-            .map(Cow::Borrowed)
-            .unwrap_or_else(|| Cow::Owned(title_raw.trim().to_string()));
+            .map_or_else(|| Cow::Owned(title_raw.trim().to_string()), Cow::Borrowed);
 
         let size = util::misc::get_dir_size(&path).await;
 

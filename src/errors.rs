@@ -28,6 +28,9 @@ pub enum Error {
 
     #[error("Hidden directory")]
     HiddenDir,
+
+    #[error("Invalid homebrew app meta")]
+    InvalidHomebrewAppMeta,
 }
 
 impl From<std::io::Error> for Error {
