@@ -79,6 +79,9 @@ wgpu = { version = "27.0", default-features = false, features = [
     "metal",
 ] }
 
+[build-dependencies]
+hex = { version = "0.4", default-features = false }
+
 # tiny and fast
 [profile.release]
 opt-level = 3
