@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    config::Config, errors::Error, games::game::Game, ui::pages::Page, util::drive_info::DriveInfo,
+    config::Config, errors::Error, games::game::Game, homebrew::homebrew_app::HomebrewApp,
+    ui::pages::Page, util::drive_info::DriveInfo,
 };
 use std::{ffi::OsString, path::PathBuf};
 
@@ -15,6 +16,7 @@ pub enum Message {
     CloseNotification(usize),
     GotConfig(Config),
     GotGames(Result<Vec<Game>, Error>),
+    GotHomebrewApps(Result<Vec<HomebrewApp>, Error>),
     GotDriveInfo(Result<DriveInfo, Error>),
     Open(OsString),
     OpenGameInfo(usize),

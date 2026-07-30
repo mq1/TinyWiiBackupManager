@@ -21,7 +21,7 @@ use lucide_icons::LUCIDE_FONT_BYTES;
 pub fn main() -> iced::Result {
     let data_dir = util::data_dir::get_data_dir().expect("Unable to get data directory");
 
-    let boot = move || AppState::new(&data_dir);
+    let boot = move || AppState::new(data_dir.clone());
 
     let settings = iced::Settings {
         fonts: vec![LUCIDE_FONT_BYTES.into()],

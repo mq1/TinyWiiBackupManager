@@ -24,14 +24,7 @@ async fn scan_dir(covers_dir: &Path, dir_path: &Path, is_wii: bool) -> Vec<Game>
         .await
 }
 
-pub async fn list(
-    data_dir: impl AsRef<Path>,
-    root_path: impl AsRef<Path>,
-    sort_by: SortBy,
-) -> Result<Vec<Game>, Error> {
-    let data_dir = data_dir.as_ref();
-    let root_path = root_path.as_ref();
-
+pub async fn list(data_dir: &Path, root_path: &Path, sort_by: SortBy) -> Result<Vec<Game>, Error> {
     let covers_dir = data_dir.join("covers");
     fs::create_dir_all(&covers_dir).await?;
 

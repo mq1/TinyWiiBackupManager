@@ -3,7 +3,7 @@
 
 use crate::{games::game::Game, messages::Message, ui::components};
 use iced::{
-    Alignment, Element,
+    Alignment, Element, Length,
     widget::{column, image, row, space, text},
 };
 use iced_palace::widget::ellipsized_text;
@@ -23,7 +23,8 @@ pub fn view((idx, game): (usize, &Game)) -> Element<'_, Message> {
             ellipsized_text(&game.title).wrapping(text::Wrapping::None),
             row![
                 components::my_button::view(Some("Info"), Some(Icon::Info))
-                    .on_press(Message::OpenGameInfo(idx)),
+                    .on_press(Message::OpenGameInfo(idx))
+                    .width(Length::Fill),
                 components::my_button::view(None, Some(Icon::HardDriveDownload)),
                 components::my_button::view(None, Some(Icon::Trash))
             ]

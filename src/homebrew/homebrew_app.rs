@@ -7,6 +7,7 @@ use size::Size;
 use smol::fs;
 use std::{ffi::OsStr, path::PathBuf};
 
+#[derive(Debug, Clone)]
 pub struct HomebrewApp {
     pub path: PathBuf,
     pub meta: HomebrewAppMeta,

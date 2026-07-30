@@ -3,8 +3,10 @@
 
 use crate::messages::Message;
 use iced::{
+    Alignment, Length,
+    advanced::Widget,
     border::Border,
-    widget::{Button, Row, button, text},
+    widget::{Button, Row, button, column, text},
 };
 use lucide_icons::Icon;
 
@@ -18,7 +20,14 @@ pub fn view(label: Option<&str>, icon: Option<Icon>) -> Button<'_, Message> {
     .collect::<Row<_>>()
     .spacing(5);
 
-    button(content).style(move |theme, status| {
+    let content_width = content.size_hint().width;
+
+    button(
+        column![content]
+            .align_x(Alignment::Center)
+            .width(Length::Fill),
+    )
+    .style(move |theme, status| {
         let palette = theme.extended_palette();
         let mut base = button::subtle(theme, status);
 
@@ -30,6 +39,7 @@ pub fn view(label: Option<&str>, icon: Option<Icon>) -> Button<'_, Message> {
 
         base
     })
+    .width(content_width)
 }
 
 pub fn primary(label: Option<&str>, icon: Option<Icon>) -> Button<'_, Message> {

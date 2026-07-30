@@ -2,10 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::errors::Error;
-use serde::Deserialize;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Default)]
-#[serde(rename_all = "snake_case")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum NotificationLevel {
     #[default]
     Info,
@@ -14,11 +12,9 @@ pub enum NotificationLevel {
     Success,
 }
 
-#[derive(Debug, Clone, Deserialize)]
-#[serde(rename_all = "snake_case")]
+#[derive(Debug, Clone)]
 pub struct Notification {
     pub label: String,
-    #[serde(default)]
     pub level: NotificationLevel,
 }
 

@@ -31,7 +31,11 @@ impl AppState {
                 self.config = config;
 
                 if new_mount_point {
-                    Task::batch([self.get_games_task(), self.get_drive_info_task()])
+                    Task::batch([
+                        self.get_games_task(),
+                        self.get_homebrew_apps_task(),
+                        self.get_drive_info_task(),
+                    ])
                 } else {
                     Task::none()
                 }
@@ -42,6 +46,15 @@ impl AppState {
             }
             Message::GotGames(Err(e)) => {
                 self.games.clear();
+                self.notifications.push(Notification::error(e));
+                Task::none()
+            }
+            Message::GotHomebrewApps(Ok(homebrew_apps)) => {
+                self.homebrew_apps = homebrew_apps;
+                Task::none()
+            }
+            Message::GotHomebrewApps(Err(e)) => {
+                self.homebrew_apps.clear();
                 self.notifications.push(Notification::error(e));
                 Task::none()
             }
