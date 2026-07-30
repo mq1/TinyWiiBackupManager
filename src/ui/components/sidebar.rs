@@ -12,7 +12,7 @@ use iced::{
 };
 use lucide_icons::Icon;
 
-pub fn view<'a>(state: &AppState) -> Element<'a, Message> {
+pub fn view(state: &AppState) -> Element<'_, Message> {
     column![
         components::sidebar_button::view(&[Icon::Gamepad2], state.current_page == Page::Games)
             .on_press(Message::NavigateTo(Page::Games)),
