@@ -7,19 +7,57 @@ use crate::{
     ui::components::{self, my_button},
 };
 use iced::{
-    Element,
-    widget::{column, row, rule, space, text},
+    Alignment, Element,
+    widget::{column, image, row, rule, space, text},
 };
-use lucide_icons::Icon;
+use lucide_icons::{
+    Icon,
+    iced::{icon_file_question, icon_gamepad, icon_globe, icon_notebook_pen, icon_pin, icon_tag},
+};
 
 pub fn view<'a>(
     game: &'a Game,
     disc_info: Option<&'a wii_disc_info::Meta>,
 ) -> Element<'a, Message> {
-    let content = if let Some(disc_info) = disc_info {
-        text!("Region: {}", disc_info.region())
+    let content: Element<'a, _> = if let Some(disc_info) = disc_info {
+        row![
+            column![
+                row![
+                    icon_file_question(),
+                    text!("Format: {}", disc_info.format())
+                ]
+                .spacing(5),
+                row![icon_tag(), text!("Game ID: {}", disc_info.game_id())].spacing(5),
+                row![
+                    icon_notebook_pen(),
+                    text!("Game Title: {}", disc_info.game_title())
+                ]
+                .spacing(5),
+                row![icon_globe(), text!("Region: {}", disc_info.region())].spacing(5),
+                row![
+                    icon_gamepad(),
+                    if disc_info.is_wii() {
+                        text("System: Wii")
+                    } else {
+                        text("System: GameCube")
+                    }
+                ]
+                .spacing(5),
+                row![
+                    icon_pin(),
+                    text!("Disc Version: {}", disc_info.disc_version())
+                ]
+                .spacing(5),
+            ]
+            .spacing(10),
+            space::horizontal(),
+            image(&game.cached_cover_path).height(200),
+        ]
+        .padding(20)
+        .align_y(Alignment::Center)
+        .into()
     } else {
-        text("No disc info available")
+        text("No disc info available").center().into()
     };
 
     components::card::view(
